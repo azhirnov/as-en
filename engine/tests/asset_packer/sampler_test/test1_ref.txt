@@ -1,0 +1,106 @@
+name:  'NearestClamp'
+Sampler{
+  usage:         Default
+  magFilter:     Nearest
+  minFilter:     Nearest
+  mipmapMode:    Nearest
+  addressMode:   ( ClampToEdge, ClampToEdge, ClampToEdge )
+  mipLodBias:    0.000000
+  minLod:        -1000.000000
+  maxLod:        1000.000000
+  borderColor:   FloatTransparentBlack
+  unnormCoord:   false
+  reductionMode: Average
+  features:      { 'MinimalFS' }
+--------------
+name:  'LinearMipmapRepeat'
+Sampler{
+  usage:         Default
+  magFilter:     Linear
+  minFilter:     Linear
+  mipmapMode:    Linear
+  addressMode:   ( Repeat, Repeat, Repeat )
+  mipLodBias:    0.000000
+  minLod:        -1000.000000
+  maxLod:        1000.000000
+  borderColor:   FloatTransparentBlack
+  unnormCoord:   false
+  reductionMode: Average
+  features:      { 'MinimalFS' }
+--------------
+name:  'LinearMipmapClamp'
+Sampler{
+  usage:         Default
+  magFilter:     Linear
+  minFilter:     Linear
+  mipmapMode:    Linear
+  addressMode:   ( ClampToEdge, ClampToEdge, ClampToEdge )
+  mipLodBias:    0.000000
+  minLod:        -1000.000000
+  maxLod:        1000.000000
+  borderColor:   FloatTransparentBlack
+  unnormCoord:   false
+  reductionMode: Average
+  features:      { 'MinimalFS' }
+--------------
+name:  'LinearClamp'
+Sampler{
+  usage:         Default
+  magFilter:     Linear
+  minFilter:     Linear
+  mipmapMode:    Nearest
+  addressMode:   ( ClampToEdge, ClampToEdge, ClampToEdge )
+  mipLodBias:    0.000000
+  minLod:        -1000.000000
+  maxLod:        1000.000000
+  borderColor:   FloatTransparentBlack
+  unnormCoord:   false
+  reductionMode: Average
+  features:      { 'MinimalFS' }
+--------------
+name:  'NearestRepeat'
+Sampler{
+  usage:         Default
+  magFilter:     Nearest
+  minFilter:     Nearest
+  mipmapMode:    Nearest
+  addressMode:   ( Repeat, Repeat, Repeat )
+  mipLodBias:    0.000000
+  minLod:        -1000.000000
+  maxLod:        1000.000000
+  borderColor:   FloatTransparentBlack
+  unnormCoord:   false
+  reductionMode: Average
+  features:      { 'MinimalFS' }
+--------------
+name:  'AnisotrophyRepeat'
+Sampler{
+  usage:         Default
+  magFilter:     Linear
+  minFilter:     Linear
+  mipmapMode:    Linear
+  addressMode:   ( Repeat, Repeat, Repeat )
+  mipLodBias:    0.000000
+  maxAnisotropy: 12.000000
+  minLod:        -1000.000000
+  maxLod:        1000.000000
+  borderColor:   FloatTransparentBlack
+  unnormCoord:   false
+  reductionMode: Average
+  features:      { 'MinimalFS', 'MinDesktop' }
+--------------
+name:  'LinearRepeat'
+Sampler{
+  usage:         Default
+  magFilter:     Linear
+  minFilter:     Linear
+  mipmapMode:    Nearest
+  addressMode:   ( Repeat, Repeat, Repeat )
+  mipLodBias:    0.000000
+  minLod:        -1000.000000
+  maxLod:        1000.000000
+  borderColor:   FloatTransparentBlack
+  unnormCoord:   false
+  reductionMode: Average
+  features:      { 'MinimalFS' }
+--------------

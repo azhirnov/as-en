@@ -1,0 +1,85 @@
+InputActionsAndroid {
+  '891542da' {
+  }
+}
+
+InputActionsGLFW {
+  '891542da' {
+    InputKey: MouseBtn1, state: Begin {
+      name:    ''
+      value:   none
+      gesture: Hold
+    }
+    InputKey: MouseBtn2, state: Begin {
+      name:    ''
+      value:   none
+      gesture: Down
+    }
+    InputKey: Escape, state: Begin {
+      name:    ''
+      value:   none
+      gesture: Down
+    }
+    InputKey: Enter, state: Begin {
+      name:    ''
+      value:   none
+      gesture: Down
+    }
+    InputKey: MouseBtn1, state: Update {
+      name:    ''
+      value:   none
+      gesture: Hold
+    }
+    InputKey: CursorPosXY, state: Update {
+      name:    ''
+      value:   Float2
+      gesture: Move
+    }
+    InputKey: MouseBtn1, state: End {
+      name:    ''
+      value:   none
+      gesture: Hold
+    }
+  }
+}
+
+InputActionsWinAPI {
+  '891542da' {
+    InputKey: MouseBtn0, state: Begin {
+      name:    ''
+      value:   none
+      gesture: Hold
+    }
+    InputKey: MouseBtn1, state: Begin {
+      name:    ''
+      value:   none
+      gesture: Down
+    }
+    InputKey: Enter, state: Begin {
+      name:    ''
+      value:   none
+      gesture: Down
+    }
+    InputKey: Escape, state: Begin {
+      name:    ''
+      value:   none
+      gesture: Down
+    }
+    InputKey: MouseBtn0, state: Update {
+      name:    ''
+      value:   none
+      gesture: Hold
+    }
+    InputKey: CursorPosXY, state: Update {
+      name:    ''
+      value:   Float2
+      gesture: Move
+    }
+    InputKey: MouseBtn0, state: End {
+      name:    ''
+      value:   none
+      gesture: Hold
+    }
+  }
+}
+

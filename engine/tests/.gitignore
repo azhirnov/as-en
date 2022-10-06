@@ -1,0 +1,5 @@
+/graphics/RenderGraph/temp
+/graphics_hl/DrawTests/temp
+/crash_report_server/output
+/build_server/output
+/ecs-st/Vulkan/temp

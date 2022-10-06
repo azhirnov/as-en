@@ -1,0 +1,291 @@
+
+RenderTechniques {
+  [0]
+    name     = 'MinForward'
+    features = {
+      'MinimalFS', 'part.Swapchain_RGBA8_UNorm'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Graphics1'
+        renderPass = 'Simple.Default'
+        subpass    = 'Main'
+      }
+      [1] Pass {
+        name       = 'Compute1'
+      }
+    }
+    pipelines = {
+      [0]  'compute_1.def', 30000000
+      [1]  'graphics_1 rp:Simple', 10000000
+    }
+  ----------------------
+}
+
+RenderStates {
+  [0]
+    renderState = {
+      depth = {
+        compareOp     = LEqual
+        write         = false
+        test          = true
+      }
+      inputAssembly = {
+        topology         = TriangleList
+        primitiveRestart = false
+      }
+    }
+}
+
+DepthStencilStates {
+  [0]
+    depthStencilState = {
+      depth = {
+        compareOp     = LEqual
+        write         = false
+        test          = true
+      }
+    }
+}
+
+DescrSetLayouts {
+  [0]
+    name  = Trace_Cs
+    usage = 0
+    [0] StorageBuffer {
+      name         = 'da4477af
+      vkIndex      = 0
+      mtlIndex     = 0
+      state        = ShaderStorage_RW | ComputeShader
+      staticSize   = 16 b
+      arrayStride  = 4 b
+    }
+  ----------------------
+  [1]
+    name  = DS_PerDraw
+    usage = UpdateTemplate | ArgumentBuffer
+    [0] UniformBuffer {
+      name         = 'drawUB
+      vkIndex      = 0
+      mtlIndex     = 0
+      state        = ShaderUniform | PreRasterizationShaders
+      staticSize   = 64 b
+      arrayStride  = 0 b
+    }
+  ----------------------
+  [2]
+    name  = DS_Material
+    usage = 0
+    [0] SampledImage {
+      name         = 'un_ColorTexture
+      vkIndex      = 0
+      mtlIndex     = fs: 0
+      state        = ShaderSample | FragmentShader
+      type         = FImage2D
+      format       = Unknown
+    }
+    [1] ImmutableSampler {
+      name         = 'un_ColorTexture_sampler
+      vkIndex      = 1
+      sampler      = { 'LinearRepeat' }
+    }
+  ----------------------
+  [3]
+    name  = DS_Compute
+    usage = 0
+    [0] StorageImage {
+      name         = 'un_OutImage
+      vkIndex      = 0
+      mtlIndex     = 0
+      state        = ShaderStorage_Write | ComputeShader
+      type         = FImage2D
+      format       = RGBA8_UNorm
+    }
+  ----------------------
+}
+
+PipelineLayouts {
+  [0]
+    [0] DescrSet {
+      name  = 'DS_Compute'
+      uid   = 3
+      index = 0
+    }
+  ----------------------
+  [1]
+    [0] DescrSet {
+      name  = 'DS_Material'
+      uid   = 2
+      index = 1
+    }
+    [1] DescrSet {
+      name  = 'DS_PerDraw'
+      uid   = 1
+      index = 2
+    }
+  ----------------------
+  [2]
+    [0] DescrSet {
+      name  = 'DS_Material'
+      uid   = 2
+      index = 1
+    }
+  ----------------------
+  [3]
+    [0] DescrSet {
+      name  = 'DS_Material'
+      uid   = 2
+      index = 0
+    }
+    [0] PushConst {
+      name       = 'pc1'
+		typename   = 'PushConst1'
+      stageFlags = Vertex
+      offset     = 0 b
+      size       = 16 b
+    }
+    [1] PushConst {
+      name       = 'pc2'
+		typename   = 'PushConst2'
+      stageFlags = Fragment
+      offset     = 16 b
+      size       = 16 b
+    }
+  ----------------------
+  [4]
+    [0] DescrSet {
+      name  = 'DS_Compute'
+      uid   = 3
+      index = 0
+    }
+    [1] DescrSet {
+      name  = 'fe8eb7db'
+      uid   = 0
+      index = 1
+    }
+  ----------------------
+}
+
+GraphicsPipelineTempl {
+  [0]
+    layout  = 1
+    shaders = {
+      Vertex : 30000001
+      Fragment : 30000002
+    }
+    topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
+    vertexBuffers = {
+      [0] {
+        name     = 'vb'
+        typeName = 'VBInput1'
+        rate     = Vertex
+        index    = 0
+        stride   = 16 b
+        attribs  = {
+          type   = Float3
+          offset = 0 b
+          index  = 0
+          -------------
+          type   = UShort2_Norm
+          offset = 12 b
+          index  = 1
+          -------------
+      }
+    }
+    patchControlPoints = 0
+    earlyFragmentTests = true
+    featureSets = { 'MinimalFS' }
+  ----------------------
+  [1]
+    layout  = 3
+    shaders = {
+      Vertex : 30000003
+      Fragment : 30000004
+    }
+    topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
+    vertexBuffers = {
+      [0] {
+        name     = 'vb'
+        typeName = 'VBInput2'
+        rate     = Vertex
+        index    = 0
+        stride   = 12 b
+        attribs  = {
+          type   = Float2
+          offset = 0 b
+          index  = 0
+          -------------
+          type   = UShort2_Norm
+          offset = 8 b
+          index  = 1
+          -------------
+      }
+    }
+    patchControlPoints = 0
+    earlyFragmentTests = true
+    featureSets = { 'MinimalFS' }
+  ----------------------
+}
+
+ComputePipelineTempl {
+  [0]
+    layout  = 0
+    shader  = 30000000
+    defaultLocalGroupSize = { Undefined, Undefined, Undefined }
+    localSizeSpec = { Undefined, Undefined, Undefined }
+    featureSets = { 'MinimalFS' }
+  ----------------------
+}
+
+GraphicsPipelineSpec {
+  [0]
+    templUID      = 10000000
+    rStateUID     = 0
+    dsStateUID    = 0
+    renderPass    = 'Simple'
+    subpass       = 'Main'
+    viewportCount = 1
+    dynamicState  = 0
+    options       = Optimize
+}
+
+ComputePipelineSpec {
+  [0]
+    templUID       = 30000000
+    dynamicState   = 0
+    options        = Optimize
+    localGroupSize = { Default, Default, Default }
+}
+
+PipelineTemplNames {
+  [0]  'graphics_2', 10000000
+  [1]  'graphics_3', 10000001
+  [2]  'compute_1', 30000000
+  [3]  'graphics_1', 10000000
+}
+
+MetalMacShaders {
+  [0]  offset = 0 b
+  [1]  offset = 3530 b
+  [2]  offset = 7 Kb
+  [3]  offset = 10 Kb
+  [4]  offset = 13 Kb
+}
+
+MetalMacShaderData {
+  [0]
+    codeSize = 3526 b
+    codeHash = ccde4734acf288fc
+  [1]
+    codeSize = 3647 b
+    codeHash = eab9e5b83410c3cf
+  [2]
+    codeSize = 3681 b
+    codeHash = d0b272654821e699
+  [3]
+    codeSize = 3295 b
+    codeHash = 4c1484ba68b85b59
+  [4]
+    codeSize = 3681 b
+    codeHash = d07572654893f799
+}

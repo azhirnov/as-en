@@ -1,0 +1,5 @@
+file( GLOB_RECURSE SOURCES "*.*" )
+add_library( "ECS-st" STATIC ${SOURCES} )
+source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
+set_property( TARGET "ECS-st" PROPERTY FOLDER "Engine" )
+target_link_libraries( "ECS-st" PUBLIC "Serializing" "Threading" )

@@ -1,0 +1,12 @@
+file( GLOB SOURCES "*.*" )
+if (DEFINED ANDROID)
+	add_library( "Tests.Base" STATIC ${SOURCES} )
+else()
+	add_executable( "Tests.Base" ${SOURCES} )
+endif()
+source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
+set_property( TARGET "Tests.Base" PROPERTY FOLDER "Engine/Tests" )
+target_link_libraries( "Tests.Base" PUBLIC "Base" )
+target_compile_definitions( "Tests.Base" PUBLIC AE_TEST_BASE )
+	
+add_test( NAME "Tests.Base" COMMAND "Tests.Base" )

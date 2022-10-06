@@ -1,0 +1,488 @@
+
+RenderTechniques {
+  [0]
+    name     = 'MinForward'
+    features = {
+      'MinimalFS', 'part.Swapchain_RGBA8_UNorm'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Graphics1'
+        renderPass = 'Simple.Default'
+        subpass    = 'Main'
+      }
+      [1] Pass {
+        name       = 'Compute1'
+      }
+    }
+    pipelines = {
+      [0]  'compute_1.def', 30000000
+      [1]  'graphics_1 rp:Simple', 10000000
+    }
+  ----------------------
+  [1]
+    name     = 'MeshForward'
+    features = {
+      'MinimalFS', 'part.Swapchain_RGBA8_UNorm', 'MinMeshShader'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Graphics1'
+        renderPass = 'Simple.Default'
+        subpass    = 'Main'
+      }
+    }
+    pipelines = {
+      [0]  'mesh_2 rp:Simple', 20000001
+      [1]  'mesh_1 rp:Simple', 20000000
+    }
+  ----------------------
+  [2]
+    name     = 'RayTracing'
+    features = {
+      'MinRecursiveRayTracing'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Trace1'
+      }
+    }
+    pipelines = {
+      [0]  'raytracing_1.def', 40000000
+    }
+  ----------------------
+}
+
+RenderStates {
+  [0]
+    renderState = {
+      depth = {
+        compareOp     = LEqual
+        write         = false
+        test          = true
+      }
+      inputAssembly = {
+        topology         = TriangleList
+        primitiveRestart = false
+      }
+    }
+  [1]
+    renderState = {
+      depth = {
+        compareOp     = LEqual
+        write         = false
+        test          = true
+      }
+    }
+}
+
+DepthStencilStates {
+  [0]
+    depthStencilState = {
+      depth = {
+        compareOp     = LEqual
+        write         = false
+        test          = true
+      }
+    }
+}
+
+DescrSetLayouts {
+  [0]
+    name  = Trace_Cs
+    usage = 0
+    [0] StorageBuffer {
+      name         = 'dbg_ShaderTrace
+      vkIndex      = 0
+      mtlIndex     = 0
+      state        = ShaderStorage_RW | ComputeShader
+      staticSize   = 16 b
+      arrayStride  = 4 b
+    }
+  ----------------------
+  [1]
+    name  = DS_PerDraw
+    usage = UpdateTemplate | ArgumentBuffer
+    [0] UniformBuffer {
+      name         = 'drawUB
+      vkIndex      = 0
+      mtlIndex     = 0
+      state        = ShaderUniform | PreRasterizationShaders
+      staticSize   = 64 b
+      arrayStride  = 0 b
+    }
+  ----------------------
+  [2]
+    name  = DS_Material
+    usage = 0
+    [0] SampledImage {
+      name         = 'un_ColorTexture
+      vkIndex      = 0
+      mtlIndex     = fs: 0
+      state        = ShaderSample | FragmentShader
+      type         = FImage2D
+      format       = Unknown
+    }
+    [1] ImmutableSampler {
+      name         = 'un_ColorTexture_sampler
+      vkIndex      = 1
+      sampler      = { 'LinearRepeat' }
+    }
+  ----------------------
+  [3]
+    name  = DS_Compute
+    usage = 0
+    [0] StorageImage {
+      name         = 'un_OutImage
+      vkIndex      = 0
+      mtlIndex     = 0
+      state        = ShaderStorage_Write | ComputeShader
+      type         = FImage2D
+      format       = RGBA8_UNorm
+    }
+  ----------------------
+  [4]
+    name  = DS_RayTracing
+    usage = 0
+    [0] StorageImage {
+      name         = 'un_OutImage
+      vkIndex      = 0
+      state        = ShaderStorage_Write | RayTracingShaders
+      type         = FImage2D
+      format       = RGBA8_UNorm
+    }
+    [1] RayTracingScene {
+      name         = 'un_TLAS
+      vkIndex      = 1
+    }
+  ----------------------
+}
+
+PipelineLayouts {
+  [0]
+    [0] DescrSet {
+      name  = 'DS_Compute'
+      uid   = 3
+      index = 0
+    }
+  ----------------------
+  [1]
+    [0] DescrSet {
+      name  = 'DS_Material'
+      uid   = 2
+      index = 1
+    }
+    [1] DescrSet {
+      name  = 'DS_PerDraw'
+      uid   = 1
+      index = 2
+    }
+  ----------------------
+  [2]
+    [0] DescrSet {
+      name  = 'DS_RayTracing'
+      uid   = 4
+      index = 0
+    }
+  ----------------------
+  [3]
+    [0] DescrSet {
+      name  = 'DS_Material'
+      uid   = 2
+      index = 1
+    }
+  ----------------------
+  [4]
+    [0] DescrSet {
+      name  = 'DS_Material'
+      uid   = 2
+      index = 0
+    }
+    [0] PushConst {
+      name       = 'pc1'
+		typename   = 'PushConst1'
+      stageFlags = Vertex
+      offset     = 0 b
+      size       = 16 b
+    }
+    [1] PushConst {
+      name       = 'pc2'
+		typename   = 'PushConst2'
+      stageFlags = Fragment
+      offset     = 16 b
+      size       = 16 b
+    }
+  ----------------------
+  [5]
+    [0] DescrSet {
+      name  = 'DS_Compute'
+      uid   = 3
+      index = 0
+    }
+    [1] DescrSet {
+      name  = 'fe8eb7db'
+      uid   = 0
+      index = 1
+    }
+  ----------------------
+}
+
+GraphicsPipelineTempl {
+  [0]
+    layout  = 1
+    shaders = {
+      Vertex : 10000001
+      Fragment : 10000002
+    }
+    topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
+    vertexBuffers = {
+      [0] {
+        name     = 'vb'
+        typeName = 'VBInput1'
+        rate     = Vertex
+        index    = 0
+        stride   = 16 b
+        attribs  = {
+          type   = Float3
+          offset = 0 b
+          index  = 0
+          -------------
+          type   = UShort2_Norm
+          offset = 12 b
+          index  = 1
+          -------------
+      }
+    }
+    patchControlPoints = 0
+    earlyFragmentTests = true
+    featureSets = { 'MinimalFS' }
+  ----------------------
+  [1]
+    layout  = 4
+    shaders = {
+      Vertex : 10000003
+      Fragment : 10000004
+    }
+    topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
+    vertexBuffers = {
+      [0] {
+        name     = 'vb'
+        typeName = 'VBInput2'
+        rate     = Vertex
+        index    = 0
+        stride   = 12 b
+        attribs  = {
+          type   = Float2
+          offset = 0 b
+          index  = 0
+          -------------
+          type   = UShort2_Norm
+          offset = 8 b
+          index  = 1
+          -------------
+      }
+    }
+    patchControlPoints = 0
+    earlyFragmentTests = true
+    featureSets = { 'MinimalFS' }
+  ----------------------
+}
+
+MeshPipelineTempl {
+  [0]
+    layout  = 3
+    shaders = {
+      Mesh : 10000005
+      Fragment : 10000006
+    }
+    topology             = TriangleList
+    maxVertices          = 3
+    maxIndices           = 3
+    defaultTaskGroupSize = Undefined
+    taskSizeSpec         = Undefined
+    defaultMeshGroupSize = 3
+    meshSizeSpec         = Undefined
+    earlyFragmentTests   = true
+    featureSets = { 'MinimalFS', 'MinMeshShader' }
+  ----------------------
+  [1]
+    layout  = 3
+    shaders = {
+      Mesh : 10000007
+      Fragment : 10000006
+    }
+    topology             = TriangleList
+    maxVertices          = 32
+    maxIndices           = 192
+    defaultTaskGroupSize = Undefined
+    taskSizeSpec         = Undefined
+    defaultMeshGroupSize = Undefined
+    meshSizeSpec         = 0
+    earlyFragmentTests   = true
+    featureSets = { 'MinimalFS', 'MinMeshShader' }
+  ----------------------
+}
+
+ComputePipelineTempl {
+  [0]
+    layout  = 5
+    shader  = 10000000
+    defaultLocalGroupSize = { 8, 8, 1 }
+    localSizeSpec = { 0, 1, Undefined }
+    featureSets = { 'MinimalFS' }
+  ----------------------
+}
+
+RayTracingPipelineTempl {
+  [0]
+    layout  = 2
+    featureSets = { 'MinRecursiveRayTracing' }
+    generalShaders = {
+      [0] {
+        name   = Main
+        shader = 10000008
+      }
+      [1] {
+        name   = Miss
+        shader = 10000009
+      }
+    }
+    triangleGroups = {
+      [0] {
+        name       = TriHit1
+        closestHit = 1000000a
+        anyHit     = none
+      }
+      [1] {
+        name       = TriHit2
+        closestHit = 1000000a
+        anyHit     = 1000000b
+      }
+    }
+    proceduralGroups = {
+      [0] {
+        name         = ProcHit1
+        intersection = 1000000c
+        closestHit   = none
+        anyHit       = none
+      }
+    }
+  ----------------------
+}
+
+GraphicsPipelineSpec {
+  [0]
+    templUID      = 10000000
+    rStateUID     = 0
+    dsStateUID    = 0
+    renderPass    = 'Simple'
+    subpass       = 'Main'
+    viewportCount = 1
+    dynamicState  = 0
+    options       = Optimize
+}
+
+MeshPipelineSpec {
+  [0]
+    templUID      = 20000000
+    rStateUID     = 1
+    dsStateUID    = 0
+    renderPass    = 'Simple'
+    subpass       = 'Main'
+    viewportCount = 1
+    dynamicState  = 0
+    options       = Optimize
+  [1]
+    templUID      = 20000001
+    rStateUID     = 1
+    dsStateUID    = 0
+    renderPass    = 'Simple'
+    subpass       = 'Main'
+    viewportCount = 1
+    dynamicState  = 0
+    options       = Optimize
+    meshGroupSize = 3
+}
+
+ComputePipelineSpec {
+  [0]
+    templUID       = 30000000
+    dynamicState   = 0
+    options        = Optimize
+    localGroupSize = { Default, Default, Default }
+}
+
+RayTracingPipelineSpec {
+  [0]
+    templUID       = 40000000
+    dynamicState   = 0
+    options        = Optimize
+}
+
+PipelineTemplNames {
+  [0]  'graphics_2', 10000000
+  [1]  'mesh_1', 20000000
+  [2]  'graphics_3', 10000001
+  [3]  'compute_1', 30000000
+  [4]  'graphics_1', 10000000
+  [5]  'mesh_2', 20000001
+  [6]  'raytracing_1', 40000000
+}
+
+SpirvShaders {
+  [0]  offset = 0 b
+  [1]  offset = 9 Kb
+  [2]  offset = 11 Kb
+  [3]  offset = 12 Kb
+  [4]  offset = 14 Kb
+  [5]  offset = 16 Kb
+  [6]  offset = 19 Kb
+  [7]  offset = 21 Kb
+  [8]  offset = 24 Kb
+  [9]  offset = 26 Kb
+  [10]  offset = 27 Kb
+  [11]  offset = 29 Kb
+  [12]  offset = 31 Kb
+}
+
+SpirvShaderData {
+  [0]
+    codeSize = 6 Kb
+    withTrace
+  [1]
+    codeSize = 2124 b
+    codeHash = 99066be05c80b21b
+  [2]
+    codeSize = 1528 b
+    codeHash = 70821af0e90d414b
+  [3]
+    codeSize = 2116 b
+    codeHash = efd82c9001702879
+  [4]
+    codeSize = 1652 b
+    codeHash = 7d7a73b5d4825d13
+  [5]
+    codeSize = 3000 b
+    codeHash = 7307c61bc56e4fb2
+  [6]
+    codeSize = 1808 b
+    codeHash = 5d2cbe2b798472c2
+  [7]
+    codeSize = 3064 b
+    codeHash = a0077cfe2ec0dd21
+  [8]
+    codeSize = 2560 b
+    codeHash = b0e8b2f41fec1fb7
+  [9]
+    codeSize = 1204 b
+    codeHash = cc814c8237217d02
+  [10]
+    codeSize = 1692 b
+    codeHash = c970834ffdaa0cf8
+  [11]
+    codeSize = 1972 b
+    codeHash = 9e4c9da3878a4873
+  [12]
+    codeSize = 2380 b
+    codeHash = ce3006b01a41e763
+}
