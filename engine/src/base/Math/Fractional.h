@@ -125,4 +125,4 @@ namespace AE::Math
 	using FractionalI16	= Fractional< sshort >;
 
 
-}	// AE::Math
+} // AE::Math

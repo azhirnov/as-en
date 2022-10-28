@@ -65,10 +65,10 @@ namespace AE::Threading
 		
 		struct alignas(AE_CACHE_LINE) ChunkInfo
 		{
-			Atomic< HiLevelBits_t >	hiLevel;	// 0 - is unassigned bit, 1 - assigned bit
-			SpinLockRelaxed			guard;		// only for 'hiLevel' modification
+			Atomic< HiLevelBits_t >	hiLevel;		// 0 - is unassigned bit, 1 - assigned bit
+			SpinLockRelaxed			hiLevelGuard;	// only for 'hiLevel' modification
 
-			LowLevels_t				lowLevel;	// 0 - is unassigned bit, 1 - assigned bit
+			LowLevels_t				lowLevel;		// 0 - is unassigned bit, 1 - assigned bit
 			Atomic< void * >		memBlock;
 
 			#if AE_LFFIXEDBLOCKALLOC_DEBUG

@@ -82,11 +82,11 @@ namespace AE::Base::_hidden_
 		}
 	};
 
-}	// AE::Base::_hidden_
+} // AE::Base::_hidden_
 
 
 namespace AE::Base
 {
 	static constexpr Base::_hidden_::DefaultType		Default = {};
 
-}	// AE::Base
+} // AE::Base

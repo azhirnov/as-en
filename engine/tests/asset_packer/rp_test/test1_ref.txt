@@ -59,11 +59,32 @@ ci.pSubpasses   = {
   }
   [0].preserveAttachmentCount = 0
 }
-ci.dependencyCount = 0
+ci.dependencyCount = 2
+ci.pDependencies   = {
+  [0].pNext          != null
+  [0].srcSubpass      = VK_SUBPASS_EXTERNAL
+  [0].dstSubpass      = 0
+  [0].srcStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [0].srcAccessMask   = 0
+  [0].dstStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [0].dstAccessMask   = COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  [0].dependencyFlags = BY_REGION
+  [0].viewOffset      = 0
+  --------
+  [1].pNext          != null
+  [1].srcSubpass      = 0
+  [1].dstSubpass      = VK_SUBPASS_EXTERNAL
+  [1].srcStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [1].srcAccessMask   = COLOR_ATTACHMENT_WRITE
+  [1].dstStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [1].dstAccessMask   = SHADER_SAMPLED_READ
+  [1].dependencyFlags = BY_REGION
+  [1].viewOffset      = 0
+}
 =========================================================================
 
 
-name               = 'Simple.Default'
+name               = 'Simple.Present'
 ci.pNext           = null
 ci.flags           = 0
 ci.attachmentCount = 2
@@ -131,6 +152,80 @@ ci.pDependencies   = {
   [1].srcAccessMask   = COLOR_ATTACHMENT_WRITE
   [1].dstStageMask    = COLOR_ATTACHMENT_OUTPUT
   [1].dstAccessMask   = 0
+  [1].dependencyFlags = BY_REGION
+  [1].viewOffset      = 0
+}
+=========================================================================
+
+
+name               = 'Simple.RenderTarget'
+ci.pNext           = null
+ci.flags           = 0
+ci.attachmentCount = 2
+ci.pAttachments    = {
+  [0].pNext          = null
+  [0].flags          = 0
+  [0].format         = SwapchainColor
+  [0].samples        = 1
+  [0].loadOp         = LOAD
+  [0].storeOp        = STORE
+  [0].stencilLoadOp  = DONT_CARE
+  [0].stencilStoreOp = DONT_CARE
+  [0].initialLayout  = SHADER_READ_ONLY_OPTIMAL  (ShaderSample | FragmentShader)
+  [0].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (ShaderSample | FragmentShader)
+  --------
+  [1].pNext          = null
+  [1].flags          = 0
+  [1].format         = D32_SFLOAT
+  [1].samples        = 1
+  [1].loadOp         = CLEAR
+  [1].storeOp        = STORE
+  [1].stencilLoadOp  = DONT_CARE
+  [1].stencilStoreOp = DONT_CARE
+  [1].initialLayout  = DEPTH_STENCIL_ATTACHMENT_OPTIMAL  (DepthStencilAttachment_RW | DSTestBeforeFS | DSTestAfterFS)
+  [1].finalLayout    = DEPTH_STENCIL_ATTACHMENT_OPTIMAL  (DepthStencilAttachment_RW | DSTestBeforeFS | DSTestAfterFS)
+}
+ci.subpassCount = 1
+ci.pSubpasses   = {
+  [0].pNext                = null
+  [0].flags                = 0
+  [0].pipelineBindPoint    = GRAPHICS
+  [0].viewMask             = 0
+  [0].inputAttachmentCount = 0
+  [0].colorAttachmentCount = 1
+  [0].pColorAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 0
+    [0].layout     = COLOR_ATTACHMENT_OPTIMAL
+    [0].aspectMask = 0
+  }
+  [0].pDepthStencilAttachment = {
+    [0].pNext      = null
+    [0].attachment = 1
+    [0].layout     = DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    [0].aspectMask = 0
+  }
+  [0].preserveAttachmentCount = 0
+}
+ci.dependencyCount = 2
+ci.pDependencies   = {
+  [0].pNext          != null
+  [0].srcSubpass      = VK_SUBPASS_EXTERNAL
+  [0].dstSubpass      = 0
+  [0].srcStageMask    = FRAGMENT_SHADER
+  [0].srcAccessMask   = 0
+  [0].dstStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [0].dstAccessMask   = COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  [0].dependencyFlags = BY_REGION
+  [0].viewOffset      = 0
+  --------
+  [1].pNext          != null
+  [1].srcSubpass      = 0
+  [1].dstSubpass      = VK_SUBPASS_EXTERNAL
+  [1].srcStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [1].srcAccessMask   = COLOR_ATTACHMENT_WRITE
+  [1].dstStageMask    = FRAGMENT_SHADER
+  [1].dstAccessMask   = SHADER_SAMPLED_READ
   [1].dependencyFlags = BY_REGION
   [1].viewOffset      = 0
 }
@@ -341,7 +436,68 @@ ci.pSubpasses   = {
   [4].pDepthStencilAttachment = {}
   [4].preserveAttachmentCount = 0
 }
-ci.dependencyCount = 0
+ci.dependencyCount = 6
+ci.pDependencies   = {
+  [0].pNext          != null
+  [0].srcSubpass      = VK_SUBPASS_EXTERNAL
+  [0].dstSubpass      = 0
+  [0].srcStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [0].srcAccessMask   = COLOR_ATTACHMENT_WRITE
+  [0].dstStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS
+  [0].dstAccessMask   = 0
+  [0].dependencyFlags = BY_REGION
+  [0].viewOffset      = 0
+  --------
+  [1].pNext          != null
+  [1].srcSubpass      = 0
+  [1].dstSubpass      = 1
+  [1].srcStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS
+  [1].srcAccessMask   = 0
+  [1].dstStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [1].dstAccessMask   = COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  [1].dependencyFlags = BY_REGION
+  [1].viewOffset      = 0
+  --------
+  [2].pNext          != null
+  [2].srcSubpass      = 1
+  [2].dstSubpass      = 2
+  [2].srcStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [2].srcAccessMask   = DEPTH_STENCIL_ATTACHMENT_WRITE
+  [2].dstStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [2].dstAccessMask   = DEPTH_STENCIL_ATTACHMENT_READ
+  [2].dependencyFlags = BY_REGION
+  [2].viewOffset      = 0
+  --------
+  [3].pNext          != null
+  [3].srcSubpass      = 2
+  [3].dstSubpass      = 3
+  [3].srcStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [3].srcAccessMask   = COLOR_ATTACHMENT_WRITE | DEPTH_STENCIL_ATTACHMENT_WRITE
+  [3].dstStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [3].dstAccessMask   = INPUT_ATTACHMENT_READ
+  [3].dependencyFlags = BY_REGION
+  [3].viewOffset      = 0
+  --------
+  [4].pNext          != null
+  [4].srcSubpass      = 3
+  [4].dstSubpass      = 4
+  [4].srcStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [4].srcAccessMask   = COLOR_ATTACHMENT_WRITE
+  [4].dstStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [4].dstAccessMask   = INPUT_ATTACHMENT_READ | COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  [4].dependencyFlags = BY_REGION
+  [4].viewOffset      = 0
+  --------
+  [5].pNext          != null
+  [5].srcSubpass      = 4
+  [5].dstSubpass      = VK_SUBPASS_EXTERNAL
+  [5].srcStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [5].srcAccessMask   = COLOR_ATTACHMENT_WRITE
+  [5].dstStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [5].dstAccessMask   = SHADER_SAMPLED_READ
+  [5].dependencyFlags = BY_REGION
+  [5].viewOffset      = 0
+}
 =========================================================================
 
 
@@ -358,8 +514,8 @@ ci.pAttachments    = {
   [0].storeOp        = STORE
   [0].stencilLoadOp  = DONT_CARE
   [0].stencilStoreOp = DONT_CARE
-  [0].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment_RW)
-  [0].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (InputColorAttachment | FragmentShader)
+  [0].initialLayout  = UNDEFINED  (ColorAttachment_RW | Invalidate)
+  [0].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (ShaderSample | FragmentShader)
   --------
   [1].pNext          = null
   [1].flags          = 0
@@ -369,7 +525,7 @@ ci.pAttachments    = {
   [1].storeOp        = DONT_CARE
   [1].stencilLoadOp  = DONT_CARE
   [1].stencilStoreOp = DONT_CARE
-  [1].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment_RW)
+  [1].initialLayout  = SHADER_READ_ONLY_OPTIMAL  (ShaderSample | FragmentShader)
   [1].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (InputColorAttachment | Invalidate | FragmentShader)
   --------
   [2].pNext          = null
@@ -380,8 +536,8 @@ ci.pAttachments    = {
   [2].storeOp        = STORE
   [2].stencilLoadOp  = DONT_CARE
   [2].stencilStoreOp = DONT_CARE
-  [2].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment_RW)
-  [2].finalLayout    = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment_RW)
+  [2].initialLayout  = PRESENT_SRC  (PresentImage)
+  [2].finalLayout    = PRESENT_SRC  (PresentImage)
   --------
   [3].pNext          = null
   [3].flags          = 0
@@ -391,7 +547,7 @@ ci.pAttachments    = {
   [3].storeOp        = DONT_CARE
   [3].stencilLoadOp  = DONT_CARE
   [3].stencilStoreOp = DONT_CARE
-  [3].initialLayout  = DEPTH_STENCIL_ATTACHMENT_OPTIMAL  (DepthStencilAttachment_RW | DSTestBeforeFS | DSTestAfterFS)
+  [3].initialLayout  = UNDEFINED  (Unknown | Invalidate)
   [3].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (InputDepthStencilAttachment | Invalidate | FragmentShader)
 }
 ci.subpassCount = 5
@@ -513,47 +669,67 @@ ci.pSubpasses   = {
   [4].pDepthStencilAttachment = {}
   [4].preserveAttachmentCount = 0
 }
-ci.dependencyCount = 4
+ci.dependencyCount = 6
 ci.pDependencies   = {
   [0].pNext          != null
-  [0].srcSubpass      = 0
-  [0].dstSubpass      = 1
-  [0].srcStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS
-  [0].srcAccessMask   = 0
-  [0].dstStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [0].srcSubpass      = VK_SUBPASS_EXTERNAL
+  [0].dstSubpass      = 0
+  [0].srcStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [0].srcAccessMask   = COLOR_ATTACHMENT_WRITE
+  [0].dstStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS
   [0].dstAccessMask   = 0
   [0].dependencyFlags = BY_REGION
   [0].viewOffset      = 0
   --------
   [1].pNext          != null
-  [1].srcSubpass      = 1
-  [1].dstSubpass      = 2
-  [1].srcStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [1].srcSubpass      = 0
+  [1].dstSubpass      = 1
+  [1].srcStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS
   [1].srcAccessMask   = 0
   [1].dstStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
-  [1].dstAccessMask   = 0
+  [1].dstAccessMask   = COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   [1].dependencyFlags = BY_REGION
   [1].viewOffset      = 0
   --------
   [2].pNext          != null
-  [2].srcSubpass      = 2
-  [2].dstSubpass      = 3
+  [2].srcSubpass      = 1
+  [2].dstSubpass      = 2
   [2].srcStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
-  [2].srcAccessMask   = COLOR_ATTACHMENT_WRITE | DEPTH_STENCIL_ATTACHMENT_WRITE
-  [2].dstStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
-  [2].dstAccessMask   = INPUT_ATTACHMENT_READ
+  [2].srcAccessMask   = 0
+  [2].dstStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [2].dstAccessMask   = 0
   [2].dependencyFlags = BY_REGION
   [2].viewOffset      = 0
   --------
   [3].pNext          != null
-  [3].srcSubpass      = 3
-  [3].dstSubpass      = 4
-  [3].srcStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
-  [3].srcAccessMask   = COLOR_ATTACHMENT_WRITE
+  [3].srcSubpass      = 2
+  [3].dstSubpass      = 3
+  [3].srcStageMask    = EARLY_FRAGMENT_TESTS | LATE_FRAGMENT_TESTS | COLOR_ATTACHMENT_OUTPUT
+  [3].srcAccessMask   = COLOR_ATTACHMENT_WRITE | DEPTH_STENCIL_ATTACHMENT_WRITE
   [3].dstStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
   [3].dstAccessMask   = INPUT_ATTACHMENT_READ
   [3].dependencyFlags = BY_REGION
   [3].viewOffset      = 0
+  --------
+  [4].pNext          != null
+  [4].srcSubpass      = 3
+  [4].dstSubpass      = 4
+  [4].srcStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [4].srcAccessMask   = COLOR_ATTACHMENT_WRITE
+  [4].dstStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [4].dstAccessMask   = INPUT_ATTACHMENT_READ | COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  [4].dependencyFlags = BY_REGION
+  [4].viewOffset      = 0
+  --------
+  [5].pNext          != null
+  [5].srcSubpass      = 4
+  [5].dstSubpass      = VK_SUBPASS_EXTERNAL
+  [5].srcStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [5].srcAccessMask   = COLOR_ATTACHMENT_WRITE
+  [5].dstStageMask    = FRAGMENT_SHADER | COLOR_ATTACHMENT_OUTPUT
+  [5].dstAccessMask   = SHADER_SAMPLED_READ
+  [5].dependencyFlags = BY_REGION
+  [5].viewOffset      = 0
 }
 =========================================================================
 

@@ -121,7 +121,7 @@ namespace AE::Graphics
 		ND_ uint				GetSubmitIndex ()		const	{ return _submitIdx; }
 		ND_ uint				GetCmdBufIndex ()		const	{ return _cmdPool.Current(); }
 		ND_ bool				IsSubmitted ();
-		ND_ NtStringView		DbgName ()				const;
+		ND_ StringView			DbgName ()				const;
 		
 		
 	// IDeviceToHostSync
@@ -189,7 +189,7 @@ namespace AE::Graphics
 			ASSERT( _exeIndex == UMax );
 		}
 		
-		ND_ RC<MCommandBatch>	GetBatch ()				const	{ return _batch; }
+		ND_ RC<MCommandBatch>	GetBatchRC ()			const	{ return _batch; }
 		ND_ MCommandBatch *		GetBatchPtr ()			const	{ return _batch.get(); }
 		ND_ FrameUID			GetFrameId ()			const	{ return _batch->GetFrameId(); }
 		ND_ uint				GetExecutionIndex ()	const	{ return _exeIndex; }
@@ -199,7 +199,7 @@ namespace AE::Graphics
 	public:
 		void  OnCancel () override;
 
-		DEBUG_ONLY( NtStringView  DbgName () const override final { return _dbgName; })
+		DEBUG_ONLY( StringView  DbgName () const override final { return _dbgName; })
 
 
 	protected:
@@ -229,6 +229,117 @@ namespace AE::Graphics
 		MCmdBatchOnSubmit (MCommandBatch* batch) : ptr{batch} {}
 		MCmdBatchOnSubmit (RC<MCommandBatch> batch) : ptr{RVRef(batch)} {}
 	};
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	Add
+=================================================
+*/
+	template <typename TaskType, typename ...Ctor, typename ...Deps>
+	AsyncTask  MCommandBatch::Add (const Tuple<Ctor...>&	ctorArgs,
+								   const Tuple<Deps...>&	deps,
+								   StringView				dbgName)
+	{
+		ASSERT( not IsSubmitted() );
+
+		auto	task = ctorArgs.Apply([this, dbgName] (auto&& ...args) { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbgName ); });
+
+		if_likely( (task->_exeIndex != UMax) & Threading::Scheduler().Run( task, deps ))
+			return task;
+		else
+			return null;
+	}
+	
+/*
+=================================================
+	SubmitAsTask
+=================================================
+*
+	template <typename ...Deps>
+	AsyncTask  MCommandBatch::SubmitAsTask (const Tuple<Deps...>&	deps,
+											ESubmitMode				mode)
+	{
+		return Threading::Scheduler().Run< SubmitTask >( Tuple{ GetRC<MCommandBatch>(), mode }, deps );
+	}
+
+/*
+=================================================
+	DbgName
+=================================================
+*/
+	inline StringView  MCommandBatch::DbgName () const
+	{
+	#ifdef AE_DEBUG
+		return _dbgName;
+	#else
+		return Default;
+	#endif
+	}
+//-----------------------------------------------------------------------------
+
+
+		
+/*
+=================================================
+	Execute
+=================================================
+*/
+	template <typename CmdBufType>
+	void  MRenderTask::Execute (CmdBufType &cmdbuf)
+	{
+		CHECK_ERRV( _exeIndex != UMax );
+		
+		_GetPool().Add( INOUT _exeIndex, cmdbuf.EndCommandBuffer() );
+		
+		ASSERT( _exeIndex == UMax );
+		ASSERT( not GetBatchPtr()->IsSubmitted() );
+	}
+	
+/*
+=================================================
+	ExecuteAndSubmit
+----
+	warning: task which submit batch must wait for all other render tasks
+=================================================
+*/
+	template <typename CmdBufType>
+	bool  MRenderTask::ExecuteAndSubmit (CmdBufType &cmdbuf, ESubmitMode mode)
+	{
+		Execute( cmdbuf );
+		return GetBatchPtr()->Submit( mode );
+	}
+
+/*
+=================================================
+	OnCancel
+=================================================
+*/
+	inline void  MRenderTask::OnCancel ()
+	{
+		CHECK_ERRV( _exeIndex != UMax );
+		
+		_GetPool().Complete( INOUT _exeIndex );
+		
+		ASSERT( _exeIndex == UMax );
+	}
+	
+/*
+=================================================
+	OnFailure
+=================================================
+*/
+	inline void  MRenderTask::OnFailure ()
+	{
+		CHECK_ERRV( _exeIndex != UMax );
+
+		_GetPool().Complete( INOUT _exeIndex );
+		IAsyncTask::OnFailure();
+		
+		ASSERT( _exeIndex == UMax );
+	}
 	
 	
 } // AE::Graphics

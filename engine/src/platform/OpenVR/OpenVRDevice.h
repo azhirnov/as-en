@@ -75,9 +75,10 @@ namespace AE::App
 		public:
 			explicit VRRenderSurface (OpenVRDevice &vr) : _vrDev{vr} {}
 
-			bool  Begin (Graphics::CommandBatch &cmdBatch) override;
-			bool  GetTargets (OUT RenderTargets_t &targets) const override;
-			bool  End (Graphics::CommandBatch &cmdBatch, ArrayView<AsyncTask> deps) override;
+			// IOutputSurface //
+			AsyncTask	Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps) override;
+			bool		GetTargets (OUT RenderTargets_t &targets) const override;
+			AsyncTask	End (ArrayView<AsyncTask> deps) override;
 		};
 
 		
@@ -123,12 +124,12 @@ namespace AE::App
 		OpenVRDevice (VRDeviceListener, IInputActions* dst);
 		~OpenVRDevice ();
 
+		ND_ bool  Create ();
+		ND_ bool  Update (Duration_t timeSinceStart);
+
 
 	// IVRDevice //
 		bool  Setup (const Settings &) override;
-
-		ND_ bool  Create ();
-		ND_ bool  Update (Duration_t timeSinceStart) override;
 		
 		StringView			GetApiName ()	const	override	{ return "openvr"; }
 		IInputActions&		InputActions ()			override	{ return _input; }

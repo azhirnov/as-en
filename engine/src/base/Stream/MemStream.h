@@ -25,23 +25,30 @@ namespace AE::Base
 	public:
 		MemRefRStream () {}
 		MemRefRStream (const void* ptr, Bytes size);
-		~MemRefRStream () {}
+		~MemRefRStream () override {}
 
 		explicit MemRefRStream (StringView data) : MemRefRStream{data.data(), StringSizeOf(data)} {}
 
 		template <typename T>
 		explicit MemRefRStream (ArrayView<T> data) : MemRefRStream{data.data(), ArraySizeOf(data)} {}
 		
-		ND_ bool	IsOpen ()	const override final	{ return true; }
-		ND_ Bytes	Position ()	const override final	{ return _pos; }
-		ND_ Bytes	Size ()		const override final	{ return _size; }
-
-			bool	SeekSet (Bytes pos) override final;
-		ND_ Bytes	Read2 (OUT void *buffer, Bytes size) override final;
+		bool		IsOpen ()	const override final	{ return true; }
+		Bytes		Position ()	const override final	{ return _pos; }
+		Bytes		Size ()		const override final	{ return _size; }
 		
-			void	UpdateFastStream (OUT const void* &begin, OUT const void* &end) override;
+		EStreamType	GetStreamType () const override		{ return EStreamType::Buffered | EStreamType::SequentialAccess | EStreamType::RandomAccess | EStreamType::FixedSize; }
+
+		bool	SeekSet (Bytes pos) override final;
+		Bytes	ReadSeq (OUT void *buffer, Bytes size) override final;
+		Bytes	ReadRnd (Bytes offset, OUT void *buffer, Bytes size) override final;
+		
+		void	UpdateFastStream (OUT const void* &begin, OUT const void* &end) override;
+		void	EndFastStream (const void* ptr) override;
 
 		ND_ RC<MemRefRStream>  ToSubStream (Bytes offset, Bytes size);
+		
+		ND_ ArrayView<ubyte>  GetData ()		const	{ return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize(_size) }; }
+		ND_ ArrayView<ubyte>  GetRemainData ()	const	{ return GetData().section( usize(_pos), UMax ); }
 
 	protected:
 		void  _Set (const void* ptr, Bytes size);
@@ -62,12 +69,13 @@ namespace AE::Base
 	// methods
 	public:
 		MemRStream () {}
-		MemRStream (Array<ubyte> &&data);
+		explicit MemRStream (Array<ubyte> data);
 		MemRStream (const void* ptr, Bytes size);
-		~MemRStream () {}
+		~MemRStream () override {}
 
 		ND_ bool  Decompress (RStream &srcFile);
-		ND_ bool  Load (RStream &srcFile, Bytes size = Bytes::Max());
+		ND_ bool  LoadRemaining (RStream &srcFile, Bytes size = UMax);
+		ND_ bool  Load (RStream &srcFile, Bytes offset, Bytes size);
 	};
 
 
@@ -87,21 +95,23 @@ namespace AE::Base
 	// methods
 	public:
 		MemWStream () {
-			_data.reserve( 4u << 10 );
+			_data.reserve( usize(DefaultAllocationSize) );
 		}
 		
 		explicit MemWStream (Bytes bufferSize) {
 			_data.reserve( usize(bufferSize) );
 		}
 
-		~MemWStream () {}
+		~MemWStream () override {}
 		
-		ND_ bool	IsOpen ()	const override		{ return true; }
-		ND_ Bytes	Position ()	const override		{ return _pos; }
-		ND_ Bytes	Size ()		const override		{ return Bytes(_data.size()); }
+		bool	IsOpen ()	const override				{ return true; }
+		Bytes	Position ()	const override				{ return _pos; }
+		Bytes	Size ()		const override				{ return Bytes(_data.size()); }
 		
-			bool	SeekSet (Bytes pos) override;
-		ND_ Bytes	Write2 (const void *buffer, Bytes size) override;
+		EStreamType	GetStreamType () const override		{ return EStreamType::Buffered | EStreamType::SequentialAccess | EStreamType::RandomAccess; }
+
+		bool	SeekSet (Bytes pos) override;
+		Bytes	Write2 (const void *buffer, Bytes size) override;
 
 		void  Flush () override
 		{
@@ -112,6 +122,7 @@ namespace AE::Base
 		void  EndFastStream (const void* ptr) override;
 
 		ND_ ArrayView<ubyte>	GetData ()		const	{ return ArrayView<ubyte>{ _data.data(), usize(_pos) }; }
+		ND_ Array<ubyte>		ReleaseData ()			{ auto temp = RVRef(_data);  return temp; }
 		ND_ RC<MemRefRStream>	ToRStream ()	const	{ return MakeRC<MemRefRStream>( GetData() ); }
 
 		void  Clear ();
@@ -125,4 +136,4 @@ namespace AE::Base
 	};
 
 
-}	// AE::Base
+} // AE::Base

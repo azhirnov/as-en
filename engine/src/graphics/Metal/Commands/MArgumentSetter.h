@@ -64,35 +64,6 @@ namespace AE::Graphics::_hidden_
 	};
 
 
-	template <>
-	struct MArgumentSetter< EShader::Compute, false > final : IMetalArgumentSetter
-	{
-	// variables
-	private:
-		Ptr<MSoftwareCmdBuf>	_cmdbuf;
-
-	// methods
-	public:
-		explicit MArgumentSetter (Ptr<MSoftwareCmdBuf> cmdbuf) : _cmdbuf{cmdbuf} {}
-
-		void  SetThreadgroupMemoryLength (Bytes length, MThreadgroupIndex index);
-
-		void  SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index) override;
-		void  SetBufferOffset (Bytes offset, MBufferIndex index) override;
-
-		void  SetBytes (const void* data, Bytes dataSize, MBufferIndex index) override;
-
-		void  SetSampler (MetalSampler sampler, MSamplerIndex index) override;
-		void  SetSampler (MetalSampler sampler, float lodMinClamp, float lodMaxClamp, MSamplerIndex index) override;
-
-		void  SetTexture (MetalImage texture, MTextureIndex index) override;
-
-		void  SetVisibleFunctionTable (MetalVisibleFnTable table, MBufferIndex index);
-		void  SetIntersectionFunctionTable (MetalIntersectionFnTable table, MBufferIndex index);
-		void  SetAccelerationStructure (MetalAccelStruct as, MBufferIndex index);
-	};
-
-
 	
 	//
 	// Vertex Shader Argument Setter
@@ -124,33 +95,6 @@ namespace AE::Graphics::_hidden_
 	};
 
 
-	template <>
-	struct MArgumentSetter< EShader::Vertex, false > final : IMetalArgumentSetter
-	{
-	// variables
-	private:
-		Ptr<MSoftwareCmdBuf>	_cmdbuf;
-
-	// methods
-	public:
-		explicit MArgumentSetter (Ptr<MSoftwareCmdBuf> cmdbuf) : _cmdbuf{cmdbuf} {}
-
-		void  SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index) override;
-		void  SetBufferOffset (Bytes offset, MBufferIndex index) override;
-
-		void  SetBytes (const void* data, Bytes dataSize, MBufferIndex index) override;
-
-		void  SetSampler (MetalSampler sampler, MSamplerIndex index) override;
-		void  SetSampler (MetalSampler sampler, float lodMinClamp, float lodMaxClamp, MSamplerIndex index) override;
-
-		void  SetTexture (MetalImage texture, MTextureIndex index) override;
-
-		void  SetVisibleFunctionTable (MetalVisibleFnTable table, MBufferIndex index);
-		void  SetIntersectionFunctionTable (MetalIntersectionFnTable table, MBufferIndex index);
-		void  SetAccelerationStructure (MetalAccelStruct as, MBufferIndex index);
-	};
-
-
 	
 	//
 	// Fragment Shader Argument Setter
@@ -165,33 +109,6 @@ namespace AE::Graphics::_hidden_
 	// methods
 	public:
 		explicit MArgumentSetter (MetalRenderCommandEncoder encoder) : _encoder{encoder} {}
-
-		void  SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index) override;
-		void  SetBufferOffset (Bytes offset, MBufferIndex index) override;
-
-		void  SetBytes (const void* data, Bytes dataSize, MBufferIndex index) override;
-
-		void  SetSampler (MetalSampler sampler, MSamplerIndex index) override;
-		void  SetSampler (MetalSampler sampler, float lodMinClamp, float lodMaxClamp, MSamplerIndex index) override;
-
-		void  SetTexture (MetalImage texture, MTextureIndex index) override;
-
-		void  SetVisibleFunctionTable (MetalVisibleFnTable table, MBufferIndex index);
-		void  SetIntersectionFunctionTable (MetalIntersectionFnTable table, MBufferIndex index);
-		void  SetAccelerationStructure (MetalAccelStruct as, MBufferIndex index);
-	};
-
-
-	template <>
-	struct MArgumentSetter< EShader::Fragment, false > final : IMetalArgumentSetter
-	{
-	// variables
-	private:
-		Ptr<MSoftwareCmdBuf>	_cmdbuf;
-
-	// methods
-	public:
-		explicit MArgumentSetter (Ptr<MSoftwareCmdBuf> cmdbuf) : _cmdbuf{cmdbuf} {}
 
 		void  SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index) override;
 		void  SetBufferOffset (Bytes offset, MBufferIndex index) override;
@@ -241,35 +158,6 @@ namespace AE::Graphics::_hidden_
 		void  SetAccelerationStructure (MetalAccelStruct as, MBufferIndex index);
 	};
 
-
-	template <>
-	struct MArgumentSetter< EShader::Tile, false > final : IMetalArgumentSetter
-	{
-	// variables
-	private:
-		Ptr<MSoftwareCmdBuf>	_cmdbuf;
-
-	// methods
-	public:
-		explicit MArgumentSetter (Ptr<MSoftwareCmdBuf> cmdbuf) : _cmdbuf{cmdbuf} {}
-
-		void  SetThreadgroupMemoryLength (Bytes length, Bytes offset, MThreadgroupIndex index);
-
-		void  SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index) override;
-		void  SetBufferOffset (Bytes offset, MBufferIndex index) override;
-
-		void  SetBytes (const void* data, Bytes dataSize, MBufferIndex index) override;
-
-		void  SetSampler (MetalSampler sampler, MSamplerIndex index) override;
-		void  SetSampler (MetalSampler sampler, float lodMinClamp, float lodMaxClamp, MSamplerIndex index) override;
-
-		void  SetTexture (MetalImage texture, MTextureIndex index) override;
-
-		void  SetVisibleFunctionTable (MetalVisibleFnTable table, MBufferIndex index);
-		void  SetIntersectionFunctionTable (MetalIntersectionFnTable table, MBufferIndex index);
-		void  SetAccelerationStructure (MetalAccelStruct as, MBufferIndex index);
-	};
-
 	
 
 	//
@@ -285,29 +173,6 @@ namespace AE::Graphics::_hidden_
 	// methods
 	public:
 		explicit MArgumentSetter (MetalRenderCommandEncoder encoder) : _encoder{encoder} {}
-
-		void  SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index) override;
-		void  SetBufferOffset (Bytes offset, MBufferIndex index) override;
-
-		void  SetBytes (const void* data, Bytes dataSize, MBufferIndex index) override;
-
-		void  SetSampler (MetalSampler sampler, MSamplerIndex index) override;
-		void  SetSampler (MetalSampler sampler, float lodMinClamp, float lodMaxClamp, MSamplerIndex index) override;
-
-		void  SetTexture (MetalImage texture, MTextureIndex index) override;
-	};
-
-
-	template <>
-	struct MArgumentSetter< EShader::Mesh, false > final : IMetalArgumentSetter
-	{
-	// variables
-	private:
-		Ptr<MSoftwareCmdBuf>	_cmdbuf;
-
-	// methods
-	public:
-		explicit MArgumentSetter (Ptr<MSoftwareCmdBuf> cmdbuf) : _cmdbuf{cmdbuf} {}
 
 		void  SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index) override;
 		void  SetBufferOffset (Bytes offset, MBufferIndex index) override;
@@ -350,8 +215,12 @@ namespace AE::Graphics::_hidden_
 	};
 
 
-	template <>
-	struct MArgumentSetter< EShader::MeshTask, false > final : IMetalArgumentSetter
+
+	//
+	// Indirect Shader Argument Setter
+	//
+	template <EShader ShaderType>
+	struct MArgumentSetter< ShaderType, false > final : IMetalArgumentSetter
 	{
 	// variables
 	private:
@@ -361,7 +230,13 @@ namespace AE::Graphics::_hidden_
 	public:
 		explicit MArgumentSetter (Ptr<MSoftwareCmdBuf> cmdbuf) : _cmdbuf{cmdbuf} {}
 
-		void  SetThreadgroupMemoryLength (Bytes length, MThreadgroupIndex index);
+		// compute, meshtask
+		EnableIf<(ShaderType == EShader::Compute or ShaderType == EShader::MeshTask), void>
+			SetThreadgroupMemoryLength (Bytes length, MThreadgroupIndex index);
+
+		// tile
+		EnableIf<ShaderType == EShader::Tile, void>
+			SetThreadgroupMemoryLength (Bytes length, Bytes offset, MThreadgroupIndex index);
 
 		void  SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index) override;
 		void  SetBufferOffset (Bytes offset, MBufferIndex index) override;
@@ -372,7 +247,125 @@ namespace AE::Graphics::_hidden_
 		void  SetSampler (MetalSampler sampler, float lodMinClamp, float lodMaxClamp, MSamplerIndex index) override;
 
 		void  SetTexture (MetalImage texture, MTextureIndex index) override;
+
+		void  SetVisibleFunctionTable (MetalVisibleFnTable table, MBufferIndex index);
+		void  SetIntersectionFunctionTable (MetalIntersectionFnTable table, MBufferIndex index);
+		void  SetAccelerationStructure (MetalAccelStruct as, MBufferIndex index);
 	};
+//-----------------------------------------------------------------------------
+
+
+	
+	template <EShader ShaderType>
+	EnableIf<(ShaderType == EShader::Compute or ShaderType == EShader::MeshTask), void>
+		MArgumentSetter<EShader::Compute,false>::SetThreadgroupMemoryLength (Bytes length, MThreadgroupIndex index)
+	{
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBufferCmd >();
+		cmd.shaderType	= ShaderType;
+		cmd.index		= index;
+		cmd.length		= length;
+		cmd.offset		= 0_b;
+	}
+	
+	EnableIf<ShaderType == EShader::Tile, void>
+		MArgumentSetter<EShader::Compute,false>::SetThreadgroupMemoryLength (Bytes length, Bytes offset, MThreadgroupIndex index)
+	{
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBufferCmd >();
+		cmd.shaderType	= ShaderType;
+		cmd.index		= index;
+		cmd.length		= length;
+		cmd.offset		= offset;
+	}
+
+	template <EShader ShaderType>
+	void  MArgumentSetter<ShaderType,false>::SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index)
+	{
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBufferCmd >();
+		cmd.shaderType	= ShaderType;
+		cmd.index		= index;
+		cmd.buffer		= buffer;
+		cmd.offset		= offset;
+	}
+	
+	template <EShader ShaderType>
+	void  MArgumentSetter<ShaderType,false>::SetBufferOffset (Bytes offset, MBufferIndex index)
+	{
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBufferOffsetCmd >();
+		cmd.shaderType	= ShaderType;
+		cmd.index		= index;
+		cmd.offset		= offset;
+	}
+	
+	template <EShader ShaderType>
+	void  MArgumentSetter<ShaderType,false>::SetBytes (const void* data, Bytes dataSize, MBufferIndex index)
+	{
+		CHECK_ERRV( dataSize <= 1_Kb );	// 4 Kb in specs
+
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBytesCmd, ubyte >( usize(dataSize) );
+		auto*		dst	= static_cast< void *>(&cmd + 1);
+
+		cmd.shaderType	= ShaderType;
+		cmd.dataSize	= dataSize;
+		cmd.index		= index;
+
+		MemCopy( OUT data, dataSize );
+	}
+	
+	template <EShader ShaderType>
+	void  MArgumentSetter<ShaderType,false>::SetSampler (MetalSampler sampler, MSamplerIndex index)
+	{
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetSamplerCmd >();
+		cmd.shaderType	= ShaderType;
+		cmd.index		= index;
+		cmd.sampler		= sampler;
+	}
+	
+	template <EShader ShaderType>
+	void  MArgumentSetter<ShaderType,false>::SetSampler (MetalSampler sampler, float lodMinClamp, float lodMaxClamp, MSamplerIndex index)
+	{
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetSampler2Cmd >();
+		cmd.shaderType	= ShaderType;
+		cmd.index		= index;
+		cmd.sampler		= sampler;
+		cmd.lodMinClamp	= lodMinClamp;
+		cmd.lodMaxClamp	= lodMaxClamp;
+	}
+	
+	template <EShader ShaderType>
+	void  MArgumentSetter<ShaderType,false>::SetTexture (MetalImage texture, MTextureIndex index)
+	{
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetTextureCmd >();
+		cmd.shaderType	= ShaderType;
+		cmd.index		= index;
+		cmd.texture		= texture;
+	}
+	
+	template <EShader ShaderType>
+	void  MArgumentSetter<ShaderType,false>::SetVisibleFunctionTable (MetalVisibleFnTable table, MBufferIndex index)
+	{
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetVisibleFunctionTableCmd >();
+		cmd.shaderType	= ShaderType;
+		cmd.index		= index;
+		cmd.table		= table;
+	}
+	
+	template <EShader ShaderType>
+	void  MArgumentSetter<ShaderType,false>::SetIntersectionFunctionTable (MetalIntersectionFnTable table, MBufferIndex index)
+	{
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetIntersectionFunctionTableCmd >();
+		cmd.shaderType	= ShaderType;
+		cmd.index		= index;
+		cmd.table		= table;
+	}
+	
+	template <EShader ShaderType>
+	void  MArgumentSetter<ShaderType,false>::SetAccelerationStructure (MetalAccelStruct as, MBufferIndex index)
+	{
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetAccelerationStructureCmd >();
+		cmd.shaderType	= ShaderType;
+		cmd.index		= index;
+		cmd.as			= as;
+	}
 
 
 } // AE::Graphics::_hidden_

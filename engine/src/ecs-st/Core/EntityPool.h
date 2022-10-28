@@ -168,4 +168,4 @@ namespace AE::ECS
 	}
 
 
-}	// AE::ECS
+} // AE::ECS

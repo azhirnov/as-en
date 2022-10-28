@@ -55,7 +55,11 @@ namespace AE::App
 		
 
 	protected:
-		void  _SetState (EState newState);
+			void  _SetState (EState newState);
+			void  _SetStateV3 (EState newState);
+		ND_ bool  _StateChanged (EState newState) const;
+
+			void  _DestroyListener ();
 	};
 
 

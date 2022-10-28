@@ -55,20 +55,20 @@ namespace AE::App
 		//   Windows, Linux, Mac supports multiple windows.
 		//   Thread safe: main thread only
 		//
-		ND_ virtual WindowPtr  CreateWindow (WndListenerPtr, const WindowDesc &wndDesc) = 0;
+		ND_ virtual WindowPtr  CreateWindow (WndListenerPtr, const WindowDesc &wndDesc, IInputActions* dst = null) = 0;
 
 		
 		// Create VR device.
 		// Input actions can be used to redirect VR input actions to the same queue.
 		//   Thread safe: yes
 		//
-		ND_ virtual VRDevicePtr  CreateVRDevice (VRDevListenerPtr, IInputActions* dst = null) = 0;
+		ND_ virtual VRDevicePtr  CreateVRDevice (VRDevListenerPtr, IInputActions* dst = null, IVRDevice::EDeviceType type = Default) = 0;
 
 
-		// Read builtin resource.
-		//   Thread safe: yes
+		// Read builtin file system.
+		//   Thread safe: no
 		//
-		ND_ virtual RC<RStream>  OpenResource () = 0;
+		ND_ virtual RC<IFileStorage>  OpenBuiltinStorage () = 0;
 
 
 		// Returns array of monitors.
@@ -115,7 +115,7 @@ namespace AE::App
 	};
 
 
-}	// AE::App
+} // AE::App
 
 
 extern std::unique_ptr<AE::App::IApplication::IAppListener>  AE_OnAppCreated ();

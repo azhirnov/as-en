@@ -122,7 +122,7 @@ namespace AE::Base
 	template <usize StringSize>
 	using FixedString = TFixedString< char, StringSize >;
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -137,4 +137,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

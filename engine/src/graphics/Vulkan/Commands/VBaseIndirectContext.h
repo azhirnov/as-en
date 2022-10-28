@@ -71,6 +71,23 @@ namespace AE::Graphics::_hidden_
 			//ubyte				data[];
 		};
 
+		struct ProfilerBeginContextCmd : BaseCmd
+		{
+			const void*							batch;
+			IGraphicsProfiler*					prof;
+			IGraphicsProfiler::EContextType		type;
+			RGBA8u								color;
+			//char								taskName[];
+		};
+
+		struct ProfilerEndContextCmd : BaseCmd
+		{
+			const void*							batch;
+			IGraphicsProfiler*					prof;
+			IGraphicsProfiler::EContextType		type;
+			bool								end;	// to make unique type
+		};
+
 		//-------------------------------------------------
 		// transfer commands
 
@@ -158,10 +175,21 @@ namespace AE::Graphics::_hidden_
 		struct GenerateMipmapsCmd : BaseCmd
 		{
 			VkImage				image;
-			uint3				dimension;
+			packed_uint3		dimension;
 			uint				levelCount;
 			uint				layerCount;
 			EImageAspect		aspect;
+		};
+		
+		struct CopyQueryPoolResultsCmd : BaseCmd
+		{
+			VkQueryPool			srcPool;
+			uint				srcIndex;
+			uint				srcCount;
+			VkBuffer			dstBuffer;
+			Bytes				dstOffset;
+			Bytes32u			dstSize;
+			VkQueryResultFlags	flags;
 		};
 
 		//-------------------------------------------------
@@ -341,7 +369,6 @@ namespace AE::Graphics::_hidden_
 		struct DrawMeshTasksNVCmd : BaseCmd
 		{
 			uint			taskCount;
-			uint			firstTask;
 		};
 
 		struct DrawMeshTasksIndirectNVCmd : BaseCmd
@@ -380,6 +407,13 @@ namespace AE::Graphics::_hidden_
 			VkAccelerationStructureKHR			dst;
 			VkCopyAccelerationStructureModeKHR	mode;
 		};
+
+		struct WriteASPropertiesCmd : BaseCmd
+		{
+			VkAccelerationStructureKHR		as;
+			VkQueryPool						pool;
+			uint							index;
+		};
 		
 		//-------------------------------------------------
 		// ray tracing commands
@@ -403,6 +437,8 @@ namespace AE::Graphics::_hidden_
 			_visitor_( BindDescriptorSetCmd )\
 			_visitor_( BindPipelineCmd )\
 			_visitor_( PushConstantCmd )\
+			_visitor_( ProfilerBeginContextCmd )\
+			_visitor_( ProfilerEndContextCmd )\
 			/* transfer commands */\
 			_visitor_( ClearColorImageCmd )\
 			_visitor_( ClearDepthStencilImageCmd )\
@@ -414,6 +450,7 @@ namespace AE::Graphics::_hidden_
 			_visitor_( CopyImageToBufferCmd )\
 			_visitor_( BlitImageCmd )\
 			_visitor_( GenerateMipmapsCmd )\
+			_visitor_( CopyQueryPoolResultsCmd )\
 			/* compute commands */\
 			_visitor_( DispatchCmd )\
 			_visitor_( DispatchBaseCmd )\
@@ -447,6 +484,7 @@ namespace AE::Graphics::_hidden_
 			/* acceleration structure build commands */\
 			_visitor_( BuildASCmd )\
 			_visitor_( CopyASCmd )\
+			_visitor_( WriteASPropertiesCmd )\
 			/* ray tracing commands */\
 			_visitor_( TraceRaysCmd )\
 			_visitor_( TraceRaysIndirectCmd )\
@@ -495,6 +533,9 @@ namespace AE::Graphics::_hidden_
 		void  BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout);
 		void  PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages);
 		
+		void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch, StringView taskName, RGBA8u color, IGraphicsProfiler::EContextType type);
+		void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch, IGraphicsProfiler::EContextType type);
+
 		void  DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data);
 		
 		ND_ static bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, void* root);
@@ -532,21 +573,22 @@ namespace AE::Graphics::_hidden_
 	public:
 		virtual ~_VBaseIndirectContext ();
 
-		ND_ bool				IsValid ()			const	{ return _cmdbuf and _cmdbuf->IsValid(); }
-		ND_ VBakedCommands		EndCommandBuffer ();
-		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ();
+		ND_ bool	IsValid ()	const	{ return _cmdbuf and _cmdbuf->IsValid(); }
 
 	protected:
 		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf) : _cmdbuf{RVRef(cmdbuf)} {}
 
-		explicit _VBaseIndirectContext (NtStringView dbgName);
-		_VBaseIndirectContext (NtStringView dbgName, VSoftwareCmdBufPtr cmdbuf);
+		explicit _VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor);
+		_VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor, VSoftwareCmdBufPtr cmdbuf);
 
 		void  _DebugMarker (NtStringView text, RGBA8u color)		{ _cmdbuf->DebugMarker( text, color ); }
 		void  _PushDebugGroup (NtStringView text, RGBA8u color)		{ _cmdbuf->PushDebugGroup( text, color ); }
 		void  _PopDebugGroup ()										{ _cmdbuf->PopDebugGroup(); }
 
 		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)	{ _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
+
+		ND_ VBakedCommands		_EndCommandBuffer ();
+		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ();
 	};
 
 
@@ -564,21 +606,93 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VBaseIndirectContext (Ptr<VCommandBatch> batch);
-		VBaseIndirectContext (Ptr<VCommandBatch> batch, VSoftwareCmdBufPtr cmdbuf);
+		explicit VBaseIndirectContext (const VRenderTask &task);
+		VBaseIndirectContext (const VRenderTask &task, VSoftwareCmdBufPtr cmdbuf);
 		~VBaseIndirectContext () override;
-		
-		ND_ VBakedCommands		EndCommandBuffer ()			{ ASSERT( _NoPendingBarriers() );  return _VBaseIndirectContext::EndCommandBuffer(); }
-		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()		{ ASSERT( _NoPendingBarriers() );  return _VBaseIndirectContext::ReleaseCommandBuffer(); }
 
 	protected:
 		void  _CommitBarriers ();
 
 		ND_ bool	_NoPendingBarriers ()	const	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetExtensions ()		const	{ return _mngr.GetDevice().GetExtensions(); }
+		ND_ auto&	_GetFeatures ()			const	{ return _mngr.GetDevice().GetProperties().features; }
 	};
+//-----------------------------------------------------------------------------
+	
+
+	
+/*
+=================================================
+	destructor
+=================================================
+*/
+	inline _VBaseIndirectContext::~_VBaseIndirectContext ()
+	{
+		DBG_CHECK_MSG( not IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
+	}
+//-----------------------------------------------------------------------------
+
+	
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	inline VBaseIndirectContext::VBaseIndirectContext (const VRenderTask &task) :
+		_VBaseIndirectContext{ task.DbgFullName(), task.DbgColor() },
+		_mngr{ task }
+	{}
+		
+	inline VBaseIndirectContext::VBaseIndirectContext (const VRenderTask &task, VSoftwareCmdBufPtr cmdbuf) :
+		_VBaseIndirectContext{ RVRef(cmdbuf) },
+		_mngr{ task }
+	{}
+	
+/*
+=================================================
+	destructor
+=================================================
+*/
+	inline VBaseIndirectContext::~VBaseIndirectContext ()
+	{
+		ASSERT( _NoPendingBarriers() );
+	}
+		
+/*
+=================================================
+	_CommitBarriers
+=================================================
+*/
+	inline void  VBaseIndirectContext::_CommitBarriers ()
+	{
+		auto* bar = _mngr.GetBarriers();
+		if_unlikely( bar != null )
+		{
+			_cmdbuf->CommitBarriers( *bar );
+			_mngr.ClearBarriers();
+		}
+	}
 
 
 } // AE::Graphics::_hidden_
+//-----------------------------------------------------------------------------
+
+
+namespace AE::Graphics
+{
+/*
+=================================================
+	Execute
+----
+	'cmdbuf' must be in the recording state
+=================================================
+*/
+	forceinline bool  VBakedCommands::Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) const
+	{
+		return _hidden_::VSoftwareCmdBuf::Execute( fn, cmdbuf, _root );
+	}
+
+} // AE::Graphics
 
 #endif // AE_ENABLE_VULKAN

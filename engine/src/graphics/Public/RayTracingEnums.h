@@ -61,9 +61,9 @@ namespace AE::Graphics
 	enum class ERTASCopyMode : uint
 	{
 		Clone		= 0,
-		Compation	= 1,
+		Compaction	= 1,
 		Unknown		= Clone
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics

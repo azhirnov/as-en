@@ -19,7 +19,8 @@ namespace AE::Math
 			  int KelvinsNum,	int KelvinsDenom,
 			  int MolesNum,		int MolesDenom,
 			  int CandelasNum,	int CandelasDenom,
-			  int CurrencyNum,	int CurrencyDenom
+			  int CurrencyNum,	int CurrencyDenom,
+			  int BitsNum,		int BitsDenom
 			>
 	struct PhysicalDimension
 	{
@@ -31,6 +32,7 @@ namespace AE::Math
 		STATIC_ASSERT( MolesDenom		> 0 );
 		STATIC_ASSERT( CandelasDenom	> 0 );
 		STATIC_ASSERT( CurrencyDenom	> 0 );
+		STATIC_ASSERT( BitsDenom		> 0 );
 
 		//				SI
 		static constexpr FractionalI	seconds		{ SecondsNum,	SecondsDenom };		// time
@@ -43,7 +45,7 @@ namespace AE::Math
 
 		//				non-SI
 		static constexpr FractionalI	currency	{ CurrencyNum,	CurrencyDenom };	// monetary unit
-		//static constexpr FractionalI	bits;											// unit of information	// TODO
+		static constexpr FractionalI	bits		{ BitsNum,		BitsDenom };		// unit of information
 
 
 		template <typename Rhs>
@@ -54,13 +56,14 @@ namespace AE::Math
 												kelvins		== Rhs::kelvins		and
 												moles		== Rhs::moles		and
 												candelas	== Rhs::candelas	and
-												currency	== Rhs::currency);
+												currency	== Rhs::currency	and
+												bits		== Rhs::bits);
 		
 		template <typename Rhs>
 		struct _Mul {
 			static constexpr FractionalI	values[] = {
 				(seconds + Rhs::seconds),  (kilograms + Rhs::kilograms),  (meters + Rhs::meters),      (amperes + Rhs::amperes),
-				(kelvins + Rhs::kelvins),  (moles + Rhs::moles),          (candelas + Rhs::candelas),  (currency + Rhs::currency)
+				(kelvins + Rhs::kelvins),  (moles + Rhs::moles),          (candelas + Rhs::candelas),  (currency + Rhs::currency),	(bits + Rhs::bits)
 			};
 			using type = PhysicalDimension<	values[0].numerator, values[0].denominator,
 											values[1].numerator, values[1].denominator,
@@ -69,7 +72,8 @@ namespace AE::Math
 											values[4].numerator, values[4].denominator,
 											values[5].numerator, values[5].denominator,
 											values[6].numerator, values[6].denominator,
-											values[7].numerator, values[7].denominator >;
+											values[7].numerator, values[7].denominator,
+											values[8].numerator, values[8].denominator >;
 		};
 
 		
@@ -77,7 +81,7 @@ namespace AE::Math
 		struct _Div {
 			static constexpr FractionalI	values[] = {
 				(seconds - Rhs::seconds),  (kilograms - Rhs::kilograms),  (meters - Rhs::meters),      (amperes - Rhs::amperes),
-				(kelvins - Rhs::kelvins),  (moles - Rhs::moles),          (candelas - Rhs::candelas),  (currency - Rhs::currency)
+				(kelvins - Rhs::kelvins),  (moles - Rhs::moles),          (candelas - Rhs::candelas),  (currency - Rhs::currency),	(bits - Rhs::bits)
 			};
 			using type = PhysicalDimension<	values[0].numerator, values[0].denominator,
 											values[1].numerator, values[1].denominator,
@@ -86,7 +90,8 @@ namespace AE::Math
 											values[4].numerator, values[4].denominator,
 											values[5].numerator, values[5].denominator,
 											values[6].numerator, values[6].denominator,
-											values[7].numerator, values[7].denominator >;
+											values[7].numerator, values[7].denominator,
+											values[8].numerator, values[8].denominator >;
 		};
 		
 
@@ -99,7 +104,8 @@ namespace AE::Math
 											kelvins.numerator	* value,	kelvins.denominator,
 											moles.numerator		* value,	moles.denominator,
 											candelas.numerator	* value,	candelas.denominator,
-											currency.numerator	* value,	currency.denominator >;
+											currency.numerator	* value,	currency.denominator,
+											bits.numerator		* value,	bits.denominator >;
 		};
 		
 		
@@ -111,7 +117,8 @@ namespace AE::Math
 		static constexpr bool  IsNonDimensional =	seconds.IsZero()	and kilograms.IsZero()	and
 													meters.IsZero()		and amperes.IsZero()	and
 													kelvins.IsZero()	and moles.IsZero()		and
-													candelas.IsZero()	and currency.IsZero();
+													candelas.IsZero()	and currency.IsZero()	and
+													bits.IsZero();
 	};
 
 
@@ -122,15 +129,16 @@ namespace AE::Math
 
 	struct DefaultPhysicalDimensions
 	{
-		using NonDimensional	= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;
-		using Second			= PhysicalDimension< 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;	// s
-		using Kilogram			= PhysicalDimension< 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;	// kg
-		using Meter				= PhysicalDimension< 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;	// m
-		using Ampere			= PhysicalDimension< 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;	// A
-		using Kelvin			= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1 >;	// K
-		using Mole				= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1 >;	// mol
-		using Candela			= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1 >;	// cd
-		using Currency			= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1 >;	// $
+		using NonDimensional	= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;
+		using Second			= PhysicalDimension< 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;	// s
+		using Kilogram			= PhysicalDimension< 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;	// kg
+		using Meter				= PhysicalDimension< 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;	// m
+		using Ampere			= PhysicalDimension< 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;	// A
+		using Kelvin			= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;	// K
+		using Mole				= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1 >;	// mol
+		using Candela			= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1 >;	// cd
+		using Currency			= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1 >;	// $
+		using Bits				= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1 >;	// bits
 
 		using SquareMeter				= Meter::Pow< 2 >;										// m^2
 		using CubicMeter				= Meter::Pow< 3 >;										// m^3
@@ -187,6 +195,9 @@ namespace AE::Math
 	
 	template <typename T>
 	static constexpr bool	IsCurrencyUnits			= T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Currency >::value;
+	
+	template <typename T>
+	static constexpr bool	IsInformationUnits		= T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Bits >::value;
 
 	
 	//
@@ -211,4 +222,4 @@ namespace AE::Math
 	static constexpr bool	IsSameDimensions		= T1::Dimension_t::template Equal< T2::Dimension_t >::value;
 
 
-}	// AE::Math
+} // AE::Math

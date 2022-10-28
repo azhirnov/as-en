@@ -23,8 +23,12 @@ namespace AE::Graphics
 			};
 			Bytes		size;
 
-			ND_ void*		End ()		 { return ptr + size; }
-			ND_ void const*	End () const { return ptr + size; }
+			Data () {}
+			Data (void* ptr, Bytes size) : ptr{ptr}, size{size} {}
+
+			ND_ void*		End ()				{ return ptr + size; }
+			ND_ void const*	End ()		const	{ return ptr + size; }
+			ND_ bool		Empty ()	const	{ return ptr == null; }
 		};
 
 		struct ConstData
@@ -34,8 +38,13 @@ namespace AE::Graphics
 				ubyte const		(*_dbgView)[400];
 			};
 			Bytes		size;
+			
+			ConstData () {}
+			ConstData (const void* ptr, Bytes size) : ptr{ptr}, size{size} {}
+			explicit ConstData (const Data &other) : ptr{other.ptr}, size{other.size} {}
 
-			ND_ void const*  End () const { return ptr + size; }
+			ND_ void const*	End ()		const	{ return ptr + size; }
+			ND_ bool		Empty ()	const	{ return ptr == null; }
 		};
 
 		static constexpr uint	Count = 4;
@@ -63,6 +72,8 @@ namespace AE::Graphics
 
 		BufferMemView&  operator = (const BufferMemView &) = default;
 		BufferMemView&  operator = (BufferMemView &&) = default;
+		
+		ND_ explicit operator Array<char> () const	{ return _ToArray(); }
 
 		ND_ auto	Parts ()	const	{ return ArrayView<ConstData>{ Cast<ConstData>(_parts.data()), _parts.size() }; }
 		ND_ auto	Parts ()			{ return ArrayView<Data>{ _parts }; }
@@ -80,7 +91,7 @@ namespace AE::Graphics
 
 		bool  PushBack (void *ptr, Bytes size)
 		{
-			return _parts.try_push_back( Data{ {ptr}, size });
+			return _parts.try_push_back( Data{ ptr, size });
 		}
 
 
@@ -131,7 +142,10 @@ namespace AE::Graphics
 			BufferMemView	src{ const_cast<T*>(from.data()), ArraySizeOf(from) };
 			return Copy( src );
 		}
+
+	private:
+		ND_ Array<char>  _ToArray () const;
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics

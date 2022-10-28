@@ -10,7 +10,7 @@ else()
 	add_executable( "Tests.Graphics" ${SOURCES} ${SHARED_DATA} )
 endif()
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
-source_group( TREE ${DATA_FOLDER} FILES ${SHARED_DATA} )
+source_group( TREE "${DATA_FOLDER}/.." FILES ${SHARED_DATA} )
 
 set_property( TARGET "Tests.Graphics" PROPERTY FOLDER "Engine/Tests" )
 target_link_libraries( "Tests.Graphics" PUBLIC "Graphics" "Platform" "GraphicsTestUtils" )

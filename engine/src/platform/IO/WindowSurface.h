@@ -13,6 +13,8 @@
 
 namespace AE::App
 {
+	using AE::Threading::SharedMutex;
+
 
 	//
 	// Window Output Surface
@@ -22,6 +24,7 @@ namespace AE::App
 	{
 	// types
 	private:
+		class AcquireNextImageTask;
 		class PresentImageTask;
 
 	  #if defined(AE_ENABLE_VULKAN)
@@ -33,15 +36,20 @@ namespace AE::App
 
 	// variables
 	private:
-		mutable RecursiveMutex	_guard;
+		mutable SharedMutex		_guard;
+		mutable SharedMutex		_swGuard;
 
-		Swapchain_t				_swapchain;
+		Swapchain_t				_swapchain;					// pretected by '_swGuard'
 
-		bool					_initialized	= false;
-		bool					_recreate		= false;
+		AsyncTask				_prevTask;					// pretected by '_guard'
+		CommandBatchPtr			_endCmdBatch;				// pretected by '_guard'
 
-		Graphics::SwapchainDesc	_desc;
-		float2					_pixToMm;
+		bool					_initialized	= false;	// pretected by '_guard'
+		Atomic<bool>			_recreate		{false};
+
+		Graphics::SwapchainDesc	_desc;						// pretected by '_guard'
+		float2					_pixToMm;					// pretected by '_swGuard'
+		Ptr<const IWindow >		_window;					// pretected by '_guard'
 
 		static constexpr auto	_targetType		= ETargetType::Final2D;
 
@@ -58,12 +66,21 @@ namespace AE::App
 		bool			IsInitialized ()		const override;
 		RenderPassInfo	GetRenderPassInfo ()	const override;
 
-		bool  Begin (Graphics::CommandBatch &cmdBatch) override;
-		bool  GetTargets (OUT RenderTargets_t &targets) const override;
-		bool  End (Graphics::CommandBatch &cmdBatch, ArrayView<AsyncTask> deps) override;
+		AsyncTask	Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps) override;
+		bool		GetTargets (OUT RenderTargets_t &targets) const override;
+		AsyncTask	End (ArrayView<AsyncTask> deps) override;
 		
 
+	// IWindow private api
+	public:
+		void  CreateSwapchain ();
+		void  ResizeSwapchain (const uint2 &newSize);
+		void  DestroySwapchain ();
+
+
 	private:
+			void  _UpdateMonitor ();
+
 	  #if defined(AE_ENABLE_VULKAN)
 		ND_ static	Graphics::VResourceManager&	_GetResMngr ();
 		ND_ static	Graphics::VDevice const&	_GetDevice ();
@@ -71,15 +88,8 @@ namespace AE::App
 		ND_ static	Graphics::MResourceManager&	_GetResMngr ();
 		ND_ static	Graphics::MDevice const&	_GetDevice ();
 	  #endif
-		
-
-	// IWindow private api
-	public:
-		void  CreateSwapchain (IWindow &wnd);
-		void  ResizeSwapchain (const uint2 &newSize);
-		void  DestroySwapchain ();
 	};
 
 
-}	// AE::App
+} // AE::App
 

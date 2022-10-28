@@ -211,7 +211,9 @@ namespace AE::PipelineCompiler
 		};
 
 		struct SubpassInput : Image
-		{};
+		{
+			ubyte				index;
+		};
 
 		struct RayTracingScene
 		{};
@@ -228,7 +230,7 @@ namespace AE::PipelineCompiler
 				Image				storageImage;
 				Image				sampledImage;
 				Image				combinedImage;
-				Image				subpassInput;
+				SubpassInput		subpassInput;
 				ImageWithSampler	combinedImageWithSampler;
 				Sampler				sampler;
 				ImmutableSampler	immutableSampler;
@@ -435,29 +437,13 @@ namespace AE::PipelineCompiler
 		using Shaders_t			= FixedMap< EShader, ShaderUID, 5 >;
 		using TopologyBits_t	= EnumBitSet< EPrimitive >;
 		
-		struct VertexInput
+		struct VertexAttrib
 		{
-			EVertexType		type			= Default;
-			Bytes16u		offset;
-			ubyte			index			= UMax;
-			ubyte			bufferBinding	= UMax;
+			EVertexType		type	= Default;
+			ubyte			index	= UMax;
 
-			ND_ bool  operator == (const VertexInput &rhs) const;
+			ND_ bool  operator == (const VertexAttrib &rhs) const;
 		};
-
-		struct VertexBuffer
-		{
-			VertexBufferName::Optimized_t	name;
-			ShaderStructName::Optimized_t	typeName;
-			EVertexInputRate				rate		= Default;
-			ubyte							index		= UMax;
-			Bytes16u						stride;
-			
-			ND_ bool  operator == (const VertexBuffer &rhs) const;
-		};
-		
-		STATIC_ASSERT( sizeof(VertexInput) == 6 );
-		STATIC_ASSERT( sizeof(VertexBuffer) == 12 );
 
 
 	// variables
@@ -466,8 +452,7 @@ namespace AE::PipelineCompiler
 		PipelineLayoutUID		layout					= Default;
 		Shaders_t				shaders;
 		TopologyBits_t			supportedTopology;
-		ArrayView<VertexInput>	vertexInput;
-		ArrayView<VertexBuffer>	vertexBuffers;
+		ArrayView<VertexAttrib>	vertexAttribs;
 		uint					patchControlPoints		= 0;
 		bool					earlyFragmentTests		= true;
 
@@ -497,10 +482,10 @@ namespace AE::PipelineCompiler
 	{
 	// variables
 	public:
-		PipelineTemplUID		templUID;
-		RenderStateUID			rStateUID		= Default;
-		DepthStencilStateUID	dsStateUID		= Default;
-		GraphicsPipelineDesc	desc;
+		PipelineTemplUID			templUID;
+		RenderStateUID				rStateUID		= Default;
+		DepthStencilStateUID		dsStateUID		= Default;
+		GraphicsPipelineDesc		desc;
 
 
 	// methods
@@ -1191,8 +1176,7 @@ namespace AE::Base
 	template <>	struct TTrivialySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::TriangleHitGroup >		{ static constexpr bool  value = true; };
 	template <>	struct TTrivialySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::ProceduralHitGroup >	{ static constexpr bool  value = true; };
 	
-	template <>	struct TTrivialySerializable< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexInput >				{ static constexpr bool  value = true; };
-	template <>	struct TTrivialySerializable< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexBuffer >			{ static constexpr bool  value = true; };
+	template <>	struct TTrivialySerializable< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib >			{ static constexpr bool  value = true; };
 
 } // AE::Base
 
@@ -1220,19 +1204,16 @@ namespace std
 	{};
 	
 	template <>
-	struct hash< AE::PipelineCompiler::SpirvWithTrace > final
-	{
+	struct hash< AE::PipelineCompiler::SpirvWithTrace > {
 		ND_ size_t  operator () (const AE::PipelineCompiler::SpirvWithTrace &x) const {
 			return size_t(AE::Base::HashOf( x.bytecode ));
 		}
 	};
-
+	
 	template <>
-	struct hash< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexInput > {
-		size_t  operator () (const AE::PipelineCompiler::SerializableGraphicsPipeline::VertexInput &x) const
-		{
-			return size_t(AE::Base::HashOf(x.type) + AE::Base::HashOf(x.offset) +
-						  AE::Base::HashOf(x.index) + AE::Base::HashOf(x.bufferBinding));
+	struct hash< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib > {
+		size_t  operator () (const AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib &x) const {
+			return size_t(AE::Base::HashOf(x.type) + AE::Base::HashOf(x.index));
 		}
 	};
 

@@ -17,7 +17,7 @@ namespace
 
 		AsyncTask					result;
 
-		RC<CommandBatch>			batch;
+		CommandBatchPtr			batch;
 		bool						isOK	= false;
 
 		ImageComparator *			imgCmp	= null;
@@ -31,7 +31,7 @@ namespace
 	public:
 		D1_TestData&	t;
 
-		D1_DrawTask (D1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		D1_DrawTask (D1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -43,7 +43,7 @@ namespace
 			
 			const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
 
-			typename CtxType::Graphics	ctx{ GetBatchPtr() };
+			typename CtxType::Graphics	ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AccumBarriers()
@@ -76,7 +76,7 @@ namespace
 	public:
 		D1_TestData&	t;
 
-		D1_CopyTask (D1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		D1_CopyTask (D1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -86,8 +86,7 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 			
-			Ctx		ctx{ GetBatchPtr() };
-
+			Ctx		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
@@ -132,13 +131,13 @@ namespace
 		auto	batch = rts.CreateBatch( EQueueType::Graphics, 0, "Draw1" );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< D1_DrawTask<CtxType> >( MakeTuple(ArgRef(t)), MakeTuple(begin), "Draw task" );
+		AsyncTask	task1	= batch->Add< D1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin}, "Draw task" );
 		CHECK_ERR( task1 );
 		
-		AsyncTask	task2	= batch->Add< D1_CopyTask<CopyCtx> >( MakeTuple(ArgRef(t)), MakeTuple(task1), "Readback task" );
+		AsyncTask	task2	= batch->Add< D1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
 		CHECK_ERR( task2 );
 
-		AsyncTask	end		= rts.EndFrame( MakeTuple(task2) );
+		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
@@ -155,7 +154,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_Draw1 ()

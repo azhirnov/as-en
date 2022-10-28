@@ -34,7 +34,6 @@ namespace AE::App
 
 		DRC_ONLY(
 			SingleThreadCheck	_stCheck;
-			DataRaceCheck		_drCheck;
 		)
 
 
@@ -47,7 +46,7 @@ namespace AE::App
 		void  _Destroy ();
 
 	public:
-		VRDevicePtr  CreateVRDevice (VRDevListenerPtr, IInputActions* dst) override;
+		VRDevicePtr  CreateVRDevice (VRDevListenerPtr, IInputActions* dst, IVRDevice::EDeviceType type) override;
 		
 		Duration_t  GetTimeSinceStart () const override final	{ return Duration_t{_timeSinceStart.load()}; }
 		

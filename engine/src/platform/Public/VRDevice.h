@@ -25,6 +25,10 @@ namespace AE::App
 
 		class IVRDeviceEventListener
 		{
+		// types
+		public:
+			using EState = IWindow::EState;
+
 		// interface
 		public:
 			virtual ~IVRDeviceEventListener () {}
@@ -45,8 +49,16 @@ namespace AE::App
 		{
 			uint2			dimension;
 			EPixelFormat	format		= Default;
-			EImageUsage		usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;
+			EImageUsage		usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;
 			MultiSamples	samples;
+		};
+
+		enum class EDeviceType : ubyte
+		{
+			Unknown,
+			Emulator,
+			OpenVR,
+			OpenXR,
 		};
 
 
@@ -81,6 +93,8 @@ namespace AE::App
 		//   Thread safe: yes
 		//
 		ND_ virtual StringView  GetApiName () const = 0;
+
+		// TODO: load controller model
 
 
 	// surface api

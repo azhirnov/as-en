@@ -167,29 +167,20 @@ namespace AE::App
 			KeyBegin		= 32,	// GLFW_KEY_SPACE
 			KeyEnd			= 348,	// GLFW_KEY_LAST
 
-			Cursor1DBegin	= KeyEnd + 10,
-			MouseWheelX		= Cursor1DBegin,// float (delta)
-			MouseWheelY,					// float (delta)
-			CursorPosX,						// float (absolute in pixels)
-			CursorPosY,						// float (absolute in pixels)
-			CursorPosX_mm,					// float (absolute in mm)
-			CursorPosY_mm,					// float (absolute in mm)
-			CursorDeltaX,					// float (delta in pixels)
-			CursorDeltaY,					// float (delta in pixels)
-			CursorDeltaX_norm,				// snorm
-			CursorDeltaY_norm,				// snorm
-			Cursor1DEnd		= CursorDeltaY_norm,
-			
-			Cursor2DBegin,
-			MouseWheelXY	= Cursor2DBegin,// float2
-			CursorPosXY,					// float2 (absolute in pixels)
-			CursorPosXY_mm,					// float2 (absolute in mm)
-			CursorDeltaXY,					// float2 (delta in pixels)
-			CursorDeltaXY_norm,				// snorm2
-			Cursor2DEnd		= CursorDeltaXY_norm,
+			Cursor2DBegin	= KeyEnd + 10,
+			MouseWheel		= Cursor2DBegin,// float2
+			CursorPos,						// float2 (absolute in pixels)
+			CursorPos_mm,					// float2 (absolute in mm)
+			CursorDelta,					// float2 (delta in pixels)
+			CursorDelta_norm,				// snorm2
+			TouchPos,						// float2 (absolute in pixels)
+			TouchPos_mm,					// float2 (absolute in mm)
+			TouchDelta,						// float2 (delta in pixels)
+			TouchDelta_norm,				// snorm2
+			Cursor2DEnd		= TouchDelta_norm,
 
 			_Count,
-			Unknown				= 0xFFFF,
+			Unknown			= 0xFFFF,
 		};
 
 		struct ScriptBindingsMode;
@@ -238,8 +229,8 @@ namespace AE::App
 				((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
 	}
 
-	forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor1D (EInputType type) {
-		return (type >= EInputType::Cursor1DBegin) & (type <= EInputType::Cursor1DEnd);
+	forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor1D (EInputType) {
+		return false;
 	}
 
 	forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor2D (EInputType type) {

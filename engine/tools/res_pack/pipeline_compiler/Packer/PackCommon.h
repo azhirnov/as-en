@@ -5,7 +5,7 @@
 #include "base/Memory/IAllocator.h"
 #include "base/CompileTime/StringToID.h"
 
-#if defined(AE_TEST_PIPELINE_COMPILER) or defined(AE_DEV_OR_DBG)
+#if defined(AE_TEST_PIPELINE_COMPILER) or defined(AE_DBG_OR_DEV)
 # include "HashToName.h"
 #endif
 

@@ -29,7 +29,7 @@ namespace
 
 		AsyncTask					result;
 
-		RC<CommandBatch>			batch;
+		CommandBatchPtr			batch;
 		bool						isOK		= false;
 
 		ImageComparator *			imgCmp		= null;
@@ -52,7 +52,7 @@ namespace
 	public:
 		RT1_TestData&	t;
 
-		RT1_UploadTask (RT1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		RT1_UploadTask (RT1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -62,18 +62,18 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 
-			typename CtxTypes::Transfer	copy_ctx{ GetBatchPtr() };
+			typename CtxTypes::Transfer	copy_ctx{ *this };
 			CHECK_TE( copy_ctx.IsValid() );
 
 			RTSceneBuild::Instance	inst;
 			inst.Init();
 			inst.SetGeometry( t.rtGeom );
 
-			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Bytes::SizeOf(buffer_vertices), buffer_vertices, EStagingHeapType::Static ) == Bytes::SizeOf(buffer_vertices) );
-			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Bytes::SizeOf(buffer_indices),  buffer_indices,  EStagingHeapType::Static ) == Bytes::SizeOf(buffer_indices) );
-			CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Bytes::SizeOf(inst), &inst, EStagingHeapType::Static ) == Bytes::SizeOf(inst) );
+			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Bytes::SizeOf(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
+			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Bytes::SizeOf(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
+			CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Bytes::SizeOf(inst), &inst, EStagingHeapType::Static ));
 
-			typename CtxTypes::ASBuild	as_ctx{ GetBatchPtr(), copy_ctx.ReleaseCommandBuffer() };
+			typename CtxTypes::ASBuild	as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 			CHECK_TE( as_ctx.IsValid() );
 			
 			as_ctx.AccumBarriers()
@@ -104,7 +104,7 @@ namespace
 	public:
 		RT1_TestData&	t;
 
-		RT1_RayTracingTask (RT1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		RT1_RayTracingTask (RT1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -116,7 +116,7 @@ namespace
 
 			const auto	img_state	= EResourceState::ShaderStorage_Write | EResourceState::RayTracingShaders;
 			
-			typename CtxTypes::RayTracing	ctx{ GetBatchPtr() };
+			typename CtxTypes::RayTracing	ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			ctx.AccumBarriers()
@@ -141,7 +141,7 @@ namespace
 	public:
 		RT1_TestData&	t;
 
-		RT1_CopyTask (RT1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		RT1_CopyTask (RT1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -151,8 +151,7 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 			
-			Ctx		ctx{ GetBatchPtr() };
-
+			Ctx		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
@@ -242,16 +241,16 @@ namespace
 		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "RayTracing1" );
 		CHECK_ERR( t.batch );
 		
-		AsyncTask	task1	= t.batch->Add<RT1_UploadTask<CtxTypes>>( MakeTuple(ArgRef(t)), MakeTuple(begin), "Upload RTAS task" );
+		AsyncTask	task1	= t.batch->Add<RT1_UploadTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{begin}, "Upload RTAS task" );
 		CHECK_ERR( task1 );
 
-		AsyncTask	task2	= t.batch->Add<RT1_RayTracingTask<CtxTypes>>( MakeTuple(ArgRef(t)), MakeTuple(task1), "Ray tracing task" );
+		AsyncTask	task2	= t.batch->Add<RT1_RayTracingTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{task1}, "Ray tracing task" );
 		CHECK_ERR( task2 );
 		
-		AsyncTask	task3	= t.batch->Add<RT1_CopyTask<CopyCtx>>( MakeTuple(ArgRef(t)), MakeTuple(task2), "Readback task" );
+		AsyncTask	task3	= t.batch->Add<RT1_CopyTask<CopyCtx>>( Tuple{ArgRef(t)}, Tuple{task2}, "Readback task" );
 		CHECK_ERR( task3 );
 
-		AsyncTask	end		= rts.EndFrame( MakeTuple(task3) );
+		AsyncTask	end		= rts.EndFrame( Tuple{task3} );
 		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
@@ -270,7 +269,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_RayTracing1 ()

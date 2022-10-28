@@ -9,7 +9,7 @@ namespace
 		Strong<BufferID>			buf;
 		const Bytes					buf_size	= 32_Mb;
 		Array<ubyte>				buffer_data;
-		RC<CommandBatch>			batch;
+		CommandBatchPtr			batch;
 		RC<GfxLinearMemAllocator>	gfxAlloc;
 		BufferStream				stream;
 		Atomic<uint>				counter		{0};
@@ -23,13 +23,13 @@ namespace
 	public:
 		US1_TestData&	t;
 
-		US1_UploadStreamTask (US1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		US1_UploadStreamTask (US1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName }, t{ t }
 		{}
 
 		void  Run () override
 		{
-			DirectCtx::Transfer	ctx{ GetBatchPtr() };
+			DirectCtx::Transfer	ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			const Bytes	pos = t.stream.pos;
@@ -76,14 +76,16 @@ namespace
 			t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "UploadStream1" );
 			CHECK_TE( t.batch );
 			
-			AsyncTask	test = t.batch->Add<US1_UploadStreamTask>( MakeTuple(ArgRef(t)), MakeTuple(begin), "test task" );
+			AsyncTask	test = t.batch->Add<US1_UploadStreamTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
 			CHECK_TE( test );
 
-			AsyncTask	end = rts.EndFrame( MakeTuple(test) );
+			AsyncTask	end = rts.EndFrame( Tuple{test} );
 			CHECK_TE( end );
 
-			CHECK_TE( Continue( MakeTuple( end )));
+			CHECK_TE( Continue( Tuple{end} ));
 		}
+
+		StringView  DbgName () const override { return "US1_FrameTask"; }
 	};
 
 	
@@ -104,7 +106,7 @@ namespace
 
 		t.stream = BufferStream{ t.buf, 0_b, t.buf_size };
 		
-		auto	task = Scheduler().Run<US1_FrameTask>( MakeTuple(ArgRef(t)) );
+		auto	task = Scheduler().Run<US1_FrameTask>( Tuple{ArgRef(t)} );
 
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
@@ -115,7 +117,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_UploadStream1 ()

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Math.h"
+#include "base/Math/Vec.h"
 #include "base/Math/Bytes.h"
 
 namespace AE::Base
@@ -107,7 +107,7 @@ namespace AE::Base
 		ND_ ArrayView<T> section (usize first, usize count) const
 		{
 			return first < size() ?
-					ArrayView<T>{ data() + first, Min( size() - first, count )} :
+					ArrayView<T>{ data() + first, Math::Min( size() - first, count )} :
 					ArrayView<T>{};
 		}
 
@@ -125,7 +125,7 @@ namespace AE::Base
 	template <typename T>
 	ArrayView (T) -> ArrayView<T>;
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -171,4 +171,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

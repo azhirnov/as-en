@@ -38,14 +38,18 @@ namespace AE::Math
 
 		ND_ constexpr explicit operator T ()					const	{ return _value; }
 
-		ND_ constexpr static Self  Pi ()								{ return Self{T( 3.14159265358979323846 )}; }
-		ND_ constexpr static T DegToRad ()								{ return T(0.01745329251994329576923690768489); }
-		ND_ constexpr static T RadToDeg ()								{ return T(57.295779513082320876798154814105); }
+		ND_ constexpr static Self	Pi ()								{ return Self{T( 3.14159265358979323846 )}; }
+		ND_ constexpr static Self	Pi2 ()								{ return Pi() * T(2); }
+		ND_ constexpr static T		DegToRad ()							{ return T(0.01745329251994329576923690768489); }
+		ND_ constexpr static T		RadToDeg ()							{ return T(57.295779513082320876798154814105); }
 
 			Self&  operator = (const Self &) = default;
 			Self&  operator = (Self &&) = default;
 
 		ND_ constexpr Self   operator - ()						const	{ return Self{ -_value }; }
+
+		ND_ constexpr Self	 WrapToPi ()						const	{ return Self{Wrap( _value, -Pi()._value, Pi()._value  )}; }
+		ND_ constexpr Self	 WrapTo0_2Pi ()						const	{ return Self{Wrap( _value, 0, Pi2()._value  )}; }
 
 			constexpr Self&  operator += (const Self rhs)				{ _value += rhs._value;  return *this; }
 			constexpr Self&  operator -= (const Self rhs)				{ _value -= rhs._value;  return *this; }
@@ -305,8 +309,19 @@ namespace AE::Math
 		return RadiansTempl<T>{ SafeDiv( T{1}, ATanH( x ), T{0} )};
 	}
 	
+/*
+=================================================
+	Equals
+=================================================
+*/
+	template <typename T>
+	ND_ forceinline constexpr bool  Equals (const RadiansTempl<T> &lhs, const RadiansTempl<T> &rhs, const T &err = Epsilon<T>())
+	{
+		return Equals( T{lhs}, T{rhs}, err );
+	}
 
-}	// AE::Math
+
+} // AE::Math
 
 
 namespace AE::Base
@@ -315,4 +330,4 @@ namespace AE::Base
 	template <typename T>	struct TZeroMemAvailable< RadiansTempl<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
 	template <typename T>	struct TTrivialySerializable< RadiansTempl<T> >	{ static constexpr bool  value = IsTrivialySerializable<T>; };
 	
-}	// AE::Base
+} // AE::Base

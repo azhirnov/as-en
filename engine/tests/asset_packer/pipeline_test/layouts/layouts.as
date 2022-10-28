@@ -11,7 +11,7 @@ void GraphicsLayout ()
 		st.Set( "float4x4  mvp;" );
 	}
 	{
-		DescriptorSetLayout@	ds = DescriptorSetLayout( "DS_PerDraw" );
+		DescriptorSetLayout@	ds = DescriptorSetLayout( "DS_PerDraw2D" );
 		ds.AddFeatureSet( "MinimalFS" );
 		ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
 		ds.Define( "#define DEF_VALUE_1" );
@@ -27,11 +27,23 @@ void GraphicsLayout ()
 	}
 	{
 		PipelineLayout@		pl = PipelineLayout( "Graphics_PL_1" );
-		pl.DSLayout( DrawCmd_DSIdx,		"DS_PerDraw" );
+		pl.DSLayout( DrawCmd_DSIdx,		"DS_PerDraw2D" );
 		pl.DSLayout( Material_DSIdx,	"DS_Material" );
 	}
 	{
 		PipelineLayout@		pl = PipelineLayout( "Graphics_PL_2" );
+		pl.DSLayout( Material_DSIdx,	"DS_Material" );
+	}
+	{
+		DescriptorSetLayout@	ds = DescriptorSetLayout( "DS_PerDraw3D" );
+		ds.AddFeatureSet( "MinimalFS" );
+		ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
+
+		ds.UniformBuffer( EShaderStages::Vertex, "drawUB", ArraySize(1), "UBlock" );
+	}
+	{
+		PipelineLayout@		pl = PipelineLayout( "Graphics_PL_4" );
+		pl.DSLayout( DrawCmd_DSIdx,		"DS_PerDraw3D" );
 		pl.DSLayout( Material_DSIdx,	"DS_Material" );
 	}
 	{
@@ -89,21 +101,70 @@ void RayTracingLayout ()
 
 void VertexBuffers ()
 {
+	// layouts
 	{
-		ShaderStructType@	st = ShaderStructType( "VBInput1" );
-		st.Set( "packed_float3			Position;" +
-				"packed_ushort_norm2	Texcoord;" );
+		ShaderStructType@	st = ShaderStructType( "vb_layout1" );
+		st.Set( "float3		Position;" +
+				"float2		Texcoord;" );
 
-		VertexBufferInput@	vb = VertexBufferInput( "VBInput1" );
+		VertexBufferInput@	vb = VertexBufferInput( "vb_layout1" );
 		vb.Add( "vb", st );
 	}
 	{
-		ShaderStructType@	st = ShaderStructType( "VBInput2" );
+		ShaderStructType@	st = ShaderStructType( "vb_layout2" );
+		st.Set( "float2		Position;" +
+				"float2		Texcoord;" );
+
+		VertexBufferInput@	vb = VertexBufferInput( "vb_layout2" );
+		vb.Add( "vb", st );
+	}
+
+	// definition
+	{
+		ShaderStructType@	st = ShaderStructType( "vb_input1" );
+		st.Set( "packed_float3			Position;" +
+				"packed_ushort_norm2	Texcoord;" );
+
+		VertexBufferInput@	vb = VertexBufferInput( "vb_input1" );
+		vb.Add( "vb", st );
+		SameAttribs( "vb_layout1", "vb_input1" );
+	}
+	{
+		ShaderStructType@	st = ShaderStructType( "vb_input2" );
 		st.Set( "packed_float2			Position;" +
 				"packed_ushort_norm2	Texcoord;" );
 
-		VertexBufferInput@	vb = VertexBufferInput( "VBInput2" );
+		VertexBufferInput@	vb = VertexBufferInput( "vb_input2" );
 		vb.Add( "vb", st );
+		SameAttribs( "vb_layout2", "vb_input2" );
+	}
+	{
+		ShaderStructType@	st1 = ShaderStructType( "VB_3_Pos" );
+		st1.Set( "packed_float3		Position;" );
+
+		ShaderStructType@	st2 = ShaderStructType( "VB_3_Attribs" );
+		st2.Set( "packed_float2		Texcoord;" );
+
+		VertexBufferInput@	vb = VertexBufferInput( "vb_input3" );
+		vb.Add( "Position",	st1 );
+		vb.Add( "Attribs",	st2 );
+		SameAttribs( "vb_layout1", "vb_input3" );
+	}
+}
+
+
+void ShaderInputOutput ()
+{
+	{
+		ShaderStructType@	st = ShaderStructType( "graphics_1.io" );
+		st.Set( "float2  Texcoord;" );
+	}{
+		ShaderStructType@	st = ShaderStructType( "graphics_4.io" );
+		st.Set( "float2  texCoord;" );
+	}{
+		ShaderStructType@	st = ShaderStructType( "mesh_1.io" );
+		st.Set( "float2  texcoord;" +
+				"float4  color;" );
 	}
 }
 
@@ -114,4 +175,5 @@ void main ()
 	ComputeLayout();
 	RayTracingLayout();
 	VertexBuffers();
+	ShaderInputOutput();
 }

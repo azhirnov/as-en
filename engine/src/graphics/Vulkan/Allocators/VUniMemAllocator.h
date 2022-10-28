@@ -39,6 +39,7 @@ namespace AE::Graphics
 		VUniMemAllocator ();
 		~VUniMemAllocator () override;
 		
+	  // IGfxMemAllocator //
 		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data) override;
 		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) override;
 
@@ -49,6 +50,7 @@ namespace AE::Graphics
 		Bytes  MinAlignment ()		const override	{ return 1_b; }
 		Bytes  MaxAllocationSize ()	const override;
 
+
 	private:
 		bool _CreateAllocator (OUT VmaAllocator &alloc) const;
 
@@ -57,6 +59,6 @@ namespace AE::Graphics
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

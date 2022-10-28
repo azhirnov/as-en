@@ -1,0 +1,15 @@
+/*
+struct FragmentIn
+{
+	float4	position	[[position]];
+	float2	texCoord;
+};
+*/
+fragment
+AE_STAGE_OUT  FSmain (AE_STAGE_IN( in ),
+					  AE_SHADER_RESOURCES)
+{
+	AE_STAGE_OUT	out;
+	out.out_Color = un_ColorTexture.sample( un_ColorTexture_sampler, in.texCoord );
+	return out;
+}

@@ -273,20 +273,246 @@ namespace AE::PipelineCompiler
 	MEnumCast (EPixelFormat)
 =================================================
 */
-	ND_ inline MtlPixelFormat  MEnumCast (EPixelFormat value);
+	ND_ inline MtlPixelFormat  MEnumCast (EPixelFormat value)
+	{
+#		define FMT_BUILDER( _engineFmt_, _mtlFormat_, _apiVer_ ) \
+			case EPixelFormat::_engineFmt_ : return MtlPixelFormat::_mtlFormat_;
+		
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			AE_PRIVATE_MTLPIXELFORMATS( FMT_BUILDER )
+			case EPixelFormat::SwapchainColor :		return MtlPixelFormat::SwapchainColor;
+			case EPixelFormat::RGB16_SNorm :
+			case EPixelFormat::RGB8_SNorm :
+			case EPixelFormat::RGB16_UNorm :
+			case EPixelFormat::RGB8_UNorm :
+			case EPixelFormat::BGR8_UNorm :
+			case EPixelFormat::sRGB8 :
+			case EPixelFormat::sBGR8 :
+			case EPixelFormat::RGB8I :
+			case EPixelFormat::RGB16I :
+			case EPixelFormat::RGB32I :
+			case EPixelFormat::R64I :
+			case EPixelFormat::RGB8U :
+			case EPixelFormat::RGB16U :
+			case EPixelFormat::RGB32U :
+			case EPixelFormat::R64U :
+			case EPixelFormat::RGB16F :
+			case EPixelFormat::RGB32F :
+			case EPixelFormat::Depth24 :
+			case EPixelFormat::Depth16_Stencil8 :
+			case EPixelFormat::BC1_RGB8_UNorm :
+			case EPixelFormat::BC1_sRGB8 :
+			case EPixelFormat::_Count :
+			case EPixelFormat::Unknown :		break;
+		}
+		END_ENUM_CHECKS();
+
+#		undef FMT_BUILDER
+
+		RETURN_ERR( "invalid pixel format", MtlPixelFormat::Invalid );
+	}
 	
 /*
 =================================================
 	MEnumCast (EAttachmentLoadOp)
 =================================================
 */
-	ND_ inline MtlLoadAction  MEnumCast (EAttachmentLoadOp value);
+	ND_ inline MtlLoadAction  MEnumCast (EAttachmentLoadOp value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EAttachmentLoadOp::Invalidate :	return MtlLoadAction::DontCare;
+			case EAttachmentLoadOp::Load :			return MtlLoadAction::Load;
+			case EAttachmentLoadOp::Clear :			return MtlLoadAction::Clear;
+			case EAttachmentLoadOp::None :			return MtlLoadAction::DontCare;
+			case EAttachmentLoadOp::_Count :
+			case EAttachmentLoadOp::Unknown :		break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "invalid load op", MtlLoadAction::DontCare );
+	}
 	
 /*
 =================================================
 	MEnumCast (EAttachmentStoreOp)
 =================================================
 */
-	ND_ inline MtlStoreAction  MEnumCast (EAttachmentStoreOp value);
+	ND_ inline MtlStoreAction  MEnumCast (EAttachmentStoreOp value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EAttachmentStoreOp::Invalidate :					return MtlStoreAction::DontCare;
+			case EAttachmentStoreOp::Store :						return MtlStoreAction::Store;
+			case EAttachmentStoreOp::None :							return MtlStoreAction::DontCare;
+			case EAttachmentStoreOp::StoreCustomSamplePositions :	return MtlStoreAction::CustomSampleDepthStore;
+			case EAttachmentStoreOp::_Count :
+			case EAttachmentStoreOp::Unknown :						break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "invalid store op", MtlStoreAction::DontCare );
+	}
 
 } // AE::PipelineCompiler
+//-----------------------------------------------------------------------------
+
+
+
+#if defined(AE_BUILD_PIPELINE_COMPILER) or defined(AE_TEST_PIPELINE_COMPILER)
+# include "base/Algorithms/StringUtils.h"
+
+namespace AE::Base
+{
+	using AE::PipelineCompiler::MtlPixelFormat;
+	using AE::PipelineCompiler::MtlLoadAction;
+	using AE::PipelineCompiler::MtlStoreAction;
+	using AE::PipelineCompiler::MtlStoreActionOptions;
+	using AE::PipelineCompiler::MtlMultisampleDepthResolveFilter;
+	using AE::PipelineCompiler::MtlMultisampleStencilResolveFilter;
+	using AE::PipelineCompiler::MtlAttachmentFlags;
+
+/*
+=================================================
+	ToString (MtlPixelFormat)
+=================================================
+*/
+	ND_ inline StringView  ToString (MtlPixelFormat value)
+	{
+#		define FMT_BUILDER( _engineFmt_, _mtlFormat_, _apiVer_ ) \
+			case MtlPixelFormat::_mtlFormat_ : return AE_TOSTRING( MTLPixelFormat ## _mtlFormat_ );
+		
+		switch ( value )
+		{
+			AE_PRIVATE_MTLPIXELFORMATS( FMT_BUILDER )
+			case MtlPixelFormat::SwapchainColor :	return "SwapchainColor";
+		}
+
+#		undef FMT_BUILDER
+
+		RETURN_ERR( "invalid pixel format" );
+	}
+
+/*
+=================================================
+	ToString (MtlLoadAction)
+=================================================
+*/
+	ND_ inline StringView  ToString (MtlLoadAction value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case MtlLoadAction::DontCare :	return "MTLLoadActionDontCare";
+			case MtlLoadAction::Load :		return "MTLLoadActionLoad";
+			case MtlLoadAction::Clear :		return "MTLLoadActionClear";
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "invalid load actions" );
+	}
+
+/*
+=================================================
+	ToString (MtlStoreAction)
+=================================================
+*/
+	ND_ inline StringView  ToString (MtlStoreAction value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case MtlStoreAction::DontCare :						return "MTLStoreActionDontCare";
+			case MtlStoreAction::Store :						return "MTLStoreActionStore";
+			case MtlStoreAction::MultisampleResolve :			return "MTLStoreActionMultisampleResolve";
+			case MtlStoreAction::StoreAndMultisampleResolve :	return "MTLStoreActionStoreAndMultisampleResolve";
+			case MtlStoreAction::Unknown :						return "MTLStoreActionUnknown";
+			case MtlStoreAction::CustomSampleDepthStore :		return "MTLStoreActionCustomSampleDepthStore";
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "invalid store actions" );
+	}
+
+/*
+=================================================
+	ToString (MtlStoreActionOptions)
+=================================================
+*/
+	ND_ inline StringView  ToString (MtlStoreActionOptions value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case MtlStoreActionOptions::None :					return "MTLStoreActionOptionsNone";
+			case MtlStoreActionOptions::CustomSamplePositions :	return "MTLStoreActionOptionsCustomSamplePositions";
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "invalid store actions options" );
+	}
+
+/*
+=================================================
+	ToString (MtlMultisampleDepthResolveFilter)
+=================================================
+*/
+	ND_ inline StringView  ToString (MtlMultisampleDepthResolveFilter value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case MtlMultisampleDepthResolveFilter::Sample0 :	return "MTLMultisampleDepthResolveFilterSample0";
+			case MtlMultisampleDepthResolveFilter::Min :		return "MTLMultisampleDepthResolveFilterMin";
+			case MtlMultisampleDepthResolveFilter::Max :		return "MTLMultisampleDepthResolveFilterMax";
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "invalid multisample depth resolve filter" );
+	}
+
+/*
+=================================================
+	ToString (MtlMultisampleStencilResolveFilter)
+=================================================
+*/
+	ND_ inline StringView  ToString (MtlMultisampleStencilResolveFilter value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case MtlMultisampleStencilResolveFilter::Sample0 :				return "MTLMultisampleStencilResolveFilterSample0";
+			case MtlMultisampleStencilResolveFilter::DepthResolvedSample :	return "MTLMultisampleStencilResolveFilterDepthResolvedSample";
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "invalid multisample stencil resolve filter" );
+	}
+
+/*
+=================================================
+	ToString (MtlAttachmentFlags)
+=================================================
+*/
+	ND_ inline String  ToString (MtlAttachmentFlags values)
+	{
+		String	str;
+		while ( values != Zero )
+		{
+			if ( not str.empty() )
+				str << " | ";
+
+			BEGIN_ENUM_CHECKS();
+			switch ( ExtractBit( INOUT values ))
+			{
+				case MtlAttachmentFlags::Color :	str << "Color";		break;
+				case MtlAttachmentFlags::Depth :	str << "Depth";		break;
+				case MtlAttachmentFlags::Stencil :	str << "Stencil";	break;
+				case MtlAttachmentFlags::Unknown :
+				default :							RETURN_ERR( "invalid attachment flags" );
+			}
+			END_ENUM_CHECKS();
+		}
+		return str;
+	}
+
+} // AE::Base
+
+#endif // AE_BUILD_PIPELINE_COMPILER or AE_TEST_PIPELINE_COMPILER

@@ -6,9 +6,19 @@
 
 namespace AE::Base
 {
+namespace _hidden_
+{
+	template <typename T> struct _IsScalar		{ static constexpr bool  value = std::is_scalar_v<T>; };
+	template <typename T> struct _IsFloatPoint	{ static constexpr bool  value = std::is_floating_point_v<T>; };
+
+} // _hidden_
+
 
 	template <typename T>
 	static constexpr bool	IsFloatPoint		= std::is_floating_point_v<T>;
+
+	template <typename T>
+	static constexpr bool	IsAnyFloatPoint		= _hidden_::_IsFloatPoint<T>::value;	// software or hardware
 
 	template <typename T>
 	static constexpr bool	IsInteger			= std::is_integral_v<T>;
@@ -26,13 +36,13 @@ namespace AE::Base
 	static constexpr bool	IsUnsigned			= std::is_unsigned_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsScalar			= std::is_scalar_v<T>;
+	static constexpr bool	IsScalar			= _hidden_::_IsScalar<T>::value;
 	
 	template <typename T>
 	static constexpr bool	IsEnum				= std::is_enum_v<T>;
 	
 	template <typename T>
-	static constexpr bool	IsScalarOrEnum		= std::is_scalar_v<T> or std::is_enum_v<T>;
+	static constexpr bool	IsScalarOrEnum		= IsScalar<T> or std::is_enum_v<T>;
 
 	template <typename T>
 	static constexpr bool	IsTrivial			= std::is_trivially_destructible_v<T>		and
@@ -163,25 +173,25 @@ namespace AE::Base
 	namespace _hidden_
 	{
 		template <typename T, template <typename...> class Templ>
-		struct is_specialization_of : std::bool_constant<false> {};
+		struct _IsSpecializationOf : std::bool_constant<false> {};
 
 		template <template <typename...> class Templ, typename... Args>
-		struct is_specialization_of< Templ<Args...>, Templ > : std::bool_constant<true> {};
+		struct _IsSpecializationOf< Templ<Args...>, Templ > : std::bool_constant<true> {};
 		
 		template <template <typename ...> class Left, template <typename ...> class Right>
-		struct IsSameTemplates			{ static const bool  value = false; };
+		struct _IsSameTemplates			{ static const bool  value = false; };
 
 		template <template <typename ...> class T>
-		struct IsSameTemplates< T, T >	{ static const bool  value = true; };
+		struct _IsSameTemplates< T, T >	{ static const bool  value = true; };
 
-	}	// _hidden_
+	} // _hidden_
 
 	
 	template <typename T, template <typename...> class Templ>
-	static constexpr bool	IsSpecializationOf	= Base::_hidden_::is_specialization_of< T, Templ >::value;
+	static constexpr bool	IsSpecializationOf	= Base::_hidden_::_IsSpecializationOf< T, Templ >::value;
 	
 	template <template <typename ...> class Left, template <typename ...> class Right>
-	static constexpr bool	IsSameTemplates		= Base::_hidden_::IsSameTemplates< Left, Right >::value;
+	static constexpr bool	IsSameTemplates		= Base::_hidden_::_IsSameTemplates< Left, Right >::value;
 
 	
 	namespace _hidden_
@@ -245,6 +255,30 @@ namespace AE::Base
 		return std::numeric_limits< RemoveAllQualifiers<T> >::min();
 	}
 	
+/*
+=================================================
+	Infinity
+=================================================
+*/
+	template <typename T>
+	ND_ forceinline constexpr auto  Infinity ()
+	{
+		STATIC_ASSERT( IsAnyFloatPoint<T> );
+		return std::numeric_limits< RemoveAllQualifiers<T> >::infinity();
+	}
+	
+/*
+=================================================
+	NaN
+=================================================
+*/
+	template <typename T>
+	ND_ forceinline constexpr auto  NaN ()
+	{
+		STATIC_ASSERT( IsAnyFloatPoint<T> );
+		return std::numeric_limits< RemoveAllQualifiers<T> >::quiet_NaN();
+	}
+
 /*
 =================================================
 	IsMemCopyAvailable
@@ -328,4 +362,4 @@ namespace AE::Base
 	static constexpr bool	IsTrivialySerializable = TTrivialySerializable< RemoveCV<T> >::value;
 
 
-}	// AE::Base
+} // AE::Base

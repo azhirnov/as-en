@@ -250,11 +250,18 @@ namespace AE::Base
 		return true;
 	}
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
 {
+#ifdef AE_COMPILER_MSVC
+# if _MSC_VER >= 1933
+#	define AE_HAS_PATH_HASH
+# endif
+#endif
+
+#ifndef AE_HAS_PATH_HASH
 	template <>
 	struct hash< AE::Base::Path >
 	{
@@ -264,5 +271,6 @@ namespace std
 			return size_t(AE::Base::HashOf( value.native() ));
 		}
 	};
+#endif
 
-}	// std
+} // std

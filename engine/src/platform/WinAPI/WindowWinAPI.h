@@ -53,8 +53,8 @@ namespace AE::App
 		uint2		GetSurfaceSize ()	const override;
 		Monitor		GetMonitor ()		const override;
 		
-		IInputActions&	InputActions ()	override	{ return _input; }
-		NativeWindow	GetNative ()	override;
+		IInputActions&	InputActions ()		  override	{ return _input; }
+		NativeWindow	GetNative ()	const override;
 
 		void  SetSize (const uint2 &size) override;
 		void  SetPosition (const int2 &pos) override;
@@ -64,7 +64,7 @@ namespace AE::App
 
 
 	private:
-		explicit WindowWinAPI (ApplicationWinAPI &app, Unique<IWndListener>);
+		explicit WindowWinAPI (ApplicationWinAPI &app, Unique<IWndListener>, IInputActions*);
 
 		ND_ ApplicationWinAPI&  _GetApp ();
 
@@ -73,7 +73,6 @@ namespace AE::App
 		ND_ bool  _Update ();
 		ND_ ssize _ProcessMessage (uint uMsg, usize wParam, ssize lParam);
 			void  _UpdateDescription ();
-			void  _SetState (EState newState);
 			void  _ShowWindow (EVisibility value) const;
 
 			void  _LockAndHideCursor (bool value);

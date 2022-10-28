@@ -39,7 +39,7 @@
 #include "base/Containers/NtStringView.h"
 #include "base/Containers/AnyTypeRef.h"
 #include "base/Algorithms/Cast.h"
-#include "base/Utils/Noncopyable.h"
+#include "base/Utils/Helpers.h"
 #include "base/Utils/RefCounter.h"
 #include "base/Utils/EnumBitSet.h"
 #include "base/CompileTime/TypeList.h"
@@ -47,6 +47,8 @@
 #include "base/Math/POTValue.h"
 
 #include "threading/Primitives/SpinLock.h"
+#include "threading/TaskSystem/TaskProfiler.h"
+#include "threading/Primitives/CoroutineHandle.h"
 
 #ifdef AE_ENABLE_VTUNE_API
 #	include <ittnotify.h>
@@ -55,7 +57,7 @@
 #	define AE_VTUNE( /* code */... )
 #endif
 
-#if defined(AE_DEBUG) or defined(AE_PROFILE)
+#ifdef AE_DBG_OR_DEV
 #	define AE_SCHEDULER_PROFILING( /* code */... )	__VA_ARGS__
 #else
 #	define AE_SCHEDULER_PROFILING( /* code */... )
@@ -63,7 +65,6 @@
 
 namespace AE::Threading
 {
-	using AsyncTask					= RC< class IAsyncTask >;
 	using TaskDependencyManagerPtr	= RC< class ITaskDependencyManager >;
 
 	
@@ -100,7 +101,7 @@ namespace AE::Threading
 			_TaskDependencyArray (const AsyncTask (&arr)[S]) : ArrayView{arr} {}
 		};
 
-	}	// _hidden_
+	} // _hidden_
 
 	using WeakDep   = Threading::_hidden_::_TaskDependency<false>;
 	using StrongDep = Threading::_hidden_::_TaskDependency<true>;
@@ -109,6 +110,16 @@ namespace AE::Threading
 	using StrongDepArray = Threading::_hidden_::_TaskDependencyArray<true>;
 //-----------------------------------------------------------------------------
 
+
+	enum class EThread : uint
+	{
+		Main,		// thread with window message loop
+		Worker,
+		Renderer,	// single thread for opengl, multiple for vulkan (can be mixed with 'Worker')	// TODO: RendererHi, RendererLow
+		FileIO,
+		Network,
+		_Count
+	};
 
 
 	//
@@ -139,17 +150,6 @@ namespace AE::Threading
 			Canceled,		// task was externally canceled
 			Failed,			// task has internal error and has been failed
 		};
-
-		enum class EThread : uint
-		{
-			Main,		// thread with window message loop
-			Worker,
-			Renderer,	// single thread for opengl, multiple for vulkan (can be mixed with 'Worker')	// TODO: RendererHi, RendererLow
-			FileIO,
-			Network,
-			_Count
-		};
-
 
 	private:
 		struct TaskDependency
@@ -186,20 +186,19 @@ namespace AE::Threading
 		
 		PtrSpinLock< OutputChunk >	_output				{null};
 
+		PROFILE_ONLY(
+			RC<ITaskProfiler>		_profiler;
+		)
 		DEBUG_ONLY(
 			Atomic<bool>			_isRunning			{false};
 		)
-
-		// TODO: profiling:
-		// - added to queue time
-		// - start execution time
 
 
 	// methods
 	public:
 		virtual ~IAsyncTask ();
 
-		ND_ EThread	Type ()			 const	{ return _threadType; }
+		ND_ EThread	ThreadType ()	 const	{ return _threadType; }
 
 		ND_ EStatus	Status ()		 const	{ return _status.load(); }
 
@@ -207,13 +206,16 @@ namespace AE::Threading
 		ND_ bool	IsFinished ()	 const	{ return Status() > EStatus::_Finished; }
 		ND_ bool	IsInterropted () const	{ return Status() > EStatus::_Interropted; }
 
+		ND_ virtual StringView	DbgName ()	const = 0;
+
 	protected:
 		explicit IAsyncTask (EThread type);
 
-			virtual void			Run () = 0;
-			virtual void			OnCancel ()			{ ASSERT( not _isRunning.load() ); }
-		ND_ virtual NtStringView	DbgName ()	const	{ return "unknown"; }
+			virtual void  Run () = 0;
+			virtual void  OnCancel ()		{ ASSERT( not _isRunning.load() ); }
 		
+		DEBUG_ONLY( ND_ bool  _IsRunning () const	{ return _isRunning.load(); })
+
 			// call this only inside 'Run()' method.
 		ND_ bool  IsCanceled () const		{ ASSERT( _isRunning.load() );  return Status() == EStatus::Cancellation; }
 
@@ -232,6 +234,9 @@ namespace AE::Threading
 			
 			// Only for debugging!
 			void  _DbgSet (EStatus status);
+
+			// Only in constructor!
+			void  _MakeCompleted ();
 
 	private:
 		// call this methods only after 'Run()' method
@@ -252,16 +257,13 @@ namespace AE::Threading
 
 	class IThread : public EnableRC< IThread >
 	{
-	// types
-	public:
-		using EThread = IAsyncTask::EThread;
-
 	// interface
 	public:
 		virtual bool  Attach (uint uid) = 0;
 		virtual void  Detach () = 0;
 
-		ND_ virtual NtStringView  DbgName () const	{ return "thread"; }
+		ND_ virtual StringView  DbgName ()	const	{ return "thread"; }
+		ND_ virtual usize		DbgID ()	const = 0;
 
 	// helper functions (try to not use it)
 	protected:
@@ -376,6 +378,206 @@ namespace AE::Threading
 		ND_ static bool  _RemoveTask (TaskArr_t& arr, INOUT usize& pos, INOUT usize& count, OUT AsyncTask& task);
 	};
 //-----------------------------------------------------------------------------
+	
+	
+# ifdef AE_HAS_COROUTINE
+  namespace _hidden_
+  {
+	//
+	// Async Task Coroutine
+	//
+
+	class AsyncTaskCoroutine
+	{
+	// types
+	public:
+		struct promise_type;
+		using Handle_t = CoroutineHandle< promise_type >;
+
+		struct promise_type
+		{
+		// variables
+		private:
+			AtomicRC<IAsyncTask>	_task;		// TODO: optimize
+
+		// methods
+		public:
+			ND_ Handle_t			get_return_object ()			{ return Handle_t::FromPromise( *this ); }
+
+			ND_ std::suspend_always	initial_suspend () noexcept		{ return {}; }			// delayed start
+			ND_ std::suspend_always	final_suspend () noexcept		{ return {}; }			// must not be 'suspend_never'
+
+				void				return_void ()					{}
+					
+				void				unhandled_exception ()			{}						// ignore exceptions
+
+			ND_ AsyncTask			GetTask ()						{ return _task.get(); }
+
+		private:
+			friend class CoroutineRunnerTask;
+
+				void				Init (IAsyncTask *task)			{ ASSERT( task != null );  _task.reset( task ); }
+				void				Reset ()						{ _task.reset( null ); }
+		};
+	};
+
+
+
+	//
+	// Coroutine runner as Async Task
+	//
+
+	class CoroutineRunnerTask final : public IAsyncTask
+	{
+	// types
+	private:
+		using Promise_t	= typename AsyncTaskCoroutine::promise_type;
+		using Handle_t	= typename AsyncTaskCoroutine::Handle_t;
+
+
+	// variables
+	private:
+		Handle_t	_coroutine;
+
+
+	// methods
+	public:
+		explicit CoroutineRunnerTask (Handle_t handle, EThread type = EThread::Worker) :
+			IAsyncTask{ type }, _coroutine{ RVRef(handle) }
+		{
+			ASSERT( _coroutine.IsValid() );
+			_coroutine.Promise().Init( this );
+		}
+
+		~CoroutineRunnerTask () override
+		{
+			ASSERT( _coroutine.Done() );
+		}
+
+		// must be inside coroutine!
+		template <typename ...Deps>
+		ND_ static bool  ContinueTask (IAsyncTask &task, const Tuple<Deps...> &deps)
+		{
+			ASSERT( dynamic_cast<CoroutineRunnerTask *>(&task) != null );
+
+			auto&	t = static_cast<CoroutineRunnerTask &>(task);
+			ASSERT( t._IsRunning() );
+			return t.Continue( deps );
+		}
+
+	private:
+		void  Run () override
+		{
+			ASSERT( _coroutine.IsValid() );
+			_coroutine.Resume();
+
+			if_likely( _coroutine.Done() )
+				_coroutine.Promise().Reset();
+			else
+				ASSERT( Status() == EStatus::Continue );
+		}
+			
+		void  OnCancel () override
+		{
+			IAsyncTask::OnCancel();
+			_coroutine.Promise().Reset();
+		}
+
+		StringView  DbgName () const override { return "coroutine"; }
+	};
+	
+
+
+	//
+	// Coroutine Runner Awaiter
+	//
+	
+	template <typename T>
+	class CoroutineRunnerAwaiter;
+	
+	template <>
+	class CoroutineRunnerAwaiter< AsyncTask >
+	{
+	private:
+		AsyncTask const&	_dep;
+
+	public:
+		explicit CoroutineRunnerAwaiter (const AsyncTask &dep) : _dep{dep} {}
+
+		// pause coroutine execution if dependency is not complete
+		bool	await_ready () const	{ return _dep ? _dep->IsFinished() : true; }
+
+		void	await_resume ()			{}
+		
+		// return task to scheduler with new dependencies
+		void	await_suspend (std::coroutine_handle< AsyncTaskCoroutine::promise_type > h)
+		{
+			auto	task = h.promise().GetTask();
+			CHECK_ERRV( task );
+			Unused( CoroutineRunnerTask::ContinueTask( *task, Tuple{_dep} ));
+		}
+	};
+
+	template <typename ...Deps>
+	class CoroutineRunnerAwaiter< Tuple<Deps...> >
+	{
+	private:
+		Tuple<Deps...> const&	_deps;
+
+	public:
+		explicit CoroutineRunnerAwaiter (const Tuple<Deps...> &deps) : _deps{deps} {}
+
+		// pause coroutine execution if dependencies are not complete
+		bool	await_ready () const	{ return false; }
+
+		void	await_resume ()			{}
+		
+		// return task to scheduler with new dependencies
+		void	await_suspend (std::coroutine_handle< AsyncTaskCoroutine::promise_type > h)
+		{
+			auto	task = h.promise().GetTask();
+			CHECK_ERRV( task );
+			Unused( CoroutineRunnerTask::ContinueTask( *task, _deps ));
+		}
+	};
+
+  } // _hidden_
+
+  
+/*
+=================================================
+	MakeCoroutineTask
+=================================================
+*/
+	using CoroutineTask = _hidden_::AsyncTaskCoroutine::Handle_t;
+	
+	ND_ inline AsyncTask  MakeCoroutineTask (CoroutineTask handle, EThread type = EThread::Worker)
+	{
+		return AsyncTask{ new _hidden_::CoroutineRunnerTask{ RVRef(handle), type }};
+	}
+	
+/*
+=================================================
+	operator co_await (task dependencies)
+----
+	it is safe to use reference because CoroutineRunnerAwaiter object
+	destroyed before Tuple destruction.
+=================================================
+*/
+	template <typename ...Deps>
+	ND_ _hidden_::CoroutineRunnerAwaiter<AsyncTask>  operator co_await (const AsyncTask &dep)
+	{
+		return _hidden_::CoroutineRunnerAwaiter<AsyncTask>{ dep };
+	}
+
+	template <typename ...Deps>
+	ND_ _hidden_::CoroutineRunnerAwaiter< Tuple<Deps...> >  operator co_await (const Tuple<Deps...> &deps)
+	{
+		return _hidden_::CoroutineRunnerAwaiter< Tuple<Deps...> >{ deps };
+	}
+
+# endif // AE_HAS_COROUTINE
+//-----------------------------------------------------------------------------
 
 
 
@@ -391,7 +593,6 @@ namespace AE::Threading
 	private:
 		using TimePoint_t		= std::chrono::high_resolution_clock::time_point;
 		using EStatus			= IAsyncTask::EStatus;
-		using EThread			= IAsyncTask::EThread;
 		using EThreadMask		= EnumBitSet< EThread >;
 		using OutputChunk_t		= IAsyncTask::OutputChunk;
 		using WaitBits_t		= IAsyncTask::WaitBits_t;
@@ -415,6 +616,9 @@ namespace AE::Threading
 		Mutex				_threadGuard;
 		Array<ThreadPtr>	_threads;
 		
+		PROFILE_ONLY(
+			AtomicRC<ITaskProfiler>	_profiler;
+		)
 		AE_VTUNE(
 			__itt_domain*	_vtuneDomain	= null;
 		)
@@ -426,6 +630,7 @@ namespace AE::Threading
 		static void  DestroyInstance ();
 
 		bool  Setup (usize maxWorkerThreads);
+		void  SetProfiler (RC<ITaskProfiler> profiler);
 		void  Release ();
 			
 		AE_VTUNE(
@@ -450,15 +655,20 @@ namespace AE::Threading
 	// task api
 		template <typename TaskType, typename ...Ctor, typename ...Deps>
 		AsyncTask  Run (Tuple<Ctor...>&& ctor = Default, const Tuple<Deps...> &deps = Default);
+
+		#ifdef AE_HAS_COROUTINE
+		template <typename ...Deps>
+		AsyncTask  Run (CoroutineTask handle, const Tuple<Deps...> &deps = Default);
+		#endif
 		
 		template <typename ...Deps>
 		bool  Run (AsyncTask task, const Tuple<Deps...> &deps = Default);
 
-		bool  Enqueue (AsyncTask task);
-
 		ND_ bool  Wait (ArrayView<AsyncTask> tasks, EThreadMask mask = Default, nanoseconds timeout = GetDefaultTimeout());
 
 		bool  Cancel (const AsyncTask &task);
+
+		bool  Enqueue (AsyncTask task);
 
 
 		ND_ static constexpr nanoseconds  GetDefaultTimeout ();
@@ -482,7 +692,162 @@ namespace AE::Threading
 
 		bool  _AddTaskDependencies (const AsyncTask &task, const AsyncTask &deps, Bool isStrong, INOUT uint &bitIndex);
 	};
+//-----------------------------------------------------------------------------
+
 	
+	
+/*
+=================================================
+	GetDefaultTimeout
+=================================================
+*/
+	constexpr nanoseconds  TaskScheduler::GetDefaultTimeout ()
+	{
+		#ifdef AE_DBG_OR_DEV
+			return nanoseconds{60*60'000'000'000ll};	// 60 min - for debugging
+		#else
+			return nanoseconds{30'000'000'000ll};		// 30 sec
+		#endif
+	}
+
+/*
+=================================================
+	RegisterDependency
+=================================================
+*/
+	template <typename T>
+	bool  TaskScheduler::RegisterDependency (TaskDependencyManagerPtr mngr)
+	{
+		CHECK_ERR( mngr );
+		EXLOCK( _taskDepsMngrsGuard );
+		return _taskDepsMngrs.insert_or_assign( typeid(T), mngr ).second;
+	}
+	
+/*
+=================================================
+	UnregisterDependency
+=================================================
+*/
+	template <typename T>
+	bool  TaskScheduler::UnregisterDependency ()
+	{
+		EXLOCK( _taskDepsMngrsGuard );
+		return _taskDepsMngrs.erase( typeid(T) ) > 0;
+	}
+
+/*
+=================================================
+	Run
+=================================================
+*/
+	template <typename TaskType, typename ...Ctor, typename ...Deps>
+	AsyncTask  TaskScheduler::Run (Tuple<Ctor...>&& ctorArgs, const Tuple<Deps...> &deps)
+	{
+		STATIC_ASSERT( IsBaseOf< IAsyncTask, TaskType > );
+
+		AsyncTask	task		= ctorArgs.Apply([] (auto&& ...args) { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)... ); });
+		uint		bit_index	= 0;
+		
+		CHECK_ERR( _AddDependencies<0>( task, deps, INOUT bit_index ));
+
+		return _InsertTask( RVRef(task), bit_index );
+	}
+	
+/*
+=================================================
+	Run
+=================================================
+*/
+	template <typename ...Deps>
+	bool  TaskScheduler::Run (AsyncTask task, const Tuple<Deps...> &deps)
+	{
+		CHECK_ERR( task );
+
+		uint	bit_index = 0;
+		CHECK_ERR( _AddDependencies<0>( task, deps, INOUT bit_index ));
+
+		return _InsertTask( RVRef(task), bit_index ) != null;
+	}
+	
+/*
+=================================================
+	Run (coroutine)
+=================================================
+*/
+#ifdef AE_HAS_COROUTINE
+	template <typename ...Deps>
+	AsyncTask  TaskScheduler::Run (CoroutineTask handle, const Tuple<Deps...> &deps)
+	{
+		AsyncTask	task		= MakeCoroutineTask( RVRef(handle) );
+		uint		bit_index	= 0;
+		
+		CHECK_ERR( _AddDependencies<0>( task, deps, INOUT bit_index ));
+
+		return _InsertTask( RVRef(task), bit_index );
+	}
+#endif
+
+/*
+=================================================
+	_AddDependencies
+=================================================
+*/
+	template <usize I, typename ...Args>
+	constexpr bool  TaskScheduler::_AddDependencies (const AsyncTask &task, const Tuple<Args...> &args, INOUT uint &bitIndex)
+	{
+		if constexpr( I < CountOf<Args...>() )
+		{
+			using T = typename TypeList< Args... >::template Get<I>;
+
+			// current task will start anyway, regardless of whether dependent tasks are canceled
+			if constexpr( IsSameTypes< T, WeakDep >)
+				CHECK_ERR( _AddTaskDependencies( task, args.template Get<I>()._task, False{"weak"}, INOUT bitIndex ))
+			else
+			if constexpr( IsSameTypes< T, WeakDepArray >)
+				for (auto& dep : args.template Get<I>()) {
+					CHECK_ERR( _AddTaskDependencies( task, dep, False{"weak"}, INOUT bitIndex ));
+				}
+			else
+			// current task will be canceled if one of dependent task are canceled
+			if constexpr( IsSameTypes< T, StrongDep >)
+				CHECK_ERR( _AddTaskDependencies( task, args.template Get<I>()._task, True{"strong"}, INOUT bitIndex ))
+			else
+			if constexpr( IsSameTypes< T, StrongDepArray > or IsSameTypes< T, ArrayView<AsyncTask> >)
+				for (auto& dep : args.template Get<I>()) {
+					CHECK_ERR( _AddTaskDependencies( task, dep, False{"strong"}, INOUT bitIndex ));
+				}
+			else
+			// implicitlly it is strong dependency
+			if constexpr( IsSpecializationOf< T, RC > and IsBaseOf< IAsyncTask, RemoveRC<T> >)
+				CHECK_ERR( _AddTaskDependencies( task, args.template Get<I>(), True{"strong"}, INOUT bitIndex ))
+			else
+				CHECK_ERR( _AddCustomDependency( task, args.template Get<I>(), INOUT bitIndex ));
+
+			return _AddDependencies<I+1>( task, args, INOUT bitIndex );
+		}
+		else
+		{
+			Unused( task, args, bitIndex );
+			return true;
+		}
+	}
+	
+/*
+=================================================
+	_AddCustomDependency
+=================================================
+*/
+	template <typename T>
+	bool  TaskScheduler::_AddCustomDependency (const AsyncTask &task, T &dep, INOUT uint &bitIndex)
+	{
+		SHAREDLOCK( _taskDepsMngrsGuard );
+
+		auto	iter = _taskDepsMngrs.find( typeid(T) );
+		CHECK_ERR( iter != _taskDepsMngrs.end() );
+
+		return iter->second->Resolve( AnyTypeCRef{dep}, task, INOUT bitIndex );
+	}
+
 /*
 =================================================
 	Scheduler
@@ -492,5 +857,42 @@ namespace AE::Threading
 	{
 		return *TaskScheduler::_Instance();
 	}
+//-----------------------------------------------------------------------------
 
-}	// AE::Threading
+
+	
+/*
+=================================================
+	Continue
+=================================================
+*/
+	template <typename ...Deps>
+	bool  IAsyncTask::Continue (const Tuple<Deps...> &deps)
+	{
+		ASSERT( _isRunning.load() );
+		
+		// in '_AddDependencies()' current task has been added to the input dependencies
+		// and they may remove bits from '_waitBits' at any time
+		_waitBits.store( UMax );
+
+		uint	bit_index = 0;
+		CHECK_ERR( Scheduler()._AddDependencies<0>( GetRC(), deps, INOUT bit_index ));
+		
+		// some dependencies may already be completed, so merge bit mask with current
+		_waitBits.fetch_and( ToBitMask<WaitBits_t>( bit_index ));
+		
+		for (EStatus expected = EStatus::InProgress;
+			 not _status.CAS( INOUT expected, EStatus::Continue );)
+		{
+			// status has been changed in another thread
+			if ( expected > EStatus::_Finished )
+				return false;
+			
+			// 'CAS' can return 'false' even if expected value is the same as current value in atomic
+			ASSERT( expected == EStatus::InProgress );
+			ThreadUtils::Pause();
+		}
+		return true;
+	}
+
+} // AE::Threading

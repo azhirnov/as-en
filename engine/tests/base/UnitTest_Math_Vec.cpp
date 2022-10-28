@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/Math/Vec.h"
+#include "base/Math/VecSwizzle.h"
 #include "UnitTest_Common.h"
 
 
@@ -73,6 +74,28 @@ namespace
 		bool3	a3 = a2 == bool3(false, true, false);	TEST( All( a3 ));
 		bool3	a4 = uint3(1) < uint3(2);				TEST( All( a4 ));
 	}
+
+
+	static void  VecSwizzle_Test1 ()
+	{
+		constexpr VecSwizzle	a1 = "XYZW"_vecSwizzle;
+		STATIC_ASSERT( a1.Get() == 0x1234 );
+		
+		constexpr VecSwizzle	a2 = "yZx1"_vecSwizzle;
+		STATIC_ASSERT( a2.Get() == 0x2316 );
+
+		const int4	a3 = int3{6} * "010"_vecSwizzle;
+		TEST( All( a3 == int4{0,1,0,0} ));
+		
+		const int4	a4 = int3{4,5,6} * "xy"_vecSwizzle;
+		TEST( All( a4 == int4{4,5,0,0} ));
+
+		const int4	a5 = int3{4,5,6} * "x01z"_vecSwizzle;
+		TEST( All( a5 == int4{4,0,1,6} ));
+
+		const int4	a6 = int3{7} * "0-0+"_vecSwizzle;
+		TEST( All( a6 == int4{0,-1,0,1} ));
+	}
 }
 
 
@@ -81,6 +104,8 @@ extern void UnitTest_Math_Vec ()
 	Vec_Test1();
 	Vec_Test2();
 	Vec_Test3();
+
+	VecSwizzle_Test1();
 
 	TEST_PASSED();
 }

@@ -374,6 +374,24 @@ namespace AE::App
 		ND_ static constexpr bool  _IsCursor2D (EInputType type);
 	};
 
+	
+/*
+=================================================
+	_Is***
+=================================================
+*/
+	forceinline constexpr bool  SerializableInputActionsAndroid::_IsKey (EInputType type) {
+		return (type >= EInputType::KeyBegin) & (type <= EInputType::KeyEnd);
+	}
+
+	forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor1D (EInputType ) {
+		return false; //(type >= EInputType::Cursor1DBegin) & (type <= EInputType::Cursor1DEnd);
+	}
+
+	forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor2D (EInputType ) {
+		return false; //(type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd);
+	}
+
 
 } // AE::App
 

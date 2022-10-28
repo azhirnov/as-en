@@ -37,6 +37,6 @@ namespace AE::Graphics
 {
 	ND_ bool __vk_CheckErrors (VkResult errCode, const char *vkcall, const char *func, const char *file, int line);
 	
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

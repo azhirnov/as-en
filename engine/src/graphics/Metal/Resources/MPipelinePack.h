@@ -111,7 +111,9 @@ namespace AE::Graphics
 			DEBUG_ONLY( ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 		private:
-			bool			_LoadRenderPasses (MResourceManager &, Bytes offset, Bytes size) override;
+			bool  _LoadDepthStencilStates (MResourceManager &, Serializing::Deserializer &) override;
+			bool  _LoadRenderPasses (MResourceManager &, Bytes offset, Bytes size) override;
+
 			ShaderModuleRef	_GetShader (const MResourceManager &, PipelineCompiler::ShaderUID uid, EShader type) const override;
 			MSamplerID		_CreateSampler (MResourceManager &, const SamplerDesc &desc) override;
 

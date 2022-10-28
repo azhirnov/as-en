@@ -47,6 +47,29 @@ namespace AE::Base
 		}
 
 		ND_ explicit constexpr operator T () const	{ return _value; }
+
+		template <typename R>
+		ND_ constexpr R  Cast () const
+		{
+			if constexpr( sizeof(R) >= sizeof(T) )
+				return R(_value);
+			else
+			if constexpr( sizeof(R)*2 >= sizeof(T) )
+			{
+				constexpr usize	bits	= sizeof(T)*8 / 2;
+				constexpr T		mask	= (T{1} << bits) - 1;
+
+				return R( ((_value >> bits) ^ _value) & mask );
+			}
+			else
+			if constexpr( sizeof(R)*4 >= sizeof(T) )
+			{
+				constexpr usize	bits	= sizeof(T)*8 / 4;
+				constexpr T		mask	= (T{1} << bits) - 1;
+
+				return R( ((_value >> bits*3) ^ (_value >> bits*2) ^ (_value >> bits) ^ _value) & mask );
+			}
+		}
 	};
 
 	using HashVal	= THashVal<usize>;
@@ -146,7 +169,7 @@ namespace AE::Base
 		#endif
 	}
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -169,4 +192,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

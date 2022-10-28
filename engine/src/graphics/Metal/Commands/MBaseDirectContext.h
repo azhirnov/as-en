@@ -71,7 +71,92 @@ namespace AE::Graphics::_hidden_
 		ND_ bool	_NoPendingBarriers ()	const	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetFeatures ()			const	{ return _mngr.GetDevice().GetFeatures(); }
 	};
+//-----------------------------------------------------------------------------
 
+
+	
+/*
+=================================================
+	constructor
+=================================================
+*/
+	inline _MBaseDirectContext::_MBaseDirectContext (MCommandBuffer cmdbuf, NtStringView dbgName) :
+		_cmdbuf{ RVRef( cmdbuf )}
+	{
+		DEBUG_ONLY( _cmdbuf.PushDebugGroup( dbgName ));
+	}
+
+/*
+=================================================
+	destructor
+=================================================
+*/
+	inline _MBaseDirectContext::~_MBaseDirectContext ()
+	{
+		DBG_CHECK_MSG( not IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
+	}
+	
+/*
+=================================================
+	EndCommandBuffer
+=================================================
+*/
+	inline MetalCommandBufferRC  _MBaseDirectContext::EndCommandBuffer ()
+	{
+		ASSERT( _cmdbuf.IsValid() );
+		
+		DEBUG_ONLY( _cmdbuf.PopDebugGroup() );
+
+		return _cmdbuf.Release();
+	}
+	
+/*
+=================================================
+	ReleaseCommandBuffer
+=================================================
+*/
+	inline MCommandBuffer  _MBaseDirectContext::ReleaseCommandBuffer ()
+	{
+		ASSERT( _cmdbuf.IsValid() );
+
+		DEBUG_ONLY( _cmdbuf.PopDebugGroup() );
+		
+		MCommandBuffer	tmp = RVRef(_cmdbuf);
+		ASSERT( not _cmdbuf.IsValid() );
+		return tmp;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	inline MBaseDirectContext::MBaseDirectContext (Ptr<MCommandBatch> batch, MCommandBuffer cmdbuf) :
+		_MBaseDirectContext{ RVRef(cmdbuf), batch->DbgName() },
+		_mngr{ batch }
+	{
+		ASSERT( batch->GetQueueType() == _cmdbuf.GetQueueType() );
+	}
+
+	inline MBaseDirectContext::MBaseDirectContext (Ptr<MCommandBatch> batch) :
+		MBaseDirectContext{
+			batch,
+			MCommandBuffer::CreateCommandBuffer( batch->GetQueueType() )}
+	{}
+	
+/*
+=================================================
+	destructor
+=================================================
+*/
+	inline MBaseDirectContext::~MBaseDirectContext ()
+	{
+		ASSERT( _NoPendingBarriers() );
+	}
+	
 	
 } // AE::Graphics::_hidden_
 

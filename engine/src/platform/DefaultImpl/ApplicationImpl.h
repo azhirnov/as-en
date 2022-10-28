@@ -24,7 +24,8 @@ namespace AE::App
 			Graphics::VDeviceInitializer	_vulkan;
 		#endif
 			
-		WindowPtr			_window;
+		Array<WindowPtr>	_windows;
+		VRDevicePtr			_vrDevice;
 		const AppConfig		_config;
 
 

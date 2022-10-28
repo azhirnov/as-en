@@ -113,4 +113,4 @@ namespace AE::Math
 	}
 
 
-}	// AE::Math
+} // AE::Math

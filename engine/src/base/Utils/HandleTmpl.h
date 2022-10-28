@@ -38,6 +38,9 @@ namespace AE::Base
 
 
 	// methods
+	private:
+		explicit constexpr HandleTmpl (Value_t val) : _value{val} {}
+
 	public:
 		constexpr HandleTmpl () {}
 		constexpr HandleTmpl (const Self &other) : _value{other._value} {}
@@ -62,6 +65,7 @@ namespace AE::Base
 
 		ND_ static constexpr Index_t		MaxIndex ()								{ return _IndexMask; }
 		ND_ static constexpr Generation_t	MaxGeneration ()						{ return _GenMask; }
+		ND_ static constexpr Self			FromData (Value_t value)				{ return Self{ value }; }
 	};
 	
 
@@ -102,15 +106,19 @@ namespace AE::Base
 	//
 
 	template <typename IDType>
-	struct Strong
+	struct Strong;
+
+	
+	template <usize IndexSize, usize GenerationSize, uint UID>
+	struct Strong < HandleTmpl< IndexSize, GenerationSize, UID >>
 	{
 	// types
 	public:
-		using ID_t			= IDType;
-		using Self			= Strong< IDType >;
-		using Index_t		= typename IDType::Index_t;
-		using Generation_t	= typename IDType::Generation_t;
-		using Value_t		= typename IDType::Value_t;
+		using ID_t			= HandleTmpl< IndexSize, GenerationSize, UID >;
+		using Self			= Strong< ID_t >;
+		using Index_t		= typename ID_t::Index_t;
+		using Generation_t	= typename ID_t::Generation_t;
+		using Value_t		= typename ID_t::Value_t;
 
 
 	// variables
@@ -120,17 +128,18 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr Strong ()												{}
+		constexpr Strong ()													{}
 		constexpr Strong (Self &&other) : _id{other._id}					{ other._id = Default; }
 		constexpr explicit Strong (const ID_t &id) : _id{id}				{}
-		constexpr Strong (Value_t index, Value_t gen) : _id{index, gen}	{}
-		constexpr ~Strong ()												{ ASSERT(not IsValid()); }	// handle must be released
+		constexpr Strong (Value_t index, Value_t gen) : _id{index, gen}		{}
+		constexpr ~Strong ()												{ ASSERT(not IsValid()); } // handle must be released
 		
 		constexpr Self&				Attach (ID_t id)						{ ASSERT(not IsValid());  _id = id;  return *this; }
 
 		constexpr Self&				operator = (Self &&rhs)					{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
 		constexpr Self&				operator = (const Self &rhs)			{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
 		
+		ND_ constexpr ID_t			Get ()							const	{ return _id; }
 		ND_ constexpr ID_t			Release ()								{ ID_t temp{_id};  _id = Default;  return temp; }
 		ND_ constexpr bool			IsValid ()						const	{ return bool(_id); }
 
@@ -147,7 +156,52 @@ namespace AE::Base
 
 	
 	template <usize IdxSz, usize Gen, uint UID>	struct TMemCopyAvailable< HandleTmpl< IdxSz, Gen, UID >> { static constexpr bool  value = true; };
+
+
+
+	//
+	// Atomic Strong Reference
+	//
 	
+	template <typename IDType>
+	struct StrongAtom
+	{
+	// types
+	public:
+		using ID_t			= IDType;
+		using StrongID_t	= Strong< ID_t >;
+		using Self			= StrongAtom< IDType >;
+		using Index_t		= typename IDType::Index_t;
+		using Generation_t	= typename IDType::Generation_t;
+		using Value_t		= typename IDType::Value_t;
+		
+
+	// variables
+	private:
+		std::atomic<Value_t>	_id;
+
+
+	// methods
+	public:
+		StrongAtom () : _id{ ID_t{}.Data() }					{}
+		explicit StrongAtom (ID_t id) : _id{id.Data()}			{}
+		~StrongAtom ()											{ ASSERT(not IsValid()); } // handle must be released
+		
+		ND_ ID_t		Attach (ID_t id)						{ return ID_t::FromData( _id.exchange( id.Data(), std::memory_order_relaxed )); }
+		ND_ ID_t		Attach (StrongID_t id)					{ return Attach( id.Release() ); }
+
+		ND_ StrongID_t	Release ()								{ return StrongID_t{ ID_t::FromData( _id.exchange( ID_t{}.Data(), std::memory_order_relaxed ))}; }
+
+		ND_ ID_t		Get ()							const	{ return ID_t::FromData( _id.load( std::memory_order_relaxed )); }
+		ND_ bool		IsValid ()						const	{ return bool(Get()); }
+
+		ND_ explicit	operator bool ()				const	{ return IsValid(); }
+		ND_ 			operator ID_t ()				const	{ return Get(); }
+		
+		ND_ bool		operator == (const ID_t &rhs)	const	{ return Get() == rhs._id; }
+		ND_ bool		operator != (const ID_t &rhs)	const	{ return Get() != rhs._id; }
+	};
+
 	
 /*
 =================================================
@@ -163,7 +217,7 @@ namespace AE::Base
 			return HashOf(_value);
 	}
 
-}	// AE::Base
+} // AE::Base
 
 namespace std
 {
@@ -176,4 +230,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

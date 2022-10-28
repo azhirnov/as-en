@@ -12,19 +12,44 @@ namespace AE::Base
 	static constexpr Bytes	DefaultAllocationSize	= SmallAllocationSize;
 
 
+	//
+	// UniquePtr Placement Delete
+	//
+	template <typename T>
+	struct UniquePtr_PlacementDelete
+	{
+		constexpr UniquePtr_PlacementDelete () = default;
+
+		void  operator () (T* ptr) const
+		{
+			STATIC_ASSERT( 0 < sizeof(T), "can't delete an incomplete type" );
+			ptr->~T();
+			// without releasing memory
+		}
+	};
+
+	template <typename T>
+	using UniqueNoDel = std::unique_ptr< T, UniquePtr_PlacementDelete<T> >;
+	
+	template <typename T, typename ...Types>
+	ND_ forceinline UniqueNoDel<T>  MakeUniqueNoDel (Types&&... args)
+	{
+		return UniqueNoDel<T>{ new T{ FwdArg<Types>( args )... }};
+	}
+
 /*
 =================================================
 	AddressOf
 =================================================
 */
 	template <typename T>
-	ND_ forceinline decltype(auto)  AddressOf (T &value)
+	ND_ forceinline constexpr decltype(auto)  AddressOf (T &value)
 	{
 		return std::addressof( value );
 	}
 	
 	template <typename T>
-	ND_ forceinline decltype(auto)  VAddressOf (T &value)
+	ND_ forceinline constexpr decltype(auto)  VAddressOf (T &value)
 	{
 		return Cast<void>( std::addressof( value ));
 	}
@@ -196,7 +221,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	forceinline void  ZeroMem (T& value)
+	forceinline void  ZeroMem (OUT T& value)
 	{
 		STATIC_ASSERT( IsZeroMemAvailable<T> );
 		STATIC_ASSERT( not IsPointer<T> );
@@ -204,12 +229,28 @@ namespace AE::Base
 		std::memset( OUT &value, 0, sizeof(value) );
 	}
 
-	forceinline void  ZeroMem (void* ptr, Bytes size)
+	forceinline void  ZeroMem (OUT void* ptr, Bytes size)
 	{
 		ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );
 
 		std::memset( OUT ptr, 0, usize{size} );
 	}
+	
+/*
+=================================================
+	SecureZeroMem
+=================================================
+*/
+	template <typename T>
+	forceinline void  SecureZeroMem (OUT T& value)
+	{
+		STATIC_ASSERT( IsZeroMemAvailable<T> );
+		STATIC_ASSERT( not IsPointer<T> );
+
+		SecureZeroMem( OUT &value, SizeOf<T> );
+	}
+
+	void  SecureZeroMem (OUT void* ptr, Bytes size);
 	
 /*
 =================================================
@@ -220,10 +261,11 @@ namespace AE::Base
 	forceinline void  CopyCString (OUT T (&dst)[S], const T* src)
 	{
 		#ifdef AE_COMPILER_MSVC
-			strcpy_s( OUT dst, src );
+			::strcpy_s( OUT dst, src );
 		#else
-			strcpy( OUT dst, src );
+			::strcpy( OUT dst, src );
 		#endif
 	}
 
-}	// AE::Base
+
+} // AE::Base

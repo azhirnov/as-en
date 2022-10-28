@@ -36,9 +36,17 @@ namespace AE::Math
 	// methods
 		CameraTempl () {}
 		
-		ND_ Mat4_t  ToModelViewProjMatrix ()	const	{ return projection * transform.ToMatrix(); }
+		ND_ Mat4_t  ToModelViewProjMatrix ()	const	{ return projection * ToModelViewMatrix(); }
 		ND_ Mat4_t	ToViewProjMatrix ()			const	{ return projection * transform.ToRotationMatrix(); }
 		ND_ Mat4_t	ToViewMatrix ()				const	{ return transform.ToRotationMatrix(); }
+		
+		ND_ Mat4_t  ToModelViewMatrix ()		const
+		{
+			Mat4_t	orient_mat		{ transform.orientation };
+			Mat4_t	translate_mat	= Mat4_t::Translate( transform.position );
+			Mat4_t	scale_mat		= Mat4_t::Scale( Vec3_t{ transform.scale });
+			return orient_mat * scale_mat * translate_mat;
+		}
 
 
 		// for transformation
@@ -105,4 +113,5 @@ namespace AE::Math
 		}
 	};
 
-}	// AE::Math
+
+} // AE::Math

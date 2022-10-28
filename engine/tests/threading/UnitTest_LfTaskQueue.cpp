@@ -17,6 +17,8 @@ namespace
 
 		void  Run () override
 		{}
+
+		StringView  DbgName () const override { return "DummyTask"; }
 	};
 
 

@@ -187,11 +187,25 @@ namespace AE::NS
 	// methods
 	public:
 		String () {}
-		String (const char* cstr);
-		String (Base::NtStringView view) : String{view.c_str()} {}
+		explicit String (const char* cstr);
+		explicit String (Base::NtStringView view) : String{view.c_str()} {}
 
 		ND_ const char*	 c_str ()	const;
 		ND_ UInteger	 size ()	const;
+	};
+
+
+
+	//
+	// NSURL
+	//
+	class URL final : public Object
+	{
+	// methods
+	public:
+		URL () {}
+		explicit URL (const char* path);
+		explicit URL (const Base::Path &path);
 	};
 
 

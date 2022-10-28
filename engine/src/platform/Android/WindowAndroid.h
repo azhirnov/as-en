@@ -23,7 +23,7 @@ namespace AE::App
 	// Android Window
 	//
 
-	class WindowAndroid final : public IWindow
+	class WindowAndroid final : public WindowBase
 	{
 		friend class ApplicationAndroid;
 
@@ -57,8 +57,8 @@ namespace AE::App
 		uint2	GetSurfaceSize ()	const override;
 		Monitor	GetMonitor ()		const override;
 
-		IInputActions&	InputActions ()	override	{ return _input; }
-		NativeWindow	GetNative ()	override;
+		IInputActions&	InputActions ()		  override	{ return _input; }
+		NativeWindow	GetNative ()	const override;
 
 		// desctop only
 		void  SetSize (const uint2 &) override {}
@@ -69,7 +69,9 @@ namespace AE::App
 
 
 	private:
-		void  _SetListener (Unique<IWndListener> listener);
+		void  _Init (Unique<IWndListener> listener, IInputActions* dstActions);
+
+		ND_ ApplicationAndroid&  _App ();
 
 
 	// called from java
@@ -89,6 +91,6 @@ namespace AE::App
 	};
 
 
-}	// AE::App
+} // AE::App
 
 #endif // AE_PLATFORM_ANDROID

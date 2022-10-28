@@ -23,4 +23,4 @@ namespace AE::Graphics
 	using DeviceToHostSyncPtr = RC< IDeviceToHostSync >;
 
 
-}	// AE::Graphics
+} // AE::Graphics

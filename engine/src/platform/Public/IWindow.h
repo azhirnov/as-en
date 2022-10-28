@@ -109,7 +109,7 @@ namespace AE::App
 		// Returns window native handles.
 		//   Thread safe: yes
 		//
-		ND_ virtual NativeWindow  GetNative () = 0;
+		ND_ virtual NativeWindow  GetNative () const = 0;
 		
 		// Returns input actions class.
 		//   Thread safe: yes
@@ -160,4 +160,4 @@ namespace AE::App
 	};
 
 
-}	// AE::App
+} // AE::App

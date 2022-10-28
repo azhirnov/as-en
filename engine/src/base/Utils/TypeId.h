@@ -50,7 +50,7 @@ namespace AE::Base::_hidden_
 	template <typename T, uint UID>	struct StaticTypeIdOf< volatile T,       UID > final : StaticTypeIdOf<T, UID> {};
 	template <typename T, uint UID>	struct StaticTypeIdOf< const volatile T, UID > final : StaticTypeIdOf<T, UID> {};
 
-}	// AE::Base::_hidden_
+} // AE::Base::_hidden_
 
 namespace std
 {
@@ -63,7 +63,7 @@ namespace std
 		}
 	};
 
-}	// std
+} // std
 //-----------------------------------------------------------------------------
 
 	
@@ -104,7 +104,7 @@ namespace AE::Base::_hidden_
 		}
 	};
 
-}	// AE::Base::_hidden_
+} // AE::Base::_hidden_
 
 namespace std
 {
@@ -117,7 +117,7 @@ namespace std
 		}
 	};
 
-}	// std
+} // std
 
 
 #if 0
@@ -142,7 +142,7 @@ namespace AE::Base
 		return TypeIdOf<T>();
 	}
 
-}	// AE::Base
+} // AE::Base
 
 #else
 namespace AE::Base
@@ -165,6 +165,6 @@ namespace AE::Base
 		return TypeIdOf<T>();
 	}
 
-}	// AE::Base
+} // AE::Base
 
 #endif

@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "base/Config.h"
-
 
 #if defined(AE_DEBUG)
 #  if defined(AE_DEVELOP) or defined(AE_PROFILE) or defined(AE_RELEASE)
@@ -60,6 +58,13 @@
 #	 endif
 #	endif
 #endif
+
+
+// check features
+#ifndef __cpp_threadsafe_static_init
+#	error '__cpp_threadsafe_static_init' feature required
+#endif
+
 
 // check definitions
 #ifdef AE_CPP_DETECT_MISMATCH
@@ -219,5 +224,5 @@
 #  endif
 
 
-#endif	// AE_CPP_DETECT_MISMATCH
+#endif // AE_CPP_DETECT_MISMATCH
 

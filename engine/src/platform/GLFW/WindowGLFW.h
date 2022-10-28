@@ -33,14 +33,17 @@ namespace AE::App
 	public:
 		~WindowGLFW ();
 
+		ND_ GLFWwindow*  GetGLFWwindow ()	const	{ return _window; }
+
+
 	// IWindow //
 		void	Close () override;
 		
 		uint2	GetSurfaceSize ()	const override;
 		Monitor	GetMonitor ()		const override;
 
-		IInputActions&	InputActions ()	override	{ return _input; }
-		NativeWindow	GetNative ()	override;
+		IInputActions&	InputActions ()		  override	{ return _input; }
+		NativeWindow	GetNative ()	const override;
 
 		void  SetSize (const uint2 &size) override;
 		void  SetPosition (const int2 &pos) override;
@@ -50,7 +53,7 @@ namespace AE::App
 
 
 	private:
-		WindowGLFW (ApplicationGLFW &app, Unique<IWndListener>);
+		WindowGLFW (ApplicationGLFW &app, Unique<IWndListener>, IInputActions*);
 
 		ND_ bool  _Create (const WindowDesc &desc);
 			void  _Destroy ();
@@ -69,6 +72,6 @@ namespace AE::App
 	};
 
 
-}	// AE::App
+} // AE::App
 
-#endif	// AE_ENABLE_GLFW
+#endif // AE_ENABLE_GLFW

@@ -99,13 +99,6 @@ namespace AE::Graphics
 
 		uint	minComputeWorkgroupInvocations			= 64;		// nvidia - 1024,   amd - 1024, intel - 1024, mali -  64,  adreno - 128,  apple - 512
 	} DeviceLimits;
-	
-	
-	class IGfxMemAllocator;
-	using GfxMemAllocatorPtr = RC< IGfxMemAllocator >;
-	
-	class IDescriptorAllocator;
-	using DescriptorAllocatorPtr = RC< IDescriptorAllocator >;
 
 
 } // AE::Graphics

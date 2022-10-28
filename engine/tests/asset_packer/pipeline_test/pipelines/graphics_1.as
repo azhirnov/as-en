@@ -4,8 +4,9 @@ void main ()
 	GraphicsPipeline@	ppln = GraphicsPipeline( "graphics_1" );
 	ppln.AddFeatureSet( "MinimalFS" );
 	ppln.SetLayout( "Graphics_PL_1" );
-	ppln.SetVertexInput( "VBInput1" );
+	ppln.SetVertexInput( "vb_input1" );
 	ppln.SetFragmentOutputFromRenderPass( "Simple", /*subpass*/"Main" );
+	ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "graphics_1.io" );
 
 	{
 		Shader@	vs = Shader();

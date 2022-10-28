@@ -234,6 +234,9 @@ namespace AE::Graphics
 		#define VKFEATS_FN_DECL
 		#include "vulkan_loader/vk_features.h"
 		#undef  VKFEATS_FN_DECL
+		
+		ND_ bool  _CreateInstance (const char* appName, const char* engineName, ArrayView<const char*> instanceLayers,
+								   ArrayView<const char*> instanceExtensions, InstanceVersion version, uint appVer, uint engineVer);
 
 		void  _ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers, INOUT uint &version) const;
 		void  _ValidateInstanceLayers (INOUT Array<const char*> &layers) const;
@@ -278,6 +281,6 @@ namespace AE::Graphics
 																							VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

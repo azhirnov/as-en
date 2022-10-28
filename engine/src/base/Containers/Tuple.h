@@ -162,18 +162,6 @@ namespace AE::Base
 
 	template <typename T>
 	static constexpr bool	IsTuple = _hidden_::_IsTuple< RemoveCVRef<T> >::value;
-
-/*
-=================================================
-	MakeTuple
-=================================================
-*/
-	template <typename ...Types>
-	ND_ forceinline constexpr auto  MakeTuple (Types&& ...args)
-	{
-		using Result_t = Tuple< RemoveReference< std::decay_t< Types >>... >;
-		return Result_t{ FwdArg<Types>(args)... };
-	}
 	
 /*
 =================================================
@@ -185,8 +173,8 @@ namespace AE::Base
 		template <typename Tuple1, typename Tuple2, usize ...Idx1, usize ...Idx2>
 		constexpr auto  _TupleConcat (Tuple1&& tuple1, Tuple2&& tuple2, IndexSequence<Idx1...>, IndexSequence<Idx2...>)
 		{
-			return MakeTuple( std::get<Idx1>(FwdArg<Tuple1>(tuple1))...,
-							  std::get<Idx2>(FwdArg<Tuple2>(tuple2))... );
+			return Tuple{ std::get<Idx1>( FwdArg<Tuple1>( tuple1 )) ...,
+						  std::get<Idx2>( FwdArg<Tuple2>( tuple2 )) ... };
 		}
 	}
 
@@ -206,7 +194,7 @@ namespace AE::Base
 		return TupleConcat( FwdArg<Tuple1>(tuple1), TupleConcat( FwdArg<Tuple2>(tuple2), FwdArg<Tuples>(tuples)... ));
 	}
 
-}	// AE::Base
+} // AE::Base
 
 namespace std
 {
@@ -235,4 +223,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

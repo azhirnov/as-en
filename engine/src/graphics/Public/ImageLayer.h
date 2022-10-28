@@ -41,7 +41,7 @@ namespace AE::Graphics
 	ND_ inline constexpr ImageLayer operator "" _layer (unsigned long long value)	{ return ImageLayer{ uint(value) }; }
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
 namespace AE::Base
 {
@@ -49,7 +49,7 @@ namespace AE::Base
 	template <> struct TZeroMemAvailable< AE::Graphics::ImageLayer >		{ static constexpr bool  value = true; };
 	template <> struct TTrivialySerializable< AE::Graphics::ImageLayer >	{ static constexpr bool  value = true; };
 
-}	// AE::Base
+} // AE::Base
 
 namespace std
 {
@@ -62,4 +62,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

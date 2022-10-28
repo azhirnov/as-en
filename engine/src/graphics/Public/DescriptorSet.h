@@ -105,4 +105,4 @@ namespace AE::Graphics
 	using DescriptorUpdaterPtr = RC< IDescriptorUpdater >;
 
 
-}	// AE::Graphics
+} // AE::Graphics

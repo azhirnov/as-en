@@ -43,7 +43,7 @@ namespace AE::Graphics
 		virtual void  SetScissor (const RectI &scissor) = 0;
 		virtual void  SetScissors (ArrayView<RectI> scissors) = 0;
 		virtual void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor) = 0;
-		virtual void  SetDepthBounds (float minDepthBounds, float maxDepthBounds) = 0;
+		//virtual void  SetDepthBounds (float minDepthBounds, float maxDepthBounds) = 0;			// Vulkan only
 		//virtual void  SetStencilCompareMask (uint compareMask) = 0;								// Vulkan only
 		//virtual void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask) = 0;	// Vulkan only
 		//virtual void  SetStencilWriteMask (uint writeMask) = 0;									// Vulkan only
@@ -90,6 +90,14 @@ namespace AE::Graphics
 		// tile shader
 		virtual void  DispatchTile () = 0;
 		
+		// mesh shader
+		virtual void  DrawMeshTasks (const uint3 &taskCount) = 0;
+
+		virtual void  DrawMeshTasksIndirect (BufferID	indirectBuffer,
+											 Bytes		indirectBufferOffset,
+											 uint		drawCount,
+											 Bytes		stride) = 0;
+
 		// for debugging
 		virtual void  DebugMarker (NtStringView text, RGBA8u color) = 0;
 		virtual void  PushDebugGroup (NtStringView text, RGBA8u color) = 0;
@@ -156,7 +164,7 @@ namespace AE::Graphics
 	// interface
 	public:
 		virtual void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data) = 0;
-		//virtual void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data) = 0;		// Vulkan only
+		virtual void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data) = 0;		// Vulkan - native, Metal - used UploadBuffer()
 		
 		virtual void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges) = 0;
 		virtual void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges) = 0;
@@ -166,8 +174,8 @@ namespace AE::Graphics
 		virtual void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges) = 0;
 		
 		// write to device local memory using staging buffer
-		ND_			Bytes UploadBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data, EStagingHeapType heapType = EStagingHeapType::Static);
-			virtual void  UploadBuffer (BufferID buffer, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static) = 0;
+		ND_			bool  UploadBuffer (BufferID buffer, Bytes offset, Bytes dataSize, const void* data, EStagingHeapType heapType = EStagingHeapType::Static);
+			virtual void  UploadBuffer (BufferID buffer, Bytes offset, Bytes requiredSize, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static) = 0;
 
 		ND_			Bytes UploadImage (ImageID image, const UploadImageDesc &desc, const void* data, Bytes size);
 			virtual void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView) = 0;
@@ -186,10 +194,11 @@ namespace AE::Graphics
 
 		// only for host-visible memory
 		ND_	virtual bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data) = 0;
-		ND_ virtual bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped) = 0;
+		//  virtual bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped) = 0;	// Vulkan only
 
-		ND_ virtual Promise<BufferMemView>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size) = 0;
+		ND_ virtual Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size) = 0;
 		
+		ND_ virtual uint3  MinImageTransferGranularity () const = 0;
 
 	// only in compute queue //
 	
@@ -215,8 +224,8 @@ namespace AE::Graphics
 		template <typename T>	ND_ Bytes  UploadImage (ImageID image, const UploadImageDesc &desc, const Array<T> &data)	{ return UploadImage( image, desc, data.data(), ArraySizeOf(data) ); }
 		
 		// copy to device local memory using staging buffer
-		template <typename T>	ND_ Bytes  UploadBuffer (BufferID buffer, Bytes offset, ArrayView<T> data, EStagingHeapType heapType = EStagingHeapType::Static)	{ return UploadBuffer( buffer, offset, ArraySizeOf(data), data.data(), heapType ); }
-		template <typename T>	ND_ Bytes  UploadBuffer (BufferID buffer, Bytes offset, const Array<T> &data, EStagingHeapType heapType = EStagingHeapType::Static)	{ return UploadBuffer( buffer, offset, ArraySizeOf(data), data.data(), heapType ); }
+		template <typename T>	ND_ bool  UploadBuffer (BufferID buffer, Bytes offset, ArrayView<T> data, EStagingHeapType heapType = EStagingHeapType::Static)		{ return UploadBuffer( buffer, offset, ArraySizeOf(data), data.data(), heapType ); }
+		template <typename T>	ND_ bool  UploadBuffer (BufferID buffer, Bytes offset, const Array<T> &data, EStagingHeapType heapType = EStagingHeapType::Static)	{ return UploadBuffer( buffer, offset, ArraySizeOf(data), data.data(), heapType ); }
 	};
 
 
@@ -235,10 +244,8 @@ namespace AE::Graphics
 		
 		virtual void  Dispatch (const uint3 &groupCount) = 0;
 		virtual void  DispatchIndirect (BufferID buffer, Bytes offset) = 0;
-		virtual void  DispatchBase (const uint3 &baseGroup, const uint3 &groupCount) = 0;
 
-		void  Dispatch (const uint2 &groupCount)								{ return Dispatch( uint3{ groupCount, 1u }); }
-		void  DispatchBase (const uint2 &baseGroup, const uint2 &groupCount)	{ return DispatchBase( uint3{ baseGroup, 0u }, uint3{ groupCount, 1u }); }
+		void  Dispatch (const uint2 &groupCount)	{ return Dispatch( uint3{ groupCount, 1u }); }
 	};
 
 
@@ -273,7 +280,7 @@ namespace AE::Graphics
 		virtual void  BindPipeline (RayTracingPipelineID ppln) = 0;
 		virtual void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default) = 0;
 		virtual void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) = 0;
-		//virtual void  StackSize () = 0;
+		//virtual void  SetStackSize () = 0;
 		
 		//virtual void  TraceRays (const uint2 dim, const ShaderBindingTable &sbt) = 0;
 		//virtual void  TraceRays (const uint3 dim, const ShaderBindingTable &sbt) = 0;
@@ -301,8 +308,59 @@ namespace AE::Graphics
 		// TODO:
 		//	- build indirect
 
-		//virtual void  WriteCompactedSize () = 0;
+		// 'dstBuffer' must be in EREsourceState::CopyDst
+		virtual void  WriteCompactedSize (RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size) = 0;
+		virtual void  WriteCompactedSize (RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size) = 0;
+
+		ND_ virtual Promise<Bytes>  ReadCompactedSize (RTGeometryID as) = 0;
+		ND_ virtual Promise<Bytes>  ReadCompactedSize (RTSceneID as) = 0;
 	};
+//-----------------------------------------------------------------------------
 
 
-}	// AE::Graphics
+	
+/*
+=================================================
+	UploadImage
+=================================================
+*/
+	inline Bytes  ITransferContext::UploadImage (ImageID imageId, const UploadImageDesc &uploadDesc, const void* data, Bytes size)
+	{
+		ImageMemView	mem_view;
+		UploadImage( imageId, uploadDesc, OUT mem_view );
+
+		Bytes	written = 0_b;
+		for (auto& dst : mem_view.Parts())
+		{
+			MemCopy( OUT dst.ptr, data + written, dst.size );
+			written += dst.size;
+		}
+
+		ASSERT( written <= size );
+		Unused( size );
+
+		return written;
+	}
+		
+/*
+=================================================
+	UploadBuffer
+=================================================
+*/
+	inline bool  ITransferContext::UploadBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data, EStagingHeapType heapType)
+	{
+		BufferMemView	ranges;
+		UploadBuffer( buffer, offset, size, OUT ranges, heapType );
+
+		Bytes	written = 0_b;
+		for (auto& dst : ranges)
+		{
+			MemCopy( OUT dst.ptr, data + written, dst.size );
+			written += dst.size;
+		}
+		ASSERT( written <= size );
+		return written == size;
+	}
+
+
+} // AE::Graphics

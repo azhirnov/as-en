@@ -24,22 +24,25 @@ namespace AE::Graphics
 			VPipelineLayoutID									layoutId;
 			ArrayView< VPipelinePack::ShaderModuleRef >			shaders;
 			PipelineCacheID										cacheId;
+			VPipelinePack::Allocator_t *						allocator		= null;
 		};
 
 
 	// variables
 	private:
-		VkPipeline					_handle			= Default;
-		VkPipelineLayout			_layout			= Default;
+		VkPipeline					_handle					= Default;
+		VkPipelineLayout			_layout					= Default;
 		
-		uint						_meshGroupSize			= 0;
-		uint						_taskGroupSize			= 0;
+		ushort3						_meshLocalSize;
+		ushort3						_taskLocalSize;
 		EPipelineDynamicState		_dynamicState			= Default;
 		EPipelineOpt				_options				= Default;
 		//bool						_earlyFragmentTests		= true;
 
 		Strong<VPipelineLayoutID>	_layoutId;
 		
+		ArrayView<ShaderTracePtr>	_dbgTrace;				// allocated by pipeline pack linear allocator
+
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
 
@@ -51,6 +54,8 @@ namespace AE::Graphics
 
 		ND_ bool  Create (VResourceManager &, const CreateInfo &ci);
 			void  Destroy (VResourceManager &);
+			
+		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result) const;
 
 		ND_ VkPipeline				Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ VkPipelineLayout		Layout ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
@@ -59,10 +64,13 @@ namespace AE::Graphics
 		ND_ EPipelineDynamicState	DynamicState ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
 		//ND_ bool					IsEarlyFragmentTests ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _earlyFragmentTests; }
 		
+		ND_ uint3					TaskLocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_taskLocalSize}; }
+		ND_ uint3					MeshLocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_meshLocalSize}; }
+		
 		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

@@ -11,15 +11,15 @@
 #  include <barrier>
 #endif
 
-#include "base/Common.h"
+#include "base/Utils/RefCounter.h"
 
-#if not defined(AE_ENABLE_DATA_RACE_CHECK) and (defined(AE_DEV_OR_DBG) or defined(AE_CI_BUILD))
+#if not defined(AE_ENABLE_DATA_RACE_CHECK) and (defined(AE_DBG_OR_DEV) or defined(AE_CI_BUILD))
 #	define AE_ENABLE_DATA_RACE_CHECK	1
 #else
 #	define AE_ENABLE_DATA_RACE_CHECK	0
 #endif
 
-#if not defined(AE_OPTIMAL_MEMORY_ORDER) and (not defined(AE_DEV_OR_DBG))
+#if not defined(AE_OPTIMAL_MEMORY_ORDER) and (not defined(AE_DBG_OR_DEV))
 #	define AE_OPTIMAL_MEMORY_ORDER		1
 #else
 #	define AE_OPTIMAL_MEMORY_ORDER		0
@@ -29,14 +29,7 @@
 // exclusive lock
 #ifndef EXLOCK
 #	define EXLOCK( _syncObj_ ) \
-		std::unique_lock	AE_PRIVATE_UNITE_RAW( __scopeLock, __COUNTER__ ) { _syncObj_ }
-#endif
-#ifndef DBG_EXLOCK
-# ifdef AE_DEBUG
-#	define DBG_EXLOCK						EXLOCK
-# else
-#	define DBG_EXLOCK( /* sync_obj */... )	{}
-# endif
+		std::unique_lock	AE_PRIVATE_UNITE_RAW( __exLock, __COUNTER__ ) { _syncObj_ }
 #endif
 
 // shared lock
@@ -44,12 +37,11 @@
 #	define SHAREDLOCK( _syncObj_ ) \
 		std::shared_lock	AE_PRIVATE_UNITE_RAW( __sharedLock, __COUNTER__ ) { _syncObj_ }
 #endif
-#ifndef DBG_SHAREDLOCK
-# ifdef AE_DEBUG
-#	define DBG_SHAREDLOCK						SHAREDLOCK
-# else
-#	define DBG_SHAREDLOCK( /* sync_obj */... )	{}
-# endif
+
+// deadlock safe exclusive lock
+#ifndef SAFE_EXLOCK
+#	define SAFE_EXLOCK( /* sync objects */... ) \
+		std::scoped_lock	AE_PRIVATE_UNITE_RAW( __safeLock, __COUNTER__ ) { __VA_ARGS__ }
 #endif
 
 
@@ -62,6 +54,11 @@ namespace AE::Threading
 	using SharedMutex			= std::shared_mutex;
 	using RecursiveMutex		= std::recursive_mutex;
 	using ConditionVariable		= std::condition_variable;
+
+	class IAsyncTask;
+	using AsyncTask = RC< IAsyncTask >;
+
+	class IThread;
 
 
 #	if AE_OPTIMAL_MEMORY_ORDER
@@ -80,7 +77,7 @@ namespace AE::Threading
 		static constexpr std::memory_order	AcquireRelase	= std::memory_order_seq_cst;
 		static constexpr std::memory_order	Relaxed			= std::memory_order_seq_cst;
 	};
-#	endif	// AE_OPTIMAL_MEMORY_ORDER
+#	endif // AE_OPTIMAL_MEMORY_ORDER
 
 	
 /*
@@ -135,7 +132,7 @@ namespace AE::Threading
 			std::shared_lock<T>{ mtx, std::defer_lock } {}
 	};
 
-}	// AE::Threading
+} // AE::Threading
 
 
 // check definitions
@@ -159,4 +156,4 @@ namespace AE::Threading
 #	pragma detect_mismatch( "AE_STD_BARRIER", "0" )
 #  endif
 
-#endif	// AE_CPP_DETECT_MISMATCH
+#endif // AE_CPP_DETECT_MISMATCH

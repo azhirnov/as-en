@@ -2,37 +2,11 @@
 
 #pragma once
 
-#include "networking/Http/HttpClient.h"
 #include "networking/Raw/SocketManager.h"
 #include "../shared/UnitTest_Shared.h"
 
 using namespace AE::Threading;
 using namespace AE::Networking;
-
-
-struct LocalHttpClient
-{
-	LocalHttpClient (const HttpClient::Settings &settings = Default)
-	{
-		TaskScheduler::CreateInstance();
-		Scheduler().Setup( 1 );
-
-		TEST( HttpClient::Instance().Setup( settings ));
-	}
-
-	~LocalHttpClient ()
-	{
-		Scheduler().Release();
-		TaskScheduler::DestroyInstance();
-
-		HttpClient::Instance().Release();
-	}
-
-	HttpClient* operator -> ()
-	{
-		return &HttpClient::Instance();
-	}
-};
 
 
 struct LocalSocketMngr

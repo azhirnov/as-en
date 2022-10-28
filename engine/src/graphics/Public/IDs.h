@@ -16,7 +16,7 @@ namespace AE::Graphics::_hidden_
 	// tag: NamedID UID
 	static constexpr uint	NamedIDs_Start		= 1 << 24;
 
-}	// AE::Graphics::_hidden_
+} // AE::Graphics::_hidden_
 
 
 namespace AE::Graphics
@@ -39,6 +39,7 @@ namespace AE::Graphics
 	using RTSceneID				= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 15 >;		// top-level AS
 	
 	//using MaterialID			= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 20 >;
+	using ImageInAtlasID		= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 21 >;
 
 
 	using UniformName			= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 1,  AE_OPTIMIZE_IDS >;
@@ -65,7 +66,7 @@ namespace AE::Graphics
 	using ShaderStructName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 27, true >;
 	using DSLayoutName			= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 28, AE_OPTIMIZE_IDS >;
 	
-	using ImageInAtlasName		= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 40, AE_OPTIMIZE_IDS >;	// TODO
+	using ImageInAtlasName		= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 40, AE_OPTIMIZE_IDS >;
 
 
 	static constexpr AttachmentName		Attachment_Depth {"Depth"};
@@ -75,4 +76,73 @@ namespace AE::Graphics
 	static constexpr SubpassName		Subpass_ExternalOut {"ExternalOut"};
 
 
-}	// AE::Graphics
+	//
+	// Image & ImageView weak reference
+	//
+	struct ImageAndViewID
+	{
+		ImageID			image;
+		ImageViewID		view;
+
+		constexpr ImageAndViewID () {}
+		constexpr ImageAndViewID (ImageID image, ImageViewID view) : image{image}, view{view} {}
+
+		ND_ explicit operator bool ()	const	{ return image and view; }
+	};
+	
+
+	//
+	// Image & ImageView strong reference
+	//
+	struct StrongImageAndViewID
+	{
+		Strong<ImageID>			image;
+		Strong<ImageViewID>		view;
+		
+		constexpr StrongImageAndViewID () {}
+		constexpr StrongImageAndViewID (Strong<ImageID> image, Strong<ImageViewID> view) : image{RVRef(image)}, view{RVRef(view)} {}
+
+		constexpr StrongImageAndViewID (StrongImageAndViewID &&) = default;
+
+		StrongImageAndViewID&  operator = (StrongImageAndViewID &&) = default;
+
+		operator ImageAndViewID ()		const	{ return { image, view }; }
+		ND_ explicit operator bool ()	const	{ return image and view; }
+	};
+
+
+	//
+	// Autorelease Graphics Handle
+	//
+	template <typename IDType>
+	struct GAutorelease;
+	
+	template <usize IndexSize, usize GenerationSize, uint UID>
+	struct GAutorelease < HandleTmpl< IndexSize, GenerationSize, UID >>
+	{
+	// types
+	public:
+		using ID_t	= HandleTmpl< IndexSize, GenerationSize, UID >;
+
+	// variables
+	private:
+		Strong<ID_t>	_id;
+
+
+	// methods
+	public:
+		GAutorelease () {}
+		GAutorelease (Strong<ID_t> id) : _id{RVRef(id)} {}
+		~GAutorelease ();
+		
+		ND_ ID_t		Get ()				const	{ return _id.Get(); }
+		ND_ ID_t		Release ()								{ return _id.Release(); }
+		ND_ bool		IsValid ()			const	{ return _id.IsValid(); }
+		
+		ND_ explicit	operator bool ()	const	{ return IsValid(); }
+
+		ND_ 			operator ID_t ()	const	{ return _id.Get(); }
+	};
+
+
+} // AE::Graphics

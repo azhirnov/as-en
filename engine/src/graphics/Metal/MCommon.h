@@ -10,7 +10,7 @@
 # include "base/Containers/FixedString.h"
 # include "base/Containers/FixedTupleArray.h"
 # include "base/Containers/StructView.h"
-# include "base/Utils/Noncopyable.h"
+# include "base/Utils/Helpers.h"
 
 # include "threading/Primitives/DataRaceCheck.h"
 # include "threading/Primitives/Atomic.h"
@@ -27,6 +27,8 @@
 // Xcode frame debugger doesn't support sample counters
 # define AE_METAL_NATIVE_DEBUGGER	0
 
+// beta extension
+# define AE_METAL_MESH_SHADER		0
 
 namespace AE::Graphics
 {
@@ -49,6 +51,7 @@ namespace AE::Graphics
 	class MResourceManager;
 	class MCommandBatch;
 	class MRenderPass;
+	struct MPixFormatInfo;
 	
 	DEBUG_ONLY(
 		using DebugName_t = FixedString<64>;
@@ -104,7 +107,7 @@ namespace AE::Graphics
 		PostRasterization	= Fragment | Tile,
 		Unknown				= 0,
 	};
-	AE_BIT_OPERATORS( MtlBarrierScope );
+	AE_BIT_OPERATORS( MtlRenderStages );
 
 
 	//
@@ -162,30 +165,11 @@ namespace AE::Graphics
 		MClearColor (const RGBA32f &col) : MClearColor{col.r, col.g, col.b, col.a} {}
 		MClearColor (const RGBA8u &col) : MClearColor{RGBA32f{col}} {}
 	};
-	
-
-	//
-	// MTLDispatchThreadgroupsIndirectArguments
-	//
-	struct MDispatchIndirectCommand
-	{
-		packed_uint3	groupCount;
-	};
-	STATIC_ASSERT( sizeof(MDispatchIndirectCommand) == 12 );
 
 
-	//
-	// MTLDrawPrimitivesIndirectArguments
-	//
-	struct MDrawIndirectCommand
-	{
-	};
-	STATIC_ASSERT( sizeof(MDrawIndirectCommand) == 12 );
+} // AE::Graphics
 
-
-}	// AE::Graphics
-
-#endif	// AE_ENABLE_METAL
+#endif // AE_ENABLE_METAL
 
 
 # ifdef AE_CPP_DETECT_MISMATCH
@@ -196,4 +180,4 @@ namespace AE::Graphics
 #	pragma detect_mismatch( "AE_ENABLE_METAL", "0" )
 #  endif
 
-#endif	// AE_CPP_DETECT_MISMATCH
+#endif // AE_CPP_DETECT_MISMATCH

@@ -1,0 +1,408 @@
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+  Draw
+  EndRenderPass2
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'AsyncCompute'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  Dispatch
+    descriptors:
+      image: 'Image-0', layout: GENERAL
+  ----------
+
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+  Draw
+  EndRenderPass2
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-2',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'AsyncCompute'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  Dispatch
+    descriptors:
+      image: 'Image-1', layout: GENERAL
+  ----------
+
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-2',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-3',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+  Draw
+  EndRenderPass2
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-3',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-4',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'AsyncCompute'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  Dispatch
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-4',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-5',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-0'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-1'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [1920000, 3840000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-5',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-6',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+  Draw
+  EndRenderPass2
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-7',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'AsyncCompute'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  Dispatch
+    descriptors:
+      image: 'Image-0', layout: GENERAL
+  ----------
+
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-7',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-8',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+  Draw
+  EndRenderPass2
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-8',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-9',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'AsyncCompute'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  Dispatch
+    descriptors:
+      image: 'Image-1', layout: GENERAL
+  ----------
+
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-9',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-10',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+  Draw
+  EndRenderPass2
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   FRAGMENT_SHADER ---> COMPUTE_SHADER
+      access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-10',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-11',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'AsyncCompute'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  Dispatch
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-11',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-12',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image-0'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+    ImageBarrier:
+      name:    'Image-1'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-0'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image-1'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [1920000, 3840000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+waitSemaphore = {
+  'sync-12',  stage: ALL_COMMANDS
+}
+signalSemaphore = {
+  'sync-13',  stage: ALL_COMMANDS
+}
+==================================================

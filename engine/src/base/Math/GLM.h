@@ -12,7 +12,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_CXX17
 #define GLM_FORCE_VEC_EQUAL_OP	// special for AE
-//#define GLM_FORCE_EXPLICIT_CTOR
+#define GLM_FORCE_EXPLICIT_CTOR
 //#define GLM_FORCE_XYZW_ONLY	// will disable SIMD
 //#define GLM_FORCE_SWIZZLE
 #define GLM_FORCE_CTOR_INIT
@@ -37,9 +37,9 @@
 
 #elif defined(AE_PLATFORM_APPLE)
 #	if defined(__ARM_NEON__) or defined(AE_CPU_ARCH_ARM64)
-#		define GLM_FORCE_NEON
+#		define GLM_FORCE_NEON	// iOS or Mac M1...
 #	elif defined(AE_CPU_ARCH_X86) or defined(AE_CPU_ARCH_X64)
-#		define GLM_FORCE_SSE42
+#		define GLM_FORCE_SSE42	// Mac with Intel
 #	endif
 
 #elif defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX)
@@ -56,6 +56,8 @@
 
 #include "glm.hpp"
 #include "detail/type_half.hpp"
+
+#include "gtx/easing.hpp"
 
 #include "ext/matrix_double2x2.hpp"
 #include "ext/matrix_double2x2_precision.hpp"
@@ -208,7 +210,7 @@ namespace AE::Math
 	template <typename T, uint Columns, uint Rows>
 	struct Matrix;
 	
-}	// AE::Math
+} // AE::Math
 
 
 namespace AE::Base
@@ -240,7 +242,7 @@ namespace AE::Base
 	template <typename T, uint Columns, uint Rows>
 	struct TTrivialySerializable< Matrix<T, Columns, Rows> > { static constexpr bool  value = IsTrivialySerializable<T>; };
 	
-}	// AE::Base
+} // AE::Base
 
 
 // check definitions
@@ -348,4 +350,4 @@ namespace AE::Base
 #	pragma detect_mismatch( "GLM_ARCH_X86_BIT", "0" )
 #  endif
 
-#endif	// AE_CPP_DETECT_MISMATCH
+#endif // AE_CPP_DETECT_MISMATCH

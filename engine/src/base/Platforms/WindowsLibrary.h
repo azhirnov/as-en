@@ -6,8 +6,8 @@
 
 # include "base/Platforms/WindowsHeader.h"
 # include "base/Platforms/WindowsUtils.h"
-# include "base/Utils/Noncopyable.h"
 # include "base/Containers/NtStringView.h"
+# include "base/Utils/Helpers.h"
 # include "base/Utils/FileSystem.h"
 # include "base/Algorithms/ArrayUtils.h"
 
@@ -123,6 +123,6 @@ namespace AE::Base
 	}
 
 
-}	// AE::Base
+} // AE::Base
 
 #endif // AE_PLATFORM_WINDOWS

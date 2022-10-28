@@ -37,16 +37,16 @@ namespace AE::App
 	// methods
 	public:
 
-		NtStringView	GetClassName () const		{ return _className; }
-		void*			GetHInstance ()	const		{ return _instance; }
+		StringView	GetClassName () const		{ return _className; }
+		void*		GetHInstance ()	const		{ return _instance; }
 
 		static int  Run (Unique<IAppListener>);
 
 
 	// IApplication //
-		WindowPtr		CreateWindow (WndListenerPtr, const WindowDesc &) override;
-
-		RC<RStream>		OpenResource () override;
+		WindowPtr		CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*) override;
+		
+		RC<IFileStorage> OpenBuiltinStorage () override { return null; }
 
 		Monitors_t		GetMonitors (bool update = false) override;
 		

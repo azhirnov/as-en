@@ -5,6 +5,9 @@
 #ifdef AE_ENABLE_VULKAN
 # include "vk_types.h"
 #endif
+#ifdef AE_ENABLE_METAL
+# include "mtl_types.h"
+#endif
 
 namespace
 {
@@ -23,7 +26,7 @@ namespace
 
 		AsyncTask					result;
 
-		RC<CommandBatch>			batch;
+		CommandBatchPtr			batch;
 		bool						isOK	= false;
 
 		ImageComparator *			imgCmp	= null;
@@ -43,7 +46,7 @@ namespace
 	public:
 		D2_TestData&	t;
 
-		D2_DrawTask (D2_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		D2_DrawTask (D2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -56,15 +59,15 @@ namespace
 			const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
 
 			// upload vertices
-			typename CtxTypes::Transfer		copy_ctx{ GetBatchPtr() };
+			typename CtxTypes::Transfer		copy_ctx{ *this };
 			CHECK_TE( copy_ctx.IsValid() );
 			
 			copy_ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopyDst );
 
-			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Bytes::SizeOf(vertices), vertices, EStagingHeapType::Static ) == Bytes::SizeOf(vertices) );
+			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Bytes::SizeOf(vertices), vertices, EStagingHeapType::Static ));
 
-			typename CtxTypes::Graphics	ctx{ GetBatchPtr(), copy_ctx.ReleaseCommandBuffer() };
+			typename CtxTypes::Graphics	ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AccumBarriers()
@@ -100,7 +103,7 @@ namespace
 	public:
 		D2_TestData&	t;
 
-		D2_CopyTask (D2_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		D2_CopyTask (D2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -110,8 +113,7 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 			
-			Ctx		ctx{ GetBatchPtr() };
-
+			Ctx		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
@@ -160,13 +162,13 @@ namespace
 		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Draw2" );
 		CHECK_ERR( t.batch );
 
-		AsyncTask	task1	= t.batch->Add< D2_DrawTask<CtxTypes> >( MakeTuple(ArgRef(t)), MakeTuple(begin), "Draw task" );
+		AsyncTask	task1	= t.batch->Add< D2_DrawTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin}, "Draw task" );
 		CHECK_ERR( task1 );
 		
-		AsyncTask	task2	= t.batch->Add< D2_CopyTask<CopyCtx> >( MakeTuple(ArgRef(t)), MakeTuple(task1), "Readback task" );
+		AsyncTask	task2	= t.batch->Add< D2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
 		CHECK_ERR( task2 );
 
-		AsyncTask	end		= rts.EndFrame( MakeTuple(task2) );
+		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
@@ -183,7 +185,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_Draw2 ()

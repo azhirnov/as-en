@@ -542,7 +542,7 @@ namespace AE::Base
 			return h;
 	}
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -556,4 +556,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

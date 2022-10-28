@@ -52,6 +52,10 @@ namespace AE::App
 			void  _SetState (EState newState);
 			void  _SetStateV2 (EState newState);
 		ND_ bool  _StateChanged (EState newState) const;
+		
+			void  _DestroyListener ();
+
+		ND_ bool  _HasFocus () const	{ DRC_SHAREDLOCK( _drCheck );  return _wndState == EState::Focused; }
 	};
 
 

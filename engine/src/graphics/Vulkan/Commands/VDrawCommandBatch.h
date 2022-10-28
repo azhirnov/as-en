@@ -36,7 +36,11 @@ namespace AE::Graphics
 		Viewports_t				_viewports;
 		Scissors_t				_scissors;
 
-		DEBUG_ONLY( String		_dbgName; )
+		PROFILE_ONLY(
+			RGBA8u					_dbgColor;
+			String					_dbgName;
+			RC<IGraphicsProfiler>	_profiler;
+		)
 
 
 	// methods
@@ -53,16 +57,25 @@ namespace AE::Graphics
 		ND_ ECommandBufferType			GetCmdBufType ()		const	{ return ECommandBufferType::Secondary_RenderCommands; }
 		ND_ EQueueType					GetQueueType ()			const	{ return EQueueType::Graphics; }
 		ND_ VPrimaryCmdBufState const&	GetPrimaryCtxState ()	const	{ return _primaryState; }
-		ND_ NtStringView				DbgName ()				const;
 		ND_ ArrayView<VkViewport>		GetViewports ()			const	{ return _viewports; }
 		ND_ ArrayView<VkRect2D>			GetScissors ()			const	{ return _scissors; }
+		
+		#ifdef AE_DBG_OR_DEV_OR_PROF
+			ND_ Ptr<IGraphicsProfiler>	GetProfiler ()			const	{ return _profiler.get(); }
+			ND_ StringView				DbgName ()				const	{ return _dbgName; }
+			ND_ RGBA8u					DbgColor ()				const	{ return _dbgColor; }
+		#else
+			ND_ StringView				DbgName ()				const	{ return Default; }
+			ND_ RGBA8u					DbgColor ()				const	{ return HtmlColor::Lime; }
+		#endif
 
 		
 	// render task scheduler api
 	private:
 		explicit VDrawCommandBatch (uint indexInPool);
 
-		bool  _Create (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports, ArrayView<VkRect2D> scissors, StringView dbgName);
+		bool  _Create (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports, ArrayView<VkRect2D> scissors,
+					   StringView dbgName, RGBA8u dbgColor);
 		void  _ReleaseObject () override;
 	};
 
@@ -76,22 +89,24 @@ namespace AE::Graphics
 	{
 	// variables
 	private:
-		RC<VDrawCommandBatch>		_batch;
-		uint						_drawIndex	= UMax;
-		DEBUG_ONLY(
-			const String			_dbgName;
+		RC<VDrawCommandBatch>	_batch;
+		uint					_drawIndex	= UMax;
+
+		PROFILE_ONLY(
+			const String		_dbgName;
+			const RGBA8u		_dbgColor;
 		)
 			
 
 	// methods
 	public:
-		VDrawTask (RC<VDrawCommandBatch> batch, StringView dbgName) :
+		VDrawTask (RC<VDrawCommandBatch> batch, StringView dbgName, RGBA8u dbgColor = HtmlColor::Lime) :
 			IAsyncTask{ EThread::Renderer },
 			_batch{ RVRef(batch) },
 			_drawIndex{ _GetPool().Acquire() }
-			DEBUG_ONLY(, _dbgName{ dbgName })
+			PROFILE_ONLY(, _dbgName{ dbgName }, _dbgColor{ dbgColor })
 		{
-			Unused( dbgName );
+			Unused( dbgName, dbgColor );
 		}
 
 		~VDrawTask ()
@@ -107,8 +122,16 @@ namespace AE::Graphics
 	// IAsyncTask
 	public:
 		void  OnCancel () override final;
-
-		DEBUG_ONLY( NtStringView  DbgName () const override final { return _dbgName; })
+		
+		#ifdef AE_DBG_OR_DEV_OR_PROF
+			ND_ String		DbgFullName ()	const;
+			ND_ StringView  DbgName ()		const override final	{ return _dbgName; }
+			ND_ RGBA8u		DbgColor ()		const					{ return _dbgColor; }
+		#else
+			ND_ String		DbgFullName ()	const					{ return Default; }
+			ND_ StringView  DbgName ()		const override final	{ return Default; }
+			ND_ RGBA8u		DbgColor ()		const					{ return HtmlColor::Lime; }
+		#endif
 			
 	protected:
 		void  OnFailure ();
@@ -119,8 +142,75 @@ namespace AE::Graphics
 	private:
 		ND_ VDrawCommandBatch::CmdBufPool&  _GetPool ()		{ return _batch->_cmdPool; }
 	};
+//-----------------------------------------------------------------------------
+	
+
+	
+/*
+=================================================
+	constructor
+=================================================
+*/
+	inline VDrawCommandBatch::VDrawCommandBatch (uint indexInPool) :
+		_indexInPool{ CheckCast<ubyte>( indexInPool )}
+	{}
+
+/*
+=================================================
+	Add
+=================================================
+*/
+	template <typename TaskType, typename ...Ctor, typename ...Deps>
+	AsyncTask  VDrawCommandBatch::Add (const Tuple<Ctor...>&	ctorArgs,
+									   const Tuple<Deps...>&	deps,
+									   StringView				dbgName)
+	{
+		//ASSERT( not IsSubmitted() );
+
+		auto	task = ctorArgs.Apply([this, dbgName] (auto&& ...args) { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbgName ); });
+
+		if_likely( task->GetDrawOrderIndex() != UMax and Threading::Scheduler().Run( task, deps ))
+			return task;
+		else
+			return null;
+	}
+//-----------------------------------------------------------------------------
+
+
+	
+/*
+=================================================
+	OnCancel
+=================================================
+*/
+	inline void  VDrawTask::OnCancel ()
+	{
+		_GetPool().Complete( INOUT _drawIndex );
+	}
+	
+/*
+=================================================
+	OnFailure
+=================================================
+*/
+	inline void  VDrawTask::OnFailure ()
+	{
+		_GetPool().Complete( INOUT _drawIndex );
+		IAsyncTask::OnFailure();
+	}
+	
+/*
+=================================================
+	Execute
+=================================================
+*/
+	template <typename CmdBufType>
+	void  VDrawTask::Execute (CmdBufType &cmdbuf)
+	{
+		_GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );
+	}
 
 
 } // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

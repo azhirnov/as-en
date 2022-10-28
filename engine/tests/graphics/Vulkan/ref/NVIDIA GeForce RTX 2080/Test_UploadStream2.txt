@@ -1,0 +1,1161 @@
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'image'
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
+      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+  ----------
+
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 0, 0), ext:(4096, 64, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 64, 0), ext:(4096, 128, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 128, 0), ext:(4096, 192, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-2',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 192, 0), ext:(4096, 256, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-3',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 256, 0), ext:(4096, 320, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-4',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 320, 0), ext:(4096, 384, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-5',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 384, 0), ext:(4096, 448, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-6',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 448, 0), ext:(4096, 512, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-7',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 512, 0), ext:(4096, 576, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-8',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 576, 0), ext:(4096, 640, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-9',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 640, 0), ext:(4096, 704, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-10',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 704, 0), ext:(4096, 768, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-11',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 768, 0), ext:(4096, 832, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-12',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 832, 0), ext:(4096, 896, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-13',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 896, 0), ext:(4096, 960, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-14',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 960, 0), ext:(4096, 1024, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-15',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1024, 0), ext:(4096, 1088, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-16',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1088, 0), ext:(4096, 1152, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-17',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1152, 0), ext:(4096, 1216, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-18',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1216, 0), ext:(4096, 1280, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-19',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1280, 0), ext:(4096, 1344, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-20',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1344, 0), ext:(4096, 1408, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-21',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1408, 0), ext:(4096, 1472, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-22',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1472, 0), ext:(4096, 1536, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-23',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1536, 0), ext:(4096, 1600, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-24',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1600, 0), ext:(4096, 1664, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-25',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1664, 0), ext:(4096, 1728, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-26',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1728, 0), ext:(4096, 1792, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-27',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1792, 0), ext:(4096, 1856, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-28',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1856, 0), ext:(4096, 1920, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-29',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1920, 0), ext:(4096, 1984, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-30',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 1984, 0), ext:(4096, 2048, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-31',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2048, 0), ext:(4096, 2112, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-32',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2112, 0), ext:(4096, 2176, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-33',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2176, 0), ext:(4096, 2240, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-34',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2240, 0), ext:(4096, 2304, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-35',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2304, 0), ext:(4096, 2368, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-36',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2368, 0), ext:(4096, 2432, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-37',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2432, 0), ext:(4096, 2496, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-38',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2496, 0), ext:(4096, 2560, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-39',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2560, 0), ext:(4096, 2624, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-40',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2624, 0), ext:(4096, 2688, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-41',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2688, 0), ext:(4096, 2752, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-42',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2752, 0), ext:(4096, 2816, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-43',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2816, 0), ext:(4096, 2880, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-44',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2880, 0), ext:(4096, 2944, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-45',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 2944, 0), ext:(4096, 3008, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-46',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3008, 0), ext:(4096, 3072, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-47',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3072, 0), ext:(4096, 3136, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-48',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3136, 0), ext:(4096, 3200, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-49',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3200, 0), ext:(4096, 3264, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-50',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3264, 0), ext:(4096, 3328, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-51',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3328, 0), ext:(4096, 3392, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-52',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3392, 0), ext:(4096, 3456, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-53',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3456, 0), ext:(4096, 3520, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-54',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3520, 0), ext:(4096, 3584, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-55',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3584, 0), ext:(4096, 3648, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-56',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3648, 0), ext:(4096, 3712, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-57',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3712, 0), ext:(4096, 3776, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-58',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3776, 0), ext:(4096, 3840, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-59',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3840, 0), ext:(4096, 3904, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-60',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3904, 0), ext:(4096, 3968, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-61',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 3968, 0), ext:(4096, 4032, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-62',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBufferToImage
+    src:       'dynamic staging buffer'
+    dst:       'image'
+    dstLayout: TRANSFER_DST_OPTIMAL
+      copy { [0, 1048576) } ---> { off:(0, 4032, 0), ext:(4096, 4096, 1), mip:0, layers:[0, 1), COLOR }
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-63',  stage: ALL_COMMANDS
+}
+==================================================

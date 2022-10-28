@@ -39,6 +39,7 @@ namespace AE::Graphics
 		
 		ND_ MetalBuffer			Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _buffer; }
 		ND_ MMemoryID			MemoryID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ bool				IsExclusiveSharing ()	const	{ return true; }
 
 		ND_ BufferDesc const&	Description ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 		ND_ Bytes				Size ()					const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.size; }

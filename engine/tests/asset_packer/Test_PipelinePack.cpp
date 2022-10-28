@@ -58,14 +58,14 @@ namespace
 			TEST( offsets.pipelineOffset < ulong(file->Size()) );
 			
 			TEST( file->SeekSet( Bytes{offsets.pipelineOffset} ));
-			TEST( mem_stream->Load( *file, Bytes{offsets.pipelineDataSize} ));
+			TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.pipelineDataSize} ));
 		}
 
 		HashToName	hash_to_name;
 		{
 			auto	mem_stream2 = MakeRC<MemRStream>();
 			TEST( file->SeekSet( Bytes{offsets.nameMappingOffset} ));
-			TEST( mem_stream2->Load( *file, Bytes{offsets.nameMappingDataSize} ));
+			TEST( mem_stream2->LoadRemaining( *file, Bytes{offsets.nameMappingDataSize} ));
 
 			Serializing::Deserializer	des{ mem_stream2 };
 			

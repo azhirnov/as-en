@@ -43,7 +43,7 @@ namespace AE::Base
 		ND_ bool  operator != (const Ptr<T> &rhs)	const	{ return not (*this == rhs); }
 	};
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -56,4 +56,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

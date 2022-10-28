@@ -303,7 +303,7 @@ namespace AE::ECS
 				*ptr = FwdArg<T>( comp );
 			}
 		}
-	}	// _reg_detail_
+	} // _reg_detail_
 
 	template <typename ...Components>
 	inline EntityID  Registry::CreateEntity (Components&& ...comps)
@@ -356,7 +356,7 @@ DEBUG_ONLY(
 			}
 		};
 
-	}	// _reg_detail_
+	} // _reg_detail_
 )
 /*
 =================================================
@@ -962,8 +962,8 @@ DEBUG_ONLY(
 			}
 		}
 
-	}	// _reg_detail_
-# endif	// AE_ECS_VALIDATE_SYSTEM_FN
+	} // _reg_detail_
+# endif // AE_ECS_VALIDATE_SYSTEM_FN
 	
 /*
 =================================================
@@ -1013,7 +1013,7 @@ DEBUG_ONLY(
 			using SCTuple	= typename _Info::SCTuple;
 		};
 
-	}	// _reg_detail_
+	} // _reg_detail_
 
 /*
 =================================================
@@ -1209,7 +1209,7 @@ DEBUG_ONLY(
 			}
 		};
 
-	}	// _reg_detail_
+	} // _reg_detail_
 	
 /*
 =================================================
@@ -1234,7 +1234,7 @@ DEBUG_ONLY(
 //-----------------------------------------------------------------------------
 	
 
-#ifdef AE_DEV_OR_DBG
+#ifdef AE_DBG_OR_DEV
 /*
 =================================================
 	ArchetypeCompatibility
@@ -1342,7 +1342,7 @@ DEBUG_ONLY(
 			}
 		};
 
-	}	// _reg_detail_
+	} // _reg_detail_
 	
 /*
 =================================================
@@ -1365,7 +1365,7 @@ DEBUG_ONLY(
 			return true;
 		}
 	}
-#endif	// AE_DEBUG or AE_DEVELOP
+#endif // AE_DEBUG or AE_DEVELOP
 
 /*
 =================================================
@@ -1441,7 +1441,7 @@ DEBUG_ONLY(
 			}
 		};
 
-	}	// _reg_detail_
+	} // _reg_detail_
 
 /*
 =================================================
@@ -1451,8 +1451,8 @@ DEBUG_ONLY(
 	template <typename ...Args>
 	inline Tuple<usize, Args...>  Registry::_GetChunk (ArchetypeStorage* storage, const TypeList<Args...> *)
 	{
-		return MakeTuple(	storage->Count(),
-							_reg_detail_::GetStorageComponent<Args>::Get( storage )... );
+		return Tuple{ storage->Count(),
+					  _reg_detail_::GetStorageComponent<Args>::Get( storage ) ... };
 	}
 	
 /*
@@ -1648,7 +1648,7 @@ DEBUG_ONLY(
 			}
 		};
 
-	}	// _reg_detail_
+	} // _reg_detail_
 
 /*
 =================================================
@@ -1665,4 +1665,4 @@ DEBUG_ONLY(
 	}
 
 
-}	// AE::ECS
+} // AE::ECS

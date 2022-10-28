@@ -30,12 +30,14 @@ namespace
 
 		Test1_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '1';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test1_Task1"; }
 	};
 
 	class Test1_Task2 : public IAsyncTask
@@ -45,12 +47,14 @@ namespace
 		
 		Test1_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '2';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test1_Task2"; }
 	};
 
 	static void  TaskDeps_Test1 ()
@@ -83,19 +87,21 @@ namespace
 
 		Test2_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'A';
 			value.guard.unlock();
 		}
 
-		void OnCancel () override
+		void  OnCancel () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '1';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test2_Task1"; }
 	};
 
 	class Test2_Task2 : public IAsyncTask
@@ -105,19 +111,21 @@ namespace
 		
 		Test2_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'B';
 			value.guard.unlock();
 		}
 
-		void OnCancel () override
+		void  OnCancel () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '2';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test2_Task2"; }
 	};
 
 	static void  TaskDeps_Test2 ()
@@ -154,19 +162,21 @@ namespace
 
 		Test3_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'A';
 			value.guard.unlock();
 		}
 
-		void OnCancel () override
+		void  OnCancel () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '1';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test3_Task1"; }
 	};
 
 	class Test3_Task2 : public IAsyncTask
@@ -176,19 +186,21 @@ namespace
 		
 		Test3_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '2';
 			value.guard.unlock();
 		}
 
-		void OnCancel () override
+		void  OnCancel () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'B';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test3_Task2"; }
 	};
 	
 	static void  TaskDeps_Test3 ()
@@ -243,10 +255,12 @@ namespace
 			UpdateTask (const RC<Test4_TaskDepManager> &mngr) : IAsyncTask{ EThread::Worker }, _mngr{mngr}
 			{}
 
-			void Run () override
+			void  Run () override
 			{
 				_mngr->Update();
 			}
+
+			StringView  DbgName () const override { return "Test4_TaskDepManager::UpdateTask"; }
 		};
 
 	private:
@@ -296,19 +310,21 @@ namespace
 
 		Test4_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '1';
 			value.guard.unlock();
 		}
 
-		void OnCancel () override
+		void  OnCancel () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'A';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test4_Task1"; }
 	};
 
 	class Test4_Task2 : public IAsyncTask
@@ -318,19 +334,21 @@ namespace
 		
 		Test4_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '2';
 			value.guard.unlock();
 		}
 
-		void OnCancel () override
+		void  OnCancel () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'B';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test4_Task2"; }
 	};
 
 	static void  TaskDeps_Test4 ()

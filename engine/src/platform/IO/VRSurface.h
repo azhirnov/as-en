@@ -50,12 +50,8 @@ namespace AE::App
 		RenderPassInfo	GetRenderPassInfo ()	const override;
 
 		bool  GetTargets (OUT RenderTargets_t &targets) const override;
-		
-
-	private:
-		ND_ static	Graphics::IResourceManager&  _GetResMngr ();
 	};
 
 
-}	// AE::App
+} // AE::App
 

@@ -11,6 +11,8 @@ extern void Test_MaterialPack ();
 
 extern void Test_InputActions ();
 
+extern void Test_ImageAtlasPack ();
+
 
 int main ()
 {
@@ -18,7 +20,7 @@ int main ()
 
 	{
 		const Path	curr = FileSystem::CurrentPath();
-
+		
 		Test_FeatureSetPack();
 		FileSystem::SetCurrentPath( curr );
 
@@ -31,10 +33,13 @@ int main ()
 		Test_PipelinePack();
 		FileSystem::SetCurrentPath( curr );
 
-		//Test_MaterialPack();
+		//Test_MaterialPack();				// TODO
 		//FileSystem::SetCurrentPath( curr );
 
 		Test_InputActions();
+		FileSystem::SetCurrentPath( curr );
+		
+		Test_ImageAtlasPack();
 		FileSystem::SetCurrentPath( curr );
 	}
 

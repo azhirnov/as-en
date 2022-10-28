@@ -41,7 +41,7 @@ namespace AE::Base
 		
 		StackAllocator (Self &&other)
 		{
-			std::scoped_lock	lock{ _guard, other._guard };
+			SAFE_EXLOCK( _guard, other._guard );
 			_base = RVRef(other._base);
 		}
 
@@ -52,8 +52,8 @@ namespace AE::Base
 
 		Self&  operator = (Self &&rhs)
 		{
-			std::scoped_lock	lock{ _guard, rhs._guard };
-			_base = RVRef( rhs._base );
+			SAFE_EXLOCK( _guard, rhs._guard );
+			_base = RVRef(rhs._base);
 			return *this;
 		}
 
@@ -119,4 +119,4 @@ namespace AE::Base
 		}
 	};
 
-}	// AE::Base
+} // AE::Base

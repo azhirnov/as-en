@@ -65,10 +65,10 @@ namespace AE::Threading
 
 		struct alignas(AE_CACHE_LINE) ChunkInfo
 		{
-			SpinLockRelaxed				guard;		// only for 'hiLevel' modification
-			Atomic< HiLevelBits_t >		hiLevel;	// 0 - is unassigned bit, 1 - assigned bit
-			LowLevels_t					lowLevel;	// 0 - is unassigned bit, 1 - assigned bit
-			LowLevels_t					created;	// 0 - uninitialized bit, 1 - constructor has been called
+			SpinLockRelaxed				hiLevelGuard;	// only for 'hiLevel' modification
+			Atomic< HiLevelBits_t >		hiLevel;		// 0 - is unassigned bit, 1 - assigned bit
+			LowLevels_t					lowLevel;		// 0 - is unassigned bit, 1 - assigned bit
+			LowLevels_t					created;		// 0 - uninitialized bit, 1 - constructor has been called
 		};
 
 		using ChunkInfos_t		= StaticArray< ChunkInfo, MaxChunks >;
@@ -85,8 +85,9 @@ namespace AE::Threading
 
 	// variables
 	private:
-		alignas(AE_CACHE_LINE) SpinLockRelaxed	_topLevelGuard;		// only for '_topLevel' modification
-		Atomic< TopLevelBits_t >				_topLevel;			// 0 - is unassigned bit, 1 - assigned bit
+		alignas(AE_CACHE_LINE)
+		  SpinLockRelaxed			_topLevelGuard;		// only for '_topLevel' modification
+		Atomic< TopLevelBits_t >	_topLevel;			// 0 - is unassigned bit, 1 - assigned bit
 
 		ChunkInfos_t		_chunkInfo;
 		ChunkData_t			_chunkData;

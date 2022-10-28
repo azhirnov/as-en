@@ -60,7 +60,7 @@ namespace AE::Math
 
 		ND_ static constexpr T  MaxValue ()
 		{
-			if constexpr ( IsFloatPoint<T> )
+			if constexpr( IsFloatPoint<T> )
 				return T(1.0);
 			else
 				return Base::MaxValue<T>();
@@ -68,7 +68,7 @@ namespace AE::Math
 
 		ND_ static constexpr T  Epsilon ()
 		{
-			if constexpr ( IsFloatPoint<T> )
+			if constexpr( IsFloatPoint<T> )
 				return T(0.001);
 			else
 				return T(0);
@@ -473,7 +473,7 @@ namespace AE::Math
 #		undef DEF_COLOR
 	};
 
-}	// AE::Math
+} // AE::Math
 
 
 namespace AE::Base
@@ -490,7 +490,7 @@ namespace AE::Base
 	template <>				struct TTrivialySerializable< DepthStencil > { static constexpr bool  value = true; };
 	template <>				struct TTrivialySerializable< HSVColor >	 { static constexpr bool  value = true; };
 	
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -515,4 +515,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

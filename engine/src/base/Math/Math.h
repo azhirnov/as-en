@@ -20,7 +20,7 @@ namespace AE::Math
 		template <typename T1, typename T2, typename Result>
 		using EnableForUInt		= EnableIf< IsUnsignedInteger<T1> and IsUnsignedInteger<T2>, Result >;
 
-	}	// _hidden_
+	} // _hidden_
 	
 /*
 =================================================
@@ -61,7 +61,31 @@ namespace AE::Math
 
 		return (x + y) >= (x | y);
 	}
+
+/*
+=================================================
+	CalcAverage
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr T  CalcAverage (T begin, T end)
+	{
+		if constexpr( IsFloatPoint<T> )
+			return (begin * T{0.5}) + (end * T{0.5});
+		else
+		if constexpr( IsUnsignedInteger<T> )
+			return (begin >> 1) + (end >> 1) + (((begin & 1) + (end & 1)) >> 1);
+		else
+		if constexpr( IsSignedInteger<T> )
+			return (begin / 2) + (end / 2) + ((begin % 2) + (end % 2)) / 2;
+	}
 	
+	template <typename T>
+	ND_ constexpr TBytes<T>  CalcAverage (TBytes<T> begin, TBytes<T> end)
+	{
+		return TBytes<T>{ CalcAverage( T{begin}, T{end} )};
+	}
+
 /*
 =================================================
 	AlignDown
@@ -473,6 +497,29 @@ namespace AE::Math
 	{
 		return (x + divider - T1{1}) / divider;
 	}
+	
+/*
+=================================================
+	IsInfinity / IsNaN / IsFinite
+=================================================
+*/
+	template <typename T>
+	ND_ inline bool  IsInfinity (const T &x)
+	{
+		return std::isinf( x );
+	}
+
+	template <typename T>
+	ND_ inline bool  IsNaN (const T &x)
+	{
+		return std::isnan( x );
+	}
+
+	template <typename T>
+	ND_ inline bool  IsFinite (const T &x)
+	{
+		return std::isfinite( x );
+	}
 
 
-}	// AE::Math
+} // AE::Math

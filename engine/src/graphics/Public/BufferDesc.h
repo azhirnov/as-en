@@ -53,7 +53,7 @@ namespace AE::Graphics
 	{
 	// variables
 		Bytes				offset;
-		Bytes				size	{ ~0_b };
+		Bytes				size	{ UMax };
 		EPixelFormat		format	= Default;
 
 	// methods
@@ -70,7 +70,7 @@ namespace AE::Graphics
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
 namespace AE::Base
 {
@@ -80,7 +80,7 @@ namespace AE::Base
 	template <> struct TMemCopyAvailable< AE::Graphics::BufferViewDesc >		{ static constexpr bool  value = true; };
 	template <> struct TTrivialySerializable< AE::Graphics::BufferViewDesc >	{ static constexpr bool  value = true; };
 
-}	// AE::Base
+} // AE::Base
 
 namespace std
 {
@@ -89,4 +89,4 @@ namespace std
 		ND_ size_t  operator () (const AE::Graphics::BufferViewDesc &value) const;
 	};
 
-}	// std
+} // std

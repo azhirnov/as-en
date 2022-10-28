@@ -133,4 +133,4 @@ namespace AE::Base
 	
 	template <> struct TZeroMemAvailable< CpuArchInfo > { static constexpr bool  value = true; };
 
-}	// AE::Base
+} // AE::Base

@@ -4,7 +4,7 @@
 
 #include "graphics/Public/ResourceManager.h"
 
-#if defined(AE_PLATFORM_APPLE) && defined(AE_ENABLE_METAL)
+#ifdef AE_ENABLE_METAL
 
 # include "graphics/Metal/Allocators/MGfxMemAllocatorUtils.h"
 
@@ -62,6 +62,9 @@ namespace AE::Graphics
 	  // IGfxMemAllocator //
 		MetalImageRC   AllocForImage  (const ImageDesc &desc, OUT Storage_t &data) override;
 		MetalBufferRC  AllocForBuffer (const BufferDesc &desc, OUT Storage_t &data) override;
+		
+		MetalAccelStructRC  AllocForAccelStruct (const RTGeometryDesc &desc, OUT Storage_t &data) override;
+		MetalAccelStructRC  AllocForAccelStruct (const RTSceneDesc &desc, OUT Storage_t &data) override;
 
 		bool  Dealloc (INOUT Storage_t &data) override;
 

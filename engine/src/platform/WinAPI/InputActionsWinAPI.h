@@ -35,6 +35,8 @@ namespace AE::App
 		float2				_toSNorm;
 		float2				_pixToMm;
 		uint2				_surfaceSize;
+		
+		bool				_mouseLBPressed		= false;
 
 		GestureRecognizer	_gestureRecognizer;
 
@@ -46,15 +48,14 @@ namespace AE::App
 		ND_ bool  ProcessMessage (uint uMsg, usize wParam, ssize lParam, Duration_t timestamp);
 		ND_ bool  Register (void* wnd);
 			void  Unregister ();
-			void  SetMonitor (const uint2 &size, const Monitor &);
+			void  SetMonitor (const uint2 &surfaceSize, const Monitor &);
+			void  CursorPosChanged (float2 pos)				{ _cursorPos = pos; }
 
 			void  Update (Duration_t timeSinceStart);
 
 
 	// IInputActions //
-		void  NextFrame (FrameUID frameId) override		{ _dbQueue.NextFrame( frameId ); }
-
-		bool  LoadSerialized (RStream &stream) override;
+		bool  LoadSerialized (MemRefRStream &stream) override;
 		
 
 	// ISerializable //
@@ -63,7 +64,6 @@ namespace AE::App
 
 
 	private:
-		void  _UpdateKey (EInputType type, EGestureState state, ControllerID id, Duration_t timestamp);
 		void  _SetCursorPos (float2 pos);
 		void  _SetCursorDelta (float2 pos);
 		void  _SetMouseWheel (EInputType type, float delta);

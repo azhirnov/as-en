@@ -17,7 +17,7 @@ void main (WinAPI_ActionBindings& bindings)
 		bind.Add( WinAPI_Input::MouseRight,
 				  ActionInfo( "Options", EGestureType::Down ));
 
-		bind.Add( WinAPI_Input::CursorPosXY,
+		bind.Add( WinAPI_Input::CursorPos,
 				  ActionInfo( "Cursor", EValueType::Float2, EGestureType::Move ));
 	}
 }

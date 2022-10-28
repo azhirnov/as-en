@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Utils/Noncopyable.h"
+#include "base/Utils/Helpers.h"
 #include "networking/Raw/UdpSocket.h"
 #include "networking/Raw/TcpSocket.h"
 

@@ -2,7 +2,8 @@
 
 #pragma once
 
-# include "base/Math/Bytes.h"
+#include "base/Math/Bytes.h"
+#include "base/Utils/Helpers.h"
 
 #ifdef AE_PLATFORM_UNIX_BASED
 
@@ -13,7 +14,7 @@ namespace AE::Base
 	// Unix Utils
 	//
 
-	struct UnixUtils
+	struct UnixUtils : Noninstancable
 	{
 	// types
 		struct MemoryPageInfo
@@ -37,10 +38,18 @@ namespace AE::Base
 		// Memory //
 		ND_ static MemoryPageInfo  GetMemoryPageInfo ();
 
+		// Thread //
+			// interval > 4000ns
+			static bool		NanoSleep (nanoseconds relativeTime);
+
+			static bool		WaitIO (milliseconds relativeTime);
+			
+			static bool		ThreadYield ();
+
 	private:
 		ND_ static bool  _CheckError (int err, StringView msg, StringView file, int line, ELogLevel level, ELogScope scope);
 	};
 
-}	// AE::Base
+} // AE::Base
 
 #endif // AE_PLATFORM_UNIX_BASED

@@ -1,1 +1,15 @@
 ﻿_build
+_build_external
+_build_res
+
+_build_22
+_build_external_22
+_build_res_22
+
+*.user
+*.glsl_dbg
+*.cxx
+*.trigger.cpp
+.DS_Store
+imgui.ini
+

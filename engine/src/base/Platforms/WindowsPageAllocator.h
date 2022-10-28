@@ -3,7 +3,7 @@
 #pragma once
 
 #include "base/Math/Bytes.h"
-#include "base/Utils/Noninstancable.h"
+#include "base/Utils/Helpers.h"
 
 #ifdef AE_PLATFORM_WINDOWS
 

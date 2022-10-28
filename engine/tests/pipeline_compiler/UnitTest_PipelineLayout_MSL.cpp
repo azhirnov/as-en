@@ -34,7 +34,7 @@ namespace
 		PipelineLayoutPtr	ppln_layout{ new PipelineLayout{ "Layout1" }};
 		ppln_layout->AddDSLayout( 0, "PerDraw" );
 		ppln_layout->AddDSLayout( 2, "Material" );
-		TEST( ppln_layout->_Build() );
+		TEST( ppln_layout->Build() );
 
 		PipelineLayout::UniqueTypes_t	unique_types;
 
@@ -59,7 +59,7 @@ constexpr sampler imtblSampler (
   lod_clamp(-1000.000000, 1000.000000),
   max_anisotropy(8)
 );
-#define SHADER_RESOURCES \
+#define AE_SHADER_RESOURCES \
   /* state: ShaderStorage_RW | PreRasterizationShaders | FragmentShader */\
   /* static size: 32 b, array stride: 0 b */\
   device ubuf storageBuf [[buffer(0)]] [2],\
@@ -73,6 +73,7 @@ constexpr sampler imtblSampler (
   texture2d_array< float, access::sample > diffuseTex [[texture(3)]],\
   /* state: ShaderSample | FragmentShader */\
   texture3d< float, access::sample > noiseTex [[texture(4)]]
+
 )#";
 		TEST( src  == ref );
 	}

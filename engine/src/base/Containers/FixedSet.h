@@ -372,18 +372,24 @@ namespace AE::Base
 		
 		if_likely( i < _count and key == _array[_indices[i]] )
 		{
-			_array[i].~V();
+			const auto	idx = _indices[i];
+
+			_array[idx].~V();
+			--_count;
 			
-			for (usize k = 0; k < _count; ++k) {
-				_indices[k] = _indices[k] >= i ? _indices[k]-1 : _indices[k];
+			for (usize k = 0; k <= _count; ++k) {
+				_indices[k] = (_indices[k] == _count ? idx : _indices[k]);
 			}
 			
-			--_count;
-			CPolicy_t::Replace( &_array[i], &_array[i+1], _count - i );
+			for (usize k = i; k < _count; ++k) {
+				_indices[k] = (_indices[k+1] == _count ? idx : _indices[k+1]);
+			}
+			
+			if ( idx != _count )
+				CPolicy_t::Replace( &_array[idx], &_array[_count], 1, true );
 
 			DEBUG_ONLY(
 				DbgInitMem( _indices[_count] );
-				DbgInitMem( _array[_count] );
 			)
 			return true;
 		}
@@ -435,4 +441,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

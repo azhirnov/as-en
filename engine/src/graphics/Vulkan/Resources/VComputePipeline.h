@@ -32,13 +32,15 @@ namespace AE::Graphics
 		VkPipeline					_handle				= Default;
 		VkPipelineLayout			_layout				= Default;
 		
-		uint3						_localGroupSize;
+		ushort3						_localSize;
 		EPipelineOpt				_options			= Default;
 
 		Strong<VPipelineLayoutID>	_layoutId;
 		
-		DEBUG_ONLY(	DebugName_t			_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck		_drCheck;	)
+		ShaderTracePtr				_dbgTrace;
+
+		DEBUG_ONLY(	DebugName_t		_debugName;	)
+		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
 
 
 	// methods
@@ -48,18 +50,20 @@ namespace AE::Graphics
 
 		ND_ bool  Create (VResourceManager &, const CreateInfo &ci);
 			void  Destroy (VResourceManager &);
+		
+		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result) const;
 
 		ND_ VkPipeline				Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ VkPipelineLayout		Layout ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
 		ND_ VkPipelineBindPoint		BindPoint ()			const	{ return VK_PIPELINE_BIND_POINT_COMPUTE; }
 		ND_ VPipelineLayoutID		LayoutID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ uint3 const&			LocalSize ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _localGroupSize; }
+		ND_ uint3       			LocalSize ()			const	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_localSize}; }
 		ND_ EPipelineDynamicState	DynamicState ()			const	{ return Default; }
 		ND_ bool					AllowDispatchBase ()	const	{ DRC_SHAREDLOCK( _drCheck );  return AllBits( _options, EPipelineOpt::CS_DispatchBase ); }
 		
 		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

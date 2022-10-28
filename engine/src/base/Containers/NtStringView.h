@@ -76,12 +76,12 @@ namespace AE::Base
 
 
 	template <typename T>
-	inline NtBasicStringView<T>::NtBasicStringView () :
+	NtBasicStringView<T>::NtBasicStringView () :
 		_data{ _buffer }, _length{ 0 }, _buffer{ 0 }
 	{}
 
 	template <typename T>
-	inline NtBasicStringView<T>::NtBasicStringView (BasicStringView<T> str) :
+	NtBasicStringView<T>::NtBasicStringView (BasicStringView<T> str) :
 		_data{ str.data() }, _length{ str.size() }
 	{
 		_Validate();
@@ -89,14 +89,14 @@ namespace AE::Base
 
 	template <typename T>
 	template <typename A>
-	inline NtBasicStringView<T>::NtBasicStringView (const BasicString<T,A> &str) :
+	NtBasicStringView<T>::NtBasicStringView (const BasicString<T,A> &str) :
 		_data{ str.data() }, _length{ str.size() }
 	{
 		_Validate();
 	}
 
 	template <typename T>
-	inline NtBasicStringView<T>::NtBasicStringView (const Self &other) :
+	NtBasicStringView<T>::NtBasicStringView (const Self &other) :
 		_data{ other._data }, _length{ other._length }
 	{
 		if ( other._IsStatic() )
@@ -109,7 +109,7 @@ namespace AE::Base
 	}
 	
 	template <typename T>
-	inline NtBasicStringView<T>::NtBasicStringView (Self &&other) :
+	NtBasicStringView<T>::NtBasicStringView (Self &&other) :
 		_data{ other._data }, _length{ other._length }, _isAllocated{ other._isAllocated }
 	{
 		if ( other._IsStatic() )
@@ -121,7 +121,7 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	inline NtBasicStringView<T>::NtBasicStringView (const T* str) : _data{ str }
+	NtBasicStringView<T>::NtBasicStringView (const T* str) : _data{ str }
 	{
 		if constexpr( IsSameTypes< T, wchar_t >)
 			_length = (str ? std::wcslen(str) : 0);
@@ -132,7 +132,7 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	inline NtBasicStringView<T>::NtBasicStringView (const T* str, usize length) :
+	NtBasicStringView<T>::NtBasicStringView (const T* str, usize length) :
 		_data{ str }, _length{ length }
 	{
 		_Validate();
@@ -140,19 +140,19 @@ namespace AE::Base
 	
 	template <typename T>
 	template <usize S>
-	inline NtBasicStringView<T>::NtBasicStringView (const TFixedString<T,S> &str) :
+	NtBasicStringView<T>::NtBasicStringView (const TFixedString<T,S> &str) :
 		_data{ str.c_str() }, _length{ str.length() }
 	{}
 
 	template <typename T>
-	inline NtBasicStringView<T>::~NtBasicStringView ()
+	NtBasicStringView<T>::~NtBasicStringView ()
 	{
 		if ( _isAllocated )
 			Allocator_t::Deallocate( const_cast<T *>(_data), SizeOf<T> * (_length+1) );
 	}
 		
 	template <typename T>
-	inline bool  NtBasicStringView<T>::_Validate ()
+	bool  NtBasicStringView<T>::_Validate ()
 	{
 		if ( not _data )
 		{

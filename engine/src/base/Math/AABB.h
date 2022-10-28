@@ -173,4 +173,4 @@ namespace AE::Math
 		return aabb.IsIntersects( *this );
 	}
 
-}	// AE::Math
+} // AE::Math

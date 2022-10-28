@@ -4,7 +4,7 @@
 
 #ifdef AE_PLATFORM_UNIX_BASED
 
-# include "base/Utils/Noncopyable.h"
+# include "base/Utils/Helpers.h"
 # include "base/Algorithms/ArrayUtils.h"
 # include "base/Containers/NtStringView.h"
 # include "base/Utils/FileSystem.h"
@@ -114,6 +114,6 @@ namespace AE::Base
 	}
 
 
-}	// AE::Base
+} // AE::Base
 
 #endif // AE_PLATFORM_UNIX_BASED

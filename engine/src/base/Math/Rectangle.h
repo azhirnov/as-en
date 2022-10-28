@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/Math/Vec.h"
+#include "base/Math/Range.h"
 
 namespace AE::Math
 {
@@ -10,21 +11,27 @@ namespace AE::Math
 	template <typename T>
 	struct Rectangle
 	{
+		STATIC_ASSERT( IsScalar<T> );
+
 	// types
+	public:
 		using Vec2_t	= Vec<T,2>;
+		using Vec4_t	= Vec<T,4>;
+		using Value_t	= T;
 		using Self		= Rectangle<T>;
 
 
 	// variables
-		T	left, top;
-		T	right, bottom;
+	public:
+		T	left, top, right, bottom;
 
 
 	// methods
+	public:
 		constexpr Rectangle () :
 			left{T{0}}, top{T{0}}, right{T{0}}, bottom{T{0}}
 		{
-			// check is supported cast Rectangle to array
+			// check if supported cast Rectangle to array
 			STATIC_ASSERT( offsetof(Self, left)  + sizeof(T) == offsetof(Self, top) );
 			STATIC_ASSERT( offsetof(Self, top)   + sizeof(T) == offsetof(Self, right) );
 			STATIC_ASSERT( offsetof(Self, right) + sizeof(T) == offsetof(Self, bottom) );
@@ -47,45 +54,62 @@ namespace AE::Math
 		constexpr explicit Rectangle (const Rectangle<B> &other) :
 			left{T(other.left)}, top{T(other.top)}, right{T(other.right)}, bottom{T(other.bottom)} {}
 
-		Self&  LeftTop (const Vec2_t& v);
-		Self&  RightBottom (const Vec2_t& v);
-
-		ND_ constexpr const T			Width ()		const	{ return right - left; }
-		ND_ constexpr const T			Height ()		const	{ return bottom - top; }
-		ND_ constexpr const T			CenterX ()		const	{ return (right + left) / T(2); }
-		ND_ constexpr const T			CenterY ()		const	{ return (top + bottom) / T(2); }
+		constexpr Rectangle (const Range<T> &x, const Range<T> &y) :
+			left{x.begin}, top{y.begin}, right{x.end}, bottom{y.end} {}
 
 		ND_ GLM_CONSTEXPR const Vec2_t	LeftTop ()		const	{ return { left, top }; }
 		ND_ GLM_CONSTEXPR const Vec2_t	RightBottom ()	const	{ return { right, bottom }; }
 		ND_ GLM_CONSTEXPR const Vec2_t	LeftBottom ()	const	{ return { left, bottom }; }
 		ND_ GLM_CONSTEXPR const Vec2_t	RightTop ()		const	{ return { right, top }; }
 
-		ND_ T const*					data ()			const	{ return std::addressof( left ); }
-		ND_ T *							data ()					{ return std::addressof( left ); }
-
 		ND_ GLM_CONSTEXPR const Vec2_t	Size ()			const	{ return { Width(), Height() }; }
 		ND_ GLM_CONSTEXPR const Vec2_t	Center ()		const	{ return { CenterX(), CenterY() }; }
+		ND_ GLM_CONSTEXPR const Vec2_t	Offset ()		const	{ return LeftTop(); }
 
-		ND_ constexpr bool				IsEmpty ()		const	{ return Equals( left, right ) | Equals( top, bottom ); }
-		ND_ constexpr bool				IsInvalid ()	const	{ return (right < left) | (bottom < top); }
-		ND_ constexpr bool				IsValid ()		const	{ return (not IsEmpty()) & (not IsInvalid()); }
+		ND_ constexpr Range<T>			XRange ()		const	{ return Range<T>{ left, right }; }
+		ND_ constexpr Range<T>			YRange ()		const	{ return Range<T>{ top, bottom }; }
+
+		ND_ static constexpr Self		Max ()					{ return Self{ MinValue<T>(), MinValue<T>(), MaxValue<T>(), MaxValue<T>() }; }
+
+		ND_ GLM_CONSTEXPR explicit operator Vec4_t ()	const	{ return Vec4_t{left, top, right, bottom}; }
+
+		ND_ constexpr const T	Width ()		const	{ return right - left; }
+		ND_ constexpr const T	Height ()		const	{ return bottom - top; }
+		ND_ constexpr const T	CenterX ()		const	{ return CalcAverage( right, left ); }
+		ND_ constexpr const T	CenterY ()		const	{ return CalcAverage( top, bottom ); }
+
+		ND_ T const*			data ()			const	{ return std::addressof( left ); }
+		ND_ T *					data ()					{ return std::addressof( left ); }
+
+		ND_ constexpr bool		IsEmpty ()		const	{ return Equals( left, right ) | Equals( top, bottom ); }
+		ND_ constexpr bool		IsInvalid ()	const	{ return (right < left) | (bottom < top); }
+		ND_ constexpr bool		IsValid ()		const	{ return (not IsEmpty()) & (not IsInvalid()); }
 		
 		ND_ constexpr bool		IsNormalized () const;
-			Self &				Normalize ();
+			constexpr Self&		Normalize ();
 
 		ND_ GLM_CONSTEXPR bool	Intersects (const Vec2_t &point) const;
 		ND_ constexpr bool		Intersects (const Self &point) const;
 			
 		ND_ constexpr Self		Intersection (const Self &other) const;
 
-		ND_ GLM_CONSTEXPR bool4 operator == (const Self &rhs) const;
+		ND_ GLM_CONSTEXPR bool4	operator == (const Self &rhs) const;
+		ND_ GLM_CONSTEXPR bool4	operator != (const Self &rhs) const;
 		
-			Self&	Join (const Self &other);
-			Self&	Join (const Vec2_t &point);
+			constexpr Self&		operator = (const Self &rhs) = default;
 
-			Self&	Stretch (const Self &size);
-			Self&	Stretch (const Vec2_t &size);
-			Self&	Stretch (T size);
+			constexpr Self&		LeftTop (const Vec2_t& v);
+			constexpr Self&		RightBottom (const Vec2_t& v);
+		
+			constexpr Self&		Join (const Self &other);
+			constexpr Self&		Join (const Vec2_t &point);
+
+			constexpr Self&		Stretch (const Self &size);
+			constexpr Self&		Stretch (const Vec2_t &size);
+			constexpr Self&		Stretch (T size)					{ return Stretch( Vec2_t{ size }); }
+			
+			constexpr Self&		Stretch2 (const Vec2_t &size);
+			constexpr Self&		Stretch2 (T size)					{ return Stretch2( Vec2_t{ size }); }
 	};
 
 
@@ -100,17 +124,17 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline Rectangle<T>&  Rectangle<T>::LeftTop (const Vec2_t& v)
+	constexpr Rectangle<T>&  Rectangle<T>::LeftTop (const Vec2_t& v)
 	{
 		left = v.x;
-		top = v.y;
+		top  = v.y;
 		return *this;
 	}
 	
 	template <typename T>
-	inline Rectangle<T>&  Rectangle<T>::RightBottom (const Vec2_t& v)
+	constexpr Rectangle<T>&  Rectangle<T>::RightBottom (const Vec2_t& v)
 	{
-		right = v.x;
+		right  = v.x;
 		bottom = v.y;
 		return *this;
 	}
@@ -121,7 +145,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>&  operator += (Rectangle<T> &lhs, const Vec<T,2> &rhs)
+	GLM_CONSTEXPR Rectangle<T>&  operator += (Rectangle<T> &lhs, const Vec<T,2> &rhs)
 	{
 		lhs.left += rhs.x;	lhs.right  += rhs.x;
 		lhs.top  += rhs.y;	lhs.bottom += rhs.y;
@@ -129,20 +153,20 @@ namespace AE::Math
 	}
 	
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>  operator + (const Rectangle<T> &lhs, const Vec<T,2> &rhs)
+	GLM_CONSTEXPR Rectangle<T>  operator + (const Rectangle<T> &lhs, const Vec<T,2> &rhs)
 	{
 		return Rectangle<T>{ lhs.left  + rhs.x, lhs.top    + rhs.y,
 							 lhs.right + rhs.x, lhs.bottom + rhs.y };
 	}
 
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>&  operator += (Rectangle<T> &lhs, const T &rhs)
+	GLM_CONSTEXPR Rectangle<T>&  operator += (Rectangle<T> &lhs, const T &rhs)
 	{
 		return lhs += Vec<T,2>{rhs};
 	}
 	
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>  operator + (const Rectangle<T> &lhs, const T &rhs)
+	GLM_CONSTEXPR Rectangle<T>  operator + (const Rectangle<T> &lhs, const T &rhs)
 	{
 		return lhs + Vec<T,2>{rhs};
 	}
@@ -153,7 +177,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>&  operator -= (Rectangle<T> &lhs, const Vec<T,2> &rhs)
+	GLM_CONSTEXPR Rectangle<T>&  operator -= (Rectangle<T> &lhs, const Vec<T,2> &rhs)
 	{
 		lhs.left -= rhs.x;	lhs.right  -= rhs.x;
 		lhs.top  -= rhs.y;	lhs.bottom -= rhs.y;
@@ -161,20 +185,20 @@ namespace AE::Math
 	}
 	
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>  operator - (const Rectangle<T> &lhs, const Vec<T,2> &rhs)
+	GLM_CONSTEXPR Rectangle<T>  operator - (const Rectangle<T> &lhs, const Vec<T,2> &rhs)
 	{
 		return Rectangle<T>{ lhs.left  - rhs.x, lhs.top    - rhs.y,
 							 lhs.right - rhs.x, lhs.bottom - rhs.y };
 	}
 
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>&  operator -= (Rectangle<T> &lhs, const T &rhs)
+	GLM_CONSTEXPR Rectangle<T>&  operator -= (Rectangle<T> &lhs, const T &rhs)
 	{
 		return lhs -= Vec<T,2>{rhs};
 	}
 	
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>  operator - (const Rectangle<T> &lhs, const T &rhs)
+	GLM_CONSTEXPR Rectangle<T>  operator - (const Rectangle<T> &lhs, const T &rhs)
 	{
 		return lhs - Vec<T,2>{rhs};
 	}
@@ -185,7 +209,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>&  operator *= (Rectangle<T> &lhs, const Vec<T,2> &rhs)
+	GLM_CONSTEXPR Rectangle<T>&  operator *= (Rectangle<T> &lhs, const Vec<T,2> &rhs)
 	{
 		lhs.left *= rhs.x;	lhs.right  *= rhs.x;
 		lhs.top  *= rhs.y;	lhs.bottom *= rhs.y;
@@ -193,20 +217,20 @@ namespace AE::Math
 	}
 	
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>  operator * (const Rectangle<T> &lhs, const Vec<T,2> &rhs)
+	GLM_CONSTEXPR Rectangle<T>  operator * (const Rectangle<T> &lhs, const Vec<T,2> &rhs)
 	{
 		return Rectangle<T>{ lhs.left  * rhs.x, lhs.top    * rhs.y,
 							 lhs.right * rhs.x, lhs.bottom * rhs.y };
 	}
 
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>&  operator *= (Rectangle<T> &lhs, const T &rhs)
+	GLM_CONSTEXPR Rectangle<T>&  operator *= (Rectangle<T> &lhs, const T &rhs)
 	{
 		return lhs *= Vec<T,2>{rhs};
 	}
 	
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>  operator * (const Rectangle<T> &lhs, const T &rhs)
+	GLM_CONSTEXPR Rectangle<T>  operator * (const Rectangle<T> &lhs, const T &rhs)
 	{
 		return lhs * Vec<T,2>{rhs};
 	}
@@ -217,7 +241,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>&  operator /= (Rectangle<T> &lhs, const Vec<T,2> &rhs)
+	GLM_CONSTEXPR Rectangle<T>&  operator /= (Rectangle<T> &lhs, const Vec<T,2> &rhs)
 	{
 		lhs.left /= rhs.x;	lhs.right  /= rhs.x;
 		lhs.top  /= rhs.y;	lhs.bottom /= rhs.y;
@@ -225,20 +249,20 @@ namespace AE::Math
 	}
 	
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>  operator / (const Rectangle<T> &lhs, const Vec<T,2> &rhs)
+	GLM_CONSTEXPR Rectangle<T>  operator / (const Rectangle<T> &lhs, const Vec<T,2> &rhs)
 	{
 		return Rectangle<T>{ lhs.left  / rhs.x, lhs.top    / rhs.y,
 							 lhs.right / rhs.x, lhs.bottom / rhs.y };
 	}
 
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>&  operator /= (Rectangle<T> &lhs, const T &rhs)
+	GLM_CONSTEXPR Rectangle<T>&  operator /= (Rectangle<T> &lhs, const T &rhs)
 	{
 		return lhs /= Vec<T,2>{rhs};
 	}
 	
 	template <typename T>
-	inline GLM_CONSTEXPR Rectangle<T>  operator / (const Rectangle<T> &lhs, const T &rhs)
+	GLM_CONSTEXPR Rectangle<T>  operator / (const Rectangle<T> &lhs, const T &rhs)
 	{
 		return lhs / Vec<T,2>{rhs};
 	}
@@ -249,7 +273,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline constexpr bool  Rectangle<T>::IsNormalized () const
+	constexpr bool  Rectangle<T>::IsNormalized () const
 	{
 		return (left <= right) & (top <= bottom);
 	}
@@ -260,7 +284,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline Rectangle<T>&  Rectangle<T>::Normalize ()
+	constexpr Rectangle<T>&  Rectangle<T>::Normalize ()
 	{
 		if ( left > right )	std::swap( left, right );
 		if ( top > bottom )	std::swap( top, bottom );
@@ -273,13 +297,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline GLM_CONSTEXPR bool  Rectangle<T>::Intersects (const Vec2_t &point) const
+	GLM_CONSTEXPR bool  Rectangle<T>::Intersects (const Vec2_t &point) const
 	{
 		return (point.x >= left) & (point.x < right) & (point.y >= top) & (point.y < bottom);
 	}
 	
 	template <typename T>
-	inline constexpr bool  Rectangle<T>::Intersects (const Self &other) const
+	constexpr bool  Rectangle<T>::Intersects (const Self &other) const
 	{
 		return	((left < other.right) & (right > other.left) & (bottom > other.top) & (top < other.bottom)) |
 				((other.right < left) & (other.left > right) & (other.top > bottom) & (other.bottom < top));
@@ -291,9 +315,15 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline GLM_CONSTEXPR bool4  Rectangle<T>::operator == (const Self &rhs) const
+	GLM_CONSTEXPR bool4  Rectangle<T>::operator == (const Self &rhs) const
 	{
 		return { left == rhs.left, top == rhs.top, right == rhs.right, bottom == rhs.bottom };
+	}
+
+	template <typename T>
+	GLM_CONSTEXPR bool4  Rectangle<T>::operator != (const Self &rhs) const
+	{
+		return { left != rhs.left, top != rhs.top, right != rhs.right, bottom != rhs.bottom };
 	}
 	
 /*
@@ -302,13 +332,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline constexpr Rectangle<T>  Rectangle<T>::Intersection (const Self &other) const
+	constexpr Rectangle<T>  Rectangle<T>::Intersection (const Self &other) const
 	{
 		Rectangle<T>	res;
-		res.left	= Max( left,	other.left );
-		res.top		= Max( top,		other.top );
-		res.right	= Min( right,	other.right );
-		res.bottom	= Min( bottom,	other.bottom );
+		res.left	= Math::Max( left,   other.left   );
+		res.top		= Math::Max( top,    other.top    );
+		res.right	= Math::Min( right,  other.right  );
+		res.bottom	= Math::Min( bottom, other.bottom );
 		return res;
 	}
 
@@ -318,22 +348,22 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline Rectangle<T>&  Rectangle<T>::Join (const Self &other)
+	constexpr Rectangle<T>&  Rectangle<T>::Join (const Self &other)
 	{
-		left	= Min( left,	other.left );
-		top		= Min( top,		other.top );
-		right	= Max( right,	other.right );
-		bottom	= Max( bottom,	other.bottom );
+		left	= Math::Min( left,   other.left   );
+		top		= Math::Min( top,    other.top    );
+		right	= Math::Max( right,  other.right  );
+		bottom	= Math::Max( bottom, other.bottom );
 		return *this;
 	}
 	
 	template <typename T>
-	inline Rectangle<T>&  Rectangle<T>::Join (const Vec2_t &point)
+	constexpr Rectangle<T>&  Rectangle<T>::Join (const Vec2_t &point)
 	{
-		left	= Min( left,	point.x );
-		top		= Min( top,		point.y );
-		right	= Max( right,	point.x );
-		bottom	= Max( bottom,	point.y );
+		left	= Math::Min( left,   point.x );
+		top		= Math::Min( top,    point.y );
+		right	= Math::Max( right,  point.x );
+		bottom	= Math::Max( bottom, point.y );
 		return *this;
 	}
 	
@@ -343,7 +373,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline Rectangle<T>&  Rectangle<T>::Stretch (const Self &size)
+	constexpr Rectangle<T>&  Rectangle<T>::Stretch (const Self &size)
 	{
 		left	-= size.left;
 		top		-= size.top;
@@ -353,30 +383,28 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	inline Rectangle<T>&  Rectangle<T>::Stretch (const Vec2_t &size)
+	constexpr Rectangle<T>&  Rectangle<T>::Stretch (const Vec2_t &size)
 	{
-		ASSERT( not IsInteger<T> or Any(Abs(size) > Vec2_t{T{1}}) );
+		if constexpr( IsInteger<T> )
+			ASSERT( Any(Abs(size) > Vec2_t{T{1}}) );
 
 		const Vec2_t  half_size = size / T(2);
 
-		left	-= half_size.x;
-		top		-= half_size.y;
-		right	+= half_size.x;
-		bottom	+= half_size.y;
-		return *this;
+		return Stretch2( half_size );
 	}
-
+	
+/*
+=================================================
+	Stretch2
+=================================================
+*/
 	template <typename T>
-	inline Rectangle<T>&  Rectangle<T>::Stretch (T size)
+	constexpr Rectangle<T>&  Rectangle<T>::Stretch2 (const Vec2_t &size)
 	{
-		ASSERT( not IsInteger<T> or Abs(size) > T{1} ); 
-
-		const T  half_size = size / T(2);
-
-		left	-= half_size;
-		top		-= half_size;
-		right	+= half_size;
-		bottom	+= half_size;
+		left	-= size.x;
+		top		-= size.y;
+		right	+= size.x;
+		bottom	+= size.y;
 		return *this;
 	}
 
@@ -386,7 +414,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline GLM_CONSTEXPR bool4  Equals (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const T &err = Epsilon<T>())
+	ND_ GLM_CONSTEXPR bool4  Equals (const Rectangle<T> &lhs, const Rectangle<T> &rhs, const T &err = Epsilon<T>())
 	{
 		bool4	res;
 		res[0] = Math::Equals( lhs.left,   rhs.left,   err );
@@ -397,7 +425,7 @@ namespace AE::Math
 	}
 
 
-}	// AE::Math
+} // AE::Math
 
 
 namespace AE::Base
@@ -406,7 +434,7 @@ namespace AE::Base
 	template <typename T>	struct TZeroMemAvailable< Rectangle<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
 	template <typename T>	struct TTrivialySerializable< Rectangle<T> >	{ static constexpr bool  value = IsTrivialySerializable<T>; };
 	
-}	// AE::Base
+} // AE::Base
 
 
 
@@ -426,4 +454,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

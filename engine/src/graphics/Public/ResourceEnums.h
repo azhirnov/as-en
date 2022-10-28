@@ -81,7 +81,7 @@ namespace AE::Graphics
 		OneDim		= _1D,
 		TwoDim		= _2D,
 		ThreeDim	= _3D,
-		Unknown		= ubyte(~0u),
+		Unknown		= 0xFF,
 	};
 	
 	static constexpr auto	EImageDim_1D	= EImageDim::_1D;
@@ -103,7 +103,7 @@ namespace AE::Graphics
 		ThreeDim		= _3D,
 		OneDimArray		= _1DArray,
 		TwoDimArray		= _2DArray,
-		Unknown			= ubyte(~0u),
+		Unknown			= 0xFF,
 	};
 
 	static constexpr auto	EImage_1D			= EImage::_1D;
@@ -444,4 +444,4 @@ namespace AE::Graphics
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics

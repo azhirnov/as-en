@@ -34,6 +34,8 @@ namespace AE::Graphics
 		
 		ND_ bool  Create (OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
 		ND_ bool  Create (OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
+		ND_ bool  Create (OUT MetalAccelStructRC &as, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
+		ND_ bool  Create (OUT MetalAccelStructRC &as, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
 			void  Destroy (MResourceManager &);
 		
 		ND_ bool  GetMemoryInfo (OUT MetalMemoryObjInfo &) const;

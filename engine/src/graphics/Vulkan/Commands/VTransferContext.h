@@ -39,11 +39,14 @@ namespace AE::Graphics::_hidden_
 
 		void  GenerateMipmaps (VkImage image, const uint3 &dimension, uint levelCount, uint layerCount, EImageAspect aspect);
 		
+		ND_ VkCommandBuffer	EndCommandBuffer ();
+		ND_ VCommandBuffer  ReleaseCommandBuffer ();
+
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectTransferCtx (Ptr<VCommandBatch> batch) : VBaseDirectContext{ batch } {}
-		_VDirectTransferCtx (Ptr<VCommandBatch> batch, VCommandBuffer cmdbuf) : VBaseDirectContext{ batch, RVRef(cmdbuf) } {}
+		explicit _VDirectTransferCtx (const VRenderTask &task);
+		_VDirectTransferCtx (const VRenderTask &task, VCommandBuffer cmdbuf);
 	};
 
 
@@ -71,12 +74,15 @@ namespace AE::Graphics::_hidden_
 		void  BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions);
 		
 		void  GenerateMipmaps (VkImage image, const uint3 &dimension, uint levelCount, uint layerCount, EImageAspect aspect);
+		
+		ND_ VBakedCommands		EndCommandBuffer ();
+		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ();
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectTransferCtx (Ptr<VCommandBatch> batch) : VBaseIndirectContext{ batch } {}
-		_VIndirectTransferCtx (Ptr<VCommandBatch> batch, VSoftwareCmdBufPtr cmdbuf) : VBaseIndirectContext{ batch, RVRef(cmdbuf) } {}
+		explicit _VIndirectTransferCtx (const VRenderTask &task);
+		_VIndirectTransferCtx (const VRenderTask &task, VSoftwareCmdBufPtr cmdbuf);
 	};
 
 
@@ -102,10 +108,10 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VTransferContextImpl (Ptr<VCommandBatch> batch) : RawCtx{ batch } {}
+		explicit _VTransferContextImpl (const VRenderTask &task) : RawCtx{ task } {}
 		
 		template <typename RawCmdBufType>
-		_VTransferContextImpl (Ptr<VCommandBatch> batch, RawCmdBufType cmdbuf) : RawCtx{ batch, RVRef(cmdbuf) } {}
+		_VTransferContextImpl (const VRenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
 
 		_VTransferContextImpl () = delete;
 		_VTransferContextImpl (const _VTransferContextImpl &) = delete;
@@ -119,7 +125,7 @@ namespace AE::Graphics::_hidden_
 		void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges);
 
 		using RawCtx::UpdateBuffer;
-		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data);
+		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data) override;
 
 		template <typename T>	void  UpdateBuffer (BufferID buffer, Bytes offset, ArrayView<T> data)			{ return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
 		template <typename T>	void  UpdateBuffer (BufferID buffer, Bytes offset, const Array<T> &data)		{ return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
@@ -155,10 +161,10 @@ namespace AE::Graphics::_hidden_
 		ND_ Promise<BufferMemView>	ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static) override final;
 		ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc) override final;
 		
-		ND_ bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped) override final;
+		ND_ bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped);
 		ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data) override final;
 
-		ND_ Promise<BufferMemView>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size) override final;
+		ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size) override final;
 		
 		using RawCtx::GenerateMipmaps;
 
@@ -173,6 +179,8 @@ namespace AE::Graphics::_hidden_
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;
 		using ITransferContext::UploadImage;
+		
+		uint3  MinImageTransferGranularity () const override final;
 
 		ND_ AccumBar  AccumBarriers ()							{ return AccumBar{ *this }; }
 
@@ -206,5 +214,1058 @@ namespace AE::Graphics
 	using VIndirectTransferContext	= _hidden_::_VTransferContextImpl< _hidden_::_VIndirectTransferCtx >;
 
 } // AE::Graphics
+	
+
+namespace AE::Graphics::_hidden_
+{
+
+/*
+=================================================
+	_IsHostMemory
+=================================================
+*/
+	template <typename C>
+	bool  _VTransferContextImpl<C>::_IsHostMemory (BufferID bufferId)
+	{
+		auto*	buf = this->_mngr.Get( bufferId );
+		if_likely( buf != null )
+			return AnyBits( buf->Description().memType, EMemoryType::HostCachedCocherent );
+		return false;
+	}
+	
+	template <typename C>
+	bool  _VTransferContextImpl<C>::_IsHostMemory (ImageID imageId)
+	{
+		auto*	img = this->_mngr.Get( imageId );
+		if_likely( img != null )
+			return AnyBits( img->Description().memType, EMemoryType::HostCachedCocherent );
+		return false;
+	}
+	
+/*
+=================================================
+	_IsDeviceMemory
+=================================================
+*/
+	template <typename C>
+	bool  _VTransferContextImpl<C>::_IsDeviceMemory (BufferID bufferId)
+	{
+		auto*	buf = this->_mngr.Get( bufferId );
+		if_likely( buf != null )
+			return AnyBits( buf->Description().memType, EMemoryType::DeviceLocal );
+		return false;
+	}
+	
+	template <typename C>
+	bool  _VTransferContextImpl<C>::_IsDeviceMemory (ImageID imageId)
+	{
+		auto*	img = this->_mngr.Get( imageId );
+		if_likely( img != null )
+			return AnyBits( img->Description().memType, EMemoryType::DeviceLocal );
+		return false;
+	}
+
+/*
+=================================================
+	_ClearColorImage
+=================================================
+*/
+	template <typename C>
+	template <typename ColType>
+	void  _VTransferContextImpl<C>::_ClearColorImage (ImageID imageId, const ColType &color, ArrayView<ImageSubresourceRange> ranges)
+	{
+		auto*	img = this->_mngr.Get( imageId );
+		CHECK_ERRV( img );
+		ASSERT( ranges.size() );
+
+		VkClearColorValue										clear_value;
+		FixedArray<VkImageSubresourceRange, _LocalArraySize>	vk_ranges;
+		const ImageDesc &										desc	= img->Description();
+
+		MemCopy( clear_value, color );
+
+		for (usize i = 0; i < ranges.size(); ++i)
+		{
+			auto&	src = ranges[i];
+			auto&	dst = vk_ranges.emplace_back();
+
+			_ConvertImageSubresourceRange( OUT dst, src, desc );
+
+			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			{
+				RawCtx::ClearColorImage( img->Handle(), clear_value, vk_ranges );
+				vk_ranges.clear();
+			}
+		}
+
+		if ( vk_ranges.size() )
+			RawCtx::ClearColorImage( img->Handle(), clear_value, vk_ranges );
+	}
+
+/*
+=================================================
+	ClearDepthStencilImage
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::ClearDepthStencilImage (ImageID imageId, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges)
+	{
+		auto*	img = this->_mngr.Get( imageId );
+		CHECK_ERRV( img );
+		ASSERT( ranges.size() );
+
+		VkClearDepthStencilValue								clear_value;
+		FixedArray<VkImageSubresourceRange, _LocalArraySize>	vk_ranges;
+		const ImageDesc &										desc	= img->Description();
+
+		clear_value.depth	= depthStencil.depth;
+		clear_value.stencil	= depthStencil.stencil;
+		
+		for (usize i = 0; i < ranges.size(); ++i)
+		{
+			auto&	src = ranges[i];
+			auto&	dst = vk_ranges.emplace_back();
+
+			_ConvertImageSubresourceRange( OUT dst, src, desc );
+
+			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			{
+				RawCtx::ClearDepthStencilImage( img->Handle(), clear_value, vk_ranges );
+				vk_ranges.clear();
+			}
+		}
+
+		if ( vk_ranges.size() )
+			RawCtx::ClearDepthStencilImage( img->Handle(), clear_value, vk_ranges );
+	}
+
+/*
+=================================================
+	FillBuffer
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::FillBuffer (BufferID bufferId, Bytes offset, Bytes size, uint data)
+	{
+		auto*	buf = this->_mngr.Get( bufferId );
+		CHECK_ERRV( buf );
+
+		ASSERT( offset < buf->Size() );
+		ASSERT( size == UMax or (offset + size <= buf->Size()) );
+
+		offset	= Min( offset, buf->Size()-1 );
+		size	= Min( size, buf->Size() - offset );
+
+		RawCtx::FillBuffer( buf->Handle(), offset, size, data );
+	}
+
+/*
+=================================================
+	UpdateBuffer
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::UpdateBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)
+	{
+		auto*	buf = this->_mngr.Get( bufferId );
+		CHECK_ERRV( buf );
+		ASSERT( size > 0_b );
+		ASSERT( data != null );
+
+		RawCtx::UpdateBuffer( buf->Handle(), offset, size, data );
+	}
+	
+/*
+=================================================
+	UploadBuffer
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::UploadBuffer (BufferID bufferId, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType)
+	{
+		ASSERT( _IsDeviceMemory( bufferId ));
+
+		auto*	dst_buf = this->_mngr.Get( bufferId );
+		CHECK_ERRV( dst_buf );
+		
+		ASSERT( offset < dst_buf->Size() );
+		ASSERT( size == UMax or (offset + size <= dst_buf->Size()) );
+		ASSERT( memView.Empty() );
+		
+		offset	= Min( offset, dst_buf->Size() );
+		size	= Min( size, dst_buf->Size() - offset );
+
+		VStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
+		VStagingBufferManager::BufferRanges_t	buffers;
+
+		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, this->_mngr.GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
+
+		for (auto& src_buf : buffers)
+		{
+			memView.PushBack( src_buf.mapped, src_buf.size );
+			CopyBuffer( src_buf.buffer, dst_buf->Handle(), {VkBufferCopy{ VkDeviceSize(src_buf.bufferOffset), VkDeviceSize(offset), VkDeviceSize(src_buf.size) }});
+			offset += src_buf.size;
+		}
+		ASSERT( buffers.size() == memView.Parts().size() );
+	}
+	
+/*
+=================================================
+	UploadBuffer
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType)
+	{
+		ASSERT( not stream.IsComplete() );
+		ASSERT( _IsDeviceMemory( stream.Buffer() ));
+
+		auto*	dst_buf = this->_mngr.Get( stream.Buffer() );
+		CHECK_ERRV( dst_buf );
+		ASSERT( stream.End() <= dst_buf->Size() );
+		ASSERT( memView.Empty() );
+		
+		VStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
+		VStagingBufferManager::BufferRanges_t	buffers;
+
+		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, this->_mngr.GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
+		
+		for (auto& src_buf : buffers)
+		{
+			memView.PushBack( src_buf.mapped, src_buf.size );
+			CopyBuffer( src_buf.buffer, dst_buf->Handle(), {VkBufferCopy{ VkDeviceSize(src_buf.bufferOffset), VkDeviceSize(stream.OffsetAndPos()), VkDeviceSize(src_buf.size) }});
+			stream.pos += src_buf.size;
+			ASSERT( stream.pos <= stream.DataSize() );
+		}
+		ASSERT( buffers.size() == memView.Parts().size() );
+	}
+
+/*
+=================================================
+	UploadImage
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::UploadImage (ImageID imageId, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView)
+	{
+		ASSERT( _IsDeviceMemory( imageId ));
+
+		auto*	dst_img = this->_mngr.Get( imageId );
+		CHECK_ERRV( dst_img );
+
+		const ImageDesc&		img_desc	= dst_img->Description();
+		VStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
+
+		VStagingBufferManager::StagingImageResultRanges	res;
+		sbm.GetImageRanges( OUT res, uploadDesc, img_desc, this->_mngr.GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+		
+		if_unlikely( res.buffers.empty() )
+			return;
+
+		VkBufferImageCopy			copy;
+		VkImageSubresourceLayers&	subres = copy.imageSubresource;
+		subres.aspectMask		= VEnumCast( uploadDesc.aspectMask );
+		subres.mipLevel			= uploadDesc.mipLevel.Get();
+		subres.baseArrayLayer	= uploadDesc.arrayLayer.Get();
+		subres.layerCount		= 1;
+		copy.bufferRowLength	= res.bufferRowLength;
+
+		BufferMemView	mem_view;
+		uint3			min {~0u};
+		uint3			max {0};
+
+		for (auto& src_buf : res.buffers)
+		{
+			mem_view.PushBack( src_buf.mapped, src_buf.size );
+			copy.bufferOffset		= VkDeviceSize(src_buf.bufferOffset);
+			copy.bufferImageHeight	= src_buf.bufferImageHeight;
+			copy.imageOffset		= {int(src_buf.imageOffset.x), int(src_buf.imageOffset.y), int(src_buf.imageOffset.z)};
+			copy.imageExtent		= {    src_buf.imageSize.x,        src_buf.imageSize.y,        src_buf.imageSize.z   };
+
+			min = Min( min, src_buf.imageOffset );
+			max = Max( max, src_buf.imageOffset + src_buf.imageSize );
+
+			CopyBufferToImage( src_buf.buffer, dst_img->Handle(), {copy} );
+		}
+		ASSERT( res.buffers.size() == mem_view.Parts().size() );
+		
+		memView = ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, uploadDesc.aspectMask };
+	}
+	
+/*
+=================================================
+	UploadImage
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType)
+	{
+		ASSERT( not stream.IsComplete() );
+		ASSERT( _IsDeviceMemory( stream.Image() ));
+
+		auto*	dst_img = this->_mngr.Get( stream.Image() );
+		CHECK_ERRV( dst_img );
+
+		const ImageDesc&		img_desc	= dst_img->Description();
+		VStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
+
+		ASSERT( All( stream.End() <= img_desc.dimension ));
+		
+		UploadImageDesc	upload_desc = stream.ToUploadDesc();
+		upload_desc.imageOffset	+= uint3{ 0, stream.posYZ };
+		upload_desc.imageSize	-= uint3{ 0, stream.posYZ };
+		upload_desc.heapType	 = heapType;
+
+		VStagingBufferManager::StagingImageResultRanges	res;
+		sbm.GetImageRanges( OUT res, upload_desc, img_desc, this->_mngr.GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+		
+		if_unlikely( res.buffers.empty() )
+			return;
+
+		VkBufferImageCopy			copy;
+		VkImageSubresourceLayers&	subres = copy.imageSubresource;
+		subres.aspectMask		= VEnumCast( upload_desc.aspectMask );
+		subres.mipLevel			= upload_desc.mipLevel.Get();
+		subres.baseArrayLayer	= upload_desc.arrayLayer.Get();
+		subres.layerCount		= 1;
+		copy.bufferRowLength	= res.bufferRowLength;
+
+		BufferMemView	mem_view;
+		uint3			min {~0u};
+		uint3			max {0};
+
+		for (auto& src_buf : res.buffers)
+		{
+			mem_view.PushBack( src_buf.mapped, src_buf.size );
+			copy.bufferOffset		= VkDeviceSize(src_buf.bufferOffset);
+			copy.bufferImageHeight	= src_buf.bufferImageHeight;
+			copy.imageOffset		= {int(src_buf.imageOffset.x), int(src_buf.imageOffset.y), int(src_buf.imageOffset.z)};
+			copy.imageExtent		= {    src_buf.imageSize.x,        src_buf.imageSize.y,        src_buf.imageSize.z   };
+
+			min = Min( min, src_buf.imageOffset );
+			max = Max( max, src_buf.imageOffset + src_buf.imageSize );
+
+			ASSERT( All( min >= stream.Begin() ));
+			ASSERT( All( max <= stream.End() ));
+
+			CopyBufferToImage( src_buf.buffer, dst_img->Handle(), {copy} );
+		}
+		ASSERT( res.buffers.size() == mem_view.Parts().size() );
+		
+		stream.posYZ[0] = max.y - stream.Begin().y;
+		stream.posYZ[1] = max.z - stream.Begin().z - 1;
+
+		if_unlikely( stream.posYZ[0] >= stream.RegionSize().y )
+		{
+			stream.posYZ[0] = 0;
+			stream.posYZ[1] ++;
+		}
+
+		memView = ImageMemView{ mem_view, min, max - min, res.dataRowPitch,
+								((max.z - min.z > 1) ? res.dataSlicePitch : 0_b),
+								img_desc.format, upload_desc.aspectMask };
+	}
+
+/*
+=================================================
+	ReadbackBuffer
+=================================================
+*/
+	template <typename C>
+	Promise<BufferMemView>  _VTransferContextImpl<C>::ReadbackBuffer (BufferID bufferId, Bytes offset, Bytes size, EStagingHeapType heapType)
+	{
+		ASSERT( _IsDeviceMemory( bufferId ));
+
+		auto*	src_buf = this->_mngr.Get( bufferId );
+		CHECK_ERR( src_buf );
+
+		ASSERT( offset < src_buf->Size() );
+		ASSERT( size == UMax or (offset + size <= src_buf->Size()) );
+		
+		offset	= Min( offset, src_buf->Size() );
+		size	= Min( size, src_buf->Size() - offset );
+		
+		VStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
+		VStagingBufferManager::BufferRanges_t	buffers;
+		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, this->_mngr.GetFrameId(), heapType, this->_mngr.GetQueueType(), False{"readback"} );
+		
+		BufferMemView	mem_view;
+		for (auto& dst_buf : buffers)
+		{
+			mem_view.PushBack( dst_buf.mapped, dst_buf.size );
+			CopyBuffer( src_buf->Handle(), dst_buf.buffer, {VkBufferCopy{ VkDeviceSize(offset), VkDeviceSize(dst_buf.bufferOffset), VkDeviceSize(dst_buf.size) }});
+			offset += dst_buf.size;
+		}
+		ASSERT( buffers.size() == mem_view.Parts().size() );
+
+		return Threading::MakePromiseFromValue( mem_view, Tuple{ this->_mngr.GetBatchRC() });
+	}
+	
+/*
+=================================================
+	ReadHostBuffer
+=================================================
+*/
+	template <typename C>
+	Promise<ArrayView<ubyte>>  _VTransferContextImpl<C>::ReadHostBuffer (BufferID bufferId, Bytes offset, Bytes size)
+	{
+		VulkanMemoryObjInfo	mem_info;
+		CHECK_ERR( _MapHostBuffer( bufferId, INOUT offset, INOUT size, OUT mem_info ));
+		
+		ArrayView<ubyte>	mem_view = ArrayView<ubyte>{ Cast<ubyte>(mem_info.mappedPtr + offset), usize(size) };
+
+		if_unlikely( not AllBits( mem_info.flags, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT ))
+		{
+			ASSERT( offset + size <= mem_info.size );
+			this->_mngr.GetStagingManager().AcquireMappedMemory( this->_mngr.GetFrameId(), mem_info.memory, mem_info.offset, size );
+		}
+
+		return Threading::MakePromiseFromValue( mem_view, Tuple{ this->_mngr.GetBatchRC() });
+	}
+	
+/*
+=================================================
+	ReadbackImage
+=================================================
+*/
+	template <typename C>
+	Promise<ImageMemView>   _VTransferContextImpl<C>::ReadbackImage (ImageID imageId, const ReadbackImageDesc &readDesc)
+	{
+		ASSERT( _IsDeviceMemory( imageId ));
+		
+		auto*	src_img = this->_mngr.Get( imageId );
+		CHECK_ERR( src_img );
+		
+		const ImageDesc&		img_desc	= src_img->Description();
+		VStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
+
+		VStagingBufferManager::StagingImageResultRanges	res;
+		sbm.GetImageRanges( OUT res, readDesc, img_desc, this->_mngr.GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
+		
+		if_unlikely( res.buffers.empty() )
+			return Default;
+
+		VkBufferImageCopy			copy;
+		VkImageSubresourceLayers&	subres = copy.imageSubresource;
+		subres.aspectMask		= VEnumCast( readDesc.aspectMask );
+		subres.mipLevel			= readDesc.mipLevel.Get();
+		subres.baseArrayLayer	= readDesc.arrayLayer.Get();
+		subres.layerCount		= 1;
+		copy.bufferRowLength	= res.bufferRowLength;
+
+		BufferMemView	mem_view;
+		uint3			min {~0u};
+		uint3			max {0};
+
+		for (auto& dst_buf : res.buffers)
+		{
+			mem_view.PushBack( dst_buf.mapped, dst_buf.size );
+			copy.bufferOffset		= VkDeviceSize(dst_buf.bufferOffset);
+			copy.bufferImageHeight	= dst_buf.bufferImageHeight;
+			copy.imageOffset		= {int(dst_buf.imageOffset.x), int(dst_buf.imageOffset.y), int(dst_buf.imageOffset.z)};
+			copy.imageExtent		= {    dst_buf.imageSize.x,        dst_buf.imageSize.y,        dst_buf.imageSize.z   };
+
+			min = Min( min, dst_buf.imageOffset );
+			max = Max( max, dst_buf.imageOffset + dst_buf.imageSize );
+
+			CopyImageToBuffer( src_img->Handle(), dst_buf.buffer, {copy} );
+		}
+		ASSERT( res.buffers.size() == mem_view.Parts().size() );
+		
+		ImageMemView	img_mem_view{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask };
+		return Threading::MakePromiseFromValue( img_mem_view, Tuple{ this->_mngr.GetBatchRC() });
+	}
+	
+/*
+=================================================
+	MapHostBuffer
+=================================================
+*/
+	template <typename C>
+	bool  _VTransferContextImpl<C>::MapHostBuffer (BufferID bufferId, Bytes offset, INOUT Bytes &size, OUT void* &mapped)
+	{
+		VulkanMemoryObjInfo	mem_info;
+		bool	res = _MapHostBuffer( bufferId, offset, INOUT size, OUT mem_info );
+		mapped = mem_info.mappedPtr + offset;
+		return res;
+	}
+	
+	template <typename C>
+	bool  _VTransferContextImpl<C>::_MapHostBuffer (BufferID bufferId, INOUT Bytes &offset, INOUT Bytes &size, OUT VulkanMemoryObjInfo &memInfo)
+	{
+		ASSERT( _IsHostMemory( bufferId ));
+
+		auto*	buf = this->_mngr.Get( bufferId );
+		CHECK_ERR( buf != null );
+
+		auto*	mem = this->_mngr.Get( buf->MemoryID() );
+		CHECK_ERR( mem != null );
+
+		CHECK_ERR( mem->GetMemoryInfo( OUT memInfo ));
+		CHECK_ERR( memInfo.mappedPtr != null );
+		
+		offset	= Min( offset, buf->Size() );
+		size	= Min( size, buf->Size() - offset );
+
+		ASSERT( size > 0 );
+		return true;
+	}
+
+/*
+=================================================
+	UpdateHostBuffer
+=================================================
+*/
+	template <typename C>
+	bool  _VTransferContextImpl<C>::UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)
+	{
+		VulkanMemoryObjInfo	mem_info;
+		CHECK_ERR( _MapHostBuffer( bufferId, INOUT offset, INOUT size, OUT mem_info ));
+
+		MemCopy( OUT mem_info.mappedPtr + offset, data, size );
+		
+		if_unlikely( not AllBits( mem_info.flags, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT ))
+		{
+			VkMappedMemoryRange	range;
+			range.sType		= VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+			range.pNext		= null;
+			range.memory	= mem_info.memory;
+			range.offset	= VkDeviceSize(mem_info.offset + offset);
+			range.size		= VkDeviceSize(size);
+
+			ASSERT( offset + size <= mem_info.size );
+
+			auto&	dev = this->_mngr.GetDevice();
+			VK_CALL( dev.vkFlushMappedMemoryRanges( dev.GetVkDevice(), 1, &range ));
+		}
+		return true;
+	}
+
+/*
+=================================================
+	CopyBuffer
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)
+	{
+		auto*	src_buf = this->_mngr.Get( srcBuffer );
+		auto*	dst_buf = this->_mngr.Get( dstBuffer );
+		CHECK_ERRV( src_buf and dst_buf );
+		ASSERT( ranges.size() );
+
+		FixedArray<VkBufferCopy, _LocalArraySize>	vk_ranges;
+		const Bytes									src_size	= src_buf->Size();
+		const Bytes									dst_size	= dst_buf->Size();
+
+		for (usize i = 0; i < ranges.size(); ++i)
+		{
+			auto&	src = ranges[i];
+			auto&	dst = vk_ranges.emplace_back();
+
+			ASSERT( All( src.srcOffset < src_size ));
+			ASSERT( All( src.dstOffset < dst_size ));
+			ASSERT( All( (src.srcOffset + src.size) <= src_size ));
+			ASSERT( All( (src.dstOffset + src.size) <= dst_size ));
+
+			dst.srcOffset	= VkDeviceSize(Min( src.srcOffset, src_size-1 ));
+			dst.dstOffset	= VkDeviceSize(Min( src.dstOffset, dst_size-1 ));
+			dst.size		= VkDeviceSize(Min( src.size, src_size - src.srcOffset, dst_size - src.dstOffset ));
+
+			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			{
+				RawCtx::CopyBuffer( src_buf->Handle(), dst_buf->Handle(), vk_ranges );
+				vk_ranges.clear();
+			}
+		}
+		
+		if ( vk_ranges.size() )
+			RawCtx::CopyBuffer( src_buf->Handle(), dst_buf->Handle(), vk_ranges );
+	}
+
+/*
+=================================================
+	CopyImage
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)
+	{
+		auto*	src_img = this->_mngr.Get( srcImage );
+		auto*	dst_img = this->_mngr.Get( dstImage );
+		CHECK_ERRV( src_img and dst_img );
+		ASSERT( ranges.size() );
+
+		FixedArray<VkImageCopy, _LocalArraySize>	vk_ranges;
+		const ImageDesc &							src_desc	= src_img->Description();
+		const ImageDesc &							dst_desc	= dst_img->Description();
+
+		for (usize i = 0; i < ranges.size(); ++i)
+		{
+			auto&	src = ranges[i];
+			auto&	dst = vk_ranges.emplace_back();
+
+			ASSERT( All( src.srcOffset < src_img->Dimension() ));
+			ASSERT( All( (src.srcOffset + src.extent) <= src_img->Dimension() ));
+			ASSERT( All( src.dstOffset < dst_img->Dimension() ));
+			ASSERT( All( (src.dstOffset + src.extent) <= dst_img->Dimension() ));
+
+			dst.srcOffset	= { int(src.srcOffset.x), int(src.srcOffset.y), int(src.srcOffset.z) };
+			dst.dstOffset	= { int(src.dstOffset.x), int(src.dstOffset.y), int(src.dstOffset.z) };
+			dst.extent		= { src.extent.x,         src.extent.y,         src.extent.z };
+			
+			_ConvertImageSubresourceLayer( OUT dst.srcSubresource, src.srcSubres, src_desc );
+			_ConvertImageSubresourceLayer( OUT dst.dstSubresource, src.dstSubres, dst_desc );
+			
+			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			{
+				RawCtx::CopyImage( src_img->Handle(), dst_img->Handle(), vk_ranges );
+				vk_ranges.clear();
+			}
+		}
+		
+		if ( vk_ranges.size() )
+			RawCtx::CopyImage( src_img->Handle(), dst_img->Handle(), vk_ranges );
+	}
+
+/*
+=================================================
+	CopyBufferToImage
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)
+	{
+		auto*	src_buf = this->_mngr.Get( srcBuffer );
+		auto*	dst_img = this->_mngr.Get( dstImage );
+		CHECK_ERRV( src_buf and dst_img );
+		ASSERT( ranges.size() );
+
+		FixedArray<VkBufferImageCopy, _LocalArraySize>	vk_ranges;
+		const ImageDesc &								img_desc	= dst_img->Description();
+		
+		for (usize i = 0; i < ranges.size(); ++i)
+		{
+			auto&	src = ranges[i];
+			auto&	dst = vk_ranges.emplace_back();
+			
+			_ConvertBufferImageCopy( OUT dst, src, img_desc );
+			
+			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			{
+				RawCtx::CopyBufferToImage( src_buf->Handle(), dst_img->Handle(), vk_ranges );
+				vk_ranges.clear();
+			}
+		}
+
+		if ( vk_ranges.size() )
+			RawCtx::CopyBufferToImage( src_buf->Handle(), dst_img->Handle(), vk_ranges );
+	}
+	
+/*
+=================================================
+	CopyBufferToImage
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)
+	{
+		auto*	src_buf = this->_mngr.Get( srcBuffer );
+		auto*	dst_img = this->_mngr.Get( dstImage );
+		CHECK_ERRV( src_buf and dst_img );
+		ASSERT( ranges.size() );
+
+		FixedArray<VkBufferImageCopy, _LocalArraySize>	vk_ranges;
+		const ImageDesc &								img_desc	= dst_img->Description();
+		const PixelFormatInfo &							fmt_info	= EPixelFormat_GetInfo( img_desc.format );
+		
+		for (usize i = 0; i < ranges.size(); ++i)
+		{
+			auto&	src = ranges[i];
+			auto&	dst = vk_ranges.emplace_back();
+			
+			_ConvertBufferImageCopy( OUT dst, src, img_desc, fmt_info );
+			
+			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			{
+				RawCtx::CopyBufferToImage( src_buf->Handle(), dst_img->Handle(), vk_ranges );
+				vk_ranges.clear();
+			}
+		}
+
+		if ( vk_ranges.size() )
+			RawCtx::CopyBufferToImage( src_buf->Handle(), dst_img->Handle(), vk_ranges );
+	}
+
+/*
+=================================================
+	CopyImageToBuffer
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)
+	{
+		auto*	src_img = this->_mngr.Get( srcImage );
+		auto*	dst_buf = this->_mngr.Get( dstBuffer );
+		CHECK_ERRV( src_img and dst_buf );
+		ASSERT( ranges.size() );
+		
+		FixedArray<VkBufferImageCopy, _LocalArraySize>	vk_ranges;
+		const ImageDesc &								img_desc	= src_img->Description();
+		
+		for (usize i = 0; i < ranges.size(); ++i)
+		{
+			auto&	src = ranges[i];
+			auto&	dst = vk_ranges.emplace_back();
+			
+			_ConvertBufferImageCopy( OUT dst, src, img_desc );
+			
+			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			{
+				RawCtx::CopyImageToBuffer( src_img->Handle(), dst_buf->Handle(), vk_ranges );
+				vk_ranges.clear();
+			}
+		}
+		
+		if ( vk_ranges.size() )
+			RawCtx::CopyImageToBuffer( src_img->Handle(), dst_buf->Handle(), vk_ranges );
+	}
+	
+/*
+=================================================
+	CopyImageToBuffer
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)
+	{
+		auto*	src_img = this->_mngr.Get( srcImage );
+		auto*	dst_buf = this->_mngr.Get( dstBuffer );
+		CHECK_ERRV( src_img and dst_buf );
+		ASSERT( ranges.size() );
+		
+		FixedArray<VkBufferImageCopy, _LocalArraySize>	vk_ranges;
+		const ImageDesc &								img_desc	= src_img->Description();
+		const PixelFormatInfo &							fmt_info	= EPixelFormat_GetInfo( img_desc.format );
+		
+		for (usize i = 0; i < ranges.size(); ++i)
+		{
+			auto&	src = ranges[i];
+			auto&	dst = vk_ranges.emplace_back();
+			
+			_ConvertBufferImageCopy( OUT dst, src, img_desc, fmt_info );
+			
+			if_unlikely( vk_ranges.size() == vk_ranges.capacity() )
+			{
+				RawCtx::CopyImageToBuffer( src_img->Handle(), dst_buf->Handle(), vk_ranges );
+				vk_ranges.clear();
+			}
+		}
+		
+		if ( vk_ranges.size() )
+			RawCtx::CopyImageToBuffer( src_img->Handle(), dst_buf->Handle(), vk_ranges );
+	}
+
+/*
+=================================================
+	BlitImage
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter blitFilter, ArrayView<ImageBlit> regions)
+	{
+		auto*	src_img = this->_mngr.Get( srcImage );
+		auto*	dst_img = this->_mngr.Get( dstImage );
+		CHECK_ERRV( src_img and dst_img );
+		ASSERT( regions.size() );
+		
+		FixedArray<VkImageBlit, _LocalArraySize>	vk_regions;
+		const ImageDesc &							src_desc	= src_img->Description();
+		const ImageDesc &							dst_desc	= dst_img->Description();
+		const VkFilter								filter		= VEnumCast( blitFilter );
+
+		for (usize i = 0; i < regions.size(); ++i)
+		{
+			auto&	src = regions[i];
+			auto&	dst = vk_regions.emplace_back();
+
+			ASSERT( All( src.srcOffset0 <= src_desc.dimension ));
+			ASSERT( All( src.srcOffset1 <= src_desc.dimension ));
+			ASSERT( All( src.dstOffset0 <= dst_desc.dimension ));
+			ASSERT( All( src.dstOffset1 <= dst_desc.dimension ));
+
+			dst.srcOffsets[0] = { int(src.srcOffset0.x), int(src.srcOffset0.y), int(src.srcOffset0.z) };
+			dst.srcOffsets[1] = { int(src.srcOffset1.x), int(src.srcOffset1.y), int(src.srcOffset1.z) };
+			dst.dstOffsets[0] = { int(src.dstOffset0.x), int(src.dstOffset0.y), int(src.dstOffset0.z) };
+			dst.dstOffsets[1] = { int(src.dstOffset1.x), int(src.dstOffset1.y), int(src.dstOffset1.z) };
+			this->_ConvertImageSubresourceLayer( OUT dst.srcSubresource, src.srcSubres, src_desc );
+			this->_ConvertImageSubresourceLayer( OUT dst.dstSubresource, src.dstSubres, dst_desc );
+
+			if_unlikely( vk_regions.size() == vk_regions.capacity() )
+			{
+				RawCtx::BlitImage( src_img->Handle(), dst_img->Handle(), filter, vk_regions );
+				vk_regions.clear();
+			}
+		}
+		
+		if ( vk_regions.size() )
+			RawCtx::BlitImage( src_img->Handle(), dst_img->Handle(), filter, vk_regions );
+	}
+		
+/*
+=================================================
+	GenerateMipmaps
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image)
+	{
+		auto*	img = this->_mngr.Get( image );
+		CHECK_ERRV( img );
+		
+		const ImageDesc &	desc = img->Description();
+
+		RawCtx::GenerateMipmaps( img->Handle(), desc.dimension,
+								 desc.maxLevel.Get(), desc.arrayLayers.Get(),
+								 EPixelFormat_ToImageAspect( desc.format ));
+	}
+
+/*
+=================================================
+	MinImageTransferGranularity
+=================================================
+*/
+	template <typename C>
+	uint3  _VTransferContextImpl<C>::MinImageTransferGranularity () const
+	{
+		return uint3{this->_mngr.GetQueue()->minImageTransferGranularity};
+	}
+
+/*
+=================================================
+	_ConvertImageSubresourceRange
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::_ConvertImageSubresourceRange (OUT VkImageSubresourceRange& dst, const ImageSubresourceRange& src, const ImageDesc &desc)
+	{
+		ASSERT( src.baseMipLevel < desc.maxLevel );
+		ASSERT( src.baseArrayLayer < desc.arrayLayers );
+
+		dst.aspectMask		= VEnumCast( src.aspectMask );
+		dst.baseMipLevel	= Min( src.baseMipLevel.Get(), desc.maxLevel.Get()-1 );
+		dst.levelCount		= Min( src.levelCount, desc.maxLevel.Get() - src.baseMipLevel.Get() );
+		dst.baseArrayLayer	= Min( src.baseArrayLayer.Get(), desc.arrayLayers.Get()-1 );
+		dst.layerCount		= Min( src.layerCount, desc.arrayLayers.Get() - src.baseArrayLayer.Get() );
+	}
+	
+/*
+=================================================
+	_ConvertBufferImageCopy
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::_ConvertBufferImageCopy (OUT VkBufferImageCopy& dst, const BufferImageCopy& src, const ImageDesc &desc)
+	{
+		ASSERT( All( src.imageOffset < desc.dimension ));
+		ASSERT( All( src.imageOffset + src.imageExtent <= desc.dimension ));
+		ASSERT( src.bufferRowLength == 0 or src.bufferRowLength >= src.imageExtent.x );
+		ASSERT( src.bufferImageHeight == 0 or src.bufferImageHeight >= src.imageExtent.y );
+
+		dst.bufferOffset		= VkDeviceSize(src.bufferOffset);
+		dst.bufferRowLength		= src.bufferRowLength;
+		dst.bufferImageHeight	= src.bufferImageHeight;
+		_ConvertImageSubresourceLayer( OUT dst.imageSubresource, src.imageSubres, desc );
+		dst.imageOffset			= { int(src.imageOffset.x), int(src.imageOffset.y), int(src.imageOffset.z) };
+		dst.imageExtent			= { src.imageExtent.x, src.imageExtent.y, src.imageExtent.z };
+	}
+	
+/*
+=================================================
+	_ConvertBufferImageCopy
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::_ConvertBufferImageCopy (OUT VkBufferImageCopy& dst, const BufferImageCopy2& src, const ImageDesc &desc, const PixelFormatInfo &fmtInfo)
+	{
+		ASSERT( All( src.imageOffset < desc.dimension ));
+		ASSERT( All( src.imageOffset + src.imageExtent <= desc.dimension ));
+		ASSERT( src.rowPitch != 0_b );
+		ASSERT( src.slicePitch > 0_b and (src.slicePitch % src.rowPitch == 0) );
+
+		const uint	bpp = 0;
+
+		dst.bufferOffset		= VkDeviceSize(src.bufferOffset);
+		dst.bufferRowLength		= ImageUtils::RowLength( src.rowPitch, bpp, fmtInfo.TexBlockSize() );
+		dst.bufferImageHeight	= ImageUtils::ImageHeight( src.slicePitch, src.rowPitch, fmtInfo.TexBlockSize() );
+		_ConvertImageSubresourceLayer( OUT dst.imageSubresource, src.imageSubres, desc );
+		dst.imageOffset			= { int(src.imageOffset.x), int(src.imageOffset.y), int(src.imageOffset.z) };
+		dst.imageExtent			= { src.imageExtent.x, src.imageExtent.y, src.imageExtent.z };
+
+		ASSERT( dst.bufferRowLength == 0 or dst.bufferRowLength >= dst.imageExtent.width );
+		ASSERT( dst.bufferImageHeight == 0 or dst.bufferImageHeight >= dst.imageExtent.height );
+	}
+	
+/*
+=================================================
+	_ConvertImageSubresourceLayer
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::_ConvertImageSubresourceLayer (OUT VkImageSubresourceLayers &dst, const ImageSubresourceLayers &src, const ImageDesc &desc)
+	{
+		ASSERT( src.mipLevel < desc.maxLevel );
+		ASSERT( src.baseArrayLayer < desc.arrayLayers );
+		ASSERT( src.aspectMask != Default );
+
+		dst.aspectMask		= VEnumCast( src.aspectMask );
+		dst.mipLevel		= Min( src.mipLevel.Get(), desc.maxLevel.Get()-1 );
+		dst.baseArrayLayer	= Min( src.baseArrayLayer.Get(), desc.arrayLayers.Get()-1 );
+		dst.layerCount		= Min( src.layerCount, desc.arrayLayers.Get() - src.baseArrayLayer.Get() );
+	}
+//-----------------------------------------------------------------------------
+	
+
+
+/*
+=================================================
+	ClearColorImage
+=================================================
+*/
+	inline void  _VDirectTransferCtx::ClearColorImage (VkImage image, const VkClearColorValue &color, ArrayView<VkImageSubresourceRange> ranges)
+	{
+		ASSERT( image != Default );
+		ASSERT( ranges.size() );
+		ASSERT( _NoPendingBarriers() );
+
+		vkCmdClearColorImage( _cmdbuf.Get(), image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &color, uint(ranges.size()), ranges.data() );
+	}
+	
+/*
+=================================================
+	ClearDepthStencilImage
+=================================================
+*/
+	inline void  _VDirectTransferCtx::ClearDepthStencilImage (VkImage image, const VkClearDepthStencilValue &depthStencil, ArrayView<VkImageSubresourceRange> ranges)
+	{
+		ASSERT( image != Default );
+		ASSERT( ranges.size() );
+		ASSERT( _NoPendingBarriers() );
+
+		vkCmdClearDepthStencilImage( _cmdbuf.Get(), image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &depthStencil, uint(ranges.size()), ranges.data() );
+	}
+	
+/*
+=================================================
+	FillBuffer
+=================================================
+*/
+	inline void  _VDirectTransferCtx::FillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)
+	{
+		ASSERT( buffer != Default );
+		ASSERT( _NoPendingBarriers() );
+
+		vkCmdFillBuffer( _cmdbuf.Get(), buffer, VkDeviceSize(offset), VkDeviceSize(size), data );
+	}
+	
+/*
+=================================================
+	UpdateBuffer
+=================================================
+*/
+	inline void  _VDirectTransferCtx::UpdateBuffer (VkBuffer buffer, Bytes offset, Bytes size, const void* data)
+	{
+		ASSERT( buffer != Default );
+		ASSERT( _NoPendingBarriers() );
+
+		vkCmdUpdateBuffer( _cmdbuf.Get(), buffer, VkDeviceSize(offset), VkDeviceSize(size), data );
+	}
+	
+/*
+=================================================
+	CopyBuffer
+=================================================
+*/
+	inline void  _VDirectTransferCtx::CopyBuffer (VkBuffer srcBuffer, VkBuffer dstBuffer, ArrayView<VkBufferCopy> ranges)
+	{
+		ASSERT( srcBuffer != Default );
+		ASSERT( dstBuffer != Default );
+		ASSERT( ranges.size() );
+		ASSERT( _NoPendingBarriers() );
+
+		vkCmdCopyBuffer( _cmdbuf.Get(), srcBuffer, dstBuffer, uint(ranges.size()), ranges.data() );
+		// TODO vkCmdCopyBuffer2KHR
+	}
+	
+/*
+=================================================
+	CopyImage
+=================================================
+*/
+	inline void  _VDirectTransferCtx::CopyImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageCopy> ranges)
+	{
+		ASSERT( srcImage != Default );
+		ASSERT( dstImage != Default );
+		ASSERT( ranges.size() );
+		ASSERT( _NoPendingBarriers() );
+
+		vkCmdCopyImage( _cmdbuf.Get(), srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+						dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+						uint(ranges.size()), ranges.data() );
+		// TODO vkCmdCopyImage2KHR
+	}
+	
+/*
+=================================================
+	CopyBufferToImage
+=================================================
+*/
+	inline void  _VDirectTransferCtx::CopyBufferToImage (VkBuffer srcBuffer, VkImage dstImage, ArrayView<VkBufferImageCopy> ranges)
+	{
+		ASSERT( srcBuffer != Default );
+		ASSERT( dstImage != Default );
+		ASSERT( ranges.size() );
+		ASSERT( _NoPendingBarriers() );
+
+		vkCmdCopyBufferToImage( _cmdbuf.Get(), srcBuffer, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, uint(ranges.size()), ranges.data() );
+		// TODO vkCmdCopyBufferToImage2KHR
+	}
+	
+/*
+=================================================
+	CopyImageToBuffer
+=================================================
+*/
+	inline void  _VDirectTransferCtx::CopyImageToBuffer (VkImage srcImage, VkBuffer dstBuffer, ArrayView<VkBufferImageCopy> ranges)
+	{
+		ASSERT( srcImage != Default );
+		ASSERT( dstBuffer != Default );
+		ASSERT( ranges.size() );
+		ASSERT( _NoPendingBarriers() );
+
+		vkCmdCopyImageToBuffer( _cmdbuf.Get(), srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstBuffer, uint(ranges.size()), ranges.data() );
+		// TODO vkCmdCopyImageToBuffer2KHR
+	}
+	
+/*
+=================================================
+	BlitImage
+=================================================
+*/
+	inline void  _VDirectTransferCtx::BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions)
+	{
+		ASSERT( srcImage != Default );
+		ASSERT( dstImage != Default );
+		ASSERT( regions.size() );
+		ASSERT( _NoPendingBarriers() );
+
+		vkCmdBlitImage( _cmdbuf.Get(), srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+						dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+						uint(regions.size()), regions.data(), filter );
+		// TODO vkCmdBlitImage2KHR
+	}
+
+
+} // AE::Graphics::_hidden_
 
 #endif // AE_ENABLE_VULKAN

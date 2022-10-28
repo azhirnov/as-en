@@ -46,14 +46,14 @@ namespace
 			
 			auto	mem_stream2 = MakeRC<MemRStream>();
 			TEST( file->SeekSet( Bytes{offsets.nameMappingOffset} ));
-			TEST( mem_stream2->Load( *file, Bytes{offsets.nameMappingDataSize} ));
+			TEST( mem_stream2->LoadRemaining( *file, Bytes{offsets.nameMappingDataSize} ));
 
 			Serializing::Deserializer	des{ mem_stream2 };
 			TEST( des( OUT name ) and name == NameMapping_Name );
 			TEST( hash_to_name.Deserialize( des ));
 
 			TEST( file->SeekSet( Bytes{offsets.samplerOffset} ));
-			TEST( mem_stream->Load( *file, Bytes{offsets.samplerDataSize} ));
+			TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.samplerDataSize} ));
 		}
 		
 		AE::Serializing::Deserializer	des{ mem_stream, MakeRC<LinearAlloc_t>() };

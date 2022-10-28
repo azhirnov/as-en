@@ -87,7 +87,7 @@ namespace _hidden_
 													TL_GetFirstSpecializationOf< Templ, I+1, Tuple<Tail...> > >::value;
 	};
 
-}	// _hidden_
+} // _hidden_
 
 
 	//
@@ -198,12 +198,12 @@ namespace _hidden_
 		using type = TypeList< LeftTypes..., RightTypes... >;
 	};
 
-}	// _hidden_
+} // _hidden_
 
 	template <typename T>
 	static constexpr bool	IsTypeList = Base::_hidden_::_IsTypeList< T >::value;
 
-}	// AE::Base
+} // AE::Base
 
 namespace AE::Base::TypeListUtils
 {
@@ -222,4 +222,4 @@ namespace AE::Base::TypeListUtils
 	template <typename Left, typename Right>
 	using Merge = typename Base::_hidden_::_Merge< Left, Right >::type;
 
-}	// AE::Base::TypeListUtils
+} // AE::Base::TypeListUtils

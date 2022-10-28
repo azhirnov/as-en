@@ -132,10 +132,10 @@ namespace AE::Graphics
 		
 		MStagingBufferManager	_stagingMngr;
 
-		Strong<PipelinePackID>			_defaultPack;
+		StrongAtom<PipelinePackID>		_defaultPack;
 		Strong<MSamplerID>				_defaultSampler;
 
-		#ifdef AE_DEV_OR_DBG
+		#ifdef AE_DBG_OR_DEV
 		 mutable SharedMutex			_hashToNameGuard;
 		 PipelineCompiler::HashToName	_hashToName;		// for debugging
 		#endif
@@ -175,7 +175,9 @@ namespace AE::Graphics
 
 		ND_ bool				CreateBufferAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
 		ND_ bool				CreateImageAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		
+		ND_ bool				CreateAccelStructAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalAccelStructRC &as, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
+		ND_ bool				CreateAccelStructAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalAccelStructRC &as, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
+
 		Strong<RTGeometryID>	CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	override;
 		Strong<RTSceneID>		CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)			override;
 		
@@ -192,16 +194,16 @@ namespace AE::Graphics
 		Strong<DescriptorSetID>	CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) override;
 		
 		Strong<PipelineCacheID>	CreatePipelineCache () override;
-		Strong<PipelineCacheID>	LoadPipelineCache (RC<RStream> stream) override;
+		Strong<PipelineCacheID>	LoadPipelineCache (const Path &filename);
 		
 		Promise<RenderTechPipelinesPtr>	LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache)	override;
 		RenderTechPipelinesPtr			LoadRenderTech      (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache)	override;
 
-		Strong<GraphicsPipelineID>		CreateGraphicsPipeline   (PipelinePackID packId, const PipelineTmplName &name, const GraphicsPipelineDesc   &desc, PipelineCacheID cache)	override;
-		Strong<MeshPipelineID>			CreateMeshPipeline       (PipelinePackID packId, const PipelineTmplName &name, const MeshPipelineDesc       &desc, PipelineCacheID cache)	override;
-		Strong<ComputePipelineID>		CreateComputePipeline    (PipelinePackID packId, const PipelineTmplName &name, const ComputePipelineDesc    &desc, PipelineCacheID cache)	override;
-		Strong<RayTracingPipelineID>	CreateRayTracingPipeline (PipelinePackID packId, const PipelineTmplName &name, const RayTracingPipelineDesc &desc, PipelineCacheID cache)	override;
-		Strong<TilePipelineID>			CreateTilePipeline       (PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc       &desc, PipelineCacheID cache)	override;
+		Strong<GraphicsPipelineID>		CreateGraphicsPipeline   (PipelinePackID packId, const PipelineTmplName &name, const GraphicsPipelineDesc   &desc, PipelineCacheID cache = Default)	override;
+		Strong<MeshPipelineID>			CreateMeshPipeline       (PipelinePackID packId, const PipelineTmplName &name, const MeshPipelineDesc       &desc, PipelineCacheID cache = Default)	override;
+		Strong<ComputePipelineID>		CreateComputePipeline    (PipelinePackID packId, const PipelineTmplName &name, const ComputePipelineDesc    &desc, PipelineCacheID cache = Default)	override;
+		Strong<RayTracingPipelineID>	CreateRayTracingPipeline (PipelinePackID packId, const PipelineTmplName &name, const RayTracingPipelineDesc &desc, PipelineCacheID cache = Default)	override;
+		Strong<TilePipelineID>			CreateTilePipeline       (PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc       &desc, PipelineCacheID cache = Default)	override;
 		
 		ND_ Strong<ComputePipelineID>	CreatePipeline (const MComputePipeline::CreateInfo    &ci);
 		ND_ Strong<GraphicsPipelineID>	CreatePipeline (const MGraphicsPipeline::CreateInfo   &ci);
@@ -213,6 +215,7 @@ namespace AE::Graphics
 		
 		ND_ MSamplerID				GetSampler (const SamplerName &name) const;
 		ND_ MetalSampler			GetMtlSampler (const SamplerName &name) const;
+		ND_ Strong<MSamplerID>		CreateSampler (const SamplerDesc &desc, StringView dbgName);
 		
 		ND_ Strong<MRenderPassID>	CreateRenderPass (const SerializableRenderPassInfo &info, const SerializableMtlRenderPass &mtlInfo);
 		ND_ MRenderPassID			GetCompatibleRenderPass (const CompatRenderPassName &name) const;
@@ -292,7 +295,7 @@ namespace AE::Graphics
 		template <usize Size, uint UID, bool Opt, uint Seed>
 		ND_ String  HashToName (const NamedID< Size, UID, Opt, Seed > &name) const;
 		
-		#ifdef AE_DEV_OR_DBG
+		#ifdef AE_DBG_OR_DEV
 		void  AddHashToName (const PipelineCompiler::HashToName &value);
 		#endif
 		
@@ -367,11 +370,9 @@ namespace AE::Graphics
 	};
 	
 	
-# ifdef AE_PLATFORM_APPLE
 #	define RESMNGR	MResourceManager
 #	define RESMNGR_HEADER
 #	include "graphics/Private/ResourceManagerUtils.h"
-# endif
 
 } // AE::Graphics
 

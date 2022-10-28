@@ -65,9 +65,9 @@ namespace AE::Threading
 
 		struct alignas(AE_CACHE_LINE) BottomChunk
 		{
-			SpinLockRelaxed				guard;		// only for 'hiLevel' modification
-			Atomic< HiLevelBits_t >		hiLevel;	// 0 - is unassigned bit, 1 - assigned bit
-			LowLevels_t					lowLevel;	// 0 - is unassigned bit, 1 - assigned bit
+			SpinLockRelaxed				hiLevelGuard;	// only for 'hiLevel' modification
+			Atomic< HiLevelBits_t >		hiLevel;		// 0 - is unassigned bit, 1 - assigned bit
+			LowLevels_t					lowLevel;		// 0 - is unassigned bit, 1 - assigned bit
 			Atomic< void * >			memBlock;
 
 			#if AE_LFFIXEDBLOCKALLOC_DEBUG
@@ -86,8 +86,8 @@ namespace AE::Threading
 
 		struct TopChunk
 		{
-			SpinLockRelaxed				guard;		// only for 'assigned' modification
-			Atomic< TopLevelBits_t >	assigned;	// 0 - is unassigned bit, 1 - assigned bit
+			SpinLockRelaxed				assignedGuard;	// only for 'assigned' modification
+			Atomic< TopLevelBits_t >	assigned;		// 0 - is unassigned bit, 1 - assigned bit
 		};
 		
 		using BottomChunks_t	= StaticArray< BottomChunk, MaxChunks >;

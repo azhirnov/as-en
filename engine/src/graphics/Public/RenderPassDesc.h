@@ -217,4 +217,4 @@ namespace AE::Graphics
 	}
 
 
-}	// AE::Graphics
+} // AE::Graphics

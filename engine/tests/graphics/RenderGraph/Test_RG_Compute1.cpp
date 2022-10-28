@@ -71,7 +71,7 @@ namespace
 	public:
 		C1_TestData&	t;
 
-		C1_ComputeTask (C1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		C1_ComputeTask (C1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -81,7 +81,7 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 
-			Ctx		ctx{ GetBatchPtr() };
+			Ctx		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 			
 			const auto	img_state = EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
@@ -118,7 +118,7 @@ namespace
 	public:
 		C1_TestData&	t;
 
-		C1_CopyTask (C1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		C1_CopyTask (C1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -128,7 +128,7 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 			
-			Ctx		ctx{ GetBatchPtr() };
+			Ctx		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			t.result0 = AsyncTask{ ctx.ReadbackImage( t.img0, Default )
@@ -205,7 +205,7 @@ namespace
 			t.ds2 = RVRef(ds2);
 			CHECK_ERR( t.ds0 and t.ds1 and t.ds2 );
 
-			VDescriptorUpdater	updater;
+			DescriptorUpdater	updater;
 
 			CHECK_ERR( updater.Set( t.ds0, EDescUpdateMode::Partialy ));
 			updater.BindImage( UniformName{"un_OutImage"}, t.view0 );
@@ -225,13 +225,13 @@ namespace
 		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Compute1" );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< C1_ComputeTask<CompCtx> >( MakeTuple(ArgRef(t)), MakeTuple(begin), "Compute task" );
+		AsyncTask	task1	= batch->Add< C1_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, "Compute task" );
 		CHECK_ERR( task1 );
 		
-		AsyncTask	task2	= batch->Add< C1_CopyTask<CopyCtx> >( MakeTuple(ArgRef(t)), MakeTuple(task1), "Readback task" );
+		AsyncTask	task2	= batch->Add< C1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
 		CHECK_ERR( task2 );
 
-		AsyncTask	end		= rts.EndFrame( MakeTuple(task2) );
+		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
@@ -256,7 +256,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_Compute1 ()

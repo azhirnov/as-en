@@ -76,6 +76,7 @@ namespace AE::Graphics
 		Default			= 0,
 		Subsampled,
 		SubsampledCoarseReconstruction,
+		//ArgumentBuffer,	// for Metal	// TODO
 		_Count,
 		Unknown			= Default,
 	};
@@ -102,8 +103,8 @@ namespace AE::Graphics
 		AddressMode3			addressMode				= { EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat };
 		EReductionMode			reductionMode			= EReductionMode::Average;
 		float					mipLodBias				= 0.0f;
-		Optional<float>			maxAnisotropy;
-		Optional<ECompareOp>	compareOp;
+		Optional<float>			maxAnisotropy;			// TODO: remove optional
+		Optional<ECompareOp>	compareOp;				// TODO: remove optional
 		float					minLod					= -1000.0f;
 		float					maxLod					= 1000.0f;
 		EBorderColor			borderColor				= EBorderColor::FloatTransparentBlack;
@@ -119,4 +120,4 @@ namespace AE::Graphics
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics

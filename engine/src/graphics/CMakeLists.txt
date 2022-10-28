@@ -5,12 +5,14 @@ if (TARGET "Scripting")
 	file( GLOB_RECURSE SCRIPTING_SOURCES "Scripting/*.*" )
 endif()
 
-if (NOT DEFINED AE_ENABLE_VULKAN AND NOT DEFINED AE_ENABLE_METAL)
-	message( FATAL_ERROR "AE_ENABLE_VULKAN or AE_ENABLE_METAL must be enabled" )
+if (APPLE AND NOT ${AE_ENABLE_METAL})
+	message( FATAL_ERROR "AE_ENABLE_METAL must be enabled" )
 endif()
 
-if (APPLE AND NOT ${AE_ENABLE_METAL})
-	message( FATAL_ERROR "AE_ENABLE_METAL must be enabled for Apple" )
+# enable Metal for development
+if (MSVC)
+	set( AE_ENABLE_METAL ON CACHE INTERNAL "" FORCE )
+	#set( AE_ENABLE_VULKAN ON CACHE INTERNAL "" FORCE )
 endif()
 
 if (${AE_ENABLE_METAL})
@@ -19,19 +21,20 @@ if (${AE_ENABLE_METAL})
 endif()
 
 set( PIPELINE_COMPILER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/pipeline_compiler" )
-set( PIPELINE_COMPILER_SRC )
-#	"${PIPELINE_COMPILER_DIR}/Packer/PipelinePackDeserializer.cpp"
-#	"${PIPELINE_COMPILER_DIR}/Packer/RenderPassPack.cpp"
-#	"${PIPELINE_COMPILER_DIR}/Packer/SamplerPack.cpp"
-#	"${PIPELINE_COMPILER_DIR}/Packer/FeatureSetPack.cpp" )
+set( PIPELINE_COMPILER_SRC
+	#"${PIPELINE_COMPILER_DIR}/Packer/PipelinePackDeserializer.cpp"
+	#"${PIPELINE_COMPILER_DIR}/Packer/RenderPassPack.cpp"
+	#"${PIPELINE_COMPILER_DIR}/Packer/SamplerPack.cpp"
+	#"${PIPELINE_COMPILER_DIR}/Packer/FeatureSetPack.cpp"
+	)
 	
 if (${AE_ENABLE_VULKAN})
 	file( GLOB_RECURSE VULKAN_SOURCES "Vulkan/*.*" )
 	set( SHADER_TRACE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/shader_trace" )
-	set( SHADER_TRACE_SRC )
-	#	"${SHADER_TRACE_DIR}/include/ShaderTrace.h"
-	#	"${SHADER_TRACE_DIR}/source/ShaderTrace.cpp"
-	#	"${SHADER_TRACE_DIR}/source/ParseShaderTrace.cpp" )
+	set( SHADER_TRACE_SRC
+		"${SHADER_TRACE_DIR}/include/ShaderTrace.h"
+		"${SHADER_TRACE_DIR}/source/ShaderTrace.cpp"
+		"${SHADER_TRACE_DIR}/source/ParseShaderTrace.cpp" )
 else()
 	set( SHADER_TRACE_SRC "" )
 endif()
@@ -63,12 +66,19 @@ if (${AE_ENABLE_VULKAN})
 endif ()
 
 if (${AE_ENABLE_METAL})
-	target_compile_definitions( "Graphics" PUBLIC AE_ENABLE_METAL )
-	find_library( METAL_FRAMEWORK Metal REQUIRED )
-	target_link_libraries( "Graphics" PUBLIC ${METAL_FRAMEWORK} )
-	set_target_properties( "Graphics" PROPERTIES XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC NO )
+	if ( (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin") OR (${CMAKE_SYSTEM_NAME} STREQUAL "iOS") )
+		target_compile_definitions( "Graphics" PUBLIC AE_ENABLE_METAL )
+		find_library( METAL_FRAMEWORK Metal REQUIRED )
+		target_link_libraries( "Graphics" PUBLIC ${METAL_FRAMEWORK} )
+		set_target_properties( "Graphics" PROPERTIES XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC NO )
+	else()
+		set_source_files_properties( ${METAL_OBJC_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
+		target_compile_definitions( "Graphics" PUBLIC $<$<CONFIG:Debug>: AE_ENABLE_METAL >)
+	endif()
 endif()
 
-if (${AE_ENABLE_OPENGL})
-	target_link_libraries( "Graphics" PUBLIC "OpenGL-lib" )
-endif ()
+if (${AE_ENABLE_REMOTE_GRAPHICS})
+	target_link_libraries( "Graphics" PUBLIC "Networking" )
+	target_compile_definitions( "Graphics" PRIVATE AE_ENABLE_REMOTE_GRAPHICS )
+endif()
+

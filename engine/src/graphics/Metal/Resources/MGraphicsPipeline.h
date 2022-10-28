@@ -36,8 +36,6 @@ namespace AE::Graphics
 		MetalDepthStencilStateRC	_dsState;
 		MDynamicRenderState			_renderState;
 		
-		EPipelineOpt				_options			= Default;
-		EPrimitive					_topology			= Default;
 		EPipelineDynamicState		_dynamicState		= Default;
 
 		VBtoIndex_t					_vertexBuffers;
@@ -64,11 +62,11 @@ namespace AE::Graphics
 		//ND_ auto						GetRenderState ()		const	{ return DRC_WRAP( _renderState, _drCheck ); }
 		ND_ MPipelineLayoutID			LayoutID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ EPipelineDynamicState		DynamicState ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
-		ND_ EPrimitive					Topology ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _topology; }
+		ND_ EPrimitive					Topology ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _renderState.topology; }
 		
 		DEBUG_ONLY( ND_ StringView		GetDebugName ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_METAL
+#endif // AE_ENABLE_METAL

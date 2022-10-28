@@ -48,10 +48,7 @@ namespace AE::Base
 		constexpr FixedArray (const Self &other);
 		constexpr FixedArray (Self &&other);
 
-		~FixedArray ()
-		{
-			clear();
-		}
+		~FixedArray ()	{ clear(); }
 
 
 		ND_ constexpr operator ArrayView<T> ()					const	{ return ArrayView<T>{ data(), size() }; }
@@ -438,7 +435,7 @@ namespace AE::Base
 	}
 
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -452,4 +449,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

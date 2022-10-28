@@ -84,9 +84,7 @@ namespace AE::Graphics
 		static void  CreateInstance (const MDevice &dev);
 		static void  DestroyInstance ();
 		
-		#ifdef AE_PLATFORM_APPLE
-		  friend MRenderTaskScheduler&  RenderTaskScheduler ();
-		#endif
+		friend MRenderTaskScheduler&  RenderTaskScheduler ();
 		
 		ND_ bool  Initialize (const GraphicsCreateInfo &);
 			void  Deinitialize ();
@@ -102,8 +100,8 @@ namespace AE::Graphics
 			void  AddNextFrameDeps (ArrayView<AsyncTask> deps);
 			void  AddNextFrameDeps (AsyncTask dep);
 
-		ND_ RC<MCommandBatch>		CreateBatch (EQueueType queue, uint submitIdx, StringView dbgName = Default);
-		ND_ RC<MDrawCommandBatch>	BeginAsyncDraw (const RenderPassDesc &desc, StringView dbgName = Default);
+		ND_ RC<MCommandBatch>		CreateBatch (EQueueType queue, uint submitIdx, StringView dbgName);
+		ND_ RC<MDrawCommandBatch>	BeginAsyncDraw (const RenderPassDesc &desc, StringView dbgName);
 
 		// valid only if used before/after 'CreateBatch()'
 		ND_ FrameUID				GetFrameId ()			const	{ return _frameId.load(); }
@@ -201,6 +199,91 @@ namespace AE::Graphics
 			
 		void  Run () override;
 	};
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	RenderTaskScheduler
+=================================================
+*/
+	ND_ forceinline MRenderTaskScheduler&  RenderTaskScheduler ()
+	{
+		return *MRenderTaskScheduler::_Instance();
+	}
+
+/*
+=================================================
+	BeginFrame
+=================================================
+*/
+	template <typename ...Deps>
+	inline AsyncTask  MRenderTaskScheduler::BeginFrame (const BeginFrameConfig &cfg, const Tuple<Deps...> &deps)
+	{
+		CHECK_ERR( _SetState( EState::Idle, EState::BeginFrame ));
+
+		FrameUID	frame_id = _frameId.Inc();
+		_perFrameUID[ frame_id.Index() ].store( frame_id );
+
+		AsyncTask	task = MakeRC<MRenderTaskScheduler::BeginFrameTask>( frame_id, cfg );
+		
+		EXLOCK( _beginDepsGuard );
+
+		if_likely( Threading::Scheduler().Run( task, TupleConcat( Tuple{ ArrayView<AsyncTask>{ _beginDeps }}, deps )))
+		{
+			_beginDeps.clear();
+			return task;
+		}
+		else
+		{
+			CHECK_ERR( _SetState( EState::BeginFrame, EState::Idle ));
+			return null;
+		}
+	}
+	
+/*
+=================================================
+	EndFrame
+=================================================
+*/
+	template <typename ...Deps>
+	inline AsyncTask  MRenderTaskScheduler::EndFrame (const Tuple<Deps...> &deps)
+	{
+		CHECK_ERR( AnyEqual( _GetState(), EState::BeginFrame, EState::RecordFrame ));
+		
+		AsyncTask	task = MakeRC<MRenderTaskScheduler::EndFrameTask>( _frameId.load() );
+
+		if_likely( Threading::Scheduler().Run( task, deps ))
+		{
+			AddNextFrameDeps( task );
+			return task;
+		}
+		else
+			return null;
+	}
+	
+/*
+=================================================
+	AddNextFrameDeps
+=================================================
+*/
+	inline void  MRenderTaskScheduler::AddNextFrameDeps (ArrayView<AsyncTask> deps)
+	{
+		EXLOCK( _beginDepsGuard );
+
+		for (auto& dep : deps)
+			_beginDeps.push_back( dep );
+
+		ASSERT( _beginDeps.size() <= _MaxBeginDeps );
+	}
+	
+	inline void  MRenderTaskScheduler::AddNextFrameDeps (AsyncTask dep)
+	{
+		EXLOCK( _beginDepsGuard );
+		_beginDeps.push_back( RVRef(dep) );
+		ASSERT( _beginDeps.size() <= _MaxBeginDeps );
+	}
 
 
 } // AE::Graphics

@@ -66,6 +66,26 @@ namespace AE::App
 		ND_ static constexpr bool  _IsCursor2D (EInputType type);
 	};
 
+	
+/*
+=================================================
+	_Is***
+=================================================
+*/
+	forceinline constexpr bool  SerializableInputActionsOpenVR::_IsKey (EInputType)
+	{
+		return false;	//((type >= EInputType::MouseBegin) & (type <= EInputType::MouseEnd)) |
+				//((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
+	}
+
+	forceinline constexpr bool  SerializableInputActionsOpenVR::_IsCursor1D (EInputType) {
+		return false; //(type >= EInputType::Cursor1DBegin) & (type <= EInputType::Cursor1DEnd);
+	}
+
+	forceinline constexpr bool  SerializableInputActionsOpenVR::_IsCursor2D (EInputType) {
+		return false; //(type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd);
+	}
+
 
 } // AE::App
 

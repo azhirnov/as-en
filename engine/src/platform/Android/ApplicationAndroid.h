@@ -46,9 +46,9 @@ namespace AE::App
 			JavaMethod< void (jstring, jboolean) >	showToast;
 			JavaMethod< void () >					createWindow;
 		}						_methods;
+
 		DRC_ONLY(
-			SingleThreadCheck	_stCheck;
-			DataRaceCheck		_drCheck;
+			RWDataRaceCheck		_drCheck;	// protects: _java, _methods, _displayInfo
 		)
 
 
@@ -72,11 +72,11 @@ namespace AE::App
 
 
 	// IApplication //
-		WindowPtr		CreateWindow (WndListenerPtr, const WindowDesc &) override;
-
-		RC<RStream>		OpenResource () override;
+		WindowPtr		CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*) override;
 
 		Monitors_t		GetMonitors (bool update = false) override;
+
+		RC<IFileStorage> OpenBuiltinStorage () override;
 
 		ArrayView<const char*>	GetVulkanInstanceExtensions () override;
 		
@@ -87,14 +87,16 @@ namespace AE::App
 
 	// called from java
 	public:
-		static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app,  jobject assetMngr);
+		static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app, jobject assetMngr);
 		static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring, jstring, jstring, jstring, jstring);
+		static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass, jint width, jint height, jint ppi, jint orientation);
+		static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass);
 
 		static jint  OnJniLoad (JavaVM* vm);
 		static void  OnJniUnload (JavaVM* vm);
 	};
 
 
-}	// AE::App
+} // AE::App
 
 #endif // AE_PLATFORM_ANDROID

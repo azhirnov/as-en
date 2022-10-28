@@ -28,6 +28,8 @@ namespace AE::Base
 
 		explicit FastRStream (RC<RStream> stream);
 
+		~FastRStream ();
+
 		ND_ bool	Empty ()			const	{ return _ptr == _end; }
 		ND_ Bytes	RemainingSize ()	const	{ return Bytes{_end} - Bytes{_ptr}; }
 		
@@ -88,9 +90,22 @@ namespace AE::Base
 
 		if_likely( _stream != null and _stream->IsOpen() )
 		{
+			ASSERT( AllBits( _stream->GetStreamType(), RStream::EStreamType::Buffered ));
+
 			_stream->UpdateFastStream( OUT _ptr, OUT _end );
 			ASSERT( _ptr != null );
 		}
+	}
+	
+/*
+=================================================
+	destructor
+=================================================
+*/
+	inline FastRStream::~FastRStream ()
+	{
+		if ( (_stream != null) & (_ptr <= _end) )
+			_stream->EndFastStream( _ptr );
 	}
 
 /*

@@ -66,10 +66,10 @@ namespace AE::Graphics
 
 		void  Release ();
 
-		ND_ EQueueType		GetQueueType ()	const	{ return _queueType; }
-		ND_ VkCommandBuffer	Get ()			const	{ ASSERT(IsValid());  return _cmdbuf; }
-		ND_ bool			IsValid ()		const	{ return _cmdbuf != Default; }
-		ND_ VQueuePtr		GetQueue ()		const;
+		ND_ EQueueType		GetQueueType ()		const	{ return _queueType; }
+		ND_ VkCommandBuffer	Get ()				const	{ ASSERT(IsValid());  return _cmdbuf; }
+		ND_ bool			IsValid ()			const	{ return _cmdbuf != Default; }
+		ND_ VQueuePtr		GetQueue ()			const;
 	};
 
 
@@ -130,6 +130,6 @@ namespace AE::Graphics
 	};
 	
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

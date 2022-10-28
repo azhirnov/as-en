@@ -3,7 +3,7 @@
 #pragma once
 
 #include "base/Algorithms/StringUtils.h"
-#include "base/Utils/Noninstancable.h"
+#include "base/Utils/Helpers.h"
 
 namespace AE::Base
 {
@@ -108,4 +108,4 @@ namespace AE::Base
 		return true;
 	}
 
-}	// AE::Base
+} // AE::Base

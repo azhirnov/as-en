@@ -71,6 +71,6 @@ namespace AE::Base
 	AE_BIT_OPERATORS( WindowsProcess::EFlags );
 
 
-}	// AE::Base
+} // AE::Base
 
 #endif // AE_PLATFORM_WINDOWS

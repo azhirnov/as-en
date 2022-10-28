@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	MTU : 1460 bytes
+*/
 
 #pragma once
 

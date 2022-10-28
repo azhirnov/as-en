@@ -16,6 +16,20 @@ namespace AE::Base
 	
 	class RStream : public EnableRC< RStream >
 	{
+	// types
+	public:
+		enum class EStreamType : uint
+		{
+			Unknown				= 0,
+			Buffered			= 1 << 0,		// allow fast stream
+			ThreadSafe			= 1 << 1,
+			SequentialAccess	= 1 << 2,		// allow ReadSeq()
+			RandomAccess		= 1 << 3,		// allow ReadRnd() and SeekSet()
+			FixedSize			= 1 << 4,		// total size is known, not supported for compressed stream
+		};
+
+
+	// methods
 	public:
 		RStream () {}
 
@@ -27,14 +41,26 @@ namespace AE::Base
 		RStream&  operator = (const RStream &) = delete;
 		RStream&  operator = (RStream &&) = delete;
 
-		ND_ virtual bool	IsOpen ()			const = 0;
-		ND_ virtual Bytes	Position ()			const = 0;
-		ND_ virtual Bytes	Size ()				const = 0;
-		ND_ Bytes			RemainingSize ()	const { return Size() - Position(); }
-		ND_ bool			IsThreadSafe ()		const { return false; }
+		ND_ virtual bool		IsOpen ()			const = 0;
+		ND_ virtual Bytes		Position ()			const = 0;
+		ND_ virtual Bytes		Size ()				const = 0;
+		ND_ virtual EStreamType	GetStreamType ()	const = 0;
+
+		ND_ Bytes				RemainingSize ()	const { return Size() - Position(); }
+		ND_ bool				IsThreadSafe ()		const { return AllBits( GetStreamType(), EStreamType::ThreadSafe ); }
 
 			virtual bool	SeekSet (Bytes pos) = 0;
-		ND_ virtual Bytes	Read2 (OUT void *buffer, Bytes size) = 0;
+
+		// sequential read
+		ND_ virtual Bytes	ReadSeq (OUT void *buffer, Bytes size) = 0;
+
+		// random access read op
+		ND_ virtual Bytes	ReadRnd (Bytes offset, OUT void *buffer, Bytes size)
+		{
+			if_likely( SeekSet( offset ))
+				return ReadSeq( OUT buffer, size );
+			return 0_b;
+		}
 
 			
 		virtual void  UpdateFastStream (OUT const void* &begin, OUT const void* &end)
@@ -42,11 +68,16 @@ namespace AE::Base
 			begin	= null;
 			end		= null;
 		}
+
+		virtual void  EndFastStream (const void* ptr)
+		{
+			Unused( ptr );
+		}
 		
 
 		bool  Read (OUT void *buffer, Bytes size)
 		{
-			return Read2( buffer, size ) == size;
+			return ReadSeq( buffer, size ) == size;
 		}
 		
 
@@ -56,7 +87,7 @@ namespace AE::Base
 			str.resize( length );
 
 			Bytes	expected_size	{ sizeof(str[0]) * str.length() };
-			Bytes	current_size	= Read2( str.data(), expected_size );
+			Bytes	current_size	= ReadSeq( str.data(), expected_size );
 		
 			str.resize( usize(current_size / sizeof(str[0])) );
 
@@ -78,7 +109,7 @@ namespace AE::Base
 			arr.resize( count );
 
 			Bytes	expected_size	{ sizeof(arr[0]) * arr.size() };
-			Bytes	current_size	= Read2( arr.data(), expected_size );
+			Bytes	current_size	= ReadSeq( arr.data(), expected_size );
 		
 			arr.resize( usize(current_size / sizeof(arr[0])) );
 
@@ -97,9 +128,11 @@ namespace AE::Base
 		template <typename T>
 		EnableIf<IsTrivial<T>, bool>  Read (OUT T &data)
 		{
-			return Read2( AddressOf(data), Bytes::SizeOf(data) ) == Bytes::SizeOf(data);
+			return ReadSeq( AddressOf(data), Bytes::SizeOf(data) ) == Bytes::SizeOf(data);
 		}
 	};
+
+	AE_BIT_OPERATORS( RStream::EStreamType );
 
 
 
@@ -109,6 +142,12 @@ namespace AE::Base
 	
 	class WStream : public EnableRC< WStream >
 	{
+	// types
+	public:
+		using EStreamType = RStream::EStreamType;
+
+
+	// methods
 	public:
 		WStream () {}
 
@@ -120,10 +159,12 @@ namespace AE::Base
 		WStream&  operator = (const WStream &) = delete;
 		WStream&  operator = (WStream &&) = delete;
 
-		ND_ virtual bool	IsOpen ()			const = 0;
-		ND_ virtual Bytes	Position ()			const = 0;
-		ND_ virtual Bytes	Size ()				const = 0;
-		ND_ bool			IsThreadSafe ()		const { return false; }
+		ND_ virtual bool		IsOpen ()			const = 0;
+		ND_ virtual Bytes		Position ()			const = 0;
+		ND_ virtual Bytes		Size ()				const = 0;
+		ND_ virtual EStreamType	GetStreamType ()	const = 0;
+
+		ND_ bool				IsThreadSafe ()		const { return AllBits( GetStreamType(), EStreamType::ThreadSafe ); }
 		
 			virtual bool	SeekSet (Bytes pos) = 0;
 		ND_ virtual Bytes	Write2 (const void *buffer, Bytes size) = 0;
@@ -185,5 +226,38 @@ namespace AE::Base
 	};
 
 
-}	// AE::Base
+
+	//
+	// Stream Utils
+	//
+
+	class StreamUtils final : public Noninstancable
+	{
+	// types
+	public:
+		struct CmpResult
+		{
+			Bytes	processed;
+			Bytes	diff;		// 0 if equal
+
+			constexpr CmpResult () {}
+			constexpr CmpResult (Bytes processed, Bytes diff) : processed{processed}, diff{diff} {}
+
+			ND_ explicit operator bool () const { return diff == 0; }
+		};
+
+	// methods
+	public:
+		ND_ static Bytes  BufferredCopy (WStream &dstStream, RStream &srcStream, Bytes size, void* buffer, Bytes bufferSize);
+		ND_ static Bytes  BufferredCopy (WStream &dstStream, RStream &srcStream, Bytes size);
+		ND_ static Bytes  BufferredCopy (WStream &dstStream, RStream &srcStream, void* buffer, Bytes bufferSize);
+		ND_ static Bytes  BufferredCopy (WStream &dstStream, RStream &srcStream);
+		
+		ND_ static CmpResult  Compare (RStream &lhs, RStream &rhs, Bytes size, void* lBuffer, void* rBuffer, Bytes bufferSize);
+		ND_ static CmpResult  Compare (RStream &lhs, RStream &rhs, Bytes size);
+		ND_ static CmpResult  Compare (RStream &lhs, RStream &rhs);
+	};
+
+
+} // AE::Base
 

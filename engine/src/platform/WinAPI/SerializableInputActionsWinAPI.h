@@ -196,23 +196,18 @@ namespace AE::App
 			Cursor1DBegin		= KeyEnd + 1,
 			MouseWheelX			= Cursor1DBegin,// float (delta)
 			MouseWheelY,						// float (delta)
-			CursorPosX,							// float (absolute in pixels)
-			CursorPosY,							// float (absolute in pixels)
-			CursorPosX_mm,						// float (absolute in mm)
-			CursorPosY_mm,						// float (absolute in mm)
-			CursorDeltaX,						// float (delta in pixels)
-			CursorDeltaY,						// float (delta in pixels)
-			CursorDeltaX_norm,					// snorm
-			CursorDeltaY_norm,					// snorm
-			Cursor1DEnd			= CursorDeltaY_norm,
+			Cursor1DEnd			= MouseWheelY,
 			
 			Cursor2DBegin,
-			CursorPosXY			= Cursor2DBegin,// float2 (absolute in pixels)
-			CursorPosXY_mm,						// float2 (absolute in mm)
-			CursorDeltaXY,						// float2 (delta in pixels)
-			CursorDeltaXY_norm,					// snorm2
-			TouchXY_mm,							// float2 (absolute in mm)
-			Cursor2DEnd			= TouchXY_mm,
+			CursorPos			= Cursor2DBegin,// float2 (absolute in pixels)
+			CursorPos_mm,						// float2 (absolute in mm)
+			CursorDelta,						// float2 (delta in pixels)
+			CursorDelta_norm,					// snorm2
+			TouchPos,							// float2 (absolute in pixels)
+			TouchPos_mm,						// float2 (absolute in mm)
+			TouchDelta,							// float2 (delta in pixels)
+			TouchDelta_norm,					// snorm2
+			Cursor2DEnd			= TouchDelta_norm,
 
 			_Count,
 			Unknown				= 0xFFFF,

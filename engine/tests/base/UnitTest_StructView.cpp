@@ -67,6 +67,33 @@ namespace
 			TEST( data[i].field2 == view[i] );
 		}
 	}
+
+
+	static void  StructViewTransform_Test1 ()
+	{
+		struct Data {
+			int		field1;
+			double	field2;
+			ubyte	field3;
+		};
+		const Data	data[] = {
+			{ BitCast<int>(1.111f), 1.111, 11 },
+			{ BitCast<int>(2.222f), 2.222, 22 },
+			{ BitCast<int>(3.333f), 3.333, 33 }
+		};
+
+		StructView<int>		view1{ ArrayView<Data>{data}, &Data::field1 };
+		TEST( CountOf( data ) == view1.size() );
+
+		StructViewTransform< int, float, StructViewTransform_BitCastConverter<int, float>>	view2{ view1 };
+		TEST( CountOf( data ) == view2.size() );
+
+		for (usize i = 0; i < view2.size(); ++i)
+		{
+			double	d = view2[i];
+			TEST( Equals( data[i].field2, d, 0.0001 ));
+		}
+	}
 }
 
 
@@ -79,6 +106,8 @@ extern void UnitTest_StructView ()
 #endif
 
 	StructView_Test3();
+
+	StructViewTransform_Test1();
 
 	TEST_PASSED();
 }

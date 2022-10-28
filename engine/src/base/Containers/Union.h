@@ -76,4 +76,4 @@ namespace AE::Base
 		return std::get_if<T>( un );
 	}
 
-}	// AE::Base
+} // AE::Base

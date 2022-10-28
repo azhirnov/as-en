@@ -130,6 +130,6 @@ namespace AE::Graphics
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_METAL
+#endif // AE_ENABLE_METAL

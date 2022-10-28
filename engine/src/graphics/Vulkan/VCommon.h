@@ -10,9 +10,13 @@
 # include "base/Containers/FixedString.h"
 # include "base/Containers/FixedTupleArray.h"
 # include "base/Containers/StructView.h"
-# include "base/Utils/Noncopyable.h"
+# include "base/Utils/Helpers.h"
 # include "base/Memory/LinearAllocator.h"
 # include "base/Memory/StackAllocator.h"
+
+# ifdef AE_DBG_OR_DEV_OR_PROF
+#	include "base/Algorithms/StringUtils.h"
+# endif
 
 # include "threading/Primitives/DataRaceCheck.h"
 # include "threading/Primitives/Atomic.h"
@@ -25,6 +29,7 @@
 # include "graphics/Public/IDs.h"
 # include "graphics/Public/FrameUID.h"
 # include "graphics/Public/GraphicsCreateInfo.h"
+# include "graphics/Public/GraphicsProfiler.h"
 
 # include "graphics/Vulkan/VulkanLoader.h"
 # include "graphics/Vulkan/VulkanCheckError.h"
@@ -42,10 +47,14 @@ namespace AE::Graphics
 	using AE::Threading::SharedMutex;
 	using AE::Threading::SpinLock;
 	using AE::Threading::RWSpinLock;
+	using AE::Threading::SpinLockRelaxed;
 	using AE::Threading::RecursiveMutex;
 	using AE::Threading::AsyncTask;
 	using AE::Threading::GlobalLinearAllocatorRef;
 	using AE::Threading::GraphicsFrameAllocatorRef;
+	using AE::Threading::BitAtomic;
+	using AE::Threading::FAtomic;
+	using AE::Threading::EThread;
 	
 #	if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::RWDataRaceCheck;
@@ -57,6 +66,8 @@ namespace AE::Graphics
 	class VFramebuffer;
 	class VCommandPoolManager;
 	class VCommandBatch;
+	class VRenderTask;
+	class VDrawTask;
 
 	DEBUG_ONLY(
 		using DebugName_t = FixedString<64>;
@@ -106,9 +117,9 @@ namespace AE::Graphics
 	VULKAN_ENUM_BIT_OPERATORS( VkBuildAccelerationStructureFlagBitsKHR );
 #undef VULKAN_ENUM_BIT_OPERATORS
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN
 
 
 # ifdef AE_CPP_DETECT_MISMATCH
@@ -119,4 +130,4 @@ namespace AE::Graphics
 #	pragma detect_mismatch( "AE_ENABLE_VULKAN", "0" )
 #  endif
 
-#endif	// AE_CPP_DETECT_MISMATCH
+#endif // AE_CPP_DETECT_MISMATCH

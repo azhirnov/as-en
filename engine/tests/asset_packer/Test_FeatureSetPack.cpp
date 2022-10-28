@@ -43,7 +43,7 @@ namespace
 			TEST( offsets.featureSetOffset < ulong(file->Size()) );
 
 			TEST( file->SeekSet( Bytes{offsets.featureSetOffset} ));
-			TEST( mem_stream->Load( *file, Bytes{offsets.featureSetDataSize} ));
+			TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.featureSetDataSize} ));
 		}
 
 		AE::Serializing::Deserializer	des{ mem_stream };

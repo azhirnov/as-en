@@ -4,6 +4,7 @@
 
 #include "graphics/Public/GraphicsCreateInfo.h"
 #include "platform/Public/IWindow.h"
+#include "platform/Public/VRDevice.h"
 
 namespace AE::App
 {
@@ -24,6 +25,9 @@ namespace AE::App
 		Graphics::GraphicsCreateInfo	graphics;
 		SchedulerCreateInfo				threading;
 		WindowDesc						window;
+
+		bool							enableVR	= false;
+		IVRDevice::VRImageDesc			vr;
 	};
 
 

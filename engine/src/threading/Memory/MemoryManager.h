@@ -2,8 +2,13 @@
 
 #pragma once
 
+#include "base/Containers/InPlace.h"
+#include "base/Memory/IAllocator.h"
+#include "base/Memory/UntypedAllocator.h"
+
 #include "threading/Memory/LfLinearAllocator.h"
 #include "threading/Memory/StackAllocator.h"
+#include "threading/Memory/MemoryProfiler.h"
 
 namespace AE::Threading
 {
@@ -33,24 +38,39 @@ namespace AE::Threading
 			ND_ FrameAllocator_t&  Get ()	{ return _alloc[_idx]; }
 		};
 
+		using DefaultAlloc_t		= AllocatorImpl< UntypedAllocator >;
+		using DefaultAlignedAlloc_t	= AlignedAllocatorImpl< UntypedAlignedAllocator >;
+
 
 	// variables
 	private:
-		GlobalLinearAllocator_t		_globalLinear;
+		GlobalLinearAllocator_t			_globalLinear;
 
-		FrameAlloc		_graphicsFrameAlloc;
-		FrameAlloc		_simulationFrameAlloc;
+		FrameAlloc						_graphicsFrameAlloc;
+		FrameAlloc						_simulationFrameAlloc;
+
+		InPlace<DefaultAlloc_t>			_defaultAlloc;
+		InPlace<DefaultAlignedAlloc_t>	_defaultAlignedAlloc;
+		
+		PROFILE_ONLY(
+			AtomicRC<IMemoryProfiler>	_profiler;
+		)
 
 
 	// methods
 	public:
 		static void  CreateInstance ();
 		static void  DestroyInstance ();
+		
+		void  SetProfiler (RC<IMemoryProfiler> profiler);
 
-		ND_ GlobalLinearAllocator_t&  GetGlobalLinearAllocator ()		{ return _globalLinear; }
+		ND_ GlobalLinearAllocator_t&	GetGlobalLinearAllocator ()		{ return _globalLinear; }
 
-		ND_ FrameAlloc&				GetGraphicsFrameAllocator ()		{ return _graphicsFrameAlloc; }
-		ND_ FrameAlloc&				GetSimulationFrameAllocator ()		{ return _simulationFrameAlloc; }
+		ND_ FrameAlloc&					GetGraphicsFrameAllocator ()	{ return _graphicsFrameAlloc; }
+		ND_ FrameAlloc&					GetSimulationFrameAllocator ()	{ return _simulationFrameAlloc; }
+
+		ND_ RC<IAllocator>				GetDefaultAllocator ()			{ return _defaultAlloc->GetRC(); }
+		ND_ RC<IAlignedAllocator>		GetDefaultAlignedAllocator ()	{ return _defaultAlignedAlloc->GetRC(); }
 
 
 	private:

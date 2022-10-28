@@ -64,7 +64,7 @@ namespace AE::Math
 
 		ND_ GLM_CONSTEXPR ValVec_t const&	GetNonScaled ()		const	{ return *reinterpret_cast<ValVec_t const *>(this); }
 		ND_ GLM_CONSTEXPR ValVec_t &		GetNonScaledRef ()			{ return *reinterpret_cast<ValVec_t *>(this); }
-		ND_ GLM_CONSTEXPR ValVec_t			GetScaled ()		const	{ return { this->x.GetScaled(), this->y.GetScaled() }; }
+		ND_ GLM_CONSTEXPR ValVec_t			GetScaled ()		const	{ return GetNonScaled() * ValVec_t{Scale_t::Value}; }
 	};
 	
 
@@ -98,7 +98,7 @@ namespace AE::Math
 		
 		ND_ GLM_CONSTEXPR ValVec_t const&	GetNonScaled ()		const	{ return *reinterpret_cast<ValVec_t const *>(this); }
 		ND_ GLM_CONSTEXPR ValVec_t &		GetNonScaledRef ()			{ return *reinterpret_cast<ValVec_t *>(this); }
-		ND_ GLM_CONSTEXPR ValVec_t			GetScaled ()		const	{ return { this->x.GetScaled(), this->y.GetScaled(), this->z.GetScaled() }; }
+		ND_ GLM_CONSTEXPR ValVec_t			GetScaled ()		const	{ return GetNonScaled() * ValVec_t{Scale_t::Value}; }
 	};
 	
 
@@ -132,44 +132,12 @@ namespace AE::Math
 		
 		ND_ GLM_CONSTEXPR ValVec_t const&	GetNonScaled ()		const	{ return *reinterpret_cast<ValVec_t const *>(this); }
 		ND_ GLM_CONSTEXPR ValVec_t &		GetNonScaledRef ()			{ return *reinterpret_cast<ValVec_t *>(this); }
-		ND_ GLM_CONSTEXPR ValVec_t			GetScaled ()		const	{ return { this->x.GetScaled(), this->y.GetScaled(), this->z.GetScaled(), this->w.GetScaled() }; }
+		ND_ GLM_CONSTEXPR ValVec_t			GetScaled ()		const	{ return GetNonScaled() * ValVec_t{Scale_t::Value}; }
 	};
 
 
-namespace _math_hidden_
-{
-/*
-=================================================
-	PhysicalQuantityVec_GetNonScaled
-=================================================
-*/
-	template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q>
-	ND_ GLM_CONSTEXPR TVec<ValueType, VecLength, Q>
-		PhysicalQuantityVec_GetNonScaled (const TPhysicalQuantityVec<VecLength, ValueType, Dimension, Scale, Q> &value)
-	{
-		TVec<ValueType, VecLength, Q>	ret;
-		for (int i = 0; i < VecLength; ++i) {
-			ret[i] = value[i].GetNonScaled();
-		}
-		return ret;
-	}
-	
-/*
-=================================================
-	PhysicalQuantityVec_GetScaled
-=================================================
-*/
-	template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q>
-	ND_ GLM_CONSTEXPR TVec<ValueType, VecLength, Q>
-		PhysicalQuantityVec_GetScaled (const TPhysicalQuantityVec<VecLength, ValueType, Dimension, Scale, Q> &value)
-	{
-		TVec<ValueType, VecLength, Q>	ret;
-		for (int i = 0; i < VecLength; ++i) {
-			ret[i] = value[i].GetScaled();
-		}
-		return ret;
-	}
-	
+namespace _hidden_
+{	
 /*
 =================================================
 	PhysicalQuantityVec_ToScale
@@ -180,15 +148,10 @@ namespace _math_hidden_
 		PhysicalQuantityVec_ToScale (const TPhysicalQuantityVec<VecLength, ValueType, Dimension, Scale, Q> &value)
 	{
 		const auto	scale = Scale::Value / NewScale::Value;
-
-		TVec<ValueType, VecLength, Q>	ret;
-		for (int i = 0; i < VecLength; ++i) {
-			ret[i] = value[i].GetNonScaled() * scale;
-		}
-		return ret;
+		return value.GetNonScaled() * TVec<ValueType, VecLength, Q>{ scale };
 	}
 
-}	// _math_hidden_
+} // _hidden_
 	
 
 /*
@@ -548,8 +511,7 @@ namespace _math_hidden_
 			 >
 	ND_ GLM_CONSTEXPR auto  Normalize (const TPhysicalQuantityVec<VecLength, ValueType, Dimension, Scale, Q> &value)
 	{
-		using namespace _math_hidden_;
-		return TPhysicalQuantityVec<VecLength, ValueType, Dimension, Scale, Q>{ Normalize( PhysicalQuantityVec_GetNonScaled( value ))};
+		return TPhysicalQuantityVec<VecLength, ValueType, Dimension, Scale, Q>{ Normalize( value.GetNonScaled() )};
 	}
 
 /*
@@ -561,8 +523,7 @@ namespace _math_hidden_
 			 >
 	ND_ GLM_CONSTEXPR auto  Length (const TPhysicalQuantityVec<VecLength, ValueType, Dimension, Scale, Q> &value)
 	{
-		using namespace _math_hidden_;
-		return PhysicalQuantity<ValueType, Dimension, Scale>{ Length( PhysicalQuantityVec_GetNonScaled( value ))};
+		return PhysicalQuantity<ValueType, Dimension, Scale>{ Length( value.GetNonScaled() )};
 	}
 	
 /*
@@ -574,9 +535,8 @@ namespace _math_hidden_
 			 >
 	ND_ GLM_CONSTEXPR auto  LengthSqr (const TPhysicalQuantityVec<VecLength, ValueType, Dimension, Scale, Q> &value)
 	{
-		using namespace _math_hidden_;
 		using DstScale = ValueScaleTempl::template Pow< Scale, 2 >;
-		return PhysicalQuantity<ValueType, Dimension, DstScale>{ LengthSqr( PhysicalQuantityVec_GetNonScaled( value ))};
+		return PhysicalQuantity<ValueType, Dimension, DstScale>{ LengthSqr( value.GetNonScaled() )};
 	}
 
 /*
@@ -589,11 +549,10 @@ namespace _math_hidden_
 	ND_ GLM_CONSTEXPR auto  Dot (const TPhysicalQuantityVec<VecLength, ValueType, Dimension, LhsScale, Q> &lhs,
 								 const TPhysicalQuantityVec<VecLength, ValueType, Dimension, RhsScale, Q> &rhs)
 	{
-		using namespace _math_hidden_;
 		using Scale = ValueScaleTempl::template Mul< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
-		return Type{ Dot( PhysicalQuantityVec_GetNonScaled( lhs ), PhysicalQuantityVec_GetNonScaled( rhs ))};
+		return Type{ Dot( lhs.GetNonScaled(), rhs.GetNonScaled() )};
 	}
 
 /*
@@ -606,11 +565,10 @@ namespace _math_hidden_
 	ND_ GLM_CONSTEXPR auto  Cross (const TPhysicalQuantityVec<3, ValueType, Dimension, LhsScale, Q> &lhs,
 								   const TPhysicalQuantityVec<3, ValueType, Dimension, RhsScale, Q> &rhs)
 	{
-		using namespace _math_hidden_;
 		using Scale = ValueScaleTempl::template Mul< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
-		return PhysicalQuantityVec<Type,3,Q>{ Cross( PhysicalQuantityVec_GetNonScaled( lhs ), PhysicalQuantityVec_GetNonScaled( rhs ))};
+		return PhysicalQuantityVec<Type,3,Q>{ Cross( lhs.GetNonScaled(), rhs.GetNonScaled() )};
 	}
 	
 /*
@@ -623,12 +581,11 @@ namespace _math_hidden_
 	ND_ GLM_CONSTEXPR auto  Distance (const TPhysicalQuantityVec<VecLength, ValueType, Dimension, LhsScale, Q> &lhs,
 									  const TPhysicalQuantityVec<VecLength, ValueType, Dimension, RhsScale, Q> &rhs)
 	{
-		using namespace _math_hidden_;
 		using Scale = ValueScaleTempl::template Add< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
-		return Type{ Distance(	PhysicalQuantityVec_ToScale< Scale >( lhs ),
-								PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
+		return Type{ Distance(	_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
+								_hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
 	}
 	
 /*
@@ -641,12 +598,11 @@ namespace _math_hidden_
 	ND_ GLM_CONSTEXPR auto  DistanceSqr (const TPhysicalQuantityVec<VecLength, ValueType, Dimension, LhsScale, Q> &lhs,
 										 const TPhysicalQuantityVec<VecLength, ValueType, Dimension, RhsScale, Q> &rhs)
 	{
-		using namespace _math_hidden_;
 		using Scale = ValueScaleTempl::template Add< LhsScale, RhsScale >;
 		using Type	= PhysicalQuantity< ValueType, Dimension, ValueScaleTempl::template Pow< Scale, 2 > >;
 		
-		return Type{ DistanceSqr( PhysicalQuantityVec_ToScale< Scale >( lhs ),
-								  PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
+		return Type{ DistanceSqr( _hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
+								  _hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
 	}
 	
 /*
@@ -723,7 +679,7 @@ namespace _math_hidden_
 		return ret;
 	}
 
-}	// AE::Math
+} // AE::Math
 
 
 namespace AE::Base
@@ -737,4 +693,4 @@ namespace AE::Base
 	template <typename Qt, int I, glm::qualifier Ql>
 	struct TTrivialySerializable< PhysicalQuantityVec<Qt,I,Ql> > { static constexpr bool  value = IsTrivialySerializable<Qt>; };
 
-}	// AE::Base
+} // AE::Base

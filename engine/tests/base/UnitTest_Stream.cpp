@@ -5,43 +5,159 @@
 #include "base/Stream/BrotliStream.h"
 #include "base/Stream/BufferedStream.h"
 #include "base/Stream/FastStream.h"
+#include "base/Math/Random.h"
 #include "UnitTest_Common.h"
 
 
 namespace
 {
 #ifdef AE_ENABLE_BROTLI
+	ND_ static Array<ubyte>  GenRandomArray (Bytes size)
+	{
+		Array<ubyte>	temp;
+		temp.resize( usize(size) );
+
+		Math::Random	rnd;
+		for (usize i = 0; i < temp.size(); ++i)
+		{
+			temp[i] = rnd.Uniform<ubyte>() & 0xF;
+		}
+		return temp;
+	}
+
+
 	static void  BrotliStream_Test1 ()
 	{
-		const String	str1 = "12i12ienmqpwom12euj1029podmksjhjbjcnalsmoiiwujkcmsalsc,posaasjncsalkmxaz";
+		const auto		uncompressed = GenRandomArray( 1_Mb );
 
 		Array<ubyte>	file_data;
 
 		// compress
 		{
+			BrotliWStream::Config	cfg;
+			cfg.inBlockSize	= 1.0f;
+			cfg.quality		= 1.0f;
+			cfg.windowBits	= 1.0f;
+
 			auto			stream = MakeRC<MemWStream>();
-			BrotliWStream	encoder{ stream };
+			BrotliWStream	encoder{ stream, cfg };
 
 			TEST( encoder.IsOpen() );
-			TEST( encoder.Write( str1 ));
+			TEST( encoder.Write( ArrayView<ubyte>{uncompressed} ));
 			encoder.Flush();
 
-			file_data.assign( stream->GetData().begin(), stream->GetData().end() );
+			file_data = stream->ReleaseData();
 		}
+
+		const Bytes	compressed_size {file_data.size()};
+		TEST( compressed_size < uncompressed.size() );
 
 		// uncompress
 		{
 			BrotliRStream	decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
-			String			str2, str3;
+			Array<ubyte>	data2, data3;
 
 			TEST( decoder.IsOpen() );
-			TEST( decoder.Read( str1.length() / 2, OUT str2 ));
-			TEST( decoder.Read( str1.length() - str2.length(), OUT str3 ));
+			TEST( decoder.Read( uncompressed.size() / 2, OUT data2 ));
+			TEST( decoder.Read( uncompressed.size() - data2.size(), OUT data3 ));
+			TEST( decoder.Position() == compressed_size );
 
-			TEST( str1 == (str2 + str3) );
+			TEST( uncompressed.size() == (data2.size() + data3.size()) );
+			TEST( ArrayView<ubyte>{uncompressed}.section( 0, data2.size() ) == data2 );
+			TEST( ArrayView<ubyte>{uncompressed}.section( data2.size(), data3.size() ) == data3 );
 		}
 	}
-#endif	// AE_ENABLE_BROTLI
+
+
+	static void  BrotliStream_Test2 ()
+	{
+		const auto		uncompressed = GenRandomArray( 2_Mb );
+		const Bytes		block_size	 = 1_Kb;
+
+		Array<ubyte>	file_data;
+
+		// compress
+		{
+			BrotliWStream::Config	cfg;
+			cfg.inBlockSize	= 0.2f;
+			cfg.quality		= 0.5f;
+			cfg.windowBits	= 0.2f;
+
+			auto			stream = MakeRC<MemWStream>();
+			BrotliWStream	encoder{ stream, cfg };
+
+			TEST( encoder.IsOpen() );
+			for (Bytes pos, size = ArraySizeOf(uncompressed); pos < size;)
+			{
+				Bytes	wr_size	= Min( block_size, size - pos );
+				Bytes	written = encoder.Write2( uncompressed.data() + pos, wr_size );
+
+				TEST( written > 0 );
+				pos += written;
+			}
+			encoder.Flush();
+
+			file_data = stream->ReleaseData();
+		}
+
+		const Bytes	compressed_size {file_data.size()};
+		TEST( compressed_size < uncompressed.size() );
+
+		// uncompress
+		{
+			BrotliRStream	decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+			Array<ubyte>	data2, data3;
+
+			TEST( decoder.IsOpen() );
+			TEST( decoder.Read( uncompressed.size() / 2, OUT data2 ));
+			TEST( decoder.Read( uncompressed.size() - data2.size(), OUT data3 ));
+			TEST( decoder.Position() == compressed_size );
+
+			TEST( uncompressed.size() == (data2.size() + data3.size()) );
+			TEST( ArrayView<ubyte>{uncompressed}.section( 0, data2.size() ) == data2 );
+			TEST( ArrayView<ubyte>{uncompressed}.section( data2.size(), data3.size() ) == data3 );
+		}
+	}
+
+	
+	static void  BrotliStream_Test3 ()
+	{
+		const auto		uncompressed = GenRandomArray( 2_Mb );
+
+		Array<ubyte>	file_data;
+
+		// compress
+		{
+			BrotliWStream::Config	cfg;
+			cfg.inBlockSize	= 1.0f;
+			cfg.quality		= 1.0f;
+			cfg.windowBits	= 1.0f;
+
+			auto			stream = MakeRC<MemWStream>();
+			BrotliWStream	encoder{ stream, cfg };
+
+			TEST( encoder.IsOpen() );
+			TEST( encoder.Write( ArrayView<ubyte>{uncompressed} ));
+			encoder.Flush();
+			
+			file_data = stream->ReleaseData();
+		}
+		
+		const Bytes	compressed_size {file_data.size()};
+
+		// uncompress
+		{
+			BrotliRStream	decoder{ MakeRC<MemRStream>( RVRef(file_data) )};
+			TEST( decoder.IsOpen() );
+
+			MemWStream		dst_mem;
+			const Bytes		size = StreamUtils::BufferredCopy( dst_mem, decoder );
+
+			TEST( size == ArraySizeOf(uncompressed) );
+			TEST( dst_mem.GetData() == uncompressed );
+		}
+	}
+#endif // AE_ENABLE_BROTLI
 
 
 	static void  StdStream_Test1 ()
@@ -234,6 +350,8 @@ extern void UnitTest_Stream ()
 {
 	#ifdef AE_ENABLE_BROTLI
 	BrotliStream_Test1();
+	BrotliStream_Test2();
+	BrotliStream_Test3();
 	#endif
 
 	StdStream_Test1();

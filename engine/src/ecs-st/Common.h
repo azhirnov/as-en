@@ -10,7 +10,7 @@
 
 #include "base/Utils/HandleTmpl.h"
 #include "base/Utils/TypeId.h"
-#include "base/Utils/Noncopyable.h"
+#include "base/Utils/Helpers.h"
 #include "base/Utils/RefCounter.h"
 
 #include "base/Containers/FixedArray.h"
@@ -65,4 +65,4 @@ namespace AE::ECS
 
 	class Registry;
 
-}	// AE::ECS
+} // AE::ECS

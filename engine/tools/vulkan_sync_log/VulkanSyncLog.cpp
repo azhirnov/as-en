@@ -201,10 +201,12 @@ namespace
 			usize	fenceCount			= 0;
 		};
 
+		using SyncNameMap_t	= FlatHashMap< Pair<VkSemaphore, ulong>, String >;
+
 
 	// variables
 	public:
-		Mutex					guard;
+		RecursiveMutex			guard;
 		bool					enableLog	= false;
 		String					log;
 		QueueNameMap_t			queueMap;
@@ -226,6 +228,9 @@ namespace
 	private:
 		DeviceFnTable			_originDeviceFnTable;
 
+		SyncNameMap_t			_syncNameMap;
+		ulong					_syncNameCount	= 0;
+
 
 	// methods
 	public:
@@ -233,6 +238,9 @@ namespace
 		void  Deinitialize (OUT VulkanDeviceFnTable& fnTable);
 
 		void  _PrintResourceUsage (CommandBufferData &cmdbuf, VkPipelineBindPoint pipelineBindPoint);
+
+			void	ResetSyncNames ();
+		ND_ String	GetSyncName (VkSemaphore sem, ulong val);
 
 		ND_ static VulkanLogger&  Get ()
 		{
@@ -920,6 +928,8 @@ namespace
 				case VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT :
 				case VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV :
 				case VK_DESCRIPTOR_TYPE_MUTABLE_VALVE :
+				case VK_DESCRIPTOR_TYPE_SAMPLE_WEIGHT_IMAGE_QCOM :
+				case VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM :
 				case VK_DESCRIPTOR_TYPE_MAX_ENUM :
 				default :
 					DBG_WARNING( "unsupported descriptor type" );
@@ -1108,16 +1118,27 @@ namespace
 					log << "waitSemaphore = {";
 					for (uint j = 0; j < batch.waitSemaphoreCount; ++j)
 					{
-						log << "\n  '";
-						auto	sem_it = logger.semaphoreMap.find( batch.pWaitSemaphores[j] );
-						log << (sem_it != logger.semaphoreMap.end() ? sem_it->second : "<unknown>");
-						//log << ", [" << ToString<16>( ulong(batch.pWaitSemaphores[j]) ) << "]";
-						log << "',  stage: " << VkPipelineStageToString( batch.pWaitDstStageMask[j] );
+						#if 1
+							ulong	val = 0;
+							if ( timeline != null ) {
+								ASSERT( j < timeline->waitSemaphoreValueCount );
+								val = timeline->pWaitSemaphoreValues[j];
+							}
+							log << "\n  '"
+								<< logger.GetSyncName( batch.pWaitSemaphores[j], val )
+								<< "',  stage: " << VkPipelineStageToString( batch.pWaitDstStageMask[j] );
+						#else
+							log << "\n  '";
+							auto	sem_it = logger.semaphoreMap.find( batch.pWaitSemaphores[j] );
+							log << (sem_it != logger.semaphoreMap.end() ? sem_it->second : "<unknown>");
+							log << ", [" << ToString<16>( ulong(batch.pWaitSemaphores[j]) ) << "]";
+							log << "',  stage: " << VkPipelineStageToString( batch.pWaitDstStageMask[j] );
 
-						if ( timeline != null ) {
-							ASSERT( j < timeline->waitSemaphoreValueCount );
-							log << ",  value: " << ToString( timeline->pWaitSemaphoreValues[j] );
-						}
+							if ( timeline != null ) {
+								ASSERT( j < timeline->waitSemaphoreValueCount );
+								log << ",  value: " << ToString( timeline->pWaitSemaphoreValues[j] );
+							}
+						#endif
 					}
 					log << "\n}\n";
 				}
@@ -1126,15 +1147,25 @@ namespace
 					log << "signalSemaphore = {";
 					for (uint j = 0; j < batch.signalSemaphoreCount; ++j)
 					{
-						log << "\n  '";
-						auto	sem_it = logger.semaphoreMap.find( batch.pSignalSemaphores[j] );
-						log << (sem_it != logger.semaphoreMap.end() ? sem_it->second : "<unknown>"s) << "'";
-						//log << ", [" << ToString<16>( ulong(batch.pSignalSemaphores[j]) ) << "]";
+						#if 1
+							ulong	val = 0;
+							if ( timeline != null ) {
+								ASSERT( j < timeline->signalSemaphoreValueCount );
+								val = timeline->pSignalSemaphoreValues[j];
+							}
+							log << "\n  '"
+								<< logger.GetSyncName( batch.pSignalSemaphores[j], val ) << "'";
+						#else
+							log << "\n  '";
+							auto	sem_it = logger.semaphoreMap.find( batch.pSignalSemaphores[j] );
+							log << (sem_it != logger.semaphoreMap.end() ? sem_it->second : "<unknown>"s) << "'";
+							//log << ", [" << ToString<16>( ulong(batch.pSignalSemaphores[j]) ) << "]";
 
-						if ( timeline != null ) {
-							ASSERT( j < timeline->signalSemaphoreValueCount );
-							log << ",  value: " << ToString( timeline->pSignalSemaphoreValues[j] );
-						}
+							if ( timeline != null ) {
+								ASSERT( j < timeline->signalSemaphoreValueCount );
+								log << ",  value: " << ToString( timeline->pSignalSemaphoreValues[j] );
+							}
+						#endif
 					}
 					log << "\n}\n";
 				}
@@ -1200,12 +1231,18 @@ namespace
 					for (uint j = 0; j < batch.waitSemaphoreInfoCount; ++j)
 					{
 						auto&	sem = batch.pWaitSemaphoreInfos[j];
-						log << "\n  '";
-						auto	sem_it = logger.semaphoreMap.find( sem.semaphore );
-						log << (sem_it != logger.semaphoreMap.end() ? sem_it->second : "<unknown>"s);
-						//log << ", [" << ToString<16>( ulong(sem.semaphore) ) << "]";
-						log << "',  stage: " << VkPipelineStage2ToString( sem.stageMask )
-							<< ",  value: " << ToString( sem.value );
+						#if 1
+							log << "\n  '"
+								<< logger.GetSyncName( sem.semaphore, sem.value )
+								<< "',  stage: " << VkPipelineStage2ToString( sem.stageMask );
+						#else
+							log << "\n  '";
+							auto	sem_it = logger.semaphoreMap.find( sem.semaphore );
+							log << (sem_it != logger.semaphoreMap.end() ? sem_it->second : "<unknown>"s);
+							//log << ", [" << ToString<16>( ulong(sem.semaphore) ) << "]";
+							log << "',  stage: " << VkPipelineStage2ToString( sem.stageMask )
+								<< ",  value: " << ToString( sem.value );
+						#endif
 					}
 					log << "\n}\n";
 				}
@@ -1215,12 +1252,18 @@ namespace
 					for (uint j = 0; j < batch.signalSemaphoreInfoCount; ++j)
 					{
 						auto&	sem = batch.pSignalSemaphoreInfos[j];
-						log << "\n  '";
-						auto	sem_it = logger.semaphoreMap.find( sem.semaphore );
-						log << (sem_it != logger.semaphoreMap.end() ? sem_it->second : "<unknown>"s);
-						//log << ", [" << ToString<16>( ulong(sem.semaphore) ) << "]";
-						log << "',  stage: " << VkPipelineStage2ToString( sem.stageMask )
-							<< ",  value: " << ToString( sem.value );
+						#if 1
+							log << "\n  '"
+								<< logger.GetSyncName( sem.semaphore, sem.value )
+								<< "',  stage: " << VkPipelineStage2ToString( sem.stageMask );
+						#else
+							log << "\n  '";
+							auto	sem_it = logger.semaphoreMap.find( sem.semaphore );
+							log << (sem_it != logger.semaphoreMap.end() ? sem_it->second : "<unknown>"s);
+							//log << ", [" << ToString<16>( ulong(sem.semaphore) ) << "]";
+							log << "',  stage: " << VkPipelineStage2ToString( sem.stageMask )
+								<< ",  value: " << ToString( sem.value );
+						#endif
 					}
 					log << "\n}\n";
 				}
@@ -3430,6 +3473,8 @@ namespace
 					case VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT :
 					case VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV :
 					case VK_DESCRIPTOR_TYPE_MUTABLE_VALVE :
+					case VK_DESCRIPTOR_TYPE_SAMPLE_WEIGHT_IMAGE_QCOM :
+					case VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM :
 					case VK_DESCRIPTOR_TYPE_MAX_ENUM :
 					default :
 						DBG_WARNING( "unsupported descriptor type" );
@@ -3495,6 +3540,7 @@ namespace
 		table._var_vkQueueSubmit					= &Wrap_vkQueueSubmit;
 		table._var_vkQueueSubmit2KHR				= &Wrap_vkQueueSubmit2KHR;
 		table._var_vkSetDebugUtilsObjectNameEXT		= &Wrap_vkSetDebugUtilsObjectNameEXT;
+		// TODO: bind sparse
 
 		table._var_vkCmdBindDescriptorSets			= &Wrap_vkCmdBindDescriptorSets;
 		table._var_vkCmdPipelineBarrier				= &Wrap_vkCmdPipelineBarrier;
@@ -3551,8 +3597,39 @@ namespace
 
 		std::memcpy( &fnTable, &_originDeviceFnTable, sizeof(_originDeviceFnTable) );
 	}
+	
+/*
+=================================================
+	ResetSyncNames
+=================================================
+*/
+	void  VulkanLogger::ResetSyncNames ()
+	{
+		EXLOCK( guard );
 
-}	// namespace
+		_syncNameMap.clear();
+		_syncNameCount	= 0;
+	}
+	
+/*
+=================================================
+	GetSyncName
+=================================================
+*/
+	String  VulkanLogger::GetSyncName (VkSemaphore sem, ulong val)
+	{
+		auto	it = _syncNameMap.find( MakePair( sem, val ));
+		if ( it != _syncNameMap.end() )
+			return it->second;
+
+		String	name = "sync-";
+		name << ToString( _syncNameCount++ );
+
+		_syncNameMap.emplace( MakePair( sem, val ), name );
+		return name;
+	}
+
+} // namespace
 
 
 /*
@@ -3592,6 +3669,7 @@ void  VulkanSyncLog::Enable ()
 	EXLOCK( logger.guard );
 
 	logger.enableLog = true;
+	logger.ResetSyncNames();
 }
 
 /*

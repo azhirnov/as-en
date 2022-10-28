@@ -11,7 +11,7 @@ extern void Test_VulkanDevice ()
 	{
 		VDeviceInitializer	dev;
 
-		CHECK_FATAL( dev.CreateInstance( "TestApp", "AE", dev.GetRecomendedInstanceLayers() ));
+		CHECK_FATAL( dev.CreateInstance( "TestApp", AE_ENGINE_NAME, dev.GetRecomendedInstanceLayers() ));
 		CHECK_FATAL( dev.ChooseHighPerformanceDevice() );
 		CHECK_FATAL( dev.CreateDefaultQueue() );
 		CHECK_FATAL( dev.CreateLogicalDevice() );
@@ -24,4 +24,4 @@ extern void Test_VulkanDevice ()
 	TEST_PASSED();
 }
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

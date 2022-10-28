@@ -8,7 +8,7 @@ RenderTechniques {
     passes = {
       [0] Pass {
         name       = 'Graphics1'
-        renderPass = 'Simple.Default'
+        renderPass = 'Simple.RenderTarget'
         subpass    = 'Main'
       }
       [1] Pass {
@@ -17,7 +17,8 @@ RenderTechniques {
     }
     pipelines = {
       [0]  'compute_1.def', 30000000
-      [1]  'graphics_1 rp:Simple', 10000000
+      [1]  'graphics_4 rp:Simple', 10000001
+      [2]  'graphics_1 rp:Simple', 10000000
     }
   ----------------------
   [1]
@@ -28,7 +29,7 @@ RenderTechniques {
     passes = {
       [0] Pass {
         name       = 'Graphics1'
-        renderPass = 'Simple.Default'
+        renderPass = 'Simple.Present'
         subpass    = 'Main'
       }
     }
@@ -89,10 +90,10 @@ DepthStencilStates {
 
 DescrSetLayouts {
   [0]
-    name  = Trace_Cs
+    name  = 'DbgDS_Trace_Cs'
     usage = 0
     [0] StorageBuffer {
-      name         = 'dbg_ShaderTrace
+      name         = 'dbg_ShaderTrace'
       vkIndex      = 0
       mtlIndex     = 0
       state        = ShaderStorage_RW | ComputeShader
@@ -101,22 +102,10 @@ DescrSetLayouts {
     }
   ----------------------
   [1]
-    name  = DS_PerDraw
-    usage = UpdateTemplate | ArgumentBuffer
-    [0] UniformBuffer {
-      name         = 'drawUB
-      vkIndex      = 0
-      mtlIndex     = 0
-      state        = ShaderUniform | PreRasterizationShaders
-      staticSize   = 64 b
-      arrayStride  = 0 b
-    }
-  ----------------------
-  [2]
-    name  = DS_Material
+    name  = 'DS_Material'
     usage = 0
     [0] SampledImage {
-      name         = 'un_ColorTexture
+      name         = 'un_ColorTexture'
       vkIndex      = 0
       mtlIndex     = fs: 0
       state        = ShaderSample | FragmentShader
@@ -124,16 +113,28 @@ DescrSetLayouts {
       format       = Unknown
     }
     [1] ImmutableSampler {
-      name         = 'un_ColorTexture_sampler
+      name         = 'un_ColorTexture_sampler'
       vkIndex      = 1
       sampler      = { 'LinearRepeat' }
     }
   ----------------------
+  [2]
+    name  = 'DS_PerDraw2D'
+    usage = UpdateTemplate | ArgumentBuffer
+    [0] UniformBuffer {
+      name         = 'drawUB'
+      vkIndex      = 0
+      mtlIndex     = 0
+      state        = ShaderUniform | PreRasterizationShaders
+      staticSize   = 64 b
+      arrayStride  = 0 b
+    }
+  ----------------------
   [3]
-    name  = DS_Compute
+    name  = 'DS_Compute'
     usage = 0
     [0] StorageImage {
-      name         = 'un_OutImage
+      name         = 'un_OutImage'
       vkIndex      = 0
       mtlIndex     = 0
       state        = ShaderStorage_Write | ComputeShader
@@ -142,17 +143,17 @@ DescrSetLayouts {
     }
   ----------------------
   [4]
-    name  = DS_RayTracing
+    name  = 'DS_RayTracing'
     usage = 0
     [0] StorageImage {
-      name         = 'un_OutImage
+      name         = 'un_OutImage'
       vkIndex      = 0
       state        = ShaderStorage_Write | RayTracingShaders
       type         = FImage2D
       format       = RGBA8_UNorm
     }
     [1] RayTracingScene {
-      name         = 'un_TLAS
+      name         = 'un_TLAS'
       vkIndex      = 1
     }
   ----------------------
@@ -169,12 +170,12 @@ PipelineLayouts {
   [1]
     [0] DescrSet {
       name  = 'DS_Material'
-      uid   = 2
+      uid   = 1
       index = 1
     }
     [1] DescrSet {
-      name  = 'DS_PerDraw'
-      uid   = 1
+      name  = 'DS_PerDraw2D'
+      uid   = 2
       index = 2
     }
   ----------------------
@@ -188,39 +189,51 @@ PipelineLayouts {
   [3]
     [0] DescrSet {
       name  = 'DS_Material'
-      uid   = 2
+      uid   = 1
       index = 1
     }
   ----------------------
   [4]
     [0] DescrSet {
       name  = 'DS_Material'
+      uid   = 1
+      index = 1
+    }
+    [1] DescrSet {
+      name  = 'DS_PerDraw3D'
       uid   = 2
+      index = 2
+    }
+  ----------------------
+  [5]
+    [0] DescrSet {
+      name  = 'DS_Material'
+      uid   = 1
       index = 0
     }
     [0] PushConst {
       name       = 'pc1'
-		typename   = 'PushConst1'
+      typename   = 'PushConst1'
       stageFlags = Vertex
       offset     = 0 b
       size       = 16 b
     }
     [1] PushConst {
       name       = 'pc2'
-		typename   = 'PushConst2'
+      typename   = 'PushConst2'
       stageFlags = Fragment
       offset     = 16 b
       size       = 16 b
     }
   ----------------------
-  [5]
+  [6]
     [0] DescrSet {
       name  = 'DS_Compute'
       uid   = 3
       index = 0
     }
     [1] DescrSet {
-      name  = 'fe8eb7db'
+      name  = 'ShaderTrace'
       uid   = 0
       index = 1
     }
@@ -231,56 +244,52 @@ GraphicsPipelineTempl {
   [0]
     layout  = 1
     shaders = {
-      Vertex : 10000001
-      Fragment : 10000002
+      Vertex = 10000001
+      Fragment = 10000002
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
-    vertexBuffers = {
-      [0] {
-        name     = 'vb'
-        typeName = 'VBInput1'
-        rate     = Vertex
-        index    = 0
-        stride   = 16 b
-        attribs  = {
-          type   = Float3
-          offset = 0 b
-          index  = 0
-          -------------
-          type   = UShort2_Norm
-          offset = 12 b
-          index  = 1
-          -------------
-      }
+    vertexAttribs = {
+      type   = Float3
+      index  = 0
+      -------------
+      type   = Float2
+      index  = 1
     }
     patchControlPoints = 0
     earlyFragmentTests = true
     featureSets = { 'MinimalFS' }
   ----------------------
   [1]
-    layout  = 4
+    layout  = 5
     shaders = {
-      Vertex : 10000003
-      Fragment : 10000004
+      Vertex = 10000003
+      Fragment = 10000004
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
-    vertexBuffers = {
-      [0] {
-        name     = 'vb'
-        typeName = 'VBInput2'
-        rate     = Vertex
-        index    = 0
-        stride   = 12 b
-        attribs  = {
-          type   = Float2
-          offset = 0 b
-          index  = 0
-          -------------
-          type   = UShort2_Norm
-          offset = 8 b
-          index  = 1
-          -------------
-      }
+    vertexAttribs = {
+      type   = Float2
+      index  = 0
+      -------------
+      type   = Float2
+      index  = 1
+    }
+    patchControlPoints = 0
+    earlyFragmentTests = true
+    featureSets = { 'MinimalFS' }
+  ----------------------
+  [2]
+    layout  = 4
+    shaders = {
+      Vertex = 10000005
+      Fragment = 10000002
+    }
+    topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
+    vertexAttribs = {
+      type   = Float3
+      index  = 0
+      -------------
+      type   = Float2
+      index  = 1
     }
     patchControlPoints = 0
     earlyFragmentTests = true
@@ -292,42 +301,37 @@ MeshPipelineTempl {
   [0]
     layout  = 3
     shaders = {
-      Mesh : 10000005
-      Fragment : 10000006
+      Mesh = 10000006
+      Fragment = 10000007
     }
-    topology             = TriangleList
+    outputTopology       = TriangleList
     maxVertices          = 3
     maxIndices           = 3
-    defaultTaskGroupSize = Undefined
-    taskSizeSpec         = Undefined
-    defaultMeshGroupSize = 3
-    meshSizeSpec         = Undefined
     earlyFragmentTests   = true
+    meshDefaultLocalSize = { 3, 1, 1 }
     featureSets = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
   [1]
     layout  = 3
     shaders = {
-      Mesh : 10000007
-      Fragment : 10000006
+      Mesh = 10000008
+      Fragment = 10000007
     }
-    topology             = TriangleList
+    outputTopology       = TriangleList
     maxVertices          = 32
     maxIndices           = 192
-    defaultTaskGroupSize = Undefined
-    taskSizeSpec         = Undefined
-    defaultMeshGroupSize = Undefined
-    meshSizeSpec         = 0
     earlyFragmentTests   = true
+    meshDefaultLocalSize = { Undefined, 1, 1 }
+    meshLocalSizeSpec    = { 0, Undefined, Undefined }
     featureSets = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
 }
 
 ComputePipelineTempl {
   [0]
-    layout  = 5
+    layout  = 6
     shader  = 10000000
-    defaultLocalGroupSize = { 8, 8, 1 }
+    defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
     featureSets = { 'MinimalFS' }
   ----------------------
@@ -339,30 +343,30 @@ RayTracingPipelineTempl {
     featureSets = { 'MinRecursiveRayTracing' }
     generalShaders = {
       [0] {
-        name   = Main
-        shader = 10000008
+        name   = 'Main'
+        shader = 10000009
       }
       [1] {
-        name   = Miss
-        shader = 10000009
+        name   = 'Miss'
+        shader = 1000000a
       }
     }
     triangleGroups = {
       [0] {
-        name       = TriHit1
-        closestHit = 1000000a
+        name       = 'TriHit1'
+        closestHit = 1000000b
         anyHit     = none
       }
       [1] {
-        name       = TriHit2
-        closestHit = 1000000a
-        anyHit     = 1000000b
+        name       = 'TriHit2'
+        closestHit = 1000000b
+        anyHit     = 1000000c
       }
     }
     proceduralGroups = {
       [0] {
-        name         = ProcHit1
-        intersection = 1000000c
+        name         = 'ProcHit1'
+        intersection = 1000000d
         closestHit   = none
         anyHit       = none
       }
@@ -380,6 +384,59 @@ GraphicsPipelineSpec {
     viewportCount = 1
     dynamicState  = 0
     options       = Optimize
+    vertexBuffers = {
+      [0] {
+        name     = 'vb'
+        typeName = 'vb_input1'
+        rate     = Vertex
+        index    = 0
+        stride   = 16 b
+        attribs  = {
+          type   = Float3
+          offset = 0 b
+          index  = 0
+          -------------
+          type   = UShort2_Norm
+          offset = 12 b
+          index  = 1
+          -------------
+      }
+    }
+  [1]
+    templUID      = 10000002
+    rStateUID     = 0
+    dsStateUID    = 0
+    renderPass    = 'Simple'
+    subpass       = 'Main'
+    viewportCount = 1
+    dynamicState  = 0
+    options       = Optimize
+    vertexBuffers = {
+      [0] {
+        name     = 'Position'
+        typeName = 'VB_3_Pos'
+        rate     = Vertex
+        index    = 0
+        stride   = 12 b
+        attribs  = {
+          type   = Float3
+          offset = 0 b
+          index  = 0
+          -------------
+      }
+      [1] {
+        name     = 'Attribs'
+        typeName = 'VB_3_Attribs'
+        rate     = Vertex
+        index    = 1
+        stride   = 8 b
+        attribs  = {
+          type   = Float2
+          offset = 0 b
+          index  = 1
+          -------------
+      }
+    }
 }
 
 MeshPipelineSpec {
@@ -401,15 +458,14 @@ MeshPipelineSpec {
     viewportCount = 1
     dynamicState  = 0
     options       = Optimize
-    meshGroupSize = 3
+    meshLocalSize = { 3, Default, Default }
 }
 
 ComputePipelineSpec {
   [0]
-    templUID       = 30000000
-    dynamicState   = 0
-    options        = Optimize
-    localGroupSize = { Default, Default, Default }
+    templUID     = 30000000
+    dynamicState = 0
+    options      = Optimize
 }
 
 RayTracingPipelineSpec {
@@ -417,6 +473,9 @@ RayTracingPipelineSpec {
     templUID       = 40000000
     dynamicState   = 0
     options        = Optimize
+    maxRecursionDepth              = 1
+    maxPipelineRayPayloadSize      = 0 b
+    maxPipelineRayHitAttributeSize = 0 b
 }
 
 PipelineTemplNames {
@@ -427,22 +486,24 @@ PipelineTemplNames {
   [4]  'graphics_1', 10000000
   [5]  'mesh_2', 20000001
   [6]  'raytracing_1', 40000000
+  [7]  'graphics_4', 10000002
 }
 
 SpirvShaders {
   [0]  offset = 0 b
   [1]  offset = 9 Kb
   [2]  offset = 11 Kb
-  [3]  offset = 12 Kb
-  [4]  offset = 14 Kb
-  [5]  offset = 16 Kb
+  [3]  offset = 13 Kb
+  [4]  offset = 15 Kb
+  [5]  offset = 17 Kb
   [6]  offset = 19 Kb
-  [7]  offset = 21 Kb
+  [7]  offset = 22 Kb
   [8]  offset = 24 Kb
-  [9]  offset = 26 Kb
-  [10]  offset = 27 Kb
-  [11]  offset = 29 Kb
-  [12]  offset = 31 Kb
+  [9]  offset = 27 Kb
+  [10]  offset = 30 Kb
+  [11]  offset = 31 Kb
+  [12]  offset = 32 Kb
+  [13]  offset = 34 Kb
 }
 
 SpirvShaderData {
@@ -450,39 +511,42 @@ SpirvShaderData {
     codeSize = 6 Kb
     withTrace
   [1]
-    codeSize = 2124 b
-    codeHash = 99066be05c80b21b
+    codeSize = 2224 b
+    codeHash = f01a9d57d0db0ed5
   [2]
-    codeSize = 1528 b
-    codeHash = 70821af0e90d414b
+    codeSize = 1664 b
+    codeHash = 8ea868819754f7d7
   [3]
-    codeSize = 2116 b
-    codeHash = efd82c9001702879
+    codeSize = 2216 b
+    codeHash = f28472c64ce156aa
   [4]
-    codeSize = 1652 b
-    codeHash = 7d7a73b5d4825d13
+    codeSize = 1788 b
+    codeHash = b55cccece8403bc2
   [5]
-    codeSize = 3000 b
-    codeHash = 7307c61bc56e4fb2
+    codeSize = 2152 b
+    codeHash = eddc12a5f4927cf2
   [6]
-    codeSize = 1808 b
-    codeHash = 5d2cbe2b798472c2
+    codeSize = 3232 b
+    codeHash = fd641179e511203c
   [7]
-    codeSize = 3064 b
-    codeHash = a0077cfe2ec0dd21
+    codeSize = 2076 b
+    codeHash = 4d8b83d400f60cd
   [8]
+    codeSize = 3296 b
+    codeHash = 19b4c1479081e84f
+  [9]
     codeSize = 2560 b
     codeHash = b0e8b2f41fec1fb7
-  [9]
+  [10]
     codeSize = 1204 b
     codeHash = cc814c8237217d02
-  [10]
+  [11]
     codeSize = 1692 b
     codeHash = c970834ffdaa0cf8
-  [11]
+  [12]
     codeSize = 1972 b
     codeHash = 9e4c9da3878a4873
-  [12]
+  [13]
     codeSize = 2380 b
     codeHash = ce3006b01a41e763
 }

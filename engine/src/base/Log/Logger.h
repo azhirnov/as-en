@@ -51,6 +51,9 @@ namespace AE::Base
 	
 	class ConsoleLogOutput final : public ILogger
 	{
+	private:
+		std::mutex		_guard;
+
 	public:
 		EResult  Process (const MessageInfo &info) override;
 	};
@@ -67,6 +70,7 @@ namespace AE::Base
 	class DialogLogOutput final : public ILogger
 	{
 	private:
+		std::mutex			_guard;
 		const LevelBits		_levelBits;
 		const ScopeBits		_scopeBits;
 

@@ -145,7 +145,7 @@ namespace AE::Base
 	template <ulong UID>	ND_ constexpr bool  operator <= (const TVersion2<UID> &lhs, const TVersion3<UID> &rhs)	{ return lhs <= TVersion2<UID>{rhs}; }
 	template <ulong UID>	ND_ constexpr bool  operator <= (const TVersion3<UID> &lhs, const TVersion2<UID> &rhs)	{ return TVersion2<UID>{lhs} <= rhs; }
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -178,4 +178,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

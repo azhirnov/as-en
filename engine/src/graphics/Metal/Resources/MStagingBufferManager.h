@@ -109,7 +109,14 @@ namespace AE::Graphics
 			
 			bool  AllocVStream (FrameUID frameId, Bytes size, OUT VertexStream &result);
 
+			//void  AcquireMappedMemory (FrameUID frameId, VkDeviceMemory memory, Bytes offset, Bytes size);
+
 		ND_ FrameStat_t  GetFrameStat (FrameUID frameId) const;
+
+
+	private:
+		ND_ bool  _CreateStaticBuffers (const GraphicsCreateInfo &info);
+		ND_ bool  _InitVertexStream (const GraphicsCreateInfo &info);
 	};
 
 

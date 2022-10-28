@@ -9,7 +9,7 @@ void MinimalRTech ()
 	{
 		GraphicsPass@	pass = rtech.AddGraphicsPass( "Graphics1" );
 
-		pass.SetRenderPass( "Simple.Default", /*subpass*/"Main" );
+		pass.SetRenderPass( "Simple.RenderTarget", /*subpass*/"Main" );
 		//pass.SetDSLayout( "" );
 		//pass.SetRenderState();
 		//pass.SetMutableStates();
@@ -32,7 +32,7 @@ void MeshRTech ()
 	{
 		GraphicsPass@	pass = rtech.AddGraphicsPass( "Graphics1" );
 
-		pass.SetRenderPass( "Simple.Default", /*subpass*/"Main" );
+		pass.SetRenderPass( "Simple.Present", /*subpass*/"Main" );
 		//pass.SetDSLayout( "" );
 		//pass.SetRenderState();
 		//pass.SetMutableStates();

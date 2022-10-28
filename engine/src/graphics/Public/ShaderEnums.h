@@ -58,7 +58,9 @@ namespace AE::Graphics
 		_Last,
 
 		All				= ((_Last-1) << 1) - 1,
-		AllGraphics		= Vertex | TessControl | TessEvaluation | Geometry | MeshTask | Mesh | Fragment,
+		GraphicsStages	= Vertex | TessControl | TessEvaluation | Geometry | Fragment,
+		MeshStages		= MeshTask | Mesh | Fragment,
+		AllGraphics		= GraphicsStages | MeshStages,
 		AllRayTracing	= RayGen | RayAnyHit | RayClosestHit | RayMiss | RayIntersection | RayCallable,
 		Unknown			= 0,
 	};
@@ -68,4 +70,4 @@ namespace AE::Graphics
 		forceinline EShaderStages  operator |= (EShaderStages &lhs, EShader rhs)	{ return (lhs |= EShaderStages(1 << uint(rhs))); }
 	
 
-}	// AE::Graphics
+} // AE::Graphics

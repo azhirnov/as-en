@@ -19,7 +19,7 @@
 #include "base/Stream/FastStream.h"
 #include "base/Utils/NamedID.h"
 #include "base/Utils/NamedID_HashCollisionCheck.h"
-#include "base/Utils/Noncopyable.h"
+#include "base/Utils/Helpers.h"
 
 #include "base/Algorithms/ArrayUtils.h"
 #include "base/Memory/IAllocator.h"
@@ -44,4 +44,4 @@ namespace AE::Serializing
 
 	// IsTrivialySerializable<> defined in 'base/CompileTime/TypeTraits.h'
 
-}	// AE::Serializing
+} // AE::Serializing

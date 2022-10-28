@@ -27,6 +27,7 @@ namespace AE::App
 	using Graphics::MultiSamples;
 	using Graphics::EPixelFormat;
 	using Graphics::EImageUsage;
+	using Graphics::CommandBatchPtr;
 
 
 
@@ -118,10 +119,13 @@ namespace AE::App
 		ND_ virtual RenderPassInfo  GetRenderPassInfo () const = 0;
 
 		// Begin rendering.
-		// Returns 'false' if surface is not initialized.
+		// Returns image acquire task which is implicitly synchronized with present/blit task which returned by 'End()', returns 'null' on error.
+		// 'beginCmdBatch'	- batch where render targets will be rendered.
+		// 'endCmdBatch'	- batch where render targets was rendered.
+		// 'deps'			- list of tasks which must be executed before.
 		//   Thread safe: yes
 		//
-		ND_ virtual bool  Begin (Graphics::CommandBatch &cmdBatch) = 0;
+		ND_ virtual AsyncTask  Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps) = 0;
 		
 
 		// Get render taqrgets.
@@ -132,9 +136,11 @@ namespace AE::App
 
 
 		// End rendering and present frame.
+		// Returns present/blit task, returns 'null' on error.
+		// 'deps'		- list of tasks which must be executed before, 'CmdBatchOnSubmit{endCmdBatch}' is imlicitlly added.
 		//   Thread safe: yes
 		//
-		ND_ virtual bool  End (Graphics::CommandBatch &cmdBatch, ArrayView<AsyncTask> deps) = 0;
+		ND_ virtual AsyncTask  End (ArrayView<AsyncTask> deps) = 0;
 	};
 
 

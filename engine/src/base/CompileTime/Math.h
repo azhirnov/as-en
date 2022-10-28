@@ -24,7 +24,7 @@ namespace _hidden_
 		static const int	value = 0;
 	};
 
-}	// _hidden_
+} // _hidden_
 
 	template <auto X>
 	static constexpr int	CT_IntLog2 = (X ? Base::_hidden_::_IntLog2< decltype(X), X, sizeof(X)*8-1 >::value : -1);
@@ -40,7 +40,7 @@ namespace _hidden_
 	struct _IsPowerOfTwo {
 		static constexpr bool	value = (X != 0) & ((X & (X - 1)) == 0);
 	};
-}	// _hidden_
+} // _hidden_
 
 	template <auto X>
 	static constexpr bool	CT_IsPowerOfTwo = _hidden_::_IsPowerOfTwo< ulong(X) >::value;
@@ -57,7 +57,7 @@ namespace _hidden_
 		static constexpr int	il2		= CT_IntLog2<X>;
 		static constexpr int	value	= il2 >= 0 ? il2 + int(not CT_IsPowerOfTwo<X>) : -1;
 	};
-}	// _hidden_
+} // _hidden_
 
 	template <auto X>
 	static constexpr int	CT_CeilIntLog2 = _hidden_::_CeilIntLog2<X>::value;
@@ -88,6 +88,14 @@ namespace _hidden_
 */
 	template <typename T>
 	static constexpr usize		CT_SizeOfInBits = sizeof(T) * 8;
+	
+/*
+=================================================
+	CT_BitCount
+=================================================
+*/
+	template <auto X>
+	static constexpr usize		CT_BitCount = std::popcount(ulong( X ));
 
 
-}	// AE::Base
+} // AE::Base

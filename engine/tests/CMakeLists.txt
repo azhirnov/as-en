@@ -13,7 +13,10 @@ add_subdirectory( "graphics_hl" )
 add_subdirectory( "ecs-st" )
 	
 if (${AE_DESKTOP})
+	add_subdirectory( "atlas_tools" )
+	add_subdirectory( "geometry_tools" )
 	add_subdirectory( "asset_packer" )
+	add_subdirectory( "shader_trace" )
 	add_subdirectory( "pipeline_compiler" )
 endif ()
 

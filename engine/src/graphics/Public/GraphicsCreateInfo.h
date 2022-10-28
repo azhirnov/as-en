@@ -8,6 +8,13 @@
 namespace AE::Graphics
 {
 
+	class IGfxMemAllocator;
+	using GfxMemAllocatorPtr = RC< IGfxMemAllocator >;
+	
+	class IDescriptorAllocator;
+	using DescriptorAllocatorPtr = RC< IDescriptorAllocator >;
+
+
 	//
 	// Graphics Create Info
 	//

@@ -12,13 +12,15 @@
 
 #include "base/Stream/Stream.h"
 #include "base/CompileTime/TypeList.h"
-#include "base/Utils/Noncopyable.h"
+#include "base/Utils/Helpers.h"
 #include "base/Utils/NamedID.h"
 
 #include "threading/TaskSystem/TaskScheduler.h"
 #include "threading/Primitives/DataRaceCheck.h"
 
 #include "graphics/Public/FrameUID.h"
+
+#include "vfs/VirtualFileSystem.h"
 
 #ifdef __INTELLISENSE__
 #  define AE_PLATFORM_ANDROID
@@ -50,6 +52,8 @@ namespace AE::App
 #  endif
 	
 	using Graphics::FrameUID;
+
+	using VFS::IFileStorage;
 
 	
 	class IApplication;
@@ -92,7 +96,7 @@ namespace AE::App
 		static constexpr uint	MaxWindows		= 8;
 	};
 
-}	// AE::App
+} // AE::App
 
 
 // check definitions
@@ -104,4 +108,4 @@ namespace AE::App
 #	pragma detect_mismatch( "AE_ENABLE_GLFW", "0" )
 #  endif
 
-#endif	// AE_CPP_DETECT_MISMATCH
+#endif // AE_CPP_DETECT_MISMATCH

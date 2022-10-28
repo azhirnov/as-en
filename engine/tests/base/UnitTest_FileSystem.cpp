@@ -42,7 +42,7 @@ namespace
 	}
 
 	
-#ifdef AE_PLATFORM_WINDOWS
+#if 0 //def AE_PLATFORM_WINDOWS
 	static void  WinFile_Test1 ()
 	{
 		WindowsRFile	rfile{ Path{"test_data.txt"}, WindowsRFile::EFlags::SequentialScan };
@@ -89,8 +89,8 @@ extern void UnitTest_FileSystem ()
 	FileSystem_Search_Test();
 
 	#ifdef AE_PLATFORM_WINDOWS
-	WinFile_Test1();
-	WinFile_Test2();
+	//WinFile_Test1();
+	//WinFile_Test2();
 	#endif
 
 	TEST_PASSED();

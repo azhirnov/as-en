@@ -197,4 +197,4 @@ namespace AE::Base
 		}
 	};
 
-}	// AE::Base
+} // AE::Base

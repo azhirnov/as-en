@@ -164,4 +164,4 @@ namespace AE::Base
 	using Bool  = Base::_hidden_::BoolType;
 
 
-}	// AE::Base
+} // AE::Base

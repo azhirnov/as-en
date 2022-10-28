@@ -10,7 +10,7 @@ namespace
 		Strong<BufferID>			buf;
 		const uint					maxCount	= 1000;
 		const Bytes					buf_size	= 4_b * maxCount;
-		RC<CommandBatch>			batch;
+		CommandBatchPtr			batch;
 		Atomic<uint>				counter		{0};
 	};
 
@@ -20,14 +20,14 @@ namespace
 	public:
 		FC_TestData&	t;
 
-		FC_TestTask (FC_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		FC_TestTask (FC_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
 
 		void  Run () override
 		{
-			DirectCtx::Transfer	ctx{ GetBatchPtr() };
+			DirectCtx::Transfer	ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 			
 			const uint	id = t.counter.fetch_add( 1 );
@@ -60,14 +60,16 @@ namespace
 			t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "FrameCounter" );
 			CHECK_TE( t.batch );
 			
-			AsyncTask	test = t.batch->Add<FC_TestTask>( MakeTuple(ArgRef(t)), MakeTuple(begin), "test task" );
+			AsyncTask	test = t.batch->Add<FC_TestTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
 			CHECK_TE( test );
 
-			AsyncTask	end = rts.EndFrame( MakeTuple(test) );
+			AsyncTask	end = rts.EndFrame( Tuple{test} );
 			CHECK_TE( end );
 
-			CHECK_TE( Continue( MakeTuple( end )));
+			CHECK_TE( Continue( Tuple{end} ));
 		}
+
+		StringView  DbgName () const override { return "FC_FrameTask"; }
 	};
 
 
@@ -81,7 +83,7 @@ namespace
 		t.buf		= res_mngr.CreateBuffer( BufferDesc{ t.buf_size, EBufferUsage::Transfer }.SetMemory( EMemoryType::DeviceLocal ), "dst_buf", t.gfxAlloc );
 		CHECK_ERR( t.buf );
 
-		auto	task = Scheduler().Run<FC_FrameTask>( MakeTuple(ArgRef(t)) );
+		auto	task = Scheduler().Run<FC_FrameTask>( Tuple{ArgRef(t)} );
 
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
@@ -91,7 +93,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_FrameCounter ()

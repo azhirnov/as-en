@@ -7,7 +7,9 @@
 
 #include "base/Math/Vec.h"
 #include "base/Math/Color.h"
-#include "base/Utils/Noninstancable.h"
+#include "base/Math/Rectangle.h"
+#include "base/Math/VecSwizzle.h"
+#include "base/Utils/Helpers.h"
 #include "base/Containers/StructView.h"
 
 namespace AngelScript
@@ -26,6 +28,8 @@ namespace AE::Scripting
 	{
 		static void  BindScalarMath (const ScriptEnginePtr &se);
 		static void  BindVectorMath (const ScriptEnginePtr &se);
+		static void  BindVectorSwizzle (const ScriptEnginePtr &se);		// requires 'String'
+		static void  BindRect (const ScriptEnginePtr &se);
 		static void  BindColor (const ScriptEnginePtr &se);
 		static void  BindString (const ScriptEnginePtr &se);
 		static void  BindArray (const ScriptEnginePtr &se);
@@ -74,6 +78,8 @@ namespace AE::Scripting
 	AE_DECL_SCRIPT_TYPE( AE::Math::packed_float4,		"float4"	);
 	AE_DECL_SCRIPT_TYPE( AE::Math::packed_double4,		"double4"	);
 	
+	AE_DECL_SCRIPT_TYPE( AE::Math::VecSwizzle,			"VecSwizzle");
+
 	AE_DECL_SCRIPT_TYPE( AE::Math::RGBA32f,				"RGBA32f"	);
 	AE_DECL_SCRIPT_TYPE( AE::Math::RGBA32u,				"RGBA32u"	);
 	AE_DECL_SCRIPT_TYPE( AE::Math::RGBA32i,				"RGBA32i"	);
@@ -81,6 +87,11 @@ namespace AE::Scripting
 	AE_DECL_SCRIPT_TYPE( AE::Math::DepthStencil,		"DepthStencil" );
 	AE_DECL_SCRIPT_TYPE( AE::Math::HSVColor,			"HSVColor"	);
 	
+	AE_DECL_SCRIPT_TYPE( AE::Math::RectI,				"RectI"	);
+	AE_DECL_SCRIPT_TYPE( AE::Math::RectU,				"RectU"	);
+	AE_DECL_SCRIPT_TYPE( AE::Math::RectF,				"RectF"	);
+
+
 
 	//
 	// Array
@@ -241,4 +252,4 @@ namespace AE::Scripting
 	};
 
 
-}	// AE::Scripting
+} // AE::Scripting

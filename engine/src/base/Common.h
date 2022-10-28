@@ -33,6 +33,7 @@
 #include <functional>
 #include <random>
 #include <atomic>
+#include <thread>
 
 namespace AE
 {
@@ -41,18 +42,33 @@ namespace AE
 	using sshort	= int16_t;
 	using ushort	= uint16_t;
 	using sint		= int32_t;
-	using uint 		= uint32_t;
-	using slong		= int64_t;
-	using ulong		= uint64_t;
+	using uint 		= uint32_t;		// u
+	using slong		= int64_t;		// ll
+	using ulong		= uint64_t;		// ull
 	using ssize		= intptr_t;
 	using usize		= size_t;
+
+#ifdef __cpp_char8_t
+	using CharUtf8	= char8_t;	// C++20
+#else
+	enum class CharUtf8 : char {};
+#endif
+
+	using CharAnsi	= char;
+	using CharUtf16	= char16_t;
+	using CharUtf32	= char32_t;
 	
-#if defined(AE_PLATFORM_WINDOWS) and UNICODE
+#ifdef AE_PLATFORM_WINDOWS
+# if UNICODE
 	using CharType			= wchar_t;
 #	define TXT( _text_ )	(L"" _text_)
+# else
+	using CharType			= CharAnsi;
+#	define TXT( _text_ )	("" _text_)
+# endif
 #else
-	using CharType			= char;
-#	define TXT( _text_ )	_text_	// TODO: u8 ?
+	using CharType			= CharUtf8;
+#	define TXT( _text_ )	(u8"" _text_)
 #endif
 
 	namespace Base {}
@@ -77,13 +93,14 @@ namespace AE::Math
 namespace AE::Base
 {
 	using namespace AE::Math;
-
-	using String	= std::string;
-	using WString	= std::wstring;
 	
 	template <typename T,
 			  typename A = std::allocator<T>>
-	using BasicString = std::basic_string< T, std::char_traits<T>, A >;
+	using BasicString	= std::basic_string< T, std::char_traits<T>, A >;
+
+	using String		= BasicString< CharAnsi >;
+	using WString		= BasicString< wchar_t >;
+	using U8String		= BasicString< CharUtf8 >;
 
 	template <typename T,
 			  typename A = std::allocator<T>>
@@ -100,9 +117,11 @@ namespace AE::Base
 
 	constexpr std::nullopt_t	NullOptional	= std::nullopt;
 	
-							using StringView		= std::string_view;
-							using WStringView		= std::wstring_view;
-	template <typename T>	using BasicStringView	= std::basic_string_view<T>;
+	template <typename T>
+	using BasicStringView	= std::basic_string_view<T>;
+	using StringView		= BasicStringView< CharAnsi >;
+	using WStringView		= BasicStringView< wchar_t >;
+	using U8StringView		= BasicStringView< CharUtf8 >;
 
 	template <typename T>	using Function		= std::function< T >;
 
@@ -128,6 +147,9 @@ namespace AE::Base
 	using milliseconds	= std::chrono::milliseconds;
 	using microseconds	= std::chrono::microseconds;
 	using nanoseconds	= std::chrono::nanoseconds;
+	using secondsf		= std::chrono::duration<float>;
+	using secondsd		= std::chrono::duration<double>;
+	using nanosecondsd	= std::chrono::duration<double, std::nano>;
 	
 
 /*
@@ -152,7 +174,18 @@ namespace AE::Base
 		return std::make_unique<T>( FwdArg<Types>( args )... );
 	}
 	
-}	// AE::Base
+/*
+=================================================
+	MakePair
+=================================================
+*/
+	template <typename A, typename B>
+	ND_ forceinline Pair<A,B>  MakePair (A&& first, B&& second)
+	{
+		return Pair<A,B>{ FwdArg<A>(first), FwdArg<B>(second) };
+	}
+
+} // AE::Base
 
 namespace AE
 {
@@ -166,4 +199,4 @@ namespace AE
 	};
 #	endif
 
-}	// AE
+} // AE

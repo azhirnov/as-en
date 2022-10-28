@@ -15,12 +15,14 @@
 
 #include "pipeline_compiler/PipelineCompilerImpl.h"
 #include "input_actions/InputActionsBinding.h"
+#include "asset_packer/AssetPackerImpl.h"
 
 #include "../shared/UnitTest_Shared.h"
 
 using namespace AE::Base;
 using namespace AE::PipelineCompiler;
 using namespace AE::InputActions;
+using namespace AE::AssetPacker;
 
 using LinearAlloc_t = AlignedAllocatorImpl< LinearAllocator<> >;
 

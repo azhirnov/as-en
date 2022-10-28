@@ -24,6 +24,7 @@ namespace AE::Graphics
 			VPipelineLayoutID										layoutId;
 			ArrayView< VPipelinePack::ShaderModuleRef >				shaders;
 			PipelineCacheID											cacheId;
+			VPipelinePack::Allocator_t *							allocator		= null;
 		};
 
 	private:
@@ -32,8 +33,8 @@ namespace AE::Graphics
 
 	// variables
 	private:
-		VkPipeline					_handle			= Default;
-		VkPipelineLayout			_layout			= Default;
+		VkPipeline					_handle					= Default;
+		VkPipelineLayout			_layout					= Default;
 		
 		EPipelineDynamicState		_dynamicState			= Default;
 		EPipelineOpt				_options				= Default;
@@ -45,6 +46,8 @@ namespace AE::Graphics
 
 		Strong<VPipelineLayoutID>	_layoutId;
 		
+		ArrayView<ShaderTracePtr>	_dbgTrace;				// allocated by pipeline pack linear allocator
+
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
 
@@ -58,6 +61,8 @@ namespace AE::Graphics
 			void  Destroy (VResourceManager &);
 		
 		ND_ uint  GetVertexBufferIndex (const VertexBufferName &name) const;
+		
+		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result) const;
 
 		ND_ VkPipeline				Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ VkPipelineLayout		Layout ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
@@ -70,6 +75,6 @@ namespace AE::Graphics
 		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

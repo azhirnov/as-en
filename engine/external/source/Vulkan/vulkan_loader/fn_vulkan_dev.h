@@ -81,6 +81,7 @@
 	extern PFN_vkCreateBufferView  _var_vkCreateBufferView;
 	extern PFN_vkGetPipelineExecutableStatisticsKHR  _var_vkGetPipelineExecutableStatisticsKHR;
 	extern PFN_vkCreateImageView  _var_vkCreateImageView;
+	extern PFN_vkGetShaderModuleIdentifierEXT  _var_vkGetShaderModuleIdentifierEXT;
 	extern PFN_vkCreateShaderModule  _var_vkCreateShaderModule;
 	extern PFN_vkCmdFillBuffer  _var_vkCmdFillBuffer;
 	extern PFN_vkCmdBindIndexBuffer  _var_vkCmdBindIndexBuffer;
@@ -134,6 +135,7 @@
 	extern PFN_vkBeginCommandBuffer  _var_vkBeginCommandBuffer;
 	extern PFN_vkDestroyCuModuleNVX  _var_vkDestroyCuModuleNVX;
 	extern PFN_vkResetCommandBuffer  _var_vkResetCommandBuffer;
+	extern PFN_vkGetShaderModuleCreateInfoIdentifierEXT  _var_vkGetShaderModuleCreateInfoIdentifierEXT;
 	extern PFN_vkCmdPipelineBarrier  _var_vkCmdPipelineBarrier;
 	extern PFN_vkCmdBindPipeline  _var_vkCmdBindPipeline;
 	extern PFN_vkGetAccelerationStructureBuildSizesKHR  _var_vkGetAccelerationStructureBuildSizesKHR;
@@ -150,6 +152,7 @@
 	extern PFN_vkCmdSetStencilCompareMask  _var_vkCmdSetStencilCompareMask;
 	extern PFN_vkCmdSetStencilWriteMask  _var_vkCmdSetStencilWriteMask;
 	extern PFN_vkCmdBindDescriptorSets  _var_vkCmdBindDescriptorSets;
+	extern PFN_vkGetDynamicRenderingTilePropertiesQCOM  _var_vkGetDynamicRenderingTilePropertiesQCOM;
 	extern PFN_vkCmdDraw  _var_vkCmdDraw;
 	extern PFN_vkCmdDrawIndexed  _var_vkCmdDrawIndexed;
 	extern PFN_vkCmdDrawIndirect  _var_vkCmdDrawIndirect;
@@ -401,6 +404,7 @@
 	extern PFN_vkGetPipelinePropertiesEXT  _var_vkGetPipelinePropertiesEXT;
 	extern PFN_vkCmdSetPatchControlPointsEXT  _var_vkCmdSetPatchControlPointsEXT;
 	extern PFN_vkCmdDrawMultiIndexedEXT  _var_vkCmdDrawMultiIndexedEXT;
+	extern PFN_vkGetFramebufferTilePropertiesQCOM  _var_vkGetFramebufferTilePropertiesQCOM;
 	extern PFN_vkCreateAccelerationStructureKHR  _var_vkCreateAccelerationStructureKHR;
 	extern PFN_vkDestroyAccelerationStructureKHR  _var_vkDestroyAccelerationStructureKHR;
 	extern PFN_vkCmdBuildAccelerationStructuresKHR  _var_vkCmdBuildAccelerationStructuresKHR;
@@ -510,6 +514,7 @@
 	PFN_vkCreateBufferView  _var_vkCreateBufferView = null;
 	PFN_vkGetPipelineExecutableStatisticsKHR  _var_vkGetPipelineExecutableStatisticsKHR = null;
 	PFN_vkCreateImageView  _var_vkCreateImageView = null;
+	PFN_vkGetShaderModuleIdentifierEXT  _var_vkGetShaderModuleIdentifierEXT = null;
 	PFN_vkCreateShaderModule  _var_vkCreateShaderModule = null;
 	PFN_vkCmdFillBuffer  _var_vkCmdFillBuffer = null;
 	PFN_vkCmdBindIndexBuffer  _var_vkCmdBindIndexBuffer = null;
@@ -563,6 +568,7 @@
 	PFN_vkBeginCommandBuffer  _var_vkBeginCommandBuffer = null;
 	PFN_vkDestroyCuModuleNVX  _var_vkDestroyCuModuleNVX = null;
 	PFN_vkResetCommandBuffer  _var_vkResetCommandBuffer = null;
+	PFN_vkGetShaderModuleCreateInfoIdentifierEXT  _var_vkGetShaderModuleCreateInfoIdentifierEXT = null;
 	PFN_vkCmdPipelineBarrier  _var_vkCmdPipelineBarrier = null;
 	PFN_vkCmdBindPipeline  _var_vkCmdBindPipeline = null;
 	PFN_vkGetAccelerationStructureBuildSizesKHR  _var_vkGetAccelerationStructureBuildSizesKHR = null;
@@ -579,6 +585,7 @@
 	PFN_vkCmdSetStencilCompareMask  _var_vkCmdSetStencilCompareMask = null;
 	PFN_vkCmdSetStencilWriteMask  _var_vkCmdSetStencilWriteMask = null;
 	PFN_vkCmdBindDescriptorSets  _var_vkCmdBindDescriptorSets = null;
+	PFN_vkGetDynamicRenderingTilePropertiesQCOM  _var_vkGetDynamicRenderingTilePropertiesQCOM = null;
 	PFN_vkCmdDraw  _var_vkCmdDraw = null;
 	PFN_vkCmdDrawIndexed  _var_vkCmdDrawIndexed = null;
 	PFN_vkCmdDrawIndirect  _var_vkCmdDrawIndirect = null;
@@ -830,6 +837,7 @@
 	PFN_vkGetPipelinePropertiesEXT  _var_vkGetPipelinePropertiesEXT = null;
 	PFN_vkCmdSetPatchControlPointsEXT  _var_vkCmdSetPatchControlPointsEXT = null;
 	PFN_vkCmdDrawMultiIndexedEXT  _var_vkCmdDrawMultiIndexedEXT = null;
+	PFN_vkGetFramebufferTilePropertiesQCOM  _var_vkGetFramebufferTilePropertiesQCOM = null;
 	PFN_vkCreateAccelerationStructureKHR  _var_vkCreateAccelerationStructureKHR = null;
 	PFN_vkDestroyAccelerationStructureKHR  _var_vkDestroyAccelerationStructureKHR = null;
 	PFN_vkCmdBuildAccelerationStructuresKHR  _var_vkCmdBuildAccelerationStructuresKHR = null;
@@ -939,6 +947,7 @@
 	ND_ VKAPI_ATTR forceinline VkResult vkCreateBufferView (VkDevice device, const VkBufferViewCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkBufferView * pView) const								{ return _table->_var_vkCreateBufferView( device, pCreateInfo, pAllocator, pView ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkGetPipelineExecutableStatisticsKHR (VkDevice device, const VkPipelineExecutableInfoKHR * pExecutableInfo, uint32_t * pStatisticCount, VkPipelineExecutableStatisticKHR * pStatistics) const								{ return _table->_var_vkGetPipelineExecutableStatisticsKHR( device, pExecutableInfo, pStatisticCount, pStatistics ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkCreateImageView (VkDevice device, const VkImageViewCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkImageView * pView) const								{ return _table->_var_vkCreateImageView( device, pCreateInfo, pAllocator, pView ); }
+		VKAPI_ATTR forceinline void vkGetShaderModuleIdentifierEXT (VkDevice device, VkShaderModule shaderModule, VkShaderModuleIdentifierEXT * pIdentifier) const								{ return _table->_var_vkGetShaderModuleIdentifierEXT( device, shaderModule, pIdentifier ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkCreateShaderModule (VkDevice device, const VkShaderModuleCreateInfo * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkShaderModule * pShaderModule) const								{ return _table->_var_vkCreateShaderModule( device, pCreateInfo, pAllocator, pShaderModule ); }
 		VKAPI_ATTR forceinline void vkCmdFillBuffer (VkCommandBuffer commandBuffer, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, uint32_t data) const								{ return _table->_var_vkCmdFillBuffer( commandBuffer, dstBuffer, dstOffset, size, data ); }
 		VKAPI_ATTR forceinline void vkCmdBindIndexBuffer (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkIndexType indexType) const								{ return _table->_var_vkCmdBindIndexBuffer( commandBuffer, buffer, offset, indexType ); }
@@ -992,6 +1001,7 @@
 	ND_ VKAPI_ATTR forceinline VkResult vkBeginCommandBuffer (VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo * pBeginInfo) const								{ return _table->_var_vkBeginCommandBuffer( commandBuffer, pBeginInfo ); }
 		VKAPI_ATTR forceinline void vkDestroyCuModuleNVX (VkDevice device, VkCuModuleNVX module, const VkAllocationCallbacks * pAllocator) const								{ return _table->_var_vkDestroyCuModuleNVX( device, module, pAllocator ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkResetCommandBuffer (VkCommandBuffer commandBuffer, VkCommandBufferResetFlags flags) const								{ return _table->_var_vkResetCommandBuffer( commandBuffer, flags ); }
+		VKAPI_ATTR forceinline void vkGetShaderModuleCreateInfoIdentifierEXT (VkDevice device, const VkShaderModuleCreateInfo * pCreateInfo, VkShaderModuleIdentifierEXT * pIdentifier) const								{ return _table->_var_vkGetShaderModuleCreateInfoIdentifierEXT( device, pCreateInfo, pIdentifier ); }
 		VKAPI_ATTR forceinline void vkCmdPipelineBarrier (VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags, uint32_t memoryBarrierCount, const VkMemoryBarrier * pMemoryBarriers, uint32_t bufferMemoryBarrierCount, const VkBufferMemoryBarrier * pBufferMemoryBarriers, uint32_t imageMemoryBarrierCount, const VkImageMemoryBarrier * pImageMemoryBarriers) const								{ return _table->_var_vkCmdPipelineBarrier( commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers, bufferMemoryBarrierCount, pBufferMemoryBarriers, imageMemoryBarrierCount, pImageMemoryBarriers ); }
 		VKAPI_ATTR forceinline void vkCmdBindPipeline (VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipeline pipeline) const								{ return _table->_var_vkCmdBindPipeline( commandBuffer, pipelineBindPoint, pipeline ); }
 		VKAPI_ATTR forceinline void vkGetAccelerationStructureBuildSizesKHR (VkDevice device, VkAccelerationStructureBuildTypeKHR buildType, const VkAccelerationStructureBuildGeometryInfoKHR * pBuildInfo, const uint32_t * pMaxPrimitiveCounts, VkAccelerationStructureBuildSizesInfoKHR * pSizeInfo) const								{ return _table->_var_vkGetAccelerationStructureBuildSizesKHR( device, buildType, pBuildInfo, pMaxPrimitiveCounts, pSizeInfo ); }
@@ -1008,6 +1018,7 @@
 		VKAPI_ATTR forceinline void vkCmdSetStencilCompareMask (VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask, uint32_t compareMask) const								{ return _table->_var_vkCmdSetStencilCompareMask( commandBuffer, faceMask, compareMask ); }
 		VKAPI_ATTR forceinline void vkCmdSetStencilWriteMask (VkCommandBuffer commandBuffer, VkStencilFaceFlags faceMask, uint32_t writeMask) const								{ return _table->_var_vkCmdSetStencilWriteMask( commandBuffer, faceMask, writeMask ); }
 		VKAPI_ATTR forceinline void vkCmdBindDescriptorSets (VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout, uint32_t firstSet, uint32_t descriptorSetCount, const VkDescriptorSet * pDescriptorSets, uint32_t dynamicOffsetCount, const uint32_t * pDynamicOffsets) const								{ return _table->_var_vkCmdBindDescriptorSets( commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets ); }
+	ND_ VKAPI_ATTR forceinline VkResult vkGetDynamicRenderingTilePropertiesQCOM (VkDevice device, const VkRenderingInfo * pRenderingInfo, VkTilePropertiesQCOM * pProperties) const								{ return _table->_var_vkGetDynamicRenderingTilePropertiesQCOM( device, pRenderingInfo, pProperties ); }
 		VKAPI_ATTR forceinline void vkCmdDraw (VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) const								{ return _table->_var_vkCmdDraw( commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance ); }
 		VKAPI_ATTR forceinline void vkCmdDrawIndexed (VkCommandBuffer commandBuffer, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance) const								{ return _table->_var_vkCmdDrawIndexed( commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance ); }
 		VKAPI_ATTR forceinline void vkCmdDrawIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint32_t drawCount, uint32_t stride) const								{ return _table->_var_vkCmdDrawIndirect( commandBuffer, buffer, offset, drawCount, stride ); }
@@ -1259,6 +1270,7 @@
 	ND_ VKAPI_ATTR forceinline VkResult vkGetPipelinePropertiesEXT (VkDevice device, const VkPipelineInfoEXT * pPipelineInfo, VkBaseOutStructure * pPipelineProperties) const								{ return _table->_var_vkGetPipelinePropertiesEXT( device, pPipelineInfo, pPipelineProperties ); }
 		VKAPI_ATTR forceinline void vkCmdSetPatchControlPointsEXT (VkCommandBuffer commandBuffer, uint32_t patchControlPoints) const								{ return _table->_var_vkCmdSetPatchControlPointsEXT( commandBuffer, patchControlPoints ); }
 		VKAPI_ATTR forceinline void vkCmdDrawMultiIndexedEXT (VkCommandBuffer commandBuffer, uint32_t drawCount, const VkMultiDrawIndexedInfoEXT * pIndexInfo, uint32_t instanceCount, uint32_t firstInstance, uint32_t stride, const int32_t * pVertexOffset) const								{ return _table->_var_vkCmdDrawMultiIndexedEXT( commandBuffer, drawCount, pIndexInfo, instanceCount, firstInstance, stride, pVertexOffset ); }
+	ND_ VKAPI_ATTR forceinline VkResult vkGetFramebufferTilePropertiesQCOM (VkDevice device, VkFramebuffer framebuffer, uint32_t * pPropertiesCount, VkTilePropertiesQCOM * pProperties) const								{ return _table->_var_vkGetFramebufferTilePropertiesQCOM( device, framebuffer, pPropertiesCount, pProperties ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkCreateAccelerationStructureKHR (VkDevice device, const VkAccelerationStructureCreateInfoKHR * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkAccelerationStructureKHR * pAccelerationStructure) const								{ return _table->_var_vkCreateAccelerationStructureKHR( device, pCreateInfo, pAllocator, pAccelerationStructure ); }
 		VKAPI_ATTR forceinline void vkDestroyAccelerationStructureKHR (VkDevice device, VkAccelerationStructureKHR accelerationStructure, const VkAllocationCallbacks * pAllocator) const								{ return _table->_var_vkDestroyAccelerationStructureKHR( device, accelerationStructure, pAllocator ); }
 		VKAPI_ATTR forceinline void vkCmdBuildAccelerationStructuresKHR (VkCommandBuffer commandBuffer, uint32_t infoCount, const VkAccelerationStructureBuildGeometryInfoKHR * pInfos, const VkAccelerationStructureBuildRangeInfoKHR * const * ppBuildRangeInfos) const								{ return _table->_var_vkCmdBuildAccelerationStructuresKHR( commandBuffer, infoCount, pInfos, ppBuildRangeInfos ); }
@@ -1368,6 +1380,7 @@
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkCreateBufferView (VkDevice , const VkBufferViewCreateInfo * , const VkAllocationCallbacks * , VkBufferView * )			{  VK_LOG( "used dummy function 'vkCreateBufferView'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetPipelineExecutableStatisticsKHR (VkDevice , const VkPipelineExecutableInfoKHR * , uint32_t * , VkPipelineExecutableStatisticKHR * )			{  VK_LOG( "used dummy function 'vkGetPipelineExecutableStatisticsKHR'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkCreateImageView (VkDevice , const VkImageViewCreateInfo * , const VkAllocationCallbacks * , VkImageView * )			{  VK_LOG( "used dummy function 'vkCreateImageView'" );  return VK_RESULT_MAX_ENUM;  }
+	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetShaderModuleIdentifierEXT (VkDevice , VkShaderModule , VkShaderModuleIdentifierEXT * )			{  VK_LOG( "used dummy function 'vkGetShaderModuleIdentifierEXT'" );  return;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkCreateShaderModule (VkDevice , const VkShaderModuleCreateInfo * , const VkAllocationCallbacks * , VkShaderModule * )			{  VK_LOG( "used dummy function 'vkCreateShaderModule'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdFillBuffer (VkCommandBuffer , VkBuffer , VkDeviceSize , VkDeviceSize , uint32_t )			{  VK_LOG( "used dummy function 'vkCmdFillBuffer'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdBindIndexBuffer (VkCommandBuffer , VkBuffer , VkDeviceSize , VkIndexType )			{  VK_LOG( "used dummy function 'vkCmdBindIndexBuffer'" );  return;  }
@@ -1421,6 +1434,7 @@
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkBeginCommandBuffer (VkCommandBuffer , const VkCommandBufferBeginInfo * )			{  VK_LOG( "used dummy function 'vkBeginCommandBuffer'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkDestroyCuModuleNVX (VkDevice , VkCuModuleNVX , const VkAllocationCallbacks * )			{  VK_LOG( "used dummy function 'vkDestroyCuModuleNVX'" );  return;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkResetCommandBuffer (VkCommandBuffer , VkCommandBufferResetFlags )			{  VK_LOG( "used dummy function 'vkResetCommandBuffer'" );  return VK_RESULT_MAX_ENUM;  }
+	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetShaderModuleCreateInfoIdentifierEXT (VkDevice , const VkShaderModuleCreateInfo * , VkShaderModuleIdentifierEXT * )			{  VK_LOG( "used dummy function 'vkGetShaderModuleCreateInfoIdentifierEXT'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdPipelineBarrier (VkCommandBuffer , VkPipelineStageFlags , VkPipelineStageFlags , VkDependencyFlags , uint32_t , const VkMemoryBarrier * , uint32_t , const VkBufferMemoryBarrier * , uint32_t , const VkImageMemoryBarrier * )			{  VK_LOG( "used dummy function 'vkCmdPipelineBarrier'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdBindPipeline (VkCommandBuffer , VkPipelineBindPoint , VkPipeline )			{  VK_LOG( "used dummy function 'vkCmdBindPipeline'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetAccelerationStructureBuildSizesKHR (VkDevice , VkAccelerationStructureBuildTypeKHR , const VkAccelerationStructureBuildGeometryInfoKHR * , const uint32_t * , VkAccelerationStructureBuildSizesInfoKHR * )			{  VK_LOG( "used dummy function 'vkGetAccelerationStructureBuildSizesKHR'" );  return;  }
@@ -1437,6 +1451,7 @@
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdSetStencilCompareMask (VkCommandBuffer , VkStencilFaceFlags , uint32_t )			{  VK_LOG( "used dummy function 'vkCmdSetStencilCompareMask'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdSetStencilWriteMask (VkCommandBuffer , VkStencilFaceFlags , uint32_t )			{  VK_LOG( "used dummy function 'vkCmdSetStencilWriteMask'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdBindDescriptorSets (VkCommandBuffer , VkPipelineBindPoint , VkPipelineLayout , uint32_t , uint32_t , const VkDescriptorSet * , uint32_t , const uint32_t * )			{  VK_LOG( "used dummy function 'vkCmdBindDescriptorSets'" );  return;  }
+	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetDynamicRenderingTilePropertiesQCOM (VkDevice , const VkRenderingInfo * , VkTilePropertiesQCOM * )			{  VK_LOG( "used dummy function 'vkGetDynamicRenderingTilePropertiesQCOM'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdDraw (VkCommandBuffer , uint32_t , uint32_t , uint32_t , uint32_t )			{  VK_LOG( "used dummy function 'vkCmdDraw'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdDrawIndexed (VkCommandBuffer , uint32_t , uint32_t , uint32_t , int32_t , uint32_t )			{  VK_LOG( "used dummy function 'vkCmdDrawIndexed'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdDrawIndirect (VkCommandBuffer , VkBuffer , VkDeviceSize , uint32_t , uint32_t )			{  VK_LOG( "used dummy function 'vkCmdDrawIndirect'" );  return;  }
@@ -1688,6 +1703,7 @@
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetPipelinePropertiesEXT (VkDevice , const VkPipelineInfoEXT * , VkBaseOutStructure * )			{  VK_LOG( "used dummy function 'vkGetPipelinePropertiesEXT'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdSetPatchControlPointsEXT (VkCommandBuffer , uint32_t )			{  VK_LOG( "used dummy function 'vkCmdSetPatchControlPointsEXT'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdDrawMultiIndexedEXT (VkCommandBuffer , uint32_t , const VkMultiDrawIndexedInfoEXT * , uint32_t , uint32_t , uint32_t , const int32_t * )			{  VK_LOG( "used dummy function 'vkCmdDrawMultiIndexedEXT'" );  return;  }
+	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetFramebufferTilePropertiesQCOM (VkDevice , VkFramebuffer , uint32_t * , VkTilePropertiesQCOM * )			{  VK_LOG( "used dummy function 'vkGetFramebufferTilePropertiesQCOM'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkCreateAccelerationStructureKHR (VkDevice , const VkAccelerationStructureCreateInfoKHR * , const VkAllocationCallbacks * , VkAccelerationStructureKHR * )			{  VK_LOG( "used dummy function 'vkCreateAccelerationStructureKHR'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkDestroyAccelerationStructureKHR (VkDevice , VkAccelerationStructureKHR , const VkAllocationCallbacks * )			{  VK_LOG( "used dummy function 'vkDestroyAccelerationStructureKHR'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkCmdBuildAccelerationStructuresKHR (VkCommandBuffer , uint32_t , const VkAccelerationStructureBuildGeometryInfoKHR * , const VkAccelerationStructureBuildRangeInfoKHR * const * )			{  VK_LOG( "used dummy function 'vkCmdBuildAccelerationStructuresKHR'" );  return;  }
@@ -1797,6 +1813,7 @@
 	Load( OUT table._var_vkCreateBufferView, "vkCreateBufferView", Dummy_vkCreateBufferView );
 	Load( OUT table._var_vkGetPipelineExecutableStatisticsKHR, "vkGetPipelineExecutableStatisticsKHR", Dummy_vkGetPipelineExecutableStatisticsKHR );
 	Load( OUT table._var_vkCreateImageView, "vkCreateImageView", Dummy_vkCreateImageView );
+	Load( OUT table._var_vkGetShaderModuleIdentifierEXT, "vkGetShaderModuleIdentifierEXT", Dummy_vkGetShaderModuleIdentifierEXT );
 	Load( OUT table._var_vkCreateShaderModule, "vkCreateShaderModule", Dummy_vkCreateShaderModule );
 	Load( OUT table._var_vkCmdFillBuffer, "vkCmdFillBuffer", Dummy_vkCmdFillBuffer );
 	Load( OUT table._var_vkCmdBindIndexBuffer, "vkCmdBindIndexBuffer", Dummy_vkCmdBindIndexBuffer );
@@ -1850,6 +1867,7 @@
 	Load( OUT table._var_vkBeginCommandBuffer, "vkBeginCommandBuffer", Dummy_vkBeginCommandBuffer );
 	Load( OUT table._var_vkDestroyCuModuleNVX, "vkDestroyCuModuleNVX", Dummy_vkDestroyCuModuleNVX );
 	Load( OUT table._var_vkResetCommandBuffer, "vkResetCommandBuffer", Dummy_vkResetCommandBuffer );
+	Load( OUT table._var_vkGetShaderModuleCreateInfoIdentifierEXT, "vkGetShaderModuleCreateInfoIdentifierEXT", Dummy_vkGetShaderModuleCreateInfoIdentifierEXT );
 	Load( OUT table._var_vkCmdPipelineBarrier, "vkCmdPipelineBarrier", Dummy_vkCmdPipelineBarrier );
 	Load( OUT table._var_vkCmdBindPipeline, "vkCmdBindPipeline", Dummy_vkCmdBindPipeline );
 	Load( OUT table._var_vkGetAccelerationStructureBuildSizesKHR, "vkGetAccelerationStructureBuildSizesKHR", Dummy_vkGetAccelerationStructureBuildSizesKHR );
@@ -1866,6 +1884,7 @@
 	Load( OUT table._var_vkCmdSetStencilCompareMask, "vkCmdSetStencilCompareMask", Dummy_vkCmdSetStencilCompareMask );
 	Load( OUT table._var_vkCmdSetStencilWriteMask, "vkCmdSetStencilWriteMask", Dummy_vkCmdSetStencilWriteMask );
 	Load( OUT table._var_vkCmdBindDescriptorSets, "vkCmdBindDescriptorSets", Dummy_vkCmdBindDescriptorSets );
+	Load( OUT table._var_vkGetDynamicRenderingTilePropertiesQCOM, "vkGetDynamicRenderingTilePropertiesQCOM", Dummy_vkGetDynamicRenderingTilePropertiesQCOM );
 	Load( OUT table._var_vkCmdDraw, "vkCmdDraw", Dummy_vkCmdDraw );
 	Load( OUT table._var_vkCmdDrawIndexed, "vkCmdDrawIndexed", Dummy_vkCmdDrawIndexed );
 	Load( OUT table._var_vkCmdDrawIndirect, "vkCmdDrawIndirect", Dummy_vkCmdDrawIndirect );
@@ -2117,6 +2136,7 @@
 	Load( OUT table._var_vkGetPipelinePropertiesEXT, "vkGetPipelinePropertiesEXT", Dummy_vkGetPipelinePropertiesEXT );
 	Load( OUT table._var_vkCmdSetPatchControlPointsEXT, "vkCmdSetPatchControlPointsEXT", Dummy_vkCmdSetPatchControlPointsEXT );
 	Load( OUT table._var_vkCmdDrawMultiIndexedEXT, "vkCmdDrawMultiIndexedEXT", Dummy_vkCmdDrawMultiIndexedEXT );
+	Load( OUT table._var_vkGetFramebufferTilePropertiesQCOM, "vkGetFramebufferTilePropertiesQCOM", Dummy_vkGetFramebufferTilePropertiesQCOM );
 	Load( OUT table._var_vkCreateAccelerationStructureKHR, "vkCreateAccelerationStructureKHR", Dummy_vkCreateAccelerationStructureKHR );
 	Load( OUT table._var_vkDestroyAccelerationStructureKHR, "vkDestroyAccelerationStructureKHR", Dummy_vkDestroyAccelerationStructureKHR );
 	Load( OUT table._var_vkCmdBuildAccelerationStructuresKHR, "vkCmdBuildAccelerationStructuresKHR", Dummy_vkCmdBuildAccelerationStructuresKHR );

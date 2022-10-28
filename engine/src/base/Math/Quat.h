@@ -14,7 +14,7 @@ namespace AE::Math
 {
 
 	template <typename T>
-	struct alignas(16) Quat
+	struct Quat
 	{
 		STATIC_ASSERT( IsScalar<T> );
 		STATIC_ASSERT( IsFloatPoint<T> );
@@ -32,9 +32,6 @@ namespace AE::Math
 
 	// variables
 	public:
-		// TODO: FIXME:
-		// from specs: ... it's undefined behavior to read from the member of the union that wasn't most recently written.
-		// Many compilers implement, as a non-standard language extension, the ability to read inactive members of a union.
 		union {
 			_GLM_Quat_t		_value;
 			struct {
@@ -196,7 +193,7 @@ namespace AE::Math
 	}
 
 
-}	// AE::Math
+} // AE::Math
 
 #ifdef AE_COMPILER_MSVC
 #	pragma warning (pop)

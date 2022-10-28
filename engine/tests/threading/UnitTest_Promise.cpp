@@ -38,9 +38,9 @@ namespace
 		scheduler->AddThread( MakeRC<WorkerThread>() );
 
 		auto p0 = MakePromise( [] () { return "a"s; });
-		auto p1 = MakePromise( [] () -> String { return "b"s; });
+		auto p1 = MakePromiseFromValue( "b"s );
 		auto p2 = MakePromise( [] () { return 1u; });
-		auto p3 = MakePromiseFromTuple( MakeTuple( p0, p1, p2 ));
+		auto p3 = MakePromiseFrom( p0, p1, p2 );
 
 		auto p4 = p3.Then( [] (const Tuple<String, String, uint> &in) {
 				return in.Get<0>() + in.Get<1>() + ToString( in.Get<2>() );
@@ -88,7 +88,7 @@ namespace
 		auto p0 = MakePromise( [] () { return "a"s; });
 		auto p1 = MakePromise( [] () -> String { return "b"s; });
 		auto p2 = MakePromise( [] () { return 1u; });
-		auto p3 = MakePromiseFromTuple( MakeTuple( p0, p1, p2, pe ));
+		auto p3 = MakePromiseFrom( p0, p1, p2, pe );
 
 		auto p4 = p3.Then( [] (const Tuple<String, String, uint, int> &in) {
 				return in.Get<0>()  + '.' + in.Get<1>() + '.' + ToString( in.Get<2>() ) + '.' + ToString( in.Get<3>() );

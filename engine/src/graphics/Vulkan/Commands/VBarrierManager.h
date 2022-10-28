@@ -5,10 +5,13 @@
 #ifdef AE_ENABLE_VULKAN
 
 # include "graphics/Vulkan/VResourceManager.h"
-# include "graphics/Vulkan/Commands/VRenderTaskScheduler.h"
+# include "graphics/Vulkan/Commands/VCommandPoolManager.h"
+# include "graphics/Vulkan/Commands/VCommandBatch.h"
 
 namespace AE::Graphics::_hidden_
 {
+	class VSoftwareCmdBuf;
+
 
 	//
 	// Vulkan Command Context Barrier Manager
@@ -25,17 +28,22 @@ namespace AE::Graphics::_hidden_
 
 	// variables
 	private:
-		Ptr<VCommandBatch>			_batch;				// must not be null
+		VCommandBatch &				_batch;
+		VResourceManager &			_resMngr;
 
 		VkMemoryBarrier2			_memoryBarrier		= {};
 		VkDependencyInfo			_barrier			= {};
 		ImageMemoryBarriers_t		_imageBarriers;
 		BufferMemoryBarriers_t		_bufferBarriers;
 
+		PROFILE_ONLY(
+			VRenderTask const*		_task;
+		)
+
 
 	// methods
 	public:
-		explicit VBarrierManager (Ptr<VCommandBatch> batch) : _batch{ batch } { ASSERT( _batch != null ); }
+		explicit VBarrierManager (const VRenderTask &task);
 
 		ND_ const VkDependencyInfo*	GetBarriers ();
 		ND_ bool					NoPendingBarriers ()	const;
@@ -43,15 +51,32 @@ namespace AE::Graphics::_hidden_
 
 		template <typename ID>
 		ND_ auto*					Get (ID id)						{ return GetResourceManager().GetResource( id ); }
+		
+		template <typename ID>
+		ND_ bool					IsAlive (ID id)			const	{ return GetResourceManager().IsAlive( id ); }
 
-		ND_ VDevice const&			GetDevice ()			const	{ return RenderTaskScheduler().GetDevice(); }
+		ND_ VDevice const&			GetDevice ()			const	{ return _resMngr.GetDevice(); }
 		ND_ VStagingBufferManager&	GetStagingManager ()	const	{ return GetResourceManager().GetStagingManager(); }
-		ND_ VResourceManager&		GetResourceManager ()	const	{ return RenderTaskScheduler().GetResourceManager(); }
-		ND_ VCommandBatch &			GetBatch ()				const	{ return *_batch; }
-		ND_ RC<VCommandBatch>		GetBatchRC ()			const	{ return _batch->GetRC<VCommandBatch>(); }
-		ND_ FrameUID				GetFrameId ()			const	{ return _batch->GetFrameId(); }
-		ND_ EQueueType				GetQueueType ()			const	{ return _batch->GetQueueType(); }
+		ND_ VResourceManager&		GetResourceManager ()	const	{ return _resMngr; }
+		ND_ VQueryManager&			GetQueryManager ()		const	{ return _resMngr.GetQueryManager(); }
+		ND_ VCommandBatch &			GetBatch ()				const	{ return _batch; }
+		ND_ RC<VCommandBatch>		GetBatchRC ()			const	{ return _batch.GetRC<VCommandBatch>(); }
+		ND_ FrameUID				GetFrameId ()			const	{ return _batch.GetFrameId(); }
+		ND_ EQueueType				GetQueueType ()			const	{ return _batch.GetQueueType(); }
 		ND_ VQueuePtr				GetQueue ()				const	{ return GetDevice().GetQueue( GetQueueType() ); }
+		
+		PROFILE_ONLY(
+			ND_ VRenderTask const&	GetRenderTask ()		const	{ return *_task; }
+
+			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type) const;
+			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type) const;
+			
+			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type) const;
+			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type) const;
+
+			void  ProfilerEndContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type) const;
+			void  ProfilerEndContext (VSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type) const;
+		)
 
 		ND_ bool  BeforeBeginRenderPass (const RenderPassDesc &desc, OUT VPrimaryCmdBufState &primaryState);
 			void  AfterEndRenderPass (const RenderPassDesc &desc, const VPrimaryCmdBufState &primaryState);
@@ -141,8 +166,55 @@ namespace AE::Graphics::_hidden_
 		\
 		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState) override final	{ this->_mngr.AcquireImageOwnership( image, srcQueue, srcState, dstState ); } \
 		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue) override final	{ this->_mngr.ReleaseImageOwnership( image, srcState, dstState, dstQueue ); } \
+		
+
+/*
+=================================================
+	NoPendingBarriers
+=================================================
+*/
+	forceinline bool  VBarrierManager::NoPendingBarriers () const
+	{
+		return (_barrier.memoryBarrierCount | _imageBarriers.size() | _bufferBarriers.size()) == 0;
+	}
+	
+/*
+=================================================
+	GetBarriers
+=================================================
+*/
+	forceinline const VkDependencyInfo*  VBarrierManager::GetBarriers ()
+	{
+		if_unlikely( HasPendingBarriers() )
+		{
+			_barrier.sType						= VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+			_memoryBarrier.sType				= VK_STRUCTURE_TYPE_MEMORY_BARRIER_2;
+			_barrier.pMemoryBarriers			= &_memoryBarrier;
+			_barrier.imageMemoryBarrierCount	= uint(_imageBarriers.size());
+			_barrier.pImageMemoryBarriers		= _imageBarriers.data();
+			_barrier.bufferMemoryBarrierCount	= uint(_bufferBarriers.size());
+			_barrier.pBufferMemoryBarriers		= _bufferBarriers.data();
+
+			return &_barrier;
+		}
+		else
+			return null;
+	}
+	
+/*
+=================================================
+	ClearBarriers
+=================================================
+*/
+	forceinline void  VBarrierManager::ClearBarriers ()
+	{
+		_memoryBarrier	= {};
+		_barrier		= {};
+		_imageBarriers.clear();
+		_bufferBarriers.clear();
+	}
 
 
 } // AE::Graphics::_hidden_
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

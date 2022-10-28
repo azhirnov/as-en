@@ -59,10 +59,10 @@ namespace AE::Base
 			using type = std::integer_sequence< usize, (I + First)... >;
 		};
 
-	}	// _hidden_
+	} // _hidden_
 
 	template <usize First, usize Count>
 	using MakeIntSequence = typename Base::_hidden_::MakeIntSequenceRange< First, std::make_integer_sequence< usize, Count > >::type;
 
 
-}	// AE::Base
+} // AE::Base

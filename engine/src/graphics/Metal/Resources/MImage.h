@@ -40,6 +40,7 @@ namespace AE::Graphics
 		ND_ MetalImage			Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _image; }
 		ND_ ImageDesc const&	Description ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 		ND_ MMemoryID			MemoryID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ bool				IsExclusiveSharing ()	const	{ return true; }
 		
 		ND_ uint3 const			Dimension ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension; }
 		ND_ uint const			Width ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.x; }

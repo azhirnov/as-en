@@ -41,4 +41,4 @@ namespace AE::Base
 	using IAlignedAllocatorRef	= AlignedAllocatorRef< IAlignedAllocator >;
 
 
-}	// AE::Base
+} // AE::Base

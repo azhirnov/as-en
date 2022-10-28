@@ -6,6 +6,7 @@
 #include "base/Math/BitMath.h"
 #include "base/Math/GLM.h"
 #include "base/Math/Bool32.h"
+#include "base/Math/Float8.h"
 #include "base/Math/Float16.h"
 #include "base/Algorithms/Cast.h"
 
@@ -81,7 +82,65 @@ namespace glm
 
 /*
 =================================================
-	operator <, >, ==
+	operator == UMax
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_UMax)
+	{
+		return glm::equal( lhs, TVec<T,I,Q>{MaxValue<T>()} );
+	}
+	
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_UMax)
+	{
+		return glm::notEqual( lhs, TVec<T,I,Q>{MaxValue<T>()} );
+	}
+
+/*
+=================================================
+	operator == Zero
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	{
+		return glm::equal( lhs, TVec<T,I,Q>{} );
+	}
+	
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	{
+		return glm::notEqual( lhs, TVec<T,I,Q>{} );
+	}
+	
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator >= (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	{
+		return glm::greaterThanEqual( lhs, TVec<T,I,Q>{} );
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator <= (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	{
+		return glm::lessThanEqual( lhs, TVec<T,I,Q>{} );
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator > (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	{
+		return glm::greaterThan( lhs, TVec<T,I,Q>{} );
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator < (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	{
+		return glm::lessThan( lhs, TVec<T,I,Q>{} );
+	}
+
+/*
+=================================================
+	operator <, >, ==, !=
 =================================================
 */
 	template <typename T, int I, typename S, glm::qualifier Q>
@@ -144,7 +203,7 @@ namespace glm
 		return glm::lessThan( lhs, rhs );
 	}
 
-}	// glm
+} // glm
 
 
 namespace AE::Math
@@ -263,6 +322,14 @@ namespace AE::Math
 	using packed_half2		= PackedVec< half, 2 >;
 	using packed_half3		= PackedVec< half, 3 >;
 	using packed_half4		= PackedVec< half, 4 >;
+	
+	using uhalf2			= Vec< uhalf, 2 >;
+	using uhalf3			= Vec< uhalf, 3 >;
+	using uhalf4			= Vec< uhalf, 4 >;
+	
+	using packed_uhalf2		= PackedVec< uhalf, 2 >;
+	using packed_uhalf3		= PackedVec< uhalf, 3 >;
+	using packed_uhalf4		= PackedVec< uhalf, 4 >;
 
 /*
 =================================================
@@ -281,7 +348,7 @@ namespace AE::Math
 			static constexpr bool	value = true;
 		};
 
-	}	// _hidden_
+	} // _hidden_
 
 	template <typename T>
 	static constexpr bool  IsVec = Math::_hidden_::_IsVec<T>::value;
@@ -302,7 +369,7 @@ namespace AE::Math
 			static constexpr int	value = I;
 		};
 
-	}	// _hidden_
+	} // _hidden_
 
 	template <typename T>
 	static constexpr uint  VecSize = Math::_hidden_::_VecSize<T>::value;
@@ -422,6 +489,29 @@ namespace AE::Math
 	{
 		return glm::mix( lhs, rhs, factor );
 	}
+
+/*
+=================================================
+	Area
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	ND_ forceinline T  Area (const TVec<T,2,Q> &v)
+	{
+		return v.x * v.y;
+	}
+	
+	template <typename T, glm::qualifier Q>
+	ND_ forceinline T  Area (const TVec<T,3,Q> &v)
+	{
+		return v.x * v.y * v.z;
+	}
+	
+	template <typename T, glm::qualifier Q>
+	ND_ forceinline T  Area (const TVec<T,4,Q> &v)
+	{
+		return v.x * v.y * v.z * v.w;
+	}
 	
 /*
 =================================================
@@ -491,7 +581,7 @@ namespace AE::Math
 	template <typename T, int I, typename S, glm::qualifier Q,
 			  typename = EnableIf<IsScalar<S>>
 			 >
-	ND_ inline GLM_CONSTEXPR TVec<T,I,Q>  Min (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  Min (const TVec<T,I,Q> &lhs, const S &rhs)
 	{
 		return Min( lhs, TVec<T,I,Q>{rhs} );
 	}
@@ -499,7 +589,7 @@ namespace AE::Math
 	template <typename T, int I, typename S, glm::qualifier Q,
 			  typename = EnableIf<IsScalar<S>>
 			 >
-	ND_ inline GLM_CONSTEXPR TVec<T,I,Q>  Min (const S &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  Min (const S &lhs, const TVec<T,I,Q> &rhs)
 	{
 		return Min( TVec<T,I,Q>{lhs}, rhs );
 	}
@@ -540,7 +630,7 @@ namespace AE::Math
 	template <typename T, int I, typename S, glm::qualifier Q,
 			  typename = EnableIf<IsScalar<S>>
 			 >
-	ND_ inline GLM_CONSTEXPR TVec<T,I,Q>  Max (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  Max (const TVec<T,I,Q> &lhs, const S &rhs)
 	{
 		return Max( lhs, TVec<T,I,Q>{rhs} );
 	}
@@ -548,7 +638,7 @@ namespace AE::Math
 	template <typename T, int I, typename S, glm::qualifier Q,
 			  typename = EnableIf<IsScalar<S>>
 			 >
-	ND_ inline GLM_CONSTEXPR auto  Max (const S &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline GLM_CONSTEXPR auto  Max (const S &lhs, const TVec<T,I,Q> &rhs)
 	{
 		return Max( TVec<T,I,Q>{lhs}, rhs );
 	}
@@ -618,19 +708,9 @@ namespace AE::Math
 
 /*
 =================================================
-	Wrap
+	Wrap (float)
 =================================================
 */
-	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Wrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue)
-	{
-		TVec<T,I,Q>	res;
-		for (int i = 0; i < I; ++i) {
-			res[i] = Wrap( v[i], minValue, maxValue );
-		}
-		return res;
-	}
-	
 	template <typename T>
 	forceinline constexpr EnableIf<IsFloatPoint<T>, T>  Wrap (const T& value, const T& minValue, const T& maxValue)
 	{
@@ -644,6 +724,102 @@ namespace AE::Math
 			result += (maxValue - minValue);
 
 		return result;
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Wrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue)
+	{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = Wrap( v[i], minValue, maxValue );
+		}
+		return res;
+	}
+
+/*
+=================================================
+	Wrap (int)
+=================================================
+*/
+	template <typename T>
+	forceinline constexpr EnableIf<IsInteger<T>, T>  Wrap (const T& value, const T& minValue, const T& maxValue)
+	{
+		// check for div by zero
+		if_unlikely( minValue > maxValue )
+			return minValue;
+
+		T	result = T( minValue + ((value - minValue) % (maxValue - minValue + 1)) );
+		
+		if ( result < minValue )
+			result += (maxValue - minValue + 1);
+
+		return result;
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR EnableIf<IsInteger<T>, TVec<T,I,Q>>  Wrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue)
+	{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = Wrap( v[i], minValue, maxValue );
+		}
+		return res;
+	}
+
+/*
+=================================================
+	MirroredWrap (float)
+=================================================
+*/
+	template <typename T>
+	forceinline constexpr EnableIf<IsFloatPoint<T>, T>  MirroredWrap (const T& value, const T& minValue, const T& maxValue)
+	{
+		// check for NaN
+		if_unlikely( minValue >= maxValue )
+			return minValue;
+			
+		const T	 size	= (maxValue - minValue) * T(2);
+		const T	 val	= Fract( (value - minValue) / size );
+
+		return Min( val, T(1) - val ) * size + minValue;
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  MirroredWrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue)
+	{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = MirroredWrap( v[i], minValue, maxValue );
+		}
+		return res;
+	}
+
+/*
+=================================================
+	MirroredWrap (int)
+=================================================
+*/
+	template <typename T>
+	forceinline constexpr EnableIf<IsInteger<T>, T>  MirroredWrap (const T& value, const T& minValue, const T& maxValue)
+	{
+		// check for division by zero
+		if_unlikely( minValue >= maxValue )
+			return minValue;
+			
+		const T	 size	= (maxValue - minValue) * T(2);
+		const T	 val	= Abs( value - minValue ) % size;
+
+		return Min( val, size - val ) + minValue;
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline GLM_CONSTEXPR EnableIf<IsInteger<T>, TVec<T,I,Q>>  MirroredWrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue)
+	{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = MirroredWrap( v[i], minValue, maxValue );
+		}
+		return res;
 	}
 
 /*
@@ -851,6 +1027,12 @@ namespace AE::Math
 		return snorm * T(0.5) + T(0.5);
 	}
 
+	template <typename T>
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  ToUNorm (T snorm)
+	{
+		return snorm * T(0.5) + T(0.5);
+	}
+
 /*
 =================================================
 	ToSNorm
@@ -865,7 +1047,133 @@ namespace AE::Math
 		return unorm * T(2.0) - T(1.0);
 	}
 
-}	// AE::Math
+	template <typename T>
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  ToSNorm (T unorm)
+	{
+		return unorm * T(2.0) - T(1.0);
+	}
+	
+/*
+=================================================
+	FloorPOT / CeilPOT
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline TVec<T,I,Q>  FloorPOT (const TVec<T,I,Q> &v)
+	{
+		TVec<T,I,Q>		result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = FloorPOT( v[i] );
+		}
+		return result;
+	}
+	
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline TVec<T,I,Q>  CeilPOT (const TVec<T,I,Q> &v)
+	{
+		TVec<T,I,Q>		result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = CeilPOT( v[i] );
+		}
+		return result;
+	}
+	
+/*
+=================================================
+	IntLog2 / CeilIntLog2
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline TVec<int,I,Q>  IntLog2 (const TVec<T,I,Q> &v)
+	{
+		TVec<int,I,Q>		result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = IntLog2( v[i] );
+		}
+		return result;
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline TVec<int,I,Q>  CeilIntLog2 (const TVec<T,I,Q> &v)
+	{
+		TVec<int,I,Q>		result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = CeilIntLog2( v[i] );
+		}
+		return result;
+	}
+	
+/*
+=================================================
+	BitScanForward
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline TVec<int,I,Q>  BitScanForward (const TVec<T,I,Q> &v)
+	{
+		TVec<int,I,Q>		result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = BitScanForward( v[i] );
+		}
+		return result;
+	}
+	
+/*
+=================================================
+	BitCount
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline TVec<usize,I,Q>  BitCount (const TVec<T,I,Q> &v)
+	{
+		TVec<usize,I,Q>		result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = BitCount( v[i] );
+		}
+		return result;
+	}
+
+/*
+=================================================
+	IsPowerOfTwo
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline TVec<bool,I,Q>  IsPowerOfTwo (const TVec<T,I,Q> &v)
+	{
+		TVec<bool,I,Q>	result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = IsPowerOfTwo( v[i] );
+		}
+		return result;
+	}
+
+/*
+=================================================
+	SafeLeftBitShift / SafeRightBitShift
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline TVec<T,I,Q>  SafeLeftBitShift (const TVec<T,I,Q> &v)
+	{
+		TVec<T,I,Q>		result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = SafeLeftBitShift( v[i] );
+		}
+		return result;
+	}
+
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline TVec<T,I,Q>  SafeRightBitShift (const TVec<T,I,Q> &v)
+	{
+		TVec<T,I,Q>		result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = SafeRightBitShift( v[i] );
+		}
+		return result;
+	}
+
+} // AE::Math
 
 
 namespace AE::Base
@@ -924,4 +1232,4 @@ namespace std
 	};
 #endif
 
-}	// std
+} // std

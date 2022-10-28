@@ -34,7 +34,7 @@ namespace
 		PipelineLayoutPtr	ppln_layout{ new PipelineLayout{ "Layout1" }};
 		ppln_layout->AddDSLayout( 0, "PerDraw" );
 		ppln_layout->AddDSLayout( 2, "Material" );
-		TEST( ppln_layout->_Build() );
+		TEST( ppln_layout->Build() );
 		
 		PipelineLayout::UniqueTypes_t	unique_types;
 

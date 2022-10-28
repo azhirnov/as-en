@@ -29,7 +29,7 @@ namespace
 		dsl->AddStorageImage( uint(EShaderStages::Fragment), "storageImage", ArraySize{1}, EImageType::Float | EImageType::Img2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
 		dsl->AddSampledImage( uint(EShaderStages::Fragment), "colorTex", ArraySize{1}, EImageType::Float | EImageType::Img2D, EResourceState::ShaderSample );
 		dsl->AddImmutableSampler( uint(EShaderStages::Fragment), "imtblSampler", "DefSampler" );
-		TEST( dsl->_Build() );
+		TEST( dsl->Build() );
 		
 		types = "\n";
 		decl  = "\n";

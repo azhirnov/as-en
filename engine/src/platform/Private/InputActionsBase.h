@@ -69,17 +69,17 @@ namespace AE::App
 		public:
 			DubleBufferedQueue ();
 			~DubleBufferedQueue ();
-		
-			void  NextFrame (FrameUID frameId);
 			
-			ND_ ActionQueueReader  ReadInput (FrameUID frameId) const;
-
-			template <typename T>
-			bool  Insert (const InputActionName &name, ControllerID id, const T &data)	{ return CurrentQueue().Insert( name, id, data ); }
-			bool  Insert (const InputActionName &name, ControllerID id)					{ return CurrentQueue().Insert( name, id ); }
+			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)	{ return CurrentQueue().Insert( name, id, data, dataSize ); }
+			bool  Insert (const InputActionName &name, ControllerID id)										{ return CurrentQueue().Insert( name, id ); }
 
 			ND_ ActionQueue&  CurrentQueue ()	{ return _actionQueues[ ulong(_curFrameId.load().Unique()) & 1 ]; }
+		
+			void  _NextFrame (FrameUID frameId);
+			
+			ND_ ActionQueueReader  _ReadInput (FrameUID frameId) const;
 		};
+
 
 		class DubleBufferedQueueRef
 		{
@@ -91,12 +91,20 @@ namespace AE::App
 		public:
 			DubleBufferedQueueRef (DubleBufferedQueue &q) : _ref{&q} {}
 			DubleBufferedQueueRef (DubleBufferedQueueRef &&other) : _ref{other._ref} { other._ref = null; }
+
+			void  operator = (const DubleBufferedQueueRef &rhs)			{ _ref = rhs._ref; }
+		
+			void  NextFrame (FrameUID frameId)							{ _ref->_NextFrame( frameId ); }
+
+			ND_ ActionQueueReader  ReadInput (FrameUID frameId) const	{ return _ref->_ReadInput( frameId ); }
 			
-			ND_ ActionQueueReader  ReadInput (FrameUID frameId) const	{ return _ref->ReadInput( frameId ); }
+			ND_ DubleBufferedQueue*			Get ()			{ return _ref.get(); }
+			ND_ DubleBufferedQueue const*	Get ()	const	{ return _ref.get(); }
 
 			template <typename T>
-			bool  Insert (const InputActionName &name, ControllerID id, const T &data)	{ return _ref->Insert( name, id, data ); }
-			bool  Insert (const InputActionName &name, ControllerID id)					{ return _ref->Insert( name, id ); }
+			bool  Insert (const InputActionName &name, ControllerID id, const T &data)						{ return _ref->Insert( name, id, &data, Bytes::SizeOf(data) ); }
+			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)	{ return _ref->Insert( name, id, data, dataSize ); }
+			bool  Insert (const InputActionName &name, ControllerID id)										{ return _ref->Insert( name, id ); }
 		};
 
 
@@ -112,6 +120,8 @@ namespace AE::App
 
 		BindAction					_bindAction;
 
+		bool						_vrEmulation	= false;
+
 		DRC_ONLY(
 			DataRaceCheck			_drCheck;
 		)
@@ -126,9 +136,15 @@ namespace AE::App
 		
 		ND_ bool  RequiresLockAndHideCursor () const;
 
+		ND_ static DubleBufferedQueue*  GetQueue (IInputActions* act);
+		
+			void EnableVREmulation ()	{ _vrEmulation = true; }
+
 
 	// IInputActions //
-		ND_ ActionQueueReader  ReadInput (FrameUID frameId) const override	{ return _dbQueueRef.ReadInput( frameId ); }
+		void  NextFrame (FrameUID frameId) override						{ _dbQueueRef.NextFrame( frameId ); }
+
+		ActionQueueReader  ReadInput (FrameUID frameId) const override	{ return _dbQueueRef.ReadInput( frameId ); }
 
 		bool  SetMode (const InputModeName &value) override;
 		
@@ -149,7 +165,153 @@ namespace AE::App
 		void  _Update2F (InputKey key, ControllerID id, float2 value);
 		
 		void  _Set2F (InputKey key, ControllerID id, EGestureType gesture, float2 value);
+		
+		template <typename T>
+		void  _UpdateKey (T type, EGestureState state, ControllerID id, Duration_t timestamp);
+
+		ND_ bool  _IsActiveQueue (const DubleBufferedQueue &q) const { return _dbQueueRef.Get() == &q; }
 	};
+//-----------------------------------------------------------------------------
+
+
+	
+/*
+=================================================
+	ValueType_ElementCount
+=================================================
+*/
+	ND_ constexpr uint  ValueType_ElementCount (IInputActions::EValueType type)
+	{
+		using EValueType = IInputActions::EValueType;
+		BEGIN_ENUM_CHECKS();
+		switch ( type )
+		{
+			case EValueType::Bool :
+			case EValueType::Int :
+			case EValueType::Float :	return 1;
+			case EValueType::Float2 :	return 2;
+			case EValueType::Float3 :	return 3;
+			case EValueType::Float4 :	return 4;
+			case EValueType::Quat :
+			case EValueType::Float4x4 :
+			case EValueType::Unknown :
+			case EValueType::String :	break;	// default
+			case EValueType::_Count :
+			default :					DBG_WARNING( "unknown value type" ); break;
+		}
+		END_ENUM_CHECKS();
+		return 0;
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	_Update1F
+=================================================
+*/
+	forceinline void  InputActionsBase::_Update1F (InputKey key, ControllerID id, float value)
+	{
+		auto	it = _curMode->actions.find( key );
+
+		if_unlikely( it != _curMode->actions.end() )
+		{
+			auto&		info	= it->second;
+			const auto	v		= info.Transform( float4{value, 0.f, 0.f, 0.f} );
+			const auto	v_size	= SizeOf<float> * ValueType_ElementCount( info.valueType );
+				
+			ASSERT( info.gesture == EGestureType::Move );
+			//ASSERT( info.valueType == EValueType::Float );
+
+			_dbQueueRef.Insert( info.name, id, &v[0], v_size );
+		}
+	}
+	
+/*
+=================================================
+	_Update2F
+=================================================
+*/
+	forceinline void  InputActionsBase::_Update2F (InputKey key, ControllerID id, float2 value)
+	{
+		auto	it = _curMode->actions.find( key );
+
+		if_unlikely( it != _curMode->actions.end() )
+		{
+			auto&		info	= it->second;
+			const auto	v		= info.Transform( float4{value, 0.f, 0.f} );
+			const auto	v_size	= SizeOf<float> * ValueType_ElementCount( info.valueType );
+
+			ASSERT( info.gesture == EGestureType::Move );
+			//ASSERT( info.valueType == EValueType::Float2 );
+
+			_dbQueueRef.Insert( info.name, id, &v[0], v_size );
+		}
+	}
+
+/*
+=================================================
+	RequiresLockAndHideCursor
+=================================================
+*/
+	forceinline bool  InputActionsBase::RequiresLockAndHideCursor () const
+	{
+		if_likely( _curMode )
+		{
+			return _curMode->lockAndHideCursor;
+		}
+		return false;
+	}
+	
+/*
+=================================================
+	_UpdateKey
+=================================================
+*/
+	template <typename T>
+	forceinline void  InputActionsBase::_UpdateKey (T type, EGestureState state, ControllerID id, Duration_t timestamp)
+	{
+		ASSERT( state != EGestureState::Update );
+
+		auto	it = _curMode->actions.find( _Pack( type, state ));
+
+		if_likely( it != _curMode->actions.end() )
+		{
+			auto&		info	= it->second;
+			const auto	v		= info.Transform( float4{0.f} );
+			const auto	v_size	= SizeOf<float> * ValueType_ElementCount( info.valueType );
+
+			DEBUG_ONLY(
+				bool	is_down		= (info.gesture == EGestureType::Down)  & (state == EGestureState::Begin);
+				bool	is_click	= (info.gesture == EGestureType::Click) & (state == EGestureState::End);
+				bool	is_hold		= (info.gesture == EGestureType::Hold)  & ((state == EGestureState::Begin) | (state == EGestureState::End));
+				ASSERT( is_down or is_click or is_hold );
+			)
+
+			if ( info.gesture == EGestureType::Hold )
+			{
+				if ( state == EGestureState::Begin )
+				{
+					_pressedKeys.try_emplace( ushort(type), timestamp );
+					_dbQueueRef.Insert( info.name, id, &v[0], v_size );
+				}
+				else
+				{
+					_pressedKeys.EraseByKey( ushort(type) );
+				}
+			}
+			else
+			{
+				_dbQueueRef.Insert( info.name, id, &v[0], v_size );
+			}
+		}
+		
+		if_unlikely( _bindAction.isActive )
+		{
+			_bindAction.keys.try_insert( _Pack( type, state ));
+		}
+	}
 
 
 } // AE::App

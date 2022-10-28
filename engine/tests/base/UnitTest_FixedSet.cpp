@@ -130,9 +130,41 @@ namespace
 				set.insert( T1(i) );
 			}
 			TEST( set.size() == 30 );
+			
+			for (int i = 20; i < 30; ++i) {
+				TEST( set.erase( T1(i) ));
+			}
+			for (int i = 0; i < 20; ++i) {
+				TEST( set.contains( T1(i) ));
+			}
+			for (int i = 30; i < 40; ++i) {
+				TEST( set.insert( T1(i) ).second );
+			}
+			
+			for (int i = 10; i < 20; ++i) {
+				TEST( set.erase( T1(i) ));
+			}
+			for (int i = 0; i < 10; ++i) {
+				TEST( set.contains( T1(i) ));
+			}
+			for (int i = 30; i < 40; ++i) {
+				TEST( set.contains( T1(i) ));
+			}
+			for (int i = 40; i < 50; ++i) {
+				TEST( set.insert( T1(i) ).second );
+			}
+			
+			for (int i = 0; i < 10; ++i) {
+				TEST( set.erase( T1(i) ));
+			}
+			for (int i = 30; i < 50; ++i) {
+				TEST( set.contains( T1(i) ));
+			}
+			for (int i = 30; i < 50; ++i) {
+				TEST( set.erase( T1(i) ));
+			}
 
-			set.erase( T1(10) );
-			TEST( set.size() == 29 );
+			TEST( set.empty() );
 		}
 		TEST( T1::CheckStatistic() );
 	}

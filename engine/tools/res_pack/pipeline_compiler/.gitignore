@@ -1,0 +1,5 @@
+/Compiler
+/Lib
+/ScriptObjects
+/Packer/*.cpp
+CMakeLists.txt

@@ -114,7 +114,9 @@ namespace AE::Graphics
 
 			for (uint exp = _generation.load();
 				 not _generation.CAS( INOUT exp, (exp < max_gen ? exp + 1 : 0) );)
-			{}
+			{
+				ThreadUtils::Pause();
+			}
 		}
 
 	private:

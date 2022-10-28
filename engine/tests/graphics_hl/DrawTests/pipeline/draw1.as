@@ -3,7 +3,7 @@ void main ()
 {
 	GraphicsPipeline@	ppln = GraphicsPipeline( "draw1" );
 	ppln.AddFeatureSet( "MinimalFS" );
-	ppln.SetVertexInput( "VB_Position_f2, VB_UVf2_Col" );
+	ppln.SetVertexInput( "VB_Position_f2, VB_UVf2_Col8" );
 	
 	{
 		Shader@	vs	= Shader();

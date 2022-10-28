@@ -135,6 +135,8 @@ namespace AE::Graphics
 		uint		drawCount				= 1;
 		Bytes		stride;
 	};
+//-----------------------------------------------------------------------------
+
 
 
 	struct DispatchIndirectCommand
@@ -152,6 +154,13 @@ namespace AE::Graphics
 		uint	firstInstance;
 	};
 	STATIC_ASSERT( sizeof(DrawIndirectCommand) == 16 );
+	
+
+	struct MeshDrawIndirectCommand
+	{
+		packed_uint3	taskCount;
+	};
+	STATIC_ASSERT( sizeof(MeshDrawIndirectCommand) == 12 );
 //-----------------------------------------------------------------------------
 
 
@@ -205,7 +214,7 @@ namespace AE::Graphics
 		BufferStream (BufferID id, Bytes offset, Bytes size, Bytes blockSize = 0_b) :
 			_size{size}, _offset{offset}, _blockSize{blockSize}, _bufferId{id} {}
 
-		BufferStream& operator = (const BufferStream &) = default;
+		BufferStream&  operator = (const BufferStream &) = default;
 
 		ND_ BufferID	Buffer ()			const	{ return _bufferId; }
 		ND_ Bytes		DataSize ()			const	{ return _size; }
@@ -294,11 +303,11 @@ namespace AE::Graphics
 	{
 		// limit for dynamic staging buffers
 		struct {
-			Bytes32u	write	{~0u};
-			Bytes32u	read	{~0u};
+			Bytes32u	write	{UMax};
+			Bytes32u	read	{UMax};
 		}	stagingBufferPerFrameLimits;
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 

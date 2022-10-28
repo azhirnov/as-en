@@ -3,7 +3,7 @@
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 project( "AsEn"
-		 VERSION 22.7.112	# year, month, version
+		 VERSION 22.10.121	# year, month, version
 		 LANGUAGES C CXX )
 if (APPLE)
 	enable_language(OBJC)

@@ -1,0 +1,94 @@
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  FillBuffer
+    dst:     'debug storage buffer'
+    offset:  16
+    size:    1048560
+  ----------
+
+  UpdateBuffer
+    dst:     'debug storage buffer'
+    offset:  0
+    size:    16
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    BufferBarrier:
+      name:   'debug storage buffer'
+      stage:  COPY ---> COMPUTE_SHADER
+      access: TRANSFER_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  Dispatch
+    descriptors:
+      image: 'Image', layout: GENERAL
+      buffer: 'debug storage buffer'
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+}
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(16, 16, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1024) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    BufferBarrier:
+      name:   'debug storage buffer'
+      stage:  COMPUTE_SHADER ---> COPY
+      access: SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+  ----------
+
+  CopyBuffer
+    src: 'debug storage buffer'
+    dst: 'readback dbg buffer'
+      copy [0, 1048576) ---> [0, 1048576)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================

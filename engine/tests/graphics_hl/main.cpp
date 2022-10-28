@@ -7,11 +7,14 @@ using namespace AE::App;
 using namespace AE::Threading;
 
 extern void UnitTest_FormattedText ();
+extern void UnitTest_UI_Layouts ();
 extern void Test_DrawTests (IApplication &, IWindow &);
 
 
 static void  UnitTests ()
 {
+	UnitTest_FormattedText();
+	UnitTest_UI_Layouts();
 }
 
 static void  GraphicsTests (IApplication &app, IWindow &wnd)

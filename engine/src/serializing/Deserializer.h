@@ -53,7 +53,6 @@ namespace AE::Serializing
 		template <usize N>					ND_ bool  _Deserialize (INOUT BitSet<N> &);
 											ND_ bool  _Deserialize (INOUT String &);
 		template <typename T, usize S>		ND_ bool  _Deserialize (INOUT TFixedString<T,S> &);
-		template <typename T, uint I>		ND_ bool  _Deserialize (INOUT Vec<T,I> &);
 		template <typename T>				ND_ bool  _Deserialize (INOUT Rectangle<T> &);
 		template <typename T>				ND_ bool  _Deserialize (INOUT RGBAColor<T> &);
 		template <typename T>				ND_ bool  _Deserialize (INOUT HSVColor &);
@@ -70,19 +69,22 @@ namespace AE::Serializing
 											ND_ bool  _Deserialize (INOUT AnyTypeRef &);			// not defined
 											ND_ bool  _Deserialize (INOUT AnyTypeCRef &);			// not defined
 		
+		template <typename T, uint I, glm::qualifier Q>
+		ND_ bool  _Deserialize (INOUT TVec<T,I,Q> &);
+
 		template <usize Size, uint UID, uint Seed>
 		ND_ bool  _Deserialize (INOUT NamedID<Size, UID, true, Seed> &);
 		
 		template <usize Size, uint UID, uint Seed>
 		ND_ bool  _Deserialize (INOUT NamedID<Size, UID, false, Seed> &);
-
+		
 		#ifdef AE_ENABLE_ABSEIL
 		template <typename K, typename V, typename H, typename E, typename A>	ND_ bool  _Deserialize (INOUT FlatHashMap<K,V,H,E,A> &map)	{ return _DeserializeMap<K,V>( INOUT map, UMax ); }
 		#endif
 		template <typename K, typename V, typename H, typename E, typename A>	ND_ bool  _Deserialize (INOUT HashMap<K,V,H,E,A> &map)		{ return _DeserializeMap<K,V>( INOUT map, UMax ); }
 		template <typename K, typename V, usize S>								ND_ bool  _Deserialize (INOUT FixedMap<K,V,S> &map)			{ return _DeserializeMap<K,V>( INOUT map, uint(S) ); }
 		template <typename K, typename V, typename MapType>						ND_ bool  _DeserializeMap (INOUT MapType &map, uint maxCount);
-		
+	
 		#ifdef AE_ENABLE_ABSEIL
 		template <typename T, typename H, typename E, typename A>				ND_ bool  _Deserialize (INOUT FlatHashSet<T,H,E,A> &set)	{ return _DeserializeSet<T>( INOUT set, UMax ); }
 		#endif
@@ -112,4 +114,4 @@ namespace AE::Serializing
 		ND_ bool  _Deserialize (INOUT PhysicalQuantityVec<Qt,I,Ql> &);
 	};
 
-}	// AE::Serializing
+} // AE::Serializing

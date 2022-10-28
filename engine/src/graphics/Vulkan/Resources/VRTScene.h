@@ -49,17 +49,13 @@ namespace AE::Graphics
 			
 		ND_ static RTASBuildSizes	GetBuildSizes (const VResourceManager &, const RTSceneBuild &desc);
 
-			static void				ConvertBuildInfo (const VResourceManager &, const RTSceneBuild &desc,
+		ND_ static bool				ConvertBuildInfo (const VResourceManager &, const RTSceneBuild &desc,
 													  OUT VkAccelerationStructureGeometryKHR &geom,
 													  OUT VkAccelerationStructureBuildRangeInfoKHR &range,
 													  OUT VkAccelerationStructureBuildGeometryInfoKHR &buildInfo);
-
-	private:
-		//ND_ static bool  _Convert (const VResourceManager &, const RTSceneBuild &desc, VTempLinearAllocator &allocator,
-		//						   OUT VkAccelerationStructureBuildGeometryInfoKHR &buildInfo);
 	};
 	
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

@@ -47,7 +47,8 @@ namespace AE::Graphics
 		Strong<VPipelineLayoutID>	_layoutId;
 		InPlace<NameToHandle_t>		_nameToHandle;
 		ArrayView<ulong>			_groupHandles;		// allocated by pipeline pack linear allocator
-		
+		ArrayView<ShaderTracePtr>	_dbgTrace;			// allocated by pipeline pack linear allocator
+
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
 
@@ -59,6 +60,8 @@ namespace AE::Graphics
 
 		ND_ bool  Create (VResourceManager &, const CreateInfo &ci);
 			void  Destroy (VResourceManager &);
+			
+		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result) const;
 
 		ND_ VkPipeline				Handle ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ VkPipelineLayout		Layout ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
@@ -69,6 +72,6 @@ namespace AE::Graphics
 		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

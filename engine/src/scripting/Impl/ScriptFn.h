@@ -52,6 +52,90 @@ namespace AE::Scripting
 	private:
 		bool  _CheckError (int exec_res) const;
 	};
+	
 
 
-}	// AE::Scripting
+/*
+=================================================
+	Run
+=================================================
+*/
+	template <typename R, typename ...Types>
+	template <typename ...Args>
+	typename ScriptFn< R (Types...) >::Result_t
+		ScriptFn< R (Types...) >::Run (Args&& ...args)
+	{
+		using namespace AngelScript;
+
+		using ExpectedArgs_t	= TypeList< Types... >;
+		using InputArgs_t		= TypeList< Args... >;
+
+		STATIC_ASSERT( Scripting::_hidden_::CheckInputArgTypes< ExpectedArgs_t, InputArgs_t >::value );
+		
+		if_unlikely( not (_module and _ctx != null) )
+		{
+			if constexpr( IsSameTypes<R, void> ) {
+				RETURN_ERR( "not initialized", false );
+			}else{
+				RETURN_ERR( "not initialized", Optional<R>{} );
+			}
+		}
+
+		Scripting::_hidden_::SetContextArgs<Args...>::Set( _ctx, 0, FwdArg<Args>(args)... );
+
+		const int exec_res = _ctx->Execute();
+			
+		if constexpr( IsSameTypes<R, void> )
+		{
+			if_likely( exec_res == asEXECUTION_FINISHED )
+				return true;
+				
+			return _CheckError( exec_res );
+		}
+		else
+		{
+			if_likely( exec_res == asEXECUTION_FINISHED )
+				return {Scripting::_hidden_::ContextSetterGetter<R>::Get( _ctx )};
+				
+			_CheckError( exec_res );
+			return {};
+		}
+	}
+
+/*
+=================================================
+	_CheckError
+=================================================
+*/
+	template <typename R, typename ...Types>
+	bool  ScriptFn< R (Types...) >::_CheckError (int exec_res) const
+	{
+		using namespace AngelScript;
+
+		if ( exec_res == asEXECUTION_EXCEPTION )
+		{
+			String	err;
+			err	<< "Exception in function: "
+				<< _ctx->GetExceptionFunction()->GetName();
+
+			const char*	section	= 0;
+			int			column	= 0;
+			const int	line	= _ctx->GetExceptionLineNumber( OUT &column, OUT &section );
+			
+			err << ", in script " << section << " (" << ToString( line ) << ", " << ToString( column ) << "):\n";
+			err << _ctx->GetExceptionString();
+			
+			#if AE_DBG_SCRIPTS
+				_module->LogError( _ctx->GetExceptionFunction()->GetName(), section, line, column, _ctx->GetExceptionString() );
+			#endif
+
+			RETURN_ERR( err );
+		}
+		else
+		{
+			RETURN_ERR( "AngelScript execution failed" );
+		}
+	}
+
+
+} // AE::Scripting

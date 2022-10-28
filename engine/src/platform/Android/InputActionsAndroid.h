@@ -6,6 +6,7 @@
 
 #ifdef AE_PLATFORM_ANDROID
 # include "platform/Private/InputActionsBase.h"
+# include "platform/Private/GestureRecognizer.h"
 # include "platform/Android/SerializableInputActionsAndroid.h"
 
 namespace AE::App
@@ -40,13 +41,13 @@ namespace AE::App
 		
 		void  SetKey (int key, EGestureState state);
 		void  SetTouch (uint touchId, float x, float y, EGestureState state, Duration_t timestamp);
-		void  SetMonitor (const uint2 &size, const Monitor &);
+		void  SetMonitor (const uint2 &surfaceSize, const Monitor &);
+
+		void  SetQueue (DubleBufferedQueue *);
 
 
 	// IInputActions //
-		void  NextFrame (FrameUID frameId) override		{ _dbQueue.NextFrame( frameId ); }
-		
-		bool  LoadSerialized (RStream &stream) override;
+		bool  LoadSerialized (MemRefRStream &stream) override;
 		
 
 	// ISerializable //
@@ -55,8 +56,6 @@ namespace AE::App
 
 
 	private:
-		void  _UpdateKey (EInputType type, EGestureState state, Duration_t timestamp);
-		
 		ND_ static constexpr bool  _IsKey (EInputType type)			{ return SerializableInputActionsAndroid::_IsKey( type ); }
 		ND_ static constexpr bool  _IsCursor1D (EInputType type)	{ return SerializableInputActionsAndroid::_IsCursor1D( type ); }
 		ND_ static constexpr bool  _IsCursor2D (EInputType type)	{ return SerializableInputActionsAndroid::_IsCursor2D( type ); }

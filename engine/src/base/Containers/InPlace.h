@@ -80,6 +80,29 @@ namespace AE::Base
 			PlacementDelete( INOUT _value );
 		}
 
+
+		template <typename Fn>
+		Self&  CustomCtor (const Fn &fn)
+		{
+			DEBUG_ONLY(
+				ASSERT( not _isCreated );
+				_isCreated = true;
+			)
+			fn( OUT _value );
+			return *this;
+		}
+		
+		template <typename Fn>
+		void  CustomDtor (const Fn &fn)
+		{
+			DEBUG_ONLY(
+				ASSERT( _isCreated );
+				_isCreated = false;
+			)
+			fn( OUT _value );
+		}
+
+
 		ND_ T *			operator -> ()			{ ASSERT( _isCreated );  return &_value; }
 		ND_ T const*	operator -> ()	const	{ ASSERT( _isCreated );  return &_value; }
 
@@ -95,4 +118,4 @@ namespace AE::Base
 	};
 
 
-}	// AE::Base
+} // AE::Base

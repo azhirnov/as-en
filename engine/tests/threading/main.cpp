@@ -2,6 +2,7 @@
 
 #include "base/Common.h"
 
+extern void UnitTest_Coroutine ();
 extern void UnitTest_Promise ();
 extern void UnitTest_TaskDeps ();
 extern void UnitTest_TaskUsage ();
@@ -15,6 +16,8 @@ extern void UnitTest_LfStaticQueue ();
 
 extern void UnitTest_LfFixedBlockAllocator ();
 extern void UnitTest_LfLinearAllocator ();
+
+extern void UnitTest_SpinLock ();
 
 
 #ifdef AE_PLATFORM_ANDROID
@@ -35,9 +38,12 @@ int main ()
 	//UnitTest_LfFixedBlockAllocator();
 	UnitTest_LfLinearAllocator();
 
+	UnitTest_SpinLock();
+
 	UnitTest_TaskDeps();
 	UnitTest_TaskUsage();
 	UnitTest_Promise();
+	UnitTest_Coroutine();
 
 	AE_LOGI( "Tests.Threading finished" );
 	return 0;

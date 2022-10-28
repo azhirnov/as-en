@@ -29,10 +29,14 @@ namespace AE::Graphics
 
 	// variables
 	private:
-		MetalRenderPipelineRC		_handle;
+		MetalRenderPipelineRC		_pipeline;
+		MetalDepthStencilStateRC	_dsState;
+		MDynamicRenderState			_renderState;
 		
-		EPipelineOpt				_options			= Default;
-		EPrimitive					_topology			= Default;
+		EPipelineDynamicState		_dynamicState		= Default;
+
+		ushort3						_taskGroupSize;
+		ushort3						_meshGroupSize;
 		
 		Strong<MPipelineLayoutID>	_layoutId;
 		
@@ -47,14 +51,19 @@ namespace AE::Graphics
 
 		ND_ bool  Create (MResourceManager &, const CreateInfo &ci);
 			void  Destroy (MResourceManager &);
+			
+		ND_ MetalRenderPipeline			Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
+		ND_ MetalDepthStencilState		DepthStencilState ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _dsState; }
+		ND_ MDynamicRenderState const&	GetRenderState ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _renderState; }
+		ND_ MPipelineLayoutID			LayoutID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ EPipelineDynamicState		DynamicState ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
 
-		ND_ MetalRenderPipeline		Handle ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
-		ND_ EPrimitive				Topology ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _topology; }
-		ND_ MPipelineLayoutID		LayoutID ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ uint3						TaskLocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _taskGroupSize; }
+		ND_ uint3						MeshLocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _meshGroupSize; }
 		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView		GetDebugName ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_METAL
+#endif // AE_ENABLE_METAL

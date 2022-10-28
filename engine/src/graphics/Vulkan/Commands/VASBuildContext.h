@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	ASBuildCtx --> DirectASBuildCtx    --> BarrierMngr --> Vulkan device 
+	ASBuildCtx -->  DirectASBuildCtx   --> BarrierMngr --> Vulkan device 
 				\-> IndirectASBuildCtx --> BarrierMngr --> Backed commands
 */
 
@@ -26,17 +26,22 @@ namespace AE::Graphics::_hidden_
 	// methods
 	public:
 		void  Copy  (const VkCopyAccelerationStructureInfoKHR &info);
+		void  WriteCompactedSize (VkAccelerationStructureKHR as, VkBuffer dstBuffer, Bytes offset, Bytes size);
+		
+		ND_ VkCommandBuffer	EndCommandBuffer ();
+		ND_ VCommandBuffer  ReleaseCommandBuffer ();
 		
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectASBuildCtx (Ptr<VCommandBatch> batch) : VBaseDirectContext{ batch } {}
-		_VDirectASBuildCtx (Ptr<VCommandBatch> batch, VCommandBuffer cmdbuf) : VBaseDirectContext{ batch, RVRef(cmdbuf) } {}
+		explicit _VDirectASBuildCtx (const VRenderTask &task);
+		_VDirectASBuildCtx (const VRenderTask &task, VCommandBuffer cmdbuf);
 		
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
 
 		void  _Build (const VkAccelerationStructureBuildGeometryInfoKHR &info, VkAccelerationStructureBuildRangeInfoKHR const* const& ranges);
+		void  _WriteAccelerationStructuresProperties (VkAccelerationStructureKHR as, const VQueryManager::Query &query);
 	};
 
 
@@ -50,17 +55,22 @@ namespace AE::Graphics::_hidden_
 	// methods
 	public:
 		void  Copy  (const VkCopyAccelerationStructureInfoKHR &info);
+		void  WriteCompactedSize (VkAccelerationStructureKHR as, VkBuffer dstBuffer, Bytes offset, Bytes size);
+		
+		ND_ VBakedCommands		EndCommandBuffer ();
+		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ();
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectASBuildCtx (Ptr<VCommandBatch> batch) : VBaseIndirectContext{ batch } {}
-		_VIndirectASBuildCtx (Ptr<VCommandBatch> batch, VSoftwareCmdBufPtr cmdbuf) : VBaseIndirectContext{ batch, RVRef(cmdbuf) } {}
+		explicit _VIndirectASBuildCtx (const VRenderTask &task);
+		_VIndirectASBuildCtx (const VRenderTask &task, VSoftwareCmdBufPtr cmdbuf);
 
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
 
 		void  _Build (const VkAccelerationStructureBuildGeometryInfoKHR &info, VkAccelerationStructureBuildRangeInfoKHR const* const& ranges);
+		void  _WriteAccelerationStructuresProperties (VkAccelerationStructureKHR as, const VQueryManager::Query &query);
 	};
 
 
@@ -83,23 +93,33 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VASBuildContextImpl (Ptr<VCommandBatch> batch) : RawCtx{ batch } {}
+		explicit _VASBuildContextImpl (const VRenderTask &task) : RawCtx{ task } {}
 		
 		template <typename RawCmdBufType>
-		_VASBuildContextImpl (Ptr<VCommandBatch> batch, RawCmdBufType&& cmdbuf) : RawCtx{ batch, RVRef(cmdbuf) } {}
+		_VASBuildContextImpl (const VRenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
 
 		_VASBuildContextImpl () = delete;
 		_VASBuildContextImpl (const _VASBuildContextImpl &) = delete;
 
 		using RawCtx::Copy;
 		
-		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst) override								{ RawCtx::_Build( cmd, dst ); }
-		void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst) override				{ RawCtx::_Update( cmd, src, dst ); }
-		void  Copy   (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode = ERTASCopyMode::Clone) override;
+		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst) override final								{ RawCtx::_Build( cmd, dst ); }
+		void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst) override final			{ RawCtx::_Update( cmd, src, dst ); }
+		void  Copy   (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode = ERTASCopyMode::Clone) override final;
 		
-		void  Build  (const RTSceneBuild &cmd, RTSceneID dst) override;
-		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst) override;
-		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone) override;
+		void  Build  (const RTSceneBuild &cmd, RTSceneID dst) override final;
+		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst) override final;
+		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone) override final;
+		
+		using RawCtx::WriteCompactedSize;
+
+		void  WriteCompactedSize (RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size) override final;
+		void  WriteCompactedSize (RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size) override final;
+		
+		Promise<Bytes>  ReadCompactedSize (RTGeometryID as) override final;
+		Promise<Bytes>  ReadCompactedSize (RTSceneID as) override final;
+
+		ND_ Promise<Bytes>  ReadCompactedSize (VkAccelerationStructureKHR as);
 
 		void  CommitBarriers ()									override final	{ RawCtx::_CommitBarriers(); }
 		
@@ -122,5 +142,245 @@ namespace AE::Graphics
 	using VIndirectASBuildContext	= _hidden_::_VASBuildContextImpl< _hidden_::_VIndirectASBuildCtx >;
 
 } // AE::Graphics
+	
 
-#endif	// AE_ENABLE_VULKAN
+namespace AE::Graphics::_hidden_
+{
+	
+/*
+=================================================
+	_Build
+=================================================
+*/
+	inline void  _VDirectASBuildCtx::_Build (const VkAccelerationStructureBuildGeometryInfoKHR &info, VkAccelerationStructureBuildRangeInfoKHR const* const& ranges)
+	{
+		DEBUG_ONLY(
+		switch ( info.mode )
+		{
+			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR :
+				ASSERT( info.dstAccelerationStructure != Default );
+				break;
+			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR :
+				ASSERT( info.srcAccelerationStructure != Default );
+				ASSERT( info.dstAccelerationStructure != Default );
+				break;
+
+			case VK_BUILD_ACCELERATION_STRUCTURE_MODE_MAX_ENUM_KHR :
+			default :
+				DBG_WARNING( "unknown build mode" );
+				break;
+		})
+
+		vkCmdBuildAccelerationStructuresKHR( _cmdbuf.Get(), 1, &info, &ranges );
+	}
+		
+/*
+=================================================
+	Copy
+=================================================
+*/
+	inline void  _VDirectASBuildCtx::Copy (const VkCopyAccelerationStructureInfoKHR &info)
+	{
+		vkCmdCopyAccelerationStructureKHR( _cmdbuf.Get(), &info );
+	}
+//-----------------------------------------------------------------------------
+	
+
+
+/*
+=================================================
+	Copy
+=================================================
+*/
+	template <typename C>
+	void  _VASBuildContextImpl<C>::Copy (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode)
+	{
+		auto*	src_geom = this->_mngr.Get( src );
+		auto*	dst_geom = this->_mngr.Get( dst );
+
+		CHECK_ERRV( src_geom != null and
+					dst_geom != null );
+
+		VkCopyAccelerationStructureInfoKHR	info;
+		info.sType	= VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR;
+		info.pNext	= null;
+		info.src	= src_geom->Handle();
+		info.dst	= dst_geom->Handle();
+		info.mode	= VEnumCast( mode );
+
+		RawCtx::Copy( info );
+	}
+	
+/*
+=================================================
+	Build
+=================================================
+*/
+	template <typename C>
+	void  _VASBuildContextImpl<C>::Build (const RTSceneBuild &cmd, RTSceneID dst)
+	{
+		auto*	scene		= this->_mngr.Get( dst );
+		auto*	scratch_buf	= this->_mngr.Get( cmd.scratch.id );
+		auto*	inst_buf	= this->_mngr.Get( cmd.instanceData.id );
+
+		CHECK_ERRV( scene		!= null and
+					scratch_buf != null and
+					inst_buf	!= null );
+
+		VkAccelerationStructureBuildGeometryInfoKHR	build_info;
+		VkAccelerationStructureGeometryKHR			geom;
+		VkAccelerationStructureBuildRangeInfoKHR	range;
+		VkAccelerationStructureBuildRangeInfoKHR*	p_ranges	= &range;
+
+		CHECK_ERRV( VRTScene::ConvertBuildInfo( this->_mngr.GetResourceManager(), cmd, OUT geom, OUT range, OUT build_info ));
+		
+		build_info.mode							= VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
+		build_info.dstAccelerationStructure		= scene->Handle();
+		build_info.scratchData.deviceAddress	= scratch_buf->GetDeviceAddress() + cmd.scratch.offset;
+
+		geom.geometry.instances.data.deviceAddress = inst_buf->GetDeviceAddress() + cmd.instanceData.offset;
+		
+		ASSERT( build_info.scratchData.deviceAddress % this->_mngr.GetDevice().GetProperties().accelerationStructureProps.minAccelerationStructureScratchOffsetAlignment == 0 );
+		ASSERT( geom.geometry.instances.data.deviceAddress % 16 == 0 );
+
+		return RawCtx::_Build( build_info, p_ranges );
+	}
+	
+/*
+=================================================
+	Update
+=================================================
+*/
+	template <typename C>
+	void  _VASBuildContextImpl<C>::Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)
+	{
+		auto*	src_scene	= this->_mngr.Get( src != Default ? src : dst );
+		auto*	dst_scene	= this->_mngr.Get( dst );
+		auto*	scratch_buf	= this->_mngr.Get( cmd.scratch.id );
+		auto*	inst_buf	= this->_mngr.Get( cmd.instanceData.id );
+
+		CHECK_ERRV( src_scene	!= null and
+					dst_scene	!= null and
+					scratch_buf != null and
+					inst_buf	!= null );
+
+		VkAccelerationStructureBuildGeometryInfoKHR	build_info;
+		VkAccelerationStructureGeometryKHR			geom;
+		VkAccelerationStructureBuildRangeInfoKHR	range;
+		VkAccelerationStructureBuildRangeInfoKHR*	p_ranges	= &range;
+
+		CHECK_ERRV( VRTScene::ConvertBuildInfo( this->_mngr.GetResourceManager(), cmd, OUT geom, OUT range, OUT build_info ));
+		
+		build_info.mode							= VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR;
+		build_info.srcAccelerationStructure		= src_scene->Handle();
+		build_info.dstAccelerationStructure		= dst_scene->Handle();
+		build_info.scratchData.deviceAddress	= scratch_buf->GetDeviceAddress() + cmd.scratch.offset;
+		
+		geom.geometry.instances.data.deviceAddress = inst_buf->GetDeviceAddress() + cmd.instanceData.offset;
+		
+		ASSERT( build_info.scratchData.deviceAddress % this->_mngr.GetDevice().GetProperties().accelerationStructureProps.minAccelerationStructureScratchOffsetAlignment == 0 );
+		ASSERT( geom.geometry.instances.data.deviceAddress % 16 == 0 );
+
+		return RawCtx::_Build( build_info, p_ranges );
+	}
+	
+/*
+=================================================
+	Copy
+=================================================
+*/
+	template <typename C>
+	void  _VASBuildContextImpl<C>::Copy (RTSceneID src, RTSceneID dst, ERTASCopyMode mode)
+	{
+		auto*	src_scene = this->_mngr.Get( src );
+		auto*	dst_scene = this->_mngr.Get( dst );
+
+		CHECK_ERRV( src_scene != null and
+					dst_scene != null );
+
+		VkCopyAccelerationStructureInfoKHR	info;
+		info.sType	= VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR;
+		info.pNext	= null;
+		info.src	= src_scene->Handle();
+		info.dst	= dst_scene->Handle();
+		info.mode	= VEnumCast( mode );
+
+		RawCtx::Copy( info );
+	}
+	
+/*
+=================================================
+	WriteCompactedSize
+=================================================
+*/
+	template <typename C>
+	void  _VASBuildContextImpl<C>::WriteCompactedSize (RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size)
+	{
+		auto*	src_as	= this->_mngr.Get( as );
+		auto*	dst_buf	= this->_mngr.Get( dstBuffer );
+
+		CHECK_ERRV( src_as != null and dst_buf != null );
+
+		RawCtx::WriteCompactedSize( src_as->Handle(), dst_buf->Handle(), offset, size );
+	}
+	
+	template <typename C>
+	void  _VASBuildContextImpl<C>::WriteCompactedSize (RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size)
+	{
+		auto*	src_as	= this->_mngr.Get( as );
+		auto*	dst_buf	= this->_mngr.Get( dstBuffer );
+
+		CHECK_ERRV( src_as != null and dst_buf != null );
+
+		RawCtx::WriteCompactedSize( src_as->Handle(), dst_buf->Handle(), offset, size );
+	}
+	
+/*
+=================================================
+	ReadCompactedSize
+=================================================
+*/
+	template <typename C>
+	Promise<Bytes>  _VASBuildContextImpl<C>::ReadCompactedSize (RTGeometryID as)
+	{
+		auto*	src_as	= this->_mngr.Get( as );
+		CHECK_ERR( src_as != null );
+
+		return ReadCompactedSize( src_as->Handle() );
+	}
+	
+	template <typename C>
+	Promise<Bytes>  _VASBuildContextImpl<C>::ReadCompactedSize (RTSceneID as)
+	{
+		auto*	src_as	= this->_mngr.Get( as );
+		CHECK_ERR( src_as != null );
+
+		return ReadCompactedSize( src_as->Handle() );
+	}
+	
+	template <typename C>
+	Promise<Bytes>  _VASBuildContextImpl<C>::ReadCompactedSize (VkAccelerationStructureKHR as)
+	{
+		auto&	qm		= this->_mngr.GetQueryManager();
+		auto	qsize	= qm.AllocQuery( this->_mngr.GetQueueType(), EQueryType::AccelStructCompactedSize );
+		CHECK_ERR( qsize );
+		
+		RawCtx::_WriteAccelerationStructuresProperties( as, qsize );
+
+		return Threading::MakePromise( [qsize] () -> Threading::PromiseResult<Bytes>
+										{
+											auto&	rts			= RenderTaskScheduler();
+											auto&	query_mngr	= rts.GetResourceManager().GetQueryManager();
+											Bytes	size;
+											CHECK_ERR( query_mngr.GetRTASCompactedSize( rts.GetDevice(), qsize, OUT &size, Bytes::SizeOf(size) ),
+													   Threading::CancelPromise );
+											return size;
+										},
+										Tuple{ this->_mngr.GetBatchRC() }
+									  );
+	}
+
+
+} // AE::Graphics::_hidden_
+
+#endif // AE_ENABLE_VULKAN

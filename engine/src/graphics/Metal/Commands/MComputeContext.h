@@ -33,7 +33,7 @@ namespace AE::Graphics::_hidden_
 		MetalComputeCommandEncoderRC	_encoder;
 	protected:
 		struct {
-			uint3							localSize;
+			ushort3							localSize;
 		}								_states;
 
 		
@@ -41,26 +41,27 @@ namespace AE::Graphics::_hidden_
 	public:
 		void  DispatchThreadgroups (const uint3 &threadgroupsPerGrid, const uint3 &threadsPerThreadgroup);
 		void  DispatchThreads (const uint3 &threadsPerGrid, const uint3 &threadsPerThreadgroup);
-		void  DispatchThreadgroupsWithIndirectBuffer (MetalBuffer indirectBuffer, Bytes offset, const uint3 &threadsPerThreadgroup);
+		void  DispatchThreadgroupsIndirect (MetalBuffer indirectBuffer, Bytes offset, const uint3 &threadsPerThreadgroup);
 
-		void  SetImageblockWidth (const uint2 &dimInPix);
-		
+		void  SetImageblock (const uint2 &dimInPix);
+
 		ND_ ArgSet_t  Arguments ()									{ return ArgSet_t{ _encoder }; }
 
 	protected:
 		_MDirectComputeCtx (Ptr<MCommandBatch> batch);
 		_MDirectComputeCtx (Ptr<MCommandBatch> batch, MCommandBuffer cmdbuf);
 
-		ND_ MetalCommandEncoder  _BaseEncoder ();
+		ND_ MetalCommandEncoder  _BaseEncoder ()					{ return MetalCommandEncoder{ _encoder.Ptr() }; }
 
-		void  _Dispatch (const uint3 &groupCount);
-		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
-		
+		void  _Dispatch (const uint3 &groupCount)					{ DispatchThreadgroups( groupCount, _states.localSize ); }
+		void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)	{ DispatchThreadgroupsIndirect( buffer, offset, _states.localSize ); }
+
 		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
-		
-		void  _DebugMarker (NtStringView text, RGBA8u);
-		void  _PushDebugGroup (NtStringView text, RGBA8u);
-		void  _PopDebugGroup ();
+		void  _BindDescriptorSet (uint index, const MDescriptorSet &ds, ArrayView<uint> dynamicOffsets);
+
+		void  _DebugMarker (NtStringView text, RGBA8u)				{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( _BaseEncoder(), text ); }
+		void  _PushDebugGroup (NtStringView text, RGBA8u)			{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( _BaseEncoder(), text ); }
+		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup( _BaseEncoder() ); }
 		
 		void  _CommitBarriers ();
 	};
@@ -81,7 +82,7 @@ namespace AE::Graphics::_hidden_
 	// variables
 	protected:
 		struct {
-			uint3		localSize;
+			ushort3		localSize;
 		}			_states;
 
 
@@ -89,20 +90,23 @@ namespace AE::Graphics::_hidden_
 	public:
 		void  DispatchThreadgroups (const uint3 &threadgroupsPerGrid, const uint3 &threadsPerThreadgroup);
 		void  DispatchThreads (const uint3 &threadsPerGrid, const uint3 &threadsPerThreadgroup);
-		void  DispatchThreadgroupsWithIndirectBuffer (MetalBuffer indirectBuffer, Bytes offset, const uint3 &threadsPerThreadgroup);
+		void  DispatchThreadgroupsIndirect (MetalBuffer indirectBuffer, Bytes offset, const uint3 &threadsPerThreadgroup);
 
-		void  SetImageblockWidth (const uint2 &dimInPix);
+		void  SetImageblock (const uint2 &dimInPix);
 		
-		ND_ ArgSet_t  Arguments ();
+		ND_ ArgSet_t  Arguments ()									{ return ArgSet_t{ this->_cmdbuf.get() }; }
 
 	protected:
 		_MIndirectComputeCtx (Ptr<MCommandBatch> batch);
 		_MIndirectComputeCtx (Ptr<MCommandBatch> batch, MSoftwareCmdBufPtr cmdbuf);
 
-		void  _Dispatch (const uint3 &groupCount);
-		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
+		void  _Dispatch (const uint3 &groupCount)					{ DispatchThreadgroups( _states.localSize, groupCount ); }
+		void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)	{ DispatchThreadgroupsIndirect( buffer, offset, _states.localSize ); }
 
 		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
+		void  _BindDescriptorSet (uint index, const MDescriptorSet &ds, ArrayView<uint> dynamicOffsets);
+
+		void  _CommitBarriers ();
 	};
 
 
@@ -138,11 +142,8 @@ namespace AE::Graphics::_hidden_
 		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default) override final;
 		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) override final;
 		
-		void  Dispatch (const uint3 &groupCount)								override final	{ RawCtx::_Dispatch( groupCount ); }
-		void  DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)	override final	{ RawCtx::_DispatchBase( baseGroup, groupCount ); }
-
 		using IComputeContext::Dispatch;
-		using IComputeContext::DispatchBase;
+		void  Dispatch (const uint3 &groupCount)				override final	{ RawCtx::_Dispatch( groupCount ); }
 
 		void  DispatchIndirect (MetalBuffer buffer, Bytes offset)				{ RawCtx::DispatchThreadgroupsWithIndirectBuffer( buffer, offset, this->_states.localSize ); }
 		void  DispatchIndirect (BufferID buffer, Bytes offset)	override final;
@@ -168,5 +169,67 @@ namespace AE::Graphics
 	using MIndirectComputeContext	= _hidden_::_MComputeContextImpl< _hidden_::_MIndirectComputeCtx >;
 
 } // AE::Graphics
+	
+
+namespace AE::Graphics::_hidden_
+{
+/*
+=================================================
+	BindPipeline
+=================================================
+*/
+	template <typename C>
+	void  _MComputeContextImpl<C>::BindPipeline (ComputePipelineID ppln)
+	{
+		auto*	cppln = this->_mngr.Get( ppln );
+		CHECK_ERRV( cppln );
+
+		RawCtx::_BindPipeline( cppln->Handle(), cppln->LocalSize() );
+	}
+	
+/*
+=================================================
+	BindDescriptorSet
+=================================================
+*/
+	template <typename C>
+	void  _MComputeContextImpl<C>::BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
+	{
+		auto*	desc_set = this->_mngr.Get( ds );
+		CHECK_ERRV( desc_set );
+
+		RawCtx::_BindDescriptorSet( index, *desc_set, dynamicOffsets );
+	}
+
+/*
+=================================================
+	PushConstant
+=================================================
+*
+	template <typename C>
+	void  _MComputeContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+	{
+		RawCtx::_PushComputeConstant( offset, size, values, stages );
+	}
+	
+/*
+=================================================
+	DispatchIndirect
+=================================================
+*/
+	template <typename C>
+	void  _MComputeContextImpl<C>::DispatchIndirect (BufferID bufferid, Bytes offset)
+	{
+		auto*	buf = this->_mngr.Get( bufferid );
+		CHECK_ERRV( buf );
+		ASSERT( buf->Size() >= offset + sizeof(DispatchIndirectCommand) );
+
+		RawCtx::_DispatchIndirect( buf->Handle(), offset );
+	}
+//-----------------------------------------------------------------------------
+	
+
+
+} // AE::Graphics::_hidden_
 
 #endif // AE_ENABLE_METAL

@@ -5,6 +5,7 @@
 #include "graphics/Public/IDs.h"
 #include "graphics/Public/RenderState.h"
 #include "graphics/Public/ResourceEnums.h"
+#include "graphics/Public/VertexEnums.h"
 
 namespace AE::Graphics
 {
@@ -91,9 +92,32 @@ namespace AE::Graphics
 
 	struct GraphicsPipelineDesc : BasePipelineDesc
 	{
+	// types
+		struct VertexInput
+		{
+			EVertexType		type			= Default;
+			Bytes16u		offset;
+			ubyte			index			= UMax;
+			ubyte			bufferBinding	= UMax;
+		};
+
+		struct VertexBuffer
+		{
+			VertexBufferName::Optimized_t	name;
+			ShaderStructName::Optimized_t	typeName;
+			EVertexInputRate				rate		= Default;
+			ubyte							index		= UMax;
+			Bytes16u						stride;
+		};
+		STATIC_ASSERT( sizeof(VertexInput) == 6 );
+		STATIC_ASSERT( sizeof(VertexBuffer) == 12 );
+
+	// variables
 		Ptr<const RenderState>				renderStatePtr;
 		CompatRenderPassName::Optimized_t	renderPass;
 		SubpassName::Optimized_t			subpass;
+		ArrayView<VertexInput>				vertexInput;
+		ArrayView<VertexBuffer>				vertexBuffers;
 		ubyte								viewportCount	= 1;
 	};
 
@@ -151,7 +175,7 @@ namespace AE::Graphics
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
 namespace AE::Base
 {
@@ -170,5 +194,8 @@ namespace AE::Base
 	template <> struct TMemCopyAvailable< AE::Graphics::TilePipelineDesc >			{ static constexpr bool  value = true; };
 	template <> struct TTrivialySerializable< AE::Graphics::TilePipelineDesc >		{ static constexpr bool  value = true; };
 
-}	// AE::Base
+	template <>	struct TTrivialySerializable< AE::Graphics::GraphicsPipelineDesc::VertexInput >		{ static constexpr bool  value = true; };
+	template <>	struct TTrivialySerializable< AE::Graphics::GraphicsPipelineDesc::VertexBuffer >	{ static constexpr bool  value = true; };
+
+} // AE::Base
 

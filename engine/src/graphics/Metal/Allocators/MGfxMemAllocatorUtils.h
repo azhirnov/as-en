@@ -2,7 +2,7 @@
 
 #pragma once
 
-#if defined(AE_PLATFORM_APPLE) && defined(AE_ENABLE_METAL)
+#ifdef AE_ENABLE_METAL
 
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Metal/MCommon.h"
@@ -18,21 +18,31 @@ namespace AE::Graphics
 	{
 		struct Key
 		{
-			uint	value	= UMax;
+		// types
+			enum class EResType
+			{
+				Buffer,
+				Image,
+				AccelStruct,
+			};
 
+		// variables
+			uint	value	= 0;
+
+		// methods
 			Key () {}
 			
-			Key (/*MTLHeapType*/uint type, /*MTLResourceOptions*/uint opts, bool isImage) :
-				value{ 0 }
+			Key (/*MTLHeapType*/uint type, /*MTLResourceOptions*/uint opts, EResType resType) :
+				value{ (opts & 0xFF'FFFF) | ((type & 0xF) << 24) | ((uint(resType) & 3) << 30) }
 			{}
 
 			ND_ bool  operator == (const Key &rhs) const { return value == rhs.value; }
 			ND_ bool  operator <  (const Key &rhs) const { return value <  rhs.value; }
 			ND_ bool  operator >  (const Key &rhs) const { return value >  rhs.value; }
 
-			ND_ uint  HeapType ()			const	{ return value; }	// MTLHeapType
-			ND_ uint  ResourceOptions ()	const	{ return value; }	// MTLResourceOptions
-			ND_ bool  IsImage ()			const	{ return value; }
+			ND_ uint		HeapType ()			const	{ return (value >> 24) & 0xF; }		// MTLHeapType
+			ND_ uint		ResourceOptions ()	const	{ return value & 0xFF'FFFF; }		// MTLResourceOptions
+			ND_ EResType	ResourceType ()		const	{ return EResType(value >> 30); }
 		};
 	};
 

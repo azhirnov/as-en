@@ -24,34 +24,18 @@ public:
     WndListener (IApplication &app) : _app{app} {}
     ~WndListener () override {}
 
-    void OnCreate (IWindow &) override
+    void OnStateChanged (IWindow &, EState state) override
     {
-        AE_LOGI( "OnCreate" );
-    }
-
-    void OnDestroy (IWindow &) override
-    {
-        AE_LOGI( "OnDestroy" );
-    }
-
-    void OnStart (IWindow &) override
-    {
-        AE_LOGI( "OnStart" );
-    }
-
-    void OnStop (IWindow &) override
-    {
-        AE_LOGI( "OnStop" );
-    }
-
-    void OnEnterForeground (IWindow &) override
-    {
-        AE_LOGI( "OnEnterForeground" );
-    }
-
-    void OnEnterBackground (IWindow &) override
-    {
-        AE_LOGI( "OnEnterBackground" );
+        switch ( state )
+        {
+            case EState::Created :		AE_LOGI( "State: Created" );		break;
+            case EState::Started :		AE_LOGI( "State: Started" );		break;
+            case EState::InForeground :	AE_LOGI( "State: InForeground" );	break;
+            case EState::Focused :		AE_LOGI( "State: Focused" );		break;
+            case EState::InBackground :	AE_LOGI( "State: InBackground" );	break;
+            case EState::Stopped :		AE_LOGI( "State: Stopped" );		break;
+            case EState::Destroyed :	AE_LOGI( "State: Destroyed" );	    break;
+        }
     }
 
     void OnUpdate (IWindow &wnd) override

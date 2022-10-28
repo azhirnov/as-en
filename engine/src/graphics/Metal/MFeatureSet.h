@@ -136,10 +136,15 @@ namespace AE::Graphics
 			bool	fastResourceLoading						: 1;	// TODO ???
 			bool	floatingPointAtomics					: 1;
 
+			// unsupported
+			bool	depthBounds								: 1;
+
 			ubyte	argbufTier;
 			ubyte	readWriteTextureTier;
 
-			Features () { std::memset( this, 0, sizeof(*this) ); }
+			Features () { ZeroMem( this, Bytes::SizeOf(*this) ); }
+
+			ND_ bool  accelerationStructure () const	{ return rayTracingFromCompute or raytracingFromRender; }
 		};
 
 		struct Properties
@@ -202,7 +207,7 @@ namespace AE::Graphics
 			uint		maxNumberOfFences;
 			uint		maxVertexCountForVertexAmplification;
 
-			Properties () { std::memset( this, 0, sizeof(*this) ); }
+			Properties () { ZeroMem( this, Bytes::SizeOf(*this) ); }
 		};
 
 		

@@ -8,7 +8,6 @@ void main ()
 	{
 		PipelineLayout@		pl = PipelineLayout( "compute1.pl" );
 		pl.DSLayout( 0, "compute1.ds1" );
-		//pl.AddDebugDSLayout( 1, EShaderOpt::Trace, EShaderStages::Compute );
 	}
 
 

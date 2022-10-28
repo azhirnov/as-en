@@ -135,7 +135,7 @@ namespace AE::Base
 	template <usize Size, uint UID, uint Seed>	struct TZeroMemAvailable<		NamedID< Size, UID, false, Seed >>	{ static constexpr bool  value = false; };
 	template <usize Size, uint UID, uint Seed>	struct TTrivialySerializable<	NamedID< Size, UID, false, Seed >>	{ static constexpr bool  value = false; };
 	
-}	// AE::Base
+} // AE::Base
 
 namespace std
 {
@@ -147,4 +147,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

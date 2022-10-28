@@ -15,6 +15,7 @@
 
 # define DRC_EXLOCK( /* sync_obj */... )		EXLOCK( __VA_ARGS__ )
 # define DRC_SHAREDLOCK( /* sync_obj */... )	SHAREDLOCK( __VA_ARGS__ )
+# define DRC_SAFE_EXLOCK( /* sync_obj */... )	SAFE_EXLOCK( __VA_ARGS__ )
 # define DRC_ONLY( /* code */... )				__VA_ARGS__
 # define DRC_WRAP( _value_, _syncObj_ )			decltype(_syncObj_)::Wrapper<decltype(_value_)>{ _value_, _syncObj_ }
 
@@ -61,8 +62,10 @@ namespace AE::Threading
 
 				DRC_CHECK( curr == 0 );		// locked by another thread - race condition detected!
 
-				if ( _tid.CAS( INOUT curr, id ))
+				if_likely( _tid.CAS( INOUT curr, id ))
 					return true;
+
+				ThreadUtils::Pause();
 			}
 		}
 
@@ -125,8 +128,10 @@ namespace AE::Threading
 
 					DRC_CHECK( curr == 0 );		// locked by another thread - race condition detected!
 
-					if ( _lockWrite.CAS( INOUT curr, id ))
+					if_likely( _lockWrite.CAS( INOUT curr, id ))
 						break;
+					
+					ThreadUtils::Pause();
 				}
 			}
 
@@ -135,8 +140,10 @@ namespace AE::Threading
 			{
 				DRC_CHECK( expected <= 0 );	// has read lock(s) - race condition detected!
 
-				if ( _readCounter.CAS( INOUT expected, expected - 1 ))	// 0 -> -1
+				if_likely( _readCounter.CAS( INOUT expected, expected - 1 ))	// 0 -> -1
 					break;
+
+				ThreadUtils::Pause();
 			}
 			return true;
 		}
@@ -169,14 +176,14 @@ namespace AE::Threading
 			{
 				// if has exclusive lock in current thread
 				if ( expected < 0 and _lockWrite.load() == id )
-				{
 					return false;	// don't call 'UnlockShared'
-				}
 				
 				DRC_CHECK( expected >= 0 );	// has write lock(s) - race condition detected!
 
-				if ( _readCounter.CAS( INOUT expected, expected + 1 )) // 0 -> 1
+				if_likely( _readCounter.CAS( INOUT expected, expected + 1 )) // 0 -> 1
 					break;
+				
+				ThreadUtils::Pause();
 			}
 			return true;
 		}
@@ -229,7 +236,7 @@ namespace AE::Threading
 	};
 
 
-}	// AE::Threading
+} // AE::Threading
 
 #undef DRC_CHECK
 
@@ -366,12 +373,13 @@ namespace std
 		{}
 	};
 
-}	// std
+} // std
 
 #else // AE_ENABLE_DATA_RACE_CHECK
 
 # define DRC_EXLOCK( ... )
 # define DRC_SHAREDLOCK( ... )
+# define DRC_SAFE_EXLOCK( ... )
 # define DRC_ONLY( ... )
 # define DRC_WRAP( _value_, _syncObj_ )		AE::Threading::DRC_Dummy_Wrap<decltype(_value_)>{ _value_ }
 
@@ -388,4 +396,4 @@ namespace AE::Threading
 
 } // AE::Threading
 
-#endif	// not AE_ENABLE_DATA_RACE_CHECK
+#endif // not AE_ENABLE_DATA_RACE_CHECK

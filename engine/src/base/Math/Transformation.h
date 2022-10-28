@@ -252,7 +252,7 @@ namespace AE::Math
 	}
 
 
-}	// AE::Math
+} // AE::Math
 
 
 namespace AE::Base
@@ -261,4 +261,4 @@ namespace AE::Base
 	template <typename T>	struct TZeroMemAvailable< Transformation<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
 	template <typename T>	struct TTrivialySerializable< Transformation<T> >	{ static constexpr bool  value = IsTrivialySerializable<T>; };
 	
-}	// AE::Base
+} // AE::Base

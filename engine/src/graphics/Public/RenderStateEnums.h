@@ -109,7 +109,7 @@ namespace AE::Graphics
 
 	enum class EPolygonMode : ubyte
 	{
-		Point,	// TODO: remove ? (not supported in Metal)
+		Point,			// Vulkan only
 		Line,
 		Fill,
 		_Count,
@@ -162,7 +162,7 @@ namespace AE::Graphics
 		StencilReference		= 1 << 2,
 		DepthBias				= 1 << 3,
 		BlendConstants			= 1 << 4,
-		DepthBounds				= 1 << 5,
+		//DepthBounds			= 1 << 5,	// Vulkan only
 
 		// extensions
 		//CullMode				= 1 << 6,
@@ -177,7 +177,7 @@ namespace AE::Graphics
 		_Last,
 		All						= ((_Last-1) << 1) - 1,
 
-		GraphicsPipelineMask	= StencilCompareMask | StencilWriteMask | StencilReference | DepthBias | BlendConstants | DepthBounds,
+		GraphicsPipelineMask	= StencilCompareMask | StencilWriteMask | StencilReference | DepthBias | BlendConstants,
 		MeshPipelineMask		= GraphicsPipelineMask,
 		ComputePipelineMask		= 0,
 		TilePipelineMask		= 0,
@@ -186,4 +186,4 @@ namespace AE::Graphics
 	AE_BIT_OPERATORS( EPipelineDynamicState );
 
 
-}	// AE::Graphics
+} // AE::Graphics

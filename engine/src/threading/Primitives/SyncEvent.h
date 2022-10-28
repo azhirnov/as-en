@@ -4,7 +4,7 @@
 
 #include "threading/Common.h"
 #include "base/Math/BitMath.h"
-#include "base/Utils/Noncopyable.h"
+#include "base/Utils/Helpers.h"
 
 #ifdef AE_PLATFORM_WINDOWS
 #	define AE_SYNC_EVENT_MODE	1
@@ -64,7 +64,7 @@ namespace AE::Threading
 		ND_ bool  _Wait (uint timeout);
 	};
 
-}	// AE::Threading
+} // AE::Threading
 //-----------------------------------------------------------------------------
 
 
@@ -157,6 +157,6 @@ namespace AE::Threading
 		}
 	};
 
-}	// AE::Threading
+} // AE::Threading
 
 #endif

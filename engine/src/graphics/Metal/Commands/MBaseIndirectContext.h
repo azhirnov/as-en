@@ -19,6 +19,8 @@ namespace AE::Graphics::_hidden_
 	{
 	// types
 	public:
+		using Viewport_t = RenderPassDesc::Viewport;
+
 		struct DebugMarkerCmd : BaseCmd
 		{
 			//char		text [];
@@ -31,17 +33,90 @@ namespace AE::Graphics::_hidden_
 		
 		struct PopDebugGroupCmd : BaseCmd
 		{};
+
+		struct MemoryBarrierCmd : BaseCmd
+		{
+			// TODO
+		};
 		
+		struct SetBufferCmd : BaseCmd
+		{
+			EShader			shaderType;
+			MBufferIndex	index;
+			MetalBuffer		buffer;
+			Bytes			offset;
+		};
+
+		struct SetBufferOffsetCmd : BaseCmd
+		{
+			EShader			shaderType;
+			MBufferIndex	index;
+			Bytes			offset;
+		};
+
+		struct SetBytesCmd : BaseCmd
+		{
+			EShader			shaderType;
+			Bytes16u		dataSize;
+			MBufferIndex	index;
+		};
+
+		struct SetSamplerCmd : BaseCmd
+		{
+			EShader			shaderType;
+			MSamplerIndex	index;
+			MetalSampler	sampler;
+		};
+
+		struct SetSampler2Cmd : BaseCmd
+		{
+			EShader			shaderType;
+			MSamplerIndex	index;
+			MetalSampler	sampler;
+			float			lodMinClamp;
+			float			lodMaxClamp;
+		};
+
+		struct SetTextureCmd : BaseCmd
+		{
+			EShader			shaderType;
+			MTextureIndex	index;
+			MetalImage		texture;
+		};
+
+		struct SetVisibleFunctionTableCmd : BaseCmd
+		{
+			EShader					shaderType;
+			MBufferIndex			index;
+			MetalVisibleFnTable		table;
+		};
+
+		struct SetIntersectionFunctionTableCmd : BaseCmd
+		{
+			EShader						shaderType;
+			MBufferIndex				index;
+			MetalIntersectionFnTable	table;
+		};
+
+		struct SetAccelerationStructureCmd : BaseCmd
+		{
+			EShader				shaderType;
+			MBufferIndex		index;
+			MetalAccelStruct	as;
+		};
+
+		struct SetThreadgroupMemoryLengthCmd : BaseCmd
+		{
+			EShader				shaderType;
+			MThreadgroupIndex	index;
+			Bytes16u			length;
+			Bytes16u			offset;
+		};
+
 		//-------------------------------------------------
 		// transfer commands
 		
 		struct BeginTransferCommandsCmd : BaseCmd
-		{};
-
-		//-------------------------------------------------
-		// compute commands
-		
-		struct BeginComputeCommandsCmd : BaseCmd
 		{};
 
 		struct FillBufferCmd : BaseCmd
@@ -73,7 +148,7 @@ namespace AE::Graphics::_hidden_
 			MetalBuffer			srcBuffer;
 			MetalImage			dstImage;
 			uint				rangesCount;
-			//BufferImageCopy	ranges []
+			//BufferImageCopy2	ranges []
 		};
 
 		struct CopyImageToBufferCmd : BaseCmd
@@ -81,25 +156,227 @@ namespace AE::Graphics::_hidden_
 			MetalImage			srcImage;
 			MetalBuffer			dstBuffer;
 			uint				rangesCount;
-			//BufferImageCopy	ranges []
+			//BufferImageCopy2	ranges []
 		};
 
 		struct GenerateMipmapsCmd : BaseCmd
 		{
-			MetalImage	image;
+			MetalImage		image;
+		};
+
+		struct SynchronizeResourceCmd : BaseCmd
+		{
+			MetalResource	resource;
+		};
+
+		//-------------------------------------------------
+		// compute commands
+		
+		struct BeginComputeCommandsCmd : BaseCmd
+		{};
+
+		struct DispatchThreadgroupsCmd : BaseCmd
+		{
+			packed_uint3	threadgroupsPerGrid;
+			packed_uint3	threadsPerThreadgroup;
+		};
+
+		struct DispatchThreadsCmd : BaseCmd
+		{
+			packed_uint3	threadsPerGrid;
+			packed_uint3	threadsPerThreadgroup;
+		};
+
+		struct DispatchThreadgroupsIndirectCmd : BaseCmd
+		{
+			MetalBuffer		indirectBuffer;
+			Bytes			offset;
+			packed_uint3	threadsPerThreadgroup;
+		};
+
+		struct SetImageblockCmd : BaseCmd
+		{
+			packed_uint2	dimInPix;
+		};
+
+		struct BindComputePipelineCmd : BaseCmd
+		{
+			MetalComputePipeline	ppln;
 		};
 
 		//-------------------------------------------------
 		// graphics commands
 		
+		struct BeginRenderPassCmd : BaseCmd
+		{};
+		
+		struct EndRenderPassCmd : BaseCmd
+		{};
 
 		//-------------------------------------------------
 		// draw commands
 		
+		struct BindGraphicsPipelineCmd : BaseCmd
+		{
+			MetalRenderPipeline		ppln;
+		};
+		
+		struct SetDynamicRenderStateCmd : BaseCmd
+		{
+			MDynamicRenderState		value;
+		};
+
+		struct SetDepthStencilStateCmd : BaseCmd
+		{
+			MetalDepthStencilState	value;
+		};
+
+		struct SetPolygonModeCmd : BaseCmd
+		{
+			EPolygonMode	value;
+		};
+
+		struct SetCullModeCmd : BaseCmd
+		{
+			ECullMode		value;
+		};
+
+		struct SetFrontFacingCmd : BaseCmd
+		{
+			bool			ccw;
+		};
+
+		struct SetDepthClampCmd : BaseCmd
+		{
+			bool			value;
+		};
+
+		struct SetTessellationFactorCmd : BaseCmd
+		{
+			MetalBuffer		buffer;
+			Bytes			offset;
+			Bytes			instanceStride;
+		};
+
+		struct SetTessellationFactorScaleCmd : BaseCmd
+		{
+			float			value;
+		};
+
+		struct SetVertexAmplificationCountCmd : BaseCmd
+		{
+			uint			count;
+		};
+		
+		//struct SetVertexAmplificationMappingCmd : BaseCmd
+		//{
+		//	VertexAmplificationViewMapping	mapping;
+		//};
+
+		struct SetDepthBiasCmd : BaseCmd
+		{
+			float			depthBiasConstantFactor;
+			float			depthBiasClamp;
+			float			depthBiasSlopeFactor;
+		};
+
+		struct SetStencilReferenceCmd : BaseCmd
+		{
+			uint			frontReference;
+			uint			backReference;
+		};
+
+		struct SetViewportCmd : BaseCmd
+		{
+			uint			count;
+			//Viewport_t	viewports []
+		};
+
+		struct SetScissorCmd : BaseCmd
+		{
+			uint			count;
+			//RectI			scissors []
+		};
+
+		struct SetBlendConstantsCmd : BaseCmd
+		{
+			RGBA32f			color;
+		};
+
+		struct DrawPrimitivesCmd : BaseCmd
+		{
+			uint			primitiveType;
+			uint			firstVertex;
+			uint			vertexCount;
+			uint			instanceCount;
+			uint			firstInstance;
+		};
+		
+		struct DrawIndexedPrimitivesCmd : BaseCmd
+		{
+			ushort			primitiveType;
+			ushort			indexType;
+			uint			indexCount;
+			MetalBuffer		indexBuffer;
+			Bytes			indexBufferOffset;
+			uint			instanceCount;
+			uint			vertexOffset;
+			uint			firstInstance;
+		};
+		
+		struct DrawPrimitivesIndirectCmd : BaseCmd
+		{
+			MetalBuffer		indirectBuffer;
+			Bytes			indirectBufferOffset;
+			uint			drawCount;
+			uint			primitiveType;
+			Bytes			stride;
+		};
+		
+		struct DrawIndexedPrimitivesIndirectCmd : BaseCmd
+		{
+			ushort			primitiveType;
+			ushort			indexType;
+			uint			drawCount;
+			MetalBuffer		indirectBuffer;
+			Bytes			indirectBufferOffset;
+			Bytes			stride;
+		};
+
+		struct DrawMeshThreadgroupsCmd : BaseCmd
+		{
+			packed_uint3	threadgroupsPerGrid;
+			packed_uint3	threadsPerObjectThreadgroup;
+			packed_uint3	threadsPerMeshThreadgroup;
+		};
+		
+		struct DrawMeshThreadsCmd : BaseCmd
+		{
+			packed_uint3	threadsPerGrid;
+			packed_uint3	threadsPerObjectThreadgroup;
+			packed_uint3	threadsPerMeshThreadgroup;
+		};
+		
+		struct DrawMeshThreadgroupsIndirectCmd : BaseCmd
+		{
+			MetalBuffer		indirectBuffer;
+			Bytes			indirectBufferOffset;
+			packed_uint3	threadsPerObjectThreadgroup;
+			packed_uint3	threadsPerMeshThreadgroup;
+			uint			drawCount;
+			Bytes			stride;
+		};
+
+		struct DispatchThreadsPerTileCmd : BaseCmd
+		{
+			packed_uint2	threadsPerTile;
+		};
 
 		//-------------------------------------------------
 		// acceleration structure build commands
 		
+		struct BeginAccelStructBuildCommandsCmd : BaseCmd
+		{};
 
 		//-------------------------------------------------
 		// ray tracing commands
@@ -111,15 +388,63 @@ namespace AE::Graphics::_hidden_
 			_visitor_( DebugMarkerCmd )\
 			_visitor_( PushDebugGroupCmd )\
 			_visitor_( PopDebugGroupCmd )\
+			_visitor_( MemoryBarrierCmd )\
+			_visitor_( SetBufferCmd )\
+			_visitor_( SetBufferOffsetCmd )\
+			_visitor_( SetBytesCmd )\
+			_visitor_( SetSamplerCmd )\
+			_visitor_( SetSampler2Cmd )\
+			_visitor_( SetTextureCmd )\
+			_visitor_( SetVisibleFunctionTableCmd )\
+			_visitor_( SetIntersectionFunctionTableCmd )\
+			_visitor_( SetAccelerationStructureCmd )\
+			_visitor_( SetThreadgroupMemoryLengthCmd )\
 			/* transfer commands */\
 			_visitor_( BeginTransferCommandsCmd )\
 			_visitor_( FillBufferCmd )\
 			_visitor_( CopyBufferCmd )\
+			_visitor_( CopyImageCmd )\
 			_visitor_( CopyBufferToImageCmd )\
 			_visitor_( CopyImageToBufferCmd )\
 			_visitor_( GenerateMipmapsCmd )\
+			_visitor_( SynchronizeResourceCmd )\
 			/* compute commands */\
 			_visitor_( BeginComputeCommandsCmd )\
+			_visitor_( DispatchThreadgroupsCmd )\
+			_visitor_( DispatchThreadsCmd )\
+			_visitor_( DispatchThreadgroupsIndirectCmd )\
+			_visitor_( SetImageblockCmd )\
+			_visitor_( BindComputePipelineCmd )\
+			/* graphics commands */\
+			_visitor_( BeginRenderPassCmd )\
+			_visitor_( EndRenderPassCmd )\
+			/* draw commands */\
+			_visitor_( BindGraphicsPipelineCmd )\
+			_visitor_( SetDynamicRenderStateCmd )\
+			_visitor_( SetDepthStencilStateCmd )\
+			_visitor_( SetPolygonModeCmd )\
+			_visitor_( SetCullModeCmd )\
+			_visitor_( SetFrontFacingCmd )\
+			_visitor_( SetDepthClampCmd )\
+			_visitor_( SetTessellationFactorCmd )\
+			_visitor_( SetTessellationFactorScaleCmd )\
+			_visitor_( SetVertexAmplificationCountCmd )\
+			/*_visitor_( SetVertexAmplificationMappingCmd )*/\
+			_visitor_( SetDepthBiasCmd )\
+			_visitor_( SetStencilReferenceCmd )\
+			_visitor_( SetViewportCmd )\
+			_visitor_( SetScissorCmd )\
+			_visitor_( SetBlendConstantsCmd )\
+			_visitor_( DrawPrimitivesCmd )\
+			_visitor_( DrawIndexedPrimitivesCmd )\
+			_visitor_( DrawPrimitivesIndirectCmd )\
+			_visitor_( DrawIndexedPrimitivesIndirectCmd )\
+			_visitor_( DrawMeshThreadgroupsCmd )\
+			_visitor_( DrawMeshThreadsCmd )\
+			_visitor_( DrawMeshThreadgroupsIndirectCmd )\
+			_visitor_( DispatchThreadsPerTileCmd )\
+			/* acceleration structure build commands */\
+			_visitor_( BeginAccelStructBuildCommandsCmd )\
 		
 		using Commands_t	= TypeList<
 				#define AE_BASE_IND_CTX_VISIT( _name_ )		_name_,
@@ -132,7 +457,7 @@ namespace AE::Graphics::_hidden_
 				// shared commands
 				char,
 				// transfer commands
-				BufferCopy, ImageCopy, BufferImageCopy
+				BufferCopy, ImageCopy, BufferImageCopy, BufferImageCopy2
 				// compute commands
 				// graphics commands
 				// draw commands
@@ -158,7 +483,7 @@ namespace AE::Graphics::_hidden_
 		void  DebugMarker (NtStringView text);
 		void  PushDebugGroup (NtStringView text);
 		void  PopDebugGroup ();
-		void  CommitBarriers (EBarrierScope scope, ArrayView<MetalResource> resources);
+		void  CommitBarriers (const MBarrierManager::BarrierInfo &);
 
 		ND_ static bool  Execute (MetalCommandBuffer cmdbuf, void* root);
 		
@@ -236,8 +561,65 @@ namespace AE::Graphics::_hidden_
 		ND_ bool	_NoPendingBarriers ()	const	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetFeatures ()			const	{ return _mngr.GetDevice().GetFeatures(); }
 	};
+//-----------------------------------------------------------------------------
+	
 
+	
+/*
+=================================================
+	destructor
+=================================================
+*/
+	inline _MBaseIndirectContext::~_MBaseIndirectContext ()
+	{
+		DBG_CHECK_MSG( not IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
+	}
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	inline MBaseIndirectContext::MBaseIndirectContext (Ptr<MCommandBatch> batch) :
+		_MBaseIndirectContext{ batch->DbgName() },
+		_mngr{ batch }
+	{}
+		
+	inline MBaseIndirectContext::MBaseIndirectContext (Ptr<MCommandBatch> batch, MSoftwareCmdBufPtr cmdbuf) :
+		_MBaseIndirectContext{ RVRef(cmdbuf) },
+		_mngr{ batch }
+	{}
+	
+/*
+=================================================
+	destructor
+=================================================
+*/
+	inline MBaseIndirectContext::~MBaseIndirectContext ()
+	{
+		ASSERT( _NoPendingBarriers() );
+	}
 
 } // AE::Graphics::_hidden_
+//-----------------------------------------------------------------------------
+
+
+namespace AE::Graphics
+{
+/*
+=================================================
+	Execute
+----
+	'cmdbuf' must be in the recording state
+=================================================
+*
+	forceinline bool  MBakedCommands::Execute (MetalCommandBuffer cmdbuf) const
+	{
+		return _hidden_::MSoftwareCmdBuf::Execute( fn, cmdbuf, _root );
+	}
+*/
+} // AE::Graphics
 
 #endif // AE_ENABLE_METAL

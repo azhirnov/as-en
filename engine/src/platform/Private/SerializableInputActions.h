@@ -4,6 +4,7 @@
 
 #include "base/Common.h"
 #include "base/CompileTime/StringToID.h"
+#include "base/Math/VecSwizzle.h"
 
 #if not AE_OPTIMIZE_IDS
 #	include "base/Utils/NamedID_HashCollisionCheck.h"
@@ -39,9 +40,12 @@ namespace AE::App
 			FixedString<32>		action;		// InputActionName
 			EValueType			type		= Default;
 			EGestureType		gesture		= Default;
+			VecSwizzle			swizzle		= VecSwizzle::VecDefault(4);
+			packed_uhalf4		scale		{float4{1.0f}};
 
 			ScriptActionInfo () {}
-			ScriptActionInfo (StringView a, EValueType t, EGestureType g) : action{a}, type{t}, gesture{g} {}
+			ScriptActionInfo (StringView a, EValueType t, EGestureType g, VecSwizzle sw, const packed_uhalf4 &sc) :
+				action{a}, type{t}, gesture{g}, swizzle{sw}, scale{sc} {}
 		};
 
 
@@ -56,6 +60,11 @@ namespace AE::App
 			InputActionName		name;
 			EValueType			valueType	= Default;
 			EGestureType		gesture		= Default;
+			VecSwizzle			swizzle		= VecSwizzle::VecDefault(4);
+			packed_uhalf4		scale		{float4{1.0f}};
+
+			ND_ packed_float4	Transform (const float4 &in) const;
+			ND_ float4			GetScale () const;
 		};
 
 		using ActionMap_t = FlatHashMap< InputKey, ActionInfo >;
@@ -69,7 +78,7 @@ namespace AE::App
 		using ModeMap_t	= FixedMap< InputModeName, InputMode, _MaxModes >;
 		
 		// for serialization
-		static constexpr uint	_BaseVersion	= 1;
+		static constexpr uint	_BaseVersion	= 2;
 		
 		
 	  #ifdef AE_ENABLE_SCRIPTING
@@ -153,7 +162,7 @@ namespace AE::App
 		ND_ virtual String  ToString () const = 0;
 	  #endif
 
-		ND_ static bool  LoadSerialized (OUT ModeMap_t &modeMap, uint version, uint nameHash, RStream &stream);
+		ND_ static bool  LoadSerialized (OUT ModeMap_t &modeMap, uint version, uint nameHash, MemRefRStream &stream);
 
 
 	// ISerializable //
@@ -178,6 +187,45 @@ namespace AE::App
 		ND_ static Array<Pair<InputKey,		 const ActionInfo *>>	_ToArray (const ActionMap_t &actions);
 		ND_ static Array<Pair<InputModeName, const InputMode *>>	_ToArray (const ModeMap_t &modes);
 	};
+	
+/*
+=================================================
+	_Pack
+=================================================
+*/
+	template <typename T>
+	forceinline constexpr SerializableInputActions::InputKey
+		SerializableInputActions::_Pack (T key, EGestureState state)
+	{
+		ASSERT( uint(key) <= 0xFFF'FFFF );
+		return InputKey( uint(key) | (uint(state) << 28) );
+	}
+
+/*
+=================================================
+	_Unpack
+=================================================
+*/
+	forceinline constexpr Pair<uint,EGestureState>  SerializableInputActions::_Unpack (InputKey key)
+	{
+		return { (uint(key) & 0xFFF'FFFF),
+				EGestureState(uint(key) >> 28) };
+	}
+
+/*
+=================================================
+	ActionInfo::Transform
+=================================================
+*/
+	forceinline packed_float4  SerializableInputActions::ActionInfo::Transform (const float4 &value) const
+	{
+		return	value * swizzle * GetScale();
+	}
+	
+	forceinline float4  SerializableInputActions::ActionInfo::GetScale () const
+	{
+		return float4{ scale.x.GetFast(), scale.y.GetFast(), scale.z.GetFast(), scale.w.GetFast() };
+	}
 
 
 } // AE::App

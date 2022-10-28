@@ -84,6 +84,8 @@ namespace AE::Threading
 		ND_ AE_ALLOCATOR void*  Allocate (const Bytes size, const Bytes align);
 
 		void  Deallocate (void *ptr, const Bytes size, const Bytes align);
+		void  Deallocate (void *ptr, const Bytes size)	{ Deallocate( ptr, size, 1_b ); }
+		void  Deallocate (void *ptr)					{ Unused( ptr ); }
 
 		
 		ND_ static constexpr Bytes  BlockSize ()	{ return _Capacity; }
@@ -91,4 +93,4 @@ namespace AE::Threading
 	};
 
 
-}	// AE::Threading
+} // AE::Threading

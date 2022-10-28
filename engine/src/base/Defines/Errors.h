@@ -2,11 +2,9 @@
 
 #pragma once
 
-#include "base/Config.h"
-
 
 // debug break
-#ifdef AE_DEV_OR_DBG
+#ifdef AE_DBG_OR_DEV
 # if defined(AE_COMPILER_MSVC)
 #	define AE_PRIVATE_BREAK_POINT()		__debugbreak()
 
@@ -69,7 +67,7 @@
 
 // development check
 #ifndef DEV_CHECK
-# ifdef AE_DEV_OR_DBG
+# ifdef AE_DBG_OR_DEV
 #	define DEV_CHECK								CHECK
 #	define DEV_CHECK_ERR							CHECK_ERR
 #	define DEV_CHECK_MSG							CHECK_MSG
@@ -95,7 +93,7 @@
 #endif
 
 #ifndef AE_LOG_DEV
-# ifdef AE_DEV_OR_DBG
+# ifdef AE_DBG_OR_DEV
 #	define AE_LOG_DEV								AE_LOGI
 # else
 #	define AE_LOG_DEV( /* msg, file, line */... )	{}
@@ -103,7 +101,7 @@
 #endif
 
 #ifndef AE_LOG_PROF
-# ifdef AE_DEV_OR_DBG
+# ifdef AE_DBG_OR_DEV
 #	define AE_LOG_PROF								AE_LOGI
 # else
 #	define AE_LOG_PROF( /* msg, file, line */... )	{}

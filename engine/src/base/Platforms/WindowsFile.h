@@ -69,15 +69,17 @@ namespace AE::Base
 
 		~WindowsRFile () override;
 		
-			bool	SeekSet (Bytes pos) override;
-		ND_ Bytes	Read2 (OUT void* buffer, Bytes size) override;
+		bool	SeekSet (Bytes pos) override;
+		Bytes	ReadSeq (OUT void* buffer, Bytes size) override;
 
-		ND_ bool	IsOpen ()	const override;
-		ND_ Bytes	Position ()	const override;
-		ND_ Bytes	Size ()		const override	{ return _fileSize; }
+		bool	IsOpen ()	const override;
+		Bytes	Position ()	const override;
+		Bytes	Size ()		const override			{ return _fileSize; }
+		
+		EStreamType	GetStreamType () const override	{ return EStreamType::SequentialAccess | EStreamType::RandomAccess | EStreamType::FixedSize; }	// TODO
 
-		ND_ bool	IsAsync ()			const	{ return AllBits( _flags, EFlags::Async ); }
-		ND_ bool	HasPendingRead ()	const	{ ASSERT(not IsAsync());  return not _pending.empty(); }
+		ND_ bool	IsAsync ()			const		{ return AllBits( _flags, EFlags::Async ); }
+		ND_ bool	HasPendingRead ()	const		{ ASSERT(not IsAsync());  return not _pending.empty(); }
 
 			bool	ReadAsync (Bytes offset, OUT void* buffer, Bytes size, void* userData, ReadFinishedFn_t fn);
 
@@ -141,16 +143,18 @@ namespace AE::Base
 
 		~WindowsWFile () override;
 
-		ND_ bool	IsOpen ()	const override;
-		ND_ Bytes	Position ()	const override;
-		ND_ Bytes	Size ()		const override;
+		bool	IsOpen ()	const override;
+		Bytes	Position ()	const override;
+		Bytes	Size ()		const override;
 		
-			bool	SeekSet (Bytes pos) override;
-		ND_ Bytes	Write2 (const void *buffer, Bytes size) override;
-			void	Flush () override;
+		bool	SeekSet (Bytes pos) override;
+		Bytes	Write2 (const void *buffer, Bytes size) override;
+		void	Flush () override;
 			
-		ND_ bool	IsAsync ()			const	{ return AllBits( _flags, EFlags::Async ); }
-		ND_ bool	HasPendingRead ()	const	{ ASSERT(not IsAsync());  return not _pending.empty(); }
+		EStreamType	GetStreamType () const override	{ return EStreamType::SequentialAccess | EStreamType::RandomAccess; }	// TODO
+
+		ND_ bool	IsAsync ()			const		{ return AllBits( _flags, EFlags::Async ); }
+		ND_ bool	HasPendingRead ()	const		{ ASSERT(not IsAsync());  return not _pending.empty(); }
 
 			bool	WriteAsync (const void* buffer, Bytes size, void* userData, WriteFinishedFn_t fn);
 	};

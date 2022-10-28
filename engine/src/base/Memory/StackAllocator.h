@@ -317,4 +317,4 @@ namespace AE::Base
 		return { idx, off };
 	}
 
-}	// AE::Base
+} // AE::Base

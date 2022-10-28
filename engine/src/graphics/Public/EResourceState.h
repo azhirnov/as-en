@@ -102,6 +102,8 @@ namespace AE::Graphics
 		RayTracingShaders				= 1 << 15,
 		AllGraphicsShaders				= PreRasterizationShaders | PostRasterizationShaders,
 		AllShaders						= PreRasterizationShaders | PostRasterizationShaders | ComputeShader | RayTracingShaders,
+
+		_InvalidState					= 0xFFFF,
 	};
 	
 	STATIC_ASSERT( EResourceState::FragmentDensityMap < EResourceState::_AccessMask );
@@ -196,4 +198,4 @@ namespace AE::Graphics
 		END_ENUM_CHECKS();
 		*/
 
-}	// AE::Graphics
+} // AE::Graphics

@@ -346,7 +346,7 @@ namespace AE::ECS
 		return not subtractive.Any( required );
 	}
 
-}	// AE::ECS
+} // AE::ECS
 
 
 namespace std
@@ -360,4 +360,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

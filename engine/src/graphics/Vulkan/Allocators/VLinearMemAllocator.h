@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
 	Allocation on the GPU memory may be slow.
-	Internal data is protected by the mutex for thread safety.
-	So multithreaded usege is not recomended because may be too slow.
+	Internal data is protected by the mutex for thread safety,
+	so parallel usege is not recomended because may be too slow.
 */
 
 #pragma once
@@ -25,18 +25,18 @@ namespace AE::Graphics
 	private:
 		struct alignas(AE_CACHE_LINE) Page
 		{
-			Atomic<int>			counter		{0};		// reference counter, for debugging
-			VkDeviceMemory		memory		= Default;
+			Atomic<int>			counter			{0};		// reference counter, for debugging
+			VkDeviceMemory		memory			= Default;
 			Bytes				capacity;
 			Bytes				size;
-			void*				mapped		= null;
-			uint				index		= UMax;
+			void*				mapped			= null;
+			uint				memTypeIndex	= UMax;
 
 			Page () {}
 
 			Page (Page && other) :
 				memory{ other.memory },	capacity{ other.capacity }, size{ other.size },
-				mapped{ other.mapped }, index{ other.index }
+				mapped{ other.mapped }, memTypeIndex{ other.memTypeIndex }
 			{}
 		};
 		
@@ -55,10 +55,9 @@ namespace AE::Graphics
 
 	// variables
 	private:
-		mutable SharedMutex		_guard;
-		PageMap_t				_pages;
-		VDevice const&			_device;
+		mutable SharedMutex		_pageGuard;
 		Bytes					_pageSize;
+		PageMap_t				_pages;
 
 
 	// methods
@@ -85,11 +84,14 @@ namespace AE::Graphics
 		ND_ static Data &		_CastStorage (Storage_t &data)			{ return *data.Ptr<Data>(); }
 		ND_ static Data const&	_CastStorage (const Storage_t &data)	{ return *data.Ptr<Data>(); }
 		
+		ND_ Bytes			_GetOffset (const Data &data)		const	{ return data.offset; }
+		ND_ VkDeviceMemory	_GetMemory (const Data &data)		const	{ return data.page->memory; }
+
 		ND_ bool  _IsValidPage (const Page* page) const;
 		ND_ bool  _Allocate (const VkMemoryRequirements &memReq, EMemoryType memType, bool shaderAddress, bool isImage, OUT Data &);
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

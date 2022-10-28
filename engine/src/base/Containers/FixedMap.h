@@ -71,7 +71,7 @@ namespace AE::Base
 		// variables
 		private:
 			MapPtr		_mapPtr	= null;
-			Index_t		_index	= UMax;
+			Index_t		_index	= UMax;		// value from '_indices[x]'
 
 		// methods
 		public:
@@ -199,7 +199,7 @@ namespace AE::Base
 		ND_ HashVal			CalcKeyHash ()	const;
 		
 			void			clear ();
-			void			reserve (usize)		{}	// ignore
+			void			reserve (usize)		{} // ignore
 
 		// cache friendly access to unsorted data
 
@@ -212,7 +212,7 @@ namespace AE::Base
 		ND_ Pair<ArrayView<Key>, ArrayView<Value>>  ToArray () const	{ return {GetKeyArray(), GetValueArray()}; }
 
 	private:
-		void  _Erase (usize idx);
+		void  _Erase (Index_t idx);
 
 		template <typename IterType, typename MapType, typename KeyType>
 		ND_ static IterType  _Find (MapType &map, const KeyType &key);
@@ -404,7 +404,7 @@ namespace _hidden_
 		}
 	};
 
-}	// _hidden_
+} // _hidden_
 	
 /*
 =================================================
@@ -549,7 +549,7 @@ namespace _hidden_
 		
 		if_likely( i < _count and key == _keyArray[_indices[i]] )
 		{
-			_Erase( i );
+			_Erase( _indices[i] );
 			return true;
 		}
 		return false;
@@ -590,23 +590,32 @@ namespace _hidden_
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	void  FixedMap<K,V,S,KS,VS>::_Erase (usize i)
+	void  FixedMap<K,V,S,KS,VS>::_Erase (Index_t idx)
 	{
-		_keyArray[i].~K();
-		_valArray[i].~V();
-			
-		for (usize k = 0; k < _count; ++k) {
-			_indices[k] = _indices[k] >= i ? _indices[k]-1 : _indices[k];
-		}
-			
+		_keyArray[idx].~K();
+		_valArray[idx].~V();
 		--_count;
-		KPolicy_t::Replace( &_keyArray[i], &_keyArray[i+1], _count - i );
-		VPolicy_t::Replace( &_valArray[i], &_valArray[i+1], _count - i );
+	
+		usize	k = 0;
+		for (; k <= _count; ++k)
+		{
+			if_unlikely( _indices[k] == idx )
+				break;
 
+			_indices[k] = (_indices[k] == _count ? idx : _indices[k]);
+		}
+
+		for (; k < _count; ++k) {
+			_indices[k] = (_indices[k+1] == _count ? idx : _indices[k+1]);
+		}
+
+		if ( idx != _count )
+		{
+			KPolicy_t::Replace( &_keyArray[idx], &_keyArray[_count], 1, true );
+			VPolicy_t::Replace( &_valArray[idx], &_valArray[_count], 1, true );
+		}
 		DEBUG_ONLY(
 			DbgInitMem( _indices[_count] );
-			DbgInitMem( _keyArray[_count] );
-			DbgInitMem( _valArray[_count] );
 		)
 	}
 
@@ -660,7 +669,7 @@ namespace _hidden_
 		return result;
 	}
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -674,4 +683,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

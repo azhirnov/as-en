@@ -3,8 +3,8 @@
 #pragma once
 
 #ifdef AE_PLATFORM_ANDROID
-# include "base/Containers/NtStringView.h"
 # include "base/Platforms/UnixUtils.h"
+# include "base/Containers/NtStringView.h"
 
 namespace AE::Base
 {
@@ -15,8 +15,18 @@ namespace AE::Base
 
 	struct AndroidUtils final : UnixUtils
 	{
+		// Thread //
+			static void		SetThreadName (NtStringView name);
+		ND_ static String	GetThreadName ();
+
+			static bool		SetThreadAffinity (const std::thread::native_handle_type &handle, uint coreIdx);
+			static bool		SetThreadPriority (const std::thread::native_handle_type &handle, float priority);
+			
+		ND_	static uint		GetProcessorCoreIndex ();	// current logical CPU core
+		
+			static void		ThreadPause ();
 	};
 
-}	// AE::Base
+} // AE::Base
 
 #endif // AE_PLATFORM_ANDROID

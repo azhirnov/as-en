@@ -20,8 +20,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		constexpr ImageSwizzle ()
-		{}
+		constexpr ImageSwizzle () {}
 
 		explicit ImageSwizzle (const uint4 &comp) : _value{0}
 		{
@@ -33,19 +32,12 @@ namespace AE::Graphics
 			_value |= (comp.w & 0xF);
 		}
 
-		ND_ constexpr uint  Get () const
-		{
-			return _value;
-		}
+		ND_ constexpr uint  Get ()		 const	{ return _value; }
+		ND_ constexpr bool  IsDefault () const	{ return _value == ImageSwizzle().Get(); }
 
 		ND_ uint4  ToVec () const
 		{
 			return uint4( (_value >> 12) & 0xF, (_value >> 8) & 0xF, (_value >> 4) & 0xF, _value & 0xF );
-		}
-
-		ND_ constexpr bool  IsDefault () const
-		{
-			return _value == ImageSwizzle().Get();
 		}
 
 		ND_ constexpr bool  operator == (const ImageSwizzle &rhs) const	{ return _value == rhs._value; }
@@ -56,7 +48,7 @@ namespace AE::Graphics
 
 
 	private:
-		static constexpr uint _CharToValue (char c)
+		static constexpr uint  _CharToValue (char c)
 		{
 			return	c == 'r' or c == 'R'	? 1 :
 					c == 'g' or c == 'G'	? 2 :
@@ -67,7 +59,12 @@ namespace AE::Graphics
 		}
 	};
 	
-
+	
+/*
+=================================================
+	operator ""
+=================================================
+*/
 	ND_ constexpr ImageSwizzle  operator "" _swizzle (const char *str, const usize len)
 	{
 		ASSERT( len > 0 and len <= 4 );
@@ -87,14 +84,16 @@ namespace AE::Graphics
 		return res;
 	}
 
-}	// AE::Graphics
+} // AE::Graphics
+
 
 namespace AE::Base
 {
 	template <> struct TMemCopyAvailable< AE::Graphics::ImageSwizzle >		{ static constexpr bool  value = true; };
 	template <> struct TTrivialySerializable< AE::Graphics::ImageSwizzle >	{ static constexpr bool  value = true; };
 
-}	// AE::Base
+} // AE::Base
+
 
 namespace std
 {
@@ -103,8 +102,8 @@ namespace std
 	{
 		ND_ size_t  operator () (const AE::Graphics::ImageSwizzle &value) const
 		{
-			return size_t(AE::Base::HashOf( value.Get() == 0 ? AE::Graphics::ImageSwizzle().Get() : value.Get() ));
+			return size_t( value.Get() );
 		}
 	};
 
-}	// std
+} // std

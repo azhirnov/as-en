@@ -246,7 +246,7 @@ namespace AE::Base
 			ND_ auto  end ()	{ return std::rend( _container ); }
 		};
 
-	}	// _hidden_
+	} // _hidden_
 
 	template <typename Container>
 	ND_ auto  Reverse (Container& container)
@@ -320,4 +320,4 @@ namespace AE::Base
 		arr.erase( std::unique( arr.begin(), arr.end() ), arr.end() );
 	}
 
-}	// AE::Base
+} // AE::Base

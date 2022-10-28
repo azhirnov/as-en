@@ -50,7 +50,7 @@ namespace AE::Threading
 		void wait ();
 	};
 
-}	// AE::Threading
+} // AE::Threading
 
 
 #elif (AE_BARRIER_MODE == 1)
@@ -109,6 +109,8 @@ namespace AE::Threading
 			{
 				new_value = expected;
 				old_value.index ? ++new_value.counter_2 : ++new_value.counter_1;
+				
+				ThreadUtils::Pause();
 			}
 
 
@@ -132,10 +134,13 @@ namespace AE::Threading
 					break;
 				
 				old_value.index ? (expected.counter_2 = _numThreads) : (expected.counter_1 = _numThreads);
+				
+				ThreadUtils::Pause();
 
-				if ( i > 1000 ) {
+				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
+				{
 					i = 0;
-					ThreadUtils::Yield();
+					ThreadUtils::YieldOrSleep();
 				}
 			}
 
@@ -144,7 +149,7 @@ namespace AE::Threading
 		}
 	};
 
-}	// AE::Threading
+} // AE::Threading
 
 
 #elif (AE_BARRIER_MODE == 2)
@@ -202,7 +207,7 @@ namespace AE::Threading
 		}
 	};
 
-}	// AE::Threading
+} // AE::Threading
 
 
 #elif (AE_BARRIER_MODE == 3)
@@ -238,12 +243,12 @@ namespace AE::Threading
 		}
 	};
 
-}	// AE::Threading
+} // AE::Threading
 
 #else
 #	error not supported!
 
-#endif	// AE_BARRIER_MODE
+#endif // AE_BARRIER_MODE
 
 
 // check definitions
@@ -261,4 +266,4 @@ namespace AE::Threading
 #	error fix me!
 #  endif
 
-#endif	// AE_CPP_DETECT_MISMATCH
+#endif // AE_CPP_DETECT_MISMATCH

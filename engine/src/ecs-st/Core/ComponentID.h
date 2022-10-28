@@ -26,7 +26,7 @@ namespace AE::ECS
 			ND_ constexpr bool  operator == (const _ComponentID &rhs) const	{ return value == rhs.value; }
 		};
 
-	}	// _hidden_
+	} // _hidden_
 	
 	using ComponentID		= ECS::_hidden_::_ComponentID<0>;
 	using TagComponentID	= ECS::_hidden_::_ComponentID<1>;
@@ -74,7 +74,7 @@ namespace AE::ECS
 		static inline const MsgTagID	id {CheckCast<ushort>( Base::_hidden_::StaticTypeIdOf< Comp, 0x1002 >::Get().Get() )};
 	};
 
-}	// AE::ECS
+} // AE::ECS
 
 namespace std
 {
@@ -87,4 +87,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

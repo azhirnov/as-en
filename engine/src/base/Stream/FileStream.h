@@ -21,11 +21,13 @@ namespace AE::Base
 		Bytes		_fileSize;
 		Bytes		_position;
 
+		DEBUG_ONLY( const Path  _filename;)
+
 
 	// methods
 	public:
 		explicit FileRStream (NtStringView filename);
-		explicit FileRStream (const char *filename);
+		explicit FileRStream (const char* filename);
 		explicit FileRStream (const String &filename);
 		explicit FileRStream (const Path &path);
 		
@@ -38,12 +40,14 @@ namespace AE::Base
 		FileRStream () {}
 		~FileRStream () override;
 
-		ND_ bool	IsOpen ()	const override		{ return _file != null; }
-		ND_ Bytes	Position ()	const override		{ return _position; }
-		ND_ Bytes	Size ()		const override		{ return _fileSize; }
+		bool	IsOpen ()	const override				{ return _file != null; }
+		Bytes	Position ()	const override				{ return _position; }
+		Bytes	Size ()		const override				{ return _fileSize; }
 		
-			bool	SeekSet (Bytes pos) override;
-		ND_ Bytes	Read2 (OUT void *buffer, Bytes size) override;
+		EStreamType	GetStreamType () const override		{ return EStreamType::SequentialAccess | EStreamType::RandomAccess | EStreamType::FixedSize; }
+
+		bool	SeekSet (Bytes pos) override;
+		Bytes	ReadSeq (OUT void *buffer, Bytes size) override;
 
 	private:
 		ND_ Bytes  _GetSize () const;
@@ -63,18 +67,21 @@ namespace AE::Base
 		{
 			Rewrite,	// create new or discard previous file
 			Update,		// keep previous content and update some parts in the file
+			Append,		// write data to the end of the file
 		};
 
 
 	// variables
 	private:
 		FILE*		_file	= null;
+		
+		DEBUG_ONLY( const Path  _filename;)
 
 
 	// methods
 	public:
 		explicit FileWStream (NtStringView filename, EMode mode = EMode::Rewrite);
-		explicit FileWStream (const char *filename, EMode mode = EMode::Rewrite);
+		explicit FileWStream (const char* filename, EMode mode = EMode::Rewrite);
 		explicit FileWStream (const String &filename, EMode mode = EMode::Rewrite);
 		explicit FileWStream (const Path &path, EMode mode = EMode::Rewrite);
 
@@ -87,16 +94,18 @@ namespace AE::Base
 		FileWStream () {}
 		~FileWStream () override;
 		
-		ND_ bool	IsOpen ()	const override		{ return _file != null; }
-		ND_ Bytes	Position ()	const override;
-		ND_ Bytes	Size ()		const override;
+		bool	IsOpen ()	const override				{ return _file != null; }
+		Bytes	Position ()	const override;
+		Bytes	Size ()		const override;
 		
-			bool	SeekSet (Bytes pos) override;
-		ND_ Bytes	Write2 (const void *buffer, Bytes size) override;
-			void	Flush () override;
+		EStreamType	GetStreamType () const override		{ return EStreamType::SequentialAccess | EStreamType::RandomAccess; }
+
+		bool	SeekSet (Bytes pos) override;
+		Bytes	Write2 (const void *buffer, Bytes size) override;
+		void	Flush () override;
 	};
 
-}	// AE::Base
+} // AE::Base
 
 
 // check definitions
@@ -110,4 +119,4 @@ namespace AE::Base
 #  endif
 # endif
 
-#endif	// AE_CPP_DETECT_MISMATCH
+#endif // AE_CPP_DETECT_MISMATCH

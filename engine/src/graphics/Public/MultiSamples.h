@@ -44,7 +44,7 @@ namespace AE::Graphics
 	ND_ inline MultiSamples operator "" _samples (unsigned long long value)	{ return MultiSamples( uint(value) ); }
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
 namespace AE::Base
 {
@@ -52,7 +52,7 @@ namespace AE::Base
 	template <> struct TZeroMemAvailable< AE::Graphics::MultiSamples >		{ static constexpr bool  value = true; };
 	template <> struct TTrivialySerializable< AE::Graphics::MultiSamples >	{ static constexpr bool  value = true; };
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -66,4 +66,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

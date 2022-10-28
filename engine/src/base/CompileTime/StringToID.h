@@ -190,7 +190,7 @@ namespace AE::Base
 			}
 		};
 
-	}	// _hidden_
+	} // _hidden_
 
 
 #	define DECL_STRING_TO_ID( _name_, /*0..15*/_id_ ) \
@@ -236,4 +236,4 @@ namespace AE::Base
 
 	DECL_STRING_TO_ID( StringToID, 0 );
 
-}	// AE::Base
+} // AE::Base

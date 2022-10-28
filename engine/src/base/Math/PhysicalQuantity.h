@@ -256,6 +256,15 @@ namespace AE::Math
 			struct Exa				{ static constexpr T  Value = T(1.0e+18); };
 			struct Zetta			{ static constexpr T  Value = T(1.0e+21); };
 			struct Yotta			{ static constexpr T  Value = T(1.0e+24); };
+			
+			struct Kibi				{ static constexpr T  Value = T(1024.0); };			// kilo  / kibi
+			struct Mebi				{ static constexpr T  Value = T(1048.0e+3); };		// mega  / mebi
+			struct Gibi				{ static constexpr T  Value = T(1073.7e+6); };		// giga  / gibi
+			struct Tebi				{ static constexpr T  Value = T(1099.5e+9); };		// tera  / tebi
+			struct Pebi				{ static constexpr T  Value = T(1125.9e+12); };		// peta  / pebi
+			struct Exbi				{ static constexpr T  Value = T(1152.9e+15); };		// exa   / exbi
+			struct Zebi				{ static constexpr T  Value = T(1180.6e+18); };		// zetta / zebi
+			struct Yobi				{ static constexpr T  Value = T(1208.9e+21); };		// yotta / yobi
 
 			struct Deci				{ static constexpr T  Value = T(1.0e-1); };
 			struct Centi			{ static constexpr T  Value = T(1.0e-2); };
@@ -408,7 +417,7 @@ namespace AE::Math
 	};
 
 
-}	// AE::Math
+} // AE::Math
 
 
 namespace AE::Base
@@ -422,4 +431,4 @@ namespace AE::Base
 	template <typename V, typename D, typename S>
 	struct TTrivialySerializable< PhysicalQuantity< V, D, S >> { static constexpr bool  value = IsTrivialySerializable<V>; };
 
-}	// AE::Base
+} // AE::Base

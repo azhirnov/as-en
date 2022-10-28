@@ -10,6 +10,7 @@
 
 #include "graphics/Public/ResourceManager.h"
 #include "graphics/Public/GraphicsImpl.h"
+#include "graphics/Public/ShaderDebugger.h"
 
 #include "graphics_test/GraphicsTest.h"
 
@@ -57,6 +58,7 @@ protected:
 
   #elif defined(AE_ENABLE_METAL)
 	MDeviceInitializer			_metal;
+	MSwapchainInitializer		_swapchain;
   #endif
 
 
@@ -105,6 +107,11 @@ private:
 	bool  Test_RayQuery1 ();
 
 	bool  Test_RayTracing1 ();
+
+	bool  Test_Debugger1 ();	// compute
+	bool  Test_Debugger2 ();	// graphics
+	//bool  Test_Debugger3 ();	// mesh
+	//bool  Test_Debugger4 ();	// ray tracing
 };
 
 	

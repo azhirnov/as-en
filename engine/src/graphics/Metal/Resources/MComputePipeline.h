@@ -29,10 +29,9 @@ namespace AE::Graphics
 
 	// variables
 	private:
-		MetalComputePipelineRC		_handle;
+		MetalComputePipelineRC		_pipeline;
 		
-		uint3						_localGroupSize;
-		EPipelineOpt				_options			= Default;
+		ushort3						_localSize;
 		
 		Strong<MPipelineLayoutID>	_layoutId;
 
@@ -53,15 +52,14 @@ namespace AE::Graphics
 		ND_ Bytes	StaticThreadgroupMemoryLength ()	const;
 		ND_ Bytes	ImageblockMemoryLength (const uint2& imageBlockDim) const;
 
-		ND_ MetalComputePipeline	Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
+		ND_ MetalComputePipeline	Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
 		ND_ MPipelineLayoutID		LayoutID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ uint3 const&			LocalSize ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _localGroupSize; }
+		ND_ uint3       			LocalSize ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _localSize; }
 		ND_ EPipelineDynamicState	DynamicState ()			const	{ return Default; }
-		ND_ bool					AllowDispatchBase ()	const	{ return false; }
 		
 		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_METAL
+#endif // AE_ENABLE_METAL

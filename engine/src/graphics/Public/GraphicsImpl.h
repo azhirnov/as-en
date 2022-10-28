@@ -10,17 +10,19 @@
 # include "graphics/Vulkan/Commands/VASBuildContext.h"
 # include "graphics/Vulkan/Commands/VRayTracingContext.h"
 
+# include "graphics/Vulkan/Commands/VCmdBufferDebugger.h"
+
 # include "graphics/Vulkan/Commands/VRenderTaskScheduler.h"
 
 # include "graphics/Vulkan/Descriptors/VDescriptorUpdater.h"
 
+# include "graphics/Vulkan/Allocators/VBlockMemAllocator.h"
 # include "graphics/Vulkan/Allocators/VDedicatedMemAllocator.h"
 # include "graphics/Vulkan/Allocators/VLinearMemAllocator.h"
 # include "graphics/Vulkan/Allocators/VUniMemAllocator.h"
 
 namespace AE::Graphics
 {
-
 	struct DirectCtx
 	{
 		using CommandBuffer	= VCommandBuffer;
@@ -45,9 +47,13 @@ namespace AE::Graphics
 
 	using RenderTask			= VRenderTask;
 	using DrawTask				= VDrawTask;
+
 	using CommandBatch			= VCommandBatch;
-	using CommandBatchPtr		= RC< VCommandBatch >;
-	using DrawCommandBatchPtr	= RC< VDrawCommandBatch >;
+	using CommandBatchPtr		= RC< CommandBatch >;
+
+	using DrawCommandBatch		= VDrawCommandBatch;
+	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;
+
 	using CmdBatchOnSubmit		= VCmdBatchOnSubmit;
 
 	using DescriptorUpdater		= VDescriptorUpdater;
@@ -61,12 +67,12 @@ namespace AE::Graphics
 
 
 
-#if defined(AE_PLATFORM_APPLE) and defined(AE_ENABLE_METAL)
+#if not defined(AE_ENABLE_VULKAN) and defined(AE_ENABLE_METAL)
 # include "graphics/Metal/Commands/MTransferContext.h"
 # include "graphics/Metal/Commands/MComputeContext.h"
 # include "graphics/Metal/Commands/MDrawContext.h"
 # include "graphics/Metal/Commands/MGraphicsContext.h"
-//# include "graphics/Metal/Commands/MASBuildContext.h"
+# include "graphics/Metal/Commands/MASBuildContext.h"
 
 # include "graphics/Metal/Commands/MRenderTaskScheduler.h"
 
@@ -76,7 +82,6 @@ namespace AE::Graphics
 
 namespace AE::Graphics
 {
-
 	struct DirectCtx
 	{
 		using CommandBuffer	= MCommandBuffer;
@@ -84,7 +89,7 @@ namespace AE::Graphics
 		using Compute		= MDirectComputeContext;
 		using Draw			= MDirectDrawContext;
 		using Graphics		= MDirectGraphicsContext;
-		//using ASBuild		= MDirectASBuildContext;
+		using ASBuild		= MDirectASBuildContext;
 	};
 	
 	struct IndirectCtx
@@ -94,14 +99,18 @@ namespace AE::Graphics
 		using Compute		= MIndirectComputeContext;
 		using Draw			= MIndirectDrawContext;
 		using Graphics		= MIndirectGraphicsContext;
-		//using ASBuild		= MIndirectASBuildContext;
+		using ASBuild		= MIndirectASBuildContext;
 	};
 	
 	using RenderTask			= MRenderTask;
 	using DrawTask				= MDrawTask;
+
 	using CommandBatch			= MCommandBatch;
-	using CommandBatchPtr		= RC< MCommandBatch >;
-	using DrawCommandBatchPtr	= RC< MDrawCommandBatch >;
+	using CommandBatchPtr		= RC< CommandBatch >;
+	
+	using DrawCommandBatch		= MDrawCommandBatch;
+	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;
+
 	using CmdBatchOnSubmit		= MCmdBatchOnSubmit;
 
 	using DescriptorUpdater		= MDescriptorUpdater;
@@ -112,3 +121,55 @@ namespace AE::Graphics
 
 #endif // AE_ENABLE_METAL
 //-----------------------------------------------------------------------------
+
+
+
+#ifdef AE_ENABLE_REMOTE_GRAPHICS
+# include "graphics/Remote/Commands/RTransferContext.h"
+# include "graphics/Remote/Commands/RComputeContext.h"
+# include "graphics/Remote/Commands/RDrawContext.h"
+# include "graphics/Remote/Commands/RGraphicsContext.h"
+# include "graphics/Remote/Commands/RASBuildContext.h"
+
+namespace AE::Graphics
+{
+	struct DirectCtx
+	{
+		using CommandBuffer	= RCommandBuffer;
+		using Transfer		= RDirectTransferContext;
+		using Compute		= RDirectComputeContext;
+		using Draw			= RDirectDrawContext;
+		using Graphics		= RDirectGraphicsContext;
+		using ASBuild		= RDirectASBuildContext;
+		using RayTracing	= RDirectRayTracingContext;
+	};
+	
+	struct IndirectCtx
+	{
+		using CommandBuffer	= _hidden_::RSoftwareCmdBufPtr;
+		using Transfer		= RIndirectTransferContext;
+		using Compute		= RIndirectComputeContext;
+		using Draw			= RIndirectDrawContext;
+		using Graphics		= RIndirectGraphicsContext;
+		using ASBuild		= RIndirectASBuildContext;
+		using RayTracing	= RIndirectRayTracingContext;
+	};
+
+	using RenderTask			= RRenderTask;
+	using DrawTask				= RDrawTask;
+
+	using CommandBatch			= RCommandBatch;
+	using CommandBatchPtr		= RC< CommandBatch >;
+
+	using DrawCommandBatch		= RDrawCommandBatch;
+	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;
+
+	using CmdBatchOnSubmit		= RCmdBatchOnSubmit;
+
+	using DescriptorUpdater		= RDescriptorUpdater;
+
+	using GfxLinearMemAllocator	= RLinearMemAllocator;
+
+} // AE::Graphics
+
+#endif // AE_ENABLE_REMOTE_GRAPHICS

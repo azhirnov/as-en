@@ -76,7 +76,7 @@ namespace AE::Graphics
 				CHECK( _batch->Submit( _mode ));
 			}
 
-			NtStringView  DbgName () const override	{ return "Submit vulkan command batch"; }
+			StringView  DbgName () const override	{ return "Submit vulkan command batch"; }
 		};
 
 		
@@ -162,11 +162,11 @@ namespace AE::Graphics
 		alignas(AE_CACHE_LINE)
 		  SpinLock				_onCompleteDepsGuard;
 		OutDependencies_t		_onCompleteDeps;
-
-		// TODO:
-		//	- query pool for timestamps
-
-		DEBUG_ONLY( String		_dbgName; )
+		
+		PROFILE_ONLY(
+			String					_dbgName;
+			RC<IGraphicsProfiler>	_profiler;
+		)
 			
 
 	// methods
@@ -192,6 +192,8 @@ namespace AE::Graphics
 
 		// GPU to GPU dependency
 			bool  AddInputDependency (RC<VCommandBatch> batch);
+			bool  AddInputDependency (const VCommandBatch &batch);
+
 			bool  AddInputSemaphore (VkSemaphore sem, ulong value);
 			bool  AddInputSemaphore (const VulkanCmdBatchDependency &dep);
 
@@ -204,7 +206,11 @@ namespace AE::Graphics
 		ND_ uint				GetSubmitIndex ()		const	{ return _submitIdx; }
 		ND_ uint				GetCmdBufIndex ()		const	{ return _cmdPool.Current(); }
 		ND_ bool				IsSubmitted ();
-		ND_ NtStringView		DbgName ()				const;
+		
+		PROFILE_ONLY(
+			ND_ StringView				DbgName ()		const	{ return _dbgName; }
+			ND_ Ptr<IGraphicsProfiler>	GetProfiler ()	const	{ return _profiler.get(); }
+		)
 
 
 	// IDeviceToHostSync
@@ -257,20 +263,21 @@ namespace AE::Graphics
 		RC<VCommandBatch>	_batch;
 		uint				_exeIndex	= UMax;		// execution order index
 		
-		DEBUG_ONLY(
+		PROFILE_ONLY(
 			const String	_dbgName;
+			const RGBA8u	_dbgColor;
 		)
 
 
 	// methods
 	public:
-		VRenderTask (RC<VCommandBatch> batch, StringView dbgName) :
+		VRenderTask (RC<VCommandBatch> batch, StringView dbgName, RGBA8u dbgColor = HtmlColor::Yellow) :
 			IAsyncTask{ EThread::Renderer },
 			_batch{ RVRef(batch) },
 			_exeIndex{ _GetPool().Acquire() }
-			DEBUG_ONLY(, _dbgName{ dbgName })
+			PROFILE_ONLY(, _dbgName{ dbgName }, _dbgColor{ dbgColor })
 		{
-			Unused( dbgName );
+			Unused( dbgName, dbgColor );
 		}
 
 		~VRenderTask ()
@@ -278,7 +285,7 @@ namespace AE::Graphics
 			ASSERT( _exeIndex == UMax );
 		}
 		
-		ND_ RC<VCommandBatch>	GetBatch ()				const	{ return _batch; }
+		ND_ RC<VCommandBatch>	GetBatchRC ()			const	{ return _batch; }
 		ND_ Ptr<VCommandBatch>	GetBatchPtr ()			const	{ return _batch.get(); }
 		ND_ FrameUID			GetFrameId ()			const	{ return _batch->GetFrameId(); }
 		ND_ uint				GetExecutionIndex ()	const	{ return _exeIndex; }
@@ -287,8 +294,16 @@ namespace AE::Graphics
 	// IAsyncTask
 	public:
 		void  OnCancel () override;
-
-		DEBUG_ONLY( NtStringView  DbgName () const override final { return _dbgName; })
+		
+		#ifdef AE_DBG_OR_DEV_OR_PROF
+			ND_ String		DbgFullName ()	const;
+			ND_ StringView  DbgName ()		const override final	{ return _dbgName; }
+			ND_ RGBA8u		DbgColor ()		const					{ return _dbgColor; }
+		#else
+			ND_ String		DbgFullName ()	const					{ return Default; }
+			ND_ StringView  DbgName ()		const override final	{ return Default; }
+			ND_ RGBA8u		DbgColor ()		const					{ return HtmlColor::Yellow; }
+		#endif
 
 
 	protected:
@@ -314,12 +329,110 @@ namespace AE::Graphics
 		RC<VCommandBatch>	ptr;
 
 		VCmdBatchOnSubmit () {}
-		VCmdBatchOnSubmit (VCommandBatch &batch) : ptr{batch.GetRC()} {}
-		VCmdBatchOnSubmit (VCommandBatch* batch) : ptr{batch} {}
-		VCmdBatchOnSubmit (RC<VCommandBatch> batch) : ptr{RVRef(batch)} {}
+		explicit VCmdBatchOnSubmit (VCommandBatch &batch) : ptr{batch.GetRC()} {}
+		explicit VCmdBatchOnSubmit (VCommandBatch* batch) : ptr{batch} {}
+		explicit VCmdBatchOnSubmit (RC<VCommandBatch> batch) : ptr{RVRef(batch)} {}
 	};
-	
-	
-}	// AE::Graphics
+//-----------------------------------------------------------------------------
 
-#endif	// AE_ENABLE_VULKAN
+
+
+/*
+=================================================
+	Add
+=================================================
+*/
+	template <typename TaskType, typename ...Ctor, typename ...Deps>
+	AsyncTask  VCommandBatch::Add (const Tuple<Ctor...> &	ctorArgs,
+								   const Tuple<Deps...> &	deps,
+								   StringView				dbgName)
+	{
+		ASSERT( not IsSubmitted() );
+
+		auto	task = ctorArgs.Apply([this, dbgName] (auto&& ...args) { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbgName ); });
+
+		if_likely( (task->_exeIndex != UMax) & Threading::Scheduler().Run( task, deps ))
+			return task;
+		else
+			return null;
+	}
+	
+/*
+=================================================
+	SubmitAsTask
+=================================================
+*/
+	template <typename ...Deps>
+	AsyncTask  VCommandBatch::SubmitAsTask (const Tuple<Deps...> &	deps,
+											ESubmitMode				mode)
+	{
+		return Threading::Scheduler().Run< SubmitTask >( Tuple{ GetRC<VCommandBatch>(), mode }, deps );
+	}
+//-----------------------------------------------------------------------------
+
+
+		
+/*
+=================================================
+	Execute
+=================================================
+*/
+	template <typename CmdBufType>
+	void  VRenderTask::Execute (CmdBufType &cmdbuf)
+	{
+		ASSERT( _IsRunning() );
+		CHECK_ERRV( _exeIndex != UMax );
+		
+		_GetPool().Add( INOUT _exeIndex, cmdbuf.EndCommandBuffer() );
+		
+		ASSERT( _exeIndex == UMax );
+		ASSERT( not GetBatchPtr()->IsSubmitted() );
+	}
+	
+/*
+=================================================
+	ExecuteAndSubmit
+----
+	warning: task which submit batch must wait for all other render tasks
+=================================================
+*/
+	template <typename CmdBufType>
+	bool  VRenderTask::ExecuteAndSubmit (CmdBufType &cmdbuf, ESubmitMode mode)
+	{
+		Execute( cmdbuf );
+		return GetBatchPtr()->Submit( mode );
+	}
+
+/*
+=================================================
+	OnCancel
+=================================================
+*/
+	inline void  VRenderTask::OnCancel ()
+	{
+		CHECK_ERRV( _exeIndex != UMax );
+		
+		_GetPool().Complete( INOUT _exeIndex );
+		
+		ASSERT( _exeIndex == UMax );
+	}
+	
+/*
+=================================================
+	OnFailure
+=================================================
+*/
+	inline void  VRenderTask::OnFailure ()
+	{
+		CHECK_ERRV( _exeIndex != UMax );
+
+		_GetPool().Complete( INOUT _exeIndex );
+		IAsyncTask::OnFailure();
+		
+		ASSERT( _exeIndex == UMax );
+	}
+
+
+} // AE::Graphics
+
+#endif // AE_ENABLE_VULKAN

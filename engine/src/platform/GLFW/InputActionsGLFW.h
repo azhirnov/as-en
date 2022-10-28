@@ -38,19 +38,19 @@ namespace AE::App
 
 	// methods
 	public:
-		InputActionsGLFW () : InputActionsBase{_dbQueue} {}
+		explicit InputActionsGLFW (DubleBufferedQueue *q) : InputActionsBase{q ? *q : _dbQueue} {}
 		
+		// api for window
 		void  SetKey (int key, EGestureState state, Duration_t timestamp);
 		void  SetMouseButton (int button, EGestureState state, Duration_t timestamp);
 		void  SetCursorPos (float2 pos);
 		void  SetMouseWheel (float2 delta);
-		void  SetMonitor (const uint2 &size, const Monitor &);
+		void  SetMonitor (const uint2 &surfaceSize, const Monitor &);
+		void  CursorPosChanged (float2 pos)				{ _cursorPos = pos; }
 
 
 	// IInputActions //
-		void  NextFrame (FrameUID frameId) override		{ _dbQueue.NextFrame( frameId ); }
-		
-		bool  LoadSerialized (RStream &stream) override;
+		bool  LoadSerialized (MemRefRStream &stream) override;
 
 
 	// ISerializable //
@@ -59,8 +59,8 @@ namespace AE::App
 		
 
 	private:
-		void  _UpdateKey (EInputType type, EGestureState state, ControllerID id, Duration_t timestamp);
-		
+		bool  _ValidateForVREmulation ();
+
 		ND_ static constexpr bool  _IsKey (EInputType type)			{ return SerializableInputActionsGLFW::_IsKey( type ); }
 		ND_ static constexpr bool  _IsCursor1D (EInputType type)	{ return SerializableInputActionsGLFW::_IsCursor1D( type ); }
 		ND_ static constexpr bool  _IsCursor2D (EInputType type)	{ return SerializableInputActionsGLFW::_IsCursor2D( type ); }

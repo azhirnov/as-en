@@ -6,6 +6,10 @@
 #include "serializing/ISerializable.h"
 #include "platform/Public/AppEnums.h"
 
+namespace AE::Base
+{
+	class MemRefRStream;
+}
 namespace AE::App
 {
 
@@ -95,6 +99,7 @@ namespace AE::App
 				Bytes32u		offset;			// TODO: use ushort ?
 				ControllerID	controllerId;
 			};
+			static constexpr Bytes	_DataAlign {4};
 
 
 		// variables
@@ -116,8 +121,7 @@ namespace AE::App
 			ActionQueue (ActionQueue &&);
 			ActionQueue (void* ptr, Bytes headerSize, Bytes dataSize);
 
-			template <typename T>
-			bool  Insert (const InputActionName &name, ControllerID id, const T &data);
+			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize);
 			bool  Insert (const InputActionName &name, ControllerID id);
 
 			void  Reset ();
@@ -182,7 +186,7 @@ namespace AE::App
 		// TODO
 		//   Thread safe: no
 		//
-		ND_ virtual bool  LoadSerialized (RStream &stream) = 0;
+		ND_ virtual bool  LoadSerialized (MemRefRStream &stream) = 0;
 
 		// TODO: get reflection for UI
 
@@ -192,9 +196,10 @@ namespace AE::App
 		//
 		//ND_ virtual bool  Serialize (struct Serializer &) const = 0;
 		//ND_ virtual bool  Deserialize (struct Deserializer &) = 0;
-
-		// TODO: set sensity
 		
+		// TODO
+		//ND_ virtual bool  SetScale (const float4 &scale) = 0;
+
 		// TODO
 		//   Thread safe: no
 		//
@@ -219,6 +224,146 @@ namespace AE::App
 		//
 		ND_ virtual bool  IsBindActionActive () const = 0;
 	};
+//-----------------------------------------------------------------------------
+	
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	inline IInputActions::ActionQueueReader::ActionQueueReader (const ActionQueue &q) :
+		_count{ q.ReadPos() },
+		_queue{ &q }
+	{
+		// invalidate cache for 'q._headers' and 'q._data' for '_count' elements
+		Threading::ThreadFence( EMemoryOrder::Acquire );
+	}
+	
+/*
+=================================================
+	ReadHeader
+=================================================
+*/
+	inline bool  IInputActions::ActionQueueReader::ReadHeader (OUT Header &header)
+	{
+		if_likely( _pos < _count )
+		{
+			header = _queue->GetHeader( _pos++ );
+			return true;
+		}
+
+		// try to get new actions
+		_count = _queue->ReadPos();
+
+		if ( _pos < _count )
+		{
+			// invalidate cache for '_queue->GetHeader()' and '_queue->GetData()' for new '_count' elements
+			Threading::ThreadFence( EMemoryOrder::Acquire );
+
+			header = _queue->GetHeader( _pos++ );
+			return true;
+		}
+
+		return false;
+	}
+	
+/*
+=================================================
+	Data
+=================================================
+*/
+	template <typename T>
+	T const&  IInputActions::ActionQueueReader::Data (Bytes offset) const
+	{
+		STATIC_ASSERT( AlignOf<T> <= IInputActions::ActionQueue::_DataAlign );
+		return *Cast<T>( _queue->GetData() + offset );
+	}
+//-----------------------------------------------------------------------------
+	
+
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	inline IInputActions::ActionQueue::ActionQueue (void* ptr, Bytes headerSize, Bytes dataSize) :
+		_headers{ Cast<Header>( ptr )},
+		_data{ ptr + headerSize },
+		_maxHeaders{ headerSize / SizeOf<Header> },
+		_dataSize{ dataSize }
+	{}
+	
+	inline IInputActions::ActionQueue::ActionQueue (ActionQueue &&other) :
+		_headers{ other._headers },
+		_data{ other._data },
+		_maxHeaders{ other._maxHeaders },
+		_dataSize{ other._dataSize }
+	{}
+
+/*
+=================================================
+	Insert
+=================================================
+*/
+	inline bool  IInputActions::ActionQueue::Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)
+	{
+		const uint		hdr_idx		= _writePos.fetch_add( 1 );
+		const Bytes		data_pos	= AlignUp( _dataPos, _DataAlign );
+
+		if_unlikely( hdr_idx >= _maxHeaders )
+		{
+			//AE_LOG_DBG( "input actions queue overflow" );
+			return false;
+		}
+		if_unlikely( data_pos + dataSize > _dataSize )
+		{
+			//AE_LOG_DBG( "input actions queue overflow" );
+			return false;
+		}
+
+		_headers[hdr_idx].name			= name;
+		_headers[hdr_idx].offset		= data_pos;
+		_headers[hdr_idx].controllerId	= id;
+
+		std::memcpy( OUT _data + data_pos, data, usize(dataSize) );
+
+		_dataPos = data_pos + dataSize;
+		_readPos.store( hdr_idx+1, EMemoryOrder::Release );	// TODO: fetch_add ???
+		return true;
+	}
+	
+	inline bool  IInputActions::ActionQueue::Insert (const InputActionName &name, ControllerID id)
+	{
+		const uint	hdr_idx = _writePos.fetch_add( 1 );
+		
+		if_unlikely( hdr_idx >= _maxHeaders )
+		{
+			//AE_LOG_DBG( "input actions queue overflow" );
+			return false;
+		}
+		
+		_headers[hdr_idx].name			= name;
+		_headers[hdr_idx].offset		= UMax;
+		_headers[hdr_idx].controllerId	= id;
+
+		_readPos.store( hdr_idx+1, EMemoryOrder::Release );
+		return true;
+	}
+
+/*
+=================================================
+	Reset
+=================================================
+*/
+	inline void  IInputActions::ActionQueue::Reset ()
+	{
+		_dataPos = 0_b;
+		_writePos.store( 0 );
+		_readPos.store( 0, EMemoryOrder::Release );
+	}
 
 
 } // AE::App

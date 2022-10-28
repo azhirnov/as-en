@@ -19,4 +19,4 @@ namespace AE::Serializing
 	};
 
 
-}	// AE::Serializing
+} // AE::Serializing

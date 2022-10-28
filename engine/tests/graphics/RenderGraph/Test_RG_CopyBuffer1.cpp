@@ -11,7 +11,7 @@ namespace
 		const Bytes					buf_size	= 128_b;
 		Array<ubyte>				buffer_data;
 		AsyncTask					result;
-		RC<CommandBatch>			batch;
+		CommandBatchPtr			batch;
 		bool						isOK		= false;
 		RC<GfxLinearMemAllocator>	gfxAlloc;
 	};
@@ -23,15 +23,15 @@ namespace
 	public:
 		CB1_TestData&	t;
 
-		CB1_CopyBufferTask (CB1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		CB1_CopyBufferTask (CB1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
 
 		void  Run () override
 		{
-			Ctx		ctx{ GetBatchPtr() };
-
+			Ctx		ctx{ *this };
+			
 			CHECK_TE( ctx.IsValid() );
 			CHECK_TE( ctx.UpdateHostBuffer( t.buf_1, 0_b, t.buffer_data ));
 
@@ -91,10 +91,10 @@ namespace
 		auto	batch = rts.CreateBatch( EQueueType::Graphics, 0, "CopyBuffer1" );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< CB1_CopyBufferTask<Ctx> >( MakeTuple(ArgRef(t)), MakeTuple(begin), "Copy buffer task" );
+		AsyncTask	task1	= batch->Add< CB1_CopyBufferTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, "Copy buffer task" );
 		CHECK_ERR( task1 );
 
-		AsyncTask	end		= rts.EndFrame( MakeTuple(task1) );
+		AsyncTask	end		= rts.EndFrame( Tuple{task1} );
 		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
@@ -111,7 +111,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_CopyBuffer1 ()

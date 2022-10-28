@@ -36,7 +36,7 @@ namespace
 		
 		auto	mem_stream = MakeRC<MemRStream>();
 		{
-			TEST( mem_stream->Load( *file ));
+			TEST( mem_stream->LoadRemaining( *file ));
 
 			uint	name;
 			TEST( mem_stream->Read( OUT name ) and name == InputActions_Name );

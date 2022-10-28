@@ -382,7 +382,7 @@ namespace AE::Math
 		auto&	rp = _planes[ uint(rhs) ];
 
 		auto	dir = Cross( lp.norm, rp.norm );
-		auto	len = Length2( dir );
+		auto	len = LengthSqr( dir );
 
 		if_unlikely( Equals( len, T{0}, _err ))
 			return false;
@@ -392,4 +392,4 @@ namespace AE::Math
 	}
 
 
-}	// AE::Math
+} // AE::Math

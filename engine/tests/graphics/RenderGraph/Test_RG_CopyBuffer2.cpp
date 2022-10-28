@@ -11,7 +11,7 @@ namespace
 		const Bytes					buf_size	= 128_b;
 		Array<ubyte>				buffer_data;
 		AsyncTask					result;
-		RC<CommandBatch>			batch;
+		CommandBatchPtr			batch;
 		bool						isOK		= false;
 		RC<GfxLinearMemAllocator>	gfxAlloc;
 	};
@@ -23,29 +23,28 @@ namespace
 	public:
 		CB2_TestData&	t;
 
-		CB2_CopyBufferTask (CB2_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		CB2_CopyBufferTask (CB2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
 
 		void  Run () override
 		{
-			Ctx		ctx{ GetBatchPtr() };
-
+			Ctx		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc );
 
-			CHECK_TE( ctx.UploadBuffer( t.buf_1, 0_b, t.buffer_data ) == ArraySizeOf(t.buffer_data) );
+			CHECK_TE( ctx.UploadBuffer( t.buf_1, 0_b, t.buffer_data ));
 
 			ctx.AccumBarriers().BufferBarrier( t.buf_1, EResourceState::CopyDst, EResourceState::CopySrc );
 
 			ctx.CopyBuffer( t.buf_1, t.buf_2, {BufferCopy{ 0_b, 0_b, t.buf_size }});
 
 			t.result = AsyncTask{ ctx.ReadHostBuffer( t.buf_2, 0_b, t.buf_size )
-						.Then( [p = &t] (const BufferMemView &view)
+						.Then( [p = &t] (const ArrayView<ubyte> &view)
 								{
-									p->isOK = (view == ArrayView<ubyte>{ p->buffer_data });
+									p->isOK = (view == p->buffer_data);
 								})};
 			
 			ctx.AccumBarriers().BufferBarrier( t.buf_2, EResourceState::CopyDst, EResourceState::Host_Read );
@@ -89,10 +88,10 @@ namespace
 		auto	batch = rts.CreateBatch( EQueueType::Graphics, 0, "CopyBuffer2" );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< CB2_CopyBufferTask<Ctx> >( MakeTuple(ArgRef(t)), MakeTuple(begin), "Copy buffer task" );
+		AsyncTask	task1	= batch->Add< CB2_CopyBufferTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, "Copy buffer task" );
 		CHECK_ERR( task1 );
 
-		AsyncTask	end		= rts.EndFrame( MakeTuple(task1) );
+		AsyncTask	end		= rts.EndFrame( Tuple{task1} );
 		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
@@ -109,7 +108,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_CopyBuffer2 ()

@@ -12,10 +12,10 @@
 
 namespace AE::Graphics
 {
-    //      rotation        translation
-    // [0,0]  [0,1]  [0,2]    [0,3]
-    // [1,0]  [1,1]  [1,2]    [1,3]
-    // [2,0]  [2,1]  [2,2]    [2,3]
+	//      rotation        translation
+	// [0,0]  [0,1]  [0,2]    [0,3]
+	// [1,0]  [1,1]  [1,2]    [1,3]
+	// [2,0]  [2,1]  [2,2]    [2,3]
 	using RTMatrixStorage = MatrixStorage< float, 3, 4, EMatrixOrder::ColumnMajor, 4 >;
 
 
@@ -25,6 +25,17 @@ namespace AE::Graphics
 	struct RTGeometryBuild
 	{
 	// types
+		struct BufferWithOffset
+		{
+			BufferID	id;
+			Bytes		offset;
+		};
+
+		struct BufferWithOffsetAndStride : BufferWithOffset
+		{
+			Bytes		stride;
+		};
+
 		struct TrianglesInfo
 		{
 			ERTGeometryOpt	options			= Default;
@@ -56,16 +67,13 @@ namespace AE::Graphics
 		{
 			BufferID		data;			// requires EBufferUsage::ASBuild_ReadOnly
 			Bytes			dataOffset;
+			Bytes			stride;
 		};
 
 		using Triangles	= TupleArrayView< TrianglesInfo,	TrianglesData	>;
 		using AABBs		= TupleArrayView< AABBsInfo,		AABBsData		>;
 
-		struct ScratchBuffer
-		{
-			BufferID	id;
-			Bytes		offset;
-		};
+		using ScratchBuffer	= BufferWithOffset;
 
 
 	// variables
@@ -138,7 +146,6 @@ namespace AE::Graphics
 				Instance&  SetFlags (ERTInstanceOpt value)				{ flags				= uint(value);	return *this; }
 				Instance&  SetMask (uint value)							{ mask				= value;		return *this; }
 				Instance&  SetInstanceOffset (uint value)				{ instanceSBTOffset	= value;		return *this; }
-				Instance&  SetGeometry (RTGeometryID value);
 			};
 
 		#elif defined(AE_ENABLE_METAL)
@@ -157,13 +164,16 @@ namespace AE::Graphics
 				Instance&  SetFlags (ERTInstanceOpt value)				{ options			= uint(value);	return *this; }
 				Instance&  SetMask (uint value)							{ mask				= value;		return *this; }
 				Instance&  SetInstanceOffset (uint value)				{ instanceSBTOffset	= value;		return *this; }
-				Instance&  SetGeometry (RTGeometryID value);
 			};
 		#endif
 		STATIC_ASSERT( sizeof(Instance) == 64 );
 
-		using ScratchBuffer		= RTGeometryBuild::ScratchBuffer;
-		using InstanceBuffer	= ScratchBuffer;
+		// TODO: MTLAccelerationStructureUserIDInstanceDescriptor, MTLAccelerationStructureMotionInstanceDescriptor
+
+		using ScratchBuffer		= RTGeometryBuild::BufferWithOffset;
+		using InstanceBuffer	= RTGeometryBuild::BufferWithOffsetAndStride;
+		using GeomArray_t		= Array< RTGeometryID >;
+		using GeomMap_t			= FlatHashMap< RTGeometryID, uint >;
 
 
 	// variables
@@ -171,6 +181,10 @@ namespace AE::Graphics
 		ERTASOptions		options				= Default;
 		ScratchBuffer		scratch;
 		InstanceBuffer		instanceData;
+
+		// required for Metal
+		GeomArray_t			geomArray;
+		GeomMap_t			geomMap;
 
 
 	// methods
@@ -184,12 +198,15 @@ namespace AE::Graphics
 			return *this;
 		}
 
-		RTSceneBuild&  SetInstanceData (BufferID id, Bytes offset = 0_b)
+		RTSceneBuild&  SetInstanceData (BufferID id, Bytes offset = 0_b, Bytes stride = Bytes::SizeOf<Instance>())
 		{
 			instanceData.id		= id;
 			instanceData.offset	= offset;
+			instanceData.stride	= stride;
 			return *this;
 		}
+
+		void  SetGeometry (RTGeometryID id, INOUT Instance &inst);
 	};
 
 	
@@ -247,7 +264,7 @@ namespace AE::Graphics
 	}
 #endif
 
-}	// AE::Graphics
+} // AE::Graphics
 
 
 # ifdef AE_CPP_DETECT_MISMATCH
@@ -264,4 +281,4 @@ namespace AE::Graphics
 #	pragma detect_mismatch( "AE_ENABLE_METAL", "0" )
 #  endif
 
-#endif	// AE_CPP_DETECT_MISMATCH
+#endif // AE_CPP_DETECT_MISMATCH

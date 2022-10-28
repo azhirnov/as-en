@@ -60,7 +60,7 @@ namespace AE::Base::_hidden_
 					(prev_crc ^ 0xFFFFFFFF);
 	}
 
-}	// AE::Base::_hidden_
+} // AE::Base::_hidden_
 
 
 namespace AE::Base
@@ -77,4 +77,4 @@ namespace AE::Base
 	}
 
 
-}	// AE::Base
+} // AE::Base

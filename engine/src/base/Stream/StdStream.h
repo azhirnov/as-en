@@ -67,7 +67,7 @@ namespace AE::Base
 		std::streamsize  xsgetn (char_type* s, std::streamsize count) override
 		{
 			if ( _src and _src->IsOpen() )
-				return std::streamsize(_src->Read2( s, charSoze * ulong(count) ) / charSoze);
+				return std::streamsize(_src->ReadSeq( s, charSoze * ulong(count) ) / charSoze);
 			else
 				return 0;
 		}
@@ -85,9 +85,9 @@ namespace AE::Base
 				switch ( dir )
 				{
 					case std::ios_base::beg :	new_pos = Bytes{CheckCast<ulong>(off)};		break;
-					case std::ios_base::end :	new_pos = _src->Size() - off;					break;
-					case std::ios_base::cur :	new_pos = _src->Position() + off;				break;
-					default :					new_pos = ~0_b;									break;
+					case std::ios_base::end :	new_pos = _src->Size() - off;				break;
+					case std::ios_base::cur :	new_pos = _src->Position() + off;			break;
+					default :					new_pos = Bytes::Max();						break;
 				}
 
 				if ( _src->SeekSet( new_pos ))
@@ -102,4 +102,4 @@ namespace AE::Base
 		}
 	};
 
-}	// AE::Base
+} // AE::Base

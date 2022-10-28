@@ -39,9 +39,9 @@ namespace AE::App
 
 
 	// IApplication //
-		WindowPtr		CreateWindow (WndListenerPtr, const WindowDesc &) override;
+		WindowPtr		CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*) override;
 
-		RC<RStream>		OpenResource () override;
+		RC<IFileStorage> OpenBuiltinStorage () override { return null; }
 
 		Monitors_t		GetMonitors (bool update = false) override;
 		
@@ -60,6 +60,6 @@ namespace AE::App
 	};
 
 
-}	// AE::App
+} // AE::App
 
-#endif	// AE_ENABLE_GLFW
+#endif // AE_ENABLE_GLFW

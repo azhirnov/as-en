@@ -39,7 +39,8 @@ namespace AE::Graphics
 		void  Validate ();
 		
 		ND_ bool  operator == (const ImageDesc &rhs) const;
-
+		
+		ImageDesc&  SetType (EImage value);
 		ImageDesc&  SetType (EImageDim value)				{ imageType		= value;				return *this; }
 		ImageDesc&  SetOptions (EImageOpt value)			{ options		= value;				return *this; }
 		ImageDesc&  SetDimension (const uint value);
@@ -56,13 +57,11 @@ namespace AE::Graphics
 		ImageDesc&  SetQueues (EQueueMask value)			{ queues		= value;				return *this; }
 		ImageDesc&  SetMemory (EMemoryType value)			{ memType		= value;				return *this; }
 
-		ND_ static ImageDesc  CreateRenderTarget (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer);
+		ND_ static ImageDesc  CreateColorAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer);
+		ND_ static ImageDesc  CreateDepthAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer);
 		ND_ static ImageDesc  CreateShadingRate (const uint2 &dim);
 		ND_ static ImageDesc  CreateFragmentDensityMap (const uint2 &dim);
 		ND_ static ImageDesc  CreateStaging (const uint2 &dim, EPixelFormat fmt);
-
-	// helper methods
-		ND_ uint3  CalcMipSize (MipmapLevel mip) const;
 	};
 	
 
@@ -112,7 +111,7 @@ namespace AE::Graphics
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
 namespace AE::Base
 {
@@ -122,4 +121,4 @@ namespace AE::Base
 	template <> struct TMemCopyAvailable< AE::Graphics::ImageViewDesc >		{ static constexpr bool  value = true; };
 	template <> struct TTrivialySerializable< AE::Graphics::ImageViewDesc >	{ static constexpr bool  value = true; };
 
-}	// AE::Base
+} // AE::Base

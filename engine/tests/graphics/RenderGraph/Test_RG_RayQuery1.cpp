@@ -28,7 +28,7 @@ namespace
 
 		AsyncTask					result;
 
-		RC<CommandBatch>			batch;
+		CommandBatchPtr			batch;
 		bool						isOK		= false;
 
 		ImageComparator *			imgCmp		= null;
@@ -48,7 +48,7 @@ namespace
 	public:
 		RQ1_TestData&	t;
 
-		RQ1_UploadTask (RQ1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		RQ1_UploadTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -58,21 +58,25 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 
-			typename CtxTypes::Transfer	copy_ctx{ GetBatchPtr() };
+			typename CtxTypes::Transfer	copy_ctx{ *this };
 			CHECK_TE( copy_ctx.IsValid() );
 			
 			copy_ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopyDst );
 
+			RTSceneBuild	scene_build{ 1u, Default };
+			scene_build.SetScratchBuffer( t.scratch );
+			scene_build.SetInstanceData( t.instances );
+
 			RTSceneBuild::Instance	inst;
 			inst.Init();
-			inst.SetGeometry( t.rtGeom );
+			scene_build.SetGeometry( t.rtGeom, INOUT inst );
 
-			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Bytes::SizeOf(buffer_vertices), buffer_vertices, EStagingHeapType::Static ) == Bytes::SizeOf(buffer_vertices) );
-			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Bytes::SizeOf(buffer_indices),  buffer_indices,  EStagingHeapType::Static ) == Bytes::SizeOf(buffer_indices) );
-			CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Bytes::SizeOf(inst), &inst, EStagingHeapType::Static ) == Bytes::SizeOf(inst) );
+			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Bytes::SizeOf(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
+			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Bytes::SizeOf(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
+			CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Bytes::SizeOf(inst), &inst, EStagingHeapType::Static ));
 
-			typename CtxTypes::ASBuild	as_ctx{ GetBatchPtr(), copy_ctx.ReleaseCommandBuffer() };
+			typename CtxTypes::ASBuild	as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 			CHECK_TE( as_ctx.IsValid() );
 			
 			as_ctx.AccumBarriers()
@@ -90,11 +94,7 @@ namespace
 			as_ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::BuildRTAS_Read );
 
-			as_ctx.Build(
-				RTSceneBuild{ 1u, Default }
-					.SetScratchBuffer( t.scratch )
-					.SetInstanceData( t.instances ),
-				t.rtScene );
+			as_ctx.Build( scene_build, t.rtScene );
 
 			Execute( as_ctx );
 		}
@@ -107,7 +107,7 @@ namespace
 	public:
 		RQ1_TestData&	t;
 
-		RQ1_RayTracingTask (RQ1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		RQ1_RayTracingTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -119,7 +119,7 @@ namespace
 
 			const auto	img_state	= EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
 			
-			typename CtxTypes::Compute	ctx{ GetBatchPtr() };
+			typename CtxTypes::Compute	ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			ctx.AccumBarriers()
@@ -144,7 +144,7 @@ namespace
 	public:
 		RQ1_TestData&	t;
 
-		RQ1_CopyTask (RQ1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		RQ1_CopyTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -154,8 +154,7 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 			
-			Ctx		ctx{ GetBatchPtr() };
-
+			Ctx		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
@@ -233,7 +232,7 @@ namespace
 			t.ds		= RVRef(ds);
 			t.ds_index	= idx;
 
-			VDescriptorUpdater	updater;
+			DescriptorUpdater	updater;
 
 			CHECK_ERR( updater.Set( t.ds, EDescUpdateMode::Partialy ));
 			updater.BindImage( UniformName{"un_OutImage"}, t.view );
@@ -249,16 +248,16 @@ namespace
 		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "RayQuery1" );
 		CHECK_ERR( t.batch );
 		
-		AsyncTask	task1	= t.batch->Add<RQ1_UploadTask<CtxTypes>>( MakeTuple(ArgRef(t)), MakeTuple(begin), "Upload RTAS task" );
+		AsyncTask	task1	= t.batch->Add<RQ1_UploadTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{begin}, "Upload RTAS task" );
 		CHECK_ERR( task1 );
 
-		AsyncTask	task2	= t.batch->Add<RQ1_RayTracingTask<CtxTypes>>( MakeTuple(ArgRef(t)), MakeTuple(task1), "Ray tracing task" );
+		AsyncTask	task2	= t.batch->Add<RQ1_RayTracingTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{task1}, "Ray tracing task" );
 		CHECK_ERR( task2 );
 		
-		AsyncTask	task3	= t.batch->Add<RQ1_CopyTask<CopyCtx>>( MakeTuple(ArgRef(t)), MakeTuple(task2), "Readback task" );
+		AsyncTask	task3	= t.batch->Add<RQ1_CopyTask<CopyCtx>>( Tuple{ArgRef(t)}, Tuple{task2}, "Readback task" );
 		CHECK_ERR( task3 );
 
-		AsyncTask	end		= rts.EndFrame( MakeTuple(task3) );
+		AsyncTask	end		= rts.EndFrame( Tuple{task3} );
 		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
@@ -277,7 +276,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_RayQuery1 ()

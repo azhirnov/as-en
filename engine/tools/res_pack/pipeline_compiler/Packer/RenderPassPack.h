@@ -56,9 +56,10 @@ namespace AE::PipelineCompiler
 	// variables
 	private:
 		LinearAllocator<>		_allocator;
-		VkRenderPassCreateInfo2	_ci			= {};
+		VkRenderPassCreateInfo2	_ci				= {};
 		RenderPassName			_name;
-		AttachmentStates_t		_states		= {};
+		AttachmentStates_t		_states			= {};
+		bool					_isCompatible	= false;	// 'true' after 'MakeCompatible()'
 
 
 	// methods
@@ -68,6 +69,7 @@ namespace AE::PipelineCompiler
 		#ifdef AE_BUILD_PIPELINE_COMPILER
 		ND_ bool  Create (const CompatibleRenderPassDesc &compat);
 		ND_ bool  Create (const CompatibleRenderPassDesc &compat, const RenderPassSpec &rp);
+		ND_ static bool  MakeCompatible (INOUT Array<SerializableVkRenderPass> &);
 		#endif
 		#ifdef AE_TEST_PIPELINE_COMPILER
 		ND_ String  ToString (const HashToName &) const;

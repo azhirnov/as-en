@@ -60,4 +60,4 @@ namespace AE::Math
 
 	using Sphere = BoundingSphere<float>;
 
-}	// AE::Math
+} // AE::Math

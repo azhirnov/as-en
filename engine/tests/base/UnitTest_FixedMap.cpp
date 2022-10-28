@@ -136,12 +136,44 @@ namespace
 			FixedMap< T1, T2, 32 >	map;
 
 			for (int i = 0; i < 30; ++i) {
-				map.insert({ T1(i), T2(i) });
+				TEST( map.insert({ T1(i), T2(i) }).second );
 			}
 			TEST( map.size() == 30 );
 
-			map.EraseByKey( T1(10) );
-			TEST( map.size() == 29 );
+			for (int i = 20; i < 30; ++i) {
+				TEST( map.EraseByKey( T1(i) ));
+			}
+			for (int i = 0; i < 20; ++i) {
+				TEST( map.contains( T1(i) ));
+			}
+			for (int i = 30; i < 40; ++i) {
+				TEST( map.insert({ T1(i), T2(i) }).second );
+			}
+			
+			for (int i = 10; i < 20; ++i) {
+				TEST( map.EraseByKey( T1(i) ));
+			}
+			for (int i = 0; i < 10; ++i) {
+				TEST( map.contains( T1(i) ));
+			}
+			for (int i = 30; i < 40; ++i) {
+				TEST( map.contains( T1(i) ));
+			}
+			for (int i = 40; i < 50; ++i) {
+				TEST( map.insert({ T1(i), T2(i) }).second );
+			}
+			
+			for (int i = 0; i < 10; ++i) {
+				TEST( map.EraseByKey( T1(i) ));
+			}
+			for (int i = 30; i < 50; ++i) {
+				TEST( map.contains( T1(i) ));
+			}
+			for (int i = 30; i < 50; ++i) {
+				TEST( map.EraseByKey( T1(i) ));
+			}
+
+			TEST( map.empty() );
 		}
 		TEST( T1::CheckStatistic() );
 		TEST( T2::CheckStatistic() );

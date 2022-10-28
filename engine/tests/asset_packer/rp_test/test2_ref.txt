@@ -27,7 +27,7 @@ depthAttachment = {
 =========================================================================
 
 
-name              = 'Simple.Default'
+name              = 'Simple.Present'
 colorAttachments  = {
   [0].format         = SwapchainColor
   [0].loadAction     = MTLLoadActionLoad
@@ -38,6 +38,23 @@ depthAttachment = {
   format         = MTLPixelFormatDepth32Float
   loadAction     = MTLLoadActionClear
   storeAction    = MTLStoreActionDontCare
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleDepthResolveFilterSample0
+}
+=========================================================================
+
+
+name              = 'Simple.RenderTarget'
+colorAttachments  = {
+  [0].format         = SwapchainColor
+  [0].loadAction     = MTLLoadActionLoad
+  [0].storeAction    = MTLStoreActionStore
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+}
+depthAttachment = {
+  format         = MTLPixelFormatDepth32Float
+  loadAction     = MTLLoadActionClear
+  storeAction    = MTLStoreActionStore
   storeActionOpt = MTLStoreActionOptionsNone
   resolveFilter  = MTLMultisampleDepthResolveFilterSample0
 }

@@ -5,80 +5,124 @@ InputActionsAndroid {
 
 InputActionsGLFW {
   '891542da' {
-    InputKey: MouseBtn1, state: Begin {
-      name:    ''
-      value:   none
+    lockAndHideCursor: false
+    InputKey: MouseBtn1, state: Begin
+    {
+      name:    'ff08b95a'
+      value:   Float4
       gesture: Hold
+      swizzle: 0+00
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: MouseBtn2, state: Begin {
-      name:    ''
+    InputKey: MouseBtn2, state: Begin
+    {
+      name:    '1f88c31b'
       value:   none
       gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: Escape, state: Begin {
-      name:    ''
+    InputKey: Escape, state: Begin
+    {
+      name:    'cdfc6e09'
       value:   none
       gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: Enter, state: Begin {
-      name:    ''
+    InputKey: Enter, state: Begin
+    {
+      name:    '78b1ef6a'
       value:   none
       gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: MouseBtn1, state: Update {
-      name:    ''
-      value:   none
+    InputKey: MouseBtn1, state: Update
+    {
+      name:    'ff08b95a'
+      value:   Float4
       gesture: Hold
+      swizzle: 0+00
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: CursorPosXY, state: Update {
-      name:    ''
+    InputKey: CursorPos, state: Update
+    {
+      name:    'c2d36fb8'
       value:   Float2
       gesture: Move
+      swizzle: XY00
+      scale:   ( 0.500000, 0.250000, 0.000000, 0.000000 )
     }
-    InputKey: MouseBtn1, state: End {
-      name:    ''
-      value:   none
+    InputKey: MouseBtn1, state: End
+    {
+      name:    'ff08b95a'
+      value:   Float4
       gesture: Hold
+      swizzle: 0+00
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
   }
 }
 
 InputActionsWinAPI {
   '891542da' {
-    InputKey: MouseBtn0, state: Begin {
-      name:    ''
+    lockAndHideCursor: false
+    InputKey: MouseBtn0, state: Begin
+    {
+      name:    'ff08b95a'
       value:   none
       gesture: Hold
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: MouseBtn1, state: Begin {
-      name:    ''
+    InputKey: MouseBtn1, state: Begin
+    {
+      name:    '1f88c31b'
       value:   none
       gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: Enter, state: Begin {
-      name:    ''
+    InputKey: Enter, state: Begin
+    {
+      name:    '78b1ef6a'
       value:   none
       gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: Escape, state: Begin {
-      name:    ''
+    InputKey: Escape, state: Begin
+    {
+      name:    'cdfc6e09'
       value:   none
       gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: MouseBtn0, state: Update {
-      name:    ''
+    InputKey: MouseBtn0, state: Update
+    {
+      name:    'ff08b95a'
       value:   none
       gesture: Hold
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: CursorPosXY, state: Update {
-      name:    ''
+    InputKey: CursorPos, state: Update
+    {
+      name:    'c2d36fb8'
       value:   Float2
       gesture: Move
+      swizzle: XY00
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
-    InputKey: MouseBtn0, state: End {
-      name:    ''
+    InputKey: MouseBtn0, state: End
+    {
+      name:    'ff08b95a'
       value:   none
       gesture: Hold
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
   }
 }

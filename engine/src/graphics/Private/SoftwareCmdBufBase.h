@@ -4,6 +4,7 @@
 
 #include "threading/Memory/FrameAllocator.h"
 #include "graphics/Public/CommandBuffer.h"
+#include "graphics/Public/GraphicsProfiler.h"
 
 namespace AE::Graphics::_hidden_
 {
@@ -31,10 +32,10 @@ namespace AE::Graphics::_hidden_
 		{
 			DEBUG_ONLY(
 				static constexpr uint	MAGIC = 0x762a3cf0;
-				uint	_magicNumber = MAGIC;
+				uint	_magicNumber	= MAGIC;
 			)
-			ushort	_commandID	= 0;
-			ushort	_size		= 0;
+			ushort		_commandID		= 0;
+			ushort		_size			= 0;
 		};
 
 	private:
@@ -55,10 +56,11 @@ namespace AE::Graphics::_hidden_
 		SoftwareCmdBufBase ()			{}
 		~SoftwareCmdBufBase ()			{ ASSERT( _root == null ); }
 
-		ND_ bool  IsValid ()	const	{ return true; }
+		ND_ bool	IsValid ()	const	{ return true; }
 
 		static void  Deallocate (void* root);
 		
+
 	protected:
 		ND_ void*  _Allocate (Bytes size);
 
@@ -70,6 +72,44 @@ namespace AE::Graphics::_hidden_
 		
 		ND_ bool  _Validate (const void* root, usize cmdCount) const;
 	};
+
+
+
+/*
+=================================================
+	_CreateCmd
+=================================================
+*/
+	template <typename CommandsList, typename CmdType, typename ...DynamicTypes>
+	CmdType&  SoftwareCmdBufBase::_CreateCmd (usize dynamicArraySize)
+	{
+		Bytes	size	= AlignUp( _CalcCmdSize< 0, TypeList<DynamicTypes...> >( SizeOf<CmdType>, dynamicArraySize ), BaseAlign );
+		auto*	cmd		= Cast<CmdType>( _Allocate( size ));
+
+		DEBUG_ONLY( cmd->_magicNumber = BaseCmd::MAGIC; )
+		STATIC_ASSERT( CommandsList::template HasType< CmdType >);
+
+		cmd->_commandID = CheckCast<ushort>( CommandsList::template Index< CmdType >);
+		cmd->_size		= CheckCast<ushort>( size );
+		return *cmd;
+	}
+	
+/*
+=================================================
+	_CalcCmdSize
+=================================================
+*/
+	template <usize I, typename TL>
+	constexpr Bytes  SoftwareCmdBufBase::_CalcCmdSize (Bytes size, usize dynamicArraySize)
+	{
+		if constexpr( I < TL::Count )
+		{
+			using T = typename TL::template Get<I>;
+			return _CalcCmdSize< I+1, TL >( AlignUp( size, alignof(T) ) + sizeof(T) * dynamicArraySize, dynamicArraySize ); 
+		}
+		else
+			return size;
+	}
 
 
 } // AE::Graphics::_hidden_

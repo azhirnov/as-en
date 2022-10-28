@@ -53,7 +53,7 @@ namespace AE::Threading
 		};
 		using ChunkArray_t	= StaticArray< Chunk, ChunksCount >;
 		
-		static constexpr uint	NumAttempts			= 4;
+		static constexpr uint	NumAttempts			= 8;
 		static constexpr usize	ThreadToChunkMask	=	ChunksCount < 4 ?	0 :
 														ChunksCount < 8 ?	ToBitMask<usize>( 2u ) :
 														ChunksCount < 16 ?	ToBitMask<usize>( 3u ) :
@@ -66,7 +66,7 @@ namespace AE::Threading
 
 	// variables
 	private:
-		ChunkArray_t *		_arr	= null;
+		Ptr<ChunkArray_t>	_arr;
 
 		NO_UNIQUE_ADDRESS
 		 Allocator_t		_allocator;
@@ -88,6 +88,9 @@ namespace AE::Threading
 			template <typename FN>
 			void  UnassignAll (FN && fn);
 		
+			template <typename FN>
+			void  ForEach (FN && fn);
+
 		ND_ auto  Assign ()										{ Index_t idx;  return Assign( OUT idx ) ? idx : UMax; }
 		ND_ bool  Assign (OUT Index_t &outIndex);
 			void  Unassign (Index_t index);
@@ -97,13 +100,13 @@ namespace AE::Threading
 		ND_ Value_t const&	operator [] (Index_t index) const	{ return const_cast<Self*>(this)->operator[]( index ); }
 		
 		ND_ Value_t*		At (Index_t index);
-		ND_ Value_t const*	At (Index_t index) const			{ return const_cast<Self*>(this)->At( index ); }
+		ND_ Value_t const*	At (Index_t index)			const	{ return const_cast<Self*>(this)->At( index ); }
 
-		ND_ usize	size ()		const;
-		ND_ bool	empty ()	const				{ return size() == 0; }
+		ND_ usize			size ()						const;
+		ND_ bool			empty ()					const	{ return size() == 0; }
 
-		ND_ static constexpr usize  capacity ()		{ return Count; }
-		ND_ static constexpr Bytes  DynamicSize ()	{ return SizeOf<ChunkArray_t>; }
+		ND_ static constexpr usize  capacity ()					{ return Count; }
+		ND_ static constexpr Bytes  DynamicSize ()				{ return SizeOf<ChunkArray_t>; }
 	};
 
 

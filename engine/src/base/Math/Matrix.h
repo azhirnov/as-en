@@ -39,7 +39,15 @@ namespace AE::Math
 	using double4x3	= Matrix< double, 4, 3 >;
 	using double4x4	= Matrix< double, 4, 4 >;
 
-}	// AE::Math
+namespace _hidden_
+{
+	struct _MatrixDim
+	{
+		ubyte		columns;
+		ubyte		rows;
+	};
+}
+} // AE::Math
 
 
 #define Columns	2
@@ -151,4 +159,4 @@ namespace AE::Math
 	{}
 
 
-}	// AE::Math
+} // AE::Math

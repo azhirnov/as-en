@@ -18,14 +18,10 @@ namespace AE::Math
 		using Value_t		= T;
 		using Self			= Matrix< T, Columns, Rows >;
 		using _GLM_Mat_t	= glm::mat< glm::length_t(Columns), glm::length_t(Rows), T, GLMQuialifier >;
-		using Col_t			= typename _GLM_Mat_t::col_type;
-		using Row_t			= typename _GLM_Mat_t::row_type;
+		using Col_t			= typename _GLM_Mat_t::col_type;	// [Rows]
+		using Row_t			= typename _GLM_Mat_t::row_type;	// [Columns]
+		using Dim_t			= _hidden_::_MatrixDim;
 
-		struct Dim {
-			ubyte		columns;
-			ubyte		rows;
-		};
-		
 
 	// variables
 	public:
@@ -41,7 +37,10 @@ namespace AE::Math
 		Matrix (Self &&other) : _value{other._value} {}
 
 		template <uint Columns2, uint Rows2>
-		GLM_CONSTEXPR explicit Matrix (const Matrix<T, Columns2, Rows2> &other) : _value{other} {}
+		GLM_CONSTEXPR explicit Matrix (const Matrix<T, Columns2, Rows2> &other) : _value{other._value} {}
+
+		template <typename B>
+		GLM_CONSTEXPR explicit Matrix (const Matrix<B, Columns, Rows> &other) : _value{other._value} {}
 
 	#if Columns == 2
 		GLM_CONSTEXPR Matrix (const Col_t &col0,
@@ -105,18 +104,15 @@ namespace AE::Math
 		ND_ Matrix<T,Rows,Columns>		Transpose () const						{ return Matrix<T,Rows,Columns>{ glm::transpose( _value )}; }
 
 		ND_ static constexpr usize		size ()									{ return Columns; }
-		ND_ static constexpr Dim		Dimension ()							{ return Dim{ Columns, Rows }; }
+		ND_ static constexpr Dim_t		Dimension ()							{ return Dim_t{ Columns, Rows }; }
 		
+	#if Columns == 2 and Rows == 2
+		ND_ static Self  Rotate (RadiansTempl<T> angle);
+	#endif
 
 	#if Columns == 3 and Rows == 3
 		ND_ static Self  ToCubeFace (ubyte face);
-	#endif
-		
-	#if Columns == 4
-		ND_ static Self  Scale (T scale)										{ return Self{ glm::scale( Identity()._value, Vec<T,3>{ scale })}; }
-		ND_ static Self  Scale (const Vec<T,3> &scale)							{ return Self{ glm::scale( Identity()._value, scale )}; }
-
-		ND_ static Self  Translate (const Vec<T,3> &pos)						{ return Self{ glm::translate( Identity()._value, pos )}; }
+		ND_ static Self  FromDirection (const Vec<T,3> &dir, const Vec<T,3> &up);
 	#endif
 		
 	#if Columns == 4 and Rows == 4
@@ -125,13 +121,53 @@ namespace AE::Math
 		ND_ static Self  Perspective (RadiansTempl<T> fovY, T aspect, const Vec<T,2> &range)	{ return Self{ glm::perspective( T(fovY), aspect, range[0], range[1] )}; }
 		ND_ static Self  Perspective (RadiansTempl<T> fovY, const Vec<T,2> &viewport, const Vec<T,2> &range)	{ return Self{ glm::perspectiveFov( T(fovY), viewport.x, viewport.y, range[0], range[1] )}; }
 		ND_ static Self  Frustum (const Rectangle<T> &viewport, const Vec<T,2> &range)			{ return Self{ glm::frustum( viewport.left, viewport.right, viewport.bottom, viewport.top, range[0], range[1] )}; }
+		ND_ static Self  InfiniteFrustum (const Rectangle<T> &viewport, T zNear);
+		ND_ static Self  Translate (const Vec<T,3> &translation)								{ return Self{ glm::translate( Self::Identity()._value, translation )}; }
+		ND_ static Self  Scale (const Vec<T,3> &scale)											{ return Self{ glm::scale( Self::Identity()._value, scale )}; }
+		ND_ static Self  Scale (const T scale)													{ return Scale( Vec<T,3>{ scale }); }
 	#endif
+		
+	#if Columns >= 3 and Rows >= 3
+		ND_ static Self  RotateX (RadiansTempl<T> angle);
+		ND_ static Self  RotateY (RadiansTempl<T> angle);
+		ND_ static Self  RotateZ (RadiansTempl<T> angle);
+	#endif
+
+	private:
+	  #if Rows == 3
+		ND_ static Col_t  _CreateCol0 (T x, T y, T z)		{ return Col_t{ x, y, z }; }
+		ND_ static Col_t  _CreateCol1 (T x, T y, T z)		{ return Col_t{ x, y, z }; }
+	  #elif Rows == 4
+		ND_ static Col_t  _CreateCol0 (T x, T y, T z)		{ return Col_t{ x, y, z, T(0) }; }
+		ND_ static Col_t  _CreateCol1 (T x, T y, T z)		{ return Col_t{ x, y, z, T(1) }; }
+	  #endif
 	};
 
 	
-#if Columns == 3 and Rows == 3
+	
+#if Columns == 2 and Rows == 2
+/*
+=================================================
+	Rotate
+=================================================
+*/
 	template <typename T>
-	inline Matrix<T, Columns, Rows>  Matrix<T, Columns, Rows>::ToCubeFace (ubyte face)
+	Matrix<T, Columns, Rows>  Matrix<T, Columns, Rows>::Rotate (RadiansTempl<T> angle)
+	{
+		const T	s = Sin( angle );
+		const T	c = Cos( angle );
+		return Self{ Col_t{ c, s }, Col_t{ -s, c }};
+	}
+#endif
+
+#if Columns == 3 and Rows == 3
+/*
+=================================================
+	ToCubeFace
+=================================================
+*/
+	template <typename T>
+	Matrix<T, Columns, Rows>  Matrix<T, Columns, Rows>::ToCubeFace (ubyte face)
 	{
 		ASSERT( face < 6 );
 
@@ -146,6 +182,95 @@ namespace AE::Math
 		
 		return m.Transpose();
 	}
+	
+/*
+=================================================
+	FromDirection
+=================================================
+*/
+	template <typename T>
+	Matrix<T, Columns, Rows>  Matrix<T, Columns, Rows>::FromDirection (const Vec<T,3> &dir, const Vec<T,3> &up)
+	{
+		Vec<T,3>	hor = Normalize( Cross( up,  dir ));
+		Vec<T,3>	ver = Normalize( Cross( dir, hor ));
+		return Self{ hor, ver, dir };
+	}
 #endif
 
-}	// AE::Math
+#if Columns >= 3 and Rows >= 3
+/*
+=================================================
+	Rotate*
+=================================================
+*/
+	template <typename T>
+	Matrix<T, Columns, Rows>  Matrix<T, Columns, Rows>::RotateX (RadiansTempl<T> angle)
+	{
+		const T	s = Sin( angle );
+		const T	c = Cos( angle );
+
+		return Self{
+				_CreateCol0( T(1),  T(0),  T(0) ),
+				_CreateCol0( T(0),   c,     s   ),
+				_CreateCol0( T(0),  -s,     c   )
+			#if Columns == 4
+			  ,	_CreateCol1( T(0),  T(0),  T(0) )
+			#endif
+			};
+	}
+	
+	template <typename T>
+	Matrix<T, Columns, Rows>  Matrix<T, Columns, Rows>::RotateY (RadiansTempl<T> angle)
+	{
+		const T	s = Sin( angle );
+		const T	c = Cos( angle );
+
+		return Self{
+				_CreateCol0(  c,    T(0),  -s   ),
+				_CreateCol0( T(0),  T(1),  T(0) ),
+				_CreateCol0(  s,    T(0),   c   )
+			#if Columns == 4
+			  ,	_CreateCol1( T(0),  T(0),  T(0) )
+			#endif
+			};
+	}
+	
+	template <typename T>
+	Matrix<T, Columns, Rows>  Matrix<T, Columns, Rows>::RotateZ (RadiansTempl<T> angle)
+	{
+		const T	s = Sin( angle );
+		const T	c = Cos( angle );
+
+		return Self{
+				_CreateCol0(  c,    T(0),   s   ),
+				_CreateCol0( -s,     c,    T(0) ),
+				_CreateCol0( T(0),  T(0),  T(1) )
+			#if Columns == 4
+			  ,	_CreateCol1( T(0),  T(0),  T(0) )
+			#endif
+			};
+	}
+#endif
+	
+#if Columns == 4 and Rows == 4
+/*
+=================================================
+	InfiniteFrustum
+=================================================
+*/
+	template <typename T>
+	Matrix<T, Columns, Rows>  Matrix<T, Columns, Rows>::InfiniteFrustum (const Rectangle<T> &viewport, T zNear)
+	{
+		Matrix<T, 4, 4> proj;
+		proj[0][0] = T(2) / (viewport.right - viewport.left);
+		proj[1][1] = T(2) / (viewport.bottom - viewport.top);
+		proj[2][0] = (viewport.right + viewport.left) / (viewport.right - viewport.left);
+		proj[2][1] = (viewport.top + viewport.bottom) / (viewport.bottom - viewport.top);
+		proj[2][2] = -T(1);
+		proj[2][3] = -T(1);
+		proj[3][2] = -T(2) * zNear;
+		return proj;
+	}
+#endif
+
+} // AE::Math

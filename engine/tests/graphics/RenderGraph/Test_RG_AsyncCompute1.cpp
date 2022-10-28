@@ -54,7 +54,7 @@ namespace
 		AC1_TestData&	t;
 		const uint		fi;
 
-		AC1_GraphicsTask (AC1_TestData& t, uint frameIdx, RC<CommandBatch> batch, StringView dbgName) :
+		AC1_GraphicsTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t },
 			fi{ frameIdx & 1 }
@@ -67,7 +67,7 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 
-			typename CtxTypes::Graphics		ctx{ GetBatchPtr() };
+			typename CtxTypes::Graphics		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			ctx.AccumBarriers()
@@ -101,7 +101,7 @@ namespace
 		AC1_TestData&	t;
 		const uint		fi;
 
-		AC1_ComputeTask (AC1_TestData& t, uint frameIdx, RC<CommandBatch> batch, StringView dbgName) :
+		AC1_ComputeTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t },
 			fi{ frameIdx & 1 }
@@ -114,7 +114,7 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 
-			typename CtxTypes::Compute	ctx{ GetBatchPtr() };
+			typename CtxTypes::Compute	ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 			
 			ctx.BindPipeline( t.cppln );
@@ -132,7 +132,7 @@ namespace
 	public:
 		AC1_TestData&	t;
 
-		AC1_CopyTask (AC1_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		AC1_CopyTask (AC1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -142,7 +142,7 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 			
-			Ctx		ctx{ GetBatchPtr() };
+			Ctx		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AccumBarriers()
@@ -175,7 +175,7 @@ namespace
 	{
 	public:
 		AC1_TestData&		t;
-		RC<CommandBatch>	lastBatch;
+		CommandBatchPtr	lastBatch;
 
 		AC1_FrameTask (AC1_TestData& t) :
 			IAsyncTask{ EThread::Worker },
@@ -196,14 +196,14 @@ namespace
 
 				CHECK_TE( batch->AddInputDependency( lastBatch ));
 				
-				AsyncTask	read_task = batch->Add< AC1_CopyTask<CopyCtx> >( MakeTuple(ArgRef(t)), MakeTuple(begin), "Readback task" );
+				AsyncTask	read_task = batch->Add< AC1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, "Readback task" );
 				CHECK_TE( read_task );
 
-				AsyncTask	end = rts.EndFrame( MakeTuple(read_task) );
+				AsyncTask	end = rts.EndFrame( Tuple{read_task} );
 				CHECK_TE( end );
 				
 				++t.frameIdx;
-				CHECK_TE( Continue( MakeTuple( end )));
+				CHECK_TE( Continue( Tuple{end} ));
 				return;
 			}
 
@@ -225,21 +225,23 @@ namespace
 			// graphics to compute sync
 			CHECK_TE( batch_ac->AddInputDependency( batch_gfx ));
 			
-			AsyncTask	gfx_task = batch_gfx->Add< AC1_GraphicsTask<CtxTypes> >( MakeTuple( ArgRef(t), t.frameIdx.load() ), MakeTuple(begin), "graphics task" );
+			AsyncTask	gfx_task = batch_gfx->Add< AC1_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() }, Tuple{begin}, "graphics task" );
 			CHECK_TE( gfx_task );
 
-			AsyncTask	comp_task = batch_ac->Add< AC1_ComputeTask<CtxTypes> >( MakeTuple( ArgRef(t), t.frameIdx.load() ), MakeTuple(gfx_task), "async compute task" );
+			AsyncTask	comp_task = batch_ac->Add< AC1_ComputeTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() }, Tuple{gfx_task}, "async compute task" );
 			CHECK_TE( comp_task );
 
 
-			AsyncTask	end = rts.EndFrame( MakeTuple( gfx_task, comp_task ));
+			AsyncTask	end = rts.EndFrame( Tuple{ gfx_task, comp_task });
 			CHECK_TE( end );
 
 			lastBatch = batch_ac;
 
 			++t.frameIdx;
-			CHECK_TE( Continue( MakeTuple( end )));
+			CHECK_TE( Continue( Tuple{end} ));
 		}
+
+		StringView  DbgName () const override { return "AC1_FrameTask"; }
 	};
 
 	
@@ -285,7 +287,7 @@ namespace
 			t.cpplnDS[1]	= RVRef(ds1);
 			CHECK_ERR( t.cpplnDS[0] and t.cpplnDS[1] );
 
-			VDescriptorUpdater	updater;
+			DescriptorUpdater	updater;
 
 			CHECK_ERR( updater.Set( t.cpplnDS[0], EDescUpdateMode::Partialy ));
 			updater.BindImage( UniformName{"un_Image"}, t.view[0] );
@@ -297,7 +299,7 @@ namespace
 		}
 		
 		// draw 3 frames
-		auto	task = Scheduler().Run< AC1_FrameTask<CtxTypes, CopyCtx> >( MakeTuple(ArgRef(t)) );
+		auto	task = Scheduler().Run< AC1_FrameTask<CtxTypes, CopyCtx> >( Tuple{ArgRef(t)} );
 		
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
@@ -316,7 +318,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_AsyncCompute1 ()

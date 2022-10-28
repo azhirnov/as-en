@@ -19,7 +19,7 @@ extern void Test_VulkanSwapchain (IApplication &app, IWindow &wnd)
 
 	ArrayView<const char*>	window_ext = app.GetVulkanInstanceExtensions();
 
-	CHECK_FATAL( vulkan.CreateInstance( "TestApp", "AE", vulkan.GetRecomendedInstanceLayers(), window_ext ));
+	CHECK_FATAL( vulkan.CreateInstance( "TestApp", AE_ENGINE_NAME, vulkan.GetRecomendedInstanceLayers(), window_ext ));
 	CHECK_FATAL( vulkan.ChooseHighPerformanceDevice() );
 	CHECK_FATAL( vulkan.CreateDefaultQueue() );
 	CHECK_FATAL( vulkan.CreateLogicalDevice() );
@@ -45,4 +45,4 @@ extern void Test_VulkanSwapchain (IApplication &app, IWindow &wnd)
 	TEST_PASSED();
 }
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

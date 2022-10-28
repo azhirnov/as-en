@@ -43,6 +43,7 @@ namespace AE::Graphics
 
 		uint							_semaphoreId	: 3;
 		uint							_currImageIndex	: 16;
+
 		Images_t						_vkImages;
 		ImageIDs_t						_imageIDs;
 		ImageViewIDs_t					_imageViewIDs;
@@ -103,7 +104,7 @@ namespace AE::Graphics
 
 		ND_ VkImageUsageFlagBits		GetVkImageUsage ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _vkColorImageUsage; }
 		ND_ VkImage						GetVkCurrentImage ()		const;
-		ND_ Tuple<ImageID, ImageViewID>	GetCurrentImageAndViewID ()	const;
+		ND_ ImageAndViewID				GetCurrentImageAndViewID ()	const;
 	};
 
 	
@@ -173,7 +174,32 @@ namespace AE::Graphics
 			void  _GetSurfaceImageCount (INOUT uint &minImageCount, const VkSurfaceCapabilitiesKHR &surfaceCaps) const;
 	};
 
+	
+/*
+=================================================
+	GetVkCurrentImage
+=================================================
+*/
+	inline VkImage  VSwapchain::GetVkCurrentImage () const
+	{
+		DRC_SHAREDLOCK( _drCheck );
+		return _currImageIndex < _vkImages.size() ? _vkImages[_currImageIndex] : Default;
+	}
+	
+/*
+=================================================
+	GetCurrentImageAndViewID
+=================================================
+*/
+	inline ImageAndViewID  VSwapchain::GetCurrentImageAndViewID () const
+	{
+		DRC_SHAREDLOCK( _drCheck );
+		return	_currImageIndex < _imageIDs.size() ?
+					ImageAndViewID{ ImageID{_imageIDs[_currImageIndex]}, ImageViewID{_imageViewIDs[_currImageIndex]} } :
+					Default;
+	}
 
-}	// AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+} // AE::Graphics
+
+#endif // AE_ENABLE_VULKAN

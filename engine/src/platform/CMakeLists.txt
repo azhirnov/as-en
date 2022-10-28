@@ -8,7 +8,7 @@ add_library( "Platform" STATIC ${SOURCES} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 
 set_property( TARGET "Platform" PROPERTY FOLDER "Engine" )
-target_link_libraries( "Platform" PUBLIC "Threading" "Graphics" )
+target_link_libraries( "Platform" PUBLIC "Threading" "Graphics" "VFS" )
 
 if (MSVC)
 	set_source_files_properties( ${OBJC_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )

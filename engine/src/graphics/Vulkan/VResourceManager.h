@@ -29,7 +29,9 @@
 # include "graphics/Vulkan/Resources/VRTGeometry.h"
 # include "graphics/Vulkan/Resources/VRTScene.h"
 # include "graphics/Vulkan/Resources/VMemoryObject.h"
+
 # include "graphics/Vulkan/Resources/VStagingBufferManager.h"
+# include "graphics/Vulkan/Resources/VQueryManager.h"
 
 # include "threading/Containers/LfIndexedPool3.h"
 # include "threading/Containers/LfStaticIndexedPool.h"
@@ -174,15 +176,16 @@ namespace AE::Graphics
 		DescriptorAllocatorPtr	_defaultDescAlloc;
 
 		VStagingBufferManager	_stagingMngr;
+		VQueryManager			_queryMngr;
 		
 		FeatureSet				_featureSet;
 		ExpiredResources		_expiredResources;
 
-		Strong<PipelinePackID>			_defaultPack;
+		StrongAtom<PipelinePackID>		_defaultPack;
 		Strong<VSamplerID>				_defaultSampler;
 		Strong<DescriptorSetLayoutID>	_emptyDSLayout;
 
-		#ifdef AE_DEV_OR_DBG
+		#ifdef AE_DBG_OR_DEV
 		 mutable SharedMutex			_hashToNameGuard;
 		 PipelineCompiler::HashToName	_hashToName;		// for debugging
 		#endif
@@ -238,8 +241,8 @@ namespace AE::Graphics
 		Strong<DescriptorSetID>	CreateDescriptorSet (PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) override;
 		Strong<DescriptorSetID>	CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) override;
 
-		Strong<PipelineCacheID>	CreatePipelineCache () override;
-		Strong<PipelineCacheID>	LoadPipelineCache (RC<RStream> stream) override;
+			Strong<PipelineCacheID>		CreatePipelineCache () override;
+		ND_ Strong<PipelineCacheID>		LoadPipelineCache (RC<RStream> stream);
 		
 		Promise<RenderTechPipelinesPtr>	LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache)	override;
 		RenderTechPipelinesPtr			LoadRenderTech      (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache)	override;
@@ -330,6 +333,7 @@ namespace AE::Graphics
 
 		ND_ VDevice const&			GetDevice ()			const	{ return _device; }
 		ND_ VStagingBufferManager&	GetStagingManager ()			{ return _stagingMngr; }
+		ND_ VQueryManager&			GetQueryManager ()				{ return _queryMngr; }
 		ND_ FeatureSet const&		GetFeatureSet ()		const	{ return _featureSet; }
 		ND_ PipelinePackID			GetDefaultPack ()		const	{ return _defaultPack; }
 
@@ -344,10 +348,10 @@ namespace AE::Graphics
 		template <usize Size, uint UID, bool Opt, uint Seed>
 		ND_ String  HashToName (const NamedID< Size, UID, Opt, Seed > &name) const;
 		
-		#ifdef AE_DEV_OR_DBG
+		#ifdef AE_DBG_OR_DEV
 		void  AddHashToName (const PipelineCompiler::HashToName &value);
 		#endif
-		
+
 		StagingBufferStat  GetStagingBufferFrameStat (FrameUID frameId) const override	{ return _stagingMngr.GetFrameStat( frameId ); }
 
 		AE_GLOBALLY_ALLOC
@@ -435,6 +439,64 @@ namespace AE::Graphics
 		ND_ auto const&			_GetDescription (ID id) const;
 	};
 
-}	// AE::Graphics
+	
+#	define RESMNGR	VResourceManager
+#	define RESMNGR_HEADER
+#	include "graphics/Private/ResourceManagerUtils.h"
 
-#endif	// AE_ENABLE_VULKAN
+/*
+=================================================
+	DelayedDestroy
+=================================================
+*/
+	template <typename ID>
+	void  VResourceManager::DelayedDestroy (ID id)
+	{
+		STATIC_ASSERT( AllVkResources_t::HasType<ID> );
+		ASSERT( id != Default );
+
+		ExpiredResource	res;
+		res.id		= UnsafeBitCast< ExpiredResource::IDValue_t >( id );
+		res.type	= uint( AllVkResources_t::Index<ID> );
+
+		auto&	dst = _expiredResources.GetCurrent();
+		EXLOCK( dst.guard );
+
+		dst.resources.push_back( res );
+	}
+	
+/*
+=================================================
+	RemoveFramebufferCache
+=================================================
+*/
+	inline void  VResourceManager::RemoveFramebufferCache (VFramebuffer::CachePtr_t iter)
+	{
+		EXLOCK( _resPool.fbCacheGuard );
+		_resPool.fbCache.erase( iter );
+	}
+
+/*
+=================================================
+	Release Expired Resources Task
+=================================================
+*/
+	class VResourceManager::ReleaseExpiredResourcesTask final : public Threading::IAsyncTask
+	{
+	private:
+		const FrameUID	_frameId;
+
+	public:
+		explicit ReleaseExpiredResourcesTask (FrameUID frameId) :
+			IAsyncTask{EThread::Renderer}, _frameId{frameId}
+		{}
+			
+		void  Run () override;
+
+		StringView  DbgName () const override	{ return "ReleaseExpiredResources"; }
+	};
+
+
+} // AE::Graphics
+
+#endif // AE_ENABLE_VULKAN

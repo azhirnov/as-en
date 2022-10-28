@@ -102,6 +102,6 @@ namespace AE::Graphics
 				(attachments	== rhs.attachments);
 	}
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

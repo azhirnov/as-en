@@ -41,6 +41,7 @@ namespace AE::Graphics
 		VDedicatedMemAllocator ();
 		~VDedicatedMemAllocator () override;
 		
+	  // IGfxMemAllocator //
 		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data) override;
 		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) override;
 
@@ -51,12 +52,13 @@ namespace AE::Graphics
 		Bytes  MinAlignment ()		const override	{ return 1_b; }
 		Bytes  MaxAllocationSize ()	const override;
 
+
 	private:
 		ND_ static Data &		_CastStorage (Storage_t &data)			{ return *data.Ptr<Data>(); }
 		ND_ static Data const&	_CastStorage (const Storage_t &data)	{ return *data.Ptr<Data>(); }
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

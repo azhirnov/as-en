@@ -65,9 +65,9 @@ namespace AE::Threading
 
 		struct alignas(AE_CACHE_LINE) HighLevelChunk
 		{
-			Atomic< HighLvlBits_t >		available	{InitialHighLevel};	// 1 - chunk is full, 0 - chunk has some empty elements
-			SpinLockRelaxed				guard;							// only for 'available' modification
-			LowLvlChunkArrayPtr_t		chunksPtr	{null};
+			Atomic< HighLvlBits_t >		available		{InitialHighLevel};		// 1 - chunk is full, 0 - chunk has some empty elements
+			SpinLockRelaxed				availableGuard;							// only for 'available' modification
+			LowLvlChunkArrayPtr_t		chunksPtr		{null};
 		};
 		using HighLvlArray_t	= StaticArray< HighLevelChunk, MaxChunks >;
 
@@ -124,4 +124,4 @@ namespace AE::Threading
 	};
 
 
-}	// AE::Threading
+} // AE::Threading

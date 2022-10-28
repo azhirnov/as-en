@@ -34,16 +34,19 @@ namespace AE::App
 			ASSERT( _rays != null );
 		}
 
-		ND_ uint2 const&  Dimension () const						{ return _dim; }
+		ND_ uint2 const&  Dimension () const			{ return _dim; }
 
-		ND_ float4 const&  operator () (const uint2 &pos) const		{ return (*this)( pos.x, pos.y ); }
+		ND_ float4&  operator () (const uint2 &pos)		{ return (*this)( pos.x, pos.y ); }
 
-		ND_ float4 const&  operator () (uint x, uint y) const
+		ND_ float4&  operator () (uint x, uint y)
 		{
 			ASSERT( _rays != null );
 			ASSERT( x < _dim.x and y < _dim.y );
 			return _rays[ _dim.x * y + x ];
 		}
+
+		ND_ float4 const&  operator () (const uint2 &pos)	const	{ return const_cast< RaysGrid *>(this)->operator()( pos ); }
+		ND_ float4 const&  operator () (uint x, uint y)		const	{ return const_cast< RaysGrid *>(this)->operator()( x, y ); }
 	};
 
 

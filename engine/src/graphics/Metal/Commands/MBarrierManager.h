@@ -113,6 +113,50 @@ namespace AE::Graphics::_hidden_
 		\
 		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState) override final	{ this->_mngr.AcquireImageOwnership( image, srcQueue, srcState, dstState ); } \
 		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue) override final	{ this->_mngr.ReleaseImageOwnership( image, srcState, dstState, dstQueue ); } \
+		
+	
+/*
+=================================================
+	NoPendingBarriers
+=================================================
+*/
+	forceinline bool  MBarrierManager::NoPendingBarriers () const
+	{
+		return _barrier.scope != Default;
+	}
+
+/*
+=================================================
+	GetBarriers
+=================================================
+*/
+	forceinline const MBarrierManager::BarrierInfo*  MBarrierManager::GetBarriers ()
+	{
+		return HasPendingBarriers() ? &_barrier : null;
+	}
+	
+/*
+=================================================
+	ClearBarriers
+=================================================
+*/
+	forceinline void  MBarrierManager::ClearBarriers ()
+	{
+		_barrier.Clear();
+	}
+	
+/*
+=================================================
+	BarrierInfo::Clear
+=================================================
+*/
+	forceinline void  MBarrierManager::BarrierInfo::Clear ()
+	{
+		scope			= Default;
+		beforeStages	= Default;
+		afterStages		= Default;
+		//resources.clear();
+	}
 
 
 } // AE::Graphics::_hidden_

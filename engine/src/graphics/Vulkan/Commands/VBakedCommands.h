@@ -47,7 +47,7 @@ namespace AE::Graphics
 			_root = null;
 		}
 		
-		bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) const;
+		ND_ bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) const;
 
 		ND_ bool  IsValid () const
 		{
@@ -56,6 +56,6 @@ namespace AE::Graphics
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

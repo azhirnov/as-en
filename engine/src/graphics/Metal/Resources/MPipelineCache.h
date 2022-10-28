@@ -16,7 +16,8 @@ namespace AE::Graphics
 	{
 	// variables
 	private:
-		
+		MetalBinaryArchiveRC		_pplnCache;
+
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
 
@@ -27,12 +28,14 @@ namespace AE::Graphics
 		~MPipelineCache ();
 
 		ND_ bool  Create (const MResourceManager& resMngr, StringView dbgName);
-		ND_ bool  Create (const MResourceManager& resMngr, StringView dbgName, RC<RStream> stream);
+		ND_ bool  Create (const MResourceManager& resMngr, StringView dbgName, const Path &);
 			void  Destroy (MResourceManager &);
 
-		ND_ bool  GetData (const MDevice &dev, OUT Array<char> &data) const;
+		ND_ bool  Serialize (const Path &) const;
+
+		ND_ MetalBinaryArchive		Handle ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _pplnCache; }
 		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY( ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

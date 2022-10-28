@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "base/Config.h"
-
 
 // helper macro
 #define AE_PRIVATE_GETARG_0( _0_, ... )				_0_
@@ -19,9 +17,27 @@
 // debug only scope
 #ifndef DEBUG_ONLY
 # if defined(AE_DEBUG)
-#	define DEBUG_ONLY( /* code */... )	__VA_ARGS__
+#	define DEBUG_ONLY( /* code */... )		__VA_ARGS__
 # else
 #	define DEBUG_ONLY( /* code */... )
+# endif
+#endif
+
+// develop only scope
+#ifndef DEVELOP_ONLY
+# if defined(AE_DEBUG) or defined(AE_DEVELOP)
+#	define DEVELOP_ONLY( /* code */... )	__VA_ARGS__
+# else
+#	define DEVELOP_ONLY( /* code */... )
+# endif
+#endif
+
+// profile onle scope
+#ifndef PROFILE_ONLY
+# if defined(AE_DEBUG) or defined(AE_DEVELOP) or defined(AE_PROFILE)
+#	define PROFILE_ONLY( /* code */... )	__VA_ARGS__
+# else
+#	define PROFILE_ONLY( /* code */... )
 # endif
 #endif
 
@@ -78,39 +94,6 @@
 #endif
 
 
-// replace assertions by exceptions
-#if 0
-
-#	include <stdexcept>
-
-#	undef  AE_PRIVATE_BREAK_POINT
-#	define AE_PRIVATE_BREAK_POINT()	{}
-
-#	undef  AE_LOGE
-#	define AE_LOGE	AE_LOGI
-
-	// keep ASSERT and CHECK behaviour because they may be used in destructor
-	// but override CHECK_ERR, CHECK_FATAL and RETURN_ERR to allow user to handle this errors
-
-#	undef  AE_PRIVATE_CHECK_ERR
-#	define AE_PRIVATE_CHECK_ERR( _expr_, _ret_ ) \
-		{if ( !(_expr_) ) { \
-			throw AE::Exception{ AE_TOSTRING( _expr_ )}; \
-		}}
-
-#	undef  CHECK_FATAL
-#	define CHECK_FATAL( _expr_ ) \
-		{if ( !(_expr_) ) { \
-			throw AE::Exception{ AE_TOSTRING( _expr_ )}; \
-		}}
-
-#	undef  AE_PRIVATE_RETURN_ERR
-#	define AE_PRIVATE_RETURN_ERR( _text_, _ret_ ) \
-		{throw AE::Exception{ _text_ };}
-
-#endif
-
-
 // setup for build on CI
 #ifdef AE_CI_BUILD
 
@@ -154,6 +137,6 @@
 #	define assert( /* expr */ ... ) \
 		AE_PRIVATE_CHECK( (__VA_ARGS__), AE_TOSTRING( __VA_ARGS__ ))
 
-#endif	// AE_CI_BUILD
+#endif // AE_CI_BUILD
 
 

@@ -23,10 +23,11 @@ namespace AE::Graphics
 		constexpr MipmapLevel () {}
 
 		explicit constexpr MipmapLevel (uint value) : _value( CheckCast<ushort>(value)) {}
+		explicit constexpr MipmapLevel (ulong value) : _value( CheckCast<ushort>(value)) {}
 
 		ND_ constexpr uint	Get ()								 const		{ return _value; }
 
-		ND_ constexpr static MipmapLevel	Max ()							{ return MipmapLevel{ MaxValue<decltype(_value)>() }; }
+		ND_ constexpr static MipmapLevel	Max ()							{ return MipmapLevel{ uint(MaxValue<decltype(_value)>()) }; }
 		
 		ND_ constexpr bool	operator == (const MipmapLevel &rhs) const		{ return _value == rhs._value; }
 		ND_ constexpr bool	operator != (const MipmapLevel &rhs) const		{ return _value != rhs._value; }
@@ -40,7 +41,7 @@ namespace AE::Graphics
 	ND_ inline constexpr MipmapLevel operator "" _mipmap (unsigned long long value)		{ return MipmapLevel( uint(value) ); }
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
 namespace AE::Base
 {
@@ -48,7 +49,7 @@ namespace AE::Base
 	template <> struct TZeroMemAvailable< AE::Graphics::MipmapLevel >		{ static constexpr bool  value = true; };
 	template <> struct TTrivialySerializable< AE::Graphics::MipmapLevel >	{ static constexpr bool  value = true; };
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -62,4 +63,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

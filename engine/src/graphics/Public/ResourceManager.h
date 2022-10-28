@@ -23,6 +23,7 @@
 #include "graphics/Public/DescriptorSet.h"
 #include "graphics/Public/RayTracingDesc.h"
 #include "graphics/Public/FrameUID.h"
+#include "graphics/Public/GraphicsCreateInfo.h"
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Public/VulkanTypes.h"
@@ -63,8 +64,10 @@ namespace AE::Graphics
 		
 	  #elif defined(AE_ENABLE_METAL)
 		ND_ virtual MetalImageRC	AllocForImage (const ImageDesc &desc, OUT Storage_t &data) = 0;
-		
 		ND_ virtual MetalBufferRC	AllocForBuffer (const BufferDesc &desc, OUT Storage_t &data) = 0;
+
+		ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTGeometryDesc &desc, OUT Storage_t &data) = 0;
+		ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTSceneDesc &desc, OUT Storage_t &data) = 0;
 	  #endif
 
 		// returns 'true' if deallocated
@@ -100,7 +103,10 @@ namespace AE::Graphics
 		#elif defined(AE_ENABLE_METAL)
 		struct Storage
 		{
-			MetalBufferRC		handle;	// argument buffer
+			union {
+				MetalBuffer		handle;	// argument buffer
+				void *			args;	// array of buffers, textures, samplers
+			};
 			StorageData_t		data;	// allocator specific data
 		};
 		#endif
@@ -237,7 +243,6 @@ namespace AE::Graphics
 		ND_ virtual Strong<TilePipelineID>		CreateTilePipeline		(PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc		&desc, PipelineCacheID cache = Default) = 0;
 
 		ND_ virtual Strong<PipelineCacheID>		CreatePipelineCache () = 0;
-		ND_ virtual Strong<PipelineCacheID>		LoadPipelineCache (RC<RStream> stream) = 0;
 		
 		// load default pack
 			virtual bool						InitializeResources (const PipelinePackDesc &desc) = 0;
@@ -293,7 +298,6 @@ namespace AE::Graphics
 		//	Pipeline compilation may be distributed to multiple threads.
 		ND_ virtual Promise<RenderTechPipelinesPtr>	LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache = Default) = 0;
 		ND_ virtual RenderTechPipelinesPtr			LoadRenderTech (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache = Default) = 0;
-
 
 		// statistics
 		ND_ virtual StagingBufferStat			GetStagingBufferFrameStat (FrameUID frameId) const = 0;

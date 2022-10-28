@@ -68,4 +68,4 @@ namespace AE::Base
 										__LINE__ ) \
 
 
-}	// AE::Base
+} // AE::Base

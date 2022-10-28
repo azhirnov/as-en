@@ -187,11 +187,11 @@ namespace
 		TEST( T1::CheckStatistic() );
 		TEST( T2::CheckStatistic() );
 	}
-
+	
 #ifdef AE_ENABLE_ABSEIL
-	template <typename K, typename V>	using TFlatHashMap = FlatHashMap< K, V >;
+	template <typename K, typename V>	using TFlatHashMap	= FlatHashMap< K, V >;
 #endif
-	template <typename K, typename V>	using THashMap = HashMap< K, V >;
+	template <typename K, typename V>	using THashMap		= HashMap< K, V >;
 }
 
 

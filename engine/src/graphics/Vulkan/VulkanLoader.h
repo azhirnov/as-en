@@ -119,7 +119,7 @@ namespace AE::Graphics
 			static void  SetupDeviceBackwardCompatibility (Version2 deviceVersion, INOUT VulkanDeviceFnTable &table);
 	};
 
-}	// AE::Graphics
+} // AE::Graphics
 	
 #undef VULKAN_ENUM_BIT_OPERATORS
 
@@ -187,5 +187,5 @@ namespace AE::Graphics
 #	pragma detect_mismatch( "VK_USE_PLATFORM_XLIB_XRANDR_EXT", "0" )
 #  endif
 
-#endif	// AE_CPP_DETECT_MISMATCH
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_CPP_DETECT_MISMATCH
+#endif // AE_ENABLE_VULKAN

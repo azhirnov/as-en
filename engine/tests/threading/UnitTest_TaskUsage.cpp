@@ -32,7 +32,7 @@ namespace
 	public:
 		Test1_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			switch ( iter )
 			{
@@ -54,10 +54,12 @@ namespace
 			++iter;
 		}
 
-		void Reset ()
+		void  Reset ()
 		{
 			TEST( _ResetState() );
 		}
+
+		StringView  DbgName () const override { return "Test1_Task1"; }
 	};
 
 	class Test1_Task2 : public IAsyncTask
@@ -67,12 +69,14 @@ namespace
 		
 		Test1_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '3';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test1_Task2"; }
 	};
 
 	static void  ReuseTask_Test1 ()
@@ -121,7 +125,7 @@ namespace
 	public:
 		Test2_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			switch ( iter )
 			{
@@ -143,6 +147,8 @@ namespace
 			}
 			++iter;
 		}
+
+		StringView  DbgName () const override { return "Test2_Task1"; }
 	};
 
 	class Test2_Task2 : public IAsyncTask
@@ -152,12 +158,14 @@ namespace
 		
 		Test2_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '3';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test2_Task1"; }
 	};
 	
 	static void  ReuseTask_Test2 ()
@@ -193,12 +201,14 @@ namespace
 	public:
 		Test3_Task1 (ExeOrder &val, uint id) : IAsyncTask{ EThread::Worker }, value{val}, id{id} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += char('0' + id);
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test3_Task1"; }
 	};
 
 	class Test3_Task2 : public IAsyncTask
@@ -210,7 +220,7 @@ namespace
 	public:
 		Test3_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			switch ( iter )
 			{
@@ -243,6 +253,8 @@ namespace
 					OnFailure();
 			}
 		}
+
+		StringView  DbgName () const override { return "Test3_Task2"; }
 	};
 	
 	class Test3_Task3 : public IAsyncTask
@@ -252,12 +264,14 @@ namespace
 		
 		Test3_Task3 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
 
-		void Run () override
+		void  Run () override
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'A';
 			value.guard.unlock();
 		}
+
+		StringView  DbgName () const override { return "Test3_Task3"; }
 	};
 
 	static void  ReuseTask_Test3 ()

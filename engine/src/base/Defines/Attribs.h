@@ -2,7 +2,11 @@
 
 #pragma once
 
-#include "base/Config.h"
+#ifdef __has_include
+# if __has_include(<version>)
+#	include <version>
+# endif
+#endif
 
 
 #ifdef AE_COMPILER_MSVC
@@ -64,7 +68,7 @@
 
 // force inline
 #ifndef forceinline
-# if defined(AE_DEV_OR_DBG)
+# if defined(AE_DBG_OR_DEV)
 #	define forceinline		inline
 
 # elif defined(AE_COMPILER_MSVC)
@@ -211,6 +215,12 @@
 #	define AE_HAS_SOURCE_LOCATION
 #endif
 
+// C++20 coroutines
+#ifdef __cpp_lib_coroutine
+#	define AE_HAS_COROUTINE
+#endif
+
+
 // DLL import/export
 #if not defined(AE_DLL_EXPORT) or not defined(AE_DLL_IMPORT)
 # if defined(AE_COMPILER_MSVC)
@@ -231,3 +241,26 @@
 # endif
 #endif
 
+
+#if (defined(AE_CPU_ARCH_ARM32) and defined(__ARM_NEON__)) or defined(AE_CPU_ARCH_ARM64)
+#	define AE_SIMD_NEON
+#	include <arm_neon.h>
+	// TODO: arm64_neon.h
+#endif
+
+#if defined(AE_CPU_ARCH_X64) or defined(AE_CPU_ARCH_X86)
+	// AVX
+#	define AE_SIMD_AVX		2	// 1, 2
+#	include <immintrin.h>
+	// AVX 512
+//#	define AE_SIMD_AVX512
+//#	define AE_SIMD_AVX512_FP16
+//#	include <zmmintrin.h>			// included in 'immintrin.h'
+//#	include <avx512fp16intrin.h>	// clang
+	// SSE 4.2
+#	define AE_SIMD_SSE		42	// 30, 31, 40, 41, 42
+#	include <nmmintrin.h>
+	// AES
+#	define AE_SIMD_AES
+#	include <wmmintrin.h>
+#endif

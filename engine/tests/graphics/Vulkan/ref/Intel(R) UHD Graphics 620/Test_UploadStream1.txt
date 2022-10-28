@@ -1,0 +1,528 @@
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [0, 1048576)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 335
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [1048576, 2097152)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 334
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [2097152, 3145728)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 334
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [3145728, 4194304)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 336
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [4194304, 5242880)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 335
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [5242880, 6291456)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 335
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [6291456, 7340032)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 337
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [7340032, 8388608)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 336
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [8388608, 9437184)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 336
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [9437184, 10485760)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 338
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [10485760, 11534336)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 337
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [11534336, 12582912)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 337
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [12582912, 13631488)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 339
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [13631488, 14680064)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 338
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [14680064, 15728640)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 338
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [15728640, 16777216)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 340
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [16777216, 17825792)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 339
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [17825792, 18874368)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 339
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [18874368, 19922944)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 341
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [19922944, 20971520)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 340
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [20971520, 22020096)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 340
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [22020096, 23068672)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 342
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [23068672, 24117248)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 341
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [24117248, 25165824)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 341
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [25165824, 26214400)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 343
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [26214400, 27262976)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 342
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [27262976, 28311552)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 342
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [28311552, 29360128)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 344
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 1048576) ---> [29360128, 30408704)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 343
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 786432) ---> [30408704, 31195136)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 343
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 589824) ---> [31195136, 31784960)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-4',  stage: ALL_COMMANDS,  value: 345
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 884736) ---> [31784960, 32669696)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-5',  stage: ALL_COMMANDS,  value: 344
+}
+==================================================
+==================================================
+Batch: 'Graphics'
+--------------------------------------------------
+name: 'command-buffer'
+{
+  CopyBuffer
+    src: dynamic staging buffer
+    dst: dst_buf
+      copy [0, 884736) ---> [32669696, 33554432)
+  ----------
+
+}
+signalSemaphore = {
+  'semaphore-6',  stage: ALL_COMMANDS,  value: 344
+}
+==================================================

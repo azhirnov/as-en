@@ -9,7 +9,7 @@ namespace
 		Strong<ImageID>				image;
 		ImageMemView				imageData;
 		const uint2					dimension	{1u << 12};
-		RC<CommandBatch>			batch;
+		CommandBatchPtr			batch;
 		RC<GfxLinearMemAllocator>	gfxAlloc;
 		ImageStream					stream;
 		Atomic<uint>				counter		{0};
@@ -23,13 +23,13 @@ namespace
 	public:
 		US2_TestData&	t;
 
-		US2_UploadStreamTask (US2_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		US2_UploadStreamTask (US2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName }, t{ t }
 		{}
 
 		void  Run () override
 		{
-			DirectCtx::Transfer	ctx{ GetBatchPtr() };
+			DirectCtx::Transfer	ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			const uint3	pos = uint3{ 0u, t.stream.posYZ };
@@ -43,7 +43,9 @@ namespace
 			ImageMemView	mem_view;
 			ctx.UploadImage( INOUT t.stream, OUT mem_view, EStagingHeapType::Dynamic );
 
-			CHECK_TE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension() ) == mem_view.ImageSize() );
+			Bytes	copied;
+			CHECK_TE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
+					  copied == mem_view.ImageSize() );
 
 			CHECK_TE( ExecuteAndSubmit( ctx ));
 			
@@ -79,14 +81,16 @@ namespace
 			t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "UploadStream2" );
 			CHECK_TE( t.batch );
 			
-			AsyncTask	test = t.batch->Add<US2_UploadStreamTask>( MakeTuple(ArgRef(t)), MakeTuple(begin), "test task" );
+			AsyncTask	test = t.batch->Add<US2_UploadStreamTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
 			CHECK_TE( test );
 
-			AsyncTask	end = rts.EndFrame( MakeTuple(test) );
+			AsyncTask	end = rts.EndFrame( Tuple{test} );
 			CHECK_TE( end );
 
-			CHECK_TE( Continue( MakeTuple( end )));
+			CHECK_TE( Continue( Tuple{end} ));
 		}
+
+		StringView  DbgName () const override { return "US2_FrameTask"; }
 	};
 
 	
@@ -124,7 +128,7 @@ namespace
 		upload_desc.imageSize = uint3{t.dimension, 1u};
 		t.stream = ImageStream{ t.image, upload_desc };
 		
-		auto	task = Scheduler().Run<US2_FrameTask>( MakeTuple(ArgRef(t)) );
+		auto	task = Scheduler().Run<US2_FrameTask>( Tuple{ArgRef(t)} );
 
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
@@ -135,7 +139,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_UploadStream2 ()

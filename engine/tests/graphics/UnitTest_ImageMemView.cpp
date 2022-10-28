@@ -37,7 +37,7 @@ namespace
 		
 		TEST( image_a.RowPitch() == pitch_a );
 		TEST( image_b.RowPitch() == pitch_b );
-		TEST( image_a.BitsPerPixel() == 4*8 );
+		TEST( image_a.BitsPerBlock() == 4*8 );
 
 		Bytes	d = image_a.Compare( image_b );
 		TEST( d == 0_b );
@@ -104,7 +104,7 @@ namespace
 		
 		TEST( image_a.RowPitch() == pitch_a );
 		TEST( image_b.RowPitch() == pitch_b );
-		TEST( image_a.BitsPerPixel() == 4*8 );
+		TEST( image_a.BitsPerBlock() == 4*8 );
 
 		Bytes	d = image_a.Compare( off_a, off_b, image_b, dim );
 		TEST( d == 0_b );
@@ -141,9 +141,10 @@ namespace
 		
 		TEST( image_a.RowPitch() == pitch );
 		TEST( image_b.RowPitch() == pitch );
-		TEST( image_a.BitsPerPixel() == 4*8 );
+		TEST( image_a.BitsPerBlock() == 4*8 );
 
-		Bytes	d = image_a.Copy( image_b );
+		Bytes	d;
+		TEST( image_a.Copy( image_b, OUT d ));
 		TEST( d == ArraySizeOf(data_a) );
 		TEST( data_a == data_b );
 	}
@@ -249,6 +250,40 @@ namespace
 		image.Load( uint3{1,1,0}, OUT c1 );
 		TEST( All( Equals( RGBA32u{ 0xB800, 0x3A66, 0x34CD, 0x5640 }, c1 )));
 	}
+
+	
+	static void  ImageMemView_Test7 ()
+	{
+		const uint3		dim		{32, 32, 1};
+		const Bytes		bpp		= 4_b;
+		const Bytes		pitch	= dim.x * bpp;
+
+		Array<ubyte>	data;	data.resize( usize( pitch * dim.y ));
+		RWImageMemView	image	{ BufferMemView{data}, uint3{}, dim, pitch, 0_b, EPixelFormat::RGBA8_SNorm, EImageAspect::Color };
+		
+		RGBA32f		a0{ 0.2f, 0.6f, 0.9f, 1.0f };
+		image.Store( uint3{0,0,0}, a0 );
+		
+		RGBA32f		b0;
+		image.Load( uint3{0,0,0}, OUT b0 );
+		TEST( All( Equals( a0, b0, 0.01f )));
+		
+		RGBA32u		c0;
+		image.Load( uint3{0,0,0}, OUT c0 );
+		TEST( All( Equals( RGBA32u{ 0x19, 0x4C, 0x73, 0x7F }, c0 )));
+
+
+		RGBA32f		a1{ -0.2f, -0.6f, -0.9f, -1.0f };
+		image.Store( uint3{2,2,0}, a1 );
+		
+		RGBA32f		b1;
+		image.Load( uint3{2,2,0}, OUT b1 );
+		TEST( All( Equals( a1, b1, 0.01f )));
+		
+		RGBA32u		c1;
+		image.Load( uint3{2,2,0}, OUT c1 );
+		TEST( All( Equals( RGBA32u{ 0xE6, 0xB3, 0x8C, 0x80 }, c1 )));
+	}
 }
 
 
@@ -260,6 +295,7 @@ extern void UnitTest_ImageMemView ()
 	ImageMemView_Test4();
 	ImageMemView_Test5();
 	ImageMemView_Test6();
+	ImageMemView_Test7();
 
 	TEST_PASSED();
 }

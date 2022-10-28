@@ -55,7 +55,9 @@ namespace AE::Math
 		constexpr TBytes (const TBytes<B> &other) : _value{CheckCast<T>(other)} {}
 
 		explicit TBytes (const void* ptr) : _value{BitCast<usize>(ptr)} {}
-		
+
+		constexpr TBytes (Base::_hidden_::_UMax) : _value{UMax} {}
+
 		ND_ explicit constexpr operator sbyte ()	const	{ return static_cast<sbyte >(_value); }
 		ND_ explicit constexpr operator sshort ()	const	{ return static_cast<sshort>(_value); }
 		ND_ explicit constexpr operator int ()		const	{ return static_cast<int   >(_value); }
@@ -100,6 +102,10 @@ namespace AE::Math
 		template <typename B>		friend B*& operator += (B* &lhs, const Self &rhs)	{ return (lhs = lhs + rhs); }
 		template <typename B>		friend B*& operator -= (B* &lhs, const Self &rhs)	{ return (lhs = lhs + rhs); }
 
+
+			constexpr Self&	operator = (Base::_hidden_::_UMax)		{ _value = UMax;	return *this; }
+			constexpr Self&	operator = (Base::_hidden_::DefaultType){ _value = 0;		return *this; }
+			constexpr Self&	operator = (const Self &)				= default;
 
 		ND_ constexpr Self	operator ~ () const					{ return Self( ~_value ); }
 		
@@ -196,6 +202,22 @@ namespace AE::Math
 	ND_ constexpr Bytes  operator "" _Mb (unsigned long long value)	{ return Bytes::FromMb( CheckCast<Bytes::Value_t>(value) ); }
 	ND_ constexpr Bytes  operator "" _Gb (unsigned long long value)	{ return Bytes::FromGb( CheckCast<Bytes::Value_t>(value) ); }
 
+
+	namespace _hidden_
+	{
+		template <typename T>
+		struct _IsBytes {
+			static constexpr bool	value = false;
+		};
+		
+		template <typename T>
+		struct _IsBytes< TBytes<T> > {
+			static constexpr bool	value = true;
+		};
+	}
+
+	template <typename T>
+	static constexpr bool  IsBytes = _hidden_::_IsBytes<T>::value;
 	
 /*
 =================================================
@@ -222,18 +244,16 @@ namespace AE::Math
 	template <typename T>
 	ND_ forceinline TBytes<T>  FloorPOT (const TBytes<T> x)
 	{
-		int	i = IntLog2( T{x} );
-		return TBytes<T>{ i >= 0 ? (T{1} << i) : T{0} };
+		return TBytes<T>{ FloorPOT( T{x} )};
 	}
 
 	template <typename T>
 	ND_ forceinline TBytes<T>  CeilPOT (const TBytes<T> x)
 	{
-		int	i = IntLog2( T{x} );
-		return TBytes<T>{ i >= 0 ? (T{1} << (i + int(not IsPowerOfTwo( T{x} )))) : T{0} };
+		return TBytes<T>{ CeilPOT( T{x} )};
 	}
 
-}	// AE::Math
+} // AE::Math
 
 
 namespace AE::Base
@@ -242,7 +262,7 @@ namespace AE::Base
 	template <typename T>	struct TZeroMemAvailable< TBytes<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
 	template <typename T>	struct TTrivialySerializable< TBytes<T> >	{ static constexpr bool  value = IsTrivialySerializable<T>; };
 
-}	// AE::Base
+} // AE::Base
 
 
 namespace std
@@ -273,4 +293,4 @@ namespace std
 		}
 	};
 
-}	// std
+} // std

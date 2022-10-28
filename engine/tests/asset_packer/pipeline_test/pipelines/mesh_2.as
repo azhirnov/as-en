@@ -7,6 +7,7 @@ void main ()
 	MeshPipeline@	ppln = MeshPipeline( "mesh_2" );
 	ppln.SetLayout( "Graphics_PL_2" );
 	ppln.AddFeatureSet( "MinMeshShader" );
+	ppln.SetShaderIO( EShader::Mesh, EShader::Fragment, "mesh_1.io" );
 	
 	{
 		Shader@	ms = Shader();
@@ -18,7 +19,7 @@ void main ()
 	}
 	{
 		Shader@	fs = Shader();
-		fs.file		= "fragment_2.glsl";
+		fs.file		= "fragment_3.glsl";
 		fs.options	= EShaderOpt(EShaderOpt::Optimize | EShaderOpt::OptimizeSize);
 		fs.version	= EShaderVersion::SPIRV_1_3;
 		ppln.SetFragmentShader( fs );

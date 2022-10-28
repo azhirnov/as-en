@@ -57,7 +57,7 @@ namespace
 	public:
 		AC2_TestData&	t;
 
-		AC2_GraphicsTask (AC2_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		AC2_GraphicsTask (AC2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{
@@ -71,7 +71,7 @@ namespace
 
 			const uint	fi = t.frameIdx.load() & 1;
 
-			typename CtxTypes::Graphics		ctx{ GetBatchPtr() };
+			typename CtxTypes::Graphics		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 
 			ctx.AcquireResources();
@@ -104,7 +104,7 @@ namespace
 	public:
 		AC2_TestData&	t;
 
-		AC2_ComputeTask (AC2_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		AC2_ComputeTask (AC2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{
@@ -118,7 +118,7 @@ namespace
 			
 			const uint	fi = t.frameIdx.load() & 1;
 
-			typename CtxTypes::Compute	ctx{ GetBatchPtr() };
+			typename CtxTypes::Compute	ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AcquireResources();
@@ -142,7 +142,7 @@ namespace
 	public:
 		AC2_TestData&	t;
 
-		CopyTask (AC2_TestData& t, RC<CommandBatch> batch, StringView dbgName) :
+		CopyTask (AC2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
 			RenderTask{ batch, dbgName },
 			t{ t }
 		{}
@@ -152,7 +152,7 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 			
-			Ctx		ctx{ GetBatchPtr() };
+			Ctx		ctx{ *this };
 			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AcquireResources();
@@ -209,14 +209,14 @@ namespace
 				batch->AcquireResource( t.image[1], img_comp_state );
 				//batch->ReadbackDeviceData();
 				
-				AsyncTask	read_task = batch->Add<CopyTask<CopyCtx>>( MakeTuple(ArgRef(t)), MakeTuple(begin), "Readback task" );
+				AsyncTask	read_task = batch->Add<CopyTask<CopyCtx>>( Tuple{ArgRef(t)}, Tuple{begin}, "Readback task" );
 				CHECK_TE( read_task );
 
-				AsyncTask	end = t.rg.EndFrame( MakeTuple(read_task) );
+				AsyncTask	end = t.rg.EndFrame( Tuple{read_task} );
 				CHECK_TE( end );
 				
 				++t.frameIdx;
-				CHECK_TE( Continue( MakeTuple( end )));
+				CHECK_TE( Continue( Tuple{end} ));
 				return;
 			}
 
@@ -228,8 +228,8 @@ namespace
 			AsyncTask	begin = t.rg.BeginFrame();
 			CHECK_TE( begin );
 			
-			RC<CommandBatch>	batch_gfx;
-			RC<CommandBatch>	batch_ac;
+			CommandBatchPtr	batch_gfx;
+			CommandBatchPtr	batch_ac;
 
 			// render graph planning stage
 			{
@@ -247,18 +247,20 @@ namespace
 				t.rg.BuildBatchGraph();
 			}
 
-			AsyncTask	gfx_task = batch_gfx->Add< AC2_GraphicsTask<CtxTypes> >( MakeTuple(ArgRef(t)), MakeTuple(begin), "graphics task" );
+			AsyncTask	gfx_task = batch_gfx->Add< AC2_GraphicsTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin}, "graphics task" );
 			CHECK_TE( gfx_task );
 		
-			AsyncTask	comp_task = batch_ac->Add< AC2_ComputeTask<CtxTypes> >( MakeTuple(ArgRef(t)), MakeTuple(gfx_task), "async compute task" );
+			AsyncTask	comp_task = batch_ac->Add< AC2_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{gfx_task}, "async compute task" );
 			CHECK_TE( comp_task );
 
-			AsyncTask	end = t.rg.EndFrame( MakeTuple( gfx_task, comp_task ));
+			AsyncTask	end = t.rg.EndFrame( Tuple{ gfx_task, comp_task });
 			CHECK_TE( end );
 
 			++t.frameIdx;
-			CHECK_TE( Continue( MakeTuple( end )));
+			CHECK_TE( Continue( Tuple{end} ));
 		}
+
+		StringView  DbgName () const override { return "AC2_FrameTask"; }
 	};
 
 	
@@ -307,7 +309,7 @@ namespace
 			t.cpplnDS[1]	= RVRef(ds1);
 			CHECK_ERR( t.cpplnDS[0] and t.cpplnDS[1] );
 
-			VDescriptorUpdater	updater;
+			DescriptorUpdater	updater;
 
 			CHECK_ERR( updater.Set( t.cpplnDS[0], EDescUpdateMode::Partialy ));
 			updater.BindImage( UniformName{"un_Image"}, t.view[0] );
@@ -319,7 +321,7 @@ namespace
 		}
 		
 		// draw 3 frames
-		auto	task = Scheduler().Run< AC2_FrameTask<CtxTypes, CopyCtx> >( MakeTuple(ArgRef(t)) );
+		auto	task = Scheduler().Run< AC2_FrameTask<CtxTypes, CopyCtx> >( Tuple{ArgRef(t)} );
 		
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
@@ -338,7 +340,7 @@ namespace
 		return true;
 	}
 
-}	// namespace
+} // namespace
 
 
 bool RGTest::Test_AsyncCompute2 ()

@@ -41,13 +41,14 @@ namespace AE::Graphics
 		ND_ bool  Create (MResourceManager &, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName);
 			void  Destroy (MResourceManager &);
 
-		ND_ MetalBuffer				Handle ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _descrSet.handle; }
-		ND_ DescriptorSetLayoutID	LayoutID ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ MetalBuffer				Handle ()			const	{ DRC_SHAREDLOCK( _drCheck );  return IsArgumentBuffer() ? _descrSet.handle : Default; }
+		ND_ DescriptorSetLayoutID	LayoutID ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ bool					IsArgumentBuffer ()	const;	// TODO
 		
 		DEBUG_ONLY( ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 	
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_METAL
+#endif // AE_ENABLE_METAL

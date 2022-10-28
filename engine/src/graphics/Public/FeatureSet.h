@@ -59,7 +59,7 @@ namespace AE::Graphics
 		static constexpr uint	MaxSpirvVersion	= 150;
 
 		static constexpr uint	MinMetalVersion	= 200;
-		static constexpr uint	MaxMetalVersion	= 250;
+		static constexpr uint	MaxMetalVersion	= 300;
 
 
 	#define AE_FEATURE_SET_FIELDS( _visitor_ ) \
@@ -274,8 +274,8 @@ namespace AE::Graphics
 		_visitor_( EFeature,	computeShader,		: 2 )\
 		_visitor_( EFeature,	tileShader,			: 2 )	/* GL_HUAWEI_subpass_shading	*/\
 		/* vertex buffer */\
-		_visitor_( uint,		minVertexInputAttributes,	)	/* maxVertexInputAttributes */\
-		_visitor_( uint,		minVertexInputBindings,		)	/* maxVertexInputBindings */\
+		_visitor_( uint,		minVertexAttributes,	)	/* maxVertexInputAttributes */\
+		_visitor_( uint,		minVertexBuffers,		)	/* maxVertexInputBindings */\
 		\
 		\
 	/*---- buffer ----*/\

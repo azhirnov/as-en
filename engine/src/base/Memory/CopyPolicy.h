@@ -4,7 +4,7 @@
 
 #include "base/Memory/MemUtils.h"
 #include "base/Math/Math.h"
-#include "base/Utils/Noninstancable.h"
+#include "base/Utils/Helpers.h"
 
 namespace AE::Base
 {
@@ -207,4 +207,4 @@ public:
 	using AutoDetect = typename _AutoDetect<T>::type;
 };
 
-}	// AE::Base
+} // AE::Base

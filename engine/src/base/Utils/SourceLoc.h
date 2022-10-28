@@ -1,5 +1,4 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-// TODO: use std::source_location
 
 #pragma once
 

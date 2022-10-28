@@ -63,11 +63,6 @@ struct ImageUtils final : Noninstancable
 		return SliceSize( dim.y, row_size, texelBlock );
 	}
 	
-/*
-=================================================
-	SliceSize
-=================================================
-*/
 	ND_ static Bytes  SliceSize (uint height, Bytes rowSize, const uint2 &texelBlock)
 	{
 		ASSERT( All( texelBlock > 0u ));
@@ -109,6 +104,27 @@ struct ImageUtils final : Noninstancable
 		ASSERT( All( texelBlock > 0u ));
 		return (dim + (texelBlock - 1u)) / texelBlock;
 	}
+	
+/*
+=================================================
+	NumberOfMipmaps
+=================================================
+*/
+	ND_ static uint  NumberOfMipmaps (const uint3 &dim)
+	{
+		return IntLog2( Max( Max( dim.x, dim.y ), dim.z )) + 1;
+	}
+
+/*
+=================================================
+	MipmapSize
+=================================================
+*/
+	ND_ static uint3  MipmapSize (const uint3 &dim, usize mipLevel, const uint2 &texelBlock)
+	{
+		return Max( Max( dim >> mipLevel, 1u ), uint3{texelBlock, 1} );
+	}
+
 
 }; // ImageUtils
 }  // AE::Graphics

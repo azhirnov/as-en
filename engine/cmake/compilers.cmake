@@ -157,7 +157,7 @@ if ( COMPILER_MSVC )
 		)
 	endif()
 	
-	set( MSVC_SHARED_OPTS /std:c++latest /MP /Gm- /Zc:inline /Gy- /fp:strict /fp:except- /DAE_COMPILER_MSVC
+	set( MSVC_SHARED_OPTS /std:c++latest /MP /Gm- /Zc:inline /Gy- /fp:strict /fp:except- /DAE_COMPILER_MSVC /D_SILENCE_CXX20_CISO646_REMOVED_WARNING
 		 "/DAE_WINDOWS_TARGET_VERSION=${WINDOWS_TARGET_VERSION}" ${COMPILER_FLAGS} ${MSVC_WARNING_LIST} ${LOCAL_CPP_EXCEPTIONS_FLAGS}
 		 /DUNICODE=1 )
 		 

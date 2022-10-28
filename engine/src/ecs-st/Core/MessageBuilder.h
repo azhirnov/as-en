@@ -303,4 +303,4 @@ namespace AE::ECS
 		_pending.clear();
 	}
 
-}	// AE::ECS
+} // AE::ECS

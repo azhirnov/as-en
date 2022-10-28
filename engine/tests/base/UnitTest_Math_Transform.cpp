@@ -64,8 +64,8 @@ namespace
 		const Transform tr2 = tr1.Inversed();
 		const Transform tr3 = tr2.Inversed();
 
-		TEST( All(Equals( tr1.position, tr3.position, eps )));
-		TEST( All(Equals( tr1.orientation, tr3.orientation, eps )));
+		TEST( All( Equals( tr1.position, tr3.position, eps )));
+		TEST( All( Equals( tr1.orientation, tr3.orientation, eps )));
 		TEST( Equals( tr1.scale, tr3.scale, eps ));
 	}
 }

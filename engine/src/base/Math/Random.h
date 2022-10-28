@@ -6,6 +6,30 @@
 
 namespace AE::Math
 {
+namespace _hidden_
+{
+	template <typename T, bool IsUnsigned>
+	struct Random_Uniform_IntType2
+	{
+		STATIC_ASSERT( IsUnsignedInteger<T> );
+		using type = ByteSizeToUInt< Clamp( sizeof(T), 2u, 8u )>;
+	};
+
+	template <typename T>
+	struct Random_Uniform_IntType2 <T, false>
+	{
+		STATIC_ASSERT( IsSignedInteger<T> );
+		using type = ByteSizeToInt< Clamp( sizeof(T), 2u, 8u )>;
+	};
+
+	template <typename T>
+	struct Random_Uniform_IntType {
+		using type = typename Random_Uniform_IntType2< T, IsUnsignedInteger<T> >::type;
+	};
+
+} // _hidden_
+
+
 
 	//
 	// Random
@@ -46,9 +70,16 @@ namespace AE::Math
 		}
 
 		template <typename T>
-		ND_ T  Uniform ()
+		ND_ EnableIf<IsFloatPoint<T>, T>  Uniform ()
 		{
 			return Uniform( T{0}, T{1} );
+		}
+
+		template <typename T>
+		ND_ EnableIf<IsInteger<T>, T>  Uniform ()
+		{
+			using IT = typename _hidden_::Random_Uniform_IntType<T>::type;
+			return T( Uniform<IT>( Base::MinValue<T>(), Base::MaxValue<T>() ));
 		}
 
 
@@ -304,4 +335,4 @@ namespace AE::Math
 	};
 
 
-}	// AE::Math
+} // AE::Math

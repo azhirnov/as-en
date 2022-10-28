@@ -4,10 +4,10 @@
 
 #include "base/Platforms/ThreadUtils.h"
 
-#include "base/Platforms/WindowsUtils.h"
 #include "base/Platforms/AndroidUtils.h"
+#include "base/Platforms/AppleUtils.h"
 #include "base/Platforms/LinuxUtils.h"
-#include "base/Platforms/MacOSUtils.h"
+#include "base/Platforms/WindowsUtils.h"
 
 #include "base/Platforms/WindowsLibrary.h"
 #include "base/Platforms/UnixLibrary.h"
@@ -28,8 +28,8 @@ namespace AE::Base
 	#elif defined(AE_PLATFORM_LINUX)
 		using PlatformUtils = LinuxUtils;
 		
-	#elif defined(AE_PLATFORM_MACOS)
-		using PlatformUtils = MacOSUtils;
+	#elif defined(AE_PLATFORM_APPLE)
+		using PlatformUtils = AppleUtils;
 
 	#endif
 
@@ -48,4 +48,4 @@ namespace AE::Base
 
 	#endif
 	
-}	// AE::Base
+} // AE::Base

@@ -74,8 +74,8 @@ namespace AE::Base
 		ND_ static LevelBits	GetDialogLevelBits ();
 		ND_ static ScopeBits	GetDialogScopeBits ();
 
-		ND_ static LoggerPtr	CreateIDEOutput ();									// VS only
-		ND_ static LoggerPtr	CreateConsoleOutput (std::string_view tag = "AE");	// cross platfrom
+		ND_ static LoggerPtr	CreateIDEOutput ();												// VS only
+		ND_ static LoggerPtr	CreateConsoleOutput (std::string_view tag = AE_ENGINE_NAME);	// cross platfrom
 		ND_ static LoggerPtr	CreateFileOutput (std::string_view fileName);
 		ND_ static LoggerPtr	CreateHtmlOutput (std::string_view fileName);
 		ND_ static LoggerPtr	CreateDialogOutput (LevelBits levelBits = GetDialogLevelBits(), ScopeBits scopeBits = GetDialogScopeBits());
@@ -117,14 +117,14 @@ namespace AE::Base
 		using LoggerScope		= _LoggerScope<false>;
 	};
 
-}	// AE::Base
+} // AE::Base
 
 namespace AE
 {
 	using ELogLevel	= AE::Base::ILogger::ELevel;
 	using ELogScope	= AE::Base::ILogger::EScope;
 
-}	// AE
+} // AE
 
 #define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ ) \
 	BEGIN_ENUM_CHECKS() \

@@ -55,12 +55,14 @@ namespace AE::Serializing
 		template <typename T, usize S>		ND_ bool  _Serialize (const StaticArray<T,S> &arr)		{ return _Serialize(ArrayView<T>{arr}); }
 											ND_ bool  _Serialize (StringView);
 											ND_ bool  _Serialize (const String &str)				{ return _Serialize(StringView{str}); }
-		template <typename T, uint I>		ND_ bool  _Serialize (const Vec<T,I> &);
 		template <typename T>				ND_ bool  _Serialize (const Rectangle<T> &);
 		template <typename T>				ND_ bool  _Serialize (const RGBAColor<T> &);
 		template <typename T>				ND_ bool  _Serialize (const HSVColor &);
 		template <typename T, usize S>		ND_ bool  _Serialize (const TFixedString<T,S> &str)		{ return _Serialize(StringView{str}); }
 		
+		template <typename T, uint I, glm::qualifier Q>
+		ND_ bool  _Serialize (const TVec<T,I,Q> &);
+
 		template <usize Size, uint UID, uint Seed>
 		ND_ bool  _Serialize (const NamedID<Size, UID, true, Seed> &);
 
@@ -74,7 +76,7 @@ namespace AE::Serializing
 		template <typename K, typename V, typename H, typename E, typename A>	ND_ bool  _Serialize (const HashMultiMap<K,V,H,E,A> &map)	{ return _SerializeMap<K,V>( map ); }
 		template <typename K, typename V, usize S>								ND_ bool  _Serialize (const FixedMap<K,V,S> &map)			{ return _SerializeMap<K,V>( map ); }
 		template <typename K, typename V, typename MapType>						ND_ bool  _SerializeMap (const MapType &);
-
+		
 		#ifdef AE_ENABLE_ABSEIL
 		template <typename T, typename H, typename E, typename A>				ND_ bool  _Serialize (const FlatHashSet<T,H,E,A> &set)		{ return _SerializeSet<T>( set ); }
 		#endif
@@ -110,4 +112,4 @@ namespace AE::Serializing
 		ND_ bool  _Serialize (const PhysicalQuantityVec<Qt,I,Ql> &);
 	};
 
-}	// AE::Serializing
+} // AE::Serializing

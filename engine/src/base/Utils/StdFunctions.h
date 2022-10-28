@@ -53,4 +53,4 @@ namespace AE::Base
 		return static_cast<T &&>( arg );
 	}
 
-}	// AE::Base
+} // AE::Base

@@ -75,4 +75,4 @@ namespace AE::ECS
 	struct RequireAny {};
 
 
-}	// AE::ECS
+} // AE::ECS

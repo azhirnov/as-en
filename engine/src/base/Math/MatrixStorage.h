@@ -89,6 +89,8 @@ namespace AE::Math
 	template <typename T, uint Columns, uint Rows, usize Align>
 	struct MatrixStorage< T, Columns, Rows, EMatrixOrder::ColumnMajor, Align >
 	{
+		STATIC_ASSERT( IsAnyFloatPoint<T> );
+
 	// types
 	public:
 		struct alignas(Align) _AlignedVec
@@ -100,6 +102,7 @@ namespace AE::Math
 		using Transposed_t	= MatrixStorage< T, Rows, Columns, EMatrixOrder::ColumnMajor, Align >;
 		using Column_t		= Vec< T, Rows >;
 		using Row_t			= Vec< T, Columns >;
+		using Dim_t			= _hidden_::_MatrixDim;
 
 	private:
 		using _Columns_t	= StaticArray< _AlignedVec, Columns >;
@@ -126,10 +129,10 @@ namespace AE::Math
 		template <typename Arg0, typename ...Args>
 		constexpr explicit MatrixStorage (const Arg0 &arg0, const Args& ...args)
 		{
-			if constexpr ( CountOf<Arg0, Args...>() == Columns * Rows )
+			if constexpr( CountOf<Arg0, Args...>() == Columns * Rows )
 				_CopyScalars<0>( arg0, args... );
 			else
-			if constexpr ( CountOf<Arg0, Args...>() == Columns )
+			if constexpr( CountOf<Arg0, Args...>() == Columns )
 				_CopyColumns<0>( arg0, args... );
 			else
 				STATIC_ASSERT(  (CountOf<Arg0, Args...>() == Columns * Rows) or
@@ -137,7 +140,7 @@ namespace AE::Math
 		}
 
 		template <uint Columns2, uint Rows2, usize Align2>
-		constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other)
+		constexpr MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other)
 		{
 			for (uint c = 0; c < Columns; ++c)
 			for (uint r = 0; r < Rows; ++r) {
@@ -146,7 +149,7 @@ namespace AE::Math
 		}
 		
 		template <uint Columns2, uint Rows2, usize Align2>
-		constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::RowMajor, Align2 > &other)
+		constexpr MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::RowMajor, Align2 > &other)
 		{
 			for (uint c = 0; c < Columns; ++c)
 			for (uint r = 0; r < Rows; ++r) {
@@ -155,7 +158,7 @@ namespace AE::Math
 		}
 
 		template <uint Columns2, uint Rows2>
-		explicit MatrixStorage (const Matrix< T, Columns2, Rows2 > &other)
+		GLM_CONSTEXPR MatrixStorage (const Matrix< T, Columns2, Rows2 > &other)
 		{
 			for (uint c = 0; c < Columns; ++c)
 			for (uint r = 0; r < Rows; ++r) {
@@ -199,31 +202,31 @@ namespace AE::Math
 			return result;
 		}
 
-		ND_ static constexpr usize		size ()							{ return Columns; }
-		//ND_ static constexpr uint2	Dimension ()					{ return {Columns, Rows}; }
+		ND_ static constexpr usize		size ()				{ return Columns; }
+		ND_ static constexpr Dim_t		Dimension ()		{ return {Columns, Rows}; }
 
-		ND_ static constexpr bool		IsColumnMajor ()				{ return true; }
-		ND_ static constexpr bool		IsRowMajor ()					{ return not IsColumnMajor(); }
+		ND_ static constexpr bool		IsColumnMajor ()	{ return true; }
+		ND_ static constexpr bool		IsRowMajor ()		{ return not IsColumnMajor(); }
 
 
 	private:
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void _CopyScalars (const Arg0 &arg0, const Args& ...args)
+		constexpr void  _CopyScalars (const Arg0 &arg0, const Args& ...args)
 		{
 			STATIC_ASSERT( IsScalar<Arg0> );
 			_columns[I / Rows].data[I % Rows] = arg0;
 
-			if constexpr ( I+1 < Columns * Rows )
+			if constexpr( I+1 < Columns * Rows )
 				_CopyScalars< I+1 >( args... );
 		}
 
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void _CopyColumns (const Arg0 &arg0, const Args& ...args)
+		constexpr void  _CopyColumns (const Arg0 &arg0, const Args& ...args)
 		{
 			STATIC_ASSERT( IsSameTypes< Arg0, Column_t > );
 			std::memcpy( OUT _columns[I].data, &arg0.x, sizeof(T)*Rows );
 
-			if constexpr ( I+1 < Columns )
+			if constexpr( I+1 < Columns )
 				_CopyColumns< I+1 >( args... );
 		}
 	};
@@ -237,6 +240,8 @@ namespace AE::Math
 	template <typename T, uint Columns, uint Rows, usize Align>
 	struct MatrixStorage< T, Columns, Rows, EMatrixOrder::RowMajor, Align >
 	{
+		STATIC_ASSERT( IsAnyFloatPoint<T> );
+
 	// types
 	public:
 		struct alignas(Align) _AlignedVec
@@ -248,6 +253,7 @@ namespace AE::Math
 		using Transposed_t	= MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align >;
 		using Row_t			= Vec< T, Columns >;
 		using Column_t		= Vec< T, Rows >;
+		using Dim_t			= _hidden_::_MatrixDim;
 		
 	private:
 		using _Rows_t		= StaticArray< _AlignedVec, Rows >;
@@ -277,10 +283,10 @@ namespace AE::Math
 		template <typename Arg0, typename ...Args>
 		constexpr explicit MatrixStorage (const Arg0 &arg0, const Args& ...args)
 		{
-			if constexpr ( CountOf<Arg0, Args...>() == Columns * Rows )
+			if constexpr( CountOf<Arg0, Args...>() == Columns * Rows )
 				_CopyScalars<0>( arg0, args... );
 			else
-			if constexpr ( CountOf<Arg0, Args...>() == Rows )
+			if constexpr( CountOf<Arg0, Args...>() == Rows )
 				_CopyRows<0>( arg0, args... );
 			else
 				STATIC_ASSERT(  (CountOf<Arg0, Args...>() == Columns * Rows) or
@@ -350,37 +356,37 @@ namespace AE::Math
 			return result;
 		}
 
-		ND_ static constexpr usize		size ()							{ return Rows; }
-		//ND_ static constexpr uint2	Dimension ()					{ return {Columns, Rows}; }
+		ND_ static constexpr usize		size ()				{ return Rows; }
+		ND_ static constexpr Dim_t		Dimension ()		{ return {Columns, Rows}; }
 		
-		ND_ static constexpr bool		IsColumnMajor ()				{ return false; }
-		ND_ static constexpr bool		IsRowMajor ()					{ return not IsColumnMajor(); }
+		ND_ static constexpr bool		IsColumnMajor ()	{ return false; }
+		ND_ static constexpr bool		IsRowMajor ()		{ return not IsColumnMajor(); }
 
 
 	private:
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void _CopyScalars (const Arg0 &arg0, const Args& ...args)
+		constexpr void  _CopyScalars (const Arg0 &arg0, const Args& ...args)
 		{
 			STATIC_ASSERT( IsScalar<Arg0> );
 			_rows[I / Columns].data[I % Columns] = arg0;
 
-			if constexpr ( I+1 < Columns * Rows )
+			if constexpr( I+1 < Columns * Rows )
 				_CopyScalars< I+1 >( args... );
 		}
 
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void _CopyRows (const Arg0 &arg0, const Args& ...args)
+		constexpr void  _CopyRows (const Arg0 &arg0, const Args& ...args)
 		{
 			STATIC_ASSERT( IsSameTypes< Arg0, Row_t > );
 			std::memcpy( OUT _rows[I].data, &arg0.x, sizeof(T)*Columns );
 
-			if constexpr ( I+1 < Rows )
+			if constexpr( I+1 < Rows )
 				_CopyRows< I+1 >( args... );
 		}
 	};
 
 
-}	// AE::Math
+} // AE::Math
 
 
 namespace AE::Base
@@ -394,4 +400,4 @@ namespace AE::Base
 	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
 	struct TTrivialySerializable< MatrixStorage< T, Columns, Rows, Order, Align >> { static constexpr bool  value = IsTrivialySerializable<T>; };
 
-}	// AE::Base
+} // AE::Base

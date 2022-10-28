@@ -19,25 +19,23 @@ namespace AE::Threading
 
 	// variables
 	private:
-		Func_t	_func;
+		Func_t	_fn;
 
 	// methods
 	public:
-		FunctionTask (Func_t &&fn, EThread type = EThread::Worker) :
-			IAsyncTask{ type }, _func{ RVRef(fn) }
-		{}
-
 		template <typename Fn>
-		FunctionTask (Fn &&fn, EThread type = EThread::Worker) :
-			IAsyncTask{ type }, _func{ FwdArg<Fn>(fn) }
+		explicit FunctionTask (Fn &&fn, EThread type = EThread::Worker) :
+			IAsyncTask{ type }, _fn{ FwdArg<Fn>(fn) }
 		{}
 
 	private:
 		void Run () override
 		{
-			return _func();
+			return _fn();
 		}
+
+		StringView  DbgName () const override { return "function"; }
 	};
 
 
-}	// AE::Threading
+} // AE::Threading

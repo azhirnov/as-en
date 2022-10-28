@@ -89,6 +89,7 @@ namespace AE::Graphics
 	template <>	auto  MetalObject< EMetalObjType::DepthStencilState				>::Cast () const	{ return (__bridge id<MTLDepthStencilState>)					Ptr(); }
 	template <>	auto  MetalObject< EMetalObjType::RenderPipeline				>::Cast () const	{ return (__bridge id<MTLRenderPipelineState>)					Ptr(); }
 	template <>	auto  MetalObject< EMetalObjType::ComputePipeline				>::Cast () const	{ return (__bridge id<MTLComputePipelineState>)					Ptr(); }
+	template <>	auto  MetalObject< EMetalObjType::BinaryArchive					>::Cast () const	{ return (__bridge id<MTLBinaryArchive>)						Ptr(); }
 
 	template <>	auto  MetalObject< EMetalObjType::Memory						>::Cast () const	{ return (__bridge id<MTLHeap>)									Ptr(); }
 	template <>	auto  MetalObject< EMetalObjType::Sampler						>::Cast () const	{ return (__bridge id<MTLSamplerState>)							Ptr(); }

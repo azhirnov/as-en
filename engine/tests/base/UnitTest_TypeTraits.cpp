@@ -69,7 +69,7 @@ extern void UnitTest_TypeTraits ()
 	}
 
 	{
-		auto	t = TupleConcat( MakeTuple( 1u, 2.2f ), MakeTuple( 0.9, -10, "aa"s ), MakeTuple( 9ull ));
+		auto	t = TupleConcat( Tuple{ 1u, 2.2f }, Tuple{ 0.9, -10, "aa"s }, Tuple{ 9ull });
 		TEST( t.Count() == 6 );
 		TEST( t.Get<0>() == 1u );
 		TEST( t.Get<1>() == 2.2f );

@@ -47,6 +47,7 @@ namespace AE::Graphics
 		DepthStencilState,
 		RenderPipeline,
 		ComputePipeline,
+		BinaryArchive,					// macOS 11.0+, iOS 14.0+
 
 		_ResourceBegin,
 		BaseResource,					// MTLResource
@@ -76,6 +77,7 @@ namespace AE::Graphics
 		MetalObject () {}
 		MetalObject (const Self &) = default;
 		MetalObject (std::nullptr_t) {}
+		explicit MetalObject (const void* ptr)	{ Attach( ptr ); }
 
 		Self&  operator = (const Self &) = default;
 
@@ -113,6 +115,7 @@ namespace AE::Graphics
 	using MetalDepthStencilState				= MetalObject< EMetalObjType::DepthStencilState >;
 	using MetalRenderPipeline					= MetalObject< EMetalObjType::RenderPipeline >;
 	using MetalComputePipeline					= MetalObject< EMetalObjType::ComputePipeline >;
+	using MetalBinaryArchive					= MetalObject< EMetalObjType::BinaryArchive >;
 	using MetalResource							= MetalObject< EMetalObjType::BaseResource >;
 	using MetalBuffer							= MetalObject< EMetalObjType::Buffer >;
 	using MetalImage							= MetalObject< EMetalObjType::Image >;
@@ -155,6 +158,7 @@ namespace AE::Graphics
 	using MetalDepthStencilStateRC				= NS::ObjStrongPtr< MetalDepthStencilState >;
 	using MetalRenderPipelineRC					= NS::ObjStrongPtr< MetalRenderPipeline >;
 	using MetalComputePipelineRC				= NS::ObjStrongPtr< MetalComputePipeline >;
+	using MetalBinaryArchiveRC					= NS::ObjStrongPtr< MetalBinaryArchive >;
 	using MetalResourceRC						= NS::ObjStrongPtr< MetalResource >;
 	using MetalBufferRC							= NS::ObjStrongPtr< MetalBuffer >;
 	using MetalImageRC							= NS::ObjStrongPtr< MetalImage >;

@@ -4,18 +4,13 @@
 
 #ifndef AE_LFAS_ENABLED
 # include "threading/Primitives/Atomic.h"
-# include "base/Utils/Noncopyable.h"
+# include "base/Utils/Helpers.h"
 #endif
 #include "base/Platforms/Platform.h"
 
 
 namespace AE::Threading
 {
-namespace _hidden_
-{
-	static constexpr uint	SpinLock_SpinBeforeLock = 10'000;
-}
-
 
 	//
 	// Spin Lock
@@ -65,22 +60,24 @@ namespace _hidden_
 				 not _flag.compare_exchange_weak( INOUT exp, 1, AcquireOrder, EMemoryOrder::Relaxed );
 				 ++i)
 			{
-				if_unlikely( i > _hidden_::SpinLock_SpinBeforeLock )
+				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
 				{
 					i = 0;
-					ThreadUtils::Yield();
+					ThreadUtils::YieldOrSleep();
 				}
+
 				exp = 0;
+				ThreadUtils::Pause();
 			}
 		}
 
 		forceinline void  unlock ()
 		{
-		#ifdef AE_DEBUG
+		  #ifdef AE_DEBUG
 			ASSERT( _flag.exchange( 0, ReleaseOrder ) == 1 );
-		#else
+		  #else
 			_flag.store( 0, ReleaseOrder );
-		#endif
+		  #endif
 		}
 	};
 
@@ -124,33 +121,39 @@ namespace _hidden_
 			int	exp = 0;
 			for (uint i = 0; not _flag.compare_exchange_weak( INOUT exp, -1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed ); ++i)
 			{
-				if_unlikely( i > _hidden_::SpinLock_SpinBeforeLock )
+				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
 				{
 					i = 0;
-					ThreadUtils::Yield();
+					ThreadUtils::YieldOrSleep();
 				}
+
 				exp = 0;
+				ThreadUtils::Pause();
 			}
 		}
 		
 		// for std::lock_guard / std::unique_lock
 		forceinline void  unlock ()
 		{
-		#ifdef AE_DEBUG
+		  #ifdef AE_DEBUG
 			ASSERT( _flag.exchange( 0, EMemoryOrder::Release ) == -1 );
-		#else
+		  #else
 			_flag.store( 0, EMemoryOrder::Release );
-		#endif
+		  #endif
 		}
 
 
 		ND_ forceinline bool  try_lock_shared ()
 		{
 			int	exp = 0;
-			for (; not _flag.compare_exchange_weak( INOUT exp, exp + 1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );)
+			for (uint i = 0;
+				 not _flag.compare_exchange_weak( INOUT exp, exp + 1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
+				 ++i)
 			{
-				if_unlikely( exp < 0 )
+				if_unlikely( exp < 0 or i > 100 )
 					return false;
+				
+				ThreadUtils::Pause();
 			}
 			return true;
 		}
@@ -164,12 +167,14 @@ namespace _hidden_
 				 not _flag.compare_exchange_weak( INOUT exp, exp + 1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
 				 ++i)
 			{
-				if_unlikely( i > _hidden_::SpinLock_SpinBeforeLock )
+				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
 				{
 					i = 0;
-					ThreadUtils::Yield();
+					ThreadUtils::YieldOrSleep();
 				}
+
 				exp = (exp < 0 ? 0 : exp);
+				ThreadUtils::Pause();
 			}
 		}
 
@@ -191,14 +196,18 @@ namespace _hidden_
 		forceinline void  shared_to_exclusive ()
 		{
 			int	exp = 1;
-			for (uint i = 0; not _flag.compare_exchange_weak( INOUT exp, -1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed ); ++i)
+			for (uint i = 0;
+				 not _flag.compare_exchange_weak( INOUT exp, -1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
+				 ++i)
 			{
-				if_unlikely( i > _hidden_::SpinLock_SpinBeforeLock )
+				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
 				{
 					i = 0;
-					ThreadUtils::Yield();
+					ThreadUtils::YieldOrSleep();
 				}
+
 				exp = 1;
+				ThreadUtils::Pause();
 			}
 		}
 
@@ -263,12 +272,14 @@ namespace _hidden_
 				 not _ptr.CAS( INOUT exp, _SetLockBit( exp ), AcquireOrder, EMemoryOrder::Relaxed );
 				 ++i)
 			{
-				if_unlikely( i > _hidden_::SpinLock_SpinBeforeLock )
+				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
 				{
 					i = 0;
-					ThreadUtils::Yield();
+					ThreadUtils::YieldOrSleep();
 				}
+				
 				exp = _RemoveLockBit( exp );
+				ThreadUtils::Pause();
 			}
 		}
 
@@ -296,12 +307,14 @@ namespace _hidden_
 
 			for (uint i = 0; not _ptr.CAS( INOUT exp, ptr ); ++i)
 			{
-				if_unlikely( i > _hidden_::SpinLock_SpinBeforeLock )
+				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
 				{
 					i = 0;
-					ThreadUtils::Yield();
+					ThreadUtils::YieldOrSleep();
 				}
+				
 				ASSERT( _HasLockBit( exp ));
+				ThreadUtils::Pause();
 			}
 		}
 
@@ -328,4 +341,4 @@ namespace _hidden_
 	template <typename T> using PtrSpinLockRelaxed	= TPtrSpinLock< T, true >;
 
 
-}	// AE::Threading
+} // AE::Threading

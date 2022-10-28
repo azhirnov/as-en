@@ -5,7 +5,7 @@
 #include "base/Math/Bytes.h"
 #include "base/Math/POTValue.h"
 #include "base/Memory/UntypedAllocator.h"
-#include "base/Utils/Noncopyable.h"
+#include "base/Utils/Helpers.h"
 
 namespace AE::Base
 {
@@ -158,4 +158,4 @@ namespace AE::Base
 	};
 
 
-}	// AE::Base
+} // AE::Base

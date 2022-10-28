@@ -27,6 +27,7 @@ namespace AE::Base::_hidden_
 
 		static constexpr bool	is_const	= false;
 		static constexpr bool	is_volatile	= false;
+		static constexpr bool	is_noexcept	= false;
 	};
 		
 	template <typename Result, typename ...Args>
@@ -39,6 +40,7 @@ namespace AE::Base::_hidden_
 		
 		static constexpr bool	is_const	= false;
 		static constexpr bool	is_volatile	= false;
+		static constexpr bool	is_noexcept	= false;
 	};
 		
 	template <typename Class, typename Result, typename ...Args>
@@ -51,6 +53,7 @@ namespace AE::Base::_hidden_
 		
 		static constexpr bool	is_const	= false;
 		static constexpr bool	is_volatile	= false;
+		static constexpr bool	is_noexcept	= false;
 	};
 		
 	template <typename Result, typename ...Args>
@@ -63,6 +66,7 @@ namespace AE::Base::_hidden_
 
 		static constexpr bool	is_const	= false;
 		static constexpr bool	is_volatile	= false;
+		static constexpr bool	is_noexcept	= false;
 	};
 
 	#define _DECL_FUNC_INFO( _cv_qual_ ) \
@@ -76,6 +80,7 @@ namespace AE::Base::_hidden_
 			\
 			static constexpr bool	is_const	= IsConst< int _cv_qual_ >; \
 			static constexpr bool	is_volatile	= IsVolatile< int _cv_qual_ >; \
+			static constexpr bool	is_noexcept	= false; \
 		};
 	_DECL_FUNC_INFO( const );
 	_DECL_FUNC_INFO( volatile );
@@ -88,25 +93,40 @@ namespace AE::Base::_hidden_
 	_DECL_FUNC_INFO( const && );
 	_DECL_FUNC_INFO( volatile && );
 	_DECL_FUNC_INFO( const volatile && );
+	#undef _DECL_FUNC_INFO
 		
-#ifdef AE_HAS_EXCEPTIONS
-	_DECL_FUNC_INFO( noexcept );
-	_DECL_FUNC_INFO( const noexcept );
-	_DECL_FUNC_INFO( volatile noexcept );
-	_DECL_FUNC_INFO( const volatile noexcept );
-	_DECL_FUNC_INFO( & noexcept );
-	_DECL_FUNC_INFO( const & noexcept );
-	_DECL_FUNC_INFO( volatile & noexcept );
-	_DECL_FUNC_INFO( const volatile & noexcept );
-	_DECL_FUNC_INFO( && noexcept );
-	_DECL_FUNC_INFO( const && noexcept );
-	_DECL_FUNC_INFO( volatile && noexcept );
-	_DECL_FUNC_INFO( const volatile && noexcept );
+
+#if defined(AE_HAS_EXCEPTIONS) or defined(AE_DEBUG)
+	#define _DECL_FUNC_INFO_EX( ... ) \
+		template <typename Class, typename Result, typename ...Args> \
+		struct _FuncInfo< Result (Class::*) (Args...) __VA_ARGS__ noexcept > \
+		{ \
+			using args		= AE::Base::TypeList< Args... >; \
+			using result	= Result; \
+			using type		= Result (Class::*) (Args...) __VA_ARGS__ noexcept; \
+			using clazz		= Class; \
+			\
+			static constexpr bool	is_const	= IsConst< int __VA_ARGS__ >; \
+			static constexpr bool	is_volatile	= IsVolatile< int __VA_ARGS__ >; \
+			static constexpr bool	is_noexcept	= true; \
+		};
+	
+	_DECL_FUNC_INFO_EX( );
+	_DECL_FUNC_INFO_EX( const );
+	_DECL_FUNC_INFO_EX( volatile );
+	_DECL_FUNC_INFO_EX( const volatile );
+	_DECL_FUNC_INFO_EX( & );
+	_DECL_FUNC_INFO_EX( const & );
+	_DECL_FUNC_INFO_EX( volatile & );
+	_DECL_FUNC_INFO_EX( const volatile & );
+	_DECL_FUNC_INFO_EX( && );
+	_DECL_FUNC_INFO_EX( const && );
+	_DECL_FUNC_INFO_EX( volatile && );
+	_DECL_FUNC_INFO_EX( const volatile && );
+	#undef _DECL_FUNC_INFO_EX
 #endif
 		
-	#undef _DECL_FUNC_INFO
 
-		
 	template < typename T, bool L >
 	struct _FuncInfo2 {
 		using type = _FuncInfo<T>;
@@ -122,7 +142,7 @@ namespace AE::Base::_hidden_
 		using type = typename _FuncInfo2< T, IsClass<T> >::type;
 	};
 
-}	// AE::Base::_hidden_
+} // AE::Base::_hidden_
 
 
 namespace AE::Base
@@ -130,4 +150,4 @@ namespace AE::Base
 	template <typename T>
 	using FunctionInfo = typename Base::_hidden_::_FuncInfo3<T>::type;
 
-}	// AE::Base
+} // AE::Base

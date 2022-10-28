@@ -3,6 +3,7 @@
 #include "base/Common.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/Platforms/Platform.h"
+
 using namespace AE;
 using namespace AE::Base;
 
@@ -18,6 +19,7 @@ extern void UnitTest_FileSystem ();
 extern void UnitTest_FixedArray ();
 extern void UnitTest_FixedMap ();
 extern void UnitTest_FixedSet ();
+extern void UnitTest_FixedString ();
 extern void UnitTest_FixedTupleArray ();
 extern void UnitTest_FlatHashMap ();
 extern void UnitTest_HashMap ();
@@ -28,6 +30,7 @@ extern void UnitTest_LinearAllocator ();
 extern void UnitTest_Math ();
 extern void UnitTest_Math_BitMath ();
 extern void UnitTest_Math_Fractional ();
+extern void UnitTest_Math_Frustum ();
 extern void UnitTest_Math_Matrix ();
 extern void UnitTest_Math_PhysicalQuantity ();
 extern void UnitTest_Math_Rectangle ();
@@ -38,7 +41,6 @@ extern void UnitTest_NamedID ();
 extern void UnitTest_NtStringView ();
 extern void UnitTest_RingBuffer ();
 extern void UnitTest_StackAllocator ();
-extern void UnitTest_StaticString ();
 extern void UnitTest_Stream ();
 extern void UnitTest_StringParser ();
 extern void UnitTest_StringToID ();
@@ -58,9 +60,8 @@ int main ()
 
 	AE_LOGI( "\nPlatform name: "s << AE_PLATFORM_NAME <<
 			 "\nCPU arch: " << AE_CPU_ARCH_NAME );
-	
+
 	UnitTest_Array();
-	//UnitTest_ChunkedArray();
 	UnitTest_Color();
 	UnitTest_Cast();
 	UnitTest_Crypto();
@@ -70,6 +71,7 @@ int main ()
 	UnitTest_FixedArray();
 	UnitTest_FixedMap();
 	UnitTest_FixedSet();
+	UnitTest_FixedString();
 	UnitTest_FixedTupleArray();
 	UnitTest_FlatHashMap();
 	UnitTest_HashMap();
@@ -80,6 +82,7 @@ int main ()
 	UnitTest_Math();
 	UnitTest_Math_BitMath();
 	UnitTest_Math_Fractional();
+	UnitTest_Math_Frustum();
 	UnitTest_Math_Matrix();
 	UnitTest_Math_PhysicalQuantity();
 	UnitTest_Math_Rectangle();
@@ -90,7 +93,6 @@ int main ()
 	UnitTest_NtStringView();
 	UnitTest_RingBuffer();
 	UnitTest_StackAllocator();
-	UnitTest_StaticString();
 	UnitTest_Stream();
 	UnitTest_StringParser();
 	UnitTest_StructView();

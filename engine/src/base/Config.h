@@ -26,12 +26,16 @@
 #	define AE_FAST_HASH		0
 #endif
 
-#if defined(AE_DEVELOP) || defined(AE_DEBUG)
-#	define AE_DEV_OR_DBG
+#if defined(AE_DEBUG) || defined(AE_DEVELOP)
+#	define AE_DBG_OR_DEV
+#endif
+
+#if defined(AE_DEBUG) || defined(AE_DEVELOP) || defined(AE_PROFILE)
+#	define AE_DBG_OR_DEV_OR_PROF
 #endif
 
 #ifndef AE_OPTIMIZE_IDS
-# ifdef AE_DEV_OR_DBG
+# ifdef AE_DBG_OR_DEV
 #	define AE_OPTIMIZE_IDS	0
 # else
 #	define AE_OPTIMIZE_IDS	1
@@ -39,14 +43,14 @@
 #endif
 
 
-#if defined(AE_PLATFORM_LINUX)		or \
-	defined(AE_PLATFORM_ANDROID)	or \
-	defined(AE_PLATFORM_MACOS)		or \
+#if defined(AE_PLATFORM_LINUX)		|| \
+	defined(AE_PLATFORM_ANDROID)	|| \
+	defined(AE_PLATFORM_MACOS)		|| \
 	defined(AE_PLATFORM_IOS)
 #	define AE_PLATFORM_UNIX_BASED
 #endif
 
-#if defined(AE_PLATFORM_MACOS)	or \
+#if defined(AE_PLATFORM_MACOS)	|| \
 	defined(AE_PLATFORM_IOS)
 #	define AE_PLATFORM_APPLE
 #endif

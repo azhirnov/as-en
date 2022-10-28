@@ -6,7 +6,7 @@
 
 # include "graphics/Public/DescriptorSet.h"
 # include "graphics/Vulkan/VCommon.h"
-# include "Packer/PipelinePack.h"
+# include "PipelineCompilerImpl.h"
 
 namespace AE::Graphics
 {
@@ -154,6 +154,6 @@ namespace AE::Graphics
 		END_ENUM_CHECKS();
 	}
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

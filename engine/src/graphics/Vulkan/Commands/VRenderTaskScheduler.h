@@ -95,6 +95,8 @@ namespace AE::Graphics
 	  #endif
 
 		using BeginDepsArray_t	= Array< AsyncTask >; //, Threading::GlobalLinearStdAllocatorRef< AsyncTask > >;	// TODO
+		
+		using TimePoint_t		= std::chrono::high_resolution_clock::time_point;
 
 		class BatchSubmitDepsManager;
 		class BatchCompleteDepsManager;
@@ -120,8 +122,13 @@ namespace AE::Graphics
 
 		AtomicFrameUID					_frameId;
 		FrameUIDs_t						_perFrameUID	= {};
+		
+		// CPU side time
+		BitAtomic<TimePoint_t>			_lastUpdate;			// -|-- changed in 'BeginFrameTask'
+		FAtomic<float>					_timeDelta		{0.f};	// -/
 
-		BatchPool_t						_batchPool;
+		alignas(AE_CACHE_LINE)
+		  BatchPool_t					_batchPool;
 		DrawBatchPool_t					_drawBatchPool;
 		
 		#if not AE_VK_TIMELINE_SEMAPHORE
@@ -141,6 +148,10 @@ namespace AE::Graphics
 		alignas(AE_CACHE_LINE)
 		  SpinLock						_beginDepsGuard;
 		BeginDepsArray_t				_beginDeps;
+		
+		PROFILE_ONLY(
+			AtomicRC<IGraphicsProfiler>	_profiler;
+		)
 
 
 	// methods
@@ -152,6 +163,7 @@ namespace AE::Graphics
 
 		ND_ bool  Initialize (const GraphicsCreateInfo &);
 			void  Deinitialize ();
+			void  SetProfiler (RC<IGraphicsProfiler> profiler);
 
 		template <typename ...Deps>
 		ND_ AsyncTask	BeginFrame (const BeginFrameConfig &cfg = Default, const Tuple<Deps...> &deps = Default);
@@ -165,16 +177,23 @@ namespace AE::Graphics
 			void  AddNextFrameDeps (AsyncTask dep);
 
 		ND_ RC<VCommandBatch>		CreateBatch (EQueueType queue, uint submitIdx, StringView dbgName = Default);
-		ND_ RC<VDrawCommandBatch>	BeginAsyncDraw (const RenderPassDesc &desc, StringView dbgName = Default);		// first subpass
-		ND_ RC<VDrawCommandBatch>	BeginAsyncDraw (const VDrawCommandBatch &batch, StringView dbgName = Default);	// next subpass
+		ND_ RC<VDrawCommandBatch>	BeginAsyncDraw (const RenderPassDesc &desc, StringView dbgName = Default, RGBA8u dbgColor = HtmlColor::Red);		// first subpass
+		ND_ RC<VDrawCommandBatch>	BeginAsyncDraw (const VDrawCommandBatch &batch, StringView dbgName = Default, RGBA8u dbgColor = HtmlColor::Red);	// next subpass
 
-		// valid only if used before/after 'CreateBatch()'
+		// valid only if used before/after 'BeginFrame()'
 		ND_ FrameUID				GetFrameId ()			const	{ return _frameId.load(); }
+		ND_ TimePoint_t				GetFrameBeginTime ()	const	{ return _lastUpdate.load(); }
+		ND_ secondsf				GetFrameTimeDelta ()	const	{ return secondsf{_timeDelta.load()}; }
+
+		ND_ uint					GetMaxFrames ()			const	{ return _frameId.load().MaxFrames(); }
 
 		ND_ VResourceManager &		GetResourceManager ()			{ ASSERT( _resMngr );  return *_resMngr; }
 		ND_ VDevice const&			GetDevice ()			const	{ return _device; }
 		ND_ VCommandPoolManager &	GetCommandPoolManager ()		{ ASSERT( _cmdPoolMngr );  return *_cmdPoolMngr; }
-
+		
+		PROFILE_ONLY(
+			ND_ RC<IGraphicsProfiler>	GetProfiler ()				{ return _profiler.get(); }
+		)
 
 	private:
 		explicit VRenderTaskScheduler (const VDevice &dev);
@@ -183,7 +202,7 @@ namespace AE::Graphics
 		ND_ static VRenderTaskScheduler*  _Instance ();
 		
 		ND_ RC<VDrawCommandBatch>  _CreateDrawBatch (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports,
-													 ArrayView<VkRect2D> scissors, StringView dbgName);
+													 ArrayView<VkRect2D> scissors, StringView dbgName, RGBA8u dbgColor);
 		
 		#if not AE_VK_TIMELINE_SEMAPHORE
 		ND_ RC<VirtualFence>  _CreateFence ();
@@ -256,6 +275,8 @@ namespace AE::Graphics
 		{}
 			
 		void  Run () override;
+
+		StringView  DbgName () const override { return "BeginFrame"; }
 	};
 
 
@@ -275,8 +296,12 @@ namespace AE::Graphics
 		{}
 			
 		void  Run () override;
+
+		StringView  DbgName () const override { return "EndFrame"; }
 	};
-	
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -287,7 +312,100 @@ namespace AE::Graphics
 	{
 		return *VRenderTaskScheduler::_Instance();
 	}
+	
+/*
+=================================================
+	BeginFrame
+=================================================
+*/
+	template <typename ...Deps>
+	inline AsyncTask  VRenderTaskScheduler::BeginFrame (const BeginFrameConfig &cfg, const Tuple<Deps...> &deps)
+	{
+		CHECK_ERR( _SetState( EState::Idle, EState::BeginFrame ));
 
-}	// AE::Graphics
+		FrameUID	frame_id = _frameId.Inc();
+		_perFrameUID[ frame_id.Index() ].store( frame_id );
 
-#endif	// AE_ENABLE_VULKAN
+		AsyncTask	task = MakeRC<VRenderTaskScheduler::BeginFrameTask>( frame_id, cfg );
+		
+		PROFILE_ONLY(
+			if ( auto prof = GetProfiler() )
+				prof->RequestNextFrame( frame_id );
+		)
+
+		EXLOCK( _beginDepsGuard );
+
+		if_likely( Threading::Scheduler().Run( task, TupleConcat( Tuple{ ArrayView<AsyncTask>{ _beginDeps }}, deps )))
+		{
+			_beginDeps.clear();
+			return task;
+		}
+		else
+		{
+			CHECK_ERR( _SetState( EState::BeginFrame, EState::Idle ));
+			return null;
+		}
+	}
+	
+/*
+=================================================
+	EndFrame
+=================================================
+*/
+	template <typename ...Deps>
+	inline AsyncTask  VRenderTaskScheduler::EndFrame (const Tuple<Deps...> &deps)
+	{
+		CHECK_ERR( AnyEqual( _GetState(), EState::BeginFrame, EState::RecordFrame ));
+		
+		AsyncTask	task = MakeRC<VRenderTaskScheduler::EndFrameTask>( _frameId.load() );
+
+		if_likely( Threading::Scheduler().Run( task, deps ))
+		{
+			AddNextFrameDeps( task );
+			return task;
+		}
+		else
+			return null;
+	}
+	
+/*
+=================================================
+	AddNextFrameDeps
+=================================================
+*/
+	inline void  VRenderTaskScheduler::AddNextFrameDeps (ArrayView<AsyncTask> deps)
+	{
+		EXLOCK( _beginDepsGuard );
+
+		for (auto& dep : deps)
+			_beginDeps.push_back( dep );
+
+		ASSERT( _beginDeps.size() <= _MaxBeginDeps );
+	}
+	
+	inline void  VRenderTaskScheduler::AddNextFrameDeps (AsyncTask dep)
+	{
+		EXLOCK( _beginDepsGuard );
+		_beginDeps.push_back( RVRef(dep) );
+		ASSERT( _beginDeps.size() <= _MaxBeginDeps );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+	GAutorelease::dtor
+=================================================
+*/
+	template <usize IndexSize, usize GenerationSize, uint UID>
+	GAutorelease < HandleTmpl< IndexSize, GenerationSize, UID >>::~GAutorelease ()
+	{
+		if ( _id )
+			RenderTaskScheduler().GetResourceManager().ReleaseResource( _id );
+	}
+
+
+} // AE::Graphics
+
+#endif // AE_ENABLE_VULKAN

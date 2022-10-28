@@ -176,11 +176,11 @@ namespace
 		}
 		TEST( T::CheckStatistic() );
 	}
-
+	
 #ifdef AE_ENABLE_ABSEIL
-	template <typename V>	using TFlatHashSet = FlatHashSet< V >;
+	template <typename V>	using TFlatHashSet	= FlatHashSet< V >;
 #endif
-	template <typename V>	using THashSet = HashSet< V >;
+	template <typename V>	using THashSet		= HashSet< V >;
 }
 
 
@@ -201,7 +201,6 @@ extern void UnitTest_FlatHashSet ()
 
 extern void UnitTest_HashSet ()
 {
-
 	HashSet_Test1< THashSet >( false );
 	HashSet_Test2< THashSet >();
 	HashSet_Test3< THashSet >();

@@ -33,12 +33,13 @@ namespace AE::Graphics
 		explicit VLargeMemAllocator (const VDevice &dev);
 		~VLargeMemAllocator () override;
 		
-		bool AllocForImage (ImageVk_t image, const ImageDesc &desc, OUT Storage_t &data) override;
-		bool AllocForBuffer (BufferVk_t buffer, const BufferDesc &desc, OUT Storage_t &data) override;
+	  // IGfxMemAllocator //
+		bool  AllocForImage (ImageVk_t image, const ImageDesc &desc, OUT Storage_t &data) override;
+		bool  AllocForBuffer (BufferVk_t buffer, const BufferDesc &desc, OUT Storage_t &data) override;
 
-		bool Dealloc (INOUT Storage_t &data) override;
+		bool  Dealloc (INOUT Storage_t &data) override;
 			
-		bool GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info) const override;
+		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info) const override;
 		
 		Bytes  MinAlignment ()		const override;
 		Bytes  MaxAllocationSize ()	const override;
@@ -49,6 +50,6 @@ namespace AE::Graphics
 	};
 
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_VULKAN
+#endif // AE_ENABLE_VULKAN

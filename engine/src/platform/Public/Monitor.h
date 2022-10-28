@@ -113,4 +113,4 @@ namespace AE::App
 	};
 
 
-}	// AE::App
+} // AE::App

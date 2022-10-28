@@ -86,7 +86,7 @@
 		bool  shaderAtomicFloat2          : 1;   // VK_EXT_shader_atomic_float2 
 		bool  workgroupMemExplicitLayout  : 1;   // VK_KHR_workgroup_memory_explicit_layout 
 		bool  shaderImageAtomicInt64      : 1;   // VK_EXT_shader_image_atomic_int64 
-		bool  queueGlobalPriority         : 1;   // VK_EXT_global_priority 
+		bool  queueGlobalPriority         : 1;   // VK_KHR_global_priority 
 		bool  performanceQuery            : 1;   // VK_KHR_performance_query 
 		bool  calibratedTimestamps        : 1;   // VK_EXT_calibrated_timestamps 
 		bool  toolingInfo                 : 1;   // VK_EXT_tooling_info 
@@ -439,7 +439,7 @@
 			VK_EXT_SHADER_ATOMIC_FLOAT_2_EXTENSION_NAME,
 			VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME,
 			VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME,
-			VK_EXT_GLOBAL_PRIORITY_EXTENSION_NAME,
+			VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME,
 			VK_KHR_PERFORMANCE_QUERY_EXTENSION_NAME,
 			VK_EXT_CALIBRATED_TIMESTAMPS_EXTENSION_NAME,
 			VK_EXT_TOOLING_INFO_EXTENSION_NAME,
@@ -576,7 +576,7 @@
 		_extensions.shaderAtomicFloat2          = (HasDeviceExtension( VK_EXT_SHADER_ATOMIC_FLOAT_2_EXTENSION_NAME ));
 		_extensions.workgroupMemExplicitLayout  = (HasDeviceExtension( VK_KHR_WORKGROUP_MEMORY_EXPLICIT_LAYOUT_EXTENSION_NAME ));
 		_extensions.shaderImageAtomicInt64      = (HasDeviceExtension( VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME ));
-		_extensions.queueGlobalPriority         = (HasDeviceExtension( VK_EXT_GLOBAL_PRIORITY_EXTENSION_NAME ));
+		_extensions.queueGlobalPriority         = (HasDeviceExtension( VK_KHR_GLOBAL_PRIORITY_EXTENSION_NAME ));
 		_extensions.performanceQuery            = (HasDeviceExtension( VK_KHR_PERFORMANCE_QUERY_EXTENSION_NAME ));
 		_extensions.calibratedTimestamps        = (HasDeviceExtension( VK_EXT_CALIBRATED_TIMESTAMPS_EXTENSION_NAME ));
 		_extensions.toolingInfo                 = (HasDeviceExtension( VK_EXT_TOOLING_INFO_EXTENSION_NAME ));

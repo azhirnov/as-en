@@ -54,6 +54,6 @@ namespace AE::Graphics
 		DEBUG_ONLY(  ND_ StringView  GetDebugName ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
-}	// AE::Graphics
+} // AE::Graphics
 
-#endif	// AE_ENABLE_METAL
+#endif // AE_ENABLE_METAL

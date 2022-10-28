@@ -35,11 +35,13 @@ namespace AE::Threading
 		WorkerThread ();
 		WorkerThread (ThreadMask mask, nanoseconds sleepStep, nanoseconds maxSleepOnIdle, StringView name = "thread");
 
+		// IThread //
 		bool  Attach (uint uid) override;
 		void  Detach () override;
 
-		NtStringView  DbgName () const override		{ return _name; }
+		StringView  DbgName ()	const override		{ return _name; }
+		usize		DbgID ()	const override		{ return ThreadUtils::GetIntID( _thread ); }
 	};
 
 
-}	// AE::Threading
+} // AE::Threading
