@@ -24,12 +24,12 @@ namespace AE::Graphics
 
 		VPrimaryCmdBufState () {}
 
-		ND_ bool  IsValid () const
+		ND_ bool  IsValid () C_NE___
 		{
 			return (renderPass != null) & (framebuffer != null) & frameId.IsValid();
 		}
 
-		ND_ bool  operator == (const VPrimaryCmdBufState &rhs) const;
+		ND_ bool  operator == (const VPrimaryCmdBufState &rhs) C_NE___;
 	};
 
 
@@ -47,29 +47,31 @@ namespace AE::Graphics
 		VkCommandBuffer		_cmdbuf		= Default;
 		EQueueType			_queueType	= Default;
 		ECommandBufferType	_cmdType	= Default;
+		bool				_recording	= false;
 		RecursiveMutex *	_lock		= null;
 
 
 	// methods
 	protected:
-		VCommandBuffer (VkCommandBuffer cmdbuf, EQueueType queueType, ECommandBufferType cmdType, RecursiveMutex& lock);
+		VCommandBuffer (VkCommandBuffer cmdbuf, EQueueType queueType, ECommandBufferType cmdType, RecursiveMutex& lock) __NE___;
 
-	public:
-		VCommandBuffer () {}
-		VCommandBuffer (VCommandBuffer &&);
-		~VCommandBuffer ();
-
-		VCommandBuffer&  operator = (VCommandBuffer && rhs);
-
-		VCommandBuffer (const VCommandBuffer &) = delete;
+		VCommandBuffer (const VCommandBuffer &)				 = delete;
 		VCommandBuffer&  operator = (const VCommandBuffer &) = delete;
 
-		void  Release ();
+	public:
+		VCommandBuffer ()									__NE___	{}
+		VCommandBuffer (VCommandBuffer &&)					__NE___;
+		~VCommandBuffer ()									__NE___;
 
-		ND_ EQueueType		GetQueueType ()		const	{ return _queueType; }
-		ND_ VkCommandBuffer	Get ()				const	{ ASSERT(IsValid());  return _cmdbuf; }
-		ND_ bool			IsValid ()			const	{ return _cmdbuf != Default; }
-		ND_ VQueuePtr		GetQueue ()			const;
+		VCommandBuffer&  operator = (VCommandBuffer && rhs) __NE___;
+
+		ND_ bool  EndAndRelease ()							__NE___;
+
+		ND_ EQueueType		GetQueueType ()					C_NE___	{ return _queueType; }
+		ND_ VkCommandBuffer	Get ()							C_NE___	{ ASSERT( IsValid() );  return _cmdbuf; }
+		ND_ bool			IsValid ()						C_NE___	{ return _cmdbuf != Default; }
+		ND_ bool			IsRecording ()					C_NE___	{ return _recording; }
+		ND_ VQueuePtr		GetQueue ()						C_NE___;
 	};
 
 
@@ -116,15 +118,15 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit VCommandPoolManager (const VDevice &dev);
-		~VCommandPoolManager ();
+		explicit VCommandPoolManager (const VDevice &dev)	__NE___;
+		~VCommandPoolManager ()								__NE___;
 
-		bool  NextFrame (FrameUID frameId);
-		bool  ReleaseResources (FrameUID frameId);
+		bool  NextFrame (FrameUID frameId)					__NE___;
+		bool  ReleaseResources (FrameUID frameId)			__NE___;
 
-		ND_ VCommandBuffer	GetCommandBuffer (EQueueType queue, ECommandBufferType type, const VPrimaryCmdBufState *primaryState);
+		ND_ VCommandBuffer	GetCommandBuffer (EQueueType queue, ECommandBufferType type, const VPrimaryCmdBufState *primaryState) __NE___;
 
-		ND_ VDevice const&	GetDevice () const	{ return _device; }
+		ND_ VDevice const&	GetDevice ()					C_NE___	{ return _device; }
 
 		AE_GLOBALLY_ALLOC
 	};

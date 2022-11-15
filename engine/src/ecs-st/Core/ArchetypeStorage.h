@@ -29,7 +29,7 @@ namespace AE::ECS
 		)
 
 	private:
-		using Allocator_t	= UntypedAlignedAllocator;
+		using Allocator_t	= UntypedAllocator;
 		using Components_t	= FixedTupleArray< ECS_Config::MaxComponentsPerArchetype,
 									/*0 - id    */ ComponentID,
 									/*1 - size  */ Bytes16u,
@@ -47,7 +47,8 @@ namespace AE::ECS
 		const Archetype		_archetype;
 		Components_t		_components;
 		usize				_capacity;
-		Bytes				_maxAlign;
+		Bytes32u			_maxAlign;
+		Bytes32u			_memSize;
 
 		NO_UNIQUE_ADDRESS
 		 Allocator_t		_allocator;
@@ -78,32 +79,33 @@ namespace AE::ECS
 		ND_ bool  IsLocked () const;
 		
 		template <typename T>
-		ND_ T*					GetComponent (Index_t idx)		const;
-		ND_ Pair<void*, Bytes>	GetComponent (Index_t idx, ComponentID id) const;
+		ND_ T*						GetComponent (Index_t idx)		const;
+		ND_ Pair<void*, Bytes>		GetComponent (Index_t idx, ComponentID id) const;
 
 		template <typename T>
-		ND_ T*					GetComponents ()				const;
-		ND_ void*				GetComponents (ComponentID id)	const;
+		ND_ T*						GetComponents ()				const;
+		ND_ void*					GetComponents (ComponentID id)	const;
 		
 		template <typename T>
-		ND_ bool				HasComponent ()					const	{ return _archetype.Exists<T>(); }
-		ND_ bool				HasComponent (ComponentID id)	const	{ return _archetype.Exists( id ); }
+		ND_ bool					HasComponent ()					const	{ return _archetype.Exists<T>(); }
+		ND_ bool					HasComponent (ComponentID id)	const	{ return _archetype.Exists( id ); }
 
-		ND_ EntityID const*		GetEntities ()					const;	// local index to EntityID
-		ND_ usize				Capacity ()						const	{ return _capacity; }
-		ND_ usize				Count ()						const	{ return _count; }
-		ND_ bool				Empty ()						const	{ return _count == 0; }
-		ND_ Archetype const&	GetArchetype ()					const	{ return _archetype; }
+		ND_ EntityID const*			GetEntities ()					const;	// local index to EntityID
+		ND_ usize					Capacity ()						const	{ return _capacity; }
+		ND_ usize					Count ()						const	{ return _count; }
+		ND_ bool					Empty ()						const	{ return _count == 0; }
+		ND_ Archetype const&		GetArchetype ()					const	{ return _archetype; }
+		ND_ Bytes					GetMemorySize ()				const	{ return _memSize; }
 
-		ND_ ArrayView<ComponentID>	GetComponentIDs ()		const	{ return _components.get<0>(); }
-		ND_ ArrayView<Bytes16u>		GetComponentSizes ()	const	{ return _components.get<1>(); }
-		ND_ ArrayView<Bytes16u>		GetComponentAligns ()	const	{ return _components.get<2>(); }
-		ND_ ArrayView<void*>		GetComponentData ()				{ return _components.get<3>(); }
+		ND_ ArrayView<ComponentID>	GetComponentIDs ()				const	{ return _components.get<0>(); }
+		ND_ ArrayView<Bytes16u>		GetComponentSizes ()			const	{ return _components.get<1>(); }
+		ND_ ArrayView<Bytes16u>		GetComponentAligns ()			const	{ return _components.get<2>(); }
+		ND_ ArrayView<void*>		GetComponentData ()						{ return _components.get<3>(); }
 
 		DEBUG_ONLY(
-		 ND_ CompDbgView_t		EntityDbgView (Index_t idx)		const;
+		 ND_ CompDbgView_t			EntityDbgView (Index_t idx)		const;
 
-		 ND_ bool				IsInMemoryRange (const void* ptr, Bytes size) const;
+		 ND_ bool					IsInMemoryRange (const void* ptr, Bytes size) const;
 		)
 
 

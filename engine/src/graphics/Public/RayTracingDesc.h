@@ -84,21 +84,21 @@ namespace AE::Graphics
 
 
 	// methods
-		RTGeometryBuild () {}
+		RTGeometryBuild () __NE___ {}
 
 		RTGeometryBuild (ArrayView<TrianglesInfo>	trianglesInfo,	ArrayView<TrianglesData>	trianglesData,
 						 ArrayView<AABBsInfo>		aabbsInfo,		ArrayView<AABBsData>		aabbsData,
-						 ERTASOptions opt) :
+						 ERTASOptions opt) __NE___ :
 			triangles{ trianglesInfo, trianglesData },
 			aabbs{ aabbsInfo, aabbsData },
 			options{ opt }
 		{}
 
-		RTGeometryBuild (ArrayView<TrianglesInfo> trianglesInfo, ArrayView<AABBsInfo> aabbsInfo, ERTASOptions opt) :
+		RTGeometryBuild (ArrayView<TrianglesInfo> trianglesInfo, ArrayView<AABBsInfo> aabbsInfo, ERTASOptions opt) __NE___ :
 			RTGeometryBuild{ trianglesInfo, Default, aabbsInfo, Default, opt }
 		{}
 		
-		RTGeometryBuild&  SetScratchBuffer (BufferID id, Bytes offset = 0_b)
+		RTGeometryBuild&  SetScratchBuffer (BufferID id, Bytes offset = 0_b) __NE___
 		{
 			scratch.id		= id;
 			scratch.offset	= offset;
@@ -117,8 +117,8 @@ namespace AE::Graphics
 		ERTASOptions	options		= Default;
 		//EQueueMask	queues		= Default;	// TODO
 
-		RTGeometryDesc () {}
-		RTGeometryDesc (Bytes size, ERTASOptions opt) : size{size}, options{opt} {}
+		RTGeometryDesc ()								__NE___ {}
+		RTGeometryDesc (Bytes size, ERTASOptions opt)	__NE___ : size{size}, options{opt} {}
 	};
 
 	
@@ -140,12 +140,12 @@ namespace AE::Graphics
 				uint				flags				:  8;	// ERTInstanceOpt
 				VDeviceAddress		rtas;
 
-				void	   Init ();
-				Instance&  SetIdentity ()								{ transform			= RTMatrixStorage::Identity();	return *this; }
-				Instance&  SetTransform (const RTMatrixStorage &value)	{ transform			= value;		return *this; }
-				Instance&  SetFlags (ERTInstanceOpt value)				{ flags				= uint(value);	return *this; }
-				Instance&  SetMask (uint value)							{ mask				= value;		return *this; }
-				Instance&  SetInstanceOffset (uint value)				{ instanceSBTOffset	= value;		return *this; }
+				void	   Init ()										__NE___;
+				Instance&  SetIdentity ()								__NE___	{ transform			= RTMatrixStorage::Identity();	return *this; }
+				Instance&  SetTransform (const RTMatrixStorage &value)	__NE___	{ transform			= value;		return *this; }
+				Instance&  SetFlags (ERTInstanceOpt value)				__NE___	{ flags				= uint(value);	return *this; }
+				Instance&  SetMask (uint value)							__NE___	{ mask				= value;		return *this; }
+				Instance&  SetInstanceOffset (uint value)				__NE___	{ instanceSBTOffset	= value;		return *this; }
 			};
 
 		#elif defined(AE_ENABLE_METAL)
@@ -158,12 +158,12 @@ namespace AE::Graphics
 				uint				instanceSBTOffset;
 				uint				rtasIndex;
 				
-				void	   Init ();
-				Instance&  SetIdentity ()								{ transform			= RTMatrixStorage::Identity();	return *this; }
-				Instance&  SetTransform (const RTMatrixStorage &value)	{ transform			= value;		return *this; }
-				Instance&  SetFlags (ERTInstanceOpt value)				{ options			= uint(value);	return *this; }
-				Instance&  SetMask (uint value)							{ mask				= value;		return *this; }
-				Instance&  SetInstanceOffset (uint value)				{ instanceSBTOffset	= value;		return *this; }
+				void	   Init ()										__NE___;
+				Instance&  SetIdentity ()								__NE___	{ transform			= RTMatrixStorage::Identity();	return *this; }
+				Instance&  SetTransform (const RTMatrixStorage &value)	__NE___	{ transform			= value;		return *this; }
+				Instance&  SetFlags (ERTInstanceOpt value)				__NE___	{ options			= uint(value);	return *this; }
+				Instance&  SetMask (uint value)							__NE___	{ mask				= value;		return *this; }
+				Instance&  SetInstanceOffset (uint value)				__NE___	{ instanceSBTOffset	= value;		return *this; }
 			};
 		#endif
 		STATIC_ASSERT( sizeof(Instance) == 64 );
@@ -182,23 +182,24 @@ namespace AE::Graphics
 		ScratchBuffer		scratch;
 		InstanceBuffer		instanceData;
 
-		// required for Metal
+	  #ifdef AE_ENABLE_METAL
 		GeomArray_t			geomArray;
 		GeomMap_t			geomMap;
+	  #endif
 
 
 	// methods
-		RTSceneBuild () {}
-		RTSceneBuild (uint count, ERTASOptions opt) : maxInstanceCount{count}, options{opt} {}
+		RTSceneBuild () __NE___	{}
+		RTSceneBuild (uint count, ERTASOptions opt) __NE___ : maxInstanceCount{count}, options{opt} {}
 
-		RTSceneBuild&  SetScratchBuffer (BufferID id, Bytes offset = 0_b)
+		RTSceneBuild&  SetScratchBuffer (BufferID id, Bytes offset = 0_b) __NE___
 		{
 			scratch.id		= id;
 			scratch.offset	= offset;
 			return *this;
 		}
 
-		RTSceneBuild&  SetInstanceData (BufferID id, Bytes offset = 0_b, Bytes stride = Bytes::SizeOf<Instance>())
+		RTSceneBuild&  SetInstanceData (BufferID id, Bytes offset = 0_b, Bytes stride = SizeOf<Instance>) __NE___
 		{
 			instanceData.id		= id;
 			instanceData.offset	= offset;
@@ -206,7 +207,7 @@ namespace AE::Graphics
 			return *this;
 		}
 
-		void  SetGeometry (RTGeometryID id, INOUT Instance &inst);
+		void  SetGeometry (RTGeometryID id, INOUT Instance &inst) __TH___;
 	};
 
 	
@@ -220,8 +221,8 @@ namespace AE::Graphics
 		ERTASOptions	options		= Default;
 		//EQueueMask	queues		= Default;	// TODO
 		
-		RTSceneDesc () {}
-		RTSceneDesc (Bytes size, ERTASOptions opt) : size{size}, options{opt} {}
+		RTSceneDesc ()								__NE___	{}
+		RTSceneDesc (Bytes size, ERTASOptions opt)	__NE___	: size{size}, options{opt} {}
 	};
 
 
@@ -243,7 +244,7 @@ namespace AE::Graphics
 =================================================
 */
 #ifdef AE_ENABLE_VULKAN
-	inline void  RTSceneBuild::Instance::Init ()
+	inline void  RTSceneBuild::Instance::Init () __NE___
 	{
 		transform			= RTMatrixStorage::Identity();
 		instanceCustomIndex	= 0;
@@ -254,7 +255,7 @@ namespace AE::Graphics
 	}
 
 #elif defined(AE_ENABLE_METAL)
-	inline void  RTSceneBuild::Instance::Init ()
+	inline void  RTSceneBuild::Instance::Init () __NE___
 	{
 		transform			= RTMatrixStorage::Identity();
 		options				= 0;

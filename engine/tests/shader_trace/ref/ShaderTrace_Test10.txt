@@ -4,19 +4,25 @@
 no source
 
 //> (out): float4 {-1.000000, -1.000000, 0.000000, 1.000000}
-33. gl_MeshVerticesNV[I].gl_Position	= vec4(g_Positions[I], 0.0f, 1.0f);
+32. gl_MeshVerticesEXT[I].gl_Position	= vec4(g_Positions[I], 0.0f, 1.0f);
 
 //> (out): float4 {0.000000, 0.000000, 0.000000, 0.000000}
-34. Output[I].color						= g_Positions[I].xyxy * 0.5f + 0.5f;
-
-//> (out): uint {0}
-35. gl_PrimitiveIndicesNV[I]			= I;
+33. Output[I].color						= g_Positions[I].xyxy * 0.5f + 0.5f;
 
 //> (out): bool {true}
-37. if ( I == 0 )
+35. if ( I == 0 )
 
-//> gl_PrimitiveCountNV: uint {3}
-38. gl_PrimitiveCountNV = 3;
+//> gl_PrimitiveTriangleIndicesEXT: uint3 {0, 1, 2}
+37. gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
+
+//> gl_PrimitiveTriangleIndicesEXT: uint3 {3, 4, 5}
+38. gl_PrimitiveTriangleIndicesEXT[1] = uvec3(3,4,5);
+
+//> gl_PrimitiveTriangleIndicesEXT: uint3 {6, 7, 8}
+39. gl_PrimitiveTriangleIndicesEXT[2] = uvec3(6,7,8);
+
+//> SetMeshOutputs(): void
+41. 		SetMeshOutputsEXT( 9, 3 );
 
 //---------------------------
 

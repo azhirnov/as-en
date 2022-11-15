@@ -46,8 +46,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectRayTracingCtx (const VRenderTask &task);
-		_VDirectRayTracingCtx (const VRenderTask &task, VCommandBuffer cmdbuf);
+		explicit _VDirectRayTracingCtx (const RenderTask &task);
+		_VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf);
 		
 		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
 		void  _PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
@@ -80,8 +80,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectRayTracingCtx (const VRenderTask &task);
-		_VIndirectRayTracingCtx (const VRenderTask &task, VSoftwareCmdBufPtr cmdbuf);
+		explicit _VIndirectRayTracingCtx (const RenderTask &task);
+		_VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf);
 		
 		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
 		void  _PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
@@ -107,32 +107,28 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VRayTracingContextImpl (const VRenderTask &task) : RawCtx{ task } {}
+		explicit _VRayTracingContextImpl (const RenderTask &task) : RawCtx{ task } {}
 		
 		template <typename RawCmdBufType>
-		_VRayTracingContextImpl (const VRenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
+		_VRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
 
 		_VRayTracingContextImpl () = delete;
 		_VRayTracingContextImpl (const _VRayTracingContextImpl &) = delete;
 		
 		using RawCtx::BindDescriptorSet;
 
-		void  BindPipeline (RayTracingPipelineID ppln) override final;
-		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default) override final;
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) override final;
-		//void  SetStackSize () override final;
+		void  BindPipeline (RayTracingPipelineID ppln)														override;
+		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)	override;
+		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)				override;
+		//void  SetStackSize ()																				override;
 		
-		//void  TraceRays (const uint2 dim, const ShaderBindingTable &sbt) override final;
-		//void  TraceRays (const uint3 dim, const ShaderBindingTable &sbt) override final;
-		void  TraceRaysIndirect () override final;
-
-		void  CommitBarriers ()									override final	{ RawCtx::_CommitBarriers(); }
+		//void  TraceRays (const uint2 dim, const ShaderBindingTable &sbt)									override;
+		//void  TraceRays (const uint3 dim, const ShaderBindingTable &sbt)									override;
+		void  TraceRaysIndirect ()																			override;
 		
-		void  DebugMarker (NtStringView text, RGBA8u color)		override final	{ RawCtx::_DebugMarker( text, color ); }
-		void  PushDebugGroup (NtStringView text, RGBA8u color)	override final	{ RawCtx::_PushDebugGroup( text, color ); }
-		void  PopDebugGroup ()									override final	{ RawCtx::_PopDebugGroup(); }
-
-		ND_ AccumBar  AccumBarriers ()							{ return AccumBar{ *this }; }
+		void  DebugMarker (NtStringView text, RGBA8u color)													override	{ RawCtx::_DebugMarker( text, color ); }
+		void  PushDebugGroup (NtStringView text, RGBA8u color)												override	{ RawCtx::_PushDebugGroup( text, color ); }
+		void  PopDebugGroup ()																				override	{ RawCtx::_PopDebugGroup(); }
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};

@@ -37,18 +37,20 @@ namespace
 		auto		mem_stream = MakeRC<MemRStream>();
 		{
 			uint	name;
-			TEST( file->Read( OUT name ) and name == PackOffsets_Name );
+			TEST( file->Read( OUT name ));
+			TEST_EQ( name, PackOffsets_Name );
 
 			PipelinePackOffsets		offsets;
 			TEST( file->Read( OUT offsets ));
-			TEST( offsets.renderPassOffset < ulong(file->Size()) );
+			TEST_L( offsets.renderPassOffset, ulong(file->Size()) );
 			
 			auto	mem_stream2 = MakeRC<MemRStream>();
 			TEST( file->SeekSet( Bytes{offsets.nameMappingOffset} ));
 			TEST( mem_stream2->LoadRemaining( *file, Bytes{offsets.nameMappingDataSize} ));
 
 			Serializing::Deserializer	des{ mem_stream2 };
-			TEST( des( OUT name ) and name == NameMapping_Name );
+			TEST( des( OUT name ));
+			TEST_EQ( name, NameMapping_Name );
 			TEST( hash_to_name.Deserialize( des ));
 
 			TEST( file->SeekSet( Bytes{offsets.renderPassOffset} ));
@@ -60,8 +62,8 @@ namespace
 			uint	version = 0;
 			uint	name	= 0;
 			TEST( des( OUT name, OUT version ));
-			TEST( name == RenderPassPack_Name );
-			TEST( version == RenderPassPack_Version );
+			TEST_EQ( name, RenderPassPack_Name );
+			TEST_EQ( version, RenderPassPack_Version );
 		}
 		
 		TEST( des.IsEnd() );

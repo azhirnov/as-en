@@ -105,7 +105,7 @@ namespace
 			STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );
 			STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<1> >::Test< 1, Types >() );
 		}
-	#endif	// AE_ECS_VALIDATE_SYSTEM_FN
+	#endif // AE_ECS_VALIDATE_SYSTEM_FN
 	}
 
 

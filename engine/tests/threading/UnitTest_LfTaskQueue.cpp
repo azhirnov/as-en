@@ -18,7 +18,7 @@ namespace
 		void  Run () override
 		{}
 
-		StringView  DbgName () const override { return "DummyTask"; }
+		StringView  DbgName () C_NE_OV { return "DummyTask"; }
 	};
 
 

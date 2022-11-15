@@ -4,11 +4,6 @@
 
 #ifdef AE_ENABLE_VULKAN
 
-# include "base/Common.h"
-# include "base/Containers/NtStringView.h"
-# include "base/Math/BitMath.h"
-# include "base/Utils/Version.h"
-
 # if not defined(VK_NO_PROTOTYPES) and defined(VULKAN_CORE_H_)
 #	error invalid configuration, include vulkan.h after this file.
 # endif
@@ -17,6 +12,7 @@
 #	define VK_NO_PROTOTYPES
 # endif
 
+# include "base/StdInclude.h"
 # define VK_ENABLE_BETA_EXTENSIONS
 # ifdef AE_COMPILER_MSVC
 #	pragma warning (push, 0)
@@ -25,6 +21,11 @@
 # else
 #	include <vulkan/vulkan.h>
 # endif
+
+# include "base/Common.h"
+# include "base/Containers/NtStringView.h"
+# include "base/Math/BitMath.h"
+# include "base/Utils/Version.h"
 
 namespace AE::Graphics
 {
@@ -92,7 +93,7 @@ namespace AE::Graphics
 		VulkanDeviceFn (const VulkanDeviceFn &) = default;
 		explicit VulkanDeviceFn (VulkanDeviceFnTable *table) : _table{table} {}
 
-		ND_ VulkanDeviceFnTable const* _GetVkTable ()	const	{ return _table; }
+		ND_ VulkanDeviceFnTable const* _GetVkTable ()	C_NE___	{ return _table; }
 
 #		define VKLOADER_STAGE_INLINEFN
 #		 include "vulkan_loader/fn_vulkan_dev.h"

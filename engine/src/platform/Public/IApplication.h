@@ -68,7 +68,7 @@ namespace AE::App
 		// Read builtin file system.
 		//   Thread safe: no
 		//
-		ND_ virtual RC<IFileStorage>  OpenBuiltinStorage () = 0;
+		ND_ virtual RC<IVirtualFileStorage>  OpenBuiltinStorage () = 0;
 
 
 		// Returns array of monitors.

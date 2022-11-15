@@ -16,7 +16,7 @@ namespace AE::Profiler
 	{
 	// types
 	private:
-		using Allocator_t	= UntypedAlignedAllocator;
+		using Allocator_t	= UntypedAllocator;
 
 		struct BaseCmd
 		{

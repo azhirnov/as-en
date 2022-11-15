@@ -4,13 +4,13 @@
 
 #ifdef AE_PLATFORM_UNIX_BASED
 
+# include "base/StdInclude.h"
+# include <dlfcn.h>
+
 # include "base/Utils/Helpers.h"
 # include "base/Algorithms/ArrayUtils.h"
 # include "base/Containers/NtStringView.h"
 # include "base/Utils/FileSystem.h"
-
-# include <dlfcn.h>
-//# include <linux/limits.h>
 
 namespace AE::Base
 {
@@ -28,21 +28,21 @@ namespace AE::Base
 
 	// methods
 	public:
-		UnixLibrary ()		{}
-		~UnixLibrary ()		{ Unload(); }
+		UnixLibrary ()						__NE___		{}
+		~UnixLibrary ()						__NE___	{ Unload(); }
 
-			bool  Load (NtStringView libName);
-			bool  Load (const char *libName)		{ return Load( NtStringView{libName} ); }
-			bool  Load (const String &libName)		{ return Load( NtStringView{libName} ); }
-			bool  Load (const Path &libName);
-			void  Unload ();
+		bool  Load (NtStringView libName)	__NE___;
+		bool  Load (const char *libName)	__NE___	{ return Load( NtStringView{libName} ); }
+		bool  Load (const String &libName)	__NE___	{ return Load( NtStringView{libName} ); }
+		bool  Load (const Path &libName)	__NE___;
+		void  Unload ()						__NE___;
 
 		template <typename T>
-			bool  GetProcAddr (NtStringView name, OUT T &result) const;
+		bool  GetProcAddr (NtStringView name, OUT T &result) C_NE___;
 		
-		ND_ Path  GetPath () const;
+		ND_ Path  GetPath ()				C______;
 
-		ND_ explicit operator bool ()	const		{ return _handle != null; }
+		ND_ explicit operator bool ()		C_NE___		{ return _handle != null; }
 	};
 
 	
@@ -52,14 +52,14 @@ namespace AE::Base
 	Load
 =================================================
 */
-	inline bool  UnixLibrary::Load (NtStringView libName)
+	inline bool  UnixLibrary::Load (NtStringView libName) __NE___
 	{
 		CHECK_ERR( _handle == null );
 		_handle = ::dlopen( libName.c_str(), RTLD_LAZY | RTLD_LOCAL );
 		return _handle != null;
 	}
 
-	inline bool  UnixLibrary::Load (const Path &libName)
+	inline bool  UnixLibrary::Load (const Path &libName) __NE___
 	{
 		CHECK_ERR( _handle == null );
 		_handle = ::dlopen( libName.c_str(), RTLD_LAZY | RTLD_LOCAL );
@@ -71,7 +71,7 @@ namespace AE::Base
 	Unload
 =================================================
 */
-	inline void  UnixLibrary::Unload ()
+	inline void  UnixLibrary::Unload () __NE___
 	{
 		if ( _handle ) {
 			::dlclose( _handle );
@@ -85,7 +85,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline bool  UnixLibrary::GetProcAddr (NtStringView name, OUT T &result) const
+	inline bool  UnixLibrary::GetProcAddr (NtStringView name, OUT T &result) C_NE___
 	{
 		result = BitCast<T>( ::dlsym( _handle, name.c_str() ));
 		return result != null;
@@ -96,7 +96,7 @@ namespace AE::Base
 	GetPath
 =================================================
 */
-	inline Path  UnixLibrary::GetPath () const
+	inline Path  UnixLibrary::GetPath () C______
 	{
 	#ifdef AE_PLATFORM_ANDROID
 		RETURN_ERR( "not supported" );

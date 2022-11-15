@@ -35,19 +35,19 @@ namespace AE::Scripting
 
 	// methods
 	private:
-		ScriptFn (const ScriptModulePtr &mod, AngelScript::asIScriptContext* ctx) :
+		ScriptFn (const ScriptModulePtr &mod, AngelScript::asIScriptContext* ctx) __NE___ :
 			_module{ mod }, _ctx{ ctx }
 		{}
 
 	public:
-		~ScriptFn () override
+		~ScriptFn ()						__NE_OV
 		{
 			if ( _ctx != null )
 				_ctx->Release();
 		}
 
 		template <typename ...Args>
-		ND_ Result_t  Run (Args&& ...args);
+		ND_ Result_t  Run (Args&& ...args)	__NE___;
 
 	private:
 		bool  _CheckError (int exec_res) const;
@@ -63,7 +63,7 @@ namespace AE::Scripting
 	template <typename R, typename ...Types>
 	template <typename ...Args>
 	typename ScriptFn< R (Types...) >::Result_t
-		ScriptFn< R (Types...) >::Run (Args&& ...args)
+		ScriptFn< R (Types...) >::Run (Args&& ...args) __NE___
 	{
 		using namespace AngelScript;
 
@@ -83,8 +83,9 @@ namespace AE::Scripting
 
 		Scripting::_hidden_::SetContextArgs<Args...>::Set( _ctx, 0, FwdArg<Args>(args)... );
 
-		const int exec_res = _ctx->Execute();
-			
+		const int	exec_res = _ctx->Execute();
+		// result same as _ctx->GetState();
+
 		if constexpr( IsSameTypes<R, void> )
 		{
 			if_likely( exec_res == asEXECUTION_FINISHED )
@@ -126,10 +127,11 @@ namespace AE::Scripting
 			err << _ctx->GetExceptionString();
 			
 			#if AE_DBG_SCRIPTS
-				_module->LogError( _ctx->GetExceptionFunction()->GetName(), section, line, column, _ctx->GetExceptionString() );
+			if ( not _module->LogError( _ctx->GetExceptionFunction()->GetName(), section, line, column, _ctx->GetExceptionString() ))
 			#endif
+				AE_LOG_SE( err );
 
-			RETURN_ERR( err );
+			return false;
 		}
 		else
 		{

@@ -159,6 +159,7 @@ namespace AE::Base
 		};
 	}
 
+
 	using False = Base::_hidden_::NamedBoolean<false>;
 	using True  = Base::_hidden_::NamedBoolean<true>;
 	using Bool  = Base::_hidden_::BoolType;

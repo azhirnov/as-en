@@ -125,19 +125,21 @@ namespace
 
 extern void UnitTest_String ()
 {
-	auto	se = MakeRC<ScriptEngine>();
-	TEST( se->Create() );
+	TEST_NOTHROW(
+		auto	se = MakeRC<ScriptEngine>();
+		TEST( se->Create() );
 
-	CoreBindings::BindString( se );
-	CoreBindings::BindLog( se );
+		CoreBindings::BindString( se );
+		CoreBindings::BindLog( se );
 
-	ScriptString_Test1( se );
-	ScriptString_Test2( se );
-	ScriptString_Test3( se );
-	ScriptString_Test4( se );
-	ScriptString_Test5( se );
-	ScriptString_Test6( se );
-	ScriptString_Test7( se );
+		ScriptString_Test1( se );
+		ScriptString_Test2( se );
+		ScriptString_Test3( se );
+		ScriptString_Test4( se );
+		ScriptString_Test5( se );
+		ScriptString_Test6( se );
+		ScriptString_Test7( se );
 
-	TEST_PASSED();
+		TEST_PASSED();
+	)
 }

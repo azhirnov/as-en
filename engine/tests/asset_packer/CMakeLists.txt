@@ -58,6 +58,8 @@ if ((TARGET "ResourcePacker-lib") OR (TARGET "PipelineCompiler-shared"))
 		target_include_directories( "Tests.AssetPacker" PUBLIC "${SHADER_TRACE_DIR}/include" )
 		target_compile_definitions( "Tests.AssetPacker" PRIVATE AE_ENABLE_GLSL_TRACE )
 	endif()
+	
+	target_link_libraries( "Tests.AssetPacker" PUBLIC "DevIL-lib" )
 
 	target_include_directories( "Tests.AssetPacker" PRIVATE
 		"../../tools/res_pack"

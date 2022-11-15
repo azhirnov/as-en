@@ -4,12 +4,9 @@
 
 #include "graphics/Public/IDs.h"
 #include "graphics/Public/CommandBuffer.h"
-#include "threading/Stream/AsyncStream.h"
 
 namespace AE::Graphics
 {
-	using AE::Threading::AsyncRStream;
-
 
 	//
 	// Loadable Image
@@ -20,7 +17,7 @@ namespace AE::Graphics
 	// types
 	public:
 		struct AsyncLoader {
-			ND_ Promise<RC<LoadableImage>>  Load (RC<AsyncRStream> stream);
+		//	ND_ Promise<RC<LoadableImage>>  Load (RC<AsyncRStream> stream);
 		};
 		
 		struct Loader {

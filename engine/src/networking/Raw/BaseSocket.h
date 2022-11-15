@@ -17,8 +17,12 @@ namespace AE::Networking
 	protected:
 		#ifdef AE_PLATFORM_WINDOWS
 			enum class Socket_t : usize { Unknown = ~usize(0) };
+			using Bytes_t		= int;
+
 		#elif defined(AE_PLATFORM_UNIX_BASED)
 			enum class Socket_t : int { Unknown = -1 };
+			using Bytes_t		= ssize;
+		
 		#else
 			#error Unsupported platform!
 		#endif
@@ -31,17 +35,17 @@ namespace AE::Networking
 
 	// methods
 	public:
-		BaseSocket ();
-		~BaseSocket ();
+		BaseSocket ()									__NE___;
+		~BaseSocket ()									__NE___;
 		
-			void  Close ();
+			void  Close ()								__NE___;
 
-		ND_ bool  IsOpen ()	const	{ return _handle != Default; }
+		ND_ bool  IsOpen ()								C_NE___	{ return _handle != Default; }
 
-			bool  GetAddress (OUT IpAddress &outAddr) const;
+			bool  GetAddress (OUT IpAddress &outAddr)	C_NE___;
 
 	protected:
-		ND_ bool  _SetNonBlocking ();
+		ND_ bool  _SetNonBlocking ()					__NE___;
 	};
 
 } // AE::Networking

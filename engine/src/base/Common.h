@@ -2,38 +2,8 @@
 
 #pragma once
 
-#include "base/Config.h"
-#include "base/Defines/Attribs.h"
-#include "base/Defines/Errors.h"
-#include "base/Defines/Helpers.h"
-#include "base/Defines/MacroChecks.h"
-
-
-#include <type_traits>
-#include <cstdint>
-#include <utility>
-#include <tuple>
-#include <variant>
-#include <vector>
-#include <string>
-#include <array>
-#include <memory>		// shared_ptr, weak_ptr, unique_ptr
-#include <deque>
-#include <unordered_set>
-#include <unordered_map>
-#include <bitset>
-#include <cstring>
-#include <cmath>
-#include <optional>
-#include <string_view>
-#include <typeindex>
-#include <type_traits>
-#include <chrono>
-#include <algorithm>
-#include <functional>
-#include <random>
-#include <atomic>
-#include <thread>
+#include "base/StdInclude.h"
+#include "base/Defines/Undef.h"
 
 namespace AE
 {
@@ -81,9 +51,9 @@ namespace AE::Math
 }
 
 #include "base/Log/Log.h"
-#include "base/Algorithms/Hash.h"
 #include "base/CompileTime/TemplateUtils.h"
 #include "base/CompileTime/TypeTraits.h"
+#include "base/Algorithms/Hash.h"
 #include "base/CompileTime/Constants.h"
 #include "base/CompileTime/DefaultType.h"
 #include "base/Utils/StdFunctions.h"
@@ -158,7 +128,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename ...Types>
-	ND_ forceinline SharedPtr<T>  MakeShared (Types&&... args)
+	ND_ forceinline SharedPtr<T>  MakeShared (Types&&... args)  __TH___
 	{
 		return std::make_shared<T>( FwdArg<Types>( args )... );
 	}
@@ -169,7 +139,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename ...Types>
-	ND_ forceinline Unique<T>  MakeUnique (Types&&... args)
+	ND_ forceinline Unique<T>  MakeUnique (Types&&... args)  __TH___
 	{
 		return std::make_unique<T>( FwdArg<Types>( args )... );
 	}
@@ -180,7 +150,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, typename B>
-	ND_ forceinline Pair<A,B>  MakePair (A&& first, B&& second)
+	ND_ forceinline Pair<A,B>  MakePair (A&& first, B&& second) __NE___
 	{
 		return Pair<A,B>{ FwdArg<A>(first), FwdArg<B>(second) };
 	}
@@ -190,12 +160,18 @@ namespace AE::Base
 namespace AE
 {
 #	if AE_NO_EXCEPTIONS == 0
-	class Exception final : public std::runtime_error
+	class Exception final
 	{
+	// types
+	private:
+		const char*		_what = "";
+
+	// methods
 	public:
-		explicit Exception (Base::StringView sv) : runtime_error{ Base::String{sv} } {}
-		explicit Exception (Base::String str) : runtime_error{ Base::RVRef(str) } {}
-		explicit Exception (const char *str) : runtime_error{ Base::String{str} } {}
+		explicit Exception (const char *str)		__NE___ : _what{str} {}
+		explicit Exception (const std::string &str)	__NE___ : _what{str.c_str()} {}
+
+		ND_ const char*  what ()					C_NE___ { return _what; }
 	};
 #	endif
 

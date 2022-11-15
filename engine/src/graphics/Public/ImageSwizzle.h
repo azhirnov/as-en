@@ -20,9 +20,9 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		constexpr ImageSwizzle () {}
+		constexpr ImageSwizzle () __NE___ {}
 
-		explicit ImageSwizzle (const uint4 &comp) : _value{0}
+		explicit ImageSwizzle (const uint4 &comp) __NE___ : _value{0}
 		{
 			ASSERT(All( comp < 7u ));
 
@@ -32,23 +32,23 @@ namespace AE::Graphics
 			_value |= (comp.w & 0xF);
 		}
 
-		ND_ constexpr uint  Get ()		 const	{ return _value; }
-		ND_ constexpr bool  IsDefault () const	{ return _value == ImageSwizzle().Get(); }
+		ND_ constexpr uint  Get ()		 C_NE___	{ return _value; }
+		ND_ constexpr bool  IsDefault () C_NE___	{ return _value == ImageSwizzle().Get(); }
 
-		ND_ uint4  ToVec () const
+		ND_ uint4			ToVec ()	C_NE___
 		{
 			return uint4( (_value >> 12) & 0xF, (_value >> 8) & 0xF, (_value >> 4) & 0xF, _value & 0xF );
 		}
 
-		ND_ constexpr bool  operator == (const ImageSwizzle &rhs) const	{ return _value == rhs._value; }
-		ND_ constexpr bool  operator >  (const ImageSwizzle &rhs) const	{ return _value >  rhs._value; }
+		ND_ constexpr bool  operator == (const ImageSwizzle &rhs) C_NE___	{ return _value == rhs._value; }
+		ND_ constexpr bool  operator >  (const ImageSwizzle &rhs) C_NE___	{ return _value >  rhs._value; }
 
 
-		friend constexpr ImageSwizzle  operator "" _swizzle (const char *str, const usize len);
+		friend constexpr ImageSwizzle  operator "" _swizzle (const char *str, const usize len) __NE___;
 
 
 	private:
-		static constexpr uint  _CharToValue (char c)
+		static constexpr uint  _CharToValue (char c) __NE___
 		{
 			return	c == 'r' or c == 'R'	? 1 :
 					c == 'g' or c == 'G'	? 2 :
@@ -65,7 +65,7 @@ namespace AE::Graphics
 	operator ""
 =================================================
 */
-	ND_ constexpr ImageSwizzle  operator "" _swizzle (const char *str, const usize len)
+	ND_ constexpr ImageSwizzle  operator "" _swizzle (const char *str, const usize len) __NE___
 	{
 		ASSERT( len > 0 and len <= 4 );
 
@@ -100,7 +100,7 @@ namespace std
 	template <>
 	struct hash< AE::Graphics::ImageSwizzle >
 	{
-		ND_ size_t  operator () (const AE::Graphics::ImageSwizzle &value) const
+		ND_ size_t  operator () (const AE::Graphics::ImageSwizzle &value) C_NE___
 		{
 			return size_t( value.Get() );
 		}

@@ -20,20 +20,19 @@ namespace
 	public:
 		FC_TestData&	t;
 
-		FC_TestTask (FC_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		FC_TestTask (FC_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
 		void  Run () override
 		{
 			DirectCtx::Transfer	ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 			
 			const uint	id = t.counter.fetch_add( 1 );
 			ctx.FillBuffer( t.buf, Bytes{id} * 4_b, 4_b, uint(GetFrameId().Unique()) );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -55,21 +54,17 @@ namespace
 			auto&	rts = RenderTaskScheduler();
 
 			AsyncTask	begin = rts.BeginFrame();
-			CHECK_TE( begin );
 
-			t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "FrameCounter" );
+			t.batch	 = rts.CreateBatch( EQueueType::Graphics, 0, "FrameCounter" );
 			CHECK_TE( t.batch );
 			
-			AsyncTask	test = t.batch->Add<FC_TestTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
-			CHECK_TE( test );
+			AsyncTask	test	= t.batch->Add<FC_TestTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
+			AsyncTask	end		= rts.EndFrame( Tuple{test} );
 
-			AsyncTask	end = rts.EndFrame( Tuple{test} );
-			CHECK_TE( end );
-
-			CHECK_TE( Continue( Tuple{end} ));
+			Continue( Tuple{end} );
 		}
 
-		StringView  DbgName () const override { return "FC_FrameTask"; }
+		StringView  DbgName ()	C_NE_OV	{ return "FC_FrameTask"; }
 	};
 
 

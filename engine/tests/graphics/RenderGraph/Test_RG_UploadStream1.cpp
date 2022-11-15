@@ -23,14 +23,13 @@ namespace
 	public:
 		US1_TestData&	t;
 
-		US1_UploadStreamTask (US1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName }, t{ t }
+		US1_UploadStreamTask (US1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor }, t{ t }
 		{}
 
 		void  Run () override
 		{
 			DirectCtx::Transfer	ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 
 			const Bytes	pos = t.stream.pos;
 
@@ -40,7 +39,7 @@ namespace
 			auto	arr = ArrayView<ubyte>{t.buffer_data}.section( usize(pos), UMax );
 			CHECK_TE( mem_view.Copy( arr ) == mem_view.DataSize() );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 			
 			const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
 			ASSERT( stat.dynamicWrite <= upload_limit );
@@ -71,21 +70,17 @@ namespace
 			cfg.stagingBufferPerFrameLimits.write = upload_limit;
 
 			AsyncTask	begin = rts.BeginFrame( cfg );
-			CHECK_TE( begin );
 
 			t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "UploadStream1" );
 			CHECK_TE( t.batch );
 			
-			AsyncTask	test = t.batch->Add<US1_UploadStreamTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
-			CHECK_TE( test );
+			AsyncTask	test	= t.batch->Add<US1_UploadStreamTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
+			AsyncTask	end		= rts.EndFrame( Tuple{test} );
 
-			AsyncTask	end = rts.EndFrame( Tuple{test} );
-			CHECK_TE( end );
-
-			CHECK_TE( Continue( Tuple{end} ));
+			Continue( Tuple{end} );
 		}
 
-		StringView  DbgName () const override { return "US1_FrameTask"; }
+		StringView  DbgName ()	C_NE_OV	{ return "US1_FrameTask"; }
 	};
 
 	

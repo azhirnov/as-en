@@ -89,40 +89,40 @@ namespace AE::Graphics
 		VDevice ();
 		~VDevice ();
 		
-		ND_ Extensions const&		GetExtensions ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _extensions; }
-		ND_ Properties const&		GetProperties ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _properties; }
-		ND_ ResourceFlags const&	GetResourceFlags ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
-		ND_ DeviceProperties const&	GetDeviceProperties ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _devProps; }
+		ND_ Extensions const&		GetExtensions ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _extensions; }
+		ND_ Properties const&		GetProperties ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _properties; }
+		ND_ ResourceFlags const&	GetResourceFlags ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
+		ND_ DeviceProperties const&	GetDeviceProperties ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _devProps; }
 
-		ND_ VkDevice				GetVkDevice ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _vkLogicalDevice; }
-		ND_ VkPhysicalDevice		GetVkPhysicalDevice ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _vkPhysicalDevice; }
-		ND_ VkInstance				GetVkInstance ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _vkInstance; }
-		ND_ InstanceVersion			GetInstanceVersion ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _vkInstanceVersion; }
-		ND_ DeviceVersion			GetDeviceVersion ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _vkDeviceVersion; }
-		ND_ SpirvVersion			GetSpirvVersion ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _spirvVersion; }
-		ND_ Version2				GetVkVersion ()				const	{ return GetDeviceVersion().Cast<0>(); }
-		ND_ ArrayView<VQueue>		GetQueues ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _queues; }
-		ND_ VQueuePtr				GetQueue (EQueueType type)	const	{ DRC_SHAREDLOCK( _drCheck );  return uint(type) < _queueTypes.size() ? _queueTypes[uint(type)] : null; }
-		ND_ EQueueMask				GetAvailableQueues ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
+		ND_ VkDevice				GetVkDevice ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkLogicalDevice; }
+		ND_ VkPhysicalDevice		GetVkPhysicalDevice ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkPhysicalDevice; }
+		ND_ VkInstance				GetVkInstance ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkInstance; }
+		ND_ InstanceVersion			GetInstanceVersion ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkInstanceVersion; }
+		ND_ DeviceVersion			GetDeviceVersion ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkDeviceVersion; }
+		ND_ SpirvVersion			GetSpirvVersion ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _spirvVersion; }
+		ND_ Version2				GetVkVersion ()				C_NE___	{ return GetDeviceVersion().Cast<0>(); }
+		ND_ ArrayView<VQueue>		GetQueues ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _queues; }
+		ND_ VQueuePtr				GetQueue (EQueueType type)	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint(type) < _queueTypes.size() ? _queueTypes[uint(type)] : null; }
+		ND_ EQueueMask				GetAvailableQueues ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
 
-		ND_ bool					IsInitialized ()			const	{ return GetVkDevice() != Default; }
+		ND_ bool					IsInitialized ()			C_NE___	{ return GetVkDevice() != Default; }
 
 		// check extensions
-		ND_ bool  HasInstanceExtension (StringView name) const;
-		ND_ bool  HasDeviceExtension (StringView name) const;
+		ND_ bool  HasInstanceExtension (StringView name)		C_NE___;
+		ND_ bool  HasDeviceExtension (StringView name)			C_NE___;
 		
-		bool  SetObjectName (ulong id, NtStringView name, VkObjectType type) const;
+		bool  SetObjectName (ulong id, NtStringView name, VkObjectType type) C_NE___;
 
-		void  GetQueueFamilies (EQueueMask mask, OUT VQueueFamilyIndices_t &) const;
+		void  GetQueueFamilies (EQueueMask mask, OUT VQueueFamilyIndices_t &) C_NE___;
 		
 		bool  GetMemoryTypeIndex (uint memoryTypeBits, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits optFlags,
-								  VkMemoryPropertyFlagBits excludeFlags, OUT uint &memoryTypeIndex) const;
-		bool  GetMemoryTypeIndex (uint memoryTypeBits, EMemoryType memType, OUT uint &memoryTypeIndex) const;
+								  VkMemoryPropertyFlagBits excludeFlags, OUT uint &memoryTypeIndex)		C_NE___;
+		bool  GetMemoryTypeIndex (uint memoryTypeBits, EMemoryType memType, OUT uint &memoryTypeIndex)	C_NE___;
 		
-		bool  CheckConstantLimits () const;
-		bool  CheckExtensions () const;
+		bool  CheckConstantLimits ()			C_NE___;
+		bool  CheckExtensions ()				C_NE___;
 
-		void  InitFeatureSet (OUT FeatureSet &) const;
+		void  InitFeatureSet (OUT FeatureSet &) C_NE___;
 	};
 
 
@@ -141,7 +141,7 @@ namespace AE::Graphics
 			VkQueueFlagBits				includeFlags	= Zero;
 			VkQueueFlagBits				excludeFlags	= Zero;
 			float						priority		= 0.0f;
-			VkQueueGlobalPriorityEXT	globalPriority	= VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_EXT;
+			VkQueueGlobalPriorityKHR	globalPriority	= VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR;
 			FixedString<64>				debugName;
 
 		// methods
@@ -150,7 +150,7 @@ namespace AE::Graphics
 			explicit QueueCreateInfo (VkQueueFlagBits			includeFlags,
 									  VkQueueFlagBits			excludeFlags	= Zero,
 									  float						priority		= 0.0f,
-									  VkQueueGlobalPriorityEXT	globalPriority	= VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_EXT,
+									  VkQueueGlobalPriorityKHR	globalPriority	= VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR,
 									  StringView				name			= {}) :
 				includeFlags{includeFlags}, excludeFlags{excludeFlags},
 				priority{priority}, globalPriority{globalPriority},
@@ -241,9 +241,9 @@ namespace AE::Graphics
 		void  _ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers, INOUT uint &version) const;
 		void  _ValidateInstanceLayers (INOUT Array<const char*> &layers) const;
 		void  _ValidateInstanceExtensions (INOUT Array<const char*> &ext) const;
-		void  _ValidateDeviceExtensions (INOUT Array<const char*> &ext) const;
+		void  _ValidateDeviceExtensions (VkPhysicalDevice physDev, INOUT Array<const char*> &ext) const;
 		void  _ValidateSpirvVersion (OUT SpirvVersion &ver) const;
-		void  _UpdateDeviceVersion ();
+		void  _UpdateDeviceVersion (VkPhysicalDevice physicalDevice, OUT DeviceVersion &devVersion) const;
 		void  _SetResourceFlags (OUT ResourceFlags &) const;
 		void  _OnCreateInstance (ArrayView<const char*> instanceExtensions, ArrayView<const char*> instanceLayers);
 		void  _InitDeviceProperties (OUT DeviceProperties &props) const;
@@ -266,8 +266,8 @@ namespace AE::Graphics
 			_DebugReportCallback (VkDebugReportFlagsEXT			flags,
 								  VkDebugReportObjectTypeEXT	objectType,
 								  ulong							object,
-								  size_t						/*location*/,
-								  int32_t						/*messageCode*/,
+								  usize							/*location*/,
+								  int							/*messageCode*/,
 								  const char*					/*pLayerPrefix*/,
 								  const char*					pMessage,
 								  void*							pUserData);

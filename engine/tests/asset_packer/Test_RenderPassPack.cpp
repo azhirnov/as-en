@@ -38,18 +38,20 @@ namespace
 		auto		mem_stream = MakeRC<MemRStream>();
 		{
 			uint	name;
-			TEST( file->Read( OUT name ) and name == PackOffsets_Name );
+			TEST( file->Read( OUT name ));
+			TEST_EQ( name, PackOffsets_Name );
 
 			PipelinePackOffsets		offsets;
 			TEST( file->Read( OUT offsets ));
-			TEST( offsets.renderPassOffset < ulong(file->Size()) );
+			TEST_L( offsets.renderPassOffset, ulong(file->Size()) );
 			
 			auto	mem_stream2 = MakeRC<MemRStream>();
 			TEST( file->SeekSet( Bytes{offsets.nameMappingOffset} ));
 			TEST( mem_stream2->LoadRemaining( *file, Bytes{offsets.nameMappingDataSize} ));
 
 			Serializing::Deserializer	des{ mem_stream2 };
-			TEST( des( OUT name ) and name == NameMapping_Name );
+			TEST( des( OUT name ))
+			TEST_EQ( name, NameMapping_Name );
 			TEST( hash_to_name.Deserialize( des ));
 
 			TEST( file->SeekSet( Bytes{offsets.renderPassOffset} ));
@@ -61,8 +63,8 @@ namespace
 			uint	version = 0;
 			uint	name	= 0;
 			TEST( des( OUT name, OUT version ));
-			TEST( name == RenderPassPack_Name );
-			TEST( version == RenderPassPack_Version );
+			TEST_EQ( name, RenderPassPack_Name );
+			TEST_EQ( version, RenderPassPack_Version );
 		}
 
 		uint	compat_rp_count = 0;
@@ -80,8 +82,8 @@ namespace
 			{
 				uint	vk_ver		= 0;
 				uint	spec_count	= 0;
-				TEST( des( vk_ver, spec_count ));
-				TEST( vk_ver == RenderPassPack_VkRpBlock );
+				TEST( des( OUT vk_ver, OUT spec_count ));
+				TEST_EQ( vk_ver, RenderPassPack_VkRpBlock );
 				
 				SerializableVkRenderPass	vk_compat;
 				TEST( vk_compat.Deserialize( des ));
@@ -91,10 +93,10 @@ namespace
 				{
 					SerializableVkRenderPass	vk_rp;
 					TEST( vk_rp.Deserialize( des ));
-					TEST( vk_compat->attachmentCount		 == vk_rp->attachmentCount );
-					TEST( vk_compat->subpassCount			 == vk_rp->subpassCount );
-					TEST( vk_compat->dependencyCount		 == vk_rp->dependencyCount );
-					TEST( vk_compat->correlatedViewMaskCount == vk_rp->correlatedViewMaskCount );
+					TEST_EQ( vk_compat->attachmentCount,		 vk_rp->attachmentCount );
+					TEST_EQ( vk_compat->subpassCount,			 vk_rp->subpassCount );
+					TEST_EQ( vk_compat->dependencyCount,		 vk_rp->dependencyCount );
+					TEST_EQ( vk_compat->correlatedViewMaskCount, vk_rp->correlatedViewMaskCount );
 					ser_str += vk_rp.ToString( hash_to_name );
 				}
 			}
@@ -105,8 +107,8 @@ namespace
 			{
 				uint	mtl_ver		= 0;
 				uint	spec_count	= 0;
-				TEST( des( mtl_ver, spec_count ));
-				TEST( mtl_ver == RenderPassPack_MtlRpBlock );
+				TEST( des( OUT mtl_ver, OUT spec_count ));
+				TEST_EQ( mtl_ver, RenderPassPack_MtlRpBlock );
 				
 				SerializableMtlRenderPass	mtl_compat;
 				TEST( mtl_compat.Deserialize( des ));

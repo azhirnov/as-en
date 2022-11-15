@@ -52,7 +52,8 @@ namespace
 		PipelinePackOffsets		offsets;
 		{
 			uint	name;
-			TEST( file->Read( OUT name ) and name == PackOffsets_Name );
+			TEST( file->Read( OUT name ));
+			TEST_EQ( name, PackOffsets_Name );
 
 			TEST( file->Read( OUT offsets ));
 			TEST( offsets.pipelineOffset < ulong(file->Size()) );
@@ -70,7 +71,8 @@ namespace
 			Serializing::Deserializer	des{ mem_stream2 };
 			
 			uint	name;
-			TEST( des( OUT name ) and name == NameMapping_Name );
+			TEST( des( OUT name ));
+			TEST_EQ( name, NameMapping_Name );
 			TEST( hash_to_name.Deserialize( des ));
 		}
 		
@@ -79,8 +81,8 @@ namespace
 			uint	version = 0;
 			uint	name	= 0;
 			TEST( des( OUT name, OUT version ));
-			TEST( name == PipelinePack_Name );
-			TEST( version == PipelinePack_Version );
+			TEST_EQ( name, PipelinePack_Name );
+			TEST_EQ( version, PipelinePack_Version );
 		}
 
 		String					ser_str;
@@ -92,7 +94,7 @@ namespace
 			if_unlikely( not des( OUT marker ))
 				break;
 
-			TEST( uint(marker) < unique.size() );
+			TEST_L( uint(marker), unique.size() );
 			TEST( not unique.contains( marker ));
 			unique.insert( marker );
 
@@ -239,14 +241,14 @@ namespace
 		
 					ser_str << ArrayToString( "SpirvShaders", spirv_shaders, hash_to_name );
 					{
-						TEST( offsets.shaderOffset < ulong(file->Size()) );
+						TEST_L( offsets.shaderOffset, ulong(file->Size()) );
 						TEST( file->SeekSet( Bytes{offsets.shaderOffset} ));
 
 						uint	version = 0;
 						uint	name	= 0;
 						TEST( file->Read( OUT name ) and file->Read( OUT version ));
-						TEST( name == ShaderPack_Name );
-						TEST( version == ShaderPack_Version );
+						TEST_EQ( name, ShaderPack_Name );
+						TEST_EQ( version, ShaderPack_Version );
 					}
 
 					// read shader data
@@ -275,14 +277,14 @@ namespace
 		
 					ser_str << ArrayToString( "MetaliOSShaders", metal_shaders, hash_to_name );
 					{
-						TEST( offsets.shaderOffset < ulong(file->Size()) );
+						TEST_L( offsets.shaderOffset, ulong(file->Size()) );
 						TEST( file->SeekSet( Bytes{offsets.shaderOffset} ));
 
 						uint	version = 0;
 						uint	name	= 0;
 						TEST( file->Read( OUT name ) and file->Read( OUT version ));
-						TEST( name == ShaderPack_Name );
-						TEST( version == ShaderPack_Version );
+						TEST_EQ( name, ShaderPack_Name );
+						TEST_EQ( version, ShaderPack_Version );
 					}
 					
 					// read shader data
@@ -311,14 +313,14 @@ namespace
 		
 					ser_str << ArrayToString( "MetalMacShaders", metal_shaders, hash_to_name );
 					{
-						TEST( offsets.shaderOffset < ulong(file->Size()) );
+						TEST_L( offsets.shaderOffset, ulong(file->Size()) );
 						TEST( file->SeekSet( Bytes{offsets.shaderOffset} ));
 
 						uint	version = 0;
 						uint	name	= 0;
 						TEST( file->Read( OUT name ) and file->Read( OUT version ));
-						TEST( name == ShaderPack_Name );
-						TEST( version == ShaderPack_Version );
+						TEST_EQ( name, ShaderPack_Name );
+						TEST_EQ( version, ShaderPack_Version );
 					}
 					
 					// read shader data

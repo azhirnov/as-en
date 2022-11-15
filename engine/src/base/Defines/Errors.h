@@ -45,18 +45,24 @@
 #ifndef ASSERT
 # ifdef AE_DEBUG
 #	define ASSERT									CHECK		// TODO: DBG_CHECK
-#	define ASSERT_EQ								CHECK_EQ
-#	define ASSERT_GR								CHECK_GR
-#	define ASSERT_GE								CHECK_GE
+#	define ASSERT_EQ								CHECK_EQ	// ==
+#	define ASSERT_NE								CHECK_NE	// !=
+#	define ASSERT_G									CHECK_G		// >
+#	define ASSERT_GE								CHECK_GE	// >=
+#	define ASSERT_L									CHECK_L		// <
+#	define ASSERT_LE								CHECK_LE	// <=
 #	define DBG_CHECK_ERR							CHECK_ERR
 #	define DBG_CHECK_MSG							CHECK_MSG
 #	define DBG_CHECK_ERR_MSG						CHECK_ERR_MSG
 #	define DBG_WARNING( _msg_ )						CHECK_MSG( false, _msg_ )
 # else
 #	define ASSERT( /* expr */... )					{}
-#	define ASSERT_EQ( _lhs_, _rhs_ )				{}
-#	define ASSERT_GR( _lhs_, _rhs_ )				{}
-#	define ASSERT_GE( _lhs_, _rhs_ )				{}
+#	define ASSERT_EQ( /* lhs, rhs */... )			{}			// ==
+#	define ASSERT_NE( /* lhs, rhs */... )			{}			// !=
+#	define ASSERT_G(  /* lhs, rhs */... )			{}			// >
+#	define ASSERT_GE( /* lhs, rhs */... )			{}			// >=
+#	define ASSERT_L(  /* lhs, rhs */... )			{}			// <
+#	define ASSERT_LE( /* lhs, rhs */... )			{}			// <=
 #	define DBG_CHECK_ERR( /* expr, return */... )	{}
 #	define DBG_CHECK_MSG( /* expr, message */... )	{}
 #	define DBG_CHECK_ERR_MSG( /* expr, msg */... )	{}
@@ -108,18 +114,28 @@
 # endif
 #endif
 
+// log info
 #ifndef AE_LOGI
 #	define AE_LOGI( /* msg, file, line */... ) \
-			AE_PRIVATE_LOGI( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ), \
-							 AE_PRIVATE_GETARG_1( __VA_ARGS__, __FILE__ ), \
-							 AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__ ))
+			AE_PRIVATE_LOG_I( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ), \
+							  AE_PRIVATE_GETARG_1( __VA_ARGS__, __FILE__ ), \
+							  AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__ ))
 #endif
 
+// log error
 #ifndef AE_LOGE
 #	define AE_LOGE( /* msg, file, line */... ) \
-			AE_PRIVATE_LOGE( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ), \
-							 AE_PRIVATE_GETARG_1( __VA_ARGS__, __FILE__ ), \
-							 AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__ ))
+			AE_PRIVATE_LOG_E( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ), \
+							  AE_PRIVATE_GETARG_1( __VA_ARGS__, __FILE__ ), \
+							  AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__ ))
+#endif
+
+// log silent error
+#ifndef AE_LOG_SE
+#	define AE_LOG_SE( /* msg, file, line */... ) \
+			AE_PRIVATE_LOG_SE( AE_PRIVATE_GETARG_0( __VA_ARGS__, "" ), \
+							   AE_PRIVATE_GETARG_1( __VA_ARGS__, __FILE__ ), \
+							   AE_PRIVATE_GETARG_2( __VA_ARGS__, __FILE__, __LINE__ ))
 #endif
 
 
@@ -150,11 +166,11 @@
 
 #	define CHECK_ERR( /* expr, return_if_false */... ) \
 		AE_PRIVATE_CHECK_ERR(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
-								AE_PRIVATE_GETARG_1( __VA_ARGS__, ::AE::Base::Default ))
+								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
 
 #	define CHECK_ERR_MSG( /* expr, message */... ) \
 		AE_PRIVATE_CHECK_ERR2(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
-								::AE::Base::Default, \
+								AE::Base::Default, \
 								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( AE_PRIVATE_GETARG_0( __VA_ARGS__ ))) )
 
 #	define CHECK_ERRV( /* expr */... ) \
@@ -164,12 +180,15 @@
 
 // check function return value and exit
 #if 1
-#	define CHECK_FATAL( /* expr */... ) \
-		{if_likely(( __VA_ARGS__ )) {} \
+#	define CHECK_FATAL_MSG( _expr_, _text_ ) \
+		{if_likely(( _expr_ )) {} \
 		 else_unlikely { \
-			AE_LOGE( AE_TOSTRING( __VA_ARGS__ )); \
+			AE_LOGE( _text_ ); \
 			AE_PRIVATE_EXIT(); \
 		}}
+
+#	define CHECK_FATAL( /* expr */... ) \
+		CHECK_FATAL_MSG( (__VA_ARGS__), AE_TOSTRING( __VA_ARGS__ ))
 #endif
 
 
@@ -179,7 +198,7 @@
 		{ AE_LOGE( _text_ );  return (_ret_); }
 
 #	define RETURN_ERR( /* msg, return */... ) \
-		AE_PRIVATE_RETURN_ERR( AE_PRIVATE_GETARG_0( __VA_ARGS__ ), AE_PRIVATE_GETARG_1( __VA_ARGS__, ::AE::Base::Default ))
+		AE_PRIVATE_RETURN_ERR( AE_PRIVATE_GETARG_0( __VA_ARGS__ ), AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
 #endif
 
 
@@ -189,11 +208,28 @@
 		{if_likely(( _expr_ )) {} \
 		 else_unlikely { \
 			AE_LOGE( AE_TOSTRING( _text_ )); \
-			return OnFailure(); \
+			STATIC_ASSERT( IsBaseOf< AE::Threading::IAsyncTask, AE::Base::RemoveAllQualifiers<decltype(*this)> >); \
+			return this->OnFailure(); /* call 'IAsyncTask::OnFailure()' */\
 		}}
 
 #	define CHECK_TE( /* expr, message */... ) \
 		AE_PRIVATE_CHECK_TASK(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
+								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( __VA_ARGS__ )) )
+#endif
+
+
+// same as CHECK_ERR for using inside coroutine
+#if 1
+#	define AE_PRIVATE_CHECK_CORO( _expr_, _text_ ) \
+		{if_likely(( _expr_ )) {} \
+		 else_unlikely { \
+			AE_LOGE( AE_TOSTRING( _text_ )); \
+			co_await AE::Threading::_hidden_::CoroutineRunnerError{};	/* call 'IAsyncTask::OnFailure()' */\
+			co_return;	/* exit from coroutine */\
+		}}
+
+#	define CHECK_CE( /* expr, message */... ) \
+		AE_PRIVATE_CHECK_CORO(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
 								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( __VA_ARGS__ )) )
 #endif
 
@@ -209,27 +245,56 @@
 //
 #if 1
 #	define AE_PRIVATE_CHECK_OP( _lhs_, _op_, _rhs_ ) \
-		CHECK_MSG( All( (_lhs_) _op_ (_rhs_) ), \
-			String{AE_TOSTRING( _lhs_ )} << " (" << ToString(_lhs_) << ") " << AE_TOSTRING(_op_) << " (" << ToString(_rhs_) << ") " << AE_TOSTRING( _rhs_ ))
+		CHECK_MSG( AE::Math::All( (_lhs_) _op_ (_rhs_) ), \
+			AE::Base::String{AE_TOSTRING( _lhs_ )} << " (" << AE::Base::ToString(_lhs_) << ") " << AE_TOSTRING(_op_) << " (" << AE::Base::ToString(_rhs_) << ") " << AE_TOSTRING( _rhs_ ))
 
 #	define CHECK_EQ( _lhs_, _rhs_ )		AE_PRIVATE_CHECK_OP( (_lhs_), ==, (_rhs_) )
-#	define CHECK_GR( _lhs_, _rhs_ )		AE_PRIVATE_CHECK_OP( (_lhs_), >,  (_rhs_) )
+#	define CHECK_NE( _lhs_, _rhs_ )		AE_PRIVATE_CHECK_OP( (_lhs_), !=, (_rhs_) )
+#	define CHECK_G(  _lhs_, _rhs_ )		AE_PRIVATE_CHECK_OP( (_lhs_), >,  (_rhs_) )
 #	define CHECK_GE( _lhs_, _rhs_ )		AE_PRIVATE_CHECK_OP( (_lhs_), >=, (_rhs_) )
+#	define CHECK_L(  _lhs_, _rhs_ )		AE_PRIVATE_CHECK_OP( (_lhs_), <,  (_rhs_) )
+#	define CHECK_LE( _lhs_, _rhs_ )		AE_PRIVATE_CHECK_OP( (_lhs_), <=, (_rhs_) )
 #endif
 
 
 #if AE_NO_EXCEPTIONS == 0
-#	define AE_PRIVATE_CHECK_THROW( _expr_, _text_ ) \
+#	define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ ) \
 		{if_likely(( _expr_ )) {}\
 		 else_unlikely { \
 			AE_LOGE( _text_ ); \
 			throw AE::Exception{ _text_ }; \
 		}}
 
-#	define CHECK_THROW( /* expr, msg */... ) \
-		AE_PRIVATE_CHECK_THROW(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
-								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( __VA_ARGS__ )) )
+#	define CHECK_THROW_MSG( /* expr, msg */... ) \
+		AE_PRIVATE_CHECK_THROW_MSG(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
+									AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( __VA_ARGS__ )) )
 
-	// function can throw exception
-#	define THROW( /* any params */... )		noexcept(false)
+#endif
+
+#if 1
+#	define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ ) \
+		{if_likely(( _expr_ )) {}\
+		 else_unlikely { \
+			throw (_exception_); \
+		}}
+
+#	define CHECK_THROW( /*expr, exception*/... ) \
+		AE_PRIVATE_CHECK_THROW(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
+								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
+
+#	define CATCH( ... ) \
+		try { __VA_ARGS__; } \
+		catch(...) {}
+
+#	define AE_PRIVATE_CATCH_ERR( _src_, _return_on_exc_ ) \
+		try { _src_; } \
+		catch(...) { \
+			AE_LOGE( AE::Base::String{"catched exception from: "} + AE_TOSTRING(_src_) ); \
+			return _return_on_exc_; \
+		}
+
+#	define CATCH_ERR( /* expr, return_on_exc*/... ) \
+		AE_PRIVATE_CATCH_ERR( AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
+							  AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
+
 #endif

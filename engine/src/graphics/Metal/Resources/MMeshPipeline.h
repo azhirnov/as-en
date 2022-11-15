@@ -24,6 +24,7 @@ namespace AE::Graphics
 			MPipelineLayoutID									layoutId;
 			ArrayView< MPipelinePack::ShaderModuleRef >			shaders;
 			PipelineCacheID										cacheId;
+			MPipelinePack::Allocator_t *							allocator		= null;
 		};
 
 
@@ -32,11 +33,11 @@ namespace AE::Graphics
 		MetalRenderPipelineRC		_pipeline;
 		MetalDepthStencilStateRC	_dsState;
 		MDynamicRenderState			_renderState;
+
+		ushort3						_meshLocalSize;
+		ushort3						_taskLocalSize;
 		
 		EPipelineDynamicState		_dynamicState		= Default;
-
-		ushort3						_taskGroupSize;
-		ushort3						_meshGroupSize;
 		
 		Strong<MPipelineLayoutID>	_layoutId;
 		
@@ -58,8 +59,8 @@ namespace AE::Graphics
 		ND_ MPipelineLayoutID			LayoutID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ EPipelineDynamicState		DynamicState ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
 
-		ND_ uint3						TaskLocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _taskGroupSize; }
-		ND_ uint3						MeshLocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _meshGroupSize; }
+		ND_ uint3						TaskLocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_taskLocalSize}; }
+		ND_ uint3						MeshLocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_meshLocalSize}; }
 		
 		DEBUG_ONLY(  ND_ StringView		GetDebugName ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};

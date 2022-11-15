@@ -66,8 +66,8 @@ namespace AE::Graphics
 	class VFramebuffer;
 	class VCommandPoolManager;
 	class VCommandBatch;
-	class VRenderTask;
-	class VDrawTask;
+	class RenderTask;
+	class DrawTask;
 
 	DEBUG_ONLY(
 		using DebugName_t = FixedString<64>;
@@ -75,8 +75,8 @@ namespace AE::Graphics
 
 	// Used for temporary allocations.
 	// thread-safe: no
-	using VTempLinearAllocator	= LinearAllocator< UntypedAlignedAllocator, 8, false >;	// TODO: use fast block allocator
-	using VTempStackAllocator	= StackAllocator< UntypedAlignedAllocator, 8, false >;
+	using VTempLinearAllocator	= LinearAllocator< UntypedAllocator, 8, false >;	// TODO: use fast block allocator
+	using VTempStackAllocator	= StackAllocator< UntypedAllocator, 8, false >;
 
 	
 	using VSamplerID			= HandleTmpl< 16, 16, Graphics::_hidden_::VulkanIDs_Start + 1 >;

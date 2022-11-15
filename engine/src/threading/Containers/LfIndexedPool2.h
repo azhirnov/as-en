@@ -32,7 +32,7 @@ namespace AE::Threading
 			  typename IndexType,
 			  usize ChunkSize_v = 256,
 			  usize MaxChunks_v = 16,
-			  typename AllocatorType = UntypedAlignedAllocator
+			  typename AllocatorType = UntypedAllocator
 			 >
 	struct LfIndexedPool2 final
 	{
@@ -98,48 +98,47 @@ namespace AE::Threading
 
 	// methods
 	public:
-		LfIndexedPool2 (const Self &) = delete;
-		LfIndexedPool2 (Self &&) = delete;
+		LfIndexedPool2 (const Self &)	= delete;
+		LfIndexedPool2 (Self &&)		= delete;
 
-		Self& operator = (const Self &) = delete;
-		Self& operator = (Self &&) = delete;
+		Self& operator = (const Self &)	= delete;
+		Self& operator = (Self &&)		= delete;
 		
 
-		explicit LfIndexedPool2 (const Allocator_t &alloc = Default);
-		~LfIndexedPool2 ()												{ Release(); }
+		explicit LfIndexedPool2 (const Allocator_t &alloc = Default)__NE___;
+		~LfIndexedPool2 ()											__NE___	{ Release(); }
 	
 		template <typename FN>
-		void Release (FN &&dtor, bool checkForAssigned);
-		void Release (bool checkForAssigned = true)						{ return Release( [](Value_t& value) { value.~Value_t(); }, checkForAssigned ); }
+		void Release (FN &&dtor, bool checkForAssigned)				__NE___;
+		void Release (bool checkForAssigned = true)					__NE___	{ return Release( [](Value_t& value) { value.~Value_t(); }, checkForAssigned ); }
 		
 		template <typename FN>
-		ND_ bool  Assign (OUT Index_t &outIndex, FN &&ctor);
-		ND_ bool  Assign (OUT Index_t &outIndex)						{ return Assign( OUT outIndex, [](Value_t* ptr, Index_t) { PlacementNew<Value_t>( ptr ); }); }
+		ND_ bool  Assign (OUT Index_t &outIndex, FN &&ctor)			__NE___;
+		ND_ bool  Assign (OUT Index_t &outIndex)					__NE___	{ return Assign( OUT outIndex, [](Value_t* ptr, Index_t) { PlacementNew<Value_t>( ptr ); }); }
 		
 		template <typename FN>
-		ND_ bool  AssignAt (Index_t index, OUT Value_t* &outValue, FN &&ctor);
-		ND_ bool  AssignAt (Index_t index, OUT Value_t* &outValue)		{ return AssignAt( index, OUT outValue, [](Value_t* ptr, Index_t) { PlacementNew<Value_t>( ptr ); }); }
+		ND_ bool  AssignAt (Index_t index, OUT Value_t* &outValue, FN &&ctor) __NE___;
+		ND_ bool  AssignAt (Index_t index, OUT Value_t* &outValue)	__NE___	{ return AssignAt( index, OUT outValue, [](Value_t* ptr, Index_t) { PlacementNew<Value_t>( ptr ); }); }
 
-			bool  Unassign (Index_t index);
+			bool  Unassign (Index_t index)							__NE___;
 	
-		ND_ bool  IsAssigned (Index_t index);
+		ND_ bool  IsAssigned (Index_t index)						__NE___;
 
-		ND_ Value_t&  operator [] (Index_t index);
+		ND_ Value_t&  operator [] (Index_t index)					__NE___;
 		
-		ND_ static constexpr usize  capacity ()							{ return ChunkSize * MaxChunks; }
+		ND_ static constexpr usize  capacity ()						__NE___	{ return ChunkSize * MaxChunks; }
 		
-		ND_ static constexpr Bytes  MaxSize ()							{ return (MaxChunks * SizeOf<ValueChunk_t>) + sizeof(Self); }
+		ND_ static constexpr Bytes  MaxSize ()						__NE___	{ return (MaxChunks * SizeOf<ValueChunk_t>) + sizeof(Self); }
 
 
 	private:
 		template <typename FN>
-		bool  _AssignInChunk (OUT Index_t &outIndex, int chunkIndex, const FN &ctor);
+		bool  _AssignInChunk (OUT Index_t &outIndex, int chunkIndex, const FN &ctor) __NE___;
 
 		template <typename FN>
-		bool  _AssignInLowLevel (OUT Index_t &outIndex, int chunkIndex, int hiLevelIndex, ValueChunk_t &data, const FN &ctor);
+		bool  _AssignInLowLevel (OUT Index_t &outIndex, int chunkIndex, int hiLevelIndex, ValueChunk_t &data, const FN &ctor) __NE___;
 
-		void  _UpdateHiLevel (int chunkIndex, int hiLevelIndex);
+		void  _UpdateHiLevel (int chunkIndex, int hiLevelIndex) __NE___;
 	};
-
-
-}	// AE::Threading
+	
+} // AE::Threading

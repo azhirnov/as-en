@@ -263,8 +263,9 @@ namespace AE::Graphics
 
 			for (uint i = 0; i < segments; ++i)
 			{
-				float	a = 2.0f * float(Pi) * float(i) / segments;
-				float2	p = center + scale * float2{cos(a), sin(a)};
+				float	a  = 2.0f * float(Pi) * float(i) / segments;
+				float2	sc = SinCos( Rad{a} );
+				float2	p  = center + scale * float2{sc[1], sc[0]};
 				
 				pos[i]  = PosType{ p };
 				attr[i] = AttribType{ float2{}, color };
@@ -335,7 +336,8 @@ namespace AE::Graphics
 			for (uint i = 0; i < segments;)
 			{
 				float	angle	= 2.0f * float(Pi) * float(i) / segments;
-				float2	factor	= float2{cos(angle), sin(angle)};
+				float2	sc		= SinCos( Rad{angle} );
+				float2	factor	= float2{sc[1], sc[0]};
 				float2	p		= center + scale * factor;
 				float2	texc	= tc_bias + tc_scale * factor;
 				

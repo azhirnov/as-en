@@ -36,11 +36,12 @@ namespace
 		auto	mem_stream = MakeRC<MemRStream>();
 		{
 			uint	name;
-			TEST( file->Read( OUT name ) and name == PackOffsets_Name );
+			TEST( file->Read( OUT name ));
+			TEST_EQ( name, PackOffsets_Name );
 
 			PipelinePackOffsets		offsets;
 			TEST( file->Read( OUT offsets ));
-			TEST( offsets.featureSetOffset < ulong(file->Size()) );
+			TEST_L( offsets.featureSetOffset, ulong(file->Size()) );
 
 			TEST( file->SeekSet( Bytes{offsets.featureSetOffset} ));
 			TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.featureSetDataSize} ));
@@ -51,15 +52,17 @@ namespace
 			uint	version = 0;
 			uint	name	= 0;
 			TEST( des( OUT name, OUT version ));
-			TEST( name == FeatureSetPack_Name );
-			TEST( version == FeatureSetPack_Version );
+			TEST_EQ( name, FeatureSetPack_Name );
+			TEST_EQ( version, FeatureSetPack_Version );
 		}
 
 		uint	fs_size = 0;
-		TEST( des( OUT fs_size ) and fs_size == sizeof(FeatureSet) );
+		TEST( des( OUT fs_size ));
+		TEST_EQ( fs_size, sizeof(FeatureSet) );
 
 		uint	count = 0;
-		TEST( des( OUT count ) and count == 34 );
+		TEST( des( OUT count ));
+		TEST_EQ( count, 34 );
 		
 		for (uint i = 0; i < count; ++i)
 		{

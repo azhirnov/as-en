@@ -12,7 +12,7 @@ namespace AE::GeometryTools
 	// Spherical Cube Generator
 	//
 
-	class SphericalCubeGen final : public SphericalCubeProjection< TangentialSphericalCube, TextureProjection >
+	class SphericalCubeGen : public SphericalCubeProjection< TangentialSphericalCube, TextureProjection >
 	{
 	// types
 	public:
@@ -31,7 +31,7 @@ namespace AE::GeometryTools
 
 
 	// variables
-	private:
+	protected:
 		Array<Vertex>	_vertices;
 		Array<uint>		_indices;
 
@@ -52,6 +52,8 @@ namespace AE::GeometryTools
 	
 		ND_ static uint  CalcFaceIndexCount (uint lod, bool useQuads);
 		ND_ static uint  CalcIndexCount (uint lod, bool useQuads);
+		
+		ND_ static bool  RayCast (const float3 &center, float radius, const float3 &begin, const float3 &end, OUT float3 &outIntersection);
 	};
 
 

@@ -49,13 +49,13 @@ namespace AE::Graphics
 
 		ND_ static RTASBuildSizes	GetBuildSizes (const VResourceManager &, const RTGeometryBuild &desc);
 
-		ND_ static bool				ConvertBuildInfo (const VResourceManager &, IAlignedAllocatorRef allocator, const RTGeometryBuild &desc,
+		ND_ static bool				ConvertBuildInfo (const VResourceManager &, IAllocatorRef allocator, const RTGeometryBuild &desc,
 													  OUT VkAccelerationStructureBuildRangeInfoKHR* &ranges,
 													  OUT VkAccelerationStructureBuildGeometryInfoKHR &buildInfo);
 
 	private:
 		template <bool IsForBuilding>
-		ND_ static bool  _Convert (const VResourceManager &, const RTGeometryBuild &desc, IAlignedAllocatorRef allocator,
+		ND_ static bool  _Convert (const VResourceManager &, const RTGeometryBuild &desc, IAllocatorRef allocator,
 								   OUT uint* &primitiveCount, OUT VkAccelerationStructureBuildRangeInfoKHR* &ranges,
 								   OUT VkAccelerationStructureBuildGeometryInfoKHR &buildInfo);
 	};

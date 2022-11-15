@@ -39,10 +39,10 @@ namespace AE::Graphics
 			uint			strikeout	: 1;	// [s]
 			CharUtf8		string[1];			// null terminated utf8 string
 
-			Chunk () = default;
+			Chunk ()						__NE___ = default;
 
-			ND_ float			Height ()	const	{ return float(height); }
-			ND_ U8StringView	Text ()		const	{ return U8StringView{ string, length }; }
+			ND_ float			Height ()	C_NE___	{ return float(height); }
+			ND_ U8StringView	Text ()		C_NE___	{ return U8StringView{ string, length }; }
 		};
 
 		using Self			= FormattedText;
@@ -58,31 +58,31 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		FormattedText ()												{ _alloc.SetBlockSize( 512_b ); }
-		explicit FormattedText (StringView str) : FormattedText()		{ Append( str ); }
-		explicit FormattedText (U8StringView str) : FormattedText()		{ Append( str ); }
-		FormattedText (const FormattedText &other) : FormattedText()	{ Append( other ); }
-		FormattedText (FormattedText &&other) : _first{other._first}, _alloc{RVRef(other._alloc)} { other._first = null; }
+		FormattedText ()										__NE___	{ _alloc.SetBlockSize( 512_b ); }
+		explicit FormattedText (StringView str)					__TH___	: FormattedText()	{ Append( str ); }
+		explicit FormattedText (U8StringView str)				__TH___	: FormattedText()	{ Append( str ); }
+		FormattedText (const FormattedText &other)				__TH___	: FormattedText()	{ Append( other ); }
+		FormattedText (FormattedText &&other)					__NE___	: _first{other._first}, _alloc{RVRef(other._alloc)} { other._first = null; }
 
-		Self&  Append (const FormattedText &);
-		Self&  Append (U8StringView str);
-		Self&  Append (StringView str);
+		Self&  Append (const FormattedText &)					__TH___;
+		Self&  Append (U8StringView str)						__TH___;
+		Self&  Append (StringView str)							__TH___;
 
-		void   Clear ();
+		void   Clear ()											__NE___;
 
-		FormattedText&  operator = (const FormattedText &rhs)	{ _alloc.Discard();  _first = null;  Append( rhs );  return *this; }
-		FormattedText&  operator = (FormattedText &&rhs)		{ _alloc = RVRef(rhs._alloc);  _first = rhs._first;  rhs._first = null;  return *this; }
+		FormattedText&  operator = (const FormattedText &rhs)	__TH___	{ _alloc.Discard();  _first = null;  Append( rhs );  return *this; }
+		FormattedText&  operator = (FormattedText &&rhs)		__NE___	{ _alloc = RVRef(rhs._alloc);  _first = rhs._first;  rhs._first = null;  return *this; }
 
-		ND_ bool			Empty ()		const				{ return _first == null; }
-		ND_ Chunk const*	GetFirst ()		const				{ return _first; }
-		ND_ uint			GetMaxChars ()	const				{ return _maxChars; }
+		ND_ bool			Empty ()							C_NE___	{ return _first == null; }
+		ND_ Chunk const*	GetFirst ()							C_NE___	{ return _first; }
+		ND_ uint			GetMaxChars ()						C_NE___	{ return _maxChars; }
 
-		ND_ U8String		ToString ()		const;
+		ND_ U8String		ToString ()							C______;
 		
 
 		// ISerializable //
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)				C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &)			__NE_OV;
 	};
 	
 
@@ -110,21 +110,21 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		PrecalculatedFormattedText () {}
+		PrecalculatedFormattedText ()					__NE___	{}
 
-		Self&  SetText (FormattedText value)	{ _text = RVRef(value);  return *this; }
-		Self&  SetSpacing (float value)			{ _spacing  = value;  return *this; }
-		Self&  SetWordWrap (bool value)			{ _wordWrap = value;  return *this; }
+		Self&  SetText (FormattedText value)			__TH___	{ _text = RVRef(value);	return *this; }
+		Self&  SetSpacing (float value)					__NE___	{ _spacing  = value;	return *this; }
+		Self&  SetWordWrap (bool value)					__NE___	{ _wordWrap = value;	return *this; }
 
-		ND_ FormattedText const&	Text ()			const	{ return _text; }
-		ND_ float					Spacing ()		const	{ return _spacing; }
-		ND_ float2 const&			RegionSize ()	const	{ return _size; }
-		ND_ bool					IsWordWrap ()	const	{ return _wordWrap; }
-		ND_ ArrayView<float>		LineHeights ()	const	{ return _lineHeight; }
+		ND_ FormattedText const&	Text ()				C_NE___	{ return _text; }
+		ND_ float					Spacing ()			C_NE___	{ return _spacing; }
+		ND_ float2 const&			RegionSize ()		C_NE___	{ return _size; }
+		ND_ bool					IsWordWrap ()		C_NE___	{ return _wordWrap; }
+		ND_ ArrayView<float>		LineHeights ()		C_NE___	{ return _lineHeight; }
 			
 		// ISerializable //
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 

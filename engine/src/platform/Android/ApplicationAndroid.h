@@ -2,14 +2,15 @@
 
 #pragma once
 
-#include "platform/Public/Common.h"
+#include "base/StdInclude.h"
 
 #ifdef AE_PLATFORM_ANDROID
+# include <android/asset_manager_jni.h>
 
+# include "platform/Public/Common.h"
 # include "platform/Public/IApplication.h"
 # include "platform/Android/WindowAndroid.h"
 # include "platform/Private/ApplicationBase.h"
-# include <android/asset_manager_jni.h>
 
 namespace AE::App
 {
@@ -76,7 +77,7 @@ namespace AE::App
 
 		Monitors_t		GetMonitors (bool update = false) override;
 
-		RC<IFileStorage> OpenBuiltinStorage () override;
+		RC<IVirtualFileStorage> OpenBuiltinStorage () override;
 
 		ArrayView<const char*>	GetVulkanInstanceExtensions () override;
 		

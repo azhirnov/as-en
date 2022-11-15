@@ -30,7 +30,7 @@ namespace AE::Threading
 	template <usize BlockSize_v		= usize(SmallAllocationSize),	// in bytes
 			  usize MemAlign		= 8,
 			  usize MaxBlocks		= 16,
-			  typename AllocatorType = UntypedAlignedAllocator
+			  typename AllocatorType = UntypedAllocator
 			 >
 	class LfLinearAllocator final
 	{
@@ -69,28 +69,165 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit LfLinearAllocator (const Allocator_t &alloc = Allocator_t{});
-		~LfLinearAllocator ()	{ Release(); }
+		explicit LfLinearAllocator (const Allocator_t &alloc = Allocator_t{}) __NE___;
+		~LfLinearAllocator ()												__NE___	{ Release(); }
 
-		void  Release ();
-		void  Discard ();
+		void  Release ()													__NE___;
+		void  Discard ()													__NE___;
 		
 		template <typename T>
-		ND_ AE_ALLOCATOR T*  Allocate (usize count = 1)
+		ND_ AE_ALLOCATOR T*  Allocate (usize count = 1)						__NE___
 		{
-			return Cast<T>( Allocate( SizeOf<T> * count, AlignOf<T> ));
+			return Cast<T>( Allocate( SizeAndAlignOf<T> * count ));
 		}
 
-		ND_ AE_ALLOCATOR void*  Allocate (const Bytes size, const Bytes align);
+		ND_ AE_ALLOCATOR void*  Allocate (const SizeAndAlign sizeAndAlign)	__NE___;
 
-		void  Deallocate (void *ptr, const Bytes size, const Bytes align);
-		void  Deallocate (void *ptr, const Bytes size)	{ Deallocate( ptr, size, 1_b ); }
-		void  Deallocate (void *ptr)					{ Unused( ptr ); }
+		void  Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)		__NE___;
+		void  Deallocate (void *ptr, const Bytes size)						__NE___	{ Deallocate( ptr, size, 1_b ); }
+		void  Deallocate (void *ptr)										__NE___	{ Unused( ptr ); }
 
 		
-		ND_ static constexpr Bytes  BlockSize ()	{ return _Capacity; }
-		ND_ static constexpr Bytes  MaxSize ()		{ return MaxBlocks * _Capacity; }
+		ND_ static constexpr Bytes  BlockSize ()							__NE___	{ return _Capacity; }
+		ND_ static constexpr Bytes  MaxSize ()								__NE___	{ return MaxBlocks * _Capacity; }
 	};
 
+
+	
+/*
+=================================================
+	constructor
+=================================================
+*/
+	template <usize BS, usize MA, usize MB, typename A>
+	LfLinearAllocator<BS,MA,MB,A>::LfLinearAllocator (const Allocator_t &alloc) __NE___ :
+		_allocator{ alloc }
+	{
+		// make visible changes in '_blocks'
+		ThreadFence( EMemoryOrder::Release );
+	}
+	
+/*
+=================================================
+	Release
+----
+	must be externally synchronized
+=================================================
+*/
+	template <usize BS, usize MA, usize MB, typename A>
+	void  LfLinearAllocator<BS,MA,MB,A>::Release () __NE___
+	{
+		EXLOCK( _allocGuard );
+
+		Bytes	allocated;
+		Bytes	used;
+		
+		for (auto& block : _blocks)
+		{
+			if ( void* ptr = block.mem.exchange( null ))
+			{
+				_allocator.Deallocate( ptr, SizeAndAlign{ BlockSize(), _MemAlign });
+
+				allocated	+= BlockSize();
+				used		+= block.size.load();
+			}
+		}
+
+		//AE_LOG_DBG( "Linear allocator usage: "s << ToString(used) << " / " << ToString(allocated) << ",  "
+		//			<< ToString( double(usize(used)) / double(usize(allocated)) * 100.0, 1 ) << " %" );
+	}
+	
+/*
+=================================================
+	Discard
+----
+	must be externally synchronized
+=================================================
+*/
+	template <usize BS, usize MA, usize MB, typename A>
+	void  LfLinearAllocator<BS,MA,MB,A>::Discard () __NE___
+	{
+		for (auto& block : _blocks)
+		{
+			block.size.store( 0 );
+		}
+	}
+
+/*
+=================================================
+	Allocate
+=================================================
+*/
+	template <usize BS, usize MA, usize MB, typename A>
+	void*  LfLinearAllocator<BS,MA,MB,A>::Allocate (const SizeAndAlign sizeAndAlign) __NE___
+	{
+		for (auto block_it = _blocks.begin(); block_it != _blocks.end();)
+		{
+			void*	ptr = block_it->mem.load();
+
+			if_likely( ptr != null )
+			{
+				// find available space
+				for (usize offset = block_it->size.load();;)
+				{
+					Bytes	aligned_off = AlignUp( usize(ptr) + Bytes{offset}, sizeAndAlign.align ) - usize(ptr);
+						
+					if_unlikely( aligned_off + sizeAndAlign.size > BlockSize() )
+						break; // current block is too small
+
+					if_likely( block_it->size.CAS( INOUT offset, usize(aligned_off + sizeAndAlign.size) ))
+						return ptr + aligned_off;
+					
+					ThreadUtils::Pause();
+				}
+				++block_it;
+			}
+			else
+			{
+				// only one thread will allocate new block
+				EXLOCK( _allocGuard );
+
+				ptr = block_it->mem.load();
+				if ( ptr != null )
+					continue;	// was allocated in another thread
+
+				// allocate
+				ptr = _allocator.Allocate( SizeAndAlign{ BlockSize(), _MemAlign });
+				CHECK_ERR( ptr != null );
+
+				void*	prev = block_it->mem.exchange( ptr );
+				CHECK( prev == null );
+			}
+
+			ThreadUtils::Pause();
+		}
+		return null;
+	}
+	
+/*
+=================================================
+	Deallocate
+=================================================
+*/
+	template <usize BS, usize MA, usize MB, typename A>
+	void  LfLinearAllocator<BS,MA,MB,A>::Deallocate (void *ptr, const SizeAndAlign sizeAndAlign) __NE___
+	{
+	#ifdef AE_DBG_OR_DEV
+		for (auto& block : _blocks)
+		{
+			if ( void* mem = block.mem.load() )
+			{
+				if ( IsIntersects( ptr, ptr + sizeAndAlign.size, mem, mem + BlockSize() ))
+				{
+					CHECK( ptr + sizeAndAlign.size <= mem + Bytes{block.size.load()} );
+					return;
+				}
+			}
+		}
+		AE_LOG_DEV( "'ptr' is not belong to this allocator" );
+	#else
+		Unused( ptr, sizeAndAlign );
+	#endif
+	}
 
 } // AE::Threading

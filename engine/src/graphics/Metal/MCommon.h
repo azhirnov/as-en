@@ -27,8 +27,9 @@
 // Xcode frame debugger doesn't support sample counters
 # define AE_METAL_NATIVE_DEBUGGER	0
 
-// beta extension
-# define AE_METAL_MESH_SHADER		0
+// beta extension in old versions
+# define AE_METAL_3_0_BETA		1
+
 
 namespace AE::Graphics
 {
@@ -42,6 +43,9 @@ namespace AE::Graphics
 	using AE::Threading::AsyncTask;
 	using AE::Threading::GlobalLinearAllocatorRef;
 	using AE::Threading::GraphicsFrameAllocatorRef;
+	using AE::Threading::BitAtomic;
+	using AE::Threading::FAtomic;
+	using AE::Threading::EThread;
 	
 #	if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::RWDataRaceCheck;
@@ -59,8 +63,8 @@ namespace AE::Graphics
 
 	// Used for temporary allocations.
 	// thread-safe: no
-	using MTempLinearAllocator	= LinearAllocator< UntypedAlignedAllocator, 8, false >;	// TODO: use fast block allocator
-	using MTempStackAllocator	= StackAllocator< UntypedAlignedAllocator, 8, false >;
+	using MTempLinearAllocator	= LinearAllocator< UntypedAllocator, 8, false >;	// TODO: use fast block allocator
+	using MTempStackAllocator	= StackAllocator< UntypedAllocator, 8, false >;
 	
 
 	enum class MTextureIndex		: ubyte {};		// [[ texture(x) ]]

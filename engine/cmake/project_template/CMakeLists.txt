@@ -96,11 +96,6 @@ if (${AE_ENABLE_MEMLEAK_CHECKS})
 	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_ENABLE_MEMLEAK_CHECKS" )
 endif ()
 
-if (${AE_ENABLE_VTUNE_API})
-	include( "${CMAKE_FOLDER}/vtune.cmake" )
-	target_link_libraries( "ProjectTemplate" PUBLIC "VTune-lib" )
-endif ()
-
 if (${AE_NO_EXCEPTIONS})
 	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_NO_EXCEPTIONS=1" )
 else ()

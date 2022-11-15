@@ -44,11 +44,16 @@ namespace AE::Graphics
 
 		// draw batch
 		virtual void  BeginDrawBatch (const void* batch, StringView name) = 0;
-
-	  #ifdef AE_ENABLE_VULKAN
+		
+	  #if defined(AE_ENABLE_VULKAN)
 		// context
 		virtual void  BeginContext (const void* batch, VkCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type) = 0;
 		virtual void  EndContext (const void* batch, VkCommandBuffer cmdbuf, EContextType type) = 0;
+	
+	  #elif defined(AE_ENABLE_METAL)
+		// context
+		virtual void  BeginContext (const void* batch, MetalCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type) = 0;
+		virtual void  EndContext (const void* batch, MetalCommandBuffer cmdbuf, EContextType type) = 0;
 	  #endif
 
 		// frames

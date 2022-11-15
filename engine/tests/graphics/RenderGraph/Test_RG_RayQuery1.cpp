@@ -28,7 +28,7 @@ namespace
 
 		AsyncTask					result;
 
-		CommandBatchPtr			batch;
+		CommandBatchPtr				batch;
 		bool						isOK		= false;
 
 		ImageComparator *			imgCmp		= null;
@@ -48,8 +48,8 @@ namespace
 	public:
 		RQ1_TestData&	t;
 
-		RQ1_UploadTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		RQ1_UploadTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 		
@@ -59,7 +59,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 
 			typename CtxTypes::Transfer	copy_ctx{ *this };
-			CHECK_TE( copy_ctx.IsValid() );
 			
 			copy_ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopyDst );
@@ -72,12 +71,11 @@ namespace
 			inst.Init();
 			scene_build.SetGeometry( t.rtGeom, INOUT inst );
 
-			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Bytes::SizeOf(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
-			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Bytes::SizeOf(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
-			CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Bytes::SizeOf(inst), &inst, EStagingHeapType::Static ));
+			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
+			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
+			CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
 
 			typename CtxTypes::ASBuild	as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
-			CHECK_TE( as_ctx.IsValid() );
 			
 			as_ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::CopyDst, EResourceState::BuildRTAS_Read );
@@ -107,8 +105,8 @@ namespace
 	public:
 		RQ1_TestData&	t;
 
-		RQ1_RayTracingTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		RQ1_RayTracingTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -120,7 +118,6 @@ namespace
 			const auto	img_state	= EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
 			
 			typename CtxTypes::Compute	ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 
 			ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS_Read | EResourceState::ComputeShader )
@@ -144,8 +141,8 @@ namespace
 	public:
 		RQ1_TestData&	t;
 
-		RQ1_CopyTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		RQ1_CopyTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -155,7 +152,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 			
 			Ctx		ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
 						.Then( [p = &t] (const ImageMemView &view)
@@ -165,7 +161,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -190,11 +186,11 @@ namespace
 		t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
 		CHECK_ERR( t.view );
 
-		t.vb = res_mngr.CreateBuffer( BufferDesc{ Bytes::SizeOf(buffer_vertices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
+		t.vb = res_mngr.CreateBuffer( BufferDesc{ Sizeof(buffer_vertices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
 									  "RTAS vertex buffer", t.gfxAlloc );
 		CHECK_ERR( t.vb );
 		
-		t.ib = res_mngr.CreateBuffer( BufferDesc{ Bytes::SizeOf(buffer_indices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
+		t.ib = res_mngr.CreateBuffer( BufferDesc{ Sizeof(buffer_indices), EBufferUsage::ASBuild_ReadOnly | EBufferUsage::Transfer },
 									  "RTAS index buffer", t.gfxAlloc );
 		CHECK_ERR( t.ib );
 
@@ -210,7 +206,7 @@ namespace
 
 		t.triangleData.vertexData		= t.vb;
 		t.triangleData.indexData		= t.ib;
-		t.triangleData.vertexStride		= Bytes32u::SizeOf(buffer_vertices[0]);
+		t.triangleData.vertexStride		= Sizeof(buffer_vertices[0]);
 
 		auto	geom_sizes = res_mngr.GetRTGeometrySizes( RTGeometryBuild{ ArrayView<RTGeometryBuild::TrianglesInfo>{ &t.triangleInfo, 1 }, Default, Default, Default, Default });
 		t.rtGeom = res_mngr.CreateRTGeometry( RTGeometryDesc{ geom_sizes.rtasSize, Default }, "RT geometry", t.gfxAlloc );
@@ -243,22 +239,15 @@ namespace
 		CHECK_ERR( t.ds );
 
 		AsyncTask	begin	= rts.BeginFrame();
-		CHECK_ERR( begin );
 
 		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "RayQuery1" );
 		CHECK_ERR( t.batch );
 		
-		AsyncTask	task1	= t.batch->Add<RQ1_UploadTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{begin}, "Upload RTAS task" );
-		CHECK_ERR( task1 );
-
+		AsyncTask	task1	= t.batch->Add<RQ1_UploadTask<CtxTypes>>(	  Tuple{ArgRef(t)}, Tuple{begin}, "Upload RTAS task" );
 		AsyncTask	task2	= t.batch->Add<RQ1_RayTracingTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{task1}, "Ray tracing task" );
-		CHECK_ERR( task2 );
-		
-		AsyncTask	task3	= t.batch->Add<RQ1_CopyTask<CopyCtx>>( Tuple{ArgRef(t)}, Tuple{task2}, "Readback task" );
-		CHECK_ERR( task3 );
+		AsyncTask	task3	= t.batch->Add<RQ1_CopyTask<CopyCtx>>(		  Tuple{ArgRef(t)}, Tuple{task2}, "Readback task" );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task3} );
-		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
 		CHECK_ERR( end->Status() == EStatus::Completed );

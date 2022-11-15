@@ -70,6 +70,8 @@ namespace AE::Graphics::_hidden_
 				MeshPplnStates		mesh;
 				TilePplnStates		tile;
 			};
+			
+			PplnStates () {}
 		};
 
 	private:
@@ -96,7 +98,7 @@ namespace AE::Graphics::_hidden_
 		ND_ FragmentArgSet_t	FragmentArguments ()			{ return FragmentArgSet_t{ _encoder }; }
 		ND_ TileArgSet_t		TileArguments ()				{ return TileArgSet_t{ _encoder }; }
 
-	  #if AE_METAL_MESH_SHADER
+	  #if AE_METAL_3_0_BETA
 		ND_ MeshArgSet_t		MeshArguments ()				{ return MeshArgSet_t{ _encoder }; }
 		ND_ MeshTaskArgSet_t	MeshTaskArguments ()			{ return MeshTaskArgSet_t{ _encoder }; }
 	  #endif
@@ -121,10 +123,13 @@ namespace AE::Graphics::_hidden_
 		void  BindIndexBuffer (MetalBuffer buffer, Bytes offset, EIndex indexType);
 		void  BindVertexBuffer (uint index, MetalBuffer buffer, Bytes offset);
 		void  BindVertexBuffers (uint firstBinding, ArrayView<MetalBuffer> buffers, ArrayView<Bytes> offsets);
+		
+		ND_ MetalCommandBufferRC	EndCommandBuffer ();
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ();
 
 	protected:
-		explicit _MDirectDrawCtx (Ptr<MDrawCommandBatch> batch);
-		_MDirectDrawCtx (Ptr<MDrawCommandBatch> batch, CmdBuf_t cmdbuf);
+		explicit _MDirectDrawCtx (const DrawTask &task);
+		_MDirectDrawCtx (const DrawTask &task, CmdBuf_t cmdbuf);
 		_MDirectDrawCtx (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, NtStringView dbgName);
 		
 		void  _BindPipeline (MetalRenderPipeline ppln, MetalDepthStencilState ds, const MDynamicRenderState &rs);
@@ -138,9 +143,9 @@ namespace AE::Graphics::_hidden_
 		void  _SetStencilReference (uint reference);
 		void  _SetStencilReference (uint frontReference, uint backReference);
 		void  _SetViewport (const Viewport_t &viewport);
-		void  _SetViewport (ArrayView<Viewport_t> viewports);
+		void  _SetViewports (ArrayView<Viewport_t> viewports);
 		void  _SetScissor (const RectI &scissor);
-		void  _SetScissor (ArrayView<RectI> scissors);
+		void  _SetScissors (ArrayView<RectI> scissors);
 		void  _SetBlendConstants (const RGBA32f &color);
 		
 		void  _DrawPrimitives (uint vertexCount,
@@ -189,7 +194,7 @@ namespace AE::Graphics::_hidden_
 		void  _DrawPatchesIndirect ();
 		void  _DrawIndexedPatchesIndirect ();
 
-		void  _DispatchTile ()								{ _DispatchThreadsPerTile( _states.tile.threadsPerTile ); }
+		void  _DispatchTile ()								{ _DispatchThreadsPerTile( uint2{_states.tile.threadsPerTile} ); }
 		void  _DispatchThreadsPerTile (const uint2 &threadsPerTile);
 		
 		ND_ MetalCommandEncoder  _BaseEncoder ()			{ return MetalCommandEncoder{ _encoder.Ptr() }; }
@@ -218,6 +223,7 @@ namespace AE::Graphics::_hidden_
 		using CmdBuf_t							= MSoftwareCmdBufPtr;
 		using VertexAmplificationViewMapping	= _MDirectDrawCtx::VertexAmplificationViewMapping;
 		using PplnStates						= _MDirectDrawCtx::PplnStates;
+		using EPplnType							= _MDirectDrawCtx::EPplnType;
 	private:
 		using VertexArgSet_t	= MArgumentSetter< EShader::Vertex,		false >;
 		using FragmentArgSet_t	= MArgumentSetter< EShader::Fragment,	false >;
@@ -241,7 +247,7 @@ namespace AE::Graphics::_hidden_
 		ND_ FragmentArgSet_t	FragmentArguments ()			{ return FragmentArgSet_t{ this->_cmdbuf.get() }; }
 		ND_ TileArgSet_t		TileArguments ()				{ return TileArgSet_t{ this->_cmdbuf.get() }; }
 
-	  #if AE_METAL_MESH_SHADER
+	  #if AE_METAL_3_0_BETA
 		ND_ MeshArgSet_t		MeshArguments ()				{ return MeshArgSet_t{ this->_cmdbuf.get() }; }
 		ND_ MeshTaskArgSet_t	MeshTaskArguments ()			{ return MeshTaskArgSet_t{ this->_cmdbuf.get() }; }
 	  #endif
@@ -266,10 +272,13 @@ namespace AE::Graphics::_hidden_
 		void  BindIndexBuffer (MetalBuffer buffer, Bytes offset, EIndex indexType);
 		void  BindVertexBuffer (uint index, MetalBuffer buffer, Bytes offset);
 		void  BindVertexBuffers (uint firstBinding, ArrayView<MetalBuffer> buffers, ArrayView<Bytes> offsets);
+		
+		ND_ MBakedCommands		EndCommandBuffer ();
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ();
 
 	protected:
-		explicit _MIndirectDrawCtx (Ptr<MDrawCommandBatch> batch);
-		_MIndirectDrawCtx (Ptr<MDrawCommandBatch> batch, CmdBuf_t cmdbuf);
+		explicit _MIndirectDrawCtx (const DrawTask &task);
+		_MIndirectDrawCtx (const DrawTask &task, CmdBuf_t cmdbuf);
 		_MIndirectDrawCtx (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, NtStringView dbgName);
 		
 		void  _BindPipeline (MetalRenderPipeline ppln, MetalDepthStencilState ds, const MDynamicRenderState &rs);
@@ -282,10 +291,10 @@ namespace AE::Graphics::_hidden_
 		void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor);
 		void  _SetStencilReference (uint reference)								{ _SetStencilReference( reference, reference ); }
 		void  _SetStencilReference (uint frontReference, uint backReference);
-		void  _SetViewport (const Viewport_t &viewport)							{ _SetViewport({ viewport }); }
-		void  _SetViewport (ArrayView<Viewport_t> viewports);
-		void  _SetScissor (const RectI &scissor)								{ _SetScissor({ scissor }); }
-		void  _SetScissor (ArrayView<RectI> scissors);
+		void  _SetViewport (const Viewport_t &viewport)							{ _SetViewports({ viewport }); }
+		void  _SetViewports (ArrayView<Viewport_t> viewports);
+		void  _SetScissor (const RectI &scissor)								{ _SetScissors({ scissor }); }
+		void  _SetScissors (ArrayView<RectI> scissors);
 		void  _SetBlendConstants (const RGBA32f &color);
 		
 		void  _DrawPrimitives (uint vertexCount,
@@ -334,7 +343,7 @@ namespace AE::Graphics::_hidden_
 		void  _DrawPatchesIndirect ();
 		void  _DrawIndexedPatchesIndirect ();
 		
-		void  _DispatchTile ()								{ _DispatchThreadsPerTile( _states.tile.threadsPerTile ); }
+		void  _DispatchTile ()								{ _DispatchThreadsPerTile( uint2{_states.tile.threadsPerTile} ); }
 		void  _DispatchThreadsPerTile (const uint2 &threadsPerTile);
 
 		void  _CommitBarriers ();
@@ -371,8 +380,8 @@ namespace AE::Graphics::_hidden_
 		explicit _MDrawContextImpl (CmdBuf_t cmdbuf);
 
 	public:
-		explicit _MDrawContextImpl (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, NtStringView dbgName);
-		explicit _MDrawContextImpl (Ptr<MDrawCommandBatch> batch);
+		_MDrawContextImpl (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, NtStringView dbgName);
+		explicit _MDrawContextImpl (const DrawTask &task);
 		
 		_MDrawContextImpl () = delete;
 		_MDrawContextImpl (const _MDrawContextImpl &) = delete;
@@ -388,12 +397,12 @@ namespace AE::Graphics::_hidden_
 		
 		// dynamic states
 		void  SetViewport (const Viewport_t &viewport) override final				{ RawCtx::_SetViewport( viewport ); }
-		void  SetViewports (ArrayView<Viewport_t> viewports) override final			{ RawCtx::_SetViewport( viewports ); }
+		void  SetViewports (ArrayView<Viewport_t> viewports) override final			{ RawCtx::_SetViewports( viewports ); }
 		void  SetScissor (const RectI &scissor) override final						{ RawCtx::_SetScissor( scissor ); }
-		void  SetScissors (ArrayView<RectI> scissors) override final				{ RawCtx::_SetScissor( scissors ); }
+		void  SetScissors (ArrayView<RectI> scissors) override final				{ RawCtx::_SetScissors( scissors ); }
 		void  SetBlendConstants (const RGBA32f &color) override final				{ RawCtx::_SetBlendConstants( color ); }
-		void  SetStencilReference (uint reference) override final					{  RawCtx::_SetStencilReference( reference ); }
-		void  SetStencilReference (uint frontRef, uint backRef) override final		{  RawCtx::_SetStencilReference( frontRef, backRef ); }
+		void  SetStencilReference (uint reference) override final					{ RawCtx::_SetStencilReference( reference ); }
+		void  SetStencilReference (uint frontRef, uint backRef) override final		{ RawCtx::_SetStencilReference( frontRef, backRef ); }
 		void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor) override final;
 		
 		// draw commands
@@ -488,16 +497,16 @@ namespace AE::Graphics::_hidden_
 	{}
 	
 	template <typename C>
-	_MDrawContextImpl<C>::_MDrawContextImpl (Ptr<MDrawCommandBatch> batch) :
-		RawCtx{ batch }
+	_MDrawContextImpl<C>::_MDrawContextImpl (const DrawTask &task) :
+		RawCtx{ task }
 	{
-		if_likely( batch )
+		if_likely( auto* batch = task.GetDrawBatchPtr() )
 		{
 			if_likely( not batch->GetViewports().empty() )
-				RawCtx::_SetViewport( batch->GetViewports() );
+				SetViewports( batch->GetViewports() );
 				
 			if_likely( not batch->GetScissors().empty() )
-				RawCtx::_SetScissor( batch->GetScissors() );
+				SetScissors( batch->GetScissors() );
 		}
 	}
 	
@@ -552,13 +561,14 @@ namespace AE::Graphics::_hidden_
 =================================================
 	PushConstant
 =================================================
-*
+*/
 	template <typename C>
 	void  _MDrawContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
 	{
 		ASSERT( IsAligned( size, sizeof(uint) ));
 
-		RawCtx::_PushGraphicsConstant( offset, size, values, stages );
+		// TODO
+		//RawCtx::_PushGraphicsConstant( offset, size, values, stages );
 	}
 	
 /*

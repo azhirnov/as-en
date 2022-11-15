@@ -1,4 +1,4 @@
-﻿// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/Algorithms/StringUtils.h"
 #include "UnitTest_Common.h"
@@ -54,27 +54,27 @@ namespace
 	}
 
 
-	static void  FormatIntTest ()
+	static void  DivStringByStepTest ()
 	{
-		String	a1 = FormatInt<10>( 123'456, 3, '\'' );
+		String	a1 = DivStringBySteps( ToString<10>(123'456), 3, '\'' );
 		TEST( a1 == "123'456" );
 		
-		String	a2 = FormatInt<10>( 123, 3, '\'' );
+		String	a2 = DivStringBySteps( ToString<10>(123), 3, '\'' );
 		TEST( a2 == "123" );
 		
-		String	a3 = FormatInt<10>( 1'234, 3, '\'' );
+		String	a3 = DivStringBySteps( ToString<10>(1'234), 3, '\'' );
 		TEST( a3 == "1'234" );
 		
-		String	a4 = FormatInt<10>( 12'345, 3, '\'' );
+		String	a4 = DivStringBySteps( ToString<10>(12'345), 3, '\'' );
 		TEST( a4 == "12'345" );
 		
-		String	a5 = FormatInt<10>( 1'234'567, 3, '\'' );
+		String	a5 = DivStringBySteps( ToString<10>(1'234'567), 3, '\'' );
 		TEST( a5 == "1'234'567" );
 		
-		String	a6 = FormatInt<10>( 123'456'789, 3, '\'' );
+		String	a6 = DivStringBySteps( ToString<10>(123'456'789), 3, '\'' );
 		TEST( a6 == "123'456'789" );
 		
-		String	a7 = FormatInt<10>( 1'234'567'890, 3, '\'' );
+		String	a7 = DivStringBySteps( ToString<10>(1'234'567'890), 3, '\'' );
 		TEST( a7 == "1'234'567'890" );
 	}
 }
@@ -86,7 +86,7 @@ extern void UnitTest_ToString ()
 	ToAnsiTest();
 	FormatAlignedITest();
 	AppendToStringTest();
-	FormatIntTest();
+	DivStringByStepTest();
 
 	TEST_PASSED();
 }

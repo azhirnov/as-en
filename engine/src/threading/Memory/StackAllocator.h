@@ -34,12 +34,12 @@ namespace AE::Base
 
 	// methods
 	public:
-		StackAllocator () {}
+		StackAllocator () __NE___ {}
 		
-		explicit StackAllocator (const Allocator_t &alloc) : _base{ alloc }
+		explicit StackAllocator (const Allocator_t &alloc) __NE___ : _base{ alloc }
 		{}
 		
-		StackAllocator (Self &&other)
+		StackAllocator (Self &&other) __NE___
 		{
 			SAFE_EXLOCK( _guard, other._guard );
 			_base = RVRef(other._base);
@@ -50,7 +50,7 @@ namespace AE::Base
 		Self&  operator = (const Self &) = delete;
 
 
-		Self&  operator = (Self &&rhs)
+		Self&  operator = (Self &&rhs) __NE___
 		{
 			SAFE_EXLOCK( _guard, rhs._guard );
 			_base = RVRef(rhs._base);
@@ -58,61 +58,61 @@ namespace AE::Base
 		}
 
 
-		~StackAllocator ()
+		~StackAllocator () __NE___
 		{
 			Release();
 		}
 
 
-		void  SetBlockSize (Bytes size)
+		void  SetBlockSize (Bytes size) __NE___
 		{
 			EXLOCK( _guard );
 			return _base.SetBlockSize( size );
 		}
 
 
-		ND_ AE_ALLOCATOR void*  Allocate (const Bytes size, const Bytes align)
+		ND_ AE_ALLOCATOR void*  Allocate (const SizeAndAlign sizeAndAlign) __NE___
 		{
 			EXLOCK( _guard );
-			return _base.Allocate( size, align );
+			return _base.Allocate( sizeAndAlign );
 		}
 
 
 		template <typename T>
-		ND_ AE_ALLOCATOR T*  Allocate (usize count = 1)
+		ND_ AE_ALLOCATOR T*  Allocate (usize count = 1) __NE___
 		{
 			EXLOCK( _guard );
 			return _base.template Allocate<T>( count );
 		}
 		
 
-		void  Deallocate (void* ptr, Bytes size, Bytes align)
+		void  Deallocate (void* ptr, const SizeAndAlign sizeAndAlign) __NE___
 		{
-			Unused( ptr, size, align );
+			Unused( ptr, sizeAndAlign );
 		}
 
 
-		ND_ Bookmark  Push ()
+		ND_ Bookmark  Push () __NE___
 		{
 			EXLOCK( _guard );
 			return _base.Push();
 		}
 
 
-		void  Pop (Bookmark bm)
+		void  Pop (Bookmark bm) __NE___
 		{
 			EXLOCK( _guard );
 			return _base.Pop( bm );
 		}
 
 
-		void  Discard ()
+		void  Discard () __NE___
 		{
 			EXLOCK( _guard );
 			return _base.Discard();
 		}
 
-		void  Release ()
+		void  Release () __NE___
 		{
 			EXLOCK( _guard );
 			return _base.Release();

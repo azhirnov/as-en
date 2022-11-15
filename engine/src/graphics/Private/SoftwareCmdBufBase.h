@@ -53,24 +53,24 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		SoftwareCmdBufBase ()			{}
-		~SoftwareCmdBufBase ()			{ ASSERT( _root == null ); }
+		SoftwareCmdBufBase ()					__NE___	{}
+		~SoftwareCmdBufBase ()					__NE___	{ ASSERT( _root == null ); }
 
-		ND_ bool	IsValid ()	const	{ return true; }
+		ND_ bool	IsValid ()					C_NE___	{ return true; }
 
-		static void  Deallocate (void* root);
+		static void  Deallocate (void* root)	__NE___;
 		
 
 	protected:
-		ND_ void*  _Allocate (Bytes size);
+		ND_ void*  _Allocate (Bytes size)						__TH___;
 
 		template <typename CommandsList, typename CmdType, typename ...DynamicTypes>
-		ND_ CmdType&  _CreateCmd (usize dynamicArraySize = 0);
+		ND_ CmdType&  _CreateCmd (usize dynamicArraySize = 0)	__TH___;
 
 		template <usize I, typename TL>
 		ND_ static constexpr Bytes  _CalcCmdSize (Bytes size, usize dynamicArraySize);
 		
-		ND_ bool  _Validate (const void* root, usize cmdCount) const;
+		ND_ bool  _Validate (const void* root, usize cmdCount)	C_NE___;
 	};
 
 
@@ -81,10 +81,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename CommandsList, typename CmdType, typename ...DynamicTypes>
-	CmdType&  SoftwareCmdBufBase::_CreateCmd (usize dynamicArraySize)
+	CmdType&  SoftwareCmdBufBase::_CreateCmd (usize dynamicArraySize) __TH___
 	{
 		Bytes	size	= AlignUp( _CalcCmdSize< 0, TypeList<DynamicTypes...> >( SizeOf<CmdType>, dynamicArraySize ), BaseAlign );
-		auto*	cmd		= Cast<CmdType>( _Allocate( size ));
+		auto*	cmd		= Cast<CmdType>( _Allocate( size ));	// throw
 
 		DEBUG_ONLY( cmd->_magicNumber = BaseCmd::MAGIC; )
 		STATIC_ASSERT( CommandsList::template HasType< CmdType >);

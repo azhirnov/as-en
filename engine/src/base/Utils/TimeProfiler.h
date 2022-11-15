@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/Algorithms/StringUtils.h"
+#include "base/Utils/SourceLoc.h"
 #include "threading/Common.h"
 
 namespace AE::Base
@@ -20,8 +21,7 @@ namespace AE::Base
 
 		String				_message;
 		const TimePoint_t	_startTime	= Clock_t::now();
-		const char *		_file		= null;
-		const int			_line		= 0;
+		const SourceLoc		_srcLoc;
 
 
 	public:
@@ -34,8 +34,8 @@ namespace AE::Base
 		}
 
 
-		TimeProfiler (StringView name, const char *func, const char *file, int line) :
-			_file{ file }, _line{ line }
+		TimeProfiler (StringView name, const char *func, const SourceLoc &loc) :
+			_srcLoc{ loc }
 		{
 			_message << "time profiler: " << name << (name.empty() ? "" : ", ") << "function: " << func;
 			
@@ -52,7 +52,7 @@ namespace AE::Base
 			_message << "; TIME: " << ToString( Clock_t::now() - _startTime, 3 );
 
 			if ( _file ) {
-				AE_PRIVATE_LOGI( _message, _file, _line );
+				AE_PRIVATE_LOGI( _message, _srcLoc.file, _srcLoc.line );
 			}else{
 				AE_LOGI( _message );
 			}
@@ -61,11 +61,10 @@ namespace AE::Base
 
 
 #	define AE_TIMEPROFILER( /* debug_name */... ) \
-		::AE::Base::TimeProfiler	AE_PRIVATE_UNITE_RAW( __timeProf, __COUNTER__ ) ( \
+		AE::Base::TimeProfiler	AE_PRIVATE_UNITE_RAW( __timeProf, __COUNTER__ ) ( \
 										AE_PRIVATE_GETRAW( AE_PRIVATE_GETARG_0( "" __VA_ARGS__, "no name" )), \
 										AE_FUNCTION_NAME, \
-										__FILE__, \
-										__LINE__ ) \
+										SourceLoc_Current() ) \
 
 
 } // AE::Base

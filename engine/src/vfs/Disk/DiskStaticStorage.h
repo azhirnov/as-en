@@ -15,7 +15,7 @@ namespace AE::VFS
 	// Disk Static Storage
 	//
 
-	class DiskStaticStorage final : public IFileStorage
+	class DiskStaticStorage final : public IVirtualFileStorage
 	{
 	// types
 	private:
@@ -45,19 +45,17 @@ namespace AE::VFS
 		ND_ bool  Create (const Path &folder);
 
 
-	  // IFileStorage //
-		RC<RStream>			Open (const FileName &name) const override;
-		RC<AsyncRStream>	OpenAsync (const FileName &name) const override;
-
-		//Promise<void>		LoadAsync (const FileGroupName &name) const override;
+	  // IVirtualFileStorage //
+		RC<RStream>		OpenAsStream (const FileName &name) const override;
+		RC<RDataSource>	OpenAsSource (const FileName &name) const override;
 
 		bool	Exists (const FileName &name) const override;
 		bool	Exists (const FileGroupName &name) const override;
 
 	private:
-		void			  _Append (INOUT GlobalFileMap_t &) const override;
-		RC<RStream>		  _OpenByIter (const FileName &name, const void* ref) const override;
-		RC<AsyncRStream>  _OpenAsyncByIter (const FileName &name, const void* ref) const override;
+		void			_Append (INOUT GlobalFileMap_t &) const override;
+		RC<RStream>		_OpenAsStreamByIter (const FileName &name, const void* ref) const override;
+		RC<RDataSource>	_OpenAsSourceByIter (const FileName &name, const void* ref) const override;
 	};
 
 

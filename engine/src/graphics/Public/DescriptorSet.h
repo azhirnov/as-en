@@ -78,29 +78,29 @@ namespace AE::Graphics
 	{
 	// interface
 	public:
-		ND_ virtual bool  Set (DescriptorSetID descrSetId, EDescUpdateMode mode) = 0;
-			virtual bool  Flush () = 0;
+		ND_ virtual bool  Set (DescriptorSetID descrSetId, EDescUpdateMode mode)																	__NE___	= 0;
+			virtual bool  Flush ()																													__NE___	= 0;
 		
-			virtual bool  BindImage (const UniformName &name, ImageViewID image, uint elementIndex = 0) = 0;
-			virtual bool  BindImages (const UniformName &name, ArrayView<ImageViewID> images, uint firstIndex = 0) = 0;
+			virtual bool  BindImage (const UniformName &name, ImageViewID image, uint elementIndex = 0)												__NE___	= 0;
+			virtual bool  BindImages (const UniformName &name, ArrayView<ImageViewID> images, uint firstIndex = 0)									__NE___	= 0;
 
-			virtual bool  BindTexture (const UniformName &name, ImageViewID image, const SamplerName &sampler, uint elementIndex = 0) = 0;
-			virtual bool  BindTextures (const UniformName &name, ArrayView<ImageViewID> images, const SamplerName &sampler, uint firstIndex = 0) = 0;
+			virtual bool  BindTexture (const UniformName &name, ImageViewID image, const SamplerName &sampler, uint elementIndex = 0)				__NE___	= 0;
+			virtual bool  BindTextures (const UniformName &name, ArrayView<ImageViewID> images, const SamplerName &sampler, uint firstIndex = 0)	__NE___	= 0;
 
-			virtual bool  BindSampler (const UniformName &name, const SamplerName &sampler, uint elementIndex = 0) = 0;
-			virtual bool  BindSamplers (const UniformName &name, ArrayView<SamplerName> samplers, uint firstIndex = 0) = 0;
+			virtual bool  BindSampler (const UniformName &name, const SamplerName &sampler, uint elementIndex = 0)									__NE___	= 0;
+			virtual bool  BindSamplers (const UniformName &name, ArrayView<SamplerName> samplers, uint firstIndex = 0)								__NE___	= 0;
 
-			virtual bool  BindBuffer (const UniformName &name, BufferID buffer, uint elementIndex = 0) = 0;
-			virtual bool  BindBuffer (const UniformName &name, BufferID buffer, Bytes offset, Bytes size, uint elementIndex = 0) = 0;
-			virtual bool  BindBuffers (const UniformName &name, ArrayView<BufferID> buffers, uint firstIndex = 0) = 0;
+			virtual bool  BindBuffer (const UniformName &name, BufferID buffer, uint elementIndex = 0)												__NE___	= 0;
+			virtual bool  BindBuffer (const UniformName &name, BufferID buffer, Bytes offset, Bytes size, uint elementIndex = 0)					__NE___	= 0;
+			virtual bool  BindBuffers (const UniformName &name, ArrayView<BufferID> buffers, uint firstIndex = 0)									__NE___	= 0;
 
 			//virtual bool  SetBufferBase (const UniformName &name, Bytes offset, uint elementIndex = 0) = 0;	// TODO
 
-			virtual bool  BindTexelBuffer (const UniformName &name, BufferViewID view, uint elementIndex = 0) = 0;
-			virtual bool  BindTexelBuffers (const UniformName &name, ArrayView<BufferViewID> views, uint firstIndex = 0) = 0;
+			virtual bool  BindTexelBuffer (const UniformName &name, BufferViewID view, uint elementIndex = 0)										__NE___	= 0;
+			virtual bool  BindTexelBuffers (const UniformName &name, ArrayView<BufferViewID> views, uint firstIndex = 0)							__NE___	= 0;
 			
-			virtual bool  BindRayTracingScene (const UniformName &name, RTSceneID scene, uint elementIndex = 0) = 0;
-			virtual bool  BindRayTracingScenes (const UniformName &name, ArrayView<RTSceneID> scenes, uint firstIndex = 0) = 0;
+			virtual bool  BindRayTracingScene (const UniformName &name, RTSceneID scene, uint elementIndex = 0)										__NE___	= 0;
+			virtual bool  BindRayTracingScenes (const UniformName &name, ArrayView<RTSceneID> scenes, uint firstIndex = 0)							__NE___	= 0;
 	};
 	using DescriptorUpdaterPtr = RC< IDescriptorUpdater >;
 

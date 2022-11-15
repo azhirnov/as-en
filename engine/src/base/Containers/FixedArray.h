@@ -1,4 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Exceptions:
+		- array elements may throw exceptions (in copy-ctor)
+*/
 
 #pragma once
 
@@ -19,6 +23,9 @@ namespace AE::Base
 			 >
 	struct FixedArray
 	{
+		//STATIC_ASSERT( IsNothrowMoveCtor<T> );
+		//STATIC_ASSERT( IsNothrowDefaultCtor<T> );
+
 	// types
 	public:
 		using iterator			= T *;
@@ -42,79 +49,79 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr FixedArray ();
-		constexpr FixedArray (std::initializer_list<T> list);
-		constexpr FixedArray (ArrayView<T> view);
-		constexpr FixedArray (const Self &other);
-		constexpr FixedArray (Self &&other);
+		constexpr FixedArray ()									__NE___;
+		constexpr FixedArray (std::initializer_list<T> list)	noexcept(IsNothrowCopyCtor<T>);
+		constexpr FixedArray (ArrayView<T> view)				noexcept(IsNothrowCopyCtor<T>);
+		constexpr FixedArray (const Self &other)				noexcept(IsNothrowCopyCtor<T>);
+		constexpr FixedArray (Self &&other)						__NE___;
 
-		~FixedArray ()	{ clear(); }
+		~FixedArray ()											__NE___	{ clear(); }
 
 
-		ND_ constexpr operator ArrayView<T> ()					const	{ return ArrayView<T>{ data(), size() }; }
-		ND_ constexpr ArrayView<T>		ToArrayView()			const	{ return *this; }
+		ND_ constexpr operator ArrayView<T> ()					C_NE___	{ return ArrayView<T>{ data(), size() }; }
+		ND_ constexpr ArrayView<T>		ToArrayView()			C_NE___	{ return *this; }
 
-		ND_ constexpr usize				size ()					const	{ return _count; }
-		ND_ constexpr bool				empty ()				const	{ return _count == 0; }
-		ND_ constexpr T *				data ()							{ return std::addressof( _array[0] ); }
-		ND_ constexpr T const *			data ()					const	{ return std::addressof( _array[0] ); }
+		ND_ constexpr usize				size ()					C_NE___	{ return _count; }
+		ND_ constexpr bool				empty ()				C_NE___	{ return _count == 0; }
+		ND_ constexpr T *				data ()					__NE___	{ return std::addressof( _array[0] ); }
+		ND_ constexpr T const *			data ()					C_NE___	{ return std::addressof( _array[0] ); }
 
-		ND_ constexpr T &				operator [] (usize i)			{ ASSERT( i < _count );  return _array[i]; }
-		ND_ constexpr T const &			operator [] (usize i)	const	{ ASSERT( i < _count );  return _array[i]; }
+		ND_ constexpr T &				operator [] (usize i)	__NE___	{ ASSERT( i < _count );  return _array[i]; }
+		ND_ constexpr T const &			operator [] (usize i)	C_NE___	{ ASSERT( i < _count );  return _array[i]; }
 
-		ND_ constexpr iterator			begin ()						{ return data(); }
-		ND_ constexpr const_iterator	begin ()				const	{ return data(); }
-		ND_ constexpr iterator			end ()							{ return data() + _count; }
-		ND_ constexpr const_iterator	end ()					const	{ return data() + _count; }
+		ND_ constexpr iterator			begin ()				__NE___	{ return data(); }
+		ND_ constexpr const_iterator	begin ()				C_NE___	{ return data(); }
+		ND_ constexpr iterator			end ()					__NE___	{ return data() + _count; }
+		ND_ constexpr const_iterator	end ()					C_NE___	{ return data() + _count; }
 
-		ND_ constexpr T &				front ()						{ ASSERT( _count > 0 );  return _array[0]; }
-		ND_ constexpr T const&			front ()				const	{ ASSERT( _count > 0 );  return _array[0]; }
-		ND_ constexpr T &				back ()							{ ASSERT( _count > 0 );  return _array[_count-1]; }
-		ND_ constexpr T const&			back ()					const	{ ASSERT( _count > 0 );  return _array[_count-1]; }
+		ND_ constexpr T &				front ()				__NE___	{ ASSERT( _count > 0 );  return _array[0]; }
+		ND_ constexpr T const&			front ()				C_NE___	{ ASSERT( _count > 0 );  return _array[0]; }
+		ND_ constexpr T &				back ()					__NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
+		ND_ constexpr T const&			back ()					C_NE___	{ ASSERT( _count > 0 );  return _array[_count-1]; }
 		
-		ND_ static constexpr usize		capacity ()						{ return ArraySize; }
+		ND_ static constexpr usize		capacity ()				__NE___	{ return ArraySize; }
 		
-		ND_ constexpr bool  operator == (ArrayView<T> rhs)		const	{ return ArrayView<T>{*this} == rhs; }
-		ND_ constexpr bool  operator != (ArrayView<T> rhs)		const	{ return ArrayView<T>{*this} != rhs; }
-		ND_ constexpr bool  operator >  (ArrayView<T> rhs)		const	{ return ArrayView<T>{*this} >  rhs; }
-		ND_ constexpr bool  operator <  (ArrayView<T> rhs)		const	{ return ArrayView<T>{*this} <  rhs; }
-		ND_ constexpr bool  operator >= (ArrayView<T> rhs)		const	{ return ArrayView<T>{*this} >= rhs; }
-		ND_ constexpr bool  operator <= (ArrayView<T> rhs)		const	{ return ArrayView<T>{*this} <= rhs; }
+		ND_ constexpr bool  operator == (ArrayView<T> rhs)		C_NE___	{ return ArrayView<T>{*this} == rhs; }
+		ND_ constexpr bool  operator != (ArrayView<T> rhs)		C_NE___	{ return ArrayView<T>{*this} != rhs; }
+		ND_ constexpr bool  operator >  (ArrayView<T> rhs)		C_NE___	{ return ArrayView<T>{*this} >  rhs; }
+		ND_ constexpr bool  operator <  (ArrayView<T> rhs)		C_NE___	{ return ArrayView<T>{*this} <  rhs; }
+		ND_ constexpr bool  operator >= (ArrayView<T> rhs)		C_NE___	{ return ArrayView<T>{*this} >= rhs; }
+		ND_ constexpr bool  operator <= (ArrayView<T> rhs)		C_NE___	{ return ArrayView<T>{*this} <= rhs; }
 		
 
-		constexpr Self&  operator = (const Self &rhs);
-		constexpr Self&  operator = (ArrayView<T> rhs);
-		constexpr Self&  operator = (Self &&rhs);
+		constexpr Self&  operator = (const Self &rhs)			noexcept(IsNothrowCopyCtor<T>);
+		constexpr Self&  operator = (ArrayView<T> rhs)			noexcept(IsNothrowCopyCtor<T>);
+		constexpr Self&  operator = (Self &&rhs)				__NE___;
 
-		constexpr void  assign (const_iterator beginIter, const_iterator endIter);
-		constexpr void  append (ArrayView<T> items);
+		constexpr void  assign (const_iterator beginIter, const_iterator endIter)	noexcept(IsNothrowCopyCtor<T>);
+		constexpr void  append (ArrayView<T> items)									noexcept(IsNothrowCopyCtor<T>);
 
-		constexpr void  push_back (const T &value);
-		constexpr void  push_back (T &&value);
+		constexpr void  push_back (const T &value)				noexcept(IsNothrowCopyCtor<T>);
+		constexpr void  push_back (T &&value)					__NE___;
 
 		template <typename ...Args>
-		constexpr T&    emplace_back (Args&& ...args);
+		constexpr T&    emplace_back (Args&& ...args)			noexcept(IsNothrowCopyCtor<T>);
 
-		constexpr void  pop_back ();
+		constexpr void  pop_back ()								__NE___;
 
-		constexpr bool  try_push_back (const T &value);
-		constexpr bool  try_push_back (T&& value);
+		constexpr bool  try_push_back (const T &value)			noexcept(IsNothrowCopyCtor<T>);
+		constexpr bool  try_push_back (T&& value)				__NE___;
 		
 		template <typename ...Args>
-		constexpr bool  try_emplace_back (Args&& ...args);
+		constexpr bool  try_emplace_back (Args&& ...args)		noexcept(IsNothrowCopyCtor<T>);
 
-		constexpr void  insert (usize pos, T &&value);
+		constexpr void  insert (usize pos, T &&value)			__NE___;
 
-		constexpr void  resize (usize newSize);
-		constexpr void  resize (usize newSize, const T &defaultValue);
+		constexpr void  resize (usize newSize)					__NE___;
+		constexpr void  resize (usize newSize, const T &defaultValue) __NE___;
 
-		constexpr void  clear ();
+		constexpr void  clear ()								__NE___;
 
-		constexpr void  erase (usize index);
-		constexpr void  fast_erase (usize index);
+		constexpr void  erase (usize index)						__NE___;
+		constexpr void  fast_erase (usize index)				__NE___;
 
 	private:
-		ND_ forceinline bool  _IsMemoryAliased (const_iterator beginIter, const_iterator endIter) const
+		ND_ forceinline bool  _IsMemoryAliased (const_iterator beginIter, const_iterator endIter) C_NE___
 		{
 			return IsIntersects( begin(), end(), beginIter, endIter );
 		}
@@ -127,7 +134,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>::FixedArray ()
+	constexpr FixedArray<T,S,CS>::FixedArray () __NE___
 	{
 		DEBUG_ONLY( DbgInitMem( data(), SizeOf<T> * capacity() ));
 			
@@ -135,27 +142,27 @@ namespace AE::Base
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>::FixedArray (std::initializer_list<T> list) : FixedArray()
+	constexpr FixedArray<T,S,CS>::FixedArray (std::initializer_list<T> list) noexcept(IsNothrowCopyCtor<T>) : FixedArray()
 	{
 		ASSERT( list.size() <= capacity() );
-		assign( list.begin(), list.end() );
+		assign( list.begin(), list.end() );		// throw
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>::FixedArray (ArrayView<T> view) : FixedArray()
+	constexpr FixedArray<T,S,CS>::FixedArray (ArrayView<T> view) noexcept(IsNothrowCopyCtor<T>) : FixedArray()
 	{
 		ASSERT( view.size() <= capacity() );
-		assign( view.begin(), view.end() );
+		assign( view.begin(), view.end() );		// throw
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>::FixedArray (const Self &other) : FixedArray()
+	constexpr FixedArray<T,S,CS>::FixedArray (const Self &other) noexcept(IsNothrowCopyCtor<T>) : FixedArray()
 	{
-		assign( other.begin(), other.end() );
+		assign( other.begin(), other.end() );	// throw
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>::FixedArray (Self &&other) : _count{other._count}
+	constexpr FixedArray<T,S,CS>::FixedArray (Self &&other) __NE___ : _count{other._count}
 	{
 		ASSERT( not _IsMemoryAliased( other.begin(), other.end() ));
 
@@ -169,22 +176,22 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (const Self &rhs)
+	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (const Self &rhs) noexcept(IsNothrowCopyCtor<T>)
 	{
-		assign( rhs.begin(), rhs.end() );
+		assign( rhs.begin(), rhs.end() );	// throw
 		return *this;
 	}
 		
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<T> rhs)
+	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<T> rhs) noexcept(IsNothrowCopyCtor<T>)
 	{
 		ASSERT( rhs.size() < capacity() );
-		assign( rhs.begin(), rhs.end() );
+		assign( rhs.begin(), rhs.end() );	// throw
 		return *this;
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (Self &&rhs)
+	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (Self &&rhs) __NE___
 	{
 		ASSERT( not _IsMemoryAliased( rhs.begin(), rhs.end() ));
 		
@@ -203,7 +210,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::assign (const_iterator beginIter, const_iterator endIter)
+	constexpr void  FixedArray<T,S,CS>::assign (const_iterator beginIter, const_iterator endIter) noexcept(IsNothrowCopyCtor<T>)
 	{
 		ASSERT( beginIter <= endIter );
 		ASSERT( not _IsMemoryAliased( beginIter, endIter ));
@@ -212,7 +219,7 @@ namespace AE::Base
 
 		for (auto iter = beginIter; _count < capacity() and iter != endIter; ++iter, ++_count)
 		{
-			PlacementNew<T>( data() + _count, *iter );
+			PlacementNew<T>( data() + _count, *iter );	// throw
 		}
 	}
 	
@@ -222,10 +229,10 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::append (ArrayView<T> items)
+	constexpr void  FixedArray<T,S,CS>::append (ArrayView<T> items) noexcept(IsNothrowCopyCtor<T>)
 	{
 		for (auto& item : items) {
-			push_back( item );
+			push_back( item );		// throw
 		}
 	}
 	
@@ -235,17 +242,19 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::push_back (const T &value)
+	constexpr void  FixedArray<T,S,CS>::push_back (const T &value) noexcept(IsNothrowCopyCtor<T>)
 	{
 		ASSERT( _count < capacity() );
-		PlacementNew<T>( data() + (_count++), value );
+		PlacementNew<T>( data() + _count, value );	// throw
+		++_count;
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::push_back (T &&value)
+	constexpr void  FixedArray<T,S,CS>::push_back (T &&value) __NE___
 	{
 		ASSERT( _count < capacity() );
-		PlacementNew<T>( data() + (_count++), RVRef(value) );
+		PlacementNew<T>( data() + _count, RVRef(value) );	// nothrow
+		++_count;
 	}
 	
 /*
@@ -255,11 +264,12 @@ namespace AE::Base
 */
 	template <typename T, usize S, typename CS>
 	template <typename ...Args>
-	constexpr T&  FixedArray<T,S,CS>::emplace_back (Args&& ...args)
+	constexpr T&  FixedArray<T,S,CS>::emplace_back (Args&& ...args) noexcept(IsNothrowCopyCtor<T>)
 	{
 		ASSERT( _count < capacity() );
-		T* ptr = data() + (_count++);
-		PlacementNew<T>( ptr, FwdArg<Args &&>( args )... );
+		T* ptr = data() + _count;
+		PlacementNew<T>( ptr, FwdArg<Args &&>( args )... );		// throw
+		++_count;
 		return *ptr;
 	}
 	
@@ -269,7 +279,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::pop_back ()
+	constexpr void  FixedArray<T,S,CS>::pop_back () __NE___
 	{
 		ASSERT( _count > 0 );
 		--_count;
@@ -283,22 +293,24 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr bool  FixedArray<T,S,CS>::try_push_back (const T &value)
+	constexpr bool  FixedArray<T,S,CS>::try_push_back (const T &value) noexcept(IsNothrowCopyCtor<T>)
 	{
 		if_likely( _count < capacity() )
 		{
-			PlacementNew<T>( data() + (_count++), value );
+			PlacementNew<T>( data() + _count, value );	// throw
+			++_count;
 			return true;
 		}
 		return false;
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr bool  FixedArray<T,S,CS>::try_push_back (T&& value)
+	constexpr bool  FixedArray<T,S,CS>::try_push_back (T&& value) __NE___
 	{
 		if_likely( _count < capacity() )
 		{
-			PlacementNew<T>( data() + (_count++), RVRef(value) );
+			PlacementNew<T>( data() + _count, RVRef(value) );	// nothrow
+			++_count;
 			return true;
 		}
 		return false;
@@ -311,11 +323,12 @@ namespace AE::Base
 */
 	template <typename T, usize S, typename CS>
 	template <typename ...Args>
-	constexpr bool  FixedArray<T,S,CS>::try_emplace_back (Args&& ...args)
+	constexpr bool  FixedArray<T,S,CS>::try_emplace_back (Args&& ...args) noexcept(IsNothrowCopyCtor<T>)
 	{
 		if_likely( _count < capacity() )
 		{
-			PlacementNew<T>( data() + (_count++), FwdArg<Args &&>( args )... );
+			PlacementNew<T>( data() + _count, FwdArg<Args &&>( args )... );		// throw
+			++_count;
 			return true;
 		}
 		return false;
@@ -327,7 +340,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::insert (usize pos, T &&value)
+	constexpr void  FixedArray<T,S,CS>::insert (usize pos, T &&value) __NE___
 	{
 		ASSERT( _count < capacity() );
 
@@ -335,7 +348,7 @@ namespace AE::Base
 		CPolicy_t::Replace( &_array[pos+1], &_array[pos], _count - pos );
 
 		++_count;
-		PlacementNew<T>( &_array[pos], RVRef(value) );
+		PlacementNew<T>( &_array[pos], RVRef(value) );	// nothrow
 	}
 	
 /*
@@ -344,7 +357,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::resize (usize newSize)
+	constexpr void  FixedArray<T,S,CS>::resize (usize newSize) __NE___
 	{
 		newSize = Min( newSize, capacity() );
 
@@ -362,7 +375,7 @@ namespace AE::Base
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::resize (usize newSize, const T &defaultValue)
+	constexpr void  FixedArray<T,S,CS>::resize (usize newSize, const T &defaultValue) __NE___
 	{
 		newSize = Min( newSize, capacity() );
 
@@ -385,7 +398,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::clear ()
+	constexpr void  FixedArray<T,S,CS>::clear () __NE___
 	{
 		CPolicy_t::Destroy( _array, _count );
 
@@ -398,7 +411,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::fast_erase (usize index)
+	constexpr void  FixedArray<T,S,CS>::fast_erase (usize index) __NE___
 	{
 		ASSERT( index < _count );
 
@@ -422,7 +435,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::erase (usize index)
+	constexpr void  FixedArray<T,S,CS>::erase (usize index) __NE___
 	{
 		ASSERT( index < _count );
 
@@ -443,7 +456,7 @@ namespace std
 	template <typename T, size_t ArraySize, typename CS>
 	struct hash< AE::Base::FixedArray<T, ArraySize, CS> >
 	{
-		ND_ size_t  operator () (const AE::Base::FixedArray<T, ArraySize, CS> &value) const
+		ND_ size_t  operator () (const AE::Base::FixedArray<T, ArraySize, CS> &value) C_NE___
 		{
 			return size_t(AE::Base::HashOf( AE::Base::ArrayView<T>{ value }));
 		}

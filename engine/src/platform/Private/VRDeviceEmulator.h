@@ -71,8 +71,8 @@ namespace AE::App
 			bool  IsBindActionActive () const override;
 
 			// ISerializable //
-			bool  Serialize (Serializing::Serializer &) const override;
-			bool  Deserialize (Serializing::Deserializer &) override;
+			bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+			bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 		};
 
 		

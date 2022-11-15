@@ -1,4 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Exceptions:
+		- internal object may throw exceptions (in copy-ctor)
+*/
 
 #pragma once
 
@@ -14,6 +18,10 @@ namespace AE::Base
 	template <typename T>
 	struct InPlace final
 	{
+		// some std containers dosn't marked as noexcept
+		//STATIC_ASSERT( IsNothrowMoveCtor<T> );
+		//STATIC_ASSERT( IsNothrowDefaultCtor<T> );
+
 	// types
 	public:
 		using Self		= InPlace< T >;
@@ -33,24 +41,24 @@ namespace AE::Base
 
 	// methods
 	public:
-		InPlace ()
+		InPlace ()							__NE___
 		{
 			DEBUG_ONLY( DbgFreeMem( OUT _value ));
 		}
 
-		InPlace (const Self &other)
+		InPlace (const Self &other)			noexcept(IsNothrowCopyCtor<T>)
 			DEBUG_ONLY(: _isCreated{other._isCreated})
 		{
-			PlacementNew<T>( OUT &_value, other._value );
+			PlacementNew<T>( OUT &_value, other._value );			// throw
 		}
 
-		InPlace (Self&& other)
+		InPlace (Self&& other)				__NE___
 			DEBUG_ONLY(: _isCreated{other._isCreated})
 		{
-			PlacementNew<T>( OUT &_value, RVRef(other._value) );
+			PlacementNew<T>( OUT &_value, RVRef(other._value) );	// nothrow
 		}
 
-		~InPlace ()
+		~InPlace ()							__NE___
 		{
 			ASSERT( not _isCreated );
 		}
@@ -61,17 +69,17 @@ namespace AE::Base
 
 
 		template <typename ...Args>
-		Self&  Create (Args&& ...args)
+		Self&  Create (Args&& ...args)		noexcept(IsNothrowCtor<T, Args...>)
 		{
 			DEBUG_ONLY(
 				ASSERT( not _isCreated );
 				_isCreated = true;
 			)
-			PlacementNew<T>( OUT &_value, FwdArg<Args &&>( args )... );
+			PlacementNew<T>( OUT &_value, FwdArg<Args &&>( args )... );	// throw
 			return *this;
 		}
 
-		void  Destroy ()
+		void  Destroy ()					__NE___
 		{
 			DEBUG_ONLY(
 				ASSERT( _isCreated );
@@ -82,18 +90,18 @@ namespace AE::Base
 
 
 		template <typename Fn>
-		Self&  CustomCtor (const Fn &fn)
+		Self&  CustomCtor (const Fn &fn)	noexcept(std::is_nothrow_invocable_v<Fn>)
 		{
 			DEBUG_ONLY(
 				ASSERT( not _isCreated );
 				_isCreated = true;
 			)
-			fn( OUT _value );
+			fn( OUT _value );	// throw
 			return *this;
 		}
 		
 		template <typename Fn>
-		void  CustomDtor (const Fn &fn)
+		void  CustomDtor (const Fn &fn)		__NE___
 		{
 			DEBUG_ONLY(
 				ASSERT( _isCreated );
@@ -103,17 +111,17 @@ namespace AE::Base
 		}
 
 
-		ND_ T *			operator -> ()			{ ASSERT( _isCreated );  return &_value; }
-		ND_ T const*	operator -> ()	const	{ ASSERT( _isCreated );  return &_value; }
+		ND_ T *			operator -> ()		__NE___	{ ASSERT( _isCreated );  return &_value; }
+		ND_ T const*	operator -> ()		C_NE___	{ ASSERT( _isCreated );  return &_value; }
 
-		ND_ T &			operator * ()			{ ASSERT( _isCreated );  return _value; }
-		ND_ T const&	operator * ()	const	{ ASSERT( _isCreated );  return _value; }
+		ND_ T &			operator * ()		__NE___	{ ASSERT( _isCreated );  return _value; }
+		ND_ T const&	operator * ()		C_NE___	{ ASSERT( _isCreated );  return _value; }
 
-		ND_ T *			operator & ()			{ ASSERT( _isCreated );  return &_value; }
-		ND_ T const*	operator & ()	const	{ ASSERT( _isCreated );  return &_value; }
+		ND_ T *			operator & ()		__NE___	{ ASSERT( _isCreated );  return &_value; }
+		ND_ T const*	operator & ()		C_NE___	{ ASSERT( _isCreated );  return &_value; }
 
 		DEBUG_ONLY(
-			ND_ bool	IsCreated ()	const	{ return _isCreated; }
+			ND_ bool	IsCreated ()		C_NE___	{ return _isCreated; }
 		)
 	};
 

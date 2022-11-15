@@ -15,7 +15,7 @@ namespace AE::VFS
 	// Disk Dynamic Storage
 	//
 
-	class DiskDynamicStorage final : public IFileStorage
+	class DiskDynamicStorage final : public IVirtualFileStorage
 	{
 	// types
 	private:
@@ -45,22 +45,21 @@ namespace AE::VFS
 		ND_ bool  Create (const Path &folder);
 
 
-	  // IFileStorage //
-		RC<RStream>			Open (const FileName &name) const override;
-		RC<AsyncRStream>	OpenAsync (const FileName &name) const override;
-
-		//Promise<void>		LoadAsync (const FileGroupName &name) const override;
+	  // IVirtualFileStorage //
+		RC<RStream>		OpenAsStream (const FileName &name) const override;
+		RC<RDataSource>	OpenAsSource (const FileName &name) const override;
 
 		bool	Exists (const FileName &name) const override;
 		bool	Exists (const FileGroupName &name) const override;
 
 	private:
-		void			  _Append (INOUT GlobalFileMap_t &) const override					{}
-		RC<RStream>		  _OpenByIter (const FileName &, const void*) const override		{ return Default; }
-		RC<AsyncRStream>  _OpenAsyncByIter (const FileName &, const void*) const override	{ return Default; }
+		void				_Append (INOUT GlobalFileMap_t &) const override					{}
+		RC<RStream>			_OpenAsStreamByIter (const FileName &, const void*) const override	{ DBG_WARNING("not supported");  return Default; }
+		RC<RDataSource>		_OpenAsSourceByIter (const FileName &, const void*) const override	{ DBG_WARNING("not supported");  return Default; }
 		
-		ND_ RC<RStream>  _Open (const FileName &name) const;
-		ND_ bool		 _Exists (const FileName &name) const;
+		ND_ RC<RStream>		_OpenAsStream (const FileName &name) const;
+		ND_ RC<RDataSource>	_OpenAsSource (const FileName &name) const;
+		ND_ bool			_Exists (const FileName &name) const;
 
 		ND_ bool  _Update () const;
 	};

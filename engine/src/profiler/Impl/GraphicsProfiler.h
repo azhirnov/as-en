@@ -116,10 +116,15 @@ namespace AE::Profiler
 		// draw batch
 		void  BeginDrawBatch (const void* batch, StringView name) override;
 		
-	  #ifdef AE_ENABLE_VULKAN
+	  #if defined(AE_ENABLE_VULKAN)
 		// context
 		void  BeginContext (const void* batch, VkCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type) override;
 		void  EndContext (const void* batch, VkCommandBuffer cmdbuf, EContextType type) override;
+
+	  #elif defined(AE_ENABLE_METAL)
+		// context
+		void  BeginContext (const void* batch, MetalCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type) override;
+		void  EndContext (const void* batch, MetalCommandBuffer cmdbuf, EContextType type) override;
 	  #endif
 
 		// frames

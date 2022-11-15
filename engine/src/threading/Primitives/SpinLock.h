@@ -2,11 +2,11 @@
 
 #pragma once
 
-#ifndef AE_LFAS_ENABLED
-# include "threading/Primitives/Atomic.h"
-# include "base/Utils/Helpers.h"
-#endif
 #include "base/Platforms/Platform.h"
+#ifndef AE_LFAS_ENABLED
+# include "base/Utils/Helpers.h"
+# include "threading/Primitives/Atomic.h"
+#endif
 
 
 namespace AE::Threading
@@ -34,18 +34,17 @@ namespace AE::Threading
 
 	// methods
 	public:
-		TSpinLock ()
-		{}
+		TSpinLock ()				__NE___ {}
 
-		TSpinLock (const Self &) = delete;
-		TSpinLock (Self &&) = delete;
+		TSpinLock (const Self &)	= delete;
+		TSpinLock (Self &&)			= delete;
 		
-		~TSpinLock ()
+		~TSpinLock ()				__NE___
 		{
 			ASSERT( _flag.load(EMemoryOrder::Relaxed) == 0 );
 		}
 
-		ND_ forceinline bool  try_lock ()
+		ND_ bool  try_lock ()		__NE___
 		{
 			uint	exp = 0;
 			return _flag.compare_exchange_strong( INOUT exp, 1, AcquireOrder, EMemoryOrder::Relaxed );
@@ -53,7 +52,7 @@ namespace AE::Threading
 
 
 		// for std::lock_guard
-		forceinline void  lock ()
+		void  lock ()				__NE___
 		{
 			uint	exp = 0;
 			for (uint i = 0;
@@ -71,7 +70,7 @@ namespace AE::Threading
 			}
 		}
 
-		forceinline void  unlock ()
+		void  unlock ()				__NE___
 		{
 		  #ifdef AE_DEBUG
 			ASSERT( _flag.exchange( 0, ReleaseOrder ) == 1 );
@@ -100,15 +99,10 @@ namespace AE::Threading
 
 	// methods
 	public:
-		RWSpinLock ()
-		{}
-		
-		~RWSpinLock ()
-		{
-			ASSERT( _flag.load() == 0 );
-		}
+		RWSpinLock ()					__NE___ {}
+		~RWSpinLock ()					__NE___	{ ASSERT( _flag.load() == 0 ); }
 
-		ND_ forceinline bool  try_lock ()
+		ND_ bool  try_lock ()			__NE___
 		{
 			int	exp = 0;
 			return _flag.compare_exchange_strong( INOUT exp, -1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
@@ -116,7 +110,7 @@ namespace AE::Threading
 
 
 		// for std::lock_guard / std::unique_lock
-		forceinline void  lock ()
+		void  lock ()					__NE___
 		{
 			int	exp = 0;
 			for (uint i = 0; not _flag.compare_exchange_weak( INOUT exp, -1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed ); ++i)
@@ -133,7 +127,7 @@ namespace AE::Threading
 		}
 		
 		// for std::lock_guard / std::unique_lock
-		forceinline void  unlock ()
+		void  unlock ()					__NE___
 		{
 		  #ifdef AE_DEBUG
 			ASSERT( _flag.exchange( 0, EMemoryOrder::Release ) == -1 );
@@ -142,8 +136,8 @@ namespace AE::Threading
 		  #endif
 		}
 
-
-		ND_ forceinline bool  try_lock_shared ()
+		
+		ND_ bool  try_lock_shared ()	__NE___
 		{
 			int	exp = 0;
 			for (uint i = 0;
@@ -160,7 +154,7 @@ namespace AE::Threading
 
 
 		// for std::shared_lock
-		forceinline void  lock_shared ()
+		void  lock_shared ()			__NE___
 		{
 			int	exp = 0;
 			for (uint i = 0;
@@ -179,7 +173,7 @@ namespace AE::Threading
 		}
 
 		// for std::shared_lock
-		forceinline void  unlock_shared ()
+		void  unlock_shared ()			__NE___
 		{
 			int	old = _flag.fetch_sub( 1, EMemoryOrder::Release );
 			ASSERT( old >= 0 );
@@ -187,13 +181,13 @@ namespace AE::Threading
 		}
 
 
-		ND_ forceinline bool  try_shared_to_exclusive ()
+		ND_ bool  try_shared_to_exclusive () __NE___
 		{
 			int	exp = 1;
 			return _flag.compare_exchange_strong( INOUT exp, -1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
 		}
 
-		forceinline void  shared_to_exclusive ()
+		void  shared_to_exclusive ()	__NE___
 		{
 			int	exp = 1;
 			for (uint i = 0;
@@ -212,7 +206,7 @@ namespace AE::Threading
 		}
 
 
-		forceinline void  exclusive_to_shared ()
+		void  exclusive_to_shared ()	__NE___
 		{
 			int	exp = -1;
 			_flag.compare_exchange_strong( INOUT exp, 1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
@@ -246,18 +240,18 @@ namespace AE::Threading
 
 	// methods
 	public:
-		TPtrSpinLock () {}
-		explicit TPtrSpinLock (PtrType* ptr) : _ptr{ptr} {}
+		TPtrSpinLock ()					__NE___ {}
+		explicit TPtrSpinLock (PtrType* ptr) __NE___ : _ptr{ptr} {}
 
-		TPtrSpinLock (const Self &) = delete;
-		TPtrSpinLock (Self &&) = delete;
+		TPtrSpinLock (const Self &)		= delete;
+		TPtrSpinLock (Self &&)			= delete;
 		
-		~TPtrSpinLock ()
+		~TPtrSpinLock ()				__NE___
 		{
 			ASSERT( not _HasLockBit( _ptr.load() ));
 		}
 
-		ND_ forceinline bool  try_lock ()
+		ND_ bool  try_lock ()			__NE___
 		{
 			PtrType*	exp = _RemoveLockBit( _ptr.load() );
 			return _ptr.compare_exchange_strong( INOUT exp, _SetLockBit( exp ), AcquireOrder, EMemoryOrder::Relaxed );
@@ -265,7 +259,7 @@ namespace AE::Threading
 
 
 		// for std::lock_guard
-		forceinline void  lock ()
+		void  lock ()					__NE___
 		{
 			PtrType*	exp = _RemoveLockBit( _ptr.load() );
 			for (uint i = 0;
@@ -283,7 +277,7 @@ namespace AE::Threading
 			}
 		}
 
-		forceinline void  unlock ()
+		void  unlock ()					__NE___
 		{
 			PtrType*	exp = _RemoveLockBit( _ptr.load() );
 			PtrType*	prev = _ptr.exchange( exp, ReleaseOrder );
@@ -291,13 +285,13 @@ namespace AE::Threading
 			ASSERT( prev == _SetLockBit( exp ));
 		}
 
-		ND_ bool			IsLocked () const	{ return _HasLockBit( _ptr.load() ); }
+		ND_ bool			IsLocked () C_NE___	{ return _HasLockBit( _ptr.load() ); }
 
-		ND_ PtrType*		get ()				{ return _RemoveLockBit( _ptr.load() ); }
-		ND_ PtrType const*	get ()		const	{ return _RemoveLockBit( _ptr.load() ); }
+		ND_ PtrType*		get ()		__NE___	{ return _RemoveLockBit( _ptr.load() ); }
+		ND_ PtrType const*	get ()		C_NE___	{ return _RemoveLockBit( _ptr.load() ); }
 
 
-		void  set (PtrType* ptr)
+		void  set (PtrType* ptr)		__NE___
 		{
 			ASSERT( IsLocked() );
 			ASSERT( not _HasLockBit( ptr ));
@@ -320,17 +314,17 @@ namespace AE::Threading
 
 
 	private:
-		ND_ static bool  _HasLockBit (PtrType* ptr)
+		ND_ static bool  _HasLockBit (PtrType* ptr)			__NE___
 		{
 			return (usize(ptr) & usize{1});
 		}
 
-		ND_ static PtrType*  _SetLockBit (PtrType* ptr)
+		ND_ static PtrType*  _SetLockBit (PtrType* ptr)		__NE___
 		{
 			return reinterpret_cast< PtrType *>((usize(ptr) | usize{1}));
 		}
 
-		ND_ static PtrType*  _RemoveLockBit (PtrType* ptr)
+		ND_ static PtrType*  _RemoveLockBit (PtrType* ptr)	__NE___
 		{
 			return reinterpret_cast< PtrType *>((usize(ptr) & ~usize{1}));
 		}

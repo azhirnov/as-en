@@ -15,25 +15,25 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr usize  CountOf (T& value)
+	ND_ forceinline constexpr usize  CountOf (T& value) __NE___
 	{
 		return std::size( value );
 	}
 	
 	template <typename ...Types>
-	ND_ forceinline constexpr usize  CountOf ()
+	ND_ forceinline constexpr usize  CountOf () __NE___
 	{
 		return sizeof... (Types);
 	}
 	
 	template <typename T, usize I, typename Class>
-	ND_ forceinline constexpr usize  CountOf (T (Class::*) [I])
+	ND_ forceinline constexpr usize  CountOf (T (Class::*) [I]) __NE___
 	{
 		return I;
 	}
 	
 	template <usize I>
-	ND_ forceinline constexpr usize  CountOf (const BitSet<I> &)
+	ND_ forceinline constexpr usize  CountOf (const BitSet<I> &) __NE___
 	{
 		return I;
 	}
@@ -44,31 +44,31 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename A>
-	ND_ forceinline Bytes  ArraySizeOf (const Array<T,A> &arr)
+	ND_ forceinline Bytes  ArraySizeOf (const Array<T,A> &arr) __NE___
 	{
 		return Bytes{ arr.size() * sizeof(T) };
 	}
 
 	template <typename T, usize S>
-	ND_ forceinline Bytes  ArraySizeOf (const FixedArray<T,S> &arr)
+	ND_ forceinline Bytes  ArraySizeOf (const FixedArray<T,S> &arr) __NE___
 	{
 		return Bytes{ arr.size() * sizeof(T) };
 	}
 
 	template <typename T>
-	ND_ forceinline Bytes  ArraySizeOf (const ArrayView<T> &arr)
+	ND_ forceinline Bytes  ArraySizeOf (const ArrayView<T> &arr) __NE___
 	{
 		return Bytes{ arr.size() * sizeof(T) };
 	}
 	
 	template <typename T, usize S>
-	ND_ forceinline constexpr Bytes  ArraySizeOf (const StaticArray<T,S> &)
+	ND_ forceinline constexpr Bytes  ArraySizeOf (const StaticArray<T,S> &) __NE___
 	{
 		return Bytes{ S * sizeof(T) };
 	}
 
 	template <typename T, usize S>
-	ND_ forceinline constexpr Bytes  ArraySizeOf (const T (&)[S])
+	ND_ forceinline constexpr Bytes  ArraySizeOf (const T (&)[S]) __NE___
 	{
 		return Bytes{ sizeof(T) * S };
 	}
@@ -79,19 +79,19 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename A>
-	ND_ forceinline Bytes  StringSizeOf (const BasicString<T,A> &str)
+	ND_ forceinline Bytes  StringSizeOf (const BasicString<T,A> &str) __NE___
 	{
 		return Bytes{ str.size() * sizeof(T) };
 	}
 
 	template <typename T>
-	ND_ forceinline Bytes  StringSizeOf (BasicStringView<T> str)
+	ND_ forceinline Bytes  StringSizeOf (BasicStringView<T> str) __NE___
 	{
 		return Bytes{ str.size() * sizeof(T) };
 	}
 
 	template <typename T>
-	ND_ forceinline Bytes  StringSizeOf (const NtBasicStringView<T> &str)
+	ND_ forceinline Bytes  StringSizeOf (const NtBasicStringView<T> &str) __NE___
 	{
 		return Bytes{ str.size() * sizeof(T) };
 	}
@@ -104,19 +104,19 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr ssize  Distance (T *lhs, T *rhs)
+	ND_ forceinline constexpr ssize  Distance (T *lhs, T *rhs) __NE___
 	{
 		return std::distance< T *>( lhs, rhs );
 	}
 	
 	template <typename T>
-	ND_ forceinline constexpr ssize  Distance (const T *lhs, T *rhs)
+	ND_ forceinline constexpr ssize  Distance (const T *lhs, T *rhs) __NE___
 	{
 		return std::distance< T const *>( lhs, rhs );
 	}
 	
 	template <typename T>
-	ND_ forceinline constexpr ssize  Distance (T *lhs, const T *rhs)
+	ND_ forceinline constexpr ssize  Distance (T *lhs, const T *rhs) __NE___
 	{
 		return std::distance< T const *>( lhs, rhs );
 	}
@@ -127,7 +127,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename Key>
-	ND_ forceinline usize  LowerBound (ArrayView<T> arr, const Key &key)
+	ND_ forceinline usize  LowerBound (ArrayView<T> arr, const Key &key) __NE___
 	{
 		usize2	range { 0, arr.size() };
 
@@ -141,14 +141,14 @@ namespace AE::Base
 	}
 
 	template <typename T, typename Key>
-	ND_ forceinline usize  LowerBound2 (ArrayView<T> arr, const Key &key)
+	ND_ forceinline usize  LowerBound2 (ArrayView<T> arr, const Key &key) __NE___
 	{
 		usize	i = LowerBound( arr, key );
 		return (i < arr.size() and key == arr[i]) ? i : UMax;
 	}
 
 	template <typename T, typename Key>
-	ND_ forceinline usize  LowerBound2 (const Array<T> &arr, const Key &key)
+	ND_ forceinline usize  LowerBound2 (const Array<T> &arr, const Key &key) __NE___
 	{
 		return LowerBound2( ArrayView<T>{arr}, key );
 	}
@@ -159,7 +159,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename Key>
-	ND_ forceinline usize  BinarySearch (ArrayView<T> arr, const Key &key)
+	ND_ forceinline usize  BinarySearch (ArrayView<T> arr, const Key &key) __NE___
 	{
 		ssize	left	= 0;
 		ssize	right	= ssize(arr.size());
@@ -181,7 +181,7 @@ namespace AE::Base
 	}
 	
 	template <typename T, typename Key>
-	ND_ forceinline usize  BinarySearch (const Array<T> &arr, const Key &key)
+	ND_ forceinline usize  BinarySearch (const Array<T> &arr, const Key &key) __NE___
 	{
 		return BinarySearch( ArrayView<T>{arr}, key );
 	}
@@ -192,7 +192,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename Key>
-	ND_ forceinline usize  ExponentialSearch (ArrayView<T> arr, const Key &key)
+	ND_ forceinline usize  ExponentialSearch (ArrayView<T> arr, const Key &key) __NE___
 	{
 		if ( arr.empty() )
 			return UMax;
@@ -221,7 +221,7 @@ namespace AE::Base
 	}
 	
 	template <typename T, typename Key>
-	ND_ forceinline usize  ExponentialSearch (const Array<T> &arr, const Key &key)
+	ND_ forceinline usize  ExponentialSearch (const Array<T> &arr, const Key &key) __NE___
 	{
 		return ExponentialSearch( ArrayView<T>{arr}, key );
 	}
@@ -249,13 +249,13 @@ namespace AE::Base
 	} // _hidden_
 
 	template <typename Container>
-	ND_ auto  Reverse (Container& container)
+	ND_ auto  Reverse (Container& container) __NE___
 	{
 		return Base::_hidden_::ReverseContainerView<Container>{ container };
 	}
 
 	template <typename Container>
-	ND_ auto  Reverse (const Container& container)
+	ND_ auto  Reverse (const Container& container) __NE___
 	{
 		return Base::_hidden_::ReverseContainerView<const Container>{ container };
 	}
@@ -266,7 +266,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename Iter, typename Cmp>
-	ND_ bool  IsSorted (Iter begin, Iter end, Cmp && fn)
+	ND_ bool  IsSorted (Iter begin, Iter end, Cmp && fn) __NE___
 	{
 		if ( begin == end )
 			return true;
@@ -282,7 +282,7 @@ namespace AE::Base
 	}
 
 	template <typename Iter>
-	ND_ bool  IsSorted (Iter begin, Iter end)
+	ND_ bool  IsSorted (Iter begin, Iter end) __NE___
 	{
 		return IsSorted( begin, end, std::less{} );
 	}
@@ -293,7 +293,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename Iter>
-	ND_ bool  HasDuplicates (Iter begin, Iter end)
+	ND_ bool  HasDuplicates (Iter begin, Iter end) __NE___
 	{
 		if ( begin == end )
 			return false;
@@ -314,10 +314,29 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  RemoveDuplicates (INOUT Array<T> &arr)
+	void  RemoveDuplicates (INOUT Array<T> &arr) __NE___
 	{
 		std::sort( arr.begin(), arr.end() );
 		arr.erase( std::unique( arr.begin(), arr.end() ), arr.end() );
 	}
+	
+/*
+=================================================
+	RemoveDuplicates
+=================================================
+*/
+	template <typename Iter, typename T>
+	ND_ bool  ArrayContains (Iter begin, Iter end, const T &value) __NE___
+	{
+		ASSERT( begin != end );
+		return std::find( begin, end, value ) != end;
+	}
+	
+	template <typename A, typename T>
+	ND_ bool  ArrayContains (ArrayView<A> arr, const T &value) __NE___
+	{
+		return ArrayContains( arr.begin(), arr.end(), value );
+	}
+
 
 } // AE::Base

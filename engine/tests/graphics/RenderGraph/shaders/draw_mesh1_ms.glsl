@@ -2,10 +2,6 @@
 layout(max_vertices = 3, max_primitives = 1) out;
 layout(triangles) out;
 
-out gl_MeshPerVertexNV {
-	vec4	gl_Position;
-} gl_MeshVerticesNV[]; // [max_vertices]
-
 layout(location=0) out MeshOutput {
 	vec4	color;
 } Output[]; // [max_vertices]
@@ -26,10 +22,12 @@ void main ()
 {
 	const uint I = gl_LocalInvocationID.x;
 
-	gl_MeshVerticesNV[I].gl_Position	= vec4( g_Positions[I], 0.0, 1.0 );
-	Output[I].color						= vec4( g_Colors[I], 1.0 );
-	gl_PrimitiveIndicesNV[I]			= I;
-
+	gl_MeshVertices[I].gl_Position	= vec4( g_Positions[I], 0.0, 1.0 );
+	Output[I].color					= vec4( g_Colors[I], 1.0 );
+	
 	if ( I == 0 )
-		gl_PrimitiveCountNV = 1;
+	{
+		gl_PrimitiveTriangleIndices[0] = uvec3(0,1,2);
+		glSetMeshOutputs( 3, 1 );
+	}
 }

@@ -84,10 +84,10 @@ namespace AE::Graphics
 		ImageID			image;
 		ImageViewID		view;
 
-		constexpr ImageAndViewID () {}
-		constexpr ImageAndViewID (ImageID image, ImageViewID view) : image{image}, view{view} {}
+		constexpr ImageAndViewID () __NE___ {}
+		constexpr ImageAndViewID (ImageID image, ImageViewID view) __NE___ : image{image}, view{view} {}
 
-		ND_ explicit operator bool ()	const	{ return image and view; }
+		ND_ explicit operator bool ()	C_NE___	{ return image and view; }
 	};
 	
 
@@ -99,15 +99,15 @@ namespace AE::Graphics
 		Strong<ImageID>			image;
 		Strong<ImageViewID>		view;
 		
-		constexpr StrongImageAndViewID () {}
-		constexpr StrongImageAndViewID (Strong<ImageID> image, Strong<ImageViewID> view) : image{RVRef(image)}, view{RVRef(view)} {}
+		constexpr StrongImageAndViewID () __NE___ {}
+		constexpr StrongImageAndViewID (Strong<ImageID> image, Strong<ImageViewID> view) __NE___ : image{RVRef(image)}, view{RVRef(view)} {}
 
-		constexpr StrongImageAndViewID (StrongImageAndViewID &&) = default;
+		constexpr StrongImageAndViewID (StrongImageAndViewID &&) __NE___ = default;
 
-		StrongImageAndViewID&  operator = (StrongImageAndViewID &&) = default;
+		StrongImageAndViewID&  operator = (StrongImageAndViewID &&) __NE___ = default;
 
-		operator ImageAndViewID ()		const	{ return { image, view }; }
-		ND_ explicit operator bool ()	const	{ return image and view; }
+		operator ImageAndViewID ()		C_NE___	{ return { image, view }; }
+		ND_ explicit operator bool ()	C_NE___	{ return image and view; }
 	};
 
 
@@ -131,17 +131,17 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		GAutorelease () {}
-		GAutorelease (Strong<ID_t> id) : _id{RVRef(id)} {}
-		~GAutorelease ();
+		GAutorelease ()						__NE___	{}
+		GAutorelease (Strong<ID_t> id)		__NE___	: _id{RVRef(id)} {}
+		~GAutorelease ()					__NE___;
 		
-		ND_ ID_t		Get ()				const	{ return _id.Get(); }
+		ND_ ID_t		Get ()				C_NE___	{ return _id.Get(); }
 		ND_ ID_t		Release ()								{ return _id.Release(); }
-		ND_ bool		IsValid ()			const	{ return _id.IsValid(); }
+		ND_ bool		IsValid ()			C_NE___	{ return _id.IsValid(); }
 		
-		ND_ explicit	operator bool ()	const	{ return IsValid(); }
+		ND_ explicit	operator bool ()	C_NE___	{ return IsValid(); }
 
-		ND_ 			operator ID_t ()	const	{ return _id.Get(); }
+		ND_ 			operator ID_t ()	C_NE___	{ return _id.Get(); }
 	};
 
 

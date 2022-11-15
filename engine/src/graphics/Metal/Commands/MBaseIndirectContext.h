@@ -5,8 +5,8 @@
 #ifdef AE_ENABLE_METAL
 # include "graphics/Private/SoftwareCmdBufBase.h"
 # include "graphics/Metal/Commands/MBakedCommands.h"
-# include "graphics/Metal/Commands/MRenderTaskScheduler.h"
 # include "graphics/Metal/Commands/MBarrierManager.h"
+# include "graphics/Metal/MRenderTaskScheduler.h"
 
 namespace AE::Graphics::_hidden_
 {
@@ -113,6 +113,23 @@ namespace AE::Graphics::_hidden_
 			Bytes16u			offset;
 		};
 
+		struct ProfilerBeginContextCmd : BaseCmd
+		{
+			const void*							batch;
+			IGraphicsProfiler*					prof;
+			IGraphicsProfiler::EContextType		type;
+			RGBA8u								color;
+			//char								taskName[];
+		};
+
+		struct ProfilerEndContextCmd : BaseCmd
+		{
+			const void*							batch;
+			IGraphicsProfiler*					prof;
+			IGraphicsProfiler::EContextType		type;
+			bool								end;	// to make unique type
+		};
+		
 		//-------------------------------------------------
 		// transfer commands
 		
@@ -338,6 +355,8 @@ namespace AE::Graphics::_hidden_
 			ushort			primitiveType;
 			ushort			indexType;
 			uint			drawCount;
+			MetalBuffer		indexBuffer;
+			Bytes			indexBufferOffset;
 			MetalBuffer		indirectBuffer;
 			Bytes			indirectBufferOffset;
 			Bytes			stride;
@@ -364,7 +383,7 @@ namespace AE::Graphics::_hidden_
 			packed_uint3	threadsPerObjectThreadgroup;
 			packed_uint3	threadsPerMeshThreadgroup;
 			uint			drawCount;
-			Bytes			stride;
+			Bytes32u		stride;
 		};
 
 		struct DispatchThreadsPerTileCmd : BaseCmd
@@ -377,6 +396,13 @@ namespace AE::Graphics::_hidden_
 		
 		struct BeginAccelStructBuildCommandsCmd : BaseCmd
 		{};
+		
+		struct WriteCompactedSizeCmd : BaseCmd
+		{
+			MetalAccelStruct 	as;
+			MetalBuffer 		dstBuffer;
+			Bytes 				offset;
+		};
 
 		//-------------------------------------------------
 		// ray tracing commands
@@ -399,6 +425,8 @@ namespace AE::Graphics::_hidden_
 			_visitor_( SetIntersectionFunctionTableCmd )\
 			_visitor_( SetAccelerationStructureCmd )\
 			_visitor_( SetThreadgroupMemoryLengthCmd )\
+			_visitor_( ProfilerBeginContextCmd )\
+			_visitor_( ProfilerEndContextCmd )\
 			/* transfer commands */\
 			_visitor_( BeginTransferCommandsCmd )\
 			_visitor_( FillBufferCmd )\
@@ -445,6 +473,7 @@ namespace AE::Graphics::_hidden_
 			_visitor_( DispatchThreadsPerTileCmd )\
 			/* acceleration structure build commands */\
 			_visitor_( BeginAccelStructBuildCommandsCmd )\
+			_visitor_( WriteCompactedSizeCmd )\
 		
 		using Commands_t	= TypeList<
 				#define AE_BASE_IND_CTX_VISIT( _name_ )		_name_,
@@ -478,13 +507,18 @@ namespace AE::Graphics::_hidden_
 		ND_ MBakedCommands	Bake ();
 		
 		template <typename CmdType, typename ...DynamicTypes>
-		ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)	{ return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
+		ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)	__TH___	{ return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
 		
 		void  DebugMarker (NtStringView text);
 		void  PushDebugGroup (NtStringView text);
 		void  PopDebugGroup ();
 		void  CommitBarriers (const MBarrierManager::BarrierInfo &);
 
+		void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch, StringView taskName, RGBA8u color, IGraphicsProfiler::EContextType type);
+		void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch, IGraphicsProfiler::EContextType type);
+		
+		void  DbgFillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data);
+		
 		ND_ static bool  Execute (MetalCommandBuffer cmdbuf, void* root);
 		
 	private:
@@ -520,9 +554,7 @@ namespace AE::Graphics::_hidden_
 	public:
 		virtual ~_MBaseIndirectContext ();
 
-		ND_ bool				IsValid ()			const	{ return _cmdbuf and _cmdbuf->IsValid(); }
-		ND_ MBakedCommands		EndCommandBuffer ();
-		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ();
+		ND_ bool	IsValid ()	const	{ return _cmdbuf and _cmdbuf->IsValid(); }
 
 	protected:
 		explicit _MBaseIndirectContext (MSoftwareCmdBufPtr cmdbuf) : _cmdbuf{RVRef(cmdbuf)} {}
@@ -533,6 +565,9 @@ namespace AE::Graphics::_hidden_
 		void  _DebugMarker (NtStringView text, RGBA8u)		{ _cmdbuf->DebugMarker( text ); }
 		void  _PushDebugGroup (NtStringView text, RGBA8u)	{ _cmdbuf->PushDebugGroup( text ); }
 		void  _PopDebugGroup ()								{ _cmdbuf->PopDebugGroup(); }
+
+		ND_ MBakedCommands		_EndCommandBuffer ();
+		ND_ MSoftwareCmdBufPtr  _ReleaseCommandBuffer ();
 	};
 
 
@@ -550,14 +585,13 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit MBaseIndirectContext (Ptr<MCommandBatch> batch);
-		MBaseIndirectContext (Ptr<MCommandBatch> batch, MSoftwareCmdBufPtr cmdbuf);
+		explicit MBaseIndirectContext (const RenderTask &task);
+		MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf);
 		~MBaseIndirectContext () override;
-		
-		ND_ MBakedCommands		EndCommandBuffer ();
-		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()		{ ASSERT( _NoPendingBarriers() );  return _MBaseIndirectContext::ReleaseCommandBuffer(); }
 
 	protected:
+		void  _CommitBarriers ();
+
 		ND_ bool	_NoPendingBarriers ()	const	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetFeatures ()			const	{ return _mngr.GetDevice().GetFeatures(); }
 	};
@@ -582,14 +616,14 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline MBaseIndirectContext::MBaseIndirectContext (Ptr<MCommandBatch> batch) :
-		_MBaseIndirectContext{ batch->DbgName() },
-		_mngr{ batch }
+	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task) :
+		_MBaseIndirectContext{ task.DbgFullName() },
+		_mngr{ task }
 	{}
 		
-	inline MBaseIndirectContext::MBaseIndirectContext (Ptr<MCommandBatch> batch, MSoftwareCmdBufPtr cmdbuf) :
+	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf) :
 		_MBaseIndirectContext{ RVRef(cmdbuf) },
-		_mngr{ batch }
+		_mngr{ task }
 	{}
 	
 /*
@@ -600,6 +634,21 @@ namespace AE::Graphics::_hidden_
 	inline MBaseIndirectContext::~MBaseIndirectContext ()
 	{
 		ASSERT( _NoPendingBarriers() );
+	}
+	
+/*
+=================================================
+	_CommitBarriers
+=================================================
+*/
+	inline void  MBaseIndirectContext::_CommitBarriers ()
+	{
+		auto* bar = _mngr.GetBarriers();
+		if_unlikely( bar != null )
+		{
+			_cmdbuf->CommitBarriers( *bar );
+			_mngr.ClearBarriers();
+		}
 	}
 
 } // AE::Graphics::_hidden_
@@ -614,12 +663,12 @@ namespace AE::Graphics
 ----
 	'cmdbuf' must be in the recording state
 =================================================
-*
+*/
 	forceinline bool  MBakedCommands::Execute (MetalCommandBuffer cmdbuf) const
 	{
-		return _hidden_::MSoftwareCmdBuf::Execute( fn, cmdbuf, _root );
+		return _hidden_::MSoftwareCmdBuf::Execute( cmdbuf, _root );
 	}
-*/
+
 } // AE::Graphics
 
 #endif // AE_ENABLE_METAL

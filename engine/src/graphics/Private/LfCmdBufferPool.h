@@ -26,7 +26,7 @@ namespace AE::Graphics
 			NativeCmdBuffer_t		native;
 			BakedCommands_t			baked;
 
-			Cmdbuf () {}
+			Cmdbuf () __NE___ {}
 		};
 		using Pool_t = StaticArray< Cmdbuf, GraphicsConfig::MaxCmdBufPerBatch >;
 
@@ -44,23 +44,23 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		LfCmdBufferPool ();
+		LfCmdBufferPool ()											__NE___;
 
 		// user api (thread safe)
-		ND_ uint  Current ()	const	{ return _counter.load(); }
-		ND_ uint  Acquire ();
-			void  Add (INOUT uint& idx, NativeCmdBuffer_t cmdbuf);
-			void  Add (INOUT uint& idx, BakedCommands_t ctx);
-			void  Complete (INOUT uint& idx);
+		ND_ uint  Current ()										C_NE___	{ return _counter.load(); }
+		ND_ uint  Acquire ()										__NE___;
+			void  Add (INOUT uint& idx, NativeCmdBuffer_t cmdbuf)	__NE___;
+			void  Add (INOUT uint& idx, BakedCommands_t ctx)		__NE___;
+			void  Complete (INOUT uint& idx)						__NE___;
 
 		// owner api
-			void  Lock ();
-			void  Reset ();
-		ND_ bool  IsReady ();
-		ND_ bool  IsLocked ();
+			void  Lock ()											__NE___;
+			void  Reset ()											__NE___;
+		ND_ bool  IsReady ()										__NE___;
+		ND_ bool  IsLocked ()										__NE___;
 			
 	protected:
-			void  _GetCommands (OUT NativeCmdBuffer_t* cmdbufs, OUT uint &cmdbufCount, uint maxCount);
+			void  _GetCommands (OUT NativeCmdBuffer_t* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___;
 	};
 	
 
@@ -70,7 +70,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename A, typename B>
-	LfCmdBufferPool<A,B>::LfCmdBufferPool ()
+	LfCmdBufferPool<A,B>::LfCmdBufferPool () __NE___
 	{
 		Reset();
 	}
@@ -83,7 +83,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename A, typename B>
-	uint  LfCmdBufferPool<A,B>::Acquire ()
+	uint  LfCmdBufferPool<A,B>::Acquire () __NE___
 	{
 		ASSERT( not IsReady() );
 
@@ -103,7 +103,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename A, typename B>
-	void  LfCmdBufferPool<A,B>::Add (INOUT uint& idx, NativeCmdBuffer_t cmdbuf)
+	void  LfCmdBufferPool<A,B>::Add (INOUT uint& idx, NativeCmdBuffer_t cmdbuf) __NE___
 	{
 		ASSERT( idx < _pool.size() );
 
@@ -128,7 +128,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename A, typename B>
-	void  LfCmdBufferPool<A,B>::Add (INOUT uint& idx, BakedCommands_t ctx)
+	void  LfCmdBufferPool<A,B>::Add (INOUT uint& idx, BakedCommands_t ctx) __NE___
 	{
 		ASSERT( idx < _pool.size() );
 
@@ -136,7 +136,7 @@ namespace AE::Graphics
 		{
 			DRC_SHAREDLOCK( _drCheck );
 
-			PlacementNew<BakedCommands_t>( &_pool[idx].baked, RVRef(ctx) );
+			PlacementNew<BakedCommands_t>( &_pool[idx].baked, RVRef(ctx) );		// nothrow
 			_cmdTypes.fetch_or( 1u << idx );
 
 			uint	old_bits = _ready.fetch_or( 1u << idx, EMemoryOrder::Release );
@@ -154,7 +154,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename A, typename B>
-	void  LfCmdBufferPool<A,B>::Complete (INOUT uint& idx)
+	void  LfCmdBufferPool<A,B>::Complete (INOUT uint& idx) __NE___
 	{
 		ASSERT( idx < _pool.size() );
 
@@ -171,12 +171,13 @@ namespace AE::Graphics
 =================================================
 	Lock
 ----
-	call once.
+	prevent for reserving new slots for command buffers, call for 'Acquire()' will fail.
+	call once per frame.
 	not thread safe !!!
 =================================================
 */
 	template <typename A, typename B>
-	void  LfCmdBufferPool<A,B>::Lock ()
+	void  LfCmdBufferPool<A,B>::Lock () __NE___
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
@@ -198,7 +199,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename A, typename B>
-	void  LfCmdBufferPool<A,B>::Reset ()
+	void  LfCmdBufferPool<A,B>::Reset () __NE___
 	{
 		DRC_EXLOCK( _drCheck );
 
@@ -211,7 +212,7 @@ namespace AE::Graphics
 			}
 		})
 
-		ZeroMem( _pool.data(), Bytes::SizeOf(_pool) );
+		ZeroMem( OUT _pool.data(), Sizeof(_pool) );
 		_count = 0;
 		
 		_counter.store( 0 );
@@ -227,7 +228,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename A, typename B>
-	bool  LfCmdBufferPool<A,B>::IsReady ()
+	bool  LfCmdBufferPool<A,B>::IsReady () __NE___
 	{
 		return _ready.load() == UMax;
 	}
@@ -240,7 +241,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename A, typename B>
-	void  LfCmdBufferPool<A,B>::_GetCommands (OUT NativeCmdBuffer_t* cmdbufs, OUT uint &cmdbufCount, uint maxCount)
+	void  LfCmdBufferPool<A,B>::_GetCommands (OUT NativeCmdBuffer_t* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___
 	{
 		ASSERT( cmdbufs != null );
 		ASSERT( maxCount >= GraphicsConfig::MaxCmdBufPerBatch );

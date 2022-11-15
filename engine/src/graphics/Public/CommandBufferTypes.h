@@ -210,19 +210,19 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		BufferStream () {}
-		BufferStream (BufferID id, Bytes offset, Bytes size, Bytes blockSize = 0_b) :
+		BufferStream () __NE___ {}
+		BufferStream (BufferID id, Bytes offset, Bytes size, Bytes blockSize = 0_b) __NE___ :
 			_size{size}, _offset{offset}, _blockSize{blockSize}, _bufferId{id} {}
 
-		BufferStream&  operator = (const BufferStream &) = default;
+		BufferStream&  operator = (const BufferStream &) __NE___ = default;
 
-		ND_ BufferID	Buffer ()			const	{ return _bufferId; }
-		ND_ Bytes		DataSize ()			const	{ return _size; }
-		ND_ Bytes		OffsetAndPos ()		const	{ return _offset + pos; }
-		ND_ Bytes		Begin ()			const	{ return _offset; }
-		ND_ Bytes		End ()				const	{ return _offset + _size; }
-		ND_ Bytes		RemainSize ()		const	{ return _size - pos; }
-		ND_ bool		IsComplete ()		const	{ return pos >= _size; }
+		ND_ BufferID	Buffer ()			C_NE___	{ return _bufferId; }
+		ND_ Bytes		DataSize ()			C_NE___	{ return _size; }
+		ND_ Bytes		OffsetAndPos ()		C_NE___	{ return _offset + pos; }
+		ND_ Bytes		Begin ()			C_NE___	{ return _offset; }
+		ND_ Bytes		End ()				C_NE___	{ return _offset + _size; }
+		ND_ Bytes		RemainSize ()		C_NE___	{ return _size - pos; }
+		ND_ bool		IsComplete ()		C_NE___	{ return pos >= _size; }
 	};
 
 
@@ -240,19 +240,19 @@ namespace AE::Graphics
 		
 	// methods
 	public:
-		ImageStream () {}
-		ImageStream (ImageID id, const UploadImageDesc &desc) :
+		ImageStream () __NE___ {}
+		ImageStream (ImageID id, const UploadImageDesc &desc) __NE___ :
 			_imageId{id}, _desc{desc} {}
 
-		ImageStream&  operator = (const ImageStream &) = default;
+		ImageStream&  operator = (const ImageStream &)	__NE___ = default;
 
-		ND_ ImageID			Image ()		const	{ return _imageId; }
-		ND_ uint3 const&	Begin ()		const	{ return _desc.imageOffset; }
-		ND_ uint3			End ()			const	{ return _desc.imageOffset + _desc.imageSize; }
-		ND_ uint3 const&	RegionSize ()	const	{ return _desc.imageSize; }
-		ND_ bool			IsComplete ()	const	{ return posYZ[1] >= _desc.imageSize.z; }
+		ND_ ImageID			Image ()					C_NE___	{ return _imageId; }
+		ND_ uint3 const&	Begin ()					C_NE___	{ return _desc.imageOffset; }
+		ND_ uint3			End ()						C_NE___	{ return _desc.imageOffset + _desc.imageSize; }
+		ND_ uint3 const&	RegionSize ()				C_NE___	{ return _desc.imageSize; }
+		ND_ bool			IsComplete ()				C_NE___	{ return posYZ[1] >= _desc.imageSize.z; }
 
-		ND_ UploadImageDesc const&  ToUploadDesc () const { return _desc; }
+		ND_ UploadImageDesc const&  ToUploadDesc ()		C_NE___ { return _desc; }
 	};
 //-----------------------------------------------------------------------------
 	

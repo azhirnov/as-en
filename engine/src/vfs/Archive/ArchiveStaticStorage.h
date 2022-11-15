@@ -17,7 +17,7 @@ namespace AE::VFS
 	// Archive Static Storage
 	//
 
-	class ArchiveStaticStorage final : public IFileStorage
+	class ArchiveStaticStorage final : public IVirtualFileStorage
 	{
 		friend class ArchivePacker;
 
@@ -32,10 +32,15 @@ namespace AE::VFS
 
 		enum class EFileType : uint
 		{
-			Raw,
-			Brotli,
-			//Encrypted,
-			Unknown	= Raw,
+			Raw			= 1 << 0,		// SequentialAccess	| RandomAccess
+			Brotli		= 1 << 1,		// SequentialAccess
+			InMemory	= 1 << 2,		// RandomAccess | Buffered
+		//	Encrypted	= 1 << 3,		// SequentialAccess
+			Unknown		= Raw,
+
+			BrotliInMemory			= Brotli | InMemory,
+		//	BrotliEncrypted			= Brotli | Encrypted,
+		//	BrotliEncryptedInMemory	= Brotli | Encrypted | InMemory,
 		};
 
 		struct FileInfo
@@ -63,8 +68,8 @@ namespace AE::VFS
 
 	// variables
 	private:
-		FileMap_t		_map;
-		RC<RStream>		_archive;
+		FileMap_t			_map;
+		RC<RDataSource>		_archive;
 
 		DRC_ONLY(
 			RWDataRaceCheck	_drCheck;
@@ -76,27 +81,26 @@ namespace AE::VFS
 		ArchiveStaticStorage () {}
 		~ArchiveStaticStorage () override {}
 
-		ND_ bool  Create (RC<RStream> archive);
+		ND_ bool  Create (RC<RDataSource> archive);
 		ND_ bool  Create (const Path &filename);
 
 
-	  // IFileStorage //
-		RC<RStream>			Open (const FileName &name) const override;
-		RC<AsyncRStream>	OpenAsync (const FileName &name) const override;
-
-		//Promise<void>		LoadAsync (const FileGroupName &name) const override;
+	  // IVirtualFileStorage //
+		RC<RStream>		OpenAsStream (const FileName &name) const override;
+		RC<RDataSource>	OpenAsSource (const FileName &name) const override;
 
 		bool	Exists (const FileName &name) const override;
 		bool	Exists (const FileGroupName &name) const override;
 
 	private:
-		void			  _Append (INOUT GlobalFileMap_t &) const override;
-		RC<RStream>		  _OpenByIter (const FileName &name, const void* ref) const override;
-		RC<AsyncRStream>  _OpenAsyncByIter (const FileName &name, const void* ref) const override;
+		void			_Append (INOUT GlobalFileMap_t &) const override;
+		RC<RStream>		_OpenAsStreamByIter (const FileName &name, const void* ref) const override;
+		RC<RDataSource>	_OpenAsSourceByIter (const FileName &name, const void* ref) const override;
 
-		ND_ bool  _ReadHeader (RStream &stream);
-
-		ND_ RC<RStream>  _Open (const FileInfo &) const;
+		ND_ bool  _ReadHeader (RDataSource &ds);
+		
+		ND_ RC<RStream>		_OpenAsStream (const FileInfo &) const;
+		ND_ RC<RDataSource>	_OpenAsSource (const FileInfo &) const;
 	};
 
 

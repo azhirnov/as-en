@@ -591,7 +591,7 @@ namespace
 			uint		row_size	= (type >> 8) & 0xF;					// for scalar, vector and matrix
 			uint		col_size	= Max(1u, (type >> 12) & 0xF );			// only for matrix
 			uint const*	data		= data_ptr;
-			Trace*		trace		= nullptr;
+			Trace*		trace		= null;
 
 			CHECK_ERR( (t_basic == TBasicType::EbtVoid and row_size == 0) or (row_size > 0 and row_size <= 4) );
 			CHECK_ERR( col_size > 0 and col_size <= 4 );

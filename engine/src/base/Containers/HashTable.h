@@ -12,10 +12,10 @@
 #	pragma warning(disable: 4946)
 # endif
 
-#ifdef AE_COMPILER_CLANG
+# ifdef AE_COMPILER_CLANG
 #	pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wdouble-promotion"
-#endif
+# endif
 
 # include "absl/container/flat_hash_map.h"
 # include "absl/container/flat_hash_set.h"
@@ -26,13 +26,11 @@
 # ifdef AE_COMPILER_MSVC
 #	pragma warning(pop)
 # endif
-#ifdef AE_COMPILER_CLANG
+# ifdef AE_COMPILER_CLANG
 #	pragma clang diagnostic pop
-#endif
+# endif
 
-#endif
-
-#include "base/Algorithms/Hash.h"
+#endif // AE_ENABLE_ABSEIL
 
 namespace AE::Base
 {
@@ -146,7 +144,7 @@ namespace std
 			  typename Alloc
 			 >
 	struct hash< AE::Base::FlatHashMap< Key, Value, Hasher, KeyEq, Alloc >> {
-		size_t  operator () (const AE::Base::FlatHashMap< Key, Value, Hasher, KeyEq, Alloc > &map) const
+		size_t  operator () (const AE::Base::FlatHashMap< Key, Value, Hasher, KeyEq, Alloc > &map) C_NE___
 		{
 			using namespace AE::Base;
 			HashVal	h = HashOf( map.size() );
@@ -164,7 +162,7 @@ namespace std
 			  typename Alloc
 			 >
 	struct hash< AE::Base::FlatHashSet< Key, Hasher, KeyEq, Alloc >> {
-		size_t  operator () (const AE::Base::FlatHashSet< Key, Hasher, KeyEq, Alloc > &set) const
+		size_t  operator () (const AE::Base::FlatHashSet< Key, Hasher, KeyEq, Alloc > &set) C_NE___
 		{
 			using namespace AE::Base;
 			HashVal	h = HashOf( set.size() );

@@ -100,16 +100,19 @@ namespace AE::Graphics
 		ND_ EPixelFormat	GetColorFormat ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _colorFormat; }
 		ND_ EColorSpace		GetColorSpace ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _colorSpace; }
 		ND_ EPresentMode	GetPresentMode ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _presentMode; }
-		ND_ uint			GetSwapchainLength ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _imageCount; }
 
-		ND_ bool			IsImageAcquired ()		const;	//{ DRC_SHAREDLOCK( _drCheck );  return bool(_mtlImage); }
+		ND_ uint			GetSwapchainLength ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _imageCount; }
+		
+		ND_ uint			GetCurretImageIndex ()	const;
+		ND_ bool			IsImageAcquired ()		const;
+
+		ND_ MetalImage		GetMtlCurrentImage ()		const;
+		ND_ ImageAndViewID	GetCurrentImageAndViewID ()	const;
+		ND_ ImageAndViewID	GetImageAndViewID (uint i)	const;
 		
 		// same as output params in 'AcquireNextImage()'
 		ND_ MetalCmdBatchDependency		GetImageAvailableSemaphore ()const;
 		ND_ MetalCmdBatchDependency		GetRenderFinishedSemaphore ()const;
-
-		ND_ MetalImage					GetMtlCurrentImage ()		const;
-		ND_ Tuple<ImageID, ImageViewID>	GetCurrentImageAndViewID ()	const;
 	};
 	
 

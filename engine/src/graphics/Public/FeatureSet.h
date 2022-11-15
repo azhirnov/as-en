@@ -30,10 +30,10 @@ namespace AE::Graphics
 			uint	minAccelStructures;		// maxDescriptorSetAccelerationStructures	-	maxPerStageDescriptorAccelerationStructures
 			uint	minTotalResources;		// maxPerSetDescriptors						-	maxPerStageResources
 			
-			ND_ bool  operator == (const PerDescriptorSet &rhs) const;
-			ND_ bool  operator >= (const PerDescriptorSet &rhs) const;
+			ND_ bool  operator == (const PerDescriptorSet &rhs) C_NE___;
+			ND_ bool  operator >= (const PerDescriptorSet &rhs) C_NE___;
 
-			ND_ HashVal  CalcHash () const;
+			ND_ HashVal  CalcHash ()							C_NE___;
 		};
 		using PerShaderStage = PerDescriptorSet;	// Metal: for argument buffer
 		
@@ -48,9 +48,9 @@ namespace AE::Graphics
 			EnumBitSet<E>	include;
 			EnumBitSet<E>	exclude;
 			
-			ND_ bool	operator == (const IncludeExcludeBits<E> &rhs)	const	{ return include == rhs.include and exclude == rhs.exclude; }
-			ND_ HashVal	CalcHash ()										const	{ return HashOf(include) + HashOf(exclude); }
-			ND_ bool	None ()											const	{ return include.None() & exclude.None(); }
+			ND_ bool	operator == (const IncludeExcludeBits<E> &rhs)	C_NE___	{ return include == rhs.include and exclude == rhs.exclude; }
+			ND_ HashVal	CalcHash ()										C_NE___	{ return HashOf(include) + HashOf(exclude); }
+			ND_ bool	None ()											C_NE___	{ return include.None() & exclude.None(); }
 		};
 		using VendorIDs_t		= IncludeExcludeBits< EVendorID >;
 		using GraphicsDevices_t	= IncludeExcludeBits< EGraphicsDeviceID >;
@@ -256,8 +256,8 @@ namespace AE::Graphics
 		_visitor_( uint,		minComputeWorkGroupSizeY,		)	/* local_size_y */\
 		_visitor_( uint,		minComputeWorkGroupSizeZ,		)	/* local_size_z */\
 		/* mesh shader */\
-		_visitor_( EFeature,	taskShaderNV,				: 2 )	/*\																		*/\
-		_visitor_( EFeature,	meshShaderNV,				: 2 )	/*-|--GL_NV_mesh_shader													*/\
+		_visitor_( EFeature,	taskShader,					: 2 )	/*\																		*/\
+		_visitor_( EFeature,	meshShader,					: 2 )	/*-|--GL_EXT_mesh_shader												*/\
 		_visitor_( uint,		minTaskOutputCount,				)	/*-|					- maxTaskOutputCount							*/\
 		_visitor_( uint,		minTaskTotalMemorySize,			)	/*-|					- maxTaskTotalMemorySize						*/\
 		_visitor_( uint,		minTaskWorkGroupInvocations,	)	/*-|					- maxTaskWorkGroupInvocations	- local_size_x	*/\
@@ -356,32 +356,32 @@ namespace AE::Graphics
 
 
 	// methods
-		FeatureSet ();
+		FeatureSet ()										__NE___;
 
-			void  SetAll (EFeature value);
-			void  SetDefault ();
+			void  SetAll (EFeature value)					__NE___;
+			void  SetDefault ()								__NE___;
 
-		ND_ bool  IsValid () const;
-			void  Validate ();
+		ND_ bool  IsValid ()								C_NE___;
+			void  Validate ()								__NE___;
 
-		ND_ bool  IsSupported (const RenderState &rs) const;
+		ND_ bool  IsSupported (const RenderState &rs)		C_NE___;
 
-			void  MergeMin (const FeatureSet &rhs);
-			void  MergeMax (const FeatureSet &rhs);
+			void  MergeMin (const FeatureSet &rhs)			__NE___;
+			void  MergeMax (const FeatureSet &rhs)			__NE___;
 
-		ND_ bool  IsCompatible (const FeatureSet &rhs) const;
-		ND_ bool  DbgIsCompatible (const FeatureSet &rhs) const;
+		ND_ bool  IsCompatible (const FeatureSet &rhs)		C_NE___;
+		ND_ bool  DbgIsCompatible (const FeatureSet &rhs)	C_NE___;
 
-		ND_ bool  operator == (const FeatureSet &rhs) const;
-		ND_ bool  operator != (const FeatureSet &rhs) const		{ return not (rhs == *this);}
-		ND_ bool  operator >= (const FeatureSet &rhs) const;
-		ND_ bool  operator <= (const FeatureSet &rhs) const		{ return rhs >= *this; }
+		ND_ bool  operator == (const FeatureSet &rhs)		C_NE___;
+		ND_ bool  operator != (const FeatureSet &rhs)		C_NE___	{ return not (rhs == *this);}
+		ND_ bool  operator >= (const FeatureSet &rhs)		C_NE___;
+		ND_ bool  operator <= (const FeatureSet &rhs)		C_NE___	{ return rhs >= *this; }
 
-		ND_ HashVal  CalcHash () const;
+		ND_ HashVal  CalcHash ()							C_NE___;
 
 	private:
 		template <bool Mutable>
-		bool  _Validate ();
+		bool  _Validate ()									__NE___;
 	};
 
 } // AE::Graphics

@@ -3,6 +3,7 @@
 #include "platform/Public/IApplication.h"
 #include "graphics/Public/ResourceManager.h"
 
+using namespace AE;
 using namespace AE::App;
 using namespace AE::Threading;
 
@@ -15,11 +16,17 @@ extern void UnitTest_ImageMemView ();
 extern void UnitTest_ImageUtils ();
 extern void UnitTest_PixelFormat ();
 
-#ifdef AE_ENABLE_VULKAN
-extern void Test_VulkanDevice ();
-extern void Test_VulkanSwapchain (IApplication &app, IWindow &wnd);
-extern void Test_VulkanRenderGraph (IApplication &app, IWindow &wnd);
+#if defined(AE_ENABLE_VULKAN)
+	extern void Test_VulkanDevice ();
+	extern void Test_VulkanSwapchain (IApplication &app, IWindow &wnd);
+	extern void Test_VulkanRenderGraph (IApplication &app, IWindow &wnd);
+
+#elif defined(AE_ENABLE_METAL)
+	//extern void Test_MetalDevice ();
+	//extern void Test_MetalSwapchain (IApplication &app, IWindow &wnd);
+	extern void Test_MetalRenderGraph (IApplication &app, IWindow &wnd);
 #endif
+
 
 static void  UnitTests ()
 {
@@ -33,12 +40,17 @@ static void  UnitTests ()
 	UnitTest_PixelFormat();
 }
 
-static void  VulkanTests (IApplication &app, IWindow &wnd)
+static void  RenderTests (IApplication &app, IWindow &wnd)
 {
-	#ifdef AE_ENABLE_VULKAN
-	//Test_VulkanDevice();
-	//Test_VulkanSwapchain( app, wnd );
-	Test_VulkanRenderGraph( app, wnd );
+	#if defined(AE_ENABLE_VULKAN)
+		//Test_VulkanDevice();
+		//Test_VulkanSwapchain( app, wnd );
+		Test_VulkanRenderGraph( app, wnd );
+
+	#elif defined(AE_ENABLE_METAL)
+		//Test_MetalDevice();
+		//Test_MetalSwapchain( app, wnd );
+		Test_MetalRenderGraph( app, wnd );
 	#endif
 }
 
@@ -47,7 +59,7 @@ static void  VulkanTests (IApplication &app, IWindow &wnd)
 extern int Test_Graphics (IApplication &app, IWindow &wnd)
 {
 	UnitTests();
-	VulkanTests( app, wnd );
+	RenderTests( app, wnd );
 
 	AE_LOGI( "Tests.Graphics finished" );
 	return 0;
@@ -70,7 +82,7 @@ extern int Test_Graphics (IApplication &app, IWindow &wnd)
 
 		void OnSurfaceCreated (IWindow &wnd) override
 		{
-			VulkanTests( _app, wnd );
+			RenderTests( _app, wnd );
 
 			wnd.Close();
 			AE_LOGI( "Tests.Graphics finished" );

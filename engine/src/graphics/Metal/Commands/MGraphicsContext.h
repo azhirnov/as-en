@@ -25,11 +25,12 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
+		ND_ MetalCommandBufferRC	EndCommandBuffer ();
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ();
+
 	protected:
-		_MDirectGraphicsCtx (Ptr<MCommandBatch> batch);
-		_MDirectGraphicsCtx (Ptr<MCommandBatch> batch, MCommandBuffer cmdbuf);
-		
-		void  _CommitBarriers ();
+		_MDirectGraphicsCtx (const RenderTask &task) : MBaseDirectContext{ task } {}
+		_MDirectGraphicsCtx (const RenderTask &task, MCommandBuffer cmdbuf) : MBaseDirectContext{ task, RVRef(cmdbuf) } {}
 
 		void  _DebugMarker (NtStringView text, RGBA8u)				{ ASSERT( _NoPendingBarriers() );  DBG_WARNING( "DebugMarker is not supported" ); }
 		void  _PushDebugGroup (NtStringView text, RGBA8u)			{ ASSERT( _NoPendingBarriers() );  this->_cmdbuf.PushDebugGroup( text ); }
@@ -51,11 +52,12 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
+		ND_ MBakedCommands		EndCommandBuffer ();
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ();
+
 	protected:
-		_MIndirectGraphicsCtx (Ptr<MCommandBatch> batch) : MBaseIndirectContext{ batch } {}
-		_MIndirectGraphicsCtx (Ptr<MCommandBatch> batch, MSoftwareCmdBufPtr cmdbuf) : MBaseIndirectContext{ batch, RVRef(cmdbuf) } {}
-		
-		void  _CommitBarriers ();
+		_MIndirectGraphicsCtx (const RenderTask &task) : MBaseIndirectContext{ task } {}
+		_MIndirectGraphicsCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf) : MBaseIndirectContext{ task, RVRef(cmdbuf) } {}
 	};
 
 
@@ -85,10 +87,10 @@ namespace AE::Graphics::_hidden_
 		
 	// methods
 	public:
-		explicit _MGraphicsContextImpl (Ptr<MCommandBatch> batch) : CtxImpl{ batch } {}
+		explicit _MGraphicsContextImpl (const RenderTask &task) : CtxImpl{ task } {}
 		
 		template <typename RawCmdBufType>
-		_MGraphicsContextImpl (Ptr<MCommandBatch> batch, RawCmdBufType cmdbuf) : CtxImpl{ batch, RVRef(cmdbuf) } {}
+		_MGraphicsContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : CtxImpl{ task, RVRef(cmdbuf) } {}
 
 		_MGraphicsContextImpl () = delete;
 		_MGraphicsContextImpl (const _MGraphicsContextImpl &) = delete;
@@ -138,7 +140,6 @@ namespace AE::Graphics
 
 namespace AE::Graphics::_hidden_
 {
-
 /*
 =================================================
 	BeginRenderPass

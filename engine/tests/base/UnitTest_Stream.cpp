@@ -1,17 +1,18 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Stream/StdStream.h"
-#include "base/Stream/MemStream.h"
-#include "base/Stream/BrotliStream.h"
-#include "base/Stream/BufferedStream.h"
-#include "base/Stream/FastStream.h"
+#include "base/DataSource/StdStream.h"
+#include "base/DataSource/MemStream.h"
+#include "base/DataSource/BrotliStream.h"
+#include "base/DataSource/BufferedStream.h"
+#include "base/DataSource/FastStream.h"
+#include "base/DataSource/FileStream.h"
+#include "base/DataSource/WindowsFile.h"
 #include "base/Math/Random.h"
 #include "UnitTest_Common.h"
 
 
 namespace
 {
-#ifdef AE_ENABLE_BROTLI
 	ND_ static Array<ubyte>  GenRandomArray (Bytes size)
 	{
 		Array<ubyte>	temp;
@@ -26,6 +27,7 @@ namespace
 	}
 
 
+#ifdef AE_ENABLE_BROTLI
 	static void  BrotliStream_Test1 ()
 	{
 		const auto		uncompressed = GenRandomArray( 1_Mb );
@@ -90,7 +92,7 @@ namespace
 			for (Bytes pos, size = ArraySizeOf(uncompressed); pos < size;)
 			{
 				Bytes	wr_size	= Min( block_size, size - pos );
-				Bytes	written = encoder.Write2( uncompressed.data() + pos, wr_size );
+				Bytes	written = encoder.WriteSeq( uncompressed.data() + pos, wr_size );
 
 				TEST( written > 0 );
 				pos += written;
@@ -151,7 +153,7 @@ namespace
 			TEST( decoder.IsOpen() );
 
 			MemWStream		dst_mem;
-			const Bytes		size = StreamUtils::BufferredCopy( dst_mem, decoder );
+			const Bytes		size = DataSourceUtils::BufferedCopy( dst_mem, decoder );
 
 			TEST( size == ArraySizeOf(uncompressed) );
 			TEST( dst_mem.GetData() == uncompressed );
@@ -343,6 +345,31 @@ namespace
 		for (uint i = 0; i < uint(arr.size()); ++i)
 			TEST( arr[i] == i );
 	}
+
+
+#ifdef AE_PLATFORM_WINDOWS
+	static void  WinFile_Test1 ()
+	{
+		CHECK_FATAL( FileSystem::FindAndSetCurrent( "stream_test", 5 ));
+
+		const auto		src_data	= GenRandomArray( 2_Mb );
+		const Path		fname		{"wfile1_data.txt"};
+
+		{
+			FileWStream	file {fname};
+			TEST( file.IsOpen() );
+			TEST( file.Write( ArrayView<ubyte>{src_data} ));
+		}
+
+		WinRFileStream	rfile{ Path{fname}, WinRFileStream::EFlags::SequentialScan };
+		TEST( rfile.IsOpen() );
+
+		Array<ubyte>	dst_data;
+		TEST( rfile.Read( rfile.Size(), OUT dst_data ));
+
+		TEST( src_data == dst_data );
+	}
+#endif
 }
 
 
@@ -361,6 +388,10 @@ extern void UnitTest_Stream ()
 	FastStream_Test2();
 	FastStream_Test3();
 	FastStream_Test4();
+	
+	#ifdef AE_PLATFORM_WINDOWS
+	WinFile_Test1();
+	#endif
 
 	TEST_PASSED();
 }

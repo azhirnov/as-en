@@ -19,7 +19,7 @@ namespace
 
 		AsyncTask					result;
 
-		CommandBatchPtr			batch;
+		CommandBatchPtr				batch;
 		bool						isOK	= false;
 
 		ImageComparator *			imgCmp	= null;
@@ -33,8 +33,8 @@ namespace
 	public:
 		Db2_TestData&	t;
 
-		Db2_DrawTask (Db2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		Db2_DrawTask (Db2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -46,13 +46,11 @@ namespace
 			const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
 			
 			typename CtxType::Transfer	copy_ctx{ *this };
-			CHECK_TE( copy_ctx.IsValid() );
 
 			ShaderDebugger::Result	dbg;
 			CHECK_TE( t.debugger.AllocForGraphics( OUT dbg, copy_ctx, t.ppln ));
 
 			typename CtxType::Graphics	ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
-			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AccumBarriers()
 				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
@@ -62,8 +60,6 @@ namespace
 				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.viewSize }
 									.AddViewport( t.viewSize )
 									.AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::Black} ));
-				
-				CHECK_TE( dctx.IsValid() );
 
 				dctx.BindPipeline( t.ppln );
 				dctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
@@ -85,8 +81,8 @@ namespace
 	public:
 		Db2_TestData&	t;
 
-		Db2_CopyTask (Db2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		Db2_CopyTask (Db2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -96,8 +92,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 			
 			Ctx		ctx{ *this };
-
-			CHECK_TE( ctx.IsValid() );
 			
 			auto	task1 = ctx.ReadbackImage( t.img, Default );
 			auto	task2 = t.debugger.ReadAll( ctx );
@@ -169,7 +163,7 @@ no source
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -198,19 +192,14 @@ no source
 		CHECK_ERR( t.ppln );
 
 		AsyncTask	begin	= rts.BeginFrame();
-		CHECK_ERR( begin );
 
-		auto	batch = rts.CreateBatch( EQueueType::Graphics, 0, "Debugger2" );
+		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Debugger2" );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Add< Db2_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin}, "Draw task" );
-		CHECK_ERR( task1 );
-		
 		AsyncTask	task2	= batch->Add< Db2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
-		CHECK_ERR( task2 );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
-		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
 		CHECK_ERR( end->Status() == EStatus::Completed );

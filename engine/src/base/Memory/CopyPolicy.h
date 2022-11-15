@@ -34,14 +34,14 @@ private:
 	template <typename T, uint Flags>
 	struct _DefaultImpl : public Noninstancable
 	{
-		static void  Create (OUT T *ptr, const usize count)
+		static void  Create (OUT T *ptr, const usize count) __NE___
 		{
 			ASSERT( (count == 0) or ((ptr != null) == (count != 0)) );
 
 			if constexpr( !!(Flags & NonTrivialCtor) )
 			{
 				for (usize i = 0; i < count; ++i)
-					PlacementNew<T>( ptr + i );
+					PlacementNew<T>( ptr + i );		// nothrow
 			}
 			else
 			{
@@ -50,12 +50,13 @@ private:
 			}
 		}
 
-		static void  Destroy (INOUT T *ptr, const usize count)
+		static void  Destroy (INOUT T *ptr, const usize count) __NE___
 		{
 			ASSERT( (count == 0) or ((ptr != null) == (count != 0)) );
 
 			if constexpr( !!(Flags & NonTrivialDtor) )
 			{
+				STATIC_ASSERT( IsNothrowDtor<T> );
 				for (usize i = 0; i < count; ++i)
 					ptr[i].~T();
 			}
@@ -66,7 +67,7 @@ private:
 			DEBUG_ONLY( DbgInitMem( OUT ptr, SizeOf<T> * count ));
 		}
 		
-		static void  Copy (OUT T *dst, const T * const src, const usize count)
+		static void  Copy (OUT T *dst, const T * const src, const usize count)  noexcept(IsNothrowCopyCtor<T>)
 		{
 			ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
 			ASSERT( (count == 0) or ((src != null) == (count != 0)) );
@@ -74,7 +75,7 @@ private:
 			if constexpr( !!(Flags & NonTrivialCopyCtor) )
 			{
 				for (usize i = 0; i < count; ++i)
-					PlacementNew<T>( dst+i, src[i] );
+					PlacementNew<T>( dst+i, src[i] );	// throw
 			}
 			else
 			{
@@ -83,7 +84,7 @@ private:
 			}
 		}
 		
-		static void  Move (OUT T *dst, INOUT T *src, const usize count)
+		static void  Move (OUT T *dst, INOUT T *src, const usize count) __NE___
 		{
 			ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
 			ASSERT( (count == 0) or ((src != null) == (count != 0)) );
@@ -91,7 +92,7 @@ private:
 			if constexpr( !!(Flags & NonTrivialMoveCtor) )
 			{
 				for (usize i = 0; i < count; ++i)
-					PlacementNew<T>( dst+i, RVRef( src[i] ));
+					PlacementNew<T>( dst+i, RVRef( src[i] ));	// nothrow
 			}
 			else
 			{
@@ -100,7 +101,7 @@ private:
 			}
 		}
 		
-		static void  Replace (OUT T *dst, INOUT T *src, const usize count, bool inSingleMemBlock = false)
+		static void  Replace (OUT T *dst, INOUT T *src, const usize count, bool inSingleMemBlock = false) __NE___
 		{
 			ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
 			ASSERT( (count == 0) or ((src != null) == (count != 0)) );
@@ -111,11 +112,13 @@ private:
 			{
 				for (usize i = 0; i < count; ++i)
 				{
-					PlacementNew<T>( dst+i, RVRef( src[i] ));
+					PlacementNew<T>( dst+i, RVRef( src[i] ));	// nothrow
 			
 					if constexpr( !!(Flags & NonTrivialDtor) )
+					{
+						STATIC_ASSERT( IsNothrowDtor<T> );
 						src[i].~T();
-					else
+					}else
 						STATIC_ASSERT( IsZeroMemAvailable<T> or std::is_trivially_destructible_v<T> );
 				}
 			}
@@ -135,7 +138,7 @@ private:
 			})
 		}
 		
-		static void  ReplaceRev (OUT T *dst, INOUT T *src, const usize count, bool inSingleMemBlock = false)
+		static void  ReplaceRev (OUT T *dst, INOUT T *src, const usize count, bool inSingleMemBlock = false) __NE___
 		{
 			ASSERT( (count == 0) or ((dst != null) == (count != 0)) );
 			ASSERT( (count == 0) or ((src != null) == (count != 0)) );
@@ -146,11 +149,13 @@ private:
 			{
 				for (usize i = count-1; i < count; --i)
 				{
-					PlacementNew<T>( dst+i, RVRef( src[i] ));
+					PlacementNew<T>( dst+i, RVRef( src[i] ));	// nothrow
 				
 					if constexpr( !!(Flags & NonTrivialDtor) )
+					{
+						STATIC_ASSERT( std::is_nothrow_destructible_v<T> );
 						src[i].~T();
-					else
+					}else
 						STATIC_ASSERT( IsZeroMemAvailable<T> or std::is_trivially_destructible_v<T> );
 				}
 			}

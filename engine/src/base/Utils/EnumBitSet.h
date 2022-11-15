@@ -44,53 +44,53 @@ namespace AE::Base
 	public:
 		static constexpr Elem_t	_LastElemMask = ~((~Elem_t{0}) << (_BitCount % _ElemSize));
 
-		constexpr EnumBitSet () {}
-		constexpr EnumBitSet (const Self &) = default;
+		constexpr EnumBitSet ()								__NE___ {}
+		constexpr EnumBitSet (const Self &)					__NE___ = default;
 
-			constexpr Self&  operator = (const Self &) = default;
+			constexpr Self&  operator = (const Self &)		__NE___ = default;
 			
-			constexpr Self&  set (E value, bool bit);
-			constexpr Self&  insert (E value);
-			constexpr Self&  InsertRange (E first, E last);
+			constexpr Self&  set (E value, bool bit)		__NE___;
+			constexpr Self&  insert (E value)				__NE___;
+			constexpr Self&  InsertRange (E first, E last)	__NE___;
 
-			constexpr Self&  erase (E value);
-			constexpr Self&  EraseRange (E first, E last);
+			constexpr Self&  erase (E value)				__NE___;
+			constexpr Self&  EraseRange (E first, E last)	__NE___;
 
-			constexpr Self&  clear ()				{ _bits.fill(0);  return *this; }
-			constexpr Self&  SetAll ()				{ _bits.fill(UMax);  return *this; }
+			constexpr Self&  clear ()						__NE___	{ _bits.fill(0);  return *this; }
+			constexpr Self&  SetAll ()						__NE___	{ _bits.fill(UMax);  return *this; }
 
-		ND_ constexpr bool  contains (E value) const;
+		ND_ constexpr bool  contains (E value)				C_NE___;
 
-		ND_ constexpr bool  All () const;
-		ND_ constexpr bool  Any () const;
+		ND_ constexpr bool  All ()							C_NE___;
+		ND_ constexpr bool  Any ()							C_NE___;
 		
-		ND_ constexpr bool  Any (const Self &rhs) const;
-		ND_ constexpr bool  All (const Self &rhs) const;
+		ND_ constexpr bool  Any (const Self &rhs)			C_NE___;
+		ND_ constexpr bool  All (const Self &rhs)			C_NE___;
 
-		ND_ constexpr bool  None ()		const	{ return not Any(); }
-		ND_ constexpr usize size ()		const	{ return _BitCount; }
+		ND_ constexpr bool  None ()							C_NE___	{ return not Any(); }
+		ND_ constexpr usize size ()							C_NE___	{ return _BitCount; }
 
-		ND_ constexpr bool  AnyInRange (E first, E last) const;
-		ND_ constexpr bool  AllInRange (E first, E last) const;
+		ND_ constexpr bool  AnyInRange (E first, E last)	C_NE___;
+		ND_ constexpr bool  AllInRange (E first, E last)	C_NE___;
 
-			constexpr Self&  operator |= (const Self &rhs);
-			constexpr Self&  operator &= (const Self &rhs);
+			constexpr Self&  operator |= (const Self &rhs)	__NE___;
+			constexpr Self&  operator &= (const Self &rhs)	__NE___;
 
-		ND_ constexpr Self  operator ~  () const;
+		ND_ constexpr Self  operator ~  ()					C_NE___;
 
-		ND_ constexpr Self  operator |  (const Self &rhs)	const	{ return Self{*this} |= rhs; }
-		ND_ constexpr Self  operator &  (const Self &rhs)	const	{ return Self{*this} &= rhs; }
+		ND_ constexpr Self  operator |  (const Self &rhs)	C_NE___	{ return Self{*this} |= rhs; }
+		ND_ constexpr Self  operator &  (const Self &rhs)	C_NE___	{ return Self{*this} &= rhs; }
 
-		ND_ constexpr bool  operator == (const Self &rhs)	const;
-		ND_ constexpr bool  operator != (const Self &rhs)	const	{ return not (*this == rhs); }
-		ND_ constexpr bool  operator >  (const Self &rhs)	const;
-		ND_ constexpr bool  operator <  (const Self &rhs)	const;
-		ND_ constexpr bool  operator >= (const Self &rhs)	const	{ return not (*this < rhs); }
-		ND_ constexpr bool  operator <= (const Self &rhs)	const	{ return not (*this > rhs); }
+		ND_ constexpr bool  operator == (const Self &rhs)	C_NE___;
+		ND_ constexpr bool  operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
+		ND_ constexpr bool  operator >  (const Self &rhs)	C_NE___;
+		ND_ constexpr bool  operator <  (const Self &rhs)	C_NE___;
+		ND_ constexpr bool  operator >= (const Self &rhs)	C_NE___	{ return not (*this < rhs); }
+		ND_ constexpr bool  operator <= (const Self &rhs)	C_NE___	{ return not (*this > rhs); }
 
-		ND_ constexpr BitArr_t const&  ToArray () const	{ return _bits; }
+		ND_ constexpr BitArr_t const&  ToArray ()			C_NE___	{ return _bits; }
 
-		ND_ HashVal CalcHash ()	const;
+		ND_ HashVal CalcHash ()								C_NE___;
 	};
 	
 	
@@ -100,7 +100,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr EnumBitSet<E>&  EnumBitSet<E>::insert (E value)
+	constexpr EnumBitSet<E>&  EnumBitSet<E>::insert (E value) __NE___
 	{
 		ASSERT( Index_t(value) < size() );
 		_bits[ Index_t(value) / _ElemSize ] |= (Elem_t{1} << (Index_t(value) % _ElemSize));
@@ -113,7 +113,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr EnumBitSet<E>&  EnumBitSet<E>::set (E value, bool bit)
+	constexpr EnumBitSet<E>&  EnumBitSet<E>::set (E value, bool bit) __NE___
 	{
 		ASSERT( Index_t(value) < size() );
 		_bits[ Index_t(value) / _ElemSize ] |= (Elem_t{bit} << (Index_t(value) % _ElemSize));
@@ -126,7 +126,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr EnumBitSet<E>&  EnumBitSet<E>::erase (E value)
+	constexpr EnumBitSet<E>&  EnumBitSet<E>::erase (E value) __NE___
 	{
 		ASSERT( Index_t(value) < size() );
 		_bits[ Index_t(value) / _ElemSize ] &= ~(Elem_t{1} << (Index_t(value) % _ElemSize));
@@ -139,7 +139,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr bool  EnumBitSet<E>::contains (E value) const
+	constexpr bool  EnumBitSet<E>::contains (E value) C_NE___
 	{
 		ASSERT( Index_t(value) < size() );
 		auto	bit = (_bits[ Index_t(value) / _ElemSize ] & (Elem_t{1} << (Index_t(value) % _ElemSize)));
@@ -152,7 +152,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr EnumBitSet<E>&  EnumBitSet<E>::InsertRange (E first, E last)
+	constexpr EnumBitSet<E>&  EnumBitSet<E>::InsertRange (E first, E last) __NE___
 	{
 		ASSERT( first <= last );
 		ASSERT( Index_t(last) < size() );
@@ -176,7 +176,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr EnumBitSet<E>&  EnumBitSet<E>::EraseRange (E first, E last)
+	constexpr EnumBitSet<E>&  EnumBitSet<E>::EraseRange (E first, E last) __NE___
 	{
 		ASSERT( first <= last );
 		ASSERT( Index_t(last) < size() );
@@ -200,7 +200,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr EnumBitSet<E>&  EnumBitSet<E>::operator |= (const Self &rhs)
+	constexpr EnumBitSet<E>&  EnumBitSet<E>::operator |= (const Self &rhs) __NE___
 	{
 		for (uint i = 0; i < _ArraySize; ++i) {
 			_bits[i] |= rhs._bits[i];
@@ -214,7 +214,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr EnumBitSet<E>&  EnumBitSet<E>::operator &= (const Self &rhs)
+	constexpr EnumBitSet<E>&  EnumBitSet<E>::operator &= (const Self &rhs) __NE___
 	{
 		for (uint i = 0; i < _ArraySize; ++i) {
 			_bits[i] &= rhs._bits[i];
@@ -228,7 +228,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr EnumBitSet<E>  EnumBitSet<E>::operator ~ () const
+	constexpr EnumBitSet<E>  EnumBitSet<E>::operator ~ () C_NE___
 	{
 		Self	res;
 		for (uint i = 0; i < _ArraySize - 1; ++i)
@@ -245,7 +245,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr bool  EnumBitSet<E>::All () const
+	constexpr bool  EnumBitSet<E>::All () C_NE___
 	{
 		usize	accum = 0;
 		for (uint i = 0; i < _ArraySize - 1; ++i)
@@ -258,7 +258,7 @@ namespace AE::Base
 	}
 	
 	template <typename E>
-	constexpr bool  EnumBitSet<E>::All (const Self &rhs) const
+	constexpr bool  EnumBitSet<E>::All (const Self &rhs) C_NE___
 	{
 		bool	equal = true;
 		for (uint i = 0; i < _ArraySize - 1; ++i)
@@ -276,7 +276,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr bool  EnumBitSet<E>::Any () const
+	constexpr bool  EnumBitSet<E>::Any () C_NE___
 	{
 		Elem_t	accum = 0;
 		for (uint i = 0; i < _ArraySize - 1; ++i)
@@ -289,7 +289,7 @@ namespace AE::Base
 	}
 	
 	template <typename E>
-	constexpr bool  EnumBitSet<E>::Any (const Self &rhs) const
+	constexpr bool  EnumBitSet<E>::Any (const Self &rhs) C_NE___
 	{
 		bool	equal = true;
 		for (uint i = 0; i < _ArraySize - 1; ++i)
@@ -307,7 +307,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr bool  EnumBitSet<E>::AnyInRange (E first, E last) const
+	constexpr bool  EnumBitSet<E>::AnyInRange (E first, E last) C_NE___
 	{
 		ASSERT( first <= last );
 		ASSERT( Index_t(last) < size() );
@@ -332,7 +332,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr bool  EnumBitSet<E>::AllInRange (E first, E last) const
+	constexpr bool  EnumBitSet<E>::AllInRange (E first, E last) C_NE___
 	{
 		ASSERT( first <= last );
 		ASSERT( Index_t(last) < size() );
@@ -357,7 +357,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr bool  EnumBitSet<E>::operator == (const Self &rhs) const
+	constexpr bool  EnumBitSet<E>::operator == (const Self &rhs) C_NE___
 	{
 		uint	accum = 0;
 		for (uint i = 0; i < _ArraySize - 1; ++i)
@@ -375,7 +375,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr bool  EnumBitSet<E>::operator > (const Self &rhs) const
+	constexpr bool  EnumBitSet<E>::operator > (const Self &rhs) C_NE___
 	{
 		for (uint i = 0; i < _ArraySize - 1; ++i)
 		{
@@ -391,7 +391,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	constexpr bool  EnumBitSet<E>::operator < (const Self &rhs) const
+	constexpr bool  EnumBitSet<E>::operator < (const Self &rhs) C_NE___
 	{
 		for (uint i = 0; i < _ArraySize - 1; ++i)
 		{
@@ -407,7 +407,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename E>
-	HashVal  EnumBitSet<E>::CalcHash () const
+	HashVal  EnumBitSet<E>::CalcHash () C_NE___
 	{
 		HashVal	h;
 		for (uint i = 0; i < _ArraySize - 1; ++i)

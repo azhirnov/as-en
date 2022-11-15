@@ -45,6 +45,8 @@ namespace AE::Graphics
 
 	class MResourceManager final : public IResourceManager
 	{
+		friend class MRenderTaskScheduler;
+		
 	// types
 	private:
 		template <typename T, typename ID, usize ChunkSize, usize MaxChunks>
@@ -88,7 +90,7 @@ namespace AE::Graphics
 												MSamplerID, MRenderPassID, 
 												GraphicsPipelineID, ComputePipelineID, MeshPipelineID, RayTracingPipelineID, TilePipelineID,
 												RTGeometryID, RTSceneID,
-												MMemoryID	// must be in  the end
+												MMemoryID	// must be in the end
 											>;
 
 
@@ -143,236 +145,80 @@ namespace AE::Graphics
 
 	// methods
 	private:
-		explicit MResourceManager (const MDevice &);
+		explicit MResourceManager (const MDevice &)			__TH___;
 
-		ND_ bool  Initialize (const GraphicsCreateInfo &);
-			void  Deinitialize ();
+		ND_ bool  Initialize (const GraphicsCreateInfo &)	__TH___;
+			void  Deinitialize ()							__NE___;
 		
 
 	public:
 		~MResourceManager ();
 		
-		ND_ bool				OnSurfaceCreated (const MSwapchain &sw);
+		ND_ bool				OnSurfaceCreated (const MSwapchain &sw)	__NE___;
 
-		bool					InitializeResources (const PipelinePackDesc &desc) override;
-		Strong<PipelinePackID>	LoadPipelinePack (const PipelinePackDesc &desc) override;
-		Array<RenderTechName>	GetSupportedRenderTechs (PipelinePackID id) const override;
-		
-		bool					IsSupported (EMemoryType memType)		const override;
-		bool					IsSupported (const BufferDesc &desc)	const override;
-		bool					IsSupported (const ImageDesc &desc)		const override;
-		bool					IsSupported (BufferID buffer, const BufferViewDesc &desc)	const override;
-		bool					IsSupported (ImageID image, const ImageViewDesc &desc)		const override;
-		
-		Strong<ImageID>			CreateImage (const ImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null) override;
-		Strong<BufferID>		CreateBuffer (const BufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null) override;
-		
-		Strong<ImageID>			CreateImage (const MetalImageDesc &desc, StringView dbgName = Default)		override;
-		Strong<BufferID>		CreateBuffer (const MetalBufferDesc &desc, StringView dbgName = Default)	override;
-		
-		Strong<ImageViewID>		CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName = Default)		override;
-		Strong<BufferViewID>	CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName = Default)	override;
+		ND_ bool				CreateBufferAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)			__NE___;
+		ND_ bool				CreateImageAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)				__NE___;
+		ND_ bool				CreateAccelStructAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalAccelStructRC &as, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+		ND_ bool				CreateAccelStructAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalAccelStructRC &as, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)		__NE___;
 
-		ND_ bool				CreateBufferAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		ND_ bool				CreateImageAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		ND_ bool				CreateAccelStructAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalAccelStructRC &as, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		ND_ bool				CreateAccelStructAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalAccelStructRC &as, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
+		Strong<PipelineCacheID>	LoadPipelineCache (const Path &filename) __NE___;
 
-		Strong<RTGeometryID>	CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	override;
-		Strong<RTSceneID>		CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)			override;
+		ND_ Strong<ComputePipelineID>	CreatePipeline (const MComputePipeline::CreateInfo    &ci)	__NE___;
+		ND_ Strong<GraphicsPipelineID>	CreatePipeline (const MGraphicsPipeline::CreateInfo   &ci)	__NE___;
+		ND_ Strong<MeshPipelineID>		CreatePipeline (const MMeshPipeline::CreateInfo       &ci)	__NE___;
+		ND_ Strong<RayTracingPipelineID>CreatePipeline (const MRayTracingPipeline::CreateInfo &ci)	__NE___;
+		ND_ Strong<TilePipelineID>		CreatePipeline (const MTilePipeline::CreateInfo       &ci)	__NE___;
 		
-		RTASBuildSizes			GetRTGeometrySizes (const RTGeometryBuild &desc) override;
-		RTASBuildSizes			GetRTSceneSizes (const RTSceneBuild &desc)		 override;
-
-		DescSetAndBinding_t		CreateDescriptorSet (GraphicsPipelineID   ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) override;
-		DescSetAndBinding_t		CreateDescriptorSet (MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) override;
-		DescSetAndBinding_t		CreateDescriptorSet (ComputePipelineID    ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) override;
-		DescSetAndBinding_t		CreateDescriptorSet (RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) override;
-		DescSetAndBinding_t		CreateDescriptorSet (TilePipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) override;
+		ND_ Strong<MPipelineLayoutID>	CreatePipelineLayout (const MPipelineLayout::DescriptorSets_t &descSetLayouts, const MPipelineLayout::PushConstants_t &pushConstants, StringView dbgName = Default) __NE___;
 		
-		Strong<DescriptorSetID>	CreateDescriptorSet (PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) override;
-		Strong<DescriptorSetID>	CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) override;
-		
-		Strong<PipelineCacheID>	CreatePipelineCache () override;
-		Strong<PipelineCacheID>	LoadPipelineCache (const Path &filename);
-		
-		Promise<RenderTechPipelinesPtr>	LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache)	override;
-		RenderTechPipelinesPtr			LoadRenderTech      (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache)	override;
-
-		Strong<GraphicsPipelineID>		CreateGraphicsPipeline   (PipelinePackID packId, const PipelineTmplName &name, const GraphicsPipelineDesc   &desc, PipelineCacheID cache = Default)	override;
-		Strong<MeshPipelineID>			CreateMeshPipeline       (PipelinePackID packId, const PipelineTmplName &name, const MeshPipelineDesc       &desc, PipelineCacheID cache = Default)	override;
-		Strong<ComputePipelineID>		CreateComputePipeline    (PipelinePackID packId, const PipelineTmplName &name, const ComputePipelineDesc    &desc, PipelineCacheID cache = Default)	override;
-		Strong<RayTracingPipelineID>	CreateRayTracingPipeline (PipelinePackID packId, const PipelineTmplName &name, const RayTracingPipelineDesc &desc, PipelineCacheID cache = Default)	override;
-		Strong<TilePipelineID>			CreateTilePipeline       (PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc       &desc, PipelineCacheID cache = Default)	override;
-		
-		ND_ Strong<ComputePipelineID>	CreatePipeline (const MComputePipeline::CreateInfo    &ci);
-		ND_ Strong<GraphicsPipelineID>	CreatePipeline (const MGraphicsPipeline::CreateInfo   &ci);
-		ND_ Strong<MeshPipelineID>		CreatePipeline (const MMeshPipeline::CreateInfo       &ci);
-		ND_ Strong<RayTracingPipelineID>CreatePipeline (const MRayTracingPipeline::CreateInfo &ci);
-		ND_ Strong<TilePipelineID>		CreatePipeline (const MTilePipeline::CreateInfo       &ci);
-		
-		ND_ Strong<MPipelineLayoutID>	CreatePipelineLayout (const MPipelineLayout::DescriptorSets_t &descSetLayouts, const MPipelineLayout::PushConstants_t &pushConstants, StringView dbgName = Default);
-		
-		ND_ MSamplerID				GetSampler (const SamplerName &name) const;
-		ND_ MetalSampler			GetMtlSampler (const SamplerName &name) const;
-		ND_ Strong<MSamplerID>		CreateSampler (const SamplerDesc &desc, StringView dbgName);
+		ND_ MSamplerID				GetSampler (const SamplerName &name)							C_NE___;
+		ND_ MetalSampler			GetMtlSampler (const SamplerName &name)							C_NE___;
+		ND_ Strong<MSamplerID>		CreateSampler (const SamplerDesc &desc, StringView dbgName)		__NE___;
 		
 		ND_ Strong<MRenderPassID>	CreateRenderPass (const SerializableRenderPassInfo &info, const SerializableMtlRenderPass &mtlInfo);
-		ND_ MRenderPassID			GetCompatibleRenderPass (const CompatRenderPassName &name) const;
-		ND_ MRenderPassID			GetCompatibleRenderPass (const RenderPassName &name) const;
-		ND_ MRenderPassID			GetRenderPass (const RenderPassName &name) const;
+		ND_ MRenderPassID			GetCompatibleRenderPass (const CompatRenderPassName &name)		C_NE___;
+		ND_ MRenderPassID			GetCompatibleRenderPass (const RenderPassName &name)			C_NE___;
+		ND_ MRenderPassID			GetRenderPass (const RenderPassName &name)						C_NE___;
 
-		bool	ReleaseResource (Strong<ImageID>			&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<BufferID>			&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<ImageViewID>		&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<BufferViewID>		&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<PipelineCacheID>	&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<PipelinePackID>		&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<GraphicsPipelineID>	&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<MeshPipelineID>		&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<ComputePipelineID>	&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<RayTracingPipelineID>&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<TilePipelineID>		&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<DescriptorSetID>	&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<RTGeometryID>		&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
-		bool	ReleaseResource (Strong<RTSceneID>			&id) override	{ return _ReleaseResource( id.Release() ) == 0; }
+		ND_ bool					GetMemoryInfo (MMemoryID id, OUT MetalMemoryObjInfo &info)		C_NE___;
 		
-		template <usize IS, usize GS, uint UID>
-		bool	ReleaseResource (Strong< HandleTmpl< IS, GS, UID >> &id, uint refCount = 1)	{ return _ReleaseResource( id.Release(), refCount ) == 0; }
-
-		template <typename Arg0, typename ...Args>
-		bool	ReleaseResources (Arg0 &arg0, Args& ...args);
-
-		BufferDesc const&		GetDescription (BufferID id)		const override;
-		ImageDesc const&		GetDescription (ImageID id)			const override;
-		BufferViewDesc const&	GetDescription (BufferViewID id)	const override;
-		ImageViewDesc const&	GetDescription (ImageViewID id)		const override;
-
-		NativeBuffer_t			GetBufferHandle (BufferID id)			const override;
-		NativeImage_t			GetImageHandle (ImageID id)				const override;
-		NativeBufferView_t		GetBufferViewHandle (BufferViewID id)	const override;
-		NativeImageView_t		GetImageViewHandle (ImageViewID id)		const override;
-
-			bool			GetMemoryInfo (ImageID id, OUT MetalMemoryObjInfo &info)	const override;
-			bool			GetMemoryInfo (BufferID id, OUT MetalMemoryObjInfo &info)	const override;
-		ND_ bool			GetMemoryInfo (MMemoryID id, OUT MetalMemoryObjInfo &info)	const;
-		
-		template <usize IS, usize GS, uint UID>
-		ND_ auto			AcquireResource (HandleTmpl<IS, GS, UID> id);
-
-		template <usize IS, usize GS, uint UID>
-		ND_ bool			IsAlive (HandleTmpl<IS,GS,UID> id)	const;
-		ND_ bool			IsAlive (const SamplerName &name)	const;
-
-		bool				IsResourceAlive (BufferID		 id) const override		{ return IsAlive( id ); }
-		bool				IsResourceAlive (ImageID		 id) const override		{ return IsAlive( id ); }
-		bool				IsResourceAlive (BufferViewID	 id) const override		{ return IsAlive( id ); }
-		bool				IsResourceAlive (ImageViewID	 id) const override		{ return IsAlive( id ); }
-		bool				IsResourceAlive (DescriptorSetID id) const override		{ return IsAlive( id ); }
-		bool				IsResourceAlive (PipelineCacheID id) const override		{ return IsAlive( id ); }
-		bool				IsResourceAlive (PipelinePackID	 id) const override		{ return IsAlive( id ); }
-		bool				IsResourceAlive (RTGeometryID	 id) const override		{ return IsAlive( id ); }
-		bool				IsResourceAlive (RTSceneID		 id) const override		{ return IsAlive( id ); }
-		
-		template <typename ID>
-		ND_ auto const*		GetResource (ID id, Bool incRef = false, Bool quiet = false) const;
-		
-		template <typename ID>
-		ND_ auto const*		GetResource (const Strong<ID> &id, Bool incRef = false, Bool quiet = false) const;
-
-		ND_ MDevice const&			GetDevice ()			const	{ return _device; }
-		ND_ MStagingBufferManager&	GetStagingManager ()			{ return _stagingMngr; }
-		ND_ FeatureSet const&		GetFeatureSet ()		const	{ return _featureSet; }
-		ND_ PipelinePackID			GetDefaultPack ()		const	{ return _defaultPack; }
-
-		bool  ForceReleaseResources () override;
-		
-		StagingBufferStat  GetStagingBufferFrameStat (FrameUID frameId) const override	{ return _stagingMngr.GetFrameStat( frameId ); }
-
-		void  OnBeginFrame (FrameUID frameId, const BeginFrameConfig &cfg);
-		void  OnEndFrame (FrameUID frameId);
-		
-		template <usize Size, uint UID, bool Opt, uint Seed>
-		ND_ String  HashToName (const NamedID< Size, UID, Opt, Seed > &name) const;
-		
-		#ifdef AE_DBG_OR_DEV
-		void  AddHashToName (const PipelineCompiler::HashToName &value);
-		#endif
+		ND_ MDevice const&			GetDevice ()			C_NE___	{ return _device; }
+		ND_ MStagingBufferManager&	GetStagingManager ()	__NE___	{ return _stagingMngr; }
 		
 		AE_GLOBALLY_ALLOC
 
 	private:
 
-	// resource api 
-		template <typename ID>
-		ND_ int  _ReleaseResource (ID id, uint refCount = 1);
-
-		template <typename ID, typename ...Args>
-		ND_ Strong<ID>  _CreateResource (const char* msg, Args&& ...args);
-
+	// resource api
 		template <typename PplnID>
 		ND_ DescSetAndBinding_t  _CreateDescriptorSet (const PplnID &pplnId, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName);
 		 
 	// resource pool
-		ND_ auto&  _GetResourcePool (const BufferID &)						{ return _resPool.buffers; }
-		ND_ auto&  _GetResourcePool (const ImageID &)						{ return _resPool.images; }
-		ND_ auto&  _GetResourcePool (const BufferViewID &)					{ return _resPool.bufferViews; }
-		ND_ auto&  _GetResourcePool (const ImageViewID &)					{ return _resPool.imageViews; }
-		ND_ auto&  _GetResourcePool (const GraphicsPipelineID &)			{ return _resPool.graphicsPpln; }
-		ND_ auto&  _GetResourcePool (const ComputePipelineID &)				{ return _resPool.computePpln; }
-		ND_ auto&  _GetResourcePool (const MeshPipelineID &)				{ return _resPool.meshPpln; }
-		ND_ auto&  _GetResourcePool (const RayTracingPipelineID &)			{ return _resPool.raytracePpln; }
-		ND_ auto&  _GetResourcePool (const TilePipelineID &)				{ return _resPool.tilePpln; }
-		ND_ auto&  _GetResourcePool (const MSamplerID &)					{ return _resPool.samplers; }
-		ND_ auto&  _GetResourcePool (const DescriptorSetID &)				{ return _resPool.descSet; }
-		ND_ auto&  _GetResourcePool (const DescriptorSetLayoutID &)			{ return _resPool.dsLayouts; }
-		ND_ auto&  _GetResourcePool (const MPipelineLayoutID &)				{ return _resPool.pplnLayouts; }
-		ND_ auto&  _GetResourcePool (const PipelineCacheID &)				{ return _resPool.pipelineCache; }
-		ND_ auto&  _GetResourcePool (const PipelinePackID &)				{ return _resPool.pipelinePacks; }
-		ND_ auto&  _GetResourcePool (const RTGeometryID &)					{ return _resPool.rtGeom; }
-		ND_ auto&  _GetResourcePool (const RTSceneID &)						{ return _resPool.rtScene; }
-		ND_ auto&  _GetResourcePool (const MMemoryID &)						{ return _resPool.memObjs; }
-		ND_ auto&  _GetResourcePool (const MRenderPassID &)					{ return _resPool.renderPass; }
-
-		template <typename ID>
-		ND_ const auto&  _GetResourceCPool (const ID &id)	const			{ return const_cast<MResourceManager *>(this)->_GetResourcePool( id ); }
+		ND_ auto&  _GetResourcePool (const MSamplerID &)				__NE___	{ return _resPool.samplers; }
+		ND_ auto&  _GetResourcePool (const MPipelineLayoutID &)			__NE___	{ return _resPool.pplnLayouts; }
+		ND_ auto&  _GetResourcePool (const MMemoryID &)					__NE___	{ return _resPool.memObjs; }
+		ND_ auto&  _GetResourcePool (const MRenderPassID &)				__NE___	{ return _resPool.renderPass; }
 		
-		ND_ StringView  _GetResourcePoolName (const BufferID &)				{ return "buffers"; }
-		ND_ StringView  _GetResourcePoolName (const ImageID &)				{ return "images"; }
-		ND_ StringView  _GetResourcePoolName (const BufferViewID &)			{ return "bufferViews"; }
-		ND_ StringView  _GetResourcePoolName (const ImageViewID &)			{ return "imageViews"; }
-		ND_ StringView  _GetResourcePoolName (const GraphicsPipelineID &)	{ return "graphicsPpln"; }
-		ND_ StringView  _GetResourcePoolName (const ComputePipelineID &)	{ return "computePpln"; }
-		ND_ StringView  _GetResourcePoolName (const MeshPipelineID &)		{ return "meshPpln"; }
-		ND_ StringView  _GetResourcePoolName (const RayTracingPipelineID &)	{ return "raytracePpln"; }
-		ND_ StringView  _GetResourcePoolName (const TilePipelineID &)		{ return "tilePpln"; }
-		ND_ StringView  _GetResourcePoolName (const MSamplerID &)			{ return "samplers"; }
-		ND_ StringView  _GetResourcePoolName (const DescriptorSetID &)		{ return "descSet"; }
-		ND_ StringView  _GetResourcePoolName (const DescriptorSetLayoutID &){ return "dsLayouts"; }
-		ND_ StringView  _GetResourcePoolName (const MPipelineLayoutID &)	{ return "pplnLayouts"; }
-		ND_ StringView  _GetResourcePoolName (const PipelineCacheID &)		{ return "pipelineCache"; }
-		ND_ StringView  _GetResourcePoolName (const PipelinePackID &)		{ return "pipelinePacks"; }
-		ND_ StringView  _GetResourcePoolName (const RTGeometryID &)			{ return "rtGeometry"; }
-		ND_ StringView  _GetResourcePoolName (const RTSceneID &)			{ return "rtScene"; }
-		ND_ StringView  _GetResourcePoolName (const MMemoryID &)			{ return "memObjs"; }
-		ND_ StringView  _GetResourcePoolName (const MRenderPassID &)		{ return "renderPass"; }
+		ND_ StringView  _GetResourcePoolName (const MSamplerID &)		__NE___	{ return "samplers"; }
+		ND_ StringView  _GetResourcePoolName (const MPipelineLayoutID &)__NE___	{ return "pplnLayouts"; }
+		ND_ StringView  _GetResourcePoolName (const MMemoryID &)		__NE___	{ return "memObjs"; }
+		ND_ StringView  _GetResourcePoolName (const MRenderPassID &)	__NE___	{ return "renderPass"; }
 		 
 	// 
-		template <typename ID>	ND_ bool   _Assign (OUT ID &id);
-		template <typename ID>		void   _Unassign (ID id);
-
 		ND_ bool  _CreateDefaultSampler ();
 		
 		ND_ DescriptorAllocatorPtr	_ChooseDescAllocator (DescriptorAllocatorPtr userDefined);
 
 		template <typename ID>
 		ND_ auto const&  _GetDescription (ID id) const;
+
+
+		#include "graphics/Private/ResourceManagerFn.inl.h"
 	};
 	
 	
 #	define RESMNGR	MResourceManager
-#	define RESMNGR_HEADER
-#	include "graphics/Private/ResourceManagerUtils.h"
+#	include "graphics/Private/ResourceManagerHdr.inl.h"
 
 } // AE::Graphics
 

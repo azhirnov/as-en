@@ -21,10 +21,10 @@ namespace AE::Graphics
 		EPresentMode	presentMode		= EPresentMode::FIFO;
 		uint			minImageCount	= 2;
 
-		SwapchainDesc () {}
-		SwapchainDesc (const SwapchainDesc &) = default;
+		SwapchainDesc ()								__NE___	{}
+		SwapchainDesc (const SwapchainDesc &)			__NE___	= default;
 
-		SwapchainDesc (const GraphicsCreateInfo &info) :
+		SwapchainDesc (const GraphicsCreateInfo &info)	__NE___ :
 			format{ info.swapchain.format },
 			colorSpace{ info.swapchain.colorSpace },
 			usage{ info.swapchain.usage },

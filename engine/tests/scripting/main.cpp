@@ -6,6 +6,7 @@ extern void UnitTest_Array ();
 extern void UnitTest_Class ();
 extern void UnitTest_MathFunc ();
 extern void UnitTest_String ();
+extern void UnitTest_Exceptions ();
 
 
 #ifdef AE_PLATFORM_ANDROID
@@ -20,6 +21,8 @@ int main ()
 	UnitTest_Class();
 	UnitTest_MathFunc();
 	UnitTest_String();
+	UnitTest_Exceptions();
+
 	// TODO: multithreading test
 
 	AE_LOGI( "Tests.ScriptBinding finished" );

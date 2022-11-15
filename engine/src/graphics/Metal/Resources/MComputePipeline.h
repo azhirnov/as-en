@@ -24,6 +24,7 @@ namespace AE::Graphics
 			MPipelineLayoutID										layoutId;
 			MPipelinePack::ShaderModuleRef							shader;
 			PipelineCacheID											cacheId;
+			MPipelinePack::Allocator_t *							allocator		= null;
 		};
 
 
@@ -50,11 +51,11 @@ namespace AE::Graphics
 		ND_ usize	MaxTotalThreadsPerThreadgroup ()	const;
 		ND_ usize	ThreadExecutionWidth ()				const;
 		ND_ Bytes	StaticThreadgroupMemoryLength ()	const;
-		ND_ Bytes	ImageblockMemoryLength (const uint2& imageBlockDim) const;
+		ND_ Bytes	ImageblockMemoryLength (const uint2 &imageBlockDim) const;
 
 		ND_ MetalComputePipeline	Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
 		ND_ MPipelineLayoutID		LayoutID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ uint3       			LocalSize ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _localSize; }
+		ND_ uint3       			LocalSize ()			const	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_localSize}; }
 		ND_ EPipelineDynamicState	DynamicState ()			const	{ return Default; }
 		
 		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })

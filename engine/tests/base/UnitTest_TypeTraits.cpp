@@ -79,5 +79,29 @@ extern void UnitTest_TypeTraits ()
 		TEST( t.Get<5>() == 9ull );
 	}
 
+	// nothrow
+	{
+		struct TrivialThrowable
+		{
+			int	i;
+
+			TrivialThrowable () noexcept(false) = default;
+			explicit TrivialThrowable (int ii) noexcept(false) : i{ii} {}
+		};
+
+		struct NontrivialNothrowable
+		{
+			String	str;
+
+			NontrivialNothrowable () noexcept { str = "11111"; }
+			explicit NontrivialNothrowable (const String &s) noexcept : str{s} {}
+
+			~NontrivialNothrowable () noexcept {}
+		};
+		
+		STATIC_ASSERT( IsNothrowCtor< TrivialThrowable, int >);
+		STATIC_ASSERT( IsNothrowCtor< NontrivialNothrowable, String >);
+	}
+
 	TEST_PASSED();
 }

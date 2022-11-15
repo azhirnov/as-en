@@ -83,10 +83,10 @@ namespace AE::PipelineCompiler
 
 		
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 
-		ND_ bool  Deserialize (EPixelFormat fmt, Serializing::Deserializer &);
+		ND_ bool  Deserialize (EPixelFormat fmt, Serializing::Deserializer &) __NE___;
 
 	private:
 		#ifdef AE_BUILD_PIPELINE_COMPILER
@@ -166,10 +166,10 @@ namespace AE::PipelineCompiler
 
 		
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 
-		ND_ bool  Deserialize (EPixelFormat fmt, Serializing::Deserializer &);
+		ND_ bool  Deserialize (EPixelFormat fmt, Serializing::Deserializer &) __NE___;
 
 	private:
 		#ifdef AE_BUILD_PIPELINE_COMPILER
@@ -205,14 +205,14 @@ namespace AE::PipelineCompiler
 
 
 	// methods
-		SubpassShaderIO () {}
+		AE_DEFAULT_COPYABLE_NE( SubpassShaderIO );
 
-		ND_ bool	operator == (const SubpassShaderIO &rhs) const;
-		ND_ HashVal	CalcHash () const;
+		ND_ bool	operator == (const SubpassShaderIO &rhs)C_NE___;
+		ND_ HashVal	CalcHash ()								C_NE___;
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)			C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &)		__NE_OV;
 	};
 	STATIC_ASSERT( sizeof(SubpassShaderIO::ShaderIOArr_t) == 48 );
 
@@ -231,8 +231,8 @@ namespace AE::PipelineCompiler
 			ubyte	subpassIndex	= UMax;
 
 			// ISerializable
-			bool  Serialize (Serializing::Serializer &) const override;
-			bool  Deserialize (Serializing::Deserializer &) override;
+			bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+			bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 		};
 
 	public:
@@ -266,8 +266,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 	
@@ -282,7 +282,7 @@ namespace AE::PipelineCompiler
 	{
 	// methods
 	public:
-		ND_ static bool  Serialize (Serializing::Serializer &ser);
+		ND_ static bool  Serialize (Serializing::Serializer &ser) __NE___;
 	};
 
 #endif

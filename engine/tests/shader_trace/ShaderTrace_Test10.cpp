@@ -12,14 +12,13 @@ static bool CompileShaders (TestDevice &vulkan, OUT VkShaderModule &meshShader, 
 	// create mesh shader
 	{
 		static const char	mesh_shader_source[] = R"#(
-#extension GL_NV_mesh_shader : require
+#extension GL_EXT_mesh_shader : require
 
-layout(local_size_x=9) in;
+layout(local_size_x=9, local_size_y=1, local_size_z=1) in;
 layout(triangles) out;
 layout(max_vertices=9, max_primitives=3) out;
 
-//out uint gl_PrimitiveCountNV;
-//out uint gl_PrimitiveIndicesNV[]; // [max_primitives * 3 for triangles]
+//out uint3 gl_PrimitiveTriangleIndicesEXT [max_primitives];
 
 const vec2	g_Positions[] = {
 	{-1.0f, -1.0f}, {-1.0f,  2.0f}, { 2.0f, -1.0f},	// primitive 0 - must hit
@@ -27,9 +26,9 @@ const vec2	g_Positions[] = {
 	{ 2.0f, -1.0f}, {-1.0f,  2.0f}, {-2.0f,  0.0f}	// primitive 2 - must hit
 };
 
-out gl_MeshPerVertexNV {
+out gl_MeshPerVertexEXT {
 	vec4	gl_Position;
-} gl_MeshVerticesNV[]; // [max_vertices]
+} gl_MeshVerticesEXT[]; // [max_vertices]
 
 layout(location = 0) out MeshOutput {
 	vec4	color;
@@ -43,15 +42,20 @@ void main ()
 
 	dbg_EnableTraceRecording( gl_GlobalInvocationID.x == 0 );
 
-	gl_MeshVerticesNV[I].gl_Position	= vec4(g_Positions[I], 0.0f, 1.0f);
+	gl_MeshVerticesEXT[I].gl_Position	= vec4(g_Positions[I], 0.0f, 1.0f);
 	Output[I].color						= g_Positions[I].xyxy * 0.5f + 0.5f;
-	gl_PrimitiveIndicesNV[I]			= I;
 
 	if ( I == 0 )
-		gl_PrimitiveCountNV = 3;
+	{
+		gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
+		gl_PrimitiveTriangleIndicesEXT[1] = uvec3(3,4,5);
+		gl_PrimitiveTriangleIndicesEXT[2] = uvec3(6,7,8);
+
+		SetMeshOutputsEXT( 9, 3 );
+	}
 })#";
 
-		CHECK_ERR( vulkan.Compile( OUT meshShader, {mesh_shader_source}, EShLangMeshNV, ETraceMode::DebugTrace, 0 ));
+		CHECK_ERR( vulkan.Compile( OUT meshShader, {mesh_shader_source}, EShLangMesh, ETraceMode::DebugTrace, 0 ));
 	}
 
 	// create fragment shader
@@ -98,7 +102,7 @@ extern bool ShaderTrace_Test10 (TestDevice& vulkan)
 
 	VkDescriptorSetLayout	ds_layout;
 	VkDescriptorSet			desc_set;
-	CHECK_ERR( vulkan.CreateDebugDescriptorSet( VK_SHADER_STAGE_MESH_BIT_NV, OUT ds_layout, OUT desc_set ));
+	CHECK_ERR( vulkan.CreateDebugDescriptorSet( VK_SHADER_STAGE_MESH_BIT_EXT, OUT ds_layout, OUT desc_set ));
 
 	VkPipelineLayout	ppln_layout;
 	VkPipeline			pipeline;
@@ -107,7 +111,7 @@ extern bool ShaderTrace_Test10 (TestDevice& vulkan)
 
 	// build command buffer
 	VkCommandBufferBeginInfo	begin = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, null, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, null };
-	VK_CHECK( vulkan.vkBeginCommandBuffer( vulkan.cmdBuffer, &begin ));
+	VK_CHECK_ERR( vulkan.vkBeginCommandBuffer( vulkan.cmdBuffer, &begin ));
 
 	// image layout undefined -> color_attachment
 	{
@@ -143,7 +147,7 @@ extern bool ShaderTrace_Test10 (TestDevice& vulkan)
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		
-		vulkan.vkCmdPipelineBarrier( vulkan.cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV, 0,
+		vulkan.vkCmdPipelineBarrier( vulkan.cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_MESH_SHADER_BIT_EXT, 0,
 									 0, null, 1, &barrier, 0, null);
 	}
 
@@ -179,7 +183,7 @@ extern bool ShaderTrace_Test10 (TestDevice& vulkan)
 		vulkan.vkCmdSetScissor( vulkan.cmdBuffer, 0, 1, &scissor_rect );
 	}
 	
-	vulkan.vkCmdDrawMeshTasksNV( vulkan.cmdBuffer, 1, 0 );
+	vulkan.vkCmdDrawMeshTasksEXT( vulkan.cmdBuffer, 1, 1, 1 );
 
 	vulkan.vkCmdEndRenderPass( vulkan.cmdBuffer );
 
@@ -195,7 +199,7 @@ extern bool ShaderTrace_Test10 (TestDevice& vulkan)
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		
-		vulkan.vkCmdPipelineBarrier( vulkan.cmdBuffer, VK_PIPELINE_STAGE_MESH_SHADER_BIT_NV, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+		vulkan.vkCmdPipelineBarrier( vulkan.cmdBuffer, VK_PIPELINE_STAGE_MESH_SHADER_BIT_EXT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
 									 0, null, 1, &barrier, 0, null);
 	}
 
@@ -209,7 +213,7 @@ extern bool ShaderTrace_Test10 (TestDevice& vulkan)
 		vulkan.vkCmdCopyBuffer( vulkan.cmdBuffer, vulkan.debugOutputBuf, vulkan.readBackBuf, 1, &region );
 	}
 
-	VK_CHECK( vulkan.vkEndCommandBuffer( vulkan.cmdBuffer ));
+	VK_CHECK_ERR( vulkan.vkEndCommandBuffer( vulkan.cmdBuffer ));
 
 
 	// submit commands and wait
@@ -219,8 +223,8 @@ extern bool ShaderTrace_Test10 (TestDevice& vulkan)
 		submit.commandBufferCount	= 1;
 		submit.pCommandBuffers		= &vulkan.cmdBuffer;
 
-		VK_CHECK( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, VK_NULL_HANDLE ));
-		VK_CHECK( vulkan.vkQueueWaitIdle( vulkan.GetVkQueue() ));
+		VK_CHECK_ERR( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, VK_NULL_HANDLE ));
+		VK_CHECK_ERR( vulkan.vkQueueWaitIdle( vulkan.GetVkQueue() ));
 	}
 	
 	CHECK_ERR( vulkan.TestDebugTraceOutput( {mesh_shader}, "ShaderTrace_Test10.txt" ));

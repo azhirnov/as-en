@@ -34,19 +34,19 @@ namespace AE::Networking
 
 	// methods
 	public:
-		UdpSocket () {}
+		UdpSocket ()																					__NE___	{}
 
-		ND_ bool  Open (ushort port);
+		ND_ bool  Open (ushort port)																	__NE___;
 
-			bool  Send (const IpAddress &addr, const void* data, Bytes dataSize, OUT Bytes &sent) const;
-			bool  Receive (OUT IpAddress &addr, OUT void* data, Bytes dataSize, OUT Bytes &received) const;
+			bool  Send (const IpAddress &addr, const void* data, Bytes dataSize, OUT Bytes &sent)		C_NE___;
+			bool  Receive (OUT IpAddress &addr, OUT void* data, Bytes dataSize, OUT Bytes &received)	C_NE___;
 
-		ND_ Statistic const&  Stats () const	{ return _stat; }
+		ND_ Statistic const&  Stats ()																	C_NE___	{ return _stat; }
 
 
 	private:
-		ND_ bool  _SetSendBufferSize (int size);
-		ND_ bool  _SetReceiveBufferSize (int size);
+		ND_ bool  _SetSendBufferSize (int size)															__NE___;
+		ND_ bool  _SetReceiveBufferSize (int size)														__NE___;
 	};
 
 

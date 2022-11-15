@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "threading/Stream/BufferedAsyncStream.h"
 #include "graphics/Public/ResourceManager.h"
 #include "graphics/Public/CommandBuffer.h"
 
@@ -22,6 +21,11 @@ namespace AE::Graphics
 			BufferID		id;
 			Bytes			offset;
 			Bytes			size;
+
+			BufferUploadResult ()									__NE___	= default;
+			BufferUploadResult (BufferUploadResult &&)				__NE___ = default;
+
+			BufferUploadResult&  operator = (BufferUploadResult &&)	__NE___ = default; 
 		};
 
 		struct ImageUploadResult
@@ -29,6 +33,11 @@ namespace AE::Graphics
 			ImageID		id;
 			uint3		offset;
 			uint3		dimension;
+
+			ImageUploadResult ()									__NE___	= default;
+			ImageUploadResult (ImageUploadResult &&)				__NE___ = default;
+
+			ImageUploadResult&  operator = (ImageUploadResult &&)	__NE___ = default; 
 		};
 
 		using BufferResult		= Promise< BufferUploadResult >;
@@ -37,14 +46,14 @@ namespace AE::Graphics
 
 
 	private:
-		using AsyncReader = Threading::AsyncRStreamBufferedReader;
+		//using AsyncReader = Threading::AsyncRStreamBufferedReader;
 
 		// Disk -> RAM -> VRAM
 
 		template <typename StreamType, typename ResultType>
 		struct UploadTask
 		{
-			AsyncReader		diskToMem;
+		//	AsyncReader		diskToMem;
 			StreamType		memToGPU;
 			ResultType		result;
 		};

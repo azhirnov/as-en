@@ -3,7 +3,12 @@
 	Set emulation on static array with binary/linear search.
 	Use only for small number of elements.
 
-	Recomended maximum size is 8..16 elements, .
+	Recomended maximum size is 8..16 elements.
+	
+	References are not invalidated.
+
+	Exceptions:
+		- key may throw exceptions (in copy-ctor)
 */
 
 #pragma once
@@ -24,6 +29,7 @@ namespace AE::Base
 	struct FixedSet
 	{
 		STATIC_ASSERT( ArraySize < 256 );
+		//STATIC_ASSERT( IsNothrowMoveCtor<Value> );
 
 	// types
 	private:
@@ -49,63 +55,63 @@ namespace AE::Base
 
 	// methods
 	public:
-		FixedSet ();
-		FixedSet (Self &&);
-		FixedSet (const Self &);
+		FixedSet ()												__NE___;
+		FixedSet (Self &&)										__NE___;
+		FixedSet (const Self &)									noexcept(IsNothrowCopyCtor<Value>);
 
-		~FixedSet ()	{ clear(); }
-
-		ND_ usize		size ()		const	{ return _count; }
-		ND_ bool		empty ()	const	{ return _count == 0; }
-
-		ND_ iterator	begin ()	const	{ return &_array[0]; }
-		ND_ iterator	end ()		const	{ return begin() + _count; }
+		~FixedSet ()											__NE___	{ clear(); }
 		
-		ND_ static constexpr usize	capacity ()		{ return ArraySize; }
+		ND_ usize		size ()									C_NE___	{ return _count; }
+		ND_ bool		empty ()								C_NE___	{ return _count == 0; }
 
-			Self&	operator = (Self &&);
-			Self&	operator = (const Self &);
+		ND_ iterator	begin ()								C_NE___	{ return &_array[0]; }
+		ND_ iterator	end ()									C_NE___	{ return begin() + _count; }
+		
+		ND_ static constexpr usize	capacity ()					__NE___	{ return ArraySize; }
 
-		ND_ bool	operator == (const Self &rhs) const;
-		ND_ bool	operator != (const Self &rhs) const		{ return not (*this == rhs); }
+			Self&	operator = (Self &&)						__NE___;
+			Self&	operator = (const Self &)					noexcept(IsNothrowCopyCtor<Value>);
+
+		ND_ bool	operator == (const Self &rhs)				C_NE___;
+		ND_ bool	operator != (const Self &rhs)				C_NE___	{ return not (*this == rhs); }
 
 			template <typename ValueType>
-			Pair<iterator,bool>  emplace (ValueType&& value);
+			Pair<iterator,bool>  emplace (ValueType&& value)	noexcept(IsNothrowCopyCtor<Value>);
 
-			Pair<iterator,bool>  insert (const Value &value)	{ return emplace( value ); }
-			Pair<iterator,bool>  insert (Value&& value)			{ return emplace( RVRef(value) ); }
+			Pair<iterator,bool>  insert (const Value &value)	noexcept(IsNothrowCopyCtor<Value>)	{ return emplace( value ); }
+			Pair<iterator,bool>  insert (Value&& value)			__NE___								{ return emplace( RVRef(value) ); }
 			
 			template <typename ValueType>
-			Pair<iterator,bool>  insert_or_assign (ValueType&& value);
+			Pair<iterator,bool>  insert_or_assign (ValueType&& value) noexcept(IsNothrowCopyCtor<Value>);
 			
 			template <typename ValueType>
-			bool		try_insert (ValueType&& value);
+			bool		try_insert (ValueType&& value)			noexcept(IsNothrowCopyCtor<Value>);
 			
 			template <typename KeyType>
-			bool		erase (const KeyType &key);
+			bool		erase (const KeyType &key)				__NE___;
 
 			template <typename KeyType>
-		ND_ iterator	find (const KeyType &key)		const;
+		ND_ iterator	find (const KeyType &key)				C_NE___;
 		
 			template <typename KeyType>
-		ND_ usize		count (const KeyType &key)		const	{ return contains( key ) ? 1 : 0; }
+		ND_ usize		count (const KeyType &key)				C_NE___	{ return contains( key ) ? 1 : 0; }
 		
 			template <typename KeyType>
-		ND_ bool		contains (const KeyType &key)	const;
+		ND_ bool		contains (const KeyType &key)			C_NE___;
 
-		ND_ HashVal		CalcHash ()	const;
+		ND_ HashVal		CalcHash ()								C_NE___;
 
-			void		clear ();
-			void		reserve (usize)		{}
+			void		clear ()								__NE___;
+			void		reserve (usize)							__NE___		{}
 
 		// cache friendly access to unsorted data
 			
-		ND_ explicit operator ArrayView<Value> () const	{ return { &_array[0], size() }; }
+		ND_ explicit operator ArrayView<Value> ()				C_NE___	{ return { &_array[0], size() }; }
 
-		ND_ Value const&	operator [] (usize i) const;
+		ND_ Value const&	operator [] (usize i)				C_NE___;
 
 	private:
-		ND_ forceinline bool _IsMemoryAliased (const Self* other) const
+		ND_ forceinline bool _IsMemoryAliased (const Self* other) C_NE___
 		{
 			return IsIntersects( this, this+1, other, other+1 );
 		}
@@ -119,7 +125,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	FixedSet<V,S,CS>::FixedSet ()
+	FixedSet<V,S,CS>::FixedSet () __NE___
 	{
 		DEBUG_ONLY( DbgInitMem( _indices ));
 		DEBUG_ONLY( DbgInitMem( _array   ));
@@ -131,11 +137,11 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	FixedSet<V,S,CS>::FixedSet (const Self &other) : _count{ other._count }
+	FixedSet<V,S,CS>::FixedSet (const Self &other) noexcept(IsNothrowCopyCtor<V>) : _count{ other._count }
 	{
 		ASSERT( not _IsMemoryAliased( &other ));
 
-		CPolicy_t::Copy( _array, other._array, _count );
+		CPolicy_t::Copy( _array, other._array, _count );	// throw
 		MemCopy( _indices, other._indices, SizeOf<Index_t> * _count );
 	}
 	
@@ -145,7 +151,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	FixedSet<V,S,CS>::FixedSet (Self &&other) : _count{ other._count }
+	FixedSet<V,S,CS>::FixedSet (Self &&other) __NE___ : _count{ other._count }
 	{
 		ASSERT( not _IsMemoryAliased( &other ));
 		
@@ -162,7 +168,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (Self &&rhs)
+	FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (Self &&rhs) __NE___
 	{
 		ASSERT( not _IsMemoryAliased( &rhs ));
 		
@@ -185,7 +191,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (const Self &rhs)
+	FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (const Self &rhs) noexcept(IsNothrowCopyCtor<V>)
 	{
 		ASSERT( not _IsMemoryAliased( &rhs ));
 		
@@ -193,7 +199,7 @@ namespace AE::Base
 
 		_count = rhs._count;
 		
-		CPolicy_t::Copy( _array, rhs._array, _count );
+		CPolicy_t::Copy( _array, rhs._array, _count );	// throw
 		MemCopy( _indices, rhs._indices, SizeOf<Index_t> * _count );
 
 		return *this;
@@ -205,7 +211,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	bool  FixedSet<V,S,CS>::operator == (const Self &rhs) const
+	bool  FixedSet<V,S,CS>::operator == (const Self &rhs) C_NE___
 	{
 		if ( this == &rhs )
 			return true;
@@ -227,7 +233,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	V const&  FixedSet<V,S,CS>::operator [] (usize i) const
+	V const&  FixedSet<V,S,CS>::operator [] (usize i) C_NE___
 	{
 		ASSERT( i < _count );
 		return _array[i]; // don't use '_indices'
@@ -240,11 +246,11 @@ namespace AE::Base
 */
 	template <typename V, usize S, typename CS>
 	template <typename ValueType>
-	bool  FixedSet<V,S,CS>::try_insert (ValueType&& value)
+	bool  FixedSet<V,S,CS>::try_insert (ValueType&& value) noexcept(IsNothrowCopyCtor<V>)
 	{
 		if_likely( _count < capacity() )
 		{
-			emplace( FwdArg<ValueType>(value) );
+			emplace( FwdArg<ValueType>(value) );	// throw
 			return true;
 		}
 		return false;
@@ -258,7 +264,7 @@ namespace AE::Base
 	template <typename V, usize S, typename CS>
 	template <typename ValueType>
 	Pair< typename FixedSet<V,S,CS>::iterator, bool >
-		FixedSet<V,S,CS>::emplace (ValueType&& value)
+		FixedSet<V,S,CS>::emplace (ValueType&& value) noexcept(IsNothrowCopyCtor<V>)
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< ValueType, value_type, Index_t >;
 
@@ -271,7 +277,7 @@ namespace AE::Base
 		ASSERT( _count < capacity() );
 
 		const usize	j = _count++;
-		PlacementNew<value_type>( &_array[j], FwdArg<ValueType>(value) );
+		PlacementNew<value_type>( &_array[j], FwdArg<ValueType>(value) );	// throw
 			
 		if ( i < _count )
 			for (usize k = _count-1; k > i; --k) {
@@ -292,7 +298,7 @@ namespace AE::Base
 	template <typename V, usize S, typename CS>
 	template <typename ValueType>
 	Pair< typename FixedSet<V,S,CS>::iterator, bool >
-		FixedSet<V,S,CS>::insert_or_assign (ValueType&& value)
+		FixedSet<V,S,CS>::insert_or_assign (ValueType&& value) noexcept(IsNothrowCopyCtor<V>)
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< ValueType, value_type, Index_t >;
 
@@ -308,7 +314,7 @@ namespace AE::Base
 		ASSERT( _count < capacity() );
 	
 		const usize	j = _count++;
-		PlacementNew<value_type>( &_array[j], FwdArg<ValueType>(value) );
+		PlacementNew<value_type>( &_array[j], FwdArg<ValueType>(value) );	// throw
 		
 		if ( i < _count )
 			for (usize k = _count-1; k > i; --k) {
@@ -329,7 +335,7 @@ namespace AE::Base
 	template <typename V, usize S, typename CS>
 	template <typename KeyType>
 	typename FixedSet<V,S,CS>::iterator
-		FixedSet<V,S,CS>::find (const KeyType &key) const
+		FixedSet<V,S,CS>::find (const KeyType &key) C_NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, value_type, Index_t >;
 
@@ -348,7 +354,7 @@ namespace AE::Base
 */
 	template <typename V, usize S, typename CS>
 	template <typename KeyType>
-	bool  FixedSet<V,S,CS>::contains (const KeyType &key) const
+	bool  FixedSet<V,S,CS>::contains (const KeyType &key) C_NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, value_type, Index_t >;
 		
@@ -364,7 +370,7 @@ namespace AE::Base
 */
 	template <typename V, usize S, typename CS>
 	template <typename KeyType>
-	bool  FixedSet<V,S,CS>::erase (const KeyType &key)
+	bool  FixedSet<V,S,CS>::erase (const KeyType &key) __NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, value_type, Index_t >;
 
@@ -402,7 +408,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	void  FixedSet<V,S,CS>::clear ()
+	void  FixedSet<V,S,CS>::clear () __NE___
 	{
 		CPolicy_t::Destroy( _array, _count );
 		DEBUG_ONLY( DbgInitMem( _indices ));
@@ -416,7 +422,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	HashVal  FixedSet<V,S,CS>::CalcHash () const
+	HashVal  FixedSet<V,S,CS>::CalcHash () C_NE___
 	{
 		HashVal		result = HashOf( size() );
 
@@ -435,7 +441,7 @@ namespace std
 	template <typename Value, size_t ArraySize, typename CS>
 	struct hash< AE::Base::FixedSet<Value, ArraySize, CS> >
 	{
-		ND_ size_t  operator () (const AE::Base::FixedSet<Value, ArraySize, CS> &value) const
+		ND_ size_t  operator () (const AE::Base::FixedSet<Value, ArraySize, CS> &value) C_NE___
 		{
 			return size_t(value.CalcHash());
 		}

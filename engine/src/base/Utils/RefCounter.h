@@ -43,22 +43,26 @@ namespace AE::Base
 
 	// methods
 	public:
-		EnableRC () {}
-		virtual ~EnableRC () { ASSERT( _counter.load( std::memory_order_relaxed ) == 0 ); }
+		EnableRC ()						__NE___ {}
+		virtual ~EnableRC ()			__NE___ { ASSERT( _GetRC_UseCount() == 0 ); }
 
-		EnableRC (EnableRC<T> &&) = delete;
-		EnableRC (const EnableRC<T> &) = delete;
+		EnableRC (EnableRC<T> &&)						= delete;
+		EnableRC (const EnableRC<T> &)					= delete;
 
-		EnableRC<T>&  operator = (EnableRC<T> &&) = delete;
-		EnableRC<T>&  operator = (const EnableRC<T> &) = delete;
+		EnableRC<T>&  operator = (EnableRC<T> &&)		= delete;
+		EnableRC<T>&  operator = (const EnableRC<T> &)	= delete;
 
-		ND_ RC<T>  GetRC ();
+		ND_ RC<T>  GetRC ()				__NE___;
 		
 		template <typename B>
-		ND_ RC<B>  GetRC ();
+		ND_ RC<B>  GetRC ()				__NE___;
 
 	protected:
-		virtual void  _ReleaseObject ();
+		// this methods allows to catch object destruction and change bechavior,
+		// for example - add back to object pool.
+		virtual void  _ReleaseObject () __NE___;
+
+		ND_ int  _GetRC_UseCount ()		C_NE___	{ return _counter.load( std::memory_order_relaxed ); }
 	};
 
 
@@ -83,64 +87,62 @@ namespace AE::Base
 
 	// methods
 	public:
-		RC () {}
-		RC (std::nullptr_t) {}
+		RC ()											__NE___ {}
+		RC (std::nullptr_t)								__NE___ {}
 
-		RC (T* ptr) : _ptr{ptr}							{ _Inc(); }
-		RC (Ptr<T> ptr) : _ptr{ptr}						{ _Inc(); }
-		RC (Self &&other) : _ptr{other.release()}		{}
-		RC (const Self &other) : _ptr{other._ptr}		{ _Inc(); }
+		RC (T* ptr)										__NE___ : _ptr{ptr}				{ _Inc(); }
+		RC (Ptr<T> ptr)									__NE___ : _ptr{ptr}				{ _Inc(); }
+		RC (Self &&other)								__NE___ : _ptr{other.release()}	{}
+		RC (const Self &other)							__NE___ : _ptr{other._ptr}		{ _Inc(); }
 		
-		template <typename B>
-		RC (RC<B> &&other) : _ptr{static_cast<T*>(other.release())} {}
+		template <typename B>	RC (RC<B> &&other)		__NE___ : _ptr{static_cast<T*>(other.release())} {}
 
-		template <typename B>
-		RC (const RC<B> &other) : _ptr{static_cast<T*>(other.get())} { _Inc(); }
+		template <typename B>	RC (const RC<B> &other)	__NE___ : _ptr{static_cast<T*>(other.get())} { _Inc(); }
 
-		~RC ()											{ _Dec(); }
+		~RC ()											__NE___ { _Dec(); }
 
-		Self&  operator = (std::nullptr_t)				{ _Dec();  _ptr = null;                return *this; }
-		Self&  operator = (T* rhs)						{ _Dec();  _ptr = rhs;        _Inc();  return *this; }
-		Self&  operator = (Ptr<T> rhs)					{ _Dec();  _ptr = rhs.get();  _Inc();  return *this; }
-		Self&  operator = (const Self &rhs)				{ _Dec();  _ptr = rhs._ptr;   _Inc();  return *this; }
-		Self&  operator = (Self &&rhs)					{ _Dec();  _ptr = rhs.release();       return *this; }
+		Self&  operator = (std::nullptr_t)				__NE___ { _Dec();  _ptr = null;                return *this; }
+		Self&  operator = (T* rhs)						__NE___ { _Dec();  _ptr = rhs;        _Inc();  return *this; }
+		Self&  operator = (Ptr<T> rhs)					__NE___ { _Dec();  _ptr = rhs.get();  _Inc();  return *this; }
+		Self&  operator = (const Self &rhs)				__NE___ { _Dec();  _ptr = rhs._ptr;   _Inc();  return *this; }
+		Self&  operator = (Self &&rhs)					__NE___ { _Dec();  _ptr = rhs.release();       return *this; }
 
 		template <typename B, typename = EnableIf<IsBaseOf<T,B>> >
-		Self&  operator = (RC<B> &&rhs)					{ _Dec();  _ptr = static_cast<T*>(rhs.release());       return *this; }
+		Self&  operator = (RC<B> &&rhs)					__NE___ { _Dec();  _ptr = static_cast<T*>(rhs.release());       return *this; }
 		
 		template <typename B, typename = EnableIf<IsBaseOf<T,B>> >
-		Self&  operator = (const RC<B> &&rhs)			{ _Dec();  _ptr = static_cast<T*>(rhs.get());  _Inc();  return *this; }
+		Self&  operator = (const RC<B> &&rhs)			__NE___ { _Dec();  _ptr = static_cast<T*>(rhs.get());  _Inc();  return *this; }
 
-		ND_ bool  operator == (const T* rhs)	const	{ return _ptr == rhs; }
-		ND_ bool  operator == (Ptr<T> rhs)		const	{ return _ptr == rhs.get(); }
-		ND_ bool  operator == (const Self &rhs)	const	{ return _ptr == rhs._ptr; }
-		ND_ bool  operator == (std::nullptr_t)	const	{ return _ptr == null; }
+		ND_ bool  operator == (const T* rhs)			C_NE___ { return _ptr == rhs; }
+		ND_ bool  operator == (Ptr<T> rhs)				C_NE___ { return _ptr == rhs.get(); }
+		ND_ bool  operator == (const Self &rhs)			C_NE___ { return _ptr == rhs._ptr; }
+		ND_ bool  operator == (std::nullptr_t)			C_NE___ { return _ptr == null; }
 
 		template <typename B>
-		ND_ bool  operator != (const B& rhs)	const	{ return not (*this == rhs); }
+		ND_ bool  operator != (const B& rhs)			C_NE___ { return not (*this == rhs); }
 
-		ND_ bool  operator <  (const Self &rhs)	const	{ return _ptr <  rhs._ptr; }
-		ND_ bool  operator >  (const Self &rhs)	const	{ return _ptr >  rhs._ptr; }
-		ND_ bool  operator <= (const Self &rhs)	const	{ return _ptr <= rhs._ptr; }
-		ND_ bool  operator >= (const Self &rhs)	const	{ return _ptr >= rhs._ptr; }
+		ND_ bool  operator <  (const Self &rhs)			C_NE___ { return _ptr <  rhs._ptr; }
+		ND_ bool  operator >  (const Self &rhs)			C_NE___ { return _ptr >  rhs._ptr; }
+		ND_ bool  operator <= (const Self &rhs)			C_NE___ { return _ptr <= rhs._ptr; }
+		ND_ bool  operator >= (const Self &rhs)			C_NE___ { return _ptr >= rhs._ptr; }
 
-		ND_ T *		operator -> ()				const	{ ASSERT( _ptr );  return _ptr; }
-		ND_ T &		operator *  ()				const	{ ASSERT( _ptr );  return *_ptr; }
+		ND_ T *		operator -> ()						C_NE___ { ASSERT( _ptr != null );  return _ptr; }
+		ND_ T &		operator *  ()						C_NE___	{ ASSERT( _ptr != null );  return *_ptr; }
 
-		ND_ T *		get ()						const	{ return _ptr; }
-		ND_ T *		release ()							{ T* p = _ptr;  _ptr = null;  return p; }
-		ND_ int		use_count ()				const	{ return _ptr ? _ptr->_counter.load( std::memory_order_relaxed ) : 0; }
+		ND_ T *		get ()								C_NE___ { return _ptr; }
+		ND_ T *		release ()							__NE___ { T* p = _ptr;  _ptr = null;  return p; }
+		ND_ int		use_count ()						C_NE___ { return _ptr != null ? _ptr->_counter.load( std::memory_order_relaxed ) : 0; }
 
-		ND_ explicit operator bool ()			const	{ return _ptr != null; }
+		ND_ explicit operator bool ()					C_NE___ { return _ptr != null; }
 
-			void	attach (T* ptr)						{ _Dec();  _ptr = ptr; }
-			void	reset (T* ptr)						{ _Dec();  _ptr = ptr;  _Inc(); }
+			void	attach (T* ptr)						__NE___ { _Dec();  _ptr = ptr; }
+			void	reset (T* ptr)						__NE___ { _Dec();  _ptr = ptr;  _Inc(); }
 
-			void	Swap (INOUT Self &rhs);
+			void	Swap (INOUT Self &rhs)				__NE___;
 
 	private:
-		void  _Inc ();
-		void  _Dec ();
+			void	_Inc ()								__NE___;
+			void	_Dec ()								__NE___;
 	};
 
 	
@@ -153,13 +155,13 @@ namespace AE::Base
 	struct StaticRC final : Noninstancable
 	{
 		template <typename ...Args>
-		static void  New (INOUT T& obj, Args&& ...args)
+		static void  New (INOUT T& obj, Args&& ...args)	__TH___
 		{
-			PlacementNew<T>( &obj, FwdArg<Args>( args )... );
+			PlacementNew<T>( &obj, FwdArg<Args>( args )... );	// throw
 			obj._counter.store( 1, std::memory_order_relaxed );
 		}
 
-		static void  Delete (INOUT T& obj)
+		static void  Delete (INOUT T& obj)				__NE___
 		{
 			ASSERT( obj._counter.fetch_sub( 1, std::memory_order_relaxed ) == 1 );
 			PlacementDelete( INOUT obj );
@@ -189,51 +191,51 @@ namespace AE::Base
 
 	// methods
 	public:
-		AtomicRC () {}
-		AtomicRC (std::nullptr_t) {}
+		AtomicRC ()									__NE___ {}
+		AtomicRC (std::nullptr_t)					__NE___ {}
 
-		AtomicRC (T* ptr)							{ _IncSet( ptr ); }
-		AtomicRC (Ptr<T> ptr)						{ _IncSet( ptr.get() ); }
-		AtomicRC (RC<T> &&ptr)						{ _ptr.store( ptr.release().release(), std::memory_order_relaxed ); }
-		AtomicRC (const RC<T> &ptr)					{ _IncSet( ptr.get() ); }
+		AtomicRC (T* ptr)							__NE___ { _IncSet( ptr ); }
+		AtomicRC (Ptr<T> ptr)						__NE___ { _IncSet( ptr.get() ); }
+		AtomicRC (RC<T> &&ptr)						__NE___ { _ptr.store( ptr.release().release(), std::memory_order_relaxed ); }
+		AtomicRC (const RC<T> &ptr)					__NE___ { _IncSet( ptr.get() ); }
 
-		~AtomicRC ()								{ _ResetDec(); }
+		~AtomicRC ()								__NE___ { _ResetDec(); }
 		
-		ND_ T *		unsafe_get ()			const	{ return _RemoveLockBit( _ptr.load( std::memory_order_relaxed )); }
-		ND_ RC_t	release ();
+		ND_ T *		unsafe_get ()					C_NE___ { return _RemoveLockBit( _ptr.load( std::memory_order_relaxed )); }
+		ND_ RC_t	release ()						__NE___;
 
-		ND_ RC_t	get ();
+		ND_ RC_t	get ()							__NE___;
 
-			void	reset (T* ptr);
+			void	reset (T* ptr)					__NE___;
 
-		Self&  operator = (std::nullptr_t)			{ _ResetDec();				return *this; }
-		Self&  operator = (T* rhs)					{ reset( rhs );				return *this; }
-		Self&  operator = (Ptr<T> rhs)				{ reset( rhs );				return *this; }
-		Self&  operator = (const RC<T> &rhs)		{ reset( rhs.get() );		return *this; }
-		Self&  operator = (RC<T> &&rhs);
+		Self&  operator = (std::nullptr_t)			__NE___ { _ResetDec();			return *this; }
+		Self&  operator = (T* rhs)					__NE___ { reset( rhs );			return *this; }
+		Self&  operator = (Ptr<T> rhs)				__NE___ { reset( rhs );			return *this; }
+		Self&  operator = (const RC<T> &rhs)		__NE___ { reset( rhs.get() );	return *this; }
+		Self&  operator = (RC<T> &&rhs)				__NE___;
 
 	private:
-		void  _IncSet (T *ptr);
-		void  _ResetDec ();
+		void  _IncSet (T *ptr)						__NE___;
+		void  _ResetDec ()							__NE___;
 		
-		ND_ T*		_Lock ();
-			void	_Unlock ();
-		ND_ T*		_Exchange (T* ptr);
+		ND_ T*		_Lock ()						__NE___;
+			void	_Unlock ()						__NE___;
+		ND_ T*		_Exchange (T* ptr)				__NE___;
 
-		static void  _Inc (T *ptr);
-		static void  _Dec (T *ptr);
+		static void  _Inc (T *ptr)					__NE___;
+		static void  _Dec (T *ptr)					__NE___;
 
-		ND_ static bool  _HasLockBit (T* ptr)
+		ND_ static bool  _HasLockBit (T* ptr)		__NE___
 		{
 			return (usize(ptr) & usize{1});
 		}
 
-		ND_ static T*  _SetLockBit (T* ptr)
+		ND_ static T*  _SetLockBit (T* ptr)			__NE___
 		{
 			return reinterpret_cast< T *>((usize(ptr) | usize{1}));
 		}
 
-		ND_ static T*  _RemoveLockBit (T* ptr)
+		ND_ static T*  _RemoveLockBit (T* ptr)		__NE___
 		{
 			return reinterpret_cast< T *>((usize(ptr) & ~usize{1}));
 		}
@@ -281,20 +283,32 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename ...Args>
-	ND_ forceinline RC<T>  MakeRC (Args&& ...args)
+	ND_ forceinline RC<T>  MakeRC (Args&& ...args) __TH___
 	{
 		STATIC_ASSERT( not IsBaseOf< NonAllocatable, T >);
 
 		return RC<T>{ new T{ FwdArg<Args>(args)... }};
 	}
 	
+	template <typename T, typename ...Args>
+	ND_ forceinline RC<T>  MakeRC_NE (Args&& ...args) __NE___
+	{
+		STATIC_ASSERT( not IsBaseOf< NonAllocatable, T >);
+		try {
+			return RC<T>{ new T{ FwdArg<Args>(args)... }};
+		}
+		catch(...) {
+			return null;
+		}
+	}
+
 /*
 =================================================
 	_Inc
 =================================================
 */
 	template <typename T>
-	forceinline void  RC<T>::_Inc ()
+	forceinline void  RC<T>::_Inc () __NE___
 	{
 		if_likely( _ptr != null )
 			_ptr->_counter.fetch_add( 1, std::memory_order_relaxed );
@@ -306,7 +320,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	forceinline void  RC<T>::_Dec ()
+	forceinline void  RC<T>::_Dec () __NE___
 	{
 		if_likely( _ptr != null )
 		{
@@ -327,7 +341,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	forceinline void  RC<T>::Swap (INOUT RC<T> &rhs)
+	forceinline void  RC<T>::Swap (INOUT RC<T> &rhs) __NE___
 	{
 		std::swap( _ptr, rhs._ptr );
 	}
@@ -341,7 +355,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename ...Args>
-	ND_ AtomicRC<T>  MakeAtomicRC (Args&& ...args)
+	ND_ AtomicRC<T>  MakeAtomicRC (Args&& ...args) __TH___
 	{
 		return AtomicRC<T>{ new T{ FwdArg<Args>(args)... }};
 	}
@@ -352,7 +366,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	AtomicRC<T>&  AtomicRC<T>::operator = (RC<T> &&rhs)
+	AtomicRC<T>&  AtomicRC<T>::operator = (RC<T> &&rhs) __NE___
 	{
 		_ResetDec();
 		
@@ -369,7 +383,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  AtomicRC<T>::_Inc (T *ptr)
+	void  AtomicRC<T>::_Inc (T *ptr) __NE___
 	{
 		ASSERT( not _HasLockBit( ptr ));
 
@@ -383,7 +397,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  AtomicRC<T>::_Dec (T *ptr)
+	void  AtomicRC<T>::_Dec (T *ptr) __NE___
 	{
 		ASSERT( not _HasLockBit( ptr ));
 
@@ -405,7 +419,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  AtomicRC<T>::_IncSet (T *ptr)
+	void  AtomicRC<T>::_IncSet (T *ptr) __NE___
 	{
 		_Inc( ptr );
 		
@@ -421,7 +435,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  AtomicRC<T>::_ResetDec ()
+	void  AtomicRC<T>::_ResetDec () __NE___
 	{
 		T*	old = _Exchange( null );
 		
@@ -434,7 +448,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	RC<T>  AtomicRC<T>::release ()
+	RC<T>  AtomicRC<T>::release () __NE___
 	{
 		T*	old = _Exchange( null );
 		ASSERT( not _HasLockBit( old ));
@@ -451,7 +465,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	RC<T>  AtomicRC<T>::get ()
+	RC<T>  AtomicRC<T>::get () __NE___
 	{
 		RC<T>	res{ _Lock() };
 		_Unlock();
@@ -464,7 +478,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  AtomicRC<T>::reset (T* ptr)
+	void  AtomicRC<T>::reset (T* ptr) __NE___
 	{
 		_ResetDec();
 		_IncSet( ptr );
@@ -476,7 +490,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	T*  AtomicRC<T>::_Exchange (T* ptr)
+	T*  AtomicRC<T>::_Exchange (T* ptr) __NE___
 	{
 		T*	exp = _RemoveLockBit( _ptr.load( std::memory_order_relaxed ));
 		
@@ -504,7 +518,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	T*  AtomicRC<T>::_Lock ()
+	T*  AtomicRC<T>::_Lock () __NE___
 	{
 		T*	exp = _RemoveLockBit( _ptr.load( std::memory_order_relaxed ));
 		for (uint i = 0;
@@ -531,7 +545,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  AtomicRC<T>::_Unlock ()
+	void  AtomicRC<T>::_Unlock () __NE___
 	{
 		T*	exp		= _RemoveLockBit( _ptr.load( std::memory_order_relaxed ));
 		T*	prev	= _ptr.exchange( exp, std::memory_order_relaxed );
@@ -548,14 +562,14 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	forceinline RC<T>  EnableRC<T>::GetRC ()
+	forceinline RC<T>  EnableRC<T>::GetRC () __NE___
 	{
 		return RC<T>{ static_cast<T*>(this) };
 	}
 	
 	template <typename T>
 	template <typename B>
-	forceinline RC<B>  EnableRC<T>::GetRC ()
+	forceinline RC<B>  EnableRC<T>::GetRC () __NE___
 	{
 		return RC<B>{ static_cast<B*>(this) };
 	}
@@ -566,7 +580,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	void  EnableRC<T>::_ReleaseObject ()
+	void  EnableRC<T>::_ReleaseObject () __NE___
 	{
 		// update cache before calling destructor
 		std::atomic_thread_fence( std::memory_order_acquire );
@@ -582,7 +596,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	ND_ forceinline constexpr RC<R>  Cast (const RC<T> &value)
+	ND_ forceinline constexpr RC<R>  Cast (const RC<T> &value) __NE___
 	{
 		return RC<R>{ static_cast<R*>( value.get() )};
 	}
@@ -594,7 +608,7 @@ namespace AE::Base
 */
 #ifdef AE_ENABLE_RTTI
 	template <typename R, typename T>
-	ND_ forceinline constexpr RC<R>  DynCast (const RC<T> &value)
+	ND_ forceinline constexpr RC<R>  DynCast (const RC<T> &value) __NE___
 	{
 		return RC<R>{ dynamic_cast<R*>( value.get() )};
 	}

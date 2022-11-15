@@ -2,9 +2,6 @@
 
 #pragma once
 
-#include "base/Log/Log.h"
-#include "base/CompileTime/TypeTraits.h"
-
 namespace AE::Base
 {
 
@@ -21,15 +18,15 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr THashVal () {}
-		explicit constexpr THashVal (T val) : _value{val} {}
+		constexpr THashVal ()									__NE___	{}
+		explicit constexpr THashVal (T val)						__NE___ : _value{val} {}
 
-		ND_ constexpr bool	operator == (const THashVal &rhs)	const	{ return _value == rhs._value; }
-		ND_ constexpr bool	operator != (const THashVal &rhs)	const	{ return not (*this == rhs); }
-		ND_ constexpr bool	operator >  (const THashVal &rhs)	const	{ return _value > rhs._value; }
-		ND_ constexpr bool  operator <  (const THashVal &rhs)	const	{ return _value < rhs._value; }
+		ND_ constexpr bool	operator == (const THashVal &rhs)	C_NE___	{ return _value == rhs._value; }
+		ND_ constexpr bool	operator != (const THashVal &rhs)	C_NE___	{ return not (*this == rhs); }
+		ND_ constexpr bool	operator >  (const THashVal &rhs)	C_NE___	{ return _value > rhs._value; }
+		ND_ constexpr bool  operator <  (const THashVal &rhs)	C_NE___	{ return _value < rhs._value; }
 
-		constexpr THashVal&  operator << (const THashVal &rhs)
+		constexpr THashVal&  operator << (const THashVal &rhs)	__NE___
 		{
 			const T	mask	= (sizeof(_value)*8 - 1);
 			T		val		= rhs._value;
@@ -41,15 +38,15 @@ namespace AE::Base
 			return *this;
 		}
 
-		ND_ constexpr const THashVal<T>  operator + (const THashVal<T> &rhs) const
+		ND_ constexpr const THashVal<T>  operator + (const THashVal<T> &rhs) C_NE___
 		{
 			return THashVal<T>(*this) << rhs;
 		}
 
-		ND_ explicit constexpr operator T () const	{ return _value; }
+		ND_ explicit constexpr operator T ()					C_NE___	{ return _value; }
 
 		template <typename R>
-		ND_ constexpr R  Cast () const
+		ND_ constexpr R  Cast ()								C_NE___
 		{
 			if constexpr( sizeof(R) >= sizeof(T) )
 				return R(_value);
@@ -83,7 +80,7 @@ namespace AE::Base
 	template <typename T>
 	struct DefaultHasher_CalcHash
 	{
-		ND_ usize  operator () (const T &key) const {
+		ND_ usize  operator () (const T &key) C_NE___ {
 			return usize(key.CalcHash());
 		}
 	};
@@ -91,7 +88,7 @@ namespace AE::Base
 	template <typename T>
 	struct DefaultHasher_GetHash
 	{
-		ND_ usize  operator () (const T &key) const {
+		ND_ usize  operator () (const T &key) C_NE___ {
 			return usize(key.GetHash());
 		}
 	};
@@ -105,7 +102,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<not IsFloatPoint<T>, HashVal>  HashOf (const T &value)
+	ND_ forceinline EnableIf<not IsFloatPoint<T>, HashVal>  HashOf (const T &value) __NE___
 	{
 		return HashVal( std::hash<T>()( value ));
 	}
@@ -115,7 +112,7 @@ namespace AE::Base
 	HashOf (float)
 =================================================
 */
-	ND_ forceinline HashVal  HashOf (const float &value, uint ignoreMantissaBits = (23-10))
+	ND_ forceinline HashVal  HashOf (const float &value, uint ignoreMantissaBits = (23-10)) __NE___
 	{
 		ASSERT( ignoreMantissaBits < 23 );
 		uint	dst;
@@ -129,7 +126,7 @@ namespace AE::Base
 	HashOf (double)
 =================================================
 */
-	ND_ forceinline HashVal  HashOf (const double &value, uint ignoreMantissaBits = (52-10))
+	ND_ forceinline HashVal  HashOf (const double &value, uint ignoreMantissaBits = (52-10)) __NE___
 	{
 		ASSERT( ignoreMantissaBits < 52 );
 		ulong	dst;
@@ -145,9 +142,9 @@ namespace AE::Base
 	use private api to calculate hash of buffer
 =================================================
 */
-	ND_ forceinline HashVal  HashOf (const void *ptr, usize sizeInBytes)
+	ND_ forceinline HashVal  HashOf (const void *ptr, usize sizeInBytes) __NE___
 	{
-		ASSERT( ptr and sizeInBytes );
+		ASSERT( ptr != null and sizeInBytes );
 
 		# if defined(AE_HAS_HASHFN_HashArrayRepresentation)
 			return HashVal{std::_Hash_array_representation( static_cast<const unsigned char*>(ptr), sizeInBytes )};
@@ -177,7 +174,7 @@ namespace std
 	template <>
 	struct hash< AE::Base::HashVal >
 	{
-		ND_ size_t  operator () (const AE::Base::HashVal &value) const
+		ND_ size_t  operator () (const AE::Base::HashVal &value) C_NE___
 		{
 			return size_t(value);
 		}
@@ -186,7 +183,7 @@ namespace std
 	template <typename First, typename Second>
 	struct hash< std::pair<First, Second> >
 	{
-		ND_ size_t  operator () (const std::pair<First, Second> &value) const
+		ND_ size_t  operator () (const std::pair<First, Second> &value) C_NE___
 		{
 			return size_t(AE::Base::HashOf( value.first ) + AE::Base::HashOf( value.second ));
 		}

@@ -41,8 +41,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectComputeCtx (const VRenderTask &task);
-		_VDirectComputeCtx (const VRenderTask &task, VCommandBuffer cmdbuf);
+		explicit _VDirectComputeCtx (const RenderTask &task);
+		_VDirectComputeCtx (const RenderTask &task, VCommandBuffer cmdbuf);
 
 		void  _Dispatch (const uint3 &groupCount);
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
@@ -78,8 +78,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectComputeCtx (const VRenderTask &task);
-		_VIndirectComputeCtx (const VRenderTask &task, VSoftwareCmdBufPtr cmdbuf);
+		explicit _VIndirectComputeCtx (const RenderTask &task);
+		_VIndirectComputeCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf);
 
 		void  _Dispatch (const uint3 &groupCount);
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
@@ -109,38 +109,34 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VComputeContextImpl (const VRenderTask &task) : RawCtx{ task } {}
+		explicit _VComputeContextImpl (const RenderTask &task) : RawCtx{ task } {}
 
 		template <typename RawCmdBufType>
-		_VComputeContextImpl (const VRenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
+		_VComputeContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
 
 		_VComputeContextImpl () = delete;
 		_VComputeContextImpl (const _VComputeContextImpl &) = delete;
-		~_VComputeContextImpl () override {}
+		~_VComputeContextImpl () __NE_OV {}
 
 		using RawCtx::BindDescriptorSet;
 
-		void  BindPipeline (ComputePipelineID ppln) override final;
-		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default) override final;
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) override final;
+		void  BindPipeline (ComputePipelineID ppln)															override;
+		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)	override;
+		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)				override;
 		
 		using IComputeContext::Dispatch;
-		void  Dispatch (const uint3 &groupCount)				override final	{ RawCtx::_Dispatch( groupCount ); }
+		void  Dispatch (const uint3 &groupCount)															override	{ RawCtx::_Dispatch( groupCount ); }
 		
-		void  DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)	{ RawCtx::_DispatchBase( baseGroup, groupCount ); }
-		void  DispatchBase (const uint2 &baseGroup, const uint2 &groupCount)	{ return DispatchBase( uint3{ baseGroup, 0u }, uint3{ groupCount, 1u }); }
+		void  DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)											{ RawCtx::_DispatchBase( baseGroup, groupCount ); }
+		void  DispatchBase (const uint2 &baseGroup, const uint2 &groupCount)											{ return DispatchBase( uint3{ baseGroup, 0u }, uint3{ groupCount, 1u }); }
 		
 		using RawCtx::DispatchIndirect;
 
-		void  DispatchIndirect (BufferID buffer, Bytes offset)	override final;
+		void  DispatchIndirect (BufferID buffer, Bytes offset)												override;
 		
-		void  CommitBarriers ()									override final	{ RawCtx::_CommitBarriers(); }
-		
-		void  DebugMarker (NtStringView text, RGBA8u color)		override final	{ RawCtx::_DebugMarker( text, color ); }
-		void  PushDebugGroup (NtStringView text, RGBA8u color)	override final	{ RawCtx::_PushDebugGroup( text, color ); }
-		void  PopDebugGroup ()									override final	{ RawCtx::_PopDebugGroup(); }
-		
-		ND_ AccumBar  AccumBarriers ()											{ return AccumBar{ *this }; }
+		void  DebugMarker (NtStringView text, RGBA8u color)													override	{ RawCtx::_DebugMarker( text, color ); }
+		void  PushDebugGroup (NtStringView text, RGBA8u color)												override	{ RawCtx::_PushDebugGroup( text, color ); }
+		void  PopDebugGroup ()																				override	{ RawCtx::_PopDebugGroup(); }
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -329,8 +325,8 @@ namespace AE::Graphics::_hidden_
 	{
 		ASSERT( All( groupCount >= 1u ));
 		
-		auto&	cmd = _cmdbuf->CreateCmd< DispatchCmd >();
-		MemCopy( OUT cmd.groupCount, &groupCount, Bytes::SizeOf( cmd.groupCount ));
+		auto&	cmd = _cmdbuf->CreateCmd< DispatchCmd >();	// throw
+		MemCopy( OUT cmd.groupCount, &groupCount, Sizeof( cmd.groupCount ));
 	}
 	
 /*
@@ -342,7 +338,7 @@ namespace AE::Graphics::_hidden_
 	{
 		ASSERT( buffer != Default );
 		
-		auto&	cmd = _cmdbuf->CreateCmd< DispatchIndirectCmd >();
+		auto&	cmd = _cmdbuf->CreateCmd< DispatchIndirectCmd >();	// throw
 		cmd.buffer	= buffer;
 		cmd.offset	= offset;
 	}
@@ -357,9 +353,9 @@ namespace AE::Graphics::_hidden_
 		ASSERT( _GetExtensions().deviceGroup );
 		ASSERT( All( groupCount >= 1u ));
 		
-		auto&	cmd = _cmdbuf->CreateCmd< DispatchBaseCmd >();
-		MemCopy( OUT cmd.baseGroup,  &baseGroup,  Bytes::SizeOf( cmd.baseGroup ));
-		MemCopy( OUT cmd.groupCount, &groupCount, Bytes::SizeOf( cmd.groupCount ));
+		auto&	cmd = _cmdbuf->CreateCmd< DispatchBaseCmd >();	// throw
+		MemCopy( OUT cmd.baseGroup,  &baseGroup,  Sizeof( cmd.baseGroup ));
+		MemCopy( OUT cmd.groupCount, &groupCount, Sizeof( cmd.groupCount ));
 	}
 
 } // AE::Graphics::_hidden_

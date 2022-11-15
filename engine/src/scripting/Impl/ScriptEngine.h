@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-//
-// see http://www.angelcode.com/angelscript/
-//
-// online reference http://www.angelcode.com/angelscript/sdk/docs/manual/index.html
-//
+/*
+	docs:
+	http://www.angelcode.com/angelscript/
+	http://www.angelcode.com/angelscript/sdk/docs/manual/index.html
+*/
 
 #pragma once
 
@@ -12,9 +12,8 @@
 #endif
 
 // AngelScript + Addons //
+#include "base/StdInclude.h"
 #include "angelscript.h"
-#include <atomic>
-#include <mutex>
 
 #include "base/Containers/Ptr.h"
 #include "base/Containers/ArrayView.h"
@@ -95,7 +94,7 @@ namespace AE::Scripting
 		~ScriptModule () override;
 		
 		#if AE_DBG_SCRIPTS
-			void  LogError (StringView fnEntry, StringView section, int line, int column, StringView exceptionMsg) const;
+			ND_ bool  LogError (StringView fnEntry, StringView section, int line, int column, StringView exceptionMsg) const;
 		#endif
 	};
 
@@ -105,7 +104,7 @@ namespace AE::Scripting
 	// Script Engine
 	//
 
-	class ScriptEngine final : public EnableRC<ScriptEngine>
+	class ScriptEngine final : public EnableRC<ScriptEngine>, public Noncopyable
 	{
 	// types
 	public:
@@ -129,11 +128,6 @@ namespace AE::Scripting
 	public:
 		ScriptEngine ();
 		~ScriptEngine ();
-		
-		ScriptEngine (const ScriptEngine &) = delete;
-		ScriptEngine (ScriptEngine &&) = delete;
-		ScriptEngine& operator = (const ScriptEngine &) = delete;
-		ScriptEngine& operator = (ScriptEngine &&) = delete;
 
 		ND_ AngelScript::asIScriptEngine *			Get ()					{ return _engine.operator->(); }
 		ND_ AngelScript::asIScriptEngine const *	Get ()	const			{ return _engine.operator->(); }
@@ -141,8 +135,8 @@ namespace AE::Scripting
 		ND_ AngelScript::asIScriptEngine *			operator -> ()			{ return _engine.operator->(); }
 		ND_ AngelScript::asIScriptEngine const *	operator -> () const	{ return _engine.operator->(); }
 
-		bool  Create ();
-		bool  Create (AngelScript::asIScriptEngine *se);
+		ND_ bool  Create ();
+		ND_ bool  Create (AngelScript::asIScriptEngine *se);
 
 		ND_ ScriptModulePtr  CreateModule (ArrayView<ModuleSource> src);
 		
@@ -150,26 +144,26 @@ namespace AE::Scripting
 		ND_ ScriptFnPtr<Fn>  CreateScript (StringView entry, const ScriptModulePtr &module);
 
 		template <typename T>
-		bool  AddFunction (T func, StringView name);
+		void  AddFunction (T func, StringView name)				__TH___;
 
 		//template <typename T>
 		//void  AddFunctionTemplate (T func, StringView name);
 
 		template <typename T>
-		bool  AddProperty (INOUT T &var, StringView name);
+		void  AddProperty (INOUT T &var, StringView name)		__TH___;
 		
 		template <typename T>
-		bool  AddConstProperty (const T &var, StringView name);
+		void  AddConstProperty (const T &var, StringView name)	__TH___;
 
 		bool  SetNamespace (NtStringView name);
 		bool  SetDefaultNamespace ();
 
 
 	// utils //
-		static bool  _CheckError (int err, StringView asFunc, StringView func, StringView file, int line);
+		ND_ static bool  _CheckError (int err, StringView asFunc, StringView func, const SourceLoc &loc);
 
 	private:
-		bool  _CreateContext (const String &signature, const ScriptModulePtr &module, OUT AngelScript::asIScriptContext* &ctx);
+		ND_ bool  _CreateContext (const String &signature, const ScriptModulePtr &module, OUT AngelScript::asIScriptContext* &ctx);
 
 		static void  _MessageCallback (const AngelScript::asSMessageInfo *msg, void *param);
 	};
@@ -196,17 +190,27 @@ namespace AE::Scripting
 	};
 
 
-#	define AS_CALL( /* expr */... ) \
+	enum class AngelScriptException {};
+
+
+#	define AS_CHECK( /* expr */... ) \
 	{ \
 		int __as_result = ( __VA_ARGS__ ); \
-		::AE::Scripting::ScriptEngine::_CheckError( __as_result, AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, __FILE__, __LINE__ ); \
+		AE::Base::Unused( AE::Scripting::ScriptEngine::_CheckError( __as_result, AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, SourceLoc_Current() )); \
 	}
 	
-#	define AS_CALL_R( /* expr */... ) \
+#	define AS_CHECK_ERR( /* expr */... ) \
 	{ \
 		int __as_result = ( __VA_ARGS__ ); \
-		if ( not ::AE::Scripting::ScriptEngine::_CheckError( __as_result, AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, __FILE__, __LINE__ )) \
+		if_unlikely( not AE::Scripting::ScriptEngine::_CheckError( __as_result, AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, SourceLoc_Current() )) \
 			return Default; \
+	}
+
+#	define AS_CHECK_THROW( /*expr*/... ) \
+	{ \
+		int __as_result = ( __VA_ARGS__ ); \
+		AE_PRIVATE_CHECK_THROW( (AE::Scripting::ScriptEngine::_CheckError( __as_result, AE_TOSTRING( __VA_ARGS__ ), AE_FUNCTION_NAME, SourceLoc_Current() )), \
+								AE::Scripting::AngelScriptException(0) ); \
 	}
 	
 

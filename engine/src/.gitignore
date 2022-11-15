@@ -1,0 +1,7 @@
+*.cpp
+*.mm
+*.inl.h
+*.mm.h
+*.cpp.h
+
+/base/Crypto

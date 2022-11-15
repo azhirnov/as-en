@@ -17,31 +17,31 @@ struct DebugInstanceCounter
 	slong					_magicNumber;
 	T						value;
 
-	DebugInstanceCounter () : _magicNumber( _counter + (1ll << 62)), value{}
+	DebugInstanceCounter () noexcept : _magicNumber( _counter + (1ll << 62)), value{}
 	{
 		TEST( _magicNumber != 0 );
 		++_counter;
 		++_emptyCtorCnt;
 	}
 
-	explicit DebugInstanceCounter (const T &val) : DebugInstanceCounter()
+	explicit DebugInstanceCounter (const T &val) noexcept : DebugInstanceCounter()
 	{
 		value = val;
 	}
 
-	DebugInstanceCounter (const DebugInstanceCounter &other) : _magicNumber{ other._magicNumber }, value{ other.value }
+	DebugInstanceCounter (const DebugInstanceCounter &other) noexcept : _magicNumber{ other._magicNumber }, value{ other.value }
 	{
 		++_counter;
 		++_copyCtorCnt;
 	}
 
-	DebugInstanceCounter (DebugInstanceCounter &&other) : _magicNumber{ other._magicNumber }, value{ RVRef(other.value) }
+	DebugInstanceCounter (DebugInstanceCounter &&other) noexcept : _magicNumber{ other._magicNumber }, value{ RVRef(other.value) }
 	{
 		++_counter;
 		++_moveCtorCnt;
 	}
 
-	~DebugInstanceCounter ()
+	~DebugInstanceCounter () noexcept
 	{
 		TEST( _magicNumber != 0 );	// assert on second dtor call
 		--_counter;
@@ -49,42 +49,42 @@ struct DebugInstanceCounter
 		_magicNumber = 0;
 	}
 	
-	DebugInstanceCounter& operator = (const DebugInstanceCounter &right)
+	DebugInstanceCounter& operator = (const DebugInstanceCounter &right) noexcept
 	{
 		_magicNumber = right._magicNumber;
 		value = right.value;
 		return *this;
 	}
 
-	DebugInstanceCounter& operator = (DebugInstanceCounter &&right)
+	DebugInstanceCounter& operator = (DebugInstanceCounter &&right) noexcept
 	{
 		_magicNumber = right._magicNumber;
 		value = RVRef( right.value );
 		return *this;
 	}
 		
-	bool operator == (const DebugInstanceCounter &right) const
+	bool operator == (const DebugInstanceCounter &right) const noexcept
 	{
 		return value == right.value;
 	}
 
-	bool operator != (const DebugInstanceCounter &right) const
+	bool operator != (const DebugInstanceCounter &right) const noexcept
 	{
 		return value != right.value;
 	}
 
-	bool operator < (const DebugInstanceCounter &right) const
+	bool operator < (const DebugInstanceCounter &right) const noexcept
 	{
 		return value < right.value;
 	}
 
-	bool operator > (const DebugInstanceCounter &right) const
+	bool operator > (const DebugInstanceCounter &right) const noexcept
 	{
 		return value > right.value;
 	}
 
 
-	static bool CheckStatistic ()
+	static bool CheckStatistic () noexcept
 	{
 		String	str;
 		str << "\nObjectID:    " << ToString( UID )
@@ -98,7 +98,7 @@ struct DebugInstanceCounter
 		return _counter == 0;
 	}
 
-	static void ClearStatistic ()
+	static void ClearStatistic () noexcept
 	{
 		_counter		= 0;
 		_emptyCtorCnt	= 0;
@@ -115,7 +115,7 @@ namespace std
 	template <typename T, size_t UID>
 	struct hash< DebugInstanceCounter<T,UID> >
 	{
-		ND_ size_t  operator () (const DebugInstanceCounter<T,UID> &value) const {
+		ND_ size_t  operator () (const DebugInstanceCounter<T,UID> &value) const noexcept {
 			return hash<T>{}( value.value );
 		}
 	};

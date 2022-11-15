@@ -2,16 +2,18 @@
 
 #pragma once
 
-#include "platform/Public/Common.h"
+#include "base/StdInclude.h"
 
 #ifdef AE_PLATFORM_ANDROID
 
+# include <android/native_window.h>
+
+# include "platform/Public/Common.h"
 # include "platform/Private/WindowBase.h"
 # include "platform/Android/Java.h"
 # include "platform/Android/InputActionsAndroid.h"
 # include "platform/IO/WindowSurface.h"
 
-# include <android/native_window.h>
 
 namespace AE::App
 {

@@ -8,7 +8,7 @@ namespace AE::GeometryTools
 {
 	using namespace AE::Base;
 
-	enum class ECubeFace
+	enum class ECubeFace : uint
 	{
 		XPos	= 0,
 		XNeg	= 1,

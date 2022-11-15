@@ -28,28 +28,28 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VBakedCommands ()
+		VBakedCommands ()						__NE___
 		{}
 
-		explicit VBakedCommands (void* root) :
+		explicit VBakedCommands (void* root)	__NE___ :
 			_root{ root }
 		{}
 
-		VBakedCommands (VBakedCommands &&other) :
+		VBakedCommands (VBakedCommands &&other)	__NE___ :
 			_root{ other._root }
 		{
 			other._root = null;
 		}
 
-		void  Destroy ()
+		void  Destroy ()						__NE___
 		{
 			_hidden_::SoftwareCmdBufBase::Deallocate( _root );
 			_root = null;
 		}
 		
-		ND_ bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) const;
+		ND_ bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) C_NE___;
 
-		ND_ bool  IsValid () const
+		ND_ bool  IsValid ()					C_NE___
 		{
 			return _root != null;
 		}

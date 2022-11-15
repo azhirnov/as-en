@@ -20,28 +20,29 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		constexpr MultiSamples () {}
+		constexpr MultiSamples () __NE___ {}
 
-		explicit MultiSamples (uint samples) : _value( CheckCast<ubyte>(IntLog2( samples )))
+		template <typename T, typename = EnableIf<IsUnsignedInteger<T>> >
+		explicit MultiSamples (T samples) __NE___ : _value( CheckCast<ubyte>(IntLog2( samples )))
 		{
 			ASSERT( IsPowerOfTwo( samples ));
 		}
 
-		ND_ constexpr uint	Get ()								const		{ return 1u << _value; }
-		ND_ constexpr uint	GetPowerOf2 ()						const		{ return _value; }
+		ND_ constexpr uint	Get ()									C_NE___	{ return 1u << _value; }
+		ND_ constexpr uint	GetPowerOf2 ()							C_NE___	{ return _value; }
 
-		ND_ constexpr bool	IsEnabled ()						const		{ return _value > 0; }
+		ND_ constexpr bool	IsEnabled ()							C_NE___	{ return _value > 0; }
 
-		ND_ constexpr bool	operator == (const MultiSamples &rhs) const		{ return _value == rhs._value; }
-		ND_ constexpr bool	operator != (const MultiSamples &rhs) const		{ return _value != rhs._value; }
-		ND_ constexpr bool	operator >  (const MultiSamples &rhs) const		{ return _value >  rhs._value; }
-		ND_ constexpr bool	operator <  (const MultiSamples &rhs) const		{ return _value <  rhs._value; }
-		ND_ constexpr bool	operator >= (const MultiSamples &rhs) const		{ return _value >= rhs._value; }
-		ND_ constexpr bool	operator <= (const MultiSamples &rhs) const		{ return _value <= rhs._value; }
+		ND_ constexpr bool	operator == (const MultiSamples &rhs)	C_NE___	{ return _value == rhs._value; }
+		ND_ constexpr bool	operator != (const MultiSamples &rhs)	C_NE___	{ return _value != rhs._value; }
+		ND_ constexpr bool	operator >  (const MultiSamples &rhs)	C_NE___	{ return _value >  rhs._value; }
+		ND_ constexpr bool	operator <  (const MultiSamples &rhs)	C_NE___	{ return _value <  rhs._value; }
+		ND_ constexpr bool	operator >= (const MultiSamples &rhs)	C_NE___	{ return _value >= rhs._value; }
+		ND_ constexpr bool	operator <= (const MultiSamples &rhs)	C_NE___	{ return _value <= rhs._value; }
 	};
 	
 
-	ND_ inline MultiSamples operator "" _samples (unsigned long long value)	{ return MultiSamples( uint(value) ); }
+	ND_ inline MultiSamples operator "" _samples (unsigned long long value) __NE___	{ return MultiSamples( uint(value) ); }
 
 
 } // AE::Graphics

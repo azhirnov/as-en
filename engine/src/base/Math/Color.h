@@ -22,7 +22,7 @@ namespace AE::Math
 		T	r, g, b, a;
 
 	// methods
-		constexpr RGBAColor () : r{T{0}}, g{T{0}}, b{T{0}}, a{T{0}}
+		constexpr RGBAColor () __NE___ : r{T{0}}, g{T{0}}, b{T{0}}, a{T{0}}
 		{
 			// check if supported cast from Color to array
 			STATIC_ASSERT( offsetof(Self, r) + sizeof(T) == offsetof(Self, g) );
@@ -31,19 +31,19 @@ namespace AE::Math
 			STATIC_ASSERT( sizeof(T)*(size()-1) == (offsetof(Self, a) - offsetof(Self, r)) );
 		}
 
-		constexpr RGBAColor (T r, T g, T b, T a) : r{r}, g{g}, b{b}, a{a}
+		constexpr RGBAColor (T r, T g, T b, T a) __NE___ : r{r}, g{g}, b{b}, a{a}
 		{}
 
-		constexpr explicit RGBAColor (T val) : r{val}, g{val}, b{val}, a{val}
+		constexpr explicit RGBAColor (T val) __NE___ : r{val}, g{val}, b{val}, a{val}
 		{}
 
 		template <typename B>
-		constexpr explicit RGBAColor (const RGBAColor<B> &other);
+		constexpr explicit RGBAColor (const RGBAColor<B> &other) __NE___;
 
-		explicit RGBAColor (struct HSVColor const& hsv, T alpha = MaxValue());
+		explicit RGBAColor (struct HSVColor const& hsv, T alpha = MaxValue()) __NE___;
 
 
-		ND_ constexpr bool operator == (const RGBAColor<T> &rhs) const
+		ND_ constexpr bool operator == (const RGBAColor<T> &rhs) C_NE___
 		{
 			const T  eps = Epsilon();
 			return	Equals( r, rhs.r, eps ) &
@@ -52,13 +52,13 @@ namespace AE::Math
 					Equals( a, rhs.a, eps );
 		}
 		
-		ND_ constexpr bool operator != (const RGBAColor<T> &rhs) const	{ return not (*this == rhs); }
+		ND_ constexpr bool operator != (const RGBAColor<T> &rhs) C_NE___ { return not (*this == rhs); }
 		
-		ND_ GLM_CONSTEXPR operator PackedVec<T,4> () const	{ return {r,g,b,a}; }
-		ND_ GLM_CONSTEXPR operator Vec<T,4>       () const	{ return {r,g,b,a}; }
+		ND_ GLM_CONSTEXPR operator PackedVec<T,4> () C_NE___	{ return {r,g,b,a}; }
+		ND_ GLM_CONSTEXPR operator Vec<T,4>       () C_NE___	{ return {r,g,b,a}; }
 		
 
-		ND_ static constexpr T  MaxValue ()
+		ND_ static constexpr T  MaxValue ()			__NE___
 		{
 			if constexpr( IsFloatPoint<T> )
 				return T(1.0);
@@ -66,7 +66,7 @@ namespace AE::Math
 				return Base::MaxValue<T>();
 		}
 
-		ND_ static constexpr T  Epsilon ()
+		ND_ static constexpr T  Epsilon ()			__NE___
 		{
 			if constexpr( IsFloatPoint<T> )
 				return T(0.001);
@@ -74,17 +74,17 @@ namespace AE::Math
 				return T(0);
 		}
 
-		ND_ static constexpr usize		size ()			{ return 4; }
+		ND_ static constexpr usize		size ()		__NE___	{ return 4; }
 
-		ND_ T *			data ()							{ return std::addressof(r); }
-		ND_ T const *	data ()					const	{ return std::addressof(r); }
+		ND_ T *			data ()						__NE___	{ return std::addressof(r); }
+		ND_ T const *	data ()						C_NE___	{ return std::addressof(r); }
 
-		ND_ T &			operator [] (usize i)			{ ASSERT( i < size() );  return std::addressof(r)[i]; }
-		ND_ T const&	operator [] (usize i)	const	{ ASSERT( i < size() );  return std::addressof(r)[i]; }
+		ND_ T &			operator [] (usize i)		__NE___	{ ASSERT( i < size() );  return std::addressof(r)[i]; }
+		ND_ T const&	operator [] (usize i)		C_NE___	{ ASSERT( i < size() );  return std::addressof(r)[i]; }
 
-		ND_ constexpr Self	BGRA ()				const	{ return Self( b, g, r, a ); }
-		ND_ constexpr Self	ABGR ()				const	{ return Self( a, b, g, r ); }
-		ND_ constexpr Self	ARGB ()				const	{ return Self( a, r, g, b ); }
+		ND_ constexpr Self	BGRA ()					C_NE___	{ return Self( b, g, r, a ); }
+		ND_ constexpr Self	ABGR ()					C_NE___	{ return Self( a, b, g, r ); }
+		ND_ constexpr Self	ARGB ()					C_NE___	{ return Self( a, r, g, b ); }
 	};
 	
 	using RGBA32f	= RGBAColor< float >;
@@ -105,10 +105,10 @@ namespace AE::Math
 		uint	stencil;
 
 	// mathods
-		constexpr DepthStencil () : depth{0.0f}, stencil{0} {}
-		constexpr explicit DepthStencil (float depth, uint stencil = 0) : depth{depth}, stencil{stencil} {}
+		constexpr DepthStencil () __NE___ : depth{0.0f}, stencil{0} {}
+		constexpr explicit DepthStencil (float depth, uint stencil = 0) __NE___ : depth{depth}, stencil{stencil} {}
 
-		ND_ bool operator == (const DepthStencil &rhs) const
+		ND_ bool operator == (const DepthStencil &rhs) C_NE___
 		{
 			return Equals( depth, rhs.depth ) & (stencil == rhs.stencil);
 		}
@@ -128,11 +128,11 @@ namespace AE::Math
 		float	v;	// value, brightness
 
 	// methods
-		constexpr HSVColor () : h{0.0f}, s{0.0f}, v{0.0f} {}
+		constexpr HSVColor () __NE___ : h{0.0f}, s{0.0f}, v{0.0f} {}
 		
-		explicit constexpr HSVColor (float h, float s = 1.0f, float v = 1.0f) : h{h}, s{s}, v{v} {}
+		explicit constexpr HSVColor (float h, float s = 1.0f, float v = 1.0f) __NE___ : h{h}, s{s}, v{v} {}
 
-		explicit HSVColor (const RGBA32f &c)
+		explicit HSVColor (const RGBA32f &c) __NE___
 		{
 			// from http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
 			float4 K = float4( 0.0f, -1.0f / 3.0f, 2.0f / 3.0f, -1.0f );
@@ -145,15 +145,15 @@ namespace AE::Math
 			v = q.x;
 		}
 
-		ND_ constexpr bool  operator == (const HSVColor &rhs) const
+		ND_ constexpr bool  operator == (const HSVColor &rhs) C_NE___
 		{
 			const float eps = RGBA32f::Epsilon();
 
 			return Equals( h, rhs.h, eps ) & Equals( s, rhs.s, eps ) & Equals( v, rhs.v, eps );
 		}
 
-		ND_ float *			data ()			{ return std::addressof(h); }
-		ND_ float const *	data ()	const	{ return std::addressof(h); }
+		ND_ float *			data ()		__NE___	{ return std::addressof(h); }
+		ND_ float const *	data ()		C_NE___	{ return std::addressof(h); }
 	};
 	
 
@@ -163,7 +163,7 @@ namespace AE::Math
 =================================================
 */
 	template <>
-	inline RGBAColor<float>::RGBAColor (const HSVColor &c, float alpha)
+	inline RGBAColor<float>::RGBAColor (const HSVColor &c, float alpha) __NE___
 	{
 		// from http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
 		float4 K = float4(1.0f, 2.0f / 3.0f, 1.0f / 3.0f, 3.0f);
@@ -175,18 +175,18 @@ namespace AE::Math
 	}
 
 	template <> template <>
-	inline constexpr RGBAColor<float>::RGBAColor (const RGBAColor<ubyte> &other) :
+	inline constexpr RGBAColor<float>::RGBAColor (const RGBAColor<ubyte> &other) __NE___ :
 		r{ float(other.r) / 255.0f }, g{ float(other.g) / 255.0f },
 		b{ float(other.b) / 255.0f }, a{ float(other.a) / 255.0f }
 	{}
 	
 	template <> template <>
-	inline constexpr RGBAColor<float>::RGBAColor (const RGBAColor<uint> &other) :
+	inline constexpr RGBAColor<float>::RGBAColor (const RGBAColor<uint> &other) __NE___ :
 		r{ float(other.r) / 0xFFFFFFFFu }, g{ float(other.g) / 0xFFFFFFFFu },
 		b{ float(other.b) / 0xFFFFFFFFu }, a{ float(other.a) / 0xFFFFFFFFu }
 	{}
 
-	ND_ inline constexpr RGBAColor<float>  operator * (const RGBAColor<float> &lhs, const RGBAColor<float> &rhs)
+	ND_ inline constexpr RGBAColor<float>  operator * (const RGBAColor<float> &lhs, const RGBAColor<float> &rhs) __NE___
 	{
 		RGBAColor<float>	res;
 		res.r = lhs.r * rhs.r;
@@ -202,12 +202,12 @@ namespace AE::Math
 =================================================
 */
 	template <> template <>
-	inline constexpr RGBAColor<int>::RGBAColor (const RGBAColor<uint> &other) :
+	inline constexpr RGBAColor<int>::RGBAColor (const RGBAColor<uint> &other) __NE___ :
 		r{int(other.r)}, g{int(other.g)}, b{int(other.b)}, a{int(other.a)}
 	{}
 
 	template <> template <>
-	inline constexpr RGBAColor<int>::RGBAColor (const RGBAColor<ubyte> &other) :
+	inline constexpr RGBAColor<int>::RGBAColor (const RGBAColor<ubyte> &other) __NE___ :
 		r{int(other.r)}, g{int(other.g)}, b{int(other.b)}, a{int(other.a)}
 	{}
 	
@@ -217,12 +217,12 @@ namespace AE::Math
 =================================================
 */
 	template <> template <>
-	inline constexpr RGBAColor<uint>::RGBAColor (const RGBAColor<int> &other) :
+	inline constexpr RGBAColor<uint>::RGBAColor (const RGBAColor<int> &other) __NE___ :
 		r{uint(other.r)}, g{uint(other.g)}, b{uint(other.b)}, a{uint(other.a)}
 	{}
 
 	template <> template <>
-	inline constexpr RGBAColor<uint>::RGBAColor (const RGBAColor<ubyte> &other) :
+	inline constexpr RGBAColor<uint>::RGBAColor (const RGBAColor<ubyte> &other) __NE___ :
 		r{uint(other.r)}, g{uint(other.g)}, b{uint(other.b)}, a{uint(other.a)}
 	{}
 	
@@ -232,22 +232,22 @@ namespace AE::Math
 =================================================
 */
 	template <> template <>
-	inline constexpr RGBAColor<ubyte>::RGBAColor (const RGBAColor<int> &other) :
+	inline constexpr RGBAColor<ubyte>::RGBAColor (const RGBAColor<int> &other) __NE___ :
 		r{ubyte(other.r)}, g{ubyte(other.g)}, b{ubyte(other.b)}, a{ubyte(other.a)}
 	{}
 
 	template <> template <>
-	inline constexpr RGBAColor<ubyte>::RGBAColor (const RGBAColor<uint> &other) :
+	inline constexpr RGBAColor<ubyte>::RGBAColor (const RGBAColor<uint> &other) __NE___ :
 		r{ubyte(other.r)}, g{ubyte(other.g)}, b{ubyte(other.b)}, a{ubyte(other.a)}
 	{}
 	
 	template <> template <>
-	inline constexpr RGBAColor<ubyte>::RGBAColor (const RGBAColor<float> &other) :
+	inline constexpr RGBAColor<ubyte>::RGBAColor (const RGBAColor<float> &other) __NE___ :
 		r{ubyte(other.r * 255.0f + 0.5f)},  g{ubyte(other.g * 255.0f + 0.5f)},
 		b{ubyte(other.b * 255.0f + 0.5f)},  a{ubyte(other.a * 255.0f + 0.5f)}
 	{}
 
-	ND_ inline constexpr RGBA8u  AdjustContrast (const RGBA8u &col, float factor)
+	ND_ inline constexpr RGBA8u  AdjustContrast (const RGBA8u &col, float factor) __NE___
 	{
 		constexpr float	mid = 127.0f;
 		RGBA8u			result;
@@ -258,13 +258,13 @@ namespace AE::Math
 		return result;
 	}
 	
-	ND_ inline constexpr float  Luminance (const RGBA8u &col)
+	ND_ inline constexpr float  Luminance (const RGBA8u &col) __NE___
 	{
 		constexpr float  scale = 1.0f / (255.0f * 255.0f * 255.0f);
 		return (float(col.r) * 0.2126f + float(col.g) * float(col.b) * 0.7152f + 0.0722f) * scale;
 	}
 
-	ND_ inline constexpr RGBA8u  AdjustSaturation (const RGBA8u &col, float factor)
+	ND_ inline constexpr RGBA8u  AdjustSaturation (const RGBA8u &col, float factor) __NE___
 	{
 		RGBA8u			result;
 		const float		lum		= Luminance( col );
@@ -275,7 +275,7 @@ namespace AE::Math
 		return result;
 	}
 
-	ND_ inline RGBA8u  Lerp (const RGBA8u &x, const RGBA8u &y, float factor)
+	ND_ inline RGBA8u  Lerp (const RGBA8u &x, const RGBA8u &y, float factor) __NE___
 	{
 		float4 v = Lerp( float4{float(x.r), float(x.g), float(x.b), float(x.a)},
 						 float4{float(y.r), float(y.g), float(y.b), float(y.a)}, factor );
@@ -290,19 +290,19 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline constexpr RGBAColor<T>  Min (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs)
+	ND_ inline constexpr RGBAColor<T>  Min (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs) __NE___
 	{
 		return RGBAColor<T>{ Min(lhs.r, rhs.r), Min(lhs.g, rhs.g), Min(lhs.b, rhs.b), Min(lhs.a, rhs.a) };
 	}
 
 	template <typename T>
-	ND_ inline constexpr RGBAColor<T>  Max (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs)
+	ND_ inline constexpr RGBAColor<T>  Max (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs) __NE___
 	{
 		return RGBAColor<T>{ Max(lhs.r, rhs.r), Max(lhs.g, rhs.g), Max(lhs.b, rhs.b), Max(lhs.a, rhs.a) };
 	}
 	
 	template <typename T>
-	ND_ inline constexpr RGBAColor<T>  Clamp (const RGBAColor<T> &value, const RGBAColor<T> &minVal, const RGBAColor<T> &maxVal)
+	ND_ inline constexpr RGBAColor<T>  Clamp (const RGBAColor<T> &value, const RGBAColor<T> &minVal, const RGBAColor<T> &maxVal) __NE___
 	{
 		return Min( maxVal, Max( value, minVal ));
 	}
@@ -313,7 +313,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline bool4  Equals (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs, const T &err = Epsilon<T>())
+	ND_ inline bool4  Equals (const RGBAColor<T> &lhs, const RGBAColor<T> &rhs, const T &err = Epsilon<T>()) __NE___
 	{
 		return bool4{ Equals( lhs.r, rhs.r, err ), Equals( lhs.g, rhs.g, err ), Equals( lhs.b, rhs.b, err ), Equals( lhs.a, rhs.a, err ) };
 	}
@@ -498,7 +498,7 @@ namespace std
 	template <typename T>
 	struct hash< AE::Math::RGBAColor<T> >
 	{
-		ND_ size_t  operator () (const AE::Math::RGBAColor<T> &value) const
+		ND_ size_t  operator () (const AE::Math::RGBAColor<T> &value) C_NE___
 		{
 			return	size_t(	AE::Base::HashOf( value.r ) + AE::Base::HashOf( value.g ) +
 							AE::Base::HashOf( value.b ) + AE::Base::HashOf( value.a ));
@@ -509,7 +509,7 @@ namespace std
 	template <>
 	struct hash< AE::Math::DepthStencil >
 	{
-		ND_ size_t  operator () (const AE::Math::DepthStencil &value) const
+		ND_ size_t  operator () (const AE::Math::DepthStencil &value) C_NE___
 		{
 			return size_t(AE::Base::HashOf( value.depth ) + AE::Base::HashOf( value.stencil ));
 		}

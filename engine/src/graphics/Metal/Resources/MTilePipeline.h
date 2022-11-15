@@ -24,6 +24,7 @@ namespace AE::Graphics
 			MPipelineLayoutID									layoutId;
 			MPipelinePack::ShaderModuleRef						shader;
 			PipelineCacheID										cacheId;
+			MPipelinePack::Allocator_t *						allocator		= null;
 		};
 
 
@@ -48,8 +49,8 @@ namespace AE::Graphics
 			void  Destroy (MResourceManager &);
 
 		ND_ MetalRenderPipeline		Handle ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
-		ND_ VPipelineLayoutID		LayoutID ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ uint2					LocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _localSize; }
+		ND_ MPipelineLayoutID		LayoutID ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ uint2					LocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return uint2{_localSize}; }
 		ND_ EPipelineDynamicState	DynamicState ()		const	{ return Default; }
 		
 		DEBUG_ONLY( ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })

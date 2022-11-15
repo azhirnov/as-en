@@ -23,7 +23,7 @@ namespace AE::Threading
 	template <typename ValueType,
 			  typename IndexType,
 			  usize Count,
-			  typename AllocatorType = UntypedAlignedAllocator
+			  typename AllocatorType = UntypedAllocator
 			 >
 	struct LfStaticIndexedPool final
 	{
@@ -74,40 +74,39 @@ namespace AE::Threading
 
 	// methods
 	public:
-		LfStaticIndexedPool (const Self &) = delete;
-		LfStaticIndexedPool (Self &&) = default;
+		LfStaticIndexedPool (const Self &)	= delete;
+		LfStaticIndexedPool (Self &&)		= default;
 
-		Self& operator = (const Self &) = delete;
-		Self& operator = (Self &&) = default;
+		Self& operator = (const Self &)		= delete;
+		Self& operator = (Self &&)			= default;
 
-		explicit LfStaticIndexedPool (const Allocator_t &alloc = Allocator_t{});
-		~LfStaticIndexedPool ()		{ Release(); }
+		explicit LfStaticIndexedPool (const Allocator_t &alloc = Allocator_t{}) __NE___;
+		~LfStaticIndexedPool ()							__NE___	{ Release(); }
 
-			void  Release ();
+			void  Release ()							__NE___;
 
 			template <typename FN>
-			void  UnassignAll (FN && fn);
+			void  UnassignAll (FN && fn)				__NE___;
 		
 			template <typename FN>
-			void  ForEach (FN && fn);
+			void  ForEach (FN && fn)					__NE___;
 
-		ND_ auto  Assign ()										{ Index_t idx;  return Assign( OUT idx ) ? idx : UMax; }
-		ND_ bool  Assign (OUT Index_t &outIndex);
-			void  Unassign (Index_t index);
-		ND_ bool  IsAssigned (Index_t index) const;
+		ND_ auto  Assign ()								__NE___	{ Index_t idx;  return Assign( OUT idx ) ? idx : UMax; }
+		ND_ bool  Assign (OUT Index_t &outIndex)		__NE___;
+			void  Unassign (Index_t index)				__NE___;
+		ND_ bool  IsAssigned (Index_t index)			C_NE___;
 
-		ND_ Value_t&		operator [] (Index_t index);
-		ND_ Value_t const&	operator [] (Index_t index) const	{ return const_cast<Self*>(this)->operator[]( index ); }
+		ND_ Value_t&		operator [] (Index_t index)	__NE___;
+		ND_ Value_t const&	operator [] (Index_t index) C_NE___	{ return const_cast<Self*>(this)->operator[]( index ); }
 		
-		ND_ Value_t*		At (Index_t index);
-		ND_ Value_t const*	At (Index_t index)			const	{ return const_cast<Self*>(this)->At( index ); }
+		ND_ Value_t*		At (Index_t index)			__NE___;
+		ND_ Value_t const*	At (Index_t index)			C_NE___	{ return const_cast<Self*>(this)->At( index ); }
 
-		ND_ usize			size ()						const;
-		ND_ bool			empty ()					const	{ return size() == 0; }
+		ND_ usize			size ()						C_NE___;
+		ND_ bool			empty ()					C_NE___	{ return size() == 0; }
 
-		ND_ static constexpr usize  capacity ()					{ return Count; }
-		ND_ static constexpr Bytes  DynamicSize ()				{ return SizeOf<ChunkArray_t>; }
+		ND_ static constexpr usize  capacity ()			__NE___	{ return Count; }
+		ND_ static constexpr Bytes  DynamicSize ()		__NE___	{ return SizeOf<ChunkArray_t>; }
 	};
-
 
 } // AE::Threading

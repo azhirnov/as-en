@@ -51,8 +51,8 @@ namespace AE::Graphics
 		VDefaultDescriptorAllocator () {}
 		~VDefaultDescriptorAllocator () override;
 
-		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds) override;
-		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds) override;
+		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)		__NE_OV;
+		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)	__NE_OV;
 
 	private:
 		static bool  _CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool);

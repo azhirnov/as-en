@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base/Algorithms/Cast.h"
+#include "base/StdInclude.h"
 #include <cstdlib>
 
 #ifdef __has_include
@@ -18,6 +18,8 @@
 #	pragma intrinsic( __popcnt64 )
 # endif
 #endif
+
+#include "base/Algorithms/Cast.h"
 	
 namespace AE::Math
 {

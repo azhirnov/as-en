@@ -66,7 +66,7 @@ namespace AE::App
 	private:
 		explicit WindowWinAPI (ApplicationWinAPI &app, Unique<IWndListener>, IInputActions*);
 
-		ND_ ApplicationWinAPI&  _GetApp ();
+		ND_ ApplicationWinAPI&  _GetApp () const;
 
 		ND_ bool  _Create (const WindowDesc &desc);
 			void  _Destroy ();

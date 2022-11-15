@@ -140,3 +140,15 @@
 #endif // AE_CI_BUILD
 
 
+#if 1
+#	define AE_DEFAULT_COPYABLE_NE( _name_ ) \
+		_name_ ()							__NE___ = default; \
+		\
+		_name_ (const _name_ &)				__NE___	= default; \
+		_name_ (_name_ &&)					__NE___	= default; \
+		\
+		_name_& operator = (const _name_ &)	__NE___	= default; \
+		_name_& operator = (_name_ &&)		__NE___	= default; \
+
+		
+#endif

@@ -42,24 +42,24 @@ namespace AE::Networking
 
 	// methods
 	public:
-		IpAddress () {}
-		IpAddress (uint addr, ushort port) : _address{addr}, _port{port} {}
-		~IpAddress () {}
+		IpAddress ()						__NE___	{}
+		IpAddress (uint addr, ushort port)	__NE___ : _address{addr}, _port{port} {}
+		~IpAddress ()						__NE___	{}
 
-		ND_ bool	IsValid ()	const	{ return (_address != 0) & (_port != 0); }
-		ND_ uint	Address ()	const	{ return _address; }
-		ND_ ushort	Port ()		const	{ return _port; }
+		ND_ bool	IsValid ()				C_NE___	{ return (_address != 0) & (_port != 0); }
+		ND_ uint	Address ()				C_NE___	{ return _address; }
+		ND_ ushort	Port ()					C_NE___	{ return _port; }
 
-		ND_ String	ToString ()	const;
+		ND_ String	ToString ()				C______;
 
-		ND_ static IpAddress  FromServiceUDP (NtStringView hostName, NtStringView serviceName);
-		ND_ static IpAddress  FromServiceTCP (NtStringView hostName, NtStringView serviceName);
+		ND_ static IpAddress  FromServiceUDP (NtStringView hostName, NtStringView serviceName)	__NE___;
+		ND_ static IpAddress  FromServiceTCP (NtStringView hostName, NtStringView serviceName)	__NE___;
 
-		ND_ static IpAddress  FromHostPortUDP (NtStringView hostName, ushort port);
-		ND_ static IpAddress  FromHostPortTCP (NtStringView hostName, ushort port);
+		ND_ static IpAddress  FromHostPortUDP (NtStringView hostName, ushort port)				__NE___;
+		ND_ static IpAddress  FromHostPortTCP (NtStringView hostName, ushort port)				__NE___;
 
-		ND_ static IpAddress  FromLocalhostUDP (ushort port);
-		ND_ static IpAddress  FromLocalhostTCP (ushort port);
+		ND_ static IpAddress  FromLocalhostUDP (ushort port)									__NE___;
+		ND_ static IpAddress  FromLocalhostTCP (ushort port)									__NE___;
 	};
 
 

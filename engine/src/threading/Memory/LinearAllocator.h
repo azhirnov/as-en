@@ -33,12 +33,12 @@ namespace AE::Base
 
 	// methods
 	public:
-		LinearAllocator () {}
+		LinearAllocator () __NE___ {}
 		
-		explicit LinearAllocator (const Allocator_t &alloc) : _base{ alloc }
+		explicit LinearAllocator (const Allocator_t &alloc) __NE___ : _base{ alloc }
 		{}
 		
-		LinearAllocator (Self &&other)
+		LinearAllocator (Self &&other) __NE___
 		{
 			SAFE_EXLOCK( _guard, other._guard );
 			_base = RVRef(other._base);
@@ -49,7 +49,7 @@ namespace AE::Base
 		Self& operator = (const Self &) = delete;
 
 
-		Self& operator = (Self &&rhs)
+		Self& operator = (Self &&rhs) __NE___
 		{
 			SAFE_EXLOCK( _guard, other._guard );
 			_base = RVRef(other._base);
@@ -57,41 +57,41 @@ namespace AE::Base
 		}
 
 
-		~LinearAllocator ()
+		~LinearAllocator () __NE___
 		{
 			Release();
 		}
 
 
-		void  SetBlockSize (Bytes size)
+		void  SetBlockSize (Bytes size) __NE___
 		{
 			EXLOCK( _guard );
 			return _base.SetBlockSize( size );
 		}
 
 
-		ND_ AE_ALLOCATOR void*  Alloc (const Bytes size, const Bytes align)
+		ND_ AE_ALLOCATOR void*  Alloc (const SizeAndAlign sizeAndAlign) __NE___
 		{
 			EXLOCK( _guard );
-			return _base.Alloc( size, align );
+			return _base.Alloc( sizeAndAlign );
 		}
 
 
 		template <typename T>
-		ND_ AE_ALLOCATOR T*  Alloc (usize count = 1)
+		ND_ AE_ALLOCATOR T*  Alloc (usize count = 1) __NE___
 		{
 			EXLOCK( _guard );
 			return _base.Alloc<T>( count );
 		}
 
 
-		void  Discard ()
+		void  Discard () __NE___
 		{
 			EXLOCK( _guard );
 			return _base.Discard();
 		}
 
-		void  Release ()
+		void  Release () __NE___
 		{
 			EXLOCK( _guard );
 			return _base.Release();

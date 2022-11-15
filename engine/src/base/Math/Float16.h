@@ -59,35 +59,35 @@ namespace AE::Math
 		constexpr explicit Float16 (EValue val) : _valueU{ushort(val)} {}
 
 	public:
-		constexpr Float16 () : _value{0} {}
+		constexpr Float16 ()							__NE___	: _value{0} {}
 
-		constexpr Float16 (const Self &other) : _value{ other._value } {}
-		explicit Float16 (const float &f) : _value{ glm::detail::toFloat16( f )} {}
+		constexpr Float16 (const Self &other)			__NE___	: _value{ other._value } {}
+		explicit Float16 (const float &f)				__NE___	: _value{ glm::detail::toFloat16( f )} {}
 
-			constexpr Self&  operator = (Self rhs)				{ _value = rhs._value;  return *this; }
+			constexpr Self&  operator = (Self rhs)		__NE___	{ _value = rhs._value;  return *this; }
 
-		ND_ constexpr bool  operator == (Self rhs)		const	{ return _value == rhs._value; }
+		ND_ constexpr bool  operator == (Self rhs)		C_NE___	{ return _value == rhs._value; }
 
 		// set/get
-		ND_ constexpr ushort	GetU ()					const	{ return _valueU; }
+		ND_ constexpr ushort	GetU ()					C_NE___	{ return _valueU; }
 
-		ND_ float				Get ()					const	{ return glm::detail::toFloat32( _value ); }
-			Self&				Set (const float &f)			{ _value = glm::detail::toFloat16( f );  return *this; }
+		ND_ float				Get ()					C_NE___	{ return glm::detail::toFloat32( _value ); }
+			Self&				Set (const float &f)	__NE___	{ _value = glm::detail::toFloat16( f );  return *this; }
 
-		ND_	constexpr float		GetFast ()				const;
-			constexpr Self&		SetFast (float f);
+		ND_	constexpr float		GetFast ()				C_NE___;
+			constexpr Self&		SetFast (float f)		__NE___;
 
-		ND_ explicit operator float ()	const		{ return Get(); }
+		ND_ explicit operator float ()					C_NE___	{ return Get(); }
 
 	  #ifdef AE_SIMD_NEON
-		ND_ explicit operator float16_t () const	{ return BitCast<float16_t>( _valueU ); }
+		ND_ explicit operator float16_t ()				C_NE___	{ return BitCast<float16_t>( _valueU ); }
 	  #endif
 		
-		ND_ static constexpr Self  Min ()		{ return Self{EValue(0x0001)}; }	// 5.9e-8
-		ND_ static constexpr Self  Max ()		{ return Self{EValue(0x7BFF)}; }	// 65504
-		ND_ static constexpr Self  Inf ()		{ return Self{EValue(0x7C00)}; }
-		ND_ static constexpr Self  NegInf ()	{ return Self{EValue(0xFC00)}; }
-		ND_ static constexpr float Epsilon ()	{ return 2.0e-10f; }
+		ND_ static constexpr Self  Min ()				__NE___	{ return Self{EValue(0x0001)}; }	// 5.9e-8
+		ND_ static constexpr Self  Max ()				__NE___	{ return Self{EValue(0x7BFF)}; }	// 65504
+		ND_ static constexpr Self  Inf ()				__NE___	{ return Self{EValue(0x7C00)}; }
+		ND_ static constexpr Self  NegInf ()			__NE___	{ return Self{EValue(0xFC00)}; }
+		ND_ static constexpr float Epsilon ()			__NE___	{ return 2.0e-10f; }
 	};
 
 	using half = Float16;
@@ -97,7 +97,7 @@ namespace AE::Math
 	GetFast
 =================================================
 */
-	forceinline constexpr float  Float16::GetFast () const
+	forceinline constexpr float  Float16::GetFast () C_NE___
 	{
 		FloatBits	f;
 		f.bits.s = _bits.s;
@@ -111,7 +111,7 @@ namespace AE::Math
 	SetFast
 =================================================
 */
-	forceinline constexpr Float16&  Float16::SetFast (float val)
+	forceinline constexpr Float16&  Float16::SetFast (float val) __NE___
 	{
 		FloatBits	f;
 		f.f		= val;
@@ -186,34 +186,34 @@ namespace AE::Math
 
 	// methods
 	private:
-		constexpr explicit UFloat16 (EValue val) : _value{ushort(val)} {}
+		constexpr explicit UFloat16 (EValue val)		__NE___	: _value{ushort(val)} {}
 
 	public:
-		constexpr UFloat16 () : _value{0} {}
+		constexpr UFloat16 ()							__NE___	: _value{0} {}
 
-		constexpr UFloat16 (const Self &other) : _value{ other._value } {}
-		explicit UFloat16 (const float &f) { Set( f ); }
+		constexpr UFloat16 (const Self &other)			__NE___	: _value{ other._value } {}
+		explicit UFloat16 (const float &f)				__NE___	{ Set( f ); }
 
-			constexpr Self&  operator = (Self rhs)			{ _value = rhs._value;  return *this; }
+			constexpr Self&  operator = (Self rhs)		__NE___	{ _value = rhs._value;  return *this; }
 
-		ND_ constexpr bool  operator == (Self rhs)	const	{ return _value == rhs._value; }
+		ND_ constexpr bool  operator == (Self rhs)		C_NE___	{ return _value == rhs._value; }
 
 		// set/get
-		ND_ constexpr ushort	GetU ()					const	{ return _value; }
+		ND_ constexpr ushort	GetU ()					C_NE___	{ return _value; }
 		
-		ND_ constexpr float		Get ()					const;
-			constexpr Self&		Set (const float &f);
+		ND_ constexpr float		Get ()					C_NE___;
+			constexpr Self&		Set (const float &f)	__NE___;
 
-		ND_	constexpr float		GetFast ()				const;
-			constexpr Self&		SetFast (float f);
+		ND_	constexpr float		GetFast ()				C_NE___;
+			constexpr Self&		SetFast (float f)		__NE___;
 
-		ND_ explicit operator float ()	const	{ return Get(); }
+		ND_ explicit operator float ()					C_NE___	{ return Get(); }
 
-		ND_ static constexpr Self  Min ()		{ return Self{EValue(0x0001)}; }	// 9.09e-13
-		ND_ static constexpr Self  Max ()		{ return Self{EValue(0xFBFF)}; }	// 4 292 870 144
-		ND_ static constexpr Self  Inf ()		{ return Self{EValue(0xFC00)}; }
-		ND_ static constexpr Self  NaN ()		{ return Self{EValue(0xFFFF)}; }
-		ND_ static constexpr float Epsilon ()	{ return 2.0e-10f; }
+		ND_ static constexpr Self  Min ()				__NE___	{ return Self{EValue(0x0001)}; }	// 9.09e-13
+		ND_ static constexpr Self  Max ()				__NE___	{ return Self{EValue(0xFBFF)}; }	// 4 292 870 144
+		ND_ static constexpr Self  Inf ()				__NE___	{ return Self{EValue(0xFC00)}; }
+		ND_ static constexpr Self  NaN ()				__NE___	{ return Self{EValue(0xFFFF)}; }
+		ND_ static constexpr float Epsilon ()			__NE___	{ return 2.0e-10f; }
 	};
 	
 	using uhalf = UFloat16;
@@ -224,7 +224,7 @@ namespace AE::Math
 	Set
 =================================================
 */
-	forceinline constexpr UFloat16&  UFloat16::Set (const float &f)
+	forceinline constexpr UFloat16&  UFloat16::Set (const float &f) __NE___
 	{
 		FloatBits	entry;
 		entry.f = f;
@@ -299,7 +299,7 @@ namespace AE::Math
 	Get
 =================================================
 */
-	forceinline constexpr float  UFloat16::Get () const
+	forceinline constexpr float  UFloat16::Get () C_NE___
 	{
 		int e = _bits.e;
 		int m = _bits.m;
@@ -358,7 +358,7 @@ namespace AE::Math
 	GetFast
 =================================================
 */
-	forceinline constexpr float  UFloat16::GetFast () const
+	forceinline constexpr float  UFloat16::GetFast () C_NE___
 	{
 		FloatBits	f;
 		f.bits.e = _bits.e == 0 ? 0 : _bits.e + _MaxExpFmH;
@@ -372,7 +372,7 @@ namespace AE::Math
 	SetFast
 =================================================
 */
-	forceinline constexpr UFloat16&  UFloat16::SetFast (float val)
+	forceinline constexpr UFloat16&  UFloat16::SetFast (float val) __NE___
 	{
 		FloatBits	f;
 		f.f		= val;
@@ -426,9 +426,9 @@ namespace std
 		static constexpr int	min_exponent	= -15;
 		static constexpr int	min_exponent10	= -1;	// TODO: check
 
-		ND_ static constexpr AE::Math::Float16  min () noexcept { return AE::Math::Float16::Min(); }
+		ND_ static constexpr AE::Math::Float16  min () __NE___ { return AE::Math::Float16::Min(); }
 
-		ND_ static constexpr AE::Math::Float16  max () noexcept { return AE::Math::Float16::Max(); }
+		ND_ static constexpr AE::Math::Float16  max () __NE___ { return AE::Math::Float16::Max(); }
 	};
 	
 	template <>
@@ -446,9 +446,9 @@ namespace std
 		static constexpr int	min_exponent	= -15;
 		static constexpr int	min_exponent10	= -1;	// TODO: check
 
-		ND_ static constexpr AE::Math::UFloat16  min () noexcept { return AE::Math::UFloat16::Min(); }
+		ND_ static constexpr AE::Math::UFloat16  min () __NE___ { return AE::Math::UFloat16::Min(); }
 
-		ND_ static constexpr AE::Math::UFloat16  max () noexcept { return AE::Math::UFloat16::Max(); }
+		ND_ static constexpr AE::Math::UFloat16  max () __NE___ { return AE::Math::UFloat16::Max(); }
 	};
 
 } // std

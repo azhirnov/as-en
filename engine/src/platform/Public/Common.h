@@ -10,7 +10,7 @@
 #include "base/Math/Rectangle.h"
 #include "base/Math/Matrix.h"
 
-#include "base/Stream/Stream.h"
+#include "base/DataSource/Stream.h"
 #include "base/CompileTime/TypeList.h"
 #include "base/Utils/Helpers.h"
 #include "base/Utils/NamedID.h"
@@ -22,14 +22,10 @@
 
 #include "vfs/VirtualFileSystem.h"
 
-#ifdef __INTELLISENSE__
-#  define AE_PLATFORM_ANDROID
-#endif
-
 namespace AE::App::_hidden_
 {
 	// tag: NamedID UID
-	static constexpr uint	AppIDs_Start = 2 << 24;
+	static constexpr uint	AppIDs_Start = 3 << 24;
 
 } // AE::App::_hidden_
 
@@ -53,7 +49,7 @@ namespace AE::App
 	
 	using Graphics::FrameUID;
 
-	using VFS::IFileStorage;
+	using VFS::IVirtualFileStorage;
 
 	
 	class IApplication;

@@ -29,7 +29,7 @@ namespace
 					{
 						AE_LOGI( "Connected to "s << addr.ToString() );
 
-						if ( client.Receive( buf, Bytes::SizeOf(buf), OUT recv ) and recv > 0 )
+						if ( client.Receive( buf, Sizeof(buf), OUT recv ) and recv > 0 )
 						{
 							recv_data.insert( recv_data.end(), buf, buf + recv );
 
@@ -52,8 +52,8 @@ namespace
 		TEST( sock1.IsOpen() );
 
 		Bytes	sent;
-		TEST( sock1.Send( send_data, Bytes::SizeOf(send_data), OUT sent ));
-		TEST( sent == Bytes::SizeOf(send_data) );
+		TEST( sock1.Send( send_data, Sizeof(send_data), OUT sent ));
+		TEST( sent == Sizeof(send_data) );
 
 		listener.join();
 

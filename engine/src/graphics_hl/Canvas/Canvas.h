@@ -105,7 +105,7 @@ namespace AE::Graphics
 		using DrawCalls_t		= FixedArray< DrawCall, 16 >;
 		using Buffers_t			= FixedArray< BufferRange, 16 >;
 		using VBufferCache_t	= FixedArray< Strong<BufferID>, 16 >;
-		using Allocator_t		= LinearAllocator< UntypedAlignedAllocator, 8, false >;
+		using Allocator_t		= LinearAllocator< UntypedAllocator, 8, false >;
 
 		static constexpr uint		_MaxVertsPerBatch	= 1u << 12;
 		static constexpr Bytes32u	_PositionVBufSize	{8_b * _MaxVertsPerBatch};

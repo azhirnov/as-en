@@ -2,13 +2,14 @@
 #ifdef VKLOADER_STAGE_DECLFNPOINTER
 	extern PFN_vkDebugReportMessageEXT  _var_vkDebugReportMessageEXT;
 	extern PFN_vkGetPhysicalDeviceQueueFamilyProperties  _var_vkGetPhysicalDeviceQueueFamilyProperties;
-	extern PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT  _var_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
 	extern PFN_vkDestroyInstance  _var_vkDestroyInstance;
+	extern PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT  _var_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT;
 	extern PFN_vkGetPhysicalDeviceProperties  _var_vkGetPhysicalDeviceProperties;
 	extern PFN_vkEnumeratePhysicalDevices  _var_vkEnumeratePhysicalDevices;
 	extern PFN_vkEnumerateDeviceLayerProperties  _var_vkEnumerateDeviceLayerProperties;
 	extern PFN_vkGetPhysicalDeviceFeatures  _var_vkGetPhysicalDeviceFeatures;
 	extern PFN_vkGetPhysicalDeviceFormatProperties  _var_vkGetPhysicalDeviceFormatProperties;
+	extern PFN_vkGetPhysicalDeviceOpticalFlowImageFormatsNV  _var_vkGetPhysicalDeviceOpticalFlowImageFormatsNV;
 	extern PFN_vkGetPhysicalDeviceImageFormatProperties  _var_vkGetPhysicalDeviceImageFormatProperties;
 	extern PFN_vkGetPhysicalDeviceMemoryProperties  _var_vkGetPhysicalDeviceMemoryProperties;
 	extern PFN_vkGetDeviceProcAddr  _var_vkGetDeviceProcAddr;
@@ -31,8 +32,8 @@
 	extern PFN_vkGetPhysicalDeviceQueueFamilyProperties2  _var_vkGetPhysicalDeviceQueueFamilyProperties2;
 	extern PFN_vkGetPhysicalDeviceMemoryProperties2  _var_vkGetPhysicalDeviceMemoryProperties2;
 	extern PFN_vkGetPhysicalDeviceSparseImageFormatProperties2  _var_vkGetPhysicalDeviceSparseImageFormatProperties2;
-	extern PFN_vkDestroyDebugReportCallbackEXT  _var_vkDestroyDebugReportCallbackEXT;
 	extern PFN_vkGetPhysicalDeviceExternalBufferProperties  _var_vkGetPhysicalDeviceExternalBufferProperties;
+	extern PFN_vkDestroyDebugReportCallbackEXT  _var_vkDestroyDebugReportCallbackEXT;
 	extern PFN_vkGetPhysicalDeviceExternalFenceProperties  _var_vkGetPhysicalDeviceExternalFenceProperties;
 	extern PFN_vkGetPhysicalDeviceExternalSemaphoreProperties  _var_vkGetPhysicalDeviceExternalSemaphoreProperties;
 	extern PFN_vkGetPhysicalDeviceToolPropertiesEXT  _var_vkGetPhysicalDeviceToolPropertiesEXT;
@@ -83,8 +84,8 @@
 
 
 # ifdef VULKAN_BETA_H_
-	extern PFN_vkGetPhysicalDeviceVideoFormatPropertiesKHR  _var_vkGetPhysicalDeviceVideoFormatPropertiesKHR;
 	extern PFN_vkGetPhysicalDeviceVideoCapabilitiesKHR  _var_vkGetPhysicalDeviceVideoCapabilitiesKHR;
+	extern PFN_vkGetPhysicalDeviceVideoFormatPropertiesKHR  _var_vkGetPhysicalDeviceVideoFormatPropertiesKHR;
 # endif // VULKAN_BETA_H_
 #endif // VKLOADER_STAGE_DECLFNPOINTER
 
@@ -92,13 +93,14 @@
 #ifdef VKLOADER_STAGE_FNPOINTER
 	PFN_vkDebugReportMessageEXT  _var_vkDebugReportMessageEXT = null;
 	PFN_vkGetPhysicalDeviceQueueFamilyProperties  _var_vkGetPhysicalDeviceQueueFamilyProperties = null;
-	PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT  _var_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT = null;
 	PFN_vkDestroyInstance  _var_vkDestroyInstance = null;
+	PFN_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT  _var_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT = null;
 	PFN_vkGetPhysicalDeviceProperties  _var_vkGetPhysicalDeviceProperties = null;
 	PFN_vkEnumeratePhysicalDevices  _var_vkEnumeratePhysicalDevices = null;
 	PFN_vkEnumerateDeviceLayerProperties  _var_vkEnumerateDeviceLayerProperties = null;
 	PFN_vkGetPhysicalDeviceFeatures  _var_vkGetPhysicalDeviceFeatures = null;
 	PFN_vkGetPhysicalDeviceFormatProperties  _var_vkGetPhysicalDeviceFormatProperties = null;
+	PFN_vkGetPhysicalDeviceOpticalFlowImageFormatsNV  _var_vkGetPhysicalDeviceOpticalFlowImageFormatsNV = null;
 	PFN_vkGetPhysicalDeviceImageFormatProperties  _var_vkGetPhysicalDeviceImageFormatProperties = null;
 	PFN_vkGetPhysicalDeviceMemoryProperties  _var_vkGetPhysicalDeviceMemoryProperties = null;
 	PFN_vkGetDeviceProcAddr  _var_vkGetDeviceProcAddr = null;
@@ -121,8 +123,8 @@
 	PFN_vkGetPhysicalDeviceQueueFamilyProperties2  _var_vkGetPhysicalDeviceQueueFamilyProperties2 = null;
 	PFN_vkGetPhysicalDeviceMemoryProperties2  _var_vkGetPhysicalDeviceMemoryProperties2 = null;
 	PFN_vkGetPhysicalDeviceSparseImageFormatProperties2  _var_vkGetPhysicalDeviceSparseImageFormatProperties2 = null;
-	PFN_vkDestroyDebugReportCallbackEXT  _var_vkDestroyDebugReportCallbackEXT = null;
 	PFN_vkGetPhysicalDeviceExternalBufferProperties  _var_vkGetPhysicalDeviceExternalBufferProperties = null;
+	PFN_vkDestroyDebugReportCallbackEXT  _var_vkDestroyDebugReportCallbackEXT = null;
 	PFN_vkGetPhysicalDeviceExternalFenceProperties  _var_vkGetPhysicalDeviceExternalFenceProperties = null;
 	PFN_vkGetPhysicalDeviceExternalSemaphoreProperties  _var_vkGetPhysicalDeviceExternalSemaphoreProperties = null;
 	PFN_vkGetPhysicalDeviceToolPropertiesEXT  _var_vkGetPhysicalDeviceToolPropertiesEXT = null;
@@ -173,8 +175,8 @@
 
 
 # ifdef VULKAN_BETA_H_
-	PFN_vkGetPhysicalDeviceVideoFormatPropertiesKHR  _var_vkGetPhysicalDeviceVideoFormatPropertiesKHR = null;
 	PFN_vkGetPhysicalDeviceVideoCapabilitiesKHR  _var_vkGetPhysicalDeviceVideoCapabilitiesKHR = null;
+	PFN_vkGetPhysicalDeviceVideoFormatPropertiesKHR  _var_vkGetPhysicalDeviceVideoFormatPropertiesKHR = null;
 # endif // VULKAN_BETA_H_
 #endif // VKLOADER_STAGE_FNPOINTER
 
@@ -182,13 +184,14 @@
 #ifdef VKLOADER_STAGE_INLINEFN
 		VKAPI_ATTR forceinline void vkDebugReportMessageEXT (VkInstance instance, VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char * pLayerPrefix, const char * pMessage)								{ return _var_vkDebugReportMessageEXT( instance, flags, objectType, object, location, messageCode, pLayerPrefix, pMessage ); }
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceQueueFamilyProperties (VkPhysicalDevice physicalDevice, uint32_t * pQueueFamilyPropertyCount, VkQueueFamilyProperties * pQueueFamilyProperties)								{ return _var_vkGetPhysicalDeviceQueueFamilyProperties( physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties ); }
-	ND_ VKAPI_ATTR forceinline VkResult vkGetPhysicalDeviceCalibrateableTimeDomainsEXT (VkPhysicalDevice physicalDevice, uint32_t * pTimeDomainCount, VkTimeDomainEXT * pTimeDomains)								{ return _var_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT( physicalDevice, pTimeDomainCount, pTimeDomains ); }
 		VKAPI_ATTR forceinline void vkDestroyInstance (VkInstance instance, const VkAllocationCallbacks * pAllocator)								{ return _var_vkDestroyInstance( instance, pAllocator ); }
+	ND_ VKAPI_ATTR forceinline VkResult vkGetPhysicalDeviceCalibrateableTimeDomainsEXT (VkPhysicalDevice physicalDevice, uint32_t * pTimeDomainCount, VkTimeDomainEXT * pTimeDomains)								{ return _var_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT( physicalDevice, pTimeDomainCount, pTimeDomains ); }
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceProperties (VkPhysicalDevice physicalDevice, VkPhysicalDeviceProperties * pProperties)								{ return _var_vkGetPhysicalDeviceProperties( physicalDevice, pProperties ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkEnumeratePhysicalDevices (VkInstance instance, uint32_t * pPhysicalDeviceCount, VkPhysicalDevice * pPhysicalDevices)								{ return _var_vkEnumeratePhysicalDevices( instance, pPhysicalDeviceCount, pPhysicalDevices ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkEnumerateDeviceLayerProperties (VkPhysicalDevice physicalDevice, uint32_t * pPropertyCount, VkLayerProperties * pProperties)								{ return _var_vkEnumerateDeviceLayerProperties( physicalDevice, pPropertyCount, pProperties ); }
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceFeatures (VkPhysicalDevice physicalDevice, VkPhysicalDeviceFeatures * pFeatures)								{ return _var_vkGetPhysicalDeviceFeatures( physicalDevice, pFeatures ); }
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceFormatProperties (VkPhysicalDevice physicalDevice, VkFormat format, VkFormatProperties * pFormatProperties)								{ return _var_vkGetPhysicalDeviceFormatProperties( physicalDevice, format, pFormatProperties ); }
+	ND_ VKAPI_ATTR forceinline VkResult vkGetPhysicalDeviceOpticalFlowImageFormatsNV (VkPhysicalDevice physicalDevice, const VkOpticalFlowImageFormatInfoNV * pOpticalFlowImageFormatInfo, uint32_t * pFormatCount, VkOpticalFlowImageFormatPropertiesNV * pImageFormatProperties)								{ return _var_vkGetPhysicalDeviceOpticalFlowImageFormatsNV( physicalDevice, pOpticalFlowImageFormatInfo, pFormatCount, pImageFormatProperties ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkGetPhysicalDeviceImageFormatProperties (VkPhysicalDevice physicalDevice, VkFormat format, VkImageType type, VkImageTiling tiling, VkImageUsageFlags usage, VkImageCreateFlags flags, VkImageFormatProperties * pImageFormatProperties)								{ return _var_vkGetPhysicalDeviceImageFormatProperties( physicalDevice, format, type, tiling, usage, flags, pImageFormatProperties ); }
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceMemoryProperties (VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties * pMemoryProperties)								{ return _var_vkGetPhysicalDeviceMemoryProperties( physicalDevice, pMemoryProperties ); }
 	ND_ VKAPI_ATTR forceinline PFN_vkVoidFunction vkGetDeviceProcAddr (VkDevice device, const char * pName)								{ return _var_vkGetDeviceProcAddr( device, pName ); }
@@ -211,8 +214,8 @@
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceQueueFamilyProperties2 (VkPhysicalDevice physicalDevice, uint32_t * pQueueFamilyPropertyCount, VkQueueFamilyProperties2 * pQueueFamilyProperties)								{ return _var_vkGetPhysicalDeviceQueueFamilyProperties2( physicalDevice, pQueueFamilyPropertyCount, pQueueFamilyProperties ); }
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceMemoryProperties2 (VkPhysicalDevice physicalDevice, VkPhysicalDeviceMemoryProperties2 * pMemoryProperties)								{ return _var_vkGetPhysicalDeviceMemoryProperties2( physicalDevice, pMemoryProperties ); }
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceSparseImageFormatProperties2 (VkPhysicalDevice physicalDevice, const VkPhysicalDeviceSparseImageFormatInfo2 * pFormatInfo, uint32_t * pPropertyCount, VkSparseImageFormatProperties2 * pProperties)								{ return _var_vkGetPhysicalDeviceSparseImageFormatProperties2( physicalDevice, pFormatInfo, pPropertyCount, pProperties ); }
-		VKAPI_ATTR forceinline void vkDestroyDebugReportCallbackEXT (VkInstance instance, VkDebugReportCallbackEXT callback, const VkAllocationCallbacks * pAllocator)								{ return _var_vkDestroyDebugReportCallbackEXT( instance, callback, pAllocator ); }
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceExternalBufferProperties (VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalBufferInfo * pExternalBufferInfo, VkExternalBufferProperties * pExternalBufferProperties)								{ return _var_vkGetPhysicalDeviceExternalBufferProperties( physicalDevice, pExternalBufferInfo, pExternalBufferProperties ); }
+		VKAPI_ATTR forceinline void vkDestroyDebugReportCallbackEXT (VkInstance instance, VkDebugReportCallbackEXT callback, const VkAllocationCallbacks * pAllocator)								{ return _var_vkDestroyDebugReportCallbackEXT( instance, callback, pAllocator ); }
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceExternalFenceProperties (VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalFenceInfo * pExternalFenceInfo, VkExternalFenceProperties * pExternalFenceProperties)								{ return _var_vkGetPhysicalDeviceExternalFenceProperties( physicalDevice, pExternalFenceInfo, pExternalFenceProperties ); }
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceExternalSemaphoreProperties (VkPhysicalDevice physicalDevice, const VkPhysicalDeviceExternalSemaphoreInfo * pExternalSemaphoreInfo, VkExternalSemaphoreProperties * pExternalSemaphoreProperties)								{ return _var_vkGetPhysicalDeviceExternalSemaphoreProperties( physicalDevice, pExternalSemaphoreInfo, pExternalSemaphoreProperties ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkGetPhysicalDeviceToolPropertiesEXT (VkPhysicalDevice physicalDevice, uint32_t * pToolCount, VkPhysicalDeviceToolProperties * pToolProperties)								{ return _var_vkGetPhysicalDeviceToolPropertiesEXT( physicalDevice, pToolCount, pToolProperties ); }
@@ -263,8 +266,8 @@
 
 
 # ifdef VULKAN_BETA_H_
+	ND_ VKAPI_ATTR forceinline VkResult vkGetPhysicalDeviceVideoCapabilitiesKHR (VkPhysicalDevice physicalDevice, const VkVideoProfileInfoKHR * pVideoProfile, VkVideoCapabilitiesKHR * pCapabilities)								{ return _var_vkGetPhysicalDeviceVideoCapabilitiesKHR( physicalDevice, pVideoProfile, pCapabilities ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkGetPhysicalDeviceVideoFormatPropertiesKHR (VkPhysicalDevice physicalDevice, const VkPhysicalDeviceVideoFormatInfoKHR * pVideoFormatInfo, uint32_t * pVideoFormatPropertyCount, VkVideoFormatPropertiesKHR * pVideoFormatProperties)								{ return _var_vkGetPhysicalDeviceVideoFormatPropertiesKHR( physicalDevice, pVideoFormatInfo, pVideoFormatPropertyCount, pVideoFormatProperties ); }
-	ND_ VKAPI_ATTR forceinline VkResult vkGetPhysicalDeviceVideoCapabilitiesKHR (VkPhysicalDevice physicalDevice, const VkVideoProfileKHR * pVideoProfile, VkVideoCapabilitiesKHR * pCapabilities)								{ return _var_vkGetPhysicalDeviceVideoCapabilitiesKHR( physicalDevice, pVideoProfile, pCapabilities ); }
 # endif // VULKAN_BETA_H_
 #endif // VKLOADER_STAGE_INLINEFN
 
@@ -272,13 +275,14 @@
 #ifdef VKLOADER_STAGE_DUMMYFN
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkDebugReportMessageEXT (VkInstance , VkDebugReportFlagsEXT , VkDebugReportObjectTypeEXT , uint64_t , size_t , int32_t , const char * , const char * )			{  VK_LOG( "used dummy function 'vkDebugReportMessageEXT'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceQueueFamilyProperties (VkPhysicalDevice , uint32_t * , VkQueueFamilyProperties * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceQueueFamilyProperties'" );  return;  }
-	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT (VkPhysicalDevice , uint32_t * , VkTimeDomainEXT * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceCalibrateableTimeDomainsEXT'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkDestroyInstance (VkInstance , const VkAllocationCallbacks * )			{  VK_LOG( "used dummy function 'vkDestroyInstance'" );  return;  }
+	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT (VkPhysicalDevice , uint32_t * , VkTimeDomainEXT * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceCalibrateableTimeDomainsEXT'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceProperties (VkPhysicalDevice , VkPhysicalDeviceProperties * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceProperties'" );  return;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkEnumeratePhysicalDevices (VkInstance , uint32_t * , VkPhysicalDevice * )			{  VK_LOG( "used dummy function 'vkEnumeratePhysicalDevices'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkEnumerateDeviceLayerProperties (VkPhysicalDevice , uint32_t * , VkLayerProperties * )			{  VK_LOG( "used dummy function 'vkEnumerateDeviceLayerProperties'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceFeatures (VkPhysicalDevice , VkPhysicalDeviceFeatures * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceFeatures'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceFormatProperties (VkPhysicalDevice , VkFormat , VkFormatProperties * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceFormatProperties'" );  return;  }
+	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetPhysicalDeviceOpticalFlowImageFormatsNV (VkPhysicalDevice , const VkOpticalFlowImageFormatInfoNV * , uint32_t * , VkOpticalFlowImageFormatPropertiesNV * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceOpticalFlowImageFormatsNV'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetPhysicalDeviceImageFormatProperties (VkPhysicalDevice , VkFormat , VkImageType , VkImageTiling , VkImageUsageFlags , VkImageCreateFlags , VkImageFormatProperties * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceImageFormatProperties'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceMemoryProperties (VkPhysicalDevice , VkPhysicalDeviceMemoryProperties * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceMemoryProperties'" );  return;  }
 	VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL Dummy_vkGetDeviceProcAddr (VkDevice , const char * )			{  VK_LOG( "used dummy function 'vkGetDeviceProcAddr'" );  return null;  }
@@ -301,8 +305,8 @@
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceQueueFamilyProperties2 (VkPhysicalDevice , uint32_t * , VkQueueFamilyProperties2 * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceQueueFamilyProperties2'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceMemoryProperties2 (VkPhysicalDevice , VkPhysicalDeviceMemoryProperties2 * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceMemoryProperties2'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceSparseImageFormatProperties2 (VkPhysicalDevice , const VkPhysicalDeviceSparseImageFormatInfo2 * , uint32_t * , VkSparseImageFormatProperties2 * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceSparseImageFormatProperties2'" );  return;  }
-	VKAPI_ATTR void VKAPI_CALL Dummy_vkDestroyDebugReportCallbackEXT (VkInstance , VkDebugReportCallbackEXT , const VkAllocationCallbacks * )			{  VK_LOG( "used dummy function 'vkDestroyDebugReportCallbackEXT'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceExternalBufferProperties (VkPhysicalDevice , const VkPhysicalDeviceExternalBufferInfo * , VkExternalBufferProperties * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceExternalBufferProperties'" );  return;  }
+	VKAPI_ATTR void VKAPI_CALL Dummy_vkDestroyDebugReportCallbackEXT (VkInstance , VkDebugReportCallbackEXT , const VkAllocationCallbacks * )			{  VK_LOG( "used dummy function 'vkDestroyDebugReportCallbackEXT'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceExternalFenceProperties (VkPhysicalDevice , const VkPhysicalDeviceExternalFenceInfo * , VkExternalFenceProperties * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceExternalFenceProperties'" );  return;  }
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceExternalSemaphoreProperties (VkPhysicalDevice , const VkPhysicalDeviceExternalSemaphoreInfo * , VkExternalSemaphoreProperties * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceExternalSemaphoreProperties'" );  return;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetPhysicalDeviceToolPropertiesEXT (VkPhysicalDevice , uint32_t * , VkPhysicalDeviceToolProperties * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceToolPropertiesEXT'" );  return VK_RESULT_MAX_ENUM;  }
@@ -353,8 +357,8 @@
 
 
 # ifdef VULKAN_BETA_H_
+	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetPhysicalDeviceVideoCapabilitiesKHR (VkPhysicalDevice , const VkVideoProfileInfoKHR * , VkVideoCapabilitiesKHR * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceVideoCapabilitiesKHR'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetPhysicalDeviceVideoFormatPropertiesKHR (VkPhysicalDevice , const VkPhysicalDeviceVideoFormatInfoKHR * , uint32_t * , VkVideoFormatPropertiesKHR * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceVideoFormatPropertiesKHR'" );  return VK_RESULT_MAX_ENUM;  }
-	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetPhysicalDeviceVideoCapabilitiesKHR (VkPhysicalDevice , const VkVideoProfileKHR * , VkVideoCapabilitiesKHR * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceVideoCapabilitiesKHR'" );  return VK_RESULT_MAX_ENUM;  }
 # endif // VULKAN_BETA_H_
 #endif // VKLOADER_STAGE_DUMMYFN
 
@@ -362,13 +366,14 @@
 #ifdef VKLOADER_STAGE_GETADDRESS
 	Load( OUT _var_vkDebugReportMessageEXT, "vkDebugReportMessageEXT", Dummy_vkDebugReportMessageEXT );
 	Load( OUT _var_vkGetPhysicalDeviceQueueFamilyProperties, "vkGetPhysicalDeviceQueueFamilyProperties", Dummy_vkGetPhysicalDeviceQueueFamilyProperties );
-	Load( OUT _var_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT, "vkGetPhysicalDeviceCalibrateableTimeDomainsEXT", Dummy_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT );
 	Load( OUT _var_vkDestroyInstance, "vkDestroyInstance", Dummy_vkDestroyInstance );
+	Load( OUT _var_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT, "vkGetPhysicalDeviceCalibrateableTimeDomainsEXT", Dummy_vkGetPhysicalDeviceCalibrateableTimeDomainsEXT );
 	Load( OUT _var_vkGetPhysicalDeviceProperties, "vkGetPhysicalDeviceProperties", Dummy_vkGetPhysicalDeviceProperties );
 	Load( OUT _var_vkEnumeratePhysicalDevices, "vkEnumeratePhysicalDevices", Dummy_vkEnumeratePhysicalDevices );
 	Load( OUT _var_vkEnumerateDeviceLayerProperties, "vkEnumerateDeviceLayerProperties", Dummy_vkEnumerateDeviceLayerProperties );
 	Load( OUT _var_vkGetPhysicalDeviceFeatures, "vkGetPhysicalDeviceFeatures", Dummy_vkGetPhysicalDeviceFeatures );
 	Load( OUT _var_vkGetPhysicalDeviceFormatProperties, "vkGetPhysicalDeviceFormatProperties", Dummy_vkGetPhysicalDeviceFormatProperties );
+	Load( OUT _var_vkGetPhysicalDeviceOpticalFlowImageFormatsNV, "vkGetPhysicalDeviceOpticalFlowImageFormatsNV", Dummy_vkGetPhysicalDeviceOpticalFlowImageFormatsNV );
 	Load( OUT _var_vkGetPhysicalDeviceImageFormatProperties, "vkGetPhysicalDeviceImageFormatProperties", Dummy_vkGetPhysicalDeviceImageFormatProperties );
 	Load( OUT _var_vkGetPhysicalDeviceMemoryProperties, "vkGetPhysicalDeviceMemoryProperties", Dummy_vkGetPhysicalDeviceMemoryProperties );
 	Load( OUT _var_vkGetDeviceProcAddr, "vkGetDeviceProcAddr", Dummy_vkGetDeviceProcAddr );
@@ -391,8 +396,8 @@
 	Load( OUT _var_vkGetPhysicalDeviceQueueFamilyProperties2, "vkGetPhysicalDeviceQueueFamilyProperties2", Dummy_vkGetPhysicalDeviceQueueFamilyProperties2 );
 	Load( OUT _var_vkGetPhysicalDeviceMemoryProperties2, "vkGetPhysicalDeviceMemoryProperties2", Dummy_vkGetPhysicalDeviceMemoryProperties2 );
 	Load( OUT _var_vkGetPhysicalDeviceSparseImageFormatProperties2, "vkGetPhysicalDeviceSparseImageFormatProperties2", Dummy_vkGetPhysicalDeviceSparseImageFormatProperties2 );
-	Load( OUT _var_vkDestroyDebugReportCallbackEXT, "vkDestroyDebugReportCallbackEXT", Dummy_vkDestroyDebugReportCallbackEXT );
 	Load( OUT _var_vkGetPhysicalDeviceExternalBufferProperties, "vkGetPhysicalDeviceExternalBufferProperties", Dummy_vkGetPhysicalDeviceExternalBufferProperties );
+	Load( OUT _var_vkDestroyDebugReportCallbackEXT, "vkDestroyDebugReportCallbackEXT", Dummy_vkDestroyDebugReportCallbackEXT );
 	Load( OUT _var_vkGetPhysicalDeviceExternalFenceProperties, "vkGetPhysicalDeviceExternalFenceProperties", Dummy_vkGetPhysicalDeviceExternalFenceProperties );
 	Load( OUT _var_vkGetPhysicalDeviceExternalSemaphoreProperties, "vkGetPhysicalDeviceExternalSemaphoreProperties", Dummy_vkGetPhysicalDeviceExternalSemaphoreProperties );
 	Load( OUT _var_vkGetPhysicalDeviceToolPropertiesEXT, "vkGetPhysicalDeviceToolPropertiesEXT", Dummy_vkGetPhysicalDeviceToolPropertiesEXT );
@@ -443,8 +448,8 @@
 
 
 # ifdef VULKAN_BETA_H_
-	Load( OUT _var_vkGetPhysicalDeviceVideoFormatPropertiesKHR, "vkGetPhysicalDeviceVideoFormatPropertiesKHR", Dummy_vkGetPhysicalDeviceVideoFormatPropertiesKHR );
 	Load( OUT _var_vkGetPhysicalDeviceVideoCapabilitiesKHR, "vkGetPhysicalDeviceVideoCapabilitiesKHR", Dummy_vkGetPhysicalDeviceVideoCapabilitiesKHR );
+	Load( OUT _var_vkGetPhysicalDeviceVideoFormatPropertiesKHR, "vkGetPhysicalDeviceVideoFormatPropertiesKHR", Dummy_vkGetPhysicalDeviceVideoFormatPropertiesKHR );
 # endif // VULKAN_BETA_H_
 #endif // VKLOADER_STAGE_GETADDRESS
 

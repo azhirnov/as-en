@@ -24,6 +24,7 @@ namespace AE::Graphics
 			MPipelineLayoutID										layoutId;
 			ArrayView< MPipelinePack::ShaderModuleRef >				shaders;
 			PipelineCacheID											cacheId;
+			MPipelinePack::Allocator_t *							allocator		= null;
 		};
 
 	private:

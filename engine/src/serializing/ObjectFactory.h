@@ -17,8 +17,8 @@ namespace AE::Serializing
 	{
 	// types
 	private:
-		using Serialize_t	= bool (*) (Serializer &, const void *);
-		using Deserialize_t	= bool (*) (Deserializer &, OUT void *, bool create);
+		using Serialize_t	= bool (*) (Serializer &, const void *) __NE___;
+		using Deserialize_t	= bool (*) (Deserializer &, OUT void *, bool create) __NE___;
 
 		struct ObjInfo
 		{
@@ -33,7 +33,7 @@ namespace AE::Serializing
 
 	// variables
 	private:
-		SharedMutex				_guard;
+		mutable SharedMutex		_guard;
 		ObjectMap_t				_objects;
 		ObjectTypes_t			_objectTypes;
 
@@ -57,11 +57,11 @@ namespace AE::Serializing
 		bool  Register (const SerializedID &id);
 
 		template <typename T>
-		ND_ bool  Serialize (Serializer &, const T& obj);
+		ND_ bool  Serialize (Serializer &, const T& obj)		C_NE___;
 
 		template <typename T>
-		ND_ bool  Deserialize (Deserializer &, INOUT T& obj);
-		ND_ bool  Deserialize (Deserializer &, INOUT void* obj);
+		ND_ bool  Deserialize (Deserializer &, INOUT T& obj)	C_NE___;
+		ND_ bool  Deserialize (Deserializer &, INOUT void* obj) C_NE___;
 	};
 
 	
@@ -94,11 +94,11 @@ namespace AE::Serializing
 	{
 		STATIC_ASSERT( IsBaseOf< ISerializable, T > );
 		return Register<T>( id,
-							[] (Serializer &ser, const void *ptr) {
+							[] (Serializer &ser, const void *ptr) __NE___ {
 								return Cast<ISerializable>(ptr)->Serialize( ser );
 							},
-							[] (Deserializer &des, OUT void *ptr, bool create) {
-								if ( create ) PlacementNew<T>( OUT ptr );
+							[] (Deserializer &des, OUT void *ptr, bool create) __NE___ {
+								if ( create ) PlacementNew<T>( OUT ptr );		// nothrow
 								return Cast<ISerializable>(ptr)->Deserialize( des );
 							}
 						  );
@@ -110,7 +110,7 @@ namespace AE::Serializing
 =================================================
 */
 	template <typename T>
-	inline bool  ObjectFactory::Serialize (Serializer &ser, const T& obj)
+	inline bool  ObjectFactory::Serialize (Serializer &ser, const T& obj) C_NE___
 	{
 		STATIC_ASSERT( not IsTrivialySerializable<T>, "Can not serialize POD type" );
 		SHAREDLOCK( _guard );
@@ -129,7 +129,7 @@ namespace AE::Serializing
 =================================================
 */
 	template <typename T>
-	inline bool  ObjectFactory::Deserialize (Deserializer &deser, INOUT T& obj)
+	inline bool  ObjectFactory::Deserialize (Deserializer &deser, INOUT T& obj) C_NE___
 	{
 		STATIC_ASSERT( not IsTrivialySerializable<T>, "Can not deserialize POD type" );
 		SHAREDLOCK( _guard );
@@ -149,14 +149,14 @@ namespace AE::Serializing
 	Deserialize
 =================================================
 */
-	inline bool  ObjectFactory::Deserialize (Deserializer &deser, INOUT void* obj)
+	inline bool  ObjectFactory::Deserialize (Deserializer &deser, INOUT void* obj) C_NE___
 	{
 		SHAREDLOCK( _guard );
 		
 		uint	id = 0;
 		CHECK_ERR( deser.stream.Read( OUT id ));
 
-		ObjInfo*	info = null;
+		ObjInfo const*	info = null;
 
 		#if AE_OPTIMIZE_IDS
 			auto	iter = _objects.find( SerializedID{ HashVal32{ id }});

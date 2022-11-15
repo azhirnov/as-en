@@ -231,12 +231,10 @@ namespace AE::Graphics::_hidden_
 		explicit MArgumentSetter (Ptr<MSoftwareCmdBuf> cmdbuf) : _cmdbuf{cmdbuf} {}
 
 		// compute, meshtask
-		EnableIf<(ShaderType == EShader::Compute or ShaderType == EShader::MeshTask), void>
-			SetThreadgroupMemoryLength (Bytes length, MThreadgroupIndex index);
+		void  SetThreadgroupMemoryLength (Bytes length, MThreadgroupIndex index);
 
 		// tile
-		EnableIf<ShaderType == EShader::Tile, void>
-			SetThreadgroupMemoryLength (Bytes length, Bytes offset, MThreadgroupIndex index);
+		void  SetThreadgroupMemoryLength (Bytes length, Bytes offset, MThreadgroupIndex index);
 
 		void  SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index) override;
 		void  SetBufferOffset (Bytes offset, MBufferIndex index) override;
@@ -257,20 +255,23 @@ namespace AE::Graphics::_hidden_
 
 	
 	template <EShader ShaderType>
-	EnableIf<(ShaderType == EShader::Compute or ShaderType == EShader::MeshTask), void>
-		MArgumentSetter<EShader::Compute,false>::SetThreadgroupMemoryLength (Bytes length, MThreadgroupIndex index)
+	void  MArgumentSetter<ShaderType,false>::SetThreadgroupMemoryLength (Bytes length, MThreadgroupIndex index)
 	{
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBufferCmd >();
+		STATIC_ASSERT( ShaderType == EShader::Compute or ShaderType == EShader::MeshTask );
+	
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetThreadgroupMemoryLengthCmd >();
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.length		= length;
 		cmd.offset		= 0_b;
 	}
 	
-	EnableIf<ShaderType == EShader::Tile, void>
-		MArgumentSetter<EShader::Compute,false>::SetThreadgroupMemoryLength (Bytes length, Bytes offset, MThreadgroupIndex index)
+	template <EShader ShaderType>
+	void  MArgumentSetter<ShaderType,false>::SetThreadgroupMemoryLength (Bytes length, Bytes offset, MThreadgroupIndex index)
 	{
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBufferCmd >();
+		STATIC_ASSERT( ShaderType == EShader::Tile );
+		
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetThreadgroupMemoryLengthCmd >();
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.length		= length;
@@ -308,7 +309,7 @@ namespace AE::Graphics::_hidden_
 		cmd.dataSize	= dataSize;
 		cmd.index		= index;
 
-		MemCopy( OUT data, dataSize );
+		MemCopy( OUT dst, data, dataSize );
 	}
 	
 	template <EShader ShaderType>

@@ -24,8 +24,8 @@ namespace AE::App
 			_visitor_( Key_Tab,				0x09,		"Tab",				VK_TAB				)\
 			_visitor_( Key_Clear,			0x0C,		"Clear",			VK_CLEAR			)\
 			_visitor_( Key_Return,			0x0D,		"Enter",			VK_RETURN			)\
-			_visitor_( Key_L_Shift,			0x10,		"lEFTShift",		VK_SHIFT			)\
-			_visitor_( Key_R_Shift,			0x10 << 8,	"rIGHTShift",		VK_SHIFT << 8		)\
+			_visitor_( Key_L_Shift,			0x10,		"LeftShift",		VK_SHIFT			)\
+			_visitor_( Key_R_Shift,			0x10 << 8,	"RightShift",		VK_SHIFT << 8		)\
 			_visitor_( Key_L_Control,		0x11,		"LeftCtrl",			VK_CONTROL			)\
 			_visitor_( Key_R_Control,		0x11 << 8,	"RightCtrl",		VK_CONTROL << 8		)\
 			_visitor_( Key_L_Menu,			0x12,		"LeftAlt",			VK_MENU				)	/* alt */\
@@ -231,14 +231,12 @@ namespace AE::App
 		bool  IsCursor1D (ushort type)	const override	{ return _IsCursor1D( EInputType(type) ); }
 		bool  IsCursor2D (ushort type)	const override	{ return _IsCursor2D( EInputType(type) ); }
 		
-	  #if not AE_OPTIMIZE_IDS
 		String  ToString () const override;
-	  #endif
 
 	  #ifdef AE_ENABLE_SCRIPTING
 		bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc) override;
 
-		ND_ static bool  Bind (const Scripting::ScriptEnginePtr &se);
+		static void  Bind (const Scripting::ScriptEnginePtr &se) __TH___;
 	  #endif
 
 	private:

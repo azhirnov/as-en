@@ -45,8 +45,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectTransferCtx (const VRenderTask &task);
-		_VDirectTransferCtx (const VRenderTask &task, VCommandBuffer cmdbuf);
+		explicit _VDirectTransferCtx (const RenderTask &task);
+		_VDirectTransferCtx (const RenderTask &task, VCommandBuffer cmdbuf);
 	};
 
 
@@ -81,8 +81,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectTransferCtx (const VRenderTask &task);
-		_VIndirectTransferCtx (const VRenderTask &task, VSoftwareCmdBufPtr cmdbuf);
+		explicit _VIndirectTransferCtx (const RenderTask &task);
+		_VIndirectTransferCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf);
 	};
 
 
@@ -108,10 +108,10 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VTransferContextImpl (const VRenderTask &task) : RawCtx{ task } {}
+		explicit _VTransferContextImpl (const RenderTask &task) : RawCtx{ task } {}
 		
 		template <typename RawCmdBufType>
-		_VTransferContextImpl (const VRenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
+		_VTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
 
 		_VTransferContextImpl () = delete;
 		_VTransferContextImpl (const _VTransferContextImpl &) = delete;
@@ -119,70 +119,66 @@ namespace AE::Graphics::_hidden_
 		using RawCtx::ClearColorImage;
 		using RawCtx::ClearDepthStencilImage;
 		
-		void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)	{ _ClearColorImage( image, color, ranges ); }
-		void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)	{ _ClearColorImage( image, color, ranges ); }
-		void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)	{ _ClearColorImage( image, color, ranges ); }
+		void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)					{ _ClearColorImage( image, color, ranges ); }
+		void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)					{ _ClearColorImage( image, color, ranges ); }
+		void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)					{ _ClearColorImage( image, color, ranges ); }
 		void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges);
 
 		using RawCtx::UpdateBuffer;
-		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data) override;
+		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)																override;
 
-		template <typename T>	void  UpdateBuffer (BufferID buffer, Bytes offset, ArrayView<T> data)			{ return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
-		template <typename T>	void  UpdateBuffer (BufferID buffer, Bytes offset, const Array<T> &data)		{ return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
+		template <typename T>	void  UpdateBuffer (BufferID buffer, Bytes offset, ArrayView<T> data)							{ return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
+		template <typename T>	void  UpdateBuffer (BufferID buffer, Bytes offset, const Array<T> &data)						{ return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
 
 		using RawCtx::FillBuffer;
-		void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data) override final;
+		void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)																			override;
 
 		using RawCtx::CopyBuffer;
 		using RawCtx::CopyImage;
 
-		void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges) override final;
-		void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges) override final;
+		void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)															override;
+		void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)																override;
 
 		using RawCtx::CopyBufferToImage;
 		using RawCtx::CopyImageToBuffer;
 
-		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges) override final;
-		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges) override final;
+		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)												override;
+		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)												override;
 		
-		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges) override final;
-		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges) override final;
+		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)												override;
+		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)												override;
 		
 		using RawCtx::BlitImage;
 
 		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions);
 
-		void  UploadBuffer (BufferID buffer, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static) override final;
-		void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView) override final;
+		void  UploadBuffer (BufferID buffer, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)override;
+		void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)														override;
 
-		void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static) override final;
-		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static) override final;
+		void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						override;
+		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						override;
 
-		ND_ Promise<BufferMemView>	ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static) override final;
-		ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc) override final;
+		ND_ Promise<BufferMemView>	ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)	override;
+		ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)														override;
 		
 		ND_ bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped);
-		ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data) override final;
+		ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)														override;
 
-		ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size) override final;
+		ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)														override;
 		
 		using RawCtx::GenerateMipmaps;
 
-		void  GenerateMipmaps (ImageID image) override final;
+		void  GenerateMipmaps (ImageID image)																											override;
 
-		void  CommitBarriers ()									override final	{ RawCtx::_CommitBarriers(); }
-		
-		void  DebugMarker (NtStringView text, RGBA8u color)		override final	{ RawCtx::_DebugMarker( text, color ); }
-		void  PushDebugGroup (NtStringView text, RGBA8u color)	override final	{ RawCtx::_PushDebugGroup( text, color ); }
-		void  PopDebugGroup ()									override final	{ RawCtx::_PopDebugGroup(); }
+		void  DebugMarker (NtStringView text, RGBA8u color)																		{ RawCtx::_DebugMarker( text, color ); }
+		void  PushDebugGroup (NtStringView text, RGBA8u color)																	{ RawCtx::_PushDebugGroup( text, color ); }
+		void  PopDebugGroup ()																									{ RawCtx::_PopDebugGroup(); }
 		
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;
 		using ITransferContext::UploadImage;
 		
-		uint3  MinImageTransferGranularity () const override final;
-
-		ND_ AccumBar  AccumBarriers ()							{ return AccumBar{ *this }; }
+		uint3  MinImageTransferGranularity ()																											C_NE_OF;
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 
@@ -1036,7 +1032,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	uint3  _VTransferContextImpl<C>::MinImageTransferGranularity () const
+	uint3  _VTransferContextImpl<C>::MinImageTransferGranularity () C_NE___
 	{
 		return uint3{this->_mngr.GetQueue()->minImageTransferGranularity};
 	}

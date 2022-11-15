@@ -62,6 +62,21 @@ namespace
 			TEST( arr[0] == T(1) );
 			TEST( arr[1] == T(10) );
 			TEST( arr[2] == T(2) );
+			
+			FixedArray< T, 8 >	arr2 {arr};
+			TEST( arr2[0] == T(1) );
+			TEST( arr2[1] == T(10) );
+			TEST( arr2[2] == T(2) );
+			
+			FixedArray< T, 8 >	arr3 {RVRef(arr)};
+			TEST( arr3[0] == T(1) );
+			TEST( arr3[1] == T(10) );
+			TEST( arr3[2] == T(2) );
+			TEST( arr2 == arr3 );
+			
+			arr = arr2;
+			TEST( arr == arr2 );
+			TEST( arr == arr3 );
 		}
 		TEST( T::CheckStatistic() );
 	}

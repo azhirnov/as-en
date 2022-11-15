@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Stream/MemStream.h"
+#include "base/DataSource/MemStream.h"
 #include "UnitTest_Common.h"
 
 namespace
@@ -17,20 +17,18 @@ namespace
 	STATIC_ASSERT( not IsTrivialySerializable< SerObj >);
 
 
-	static bool  SerObj_Serialize (Serializer &ser, const void *ptr)
+	static bool  SerObj_Serialize (Serializer &ser, const void *ptr) __NE___
 	{
 		auto*	self = Cast<SerObj>(ptr);
 
-		ser( self->i, self->f, self->v );
-		return true;
+		return ser( self->i, self->f, self->v );
 	}
 
-	static bool  SerObj_Deserialize (Deserializer &deser, OUT void *ptr, bool create)
+	static bool  SerObj_Deserialize (Deserializer &deser, OUT void *ptr, bool create) __NE___
 	{
 		auto*	self = create ? PlacementNew<SerObj>(ptr) : Cast<SerObj>(ptr);
 	
-		deser( self->i, self->f, self->v );
-		return true;
+		return deser( self->i, self->f, self->v );
 	}
 	
 

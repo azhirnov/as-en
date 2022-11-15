@@ -81,7 +81,7 @@ namespace AE::Graphics
 
 		Self&  operator = (const Self &) = default;
 
-		ND_ explicit operator bool () const	{ return ObjectRef::operator bool(); }
+		ND_ explicit operator bool () const		{ return ObjectRef::operator bool(); }
 
 		ND_ auto  Cast () const;
 	};

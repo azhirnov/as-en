@@ -577,6 +577,8 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpExecuteCallableKHR : return "executeCallable";
 			case TOperator::EOpExecuteCallableNV : return "executeCallableNV";
 			case TOperator::EOpWritePackedPrimitiveIndices4x8NV : return "writePackedPrimitiveIndices4x8NV";
+			case TOperator::EOpEmitMeshTasksEXT : return "EmitMeshTasks";
+			case TOperator::EOpSetMeshOutputsEXT : return "SetMeshOutputs";
 
 		#if ENABLE_ALL
 			case TOperator::EOpNull :
@@ -756,6 +758,8 @@ namespace AE::PipelineCompiler
 		#endif
 				
 		#if ENABLE_ALL
+			case TOperator::EOpScope :
+			case TOperator::EOpDeclare :
 			case TOperator::EOpCountLeadingZeros :
 			case TOperator::EOpCountTrailingZeros :
 			case TOperator::EOpAbsDifference :
@@ -864,34 +868,6 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpWavePrefixCountBits :
 				break;
 		#endif
-
-
-
-
-			// TODO
-			/*EOpRayQueryInitialize,
-			EOpRayQueryTerminate,
-			EOpRayQueryGenerateIntersection,
-			EOpRayQueryConfirmIntersection,
-			EOpRayQueryProceed,
-			EOpRayQueryGetIntersectionType,
-			EOpRayQueryGetRayTMin,
-			EOpRayQueryGetRayFlags,
-			EOpRayQueryGetIntersectionT,
-			EOpRayQueryGetIntersectionInstanceCustomIndex,
-			EOpRayQueryGetIntersectionInstanceId,
-			EOpRayQueryGetIntersectionInstanceShaderBindingTableRecordOffset,
-			EOpRayQueryGetIntersectionGeometryIndex,
-			EOpRayQueryGetIntersectionPrimitiveIndex,
-			EOpRayQueryGetIntersectionBarycentrics,
-			EOpRayQueryGetIntersectionFrontFace,
-			EOpRayQueryGetIntersectionCandidateAABBOpaque,
-			EOpRayQueryGetIntersectionObjectRayDirection,
-			EOpRayQueryGetIntersectionObjectRayOrigin,
-			EOpRayQueryGetWorldRayDirection,
-			EOpRayQueryGetWorldRayOrigin,
-			EOpRayQueryGetIntersectionObjectToWorld,
-			EOpRayQueryGetIntersectionWorldToObject,*/
 		}
 		#if ENABLE_ALL
 			END_ENUM_CHECKS();
@@ -911,7 +887,7 @@ namespace AE::PipelineCompiler
 		TIntermNode*	root = intermediate.getTreeRoot();
 		CHECK_ERR( root );
 
-		TIntermNode*	linker_obj = nullptr;
+		TIntermNode*	linker_obj = null;
 
 		if ( auto* aggr = root->getAsAggregate() )
 		{

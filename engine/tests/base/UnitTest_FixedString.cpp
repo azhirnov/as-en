@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/Containers/FixedString.h"
-#include "base/CompileTime/Hash.h"
 #include "UnitTest_Common.h"
 
 

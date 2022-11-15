@@ -6,7 +6,6 @@
 #include "base/Math/Bytes.h"
 #include "base/Memory/UntypedAllocator.h"
 #include "base/Containers/FixedArray.h"
-#include "base/CompileTime/TemplateUtils.h"
 
 namespace AE::Base
 {
@@ -15,7 +14,7 @@ namespace AE::Base
 	// Linear Allocator
 	//
 
-	template <typename AllocatorType = UntypedAlignedAllocator,
+	template <typename AllocatorType = UntypedAllocator,
 			  uint MaxBlocks = 16,
 			  bool ThreadSafe = false
 			 >
@@ -55,12 +54,12 @@ namespace AE::Base
 
 	// methods
 	public:
-		LinearAllocator () {}
+		LinearAllocator () __NE___ {}
 		
-		explicit LinearAllocator (const Allocator_t &alloc) : _alloc{alloc}
+		explicit LinearAllocator (const Allocator_t &alloc) __NE___ : _alloc{alloc}
 		{}
 		
-		explicit LinearAllocator (Bytes blockSize) : _blockSize{ blockSize }
+		explicit LinearAllocator (Bytes blockSize) __NE___ : _blockSize{ blockSize }
 		{}
 
 		LinearAllocator (Self &&other) :
@@ -74,7 +73,7 @@ namespace AE::Base
 		Self&  operator = (const Self &) = delete;
 
 
-		Self&  operator = (Self &&rhs)
+		Self&  operator = (Self &&rhs) __NE___
 		{
 			Release();
 			_blocks		= RVRef(rhs._blocks);
@@ -84,29 +83,30 @@ namespace AE::Base
 		}
 
 
-		~LinearAllocator ()
+		~LinearAllocator () __NE___
 		{
 			Release();
 		}
 
 
-		void  SetBlockSize (Bytes size)
+		void  SetBlockSize (Bytes size) __NE___
 		{
 			_blockSize = size;
 		}
 
 
-		ND_ AE_ALLOCATOR void*  Allocate (const Bytes size, const Bytes align)
+		ND_ AE_ALLOCATOR void*  Allocate (const SizeAndAlign sizeAndAlign) __NE___
 		{
-			ASSERT( size > 0 );
+			ASSERT( sizeAndAlign.size > 0 );
+			ASSERT( sizeAndAlign.align > 0 );
 
 			for (auto& block : _blocks)
 			{
-				Bytes	offset	= AlignUp( Bytes{block.ptr} + (block.size != 0 ? _Padding + block.size : 0_b), align ) - Bytes{block.ptr};
+				Bytes	offset	= AlignUp( Bytes{block.ptr} + (block.size != 0 ? _Padding + block.size : 0_b), sizeAndAlign.align ) - Bytes{block.ptr};
 
-				if_likely( offset + size <= block.capacity )
+				if_likely( offset + sizeAndAlign.size <= block.capacity )
 				{
-					block.size = offset + size;
+					block.size = offset + sizeAndAlign.size;
 					return block.ptr + offset;
 				}
 			}
@@ -118,8 +118,8 @@ namespace AE::Base
 			}
 
 			Bytes	block_size	= _blockSize * (1 + _blocks.size() / 2);
-					block_size	= size*2 < block_size ? block_size : size*2;
-			void*	ptr			= _alloc.Allocate( block_size, _PtrAlign );
+					block_size	= sizeAndAlign.size*2 < block_size ? block_size : sizeAndAlign.size*2;
+			void*	ptr			= _alloc.Allocate( SizeAndAlign{ block_size, _PtrAlign });
 
 			if_unlikely( ptr == null )
 			{
@@ -127,26 +127,26 @@ namespace AE::Base
 				return null;
 			}
 
-			auto&	block	= _blocks.emplace_back(Block{ ptr, 0_b, block_size });
-			Bytes	offset	= AlignUp( Bytes{block.ptr}, align ) - Bytes{block.ptr};
+			auto&	block	= _blocks.emplace_back( Block{ ptr, 0_b, block_size });
+			Bytes	offset	= AlignUp( Bytes{block.ptr}, sizeAndAlign.align ) - Bytes{block.ptr};
 
 			DEBUG_ONLY( DbgInitMem( block.ptr, block.capacity ));
 			
-			block.size = offset + size;
+			block.size = offset + sizeAndAlign.size;
 			return block.ptr + offset;
 		}
 
 
 		template <typename T>
-		ND_ AE_ALLOCATOR T*  Allocate (usize count = 1)
+		ND_ AE_ALLOCATOR T*  Allocate (usize count = 1) __NE___
 		{
-			return Cast<T>( Allocate( SizeOf<T> * count, AlignOf<T> ));
+			return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }));
 		}
 		
-		void  Deallocate (void *, Bytes)		{}
-		void  Deallocate (void *, Bytes, Bytes)	{}
+		void  Deallocate (void *, Bytes)				__NE___ {}
+		void  Deallocate (void *, const SizeAndAlign )	__NE___ {}
 
-		void  Discard ()
+		void  Discard () __NE___
 		{
 			for (auto& block : _blocks)
 			{
@@ -155,15 +155,15 @@ namespace AE::Base
 			}
 		}
 
-		void  Release ()
+		void  Release () __NE___
 		{
 			for (auto& block : _blocks) {
-				_alloc.Deallocate( block.ptr, block.capacity, _PtrAlign );
+				_alloc.Deallocate( block.ptr, SizeAndAlign{ block.capacity, _PtrAlign });
 			}
 			_blocks.clear();
 		}
 
-		ND_ Bytes  TotalSize () const
+		ND_ Bytes  TotalSize () C_NE___
 		{
 			Bytes	size;
 			for (auto& block : _blocks) {
@@ -172,7 +172,7 @@ namespace AE::Base
 			return size;
 		}
 
-		ND_ ArrayView<Block>  GetBlocks () const
+		ND_ ArrayView<Block>  GetBlocks () C_NE___
 		{
 			return _blocks;
 		}

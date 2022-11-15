@@ -63,7 +63,7 @@ namespace AE::PipelineCompiler
 
 		for (usize i = 0; i < count; ++i)
 		{
-			CHECK_ERRV( sources[i] != nullptr );
+			CHECK_ERRV( sources[i] != null );
 			_AppendSource( sources[i], (lengths ? lengths[i] : strlen(sources[i])) );
 		}
 	}
@@ -169,7 +169,7 @@ namespace
 	Serialize
 =================================================
 */
-	bool  ShaderTrace::Serialize (Serializer &ser) const
+	bool  ShaderTrace::Serialize (Serializer &ser) C_NE___
 	{
 		bool	result = true;
 
@@ -199,46 +199,51 @@ namespace
 	Deserialize
 =================================================
 */
-	bool  ShaderTrace::Deserialize (Deserializer &des)
+	bool  ShaderTrace::Deserialize (Deserializer &des) __NE___
 	{
-		bool	result = true;
+		try {
+			bool	result = true;
 
-		// _exprLocations
-		{
-			uint	count = 0;
-			CHECK_ERR( des( OUT count ));
-			CHECK_ERR( count < MaxCount );
+			// _exprLocations
+			{
+				uint	count = 0;
+				CHECK_ERR( des( OUT count ));
+				CHECK_ERR( count < MaxCount );
 
-			_exprLocations.resize( count );
-			for (auto& item : _exprLocations) {
-				result &= Deserialize_ExprInfo( des, OUT item );
+				_exprLocations.resize( count );		// throw
+				for (auto& item : _exprLocations) {
+					result &= Deserialize_ExprInfo( des, OUT item );
+				}
+				CHECK_ERR( result );
 			}
-			CHECK_ERR( result );
-		}
 		
-		result &= des( OUT _varNames );
+			result &= des( OUT _varNames );
 
-		// _sources
-		{
-			uint	count = 0;
-			CHECK_ERR( des( OUT count ));
-			CHECK_ERR( count < MaxCount );
+			// _sources
+			{
+				uint	count = 0;
+				CHECK_ERR( des( OUT count ));
+				CHECK_ERR( count < MaxCount );
 
-			_sources.resize( count );
-			for (auto& item : _sources) {
-				result &= Deserialize_SourceInfo( des, OUT item );
+				_sources.resize( count );		// throw
+				for (auto& item : _sources) {
+					result &= Deserialize_SourceInfo( des, OUT item );
+				}
+				CHECK_ERR( result );
 			}
-			CHECK_ERR( result );
-		}
 		
-		//result &= des( OUT _fileMap );
+			//result &= des( OUT _fileMap );
 
-		result &= des( OUT _posOffset );
-		result &= des( OUT _dataOffset );
-		result &= des( OUT _initialPosition );
+			result &= des( OUT _posOffset );
+			result &= des( OUT _dataOffset );
+			result &= des( OUT _initialPosition );
 		
-		CHECK_ERR( result );
-		return true;
+			CHECK_ERR( result );
+			return true;
+		}
+		catch (...) {
+			return false;
+		}
 	}
 	
 /*

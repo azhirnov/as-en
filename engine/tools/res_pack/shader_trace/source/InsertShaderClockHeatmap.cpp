@@ -26,7 +26,7 @@ namespace
 		slong					_maxSymbolId				= 0;
 		bool					_startedUserDefinedSymbols	= false;
 		
-		TIntermSymbol *			_dbgStorage					= nullptr;
+		TIntermSymbol *			_dbgStorage					= null;
 
 		const String			_entryName;
 		const EShLanguage		_shLang;
@@ -52,7 +52,7 @@ namespace
 		ND_ TIntermSymbol*  GetCachedSymbolNode (const TString &name)
 		{
 			auto	iter = _cachedSymbols.find( name );
-			return	iter != _cachedSymbols.end() ? iter->second : nullptr;
+			return	iter != _cachedSymbols.end() ? iter->second : null;
 		}
 
 		ND_ TIntermSymbol*	GetDebugStorage ()						const	{ CHECK( _dbgStorage );  return _dbgStorage; }
@@ -129,7 +129,7 @@ TIntermBinary*  DebugInfo::GetDebugStorageField (const char* name) const
 			return field_access;
 		}
 	}
-	return nullptr;
+	return null;
 }
 //-----------------------------------------------------------------------------
 
@@ -333,7 +333,7 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 {
 	const auto	shader				= dbgInfo.GetShaderType();
-	const bool	is_compute			= (shader == EShLangCompute or shader == EShLangTaskNV or shader == EShLangMeshNV);
+	const bool	is_compute			= (shader == EShLangCompute or shader == EShLangTask or shader == EShLangMesh);
 	const bool	need_invocation_id	= (shader == EShLangGeometry or shader == EShLangTessControl);
 	const bool	need_primitive_id	= (shader == EShLangFragment or shader == EShLangTessControl or shader == EShLangTessEvaluation);
 	const bool	need_launch_id		= (shader == EShLangRayGen or shader == EShLangIntersect or shader == EShLangAnyHit or
@@ -632,7 +632,7 @@ ND_ static TIntermBinary*  GetRayTracingCoord (TIntermSymbol* coord, DebugInfo &
 */
 ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, DebugInfo &dbgInfo)
 {
-	TIntermSymbol*	start_time	= nullptr;
+	TIntermSymbol*	start_time	= null;
 
 	TPublicType		type;		type.init({});
 	type.basicType				= TBasicType::EbtInt;
@@ -652,7 +652,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 
 	// "ivec2  dbg_Coord = ..."
 	TIntermSymbol*	coord		= new TIntermSymbol{ dbgInfo.GetUniqueSymbolID(), "dbg_Coord", TType{type} };
-	TIntermBinary*	assign_coord = nullptr;
+	TIntermBinary*	assign_coord = null;
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( dbgInfo.GetShaderType() )
@@ -680,8 +680,8 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 				assign_coord = GetRayTracingCoord( coord, dbgInfo );
 				break;
 
-			case EShLanguage::EShLangTaskNV :
-			case EShLanguage::EShLangMeshNV :
+			case EShLanguage::EShLangTask :
+			case EShLanguage::EShLangMesh :
 				return false;	// not supported yet
 
 			case EShLanguage::EShLangCount :
@@ -999,7 +999,7 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 			loop_body->getSequence().push_back( assign_exp_val );
 			loop_body->getSequence().push_back( assign_old_val );
 
-			TIntermLoop*		loop = new TIntermLoop{ loop_body, not_eqv, nullptr, false };
+			TIntermLoop*		loop = new TIntermLoop{ loop_body, not_eqv, null, false };
 			
 			sequence->getSequence().push_back( init_old_val );
 			sequence->getSequence().push_back( loop );
@@ -1020,7 +1020,7 @@ ND_ static bool  InsertShaderTimeMeasurement (TIntermNode* root, DebugInfo &dbgI
 	CHECK_ERR( aggr );
 
 	// find shader resources entry
-	TIntermAggregate*	linker_objs	= nullptr;
+	TIntermAggregate*	linker_objs	= null;
 	
 	for (auto& entry : aggr->getSequence())
 	{
@@ -1062,7 +1062,7 @@ ND_ static bool  InsertShaderTimeMeasurement (TIntermNode* root, DebugInfo &dbgI
 	return false;
 }
 
-}	// namespace
+} // namespace
 //-----------------------------------------------------------------------------
 
 

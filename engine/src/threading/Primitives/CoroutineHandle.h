@@ -2,10 +2,11 @@
 
 #pragma once
 
-#include "threading/Common.h"
+#include "base/StdInclude.h"
 
 #ifdef AE_HAS_COROUTINE
 # include <coroutine>
+# include "threading/Common.h"
 
 namespace AE::Threading
 {
@@ -33,14 +34,14 @@ namespace AE::Threading
 
 	// methods
 	private:
-		explicit CoroutineHandle (Handle_t h) : _handle{h} {}
+		explicit CoroutineHandle (Handle_t h) __NE___ : _handle{h} {}
 
 	public:
-		CoroutineHandle () :
+		CoroutineHandle ()				__NE___ :
 			_handle{ null }
 		{}
 
-		CoroutineHandle (Self && other) :
+		CoroutineHandle (Self && other) __NE___ :
 			_handle{ other._handle }
 		{
 			other._handle = null;
@@ -48,7 +49,7 @@ namespace AE::Threading
 
 		CoroutineHandle (const Self &) = delete;
 
-		~CoroutineHandle ()
+		~CoroutineHandle ()				__NE___
 		{
 			if ( _handle )
 				_handle.destroy();
@@ -56,7 +57,7 @@ namespace AE::Threading
 
 		Self&  operator = (const Self &) = delete;
 
-		Self&  operator = (Self && rhs)
+		Self&  operator = (Self && rhs)	__NE___
 		{
 			if ( _handle )
 				_handle.destroy();
@@ -68,46 +69,46 @@ namespace AE::Threading
 		}
 
 		// checks if the handle represents a coroutine
-		ND_ constexpr bool  IsValid () const
+		ND_ constexpr bool  IsValid ()	C_NE___
 		{
 			return bool{_handle};
 		}
 
 		// resumes execution of the coroutine
-		void  Resume () const
+		void  Resume ()					C_NE___
 		{
 			ASSERT( _handle );
 			return _handle.resume();
 		}
 		
 		// checks if the coroutine has completed
-		ND_ bool  Done () const
+		ND_ bool  Done ()				C_NE___
 		{
 			ASSERT( _handle );
 			return _handle.done();
 		}
 
 		// access the promise of a coroutine
-		ND_ Promise_t&  Promise () const
+		ND_ Promise_t&  Promise ()		C_NE___
 		{
 			ASSERT( _handle );
 			return _handle.promise();
 		}
 
 		// creates a coroutine_handle from the promise object of a coroutine
-		ND_ static constexpr Self  FromPromise (Promise_t& promise)
+		ND_ static constexpr Self  FromPromise (Promise_t& promise) __NE___
 		{
 			return Self{ Handle_t::from_promise( promise )};
 		}
 
 		// exports the underlying address, i.e. the pointer backing the coroutine
-		ND_ constexpr void*  Address () const
+		ND_ constexpr void*  Address () C_NE___
 		{
 			ASSERT( _handle );
 			return _handle.address();
 		}
 
-		ND_ constexpr void*  Release ()
+		ND_ constexpr void*  Release ()	__NE___
 		{
 			ASSERT( _handle );
 			void*	addr = _handle.address();
@@ -116,12 +117,12 @@ namespace AE::Threading
 		}
 		
 		// imports a coroutine from a pointer
-		ND_ static constexpr Self  FromAddress (void* const addr)
+		ND_ static constexpr Self  FromAddress (void* const addr) __NE___
 		{
 			return Self{ Handle_t::from_address( addr )};
 		}
 
-		void  Destroy ()
+		void  Destroy ()				__NE___
 		{
 			if ( _handle )
 				_handle.destroy();
@@ -129,7 +130,7 @@ namespace AE::Threading
 			_handle = null;
 		}
 
-		ND_ HashVal  GetHash () const
+		ND_ HashVal  GetHash ()			C_NE___
 		{
 			return HashOf( _handle );
 		}
@@ -143,7 +144,7 @@ namespace std
 {
 	template <typename PromiseType>
 	struct hash< AE::Threading::CoroutineHandle<PromiseType> > {
-		ND_ size_t  operator () (const AE::Threading::CoroutineHandle<PromiseType> &c) const {
+		ND_ size_t  operator () (const AE::Threading::CoroutineHandle<PromiseType> &c) C_NE___ {
 			return size_t(c.GetHash());
 		}
 	};

@@ -18,12 +18,12 @@ namespace AE::ECS
 		{
 			ushort	value;
 
-			constexpr _ComponentID () : value{UMax} {}
-			constexpr explicit _ComponentID (ushort id) : value{id} {}
+			constexpr _ComponentID ()									__NE___	: value{UMax} {}
+			constexpr explicit _ComponentID (ushort id)					__NE___	: value{id} {}
 
-			ND_ constexpr bool  operator <  (const _ComponentID &rhs) const	{ return value <  rhs.value; }
-			ND_ constexpr bool  operator >  (const _ComponentID &rhs) const	{ return value >  rhs.value; }
-			ND_ constexpr bool  operator == (const _ComponentID &rhs) const	{ return value == rhs.value; }
+			ND_ constexpr bool  operator <  (const _ComponentID &rhs)	C_NE___	{ return value <  rhs.value; }
+			ND_ constexpr bool  operator >  (const _ComponentID &rhs)	C_NE___	{ return value >  rhs.value; }
+			ND_ constexpr bool  operator == (const _ComponentID &rhs)	C_NE___	{ return value == rhs.value; }
 		};
 
 	} // _hidden_
@@ -50,7 +50,7 @@ namespace AE::ECS
 		static constexpr Bytes16u			align	{ IsEmpty<Comp> ? 0 : alignof(Comp) };
 		static constexpr Bytes16u			size	{ IsEmpty<Comp> ? 0 : sizeof(Comp) };
 
-		static void Ctor (OUT void *comp)
+		static void  Ctor (OUT void *comp) __NE___
 		{
 			PlacementNew<Comp>( comp );
 		}
@@ -81,7 +81,7 @@ namespace std
 	template <uint32_t UID>
 	struct hash< AE::ECS::_hidden_::_ComponentID<UID> >
 	{
-		ND_ size_t  operator () (const AE::ECS::_hidden_::_ComponentID<UID> &id) const
+		ND_ size_t  operator () (const AE::ECS::_hidden_::_ComponentID<UID> &id) C_NE___
 		{
 			return AE::Math::BitRotateLeft( size_t(id.value), UID*8 );
 		}

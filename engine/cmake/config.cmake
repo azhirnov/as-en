@@ -5,8 +5,9 @@ set( AE_ENABLE_MEMLEAK_CHECKS ON CACHE BOOL "enable memory leak checks" )
 #----------------------------------------------------------
 # advanced settings
 
-set( AE_NO_EXCEPTIONS ON CACHE BOOL "disable C++ exceptions" )
-set( AE_CI_BUILD OFF CACHE BOOL "CI settings" )
+set( AE_USE_SANITIZER	OFF CACHE BOOL "enable (address/...) sanitizer" )
+set( AE_NO_EXCEPTIONS 	ON  CACHE BOOL "disable engine exceptions, std exceptions is always enabled" )
+set( AE_CI_BUILD 		OFF CACHE BOOL "CI settings" )
 mark_as_advanced( AE_NO_EXCEPTIONS AE_CI_BUILD )
 
 #----------------------------------------------------------

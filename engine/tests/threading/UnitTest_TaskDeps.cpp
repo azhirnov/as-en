@@ -7,6 +7,8 @@
 
 namespace
 {
+	using EStatus = IAsyncTask::EStatus;
+
 	struct ExeOrder
 	{
 		Mutex	guard;
@@ -37,7 +39,7 @@ namespace
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test1_Task1"; }
+		StringView  DbgName () C_NE_OV { return "Test1_Task1"; }
 	};
 
 	class Test1_Task2 : public IAsyncTask
@@ -54,7 +56,7 @@ namespace
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test1_Task2"; }
+		StringView  DbgName () C_NE_OV { return "Test1_Task2"; }
 	};
 
 	static void  TaskDeps_Test1 ()
@@ -69,8 +71,8 @@ namespace
 		scheduler->AddThread( MakeRC<WorkerThread>() );
 		
 		TEST( scheduler->Wait({ task1, task2 }));
-		TEST( task1->Status() == IAsyncTask::EStatus::Completed );
-		TEST( task2->Status() == IAsyncTask::EStatus::Completed );
+		TEST( task1->Status() == EStatus::Completed );
+		TEST( task2->Status() == EStatus::Completed );
 
 		TEST( value.guard.try_lock() );
 		TEST( value.str == "012" );
@@ -94,14 +96,14 @@ namespace
 			value.guard.unlock();
 		}
 
-		void  OnCancel () override
+		void  OnCancel () __NE_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '1';
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test2_Task1"; }
+		StringView  DbgName () C_NE_OV { return "Test2_Task1"; }
 	};
 
 	class Test2_Task2 : public IAsyncTask
@@ -118,14 +120,14 @@ namespace
 			value.guard.unlock();
 		}
 
-		void  OnCancel () override
+		void  OnCancel () __NE_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '2';
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test2_Task2"; }
+		StringView  DbgName () C_NE_OV { return "Test2_Task2"; }
 	};
 
 	static void  TaskDeps_Test2 ()
@@ -144,8 +146,8 @@ namespace
 		scheduler->AddThread( MakeRC<WorkerThread>() );
 		
 		TEST( scheduler->Wait({ task1, task2 }));
-		TEST( task1->Status() == IAsyncTask::EStatus::Canceled );
-		TEST( task2->Status() == IAsyncTask::EStatus::Canceled );
+		TEST( task1->Status() == EStatus::Canceled );
+		TEST( task2->Status() == EStatus::Canceled );
 		
 		TEST( value.guard.try_lock() );
 		TEST( value.str == "012" );
@@ -169,14 +171,14 @@ namespace
 			value.guard.unlock();
 		}
 
-		void  OnCancel () override
+		void  OnCancel () __NE_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '1';
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test3_Task1"; }
+		StringView  DbgName () C_NE_OV { return "Test3_Task1"; }
 	};
 
 	class Test3_Task2 : public IAsyncTask
@@ -193,14 +195,14 @@ namespace
 			value.guard.unlock();
 		}
 
-		void  OnCancel () override
+		void  OnCancel () __NE_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'B';
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test3_Task2"; }
+		StringView  DbgName () C_NE_OV { return "Test3_Task2"; }
 	};
 	
 	static void  TaskDeps_Test3 ()
@@ -219,8 +221,8 @@ namespace
 		scheduler->AddThread( MakeRC<WorkerThread>() );
 		
 		TEST( scheduler->Wait({ task1, task2 }));
-		TEST( task1->Status() == IAsyncTask::EStatus::Canceled );
-		TEST( task2->Status() == IAsyncTask::EStatus::Completed );
+		TEST( task1->Status() == EStatus::Canceled );
+		TEST( task2->Status() == EStatus::Completed );
 		
 		TEST( value.guard.try_lock() );
 		TEST( value.str == "012" );
@@ -260,7 +262,7 @@ namespace
 				_mngr->Update();
 			}
 
-			StringView  DbgName () const override { return "Test4_TaskDepManager::UpdateTask"; }
+			StringView  DbgName () C_NE_OV { return "Test4_TaskDepManager::UpdateTask"; }
 		};
 
 	private:
@@ -288,7 +290,7 @@ namespace
 				Scheduler().Run<UpdateTask>( Tuple{Cast<Test4_TaskDepManager>(GetRC())} );
 		}
 
-		bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) override
+		bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE_OV
 		{
 			CHECK_ERR( dep.Is<Test4_CustomDep>() );
 			EXLOCK( _depsListGuard );
@@ -317,14 +319,14 @@ namespace
 			value.guard.unlock();
 		}
 
-		void  OnCancel () override
+		void  OnCancel () __NE_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'A';
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test4_Task1"; }
+		StringView  DbgName () C_NE_OV { return "Test4_Task1"; }
 	};
 
 	class Test4_Task2 : public IAsyncTask
@@ -341,14 +343,14 @@ namespace
 			value.guard.unlock();
 		}
 
-		void  OnCancel () override
+		void  OnCancel () __NE_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'B';
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test4_Task2"; }
+		StringView  DbgName () C_NE_OV { return "Test4_Task2"; }
 	};
 
 	static void  TaskDeps_Test4 ()
@@ -371,13 +373,13 @@ namespace
 		scheduler->AddThread( MakeRC<WorkerThread>() );
 		
 		TEST( scheduler->Wait( {task1} ));
-		TEST( task1->Status() == IAsyncTask::EStatus::Completed );
+		TEST( task1->Status() == EStatus::Completed );
 		TEST( not scheduler->Wait( {task2}, Default, nanoseconds{100'000} ));
 
 		flag.store( true );
 		
 		TEST( scheduler->Wait({ task1, task2 }));
-		TEST( task2->Status() == IAsyncTask::EStatus::Completed );
+		TEST( task2->Status() == EStatus::Completed );
 		TEST( flag.load() == true );
 		
 		TEST( value.guard.try_lock() );

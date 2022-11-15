@@ -24,7 +24,7 @@ namespace
 					{
 						ThreadUtils::Yield();
 
-						void*	ptr = alloc.Allocate( Bytes{ElemSize}, 8_b );
+						void*	ptr = alloc.Allocate( SizeAndAlign{ Bytes{ElemSize}, 8_b });
 						if ( ptr == null )
 							return;
 
@@ -47,7 +47,7 @@ namespace
 
 				ref.fill( ubyte(i) );
 
-				TEST( std::memcmp( ref.data(), items[i], ElemSize ) == 0 );
+				TEST( MemEqual( ref.data(), items[i], Bytes{ElemSize} ));
 			}
 		}
 	}

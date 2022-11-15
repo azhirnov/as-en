@@ -18,28 +18,15 @@ namespace AE::Base
 	public:
 		static constexpr bool	IsThreadSafe = false;	// TODO ?
 
-		virtual ~IAllocator () {}
+		template <typename T>	using StdAlloc_t = StdAllocatorRef< T, IAllocator >;
 
-		ND_ virtual void*  Allocate (Bytes size) = 0;
-			virtual void   Deallocate (void *ptr, Bytes size) = 0;
-	};
-	
+			virtual ~IAllocator ()													__NE___	{}
 
+		ND_ virtual void*  Allocate (Bytes size)									__NE___ = 0;
+			virtual void   Deallocate (void *ptr, Bytes size)						__NE___ = 0;
 
-	//
-	// Aligned Allocator interface
-	//
-	class IAlignedAllocator : public EnableRC<IAlignedAllocator>
-	{
-	public:
-		static constexpr bool	IsThreadSafe = false;	// TODO ?
-
-		template <typename T>	using StdAlloc_t = StdAllocatorRef< T, IAlignedAllocator >;
-		
-		virtual ~IAlignedAllocator () {}
-
-		ND_ virtual void*  Allocate (Bytes size, Bytes align) = 0;
-			virtual void   Deallocate (void *ptr, Bytes size, Bytes align) = 0;
+		ND_ virtual void*  Allocate (const SizeAndAlign sizeAndAlign)				__NE___ = 0;
+			virtual void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)	__NE___ = 0;
 	};
 
 	
@@ -53,12 +40,19 @@ namespace AE::Base
 
 	// methods
 	public:
-		AllocatorImpl () {}
-		explicit AllocatorImpl (T alloc) : _alloc{alloc} {}
-		~AllocatorImpl () override {}
+		AllocatorImpl ()												__NE___ {}
+		AllocatorImpl (AllocatorImpl && other)							__NE___ : _alloc{ RVRef(other._alloc) } {}
 
-		void*  Allocate (Bytes size)				override	{ return _alloc.Allocate( size ); }
-		void   Deallocate (void *ptr, Bytes size)	override	{ return _alloc.Deallocate( ptr, size ); }
+		template <typename ...Args>
+		explicit AllocatorImpl (Args&& ... args)						__TH___ : _alloc{ FwdArg<Args>(args)... } {}
+
+		~AllocatorImpl ()												__NE_OV {}
+
+		void*  Allocate (Bytes size)									__NE_OV	{ return _alloc.Allocate( size ); }
+		void   Deallocate (void *ptr, Bytes size)						__NE_OV	{ return _alloc.Deallocate( ptr, size ); }
+
+		void*  Allocate (const SizeAndAlign sizeAndAlign)				__NE_OV	{ return _alloc.Allocate( sizeAndAlign ); }
+		void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)	__NE_OV	{ return _alloc.Deallocate( ptr, sizeAndAlign ); }
 	};
 	
 
@@ -71,50 +65,75 @@ namespace AE::Base
 
 	// methods
 	public:
-		AllocatorImpl () {}
-		explicit AllocatorImpl (T alloc) : _alloc{alloc} {}
-		explicit AllocatorImpl (const AllocatorRef<T> &ref) : _alloc{ref.GetAllocatorRef()} {}
-		~AllocatorImpl () override {}
+		AllocatorImpl ()												__NE___ {}
+		AllocatorImpl (AllocatorImpl && other)							__NE___ : _alloc{ RVRef(other._alloc) } {}
+		explicit AllocatorImpl (const AllocatorRef<T> &ref)				__NE___ : _alloc{ ref.GetAllocatorRef() } {}
+		
+		template <typename ...Args>
+		explicit AllocatorImpl (Args&& ... args)						__TH___ : _alloc{ FwdArg<Args>(args)... } {}
 
-		void*  Allocate (Bytes size)				override	{ return _alloc.Allocate( size ); }
-		void   Deallocate (void *ptr, Bytes size)	override	{ return _alloc.Deallocate( ptr, size ); }
+		~AllocatorImpl ()												__NE_OV {}
+
+		void*  Allocate (Bytes size)									__NE_OV	{ return _alloc.Allocate( size ); }
+		void   Deallocate (void *ptr, Bytes size)						__NE_OV	{ return _alloc.Deallocate( ptr, size ); }
+
+		void*  Allocate (const SizeAndAlign sizeAndAlign)				__NE_OV	{ return _alloc.Allocate( sizeAndAlign ); }
+		void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)	__NE_OV	{ return _alloc.Deallocate( ptr, sizeAndAlign ); }
 	};
 
 
 	template <typename T>
-	class AlignedAllocatorImpl final : public IAlignedAllocator
+	class AllocatorImpl2 final : public IAllocator
 	{
 	// variables
 	private:
 		T	_alloc;
 
+		static constexpr Bytes	_BaseAlign	{__STDCPP_DEFAULT_NEW_ALIGNMENT__};
+
 	// methods
 	public:
-		AlignedAllocatorImpl () {}
-		explicit AlignedAllocatorImpl (T alloc) : _alloc{alloc} {}
-		~AlignedAllocatorImpl () override {}
+		AllocatorImpl2 ()												__NE___ {}
+		AllocatorImpl2 (AllocatorImpl2 && other)						__NE___ : _alloc{ RVRef(other._alloc) } {}
+		
+		template <typename ...Args>
+		explicit AllocatorImpl2 (Args&& ... args)						__TH___ : _alloc{ FwdArg<Args>(args)... } {}
 
-		void*  Allocate (Bytes size, Bytes align)				override	{ return _alloc.Allocate( size, align ); }
-		void   Deallocate (void *ptr, Bytes size, Bytes align)	override	{ return _alloc.Deallocate( ptr, size, align ); }
+		~AllocatorImpl2 ()												__NE_OV {}
+
+		void*  Allocate (Bytes size)									__NE_OV	{ return _alloc.Allocate( SizeAndAlign{ size, _BaseAlign }); }
+		void   Deallocate (void *ptr, Bytes size)						__NE_OV	{ return _alloc.Deallocate( ptr, SizeAndAlign{ size, _BaseAlign }); }
+
+		void*  Allocate (const SizeAndAlign sizeAndAlign)				__NE_OV	{ return _alloc.Allocate( sizeAndAlign ); }
+		void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)	__NE_OV	{ return _alloc.Deallocate( ptr, sizeAndAlign ); }
 	};
-
+	
 
 	template <typename T>
-	class AlignedAllocatorImpl< AlignedAllocatorRef<T> > final : public IAlignedAllocator
+	class AllocatorImpl2< AllocatorRef<T> > final : public IAllocator
 	{
 	// variables
 	private:
 		T	_alloc;
+		
+		static constexpr Bytes	_BaseAlign	{__STDCPP_DEFAULT_NEW_ALIGNMENT__};
 
 	// methods
 	public:
-		AlignedAllocatorImpl () {}
-		explicit AlignedAllocatorImpl (T alloc) : _alloc{alloc} {}
-		explicit AlignedAllocatorImpl (const AlignedAllocatorRef<T> &ref) : _alloc{ref.GetAllocatorRef()} {}
-		~AlignedAllocatorImpl () override {}
+		AllocatorImpl2 ()												__NE___ {}
+		AllocatorImpl2 (AllocatorImpl2 && other)						__NE___ : _alloc{ RVRef(other._alloc) } {}
+		explicit AllocatorImpl2 (const AllocatorRef<T> &ref)			__NE___ : _alloc{ ref.GetAllocatorRef() } {}
+		
+		template <typename ...Args>
+		explicit AllocatorImpl2 (Args&& ... args)						__TH___ : _alloc{ FwdArg<Args>(args)... } {}
 
-		void*  Allocate (Bytes size, Bytes align)				override	{ return _alloc.Allocate( size, align ); }
-		void   Deallocate (void *ptr, Bytes size, Bytes align)	override	{ return _alloc.Deallocate( ptr, size, align ); }
+		~AllocatorImpl2 ()												__NE_OV {}
+		
+		void*  Allocate (Bytes size)									__NE_OV	{ return _alloc.Allocate( SizeAndAlign{ size, _BaseAlign }); }
+		void   Deallocate (void *ptr, Bytes size)						__NE_OV	{ return _alloc.Deallocate( ptr, SizeAndAlign{ size, _BaseAlign }); }
+
+		void*  Allocate (const SizeAndAlign sizeAndAlign)				__NE_OV	{ return _alloc.Allocate( sizeAndAlign ); }
+		void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)	__NE_OV	{ return _alloc.Deallocate( ptr, sizeAndAlign ); }
 	};
 
 

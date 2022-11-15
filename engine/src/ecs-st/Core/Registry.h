@@ -351,7 +351,7 @@ DEBUG_ONLY(
 			ComponentDbgView (T const* ptr, usize count) : _comps{ptr, count}, _type{typeid(T)} {}
 			~ComponentDbgView () override {}
 
-			Unique<IComponentDbgView>  ElementView (usize index) const override {
+			Unique<IComponentDbgView>  ElementView (usize index)	C____OV {
 				return MakeUnique<ComponentDbgView<T>>( _comps.section( index, 1 ).data(), 1u );
 			}
 		};

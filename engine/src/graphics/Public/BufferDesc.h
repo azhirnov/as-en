@@ -22,25 +22,25 @@ namespace AE::Graphics
 		EMemoryType		memType		= EMemoryType::DeviceLocal;
 
 	// methods
-		BufferDesc () {}
+		BufferDesc () __NE___ {}
 
 		BufferDesc (Bytes			size,
 					EBufferUsage	usage,
 					EBufferOpt		options	= Default,
 					EQueueMask		queues	= Default,
-					EMemoryType		memType	= EMemoryType::DeviceLocal) :
+					EMemoryType		memType	= EMemoryType::DeviceLocal) __NE___ :
 			size{size}, usage{usage}, options{options}, queues{queues}, memType{memType} {}
 		
 		// Will remove unsupported combinations
-		void  Validate ();
+		void  Validate () __NE___;
 
-		ND_ bool  operator == (const BufferDesc &rhs) const;
+		ND_ bool  operator == (const BufferDesc &rhs) C_NE___;
 
-		BufferDesc&  SetSize (Bytes value)			{ size		= value;	return *this; }
-		BufferDesc&  SetUsage (EBufferUsage value)	{ usage		= value;	return *this; }
-		BufferDesc&  SetOptions (EBufferOpt value)	{ options	= value;	return *this; }
-		BufferDesc&  SetQueues (EQueueMask value)	{ queues	= value;	return *this; }
-		BufferDesc&  SetMemory (EMemoryType value)	{ memType	= value;	return *this; }
+		BufferDesc&  SetSize (Bytes value)			__NE___	{ size		= value;	return *this; }
+		BufferDesc&  SetUsage (EBufferUsage value)	__NE___	{ usage		= value;	return *this; }
+		BufferDesc&  SetOptions (EBufferOpt value)	__NE___	{ options	= value;	return *this; }
+		BufferDesc&  SetQueues (EQueueMask value)	__NE___	{ queues	= value;	return *this; }
+		BufferDesc&  SetMemory (EMemoryType value)	__NE___	{ memType	= value;	return *this; }
 	};
 
 
@@ -57,16 +57,16 @@ namespace AE::Graphics
 		EPixelFormat		format	= Default;
 
 	// methods
-		BufferViewDesc () {}
+		BufferViewDesc () __NE___ {}
 
 		BufferViewDesc (EPixelFormat	format,
 						Bytes			offset,
-						Bytes			size) :
+						Bytes			size) __NE___ :
 			offset{offset}, size{size}, format{format} {}
 
-		void  Validate (const BufferDesc &desc);
+		void  Validate (const BufferDesc &desc) __NE___;
 		
-		ND_ bool  operator == (const BufferViewDesc &rhs) const;
+		ND_ bool  operator == (const BufferViewDesc &rhs) C_NE___;
 	};
 
 
@@ -86,7 +86,7 @@ namespace std
 {
 	template <>
 	struct hash< AE::Graphics::BufferViewDesc > {
-		ND_ size_t  operator () (const AE::Graphics::BufferViewDesc &value) const;
+		ND_ size_t  operator () (const AE::Graphics::BufferViewDesc &value) C_NE___;
 	};
 
 } // std

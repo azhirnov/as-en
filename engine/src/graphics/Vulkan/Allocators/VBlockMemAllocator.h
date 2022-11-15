@@ -46,7 +46,7 @@ namespace AE::Graphics
 			Page			pages [_PageCount];		// write access protected by 'allocated' bit in 'hiLevel'
 
 			PageArr ();
-			PageArr (const PageArr &) : PageArr{} {}
+			PageArr (const PageArr &other) : PageArr{} { ASSERT( other.hiLevel.load() == 0 ); }
 		};
 
 		struct Data
@@ -72,29 +72,29 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VBlockMemAllocator (Bytes blockSize, Bytes pageSize);
-		~VBlockMemAllocator () override;
+		VBlockMemAllocator (Bytes blockSize, Bytes pageSize)								__NE___;
+		~VBlockMemAllocator ()																__NE_OV;
 		
 	  // IGfxMemAllocator //
-		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data) override;
-		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) override;
+		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)		__NE_OV;
+		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) __NE_OV;
 
-		bool  Dealloc (INOUT Storage_t &data) override;
+		bool  Dealloc (INOUT Storage_t &data)												__NE_OV;
 			
-		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info) const override;
+		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info)				C_NE_OV;
 		
-		Bytes  MinAlignment ()		const override	{ return _blockSize; }
-		Bytes  MaxAllocationSize ()	const override	{ return _blockSize; }
+		Bytes  MinAlignment ()																C_NE_OV	{ return _blockSize; }
+		Bytes  MaxAllocationSize ()															C_NE_OV	{ return _blockSize; }
 
 
 	private:
 		ND_ static Data &		_CastStorage (Storage_t &data)			{ return *data.Ptr<Data>(); }
 		ND_ static Data const&	_CastStorage (const Storage_t &data)	{ return *data.Ptr<Data>(); }
 		
-		ND_ Bytes			_PageSize ()					const		{ return _blockSize * _bitsPerPage; }
+		ND_ Bytes				_PageSize ()					const	{ return _blockSize * _bitsPerPage; }
 		
-		ND_ Bytes			_GetOffset (const Data &data)	const		{ return data.blockIndex * _blockSize; }
-		ND_ VkDeviceMemory	_GetMemory (const Data &data)	const		{ return data.page->pages[data.pageIndex].memory; }
+		ND_ Bytes				_GetOffset (const Data &data)	const	{ return data.blockIndex * _blockSize; }
+		ND_ VkDeviceMemory		_GetMemory (const Data &data)	const	{ return data.page->pages[data.pageIndex].memory; }
 		
 		ND_ bool  _IsValidPage (const PageArr* page) const;
 		ND_ bool  _Allocate (const VkMemoryRequirements &memReq, EMemoryType memType, bool shaderAddress, bool isImage, OUT Data &);

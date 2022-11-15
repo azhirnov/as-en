@@ -20,25 +20,27 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		constexpr ImageLayer () {}
-		explicit constexpr ImageLayer (uint value) : _value( CheckCast<ushort>(value)) {}
-
-		ND_ constexpr uint	Get ()								const	{ return _value; }
+		constexpr ImageLayer ()										__NE___	{}
 		
-		ND_ ImageLayer		operator + (const ImageLayer &rhs)	const	{ return ImageLayer{ Get() + rhs.Get() }; }
+		template <typename T, typename = EnableIf<IsUnsignedInteger<T>> >
+		explicit constexpr ImageLayer (T value)						__NE___	: _value( CheckCast<ushort>(value)) {}
 
-		ND_ constexpr bool	operator == (const ImageLayer &rhs) const	{ return _value == rhs._value; }
-		ND_ constexpr bool	operator != (const ImageLayer &rhs) const	{ return _value != rhs._value; }
-		ND_ constexpr bool	operator >  (const ImageLayer &rhs) const	{ return _value >  rhs._value; }
-		ND_ constexpr bool	operator <  (const ImageLayer &rhs) const	{ return _value <  rhs._value; }
-		ND_ constexpr bool	operator >= (const ImageLayer &rhs) const	{ return _value >= rhs._value; }
-		ND_ constexpr bool	operator <= (const ImageLayer &rhs) const	{ return _value <= rhs._value; }
+		ND_ constexpr uint	Get ()									C_NE___	{ return _value; }
+		
+		ND_ ImageLayer		operator + (const ImageLayer &rhs)		C_NE___	{ return ImageLayer{ Get() + rhs.Get() }; }
 
-		ImageLayer&			operator *= (uint rhs)						{ _value = static_cast<ushort>(_value * rhs);  return *this; }
+		ND_ constexpr bool	operator == (const ImageLayer &rhs)		C_NE___	{ return _value == rhs._value; }
+		ND_ constexpr bool	operator != (const ImageLayer &rhs)		C_NE___	{ return _value != rhs._value; }
+		ND_ constexpr bool	operator >  (const ImageLayer &rhs)		C_NE___	{ return _value >  rhs._value; }
+		ND_ constexpr bool	operator <  (const ImageLayer &rhs)		C_NE___	{ return _value <  rhs._value; }
+		ND_ constexpr bool	operator >= (const ImageLayer &rhs)		C_NE___	{ return _value >= rhs._value; }
+		ND_ constexpr bool	operator <= (const ImageLayer &rhs)		C_NE___	{ return _value <= rhs._value; }
+
+		ImageLayer&			operator *= (uint rhs)					__NE___	{ _value = static_cast<ushort>(_value * rhs);  return *this; }
 	};
 	
 
-	ND_ inline constexpr ImageLayer operator "" _layer (unsigned long long value)	{ return ImageLayer{ uint(value) }; }
+	ND_ inline constexpr ImageLayer operator "" _layer (unsigned long long value)	__NE___	{ return ImageLayer{ uint(value) }; }
 
 
 } // AE::Graphics
@@ -56,7 +58,7 @@ namespace std
 	template <>
 	struct hash< AE::Graphics::ImageLayer >
 	{
-		ND_ size_t  operator () (const AE::Graphics::ImageLayer &value) const
+		ND_ size_t  operator () (const AE::Graphics::ImageLayer &value) C_NE___
 		{
 			return size_t(AE::Base::HashOf( value.Get() ));
 		}

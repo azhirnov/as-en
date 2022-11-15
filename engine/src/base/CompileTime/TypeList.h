@@ -202,6 +202,17 @@ namespace _hidden_
 
 	template <typename T>
 	static constexpr bool	IsTypeList = Base::_hidden_::_IsTypeList< T >::value;
+	
+
+	template <typename ...Types>
+	static constexpr bool	AllNothrowCopyCtor		= TypeList< Types... >::template ForEach_And< IsNothrowCopyCtor_t >();
+	
+	template <typename ...Types>
+	static constexpr bool	AllNothrowMoveCtor		= TypeList< Types... >::template ForEach_And< IsNothrowMoveCtor_t >();
+	
+	template <typename ...Types>
+	static constexpr bool	AllNothrowDefaultCtor	= TypeList< Types... >::template ForEach_And< IsNothrowDefaultCtor_t >();
+
 
 } // AE::Base
 

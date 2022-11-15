@@ -15,8 +15,8 @@
 #include "base/Containers/StructView.h"
 #include "base/Containers/AnyTypeRef.h"
 
-#include "base/Stream/Stream.h"
-#include "base/Stream/FastStream.h"
+#include "base/DataSource/Stream.h"
+#include "base/DataSource/FastStream.h"
 #include "base/Utils/NamedID.h"
 #include "base/Utils/NamedID_HashCollisionCheck.h"
 #include "base/Utils/Helpers.h"

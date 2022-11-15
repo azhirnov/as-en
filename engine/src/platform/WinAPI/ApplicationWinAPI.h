@@ -44,13 +44,13 @@ namespace AE::App
 
 
 	// IApplication //
-		WindowPtr		CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*) override;
-		
-		RC<IFileStorage> OpenBuiltinStorage () override { return null; }
+		WindowPtr	CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*) override;
 
-		Monitors_t		GetMonitors (bool update = false) override;
+		Monitors_t	GetMonitors (bool update = false) override;
 		
-		StringView		GetApiName () const override	{ return "winapi"; }
+		StringView	GetApiName () const override	{ return "winapi"; }
+		
+		RC<IVirtualFileStorage> OpenBuiltinStorage () override { return null; }
 
 		ArrayView<const char*>  GetVulkanInstanceExtensions () override;
 

@@ -2,6 +2,10 @@
 
 #pragma once
 
+#include "base/StdInclude.h"
+#include <sstream>
+#include <charconv>
+
 #include "base/Math/Math.h"
 #include "base/Math/Vec.h"
 #include "base/Math/Rectangle.h"
@@ -16,9 +20,6 @@
 #include "base/Utils/FileSystem.h"
 #include "base/Algorithms/Utf8.h"
 
-#include <sstream>
-#include <charconv>
-
 namespace AE::Base
 {
 	using namespace std::string_literals;
@@ -32,61 +33,61 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename A1, typename A2>
-	forceinline BasicString<T,A1>&&  operator << (BasicString<T,A1> &&lhs, const BasicString<T,A2> &rhs)
+	forceinline BasicString<T,A1>&&  operator << (BasicString<T,A1> &&lhs, const BasicString<T,A2> &rhs) __TH___
 	{
 		return RVRef( RVRef(lhs).append( rhs.data(), rhs.size() ));
 	}
 
 	template <typename T, typename A1, typename A2>
-	forceinline BasicString<T,A1>&  operator << (BasicString<T,A1> &lhs, const BasicString<T,A2> &rhs)
+	forceinline BasicString<T,A1>&  operator << (BasicString<T,A1> &lhs, const BasicString<T,A2> &rhs) __TH___
 	{
 		return lhs.append( rhs.data(), rhs.size() );
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const BasicStringView<T> &rhs)
+	forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const BasicStringView<T> &rhs) __TH___
 	{
 		return RVRef( RVRef(lhs).append( rhs.data(), rhs.size() ));
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const BasicStringView<T> &rhs)
+	forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const BasicStringView<T> &rhs) __TH___
 	{
 		return lhs.append( rhs.data(), rhs.size() );
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const NtBasicStringView<T> &rhs)
+	forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const NtBasicStringView<T> &rhs) __TH___
 	{
 		return RVRef( RVRef(lhs).append( rhs.c_str(), rhs.size() ));
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const NtBasicStringView<T> &rhs)
+	forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const NtBasicStringView<T> &rhs) __TH___
 	{
 		return lhs.append( rhs.c_str(), rhs.size() );
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, T const * const rhs)
+	forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, T const * const rhs) __TH___
 	{
 		return RVRef( RVRef(lhs).append( rhs ));
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, T const * const rhs)
+	forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, T const * const rhs) __TH___
 	{
 		return lhs.append( rhs );
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const T rhs)
+	forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const T rhs) __TH___
 	{
 		return RVRef( RVRef(lhs) += rhs );
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const T rhs)
+	forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const T rhs) __TH___
 	{
 		return (lhs += rhs);
 	}
@@ -100,70 +101,70 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename A1, typename A2>
-	forceinline BasicString<T,A1>&&  operator >> (const BasicString<T,A2> &lhs, BasicString<T,A1> &&rhs)
+	forceinline BasicString<T,A1>&&  operator >> (const BasicString<T,A2> &lhs, BasicString<T,A1> &&rhs) __TH___
 	{
 		rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
 		return RVRef(rhs);
 	}
 
 	template <typename T, typename A1, typename A2>
-	forceinline BasicString<T,A1>&  operator >> (const BasicString<T,A2> &lhs, BasicString<T,A1> &rhs)
+	forceinline BasicString<T,A1>&  operator >> (const BasicString<T,A2> &lhs, BasicString<T,A1> &rhs) __TH___
 	{
 		rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
 		return rhs;
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&&  operator >> (const BasicStringView<T> &lhs, BasicString<T,A> &&rhs)
+	forceinline BasicString<T,A>&&  operator >> (const BasicStringView<T> &lhs, BasicString<T,A> &&rhs) __TH___
 	{
 		rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
 		return RVRef(rhs);
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&  operator >> (const BasicStringView<T> &lhs, BasicString<T,A> &rhs)
+	forceinline BasicString<T,A>&  operator >> (const BasicStringView<T> &lhs, BasicString<T,A> &rhs) __TH___
 	{
 		rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
 		return rhs;
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&&  operator >> (const NtBasicStringView<T> &lhs, BasicString<T,A> &&rhs)
+	forceinline BasicString<T,A>&&  operator >> (const NtBasicStringView<T> &lhs, BasicString<T,A> &&rhs) __TH___
 	{
 		rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
 		return RVRef(rhs);
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&  operator >> (const NtBasicStringView<T> &lhs, BasicString<T,A> &rhs)
+	forceinline BasicString<T,A>&  operator >> (const NtBasicStringView<T> &lhs, BasicString<T,A> &rhs) __TH___
 	{
 		rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
 		return rhs;
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&&  operator >> (T const * const lhs, BasicString<T,A> &&rhs)
+	forceinline BasicString<T,A>&&  operator >> (T const * const lhs, BasicString<T,A> &&rhs) __TH___
 	{
 		rhs.insert( rhs.begin(), lhs );
 		return RVRef(rhs);
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&  operator >> (T const * const lhs, BasicString<T,A> &rhs)
+	forceinline BasicString<T,A>&  operator >> (T const * const lhs, BasicString<T,A> &rhs) __TH___
 	{
 		rhs.insert( 0u, lhs );
 		return rhs;
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&&  operator >> (const T lhs, BasicString<T,A> &&rhs)
+	forceinline BasicString<T,A>&&  operator >> (const T lhs, BasicString<T,A> &&rhs) __TH___
 	{
 		rhs.insert( 0u, lhs );
 		return RVRef(rhs);
 	}
 
 	template <typename T, typename A>
-	forceinline BasicString<T,A>&  operator >> (const T lhs, BasicString<T,A> &rhs)
+	forceinline BasicString<T,A>&  operator >> (const T lhs, BasicString<T,A> &rhs) __TH___
 	{
 		rhs.insert( 0u, lhs );
 		return rhs;
@@ -178,7 +179,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename StringType>
-	ND_ forceinline bool  IsNullTerminated (const StringType &str)
+	ND_ forceinline bool  IsNullTerminated (const StringType &str) __NE___
 	{
 		return str.empty() or str.data()[ str.size() ] == 0;
 	}
@@ -188,7 +189,7 @@ namespace AE::Base
 	IsUpperCase
 =================================================
 */
-	ND_ forceinline const char  IsUpperCase (const char c)
+	ND_ forceinline bool  IsUpperCase (const char c) __NE___
 	{
 		return (c >= 'A' and c <= 'Z');
 	}
@@ -198,7 +199,7 @@ namespace AE::Base
 	IsLowerCase
 =================================================
 */
-	ND_ forceinline const char  IsLowerCase (const char c)
+	ND_ forceinline bool  IsLowerCase (const char c) __NE___
 	{
 		return (c >= 'a' and c <= 'z');
 	}
@@ -208,7 +209,7 @@ namespace AE::Base
 	ToLowerCase
 =================================================
 */
-	ND_ forceinline const char  ToLowerCase (const char c)
+	ND_ forceinline const char  ToLowerCase (const char c) __NE___
 	{
 		return IsUpperCase( c ) ? (c - 'A' + 'a') : c;
 	}
@@ -218,7 +219,7 @@ namespace AE::Base
 	ToUpperCase
 =================================================
 */
-	ND_ forceinline const char  ToUpperCase (const char c)
+	ND_ forceinline const char  ToUpperCase (const char c) __NE___
 	{
 		return IsLowerCase( c ) ? (c - 'a' + 'A') : c;
 	}
@@ -231,7 +232,7 @@ namespace AE::Base
 	comparison is case sansitive.
 =================================================
 */
-	ND_ inline bool  HasSubString (StringView str, StringView substr)
+	ND_ inline bool  HasSubString (StringView str, StringView substr) __NE___
 	{
 		return (str.find( substr ) != StringView::npos);
 	}
@@ -244,14 +245,15 @@ namespace AE::Base
 	comparison is case insansitive.
 =================================================
 */
-	ND_ inline bool  HasSubStringIC (StringView str, StringView substr)
+	ND_ inline bool  HasSubStringIC (StringView str, StringView substr) __NE___
 	{
 		if ( str.empty() or substr.empty() )
 			return false;
 
 		for (usize i = 0, j = 0; i < str.length(); ++i)
 		{
-			while ( i+j < str.length() and j < substr.length() and
+			while ( (i+j < str.length()) and
+				    (j < substr.length()) and
 					ToLowerCase( substr[j] ) == ToLowerCase( str[i+j] ))
 			{
 				++j;
@@ -271,7 +273,7 @@ namespace AE::Base
 	comparison is case sansitive.
 =================================================
 */
-	ND_ inline bool  StartsWith (StringView str, StringView substr)
+	ND_ inline bool  StartsWith (StringView str, StringView substr) __NE___
 	{
 		if ( str.length() < substr.length() )
 			return false;
@@ -292,7 +294,7 @@ namespace AE::Base
 	comparison is case insansitive.
 =================================================
 */
-	ND_ inline bool  StartsWithIC (StringView str, StringView substr)
+	ND_ inline bool  StartsWithIC (StringView str, StringView substr) __NE___
 	{
 		if ( str.length() < substr.length() )
 			return false;
@@ -313,7 +315,7 @@ namespace AE::Base
 	comparison is case sansitive.
 =================================================
 */
-	ND_ inline bool  EndsWith (StringView str, StringView substr)
+	ND_ inline bool  EndsWith (StringView str, StringView substr) __NE___
 	{
 		if ( str.length() < substr.length() )
 			return false;
@@ -334,7 +336,7 @@ namespace AE::Base
 	comparison is case insansitive.
 =================================================
 */
-	ND_ inline bool  EndsWithIC (StringView str, StringView substr)
+	ND_ inline bool  EndsWithIC (StringView str, StringView substr) __NE___
 	{
 		if ( str.length() < substr.length() )
 			return false;
@@ -352,7 +354,7 @@ namespace AE::Base
 	FindAndReplace
 =================================================
 */
-	inline uint  FindAndReplace (INOUT String& str, StringView oldStr, StringView newStr)
+	inline uint  FindAndReplace (INOUT String& str, StringView oldStr, StringView newStr) __TH___
 	{
 		String::size_type	pos		= 0;
 		uint				count	= 0;
@@ -372,7 +374,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	constexpr bool  WCharToAnsi (OUT CharAnsi* dst, const T* src, usize len, const CharAnsi defaultChar = CharAnsi('?'))
+	constexpr bool  WCharToAnsi (OUT CharAnsi* dst, const T* src, usize len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
 	{
 		ASSERT( dst != null );
 		ASSERT( src != null );
@@ -394,7 +396,7 @@ namespace AE::Base
 */
 #ifdef AE_ENABLE_UTF8PROC
 	template <typename T>
-	constexpr bool  Utf8ToAnsi (OUT CharAnsi* dst, const CharUtf8* src, INOUT usize &len, const CharAnsi defaultChar = CharAnsi('?'))
+	constexpr bool  Utf8ToAnsi (OUT CharAnsi* dst, const CharUtf8* src, INOUT usize &len, const CharAnsi defaultChar = CharAnsi('?')) __NE___
 	{
 		ASSERT( dst != null );
 		ASSERT( src != null );
@@ -419,7 +421,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	ND_ BasicString<R>  ToAnsiString (BasicStringView<T> str, const R defaultChar = R('?'))
+	ND_ BasicString<R>  ToAnsiString (BasicStringView<T> str, const R defaultChar = R('?')) __TH___
 	{
 		if constexpr( IsSameTypes< T, CharAnsi >)
 			return BasicString<R>{str};
@@ -427,7 +429,7 @@ namespace AE::Base
 		if constexpr( IsSameTypes< T, wchar_t > or IsSameTypes< T, CharUtf32 >)
 		{
 			BasicString<R>	result;
-			result.resize( str.size() );
+			result.resize( str.size() );	// throw
 			WCharToAnsi( OUT result.data(), str.data(), str.length(), defaultChar );
 			return result;
 		}
@@ -437,7 +439,7 @@ namespace AE::Base
 		{
 			usize			len		= str.length();
 			BasicString<R>	result;
-			result.resize( str.size() );
+			result.resize( str.size() );	// throw
 
 			Utf8ToAnsi( OUT result.data(), str.data(), INOUT len, defaultChar );
 			result.resize( len );
@@ -448,13 +450,13 @@ namespace AE::Base
 	}
 
 	template <typename R, typename T>
-	ND_ BasicString<R>  ToAnsiString (const T* str, const R defaultChar = R('?'))
+	ND_ BasicString<R>  ToAnsiString (const T* str, const R defaultChar = R('?')) __TH___
 	{
 		return ToAnsiString<R>( BasicStringView<T>{ str }, defaultChar );
 	}
 	
 	template <typename R, typename T, typename A>
-	ND_ BasicString<R>  ToAnsiString (const BasicString<T,A> &str, const R defaultChar = R('?'))
+	ND_ BasicString<R>  ToAnsiString (const BasicString<T,A> &str, const R defaultChar = R('?')) __TH___
 	{
 		return ToAnsiString<R>( BasicStringView<T>{ str }, defaultChar );
 	}
@@ -467,26 +469,26 @@ namespace AE::Base
 	ToString
 =================================================
 */
-	ND_ forceinline String  ToString (String value)
+	ND_ forceinline String  ToString (String value) __TH___
 	{
 		return value;
 	}
 
 	template <typename T>
-	ND_ EnableIf<not IsEnum<T>, String>  ToString (const T &value)
+	ND_ EnableIf<not IsEnum<T>, String>  ToString (const T &value) __TH___
 	{
 		return std::to_string( value );
 	}
 	/*
 	template <typename E>
-	ND_ EnableIf<IsEnum<E>, String>  ToString (const E &value)
+	ND_ EnableIf<IsEnum<E>, String>  ToString (const E &value) __TH___
 	{
 		using T = Conditional< (sizeof(E) > sizeof(uint)), uint, ulong >;
 
 		return std::to_string( T(value) );
 	}*/
 
-	ND_ forceinline String  ToString (bool value)
+	ND_ forceinline String  ToString (bool value) __TH___
 	{
 		return value ? "true" : "false";
 	}
@@ -497,7 +499,7 @@ namespace AE::Base
 =================================================
 */
 	template <int Radix, typename T>
-	ND_ EnableIf< IsEnum<T> or IsInteger<T>, String>  ToString (const T &value)
+	ND_ EnableIf< IsEnum<T> or IsInteger<T>, String>  ToString (const T &value) __TH___
 	{
 		if constexpr( Radix == 10 )
 		{
@@ -527,7 +529,7 @@ namespace AE::Base
 	ToString (float / double)
 =================================================
 */
-	ND_ inline String  ToString (double value, uint fractParts, Bool exponent = False{})
+	ND_ inline String  ToString (double value, uint fractParts, Bool exponent = False{}) __TH___
 	{
 		ASSERT( (fractParts > 0) and (fractParts < 100) );
 		fractParts = Clamp( fractParts, 1u, 99u );
@@ -541,7 +543,7 @@ namespace AE::Base
 		return buf;
 	}
 
-	ND_ inline String  ToString (float value, uint fractParts, Bool exponent = False{})
+	ND_ inline String  ToString (float value, uint fractParts, Bool exponent = False{}) __TH___
 	{
 		return ToString( double(value), fractParts, exponent );
 	}
@@ -552,7 +554,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ String  ToString (const TVec<T,I,Q> &value)
+	ND_ String  ToString (const TVec<T,I,Q> &value) __TH___
 	{
 		String	str = "( ";
 
@@ -571,7 +573,7 @@ namespace AE::Base
 	ToString (VecSwizzle)
 =================================================
 */
-	ND_ inline String  ToString (const VecSwizzle &value)
+	ND_ inline String  ToString (const VecSwizzle &value) __TH___
 	{
 		auto		sw			= value.ToVec();
 		const char	symbols []	= "0XYZW0+-";
@@ -585,7 +587,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ String  ToString (const RGBAColor<T> &value)
+	ND_ String  ToString (const RGBAColor<T> &value) __TH___
 	{
 		String	str = "( "s;
 
@@ -605,7 +607,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ String  ToString (const Rectangle<T> &value)
+	ND_ String  ToString (const Rectangle<T> &value) __TH___
 	{
 		return "( "s << ToString( value.left ) << ", " << ToString( value.top ) << ", "
 					<< ToString( value.right ) << ", " << ToString( value.bottom ) << " )";
@@ -617,7 +619,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ String  ToString (const TBytes<T> &value)
+	ND_ String  ToString (const TBytes<T> &value) __TH___
 	{
 		const T	kb	= SafeLeftBitShift( T{1}, 12 );
 		const T mb	= SafeLeftBitShift( T{1}, 22 );
@@ -642,7 +644,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename Duration>
-	ND_ String  ToString (const std::chrono::duration<T,Duration> &value, uint precission = 2)
+	ND_ String  ToString (const std::chrono::duration<T,Duration> &value, uint precission = 2) __TH___
 	{
 		using SecondsD_t  = std::chrono::duration<double>;
 		using MicroSecD_t = std::chrono::duration<double, std::micro>;
@@ -676,23 +678,33 @@ namespace AE::Base
 	ToString (Path)
 =================================================
 */
-	ND_ inline String  ToString (const Path &path)
+	ND_ inline String  ToString (const Path &path) __TH___
 	{
 		return ToAnsiString<char>( path.native() );
 	}
 
-	ND_ inline String  ToString (const WString &str)
+	ND_ inline String  ToString (const WString &str) __TH___
 	{
 		return ToAnsiString<char>( str );
 	}
 	
+	ND_ inline String  ToString (const WStringView &str) __TH___
+	{
+		return ToAnsiString<char>( str );
+	}
+	
+	ND_ inline String  ToString (const wchar_t *str) __TH___
+	{
+		return ToAnsiString<char>( WStringView{str} );
+	}
+
 /*
 =================================================
 	ToString (Fractional)
 =================================================
 */
 	template <typename T>
-	ND_ String  ToString (Fractional<T> value)
+	ND_ String  ToString (Fractional<T> value) __TH___
 	{
 		String	str = ToString( value.numerator );
 
@@ -725,7 +737,7 @@ namespace AE::Base
 											 MolesNum,		MolesDenom,
 											 CandelasNum,	CandelasDenom,
 											 CurrencyNum,	CurrencyDenom,
-											 BitsNum,		BitsDenom > value)
+											 BitsNum,		BitsDenom > value) __TH___
 	{
 		using Dim = decltype(value);
 
@@ -782,13 +794,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, typename D, typename S>
-	ND_ String  ToString (const PhysicalQuantity<V,D,S> &value)
+	ND_ String  ToString (const PhysicalQuantity<V,D,S> &value) __TH___
 	{
 		return ToString( value.GetScaled(), 2, True{"exponent"} ) << '[' << ToString( D{} ) << ']';
 	}
 
 	template <typename V, typename D, typename S>
-	ND_ String  ToDebugString (const PhysicalQuantity<V,D,S> &value)
+	ND_ String  ToDebugString (const PhysicalQuantity<V,D,S> &value) __TH___
 	{
 		return ToString( value.GetNonScaled(), 2, True{"exponent"} ) << '*' << ToString( S::Value, 2, True{"exponent"} ) << '[' << ToString( D{} ) << ']';
 	}
@@ -799,9 +811,11 @@ namespace AE::Base
 /*
 =================================================
 	AppendToString
+----
+	'11' -> '11 . . . '
 =================================================
 */
-	inline void  AppendToString (INOUT String &str, const usize count, const char value = ' ')
+	inline void  AppendToString (INOUT String &str, const usize count, const char value = ' ') __TH___
 	{
 		ASSERT( value != 0 );
 		str.reserve( str.size() + count );
@@ -810,7 +824,7 @@ namespace AE::Base
 			str << value;
 	}
 	
-	inline void  InsertToString (INOUT String &str, const usize count, const char value = ' ')
+	inline void  InsertToString (INOUT String &str, const usize count, const char value = ' ') __TH___
 	{
 		ASSERT( value != 0 );
 		str.reserve( str.size() + count );
@@ -819,7 +833,7 @@ namespace AE::Base
 			str.insert( str.begin(), value );
 	}
 
-	inline void  AppendToString (INOUT String &str, const usize first, const usize count, const bool initial, const char value1 = '.', const char value2 = ' ')
+	inline void  AppendToString (INOUT String &str, const usize first, const usize count, const bool initial, const char value1 = '.', const char value2 = ' ') __TH___
 	{
 		ASSERT( value1 != 0 );
 		ASSERT( value2 != 0 );
@@ -833,10 +847,12 @@ namespace AE::Base
 /*
 =================================================
 	FormatAlignedI
+----
+	11 -> 0011
 =================================================
 */
 	template <uint Radix, typename T>
-	ND_ String  FormatAlignedI (T value, const usize align, const char alignChar)
+	ND_ String  FormatAlignedI (T value, const usize align, const char alignChar) __TH___
 	{
 		ASSERT( alignChar != 0 );
 
@@ -852,23 +868,23 @@ namespace AE::Base
 
 /*
 =================================================
-	FormatInt
+	DivStringBySteps
+----
+	1111 -> 11'11
 =================================================
 */
-	template <uint Radix, typename T>
-	ND_ String  FormatInt (T value, const usize stepSize = 3, const char spaceChar = '\'')
+	ND_ inline String  DivStringBySteps (StringView inStr, const usize stepSize = 3, const char spaceChar = '\'') __TH___
 	{
-		String	tmp = ToString<Radix>( value );
-		String	str;	str.resize( tmp.size() + ((tmp.size()-1) / stepSize) );
+		String	str;	str.resize( inStr.size() + ((inStr.size()-1) / stepSize) );
 
-		usize	i = (tmp.length() % stepSize);
+		usize	i = (inStr.length() % stepSize);
 		i = stepSize - i;
 		i = i >= stepSize ? 0 : i;
 
-		for (usize a = 0, b = 0; a < tmp.length(); ++b)
+		for (usize a = 0, b = 0; a < inStr.length(); ++b)
 		{
-			if ( i++ < stepSize )
-				str[b] = tmp[a++];
+			if_likely( i++ < stepSize )
+				str[b] = inStr[a++];
 			else{
 				str[b] = spaceChar;
 				i = 0;
@@ -885,7 +901,7 @@ namespace AE::Base
 	StringTo***
 =================================================
 */
-	ND_ inline int  StringToInt (StringView str, int base = 10)
+	ND_ inline int  StringToInt (StringView str, int base = 10) __NE___
 	{
 		ASSERT( base == 10 or base == 16 );
 		int		val = 0;
@@ -893,7 +909,7 @@ namespace AE::Base
 		return val;
 	}
 	
-	ND_ inline uint  StringToUInt (StringView str, int base = 10)
+	ND_ inline uint  StringToUInt (StringView str, int base = 10) __NE___
 	{
 		ASSERT( base == 10 or base == 16 );
 		uint	val = 0;
@@ -901,7 +917,7 @@ namespace AE::Base
 		return val;
 	}
 	
-	ND_ inline ulong  StringToUInt64 (StringView str, int base = 10)
+	ND_ inline ulong  StringToUInt64 (StringView str, int base = 10) __NE___
 	{
 		ASSERT( base == 10 or base == 16 );
 		ulong	val = 0;
@@ -910,14 +926,14 @@ namespace AE::Base
 	}
 	
 #ifdef AE_COMPILER_MSVC
-	ND_ inline float  StringToFloat (StringView str)
+	ND_ inline float  StringToFloat (StringView str) __NE___
 	{
 		float	val = 0.0f;
 		std::from_chars( str.data(), str.data() + str.size(), OUT val, std::chars_format::general );
 		return val;
 	}
 	
-	ND_ inline double  StringToDouble (StringView str)
+	ND_ inline double  StringToDouble (StringView str) __NE___
 	{
 		double	val = 0.0;
 		std::from_chars( str.data(), str.data() + str.size(), OUT val, std::chars_format::general );

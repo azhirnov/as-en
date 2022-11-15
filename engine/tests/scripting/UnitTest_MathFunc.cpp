@@ -36,15 +36,17 @@ namespace
 
 extern void UnitTest_MathFunc ()
 {
-	auto	se = MakeRC<ScriptEngine>();
-	TEST( se->Create() );
+	TEST_NOTHROW(
+		auto	se = MakeRC<ScriptEngine>();
+		TEST( se->Create() );
 
-	CoreBindings::BindScalarMath( se );
-	CoreBindings::BindVectorMath( se );
-	CoreBindings::BindColor( se );
+		CoreBindings::BindScalarMath( se );
+		CoreBindings::BindVectorMath( se );
+		CoreBindings::BindColor( se );
 
-	ScriptMath_Test1( se );
-	ScriptMath_Test2( se );
+		ScriptMath_Test1( se );
+		ScriptMath_Test2( se );
 
-	TEST_PASSED();
+		TEST_PASSED();
+	)
 }

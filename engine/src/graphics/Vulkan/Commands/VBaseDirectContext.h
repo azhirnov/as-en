@@ -4,9 +4,9 @@
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Public/CommandBuffer.h"
-# include "graphics/Vulkan/Commands/VRenderTaskScheduler.h"
 # include "graphics/Vulkan/Commands/VBarrierManager.h"
 # include "graphics/Vulkan/Commands/VDrawBarrierManager.h"
+# include "graphics/Vulkan/VRenderTaskScheduler.h"
 
 namespace AE::Graphics::_hidden_
 {
@@ -29,12 +29,12 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		virtual ~_VBaseDirectContext ();
-
-		ND_ bool	IsValid ()	const	{ return _cmdbuf.IsValid(); }
+		virtual ~_VBaseDirectContext ()														__NE___;
 
 	protected:
-		_VBaseDirectContext (VCommandBuffer cmdbuf, NtStringView dbgName, RGBA8u dbgColor);
+		_VBaseDirectContext (VCommandBuffer cmdbuf, NtStringView dbgName, RGBA8u dbgColor)	__TH___;
+
+		ND_ bool	_IsValid ()																C_NE___	{ return _cmdbuf.IsValid() and _cmdbuf.IsRecording(); }
 
 		void  _DebugMarker (NtStringView text, RGBA8u color);
 		void  _PushDebugGroup (NtStringView text, RGBA8u color);
@@ -61,20 +61,20 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VBaseDirectContext (const VRenderTask &task);
-		VBaseDirectContext (const VRenderTask &task, VCommandBuffer cmdbuf);
-		~VBaseDirectContext () override;
+		explicit VBaseDirectContext (const RenderTask &task)				__TH___;
+		VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf)	__TH___;
+		~VBaseDirectContext ()												__NE_OV;
 
 	protected:
 		void  _CommitBarriers ();
 		
-		void  _DebugMarker (NtStringView text, RGBA8u color)		{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_DebugMarker( text, color ); }
-		void  _PushDebugGroup (NtStringView text, RGBA8u color)		{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( text, color ); }
-		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PopDebugGroup(); }
+		void  _DebugMarker (NtStringView text, RGBA8u color)						{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_DebugMarker( text, color ); }
+		void  _PushDebugGroup (NtStringView text, RGBA8u color)						{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( text, color ); }
+		void  _PopDebugGroup ()														{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PopDebugGroup(); }
 
-		ND_ bool	_NoPendingBarriers ()	const	{ return _mngr.NoPendingBarriers(); }
-		ND_ auto&	_GetExtensions ()		const	{ return _mngr.GetDevice().GetExtensions(); }
-		ND_ auto&	_GetFeatures ()			const	{ return _mngr.GetDevice().GetProperties().features; }
+		ND_ bool	_NoPendingBarriers ()									C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ auto&	_GetExtensions ()										C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
+		ND_ auto&	_GetFeatures ()											C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -85,9 +85,11 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline _VBaseDirectContext::_VBaseDirectContext (VCommandBuffer cmdbuf, NtStringView dbgName, RGBA8u dbgColor) :
+	inline _VBaseDirectContext::_VBaseDirectContext (VCommandBuffer cmdbuf, NtStringView dbgName, RGBA8u dbgColor) __TH___ :
 		_cmdbuf{ RVRef( cmdbuf )}
 	{
+		CHECK_THROW( _IsValid() );
+
 		VulkanDeviceFn_Init( RenderTaskScheduler().GetDevice() );
 		DEBUG_ONLY(
 			_PushDebugGroup( dbgName, dbgColor );
@@ -100,9 +102,9 @@ namespace AE::Graphics::_hidden_
 	destructor
 =================================================
 */
-	inline _VBaseDirectContext::~_VBaseDirectContext ()
+	inline _VBaseDirectContext::~_VBaseDirectContext () __NE___
 	{
-		DBG_CHECK_MSG( not IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
+		DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
 	}
 	
 /*
@@ -112,14 +114,15 @@ namespace AE::Graphics::_hidden_
 */
 	inline VkCommandBuffer  _VBaseDirectContext::_EndCommandBuffer ()
 	{
-		ASSERT( _cmdbuf.IsValid() );
+		ASSERT( _IsValid() );
 
 		VkCommandBuffer	cmd = _cmdbuf.Get();
 
 		DEBUG_ONLY( _PopDebugGroup() );
-		VK_CALL( vkEndCommandBuffer( cmd ));
 
-		_cmdbuf.Release();
+		// end recording and release ownership
+		CHECK_THROW( _cmdbuf.EndAndRelease() );	// throw
+
 		return cmd;
 	}
 	
@@ -130,13 +133,13 @@ namespace AE::Graphics::_hidden_
 */
 	inline VCommandBuffer  _VBaseDirectContext::_ReleaseCommandBuffer ()
 	{
-		ASSERT( _cmdbuf.IsValid() );
+		ASSERT( _IsValid() );
 
 		// don't call vkEndCommandBuffer
 		DEBUG_ONLY( _PopDebugGroup() );
 
 		VCommandBuffer	res = RVRef(_cmdbuf);
-		ASSERT( not _cmdbuf.IsValid() );
+		ASSERT( not _IsValid() );
 		return res;
 	}
 
@@ -204,8 +207,8 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline VBaseDirectContext::VBaseDirectContext (const VRenderTask &task) :
-		VBaseDirectContext{
+	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task) __TH___ :
+		VBaseDirectContext{	// throw
 			task,
 			RenderTaskScheduler().GetCommandPoolManager().GetCommandBuffer(
 						task.GetBatchPtr()->GetQueueType(),
@@ -213,8 +216,8 @@ namespace AE::Graphics::_hidden_
 						null )}
 	{}
 	
-	inline VBaseDirectContext::VBaseDirectContext (const VRenderTask &task, VCommandBuffer cmdbuf) :
-		_VBaseDirectContext{ RVRef(cmdbuf), task.DbgFullName(), task.DbgColor() },
+	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf) __TH___ :
+		_VBaseDirectContext{ RVRef(cmdbuf), task.DbgFullName(), task.DbgColor() },	// throw
 		_mngr{ task }
 	{
 		ASSERT( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
@@ -225,7 +228,7 @@ namespace AE::Graphics::_hidden_
 	destructor
 =================================================
 */
-	inline VBaseDirectContext::~VBaseDirectContext ()
+	inline VBaseDirectContext::~VBaseDirectContext () __NE___
 	{
 		ASSERT( _NoPendingBarriers() );
 	}

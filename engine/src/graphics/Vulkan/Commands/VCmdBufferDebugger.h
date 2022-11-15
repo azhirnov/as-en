@@ -4,7 +4,7 @@
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Public/CommandBuffer.h"
-# include "graphics/Vulkan/Commands/VRenderTaskScheduler.h"
+# include "graphics/Vulkan/VRenderTaskScheduler.h"
 
 namespace AE::Graphics
 {

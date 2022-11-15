@@ -34,7 +34,7 @@ namespace AE::Threading
 			return _fn();
 		}
 
-		StringView  DbgName () const override { return "function"; }
+		StringView  DbgName ()	C_NE_OV	{ return "function"; }
 	};
 
 

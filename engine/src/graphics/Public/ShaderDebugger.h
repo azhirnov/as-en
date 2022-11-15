@@ -35,13 +35,13 @@ namespace AE::Graphics
 			
 		// methods
 		public:
-			ND_ BufferID			Buffer ()	const	{ return _device; }
-			ND_ Bytes				Offset ()	const	{ return _offset; }
-			ND_ Bytes				Size ()		const	{ return _size; }
-			ND_ DescriptorSetID		DescSet ()	const	{ return _ds; }
-			ND_ uint				DSIndex ()	const	{ return _dsIndex; }
+			ND_ BufferID			Buffer ()	C_NE___	{ return _device; }
+			ND_ Bytes				Offset ()	C_NE___	{ return _offset; }
+			ND_ Bytes				Size ()		C_NE___	{ return _size; }
+			ND_ DescriptorSetID		DescSet ()	C_NE___	{ return _ds; }
+			ND_ uint				DSIndex ()	C_NE___	{ return _dsIndex; }
 
-			ND_ bool  IsValid () const;
+			ND_ bool				IsValid ()	C_NE___;
 		};
 
 	private:
@@ -157,7 +157,7 @@ namespace AE::Graphics
 		const uint	data[4] = { globalID.x, globalID.y, globalID.z, 0 };
 		STATIC_ASSERT( _TraceHeaderSize == sizeof(data) );
 		
-		_FillBuffer( result, ctx, Bytes::SizeOf(data), data );
+		_FillBuffer( result, ctx, Sizeof(data), data );
 		return true;
 	}
 	
@@ -186,7 +186,7 @@ namespace AE::Graphics
 		const uint	data[4] = { launchID.x, launchID.y, launchID.z, 0 };
 		STATIC_ASSERT( _TraceHeaderSize == sizeof(data) );
 		
-		_FillBuffer( result, ctx, Bytes::SizeOf(data), data );
+		_FillBuffer( result, ctx, Sizeof(data), data );
 		return true;
 	}
 	
@@ -215,7 +215,7 @@ namespace AE::Graphics
 		const uint	data[4] = { fragCoord.x, fragCoord.y, 0, 0 };
 		STATIC_ASSERT( _TraceHeaderSize == sizeof(data) );
 
-		_FillBuffer( result, ctx, Bytes::SizeOf(data), data );
+		_FillBuffer( result, ctx, Sizeof(data), data );
 		return true;
 	}
 	

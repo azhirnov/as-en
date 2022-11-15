@@ -241,41 +241,41 @@ namespace AE::Scripting
 
 		// methods
 		private:
-			void _IncRef ()	const	{ if_likely( _ptr ) { _ptr->__AddRef(); }}
-			void _DecRef ()			{ if_likely( _ptr )	{ _ptr->__Release();  _ptr = null; }}
+			void  _IncRef ()									C_NE___	{ if_likely( _ptr ) { _ptr->__AddRef(); }}
+			void  _DecRef ()									__NE___	{ if_likely( _ptr )	{ _ptr->__Release();  _ptr = null; }}
 
 		public:
-			SharedPtr ()												{}
-			explicit SharedPtr (T *ptr) : _ptr{ptr}						{ _IncRef(); }
-			SharedPtr (const SharedPtr<T> &other) : _ptr{other._ptr}	{ _IncRef(); }
-			SharedPtr (SharedPtr<T> &&other) : _ptr{other._ptr}			{ other._ptr = null; }
-			~SharedPtr ()												{ _DecRef(); }
+			SharedPtr ()										__NE___	{}
+			explicit SharedPtr (T *ptr)							__NE___	: _ptr{ptr}			{ _IncRef(); }
+			SharedPtr (const SharedPtr<T> &other)				__NE___	: _ptr{other._ptr}	{ _IncRef(); }
+			SharedPtr (SharedPtr<T> &&other)					__NE___	: _ptr{other._ptr}	{ other._ptr = null; }
+			~SharedPtr ()										__NE___	{ _DecRef(); }
 
 			template <typename B>
-			SharedPtr (SharedPtr<B> &&other) : _ptr{static_cast<T*>(other.Detach())}	{}
+			SharedPtr (SharedPtr<B> &&other)					__NE___	: _ptr{static_cast<T*>(other.Detach())}	{}
 			
 			template <typename B>
-			SharedPtr (const SharedPtr<B> &other) : _ptr{static_cast<T*>(other.Get())}	{ _IncRef(); }
+			SharedPtr (const SharedPtr<B> &other)				__NE___	: _ptr{static_cast<T*>(other.Get())}	{ _IncRef(); }
 
-			SharedPtr<T>&  operator = (const SharedPtr<T> &rhs)			{ _DecRef();  _ptr = rhs._ptr;  _IncRef();   return *this; }
-			SharedPtr<T>&  operator = (SharedPtr<T> &&rhs)				{ _DecRef();  _ptr = rhs._ptr;  rhs._ptr = null;  return *this; }
+			SharedPtr<T>&  operator = (const SharedPtr<T> &rhs)	__NE___	{ _DecRef();  _ptr = rhs._ptr;  _IncRef();			return *this; }
+			SharedPtr<T>&  operator = (SharedPtr<T> &&rhs)		__NE___	{ _DecRef();  _ptr = rhs._ptr;  rhs._ptr = null;	return *this; }
 
-			ND_ bool  operator == (const SharedPtr<T> &rhs)	const		{ return _ptr == rhs._ptr; }
-			ND_ bool  operator >  (const SharedPtr<T> &rhs)	const		{ return _ptr >  rhs._ptr; }
-			ND_ bool  operator <  (const SharedPtr<T> &rhs)	const		{ return _ptr <  rhs._ptr; }
+			ND_ bool  operator == (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr == rhs._ptr; }
+			ND_ bool  operator >  (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr >  rhs._ptr; }
+			ND_ bool  operator <  (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr <  rhs._ptr; }
 
-			ND_ T*  operator -> ()			const			{ ASSERT( _ptr );  return _ptr; }
-			ND_ T&  operator *  ()			const			{ ASSERT( _ptr );  return *_ptr; }
-			ND_ T*  Get ()					const			{ return _ptr; }
+			ND_ T*  operator -> ()								C_NE___	{ ASSERT( _ptr );  return _ptr; }
+			ND_ T&  operator *  ()								C_NE___	{ ASSERT( _ptr );  return *_ptr; }
+			ND_ T*  Get ()										C_NE___	{ return _ptr; }
 
-			ND_ explicit operator bool ()	const			{ return _ptr != null; }
+			ND_ explicit operator bool ()						C_NE___	{ return _ptr != null; }
 
-			ND_ int		UseCount ()			const			{ return _ptr ? _ptr->__Counter() : 0; }
-			ND_ T*		Detach ()							{ T* tmp = _ptr;  _ptr = null;  return tmp; }
-			ND_ T*		Retain ()			const			{ _IncRef();  return _ptr; }
+			ND_ int		UseCount ()								C_NE___	{ return _ptr ? _ptr->__Counter() : 0; }
+			ND_ T*		Detach ()								__NE___	{ T* tmp = _ptr;  _ptr = null;  return tmp; }
+			ND_ T*		Retain ()								C_NE___	{ _IncRef();  return _ptr; }
 
-				void	Set (T* ptr)						{ _DecRef();  _ptr = ptr;  _IncRef(); }
-				void	Attach (T* ptr)						{ _DecRef();  _ptr = ptr; }
+				void	Set (T* ptr)							__NE___	{ _DecRef();  _ptr = ptr;  _IncRef(); }
+				void	Attach (T* ptr)							__NE___	{ _DecRef();  _ptr = ptr; }
 		};
 
 
@@ -303,16 +303,16 @@ namespace AE::Scripting
 		template <typename T>
 		static void  Constructor (AngelScript::asIScriptGeneric *gen)
 		{
-			PlacementNew<T>( OUT gen->GetObject() );
+			PlacementNew<T>( OUT gen->GetObject() );	// nothrow
 		}
 
 		
 		template <typename T>
-		static void  CopyConstructor (AngelScript::asIScriptGeneric *gen)
+		static void  CopyConstructor (AngelScript::asIScriptGeneric *gen) __TH___
 		{
 			T const*	src = static_cast< const T *>( gen->GetArgObject(0) );
 			void *		dst = gen->GetObject();
-			PlacementNew<T>( OUT dst, *src );
+			PlacementNew<T>( OUT dst, *src );	// throw
 		}
 		
 
@@ -324,13 +324,13 @@ namespace AE::Scripting
 
 
 		template <typename T>
-		static void  CopyAssign (AngelScript::asIScriptGeneric *gen)
+		static void  CopyAssign (AngelScript::asIScriptGeneric *gen) __TH___
 		{
 			T const*	src = static_cast< const T *>( gen->GetArgObject(0) );
 			T*			dst = static_cast< T *>( gen->GetObject() );
 
 			dst->~T();
-			PlacementNew<T>( OUT dst, *src );
+			PlacementNew<T>( OUT dst, *src );	// throw
 		}
 
 	}; // AngelScriptHelper
@@ -419,6 +419,10 @@ namespace AE::Scripting
 				ArgsToString< TypeList_t >::GetArgs( OUT str, offsetFromStart, offsetFromEnd );
 			}
 		};
+		
+		template <typename Ret, typename ...Types>
+		struct GlobalFunction < Ret (AE_CDECL *) (Types...) noexcept > :  GlobalFunction < Ret (AE_CDECL *) (Types...) > {};
+
 
 		template <typename Ret>
 		struct GlobalFunction < Ret (AE_CDECL *) () >
@@ -440,10 +444,17 @@ namespace AE::Scripting
 				str += "()";
 			}
 		};
+		
+		template <typename Ret>
+		struct GlobalFunction < Ret (AE_CDECL *) () noexcept > :  GlobalFunction < Ret (AE_CDECL *) () > {};
+
 			
 		template <typename Ret, typename ...Types>
-		struct GlobalFunction < Ret (Types...) > : GlobalFunction< Ret (AE_CDECL *) (Types...) >
-		{};
+		struct GlobalFunction < Ret (Types...) > : GlobalFunction< Ret (AE_CDECL *) (Types...) > {};
+		
+		template <typename Ret, typename ...Types>
+		struct GlobalFunction < Ret (Types...) noexcept > :  GlobalFunction < Ret (Types...) > {};
+
 
 		template <typename C, typename Ret, typename ...Types>
 		struct MemberFunction < Ret (AE_THISCALL C:: *) (Types...) >
@@ -461,6 +472,10 @@ namespace AE::Scripting
 				GlobalFunction< Result_t (*) (Types...) >::GetArgs( OUT str, offsetFromStart, offsetFromEnd );
 			}
 		};
+		
+		template <typename C, typename Ret, typename ...Types>
+		struct MemberFunction < Ret (AE_THISCALL C:: *) (Types...) noexcept > :  MemberFunction < Ret (AE_THISCALL C:: *) (Types...) > {};
+
 			
 		template <typename C, typename Ret>
 		struct MemberFunction < Ret (AE_THISCALL C:: *) () >
@@ -479,6 +494,10 @@ namespace AE::Scripting
 			}
 		};
 			
+		template <typename C, typename Ret>
+		struct MemberFunction < Ret (AE_THISCALL C:: *) () noexcept > :  MemberFunction < Ret (AE_THISCALL C:: *) () > {};
+
+
 		template <typename C, typename Ret, typename ...Types>
 		struct MemberFunction < Ret (AE_THISCALL C:: *) (Types...) const >
 		{
@@ -497,6 +516,10 @@ namespace AE::Scripting
 			}
 		};
 			
+		template <typename C, typename Ret, typename ...Types>
+		struct MemberFunction < Ret (AE_THISCALL C:: *) (Types...) const noexcept > :  MemberFunction < Ret (AE_THISCALL C:: *) (Types...) const > {};
+
+
 		template <typename C, typename Ret>
 		struct MemberFunction < Ret (AE_THISCALL C:: *) () const >
 		{
@@ -514,6 +537,9 @@ namespace AE::Scripting
 				GlobalFunction< Result_t (*) () >::GetArgs( OUT str, offsetFromStart, offsetFromEnd );
 			}
 		};
+
+		template <typename C, typename Ret>
+		struct MemberFunction < Ret (AE_THISCALL C:: *) () const noexcept > :  MemberFunction < Ret (AE_THISCALL C:: *) () const > {};
 
 	} // _hidden_
 
@@ -648,7 +674,7 @@ namespace AE::Scripting
 			static void  Set (AngelScript::asIScriptContext *ctx, int index, Arg0&& arg0, Args&& ...args)
 			{
 				ValidateRC( arg0 );
-				AS_CALL( ContextSetterGetter<Arg0>::Set( ctx, index, arg0 ));
+				AS_CHECK( ContextSetterGetter<Arg0>::Set( ctx, index, arg0 ));
 				SetContextArgs<Args...>::Set( ctx, index+1, FwdArg<Args>(args)... );
 			}
 		};
@@ -659,7 +685,7 @@ namespace AE::Scripting
 			static void  Set (AngelScript::asIScriptContext *ctx, int index, Arg0&& arg0)
 			{
 				ValidateRC( arg0 );
-				AS_CALL( ContextSetterGetter<Arg0>::Set( ctx, index, FwdArg<Arg0>(arg0) ));
+				AS_CHECK( ContextSetterGetter<Arg0>::Set( ctx, index, FwdArg<Arg0>(arg0) ));
 			}
 		};
 

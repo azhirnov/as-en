@@ -60,7 +60,7 @@ static bool CreatePipeline (TestDevice &vulkan, VkShaderModule compShader, Array
 		info.pushConstantRangeCount	= 0;
 		info.pPushConstantRanges	= null;
 
-		VK_CHECK( vulkan.vkCreatePipelineLayout( vulkan.GetVkDevice(), &info, null, OUT &outPipelineLayout ));
+		VK_CHECK_ERR( vulkan.vkCreatePipelineLayout( vulkan.GetVkDevice(), &info, null, OUT &outPipelineLayout ));
 		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::PipelineLayout, ulong(outPipelineLayout) );
 	}
 
@@ -72,7 +72,7 @@ static bool CreatePipeline (TestDevice &vulkan, VkShaderModule compShader, Array
 	info.stage.pName	= "main";
 	info.layout			= outPipelineLayout;
 
-	VK_CHECK( vulkan.vkCreateComputePipelines( vulkan.GetVkDevice(), VK_NULL_HANDLE, 1, &info, null, OUT &outPipeline ));
+	VK_CHECK_ERR( vulkan.vkCreateComputePipelines( vulkan.GetVkDevice(), VK_NULL_HANDLE, 1, &info, null, OUT &outPipeline ));
 	vulkan.tempHandles.emplace_back( TestDevice::EHandleType::Pipeline, ulong(outPipeline) );
 
 	return true;
@@ -104,7 +104,7 @@ extern bool ShaderTrace_Test11 (TestDevice& vulkan)
 		info.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
 		info.initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
 
-		VK_CHECK( vulkan.vkCreateImage( vulkan.GetVkDevice(), &info, null, OUT &image ));
+		VK_CHECK_ERR( vulkan.vkCreateImage( vulkan.GetVkDevice(), &info, null, OUT &image ));
 		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::Image, ulong(image) );
 
 		VkMemoryRequirements	mem_req;
@@ -117,10 +117,10 @@ extern bool ShaderTrace_Test11 (TestDevice& vulkan)
 		CHECK_ERR( vulkan.GetMemoryTypeIndex( mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, OUT alloc_info.memoryTypeIndex ));
 
 		VkDeviceMemory	image_mem;
-		VK_CHECK( vulkan.vkAllocateMemory( vulkan.GetVkDevice(), &alloc_info, null, OUT &image_mem ));
+		VK_CHECK_ERR( vulkan.vkAllocateMemory( vulkan.GetVkDevice(), &alloc_info, null, OUT &image_mem ));
 		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::Memory, ulong(image_mem) );
 
-		VK_CHECK( vulkan.vkBindImageMemory( vulkan.GetVkDevice(), image, image_mem, 0 ));
+		VK_CHECK_ERR( vulkan.vkBindImageMemory( vulkan.GetVkDevice(), image, image_mem, 0 ));
 	}
 
 	// create image view
@@ -134,7 +134,7 @@ extern bool ShaderTrace_Test11 (TestDevice& vulkan)
 		info.components			= { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
 		info.subresourceRange	= { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
-		VK_CHECK( vulkan.vkCreateImageView( vulkan.GetVkDevice(), &info, null, OUT &image_view ));
+		VK_CHECK_ERR( vulkan.vkCreateImageView( vulkan.GetVkDevice(), &info, null, OUT &image_view ));
 		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::ImageView, ulong(image_view) );
 	}
 
@@ -160,7 +160,7 @@ extern bool ShaderTrace_Test11 (TestDevice& vulkan)
 		info.bindingCount	= 1;
 		info.pBindings		= &binding;
 
-		VK_CHECK( vulkan.vkCreateDescriptorSetLayout( vulkan.GetVkDevice(), &info, null, OUT &ds1_layout ));
+		VK_CHECK_ERR( vulkan.vkCreateDescriptorSetLayout( vulkan.GetVkDevice(), &info, null, OUT &ds1_layout ));
 		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::DescriptorSetLayout, ulong(ds1_layout) );
 	}
 	
@@ -172,7 +172,7 @@ extern bool ShaderTrace_Test11 (TestDevice& vulkan)
 		info.descriptorSetCount	= 1;
 		info.pSetLayouts		= &ds1_layout;
 
-		VK_CHECK( vulkan.vkAllocateDescriptorSets( vulkan.GetVkDevice(), &info, OUT &desc_set1 ));
+		VK_CHECK_ERR( vulkan.vkAllocateDescriptorSets( vulkan.GetVkDevice(), &info, OUT &desc_set1 ));
 	}
 
 	// update descriptor set
@@ -199,7 +199,7 @@ extern bool ShaderTrace_Test11 (TestDevice& vulkan)
 	
 	// build command buffer
 	VkCommandBufferBeginInfo	begin = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, null, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, null };
-	VK_CHECK( vulkan.vkBeginCommandBuffer( vulkan.cmdBuffer, &begin ));
+	VK_CHECK_ERR( vulkan.vkBeginCommandBuffer( vulkan.cmdBuffer, &begin ));
 
 	// image layout undefined -> general
 	{
@@ -277,7 +277,7 @@ extern bool ShaderTrace_Test11 (TestDevice& vulkan)
 		vulkan.vkCmdCopyBuffer( vulkan.cmdBuffer, vulkan.debugOutputBuf, vulkan.readBackBuf, 1, &region );
 	}
 
-	VK_CHECK( vulkan.vkEndCommandBuffer( vulkan.cmdBuffer ));
+	VK_CHECK_ERR( vulkan.vkEndCommandBuffer( vulkan.cmdBuffer ));
 	
 	// submit commands and wait
 	{
@@ -286,8 +286,8 @@ extern bool ShaderTrace_Test11 (TestDevice& vulkan)
 		submit.commandBufferCount	= 1;
 		submit.pCommandBuffers		= &vulkan.cmdBuffer;
 
-		VK_CHECK( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, VK_NULL_HANDLE ));
-		VK_CHECK( vulkan.vkQueueWaitIdle( vulkan.GetVkQueue() ));
+		VK_CHECK_ERR( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, VK_NULL_HANDLE ));
+		VK_CHECK_ERR( vulkan.vkQueueWaitIdle( vulkan.GetVkQueue() ));
 	}
 
 	CHECK_ERR( vulkan.TestDebugTraceOutput( {comp_shader}, "ShaderTrace_Test11.txt" ));

@@ -61,33 +61,34 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		template <typename T> RenderPassDesc (const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers = 1_layer);
-		template <typename T> RenderPassDesc (const RenderPassName &rpName, const Vec<T,2>     &size, ImageLayer layers = 1_layer);
+		template <typename T> RenderPassDesc (const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)											__NE___;
+		template <typename T> RenderPassDesc (const RenderPassName &rpName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)											__NE___;
 
-		template <typename T> RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers = 1_layer);
-		template <typename T> RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2>     &size, ImageLayer layers = 1_layer);
+		template <typename T> RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)				__NE___;
+		template <typename T> RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)				__NE___;
 		
-		template <typename T> RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Rectangle<T> &rect, ImageLayer layers = 1_layer);
-		template <typename T> RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Vec<T,2>     &size, ImageLayer layers = 1_layer);
+		template <typename T> RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Rectangle<T> &rect, ImageLayer layers = 1_layer)	__NE___;
+		template <typename T> RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Vec<T,2>     &size, ImageLayer layers = 1_layer)	__NE___;
 
 
 		// render target
-		Self&  AddTarget (AttachmentName id, ImageViewID imageView);
-		Self&  AddTarget (AttachmentName id, ImageViewID imageView, EResourceState initial, EResourceState final);
+		Self&  AddTarget (AttachmentName id, ImageViewID imageView)													__NE___;
+		Self&  AddTarget (AttachmentName id, ImageViewID imageView, EResourceState initial, EResourceState final)	__NE___;
 		
 		template <typename ClearVal>
-		Self&  AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue);
+		Self&  AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue)						__NE___;
 		
 		template <typename ClearVal>
-		Self&  AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue, EResourceState initial, EResourceState final);
+		Self&  AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue,
+						  EResourceState initial, EResourceState final)												__NE___;
 
 
 		// viewport
 		template <typename T>
-		Self&  AddViewport (const Rectangle<T> &rect, float minDepth = 0.0f, float maxDepth = 1.0f);
+		Self&  AddViewport (const Rectangle<T> &rect, float minDepth = 0.0f, float maxDepth = 1.0f)					__NE___;
 		
 		template <typename T>
-		Self&  AddViewport (const Vec<T,2> &size, float minDepth = 0.0f, float maxDepth = 1.0f);
+		Self&  AddViewport (const Vec<T,2> &size, float minDepth = 0.0f, float maxDepth = 1.0f)						__NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -99,12 +100,12 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename T>
-	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers) :
+	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
 		RenderPassDesc{ rpName, SubpassName{}, rect, layers }
 	{}
 	
 	template <typename T>
-	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const Vec<T,2> &size, ImageLayer layers) :
+	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
 		RenderPassDesc{ rpName, RectI{int2{0}, int2(size)}, layers }
 	{}
 
@@ -114,7 +115,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename T>
-	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers) :
+	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
 		area{RectI(rect)}, layerCount{layers}, renderPassName{rpName}, subpassName{spName}
 	{
 		ASSERT( area.IsValid() );
@@ -123,7 +124,7 @@ namespace AE::Graphics
 	}
 	
 	template <typename T>
-	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2> &size, ImageLayer layers) :
+	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
 		RenderPassDesc{ rpName, spName, RectI{int2{0}, int2(size)}, layers }
 	{}
 
@@ -133,7 +134,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename T>
-	RenderPassDesc::RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Rectangle<T> &rect, ImageLayer layers) :
+	RenderPassDesc::RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
 		area{RectI(rect)}, layerCount{layers}
 	{
 		ASSERT( rtech );
@@ -152,7 +153,7 @@ namespace AE::Graphics
 	}
 	
 	template <typename T>
-	RenderPassDesc::RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Vec<T,2> &size, ImageLayer layers) :
+	RenderPassDesc::RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Vec<T,2> &size, ImageLayer layers) __NE___ :
 		RenderPassDesc{ rtech, pass, RectI{int2{0}, int2(size)}, layers }
 	{}
 	
@@ -161,12 +162,12 @@ namespace AE::Graphics
 	AddTarget
 =================================================
 */
-	inline RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView)
+	inline RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView) __NE___
 	{
 		return AddTarget( id, imageView, EResourceState::Unknown, EResourceState::Unknown );
 	}
 
-	inline RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, EResourceState initial, EResourceState final)
+	inline RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, EResourceState initial, EResourceState final) __NE___
 	{
 		ASSERT( imageView );
 
@@ -175,13 +176,13 @@ namespace AE::Graphics
 	}
 	
 	template <typename ClearVal>
-	RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue)
+	RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue) __NE___
 	{
 		return AddTarget( id, imageView, clearValue, EResourceState::Unknown, EResourceState::Unknown );
 	}
 
 	template <typename ClearVal>
-	RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue, EResourceState initial, EResourceState final)
+	RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue, EResourceState initial, EResourceState final) __NE___
 	{
 		ASSERT( imageView );
 
@@ -195,7 +196,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename T>
-	RenderPassDesc&  RenderPassDesc::AddViewport (const Rectangle<T> &rect, float minDepth, float maxDepth)
+	RenderPassDesc&  RenderPassDesc::AddViewport (const Rectangle<T> &rect, float minDepth, float maxDepth) __NE___
 	{
 		ASSERT( rect.IsValid() );
 		ASSERT( All( area.LeftTop() <= int2(rect.LeftTop()) ));
@@ -206,7 +207,7 @@ namespace AE::Graphics
 	}
 
 	template <typename T>
-	RenderPassDesc&  RenderPassDesc::AddViewport (const Vec<T,2> &size, float minDepth, float maxDepth)
+	RenderPassDesc&  RenderPassDesc::AddViewport (const Vec<T,2> &size, float minDepth, float maxDepth) __NE___
 	{
 		ASSERT( All( int2(size) > 0 ));
 		ASSERT( All( area.LeftTop() <= 0 ));

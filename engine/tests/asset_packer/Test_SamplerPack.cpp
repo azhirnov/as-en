@@ -37,19 +37,21 @@ namespace
 		auto		mem_stream = MakeRC<MemRStream>();
 		{
 			uint	name;
-			TEST( file->Read( OUT name ) and name == PackOffsets_Name );
+			TEST( file->Read( OUT name ));
+			TEST_EQ( name, PackOffsets_Name );
 
 			PipelinePackOffsets		offsets;
 			TEST( file->Read( OUT offsets ));
-			TEST( offsets.samplerOffset < ulong(file->Size()) );
-			TEST( offsets.nameMappingOffset < ulong(file->Size()) );
+			TEST_L( offsets.samplerOffset, ulong(file->Size()) );
+			TEST_L( offsets.nameMappingOffset, ulong(file->Size()) );
 			
 			auto	mem_stream2 = MakeRC<MemRStream>();
 			TEST( file->SeekSet( Bytes{offsets.nameMappingOffset} ));
 			TEST( mem_stream2->LoadRemaining( *file, Bytes{offsets.nameMappingDataSize} ));
 
 			Serializing::Deserializer	des{ mem_stream2 };
-			TEST( des( OUT name ) and name == NameMapping_Name );
+			TEST( des( OUT name ));
+			TEST_EQ( name, NameMapping_Name );
 			TEST( hash_to_name.Deserialize( des ));
 
 			TEST( file->SeekSet( Bytes{offsets.samplerOffset} ));
@@ -61,8 +63,8 @@ namespace
 			uint	version = 0;
 			uint	name	= 0;
 			TEST( des( OUT name, OUT version ));
-			TEST( name == SamplerPack_Name );
-			TEST( version == SamplerPack_Version );
+			TEST_EQ( name, SamplerPack_Name );
+			TEST_EQ( version, SamplerPack_Version );
 		}
 
 		Array<Pair< SamplerName, uint >>	samp_names;
@@ -71,14 +73,14 @@ namespace
 		Array<SamplerSerializer>	samplers;
 		TEST( des( OUT samplers ));
 		
-		TEST( samp_names.size() == 7 );
-		TEST( samplers.size() == 7 );
+		TEST_EQ( samp_names.size(), 7 );
+		TEST_EQ( samplers.size(), 7 );
 		
 		String	ser_str;
 
 		for (auto& [name, idx] : samp_names)
 		{
-			TEST( idx < samplers.size() );
+			TEST_L( idx, samplers.size() );
 
 			auto&	samp = samplers [idx];
 

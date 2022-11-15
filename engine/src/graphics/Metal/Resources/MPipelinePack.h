@@ -115,7 +115,7 @@ namespace AE::Graphics
 			bool  _LoadRenderPasses (MResourceManager &, Bytes offset, Bytes size) override;
 
 			ShaderModuleRef	_GetShader (const MResourceManager &, PipelineCompiler::ShaderUID uid, EShader type) const override;
-			MSamplerID		_CreateSampler (MResourceManager &, const SamplerDesc &desc) override;
+			MSamplerID		_CreateSampler (MResourceManager &, const SamplerDesc &desc, StringView dbgName) override;
 
 			Strong<DescriptorSetLayoutID>  _CreateDescriptorSetLayout (MResourceManager &, const Uniforms_t &, ArrayView<SamplerID_t>, EDescSetUsage, StackAllocator_t &) override;
 

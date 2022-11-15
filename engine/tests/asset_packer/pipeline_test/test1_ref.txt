@@ -321,7 +321,6 @@ MeshPipelineTempl {
     maxVertices          = 32
     maxIndices           = 192
     earlyFragmentTests   = true
-    meshDefaultLocalSize = { Undefined, 1, 1 }
     meshLocalSizeSpec    = { 0, Undefined, Undefined }
     featureSets = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
@@ -502,8 +501,8 @@ SpirvShaders {
   [9]  offset = 27 Kb
   [10]  offset = 30 Kb
   [11]  offset = 31 Kb
-  [12]  offset = 32 Kb
-  [13]  offset = 34 Kb
+  [12]  offset = 33 Kb
+  [13]  offset = 35 Kb
 }
 
 SpirvShaderData {
@@ -512,41 +511,41 @@ SpirvShaderData {
     withTrace
   [1]
     codeSize = 2224 b
-    codeHash = f01a9d57d0db0ed5
+    codeHash = 21168509b4ca2fb4
   [2]
     codeSize = 1664 b
-    codeHash = 8ea868819754f7d7
+    codeHash = 5fa470dff345d6b6
   [3]
     codeSize = 2216 b
-    codeHash = f28472c64ce156aa
+    codeHash = 23886a9828f077cb
   [4]
     codeSize = 1788 b
-    codeHash = b55cccece8403bc2
+    codeHash = 6450d4b28c511aa3
   [5]
     codeSize = 2152 b
-    codeHash = eddc12a5f4927cf2
+    codeHash = 3cd00afb90835d93
   [6]
-    codeSize = 3232 b
-    codeHash = fd641179e511203c
+    codeSize = 3368 b
+    codeHash = d416790abf32fc02
   [7]
-    codeSize = 2076 b
-    codeHash = 4d8b83d400f60cd
+    codeSize = 2100 b
+    codeHash = 6ba3f313bfb6fae6
   [8]
-    codeSize = 3296 b
-    codeHash = 19b4c1479081e84f
+    codeSize = 3432 b
+    codeHash = 5977b9dd360ae96
   [9]
-    codeSize = 2560 b
-    codeHash = b0e8b2f41fec1fb7
+    codeSize = 2544 b
+    codeHash = 57cdf8918884089d
   [10]
-    codeSize = 1204 b
-    codeHash = cc814c8237217d02
+    codeSize = 1188 b
+    codeHash = eace3dfa44826160
   [11]
-    codeSize = 1692 b
-    codeHash = c970834ffdaa0cf8
+    codeSize = 1676 b
+    codeHash = 52819d3e46a69663
   [12]
-    codeSize = 1972 b
-    codeHash = 9e4c9da3878a4873
+    codeSize = 1956 b
+    codeHash = 2add1da725ddf931
   [13]
     codeSize = 2380 b
-    codeHash = ce3006b01a41e763
+    codeHash = 1f3c1eee7e50c602
 }

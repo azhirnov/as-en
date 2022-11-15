@@ -8,7 +8,7 @@ void main ()
 		Shader@	ms	= Shader();
 		ms.file		= "draw_mesh1_ms.glsl";
 		ms.options	= EShaderOpt::Optimize;
-		ms.version	= EShaderVersion::SPIRV_1_3;
+		ms.version	= EShaderVersion::SPIRV_1_4;
 		ms.SetMeshSpec();
 		ppln.SetMeshShader( ms );
 	}
@@ -16,7 +16,7 @@ void main ()
 		Shader@	fs	= Shader();
 		fs.file		= "draw_mesh1_fs.glsl";
 		fs.options	= EShaderOpt::Optimize;
-		fs.version	= EShaderVersion::SPIRV_1_3;
+		fs.version	= EShaderVersion::SPIRV_1_4;
 		ppln.SetFragmentShader( fs );
 	}
 

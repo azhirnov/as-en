@@ -6,6 +6,9 @@
 	Recomended maximum size is 8..16 elements.
 
 	References are not invalidated.
+
+	Exceptions:
+		- key & value may throw exceptions (in copy-ctor)
 */
 
 #pragma once
@@ -15,6 +18,7 @@
 #include "base/Memory/CopyPolicy.h"
 #include "base/Math/Math.h"
 #include "base/Math/Vec.h"
+#include "base/CompileTime/TypeList.h"
 
 namespace AE::Base
 {
@@ -32,6 +36,8 @@ namespace AE::Base
 	struct FixedMap
 	{
 		STATIC_ASSERT( ArraySize < 256 );
+		//STATIC_ASSERT( IsNothrowMoveCtor<Key> );
+		//STATIC_ASSERT( IsNothrowMoveCtor<Value> );
 
 	// types
 	private:
@@ -75,45 +81,45 @@ namespace AE::Base
 
 		// methods
 		public:
-			TIterator () {}
-			TIterator (const Iter &) = default;
-			TIterator (Iter &&) = default;
-			TIterator (MapPtr map, usize idx) : _mapPtr{map}, _index{Index_t(idx)} { ASSERT( _mapPtr != null ); }
+			TIterator ()								__NE___ {}
+			TIterator (const Iter &)					__NE___ = default;
+			TIterator (Iter &&)							__NE___ = default;
+			TIterator (MapPtr map, usize idx)			__NE___ : _mapPtr{map}, _index{Index_t(idx)} { ASSERT( _mapPtr != null ); }
 
-			Iter&  operator = (const Iter &) = default;
-			Iter&  operator = (Iter &&) = default;
+			Iter&  operator = (const Iter &)			__NE___ = default;
+			Iter&  operator = (Iter &&)					__NE___ = default;
 
-			ND_ bool  operator != (const Iter &rhs) const	{ return not (*this == rhs); }
-			ND_ bool  operator == (const Iter &rhs) const	{ return _mapPtr == rhs._mapPtr and _index == rhs._index; }
+			ND_ bool  operator != (const Iter &rhs)		C_NE___	{ return not (*this == rhs); }
+			ND_ bool  operator == (const Iter &rhs)		C_NE___	{ return _mapPtr == rhs._mapPtr and _index == rhs._index; }
 
-			Iter&  operator ++ ()
+			Iter&  operator ++ ()						__NE___
 			{
 				ASSERT( _mapPtr != null );
 				_index = Index_t( Min( _index + 1, _mapPtr->size() ));
 				return *this;
 			}
 
-			Iter  operator ++ (int)
+			Iter  operator ++ (int)						__NE___
 			{
 				Iter	res{ *this };
 				this->operator++();
 				return res;
 			}
 
-			Iter&  operator += (usize x)
+			Iter&  operator += (usize x)				__NE___
 			{
 				ASSERT( _mapPtr != null );
 				_index = Index_t( Min( _index + x, _mapPtr->size() ));
 				return *this;
 			}
 
-			ND_ Iter  operator + (usize x) const	{ return (Iter{*this} += x); }
+			ND_ Iter  operator + (usize x)				C_NE___	{ return (Iter{*this} += x); }
 
-			ND_ PairRef		operator * ()			{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
-			ND_ PairCRef_t	operator * ()	const	{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
+			ND_ PairRef		operator * ()				__NE___	{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
+			ND_ PairCRef_t	operator * ()				C_NE___	{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
 
-			ND_ TPairPtr<PairRef>		operator -> ()			{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
-			ND_ TPairPtr<PairCRef_t>	operator -> ()	const	{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
+			ND_ TPairPtr<PairRef>		operator -> ()	__NE___	{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
+			ND_ TPairPtr<PairCRef_t>	operator -> ()	C_NE___	{ ASSERT( _mapPtr != null );	return (*_mapPtr)[_index]; }
 		};
 
 
@@ -141,83 +147,83 @@ namespace AE::Base
 
 	// methods
 	public:
-		FixedMap ();
-		FixedMap (Self &&);
-		FixedMap (const Self &);
+		FixedMap ()									__NE___;
+		FixedMap (Self &&)							__NE___;
+		FixedMap (const Self &)						noexcept(AllNothrowCopyCtor<Key, Value>);
 
-		~FixedMap ()	{ clear(); }
+		~FixedMap ()								__NE___	{ clear(); }
 
-		ND_ usize			size ()			const	{ return _count; }
-		ND_ bool			empty ()		const	{ return _count == 0; }
+		ND_ usize			size ()					C_NE___	{ return _count; }
+		ND_ bool			empty ()				C_NE___	{ return _count == 0; }
 
-		ND_ iterator		begin ()				{ return iterator{ this, 0 }; }
-		ND_ const_iterator	begin ()		const	{ return const_iterator{ this, 0 }; }
-		ND_ iterator		end ()					{ return begin() + _count; }
-		ND_ const_iterator	end ()			const	{ return begin() + _count; }
+		ND_ iterator		begin ()				__NE___	{ return iterator{ this, 0 }; }
+		ND_ const_iterator	begin ()				C_NE___	{ return const_iterator{ this, 0 }; }
+		ND_ iterator		end ()					__NE___	{ return begin() + _count; }
+		ND_ const_iterator	end ()					C_NE___	{ return begin() + _count; }
 		
-		ND_ static constexpr usize	capacity ()		{ return ArraySize; }
+		ND_ static constexpr usize	capacity ()		__NE___	{ return ArraySize; }
 		
-			Self&	operator = (Self &&);
-			Self&	operator = (const Self &);
+			Self&	operator = (Self &&)			__NE___;
+			Self&	operator = (const Self &)		noexcept(AllNothrowCopyCtor<Key, Value>);
 
-		ND_ bool	operator == (const Self &rhs) const;
-		ND_ bool	operator != (const Self &rhs) const		{ return not (*this == rhs); }
+		ND_ bool	operator == (const Self &rhs)	C_NE___;
+		ND_ bool	operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
 
 			template <typename KeyType, typename ValueType>
-			Pair<iterator,bool>  emplace (KeyType&& key, ValueType&& value);
+			Pair<iterator,bool>  emplace (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
 			
 			template <typename KeyType, typename ValueType>
-			bool				 try_emplace (KeyType&& key, ValueType&& value);
+			bool				 try_emplace (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
 
-			Pair<iterator,bool>  insert (const pair_type &value)	{ return emplace( value.first, value.second ); }
-			Pair<iterator,bool>  insert (pair_type&& value)			{ return emplace( RVRef(value.first), RVRef(value.second) ); }
+			Pair<iterator,bool>  insert (const pair_type &value)	noexcept(AllNothrowCopyCtor<Key, Value>)	{ return emplace( value.first, value.second ); }
+			Pair<iterator,bool>  insert (pair_type&& value)			__NE___										{ return emplace( RVRef(value.first), RVRef(value.second) ); }
 			
 			template <typename KeyType, typename ValueType>
-			Pair<iterator,bool>  insert_or_assign (KeyType&& key, ValueType&& value);
+			Pair<iterator,bool>  insert_or_assign (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
 			
 		// same as operator [] in std
 			template <typename KeyType>
-		ND_ Value &			operator () (KeyType&& key)				{ auto[iter, inst] = emplace( FwdArg<KeyType>(key), Value{} );  return iter->second; }
+		ND_ Value &			operator () (KeyType&& key)				noexcept(AllNothrowCopyCtor<Key, Value>)	{ auto[iter, inst] = emplace( FwdArg<KeyType>(key), Value{} );  return iter->second; }
 
 			template <typename KeyType>
-		ND_ const_iterator	find (const KeyType &key) const			{ return _Find<const_iterator>( *this, key ); }
+		ND_ const_iterator	find (const KeyType &key)				C_NE___	{ return _Find<const_iterator>( *this, key ); }
 			template <typename KeyType>
-		ND_ iterator		find (const KeyType &key)				{ return _Find<iterator>( *this, key ); }
+		ND_ iterator		find (const KeyType &key)				__NE___	{ return _Find<iterator>( *this, key ); }
 		
 			template <typename KeyType>
-		ND_ usize			count (const KeyType &key)		const	{ return contains( key ) ? 1 : 0; }
+		ND_ usize			count (const KeyType &key)				C_NE___	{ return contains( key ) ? 1 : 0; }
 			template <typename KeyType>
-		ND_ bool			contains (const KeyType &key)	const;
+		ND_ bool			contains (const KeyType &key)			C_NE___;
 		
 			template <typename KeyType>
-			bool			EraseByKey (const KeyType &key);
+			bool			EraseByKey (const KeyType &key)			__NE___;
 
-			iterator		EraseByIter (const iterator &iter);
-			const_iterator	EraseByIter (const const_iterator &iter);
+			iterator		EraseByIter (const iterator &iter)		__NE___;
+			const_iterator	EraseByIter (const const_iterator &iter)__NE___;
 
-		ND_ HashVal			CalcHash ()		const;
-		ND_ HashVal			CalcKeyHash ()	const;
+		ND_ HashVal			CalcHash ()								C_NE___;
+		ND_ HashVal			CalcKeyHash ()							C_NE___;
 		
-			void			clear ();
-			void			reserve (usize)		{} // ignore
+			void			clear ()								__NE___;
+			void			reserve (usize)							__NE___	{} // ignore
 
 		// cache friendly access to unsorted data
 
-		ND_ PairRef_t	operator [] (usize i);
-		ND_ PairCRef_t	operator [] (usize i) const;
+		ND_ PairRef_t	operator [] (usize i)						__NE___;
+		ND_ PairCRef_t	operator [] (usize i)						C_NE___;
 
-		ND_ ArrayView<Key>		GetKeyArray ()		const	{ return { &_keyArray[0], _count }; }
-		ND_ ArrayView<Value>	GetValueArray ()	const	{ return { &_valArray[0], _count }; }
+		ND_ ArrayView<Key>		GetKeyArray ()						C_NE___	{ return { &_keyArray[0], _count }; }
+		ND_ ArrayView<Value>	GetValueArray ()					C_NE___	{ return { &_valArray[0], _count }; }
 
-		ND_ Pair<ArrayView<Key>, ArrayView<Value>>  ToArray () const	{ return {GetKeyArray(), GetValueArray()}; }
+		ND_ Pair<ArrayView<Key>, ArrayView<Value>>  ToArray ()		C_NE___	{ return {GetKeyArray(), GetValueArray()}; }
 
 	private:
-		void  _Erase (Index_t idx);
+		void  _Erase (Index_t idx) __NE___;
 
 		template <typename IterType, typename MapType, typename KeyType>
-		ND_ static IterType  _Find (MapType &map, const KeyType &key);
+		ND_ static IterType  _Find (MapType &map, const KeyType &key) __NE___;
 
-		ND_ forceinline bool _IsMemoryAliased (const Self* other) const
+		ND_ forceinline bool _IsMemoryAliased (const Self* other)	C_NE___
 		{
 			return IsIntersects( this, this+1, other, other+1 );
 		}
@@ -231,7 +237,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	FixedMap<K,V,S,KS,VS>::FixedMap ()
+	FixedMap<K,V,S,KS,VS>::FixedMap () __NE___
 	{
 		DEBUG_ONLY( DbgInitMem( _indices  ));
 		DEBUG_ONLY( DbgInitMem( _keyArray ));
@@ -244,12 +250,12 @@ namespace AE::Base
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	FixedMap<K,V,S,KS,VS>::FixedMap (const Self &other) : _count{ other._count }
+	FixedMap<K,V,S,KS,VS>::FixedMap (const Self &other) noexcept(AllNothrowCopyCtor<K, V>) : _count{ other._count }
 	{
 		ASSERT( not _IsMemoryAliased( &other ));
 
-		KPolicy_t::Copy( _keyArray, other._keyArray, _count );
-		VPolicy_t::Copy( _valArray, other._valArray, _count );
+		KPolicy_t::Copy( _keyArray, other._keyArray, _count );	// throw
+		VPolicy_t::Copy( _valArray, other._valArray, _count );	// throw
 		MemCopy( _indices, other._indices, SizeOf<Index_t> * _count );
 	}
 	
@@ -259,7 +265,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	FixedMap<K,V,S,KS,VS>::FixedMap (Self &&other) : _count{ other._count }
+	FixedMap<K,V,S,KS,VS>::FixedMap (Self &&other) __NE___ : _count{ other._count }
 	{
 		ASSERT( not _IsMemoryAliased( &other ));
 		
@@ -277,7 +283,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	FixedMap<K,V,S,KS,VS>&  FixedMap<K,V,S,KS,VS>::operator = (Self &&rhs)
+	FixedMap<K,V,S,KS,VS>&  FixedMap<K,V,S,KS,VS>::operator = (Self &&rhs) __NE___
 	{
 		ASSERT( not _IsMemoryAliased( &rhs ));
 		
@@ -302,7 +308,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	FixedMap<K,V,S,KS,VS>&  FixedMap<K,V,S,KS,VS>::operator = (const Self &rhs)
+	FixedMap<K,V,S,KS,VS>&  FixedMap<K,V,S,KS,VS>::operator = (const Self &rhs) noexcept(AllNothrowCopyCtor<K, V>)
 	{
 		ASSERT( not _IsMemoryAliased( &rhs ));
 		
@@ -311,8 +317,8 @@ namespace AE::Base
 
 		_count = rhs._count;
 		
-		KPolicy_t::Copy( _keyArray, rhs._keyArray, _count );
-		VPolicy_t::Copy( _valArray, rhs._valArray, _count );
+		KPolicy_t::Copy( _keyArray, rhs._keyArray, _count );	// throw
+		VPolicy_t::Copy( _valArray, rhs._valArray, _count );	// throw
 		MemCopy( _indices, rhs._indices, SizeOf<Index_t> * _count );
 
 		return *this;
@@ -324,7 +330,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	bool  FixedMap<K,V,S,KS,VS>::operator == (const Self &rhs) const
+	bool  FixedMap<K,V,S,KS,VS>::operator == (const Self &rhs) C_NE___
 	{
 		if ( this == &rhs )
 			return true;
@@ -351,7 +357,7 @@ namespace AE::Base
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	typename FixedMap<K,V,S,KS,VS>::PairRef_t
-		FixedMap<K,V,S,KS,VS>::operator [] (usize i)
+		FixedMap<K,V,S,KS,VS>::operator [] (usize i) __NE___
 	{
 		ASSERT( i < _count );
 		return PairRef_t{ _keyArray[i], _valArray[i] }; // don't use '_indices'
@@ -359,7 +365,7 @@ namespace AE::Base
 	
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	typename FixedMap<K,V,S,KS,VS>::PairCRef_t
-		FixedMap<K,V,S,KS,VS>::operator [] (usize i) const
+		FixedMap<K,V,S,KS,VS>::operator [] (usize i) C_NE___
 	{
 		ASSERT( i < _count );
 		return PairCRef_t{ _keyArray[i], _valArray[i] }; // don't use '_indices'
@@ -375,7 +381,7 @@ namespace _hidden_
 	template <typename K1, typename K, typename I>
 	struct RecursiveBinarySearch
 	{
-		forceinline static usize  Find (usize size, const K1 &key, const I* indices, const K* data)
+		forceinline static usize  Find (usize size, const K1 &key, const I* indices, const K* data) __NE___
 		{
 			usize2	range { 0, size };
 
@@ -389,7 +395,7 @@ namespace _hidden_
 			return range.x;
 		}
 		
-		forceinline static usize  LowerBound (usize size, const K1 &key, const I* indices, const K* data)
+		forceinline static usize  LowerBound (usize size, const K1 &key, const I* indices, const K* data) __NE___
 		{
 			usize2	range { 0, size };
 
@@ -413,12 +419,12 @@ namespace _hidden_
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename KeyType, typename ValueType>
-	bool  FixedMap<K,V,S,KS,VS>::try_emplace (KeyType&& key, ValueType&& value)
+	bool  FixedMap<K,V,S,KS,VS>::try_emplace (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<K, V>)
 	{
 		if_unlikely( _count >= capacity() )
 			return false;
 
-		auto [iter, inserted] = emplace( RVRef(key), RVRef(value) );
+		auto [iter, inserted] = emplace( FwdArg<KeyType>(key), FwdArg<ValueType>(value) );	// throw
 		return inserted;
 	}
 
@@ -430,7 +436,7 @@ namespace _hidden_
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename KeyType, typename ValueType>
 	Pair< typename FixedMap<K,V,S,KS,VS>::iterator, bool >
-		FixedMap<K,V,S,KS,VS>::emplace (KeyType&& key, ValueType&& value)
+		FixedMap<K,V,S,KS,VS>::emplace (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<K, V>)
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, K, Index_t >;
 
@@ -443,8 +449,8 @@ namespace _hidden_
 		ASSERT( _count < capacity() );
 
 		const usize	j = _count++;
-		PlacementNew<key_type  >( &_keyArray[j], FwdArg<KeyType  >(key)   );
-		PlacementNew<value_type>( &_valArray[j], FwdArg<ValueType>(value) );
+		PlacementNew<key_type  >( &_keyArray[j], FwdArg<KeyType  >(key)   );	// throw
+		PlacementNew<value_type>( &_valArray[j], FwdArg<ValueType>(value) );	// throw
 			
 		if ( i < _count )
 			for (usize k = _count-1; k > i; --k) {
@@ -465,7 +471,7 @@ namespace _hidden_
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename KeyType, typename ValueType>
 	Pair< typename FixedMap<K,V,S,KS,VS>::iterator, bool >
-		FixedMap<K,V,S,KS,VS>::insert_or_assign (KeyType&& key, ValueType&& value)
+		FixedMap<K,V,S,KS,VS>::insert_or_assign (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<K, V>)
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, K, Index_t >;
 
@@ -476,8 +482,8 @@ namespace _hidden_
 			const Index_t	idx = _indices[i];
 			KPolicy_t::Destroy( &_keyArray[idx], 1 );
 			VPolicy_t::Destroy( &_valArray[idx], 1 );
-			PlacementNew<key_type  >( &_keyArray[idx], FwdArg<KeyType  >(key)   );
-			PlacementNew<value_type>( &_valArray[idx], FwdArg<ValueType>(value) );
+			PlacementNew<key_type  >( &_keyArray[idx], FwdArg<KeyType  >(key)   );	// throw
+			PlacementNew<value_type>( &_valArray[idx], FwdArg<ValueType>(value) );	// throw
 			return { iterator{ this, idx }, false };
 		}
 
@@ -485,8 +491,8 @@ namespace _hidden_
 		ASSERT( _count < capacity() );
 	
 		const usize	j = _count++;
-		PlacementNew<key_type  >( &_keyArray[j], FwdArg<KeyType  >(key)   );
-		PlacementNew<value_type>( &_valArray[j], FwdArg<ValueType>(value) );
+		PlacementNew<key_type  >( &_keyArray[j], FwdArg<KeyType  >(key)   );	// throw
+		PlacementNew<value_type>( &_valArray[j], FwdArg<ValueType>(value) );	// throw
 		
 		if ( i < _count )
 			for (usize k = _count-1; k > i; --k) {
@@ -506,7 +512,7 @@ namespace _hidden_
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename IterType, typename MapType, typename KeyType>
-	IterType  FixedMap<K,V,S,KS,VS>::_Find (MapType &map, const KeyType &key)
+	IterType  FixedMap<K,V,S,KS,VS>::_Find (MapType &map, const KeyType &key) __NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, K, Index_t >;
 
@@ -525,7 +531,7 @@ namespace _hidden_
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename KeyType>
-	bool  FixedMap<K,V,S,KS,VS>::contains (const KeyType &key) const
+	bool  FixedMap<K,V,S,KS,VS>::contains (const KeyType &key) C_NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, K, Index_t >;
 		
@@ -541,7 +547,7 @@ namespace _hidden_
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename KeyType>
-	bool  FixedMap<K,V,S,KS,VS>::EraseByKey (const KeyType &key)
+	bool  FixedMap<K,V,S,KS,VS>::EraseByKey (const KeyType &key) __NE___
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, K, Index_t >;
 
@@ -562,7 +568,7 @@ namespace _hidden_
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	typename FixedMap<K,V,S,KS,VS>::iterator
-		FixedMap<K,V,S,KS,VS>::EraseByIter (const iterator &iter)
+		FixedMap<K,V,S,KS,VS>::EraseByIter (const iterator &iter) __NE___
 	{
 		ASSERT( iter._mapPtr == this );
 		
@@ -574,7 +580,7 @@ namespace _hidden_
 
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	typename FixedMap<K,V,S,KS,VS>::const_iterator
-		FixedMap<K,V,S,KS,VS>::EraseByIter (const const_iterator &iter)
+		FixedMap<K,V,S,KS,VS>::EraseByIter (const const_iterator &iter) __NE___
 	{
 		ASSERT( iter._mapPtr == this );
 		
@@ -590,7 +596,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	void  FixedMap<K,V,S,KS,VS>::_Erase (Index_t idx)
+	void  FixedMap<K,V,S,KS,VS>::_Erase (Index_t idx) __NE___
 	{
 		_keyArray[idx].~K();
 		_valArray[idx].~V();
@@ -625,7 +631,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	void  FixedMap<K,V,S,KS,VS>::clear ()
+	void  FixedMap<K,V,S,KS,VS>::clear () __NE___
 	{
 		KPolicy_t::Destroy( _keyArray, _count );
 		VPolicy_t::Destroy( _valArray, _count );
@@ -641,7 +647,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	HashVal  FixedMap<K,V,S,KS,VS>::CalcHash () const
+	HashVal  FixedMap<K,V,S,KS,VS>::CalcHash () C_NE___
 	{
 		HashVal		result = HashOf( size() );
 
@@ -659,7 +665,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	HashVal  FixedMap<K,V,S,KS,VS>::CalcKeyHash () const
+	HashVal  FixedMap<K,V,S,KS,VS>::CalcKeyHash () C_NE___
 	{
 		HashVal		result = HashOf( size() );
 
@@ -677,7 +683,7 @@ namespace std
 	template <typename Key, typename Value, size_t ArraySize, typename KS, typename VS>
 	struct hash< AE::Base::FixedMap<Key, Value, ArraySize, KS, VS> >
 	{
-		ND_ size_t  operator () (const AE::Base::FixedMap<Key, Value, ArraySize, KS, VS> &value) const
+		ND_ size_t  operator () (const AE::Base::FixedMap<Key, Value, ArraySize, KS, VS> &value) C_NE___
 		{
 			return size_t(value.CalcHash());
 		}

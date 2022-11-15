@@ -191,8 +191,8 @@ namespace AE::Graphics
 			case EShader::Geometry :		return VK_SHADER_STAGE_GEOMETRY_BIT;
 			case EShader::Fragment :		return VK_SHADER_STAGE_FRAGMENT_BIT;
 			case EShader::Compute :			return VK_SHADER_STAGE_COMPUTE_BIT;
-			case EShader::MeshTask :		return VK_SHADER_STAGE_TASK_BIT_NV;
-			case EShader::Mesh :			return VK_SHADER_STAGE_MESH_BIT_NV;
+			case EShader::MeshTask :		return VK_SHADER_STAGE_TASK_BIT_EXT;
+			case EShader::Mesh :			return VK_SHADER_STAGE_MESH_BIT_EXT;
 			case EShader::RayGen :			return VK_SHADER_STAGE_RAYGEN_BIT_KHR;
 			case EShader::RayAnyHit :		return VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
 			case EShader::RayClosestHit :	return VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
@@ -234,8 +234,8 @@ namespace AE::Graphics
 				case EShaderStages::Geometry :			flags |= VK_SHADER_STAGE_GEOMETRY_BIT;					break;
 				case EShaderStages::Fragment :			flags |= VK_SHADER_STAGE_FRAGMENT_BIT;					break;
 				case EShaderStages::Compute :			flags |= VK_SHADER_STAGE_COMPUTE_BIT;					break;
-				case EShaderStages::MeshTask :			flags |= VK_SHADER_STAGE_TASK_BIT_NV;					break;
-				case EShaderStages::Mesh :				flags |= VK_SHADER_STAGE_MESH_BIT_NV;					break;
+				case EShaderStages::MeshTask :			flags |= VK_SHADER_STAGE_TASK_BIT_EXT;					break;
+				case EShaderStages::Mesh :				flags |= VK_SHADER_STAGE_MESH_BIT_EXT;					break;
 				case EShaderStages::RayGen :			flags |= VK_SHADER_STAGE_RAYGEN_BIT_KHR;				break;
 				case EShaderStages::RayAnyHit :			flags |= VK_SHADER_STAGE_ANY_HIT_BIT_KHR;				break;
 				case EShaderStages::RayClosestHit :		flags |= VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;			break;
@@ -684,8 +684,8 @@ namespace AE::Graphics
 			VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT |
 			VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT |
 			VK_SHADER_STAGE_GEOMETRY_BIT |
-			VK_SHADER_STAGE_TASK_BIT_NV |
-			VK_SHADER_STAGE_MESH_BIT_NV;
+			VK_SHADER_STAGE_TASK_BIT_EXT |
+			VK_SHADER_STAGE_MESH_BIT_EXT;
 
 		constexpr auto RayTracingShaders =
 			VK_SHADER_STAGE_RAYGEN_BIT_KHR |
@@ -718,8 +718,8 @@ namespace AE::Graphics
 			VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT |
 			VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT |
 			VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT |
-			VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_NV |
-			VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_NV;
+			VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT |
+			VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT;
 		
 		DBG_CHECK_MSG( EResourceState_RequireShaderStage( value ) == AnyBits( value, EResourceState::AllShaders ),
 					"shader stage is not compatible with access mask" );
@@ -1080,6 +1080,8 @@ namespace AE::Graphics
 				case VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR :
 				case VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR :
 				case VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR :
+				case VK_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT :
+				case VK_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT :
 				case VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM :
 				default :											RETURN_ERR( "invalid buffer usage" );
 			}
@@ -1192,8 +1194,8 @@ namespace AE::Graphics
 				case VK_SHADER_STAGE_MISS_BIT_KHR :					result |= EShaderStages::RayMiss;			break;
 				case VK_SHADER_STAGE_INTERSECTION_BIT_KHR :			result |= EShaderStages::RayIntersection;	break;
 				case VK_SHADER_STAGE_CALLABLE_BIT_KHR :				result |= EShaderStages::RayCallable;		break;
-				case VK_SHADER_STAGE_TASK_BIT_NV :					result |= EShaderStages::MeshTask;			break;
-				case VK_SHADER_STAGE_MESH_BIT_NV :					result |= EShaderStages::Mesh;				break;
+				case VK_SHADER_STAGE_TASK_BIT_EXT :					result |= EShaderStages::MeshTask;			break;
+				case VK_SHADER_STAGE_MESH_BIT_EXT :					result |= EShaderStages::Mesh;				break;
 				case VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI :	result |= EShaderStages::Tile;				break;
 				case VK_SHADER_STAGE_ALL_GRAPHICS :
 				case VK_SHADER_STAGE_ALL :

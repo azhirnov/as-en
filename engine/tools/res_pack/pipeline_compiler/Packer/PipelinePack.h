@@ -274,8 +274,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -322,8 +322,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -364,8 +364,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -392,8 +392,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 	
@@ -421,8 +421,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -469,8 +469,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -500,8 +500,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -532,8 +532,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -561,8 +561,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -604,8 +604,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -635,8 +635,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -711,8 +711,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -740,8 +740,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -772,8 +772,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -801,8 +801,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 
@@ -831,8 +831,8 @@ namespace AE::PipelineCompiler
 			ND_ bool  IsGraphics ()	const	{ return renderPass.IsDefined() and subpass.IsDefined(); }
 			
 			// ISerializable
-			bool  Serialize (Serializing::Serializer &) const;
-			bool  Deserialize (Serializing::Deserializer &);
+			bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+			bool  Deserialize (Serializing::Deserializer &)	__NE_OV;
 		};
 		
 	public:
@@ -857,8 +857,8 @@ namespace AE::PipelineCompiler
 		#endif
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 	
@@ -913,8 +913,8 @@ namespace AE::PipelineCompiler
 		ND_ bool	IsMetalBytecode ()				const	{ return HoldsAlternative< MetalBytecode_t >( code ); }
 		
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 
 	private:
 		ND_ bool  _ReadSpirvData (Bytes spvDataSize, RStream &, OUT SpirvBytecode_t &);

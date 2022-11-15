@@ -41,16 +41,16 @@ namespace AE::Base
 		
 		// require write lock
 		template <usize Size, uint UID, bool Optimize, uint Seed>
-		void  Add (const NamedID<Size, UID, Optimize, Seed> &id);
+		void  Add (const NamedID<Size, UID, Optimize, Seed> &id)				__TH___;
 		
 		// require read lock
 		template <usize Size, uint UID, bool Optimize, uint Seed>
-		ND_ uint  RecalculateSeed (const NamedID<Size, UID, Optimize, Seed> &);
+		ND_ uint  RecalculateSeed (const NamedID<Size, UID, Optimize, Seed> &)	__TH___;
 
-		ND_ bool  HasCollisions () const;
+		ND_ bool  HasCollisions ()												C_NE___;
 		
 	private:
-		ND_ uint  _RecalculateSeed (Info &) const;
+		ND_ uint  _RecalculateSeed (Info &) const								__TH___;
 	};
 
 	
@@ -60,13 +60,13 @@ namespace AE::Base
 =================================================
 */
 	template <usize Size, uint UID, bool Optimize, uint Seed>
-	inline void  NamedID_HashCollisionCheck::Add (const NamedID<Size, UID, Optimize, Seed> &id)
+	inline void  NamedID_HashCollisionCheck::Add (const NamedID<Size, UID, Optimize, Seed> &id) __TH___
 	{
 		if constexpr( not Optimize )
 		{
 			STATIC_ASSERT( Size <= StString_t::capacity() );
 
-			auto&	info	 = _idMap.emplace( UID, Info{Seed} ).first->second;
+			auto&	info	 = _idMap.emplace( UID, Info{Seed} ).first->second;	// throw
 			usize	key		 = usize(id.GetHash());
 			auto	iter	 = info.data.find( key );
 			bool	inserted = false;
@@ -82,7 +82,7 @@ namespace AE::Base
 			}
 
 			if ( not inserted )
-				info.data.emplace( key, id.GetName() );
+				info.data.emplace( key, id.GetName() );	// throw
 		}
 	}
 
@@ -92,7 +92,7 @@ namespace AE::Base
 =================================================
 */
 	template <usize Size, uint UID, bool Optimize, uint Seed>
-	inline uint  NamedID_HashCollisionCheck::RecalculateSeed (const NamedID<Size, UID, Optimize, Seed> &)
+	inline uint  NamedID_HashCollisionCheck::RecalculateSeed (const NamedID<Size, UID, Optimize, Seed> &) __TH___
 	{
 		auto	iter = _idMap.find( UID );
 		if ( iter == _idMap.end() )
@@ -101,7 +101,7 @@ namespace AE::Base
 		if ( iter->second.seed != Seed )
 			return iter->second.seed;
 
-		return _RecalculateSeed( iter->second );
+		return _RecalculateSeed( iter->second );	// throw
 	}
 
 

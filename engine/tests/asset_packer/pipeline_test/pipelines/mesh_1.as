@@ -13,14 +13,14 @@ void main ()
 		Shader@	ms = Shader();
 		ms.file		= "mesh_1.glsl";
 		ms.options	= EShaderOpt::Optimize;
-		ms.version	= EShaderVersion::SPIRV_1_3;
+		ms.version	= EShaderVersion::SPIRV_1_4;
 		ppln.SetMeshShader( ms );
 	}
 	{
 		Shader@	fs = Shader();
 		fs.file		= "fragment_3.glsl";
 		fs.options	= EShaderOpt::DebugInfo;
-		fs.version	= EShaderVersion::SPIRV_1_3;
+		fs.version	= EShaderVersion::SPIRV_1_4;
 		ppln.SetFragmentShader( fs );
 	}
 

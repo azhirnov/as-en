@@ -107,7 +107,7 @@ extern bool ShaderTrace_Test1 (TestDevice& vulkan)
 
 	// build command buffer
 	VkCommandBufferBeginInfo	begin = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, null, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, null };
-	VK_CHECK( vulkan.vkBeginCommandBuffer( vulkan.cmdBuffer, &begin ));
+	VK_CHECK_ERR( vulkan.vkBeginCommandBuffer( vulkan.cmdBuffer, &begin ));
 
 	// image layout undefined -> color_attachment
 	{
@@ -212,7 +212,7 @@ extern bool ShaderTrace_Test1 (TestDevice& vulkan)
 		vulkan.vkCmdCopyBuffer( vulkan.cmdBuffer, vulkan.debugOutputBuf, vulkan.readBackBuf, 1, &region );
 	}
 
-	VK_CHECK( vulkan.vkEndCommandBuffer( vulkan.cmdBuffer ));
+	VK_CHECK_ERR( vulkan.vkEndCommandBuffer( vulkan.cmdBuffer ));
 
 
 	// submit commands and wait
@@ -222,8 +222,8 @@ extern bool ShaderTrace_Test1 (TestDevice& vulkan)
 		submit.commandBufferCount	= 1;
 		submit.pCommandBuffers		= &vulkan.cmdBuffer;
 
-		VK_CHECK( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, VK_NULL_HANDLE ));
-		VK_CHECK( vulkan.vkQueueWaitIdle( vulkan.GetVkQueue() ));
+		VK_CHECK_ERR( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, VK_NULL_HANDLE ));
+		VK_CHECK_ERR( vulkan.vkQueueWaitIdle( vulkan.GetVkQueue() ));
 	}
 	
 	CHECK_ERR( vulkan.TestDebugTraceOutput( {frag_shader}, "ShaderTrace_Test1.txt" ));

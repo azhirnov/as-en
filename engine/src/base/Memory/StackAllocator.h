@@ -68,47 +68,47 @@ namespace AE::Base
 
 	// methods
 	public:
-		StackAllocator () {}
-		StackAllocator (Self &&other);
+		StackAllocator ()									__NE___	{}
+		StackAllocator (Self &&other)						__NE___;
 		StackAllocator (const Self &) = delete;
-		explicit StackAllocator (const Allocator_t &alloc) : _alloc{alloc} {}
+		explicit StackAllocator (const Allocator_t &alloc)	__NE___: _alloc{alloc} {}
 
-		~StackAllocator ()		{ Release(); }
+		~StackAllocator ()									__NE___	{ Release(); }
 		
 		Self&  operator = (const Self &) = delete;
-		Self&  operator = (Self &&rhs);
+		Self&  operator = (Self &&rhs)						__NE___;
 
 
-		void SetBlockSize (Bytes size)
+		void  SetBlockSize (Bytes size)						__NE___
 		{
 			_blockSize = size;
 		}
 
 		template <typename T>
-		ND_ AE_ALLOCATOR T*  Allocate (usize count = 1)
+		ND_ AE_ALLOCATOR T*  Allocate (usize count = 1)		__NE___
 		{
-			return Cast<T>( Allocate( SizeOf<T> * count, AlignOf<T> ));
+			return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }));
 		}
 
-		ND_ AE_ALLOCATOR void*  Allocate (const Bytes size, const Bytes align);
+		ND_ AE_ALLOCATOR void*  Allocate (const SizeAndAlign sizeAndAlign) __NE___;
 		
-		void  Deallocate (void* ptr, Bytes size, Bytes align)
+		void  Deallocate (void* ptr, const SizeAndAlign sizeAndAlign) __NE___
 		{
-			Unused( ptr, size, align );
+			Unused( ptr, sizeAndAlign );
 		}
 
-			bool		Commit (Bookmark bm, Bytes size);
+			bool		Commit (Bookmark bm, Bytes size)	__NE___;
 
-		ND_ auto		PushAuto ()				{ return AutoReleaseBookmark{ *this }; }
+		ND_ auto		PushAuto ()							__NE___	{ return AutoReleaseBookmark{ *this }; }
 
-		ND_ Bookmark	Push ();
-			void		Pop (Bookmark bm);
+		ND_ Bookmark	Push ()								__NE___;
+			void		Pop (Bookmark bm)					__NE___;
 
-		void  Discard ();
-		void  Release ();
+			void		Discard ()							__NE___;
+			void		Release ()							__NE___;
 
 	private:
-		ND_ static Pair<usize, usize>  _UnpackBookmark (Bookmark bm);
+		ND_ static Pair<usize, usize>  _UnpackBookmark (Bookmark bm) __NE___;
 	};
 
 	
@@ -119,7 +119,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, uint B>
-	StackAllocator<A,B,false>::StackAllocator (Self &&other) :
+	StackAllocator<A,B,false>::StackAllocator (Self &&other) __NE___ :
 		_blocks{ RVRef(other._blocks) },
 		_bookmarks{ RVRef(other._bookmarks) },
 		_blockSize{ other._blockSize },
@@ -132,7 +132,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, uint B>
-	StackAllocator<A,B,false>&  StackAllocator<A,B,false>::operator = (Self && rhs)
+	StackAllocator<A,B,false>&  StackAllocator<A,B,false>::operator = (Self && rhs) __NE___
 	{
 		Release();
 		_blocks		= RVRef(rhs._blocks);
@@ -148,7 +148,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, uint B>
-	void*  StackAllocator<A,B,false>::Allocate (const Bytes size, const Bytes align)
+	void*  StackAllocator<A,B,false>::Allocate (const SizeAndAlign sizeAndAlign) __NE___
 	{
 		usize	idx	= _blocks.size() ? 0u : UMax;
 
@@ -163,11 +163,11 @@ namespace AE::Base
 		for (; idx < _blocks.size(); ++idx)
 		{
 			auto&	block	= _blocks[idx];
-			Bytes	offset	= AlignUp( usize(block.ptr) + block.size, align ) - usize(block.ptr);
+			Bytes	offset	= AlignUp( usize(block.ptr) + block.size, sizeAndAlign.align ) - usize(block.ptr);
 				
-			if_likely( size <= (block.capacity - offset) )
+			if_likely( sizeAndAlign.size <= (block.capacity - offset) )
 			{
-				block.size = offset + size;
+				block.size = offset + sizeAndAlign.size;
 				return block.ptr + offset;
 			}
 		}
@@ -179,8 +179,8 @@ namespace AE::Base
 		}
 
 		Bytes	block_size	= _blockSize * (1 + _blocks.size()/2);
-				block_size	= size*2 < block_size ? block_size : block_size*2;
-		void*	ptr			= _alloc.Allocate( block_size, _PtrAlign );
+				block_size	= sizeAndAlign.size*2 < block_size ? block_size : block_size*2;
+		void*	ptr			= _alloc.Allocate( SizeAndAlign{ block_size, _PtrAlign });
 
 		if_unlikely( ptr == null )
 		{
@@ -189,11 +189,11 @@ namespace AE::Base
 		}
 
 		auto&	block		= _blocks.emplace_back(Block{ ptr, 0_b, block_size });
-		Bytes	offset		= AlignUp( usize(block.ptr) + block.size, align ) - usize(block.ptr);
+		Bytes	offset		= AlignUp( usize(block.ptr) + block.size, sizeAndAlign.align ) - usize(block.ptr);
 
 		DEBUG_ONLY( DbgInitMem( block.ptr, block.capacity ));
 			
-		block.size = offset + size;
+		block.size = offset + sizeAndAlign.size;
 		return block.ptr + offset;
 	}
 	
@@ -203,7 +203,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, uint B>
-	typename StackAllocator<A,B,false>::Bookmark  StackAllocator<A,B,false>::Push ()
+	typename StackAllocator<A,B,false>::Bookmark  StackAllocator<A,B,false>::Push () __NE___
 	{
 		Bookmark	bm = Bookmark(0);
 
@@ -228,7 +228,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, uint B>
-	void  StackAllocator<A,B,false>::Pop (Bookmark bm)
+	void  StackAllocator<A,B,false>::Pop (Bookmark bm) __NE___
 	{
 		for (usize i = 0; i < _bookmarks.size(); ++i)
 		{
@@ -257,7 +257,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, uint B>
-	bool  StackAllocator<A,B,false>::Commit (Bookmark bm, Bytes size)
+	bool  StackAllocator<A,B,false>::Commit (Bookmark bm, Bytes size) __NE___
 	{
 		if_likely( not _bookmarks.empty() and _bookmarks.back() == bm )
 		{
@@ -278,7 +278,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, uint B>
-	void  StackAllocator<A,B,false>::Discard ()
+	void  StackAllocator<A,B,false>::Discard () __NE___
 	{
 		for (auto& block : _blocks)
 		{
@@ -294,10 +294,10 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, uint B>
-	void  StackAllocator<A,B,false>::Release ()
+	void  StackAllocator<A,B,false>::Release () __NE___
 	{
 		for (auto& block : _blocks) {
-			_alloc.Deallocate( block.ptr, block.capacity, _PtrAlign );
+			_alloc.Deallocate( block.ptr, SizeAndAlign{ block.capacity, _PtrAlign });
 		}
 		_blocks.clear();
 		_bookmarks.clear();
@@ -309,7 +309,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename A, uint B>
-	Pair<usize, usize>  StackAllocator<A,B,false>::_UnpackBookmark (Bookmark bm)
+	Pair<usize, usize>  StackAllocator<A,B,false>::_UnpackBookmark (Bookmark bm) __NE___
 	{
 		usize	u	= BitCast<usize>( bm );
 		usize	idx	= u & _BlockIndexMask;

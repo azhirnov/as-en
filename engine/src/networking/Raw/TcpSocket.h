@@ -15,19 +15,19 @@ namespace AE::Networking
 	{
 	// methods
 	public:
-		TcpSocket () {}
+		TcpSocket ()															__NE___ {}
 		
-		ND_	bool  Accept (const TcpSocket &other, OUT IpAddress &clientAddr);
+		ND_	bool  Accept (const TcpSocket &other, OUT IpAddress &clientAddr)	__NE___;
 
-		ND_ bool  Listen (ushort port, uint maxConnections = UMax);
-		ND_ bool  Connect (const IpAddress &addr);
+		ND_ bool  Listen (ushort port, uint maxConnections = UMax)				__NE___;
+		ND_ bool  Connect (const IpAddress &addr)								__NE___;
 
-			bool  Send (const void* data, Bytes dataSize, OUT Bytes &sent) const;
-			bool  Receive (OUT void* data, Bytes dataSize, OUT Bytes &received) const;
+			bool  Send (const void* data, Bytes dataSize, OUT Bytes &sent)		C_NE___;
+			bool  Receive (OUT void* data, Bytes dataSize, OUT Bytes &received)	C_NE___;
 
 	private:
-		ND_ bool  _Create ();
-		ND_ bool  _SetNoDelay ();
+		ND_ bool  _Create ()													__NE___;
+		ND_ bool  _SetNoDelay ()												__NE___;
 	};
 
 } // AE::Networking

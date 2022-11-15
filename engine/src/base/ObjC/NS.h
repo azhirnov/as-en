@@ -4,6 +4,7 @@
 
 #include "base/Common.h"
 #include "base/Containers/NtStringView.h"
+#include "base/Utils/FileSystem.h"
 
 namespace AE::NS
 {
@@ -65,10 +66,14 @@ namespace AE::NS
 
 		ND_ bool  operator == (const ObjectRef &rhs) const	{ return _ptr == rhs._ptr; }
 		ND_ bool  operator != (const ObjectRef &rhs) const	{ return _ptr != rhs._ptr; }
+		ND_ bool  operator <  (const ObjectRef &rhs) const	{ return _ptr <  rhs._ptr; }
+		ND_ bool  operator >  (const ObjectRef &rhs) const	{ return _ptr >  rhs._ptr; }
+		ND_ bool  operator <= (const ObjectRef &rhs) const	{ return _ptr <= rhs._ptr; }
+		ND_ bool  operator >= (const ObjectRef &rhs) const	{ return _ptr >= rhs._ptr; }
 
 		ND_ explicit		operator bool ()		 const	{ return _ptr != null; }
 
-		ND_ const void *	Ptr ()					 const	{ ASSERT(_ptr); return _ptr; }
+		ND_ const void *	Ptr ()					 const	{ ASSERT( _ptr != null );  return _ptr; }
 		ND_ const void *	PtrOrNull ()			 const	{ return _ptr; }
 		
 			void			Attach (const void* ptr)		{ ASSERT( _ptr == null );  _ptr = ptr; }
@@ -137,7 +142,7 @@ namespace AE::NS
 	namespace _hidden_
 	{
 		//
-		// ArrayBase
+		// Array Base
 		//
 		class ArrayBase : public Object
 		{
@@ -147,11 +152,26 @@ namespace AE::NS
 
 		protected:
 			ND_ void*  GetItem (UInteger index) const;
+		};
+		
+		
+		//
+		// Mutable Array Base
+		//
+		class MutableArrayBase : public Object
+		{
+		// methods
+		public:
+			ND_ UInteger  size () const;
+
+		protected:
+			ND_ void*  GetItem (UInteger index) const;
 			
-				template <typename T>
+			template <typename ObjType>
 				void  SetItem (UInteger index, void* obj);
 		};
-	}
+	
+	} // _hidden_
 
 
 	//
@@ -165,15 +185,44 @@ namespace AE::NS
 		ND_ const T  operator [] (UInteger index) const
 		{
 			T	result;
-			result.Retain( GetItem( index ));
+			result.Retain( ArrayBase::GetItem( index ));
 			return result;
 		}
 
 		ND_ T  operator [] (UInteger index)
 		{
 			T	result;
-			result.Retain( GetItem( index ));
+			result.Retain( ArrayBase::GetItem( index ));
 			return result;
+		}
+	};
+
+
+	//
+	// NSMutableArray
+	//
+	template<typename T>
+	class MutableArray final : public _hidden_::MutableArrayBase
+	{
+	// methods
+	public:
+		ND_ const T  operator [] (UInteger index) const
+		{
+			T	result;
+			result.Retain( MutableArrayBase::GetItem( index ));
+			return result;
+		}
+
+		ND_ T  operator [] (UInteger index)
+		{
+			T	result;
+			result.Retain( MutableArrayBase::GetItem( index ));
+			return result;
+		}
+		
+		void  SetItem (UInteger index, const T &obj)
+		{
+			MutableArrayBase::SetItem( index, obj.Ptr() );
 		}
 	};
 

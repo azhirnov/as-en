@@ -46,7 +46,7 @@ namespace AE::Graphics
 			_root = null;
 		}
 		
-		//bool  Execute (MetalCommandBuffer cmdbuf) const;
+		bool  Execute (MetalCommandBuffer cmdbuf) const;
 
 		ND_ bool  IsValid () const
 		{

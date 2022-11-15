@@ -7,6 +7,8 @@
 
 namespace
 {
+	using EStatus = IAsyncTask::EStatus;
+
 	struct ExeOrder
 	{
 		Mutex	guard;
@@ -59,7 +61,7 @@ namespace
 			TEST( _ResetState() );
 		}
 
-		StringView  DbgName () const override { return "Test1_Task1"; }
+		StringView  DbgName () C_NE_OV { return "Test1_Task1"; }
 	};
 
 	class Test1_Task2 : public IAsyncTask
@@ -76,7 +78,7 @@ namespace
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test1_Task2"; }
+		StringView  DbgName () C_NE_OV { return "Test1_Task2"; }
 	};
 
 	static void  ReuseTask_Test1 ()
@@ -91,22 +93,22 @@ namespace
 		scheduler->AddThread( MakeRC<WorkerThread>() );
 		
 		TEST( scheduler->Wait({ task1 }));
-		TEST( task1->Status() == IAsyncTask::EStatus::Completed );
+		TEST( task1->Status() == EStatus::Completed );
 		
 		TEST( value.guard.try_lock() );
 		TEST( value.str == "01" );
 		value.guard.unlock();
 		
 		task1->Reset();
-		TEST( task1->Status() == IAsyncTask::EStatus::Initial );
+		TEST( task1->Status() == EStatus::Initial );
 		TEST( scheduler->Run( task1 ));
 
 		AsyncTask	task2 = scheduler->Run<Test1_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 		TEST( task2 );
 		
 		TEST( scheduler->Wait({ task1, task2 }));
-		TEST( task1->Status() == IAsyncTask::EStatus::Completed );
-		TEST( task2->Status() == IAsyncTask::EStatus::Completed );
+		TEST( task1->Status() == EStatus::Completed );
+		TEST( task2->Status() == EStatus::Completed );
 		
 		TEST( value.guard.try_lock() );
 		TEST( value.str == "0123" );
@@ -133,7 +135,7 @@ namespace
 					TEST( value.guard.try_lock() );
 					value.str += '1';
 					value.guard.unlock();
-					TEST( Continue() ); // after 'Run()' add task to scheduler again
+					Continue(); // after 'Run()' add task to scheduler again
 					break;
 
 				case 1 :
@@ -148,7 +150,7 @@ namespace
 			++iter;
 		}
 
-		StringView  DbgName () const override { return "Test2_Task1"; }
+		StringView  DbgName () C_NE_OV { return "Test2_Task1"; }
 	};
 
 	class Test2_Task2 : public IAsyncTask
@@ -165,7 +167,7 @@ namespace
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test2_Task1"; }
+		StringView  DbgName () C_NE_OV { return "Test2_Task1"; }
 	};
 	
 	static void  ReuseTask_Test2 ()
@@ -181,8 +183,8 @@ namespace
 		scheduler->AddThread( MakeRC<WorkerThread>() );
 		
 		TEST( scheduler->Wait({ task1, task2 }));
-		TEST( task1->Status() == IAsyncTask::EStatus::Completed );
-		TEST( task2->Status() == IAsyncTask::EStatus::Completed );
+		TEST( task1->Status() == EStatus::Completed );
+		TEST( task2->Status() == EStatus::Completed );
 		
 		TEST( value.guard.try_lock() );
 		TEST( value.str == "0123" );
@@ -208,7 +210,7 @@ namespace
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test3_Task1"; }
+		StringView  DbgName () C_NE_OV { return "Test3_Task1"; }
 	};
 
 	class Test3_Task2 : public IAsyncTask
@@ -238,7 +240,7 @@ namespace
 					// here access to the 'value' is not protected
 
 					++iter;
-					TEST( Continue( Tuple{StrongDepArray{ task1, task2, task3 }} ));	// after 'Run()' add task with new dependencies to scheduler
+					Continue( Tuple{StrongDepArray{ task1, task2, task3 }} );	// after 'Run()' add task with new dependencies to scheduler
 					break;
 				}
 				case 1 :
@@ -254,7 +256,7 @@ namespace
 			}
 		}
 
-		StringView  DbgName () const override { return "Test3_Task2"; }
+		StringView  DbgName () C_NE_OV { return "Test3_Task2"; }
 	};
 	
 	class Test3_Task3 : public IAsyncTask
@@ -271,7 +273,7 @@ namespace
 			value.guard.unlock();
 		}
 
-		StringView  DbgName () const override { return "Test3_Task3"; }
+		StringView  DbgName () C_NE_OV { return "Test3_Task3"; }
 	};
 
 	static void  ReuseTask_Test3 ()
@@ -288,8 +290,8 @@ namespace
 		scheduler->AddThread( MakeRC<WorkerThread>() );
 		
 		TEST( scheduler->Wait({ task1, task2 }));
-		TEST( task1->Status() == IAsyncTask::EStatus::Completed );
-		TEST( task2->Status() == IAsyncTask::EStatus::Completed );
+		TEST( task1->Status() == EStatus::Completed );
+		TEST( task2->Status() == EStatus::Completed );
 		
 		TEST( value.guard.try_lock() );
 		TEST( value.str == "0(123)A" );

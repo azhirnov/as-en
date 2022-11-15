@@ -18,35 +18,36 @@
 #define GLM_FORCE_CTOR_INIT
 #define GLM_FORCE_INLINE
 #define GLM_FORCE_ALIGNED_GENTYPES
+#define GLM_FORCE_INTRINSICS
 
-#ifdef AE_RELEASE
-#	define GLM_FORCE_INTRINSICS
-#endif
 
 // enable simd
-#if defined(AE_PLATFORM_ANDROID)
-#	if defined(__i386__)
-#		define GLM_FORCE_ARCH_UNKNOWN
-#	elif defined(__x86_64__)
-#		define GLM_FORCE_SSE42
-#	elif defined(__aarch64__) or defined(__ARM_NEON__)
-#		define GLM_FORCE_NEON
-#	else
-#		define GLM_FORCE_ARCH_UNKNOWN
-#	endif
-
-#elif defined(AE_PLATFORM_APPLE)
-#	if defined(__ARM_NEON__) or defined(AE_CPU_ARCH_ARM64)
-#		define GLM_FORCE_NEON	// iOS or Mac M1...
-#	elif defined(AE_CPU_ARCH_X86) or defined(AE_CPU_ARCH_X64)
-#		define GLM_FORCE_SSE42	// Mac with Intel
-#	endif
-
-#elif defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX)
+//	WIndows, Linux, Mac with Intel, Android x64
+#if defined(AE_SIMD_AVX) or defined(AE_SIMD_SSE)
+# if AE_SIMD_AVX >= 2
 #	define GLM_FORCE_AVX2	// float/double/int64
-//#	define GLM_FORCE_AVX	// float/double
-//#	define GLM_FORCE_SSE42	// float
+# elif AE_SIMD_AVX >= 1
+#	define GLM_FORCE_AVX	// float/double
 #endif
+# if AE_SIMD_SSE >= 42
+#	define GLM_FORCE_SSE42	// float
+# elif AE_SIMD_SSE >= 41
+#	define GLM_FORCE_SSE41	// float
+# elif AE_SIMD_SSE >= 31
+#	define GLM_FORCE_SSSE3	// float
+# elif AE_SIMD_SSE >= 30
+#	define GLM_FORCE_SSE3	// float
+# elif AE_SIMD_SSE >= 20
+#	define GLM_FORCE_SSE2	// float
+# elif AE_SIMD_SSE >= 10
+#	define GLM_FORCE_SSE	// float
+# endif
+#endif
+//	Android, iOS or Mac M1...
+#if defined(AE_SIMD_NEON)
+#	define GLM_FORCE_NEON
+#endif
+
 
 #ifdef AE_COMPILER_MSVC
 #	pragma warning (push)

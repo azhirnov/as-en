@@ -9,7 +9,7 @@ namespace AE::Math
 {
 
 	//
-	// Packed Integer
+	// Range
 	//
 
 	template <typename T>
@@ -30,7 +30,7 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr Range () : begin{T{0}}, end{T{0}}
+		constexpr Range () : begin{}, end{}
 		{
 			// check if supported cast Rectangle to array
 			STATIC_ASSERT( offsetof(Self, begin) + sizeof(T) == offsetof(Self, end) );

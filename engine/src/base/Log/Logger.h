@@ -2,11 +2,12 @@
 
 #pragma once
 
-#include "base/Common.h"
-#include "base/Stream/Stream.h"
-#include "base/Math/Random.h"
-
+#include "base/StdInclude.h"
 #include <mutex>
+
+#include "base/Common.h"
+#include "base/DataSource/Stream.h"
+#include "base/Math/Random.h"
 
 namespace AE::Base
 {
@@ -20,7 +21,7 @@ namespace AE::Base
 	class VisualStudioLogOutput final : public ILogger
 	{
 	public:
-		EResult  Process (const MessageInfo &info) override;
+		EResult  Process (const MessageInfo &info) __TH_OV;
 	};
 
 #endif
@@ -40,7 +41,7 @@ namespace AE::Base
 	public:
 		explicit AndroidLogOutput (StringView tag) : _tag{ tag } {}
 
-		EResult  Process (const MessageInfo &info) override;
+		EResult  Process (const MessageInfo &info) __TH_OV;
 	};
 
 #else
@@ -55,7 +56,7 @@ namespace AE::Base
 		std::mutex		_guard;
 
 	public:
-		EResult  Process (const MessageInfo &info) override;
+		EResult  Process (const MessageInfo &info) __TH_OV;
 	};
 
 #endif
@@ -79,7 +80,7 @@ namespace AE::Base
 			_levelBits{ levelBits }, _scopeBits{ scopeBits }
 		{}
 
-		EResult  Process (const MessageInfo &info) override;
+		EResult  Process (const MessageInfo &info) __TH_OV;
 	};
 
 #endif
@@ -99,8 +100,8 @@ namespace AE::Base
 	public:
 		explicit FileLogOutput (RC<WStream> file);
 
-		EResult	Process (const MessageInfo &info) override;
-		void	SetCurrentThreadName (StringView name) override;
+		EResult	Process (const MessageInfo &info)		__TH_OV;
+		void	SetCurrentThreadName (StringView name)	__NE_OV;
 	};
 	
 
@@ -158,12 +159,12 @@ namespace AE::Base
 		explicit HtmlLogOutput (RC<WStream> file);
 		~HtmlLogOutput ();
 
-		EResult	Process (const MessageInfo &info) override;
-		void	SetCurrentThreadName (StringView name) override;
+		EResult	Process (const MessageInfo &info)		__TH_OV;
+		void	SetCurrentThreadName (StringView name)	__NE_OV;
 
 	private:
-		void  _SetColor (EColor col, EColor bg, INOUT String &str);
-		void  _Flush (StringView str) const;
+		void	_SetColor (EColor col, EColor bg, INOUT String &str);
+		void	_Flush (StringView str) C_NE___;
 	};
 
 } // AE::Base

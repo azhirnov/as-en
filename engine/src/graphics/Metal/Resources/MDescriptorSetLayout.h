@@ -81,13 +81,13 @@ namespace AE::Graphics
 		ND_ MetalArgumentEncoderRC		CreateArgumentEncoder ()		const;
 
 		ND_ Bytes						GetArgumentBufferSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return Bytes{_argbufSizeAlign.size}; }
-		ND_ Bytes::SizeAndAlign			GetArgumentBufferSizeAlign ()	const	{ DRC_SHAREDLOCK( _drCheck );  return Bytes::SizeAndAlign{_argbufSizeAlign}; }
+		ND_ SizeAndAlign			GetArgumentBufferSizeAlign ()	const	{ DRC_SHAREDLOCK( _drCheck );  return SizeAndAlign{_argbufSizeAlign}; }
 		ND_ Uniforms_t const&			GetUniforms ()					const	{ DRC_SHAREDLOCK( _drCheck );  return _uniforms; }
 		
 		DEBUG_ONLY(  ND_ StringView		GetDebugName ()					const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 
-		ND_ static Bytes::SizeAndAlign  CalcBufferSize (uint bufferCount, uint imageCount, uint samplerCount);
+		ND_ static SizeAndAlign  CalcBufferSize (uint bufferCount, uint imageCount, uint samplerCount);
 
 	private:
 		//bool  _AddUniform (const Uniform_t &un, ArrayView<VkSampler> samplerStorage, OUT Bytes16u* offset, INOUT DescriptorBinding &binding) const;

@@ -6,12 +6,10 @@
 #include "graphics/Public/GraphicsCreateInfo.h"
 #include "graphics_hl/Resources/FormattedText.h"
 
-#include "threading/Stream/AsyncStream.h"
 #include "AssetPackerImpl.h"
 
 namespace AE::Graphics
 {
-	using AE::Threading::AsyncRStream;
 	class ITransferContext;
 
 
@@ -30,7 +28,7 @@ namespace AE::Graphics
 		using SizeArr_t		= AssetPacker::RasterFontPacker::SizeArr_t;
 
 		struct AsyncLoader {
-			ND_ Promise<RC<RasterFont>>  Load (RC<AsyncRStream> stream);
+		//	ND_ Promise<RC<RasterFont>>  Load (RC<AsyncRStream> stream);
 		};
 		
 		struct Loader {

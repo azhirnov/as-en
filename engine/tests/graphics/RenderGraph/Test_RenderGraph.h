@@ -21,7 +21,6 @@
 using namespace AE;
 using namespace AE::Graphics;
 
-using AE::Threading::Scheduler;
 using EStatus = AE::Threading::IAsyncTask::EStatus;
 
 using ImageComparator = GraphicsTest::ImageComparator;
@@ -81,6 +80,8 @@ private:
 		void  _Destroy ();
 
 	ND_ bool  _CompilePipelines ();
+
+	ND_ static GraphicsCreateInfo  _GetGraphicsCreateInfo ();
 
 private:
 	bool  Test_Image ();

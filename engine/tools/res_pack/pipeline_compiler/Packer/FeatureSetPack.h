@@ -45,8 +45,8 @@ namespace AE::PipelineCompiler
 		#endif
 		
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 	
@@ -61,9 +61,9 @@ namespace AE::PipelineCompiler
 	{
 	// methods
 	public:
-		static bool  Serialize (Serializing::Serializer &ser);
+		static bool  Serialize (Serializing::Serializer &ser) __NE___;
 	};
 
 #endif
 
-}	// AE::PipelineCompiler
+} // AE::PipelineCompiler

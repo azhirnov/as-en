@@ -39,7 +39,8 @@ namespace
 			TEST( mem_stream->LoadRemaining( *file ));
 
 			uint	name;
-			TEST( mem_stream->Read( OUT name ) and name == InputActions_Name );
+			TEST( mem_stream->Read( OUT name ));
+			TEST_EQ( name, InputActions_Name );
 		}
 
 		Array<uint>	hashes;
@@ -55,13 +56,13 @@ namespace
 			offsets.push_back( uint(mem_stream->Size()) );
 		}
 
-		TEST( hashes.size() == 3 );
+		TEST_EQ( hashes.size(), 3 );
 
 		String	ser_str;
 
 		for (usize i = 0; i < hashes.size(); ++i)
 		{
-			TEST( offsets[i] < offsets[i+1] );
+			TEST_L( offsets[i], offsets[i+1] );
 			
 			const uint	name = hashes[i];
 

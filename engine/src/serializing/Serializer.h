@@ -18,7 +18,7 @@ namespace AE::Serializing
 	// types
 	public:
 		static constexpr uint	MaxStringLenght	= 0xFFFF;
-		static constexpr uint	MaxArrayLenght	= 0xFFFFFF;
+		static constexpr uint	MaxArrayLenght	= 0xFFFFFF;	// TODO: remove or limit mem size
 
 
 	// variables
@@ -34,11 +34,11 @@ namespace AE::Serializing
 
 	// methods
 	public:
-		explicit Serializer (FastWStream wstream) : stream{ RVRef(wstream) } {}
-		explicit Serializer (RC<WStream> wstream) : stream{ RVRef(wstream) } {}
+		explicit Serializer (FastWStream wstream) __NE___ : stream{ RVRef(wstream) } {}
+		explicit Serializer (RC<WStream> wstream) __NE___ : stream{ RVRef(wstream) } {}
 
 		template <typename ...Args>
-		bool  operator () (const Args& ...args);
+		ND_ bool  operator () (const Args& ...args) __NE___;
 
 	private:
 		template <typename Arg0, typename ...Args>

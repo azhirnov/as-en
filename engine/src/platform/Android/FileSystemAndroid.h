@@ -2,18 +2,18 @@
 
 #pragma once
 
-#include "platform/Public/Common.h"
+#include "base/StdInclude.h"
 
 #ifdef AE_PLATFORM_ANDROID
+# include <android/asset_manager_jni.h>
 
 # include "base/Utils/FileSystem.h"
 # include "base/Utils/NamedID_HashCollisionCheck.h"
 # include "base/Memory/LinearAllocator.h"
-# include "base/Stream/Stream.h"
+# include "base/DataSource/Stream.h"
 
 # include "vfs/VirtualFileSystem.h"
 # include "platform/Public/Common.h"
-# include <android/asset_manager_jni.h>
 
 namespace AE::App
 {
@@ -30,28 +30,60 @@ namespace AE::App
 	{
 	// variables
 	private:
-		AAsset *	_asset = null;
+		AAsset *		_asset = null;
+		const Bytes		_size;
 
 		DEBUG_ONLY( const String  _name; )
 
 
 	// methods
 	public:
-		AndroidRStream (AAsset* asset, const char* name) :
-			_asset{asset} DEBUG_ONLY(, _name{name})
-		{}
+		AndroidRStream (AAsset* asset, const char* name)	__NE___;
+		~AndroidRStream ()									__NE___	{ AAsset_close( _asset ); }
+		
+		// RStream //
+		bool		IsOpen ()								C_NE_OV	{ return true; }
+		PosAndSize	PositionAndSize ()						C_NE_OV;
+		ESourceType	GetSourceType ()						C_NE_OV;
+		
+		bool		SeekSet (Bytes newPos)					__NE_OV;
+		bool		SeekFwd (Bytes offset)					__NE_OV;
 
-		~AndroidRStream () {  if ( _asset ) AAsset_close( _asset ); }
-		
-		bool		IsOpen ()			const override	{ return _asset != null; }
-		Bytes		Position ()			const override	{ return Bytes{ CheckCast<ulong>( AAsset_getLength( _asset ) - AAsset_getRemainingLength( _asset ))}; }
-		Bytes		Size ()				const override	{ return Bytes{ CheckCast<ulong>( AAsset_getLength( _asset ))}; }
-		
-		EStreamType	GetStreamType ()	const override	{ return EStreamType::SequentialAccess | EStreamType::RandomAccess | EStreamType::FixedSize; }
-		
-		bool		SeekSet (Bytes pos) override		{ return AAsset_seek( _asset, usize(pos), SEEK_SET ) != 0; }
+		Bytes		ReadSeq (OUT void *buffer, Bytes size)	__NE_OV;
 
-		Bytes		ReadSeq (OUT void *buffer, Bytes size) override	{ return Bytes{ CheckCast<ulong>( AAsset_read( _asset, OUT buffer, usize(size) ))}; }
+		RC<RDataSource>	AsRDataSource ()					__TH_OV;
+	};
+
+
+
+	//
+	// Android Asset Data Source
+	//
+
+	class AndroidRDataSource final : public RDataSource
+	{
+	// variables
+	private:
+		AAsset *		_asset = null;
+		Bytes			_pos;
+		const Bytes		_size;
+
+		DEBUG_ONLY( const String  _name; )
+
+
+	// methods
+	public:
+		AndroidRDataSource (AAsset*, const char*)		__NE___;
+		~AndroidRDataSource ()							__NE___	{ AAsset_close( _asset ); }
+		
+		// RDataSource //
+		bool		IsOpen ()							C_NE_OV	{ return true; }
+		Bytes		Size ()								C_NE_OV	{ return _size; }
+		ESourceType	GetSourceType ()					C_NE_OV;
+
+		Bytes		ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
+
+		RC<RStream>	AsRStream ()						__TH_OV;
 	};
 
 
@@ -60,13 +92,13 @@ namespace AE::App
 	// VFS Storage implementation for Android builtin storage
 	//
 
-	class FileSystemAndroid final : public IFileStorage
+	class FileSystemAndroid final : public IVirtualFileStorage
 	{
 	// types
 	private:
 		using FileMap_t		= FlatHashMap< FileName::Optimized_t, const char* >;
 		using Allocator_t	= LinearAllocator<>;
-		using AsyncRStream	= Threading::AsyncRStream;
+		//using AsyncRStream	= Threading::AsyncRStream;
 
 		
 	// variables
@@ -92,19 +124,17 @@ namespace AE::App
 		ND_ bool  Create (AAssetManager* mngr, StringView folder);
 
 
-	  // IFileStorage //
-		RC<RStream>			Open (const FileName &name) const override;
-		RC<AsyncRStream>	OpenAsync (const FileName &name) const override	{ return Default; }
-
-		//Promise<void>		LoadAsync (const FileGroupName &name) const override;
+	  // IVirtualFileStorage //
+		RC<RStream>		OpenAsStream (const FileName &name) const override;
+		RC<RDataSource>	OpenAsSource (const FileName &name) const override;
 
 		bool	Exists (const FileName &name) const override;
 		bool	Exists (const FileGroupName &name) const override;
 
 	private:
-		void				_Append (INOUT GlobalFileMap_t &) const override;
-		RC<RStream>			_OpenByIter (const FileName &name, const void* ref) const override;
-		RC<AsyncRStream>	_OpenAsyncByIter (const FileName &name, const void* ref) const override;
+		void			_Append (INOUT GlobalFileMap_t &) const override;
+		RC<RStream>		_OpenAsStreamByIter (const FileName &name, const void* ref) const override;
+		RC<RDataSource>	_OpenAsSourceByIter (const FileName &name, const void* ref) const override;
 	};
 
 

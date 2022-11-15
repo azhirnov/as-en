@@ -57,7 +57,7 @@ namespace AE::App
 	  #ifdef AE_ENABLE_SCRIPTING
 		bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc) override;
 
-		ND_ static bool  Bind (const Scripting::ScriptEnginePtr &se);
+		static void  Bind (const Scripting::ScriptEnginePtr &se) __TH___;
 	  #endif
 
 	private:

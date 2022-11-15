@@ -5,12 +5,10 @@
 #include "graphics/Public/IDs.h"
 #include "graphics/Public/GraphicsCreateInfo.h"
 
-#include "threading/Stream/AsyncStream.h"
 #include "AssetPackerImpl.h"
 
 namespace AE::Graphics
 {
-	using AE::Threading::AsyncRStream;
 	class ITransferContext;
 
 
@@ -27,7 +25,7 @@ namespace AE::Graphics
 		using ImageRects_t	= AssetPacker::ImageAtlasPacker::ImageRects_t;
 
 		struct AsyncLoader {
-			ND_ Promise<RC<StaticImageAtlas>>  Load (RC<AsyncRStream> stream);
+		///	ND_ Promise<RC<StaticImageAtlas>>  Load (RC<AsyncRStream> stream);
 		};
 		
 		struct Loader {

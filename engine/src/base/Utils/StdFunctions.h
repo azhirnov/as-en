@@ -11,7 +11,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename... Args>
-	constexpr void  Unused (Args&& ...) {}
+	constexpr void  Unused (Args&& ...) __NE___ {}
 	
 /*
 =================================================
@@ -19,7 +19,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr std::reference_wrapper<T>  ArgRef (T& arg) noexcept
+	ND_ forceinline constexpr std::reference_wrapper<T>  ArgRef (T& arg) __NE___
 	{
 		return std::reference_wrapper<T>{ arg };
 	}
@@ -30,7 +30,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr RemoveReference<T> &&  RVRef (T& arg) noexcept
+	ND_ forceinline constexpr RemoveReference<T> &&  RVRef (T& arg) __NE___
 	{
 		return static_cast< RemoveReference<T> && >( arg );
 	}
@@ -41,13 +41,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr T &&  FwdArg (RemoveReference<T>& arg) noexcept
+	ND_ forceinline constexpr T &&  FwdArg (RemoveReference<T>& arg) __NE___
 	{
 		return static_cast<T &&>( arg );
 	}
 
 	template <typename T>
-	ND_ forceinline constexpr T &&  FwdArg (RemoveReference<T>&& arg) noexcept
+	ND_ forceinline constexpr T &&  FwdArg (RemoveReference<T>&& arg) __NE___
 	{
 		STATIC_ASSERT( not IsLValueRef<T> );
 		return static_cast<T &&>( arg );

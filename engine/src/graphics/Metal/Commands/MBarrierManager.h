@@ -5,10 +5,12 @@
 #ifdef AE_ENABLE_METAL
 
 # include "graphics/Metal/MResourceManager.h"
-# include "graphics/Metal/Commands/MRenderTaskScheduler.h"
+# include "graphics/Metal/MRenderTaskScheduler.h"
 
 namespace AE::Graphics::_hidden_
 {
+	class MSoftwareCmdBuf;
+
 
 	//
 	// Metal Command Context Barrier Manager
@@ -32,14 +34,19 @@ namespace AE::Graphics::_hidden_
 
 	// variables
 	private:
-		BarrierInfo			_barrier;
-
-		Ptr<MCommandBatch>	_batch;		// must not be null
+		MCommandBatch &			_batch;
+		MResourceManager &		_resMngr;
+		
+		BarrierInfo				_barrier;
+		
+		PROFILE_ONLY(
+			RenderTask const*	_task;
+		)
 
 
 	// methods
 	public:
-		explicit MBarrierManager (Ptr<MCommandBatch> batch) : _batch{ batch } { ASSERT( _batch != null ); }
+		explicit MBarrierManager (const RenderTask &task);
 
 		ND_ const BarrierInfo*		GetBarriers ();
 		ND_ bool					NoPendingBarriers ()	const;
@@ -47,15 +54,32 @@ namespace AE::Graphics::_hidden_
 
 		template <typename ID>
 		ND_ auto*					Get (ID id)						{ return GetResourceManager().GetResource( id ); }
-
-		ND_ MDevice const&			GetDevice ()			const	{ return RenderTaskScheduler().GetDevice(); }
-		ND_ MStagingBufferManager&	GetStagingManager ()	const	{ return GetResourceManager().GetStagingManager(); }
-		ND_ MResourceManager&		GetResourceManager ()	const	{ return RenderTaskScheduler().GetResourceManager(); }
-		ND_ MCommandBatch &			GetBatch ()				const	{ return *_batch; }
-		ND_ RC<MCommandBatch>		GetBatchRC ()			const	{ return _batch->GetRC<MCommandBatch>(); }
-		ND_ FrameUID				GetFrameId ()			const	{ return _batch->GetFrameId(); }
-		ND_ EQueueType				GetQueueType ()			const	{ return _batch->GetQueueType(); }
+		
+		template <typename ID>
+		ND_ bool					IsAlive (ID id)			const	{ return _resMngr.IsAlive( id ); }
+		
+		ND_ MDevice const&			GetDevice ()			const	{ return _resMngr.GetDevice(); }
+		ND_ MStagingBufferManager&	GetStagingManager ()	const	{ return _resMngr.GetStagingManager(); }
+		ND_ MResourceManager&		GetResourceManager ()	const	{ return _resMngr; }
+	//	ND_ MQueryManager&			GetQueryManager ()		const	{ return _resMngr.GetQueryManager(); }	// TODO
+		ND_ MCommandBatch &			GetBatch ()				const	{ return _batch; }
+		ND_ RC<MCommandBatch>		GetBatchRC ()			const	{ return _batch.GetRC<MCommandBatch>(); }
+		ND_ FrameUID				GetFrameId ()			const	{ return _batch.GetFrameId(); }
+		ND_ EQueueType				GetQueueType ()			const	{ return _batch.GetQueueType(); }
 		ND_ MQueuePtr				GetQueue ()				const	{ return GetDevice().GetQueue( GetQueueType() ); }
+		
+		PROFILE_ONLY(
+			ND_ RenderTask const&	GetRenderTask ()		const	{ return *_task; }
+
+			void  ProfilerBeginContext (MetalCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type) const;
+			void  ProfilerBeginContext (MSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type) const;
+			
+			void  ProfilerBeginContext (MetalCommandBuffer cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type) const;
+			void  ProfilerBeginContext (MSoftwareCmdBuf &cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type) const;
+
+			void  ProfilerEndContext (MetalCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type) const;
+			void  ProfilerEndContext (MSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type) const;
+		)
 
 		ND_ bool  BeforeBeginRenderPass (const RenderPassDesc &desc, OUT MPrimaryCmdBufState &primaryState);
 			void  AfterEndRenderPass (const RenderPassDesc &desc, const MPrimaryCmdBufState &primaryState);

@@ -27,7 +27,7 @@ namespace
 
 		struct StackFrame
 		{
-			TIntermNode*		node			= nullptr;
+			TIntermNode*		node			= null;
 			SrcLoc				loc;
 		};
 
@@ -95,7 +95,7 @@ namespace
 		bool					_shaderSubgroupClock		= false;
 		bool					_shaderDeviceClock			= false;
 
-		TIntermSymbol *			_dbgStorage					= nullptr;
+		TIntermSymbol *			_dbgStorage					= null;
 
 		FileMap_t const&		_includedFilesMap;
 		
@@ -150,7 +150,7 @@ namespace
 		ND_ TIntermSymbol*  GetCachedSymbolNode (const TString &name)
 		{
 			auto	iter = _cachedSymbols.find( name );
-			return	iter != _cachedSymbols.end() ? iter->second : nullptr;
+			return	iter != _cachedSymbols.end() ? iter->second : null;
 		}
 
 
@@ -308,7 +308,7 @@ TIntermAggregate*  DebugInfo::GetCurrentFunction ()
 		if ( aggr and aggr->getOp() == TOperator::EOpFunction )
 			return aggr;
 	}
-	return nullptr;
+	return null;
 }
 
 /*
@@ -425,7 +425,7 @@ TIntermBinary*  DebugInfo::GetDebugStorageField (const char* name) const
 			return field_access;
 		}
 	}
-	return nullptr;
+	return null;
 }
 	
 /*
@@ -1069,8 +1069,8 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 		case EShLangTessEvaluation :
 		case EShLangGeometry :
 		case EShLangFragment :
-		case EShLangTaskNV :
-		case EShLangMeshNV :			CreateGraphicsShaderDebugStorage( type_list, INOUT temp );		break;
+		case EShLangTask :
+		case EShLangMesh :				CreateGraphicsShaderDebugStorage( type_list, INOUT temp );		break;
 
 		case EShLangCompute :			CreateComputeShaderDebugStorage( type_list, INOUT temp );		break;
 
@@ -1131,7 +1131,7 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 {
 	const auto	shader				= dbgInfo.GetShaderType();
-	const bool	is_compute			= (shader == EShLangCompute or shader == EShLangTaskNV or shader == EShLangMeshNV);
+	const bool	is_compute			= (shader == EShLangCompute or shader == EShLangTask or shader == EShLangMesh);
 	const bool	need_invocation_id	= (shader == EShLangGeometry or shader == EShLangTessControl);
 	const bool	need_primitive_id	= (shader == EShLangFragment or shader == EShLangTessControl or shader == EShLangTessEvaluation);
 	const bool	need_launch_id		= (shader == EShLangRayGen or shader == EShLangIntersect or shader == EShLangAnyHit or
@@ -1441,7 +1441,7 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody2 (DebugInfo &dbgInfo)
 	// "if ( dbg_IsEnabled )"
 	{
 		TIntermSymbol*		condition	= dbgInfo.GetCachedSymbolNode( "dbg_IsEnabled" );
-		TIntermSelection*	selection	= new TIntermSelection{ condition, branch_body, nullptr };
+		TIntermSelection*	selection	= new TIntermSelection{ condition, branch_body, null };
 		selection->setType( TType{EbtVoid} );
 
 		fn_body->getSequence().push_back( selection );
@@ -1842,7 +1842,7 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody (const TString &fnName, De
 	// "if ( dbg_IsEnabled )"
 	{
 		TIntermSymbol*		condition	= dbgInfo.GetCachedSymbolNode( "dbg_IsEnabled" );
-		TIntermSelection*	selection	= new TIntermSelection{ condition, branch_body, nullptr };
+		TIntermSelection*	selection	= new TIntermSelection{ condition, branch_body, null };
 		selection->setType( TType{EbtVoid} );
 
 		fn_body->getSequence().push_back( selection );
@@ -2040,7 +2040,7 @@ ND_ static TIntermAggregate*  CreateAddTimeToTraceBody2 (DebugInfo &dbgInfo)
 	// "if ( dbg_IsEnabled )"
 	{
 		TIntermSymbol*		condition	= dbgInfo.GetCachedSymbolNode( "dbg_IsEnabled" );
-		TIntermSelection*	selection	= new TIntermSelection{ condition, branch_body, nullptr };
+		TIntermSelection*	selection	= new TIntermSelection{ condition, branch_body, null };
 		selection->setType( TType{EbtVoid} );
 
 		fn_body->getSequence().push_back( selection );
@@ -2286,7 +2286,7 @@ ND_ static TIntermAggregate*  CreateAddTimeToTraceBody (const TString &fnName, D
 	// "if ( dbg_IsEnabled )"
 	{
 		TIntermSymbol*		condition	= dbgInfo.GetCachedSymbolNode( "dbg_IsEnabled" );
-		TIntermSelection*	selection	= new TIntermSelection{ condition, branch_body, nullptr };
+		TIntermSelection*	selection	= new TIntermSelection{ condition, branch_body, null };
 		selection->setType( TType{EbtVoid} );
 
 		fn_body->getSequence().push_back( selection );
@@ -2314,7 +2314,7 @@ ND_ static TIntermAggregate*  CreateGetCurrentTimeBody (DebugInfo &dbgInfo)
 	TIntermAggregate*	fn_args		= new TIntermAggregate{ TOperator::EOpParameters };
 	TIntermAggregate*	fn_body		= new TIntermAggregate{ TOperator::EOpSequence };
 	TIntermAggregate*	branch_true = new TIntermAggregate{ TOperator::EOpSequence };
-	TIntermSymbol*		curr_time	= nullptr;
+	TIntermSymbol*		curr_time	= null;
 	TPublicType			uint_type;	uint_type.init({});
 
 	// build function body
@@ -2421,7 +2421,7 @@ ND_ static TIntermAggregate*  CreateGetCurrentTimeBody (DebugInfo &dbgInfo)
 	// "if ( dbg_IsEnabled )"
 	{
 		TIntermSymbol*		condition	= dbgInfo.GetCachedSymbolNode( "dbg_IsEnabled" );
-		TIntermSelection*	selection	= new TIntermSelection{ condition, branch_true, nullptr };
+		TIntermSelection*	selection	= new TIntermSelection{ condition, branch_true, null };
 		selection->setType( TType{EbtVoid} );
 
 		fn_body->getSequence().push_back( selection );
@@ -2446,7 +2446,7 @@ ND_ static bool  AppendShaderInputVaryings (TIntermAggregate* body, DebugInfo &d
 	CHECK_ERR( dbgInfo.GetCallStack().size() );
 
 	TIntermAggregate*	root		= dbgInfo.GetCallStack().front().node->getAsAggregate();
-	TIntermAggregate*	linker_objs	= nullptr;
+	TIntermAggregate*	linker_objs	= null;
 	CHECK_ERR( root );
 
 	for (auto* node : root->getSequence()) {
@@ -3137,19 +3137,19 @@ ND_ static TIntermAggregate*  RecordShaderInfo (const TSourceLoc &loc, DebugInfo
 		case EShLangTessEvaluation :	return RecordTessEvaluationShaderInfo( loc, dbgInfo );
 		case EShLangGeometry :			return RecordGeometryShaderInfo( loc, dbgInfo );
 		case EShLangFragment :			return RecordFragmentShaderInfo( loc, dbgInfo );
-		case EShLangTaskNV :
-		case EShLangMeshNV :
+		case EShLangTask :
+		case EShLangMesh :
 		case EShLangCompute :			return RecordComputeShaderInfo( loc, dbgInfo );
-		case EShLangRayGenNV :			return RecordRayGenShaderInfo( loc, dbgInfo );
-		case EShLangAnyHitNV :
-		case EShLangClosestHitNV :		return RecordHitShaderInfo( loc, dbgInfo );
-		case EShLangIntersectNV :		return RecordIntersectionShaderInfo( loc, dbgInfo );
-		case EShLangMissNV :			return RecordMissShaderInfo( loc, dbgInfo );
-		case EShLangCallableNV :		return RecordCallableShaderInfo( loc, dbgInfo );
+		case EShLangRayGen :			return RecordRayGenShaderInfo( loc, dbgInfo );
+		case EShLangAnyHit :
+		case EShLangClosestHit :		return RecordHitShaderInfo( loc, dbgInfo );
+		case EShLangIntersect :			return RecordIntersectionShaderInfo( loc, dbgInfo );
+		case EShLangMiss :				return RecordMissShaderInfo( loc, dbgInfo );
+		case EShLangCallable :			return RecordCallableShaderInfo( loc, dbgInfo );
 		case EShLangCount :				break;
 	}
 	END_ENUM_CHECKS();
-	return nullptr;
+	return null;
 }
 
 /*
@@ -3452,8 +3452,8 @@ ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, 
 		case EShLangTessControl :
 		case EShLangTessEvaluation :
 		case EShLangGeometry :
-		case EShLangTaskNV :
-		case EShLangMeshNV :
+		case EShLangTask :
+		case EShLangMesh :
 		{
 			type.qualifier.storage	= TStorageQualifier::EvqConst;
 			TConstUnionArray		false_value(1);	false_value[0].setBConst( false );
@@ -3520,7 +3520,7 @@ ND_ static bool  CreateEnableIfBody (TIntermAggregate* fnDecl, DebugInfo &dbgInf
 	TIntermTyped*		arg		= params->getSequence()[0]->getAsTyped();
 	CHECK_ERR( arg );
 
-	TIntermAggregate*	body	= nullptr;
+	TIntermAggregate*	body	= null;
 
 	if ( fnDecl->getSequence().size() == 1 )
 	{
@@ -3547,7 +3547,7 @@ ND_ static bool  CreateEnableIfBody (TIntermAggregate* fnDecl, DebugInfo &dbgInf
 	condition->setOperand( is_debug_enabled );
 
 	// "if ( not dbg_IsEnabled ) {...}"
-	TIntermSelection*	selection	= new TIntermSelection{ arg, branch_body, nullptr };
+	TIntermSelection*	selection	= new TIntermSelection{ arg, branch_body, null };
 	selection->setType( TType{EbtVoid} );
 	body->getSequence().push_back( selection );
 
@@ -3571,8 +3571,8 @@ ND_ static bool  CreateDebugTraceFunctions (TIntermNode* root, uint initialPosit
 	TIntermAggregate*	aggr = root->getAsAggregate();
 	CHECK_ERR( aggr );
 
-	TIntermAggregate*	linker_objs	= nullptr;
-	TIntermAggregate*	global_vars	= nullptr;
+	TIntermAggregate*	linker_objs	= null;
+	TIntermAggregate*	global_vars	= null;
 	
 	for (auto& entry : aggr->getSequence())
 	{
@@ -3696,8 +3696,8 @@ ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermTyped* exprNode, uint 
 		case TBasicType::EbtInt64 :		type_name = "i64";	break;
 		case TBasicType::EbtUint64 :	type_name = "u64";	break;
 			
-		case TBasicType::EbtSampler :	return nullptr;
-		case TBasicType::EbtStruct :	return nullptr;
+		case TBasicType::EbtSampler :	return null;
+		case TBasicType::EbtStruct :	return null;
 
 		case TBasicType::EbtVoid :
 		case TBasicType::EbtFloat16 :
@@ -3818,8 +3818,8 @@ ND_ static TIntermAggregate*  CreateAddTimeToTrace (TIntermTyped* exprNode, TInt
 		case TBasicType::EbtInt64 :		type_name = "i64";	break;
 		case TBasicType::EbtUint64 :	type_name = "u64";	break;
 			
-		case TBasicType::EbtSampler :	return nullptr;
-		case TBasicType::EbtStruct :	return nullptr;
+		case TBasicType::EbtSampler :	return null;
+		case TBasicType::EbtStruct :	return null;
 
 		case TBasicType::EbtVoid :
 		case TBasicType::EbtFloat16 :
@@ -3988,14 +3988,17 @@ ND_ static bool  ProcessSymbolNode (TIntermSymbol* node, DebugInfo &dbgInfo)
 		 node->getName() == "gl_ViewportIndex"			or
 		 node->getName() == "gl_FrontFacing"			or
 		 node->getName() == "gl_HelperInvocation"		or
+
 		 // vertex shader
 		 node->getName() == "gl_VertexIndex"			or
 		 node->getName() == "gl_InstanceIndex"			or
 		 node->getName() == "gl_DrawIDARB"				or		// requires GL_ARB_shader_draw_parameters
 		 node->getName() == "gl_DrawID"					or		// requires version 460
-		 // geometry shader
+		 
+		// geometry shader
 		 node->getName() == "gl_InvocationID"			or
 		 node->getName() == "gl_PrimitiveIDIn"			or
+
 		 // tessellation
 		 //		reuse 'gl_InvocationID'
 		//		reuse 'gl_PrimitiveID'
@@ -4003,6 +4006,7 @@ ND_ static bool  ProcessSymbolNode (TIntermSymbol* node, DebugInfo &dbgInfo)
 		 node->getName() == "gl_TessCoord"				or
 		 node->getName() == "gl_TessLevelInner"			or
 		 node->getName() == "gl_TessLevelOuter"			or
+
 		 // compute shader
 		 node->getName() == "gl_GlobalInvocationID"		or
 		 node->getName() == "gl_LocalInvocationID"		or
@@ -4011,35 +4015,53 @@ ND_ static bool  ProcessSymbolNode (TIntermSymbol* node, DebugInfo &dbgInfo)
 		 node->getName() == "gl_NumWorkGroups"			or
 		 node->getName() == "gl_WorkGroupSize"			or
 		 node->getName() == "gl_SubgroupID"				or
-		 // task & mesh shader
-		 //		reuse 'gl_GlobalInvocationID'
-		 //		reuse 'gl_LocalInvocationID'
-		 //		reuse 'gl_LocalInvocationIndex'
-		 //		reuse 'gl_WorkGroupID'
+
+		 // task
 		 //		reuse 'gl_NumWorkGroups'
 		 //		reuse 'gl_WorkGroupSize'
-		 node->getName() == "gl_MeshViewCountNV"		or
+		 //		reuse 'gl_WorkGroupID'
+		 //		reuse 'gl_LocalInvocationID'
+		 //		reuse 'gl_GlobalInvocationID'
+		 //		reuse 'gl_LocalInvocationIndex'
+		 
+		 // mesh shader
+		 //		reuse 'gl_NumWorkGroups'
+		 //		reuse 'gl_WorkGroupSize'
+		 //		reuse 'gl_WorkGroupID'
+		 //		reuse 'gl_LocalInvocationID'
+		 //		reuse 'gl_GlobalInvocationID'
+		 //		reuse 'gl_LocalInvocationIndex'
+		 //		skip 'gl_PrimitivePointIndicesEXT'
+		 //		skip 'gl_PrimitiveLineIndicesEXT'
+		 //		skip 'gl_PrimitiveTriangleIndicesEXT'
+
+		 // NV mesh shader
+		 node->getName() == "gl_MeshViewCountNV"		or	// TODO: remove
+
 		 // ray generation shader
-		 node->getName() == "gl_LaunchIDEXT"				or
-		 node->getName() == "gl_LaunchSizeEXT"				or
+		 node->getName() == "gl_LaunchIDEXT"			or
+		 node->getName() == "gl_LaunchSizeEXT"			or
+
 		 // ray intersection & any-hit & closest-hit & miss shaders
 		 //		reuse 'gl_LaunchID'
 		 //		reuse 'gl_LaunchSize'
 		 //		reuse 'gl_PrimitiveID'
 		 node->getName() == "gl_InstanceCustomIndexEXT"	or
-		 node->getName() == "gl_WorldRayOriginEXT"			or
-		 node->getName() == "gl_WorldRayDirectionEXT"		or
+		 node->getName() == "gl_WorldRayOriginEXT"		or
+		 node->getName() == "gl_WorldRayDirectionEXT"	or
 		 node->getName() == "gl_ObjectRayOriginEXT"		or
-		 node->getName() == "gl_ObjectRayDirectionEXT"		or
+		 node->getName() == "gl_ObjectRayDirectionEXT"	or
 		 node->getName() == "gl_RayTminEXT"				or
 		 node->getName() == "gl_RayTmaxEXT"				or
-		 node->getName() == "gl_IncomingRayFlagsEXT"		or
-		 node->getName() == "gl_ObjectToWorldEXT"			or
-		 node->getName() == "gl_WorldToObjectEXT"			or
+		 node->getName() == "gl_IncomingRayFlagsEXT"	or
+		 node->getName() == "gl_ObjectToWorldEXT"		or
+		 node->getName() == "gl_WorldToObjectEXT"		or
+
 		 // ray intersection & any-hit & closest-hit shaders
-		 node->getName() == "gl_HitTEXT"			or
-		 node->getName() == "gl_HitKindEXT"		or
-		 node->getName() == "gl_InstanceID"		or
+		 node->getName() == "gl_HitTEXT"				or
+		 node->getName() == "gl_HitKindEXT"				or
+		 node->getName() == "gl_InstanceID"				or
+
 		 // all shaders
 		 node->getName() == "gl_SubgroupInvocationID"	)
 	{
@@ -4050,7 +4072,7 @@ ND_ static bool  ProcessSymbolNode (TIntermSymbol* node, DebugInfo &dbgInfo)
 	// do nothing
 	return true;
 }
-}	// namespace
+} // namespace
 //-----------------------------------------------------------------------------
 
 

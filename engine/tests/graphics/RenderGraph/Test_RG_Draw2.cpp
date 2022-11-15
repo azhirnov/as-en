@@ -26,7 +26,7 @@ namespace
 
 		AsyncTask					result;
 
-		CommandBatchPtr			batch;
+		CommandBatchPtr				batch;
 		bool						isOK	= false;
 
 		ImageComparator *			imgCmp	= null;
@@ -46,8 +46,8 @@ namespace
 	public:
 		D2_TestData&	t;
 
-		D2_DrawTask (D2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		D2_DrawTask (D2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -60,15 +60,13 @@ namespace
 
 			// upload vertices
 			typename CtxTypes::Transfer		copy_ctx{ *this };
-			CHECK_TE( copy_ctx.IsValid() );
 			
 			copy_ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopyDst );
 
-			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Bytes::SizeOf(vertices), vertices, EStagingHeapType::Static ));
+			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(vertices), vertices, EStagingHeapType::Static ));
 
 			typename CtxTypes::Graphics	ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
-			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
@@ -80,7 +78,6 @@ namespace
 				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.viewSize }
 									.AddViewport( t.viewSize )
 									.AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::White} ));
-				CHECK_TE( dctx.IsValid() );
 
 				CHECK_TE( dctx.BindVertexBuffer( t.ppln, VertexBufferName{"vb"}, t.vb, 0_b ));
 
@@ -103,8 +100,8 @@ namespace
 	public:
 		D2_TestData&	t;
 
-		D2_CopyTask (D2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		D2_CopyTask (D2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -114,7 +111,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 			
 			Ctx		ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
 						.Then( [p = &t] (const ImageMemView &view)
@@ -124,7 +120,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -141,7 +137,7 @@ namespace
 		t.imgCmp	= imageCmp;
 		t.viewSize	= uint2{800, 600};
 		
-		t.vb = res_mngr.CreateBuffer( BufferDesc{ Bytes::SizeOf(vertices), EBufferUsage::TransferDst | EBufferUsage::Vertex }.SetMemory( EMemoryType::DeviceLocal ),
+		t.vb = res_mngr.CreateBuffer( BufferDesc{ Sizeof(vertices), EBufferUsage::TransferDst | EBufferUsage::Vertex }.SetMemory( EMemoryType::DeviceLocal ),
 									  "vertex buffer", t.gfxAlloc );
 		CHECK_ERR( t.vb );
 
@@ -157,19 +153,14 @@ namespace
 		CHECK_ERR( t.ppln );
 
 		AsyncTask	begin	= rts.BeginFrame();
-		CHECK_ERR( begin );
 
 		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Draw2" );
 		CHECK_ERR( t.batch );
 
 		AsyncTask	task1	= t.batch->Add< D2_DrawTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin}, "Draw task" );
-		CHECK_ERR( task1 );
-		
 		AsyncTask	task2	= t.batch->Add< D2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
-		CHECK_ERR( task2 );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
-		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
 		CHECK_ERR( end->Status() == EStatus::Completed );

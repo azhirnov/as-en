@@ -32,16 +32,25 @@ namespace AE::Graphics::_hidden_
 		void  Copy (MetalAccelStruct src, MetalAccelStruct dst);
 		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst);
 		void  WriteCompactedSize (MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
+		
+		ND_ MetalCommandBufferRC	EndCommandBuffer ();
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ();
 
 	protected:
-		explicit _MDirectASBuildCtx (Ptr<MCommandBatch> batch);
-		_MDirectASBuildCtx (Ptr<MCommandBatch> batch, MCommandBuffer cmdbuf);
+		explicit _MDirectASBuildCtx (const RenderTask &task);
+		_MDirectASBuildCtx (const RenderTask &task, MCommandBuffer cmdbuf);
+		
+		ND_ MetalCommandEncoder  _BaseEncoder ()					{ return MetalCommandEncoder{ _encoder.Ptr() }; }
 		
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
 
 		void  _Build  (const RTSceneBuild &cmd, RTSceneID dst);
 		void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst);
+		
+		void  _DebugMarker (NtStringView text, RGBA8u)				{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( _BaseEncoder(), text ); }
+		void  _PushDebugGroup (NtStringView text, RGBA8u)			{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( _BaseEncoder(), text ); }
+		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup( _BaseEncoder() ); }
 	};
 
 
@@ -57,11 +66,13 @@ namespace AE::Graphics::_hidden_
 		void  Copy (MetalAccelStruct src, MetalAccelStruct dst);
 		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst);
 		void  WriteCompactedSize (MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
-
+		
+		ND_ MBakedCommands		EndCommandBuffer ();
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ();
 
 	protected:
-		explicit _MIndirectASBuildCtx (Ptr<MCommandBatch> batch) : MBaseIndirectContext{ batch } {}
-		_MIndirectASBuildCtx (Ptr<MCommandBatch> batch, MSoftwareCmdBufPtr cmdbuf) : MBaseIndirectContext{ batch, RVRef(cmdbuf) } {}
+		explicit _MIndirectASBuildCtx (const RenderTask &task);
+		_MIndirectASBuildCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf);
 
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -90,15 +101,16 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _MASBuildContextImpl (Ptr<MCommandBatch> batch) : RawCtx{ batch } {}
+		explicit _MASBuildContextImpl (const RenderTask &task) : RawCtx{ task } {}
 		
 		template <typename RawCmdBufType>
-		_MASBuildContextImpl (Ptr<MCommandBatch> batch, RawCmdBufType cmdbuf) : RawCtx{ batch, RVRef(cmdbuf) } {}
+		_MASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
 
 		_MASBuildContextImpl () = delete;
 		_MASBuildContextImpl (const _MASBuildContextImpl &) = delete;
 
 		using RawCtx::Copy;
+		using RawCtx::CopyCompacted;
 		
 		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst) override final								{ RawCtx::_Build( cmd, dst ); }
 		void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst) override final			{ RawCtx::_Update( cmd, src, dst ); }

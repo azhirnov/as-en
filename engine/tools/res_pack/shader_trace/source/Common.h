@@ -50,8 +50,8 @@ namespace AE::PipelineCompiler
 	{
 		if ( lhs.name != rhs.name )
 		{
-			if ( lhs.name == nullptr  or
-				 rhs.name == nullptr  or
+			if ( lhs.name == null  or
+				 rhs.name == null  or
 				*lhs.name != *rhs.name )
 				return false;
 		}
@@ -70,8 +70,8 @@ namespace AE::PipelineCompiler
 	{
 		if ( lhs.name != rhs.name )
 		{
-			if ( lhs.name == nullptr  or
-				 rhs.name == nullptr )
+			if ( lhs.name == null  or
+				 rhs.name == null )
 				return false;
 
 			if ( *lhs.name != *rhs.name )

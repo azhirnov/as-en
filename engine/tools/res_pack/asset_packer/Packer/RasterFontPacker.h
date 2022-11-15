@@ -103,8 +103,8 @@ namespace AE::AssetPacker
 			bool  ReadImage (RStream &stream, INOUT ImageData &) const;
 
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 	};
 
 

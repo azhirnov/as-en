@@ -16,8 +16,8 @@ namespace AE::Graphics
 	// interface
 	public:
 		// use only 0 timeout to avoid stalls
-		ND_ virtual bool  Wait (nanoseconds timeout) = 0;
-		ND_ virtual bool  IsComplete () = 0;
+		ND_ virtual bool  Wait (nanoseconds timeout)	__NE___	= 0;
+		ND_ virtual bool  IsComplete ()					__NE___	= 0;
 	};
 
 	using DeviceToHostSyncPtr = RC< IDeviceToHostSync >;

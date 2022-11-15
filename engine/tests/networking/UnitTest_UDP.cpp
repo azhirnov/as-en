@@ -24,7 +24,7 @@ namespace
 					Bytes		recv;
 					char		buf[128];
 
-					if ( sock2.Receive( OUT addr, buf, Bytes::SizeOf(buf), OUT recv ) and recv > 0 )
+					if ( sock2.Receive( OUT addr, buf, Sizeof(buf), OUT recv ) and recv > 0 )
 					{
 						recv_data.insert( recv_data.end(), buf, buf + recv );
 
@@ -46,8 +46,8 @@ namespace
 		TEST( sock1.IsOpen() );
 
 		Bytes	sent;
-		TEST( sock1.Send( IpAddress::FromHostPortUDP( "localhost", 4000 ), send_data, Bytes::SizeOf(send_data), OUT sent ));
-		TEST( sent == Bytes::SizeOf(send_data) );
+		TEST( sock1.Send( IpAddress::FromHostPortUDP( "localhost", 4000 ), send_data, Sizeof(send_data), OUT sent ));
+		TEST( sent == Sizeof(send_data) );
 
 		listener.join();
 

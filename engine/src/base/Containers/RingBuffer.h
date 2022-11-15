@@ -1,4 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Exceptions:
+		- array elements may throw exceptions (in copy-ctor)
+		- allocation failed - std::bad_alloc
+		- too big array size - std::bad_array_new_length
+*/
 
 #pragma once
 
@@ -22,6 +28,9 @@ namespace AE::Base
 			 >
 	struct RingBuffer
 	{
+		STATIC_ASSERT( IsNothrowMoveCtor<T> );
+		//STATIC_ASSERT( IsNothrowDefaultCtor<T> );
+
 	// types
 	private:
 		using Self			= RingBuffer< T, Policy >;
@@ -42,58 +51,58 @@ namespace AE::Base
 			usize	_index	= UMax;
 
 		public:
-			TIterator () {}
-			TIterator (const Iter &) = default;
-			TIterator (Iter &&) = default;
-			TIterator (RBPtr ptr, usize idx) : _rbPtr{ptr}, _index{idx} { ASSERT( _rbPtr != null ); }
+			TIterator ()							__NE___ {}
+			TIterator (const Iter &)				__NE___ = default;
+			TIterator (Iter &&)						__NE___ = default;
+			TIterator (RBPtr ptr, usize idx)		__NE___ : _rbPtr{ptr}, _index{idx} { ASSERT( _rbPtr != null ); }
 
-			Iter& operator = (const Iter &) = default;
-			Iter& operator = (Iter &&) = default;
+			Iter& operator = (const Iter &)			__NE___ = default;
+			Iter& operator = (Iter &&)				__NE___ = default;
 
-			ND_ bool operator != (const Iter &rhs) const	{ return not (*this == rhs); }
+			ND_ bool operator != (const Iter &rhs)	C_NE___	{ return not (*this == rhs); }
 			
-			ND_ bool operator == (const Iter &rhs) const
+			ND_ bool operator == (const Iter &rhs)	C_NE___
 			{
 				return _rbPtr == rhs._rbPtr and _index == rhs._index;
 			}
 
-			Iter& operator ++ ()
+			Iter& operator ++ ()					__NE___
 			{
 				ASSERT( _rbPtr != null );
 				_index = Min( _index + 1, _rbPtr->size() );
 				return *this;
 			}
 
-			Iter  operator ++ (int)
+			Iter  operator ++ (int)					__NE___
 			{
 				Iter	res{ *this };
 				this->operator++();
 				return res;
 			}
 
-			Iter&  operator += (usize x)
+			Iter&  operator += (usize x)			__NE___
 			{
 				ASSERT( _rbPtr != null );
 				_index = Min( _index + x, _rbPtr->size() );
 				return *this;
 			}
 
-			ND_ Iter  operator + (usize x) const
+			ND_ Iter  operator + (usize x)			C_NE___
 			{
 				return (Iter{*this} += x);
 			}
 
-			ND_ T &			operator * ()			{ ASSERT( _rbPtr != null );	return (*_rbPtr)[_index]; }
-			ND_ T const&	operator * ()	const	{ ASSERT( _rbPtr != null );	return (*_rbPtr)[_index]; }
+			ND_ T &			operator * ()			__NE___	{ ASSERT( _rbPtr != null );	return (*_rbPtr)[_index]; }
+			ND_ T const&	operator * ()			C_NE___	{ ASSERT( _rbPtr != null );	return (*_rbPtr)[_index]; }
 
-			ND_ T *			operator -> ()			{ ASSERT( _rbPtr != null );	return &(*_rbPtr)[_index]; }
-			ND_ T const*	operator -> ()	const	{ ASSERT( _rbPtr != null );	return &(*_rbPtr)[_index]; }
+			ND_ T *			operator -> ()			__NE___	{ ASSERT( _rbPtr != null );	return &(*_rbPtr)[_index]; }
+			ND_ T const*	operator -> ()			C_NE___	{ ASSERT( _rbPtr != null );	return &(*_rbPtr)[_index]; }
 		};
 		
 		static constexpr Offset_t	_EmptyBit = Offset_t{1} << (CT_SizeOfInBits<Offset_t> - 1);
 
 	public:
-		using Allocator_t		= UntypedAlignedAllocator;
+		using Allocator_t		= UntypedAllocator;
 		using value_type		= T;
 		using iterator			= TIterator< false >;
 		using const_iterator	= TIterator< true >;
@@ -121,81 +130,82 @@ namespace AE::Base
 
 	// methods
 	public:
-		RingBuffer () {}
-		RingBuffer (const Self &other);
-		RingBuffer (Self &&other);
+		RingBuffer ()									__NE___ {}
+		RingBuffer (const Self &other)					__TH___;
+		RingBuffer (Self &&other)						__NE___;
 
-		~RingBuffer ()	{ _Release(); }
+		~RingBuffer ()									__NE___	{ _Release(); }
 
-			Self&		operator = (const Self &rhs);
-			Self&		operator = (Self &&rhs);
+			Self&		operator = (const Self &rhs)	__TH___;
+			Self&		operator = (Self &&rhs)			__NE___;
 
-		ND_ bool		operator == (ArrayView<T> rhs)	const;
-		ND_ bool		operator == (const Self &rhs)	const;
+		ND_ bool		operator == (ArrayView<T> rhs)	C_NE___;
+		ND_ bool		operator == (const Self &rhs)	C_NE___;
 		
-		ND_ bool		operator != (ArrayView<T> rhs)	const	{ return not (*this == rhs); }
-		ND_ bool		operator != (const Self &rhs)	const	{ return not (*this == rhs); }
+		ND_ bool		operator != (ArrayView<T> rhs)	C_NE___	{ return not (*this == rhs); }
+		ND_ bool		operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
 		
-		ND_ T		&	operator [] (usize i);
-		ND_ T const	&	operator [] (usize i) const;
+		ND_ T		&	operator [] (usize i)			__NE___;
+		ND_ T const	&	operator [] (usize i)			C_NE___;
 
-		ND_ T &			front ();
-		ND_ T const&	front ()	const;
+		ND_ T &			front ()						__NE___;
+		ND_ T const&	front ()						C_NE___;
 
-		ND_ T &			back ();
-		ND_ T const&	back ()		const;
+		ND_ T &			back ()							__NE___;
+		ND_ T const&	back ()							C_NE___;
 		
-		ND_ usize		size ()		const;
-		ND_ bool		empty ()	const		{ return _packed & _EmptyBit; }
-		ND_ usize		capacity ()	const		{ return _packed & ~_EmptyBit; }
+		ND_ usize		size ()							C_NE___;
+		ND_ bool		empty ()						C_NE___		{ return _packed & _EmptyBit; }
+		ND_ usize		capacity ()						C_NE___		{ return _packed & ~_EmptyBit; }
 		
-			void		push_front (const T &value);
-			void		push_front (T&& value);
+			void		push_front (const T &value)		__TH___;
+			void		push_front (T&& value)			__TH___;
 
-			void		push_back (const T &value);
-			void		push_back (T&& value);
+			void		push_back (const T &value)		__TH___;
+			void		push_back (T&& value)			__TH___;
 
-			void		pop_front ();
-			void		pop_back ();
+			void		pop_front ()					__NE___;
+			void		pop_back ()						__NE___;
 
 			template <typename ...Types>
-			void		emplace_front (Types&& ...args);
+			void		emplace_front (Types&& ...args)	__TH___;
 			
 			template <typename ...Types>
-			void		emplace_back (Types&& ...args);
+			void		emplace_back (Types&& ...args)	__TH___;
 
-		ND_ T			ExtractFront ();
-		ND_ T			ExtractBack ();
+		ND_ T			ExtractFront ()					__NE___;
+		ND_ T			ExtractBack ()					__NE___;
 
-		ND_	iterator		begin ()			{ return iterator{ this, 0 }; }
-		ND_	const_iterator	begin ()	const	{ return const_iterator{ this, 0 }; }
-		ND_	iterator		end ()				{ return begin() + size(); }
-		ND_	const_iterator	end ()		const	{ return begin() + size(); }
+		ND_	iterator		begin ()					__NE___	{ return iterator{ this, 0 }; }
+		ND_	const_iterator	begin ()					C_NE___	{ return const_iterator{ this, 0 }; }
+		ND_	iterator		end ()						__NE___	{ return begin() + size(); }
+		ND_	const_iterator	end ()						C_NE___	{ return begin() + size(); }
 		
-			void		reserve (usize newSize);
-			void		clear ();
+			void		reserve (usize newSize)			__TH___;
+			void		clear ()						__NE___;
 
-		ND_ HashVal		CalcHash () const;
-			void		GetParts (OUT ArrayView<T> &part0, OUT ArrayView<T> &part1) const;
+		ND_ HashVal		CalcHash ()						C_NE___;
+			void		GetParts (OUT ArrayView<T> &part0, OUT ArrayView<T> &part1) C_NE___;
 			
-			void		AppendFront (ArrayView<T> value);
-			void		AppendBack (ArrayView<T> value);
+			void		AppendFront (ArrayView<T> value)__TH___;
+			void		AppendBack (ArrayView<T> value)	__TH___;
 
 	private:
-		void  _Release ();
-		void  _Copy (const Self &other);
-		void  _Reallocate (usize newSize, bool allowReserve);
+		void  _Release ()								__NE___;
+		void  _Copy (const Self &other)					__TH___;
 
-		ND_ Offset_t  _WrapIndex (ssize i)	const;
-		ND_ Offset_t  _SizeMask ()			const	{ return empty() ? 0 : ~Offset_t{0}; }
+		void  _Reallocate (usize newSize, bool allowReserve)__TH___;	// bad_array_new_length, bad_alloc
+
+		ND_ Offset_t  _WrapIndex (ssize i)				C_NE___;
+		ND_ Offset_t  _SizeMask ()						C_NE___	{ return empty() ? 0 : ~Offset_t{0}; }
 
 		template <typename B>
-		void  _AppendFront (B* src, usize count);
+		void  _AppendFront (B* src, usize count)		__TH___;
 		
 		template <typename B>
-		void  _AppendBack (B* src, usize count);
+		void  _AppendBack (B* src, usize count)			__TH___;
 
-		void  _UpdateDbgView ();
+		void  _UpdateDbgView ()							__NE___;
 	};
 
 	
@@ -206,9 +216,9 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	RingBuffer<T,S>::RingBuffer (const Self &other)
+	RingBuffer<T,S>::RingBuffer (const Self &other) __TH___
 	{
-		_Copy( other );
+		_Copy( other );	// throw
 	}
 	
 /*
@@ -217,7 +227,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	RingBuffer<T,S>::RingBuffer (Self &&other) :
+	RingBuffer<T,S>::RingBuffer (Self &&other) __NE___ :
 		_array{ other._array },
 		_first{ other._first },
 		_end{ other._end },
@@ -234,10 +244,10 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	RingBuffer<T,S>&  RingBuffer<T,S>::operator = (const Self &rhs)
+	RingBuffer<T,S>&  RingBuffer<T,S>::operator = (const Self &rhs) __TH___
 	{
 		clear();
-		_Copy( rhs );
+		_Copy( rhs );	// throw
 		return *this;
 	}
 	
@@ -247,7 +257,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	RingBuffer<T,S>&  RingBuffer<T,S>::operator = (Self &&rhs)
+	RingBuffer<T,S>&  RingBuffer<T,S>::operator = (Self &&rhs) __NE___
 	{
 		_Release();
 
@@ -270,12 +280,12 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::_Release ()
+	void  RingBuffer<T,S>::_Release () __NE___
 	{
 		clear();
 
 		if ( _array != null )
-			_allocator.Deallocate( _array, SizeOf<T> * capacity(), AlignOf<T> );
+			_allocator.Deallocate( _array, SizeAndAlign{ SizeOf<T> * capacity(), AlignOf<T> });
 
 		_packed	= 0;
 		_array	= null;
@@ -292,7 +302,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::_Copy (const Self &other)
+	void  RingBuffer<T,S>::_Copy (const Self &other) __TH___
 	{
 		clear();
 		AppendBack( other );
@@ -304,7 +314,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::_Reallocate (usize newCapacity, bool allowReserve)
+	void  RingBuffer<T,S>::_Reallocate (usize newCapacity, bool allowReserve) __TH___
 	{
 		ASSERT( newCapacity > size() );
 
@@ -313,14 +323,18 @@ namespace AE::Base
 		T *	const		old_ptr		= _array;
 		const usize		new_cap		= ResizePolicy::Resize<T>( newCapacity, allowReserve );
 
+		CHECK_THROW( new_cap < _EmptyBit, std::bad_array_new_length{} );
+
 		_packed = Offset_t(new_cap) | (_packed & _EmptyBit);
 		ASSERT( capacity() == new_cap );
 		ASSERT( empty() == (old_count == 0) );
 
 		const Bytes	new_size = SizeOf<T> * capacity();
 
-		_array = Cast<T>( _allocator.Allocate( new_size, AlignOf<T> ));
-		CHECK( _array != null );
+		T*	new_ptr = Cast<T>( _allocator.Allocate( SizeAndAlign{ new_size, AlignOf<T> }));
+		CHECK_THROW( new_ptr != null, std::bad_alloc{} );
+
+		_array = new_ptr;
 		DEBUG_ONLY( DbgInitMem( _array, new_size ));
 		
 		// replace
@@ -336,7 +350,7 @@ namespace AE::Base
 		}
 
 		if ( old_ptr != null )
-			_allocator.Deallocate( old_ptr, SizeOf<T> * old_size, AlignOf<T> );
+			_allocator.Deallocate( old_ptr, SizeAndAlign{ SizeOf<T> * old_size, AlignOf<T> });
 		
 		_first = 0;
 		_end   = Offset_t(old_count);
@@ -351,7 +365,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	typename RingBuffer<T,S>::Offset_t  RingBuffer<T,S>::_WrapIndex (const ssize i) const
+	typename RingBuffer<T,S>::Offset_t  RingBuffer<T,S>::_WrapIndex (const ssize i) C_NE___
 	{
 		const ssize	cap = ssize(capacity());
 		return Offset_t( i < 0 ? (cap + i) : (i >= cap ? (i - cap) : i) ) & _SizeMask();
@@ -363,7 +377,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	usize  RingBuffer<T,S>::size () const
+	usize  RingBuffer<T,S>::size () C_NE___
 	{
 		return	Offset_t(_first < _end ?
 					(_end - _first) :
@@ -374,17 +388,19 @@ namespace AE::Base
 /*
 =================================================
 	front
+----
+	UB if empty
 =================================================
 */
 	template <typename T, typename S>
-	T &  RingBuffer<T,S>::front ()
+	T &  RingBuffer<T,S>::front () __NE___
 	{
 		ASSERT( not empty() );
 		return _array[ _first ];
 	}
 	
 	template <typename T, typename S>
-	T const &  RingBuffer<T,S>::front () const
+	T const &  RingBuffer<T,S>::front () C_NE___
 	{
 		ASSERT( not empty() );
 		return _array[ _first ];
@@ -393,17 +409,19 @@ namespace AE::Base
 /*
 =================================================
 	back
+----
+	UB if empty
 =================================================
 */
 	template <typename T, typename S>
-	T &  RingBuffer<T,S>::back ()
+	T &  RingBuffer<T,S>::back () __NE___
 	{
 		ASSERT( not empty() );
 		return _array[ _WrapIndex( ssize(_end) - 1 )];
 	}
 	
 	template <typename T, typename S>
-	T const &  RingBuffer<T,S>::back () const
+	T const &  RingBuffer<T,S>::back () C_NE___
 	{
 		ASSERT( not empty() );
 		return _array[ _WrapIndex( ssize(_end) - 1 )];
@@ -415,14 +433,14 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	T &  RingBuffer<T,S>::operator [] (const usize i)
+	T &  RingBuffer<T,S>::operator [] (const usize i) __NE___
 	{
 		ASSERT( i < size() );
 		return _array[ _WrapIndex( i + _first )];
 	}
 	
 	template <typename T, typename S>
-	T const &  RingBuffer<T,S>::operator [] (const usize i) const
+	T const &  RingBuffer<T,S>::operator [] (const usize i) C_NE___
 	{
 		ASSERT( i < size() );
 		return _array[ _WrapIndex( i + _first )];
@@ -434,12 +452,12 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::push_back (const T &value)
+	void  RingBuffer<T,S>::push_back (const T &value) __TH___
 	{
 		if_unlikely( size() + 1 > capacity() )
-			_Reallocate( capacity() + 1, true );
+			_Reallocate( capacity() + 1, true );	// throw
 		
-		CPolicy_t::Copy( _array + _end, AddressOf(value), 1 );
+		CPolicy_t::Copy( _array + _end, AddressOf(value), 1 );	// throw
 		_end	= _WrapIndex( _end + 1 );
 		_packed	&= ~_EmptyBit;
 
@@ -447,10 +465,10 @@ namespace AE::Base
 	}
 	
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::push_back (T&& value)
+	void  RingBuffer<T,S>::push_back (T&& value) __TH___
 	{
 		if_unlikely( size() + 1 > capacity() )
-			_Reallocate( capacity() + 1, true );
+			_Reallocate( capacity() + 1, true );	// throw
 		
 		CPolicy_t::Move( _array + _end, AddressOf(value), 1 );
 		_packed	&= ~_EmptyBit;
@@ -465,23 +483,23 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::push_front (const T &value)
+	void  RingBuffer<T,S>::push_front (const T &value) __TH___
 	{
 		if_unlikely( size() + 1 > capacity() )
-			_Reallocate( capacity() + 1, true );
+			_Reallocate( capacity() + 1, true );	// throw
 		
 		_packed	&= ~_EmptyBit;
 		_first	= _WrapIndex( ssize(_first) - 1 );
-		CPolicy_t::Copy( _array + _first, AddressOf(value), 1 );
+		CPolicy_t::Copy( _array + _first, AddressOf(value), 1 );	// throw
 		
 		_UpdateDbgView();
 	}
 	
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::push_front (T&& value)
+	void  RingBuffer<T,S>::push_front (T&& value) __TH___
 	{
 		if_unlikely( size() + 1 > capacity() )
-			_Reallocate( capacity() + 1, true );
+			_Reallocate( capacity() + 1, true );	// throw
 		
 		_packed	&= ~_EmptyBit;
 		_first	= _WrapIndex( ssize(_first) - 1 );
@@ -496,7 +514,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::pop_back ()
+	void  RingBuffer<T,S>::pop_back () __NE___
 	{
 		if_likely( not empty() )
 		{
@@ -516,7 +534,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::pop_front ()
+	void  RingBuffer<T,S>::pop_front () __NE___
 	{
 		if_likely( not empty() )
 		{
@@ -537,14 +555,14 @@ namespace AE::Base
 */
 	template <typename T, typename S>
 	template <typename ...Types>
-	void  RingBuffer<T,S>::emplace_front (Types&& ...args)
+	void  RingBuffer<T,S>::emplace_front (Types&& ...args) __TH___
 	{
 		if_unlikely( size() + 1 > capacity() )
-			_Reallocate( capacity() + 1, true );
+			_Reallocate( capacity() + 1, true );	// throw
 		
 		_packed	&= ~_EmptyBit;
 		_first	= _WrapIndex( ssize(_first) - 1 );
-		PlacementNew<T>( _array + _first, FwdArg<Types>(args)... );
+		PlacementNew<T>( _array + _first, FwdArg<Types>(args)... );	// throw
 		
 		_UpdateDbgView();
 	}
@@ -556,12 +574,12 @@ namespace AE::Base
 */
 	template <typename T, typename S>
 	template <typename ...Types>
-	void  RingBuffer<T,S>::emplace_back (Types&& ...args)
+	void  RingBuffer<T,S>::emplace_back (Types&& ...args) __TH___
 	{
 		if_unlikely( size() + 1 > capacity() )
-			_Reallocate( capacity() + 1, true );
+			_Reallocate( capacity() + 1, true );	// throw
 		
-		PlacementNew<T>( _array + _end, FwdArg<Types>(args)... );
+		PlacementNew<T>( _array + _end, FwdArg<Types>(args)... );	// throw
 		_packed	&= ~_EmptyBit;
 		_end	= _WrapIndex( _end + 1 );
 		
@@ -571,10 +589,12 @@ namespace AE::Base
 /*
 =================================================
 	ExtractFront
+----
+	UB if empty
 =================================================
 */
 	template <typename T, typename S>
-	T  RingBuffer<T,S>::ExtractFront ()
+	T  RingBuffer<T,S>::ExtractFront () __NE___
 	{
 		T	tmp = RVRef(front());
 		pop_front();
@@ -584,10 +604,12 @@ namespace AE::Base
 /*
 =================================================
 	ExtractBack
+----
+	UB if empty
 =================================================
 */
 	template <typename T, typename S>
-	T  RingBuffer<T,S>::ExtractBack ()
+	T  RingBuffer<T,S>::ExtractBack () __NE___
 	{
 		T	tmp = RVRef(back());
 		pop_back();
@@ -600,12 +622,12 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::reserve (usize newSize)
+	void  RingBuffer<T,S>::reserve (usize newSize) __TH___
 	{
 		if ( newSize <= capacity() )
 			return;
 
-		_Reallocate( newSize, false );
+		_Reallocate( newSize, false );	// throw
 	}
 	
 /*
@@ -614,7 +636,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	bool  RingBuffer<T,S>::operator == (ArrayView<T> rhs) const
+	bool  RingBuffer<T,S>::operator == (ArrayView<T> rhs) C_NE___
 	{
 		if ( size() != rhs.size() )
 			return false;
@@ -633,7 +655,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	bool  RingBuffer<T,S>::operator == (const Self &rhs) const
+	bool  RingBuffer<T,S>::operator == (const Self &rhs) C_NE___
 	{
 		if ( size() != rhs.size() )
 			return false;
@@ -652,7 +674,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::clear ()
+	void  RingBuffer<T,S>::clear () __NE___
 	{
 		if ( _array != null )
 		{
@@ -681,7 +703,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::GetParts (OUT ArrayView<T> &part0, OUT ArrayView<T> &part1) const
+	void  RingBuffer<T,S>::GetParts (OUT ArrayView<T> &part0, OUT ArrayView<T> &part1) C_NE___
 	{
 		if ( empty() )
 		{
@@ -707,7 +729,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	HashVal  RingBuffer<T,S>::CalcHash () const
+	HashVal  RingBuffer<T,S>::CalcHash () C_NE___
 	{
 		ArrayView<T>	part0;
 		ArrayView<T>	part1;
@@ -722,7 +744,7 @@ namespace AE::Base
 */
 	template <typename T, typename S>
 	template <typename B>
-	void  RingBuffer<T,S>::_AppendFront (B* src, usize count)
+	void  RingBuffer<T,S>::_AppendFront (B* src, usize count) __TH___
 	{
 		if_unlikely( src == null or count == 0 )
 			return;
@@ -736,11 +758,11 @@ namespace AE::Base
 		const usize	old_count = size();
 
 		if_unlikely( old_count + count >= capacity() )
-			_Reallocate( old_count + count, true );
+			_Reallocate( old_count + count, true );	// throw
 
 		if_unlikely( empty() )
 		{
-			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array, src, count );
+			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array, src, count );	// throw
 			else						CPolicy_t::Move( _array, src, count );
 
 			_first = 0;
@@ -752,7 +774,7 @@ namespace AE::Base
 		{
 			const usize	cnt = Min( count, _first );
 
-			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array + _first - cnt, src + count - cnt, cnt );
+			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array + _first - cnt, src + count - cnt, cnt );	// throw
 			else						CPolicy_t::Move( _array + _first - cnt, src + count - cnt, cnt );
 
 			_first = Offset_t(_first - cnt);
@@ -761,13 +783,13 @@ namespace AE::Base
 			{
 				_first = Offset_t( capacity() - (count - cnt) );
 
-				if constexpr( IsConst<B> )	CPolicy_t::Copy( _array + _first, src, count - cnt );
+				if constexpr( IsConst<B> )	CPolicy_t::Copy( _array + _first, src, count - cnt );	// throw
 				else						CPolicy_t::Move( _array + _first, src, count - cnt );
 			}
 		}
 		else
 		{
-			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array + _first - count, src, count );
+			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array + _first - count, src, count );	// throw
 			else						CPolicy_t::Move( _array + _first - count, src, count );
 
 			_first = Offset_t(_first - count);
@@ -784,7 +806,7 @@ namespace AE::Base
 */
 	template <typename T, typename S>
 	template <typename B>
-	void  RingBuffer<T,S>::_AppendBack (B* src, usize count)
+	void  RingBuffer<T,S>::_AppendBack (B* src, usize count) __TH___
 	{
 		if_unlikely( src == null or count == 0 )
 			return;
@@ -798,11 +820,11 @@ namespace AE::Base
 		const usize	old_count = size();
 
 		if ( old_count + count >= capacity() )
-			_Reallocate( old_count + count, true );
+			_Reallocate( old_count + count, true );	// throw
 
 		if_unlikely( empty() )
 		{
-			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array, src, count );
+			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array, src, count );	// throw
 			else						CPolicy_t::Move( _array, const_cast<T*>(src), count );
 
 			_first = 0;
@@ -814,7 +836,7 @@ namespace AE::Base
 		{
 			const usize	cnt = Min( count, capacity() - _end );
 
-			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array + _end, src, cnt );
+			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array + _end, src, cnt );	// throw
 			else						CPolicy_t::Move( _array + _end, src, cnt );
 
 			_end = Offset_t(_end + cnt);
@@ -823,13 +845,13 @@ namespace AE::Base
 			{
 				_end = Offset_t(count - cnt);
 
-				if constexpr( IsConst<B> )	CPolicy_t::Copy( _array, src + cnt, count - cnt );
+				if constexpr( IsConst<B> )	CPolicy_t::Copy( _array, src + cnt, count - cnt );	// throw
 				else						CPolicy_t::Move( _array, src + cnt, count - cnt );
 			}
 		}
 		else
 		{
-			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array + _end, src, count );
+			if constexpr( IsConst<B> )	CPolicy_t::Copy( _array + _end, src, count );	// throw
 			else						CPolicy_t::Move( _array + _end, src, count );
 
 			_end = Offset_t(_end + count);
@@ -845,9 +867,9 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::AppendFront (ArrayView<T> value)
+	void  RingBuffer<T,S>::AppendFront (ArrayView<T> value) __TH___
 	{
-		return _AppendFront<const T>( value.data(), value.size() );
+		return _AppendFront<const T>( value.data(), value.size() );	// throw
 	}
 
 /*
@@ -856,9 +878,9 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::AppendBack (ArrayView<T> value)
+	void  RingBuffer<T,S>::AppendBack (ArrayView<T> value) __TH___
 	{
-		return _AppendBack<const T>( value.data(), value.size() );
+		return _AppendBack<const T>( value.data(), value.size() );	// throw
 	}
 	
 /*
@@ -867,7 +889,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename S>
-	void  RingBuffer<T,S>::_UpdateDbgView ()
+	void  RingBuffer<T,S>::_UpdateDbgView () __NE___
 	{
 		DEBUG_ONLY(
 			_dbg_first = BitCast<decltype(_dbg_first)>( &_array[_first] );
@@ -887,7 +909,7 @@ namespace std
 	template <typename T, typename S>
 	struct hash< AE::Base::RingBuffer<T,S> >
 	{
-		ND_ size_t  operator () (const AE::Base::RingBuffer<T,S> &value) const
+		ND_ size_t  operator () (const AE::Base::RingBuffer<T,S> &value) C_NE___
 		{
 			return size_t(value.CalcHash());
 		}

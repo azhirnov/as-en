@@ -47,9 +47,10 @@ namespace
 				CheckArray( arr );
 			}
 		)#";
-		
-		se->AddFunction( &Utils::CheckArray, "CheckArray" );
 
+		TEST_NOTHROW(
+			se->AddFunction( &Utils::CheckArray, "CheckArray" );
+		)
 		TEST( Run< void() >( se, script, "main" ));
 	}
 
@@ -87,8 +88,10 @@ namespace
 			}
 		)#";
 		
-		se->AddFunction( &Utils::CheckArray, "CheckArray" );
-		
+		TEST_NOTHROW(
+			se->AddFunction( &Utils::CheckArray, "CheckArray" );
+		)
+
 		int	res = 0;
 		TEST( Run< int() >( se, script, "main", OUT res ));
 		TEST( res == 3 );
@@ -98,15 +101,17 @@ namespace
 
 extern void UnitTest_Array ()
 {
-	auto	se = MakeRC<ScriptEngine>();
-	TEST( se->Create() );
+	TEST_NOTHROW(
+		auto	se = MakeRC<ScriptEngine>();
+		TEST( se->Create() );
 
-	CoreBindings::BindArray( se );
-	CoreBindings::BindString( se );
+		CoreBindings::BindArray( se );
+		CoreBindings::BindString( se );
 
-	ScriptArray_Test1( se );
-	ScriptArray_Test2( se );
-	ScriptArray_Test3( se );
+		ScriptArray_Test1( se );
+		ScriptArray_Test2( se );
+		ScriptArray_Test3( se );
 
-	TEST_PASSED();
+		TEST_PASSED();
+	)
 }

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "base/Platforms/Platform.h"
-#include "base/Stream/FileStream.h"
-#include "base/Stream/MemStream.h"
+#include "base/DataSource/FileStream.h"
+#include "base/DataSource/MemStream.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/StringParser.h"
 
@@ -24,7 +24,7 @@ using namespace AE::PipelineCompiler;
 using namespace AE::InputActions;
 using namespace AE::AssetPacker;
 
-using LinearAlloc_t = AlignedAllocatorImpl< LinearAllocator<> >;
+using LinearAlloc_t = AllocatorImpl2< LinearAllocator<> >;
 
 
 template <typename T>

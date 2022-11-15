@@ -34,8 +34,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectASBuildCtx (const VRenderTask &task);
-		_VDirectASBuildCtx (const VRenderTask &task, VCommandBuffer cmdbuf);
+		explicit _VDirectASBuildCtx (const RenderTask &task);
+		_VDirectASBuildCtx (const RenderTask &task, VCommandBuffer cmdbuf);
 		
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -63,8 +63,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectASBuildCtx (const VRenderTask &task);
-		_VIndirectASBuildCtx (const VRenderTask &task, VSoftwareCmdBufPtr cmdbuf);
+		explicit _VIndirectASBuildCtx (const RenderTask &task);
+		_VIndirectASBuildCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf);
 
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -93,41 +93,37 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VASBuildContextImpl (const VRenderTask &task) : RawCtx{ task } {}
+		explicit _VASBuildContextImpl (const RenderTask &task) : RawCtx{ task } {}
 		
 		template <typename RawCmdBufType>
-		_VASBuildContextImpl (const VRenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
+		_VASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
 
 		_VASBuildContextImpl () = delete;
 		_VASBuildContextImpl (const _VASBuildContextImpl &) = delete;
 
 		using RawCtx::Copy;
 		
-		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst) override final								{ RawCtx::_Build( cmd, dst ); }
-		void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst) override final			{ RawCtx::_Update( cmd, src, dst ); }
-		void  Copy   (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode = ERTASCopyMode::Clone) override final;
+		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst)										{ RawCtx::_Build( cmd, dst ); }
+		void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)					{ RawCtx::_Update( cmd, src, dst ); }
+		void  Copy   (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode = ERTASCopyMode::Clone);
 		
-		void  Build  (const RTSceneBuild &cmd, RTSceneID dst) override final;
-		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst) override final;
-		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone) override final;
+		void  Build  (const RTSceneBuild &cmd, RTSceneID dst);
+		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst);
+		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone);
 		
 		using RawCtx::WriteCompactedSize;
 
-		void  WriteCompactedSize (RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size) override final;
-		void  WriteCompactedSize (RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size) override final;
+		void  WriteCompactedSize (RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size);
+		void  WriteCompactedSize (RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size);
 		
-		Promise<Bytes>  ReadCompactedSize (RTGeometryID as) override final;
-		Promise<Bytes>  ReadCompactedSize (RTSceneID as) override final;
+		Promise<Bytes>  ReadCompactedSize (RTGeometryID as);
+		Promise<Bytes>  ReadCompactedSize (RTSceneID as);
 
 		ND_ Promise<Bytes>  ReadCompactedSize (VkAccelerationStructureKHR as);
-
-		void  CommitBarriers ()									override final	{ RawCtx::_CommitBarriers(); }
 		
-		void  DebugMarker (NtStringView text, RGBA8u color)		override final	{ RawCtx::_DebugMarker( text, color ); }
-		void  PushDebugGroup (NtStringView text, RGBA8u color)	override final	{ RawCtx::_PushDebugGroup( text, color ); }
-		void  PopDebugGroup ()									override final	{ RawCtx::_PopDebugGroup(); }
-
-		ND_ AccumBar  AccumBarriers ()							{ return AccumBar{ *this }; }
+		void  DebugMarker (NtStringView text, RGBA8u color)												{ RawCtx::_DebugMarker( text, color ); }
+		void  PushDebugGroup (NtStringView text, RGBA8u color)											{ RawCtx::_PushDebugGroup( text, color ); }
+		void  PopDebugGroup ()																			{ RawCtx::_PopDebugGroup(); }
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -372,7 +368,7 @@ namespace AE::Graphics::_hidden_
 											auto&	rts			= RenderTaskScheduler();
 											auto&	query_mngr	= rts.GetResourceManager().GetQueryManager();
 											Bytes	size;
-											CHECK_ERR( query_mngr.GetRTASCompactedSize( rts.GetDevice(), qsize, OUT &size, Bytes::SizeOf(size) ),
+											CHECK_ERR( query_mngr.GetRTASCompactedSize( rts.GetDevice(), qsize, OUT &size, Sizeof(size) ),
 													   Threading::CancelPromise );
 											return size;
 										},

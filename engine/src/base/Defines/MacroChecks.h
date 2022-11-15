@@ -66,6 +66,26 @@
 #endif
 
 
+// SIMD
+#ifdef AE_SIMD_NEON
+# ifdef AE_SIMD_AVX
+#	error AE_SIMD_AVX is not compatible with AE_SIMD_NEON
+# endif
+# ifdef AE_SIMD_SSE
+#	error AE_SIMD_SSE is not compatible with AE_SIMD_NEON
+# endif
+# ifdef AE_SIMD_AES
+#	error AE_SIMD_AES is not compatible with AE_SIMD_NEON
+# endif
+#endif
+
+#if defined(AE_SIMD_AVX) or defined(AE_SIMD_SSE) or defined(AE_SIMD_AES)
+# if defined(AE_SIMD_NEON) or defined(AE_SIMD_NEON_HALF)
+#	error AE_SIMD_AVX and AE_SIMD_SSE and AE_SIMD_AES are not compatible with AE_SIMD_NEON
+# endif
+#endif
+
+
 // check definitions
 #ifdef AE_CPP_DETECT_MISMATCH
 
@@ -223,6 +243,59 @@
 #	pragma detect_mismatch( "AE_CPU_ARCH_i686", "0" )
 #  endif
 
+
+// SIMD
+#  ifdef AE_SIMD_NEON
+#	pragma detect_mismatch( "AE_SIMD_NEON", "1" )
+#  else
+#	pragma detect_mismatch( "AE_SIMD_NEON", "0" )
+#  endif
+
+#  ifdef AE_SIMD_NEON_HALF
+#	pragma detect_mismatch( "AE_SIMD_NEON_HALF", "1" )
+#  else
+#	pragma detect_mismatch( "AE_SIMD_NEON_HALF", "0" )
+#  endif
+
+#  ifdef AE_SIMD_AVX
+#	if AE_SIMD_AVX == 0
+#	  pragma detect_mismatch( "AE_SIMD_AVX", "0" )
+#	elif AE_SIMD_AVX == 1
+#	  pragma detect_mismatch( "AE_SIMD_AVX", "1" )
+#	elif AE_SIMD_AVX == 2
+#	  pragma detect_mismatch( "AE_SIMD_AVX", "2" )
+#	else
+#	  error unsupported value in 'AE_SIMD_AVX'
+#	endif
+#  else
+#	pragma detect_mismatch( "AE_SIMD_AVX", "0" )
+#  endif
+
+#  ifdef AE_SIMD_SSE
+#	if AE_SIMD_SSE == 0
+#	  pragma detect_mismatch( "AE_SIMD_SSE", "0" )
+#	elif AE_SIMD_SSE == 42
+#	  pragma detect_mismatch( "AE_SIMD_SSE", "42" )
+#	elif AE_SIMD_SSE == 41
+#	  pragma detect_mismatch( "AE_SIMD_SSE", "41" )
+#	elif AE_SIMD_SSE == 40
+#	  pragma detect_mismatch( "AE_SIMD_SSE", "40" )
+#	elif AE_SIMD_SSE == 31
+#	  pragma detect_mismatch( "AE_SIMD_SSE", "31" )
+#	elif AE_SIMD_SSE == 30
+#	  pragma detect_mismatch( "AE_SIMD_SSE", "30" )
+#	else
+#	  error unsupported value in 'AE_SIMD_SSE'
+#	endif
+#  else
+#	pragma detect_mismatch( "AE_SIMD_SSE", "0" )
+#  endif
+
+#  ifdef AE_SIMD_AES
+#	pragma detect_mismatch( "AE_SIMD_AES", "1" )
+#  else
+#	pragma detect_mismatch( "AE_SIMD_AES", "0" )
+#  endif
 
 #endif // AE_CPP_DETECT_MISMATCH
 

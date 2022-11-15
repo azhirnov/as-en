@@ -130,7 +130,7 @@ namespace AE::Graphics
 			bool	int64Math								: 1;
 			bool	lossyTextureCompression					: 1;
 			bool	SIMD_shiftAndFill						: 1;
-			bool	meshShading								: 1;
+			bool	meshShader								: 1;
 			//bool	MetalFX_spatialUpscaling				: 1;
 			//bool	MetalFX_temporalUpscaling				: 1;
 			bool	fastResourceLoading						: 1;	// TODO ???
@@ -142,7 +142,7 @@ namespace AE::Graphics
 			ubyte	argbufTier;
 			ubyte	readWriteTextureTier;
 
-			Features () { ZeroMem( this, Bytes::SizeOf(*this) ); }
+			Features () { ZeroMem( this, Sizeof(*this) ); }
 
 			ND_ bool  accelerationStructure () const	{ return rayTracingFromCompute or raytracingFromRender; }
 		};
@@ -207,7 +207,7 @@ namespace AE::Graphics
 			uint		maxNumberOfFences;
 			uint		maxVertexCountForVertexAmplification;
 
-			Properties () { ZeroMem( this, Bytes::SizeOf(*this) ); }
+			Properties () { ZeroMem( this, Sizeof(*this) ); }
 		};
 
 		

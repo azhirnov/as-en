@@ -4,8 +4,8 @@
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Vulkan/Commands/VBakedCommands.h"
-# include "graphics/Vulkan/Commands/VRenderTaskScheduler.h"
 # include "graphics/Vulkan/Commands/VBarrierManager.h"
+# include "graphics/Vulkan/VRenderTaskScheduler.h"
 
 namespace AE::Graphics::_hidden_
 {
@@ -366,12 +366,12 @@ namespace AE::Graphics::_hidden_
 			uint			stride;
 		};
 
-		struct DrawMeshTasksNVCmd : BaseCmd
+		struct DrawMeshTasksCmd : BaseCmd
 		{
-			uint			taskCount;
+			packed_uint3	taskCount;
 		};
 
-		struct DrawMeshTasksIndirectNVCmd : BaseCmd
+		struct DrawMeshTasksIndirectCmd : BaseCmd
 		{
 			VkBuffer		indirectBuffer;
 			VkDeviceSize	indirectBufferOffset;
@@ -379,7 +379,7 @@ namespace AE::Graphics::_hidden_
 			uint			stride;
 		};
 		
-		struct DrawMeshTasksIndirectCountNVCmd : BaseCmd
+		struct DrawMeshTasksIndirectCountCmd : BaseCmd
 		{
 			VkBuffer		indirectBuffer;
 			VkDeviceSize	indirectBufferOffset;
@@ -477,9 +477,9 @@ namespace AE::Graphics::_hidden_
 			_visitor_( DrawIndexedIndirectCmd )\
 			_visitor_( DrawIndirectCountCmd )\
 			_visitor_( DrawIndexedIndirectCountCmd )\
-			_visitor_( DrawMeshTasksNVCmd )\
-			_visitor_( DrawMeshTasksIndirectNVCmd )\
-			_visitor_( DrawMeshTasksIndirectCountNVCmd )\
+			_visitor_( DrawMeshTasksCmd )\
+			_visitor_( DrawMeshTasksIndirectCmd )\
+			_visitor_( DrawMeshTasksIndirectCountCmd )\
 			_visitor_( DispatchTileCmd )\
 			/* acceleration structure build commands */\
 			_visitor_( BuildASCmd )\
@@ -517,31 +517,31 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		VSoftwareCmdBuf ()	{}
+		VSoftwareCmdBuf ()										__NE___	{}
 		
-		ND_ VBakedCommands	Bake ();
+		ND_ VBakedCommands	Bake ()								__NE___;
 
 		template <typename CmdType, typename ...DynamicTypes>
-		ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)	{ return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
+		ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)	__TH___	{ return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
 
-		void  DebugMarker (NtStringView text, RGBA8u color);
-		void  PushDebugGroup (NtStringView text, RGBA8u color);
-		void  PopDebugGroup ();
-		void  CommitBarriers (const VkDependencyInfoKHR &);
+		void  DebugMarker (NtStringView text, RGBA8u color)		__TH___;
+		void  PushDebugGroup (NtStringView text, RGBA8u color)	__TH___;
+		void  PopDebugGroup ()									__TH___;
+		void  CommitBarriers (const VkDependencyInfoKHR &)		__TH___;
 		
-		void  BindDescriptorSet (VkPipelineBindPoint bindPoint, VkPipelineLayout layout, uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default);
-		void  BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout);
-		void  PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages);
+		void  BindDescriptorSet (VkPipelineBindPoint bindPoint, VkPipelineLayout layout, uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default)	__TH___;
+		void  BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout)																__TH___;
+		void  PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages)											__TH___;
 		
-		void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch, StringView taskName, RGBA8u color, IGraphicsProfiler::EContextType type);
-		void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch, IGraphicsProfiler::EContextType type);
+		void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch, StringView taskName, RGBA8u color, IGraphicsProfiler::EContextType type)			__TH___;
+		void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch, IGraphicsProfiler::EContextType type)													__TH___;
 
-		void  DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data);
+		void  DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)																					__TH___;
 		
-		ND_ static bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, void* root);
+		ND_ static bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, void* root)																			__NE___;
 
 	private:
-		ND_ bool  _Validate (const void* root) const	{ return SoftwareCmdBufBase::_Validate( root, Commands_t::Count ); }
+		ND_ bool  _Validate (const void* root)					C_NE___	{ return SoftwareCmdBufBase::_Validate( root, Commands_t::Count ); }
 	};
 
 	using VSoftwareCmdBufPtr = Unique< VSoftwareCmdBuf >;
@@ -571,24 +571,24 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		virtual ~_VBaseIndirectContext ();
-
-		ND_ bool	IsValid ()	const	{ return _cmdbuf and _cmdbuf->IsValid(); }
+		virtual ~_VBaseIndirectContext ()														__NE___;
 
 	protected:
-		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf) : _cmdbuf{RVRef(cmdbuf)} {}
+		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf)								__TH___	: _cmdbuf{RVRef(cmdbuf)} {}
 
-		explicit _VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor);
-		_VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor, VSoftwareCmdBufPtr cmdbuf);
+		explicit _VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor)					__TH___;
+		_VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor, VSoftwareCmdBufPtr cmdbuf)__TH___;
 
-		void  _DebugMarker (NtStringView text, RGBA8u color)		{ _cmdbuf->DebugMarker( text, color ); }
-		void  _PushDebugGroup (NtStringView text, RGBA8u color)		{ _cmdbuf->PushDebugGroup( text, color ); }
-		void  _PopDebugGroup ()										{ _cmdbuf->PopDebugGroup(); }
+		ND_ bool	_IsValid ()																	C_NE___	{ return _cmdbuf and _cmdbuf->IsValid(); }
 
-		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)	{ _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
+		void  _DebugMarker (NtStringView text, RGBA8u color)									__TH___	{ _cmdbuf->DebugMarker( text, color ); }
+		void  _PushDebugGroup (NtStringView text, RGBA8u color)									__TH___	{ _cmdbuf->PushDebugGroup( text, color ); }
+		void  _PopDebugGroup ()																	__TH___	{ _cmdbuf->PopDebugGroup(); }
 
-		ND_ VBakedCommands		_EndCommandBuffer ();
-		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ();
+		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)				__TH___	{ _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
+
+		ND_ VBakedCommands		_EndCommandBuffer ()											__TH___;
+		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()										__TH___;
 	};
 
 
@@ -606,16 +606,16 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VBaseIndirectContext (const VRenderTask &task);
-		VBaseIndirectContext (const VRenderTask &task, VSoftwareCmdBufPtr cmdbuf);
-		~VBaseIndirectContext () override;
+		explicit VBaseIndirectContext (const RenderTask &task)						__TH___;
+		VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)	__TH___;
+		~VBaseIndirectContext ()													__NE_OV;
 
 	protected:
-		void  _CommitBarriers ();
+		void  _CommitBarriers ()													__TH___;
 
-		ND_ bool	_NoPendingBarriers ()	const	{ return _mngr.NoPendingBarriers(); }
-		ND_ auto&	_GetExtensions ()		const	{ return _mngr.GetDevice().GetExtensions(); }
-		ND_ auto&	_GetFeatures ()			const	{ return _mngr.GetDevice().GetProperties().features; }
+		ND_ bool	_NoPendingBarriers ()											C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ auto&	_GetExtensions ()												C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
+		ND_ auto&	_GetFeatures ()													C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
 	};
 //-----------------------------------------------------------------------------
 	
@@ -626,9 +626,9 @@ namespace AE::Graphics::_hidden_
 	destructor
 =================================================
 */
-	inline _VBaseIndirectContext::~_VBaseIndirectContext ()
+	inline _VBaseIndirectContext::~_VBaseIndirectContext () __NE___
 	{
-		DBG_CHECK_MSG( not IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
+		DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
 	}
 //-----------------------------------------------------------------------------
 
@@ -639,12 +639,12 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline VBaseIndirectContext::VBaseIndirectContext (const VRenderTask &task) :
+	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task) __TH___ :
 		_VBaseIndirectContext{ task.DbgFullName(), task.DbgColor() },
 		_mngr{ task }
 	{}
 		
-	inline VBaseIndirectContext::VBaseIndirectContext (const VRenderTask &task, VSoftwareCmdBufPtr cmdbuf) :
+	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf) __TH___ :
 		_VBaseIndirectContext{ RVRef(cmdbuf) },
 		_mngr{ task }
 	{}
@@ -654,7 +654,7 @@ namespace AE::Graphics::_hidden_
 	destructor
 =================================================
 */
-	inline VBaseIndirectContext::~VBaseIndirectContext ()
+	inline VBaseIndirectContext::~VBaseIndirectContext () __NE___
 	{
 		ASSERT( _NoPendingBarriers() );
 	}
@@ -664,12 +664,12 @@ namespace AE::Graphics::_hidden_
 	_CommitBarriers
 =================================================
 */
-	inline void  VBaseIndirectContext::_CommitBarriers ()
+	inline void  VBaseIndirectContext::_CommitBarriers () __TH___
 	{
 		auto* bar = _mngr.GetBarriers();
 		if_unlikely( bar != null )
 		{
-			_cmdbuf->CommitBarriers( *bar );
+			_cmdbuf->CommitBarriers( *bar );	// throw
 			_mngr.ClearBarriers();
 		}
 	}
@@ -688,7 +688,7 @@ namespace AE::Graphics
 	'cmdbuf' must be in the recording state
 =================================================
 */
-	forceinline bool  VBakedCommands::Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) const
+	forceinline bool  VBakedCommands::Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) C_NE___
 	{
 		return _hidden_::VSoftwareCmdBuf::Execute( fn, cmdbuf, _root );
 	}

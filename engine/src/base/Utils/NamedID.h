@@ -31,25 +31,31 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr NamedID () : _hash{_emptyHash} {}
-		explicit constexpr NamedID (HashVal32 hash) : _hash{hash} {}
-		explicit constexpr NamedID (StringView name)  : _hash{CT_Hash( name.data(), name.length(), Seed )} {}
-		explicit constexpr NamedID (const char *name) : _hash{CT_Hash( name, UMax, Seed )} {}
+		constexpr NamedID ()								__NE___ : _hash{_emptyHash}										{}
+		explicit constexpr NamedID (HashVal32 hash)			__NE___ : _hash{hash}											{}
+		explicit constexpr NamedID (StringView name)		__NE___ : _hash{CT_Hash( name.data(), name.length(), Seed )}	{}
+		explicit constexpr NamedID (const char *name)		__NE___ : _hash{CT_Hash( name, UMax, Seed )}					{}
+		
+		constexpr NamedID (Self &&)							__NE___	= default;
+		constexpr NamedID (const Self &)					__NE___	= default;
 
-		ND_ constexpr bool operator == (const Self &rhs) const		{ return _hash == rhs._hash; }
-		ND_ constexpr bool operator != (const Self &rhs) const		{ return not (*this == rhs); }
-		ND_ constexpr bool operator >  (const Self &rhs) const		{ return _hash > rhs._hash; }
-		ND_ constexpr bool operator <  (const Self &rhs) const		{ return rhs > *this; }
-		ND_ constexpr bool operator >= (const Self &rhs) const		{ return not (*this <  rhs); }
-		ND_ constexpr bool operator <= (const Self &rhs) const		{ return not (*this >  rhs); }
+		constexpr Self&  operator = (Self &&)				__NE___ = default;
+		constexpr Self&  operator = (const Self &)			__NE___ = default;
 
-		ND_ constexpr HashVal		GetHash ()			const		{ return HashVal{uint{_hash}}; }
-		ND_ constexpr HashVal32		GetHash32 ()		const		{ return _hash; }
-		ND_ constexpr bool			IsDefined ()		const		{ return _hash != _emptyHash; }
-		ND_ constexpr static bool	IsOptimized ()					{ return true; }
-		ND_ constexpr static uint	GetSeed ()						{ return Seed; }
-		ND_ constexpr static uint	GetUID ()						{ return UID; }
-		ND_ constexpr static usize	MaxStringLength ()				{ return Size; }
+		ND_ constexpr bool  operator == (const Self &rhs)	C_NE___	{ return _hash == rhs._hash; }
+		ND_ constexpr bool  operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
+		ND_ constexpr bool  operator >  (const Self &rhs)	C_NE___	{ return _hash > rhs._hash; }
+		ND_ constexpr bool  operator <  (const Self &rhs)	C_NE___	{ return rhs > *this; }
+		ND_ constexpr bool  operator >= (const Self &rhs)	C_NE___	{ return not (*this <  rhs); }
+		ND_ constexpr bool  operator <= (const Self &rhs)	C_NE___	{ return not (*this >  rhs); }
+
+		ND_ constexpr HashVal		GetHash ()				C_NE___	{ return HashVal{uint{_hash}}; }
+		ND_ constexpr HashVal32		GetHash32 ()			C_NE___	{ return _hash; }
+		ND_ constexpr bool			IsDefined ()			C_NE___	{ return _hash != _emptyHash; }
+		ND_ constexpr static bool	IsOptimized ()			__NE___	{ return true; }
+		ND_ constexpr static uint	GetSeed ()				__NE___	{ return Seed; }
+		ND_ constexpr static uint	GetUID ()				__NE___	{ return UID; }
+		ND_ constexpr static usize	MaxStringLength ()		__NE___	{ return Size; }
 	};
 
 
@@ -86,43 +92,49 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr NamedID () : _hash{_emptyHash} {}
-		explicit constexpr NamedID (HashVal32 hash) :  _hash{hash} {}
-		explicit constexpr NamedID (StringView name)  : _hash{CT_Hash( name.data(), name.length(), Seed )}, _name{name} {}
-		explicit constexpr NamedID (const char *name) : _hash{CT_Hash( name, UMax, Seed )}, _name{name} {}
+		constexpr NamedID ()									__NE___ : _hash{_emptyHash}														{}
+		explicit constexpr NamedID (HashVal32 hash)				__NE___ :  _hash{hash}															{}
+		explicit constexpr NamedID (StringView name)			__NE___ : _hash{ CT_Hash( name.data(), name.length(), Seed )}, _name{name}		{}
+		explicit constexpr NamedID (const char *name)			__NE___ : _hash{ CT_Hash( name, UMax, Seed )}, _name{name}						{}
 
 		template <usize StrSize>
-		explicit constexpr NamedID (const FixedString<StrSize> &name) : _hash{CT_Hash( name.data(), name.length(), Seed )}, _name{name} {}
+		explicit constexpr NamedID (const FixedString<StrSize> &name) __NE___ : _hash{CT_Hash( name.data(), name.length(), Seed )}, _name{name}	{}
 		
-		explicit constexpr NamedID (const Optimized_t &other) : _hash{other.GetHash32()} {}
+		explicit constexpr NamedID (const Optimized_t &other)	__NE___ : _hash{other.GetHash32()}												{}
 
-		ND_ constexpr bool operator == (const Self &rhs) const		{ return _hash == rhs._hash; }
-		ND_ constexpr bool operator != (const Self &rhs) const		{ return not (*this == rhs); }
-		ND_ constexpr bool operator >  (const Self &rhs) const		{ return _hash > rhs._hash; }
-		ND_ constexpr bool operator <  (const Self &rhs) const		{ return rhs > *this; }
-		ND_ constexpr bool operator >= (const Self &rhs) const		{ return not (*this <  rhs); }
-		ND_ constexpr bool operator <= (const Self &rhs) const		{ return not (*this >  rhs); }
+		constexpr NamedID (Self &&)								__NE___	= default;
+		constexpr NamedID (const Self &)						__NE___	= default;
 
-		ND_ constexpr operator Optimized_t ()			const		{ return Optimized_t{ GetHash32() }; }
+		constexpr Self&  operator = (Self &&)					__NE___ = default;
+		constexpr Self&  operator = (const Self &)				__NE___ = default;
 
-		ND_ constexpr StringView	GetName ()			const		{ return _name; }
-		ND_ constexpr HashVal		GetHash ()			const		{ return HashVal{uint{_hash}}; }
-		ND_ constexpr HashVal32		GetHash32 ()		const		{ return _hash; }
-		ND_ constexpr bool			IsDefined ()		const		{ return _hash != _emptyHash; }
-		ND_ constexpr static bool	IsOptimized ()					{ return false; }
-		ND_ constexpr static uint	GetSeed ()						{ return Seed; }
-		ND_ constexpr static uint	GetUID ()						{ return UID; }
-		ND_ constexpr static usize	MaxStringLength ()				{ return Size; }
+		ND_ constexpr bool  operator == (const Self &rhs)		C_NE___	{ return _hash == rhs._hash; }
+		ND_ constexpr bool  operator != (const Self &rhs)		C_NE___	{ return not (*this == rhs); }
+		ND_ constexpr bool  operator >  (const Self &rhs)		C_NE___	{ return _hash > rhs._hash; }
+		ND_ constexpr bool  operator <  (const Self &rhs)		C_NE___	{ return rhs > *this; }
+		ND_ constexpr bool  operator >= (const Self &rhs)		C_NE___	{ return not (*this <  rhs); }
+		ND_ constexpr bool  operator <= (const Self &rhs)		C_NE___	{ return not (*this >  rhs); }
+
+		ND_ constexpr operator Optimized_t ()					C_NE___	{ return Optimized_t{ GetHash32() }; }
+
+		ND_ constexpr StringView	GetName ()					C_NE___	{ return _name; }
+		ND_ constexpr HashVal		GetHash ()					C_NE___	{ return HashVal{uint{_hash}}; }
+		ND_ constexpr HashVal32		GetHash32 ()				C_NE___	{ return _hash; }
+		ND_ constexpr bool			IsDefined ()				C_NE___	{ return _hash != _emptyHash; }
+		ND_ constexpr static bool	IsOptimized ()				__NE___	{ return false; }
+		ND_ constexpr static uint	GetSeed ()					__NE___	{ return Seed; }
+		ND_ constexpr static uint	GetUID ()					__NE___	{ return UID; }
+		ND_ constexpr static usize	MaxStringLength ()			__NE___	{ return Size; }
 	};
 
 	
 	template <usize Size, uint UID, uint Seed>
-	ND_ inline bool  operator == (const NamedID< Size, UID, false, Seed > &lhs, const NamedID< Size, UID, true, Seed > &rhs) {
+	ND_ inline bool  operator == (const NamedID< Size, UID, false, Seed > &lhs, const NamedID< Size, UID, true, Seed > &rhs) __NE___ {
 		return lhs.GetHash32() == rhs.GetHash32();
 	}
 	
 	template <usize Size, uint UID, uint Seed>
-	ND_ inline bool  operator == (const NamedID< Size, UID, true, Seed > &lhs, const NamedID< Size, UID, false, Seed > &rhs) {
+	ND_ inline bool  operator == (const NamedID< Size, UID, true, Seed > &lhs, const NamedID< Size, UID, false, Seed > &rhs) __NE___ {
 		return lhs.GetHash32() == rhs.GetHash32();
 	}
 
@@ -142,7 +154,7 @@ namespace std
 	template <size_t Size, uint32_t UID, bool Optimize, uint32_t Seed>
 	struct hash< AE::Base::NamedID<Size, UID, Optimize, Seed> >
 	{
-		ND_ size_t  operator () (const AE::Base::NamedID<Size, UID, Optimize, Seed> &value) const {
+		ND_ size_t  operator () (const AE::Base::NamedID<Size, UID, Optimize, Seed> &value) C_NE___ {
 			return size_t(value.GetHash());
 		}
 	};

@@ -2,12 +2,13 @@
 
 #pragma once
 
-#include "base/Math/BitMath.h"
-#include "base/Utils/FileSystem.h"
-
 #ifdef AE_PLATFORM_WINDOWS
+# include "base/StdInclude.h"
 # include <thread>
 # include <mutex>
+
+# include "base/Math/BitMath.h"
+# include "base/Utils/FileSystem.h"
 
 namespace AE::Base
 {
@@ -51,7 +52,7 @@ namespace AE::Base
 		bool  ExecuteAsync (String &commandLine, const Path &currentDir, EFlags flags = EFlags::NoWindow);
 		bool  ExecuteAsync (WString &commandLine, const Path &currentDir, EFlags flags = EFlags::NoWindow);
 		
-		ND_ bool  IsActive () const;
+		ND_ bool  IsActive () C_NE___;
 
 		bool  Terminate (milliseconds timeout = _DefTimeout);
 		

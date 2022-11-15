@@ -28,14 +28,14 @@ namespace AE::Base
 			Self const&		_ref;
 			usize			_index = 0;
 
-			const_iterator (const Self &ref, usize idx) : _ref{ref}, _index{idx} {}
+			const_iterator (const Self &ref, usize idx)				__NE___ : _ref{ref}, _index{idx} {}
 
 		public:
-			const_iterator&	operator ++ ()									{ ++_index;  return *this; }
+			const_iterator&	operator ++ ()							__NE___	{ ++_index;  return *this; }
 
-			ND_ T const&	operator * ()							const	{ return _ref[_index]; }
-			ND_ bool		operator == (const const_iterator &rhs)	const	{ return &_ref == &rhs._ref and _index == rhs._index; }
-			ND_ bool		operator != (const const_iterator &rhs)	const	{ return not (*this == rhs); }
+			ND_ T const&	operator * ()							C_NE___	{ return _ref[_index]; }
+			ND_ bool		operator == (const const_iterator &rhs)	C_NE___	{ return &_ref == &rhs._ref and _index == rhs._index; }
+			ND_ bool		operator != (const const_iterator &rhs)	C_NE___	{ return not (*this == rhs); }
 		};
 		
 
@@ -47,15 +47,15 @@ namespace AE::Base
 			Self const		_ref;
 			usize			_index = 0;
 
-			large_iterator (const Self &ref, usize idx) : _ref{ref}, _index{idx} {}
+			large_iterator (const Self &ref, usize idx)				__NE___ : _ref{ref}, _index{idx} {}
 
 		public:
-			large_iterator&	operator ++ ()									{ ++_index;  return *this; }
+			large_iterator&	operator ++ ()							__NE___	{ ++_index;  return *this; }
 
-			ND_ T const&	operator * ()							const	{ return _ref[_index]; }
-			ND_ bool		operator != (const large_iterator &rhs)	const	{ return not (*this == rhs); }
+			ND_ T const&	operator * ()							C_NE___	{ return _ref[_index]; }
+			ND_ bool		operator != (const large_iterator &rhs)	C_NE___	{ return not (*this == rhs); }
 
-			ND_ bool		operator == (const large_iterator &rhs)	const
+			ND_ bool		operator == (const large_iterator &rhs)	C_NE___
 			{
 				return	(_ref._array  == rhs._ref._array)  & (_ref._count == rhs._ref._count) &
 						(_ref._stride == rhs._ref._stride) & (_index == rhs._index);
@@ -90,11 +90,11 @@ namespace AE::Base
 			ElementsPtr_t const		elements;
 			
 		// methods
-			explicit _ViewerWithPaddingUnaligned (const void *ptr) : elements{ BitCast<ElementsPtr_t>(ptr) } {
+			explicit _ViewerWithPaddingUnaligned (const void *ptr) __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {
 				STATIC_ASSERT( sizeof(Element) == sizeof(St) );
 			}
 
-			Unique<_IViewer>  Clone () override { return Unique<_IViewer>{new _ViewerWithPaddingUnaligned< St, Padding >{ elements }}; }
+			Unique<_IViewer>  Clone () _____OV { return Unique<_IViewer>{new _ViewerWithPaddingUnaligned< St, Padding >{ elements }}; }
 		};
 		
 
@@ -112,11 +112,11 @@ namespace AE::Base
 			ElementsPtr_t const		elements;
 			
 		// methods
-			explicit _ViewerWithPadding (const void *ptr) : elements{ BitCast<ElementsPtr_t>(ptr) } {
+			explicit _ViewerWithPadding (const void *ptr) __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {
 				STATIC_ASSERT( sizeof(Element) == sizeof(St) );
 			}
 
-			Unique<_IViewer>  Clone () override { return Unique<_IViewer>{new _ViewerWithPadding< St, Padding >{ elements }}; }
+			Unique<_IViewer>  Clone () _____OV { return Unique<_IViewer>{new _ViewerWithPadding< St, Padding >{ elements }}; }
 		};
 
 
@@ -130,9 +130,9 @@ namespace AE::Base
 			ElementsPtr_t const		elements;
 			
 		// methods
-			explicit _ViewerImpl (const void *ptr) : elements{ BitCast<ElementsPtr_t>(ptr) } {}
+			explicit _ViewerImpl (const void *ptr) __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {}
 
-			Unique<_IViewer>  Clone () override { return Unique<_IViewer>{new _ViewerImpl< St >{ elements }}; }
+			Unique<_IViewer>  Clone () _____OV { return Unique<_IViewer>{new _ViewerImpl< St >{ elements }}; }
 		};
 
 
@@ -152,46 +152,46 @@ namespace AE::Base
 		StructView ()
 		{}
 
-		StructView (ArrayView<T> arr) :
+		StructView (ArrayView<T> arr) __NE___ :
 			_array{ arr.data() }, _count{ CheckCast<uint>( arr.size() )}, _stride{ sizeof(T) }
 		{
 			DEBUG_ONLY( _dbgView = _CreateView<T, sizeof(T)>( _array ));
 		}
 		
-		StructView (const Self &other) :
+		StructView (const Self &other) __NE___ :
 			_array{other._array}, _count{other._count}, _stride{other._stride}
 		{
 			DEBUG_ONLY( if ( other._dbgView ) _dbgView = other._dbgView->Clone() );
 		}
 
-		StructView (Self &&other) :
+		StructView (Self &&other) __NE___ :
 			_array{other._array}, _count{other._count}, _stride{other._stride}
 		{
 			DEBUG_ONLY( std::swap( _dbgView, other._dbgView ));
 		}
 
 		template <typename Class>
-		StructView (ArrayView<Class> arr, T (Class::*member)) :
+		StructView (ArrayView<Class> arr, T (Class::*member)) __NE___ :
 			_array{ arr.data() + OffsetOf(member) }, _count{ CheckCast<uint>( arr.size() )}, _stride{ sizeof(Class) }
 		{
 			DEBUG_ONLY( _dbgView = _CreateView<Class, sizeof(Class)>( _array ));
 		}
 		
-		StructView (const T* ptr, usize count) :
+		StructView (const T* ptr, usize count) __NE___ :
 			_array{ ptr }, _count{ CheckCast<uint>( count )}, _stride{ sizeof(T) }
 		{
 			DEBUG_ONLY( _dbgView = _CreateView<T, sizeof(T)>( _array ));
 		}
 
-		StructView (const void *ptr, usize count, uint stride) :
+		StructView (const void *ptr, usize count, uint stride) __NE___ :
 			_array{ptr}, _count{ CheckCast<uint>( count )}, _stride{stride}
 		{}
 
-		~StructView ()
+		~StructView () __NE___
 		{}
 
 
-		Self&  operator = (const Self &rhs)
+		Self&  operator = (const Self &rhs) __NE___
 		{
 			_array	= rhs._array;
 			_count	= rhs._count;
@@ -200,7 +200,7 @@ namespace AE::Base
 			return *this;
 		}
 		
-		Self&  operator = (Self && rhs)
+		Self&  operator = (Self && rhs) __NE___
 		{
 			_array	= rhs._array;
 			_count	= rhs._count;
@@ -210,24 +210,24 @@ namespace AE::Base
 		}
 
 
-		ND_ usize		size ()					const	{ return _count; }
-		ND_ bool		empty ()				const	{ return _count == 0; }
-		ND_ T const &	operator [] (usize i)	const	{ ASSERT(i < size());  return *static_cast<T const *>(_array + Bytes(i * _stride)); }
+		ND_ usize		size ()					C_NE___	{ return _count; }
+		ND_ bool		empty ()				C_NE___	{ return _count == 0; }
+		ND_ T const &	operator [] (usize i)	C_NE___	{ ASSERT( i < size() );  return *static_cast<T const *>(_array + Bytes(i * _stride)); }
 
-		ND_ T const&	front ()				const	{ return operator[] (0); }
-		ND_ T const&	back ()					const	{ return operator[] (_count-1); }
+		ND_ T const&	front ()				C_NE___	{ return operator[] (0); }
+		ND_ T const&	back ()					C_NE___	{ return operator[] (_count-1); }
 
-		ND_ const_iterator	begin ()			const&	{ return const_iterator{ *this, 0 }; }
-		ND_ const_iterator	end ()				const&	{ return const_iterator{ *this, size() }; }
+		ND_ const_iterator	begin ()			CrNE___	{ return const_iterator{ *this, 0 }; }
+		ND_ const_iterator	end ()				CrNE___	{ return const_iterator{ *this, size() }; }
 		
-		ND_ large_iterator	begin ()			&&		{ return large_iterator{ *this, 0 }; }
-		ND_ large_iterator	end ()				&&		{ return large_iterator{ *this, size() }; }
+		ND_ large_iterator	begin ()			rvNE___	{ return large_iterator{ *this, 0 }; }
+		ND_ large_iterator	end ()				rvNE___	{ return large_iterator{ *this, size() }; }
 
-		ND_ const_iterator	begin ()			&		{ return const_iterator{ *this, 0 }; }
-		ND_ const_iterator	end ()				&		{ return const_iterator{ *this, size() }; }
+		ND_ const_iterator	begin ()			r_NE___	{ return const_iterator{ *this, 0 }; }
+		ND_ const_iterator	end ()				r_NE___	{ return const_iterator{ *this, size() }; }
 
 
-		ND_ bool  operator == (Self rhs) const
+		ND_ bool  operator == (Self rhs)		C_NE___
 		{
 			if ( (_array == rhs._array) & (_count == rhs._count) & (_stride == rhs._stride) )
 				return true;
@@ -244,14 +244,14 @@ namespace AE::Base
 		}
 
 
-		ND_ Self  section (usize first, usize count) const
+		ND_ Self  section (usize first, usize count) C_NE___
 		{
 			return first < size() ?
 					Self{ _array + Bytes(first * _stride), Min(size() - first, count) } :
 					Self{};
 		}
 
-		ND_ explicit operator Array<T> () const
+		ND_ explicit operator Array<T> () C_NE___
 		{
 			Array<T>	result;
 			result.resize( size() );
@@ -291,7 +291,7 @@ namespace AE::Base
 	{
 		STATIC_ASSERT( std::is_convertible_v< SrcType, DstType >);
 
-		ND_ DstType  operator () (SrcType src) const
+		ND_ DstType  operator () (SrcType src) C_NE___
 		{
 			return DstType{src};
 		}
@@ -300,7 +300,7 @@ namespace AE::Base
 	template <typename SrcType, typename DstType>
 	struct StructViewTransform_BitCastConverter
 	{
-		ND_ DstType  operator () (const SrcType &src) const
+		ND_ DstType  operator () (const SrcType &src) C_NE___
 		{
 			return BitCast<DstType>( src );
 		}
@@ -328,13 +328,13 @@ namespace AE::Base
 			Self const&		_ref;
 			usize			_index = 0;
 
-			const_iterator (const Self &ref, usize idx) : _ref{ref}, _index{idx} {}
+			const_iterator (const Self &ref, usize idx)					__NE___ : _ref{ref}, _index{idx} {}
 
 		public:
-			const_iterator&		operator ++ ()									{ ++_index;  return *this; }
-			ND_ decltype(auto)	operator * ()							const	{ return _ref[_index]; }
-			ND_ bool			operator == (const const_iterator &rhs)	const	{ return &_ref == &rhs._ref and _index == rhs._index; }
-			ND_ bool			operator != (const const_iterator &rhs)	const	{ return not (*this == rhs); }
+			const_iterator&		operator ++ ()							__NE___	{ ++_index;  return *this; }
+			ND_ decltype(auto)	operator * ()							C_NE___	{ return _ref[_index]; }
+			ND_ bool			operator == (const const_iterator &rhs)	C_NE___	{ return &_ref == &rhs._ref and _index == rhs._index; }
+			ND_ bool			operator != (const const_iterator &rhs)	C_NE___	{ return not (*this == rhs); }
 		};
 		
 
@@ -346,13 +346,13 @@ namespace AE::Base
 			Self const		_ref;
 			usize			_index = 0;
 
-			large_iterator (const Self &ref, usize idx) : _ref{ref}, _index{idx} {}
+			large_iterator (const Self &ref, usize idx)					__NE___ : _ref{ref}, _index{idx} {}
 
 		public:
-			large_iterator&		operator ++ ()									{ ++_index;  return *this; }
-			ND_ decltype(auto)	operator * ()							const	{ return _ref[_index]; }
-			ND_ bool			operator != (const large_iterator &rhs)	const	{ return not (*this == rhs); }
-			ND_ bool			operator == (const large_iterator &rhs)	const	{ return (_ref._view  == rhs._ref._view) & (_index == rhs._index); }
+			large_iterator&		operator ++ ()							__NE___	{ ++_index;  return *this; }
+			ND_ decltype(auto)	operator * ()							C_NE___	{ return _ref[_index]; }
+			ND_ bool			operator != (const large_iterator &rhs)	C_NE___	{ return not (*this == rhs); }
+			ND_ bool			operator == (const large_iterator &rhs)	C_NE___	{ return (_ref._view  == rhs._ref._view) & (_index == rhs._index); }
 		};
 
 
@@ -363,40 +363,40 @@ namespace AE::Base
 
 	// methods
 	public:
-		StructViewTransform () {}
-		StructViewTransform (const Self &) = default;
-		StructViewTransform (Self &&) = default;
+		StructViewTransform ()						__NE___ {}
+		StructViewTransform (const Self &)			__NE___ = default;
+		StructViewTransform (Self &&)				__NE___ = default;
 
-		explicit StructViewTransform (View_t view) : _view{RVRef(view)} {}
+		explicit StructViewTransform (View_t view)	__NE___ : _view{RVRef(view)} {}
 
-		Self&  operator = (const Self &) = default;
-		Self&  operator = (Self &&) = default;
+		Self&  operator = (const Self &)			__NE___ = default;
+		Self&  operator = (Self &&)					__NE___ = default;
 		
-		Self&  operator = (View_t rhs)						{ _view = RVRef(rhs);  return *this; }
+		Self&  operator = (View_t rhs)				__NE___	{ _view = RVRef(rhs);  return *this; }
 		
-		ND_ usize			size ()					const	{ return _view.size(); }
-		ND_ bool			empty ()				const	{ return _view.empty(); }
-		ND_ decltype(auto)	operator [] (usize i)	const	{ return Converter_t{}( _view[i] ); }
+		ND_ usize			size ()					C_NE___	{ return _view.size(); }
+		ND_ bool			empty ()				C_NE___	{ return _view.empty(); }
+		ND_ decltype(auto)	operator [] (usize i)	C_NE___	{ return Converter_t{}( _view[i] ); }
 		
-		ND_ decltype(auto)	front ()				const	{ return operator[] (0); }
-		ND_ decltype(auto)	back ()					const	{ return operator[] (size()-1); }
+		ND_ decltype(auto)	front ()				C_NE___	{ return operator[] (0); }
+		ND_ decltype(auto)	back ()					C_NE___	{ return operator[] (size()-1); }
 
-		ND_ const_iterator	begin ()				const&	{ return const_iterator{ *this, 0 }; }
-		ND_ const_iterator	end ()					const&	{ return const_iterator{ *this, size() }; }
+		ND_ const_iterator	begin ()				CrNE___	{ return const_iterator{ *this, 0 }; }
+		ND_ const_iterator	end ()					CrNE___	{ return const_iterator{ *this, size() }; }
 		
-		ND_ large_iterator	begin ()				&&		{ return large_iterator{ *this, 0 }; }
-		ND_ large_iterator	end ()					&&		{ return large_iterator{ *this, size() }; }
+		ND_ large_iterator	begin ()				rvNE___	{ return large_iterator{ *this, 0 }; }
+		ND_ large_iterator	end ()					rvNE___	{ return large_iterator{ *this, size() }; }
 
-		ND_ const_iterator	begin ()				&		{ return const_iterator{ *this, 0 }; }
-		ND_ const_iterator	end ()					&		{ return const_iterator{ *this, size() }; }
+		ND_ const_iterator	begin ()				r_NE___	{ return const_iterator{ *this, 0 }; }
+		ND_ const_iterator	end ()					r_NE___	{ return const_iterator{ *this, size() }; }
 
 
-		ND_ Self  section (usize first, usize count) const
+		ND_ Self  section (usize first, usize count) C_NE___
 		{
 			return Self{ _view.section( first, count )};
 		}
 
-		ND_ explicit operator Array<DstType> () const
+		ND_ explicit operator Array<DstType> ()		C_NE___
 		{
 			Array<DstType>	result;
 			result.resize( size() );

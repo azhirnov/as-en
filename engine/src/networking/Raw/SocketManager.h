@@ -22,14 +22,14 @@ namespace AE::Networking
 
 	// methods
 	public:
-		ND_ static SocketManager&  Instance ();
+		ND_ static SocketManager&  Instance ()	__NE___;
 		
-		ND_ bool  Initialize ();
-			bool  Deinitialize ();
+		ND_ bool  Initialize ()		__NE___;
+			bool  Deinitialize ()	__NE___;
 
 	private:
-		SocketManager ();
-		~SocketManager ();
+		SocketManager ()			__NE___;
+		~SocketManager ()			__NE___;
 	};
 
 

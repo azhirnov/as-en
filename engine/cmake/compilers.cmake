@@ -8,6 +8,12 @@
 
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
+# options:
+#	AE_ENABLE_COMPILER_WARNINGS		BOOL :	TRUE - for engine,			FALSE - for external projects
+#	AE_NO_EXCEPTIONS				BOOL :	TRUE - only std exceptions,	FALSE - AE exceptions
+#	AE_USE_SANITIZER				BOOL
+
+
 # detect target platform
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	set( TARGET_PLATFORM "PLATFORM_LINUX" CACHE INTERNAL "" FORCE )
@@ -41,33 +47,41 @@ else ()
 	message( FATAL_ERROR "unsupported platform bits!" )
 endif ()
 
+
 # detect cpu architecture
 if (MSVC)
-	if (${CMAKE_GENERATOR_PLATFORM} STREQUAL "ARM64")
-		set( TARGET_CPU_ARCH "ARM64" )
-	elseif (${CMAKE_GENERATOR_PLATFORM} STREQUAL "ARM")
-		set( TARGET_CPU_ARCH "ARM32" )
-	elseif (${CMAKE_GENERATOR_PLATFORM} STREQUAL "Win32")
-		set( TARGET_CPU_ARCH "X86" )
-	elseif (${CMAKE_GENERATOR_PLATFORM} STREQUAL "x64")
-		set( TARGET_CPU_ARCH "X64" )
+	string( TOUPPER ${CMAKE_GENERATOR_PLATFORM} PLATFORM_NAME )
+	if ( (DEFINED PLATFORM_NAME) AND (NOT (PLATFORM_NAME STREQUAL "")) )
+		if (${PLATFORM_NAME} STREQUAL "ARM64")
+			set( TARGET_CPU_ARCH "ARM64" )
+		elseif (${PLATFORM_NAME} STREQUAL "ARM")
+			set( TARGET_CPU_ARCH "ARM32" )
+		elseif (${PLATFORM_NAME} STREQUAL "WIN32")
+			set( TARGET_CPU_ARCH "X86" )
+		elseif (${PLATFORM_NAME} STREQUAL "X64")
+			set( TARGET_CPU_ARCH "X64" )
+		else()
+			message( FATAL_ERROR "unknown platform '${CMAKE_GENERATOR_PLATFORM}'" )
+		endif()
 	else()
-		message( FATAL_ERROR "unknown platform '${CMAKE_GENERATOR_PLATFORM}'" )
+		set( TARGET_CPU_ARCH "X64" CACHE INTERNAL "" FORCE )
 	endif()
 else()
-	if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "AMD64")
+	string( TOUPPER ${CMAKE_SYSTEM_PROCESSOR} PLATFORM_NAME )
+
+	if (${PLATFORM_NAME} STREQUAL "AMD64")
 		set( TARGET_CPU_ARCH "X64" )
-	elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+	elseif (${PLATFORM_NAME} STREQUAL "X86_64")
 		set( TARGET_CPU_ARCH "X64" )
-	elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86")
+	elseif (${PLATFORM_NAME} STREQUAL "X86")
 		set( TARGET_CPU_ARCH "X86" )
-	elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "armv7-a")
+	elseif (${PLATFORM_NAME} STREQUAL "ARMV7-A")
 		set( TARGET_CPU_ARCH "ARM32" )
-	elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+	elseif (${PLATFORM_NAME} STREQUAL "AARCH64")
 		set( TARGET_CPU_ARCH "ARM64" )
-	elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
+	elseif (${PLATFORM_NAME} STREQUAL "ARM64")
 		set( TARGET_CPU_ARCH "ARM64" )
-	elseif (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "i686")
+	elseif (${PLATFORM_NAME} STREQUAL "I686")
 		set( TARGET_CPU_ARCH "i686" )	# P6 microarchitecture
 	else()
 		message( FATAL_ERROR "unknown processor '${CMAKE_SYSTEM_PROCESSOR}'" )
@@ -75,6 +89,8 @@ else()
 endif()
 message( STATUS "TARGET_CPU_ARCH: ${TARGET_CPU_ARCH}" )
 
+
+# default compiler flags
 set( "AE_CPU_ARCH_${TARGET_CPU_ARCH}" ON CACHE INTERNAL "" FORCE )
 
 if ( MSVC )
@@ -91,6 +107,82 @@ set( PROJECTS_SHARED_DEFINES_PROFILE "AE_PROFILE" CACHE INTERNAL "" FORCE )
 set( PROJECTS_SHARED_DEFINES_DEVELOP "AE_DEVELOP" CACHE INTERNAL "" FORCE )
 set( PROJECTS_SHARED_DEFINES_DEBUG   "AE_DEBUG"   CACHE INTERNAL "" FORCE )
 
+
+# setup SIMD
+if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") )
+	set( AE_SIMD_AVX "0" CACHE STRING "AVX version: 0, 1, 2, 3(AVX512)" )
+	set( AE_SIMD_SSE "0" CACHE STRING "SSE version: 0, 30, 41, 42" )
+	set( AE_SIMD_AES "0" CACHE STRING "AES version: 0, 1" )
+	
+	if (${AE_SIMD_AVX} GREATER 0)
+		set( AE_SIMD_SSE "42" CACHE INTERNAL "" FORCE )
+		set( AE_SIMD_AES "1" CACHE INTERNAL "" FORCE )
+	endif()
+	message( STATUS "AE_SIMD_AVX: ${AE_SIMD_AVX}" )
+	message( STATUS "AE_SIMD_SSE: ${AE_SIMD_SSE}" )
+	message( STATUS "AE_SIMD_AES: ${AE_SIMD_AES}" )
+
+	if ( MSVC )
+		set( COMPILER_FLAGS ${COMPILER_FLAGS} "/DAE_SIMD_AVX=${AE_SIMD_AVX}" "/DAE_SIMD_SSE=${AE_SIMD_SSE}" "/DAE_SIMD_AES=${AE_SIMD_AES}" )
+		
+		if (${AE_SIMD_AVX} EQUAL 3)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} "/arch:AVX512" )
+		elseif (${AE_SIMD_AVX} EQUAL 2)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} "/arch:AVX2" )
+		elseif (${AE_SIMD_AVX} EQUAL 1)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} "/arch:AVX" )
+			set( AE_SIMD_SSE "42" )
+		elseif (${AE_SIMD_AVX} EQUAL 0)
+			# SSE
+			if (${AE_SIMD_SSE} EQUAL 42)
+			elseif (${AE_SIMD_SSE} GREATER_EQUAL 20)
+				set( COMPILER_FLAGS ${COMPILER_FLAGS} "/arch:SSE2" )
+			elseif (${AE_SIMD_SSE} EQUAL 0)
+			else()
+				message( FATAL_ERROR "unsupported AE_SIMD_SSE flags: ${AE_SIMD_SSE}" )
+			endif()
+		else()
+			message( FATAL_ERROR "unsupported AE_SIMD_AVX flags: ${AE_SIMD_AVX}" )
+		endif()
+
+	else()
+		set( COMPILER_FLAGS ${COMPILER_FLAGS} "-DAE_SIMD_AVX=${AE_SIMD_AVX}" "-DAE_SIMD_SSE=${AE_SIMD_SSE}" "-DAE_SIMD_AES=${AE_SIMD_AES}" )
+		
+		if (${AE_SIMD_AVX} EQUAL 2)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} "-mavx2" )
+		elseif (${AE_SIMD_AVX} EQUAL 1)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} "-mavx -mno-avx2" )
+		elseif (${AE_SIMD_AVX} EQUAL 0)
+			set( COMPILER_FLAGS ${COMPILER_FLAGS} "-mno-avx" )
+			# SSE
+			if (${AE_SIMD_SSE} EQUAL 42)
+				set( COMPILER_FLAGS ${COMPILER_FLAGS} "-msse4.2" )
+			elseif (${AE_SIMD_SSE} EQUAL 41)
+				set( COMPILER_FLAGS ${COMPILER_FLAGS} "-msse4.1" )
+			elseif (${AE_SIMD_SSE} EQUAL 31)
+				set( COMPILER_FLAGS ${COMPILER_FLAGS} "-mssse3" )
+			elseif (${AE_SIMD_SSE} EQUAL 30)
+				set( COMPILER_FLAGS ${COMPILER_FLAGS} "-msse3" )
+			elseif (${AE_SIMD_SSE} EQUAL 20)
+				set( COMPILER_FLAGS ${COMPILER_FLAGS} "-msse2" )
+			elseif (${AE_SIMD_SSE} EQUAL 0)
+				set( COMPILER_FLAGS ${COMPILER_FLAGS} "-mno-sse" )
+			else()
+				message( FATAL_ERROR "unsupported AE_SIMD_SSE flags: ${AE_SIMD_SSE}" )
+			endif()
+		else()
+			message( FATAL_ERROR "unsupported AE_SIMD_AVX flags: ${AE_SIMD_AVX}" )
+		endif()
+	endif()
+
+elseif ( (${TARGET_CPU_ARCH} STREQUAL "ARM64") OR (${TARGET_CPU_ARCH} STREQUAL "ARM32") )
+	# AE_SIMD_NEON defined in source
+elseif (${TARGET_CPU_ARCH} STREQUAL "i686")
+	# no SIMD
+else()
+	message( FATAL_ERROR "unknown platform '${TARGET_CPU_ARCH}' for SIMD flags" )
+endif()
+
 #==================================================================================================
 # Visual Studio Compilation settings
 #==================================================================================================
@@ -104,23 +196,25 @@ if ( COMPILER_MSVC )
 		message( FATAL_ERROR "multiple compiler types detected, previous: '${DETECTED_COMPILER}'" )
 	endif()
 	set( DETECTED_COMPILER "COMPILER_MSVC" )
-	set( CURRENT_C_FLAGS ${CMAKE_C_FLAGS} )
-	set( CURRENT_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
-	set( CURRENT_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} )
-	set( CURRENT_STATIC_LINKER_FLAGS ${CMAKE_STATIC_LINKER_FLAGS} )
-	set( CURRENT_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} )
+	set( CURRENT_C_FLAGS ${CMAKE_C_FLAGS} CACHE STRING "" FORCE )
+	set( CURRENT_CXX_FLAGS ${CMAKE_CXX_FLAGS} CACHE STRING "" FORCE )
+	set( CURRENT_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} CACHE STRING "" FORCE )
+	set( CURRENT_STATIC_LINKER_FLAGS ${CMAKE_STATIC_LINKER_FLAGS} CACHE STRING "" FORCE )
+	set( CURRENT_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} CACHE STRING "" FORCE )
 
 	# disable c++ exceptions
 	if (${AE_NO_EXCEPTIONS})
-		string( REPLACE "/EHa" " " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
-		string( REPLACE "/EHsc" " " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
-		string( REPLACE "/EHs" " " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
-		string( REPLACE "/EHs-c-" " " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
-		set( GLOBAL_CPP_EXCEPTIONS_FLAGS "/D_HAS_EXCEPTIONS=0" )
-		set( LOCAL_CPP_EXCEPTIONS_FLAGS /EHs-c- )
+		# _HAS_EXCEPTIONS=0 means 'there are no exceptions' and that the standard library can assume no exceptions.
+		# The standard library team does not test any _HAS_EXCEPTIONS=0 configuration.
+		string( REPLACE " /EHa"					" " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
+		string( REPLACE " /EHsc"				" " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
+		string( REPLACE " /EHs"					" " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
+		string( REPLACE " /EHr"					" " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
+		string( REPLACE " /D_HAS_EXCEPTIONS=0"	" " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
+		string( REPLACE " /D_HAS_EXCEPTIONS=1"	" " CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS}" )
+		set( CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS} /D_HAS_EXCEPTIONS=0 /EHsc" )
 	else ()
-		set( GLOBAL_CPP_EXCEPTIONS_FLAGS "/D_HAS_EXCEPTIONS=1" )
-		set( LOCAL_CPP_EXCEPTIONS_FLAGS /EHsc )
+		set( CURRENT_CXX_FLAGS "${CURRENT_CXX_FLAGS} /D_HAS_EXCEPTIONS=1 /EHsc" )
 	endif ()
 	#--------------------------------------------
 	
@@ -141,7 +235,7 @@ if ( COMPILER_MSVC )
 		# errors
 		/we4002 /we4099 /we4129 /we4130 /we4172 /we4201 /we4238 /we4239 /we4240 /we4251 /we4263 /we4264 /we4266 /we4273 /we4293
 		/we4305 /we4390 /we4455 /we4456 /we4457 /we4458 /we4459 /we4473 /we4474 /we4522 /we4552 /we4553 /we4554 /we4700 /we4706 /we4715 /we4716 /we4717
-		/we4927 /w14834 /we5062 /we5054 /we4565 /we5054
+		/we4927 /w14834 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297
 		# disable warnings
 		/wd4061 /wd4062 /wd4063 /wd4310 /wd4324 /wd4365 /wd4503 /wd4514 /wd4530 /wd4623 /wd4625 /wd4626 /wd4710 /wd4714 /wd5026 /wd5027
 	)
@@ -157,46 +251,52 @@ if ( COMPILER_MSVC )
 		)
 	endif()
 	
-	set( MSVC_SHARED_OPTS /std:c++latest /MP /Gm- /Zc:inline /Gy- /fp:strict /fp:except- /DAE_COMPILER_MSVC /D_SILENCE_CXX20_CISO646_REMOVED_WARNING
-		 "/DAE_WINDOWS_TARGET_VERSION=${WINDOWS_TARGET_VERSION}" ${COMPILER_FLAGS} ${MSVC_WARNING_LIST} ${LOCAL_CPP_EXCEPTIONS_FLAGS}
+	set( MSVC_SHARED_OPTS /std:c++latest /MP /Gm- /Zc:inline /Gy- /fp:strict /fp:except- /DAE_COMPILER_MSVC /D_SILENCE_CXX20_CISO646_REMOVED_WARNING /JMC
+		 "/DAE_WINDOWS_TARGET_VERSION=${WINDOWS_TARGET_VERSION}" ${COMPILER_FLAGS} ${MSVC_WARNING_LIST}
 		 /DUNICODE=1 )
+
+	if (${AE_USE_SANITIZER})
+		set( MSVC_SHARED_OPTS ${MSVC_SHARED_OPTS} /fsanitize=address )
+	endif()
 		 
 	set( MSVC_SHARED_OPTS_DBG ${MSVC_SHARED_OPTS} )
 	if (${AE_ENABLE_COMPILER_WARNINGS})
 		list( APPEND MSVC_SHARED_OPTS_DBG /w14100 )
 	endif()
 
+	set( CMAKE_CXX_FLAGS "${CURRENT_CXX_FLAGS}" CACHE STRING "" FORCE )
+
 	# Release
 	set( CMAKE_C_FLAGS_RELEASE "${CURRENT_C_FLAGS} /D_NDEBUG /DNDEBUG /MD /Ox /MP " CACHE STRING "" FORCE )
-	set( CMAKE_CXX_FLAGS_RELEASE "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /MD /Ox /MP ${GLOBAL_CPP_EXCEPTIONS_FLAGS}" CACHE STRING "" FORCE )
+	set( CMAKE_CXX_FLAGS_RELEASE "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /MD /Ox /MP " CACHE STRING "" FORCE )
 	set( CMAKE_EXE_LINKER_FLAGS_RELEASE "${CURRENT_EXE_LINKER_FLAGS} /LTCG /RELEASE " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_RELEASE "${CURRENT_STATIC_LINKER_FLAGS} /LTCG /RELEASE " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CURRENT_SHARED_LINKER_FLAGS} /LTCG /RELEASE " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_RELEASE ${MSVC_SHARED_OPTS} /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /MD /W3 /Ox /analyze- /EHs-c- CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_RELEASE ${MSVC_SHARED_OPTS} /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /MD /W3 /Ox /analyze- CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_RELEASE " /OPT:REF /OPT:ICF /INCREMENTAL:NO /LTCG /RELEASE /DYNAMICBASE" CACHE INTERNAL "" FORCE )
 	# Profile
 	set( CMAKE_C_FLAGS_PROFILE "${CURRENT_C_FLAGS} /D_NDEBUG /DNDEBUG /MD /Ox /MP " CACHE STRING "" FORCE )
-	set( CMAKE_CXX_FLAGS_PROFILE "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /MD /Ox /Zi /MP ${GLOBAL_CPP_EXCEPTIONS_FLAGS}" CACHE STRING "" FORCE )
+	set( CMAKE_CXX_FLAGS_PROFILE "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /MD /Ox /Zi /MP " CACHE STRING "" FORCE )
 	set( CMAKE_EXE_LINKER_FLAGS_PROFILE "${CURRENT_EXE_LINKER_FLAGS} /DEBUG /PROFILE " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_PROFILE "${CURRENT_STATIC_LINKER_FLAGS} /DEBUG /PROFILE " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_PROFILE "${CURRENT_SHARED_LINKER_FLAGS} /DEBUG /PROFILE " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_PROFILE ${MSVC_SHARED_OPTS_DBG} /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /MD /W3 /Ox /analyze- /Zi /EHs-c- /GR CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_PROFILE ${MSVC_SHARED_OPTS_DBG} /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /MD /W3 /Ox /analyze- /Zi /GR CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_PROFILE " /OPT:REF /OPT:ICF /INCREMENTAL:NO /DEBUG /PROFILE" CACHE INTERNAL "" FORCE )
 	# Develop
 	set( CMAKE_C_FLAGS_DEVELOP "${CURRENT_C_FLAGS} /D_NDEBUG /DNDEBUG /D_ITERATOR_DEBUG_LEVEL=0 /MD /Od /MP " CACHE STRING "" FORCE )
-	set( CMAKE_CXX_FLAGS_DEVELOP "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /D_ITERATOR_DEBUG_LEVEL=0 /MD /Od /Zi /MP ${GLOBAL_CPP_EXCEPTIONS_FLAGS}" CACHE STRING "" FORCE )
+	set( CMAKE_CXX_FLAGS_DEVELOP "${CURRENT_CXX_FLAGS} /D_NDEBUG /DNDEBUG /D_ITERATOR_DEBUG_LEVEL=0 /MD /Od /Zi /MP " CACHE STRING "" FORCE )
 	set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} /DEBUG " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} /DEBUG " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} /DEBUG " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${MSVC_SHARED_OPTS_DBG} /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /MD /W3 /Od /analyze- /Zi /EHs-c- /GR CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${MSVC_SHARED_OPTS_DBG} /Ob2 /Oi /Ot /Oy /GT /GL /GF /GS- /MD /W3 /Od /analyze- /Zi /GR CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " /OPT:REF /OPT:ICF /INCREMENTAL:NO /DEBUG" CACHE INTERNAL "" FORCE )
 	# Debug
 	set( CMAKE_C_FLAGS_DEBUG "${CURRENT_C_FLAGS} /D_DEBUG /D_ITERATOR_DEBUG_LEVEL=${AE_ITERATOR_DEBUG_LEVEL} /MDd /Od /MP " CACHE STRING "" FORCE )
-	set( CMAKE_CXX_FLAGS_DEBUG "${CURRENT_CXX_FLAGS} /D_DEBUG /D_ITERATOR_DEBUG_LEVEL=${AE_ITERATOR_DEBUG_LEVEL} /MDd /Od /Zi /MP ${GLOBAL_CPP_EXCEPTIONS_FLAGS}" CACHE STRING "" FORCE )
+	set( CMAKE_CXX_FLAGS_DEBUG "${CURRENT_CXX_FLAGS} /D_DEBUG /D_ITERATOR_DEBUG_LEVEL=${AE_ITERATOR_DEBUG_LEVEL} /MDd /Od /Zi /MP " CACHE STRING "" FORCE )
 	set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} /DEBUG:FULL " CACHE STRING "" FORCE )
 	set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} /DEBUG:FULL " CACHE STRING "" FORCE )
 	set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} /DEBUG:FULL " CACHE STRING "" FORCE )
-	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${MSVC_SHARED_OPTS_DBG}  /W4 /WX- /sdl /Od /Ob0 /EHsc /Oy- /GF- /GS /GR /MDd /analyze- /Zi /RTCsu /JMC CACHE INTERNAL "" FORCE )
+	set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${MSVC_SHARED_OPTS_DBG}  /W4 /WX- /sdl /Od /Ob0 /Oy- /GF- /GS /GR /MDd /analyze- /Zi /RTCsu CACHE INTERNAL "" FORCE )
 	set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " /OPT:REF /OPT:ICF /INCREMENTAL:NO /DEBUG:FULL" CACHE INTERNAL "" FORCE )
 endif()
 
@@ -210,13 +310,13 @@ set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST
 -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Werror=array-bounds -Werror=div-by-zero
 -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align )
 
-if (${AE_NO_EXCEPTIONS})
-	set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -fno-exceptions")
-	set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} -fno-exceptions )
-else()
+#if (${AE_NO_EXCEPTIONS})
+#	set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -fno-exceptions")
+#	set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} -fno-exceptions )
+#else()
 	set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -fexceptions")
 	set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} -fexceptions )
-endif()
+#endif()
 
 #==================================================================================================
 # GCC Compilation settings
@@ -290,16 +390,14 @@ endif()
 set( CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -Wnarrowing" )
 set( CLANG_SHARED_LOCAL_WARNING_LIST ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST}
 -Wnarrowing -Wlogical-op-parentheses -frtti -Wunused -Wconditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline
--Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend
+-Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field
+-Werror=return-stack-address -Werror=address -Werror=unsupported-friend
 -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy
 -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move
--Werror=deprecated-increment-bool -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable
+-Werror=deprecated-increment-bool -Werror=abstract-final-class
+-Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable
 -Wunused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool
--Wunused-lambda-capture -fno-short-enums )
-
-#set( CLANG_SANITIZER -fsanitize=address )
-#set( CLANG_SANITIZER -fsanitize=thread )
-#set( CLANG_SANITIZER -fsanitize=undefined )
+-Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch )
 
 
 #==================================================================================================
@@ -323,8 +421,16 @@ if ( COMPILER_CLANG )
 	message( STATUS "CMAKE_EXE_LINKER_FLAGS: ${CURRENT_EXE_LINKER_FLAGS}" )
 	message( STATUS "CMAKE_STATIC_LINKER_FLAGS: ${CURRENT_STATIC_LINKER_FLAGS}" )
 	message( STATUS "CMAKE_SHARED_LINKER_FLAGS: ${CURRENT_SHARED_LINKER_FLAGS}" )
+
+	set( CLANG_SHARED_OPTS -DAE_COMPILER_CLANG ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST} )
 	
-	set( CLANG_SHARED_OPTS  -DAE_COMPILER_CLANG ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST} )
+	if (${TARGET_CPU_ARCH} STREQUAL "X64")
+		set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -maes -msse4 -mavx2 )
+	endif()
+	if (${AE_USE_SANITIZER})
+		set( CLANG_SHARED_OPTS	${CLANG_SHARED_OPTS} -fsanitize=address )
+		#  -fsanitize=thread -fsanitize=undefined
+	endif()
 	
 	# Release
 	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Release>: > )
@@ -451,6 +557,14 @@ if ( COMPILER_CLANG_APPLE )
 	message( STATUS "CMAKE_SHARED_LINKER_FLAGS: ${CURRENT_SHARED_LINKER_FLAGS}" )
 	
 	set( CLANG_SHARED_OPTS -DAE_COMPILER_CLANG ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST} -Werror=objc-method-access )
+	
+	if (${TARGET_CPU_ARCH} STREQUAL "X64")
+		set( CLANG_SHARED_OPTS ${CLANG_SHARED_OPTS} -maes -msse4 -mavx2 )
+	endif()
+	if (${AE_USE_SANITIZER})
+		set( CLANG_SHARED_OPTS	${CLANG_SHARED_OPTS} -fsanitize=address )
+		#  -fsanitize=thread -fsanitize=undefined
+	endif()
 
 	# Release
 	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Release>: > )
@@ -517,6 +631,11 @@ if ( COMPILER_CLANG_ANDROID )
 	# TODO: 
 	#	armv7:
 	#		-mfloat-abi=softfp -mfpu=neon -mfpu=vfpv3-d16
+	
+	if (${AE_USE_SANITIZER})
+		set( CLANG_SHARED_OPTS	${CLANG_SHARED_OPTS} -fsanitize=address )
+		#  -fsanitize=thread -fsanitize=undefined
+	endif()
 
 	# Release
 	set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Release>: > )
@@ -559,4 +678,34 @@ endif()
 
 if ( NOT DEFINED DETECTED_COMPILER )
 	message( FATAL_ERROR "current compiler: '${CMAKE_CXX_COMPILER_ID}' is not configured for this project!" )
+endif()
+
+# print
+if (FALSE)
+	message( STATUS "-------------------------------------------" )
+	#	Release
+	message( STATUS "CMAKE_C_FLAGS_RELEASE: ${CMAKE_C_FLAGS_RELEASE}" )
+	message( STATUS "CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}" )
+	message( STATUS "CMAKE_EXE_LINKER_FLAGS_RELEASE: ${CMAKE_EXE_LINKER_FLAGS_RELEASE}" )
+	message( STATUS "CMAKE_STATIC_LINKER_FLAGS_RELEASE: ${CMAKE_STATIC_LINKER_FLAGS_RELEASE}" )
+	message( STATUS "CMAKE_SHARED_LINKER_FLAGS_RELEASE: ${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" )
+	#	Profile
+	message( STATUS "CMAKE_C_FLAGS_PROFILE: ${CMAKE_C_FLAGS_PROFILE}" )
+	message( STATUS "CMAKE_CXX_FLAGS_PROFILE: ${CMAKE_CXX_FLAGS_PROFILE}" )
+	message( STATUS "CMAKE_EXE_LINKER_FLAGS_PROFILE: ${CMAKE_EXE_LINKER_FLAGS_PROFILE}" )
+	message( STATUS "CMAKE_STATIC_LINKER_FLAGS_PROFILE: ${CMAKE_STATIC_LINKER_FLAGS_PROFILE}" )
+	message( STATUS "CMAKE_SHARED_LINKER_FLAGS_PROFILE: ${CMAKE_SHARED_LINKER_FLAGS_PROFILE}" )
+	#	Develop
+	message( STATUS "CMAKE_C_FLAGS_DEVELOP: ${CMAKE_C_FLAGS_DEVELOP}" )
+	message( STATUS "CMAKE_CXX_FLAGS_DEVELOP: ${CMAKE_CXX_FLAGS_DEVELOP}" )
+	message( STATUS "CMAKE_EXE_LINKER_FLAGS_DEVELOP: ${CMAKE_EXE_LINKER_FLAGS_DEVELOP}" )
+	message( STATUS "CMAKE_STATIC_LINKER_FLAGS_DEVELOP: ${CMAKE_STATIC_LINKER_FLAGS_DEVELOP}" )
+	message( STATUS "CMAKE_SHARED_LINKER_FLAGS_DEVELOP: ${CMAKE_SHARED_LINKER_FLAGS_DEVELOP}" )
+	#	Debug
+	message( STATUS "CMAKE_C_FLAGS_DEBUG: ${CMAKE_C_FLAGS_DEBUG}" )
+	message( STATUS "CMAKE_CXX_FLAGS_DEBUG: ${CMAKE_CXX_FLAGS_DEBUG}" )
+	message( STATUS "CMAKE_EXE_LINKER_FLAGS_DEBUG: ${CMAKE_EXE_LINKER_FLAGS_DEBUG}" )
+	message( STATUS "CMAKE_STATIC_LINKER_FLAGS_DEBUG: ${CMAKE_STATIC_LINKER_FLAGS_DEBUG}" )
+	message( STATUS "CMAKE_SHARED_LINKER_FLAGS_DEBUG: ${CMAKE_SHARED_LINKER_FLAGS_DEBUG}" )
+	message( STATUS "-------------------------------------------" )
 endif()

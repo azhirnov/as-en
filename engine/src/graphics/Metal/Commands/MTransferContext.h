@@ -37,14 +37,16 @@ namespace AE::Graphics::_hidden_
 
 		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges);
 		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges);
+		
+		ND_ MetalCommandBufferRC	EndCommandBuffer ();
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ();
 
 	protected:
-		_MDirectTransferCtx (Ptr<MCommandBatch> batch);
-		_MDirectTransferCtx (Ptr<MCommandBatch> batch, MCommandBuffer cmdbuf);
+		_MDirectTransferCtx (const RenderTask &task);
+		_MDirectTransferCtx (const RenderTask &task, MCommandBuffer cmdbuf);
 
 		ND_ MetalCommandEncoder  _BaseEncoder ()					{ return MetalCommandEncoder{ _encoder.Ptr() }; }
 		
-		void  _CommitBarriers ();
 		void  _GenerateMipmaps (MetalImage image);
 
 		void  _SynchronizeResource (MetalResource);
@@ -80,12 +82,14 @@ namespace AE::Graphics::_hidden_
 
 		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges);
 		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges);
+		
+		ND_ MBakedCommands		EndCommandBuffer ();
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ();
 
 	protected:
-		_MIndirectTransferCtx (Ptr<MCommandBatch> batch);
-		_MIndirectTransferCtx (Ptr<MCommandBatch> batch, MSoftwareCmdBufPtr cmdbuf);
+		_MIndirectTransferCtx (const RenderTask &task);
+		_MIndirectTransferCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf);
 		
-		void  _CommitBarriers ();
 		void  _GenerateMipmaps (MetalImage image);
 		
 		void  _SynchronizeResource (MetalResource);
@@ -116,10 +120,10 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _MTransferContextImpl (Ptr<MCommandBatch> batch) : RawCtx{ batch } {}
+		explicit _MTransferContextImpl (const RenderTask &task) : RawCtx{ task } {}
 		
 		template <typename RawCmdBufType>
-		_MTransferContextImpl (Ptr<MCommandBatch> batch, RawCmdBufType cmdbuf) : RawCtx{ batch, RVRef(cmdbuf) } {}
+		_MTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
 
 		_MTransferContextImpl () = delete;
 		_MTransferContextImpl (const _MTransferContextImpl &) = delete;

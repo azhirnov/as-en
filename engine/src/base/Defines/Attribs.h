@@ -31,6 +31,41 @@
 #endif
 
 
+// function suffix attribs
+#define C_NE_OF		const	noexcept		override final
+#define C_NE_OV		const	noexcept		override
+#define __NE_OV				noexcept		override
+#define __NE_OF				noexcept		override final
+#define C_NE___		const	noexcept
+#define CrNE___		const&	noexcept
+#define CrTH___		const&	noexcept(false)
+#define C______		const
+#define __NE___				noexcept
+#define r_NE___		&		noexcept
+#define rvNE___		&&		noexcept
+#define r_TH___		&		noexcept(false)
+#define rvTH___		&&		noexcept(false)
+#define C____OV		const					override
+#define C____OF		const					override final
+#define _____OV								override
+#define _____OF								override final
+#define __TH___				noexcept(false)
+#define C_TH___		const	noexcept(false)
+#define C_TH_OV		const	noexcept(false)	override
+#define __TH_OV				noexcept(false)	override
+#define C_TH_OF		const	noexcept(false)	override final
+#define __TH_OF				noexcept(false)	override final
+
+// function prefix attribs
+#define __Cx__		constexpr
+#define	__CxEx		explicit constexpr
+#define St____		static
+#define StCx__		static constexpr
+#define Fr____		friend
+#define FrCx__		friend constexpr
+#define	St____In	static inline
+
+
 // no discard
 #ifndef ND_
 # ifdef AE_COMPILER_MSVC
@@ -243,24 +278,48 @@
 
 
 #if (defined(AE_CPU_ARCH_ARM32) and defined(__ARM_NEON__)) or defined(AE_CPU_ARCH_ARM64)
-#	define AE_SIMD_NEON
+//#	define AE_SIMD_NEON
+//# define AE_SIMD_NEON_HALF
+
 #	include <arm_neon.h>
 	// TODO: arm64_neon.h
 #endif
 
 #if defined(AE_CPU_ARCH_X64) or defined(AE_CPU_ARCH_X86)
 	// AVX
-#	define AE_SIMD_AVX		2	// 1, 2
+#  if AE_SIMD_AVX > 0
 #	include <immintrin.h>
+#  endif
+
 	// AVX 512
-//#	define AE_SIMD_AVX512
-//#	define AE_SIMD_AVX512_FP16
-//#	include <zmmintrin.h>			// included in 'immintrin.h'
-//#	include <avx512fp16intrin.h>	// clang
+#  if AE_SIMD_AVX >= 3
+#	if defined(AE_COMPILER_MSVC)
+#	  include <zmmintrin.h>			// included in 'immintrin.h'
+#	elif defined(AE_COMPILER_CLANG)
+#	  include <avx512fp16intrin.h>	// clang
+#	else
+#	  error include AVX512 header
+#	endif
+#  endif
+
 	// SSE 4.2
-#	define AE_SIMD_SSE		42	// 30, 31, 40, 41, 42
-#	include <nmmintrin.h>
+#  if AE_SIMD_SSE > 0
+#  include <nmmintrin.h>
+#  endif
+
 	// AES
-#	define AE_SIMD_AES
+#  if AE_SIMD_AES > 0
 #	include <wmmintrin.h>
+#  endif
+#endif
+
+
+#ifndef AE_SIMD_AVX
+#	define AE_SIMD_AVX	0
+#endif
+#ifndef AE_SIMD_SSE
+#	define AE_SIMD_SSE	0
+#endif
+#ifndef AE_SIMD_AES
+#	define AE_SIMD_AES	0
 #endif

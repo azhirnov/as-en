@@ -190,8 +190,10 @@ namespace
 	{
 		ClassBinder<Test1_CL> binder( se );
 
-		TEST( binder.CreateRef() );
-		TEST( binder.AddMethod( &Test1_CL::F, "F" ));
+		TEST_NOTHROW(
+			binder.CreateRef();
+			binder.AddMethod( &Test1_CL::F, "F" );
+		)
 		
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
@@ -211,13 +213,15 @@ namespace
 	{
 		ClassBinder<Test2_Value>	binder{ se };
 
-		TEST( binder.CreateClassValue() );
-		TEST( binder.AddConstructor( &Test2_Value::Ctor ));
-		TEST( binder.AddMethod( &Test2_Value::F, "F" ));
-		TEST( binder.AddProperty( &Test2_Value::i, "i" ));
-		TEST( binder.AddMethod( &Test2_Value::Add, "Add" ));
-		TEST( binder.AddMethodFromGlobal( &Test2_Value::Append, "Append" ));
-		
+		TEST_NOTHROW(
+			binder.CreateClassValue();
+			binder.AddConstructor( &Test2_Value::Ctor );
+			binder.AddMethod( &Test2_Value::F, "F" );
+			binder.AddProperty( &Test2_Value::i, "i" );
+			binder.AddMethod( &Test2_Value::Add, "Add" );
+			binder.AddMethodFromGlobal( &Test2_Value::Append, "Append" );
+		)
+
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
 			int main (int i) {
@@ -240,12 +244,14 @@ namespace
 	{
 		EnumBinder<EEnum>	binder{ se };
 
-		TEST( binder.Create() );
-		TEST( binder.AddValue( "Value1", EEnum::Value1 ));
-		TEST( binder.AddValue( "Value2", EEnum::Value2 ));
-		TEST( binder.AddValue( "Value3", EEnum::Value3 ));
-		TEST( binder.AddValue( "Value4", EEnum::Value4 ));
-		
+		TEST_NOTHROW(
+			binder.Create();
+			binder.AddValue( "Value1", EEnum::Value1 );
+			binder.AddValue( "Value2", EEnum::Value2 );
+			binder.AddValue( "Value3", EEnum::Value3 );
+			binder.AddValue( "Value4", EEnum::Value4 );
+		)
+
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
 			uint main () {
@@ -298,9 +304,10 @@ namespace
 
 		ClassBinder<ScriptCl>		binder{ se, "Script" };
 
-		TEST( binder.CreateClassValue() );
-		TEST( binder.AddMethod( &ScriptCl::Run, "Run" ));
-
+		TEST_NOTHROW(
+			binder.CreateClassValue();
+			binder.AddMethod( &ScriptCl::Run, "Run" );
+		)
 
 		int	res = 0;
 		TEST( Run< int() >( se, script, "main", SourceLoc{__FILE__, line}, OUT res ));
@@ -314,9 +321,11 @@ namespace
 	{
 		ClassBinder<Test5_CL> binder( se );
 
-		TEST( binder.CreateRef() );
-		TEST( binder.AddMethod( &Test5_CL::F, "F" ));
-		
+		TEST_NOTHROW(
+			binder.CreateRef();
+			binder.AddMethod( &Test5_CL::F, "F" );
+		)
+
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
 			int main (Test5_CL@ c) {
@@ -337,8 +346,10 @@ namespace
 	{
 		ClassBinder<Test6_CL> binder( se );
 
-		TEST( binder.CreateRef() );
-		TEST( binder.AddMethod( &Test6_CL::Set, "Set" ));
+		TEST_NOTHROW(
+			binder.CreateRef();
+			binder.AddMethod( &Test6_CL::Set, "Set" );
+		)
 		
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
@@ -362,9 +373,11 @@ namespace
 	{
 		ClassBinder<Test7_Value>	binder{ se };
 
-		TEST( binder.CreateRef( &AngelScriptHelper::FactoryCreate<Test7_Value>, null, null, 0 ));
-		TEST( binder.AddMethod( &Test7_Value::F, "F" ));
-		TEST( binder.AddMethodFromGlobal( &Test7_Value::Append, "Append" ));
+		TEST_NOTHROW(
+			binder.CreateRef( &AngelScriptHelper::FactoryCreate<Test7_Value>, null, null, 0 );
+			binder.AddMethod( &Test7_Value::F, "F" );
+			binder.AddMethodFromGlobal( &Test7_Value::Append, "Append" );
+		)
 		
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
@@ -386,8 +399,10 @@ namespace
 		using Test8_Ptr = ScriptRC<Test8_CL>;
 		ClassBinder<Test8_CL> binder( se );
 
-		TEST( binder.CreateRef() );
-		TEST( binder.AddMethod( &Test8_CL::Set, "Set" ));
+		TEST_NOTHROW(
+			binder.CreateRef();
+			binder.AddMethod( &Test8_CL::Set, "Set" );
+		)
 		
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
@@ -416,13 +431,17 @@ namespace
 		using Test9_2_Ptr = ScriptRC<Test9_2_CL>;
 		{
 			ClassBinder<Test9_1_CL> binder( se );
-			TEST( binder.CreateRef() );
-			TEST( binder.AddFactoryCtor( &Test9_1_CL::Ctor ));
+			TEST_NOTHROW(
+				binder.CreateRef();
+				binder.AddFactoryCtor( &Test9_1_CL::Ctor );
+			)
 		}{
 			ClassBinder<Test9_2_CL> binder( se );
-			TEST( binder.CreateRef() );
-			TEST( binder.AddMethod( &Test9_2_CL::Add,  "Add"  ));
-			TEST( binder.AddMethod( &Test9_2_CL::Add2, "Add2" ));
+			TEST_NOTHROW(
+				binder.CreateRef();
+				binder.AddMethod( &Test9_2_CL::Add,  "Add"  );
+				binder.AddMethod( &Test9_2_CL::Add2, "Add2" );
+			)
 		}
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
@@ -463,12 +482,14 @@ namespace
 	{
 		EnumBinder<EEnumBit>	binder{ se };
 
-		TEST( binder.Create() );
-		TEST( binder.AddValue( "Value1", EEnumBit::Value1 ));
-		TEST( binder.AddValue( "Value2", EEnumBit::Value2 ));
-		TEST( binder.AddValue( "Value3", EEnumBit::Value3 ));
-		TEST( binder.AddValue( "Value4", EEnumBit::Value4 ));
-		
+		TEST_NOTHROW(
+			binder.Create();
+			binder.AddValue( "Value1", EEnumBit::Value1 );
+			binder.AddValue( "Value2", EEnumBit::Value2 );
+			binder.AddValue( "Value3", EEnumBit::Value3 );
+			binder.AddValue( "Value4", EEnumBit::Value4 );
+		)
+
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
 			uint main () {
@@ -486,21 +507,23 @@ namespace
 
 extern void UnitTest_Class ()
 {
-	auto	se = MakeRC<ScriptEngine>();
-	TEST( se->Create() );
+	TEST_NOTHROW(
+		auto	se = MakeRC<ScriptEngine>();
+		TEST( se->Create() );
 	
-	CoreBindings::BindString( se );
+		CoreBindings::BindString( se );
 
-	ScriptClass_Test1( se );
-	ScriptClass_Test2( se );
-	ScriptClass_Test3( se );
-	ScriptClass_Test4( se );
-	ScriptClass_Test5( se );
-	ScriptClass_Test6( se );
-	ScriptClass_Test7( se );
-	ScriptClass_Test8( se );
-	ScriptClass_Test9( se );
-	ScriptClass_Test10( se );
+		ScriptClass_Test1( se );
+		ScriptClass_Test2( se );
+		ScriptClass_Test3( se );
+		ScriptClass_Test4( se );
+		ScriptClass_Test5( se );
+		ScriptClass_Test6( se );
+		ScriptClass_Test7( se );
+		ScriptClass_Test8( se );
+		ScriptClass_Test9( se );
+		ScriptClass_Test10( se );
 	
-	TEST_PASSED();
+		TEST_PASSED();
+	)
 }

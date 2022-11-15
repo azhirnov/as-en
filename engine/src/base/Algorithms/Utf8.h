@@ -15,7 +15,7 @@ namespace AE::Base
 	Utf8CharCount
 =================================================
 */
-	ND_ forceinline usize  Utf8CharCount (const CharUtf8 *str, const usize length)
+	ND_ forceinline usize  Utf8CharCount (const CharUtf8 *str, const usize length) __NE___
 	{
 		auto*	ptr		= Cast<utf8proc_uint8_t>(str);
 		usize	count	= 0;
@@ -30,7 +30,7 @@ namespace AE::Base
 		return count;
 	}
 
-	ND_ forceinline usize  Utf8CharCount (BasicStringView<CharUtf8> str)
+	ND_ forceinline usize  Utf8CharCount (BasicStringView<CharUtf8> str) __NE___
 	{
 		return Utf8CharCount( str.data(), str.length() );
 	}
@@ -40,7 +40,7 @@ namespace AE::Base
 	Utf8Decode
 =================================================
 */
-	ND_ forceinline CharUtf32  Utf8Decode (const CharUtf8 *str, const usize length, INOUT usize &pos)
+	ND_ forceinline CharUtf32  Utf8Decode (const CharUtf8 *str, const usize length, INOUT usize &pos) __NE___
 	{
 		ASSERT( pos < length );
 		STATIC_ASSERT( sizeof(utf8proc_uint8_t) == sizeof(*str) );
@@ -54,7 +54,7 @@ namespace AE::Base
 		return symb;
 	}
 
-	ND_ forceinline CharUtf32  Utf8Decode (BasicStringView<CharUtf8> str, INOUT usize &pos)
+	ND_ forceinline CharUtf32  Utf8Decode (BasicStringView<CharUtf8> str, INOUT usize &pos) __NE___
 	{
 		return Utf8Decode( str.data(), str.length(), INOUT pos );
 	}
@@ -64,7 +64,7 @@ namespace AE::Base
 	Utf8Encode
 =================================================
 */
-	forceinline bool  Utf8Encode (const CharUtf32 symb, const usize size, OUT CharUtf8 *dst, INOUT usize &pos)
+	forceinline bool  Utf8Encode (const CharUtf32 symb, const usize size, OUT CharUtf8 *dst, INOUT usize &pos) __NE___
 	{
 		Unused( size );
 		ASSERT( pos+4 <= size );
@@ -82,7 +82,7 @@ namespace AE::Base
 	Utf32IsValid
 =================================================
 */
-	ND_ forceinline bool  Utf32IsValid (CharUtf32 c)
+	ND_ forceinline bool  Utf32IsValid (CharUtf32 c) __NE___
 	{
 		return utf8proc_codepoint_valid( c );
 	}

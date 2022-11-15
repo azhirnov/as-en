@@ -158,13 +158,13 @@ namespace AE::Base
 			static const type	MASK = (1u << _OFFSET) - 1;
 
 
-			forceinline static constexpr type CalcHash (char const * const str, const usize size, const type id) noexcept
+			forceinline static constexpr type CalcHash (char const * const str, const usize size, const type id) __NE___
 			{
 				return size > _COUNT ? type(UMax) : (_RecursiveHash( str, 0, _OFFSET, size ) | (id & MASK));
 			}
 
 
-			static StString_t ReverseHash (const type id) noexcept
+			static StString_t ReverseHash (const type id) __NE___
 			{
 				StString_t	result;
 				const type	hash	= (id >> _OFFSET);
@@ -195,28 +195,27 @@ namespace AE::Base
 
 #	define DECL_STRING_TO_ID( _name_, /*0..15*/_id_ ) \
 		struct _name_ { \
-			using _type_ = ::AE::Base::_hidden_::_StringToID_Helper::type; \
+			using _type_ = AE::Base::_hidden_::_StringToID_Helper::type; \
 			\
 			enum type : _type_ { \
-				_IDMask	= ::AE::Base::_hidden_::_StringToID_Helper::MASK, \
+				_IDMask	= AE::Base::_hidden_::_StringToID_Helper::MASK, \
 				_ID		= (_id_ & _IDMask), \
 				Unknown	= _type_(UMax), \
 			}; \
 			\
-			ND_ forceinline static type  FromString (::AE::Base::StringView str) noexcept { \
-				return type(::AE::Base::_hidden_::_StringToID_Helper:: \
+			ND_ forceinline static type  FromString (AE::Base::StringView str) __NE___ { \
+				return type(AE::Base::_hidden_::_StringToID_Helper:: \
 								CalcHash( str.data(), str.size(), _type_(_name_::_ID) )); \
 			} \
 			\
-			ND_ forceinline static ::AE::Base::_hidden_::_StringToID_Helper::StString_t \
-						ToString (type value) noexcept { \
-				return ::AE::Base::_hidden_::_StringToID_Helper::ReverseHash( _type_(value) ); \
+			ND_ forceinline static AE::Base::_hidden_::_StringToID_Helper::StString_t  ToString (type value) __NE___ { \
+				return AE::Base::_hidden_::_StringToID_Helper::ReverseHash( _type_(value) ); \
 			} \
 		}; \
 		\
-		ND_ forceinline constexpr _name_::type  operator "" _##_name_ (char const * const str, const usize size) noexcept \
+		ND_ forceinline constexpr _name_::type  operator "" _##_name_ (char const * const str, const usize size) __NE___ \
 		{ \
-			return _name_::type(::AE::Base::_hidden_::_StringToID_Helper:: \
+			return _name_::type(AE::Base::_hidden_::_StringToID_Helper:: \
 											CalcHash( str, size, _name_::_type_(_name_::_ID) )); \
 		} \
 

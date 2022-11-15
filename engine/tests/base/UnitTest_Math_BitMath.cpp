@@ -4,8 +4,6 @@
 #include "base/CompileTime/Math.h"
 #include "UnitTest_Common.h"
 
-#include "base/CompileTime/TemplateUtils.h"
-
 namespace
 {
 	static void  IntLog2_Test1 ()

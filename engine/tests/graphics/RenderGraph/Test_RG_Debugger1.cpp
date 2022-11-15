@@ -59,8 +59,8 @@ namespace
 	public:
 		Db1_TestData&	t;
 
-		Db1_ComputeTask (Db1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		Db1_ComputeTask (Db1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -70,13 +70,11 @@ namespace
 			CHECK_TE( lock.try_lock() );
 			
 			typename CtxTypes::Transfer	copy_ctx{ *this };
-			CHECK_TE( copy_ctx.IsValid() );
 
 			ShaderDebugger::Result	dbg;
 			CHECK_TE( t.debugger.AllocForCompute( OUT dbg, copy_ctx, t.ppln, uint3{8,8,0} ));
 
 			typename CtxTypes::Compute	comp_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
-			CHECK_TE( comp_ctx.IsValid() );
 			
 			const auto	img_state = EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
 
@@ -101,8 +99,8 @@ namespace
 	public:
 		Db1_TestData&	t;
 
-		Db1_CopyTask (Db1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		Db1_CopyTask (Db1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -112,7 +110,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 			
 			Ctx		ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 
 			auto	task1 = ctx.ReadbackImage( t.img, Default );
 			auto	task2 = t.debugger.ReadAll( ctx );
@@ -155,7 +152,7 @@ no source
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -200,19 +197,14 @@ no source
 		}
 
 		AsyncTask	begin	= rts.BeginFrame();
-		CHECK_ERR( begin );
 
 		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Debugger1" );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Add< Db1_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin}, "Compute task" );
-		CHECK_ERR( task1 );
-		
 		AsyncTask	task2	= batch->Add< Db1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
-		CHECK_ERR( task2 );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
-		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
 		CHECK_ERR( end->Status() == EStatus::Completed );

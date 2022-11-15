@@ -26,14 +26,14 @@ namespace AE::Scripting
 
 	struct CoreBindings final : Noninstancable
 	{
-		static void  BindScalarMath (const ScriptEnginePtr &se);
-		static void  BindVectorMath (const ScriptEnginePtr &se);
-		static void  BindVectorSwizzle (const ScriptEnginePtr &se);		// requires 'String'
-		static void  BindRect (const ScriptEnginePtr &se);
-		static void  BindColor (const ScriptEnginePtr &se);
-		static void  BindString (const ScriptEnginePtr &se);
-		static void  BindArray (const ScriptEnginePtr &se);
-		static void  BindLog (const ScriptEnginePtr &se);
+		static void  BindScalarMath (const ScriptEnginePtr &se)		__TH___;
+		static void  BindVectorMath (const ScriptEnginePtr &se)		__TH___;
+		static void  BindVectorSwizzle (const ScriptEnginePtr &se)	__TH___;	// requires 'String'
+		static void  BindRect (const ScriptEnginePtr &se)			__TH___;
+		static void  BindColor (const ScriptEnginePtr &se)			__TH___;
+		static void  BindString (const ScriptEnginePtr &se)			__TH___;
+		static void  BindArray (const ScriptEnginePtr &se)			__TH___;
+		static void  BindLog (const ScriptEnginePtr &se)			__TH___;
 		// TODO: physical types
 	};
 

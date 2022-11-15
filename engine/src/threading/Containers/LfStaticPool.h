@@ -23,7 +23,7 @@ namespace AE::Threading
 
 	template <typename ValueType,
 			  usize Count,
-			  typename AllocatorType = UntypedAlignedAllocator
+			  typename AllocatorType = UntypedAllocator
 			 >
 	struct LfStaticPool
 	{
@@ -54,7 +54,7 @@ namespace AE::Threading
 			};
 
 			Chunk () {
-				DEBUG_ONLY( DbgInitMem( values, Bytes::SizeOf(values) ));
+				DEBUG_ONLY( DbgInitMem( values, Sizeof(values) ));
 			}
 			~Chunk () {}
 		};
@@ -81,29 +81,28 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit LfStaticPool (const Allocator_t &alloc = Allocator_t{});
-		~LfStaticPool ()	{ Release(); }
+		explicit LfStaticPool (const Allocator_t &alloc = Allocator_t{}) __NE___;
+		~LfStaticPool ()							__NE___	{ Release(); }
 
-		LfStaticPool (const Self &) = delete;
-		LfStaticPool (Self &&) = delete;
+		LfStaticPool (const Self &)		= delete;
+		LfStaticPool (Self &&)			= delete;
 
-		Self&  operator = (const Self &) = delete;
-		Self&  operator = (Self &&) = delete;
+		Self&  operator = (const Self &)= delete;
+		Self&  operator = (Self &&)		= delete;
 
 
-		ND_ static constexpr usize  Capacity ()		{ return Count; }
-		ND_ static constexpr Bytes  DynamicSize ()	{ return SizeOf<ChunkArray_t>; }
+		ND_ static constexpr usize  Capacity ()		__NE___	{ return Count; }
+		ND_ static constexpr Bytes  DynamicSize ()	__NE___	{ return SizeOf<ChunkArray_t>; }
 
-		void  Release ()	{ return Release( [](Value_t &value) { value.~Value_t(); }); }
+		void  Release ()							__NE___	{ return Release( [](Value_t &value) { value.~Value_t(); }); }
 
 		template <typename FN>
-		void  Release (FN &&fn);
+		void  Release (FN &&fn)						__NE___;
 
 		template <typename T>
-		ND_ bool  Put (T && value);
+		ND_ bool  Put (T && value)					__NE___;
 
-		bool  Extract (OUT Value_t &outValue);
+		bool  Extract (OUT Value_t &outValue)		__NE___;
 	};
 
-
-}	// AE::Threading
+} // AE::Threading

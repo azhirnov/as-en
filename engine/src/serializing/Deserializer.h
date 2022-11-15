@@ -23,7 +23,7 @@ namespace AE::Serializing
 	public:
 		FastRStream				stream;
 		Ptr<ObjectFactory>		factory;
-		RC<IAlignedAllocator>	allocator;
+		RC<IAllocator>			allocator;
 
 	private:
 		#if AE_DEBUG_SERIALIZER
@@ -33,14 +33,14 @@ namespace AE::Serializing
 
 	// methods
 	public:
-		explicit Deserializer (FastRStream rstream, RC<IAlignedAllocator> alloc = Default) : stream{ RVRef(rstream) }, allocator{ RVRef(alloc) } {}
-		explicit Deserializer (RC<RStream> rstream, RC<IAlignedAllocator> alloc = Default) : stream{ RVRef(rstream) }, allocator{ RVRef(alloc) } {}
+		explicit Deserializer (FastRStream rstream, RC<IAllocator> alloc = Default) __NE___ : stream{ RVRef(rstream) }, allocator{ RVRef(alloc) } {}
+		explicit Deserializer (RC<RStream> rstream, RC<IAllocator> alloc = Default) __NE___ : stream{ RVRef(rstream) }, allocator{ RVRef(alloc) } {}
 		
-		template <typename ...Args>
-		bool  operator () (INOUT Args& ...args);
-		bool  operator () (INOUT void *);
+			template <typename ...Args>
+		ND_ bool  operator () (INOUT Args& ...args)	__NE___;
+		ND_ bool  operator () (INOUT void *)		__NE___;
 		
-		ND_ bool  IsEnd () const	{ return stream.Empty(); }
+		ND_ bool  IsEnd ()							C_NE___	{ return stream.Empty(); }
 
 	private:
 		template <typename Arg0, typename ...Args>

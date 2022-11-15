@@ -31,7 +31,7 @@ namespace AE::Base
 	public:
 		UntypedStorage ()
 		{
-			DEBUG_ONLY( DbgInitMem( _buffer, Bytes::SizeOf(_buffer) ));
+			DEBUG_ONLY( DbgInitMem( _buffer, Sizeof(_buffer) ));
 		}
 		
 		//explicit UntypedStorage (_hidden_::_Zero) : _buffer{}
@@ -48,7 +48,7 @@ namespace AE::Base
 
 		~UntypedStorage ()
 		{
-			DEBUG_ONLY( DbgFreeMem( _buffer, Bytes::SizeOf(_buffer) ));
+			DEBUG_ONLY( DbgFreeMem( _buffer, Sizeof(_buffer) ));
 		}
 
 		template <typename T>
@@ -81,7 +81,7 @@ namespace AE::Base
 	// Dynamic Untyped Storage
 	//
 
-	template <typename AllocType = UntypedAlignedAllocator>
+	template <typename AllocType = UntypedAllocator>
 	struct DynUntypedStorage final : Noncopyable
 	{
 	// types
@@ -99,36 +99,41 @@ namespace AE::Base
 
 	// methods
 	public:
-		DynUntypedStorage () {}
-		DynUntypedStorage (Bytes size, Bytes align) { Alloc( size, align ); }
-		~DynUntypedStorage () { Dealloc(); }
+		DynUntypedStorage () __NE___ {}
+		DynUntypedStorage (Bytes size, Bytes align) __NE___ { Alloc( SizeAndAlign{ size, align }); }
+		explicit DynUntypedStorage (const SizeAndAlign sizeAndAlign) __NE___ { Alloc( sizeAndAlign ); }
 
-		ND_ Bytes			Size ()		const	{ return Bytes{_size}; }
-		ND_ POTValue		AlignPOT ()	const	{ return POTValue{ubyte( _align )}; }
-		ND_ Bytes			Align ()	const	{ return Bytes{usize{ AlignPOT() }}; }
+		~DynUntypedStorage ()				__NE___ { Dealloc(); }
+
+		ND_ Bytes			Size ()			C_NE___	{ return Bytes{_size}; }
+		ND_ POTValue		AlignPOT ()		C_NE___	{ return POTValue{ubyte( _align )}; }
+		ND_ Bytes			Align ()		C_NE___	{ return Bytes{usize{ AlignPOT() }}; }
 		
-		NDRST(void * )		Data ()				{ return _ptr; }
-		NDRST(const void*)	Data ()		const	{ return _ptr; }
+		NDRST(void * )		Data ()			__NE___	{ return _ptr; }
+		NDRST(const void*)	Data ()			C_NE___	{ return _ptr; }
 
 
-		bool  Alloc (Bytes size, Bytes align)
+		ND_ explicit operator bool ()		C_NE___	{ return _ptr != null; }
+
+
+		bool  Alloc (const SizeAndAlign sizeAndAlign) __NE___
 		{
 			Dealloc();
 			
-			_size	= usize(size);
-			_align	= POTValue::From( usize(align) ).Get();
+			_size	= usize(sizeAndAlign.size);
+			_align	= POTValue::From( usize(sizeAndAlign.align) ).Get();
 
-			ASSERT( Size() == size );
-			ASSERT( Align() == align );
+			ASSERT( Size() == sizeAndAlign.size );
+			ASSERT( Align() == sizeAndAlign.align );
 
-			_ptr = Allocator_t::Allocate( size, align );
+			_ptr = Allocator_t::Allocate( sizeAndAlign );
 			return _ptr != null;
 		}
 
-		void  Dealloc ()
+		void  Dealloc ()						__NE___
 		{
-			if ( _ptr )
-				Allocator_t::Deallocate( _ptr, Size(), Align() );
+			if ( _ptr != null )
+				Allocator_t::Deallocate( _ptr, SizeAndAlign{ Size(), Align() });
 
 			_ptr	= null;
 			_size	= 0;
@@ -137,24 +142,24 @@ namespace AE::Base
 
 
 		template <typename T>
-		ND_ T*  Ptr (Bytes offset = 0_b)
+		ND_ T*  Ptr (Bytes offset = 0_b)		__NE___
 		{
 			ASSERT( SizeOf<T> + offset <= Size() );
 			return Base::Cast<T>( _ptr + offset );
 		}
 
 		template <typename T>
-		ND_ T const*  Ptr (Bytes offset = 0_b) const
+		ND_ T const*  Ptr (Bytes offset = 0_b) C_NE___
 		{
 			ASSERT( SizeOf<T> + offset <= Size() );
 			return Base::Cast<T>( _ptr + offset );
 		}
 
 		template <typename T>
-		ND_ T&  Ref (Bytes offset = 0_b)				{ return *Ptr<T>( offset ); }
+		ND_ T&  Ref (Bytes offset = 0_b)		__NE___	{ return *Ptr<T>( offset ); }
 
 		template <typename T>
-		ND_ T const&  Ref (Bytes offset = 0_b) const	{ return *Ptr<T>( offset ); }
+		ND_ T const&  Ref (Bytes offset = 0_b)	C_NE___	{ return *Ptr<T>( offset ); }
 	};
 
 

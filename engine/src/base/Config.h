@@ -54,3 +54,12 @@
 	defined(AE_PLATFORM_IOS)
 #	define AE_PLATFORM_APPLE
 #endif
+
+#if defined(AE_CPU_ARCH_ARM64)	or \
+	defined(AE_CPU_ARCH_ARM32)
+#	define AE_CPU_ARCH_ARM_BASED
+#endif
+
+#ifdef __INTELLISENSE__
+#  define AE_PLATFORM_ANDROID
+#endif

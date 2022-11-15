@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "base/CompileTime/TemplateUtils.h"
-
 namespace AE::Base
 {
 namespace _hidden_
@@ -15,93 +13,131 @@ namespace _hidden_
 
 
 	template <typename T>
-	static constexpr bool	IsFloatPoint		= std::is_floating_point_v<T>;
+	static constexpr bool	IsFloatPoint			= std::is_floating_point_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsAnyFloatPoint		= _hidden_::_IsFloatPoint<T>::value;	// software or hardware
+	static constexpr bool	IsAnyFloatPoint			= _hidden_::_IsFloatPoint<T>::value;	// software or hardware
 
 	template <typename T>
-	static constexpr bool	IsInteger			= std::is_integral_v<T>;
+	static constexpr bool	IsInteger				= std::is_integral_v<T>;
 	
 	template <typename T>
-	static constexpr bool	IsSignedInteger		= std::is_integral_v<T> and std::is_signed_v<T>;
+	static constexpr bool	IsSignedInteger			= std::is_integral_v<T> and std::is_signed_v<T>;
 	
 	template <typename T>
-	static constexpr bool	IsUnsignedInteger	= std::is_integral_v<T> and std::is_unsigned_v<T>;
+	static constexpr bool	IsUnsignedInteger		= std::is_integral_v<T> and std::is_unsigned_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsSigned			= std::is_signed_v<T>;
+	static constexpr bool	IsSigned				= std::is_signed_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsUnsigned			= std::is_unsigned_v<T>;
+	static constexpr bool	IsUnsigned				= std::is_unsigned_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsScalar			= _hidden_::_IsScalar<T>::value;
+	static constexpr bool	IsScalar				= _hidden_::_IsScalar<T>::value;
 	
 	template <typename T>
-	static constexpr bool	IsEnum				= std::is_enum_v<T>;
+	static constexpr bool	IsEnum					= std::is_enum_v<T>;
 	
 	template <typename T>
-	static constexpr bool	IsScalarOrEnum		= IsScalar<T> or std::is_enum_v<T>;
+	static constexpr bool	IsScalarOrEnum			= IsScalar<T> or IsEnum<T>;
 
 	template <typename T>
-	static constexpr bool	IsTrivial			= std::is_trivially_destructible_v<T>		and
-												  std::is_trivially_move_assignable_v<T>	and
-												  std::is_trivially_move_constructible_v<T>;
+	static constexpr bool	IsTrivial				= std::is_trivially_destructible_v<T>		and
+													  std::is_trivially_move_assignable_v<T>	and
+													  std::is_trivially_move_constructible_v<T>;
 	
 	template <typename T>
-	static constexpr bool	IsPOD				= std::is_trivially_destructible_v<T>			and
-												  std::is_trivially_move_assignable_v<T>		and
-												  std::is_trivially_move_constructible_v<T>		and
-												  std::is_trivially_constructible_v<T>			and
-												  std::is_trivially_copyable_v<T>				and
-												  std::is_trivially_copy_assignable_v<T>		and
-												  std::is_trivially_default_constructible_v<T>;
+	static constexpr bool	IsPOD					= std::is_trivially_destructible_v<T>			and
+													  std::is_trivially_move_assignable_v<T>		and
+													  std::is_trivially_move_constructible_v<T>		and
+													  std::is_trivially_constructible_v<T>			and
+													  std::is_trivially_copyable_v<T>				and
+													  std::is_trivially_copy_assignable_v<T>		and
+													  std::is_trivially_default_constructible_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsPointer			= std::is_pointer_v<T>;
+	static constexpr bool	IsPointer				= std::is_pointer_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsNullPtr			= std::is_null_pointer_v<T>;
+	static constexpr bool	IsNullPtr				= std::is_null_pointer_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsLValueRef			= std::is_lvalue_reference_v<T>;
+	static constexpr bool	IsLValueRef				= std::is_lvalue_reference_v<T>;
 	
 	template <typename T>
-	static constexpr bool	IsRValueRef			= std::is_rvalue_reference_v<T>;
+	static constexpr bool	IsRValueRef				= std::is_rvalue_reference_v<T>;
 	
 	template <typename T>
-	static constexpr bool	IsReference			= std::is_reference_v<T>;
+	static constexpr bool	IsReference				= std::is_reference_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsClass				= std::is_class_v<T>;
+	static constexpr bool	IsClass					= std::is_class_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsUnion				= std::is_union_v<T>;
+	static constexpr bool	IsUnion					= std::is_union_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsConst				= std::is_const_v<T>;
+	static constexpr bool	IsConst					= std::is_const_v<T>;
 	
 	template <typename T>
-	static constexpr bool	IsVolatile			= std::is_volatile_v<T>;
+	static constexpr bool	IsVolatile				= std::is_volatile_v<T>;
 
 	template <typename T1, typename T2>
-	static constexpr bool	IsSameTypes			= std::is_same_v<T1, T2>;
+	static constexpr bool	IsSameTypes				= std::is_same_v<T1, T2>;
 
 	template <typename T>
-	static constexpr bool	IsVoid				= std::is_void_v<T>;
+	static constexpr bool	IsVoid					= std::is_void_v<T>;
 
 	template <typename Base, typename Derived>
-	static constexpr bool	IsBaseOf			= std::is_base_of_v< Base, Derived >;
+	static constexpr bool	IsBaseOf				= std::is_base_of_v< Base, Derived >;
 
 	template <typename T>
-	static constexpr bool	IsEmpty				= std::is_empty_v<T>;
+	static constexpr bool	IsEmpty					= std::is_empty_v<T>;
 
 	template <typename From, typename To>
-	static constexpr bool	IsConvertible		= std::is_convertible_v<From, To>;	// TODO: is_nothrow_convertible (C++20)
+	static constexpr bool	IsConvertible			= std::is_convertible_v<From, To>;	// TODO: is_nothrow_convertible (C++20)
 
 	template <typename T>
-	static constexpr bool	IsArithmetic		= std::is_arithmetic_v<T>;
+	static constexpr bool	IsArithmetic			= std::is_arithmetic_v<T>;
+	
+	template <typename T>
+	static constexpr bool	IsNothrowable			= std::is_nothrow_move_constructible_v<T>		and
+													  std::is_nothrow_default_constructible_v<T>	and
+													  std::is_nothrow_copy_assignable_v<T>			and
+													  std::is_nothrow_copy_constructible_v<T>		and
+													  std::is_nothrow_destructible_v<T>				and
+													  std::is_nothrow_move_assignable_v<T>;
+
+	template <typename T>
+	static constexpr bool	IsNothrowCopyCtor		= std::is_nothrow_copy_constructible_v<T>		or
+													  std::is_trivially_copy_constructible_v<T>;
+
+	template <typename T>
+	static constexpr bool	IsNothrowDtor			= std::is_nothrow_destructible_v<T>				or
+													  std::is_trivially_destructible_v<T>;
+
+	template <typename T> struct IsNothrowCopyCtor_t { static constexpr bool  value = IsNothrowCopyCtor<T>; };
+
+	template <typename T>
+	static constexpr bool	IsNothrowMoveCtor		= std::is_nothrow_move_constructible_v<T>		or
+													  std::is_trivially_move_constructible_v<T>;
+	
+	template <typename T> struct IsNothrowMoveCtor_t { static constexpr bool  value = IsNothrowMoveCtor<T>; };
+
+	template <typename T>
+	static constexpr bool	IsNothrowDefaultCtor	= std::is_nothrow_default_constructible_v<T>	or
+													  std::is_trivially_default_constructible_v<T>;
+	
+	template <typename T> struct IsNothrowDefaultCtor_t { static constexpr bool  value = IsNothrowDefaultCtor<T>; };
+	
+	template <typename T, typename ...Args>
+	static constexpr bool	IsNothrowCtor			= std::is_nothrow_constructible_v< T, Args... >		or
+													  std::is_trivially_constructible_v< T, Args... >	or
+													  (std::is_constructible_v< T, Args... > and std::is_trivial_v<T>);
+	
+	template <typename T, typename ...Args>
+	struct IsNothrowCtor_t { static constexpr bool  value = IsNothrowCtor< T, Args... >; };
 
 	
 	template <typename T>

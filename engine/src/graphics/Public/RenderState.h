@@ -32,11 +32,11 @@ namespace AE::Graphics
 				T	color;
 				T	alpha;
 
-				ColorPair () : color{T::Unknown}, alpha{T::Unknown} {}
-				ColorPair (T rgba) : color{rgba}, alpha{rgba} {}
-				ColorPair (T rgb, T a) : color{rgb}, alpha{a} {}
+				ColorPair ()			__NE___	: color{T::Unknown}, alpha{T::Unknown} {}
+				ColorPair (T rgba)		__NE___	: color{rgba}, alpha{rgba} {}
+				ColorPair (T rgb, T a)	__NE___	: color{rgb}, alpha{a} {}
 
-				ND_ bool  operator == (const ColorPair<T> &rhs) const {
+				ND_ bool  operator == (const ColorPair<T> &rhs) C_NE___ {
 					return color == rhs.color and alpha == rhs.alpha;
 				}
 			};
@@ -48,12 +48,12 @@ namespace AE::Graphics
 				bool	b : 1;
 				bool	a : 1;
 
-				ColorMask () : ColorMask{true} {}
-				explicit ColorMask (bool val) : r{val}, g{val}, b{val}, a{val} {}
+				ColorMask ()					__NE___	: ColorMask{true} {}
+				explicit ColorMask (bool val)	__NE___	: r{val}, g{val}, b{val}, a{val} {}
 
-				ND_ bool  All ()	const	{ return r & g & b & a; }
-				ND_ bool  Any ()	const	{ return r | g | b | a; }
-				ND_ bool  None ()	const	{ return not Any(); }
+				ND_ bool  All ()				C_NE___	{ return r & g & b & a; }
+				ND_ bool  Any ()				C_NE___	{ return r | g | b | a; }
+				ND_ bool  None ()				C_NE___	{ return not Any(); }
 			};
 
 
@@ -65,10 +65,10 @@ namespace AE::Graphics
 			ColorMask					colorMask;
 		
 		// methods
-			ColorBuffer () {}
+			ColorBuffer ()										__NE___	{}
 
-			ND_ bool	operator == (const ColorBuffer &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const ColorBuffer &rhs)	C_NE___;
+			ND_ HashVal	CalcHash ()								C_NE___;
 		};
 		STATIC_ASSERT( sizeof(ColorBuffer) == 8 );
 
@@ -87,10 +87,10 @@ namespace AE::Graphics
 			RGBA32f				blendColor	{ 1.0f };
 
 		// methods
-			ColorBuffersState () {}
+			ColorBuffersState ()									__NE___	{}
 
-			ND_ bool	operator == (const ColorBuffersState &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const ColorBuffersState &rhs)	C_NE___;
+			ND_ HashVal	CalcHash ()									C_NE___;
 		};
 		STATIC_ASSERT( sizeof(ColorBuffersState) == 84 );
 		
@@ -110,10 +110,10 @@ namespace AE::Graphics
 			ubyte			compareMask		= UMax;
 
 		// methods
-			StencilFaceState () {}
+			StencilFaceState ()										__NE___	{}
 
-			ND_ bool	operator == (const StencilFaceState &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const StencilFaceState &rhs)	C_NE___;
+			ND_ HashVal	CalcHash ()									C_NE___;
 		};
 		STATIC_ASSERT( sizeof(StencilFaceState) == 7 );
 
@@ -129,10 +129,10 @@ namespace AE::Graphics
 			bool				enabled	= false;	// stencil write/test
 
 		// methods
-			StencilBufferState () {}
+			StencilBufferState ()									__NE___	{}
 
-			ND_ bool	operator == (const StencilBufferState &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const StencilBufferState &rhs)	C_NE___;
+			ND_ HashVal	CalcHash ()									C_NE___;
 		};
 		STATIC_ASSERT( sizeof(StencilBufferState) == 15 );
 
@@ -151,10 +151,10 @@ namespace AE::Graphics
 			bool				test			= true;					// depth test enabled
 
 		// methods
-			DepthBufferState () {}
+			DepthBufferState ()										__NE___	{}
 
-			ND_ bool	operator == (const DepthBufferState &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const DepthBufferState &rhs)	C_NE___;
+			ND_ HashVal	CalcHash ()									C_NE___;
 		};
 		STATIC_ASSERT( sizeof(DepthBufferState) == 12 );
 
@@ -169,10 +169,10 @@ namespace AE::Graphics
 			bool			primitiveRestart	= false;	// if 'true' then index with -1 value will restarting the assembly of primitives
 
 		// methods
-			InputAssemblyState () {}
+			InputAssemblyState ()									__NE___	{}
 
-			ND_ bool	operator == (const InputAssemblyState &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const InputAssemblyState &rhs)	C_NE___;
+			ND_ HashVal	CalcHash ()									C_NE___;
 		};
 		STATIC_ASSERT( sizeof(InputAssemblyState) == 2 );
 
@@ -197,10 +197,10 @@ namespace AE::Graphics
 			ECullMode		cullMode				= ECullMode::None;
 
 		// methods
-			RasterizationState () {}
+			RasterizationState ()									__NE___	{}
 
-			ND_ bool	operator == (const RasterizationState &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const RasterizationState &rhs)	C_NE___;
+			ND_ HashVal	CalcHash ()									C_NE___;
 		};
 		STATIC_ASSERT( sizeof(RasterizationState) == 20 );
 
@@ -224,10 +224,10 @@ namespace AE::Graphics
 			bool				alphaToOne			= false;
 
 		// methods
-			MultisampleState () {}
+			MultisampleState ()										__NE___	{}
 
-			ND_ bool	operator == (const MultisampleState &rhs) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const MultisampleState &rhs)	C_NE___;
+			ND_ HashVal	CalcHash ()									C_NE___;
 		};
 		STATIC_ASSERT( sizeof(MultisampleState) == 12 );
 
@@ -244,13 +244,13 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		RenderState () {}
+		RenderState ()										__NE___	{}
 
-		ND_ bool	operator == (const RenderState &rhs) const;
-		ND_ HashVal	CalcHash () const;
+		ND_ bool	operator == (const RenderState &rhs)	C_NE___;
+		ND_ HashVal	CalcHash ()								C_NE___;
 
-			void  Set (const MDepthStencilState &ds, const MDynamicRenderState &rs);
-			void  SetDefault (EPipelineDynamicState);
+			void	Set (const MDepthStencilState &ds, const MDynamicRenderState &rs) __NE___;
+			void	SetDefault (EPipelineDynamicState)		__NE___;
 	};
 	STATIC_ASSERT( sizeof(RenderState) == 148 );
 	
@@ -270,12 +270,12 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MDepthStencilState () {}
+		MDepthStencilState ()									__NE___	{}
 
-		ND_ bool	operator == (const MDepthStencilState &rhs) const;
-		ND_ HashVal	CalcHash () const;
+		ND_ bool	operator == (const MDepthStencilState &rhs)	C_NE___;
+		ND_ HashVal	CalcHash ()									C_NE___;
 
-			void  Set (const RenderState &rs);
+			void	Set (const RenderState &rs)					__NE___;
 	};
 
 
@@ -301,12 +301,12 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MDynamicRenderState () {}
+		MDynamicRenderState ()										__NE___	{}
 
-		ND_ bool	operator == (const MDynamicRenderState &rhs) const;
-		ND_ HashVal	CalcHash () const;
+		ND_ bool	operator == (const MDynamicRenderState &rhs)	C_NE___;
+		ND_ HashVal	CalcHash ()										C_NE___;
 
-			void  Set (const RenderState &rs);
+			void	Set (const RenderState &rs)						__NE___;
 	};
 
 

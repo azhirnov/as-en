@@ -37,7 +37,7 @@ namespace AE::Graphics
 		Host,
 		Graphics,
 		Compute,
-		Transfer_Graphics,	// blit, clear, resolve requires graphics queue
+		Transfer_Graphics,	// blit, clear, resolve requires graphics queue, include Transfer_Copy
 		Transfer_Copy,		// for async transfer queue
 		RayTracing,
 		RTAS_Build,

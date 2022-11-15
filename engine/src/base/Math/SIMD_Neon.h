@@ -10,7 +10,6 @@
 #include "base/Math/Float16.h"
 
 #ifdef AE_SIMD_NEON
-//# define AE_NEON_HALF
 
 namespace AE::Math
 {
@@ -38,11 +37,12 @@ namespace AE::Math
 
 
 
-# ifdef AE_NEON_HALF
+# ifdef AE_SIMD_NEON_HALF
 
 	//
 	// 64 bit half float (Neon)
 	//
+#	define AE_SIMD_SimdHalf4
 	struct SimdHalf4
 	{
 	// types
@@ -134,13 +134,14 @@ namespace AE::Math
 		template <typename T> ND_ EnableIf< IsSameTypes<T,ushort>, SimdUShort4>  BitCast () const;
 	};
 
-# endif // AE_NEON_HALF
+# endif // AE_SIMD_NEON_HALF
 
 
 	
 	//
 	// 64 bit integer (Neon)
 	//
+#	define AE_SIMD_SimdTInt64
 	template <typename IntType>
 	struct SimdTInt64
 	{
@@ -378,6 +379,7 @@ namespace AE::Math
 	//
 	// 128 bit integer (Neon)
 	//
+#	define AE_SIMD_SimdTInt128
 	template <typename IntType>
 	struct SimdTInt128
 	{
@@ -695,11 +697,12 @@ namespace AE::Math
 
 
 
-# ifdef AE_NEON_HALF
+# ifdef AE_SIMD_NEON_HALF
 
 	//
 	// 128 bit half float (Neon)
 	//
+#	define AE_SIMD_SimdHalf8
 	struct SimdHalf8
 	{
 	// types
@@ -786,13 +789,14 @@ namespace AE::Math
 		template <typename T> ND_ EnableIf< IsSameTypes<T,ushort>, SimdUShort8>  BitCast () const;
 	};
 
-# endif // AE_NEON_HALF
+# endif // AE_SIMD_NEON_HALF
 	
 	
 
 	//
 	// 128 bit float (Neon)
 	//
+#	define AE_SIMD_SimdFloat4
 	struct SimdFloat4
 	{
 	// types
@@ -893,6 +897,7 @@ namespace AE::Math
 	//
 	// 128 bit double (Neon)
 	//
+#	define AE_SIMD_SimdDouble2
 	struct SimdDouble2
 	{
 	// types
@@ -968,6 +973,7 @@ namespace AE::Math
 	//
 	// 128 bit int
 	//
+#	define AE_SIMD_Int128b
 	struct Int128b
 	{
 	// types
@@ -1000,7 +1006,7 @@ namespace AE::Math
 
 
 	
-# ifdef AE_NEON_HALF
+# ifdef AE_SIMD_NEON_HALF
 	inline SimdHalf4::Bool4::Bool4 (const SimdUShort4 &v) : _value{v.Get()} {}
 
 	template <typename T> ND_ EnableIf< IsSameTypes<T,float>,  SimdFloat4>		SimdHalf4::Cast ()		const	{ return SimdFloat4{ vcvt_f32_f16( _value )}; }

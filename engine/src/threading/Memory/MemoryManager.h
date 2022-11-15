@@ -10,6 +10,9 @@
 #include "threading/Memory/StackAllocator.h"
 #include "threading/Memory/MemoryProfiler.h"
 
+namespace AE::Threading { class MemoryManagerImpl; }
+namespace AE { Threading::MemoryManagerImpl&  MemoryManager () __NE___; }
+
 namespace AE::Threading
 {
 
@@ -17,12 +20,12 @@ namespace AE::Threading
 	// Memory Manager
 	//
 
-	class MemoryManager final : public Noncopyable
+	class MemoryManagerImpl final : public Noncopyable
 	{
 	// types
 	public:
 		using GlobalLinearAllocator_t	= LfLinearAllocator< 16u<<20, AE_CACHE_LINE, 32 >;
-		using FrameAllocator_t			= StackAllocator< UntypedAlignedAllocator, 16, true >;
+		using FrameAllocator_t			= StackAllocator< UntypedAllocator, 16, true >;
 		
 		struct FrameAlloc
 		{
@@ -31,15 +34,14 @@ namespace AE::Threading
 			FrameAllocator_t	_alloc	[4];
 
 		public:
-			FrameAlloc () : _idx{0} {}
+			FrameAlloc ()					__NE___	: _idx{0} {}
 
-			void  Next ()	{ ++_idx;  _alloc[_idx].Discard(); }
+			void  Next ()					__NE___	{ ++_idx;  _alloc[_idx].Discard(); }
 
-			ND_ FrameAllocator_t&  Get ()	{ return _alloc[_idx]; }
+			ND_ FrameAllocator_t&  Get ()	__NE___	{ return _alloc[_idx]; }
 		};
 
 		using DefaultAlloc_t		= AllocatorImpl< UntypedAllocator >;
-		using DefaultAlignedAlloc_t	= AlignedAllocatorImpl< UntypedAlignedAllocator >;
 
 
 	// variables
@@ -50,7 +52,6 @@ namespace AE::Threading
 		FrameAlloc						_simulationFrameAlloc;
 
 		InPlace<DefaultAlloc_t>			_defaultAlloc;
-		InPlace<DefaultAlignedAlloc_t>	_defaultAlignedAlloc;
 		
 		PROFILE_ONLY(
 			AtomicRC<IMemoryProfiler>	_profiler;
@@ -59,38 +60,41 @@ namespace AE::Threading
 
 	// methods
 	public:
-		static void  CreateInstance ();
-		static void  DestroyInstance ();
+		static void  CreateInstance ()									__NE___;
+		static void  DestroyInstance ()									__NE___;
 		
-		void  SetProfiler (RC<IMemoryProfiler> profiler);
+		void  SetProfiler (RC<IMemoryProfiler> profiler)				__NE___;
 
-		ND_ GlobalLinearAllocator_t&	GetGlobalLinearAllocator ()		{ return _globalLinear; }
+		ND_ GlobalLinearAllocator_t&	GetGlobalLinearAllocator ()		__NE___	{ return _globalLinear; }
 
-		ND_ FrameAlloc&					GetGraphicsFrameAllocator ()	{ return _graphicsFrameAlloc; }
-		ND_ FrameAlloc&					GetSimulationFrameAllocator ()	{ return _simulationFrameAlloc; }
+		ND_ FrameAlloc&					GetGraphicsFrameAllocator ()	__NE___	{ return _graphicsFrameAlloc; }
+		ND_ FrameAlloc&					GetSimulationFrameAllocator ()	__NE___	{ return _simulationFrameAlloc; }
 
-		ND_ RC<IAllocator>				GetDefaultAllocator ()			{ return _defaultAlloc->GetRC(); }
-		ND_ RC<IAlignedAllocator>		GetDefaultAlignedAllocator ()	{ return _defaultAlignedAlloc->GetRC(); }
+		ND_ RC<IAllocator>				GetDefaultAllocator ()			__NE___	{ return _defaultAlloc->GetRC(); }
 
 
 	private:
-		MemoryManager ();
-		~MemoryManager ();
+		MemoryManagerImpl ()	__NE___;
+		~MemoryManagerImpl ()	__NE___;
 		
-		friend MemoryManager&  MemoryManagerInstance ();
+		friend MemoryManagerImpl&  AE::MemoryManager () __NE___;
 
-		ND_ static MemoryManager*  _Instance ();
+		ND_ static MemoryManagerImpl*  _Instance () __NE___;
 	};
 
-	
+} // AE::Threading
+
+
+namespace AE
+{
 /*
 =================================================
-	MemoryManagerInstance
+	MemoryManager
 =================================================
 */
-	ND_ inline MemoryManager&  MemoryManagerInstance ()
+	ND_ forceinline Threading::MemoryManagerImpl&  MemoryManager () __NE___
 	{
-		return *MemoryManager::_Instance();
+		return *Threading::MemoryManagerImpl::_Instance();
 	}
 
-} // AE::Threading
+} // AE

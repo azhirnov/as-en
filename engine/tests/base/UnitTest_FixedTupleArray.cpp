@@ -147,6 +147,23 @@ namespace
 			TEST( arr.get<T2>()[0] == T2(2.2f) );
 			TEST( arr.get<T2>()[1] == T2(3.3f) );
 			TEST( arr.get<T2>()[2] == T2(5.8f) );
+
+			FixedTupleArray< 32, T1, T2 >	arr2{ RVRef(arr) };
+			TEST( arr.empty() );
+			TEST( arr2.size() == 3 );
+			TEST( arr2.get<T1>()[0] == T1(1) );
+			TEST( arr2.get<T1>()[1] == T1(2) );
+			TEST( arr2.get<T1>()[2] == T1(4) );
+			TEST( arr2.get<T2>()[0] == T2(2.2f) );
+			TEST( arr2.get<T2>()[1] == T2(3.3f) );
+			TEST( arr2.get<T2>()[2] == T2(5.8f) );
+
+			FixedTupleArray< 32, T1, T2 >	arr3 {arr2};
+			TEST( arr2 == arr3 );
+
+			arr = arr2;
+			TEST( arr == arr2 );
+			TEST( arr == arr3 );
 		}
 		TEST( T1::CheckStatistic() );
 		TEST( T2::CheckStatistic() );

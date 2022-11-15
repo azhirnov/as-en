@@ -23,8 +23,10 @@ elseif (${AE_ENABLE_GLFW})
 
 	if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 		target_compile_definitions( "Platform" PRIVATE GLFW_EXPOSE_NATIVE_COCOA )
+
 	elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 		target_compile_definitions( "Platform" PRIVATE GLFW_EXPOSE_NATIVE_WIN32 )
+
 	elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 		target_compile_definitions( "Platform" PRIVATE GLFW_EXPOSE_NATIVE_X11 )	# GLFW_EXPOSE_NATIVE_WAYLAND
 	endif()

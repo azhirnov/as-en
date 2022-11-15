@@ -129,7 +129,9 @@ extern void Test_Application ()
 
 	Application_t::Run( MakeUnique<AppListener>() );
 
-	TEST( *events == Array<int>{ 1, 2, 3, 4, 5, 6, 5, 7, 8, 9, 10, 11 });
+	TEST( ArrayView<int>{*events}.section( 0, 6 ) == Array<int>{ 1, 2, 3, 4, 5, 6 });
+	
+	TEST( ArrayView<int>{*events}.section( 6, UMax ) == Array<int>{ 5, 7, 8, 9, 10, 11 });
 
 	events.Destroy();
 

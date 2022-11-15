@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "base/Algorithms/StringUtils.h"
 #include "platform/Public/IWindow.h"
 #include "platform/Public/IApplication.h"
 
@@ -16,7 +17,6 @@ using namespace AE::Graphics;
 # include "VulkanSyncLog.h"
 #endif
 
-using AE::Threading::Scheduler;
 using EStatus = AE::Threading::IAsyncTask::EStatus;
 
 using ImageComparator = GraphicsTest::ImageComparator;
@@ -42,12 +42,16 @@ protected:
 	uint						_testsFailed		= 0;
 	
 	Path						_refDumpPath;
-
-	#ifdef AE_ENABLE_VULKAN
+	
+  #if defined(AE_ENABLE_VULKAN)
 	VDeviceInitializer			_vulkan;
 	VSwapchainInitializer		_swapchain;
 	VulkanSyncLog				_syncLog;
-	#endif
+
+  #elif defined(AE_ENABLE_METAL)
+	MDeviceInitializer			_metal;
+	MSwapchainInitializer		_swapchain;
+  #endif
 
 
 // methods
@@ -68,6 +72,8 @@ protected:
 	
 	ND_ bool  _CompilePipelines ();
 	ND_ bool  _CompareDumps (StringView filename) const;
+	
+	ND_ static GraphicsCreateInfo  _GetGraphicsCreateInfo ();
 
 private:
 	bool  Test_Canvas_Rect ();

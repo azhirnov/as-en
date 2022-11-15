@@ -18,7 +18,7 @@ namespace
 
 		AsyncTask					result;
 
-		CommandBatchPtr			batch;
+		CommandBatchPtr				batch;
 		bool						isOK	= false;
 
 		ImageComparator *			imgCmp	= null;
@@ -38,8 +38,8 @@ namespace
 	public:
 		D3_TestData&	t;
 
-		D3_DrawTask (D3_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		D3_DrawTask (D3_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -51,7 +51,6 @@ namespace
 			const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
 
 			typename CtxType::Graphics	ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AccumBarriers()
 				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
@@ -62,10 +61,8 @@ namespace
 									.AddViewport( t.viewSize )
 									.AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::Black} ));
 				
-				CHECK_TE( dctx.IsValid() );
-
 				dctx.BindPipeline( t.ppln );
-				dctx.PushConstant( 0_b, Bytes::SizeOf(vertices), vertices, EShaderStages::Vertex );
+				dctx.PushConstant( 0_b, Sizeof(vertices), vertices, EShaderStages::Vertex );
 				dctx.Draw( 3 );
 				
 				ctx.EndRenderPass( dctx );
@@ -84,8 +81,8 @@ namespace
 	public:
 		D3_TestData&	t;
 
-		D3_CopyTask (D3_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		D3_CopyTask (D3_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -95,7 +92,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 			
 			Ctx		ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
 						.Then( [p = &t] (const ImageMemView &view)
@@ -105,7 +101,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -134,19 +130,14 @@ namespace
 		CHECK_ERR( t.ppln );
 
 		AsyncTask	begin	= rts.BeginFrame();
-		CHECK_ERR( begin );
 
-		auto	batch = rts.CreateBatch( EQueueType::Graphics, 0, "Draw3" );
+		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Draw3" );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Add< D3_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin}, "Draw task" );
-		CHECK_ERR( task1 );
-		
 		AsyncTask	task2	= batch->Add< D3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
-		CHECK_ERR( task2 );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
-		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
 		CHECK_ERR( end->Status() == EStatus::Completed );

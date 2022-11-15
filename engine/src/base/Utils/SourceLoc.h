@@ -2,11 +2,11 @@
 
 #pragma once
 
-#include "base/Common.h"
-
+#include "base/StdInclude.h"
 #ifdef AE_HAS_SOURCE_LOCATION
 # include <source_location>
 #endif
+#include "base/Common.h"
 
 namespace AE::Base
 {
@@ -20,23 +20,21 @@ namespace AE::Base
 		StringView	file;
 		uint		line	= 0;
 
+		// TODO: file_name, column ?
+
 		constexpr SourceLoc () {}
 		explicit constexpr SourceLoc (StringView file, uint line = 0) : file{file}, line{line} {}
 		
 		#ifdef AE_HAS_SOURCE_LOCATION
-		ND_ static consteval SourceLoc  Current ()
-		{
-			auto loc = std::source_location::current();
-			return SourceLoc{ loc.file_name(), loc.line() };
-		}
+		explicit constexpr SourceLoc (const std::source_location &loc) : file{loc.file_name()}, line{loc.line()} {}
 		#endif
 	};
 
 	
 	#ifdef AE_HAS_SOURCE_LOCATION
-	# define SourceLoc_Current()	SourceLoc::Current()
+	# define SourceLoc_Current()	AE::Base::SourceLoc{ std::source_location::current() }
 	#else
-	# define SourceLoc_Current()	SourceLoc{ __FILE__, __LINE__ }
+	# define SourceLoc_Current()	AE::Base::SourceLoc{ __FILE__, __LINE__ }
 	#endif
 	
 

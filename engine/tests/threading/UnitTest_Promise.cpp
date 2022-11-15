@@ -35,12 +35,16 @@ namespace
 	static void  Promise_Test2 ()
 	{
 		LocalTaskScheduler	scheduler {1};
-		scheduler->AddThread( MakeRC<WorkerThread>() );
 
 		auto p0 = MakePromise( [] () { return "a"s; });
 		auto p1 = MakePromiseFromValue( "b"s );
 		auto p2 = MakePromise( [] () { return 1u; });
 		auto p3 = MakePromiseFrom( p0, p1, p2 );
+		
+		TEST( AsyncTask{p0}->Status() == EStatus::Pending );
+		TEST( AsyncTask{p1}->Status() == EStatus::Completed );
+
+		scheduler->AddThread( MakeRC<WorkerThread>() );
 
 		auto p4 = p3.Then( [] (const Tuple<String, String, uint> &in) {
 				return in.Get<0>() + in.Get<1>() + ToString( in.Get<2>() );
@@ -114,13 +118,13 @@ namespace
 		StdAtomic<bool>	p3_ok = false;
 
 		auto p2 = p1.Except( [&p2_ok] () { p2_ok = true; });
-		TEST( p2_ok );
-		TEST( AsyncTask(p2)->Status() == EStatus::Canceled );
-		
 		auto p3 = p2.Then( [&p3_ok] () { p3_ok = true; });
 		
 		TEST( Scheduler().Wait({ AsyncTask(p3) }));
+		
+		TEST( p2_ok );
 		TEST( p3_ok );
+		TEST( AsyncTask(p2)->Status() == EStatus::Canceled );
 		TEST( AsyncTask(p3)->Status() == EStatus::Completed );
 	}
 }

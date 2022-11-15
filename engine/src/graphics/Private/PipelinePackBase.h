@@ -43,7 +43,7 @@ namespace AE::Graphics
 		using THashMap				= FlatHashMap< K, V, std::hash<K>, std::equal_to<K>, StdAllocatorRef< Pair<const K, V>, Allocator_t* >>;
 
 		template <typename T>
-		using THashSet				= HashSet< T, std::hash<T>, std::equal_to<T>, StdAllocatorRef< T, Allocator_t* >>;
+		using THashSet				= FlatHashSet< T, std::hash<T>, std::equal_to<T>, StdAllocatorRef< T, Allocator_t* >>;
 
 		using PipelineLayoutDesc	= PipelineCompiler::PipelineLayoutDesc;
 		using PipelineStorage		= PipelineCompiler::PipelineStorage;
@@ -71,7 +71,7 @@ namespace AE::Graphics
 		using SerRTPplnSpec_t		= Tuple< uint, const PipelineCompiler::SerializableRayTracingPipelineSpec *	>;
 		using SerTPplnSpec_t		= Tuple< uint, const PipelineCompiler::SerializableTilePipelineSpec *		>;
 
-		using StackAllocator_t		= StackAllocator< UntypedAlignedAllocator, 16, false >;
+		using StackAllocator_t		= StackAllocator< UntypedAllocator, 16, false >;
 		using FeatureNames_t		= THashSet< FeatureSetName::Optimized_t >;
 		using SamplerRefs_t			= THashMap< SamplerName::Optimized_t, SamplerID_t >;
 		using DSLayoutMap_t			= THashMap< DSLayoutName::Optimized_t, DescriptorSetLayoutID >;
@@ -126,12 +126,12 @@ namespace AE::Graphics
 			ND_ RenderTechName::Optimized_t	Name ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _name; }
 			ND_ bool						IsSupported ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _isSupported; }
 
-			GraphicsPipelineID		GetGraphicsPipeline	 (const PipelineName &name) const override;
-			MeshPipelineID			GetMeshPipeline		 (const PipelineName &name) const override;
-			TilePipelineID			GetTilePipeline		 (const PipelineName &name) const override;
-			ComputePipelineID		GetComputePipeline	 (const PipelineName &name) const override;
-			RayTracingPipelineID	GetRayTracingPipeline(const PipelineName &name) const override;
-			PassInfo				GetPass				 (const RenderTechPassName &pass) const override;
+			GraphicsPipelineID		GetGraphicsPipeline	 (const PipelineName &name)			C_NE_OV;
+			MeshPipelineID			GetMeshPipeline		 (const PipelineName &name)			C_NE_OV;
+			TilePipelineID			GetTilePipeline		 (const PipelineName &name)			C_NE_OV;
+			ComputePipelineID		GetComputePipeline	 (const PipelineName &name)			C_NE_OV;
+			RayTracingPipelineID	GetRayTracingPipeline(const PipelineName &name)			C_NE_OV;
+			PassInfo				GetPass				 (const RenderTechPassName &pass)	C_NE_OV;
 
 
 		private:
@@ -241,7 +241,7 @@ namespace AE::Graphics
 		ND_ virtual bool  _LoadDepthStencilStates (ResMngr_t &, Serializing::Deserializer &) = 0;
 		ND_ virtual bool  _LoadRenderPasses (ResMngr_t &, Bytes offset, Bytes size) = 0;
 
-		ND_ virtual SamplerID_t			_CreateSampler (ResMngr_t &, const SamplerDesc &desc) = 0;
+		ND_ virtual SamplerID_t			_CreateSampler (ResMngr_t &, const SamplerDesc &desc, StringView dbgName) = 0;
 		ND_ virtual ShaderModuleRef_t	_GetShader (const ResMngr_t &, PipelineCompiler::ShaderUID uid, EShader type) const = 0;
 		
 		ND_ virtual Strong<DescriptorSetLayoutID>  _CreateDescriptorSetLayout (ResMngr_t &, const Uniforms_t &, ArrayView<SamplerID_t>, EDescSetUsage, StackAllocator_t &) = 0;

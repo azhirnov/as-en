@@ -153,6 +153,21 @@ namespace
 		}
 		TEST( Elem_t::CheckStatistic() );
 	}
+
+	
+	static void  RingBuffer_Test5 ()
+	{
+		Elem_t::ClearStatistic();
+		{
+			Queue_t		q;
+			
+			q.push_back( Elem_t{10} );
+			q.push_back( Elem_t{10} );
+			q.push_back( Elem_t{10} );
+			
+			TEST_THROW( q.reserve( 1u << 31 ); );
+		}
+	}
 }
 
 
@@ -162,6 +177,7 @@ extern void UnitTest_RingBuffer ()
 	RingBuffer_Test2();
 	RingBuffer_Test3();
 	RingBuffer_Test4();
+	RingBuffer_Test5();
 	
 	TEST_PASSED();
 }

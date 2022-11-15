@@ -117,8 +117,8 @@ namespace AE::PipelineCompiler
 
 		ND_ VkPhysicalDeviceProperties const&						GetDeviceProps ()		const	{ return _vulkan.GetProperties().properties; }
 		ND_ VkPhysicalDeviceFeatures const&							GetDeviceFeats ()		const	{ return _vulkan.GetProperties().features; }
-		ND_ VkPhysicalDeviceMeshShaderFeaturesNV const&				GetMeshShaderFeats ()	const	{ return _vulkan.GetProperties().meshShaderNVFeats; }
-		ND_ VkPhysicalDeviceMeshShaderPropertiesNV const&			GetMeshShaderProps ()	const	{ return _vulkan.GetProperties().meshShaderNVProps; }
+		ND_ VkPhysicalDeviceMeshShaderFeaturesEXT const&			GetMeshShaderFeats ()	const	{ return _vulkan.GetProperties().meshShaderFeats; }
+		ND_ VkPhysicalDeviceMeshShaderPropertiesEXT const&			GetMeshShaderProps ()	const	{ return _vulkan.GetProperties().meshShaderProps; }
 		ND_ VkPhysicalDeviceShaderClockFeaturesKHR const&			GetShaderClockFeats ()	const	{ return _vulkan.GetProperties().shaderClockFeats; }
 		ND_ VkPhysicalDeviceRayTracingPipelineFeaturesKHR const&	GetRayTracingFeats ()	const	{ return _vulkan.GetProperties().rayTracingPipelineFeats; }
 		ND_ VkPhysicalDeviceRayTracingPipelinePropertiesKHR const&	GetRayTracingProps ()	const	{ return _vulkan.GetProperties().rayTracingPipelineProps; }

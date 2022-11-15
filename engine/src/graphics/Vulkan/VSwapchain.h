@@ -25,12 +25,14 @@ namespace AE::Graphics
 			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 
 	protected:
-		static constexpr uint	MaxSwapchainLength = 8;
+		static constexpr uint	_MaxSwapchainLength = 8;
+		static constexpr uint	_ImageIndexBits		= 16;
+		static constexpr uint	_MaxImageIndex		= (1u << _ImageIndexBits) - 1;
 
-		using Images_t			= FixedArray< VkImage, MaxSwapchainLength >;
-		using ImageIDs_t		= FixedArray< Strong<ImageID>, MaxSwapchainLength >;
-		using ImageViewIDs_t	= FixedArray< Strong<ImageViewID>, MaxSwapchainLength >;
-		using Semaphores_t		= StaticArray< VkSemaphore, MaxSwapchainLength >;
+		using Images_t			= FixedArray< VkImage,				_MaxSwapchainLength >;
+		using ImageIDs_t		= FixedArray< Strong<ImageID>,		_MaxSwapchainLength >;
+		using ImageViewIDs_t	= FixedArray< Strong<ImageViewID>,	_MaxSwapchainLength >;
+		using Semaphores_t		= StaticArray< VkSemaphore,			_MaxSwapchainLength >;
 
 
 	// variables
@@ -42,7 +44,7 @@ namespace AE::Graphics
 		VkSurfaceKHR					_vkSurface			= Default;
 
 		uint							_semaphoreId	: 3;
-		uint							_currImageIndex	: 16;
+		uint							_currImageIndex	: _ImageIndexBits;
 
 		Images_t						_vkImages;
 		ImageIDs_t						_imageIDs;
@@ -66,45 +68,46 @@ namespace AE::Graphics
 
 	// methods
 	protected:
-		explicit VSwapchain (const VDevice &dev);
+		explicit VSwapchain (const VDevice &dev)						__NE___;
 
 	public:
-		~VSwapchain ();
+		~VSwapchain ()													__NE___;
 
-		ND_ bool  IsSupported (VQueuePtr queue) const;
+		ND_ bool  IsSupported (VQueuePtr queue)							C_NE___;
 		
-			bool  GetColorFormats (OUT FeatureSet::PixelFormatSet_t &formats) const;
+			bool  GetColorFormats (OUT FeatureSet::PixelFormatSet_t &formats) C_NE___;
 			
-		ND_ VkResult  AcquireNextImage ();
-		ND_ VkResult  AcquireNextImage (OUT VkSemaphore &imageAvailable, OUT VkSemaphore &renderFinished);
-		ND_ VkResult  Present (VQueuePtr queue, ArrayView<VkSemaphore> renderFinished = Default);
+		ND_ VkResult  AcquireNextImage ()																	__NE___;
+		ND_ VkResult  AcquireNextImage (OUT VkSemaphore &imageAvailable, OUT VkSemaphore &renderFinished)	__NE___;
+		ND_ VkResult  Present (VQueuePtr queue, ArrayView<VkSemaphore> renderFinished = Default)			__NE___;
 		
-		ND_ bool						IsInitialized ()			const	{ return GetVkSwapchain() != Default; }
+		ND_ bool						IsInitialized ()				C_NE___	{ return GetVkSwapchain() != Default; }
 		
-		ND_ VkSurfaceKHR				GetVkSurface ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _vkSurface; }
-		ND_ VkSwapchainKHR				GetVkSwapchain ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _vkSwapchain; }
+		ND_ VkSurfaceKHR				GetVkSurface ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkSurface; }
+		ND_ VkSwapchainKHR				GetVkSwapchain ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkSwapchain; }
 
 		// same as output params in 'AcquireNextImage()'
-		ND_ VkSemaphore					GetImageAvailableSemaphore ()const	{ DRC_SHAREDLOCK( _drCheck );  return _imageAvailableSem[_semaphoreId]; }
-		ND_ VkSemaphore					GetRenderFinishedSemaphore ()const	{ DRC_SHAREDLOCK( _drCheck );  return _renderFinishedSem[_semaphoreId]; }
+		ND_ VkSemaphore					GetImageAvailableSemaphore ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _imageAvailableSem[_semaphoreId]; }
+		ND_ VkSemaphore					GetRenderFinishedSemaphore ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderFinishedSem[_semaphoreId]; }
 
-		ND_ uint2						GetSurfaceSize ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _surfaceSize; }
+		ND_ uint2						GetSurfaceSize ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _surfaceSize; }
 
-		ND_ EPixelFormat				GetColorFormat ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _colorFormat; }
+		ND_ EPixelFormat				GetColorFormat ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _colorFormat; }
 
-		ND_ VkFormat					GetVkColorFormat ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _vkColorFormat; }
-		ND_ VkColorSpaceKHR				GetVkColorSpace ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _vkColorSpace; }
-		ND_ VkSurfaceTransformFlagBitsKHR GetVkPreTransformFlags ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _vkPreTransform; }
-		ND_ VkPresentModeKHR			GetVkPresentMode ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _vkPresentMode; }
-		ND_ VkCompositeAlphaFlagBitsKHR	GetVkCompositeAlphaMode ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _vkCompositeAlpha; }
+		ND_ VkFormat					GetVkColorFormat ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkColorFormat; }
+		ND_ VkColorSpaceKHR				GetVkColorSpace ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkColorSpace; }
+		ND_ VkSurfaceTransformFlagBitsKHR GetVkPreTransformFlags ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkPreTransform; }
+		ND_ VkPresentModeKHR			GetVkPresentMode ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkPresentMode; }
+		ND_ VkCompositeAlphaFlagBitsKHR	GetVkCompositeAlphaMode ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkCompositeAlpha; }
 
-		ND_ uint						GetSwapchainLength ()		const	{ DRC_SHAREDLOCK( _drCheck );  return uint(_vkImages.size()); }
-		ND_ uint						GetCurretImageIndex ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _currImageIndex; }
-		ND_ bool						IsImageAcquired ()			const	{ DRC_SHAREDLOCK( _drCheck );  return GetCurretImageIndex() < GetSwapchainLength(); }
+		ND_ uint						GetSwapchainLength ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint(_vkImages.size()); }
+		ND_ uint						GetCurretImageIndex ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _currImageIndex; }
+		ND_ bool						IsImageAcquired ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return GetCurretImageIndex() < GetSwapchainLength(); }
 
-		ND_ VkImageUsageFlagBits		GetVkImageUsage ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _vkColorImageUsage; }
-		ND_ VkImage						GetVkCurrentImage ()		const;
-		ND_ ImageAndViewID				GetCurrentImageAndViewID ()	const;
+		ND_ VkImageUsageFlagBits		GetVkImageUsage ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkColorImageUsage; }
+		ND_ VkImage						GetVkCurrentImage ()			C_NE___;
+		ND_ ImageAndViewID				GetCurrentImageAndViewID ()		C_NE___;
+		ND_ ImageAndViewID				GetImageAndViewID (uint i)		C_NE___;
 	};
 
 	
@@ -173,31 +176,6 @@ namespace AE::Graphics
 			void  _GetSurfaceTransform (INOUT VkSurfaceTransformFlagBitsKHR &transform, const VkSurfaceCapabilitiesKHR &surfaceCaps) const;
 			void  _GetSurfaceImageCount (INOUT uint &minImageCount, const VkSurfaceCapabilitiesKHR &surfaceCaps) const;
 	};
-
-	
-/*
-=================================================
-	GetVkCurrentImage
-=================================================
-*/
-	inline VkImage  VSwapchain::GetVkCurrentImage () const
-	{
-		DRC_SHAREDLOCK( _drCheck );
-		return _currImageIndex < _vkImages.size() ? _vkImages[_currImageIndex] : Default;
-	}
-	
-/*
-=================================================
-	GetCurrentImageAndViewID
-=================================================
-*/
-	inline ImageAndViewID  VSwapchain::GetCurrentImageAndViewID () const
-	{
-		DRC_SHAREDLOCK( _drCheck );
-		return	_currImageIndex < _imageIDs.size() ?
-					ImageAndViewID{ ImageID{_imageIDs[_currImageIndex]}, ImageViewID{_imageViewIDs[_currImageIndex]} } :
-					Default;
-	}
 
 
 } // AE::Graphics

@@ -57,8 +57,8 @@ namespace
 	public:
 		AC2_TestData&	t;
 
-		AC2_GraphicsTask (AC2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		AC2_GraphicsTask (AC2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{
 			CHECK( batch->GetQueueType() == EQueueType::Graphics );
@@ -72,7 +72,6 @@ namespace
 			const uint	fi = t.frameIdx.load() & 1;
 
 			typename CtxTypes::Graphics		ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 
 			ctx.AcquireResources();
 			ctx.CommitBarriers();
@@ -82,7 +81,6 @@ namespace
 				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.imageSize }
 										.AddViewport( t.imageSize )
 										.AddTarget( AttachmentName{"Color"}, t.view[fi], RGBA32f{1.0f} ));
-				CHECK_TE( dctx.IsValid() );
 
 				dctx.BindPipeline( t.gppln );
 				dctx.Draw( 3 );
@@ -93,7 +91,7 @@ namespace
 			ctx.ReleaseResources();
 			ctx.CommitBarriers();
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -104,8 +102,8 @@ namespace
 	public:
 		AC2_TestData&	t;
 
-		AC2_ComputeTask (AC2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		AC2_ComputeTask (AC2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{
 			CHECK( batch->GetQueueType() == EQueueType::AsyncCompute );
@@ -119,7 +117,6 @@ namespace
 			const uint	fi = t.frameIdx.load() & 1;
 
 			typename CtxTypes::Compute	ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AcquireResources();
 			ctx.CommitBarriers();
@@ -131,7 +128,7 @@ namespace
 			ctx.ReleaseResources();
 			ctx.CommitBarriers();
 
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 	
@@ -142,8 +139,8 @@ namespace
 	public:
 		AC2_TestData&	t;
 
-		CopyTask (AC2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		CopyTask (AC2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -153,7 +150,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 			
 			Ctx		ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AcquireResources();
 			ctx.CommitBarriers();
@@ -179,7 +175,7 @@ namespace
 			ctx.ReleaseResources();
 			ctx.CommitBarriers();
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 	
@@ -200,7 +196,6 @@ namespace
 			if ( t.frameIdx.load() == 3 )
 			{
 				AsyncTask	begin = t.rg.BeginFrame();
-				CHECK_TE( begin );
 
 				auto	batch = t.rg.CreateBatch( EQueueType::Graphics, "copy task" );
 				CHECK_TE( batch );
@@ -209,15 +204,11 @@ namespace
 				batch->AcquireResource( t.image[1], img_comp_state );
 				//batch->ReadbackDeviceData();
 				
-				AsyncTask	read_task = batch->Add<CopyTask<CopyCtx>>( Tuple{ArgRef(t)}, Tuple{begin}, "Readback task" );
-				CHECK_TE( read_task );
-
-				AsyncTask	end = t.rg.EndFrame( Tuple{read_task} );
-				CHECK_TE( end );
+				AsyncTask	read_task	= batch->Add<CopyTask<CopyCtx>>( Tuple{ArgRef(t)}, Tuple{begin}, "Readback task" );
+				AsyncTask	end			= t.rg.EndFrame( Tuple{read_task} );
 				
 				++t.frameIdx;
-				CHECK_TE( Continue( Tuple{end} ));
-				return;
+				return Continue( Tuple{end} );
 			}
 
 			if ( t.frameIdx.load() > 3 )
@@ -226,7 +217,6 @@ namespace
 			const uint	fi = t.frameIdx.load() & 1;
 
 			AsyncTask	begin = t.rg.BeginFrame();
-			CHECK_TE( begin );
 			
 			CommandBatchPtr	batch_gfx;
 			CommandBatchPtr	batch_ac;
@@ -247,20 +237,16 @@ namespace
 				t.rg.BuildBatchGraph();
 			}
 
-			AsyncTask	gfx_task = batch_gfx->Add< AC2_GraphicsTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin}, "graphics task" );
-			CHECK_TE( gfx_task );
-		
-			AsyncTask	comp_task = batch_ac->Add< AC2_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{gfx_task}, "async compute task" );
-			CHECK_TE( comp_task );
+			AsyncTask	gfx_task	= batch_gfx->Add< AC2_GraphicsTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin}, "graphics task" );
+			AsyncTask	comp_task	= batch_ac->Add< AC2_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{gfx_task}, "async compute task" );
 
-			AsyncTask	end = t.rg.EndFrame( Tuple{ gfx_task, comp_task });
-			CHECK_TE( end );
+			AsyncTask	end			= t.rg.EndFrame( Tuple{ gfx_task, comp_task });
 
 			++t.frameIdx;
-			CHECK_TE( Continue( Tuple{end} ));
+			Continue( Tuple{end} );
 		}
 
-		StringView  DbgName () const override { return "AC2_FrameTask"; }
+		StringView  DbgName ()	C_NE_OV	{ return "AC2_FrameTask"; }
 	};
 
 	

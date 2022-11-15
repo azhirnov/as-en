@@ -4,14 +4,15 @@
 
 #ifdef AE_ENABLE_IMGUI
 
+# include "base/StdInclude.h"
+# include "imgui.h"
+
 # include "base/Containers/RingBuffer.h"
 # include "base/Math/PseudoRandom.h"
 # include "base/Math/Color.h"
 # include "base/Math/Rectangle.h"
 
 # include "threading/Common.h"
-
-# include "imgui.h"
 
 namespace AE::Profiler
 {

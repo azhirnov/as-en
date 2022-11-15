@@ -71,8 +71,8 @@ namespace
 	public:
 		C1_TestData&	t;
 
-		C1_ComputeTask (C1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		C1_ComputeTask (C1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -82,7 +82,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 
 			Ctx		ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 			
 			const auto	img_state = EResourceState::ShaderStorage_Write | EResourceState::ComputeShader;
 
@@ -118,8 +117,8 @@ namespace
 	public:
 		C1_TestData&	t;
 
-		C1_CopyTask (C1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		C1_CopyTask (C1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -129,7 +128,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 			
 			Ctx		ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 
 			t.result0 = AsyncTask{ ctx.ReadbackImage( t.img0, Default )
 						.Then( [p = &t] (const ImageMemView &view)
@@ -149,7 +147,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -220,19 +218,14 @@ namespace
 		}
 
 		AsyncTask	begin	= rts.BeginFrame();
-		CHECK_ERR( begin );
 
 		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Compute1" );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Add< C1_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, "Compute task" );
-		CHECK_ERR( task1 );
-		
 		AsyncTask	task2	= batch->Add< C1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
-		CHECK_ERR( task2 );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
-		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
 		CHECK_ERR( end->Status() == EStatus::Completed );

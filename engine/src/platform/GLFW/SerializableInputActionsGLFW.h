@@ -201,14 +201,12 @@ namespace AE::App
 		bool  IsCursor1D (ushort type)	const override	{ return _IsCursor1D( EInputType(type) ); }
 		bool  IsCursor2D (ushort type)	const override	{ return _IsCursor2D( EInputType(type) ); }
 		
-	  #if not AE_OPTIMIZE_IDS
 		String  ToString () const override;
-	  #endif
 
 	  #ifdef AE_ENABLE_SCRIPTING
 		bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc) override;
 
-		ND_ static bool  Bind (const Scripting::ScriptEnginePtr &se);
+		static void  Bind (const Scripting::ScriptEnginePtr &se) __TH___;
 	  #endif
 
 	private:

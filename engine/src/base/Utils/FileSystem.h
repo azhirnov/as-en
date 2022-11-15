@@ -5,15 +5,17 @@
 
 #pragma once
 
-#include "base/Math/Bytes.h"
+#include "base/StdInclude.h"
 
 #ifdef AE_ENABLE_GFS
 #  include "filesystem.hpp"
 	namespace _ae_fs_ = ghc::filesystem;
 #else
-#  include <filesystem>
+#	include <filesystem>
 	namespace _ae_fs_ = std::filesystem;
 #endif
+
+#include "base/Math/Bytes.h"
 
 namespace AE::Base
 {
@@ -39,28 +41,28 @@ namespace AE::Base
 	public:
 		// remove file or empty directory.
 		// returns 'true' if the file was deleted.
-		static bool  Remove (const Path &p);
+		static bool  Remove (const Path &p)				__NE___;
 
 		// remove directory and all subdirectories.
-		static bool  RemoveAll (const Path &p);
+		static bool  RemoveAll (const Path &p)			__NE___;
 
 		// create directory, parent directory must be exists
-		static bool  CreateDirectory (const Path &p);
+		static bool  CreateDirectory (const Path &p)	__NE___;
 
 		// create all directories that is not exists
-		static bool  CreateDirectories (const Path &p);
+		static bool  CreateDirectories (const Path &p)	__NE___;
 
 		// set working directory
-		static bool  SetCurrentPath (const Path &p);
+		static bool  SetCurrentPath (const Path &p)		__NE___;
 
 		// returns 'true' if file or directory is exists
-		ND_ static bool  Exists (const Path &p);
+		ND_ static bool  Exists (const Path &p)			__NE___;
 		
 		// returns 'true' if path refers to a file
-		ND_ static bool  IsFile (const Path &p);
+		ND_ static bool  IsFile (const Path &p)			__NE___;
 
 		// returns 'true' if path refers to a directory
-		ND_ static bool  IsDirectory (const Path &p);
+		ND_ static bool  IsDirectory (const Path &p)	__NE___;
 
 		// returns current path
 		ND_ static Path  CurrentPath ();
@@ -75,16 +77,16 @@ namespace AE::Base
 		ND_ static DirectoryIter  Enum (const Path &p);
 
 		// 
-		static bool  CopyFile (const Path &from, const Path &to);
-		static bool  CopyDirectory (const Path &from, const Path &to);
-
+		static bool  CopyFile (const Path &from, const Path &to)		__NE___;
+		static bool  CopyDirectory (const Path &from, const Path &to)	__NE___;
+		
 		// writes file system capacity and available space
-		static bool  GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available);
+		static bool  GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available) __NE___;
 
 		// replace unsupported symbols.
 		// returns 'true' if name is not modified.
 		template <typename T>
-		static bool  ValidateFileName (INOUT BasicString<T> &name);
+		static bool  ValidateFileName (INOUT BasicString<T> &name)		__NE___;
 
 		
 	// utils
@@ -112,50 +114,50 @@ namespace AE::Base
 
 	
 
-	inline bool  FileSystem::Remove (const Path &p)
+	inline bool  FileSystem::Remove (const Path &p) __NE___
 	{
 		std::error_code	ec;
 		return _ae_fs_::remove( p, OUT ec );
 	}
 	
-	inline bool  FileSystem::RemoveAll (const Path &p)
+	inline bool  FileSystem::RemoveAll (const Path &p) __NE___
 	{
 		std::error_code	ec;
 		return _ae_fs_::remove_all( p, OUT ec ) != UMax;
 	}
 	
-	inline bool  FileSystem::CreateDirectory (const Path &p)
+	inline bool  FileSystem::CreateDirectory (const Path &p) __NE___
 	{
 		std::error_code	ec;
 		return _ae_fs_::create_directory( p, OUT ec );
 	}
 	
-	inline bool  FileSystem::CreateDirectories (const Path &p)
+	inline bool  FileSystem::CreateDirectories (const Path &p) __NE___
 	{
 		std::error_code	ec;
 		return _ae_fs_::create_directories( p, OUT ec );
 	}
 	
-	inline bool  FileSystem::SetCurrentPath (const Path &p)
+	inline bool  FileSystem::SetCurrentPath (const Path &p) __NE___
 	{
 		std::error_code	ec;
 		_ae_fs_::current_path( p, OUT ec );
 		return ec == Default;
 	}
 		
-	inline bool  FileSystem::Exists (const Path &p)
+	inline bool  FileSystem::Exists (const Path &p) __NE___
 	{
 		std::error_code	ec;
 		return _ae_fs_::exists( p, OUT ec );
 	}
 	
-	inline bool  FileSystem::IsFile (const Path &p)
+	inline bool  FileSystem::IsFile (const Path &p) __NE___
 	{
 		std::error_code	ec;
 		return not _ae_fs_::is_directory( p, OUT ec );	// TODO
 	}
 
-	inline bool  FileSystem::IsDirectory (const Path &p)
+	inline bool  FileSystem::IsDirectory (const Path &p) __NE___
 	{
 		std::error_code	ec;
 		return _ae_fs_::is_directory( p, OUT ec );
@@ -185,20 +187,20 @@ namespace AE::Base
 		return _ae_fs_::directory_iterator{ p, OUT ec };
 	}
 	
-	inline bool  FileSystem::CopyFile (const Path &from, const Path &to)
+	inline bool  FileSystem::CopyFile (const Path &from, const Path &to) __NE___
 	{
 		std::error_code	ec;
 		return _ae_fs_::copy_file( from, to, _ae_fs_::copy_options::overwrite_existing, OUT ec );
 	}
 
-	inline bool  FileSystem::CopyDirectory (const Path &from, const Path &to)
+	inline bool  FileSystem::CopyDirectory (const Path &from, const Path &to) __NE___
 	{
 		std::error_code	ec;
 		_ae_fs_::copy( from, to, _ae_fs_::copy_options::recursive, OUT ec );
 		return not ec;
 	}
 	
-	inline bool  FileSystem::GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available)
+	inline bool  FileSystem::GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available) __NE___
 	{
 		std::error_code	ec;
 		auto	space = _ae_fs_::space( path, OUT ec );
@@ -212,7 +214,7 @@ namespace AE::Base
 	}
 	
 	template <typename T>
-	inline bool  FileSystem::ValidateFileName (INOUT BasicString<T> &name)
+	inline bool  FileSystem::ValidateFileName (INOUT BasicString<T> &name) __NE___
 	{
 		bool	res = true;
 		for (usize i = 0; i < name.size(); ++i)
@@ -240,7 +242,7 @@ namespace AE::Base
 	}
 
 
-	ND_ inline bool  IsAnsiPath (const Path &path)
+	ND_ inline bool  IsAnsiPath (const Path &path) __NE___
 	{
 		for (auto& c : path.native())
 		{
@@ -265,7 +267,7 @@ namespace std
 	template <>
 	struct hash< AE::Base::Path >
 	{
-		ND_ size_t  operator () (const AE::Base::Path &value) const
+		ND_ size_t  operator () (const AE::Base::Path &value) C_NE___
 		{
 			ASSERT( value.is_absolute() );
 			return size_t(AE::Base::HashOf( value.native() ));

@@ -7,12 +7,12 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-# include "graphics/Metal/Commands/MRenderTaskScheduler.h"
 # include "graphics/Metal/Commands/MBakedCommands.h"
 # include "graphics/Metal/Commands/MBaseIndirectContext.h"
 # include "graphics/Metal/Commands/MBaseDirectContext.h"
 # include "graphics/Metal/Commands/MAccumBarriers.h"
 # include "graphics/Metal/Commands/MArgumentSetter.h"
+# include "graphics/Metal/MRenderTaskScheduler.h"
 
 namespace AE::Graphics::_hidden_
 {
@@ -46,15 +46,18 @@ namespace AE::Graphics::_hidden_
 		void  SetImageblock (const uint2 &dimInPix);
 
 		ND_ ArgSet_t  Arguments ()									{ return ArgSet_t{ _encoder }; }
+		
+		ND_ MetalCommandBufferRC	EndCommandBuffer ();
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ();
 
 	protected:
-		_MDirectComputeCtx (Ptr<MCommandBatch> batch);
-		_MDirectComputeCtx (Ptr<MCommandBatch> batch, MCommandBuffer cmdbuf);
+		_MDirectComputeCtx (const RenderTask &task);
+		_MDirectComputeCtx (const RenderTask &task, MCommandBuffer cmdbuf);
 
 		ND_ MetalCommandEncoder  _BaseEncoder ()					{ return MetalCommandEncoder{ _encoder.Ptr() }; }
 
-		void  _Dispatch (const uint3 &groupCount)					{ DispatchThreadgroups( groupCount, _states.localSize ); }
-		void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)	{ DispatchThreadgroupsIndirect( buffer, offset, _states.localSize ); }
+		void  _Dispatch (const uint3 &groupCount)					{ DispatchThreadgroups( groupCount, uint3{_states.localSize} ); }
+		void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)	{ DispatchThreadgroupsIndirect( buffer, offset, uint3{_states.localSize} ); }
 
 		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
 		void  _BindDescriptorSet (uint index, const MDescriptorSet &ds, ArrayView<uint> dynamicOffsets);
@@ -62,8 +65,6 @@ namespace AE::Graphics::_hidden_
 		void  _DebugMarker (NtStringView text, RGBA8u)				{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( _BaseEncoder(), text ); }
 		void  _PushDebugGroup (NtStringView text, RGBA8u)			{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( _BaseEncoder(), text ); }
 		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup( _BaseEncoder() ); }
-		
-		void  _CommitBarriers ();
 	};
 	
 
@@ -95,18 +96,19 @@ namespace AE::Graphics::_hidden_
 		void  SetImageblock (const uint2 &dimInPix);
 		
 		ND_ ArgSet_t  Arguments ()									{ return ArgSet_t{ this->_cmdbuf.get() }; }
+		
+		ND_ MBakedCommands		EndCommandBuffer ();
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ();
 
 	protected:
-		_MIndirectComputeCtx (Ptr<MCommandBatch> batch);
-		_MIndirectComputeCtx (Ptr<MCommandBatch> batch, MSoftwareCmdBufPtr cmdbuf);
+		_MIndirectComputeCtx (const RenderTask &task);
+		_MIndirectComputeCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf);
 
-		void  _Dispatch (const uint3 &groupCount)					{ DispatchThreadgroups( _states.localSize, groupCount ); }
-		void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)	{ DispatchThreadgroupsIndirect( buffer, offset, _states.localSize ); }
+		void  _Dispatch (const uint3 &groupCount)					{ DispatchThreadgroups( uint3{_states.localSize}, groupCount ); }
+		void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)	{ DispatchThreadgroupsIndirect( buffer, offset, uint3{_states.localSize} ); }
 
 		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
 		void  _BindDescriptorSet (uint index, const MDescriptorSet &ds, ArrayView<uint> dynamicOffsets);
-
-		void  _CommitBarriers ();
 	};
 
 
@@ -129,10 +131,10 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _MComputeContextImpl (Ptr<MCommandBatch> batch) : RawCtx{ batch } {}
+		explicit _MComputeContextImpl (const RenderTask &task) : RawCtx{ task } {}
 
 		template <typename RawCmdBufType>
-		_MComputeContextImpl (Ptr<MCommandBatch> batch, RawCmdBufType cmdbuf) : RawCtx{ batch, RVRef(cmdbuf) } {}
+		_MComputeContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
 
 		_MComputeContextImpl () = delete;
 		_MComputeContextImpl (const _MComputeContextImpl &) = delete;
@@ -205,11 +207,12 @@ namespace AE::Graphics::_hidden_
 =================================================
 	PushConstant
 =================================================
-*
+*/
 	template <typename C>
 	void  _MComputeContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
 	{
-		RawCtx::_PushComputeConstant( offset, size, values, stages );
+		// TODO
+		//RawCtx::_PushComputeConstant( offset, size, values, stages );
 	}
 	
 /*

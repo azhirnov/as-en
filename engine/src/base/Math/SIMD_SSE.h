@@ -18,7 +18,7 @@
 
 namespace AE::Math
 {
-# if defined(AE_SIMD_SSE) or defined(AE_SIMD_AVX)
+# if (AE_SIMD_SSE > 0) or (AE_SIMD_AVX > 0)
 
 	struct Int128b;
 	struct SimdFloat4;
@@ -64,11 +64,12 @@ namespace AE::Math
 # endif
 	
 	
-# ifdef AE_SIMD_SSE
+# if AE_SIMD_SSE > 0
 
 	//
 	// 128 bit float (SSE 2.x)
 	//
+#	define AE_SIMD_SimdFloat4
 	struct SimdFloat4
 	{
 	// types
@@ -186,7 +187,7 @@ namespace AE::Math
 		ND_ Bool4  GEqual   (const Self &rhs)	const	{ return Bool4{ _mm_cmpge_ps( _value, rhs._value )}; }
 		ND_ Bool4  LEqual   (const Self &rhs)	const	{ return Bool4{ _mm_cmple_ps( _value, rhs._value )}; }
 
-	  #ifdef AE_SIMD_AVX	// AVX 1
+	  #if AE_SIMD_AVX >= 1	// AVX 1
 		// ordered - comparison with NaN returns false
 		ND_ Bool4  EqualO    (const Self &rhs)	const	{ return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_EQ_OQ  )}; }
 		ND_ Bool4  NotEqualO (const Self &rhs)	const	{ return Bool4{ _mm_cmp_ps( _value, rhs._value, _CMP_NEQ_OQ )}; }
@@ -229,6 +230,7 @@ namespace AE::Math
 	//
 	// 128 bit double (SSE 2.x)
 	//
+#	define AE_SIMD_SimdDouble2
 	struct SimdDouble2
 	{
 	// types
@@ -319,7 +321,7 @@ namespace AE::Math
 		ND_ Bool2  GEqual   (const Self &rhs)	const	{ return Bool2{ _mm_cmpge_pd( _value, rhs._value )}; }
 		ND_ Bool2  LEqual   (const Self &rhs)	const	{ return Bool2{ _mm_cmple_pd( _value, rhs._value )}; }
 		
-	  #ifdef AE_SIMD_AVX	// AVX 1
+	  #if AE_SIMD_AVX >= 1	// AVX 1
 		// ordered - comparison with NaN returns false
 		ND_ Bool2  EqualO    (const Self &rhs)	const	{ return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_EQ_OQ  )}; }
 		ND_ Bool2  NotEqualO (const Self &rhs)	const	{ return Bool2{ _mm_cmp_pd( _value, rhs._value, _CMP_NEQ_OQ )}; }
@@ -382,6 +384,7 @@ namespace AE::Math
 	//
 	// 128 bit int
 	//
+#	define AE_SIMD_Int128b
 	struct Int128b
 	{
 	// types
@@ -423,6 +426,7 @@ namespace AE::Math
 	//
 	// 128 bit integer (SSE 2.x)
 	//
+#	define AE_SIMD_SimdTInt128
 	template <typename IntType>
 	struct SimdTInt128
 	{
@@ -749,7 +753,7 @@ namespace AE::Math
 //-----------------------------------------------------------------------------
 
 
-# ifdef AE_SIMD_AVX
+# if AE_SIMD_AVX >= 1
 
 	//
 	// 256 bits float (AVX)
@@ -845,12 +849,10 @@ namespace AE::Math
 		ND_ Self  Xor (const Self &rhs)			const	{ return Self{ _mm256_xor_ps( _value, rhs._value )}; }
 		ND_ Self  AndNot (const Self &rhs)		const	{ return Self{ _mm256_andnot_ps( _value, rhs._value )}; } // !a & b
 		
-	  #if AE_SIMD_SSE >= 30
 		ND_ Self  HAdd (const Self &rhs)		const	{ return Self{ _mm256_hadd_ps( _value, rhs._value )}; }		// { a0 + a1, a2 + a3, b0 + b1, b2 + b3 }
 		ND_ Self  HSub (const Self &rhs)		const	{ return Self{ _mm256_hsub_ps( _value, rhs._value )}; }		// { a0 - a1, a2 - a3, b0 - b1, b2 - b3 }
 	
 		ND_ Self  AddSub (const Self &rhs)		const	{ return Self{ _mm256_addsub_ps( _value, rhs._value )}; }	// { a0 - b0, a1 + b1, a2 - b2, a3 + b3 }
-	  #endif
 		
 		ND_ Self  Abs () const
 		{
@@ -1039,8 +1041,9 @@ namespace AE::Math
 			void  ToArray (OUT Value_t* dst)	const	{ _mm256_storeu_pd( OUT dst, _value ); }
 	};
 
+# endif // AE_SIMD_AVX >= 1
 
-#  if AE_SIMD_AVX >= 2
+# if AE_SIMD_AVX >= 2
 
 	//
 	// 256 bit int (AVX 2)
@@ -1416,6 +1419,7 @@ namespace AE::Math
 #  endif // AE_SIMD_AVX >= 2
 
 	/*
+# if AE_SIMD_AVX >= 3
 	//
 	// 128 bit half (AVX512_FP16 + AVX512VL)
 	//
@@ -1459,13 +1463,13 @@ namespace AE::Math
 	public:
 		SimdHalf16 () : _value{_mm256_setzero_ps()}	{}
 	};
+# endif // AE_SIMD_AVX >= 3
 	*/
 
-# endif // AE_SIMD_AVX
 //-----------------------------------------------------------------------------
 
 
-# ifdef AE_SIMD_AVX512
+# if AE_SIMD_AVX >= 3
 
 	//
 	// 512 bit float (AVX512)
@@ -1567,7 +1571,7 @@ namespace AE::Math
 		ND_ Int512b const&			Cast ()	const	{ return reinterpret_cast< Int512b const &>(*this); }
 	};
 
-# endif // AE_SIMD_AVX512
+# endif // AE_SIMD_AVX >= 3
 //-----------------------------------------------------------------------------
 
 

@@ -27,7 +27,7 @@ namespace AE::Threading
 	//
 
 	template <typename Value,
-			  typename AllocatorType = UntypedAlignedAllocator>
+			  typename AllocatorType = UntypedAllocator>
 	class LfStaticQueue
 	{
 	// types
@@ -70,29 +70,28 @@ namespace AE::Threading
 
 	// methods
 	public:
-		LfStaticQueue (const Allocator_t &alloc = Allocator_t{}) : _allocator{alloc} {}
-		~LfStaticQueue () { Release(); }
+		LfStaticQueue (const Allocator_t &alloc = Allocator_t{}) __NE___ : _allocator{alloc} {}
+		~LfStaticQueue ()							__NE___ { Release(); }
 
-			bool  Init (usize size);
-			void  Release ();
-			void  Clear ();
+			bool  Init (usize size)					__NE___;
+			void  Release ()						__NE___;
+			void  Clear ()							__NE___;
 
-			bool  Push (const Value_t &value);
-			bool  Push (Value_t &&value);
+			bool  Push (const Value_t &value)		__NE___;
+			bool  Push (Value_t &&value)			__NE___;
 
-		ND_ bool  Empty ();
-		ND_ uint  Count ();
-		ND_ bool  IsLockedForRead ();
+		ND_ bool  Empty ()							__NE___;
+		ND_ uint  Count ()							__NE___;
+		ND_ bool  IsLockedForRead ()				__NE___;
 
-		ND_ bool  First (OUT Value_t &value);
-		ND_ bool  Pop (OUT Value_t &value);
+		ND_ bool  First (OUT Value_t &value)		__NE___;
+		ND_ bool  Pop (OUT Value_t &value)			__NE___;
 
 		template <typename ArrayType>
-		ND_ bool  ExtractAll (OUT ArrayType &dstArr);
+		ND_ bool  ExtractAll (OUT ArrayType &dstArr) __NE___;
 
 		template <typename FN>
-			void  Visit (FN &&fn);
+			void  Visit (FN &&fn)					__NE___;
 	};
-
 
 } // AE::Threading

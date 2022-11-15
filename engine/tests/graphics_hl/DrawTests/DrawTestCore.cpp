@@ -3,7 +3,7 @@
 #include "base/Algorithms/StringUtils.h"
 #include "base/Algorithms/StringParser.h"
 #include "base/Platforms/Platform.h"
-#include "base/Stream/FileStream.h"
+#include "base/DataSource/FileStream.h"
 
 #include "DrawTestCore.h"
 
@@ -44,8 +44,7 @@ DrawTestCore::DrawTestCore () :
 		_swapchain{ _vulkan }
 	#elif defined(AE_ENABLE_METAL)
 		_refDumpPath{ AE_CURRENT_DIR "/Metal/ref" },
-		_mtlDevice{ True{"enable info log"} },
-		//_swapchain{ _mtlDevice }
+		_swapchain{ _metal }
 	#endif
 {
 	_tests.emplace_back( &DrawTestCore::Test_Canvas_Rect );
@@ -76,7 +75,7 @@ Unique<ImageComparator>  DrawTestCore::_LoadReference (StringView name) const
 {
 	Unique<ImageComparator>	img_cmp{ new ImageComparator{} };
 	
-	Path	path{ AE_VULKAN_REF_IMG_PATH };
+	Path	path{ AE_REF_IMG_PATH };
 	FileSystem::CreateDirectories( path );
 
 	path.append( name );
@@ -105,7 +104,7 @@ bool  DrawTestCore::SaveImage (StringView name, const ImageMemView &view)
 	path.replace_extension( "dds" );
 
 	DDSSaver	saver;
-	IntermImage	img{ view };
+	IntermImage	img;	CHECK( img.SetData( view, null ));
 
 	CHECK_ERR( Cast<IImageSaver>(&saver)->SaveImage( path, img ));
 	return true;
@@ -182,6 +181,26 @@ bool  DrawTestCore::_CompilePipelines ()
 
 	return true;
 }
+
+/*
+=================================================
+	_GetGraphicsCreateInfo
+=================================================
+*/
+GraphicsCreateInfo  DrawTestCore::_GetGraphicsCreateInfo ()
+{
+	GraphicsCreateInfo	info;
+
+	info.maxFrames		= 2;
+	info.staging.readStaticSize .fill( 2_Mb );
+	info.staging.writeStaticSize.fill( 2_Mb );
+	info.staging.maxReadDynamicSize		= 16_Mb;
+	info.staging.maxWriteDynamicSize	= 16_Mb;
+	info.staging.dynamicBlockSize		= 4_Mb;
+	info.staging.vstreamSize			= 4_Mb;
+
+	return info;
+}
 //-----------------------------------------------------------------------------
 
 
@@ -220,14 +239,7 @@ bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
 
 	VRenderTaskScheduler::CreateInstance( _vulkan );
 	
-	GraphicsCreateInfo	info;
-	info.maxFrames		= 2;
-	info.staging.readStaticSize .fill( 2_Mb );
-	info.staging.writeStaticSize.fill( 2_Mb );
-	info.staging.maxReadDynamicSize		= 16_Mb;
-	info.staging.maxWriteDynamicSize	= 16_Mb;
-	info.staging.dynamicBlockSize		= 4_Mb;
-	info.staging.vstreamSize			= 4_Mb;
+	const GraphicsCreateInfo	info = _GetGraphicsCreateInfo();
 
 	auto&	rts = RenderTaskScheduler();
 	CHECK_ERR( rts.Initialize( info ));
@@ -344,3 +356,103 @@ bool  DrawTestCore::_CompareDumps (StringView filename) const
 }
 
 #endif // AE_ENABLE_VULKAN
+//-----------------------------------------------------------------------------
+
+
+
+#if not defined(AE_ENABLE_VULKAN) and defined(AE_ENABLE_METAL)
+/*
+=================================================
+	_Create
+=================================================
+*/
+bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
+{
+	CHECK_ERR( _metal.CreateDefaultQueues( EQueueMask::Graphics, EQueueMask::All ));
+	CHECK_ERR( _metal.CreateLogicalDevice() );
+	CHECK_ERR( _metal.CheckConstantLimits() );
+	CHECK_ERR( _metal.CheckExtensions() );
+
+	MRenderTaskScheduler::CreateInstance( _metal );
+	
+	const GraphicsCreateInfo	info = _GetGraphicsCreateInfo();
+
+	auto&	rts = RenderTaskScheduler();
+	CHECK_ERR( rts.Initialize( info ));
+
+	CHECK_ERR( _swapchain.CreateSurface( wnd.GetNative() ));
+	CHECK_ERR( rts.GetResourceManager().OnSurfaceCreated( _swapchain ));
+	
+	MSwapchainInitializer::CreateInfo	swapchain_ci;
+	swapchain_ci.viewSize = wnd.GetSurfaceSize();
+	CHECK_ERR( _swapchain.Create( &rts.GetResourceManager(), swapchain_ci ));
+
+	for (uint i = 0; i < 2; ++i) {
+		Scheduler().AddThread( MakeRC<WorkerThread>( WorkerThread::ThreadMask{}.insert( EThread::Worker ).insert( EThread::Renderer ),
+													 nanoseconds{1}, milliseconds{4}, "render thread" ));
+	}
+
+	CHECK_ERR( _CompilePipelines() );
+
+	return true;
+}
+
+/*
+=================================================
+	_RunTests
+=================================================
+*/
+bool  DrawTestCore::_RunTests ()
+{
+	for (;;)
+	{
+		if ( not _tests.empty() )
+		{
+			TestFunc_t&	func	= _tests.front();
+			bool		passed	= (this->*func)();
+
+			_testsPassed += uint(passed);
+			_testsFailed += uint(not passed);
+			_tests.pop_front();
+
+			Scheduler().ProcessTask( EThread::Main, 0 );
+		}
+		else
+		{
+			AE_LOGI( "Tests passed: " + ToString( _testsPassed ) + ", failed: " + ToString( _testsFailed ));
+			break;
+		}
+	}
+	return not _testsFailed;
+}
+
+/*
+=================================================
+	_Destroy
+=================================================
+*/
+void  DrawTestCore::_Destroy ()
+{
+	_canvasPpln = null;
+	_canvas.reset();
+
+	_swapchain.Destroy();
+	_swapchain.DestroySurface();
+
+	MRenderTaskScheduler::DestroyInstance();
+
+	CHECK( _metal.DestroyLogicalDevice() );
+}
+
+/*
+=================================================
+	_CompareDumps
+=================================================
+*/
+bool  DrawTestCore::_CompareDumps (StringView) const
+{
+	return true;	// not supported for Metal
+}
+
+#endif // AE_ENABLE_METAL
+

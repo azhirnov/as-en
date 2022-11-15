@@ -38,19 +38,19 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VDedicatedMemAllocator ();
-		~VDedicatedMemAllocator () override;
+		VDedicatedMemAllocator ()															__NE___;
+		~VDedicatedMemAllocator ()															__NE_OV;
 		
 	  // IGfxMemAllocator //
-		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data) override;
-		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) override;
+		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)		__NE_OV;
+		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) __NE_OV;
 
-		bool  Dealloc (INOUT Storage_t &data) override;
+		bool  Dealloc (INOUT Storage_t &data)												__NE_OV;
 			
-		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info) const override;
+		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info)				C_NE_OV;
 		
-		Bytes  MinAlignment ()		const override	{ return 1_b; }
-		Bytes  MaxAllocationSize ()	const override;
+		Bytes  MinAlignment ()																C_NE_OV	{ return 1_b; }
+		Bytes  MaxAllocationSize ()															C_NE_OV;
 
 
 	private:

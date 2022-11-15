@@ -79,6 +79,8 @@
 		bool  loadOpNone                  : 1;   // VK_EXT_load_store_op_none 
 		bool  pagebleDeviceLocalMemory    : 1;   // VK_EXT_pageable_device_local_memory 
 		bool  sampleLocations             : 1;   // VK_EXT_sample_locations 
+		bool  fragmentBarycentric         : 1;   // VK_KHR_fragment_shader_barycentric 
+		bool  meshShader                  : 1;   // VK_EXT_mesh_shader 
 		bool  fragShaderInterlock         : 1;   // VK_EXT_fragment_shader_interlock 
 		bool  shaderClock                 : 1;   // VK_KHR_shader_clock 
 		bool  shaderTerminateInvocation   : 1;   // VK_KHR_shader_terminate_invocation 
@@ -100,22 +102,23 @@
 		bool  accelerationStructure       : 1;   // VK_KHR_acceleration_structure 
 		bool  rayTracingPipeline          : 1;   // VK_KHR_ray_tracing_pipeline 
 		bool  rayQuery                    : 1;   // VK_KHR_ray_query 
+		bool  rayTracingMaintenance1      : 1;   // VK_KHR_ray_tracing_maintenance1 
 		bool  astcDecodeMode              : 1;   // VK_EXT_astc_decode_mode 
 		bool  imageCompressionCtrl        : 1;   // VK_EXT_image_compression_control 
 		bool  swapchainCompressionCtrl    : 1;   // VK_EXT_image_compression_control_swapchain 
-		bool  meshShaderNV                : 1;   // VK_NV_mesh_shader 
 		bool  imageFootprintNV            : 1;   // VK_NV_shader_image_footprint 
-		bool  fragmentBarycentricNV       : 1;   // VK_NV_fragment_shader_barycentric 
 		bool  deviceGeneratedCmdsNV       : 1;   // VK_NV_device_generated_commands 
 		bool  shaderSMBuiltinsNV          : 1;   // VK_NV_shader_sm_builtins 
 		bool  rasterizationOrderAMD       : 1;   // VK_AMD_rasterization_order 
+		bool  shaderCorePropsAMD          : 1;   // VK_AMD_shader_core_properties 
+		bool  rasterizationOrderGroup     : 1;   // VK_ARM_rasterization_order_attachment_access 
 		bool  subpassShadingHW            : 1;   // VK_HUAWEI_subpass_shading 
 		bool  renderPassShaderResolve     : 1;   // VK_QCOM_render_pass_shader_resolve 
 		bool  incrementalPresent          : 1;   // VK_KHR_incremental_present 
 		bool  presentId                   : 1;   // VK_KHR_present_id 
 		bool  presentWait                 : 1;   // VK_KHR_present_wait 
 
-		Extensions () { memset( this, 0, sizeof(*this) ); }
+		Extensions () { ZeroMem( this, Sizeof(*this) ); }
 	};
 
 
@@ -227,6 +230,14 @@
 		// VK_EXT_sample_locations
 		VkPhysicalDeviceSampleLocationsPropertiesEXT  sampleLocationsProps;
 
+		// VK_KHR_fragment_shader_barycentric
+		VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR  fragmentBarycentricFeats;
+		VkPhysicalDeviceFragmentShaderBarycentricPropertiesKHR  fragmentBarycentricProps;
+
+		// VK_EXT_mesh_shader
+		VkPhysicalDeviceMeshShaderFeaturesEXT  meshShaderFeats;
+		VkPhysicalDeviceMeshShaderPropertiesEXT  meshShaderProps;
+
 		// VK_EXT_fragment_shader_interlock
 		VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT  fragShaderInterlockFeats;
 
@@ -281,15 +292,14 @@
 		// VK_KHR_ray_query
 		VkPhysicalDeviceRayQueryFeaturesKHR  rayQueryFeats;
 
+		// VK_KHR_ray_tracing_maintenance1
+		VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR  rayTracingMaintenance1Feats;
+
 		// VK_EXT_image_compression_control
 		VkPhysicalDeviceImageCompressionControlFeaturesEXT  imageCompressionCtrlFeats;
 
 		// VK_EXT_image_compression_control_swapchain
 		VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT  swapchainCompressionCtrlFeats;
-
-		// VK_NV_mesh_shader
-		VkPhysicalDeviceMeshShaderFeaturesNV  meshShaderNVFeats;
-		VkPhysicalDeviceMeshShaderPropertiesNV  meshShaderNVProps;
 
 		// VK_NV_shader_image_footprint
 		VkPhysicalDeviceShaderImageFootprintFeaturesNV  imageFootprintNVFeats;
@@ -302,6 +312,12 @@
 		VkPhysicalDeviceShaderSMBuiltinsFeaturesNV  shaderSMBuiltinsNVFeats;
 		VkPhysicalDeviceShaderSMBuiltinsPropertiesNV  shaderSMBuiltinsNVProps;
 
+		// VK_AMD_shader_core_properties
+		VkPhysicalDeviceShaderCorePropertiesAMD  shaderCorePropsAMDProps;
+
+		// VK_ARM_rasterization_order_attachment_access
+		VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT  rasterizationOrderGroupFeats;
+
 		// VK_HUAWEI_subpass_shading
 		VkPhysicalDeviceSubpassShadingFeaturesHUAWEI  subpassShadingHWFeats;
 		VkPhysicalDeviceSubpassShadingPropertiesHUAWEI  subpassShadingHWProps;
@@ -312,7 +328,7 @@
 		// VK_KHR_present_wait
 		VkPhysicalDevicePresentWaitFeaturesKHR  presentWaitFeats;
 
-		Properties () { memset( this, 0, sizeof(*this) ); }
+		Properties () { ZeroMem( this, Sizeof(*this) ); }
 	};
 #endif // VKFEATS_STRUCT
 
@@ -321,9 +337,9 @@
 	ND_ static Array<const char*>  _GetInstanceExtensions (InstanceVersion ver);
 	ND_ static Array<const char*>  _GetDeviceExtensions (DeviceVersion ver);
 	ND_ String  _GetVulkanExtensionsString () const;
-	void _InitFeaturesAndProperties (void** nextFeat);
-	void _CheckInstanceExtensions ();
-	void _CheckDeviceExtensions ();
+	void  _InitFeaturesAndProperties (void** nextFeat);
+	void  _CheckInstanceExtensions ();
+	void  _CheckDeviceExtensions ();
 #endif // VKFEATS_FN_DECL
 
 
@@ -432,6 +448,8 @@
 			VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME,
 			VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME,
 			VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME,
+			VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
+			VK_EXT_MESH_SHADER_EXTENSION_NAME,
 			VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,
 			VK_KHR_SHADER_CLOCK_EXTENSION_NAME,
 			VK_KHR_SHADER_TERMINATE_INVOCATION_EXTENSION_NAME,
@@ -453,10 +471,10 @@
 			VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME,
 			VK_EXT_IMAGE_COMPRESSION_CONTROL_EXTENSION_NAME,
 			VK_EXT_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_EXTENSION_NAME,
-			VK_NV_MESH_SHADER_EXTENSION_NAME,
 			VK_NV_SHADER_IMAGE_FOOTPRINT_EXTENSION_NAME,
-			VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
 			VK_AMD_RASTERIZATION_ORDER_EXTENSION_NAME,
+			VK_AMD_SHADER_CORE_PROPERTIES_EXTENSION_NAME,
+			VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME,
 			VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME,
 			VK_QCOM_RENDER_PASS_SHADER_RESOLVE_EXTENSION_NAME,
 			VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME,
@@ -468,6 +486,7 @@
 			VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
 			VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
 			VK_KHR_RAY_QUERY_EXTENSION_NAME,
+			VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME,
 			VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME,
 			VK_NV_SHADER_SM_BUILTINS_EXTENSION_NAME,
 		};
@@ -492,7 +511,7 @@
 		return result;
 	}
 
-	void VDeviceInitializer::_CheckInstanceExtensions ()
+	void  VDeviceInitializer::_CheckInstanceExtensions ()
 	{
 		CHECK_ERRV(( GetInstanceVersion() >= InstanceVersion{1,0} ));
 
@@ -510,7 +529,7 @@
 		_extensions.deviceProps2                = (GetInstanceVersion() >= InstanceVersion{1,1}) or (HasInstanceExtension( VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME ));
 	}
 
-	void VDeviceInitializer::_CheckDeviceExtensions ()
+	void  VDeviceInitializer::_CheckDeviceExtensions ()
 	{
 		CHECK_ERRV(( GetDeviceVersion() >= DeviceVersion{1,0} ));
 
@@ -569,6 +588,8 @@
 		_extensions.loadOpNone                  = (HasDeviceExtension( VK_EXT_LOAD_STORE_OP_NONE_EXTENSION_NAME ));
 		_extensions.pagebleDeviceLocalMemory    = (HasDeviceExtension( VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME ));
 		_extensions.sampleLocations             = (HasDeviceExtension( VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME ));
+		_extensions.fragmentBarycentric         = (HasDeviceExtension( VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME ));
+		_extensions.meshShader                  = (HasDeviceExtension( VK_EXT_MESH_SHADER_EXTENSION_NAME ));
 		_extensions.fragShaderInterlock         = (HasDeviceExtension( VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME ));
 		_extensions.shaderClock                 = (HasDeviceExtension( VK_KHR_SHADER_CLOCK_EXTENSION_NAME ));
 		_extensions.shaderTerminateInvocation   = (HasDeviceExtension( VK_KHR_SHADER_TERMINATE_INVOCATION_EXTENSION_NAME ));
@@ -590,15 +611,16 @@
 		_extensions.accelerationStructure       = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME ));
 		_extensions.rayTracingPipeline          = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME ));
 		_extensions.rayQuery                    = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_KHR_RAY_QUERY_EXTENSION_NAME ));
+		_extensions.rayTracingMaintenance1      = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME ));
 		_extensions.astcDecodeMode              = (HasDeviceExtension( VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME ));
 		_extensions.imageCompressionCtrl        = (HasDeviceExtension( VK_EXT_IMAGE_COMPRESSION_CONTROL_EXTENSION_NAME ));
 		_extensions.swapchainCompressionCtrl    = (HasDeviceExtension( VK_EXT_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_EXTENSION_NAME ));
-		_extensions.meshShaderNV                = (HasDeviceExtension( VK_NV_MESH_SHADER_EXTENSION_NAME ));
 		_extensions.imageFootprintNV            = (HasDeviceExtension( VK_NV_SHADER_IMAGE_FOOTPRINT_EXTENSION_NAME ));
-		_extensions.fragmentBarycentricNV       = (HasDeviceExtension( VK_NV_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME ));
 		_extensions.deviceGeneratedCmdsNV       = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME ));
 		_extensions.shaderSMBuiltinsNV          = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_NV_SHADER_SM_BUILTINS_EXTENSION_NAME ));
 		_extensions.rasterizationOrderAMD       = (HasDeviceExtension( VK_AMD_RASTERIZATION_ORDER_EXTENSION_NAME ));
+		_extensions.shaderCorePropsAMD          = (HasDeviceExtension( VK_AMD_SHADER_CORE_PROPERTIES_EXTENSION_NAME ));
+		_extensions.rasterizationOrderGroup     = (HasDeviceExtension( VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME ));
 		_extensions.subpassShadingHW            = (HasDeviceExtension( VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME ));
 		_extensions.renderPassShaderResolve     = (HasDeviceExtension( VK_QCOM_RENDER_PASS_SHADER_RESOLVE_EXTENSION_NAME ));
 		_extensions.incrementalPresent          = (HasDeviceExtension( VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME ));
@@ -606,7 +628,7 @@
 		_extensions.presentWait                 = (HasDeviceExtension( VK_KHR_PRESENT_WAIT_EXTENSION_NAME ));
 	}
 
-	void VDeviceInitializer::_InitFeaturesAndProperties (void** nextFeat)
+	void  VDeviceInitializer::_InitFeaturesAndProperties (void** nextFeat)
 	{
 		vkGetPhysicalDeviceFeatures( GetVkPhysicalDevice(), OUT &_properties.features );
 		vkGetPhysicalDeviceProperties( GetVkPhysicalDevice(), OUT &_properties.properties );
@@ -842,6 +864,24 @@
 				next_props  = &_properties.sampleLocationsProps.pNext;
 				_properties.sampleLocationsProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SAMPLE_LOCATIONS_PROPERTIES_EXT;
 			}
+			if ( _extensions.fragmentBarycentric )
+			{
+				*next_feat = &_properties.fragmentBarycentricFeats;
+				next_feat  = &_properties.fragmentBarycentricFeats.pNext;
+				_properties.fragmentBarycentricFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR;
+				*next_props = &_properties.fragmentBarycentricProps;
+				next_props  = &_properties.fragmentBarycentricProps.pNext;
+				_properties.fragmentBarycentricProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_PROPERTIES_KHR;
+			}
+			if ( _extensions.meshShader )
+			{
+				*next_feat = &_properties.meshShaderFeats;
+				next_feat  = &_properties.meshShaderFeats.pNext;
+				_properties.meshShaderFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT;
+				*next_props = &_properties.meshShaderProps;
+				next_props  = &_properties.meshShaderProps.pNext;
+				_properties.meshShaderProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_EXT;
+			}
 			if ( _extensions.fragShaderInterlock )
 			{
 				*next_feat = &_properties.fragShaderInterlockFeats;
@@ -956,6 +996,12 @@
 				next_feat  = &_properties.rayQueryFeats.pNext;
 				_properties.rayQueryFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR;
 			}
+			if ( _extensions.rayTracingMaintenance1 )
+			{
+				*next_feat = &_properties.rayTracingMaintenance1Feats;
+				next_feat  = &_properties.rayTracingMaintenance1Feats.pNext;
+				_properties.rayTracingMaintenance1Feats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR;
+			}
 			if ( _extensions.imageCompressionCtrl )
 			{
 				*next_feat = &_properties.imageCompressionCtrlFeats;
@@ -967,15 +1013,6 @@
 				*next_feat = &_properties.swapchainCompressionCtrlFeats;
 				next_feat  = &_properties.swapchainCompressionCtrlFeats.pNext;
 				_properties.swapchainCompressionCtrlFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_FEATURES_EXT;
-			}
-			if ( _extensions.meshShaderNV )
-			{
-				*next_feat = &_properties.meshShaderNVFeats;
-				next_feat  = &_properties.meshShaderNVFeats.pNext;
-				_properties.meshShaderNVFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_NV;
-				*next_props = &_properties.meshShaderNVProps;
-				next_props  = &_properties.meshShaderNVProps.pNext;
-				_properties.meshShaderNVProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_PROPERTIES_NV;
 			}
 			if ( _extensions.imageFootprintNV )
 			{
@@ -1000,6 +1037,18 @@
 				*next_props = &_properties.shaderSMBuiltinsNVProps;
 				next_props  = &_properties.shaderSMBuiltinsNVProps.pNext;
 				_properties.shaderSMBuiltinsNVProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_SM_BUILTINS_PROPERTIES_NV;
+			}
+			if ( _extensions.shaderCorePropsAMD )
+			{
+				*next_props = &_properties.shaderCorePropsAMDProps;
+				next_props  = &_properties.shaderCorePropsAMDProps.pNext;
+				_properties.shaderCorePropsAMDProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_PROPERTIES_AMD;
+			}
+			if ( _extensions.rasterizationOrderGroup )
+			{
+				*next_feat = &_properties.rasterizationOrderGroupFeats;
+				next_feat  = &_properties.rasterizationOrderGroupFeats.pNext;
+				_properties.rasterizationOrderGroupFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT;
 			}
 			if ( _extensions.subpassShadingHW )
 			{
@@ -1111,6 +1160,8 @@
 			<< "\n  loadOpNone: . . . . . . . . " << ToString( _extensions.loadOpNone )
 			<< "\n  pagebleDeviceLocalMemory:   " << ToString( _extensions.pagebleDeviceLocalMemory )
 			<< "\n  sampleLocations:. . . . . . " << ToString( _extensions.sampleLocations )
+			<< "\n  fragmentBarycentric:        " << ToString( _extensions.fragmentBarycentric )
+			<< "\n  meshShader: . . . . . . . . " << ToString( _extensions.meshShader )
 			<< "\n  fragShaderInterlock:        " << ToString( _extensions.fragShaderInterlock )
 			<< "\n  shaderClock:. . . . . . . . " << ToString( _extensions.shaderClock )
 			<< "\n  shaderTerminateInvocation:  " << ToString( _extensions.shaderTerminateInvocation )
@@ -1132,20 +1183,21 @@
 			<< "\n  accelerationStructure:      " << ToString( _extensions.accelerationStructure )
 			<< "\n  rayTracingPipeline: . . . . " << ToString( _extensions.rayTracingPipeline )
 			<< "\n  rayQuery:                   " << ToString( _extensions.rayQuery )
-			<< "\n  astcDecodeMode: . . . . . . " << ToString( _extensions.astcDecodeMode )
-			<< "\n  imageCompressionCtrl:       " << ToString( _extensions.imageCompressionCtrl )
-			<< "\n  swapchainCompressionCtrl: . " << ToString( _extensions.swapchainCompressionCtrl )
-			<< "\n  meshShaderNV:               " << ToString( _extensions.meshShaderNV )
+			<< "\n  rayTracingMaintenance1: . . " << ToString( _extensions.rayTracingMaintenance1 )
+			<< "\n  astcDecodeMode:             " << ToString( _extensions.astcDecodeMode )
+			<< "\n  imageCompressionCtrl: . . . " << ToString( _extensions.imageCompressionCtrl )
+			<< "\n  swapchainCompressionCtrl:   " << ToString( _extensions.swapchainCompressionCtrl )
 			<< "\n  imageFootprintNV: . . . . . " << ToString( _extensions.imageFootprintNV )
-			<< "\n  fragmentBarycentricNV:      " << ToString( _extensions.fragmentBarycentricNV )
-			<< "\n  deviceGeneratedCmdsNV:. . . " << ToString( _extensions.deviceGeneratedCmdsNV )
-			<< "\n  shaderSMBuiltinsNV:         " << ToString( _extensions.shaderSMBuiltinsNV )
-			<< "\n  rasterizationOrderAMD:. . . " << ToString( _extensions.rasterizationOrderAMD )
-			<< "\n  subpassShadingHW:           " << ToString( _extensions.subpassShadingHW )
-			<< "\n  renderPassShaderResolve:. . " << ToString( _extensions.renderPassShaderResolve )
-			<< "\n  incrementalPresent:         " << ToString( _extensions.incrementalPresent )
-			<< "\n  presentId:. . . . . . . . . " << ToString( _extensions.presentId )
-			<< "\n  presentWait:                " << ToString( _extensions.presentWait );
+			<< "\n  deviceGeneratedCmdsNV:      " << ToString( _extensions.deviceGeneratedCmdsNV )
+			<< "\n  shaderSMBuiltinsNV: . . . . " << ToString( _extensions.shaderSMBuiltinsNV )
+			<< "\n  rasterizationOrderAMD:      " << ToString( _extensions.rasterizationOrderAMD )
+			<< "\n  shaderCorePropsAMD: . . . . " << ToString( _extensions.shaderCorePropsAMD )
+			<< "\n  rasterizationOrderGroup:    " << ToString( _extensions.rasterizationOrderGroup )
+			<< "\n  subpassShadingHW: . . . . . " << ToString( _extensions.subpassShadingHW )
+			<< "\n  renderPassShaderResolve:    " << ToString( _extensions.renderPassShaderResolve )
+			<< "\n  incrementalPresent: . . . . " << ToString( _extensions.incrementalPresent )
+			<< "\n  presentId:                  " << ToString( _extensions.presentId )
+			<< "\n  presentWait:. . . . . . . . " << ToString( _extensions.presentWait );
 		return src;
 	}
 #endif // VKFEATS_FN_IMPL

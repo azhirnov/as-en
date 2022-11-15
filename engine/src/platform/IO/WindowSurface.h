@@ -37,19 +37,23 @@ namespace AE::App
 	// variables
 	private:
 		mutable SharedMutex		_guard;
-		mutable SharedMutex		_swGuard;
 
-		Swapchain_t				_swapchain;					// pretected by '_swGuard'
+		bool					_initialized	{false};
+		Atomic<ushort>			_imageIndex;
+		int2					_surfaceSize;				// pretected by '_guard'
+		float2					_pixToMm;					// pretected by '_guard'
 
-		AsyncTask				_prevTask;					// pretected by '_guard'
 		CommandBatchPtr			_endCmdBatch;				// pretected by '_guard'
+		AsyncTask				_prevTask;					// pretected by '_guard'
+		
+		Graphics::SwapchainDesc	_desc;						// pretected by '_guard'
+		Ptr<const IWindow >		_window;					// pretected by '_guard'
 
-		bool					_initialized	= false;	// pretected by '_guard'
 		Atomic<bool>			_recreate		{false};
 
-		Graphics::SwapchainDesc	_desc;						// pretected by '_guard'
-		float2					_pixToMm;					// pretected by '_swGuard'
-		Ptr<const IWindow >		_window;					// pretected by '_guard'
+		mutable SharedMutex		_swGuard;
+		Swapchain_t				_swapchain;					// pretected by '_swGuard' and '_guard'
+
 
 		static constexpr auto	_targetType		= ETargetType::Final2D;
 
@@ -79,7 +83,7 @@ namespace AE::App
 
 
 	private:
-			void  _UpdateMonitor ();
+		void  _UpdateMonitor ();	// must be pretected by '_guard'
 
 	  #if defined(AE_ENABLE_VULKAN)
 		ND_ static	Graphics::VResourceManager&	_GetResMngr ();

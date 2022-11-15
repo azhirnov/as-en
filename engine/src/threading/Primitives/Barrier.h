@@ -11,12 +11,12 @@
 
 #include "threading/Common.h"
 
-#ifdef AE_STD_BARRIER
+#ifdef __cpp_lib_barrier
 #	define AE_BARRIER_MODE	3
 #elif defined(AE_WINDOWS_TARGET_VERSION) and (AE_WINDOWS_TARGET_VERSION >= 8)
 #	define AE_BARRIER_MODE	0
 #else
-#	define AE_BARRIER_MODE	2
+#	define AE_BARRIER_MODE	2	// or 1
 #endif
 
 
@@ -38,16 +38,18 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit Barrier (uint numThreads);
+		explicit Barrier (usize numThreads);
 		~Barrier ();
 
 		Barrier (Barrier &&) = delete;
 		Barrier (const Barrier &) = delete;
 
-		Barrier& operator = (const Barrier &) = delete;
-		Barrier& operator = (Barrier &&) = delete;
+		Barrier&  operator = (const Barrier &) = delete;
+		Barrier&  operator = (Barrier &&) = delete;
 
-		void wait ();
+		void  wait ();
+
+		ND_ static constexpr usize  max ()	{ return uint{UMax}; }
 	};
 
 } // AE::Threading
@@ -81,8 +83,8 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit Barrier (uint numThreads) :
-			_counter{Bitfield{ 0, 0, 0 }}, _numThreads{numThreads}
+		explicit Barrier (usize numThreads) :
+			_counter{Bitfield{ 0, 0, 0 }}, _numThreads{CheckCast<uint>(numThreads)}
 		{
 			ASSERT( numThreads > 0 );
 		}
@@ -90,10 +92,10 @@ namespace AE::Threading
 		Barrier (Barrier &&) = delete;
 		Barrier (const Barrier &) = delete;
 
-		Barrier& operator = (const Barrier &) = delete;
-		Barrier& operator = (Barrier &&) = delete;
+		Barrier&  operator = (const Barrier &) = delete;
+		Barrier&  operator = (Barrier &&) = delete;
 
-		void wait ()
+		void  wait ()
 		{
 			// flush cache
 			ThreadFence( EMemoryOrder::Release );
@@ -147,6 +149,8 @@ namespace AE::Threading
 			// invalidate cache
 			ThreadFence( EMemoryOrder::Acquire );
 		}
+
+		ND_ static constexpr usize  max ()	{ return uint{UMax}; }
 	};
 
 } // AE::Threading
@@ -165,16 +169,16 @@ namespace AE::Threading
 	{
 	// variables
 	private:
-		uint					_value;
-		uint					_cycle;
-		const uint				_numThreads;
+		usize					_value;
+		usize					_cycle;
+		const usize				_numThreads;
 		Mutex					_mutex;
 		std::condition_variable	_cv;
 
 
 	// methods
 	public:
-		explicit Barrier (uint numThreads) :
+		explicit Barrier (usize numThreads) :
 			_value{numThreads}, _cycle{0}, _numThreads{numThreads}
 		{
 			ASSERT( numThreads > 0 );
@@ -186,10 +190,10 @@ namespace AE::Threading
 		Barrier (Barrier &&) = delete;
 		Barrier (const Barrier &) = delete;
 
-		Barrier& operator = (const Barrier &) = delete;
-		Barrier& operator = (Barrier &&) = delete;
+		Barrier&  operator = (const Barrier &) = delete;
+		Barrier&  operator = (Barrier &&) = delete;
 
-		void wait ()
+		void  wait ()
 		{
 			std::unique_lock	lock{ _mutex };
 
@@ -205,6 +209,8 @@ namespace AE::Threading
 
 			_cv.wait( lock, [this, cycle = _cycle] () { return cycle != _cycle; });
 		}
+
+		ND_ static constexpr usize  max ()	{ return UMax; }
 	};
 
 } // AE::Threading
@@ -216,31 +222,33 @@ namespace AE::Threading
 {
 
 	//
-	// Barrier (wraps std::barrier or std::experimental::barrier)
+	// Barrier (wraps std::barrier from C++20)
 	//
 
 	struct Barrier
 	{
 	// variables
 	private:
-		std::barrier	_barrier;
+		std::barrier<>	_barrier;
 
 
 	// methods
 	public:
-		explicit Barrier (uint numThreads) : _barrier{numThreads}
+		explicit Barrier (usize numThreads) : _barrier{numThreads}
 		{}
 
 		Barrier (Barrier &&) = delete;
 		Barrier (const Barrier &) = delete;
 
-		Barrier& operator = (const Barrier &) = delete;
-		Barrier& operator = (Barrier &&) = delete;
+		Barrier&  operator = (const Barrier &) = delete;
+		Barrier&  operator = (Barrier &&) = delete;
 
-		void wait ()
+		void  wait ()
 		{
 			_barrier.arrive_and_wait();
 		}
+
+		ND_ static constexpr usize  max ()	{ return std::barrier<>::max(); }
 	};
 
 } // AE::Threading

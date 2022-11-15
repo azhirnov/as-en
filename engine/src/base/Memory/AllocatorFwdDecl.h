@@ -7,7 +7,6 @@
 namespace AE::Base
 {
 	struct UntypedAllocator;
-	struct UntypedAlignedAllocator;
 	struct UntypedOnStackAllocator;	// may be unsafe!
 	
 	template <usize BaseAlign>
@@ -26,19 +25,13 @@ namespace AE::Base
 	
 	template <typename AllocatorType>
 	struct AllocatorRef;
-	
-	template <typename AllocatorType>
-	struct AlignedAllocatorRef;
 
 	template <typename T, typename AllocatorType>
 	struct StdAllocatorRef;
 
 
 	class IAllocator;
-	class IAlignedAllocator;
-	
-	using IAllocatorRef			= AllocatorRef< IAllocator >;
-	using IAlignedAllocatorRef	= AlignedAllocatorRef< IAlignedAllocator >;
+	using IAllocatorRef		= AllocatorRef< IAllocator >;
 
 
 } // AE::Base

@@ -41,18 +41,18 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit SyncEvent (EFlags flags = EFlags::AutoReset);
-		~SyncEvent ();
+		explicit SyncEvent (EFlags flags = EFlags::AutoReset) __NE___;
+		~SyncEvent ()		__NE___;
 
-		void  Signal ();
-		void  Reset ();
+		void  Signal ()		__NE___;
+		void  Reset ()		__NE___;
 		
-		void  Wait ()		{ return void( _Wait( UMax )); }
+		void  Wait ()		__NE___	{ return void( _Wait( UMax )); }
 
-		ND_ bool  Test ()	{ return _Wait(0); }
+		ND_ bool  Test ()	__NE___	{ return _Wait(0); }
 		
 		template <typename Rep, typename Period>
-		ND_ bool  Wait (const std::chrono::duration<Rep, Period>& timeout)
+		ND_ bool  Wait (const std::chrono::duration<Rep, Period>& timeout) __NE___
 		{
 			constexpr uint	MaxTimeout	= UMax;
 			const auto		dt			= std::chrono::duration_cast<milliseconds>( timeout ).count();
@@ -61,7 +61,7 @@ namespace AE::Threading
 		}
 
 	private:
-		ND_ bool  _Wait (uint timeout);
+		ND_ bool  _Wait (uint timeout) __NE___;
 	};
 
 } // AE::Threading
@@ -99,25 +99,25 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit SyncEvent (EFlags flags = EFlags::AutoReset) :
+		explicit SyncEvent (EFlags flags = EFlags::AutoReset) __NE___ :
 			_autoReset{ AllBits( flags, EFlags::AutoReset )},
 			_triggered{ AllBits( flags, EFlags::InitStateSignaled )}
 		{}
 
-		void  Signal ()
+		void  Signal ()		__NE___
 		{
 			EXLOCK( _mutex );
 			_triggered = true;
 			_autoReset ? _cv.notify_one() : _cv.notify_all();
 		}
 
-		void  Reset ()
+		void  Reset ()		__NE___
 		{
 			EXLOCK( _mutex );
 			_triggered = false;
 		}
 
-		void  Wait ()
+		void  Wait ()		__NE___
 		{
 			std::unique_lock lock{ _mutex };
 
@@ -129,14 +129,14 @@ namespace AE::Threading
 				_triggered = false;
 		}
 
-		ND_ bool  Test ()
+		ND_ bool  Test ()	__NE___
 		{
 			EXLOCK( _mutex );
 			return _triggered;
 		}
 
 		template <typename Rep, typename Period>
-		ND_ bool  Wait (const std::chrono::duration<Rep, Period>& timeout)
+		ND_ bool  Wait (const std::chrono::duration<Rep, Period>& timeout) __NE___
 		{
 			bool	res = false;
 			
@@ -159,4 +159,4 @@ namespace AE::Threading
 
 } // AE::Threading
 
-#endif
+#endif // AE_SYNC_EVENT_MODE

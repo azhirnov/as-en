@@ -21,9 +21,9 @@ namespace AE::Scripting
 
 	struct GraphicsBindings final : Noninstancable
 	{
-		static void  BindEnums (const ScriptEnginePtr &se);
-		static void  BindTypes (const ScriptEnginePtr &se);
-		static void  BindRenderState (const ScriptEnginePtr &se);
+		static void  BindEnums (const ScriptEnginePtr &se)			__TH___;
+		static void  BindTypes (const ScriptEnginePtr &se)			__TH___;
+		static void  BindRenderState (const ScriptEnginePtr &se)	__TH___;
 	};
 
 	
@@ -63,6 +63,8 @@ namespace AE::Scripting
 	
 	// BindTypes
 	AE_DECL_SCRIPT_OBJ(	 Graphics::MultiSamples,		"MultiSamples"			);
+	AE_DECL_SCRIPT_OBJ(	 Graphics::ImageLayer,			"ImageLayer"			);
+	AE_DECL_SCRIPT_OBJ(	 Graphics::MipmapLevel,			"MipmapLevel"			);
 
 	// BindRenderState
 	AE_DECL_SCRIPT_OBJ(	 Graphics::RenderState::ColorBuffer::ColorPair<Graphics::EBlendFactor>,	"RenderState_ColorBuffer_BlendFactor"	);

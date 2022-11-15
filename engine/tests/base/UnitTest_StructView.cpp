@@ -90,7 +90,7 @@ namespace
 
 		for (usize i = 0; i < view2.size(); ++i)
 		{
-			double	d = view2[i];
+			double	d = double(view2[i]);
 			TEST( Equals( data[i].field2, d, 0.0001 ));
 		}
 	}

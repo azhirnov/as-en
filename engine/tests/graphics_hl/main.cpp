@@ -3,6 +3,7 @@
 #include "platform/Public/IApplication.h"
 #include "graphics/Public/ResourceManager.h"
 
+using namespace AE;
 using namespace AE::App;
 using namespace AE::Threading;
 

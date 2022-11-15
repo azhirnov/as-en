@@ -14,10 +14,6 @@
 #endif
 #include "platform/Public/InputActions.h"
 
-#if AE_NO_EXCEPTIONS == 1
-#	define THROW()
-#endif
-
 namespace AE::App
 {
 	static constexpr uint	InputActions_Name	= uint("InAct"_StringToID);
@@ -95,9 +91,9 @@ namespace AE::App
 			ScriptActionBindingsBase (SerializableInputActions& self) : _self{&self} {}
 
 			template <typename T>
-			T*  _CreateMode (const String &name) THROW()
+			T*  _CreateMode (const String &name) __TH___
 			{
-				CHECK_THROW( _self != null );
+				CHECK_THROW_MSG( _self != null );
 
 				const InputModeName		name_id {name};
 			
@@ -126,8 +122,8 @@ namespace AE::App
 			ScriptBindingsModeBase () {}
 			ScriptBindingsModeBase (SerializableInputActions& self, InputMode& mode) : _self{&self}, _mode{&mode} {}
 
-			void  _Add (ushort type, const ScriptActionInfo &value) THROW();
-			void  _Inherit (const String &name) THROW();
+			void  _Add (ushort type, const ScriptActionInfo &value) __TH___;
+			void  _Inherit (const String &name) __TH___;
 		};
 	  #endif
 
@@ -158,23 +154,21 @@ namespace AE::App
 
 		ND_ bool  Merge (const SerializableInputActions &other);
 		
-	  #if not AE_OPTIMIZE_IDS
 		ND_ virtual String  ToString () const = 0;
-	  #endif
 
 		ND_ static bool  LoadSerialized (OUT ModeMap_t &modeMap, uint version, uint nameHash, MemRefRStream &stream);
 
 
 	// ISerializable //
-		bool  Serialize (Serializing::Serializer &) const override final;
-		bool  Deserialize (Serializing::Deserializer &) override final;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OF;
+		bool  Deserialize (Serializing::Deserializer &)	__NE_OF;
 
-		ND_ static bool  Serialize (const ModeMap_t &modeMap, uint version, Serializing::Serializer &);
-		ND_ static bool  Deserialize (OUT ModeMap_t &modeMap, uint version, Serializing::Deserializer &);
+		ND_ static bool  Serialize (const ModeMap_t &modeMap, uint version, Serializing::Serializer &)	__NE___;
+		ND_ static bool  Deserialize (OUT ModeMap_t &modeMap, uint version, Serializing::Deserializer &)__NE___;
 
 		
 	  #ifdef AE_ENABLE_SCRIPTING
-		ND_ static bool  BindBase (const Scripting::ScriptEnginePtr &se);
+		static bool  BindBase (const Scripting::ScriptEnginePtr &se) __TH___;
 	  #endif
 
 
@@ -239,8 +233,4 @@ namespace AE::Scripting
 	AE_DECL_SCRIPT_TYPE(	AE::App::EGestureType,									"EGestureType"	);
 	AE_DECL_SCRIPT_TYPE(	AE::App::SerializableInputActions::EValueType,			"EValueType"	);
 }
-#endif
-
-#if AE_NO_EXCEPTIONS == 1
-#	undef THROW
 #endif

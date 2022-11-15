@@ -38,7 +38,7 @@ namespace AE::Graphics
 		VkQueueFlagBits				familyFlags			= Zero;
 		uint						queueIndex			= UMax;
 		float						priority			= 0.0f;
-		VkQueueGlobalPriorityEXT	globalPriority		= Zero;
+		VkQueueGlobalPriorityKHR	globalPriority		= Zero;
 		VkPipelineStageFlagBits2	supportedStages		= Zero;		// all supported pipeline stages, except HOST and ALL
 		VkAccessFlagBits2			supportedAccess		= Zero;		// all supported memory access types, except HOST and ALL
 		packed_uint3				minImageTransferGranularity;
@@ -47,9 +47,9 @@ namespace AE::Graphics
 		
 
 	// methods
-		VQueue () {}
+		VQueue () __NE___ {}
 
-		VQueue (VQueue &&other) :
+		VQueue (VQueue &&other) __NE___ :
 			handle{other.handle}, type{other.type}, familyIndex{other.familyIndex}, familyFlags{other.familyFlags},
 			queueIndex{other.queueIndex}, priority{other.priority}, globalPriority{other.globalPriority},
 			supportedStages{other.supportedStages}, supportedAccess{other.supportedAccess},
@@ -57,7 +57,7 @@ namespace AE::Graphics
 			debugName{other.debugName}
 		{}
 		
-		VQueue (const VQueue &other) :
+		VQueue (const VQueue &other) __NE___ :
 			handle{other.handle}, type{other.type}, familyIndex{other.familyIndex}, familyFlags{other.familyFlags},
 			queueIndex{other.queueIndex}, priority{other.priority}, globalPriority{other.globalPriority},
 			supportedStages{other.supportedStages}, supportedAccess{other.supportedAccess},
@@ -65,8 +65,8 @@ namespace AE::Graphics
 			debugName{other.debugName}
 		{}
 
-		ND_ bool  HasUnsupportedStages (VkPipelineStageFlagBits2 stages)	const	{ return AnyBits( stages, ~supportedStages ); }
-		ND_ bool  HasUnsupportedAccess (VkAccessFlagBits2 access)			const	{ return AnyBits( access, ~supportedAccess ); }
+		ND_ bool  HasUnsupportedStages (VkPipelineStageFlagBits2 stages)	C_NE___	{ return AnyBits( stages, ~supportedStages ); }
+		ND_ bool  HasUnsupportedAccess (VkAccessFlagBits2 access)			C_NE___	{ return AnyBits( access, ~supportedAccess ); }
 	};
 	
 
@@ -122,8 +122,8 @@ namespace AE::Graphics
 			VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT |
 			VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT |
 			VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT |
-			VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_NV |
-			VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_NV |
+			VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT |
+			VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT |
 			VK_PIPELINE_STAGE_2_PRE_RASTERIZATION_SHADERS_BIT |
 			VK_PIPELINE_STAGE_2_FRAGMENT_DENSITY_PROCESS_BIT_EXT |
 			VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT |
@@ -293,6 +293,16 @@ namespace AE::Graphics
 			VkAccessFlagBits2	result = 0;
 			for (auto scope : scopes)
 				result |= _AccessScopes[uint(scope)];
+			return result;
+		}
+
+		ND_ static constexpr auto	GetStagesAndAccess (std::initializer_list<EPipelineScope> scopes)
+		{
+			auto	result = Tuple{ VkPipelineStageFlagBits2(0), VkAccessFlagBits2(0) };
+			for (auto scope : scopes) {
+				result.Get<0>() |= _StageScopes [uint(scope)];
+				result.Get<1>() |= _AccessScopes[uint(scope)];
+			}
 			return result;
 		}
 	};

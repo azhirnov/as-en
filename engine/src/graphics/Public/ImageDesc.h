@@ -33,35 +33,35 @@ namespace AE::Graphics
 		// TODO: image view formats list instead of mutable format
 
 	// methods
-		ImageDesc () {}
+		ImageDesc ()										__NE___ {}
 		
 		// Will remove unsupported combinations
-		void  Validate ();
+		void  Validate ()									__NE___;
 		
-		ND_ bool  operator == (const ImageDesc &rhs) const;
+		ND_ bool  operator == (const ImageDesc &rhs)		C_NE___;
 		
-		ImageDesc&  SetType (EImage value);
-		ImageDesc&  SetType (EImageDim value)				{ imageType		= value;				return *this; }
-		ImageDesc&  SetOptions (EImageOpt value)			{ options		= value;				return *this; }
-		ImageDesc&  SetDimension (const uint value);
-		ImageDesc&  SetDimension (const uint2 &value);
-		ImageDesc&  SetDimension (uint w, uint h)			{ return SetDimension( uint2{w,h} ); }
-		ImageDesc&  SetDimension (const uint3 &value);
-		ImageDesc&  SetDimension (uint w, uint h, uint d)	{ return SetDimension( uint3{w,h,d} ); }
-		ImageDesc&  SetUsage (EImageUsage value)			{ usage			= value;				return *this; }
-		ImageDesc&  SetFormat (EPixelFormat value)			{ format		= value;				return *this; }
-		ImageDesc&  SetArrayLayers (uint value)				{ arrayLayers	= ImageLayer{value};	return *this; }
-		ImageDesc&  SetMaxMipmaps (uint value)				{ maxLevel		= MipmapLevel{value};	return *this; }
-		ImageDesc&  SetSamples (uint value)					{ samples		= MultiSamples{value};	return *this; }
-		ImageDesc&  SetAllMipmaps ()						{ maxLevel		= MipmapLevel::Max();	return *this; }
-		ImageDesc&  SetQueues (EQueueMask value)			{ queues		= value;				return *this; }
-		ImageDesc&  SetMemory (EMemoryType value)			{ memType		= value;				return *this; }
+		ImageDesc&  SetType (EImage value)					__NE___;
+		ImageDesc&  SetType (EImageDim value)				__NE___	{ imageType		= value;				return *this; }
+		ImageDesc&  SetOptions (EImageOpt value)			__NE___	{ options		= value;				return *this; }
+		ImageDesc&  SetDimension (const uint value)			__NE___;
+		ImageDesc&  SetDimension (const uint2 &value)		__NE___;
+		ImageDesc&  SetDimension (uint w, uint h)			__NE___	{ return SetDimension( uint2{w,h} ); }
+		ImageDesc&  SetDimension (const uint3 &value)		__NE___;
+		ImageDesc&  SetDimension (uint w, uint h, uint d)	__NE___	{ return SetDimension( uint3{w,h,d} ); }
+		ImageDesc&  SetUsage (EImageUsage value)			__NE___	{ usage			= value;				return *this; }
+		ImageDesc&  SetFormat (EPixelFormat value)			__NE___	{ format		= value;				return *this; }
+		ImageDesc&  SetArrayLayers (uint value)				__NE___	{ arrayLayers	= ImageLayer{value};	return *this; }
+		ImageDesc&  SetMaxMipmaps (uint value)				__NE___	{ maxLevel		= MipmapLevel{value};	return *this; }
+		ImageDesc&  SetSamples (uint value)					__NE___	{ samples		= MultiSamples{value};	return *this; }
+		ImageDesc&  SetAllMipmaps ()						__NE___	{ maxLevel		= MipmapLevel::Max();	return *this; }
+		ImageDesc&  SetQueues (EQueueMask value)			__NE___	{ queues		= value;				return *this; }
+		ImageDesc&  SetMemory (EMemoryType value)			__NE___	{ memType		= value;				return *this; }
 
-		ND_ static ImageDesc  CreateColorAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer);
-		ND_ static ImageDesc  CreateDepthAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer);
-		ND_ static ImageDesc  CreateShadingRate (const uint2 &dim);
-		ND_ static ImageDesc  CreateFragmentDensityMap (const uint2 &dim);
-		ND_ static ImageDesc  CreateStaging (const uint2 &dim, EPixelFormat fmt);
+		ND_ static ImageDesc  CreateColorAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)	__NE___;
+		ND_ static ImageDesc  CreateDepthAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)	__NE___;
+		ND_ static ImageDesc  CreateShadingRate (const uint2 &dim)														__NE___;
+		ND_ static ImageDesc  CreateFragmentDensityMap (const uint2 &dim)												__NE___;
+		ND_ static ImageDesc  CreateStaging (const uint2 &dim, EPixelFormat fmt)										__NE___;
 	};
 	
 
@@ -83,7 +83,7 @@ namespace AE::Graphics
 		ImageSwizzle		swizzle;
 
 	// methods
-		ImageViewDesc () {}
+		ImageViewDesc () __NE___ {}
 
 		explicit ImageViewDesc (EImage			viewType,
 								EPixelFormat	format		= Default,
@@ -92,22 +92,22 @@ namespace AE::Graphics
 								ImageLayer		baseLayer	= Default,
 								uint			layerCount	= UMax,
 								ImageSwizzle	swizzle		= Default,
-								EImageAspect	aspectMask	= Default);
+								EImageAspect	aspectMask	= Default) __NE___;
 
-		explicit ImageViewDesc (const ImageDesc &desc);
+		explicit ImageViewDesc (const ImageDesc &desc)			__NE___;
 
-		void  Validate (const ImageDesc &desc);
+		void  Validate (const ImageDesc &desc)					__NE___;
 
-		ND_ bool  operator == (const ImageViewDesc &rhs) const;
+		ND_ bool  operator == (const ImageViewDesc &rhs)		C_NE___;
 		
-		ImageViewDesc&  SetType (EImage value)					{ viewType	= value;				return *this; }
-		ImageViewDesc&  SetFormat (EPixelFormat value)			{ format	= value;				return *this; }
-		ImageViewDesc&  SetBaseMipmap (uint value)				{ baseLevel	= MipmapLevel{value};	return *this; }
-		ImageViewDesc&  SetLevels (uint base, uint count)		{ baseLevel	= MipmapLevel{base};	levelCount = CheckCast<ushort>(count);  return *this; }
-		ImageViewDesc&  SetBaseLayer (uint value)				{ baseLayer	= ImageLayer{value};	return *this; }
-		ImageViewDesc&  SetArrayLayers (uint base, uint count)	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast<ushort>(count);  return *this; }
-		ImageViewDesc&  SetSwizzle (ImageSwizzle value)			{ swizzle	= value;				return *this; }
-		ImageViewDesc&  SetAspect (EImageAspect value)			{ aspectMask= value;				return *this; }
+		ImageViewDesc&  SetType (EImage value)					__NE___	{ viewType	= value;				return *this; }
+		ImageViewDesc&  SetFormat (EPixelFormat value)			__NE___	{ format	= value;				return *this; }
+		ImageViewDesc&  SetBaseMipmap (uint value)				__NE___	{ baseLevel	= MipmapLevel{value};	return *this; }
+		ImageViewDesc&  SetLevels (uint base, uint count)		__NE___	{ baseLevel	= MipmapLevel{base};	levelCount = CheckCast<ushort>(count);  return *this; }
+		ImageViewDesc&  SetBaseLayer (uint value)				__NE___	{ baseLayer	= ImageLayer{value};	return *this; }
+		ImageViewDesc&  SetArrayLayers (uint base, uint count)	__NE___	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast<ushort>(count);  return *this; }
+		ImageViewDesc&  SetSwizzle (ImageSwizzle value)			__NE___	{ swizzle	= value;				return *this; }
+		ImageViewDesc&  SetAspect (EImageAspect value)			__NE___	{ aspectMask= value;				return *this; }
 	};
 
 

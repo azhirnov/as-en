@@ -68,10 +68,10 @@ namespace AE::Graphics
 
 		bool  Dealloc (INOUT Storage_t &data) override;
 
-		bool  GetInfo (const Storage_t &data, OUT MetalMemoryObjInfo &info) const override;
+		bool  GetInfo (const Storage_t &data, OUT MetalMemoryObjInfo &info) C____OV;
 		
-		Bytes  MinAlignment ()		const override	{ return 1_b; }
-		Bytes  MaxAllocationSize ()	const override	{ return _pageSize; }
+		Bytes  MinAlignment ()		C____OV	{ return 1_b; }
+		Bytes  MaxAllocationSize ()	C____OV	{ return _pageSize; }
 
 	private:
 		ND_ static Data &		_CastStorage (Storage_t &data)			{ return *data.Ptr<Data>(); }

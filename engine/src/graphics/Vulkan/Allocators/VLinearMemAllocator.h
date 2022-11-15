@@ -62,30 +62,30 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit VLinearMemAllocator (Bytes pageSize = 0_b);
-		~VLinearMemAllocator () override;
+		explicit VLinearMemAllocator (Bytes pageSize = 0_b)									__NE___;
+		~VLinearMemAllocator ()																__NE_OV;
 		
 		void  SetPageSize (Bytes size);
 		void  Discard ();
 
 	  // IGfxMemAllocator //
-		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data) override;
-		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) override;
+		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)		__NE_OV;
+		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) __NE_OV;
 
-		bool  Dealloc (INOUT Storage_t &data) override;
+		bool  Dealloc (INOUT Storage_t &data)												__NE_OV;
 			
-		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info) const override;
+		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info)				C_NE_OV;
 		
-		Bytes  MinAlignment ()		const override	{ return 1_b; }
-		Bytes  MaxAllocationSize ()	const override	{ return _pageSize; }
+		Bytes  MinAlignment ()																C_NE_OV	{ return 1_b; }
+		Bytes  MaxAllocationSize ()															C_NE_OV	{ return _pageSize; }
 
 
 	private:
 		ND_ static Data &		_CastStorage (Storage_t &data)			{ return *data.Ptr<Data>(); }
 		ND_ static Data const&	_CastStorage (const Storage_t &data)	{ return *data.Ptr<Data>(); }
 		
-		ND_ Bytes			_GetOffset (const Data &data)		const	{ return data.offset; }
-		ND_ VkDeviceMemory	_GetMemory (const Data &data)		const	{ return data.page->memory; }
+		ND_ Bytes				_GetOffset (const Data &data)	const	{ return data.offset; }
+		ND_ VkDeviceMemory		_GetMemory (const Data &data)	const	{ return data.page->memory; }
 
 		ND_ bool  _IsValidPage (const Page* page) const;
 		ND_ bool  _Allocate (const VkMemoryRequirements &memReq, EMemoryType memType, bool shaderAddress, bool isImage, OUT Data &);

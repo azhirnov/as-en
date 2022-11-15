@@ -18,59 +18,52 @@ namespace AE::Base
 		static constexpr bool	IsThreadSafe = true;
 
 	// methods
-		ND_ AE_ALLOCATOR static void*  Allocate (Bytes size)
+		ND_ bool  operator == (const UntypedAllocator &)		C_NE___
+		{
+			return true;
+		}
+
+		// with default alignment
+		ND_ AE_ALLOCATOR static void*  Allocate (Bytes size)	__NE___
 		{
 			return ::operator new ( usize(size), std::nothrow_t{} );
 		}
 		
-		static void  Deallocate (void *ptr)
+		static void  Deallocate (void *ptr)						__NE___
 		{
 			::operator delete ( ptr, std::nothrow_t() );
 		}
 		
 		// deallocation with explicit size may be faster
-		static void  Deallocate (void *ptr, Bytes size)
+		static void  Deallocate (void *ptr, Bytes size)			__NE___
 		{
-			::operator delete ( ptr, usize(size) );
+			//#if defined(AE_PLATFORM_LINUX) and defined(AE_COMPILER_GCC)
+			//	::operator delete ( ptr );
+			//#else
+				::operator delete ( ptr, usize(size) );
+			//#endif
 		}
 
-		ND_ bool  operator == (const UntypedAllocator &) const
+
+		// with custom alignment
+		ND_ AE_ALLOCATOR static void*  Allocate (const SizeAndAlign sizeAndAlign) __NE___
 		{
-			return true;
-		}
-	};
-	
-
-
-	//
-	// Untyped Aligned Allocator
-	//
-
-	struct UntypedAlignedAllocator
-	{
-	// types
-		static constexpr bool	IsThreadSafe = true;
-
-	// methods
-		ND_ AE_ALLOCATOR static void*  Allocate (Bytes size, Bytes align)
-		{
-			return ::operator new ( usize(size), std::align_val_t(usize(align)), std::nothrow_t{} );
+			return ::operator new ( usize(sizeAndAlign.size), std::align_val_t(usize(sizeAndAlign.align)), std::nothrow_t{} );
 		}
 		
-		static void  Deallocate (void *ptr, Bytes align)
-		{
-			::operator delete ( ptr, std::align_val_t(usize(align)), std::nothrow_t() );
-		}
+		//static void  Deallocate (void *ptr, Bytes align) __NE___
+		//{
+		//	::operator delete ( ptr, std::align_val_t(usize(align)), std::nothrow_t() );
+		//}
 		
 		// deallocation with explicit size may be faster
-		static void  Deallocate (void *ptr, Bytes size, Bytes align)
+		static void  Deallocate (void *ptr, const SizeAndAlign sizeAndAlign) __NE___
 		{
-			::operator delete ( ptr, usize(size), std::align_val_t(usize(align)) );
-		}
-
-		ND_ bool  operator == (const UntypedAlignedAllocator &) const
-		{
-			return true;
+			//#if defined(AE_PLATFORM_LINUX) and defined(AE_COMPILER_GCC)
+			//	::operator delete ( ptr, std::align_val_t(usize(sizeAndAlign.align)) );
+			//#else
+				::operator delete ( ptr, usize(sizeAndAlign.size), std::align_val_t(usize(sizeAndAlign.align)) );
+			//#endif
 		}
 	};
 
@@ -88,23 +81,27 @@ namespace AE::Base
 		static constexpr bool	IsThreadSafe	= true;
 		
 	// methods
-		ND_ AE_ALLOCATOR static void*  Allocate (Bytes size)
+		ND_ AE_ALLOCATOR static void*  Allocate (Bytes size)	__NE___
 		{
 			return ::operator new ( usize(size), std::align_val_t(BaseAlign), std::nothrow_t{} );
 		}
 		
-		static void  Deallocate (void *ptr)
+		static void  Deallocate (void *ptr)						__NE___
 		{
 			::operator delete ( ptr, std::align_val_t(BaseAlign), std::nothrow_t() );
 		}
 		
 		// deallocation with explicit size may be faster
-		static void  Deallocate (void *ptr, Bytes size)
+		static void  Deallocate (void *ptr, Bytes size)			__NE___
 		{
-			::operator delete ( ptr, usize(size), std::align_val_t(BaseAlign) );
+			#if defined(AE_PLATFORM_LINUX) and defined(AE_COMPILER_GCC)
+				::operator delete ( ptr, std::align_val_t(BaseAlign) );
+			#else
+				::operator delete ( ptr, usize(size), std::align_val_t(BaseAlign) );
+			#endif
 		}
 
-		ND_ bool  operator == (const UntypedAllocatorBaseAlign<BaseAlign> &) const
+		ND_ bool  operator == (const UntypedAllocatorBaseAlign<BaseAlign> &) C_NE___
 		{
 			return true;
 		}
@@ -122,13 +119,9 @@ namespace AE::Base
 		static constexpr bool	IsThreadSafe = true;
 
 	// methods
-		ND_ AE_ALLOCATOR static void*  Allocate (Bytes size)
-		{
-			return alloca( usize(size) );
-		}
-		
-		static void  Deallocate (void *)
-		{}
+		ND_ AE_ALLOCATOR static void*	Allocate (Bytes size)		__NE___	{ return alloca( usize(size) ); }
+
+			static void					Deallocate (void *)			__NE___	{}
 	};
 
 } // AE::Base

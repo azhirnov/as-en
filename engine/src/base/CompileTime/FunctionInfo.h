@@ -96,7 +96,7 @@ namespace AE::Base::_hidden_
 	#undef _DECL_FUNC_INFO
 		
 
-#if defined(AE_HAS_EXCEPTIONS) or defined(AE_DEBUG)
+#if 1
 	#define _DECL_FUNC_INFO_EX( ... ) \
 		template <typename Class, typename Result, typename ...Args> \
 		struct _FuncInfo< Result (Class::*) (Args...) __VA_ARGS__ noexcept > \

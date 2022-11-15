@@ -70,34 +70,34 @@ namespace AE::Math
 
 	// methods
 	private:
-		constexpr explicit UFloat8 (EValue val) : _value{ubyte(val)}	{}
+		constexpr explicit UFloat8 (EValue val)			__NE___	: _value{ubyte(val)}		{}
 
 	public:
-		constexpr UFloat8 () : _value{0}								{}
+		constexpr UFloat8 ()							__NE___	: _value{0}					{}
 
-		constexpr UFloat8 (const Self &other) : _value{ other._value }	{}
-		explicit UFloat8 (const float &f)								{ Set( f ); }
+		constexpr UFloat8 (const Self &other)			__NE___	: _value{ other._value }	{}
+		explicit UFloat8 (const float &f)				__NE___	{ Set( f ); }
 
-			constexpr Self&  operator = (Self rhs)						{ _value = rhs._value;  return *this; }
+			constexpr Self&  operator = (Self rhs)		__NE___	{ _value = rhs._value;  return *this; }
 
-		ND_ constexpr bool  operator == (Self rhs)		const			{ return _value == rhs._value; }
+		ND_ constexpr bool  operator == (Self rhs)		C_NE___	{ return _value == rhs._value; }
 
 		// set/get
-		ND_ constexpr ubyte		GetU ()					const			{ return _value; }
+		ND_ constexpr ubyte		GetU ()					C_NE___	{ return _value; }
 		
-		ND_ constexpr float		Get ()					const;
-			constexpr Self&		Set (const float &f);
+		ND_ constexpr float		Get ()					C_NE___;
+			constexpr Self&		Set (const float &f)	__NE___;
 
-		ND_	constexpr float		GetFast ()				const;
-			constexpr Self&		SetFast (float f);
+		ND_	constexpr float		GetFast ()				C_NE___;
+			constexpr Self&		SetFast (float f)		__NE___;
 
-		ND_ explicit operator float ()					const			{ return Get(); }
+		ND_ explicit operator float ()					C_NE___	{ return Get(); }
 		
-		ND_ static constexpr Self  Min ()		{ return Self{EValue(0x01)}; }	// 1.5e-5
-		ND_ static constexpr Self  Max ()		{ return Self{EValue(0xEF)}; }	// 248
-		ND_ static constexpr Self  Inf ()		{ return Self{EValue(0xF0)}; }
-		ND_ static constexpr Self  NaN ()		{ return Self{EValue(0xFF)}; }
-		ND_ static constexpr float Epsilon ()	{ return 2.0e-3f; }
+		ND_ static constexpr Self  Min ()				__NE___	{ return Self{EValue(0x01)}; }	// 1.5e-5
+		ND_ static constexpr Self  Max ()				__NE___	{ return Self{EValue(0xEF)}; }	// 248
+		ND_ static constexpr Self  Inf ()				__NE___	{ return Self{EValue(0xF0)}; }
+		ND_ static constexpr Self  NaN ()				__NE___	{ return Self{EValue(0xFF)}; }
+		ND_ static constexpr float Epsilon ()			__NE___	{ return 2.0e-3f; }
 	};
 	
 /*
@@ -105,7 +105,7 @@ namespace AE::Math
 	Set
 =================================================
 */
-	forceinline constexpr UFloat8&  UFloat8::Set (const float &f)
+	forceinline constexpr UFloat8&  UFloat8::Set (const float &f) __NE___
 	{
 		FloatBits	entry;
 		entry.f = f;
@@ -180,7 +180,7 @@ namespace AE::Math
 	Get
 =================================================
 */
-	forceinline constexpr float  UFloat8::Get () const
+	forceinline constexpr float  UFloat8::Get () C_NE___
 	{
 		int e = _bits.e;
 		int m = _bits.m;
@@ -239,7 +239,7 @@ namespace AE::Math
 	GetFast
 =================================================
 */
-	forceinline constexpr float  UFloat8::GetFast () const
+	forceinline constexpr float  UFloat8::GetFast () C_NE___
 	{
 		FloatBits	f;
 		f.bits.e = _bits.e == 0 ? 0 : _bits.e + _MaxExpFmH;
@@ -253,7 +253,7 @@ namespace AE::Math
 	SetFast
 =================================================
 */
-	forceinline constexpr UFloat8&  UFloat8::SetFast (float val)
+	forceinline constexpr UFloat8&  UFloat8::SetFast (float val) __NE___
 	{
 		FloatBits	f;
 		f.f		= val;
@@ -301,9 +301,9 @@ namespace std
 		static constexpr int	min_exponent	= -7;
 		static constexpr int	min_exponent10	= -1;	// TODO: check
 
-		ND_ static constexpr AE::Math::UFloat8  min () noexcept { return AE::Math::UFloat8::Min(); }
+		ND_ static constexpr AE::Math::UFloat8  min () __NE___ { return AE::Math::UFloat8::Min(); }
 
-		ND_ static constexpr AE::Math::UFloat8  max () noexcept { return AE::Math::UFloat8::Max(); }
+		ND_ static constexpr AE::Math::UFloat8  max () __NE___ { return AE::Math::UFloat8::Max(); }
 	};
 
 } // std

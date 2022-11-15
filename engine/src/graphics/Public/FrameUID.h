@@ -59,33 +59,33 @@ namespace AE::Graphics
 		explicit FrameUID (Value_t uid, Value_t idx, Value_t maxFrames) : _bits{ uid, idx, maxFrames } {}
 
 	public:
-		FrameUID () {}
+		FrameUID ()										__NE___ {}
 
-		FrameUID (const FrameUID &) = default;
-		FrameUID (FrameUID &&) = default;
+		FrameUID (const FrameUID &)						__NE___	= default;
+		FrameUID (FrameUID &&)							__NE___	= default;
 
-		FrameUID&  operator = (const FrameUID &) = default;
-		FrameUID&  operator = (FrameUID &&) = default;
+		FrameUID&  operator = (const FrameUID &)		__NE___	= default;
+		FrameUID&  operator = (FrameUID &&)				__NE___	= default;
 
-		ND_ bool  operator == (const FrameUID &rhs) const	{ return _value == rhs._value; }
-		ND_ bool  operator != (const FrameUID &rhs) const	{ return _value != rhs._value; }
+		ND_ bool  operator == (const FrameUID &rhs)		C_NE___	{ return _value == rhs._value; }
+		ND_ bool  operator != (const FrameUID &rhs)		C_NE___	{ return _value != rhs._value; }
 
-		ND_ bool  operator >  (const FrameUID &rhs) const	{ ASSERT( _bits.maxFrames == rhs._bits.maxFrames );  return _bits.counter > rhs._bits.counter; }
-		ND_ bool  operator <  (const FrameUID &rhs) const	{ ASSERT( _bits.maxFrames == rhs._bits.maxFrames );  return _bits.counter < rhs._bits.counter; }
+		ND_ bool  operator >  (const FrameUID &rhs)		C_NE___	{ ASSERT( _bits.maxFrames == rhs._bits.maxFrames );  return _bits.counter > rhs._bits.counter; }
+		ND_ bool  operator <  (const FrameUID &rhs)		C_NE___	{ ASSERT( _bits.maxFrames == rhs._bits.maxFrames );  return _bits.counter < rhs._bits.counter; }
 		
-		ND_ bool  operator <=  (const FrameUID &rhs) const	{ return not (*this > rhs); }
-		ND_ bool  operator >=  (const FrameUID &rhs) const	{ return not (*this < rhs); }
+		ND_ bool  operator <=  (const FrameUID &rhs)	C_NE___	{ return not (*this > rhs); }
+		ND_ bool  operator >=  (const FrameUID &rhs)	C_NE___	{ return not (*this < rhs); }
 
 
-		ND_ _EFrameUID	Unique ()		const	{ return _EFrameUID(_bits.counter); }
-		ND_ uint		Index ()		const	{ return uint(_bits.index); }
-		ND_ uint		PrevIndex ()	const	{ return uint((_bits.index - 1) % _bits.maxFrames); }
-		ND_ uint		NextIndex ()	const	{ return uint((_bits.index + 1) % _bits.maxFrames); }
-		ND_ uint		MaxFrames ()	const	{ return uint(_bits.maxFrames); }
-		ND_ bool		IsValid ()		const	{ return _bits.maxFrames > 0; }
+		ND_ _EFrameUID	Unique ()						C_NE___	{ return _EFrameUID(_bits.counter); }
+		ND_ uint		Index ()						C_NE___	{ return uint(_bits.index); }
+		ND_ uint		PrevIndex ()					C_NE___	{ return uint((_bits.index - 1) % _bits.maxFrames); }
+		ND_ uint		NextIndex ()					C_NE___	{ return uint((_bits.index + 1) % _bits.maxFrames); }
+		ND_ uint		MaxFrames ()					C_NE___	{ return uint(_bits.maxFrames); }
+		ND_ bool		IsValid ()						C_NE___	{ return _bits.maxFrames > 0; }
 
 
-		FrameUID&  Inc ()
+		FrameUID&  Inc () __NE___
 		{
 			ASSERT( _bits.maxFrames > 0 );
 			_bits.index = (_bits.index + 1) % _bits.maxFrames;
@@ -94,7 +94,7 @@ namespace AE::Graphics
 			return *this;
 		}
 
-		ND_ Optional<FrameUID>  PrevCycle () const
+		ND_ Optional<FrameUID>  PrevCycle () C_NE___
 		{
 			if_likely( _bits.maxFrames <= _bits.counter )
 			{
@@ -105,19 +105,19 @@ namespace AE::Graphics
 			return NullOptional;
 		}
 
-		ND_ SValue_t  Diff (FrameUID rhs) const
+		ND_ SValue_t  Diff (FrameUID rhs) C_NE___
 		{
 			return SValue_t(_bits.counter) - SValue_t(rhs._bits.counter);
 		}
 
-		ND_ static FrameUID  FromIndex (uint idx, uint maxFrames)
+		ND_ static FrameUID  FromIndex (uint idx, uint maxFrames) __NE___
 		{
 			ASSERT( maxFrames <= GraphicsConfig::MaxFrames );
 			ASSERT( idx < maxFrames );
 			return FrameUID{ 0, idx, maxFrames };
 		}
 
-		ND_ static FrameUID  Init (uint maxFrames)
+		ND_ static FrameUID  Init (uint maxFrames) __NE___
 		{
 			CHECK( maxFrames > 0 );
 			CHECK( maxFrames <= GraphicsConfig::MaxFrames );
@@ -144,14 +144,14 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		AtomicFrameUID () {}
+		AtomicFrameUID ()				__NE___ {}
 
-		ND_ FrameUID  load () const
+		ND_ FrameUID  load ()			C_NE___
 		{
 			return BitCast<FrameUID>( _value.load() );
 		}
 
-		void  store (FrameUID value)
+		void  store (FrameUID value)	__NE___
 		{
 		#ifdef AE_DEBUG
 			FrameUID	old = BitCast<FrameUID>( _value.exchange( BitCast<Value_t>( value )));
@@ -161,7 +161,7 @@ namespace AE::Graphics
 		#endif
 		}
 
-		FrameUID  Inc ()
+		FrameUID  Inc ()				__NE___
 		{
 			Value_t	new_val;
 			for (Value_t exp = _value.load();;)

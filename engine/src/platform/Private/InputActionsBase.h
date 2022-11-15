@@ -102,7 +102,7 @@ namespace AE::App
 			ND_ DubleBufferedQueue const*	Get ()	const	{ return _ref.get(); }
 
 			template <typename T>
-			bool  Insert (const InputActionName &name, ControllerID id, const T &data)						{ return _ref->Insert( name, id, &data, Bytes::SizeOf(data) ); }
+			bool  Insert (const InputActionName &name, ControllerID id, const T &data)						{ return _ref->Insert( name, id, &data, Sizeof(data) ); }
 			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)	{ return _ref->Insert( name, id, data, dataSize ); }
 			bool  Insert (const InputActionName &name, ControllerID id)										{ return _ref->Insert( name, id ); }
 		};

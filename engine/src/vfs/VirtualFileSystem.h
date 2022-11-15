@@ -14,6 +14,8 @@ TODO:
 
 #include "vfs/Common.h"
 
+namespace AE { VFS::VirtualFileSystem&  GetVFS (); }
+
 namespace AE::VFS
 {
 
@@ -21,7 +23,7 @@ namespace AE::VFS
 	// Virtual File System Storage interface
 	//
 
-	class IFileStorage : public EnableRC<IFileStorage>
+	class IVirtualFileStorage : public EnableRC<IVirtualFileStorage>
 	{
 		friend class VirtualFileSystem;
 
@@ -29,8 +31,8 @@ namespace AE::VFS
 	protected:
 		struct GlobalFileRef
 		{
-			IFileStorage const*	storage;
-			void const*			ref;		// map iterator, only for static storage
+			IVirtualFileStorage const*	storage;
+			void const*					ref;		// map iterator, only for static storage
 		};
 
 		using GlobalFileMap_t = FlatHashMap< FileName::Optimized_t, GlobalFileRef >;
@@ -38,18 +40,16 @@ namespace AE::VFS
 
 	// interface
 	public:
-		ND_ virtual RC<RStream>			Open (const FileName &name) const = 0;
-		ND_ virtual RC<AsyncRStream>	OpenAsync (const FileName &name) const = 0;
-
-		//ND_ virtual Promise<void>		LoadAsync (const FileGroupName &name) const = 0;
+		ND_ virtual RC<RStream>		OpenAsStream (const FileName &name) const = 0;
+		ND_ virtual RC<RDataSource>	OpenAsSource (const FileName &name) const = 0;
 
 		ND_ virtual bool	Exists (const FileName &name) const = 0;
 		ND_ virtual bool	Exists (const FileGroupName &name) const = 0;
 
 	protected:
-			virtual void				_Append (INOUT GlobalFileMap_t &) const = 0;
-		ND_ virtual RC<RStream>			_OpenByIter (const FileName &name, const void* ref) const = 0;
-		ND_ virtual RC<AsyncRStream>	_OpenAsyncByIter (const FileName &name, const void* ref) const = 0;
+			virtual void			_Append (INOUT GlobalFileMap_t &) const = 0;
+		ND_ virtual RC<RStream>		_OpenAsStreamByIter (const FileName &name, const void* ref) const = 0;
+		ND_ virtual RC<RDataSource>	_OpenAsSourceByIter (const FileName &name, const void* ref) const = 0;
 	};
 
 
@@ -62,17 +62,15 @@ namespace AE::VFS
 	{
 	// types
 	private:
-		using GlobalFileMap_t = IFileStorage::GlobalFileMap_t;
+		using GlobalFileMap_t = IVirtualFileStorage::GlobalFileMap_t;
 
 
 	// variables
 	private:
-		GlobalFileMap_t				_globalMap;
-		Array< RC<IFileStorage> >	_storageArr;
+		GlobalFileMap_t						_globalMap;
+		Array< RC<IVirtualFileStorage> >	_storageArr;
 		
-		DRC_ONLY(
-			RWDataRaceCheck			_drCheck;
-		)
+		DRC_ONLY( RWDataRaceCheck			_drCheck;)
 
 
 	// methods
@@ -80,14 +78,12 @@ namespace AE::VFS
 		static void  CreateInstance ();
 		static void  DestroyInstance ();
 		
-		friend VirtualFileSystem&  GetVFS ();
+		friend VirtualFileSystem&  AE::GetVFS ();
 
-		ND_ bool  AddStorage (RC<IFileStorage> storage);
-
-		ND_ RC<RStream>			Open (const FileName &name) const;
-		ND_ RC<AsyncRStream>	OpenAsync (const FileName &name) const;
-
-		//ND_ Promise<void>		LoadAsync (const FileGroupName &name) const;
+		ND_ bool  AddStorage (RC<IVirtualFileStorage> storage);
+		
+		ND_ RC<RStream>		OpenAsStream (const FileName &name) const;
+		ND_ RC<RDataSource>	OpenAsSource (const FileName &name) const;
 
 		ND_ bool	Exists (const FileName &name) const;
 		ND_ bool	Exists (const FileGroupName &name) const;
@@ -98,16 +94,20 @@ namespace AE::VFS
 
 		ND_ static VirtualFileSystem*  _Instance ();
 	};
-
 	
+} // AE::VFS
+
+
+namespace AE
+{
 /*
 =================================================
 	GetVFS
 =================================================
 */
-	ND_ forceinline VirtualFileSystem&  GetVFS ()
+	ND_ forceinline VFS::VirtualFileSystem&  GetVFS ()
 	{
-		return *VirtualFileSystem::_Instance();
+		return *VFS::VirtualFileSystem::_Instance();
 	}
 
-} // AE::VFS
+} // AE

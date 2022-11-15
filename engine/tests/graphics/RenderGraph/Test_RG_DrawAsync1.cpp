@@ -59,9 +59,9 @@ namespace
 		DA1_TestData&	t;
 		const uint		firstVertex;
 		
-		DA1_DrawTask (DA1_TestData& t, uint first, RC<DrawCommandBatch> batch, StringView dbgName) :
-			DrawTask{ batch, dbgName },
-			t{ t },
+		DA1_DrawTask (DA1_TestData* t, uint first, RC<DrawCommandBatch> batch, StringView dbgName, RGBA8u dbgColor) :
+			DrawTask{ batch, dbgName, dbgColor },	// throw
+			t{ *t },
 			firstVertex{ first }
 		{}
 
@@ -71,7 +71,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 
 			typename CtxTypes::Draw		dctx{ *this };
-			CHECK_TE( dctx.IsValid() );
 			
 			CHECK_TE( dctx.BindVertexBuffer( t.ppln, VertexBufferName{"vb"}, t.vb, 0_b ));
 
@@ -94,8 +93,8 @@ namespace
 		DA1_TestData&			t;
 		RC<DrawCommandBatch>	drawBatch;
 
-		DA1_RenderPassTask (DA1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		DA1_RenderPassTask (DA1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -109,14 +108,46 @@ namespace
 			{
 				drawBatch = RenderTaskScheduler().BeginAsyncDraw( rp_desc, "DrawTest.Draw_1" );
 				CHECK_TE( drawBatch );
+				
+			#ifdef AE_HAS_COROUTINE
+				const auto	CreateDrawTask = [] (DA1_TestData &t, const uint firstVertex) -> CoroutineDrawTask
+				{{
+					auto	hnd = co_await DrawTask_Get{};
 
+					// same as 'DA1_DrawTask'
+					DeferSharedLock	lock {t.guard};
+					CHECK_CE( lock.try_lock() );
+
+					typename CtxTypes::Draw		dctx{ *hnd };
+			
+					CHECK_CE( dctx.BindVertexBuffer( t.ppln, VertexBufferName{"vb"}, t.vb, 0_b ));
+
+					dctx.BindPipeline( t.ppln );
+			
+					DrawCmd	cmd;
+					cmd.vertexCount = 3;
+					cmd.firstVertex	= firstVertex;
+					dctx.Draw( cmd );
+
+					co_await DrawTask_Execute( dctx );
+					co_return;
+				}};
 				StaticArray< AsyncTask, 4 >	draw_tasks = {
-					drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ArgRef(t), 0u}, Tuple{}, "draw cmd 1" ),
-					drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ArgRef(t), 3u}, Tuple{}, "draw cmd 2" ),
-					drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ArgRef(t), 6u}, Tuple{}, "draw cmd 3" ),
-					drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ArgRef(t), 9u}, Tuple{}, "draw cmd 4" )
+					drawBatch->Add( CreateDrawTask( t, 0 ), Tuple{}, "draw cmd 1" ),
+					drawBatch->Add( CreateDrawTask( t, 3 ), Tuple{}, "draw cmd 2" ),
+					drawBatch->Add( CreateDrawTask( t, 6 ), Tuple{}, "draw cmd 3" ),
+					drawBatch->Add( CreateDrawTask( t, 9 ), Tuple{}, "draw cmd 4" )
 				};
-				CHECK( Continue( Tuple{ Threading::StrongDepArray{draw_tasks} }));
+			#else
+				StaticArray< AsyncTask, 4 >	draw_tasks = {
+					drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 0u }, Tuple{}, "draw cmd 1" ),
+					drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 3u }, Tuple{}, "draw cmd 2" ),
+					drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 6u }, Tuple{}, "draw cmd 3" ),
+					drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 9u }, Tuple{}, "draw cmd 4" )
+				};
+			#endif
+
+				return Continue( Tuple{ Threading::StrongDepArray{draw_tasks} });
 			}
 			else
 			{
@@ -127,16 +158,14 @@ namespace
 
 				// upload vertices
 				typename CtxTypes::Transfer		copy_ctx{ *this };
-				CHECK_TE( copy_ctx.IsValid() );
 			
 				copy_ctx.AccumBarriers()
 					.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopyDst );
 
-				CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Bytes::SizeOf(vertices), vertices, EStagingHeapType::Static ));
+				CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(vertices), vertices, EStagingHeapType::Static ));
 
 				// begin render pass
 				typename CtxTypes::Graphics	ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
-				CHECK_TE( ctx.IsValid() );
 			
 				ctx.AccumBarriers()
 					.MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
@@ -162,8 +191,8 @@ namespace
 	public:
 		DA1_TestData&	t;
 
-		DA1_CopyTask (DA1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		DA1_CopyTask (DA1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -173,7 +202,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 			
 			Ctx		ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
 						.Then( [p = &t] (const ImageMemView &view)
@@ -183,7 +211,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -200,7 +228,7 @@ namespace
 		t.imgCmp	= imageCmp;
 		t.viewSize	= uint2{800, 600};
 		
-		t.vb = res_mngr.CreateBuffer( BufferDesc{ Bytes::SizeOf(vertices), EBufferUsage::TransferDst | EBufferUsage::Vertex }.SetMemory( EMemoryType::DeviceLocal ),
+		t.vb = res_mngr.CreateBuffer( BufferDesc{ Sizeof(vertices), EBufferUsage::TransferDst | EBufferUsage::Vertex }.SetMemory( EMemoryType::DeviceLocal ),
 									  "vertex buffer", t.gfxAlloc );
 		CHECK_ERR( t.vb );
 
@@ -216,19 +244,14 @@ namespace
 		CHECK_ERR( t.ppln );
 
 		AsyncTask	begin	= rts.BeginFrame();
-		CHECK_ERR( begin );
 
 		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "DrawAsync1" );
 		CHECK_ERR( t.batch );
 
 		AsyncTask	task1	= t.batch->Add< DA1_RenderPassTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin}, "Draw task" );
-		CHECK_ERR( task1 );
-		
 		AsyncTask	task2	= t.batch->Add< DA1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
-		CHECK_ERR( task2 );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
-		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
 		CHECK_ERR( end->Status() == EStatus::Completed );

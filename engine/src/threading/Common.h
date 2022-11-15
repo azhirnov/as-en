@@ -2,12 +2,15 @@
 
 #pragma once
 
+#include "base/StdInclude.h"
+
 #include <atomic>
 #include <mutex>
 #include <shared_mutex>
 #include <thread>
 #include <condition_variable>
-#ifdef AE_STD_BARRIER
+
+#ifdef __cpp_lib_barrier
 #  include <barrier>
 #endif
 
@@ -148,12 +151,6 @@ namespace AE::Threading
 #	pragma detect_mismatch( "AE_ENABLE_DATA_RACE_CHECK", "1" )
 #  else
 #	pragma detect_mismatch( "AE_ENABLE_DATA_RACE_CHECK", "0" )
-#  endif
-
-#  ifdef AE_STD_BARRIER
-#	pragma detect_mismatch( "AE_STD_BARRIER", "1" )
-#  else
-#	pragma detect_mismatch( "AE_STD_BARRIER", "0" )
 #  endif
 
 #endif // AE_CPP_DETECT_MISMATCH

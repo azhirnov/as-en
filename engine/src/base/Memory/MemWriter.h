@@ -42,7 +42,7 @@ namespace AE::Base
 			usize	result = AlignUp( usize(_ptr) + _offset, usize(align) );
 
 			_offset = (result - usize(_ptr)) + usize(size);
-			ASSERT( _offset <= _size );
+			ASSERT( _offset <= _size );		// TODO: throw?
 
 			return BitCast<void *>( result );
 		}
@@ -55,18 +55,18 @@ namespace AE::Base
 		}
 
 		template <typename T, typename ...Args>
-		ND_ T&  Emplace (Args&& ...args)
+		ND_ T&  Emplace (Args&& ...args) __TH___
 		{
 			ASSERT( IsAllocated() );
-			return *PlacementNew<T>( &Reserve<T>(), FwdArg<Args>( args )... );
+			return *PlacementNew<T>( &Reserve<T>(), FwdArg<Args>( args )... );	// throw
 		}
 
 		template <typename T, typename ...Args>
-		ND_ T&  EmplaceSized (Bytes size, Args&& ...args)
+		ND_ T&  EmplaceSized (Bytes size, Args&& ...args) __TH___
 		{
 			ASSERT( IsAllocated() );
 			ASSERT( size >= SizeOf<T> );
-			return *PlacementNew<T>( Reserve( size, AlignOf<T> ), FwdArg<Args>( args )... );
+			return *PlacementNew<T>( Reserve( size, AlignOf<T> ), FwdArg<Args>( args )... );	// throw
 		}
 
 
@@ -77,13 +77,13 @@ namespace AE::Base
 		}
 
 		template <typename T, typename ...Args>
-		ND_ T*  EmplaceArray (usize count, Args&& ...args)
+		ND_ T*  EmplaceArray (usize count, Args&& ...args) __TH___
 		{
 			ASSERT( IsAllocated() );
 			T*	result = ReserveArray<T>( count );
 
 			for (usize i = 0; i < count; ++i) {
-				PlacementNew<T>( result + i, FwdArg<Args>( args )... );
+				PlacementNew<T>( result + i, FwdArg<Args>( args )... );	// throw
 			}
 			return result;
 		}

@@ -35,33 +35,33 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VDrawBarrierManager (Ptr<VDrawCommandBatch> batch);
-		explicit VDrawBarrierManager (const VPrimaryCmdBufState &primaryState);
+		explicit VDrawBarrierManager (Ptr<VDrawCommandBatch> batch)				__NE___;
+		explicit VDrawBarrierManager (const VPrimaryCmdBufState &primaryState)	__NE___;
 
 		template <typename ID>
-		ND_ auto*					Get (ID id)						{ return GetResourceManager().GetResource( id ); }
+		ND_ auto*					Get (ID id)									__NE___	{ return GetResourceManager().GetResource( id ); }
 		
 		template <typename ID>
-		ND_ bool					IsAlive (ID id)			const	{ return GetResourceManager().IsAlive( id ); }
+		ND_ bool					IsAlive (ID id)								C_NE___	{ return GetResourceManager().IsAlive( id ); }
 
-		ND_ VDevice const&			GetDevice ()			const	{ return _resMngr.GetDevice(); }
-		ND_ VResourceManager&		GetResourceManager ()	const	{ return _resMngr; }
-		ND_ FrameUID				GetFrameId ()			const	{ return _primaryState.frameId; }
-		ND_ EQueueType				GetQueueType ()			const	{ return EQueueType::Graphics; }
-		ND_ auto const&				GetPrimaryCtxState ()	const	{ return _primaryState; }
+		ND_ VDevice const&			GetDevice ()								C_NE___	{ return _resMngr.GetDevice(); }
+		ND_ VResourceManager&		GetResourceManager ()						C_NE___	{ return _resMngr; }
+		ND_ FrameUID				GetFrameId ()								C_NE___	{ return _primaryState.frameId; }
+		ND_ EQueueType				GetQueueType ()								C_NE___	{ return EQueueType::Graphics; }
+		ND_ auto const&				GetPrimaryCtxState ()						C_NE___	{ return _primaryState; }
 
-		ND_ bool					IsSecondary ()			const	{ return _batch != null; }
-		ND_ VDrawCommandBatch *		GetBatchPtr ()			const	{ return _batch.get(); }
+		ND_ bool					IsSecondary ()								C_NE___	{ return _batch != null; }
+		ND_ VDrawCommandBatch *		GetBatchPtr ()								C_NE___	{ return _batch.get(); }
 
-		ND_ const VkDependencyInfo*	GetBarriers ();
-		ND_ bool					NoPendingBarriers () const	{ return _imageBarriers.empty(); }
-		ND_ bool					HasPendingBarriers () const	{ return not NoPendingBarriers(); }
+		ND_ const VkDependencyInfo*	GetBarriers ()								__NE___;
+		ND_ bool					NoPendingBarriers ()						C_NE___	{ return _imageBarriers.empty(); }
+		ND_ bool					HasPendingBarriers ()						C_NE___	{ return not NoPendingBarriers(); }
 
-		void  ClearBarriers ();
-		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState);
+		void  ClearBarriers ()													__NE___;
+		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState) __NE___;
 
 	private:
-		void  _Init ();
+		void  _Init () __NE___;
 	};
 
 
@@ -71,7 +71,7 @@ namespace AE::Graphics::_hidden_
 	GetBarriers
 =================================================
 */
-	forceinline const VkDependencyInfo*  VDrawBarrierManager::GetBarriers ()
+	forceinline const VkDependencyInfo*  VDrawBarrierManager::GetBarriers () __NE___
 	{
 		if_unlikely( HasPendingBarriers() )
 		{
@@ -89,7 +89,7 @@ namespace AE::Graphics::_hidden_
 	ClearBarriers
 =================================================
 */
-	forceinline void  VDrawBarrierManager::ClearBarriers ()
+	forceinline void  VDrawBarrierManager::ClearBarriers () __NE___
 	{
 		_imageBarriers.clear();
 	}

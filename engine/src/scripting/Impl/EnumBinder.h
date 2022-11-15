@@ -29,9 +29,9 @@ namespace AE::Scripting
 	public:
 		explicit EnumBinder (const ScriptEnginePtr &eng);
 
-		bool  Create ();
+		void  Create ()								__TH___;
 
-		bool  AddValue (StringView name, T value);
+		void  AddValue (StringView name, T value)	__TH___;
 
 		ND_ StringView							Name ()		const	{ return _name; }
 		ND_ Ptr< AngelScript::asIScriptEngine >	GetASEngine ()		{ return _engine->Get(); }
@@ -57,16 +57,14 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T>
-	bool  EnumBinder<T>::Create ()
+	void  EnumBinder<T>::Create () __TH___
 	{
 		int	res = GetASEngine()->RegisterEnum( NtStringView{Name()}.c_str() );
 		
-		if ( res < 0 and res != AngelScript::asALREADY_REGISTERED )
-		{
-			AS_CALL( res );
-			RETURN_ERR( "enum '" + String{Name()} + "' already registerd" );
-		}
-		return true;
+		if ( res == AngelScript::asALREADY_REGISTERED )
+			AE_LOGE( "enum '" + String{Name()} + "' already registerd" );
+
+		AS_CHECK_THROW( res );
 	}
 	
 /*
@@ -75,12 +73,11 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T>
-	bool  EnumBinder<T>::AddValue (StringView valueName, T value)
+	void  EnumBinder<T>::AddValue (StringView valueName, T value) __TH___
 	{
 		ASSERT( slong(value) >= MinValue<int>() and slong(value) <= MaxValue<int>() );
 
-		AS_CALL_R( GetASEngine()->RegisterEnumValue( NtStringView{Name()}.c_str(), (String{Name()} + '_' + String{valueName}).c_str(), int(value) ));
-		return true;
+		AS_CHECK_THROW( GetASEngine()->RegisterEnumValue( NtStringView{Name()}.c_str(), (String{Name()} + '_' + String{valueName}).c_str(), int(value) ));
 	}
 
 } // AE::Scripting

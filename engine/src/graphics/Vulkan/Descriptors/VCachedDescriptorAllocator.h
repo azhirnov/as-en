@@ -34,12 +34,12 @@ namespace AE::Graphics
 	// methods
 	public:
 		VCachedDescriptorAllocator () {}
-		~VCachedDescriptorAllocator () override;
+		~VCachedDescriptorAllocator () __NE_OV;
 
 		bool  Preallocate (ArrayView<Pair< DescriptorSetLayoutID, uint >> info);
 
-		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds) override;
-		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds) override;
+		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)		__NE_OV;
+		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)	__NE_OV;
 
 	private:
 		static bool  _CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool);

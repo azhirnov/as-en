@@ -1,7 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	GLSL Trace project
-	https://github.com/azhirnov/glsl_trace
+	GLSL Trace project.
+
+	old project: https://github.com/azhirnov/glsl_trace
+	new project: https://gitflic.ru/project/azhirnov/as-en/file?file=engine%2Ftools%2Fres_pack%2Fshader_trace
 */
 
 #pragma once
@@ -137,8 +139,8 @@ namespace AE::PipelineCompiler
 		ND_ Unique<ShaderTrace>  Clone () const;
 		
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 
 	private:
 		void  _AppendSource (const char* source, usize length);

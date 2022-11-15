@@ -4,11 +4,13 @@
 layout(local_size_x=3) in;
 layout(triangles) out;
 layout(max_vertices=3, max_primitives=1) out;
-
-out gl_MeshPerVertexNV {
-	vec4	gl_Position;
-} gl_MeshVerticesNV[]; // [max_vertices]
 /*
+out uint3  gl_PrimitiveTriangleIndices [max_primitives];
+
+out gl_MeshPerVertex {
+	vec4	gl_Position;
+} gl_MeshVertices[]; // [max_vertices]
+
 out MeshOutput {
 	layout(location = 0) vec2	texcoord;
 	layout(location = 1) vec4	color;
@@ -30,11 +32,13 @@ void main ()
 {
 	const uint I = gl_LocalInvocationID.x;
 
-	gl_MeshVerticesNV[I].gl_Position	= vec4( g_Positions[I], 0.0, 1.0 );
-	Out[I].texcoord						= g_Positions[I];
-	Out[I].color						= vec4( g_Colors[I], 1.0 );
-	gl_PrimitiveIndicesNV[I]			= I;
-
+	gl_MeshVertices[I].gl_Position	= vec4( g_Positions[I], 0.0, 1.0 );
+	Out[I].texcoord					= g_Positions[I];
+	Out[I].color					= vec4( g_Colors[I], 1.0 );
+	
 	if ( I == 0 )
-		gl_PrimitiveCountNV = 1;
+	{
+		gl_PrimitiveTriangleIndices[0] = uvec3(0,1,2);
+		glSetMeshOutputs( 3, 1 );
+	}
 }

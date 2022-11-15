@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/Containers/InPlace.h"
-#include "base/Stream/FileStream.h"
+#include "base/DataSource/FileStream.h"
 #include "threading/TaskSystem/TaskScheduler.h"
 #include "../shared/UnitTest_Shared.h"
 

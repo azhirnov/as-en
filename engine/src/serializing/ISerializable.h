@@ -14,8 +14,10 @@ namespace AE::Serializing
 	{
 	// interface
 	public:
-		ND_ virtual bool  Serialize (struct Serializer &) const = 0;
-		ND_ virtual bool  Deserialize (struct Deserializer &) = 0;
+		virtual ~ISerializable () __NE___ {}
+
+		ND_ virtual bool  Serialize (struct Serializer &)		C_NE___ = 0;
+		ND_ virtual bool  Deserialize (struct Deserializer &)	__NE___ = 0;
 	};
 
 

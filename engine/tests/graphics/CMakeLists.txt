@@ -19,7 +19,6 @@ target_include_directories( "Tests.Graphics" PUBLIC "." )
 
 target_compile_definitions( "Tests.Graphics" PUBLIC
 	AE_TEST_GRAPHICS
-	AE_VULKAN_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/vulkan"
 	AE_PIPELINE_COMPILER_LIBRARY="${AE_RESPACK_BINARY_DIR}"
 	AE_SHARED_DATA="${DATA_FOLDER}"
 	AE_CURRENT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
@@ -32,5 +31,11 @@ endif ()
 if (TARGET "VulkanSyncLog")
 	target_link_libraries( "Tests.Graphics" PUBLIC "VulkanSyncLog" )
 endif ()
+
+if (${AE_ENABLE_VULKAN})
+	target_compile_definitions( "Tests.Graphics" PUBLIC AE_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/vulkan" )
+elseif (${AE_ENABLE_METAL})
+	target_compile_definitions( "Tests.Graphics" PUBLIC AE_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/metal" )
+endif()
 
 add_test( NAME "Tests.Graphics" COMMAND "Tests.Graphics" )

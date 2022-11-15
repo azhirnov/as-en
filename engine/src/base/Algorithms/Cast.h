@@ -2,12 +2,14 @@
 
 #pragma once
 
+#ifdef AE_DEBUG
+# include "base/StdInclude.h"
+# include <sstream>
+#endif
+
 #include "base/Common.h"
 #include "base/Containers/Ptr.h"
 
-#ifdef AE_DEBUG
-# include <sstream>
-#endif
 
 namespace AE::Base
 {
@@ -17,7 +19,7 @@ namespace AE::Base
 	CheckPointerAlignment
 =================================================
 */
-	ND_ forceinline bool  CheckPointerAlignment (void const* ptr, usize align)
+	ND_ forceinline bool  CheckPointerAlignment (void const* ptr, usize align) __NE___
 	{
 		DBG_CHECK_MSG( ((align & (align - 1)) == 0), "Align must be power of 2" );
 
@@ -25,7 +27,7 @@ namespace AE::Base
 	}
 
 	template <typename R, typename T>
-	ND_ forceinline bool  CheckPointerAlignment (T const* ptr)
+	ND_ forceinline bool  CheckPointerAlignment (T const* ptr) __NE___
 	{
 		constexpr usize	align = alignof(R);
 
@@ -40,7 +42,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	forceinline void  CheckPointerCast (T const* ptr)
+	forceinline void  CheckPointerCast (T const* ptr) __NE___
 	{
 		Unused( ptr );
 		DEBUG_ONLY(
@@ -64,7 +66,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename R, typename T>
-	ND_ forceinline constexpr R const volatile*  Cast (T const volatile* value)
+	ND_ forceinline constexpr R const volatile*  Cast (T const volatile* value) __NE___
 	{
 		STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
 		CheckPointerCast<R>( value );
@@ -72,7 +74,7 @@ namespace AE::Base
 	}
 
 	template <typename R, typename T>
-	ND_ forceinline constexpr R volatile*  Cast (T volatile* value)
+	ND_ forceinline constexpr R volatile*  Cast (T volatile* value) __NE___
 	{
 		STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
 		CheckPointerCast<R>( value );
@@ -80,7 +82,7 @@ namespace AE::Base
 	}
 
 	template <typename R, typename T>
-	ND_ forceinline constexpr R const*  Cast (T const* value)
+	ND_ forceinline constexpr R const*  Cast (T const* value) __NE___
 	{
 		STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
 		CheckPointerCast<R>( value );
@@ -88,7 +90,7 @@ namespace AE::Base
 	}
 	
 	template <typename R, typename T>
-	ND_ forceinline constexpr R*  Cast (T* value)
+	ND_ forceinline constexpr R*  Cast (T* value) __NE___
 	{
 		STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
 		CheckPointerCast<R>( value );
@@ -96,25 +98,25 @@ namespace AE::Base
 	}
 
 	template <typename R, typename T>
-	ND_ forceinline constexpr Ptr<R const>  Cast (Ptr<T const> value)
+	ND_ forceinline constexpr Ptr<R const>  Cast (Ptr<T const> value) __NE___
 	{
 		return Cast<R>( value.get() );
 	}
 	
 	template <typename R, typename T>
-	ND_ forceinline constexpr Ptr<R>  Cast (Ptr<T> value)
+	ND_ forceinline constexpr Ptr<R>  Cast (Ptr<T> value) __NE___
 	{
 		return Cast<R>( value.get() );
 	}
 	
 	template <typename R, typename T>
-	ND_ forceinline constexpr R*  Cast (const Unique<T> &value)
+	ND_ forceinline constexpr R*  Cast (const Unique<T> &value) __NE___
 	{
 		return Cast<R>( value.get() );
 	}
 
 	template <typename R, typename T>
-	ND_ forceinline SharedPtr<R>  Cast (const SharedPtr<T> &other)
+	ND_ forceinline SharedPtr<R>  Cast (const SharedPtr<T> &other) __NE___
 	{
 		return std::static_pointer_cast<R>( other );
 	}
@@ -126,31 +128,31 @@ namespace AE::Base
 */
 #ifdef AE_ENABLE_RTTI
 	template <typename R, typename T>
-	ND_ forceinline constexpr R const*  DynCast (T const* value)
+	ND_ forceinline constexpr R const*  DynCast (T const* value) __NE___
 	{
 		return dynamic_cast< R const *>( value );
 	}
 	
 	template <typename R, typename T>
-	ND_ forceinline constexpr R*  DynCast (T* value)
+	ND_ forceinline constexpr R*  DynCast (T* value) __NE___
 	{
 		return dynamic_cast< R *>( value );
 	}
 
 	template <typename R, typename T>
-	ND_ forceinline constexpr Ptr<R const>  DynCast (Ptr<T const> value)
+	ND_ forceinline constexpr Ptr<R const>  DynCast (Ptr<T const> value) __NE___
 	{
 		return DynCast<R>( value.operator->() );
 	}
 	
 	template <typename R, typename T>
-	ND_ forceinline constexpr Ptr<R>  DynCast (Ptr<T> value)
+	ND_ forceinline constexpr Ptr<R>  DynCast (Ptr<T> value) __NE___
 	{
 		return DynCast<R>( value.operator->() );
 	}
 
 	template <typename R, typename T>
-	ND_ forceinline SharedPtr<R>  DynCast (const SharedPtr<T> &other)
+	ND_ forceinline SharedPtr<R>  DynCast (const SharedPtr<T> &other) __NE___
 	{
 		return std::dynamic_pointer_cast<R>( other );
 	}
@@ -162,7 +164,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From>
-	ND_ forceinline constexpr To  BitCast (const From& src)
+	ND_ forceinline constexpr To  BitCast (const From& src) __NE___
 	{
 		STATIC_ASSERT( sizeof(To) == sizeof(From), "must be same size!" );
 		STATIC_ASSERT( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
@@ -183,7 +185,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From>
-	ND_ inline constexpr To  UnsafeBitCast (const From& src)
+	ND_ inline constexpr To  UnsafeBitCast (const From& src) __NE___
 	{
 		//STATIC_ASSERT( sizeof(From) <= sizeof(To), "cast will lost data!" );
 		STATIC_ASSERT( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
@@ -200,11 +202,17 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From>
-	ND_ inline constexpr To  CheckCast (const From& src)
+	ND_ inline constexpr To  CheckCast (const From& src) __NE___
 	{
 	#ifdef AE_COMPILER_MSVC
 	#	pragma warning (push)
 	#	pragma warning (disable: 4244)
+	#endif
+	#ifdef AE_COMPILER_CLANG
+	#	pragma clang diagnostic push
+	#   pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+	#   pragma clang diagnostic ignored "-Wimplicit-int-conversion"
+	#   pragma clang diagnostic ignored "-Wshorten-64-to-32"
 	#endif
 
 		if constexpr( IsSigned<From> and IsUnsigned<To> )
@@ -219,6 +227,9 @@ namespace AE::Base
 	#ifdef AE_COMPILER_MSVC
 	#	pragma warning (pop)
 	#endif
+	#ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic pop
+	#endif
 	}
 	
 /*
@@ -227,7 +238,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From>
-	ND_ inline constexpr To  LimitCast (const From& src)
+	ND_ inline constexpr To  LimitCast (const From& src) __NE___
 	{
 		STATIC_ASSERT( MaxValue<From>() >= MaxValue<To>() );
 

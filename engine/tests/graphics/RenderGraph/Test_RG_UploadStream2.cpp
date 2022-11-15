@@ -23,14 +23,13 @@ namespace
 	public:
 		US2_TestData&	t;
 
-		US2_UploadStreamTask (US2_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName }, t{ t }
+		US2_UploadStreamTask (US2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor }, t{ t }
 		{}
 
 		void  Run () override
 		{
 			DirectCtx::Transfer	ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 
 			const uint3	pos = uint3{ 0u, t.stream.posYZ };
 			
@@ -47,7 +46,7 @@ namespace
 			CHECK_TE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
 					  copied == mem_view.ImageSize() );
 
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 			
 			const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
 			ASSERT( stat.dynamicWrite <= upload_limit );
@@ -76,21 +75,52 @@ namespace
 			cfg.stagingBufferPerFrameLimits.write = upload_limit;
 
 			AsyncTask	begin = rts.BeginFrame( cfg );
-			CHECK_TE( begin );
 
 			t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "UploadStream2" );
 			CHECK_TE( t.batch );
 			
+		#ifdef AE_HAS_COROUTINE
+			AsyncTask	test = t.batch->Add(
+				[] (US2_TestData &t) -> CoroutineRenderTask
+				{
+					// same as 'US2_UploadStreamTask'
+					auto	hnd = co_await RenderTask_Get{};
+
+					DirectCtx::Transfer	ctx{ *hnd };
+
+					const uint3	pos = uint3{ 0u, t.stream.posYZ };
+			
+					if ( t.counter.fetch_add(1) == 0 )
+					{
+						ctx.AccumBarriers()
+							.ImageBarrier( t.stream.Image(), EResourceState::Invalidate, EResourceState::CopyDst );
+					}
+
+					ImageMemView	mem_view;
+					ctx.UploadImage( INOUT t.stream, OUT mem_view, EStagingHeapType::Dynamic );
+
+					Bytes	copied;
+					CHECK_CE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
+							  copied == mem_view.ImageSize() );
+
+					co_await RenderTask_ExecuteAndSubmit( ctx );
+			
+					const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( hnd->GetFrameId() );
+					ASSERT( stat.dynamicWrite <= upload_limit );
+					
+					co_return;
+				}( t ),
+				Tuple{begin}, "test task" );
+		#else
 			AsyncTask	test = t.batch->Add<US2_UploadStreamTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
-			CHECK_TE( test );
+		#endif
 
 			AsyncTask	end = rts.EndFrame( Tuple{test} );
-			CHECK_TE( end );
 
-			CHECK_TE( Continue( Tuple{end} ));
+			Continue( Tuple{end} );
 		}
 
-		StringView  DbgName () const override { return "US2_FrameTask"; }
+		StringView  DbgName ()	C_NE_OV	{ return "US2_FrameTask"; }
 	};
 
 	

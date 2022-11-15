@@ -95,19 +95,6 @@ else ()
 endif ()
 
 #------------------------------------------------------------------------------
-check_cxx_source_compiles(
-	"#include <barrier>
-	int main () {
-		std::barrier  temp;
-		return 0;
-	}"
-	STD_BARRIER_SUPPORTED )
-
-if (STD_BARRIER_SUPPORTED)
-	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_STD_BARRIER" )
-endif ()
-
-#------------------------------------------------------------------------------
 if (NOT ${COMPILER_MSVC})
 	set( CMAKE_REQUIRED_FLAGS "${AE_DEFAULT_CPPFLAGS} -Werror=unknown-pragmas" )
 endif ()

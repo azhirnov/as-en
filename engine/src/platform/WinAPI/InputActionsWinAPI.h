@@ -43,9 +43,9 @@ namespace AE::App
 
 	// methods
 	public:
-		InputActionsWinAPI () : InputActionsBase{_dbQueue} {}
+		explicit InputActionsWinAPI (DubleBufferedQueue *q) : InputActionsBase{q ? *q : _dbQueue} {}
 		
-		ND_ bool  ProcessMessage (uint uMsg, usize wParam, ssize lParam, Duration_t timestamp);
+		ND_ bool  ProcessMessage (uint uMsg, usize wParam, ssize lParam, Duration_t timestamp, bool hasFocus);
 		ND_ bool  Register (void* wnd);
 			void  Unregister ();
 			void  SetMonitor (const uint2 &surfaceSize, const Monitor &);
@@ -59,8 +59,8 @@ namespace AE::App
 		
 
 	// ISerializable //
-		bool  Serialize (Serializing::Serializer &) const override;
-		bool  Deserialize (Serializing::Deserializer &) override;
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 
 
 	private:

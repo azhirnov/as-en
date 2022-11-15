@@ -26,6 +26,7 @@ namespace AE::Base
 		{
 			Debug,
 			Info,
+			SilentError,
 			Warning,
 			Error,
 			Fatal,
@@ -63,16 +64,16 @@ namespace AE::Base
 	public:
 		virtual ~ILogger () {}
 
-		ND_ virtual EResult	Process (const MessageInfo &info) = 0;
-			virtual void	SetCurrentThreadName (std::string_view) {}
+		ND_ virtual EResult	Process (const MessageInfo &info)		__TH___ = 0;
+			virtual void	SetCurrentThreadName (std::string_view)	__NE___ {}
 
 
 	// default loggers
 	public:
 		using LoggerPtr	= std::unique_ptr< ILogger >;
 		
-		ND_ static LevelBits	GetDialogLevelBits ();
-		ND_ static ScopeBits	GetDialogScopeBits ();
+		ND_ static LevelBits	GetDialogLevelBits () __NE___;
+		ND_ static ScopeBits	GetDialogScopeBits () __NE___;
 
 		ND_ static LoggerPtr	CreateIDEOutput ();												// VS only
 		ND_ static LoggerPtr	CreateConsoleOutput (std::string_view tag = AE_ENGINE_NAME);	// cross platfrom
@@ -89,29 +90,32 @@ namespace AE::Base
 
 	struct StaticLogger
 	{
+	// types
 		using EResult		= ILogger::EResult;
 		using LevelBits		= ILogger::LevelBits;
 		using ScopeBits		= ILogger::ScopeBits;
-		
-		ND_ static EResult  Process (const char *msg, const char *func, const char *file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope);
-		ND_ static EResult  Process (std::string_view msg, std::string_view func, std::string_view file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope);
 
-			static void		SetFilter (LevelBits levelBits, ScopeBits scopeBits);
 
-			static void		ClearLoggers ();
-			static void		AddLogger (std::unique_ptr<ILogger> ptr);
+	// methods
+		ND_ static EResult  Process (const char *msg, const char *func, const char *file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)					__TH___;
+		ND_ static EResult  Process (std::string_view msg, std::string_view func, std::string_view file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)	__TH___;
 
-			static void		InitDefault ();
-			static void		Initialize ();
-			static void		Deinitialize (bool checkMemLeaks = false);
+			static void		SetFilter (LevelBits levelBits, ScopeBits scopeBits)__NE___;
 
-			static void		SetCurrentThreadName (std::string_view name);
+			static void		ClearLoggers ()										__NE___;
+			static void		AddLogger (std::unique_ptr<ILogger> ptr)			__NE___;
+
+			static void		InitDefault ()										__NE___;
+			static void		Initialize ()										__NE___;
+			static void		Deinitialize (bool checkMemLeaks = false)			__NE___;
+
+			static void		SetCurrentThreadName (std::string_view name)		__NE___;
 
 		template <bool checkMemLeaks>
 		struct _LoggerScope
 		{
-			_LoggerScope ()		{ InitDefault(); }
-			~_LoggerScope ()	{ Deinitialize( checkMemLeaks ); }
+			_LoggerScope ()		__NE___ { InitDefault(); }
+			~_LoggerScope ()	__NE___ { Deinitialize( checkMemLeaks ); }
 		};
 		using LoggerDbgScope	= _LoggerScope<true>;
 		using LoggerScope		= _LoggerScope<false>;
@@ -127,14 +131,18 @@ namespace AE
 } // AE
 
 #define AE_PRIVATE_LOGX( /*ELogLevel*/_level_, /*ELogScope*/ _scope_, _msg_, _file_, _line_ ) \
-	BEGIN_ENUM_CHECKS() \
-	{switch ( ::AE::Base::StaticLogger::Process( (_msg_), (AE_FUNCTION_NAME), (_file_), (_line_), (_level_), (_scope_) )) \
-	{ \
-		case_likely	::AE::Base::StaticLogger::EResult::Continue :	break; \
-		case		::AE::Base::StaticLogger::EResult::Break :		AE_PRIVATE_BREAK_POINT();	break; \
-		case		::AE::Base::StaticLogger::EResult::Abort :		AE_PRIVATE_EXIT();			break; \
-	}} \
-	END_ENUM_CHECKS()
+	try { \
+		BEGIN_ENUM_CHECKS() \
+		{switch ( AE::Base::StaticLogger::Process( (_msg_), (AE_FUNCTION_NAME), (_file_), (_line_), (_level_), (_scope_) )) \
+		{ \
+			case_likely	AE::Base::StaticLogger::EResult::Continue :		break; \
+			case		AE::Base::StaticLogger::EResult::Break :		AE_PRIVATE_BREAK_POINT();	break; \
+			case		AE::Base::StaticLogger::EResult::Abort :		AE_PRIVATE_EXIT();			break; \
+		}} \
+		END_ENUM_CHECKS() \
+	} catch(...) {} // to catch exceptions in string formating
 
-#define AE_PRIVATE_LOGI( _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Info,  AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
-#define AE_PRIVATE_LOGE( _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Error, AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
+
+#define AE_PRIVATE_LOG_I(  _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Info,		 AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
+#define AE_PRIVATE_LOG_E(  _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::Error,		 AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )
+#define AE_PRIVATE_LOG_SE( _msg_, _file_, _line_ )	AE_PRIVATE_LOGX( AE::ELogLevel::SilentError, AE::ELogScope::Unknown, (_msg_), (_file_), (_line_) )

@@ -23,8 +23,8 @@ namespace
 	public:
 		CB1_TestData&	t;
 
-		CB1_CopyBufferTask (CB1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		CB1_CopyBufferTask (CB1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
@@ -32,7 +32,6 @@ namespace
 		{
 			Ctx		ctx{ *this };
 			
-			CHECK_TE( ctx.IsValid() );
 			CHECK_TE( ctx.UpdateHostBuffer( t.buf_1, 0_b, t.buffer_data ));
 
 			ctx.AccumBarriers()
@@ -52,7 +51,7 @@ namespace
 			ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -86,16 +85,12 @@ namespace
 		}
 
 		AsyncTask	begin	= rts.BeginFrame();
-		CHECK_ERR( begin );
 
-		auto	batch = rts.CreateBatch( EQueueType::Graphics, 0, "CopyBuffer1" );
+		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "CopyBuffer1" );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Add< CB1_CopyBufferTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, "Copy buffer task" );
-		CHECK_ERR( task1 );
-
 		AsyncTask	end		= rts.EndFrame( Tuple{task1} );
-		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
 		CHECK_ERR( end->Status() == EStatus::Completed );

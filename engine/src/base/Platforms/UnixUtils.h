@@ -4,6 +4,7 @@
 
 #include "base/Math/Bytes.h"
 #include "base/Utils/Helpers.h"
+#include "base/Utils/SourceLoc.h"
 
 #ifdef AE_PLATFORM_UNIX_BASED
 
@@ -26,28 +27,28 @@ namespace AE::Base
 	// functions
 	
 		// Errors //
-		ND_ static int   GetErrorCode ();
-		ND_ static int   GetNetworkErrorCode ();
+		ND_ static int   GetErrorCode ()			__NE___;
+		ND_ static int   GetNetworkErrorCode ()		__NE___;
 
-			static bool  CheckError (StringView msg, StringView file, int line, ELogLevel level = ELogLevel::Error);
-			static bool  CheckError (int err, StringView msg, StringView file, int line, ELogLevel level = ELogLevel::Error);
+			static bool  CheckError (StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)					__NE___;
+			static bool  CheckError (int err, StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)			__NE___;
 			
-			static bool  CheckNetworkError (StringView msg, StringView file, int line, ELogLevel level = ELogLevel::Error);
-			static bool  CheckNetworkError (int err, StringView msg, StringView file, int line, ELogLevel level = ELogLevel::Error);
+			static bool  CheckNetworkError (StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)			__NE___;
+			static bool  CheckNetworkError (int err, StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)	__NE___;
 		
 		// Memory //
-		ND_ static MemoryPageInfo  GetMemoryPageInfo ();
+		ND_ static MemoryPageInfo  GetMemoryPageInfo () __NE___;
 
 		// Thread //
 			// interval > 4000ns
-			static bool		NanoSleep (nanoseconds relativeTime);
+			static bool		NanoSleep (nanoseconds relativeTime)	__NE___;
 
-			static bool		WaitIO (milliseconds relativeTime);
+			static bool		WaitIO (milliseconds relativeTime)		__NE___;
 			
-			static bool		ThreadYield ();
+			static bool		ThreadYield ()							__NE___;
 
 	private:
-		ND_ static bool  _CheckError (int err, StringView msg, StringView file, int line, ELogLevel level, ELogScope scope);
+		ND_ static bool  _CheckError (int err, StringView msg, const SourceLoc &loc, ELogLevel level, ELogScope scope) __NE___;
 	};
 
 } // AE::Base

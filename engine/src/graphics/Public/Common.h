@@ -14,7 +14,7 @@
 #include "base/Containers/Union.h"
 #include "base/Containers/FixedMap.h"
 #include "base/Containers/FixedSet.h"
-#include "base/Stream/Stream.h"
+#include "base/DataSource/Stream.h"
 
 #include "threading/TaskSystem/TaskScheduler.h"
 #include "threading/TaskSystem/Promise.h"

@@ -41,64 +41,64 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		ImageMemView () {}
-		ImageMemView (const BufferMemView& content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect);
-		ImageMemView (void *content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect);
+		ImageMemView () __NE___ {}
+		ImageMemView (const BufferMemView& content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
+		ImageMemView (void *content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
 
 		template <typename T>
-		ImageMemView (Array<T> &content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) :
-			ImageMemView{ BufferMemView{content}, off, dim, rowPitch, slicePitch, format, aspect }
-		{}
+		ImageMemView (Array<T> &content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
+			ImageMemView{ BufferMemView{content}, off, dim, rowPitch, slicePitch, format, aspect } {}
 
-		ImageMemView (const ImageMemView &) = default;
-		ImageMemView (ImageMemView &&) = default;
+		ImageMemView (const ImageMemView &)				__NE___	= default;
+		ImageMemView (ImageMemView &&)					__NE___	= default;
 
-		ImageMemView&  operator = (const ImageMemView &) = default;
-		ImageMemView&  operator = (ImageMemView &&) = default;
+		ImageMemView&  operator = (const ImageMemView &)__NE___	= default;
+		ImageMemView&  operator = (ImageMemView &&)		__NE___	= default;
 
-		ND_ uint3			Offset ()			const	{ return uint3{ _offset }; }
-		ND_ uint3			Dimension ()		const	{ return uint3{ _dimension }; }
-		ND_ Bytes			RowPitch ()			const	{ return Bytes(_rowPitch); }
-		ND_ Bytes			SlicePitch ()		const	{ return Bytes(_slicePitch); }
-		ND_ uint			BitsPerBlock ()		const	{ return _bitsPerBlock; }
-		ND_ Bytes			BytesPerBlock ()	const	{ return ImageUtils::BytesPerBlock( _bitsPerBlock, TexelBlockSize() ); }
-		ND_ Bytes			MinRowSize ()		const	{ return ImageUtils::RowSize( _dimension.x, _bitsPerBlock, TexelBlockSize() ); };
-		ND_ Bytes			MinSliceSize ()		const	{ return ImageUtils::SliceSize( _dimension.y, RowPitch(), TexelBlockSize() ); }
-		ND_ Bytes			ImageSize ()		const	{ return SlicePitch() * _dimension.z; }
-		ND_ Bytes			ContentSize ()		const	{ return _content.DataSize(); }
-		ND_ EPixelFormat	Format ()			const	{ return _format; }
-		ND_ auto			Parts ()					{ return _content.Parts(); }
-		ND_ auto			Parts ()			const	{ return _content.Parts(); }
-		ND_ bool			Empty ()			const	{ return _content.Empty(); }
-		ND_ uint2			TexelBlockSize ()	const	{ return uint2{_texBlockSize}; }
-		ND_ uint2			TexelBlocks ()		const	{ return uint2{_dimension.x, _dimension.y} / TexelBlockSize(); }
+		ND_ uint3			Offset ()					C_NE___	{ return uint3{ _offset }; }
+		ND_ uint3			Dimension ()				C_NE___	{ return uint3{ _dimension }; }
+		ND_ Bytes			RowPitch ()					C_NE___	{ return Bytes(_rowPitch); }
+		ND_ Bytes			SlicePitch ()				C_NE___	{ return Bytes(_slicePitch); }
+		ND_ uint			BitsPerBlock ()				C_NE___	{ return _bitsPerBlock; }
+		ND_ Bytes			BytesPerBlock ()			C_NE___	{ return ImageUtils::BytesPerBlock( _bitsPerBlock, TexelBlockSize() ); }
+		ND_ Bytes			MinRowSize ()				C_NE___	{ return ImageUtils::RowSize( _dimension.x, _bitsPerBlock, TexelBlockSize() ); };
+		ND_ Bytes			MinSliceSize ()				C_NE___	{ return ImageUtils::SliceSize( _dimension.y, RowPitch(), TexelBlockSize() ); }
+		ND_ Bytes			ImageSize ()				C_NE___	{ return SlicePitch() * _dimension.z; }
+		ND_ Bytes			ContentSize ()				C_NE___	{ return _content.DataSize(); }
+		ND_ EPixelFormat	Format ()					C_NE___	{ return _format; }
+		EImageAspect		Aspect ()					C_NE___	{ return _aspect; }
+		ND_ auto			Parts ()					__NE___	{ return _content.Parts(); }
+		ND_ auto			Parts ()					C_NE___	{ return _content.Parts(); }
+		ND_ bool			Empty ()					C_NE___	{ return _content.Empty(); }
+		ND_ uint2			TexelBlockSize ()			C_NE___	{ return uint2{_texBlockSize}; }
+		ND_ uint2			TexelBlocks ()				C_NE___	{ return uint2{_dimension.x, _dimension.y} / TexelBlockSize(); }
 		
 
-		bool  PushBack (void *ptr, Bytes size)
+		bool  PushBack (void *ptr, Bytes size)			__NE___
 		{
 			return _content.PushBack( ptr, size );
 		}
 
-		ND_ Row_t   GetRow (uint y, uint z = 0);
-		ND_ CRow_t  GetRow (uint y, uint z = 0) const;
+		ND_ Row_t   GetRow (uint y, uint z = 0)			__NE___;
+		ND_ CRow_t  GetRow (uint y, uint z = 0)			C_NE___;
 
-		ND_ Slice_t  GetSlice (uint z);
-		ND_ Slice_t  GetSlice (uint z) const;
+		ND_ Slice_t  GetSlice (uint z)					__NE___;
+		ND_ Slice_t  GetSlice (uint z)					C_NE___;
 		
-		ND_ Pixel_t  GetPixel (const uint3 &point) const;
+		ND_ Pixel_t  GetPixel (const uint3 &point)		C_NE___;
 		
-		ND_ bool  operator == (const ImageMemView &rhs) const { return Compare( rhs ) == 0_b; }
+		ND_ bool  operator == (const ImageMemView &rhs)	C_NE___ { return Compare( rhs ) == 0_b; }
 
 		
 		// returns number of copied bytes
-			bool  Copy (const ImageMemView &src, OUT Bytes &dataSize);
-			bool  Copy (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim, OUT Bytes &dataSize);
-		ND_ bool  Copy (const ImageMemView &src);
-		ND_ bool  Copy (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim);
+			bool  Copy (const ImageMemView &src, OUT Bytes &dataSize)																			__NE___;
+			bool  Copy (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim, OUT Bytes &dataSize)	__NE___;
+		ND_ bool  Copy (const ImageMemView &src)																								__NE___;
+		ND_ bool  Copy (const uint3 &dstOffset, const uint3 &srcOffset, const ImageMemView &srcImage, const uint3 &dim)							__NE___;
 
 		// returns how much bytes are different
-		ND_ Bytes  Compare (const ImageMemView &rhs) const;
-		ND_ Bytes  Compare (const uint3 &lhsOffset, const uint3 &rhsOffset, const ImageMemView &rhsImage, const uint3 &dim) const;
+		ND_ Bytes  Compare (const ImageMemView &rhs)																		C_NE___;
+		ND_ Bytes  Compare (const uint3 &lhsOffset, const uint3 &rhsOffset, const ImageMemView &rhsImage, const uint3 &dim)	C_NE___;
 	};
 
 	
@@ -140,76 +140,76 @@ namespace AE::Graphics
 		
 	// methods
 	public:
-		RWImageMemView ();
-		RWImageMemView (const ImageMemView& other);
-		RWImageMemView (const BufferMemView& content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect);
+		RWImageMemView () __NE___;
+		RWImageMemView (const ImageMemView& other) __NE___;
+		RWImageMemView (const BufferMemView& content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
 
-		void  Load (const uint3 &point, OUT RGBA32f &col) const
+		void  Load (const uint3 &point, OUT RGBA32f &col)			C_NE___
 		{
 			ASSERT( _loadF4 );
 			_loadF4( GetRow( point.y, point.z ), point.x, OUT col );
 		}
 
-		void  Load (const uint3 &point, OUT RGBA32u &col) const
+		void  Load (const uint3 &point, OUT RGBA32u &col)			C_NE___
 		{
 			ASSERT( _loadU4 );
 			return _loadU4( GetRow( point.y, point.z ), point.x, OUT col );
 		}
 
-		void  Load (const uint3 &point, OUT RGBA32i &col) const
+		void  Load (const uint3 &point, OUT RGBA32i &col)			C_NE___
 		{
 			ASSERT( _loadI4 );
 			return _loadI4( GetRow( point.y, point.z ), point.x, OUT col );
 		}
 		
-		void  Load (const uint3 &point, OUT DepthStencil &ds) const
+		void  Load (const uint3 &point, OUT DepthStencil &ds)		C_NE___
 		{
 			ASSERT( _loadDS );
 			return _loadDS( GetRow( point.y, point.z ), point.x, OUT ds );
 		}
 		
 
-		void  Store (const uint3 &point, const RGBA32f &col)
+		void  Store (const uint3 &point, const RGBA32f &col)		__NE___
 		{
 			ASSERT( _storeF4 );
 			_storeF4( GetRow( point.y, point.z ), point.x, col );
 		}
 
-		void  Store (const uint3 &point, const RGBA32u &col)
+		void  Store (const uint3 &point, const RGBA32u &col)		__NE___
 		{
 			ASSERT( _storeU4 );
 			return _storeU4( GetRow( point.y, point.z ), point.x, col );
 		}
 
-		void  Store (const uint3 &point, const RGBA32i &col)
+		void  Store (const uint3 &point, const RGBA32i &col)		__NE___
 		{
 			ASSERT( _storeI4 );
 			return _storeI4( GetRow( point.y, point.z ), point.x, col );
 		}
 
-		void  Store (const uint3 &point, const DepthStencil &ds)
+		void  Store (const uint3 &point, const DepthStencil &ds)	__NE___
 		{
 			ASSERT( _storeDS );
 			return _storeDS( GetRow( point.y, point.z ), point.x, ds );
 		}
 
 
-		ND_ bool  Blit (const RWImageMemView &src, OUT Bytes &readn, OUT Bytes &written);
-		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim, OUT Bytes &readn, OUT Bytes &written);
-		ND_ bool  Blit (const RWImageMemView &src);
-		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim);
+		ND_ bool  Blit (const RWImageMemView &src, OUT Bytes &readn, OUT Bytes &written)																		__NE___;
+		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim, OUT Bytes &readn, OUT Bytes &written)	__NE___;
+		ND_ bool  Blit (const RWImageMemView &src)																												__NE___;
+		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim)										__NE___;
 
 
-		ND_ bool  Fill (const RGBA32f &col)		{ return Fill( col, uint3{}, Dimension() ); }
-		ND_ bool  Fill (const RGBA32u &col)		{ return Fill( col, uint3{}, Dimension() ); }
-		ND_ bool  Fill (const RGBA32i &col)		{ return Fill( col, uint3{}, Dimension() ); }
+		ND_ bool  Fill (const RGBA32f &col)											__NE___	{ return Fill( col, uint3{}, Dimension() ); }
+		ND_ bool  Fill (const RGBA32u &col)											__NE___	{ return Fill( col, uint3{}, Dimension() ); }
+		ND_ bool  Fill (const RGBA32i &col)											__NE___	{ return Fill( col, uint3{}, Dimension() ); }
 
-		ND_ bool  Fill (const RGBA32f &col, const uint3 &offset, const uint3 &dim);
-		ND_ bool  Fill (const RGBA32u &col, const uint3 &offset, const uint3 &dim);
-		ND_ bool  Fill (const RGBA32i &col, const uint3 &offset, const uint3 &dim);
+		ND_ bool  Fill (const RGBA32f &col, const uint3 &offset, const uint3 &dim)	__NE___;
+		ND_ bool  Fill (const RGBA32u &col, const uint3 &offset, const uint3 &dim)	__NE___;
+		ND_ bool  Fill (const RGBA32i &col, const uint3 &offset, const uint3 &dim)	__NE___;
 
 	private:
-		ND_ bool  _Fill (const CRow_t &data, const uint3 &offset, const uint3 &dim);
+		ND_ bool  _Fill (const CRow_t &data, const uint3 &offset, const uint3 &dim)	__NE___;
 
 	};
 

@@ -13,7 +13,7 @@ namespace
 		uint2						dst_offset;
 		uint2						copy_dim;
 		AsyncTask					result;
-		CommandBatchPtr			batch;
+		CommandBatchPtr				batch;
 		bool						isOK		= false;
 		RC<GfxLinearMemAllocator>	gfxAlloc;
 	};
@@ -25,15 +25,14 @@ namespace
 	public:
 		CI1_TestData&	t;
 
-		CI1_CopyImageTask (CI1_TestData& t, CommandBatchPtr batch, StringView dbgName) :
-			RenderTask{ batch, dbgName },
+		CI1_CopyImageTask (CI1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
+			RenderTask{ batch, dbgName, dbgColor },
 			t{ t }
 		{}
 
 		void  Run () override
 		{
 			Ctx		ctx{ *this };
-			CHECK_TE( ctx.IsValid() );
 			
 			ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc )
@@ -77,7 +76,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			CHECK_TE( ExecuteAndSubmit( ctx ));
+			ExecuteAndSubmit( ctx );
 		}
 	};
 
@@ -121,16 +120,12 @@ namespace
 		t.img_view		= ImageMemView{ img_data, uint3{}, uint3{src_dim, 0}, 0_b, 0_b, format, EImageAspect::Color };
 
 		AsyncTask	begin	= rts.BeginFrame();
-		CHECK_ERR( begin );
 
-		auto	batch = rts.CreateBatch( EQueueType::Graphics, 0, "CopyImage2" );
+		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "CopyImage2" );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Add< CI1_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, "Copy image task" );
-		CHECK_ERR( task1 );
-
 		AsyncTask	end		= rts.EndFrame( Tuple{task1} );
-		CHECK_ERR( end );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
 		CHECK_ERR( end->Status() == EStatus::Completed );

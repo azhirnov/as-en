@@ -16,7 +16,10 @@
 #include "base/Math/PackedInt.h"
 #include "base/Memory/IAllocator.h"
 #include "base/CompileTime/StringToID.h"
+#include "base/Memory/SharedMem.h"
+
 #include "serializing/ISerializable.h"
+
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/ImageMemView.h"
 
@@ -65,10 +68,8 @@ namespace AE::AssetPacker
 
 		struct ImageData
 		{
-			IAllocator*		allocator	= null;		// required for 'ReadImage()'
-			ImageMemView	memView;				// output
-
-			~ImageData ();
+			RC<SharedMem>	storage;	// required for 'ReadImage()'
+			ImageMemView	memView;	// output
 		};
 
 
@@ -87,7 +88,7 @@ namespace AE::AssetPacker
 			bool  SaveImage (WStream &stream, const ImageMemView &src);
 		#endif
 
-			bool  ReadImage (RStream &stream, INOUT ImageData &) const;
+			bool  ReadImage (RStream &stream, INOUT ImageData &, SharedMem::Allocator_t allocator = null) const;
 
 			bool  ReadHeader (RStream &stream);
 		ND_ bool  IsValid () const;

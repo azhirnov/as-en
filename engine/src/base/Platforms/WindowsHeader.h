@@ -2,6 +2,9 @@
 
 #pragma once
 
+// must be outside 'AE_PLATFORM_WINDOWS' scope!
+#include "base/StdInclude.h"
+
 #ifdef AE_PLATFORM_WINDOWS
 
 # define NOMINMAX
@@ -18,18 +21,6 @@
 # endif
 
 
-# undef DeleteFile
-# undef CreateWindow
-# undef CreateDirectory
-# undef DrawText
-# undef GetMonitorInfo
-# undef BitScanForward
-# undef BitScanReverse
-# undef Yield
-# undef CreateSemaphore
-# undef LoadImage
-# undef MemoryBarrier
-# undef GetObject
-# undef GetClassName
+# include "base/Defines/Undef.h"
 
 #endif // AE_PLATFORM_WINDOWS

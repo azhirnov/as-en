@@ -12,4 +12,4 @@
 namespace AE::PipelineCompiler
 {
 
-}	// AE::PipelineCompiler
+} // AE::PipelineCompiler

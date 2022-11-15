@@ -27,22 +27,22 @@ namespace AE::Base
 
 	// methods
 	public:
-		WindowsLibrary ()		{}
-		~WindowsLibrary ()		{ Unload(); }
+		WindowsLibrary ()					__NE___	{}
+		~WindowsLibrary ()					__NE___	{ Unload(); }
 
-			bool  Load (HMODULE lib);
-			bool  Load (NtStringView libName);
-			bool  Load (const char *libName)		{ return Load( NtStringView{libName} ); }
-			bool  Load (const String &libName)		{ return Load( NtStringView{libName} ); }
-			bool  Load (const Path &libName);
-			void  Unload ();
+		bool  Load (HMODULE lib)			__NE___;
+		bool  Load (NtStringView libName)	__NE___;
+		bool  Load (const char *libName)	__NE___	{ return Load( NtStringView{libName} ); }
+		bool  Load (const String &libName)	__NE___	{ return Load( NtStringView{libName} ); }
+		bool  Load (const Path &libName)	__NE___;
+		void  Unload ()						__NE___;
 
 		template <typename T>
-			bool  GetProcAddr (NtStringView name, OUT T &result) const;
+		bool  GetProcAddr (NtStringView name, OUT T &result) C_NE___;
 
-		ND_ Path  GetPath () const;
+		ND_ Path  GetPath ()				C______;
 
-		ND_ explicit operator bool ()	const		{ return _handle != null; }
+		ND_ explicit operator bool ()		C_NE___	{ return _handle != null; }
 	};
 
 
@@ -52,31 +52,31 @@ namespace AE::Base
 	Load
 =================================================
 */
-	inline bool  WindowsLibrary::Load (HMODULE lib)
+	inline bool  WindowsLibrary::Load (HMODULE lib) __NE___
 	{
 		CHECK_ERR( _handle == null and lib != null );
 		_handle = lib;
 		return true;
 	}
 
-	inline bool  WindowsLibrary::Load (NtStringView libName)
+	inline bool  WindowsLibrary::Load (NtStringView libName) __NE___
 	{
 		CHECK_ERR( _handle == null );
 		_handle = ::LoadLibraryA( libName.c_str() );
 		
 		if_unlikely( _handle == null )
-			WindowsUtils::CheckError( "LoadLibrary error: ", __FILE__, __LINE__ );
+			WindowsUtils::CheckError( "LoadLibrary error: ", SourceLoc_Current() );
 
 		return _handle != null;
 	}
 
-	inline bool  WindowsLibrary::Load (const Path &libName)
+	inline bool  WindowsLibrary::Load (const Path &libName) __NE___
 	{
 		CHECK_ERR( _handle == null );
 		_handle = ::LoadLibraryW( libName.c_str() );
 		
 		if_unlikely( _handle == null )
-			WindowsUtils::CheckError( "LoadLibrary error: ", __FILE__, __LINE__ );
+			WindowsUtils::CheckError( "LoadLibrary error: ", SourceLoc_Current() );
 
 		return _handle != null;
 	}
@@ -86,7 +86,7 @@ namespace AE::Base
 	Unload
 =================================================
 */
-	inline void  WindowsLibrary::Unload ()
+	inline void  WindowsLibrary::Unload () __NE___
 	{
 		if ( _handle != null )
 		{
@@ -101,7 +101,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	inline bool  WindowsLibrary::GetProcAddr (NtStringView name, OUT T &result) const
+	inline bool  WindowsLibrary::GetProcAddr (NtStringView name, OUT T &result) C_NE___
 	{
 		result = BitCast<T>( ::GetProcAddress( _handle, name.c_str() ));
 		return result != null;
@@ -112,14 +112,14 @@ namespace AE::Base
 	GetPath
 =================================================
 */
-	inline Path  WindowsLibrary::GetPath () const
+	inline Path  WindowsLibrary::GetPath () C______
 	{
 		CHECK_ERR( _handle != null );
 
 		wchar_t	buf[MAX_PATH] = {};
 		CHECK_ERR( ::GetModuleFileNameW( _handle, buf, DWORD(CountOf(buf)) ) != FALSE );
 
-		return Path{ buf };
+		return Path{ buf };	// throw
 	}
 
 
