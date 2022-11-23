@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "threading/TaskSystem/Promise.h"
-#include "threading/TaskSystem/WorkerThread.h"
+#include "threading/TaskSystem/ThreadManager.h"
 #include "base/Algorithms/StringUtils.h"
 #include "UnitTest_Common.h"
 
@@ -22,8 +22,8 @@ namespace
 
 	static void  Promise_Test1 ()
 	{
-		LocalTaskScheduler	scheduler {1};
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 
 		auto p = MakePromise( [] () { return "a"s; })
 			.Then([] (const String &in) { return in + "b"; });
@@ -34,7 +34,7 @@ namespace
 
 	static void  Promise_Test2 ()
 	{
-		LocalTaskScheduler	scheduler {1};
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
 		auto p0 = MakePromise( [] () { return "a"s; });
 		auto p1 = MakePromiseFromValue( "b"s );
@@ -43,8 +43,8 @@ namespace
 		
 		TEST( AsyncTask{p0}->Status() == EStatus::Pending );
 		TEST( AsyncTask{p1}->Status() == EStatus::Completed );
-
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 
 		auto p4 = p3.Then( [] (const Tuple<String, String, uint> &in) {
 				return in.Get<0>() + in.Get<1>() + ToString( in.Get<2>() );
@@ -56,8 +56,8 @@ namespace
 
 	static void  Promise_Test3 ()
 	{
-		LocalTaskScheduler	scheduler {1};
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 		
 		auto p0 = MakePromise( [] () { return PromiseResult<String>{ "a"s }; });
 		auto p1 = MakePromise( [] () -> PromiseResult<String> { return CancelPromise; });	// canceled promise
@@ -84,8 +84,8 @@ namespace
 	
 	static void  Promise_Test4 ()
 	{
-		LocalTaskScheduler	scheduler {1};
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 
 		Promise<int> pe;
 
@@ -104,8 +104,8 @@ namespace
 
 	static void  Promise_Test5 ()
 	{
-		LocalTaskScheduler	scheduler {1};
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 
 		auto p0 = MakePromise( [] () { return PromiseResult<String>{ "a"s }; });
 		auto p1 = MakePromise( [] () -> PromiseResult<String> { return CancelPromise; });	// canceled promise

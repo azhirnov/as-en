@@ -64,4 +64,11 @@ void main ()
 
 		spec.AddToRenderTech( "RayTracing", "Trace1" );
 	}
+
+	// shader binding table
+	{
+		//RayTracingShaderBinding@	sbt = RayTracingShaderBinding( ppln, "raytracing_1.sbt0" );
+
+		// TODO
+	}
 }

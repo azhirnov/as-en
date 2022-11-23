@@ -28,7 +28,7 @@ namespace AE::Threading
 
 	template <typename Value,
 			  typename AllocatorType = UntypedAllocator>
-	class LfStaticQueue
+	class LfStaticQueue final  : public Noncopyable
 	{
 	// types
 	public:
@@ -70,7 +70,7 @@ namespace AE::Threading
 
 	// methods
 	public:
-		LfStaticQueue (const Allocator_t &alloc = Allocator_t{}) __NE___ : _allocator{alloc} {}
+		explicit LfStaticQueue (const Allocator_t &alloc = Allocator_t{}) __NE___ : _allocator{alloc} {}
 		~LfStaticQueue ()							__NE___ { Release(); }
 
 			bool  Init (usize size)					__NE___;
@@ -95,3 +95,5 @@ namespace AE::Threading
 	};
 
 } // AE::Threading
+
+//#include "threading/Containers/LfStaticQueue.inl.h"

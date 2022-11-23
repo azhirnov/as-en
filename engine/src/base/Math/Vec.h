@@ -20,7 +20,7 @@ namespace glm
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<T>, TVec<T,I,Q>>  operator ! (const TVec<T,I,Q> &value)
+	ND_ forceinline EnableIf<IsScalar<T>, TVec<T,I,Q>>  operator ! (const TVec<T,I,Q> &value) __NE___
 	{
 		TVec<T,I,Q>	res;
 		for (int i = 0; i < I; ++i) {
@@ -35,13 +35,13 @@ namespace glm
 =================================================
 */
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<S> and not IsSameTypes<T,S>, TVec<T,I,Q>>  operator << (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline EnableIf<IsScalar<S> and not IsSameTypes<T,S>, TVec<T,I,Q>>  operator << (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return lhs << static_cast<T>(rhs);
 	}
 
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<S> and not IsSameTypes<T,S>, TVec<T,I,Q>>  operator >> (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline EnableIf<IsScalar<S> and not IsSameTypes<T,S>, TVec<T,I,Q>>  operator >> (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return lhs >> static_cast<T>(rhs);
 	}
@@ -52,13 +52,13 @@ namespace glm
 =================================================
 */
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<S> and not IsSameTypes<T,S>, TVec<T,I,Q>>  operator * (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline EnableIf<IsScalar<S> and not IsSameTypes<T,S>, TVec<T,I,Q>>  operator * (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return lhs * static_cast<T>(rhs);
 	}
 
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<S> and not IsSameTypes<T,S>, TVec<T,I,Q>>  operator / (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline EnableIf<IsScalar<S> and not IsSameTypes<T,S>, TVec<T,I,Q>>  operator / (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return lhs / static_cast<T>(rhs);
 	}
@@ -69,13 +69,13 @@ namespace glm
 =================================================
 */
 	/*template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  operator % (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  operator % (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::mod( lhs, rhs );
 	}*/
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, TVec<T,I,Q>&>  operator %= (TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, TVec<T,I,Q>&>  operator %= (TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return (lhs = glm::mod( lhs, rhs ));
 	}
@@ -86,13 +86,13 @@ namespace glm
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_UMax)
+	ND_ forceinline TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_UMax) __NE___
 	{
 		return glm::equal( lhs, TVec<T,I,Q>{MaxValue<T>()} );
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_UMax)
+	ND_ forceinline TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_UMax) __NE___
 	{
 		return glm::notEqual( lhs, TVec<T,I,Q>{MaxValue<T>()} );
 	}
@@ -103,37 +103,37 @@ namespace glm
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	ND_ forceinline TVec<bool,I,Q>  operator == (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::equal( lhs, TVec<T,I,Q>{} );
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	ND_ forceinline TVec<bool,I,Q>  operator != (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::notEqual( lhs, TVec<T,I,Q>{} );
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator >= (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	ND_ forceinline TVec<bool,I,Q>  operator >= (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::greaterThanEqual( lhs, TVec<T,I,Q>{} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator <= (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	ND_ forceinline TVec<bool,I,Q>  operator <= (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::lessThanEqual( lhs, TVec<T,I,Q>{} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator > (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	ND_ forceinline TVec<bool,I,Q>  operator > (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::greaterThan( lhs, TVec<T,I,Q>{} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator < (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero)
+	ND_ forceinline TVec<bool,I,Q>  operator < (const TVec<T,I,Q> &lhs, AE::Base::_hidden_::_Zero) __NE___
 	{
 		return glm::lessThan( lhs, TVec<T,I,Q>{} );
 	}
@@ -144,61 +144,61 @@ namespace glm
 =================================================
 */
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator == (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator == (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return glm::equal( lhs, TVec<T,I,Q>{rhs} );
 	}
 	
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator != (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator != (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return glm::notEqual( lhs, TVec<T,I,Q>{rhs} );
 	}
 
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator >= (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator >= (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return glm::greaterThanEqual( lhs, TVec<T,I,Q>{rhs} );
 	}
 
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator <= (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator <= (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return glm::lessThanEqual( lhs, TVec<T,I,Q>{rhs} );
 	}
 	
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator > (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator > (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return glm::greaterThan( lhs, TVec<T,I,Q>{rhs} );
 	}
 	
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator < (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline EnableIf<IsScalar<S>, TVec<bool,I,Q>>  operator < (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return glm::lessThan( lhs, TVec<T,I,Q>{rhs} );
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator >= (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline TVec<bool,I,Q>  operator >= (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::greaterThanEqual( lhs, rhs );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator <= (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline TVec<bool,I,Q>  operator <= (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::lessThanEqual( lhs, rhs );
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator > (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline TVec<bool,I,Q>  operator > (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::greaterThan( lhs, rhs );
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<bool,I,Q>  operator < (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline TVec<bool,I,Q>  operator < (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::lessThan( lhs, rhs );
 	}
@@ -388,19 +388,19 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<_hidden_::IsBool<T>, bool>  All (const TVec<T,2,Q> &v)
+	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  All (const TVec<T,2,Q> &v) __NE___
 	{
 		return v.x & v.y;
 	}
 	
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<_hidden_::IsBool<T>, bool>  All (const TVec<T,3,Q> &v)
+	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  All (const TVec<T,3,Q> &v) __NE___
 	{
 		return v.x & v.y & v.z;
 	}
 	
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<_hidden_::IsBool<T>, bool>  All (const TVec<T,4,Q> &v)
+	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  All (const TVec<T,4,Q> &v) __NE___
 	{
 		return v.x & v.y & v.z & v.w;
 	}
@@ -413,19 +413,19 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<_hidden_::IsBool<T>, bool>  Any (const TVec<T,2,Q> &v)
+	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  Any (const TVec<T,2,Q> &v) __NE___
 	{
 		return v.x | v.y;
 	}
 	
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<_hidden_::IsBool<T>, bool>  Any (const TVec<T,3,Q> &v)
+	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  Any (const TVec<T,3,Q> &v) __NE___
 	{
 		return v.x | v.y | v.z;
 	}
 	
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<_hidden_::IsBool<T>, bool>  Any (const TVec<T,4,Q> &v)
+	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  Any (const TVec<T,4,Q> &v) __NE___
 	{
 		return v.x | v.y | v.z | v.w;
 	}
@@ -436,7 +436,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename R, typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR R  Sum (const TVec<T,I,Q> &v)
+	ND_ forceinline R  Sum (const TVec<T,I,Q> &v) __NE___
 	{
 		R	res = R(0);
 		for (int i = 0; i < I; ++i) {
@@ -451,7 +451,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T>, TVec<T,I,Q>>  Abs (const TVec<T,I,Q> &value)
+	ND_ forceinline EnableIf<IsScalar<T>, TVec<T,I,Q>>  Abs (const TVec<T,I,Q> &value) __NE___
 	{
 		return glm::abs( value );
 	}
@@ -462,19 +462,19 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, TVec<T,I,Q>>  Floor (const TVec<T,I,Q> &value)
+	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, TVec<T,I,Q>>  Floor (const TVec<T,I,Q> &value) __NE___
 	{
 		return glm::floor( value );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, TVec<T,I,Q>>  Ceil (const TVec<T,I,Q> &value)
+	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, TVec<T,I,Q>>  Ceil (const TVec<T,I,Q> &value) __NE___
 	{
 		return glm::ceil( value );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, TVec<T,I,Q>>  Fract (const TVec<T,I,Q> &value)
+	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, TVec<T,I,Q>>  Fract (const TVec<T,I,Q> &value) __NE___
 	{
 		return glm::fract( value );
 	}
@@ -485,7 +485,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T>, TVec<T,I,Q>>  Lerp (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs, const T factor)
+	ND_ forceinline EnableIf<IsScalar<T>, TVec<T,I,Q>>  Lerp (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs, const T factor) __NE___
 	{
 		return glm::mix( lhs, rhs, factor );
 	}
@@ -496,19 +496,19 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline T  Area (const TVec<T,2,Q> &v)
+	ND_ forceinline T  Area (const TVec<T,2,Q> &v) __NE___
 	{
 		return v.x * v.y;
 	}
 	
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline T  Area (const TVec<T,3,Q> &v)
+	ND_ forceinline T  Area (const TVec<T,3,Q> &v) __NE___
 	{
 		return v.x * v.y * v.z;
 	}
 	
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline T  Area (const TVec<T,4,Q> &v)
+	ND_ forceinline T  Area (const TVec<T,4,Q> &v) __NE___
 	{
 		return v.x * v.y * v.z * v.w;
 	}
@@ -519,7 +519,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T>, T>  Dot (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline EnableIf<IsScalar<T>, T>  Dot (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::dot( lhs, rhs );
 	}
@@ -530,7 +530,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T>, TVec<T,3,Q>>  Cross (const TVec<T,3,Q> &lhs, const TVec<T,3,Q> &rhs)
+	ND_ forceinline EnableIf<IsScalar<T>, TVec<T,3,Q>>  Cross (const TVec<T,3,Q> &lhs, const TVec<T,3,Q> &rhs) __NE___
 	{
 		return glm::cross( lhs, rhs );
 	}
@@ -541,7 +541,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T>, TVec<bool,I,Q>>  Equals (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs, const T &err = Epsilon<T>())
+	ND_ forceinline EnableIf<IsScalar<T>, TVec<bool,I,Q>>  Equals (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs, const T &err = Epsilon<T>()) __NE___
 	{
 		TVec<bool,I,Q>	res;
 		for (int i = 0; i < I; ++i) {
@@ -556,13 +556,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T>, TVec<bool,I,Q>>  IsZero (const TVec<T,I,Q> &x)
+	ND_ forceinline EnableIf<IsScalar<T>, TVec<bool,I,Q>>  IsZero (const TVec<T,I,Q> &x) __NE___
 	{
 		return Equals( x, TVec<T,I,Q>{T{0}}, Epsilon<T>() );
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline EnableIf<IsScalar<T>, TVec<bool,I,Q>>  IsNotZero (const TVec<T,I,Q> &x)
+	ND_ forceinline EnableIf<IsScalar<T>, TVec<bool,I,Q>>  IsNotZero (const TVec<T,I,Q> &x) __NE___
 	{
 		return not IsZero( x );
 	}
@@ -573,7 +573,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  Min (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline TVec<T,I,Q>  Min (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::min( lhs, rhs );
 	}
@@ -581,7 +581,7 @@ namespace AE::Math
 	template <typename T, int I, typename S, glm::qualifier Q,
 			  typename = EnableIf<IsScalar<S>>
 			 >
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  Min (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline TVec<T,I,Q>  Min (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return Min( lhs, TVec<T,I,Q>{rhs} );
 	}
@@ -589,7 +589,7 @@ namespace AE::Math
 	template <typename T, int I, typename S, glm::qualifier Q,
 			  typename = EnableIf<IsScalar<S>>
 			 >
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  Min (const S &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline TVec<T,I,Q>  Min (const S &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return Min( TVec<T,I,Q>{lhs}, rhs );
 	}
@@ -597,7 +597,7 @@ namespace AE::Math
 	template <typename LT, typename RT,
 			  typename = EnableIf<not IsVec<LT> and not IsVec<RT>>
 			 >
-	ND_ forceinline constexpr auto  Min (const LT &lhs, const RT &rhs)
+	ND_ forceinline constexpr auto  Min (const LT &lhs, const RT &rhs) __NE___
 	{
 		if constexpr( IsSameTypes<LT, RT> )
 		{
@@ -611,7 +611,7 @@ namespace AE::Math
 	}
 	
 	template <typename T0, typename T1, typename T2, typename ...Types>
-	ND_ forceinline constexpr auto  Min (const T0 &arg0, const T1 &arg1, const T2 &arg2, const Types& ...args)
+	ND_ forceinline constexpr auto  Min (const T0 &arg0, const T1 &arg1, const T2 &arg2, const Types& ...args) __NE___
 	{
 		return Min( arg0, Min( arg1, arg2, args... ));
 	}
@@ -622,7 +622,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  Max (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline TVec<T,I,Q>  Max (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::max( lhs, rhs );
 	}
@@ -630,7 +630,7 @@ namespace AE::Math
 	template <typename T, int I, typename S, glm::qualifier Q,
 			  typename = EnableIf<IsScalar<S>>
 			 >
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  Max (const TVec<T,I,Q> &lhs, const S &rhs)
+	ND_ forceinline TVec<T,I,Q>  Max (const TVec<T,I,Q> &lhs, const S &rhs) __NE___
 	{
 		return Max( lhs, TVec<T,I,Q>{rhs} );
 	}
@@ -638,7 +638,7 @@ namespace AE::Math
 	template <typename T, int I, typename S, glm::qualifier Q,
 			  typename = EnableIf<IsScalar<S>>
 			 >
-	ND_ forceinline GLM_CONSTEXPR auto  Max (const S &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline auto  Max (const S &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return Max( TVec<T,I,Q>{lhs}, rhs );
 	}
@@ -646,7 +646,7 @@ namespace AE::Math
 	template <typename LT, typename RT,
 			  typename = EnableIf<not IsVec<LT> and not IsVec<RT>>
 			 >
-	ND_ forceinline constexpr auto  Max (const LT &lhs, const RT &rhs)
+	ND_ forceinline constexpr auto  Max (const LT &lhs, const RT &rhs) __NE___
 	{
 		if constexpr( IsSameTypes<LT, RT> )
 		{
@@ -660,7 +660,7 @@ namespace AE::Math
 	}
 
 	template <typename T0, typename T1, typename T2, typename ...Types>
-	ND_ forceinline constexpr auto  Max (const T0 &arg0, const T1 &arg1, const T2 &arg2, const Types& ...args)
+	ND_ forceinline constexpr auto  Max (const T0 &arg0, const T1 &arg1, const T2 &arg2, const Types& ...args) __NE___
 	{
 		return Max( arg0, Max( arg1, arg2, args... ));
 	}
@@ -671,13 +671,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	forceinline void  AssignMin (INOUT T& lhs, const T &rhs)
+	forceinline void  AssignMin (INOUT T& lhs, const T &rhs) __NE___
 	{
 		lhs = Min( lhs, rhs );
 	}
 	
 	template <typename T>
-	forceinline void  AssignMax (INOUT T& lhs, const T &rhs)
+	forceinline void  AssignMax (INOUT T& lhs, const T &rhs) __NE___
 	{
 		lhs = Max( lhs, rhs );
 	}
@@ -688,19 +688,19 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  Clamp (const TVec<T,I,Q> &value, const TVec<T,I,Q> &minVal, const TVec<T,I,Q> &maxVal)
+	ND_ forceinline TVec<T,I,Q>  Clamp (const TVec<T,I,Q> &value, const TVec<T,I,Q> &minVal, const TVec<T,I,Q> &maxVal) __NE___
 	{
 		return glm::clamp( value, minVal, maxVal );
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  Clamp (const TVec<T,I,Q> &value, const T &minVal, const T &maxVal)
+	ND_ forceinline TVec<T,I,Q>  Clamp (const TVec<T,I,Q> &value, const T &minVal, const T &maxVal) __NE___
 	{
 		return glm::clamp( value, TVec<T,I,Q>{minVal}, TVec<T,I,Q>{maxVal} );
 	}
 	
 	template <typename ValT, typename MinT, typename MaxT>
-	ND_ forceinline constexpr auto  Clamp (const ValT &value, const MinT &minVal, const MaxT &maxVal)
+	ND_ forceinline constexpr auto  Clamp (const ValT &value, const MinT &minVal, const MaxT &maxVal) __NE___
 	{
 		ASSERT(All( minVal <= maxVal ));
 		return Min( maxVal, Max( value, minVal ));
@@ -712,7 +712,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	forceinline constexpr EnableIf<IsFloatPoint<T>, T>  Wrap (const T& value, const T& minValue, const T& maxValue)
+	forceinline constexpr EnableIf<IsFloatPoint<T>, T>  Wrap (const T& value, const T& minValue, const T& maxValue) __NE___
 	{
 		// check for NaN
 		if_unlikely( minValue >= maxValue )
@@ -727,7 +727,7 @@ namespace AE::Math
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Wrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue)
+	ND_ forceinline EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  Wrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue) __NE___
 	{
 		TVec<T,I,Q>	res;
 		for (int i = 0; i < I; ++i) {
@@ -742,7 +742,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	forceinline constexpr EnableIf<IsInteger<T>, T>  Wrap (const T& value, const T& minValue, const T& maxValue)
+	forceinline constexpr EnableIf<IsInteger<T>, T>  Wrap (const T& value, const T& minValue, const T& maxValue) __NE___
 	{
 		// check for div by zero
 		if_unlikely( minValue > maxValue )
@@ -757,7 +757,7 @@ namespace AE::Math
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsInteger<T>, TVec<T,I,Q>>  Wrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue)
+	ND_ forceinline EnableIf<IsInteger<T>, TVec<T,I,Q>>  Wrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue) __NE___
 	{
 		TVec<T,I,Q>	res;
 		for (int i = 0; i < I; ++i) {
@@ -772,7 +772,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	forceinline constexpr EnableIf<IsFloatPoint<T>, T>  MirroredWrap (const T& value, const T& minValue, const T& maxValue)
+	forceinline constexpr EnableIf<IsFloatPoint<T>, T>  MirroredWrap (const T& value, const T& minValue, const T& maxValue) __NE___
 	{
 		// check for NaN
 		if_unlikely( minValue >= maxValue )
@@ -785,7 +785,7 @@ namespace AE::Math
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  MirroredWrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue)
+	ND_ forceinline EnableIf<IsFloatPoint<T>, TVec<T,I,Q>>  MirroredWrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue) __NE___
 	{
 		TVec<T,I,Q>	res;
 		for (int i = 0; i < I; ++i) {
@@ -800,7 +800,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	forceinline constexpr EnableIf<IsInteger<T>, T>  MirroredWrap (const T& value, const T& minValue, const T& maxValue)
+	forceinline constexpr EnableIf<IsInteger<T>, T>  MirroredWrap (const T& value, const T& minValue, const T& maxValue) __NE___
 	{
 		// check for division by zero
 		if_unlikely( minValue >= maxValue )
@@ -813,7 +813,7 @@ namespace AE::Math
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsInteger<T>, TVec<T,I,Q>>  MirroredWrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue)
+	ND_ forceinline EnableIf<IsInteger<T>, TVec<T,I,Q>>  MirroredWrap (const TVec<T,I,Q>& v, const T& minValue, const T& maxValue) __NE___
 	{
 		TVec<T,I,Q>	res;
 		for (int i = 0; i < I; ++i) {
@@ -828,7 +828,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Round (const TVec<T,I,Q>& v)
+	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Round (const TVec<T,I,Q>& v) __NE___
 	{
 		TVec<T,I,Q>	res;
 		for (int i = 0; i < I; ++i) {
@@ -838,7 +838,7 @@ namespace AE::Math
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR auto  RoundToInt (const TVec<T,I,Q>& v)
+	ND_ forceinline auto  RoundToInt (const TVec<T,I,Q>& v) __NE___
 	{
 		using R = decltype(RoundToInt(T()));
 
@@ -850,7 +850,7 @@ namespace AE::Math
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR auto  RoundToUint (const TVec<T,I,Q>& v)
+	ND_ forceinline auto  RoundToUint (const TVec<T,I,Q>& v) __NE___
 	{
 		using R = decltype(RoundToUint(T()));
 
@@ -867,13 +867,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Length (const TVec<T,I,Q> &v)
+	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Length (const TVec<T,I,Q> &v) __NE___
 	{
 		return glm::length( v );
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  LengthSqr (const TVec<T,I,Q> &v)
+	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  LengthSqr (const TVec<T,I,Q> &v) __NE___
 	{
 		return glm::length2( v );
 	}
@@ -884,13 +884,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Distance (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Distance (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::distance( lhs, rhs );
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  DistanceSqr (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs)
+	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  DistanceSqr (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
 	{
 		return glm::distance2( lhs, rhs );
 	}
@@ -901,7 +901,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR EnableIf<IsScalar<T> and IsFloatPoint<T>, TVec<T,I,Q>>  Normalize (const TVec<T,I,Q> &v)
+	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, TVec<T,I,Q>>  Normalize (const TVec<T,I,Q> &v) __NE___
 	{
 		return glm::normalize( v );
 	}
@@ -914,7 +914,7 @@ namespace AE::Math
 	template <typename T1, typename T2, typename T3,
 			  typename = EnableIf<IsScalarOrEnum<T1> and IsScalarOrEnum<T2> and IsScalarOrEnum<T3>>
 			 >
-	ND_ forceinline constexpr auto  SafeDiv (const T1& lhs, const T2& rhs, const T3& defVal)
+	ND_ forceinline constexpr auto  SafeDiv (const T1& lhs, const T2& rhs, const T3& defVal) __NE___
 	{
 		using T = decltype( lhs + rhs + defVal );
 
@@ -924,13 +924,13 @@ namespace AE::Math
 	template <typename T1, typename T2,
 			  typename = EnableIf<IsScalarOrEnum<T1> and IsScalarOrEnum<T2>>
 			 >
-	ND_ forceinline constexpr auto  SafeDiv (const T1& lhs, const T2& rhs)
+	ND_ forceinline constexpr auto  SafeDiv (const T1& lhs, const T2& rhs) __NE___
 	{
 		return SafeDiv( lhs, rhs, T1{0} );
 	}
 
 	template <typename T, int I, typename S, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  SafeDiv (const TVec<T,I,Q>& lhs, const TVec<T,I,Q>& rhs, const S& defVal)
+	ND_ forceinline TVec<T,I,Q>  SafeDiv (const TVec<T,I,Q>& lhs, const TVec<T,I,Q>& rhs, const S& defVal) __NE___
 	{
 		TVec<T,I,Q>	res;
 		for (int i = 0; i < I; ++i) {
@@ -942,7 +942,7 @@ namespace AE::Math
 	template <typename T, int I, typename S1, typename S2, glm::qualifier Q,
 			  typename = EnableIf<IsScalar<S1> and IsScalar<S2>>
 			 >
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  SafeDiv (const TVec<T,I,Q>& lhs, const S1& rhs, const S2& defVal)
+	ND_ forceinline TVec<T,I,Q>  SafeDiv (const TVec<T,I,Q>& lhs, const S1& rhs, const S2& defVal) __NE___
 	{
 		return SafeDiv( lhs, TVec<T,I,Q>{rhs}, T(defVal) );
 	}
@@ -950,13 +950,13 @@ namespace AE::Math
 	template <typename T, int I, typename S1, glm::qualifier Q,
 			  typename = EnableIf<IsScalar<S1>>
 			 >
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  SafeDiv (const TVec<T,I,Q>& lhs, const S1& rhs)
+	ND_ forceinline TVec<T,I,Q>  SafeDiv (const TVec<T,I,Q>& lhs, const S1& rhs) __NE___
 	{
 		return SafeDiv( lhs, TVec<T,I,Q>{rhs}, T{0} );
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR TVec<T,I,Q>  SafeDiv (const TVec<T,I,Q>& lhs, const TVec<T,I,Q>& rhs)
+	ND_ forceinline TVec<T,I,Q>  SafeDiv (const TVec<T,I,Q>& lhs, const TVec<T,I,Q>& rhs) __NE___
 	{
 		return SafeDiv( lhs, rhs, T{0} );
 	}
@@ -969,7 +969,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename A, typename B, typename C, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR auto  BaryLerp (const A& a, const B& b, const C& c, const TVec<T,3,Q> &barycentrics)
+	ND_ forceinline auto  BaryLerp (const A& a, const B& b, const C& c, const TVec<T,3,Q> &barycentrics) __NE___
 	{
 		STATIC_ASSERT( IsFloatPoint<T> );
 		return a * barycentrics.x + b * barycentrics.y + c * barycentrics.z;
@@ -983,7 +983,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename Coord, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR auto  BiLerp (const Coord& x1y1, const Coord& x2y1, const Coord& x1y2, const Coord& x2y2, const TVec<T,2,Q> &factor)
+	ND_ forceinline auto  BiLerp (const Coord& x1y1, const Coord& x2y1, const Coord& x1y2, const Coord& x2y2, const TVec<T,2,Q> &factor) __NE___
 	{
 		STATIC_ASSERT( IsFloatPoint<T> );
 		return Lerp( Lerp( x1y1, x2y1, factor.x ),
@@ -996,7 +996,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR auto  Remap (const TVec<T,2,Q> &src, const TVec<T,2,Q> &dst, const T& x)
+	ND_ forceinline auto  Remap (const TVec<T,2,Q> &src, const TVec<T,2,Q> &dst, const T& x) __NE___
 	{
 		STATIC_ASSERT( IsFloatPoint<T> );
 		return (x - src[0]) / (src[1] - src[0]) * (dst[1] - dst[0]) + dst[0];
@@ -1008,7 +1008,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR auto  RemapClamped (const TVec<T,2,Q> &src, const TVec<T,2,Q> &dst, const T& x)
+	ND_ forceinline auto  RemapClamped (const TVec<T,2,Q> &src, const TVec<T,2,Q> &dst, const T& x) __NE___
 	{
 		return Clamp( Remap( src, dst, x ), dst[0], dst[1] );
 	}
@@ -1021,14 +1021,14 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR auto  ToUNorm (const TVec<T,I,Q> &snorm)
+	ND_ forceinline auto  ToUNorm (const TVec<T,I,Q> &snorm) __NE___
 	{
 		STATIC_ASSERT( IsFloatPoint<T> );
 		return snorm * T(0.5) + T(0.5);
 	}
 
 	template <typename T>
-	ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  ToUNorm (T snorm)
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  ToUNorm (T snorm) __NE___
 	{
 		return snorm * T(0.5) + T(0.5);
 	}
@@ -1041,14 +1041,14 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline GLM_CONSTEXPR auto  ToSNorm (const TVec<T,I,Q> &unorm)
+	ND_ forceinline auto  ToSNorm (const TVec<T,I,Q> &unorm) __NE___
 	{
 		STATIC_ASSERT( IsFloatPoint<T> );
 		return unorm * T(2.0) - T(1.0);
 	}
 
 	template <typename T>
-	ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  ToSNorm (T unorm)
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  ToSNorm (T unorm) __NE___
 	{
 		return unorm * T(2.0) - T(1.0);
 	}
@@ -1059,7 +1059,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline TVec<T,I,Q>  FloorPOT (const TVec<T,I,Q> &v)
+	ND_ forceinline TVec<T,I,Q>  FloorPOT (const TVec<T,I,Q> &v) __NE___
 	{
 		TVec<T,I,Q>		result;
 		for (int i = 0; i < I; ++i) {
@@ -1069,7 +1069,7 @@ namespace AE::Math
 	}
 	
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline TVec<T,I,Q>  CeilPOT (const TVec<T,I,Q> &v)
+	ND_ forceinline TVec<T,I,Q>  CeilPOT (const TVec<T,I,Q> &v) __NE___
 	{
 		TVec<T,I,Q>		result;
 		for (int i = 0; i < I; ++i) {
@@ -1084,7 +1084,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline TVec<int,I,Q>  IntLog2 (const TVec<T,I,Q> &v)
+	ND_ forceinline TVec<int,I,Q>  IntLog2 (const TVec<T,I,Q> &v) __NE___
 	{
 		TVec<int,I,Q>		result;
 		for (int i = 0; i < I; ++i) {
@@ -1094,7 +1094,7 @@ namespace AE::Math
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline TVec<int,I,Q>  CeilIntLog2 (const TVec<T,I,Q> &v)
+	ND_ forceinline TVec<int,I,Q>  CeilIntLog2 (const TVec<T,I,Q> &v) __NE___
 	{
 		TVec<int,I,Q>		result;
 		for (int i = 0; i < I; ++i) {
@@ -1109,7 +1109,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline TVec<int,I,Q>  BitScanForward (const TVec<T,I,Q> &v)
+	ND_ forceinline TVec<int,I,Q>  BitScanForward (const TVec<T,I,Q> &v) __NE___
 	{
 		TVec<int,I,Q>		result;
 		for (int i = 0; i < I; ++i) {
@@ -1124,7 +1124,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline TVec<usize,I,Q>  BitCount (const TVec<T,I,Q> &v)
+	ND_ forceinline TVec<usize,I,Q>  BitCount (const TVec<T,I,Q> &v) __NE___
 	{
 		TVec<usize,I,Q>		result;
 		for (int i = 0; i < I; ++i) {
@@ -1139,7 +1139,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline TVec<bool,I,Q>  IsPowerOfTwo (const TVec<T,I,Q> &v)
+	ND_ forceinline TVec<bool,I,Q>  IsPowerOfTwo (const TVec<T,I,Q> &v) __NE___
 	{
 		TVec<bool,I,Q>	result;
 		for (int i = 0; i < I; ++i) {
@@ -1154,7 +1154,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline TVec<T,I,Q>  SafeLeftBitShift (const TVec<T,I,Q> &v)
+	ND_ forceinline TVec<T,I,Q>  SafeLeftBitShift (const TVec<T,I,Q> &v) __NE___
 	{
 		TVec<T,I,Q>		result;
 		for (int i = 0; i < I; ++i) {
@@ -1164,7 +1164,7 @@ namespace AE::Math
 	}
 
 	template <typename T, int I, glm::qualifier Q>
-	ND_ forceinline TVec<T,I,Q>  SafeRightBitShift (const TVec<T,I,Q> &v)
+	ND_ forceinline TVec<T,I,Q>  SafeRightBitShift (const TVec<T,I,Q> &v) __NE___
 	{
 		TVec<T,I,Q>		result;
 		for (int i = 0; i < I; ++i) {
@@ -1185,7 +1185,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From, int I, glm::qualifier Q>
-	ND_ inline GLM_CONSTEXPR To  CheckCast (const TVec<From,I,Q>& src)
+	ND_ inline To  CheckCast (const TVec<From,I,Q>& src) __NE___
 	{
 		using T = typename To::value_type;
 
@@ -1204,7 +1204,7 @@ namespace std
 #if AE_FAST_HASH
 	template <typename T, uint32_t I, glm::qualifier Q>
 	struct hash< AE::Math::TVec<T,I,Q> > {
-		ND_ size_t  operator () (const AE::Math::TVec<T,I,Q> &value) const {
+		ND_ size_t  operator () (const AE::Math::TVec<T,I,Q> &value) C_NE___ {
 			return size_t(AE::Base::HashOf( value.data(), value.size() * sizeof(T) ));
 		}
 	};
@@ -1212,21 +1212,21 @@ namespace std
 #else
 	template <typename T, glm::qualifier Q>
 	struct hash< AE::Math::TVec<T,2,Q> > {
-		ND_ size_t  operator () (const AE::Math::TVec<T,2,Q> &value) const {
+		ND_ size_t  operator () (const AE::Math::TVec<T,2,Q> &value) C_NE___ {
 			return size_t(AE::Base::HashOf( value.x ) + AE::Base::HashOf( value.y ));
 		}
 	};
 	
 	template <typename T, glm::qualifier Q>
 	struct hash< AE::Math::TVec<T,3,Q> > {
-		ND_ size_t  operator () (const AE::Math::TVec<T,3,Q> &value) const {
+		ND_ size_t  operator () (const AE::Math::TVec<T,3,Q> &value) C_NE___ {
 			return size_t(AE::Base::HashOf( value.x ) + AE::Base::HashOf( value.y ) + AE::Base::HashOf( value.z ));
 		}
 	};
 	
 	template <typename T, glm::qualifier Q>
 	struct hash< AE::Math::TVec<T,4,Q> > {
-		ND_ size_t  operator () (const AE::Math::TVec<T,4,Q> &value) const {
+		ND_ size_t  operator () (const AE::Math::TVec<T,4,Q> &value) C_NE___ {
 			return size_t(AE::Base::HashOf( value.x ) + AE::Base::HashOf( value.y ) + AE::Base::HashOf( value.z ) + AE::Base::HashOf( value.w ));
 		}
 	};

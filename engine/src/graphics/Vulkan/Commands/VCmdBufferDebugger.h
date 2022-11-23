@@ -41,12 +41,11 @@ namespace AE::Graphics
 			
 			_dbgBuffer = RVRef(bufId);
 
-			auto*	buf = this->_mngr.Get( _dbgBuffer );
-			CHECK_ERR( buf );
-			CHECK_ERR( offset < buf->Size() );
-			CHECK_ERR( offset + size <= buf->Size() );
+			auto&	buf = this->_mngr.Get( _dbgBuffer );
+			CHECK_ERR( offset < buf.Size() );
+			CHECK_ERR( offset + size <= buf.Size() );
 
-			_dbgVkBuffer		= buf->Handle();
+			_dbgVkBuffer		= buf.Handle();
 			_dbgBufferSize		= size;
 			_dbgBufferOffset	= offset;
 			_firstId			= firstId;

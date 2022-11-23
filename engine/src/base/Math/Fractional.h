@@ -24,9 +24,9 @@ namespace AE::Math
 
 
 	// methods
-		constexpr Fractional () {}
+		constexpr Fractional ()									__NE___ {}
 
-		constexpr explicit Fractional (T num, T denom = T{1})
+		constexpr explicit Fractional (T num, T denom = T{1})	__NE___
 		{
 			ASSERT( denom > 0 );
 			const T	gcd = _GreatestCommonDivisor( num, denom );
@@ -36,37 +36,37 @@ namespace AE::Math
 			}
 		}
 
-		constexpr Fractional (const Self &) = default;
+		constexpr Fractional (const Self &)						__NE___ = default;
 		
-		constexpr Self&  operator = (const Self &) = default;
+		constexpr Self&  operator = (const Self &)				__NE___ = default;
 
 
-		ND_ constexpr Self  operator - () const
+		ND_ constexpr Self  operator - ()						C_NE___
 		{
 			return Self{ -numerator, denominator };
 		}
 
-		ND_ constexpr Self  operator + (const Self &rhs) const
+		ND_ constexpr Self  operator + (const Self &rhs)		C_NE___
 		{
 			return Self{ numerator * rhs.denominator + rhs.numerator * denominator, denominator * rhs.denominator };
 		}
 		
-		ND_ constexpr Self  operator - (const Self &rhs) const
+		ND_ constexpr Self  operator - (const Self &rhs)		C_NE___
 		{
 			return Self{ numerator * rhs.denominator - rhs.numerator * denominator, denominator * rhs.denominator };
 		}
 		
-		ND_ constexpr Self  operator * (const Self &rhs) const
+		ND_ constexpr Self  operator * (const Self &rhs)		C_NE___
 		{
 			return Self{ numerator * rhs.numerator, denominator * rhs.denominator };
 		}
 		
-		ND_ constexpr Self  operator / (const Self &rhs) const
+		ND_ constexpr Self  operator / (const Self &rhs)		C_NE___
 		{
 			return Self{ numerator * rhs.denominator, denominator * rhs.numerator };
 		}
 
-		ND_ constexpr Self  Pow (uint value) const
+		ND_ constexpr Self  Pow (uint value)					C_NE___
 		{
 			Self	result;
 			result.numerator	= numerator;
@@ -79,23 +79,23 @@ namespace AE::Math
 			return result;
 		}
 
-		ND_ constexpr bool  operator == (const Self &rhs) const
+		ND_ constexpr bool  operator == (const Self &rhs)		C_NE___
 		{
 			return	((numerator == T{0}) & (rhs.numerator == T{0}))				|
 					((numerator == rhs.numerator) & (denominator == rhs.denominator));
 		}
 
-		ND_ constexpr bool  IsZero ()			const	{ return numerator == T{0}; }
+		ND_ constexpr bool  IsZero ()							C_NE___	{ return numerator == T{0}; }
 
-		ND_ constexpr bool  IsInteger ()		const	{ return denominator == T{1}; }
+		ND_ constexpr bool  IsInteger ()						C_NE___	{ return denominator == T{1}; }
 
-		ND_ constexpr bool	IsPositive ()		const	{ return numerator >  T{0}; }
-		ND_ constexpr bool	IsPositiveOrZero ()	const	{ return numerator >= T{0}; }
-		ND_ constexpr bool	IsNegative ()		const	{ return numerator <  T{0}; }
-		ND_ constexpr bool	IsNegativeOrZero ()	const	{ return numerator <= T{0}; }
+		ND_ constexpr bool	IsPositive ()						C_NE___	{ return numerator >  T{0}; }
+		ND_ constexpr bool	IsPositiveOrZero ()					C_NE___	{ return numerator >= T{0}; }
+		ND_ constexpr bool	IsNegative ()						C_NE___	{ return numerator <  T{0}; }
+		ND_ constexpr bool	IsNegativeOrZero ()					C_NE___	{ return numerator <= T{0}; }
 
 		template <typename R>
-		ND_ constexpr EnableIf<IsFloatPoint<R>, R>	ToFloat ()	const	{ return R(numerator) / R(denominator); }
+		ND_ constexpr EnableIf<IsFloatPoint<R>, R>	ToFloat ()	C_NE___	{ return R(numerator) / R(denominator); }
 
 
 		// Rounding:
@@ -104,17 +104,17 @@ namespace AE::Math
 		// RTL - round to larger,  similar to ceil(val * float(frac))
 
 		template <typename R>
-		ND_ constexpr R  Mul_RTS (const R &val) const	{ return (val * numerator) / denominator; }
+		ND_ constexpr R  Mul_RTS (const R &val)					C_NE___	{ return (val * numerator) / denominator; }
 		
 		template <typename R>
-		ND_ constexpr R  Mul_RTN (const R &val) const	{ return ((val * numerator) + R(denominator/2)) / denominator; }
+		ND_ constexpr R  Mul_RTN (const R &val)					C_NE___	{ return ((val * numerator) + R(denominator/2)) / denominator; }
 
 		template <typename R>
-		ND_ constexpr R  Mul_RTL (const R &val) const	{ return ((val * numerator) + R(denominator-1)) / denominator; }
+		ND_ constexpr R  Mul_RTL (const R &val)					C_NE___	{ return ((val * numerator) + R(denominator-1)) / denominator; }
 
 
 	private:
-		static constexpr T  _GreatestCommonDivisor (T value1, T value2)
+		static constexpr T  _GreatestCommonDivisor (T value1, T value2) __NE___
 		{
 			return value2 != 0 ? _GreatestCommonDivisor( value2, value1 % value2 ) : value1;
 		}

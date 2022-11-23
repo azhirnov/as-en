@@ -50,7 +50,7 @@ namespace AE::Base
 	// methods
 	public:
 		constexpr FixedArray ()									__NE___;
-		constexpr FixedArray (std::initializer_list<T> list)	noexcept(IsNothrowCopyCtor<T>);
+		constexpr FixedArray (std::initializer_list<T> list)	noexcept(IsNothrowCopyCtor<T>);		// TODO: use Args... to allow move ctor
 		constexpr FixedArray (ArrayView<T> view)				noexcept(IsNothrowCopyCtor<T>);
 		constexpr FixedArray (const Self &other)				noexcept(IsNothrowCopyCtor<T>);
 		constexpr FixedArray (Self &&other)						__NE___;

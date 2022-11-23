@@ -61,7 +61,7 @@ namespace
 	
 	static void  ComponentValidator_Test1 ()
 	{
-	#ifdef AE_ECS_VALIDATE_SYSTEM_FN
+	#if 0 //def AE_ECS_VALIDATE_SYSTEM_FN
 		{
 			using Types = TypeList< WriteAccess<Comp1>, ReadAccess<Comp2> >;
 			STATIC_ASSERT( _reg_detail_::CheckForDuplicateComponents< Types::Get<0> >::Test< 0, Types >() );

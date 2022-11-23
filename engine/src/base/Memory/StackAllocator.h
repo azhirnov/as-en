@@ -17,7 +17,7 @@ namespace AE::Base
 	//
 
 	template <typename AllocatorType, uint MaxBlocks>
-	struct StackAllocator< AllocatorType, MaxBlocks, false > final
+	class StackAllocator< AllocatorType, MaxBlocks, false > final : public Noncopyable
 	{
 	// types
 	public:
@@ -30,14 +30,14 @@ namespace AE::Base
 
 		struct AutoReleaseBookmark
 		{
-			friend struct StackAllocator;
+			friend class StackAllocator;
 		private:
 			Self &			_ref;
 			const Bookmark	_bm;
 
-			AutoReleaseBookmark (Self &ref) : _ref{ref}, _bm{ref.Push()} {}
+			AutoReleaseBookmark (Self &ref)	__NE___	: _ref{ref}, _bm{ref.Push()} {}
 		public:
-			~AutoReleaseBookmark ()	{ _ref.Pop( _bm ); }
+			~AutoReleaseBookmark ()			__NE___	{ _ref.Pop( _bm ); }
 		};
 
 	private:
@@ -70,32 +70,21 @@ namespace AE::Base
 	public:
 		StackAllocator ()									__NE___	{}
 		StackAllocator (Self &&other)						__NE___;
-		StackAllocator (const Self &) = delete;
+		StackAllocator (const Self &)						= delete;
 		explicit StackAllocator (const Allocator_t &alloc)	__NE___: _alloc{alloc} {}
 
 		~StackAllocator ()									__NE___	{ Release(); }
 		
-		Self&  operator = (const Self &) = delete;
-		Self&  operator = (Self &&rhs)						__NE___;
+			Self&  operator = (const Self &)				= delete;
+			Self&  operator = (Self &&rhs)					__NE___;
 
-
-		void  SetBlockSize (Bytes size)						__NE___
-		{
-			_blockSize = size;
-		}
+			void  SetBlockSize (Bytes size)					__NE___	{ _blockSize = size; }
 
 		template <typename T>
-		ND_ AE_ALLOCATOR T*  Allocate (usize count = 1)		__NE___
-		{
-			return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }));
-		}
-
-		ND_ AE_ALLOCATOR void*  Allocate (const SizeAndAlign sizeAndAlign) __NE___;
+		ND_ T*		Allocate (usize count = 1)				__NE___	{ return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
+		ND_ void*	Allocate (const SizeAndAlign)			__NE___;
 		
-		void  Deallocate (void* ptr, const SizeAndAlign sizeAndAlign) __NE___
-		{
-			Unused( ptr, sizeAndAlign );
-		}
+			void  Deallocate (void*, const SizeAndAlign)	__NE___	{}
 
 			bool		Commit (Bookmark bm, Bytes size)	__NE___;
 

@@ -29,9 +29,9 @@ namespace AE::Scripting
 	public:
 		explicit EnumBinder (const ScriptEnginePtr &eng);
 
-		void  Create ()								__TH___;
+		void  Create ()								__Th___;
 
-		void  AddValue (StringView name, T value)	__TH___;
+		void  AddValue (StringView name, T value)	__Th___;
 
 		ND_ StringView							Name ()		const	{ return _name; }
 		ND_ Ptr< AngelScript::asIScriptEngine >	GetASEngine ()		{ return _engine->Get(); }
@@ -57,7 +57,7 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T>
-	void  EnumBinder<T>::Create () __TH___
+	void  EnumBinder<T>::Create () __Th___
 	{
 		int	res = GetASEngine()->RegisterEnum( NtStringView{Name()}.c_str() );
 		
@@ -73,7 +73,7 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T>
-	void  EnumBinder<T>::AddValue (StringView valueName, T value) __TH___
+	void  EnumBinder<T>::AddValue (StringView valueName, T value) __Th___
 	{
 		ASSERT( slong(value) >= MinValue<int>() and slong(value) <= MaxValue<int>() );
 

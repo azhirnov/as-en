@@ -9,7 +9,7 @@ void main ()
 		ms.file		= "draw_mesh1_ms.glsl";
 		ms.options	= EShaderOpt::Optimize;
 		ms.version	= EShaderVersion::SPIRV_1_4;
-		ms.SetMeshSpec();
+		ms.SetMeshSpec1();
 		ppln.SetMeshShader( ms );
 	}
 	{

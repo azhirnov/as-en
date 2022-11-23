@@ -53,25 +53,25 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit MLinearMemAllocator (Bytes pageSize = 0_b);
-		~MLinearMemAllocator () override;
+		explicit MLinearMemAllocator (Bytes pageSize = 0_b)											__NE___;
+		~MLinearMemAllocator ()																		__NE_OV;
 		
-		void  SetPageSize (Bytes size);
-		void  Discard ();
+		void  SetPageSize (Bytes size)																__NE___;
+		void  Discard ()																			__NE___;
 
 	  // IGfxMemAllocator //
-		MetalImageRC   AllocForImage  (const ImageDesc &desc, OUT Storage_t &data) override;
-		MetalBufferRC  AllocForBuffer (const BufferDesc &desc, OUT Storage_t &data) override;
+		MetalImageRC   AllocForImage  (const ImageDesc &desc, OUT Storage_t &data)					__NE_OV;
+		MetalBufferRC  AllocForBuffer (const BufferDesc &desc, OUT Storage_t &data)					__NE_OV;
 		
-		MetalAccelStructRC  AllocForAccelStruct (const RTGeometryDesc &desc, OUT Storage_t &data) override;
-		MetalAccelStructRC  AllocForAccelStruct (const RTSceneDesc &desc, OUT Storage_t &data) override;
+		MetalAccelStructRC  AllocForAccelStruct (const RTGeometryDesc &desc, OUT Storage_t &data)	__NE_OV;
+		MetalAccelStructRC  AllocForAccelStruct (const RTSceneDesc &desc, OUT Storage_t &data)		__NE_OV;
 
-		bool  Dealloc (INOUT Storage_t &data) override;
+		bool  Dealloc (INOUT Storage_t &data)														__NE_OV;
 
-		bool  GetInfo (const Storage_t &data, OUT MetalMemoryObjInfo &info) C____OV;
+		bool  GetInfo (const Storage_t &data, OUT MetalMemoryObjInfo &info)							C_NE_OV;
 		
-		Bytes  MinAlignment ()		C____OV	{ return 1_b; }
-		Bytes  MaxAllocationSize ()	C____OV	{ return _pageSize; }
+		Bytes  MinAlignment ()																		C_NE_OV	{ return 1_b; }
+		Bytes  MaxAllocationSize ()																	C_NE_OV	{ return _pageSize; }
 
 	private:
 		ND_ static Data &		_CastStorage (Storage_t &data)			{ return *data.Ptr<Data>(); }

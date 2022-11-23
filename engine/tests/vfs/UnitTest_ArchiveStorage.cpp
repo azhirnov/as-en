@@ -127,6 +127,7 @@ extern void UnitTest_ArchiveStorage ()
 	const Path	curr	= FileSystem::CurrentPath();
 	const Path	folder	{AE_CURRENT_DIR "/vfs_test"};
 	
+	FileSystem::RemoveAll( folder );
 	FileSystem::CreateDirectories( folder );
 	TEST( FileSystem::SetCurrentPath( folder ));
 

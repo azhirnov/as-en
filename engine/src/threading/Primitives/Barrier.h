@@ -98,7 +98,7 @@ namespace AE::Threading
 		void  wait ()
 		{
 			// flush cache
-			ThreadFence( EMemoryOrder::Release );
+			MemoryBarrier( EMemoryOrder::Release );
 
 			const Bitfield	old_value	= _counter.load();
 			Bitfield		expected	= old_value;
@@ -147,7 +147,7 @@ namespace AE::Threading
 			}
 
 			// invalidate cache
-			ThreadFence( EMemoryOrder::Acquire );
+			MemoryBarrier( EMemoryOrder::Acquire );
 		}
 
 		ND_ static constexpr usize  max ()	{ return uint{UMax}; }

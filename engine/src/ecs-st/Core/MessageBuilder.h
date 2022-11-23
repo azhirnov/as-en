@@ -23,22 +23,22 @@ namespace AE::ECS
 		{
 			usize	_value = UMax;
 
-			MessageKey () {}
-			MessageKey (ComponentID compId, MsgTagID tagId);
+			MessageKey ()									__NE___	{}
+			MessageKey (ComponentID compId, MsgTagID tagId)	__NE___;
 
-			ND_ bool  operator == (const MessageKey &) const;
+			ND_ bool  operator == (const MessageKey &)		C_NE___;
 		};
 
 		struct MessageKeyHash {
-			usize  operator () (const MessageKey &) const;
+			usize  operator () (const MessageKey &)			C_NE___;
 		};
 		
 		struct MessageData
 		{
 			using Listener_t = Function< void (MessageData &) >;
 
-			Array<EntityID>			entities;
-			Array<ubyte>			components;		// TODO: align
+			Array< EntityID >		entities;
+			Array< ubyte >			components;		// TODO: align
 			Array< Listener_t >		listeners;
 		};
 		
@@ -56,47 +56,47 @@ namespace AE::ECS
 	public:
 
 		template <typename Tag>
-		void  Add (EntityID id, ComponentID compId);
+		ND_ bool  Add (EntityID id, ComponentID compId)												__NE___;
 
 		template <typename Tag>
-		void  Add (EntityID id, ComponentID compId, ArrayView<ubyte> data);
+		ND_ bool  Add (EntityID id, ComponentID compId, ArrayView<ubyte> data)						__NE___;
 
 		template <typename Tag>
-		void  Add (EntityID id, ComponentID compId, const Pair<void*, Bytes> &data);
+		ND_ bool  Add (EntityID id, ComponentID compId, const Pair<void*, Bytes> &data)				__NE___;
 
 		template <typename Tag, typename Comp>
-		void  Add (EntityID id, const Comp& comp);
+		ND_ bool  Add (EntityID id, const Comp& comp)												__NE___;
 		
 		template <typename Tag>
-		void  AddMulti (ComponentID compId, ArrayView<EntityID> ids, ArrayView<ubyte> data);
+		ND_ bool  AddMulti (ComponentID compId, ArrayView<EntityID> ids, ArrayView<ubyte> data)		__NE___;
 		
 		template <typename Tag>
-		void  AddMulti (ComponentID compId, ArrayView<EntityID> ids);
+		ND_ bool  AddMulti (ComponentID compId, ArrayView<EntityID> ids)							__NE___;
 
 		template <typename Comp, typename Tag, typename Fn>
-		bool  AddListener (Fn &&fn);
+		ND_ bool  AddListener (Fn &&fn)																__NE___;
 
 		template <typename Tag>
-		ND_ bool  HasListener (ComponentID compId) const;
+		ND_ bool  HasListener (ComponentID compId)													C_NE___;
 
-		void  Process ();
+			void  Process ()																		__NE___;
 	};
 
 	
 			
 	
-	inline MessageBuilder::MessageKey::MessageKey (ComponentID compId, MsgTagID tagId) :
+	inline MessageBuilder::MessageKey::MessageKey (ComponentID compId, MsgTagID tagId) __NE___ :
 		_value{ (usize(compId.value) << 16) | usize(tagId.value) }
 	{}
 	
-	inline bool  MessageBuilder::MessageKey::operator == (const MessageKey &rhs) const
+	inline bool  MessageBuilder::MessageKey::operator == (const MessageKey &rhs) C_NE___
 	{
 		return _value == rhs._value;
 	}
 //-----------------------------------------------------------------------------
 
 
-	inline usize  MessageBuilder::MessageKeyHash::operator () (const MessageKey &x) const
+	inline usize  MessageBuilder::MessageKeyHash::operator () (const MessageKey &x) C_NE___
 	{
 		return x._value;
 	}
@@ -109,23 +109,24 @@ namespace AE::ECS
 =================================================
 */
 	template <typename Tag>
-	inline void  MessageBuilder::Add (EntityID id, ComponentID compId)
+	bool  MessageBuilder::Add (EntityID id, ComponentID compId) __NE___
 	{
 		MessageKey const	key  { compId, MsgTagTypeInfo<Tag>::id };
 		auto				iter = _msgTypes.find( key );
 		
 		// no listener to process this message
 		if ( iter == _msgTypes.end() )
-			return;
+			return true;
 		
 		auto&	msg = iter->second;
 
 		if ( msg.entities.empty() )
-			_pending.push_back( &msg );
-		
+			CATCH_ERR( _pending.push_back( &msg ));
+
 		ASSERT( msg.components.empty() );
 
-		msg.entities.push_back( id );
+		CATCH_ERR( msg.entities.push_back( id ));
+		return true;
 	}
 
 /*
@@ -134,37 +135,38 @@ namespace AE::ECS
 =================================================
 */
 	template <typename Tag>
-	inline void  MessageBuilder::Add (EntityID id, ComponentID compId, ArrayView<ubyte> comp)
+	bool  MessageBuilder::Add (EntityID id, ComponentID compId, ArrayView<ubyte> comp) __NE___
 	{
 		MessageKey const	key  { compId, MsgTagTypeInfo<Tag>::id };
 		auto				iter = _msgTypes.find( key );
 		
 		// no listener to process this message
 		if ( iter == _msgTypes.end() )
-			return;
+			return true;
 
 		auto&	msg = iter->second;
 
 		if ( msg.entities.empty() )
-			_pending.push_back( &msg );
+			CATCH_ERR( _pending.push_back( &msg ));
 		
 		ASSERT( msg.entities.empty() or not msg.components.empty() );
 		ASSERT( comp.size() );
 
-		msg.components.resize( (msg.entities.size() + 1) * comp.size() );
+		CATCH_ERR( msg.components.resize( (msg.entities.size() + 1) * comp.size() ));
 		MemCopy( OUT msg.components.data() + Bytes{msg.entities.size() * comp.size()}, comp.data(), ArraySizeOf( comp ));
 
-		msg.entities.push_back( id );
+		CATCH_ERR( msg.entities.push_back( id ));
+		return true;
 	}
 
 	template <typename Tag, typename Comp>
-	inline void  MessageBuilder::Add (EntityID id, const Comp& comp)
+	bool  MessageBuilder::Add (EntityID id, const Comp& comp) __NE___
 	{
 		return Add<Tag>( id, ComponentTypeInfo<Comp>::id, ArrayView<ubyte>{ Cast<ubyte>(&comp), sizeof(comp) });
 	}
 	
 	template <typename Tag>
-	inline void  MessageBuilder::Add (EntityID id, ComponentID compId, const Pair<void*, Bytes> &data)
+	bool  MessageBuilder::Add (EntityID id, ComponentID compId, const Pair<void*, Bytes> &data) __NE___
 	{
 		ASSERT( data.first );
 		return Add<Tag>( id, compId, ArrayView<ubyte>{ Cast<ubyte>(data.first), usize(data.second) });
@@ -176,7 +178,7 @@ namespace AE::ECS
 =================================================
 */
 	template <typename Comp, typename Tag, typename Fn>
-	inline bool  MessageBuilder::AddListener (Fn &&fn)
+	bool  MessageBuilder::AddListener (Fn &&fn) __NE___
 	{
 		using FI = FunctionInfo< Fn >;
 
@@ -187,12 +189,12 @@ namespace AE::ECS
 		{
 			STATIC_ASSERT( IsSameTypes<typename FI::args::template Get<0>, ArrayView<EntityID>> );
 			//STATIC_ASSERT( not IsSameTypes< Tag, MsgTag_RemovedComponent >);
-			
-			msg.listeners.push_back(
-				[fn = FwdArg<Fn>(fn)] (const MessageData &msg)
-				{
-					fn( ArrayView<EntityID>{ msg.entities });
-				});
+			CATCH_ERR(
+				msg.listeners.push_back(
+					[fn = FwdArg<Fn>(fn)] (const MessageData &msg)
+					{
+						fn( ArrayView<EntityID>{ msg.entities });
+					}));
 			return true;
 		}
 
@@ -200,14 +202,14 @@ namespace AE::ECS
 		{
 			STATIC_ASSERT( IsSameTypes<typename FI::args::template Get<0>, ArrayView<EntityID>> );
 			STATIC_ASSERT( IsSameTypes<typename FI::args::template Get<1>, ArrayView<Comp>> );
-			
-			msg.listeners.push_back(
-				[fn = FwdArg<Fn>(fn)] (const MessageData &msg)
-				{
-					ASSERT( msg.components.size() );
-					fn( ArrayView<EntityID>{ msg.entities },
-						ArrayView<Comp>{ Cast<Comp>(msg.components.data()), msg.entities.size() });
-				});
+			CATCH_ERR(
+				msg.listeners.push_back(
+					[fn = FwdArg<Fn>(fn)] (const MessageData &msg)
+					{
+						ASSERT( msg.components.size() );
+						fn( ArrayView<EntityID>{ msg.entities },
+							ArrayView<Comp>{ Cast<Comp>(msg.components.data()), msg.entities.size() });
+					}));
 			return true;
 		}
 	}
@@ -218,29 +220,30 @@ namespace AE::ECS
 =================================================
 */
 	template <typename Tag>
-	inline void  MessageBuilder::AddMulti (ComponentID compId, ArrayView<EntityID> ids, ArrayView<ubyte> compData)
+	bool  MessageBuilder::AddMulti (ComponentID compId, ArrayView<EntityID> ids, ArrayView<ubyte> compData) __NE___
 	{
 		MessageKey const	key  { compId, MsgTagTypeInfo<Tag>::id };
 		auto				iter = _msgTypes.find( key );
 		
 		// no listener to process this message
 		if ( iter == _msgTypes.end() )
-			return;
+			return true;
 
 		auto&	msg = iter->second;
 
 		if ( msg.entities.empty() )
-			_pending.push_back( &msg );
+			CATCH_ERR( _pending.push_back( &msg ));
 		
 		ASSERT( msg.entities.empty() or not msg.components.empty() );
 		ASSERT( compData.size() );
 		ASSERT( ids.size() );
 
 		const usize	comp_size = compData.size() / ids.size();
-		msg.components.resize( (msg.entities.size() + 1) * comp_size );
+		CATCH_ERR( msg.components.resize( (msg.entities.size() + 1) * comp_size ));
 		MemCopy( OUT msg.components.data() + Bytes{msg.entities.size() * comp_size}, compData.data(), ArraySizeOf( compData ));
 
-		msg.entities.insert( msg.entities.end(), ids.begin(), ids.end() );
+		CATCH_ERR( msg.entities.insert( msg.entities.end(), ids.begin(), ids.end() ));
+		return true;
 	}
 	
 /*
@@ -249,23 +252,24 @@ namespace AE::ECS
 =================================================
 */
 	template <typename Tag>
-	inline void  MessageBuilder::AddMulti (ComponentID compId, ArrayView<EntityID> ids)
+	bool  MessageBuilder::AddMulti (ComponentID compId, ArrayView<EntityID> ids) __NE___
 	{
 		MessageKey const	key  { compId, MsgTagTypeInfo<Tag>::id };
 		auto				iter = _msgTypes.find( key );
 		
 		// no listener to process this message
 		if ( iter == _msgTypes.end() )
-			return;
+			return true;
 		
 		auto&	msg = iter->second;
 
 		if ( msg.entities.empty() )
-			_pending.push_back( &msg );
+			CATCH_ERR( _pending.push_back( &msg ));
 		
 		ASSERT( msg.components.empty() );
 		
-		msg.entities.insert( msg.entities.end(), ids.begin(), ids.end() );
+		CATCH_ERR( msg.entities.insert( msg.entities.end(), ids.begin(), ids.end() ));
+		return true;
 	}
 
 /*
@@ -274,7 +278,7 @@ namespace AE::ECS
 =================================================
 */
 	template <typename Tag>
-	inline bool  MessageBuilder::HasListener (ComponentID compId) const
+	bool  MessageBuilder::HasListener (ComponentID compId) C_NE___
 	{
 		MessageKey	key{ compId, MsgTagTypeInfo<Tag>::id };
 		auto		iter = _msgTypes.find( key );
@@ -287,7 +291,7 @@ namespace AE::ECS
 	Process
 =================================================
 */
-	inline void  MessageBuilder::Process ()
+	inline void  MessageBuilder::Process () __NE___
 	{
 		for (auto* msg : _pending)
 		{

@@ -22,7 +22,7 @@ namespace AE::Math
 		T	r, g, b, a;
 
 	// methods
-		constexpr RGBAColor () __NE___ : r{T{0}}, g{T{0}}, b{T{0}}, a{T{0}}
+		constexpr RGBAColor ()									__NE___ : r{T{0}}, g{T{0}}, b{T{0}}, a{T{0}}
 		{
 			// check if supported cast from Color to array
 			STATIC_ASSERT( offsetof(Self, r) + sizeof(T) == offsetof(Self, g) );
@@ -31,10 +31,10 @@ namespace AE::Math
 			STATIC_ASSERT( sizeof(T)*(size()-1) == (offsetof(Self, a) - offsetof(Self, r)) );
 		}
 
-		constexpr RGBAColor (T r, T g, T b, T a) __NE___ : r{r}, g{g}, b{b}, a{a}
+		constexpr RGBAColor (T r, T g, T b, T a)				__NE___ : r{r}, g{g}, b{b}, a{a}
 		{}
 
-		constexpr explicit RGBAColor (T val) __NE___ : r{val}, g{val}, b{val}, a{val}
+		constexpr explicit RGBAColor (T val)					__NE___ : r{val}, g{val}, b{val}, a{val}
 		{}
 
 		template <typename B>
@@ -54,11 +54,11 @@ namespace AE::Math
 		
 		ND_ constexpr bool operator != (const RGBAColor<T> &rhs) C_NE___ { return not (*this == rhs); }
 		
-		ND_ GLM_CONSTEXPR operator PackedVec<T,4> () C_NE___	{ return {r,g,b,a}; }
-		ND_ GLM_CONSTEXPR operator Vec<T,4>       () C_NE___	{ return {r,g,b,a}; }
+		ND_ operator PackedVec<T,4> ()							C_NE___	{ return {r,g,b,a}; }
+		ND_ operator Vec<T,4>       ()							C_NE___	{ return {r,g,b,a}; }
 		
 
-		ND_ static constexpr T  MaxValue ()			__NE___
+		ND_ static constexpr T  MaxValue ()						__NE___
 		{
 			if constexpr( IsFloatPoint<T> )
 				return T(1.0);
@@ -66,7 +66,7 @@ namespace AE::Math
 				return Base::MaxValue<T>();
 		}
 
-		ND_ static constexpr T  Epsilon ()			__NE___
+		ND_ static constexpr T  Epsilon ()						__NE___
 		{
 			if constexpr( IsFloatPoint<T> )
 				return T(0.001);
@@ -74,17 +74,17 @@ namespace AE::Math
 				return T(0);
 		}
 
-		ND_ static constexpr usize		size ()		__NE___	{ return 4; }
+		ND_ static constexpr usize		size ()					__NE___	{ return 4; }
 
-		ND_ T *			data ()						__NE___	{ return std::addressof(r); }
-		ND_ T const *	data ()						C_NE___	{ return std::addressof(r); }
+		ND_ T *			data ()									__NE___	{ return std::addressof(r); }
+		ND_ T const *	data ()									C_NE___	{ return std::addressof(r); }
 
-		ND_ T &			operator [] (usize i)		__NE___	{ ASSERT( i < size() );  return std::addressof(r)[i]; }
-		ND_ T const&	operator [] (usize i)		C_NE___	{ ASSERT( i < size() );  return std::addressof(r)[i]; }
+		ND_ T &			operator [] (usize i)					__NE___	{ ASSERT( i < size() );  return std::addressof(r)[i]; }
+		ND_ T const&	operator [] (usize i)					C_NE___	{ ASSERT( i < size() );  return std::addressof(r)[i]; }
 
-		ND_ constexpr Self	BGRA ()					C_NE___	{ return Self( b, g, r, a ); }
-		ND_ constexpr Self	ABGR ()					C_NE___	{ return Self( a, b, g, r ); }
-		ND_ constexpr Self	ARGB ()					C_NE___	{ return Self( a, r, g, b ); }
+		ND_ constexpr Self	BGRA ()								C_NE___	{ return Self( b, g, r, a ); }
+		ND_ constexpr Self	ABGR ()								C_NE___	{ return Self( a, b, g, r ); }
+		ND_ constexpr Self	ARGB ()								C_NE___	{ return Self( a, r, g, b ); }
 	};
 	
 	using RGBA32f	= RGBAColor< float >;
@@ -105,10 +105,10 @@ namespace AE::Math
 		uint	stencil;
 
 	// mathods
-		constexpr DepthStencil () __NE___ : depth{0.0f}, stencil{0} {}
+		constexpr DepthStencil ()										__NE___ : depth{0.0f}, stencil{0} {}
 		constexpr explicit DepthStencil (float depth, uint stencil = 0) __NE___ : depth{depth}, stencil{stencil} {}
 
-		ND_ bool operator == (const DepthStencil &rhs) C_NE___
+		ND_ bool operator == (const DepthStencil &rhs)					C_NE___
 		{
 			return Equals( depth, rhs.depth ) & (stencil == rhs.stencil);
 		}
@@ -128,11 +128,11 @@ namespace AE::Math
 		float	v;	// value, brightness
 
 	// methods
-		constexpr HSVColor () __NE___ : h{0.0f}, s{0.0f}, v{0.0f} {}
+		constexpr HSVColor ()													__NE___ : h{0.0f}, s{0.0f}, v{0.0f} {}
 		
-		explicit constexpr HSVColor (float h, float s = 1.0f, float v = 1.0f) __NE___ : h{h}, s{s}, v{v} {}
+		explicit constexpr HSVColor (float h, float s = 1.0f, float v = 1.0f)	__NE___ : h{h}, s{s}, v{v} {}
 
-		explicit HSVColor (const RGBA32f &c) __NE___
+		explicit HSVColor (const RGBA32f &c)									__NE___
 		{
 			// from http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
 			float4 K = float4( 0.0f, -1.0f / 3.0f, 2.0f / 3.0f, -1.0f );
@@ -145,15 +145,15 @@ namespace AE::Math
 			v = q.x;
 		}
 
-		ND_ constexpr bool  operator == (const HSVColor &rhs) C_NE___
+		ND_ constexpr bool  operator == (const HSVColor &rhs)					C_NE___
 		{
 			const float eps = RGBA32f::Epsilon();
 
 			return Equals( h, rhs.h, eps ) & Equals( s, rhs.s, eps ) & Equals( v, rhs.v, eps );
 		}
 
-		ND_ float *			data ()		__NE___	{ return std::addressof(h); }
-		ND_ float const *	data ()		C_NE___	{ return std::addressof(h); }
+		ND_ float *			data ()												__NE___	{ return std::addressof(h); }
+		ND_ float const *	data ()												C_NE___	{ return std::addressof(h); }
 	};
 	
 

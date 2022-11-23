@@ -5,12 +5,12 @@
 #include "base/DataSource/FileStream.h"
 #include "base/Algorithms/StringParser.h"
 
-#include "threading/TaskSystem/WorkerThread.h"
+#include "threading/TaskSystem/ThreadManager.h"
 
 #include "Test_RenderGraph.h"
 
-//#include "res_loaders/DDS/DDSLoader.h"
-//#include "res_loaders/DDS/DDSSaver.h"
+#include "res_loaders/DDS/DDSLoader.h"
+#include "res_loaders/DDS/DDSSaver.h"
 
 #include "PipelineCompiler.h"
 #include "../UnitTest_Common.h"
@@ -109,7 +109,7 @@ Unique<ImageComparator>  RGTest::_LoadReference (StringView name) const
 =================================================
 	SaveImage
 =================================================
-*
+*/
 bool  RGTest::SaveImage (StringView name, const ImageMemView &view)
 {
 	using namespace AE::ResLoader;
@@ -152,13 +152,13 @@ bool  RGTest::Run (IApplication &app, IWindow &wnd)
 */
 bool  RGTest::_CompilePipelines ()
 {
-#if 0 //def AE_PLATFORM_WINDOWS
+#ifdef AE_PLATFORM_WINDOWS
 	using namespace AE::PipelineCompiler;
 
 	decltype(&CompilePipelines)		compile_pipelines = null;
 
 	Path	dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
-	dll_path.append( AE_RESPACK_BUILD_TYPE "/PipelineCompiler-shared.dll" );
+	dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
 
 	Library		lib;
 	CHECK_ERR( lib.Load( dll_path ));
@@ -257,7 +257,7 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
 
 	// this is a test and the test should fail for any validation error
 	_vulkan.CreateDebugCallback( DefaultDebugMessageSeverity,
-								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOGI(rep.message);  CHECK_FATAL(not rep.isError); });
+								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  /*CHECK_FATAL(not rep.isError);*/ });
 	
 	CHECK_ERR( _vulkan.ChooseHighPerformanceDevice() );
 	CHECK_ERR( _vulkan.CreateDefaultQueues( EQueueMask::Graphics, EQueueMask::All ));
@@ -291,8 +291,12 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
 	CHECK_ERR( _swapchain.Create( &rts.GetResourceManager(), swapchain_ci ));
 
 	for (uint i = 0; i < 2; ++i) {
-		Scheduler().AddThread( MakeRC<WorkerThread>( WorkerThread::ThreadMask{}.insert( EThread::Worker ).insert( EThread::Renderer ),
-													 nanoseconds{1}, milliseconds{4}, "render thread" ));
+		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
+				EThreadArray{ EThread::Worker, EThread::Renderer },
+				nanoseconds{1},
+				milliseconds{4},
+				"render thread"s << ToString(i)
+			}));
 	}
 
 	CHECK_ERR( _CompilePipelines() );
@@ -421,7 +425,7 @@ extern void Test_VulkanRenderGraph (IApplication &app, IWindow &wnd)
 	_Create
 =================================================
 */
-bool  RGTest::_Create (IApplication &app, IWindow &wnd)
+bool  RGTest::_Create (IApplication &, IWindow &wnd)
 {
 	CHECK_ERR( _metal.CreateDefaultQueues( EQueueMask::Graphics, EQueueMask::All ));
 	CHECK_ERR( _metal.CreateLogicalDevice() );
@@ -443,7 +447,7 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
 	CHECK_ERR( _swapchain.Create( &rts.GetResourceManager(), swapchain_ci ));
 
 	for (uint i = 0; i < 2; ++i) {
-		Scheduler().AddThread( MakeRC<WorkerThread>( WorkerThread::ThreadMask{}.insert( EThread::Worker ).insert( EThread::Renderer ),
+		Scheduler().AddThread( MakeRC<WorkerThread>( ThreadMask{}.insert( EThread::Worker ).insert( EThread::Renderer ),
 													 nanoseconds{1}, milliseconds{4}, "render thread" ));
 	}
 

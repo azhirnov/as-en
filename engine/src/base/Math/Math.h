@@ -28,7 +28,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T1, typename T2>
-	ND_ forceinline constexpr Math::_hidden_::EnableForInt<T1, T2, bool>  AdditionIsSafe (const T1 a, const T2 b)
+	ND_ constexpr Math::_hidden_::EnableForInt<T1, T2, bool>  AdditionIsSafe (const T1 a, const T2 b) __NE___
 	{
 		STATIC_ASSERT( IsScalar<T1> and IsScalar<T2> );
 
@@ -50,7 +50,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T1, typename T2>
-	ND_ forceinline constexpr Math::_hidden_::EnableForUInt<T1, T2, bool>  AdditionIsSafe (const T1 a, const T2 b)
+	ND_ constexpr Math::_hidden_::EnableForUInt<T1, T2, bool>  AdditionIsSafe (const T1 a, const T2 b) __NE___
 	{
 		STATIC_ASSERT( IsScalar<T1> and IsScalar<T2> );
 		
@@ -68,7 +68,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ constexpr T  CalcAverage (T begin, T end)
+	ND_ constexpr T  CalcAverage (T begin, T end) __NE___
 	{
 		if constexpr( IsFloatPoint<T> )
 			return (begin * T{0.5}) + (end * T{0.5});
@@ -81,7 +81,7 @@ namespace AE::Math
 	}
 	
 	template <typename T>
-	ND_ constexpr TBytes<T>  CalcAverage (TBytes<T> begin, TBytes<T> end)
+	ND_ constexpr TBytes<T>  CalcAverage (TBytes<T> begin, TBytes<T> end) __NE___
 	{
 		return TBytes<T>{ CalcAverage( T{begin}, T{end} )};
 	}
@@ -92,7 +92,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T0, typename T1>
-	ND_ forceinline constexpr auto  AlignDown (const T0 &value, const T1 &align)
+	ND_ constexpr auto  AlignDown (const T0 &value, const T1 &align) __NE___
 	{
 		ASSERT( align > 0 );
 		if constexpr( IsPointer<T0> )
@@ -110,7 +110,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T0, typename T1>
-	ND_ forceinline constexpr auto  AlignUp (const T0 &value, const T1 &align)
+	ND_ constexpr auto  AlignUp (const T0 &value, const T1 &align) __NE___
 	{
 		ASSERT( align > 0 );
 		if constexpr( IsPointer<T0> )
@@ -128,7 +128,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T0, typename T1>
-	ND_ forceinline constexpr bool  IsAligned (const T0 &value, const T1 &align)
+	ND_ constexpr bool  IsAligned (const T0 &value, const T1 &align) __NE___
 	{
 		ASSERT( align > 0 );
 		if constexpr( IsPointer<T0> )
@@ -144,12 +144,12 @@ namespace AE::Math
 	All/Any
 =================================================
 */
-	ND_ forceinline constexpr bool  All (const bool &value)
+	ND_ forceinline constexpr bool  All (const bool &value) __NE___
 	{
 		return value;
 	}
 	
-	ND_ forceinline constexpr bool  Any (const bool &value)
+	ND_ forceinline constexpr bool  Any (const bool &value) __NE___
 	{
 		return value;
 	}
@@ -160,7 +160,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr T  Square (const T &value)
+	ND_ constexpr T  Square (const T &value) __NE___
 	{
 		return value * value;
 	}
@@ -171,7 +171,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr EnableIf<IsFloatPoint<T>, T>  Sqrt (const T &value)
+	ND_ constexpr EnableIf<IsFloatPoint<T>, T>  Sqrt (const T &value) __NE___
 	{
 		return std::sqrt( value );
 	}
@@ -182,7 +182,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr EnableIf<IsScalar<T>, T>  Abs (const T &x)
+	ND_ constexpr EnableIf<IsScalar<T>, T>  Abs (const T &x) __NE___
 	{
 		return std::abs( x );
 	}
@@ -193,7 +193,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr  EnableIf<IsScalar<T>, T>  Epsilon ()
+	ND_ constexpr  EnableIf<IsScalar<T>, T>  Epsilon () __NE___
 	{
 		return std::numeric_limits<T>::epsilon() * T(2);
 	}
@@ -204,7 +204,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr EnableIf<IsScalar<T>, bool>  Equals (const T &lhs, const T &rhs, const T &err = Epsilon<T>())
+	ND_ constexpr EnableIf<IsScalar<T>, bool>  Equals (const T &lhs, const T &rhs, const T &err = Epsilon<T>()) __NE___
 	{
 		if constexpr( IsUnsignedInteger<T> )
 		{
@@ -219,7 +219,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline bool  Equals (const Optional<T> &lhs, const Optional<T> &rhs)
+	ND_ bool  Equals (const Optional<T> &lhs, const Optional<T> &rhs) __NE___
 	{
 		return	lhs.has_value() == rhs.has_value()	and
 				(lhs.has_value() ? *lhs == *rhs : false);
@@ -231,13 +231,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr EnableIf<IsScalar<T>, bool>  IsZero (const T &x)
+	ND_ constexpr EnableIf<IsScalar<T>, bool>  IsZero (const T &x) __NE___
 	{
 		return Equals( x, T{0}, Epsilon<T>() );
 	}
 	
 	template <typename T>
-	ND_ forceinline constexpr EnableIf<IsScalar<T>, bool>  IsNotZero (const T &x)
+	ND_ constexpr EnableIf<IsScalar<T>, bool>  IsNotZero (const T &x) __NE___
 	{
 		return not IsZero( x );
 	}
@@ -248,19 +248,19 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Floor (const T& x)
+	ND_ EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Floor (const T& x) __NE___
 	{
 		return std::floor( x );
 	}
 	
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Ceil (const T& x)
+	ND_ EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Ceil (const T& x) __NE___
 	{
 		return std::ceil( x );
 	}
 	
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Trunc (const T& x)
+	ND_ EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Trunc (const T& x) __NE___
 	{
 #	if 1
 		return std::trunc( x );
@@ -275,13 +275,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Round (const T& x)
+	ND_ EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Round (const T& x) __NE___
 	{
 		return std::round( x );
 	}
 
 	template <typename T>
-	ND_ forceinline auto  RoundToInt (const T& x)
+	ND_ auto  RoundToInt (const T& x) __NE___
 	{
 		STATIC_ASSERT( IsFloatPoint<T> );
 		
@@ -293,7 +293,7 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	ND_ forceinline auto  RoundToUint (const T& x)
+	ND_ auto  RoundToUint (const T& x) __NE___
 	{
 		STATIC_ASSERT( IsFloatPoint<T> );
 		
@@ -312,7 +312,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline T  Fract (const T& x)
+	ND_ T  Fract (const T& x) __NE___
 	{
 		return x - Floor( x );
 	}
@@ -325,8 +325,8 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr bool  IsIntersects (const T& begin1, const T& end1,
-												  const T& begin2, const T& end2)
+	ND_ constexpr bool  IsIntersects (const T& begin1, const T& end1,
+									  const T& begin2, const T& end2) __NE___
 	{
 		return (end1 > begin2) & (begin1 < end2);
 	}
@@ -337,8 +337,8 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr bool  IsCompletelyInside (const T& largeBlockBegin, const T& largeBlockEnd,
-														const T& smallBlockBegin, const T& smallBlockEnd)
+	ND_ constexpr bool  IsCompletelyInside (const T& largeBlockBegin, const T& largeBlockEnd,
+											const T& smallBlockBegin, const T& smallBlockEnd) __NE___
 	{
 		return (smallBlockBegin >= largeBlockBegin) & (smallBlockEnd <= largeBlockEnd);
 	}
@@ -349,9 +349,9 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr bool  GetIntersection (const T& begin1, const T& end1,
-													 const T& begin2, const T& end2,
-													 OUT T& outBegin, OUT T& outEnd)
+	ND_ constexpr bool  GetIntersection (const T& begin1, const T& end1,
+										 const T& begin2, const T& end2,
+										 OUT T& outBegin, OUT T& outEnd) __NE___
 	{
 		outBegin = Max( begin1, begin2 );
 		outEnd   = Min( end1, end2 );
@@ -366,7 +366,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, typename B>
-	ND_ forceinline constexpr EnableIf<IsScalar<T>, T>  Lerp (const T& x, const T& y, const B& factor)
+	ND_ constexpr EnableIf<IsScalar<T>, T>  Lerp (const T& x, const T& y, const B& factor) __NE___
 	{
 		//return T(factor) * (y - x) + x;
 		return x * (T{1} - T(factor)) + y * T(factor);
@@ -378,35 +378,35 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, T>  Ln (const T& x)
+	ND_ EnableIf<IsFloatPoint<T>, T>  Ln (const T& x) __NE___
 	{
 		ASSERT( x >= T{0} );
 		return std::log( x );
 	}
 
 	template <typename T>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, T>  Log2 (const T& x)
+	ND_ EnableIf<IsFloatPoint<T>, T>  Log2 (const T& x) __NE___
 	{
 		ASSERT( x >= T{0} );
 		return std::log2( x );
 	}
 
 	template <typename T>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, T>  Log10 (const T& x)
+	ND_ EnableIf<IsFloatPoint<T>, T>  Log10 (const T& x) __NE___
 	{
 		ASSERT( x >= T{0} );
 		return std::log10( x );
 	}
 
 	template <auto Base, typename T>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, T>  Log (const T& x)
+	ND_ EnableIf<IsFloatPoint<T>, T>  Log (const T& x) __NE___
 	{
 		static constexpr auto log_base = std::log( Base );
 		return Ln( x ) / log_base;
 	}
 
 	template <typename T>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, T>  Log (const T& x, const T& base)
+	ND_ EnableIf<IsFloatPoint<T>, T>  Log (const T& x, const T& base) __NE___
 	{
 		return Ln( x ) / Ln( base );
 	}
@@ -417,32 +417,32 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, T>  Pow (const T& base, const T& power)
+	ND_ EnableIf<IsFloatPoint<T>, T>  Pow (const T& base, const T& power) __NE___
 	{
 		ASSERT( base >= T{0} or power == Floor(power) );	// if 'base' < 0 and 'power' not integer then result is NaN
 		return std::pow( base, power );
 	}
 
 	template <typename T>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, T>  Exp (const T& x)
+	ND_ EnableIf<IsFloatPoint<T>, T>  Exp (const T& x) __NE___
 	{
 		return std::exp( x );
 	}
 
 	template <typename T>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, T>  Exp2 (const T& x)
+	ND_ EnableIf<IsFloatPoint<T>, T>  Exp2 (const T& x) __NE___
 	{
 		return std::exp2( x );
 	}
 
 	template <typename T>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, T>  Exp10 (const T& x)
+	ND_ EnableIf<IsFloatPoint<T>, T>  Exp10 (const T& x) __NE___
 	{
 		return Pow( T(10), x );
 	}
 
 	template <typename T>
-	ND_ forceinline EnableIf<IsFloatPoint<T>, T>  ExpMinus1 (const T& x)
+	ND_ EnableIf<IsFloatPoint<T>, T>  ExpMinus1 (const T& x) __NE___
 	{
 		return std::expm1( x );
 	}
@@ -453,7 +453,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr EnableIf<IsScalar<T>, T>  Sign (const T &value)
+	ND_ constexpr EnableIf<IsScalar<T>, T>  Sign (const T &value) __NE___
 	{
 		if constexpr( IsSigned<T> )
 			return value < T{0} ? T{-1} : T{1};
@@ -462,7 +462,7 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	ND_ forceinline constexpr EnableIf<IsScalar<T>, T>  SignOrZero (const T &value)
+	ND_ constexpr EnableIf<IsScalar<T>, T>  SignOrZero (const T &value) __NE___
 	{
 		if constexpr( IsSigned<T> )
 			return value < T{0} ? T{-1} : value > T{0} ? T{1} : T{0};
@@ -476,15 +476,12 @@ namespace AE::Math
 =================================================
 */
 	template <typename Lhs, typename Rhs0, typename ...Rhs>
-	ND_ forceinline constexpr bool  AnyEqual (const Lhs &lhs, const Rhs0 &rhs0, const Rhs& ...rhs)
+	ND_ constexpr bool  AnyEqual (const Lhs &lhs, const Rhs0 &rhs0, const Rhs& ...rhs) __NE___
 	{
-		if ( All( lhs == rhs0 ))
-			return true;
-
 		if constexpr( sizeof... (Rhs) == 0 )
-			return false;
+			return All( lhs == rhs0 );
 		else
-			return AnyEqual( lhs, rhs... );
+			return All( lhs == rhs0 ) | AnyEqual( lhs, rhs... );
 	}
 
 /*
@@ -493,7 +490,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T1, typename T2>
-	ND_ inline constexpr T1  DivCeil (const T1 &x, const T2 &divider)
+	ND_ constexpr T1  DivCeil (const T1 &x, const T2 &divider) __NE___
 	{
 		return (x + divider - T1{1}) / divider;
 	}
@@ -504,21 +501,34 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline bool  IsInfinity (const T &x)
+	ND_ bool  IsInfinity (const T &x) __NE___
 	{
 		return std::isinf( x );
 	}
 
 	template <typename T>
-	ND_ inline bool  IsNaN (const T &x)
+	ND_ bool  IsNaN (const T &x) __NE___
 	{
 		return std::isnan( x );
 	}
 
 	template <typename T>
-	ND_ inline bool  IsFinite (const T &x)
+	ND_ bool  IsFinite (const T &x) __NE___
 	{
 		return std::isfinite( x );
+	}
+	
+/*
+=================================================
+	Exchange
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr T  Exchange (INOUT T &lhs, const T &rhs)
+	{
+		T	tmp = lhs;
+		lhs = rhs;
+		return tmp;
 	}
 
 

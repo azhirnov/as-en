@@ -46,39 +46,33 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VBarrierManager (const RenderTask &task);
+		explicit VBarrierManager (const RenderTask &task)				__NE___;
 
-		ND_ const VkDependencyInfo*	GetBarriers ()			__NE___;
-		ND_ bool					NoPendingBarriers ()	C_NE___;
-		ND_ bool					HasPendingBarriers ()	C_NE___	{ return not NoPendingBarriers(); }
+		ND_ const VkDependencyInfo*	GetBarriers ()						__NE___;
+		ND_ bool					NoPendingBarriers ()				C_NE___;
+		ND_ bool					HasPendingBarriers ()				C_NE___	{ return not NoPendingBarriers(); }
 
-		template <typename ID>
-		ND_ auto*					Get (ID id)				__NE___	{ return _resMngr.GetResource( id ); }
-		
-		template <typename ID>
-		ND_ bool					IsAlive (ID id)			C_NE___	{ return _resMngr.IsAlive( id ); }
-
-		ND_ VDevice const&			GetDevice ()			C_NE___	{ return _resMngr.GetDevice(); }
-		ND_ VStagingBufferManager&	GetStagingManager ()	C_NE___	{ return _resMngr.GetStagingManager(); }
-		ND_ VResourceManager&		GetResourceManager ()	C_NE___	{ return _resMngr; }
-		ND_ VQueryManager&			GetQueryManager ()		C_NE___	{ return _resMngr.GetQueryManager(); }
-		ND_ VCommandBatch &			GetBatch ()				C_NE___	{ return _batch; }
-		ND_ RC<VCommandBatch>		GetBatchRC ()			C_NE___	{ return _batch.GetRC<VCommandBatch>(); }
-		ND_ FrameUID				GetFrameId ()			C_NE___	{ return _batch.GetFrameId(); }
-		ND_ EQueueType				GetQueueType ()			C_NE___	{ return _batch.GetQueueType(); }
-		ND_ VQueuePtr				GetQueue ()				C_NE___	{ return GetDevice().GetQueue( GetQueueType() ); }
+		ND_ VDevice const&			GetDevice ()						C_NE___	{ return _resMngr.GetDevice(); }
+		ND_ VStagingBufferManager&	GetStagingManager ()				C_NE___	{ return _resMngr.GetStagingManager(); }
+		ND_ VResourceManager&		GetResourceManager ()				C_NE___	{ return _resMngr; }
+		ND_ VQueryManager&			GetQueryManager ()					C_NE___	{ return _resMngr.GetQueryManager(); }
+		ND_ VCommandBatch &			GetBatch ()							C_NE___	{ return _batch; }
+		ND_ RC<VCommandBatch>		GetBatchRC ()						C_NE___	{ return _batch.GetRC<VCommandBatch>(); }
+		ND_ FrameUID				GetFrameId ()						C_NE___	{ return _batch.GetFrameId(); }
+		ND_ EQueueType				GetQueueType ()						C_NE___	{ return _batch.GetQueueType(); }
+		ND_ VQueuePtr				GetQueue ()							C_NE___	{ return GetDevice().GetQueue( GetQueueType() ); }
 		
 		PROFILE_ONLY(
-			ND_ RenderTask const&	GetRenderTask ()		C_NE___	{ return *_task; }
+			ND_ RenderTask const&	GetRenderTask ()					C_NE___	{ return *_task; }
 
-			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)									C_TH___;
-			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)									C_TH___;
+			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
+			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
 			
-			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type)	C_TH___;
-			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type)	C_TH___;
+			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type)	C_NE___;
+			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type)	C_NE___;
 
-			void  ProfilerEndContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)										C_TH___;
-			void  ProfilerEndContext (VSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)									C_TH___;
+			void  ProfilerEndContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)										C_NE___;
+			void  ProfilerEndContext (VSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
 		)
 
 		ND_ bool  BeforeBeginRenderPass (const RenderPassDesc &desc, OUT VPrimaryCmdBufState &primaryState)								__NE___;
@@ -144,19 +138,24 @@ namespace AE::Graphics::_hidden_
 
 
 #define VBARRIERMNGR_INHERIT_VKBARRIERS \
-		void  BufferBarrier (VkBuffer buffer, EResourceState srcState, EResourceState dstState)																__TH___	{ if_unlikely( _mngr._IsBufferOverflow() ) {this->_CommitBarriers();}  _mngr.BufferBarrier( buffer, srcState, dstState ); } \
+	public: \
+		void  BufferBarrier (VkBuffer buffer, EResourceState srcState, EResourceState dstState)																__Th___	{ if_unlikely( _mngr._IsBufferOverflow() ) {this->_CommitBarriers();}  _mngr.BufferBarrier( buffer, srcState, dstState ); } \
 		\
-		void  ImageBarrier (VkImage image, EResourceState srcState, EResourceState dstState, VkImageAspectFlags aspectMask)									__TH___	{ if_unlikely( _mngr._IsImageOverflow() ) {this->_CommitBarriers();}  _mngr.ImageBarrier( image, srcState, dstState, aspectMask ); } \
-		void  ImageBarrier (VkImage image, EResourceState srcState, EResourceState dstState, const VkImageSubresourceRange &subRes)							__TH___	{ if_unlikely( _mngr._IsImageOverflow() ) {this->_CommitBarriers();}  _mngr.ImageBarrier( image, srcState, dstState, subRes ); } \
+		void  ImageBarrier (VkImage image, EResourceState srcState, EResourceState dstState, VkImageAspectFlags aspectMask)									__Th___	{ if_unlikely( _mngr._IsImageOverflow() ) {this->_CommitBarriers();}  _mngr.ImageBarrier( image, srcState, dstState, aspectMask ); } \
+		void  ImageBarrier (VkImage image, EResourceState srcState, EResourceState dstState, const VkImageSubresourceRange &subRes)							__Th___	{ if_unlikely( _mngr._IsImageOverflow() ) {this->_CommitBarriers();}  _mngr.ImageBarrier( image, srcState, dstState, subRes ); } \
 		\
-		void  AcquireBufferOwnership (VkBuffer buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)								__TH___	{ if_unlikely( _mngr._IsBufferOverflow() ) {this->_CommitBarriers();}  _mngr.AcquireBufferOwnership( buffer, srcQueue, srcState, dstState ); } \
-		void  ReleaseBufferOwnership (VkBuffer buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)								__TH___	{ if_unlikely( _mngr._IsBufferOverflow() ) {this->_CommitBarriers();}  _mngr.ReleaseBufferOwnership( buffer, srcState, dstState, dstQueue ); } \
+		void  AcquireBufferOwnership (VkBuffer buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)								__Th___	{ if_unlikely( _mngr._IsBufferOverflow() ) {this->_CommitBarriers();}  _mngr.AcquireBufferOwnership( buffer, srcQueue, srcState, dstState ); } \
+		void  ReleaseBufferOwnership (VkBuffer buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)								__Th___	{ if_unlikely( _mngr._IsBufferOverflow() ) {this->_CommitBarriers();}  _mngr.ReleaseBufferOwnership( buffer, srcState, dstState, dstQueue ); } \
 		\
-		void  AcquireImageOwnership (VkImage image, VkImageAspectFlags aspectMask, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)	__TH___	{ if_unlikely( _mngr._IsImageOverflow() ) {this->_CommitBarriers();}  _mngr.AcquireImageOwnership( image, aspectMask, srcQueue, srcState, dstState ); } \
-		void  ReleaseImageOwnership (VkImage image, VkImageAspectFlags aspectMask, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)	__TH___	{ if_unlikely( _mngr._IsImageOverflow() ) {this->_CommitBarriers();}  _mngr.ReleaseImageOwnership( image, aspectMask, srcState, dstState, dstQueue ); } \
-		
+		void  AcquireImageOwnership (VkImage image, VkImageAspectFlags aspectMask, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)	__Th___	{ if_unlikely( _mngr._IsImageOverflow() ) {this->_CommitBarriers();}  _mngr.AcquireImageOwnership( image, aspectMask, srcQueue, srcState, dstState ); } \
+		void  ReleaseImageOwnership (VkImage image, VkImageAspectFlags aspectMask, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)	__Th___	{ if_unlikely( _mngr._IsImageOverflow() ) {this->_CommitBarriers();}  _mngr.ReleaseImageOwnership( image, aspectMask, srcState, dstState, dstQueue ); } \
+		\
+	private: \
+		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)																	__Th___ { return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \
+
 
 #define VBARRIERMNGR_INHERIT_BARRIERS \
+	public: \
 		using RawCtx::BufferBarrier; \
 		using RawCtx::ImageBarrier; \
 		using RawCtx::AcquireBufferOwnership; \
@@ -164,31 +163,38 @@ namespace AE::Graphics::_hidden_
 		using RawCtx::AcquireImageOwnership; \
 		using RawCtx::ReleaseImageOwnership; \
 		\
-		void  CommitBarriers ()																									 __TH_OF { RawCtx::_CommitBarriers(); } \
+		void  CommitBarriers ()																									 __Th_OF { return RawCtx::_CommitBarriers(); } \
 		ND_ AccumBar  AccumBarriers ()																							 __NE___ { return AccumBar{ *this }; } \
 		\
-		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									 __TH_OF { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  this->_mngr.BufferBarrier( buffer, srcState, dstState ); } \
+		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									 __Th_OF { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  return this->_mngr.BufferBarrier( buffer, srcState, dstState ); } \
 		\
-		void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)							 __TH_OF { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  this->_mngr.BufferViewBarrier( view, srcState, dstState ); } \
+		void  BufferViewBarrier (BufferViewID view, EResourceState srcState, EResourceState dstState)							 __Th_OF { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  return this->_mngr.BufferViewBarrier( view, srcState, dstState ); } \
 		\
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState)									 __TH_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  this->_mngr.ImageBarrier( image, srcState, dstState ); } \
-		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)__TH_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  this->_mngr.ImageBarrier( image, srcState, dstState, subRes ); } \
+		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState)									 __Th_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  return this->_mngr.ImageBarrier( image, srcState, dstState ); } \
+		void  ImageBarrier (ImageID image, EResourceState srcState, EResourceState dstState, const ImageSubresourceRange &subRes)__Th_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  return this->_mngr.ImageBarrier( image, srcState, dstState, subRes ); } \
 		\
-		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)								 __TH_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  this->_mngr.ImageViewBarrier( view, srcState, dstState ); } \
+		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)								 __Th_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  return this->_mngr.ImageViewBarrier( view, srcState, dstState ); } \
 		\
-		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)													 __NE_OF { this->_mngr.MemoryBarrier( srcState, dstState ); } \
-		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													 __NE_OF { this->_mngr.MemoryBarrier( srcScope, dstScope ); } \
-		void  MemoryBarrier ()																									 __NE_OF { this->_mngr.MemoryBarrier(); } \
+		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)													 __NE_OF { return this->_mngr.MemoryBarrier( srcState, dstState ); } \
+		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													 __NE_OF { return this->_mngr.MemoryBarrier( srcScope, dstScope ); } \
+		void  MemoryBarrier ()																									 __NE_OF { return this->_mngr.MemoryBarrier(); } \
 		\
-		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)												 __NE_OF { this->_mngr.ExecutionBarrier( srcScope, dstScope ); } \
-		void  ExecutionBarrier ()																								 __NE_OF { this->_mngr.ExecutionBarrier(); } \
+		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)												 __NE_OF { return this->_mngr.ExecutionBarrier( srcScope, dstScope ); } \
+		void  ExecutionBarrier ()																								 __NE_OF { return this->_mngr.ExecutionBarrier(); } \
 		\
-		void  AcquireBufferOwnership (BufferID buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)	 __TH_OF { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  this->_mngr.AcquireBufferOwnership( buffer, srcQueue, srcState, dstState ); } \
-		void  ReleaseBufferOwnership (BufferID buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)	 __TH_OF { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  this->_mngr.ReleaseBufferOwnership( buffer, srcState, dstState, dstQueue ); } \
+		void  AcquireBufferOwnership (BufferID buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)	 __Th_OF { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  return this->_mngr.AcquireBufferOwnership( buffer, srcQueue, srcState, dstState ); } \
+		void  ReleaseBufferOwnership (BufferID buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)	 __Th_OF { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  return this->_mngr.ReleaseBufferOwnership( buffer, srcState, dstState, dstQueue ); } \
 		\
-		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)		 __TH_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  this->_mngr.AcquireImageOwnership( image, srcQueue, srcState, dstState ); } \
-		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)		 __TH_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  this->_mngr.ReleaseImageOwnership( image, srcState, dstState, dstQueue ); } \
-		
+		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)		 __Th_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  return this->_mngr.AcquireImageOwnership( image, srcQueue, srcState, dstState ); } \
+		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)		 __Th_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  return this->_mngr.ReleaseImageOwnership( image, srcState, dstState, dstQueue ); } \
+		\
+		void  DebugMarker (NtStringView text, RGBA8u color)																		__Th_OF	{ RawCtx::_DebugMarker( text, color ); } \
+		void  PushDebugGroup (NtStringView text, RGBA8u color)																	__Th_OF	{ RawCtx::_PushDebugGroup( text, color ); } \
+		void  PopDebugGroup ()																									__Th_OF	{ RawCtx::_PopDebugGroup(); } \
+		\
+	private: \
+		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)										 __Th___ { return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \
+
 
 /*
 =================================================

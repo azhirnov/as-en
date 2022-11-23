@@ -238,7 +238,7 @@ namespace AE::App
 		_queue{ &q }
 	{
 		// invalidate cache for 'q._headers' and 'q._data' for '_count' elements
-		Threading::ThreadFence( EMemoryOrder::Acquire );
+		Threading::MemoryBarrier( EMemoryOrder::Acquire );
 	}
 	
 /*
@@ -260,7 +260,7 @@ namespace AE::App
 		if ( _pos < _count )
 		{
 			// invalidate cache for '_queue->GetHeader()' and '_queue->GetData()' for new '_count' elements
-			Threading::ThreadFence( EMemoryOrder::Acquire );
+			Threading::MemoryBarrier( EMemoryOrder::Acquire );
 
 			header = _queue->GetHeader( _pos++ );
 			return true;

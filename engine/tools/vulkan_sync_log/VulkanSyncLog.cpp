@@ -1613,6 +1613,8 @@ namespace
 	static VkImageLayout GetPreviousLayout (const VulkanLogger::FramebufferData& framebuffer, const VulkanLogger::RenderPassData& renderPass,
 											uint subpassIndex, uint attachmentIndex, VkImageLayout currentLasyout)
 	{
+		Unused( framebuffer );
+
 		struct StackValue
 		{
 			uint			subpass;
@@ -3127,10 +3129,36 @@ namespace
 	
 /*
 =================================================
-	Wrap_vkCmdDrawMeshTasksIndirectNV
+	Wrap_vkCmdDrawMeshTasks
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDrawMeshTasksIndirectNV (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride)
+	void VKAPI_CALL Wrap_vkCmdDrawMeshTasks (VkCommandBuffer commandBuffer, uint groupCountX, uint groupCountY, uint groupCountZ)
+	{
+		auto&	logger = VulkanLogger::Get();
+		logger.vkCmdDrawMeshTasksEXT( commandBuffer, groupCountX, groupCountY, groupCountZ );
+	
+		EXLOCK( logger.guard );
+		
+		auto	iter = logger.commandBuffers.find( commandBuffer );
+		if ( iter == logger.commandBuffers.end() )
+			return;
+
+		auto&	cmdbuf = iter->second;
+		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+
+		if ( not logger.enableLog )
+			return;
+		
+		cmdbuf.log << "  DrawMeshTasks\n";
+		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
+	}
+	
+/*
+=================================================
+	Wrap_vkCmdDrawMeshTasksIndirect
+=================================================
+*/
+	void VKAPI_CALL Wrap_vkCmdDrawMeshTasksIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDrawMeshTasksIndirectNV( commandBuffer, buffer, offset, drawCount, stride );
@@ -3153,11 +3181,11 @@ namespace
 	
 /*
 =================================================
-	Wrap_vkCmdDrawMeshTasksIndirectCountNV
+	Wrap_vkCmdDrawMeshTasksIndirectCount
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDrawMeshTasksIndirectCountNV (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
-															VkDeviceSize countBufferOffset, uint maxDrawCount, uint stride)
+	void VKAPI_CALL Wrap_vkCmdDrawMeshTasksIndirectCount (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
+														  VkDeviceSize countBufferOffset, uint maxDrawCount, uint stride)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDrawMeshTasksIndirectCountNV( commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
@@ -3580,8 +3608,11 @@ namespace
 		table._var_vkCmdDrawIndirectCountKHR		= &Wrap_vkCmdDrawIndirectCount;
 		table._var_vkCmdDrawIndexedIndirectCountKHR	= &Wrap_vkCmdDrawIndexedIndirectCount;
 		table._var_vkCmdDrawMeshTasksNV				= &Wrap_vkCmdDrawMeshTasksNV;
-		table._var_vkCmdDrawMeshTasksIndirectNV		= &Wrap_vkCmdDrawMeshTasksIndirectNV;
-		table._var_vkCmdDrawMeshTasksIndirectCountNV= &Wrap_vkCmdDrawMeshTasksIndirectCountNV;
+		table._var_vkCmdDrawMeshTasksIndirectNV		= &Wrap_vkCmdDrawMeshTasksIndirect;
+		table._var_vkCmdDrawMeshTasksIndirectCountNV= &Wrap_vkCmdDrawMeshTasksIndirectCount;
+		table._var_vkCmdDrawMeshTasksEXT			= &Wrap_vkCmdDrawMeshTasks;
+		table._var_vkCmdDrawMeshTasksIndirectEXT	= &Wrap_vkCmdDrawMeshTasksIndirect;
+		table._var_vkCmdDrawMeshTasksIndirectCountEXT= &Wrap_vkCmdDrawMeshTasksIndirectCount;
 		table._var_vkCmdTraceRaysKHR				= &Wrap_vkCmdTraceRaysKHR;
 		table._var_vkCmdTraceRaysIndirectKHR		= &Wrap_vkCmdTraceRaysIndirectKHR;
 		table._var_vkCreateAccelerationStructureKHR	= &Wrap_vkCreateAccelerationStructureKHR;

@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	TODO: moke noexcept + return calnceled task?
+*/
 
 #pragma once
 
@@ -44,25 +47,25 @@ namespace _hidden_
 
 	// methods
 	public:
-		PromiseResult () = delete;
+		PromiseResult ()												= delete;
 
-		PromiseResult (T &&value) __NE___ : _value{RVRef(value)}, _hasValue{true} {}
-		PromiseResult (const T &value) : _value{value}, _hasValue{true} {}
-		PromiseResult (const _hidden_::PromiseNullResult &) __NE___ {}
+		PromiseResult (T &&value)										__NE___ : _value{RVRef(value)}, _hasValue{true} {}
+		PromiseResult (const T &value)									__Th___	: _value{value}, _hasValue{true} {}
+		PromiseResult (const _hidden_::PromiseNullResult &)				__NE___ {}
 
-		PromiseResult (const PromiseResult<T> &other);
-		PromiseResult (PromiseResult<T> &&other) __NE___;
+		PromiseResult (const PromiseResult<T> &other)					__Th___;
+		PromiseResult (PromiseResult<T> &&other)						__NE___;
 
-		PromiseResult<T>&  operator = (const PromiseResult<T> &rhs);
-		PromiseResult<T>&  operator = (PromiseResult<T> &&rhs) __NE___;
-		PromiseResult<T>&  operator = (const T &rhs);
-		PromiseResult<T>&  operator = (T &&rhs) __NE___;
+		PromiseResult<T>&  operator = (const PromiseResult<T> &rhs)		__Th___;
+		PromiseResult<T>&  operator = (PromiseResult<T> &&rhs)			__NE___;
+		PromiseResult<T>&  operator = (const T &rhs)					__Th___;
+		PromiseResult<T>&  operator = (T &&rhs)							__NE___;
 
-		~PromiseResult ()				__NE___	{ STATIC_ASSERT( std::is_nothrow_destructible_v<T> );  if ( _hasValue ) _value.~T(); }
+		~PromiseResult ()												__NE___	{ STATIC_ASSERT( std::is_nothrow_destructible_v<T> );  if ( _hasValue ) _value.~T(); }
 
-		ND_ bool		HasValue ()		C_NE___	{ return _hasValue; }
-		ND_ T const&	Value ()		C_NE___	{ ASSERT( _hasValue );  return _value; }
-		ND_ T &			Value ()		__NE___	{ ASSERT( _hasValue );  return _value; }
+		ND_ bool		HasValue ()										C_NE___	{ return _hasValue; }
+		ND_ T const&	Value ()										C_NE___	{ ASSERT( _hasValue );  return _value; }
+		ND_ T &			Value ()										__NE___	{ ASSERT( _hasValue );  return _value; }
 	};
 
 	
@@ -75,17 +78,17 @@ namespace _hidden_
 
 	// methods
 	public:
-		PromiseResult () __NE___ : _hasValue{true} {}
+		PromiseResult ()												__NE___ : _hasValue{true} {}
 
-		PromiseResult (const _hidden_::PromiseNullResult &) __NE___ {}
+		PromiseResult (const _hidden_::PromiseNullResult &)				__NE___ {}
 
-		PromiseResult (const PromiseResult<void> &) __NE___ = default;
-		PromiseResult (PromiseResult<void> &&) __NE___ = default;
+		PromiseResult (const PromiseResult<void> &)						__NE___ = default;
+		PromiseResult (PromiseResult<void> &&)							__NE___ = default;
 		
-		PromiseResult<void>&  operator = (const PromiseResult<void> &) __NE___ = default;
-		PromiseResult<void>&  operator = (PromiseResult<void> &&) __NE___ = default;
+		PromiseResult<void>&  operator = (const PromiseResult<void> &)	__NE___ = default;
+		PromiseResult<void>&  operator = (PromiseResult<void> &&)		__NE___ = default;
 
-		ND_ bool	HasValue ()	C_NE___	{ return _hasValue; }
+		ND_ bool	HasValue ()											C_NE___	{ return _hasValue; }
 	};
 
 
@@ -119,62 +122,62 @@ namespace _hidden_
 
 	// methods
 	public:
-		Promise ()													__NE___ {}
+		Promise ()															__NE___ {}
 
-		Promise (Self &&)											__NE___ = default;
-		Promise (const Self &)										__NE___ = default;
+		Promise (Self &&)													__NE___ = default;
+		Promise (const Self &)												__NE___ = default;
 
-		Self& operator = (Self &&)									__NE___ = default;
-		Self& operator = (const Self &)								__NE___ = default;
-
-		template <typename Fn>
-		auto  Then (Fn &&fn, EThread thread = EThread::Worker)		__TH___;
+		Self& operator = (Self &&)											__NE___ = default;
+		Self& operator = (const Self &)										__NE___ = default;
 
 		template <typename Fn>
-		auto  Except (Fn &&fn, EThread thread = EThread::Worker)	__TH___;
+		auto  Then (Fn &&fn, EThread thread = EThread::Worker)				__Th___;
 
-		bool  Cancel ()												__NE___;
+		template <typename Fn>
+		auto  Except (Fn &&fn, EThread thread = EThread::Worker)			__Th___;
 
-		explicit operator AsyncTask ()								C_NE___	{ return _impl; }
+		bool  Cancel ()														__NE___;
+
+		explicit operator AsyncTask ()										C_NE___	{ return _impl; }
 		
 	private:
 		template <typename Fn>
-		auto  _Then (Fn &&fn, EThread thread)						__TH___;
+		auto  _Then (Fn &&fn, EThread thread)								__Th___;
 		
 		template <typename Fn>
-		auto  _Except (Fn &&fn, EThread thread)						__TH___;
+		auto  _Except (Fn &&fn, EThread thread)								__Th___;
 
 		template <typename A>
-		Promise (A &&val, bool except, EThread thread, ValueArg)	__TH___;
+		Promise (A &&val, bool except, EThread thread, ValueArg)			__Th___;
 		
 		template <typename A>
-		Promise (A &&val, bool except, EThread thread, CompleteValueArg) __TH___;
+		Promise (A &&val, bool except, EThread thread, CompleteValueArg)	__Th___;
 
 		template <typename Fn>
-		Promise (Fn &&fn, bool except, EThread thread, FunctionArg)	__TH___;
+		Promise (Fn &&fn, bool except, EThread thread, FunctionArg)			__Th___;
 
-		ND_ T  _Result () C_NE___;
+		ND_ T  _Result ()													C_NE___;
 
 		template <typename Fn, typename ...Deps>
-		friend auto  MakePromise (Fn &&fn, const Tuple<Deps...> &dependsOn, EThread thread) __TH___;
+		friend auto  MakePromise (Fn &&fn, const Tuple<Deps...> &dependsOn, EThread thread) __Th___;
 		
 		template <typename ...Args>
-		friend auto  MakePromiseFrom (Args&& ...args)				__TH___;
+		friend auto  MakePromiseFrom (Args&& ...args)						__Th___;
 		
 		template <typename A>
-		friend auto  MakePromiseFromArray (Array<Promise<A>> args, EThread thread) __TH___;
+		friend auto  MakePromiseFromArray (Array<Promise<A>> args, EThread thread) __Th___;
 
 		template <typename A>
-		friend auto  MakePromiseFromArray (Array<Promise<Array<A>>> args, EThread thread) __TH___;
+		friend auto  MakePromiseFromArray (Array< Promise< Array<A> >> args, EThread thread) __Th___;
 		
 		template <typename Fn>
-		friend auto  MakeDelayedPromise (Fn &&fn, EThread thread)	__TH___;
+		friend auto  MakeDelayedPromise (Fn &&fn, EThread thread)			__Th___;
 		
 		template <typename B, typename ...Deps>
-		friend auto  MakePromiseFromValue (B && val, const Tuple<Deps...> &dependsOn, EThread thread) __TH___;
+		friend auto  MakePromiseFromValue (B && val, const Tuple<Deps...> &dependsOn, EThread thread) __Th___;
 
 		template <typename B>
-		friend auto  MakeDelayedPromiseFromValue (B && val, EThread thread) __TH___;
+		friend auto  MakeDelayedPromiseFromValue (B && val, EThread thread)	__Th___;
 		
 		template <typename B>
 		friend class Promise;
@@ -218,22 +221,22 @@ namespace _hidden_
 		template <typename A>
 		_InternalImpl (A && value, bool except, EThread thread, Promise<T>::CompleteValueArg)	__NE___;
 
-		ND_ decltype(auto)  Result ()	C_NE___
+		ND_ decltype(auto)  Result ()															C_NE___
 		{
 			ASSERT( Status() == EStatus::Completed );
-			ThreadFence( EMemoryOrder::Acquire );
+			MemoryBarrier( EMemoryOrder::Acquire );
 
 			if constexpr( not IsVoid<T> )
 				return _result.Value();
 		}
 
-		ND_ bool  IsExcept ()	C_NE___	{ return _isExept; }
+		ND_ bool  IsExcept ()																	C_NE___	{ return _isExept; }
 		
-		StringView  DbgName ()	C_NE_OV	{ return "Promise"; }
+		StringView  DbgName ()																	C_NE_OV	{ return "Promise"; }
 
 	private:
-		void  Run ()			override;
-		void  OnCancel ()		__NE_OV;
+		void  Run ()																			__Th_OV;
+		void  OnCancel ()																		__NE_OV;
 	};
 //-----------------------------------------------------------------------------
 
@@ -258,10 +261,10 @@ namespace _hidden_
 		explicit PromiseAwaiter (const Promise<T> &promise) __NE___ : _promise{promise} {}
 
 		// pause coroutine execution if dependency is not complete
-		ND_ bool	await_ready ()	 C_NE___	{ return _promise._impl ? _promise._impl->IsFinished() : true; }
+		ND_ bool	await_ready ()							C_NE___	{ return _promise._impl ? _promise._impl->IsFinished() : true; }
 
 		// return promise result
-		ND_ T		await_resume ()	 __NE___	{ return _promise._Result(); }
+		ND_ T		await_resume ()							__NE___	{ return _promise._Result(); }
 		
 		// return task to scheduler with new dependencies
 		void  await_suspend (std::coroutine_handle< AsyncTaskCoroutine::promise_type > curCoro) __NE___
@@ -285,10 +288,10 @@ namespace _hidden_
 		explicit PromiseAwaiter (const Tuple<Promise<Types>...> &deps) __NE___ : _deps{deps} {}
 		
 		// pause coroutine execution if dependencies are not complete
-		ND_ bool  await_ready ()	C_NE___		{ return false; }	// TODO: check all deps for early exit
+		ND_ bool  await_ready ()										C_NE___		{ return false; }	// TODO: check all deps for early exit
 		
 		// return promise results
-		ND_ Tuple< Types... >  await_resume () __NE___
+		ND_ Tuple< Types... >  await_resume ()							__NE___
 		{
 			return	_deps.Apply( [] (auto&& ...args) {
 						return Tuple<Types...>{ args._Result() ... };
@@ -334,11 +337,11 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	PromiseResult<T>::PromiseResult (const PromiseResult<T> &other) :
+	PromiseResult<T>::PromiseResult (const PromiseResult<T> &other) __Th___ :
 		_hasValue{ other._hasValue }
 	{
 		if ( _hasValue )
-			PlacementNew<T>( &_value, other._value );
+			PlacementNew<T>( &_value, other._value );	// throw
 	}
 
 	template <typename T>
@@ -356,7 +359,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	PromiseResult<T>&  PromiseResult<T>::operator = (const PromiseResult<T> &rhs)
+	PromiseResult<T>&  PromiseResult<T>::operator = (const PromiseResult<T> &rhs) __Th___
 	{
 		if ( _hasValue )
 			_value.~T();
@@ -389,13 +392,13 @@ namespace _hidden_
 	}
 	
 	template <typename T>
-	PromiseResult<T>&  PromiseResult<T>::operator = (const T &rhs)
+	PromiseResult<T>&  PromiseResult<T>::operator = (const T &rhs) __Th___
 	{
 		if ( _hasValue )
 			_value.~T();
 
 		_hasValue = true;
-		PlacementNew<T>( &_value, rhs );
+		PlacementNew<T>( &_value, rhs );	// throw
 
 		return *this;
 	}
@@ -449,19 +452,19 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	Promise<T>::Promise (Fn &&fn, bool except, EThread thread, FunctionArg flag) __TH___ :
+	Promise<T>::Promise (Fn &&fn, bool except, EThread thread, FunctionArg flag) __Th___ :
 		_impl{ MakeRC<_InternalImpl>( FwdArg<Fn>(fn), except, thread, flag )}
 	{}
 
 	template <typename T>
 	template <typename A>
-	Promise<T>::Promise (A &&value, bool except, EThread thread, ValueArg flag) __TH___ :
+	Promise<T>::Promise (A &&value, bool except, EThread thread, ValueArg flag) __Th___ :
 		_impl{ MakeRC<_InternalImpl>( FwdArg<A>(value), except, thread, flag )}
 	{}
 	
 	template <typename T>
 	template <typename A>
-	Promise<T>::Promise (A &&value, bool except, EThread thread, CompleteValueArg flag) __TH___ :
+	Promise<T>::Promise (A &&value, bool except, EThread thread, CompleteValueArg flag) __Th___ :
 		_impl{ MakeRC<_InternalImpl>( FwdArg<A>(value), except, thread, flag )}
 	{}
 
@@ -472,7 +475,7 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	auto  Promise<T>::_Then (Fn &&fn, EThread thread) __TH___
+	auto  Promise<T>::_Then (Fn &&fn, EThread thread) __Th___
 	{
 		using FI		= FunctionInfo< Fn >;
 		using Result	= typename Threading::_hidden_::ResultToPromise< typename FI::result >::type;
@@ -500,7 +503,8 @@ namespace _hidden_
 		if constexpr( IsVoid< typename FI::result > )
 		{
 			STATIC_ASSERT( FI::args::Count == 1 );
-			STATIC_ASSERT( IsSameTypes< typename FI::args::template Get<0>, const T& >);
+			STATIC_ASSERT( IsSameTypes< typename FI::args::template Get<0>, const T& >,
+						   "argument type must be 'const T&'" );
 
 			return Result{	[fn = FwdArg<Fn>(fn), in = _impl] () {
 								fn( in->Result() );
@@ -531,7 +535,7 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	auto  Promise<T>::Then (Fn &&fn, EThread thread) __TH___
+	auto  Promise<T>::Then (Fn &&fn, EThread thread) __Th___
 	{
 		using FI		= FunctionInfo< Fn >;
 		using Result	= typename Threading::_hidden_::ResultToPromise< typename FI::result >::type;
@@ -539,11 +543,15 @@ namespace _hidden_
 		if_likely( _impl )
 		{
 			auto	result = _Then( FwdArg<Fn>(fn), thread );	// throw
-
+			
 			if ( _impl->IsExcept() )
+			{
+				// on error promise will NOT be marked as cancelled
 				Scheduler().Run( AsyncTask{result}, Tuple{WeakDep{_impl}} );
-			else
+			}else{
+				// on error promise will be marked as cancelled
 				Scheduler().Run( AsyncTask{result}, Tuple{StrongDep{_impl}} );
+			}
 
 			return result;
 		}
@@ -557,7 +565,7 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	auto  Promise<T>::_Except (Fn &&fn, EThread thread) __TH___
+	auto  Promise<T>::_Except (Fn &&fn, EThread thread) __Th___
 	{
 		using FI		= FunctionInfo< Fn >;
 		using Result	= typename Threading::_hidden_::ResultToPromise< typename FI::result >::type;
@@ -582,12 +590,15 @@ namespace _hidden_
 
 	template <typename T>
 	template <typename Fn>
-	auto  Promise<T>::Except (Fn &&fn, EThread thread) __TH___
+	auto  Promise<T>::Except (Fn &&fn, EThread thread) __Th___
 	{
 		if_likely( _impl )
 		{
 			auto	result = _Except( FwdArg<Fn>(fn), thread );		// throw
+			
+			// on error promise will be marked as cancelled.
 			Scheduler().Run( AsyncTask{result}, Tuple{StrongDep{_impl}} );
+
 			return result;
 		}
 		else
@@ -662,7 +673,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	void  Promise<T>::_InternalImpl::Run ()
+	void  Promise<T>::_InternalImpl::Run () __Th___
 	{
 		if_likely( (not _isExept) & bool(_func) )
 		{
@@ -687,7 +698,9 @@ namespace _hidden_
 	{
 		if_likely( _isExept & bool(_func) )
 		{
-			_result	= _func();	// TODO: may throw?
+			CATCH(
+				_result	= _func();	// may throw
+			)
 			_func	= null;
 		}
 	}
@@ -703,7 +716,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	ND_ auto  MakeDelayedPromiseFromValue (T && value, EThread thread = EThread::Worker) __TH___
+	ND_ auto  MakeDelayedPromiseFromValue (T && value, EThread thread = EThread::Worker) __Th___
 	{
 		STATIC_ASSERT( not std::is_invocable_v<T> );
 		
@@ -726,7 +739,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T, typename ...Deps>
-	ND_ auto  MakePromiseFromValue (T && value, const Tuple<Deps...> &dependsOn = Default, EThread thread = EThread::Worker) __TH___
+	ND_ auto  MakePromiseFromValue (T && value, const Tuple<Deps...> &dependsOn = Default, EThread thread = EThread::Worker) __Th___
 	{
 		STATIC_ASSERT( not std::is_invocable_v<T> );
 		
@@ -749,7 +762,8 @@ namespace _hidden_
 		{
 			Result	result = MakeDelayedPromiseFromValue( FwdArg<T>(value), thread );
 
-			CHECK( Scheduler().Run( AsyncTask{result}, dependsOn ));
+			// on error promise will be marked as cancelled
+			Unused( Scheduler().Run( AsyncTask{result}, dependsOn ));
 
 			return result;
 		}
@@ -763,7 +777,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename Fn>
-	ND_ auto  MakeDelayedPromise (Fn &&fn, EThread thread = EThread::Worker) __TH___
+	ND_ auto  MakeDelayedPromise (Fn &&fn, EThread thread = EThread::Worker) __Th___
 	{
 		STATIC_ASSERT( std::is_invocable_v<Fn> );
 		
@@ -792,11 +806,12 @@ namespace _hidden_
 =================================================
 */
 	template <typename Fn, typename ...Deps>
-	ND_ auto  MakePromise (Fn &&fn, const Tuple<Deps...> &dependsOn = Default, EThread thread = EThread::Worker) __TH___
+	ND_ auto  MakePromise (Fn &&fn, const Tuple<Deps...> &dependsOn = Default, EThread thread = EThread::Worker) __Th___
 	{
 		auto	result = MakeDelayedPromise( FwdArg<Fn>(fn), thread );
-
-		Scheduler().Run( AsyncTask{result}, dependsOn );
+		
+			// on error promise will be marked as cancelled
+		Unused( Scheduler().Run( AsyncTask{result}, dependsOn ));
 
 		return result;
 	}
@@ -807,7 +822,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename ...Args>
-	ND_ auto  MakePromiseFrom (Args&& ...args) __TH___
+	ND_ auto  MakePromiseFrom (Args&& ...args) __Th___
 	{
 		return	MakePromise(
 					[args...] () {
@@ -824,9 +839,9 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	ND_ auto  MakePromiseFromArray (Array<Promise<T>> args, EThread thread = EThread::Worker) __TH___
+	ND_ auto  MakePromiseFromArray (Array<Promise<T>> args, EThread thread = EThread::Worker) __Th___
 	{
-		Array<AsyncTask>	deps;
+		Array<AsyncTask>	deps;		// TODO: optimize
 		deps.reserve( args.size() );
 
 		for (auto& a : args) {
@@ -836,7 +851,7 @@ namespace _hidden_
 		return	MakePromise(
 					[data = RVRef(args)] ()
 					{
-						Array<T>	temp;
+						Array<T>	temp;		// TODO: optimize
 						temp.reserve( data.size() );
 
 						for (auto& d : data) {
@@ -849,9 +864,9 @@ namespace _hidden_
 	}
 	
 	template <typename T>
-	ND_ auto  MakePromiseFromArray (Array<Promise<Array<T>>> args, EThread thread = EThread::Worker) __TH___
+	ND_ auto  MakePromiseFromArray (Array< Promise< Array<T> >> args, EThread thread = EThread::Worker) __Th___
 	{
-		Array<AsyncTask>	deps;
+		Array<AsyncTask>	deps;		// TODO: optimize
 		deps.reserve( args.size() );
 
 		for (auto& a : args) {
@@ -861,7 +876,7 @@ namespace _hidden_
 		return	MakePromise(
 					[data = RVRef(args)] ()
 					{
-						Array<T>	temp;
+						Array<T>	temp;		// TODO: optimize
 						temp.reserve( data.size() );
 
 						for (auto& d : data)

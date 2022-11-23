@@ -240,10 +240,10 @@ namespace AE::Base
 			Container &		_container;
 
 		public:
-			explicit ReverseContainerView (Container& container) : _container{container} {}
+			explicit ReverseContainerView (Container& container)	__NE___	: _container{container} {}
 
-			ND_ auto  begin ()	{ return std::rbegin( _container ); }
-			ND_ auto  end ()	{ return std::rend( _container ); }
+			ND_ auto  begin ()										__NE___	{ return std::rbegin( _container ); }
+			ND_ auto  end ()										__NE___	{ return std::rend( _container ); }
 		};
 
 	} // _hidden_

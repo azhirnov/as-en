@@ -24,24 +24,24 @@ namespace AE::Base::_hidden_
 
 	template <typename T>
 	struct _GetDefaultValueForUninitialized2< T, 0 > {
-		static constexpr T Get ()		{ return T(); }
+		static constexpr T Get ()														__NE___	{ return T(); }
 	};
 
 	template <typename T>
 	struct _GetDefaultValueForUninitialized2< T, /*int, float, pointer*/2 > {
-		static constexpr T Get ()		{ return T(0); }
+		static constexpr T Get ()														__NE___	{ return T(0); }
 	};
 		
 	template <typename T>
 	struct _GetDefaultValueForUninitialized2< T, /*enum*/1 > {
-		static constexpr T Get ()		{ return T::Unknown; }
+		static constexpr T Get ()														__NE___	{ return T::Unknown; }
 	};
 
 
 	template <typename T>
 	struct _GetDefaultValueForUninitialized
 	{
-		static constexpr int GetIndex ()
+		static constexpr int GetIndex ()												__NE___
 		{
 			return	_IsEnumWithUnknown<T>  ? 1 :
 						std::is_floating_point<T>::value or
@@ -51,7 +51,7 @@ namespace AE::Base::_hidden_
 							0;
 		}
 
-		static constexpr T GetDefault ()
+		static constexpr T GetDefault ()												__NE___
 		{
 			return _GetDefaultValueForUninitialized2< T, GetIndex() >::Get();
 		}
@@ -60,23 +60,23 @@ namespace AE::Base::_hidden_
 
 	struct DefaultType final
 	{
-		constexpr DefaultType ()
+		constexpr DefaultType ()														__NE___
 		{}
 
 		template <typename T>
-		ND_ constexpr operator T () const
+		ND_ constexpr operator T ()														C_NE___
 		{
 			return _GetDefaultValueForUninitialized<T>::GetDefault();
 		}
 
 		template <typename T>
-		ND_ friend constexpr bool  operator == (const T& lhs, const DefaultType &)
+		ND_ friend constexpr bool  operator == (const T& lhs, const DefaultType &)		__NE___
 		{
 			return lhs == _GetDefaultValueForUninitialized<T>::GetDefault();
 		}
 
 		template <typename T>
-		ND_ friend constexpr bool  operator != (const T& lhs, const DefaultType &rhs)
+		ND_ friend constexpr bool  operator != (const T& lhs, const DefaultType &rhs)	__NE___
 		{
 			return not (lhs == rhs);
 		}

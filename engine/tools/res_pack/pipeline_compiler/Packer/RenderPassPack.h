@@ -214,7 +214,7 @@ namespace AE::PipelineCompiler
 		bool  Serialize (Serializing::Serializer &)			C_NE_OV;
 		bool  Deserialize (Serializing::Deserializer &)		__NE_OV;
 	};
-	STATIC_ASSERT( sizeof(SubpassShaderIO::ShaderIOArr_t) == 48 );
+	STATIC_ASSERT( sizeof(SubpassShaderIO::ShaderIOArr_t) == 44 );
 
 
 

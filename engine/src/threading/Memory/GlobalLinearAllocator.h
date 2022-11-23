@@ -12,48 +12,52 @@ namespace AE::Threading
 	// GlobalLinearAllocatorRef
 	//
 
-	struct GlobalLinearAllocatorRef final : AllocatorRef2< MemoryManagerImpl::GlobalLinearAllocator_t >
+	class GlobalLinearAllocatorRef final : public AllocatorRef2< MemoryManagerImpl::GlobalLinearAllocator_t >
 	{
-		GlobalLinearAllocatorRef () :
+	public:
+		GlobalLinearAllocatorRef () __NE___ :
 			AllocatorRef2{ MemoryManager().GetGlobalLinearAllocator() }
 		{}
 	};
 	
+
+
 	//
 	// GlobalLinearStdAllocatorRef
 	//
 
 	template <typename T>
-	struct GlobalLinearStdAllocatorRef final : StdAllocatorRef< T, MemoryManagerImpl::GlobalLinearAllocator_t* >
+	class GlobalLinearStdAllocatorRef final : public StdAllocatorRef< T, MemoryManagerImpl::GlobalLinearAllocator_t* >
 	{
 		using Base_t = StdAllocatorRef< T, MemoryManagerImpl::GlobalLinearAllocator_t* >;
 		
-		GlobalLinearStdAllocatorRef () :
+	public:
+		GlobalLinearStdAllocatorRef () __NE___ :
 			Base_t{ &MemoryManager().GetGlobalLinearAllocator() }
 		{}
 
-		GlobalLinearStdAllocatorRef (MemoryManagerImpl::GlobalLinearAllocator_t* alloc) :
+		explicit GlobalLinearStdAllocatorRef (MemoryManagerImpl::GlobalLinearAllocator_t* alloc) __NE___ :
 			Base_t{ alloc }
 		{}
 	};
 
 
 #	define AE_GLOBALLY_ALLOC \
-	void*  operator new (std::size_t size) \
+	void*  operator new (std::size_t size) __NE___ \
 	{ \
-		return AE::MemoryManager().GetGlobalLinearAllocator().Allocate( SizeAndAlign{ Bytes{size}, Bytes{__STDCPP_DEFAULT_NEW_ALIGNMENT__} }); \
+		return AE::MemoryManager().GetGlobalLinearAllocator().Allocate( SizeAndAlign{ Bytes{size}, DefaultAllocatorAlign }); \
 	} \
-	void*  operator new (std::size_t size, std::align_val_t align) \
+	void*  operator new (std::size_t size, std::align_val_t align) __NE___ \
 	{ \
 		return AE::MemoryManager().GetGlobalLinearAllocator().Allocate( SizeAndAlign{ Bytes{size}, Bytes{align} }); \
 	} \
-	void operator delete (void *) \
+	void operator delete (void *) __NE___ \
 	{} \
-	void operator delete (void *, std::align_val_t) \
+	void operator delete (void *, std::align_val_t) __NE___ \
 	{} \
-	void operator delete (void *, std::size_t) \
+	void operator delete (void *, std::size_t) __NE___ \
 	{} \
-	void operator delete (void *, std::size_t, std::align_val_t) \
+	void operator delete (void *, std::size_t, std::align_val_t) __NE___ \
 	{}
 
 

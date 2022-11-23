@@ -63,58 +63,58 @@ namespace AE::ECS
 
 	// methods
 	public:
-		explicit ArchetypeStorage (const Registry &reg, const Archetype &archetype, usize capacity);
-		~ArchetypeStorage ();
+		explicit ArchetypeStorage (const Registry &reg, const Archetype &archetype, usize capacity) __NE___;
+		~ArchetypeStorage ()										__NE___;
 
-			bool  AddEntities (ArrayView<EntityID> ids, OUT Index_t &startIndex);
-			bool  Add (EntityID id, OUT Index_t &index);
-			bool  Erase (Index_t index, OUT EntityID &movedEntity);
-		ND_ bool  IsValid (EntityID id, Index_t index) const;
-			void  Clear ();
-			void  Reserve (usize size);
+			bool  AddEntities (ArrayView<EntityID> ids, OUT Index_t &startIndex) __NE___;
+			bool  Add (EntityID id, OUT Index_t &index)				__NE___;
+			bool  Erase (Index_t index, OUT EntityID &movedEntity)	__NE___;
+		ND_ bool  IsValid (EntityID id, Index_t index)				C_NE___;
+			void  Clear ()											__NE___;
+			void  Reserve (usize size)								__NE___;
 			//void  Reorder (Index_t offset, ArrayView<Index_t> newOrder);
 
-			void  Lock ();
-			void  Unlock ();
-		ND_ bool  IsLocked () const;
+			void  Lock ()											__NE___;
+			void  Unlock ()											__NE___;
+		ND_ bool  IsLocked ()										C_NE___;
 		
 		template <typename T>
-		ND_ T*						GetComponent (Index_t idx)		const;
-		ND_ Pair<void*, Bytes>		GetComponent (Index_t idx, ComponentID id) const;
+		ND_ T*					GetComponent (Index_t idx)			C_NE___;
+		ND_ Pair<void*, Bytes>	GetComponent (Index_t, ComponentID)	C_NE___;
 
 		template <typename T>
-		ND_ T*						GetComponents ()				const;
-		ND_ void*					GetComponents (ComponentID id)	const;
+		ND_ T*					GetComponents ()					C_NE___;
+		ND_ void*				GetComponents (ComponentID id)		C_NE___;
 		
 		template <typename T>
-		ND_ bool					HasComponent ()					const	{ return _archetype.Exists<T>(); }
-		ND_ bool					HasComponent (ComponentID id)	const	{ return _archetype.Exists( id ); }
+		ND_ bool				HasComponent ()						C_NE___	{ return _archetype.Exists<T>(); }
+		ND_ bool				HasComponent (ComponentID id)		C_NE___	{ return _archetype.Exists( id ); }
 
-		ND_ EntityID const*			GetEntities ()					const;	// local index to EntityID
-		ND_ usize					Capacity ()						const	{ return _capacity; }
-		ND_ usize					Count ()						const	{ return _count; }
-		ND_ bool					Empty ()						const	{ return _count == 0; }
-		ND_ Archetype const&		GetArchetype ()					const	{ return _archetype; }
-		ND_ Bytes					GetMemorySize ()				const	{ return _memSize; }
+		ND_ EntityID const*		GetEntities ()						C_NE___;	// local index to EntityID
+		ND_ usize				Capacity ()							C_NE___	{ return _capacity; }
+		ND_ usize				Count ()							C_NE___	{ return _count; }
+		ND_ bool				Empty ()							C_NE___	{ return _count == 0; }
+		ND_ Archetype const&	GetArchetype ()						C_NE___	{ return _archetype; }
+		ND_ Bytes				GetMemorySize ()					C_NE___	{ return _memSize; }
 
-		ND_ ArrayView<ComponentID>	GetComponentIDs ()				const	{ return _components.get<0>(); }
-		ND_ ArrayView<Bytes16u>		GetComponentSizes ()			const	{ return _components.get<1>(); }
-		ND_ ArrayView<Bytes16u>		GetComponentAligns ()			const	{ return _components.get<2>(); }
-		ND_ ArrayView<void*>		GetComponentData ()						{ return _components.get<3>(); }
+		ND_ auto				GetComponentIDs ()					C_NE___	-> ArrayView<ComponentID>	{ return _components.get<0>(); }
+		ND_ auto				GetComponentSizes ()				C_NE___	-> ArrayView<Bytes16u>		{ return _components.get<1>(); }
+		ND_ auto				GetComponentAligns ()				C_NE___	-> ArrayView<Bytes16u>		{ return _components.get<2>(); }
+		ND_ auto				GetComponentData ()					__NE___	-> ArrayView<void*>			{ return _components.get<3>(); }
 
 		DEBUG_ONLY(
-		 ND_ CompDbgView_t			EntityDbgView (Index_t idx)		const;
+		 ND_ CompDbgView_t		EntityDbgView (Index_t idx)			C_NE___;
 
-		 ND_ bool					IsInMemoryRange (const void* ptr, Bytes size) const;
+		 ND_ bool				IsInMemoryRange (const void*, Bytes)C_NE___;
 		)
 
 
 	private:
-		ND_ EntityID *	_GetEntities ();
+		ND_ EntityID *	_GetEntities ()								__NE___;
 
-		ND_ usize		_IndexOf (ComponentID id) const;
+		ND_ usize		_IndexOf (ComponentID id)					C_NE___;
 
-		bool _InitComponents ();
+			bool		_InitComponents ()							__NE___;
 	};
 
 
@@ -125,7 +125,7 @@ namespace AE::ECS
 =================================================
 */
 	template <typename T>
-	inline T*  ArchetypeStorage::GetComponents () const
+	inline T*  ArchetypeStorage::GetComponents () C_NE___
 	{
 		STATIC_ASSERT( not IsEmpty<T> );
 		return Cast<T>( GetComponents( ComponentTypeInfo<T>::id ));
@@ -136,7 +136,7 @@ namespace AE::ECS
 	GetComponents
 =================================================
 */
-	inline void*  ArchetypeStorage::GetComponents (ComponentID id) const
+	inline void*  ArchetypeStorage::GetComponents (ComponentID id) C_NE___
 	{
 		ASSERT( _memory );
 		usize	pos = _IndexOf( id );
@@ -151,7 +151,7 @@ namespace AE::ECS
 =================================================
 */
 	template <typename T>
-	inline T*  ArchetypeStorage::GetComponent (Index_t idx) const
+	inline T*  ArchetypeStorage::GetComponent (Index_t idx) C_NE___
 	{
 		STATIC_ASSERT( not IsEmpty<T> );
 		ASSERT( usize(idx) < Count() );
@@ -169,7 +169,7 @@ namespace AE::ECS
 	GetComponent
 =================================================
 */
-	inline Pair<void*, Bytes>  ArchetypeStorage::GetComponent (Index_t idx, ComponentID id) const
+	inline Pair<void*, Bytes>  ArchetypeStorage::GetComponent (Index_t idx, ComponentID id) C_NE___
 	{
 		ASSERT( usize(idx) < Count() );
 		ASSERT( _memory );
@@ -185,7 +185,7 @@ namespace AE::ECS
 	_IndexOf
 =================================================
 */
-	inline usize  ArchetypeStorage::_IndexOf (ComponentID id) const
+	inline usize  ArchetypeStorage::_IndexOf (ComponentID id) C_NE___
 	{
 		return BinarySearch( _components.get<0>(), id );
 	}
@@ -195,7 +195,7 @@ namespace AE::ECS
 	GetEntities
 =================================================
 */
-	inline EntityID const*  ArchetypeStorage::GetEntities () const
+	inline EntityID const*  ArchetypeStorage::GetEntities () C_NE___
 	{
 		ASSERT( _memory );
 		return Cast<EntityID>( _memory );
@@ -206,7 +206,7 @@ namespace AE::ECS
 	_GetEntities
 =================================================
 */
-	inline EntityID*  ArchetypeStorage::_GetEntities ()
+	inline EntityID*  ArchetypeStorage::_GetEntities () __NE___
 	{
 		ASSERT( _memory );
 		return Cast<EntityID>( _memory );
@@ -217,7 +217,7 @@ namespace AE::ECS
 	Lock
 =================================================
 */
-	inline void  ArchetypeStorage::Lock ()
+	inline void  ArchetypeStorage::Lock () __NE___
 	{
 		_locks.fetch_add( 1 );
 	}
@@ -227,7 +227,7 @@ namespace AE::ECS
 	Unlock
 =================================================
 */
-	inline void  ArchetypeStorage::Unlock ()
+	inline void  ArchetypeStorage::Unlock () __NE___
 	{
 		_locks.fetch_sub( 1 );
 	}
@@ -237,7 +237,7 @@ namespace AE::ECS
 	IsLocked
 =================================================
 */
-	inline bool  ArchetypeStorage::IsLocked () const
+	inline bool  ArchetypeStorage::IsLocked () C_NE___
 	{
 		return _locks.load() > 0;
 	}
@@ -248,7 +248,7 @@ namespace AE::ECS
 =================================================
 */
 DEBUG_ONLY(
-	inline ArchetypeStorage::CompDbgView_t  ArchetypeStorage::EntityDbgView (Index_t idx) const
+	inline ArchetypeStorage::CompDbgView_t  ArchetypeStorage::EntityDbgView (Index_t idx) C_NE___
 	{
 		CompDbgView_t	result;
 		for (auto& comp : _dbgView) {
@@ -264,7 +264,7 @@ DEBUG_ONLY(
 =================================================
 */
 DEBUG_ONLY(
-	inline bool  ArchetypeStorage::IsInMemoryRange (const void* ptr, Bytes size) const
+	inline bool  ArchetypeStorage::IsInMemoryRange (const void* ptr, Bytes size) C_NE___
 	{
 		return (ptr >= _memory) and ((ptr + size) <= _memoryEnd);
 	}

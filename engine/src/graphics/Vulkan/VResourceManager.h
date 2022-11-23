@@ -125,7 +125,7 @@ namespace AE::Graphics
 			AtomicFrameUID			_currentFrameId;
 			ExpiredResources_t		_list;
 
-			ExpiredResources () __TH___;
+			ExpiredResources () __Th___;
 
 			ND_ ExpiredResArray&	Get (FrameUID id)	__NE___	{ return _list[ uint(id.Unique()) % _list.size() ]; }
 			ND_ ExpiredResArray&	GetCurrent ()		__NE___	{ return Get( GetFrameId() ); }
@@ -193,14 +193,16 @@ namespace AE::Graphics
 
 	// methods
 	private:
-		explicit VResourceManager (const VDevice &)			__TH___;
+		explicit VResourceManager (const VDevice &)			__Th___;
 
-		ND_ bool  Initialize (const GraphicsCreateInfo &)	__TH___;
+		ND_ bool  Initialize (const GraphicsCreateInfo &)	__Th___;
 			void  Deinitialize ()							__NE___;
 		
 
 	public:
 		~VResourceManager ();
+		
+		ND_ bool						OnSurfaceCreated (const VSwapchain &sw)						__NE___;
 
 		ND_ Strong<VMemoryID>			CreateMemoryObj (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
 		ND_ Strong<VMemoryID>			CreateMemoryObj (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
@@ -256,6 +258,7 @@ namespace AE::Graphics
 		ND_ StringView  _GetResourcePoolName (const VPipelineLayoutID &)	__NE___	{ return "pplnLayouts"; }
 		ND_ StringView  _GetResourcePoolName (const VSamplerID &)			__NE___	{ return "samplers"; }
 		ND_ StringView  _GetResourcePoolName (const VRenderPassID &)		__NE___	{ return "renderPass"; }
+		ND_ StringView  _GetResourcePoolName (const VFramebufferID &)		__NE___	{ return "framebuffers"; }
 		ND_ StringView  _GetResourcePoolName (const VMemoryID &)			__NE___	{ return "memObjs"; }
 
 	// memory managment
@@ -268,12 +271,12 @@ namespace AE::Graphics
 
 		ND_ bool  _CreateDefaultSampler ();
 
-		#include "graphics/Private/ResourceManagerFn.h"
+		#include "graphics/Private/ResourceManagerDecl.h"
 	};
 
 	
 #	define RESMNGR	VResourceManager
-#	include "graphics/Private/ResourceManager.h"
+#	include "graphics/Private/ResourceManagerImpl.h"
 
 /*
 =================================================

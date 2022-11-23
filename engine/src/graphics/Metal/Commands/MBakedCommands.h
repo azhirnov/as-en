@@ -27,28 +27,28 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MBakedCommands ()
+		MBakedCommands ()							__NE___
 		{}
 
-		explicit MBakedCommands (void* root) :
+		explicit MBakedCommands (void* root)		__NE___	:
 			_root{ root }
 		{}
 
-		MBakedCommands (MBakedCommands &&other) :
+		MBakedCommands (MBakedCommands &&other)		__NE___	:
 			_root{ other._root }
 		{
 			other._root = null;
 		}
 
-		void  Destroy ()
+		void  Destroy ()							__NE___
 		{
 			_hidden_::SoftwareCmdBufBase::Deallocate( _root );
 			_root = null;
 		}
 		
-		bool  Execute (MetalCommandBuffer cmdbuf) const;
+		bool  Execute (MetalCommandBuffer cmdbuf)	C_NE___;
 
-		ND_ bool  IsValid () const
+		ND_ bool  IsValid ()						C_NE___
 		{
 			return _root != null;
 		}

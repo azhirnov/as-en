@@ -7,7 +7,7 @@
 #include "base/Memory/UntypedAllocator.h"
 
 #include "threading/Memory/LfLinearAllocator.h"
-#include "threading/Memory/StackAllocator.h"
+#include "threading/Memory/TsStackAllocator.h"
 #include "threading/Memory/MemoryProfiler.h"
 
 namespace AE::Threading { class MemoryManagerImpl; }
@@ -43,6 +43,12 @@ namespace AE::Threading
 
 		using DefaultAlloc_t		= AllocatorImpl< UntypedAllocator >;
 
+		class TaskSchedulerApi {
+			friend class TaskScheduler;
+			static void  CreateInstance ()	__NE___;
+			static void  DestroyInstance ()	__NE___;
+		};
+
 
 	// variables
 	private:
@@ -60,9 +66,6 @@ namespace AE::Threading
 
 	// methods
 	public:
-		static void  CreateInstance ()									__NE___;
-		static void  DestroyInstance ()									__NE___;
-		
 		void  SetProfiler (RC<IMemoryProfiler> profiler)				__NE___;
 
 		ND_ GlobalLinearAllocator_t&	GetGlobalLinearAllocator ()		__NE___	{ return _globalLinear; }

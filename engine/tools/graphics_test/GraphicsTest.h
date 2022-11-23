@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "graphics/Public/ImageMemView.h"
+#include "res_loaders/Intermediate/IntermImage.h"
 
 namespace AE::GraphicsTest
 {
@@ -18,7 +19,7 @@ namespace AE::GraphicsTest
 		Path					_fname;
 		bool					_loaded		= false;
 		bool					_newRef		= false;
-	//	ResLoader::IntermImage	_image;
+		ResLoader::IntermImage	_image;
 
 
 	// methods

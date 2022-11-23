@@ -8,6 +8,7 @@
 
 #include "base/Math/Bytes.h"
 #include "base/Utils/RefCounter.h"
+#include "base/Containers/ArrayView.h"
 
 namespace AE::Base
 {
@@ -62,11 +63,11 @@ namespace AE::Base
 
 		ND_ bool					IsThreadSafe ()		C_NE___	{ return AllBits( GetSourceType(), ESourceType::ThreadSafe ); }
 
-		ND_ virtual RC<RStream>		AsRStream ()				{ return Default; }
-		ND_ virtual RC<WStream>		AsWStream ()				{ return Default; }
+	//	ND_ virtual RC<RStream>		AsRStream ()				{ return Default; }
+	//	ND_ virtual RC<WStream>		AsWStream ()				{ return Default; }
 
-		ND_ virtual RC<RDataSource>	AsRDataSource ()			{ return Default; }
-		ND_ virtual RC<WDataSource>	AsWDataSource ()			{ return Default; }
+	//	ND_ virtual RC<RDataSource>	AsRDataSource ()			{ return Default; }
+	//	ND_ virtual RC<WDataSource>	AsWDataSource ()			{ return Default; }
 	};
 	
 	AE_BIT_OPERATORS( IDataSource::ESourceType );
@@ -81,9 +82,9 @@ namespace AE::Base
 	{
 	// interface
 	public:
-			ESourceType		GetSourceType ()	C_NE_OV		{ return ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::FixedSize; }
+			ESourceType		GetSourceType ()	C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::FixedSize; }
 		
-		ND_ virtual Bytes	OffsetAlign ()		C_NE___		{ return 1_b; }
+		ND_ virtual Bytes	OffsetAlign ()		C_NE___	{ return 1_b; }
 		ND_ virtual Bytes	Size ()				C_NE___ = 0;
 
 		// returns size of readn data
@@ -162,11 +163,11 @@ namespace AE::Base
 	{
 	// interface
 	public:
-			ESourceType		GetSourceType ()			C_NE_OV		{ return ESourceType::RandomAccess | ESourceType::WriteAccess; }
+			ESourceType		GetSourceType ()			C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::WriteAccess; }
 			
-		ND_ virtual Bytes	OffsetAlign ()				C_NE___		{ return 1_b; }
-		ND_ virtual Bytes	Capacity ()					C_NE___		= 0;
-		ND_ virtual Bytes	Reserve (Bytes capacity)	__NE___		= 0;
+		ND_ virtual Bytes	OffsetAlign ()				C_NE___	{ return 1_b; }
+		ND_ virtual Bytes	Capacity ()					C_NE___	= 0;
+		ND_ virtual Bytes	Reserve (Bytes capacity)	__NE___	= 0;
 
 		// returns size of written data
 		ND_ virtual Bytes	WriteBlock (Bytes offset, const void *buffer, Bytes size) __NE___ = 0;
@@ -238,10 +239,10 @@ namespace AE::Base
 			Bytes	processed;
 			slong	diff		= 0;	// 0 if equal
 
-			constexpr CmpResult () {}
-			constexpr CmpResult (Bytes processed, slong diff) : processed{processed}, diff{diff} {}
+			constexpr CmpResult ()								__NE___	{}
+			constexpr CmpResult (Bytes processed, slong diff)	__NE___	: processed{processed}, diff{diff} {}
 
-			ND_ explicit constexpr operator bool () const { return diff == 0; }
+			ND_ explicit constexpr operator bool ()				C_NE___ { return diff == 0; }
 		};
 
 		struct TempBuffer
@@ -249,7 +250,7 @@ namespace AE::Base
 			void*	ptr;
 			Bytes	size;
 
-			explicit TempBuffer (void* ptr, Bytes size) : ptr{ptr}, size{size} {}
+			explicit TempBuffer (void* ptr, Bytes size)			__NE___	: ptr{ptr}, size{size} {}
 		};
 
 		static constexpr uint	_BufferSize = 1 << 14;

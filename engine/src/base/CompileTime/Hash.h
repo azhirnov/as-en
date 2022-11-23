@@ -53,7 +53,7 @@ namespace AE::Base::_hidden_
 		0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 	};
 
-	ND_ forceinline constexpr uint  crc32_hash (char const *str, usize len, uint prev_crc)
+	ND_ forceinline constexpr uint  crc32_hash (char const *str, usize len, uint prev_crc) __NE___
 	{
 		return	(*str != '\0' and len != 0) ?
 					crc32_hash( str+1, len-1, (prev_crc >> 8) ^ crc_table[(prev_crc ^ *str) & 0xFF] ) :
@@ -71,7 +71,7 @@ namespace AE::Base
 	CT_Hash (string)
 =================================================
 */
-	ND_ inline constexpr THashVal<uint>  CT_Hash (const char *str, usize len, uint seed)
+	ND_ inline constexpr THashVal<uint>  CT_Hash (const char *str, usize len, uint seed) __NE___
 	{
 		return THashVal<uint>{ Base::_hidden_::crc32_hash( str, len, seed )};
 	}

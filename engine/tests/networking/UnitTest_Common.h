@@ -14,7 +14,9 @@ struct LocalSocketMngr
 	LocalSocketMngr ()
 	{
 		TaskScheduler::CreateInstance();
-		Scheduler().Setup( 1 );
+
+		TaskScheduler::Config	cfg;
+		TEST( Scheduler().Setup( cfg ));
 
 		TEST( SocketManager::Instance().Initialize() );
 	}

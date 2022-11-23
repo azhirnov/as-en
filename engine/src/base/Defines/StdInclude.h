@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Config.h"
+#include "base/Defines/Config.h"
 #include "base/Defines/Attribs.h"
 #include "base/Defines/Errors.h"
 #include "base/Defines/Helpers.h"

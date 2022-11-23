@@ -13,62 +13,56 @@
 #include "threading/Primitives/Atomic.h"
 #include "threading/Primitives/SpinLock.h"
 #include "threading/TaskSystem/TaskProfiler.h"
+#include "threading/TaskSystem/EThread.h"
 #include "threading/Primitives/CoroutineHandle.h"
 
 namespace AE::Threading
 {
 	namespace _hidden_
 	{
-		template <bool IsStrongDep>
+		template <typename TaskType, bool IsStrongDep>
 		struct _TaskDependency
 		{
-			AsyncTask	_task;
+			TaskType	_task;
 
-			explicit _TaskDependency (AsyncTask &&task) : _task{RVRef(task)} {}
-			explicit _TaskDependency (const AsyncTask &task) : _task{task} {}
-			_TaskDependency (_TaskDependency &&) = default;
-			_TaskDependency (const _TaskDependency &) = default;
+			explicit _TaskDependency (TaskType &&task)			__NE___	: _task{ RVRef(task) } {}
+			explicit _TaskDependency (const TaskType &task)		__NE___	: _task{ task } {}
+			_TaskDependency (_TaskDependency &&)				__NE___	= default;
+			_TaskDependency (const _TaskDependency &)			__NE___	= default;
 		};
 	
-		template <bool IsStrongDep>
-		struct _TaskDependencyArray : ArrayView< AsyncTask >
+		template <typename TaskType, bool IsStrongDep>
+		struct _TaskDependencyArray : ArrayView< TaskType >
 		{
-			_TaskDependencyArray (AsyncTask const* ptr, usize count) : ArrayView{ptr, count} {}
+			_TaskDependencyArray (_TaskDependencyArray &&)				__NE___	= default;
+			_TaskDependencyArray (const _TaskDependencyArray &)			__NE___	= default;
 
-			_TaskDependencyArray (std::initializer_list<AsyncTask> list) : ArrayView{list} {}
+			_TaskDependencyArray (TaskType const* ptr, usize count)		__NE___	: ArrayView<TaskType>{ptr, count} {}
+
+			_TaskDependencyArray (std::initializer_list<TaskType> list)	__NE___	: ArrayView<TaskType>{list} {}
 
 			template <typename AllocT>
-			_TaskDependencyArray (const Array<AsyncTask,AllocT> &vec) : ArrayView{vec} {}
+			_TaskDependencyArray (const Array<TaskType,AllocT> &vec)	__NE___	: ArrayView<TaskType>{vec} {}
 
 			template <usize S>
-			_TaskDependencyArray (const StaticArray<AsyncTask,S> &arr) : ArrayView{arr} {}
+			_TaskDependencyArray (const StaticArray<TaskType,S> &arr)	__NE___	: ArrayView<TaskType>{arr} {}
 			
 			template <usize S>
-			_TaskDependencyArray (const FixedArray<AsyncTask,S> &arr) : ArrayView{arr} {}
+			_TaskDependencyArray (const FixedArray<TaskType,S> &arr)	__NE___	: ArrayView<TaskType>{arr} {}
 
 			template <usize S>
-			_TaskDependencyArray (const AsyncTask (&arr)[S]) : ArrayView{arr} {}
+			_TaskDependencyArray (const TaskType (&arr)[S])				__NE___	: ArrayView<TaskType>{arr} {}
 		};
 
 	} // _hidden_
 
-	using WeakDep   = Threading::_hidden_::_TaskDependency<false>;
-	using StrongDep = Threading::_hidden_::_TaskDependency<true>;
+	using WeakDep   = Threading::_hidden_::_TaskDependency< AsyncTask, false >;
+	using StrongDep = Threading::_hidden_::_TaskDependency< AsyncTask, true >;
 	
-	using WeakDepArray   = Threading::_hidden_::_TaskDependencyArray<false>;
-	using StrongDepArray = Threading::_hidden_::_TaskDependencyArray<true>;
+	using WeakDepArray   = Threading::_hidden_::_TaskDependencyArray< AsyncTask, false >;
+	using StrongDepArray = Threading::_hidden_::_TaskDependencyArray< AsyncTask, true >;
 //-----------------------------------------------------------------------------
 
-
-	enum class EThread : uint
-	{
-		Main,		// thread with window message loop
-		Worker,
-		Renderer,	// single thread for opengl, multiple for vulkan (can be mixed with 'Worker')	// TODO: RendererHi, RendererLow
-		FileIO,
-		Network,
-		_Count
-	};
 
 
 	//
@@ -118,10 +112,9 @@ namespace AE::Threading
 			StaticArray< TaskDependency, ElemInChunk >	deps		{};
 			
 		// methods
-			OutputChunk ()					__NE___ {}
+			OutputChunk ()			__NE___ {}
 
-			void			Init (uint idx)	__NE___;
-			static auto&	_GetPool ()		__NE___;
+			void  Init (uint idx)	__NE___;
 		};
 		STATIC_ASSERT( sizeof(OutputChunk) == 128_b );
 
@@ -163,7 +156,7 @@ namespace AE::Threading
 		explicit IAsyncTask (EThread type)	__NE___;
 
 			// can throw exception
-			virtual void  Run ()			__TH___ = 0;
+			virtual void  Run ()			__Th___ = 0;
 			
 			// can throw only fatal exception
 			virtual void  OnCancel ()		__NE___	{ ASSERT( not _isRunning.load() ); }
@@ -243,7 +236,7 @@ namespace AE::Threading
 
 				void				return_void ()			C_NE___	{}
 					
-				void				unhandled_exception ()	C_TH___	{ throw; }				// rethrow exceptions
+				void				unhandled_exception ()	C_Th___	{ throw; }				// rethrow exceptions
 
 			ND_ Task_t*				GetTask ()				C_NE___;
 
@@ -299,7 +292,7 @@ namespace AE::Threading
 		}
 
 	private:
-		void  Run () __TH_OV
+		void  Run () __Th_OV
 		{
 			ASSERT( _coroutine.IsValid() );
 			_coroutine.Resume();	// throw
@@ -448,7 +441,7 @@ namespace AE::Threading
 */
 	using CoroutineTask = _hidden_::AsyncTaskCoroutine::Handle_t;
 	
-	ND_ inline AsyncTask  MakeCoroutineTask (CoroutineTask handle, EThread type = EThread::Worker) __TH___
+	ND_ inline AsyncTask  MakeCoroutineTask (CoroutineTask handle, EThread type = EThread::Worker) __Th___
 	{
 		return AsyncTask{ new _hidden_::CoroutineRunnerTask{ RVRef(handle), type }};
 	}

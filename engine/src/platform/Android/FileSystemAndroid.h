@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/StdInclude.h"
+#include "base/Defines/StdInclude.h"
 
 #ifdef AE_PLATFORM_ANDROID
 # include <android/asset_manager_jni.h>
@@ -51,7 +51,7 @@ namespace AE::App
 
 		Bytes		ReadSeq (OUT void *buffer, Bytes size)	__NE_OV;
 
-		RC<RDataSource>	AsRDataSource ()					__TH_OV;
+		RC<RDataSource>	AsRDataSource ()					__Th_OV;
 	};
 
 
@@ -83,7 +83,7 @@ namespace AE::App
 
 		Bytes		ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
 
-		RC<RStream>	AsRStream ()						__TH_OV;
+		RC<RStream>	AsRStream ()						__Th_OV;
 	};
 
 

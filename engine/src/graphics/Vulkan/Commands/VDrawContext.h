@@ -98,7 +98,7 @@ namespace AE::Graphics::_hidden_
 		ND_ VCommandBuffer  ReleaseCommandBuffer ();
 
 	protected:
-		explicit _VDirectDrawCtx (const DrawTask &task) __TH___;
+		explicit _VDirectDrawCtx (const DrawTask &task) __Th___;
 		_VDirectDrawCtx (const DrawTask &task, CmdBuf_t cmdbuf);
 		_VDirectDrawCtx (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf, NtStringView dbgName, RGBA8u dbgColor);
 
@@ -405,6 +405,10 @@ namespace AE::Graphics::_hidden_
 		ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result)									override;
 		
 		ND_ VPrimaryCmdBufState const&	GetPrimaryCtxState ()											C_NE___		{ return this->_mngr.GetPrimaryCtxState(); }
+		
+	private:
+		template <typename ...IDs>
+		ND_ decltype(auto)	_GetResourcesOrThrow (IDs ...ids)											__Th___		{ return this->_mngr.Get( ids... ); }
 	};
 
 } // AE::Graphics::_hidden_
@@ -454,28 +458,25 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VDrawContextImpl<C>::BindPipeline (GraphicsPipelineID ppln)
 	{
-		auto*	gppln = this->_mngr.Get( ppln );
-		CHECK_ERRV( gppln );
+		auto&	gppln = _GetResourcesOrThrow( ppln );
 
-		RawCtx::_BindPipeline( gppln->BindPoint(), gppln->Handle(), gppln->Layout(), gppln->DynamicState() );
+		RawCtx::_BindPipeline( gppln.BindPoint(), gppln.Handle(), gppln.Layout(), gppln.DynamicState() );
 	}
 	
 	template <typename C>
 	void  _VDrawContextImpl<C>::BindPipeline (MeshPipelineID ppln)
 	{
-		auto*	mppln = this->_mngr.Get( ppln );
-		CHECK_ERRV( mppln );
+		auto&	mppln = _GetResourcesOrThrow( ppln );
 		
-		RawCtx::_BindPipeline( mppln->BindPoint(), mppln->Handle(), mppln->Layout(), mppln->DynamicState() );
+		RawCtx::_BindPipeline( mppln.BindPoint(), mppln.Handle(), mppln.Layout(), mppln.DynamicState() );
 	}
 	
 	template <typename C>
 	void  _VDrawContextImpl<C>::BindPipeline (TilePipelineID ppln)
 	{
-		auto*	tppln = this->_mngr.Get( ppln );
-		CHECK_ERRV( tppln );
+		auto&	tppln = _GetResourcesOrThrow( ppln );
 		
-		RawCtx::_BindPipeline( tppln->BindPoint(), tppln->Handle(), tppln->Layout(), tppln->DynamicState() );
+		RawCtx::_BindPipeline( tppln.BindPoint(), tppln.Handle(), tppln.Layout(), tppln.DynamicState() );
 	}
 
 /*
@@ -486,10 +487,9 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VDrawContextImpl<C>::BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
 	{
-		auto*	desc_set = this->_mngr.Get( ds );
-		CHECK_ERRV( desc_set );
+		auto&	desc_set = _GetResourcesOrThrow( ds );
 
-		BindDescriptorSet( index, desc_set->Handle(), dynamicOffsets );
+		BindDescriptorSet( index, desc_set.Handle(), dynamicOffsets );
 	}
 	
 /*
@@ -651,10 +651,9 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VDrawContextImpl<C>::BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)
 	{
-		auto*	buf = this->_mngr.Get( buffer );
-		CHECK_ERRV( buf );
+		auto&	buf = _GetResourcesOrThrow( buffer );
 
-		return BindIndexBuffer( buf->Handle(), offset, indexType );
+		return BindIndexBuffer( buf.Handle(), offset, indexType );
 	}
 	
 /*
@@ -665,10 +664,9 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VDrawContextImpl<C>::BindVertexBuffer (uint index, BufferID buffer, Bytes offset)
 	{
-		auto*	buf = this->_mngr.Get( buffer );
-		CHECK_ERRV( buf );
+		auto&	buf = _GetResourcesOrThrow( buffer );
 
-		BindVertexBuffer( index, buf->Handle(), offset );
+		BindVertexBuffer( index, buf.Handle(), offset );
 	}
 	
 	template <typename C>
@@ -681,16 +679,12 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	bool  _VDrawContextImpl<C>::BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)
 	{
-		auto*	ppln = this->_mngr.Get( pplnId );
-		CHECK_ERR( ppln );
+		auto  [ppln, buf] = _GetResourcesOrThrow( pplnId, buffer );
 
-		uint	idx = ppln->GetVertexBufferIndex( name );
+		uint	idx = ppln.GetVertexBufferIndex( name );
 		CHECK_ERR( idx != UMax );
 
-		auto*	buf = this->_mngr.Get( buffer );
-		CHECK_ERR( buf );
-		
-		BindVertexBuffer( idx, buf->Handle(), offset );
+		BindVertexBuffer( idx, buf.Handle(), offset );
 		return true;
 	}
 
@@ -710,10 +704,9 @@ namespace AE::Graphics::_hidden_
 
 		for (uint i = 0; i < buffers.size(); ++i)
 		{
-			auto*	buffer	= this->_mngr.Get( buffers[i] );
-			CHECK_ERRV( buffer );
-
-			dst_buffers[i]	= buffer->Handle();
+			auto&	buffer	= _GetResourcesOrThrow( buffers[i] );
+			
+			dst_buffers[i]	= buffer.Handle();
 		}
 
 		RawCtx::_BindVertexBuffers( firstBinding, dst_buffers, offsets.Cast<VkDeviceSize>() );
@@ -765,10 +758,9 @@ namespace AE::Graphics::_hidden_
 											  uint		drawCount,
 											  Bytes		stride)
 	{
-		auto*	buf = this->_mngr.Get( indirectBuffer );
-		CHECK_ERRV( buf );
+		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
 
-		RawCtx::DrawIndirect( buf->Handle(), indirectBufferOffset, drawCount, stride );
+		RawCtx::DrawIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
 	}
 	
 /*
@@ -782,10 +774,9 @@ namespace AE::Graphics::_hidden_
 													 uint		drawCount,
 													 Bytes		stride)
 	{
-		auto*	buf = this->_mngr.Get( indirectBuffer );
-		CHECK_ERRV( buf );
+		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
 
-		RawCtx::DrawIndexedIndirect( buf->Handle(), indirectBufferOffset, drawCount, stride );
+		RawCtx::DrawIndexedIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
 	}
 	
 /*
@@ -801,11 +792,9 @@ namespace AE::Graphics::_hidden_
 												   uint		maxDrawCount,
 												   Bytes	stride)
 	{
-		auto*	ibuf = this->_mngr.Get( indirectBuffer );
-		auto*	cbuf = this->_mngr.Get( countBuffer );
-		CHECK_ERRV( ibuf and cbuf );
+		auto  [ibuf, cbuf] = _GetResourcesOrThrow( indirectBuffer, countBuffer );
 
-		RawCtx::DrawIndirectCount( ibuf->Handle(), indirectBufferOffset, cbuf->Handle(), countBufferOffset, maxDrawCount, stride );
+		RawCtx::DrawIndirectCount( ibuf.Handle(), indirectBufferOffset, cbuf.Handle(), countBufferOffset, maxDrawCount, stride );
 	}
 	
 /*
@@ -821,11 +810,9 @@ namespace AE::Graphics::_hidden_
 														  uint		maxDrawCount,
 														  Bytes		stride)
 	{
-		auto*	ibuf = this->_mngr.Get( indirectBuffer );
-		auto*	cbuf = this->_mngr.Get( countBuffer );
-		CHECK_ERRV( ibuf and cbuf );
+		auto  [ibuf, cbuf] = _GetResourcesOrThrow( indirectBuffer, countBuffer );
 		
-		RawCtx::DrawIndexedIndirectCount( ibuf->Handle(), indirectBufferOffset, cbuf->Handle(), countBufferOffset, maxDrawCount, stride );
+		RawCtx::DrawIndexedIndirectCount( ibuf.Handle(), indirectBufferOffset, cbuf.Handle(), countBufferOffset, maxDrawCount, stride );
 	}
 	
 /*
@@ -839,10 +826,9 @@ namespace AE::Graphics::_hidden_
 													   uint		drawCount,
 													   Bytes	stride)
 	{
-		auto*	buf = this->_mngr.Get( indirectBuffer );
-		CHECK_ERRV( buf );
+		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
 
-		RawCtx::DrawMeshTasksIndirect( buf->Handle(), indirectBufferOffset, drawCount, stride );
+		RawCtx::DrawMeshTasksIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
 	}
 	
 /*
@@ -858,11 +844,9 @@ namespace AE::Graphics::_hidden_
 															uint		maxDrawCount,
 															Bytes		stride)
 	{
-		auto*	ibuf = this->_mngr.Get( indirectBuffer );
-		auto*	cbuf = this->_mngr.Get( countBuffer );
-		CHECK_ERRV( ibuf and cbuf );
+		auto  [ibuf, cbuf] = _GetResourcesOrThrow( indirectBuffer, countBuffer );
 		
-		RawCtx::DrawMeshTasksIndirectCount( ibuf->Handle(), indirectBufferOffset, cbuf->Handle(), countBufferOffset, maxDrawCount, stride );
+		RawCtx::DrawMeshTasksIndirectCount( ibuf.Handle(), indirectBufferOffset, cbuf.Handle(), countBufferOffset, maxDrawCount, stride );
 	}
 
 /*

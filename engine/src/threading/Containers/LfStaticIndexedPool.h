@@ -25,7 +25,7 @@ namespace AE::Threading
 			  usize Count,
 			  typename AllocatorType = UntypedAllocator
 			 >
-	struct LfStaticIndexedPool final
+	class LfStaticIndexedPool final : public Noncopyable
 	{
 		STATIC_ASSERT( Count > 0 and Count % 32 == 0 );
 		STATIC_ASSERT( MaxValue<IndexType>() >= Count );
@@ -74,12 +74,6 @@ namespace AE::Threading
 
 	// methods
 	public:
-		LfStaticIndexedPool (const Self &)	= delete;
-		LfStaticIndexedPool (Self &&)		= default;
-
-		Self& operator = (const Self &)		= delete;
-		Self& operator = (Self &&)			= default;
-
 		explicit LfStaticIndexedPool (const Allocator_t &alloc = Allocator_t{}) __NE___;
 		~LfStaticIndexedPool ()							__NE___	{ Release(); }
 
@@ -110,3 +104,5 @@ namespace AE::Threading
 	};
 
 } // AE::Threading
+
+//#include "threading/Containers/LfStaticIndexedPool.inl.h"

@@ -39,7 +39,7 @@ namespace AE::Graphics
 	using AE::Threading::RWSpinLock;
 	using AE::Threading::RecursiveMutex;
 	using AE::Threading::EMemoryOrder;
-	using AE::Threading::ThreadFence;
+	using AE::Threading::MemoryBarrier;
 	using AE::Threading::AsyncTask;
 	using AE::Threading::GlobalLinearAllocatorRef;
 	using AE::Threading::GraphicsFrameAllocatorRef;

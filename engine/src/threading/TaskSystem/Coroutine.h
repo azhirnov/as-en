@@ -57,7 +57,7 @@ namespace _hidden_
 			
 				void				return_value (ResultType value)	__NE___	{ _value = RVRef(value); }		// set value by 'co_return'
 
-				void				unhandled_exception ()			C_TH___	{ throw; }						// rethrow exceptions
+				void				unhandled_exception ()			C_Th___	{ throw; }						// rethrow exceptions
 
 				StringView			DbgName ()						C_NE_OV	{ return "coroutine"; }
 
@@ -70,7 +70,7 @@ namespace _hidden_
 
 
 		private:
-			void  Run () __TH_OV
+			void  Run () __Th_OV
 			{
 				auto	coro_handle = Handle_t::from_promise( *this );
 				coro_handle.resume();	// throw
@@ -81,9 +81,12 @@ namespace _hidden_
 
 			void  _ReleaseObject () __NE_OV
 			{
+				MemoryBarrier( EMemoryOrder::Acquire );
 				ASSERT( IsFinished() );
 				
 				auto	coro_handle = Handle_t::from_promise( *this );
+
+				// internally calls 'promise_type' dtor
 				coro_handle.destroy();
 			}
 		};
@@ -96,28 +99,28 @@ namespace _hidden_
 
 	// methods
 	public:
-		CoroutineImpl ()							__NE___ {}
-		explicit CoroutineImpl (promise_type &p)	__NE___ : _coro{ p.GetRC<promise_type>() } {}
-		explicit CoroutineImpl (Handle_t handle)	__NE___ : _coro{ handle.Promise().GetRC<promise_type>() } {}
-		~CoroutineImpl ()							__NE___ {}
+		CoroutineImpl ()									__NE___ {}
+		explicit CoroutineImpl (promise_type &p)			__NE___ : _coro{ p.GetRC<promise_type>() } {}
+		explicit CoroutineImpl (Handle_t handle)			__NE___ : _coro{ handle.Promise().GetRC<promise_type>() } {}
+		~CoroutineImpl ()									__NE___ {}
 
-		CoroutineImpl (CoroutineImpl &&)			__NE___ = default;
-		CoroutineImpl (const CoroutineImpl &)		__NE___ = default;
+		CoroutineImpl (CoroutineImpl &&)					__NE___ = default;
+		CoroutineImpl (const CoroutineImpl &)				__NE___ = default;
 
-		CoroutineImpl&  operator = (CoroutineImpl &&) __NE___ = default;
-		CoroutineImpl&  operator = (const CoroutineImpl &) __NE___ = default;
+		CoroutineImpl&  operator = (CoroutineImpl &&)		__NE___ = default;
+		CoroutineImpl&  operator = (const CoroutineImpl &)	__NE___ = default;
 
-		explicit operator AsyncTask ()				C_NE___		{ return _coro; }
-		explicit operator bool ()					C_NE___		{ return bool{_coro}; }
+		explicit operator AsyncTask ()						C_NE___	{ return _coro; }
+		explicit operator bool ()							C_NE___	{ return bool{_coro}; }
 		
-		auto  operator co_await ()					C_NE___;
+		auto  operator co_await ()							C_NE___;
 
 	private:
 		template <typename T>
 		friend class CoroutineAwaiter;
 
-		ND_ IAsyncTask::EStatus	_Status ()			C_NE___	{ return _coro ? _coro->Status() : IAsyncTask::EStatus::Canceled; }
-		ND_ ResultType			_Result ()			C_NE___	{ ASSERT( _coro );  ASSERT( _coro->Status() == IAsyncTask::EStatus::Completed );  return RVRef(_coro->_value); }
+		ND_ IAsyncTask::EStatus	_Status ()					C_NE___	{ return _coro ? _coro->Status() : IAsyncTask::EStatus::Canceled; }
+		ND_ ResultType			_Result ()					C_NE___	{ ASSERT( _coro );  ASSERT( _coro->Status() == IAsyncTask::EStatus::Completed );  return RVRef(_coro->_value); }
 	};
 
 	
@@ -144,10 +147,10 @@ namespace _hidden_
 	public:
 		explicit CoroutineAwaiter (const Coroutine<T> &coro) : _coro{coro} {}
 
-		ND_ bool	await_ready ()	C_NE___		{ return false; }
+		ND_ bool	await_ready ()		C_NE___	{ return false; }
 
 		// return promise result
-		ND_ T		await_resume ()	__NE___		{ return _coro._Result(); }
+		ND_ T		await_resume ()		__NE___	{ return _coro._Result(); }
 		
 		// return task to scheduler with new dependencies
 		template <typename P>
@@ -191,7 +194,7 @@ namespace _hidden_
 		explicit CoroutineAwaiter (const Tuple<Coroutine<Types>...> &deps) __NE___ : _deps{deps} {}
 		
 		// pause coroutine execution if dependencies are not complete
-		ND_ bool  await_ready ()				C_NE___		{ return false; }	// TODO: check all deps for early exit
+		ND_ bool  await_ready ()				C_NE___	{ return false; }	// TODO: check all deps for early exit
 		
 		// return promise results
 		ND_ Tuple< Types... >  await_resume ()	__NE___

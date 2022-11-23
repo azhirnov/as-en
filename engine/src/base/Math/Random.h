@@ -41,26 +41,26 @@ namespace _hidden_
 		std::mt19937	_gen;
 
 	public:
-		Random () : _gen{std::random_device{}()} {}
+		Random () __NE___ : _gen{std::random_device{}()} {}
 
 
 	// Uniform //
 		template <typename T>
-		ND_ EnableIf<IsFloatPoint<T>, T>  Uniform (T min, T max)
+		ND_ EnableIf<IsFloatPoint<T>, T>  Uniform (T min, T max) __NE___
 		{
 			STATIC_ASSERT( IsScalar<T> );
 			return std::uniform_real_distribution<T>{ min, max }( _gen );
 		}
 		
 		template <typename T>
-		ND_ EnableIf<IsInteger<T>, T>  Uniform (T min, T max)
+		ND_ EnableIf<IsInteger<T>, T>  Uniform (T min, T max) __NE___
 		{
 			STATIC_ASSERT( IsScalar<T> );
 			return std::uniform_int_distribution<T>{ min, max }( _gen );
 		}
 
 		template <typename T, int I>
-		ND_ Vec<T,I>  Uniform (const Vec<T,I> &min, const Vec<T,I> &max)
+		ND_ Vec<T,I>  Uniform (const Vec<T,I> &min, const Vec<T,I> &max) __NE___
 		{
 			Vec<T,I>	ret;
 			for (int i = 0; i < I; ++i) {
@@ -70,13 +70,13 @@ namespace _hidden_
 		}
 
 		template <typename T>
-		ND_ EnableIf<IsFloatPoint<T>, T>  Uniform ()
+		ND_ EnableIf<IsFloatPoint<T>, T>  Uniform () __NE___
 		{
 			return Uniform( T{0}, T{1} );
 		}
 
 		template <typename T>
-		ND_ EnableIf<IsInteger<T>, T>  Uniform ()
+		ND_ EnableIf<IsInteger<T>, T>  Uniform () __NE___
 		{
 			using IT = typename _hidden_::Random_Uniform_IntType<T>::type;
 			return T( Uniform<IT>( Base::MinValue<T>(), Base::MaxValue<T>() ));
@@ -85,15 +85,15 @@ namespace _hidden_
 
 	// Bernoulli //
 		// 'p' - the p distribution parameter (probability of generating true)
-		ND_ bool   Bernoulli (double p)		{ return std::bernoulli_distribution{p}( _gen ); }
-		ND_ bool2  Bernoulli2 (double p)	{ return {Bernoulli(p), Bernoulli(p)}; }
-		ND_ bool3  Bernoulli3 (double p)	{ return {Bernoulli(p), Bernoulli(p), Bernoulli(p)}; }
-		ND_ bool4  Bernoulli4 (double p)	{ return {Bernoulli(p), Bernoulli(p), Bernoulli(p), Bernoulli(p)}; }
+		ND_ bool   Bernoulli (double p)		__NE___	{ return std::bernoulli_distribution{p}( _gen ); }
+		ND_ bool2  Bernoulli2 (double p)	__NE___	{ return {Bernoulli(p), Bernoulli(p)}; }
+		ND_ bool3  Bernoulli3 (double p)	__NE___	{ return {Bernoulli(p), Bernoulli(p), Bernoulli(p)}; }
+		ND_ bool4  Bernoulli4 (double p)	__NE___	{ return {Bernoulli(p), Bernoulli(p), Bernoulli(p), Bernoulli(p)}; }
 
 
 	// Index //
 		template <typename Container, typename T>
-		ND_ usize  Index (const Container &chances, T value)
+		ND_ usize  Index (const Container &chances, T value) __NE___
 		{
 			for (usize i = 0; i < chances.size(); ++i)
 			{
@@ -111,7 +111,7 @@ namespace _hidden_
 		struct _Binomial;
 
 		template <typename Result, typename IntType>
-		ND_ auto  Binomial (IntType trials, double probability)
+		ND_ auto  Binomial (IntType trials, double probability) __NE___
 		{
 			return _Binomial< Result, IntType >{ *this, trials, probability };
 		}
@@ -125,13 +125,13 @@ namespace _hidden_
 		struct _Normal2;
 
 		template <typename Result, typename T>
-		ND_ auto  Normal (T mean, T sigma)
+		ND_ auto  Normal (T mean, T sigma) __NE___
 		{
 			return _Normal< Result, T >{ *this, mean, sigma };
 		}
 		
 		template <typename Result, typename T>
-		ND_ auto  Normal (T min, T max, T expected)
+		ND_ auto  Normal (T min, T max, T expected) __NE___
 		{
 			return _Normal2< Result, T >{ *this, min, max, expected };
 		}
@@ -152,16 +152,16 @@ namespace _hidden_
 		std::binomial_distribution<IT>	_dist;
 		Random &						_rnd;
 
-		_Binomial (Random &rnd, IT t, double p) : _dist{ t, p }, _rnd{rnd} {}
+		_Binomial (Random &rnd, IT t, double p)		__NE___ : _dist{ t, p }, _rnd{rnd} {}
 
 	public:
-		_Binomial (const _Binomial &) = delete;
-		_Binomial& operator = (const _Binomial &) = delete;
+		_Binomial (const _Binomial &)						= delete;
+		_Binomial& operator = (const _Binomial &)			= delete;
 
-		_Binomial (_Binomial &&) = default;
-		_Binomial& operator = (_Binomial &&) = default;
+		_Binomial (_Binomial &&)					__NE___	= default;
+		_Binomial& operator = (_Binomial &&)		__NE___	= default;
 
-		ND_ R  operator () () const
+		ND_ R  operator () ()						C_NE___
 		{
 			return _dist( _rnd._gen );
 		}
@@ -177,16 +177,16 @@ namespace _hidden_
 		std::binomial_distribution<IT>	_dist;
 		Random &						_rnd;
 
-		_Binomial (Random &rnd, IT t, double p) : _dist{ t, p }, _rnd{rnd} {}
+		_Binomial (Random &rnd, IT t, double p)		__NE___ : _dist{ t, p }, _rnd{rnd} {}
 
 	public:
-		_Binomial (const _Binomial &) = delete;
-		_Binomial& operator = (const _Binomial &) = delete;
+		_Binomial (const _Binomial &)						= delete;
+		_Binomial& operator = (const _Binomial &)			= delete;
 
-		_Binomial (_Binomial &&) = default;
-		_Binomial& operator = (_Binomial &&) = default;
+		_Binomial (_Binomial &&)					__NE___	= default;
+		_Binomial& operator = (_Binomial &&)		__NE___	= default;
 
-		ND_ Vec<R,I>  operator () () const
+		ND_ Vec<R,I>  operator () ()				C_NE___
 		{
 			Vec<R,I>	ret;
 			for (int i = 0; i < I; ++i) {
@@ -211,16 +211,16 @@ namespace _hidden_
 		mutable std::normal_distribution<T>		_dist;
 		Random &								_rnd;
 
-		_Normal (Random& rnd, T mean, T stddev) : _dist{ mean, stddev }, _rnd{rnd} {}
+		_Normal (Random& rnd, T mean, T stddev) __NE___	: _dist{ mean, stddev }, _rnd{rnd} {}
 
 	public:
-		_Normal (const _Normal &) = delete;
-		_Normal& operator = (const _Normal &) = delete;
+		_Normal (const _Normal &)						= delete;
+		_Normal& operator = (const _Normal &)			= delete;
 
-		_Normal (_Normal &&) = default;
-		_Normal& operator = (_Normal &&) = default;
+		_Normal (_Normal &&)					__NE___	 = default;
+		_Normal& operator = (_Normal &&)		__NE___	= default;
 		
-		ND_ R  operator () () const
+		ND_ R  operator () ()					C_NE___
 		{
 			return _dist( _rnd._gen );
 		}
@@ -236,16 +236,16 @@ namespace _hidden_
 		mutable std::normal_distribution<T>		_dist;
 		Random &								_rnd;
 
-		_Normal (Random& rnd, T mean, T stddev) : _dist{ mean, stddev }, _rnd{rnd} {}
+		_Normal (Random& rnd, T mean, T stddev) __NE___	: _dist{ mean, stddev }, _rnd{rnd} {}
 
 	public:
-		_Normal (const _Normal &) = delete;
-		_Normal& operator = (const _Normal &) = delete;
+		_Normal (const _Normal &)						= delete;
+		_Normal& operator = (const _Normal &)			= delete;
 
-		_Normal (_Normal &&) = default;
-		_Normal& operator = (_Normal &&) = default;
+		_Normal (_Normal &&)					__NE___	= default;
+		_Normal& operator = (_Normal &&)		__NE___	= default;
 		
-		ND_ Vec<R,I>  operator () () const
+		ND_ Vec<R,I>  operator () ()			C_NE___
 		{
 			Vec<R,I>	ret;
 			for (int i = 0; i < I; ++i) {
@@ -272,17 +272,17 @@ namespace _hidden_
 		const T									_min;
 		const T									_max;
 
-		_Normal2 (Random& rnd, T min, T max, T expected) :
+		_Normal2 (Random& rnd, T min, T max, T expected) __NE___ :
 			_dist{ expected, (max - min) / T(8) }, _rnd{rnd}, _min{min}, _max{max} {}
 
 	public:
-		_Normal2 (const _Normal2 &) = delete;
-		_Normal2& operator = (const _Normal2 &) = delete;
+		_Normal2 (const _Normal2 &)							= delete;
+		_Normal2& operator = (const _Normal2 &)				= delete;
 
-		_Normal2 (_Normal2 &&) = default;
-		_Normal2& operator = (_Normal2 &&) = default;
+		_Normal2 (_Normal2 &&)						__NE___	= default;
+		_Normal2& operator = (_Normal2 &&)			__NE___	= default;
 		
-		ND_ R  operator () () const
+		ND_ R  operator () ()						C_NE___
 		{
 			for (;;)
 			{
@@ -308,17 +308,17 @@ namespace _hidden_
 		const T									_min;
 		const T									_max;
 
-		_Normal2 (Random& rnd, T min, T max, T expected) :
+		_Normal2 (Random& rnd, T min, T max, T expected) __NE___ :
 			_dist{ expected, (max - min) / T(8) }, _rnd{rnd}, _min{min}, _max{max} {}
 
 	public:
-		_Normal2 (const _Normal2 &) = delete;
-		_Normal2& operator = (const _Normal2 &) = delete;
+		_Normal2 (const _Normal2 &)						= delete;
+		_Normal2& operator = (const _Normal2 &)			= delete;
 
-		_Normal2 (_Normal2 &&) = default;
-		_Normal2& operator = (_Normal2 &&) = default;
+		_Normal2 (_Normal2 &&)					__NE___	= default;
+		_Normal2& operator = (_Normal2 &&)		__NE___	= default;
 		
-		ND_ Vec<R,I>  operator () () const
+		ND_ Vec<R,I>  operator () ()			C_NE___
 		{
 			Vec<R,I>	ret;
 			for (int i = 0; i < I;)

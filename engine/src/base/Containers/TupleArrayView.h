@@ -54,8 +54,8 @@ namespace AE::Base
 			TIterator&  operator = (const TIterator &)	__NE___ = default;
 			TIterator&  operator = (TIterator &&)		__NE___ = default;
 			
-			ND_ bool  operator != (const TIterator &rhs) C_NE___	{ return not (*this == rhs); }
-			ND_ bool  operator == (const TIterator &rhs) C_NE___	{ return _ptr == rhs._ptr and _index == rhs._index; }
+			ND_ bool  operator != (const TIterator &rhs) C_NE___ { return not (*this == rhs); }
+			ND_ bool  operator == (const TIterator &rhs) C_NE___ { return _ptr == rhs._ptr and _index == rhs._index; }
 			
 			TIterator&  operator ++ ()					__NE___
 			{
@@ -98,7 +98,7 @@ namespace AE::Base
 
 	// methods
 	public:
-		constexpr TupleArrayView () __NE___ {}
+		constexpr TupleArrayView ()					__NE___ {}
 		
 		explicit constexpr TupleArrayView (usize count, const Types* ...args) __NE___ :
 			_count{ count },
@@ -156,11 +156,11 @@ namespace AE::Base
 		ND_ bool  operator != (const Self &rhs)		C_NE___	{ return not (*this == rhs); }
 
 	private:
-		template <usize I>	ND_ constexpr auto*	 _Data ()	C_NE___	{ return _arrays.template Get<I>().ptr; }
-		template <usize I>	ND_ constexpr auto*	 _Data ()	__NE___	{ return _arrays.template Get<I>().ptr; }
+		template <usize I>	ND_ constexpr auto*	 _Data ()		C_NE___	{ return _arrays.template Get<I>().ptr; }
+		template <usize I>	ND_ constexpr auto*	 _Data ()		__NE___	{ return _arrays.template Get<I>().ptr; }
 
 		template <typename Arg0, typename ...Args>
-		constexpr void  _InitCount (Arg0 arg0, Args ...args) __NE___
+		constexpr void  _InitCount (Arg0 arg0, Args ...args)	__NE___
 		{
 			_count = Max( _count, arg0.size() );
 
@@ -169,7 +169,7 @@ namespace AE::Base
 		}
 
 		template <usize I, typename Arg0, typename ...Args>
-		ND_ constexpr bool  _InitPtr (Arg0 arg0, Args ...args) __NE___
+		ND_ constexpr bool  _InitPtr (Arg0 arg0, Args ...args)	__NE___
 		{
 			if_unlikely( not (arg0.empty() or arg0.size() == _count) )
 			{
@@ -185,7 +185,7 @@ namespace AE::Base
 		}
 
 		template <usize I>
-		constexpr bool  _AllNonNull () C_NE___
+		constexpr bool  _AllNonNull ()							C_NE___
 		{
 			bool	non_null = data<I>() != null;
 

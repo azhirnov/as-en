@@ -25,6 +25,11 @@ namespace AE::Graphics
 		ShaderStorage_ReadWrite,
 		ShaderStorage_RW				= ShaderStorage_ReadWrite,
 
+		// buffer device address
+		ShaderAddress_Read				= ShaderStorage_Read,
+		ShaderAddress_Write				= ShaderStorage_Write,
+		ShaderAddress_RW				= ShaderStorage_RW,
+
 		ShaderUniform,
 		UniformRead						= ShaderUniform,
 		ShaderSample,					// sampled image or uniform texel buffer
@@ -74,12 +79,16 @@ namespace AE::Graphics
 		IndexBuffer,
 		VertexBuffer,
 		
+		// only for BuildRTASContext
+		CopyRTAS_Read,					// AS & src buffer
+		CopyRTAS_Write,					// AS & dst buffer
 		BuildRTAS_Read,
 		BuildRTAS_Write,
 		BuildRTAS_ReadWrite,			// for updating
 		BuildRTAS_RW					= BuildRTAS_ReadWrite,
 		BuildRTAS_ScratchBuffer,
-		ShaderRTAS_Read,				// use RTScene in shader
+
+		ShaderRTAS_Read,				// use RTScene in shader, for RT pipiline and ray query
 		RTShaderBindingTable,
 
 		ShadingRateImage,
@@ -175,6 +184,8 @@ namespace AE::Graphics
 			case EResourceState::VertexBuffer :
 			case EResourceState::ShadingRateImage :
 			case EResourceState::FragmentDensityMap :
+			case EResourceState::CopyRTAS_Read :
+			case EResourceState::CopyRTAS_Write :
 			case EResourceState::BuildRTAS_Read :
 			case EResourceState::BuildRTAS_Write :
 			case EResourceState::BuildRTAS_RW :

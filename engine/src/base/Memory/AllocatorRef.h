@@ -15,7 +15,7 @@ namespace AE::Base
 	//
 	
 	template <typename AllocatorType>
-	struct AllocatorRef
+	class AllocatorRef
 	{
 	// types
 	public:
@@ -35,50 +35,23 @@ namespace AE::Base
 
 	// methods
 	public:
-		AllocatorRef (Self &&other)			__NE___ : _alloc{other._alloc} {}
-		AllocatorRef (const Self &other)	__NE___ : _alloc{other._alloc} {}
-		AllocatorRef (AllocatorType &alloc)	__NE___ : _alloc{alloc} {}
+		AllocatorRef (Self &&other)											__NE___ : _alloc{other._alloc} {}
+		AllocatorRef (const Self &other)									__NE___ : _alloc{other._alloc} {}
+		AllocatorRef (AllocatorType &alloc)									__NE___ : _alloc{alloc} {}
 
-		ND_ AE_ALLOCATOR void*  Allocate (Bytes size)						__NE___
-		{
-			return _alloc.Allocate( size );
-		}
-
-		ND_ AE_ALLOCATOR void*  Allocate (const SizeAndAlign sizeAndAlign)	__NE___
-		{
-			return _alloc.Allocate( sizeAndAlign );
-		}
+		ND_ void*  Allocate (Bytes size)									__NE___	{ return _alloc.Allocate( size ); }
+		ND_ void*  Allocate (const SizeAndAlign sizeAndAlign)				__NE___ { return _alloc.Allocate( sizeAndAlign ); }
 
 		template <typename T>
-		ND_ T*  Allocate (usize count = 1)									__NE___
-		{
-			return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }));
-		}
+		ND_ T*  Allocate (usize count = 1)									__NE___ { return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
 
-		void  Deallocate (void* ptr)										__NE___
-		{
-			return _alloc.Deallocate( ptr );
-		}
+		void  Deallocate (void* ptr)										__NE___	{ return _alloc.Deallocate( ptr ); }
+		void  Deallocate (void* ptr, Bytes size)							__NE___	{ return _alloc.Deallocate( ptr, size ); }
+		void  Deallocate (void* ptr, const SizeAndAlign sizeAndAlign)		__NE___	{ return _alloc.Deallocate( ptr, sizeAndAlign ); }
 
-		void  Deallocate (void* ptr, Bytes size)							__NE___
-		{
-			return _alloc.Deallocate( ptr, size );
-		}
+		ND_ AllocatorType&  GetAllocatorRef ()								C_NE___	{ return _alloc; }
 
-		void  Deallocate (void* ptr, const SizeAndAlign sizeAndAlign)		__NE___
-		{
-			return _alloc.Deallocate( ptr, sizeAndAlign );
-		}
-
-		ND_ AllocatorType&  GetAllocatorRef ()								C_NE___
-		{
-			return _alloc;
-		}
-
-		ND_ bool  operator == (const Self &rhs)								C_NE___
-		{
-			return &_alloc == &rhs._alloc;
-		}
+		ND_ bool  operator == (const Self &rhs)								C_NE___	{ return &_alloc == &rhs._alloc; }
 	};
 
 
@@ -88,7 +61,7 @@ namespace AE::Base
 	//
 	
 	template <typename AllocatorType>
-	struct AllocatorRef2
+	class AllocatorRef2
 	{
 	// types
 	public:
@@ -109,50 +82,23 @@ namespace AE::Base
 
 	// methods
 	public:
-		AllocatorRef2 (Self &&other)			__NE___ : _alloc{other._alloc} {}
-		AllocatorRef2 (const Self &other)		__NE___ : _alloc{other._alloc} {}
-		AllocatorRef2 (AllocatorType &alloc)	__NE___ : _alloc{alloc} {}
+		AllocatorRef2 (Self &&other)										__NE___ : _alloc{other._alloc} {}
+		AllocatorRef2 (const Self &other)									__NE___ : _alloc{other._alloc} {}
+		AllocatorRef2 (AllocatorType &alloc)								__NE___ : _alloc{alloc} {}
 
-		ND_ AE_ALLOCATOR void*  Allocate (Bytes size)						__NE___
-		{
-			return _alloc.Allocate( SizeAndAlign{ size, _BaseAlign });
-		}
-
-		ND_ AE_ALLOCATOR void*  Allocate (const SizeAndAlign sizeAndAlign)	__NE___
-		{
-			return _alloc.Allocate( sizeAndAlign );
-		}
+		ND_ void*  Allocate (Bytes size)									__NE___	{ return _alloc.Allocate( SizeAndAlign{ size, _BaseAlign }); }
+		ND_ void*  Allocate (const SizeAndAlign sizeAndAlign)				__NE___	{ return _alloc.Allocate( sizeAndAlign ); }
 
 		template <typename T>
-		ND_ T*  Allocate (usize count = 1)									__NE___
-		{
-			return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }));
-		}
+		ND_ T*  Allocate (usize count = 1)									__NE___ { return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
 
-		void  Deallocate (void* ptr)										__NE___
-		{
-			return _alloc.Deallocate( ptr );
-		}
+		void  Deallocate (void* ptr)										__NE___ { return _alloc.Deallocate( ptr ); }
+		void  Deallocate (void* ptr, Bytes size)							__NE___	{ return _alloc.Deallocate( ptr, SizeAndAlign{ size, _BaseAlign }); }
+		void  Deallocate (void* ptr, const SizeAndAlign sizeAndAlign)		__NE___	{ return _alloc.Deallocate( ptr, sizeAndAlign ); }
 
-		void  Deallocate (void* ptr, Bytes size)							__NE___
-		{
-			return _alloc.Deallocate( ptr, SizeAndAlign{ size, _BaseAlign });
-		}
+		ND_ AllocatorType&  GetAllocatorRef ()								C_NE___	{ return _alloc; }
 
-		void  Deallocate (void* ptr, const SizeAndAlign sizeAndAlign)		__NE___
-		{
-			return _alloc.Deallocate( ptr, sizeAndAlign );
-		}
-
-		ND_ AllocatorType&  GetAllocatorRef ()								C_NE___
-		{
-			return _alloc;
-		}
-
-		ND_ bool  operator == (const Self &rhs)								C_NE___
-		{
-			return &_alloc == &rhs._alloc;
-		}
+		ND_ bool  operator == (const Self &rhs)								C_NE___	{ return &_alloc == &rhs._alloc; }
 	};
 
 
@@ -162,7 +108,7 @@ namespace AE::Base
 	//
 	
 	template <typename AllocatorType, usize BaseAlign>
-	struct AlignedAllocatorRefBaseAlign
+	class AlignedAllocatorRefBaseAlign
 	{
 	// types
 	public:
@@ -187,31 +133,15 @@ namespace AE::Base
 		AlignedAllocatorRefBaseAlign (const Self &other)	__NE___ : _alloc{other._alloc} {}
 		AlignedAllocatorRefBaseAlign (AllocatorType &alloc)	__NE___ : _alloc{alloc} {}
 
-		ND_ AE_ALLOCATOR void*  Allocate (Bytes size)		__NE___
-		{
-			return _alloc.Allocate( SizeAndAlign{ size, Bytes{BaseAlign} });
-		}
-		
 		template <typename T>
-		ND_ T*  Allocate (usize count = 1)					__NE___
-		{
-			return Cast<T>( Allocate( SizeOf<T> * count ));
-		}
+		ND_ T*		Allocate (usize count = 1)				__NE___	{ return Cast<T>( Allocate( SizeOf<T> * count )); }
+		ND_ void*	Allocate (Bytes size)					__NE___	{ return _alloc.Allocate( SizeAndAlign{ size, Bytes{BaseAlign} }); }
 
-		void  Deallocate (void* ptr, Bytes size)			__NE___
-		{
-			return _alloc.Deallocate( ptr, SizeAndAlign{ size, Bytes{BaseAlign} });
-		}
+		void  Deallocate (void* ptr, Bytes size)			__NE___	{ return _alloc.Deallocate( ptr, SizeAndAlign{ size, Bytes{BaseAlign} }); }
 
-		ND_ AllocatorType&  GetAllocatorRef ()				C_NE___
-		{
-			return _alloc;
-		}
+		ND_ AllocatorType&  GetAllocatorRef ()				C_NE___	{ return _alloc; }
 
-		ND_ bool  operator == (const Self &rhs)				C_NE___
-		{
-			return &_alloc == &rhs._alloc;
-		}
+		ND_ bool  operator == (const Self &rhs)				C_NE___	{ return &_alloc == &rhs._alloc; }
 	};
 	
 
@@ -221,7 +151,7 @@ namespace AE::Base
 	//
 
 	template <typename T, typename TAllocatorPtr>
-	struct StdAllocatorRef
+	class StdAllocatorRef
 	{
 	// types
 	public:
@@ -246,47 +176,29 @@ namespace AE::Base
 
 	// methods
 	public:
-		StdAllocatorRef (TAllocatorPtr alloc)	__NE___ : _alloc{FwdArg<TAllocatorPtr>(alloc)} {}
-		StdAllocatorRef (Self &&other)			__NE___ : _alloc{RVRef(other._alloc)} {}
-		StdAllocatorRef (const Self &other)		__NE___ : _alloc{other._alloc} {}
+		StdAllocatorRef (TAllocatorPtr alloc)				__NE___ : _alloc{FwdArg<TAllocatorPtr>(alloc)} {}
+		StdAllocatorRef (Self &&other)						__NE___ : _alloc{RVRef(other._alloc)} {}
+		StdAllocatorRef (const Self &other)					__NE___ : _alloc{other._alloc} {}
 		
 		template <typename B>
 		StdAllocatorRef (const StdAllocatorRef<B,TAllocatorPtr>& other) __NE___ : _alloc{other.GetAllocatorPtr()} {}
 
-		Self&  operator = (const Self &) = delete;
-		Self&  operator = (Self &&) = default;
+		Self&  operator = (const Self &)					= delete;
+		Self&  operator = (Self &&)							= default;
 
 		
-		ND_ AE_ALLOCATOR T*  allocate (const usize count)	__NE___
-		{
-			return Cast<T>( _alloc->Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }));
-		}
+		ND_ T*  allocate (const usize count)				__NE___	{ return Cast<T>( _alloc->Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
 
-		void  deallocate (T * const ptr, const usize count)	__NE___
-		{
-			return _alloc->Deallocate( ptr, SizeAndAlign{ SizeOf<T> * count, AlignOf<T> });
-		}
+		void  deallocate (T * const ptr, const usize count)	__NE___	{ return _alloc->Deallocate( ptr, SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }); }
 
-		ND_ Self  select_on_container_copy_construction ()	C_NE___
-		{
-			return Self{ *_alloc };
-		}
+		ND_ Self  select_on_container_copy_construction ()	C_NE___	{ return Self{ *_alloc }; }
 		
 		// removed in C++20
-		ND_ usize  max_size ()								C_NE___
-		{
-			return usize(UMax) / sizeof(T);
-		}
+		ND_ usize  max_size ()								C_NE___	{ return usize(UMax) / sizeof(T); }
 
-		ND_ TAllocatorPtr   GetAllocatorPtr ()				C_NE___
-		{
-			return _alloc;
-		}
+		ND_ TAllocatorPtr   GetAllocatorPtr ()				C_NE___	{ return _alloc; }
 
-		ND_ bool  operator == (const Self &rhs)				C_NE___
-		{
-			return _alloc == rhs._alloc;
-		}
+		ND_ bool  operator == (const Self &rhs)				C_NE___	{ return _alloc == rhs._alloc; }
 	};
 
 } // AE::Base

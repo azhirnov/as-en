@@ -1,5 +1,5 @@
 #ifdef VKFEATS_STRUCT
-	struct Extensions
+	struct VExtensions
 	{
 	// ---- instance ----
 		bool  surface                     : 1;   // VK_KHR_surface 
@@ -118,11 +118,11 @@
 		bool  presentId                   : 1;   // VK_KHR_present_id 
 		bool  presentWait                 : 1;   // VK_KHR_present_wait 
 
-		Extensions () { ZeroMem( this, Sizeof(*this) ); }
+		VExtensions () { ZeroMem( this, Sizeof(*this) ); }
 	};
 
 
-	struct Properties
+	struct VProperties
 	{
 		VkPhysicalDeviceProperties         properties;
 		VkPhysicalDeviceFeatures           features;
@@ -328,7 +328,7 @@
 		// VK_KHR_present_wait
 		VkPhysicalDevicePresentWaitFeaturesKHR  presentWaitFeats;
 
-		Properties () { ZeroMem( this, Sizeof(*this) ); }
+		VProperties () { ZeroMem( this, Sizeof(*this) ); }
 	};
 #endif // VKFEATS_STRUCT
 
@@ -449,7 +449,6 @@
 			VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME,
 			VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME,
 			VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
-			VK_EXT_MESH_SHADER_EXTENSION_NAME,
 			VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,
 			VK_KHR_SHADER_CLOCK_EXTENSION_NAME,
 			VK_KHR_SHADER_TERMINATE_INVOCATION_EXTENSION_NAME,
@@ -483,6 +482,7 @@
 		};
 		static const char* ext_1_1[] =
 		{
+			VK_EXT_MESH_SHADER_EXTENSION_NAME,
 			VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
 			VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
 			VK_KHR_RAY_QUERY_EXTENSION_NAME,
@@ -589,7 +589,7 @@
 		_extensions.pagebleDeviceLocalMemory    = (HasDeviceExtension( VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME ));
 		_extensions.sampleLocations             = (HasDeviceExtension( VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME ));
 		_extensions.fragmentBarycentric         = (HasDeviceExtension( VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME ));
-		_extensions.meshShader                  = (HasDeviceExtension( VK_EXT_MESH_SHADER_EXTENSION_NAME ));
+		_extensions.meshShader                  = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_EXT_MESH_SHADER_EXTENSION_NAME ));
 		_extensions.fragShaderInterlock         = (HasDeviceExtension( VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME ));
 		_extensions.shaderClock                 = (HasDeviceExtension( VK_KHR_SHADER_CLOCK_EXTENSION_NAME ));
 		_extensions.shaderTerminateInvocation   = (HasDeviceExtension( VK_KHR_SHADER_TERMINATE_INVOCATION_EXTENSION_NAME ));

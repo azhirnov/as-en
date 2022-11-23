@@ -8,17 +8,6 @@
 
 namespace AE::Graphics
 {
-	enum class EQueryType : ubyte
-	{
-		Timestamp,
-		PipelineStatistic,
-		Performance,
-		AccelStructCompactedSize,
-		_Count,
-		Unknown	= 0xFF,
-	};
-
-
 
 	//
 	// Vulkan Query Manager
@@ -34,8 +23,9 @@ namespace AE::Graphics
 			ushort			first		= UMax;
 			ushort			count		= 0;
 			ushort			numPasses	= 0;
+			EQueryType		type		= Default;
 
-			ND_ explicit operator bool () const	{ return pool != Default and count > 0; }
+			ND_ explicit operator bool ()	C_NE___	{ return pool != Default and count > 0; }
 		};
 
 		struct PipelineStatistic
@@ -44,6 +34,9 @@ namespace AE::Graphics
 			ulong	beforeClipping;				// VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT
 			ulong	afterClipping;				// VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT
 			ulong	fragShaderInvocations;		// VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT
+			// VK_QUERY_PIPELINE_STATISTIC_TASK_SHADER_INVOCATIONS_BIT_EXT 
+			// VK_QUERY_PIPELINE_STATISTIC_MESH_SHADER_INVOCATIONS_BIT_EXT
+			// VK_QUERY_TYPE_MESH_PRIMITIVES_GENERATED_EXT
 		};
 
 	private:
@@ -57,15 +50,10 @@ namespace AE::Graphics
 			uint					numPasses	= 1;
 			PerFrameCount_t			countArr	{};
 
-			ND_ explicit operator bool () const	{ return handle != Default; }
+			ND_ explicit operator bool ()	C_NE___	{ return handle != Default; }
 		};
 
 		using PoolArr_t = StaticArray< QueryPool, uint(EQueryType::_Count) >;
-
-		static constexpr uint	TimestampQueryPerFrame			= 1000;
-		static constexpr uint	PipelineStatQueryPerFrame		= 1000;
-		static constexpr uint	PerformanceQueryPerFrame		= 1000;
-		static constexpr uint	ASCompactedSizeQueryPerFrame	= 1000;
 
 
 	// variables
@@ -91,32 +79,32 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VQueryManager ();
-		~VQueryManager ();
+		VQueryManager ()																													__NE___;
+		~VQueryManager ()																													__NE___;
 
-		ND_ bool  Initialize (const VDevice &dev, uint maxFrames);
-			void  Deinitialize (const VDevice &dev);
+		ND_ bool  Initialize (const VDevice &dev, uint maxFrames)																			__NE___;
+			void  Deinitialize (const VDevice &dev)																							__NE___;
 
-			void  NextFrame (const VDevice &dev, FrameUID frameId);
+			void  NextFrame (const VDevice &dev, FrameUID frameId)																			__NE___;
 
-		ND_ bool  AcquireProfilingLock (const VDevice &dev);
-			bool  ReleaseProfilingLock (const VDevice &dev);
+		ND_ bool  AcquireProfilingLock (const VDevice &dev)																					__NE___;
+			bool  ReleaseProfilingLock (const VDevice &dev)																					__NE___;
 
-		ND_ Query  AllocQuery (EQueueType queue, EQueryType type, uint count = 1) const;
+		ND_ Query  AllocQuery (EQueueType queue, EQueryType type, uint count = 1)															C_NE___;
 
-		ND_ bool  SupportsCalibratedTimestamps () const		{ DRC_SHAREDLOCK( _drCheck );  return _calibratedTs; }
+		ND_ bool  SupportsCalibratedTimestamps ()																							C_NE___		{ DRC_SHAREDLOCK( _drCheck );  return _calibratedTs; }
 
-			VkResult  GetTimestamp (const VDevice &dev, const Query &q, OUT ulong* result, Bytes size) const;	// raw
-			VkResult  GetTimestamp (const VDevice &dev, const Query &q, OUT double* result, Bytes size) const;	// nanoseconds
-			VkResult  GetTimestamp (const VDevice &dev, const Query &q, OUT nanosecondsd* result, Bytes size) const;
-			VkResult  GetTimestampCalibrated (const VDevice &dev, const Query &q, OUT ulong* result, OUT ulong* maxDeviation, Bytes size) const;
-			VkResult  GetPerformanceCounter (const VDevice &dev, const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes size) const;
-			VkResult  GetPipelineStatistic (const VDevice &dev, const Query &q, OUT PipelineStatistic* result, Bytes size) const;
-			VkResult  GetRTASCompactedSize (const VDevice &dev, const Query &q, OUT Bytes64u* result, Bytes size) const;
+			VkResult  GetTimestamp (const VDevice &dev, const Query &q, OUT ulong* result, Bytes size)										C_NE___;	// raw
+			VkResult  GetTimestamp (const VDevice &dev, const Query &q, OUT double* result, Bytes size)										C_NE___;	// nanoseconds
+			VkResult  GetTimestamp (const VDevice &dev, const Query &q, OUT nanosecondsd* result, Bytes size)								C_NE___;
+			VkResult  GetTimestampCalibrated (const VDevice &dev, const Query &q, OUT ulong* result, OUT ulong* maxDeviation, Bytes size)	C_NE___;
+			VkResult  GetPerformanceCounter (const VDevice &dev, const Query &q, OUT VkPerformanceCounterResultKHR* result, Bytes size)		C_NE___;
+			VkResult  GetPipelineStatistic (const VDevice &dev, const Query &q, OUT PipelineStatistic* result, Bytes size)					C_NE___;
+			VkResult  GetRTASProperty (const VDevice &dev, const Query &q, OUT Bytes64u* result, Bytes size)								C_NE___;
 
 	private:
-		static void  _ResetPoolOnHost (const VDevice &dev, uint idx, QueryPool &pool);
-		static void  _ResetPool (const VDevice &dev, VkCommandBuffer cmdbuf, uint idx, QueryPool &pool);
+		static void  _ResetPoolOnHost (const VDevice &dev, uint idx, QueryPool &pool)														__NE___;
+		static void  _ResetPool (const VDevice &dev, VkCommandBuffer cmdbuf, uint idx, QueryPool &pool)										__NE___;
 	};
 
 

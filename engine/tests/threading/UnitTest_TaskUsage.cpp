@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/TaskSystem/WorkerThread.h"
+#include "threading/TaskSystem/ThreadManager.h"
 #include "threading/Primitives/DataRaceCheck.h"
 #include "UnitTest_Common.h"
 
@@ -83,14 +83,14 @@ namespace
 
 	static void  ReuseTask_Test1 ()
 	{
-		LocalTaskScheduler	scheduler {1};
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
 		ExeOrder	value;	// access to value protected by internal synchronizations
 
 		auto		task1 = Cast<Test1_Task1>( scheduler->Run<Test1_Task1>( Tuple{ArgRef(value)} ));
 		TEST( task1 );
 
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 		
 		TEST( scheduler->Wait({ task1 }));
 		TEST( task1->Status() == EStatus::Completed );
@@ -172,15 +172,15 @@ namespace
 	
 	static void  ReuseTask_Test2 ()
 	{
-		LocalTaskScheduler	scheduler {1};
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
 		ExeOrder	value;	// access to value protected by internal synchronizations
 
 		AsyncTask	task1	= scheduler->Run<Test2_Task1>( Tuple{ArgRef(value)} );
 		AsyncTask	task2	= scheduler->Run<Test2_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 		TEST( task1 and task2 );
-
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 		
 		TEST( scheduler->Wait({ task1, task2 }));
 		TEST( task1->Status() == EStatus::Completed );
@@ -278,16 +278,16 @@ namespace
 
 	static void  ReuseTask_Test3 ()
 	{
-		LocalTaskScheduler	scheduler {1};
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
 		ExeOrder	value;	// access to value protected by internal synchronizations
 		
 		AsyncTask	task1	= scheduler->Run<Test3_Task2>( Tuple{ArgRef(value)} );
 		AsyncTask	task2	= scheduler->Run<Test3_Task3>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 		TEST( task1 and task2 );
-
-		scheduler->AddThread( MakeRC<WorkerThread>() );
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 		
 		TEST( scheduler->Wait({ task1, task2 }));
 		TEST( task1->Status() == EStatus::Completed );

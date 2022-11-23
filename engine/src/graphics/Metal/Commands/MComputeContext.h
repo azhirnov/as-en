@@ -138,7 +138,6 @@ namespace AE::Graphics::_hidden_
 
 		_MComputeContextImpl () = delete;
 		_MComputeContextImpl (const _MComputeContextImpl &) = delete;
-		~_MComputeContextImpl () override {}
 
 		void  BindPipeline (ComputePipelineID ppln) override final;
 		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default) override final;
@@ -149,14 +148,6 @@ namespace AE::Graphics::_hidden_
 
 		void  DispatchIndirect (MetalBuffer buffer, Bytes offset)				{ RawCtx::DispatchThreadgroupsWithIndirectBuffer( buffer, offset, this->_states.localSize ); }
 		void  DispatchIndirect (BufferID buffer, Bytes offset)	override final;
-		
-		void  CommitBarriers ()									override final	{ RawCtx::_CommitBarriers(); }
-		
-		void  DebugMarker (NtStringView text, RGBA8u color)		override final	{ RawCtx::_DebugMarker( text, color ); }
-		void  PushDebugGroup (NtStringView text, RGBA8u color)	override final	{ RawCtx::_PushDebugGroup( text, color ); }
-		void  PopDebugGroup ()									override final	{ RawCtx::_PopDebugGroup(); }
-		
-		ND_ AccumBar  AccumBarriers ()											{ return AccumBar{ *this }; }
 
 		MBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -183,10 +174,9 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MComputeContextImpl<C>::BindPipeline (ComputePipelineID ppln)
 	{
-		auto*	cppln = this->_mngr.Get( ppln );
-		CHECK_ERRV( cppln );
+		auto&	cppln = _GetResourcesOrThrow( ppln );
 
-		RawCtx::_BindPipeline( cppln->Handle(), cppln->LocalSize() );
+		RawCtx::_BindPipeline( cppln.Handle(), cppln.LocalSize() );
 	}
 	
 /*
@@ -197,10 +187,9 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MComputeContextImpl<C>::BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
 	{
-		auto*	desc_set = this->_mngr.Get( ds );
-		CHECK_ERRV( desc_set );
+		auto&	desc_set = _GetResourcesOrThrow( ds );
 
-		RawCtx::_BindDescriptorSet( index, *desc_set, dynamicOffsets );
+		RawCtx::_BindDescriptorSet( index, desc_set, dynamicOffsets );
 	}
 
 /*
@@ -211,6 +200,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MComputeContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
 	{
+		Unused( offset, size, values, stages );
 		// TODO
 		//RawCtx::_PushComputeConstant( offset, size, values, stages );
 	}
@@ -223,14 +213,11 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MComputeContextImpl<C>::DispatchIndirect (BufferID bufferid, Bytes offset)
 	{
-		auto*	buf = this->_mngr.Get( bufferid );
-		CHECK_ERRV( buf );
-		ASSERT( buf->Size() >= offset + sizeof(DispatchIndirectCommand) );
+		auto&	buf = _GetResourcesOrThrow( bufferid );
+		ASSERT( buf.Size() >= offset + sizeof(DispatchIndirectCommand) );
 
-		RawCtx::_DispatchIndirect( buf->Handle(), offset );
+		RawCtx::_DispatchIndirect( buf.Handle(), offset );
 	}
-//-----------------------------------------------------------------------------
-	
 
 
 } // AE::Graphics::_hidden_

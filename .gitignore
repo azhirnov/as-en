@@ -1,10 +1,8 @@
 ﻿_build
 _build_external
-_build_res
 
-_build_22
-_build_external_22
-_build_res_22
+_build22
+_build_external22
 
 *.user
 *.glsl_dbg

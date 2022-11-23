@@ -308,7 +308,7 @@ namespace AE::Scripting
 
 		
 		template <typename T>
-		static void  CopyConstructor (AngelScript::asIScriptGeneric *gen) __TH___
+		static void  CopyConstructor (AngelScript::asIScriptGeneric *gen) __Th___
 		{
 			T const*	src = static_cast< const T *>( gen->GetArgObject(0) );
 			void *		dst = gen->GetObject();
@@ -324,7 +324,7 @@ namespace AE::Scripting
 
 
 		template <typename T>
-		static void  CopyAssign (AngelScript::asIScriptGeneric *gen) __TH___
+		static void  CopyAssign (AngelScript::asIScriptGeneric *gen) __Th___
 		{
 			T const*	src = static_cast< const T *>( gen->GetArgObject(0) );
 			T*			dst = static_cast< T *>( gen->GetObject() );

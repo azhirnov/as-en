@@ -7,6 +7,7 @@
 
 namespace AE::Base
 {
+	static constexpr Bytes	DefaultAllocatorAlign	{__STDCPP_DEFAULT_NEW_ALIGNMENT__};
 	static constexpr Bytes	SmallAllocationSize		{4 << 10};		// 4 Kb
 	static constexpr Bytes	LargeAllocationSize		{4 << 20};		// 4 Mb - large page size in WIndows
 	static constexpr Bytes	DefaultAllocationSize	= SmallAllocationSize;
@@ -32,7 +33,7 @@ namespace AE::Base
 	using UniqueNoDel = std::unique_ptr< T, UniquePtr_PlacementDelete<T> >;
 	
 	template <typename T, typename ...Types>
-	ND_ forceinline UniqueNoDel<T>  MakeUniqueNoDel (Types&&... args) __TH___
+	ND_ forceinline UniqueNoDel<T>  MakeUniqueNoDel (Types&&... args) __Th___
 	{
 		return UniqueNoDel<T>{ new T{ FwdArg<Types>( args )... }};
 	}
@@ -112,7 +113,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename ...Args>
-	forceinline T *  PlacementNew (OUT void *ptr, Args&&... args) __TH___
+	forceinline T *  PlacementNew (OUT void *ptr, Args&&... args) __Th___
 	{
 		ASSERT( ptr != null );
 		CheckPointerCast<T>( ptr );
@@ -159,7 +160,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename ...Args>
-	forceinline void  Reconstruct (INOUT T &value, Args&& ...args) __TH___
+	forceinline void  Reconstruct (INOUT T &value, Args&& ...args) __Th___
 	{
 		CheckPointerCast<T>( &value );
 

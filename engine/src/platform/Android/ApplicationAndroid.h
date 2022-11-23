@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/StdInclude.h"
+#include "base/Defines/StdInclude.h"
 
 #ifdef AE_PLATFORM_ANDROID
 # include <android/asset_manager_jni.h>

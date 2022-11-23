@@ -91,7 +91,7 @@ namespace AE::App
 			ScriptActionBindingsBase (SerializableInputActions& self) : _self{&self} {}
 
 			template <typename T>
-			T*  _CreateMode (const String &name) __TH___
+			T*  _CreateMode (const String &name) __Th___
 			{
 				CHECK_THROW_MSG( _self != null );
 
@@ -122,8 +122,8 @@ namespace AE::App
 			ScriptBindingsModeBase () {}
 			ScriptBindingsModeBase (SerializableInputActions& self, InputMode& mode) : _self{&self}, _mode{&mode} {}
 
-			void  _Add (ushort type, const ScriptActionInfo &value) __TH___;
-			void  _Inherit (const String &name) __TH___;
+			void  _Add (ushort type, const ScriptActionInfo &value) __Th___;
+			void  _Inherit (const String &name) __Th___;
 		};
 	  #endif
 
@@ -168,7 +168,7 @@ namespace AE::App
 
 		
 	  #ifdef AE_ENABLE_SCRIPTING
-		static bool  BindBase (const Scripting::ScriptEnginePtr &se) __TH___;
+		static bool  BindBase (const Scripting::ScriptEnginePtr &se) __Th___;
 	  #endif
 
 

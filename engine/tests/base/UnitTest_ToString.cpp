@@ -31,7 +31,7 @@ namespace
 		String	b1 = ToAnsiString<char>( a1.native() );
 		TEST( b1 == "aa/bbb/cc/dd.111" );
 
-	#ifndef AE_PLATFORM_ANDROID
+	#if 0 //ndef AE_PLATFORM_ANDROID
 		Path	a2{u8"aa/путь/к/файлу.ttt"};
 		String	b2 = ToAnsiString<char>( a2.native() );
 		TEST( b2 == "aa/????/?/?????.ttt" );

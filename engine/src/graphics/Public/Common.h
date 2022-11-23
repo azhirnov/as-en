@@ -31,7 +31,7 @@ namespace AE::Graphics
 	using AE::Threading::DeferExLock;
 	using AE::Threading::DeferSharedLock;
 	using AE::Threading::EMemoryOrder;
-	using AE::Threading::ThreadFence;
+	using AE::Threading::MemoryBarrier;
 
 
 	//

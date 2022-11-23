@@ -13,6 +13,9 @@
 
 namespace
 {
+	using ESourceType = IDataSource::ESourceType;
+
+
 	ND_ static Array<ubyte>  GenRandomArray (Bytes size)
 	{
 		Array<ubyte>	temp;
@@ -345,36 +348,130 @@ namespace
 		for (uint i = 0; i < uint(arr.size()); ++i)
 			TEST( arr[i] == i );
 	}
+	
 
-
-#ifdef AE_PLATFORM_WINDOWS
-	static void  WinFile_Test1 ()
+	template <typename RStream, typename WStream>
+	static void  Stream_Test1 ()
 	{
-		CHECK_FATAL( FileSystem::FindAndSetCurrent( "stream_test", 5 ));
-
-		const auto		src_data	= GenRandomArray( 2_Mb );
-		const Path		fname		{"wfile1_data.txt"};
-
+		const ulong	file_size	= 128ull << 20;	// Mb
+		const uint	buf_size	= 4u << 10;		// Kb
+		STATIC_ASSERT( file_size % buf_size == 0 );
+		
+		const Path		fname {"stream1_data.txt"};
 		{
-			FileWStream	file {fname};
-			TEST( file.IsOpen() );
-			TEST( file.Write( ArrayView<ubyte>{src_data} ));
+			WStream		wfile {fname};
+			TEST( wfile.IsOpen() );
+			TEST( AllBits( wfile.GetSourceType(), ESourceType::SequentialAccess | ESourceType::WriteAccess ));
+
+			ulong	buf [buf_size / sizeof(ulong)];
+			ulong	pos = 0;
+			
+			while ( pos < file_size )
+			{
+				for (uint i = 0; i < CountOf(buf); ++i) {
+					buf[i] = pos + i;
+				}
+
+				TEST( wfile.WriteSeq( buf, Sizeof(buf) ) == buf_size );
+				pos += buf_size;
+			}
+
+			TEST( wfile.Position() == file_size );
 		}
+		{
+			RStream		rfile {fname};
+			TEST( rfile.IsOpen() );
+			TEST( AllBits( rfile.GetSourceType(), ESourceType::SequentialAccess | ESourceType::ReadAccess ));
+			TEST( rfile.Size() == file_size );
+			
+			ulong	dst_buf [buf_size / sizeof(ulong)];
+			ulong	ref_buf [buf_size / sizeof(ulong)];
+			ulong	pos = 0;
 
-		WinRFileStream	rfile{ Path{fname}, WinRFileStream::EFlags::SequentialScan };
-		TEST( rfile.IsOpen() );
+			while ( pos < file_size )
+			{
+				for (uint i = 0; i < CountOf(ref_buf); ++i) {
+					ref_buf[i] = pos + i;
+				}
 
-		Array<ubyte>	dst_data;
-		TEST( rfile.Read( rfile.Size(), OUT dst_data ));
+				TEST( rfile.ReadSeq( OUT dst_buf, Sizeof(dst_buf) ) == buf_size );
+				TEST( MemEqual( dst_buf, ref_buf ));
 
-		TEST( src_data == dst_data );
+				pos += buf_size;
+			}
+		}
 	}
-#endif
+
+
+	template <typename RFile, typename WFile>
+	static void  File_Test1 (bool reserve)
+	{
+		const ulong	file_size	= 128ull << 20;	// Mb
+		const uint	buf_size	= 4u << 10;		// Kb
+		STATIC_ASSERT( file_size % buf_size == 0 );
+
+		const Path		fname {"file1_data.txt"};
+		{
+			WFile	wfile {fname};
+			TEST( wfile.IsOpen() );
+			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
+
+			if ( reserve )
+			{
+				TEST( wfile.Reserve( Bytes{file_size} ) == file_size );
+				TEST( wfile.Capacity() == file_size );
+			}
+
+			ulong	buf [buf_size / sizeof(ulong)];
+			ulong	pos = 0;
+			
+			while ( pos < file_size )
+			{
+				for (uint i = 0; i < CountOf(buf); ++i) {
+					buf[i] = pos + i;
+				}
+
+				TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
+				pos += buf_size;
+			}
+
+			TEST( wfile.Capacity() == file_size );
+		}
+		{
+			RFile	rfile {fname};
+			TEST( rfile.IsOpen() );
+			TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess ));
+			TEST( rfile.Size() == file_size );
+			
+			ulong	dst_buf [buf_size / sizeof(ulong)];
+			ulong	ref_buf [buf_size / sizeof(ulong)];
+			ulong	pos = 0;
+
+			while ( pos < file_size )
+			{
+				for (uint i = 0; i < CountOf(ref_buf); ++i) {
+					ref_buf[i] = pos + i;
+				}
+
+				TEST( rfile.ReadBlock( Bytes{pos}, OUT dst_buf, Sizeof(dst_buf) ) == buf_size );
+				TEST( MemEqual( dst_buf, ref_buf ));
+
+				pos += buf_size;
+			}
+		}
+	}
 }
 
 
-extern void UnitTest_Stream ()
+extern void UnitTest_DataSource ()
 {
+	const Path	curr	= FileSystem::CurrentPath();
+	const Path	folder	{AE_CURRENT_DIR "/ds_test"};
+	
+	FileSystem::RemoveAll( folder );
+	FileSystem::CreateDirectories( folder );
+	TEST( FileSystem::SetCurrentPath( folder ));
+
 	#ifdef AE_ENABLE_BROTLI
 	BrotliStream_Test1();
 	BrotliStream_Test2();
@@ -388,10 +485,21 @@ extern void UnitTest_Stream ()
 	FastStream_Test2();
 	FastStream_Test3();
 	FastStream_Test4();
-	
+
+	Stream_Test1< FileRStream,		FileWStream >();
+	File_Test1<   FileRDataSource,	FileWDataSource >( false );
+
 	#ifdef AE_PLATFORM_WINDOWS
-	WinFile_Test1();
+		Stream_Test1< WinRFileStream,		WinWFileStream		>();
+		Stream_Test1< FileRStream,			WinWFileStream		>();
+		Stream_Test1< WinRFileStream,		FileWStream			>();
+		File_Test1<   WinRFileDataSource,	WinWFileDataSource	>( false );
+		File_Test1<   WinRFileDataSource,	FileWDataSource		>( false );
+		File_Test1<   FileRDataSource,		WinWFileDataSource	>( false );
+		File_Test1<   WinRFileDataSource,	WinWFileDataSource	>( true );
 	#endif
+
+	FileSystem::SetCurrentPath( curr );
 
 	TEST_PASSED();
 }

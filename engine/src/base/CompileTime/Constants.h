@@ -16,20 +16,20 @@ namespace AE::Base
 		struct _UMax
 		{
 			template <typename T>
-			ND_ constexpr operator const T () const
+			ND_ constexpr operator const T ()											C_NE___
 			{
 				STATIC_ASSERT( T(~T{0}) > T{0} );
 				return T(~T{0});
 			}
 			
 			template <typename T>
-			ND_ friend constexpr bool  operator == (const T& left, const _UMax &right)
+			ND_ friend constexpr bool  operator == (const T& left, const _UMax &right)	__NE___
 			{
 				return T(right) == left;
 			}
 			
 			template <typename T>
-			ND_ friend constexpr bool  operator != (const T& left, const _UMax &right)
+			ND_ friend constexpr bool  operator != (const T& left, const _UMax &right)	__NE___
 			{
 				return T(right) != left;
 			}
@@ -47,44 +47,44 @@ namespace AE::Base
 		struct _Zero
 		{
 			template <typename T>
-			ND_ constexpr operator const T () const
+			ND_ constexpr operator const T ()											C_NE___
 			{
 				//STATIC_ASSERT( std::is_integral_v<T> || std::is_enum_v<T> );
 				return T(0);
 			}
 			
 			template <typename T>
-			ND_ friend constexpr auto  operator == (const T& left, const _Zero &right)
+			ND_ friend constexpr auto  operator == (const T& left, const _Zero &right)	__NE___
 			{
 				return T(right) == left;
 			}
 			
 			template <typename T>
-			ND_ friend constexpr auto  operator != (const T& left, const _Zero &right)
+			ND_ friend constexpr auto  operator != (const T& left, const _Zero &right)	__NE___
 			{
 				return T(right) != left;
 			}
 
 			template <typename T>
-			ND_ friend constexpr auto  operator > (const T& left, const _Zero &right)
+			ND_ friend constexpr auto  operator > (const T& left, const _Zero &right)	__NE___
 			{
 				return left > T(right);
 			}
 
 			template <typename T>
-			ND_ friend constexpr auto  operator < (const T& left, const _Zero &right)
+			ND_ friend constexpr auto  operator < (const T& left, const _Zero &right)	__NE___
 			{
 				return left < T(right);
 			}
 
 			template <typename T>
-			ND_ friend constexpr auto  operator >= (const T& left, const _Zero &right)
+			ND_ friend constexpr auto  operator >= (const T& left, const _Zero &right)	__NE___
 			{
 				return left >= T(right);
 			}
 
 			template <typename T>
-			ND_ friend constexpr auto  operator <= (const T& left, const _Zero &right)
+			ND_ friend constexpr auto  operator <= (const T& left, const _Zero &right)	__NE___
 			{
 				return left <= T(right);
 			}
@@ -106,10 +106,10 @@ namespace AE::Base
 
 
 	public:
-		constexpr AnyFloatConst (double val) : _d{val}, _f{float(val)} {}
+		constexpr AnyFloatConst (double val)	__NE___	: _d{val}, _f{float(val)} {}
 		
 		template <typename T>
-		ND_ constexpr operator const T () const
+		ND_ constexpr operator const T ()		C_NE___
 		{
 			if constexpr( std::is_same_v< T, double >)
 				return _d;
@@ -134,28 +134,28 @@ namespace AE::Base
 			bool	_value;
 
 		public:
-			constexpr BoolType (bool value) : _value{ value } {}
-			constexpr BoolType (const BoolType &other) : _value{ other._value } {}
+			constexpr BoolType (bool value)								__NE___	: _value{ value } {}
+			constexpr BoolType (const BoolType &other)					__NE___	: _value{ other._value } {}
 			
-			constexpr BoolType (bool value, const char* description) : _value{ value } { (void)(description); }
+			constexpr BoolType (bool value, const char* description)	__NE___	: _value{ value } { (void)(description); }
 
-			constexpr BoolType& operator = (const BoolType &rhs)	{ _value = rhs._value;  return *this; }
-			constexpr BoolType& operator = (bool rhs)				{ _value = rhs;  return *this; }
+			constexpr BoolType& operator = (const BoolType &rhs)		__NE___	{ _value = rhs._value;  return *this; }
+			constexpr BoolType& operator = (bool rhs)					__NE___	{ _value = rhs;  return *this; }
 
-			ND_ bool*		operator & ()							{ return &_value; }
-			ND_ bool const*	operator & ()					const	{ return &_value; }
+			ND_ bool*		operator & ()								__NE___	{ return &_value; }
+			ND_ bool const*	operator & ()								C_NE___	{ return &_value; }
 
-			ND_ constexpr operator bool ()					const	{ return _value; }
+			ND_ constexpr operator bool ()								C_NE___	{ return _value; }
 		};
 
 		template <bool Value>
 		struct NamedBoolean
 		{
-			constexpr NamedBoolean ()						{}
-			explicit constexpr NamedBoolean (const char*)	{}
+			constexpr NamedBoolean ()						__NE___	{}
+			explicit constexpr NamedBoolean (const char*)	__NE___	{}
 
-			ND_ constexpr operator bool () const			{ return Value; }
-			ND_ constexpr operator BoolType () const		{ return BoolType{Value}; }
+			ND_ constexpr operator bool ()					C_NE___	{ return Value; }
+			ND_ constexpr operator BoolType ()				C_NE___	{ return BoolType{Value}; }
 		};
 	}
 

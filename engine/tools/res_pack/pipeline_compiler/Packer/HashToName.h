@@ -43,7 +43,7 @@ namespace AE::Base
 		
 
 		template <usize Size, uint UID, bool Opt, uint Seed>
-		ND_ String  operator () (const NamedID< Size, UID, Opt, Seed > &name) C_TH___
+		ND_ String  operator () (const NamedID< Size, UID, Opt, Seed > &name) C_Th___
 		{
 			NameHash	key{ uint(name.GetHash32()), UID };
 
@@ -86,7 +86,7 @@ namespace AE::Base
 		}
 
 
-		void  Merge (const HashToName &value) __TH___
+		void  Merge (const HashToName &value) __Th___
 		{
 			for (auto& [h, n] : value._map) {
 				_map.emplace( h, n );

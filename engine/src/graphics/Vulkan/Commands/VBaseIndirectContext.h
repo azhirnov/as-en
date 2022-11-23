@@ -188,7 +188,7 @@ namespace AE::Graphics::_hidden_
 			uint				srcCount;
 			VkBuffer			dstBuffer;
 			Bytes				dstOffset;
-			Bytes32u			dstSize;
+			Bytes32u			stride;
 			VkQueryResultFlags	flags;
 		};
 
@@ -408,11 +408,26 @@ namespace AE::Graphics::_hidden_
 			VkCopyAccelerationStructureModeKHR	mode;
 		};
 
+		struct CopyASToMemoryCmd : BaseCmd
+		{
+			VkAccelerationStructureKHR			src;
+			VkDeviceAddress						dst;
+			VkCopyAccelerationStructureModeKHR	mode;
+		};
+
+		struct CopyMemoryToASCmd : BaseCmd
+		{
+			VkDeviceAddress						src;
+			VkAccelerationStructureKHR			dst;
+			VkCopyAccelerationStructureModeKHR	mode;
+		};
+
 		struct WriteASPropertiesCmd : BaseCmd
 		{
-			VkAccelerationStructureKHR		as;
-			VkQueryPool						pool;
-			uint							index;
+			VkAccelerationStructureKHR			as;
+			VkQueryPool							pool;
+			uint								index;
+			VkQueryType							type;
 		};
 		
 		//-------------------------------------------------
@@ -420,10 +435,30 @@ namespace AE::Graphics::_hidden_
 
 		struct TraceRaysCmd : BaseCmd
 		{
+			VkStridedDeviceAddressRegionKHR		raygen;
+			VkStridedDeviceAddressRegionKHR		miss;
+			VkStridedDeviceAddressRegionKHR		hit;
+			VkStridedDeviceAddressRegionKHR		callable;
+			uint3								dim;
 		};
 
 		struct TraceRaysIndirectCmd : BaseCmd
 		{
+			VkStridedDeviceAddressRegionKHR		raygen;
+			VkStridedDeviceAddressRegionKHR		miss;
+			VkStridedDeviceAddressRegionKHR		hit;
+			VkStridedDeviceAddressRegionKHR		callable;
+			VkDeviceAddress						indirectDeviceAddress;
+		};
+		
+		struct TraceRaysIndirect2Cmd : BaseCmd
+		{
+			VkDeviceAddress						indirectDeviceAddress;
+		};
+
+		struct RayTracingSetStackSizeCmd : BaseCmd
+		{
+			uint		size;
 		};
 
 
@@ -484,10 +519,14 @@ namespace AE::Graphics::_hidden_
 			/* acceleration structure build commands */\
 			_visitor_( BuildASCmd )\
 			_visitor_( CopyASCmd )\
+			_visitor_( CopyASToMemoryCmd )\
+			_visitor_( CopyMemoryToASCmd )\
 			_visitor_( WriteASPropertiesCmd )\
 			/* ray tracing commands */\
 			_visitor_( TraceRaysCmd )\
 			_visitor_( TraceRaysIndirectCmd )\
+			_visitor_( TraceRaysIndirect2Cmd )\
+			_visitor_( RayTracingSetStackSizeCmd )\
 
 		using Commands_t	= TypeList<
 				#define AE_BASE_IND_CTX_VISIT( _name_ )		_name_,
@@ -522,21 +561,21 @@ namespace AE::Graphics::_hidden_
 		ND_ VBakedCommands	Bake ()								__NE___;
 
 		template <typename CmdType, typename ...DynamicTypes>
-		ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)	__TH___	{ return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
+		ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)	__Th___	{ return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
 
-		void  DebugMarker (NtStringView text, RGBA8u color)		__TH___;
-		void  PushDebugGroup (NtStringView text, RGBA8u color)	__TH___;
-		void  PopDebugGroup ()									__TH___;
-		void  CommitBarriers (const VkDependencyInfoKHR &)		__TH___;
+		void  DebugMarker (NtStringView text, RGBA8u color)		__Th___;
+		void  PushDebugGroup (NtStringView text, RGBA8u color)	__Th___;
+		void  PopDebugGroup ()									__Th___;
+		void  CommitBarriers (const VkDependencyInfoKHR &)		__Th___;
 		
-		void  BindDescriptorSet (VkPipelineBindPoint bindPoint, VkPipelineLayout layout, uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default)	__TH___;
-		void  BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout)																__TH___;
-		void  PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages)											__TH___;
+		void  BindDescriptorSet (VkPipelineBindPoint bindPoint, VkPipelineLayout layout, uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default)	__Th___;
+		void  BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout)																__Th___;
+		void  PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages)											__Th___;
 		
-		void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch, StringView taskName, RGBA8u color, IGraphicsProfiler::EContextType type)			__TH___;
-		void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch, IGraphicsProfiler::EContextType type)													__TH___;
+		void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch, StringView taskName, RGBA8u color, IGraphicsProfiler::EContextType type)			__Th___;
+		void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch, IGraphicsProfiler::EContextType type)													__Th___;
 
-		void  DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)																					__TH___;
+		void  DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)																					__Th___;
 		
 		ND_ static bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, void* root)																			__NE___;
 
@@ -574,21 +613,21 @@ namespace AE::Graphics::_hidden_
 		virtual ~_VBaseIndirectContext ()														__NE___;
 
 	protected:
-		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf)								__TH___	: _cmdbuf{RVRef(cmdbuf)} {}
+		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf)								__NE___	: _cmdbuf{RVRef(cmdbuf)} {}
 
-		explicit _VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor)					__TH___;
-		_VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor, VSoftwareCmdBufPtr cmdbuf)__TH___;
+		explicit _VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor)					__Th___;
+		_VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor, VSoftwareCmdBufPtr cmdbuf)__Th___;
 
 		ND_ bool	_IsValid ()																	C_NE___	{ return _cmdbuf and _cmdbuf->IsValid(); }
 
-		void  _DebugMarker (NtStringView text, RGBA8u color)									__TH___	{ _cmdbuf->DebugMarker( text, color ); }
-		void  _PushDebugGroup (NtStringView text, RGBA8u color)									__TH___	{ _cmdbuf->PushDebugGroup( text, color ); }
-		void  _PopDebugGroup ()																	__TH___	{ _cmdbuf->PopDebugGroup(); }
+		void  _DebugMarker (NtStringView text, RGBA8u color)									__Th___	{ _cmdbuf->DebugMarker( text, color ); }
+		void  _PushDebugGroup (NtStringView text, RGBA8u color)									__Th___	{ _cmdbuf->PushDebugGroup( text, color ); }
+		void  _PopDebugGroup ()																	__Th___	{ _cmdbuf->PopDebugGroup(); }
 
-		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)				__TH___	{ _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
+		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)				__Th___	{ _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
 
-		ND_ VBakedCommands		_EndCommandBuffer ()											__TH___;
-		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()										__TH___;
+		ND_ VBakedCommands		_EndCommandBuffer ()											__Th___;
+		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()										__Th___;
 	};
 
 
@@ -606,12 +645,12 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VBaseIndirectContext (const RenderTask &task)						__TH___;
-		VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)	__TH___;
+		explicit VBaseIndirectContext (const RenderTask &task)						__Th___;
+		VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)	__Th___;
 		~VBaseIndirectContext ()													__NE_OV;
 
 	protected:
-		void  _CommitBarriers ()													__TH___;
+		void  _CommitBarriers ()													__Th___;
 
 		ND_ bool	_NoPendingBarriers ()											C_NE___	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetExtensions ()												C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
@@ -639,12 +678,12 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task) __TH___ :
-		_VBaseIndirectContext{ task.DbgFullName(), task.DbgColor() },
+	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task) __Th___ :
+		_VBaseIndirectContext{ task.DbgFullName(), task.DbgColor() },	// throw
 		_mngr{ task }
 	{}
 		
-	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf) __TH___ :
+	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf) __Th___ :
 		_VBaseIndirectContext{ RVRef(cmdbuf) },
 		_mngr{ task }
 	{}
@@ -664,7 +703,7 @@ namespace AE::Graphics::_hidden_
 	_CommitBarriers
 =================================================
 */
-	inline void  VBaseIndirectContext::_CommitBarriers () __TH___
+	inline void  VBaseIndirectContext::_CommitBarriers () __Th___
 	{
 		auto* bar = _mngr.GetBarriers();
 		if_unlikely( bar != null )

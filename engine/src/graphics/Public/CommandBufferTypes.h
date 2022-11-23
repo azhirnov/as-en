@@ -154,13 +154,34 @@ namespace AE::Graphics
 		uint	firstInstance;
 	};
 	STATIC_ASSERT( sizeof(DrawIndirectCommand) == 16 );
-	
+
+
+	struct DrawIndexedIndirectCommand
+	{
+		uint	indexCount;
+		uint	instanceCount;
+		uint	firstIndex;
+		int		vertexOffset;
+		uint	firstInstance;
+	};
+	STATIC_ASSERT( sizeof(DrawIndexedIndirectCommand) == 20 );
+
 
 	struct MeshDrawIndirectCommand
 	{
 		packed_uint3	taskCount;
 	};
 	STATIC_ASSERT( sizeof(MeshDrawIndirectCommand) == 12 );
+
+
+	using TraceRayIndirectCommand = DispatchIndirectCommand;
+	
+	struct TraceRayIndirectCommand2
+	{
+		// TODO
+	};
+	//STATIC_ASSERT( sizeof(TraceRayIndirectCommand2) == 12 );
+
 //-----------------------------------------------------------------------------
 
 

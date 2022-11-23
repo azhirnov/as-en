@@ -43,7 +43,7 @@ namespace AE::Graphics
 		{
 		// methods
 		public:
-			CmdBufPool () {}
+			CmdBufPool () __NE___ {}
 			
 			void  GetCommands (OUT VkCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount)				__NE___ { _GetCommands( OUT cmdbufs, OUT cmdbufCount, maxCount ); }
 			void  GetCommands (VkCommandBufferSubmitInfoKHR* cmdbufs, OUT uint &cmdbufCount, uint maxCount)		__NE___;
@@ -57,20 +57,20 @@ namespace AE::Graphics
 
 
 		//
-		// Submit Task
+		// Submit Batch Task
 		//
-		class SubmitTask final : public Threading::IAsyncTask
+		class SubmitBatchTask final : public Threading::IAsyncTask
 		{
 		private:
 			RC<VCommandBatch>	_batch;
 			ESubmitMode			_mode;
 
 		public:
-			SubmitTask (RC<VCommandBatch> batch, ESubmitMode mode) __NE___ :
+			SubmitBatchTask (RC<VCommandBatch> batch, ESubmitMode mode) __NE___ :
 				IAsyncTask{ EThread::Renderer },
 				_batch{RVRef(batch)}, _mode{mode} {}
 
-			void  Run () override
+			void  Run () __Th_OV
 			{
 				CHECK_TE( _batch->Submit( _mode ));
 			}
@@ -97,7 +97,7 @@ namespace AE::Graphics
 			VirtualFence ()												__NE___ {}
 			~VirtualFence ()											__NE___;
 
-			ND_ VkFence	Raw ()											C_NE___	{ return _fence; }
+			ND_ VkFence	Handle ()										C_NE___	{ return _fence; }
 
 			ND_ bool	IsComplete (const VDevice &dev)					__NE___;
 			ND_ bool	Wait (const VDevice &dev, nanoseconds timeout)	__NE___;
@@ -110,7 +110,7 @@ namespace AE::Graphics
 
 
 		using GpuDependencies_t	= FixedMap< VkSemaphore, ulong, 7 >;
-		using OutDependencies_t = FixedTupleArray< 15, AsyncTask, uint >;	// { task, bitIndex }
+		using OutDependencies_t = FixedTupleArray< 15, AsyncTask, ubyte >;	// { task, bitIndex }
 
 		enum class EStatus : uint
 		{
@@ -214,7 +214,7 @@ namespace AE::Graphics
 		ND_ FrameUID					GetFrameId ()						C_NE___	{ return _frameId; }
 		ND_ uint						GetSubmitIndex ()					C_NE___	{ return _submitIdx; }
 		ND_ uint						GetCmdBufIndex ()					C_NE___	{ return _cmdPool.Current(); }
-		ND_ bool						IsSubmitted ()						__NE___;
+		ND_ bool						IsSubmitted ()						__NE___	{ return _status.load() >= EStatus::Pending; }
 		
 		PROFILE_ONLY(
 			ND_ StringView				DbgName ()							C_NE___	{ return _dbgName; }
@@ -224,8 +224,8 @@ namespace AE::Graphics
 
 	// IDeviceToHostSync
 	public:
-		ND_ bool  Wait (nanoseconds timeout)		__NE_OV;
-		ND_ bool  IsComplete ()						__NE_OV;
+		ND_ bool  Wait (nanoseconds timeout)								__NE_OV;
+		ND_ bool  IsComplete ()												__NE_OV	{ return _status.load() == EStatus::Complete; }
 
 		
 	// render task scheduler api
@@ -261,89 +261,7 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
-#	define CMDBATCH		VCommandBatch
 #	include "graphics/Private/RenderTask.h"
 //-----------------------------------------------------------------------------
-
-
-namespace AE::Graphics
-{
-/*
-=================================================
-	Add
-----
-	always return non-null task
-=================================================
-*/
-	template <typename TaskType, typename ...Ctor, typename ...Deps>
-	AsyncTask  VCommandBatch::Add (Tuple<Ctor...> &&		ctorArgs,
-								   const Tuple<Deps...> &	deps,
-								   StringView				dbgName,
-								   RGBA8u					dbgColor) __NE___
-	{
-		STATIC_ASSERT( IsBaseOf< RenderTask, TaskType >);
-		ASSERT( not IsSubmitted() );
-
-		// RenderTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
-		// RenderTask internally creates command buffer and throw exception if can't.
-		try {
-			auto	task = ctorArgs.Apply([this, dbgName, dbgColor] (auto&& ...args)
-										  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbgName, dbgColor ); });	// throw
-
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
-		}
-		catch(...) {}
-		
-		return Scheduler().GetCanceledTask();
-	}
-	
-# ifdef AE_HAS_COROUTINE
-/*
-=================================================
-	Add
-----
-	always return non-null task
-=================================================
-*/
-	template <typename PromiseT, typename ...Deps>
-	AsyncTask  VCommandBatch::Add (AE::Threading::CoroutineHandle<PromiseT>	handle,
-								   const Tuple<Deps...>&					deps,
-								   StringView								dbgName,
-								   RGBA8u									dbgColor) __NE___
-	{
-		STATIC_ASSERT( IsSameTypes< AE::Threading::CoroutineHandle<PromiseT>, CoroutineRenderTask >);
-		ASSERT( not IsSubmitted() );
-
-		// RenderTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
-		// RenderTask internally creates command buffer and throw exception if can't.
-		try {
-			auto	task = MakeRC<AE::Threading::_hidden_::RenderTaskCoroutineRunner>( RVRef(handle), GetRC(), dbgName, dbgColor );	// throw
-
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
-		}
-		catch(...) {}
-
-		return Scheduler().GetCanceledTask();
-	}
-# endif
-
-/*
-=================================================
-	SubmitAsTask
-----
-	always return non-null task
-=================================================
-*/
-	template <typename ...Deps>
-	AsyncTask  VCommandBatch::SubmitAsTask (const Tuple<Deps...> &	deps,
-											ESubmitMode				mode) __NE___
-	{
-		return Scheduler().Run< SubmitTask >( Tuple{ GetRC<VCommandBatch>(), mode }, deps );
-	}
-
-
-} // AE::Graphics
 
 #endif // AE_ENABLE_VULKAN

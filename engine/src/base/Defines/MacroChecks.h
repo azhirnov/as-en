@@ -131,12 +131,6 @@
 #	pragma detect_mismatch( "AE_ENABLE_MEMLEAK_CHECKS", "0" )
 #  endif
 
-#  if defined(AE_NO_EXCEPTIONS) && (AE_NO_EXCEPTIONS == 1)
-#	pragma detect_mismatch( "AE_NO_EXCEPTIONS", "1" )
-#  else
-#	pragma detect_mismatch( "AE_NO_EXCEPTIONS", "0" )
-#  endif
-
 
 // platforms
 #  ifdef AE_PLATFORM_WINDOWS

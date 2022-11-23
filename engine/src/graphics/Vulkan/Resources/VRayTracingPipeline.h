@@ -33,7 +33,7 @@ namespace AE::Graphics
 		using THashMap = FlatHashMap< K, V, std::hash<K>, std::equal_to<K>, StdAllocatorRef< Pair<const K, V>, VPipelinePack::Allocator_t* >>;
 
 		using NameToHandleAlloc_t	= StdAllocatorRef< Pair<const RayTracingGroupName::Optimized_t, uint>, VPipelinePack::Allocator_t* >;
-		using NameToHandle_t		= THashMap< RayTracingGroupName::Optimized_t, uint >;
+		using NameToHandle_t		= THashMap< RayTracingGroupName::Optimized_t, uint >;	// name to index in '_groupHandles'
 
 
 	// variables
@@ -45,8 +45,8 @@ namespace AE::Graphics
 		EPipelineOpt				_options			= Default;
 
 		Strong<VPipelineLayoutID>	_layoutId;
-		InPlace<NameToHandle_t>		_nameToHandle;
-		ArrayView<ulong>			_groupHandles;		// allocated by pipeline pack linear allocator
+		InPlace<NameToHandle_t>		_nameToHandle;		// allocated by pipeline pack linear allocator
+		ArrayView<ubyte>			_groupHandles;		// allocated by pipeline pack linear allocator
 		ArrayView<ShaderTracePtr>	_dbgTrace;			// allocated by pipeline pack linear allocator
 
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
@@ -62,6 +62,8 @@ namespace AE::Graphics
 			void  Destroy (VResourceManager &);
 			
 		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result) const;
+
+		ND_ Bytes  GetShaderGroupStackSize (const VDevice &, const RayTracingGroupName &group) const;
 
 		ND_ VkPipeline				Handle ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ VkPipelineLayout		Layout ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }

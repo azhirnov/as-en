@@ -56,7 +56,7 @@ namespace AE::Math
 
 	// methods
 	private:
-		constexpr explicit Float16 (EValue val) : _valueU{ushort(val)} {}
+		constexpr explicit Float16 (EValue val)			__NE___	: _valueU{ushort(val)} {}
 
 	public:
 		constexpr Float16 ()							__NE___	: _value{0} {}

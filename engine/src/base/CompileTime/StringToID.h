@@ -33,7 +33,7 @@ namespace AE::Base
 			
 		// methods
 		private:
-			forceinline static constexpr type _Hash1 (const char c, const usize shift)
+			forceinline static constexpr type _Hash1 (const char c, const usize shift) __NE___
 			{
 				return
 					(c >= 'A' and c <= 'Z')	? type(c - 'A' + 1) << shift				:	// map A-Z
@@ -48,7 +48,7 @@ namespace AE::Base
 			}
 
 
-			forceinline static constexpr type _Hash2 (const char c, const usize shift)
+			forceinline static constexpr type _Hash2 (const char c, const usize shift) __NE___
 			{
 				return
 					(c >= '0' and c <= '9')	? type(c - '0'  + 1) << shift				:	// map 0-9
@@ -79,7 +79,7 @@ namespace AE::Base
 			}
 
 
-			forceinline static char _RevHash1 (const ubyte hash)
+			forceinline static char _RevHash1 (const ubyte hash) __NE___
 			{
 				const int	az_size = ('Z' - 'A');
 
@@ -94,7 +94,7 @@ namespace AE::Base
 			}
 
 
-			forceinline static char _RevHash2 (const ubyte hash)
+			forceinline static char _RevHash2 (const ubyte hash) __NE___
 			{
 				const int	zn_size = ('9' - '0');
 
@@ -125,8 +125,8 @@ namespace AE::Base
 					'#';
 			}
 
-
-			inline static constexpr type _RecursiveHash (char const * const str, const usize i, const usize off, const usize size)
+			
+			inline static constexpr type _RecursiveHash (char const * const str, const usize i, const usize off, const usize size) __NE___
 			{
 				return
 					(i >= size or str[i] == '\0') ?

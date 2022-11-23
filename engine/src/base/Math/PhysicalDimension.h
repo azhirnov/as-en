@@ -124,6 +124,44 @@ namespace AE::Math
 
 
 	//
+	// Is Physical Dimension
+	//
+	namespace _hidden_
+	{
+		template <typename T>
+		struct _IsPhysicalDimension {
+			static constexpr bool	value = false;
+		};
+
+		template <int SecondsNum,	int SecondsDenom,
+				  int KilogramsNum,	int KilogramsDenom,
+				  int MetersNum,	int MetersDenom,
+				  int AmperasNum,	int AmperasDenom,
+				  int KelvinsNum,	int KelvinsDenom,
+				  int MolesNum,		int MolesDenom,
+				  int CandelasNum,	int CandelasDenom,
+				  int CurrencyNum,	int CurrencyDenom,
+				  int BitsNum,		int BitsDenom
+				>
+		struct _IsPhysicalDimension< PhysicalDimension<		SecondsNum,		SecondsDenom,
+															KilogramsNum,	KilogramsDenom,
+															MetersNum,		MetersDenom,
+															AmperasNum,		AmperasDenom,
+															KelvinsNum,		KelvinsDenom,
+															MolesNum,		MolesDenom,
+															CandelasNum,	CandelasDenom,
+															CurrencyNum,	CurrencyDenom,
+															BitsNum,		BitsDenom > >
+		{
+			static constexpr bool	value = true;
+		};
+	}
+	template <typename T>
+	static constexpr bool	IsPhysicalDimension = _hidden_::_IsPhysicalDimension<T>::value;
+
+
+
+	//
 	// Default Physical Dimensions
 	//
 

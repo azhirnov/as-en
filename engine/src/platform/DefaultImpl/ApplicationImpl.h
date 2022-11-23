@@ -20,9 +20,12 @@ namespace AE::App
 	{
 	// variables
 	protected:
-		#ifdef AE_ENABLE_VULKAN
-			Graphics::VDeviceInitializer	_vulkan;
-		#endif
+	  #if defined(AE_ENABLE_VULKAN)
+		Graphics::VDeviceInitializer	_vulkan;
+
+	  #elif defined(AE_ENABLE_METAL)
+		Graphics::MDeviceInitializer	_metal;
+	  #endif
 			
 		Array<WindowPtr>	_windows;
 		VRDevicePtr			_vrDevice;
@@ -46,10 +49,14 @@ namespace AE::App
 
 
 	private:
-		#ifdef AE_ENABLE_VULKAN
+	  #if defined(AE_ENABLE_VULKAN)
 		bool  _CreateVulkan (IApplication &app);
 		bool  _DestroyVulkan ();
-		#endif
+
+	  #elif defined(AE_ENABLE_METAL)
+		bool  _CreateMetal (IApplication &app);
+		bool  _DestroyMetal ();
+	  #endif
 	};
 
 

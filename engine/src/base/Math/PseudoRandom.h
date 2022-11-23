@@ -27,7 +27,7 @@ namespace _hidden_
 	HEHash
 =================================================
 */
-	ND_ inline float  HEHash (uint n)
+	ND_ inline float  HEHash (uint n) __NE___
 	{
 		// from https://www.shadertoy.com/view/llGSzw
 		// The MIT License
@@ -46,7 +46,7 @@ namespace _hidden_
 	Integer Weylend hash
 =================================================
 */
-	ND_ inline uint  IWeylHash (const uint2 &p)
+	ND_ inline uint  IWeylHash (const uint2 &p) __NE___
 	{
 		// from https://www.shadertoy.com/view/4dlcR4
 		// LICENSE: http://unlicense.org/
@@ -61,7 +61,7 @@ namespace _hidden_
 		return x;
 	}
 
-	ND_ inline uint  IWeylHash2 (const uint2 &p)
+	ND_ inline uint  IWeylHash2 (const uint2 &p) __NE___
 	{
 		// from https://www.shadertoy.com/view/4dlcR4
 		// LICENSE: http://unlicense.org/
@@ -84,7 +84,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	inline void  StringToColor (OUT HSVColor &col, BasicStringView<T> str)
+	inline void  StringToColor (OUT HSVColor &col, BasicStringView<T> str) __NE___
 	{
 		HashVal	u = HashOf( str );
 		//float	h = (float(usize(u) & 0xFF) / float(0xFF));
@@ -94,7 +94,7 @@ namespace _hidden_
 	}
 	
 	template <typename T>
-	inline void  StringToColor (OUT RGBA32f &col, BasicStringView<T> str)
+	inline void  StringToColor (OUT RGBA32f &col, BasicStringView<T> str) __NE___
 	{
 		HSVColor	hsv;
 		StringToColor( OUT hsv, str );
@@ -102,7 +102,7 @@ namespace _hidden_
 	}
 	
 	template <typename T>
-	inline void  StringToColor (OUT RGBA8u &col, BasicStringView<T> str)
+	inline void  StringToColor (OUT RGBA8u &col, BasicStringView<T> str) __NE___
 	{
 		RGBA32f	rgba;
 		StringToColor( OUT rgba, str );

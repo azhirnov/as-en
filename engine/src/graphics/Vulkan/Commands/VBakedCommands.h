@@ -47,7 +47,7 @@ namespace AE::Graphics
 			_root = null;
 		}
 		
-		ND_ bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) C_NE___;
+		ND_ bool  Execute (VulkanDeviceFn, VkCommandBuffer) C_NE___;
 
 		ND_ bool  IsValid ()					C_NE___
 		{

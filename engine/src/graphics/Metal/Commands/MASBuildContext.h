@@ -31,7 +31,6 @@ namespace AE::Graphics::_hidden_
 	public:
 		void  Copy (MetalAccelStruct src, MetalAccelStruct dst);
 		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst);
-		void  WriteCompactedSize (MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
 		
 		ND_ MetalCommandBufferRC	EndCommandBuffer ();
 		ND_ MCommandBuffer		 	ReleaseCommandBuffer ();
@@ -47,6 +46,8 @@ namespace AE::Graphics::_hidden_
 
 		void  _Build  (const RTSceneBuild &cmd, RTSceneID dst);
 		void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst);
+
+		void  _WriteCompactedSize (MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
 		
 		void  _DebugMarker (NtStringView text, RGBA8u)				{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( _BaseEncoder(), text ); }
 		void  _PushDebugGroup (NtStringView text, RGBA8u)			{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( _BaseEncoder(), text ); }
@@ -65,7 +66,6 @@ namespace AE::Graphics::_hidden_
 	public:
 		void  Copy (MetalAccelStruct src, MetalAccelStruct dst);
 		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst);
-		void  WriteCompactedSize (MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
 		
 		ND_ MBakedCommands		EndCommandBuffer ();
 		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ();
@@ -79,6 +79,8 @@ namespace AE::Graphics::_hidden_
 		
 		void  _Build  (const RTSceneBuild &cmd, RTSceneID dst);
 		void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst);
+
+		void  _WriteCompactedSize (MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
 	};
 
 
@@ -119,24 +121,16 @@ namespace AE::Graphics::_hidden_
 		void  Build  (const RTSceneBuild &cmd, RTSceneID dst) override final									{ RawCtx::_Build( cmd, dst ); }
 		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst) override final						{ RawCtx::_Update( cmd, src, dst ); }
 		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone) override final;
-		
-		using RawCtx::WriteCompactedSize;
 
-		void  WriteCompactedSize (RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size) override final;
-		void  WriteCompactedSize (RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size) override final;
+		void  WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size) override final;
+		void  WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size) override final;
 
-		Promise<Bytes>  ReadCompactedSize (RTGeometryID as) override final;
-		Promise<Bytes>  ReadCompactedSize (RTSceneID as) override final;
+		void  WriteProperty (ERTASProperty property, MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
 
-		ND_ Promise<Bytes>  ReadCompactedSize (MetalAccelStruct as);
+		Promise<Bytes>  ReadProperty (ERTASProperty property, RTGeometryID as) override final;
+		Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as) override final;
 
-		void  CommitBarriers ()									override final	{ RawCtx::_CommitBarriers(); }
-		
-		void  DebugMarker (NtStringView text, RGBA8u color)		override final	{ RawCtx::_DebugMarker( text, color ); }
-		void  PushDebugGroup (NtStringView text, RGBA8u color)	override final	{ RawCtx::_PushDebugGroup( text, color ); }
-		void  PopDebugGroup ()									override final	{ RawCtx::_PopDebugGroup(); }
-
-		ND_ AccumBar  AccumBarriers ()							{ return AccumBar{ *this }; }
+		ND_ Promise<Bytes>  ReadProperty (ERTASProperty property, MetalAccelStruct as);
 
 		MBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -164,17 +158,13 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MASBuildContextImpl<C>::Copy (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode)
 	{
-		auto*	src_geom = this->_mngr.Get( src );
-		auto*	dst_geom = this->_mngr.Get( dst );
-
-		CHECK_ERRV( src_geom != null and
-					dst_geom != null );
+		auto  [src_geom, dst_geom]  = _GetResourcesOrThrow( src, dst );
 		
 		BEGIN_ENUM_CHECKS();
 		switch ( mode )
 		{
-			case ERTASCopyMode::Clone :		return Copy( src_geom->Handle(), dst_geom->Handle() );
-			case ERTASCopyMode::Compaction:	return CopyCompacted( src_geom->Handle(), dst_geom->Handle() );
+			case ERTASCopyMode::Clone :		return Copy( src_geom.Handle(), dst_geom.Handle() );
+			case ERTASCopyMode::Compaction:	return CopyCompacted( src_geom.Handle(), dst_geom.Handle() );
 		}
 		END_ENUM_CHECKS();
 		RETURN_ERR( "unknown RT AS copy mode", void() );
@@ -188,17 +178,13 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MASBuildContextImpl<C>::Copy (RTSceneID src, RTSceneID dst, ERTASCopyMode mode)
 	{
-		auto*	src_scene = this->_mngr.Get( src );
-		auto*	dst_scene = this->_mngr.Get( dst );
-
-		CHECK_ERRV( src_scene != null and
-					dst_scene != null );
+		auto  [src_scene, dst_scene]  = _GetResourcesOrThrow( src, dst );
 		
 		BEGIN_ENUM_CHECKS();
 		switch ( mode )
 		{
-			case ERTASCopyMode::Clone :		return Copy( src_scene->Handle(), dst_scene->Handle() );
-			case ERTASCopyMode::Compaction:	return CopyCompacted( src_scene->Handle(), dst_scene->Handle() );
+			case ERTASCopyMode::Clone :		return Copy( src_scene.Handle(), dst_scene.Handle() );
+			case ERTASCopyMode::Compaction:	return CopyCompacted( src_scene.Handle(), dst_scene.Handle() );
 		}
 		END_ENUM_CHECKS();
 		RETURN_ERR( "unknown RT AS copy mode", void() );
@@ -206,57 +192,62 @@ namespace AE::Graphics::_hidden_
 
 /*
 =================================================
-	WriteCompactedSize
+	WriteProperty
 =================================================
 */
 	template <typename C>
-	void  _MASBuildContextImpl<C>::WriteCompactedSize (RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size)
+	void  _MASBuildContextImpl<C>::WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size)
 	{
-		auto*	src_as	= this->_mngr.Get( as );
-		auto*	dst_buf	= this->_mngr.Get( dstBuffer );
+		auto  [src_as, dst_buf] = _GetResourcesOrThrow( as, dstBuffer );
 
-		CHECK_ERRV( src_as != null and dst_buf != null );
-
-		RawCtx::WriteCompactedSize( src_as->Handle(), dst_buf->Handle(), offset, size );
+		RawCtx::_WriteCompactedSize( src_as.Handle(), dst_buf.Handle(), offset, size );
 	}
 	
 	template <typename C>
-	void  _MASBuildContextImpl<C>::WriteCompactedSize (RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size)
+	void  _MASBuildContextImpl<C>::WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size)
 	{
-		auto*	src_as	= this->_mngr.Get( as );
-		auto*	dst_buf	= this->_mngr.Get( dstBuffer );
+		auto  [src_as, dst_buf] = _GetResourcesOrThrow( as, dstBuffer );
 
-		CHECK_ERRV( src_as != null and dst_buf != null );
-
-		RawCtx::WriteCompactedSize( src_as->Handle(), dst_buf->Handle(), offset, size );
+		RawCtx::_WriteCompactedSize( src_as.Handle(), dst_buf.Handle(), offset, size );
 	}
 	
+	template <typename C>
+	void  _MASBuildContextImpl<C>::WriteProperty (ERTASProperty property, MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size)
+	{
+		CHECK_ERR( property == ERTASProperty::CompactedSize );
+
+		return RawCtx::_WriteCompactedSize( as, dstBuffer, offset, size );
+	}
+
 /*
 =================================================
-	ReadCompactedSize
+	ReadProperty
 =================================================
 */
 	template <typename C>
-	Promise<Bytes>  _MASBuildContextImpl<C>::ReadCompactedSize (RTGeometryID as)
+	Promise<Bytes>  _MASBuildContextImpl<C>::ReadProperty (ERTASProperty property, RTGeometryID as)
 	{
-		auto*	src_as	= this->_mngr.Get( as );
-		CHECK_ERR( src_as != null );
+		auto&	src_as = _GetResourcesOrThrow( as );
 
-		return ReadCompactedSize( src_as->Handle() );
+		return ReadProperty( property, src_as.Handle() );
 	}
 	
 	template <typename C>
-	Promise<Bytes>  _MASBuildContextImpl<C>::ReadCompactedSize (RTSceneID as)
+	Promise<Bytes>  _MASBuildContextImpl<C>::ReadProperty (ERTASProperty property, RTSceneID as)
 	{
-		auto*	src_as	= this->_mngr.Get( as );
-		CHECK_ERR( src_as != null );
+		auto&	src_as = _GetResourcesOrThrow( as );
 
-		return ReadCompactedSize( src_as->Handle() );
+		return ReadProperty( property, src_as.Handle() );
 	}
 	
 	template <typename C>
-	Promise<Bytes>  _MASBuildContextImpl<C>::ReadCompactedSize (MetalAccelStruct as)
+	Promise<Bytes>  _MASBuildContextImpl<C>::ReadProperty (ERTASProperty property, MetalAccelStruct as)
 	{
+		CHECK_ERR( property == ERTASProperty::CompactedSize );
+
+		//  RawCtx::_WriteCompactedSize( as, staging_buffer, staging_buffer_offset, 4_b );
+
+		Unused( as );
 		// TODO
 		return Default;
 	}

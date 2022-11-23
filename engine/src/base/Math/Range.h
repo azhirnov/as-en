@@ -30,28 +30,28 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr Range () : begin{}, end{}
+		constexpr Range () __NE___ : begin{}, end{}
 		{
 			// check if supported cast Rectangle to array
 			STATIC_ASSERT( offsetof(Self, begin) + sizeof(T) == offsetof(Self, end) );
 		}
 
-		constexpr Range (T begin, T end) :
+		constexpr Range (T begin, T end) __NE___ :
 			begin{begin}, end{end}
 		{}
 
-		ND_ constexpr T		Offset ()		const	{ return begin; }
-		ND_ constexpr T		Size ()			const	{ return end - begin; }
-		ND_ constexpr T		Middle ()		const	{ return CalcAverage( begin, end ); }
+		ND_ constexpr T		Offset ()		C_NE___	{ return begin; }
+		ND_ constexpr T		Size ()			C_NE___	{ return end - begin; }
+		ND_ constexpr T		Middle ()		C_NE___	{ return CalcAverage( begin, end ); }
 
-		ND_ constexpr bool	IsEmpty ()		const	{ return begin == end; }
-		ND_ constexpr bool	IsInvalid ()	const	{ return end < begin; }
-		ND_ constexpr bool	IsValid ()		const	{ return not IsInvalid(); }
+		ND_ constexpr bool	IsEmpty ()		C_NE___	{ return begin == end; }
+		ND_ constexpr bool	IsInvalid ()	C_NE___	{ return end < begin; }
+		ND_ constexpr bool	IsValid ()		C_NE___	{ return not IsInvalid(); }
 
-		ND_ constexpr static Self  Max ()								{ return Self{ MinValue<T>(), MaxValue<T>() }; }
+		ND_ constexpr static Self  Max ()	__NE___							{ return Self{ MinValue<T>(), MaxValue<T>() }; }
 
-		ND_ constexpr static Self  From (const Vec<T,2> &v)				{ return Self{ v.x, v.y }; }
-		ND_ constexpr static Self  FromOffsetSize (T offset, T size)	{ return Self{ offset, offset + size }; }
+		ND_ constexpr static Self  From (const Vec<T,2> &v)			__NE___	{ return Self{ v.x, v.y }; }
+		ND_ constexpr static Self  FromOffsetSize (T offset, T size)__NE___	{ return Self{ offset, offset + size }; }
 	};
 
 

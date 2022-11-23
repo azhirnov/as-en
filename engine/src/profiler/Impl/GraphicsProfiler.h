@@ -106,30 +106,30 @@ namespace AE::Profiler
 	  // IGraphicsProfiler //
 	  
 		// queue
-		void  SetQueue (EQueueType type, StringView name) override;
+		void  SetQueue (EQueueType type, StringView name)																			__NE_OV;
 
 		// batch
-		void  BeginBatch (FrameUID frameId, const void* batch, StringView name) override;
-		void  SubmitBatch (const void* batch, EQueueType queue) override;
-		void  BatchComplete (const void* batch) override;
+		void  BeginBatch (FrameUID frameId, const void* batch, StringView name)														__NE_OV;
+		void  SubmitBatch (const void* batch, EQueueType queue)																		__NE_OV;
+		void  BatchComplete (const void* batch)																						__NE_OV;
 
 		// draw batch
-		void  BeginDrawBatch (const void* batch, StringView name) override;
+		void  BeginDrawBatch (const void* batch, StringView name)																	__NE_OV;
 		
 	  #if defined(AE_ENABLE_VULKAN)
 		// context
-		void  BeginContext (const void* batch, VkCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type) override;
-		void  EndContext (const void* batch, VkCommandBuffer cmdbuf, EContextType type) override;
+		void  BeginContext (const void* batch, VkCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type)		__NE_OV;
+		void  EndContext (const void* batch, VkCommandBuffer cmdbuf, EContextType type)												__NE_OV;
 
 	  #elif defined(AE_ENABLE_METAL)
 		// context
-		void  BeginContext (const void* batch, MetalCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type) override;
-		void  EndContext (const void* batch, MetalCommandBuffer cmdbuf, EContextType type) override;
+		void  BeginContext (const void* batch, MetalCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type)		__NE_OV;
+		void  EndContext (const void* batch, MetalCommandBuffer cmdbuf, EContextType type) __NE_OV;
 	  #endif
 
 		// frames
-		void  RequestNextFrame (FrameUID frameId) override;
-		void  NextFrame (FrameUID frameId) override;
+		void  RequestNextFrame (FrameUID frameId)																					__NE_OV;
+		void  NextFrame (FrameUID frameId)																							__NE_OV;
 
 
 	private:

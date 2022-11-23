@@ -8,24 +8,13 @@ namespace AE::Base
 {
 namespace _hidden_
 {
-
-	template <typename RefType, usize I, typename TL>
-	struct TL_GetFirstIndex;
-
-	template <typename RefType, usize I>
-	struct TL_GetFirstIndex< RefType, I, Tuple<> >
-	{
-		inline static constexpr usize	value = UMax;
-	};
-
-	template <typename RefType, usize I, typename Head, typename... Tail>
-	struct TL_GetFirstIndex< RefType, I, Tuple<Head, Tail...> >
-	{
-		inline static constexpr usize	value = Conditional< IsSameTypes<RefType, Head>,
-													std::integral_constant<usize, I>,
-													TL_GetFirstIndex< RefType, I+1, Tuple<Tail...> > >::value;
-	};
+	// 'TL_GetFirstIndex' defined in 'Tuple.h'
 	
+	template <typename RefType, usize I, typename ...Types>
+	struct TL_GetFirstIndex< RefType, I, Tuple<Types...> > :
+		TL_GetFirstIndex< RefType, I, typename Tuple<Types...>::Base_t >
+	{};
+
 
 	template <typename RefType, usize I, typename TL>
 	struct TL_GetLastIndex;
@@ -98,62 +87,62 @@ namespace _hidden_
 	struct TypeList
 	{
 	public:
-		using							AsTuple		= Tuple< Types... >;
+		using							AsTuple			= Tuple< Types... >;
 
 		template <typename T>
-		inline static constexpr usize	FirstIndex	= Base::_hidden_::TL_GetFirstIndex< T, 0, AsTuple >::value;
+		inline static constexpr usize	FirstIndex		= Base::_hidden_::TL_GetFirstIndex< T, 0, AsTuple >::value;
 		
 		template <typename T>
-		inline static constexpr usize	LastIndex	= Base::_hidden_::TL_GetLastIndex< T, 0, AsTuple >::value;
+		inline static constexpr usize	LastIndex		= Base::_hidden_::TL_GetLastIndex< T, 0, AsTuple >::value;
 
 		template <template <typename...> class Templ>
 		inline static constexpr usize	FirstSpecializationOf = Base::_hidden_::TL_GetFirstSpecializationOf< Templ, 0, AsTuple >::value;
 		
 		template <typename T>
-		inline static constexpr usize	Index	= FirstIndex<T>;
+		inline static constexpr usize	Index			= FirstIndex<T>;
 
-		inline static constexpr usize	Count	= std::tuple_size_v< AsTuple >;
+		inline static constexpr usize	Count			= std::tuple_size_v< AsTuple >;
 
 		template <typename T>
-		inline static constexpr bool	HasType	= (Index<T> != UMax);
+		inline static constexpr bool	HasType			= (Index<T> != UMax);
 		
-		template <usize I>		using	Get		= typename std::tuple_element<I, AsTuple>::type;
-		template <usize I>		using	GetT	= std::tuple_element<I, AsTuple>;
+		template <usize I>		using	Get				= typename std::tuple_element<I, AsTuple>::type;
+		template <usize I>		using	GetT			= std::tuple_element<I, AsTuple>;
 
-		struct Front { using			type	= Get<0>; };
-		struct Back  { using			type	= Get<Count-1>; };
+		struct Front { using			type			= Get<0>; };
+		struct Back  { using			type			= Get<Count-1>; };
 
-		struct Self	 { using			type	= TypeList< Types... >; };
+		struct Self	 { using			type			= TypeList< Types... >; };
 
-		struct PopFront	{ using			type	= typename Base::_hidden_::TL_PopFront< TypeList<>, Types... >::type; };
-		struct PopBack	{ using			type	= typename Base::_hidden_::TL_PopBack< TypeList<>, Types... >::type; };
+		struct PopFront	{ using			type			= typename Base::_hidden_::TL_PopFront< TypeList<>, Types... >::type; };
+		struct PopBack	{ using			type			= typename Base::_hidden_::TL_PopBack< TypeList<>, Types... >::type; };
 
-		template <typename T>	using	PushBack = TypeList< Types..., T >;
-		template <typename T>	using	PushFront = TypeList< T, Types... >;
+		template <typename T>	using	PushBack		= TypeList< Types..., T >;
+		template <typename T>	using	PushFront		= TypeList< T, Types... >;
 
 
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_Or ()	{ return (... or Tmpl<Types>::value); }
+		static constexpr auto			ForEach_Or ()		__NE___	{ return (... or Tmpl<Types>::value); }
 		
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_And ()	{ return (... and Tmpl<Types>::value); }
+		static constexpr auto			ForEach_And ()		__NE___	{ return (... and Tmpl<Types>::value); }
 		
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_Add	()	{ return (... + Tmpl<Types>::value); }
+		static constexpr auto			ForEach_Add	()		__NE___	{ return (... + Tmpl<Types>::value); }
 		
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_Max	()	{ return Math::Max( Tmpl<Types>::value... ); }
+		static constexpr auto			ForEach_Max	()		__NE___	{ return Math::Max( Tmpl<Types>::value... ); }
 		
 		template <template <typename> class Tmpl>
-		static constexpr auto			ForEach_Min	()	{ return Math::Min( Tmpl<Types>::value... ); }
+		static constexpr auto			ForEach_Min	()		__NE___	{ return Math::Min( Tmpl<Types>::value... ); }
 
 
 		template <typename FN>
-		static constexpr void 			Visit (FN&& fn)	{ return _RecursiveVisit<0>( FwdArg<FN>(fn) ); }
+		static constexpr void 			Visit (FN&& fn)		__NE___	{ return _RecursiveVisit<0>( FwdArg<FN>(fn) ); }
 
 	private:
 		template <usize I, typename FN>
-		static constexpr void  _RecursiveVisit (FN&& fn)
+		static constexpr void  _RecursiveVisit (FN&& fn)	__NE___
 		{
 			if constexpr( I < Count )
 			{

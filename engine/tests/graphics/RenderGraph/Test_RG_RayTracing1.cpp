@@ -29,7 +29,7 @@ namespace
 
 		AsyncTask					result;
 
-		CommandBatchPtr			batch;
+		CommandBatchPtr				batch;
 		bool						isOK		= false;
 
 		ImageComparator *			imgCmp		= null;
@@ -66,11 +66,13 @@ namespace
 
 			RTSceneBuild::Instance	inst;
 			inst.Init();
-			inst.SetGeometry( t.rtGeom );
 
 			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
 			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
 			CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
+
+			t.sbt->Upload( copy_ctx );
+
 
 			typename CtxTypes::ASBuild	as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 			
@@ -89,9 +91,10 @@ namespace
 			as_ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::BuildRTAS_Read );
 
-			as_ctx.Build(
-				RTSceneBuild{ 1u, Default },
-				t.rtScene );
+			RTSceneBuild	build_cmd{ 1u, Default };
+			build_cmd.SetGeometry( t.rtGeom, INOUT inst );
+
+			as_ctx.Build( build_cmd, t.rtScene );
 		}
 	};
 
@@ -236,9 +239,9 @@ namespace
 		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "RayTracing1" );
 		CHECK_ERR( t.batch );
 		
-		AsyncTask	task1	= t.batch->Add<RT1_UploadTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{begin}, "Upload RTAS task" );
-		AsyncTask	task2	= t.batch->Add<RT1_RayTracingTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{task1}, "Ray tracing task" );
-		AsyncTask	task3	= t.batch->Add<RT1_CopyTask<CopyCtx>>( Tuple{ArgRef(t)}, Tuple{task2}, "Readback task" );
+		AsyncTask	task1	= t.batch->Add< RT1_UploadTask<CtxTypes>	>( Tuple{ArgRef(t)}, Tuple{begin}, "Upload RTAS task" );
+		AsyncTask	task2	= t.batch->Add< RT1_RayTracingTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{task1}, "Ray tracing task" );
+		AsyncTask	task3	= t.batch->Add< RT1_CopyTask<CopyCtx>		>( Tuple{ArgRef(t)}, Tuple{task2}, "Readback task" );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task3} );
 
@@ -279,5 +282,4 @@ bool RGTest::Test_RayTracing1 ()
 	AE_LOGI( TEST_NAME << " - passed" );
 	return true;
 }
-
 #endif

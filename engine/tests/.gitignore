@@ -6,3 +6,5 @@
 /vfs/vfs_test
 
 /base/UnitTest_Crypto.cpp
+/base/ds_test/*.txt
+/threading/ds_test/*.txt

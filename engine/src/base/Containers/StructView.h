@@ -94,7 +94,7 @@ namespace AE::Base
 				STATIC_ASSERT( sizeof(Element) == sizeof(St) );
 			}
 
-			Unique<_IViewer>  Clone () _____OV { return Unique<_IViewer>{new _ViewerWithPaddingUnaligned< St, Padding >{ elements }}; }
+			Unique<_IViewer>  Clone () __Th_OV { return Unique<_IViewer>{new _ViewerWithPaddingUnaligned< St, Padding >{ elements }}; }
 		};
 		
 
@@ -116,7 +116,7 @@ namespace AE::Base
 				STATIC_ASSERT( sizeof(Element) == sizeof(St) );
 			}
 
-			Unique<_IViewer>  Clone () _____OV { return Unique<_IViewer>{new _ViewerWithPadding< St, Padding >{ elements }}; }
+			Unique<_IViewer>  Clone () __Th_OV { return Unique<_IViewer>{new _ViewerWithPadding< St, Padding >{ elements }}; }
 		};
 
 
@@ -132,7 +132,7 @@ namespace AE::Base
 		// methods
 			explicit _ViewerImpl (const void *ptr) __NE___ : elements{ BitCast<ElementsPtr_t>(ptr) } {}
 
-			Unique<_IViewer>  Clone () _____OV { return Unique<_IViewer>{new _ViewerImpl< St >{ elements }}; }
+			Unique<_IViewer>  Clone () __Th_OV { return Unique<_IViewer>{new _ViewerImpl< St >{ elements }}; }
 		};
 
 

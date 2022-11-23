@@ -63,4 +63,23 @@ namespace AE::Base
 
 } // AE::Base
 
+
+#ifdef AE_DBG_OR_DEV
+#	define WIN_CHECK_DEV( _msg_ ) \
+		AE::Base::WindowsUtils::CheckError( (_msg_), SourceLoc_Current(), AE::ELogLevel::Debug )
+
+#	define WIN_CHECK_DEV2( _err_, _msg_ ) \
+		AE::Base::WindowsUtils::CheckError( (_err_), (_msg_), SourceLoc_Current(), AE::ELogLevel::Debug )
+#else
+#	define WIN_CHECK_DEV( _msg_ )			{}
+#	define WIN_CHECK_DEV2( _err_, _msg_ )	{}
+#endif
+
+#define WIN_CHECK( _msg_ ) \
+	AE::Base::WindowsUtils::CheckError( (_msg_), SourceLoc_Current(), AE::ELogLevel::Error )
+
+#define WIN_CHECK2( _err_, _msg_ ) \
+	AE::Base::WindowsUtils::CheckError( (_err_), (_msg_), SourceLoc_Current(), AE::ELogLevel::Error )
+
+
 #endif // AE_PLATFORM_WINDOWS

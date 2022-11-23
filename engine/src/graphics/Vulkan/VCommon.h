@@ -86,11 +86,38 @@ namespace AE::Graphics
 	using VMemoryID				= HandleTmpl< 32, 32, Graphics::_hidden_::VulkanIDs_Start + 6 >;
 
 
+	//
+	// Vulkan Config
+	//
 	struct VConfig final : Noninstancable
 	{
 		static constexpr uint	MaxQueues	= 4;
+		
+		// for query manager
+		static constexpr uint	TimestampQueryPerFrame			= 1000;
+		static constexpr uint	PipelineStatQueryPerFrame		= 1000;
+		static constexpr uint	PerformanceQueryPerFrame		= 1000;
+
+		static constexpr uint	ASCompactedSizeQueryPerFrame	= 1000;
+		static constexpr uint	ASSerializationQueryPerFrame	= 1000;
 	};
 	
+
+	//
+	// Query type
+	//
+	enum class EQueryType : ubyte
+	{
+		Timestamp,
+		PipelineStatistic,
+		Performance,
+		AccelStructCompactedSize,
+		AccelStructSize,				// require 'VK_KHR_ray_tracing_maintenance1'
+		AccelStructSerializationSize,
+		_Count,
+		Unknown	= 0xFF,
+	};
+
 	
 	// debugger can't show enum names for VkFlags, so use enum instead
 #define VULKAN_ENUM_BIT_OPERATORS( _type_ ) \

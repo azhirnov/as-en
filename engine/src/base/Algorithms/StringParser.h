@@ -15,36 +15,36 @@ namespace AE::Base
 	class StringParser final : Noninstancable
 	{
 	public:
-			static void  ToEndOfLine	(StringView str, INOUT usize &pos);
-			static void  ToBeginOfLine	(StringView str, INOUT usize &pos);
-			static void  ToNextLine		(StringView str, INOUT usize &pos);
-			static void  ToPrevLine		(StringView str, INOUT usize &pos);
+			static void  ToEndOfLine	(StringView str, INOUT usize &pos)											__NE___;
+			static void  ToBeginOfLine	(StringView str, INOUT usize &pos)											__NE___;
+			static void  ToNextLine		(StringView str, INOUT usize &pos)											__NE___;
+			static void  ToPrevLine		(StringView str, INOUT usize &pos)											__NE___;
 
-		ND_ static bool  IsBeginOfLine	(StringView str, usize pos);
-		ND_ static bool  IsEndOfLine	(StringView str, usize pos);
+		ND_ static bool  IsBeginOfLine	(StringView str, usize pos)													__NE___;
+		ND_ static bool  IsEndOfLine	(StringView str, usize pos)													__NE___;
 
-		ND_ static usize CalculateNumberOfLines (StringView str);
+		ND_ static usize CalculateNumberOfLines (StringView str)													__NE___;
 
-			static bool  MoveToLine (StringView str, INOUT usize &pos, usize lineNumber);
+			static bool  MoveToLine (StringView str, INOUT usize &pos, usize lineNumber)							__NE___;
 
-			static void  ReadCurrLine (StringView str, INOUT usize &pos, OUT StringView &result);
-			static void  ReadLineToEnd (StringView str, INOUT usize &pos, OUT StringView &result);
+			static void  ReadCurrLine (StringView str, INOUT usize &pos, OUT StringView &result)					__NE___;
+			static void  ReadLineToEnd (StringView str, INOUT usize &pos, OUT StringView &result)					__NE___;
 
-			static bool  ReadTo (StringView str, StringView endSymbol, INOUT usize &pos, OUT StringView &result);
+			static bool  ReadTo (StringView str, StringView endSymbol, INOUT usize &pos, OUT StringView &result)	__NE___;
 
-			static bool  ReadString (StringView str, INOUT usize &pos, OUT StringView &result);
+			static bool  ReadString (StringView str, INOUT usize &pos, OUT StringView &result)						__NE___;
 			
-			static void  DivideLines (StringView str, OUT Array<StringView> &lines);
+			static void  DivideLines (StringView str, OUT Array<StringView> &lines)									__Th___;
 			
-			static bool  DivideString_CPP (StringView str, OUT Array<StringView> &tokens);
-			static bool  DivideString_Words (StringView str, OUT Array<StringView> &tokens);
+			static bool  DivideString_CPP (StringView str, OUT Array<StringView> &tokens)							__Th___;
+			static bool  DivideString_Words (StringView str, OUT Array<StringView> &tokens)							__Th___;
 
-			static void  Tokenize (StringView str, const char divisor, OUT Array<StringView> &tokens);
+			static void  Tokenize (StringView str, const char divisor, OUT Array<StringView> &tokens)				__Th___;
 
 			template <typename IfNotEqualFn, typename IfSizeIsNotEqualFn>
 			static bool  CompareLineByLine (StringView left, StringView right,
 											IfNotEqualFn && ifNotEqual,
-											IfSizeIsNotEqualFn && ifSizeNotEqual);
+											IfSizeIsNotEqualFn && ifSizeNotEqual)									__Th___;
 	};
 	
 
@@ -56,7 +56,7 @@ namespace AE::Base
 	template <typename IfNotEqualFn, typename IfSizeIsNotEqualFn>
 	inline bool  StringParser::CompareLineByLine (StringView left, StringView right,
 												  IfNotEqualFn && ifNotEqual,
-												  IfSizeIsNotEqualFn && ifSizeNotEqual)
+												  IfSizeIsNotEqualFn && ifSizeNotEqual) __Th___
 	{
 		usize		l_pos	= 0;
 		usize		r_pos	= 0;
@@ -95,14 +95,14 @@ namespace AE::Base
 			if ( line_str[0] != line_str[1] )
 			{
 				ifNotEqual( line_number[0], line_str[0],
-							line_number[1], line_str[1] );
+							line_number[1], line_str[1] );		// may throw
 				return false;
 			}
 		}
 
 		if ( LeftValid() != RightValid() )
 		{
-			ifSizeNotEqual();
+			ifSizeNotEqual();	// may throw
 			return false;
 		}
 		return true;

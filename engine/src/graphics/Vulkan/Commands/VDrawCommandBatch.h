@@ -81,7 +81,9 @@ namespace AE::Graphics
 		
 	// render task scheduler api
 	private:
-		explicit VDrawCommandBatch (uint indexInPool) __NE___;
+		explicit VDrawCommandBatch (uint indexInPool) __NE___ :
+			_indexInPool{ CheckCast<ubyte>( indexInPool )}
+		{}
 
 		bool  _Create (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports, ArrayView<VkRect2D> scissors,
 					   StringView dbgName, RGBA8u dbgColor) __NE___;
@@ -93,80 +95,7 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
-#	define CMDDRAWBATCH		VDrawCommandBatch
 #	include "graphics/Private/DrawTask.h"
 //-----------------------------------------------------------------------------
-	
-
-
-namespace AE::Graphics
-{	
-/*
-=================================================
-	constructor
-=================================================
-*/
-	inline VDrawCommandBatch::VDrawCommandBatch (uint indexInPool) __NE___ :
-		_indexInPool{ CheckCast<ubyte>( indexInPool )}
-	{}
-
-/*
-=================================================
-	Add
-----
-	always return non-null task
-=================================================
-*/
-	template <typename TaskType, typename ...Ctor, typename ...Deps>
-	AsyncTask  VDrawCommandBatch::Add (Tuple<Ctor...> &&		ctorArgs,
-									   const Tuple<Deps...>&	deps,
-									   StringView				dbgName,
-									   RGBA8u					dbgColor) __NE___
-	{
-		//ASSERT( not IsSubmitted() );
-		STATIC_ASSERT( IsBaseOf< DrawTask, TaskType >);
-		
-		try {
-			auto	task = ctorArgs.Apply([this, dbgName, dbgColor] (auto&& ...args)
-										  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbgName, dbgColor ); });	// throw
-
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
-		}
-		catch(...) {}
-		
-		return Scheduler().GetCanceledTask();
-	}
-	
-# ifdef AE_HAS_COROUTINE
-/*
-=================================================
-	Add
-----
-	always return non-null task
-=================================================
-*/
-	template <typename PromiseT, typename ...Deps>
-	AsyncTask  VDrawCommandBatch::Add (AE::Threading::CoroutineHandle<PromiseT>	handle,
-									   const Tuple<Deps...>&					deps,
-									   StringView								dbgName,
-									   RGBA8u									dbgColor) __NE___
-	{
-		//ASSERT( not IsSubmitted() );
-		STATIC_ASSERT( IsSameTypes< AE::Threading::CoroutineHandle<PromiseT>, CoroutineDrawTask >);
-		
-		try {
-			auto	task = MakeRC<AE::Threading::_hidden_::DrawTaskCoroutineRunner>( RVRef(handle), GetRC(), dbgName, dbgColor );	// throw
-
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
-		}
-		catch(...) {}
-
-		return Scheduler().GetCanceledTask();
-	}
-# endif
-
-} // AE::Graphics
 
 #endif // AE_ENABLE_VULKAN

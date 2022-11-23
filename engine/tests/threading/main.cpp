@@ -19,6 +19,8 @@ extern void UnitTest_LfLinearAllocator ();
 
 extern void UnitTest_SpinLock ();
 
+extern void UnitTest_AsyncDataSource ();
+
 
 #ifdef AE_PLATFORM_ANDROID
 extern int Test_Threading ()
@@ -28,6 +30,8 @@ int main ()
 {
 	AE::Base::StaticLogger::LoggerDbgScope log{};
 
+	UnitTest_AsyncDataSource();
+	
 	UnitTest_LfIndexedPool2();
 	UnitTest_LfIndexedPool3();
 	UnitTest_LfStaticPool();
@@ -44,7 +48,7 @@ int main ()
 	UnitTest_TaskUsage();
 	UnitTest_Promise();
 	UnitTest_Coroutine();
-
+	
 	AE_LOGI( "Tests.Threading finished" );
 	return 0;
 }

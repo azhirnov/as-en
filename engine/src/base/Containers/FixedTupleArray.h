@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
+	Cache-friendly array of structures.
+
 	Exceptions:
 		- array elements may throw exceptions (in copy-ctor)
 */
@@ -111,7 +113,7 @@ namespace AE::Base
 
 	// variables
 	private:
-		usize		_count	= 0;
+		ubyte		_count	= 0;
 		Array_t		_arrays;
 
 
@@ -120,12 +122,12 @@ namespace AE::Base
 		constexpr FixedTupleArray ()							__NE___	{}
 
 		constexpr FixedTupleArray (Self &&)						__NE___;
-		constexpr FixedTupleArray (const Self &)				__TH___;
+		constexpr FixedTupleArray (const Self &)				__Th___;
 
 		constexpr ~FixedTupleArray ()							__NE___	{ clear(); }
 		
 		constexpr Self&  operator = (Self &&)					__NE___;
-		constexpr Self&  operator = (const Self &)				__TH___;
+		constexpr Self&  operator = (const Self &)				__Th___;
 
 		template <usize I>
 		ND_ constexpr auto			get ()						C_NE___	{ return ArrayView<typename Types_t::template Get<I>>{ _Data<I>(), _count }; }
@@ -173,18 +175,18 @@ namespace AE::Base
 			constexpr Result_t		emplace_back ()				__NE___;
 		
 		template <typename ...Args>
-		constexpr bool  set (usize index, Args&&... values)		__TH___;
+		constexpr bool  set (usize index, Args&&... values)		__Th___;
 		
 		template <typename ...Args>
-		constexpr void  push_back (Args&&... values)			__TH___;
+		constexpr void  push_back (Args&&... values)			__Th___;
 		
 		template <typename ...Args>
-		constexpr bool  try_push_back (Args&&... values)		__TH___;
+		constexpr bool  try_push_back (Args&&... values)		__Th___;
 
 		constexpr void  pop_back ()								__NE___;
 		
 		template <typename ...Args>
-		constexpr void  insert (usize pos, Args&&... values)	__TH___;
+		constexpr void  insert (usize pos, Args&&... values)	__Th___;
 
 		constexpr void  resize (usize newSize)					__NE___;
 
@@ -196,42 +198,42 @@ namespace AE::Base
 		ND_ constexpr bool  operator == (const Self &rhs)		C_NE___;
 		ND_ constexpr bool  operator != (const Self &rhs)		C_NE___	{ return not (*this == rhs); }
 
-		ND_ HashVal  CalcHash () C_NE___;
+		ND_ HashVal  CalcHash ()								C_NE___;
 
 
 	private:
-		template <usize I>	ND_ constexpr auto*	 _Data ()		C_NE___	{ return _arrays.template Get<I>().arr; }
-		template <usize I>	ND_ constexpr auto*	 _Data ()		__NE___	{ return _arrays.template Get<I>().arr; }
+		template <usize I>	ND_ constexpr auto*	 _Data ()					C_NE___	{ return _arrays.template Get<I>().arr; }
+		template <usize I>	ND_ constexpr auto*	 _Data ()					__NE___	{ return _arrays.template Get<I>().arr; }
 
 		template <typename T>
-		ND_ constexpr T*  _At (usize i)							__NE___	{ return _Data< Types_t::template Index<T> >() + i; }
+		ND_ constexpr T*  _At (usize i)										__NE___	{ return _Data< Types_t::template Index<T> >() + i; }
 
 		template <usize I, typename Arg0, typename ...Args>
-		constexpr void  _PushBack (Arg0 &&arg0, Args&&... args) __TH___;
+		constexpr void  _PushBack (Arg0 &&arg0, Args&&... args)				__Th___;
 
 		template <usize I, typename Arg0, typename ...Args>
-		constexpr void  _Insert (usize pos, Arg0 &&arg0, Args&&... args) __TH___;
+		constexpr void  _Insert (usize pos, Arg0 &&arg0, Args&&... args)	__Th___;
 
 		template <usize I>
-		constexpr void  _Destroy (usize index, usize count)		__NE___;
+		constexpr void  _Destroy (usize index, usize count)					__NE___;
 
 		template <usize I>
 		constexpr void  _Replace (usize srcIdx, usize dstIdx, usize count) __NE___;
 
 		template <usize I>
-		constexpr void  _Create (usize index, usize count)		__NE___;
+		constexpr void  _Create (usize index, usize count)					__NE___;
 
 		template <usize I>
-		static constexpr void  _Move (Self &dst, Self &src, usize count) __NE___;
+		static constexpr void  _Move (Self &dst, Self &src, usize count)	__NE___;
 		
 		template <usize I>
-		static constexpr void  _Copy (Self &dst, const Self &src, usize count) __TH___;
+		static constexpr void  _Copy (Self &dst, const Self &src, usize count) __Th___;
 
 		template <usize I>
-		ND_ HashVal  _CalcHash ()								C_NE___;
+		ND_ HashVal  _CalcHash ()											C_NE___;
 		
 		template <usize I>
-		ND_ constexpr bool  _Equal (const Self &rhs)			C_NE___;
+		ND_ constexpr bool  _Equal (const Self &rhs)						C_NE___;
 	};
 
 	
@@ -250,7 +252,7 @@ namespace AE::Base
 	}
 	
 	template <usize S, typename ...Types>
-	constexpr FixedTupleArray<S, Types...>::FixedTupleArray (const Self &other) __TH___ :
+	constexpr FixedTupleArray<S, Types...>::FixedTupleArray (const Self &other) __Th___ :
 		_count{ other._count }
 	{
 		if ( _count > 0 )
@@ -277,7 +279,7 @@ namespace AE::Base
 	}
 	
 	template <usize S, typename ...Types>
-	constexpr FixedTupleArray<S, Types...>&  FixedTupleArray<S, Types...>::operator = (const Self &rhs) __TH___
+	constexpr FixedTupleArray<S, Types...>&  FixedTupleArray<S, Types...>::operator = (const Self &rhs) __Th___
 	{
 		clear();
 
@@ -296,7 +298,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <typename ...Args>
-	constexpr bool  FixedTupleArray<S, Types...>::set (usize index, Args&&... values) __TH___
+	constexpr bool  FixedTupleArray<S, Types...>::set (usize index, Args&&... values) __Th___
 	{
 		STATIC_ASSERT( sizeof...(Args) == Types_t::Count );
 		if_likely( index < _count )
@@ -315,7 +317,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <typename ...Args>
-	constexpr void  FixedTupleArray<S, Types...>::push_back (Args&&... values) __TH___
+	constexpr void  FixedTupleArray<S, Types...>::push_back (Args&&... values) __Th___
 	{
 		STATIC_ASSERT( sizeof...(Args) == Types_t::Count );
 		ASSERT( _count < capacity() );
@@ -330,7 +332,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <typename ...Args>
-	constexpr bool  FixedTupleArray<S, Types...>::try_push_back (Args&&... values) __TH___
+	constexpr bool  FixedTupleArray<S, Types...>::try_push_back (Args&&... values) __Th___
 	{
 		STATIC_ASSERT( sizeof...(Args) == Types_t::Count );
 		if_likely( _count < capacity() )
@@ -397,7 +399,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <typename ...Args>
-	constexpr void  FixedTupleArray<S, Types...>::insert (usize pos, Args&&... values) __TH___
+	constexpr void  FixedTupleArray<S, Types...>::insert (usize pos, Args&&... values) __Th___
 	{
 		STATIC_ASSERT( sizeof...(Args) == Types_t::Count );
 		ASSERT( _count < capacity() );
@@ -430,7 +432,7 @@ namespace AE::Base
 			_Create<0>( _count, newSize - _count );
 		}
 
-		_count = newSize;
+		_count = ubyte(newSize);
 	}
 	
 /*
@@ -514,11 +516,9 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize I, typename Arg0, typename ...Args>
-	constexpr void  FixedTupleArray<S, Types...>::_PushBack (Arg0 &&arg0, Args&&... args) __TH___
+	constexpr void  FixedTupleArray<S, Types...>::_PushBack (Arg0 &&arg0, Args&&... args) __Th___
 	{
-		using T = std::remove_const_t< std::remove_reference_t< Arg0 >>;
-
-		PlacementNew<T>( _Data<I>() + _count, FwdArg<Arg0>(arg0) );	// throw
+		PlacementNew< Types_t::Get<I> >( _Data<I>() + _count, FwdArg<Arg0>(arg0) );	// throw
 			
 		if constexpr( I+1 < Types_t::Count )
 			_PushBack<I+1>( FwdArg<Args>(args)... );	// throw
@@ -531,11 +531,9 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize I, typename Arg0, typename ...Args>
-	constexpr void  FixedTupleArray<S, Types...>::_Insert (usize pos, Arg0 &&arg0, Args&&... args) __TH___
+	constexpr void  FixedTupleArray<S, Types...>::_Insert (usize pos, Arg0 &&arg0, Args&&... args) __Th___
 	{
-		using T = std::remove_const_t< std::remove_reference_t< Arg0 >>;
-		
-		PlacementNew<T>( _Data<I>() + pos, FwdArg<Arg0>(arg0) );	// throw
+		PlacementNew< Types_t::Get<I> >( _Data<I>() + pos, FwdArg<Arg0>(arg0) );	// throw
 			
 		if constexpr( I+1 < Types_t::Count )
 			_Insert<I+1>( pos, FwdArg<Args>(args)... );	// throw
@@ -644,7 +642,7 @@ namespace AE::Base
 */
 	template <usize S, typename ...Types>
 	template <usize I>
-	constexpr void  FixedTupleArray<S, Types...>::_Copy (Self &dst, const Self &src, usize count) __TH___
+	constexpr void  FixedTupleArray<S, Types...>::_Copy (Self &dst, const Self &src, usize count) __Th___
 	{
 		using T			= typename Types_t::template Get<I>;
 		using CPolicy_t	= CopyPolicy::template AutoDetect<T>;

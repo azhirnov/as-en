@@ -22,9 +22,9 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr VecSwizzle () {}
+		constexpr VecSwizzle ()										__NE___	{}
 		
-		explicit VecSwizzle (const PackedVec<uint,4> &comp) : _value{0}
+		explicit VecSwizzle (const PackedVec<uint,4> &comp)			__NE___	: _value{0}
 		{
 			ASSERT(All( comp <= 7u ));
 
@@ -35,24 +35,24 @@ namespace AE::Math
 		}
 		
 		template <typename T, int I, glm::qualifier Q>
-		ND_ GLM_CONSTEXPR TVec<T,4,Q>		Transform (const TVec<T,I,Q> &src) const;
-		ND_ GLM_CONSTEXPR PackedVec<uint,4>	ToVec () const;
+		ND_ TVec<T,4,Q>			Transform (const TVec<T,I,Q> &src)	C_NE___;
+		ND_ PackedVec<uint,4>	ToVec ()							C_NE___;
 
-		ND_ constexpr uint		Get ()			const	{ return _value; }
-		ND_ constexpr bool		IsUndefined ()	const	{ return _value == 0; }
+		ND_ constexpr uint		Get ()								C_NE___	{ return _value; }
+		ND_ constexpr bool		IsUndefined ()						C_NE___	{ return _value == 0; }
 		
-		ND_ constexpr bool		operator == (VecSwizzle rhs) const	{ return _value == rhs._value; }
-		ND_ constexpr bool		operator >  (VecSwizzle rhs) const	{ return _value >  rhs._value; }
+		ND_ constexpr bool		operator == (VecSwizzle rhs)		C_NE___	{ return _value == rhs._value; }
+		ND_ constexpr bool		operator >  (VecSwizzle rhs)		C_NE___	{ return _value >  rhs._value; }
 		
-		ND_ static constexpr VecSwizzle  VecDefault (usize size);
+		ND_ static constexpr VecSwizzle  VecDefault (usize size)	__NE___;
 		
-		friend constexpr VecSwizzle  operator "" _vecSwizzle (const char *str, const usize len);
+		friend constexpr VecSwizzle  operator "" _vecSwizzle (const char *str, const usize len) __NE___;
 
 
 	private:
-		explicit constexpr VecSwizzle (ushort val) : _value{val} {}
+		explicit constexpr VecSwizzle (ushort val)					__NE___	: _value{val} {}
 
-		ND_ static constexpr uint  _CharToValue (char c);
+		ND_ static constexpr uint  _CharToValue (char c)			__NE___;
 	};
 
 	
@@ -61,7 +61,7 @@ namespace AE::Math
 	_CharToValue
 =================================================
 */
-	constexpr uint  VecSwizzle::_CharToValue (char c)
+	constexpr uint  VecSwizzle::_CharToValue (char c) __NE___
 	{
 		return	((c == 'x') | (c == 'X'))	? 1 :
 				((c == 'y') | (c == 'Y'))	? 2 :
@@ -78,7 +78,7 @@ namespace AE::Math
 	operator ""
 =================================================
 */
-	ND_ constexpr VecSwizzle  operator "" _vecSwizzle (const char *str, const usize len)
+	ND_ constexpr VecSwizzle  operator "" _vecSwizzle (const char *str, const usize len) __NE___
 	{
 		ASSERT( len > 0 and len <= 4 );
 
@@ -103,7 +103,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	GLM_CONSTEXPR TVec<T,4,Q>  VecSwizzle::Transform (const TVec<T,I,Q> &src) const
+	TVec<T,4,Q>  VecSwizzle::Transform (const TVec<T,I,Q> &src) C_NE___
 	{
 		T	temp [8] = {};
 		for (int i = 0; i < I; ++i) temp[i+1] = src[i];
@@ -124,7 +124,7 @@ namespace AE::Math
 	ToVec
 =================================================
 */
-	inline GLM_CONSTEXPR PackedVec<uint,4>  VecSwizzle::ToVec () const
+	inline PackedVec<uint,4>  VecSwizzle::ToVec () C_NE___
 	{
 		return PackedVec<uint,4>{ (_value >> 12) & _Mask, (_value >> 8) & _Mask, (_value >> 4) & _Mask, _value & _Mask };
 	}
@@ -135,7 +135,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, int I, glm::qualifier Q>
-	ND_ GLM_CONSTEXPR TVec<T,4,Q>  operator * (const TVec<T,I,Q> &lhs, VecSwizzle rhs)
+	ND_ TVec<T,4,Q>  operator * (const TVec<T,I,Q> &lhs, VecSwizzle rhs) __NE___
 	{
 		return rhs.Transform( lhs );
 	}
@@ -145,7 +145,7 @@ namespace AE::Math
 	VecDefault
 =================================================
 */
-	inline constexpr VecSwizzle  VecSwizzle::VecDefault (usize size)
+	inline constexpr VecSwizzle  VecSwizzle::VecDefault (usize size) __NE___
 	{
 		switch ( size )
 		{
@@ -174,7 +174,7 @@ namespace std
 	template <>
 	struct hash< AE::Math::VecSwizzle >
 	{
-		ND_ size_t  operator () (const AE::Math::VecSwizzle &value) const
+		ND_ size_t  operator () (const AE::Math::VecSwizzle &value) C_NE___
 		{
 			return size_t( value.Get() );
 		}

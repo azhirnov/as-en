@@ -943,6 +943,8 @@ namespace AE::Base
 			case EResourceState::IndirectBuffer :					str += "IndirectBuffer";						break;
 			case EResourceState::IndexBuffer :						str += "IndexBuffer";							break;
 			case EResourceState::VertexBuffer :						str += "VertexBuffer";							break;
+			case EResourceState::CopyRTAS_Read :					str += "CopyRTAS_Read";							break;
+			case EResourceState::CopyRTAS_Write :					str += "CopyRTAS_Write";						break;
 			case EResourceState::BuildRTAS_Read :					str += "BuildRTAS_Read";						break;
 			case EResourceState::BuildRTAS_Write :					str += "BuildRTAS_Write";						break;
 			case EResourceState::BuildRTAS_RW :						str += "BuildRTAS_RW";							break;

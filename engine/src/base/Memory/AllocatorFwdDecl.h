@@ -2,32 +2,32 @@
 
 #pragma once
 
-#include "base/Common.h"
+#include "base/Utils/Helpers.h"
 
 namespace AE::Base
 {
-	struct UntypedAllocator;
-	struct UntypedOnStackAllocator;	// may be unsafe!
+	class UntypedAllocator;
+	class UntypedOnStackAllocator;	// may be unsafe!
 	
 	template <usize BaseAlign>
-	struct UntypedAllocatorBaseAlign;
+	class UntypedAllocatorBaseAlign;
 
 	template <typename T>
-	struct StdAllocator;
+	class StdAllocator;
 
-	template <typename AllocatorType, uint MaxBlocks, bool ThreadSafe>
-	struct LinearAllocator;
+	template <typename AllocatorType = UntypedAllocator, uint MaxBlocks = 16, bool ThreadSafe = false>
+	class LinearAllocator;
 
-	template <typename AllocatorType, uint MaxBlocks, bool ThreadSafe>
-	struct StackAllocator;
+	template <typename AllocatorType = UntypedAllocator, uint MaxBlocks = 16, bool ThreadSafe = false>
+	class StackAllocator;
 
-	struct MtAllocator;
+	class MtAllocator;
 	
 	template <typename AllocatorType>
-	struct AllocatorRef;
+	class AllocatorRef;
 
 	template <typename T, typename AllocatorType>
-	struct StdAllocatorRef;
+	class StdAllocatorRef;
 
 
 	class IAllocator;

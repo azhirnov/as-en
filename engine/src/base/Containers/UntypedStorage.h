@@ -29,16 +29,16 @@ namespace AE::Base
 
 	// methods
 	public:
-		UntypedStorage ()
+		UntypedStorage ()												__NE___
 		{
 			DEBUG_ONLY( DbgInitMem( _buffer, Sizeof(_buffer) ));
 		}
 		
-		//explicit UntypedStorage (_hidden_::_Zero) : _buffer{}
+		//explicit UntypedStorage (_hidden_::_Zero)						__NE___	: _buffer{}
 		//{}
 		
 		template <typename T>
-		explicit UntypedStorage (const T &value)
+		explicit UntypedStorage (const T &value)						__NE___
 		{
 			STATIC_ASSERT( sizeof(T) == Size_v );
 			STATIC_ASSERT( alignof(T) <= Align_v );
@@ -46,33 +46,33 @@ namespace AE::Base
 			std::memcpy( OUT _buffer, &value, Size_v );
 		}
 
-		~UntypedStorage ()
+		~UntypedStorage ()												__NE___
 		{
 			DEBUG_ONLY( DbgFreeMem( _buffer, Sizeof(_buffer) ));
 		}
 
 		template <typename T>
-		ND_ T*  Ptr (Bytes offset = 0_b)
+		ND_ T*  Ptr (Bytes offset = 0_b)								__NE___
 		{
 			ASSERT( SizeOf<T> + offset <= sizeof(_buffer) );
 			return Base::Cast<T>( _buffer + offset );
 		}
 
 		template <typename T>
-		ND_ T const*  Ptr (Bytes offset = 0_b) const
+		ND_ T const*  Ptr (Bytes offset = 0_b)							C_NE___
 		{
 			ASSERT( SizeOf<T> + offset <= sizeof(_buffer) );
 			return Base::Cast<T>( _buffer + offset );
 		}
 
 		template <typename T>
-		ND_ T&  Ref (Bytes offset = 0_b)				{ return *Ptr<T>( offset ); }
+		ND_ T&  Ref (Bytes offset = 0_b)								__NE___	{ return *Ptr<T>( offset ); }
 
 		template <typename T>
-		ND_ T const&  Ref (Bytes offset = 0_b) const	{ return *Ptr<T>( offset ); }
+		ND_ T const&  Ref (Bytes offset = 0_b)							C_NE___	{ return *Ptr<T>( offset ); }
 
-		ND_ Bytes	Size ()		const	{ return Bytes{Size_v}; }
-		ND_ Bytes	Align ()	const	{ return Bytes{Align_v}; }
+		ND_ Bytes	Size ()												C_NE___	{ return Bytes{Size_v}; }
+		ND_ Bytes	Align ()											C_NE___	{ return Bytes{Align_v}; }
 	};
 
 
@@ -99,24 +99,24 @@ namespace AE::Base
 
 	// methods
 	public:
-		DynUntypedStorage () __NE___ {}
-		DynUntypedStorage (Bytes size, Bytes align) __NE___ { Alloc( SizeAndAlign{ size, align }); }
+		DynUntypedStorage ()							__NE___ {}
+		DynUntypedStorage (Bytes size, Bytes align)		__NE___ { Alloc( SizeAndAlign{ size, align }); }
 		explicit DynUntypedStorage (const SizeAndAlign sizeAndAlign) __NE___ { Alloc( sizeAndAlign ); }
 
-		~DynUntypedStorage ()				__NE___ { Dealloc(); }
+		~DynUntypedStorage ()							__NE___ { Dealloc(); }
 
-		ND_ Bytes			Size ()			C_NE___	{ return Bytes{_size}; }
-		ND_ POTValue		AlignPOT ()		C_NE___	{ return POTValue{ubyte( _align )}; }
-		ND_ Bytes			Align ()		C_NE___	{ return Bytes{usize{ AlignPOT() }}; }
+		ND_ Bytes			Size ()						C_NE___	{ return Bytes{_size}; }
+		ND_ POTValue		AlignPOT ()					C_NE___	{ return POTValue{ubyte( _align )}; }
+		ND_ Bytes			Align ()					C_NE___	{ return Bytes{usize{ AlignPOT() }}; }
 		
-		NDRST(void * )		Data ()			__NE___	{ return _ptr; }
-		NDRST(const void*)	Data ()			C_NE___	{ return _ptr; }
+		NDRST(void * )		Data ()						__NE___	{ return _ptr; }
+		NDRST(const void*)	Data ()						C_NE___	{ return _ptr; }
 
 
-		ND_ explicit operator bool ()		C_NE___	{ return _ptr != null; }
+		ND_ explicit operator bool ()					C_NE___	{ return _ptr != null; }
 
 
-		bool  Alloc (const SizeAndAlign sizeAndAlign) __NE___
+		bool  Alloc (const SizeAndAlign sizeAndAlign)	__NE___
 		{
 			Dealloc();
 			
@@ -130,7 +130,7 @@ namespace AE::Base
 			return _ptr != null;
 		}
 
-		void  Dealloc ()						__NE___
+		void  Dealloc ()								__NE___
 		{
 			if ( _ptr != null )
 				Allocator_t::Deallocate( _ptr, SizeAndAlign{ Size(), Align() });
@@ -142,24 +142,24 @@ namespace AE::Base
 
 
 		template <typename T>
-		ND_ T*  Ptr (Bytes offset = 0_b)		__NE___
+		ND_ T*  Ptr (Bytes offset = 0_b)				__NE___
 		{
 			ASSERT( SizeOf<T> + offset <= Size() );
 			return Base::Cast<T>( _ptr + offset );
 		}
 
 		template <typename T>
-		ND_ T const*  Ptr (Bytes offset = 0_b) C_NE___
+		ND_ T const*  Ptr (Bytes offset = 0_b)			C_NE___
 		{
 			ASSERT( SizeOf<T> + offset <= Size() );
 			return Base::Cast<T>( _ptr + offset );
 		}
 
 		template <typename T>
-		ND_ T&  Ref (Bytes offset = 0_b)		__NE___	{ return *Ptr<T>( offset ); }
+		ND_ T&  Ref (Bytes offset = 0_b)				__NE___	{ return *Ptr<T>( offset ); }
 
 		template <typename T>
-		ND_ T const&  Ref (Bytes offset = 0_b)	C_NE___	{ return *Ptr<T>( offset ); }
+		ND_ T const&  Ref (Bytes offset = 0_b)			C_NE___	{ return *Ptr<T>( offset ); }
 	};
 
 

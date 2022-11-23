@@ -30,58 +30,58 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr RadiansTempl () : _value{} {}
-		constexpr explicit RadiansTempl (T val) : _value{val} {}
+		constexpr RadiansTempl ()								__NE___	: _value{} {}
+		constexpr explicit RadiansTempl (T val)					__NE___	: _value{val} {}
 		
-		constexpr RadiansTempl (const Self &) = default;
-		constexpr RadiansTempl (Self &&) = default;
+		constexpr RadiansTempl (const Self &)					__NE___	= default;
+		constexpr RadiansTempl (Self &&)						__NE___	= default;
 
-		ND_ constexpr explicit operator T ()					const	{ return _value; }
+		ND_ constexpr explicit operator T ()					C_NE___	{ return _value; }
 
-		ND_ constexpr static Self	Pi ()								{ return Self{T( 3.14159265358979323846 )}; }
-		ND_ constexpr static Self	Pi2 ()								{ return Pi() * T(2); }
-		ND_ constexpr static T		DegToRad ()							{ return T(0.01745329251994329576923690768489); }
-		ND_ constexpr static T		RadToDeg ()							{ return T(57.295779513082320876798154814105); }
+		ND_ constexpr static Self	Pi ()						__NE___	{ return Self{T( 3.14159265358979323846 )}; }
+		ND_ constexpr static Self	Pi2 ()						__NE___	{ return Pi() * T(2); }
+		ND_ constexpr static T		DegToRad ()					__NE___	{ return T(0.01745329251994329576923690768489); }
+		ND_ constexpr static T		RadToDeg ()					__NE___	{ return T(57.295779513082320876798154814105); }
 
-			Self&  operator = (const Self &) = default;
-			Self&  operator = (Self &&) = default;
+			Self&  operator = (const Self &)					__NE___	= default;
+			Self&  operator = (Self &&)							__NE___	= default;
 
-		ND_ constexpr Self   operator - ()						const	{ return Self{ -_value }; }
+		ND_ constexpr Self   operator - ()						C_NE___	{ return Self{ -_value }; }
 
-		ND_ constexpr Self	 WrapToPi ()						const	{ return Self{Wrap( _value, -Pi()._value, Pi()._value  )}; }
-		ND_ constexpr Self	 WrapTo0_2Pi ()						const	{ return Self{Wrap( _value, 0, Pi2()._value  )}; }
+		ND_ constexpr Self	 WrapToPi ()						C_NE___	{ return Self{Wrap( _value, -Pi()._value, Pi()._value  )}; }
+		ND_ constexpr Self	 WrapTo0_2Pi ()						C_NE___	{ return Self{Wrap( _value, 0, Pi2()._value  )}; }
 
-			constexpr Self&  operator += (const Self rhs)				{ _value += rhs._value;  return *this; }
-			constexpr Self&  operator -= (const Self rhs)				{ _value -= rhs._value;  return *this; }
-			constexpr Self&  operator *= (const Self rhs)				{ _value *= rhs._value;  return *this; }
-			constexpr Self&  operator /= (const Self rhs)				{ _value /= rhs._value;  return *this; }
+			constexpr Self&  operator += (const Self rhs)		__NE___	{ _value += rhs._value;  return *this; }
+			constexpr Self&  operator -= (const Self rhs)		__NE___	{ _value -= rhs._value;  return *this; }
+			constexpr Self&  operator *= (const Self rhs)		__NE___	{ _value *= rhs._value;  return *this; }
+			constexpr Self&  operator /= (const Self rhs)		__NE___	{ _value /= rhs._value;  return *this; }
 
-			constexpr Self&  operator += (const T rhs)					{ _value += rhs;  return *this; }
-			constexpr Self&  operator -= (const T rhs)					{ _value -= rhs;  return *this; }
-			constexpr Self&  operator *= (const T rhs)					{ _value *= rhs;  return *this; }
-			constexpr Self&  operator /= (const T rhs)					{ _value /= rhs;  return *this; }
+			constexpr Self&  operator += (const T rhs)			__NE___	{ _value += rhs;  return *this; }
+			constexpr Self&  operator -= (const T rhs)			__NE___	{ _value -= rhs;  return *this; }
+			constexpr Self&  operator *= (const T rhs)			__NE___	{ _value *= rhs;  return *this; }
+			constexpr Self&  operator /= (const T rhs)			__NE___	{ _value /= rhs;  return *this; }
 			
-		ND_ constexpr Self   operator + (const Self rhs)		const	{ return Self{ _value + rhs._value }; }
-		ND_ constexpr Self   operator - (const Self rhs)		const	{ return Self{ _value - rhs._value }; }
-		ND_ constexpr Self   operator * (const Self rhs)		const	{ return Self{ _value * rhs._value }; }
-		ND_ constexpr Self   operator / (const Self rhs)		const	{ return Self{ _value / rhs._value }; }
+		ND_ constexpr Self   operator + (const Self rhs)		C_NE___	{ return Self{ _value + rhs._value }; }
+		ND_ constexpr Self   operator - (const Self rhs)		C_NE___	{ return Self{ _value - rhs._value }; }
+		ND_ constexpr Self   operator * (const Self rhs)		C_NE___	{ return Self{ _value * rhs._value }; }
+		ND_ constexpr Self   operator / (const Self rhs)		C_NE___	{ return Self{ _value / rhs._value }; }
 
-		ND_ constexpr Self   operator + (const T rhs)			const	{ return Self{ _value + rhs }; }
-		ND_ constexpr Self   operator - (const T rhs)			const	{ return Self{ _value - rhs }; }
-		ND_ constexpr Self   operator * (const T rhs)			const	{ return Self{ _value * rhs }; }
-		ND_ constexpr Self   operator / (const T rhs)			const	{ return Self{ _value / rhs }; }
+		ND_ constexpr Self   operator + (const T rhs)			C_NE___	{ return Self{ _value + rhs }; }
+		ND_ constexpr Self   operator - (const T rhs)			C_NE___	{ return Self{ _value - rhs }; }
+		ND_ constexpr Self   operator * (const T rhs)			C_NE___	{ return Self{ _value * rhs }; }
+		ND_ constexpr Self   operator / (const T rhs)			C_NE___	{ return Self{ _value / rhs }; }
 
-		ND_ constexpr bool	operator == (const Self rhs)		const	{ return _value == rhs._value; }
-		ND_ constexpr bool	operator != (const Self rhs)		const	{ return _value != rhs._value; }
-		ND_ constexpr bool	operator >  (const Self rhs)		const	{ return _value >  rhs._value; }
-		ND_ constexpr bool	operator <  (const Self rhs)		const	{ return _value <  rhs._value; }
-		ND_ constexpr bool	operator >= (const Self rhs)		const	{ return _value >= rhs._value; }
-		ND_ constexpr bool	operator <= (const Self rhs)		const	{ return _value <= rhs._value; }
+		ND_ constexpr bool	operator == (const Self rhs)		C_NE___	{ return _value == rhs._value; }
+		ND_ constexpr bool	operator != (const Self rhs)		C_NE___	{ return _value != rhs._value; }
+		ND_ constexpr bool	operator >  (const Self rhs)		C_NE___	{ return _value >  rhs._value; }
+		ND_ constexpr bool	operator <  (const Self rhs)		C_NE___	{ return _value <  rhs._value; }
+		ND_ constexpr bool	operator >= (const Self rhs)		C_NE___	{ return _value >= rhs._value; }
+		ND_ constexpr bool	operator <= (const Self rhs)		C_NE___	{ return _value <= rhs._value; }
 		
-		ND_ friend constexpr Self  operator + (T lhs, Self rhs)			{ return Self{ lhs + rhs._value }; }
-		ND_ friend constexpr Self  operator - (T lhs, Self rhs)			{ return Self{ lhs - rhs._value }; }
-		ND_ friend constexpr Self  operator * (T lhs, Self rhs)			{ return Self{ lhs * rhs._value }; }
-		ND_ friend constexpr Self  operator / (T lhs, Self rhs)			{ return Self{ lhs / rhs._value }; }
+		ND_ friend constexpr Self  operator + (T lhs, Self rhs)	__NE___	{ return Self{ lhs + rhs._value }; }
+		ND_ friend constexpr Self  operator - (T lhs, Self rhs)	__NE___	{ return Self{ lhs - rhs._value }; }
+		ND_ friend constexpr Self  operator * (T lhs, Self rhs)	__NE___	{ return Self{ lhs * rhs._value }; }
+		ND_ friend constexpr Self  operator / (T lhs, Self rhs)	__NE___	{ return Self{ lhs / rhs._value }; }
 	};
 
 
@@ -91,11 +91,11 @@ namespace AE::Math
 
 	inline static constexpr Rad  Pi = Rad::Pi();
 	
-	ND_ constexpr Rad  operator "" _rad (long double value)			{ return Rad{ Rad::Value_t(value) }; }
-	ND_ constexpr Rad  operator "" _rad (unsigned long long value)	{ return Rad{ Rad::Value_t(value) }; }
+	ND_ constexpr Rad  operator "" _rad (long double value)			__NE___	{ return Rad{ Rad::Value_t(value) }; }
+	ND_ constexpr Rad  operator "" _rad (unsigned long long value)	__NE___	{ return Rad{ Rad::Value_t(value) }; }
 	
-	ND_ constexpr Rad  operator "" _deg (long double value)			{ return Rad{ Rad::DegToRad() * Rad::Value_t(value) }; }
-	ND_ constexpr Rad  operator "" _deg (unsigned long long value)	{ return Rad{ Rad::DegToRad() * Rad::Value_t(value) }; }
+	ND_ constexpr Rad  operator "" _deg (long double value)			__NE___	{ return Rad{ Rad::DegToRad() * Rad::Value_t(value) }; }
+	ND_ constexpr Rad  operator "" _deg (unsigned long long value)	__NE___	{ return Rad{ Rad::DegToRad() * Rad::Value_t(value) }; }
 
 
 	template <typename T, int I>
@@ -108,7 +108,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline RadiansTempl<T>  Abs (const RadiansTempl<T>& x)
+	ND_ forceinline RadiansTempl<T>  Abs (const RadiansTempl<T>& x) __NE___
 	{
 		return RadiansTempl<T>{ std::abs( T(x) )};
 	}
@@ -119,7 +119,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline T  Sin (const RadiansTempl<T>& x)
+	ND_ forceinline T  Sin (const RadiansTempl<T>& x) __NE___
 	{
 		return std::sin( T(x) );
 	}
@@ -130,7 +130,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline T  Cos (const RadiansTempl<T>& x)
+	ND_ forceinline T  Cos (const RadiansTempl<T>& x) __NE___
 	{
 		return std::cos( T(x) );
 	}
@@ -141,7 +141,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline Vec<T,2>  SinCos (const RadiansTempl<T>& x)
+	ND_ forceinline Vec<T,2>  SinCos (const RadiansTempl<T>& x) __NE___
 	{
 		return Vec<T,2>{ std::sin( T(x) ), std::cos( T(x) )};
 	}
@@ -152,7 +152,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline RadiansTempl<T>  ASin (const T& x)
+	ND_ inline RadiansTempl<T>  ASin (const T& x) __NE___
 	{
 		ASSERT( x >= T{-1} and x <= T{1} );
 
@@ -165,7 +165,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline RadiansTempl<T>  ACos (const T& x)
+	ND_ inline RadiansTempl<T>  ACos (const T& x) __NE___
 	{
 		ASSERT( x >= T{-1} and x <= T{1} );
 
@@ -178,7 +178,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline T  SinH (const RadiansTempl<T>& x)
+	ND_ inline T  SinH (const RadiansTempl<T>& x) __NE___
 	{
 		return std::sinh( T(x) );
 	}
@@ -189,7 +189,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline T  CosH (const RadiansTempl<T>& x)
+	ND_ inline T  CosH (const RadiansTempl<T>& x) __NE___
 	{
 		return std::cosh( T(x) );
 	}
@@ -200,7 +200,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline RadiansTempl<T>  ASinH (const T& x)
+	ND_ inline RadiansTempl<T>  ASinH (const T& x) __NE___
 	{
 		return RadiansTempl<T>( SignOrZero( x ) * Ln( x + Sqrt( (x*x) + T{1} )));
 	}
@@ -211,7 +211,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline RadiansTempl<T>  ACosH (const T& x)
+	ND_ inline RadiansTempl<T>  ACosH (const T& x) __NE___
 	{
 		ASSERT( x >= T{1} );
 		return RadiansTempl<T>{ Ln( x + Sqrt( (x*x) - T{1} ))};
@@ -223,7 +223,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline T  Tan (const RadiansTempl<T>& x)
+	ND_ inline T  Tan (const RadiansTempl<T>& x) __NE___
 	{
 		return std::tan( T(x) );
 	}
@@ -234,7 +234,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline T  CoTan (const RadiansTempl<T>& x)
+	ND_ inline T  CoTan (const RadiansTempl<T>& x) __NE___
 	{
 		return SafeDiv( T{1}, Tan( x ), T{0} );
 	}
@@ -245,7 +245,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline T  TanH (const RadiansTempl<T>& x)
+	ND_ inline T  TanH (const RadiansTempl<T>& x) __NE___
 	{
 		return std::tanh( T(x) );
 	}
@@ -256,7 +256,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline T  CoTanH (const RadiansTempl<T>& x)
+	ND_ inline T  CoTanH (const RadiansTempl<T>& x) __NE___
 	{
 		return SafeDiv( T{1}, TanH( x ), T{0} );
 	}
@@ -267,7 +267,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline RadiansTempl<T>  ATan (const T& y_over_x)
+	ND_ inline RadiansTempl<T>  ATan (const T& y_over_x) __NE___
 	{
 		return RadiansTempl<T>{ std::atan( y_over_x )};
 	}
@@ -278,7 +278,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline RadiansTempl<T>  ATan (const T& y, const T& x)
+	ND_ inline RadiansTempl<T>  ATan (const T& y, const T& x) __NE___
 	{
 		return RadiansTempl<T>{ std::atan2( y, x )};
 	}
@@ -289,7 +289,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline RadiansTempl<T>  ACoTan (const T& x)
+	ND_ inline RadiansTempl<T>  ACoTan (const T& x) __NE___
 	{
 		return RadiansTempl<T>{ SafeDiv( T{1}, ATan( x ), T{0} )};
 	}
@@ -300,7 +300,7 @@ namespace AE::Math
 =================================================
 *
 	template <typename T>
-	ND_ inline Radians<T>  ATanH (const T& x)
+	ND_ inline Radians<T>  ATanH (const T& x) __NE___
 	{
 		ASSERT( x > T{-1} and x < T{1} );
 
@@ -315,7 +315,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ inline RadiansTempl<T>  ACoTanH (const T& x)
+	ND_ inline RadiansTempl<T>  ACoTanH (const T& x) __NE___
 	{
 		return RadiansTempl<T>{ SafeDiv( T{1}, ATanH( x ), T{0} )};
 	}
@@ -326,7 +326,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline constexpr bool  Equals (const RadiansTempl<T> &lhs, const RadiansTempl<T> &rhs, const T &err = Epsilon<T>())
+	ND_ forceinline constexpr bool  Equals (const RadiansTempl<T> &lhs, const RadiansTempl<T> &rhs, const T &err = Epsilon<T>()) __NE___
 	{
 		return Equals( T{lhs}, T{rhs}, err );
 	}

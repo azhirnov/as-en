@@ -199,10 +199,13 @@
 
 #	define RETURN_ERR( /* msg, return */... ) \
 		AE_PRIVATE_RETURN_ERR( AE_PRIVATE_GETARG_0( __VA_ARGS__ ), AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
+
+#	define RETURN_ERRV( _text_ ) \
+		{ AE_LOGE( _text_ );  return; }
 #endif
 
 
-// same as CHECK_ERR for using inside task
+// CHECK_ERR for using inside task
 #if 1
 #	define AE_PRIVATE_CHECK_TASK( _expr_, _text_ ) \
 		{if_likely(( _expr_ )) {} \
@@ -215,6 +218,14 @@
 #	define CHECK_TE( /* expr, message */... ) \
 		AE_PRIVATE_CHECK_TASK(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
 								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( __VA_ARGS__ )) )
+#endif
+
+
+// CHECK_ERR for using inside task
+#if 1
+#	define CHECK_PE( /* expr, return_if_false */... ) \
+		AE_PRIVATE_CHECK_ERR(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
+								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Threading::CancelPromise ))
 #endif
 
 
@@ -257,7 +268,8 @@
 #endif
 
 
-#if AE_NO_EXCEPTIONS == 0
+// 
+#if 1
 #	define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ ) \
 		{if_likely(( _expr_ )) {}\
 		 else_unlikely { \
@@ -269,9 +281,7 @@
 		AE_PRIVATE_CHECK_THROW_MSG(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
 									AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( __VA_ARGS__ )) )
 
-#endif
 
-#if 1
 #	define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ ) \
 		{if_likely(( _expr_ )) {}\
 		 else_unlikely { \
@@ -285,6 +295,7 @@
 #	define CATCH( ... ) \
 		try { __VA_ARGS__; } \
 		catch(...) {}
+
 
 #	define AE_PRIVATE_CATCH_ERR( _src_, _return_on_exc_ ) \
 		try { _src_; } \

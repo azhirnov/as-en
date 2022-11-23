@@ -23,7 +23,7 @@ namespace AE::Threading
 			  usize MaxChunks_v = 8,
 			  typename AllocatorType = UntypedAllocator
 			 >
-	struct LfIndexedPool3 final
+	class LfIndexedPool3 final : public Noncopyable
 	{
 		STATIC_ASSERT( ChunkSize_v > 0 );
 		STATIC_ASSERT( ChunkSize_v <= 64*64 );
@@ -85,15 +85,7 @@ namespace AE::Threading
 
 	// methods
 	public:
-		LfIndexedPool3 (const Self &)	= delete;
-		LfIndexedPool3 (Self &&)		= delete;
-
-		Self& operator = (const Self &)	= delete;
-		Self& operator = (Self &&)		= delete;
-		
-
 		explicit LfIndexedPool3 (const Allocator_t &alloc = Allocator_t{}) __NE___;
-
 		~LfIndexedPool3 ()									__NE___	{ Release(); }
 		
 
@@ -124,3 +116,5 @@ namespace AE::Threading
 	};
 
 } // AE::Threading
+
+//#include "threading/Containers/LfIndexedPool3.inl.h"

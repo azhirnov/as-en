@@ -502,27 +502,27 @@ namespace AE::Graphics::_hidden_
 		
 	// methods
 	public:
-		MSoftwareCmdBuf ()	{}
+		MSoftwareCmdBuf ()											__NE___	{}
 		
-		ND_ MBakedCommands	Bake ();
+		ND_ MBakedCommands	Bake ()									__NE___;
 		
 		template <typename CmdType, typename ...DynamicTypes>
-		ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)	__TH___	{ return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
+		ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)		__Th___	{ return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
 		
-		void  DebugMarker (NtStringView text);
-		void  PushDebugGroup (NtStringView text);
-		void  PopDebugGroup ();
-		void  CommitBarriers (const MBarrierManager::BarrierInfo &);
+		void  DebugMarker (NtStringView text)						__Th___;
+		void  PushDebugGroup (NtStringView text)					__Th___;
+		void  PopDebugGroup ()										__Th___;
+		void  CommitBarriers (const MBarrierManager::BarrierInfo &)	__Th___;
 
-		void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch, StringView taskName, RGBA8u color, IGraphicsProfiler::EContextType type);
-		void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch, IGraphicsProfiler::EContextType type);
+		void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch, StringView taskName, RGBA8u color, IGraphicsProfiler::EContextType type)	__Th___;
+		void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch, IGraphicsProfiler::EContextType type)											__Th___;
 		
-		void  DbgFillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data);
+		void  DbgFillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)																		__Th___;
 		
-		ND_ static bool  Execute (MetalCommandBuffer cmdbuf, void* root);
+		ND_ static bool  Execute (MetalCommandBuffer cmdbuf, void* root)																					__NE___;
 		
 	private:
-		ND_ bool  _Validate (const void* root) const	{ return SoftwareCmdBufBase::_Validate( root, Commands_t::Count ); }
+		ND_ bool  _Validate (const void* root)						C_NE___	{ return SoftwareCmdBufBase::_Validate( root, Commands_t::Count ); }
 	};
 	
 	using MSoftwareCmdBufPtr = Unique< MSoftwareCmdBuf >;
@@ -552,22 +552,22 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		virtual ~_MBaseIndirectContext ();
-
-		ND_ bool	IsValid ()	const	{ return _cmdbuf and _cmdbuf->IsValid(); }
+		virtual ~_MBaseIndirectContext ()										__NE___;
 
 	protected:
-		explicit _MBaseIndirectContext (MSoftwareCmdBufPtr cmdbuf) : _cmdbuf{RVRef(cmdbuf)} {}
+		explicit _MBaseIndirectContext (MSoftwareCmdBufPtr cmdbuf)				__NE___: _cmdbuf{RVRef(cmdbuf)} {}
 
-		explicit _MBaseIndirectContext (NtStringView dbgName);
-		_MBaseIndirectContext (NtStringView dbgName, MSoftwareCmdBufPtr cmdbuf);
+		explicit _MBaseIndirectContext (NtStringView dbgName)					__Th___;
+		_MBaseIndirectContext (NtStringView dbgName, MSoftwareCmdBufPtr cmdbuf)	__Th___;
 
-		void  _DebugMarker (NtStringView text, RGBA8u)		{ _cmdbuf->DebugMarker( text ); }
-		void  _PushDebugGroup (NtStringView text, RGBA8u)	{ _cmdbuf->PushDebugGroup( text ); }
-		void  _PopDebugGroup ()								{ _cmdbuf->PopDebugGroup(); }
+		ND_ bool	_IsValid ()													C_NE___	{ return _cmdbuf and _cmdbuf->IsValid(); }
 
-		ND_ MBakedCommands		_EndCommandBuffer ();
-		ND_ MSoftwareCmdBufPtr  _ReleaseCommandBuffer ();
+		void  _DebugMarker (NtStringView text, RGBA8u)							__Th___	{ _cmdbuf->DebugMarker( text ); }
+		void  _PushDebugGroup (NtStringView text, RGBA8u)						__Th___	{ _cmdbuf->PushDebugGroup( text ); }
+		void  _PopDebugGroup ()													__Th___	{ _cmdbuf->PopDebugGroup(); }
+
+		ND_ MBakedCommands		_EndCommandBuffer ()							__Th___;
+		ND_ MSoftwareCmdBufPtr  _ReleaseCommandBuffer ()						__Th___;
 	};
 
 
@@ -585,15 +585,15 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit MBaseIndirectContext (const RenderTask &task);
-		MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf);
-		~MBaseIndirectContext () override;
+		explicit MBaseIndirectContext (const RenderTask &task)					__Th___;
+		MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)__Th___;
+		~MBaseIndirectContext ()												__NE_OV;
 
 	protected:
-		void  _CommitBarriers ();
+		void  _CommitBarriers ()												__Th___;
 
-		ND_ bool	_NoPendingBarriers ()	const	{ return _mngr.NoPendingBarriers(); }
-		ND_ auto&	_GetFeatures ()			const	{ return _mngr.GetDevice().GetFeatures(); }
+		ND_ bool	_NoPendingBarriers ()										C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ auto&	_GetFeatures ()												C_NE___	{ return _mngr.GetDevice().GetFeatures(); }
 	};
 //-----------------------------------------------------------------------------
 	
@@ -604,9 +604,9 @@ namespace AE::Graphics::_hidden_
 	destructor
 =================================================
 */
-	inline _MBaseIndirectContext::~_MBaseIndirectContext ()
+	inline _MBaseIndirectContext::~_MBaseIndirectContext () __NE___
 	{
-		DBG_CHECK_MSG( not IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
+		DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
 	}
 //-----------------------------------------------------------------------------
 
@@ -616,12 +616,12 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task) :
+	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task) __Th___ :
 		_MBaseIndirectContext{ task.DbgFullName() },
 		_mngr{ task }
 	{}
 		
-	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf) :
+	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf) __Th___ :
 		_MBaseIndirectContext{ RVRef(cmdbuf) },
 		_mngr{ task }
 	{}
@@ -631,7 +631,7 @@ namespace AE::Graphics::_hidden_
 	destructor
 =================================================
 */
-	inline MBaseIndirectContext::~MBaseIndirectContext ()
+	inline MBaseIndirectContext::~MBaseIndirectContext () __NE___
 	{
 		ASSERT( _NoPendingBarriers() );
 	}
@@ -641,12 +641,12 @@ namespace AE::Graphics::_hidden_
 	_CommitBarriers
 =================================================
 */
-	inline void  MBaseIndirectContext::_CommitBarriers ()
+	inline void  MBaseIndirectContext::_CommitBarriers () __Th___
 	{
 		auto* bar = _mngr.GetBarriers();
 		if_unlikely( bar != null )
 		{
-			_cmdbuf->CommitBarriers( *bar );
+			_cmdbuf->CommitBarriers( *bar );	// throw
 			_mngr.ClearBarriers();
 		}
 	}
@@ -664,7 +664,7 @@ namespace AE::Graphics
 	'cmdbuf' must be in the recording state
 =================================================
 */
-	forceinline bool  MBakedCommands::Execute (MetalCommandBuffer cmdbuf) const
+	forceinline bool  MBakedCommands::Execute (MetalCommandBuffer cmdbuf) C_NE___
 	{
 		return _hidden_::MSoftwareCmdBuf::Execute( cmdbuf, _root );
 	}

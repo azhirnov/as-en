@@ -31,9 +31,9 @@ namespace AE::Graphics
 		{
 		// methods
 		public:
-			CmdBufPool () {}
+			CmdBufPool () __NE___ {}
 			
-			void  GetCommands (OUT MetalCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount);
+			void  GetCommands (OUT MetalCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___;
 		};
 
 		//
@@ -46,11 +46,11 @@ namespace AE::Graphics
 			ESubmitMode			_mode;
 
 		public:
-			SubmitTask (RC<MCommandBatch> batch, ESubmitMode mode) :
+			SubmitTask (RC<MCommandBatch> batch, ESubmitMode mode) __NE___ :
 				IAsyncTask{ EThread::Renderer },
 				_batch{RVRef(batch)}, _mode{mode} {}
 
-			void  Run () override
+			void  Run () __Th_OV
 			{
 				CHECK( _batch->Submit( _mode ));
 			}
@@ -120,23 +120,25 @@ namespace AE::Graphics
 
 		// command buffer api
 		template <typename TaskType, typename ...Ctor, typename ...Deps>
-		AsyncTask	Add (Tuple<Ctor...> &&		ctor	= Default,
-						 const Tuple<Deps...>&	deps	= Default,
-						 StringView				dbgName	= Default);
+		AsyncTask	Add (Tuple<Ctor...> &&		ctor	 = Default,
+						 const Tuple<Deps...>&	deps	 = Default,
+						 StringView				dbgName	 = Default,
+						 RGBA8u					dbgColor = HtmlColor::Yellow) __NE___;
 
 	  #ifdef AE_HAS_COROUTINE
 		template <typename PromiseT, typename ...Deps>
 		AsyncTask	Add (AE::Threading::CoroutineHandle<PromiseT>	handle,
-						 const Tuple<Deps...>&						deps	= Default,
-						 StringView									dbgName	= Default);
+						 const Tuple<Deps...>&						deps	 = Default,
+						 StringView									dbgName  = Default,
+						 RGBA8u										dbgColor = HtmlColor::Yellow) __NE___;
 	  #endif
 	  
 	  
 		template <typename ...Deps>
 		AsyncTask  SubmitAsTask (const Tuple<Deps...>&	deps,
-								 ESubmitMode			mode = ESubmitMode::Deferred);
+								 ESubmitMode			mode = ESubmitMode::Deferred) __NE___;
 
-		ND_ bool  Submit (ESubmitMode mode = ESubmitMode::Deferred);
+		ND_ bool  Submit (ESubmitMode mode = ESubmitMode::Deferred) __NE___;
 
 
 		// GPU to GPU dependency
@@ -149,28 +151,28 @@ namespace AE::Graphics
 			bool  AddOutputSemaphore (MetalEvent sem, ulong value);
 			bool  AddOutputSemaphore (const MetalCmdBatchDependency &dep);
 
-		ND_ ECommandBufferType	GetCmdBufType ()		const	{ return ECommandBufferType::Primary_OneTimeSubmit; }
-		ND_ EQueueType			GetQueueType ()			const	{ return _queueType; }
-		ND_ FrameUID			GetFrameId ()			const	{ return _frameId; }
-		ND_ uint				GetSubmitIndex ()		const	{ return _submitIdx; }
+		ND_ ECommandBufferType	GetCmdBufType ()		C_NE___	{ return ECommandBufferType::Primary_OneTimeSubmit; }
+		ND_ EQueueType			GetQueueType ()			C_NE___	{ return _queueType; }
+		ND_ FrameUID			GetFrameId ()			C_NE___	{ return _frameId; }
+		ND_ uint				GetSubmitIndex ()		C_NE___	{ return _submitIdx; }
 		ND_ uint				GetCmdBufIndex ()		const	{ return _cmdPool.Current(); }
-		ND_ bool				IsSubmitted ();
+		ND_ bool				IsSubmitted ()			__NE___;
 		
 		PROFILE_ONLY(
-			ND_ StringView				DbgName ()		const	{ return _dbgName; }
-			ND_ Ptr<IGraphicsProfiler>	GetProfiler ()	const	{ return _profiler.get(); }
+			ND_ StringView				DbgName ()		C_NE___	{ return _dbgName; }
+			ND_ Ptr<IGraphicsProfiler>	GetProfiler ()	C_NE___	{ return _profiler.get(); }
 		)
 		
 		
 	// IDeviceToHostSync
 	public:
-		ND_ bool  Wait (nanoseconds timeout) override;
-		ND_ bool  IsComplete () override;
+		ND_ bool  Wait (nanoseconds timeout)			__NE_OV;
+		ND_ bool  IsComplete ()							__NE_OV;
 
 		
 	// render task scheduler api
 	private:
-		explicit MCommandBatch (uint indexInPool);
+		explicit MCommandBatch (uint indexInPool)		__NE___;
 
 		ND_ bool  _Create (EQueueType queue, FrameUID frameId, uint submitIdx, StringView dbgName);
 			void  _OnSubmit2 ();
@@ -193,69 +195,7 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
-#	define CMDBATCH		MCommandBatch
-#	include "graphics/Private/RenderTask.inl.h"
+#	include "graphics/Private/RenderTask.h"
 //-----------------------------------------------------------------------------
-
-
-namespace AE::Graphics
-{
-/*
-=================================================
-	Add
-=================================================
-*/
-	template <typename TaskType, typename ...Ctor, typename ...Deps>
-	AsyncTask  MCommandBatch::Add (Tuple<Ctor...> &&		ctorArgs,
-								   const Tuple<Deps...>&	deps,
-								   StringView				dbgName)
-	{
-		ASSERT( not IsSubmitted() );
-		STATIC_ASSERT( IsBaseOf< RenderTask, TaskType >);
-
-		auto	task = ctorArgs.Apply([this, dbgName] (auto&& ...args) { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbgName ); });
-
-		if_likely( task->IsValid() and Scheduler().Run( task, deps ))
-			return task;
-		else
-			return ;
-	}
-	
-/*
-=================================================
-	Add
-=================================================
-*/
-# ifdef AE_HAS_COROUTINE
-	template <typename PromiseT, typename ...Deps>
-	AsyncTask  MCommandBatch::Add (AE::Threading::CoroutineHandle<PromiseT>	handle,
-								   const Tuple<Deps...>&					deps,
-								   StringView								dbgName)
-	{
-		ASSERT( not IsSubmitted() );
-		STATIC_ASSERT( IsSameTypes< AE::Threading::CoroutineHandle<PromiseT>, CoroutineRenderTask >);
-		
-		auto	task = MakeRC<AE::Threading::_hidden_::RenderTaskCoroutineRunner>( RVRef(handle), GetRC(), dbgName );
-
-		if_likely( task->IsValid() and Scheduler().Run( task, deps ))
-			return task;
-		else
-			return ;
-	}
-# endif
-	
-/*
-=================================================
-	SubmitAsTask
-=================================================
-*/
-	template <typename ...Deps>
-	AsyncTask  MCommandBatch::SubmitAsTask (const Tuple<Deps...>&	deps,
-											ESubmitMode				mode)
-	{
-		return Scheduler().Run< SubmitTask >( Tuple{ GetRC<MCommandBatch>(), mode }, deps );
-	}
-
-} // AE::Graphics
 
 #endif // AE_ENABLE_METAL

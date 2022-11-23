@@ -63,33 +63,35 @@ namespace AE::Math
 	public:
 		FrustumTempl () {}
 		
-		void Setup (const Matrix<T,4,4> &mvp);
-		void Setup (const CameraTempl<T> &camera);
-		void Setup (const CameraTempl<T> &camera, const Vec2_t &range);
+			void  Setup (const Matrix<T,4,4> &mvp)							__NE___;
+			void  Setup (const CameraTempl<T> &camera)						__NE___;
+			void  Setup (const CameraTempl<T> &camera, const Vec2_t &range)	__NE___;
 		
-		ND_ bool IsVisible (const BoundingSphere<T> &) const;
-		ND_ bool IsVisible (const AxisAlignedBoundingBox<T> &) const;
-		ND_ bool IsVisible (const Vec3_t &point) const;
-		ND_ bool IsVisible (const FrustumTempl<T> &) const;
+		ND_ bool IsVisible (const BoundingSphere<T> &)						C_NE___;
+		ND_ bool IsVisible (const AxisAlignedBoundingBox<T> &)				C_NE___;
+		ND_ bool IsVisible (const Vec3_t &point)							C_NE___;
+		ND_ bool IsVisible (const FrustumTempl<T> &)						C_NE___;
 
 		// experimental
-			void Test (const AxisAlignedBoundingBox<T> &, OUT bool &isVisible, OUT float &detailLevel) const;
+			void Test (const AxisAlignedBoundingBox<T> &, OUT bool &isVisible, OUT float &detailLevel) C_NE___;
 
-		ND_ Plane const&  GetPlane (EPlane type) const		{ return _planes[ uint(type) ]; }
+		ND_ Plane const&				GetPlane (EPlane type)				C_NE___	{ return _planes[ uint(type) ]; }
 		
-		ND_ AxisAlignedBoundingBox<T>  ToAABB () const;
+		ND_ AxisAlignedBoundingBox<T>	ToAABB ()							C_NE___;
 
-		bool GetRays (OUT Vec3_t &leftTop, OUT Vec3_t &leftBottom, OUT Vec3_t &rightTop, OUT Vec3_t &rightBottom) const;
+		ND_ Vec3_t						GetRay (const Vec2_t &unormCoord)	C_NE___;
 
-		ND_ Vec3_t  GetRay (const Vec2_t &unormCoord) const;
+
+		bool GetRays (OUT Vec3_t &leftTop, OUT Vec3_t &leftBottom, OUT Vec3_t &rightTop, OUT Vec3_t &rightBottom) C_NE___;
+
 
 
 	private:
-		void _SetPlane (EPlane type, T a, T b, T c, T d);
-		bool _GetIntersection (EPlane lhs, EPlane rhs, OUT Vec3_t &result) const;
-		void _GetCorners (OUT StaticArray<Vec3_t, 8> &) const;
+		void  _SetPlane (EPlane type, T a, T b, T c, T d)					__NE___;
+		bool  _GetIntersection (EPlane lhs, EPlane rhs, OUT Vec3_t &result)	C_NE___;
+		void  _GetCorners (OUT StaticArray<Vec3_t, 8> &)					C_NE___;
 
-		Vec3_t _IntersectPlanes (EPlane p0, EPlane p1, EPlane p2) const;
+		Vec3_t _IntersectPlanes (EPlane p0, EPlane p1, EPlane p2)			C_NE___;
 	};
 	
 	
@@ -99,20 +101,20 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline void  FrustumTempl<T>::Setup (const CameraTempl<T> &camera, const Vec2_t &)
+	inline void  FrustumTempl<T>::Setup (const CameraTempl<T> &camera, const Vec2_t &) __NE___
 	{
 		// temp
 		Setup( camera );
 	}
 
 	template <typename T>
-	inline void  FrustumTempl<T>::Setup (const CameraTempl<T> &camera)
+	inline void  FrustumTempl<T>::Setup (const CameraTempl<T> &camera) __NE___
 	{
 		return Setup( camera.projection * camera.transform.ToMatrix() );
 	}
 	
 	template <typename T>
-	inline void  FrustumTempl<T>::Setup (const Matrix<T,4,4> &mat)
+	inline void  FrustumTempl<T>::Setup (const Matrix<T,4,4> &mat) __NE___
 	{
 		_SetPlane( EPlane::Top,    mat[0][3] - mat[0][1], mat[1][3] - mat[1][1], mat[2][3] - mat[2][1], -mat[3][3] + mat[3][1] );
 		_SetPlane( EPlane::Bottom, mat[0][3] + mat[0][1], mat[1][3] + mat[1][1], mat[2][3] + mat[2][1], -mat[3][3] - mat[3][1] );
@@ -130,7 +132,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline void  FrustumTempl<T>::_SetPlane (EPlane type, T a, T b, T c, T d)
+	inline void  FrustumTempl<T>::_SetPlane (EPlane type, T a, T b, T c, T d) __NE___
 	{
 		const T	len		= Length(Vec3_t{ a, b, c });
 		const T	inv_len	= Equals( len, T{0}, _err ) ? T{1} : (T{1} / len); 
@@ -144,7 +146,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline bool  FrustumTempl<T>::IsVisible (const Vec3_t &point) const
+	inline bool  FrustumTempl<T>::IsVisible (const Vec3_t &point) C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -163,7 +165,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline bool  FrustumTempl<T>::IsVisible (const BoundingSphere<T> &sphere) const
+	inline bool  FrustumTempl<T>::IsVisible (const BoundingSphere<T> &sphere) C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -183,7 +185,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline bool  FrustumTempl<T>::IsVisible (const AxisAlignedBoundingBox<T> &aabb) const
+	inline bool  FrustumTempl<T>::IsVisible (const AxisAlignedBoundingBox<T> &aabb) C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -213,7 +215,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline void  FrustumTempl<T>::Test (const AxisAlignedBoundingBox<T> &aabb, OUT bool &isVisible, OUT float &detailLevel) const
+	inline void  FrustumTempl<T>::Test (const AxisAlignedBoundingBox<T> &aabb, OUT bool &isVisible, OUT float &detailLevel) C_NE___
 	{
 		ASSERT( _initialized );
 		
@@ -245,7 +247,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline bool  FrustumTempl<T>::IsVisible (const FrustumTempl<T> &frustum) const
+	inline bool  FrustumTempl<T>::IsVisible (const FrustumTempl<T> &frustum) C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -281,7 +283,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline AxisAlignedBoundingBox<T>  FrustumTempl<T>::ToAABB () const
+	inline AxisAlignedBoundingBox<T>  FrustumTempl<T>::ToAABB () C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -300,7 +302,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline void  FrustumTempl<T>::_GetCorners (OUT StaticArray<Vec3_t, 8> &result) const
+	inline void  FrustumTempl<T>::_GetCorners (OUT StaticArray<Vec3_t, 8> &result) C_NE___
 	{
 		result[0] = _IntersectPlanes( EPlane::Near, EPlane::Left,  EPlane::Bottom );
 		result[1] = _IntersectPlanes( EPlane::Near, EPlane::Left,  EPlane::Top    );
@@ -319,7 +321,7 @@ namespace AE::Math
 */
 	template <typename T>
 	inline typename FrustumTempl<T>::Vec3_t
-		FrustumTempl<T>::_IntersectPlanes (EPlane p0, EPlane p1, EPlane p2) const
+		FrustumTempl<T>::_IntersectPlanes (EPlane p0, EPlane p1, EPlane p2) C_NE___
 	{
 		auto&	P0	= _planes[ uint(p0) ];
 		auto&	P1	= _planes[ uint(p1) ];
@@ -340,7 +342,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline bool  FrustumTempl<T>::GetRays (OUT Vec3_t &leftTop, OUT Vec3_t &leftBottom, OUT Vec3_t &rightTop, OUT Vec3_t &rightBottom) const
+	inline bool  FrustumTempl<T>::GetRays (OUT Vec3_t &leftTop, OUT Vec3_t &leftBottom, OUT Vec3_t &rightTop, OUT Vec3_t &rightBottom) C_NE___
 	{
 		ASSERT( _initialized );
 
@@ -356,7 +358,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline typename FrustumTempl<T>::Vec3_t  FrustumTempl<T>::GetRay (const Vec2_t &unormCoord) const
+	inline typename FrustumTempl<T>::Vec3_t  FrustumTempl<T>::GetRay (const Vec2_t &unormCoord) C_NE___
 	{
 		Vec3_t	left_bottom, left_top, right_bottom, right_top;
 		_GetIntersection( EPlane::Bottom, EPlane::Left,   OUT left_bottom  );
@@ -376,7 +378,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline bool  FrustumTempl<T>::_GetIntersection (EPlane lhs, EPlane rhs, OUT Vec3_t &result) const
+	inline bool  FrustumTempl<T>::_GetIntersection (EPlane lhs, EPlane rhs, OUT Vec3_t &result) C_NE___
 	{
 		auto&	lp = _planes[ uint(lhs) ];
 		auto&	rp = _planes[ uint(rhs) ];

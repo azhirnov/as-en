@@ -103,7 +103,7 @@ extern void Test_InputActions ()
 {
 	{
 		Path	dll_path{ AE_INPUT_ACTIONS_BINDING_LIBRARY };
-		dll_path.append( AE_RESPACK_BUILD_TYPE "/InputActionsBinding-shared.dll" );
+		dll_path.append( CMAKE_INTDIR "/InputActionsBinding-shared.dll" );
 
 		Library		lib;
 		TEST( lib.Load( dll_path ));

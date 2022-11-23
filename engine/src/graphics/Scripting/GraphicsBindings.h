@@ -21,9 +21,9 @@ namespace AE::Scripting
 
 	struct GraphicsBindings final : Noninstancable
 	{
-		static void  BindEnums (const ScriptEnginePtr &se)			__TH___;
-		static void  BindTypes (const ScriptEnginePtr &se)			__TH___;
-		static void  BindRenderState (const ScriptEnginePtr &se)	__TH___;
+		static void  BindEnums (const ScriptEnginePtr &se)			__Th___;
+		static void  BindTypes (const ScriptEnginePtr &se)			__Th___;
+		static void  BindRenderState (const ScriptEnginePtr &se)	__Th___;
 	};
 
 	

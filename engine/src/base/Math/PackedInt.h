@@ -38,24 +38,24 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr PackedInt () {}
-		constexpr PackedInt (const Self &) = default;
+		constexpr PackedInt ()				__NE___	{}
+		constexpr PackedInt (const Self &)	__NE___	= default;
 
-		constexpr PackedInt (Value_t val) : 
+		constexpr PackedInt (Value_t val)	__NE___	: 
 			hi{HalfInt_t( val >> _Offset )},
 			lo{HalfInt_t{ val & _Mask }}
 		{}
 
-		Self&  operator = (const Self &) = default;
+		Self&  operator = (const Self &)	__NE___	= default;
 
-		Self&  operator = (Value_t val)
+		Self&  operator = (Value_t val)		__NE___
 		{
 			hi = HalfInt_t( val >> _Offset );
 			lo = HalfInt_t( val & _Mask );
 			return *this;
 		}
 
-		ND_ explicit operator Value_t () const { return (Value_t{hi} << _Offset) | Value_t{lo}; }
+		ND_ explicit operator Value_t ()	C_NE___ { return (Value_t{hi} << _Offset) | Value_t{lo}; }
 	};
 
 	using packed_ulong	= PackedInt<ulong>;

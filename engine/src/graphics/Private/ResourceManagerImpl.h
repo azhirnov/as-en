@@ -117,7 +117,7 @@
 	_Assign
 ----
 	acquire free index from cache (cache is local in thread),
-	if cache empty then acquire new indices from main pool (internaly synchronized),
+	if cache empty then acquire new indices from main pool (internally synchronized),
 	if pool is full then error (false) will be returned.
 =================================================
 */
@@ -250,6 +250,39 @@
 
 		return view->Handle();
 	}
-
+	
+/*
+=================================================
+	GetResources
+=================================================
+*/
+	template <typename ID>
+	auto*  RESMNGR::GetResources (ID id) C_NE___
+	{
+		return GetResource( id );
+	}
+		
+	template <typename ID0, typename ID1, typename ...IDs>
+	auto  RESMNGR::GetResources (ID0 id0, ID1 id1, IDs ...ids) C_NE___
+	{
+		return Tuple{ GetResource( id0 ), GetResource( id1 ), GetResource( ids ) ... };
+	}
+		
+	template <typename ID>
+	auto&  RESMNGR::GetResourcesOrThrow (ID id) C_Th___
+	{
+		auto*	result = GetResource( id );
+		CHECK_THROW( result != null );
+		return *result;
+	}
+		
+	template <typename ID0, typename ID1, typename ...IDs>
+	auto  RESMNGR::GetResourcesOrThrow (ID0 id0, ID1 id1, IDs ...ids) C_Th___
+	{
+		auto	result = TupleRef{ GetResource( id0 ), GetResource( id1 ), GetResource( ids ) ... };
+		CHECK_THROW( result.AllNonNull() );
+		return result;
+	}
+	
 
 #undef RESMNGR

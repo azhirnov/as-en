@@ -99,7 +99,7 @@ extern void Test_SamplerPack ()
 {
 	{
 		Path	dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
-		dll_path.append( AE_RESPACK_BUILD_TYPE "/PipelineCompiler-shared.dll" );
+		dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
 
 		Library		lib;
 		TEST( lib.Load( dll_path ));

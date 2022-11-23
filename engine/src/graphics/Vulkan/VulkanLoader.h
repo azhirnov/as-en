@@ -12,7 +12,7 @@
 #	define VK_NO_PROTOTYPES
 # endif
 
-# include "base/StdInclude.h"
+# include "base/Defines/StdInclude.h"
 # define VK_ENABLE_BETA_EXTENSIONS
 # ifdef AE_COMPILER_MSVC
 #	pragma warning (push, 0)

@@ -22,7 +22,7 @@ namespace AE::Base
 
 	// methods
 	public:
-		explicit EncryptedRStream (RC<RStream> stream, const Encoder &enc = Default) __TH___ :
+		explicit EncryptedRStream (RC<RStream> stream, const Encoder &enc = Default) __Th___ :
 			_enc{ enc },	// throw
 			_stream{ RVRef(stream) }
 		{}
@@ -67,7 +67,7 @@ namespace AE::Base
 
 	// methods
 	public:
-		explicit EncryptedWStream (RC<WStream> stream, const Decoder &dec = Default) __TH___ :
+		explicit EncryptedWStream (RC<WStream> stream, const Decoder &dec = Default) __Th___ :
 			_dec{ dec },	// throw
 			_stream{ RVRef(stream) }
 		{}

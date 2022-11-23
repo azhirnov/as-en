@@ -34,24 +34,24 @@ namespace AE::ECS
 
 	// variables
 	private:
-		Array<EntityRef>	_entities;
-		Array<Index_t>		_available;
+		Array< EntityRef >		_entities;
+		Array< Index_t >		_available;
 
 
 	// methods
 	public:
-		EntityPool () {}
-		~EntityPool ();
+		EntityPool ()																					__NE___	{}
+		~EntityPool ()																					__NE___;
 
-		ND_ bool  Assign (OUT EntityID &id);
-			bool  Unassign (EntityID id);
+		ND_ bool  Assign (OUT EntityID &id)																__NE___;
+			bool  Unassign (EntityID id)																__NE___;
 
-			bool  SetArchetype (EntityID id, ArchetypeStorage* storage, LocalIndex_t index);
-			bool  GetArchetype (EntityID id, OUT ArchetypeStorage* &storage, OUT LocalIndex_t &index) const;
+			bool  SetArchetype (EntityID id, ArchetypeStorage* storage, LocalIndex_t index)				__NE___;
+			bool  GetArchetype (EntityID id, OUT ArchetypeStorage* &storage, OUT LocalIndex_t &index)	C_NE___;
 
-		ND_ bool  IsValid (EntityID id) const;
+		ND_ bool  IsValid (EntityID id)																	C_NE___;
 
-			void  Clear ();
+			void  Clear ()																				__NE___;
 	};
 
 
@@ -61,7 +61,7 @@ namespace AE::ECS
 	destructor
 =================================================
 */
-	inline EntityPool::~EntityPool ()
+	inline EntityPool::~EntityPool () __NE___
 	{
 		ASSERT( _entities.size() == _available.size() );
 	}
@@ -71,7 +71,7 @@ namespace AE::ECS
 	Assign
 =================================================
 */
-	inline bool  EntityPool::Assign (OUT EntityID &id)
+	inline bool  EntityPool::Assign (OUT EntityID &id) __NE___
 	{
 		Index_t	idx;
 
@@ -83,7 +83,7 @@ namespace AE::ECS
 		else
 		{
 			idx = Index_t(_entities.size());
-			_entities.push_back( EntityRef{} );
+			CATCH_ERR( _entities.push_back( EntityRef{} ));
 		}
 
 		id = EntityID{ idx, _entities[idx].generation };
@@ -95,7 +95,7 @@ namespace AE::ECS
 	Unassign
 =================================================
 */
-	inline bool  EntityPool::Unassign (EntityID id)
+	inline bool  EntityPool::Unassign (EntityID id) __NE___
 	{
 		CHECK_ERR( IsValid( id ));
 			
@@ -105,7 +105,7 @@ namespace AE::ECS
 		item.index   = InvalidIndex;
 
 		++item.generation;
-		_available.push_back( id.Index() );
+		CATCH_ERR( _available.push_back( id.Index() ));
 		return true;
 	}
 	
@@ -114,7 +114,7 @@ namespace AE::ECS
 	SetArchetype
 =================================================
 */
-	inline bool  EntityPool::SetArchetype (EntityID id, ArchetypeStorage* storage, LocalIndex_t index)
+	inline bool  EntityPool::SetArchetype (EntityID id, ArchetypeStorage* storage, LocalIndex_t index) __NE___
 	{
 		if ( IsValid( id ))
 		{
@@ -133,7 +133,7 @@ namespace AE::ECS
 	GetArchetype
 =================================================
 */
-	inline bool  EntityPool::GetArchetype (EntityID id, OUT ArchetypeStorage* &storage, OUT LocalIndex_t &index) const
+	inline bool  EntityPool::GetArchetype (EntityID id, OUT ArchetypeStorage* &storage, OUT LocalIndex_t &index) C_NE___
 	{
 		if ( IsValid( id ))
 		{
@@ -150,7 +150,7 @@ namespace AE::ECS
 	IsValid
 =================================================
 */
-	inline bool  EntityPool::IsValid (EntityID id) const
+	inline bool  EntityPool::IsValid (EntityID id) C_NE___
 	{
 		return	id.Index() < _entities.size() and
 				_entities[ id.Index() ].generation == id.Generation();
@@ -161,7 +161,7 @@ namespace AE::ECS
 	Clear
 =================================================
 */
-	inline void  EntityPool::Clear ()
+	inline void  EntityPool::Clear () __NE___
 	{
 		_entities.clear();
 		_available.clear();

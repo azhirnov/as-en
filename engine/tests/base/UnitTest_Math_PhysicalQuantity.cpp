@@ -2,6 +2,7 @@
 
 #include "base/Math/PhysicalQuantity.h"
 #include "base/Math/PhysicalQuantityVec.h"
+#include "base/Math/PhysicalQuantityMatrix.h"
 #include "UnitTest_Common.h"
 
 namespace
@@ -45,7 +46,6 @@ namespace
 	static void  PhysicalQuantity_Test2 ()
 	{
 		using SolarMass		= DefaultPhysicalQuantity<double>::SolarMass;
-		//using Parsecs		= DefaultPhysicalQuantity<double>::Parsecs;
 		using LightYears	= DefaultPhysicalQuantity<double>::LightYears;
 		using GConstant		= DefaultPhysicalQuantity<double>::GConstant;
 		using Kilograms		= DefaultPhysicalQuantity<double>::Kilograms;
@@ -67,10 +67,10 @@ namespace
 		using Seconds			= DefaultPhysicalQuantity<float>::Seconds;
 		using MetersPerSeconds	= DefaultPhysicalQuantity<float>::MetersPerSeconds;
 		using LightYears		= DefaultPhysicalQuantity<float>::LightYears;
-		using Meters3			= PhysicalQuantitySSEVec< Meters, 3 >;
-		using Seconds3			= PhysicalQuantitySSEVec< Seconds, 3 >;
-		using MetersPerSeconds3	= PhysicalQuantitySSEVec< MetersPerSeconds, 3 >;
-		using LightYears3		= PhysicalQuantitySSEVec< LightYears, 3 >;
+		using Meters3			= PhysicalQuantitySIMDVec< Meters, 3 >;
+		using Seconds3			= PhysicalQuantity_FromVec< float3, DefaultPhysicalDimensions::Second >;
+		using MetersPerSeconds3	= PhysicalQuantitySIMDVec< MetersPerSeconds, 3 >;
+		using LightYears3		= PhysicalQuantitySIMDVec< LightYears, 3 >;
 
 		MetersPerSeconds3	a1 = Meters3{ 1.0f, 2.0f, 3.0f } / Seconds3{Seconds{4.0f}};
 		Unused( a1 );
@@ -86,6 +86,24 @@ namespace
 		LightYears			a4 = Min( a2, LightYears{1.0f} + LightYears{2.0f} );
 		TEST(Equals( a4.GetNonScaled(), 3.0f ));
 	}
+
+	
+	static void  PhysicalQuantityMatrix_Test1 ()
+	{
+		using Meters				= DefaultPhysicalQuantity<float>::Meters;
+		using Seconds				= DefaultPhysicalQuantity<float>::Seconds;
+		using MetersPerSeconds		= DefaultPhysicalQuantity<float>::MetersPerSeconds;
+		using Meters3				= PhysicalQuantitySIMDVec< Meters, 3 >;
+		using Seconds3				= PhysicalQuantitySIMDVec< Seconds, 3 >;
+		using MetersPerSeconds3		= PhysicalQuantitySIMDVec< MetersPerSeconds, 3 >;
+		using Meters3x3				= PhysicalQuantitySIMDMatrix< Meters, 3, 3 >;
+		using Seconds3x3			= PhysicalQuantitySIMDMatrix< Seconds, 3, 3 >;
+		using MetersPerSeconds3x3	= PhysicalQuantitySIMDMatrix< MetersPerSeconds, 3, 3 >;
+
+		Meters3x3	m = Meters3x3::FromScalar( Meters{1.0f} );
+
+
+	}
 }
 
 
@@ -95,6 +113,7 @@ extern void UnitTest_Math_PhysicalQuantity ()
 	PhysicalQuantity_Test1();
 	PhysicalQuantity_Test2();
 	PhysicalQuantityVec_Test1();
+	PhysicalQuantityMatrix_Test1();
 
 	TEST_PASSED();
 }

@@ -206,8 +206,8 @@ namespace AE::Graphics::_hidden_
 		void  _CommitBarriers ();
 		void  _AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState);
 
-		ND_ bool	_NoPendingBarriers ()	const	{ return _mngr.NoPendingBarriers(); }
-		ND_ auto&	_GetFeatures ()			const	{ return _mngr.GetDevice().GetFeatures(); }
+		ND_ bool	_NoPendingBarriers ()			C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ auto&	_GetFeatures ()					C_NE___	{ return _mngr.GetDevice().GetFeatures(); }
 	};
 
 	
@@ -343,14 +343,14 @@ namespace AE::Graphics::_hidden_
 		void  _DrawPatchesIndirect ();
 		void  _DrawIndexedPatchesIndirect ();
 		
-		void  _DispatchTile ()								{ _DispatchThreadsPerTile( uint2{_states.tile.threadsPerTile} ); }
+		void  _DispatchTile ()									{ _DispatchThreadsPerTile( uint2{_states.tile.threadsPerTile} ); }
 		void  _DispatchThreadsPerTile (const uint2 &threadsPerTile);
 
 		void  _CommitBarriers ();
 		void  _AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState);
 
-		ND_ bool	_NoPendingBarriers ()	const	{ return _mngr.NoPendingBarriers(); }
-		ND_ auto&	_GetFeatures ()			const	{ return _mngr.GetDevice().GetFeatures(); }
+		ND_ bool	_NoPendingBarriers ()				C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ auto&	_GetFeatures ()						C_NE___	{ return _mngr.GetDevice().GetFeatures(); }
 	};
 
 
@@ -385,33 +385,32 @@ namespace AE::Graphics::_hidden_
 		
 		_MDrawContextImpl () = delete;
 		_MDrawContextImpl (const _MDrawContextImpl &) = delete;
-		~_MDrawContextImpl () override {}
 
 		// pipeline and shader resources
-		void  BindPipeline (GraphicsPipelineID ppln) override final;
-		void  BindPipeline (MeshPipelineID ppln) override final;
-		void  BindPipeline (TilePipelineID ppln) override final;
+		void  BindPipeline (GraphicsPipelineID ppln)																	override;
+		void  BindPipeline (MeshPipelineID ppln)																		override;
+		void  BindPipeline (TilePipelineID ppln)																		override;
 
-		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default) override final;
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) override final;
+		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)				override;
+		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)							override;
 		
 		// dynamic states
-		void  SetViewport (const Viewport_t &viewport) override final				{ RawCtx::_SetViewport( viewport ); }
-		void  SetViewports (ArrayView<Viewport_t> viewports) override final			{ RawCtx::_SetViewports( viewports ); }
-		void  SetScissor (const RectI &scissor) override final						{ RawCtx::_SetScissor( scissor ); }
-		void  SetScissors (ArrayView<RectI> scissors) override final				{ RawCtx::_SetScissors( scissors ); }
-		void  SetBlendConstants (const RGBA32f &color) override final				{ RawCtx::_SetBlendConstants( color ); }
-		void  SetStencilReference (uint reference) override final					{ RawCtx::_SetStencilReference( reference ); }
-		void  SetStencilReference (uint frontRef, uint backRef) override final		{ RawCtx::_SetStencilReference( frontRef, backRef ); }
-		void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor) override final;
+		void  SetViewport (const Viewport_t &viewport)																	override	{ RawCtx::_SetViewport( viewport ); }
+		void  SetViewports (ArrayView<Viewport_t> viewports)															override	{ RawCtx::_SetViewports( viewports ); }
+		void  SetScissor (const RectI &scissor)																			override	{ RawCtx::_SetScissor( scissor ); }
+		void  SetScissors (ArrayView<RectI> scissors)																	override	{ RawCtx::_SetScissors( scissors ); }
+		void  SetBlendConstants (const RGBA32f &color)																	override	{ RawCtx::_SetBlendConstants( color ); }
+		void  SetStencilReference (uint reference)																		override	{ RawCtx::_SetStencilReference( reference ); }
+		void  SetStencilReference (uint frontRef, uint backRef)															override	{ RawCtx::_SetStencilReference( frontRef, backRef ); }
+		void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)			override;
 		
 		// draw commands
 		using RawCtx::BindIndexBuffer;
 
-		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType) override final;
-		void  BindVertexBuffer (uint index, BufferID buffer, Bytes offset) override final;
-		void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets) override final;
-		bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset) override final;
+		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)											override;
+		void  BindVertexBuffer (uint index, BufferID buffer, Bytes offset)												override;
+		void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)				override;
+		bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)	override;
 
 		using IDrawContext::Draw;
 		using IDrawContext::DrawIndexed;
@@ -421,49 +420,53 @@ namespace AE::Graphics::_hidden_
 		void  Draw (uint vertexCount,
 					uint instanceCount	= 1,
 					uint firstVertex	= 0,
-					uint firstInstance	= 0) override final;
+					uint firstInstance	= 0) override;
 
 		void  DrawIndexed (uint indexCount,
 						   uint instanceCount	= 1,
 						   uint firstIndex		= 0,
 						   int  vertexOffset	= 0,
-						   uint firstInstance	= 0) override final;
+						   uint firstInstance	= 0) override;
 
 		void  DrawIndirect (BufferID	indirectBuffer,
 							Bytes		indirectBufferOffset,
 							uint		drawCount,
-							Bytes		stride) override final;
+							Bytes		stride) override;
 
 		void  DrawIndexedIndirect (BufferID		indirectBuffer,
 								   Bytes		indirectBufferOffset,
 								   uint			drawCount,
-								   Bytes		stride) override final;
+								   Bytes		stride) override;
 		
 		// tile shader
-		void  DispatchTile () override final;
+		void  DispatchTile () override;
 		
 		// mesh shader
-		void  DrawMeshTasks (const uint3 &taskCount) override final;
+		void  DrawMeshTasks (const uint3 &taskCount) override;
 
 		void  DrawMeshTasksIndirect (BufferID	indirectBuffer,
 									 Bytes		indirectBufferOffset,
 									 uint		drawCount,
-									 Bytes		stride) override final;
+									 Bytes		stride) override;
 
-		void  CommitBarriers ()									override final	{ RawCtx::_CommitBarriers(); }
+		void  CommitBarriers ()																			override	{ RawCtx::_CommitBarriers(); }
 
-		void  DebugMarker (NtStringView text, RGBA8u color)		override final	{ RawCtx::_DebugMarker( text, color ); }
-		void  PushDebugGroup (NtStringView text, RGBA8u color)	override final	{ RawCtx::_PushDebugGroup( text, color ); }
-		void  PopDebugGroup ()									override final	{ RawCtx::_PopDebugGroup(); }
+		void  DebugMarker (NtStringView text, RGBA8u color)												override	{ RawCtx::_DebugMarker( text, color ); }
+		void  PushDebugGroup (NtStringView text, RGBA8u color)											override	{ RawCtx::_PushDebugGroup( text, color ); }
+		void  PopDebugGroup ()																			override	{ RawCtx::_PopDebugGroup(); }
 		
-		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)	override final	{ RawCtx::_AttachmentBarrier( name, srcState, dstState ); }
+		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)	override	{ RawCtx::_AttachmentBarrier( name, srcState, dstState ); }
 		
-		ND_ AccumBar  AccumBarriers ()		{ return AccumBar{ *this }; }
+		ND_ AccumBar  AccumBarriers ()																				{ return AccumBar{ *this }; }
 		
 		// vertex stream
-		ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result) override final;
+		ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result)									override;
 		
-		ND_ MPrimaryCmdBufState const&	GetPrimaryCtxState ()	const	{ return this->_mngr.GetPrimaryCtxState(); }
+		ND_ MPrimaryCmdBufState const&	GetPrimaryCtxState ()											const		{ return this->_mngr.GetPrimaryCtxState(); }
+
+	private:
+		template <typename ...IDs>
+		ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)											 __Th___	{ return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); }
 	};
 
 } // AE::Graphics::_hidden_
@@ -518,29 +521,26 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MDrawContextImpl<C>::BindPipeline (GraphicsPipelineID ppln)
 	{
-		auto*	gppln = this->_mngr.Get( ppln );
-		CHECK_ERRV( gppln );
+		auto&	gppln = _GetResourcesOrThrow( ppln );
 
-		RawCtx::_BindGraphicsPipeline( gppln->Handle(), gppln->DepthStencilState(), gppln->GetRenderState(), gppln->DynamicState() );
+		RawCtx::_BindGraphicsPipeline( gppln.Handle(), gppln.DepthStencilState(), gppln.GetRenderState(), gppln.DynamicState() );
 	}
 	
 	template <typename C>
 	void  _MDrawContextImpl<C>::BindPipeline (MeshPipelineID ppln)
 	{
-		auto*	mppln = this->_mngr.Get( ppln );
-		CHECK_ERRV( mppln );
+		auto&	mppln = _GetResourcesOrThrow( ppln );
 		
-		RawCtx::_BindMeshPipeline( mppln->Handle(), mppln->DepthStencilState(), mppln->GetRenderState(), mppln->DynamicState(),
-								   mppln->TaskLocalSize(), mppln->MeshLocalSize() );
+		RawCtx::_BindMeshPipeline( mppln.Handle(), mppln.DepthStencilState(), mppln.GetRenderState(), mppln.DynamicState(),
+								   mppln.TaskLocalSize(), mppln.MeshLocalSize() );
 	}
 	
 	template <typename C>
 	void  _MDrawContextImpl<C>::BindPipeline (TilePipelineID ppln)
 	{
-		auto*	tppln = this->_mngr.Get( ppln );
-		CHECK_ERRV( tppln );
+		auto&	tppln = _GetResourcesOrThrow( ppln );
 		
-		RawCtx::_BindTilePipeline( tppln->Handle(), tppln->LocalSize() );
+		RawCtx::_BindTilePipeline( tppln.Handle(), tppln.LocalSize() );
 	}
 
 /*
@@ -551,10 +551,9 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MDrawContextImpl<C>::BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
 	{
-		auto*	desc_set = this->_mngr.Get( ds );
-		CHECK_ERRV( desc_set );
+		auto&	desc_set = _GetResourcesOrThrow( ds );
 
-		RawCtx::_BindDescriptorSet( index, *desc_set, dynamicOffsets );
+		RawCtx::_BindDescriptorSet( index, desc_set, dynamicOffsets );
 	}
 	
 /*
@@ -566,6 +565,7 @@ namespace AE::Graphics::_hidden_
 	void  _MDrawContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
 	{
 		ASSERT( IsAligned( size, sizeof(uint) ));
+		Unused( offset, size, values, stages );
 
 		// TODO
 		//RawCtx::_PushGraphicsConstant( offset, size, values, stages );
@@ -590,10 +590,9 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MDrawContextImpl<C>::BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)
 	{
-		auto*	buf = this->_mngr.Get( buffer );
-		CHECK_ERRV( buf );
+		auto&	buf = _GetResourcesOrThrow( buffer );
 
-		return BindIndexBuffer( buf->Handle(), offset, indexType );
+		return BindIndexBuffer( buf.Handle(), offset, indexType );
 	}
 	
 /*
@@ -604,25 +603,20 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MDrawContextImpl<C>::BindVertexBuffer (uint index, BufferID buffer, Bytes offset)
 	{
-		auto*	buf = this->_mngr.Get( buffer );
-		CHECK_ERRV( buf );
+		auto&	buf = _GetResourcesOrThrow( buffer );
 
-		RawCtx::BindVertexBuffer( index, buf->Handle(), offset );
+		RawCtx::BindVertexBuffer( index, buf.Handle(), offset );
 	}
 	
 	template <typename C>
 	bool  _MDrawContextImpl<C>::BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)
 	{
-		auto*	ppln = this->_mngr.Get( pplnId );
-		CHECK_ERR( ppln );
+		auto  [ppln, buf] = _GetResourcesOrThrow( pplnId, buffer );
 
-		uint	idx = ppln->GetVertexBufferIndex( name );
+		uint	idx = ppln.GetVertexBufferIndex( name );
 		CHECK_ERR( idx != UMax );
-
-		auto*	buf = this->_mngr.Get( buffer );
-		CHECK_ERR( buf );
 		
-		RawCtx::BindVertexBuffer( idx, buf->Handle(), offset );
+		RawCtx::BindVertexBuffer( idx, buf.Handle(), offset );
 		return true;
 	}
 
@@ -633,10 +627,9 @@ namespace AE::Graphics::_hidden_
 
 		for (uint i = 0; i < buffers.size(); ++i)
 		{
-			auto*	buffer	= this->_mngr.Get( buffers[i] );
-			CHECK_ERRV( buffer );
+			auto&	buffer = _GetResourcesOrThrow( buffers[i] );
 
-			dst_buffers[i] = buffer->Handle();
+			dst_buffers[i] = buffer.Handle();
 		}
 
 		RawCtx::BindVertexBuffers( firstBinding, dst_buffers, offsets );
@@ -682,10 +675,9 @@ namespace AE::Graphics::_hidden_
 											  uint		drawCount,
 											  Bytes		stride)
 	{
-		auto*	buf = this->_mngr.Get( indirectBuffer );
-		CHECK_ERRV( buf );
+		auto&	buf = _GetResourcesOrThrow( indirectBuffer ); 
 
-		RawCtx::_DrawPrimitivesIndirect( buf->Handle(), indirectBufferOffset, drawCount, stride );
+		RawCtx::_DrawPrimitivesIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
 	}
 	
 /*
@@ -699,10 +691,9 @@ namespace AE::Graphics::_hidden_
 													 uint		drawCount,
 													 Bytes		stride)
 	{
-		auto*	buf = this->_mngr.Get( indirectBuffer );
-		CHECK_ERRV( buf );
+		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
 
-		RawCtx::_DrawIndexedPrimitivesIndirect( buf->Handle(), indirectBufferOffset, drawCount, stride );
+		RawCtx::_DrawIndexedPrimitivesIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
 	}
 	
 /*
@@ -738,10 +729,9 @@ namespace AE::Graphics::_hidden_
 													   uint		drawCount,
 													   Bytes	stride)
 	{
-		auto*	buf = this->_mngr.Get( indirectBuffer );
-		CHECK_ERRV( buf );
+		auto&	buf = _GetResourcesOrThrow( indirectBuffer ); 
 
-		RawCtx::_DrawMeshTasksIndirect( buf->Handle(), indirectBufferOffset, drawCount, stride );
+		RawCtx::_DrawMeshTasksIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
 	}
 
 /*

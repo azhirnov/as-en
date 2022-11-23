@@ -19,11 +19,11 @@ namespace AE::Graphics
 	{
 	// methods
 	public:
-		MLinearDescriptorAllocator () {}
-		~MLinearDescriptorAllocator () override {}
+		MLinearDescriptorAllocator ()										__NE___ {}
+		~MLinearDescriptorAllocator ()										__NE_OV {}
 
-		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds) override;
-		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds) override;
+		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)	__NE_OV;
+		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)__NE_OV;
 	};
 
 

@@ -101,7 +101,7 @@ namespace AE::App
 =================================================
 */
 	template <typename T>
-	void  ProjectionImpl<T>::GenetateRays (RaysGrid &grid) const
+	void  ProjectionImpl<T>::GenetateRays (RaysGrid &) const
 	{
 		/*ASSERT( All( grid.Dimension() >= 2 ));
 		

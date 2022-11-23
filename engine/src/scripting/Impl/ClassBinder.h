@@ -88,41 +88,41 @@ namespace AE::Scripting
 			explicit OperatorBinder (ClassBinder<T> *ptr) : _binder(ptr) {}
 
 		public:
-			template <typename Func>	Self &	Unary (EUnaryOperator op, Func func)			__TH___;
-			template <typename Func>	Self &	BinaryAssign (EBinaryOperator op, Func func)	__TH___;
-			template <typename Func>	Self &	Binary (EBinaryOperator op, Func func)			__TH___;
-			template <typename Func>	Self &	BinaryRH (EBinaryOperator op, Func func)		__TH___;
+			template <typename Func>	Self &	Unary (EUnaryOperator op, Func func)			__Th___;
+			template <typename Func>	Self &	BinaryAssign (EBinaryOperator op, Func func)	__Th___;
+			template <typename Func>	Self &	Binary (EBinaryOperator op, Func func)			__Th___;
+			template <typename Func>	Self &	BinaryRH (EBinaryOperator op, Func func)		__Th___;
 			
 
 			// index
-			template <typename OutType, typename ...InTypes>	Self &	Index ()				__TH___;	// x[...]
-			template <typename Func>							Self &	Index (Func func)		__TH___;
+			template <typename OutType, typename ...InTypes>	Self &	Index ()				__Th___;	// x[...]
+			template <typename Func>							Self &	Index (Func func)		__Th___;
 
 
 			// call
-			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (T::*) (InTypes...) )			__TH___;	// x(...)
-			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (T::*) (InTypes...) const )		__TH___;
-			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (*) (T&, InTypes...) )			__TH___;
-			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (*) (const T&, InTypes...) )		__TH___;
+			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (T::*) (InTypes...) )			__Th___;	// x(...)
+			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (T::*) (InTypes...) const )		__Th___;
+			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (*) (T&, InTypes...) )			__Th___;
+			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (*) (const T&, InTypes...) )		__Th___;
 
 
 			// convert
-			template <typename OutType> Self &	Convert ()									__TH___;	// y(x)
-			template <typename OutType> Self &	Convert ( OutType (T::*) () const )			__TH___;
-			template <typename OutType> Self &	Convert ( OutType (*) (const T &) )			__TH___;
+			template <typename OutType> Self &	Convert ()									__Th___;	// y(x)
+			template <typename OutType> Self &	Convert ( OutType (T::*) () const )			__Th___;
+			template <typename OutType> Self &	Convert ( OutType (*) (const T &) )			__Th___;
 
 
 			// cast
-			template <typename OutType> Self &	Cast ()										__TH___;	// y(x)
-			template <typename OutType> Self &	Cast ( OutType& (T::*) () )					__TH___;
-			template <typename OutType> Self &	Cast ( OutType const& (T::*) () const )		__TH___;
-			template <typename OutType> Self &	Cast ( OutType& (*) (T &) )					__TH___;
-			template <typename OutType> Self &	Cast ( OutType const& (*) (const T &) )		__TH___;
+			template <typename OutType> Self &	Cast ()										__Th___;	// y(x)
+			template <typename OutType> Self &	Cast ( OutType& (T::*) () )					__Th___;
+			template <typename OutType> Self &	Cast ( OutType const& (T::*) () const )		__Th___;
+			template <typename OutType> Self &	Cast ( OutType& (*) (T &) )					__Th___;
+			template <typename OutType> Self &	Cast ( OutType const& (*) (const T &) )		__Th___;
 
 
 			// compare
-			template <typename Func>	Self &	Equals (Func func)							__TH___;	// x == y
-			template <typename Func>	Self &	Compare (Func func)							__TH___;	// x <> y
+			template <typename Func>	Self &	Equals (Func func)							__Th___;	// x == y
+			template <typename Func>	Self &	Compare (Func func)							__Th___;	// x <> y
 		};
 
 
@@ -139,38 +139,38 @@ namespace AE::Scripting
 		ClassBinder (const ScriptEnginePtr &eng, StringView name);
 		
 
-		void  CreatePodValue (int flags = 0)															__TH___;
-		void  CreateClassValue (int flags = 0)															__TH___;
-		void  CreateRef (int flags = 0, Bool hasFactory = true)											__TH___;
-		void  CreateRef (T* (*create)(), void (T:: *addRef)(), void (T:: *releaseRef)(), int flags = 0)	__TH___;
+		void  CreatePodValue (int flags = 0)															__Th___;
+		void  CreateClassValue (int flags = 0)															__Th___;
+		void  CreateRef (int flags = 0, Bool hasFactory = true)											__Th___;
+		void  CreateRef (T* (*create)(), void (T:: *addRef)(), void (T:: *releaseRef)(), int flags = 0)	__Th___;
 
 
 		template <typename Func>
-		void  AddConstructor (Func ctorPtr)									__TH___;
+		void  AddConstructor (Func ctorPtr)									__Th___;
 		
 		template <typename Func>
-		void  AddFactoryCtor (Func ctorPtr)									__TH___;
+		void  AddFactoryCtor (Func ctorPtr)									__Th___;
 
 		template <typename B>
-		void  AddProperty (B T::* value, StringView name)					__TH___;
+		void  AddProperty (B T::* value, StringView name)					__Th___;
 		
 		template <typename A, typename B>
-		void  AddProperty (A T::* base, B A::* value, StringView name)		__TH___;
+		void  AddProperty (A T::* base, B A::* value, StringView name)		__Th___;
 
 		template <typename B>
-		void  AddProperty (const T &self, B &value, StringView name)		__TH___;
+		void  AddProperty (const T &self, B &value, StringView name)		__Th___;
 
 		template <typename Func>
-		void  AddMethod (Func methodPtr, StringView name)					__TH___;
+		void  AddMethod (Func methodPtr, StringView name)					__Th___;
 		
 		template <typename Func>
-		void  AddMethodFromGlobal (Func funcPtr, StringView name)			__TH___;
+		void  AddMethodFromGlobal (Func funcPtr, StringView name)			__Th___;
 		
 		template <typename Func>
-		void  AddMethodFromGlobalObjFirst (Func funcPtr, StringView name)	__TH___;
+		void  AddMethodFromGlobalObjFirst (Func funcPtr, StringView name)	__Th___;
 		
 		template <typename Func>
-		void  AddMethodFromGlobalObjLast (Func funcPtr, StringView name)	__TH___;
+		void  AddMethodFromGlobalObjLast (Func funcPtr, StringView name)	__Th___;
 
 		ND_ OperatorBinder						Operators ()			{ return OperatorBinder( this ); }
 
@@ -181,7 +181,7 @@ namespace AE::Scripting
 
 
 	private:
-		void  _Create (int flags) __TH___;
+		void  _Create (int flags) __Th___;
 		
 		template <typename T1>
 		struct _IsSame;
@@ -258,7 +258,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline void  ClassBinder<T>::CreatePodValue (int flags) __TH___
+	inline void  ClassBinder<T>::CreatePodValue (int flags) __Th___
 	{
 		using namespace AngelScript;
 		
@@ -283,7 +283,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline void  ClassBinder<T>::CreateClassValue (int flags) __TH___
+	inline void  ClassBinder<T>::CreateClassValue (int flags) __Th___
 	{
 		using namespace AngelScript;
 
@@ -308,7 +308,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline void  ClassBinder<T>::CreateRef (int flags, const Bool hasFactory) __TH___
+	inline void  ClassBinder<T>::CreateRef (int flags, const Bool hasFactory) __Th___
 	{
 		using constructor_t = T * (*) ();
 
@@ -326,7 +326,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline void  ClassBinder<T>::CreateRef (T* (*create)(), void (T:: *addRef)(), void (T:: *releaseRef)(), int flags) __TH___
+	inline void  ClassBinder<T>::CreateRef (T* (*create)(), void (T:: *addRef)(), void (T:: *releaseRef)(), int flags) __Th___
 	{
 		using namespace AngelScript;
 
@@ -365,7 +365,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline void  ClassBinder<T>::_Create (const int flags) __TH___
+	inline void  ClassBinder<T>::_Create (const int flags) __Th___
 	{
 		using namespace AngelScript;
 
@@ -407,7 +407,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddConstructor (Func ctorPtr) __TH___
+	inline void  ClassBinder<T>::AddConstructor (Func ctorPtr) __Th___
 	{
 		using namespace AngelScript;
 
@@ -428,7 +428,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddFactoryCtor (Func ctorPtr) __TH___
+	inline void  ClassBinder<T>::AddFactoryCtor (Func ctorPtr) __Th___
 	{
 		using namespace AngelScript;
 		
@@ -449,7 +449,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename B>
-	inline void  ClassBinder<T>::AddProperty (B T::* value, StringView name) __TH___
+	inline void  ClassBinder<T>::AddProperty (B T::* value, StringView name) __Th___
 	{
 		String	signature;
 		ScriptTypeInfo<B>::Name( OUT signature );
@@ -460,7 +460,7 @@ namespace _hidden_ {
 	
 	template <typename T>
 	template <typename A, typename B>
-	inline void  ClassBinder<T>::AddProperty (A T::* base, B A::* value, StringView name) __TH___
+	inline void  ClassBinder<T>::AddProperty (A T::* base, B A::* value, StringView name) __Th___
 	{
 		String	signature;
 		ScriptTypeInfo<B>::Name( OUT signature );
@@ -475,7 +475,7 @@ namespace _hidden_ {
 
 	template <typename T>
 	template <typename B>
-	inline void  ClassBinder<T>::AddProperty (const T &self, B &value, StringView name) __TH___
+	inline void  ClassBinder<T>::AddProperty (const T &self, B &value, StringView name) __Th___
 	{
 		String	signature;
 		ScriptTypeInfo<B>::Name( OUT signature );
@@ -494,7 +494,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddMethod (Func methodPtr, StringView name) __TH___
+	inline void  ClassBinder<T>::AddMethod (Func methodPtr, StringView name) __Th___
 	{
 		using namespace AngelScript;
 
@@ -513,7 +513,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddMethodFromGlobal (Func funcPtr, StringView name) __TH___
+	inline void  ClassBinder<T>::AddMethodFromGlobal (Func funcPtr, StringView name) __Th___
 	{
 		using Args = typename GlobalFunction<Func>::TypeList_t;
 		STATIC_ASSERT( Args::Count > 0 );
@@ -535,7 +535,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddMethodFromGlobalObjFirst (Func funcPtr, StringView name) __TH___
+	inline void  ClassBinder<T>::AddMethodFromGlobalObjFirst (Func funcPtr, StringView name) __Th___
 	{
 		using namespace AngelScript;
 		
@@ -562,7 +562,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddMethodFromGlobalObjLast (Func funcPtr, StringView name) __TH___
+	inline void  ClassBinder<T>::AddMethodFromGlobalObjLast (Func funcPtr, StringView name) __Th___
 	{
 		using namespace AngelScript;
 		
@@ -588,7 +588,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Unary (EUnaryOperator op, Func func) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Unary (EUnaryOperator op, Func func) __Th___
 	{
 		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
 			_binder->AddMethodFromGlobalObjFirst( func, _UnaryToStr( op ));
@@ -604,7 +604,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::BinaryAssign (EBinaryOperator op, Func func) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::BinaryAssign (EBinaryOperator op, Func func) __Th___
 	{
 		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
 			_binder->AddMethodFromGlobalObjFirst( func, _BinAssignToStr( op ));
@@ -620,7 +620,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename OutType, typename ...InTypes>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Index () __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Index () __Th___
 	{
 		if constexpr( IsConst<OutType>() )
 			return Index( static_cast< OutType (T::*) (InTypes...) const >( &T::operator [] ));
@@ -629,7 +629,7 @@ namespace _hidden_ {
 	}
 	
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Index (Func func) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Index (Func func) __Th___
 	{
 		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
 			_binder->AddMethodFromGlobalObjFirst( func, "opIndex" );
@@ -645,28 +645,28 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename OutType, typename ...InTypes>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (T::*func) (InTypes...) ) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (T::*func) (InTypes...) ) __Th___
 	{
 		_binder->AddMethod( func, "opCall" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType, typename ...InTypes>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (T::*func) (InTypes...) const ) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (T::*func) (InTypes...) const ) __Th___
 	{
 		_binder->AddMethod( func, "opCall" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType, typename ...InTypes>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (*func) (T&, InTypes...) ) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (*func) (T&, InTypes...) ) __Th___
 	{
 		_binder->AddMethodFromGlobalObjFirst( func, "opCall" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType, typename ...InTypes>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (*func) (const T&, InTypes...) ) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (*func) (const T&, InTypes...) ) __Th___
 	{
 		_binder->AddMethodFromGlobalObjFirst( func, "opCall" );
 		return *this;
@@ -678,20 +678,20 @@ namespace _hidden_ {
 =================================================
 */
 	/*template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert () __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert () __Th___
 	{
 		return Convert( static_cast< OutType (T::*) () const >() );
 	}*/
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert ( OutType (T::*func) () const ) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert ( OutType (T::*func) () const ) __Th___
 	{
 		_binder->AddMethod( func, "opConv" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert ( OutType (*func) (const T &) ) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert ( OutType (*func) (const T &) ) __Th___
 	{
 		_binder->AddMethodFromGlobalObjFirst( func, "opConv" );
 		return *this;
@@ -703,34 +703,34 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast () __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast () __Th___
 	{
 		return Cast( static_cast< OutType const& (T::*) () const >( &T::operator OutType ));
 	}
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType& (T::*func) () ) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType& (T::*func) () ) __Th___
 	{
 		_binder->AddMethod( func, "opCast" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType const& (T::*func) () const ) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType const& (T::*func) () const ) __Th___
 	{
 		_binder->AddMethod( func, "opCast" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType& (*func) (T &) ) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType& (*func) (T &) ) __Th___
 	{
 		_binder->AddMethodFromGlobalObjFirst( func, "opCast" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType const& (*func) (const T &) ) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType const& (*func) (const T &) ) __Th___
 	{
 		_binder->AddMethodFromGlobalObjFirst( func, "opCast" );
 		return *this;
@@ -742,7 +742,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Binary (EBinaryOperator op, Func func) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Binary (EBinaryOperator op, Func func) __Th___
 	{
 		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
 			_binder->AddMethodFromGlobalObjFirst( func, _BinToStr( op ));
@@ -758,7 +758,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::BinaryRH (EBinaryOperator op, Func func) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::BinaryRH (EBinaryOperator op, Func func) __Th___
 	{
 		STATIC_ASSERT( Scripting::_hidden_::IsGlobal<Func>() );
 		
@@ -772,7 +772,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Equals (Func func) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Equals (Func func) __Th___
 	{
 		using FuncInfo = FunctionInfo<Func>;
 
@@ -798,7 +798,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Compare (Func func) __TH___
+	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Compare (Func func) __Th___
 	{
 		using FuncInfo = FunctionInfo<Func>;
 

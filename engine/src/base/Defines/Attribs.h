@@ -10,9 +10,11 @@
 
 
 #ifdef AE_COMPILER_MSVC
+#  if _MSC_VER < 1900	// TODO
 #	define and		&&
 #	define or		||
 #	define not		!
+#  endif
 #endif
 
 
@@ -38,25 +40,28 @@
 #define __NE_OF				noexcept		override final
 #define C_NE___		const	noexcept
 #define CrNE___		const&	noexcept
-#define CrTH___		const&	noexcept(false)
-#define C______		const
-#define __NE___				noexcept
 #define r_NE___		&		noexcept
 #define rvNE___		&&		noexcept
-#define r_TH___		&		noexcept(false)
-#define rvTH___		&&		noexcept(false)
+#define __NE___				noexcept
+#define CrTh___		const&	noexcept(false)
+#define r_Th___		&		noexcept(false)
+#define rvTh___		&&		noexcept(false)
+#define __Th___				noexcept(false)
+#define C_Th___		const	noexcept(false)
+#define C_Th_OV		const	noexcept(false)	override
+#define __Th_OV				noexcept(false)	override
+#define C_Th_OF		const	noexcept(false)	override final
+#define __Th_OF				noexcept(false)	override final
+
+// TODO: use *_NE_** / *_Th_** instead
+#define C______		const
 #define C____OV		const					override
 #define C____OF		const					override final
-#define _____OV								override
+#define _____OV								override			
 #define _____OF								override final
-#define __TH___				noexcept(false)
-#define C_TH___		const	noexcept(false)
-#define C_TH_OV		const	noexcept(false)	override
-#define __TH_OV				noexcept(false)	override
-#define C_TH_OF		const	noexcept(false)	override final
-#define __TH_OF				noexcept(false)	override final
 
 // function prefix attribs
+/*
 #define __Cx__		constexpr
 #define	__CxEx		explicit constexpr
 #define St____		static
@@ -64,7 +69,7 @@
 #define Fr____		friend
 #define FrCx__		friend constexpr
 #define	St____In	static inline
-
+*/
 
 // no discard
 #ifndef ND_
@@ -217,14 +222,6 @@
 #	define NO_UNIQUE_ADDRESS	[[no_unique_address]]
 #else
 #	define NO_UNIQUE_ADDRESS
-#endif
-
-
-// allocator
-#ifdef AE_COMPILER_MSVC
-#	define AE_ALLOCATOR		__declspec( allocator )
-#else
-#	define AE_ALLOCATOR
 #endif
 
 

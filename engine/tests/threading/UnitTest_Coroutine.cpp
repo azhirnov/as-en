@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "threading/TaskSystem/Promise.h"
-#include "threading/TaskSystem/WorkerThread.h"
+#include "threading/TaskSystem/ThreadManager.h"
 #include "UnitTest_Common.h"
 
 #ifdef AE_HAS_COROUTINE
@@ -27,7 +27,7 @@ namespace
 
 	static void  Coroutine_Test1 ()
 	{
-		LocalTaskScheduler	scheduler {1};
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
 		ExeOrder	value;	// access to value protected by internal synchronizations
 
@@ -51,8 +51,8 @@ namespace
 
 		scheduler->Run( task2, Tuple{ task1 });
 		scheduler->Run( task1, Tuple{} );
-
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 
 		TEST( scheduler->Wait({ task1, task2 }));
 		TEST( task1->Status() == EStatus::Completed );
@@ -66,7 +66,7 @@ namespace
 
 	static void  Coroutine_Test2 ()
 	{
-		LocalTaskScheduler	scheduler {1};
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
 		ExeOrder	value;	// access to value protected by internal synchronizations
 
@@ -94,8 +94,8 @@ namespace
 		
 		scheduler->Run( task2 );
 		scheduler->Run( task1 );
-
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 
 		TEST( scheduler->Wait({ task1, task2 }));
 		TEST( task1->Status() == EStatus::Completed );
@@ -109,7 +109,7 @@ namespace
 
 	static void  Coroutine_Test3 ()
 	{
-		LocalTaskScheduler	scheduler {1};
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
 		auto		p0	= MakePromise( [] () { return "-1"s; });
 		auto		p1	= MakePromise( [] () { return "-2"s; });
@@ -129,8 +129,8 @@ namespace
 							}
 							( value, p0, p1, p2 ));
 		scheduler->Run( task1 );
-
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 
 		TEST( scheduler->Wait({ task1, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }));
 		TEST( task1->Status() == EStatus::Completed );
@@ -146,7 +146,7 @@ namespace
 
 	static void  Coroutine_Test4 ()
 	{
-		LocalTaskScheduler	scheduler {1};
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
 		auto	p0 = scheduler->Run( []() -> Coroutine<String>	{ co_return "a"s; }() );
 		auto	p1 = scheduler->Run( []() -> Coroutine<String>	{ co_return "b"s; }() );
@@ -166,8 +166,8 @@ namespace
 								co_return "";
 							}
 							( value, p0, p1, p2 ));
-
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 
 		TEST( scheduler->Wait({ AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }));
 		TEST( AsyncTask{p3}->Status() == EStatus::Completed );
@@ -183,7 +183,7 @@ namespace
 
 	static void  Coroutine_Test5 ()
 	{
-		LocalTaskScheduler	scheduler {1};
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
 		auto	p0 = scheduler->Run( [] () -> Coroutine<String>	{ co_return "a"s; }() );
 		auto	p1 = Coroutine<String>{};
@@ -207,8 +207,8 @@ namespace
 								}
 								co_return "";
 							}( value, p0, p1 ));
-
-		scheduler->AddThread( MakeRC<WorkerThread>() );
+		
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
 		
 		TEST( scheduler->Wait({ AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }));
 		TEST( AsyncTask{p0}->Status() == EStatus::Completed );

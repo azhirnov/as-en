@@ -30,19 +30,19 @@ namespace AE::Graphics
 			uint	value	= 0;
 
 		// methods
-			Key () {}
+			Key () __NE___	{}
 			
-			Key (/*MTLHeapType*/uint type, /*MTLResourceOptions*/uint opts, EResType resType) :
+			Key (/*MTLHeapType*/uint type, /*MTLResourceOptions*/uint opts, EResType resType) __NE___ :
 				value{ (opts & 0xFF'FFFF) | ((type & 0xF) << 24) | ((uint(resType) & 3) << 30) }
 			{}
 
-			ND_ bool  operator == (const Key &rhs) const { return value == rhs.value; }
-			ND_ bool  operator <  (const Key &rhs) const { return value <  rhs.value; }
-			ND_ bool  operator >  (const Key &rhs) const { return value >  rhs.value; }
+			ND_ bool  operator == (const Key &rhs)	C_NE___ { return value == rhs.value; }
+			ND_ bool  operator <  (const Key &rhs)	C_NE___ { return value <  rhs.value; }
+			ND_ bool  operator >  (const Key &rhs)	C_NE___ { return value >  rhs.value; }
 
-			ND_ uint		HeapType ()			const	{ return (value >> 24) & 0xF; }		// MTLHeapType
-			ND_ uint		ResourceOptions ()	const	{ return value & 0xFF'FFFF; }		// MTLResourceOptions
-			ND_ EResType	ResourceType ()		const	{ return EResType(value >> 30); }
+			ND_ uint		HeapType ()				C_NE___	{ return (value >> 24) & 0xF; }		// MTLHeapType
+			ND_ uint		ResourceOptions ()		C_NE___	{ return value & 0xFF'FFFF; }		// MTLResourceOptions
+			ND_ EResType	ResourceType ()			C_NE___	{ return EResType(value >> 30); }
 		};
 	};
 

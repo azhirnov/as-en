@@ -12,7 +12,7 @@
 #endif
 
 // AngelScript + Addons //
-#include "base/StdInclude.h"
+#include "base/Defines/StdInclude.h"
 #include "angelscript.h"
 
 #include "base/Containers/Ptr.h"
@@ -104,7 +104,7 @@ namespace AE::Scripting
 	// Script Engine
 	//
 
-	class ScriptEngine final : public EnableRC<ScriptEngine>, public Noncopyable
+	class ScriptEngine final : public EnableRC<ScriptEngine>
 	{
 	// types
 	public:
@@ -144,16 +144,16 @@ namespace AE::Scripting
 		ND_ ScriptFnPtr<Fn>  CreateScript (StringView entry, const ScriptModulePtr &module);
 
 		template <typename T>
-		void  AddFunction (T func, StringView name)				__TH___;
+		void  AddFunction (T func, StringView name)				__Th___;
 
 		//template <typename T>
 		//void  AddFunctionTemplate (T func, StringView name);
 
 		template <typename T>
-		void  AddProperty (INOUT T &var, StringView name)		__TH___;
+		void  AddProperty (INOUT T &var, StringView name)		__Th___;
 		
 		template <typename T>
-		void  AddConstProperty (const T &var, StringView name)	__TH___;
+		void  AddConstProperty (const T &var, StringView name)	__Th___;
 
 		bool  SetNamespace (NtStringView name);
 		bool  SetDefaultNamespace ();

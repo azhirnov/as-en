@@ -9,82 +9,179 @@
 
 namespace AE::Base
 {
+namespace _hidden_
+{
+	template <typename T>
+	struct TSharedMem_Extra {
+		T		data {};
+	};
+
+	template <>
+	struct TSharedMem_Extra<void> {};
+}
+
 
 	//
 	// Shared Memory
 	//
 
-	class SharedMem final : public EnableRC< SharedMem >
+	template <typename ExtraDataType>
+	class TSharedMem final :
+		public EnableRC< TSharedMem<ExtraDataType> >,
+		public NonAllocatable
 	{
 	// types
 	public:
 		using Allocator_t	= RC<IAllocator>;
+		using Self			= TSharedMem< ExtraDataType >;
+
+	private:
+		using Extra_t		= _hidden_::TSharedMem_Extra< ExtraDataType >;
+
+		static constexpr bool	_HasExtra = not IsVoid< ExtraDataType >;
 
 
 	// variables
 	private:
-		void*			_ptr		= null;
 		Bytes32u		_size;
-		Bytes32u		_align;
+		Bytes16u		_align;
+		Extra_t			_extra;
 		Allocator_t		_allocator;
 
 
 	// methods
 	public:
-		ND_ void*	Data ()			const	{ return _ptr; }
-		ND_ Bytes	Size ()			const	{ return _size; }
-		ND_ auto	Allocator ()	const	{ return _allocator; }
+		ND_ void const*		Data ()			C_NE___	{ return this + AlignUp( SizeOf<Self>, _align ); }
+		ND_ void*			Data ()			__NE___	{ return this + AlignUp( SizeOf<Self>, _align ); }
+		ND_ Bytes			Size ()			C_NE___	{ return _size; }
+		ND_ auto			Allocator ()	C_NE___	{ return _allocator; }
+		
+		ND_ auto&			Extra ()		__NE___	{ if constexpr( _HasExtra ) return &_extra.data; }
+		ND_ auto&			Extra ()		C_NE___	{ if constexpr( _HasExtra ) return &_extra.data; }
 
-		ND_ bool  Contains (const void* ptr, Bytes size = 0_b) const
-		{
-			return IsIntersects<const void*>( _ptr, _ptr + _size, ptr, ptr + size );
-		}
+		ND_ bool			Contains (const void* ptr, Bytes size = 0_b) C_NE___;
 
 		template <typename T>
-		ND_ ArrayView<T>  ToView () const
-		{
-			ASSERT( _size % SizeOf<T> == 0 );
-			ASSERT( AlignOf<T> <= _align );
-			return ArrayView<T>{ Cast<T>(_ptr), _size / SizeOf<T> };
-		}
+		ND_ ArrayView<T>	ToView ()		C_NE___;
 		
 
-		ND_ static RC<SharedMem>  Create (Allocator_t alloc, const SizeAndAlign sizeAndAlign)
-		{
-			return Create( alloc, sizeAndAlign.size, sizeAndAlign.align );
-		}
-
-		ND_ static RC<SharedMem>  Create (Allocator_t alloc, Bytes size, Bytes align = SizeOf<void*>)
-		{
-			if_likely( alloc and size > 0 )
-			{
-				void*	ptr = alloc->Allocate( SizeAndAlign{ size, align });
-				if_likely( ptr != null )
-					return RC<SharedMem>{ new SharedMem{ ptr, size, align, alloc }};
-			}
-			return Default;
-		}
-		
-		// implemented in 'threading' lib
-		ND_ static RC<SharedMem>  Create (Bytes size, Bytes align = SizeOf<void*>);
-
-		ND_ static Allocator_t  CreateAllocator ()
-		{
-			return SharedMem::Allocator_t{ new AllocatorImpl< UntypedAllocator >{} };
-		}
+		ND_ static Allocator_t	CreateAllocator ()															__NE___;
+		ND_ static RC<Self>		Create (Allocator_t alloc, const SizeAndAlign sizeAndAlign)					__NE___;
+		ND_ static RC<Self>		Create (Allocator_t alloc, Bytes size, Bytes align = DefaultAllocatorAlign)	__NE___;
 
 
 	private:
-		SharedMem (void* ptr, Bytes size, Bytes align, Allocator_t alloc) :
-			_ptr{ptr}, _size{size}, _align{align}, _allocator{alloc}
-		{}
-		
-		~SharedMem () override
-		{
-			if ( _ptr != null )
-				_allocator->Deallocate( _ptr, SizeAndAlign{ _size, _align });
-		}
+		TSharedMem (Bytes size, Bytes align, Allocator_t alloc)		__NE___ : _size{size}, _align{align}, _allocator{alloc} {}
+		~TSharedMem ()												__NE_OV	{}
+
+		void  _ReleaseObject ()										__NE_OV;
+
+		ND_ static SizeAndAlign  _CalcSize (Bytes size, Bytes align)__NE___;
 	};
+
+	using SharedMem = TSharedMem<void>;
+
+	
+/*
+=================================================
+	Contains
+=================================================
+*/
+	template <typename E>
+	bool  TSharedMem<E>::Contains (const void* ptr, Bytes size) C_NE___
+	{
+		return IsIntersects<const void*>( Data(), Data() + _size, ptr, ptr + size );
+	}
+	
+/*
+=================================================
+	ToView
+=================================================
+*/
+	template <typename E>
+	template <typename T>
+	ArrayView<T>  TSharedMem<E>::ToView () C_NE___
+	{
+		ASSERT( _size % SizeOf<T> == 0 );
+		ASSERT( AlignOf<T> <= _align );
+		return ArrayView<T>{ Cast<T>(Data()), _size / SizeOf<T> };
+	}
+		
+/*
+=================================================
+	Create
+=================================================
+*/
+	template <typename E>
+	RC<TSharedMem<E>>  TSharedMem<E>::Create (Allocator_t alloc, const SizeAndAlign sizeAndAlign) __NE___
+	{
+		return Create( alloc, sizeAndAlign.size, sizeAndAlign.align );
+	}
+	
+/*
+=================================================
+	Create
+=================================================
+*/
+	template <typename E>
+	RC<TSharedMem<E>>  TSharedMem<E>::Create (Allocator_t alloc, Bytes size, Bytes align) __NE___
+	{
+		if_likely( alloc and size > 0 )
+		{
+			void*	self = alloc->Allocate( _CalcSize( size, align ));
+
+			if_likely( self != null )
+				return RC<Self>{ new(self) Self{ size, align, RVRef(alloc) }};
+		}
+		return Default;
+	}
+	
+/*
+=================================================
+	CreateAllocator
+=================================================
+*/
+	template <typename E>
+	TSharedMem<E>::Allocator_t  TSharedMem<E>::CreateAllocator () __NE___
+	{
+		CATCH_ERR(
+			return Self::Allocator_t{ new AllocatorImpl< UntypedAllocator >{} };
+		)
+	}
+	
+/*
+=================================================
+	_CalcSize
+=================================================
+*/
+	template <typename E>
+	SizeAndAlign  TSharedMem<E>::_CalcSize (Bytes size, Bytes align) __NE___
+	{
+		return SizeAndAlign{ AlignUp( SizeOf<Self>, align ) + size, Max( AlignOf<Self>, align )};
+	}
+	
+/*
+=================================================
+	_ReleaseObject
+=================================================
+*/
+	template <typename E>
+	void  TSharedMem<E>::_ReleaseObject () __NE___
+	{
+		std::atomic_thread_fence( std::memory_order_acquire );
+		CHECK( _allocator );
+
+		auto	alloc	= RVRef(_allocator);
+		void*	ptr		= this;
+		auto	sa		= _CalcSize( _size, _align );
+
+		_extra.~Extra_t();
+		_allocator.~RC();
+
+		alloc->Deallocate( ptr, sa );
+
+		// TODO: flush cache ?
+	}
 
 
 } // AE::Base

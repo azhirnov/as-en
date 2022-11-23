@@ -35,30 +35,30 @@ namespace AE::Graphics
 	// interface
 	public:
 		// queue
-		virtual void  SetQueue (EQueueType type, StringView name) = 0;
+		virtual void  SetQueue (EQueueType type, StringView name)																		__NE___	= 0;
 
 		// batch
-		virtual void  BeginBatch (FrameUID frameId, const void* batch, StringView name) = 0;
-		virtual void  SubmitBatch (const void* batch, EQueueType queue) = 0;
-		virtual void  BatchComplete (const void* batch) = 0;
+		virtual void  BeginBatch (FrameUID frameId, const void* batch, StringView name)													__NE___	= 0;
+		virtual void  SubmitBatch (const void* batch, EQueueType queue)																	__NE___	= 0;
+		virtual void  BatchComplete (const void* batch)																					__NE___	= 0;
 
 		// draw batch
-		virtual void  BeginDrawBatch (const void* batch, StringView name) = 0;
+		virtual void  BeginDrawBatch (const void* batch, StringView name)																__NE___	= 0;
 		
 	  #if defined(AE_ENABLE_VULKAN)
 		// context
-		virtual void  BeginContext (const void* batch, VkCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type) = 0;
-		virtual void  EndContext (const void* batch, VkCommandBuffer cmdbuf, EContextType type) = 0;
+		virtual void  BeginContext (const void* batch, VkCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type)	__NE___	= 0;
+		virtual void  EndContext (const void* batch, VkCommandBuffer cmdbuf, EContextType type)											__NE___	= 0;
 	
 	  #elif defined(AE_ENABLE_METAL)
 		// context
-		virtual void  BeginContext (const void* batch, MetalCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type) = 0;
-		virtual void  EndContext (const void* batch, MetalCommandBuffer cmdbuf, EContextType type) = 0;
+		virtual void  BeginContext (const void* batch, MetalCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type)	__NE___	= 0;
+		virtual void  EndContext (const void* batch, MetalCommandBuffer cmdbuf, EContextType type)										__NE___	= 0;
 	  #endif
 
 		// frames
-		virtual void  RequestNextFrame (FrameUID frameId) = 0;
-		virtual void  NextFrame (FrameUID frameId) = 0;
+		virtual void  RequestNextFrame (FrameUID frameId)																				__NE___	= 0;
+		virtual void  NextFrame (FrameUID frameId)																						__NE___	= 0;
 
 		// memory
 	};

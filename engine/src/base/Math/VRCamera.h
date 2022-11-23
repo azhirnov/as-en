@@ -49,37 +49,37 @@ namespace AE::Math
 
 	// methods
 	public:
-		VRCamera () {}
+		VRCamera ()															__NE___	{}
 
 		void SetViewProjection (const Mat4_t &leftProj, const Mat4_t &leftView,
 								const Mat4_t &rightProj, const Mat4_t &rightView,
-								const Mat4_t &devicePose, const Vec3_t &position);
+								const Mat4_t &devicePose, const Vec3_t &position) __NE___;
 		
-		ND_ Mat4Pair_t  ToModelViewProjMatrix () const;
-		ND_ Mat4Pair_t  ToModelViewMatrix () const;
-		ND_ Mat4Pair_t  ToViewProjMatrix () const;
-		ND_ Mat4Pair_t  ToProjectionMatrix () const;
-		ND_ Mat4Pair_t  ToViewMatrix () const;
+		ND_ Mat4Pair_t		ToModelViewProjMatrix ()						C_NE___;
+		ND_ Mat4Pair_t		ToModelViewMatrix ()							C_NE___;
+		ND_ Mat4Pair_t		ToViewProjMatrix ()								C_NE___;
+		ND_ Mat4Pair_t		ToProjectionMatrix ()							C_NE___;
+		ND_ Mat4Pair_t		ToViewMatrix ()									C_NE___;
 
-		ND_ FrustumRef_t  GetFrustum () const;
+		ND_ FrustumRef_t	GetFrustum ()									C_NE___;
 
 		// for transformation
-		Self&  Move (const Vec3_t &delta);
-		Self&  Move2 (const Vec3_t &delta);
+			Self&			Move (const Vec3_t &delta)						__NE___;
+			Self&			Move2 (const Vec3_t &delta)						__NE___;
 
-		ND_ Vec3_t const&	Position ()			const	{ return _transform.position; }
-		ND_ Quat_t const&	Orientation ()		const	{ return _transform.orientation; }
-		ND_ Vec3_t const&	HmdOffset ()		const	{ return _devicePosition; }
-		ND_ Vec3_t const&	PositionInWorld ()	const	{ return _worldPosition; }
-		ND_ Mat4_t			ToRotationMatrix () const	{ return _devicePose * _transform.ToRotationMatrix(); }
-		ND_ Mat4_t			ToModelMatrix ()	const	{ return _devicePose * _transform.ToMatrix(); }
+		ND_ Vec3_t const&	Position ()										C_NE___	{ return _transform.position; }
+		ND_ Quat_t const&	Orientation ()									C_NE___	{ return _transform.orientation; }
+		ND_ Vec3_t const&	HmdOffset ()									C_NE___	{ return _devicePosition; }
+		ND_ Vec3_t const&	PositionInWorld ()								C_NE___	{ return _worldPosition; }
+		ND_ Mat4_t			ToRotationMatrix ()								C_NE___	{ return _devicePose * _transform.ToRotationMatrix(); }
+		ND_ Mat4_t			ToModelMatrix ()								C_NE___	{ return _devicePose * _transform.ToMatrix(); }
 
-		Self&  Rotate (const Quat_t &delta);
-		Self&  Rotate (Radians_t angle, const Vec3_t &normal);
+			Self&			Rotate (const Quat_t &delta)					__NE___;
+			Self&			Rotate (Radians_t angle, const Vec3_t &normal)	__NE___;
 
-		Self&  SetOrientation (const Quat_t &value);
-		Self&  SetPosition (const Vec3_t &value);
-		Self&  SetHmdOffsetScale (float value);
+			Self&			SetOrientation (const Quat_t &value)			__NE___;
+			Self&			SetPosition (const Vec3_t &value)				__NE___;
+			Self&			SetHmdOffsetScale (float value)					__NE___;
 	};
 	
 
@@ -90,7 +90,7 @@ namespace AE::Math
 */
 	inline void VRCamera::SetViewProjection (const Mat4_t &leftProj, const Mat4_t &leftView,
 											 const Mat4_t &rightProj, const Mat4_t &rightView,
-											 const Mat4_t &devicePose, const Vec3_t &position)
+											 const Mat4_t &devicePose, const Vec3_t &position) __NE___
 	{
 		_devicePose		= devicePose;
 		_devicePosition	= position;
@@ -113,31 +113,31 @@ namespace AE::Math
 	To***Matrix
 =================================================
 */
-	inline typename VRCamera::Mat4Pair_t  VRCamera::ToModelViewProjMatrix () const
+	inline typename VRCamera::Mat4Pair_t  VRCamera::ToModelViewProjMatrix () C_NE___
 	{
 		const Mat4_t mat = ToModelMatrix();
 		return {{ _perEye[0].viewProj * mat, _perEye[1].viewProj * mat }};
 	}
 
-	inline typename VRCamera::Mat4Pair_t  VRCamera::ToModelViewMatrix () const
+	inline typename VRCamera::Mat4Pair_t  VRCamera::ToModelViewMatrix () C_NE___
 	{
 		const Mat4_t mat = ToModelMatrix();
 		return {{ _perEye[0].view * mat, _perEye[1].view * mat }};
 	}
 
-	inline typename VRCamera::Mat4Pair_t  VRCamera::ToViewProjMatrix () const
+	inline typename VRCamera::Mat4Pair_t  VRCamera::ToViewProjMatrix () C_NE___
 	{
 		const Mat4_t mat = ToRotationMatrix();
 		return {{ _perEye[0].viewProj * mat, _perEye[1].viewProj * mat }};
 	}
 	
-	inline typename VRCamera::Mat4Pair_t  VRCamera::ToViewMatrix () const
+	inline typename VRCamera::Mat4Pair_t  VRCamera::ToViewMatrix () C_NE___
 	{
 		const Mat4_t mat = ToRotationMatrix();
 		return {{ _perEye[0].view * mat, _perEye[1].view * mat }};
 	}
 	
-	inline typename VRCamera::Mat4Pair_t  VRCamera::ToProjectionMatrix () const
+	inline typename VRCamera::Mat4Pair_t  VRCamera::ToProjectionMatrix () C_NE___
 	{
 		return {{ _perEye[0].proj, _perEye[1].proj }};
 	}
@@ -147,7 +147,7 @@ namespace AE::Math
 	GetFrustum
 =================================================
 */
-	inline typename VRCamera::FrustumRef_t  VRCamera::GetFrustum () const
+	inline typename VRCamera::FrustumRef_t  VRCamera::GetFrustum () C_NE___
 	{
 		return {{ &_perEye[0].frustum, &_perEye[1].frustum }};
 	}
@@ -157,7 +157,7 @@ namespace AE::Math
 	SetPosition
 =================================================
 */
-	inline VRCamera&  VRCamera::SetPosition (const Vec3_t &value)
+	inline VRCamera&  VRCamera::SetPosition (const Vec3_t &value) __NE___
 	{
 		_worldPosition = value;
 		_transform.position = _devicePosition * _deviceScale + _worldPosition;
@@ -169,7 +169,7 @@ namespace AE::Math
 	SetHmdOffsetScale
 =================================================
 */
-	inline VRCamera&  VRCamera::SetHmdOffsetScale (float value)
+	inline VRCamera&  VRCamera::SetHmdOffsetScale (float value) __NE___
 	{
 		_deviceScale = value;
 		return *this;
@@ -180,13 +180,13 @@ namespace AE::Math
 	Rotate
 =================================================
 */
-	inline VRCamera&  VRCamera::Rotate (const Quat_t &delta)
+	inline VRCamera&  VRCamera::Rotate (const Quat_t &delta) __NE___
 	{
 		_transform.Rotate( delta );
 		return *this;
 	}
 
-	inline VRCamera&  VRCamera::Rotate (Radians_t angle, const Vec3_t &normal)
+	inline VRCamera&  VRCamera::Rotate (Radians_t angle, const Vec3_t &normal) __NE___
 	{
 		_transform.Rotate( glm::rotate( Quat_Identity, float(angle), normal ));
 		return *this;
@@ -197,7 +197,7 @@ namespace AE::Math
 	SetOrientation
 =================================================
 */
-	inline VRCamera&  VRCamera::SetOrientation (const Quat_t &value)
+	inline VRCamera&  VRCamera::SetOrientation (const Quat_t &value) __NE___
 	{
 		_transform.orientation = value;
 		return *this;
@@ -212,7 +212,7 @@ namespace AE::Math
 	z - up/down
 =================================================
 */
-	inline VRCamera&  VRCamera::Move (const vec3 &delta)
+	inline VRCamera&  VRCamera::Move (const vec3 &delta) __NE___
 	{
 		const mat4x4	view_mat	= ToRotationMatrix();
 		const vec3		up_dir		{ 0.0f, 1.0f, 0.0f };
@@ -236,7 +236,7 @@ namespace AE::Math
 	z - up/down
 =================================================
 */
-	inline VRCamera&  VRCamera::Move2 (const vec3 &delta)
+	inline VRCamera&  VRCamera::Move2 (const vec3 &delta) __NE___
 	{
 		const mat4x4	view_mat	= ToRotationMatrix();
 		const vec3		up_dir		{ 0.0f, 1.0f, 0.0f };

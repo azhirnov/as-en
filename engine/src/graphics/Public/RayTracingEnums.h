@@ -60,9 +60,21 @@ namespace AE::Graphics
 	//
 	enum class ERTASCopyMode : uint
 	{
-		Clone		= 0,
-		Compaction	= 1,
-		Unknown		= Clone
+		Clone,
+		Compaction,
+	};
+
+
+
+	//
+	// Ray Tracing Acceleration Structure Property
+	//
+	enum class ERTASProperty : uint
+	{
+		CompactedSize,
+		SerializationSize,
+		Size,								// require 'VK_KHR_ray_tracing_maintenance1'
+	//	SerializationBottomLevelPointers,	// require 'VK_KHR_ray_tracing_maintenance1'
 	};
 
 

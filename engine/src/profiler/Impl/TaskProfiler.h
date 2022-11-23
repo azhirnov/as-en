@@ -153,10 +153,10 @@ namespace AE::Profiler
 
 
 	  // ITaskProfiler //
-		void  Begin (const Threading::IAsyncTask &) override;
-		void  End (const Threading::IAsyncTask &) override;
-		void  Enqueue (const Threading::IAsyncTask &) override;
-		void  AddThread (const Threading::IThread &) override;
+		void  Begin (const Threading::IAsyncTask &)		__NE_OV;
+		void  End (const Threading::IAsyncTask &)		__NE_OV;
+		void  Enqueue (const Threading::IAsyncTask &)	__NE_OV;
+		void  AddThread (const Threading::IThread &)	__NE_OV;
 	};
 
 

@@ -59,18 +59,18 @@ namespace AE::Graphics
 	// methods
 	public:
 		FormattedText ()										__NE___	{ _alloc.SetBlockSize( 512_b ); }
-		explicit FormattedText (StringView str)					__TH___	: FormattedText()	{ Append( str ); }
-		explicit FormattedText (U8StringView str)				__TH___	: FormattedText()	{ Append( str ); }
-		FormattedText (const FormattedText &other)				__TH___	: FormattedText()	{ Append( other ); }
+		explicit FormattedText (StringView str)					__Th___	: FormattedText()	{ Append( str ); }
+		explicit FormattedText (U8StringView str)				__Th___	: FormattedText()	{ Append( str ); }
+		FormattedText (const FormattedText &other)				__Th___	: FormattedText()	{ Append( other ); }
 		FormattedText (FormattedText &&other)					__NE___	: _first{other._first}, _alloc{RVRef(other._alloc)} { other._first = null; }
 
-		Self&  Append (const FormattedText &)					__TH___;
-		Self&  Append (U8StringView str)						__TH___;
-		Self&  Append (StringView str)							__TH___;
+		Self&  Append (const FormattedText &)					__Th___;
+		Self&  Append (U8StringView str)						__Th___;
+		Self&  Append (StringView str)							__Th___;
 
 		void   Clear ()											__NE___;
 
-		FormattedText&  operator = (const FormattedText &rhs)	__TH___	{ _alloc.Discard();  _first = null;  Append( rhs );  return *this; }
+		FormattedText&  operator = (const FormattedText &rhs)	__Th___	{ _alloc.Discard();  _first = null;  Append( rhs );  return *this; }
 		FormattedText&  operator = (FormattedText &&rhs)		__NE___	{ _alloc = RVRef(rhs._alloc);  _first = rhs._first;  rhs._first = null;  return *this; }
 
 		ND_ bool			Empty ()							C_NE___	{ return _first == null; }
@@ -112,7 +112,7 @@ namespace AE::Graphics
 	public:
 		PrecalculatedFormattedText ()					__NE___	{}
 
-		Self&  SetText (FormattedText value)			__TH___	{ _text = RVRef(value);	return *this; }
+		Self&  SetText (FormattedText value)			__Th___	{ _text = RVRef(value);	return *this; }
 		Self&  SetSpacing (float value)					__NE___	{ _spacing  = value;	return *this; }
 		Self&  SetWordWrap (bool value)					__NE___	{ _wordWrap = value;	return *this; }
 

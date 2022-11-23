@@ -64,7 +64,7 @@ namespace AE::Base
 	public:
 		virtual ~ILogger () {}
 
-		ND_ virtual EResult	Process (const MessageInfo &info)		__TH___ = 0;
+		ND_ virtual EResult	Process (const MessageInfo &info)		__Th___ = 0;
 			virtual void	SetCurrentThreadName (std::string_view)	__NE___ {}
 
 
@@ -97,8 +97,8 @@ namespace AE::Base
 
 
 	// methods
-		ND_ static EResult  Process (const char *msg, const char *func, const char *file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)					__TH___;
-		ND_ static EResult  Process (std::string_view msg, std::string_view func, std::string_view file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)	__TH___;
+		ND_ static EResult  Process (const char *msg, const char *func, const char *file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)					__Th___;
+		ND_ static EResult  Process (std::string_view msg, std::string_view func, std::string_view file, unsigned int line, ILogger::ELevel level, ILogger::EScope scope)	__Th___;
 
 			static void		SetFilter (LevelBits levelBits, ScopeBits scopeBits)__NE___;
 

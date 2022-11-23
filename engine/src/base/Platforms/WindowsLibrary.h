@@ -65,7 +65,7 @@ namespace AE::Base
 		_handle = ::LoadLibraryA( libName.c_str() );
 		
 		if_unlikely( _handle == null )
-			WindowsUtils::CheckError( "LoadLibrary error: ", SourceLoc_Current() );
+			WIN_CHECK_DEV( "LoadLibrary error: " );
 
 		return _handle != null;
 	}
@@ -76,7 +76,7 @@ namespace AE::Base
 		_handle = ::LoadLibraryW( libName.c_str() );
 		
 		if_unlikely( _handle == null )
-			WindowsUtils::CheckError( "LoadLibrary error: ", SourceLoc_Current() );
+			WIN_CHECK_DEV( "LoadLibrary error: " );
 
 		return _handle != null;
 	}

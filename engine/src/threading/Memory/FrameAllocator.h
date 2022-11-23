@@ -12,9 +12,10 @@ namespace AE::Threading
 	// GraphicsFrameAllocatorRef
 	//
 
-	struct GraphicsFrameAllocatorRef final : AllocatorRef2< MemoryManagerImpl::FrameAllocator_t >
+	class GraphicsFrameAllocatorRef final : public AllocatorRef2< MemoryManagerImpl::FrameAllocator_t >
 	{
-		GraphicsFrameAllocatorRef () :
+	public:
+		GraphicsFrameAllocatorRef () __NE___ :
 			AllocatorRef2{ MemoryManager().GetGraphicsFrameAllocator().Get() }
 		{}
 	};
@@ -25,15 +26,16 @@ namespace AE::Threading
 	//
 
 	template <typename T, typename BaseAlloc>
-	struct FrameStdAllocatorRef final : StdAllocatorRef< T, MemoryManagerImpl::FrameAllocator_t* >
+	class FrameStdAllocatorRef final : public StdAllocatorRef< T, MemoryManagerImpl::FrameAllocator_t* >
 	{
 		using Base_t = StdAllocatorRef< T, MemoryManagerImpl::FrameAllocator_t* >;
-		
-		FrameStdAllocatorRef () :
+	
+	public:
+		FrameStdAllocatorRef () __NE___ :
 			Base_t{ &BaseAlloc{}.GetAllocatorRef() }
 		{}
 
-		FrameStdAllocatorRef (MemoryManagerImpl::FrameAllocator_t* alloc) :
+		explicit FrameStdAllocatorRef (MemoryManagerImpl::FrameAllocator_t* alloc) __NE___:
 			Base_t{ alloc }
 		{}
 	};

@@ -34,7 +34,7 @@ namespace AE::Threading
 			  usize MaxChunks_v = 16,
 			  typename AllocatorType = UntypedAllocator
 			 >
-	struct LfIndexedPool2 final
+	class LfIndexedPool2 final : public Noncopyable
 	{
 		STATIC_ASSERT( ChunkSize_v > 0 );
 		STATIC_ASSERT( ((ChunkSize_v % 32) == 0) or ((ChunkSize_v % 64) == 0) );
@@ -98,13 +98,6 @@ namespace AE::Threading
 
 	// methods
 	public:
-		LfIndexedPool2 (const Self &)	= delete;
-		LfIndexedPool2 (Self &&)		= delete;
-
-		Self& operator = (const Self &)	= delete;
-		Self& operator = (Self &&)		= delete;
-		
-
 		explicit LfIndexedPool2 (const Allocator_t &alloc = Default)__NE___;
 		~LfIndexedPool2 ()											__NE___	{ Release(); }
 	
@@ -138,7 +131,9 @@ namespace AE::Threading
 		template <typename FN>
 		bool  _AssignInLowLevel (OUT Index_t &outIndex, int chunkIndex, int hiLevelIndex, ValueChunk_t &data, const FN &ctor) __NE___;
 
-		void  _UpdateHiLevel (int chunkIndex, int hiLevelIndex) __NE___;
+		void  _UpdateHiLevel (int chunkIndex, int hiLevelIndex)		__NE___;
 	};
 	
 } // AE::Threading
+
+//#include "threading/Containers/LfIndexedPool2.inl.h"

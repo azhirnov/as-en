@@ -112,21 +112,10 @@ namespace AE::Math
 	operator *
 =================================================
 */
-	template <typename T, uint C, uint R, uint Q>
-	ND_ inline Matrix<T,Q,R>  operator * (const Matrix<T,C,R> &lhs, const Matrix<T,Q,C> &rhs)
+	template <typename T, uint C, uint R, uint Q, glm::qualifier Qf>
+	ND_ inline TMatrix<T,Q,R,Qf>  operator * (const TMatrix<T,C,R, Qf> &lhs, const TMatrix<T,Q,C,Qf> &rhs) __NE___
 	{
-		return Matrix<T,Q,R>{ lhs._value * rhs._value };
-	}
-	
-/*
-=================================================
-	Transpose
-=================================================
-*
-	template <typename T, uint C, uint R>
-	ND_ inline constexpr Matrix<T,R,C>  Matrix<T,C,R>::Transpose () const
-	{
-		return Matrix<T,R,C>{ glm::transpose( _value )};
+		return TMatrix<T,Q,R,Qf>{ lhs._value * rhs._value };
 	}
 
 /*
@@ -134,8 +123,8 @@ namespace AE::Math
 	Equals
 =================================================
 */
-	template <typename T, uint C, uint R>
-	ND_ forceinline bool  Equals (const Matrix<T,C,R> &lhs, const Matrix<T,C,R> &rhs, const T &err = Epsilon<T>())
+	template <typename T, uint C, uint R, glm::qualifier Q>
+	ND_ forceinline bool  Equals (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const T &err = Epsilon<T>()) __NE___
 	{
 		bool	res = true;
 		for (uint i = 0; i < C; ++i) {
@@ -151,11 +140,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline Quat<T>::Quat (const Matrix<T,3,3> &m) : _value{glm::quat_cast(m)}
+	template <glm::qualifier Q>
+	inline Quat<T>::Quat (const TMatrix<T,3,3,Q> &m) __NE___ : _value{glm::quat_cast(m)}
 	{}
 	
 	template <typename T>
-	inline Quat<T>::Quat (const Matrix<T,4,4> &m) : _value{glm::quat_cast(m)}
+	template <glm::qualifier Q>
+	inline Quat<T>::Quat (const TMatrix<T,4,4,Q> &m) __NE___ : _value{glm::quat_cast(m)}
 	{}
 
 

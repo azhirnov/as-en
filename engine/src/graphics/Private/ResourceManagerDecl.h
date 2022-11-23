@@ -1,8 +1,5 @@
 
-	public:
-
-		ND_ bool				OnSurfaceCreated (const VSwapchain &sw)						__NE___;
-		
+	public:		
 		bool					InitializeResources (const PipelinePackDesc &desc)			__NE_OV;
 		Strong<PipelinePackID>	LoadPipelinePack (const PipelinePackDesc &desc)				__NE_OV;
 		Array<RenderTechName>	GetSupportedRenderTechs (PipelinePackID id)					C_NE_OV;
@@ -107,6 +104,18 @@
 		
 		template <typename ID>
 		ND_ auto const*		GetResource (const Strong<ID> &id, Bool incRef = false, Bool quiet = false) C_NE___;
+		
+		template <typename ID>
+		ND_ auto*			GetResources (ID id)								C_NE___;
+		
+		template <typename ID0, typename ID1, typename ...IDs>
+		ND_ auto			GetResources (ID0 id0, ID1 id1, IDs ...ids)			C_NE___;
+		
+		template <typename ID>
+		ND_ auto&			GetResourcesOrThrow (ID id)							C_Th___;
+		
+		template <typename ID0, typename ID1, typename ...IDs>
+		ND_ auto			GetResourcesOrThrow (ID0 id0, ID1 id1, IDs ...ids)	C_Th___;
 
 		void  OnBeginFrame (FrameUID frameId, const BeginFrameConfig &cfg)		__NE___;
 		void  OnEndFrame (FrameUID frameId)										__NE___;
@@ -150,7 +159,7 @@
 		ND_ auto&  _GetResourcePool (const RTSceneID &)						__NE___	{ return _resPool.rtScene; }
 		
 		template <typename ID>
-		ND_ const auto&  _GetResourceCPool (const ID &id)					C_NE___	{ return const_cast<VResourceManager *>(this)->_GetResourcePool( id ); }
+		ND_ const auto&  _GetResourceCPool (const ID &id)					C_NE___	{ return const_cast< RemoveAllQualifiers<decltype(*this)> &>(*this)._GetResourcePool( id ); }
 
 		ND_ StringView  _GetResourcePoolName (const BufferID &)				__NE___	{ return "buffers"; }
 		ND_ StringView  _GetResourcePoolName (const ImageID &)				__NE___	{ return "images"; }
@@ -162,7 +171,6 @@
 		ND_ StringView  _GetResourcePoolName (const MeshPipelineID &)		__NE___	{ return "meshPpln"; }
 		ND_ StringView  _GetResourcePoolName (const RayTracingPipelineID &)	__NE___	{ return "raytracePpln"; }
 		ND_ StringView  _GetResourcePoolName (const TilePipelineID &)		__NE___	{ return "tilePpln"; }
-		ND_ StringView  _GetResourcePoolName (const VFramebufferID &)		__NE___	{ return "framebuffers"; }
 		ND_ StringView  _GetResourcePoolName (const DescriptorSetID &)		__NE___	{ return "descSet"; }
 		ND_ StringView  _GetResourcePoolName (const PipelineCacheID &)		__NE___	{ return "pipelineCache"; }
 		ND_ StringView  _GetResourcePoolName (const PipelinePackID &)		__NE___	{ return "pipelinePacks"; }

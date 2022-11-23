@@ -1,5 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#if defined(AE_ENABLE_VULKAN)
+#	define CMDBATCH			VCommandBatch
+
+#elif defined(AE_ENABLE_METAL)
+#	define CMDBATCH			MCommandBatch
+#endif
+
 namespace AE::Graphics
 {
 
@@ -23,7 +30,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		RenderTask (RC<CMDBATCH> batch, StringView dbgName, RGBA8u dbgColor = HtmlColor::Yellow) __TH___ :
+		RenderTask (RC<CMDBATCH> batch, StringView dbgName, RGBA8u dbgColor = HtmlColor::Yellow) __Th___ :
 			IAsyncTask{ EThread::Renderer },
 			_batch{ RVRef(batch) },
 			_exeIndex{ _GetPool().Acquire() }
@@ -40,6 +47,8 @@ namespace AE::Graphics
 		ND_ FrameUID		GetFrameId ()			C_NE___	{ return _batch->GetFrameId(); }
 		ND_ uint			GetExecutionIndex ()	C_NE___	{ return _exeIndex; }
 		ND_ bool			IsValid ()				C_NE___	{ return _exeIndex != UMax; }
+		ND_ EQueueType		GetQueueType ()			C_NE___	{ return _batch->GetQueueType(); }
+		ND_ EQueueMask		GetQueueMask ()			C_NE___	{ return EQueueMask(0) | GetQueueType(); }
 
 
 	// IAsyncTask
@@ -61,10 +70,10 @@ namespace AE::Graphics
 		void  OnFailure ()							__NE___;
 
 		template <typename CmdBufType>
-		void  Execute (CmdBufType &cmdbuf)			__TH___;
+		void  Execute (CmdBufType &cmdbuf)			__Th___;
 		
 		template <typename CmdBufType>
-		void  ExecuteAndSubmit (CmdBufType &cmdbuf, ESubmitMode mode = ESubmitMode::Deferred) __TH___;
+		void  ExecuteAndSubmit (CmdBufType &cmdbuf, ESubmitMode mode = ESubmitMode::Deferred) __Th___;
 
 	private:
 		ND_ CMDBATCH::CmdBufPool&  _GetPool ()		__NE___	{ return _batch->_cmdPool; }
@@ -100,7 +109,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename CmdBufType>
-	void  RenderTask::Execute (CmdBufType &cmdbuf) __TH___
+	void  RenderTask::Execute (CmdBufType &cmdbuf) __Th___
 	{
 		ASSERT( IAsyncTask::_IsRunning() );		// must be inside 'Run()'
 		CHECK_ERRV( IsValid() );
@@ -119,7 +128,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename CmdBufType>
-	void  RenderTask::ExecuteAndSubmit (CmdBufType &cmdbuf, ESubmitMode mode) __TH___
+	void  RenderTask::ExecuteAndSubmit (CmdBufType &cmdbuf, ESubmitMode mode) __Th___
 	{
 		Execute( cmdbuf );								// throw
 		CHECK_THROW( GetBatchPtr()->Submit( mode ));	// throw
@@ -208,7 +217,7 @@ namespace AE::Threading::_hidden_
 
 				void				return_void ()			C_NE___	{}
 					
-				void				unhandled_exception ()	C_TH___	{ throw; }				// rethrow exceptions
+				void				unhandled_exception ()	C_Th___	{ throw; }				// rethrow exceptions
 				
 			ND_ Task_t*				GetTask ()				C_NE___;
 
@@ -239,7 +248,7 @@ namespace AE::Threading::_hidden_
 
 	// methods
 	public:
-		RenderTaskCoroutineRunner (Handle_t handle, RC<AE::Graphics::CMDBATCH> batch, StringView dbgName, RGBA8u dbgColor = HtmlColor::Yellow) __TH___ :
+		RenderTaskCoroutineRunner (Handle_t handle, RC<AE::Graphics::CMDBATCH> batch, StringView dbgName, RGBA8u dbgColor = HtmlColor::Yellow) __Th___ :
 			RenderTask{ RVRef(batch), dbgName, dbgColor },
 			_coroutine{ RVRef(handle) }
 		{
@@ -253,13 +262,13 @@ namespace AE::Threading::_hidden_
 		
 
 		template <typename CmdBufType>
-		void  Execute (CmdBufType &cmdbuf)		__TH___
+		void  Execute (CmdBufType &cmdbuf)		__Th___
 		{
 			return RenderTask::Execute( cmdbuf );	// throw
 		}
 		
 		template <typename CmdBufType>
-		void  ExecuteAndSubmit (CmdBufType &cmdbuf, ESubmitMode mode = ESubmitMode::Deferred) __TH___
+		void  ExecuteAndSubmit (CmdBufType &cmdbuf, ESubmitMode mode = ESubmitMode::Deferred) __Th___
 		{
 			return RenderTask::ExecuteAndSubmit( cmdbuf, mode );	// throw
 		}
@@ -278,7 +287,7 @@ namespace AE::Threading::_hidden_
 		}
 
 	private:
-		void  Run () __TH_OV
+		void  Run () __Th_OV
 		{
 			ASSERT( _coroutine.IsValid() );
 			_coroutine.Resume();	// throw
@@ -433,7 +442,7 @@ namespace AE::Graphics
 				ND_ bool	await_ready ()				C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
 					void	await_resume ()				C_NE___	{}
 
-				ND_ bool	await_suspend (std::coroutine_handle< Promise_t > curCoro) __TH___
+				ND_ bool	await_suspend (std::coroutine_handle< Promise_t > curCoro) __Th___
 				{
 					Runner_t*	task = curCoro.promise().GetTask();
 					if_likely( task != null )
@@ -476,7 +485,7 @@ namespace AE::Graphics
 				ND_ bool	await_ready ()						C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
 					void	await_resume ()						C_NE___	{}
 
-				ND_ bool	await_suspend (std::coroutine_handle< Promise_t > curCoro) __TH___
+				ND_ bool	await_suspend (std::coroutine_handle< Promise_t > curCoro) __Th___
 				{
 					Runner_t*	task = curCoro.promise().GetTask();
 					if_likely( task != null )
@@ -493,4 +502,80 @@ namespace AE::Graphics
 # endif // AE_HAS_COROUTINE
 //-----------------------------------------------------------------------------
 
-#	undef CMDBATCH
+
+
+namespace AE::Graphics
+{
+/*
+=================================================
+	Add
+=================================================
+*/
+	template <typename TaskType, typename ...Ctor, typename ...Deps>
+	AsyncTask  CMDBATCH::Add (Tuple<Ctor...> &&		ctorArgs,
+							  const Tuple<Deps...>&	deps,
+							  StringView			dbgName,
+							  RGBA8u				dbgColor) __NE___
+	{
+		STATIC_ASSERT( IsBaseOf< RenderTask, TaskType >);
+		ASSERT( not IsSubmitted() );
+
+		// RenderTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
+		// RenderTask internally creates command buffer and throw exception if can't.
+		try {
+			auto	task = ctorArgs.Apply([this, dbgName, dbgColor] (auto&& ...args)
+										  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbgName, dbgColor ); });	// throw
+
+			if_likely( Scheduler().Run( task, deps ))
+				return task;
+		}
+		catch(...) {}
+		
+		return Scheduler().GetCanceledTask();
+	}
+	
+/*
+=================================================
+	Add
+=================================================
+*/
+# ifdef AE_HAS_COROUTINE
+	template <typename PromiseT, typename ...Deps>
+	AsyncTask  CMDBATCH::Add (AE::Threading::CoroutineHandle<PromiseT>	handle,
+							  const Tuple<Deps...>&						deps,
+							  StringView								dbgName,
+							  RGBA8u									dbgColor) __NE___
+	{
+		STATIC_ASSERT( IsSameTypes< AE::Threading::CoroutineHandle<PromiseT>, CoroutineRenderTask >);
+		ASSERT( not IsSubmitted() );
+
+		// RenderTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
+		// RenderTask internally creates command buffer and throw exception if can't.
+		try {
+			auto	task = MakeRC<AE::Threading::_hidden_::RenderTaskCoroutineRunner>( RVRef(handle), GetRC(), dbgName, dbgColor );	// throw
+
+			if_likely( Scheduler().Run( task, deps ))
+				return task;
+		}
+		catch(...) {}
+
+		return Scheduler().GetCanceledTask();
+	}
+# endif
+	
+/*
+=================================================
+	SubmitAsTask
+=================================================
+*/
+	template <typename ...Deps>
+	AsyncTask  CMDBATCH::SubmitAsTask (const Tuple<Deps...>&	deps,
+									   ESubmitMode				mode) __NE___
+	{
+		return Scheduler().Run< SubmitBatchTask >( Tuple{ GetRC<CMDBATCH>(), mode }, deps );
+	}
+
+} // AE::Graphics
+//-----------------------------------------------------------------------------
+
+#undef CMDBATCH

@@ -74,7 +74,11 @@ namespace AE::Math
 		ND_ explicit constexpr operator signed long ()	C_NE___ { return static_cast< signed long >(_value); }
 		ND_ explicit constexpr operator unsigned long ()C_NE___ { return static_cast< unsigned long >(_value); }
 	  #endif
-
+		
+		template <typename R>
+		ND_ constexpr R *		AsPtr ()				C_NE___	{ return BitCast<R *>( CheckCast<usize>( _value )); }
+		ND_ constexpr void*		AsPtr ()				C_NE___	{ return BitCast<void *>( CheckCast<usize>( _value )); }
+		
 		template <typename R>
 		ND_ explicit constexpr operator R * ()			C_NE___	{ return BitCast<R *>( CheckCast<usize>( _value )); }
 		

@@ -25,7 +25,7 @@ namespace AE::Threading
 			  usize Count,
 			  typename AllocatorType = UntypedAllocator
 			 >
-	struct LfStaticPool
+	class LfStaticPool final : public Noncopyable
 	{
 		STATIC_ASSERT( Count > 0 and Count % 32 == 0 );
 
@@ -84,13 +84,6 @@ namespace AE::Threading
 		explicit LfStaticPool (const Allocator_t &alloc = Allocator_t{}) __NE___;
 		~LfStaticPool ()							__NE___	{ Release(); }
 
-		LfStaticPool (const Self &)		= delete;
-		LfStaticPool (Self &&)			= delete;
-
-		Self&  operator = (const Self &)= delete;
-		Self&  operator = (Self &&)		= delete;
-
-
 		ND_ static constexpr usize  Capacity ()		__NE___	{ return Count; }
 		ND_ static constexpr Bytes  DynamicSize ()	__NE___	{ return SizeOf<ChunkArray_t>; }
 
@@ -106,3 +99,5 @@ namespace AE::Threading
 	};
 
 } // AE::Threading
+
+//#include "threading/Containers/LfStaticPool.inl.h"

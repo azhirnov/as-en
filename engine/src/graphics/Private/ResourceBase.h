@@ -104,7 +104,7 @@ namespace AE::Graphics
 			_data.Destroy( FwdArg<Args &&>( args )... );
 			
 			// flush cache
-			ThreadFence( EMemoryOrder::Release );
+			MemoryBarrier( EMemoryOrder::Release );
 
 			// update atomics
 			_refCounter.store( 0 );

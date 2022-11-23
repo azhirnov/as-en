@@ -32,27 +32,33 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit MDrawBarrierManager (Ptr<MDrawCommandBatch> batch);
-		explicit MDrawBarrierManager (const MPrimaryCmdBufState &primaryState);
+		explicit MDrawBarrierManager (Ptr<MDrawCommandBatch> batch)				__NE___;
+		explicit MDrawBarrierManager (const MPrimaryCmdBufState &primaryState)	__NE___;
+		
+		template <typename ID>
+		ND_ auto*						GetPtr (ID id)							__NE___	{ return _resMngr.GetResource( id ); }
 
 		template <typename ID>
-		ND_ auto*						Get (ID id)						{ return GetResourceManager().GetResource( id ); }
+		ND_ auto&						Get (ID id)								__Th___	{ return _resMngr.GetResourcesOrThrow( id ).Get<0>(); }
 		
-		ND_ MDevice const&				GetDevice ()			const	{ return _resMngr.GetDevice(); }
-		ND_ MResourceManager&			GetResourceManager ()	const	{ return _resMngr; }
-		ND_ FrameUID					GetFrameId ()			const	{ return _primaryState.frameId; }
-		ND_ EQueueType					GetQueueType ()			const	{ return EQueueType::Graphics; }
-		ND_ MPrimaryCmdBufState const&	GetPrimaryCtxState ()	const	{ return _primaryState; }
-
-		ND_ bool						IsSecondary ()			const	{ return _batch != null; }
-		ND_ MDrawCommandBatch *			GetBatchPtr ()			const	{ return _batch.get(); }
+		template <typename ID0, typename ID1, typename ...IDs>
+		ND_ auto						Get (ID0 id0, ID1 id1, IDs ...ids)		__Th___ { return _resMngr.GetResourcesOrThrow( id0, id1, ids... ); }
 		
-		ND_ const BarrierInfo*			GetBarriers ()					{ return null; }	// TODO
-		ND_ bool						NoPendingBarriers ()	const	{ return true; }
-		ND_ bool						HasPendingBarriers ()	const	{ return false; }
+		ND_ MDevice const&				GetDevice ()							C_NE___	{ return _resMngr.GetDevice(); }
+		ND_ MResourceManager&			GetResourceManager ()					C_NE___	{ return _resMngr; }
+		ND_ FrameUID					GetFrameId ()							C_NE___	{ return _primaryState.frameId; }
+		ND_ EQueueType					GetQueueType ()							C_NE___	{ return EQueueType::Graphics; }
+		ND_ MPrimaryCmdBufState const&	GetPrimaryCtxState ()					C_NE___	{ return _primaryState; }
 
-		void  ClearBarriers () {}
-		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState) {}
+		ND_ bool						IsSecondary ()							C_NE___	{ return _batch != null; }
+		ND_ MDrawCommandBatch *			GetBatchPtr ()							C_NE___	{ return _batch.get(); }
+		
+		ND_ const BarrierInfo*			GetBarriers ()							__NE___	{ return null; }	// TODO
+		ND_ bool						NoPendingBarriers ()					C_NE___	{ return true; }
+		ND_ bool						HasPendingBarriers ()					C_NE___	{ return false; }
+
+		void  ClearBarriers ()													__NE___	{}
+		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState) __NE___	{ Unused( name, srcState, dstState ); }
 
 	private:
 		void  _Init ();

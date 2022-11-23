@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/TaskSystem/WorkerThread.h"
+#include "threading/TaskSystem/ThreadManager.h"
 #include "UnitTest_Common.h"
 
 namespace

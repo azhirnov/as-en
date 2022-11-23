@@ -14,7 +14,7 @@ namespace AE::Base
 	// Multithreaded (Lock-free) Allocator
 	//
 
-	struct MtAllocator
+	class MtAllocator final : public Noninstancable
 	{
 		static constexpr bool	IsThreadSafe	= true;
 		static constexpr Bytes	DefaultAlign	= 8_b;

@@ -37,7 +37,7 @@ extern void Test_ImageAtlasPack ()
 {
 	{
 		Path	dll_path{ AE_ASSET_PACKER_LIBRARY };
-		dll_path.append( AE_RESPACK_BUILD_TYPE "/AssetPacker-shared.dll" );
+		dll_path.append( CMAKE_INTDIR "/AssetPacker-shared.dll" );
 
 		Library		lib;
 		TEST( lib.Load( dll_path ));

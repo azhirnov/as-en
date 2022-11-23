@@ -62,10 +62,10 @@ namespace AE::Graphics::_hidden_
 		
 
 	protected:
-		ND_ void*  _Allocate (Bytes size)						__TH___;
+		ND_ void*  _Allocate (Bytes size)						__Th___;
 
 		template <typename CommandsList, typename CmdType, typename ...DynamicTypes>
-		ND_ CmdType&  _CreateCmd (usize dynamicArraySize = 0)	__TH___;
+		ND_ CmdType&  _CreateCmd (usize dynamicArraySize = 0)	__Th___;
 
 		template <usize I, typename TL>
 		ND_ static constexpr Bytes  _CalcCmdSize (Bytes size, usize dynamicArraySize);
@@ -81,7 +81,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename CommandsList, typename CmdType, typename ...DynamicTypes>
-	CmdType&  SoftwareCmdBufBase::_CreateCmd (usize dynamicArraySize) __TH___
+	CmdType&  SoftwareCmdBufBase::_CreateCmd (usize dynamicArraySize) __Th___
 	{
 		Bytes	size	= AlignUp( _CalcCmdSize< 0, TypeList<DynamicTypes...> >( SizeOf<CmdType>, dynamicArraySize ), BaseAlign );
 		auto*	cmd		= Cast<CmdType>( _Allocate( size ));	// throw

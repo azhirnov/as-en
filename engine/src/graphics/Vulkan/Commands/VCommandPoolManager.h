@@ -22,9 +22,9 @@ namespace AE::Graphics
 		bool						hasViewLocalDeps	= false;	// for multiview rendering
 		FrameUID					frameId;
 
-		VPrimaryCmdBufState () {}
+		VPrimaryCmdBufState () 	__NE___ {}
 
-		ND_ bool  IsValid () C_NE___
+		ND_ bool  IsValid () 	C_NE___
 		{
 			return (renderPass != null) & (framebuffer != null) & frameId.IsValid();
 		}

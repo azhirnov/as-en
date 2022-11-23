@@ -81,7 +81,9 @@ namespace
 		AppListener ()
 		{
 			TaskScheduler::CreateInstance();
-			Scheduler().Setup( 1 );
+
+			TaskScheduler::Config	cfg;
+			CHECK_FATAL( Scheduler().Setup( cfg ));
 		}
 
 		~AppListener () override

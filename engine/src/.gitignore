@@ -5,3 +5,4 @@
 *.cpp.h
 
 /base/Crypto
+/platform/Android/Java.h

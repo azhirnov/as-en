@@ -4,9 +4,9 @@
 layout(triangles) out;
 layout(max_vertices=32, max_primitives=64) out;
 /*
-out uint3  gl_PrimitiveTriangleIndices [max_primitives];
+out uint3  gl_PrimitiveTriangleIndicesEXT [max_primitives];
 
-out gl_MeshPerVertex {
+out gl_MeshPerVertexEXT {
 	vec4	gl_Position;
 } gl_MeshVertices[]; // [max_vertices]
 
@@ -31,13 +31,13 @@ void main ()
 {
 	const uint I = gl_LocalInvocationID.x;
 
-	gl_MeshVertices[I].gl_Position	= vec4( g_Positions[I], 0.0, 1.0 );
-	Out[I].texcoord					= g_Positions[I];
-	Out[I].color					= vec4( g_Colors[I], 1.0 );
+	gl_MeshVerticesEXT[I].gl_Position	= vec4( g_Positions[I], 0.0, 1.0 );
+	Out[I].texcoord						= g_Positions[I];
+	Out[I].color						= vec4( g_Colors[I], 1.0 );
 	
 	if ( I == 0 )
 	{
-		gl_PrimitiveTriangleIndices[0] = uvec3(0,1,2);
-		glSetMeshOutputs( 3, 1 );
+		gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
+		SetMeshOutputsEXT( 3, 1 );
 	}
 }

@@ -321,6 +321,7 @@ MeshPipelineTempl {
     maxVertices          = 32
     maxIndices           = 192
     earlyFragmentTests   = true
+    meshDefaultLocalSize = { 1, 1, 1 }
     meshLocalSizeSpec    = { 0, Undefined, Undefined }
     featureSets = { 'MinimalFS', 'MinMeshShader' }
   ----------------------

@@ -1,8 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Prefixes:
+		Lf	- lock-free / wait-free
+		Ts	- thread-safe (with locks)
+*/
 
 #pragma once
 
-#include "base/StdInclude.h"
+#include "base/Defines/StdInclude.h"
 
 #include <atomic>
 #include <mutex>
@@ -85,14 +90,14 @@ namespace AE::Threading
 	
 /*
 =================================================
-	ThreadFence
+	MemoryBarrier
 ----
 	for non-atomic and relaxed atomic accesses.
-	ThreadFence( memory_order_acquire ) - invalidate cache
-	ThreadFence( memory_order_release ) - flush cache
+	MemoryBarrier( Acquire ) - invalidate cache
+	MemoryBarrier( Release ) - flush cache
 =================================================
 */
-	forceinline void  ThreadFence (std::memory_order order)
+	forceinline void  MemoryBarrier (std::memory_order order) __NE___
 	{
 		ASSERT( order != std::memory_order_relaxed );
 		return std::atomic_thread_fence( order );
@@ -103,11 +108,11 @@ namespace AE::Threading
 	CompilerFence
 ----
 	Take effect only for compiler and CPU instruction reordering.
-	ThreadFence( memory_order_acquire ) - don't reorder with previous code
-	ThreadFence( memory_order_release ) - don't reorder with next code
+	CompilerFence( Acquire ) - don't reorder with previous code
+	CompilerFence( Release ) - don't reorder with next code
 =================================================
 */
-	forceinline void  CompilerFence (std::memory_order order)
+	forceinline void  CompilerFence (std::memory_order order) __NE___
 	{
 		ASSERT( order != std::memory_order_relaxed );
 		return std::atomic_signal_fence( order );
@@ -120,7 +125,7 @@ namespace AE::Threading
 	template <typename T>
 	struct DeferExLock final : std::unique_lock<T>
 	{
-		explicit DeferExLock (T &mtx) : 
+		explicit DeferExLock (T &mtx) __NE___ : 
 			std::unique_lock<T>{ mtx, std::defer_lock } {}
 	};
 
@@ -131,7 +136,7 @@ namespace AE::Threading
 	template <typename T>
 	struct DeferSharedLock final : std::shared_lock<T>
 	{
-		explicit DeferSharedLock (T &mtx) :
+		explicit DeferSharedLock (T &mtx) __NE___ :
 			std::shared_lock<T>{ mtx, std::defer_lock } {}
 	};
 

@@ -245,6 +245,37 @@ namespace _hidden_
 	using RemoveAllQualifiers	= typename _hidden_::RemoveAllQual<T>::type;
 
 	
+	namespace _hidden_
+	{
+		template <typename T>
+		struct _IsStaticArray {
+			static constexpr bool	value = std::is_array_v<T>;
+		};
+
+		template <typename T, usize S>
+		struct _IsStaticArray< std::array<T,S> > {
+			static constexpr bool	value = true;
+		};
+	}
+	template <typename T>
+	static constexpr bool	IsStaticArray = _hidden_::_IsStaticArray<T>::value;
+
+	namespace _hidden_
+	{
+		template <typename T>
+		struct _IsStdVector {
+			static constexpr bool	value = false;
+		};
+		
+		template <typename T, typename A>
+		struct _IsStdVector< std::vector<T,A> > {
+			static constexpr bool	value = true;
+		};
+	}
+	template <typename T>
+	static constexpr bool	IsArray = _hidden_::_IsStdVector<T>::value;
+
+	
 /*
 =================================================
 	IndexSequence

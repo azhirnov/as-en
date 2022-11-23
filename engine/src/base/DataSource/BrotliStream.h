@@ -22,7 +22,7 @@ namespace AE::Base
 		Bytes			_position;				// uncompressed size
 		uint			_lastResult;
 
-		static const usize	_BufferSize	= 4u << 10;
+		static constexpr usize	_BufferSize	= 4u << 10;
 
 
 	// methods
@@ -66,31 +66,31 @@ namespace AE::Base
 		void *			_instance	= null;		// BrotliEncoderState
 		Bytes			_position;				// uncompressed size
 
-		static const usize	_BufferSize	= 4u << 10;
+		static constexpr usize	_BufferSize	= 4u << 10;
 
 
 	// methods
 	public:
 		explicit BrotliWStream (RC<WStream> stream, const Config &cfg = Default) __NE___;
-		~BrotliWStream ()						__NE_OV;
+		~BrotliWStream ()							__NE_OV;
 
-		void	SetTotalSize (Bytes size)		__NE___;
+		void	SetTotalSize (Bytes size)			__NE___;
 		
 
 	// WStream //
-		bool		IsOpen ()					C_NE_OV	{ return _instance != null and _stream and _stream->IsOpen(); }
-		Bytes		Position ()					C_NE_OV	{ return _position; }
-		ESourceType	GetSourceType ()			C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::WriteAccess; }
+		bool		IsOpen ()						C_NE_OV	{ return _instance != null and _stream and _stream->IsOpen(); }
+		Bytes		Position ()						C_NE_OV	{ return _position; }
+		ESourceType	GetSourceType ()				C_NE_OV	{ return ESourceType::SequentialAccess | ESourceType::WriteAccess; }
 		
-		Bytes	Reserve (Bytes additionalSize)	__NE_OV;
+		Bytes		Reserve (Bytes additionalSize)	__NE_OV;
 
-		bool	SeekFwd (Bytes)					__NE_OV	{ return false; }
-		void	Flush ()						__NE_OV	{ _Flush(); }
+		bool		SeekFwd (Bytes)					__NE_OV	{ return false; }
+		void		Flush ()						__NE_OV	{ _Flush(); }
 
-		Bytes	WriteSeq (const void *, Bytes)	__NE_OV;
+		Bytes		WriteSeq (const void *, Bytes)	__NE_OV;
 
 	private:
-		bool	_Flush ()						__NE___;
+		bool		_Flush ()						__NE___;
 	};
 
 

@@ -786,13 +786,15 @@ namespace AE::Graphics
 			case EResourceState::ShadingRateImage :					outStage = VK_PIPELINE_STAGE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;outAccess = VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;																				outLayout = VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;						break;
 			case EResourceState::FragmentDensityMap :				outStage = VK_PIPELINE_STAGE_2_FRAGMENT_DENSITY_PROCESS_BIT_EXT;		outAccess = VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;																							outLayout = VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT;									break;
 
+			case EResourceState::CopyRTAS_Read :					outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;		outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_2_TRANSFER_READ_BIT;																																						break;
+			case EResourceState::CopyRTAS_Write :					outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;		outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR | VK_ACCESS_2_TRANSFER_WRITE_BIT;																																						break;
 			case EResourceState::BuildRTAS_Read :					outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;	outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR; 																																														break;
 			case EResourceState::BuildRTAS_Write :					outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;	outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR; 																																														break;
 			case EResourceState::BuildRTAS_RW :						outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;	outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR; 																																	break;
 			case EResourceState::BuildRTAS_ScratchBuffer :			outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;	outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR; 																																														break;
 				
 			case EResourceState::ShaderRTAS_Read :					outStage = sh_stages;													outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;																																								ASSERT( sh_stages );	break;
-			case EResourceState::RTShaderBindingTable :				outStage = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;				outAccess = VK_ACCESS_2_SHADER_STORAGE_READ_BIT;																																																	break;
+			case EResourceState::RTShaderBindingTable :				outStage = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;				outAccess = VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR;																																															break;
 
 			case EResourceState::Preserve :
 			case EResourceState::_AccessMask :
@@ -1400,6 +1402,31 @@ namespace AE::Graphics
 		}
 		END_ENUM_CHECKS();
 		RETURN_ERR( "unknown present mode", VK_PRESENT_MODE_MAX_ENUM_KHR );
+	}
+	
+/*
+=================================================
+	VEnumCast (EQueryType)
+=================================================
+*/
+	ND_ inline VkQueryType  VEnumCast (EQueryType value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EQueryType::Timestamp :					return VK_QUERY_TYPE_TIMESTAMP;
+			case EQueryType::PipelineStatistic :			return VK_QUERY_TYPE_PIPELINE_STATISTICS;
+			case EQueryType::Performance :					return VK_QUERY_TYPE_PERFORMANCE_QUERY_KHR;
+			case EQueryType::AccelStructCompactedSize :		return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR;
+			case EQueryType::AccelStructSize :				return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SIZE_KHR;				// require 'VK_KHR_ray_tracing_maintenance1'
+			case EQueryType::AccelStructSerializationSize :	return VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SERIALIZATION_SIZE_KHR;
+			// TODO: VK_QUERY_TYPE_ACCELERATION_STRUCTURE_SERIALIZATION_BOTTOM_LEVEL_POINTERS_KHR				// require 'VK_KHR_ray_tracing_maintenance1'
+
+			case EQueryType::_Count :
+			case EQueryType::Unknown :						break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown query type", VK_QUERY_TYPE_MAX_ENUM );
 	}
 
 

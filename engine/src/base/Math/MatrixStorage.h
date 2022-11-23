@@ -124,10 +124,10 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr MatrixStorage () {}
+		constexpr MatrixStorage () __NE___ {}
 
 		template <typename Arg0, typename ...Args>
-		constexpr explicit MatrixStorage (const Arg0 &arg0, const Args& ...args)
+		constexpr explicit MatrixStorage (const Arg0 &arg0, const Args& ...args) __NE___
 		{
 			if constexpr( CountOf<Arg0, Args...>() == Columns * Rows )
 				_CopyScalars<0>( arg0, args... );
@@ -140,7 +140,7 @@ namespace AE::Math
 		}
 
 		template <uint Columns2, uint Rows2, usize Align2>
-		constexpr MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other)
+		constexpr MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
 		{
 			for (uint c = 0; c < Columns; ++c)
 			for (uint r = 0; r < Rows; ++r) {
@@ -149,7 +149,7 @@ namespace AE::Math
 		}
 		
 		template <uint Columns2, uint Rows2, usize Align2>
-		constexpr MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::RowMajor, Align2 > &other)
+		constexpr MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
 		{
 			for (uint c = 0; c < Columns; ++c)
 			for (uint r = 0; r < Rows; ++r) {
@@ -157,8 +157,8 @@ namespace AE::Math
 			}
 		}
 
-		template <uint Columns2, uint Rows2>
-		GLM_CONSTEXPR MatrixStorage (const Matrix< T, Columns2, Rows2 > &other)
+		template <uint Columns2, uint Rows2, glm::qualifier Q>
+		MatrixStorage (const TMatrix< T, Columns2, Rows2, Q > &other) __NE___
 		{
 			for (uint c = 0; c < Columns; ++c)
 			for (uint r = 0; r < Rows; ++r) {
@@ -166,7 +166,7 @@ namespace AE::Math
 			}
 		}
 		
-		ND_ static constexpr Self  Identity ()
+		ND_ static constexpr Self  Identity () __NE___
 		{
 			constexpr uint	cnt = Min(Columns, Rows);
 			Self			result;
@@ -177,7 +177,7 @@ namespace AE::Math
 			return result;
 		}
 
-		ND_ GLM_CONSTEXPR const Column_t  operator [] (uint index) const
+		ND_ const Column_t  operator [] (uint index) C_NE___
 		{
 			auto&	d = _columns[index].data;
 
@@ -191,10 +191,10 @@ namespace AE::Math
 				return Column_t{ d[0], d[1], d[2], d[3] };
 		}
 		
-		template <uint Columns2, uint Rows2>
-		ND_ explicit operator Matrix< T, Columns2, Rows2 > () const
+		template <uint Columns2, uint Rows2, glm::qualifier Q>
+		ND_ explicit operator TMatrix< T, Columns2, Rows2, Q > () C_NE___
 		{
-			Matrix< T, Columns2, Rows2 >	result;
+			TMatrix< T, Columns2, Rows2, Q >	result;
 			for (uint c = 0; c < Columns2; ++c)
 			for (uint r = 0; r < Rows2; ++r) {
 				result[c][r] = ((c < Columns) & (r < Rows)) ? (*this)[c][r] : (c == r ? T{1} : T{0});
@@ -202,16 +202,16 @@ namespace AE::Math
 			return result;
 		}
 
-		ND_ static constexpr usize		size ()				{ return Columns; }
-		ND_ static constexpr Dim_t		Dimension ()		{ return {Columns, Rows}; }
+		ND_ static constexpr usize		size ()				__NE___	{ return Columns; }
+		ND_ static constexpr Dim_t		Dimension ()		__NE___	{ return {Columns, Rows}; }
 
-		ND_ static constexpr bool		IsColumnMajor ()	{ return true; }
-		ND_ static constexpr bool		IsRowMajor ()		{ return not IsColumnMajor(); }
+		ND_ static constexpr bool		IsColumnMajor ()	__NE___	{ return true; }
+		ND_ static constexpr bool		IsRowMajor ()		__NE___	{ return not IsColumnMajor(); }
 
 
 	private:
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void  _CopyScalars (const Arg0 &arg0, const Args& ...args)
+		constexpr void  _CopyScalars (const Arg0 &arg0, const Args& ...args) __NE___
 		{
 			STATIC_ASSERT( IsScalar<Arg0> );
 			_columns[I / Rows].data[I % Rows] = arg0;
@@ -221,7 +221,7 @@ namespace AE::Math
 		}
 
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void  _CopyColumns (const Arg0 &arg0, const Args& ...args)
+		constexpr void  _CopyColumns (const Arg0 &arg0, const Args& ...args) __NE___
 		{
 			STATIC_ASSERT( IsSameTypes< Arg0, Column_t > );
 			std::memcpy( OUT _columns[I].data, &arg0.x, sizeof(T)*Rows );
@@ -278,10 +278,10 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr MatrixStorage () : _rows{} {}
+		constexpr MatrixStorage () __NE___ : _rows{} {}
 
 		template <typename Arg0, typename ...Args>
-		constexpr explicit MatrixStorage (const Arg0 &arg0, const Args& ...args)
+		constexpr explicit MatrixStorage (const Arg0 &arg0, const Args& ...args) __NE___
 		{
 			if constexpr( CountOf<Arg0, Args...>() == Columns * Rows )
 				_CopyScalars<0>( arg0, args... );
@@ -294,7 +294,7 @@ namespace AE::Math
 		}
 		
 		template <uint Columns2, uint Rows2, usize Align2>
-		constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::RowMajor, Align2 > &other)
+		constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::RowMajor, Align2 > &other) __NE___
 		{
 			for (uint r = 0; r < Rows; ++r)
 			for (uint c = 0; c < Columns; ++c) {
@@ -303,7 +303,7 @@ namespace AE::Math
 		}
 		
 		template <uint Columns2, uint Rows2, usize Align2>
-		constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other)
+		constexpr explicit MatrixStorage (const MatrixStorage< T, Columns2, Rows2, EMatrixOrder::ColumnMajor, Align2 > &other) __NE___
 		{
 			for (uint r = 0; r < Rows; ++r)
 			for (uint c = 0; c < Columns; ++c) {
@@ -311,8 +311,8 @@ namespace AE::Math
 			}
 		}
 		
-		template <uint Columns2, uint Rows2>
-		explicit MatrixStorage (const Matrix< T, Columns2, Rows2 > &other)
+		template <uint Columns2, uint Rows2, glm::qualifier Q>
+		explicit MatrixStorage (const TMatrix< T, Columns2, Rows2, Q > &other) __NE___
 		{
 			for (uint c = 0; c < Columns; ++c)
 			for (uint r = 0; r < Rows; ++r) {
@@ -320,7 +320,7 @@ namespace AE::Math
 			}
 		}
 
-		ND_ static Self  Identity ()
+		ND_ static Self  Identity () __NE___
 		{
 			constexpr uint	cnt = Min(Columns, Rows);
 			Self			result;
@@ -331,7 +331,7 @@ namespace AE::Math
 			return result;
 		}
 
-		ND_ GLM_CONSTEXPR const Row_t  operator [] (uint index) const
+		ND_ const Row_t  operator [] (uint index) C_NE___
 		{
 			auto&	d = _rows[index].data;
 		
@@ -345,10 +345,10 @@ namespace AE::Math
 				return Row_t{ d[0], d[1], d[2], d[3] };
 		}
 		
-		template <uint Columns2, uint Rows2>
-		ND_ explicit operator Matrix< T, Columns2, Rows2 > () const
+		template <uint Columns2, uint Rows2, glm::qualifier Q>
+		ND_ explicit operator TMatrix< T, Columns2, Rows2, Q > () C_NE___
 		{
-			Matrix< T, Columns2, Rows2 >	result;
+			TMatrix< T, Columns2, Rows2, Q >	result;
 			for (uint c = 0; c < Columns2; ++c)
 			for (uint r = 0; r < Rows2; ++r) {
 				result[c][r] = ((c < Columns) & (r < Rows)) ? (*this)[r][c] : (c == r ? T{1} : T{0});
@@ -356,16 +356,16 @@ namespace AE::Math
 			return result;
 		}
 
-		ND_ static constexpr usize		size ()				{ return Rows; }
-		ND_ static constexpr Dim_t		Dimension ()		{ return {Columns, Rows}; }
+		ND_ static constexpr usize		size ()				__NE___	{ return Rows; }
+		ND_ static constexpr Dim_t		Dimension ()		__NE___	{ return {Columns, Rows}; }
 		
-		ND_ static constexpr bool		IsColumnMajor ()	{ return false; }
-		ND_ static constexpr bool		IsRowMajor ()		{ return not IsColumnMajor(); }
+		ND_ static constexpr bool		IsColumnMajor ()	__NE___	{ return false; }
+		ND_ static constexpr bool		IsRowMajor ()		__NE___	{ return not IsColumnMajor(); }
 
 
 	private:
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void  _CopyScalars (const Arg0 &arg0, const Args& ...args)
+		constexpr void  _CopyScalars (const Arg0 &arg0, const Args& ...args) __NE___
 		{
 			STATIC_ASSERT( IsScalar<Arg0> );
 			_rows[I / Columns].data[I % Columns] = arg0;
@@ -375,7 +375,7 @@ namespace AE::Math
 		}
 
 		template <uint I, typename Arg0, typename ...Args>
-		constexpr void  _CopyRows (const Arg0 &arg0, const Args& ...args)
+		constexpr void  _CopyRows (const Arg0 &arg0, const Args& ...args) __NE___
 		{
 			STATIC_ASSERT( IsSameTypes< Arg0, Row_t > );
 			std::memcpy( OUT _rows[I].data, &arg0.x, sizeof(T)*Columns );

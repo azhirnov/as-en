@@ -288,10 +288,6 @@ namespace
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
 
-		CHECK_ERR( res_mngr.ReleaseResources(	t.view[0], t.view[1],
-												t.image[0], t.image[1],
-												t.cpplnDS[0], t.cpplnDS[1] ));
-
 		CHECK_ERR( t.frameIdx.load() == 4 );
 		
 		CHECK_ERR( Scheduler().Wait({ t.result[0], t.result[1] }));
@@ -299,6 +295,10 @@ namespace
 		CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
 		CHECK_ERR( t.isOK[0] );
 		CHECK_ERR( t.isOK[1] );
+
+		CHECK_ERR( res_mngr.ReleaseResources(	t.view[0], t.view[1],
+												t.image[0], t.image[1],
+												t.cpplnDS[0], t.cpplnDS[1] ));
 
 		return true;
 	}

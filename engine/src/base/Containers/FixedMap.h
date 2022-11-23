@@ -56,10 +56,10 @@ namespace AE::Base
 			PairType	_pair;
 
 		public:
-			TPairPtr (PairType && p) : _pair{p} {}
+			TPairPtr (PairType && p)			__NE___	: _pair{p} {}
 
-			ND_ PairType*		operator -> ()			{ return &_pair; }
-			ND_ PairType const*	operator -> ()	const	{ return &_pair; }
+			ND_ PairType*		operator -> ()	__NE___	{ return &_pair; }
+			ND_ PairType const*	operator -> ()	C_NE___	{ return &_pair; }
 		};
 
 
@@ -147,39 +147,39 @@ namespace AE::Base
 
 	// methods
 	public:
-		FixedMap ()									__NE___;
-		FixedMap (Self &&)							__NE___;
-		FixedMap (const Self &)						noexcept(AllNothrowCopyCtor<Key, Value>);
+		FixedMap ()													__NE___;
+		FixedMap (Self &&)											__NE___;
+		FixedMap (const Self &)										noexcept(AllNothrowCopyCtor<Key, Value>);
 
-		~FixedMap ()								__NE___	{ clear(); }
+		~FixedMap ()												__NE___	{ clear(); }
 
-		ND_ usize			size ()					C_NE___	{ return _count; }
-		ND_ bool			empty ()				C_NE___	{ return _count == 0; }
+		ND_ usize			size ()									C_NE___	{ return _count; }
+		ND_ bool			empty ()								C_NE___	{ return _count == 0; }
 
-		ND_ iterator		begin ()				__NE___	{ return iterator{ this, 0 }; }
-		ND_ const_iterator	begin ()				C_NE___	{ return const_iterator{ this, 0 }; }
-		ND_ iterator		end ()					__NE___	{ return begin() + _count; }
-		ND_ const_iterator	end ()					C_NE___	{ return begin() + _count; }
+		ND_ iterator		begin ()								__NE___	{ return iterator{ this, 0 }; }
+		ND_ const_iterator	begin ()								C_NE___	{ return const_iterator{ this, 0 }; }
+		ND_ iterator		end ()									__NE___	{ return begin() + _count; }
+		ND_ const_iterator	end ()									C_NE___	{ return begin() + _count; }
 		
-		ND_ static constexpr usize	capacity ()		__NE___	{ return ArraySize; }
+		ND_ static constexpr usize	capacity ()						__NE___	{ return ArraySize; }
 		
-			Self&	operator = (Self &&)			__NE___;
-			Self&	operator = (const Self &)		noexcept(AllNothrowCopyCtor<Key, Value>);
+			Self&	operator = (Self &&)							__NE___;
+			Self&	operator = (const Self &)						noexcept(AllNothrowCopyCtor<Key, Value>);
 
-		ND_ bool	operator == (const Self &rhs)	C_NE___;
-		ND_ bool	operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
+		ND_ bool	operator == (const Self &rhs)					C_NE___;
+		ND_ bool	operator != (const Self &rhs)					C_NE___	{ return not (*this == rhs); }
 
-			template <typename KeyType, typename ValueType>
-			Pair<iterator,bool>  emplace (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
+			template <typename K, typename V>
+			Pair<iterator,bool>  emplace (K&& key, V&& value)		noexcept(AllNothrowCopyCtor<Key, Value>);
 			
-			template <typename KeyType, typename ValueType>
-			bool				 try_emplace (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
+			template <typename K, typename V>
+			bool				 try_emplace (K&& key, V&& value)	noexcept(AllNothrowCopyCtor<Key, Value>);
 
 			Pair<iterator,bool>  insert (const pair_type &value)	noexcept(AllNothrowCopyCtor<Key, Value>)	{ return emplace( value.first, value.second ); }
 			Pair<iterator,bool>  insert (pair_type&& value)			__NE___										{ return emplace( RVRef(value.first), RVRef(value.second) ); }
 			
-			template <typename KeyType, typename ValueType>
-			Pair<iterator,bool>  insert_or_assign (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
+			template <typename K, typename V>
+			Pair<iterator,bool>  insert_or_assign (K&& key, V&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
 			
 		// same as operator [] in std
 			template <typename KeyType>
@@ -218,7 +218,7 @@ namespace AE::Base
 		ND_ Pair<ArrayView<Key>, ArrayView<Value>>  ToArray ()		C_NE___	{ return {GetKeyArray(), GetValueArray()}; }
 
 	private:
-		void  _Erase (Index_t idx) __NE___;
+		void  _Erase (Index_t idx)									__NE___;
 
 		template <typename IterType, typename MapType, typename KeyType>
 		ND_ static IterType  _Find (MapType &map, const KeyType &key) __NE___;

@@ -58,6 +58,8 @@
 
 #include "threading/TaskSystem/AsyncTask.h"
 #include "threading/TaskSystem/Coroutine.h"
+#include "threading/Containers/LfIndexedPool2.h"
+#include "threading/Memory/GlobalLinearAllocator.h"
 
 #ifdef AE_DBG_OR_DEV
 #	define AE_SCHEDULER_PROFILING( /* code */... )	__VA_ARGS__
@@ -80,16 +82,16 @@ namespace AE::Threading
 	{
 	// interface
 	public:
-		virtual bool  Attach (uint uid)		__NE___ = 0;
-		virtual void  Detach ()				__NE___ = 0;
+		virtual bool  Attach (uint uid)					__NE___ = 0;
+		virtual void  Detach ()							__NE___ = 0;
 
-		ND_ virtual StringView  DbgName ()	C_NE___	{ return "thread"; }
-		ND_ virtual usize		DbgID ()	C_NE___ = 0;
+		ND_ virtual StringView  DbgName ()				C_NE___	{ return "thread"; }
+		ND_ virtual usize		DbgID ()				C_NE___ = 0;
 
 	// helper functions (try to not use it)
 	protected:
-		static void  _RunTask (AsyncTask)	__NE___;
-		static void  _OnTaskFinish (const AsyncTask &) __NE___;
+		//static void  _RunTask (AsyncTask)				__NE___;
+		//static void  _OnTaskFinish (const AsyncTask &)__NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -102,13 +104,35 @@ namespace AE::Threading
 	{
 	// interface
 	public:
-		virtual ~ITaskDependencyManager () {}
-
+		// returns 'true' if added dependency to task.
+		// returns 'false' if dependency is cancelled or on error.
 		ND_ virtual bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE___ = 0;
-
 
 		// helper functions
 		static void  _SetDependencyCompletionStatus (const AsyncTask &task, uint depIndex, bool cancel = false) __NE___;
+	};
+//-----------------------------------------------------------------------------
+
+
+
+	enum class EIOServiceType : uint
+	{
+		File,
+	};
+
+
+	//
+	// Input/Output Service
+	//
+	class IOService : public ITaskDependencyManager
+	{
+	// interface
+	public:
+		// returns number of processed events.
+		//		thread-safe: yes
+		ND_ virtual usize  ProcessEvents () __NE___ = 0;
+
+		ND_ virtual EIOServiceType  GetIOServiceType () C_NE___ = 0;
 	};
 //-----------------------------------------------------------------------------
 	
@@ -139,11 +163,11 @@ namespace AE::Threading
 			}		pack;
 			usize	bits;
 
-			PackedBits () __NE___ : bits{0} {}
+			PackedBits ()									__NE___ : bits{0} {}
 
-			ND_ bool		IsLocked ()					C_NE___	{ return pack.locked == 1; }
-			ND_ PackedBits	Lock ()						C_NE___	{ PackedBits tmp{*this};  tmp.pack.locked = 1;  return tmp; }
-			ND_ bool		operator == (PackedBits rhs)C_NE___	{ return bits == rhs.bits; }
+			ND_ bool		IsLocked ()						C_NE___	{ return pack.locked == 1; }
+			ND_ PackedBits	Lock ()							C_NE___	{ PackedBits tmp{*this};  tmp.pack.locked = 1;  return tmp; }
+			ND_ bool		operator == (PackedBits rhs)	C_NE___	{ return bits == rhs.bits; }
 		};
 
 		struct alignas(AE_CACHE_LINE) Chunk
@@ -178,20 +202,21 @@ namespace AE::Threading
 
 	// methods
 	public:
-		LfTaskQueue ()												__NE___	{}
+		LfTaskQueue (POTValue seedMask, StringView name)			__Th___;
 		~LfTaskQueue ()												__NE___	{ Release(); }
 
 		ND_ AsyncTask	Pull (usize seed)							__NE___;
 			bool		Process (usize seed)						__NE___;
 			void		Add (AsyncTask task, usize seed)			__NE___;
 
-			void		Setup (POTValue seedMask, StringView name)	__NE___;
 			void		WriteProfilerStat ()						__NE___;
 
 		ND_ Bytes		MaxAllocationSize ()						C_NE___;
 		ND_ Bytes		AllocatedSize ()							C_NE___;
 
 			void		Release ()									__NE___;
+
+			AE_GLOBALLY_ALLOC
 
 	private:
 		ND_ static bool  _RemoveTask (TaskArr_t& arr, INOUT usize& pos, INOUT usize& count, OUT AsyncTask& task) __NE___;
@@ -205,20 +230,28 @@ namespace AE::Threading
 	//
 	class TaskScheduler final : public Noncopyable
 	{
-		friend class IAsyncTask;	// calls '_AddDependencies()'
+		friend class IAsyncTask;	// calls '_AddDependencies()', '_GetChunkPool()'
 
 	// types
+	public:
+		struct Config
+		{
+			uint	maxWorkerQueues	= 1;
+			uint	maxIOThreads	= 0;
+		};
+
 	private:
 		using TimePoint_t		= std::chrono::high_resolution_clock::time_point;
 		using EStatus			= IAsyncTask::EStatus;
-		using EThreadMask		= EnumBitSet< EThread >;
 		using OutputChunk_t		= IAsyncTask::OutputChunk;
 		using WaitBits_t		= IAsyncTask::WaitBits_t;
 
-		using TaskQueues_t		= StaticArray< LfTaskQueue, uint(EThread::_Count) >;
+		using TaskQueues_t		= StaticArray< Unique<LfTaskQueue>, uint(EThread::_Count) >;
 		using ThreadPtr			= RC< IThread >;
 		
 		using TaskDepsMngr_t	= FlatHashMap< std::type_index, TaskDependencyManagerPtr >;
+
+		using OutputChunkPool_t	= LfIndexedPool2< IAsyncTask::OutputChunk, uint, 64*64, 64 >;
 
 		static constexpr uint			_WaitAll_SpinCount	= 20'000;
 		static constexpr microseconds	_WaitAll_SleepTime	{100};
@@ -238,14 +271,20 @@ namespace AE::Threading
 	private:
 		TaskQueues_t		_queues;
 
+		AsyncTask			_canceledTask;			// readonly
+		
+		OutputChunkPool_t	_chunkPool;
+
 		SharedMutex			_taskDepsMngrsGuard;	// TODO: init on start, remove lock
 		TaskDepsMngr_t		_taskDepsMngrs;
 
 		Mutex				_threadGuard;
 		Array<ThreadPtr>	_threads;
 
-		AsyncTask			_canceledTask;			// readonly
-		
+		RC<IOService>		_fileIOService;
+
+		Config				_config;				// readonly
+
 		PROFILE_ONLY(
 			AtomicRC<ITaskProfiler>	_profiler;
 		)
@@ -256,28 +295,27 @@ namespace AE::Threading
 		static void  CreateInstance ();
 		static void  DestroyInstance ();
 
-		bool  Setup (usize maxWorkerThreads)					__NE___;
-		void  SetProfiler (RC<ITaskProfiler> profiler)			__NE___;
-		void  Release ()										__NE___;
+		ND_ bool  Setup (const Config &cfg)							__NE___;
+			void  SetProfiler (RC<ITaskProfiler> profiler)			__NE___;
+			void  Release ()										__NE___;
 
 		template <typename T>
-		bool  RegisterDependency (TaskDependencyManagerPtr mngr)__NE___;
+		bool  RegisterDependency (TaskDependencyManagerPtr mngr)	__NE___;
 
 		template <typename T>
-		bool  UnregisterDependency ()							__NE___;
+		bool  UnregisterDependency ()								__NE___;
 
 
-	// thread api
-		bool  AddThread (ThreadPtr thread)						__NE___;
+	// thread api //
+		bool  AddThread (ThreadPtr thread)							__NE___;
 
-		bool  ProcessTask (EThread type, uint seed)				__NE___;
+		bool  ProcessTask (EThread type, uint seed)					__NE___;
+		bool  ProcessTasks (const EThreadArray &threads, uint seed)	__NE___;
 
-		ND_ AsyncTask  PullTask (EThread type, uint seed)		__NE___;
-
-		ND_ AsyncTask  GetCanceledTask ()						C_NE___	{ return _canceledTask; }
+		ND_ AsyncTask  PullTask (EThread type, uint seed)			__NE___;
 
 
-	// task api
+	// task api //
 		template <typename TaskType, typename ...Ctor, typename ...Deps>
 		AsyncTask  Run (Tuple<Ctor...>&& ctor = Default, const Tuple<Deps...> &deps = Default)	__NE___;
 
@@ -292,33 +330,42 @@ namespace AE::Threading
 		template <typename ...Deps>
 		bool  Run (AsyncTask task, const Tuple<Deps...> &deps = Default)						__NE___;
 
-		ND_ bool  Wait (ArrayView<AsyncTask> tasks, EThreadMask mask = Default, nanoseconds timeout = GetDefaultTimeout()) __NE___;
-
 		bool  Cancel (const AsyncTask &task)					__NE___;
 
 		bool  Enqueue (AsyncTask task)							__NE___;
 
 
-		ND_ static constexpr nanoseconds  GetDefaultTimeout ()	__NE___;
+	// utils //
+		ND_ bool  Wait (ArrayView<AsyncTask> tasks, const EThreadArray &threads = Default, nanoseconds timeout = GetDefaultTimeout())	__NE___;
+
+
+	// other //
+		ND_ Ptr<IOService>		GetFileIOService ()				C_NE___ { return _fileIOService.get(); }
+
+		ND_ AsyncTask			GetCanceledTask ()				C_NE___	{ return _canceledTask; }
 		
-		friend TaskScheduler&  AE::Scheduler ()					__NE___;
+		friend TaskScheduler&	AE::Scheduler ()				__NE___;
+
+		ND_ static constexpr nanoseconds  GetDefaultTimeout ()	__NE___;
 
 
 	private:
 		TaskScheduler ();
-		~TaskScheduler () __NE___;
+		~TaskScheduler ()										__NE___;
 		
-		ND_ static TaskScheduler*  _Instance () __NE___;
+		ND_ static TaskScheduler*  _Instance ()					__NE___;
 
-		ND_ bool  _InsertTask (AsyncTask task, uint bitIndex);
+		ND_ bool  _InsertTask (AsyncTask task, uint bitIndex)	__NE___;
+
+		ND_ OutputChunkPool_t&  _GetChunkPool ()				__NE___	{ return _chunkPool; }
 
 		template <usize I, typename ...Args>
-		constexpr bool  _AddDependencies (const AsyncTask &task, const Tuple<Args...> &args, INOUT uint &bitIndex)		__NE___;
+		ND_ constexpr bool  _AddDependencies (const AsyncTask &task, const Tuple<Args...> &args, INOUT uint &bitIndex)		__NE___;
 
 		template <typename T>
-		bool  _AddCustomDependency (const AsyncTask &task, T &dep, INOUT uint &bitIndex);
+		ND_ bool  _AddCustomDependency (const AsyncTask &task, const T &dep, INOUT uint &bitIndex)							__NE___;
 
-		bool  _AddTaskDependencies (const AsyncTask &task, const AsyncTask &deps, Bool isStrong, INOUT uint &bitIndex)	__NE___;
+		ND_ bool  _AddTaskDependencies (const AsyncTask &task, const AsyncTask &deps, Bool isStrong, INOUT uint &bitIndex)	__NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -332,7 +379,7 @@ namespace AE::Threading
 	constexpr nanoseconds  TaskScheduler::GetDefaultTimeout () __NE___
 	{
 		#ifdef AE_DBG_OR_DEV
-			return nanoseconds{60*60'000'000'000ll};	// 60 min - for debugging
+			return nanoseconds{60 * 60'000'000'000ll};	// 60 min - for debugging
 		#else
 			return nanoseconds{30'000'000'000ll};		// 30 sec
 		#endif
@@ -435,7 +482,9 @@ namespace AE::Threading
 			task = MakeCoroutineTask( RVRef(handle) ),	// throw
 			GetCanceledTask()
 		)
-		return Run( task, deps );
+
+		CHECK_ERR( Run( task, deps ), GetCanceledTask() );
+		return task;
 	}
 	
 	template <typename T, typename ...Deps>
@@ -514,8 +563,9 @@ namespace AE::Threading
 =================================================
 */
 	template <typename T>
-	bool  TaskScheduler::_AddCustomDependency (const AsyncTask &task, T &dep, INOUT uint &bitIndex)
+	bool  TaskScheduler::_AddCustomDependency (const AsyncTask &task, const T &dep, INOUT uint &bitIndex) __NE___
 	{
+		STATIC_ASSERT( not IsConst<T> );
 		SHAREDLOCK( _taskDepsMngrsGuard );
 
 		auto	iter = _taskDepsMngrs.find( typeid(T) );

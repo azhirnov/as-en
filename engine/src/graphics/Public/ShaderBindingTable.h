@@ -2,13 +2,17 @@
 
 #pragma once
 
-#if 0
 #include "threading/Primitives/DataRaceCheck.h"
 #include "graphics/Public/ResourceManager.h"
 #include "graphics/Public/CommandBufferTypes.h"
 
 namespace AE::Graphics
 {
+	enum class RTMissIndex		: uint {};
+	enum class RTRayIndex		: uint {};
+	enum class RTCallableIndex	: uint {};
+
+
 
 	//
 	// Shader Binding Table Manager
@@ -79,37 +83,50 @@ namespace AE::Graphics
 	class ShaderBindingTable
 	{
 	// variables
+	#ifdef AE_ENABLE_VULKAN
 	public:
-		#ifdef AE_ENABLE_VULKAN
-			VkStridedDeviceAddressRegionKHR		raygen;
-			VkStridedDeviceAddressRegionKHR		miss;
-			VkStridedDeviceAddressRegionKHR		hit;
-			VkStridedDeviceAddressRegionKHR		callable;
-
-		#elif defined(AE_ENABLE_METAL)
-
-		#endif
-
+		VkStridedDeviceAddressRegionKHR		raygen;
+		VkStridedDeviceAddressRegionKHR		miss;
+		VkStridedDeviceAddressRegionKHR		hit;
+		VkStridedDeviceAddressRegionKHR		callable;
 	private:
 		BufferID							_bufferId;
-		ShaderBindingTableManager const&	_mngr;
+
+	#elif defined(AE_ENABLE_METAL)
+	public:
+		MetalIntersectionFnTable			intersectionTable;
+		MetalVisibleFnTable					visibleTable;
+
+	#endif
 
 
 	// methods
 	public:
-		explicit ShaderBindingTable (ShaderBindingTableManager &mngr);
-		~ShaderBindingTable ();
+		explicit ShaderBindingTable () {}
+		~ShaderBindingTable () {}
 
-		void  BindRayGen (const RayTracingGroupName &name);
-		void  BindMiss (const RayTracingGroupName &name, uint missIndex);
-		void  BindHitGroup (const RayTracingGroupName &name, const RTInstanceName &instance, const RTGeometryName &geometry, uint rayIdx);
-		void  BindHitGroup (const RayTracingGroupName &name, const RTInstanceName &instance, uint rayIdx);
-		void  BindCallable (const RayTracingGroupName &name, uint callableIdx);
+		bool  BindRayGen (const RayTracingGroupName &name);
+		bool  BindMiss (const RayTracingGroupName &name, RTMissIndex missIndex);
+		bool  BindHitGroup (const RayTracingGroupName &name, const RTInstanceName &instance, const RTGeometryName &geometry, RTRayIndex rayIdx);
+		bool  BindHitGroup (const RayTracingGroupName &name, const RTInstanceName &instance, RTRayIndex rayIdx);
+		bool  BindCallable (const RayTracingGroupName &name, RTCallableIndex callableIdx);
 
 		template <typename CopyCtx>
-		void  Upload (CopyCtx &ctx, EStagingHeapType heapType = EStagingHeapType::Static);
+		bool  Upload (CopyCtx &ctx, EStagingHeapType heapType = EStagingHeapType::Static);
 	};
+
+	
+/*
+=================================================
+	Upload
+=================================================
+*/
+	template <typename CopyCtx>
+	bool  ShaderBindingTable::Upload (CopyCtx &, EStagingHeapType)
+	{
+	//	ctx.UploadBuffer( _bufferId, heapType );
+		return false;
+	}
 
 
 } // AE::Graphics
-#endif

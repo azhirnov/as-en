@@ -24,10 +24,8 @@ namespace
 
 	static void  LfTaskQueue_Test1 ()
 	{
-		LfTaskQueue		q;
+		LfTaskQueue		q{ Default, "" };
 		const uint		count = 1'000;
-
-		q.Setup( Default, "" );
 
 		for (uint i = 0; i < count; ++i) {
 			q.Add( MakeRC<DummyTask>( i ), 0 );
@@ -39,8 +37,7 @@ namespace
 
 	static void  LfTaskQueue_Test2 ()
 	{
-		LfTaskQueue		q;
-		q.Setup( Default, "" );
+		LfTaskQueue		q{ Default, "" };
 
 		const uint	thread_count = Max( 2u, ThreadUtils::MaxThreadCount() );
 		

@@ -50,23 +50,23 @@ namespace AE::Base
 		template <usize S> NtBasicStringView (const TFixedString<T,S> &str)	 __NE___;
 		~NtBasicStringView ()								__NE___;
 
-		Self& operator = (Self &&) = delete;
-		Self& operator = (const Self &) = delete;
-		Self& operator = (BasicStringView<T>) = delete;
+		Self& operator = (Self &&)							= delete;
+		Self& operator = (const Self &)						= delete;
+		Self& operator = (BasicStringView<T>)				= delete;
 		template <typename A> Self& operator = (const BasicString<T,A> &) = delete;
-		Self& operator = (const T*) = delete;
+		Self& operator = (const T*)							= delete;
 
-		explicit operator BasicStringView<T> ()	C_NE___	{ return BasicStringView<T>{ _data, _length }; }
-		explicit operator BasicString<T> ()		C_NE___	{ return BasicString<T>{ _data, _length }; }
+		explicit operator BasicStringView<T> ()				C_NE___	{ return BasicStringView<T>{ _data, _length }; }
+		explicit operator BasicString<T> ()					C_NE___	{ return BasicString<T>{ _data, _length }; }
 
-		ND_ T const*	c_str ()				C_NE___	{ return _data; }
-		ND_ usize		size ()					C_NE___	{ return _length; }
-		ND_ usize		length ()				C_NE___	{ return _length; }
-		ND_ bool		empty ()				C_NE___	{ return _length == 0; }
+		ND_ T const*	c_str ()							C_NE___	{ return _data; }
+		ND_ usize		size ()								C_NE___	{ return _length; }
+		ND_ usize		length ()							C_NE___	{ return _length; }
+		ND_ bool		empty ()							C_NE___	{ return _length == 0; }
 
 	private:
-		bool  _Validate ()						__NE___;
-		bool  _IsStatic ()						C_NE___	{ return _data == &_buffer[0]; }
+		bool  _Validate ()									__NE___;
+		bool  _IsStatic ()									C_NE___	{ return _data == &_buffer[0]; }
 	};
 
 

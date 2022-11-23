@@ -34,13 +34,13 @@ namespace AE::Math
 
 
 	// methods
-		CameraTempl () {}
+		CameraTempl ()																		__NE___	{}
 		
-		ND_ Mat4_t  ToModelViewProjMatrix ()	const	{ return projection * ToModelViewMatrix(); }
-		ND_ Mat4_t	ToViewProjMatrix ()			const	{ return projection * transform.ToRotationMatrix(); }
-		ND_ Mat4_t	ToViewMatrix ()				const	{ return transform.ToRotationMatrix(); }
+		ND_ Mat4_t  ToModelViewProjMatrix ()												C_NE___	{ return projection * ToModelViewMatrix(); }
+		ND_ Mat4_t	ToViewProjMatrix ()														C_NE___	{ return projection * transform.ToRotationMatrix(); }
+		ND_ Mat4_t	ToViewMatrix ()															C_NE___	{ return transform.ToRotationMatrix(); }
 		
-		ND_ Mat4_t  ToModelViewMatrix ()		const
+		ND_ Mat4_t  ToModelViewMatrix ()													C_NE___
 		{
 			Mat4_t	orient_mat		{ transform.orientation };
 			Mat4_t	translate_mat	= Mat4_t::Translate( transform.position );
@@ -50,31 +50,31 @@ namespace AE::Math
 
 
 		// for transformation
-		Self&	Move (const Vec3_t &delta)
+		Self&	Move (const Vec3_t &delta)													__NE___
 		{
 			transform.Move( delta );
 			return *this;
 		}
 
-		Self&  SetPosition (const Vec3_t &value)
+		Self&  SetPosition (const Vec3_t &value)											__NE___
 		{
 			transform.position = value;
 			return *this;
 		}
 
-		Self&	Rotate (const Quat_t &delta)
+		Self&	Rotate (const Quat_t &delta)												__NE___
 		{
 			transform.Rotate( delta );
 			return *this;
 		}
 
-		Self&  Rotate (Radians_t angle, const Vec3_t &normal)
+		Self&  Rotate (Radians_t angle, const Vec3_t &normal)								__NE___
 		{
 			transform.Rotate( Quat_t::Identity().Rotate( angle, normal ));
 			return *this;
 		}
 
-		Self&  SetOrientation (const Quat_t &value)
+		Self&  SetOrientation (const Quat_t &value)											__NE___
 		{
 			transform.orientation = value;
 			return *this;
@@ -82,31 +82,31 @@ namespace AE::Math
 
 
 		// for projection
-		Self&  SetOrtho (const Rect_t &viewport, const Vec2_t &range)
+		Self&  SetOrtho (const Rect_t &viewport, const Vec2_t &range)						__NE___
 		{
 			projection = Mat4_t::Ortho( viewport, range );
 			return *this;
 		}
 
-		Self&  SetPerspective (Radians_t fovY, Value_t aspect, Value_t zNear)
+		Self&  SetPerspective (Radians_t fovY, Value_t aspect, Value_t zNear)				__NE___
 		{
 			projection = Mat4_t::InfinitePerspective( fovY, aspect, zNear );
 			return *this;
 		}
 
-		Self&  SetPerspective (Radians_t fovY, Value_t aspect, const Vec2_t &range)
+		Self&  SetPerspective (Radians_t fovY, Value_t aspect, const Vec2_t &range)			__NE___
 		{
 			projection = Mat4_t::Perspective( fovY, aspect, range );
 			return *this;
 		}
 
-		Self&  SetPerspective (Radians_t fovY, const Vec2_t &viewport, const Vec2_t &range)
+		Self&  SetPerspective (Radians_t fovY, const Vec2_t &viewport, const Vec2_t &range)	__NE___
 		{
 			projection = Mat4_t::Perspective( fovY, viewport, range );
 			return *this;
 		}
 
-		Self&  SetFrustum (const Rect_t &viewport, const Vec2_t &range)
+		Self&  SetFrustum (const Rect_t &viewport, const Vec2_t &range)						__NE___
 		{
 			projection = Mat4_t::Frustum( viewport, range );
 			return *this;

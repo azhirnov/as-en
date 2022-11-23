@@ -55,63 +55,63 @@ namespace AE::Base
 
 	// methods
 	public:
-		FixedSet ()												__NE___;
-		FixedSet (Self &&)										__NE___;
-		FixedSet (const Self &)									noexcept(IsNothrowCopyCtor<Value>);
+		FixedSet ()													__NE___;
+		FixedSet (Self &&)											__NE___;
+		FixedSet (const Self &)										noexcept(IsNothrowCopyCtor<Value>);
 
-		~FixedSet ()											__NE___	{ clear(); }
+		~FixedSet ()												__NE___	{ clear(); }
 		
-		ND_ usize		size ()									C_NE___	{ return _count; }
-		ND_ bool		empty ()								C_NE___	{ return _count == 0; }
+		ND_ usize		size ()										C_NE___	{ return _count; }
+		ND_ bool		empty ()									C_NE___	{ return _count == 0; }
 
-		ND_ iterator	begin ()								C_NE___	{ return &_array[0]; }
-		ND_ iterator	end ()									C_NE___	{ return begin() + _count; }
+		ND_ iterator	begin ()									C_NE___	{ return &_array[0]; }
+		ND_ iterator	end ()										C_NE___	{ return begin() + _count; }
 		
-		ND_ static constexpr usize	capacity ()					__NE___	{ return ArraySize; }
+		ND_ static constexpr usize	capacity ()						__NE___	{ return ArraySize; }
 
-			Self&	operator = (Self &&)						__NE___;
-			Self&	operator = (const Self &)					noexcept(IsNothrowCopyCtor<Value>);
+			Self&	operator = (Self &&)							__NE___;
+			Self&	operator = (const Self &)						noexcept(IsNothrowCopyCtor<Value>);
 
-		ND_ bool	operator == (const Self &rhs)				C_NE___;
-		ND_ bool	operator != (const Self &rhs)				C_NE___	{ return not (*this == rhs); }
+		ND_ bool	operator == (const Self &rhs)					C_NE___;
+		ND_ bool	operator != (const Self &rhs)					C_NE___	{ return not (*this == rhs); }
 
 			template <typename ValueType>
-			Pair<iterator,bool>  emplace (ValueType&& value)	noexcept(IsNothrowCopyCtor<Value>);
+			Pair<iterator,bool>  emplace (ValueType&& value)		noexcept(IsNothrowCopyCtor<Value>);
 
-			Pair<iterator,bool>  insert (const Value &value)	noexcept(IsNothrowCopyCtor<Value>)	{ return emplace( value ); }
-			Pair<iterator,bool>  insert (Value&& value)			__NE___								{ return emplace( RVRef(value) ); }
+			Pair<iterator,bool>  insert (const Value &value)		noexcept(IsNothrowCopyCtor<Value>)	{ return emplace( value ); }
+			Pair<iterator,bool>  insert (Value&& value)				__NE___								{ return emplace( RVRef(value) ); }
 			
 			template <typename ValueType>
 			Pair<iterator,bool>  insert_or_assign (ValueType&& value) noexcept(IsNothrowCopyCtor<Value>);
 			
 			template <typename ValueType>
-			bool		try_insert (ValueType&& value)			noexcept(IsNothrowCopyCtor<Value>);
+			bool		try_insert (ValueType&& value)				noexcept(IsNothrowCopyCtor<Value>);
 			
 			template <typename KeyType>
-			bool		erase (const KeyType &key)				__NE___;
+			bool		erase (const KeyType &key)					__NE___;
 
 			template <typename KeyType>
-		ND_ iterator	find (const KeyType &key)				C_NE___;
+		ND_ iterator	find (const KeyType &key)					C_NE___;
 		
 			template <typename KeyType>
-		ND_ usize		count (const KeyType &key)				C_NE___	{ return contains( key ) ? 1 : 0; }
+		ND_ usize		count (const KeyType &key)					C_NE___	{ return contains( key ) ? 1 : 0; }
 		
 			template <typename KeyType>
-		ND_ bool		contains (const KeyType &key)			C_NE___;
+		ND_ bool		contains (const KeyType &key)				C_NE___;
 
-		ND_ HashVal		CalcHash ()								C_NE___;
+		ND_ HashVal		CalcHash ()									C_NE___;
 
-			void		clear ()								__NE___;
-			void		reserve (usize)							__NE___		{}
+			void		clear ()									__NE___;
+			void		reserve (usize)								__NE___	{}
 
 		// cache friendly access to unsorted data
 			
-		ND_ explicit operator ArrayView<Value> ()				C_NE___	{ return { &_array[0], size() }; }
+		ND_ explicit operator ArrayView<Value> ()					C_NE___	{ return { &_array[0], size() }; }
 
-		ND_ Value const&	operator [] (usize i)				C_NE___;
+		ND_ Value const&	operator [] (usize i)					C_NE___;
 
 	private:
-		ND_ forceinline bool _IsMemoryAliased (const Self* other) C_NE___
+		ND_ forceinline bool _IsMemoryAliased (const Self* other)	C_NE___
 		{
 			return IsIntersects( this, this+1, other, other+1 );
 		}

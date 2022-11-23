@@ -41,7 +41,7 @@ extern void UnitTest_NamedID ();
 extern void UnitTest_NtStringView ();
 extern void UnitTest_RingBuffer ();
 extern void UnitTest_StackAllocator ();
-extern void UnitTest_Stream ();
+extern void UnitTest_DataSource ();
 extern void UnitTest_StringParser ();
 extern void UnitTest_StringToID ();
 extern void UnitTest_StructView ();
@@ -66,6 +66,7 @@ int main ()
 	UnitTest_Cast();
 	UnitTest_Crypto();
 	UnitTest_Date();
+	UnitTest_DataSource();
 	UnitTest_EnumBitSet();
 	UnitTest_FileSystem();
 	UnitTest_FixedArray();
@@ -93,7 +94,6 @@ int main ()
 	UnitTest_NtStringView();
 	UnitTest_RingBuffer();
 	UnitTest_StackAllocator();
-	UnitTest_Stream();
 	UnitTest_StringParser();
 	UnitTest_StructView();
 	UnitTest_StringToID();

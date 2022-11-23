@@ -48,6 +48,7 @@ namespace AE::Graphics
 		ND_ BufferDesc const&	Description ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 		ND_ Bytes				Size ()					const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.size; }
 		ND_ bool				IsExclusiveSharing ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.queues == Default; }
+		ND_ bool				HasDeviceAddress ()		const	{ DRC_SHAREDLOCK( _drCheck );  return AllBits( _desc.usage, EBufferUsage::ShaderAddress ); }
 		
 		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 

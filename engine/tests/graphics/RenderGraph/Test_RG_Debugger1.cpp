@@ -114,7 +114,7 @@ namespace
 			auto	task1 = ctx.ReadbackImage( t.img, Default );
 			auto	task2 = t.debugger.ReadAll( ctx );
 
-			t.result = AsyncTask{MakePromiseFrom( task1, task2 )
+			t.result = AsyncTask{ MakePromiseFrom( task1, task2 )
 				.Then( [p = &t] (const Tuple<ImageMemView, Array<String>> &view_and_str)
 				{
 					bool	ok = Db1_CheckImageData( view_and_str.Get<ImageMemView>(), 8 );

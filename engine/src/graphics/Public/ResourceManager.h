@@ -25,10 +25,10 @@
 #include "graphics/Public/FrameUID.h"
 #include "graphics/Public/GraphicsCreateInfo.h"
 
-#ifdef AE_ENABLE_VULKAN
+#if defined(AE_ENABLE_VULKAN)
 # include "graphics/Public/VulkanTypes.h"
-#endif
-#ifdef AE_ENABLE_METAL
+
+#elif defined(AE_ENABLE_METAL)
 # include "graphics/Public/MetalTypes.h"
 #endif
 

@@ -23,14 +23,14 @@ namespace AE::Graphics
 		Ptr<const MRenderPass>	renderPass;
 		FrameUID				frameId;
 
-		MPrimaryCmdBufState () {}
+		MPrimaryCmdBufState ()	__NE___	{}
 
-		ND_ bool  IsValid () const
+		ND_ bool  IsValid ()	C_NE___
 		{
 			return (renderPass != null) & frameId.IsValid();
 		}
 
-		ND_ bool  operator == (const MPrimaryCmdBufState &rhs) const
+		ND_ bool  operator == (const MPrimaryCmdBufState &rhs) C_NE___
 		{
 			return	(renderPass	== rhs.renderPass)	&
 					(frameId	== rhs.frameId);
@@ -53,28 +53,28 @@ namespace AE::Graphics
 
 	// methods
 	protected:
-		MCommandBuffer (MetalCommandBufferRC cmdbuf, EQueueType queueType);
-
-	public:
-		MCommandBuffer () {}
-		MCommandBuffer (MCommandBuffer &&);
-		~MCommandBuffer ();
+		MCommandBuffer (MetalCommandBufferRC cmdbuf, EQueueType queueType) __NE___;
 		
-		MCommandBuffer&  operator = (MCommandBuffer && rhs);
-		
-		MCommandBuffer (const MCommandBuffer &) = delete;
+		MCommandBuffer (const MCommandBuffer &)				 = delete;
 		MCommandBuffer&  operator = (const MCommandBuffer &) = delete;
 
-		ND_ MetalCommandBufferRC	Release ();
-		ND_ EQueueType				GetQueueType ()	const	{ return _queueType; }
-		ND_ MetalCommandBuffer		Get ()			const	{ ASSERT(IsValid());  return _cmdbuf; }
-		ND_ bool					IsValid ()		const	{ return bool(_cmdbuf); }
-		ND_ MQueuePtr				GetQueue ()		const;
+	public:
+		MCommandBuffer ()									__NE___	{}
+		MCommandBuffer (MCommandBuffer &&)					__NE___;
+		~MCommandBuffer ()									__NE___;
+		
+		MCommandBuffer&  operator = (MCommandBuffer && rhs)	__NE___;
 
-		void  PushDebugGroup (NtStringView text);
-		void  PopDebugGroup ();
+		ND_ MetalCommandBufferRC	Release ()				__NE___;
+		ND_ EQueueType				GetQueueType ()			C_NE___	{ return _queueType; }
+		ND_ MetalCommandBuffer		Get ()					C_NE___	{ ASSERT(IsValid());  return _cmdbuf; }
+		ND_ bool					IsValid ()				C_NE___	{ return bool(_cmdbuf); }
+		ND_ MQueuePtr				GetQueue ()				C_NE___;
 
-		ND_ static MCommandBuffer  CreateCommandBuffer (EQueueType queue);
+		void  PushDebugGroup (NtStringView text)			__NE___;
+		void  PopDebugGroup ()								__NE___;
+
+		ND_ static MCommandBuffer  CreateCommandBuffer (EQueueType queue) __NE___;
 	};
 
 

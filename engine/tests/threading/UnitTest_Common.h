@@ -9,13 +9,29 @@
 
 using namespace AE::Threading;
 
+enum class WorkerQueueCount	: uint {};
+enum class IOThreadCount	: uint {};
+
 
 struct LocalTaskScheduler
 {
-	LocalTaskScheduler (usize maxWorkerThreads)
+	explicit LocalTaskScheduler (WorkerQueueCount count)
 	{
+		TaskScheduler::Config	cfg;
+		cfg.maxWorkerQueues = uint(count);
+		
 		TaskScheduler::CreateInstance();
-		Scheduler().Setup( maxWorkerThreads );
+		TEST( Scheduler().Setup( cfg ));
+	}
+	
+	explicit LocalTaskScheduler (IOThreadCount count)
+	{
+		TaskScheduler::Config	cfg;
+		cfg.maxWorkerQueues	= 1;
+		cfg.maxIOThreads	= uint(count);
+
+		TaskScheduler::CreateInstance();
+		TEST( Scheduler().Setup( cfg ));
 	}
 
 	~LocalTaskScheduler ()

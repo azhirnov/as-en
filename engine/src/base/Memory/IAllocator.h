@@ -21,6 +21,9 @@ namespace AE::Base
 		template <typename T>	using StdAlloc_t = StdAllocatorRef< T, IAllocator >;
 
 			virtual ~IAllocator ()													__NE___	{}
+			
+		template <typename T>
+		ND_ T*			   Allocate (usize count = 1)								__NE___	{ return Cast<T>( Allocate( SizeAndAlignOf<T> * count )); }
 
 		ND_ virtual void*  Allocate (Bytes size)									__NE___ = 0;
 			virtual void   Deallocate (void *ptr, Bytes size)						__NE___ = 0;
@@ -44,7 +47,7 @@ namespace AE::Base
 		AllocatorImpl (AllocatorImpl && other)							__NE___ : _alloc{ RVRef(other._alloc) } {}
 
 		template <typename ...Args>
-		explicit AllocatorImpl (Args&& ... args)						__TH___ : _alloc{ FwdArg<Args>(args)... } {}
+		explicit AllocatorImpl (Args&& ... args)						__Th___ : _alloc{ FwdArg<Args>(args)... } {}
 
 		~AllocatorImpl ()												__NE_OV {}
 
@@ -70,7 +73,7 @@ namespace AE::Base
 		explicit AllocatorImpl (const AllocatorRef<T> &ref)				__NE___ : _alloc{ ref.GetAllocatorRef() } {}
 		
 		template <typename ...Args>
-		explicit AllocatorImpl (Args&& ... args)						__TH___ : _alloc{ FwdArg<Args>(args)... } {}
+		explicit AllocatorImpl (Args&& ... args)						__Th___ : _alloc{ FwdArg<Args>(args)... } {}
 
 		~AllocatorImpl ()												__NE_OV {}
 
@@ -89,20 +92,18 @@ namespace AE::Base
 	private:
 		T	_alloc;
 
-		static constexpr Bytes	_BaseAlign	{__STDCPP_DEFAULT_NEW_ALIGNMENT__};
-
 	// methods
 	public:
 		AllocatorImpl2 ()												__NE___ {}
 		AllocatorImpl2 (AllocatorImpl2 && other)						__NE___ : _alloc{ RVRef(other._alloc) } {}
 		
 		template <typename ...Args>
-		explicit AllocatorImpl2 (Args&& ... args)						__TH___ : _alloc{ FwdArg<Args>(args)... } {}
+		explicit AllocatorImpl2 (Args&& ... args)						__Th___ : _alloc{ FwdArg<Args>(args)... } {}
 
 		~AllocatorImpl2 ()												__NE_OV {}
 
-		void*  Allocate (Bytes size)									__NE_OV	{ return _alloc.Allocate( SizeAndAlign{ size, _BaseAlign }); }
-		void   Deallocate (void *ptr, Bytes size)						__NE_OV	{ return _alloc.Deallocate( ptr, SizeAndAlign{ size, _BaseAlign }); }
+		void*  Allocate (Bytes size)									__NE_OV	{ return _alloc.Allocate( SizeAndAlign{ size, DefaultAllocatorAlign }); }
+		void   Deallocate (void *ptr, Bytes size)						__NE_OV	{ return _alloc.Deallocate( ptr, SizeAndAlign{ size, DefaultAllocatorAlign }); }
 
 		void*  Allocate (const SizeAndAlign sizeAndAlign)				__NE_OV	{ return _alloc.Allocate( sizeAndAlign ); }
 		void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)	__NE_OV	{ return _alloc.Deallocate( ptr, sizeAndAlign ); }
@@ -115,8 +116,6 @@ namespace AE::Base
 	// variables
 	private:
 		T	_alloc;
-		
-		static constexpr Bytes	_BaseAlign	{__STDCPP_DEFAULT_NEW_ALIGNMENT__};
 
 	// methods
 	public:
@@ -125,12 +124,12 @@ namespace AE::Base
 		explicit AllocatorImpl2 (const AllocatorRef<T> &ref)			__NE___ : _alloc{ ref.GetAllocatorRef() } {}
 		
 		template <typename ...Args>
-		explicit AllocatorImpl2 (Args&& ... args)						__TH___ : _alloc{ FwdArg<Args>(args)... } {}
+		explicit AllocatorImpl2 (Args&& ... args)						__Th___ : _alloc{ FwdArg<Args>(args)... } {}
 
 		~AllocatorImpl2 ()												__NE_OV {}
 		
-		void*  Allocate (Bytes size)									__NE_OV	{ return _alloc.Allocate( SizeAndAlign{ size, _BaseAlign }); }
-		void   Deallocate (void *ptr, Bytes size)						__NE_OV	{ return _alloc.Deallocate( ptr, SizeAndAlign{ size, _BaseAlign }); }
+		void*  Allocate (Bytes size)									__NE_OV	{ return _alloc.Allocate( SizeAndAlign{ size, DefaultAllocatorAlign }); }
+		void   Deallocate (void *ptr, Bytes size)						__NE_OV	{ return _alloc.Deallocate( ptr, SizeAndAlign{ size, DefaultAllocatorAlign }); }
 
 		void*  Allocate (const SizeAndAlign sizeAndAlign)				__NE_OV	{ return _alloc.Allocate( sizeAndAlign ); }
 		void   Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)	__NE_OV	{ return _alloc.Deallocate( ptr, sizeAndAlign ); }

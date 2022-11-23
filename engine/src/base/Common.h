@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/StdInclude.h"
+#include "base/Defines/StdInclude.h"
 #include "base/Defines/Undef.h"
 
 namespace AE
@@ -128,7 +128,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename ...Types>
-	ND_ forceinline SharedPtr<T>  MakeShared (Types&&... args)  __TH___
+	ND_ forceinline SharedPtr<T>  MakeShared (Types&&... args)  __Th___
 	{
 		return std::make_shared<T>( FwdArg<Types>( args )... );
 	}
@@ -139,7 +139,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, typename ...Types>
-	ND_ forceinline Unique<T>  MakeUnique (Types&&... args)  __TH___
+	ND_ forceinline Unique<T>  MakeUnique (Types&&... args)  __Th___
 	{
 		return std::make_unique<T>( FwdArg<Types>( args )... );
 	}
@@ -159,7 +159,6 @@ namespace AE::Base
 
 namespace AE
 {
-#	if AE_NO_EXCEPTIONS == 0
 	class Exception final
 	{
 	// types
@@ -173,6 +172,5 @@ namespace AE
 
 		ND_ const char*  what ()					C_NE___ { return _what; }
 	};
-#	endif
 
 } // AE

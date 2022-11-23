@@ -3,7 +3,7 @@
 #pragma once
 
 // must be outside 'AE_PLATFORM_WINDOWS' scope!
-#include "base/StdInclude.h"
+#include "base/Defines/StdInclude.h"
 
 #ifdef AE_PLATFORM_WINDOWS
 

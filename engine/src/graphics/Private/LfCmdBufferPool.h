@@ -219,7 +219,7 @@ namespace AE::Graphics
 		_ready.store( 0 );
 		_cmdTypes.store( 0 );
 
-		ThreadFence( EMemoryOrder::Release );
+		MemoryBarrier( EMemoryOrder::Release );
 	}
 	
 /*
@@ -250,7 +250,7 @@ namespace AE::Graphics
 		cmdbufCount = 0;
 
 		DRC_EXLOCK( _drCheck );
-		ThreadFence( EMemoryOrder::Acquire );
+		MemoryBarrier( EMemoryOrder::Acquire );
 
 		ASSERT( _cmdTypes.load() == 0 );	// software command buffers is not supported here
 		ASSERT( IsReady() );

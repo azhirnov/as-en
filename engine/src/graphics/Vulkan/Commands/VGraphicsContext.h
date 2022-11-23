@@ -103,10 +103,10 @@ namespace AE::Graphics::_hidden_
 		
 	// methods
 	public:
-		explicit _VGraphicsContextImpl (const RenderTask &task) : RawCtx{ task } {}
+		explicit _VGraphicsContextImpl (const RenderTask &task);
 		
 		template <typename RawCmdBufType>
-		_VGraphicsContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
+		_VGraphicsContextImpl (const RenderTask &task, RawCmdBufType cmdbuf);
 
 		_VGraphicsContextImpl () = delete;
 		_VGraphicsContextImpl (const _VGraphicsContextImpl &) = delete;
@@ -129,10 +129,6 @@ namespace AE::Graphics::_hidden_
 			void	EndMtRenderPass ();
 			void	EndMtRenderPass (const RenderPassDesc &desc);
 			void	ExecuteSecondary (VDrawCommandBatch &batch);	// TODO: not supported in Metal
-		
-		void  DebugMarker (NtStringView text, RGBA8u color)						override	{ RawCtx::_DebugMarker( text, color ); }
-		void  PushDebugGroup (NtStringView text, RGBA8u color)					override	{ RawCtx::_PushDebugGroup( text, color ); }
-		void  PopDebugGroup ()													override	{ RawCtx::_PopDebugGroup(); }
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -204,6 +200,25 @@ namespace AE::Graphics::_hidden_
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+	constructor
+=================================================
+*/
+	template <typename C>
+	_VGraphicsContextImpl<C>::_VGraphicsContextImpl (const RenderTask &task) : RawCtx{ task }
+	{
+		CHECK_THROW( AnyBits( EQueueMask::Graphics, task.GetQueueMask() ));
+	}
+		
+	template <typename C>
+	template <typename RawCmdBufType>
+	_VGraphicsContextImpl<C>::_VGraphicsContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+		RawCtx{ task, RVRef(cmdbuf) }
+	{
+		CHECK_THROW( AnyBits( EQueueMask::Graphics, task.GetQueueMask() ));
+	}
 
 /*
 =================================================

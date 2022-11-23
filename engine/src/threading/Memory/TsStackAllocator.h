@@ -13,7 +13,7 @@ namespace AE::Base
 	//
 	
 	template <typename AllocatorType, uint MaxBlocks>
-	struct StackAllocator< AllocatorType, MaxBlocks, true > final
+	class StackAllocator< AllocatorType, MaxBlocks, true > final : public MovableOnly
 	{
 	// types
 	private:
@@ -34,23 +34,19 @@ namespace AE::Base
 
 	// methods
 	public:
-		StackAllocator () __NE___ {}
+		StackAllocator ()										__NE___ {}
+		explicit StackAllocator (const Allocator_t &alloc)		__NE___ : _base{ alloc } {}
+
+		~StackAllocator ()										__NE___	{ Release(); }
 		
-		explicit StackAllocator (const Allocator_t &alloc) __NE___ : _base{ alloc }
-		{}
-		
-		StackAllocator (Self &&other) __NE___
+
+		StackAllocator (Self &&other)							__NE___
 		{
 			SAFE_EXLOCK( _guard, other._guard );
 			_base = RVRef(other._base);
 		}
 
-		StackAllocator (const Self &) = delete;
-
-		Self&  operator = (const Self &) = delete;
-
-
-		Self&  operator = (Self &&rhs) __NE___
+		Self&  operator = (Self &&rhs)							__NE___
 		{
 			SAFE_EXLOCK( _guard, rhs._guard );
 			_base = RVRef(rhs._base);
@@ -58,20 +54,14 @@ namespace AE::Base
 		}
 
 
-		~StackAllocator () __NE___
-		{
-			Release();
-		}
-
-
-		void  SetBlockSize (Bytes size) __NE___
+		void  SetBlockSize (Bytes size)							__NE___
 		{
 			EXLOCK( _guard );
 			return _base.SetBlockSize( size );
 		}
 
 
-		ND_ AE_ALLOCATOR void*  Allocate (const SizeAndAlign sizeAndAlign) __NE___
+		ND_ void*  Allocate (const SizeAndAlign sizeAndAlign)	__NE___
 		{
 			EXLOCK( _guard );
 			return _base.Allocate( sizeAndAlign );
@@ -79,7 +69,7 @@ namespace AE::Base
 
 
 		template <typename T>
-		ND_ AE_ALLOCATOR T*  Allocate (usize count = 1) __NE___
+		ND_ T*  Allocate (usize count = 1)						__NE___
 		{
 			EXLOCK( _guard );
 			return _base.template Allocate<T>( count );
@@ -92,27 +82,27 @@ namespace AE::Base
 		}
 
 
-		ND_ Bookmark  Push () __NE___
+		ND_ Bookmark  Push ()									__NE___
 		{
 			EXLOCK( _guard );
 			return _base.Push();
 		}
 
 
-		void  Pop (Bookmark bm) __NE___
+		void  Pop (Bookmark bm)									__NE___
 		{
 			EXLOCK( _guard );
 			return _base.Pop( bm );
 		}
 
 
-		void  Discard () __NE___
+		void  Discard ()										__NE___
 		{
 			EXLOCK( _guard );
 			return _base.Discard();
 		}
 
-		void  Release () __NE___
+		void  Release ()										__NE___
 		{
 			EXLOCK( _guard );
 			return _base.Release();

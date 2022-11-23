@@ -22,7 +22,6 @@ namespace AE::Graphics::_hidden_
 	protected:
 		using _DrawCtx = MDirectDrawContext;
 
-
 	// methods
 	public:
 		ND_ MetalCommandBufferRC	EndCommandBuffer ();
@@ -48,7 +47,6 @@ namespace AE::Graphics::_hidden_
 	// types
 	protected:
 		using _DrawCtx = MIndirectDrawContext;
-
 
 	// methods
 	public:
@@ -114,15 +112,6 @@ namespace AE::Graphics::_hidden_
 			void	EndMtRenderPass (const RenderPassDesc &desc);
 			void	ExecuteSecondary (MDrawCommandBatch &batch);	// TODO: not supported in Metal
 
-
-		void  CommitBarriers ()									override final	{ RawCtx::_CommitBarriers(); }
-		
-		void  DebugMarker (NtStringView text, RGBA8u color)		override final	{ RawCtx::_DebugMarker( text, color ); }
-		void  PushDebugGroup (NtStringView text, RGBA8u color)	override final	{ RawCtx::_PushDebugGroup( text, color ); }
-		void  PopDebugGroup ()									override final	{ RawCtx::_PopDebugGroup(); }
-
-		ND_ AccumBar  AccumBarriers ()											{ return AccumBar{ *this }; }
-
 		MBARRIERMNGR_INHERIT_BARRIERS
 	};
 
@@ -170,7 +159,7 @@ namespace AE::Graphics::_hidden_
 		_MGraphicsContextImpl<C>::NextSubpass (DrawCtx& ctx, NtStringView dbgName)
 	{
 		ASSERT( _primaryState.IsValid() );
-		ASSERT( ctx.IsValid() );
+		ASSERT( ctx._IsValid() );
 
 		// TODO: dbgName
 		return RVRef(ctx);
@@ -185,25 +174,25 @@ namespace AE::Graphics::_hidden_
 	void  _MGraphicsContextImpl<C>::EndRenderPass (DrawCtx& ctx)
 	{
 		ASSERT( _primaryState.IsValid() );
-		ASSERT( ctx.IsValid() );
+		//ASSERT( ctx._IsValid() );
 
 		//RawCtx::_EndRenderPass( ctx._RawCmdBuf() );
 		_primaryState = Default;
 		
 		this->_cmdbuf = ctx.ReleaseCommandBuffer();
-		ASSERT( this->IsValid() );
+		ASSERT( this->_IsValid() );
 	}
 			
 	template <typename C>
 	void  _MGraphicsContextImpl<C>::EndRenderPass (DrawCtx& ctx, const RenderPassDesc &desc)
 	{
 		ASSERT( _primaryState.IsValid() );
-		ASSERT( ctx.IsValid() );
+		ASSERT( ctx._IsValid() );
 
 		//RawCtx::_EndRenderPass( ctx._RawCmdBuf() );
 		
 		this->_cmdbuf = ctx.ReleaseCommandBuffer();
-		ASSERT( this->IsValid() );
+		ASSERT( this->_IsValid() );
 
 		this->_mngr.AfterEndRenderPass( desc, _primaryState );
 		CommitBarriers();	// for RG
@@ -237,7 +226,7 @@ namespace AE::Graphics::_hidden_
 	void  _MGraphicsContextImpl<C>::NextMtSubpass (const MDrawCommandBatch &batch)
 	{
 		ASSERT( _primaryState.IsValid() );
-		ASSERT( this->IsValid() );
+		ASSERT( this->_IsValid() );
 		
 		//++_primaryState.subpassIndex;
 		//ASSERT( usize{_primaryState.subpassIndex} < _primaryState.renderPass->Subpasses().size() );
@@ -254,7 +243,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MGraphicsContextImpl<C>::EndMtRenderPass ()
 	{
-		ASSERT( this->IsValid() );
+		ASSERT( this->_IsValid() );
 
 		//RawCtx::_EndRenderPass( this->_RawCmdBuf() );
 		_primaryState = Default;
@@ -263,7 +252,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MGraphicsContextImpl<C>::EndMtRenderPass (const RenderPassDesc &desc)
 	{
-		ASSERT( this->IsValid() );
+		ASSERT( this->_IsValid() );
 		
 		//RawCtx::_EndRenderPass( this->_RawCmdBuf() );
 

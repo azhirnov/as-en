@@ -18,15 +18,13 @@ target_compile_definitions( "Tests.GraphicsHL" PUBLIC AE_TEST_GRAPHICS_HL )
 
 target_compile_definitions( "Tests.GraphicsHL" PUBLIC
 	AE_TEST_GRAPHICS
-	AE_PIPELINE_COMPILER_LIBRARY="${AE_RESPACK_BINARY_DIR}"
+	AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}"
 	AE_SHARED_DATA="${DATA_FOLDER}"
 	AE_CURRENT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 	AE_CANVAS_VERTS="${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics_hl/Canvas/VertexTypes.as"
 )
 
-if (TARGET "ResourcePacker-lib")
-	target_link_libraries( "Tests.GraphicsHL" PUBLIC "ResourcePacker-lib" )
-endif ()
+add_dependencies( "Tests.GraphicsHL" "PipelineCompiler-shared" )
 
 if (TARGET "VulkanSyncLog")
 	target_link_libraries( "Tests.GraphicsHL" PUBLIC "VulkanSyncLog" )

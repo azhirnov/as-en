@@ -45,7 +45,7 @@ namespace AE::Graphics
 		ND_ DescriptorSetLayoutID	LayoutID ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ bool					IsArgumentBuffer ()	const;	// TODO
 		
-		DEBUG_ONLY( ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY( ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 	
 

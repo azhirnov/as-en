@@ -55,14 +55,14 @@ namespace AE::Base
 		}
 
 		template <typename T, typename ...Args>
-		ND_ T&  Emplace (Args&& ...args) __TH___
+		ND_ T&  Emplace (Args&& ...args) __Th___
 		{
 			ASSERT( IsAllocated() );
 			return *PlacementNew<T>( &Reserve<T>(), FwdArg<Args>( args )... );	// throw
 		}
 
 		template <typename T, typename ...Args>
-		ND_ T&  EmplaceSized (Bytes size, Args&& ...args) __TH___
+		ND_ T&  EmplaceSized (Bytes size, Args&& ...args) __Th___
 		{
 			ASSERT( IsAllocated() );
 			ASSERT( size >= SizeOf<T> );
@@ -77,7 +77,7 @@ namespace AE::Base
 		}
 
 		template <typename T, typename ...Args>
-		ND_ T*  EmplaceArray (usize count, Args&& ...args) __TH___
+		ND_ T*  EmplaceArray (usize count, Args&& ...args) __Th___
 		{
 			ASSERT( IsAllocated() );
 			T*	result = ReserveArray<T>( count );

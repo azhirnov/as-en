@@ -235,7 +235,7 @@ if ( COMPILER_MSVC )
 		# errors
 		/we4002 /we4099 /we4129 /we4130 /we4172 /we4201 /we4238 /we4239 /we4240 /we4251 /we4263 /we4264 /we4266 /we4273 /we4293
 		/we4305 /we4390 /we4455 /we4456 /we4457 /we4458 /we4459 /we4473 /we4474 /we4522 /we4552 /we4553 /we4554 /we4700 /we4706 /we4715 /we4716 /we4717
-		/we4927 /w14834 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297
+		/we4927 /w14834 /we5062 /we5054 /we4565 /we5054 /we4291 /we4297 /we4584
 		# disable warnings
 		/wd4061 /wd4062 /wd4063 /wd4310 /wd4324 /wd4365 /wd4503 /wd4514 /wd4530 /wd4623 /wd4625 /wd4626 /wd4710 /wd4714 /wd5026 /wd5027
 	)

@@ -35,7 +35,7 @@ namespace AE::Graphics::_hidden_
 		VAccumBarriers ()						= delete;
 		VAccumBarriers (const Self &)			= delete;
 		VAccumBarriers (Self &&)		__NE___	= default;
-		~VAccumBarriers ()																															__TH___	{ if_likely( _ctx ) _ctx->CommitBarriers(); }
+		~VAccumBarriers ()																															__Th___	{ if_likely( _ctx ) _ctx->CommitBarriers(); }
 
 		Self&  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)															{ _ctx->BufferBarrier( buffer, srcState, dstState );			return *this; }
 		Self&  BufferBarrier (VkBuffer buffer, EResourceState srcState, EResourceState dstState)															{ _ctx->BufferBarrier( buffer, srcState, dstState );			return *this; }
@@ -90,7 +90,7 @@ namespace AE::Graphics::_hidden_
 		VAccumDrawBarriers ()						= delete;
 		VAccumDrawBarriers (const Self &)			= delete;
 		VAccumDrawBarriers (Self &&)		__NE___	= default;
-		~VAccumDrawBarriers ()																		__TH___	{ if_likely( _ctx ) _ctx->CommitBarriers(); }
+		~VAccumDrawBarriers ()																		__Th___	{ if_likely( _ctx ) _ctx->CommitBarriers(); }
 		
 		Self&  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)	{ _ctx->AttachmentBarrier( name, srcState, dstState ); return *this; }
 	};

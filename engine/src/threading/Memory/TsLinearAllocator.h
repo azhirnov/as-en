@@ -13,7 +13,7 @@ namespace AE::Base
 	//
 
 	template <typename AllocatorType, uint MaxBlocks>
-	struct LinearAllocator< AllocatorType, MaxBlocks, true > final
+	class LinearAllocator< AllocatorType, MaxBlocks, true > final : public MovableOnly
 	{
 	// types
 	private:
@@ -33,23 +33,19 @@ namespace AE::Base
 
 	// methods
 	public:
-		LinearAllocator () __NE___ {}
+		LinearAllocator ()									__NE___ {}
+		explicit LinearAllocator (const Allocator_t &alloc)	__NE___ : _base{ alloc } {}
+
+		~LinearAllocator ()									__NE___	{ Release(); }
 		
-		explicit LinearAllocator (const Allocator_t &alloc) __NE___ : _base{ alloc }
-		{}
-		
-		LinearAllocator (Self &&other) __NE___
+
+		LinearAllocator (Self &&other)						__NE___
 		{
 			SAFE_EXLOCK( _guard, other._guard );
 			_base = RVRef(other._base);
 		}
-
-		LinearAllocator (const Self &) = delete;
-
-		Self& operator = (const Self &) = delete;
-
-
-		Self& operator = (Self &&rhs) __NE___
+		
+		Self& operator = (Self &&rhs)						__NE___
 		{
 			SAFE_EXLOCK( _guard, other._guard );
 			_base = RVRef(other._base);
@@ -57,20 +53,14 @@ namespace AE::Base
 		}
 
 
-		~LinearAllocator () __NE___
-		{
-			Release();
-		}
-
-
-		void  SetBlockSize (Bytes size) __NE___
+		void  SetBlockSize (Bytes size)						__NE___
 		{
 			EXLOCK( _guard );
 			return _base.SetBlockSize( size );
 		}
 
 
-		ND_ AE_ALLOCATOR void*  Alloc (const SizeAndAlign sizeAndAlign) __NE___
+		ND_ void*  Alloc (const SizeAndAlign sizeAndAlign)	__NE___
 		{
 			EXLOCK( _guard );
 			return _base.Alloc( sizeAndAlign );
@@ -78,20 +68,20 @@ namespace AE::Base
 
 
 		template <typename T>
-		ND_ AE_ALLOCATOR T*  Alloc (usize count = 1) __NE___
+		ND_ T*  Alloc (usize count = 1)						__NE___
 		{
 			EXLOCK( _guard );
 			return _base.Alloc<T>( count );
 		}
 
 
-		void  Discard () __NE___
+		void  Discard ()									__NE___
 		{
 			EXLOCK( _guard );
 			return _base.Discard();
 		}
 
-		void  Release () __NE___
+		void  Release ()									__NE___
 		{
 			EXLOCK( _guard );
 			return _base.Release();

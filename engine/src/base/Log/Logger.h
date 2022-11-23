@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/StdInclude.h"
+#include "base/Defines/StdInclude.h"
 #include <mutex>
 
 #include "base/Common.h"
@@ -21,7 +21,7 @@ namespace AE::Base
 	class VisualStudioLogOutput final : public ILogger
 	{
 	public:
-		EResult  Process (const MessageInfo &info) __TH_OV;
+		EResult  Process (const MessageInfo &info) __Th_OV;
 	};
 
 #endif
@@ -41,7 +41,7 @@ namespace AE::Base
 	public:
 		explicit AndroidLogOutput (StringView tag) : _tag{ tag } {}
 
-		EResult  Process (const MessageInfo &info) __TH_OV;
+		EResult  Process (const MessageInfo &info) __Th_OV;
 	};
 
 #else
@@ -56,7 +56,7 @@ namespace AE::Base
 		std::mutex		_guard;
 
 	public:
-		EResult  Process (const MessageInfo &info) __TH_OV;
+		EResult  Process (const MessageInfo &info) __Th_OV;
 	};
 
 #endif
@@ -80,7 +80,7 @@ namespace AE::Base
 			_levelBits{ levelBits }, _scopeBits{ scopeBits }
 		{}
 
-		EResult  Process (const MessageInfo &info) __TH_OV;
+		EResult  Process (const MessageInfo &info) __Th_OV;
 	};
 
 #endif
@@ -100,7 +100,7 @@ namespace AE::Base
 	public:
 		explicit FileLogOutput (RC<WStream> file);
 
-		EResult	Process (const MessageInfo &info)		__TH_OV;
+		EResult	Process (const MessageInfo &info)		__Th_OV;
 		void	SetCurrentThreadName (StringView name)	__NE_OV;
 	};
 	
@@ -159,7 +159,7 @@ namespace AE::Base
 		explicit HtmlLogOutput (RC<WStream> file);
 		~HtmlLogOutput ();
 
-		EResult	Process (const MessageInfo &info)		__TH_OV;
+		EResult	Process (const MessageInfo &info)		__Th_OV;
 		void	SetCurrentThreadName (StringView name)	__NE_OV;
 
 	private:

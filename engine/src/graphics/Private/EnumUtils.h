@@ -185,6 +185,8 @@ namespace AE::Graphics
 			case EResourceState::IndirectBuffer :
 			case EResourceState::IndexBuffer :
 			case EResourceState::VertexBuffer :
+			case EResourceState::CopyRTAS_Read :
+			case EResourceState::CopyRTAS_Write :
 			case EResourceState::BuildRTAS_Read :
 			case EResourceState::BuildRTAS_Write :
 			case EResourceState::BuildRTAS_RW :

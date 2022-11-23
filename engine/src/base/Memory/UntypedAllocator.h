@@ -12,19 +12,21 @@ namespace AE::Base
 	// Untyped Default Allocator
 	//
 
-	struct UntypedAllocator
+	class UntypedAllocator
 	{
 	// types
+	public:
 		static constexpr bool	IsThreadSafe = true;
 
 	// methods
+	public:
 		ND_ bool  operator == (const UntypedAllocator &)		C_NE___
 		{
 			return true;
 		}
 
 		// with default alignment
-		ND_ AE_ALLOCATOR static void*  Allocate (Bytes size)	__NE___
+		ND_ static void*  Allocate (Bytes size)					__NE___
 		{
 			return ::operator new ( usize(size), std::nothrow_t{} );
 		}
@@ -46,7 +48,7 @@ namespace AE::Base
 
 
 		// with custom alignment
-		ND_ AE_ALLOCATOR static void*  Allocate (const SizeAndAlign sizeAndAlign) __NE___
+		ND_ static void*  Allocate (const SizeAndAlign sizeAndAlign) __NE___
 		{
 			return ::operator new ( usize(sizeAndAlign.size), std::align_val_t(usize(sizeAndAlign.align)), std::nothrow_t{} );
 		}
@@ -74,14 +76,16 @@ namespace AE::Base
 	//
 
 	template <usize BaseAlign>
-	struct UntypedAllocatorBaseAlign
+	class UntypedAllocatorBaseAlign
 	{
 	// types
+	public:
 		static constexpr usize	Align			= BaseAlign;
 		static constexpr bool	IsThreadSafe	= true;
 		
 	// methods
-		ND_ AE_ALLOCATOR static void*  Allocate (Bytes size)	__NE___
+	public:
+		ND_ static void*  Allocate (Bytes size)					__NE___
 		{
 			return ::operator new ( usize(size), std::align_val_t(BaseAlign), std::nothrow_t{} );
 		}
@@ -113,15 +117,17 @@ namespace AE::Base
 	// On Stack Allocator
 	//
 
-	struct UntypedOnStackAllocator
+	class UntypedOnStackAllocator
 	{
 	// types
+	public:
 		static constexpr bool	IsThreadSafe = true;
 
 	// methods
-		ND_ AE_ALLOCATOR static void*	Allocate (Bytes size)		__NE___	{ return alloca( usize(size) ); }
+	public:
+		ND_ static void*	Allocate (Bytes size)		__NE___	{ return alloca( usize(size) ); }
 
-			static void					Deallocate (void *)			__NE___	{}
+			static void		Deallocate (void *)			__NE___	{}
 	};
 
 } // AE::Base

@@ -208,9 +208,15 @@ namespace AE::Math
 	template <typename T>
 	struct Quat;
 
-	template <typename T, uint Columns, uint Rows>
-	struct Matrix;
+	template <typename T, uint Columns, uint Rows, glm::qualifier Q>
+	struct TMatrix;
 	
+	template <typename T, uint Columns, uint Rows>
+	using Matrix = TMatrix< T, Columns, Rows, GLMQuialifier >;
+	
+	template <typename T, uint Columns, uint Rows>
+	using PackedMatrix = TMatrix< T, Columns, Rows, glm::qualifier::packed_highp >;
+
 } // AE::Math
 
 
@@ -234,14 +240,14 @@ namespace AE::Base
 	template <typename T>
 	struct TTrivialySerializable< Quat<T> > { static constexpr bool  value = IsTrivialySerializable<T>; };
 
-	template <typename T, uint Columns, uint Rows>
-	struct TMemCopyAvailable< Matrix<T, Columns, Rows> > { static constexpr bool  value = IsMemCopyAvailable<T>; };
+	template <typename T, uint Columns, uint Rows, glm::qualifier Q>
+	struct TMemCopyAvailable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsMemCopyAvailable<T>; };
 	
-	template <typename T, uint Columns, uint Rows>
-	struct TZeroMemAvailable< Matrix<T, Columns, Rows> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
+	template <typename T, uint Columns, uint Rows, glm::qualifier Q>
+	struct TZeroMemAvailable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
 	
-	template <typename T, uint Columns, uint Rows>
-	struct TTrivialySerializable< Matrix<T, Columns, Rows> > { static constexpr bool  value = IsTrivialySerializable<T>; };
+	template <typename T, uint Columns, uint Rows, glm::qualifier Q>
+	struct TTrivialySerializable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsTrivialySerializable<T>; };
 	
 } // AE::Base
 

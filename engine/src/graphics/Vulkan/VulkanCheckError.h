@@ -24,10 +24,13 @@
 	}
 
 #	define AE_PRIVATE_VK_CALL2_R( _func_, _ret_, ... ) \
-		AE_PRIVATE_VK_CALL_R( _func_, AE_TOSTRING( _func_ ), _ret_ )
+		AE_PRIVATE_VK_CALL_R( (_func_), AE_TOSTRING( _func_ ), (_ret_) )
 
 #	define VK_CHECK_ERR( /* expr, return_on_error */... ) \
 		AE_PRIVATE_VK_CALL2_R( AE_PRIVATE_GETARG_0( __VA_ARGS__ ), AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
+
+#	define VK_CHECK_ERRV( _expr_ ) \
+		AE_PRIVATE_VK_CALL2_R( (_expr_), )
 
 #	define VK_ERR( _err_, /* msg, return_on_error */... ) \
 		AE_PRIVATE_VK_CALL_R( (_err_), AE_PRIVATE_GETARG_0( __VA_ARGS__ ), AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
@@ -41,7 +44,7 @@
 	}
 
 #	define VK_CHECK_THROW( _expr_ ) \
-		AE_PRIVATE_VK_THROW( _expr_, AE_TOSTRING( _expr_ ) )
+		AE_PRIVATE_VK_THROW( (_expr_), AE_TOSTRING( _expr_ ) )
 #endif
 
 

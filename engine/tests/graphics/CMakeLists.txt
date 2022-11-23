@@ -19,14 +19,12 @@ target_include_directories( "Tests.Graphics" PUBLIC "." )
 
 target_compile_definitions( "Tests.Graphics" PUBLIC
 	AE_TEST_GRAPHICS
-	AE_PIPELINE_COMPILER_LIBRARY="${AE_RESPACK_BINARY_DIR}"
+	AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}"
 	AE_SHARED_DATA="${DATA_FOLDER}"
 	AE_CURRENT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-if (TARGET "ResourcePacker-lib")
-	target_link_libraries( "Tests.Graphics" PUBLIC "ResourcePacker-lib" )
-endif ()
+add_dependencies( "Tests.Graphics" "PipelineCompiler-shared" )
 
 if (TARGET "VulkanSyncLog")
 	target_link_libraries( "Tests.Graphics" PUBLIC "VulkanSyncLog" )

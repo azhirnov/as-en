@@ -207,7 +207,7 @@ namespace AE::Graphics
 			return *this;
 		}
 
-		void  SetGeometry (RTGeometryID id, INOUT Instance &inst) __TH___;
+		void  SetGeometry (RTGeometryID id, INOUT Instance &inst) __Th___;
 	};
 
 	

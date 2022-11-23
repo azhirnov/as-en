@@ -32,21 +32,21 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr SphericalTempl () {}
-		constexpr SphericalTempl (T theta, T phi) : theta{theta}, phi{phi} {}
-		constexpr SphericalTempl (Angle_t theta, Angle_t phi) : theta{theta}, phi{phi} {}
-		constexpr explicit SphericalTempl (const Vec<T,2> &angle) : theta{angle.x}, phi{angle.y} {}
-		constexpr explicit SphericalTempl (const Vec<Angle_t, 2> &angle) : theta{angle.x}, phi{angle.y} {}
+		constexpr SphericalTempl ()												__NE___	{}
+		constexpr SphericalTempl (T theta, T phi)								__NE___	: theta{theta}, phi{phi} {}
+		constexpr SphericalTempl (Angle_t theta, Angle_t phi)					__NE___	: theta{theta}, phi{phi} {}
+		constexpr explicit SphericalTempl (const Vec<T,2> &angle)				__NE___	: theta{angle.x}, phi{angle.y} {}
+		constexpr explicit SphericalTempl (const Vec<Angle_t, 2> &angle)		__NE___	: theta{angle.x}, phi{angle.y} {}
 
-		ND_ constexpr explicit operator Vec<T,2> () const		{ return Vec<T,2>{ T(theta), T(phi) }; }
-		ND_ constexpr explicit operator Vec<Angle_t,2> () const	{ return Vec<Angle_t,2>{ theta, phi }; }
+		ND_ constexpr explicit operator Vec<T,2> ()								C_NE___	{ return Vec<T,2>{ T(theta), T(phi) }; }
+		ND_ constexpr explicit operator Vec<Angle_t,2> ()						C_NE___	{ return Vec<Angle_t,2>{ theta, phi }; }
 
-		ND_ constexpr Self  operator + (const Self &rhs) const;
-		ND_ constexpr Self  operator - (const Self &rhs) const;
+		ND_ constexpr Self  operator + (const Self &rhs)						C_NE___;
+		ND_ constexpr Self  operator - (const Self &rhs)						C_NE___;
 
-		ND_ static Pair<Self, Value_t>	FromCartesian (const Vec3_t &cartesian);
-		ND_ Vec3_t						ToCartesian () const;
-		ND_ Vec3_t						ToCartesian (Value_t radius) const;
+		ND_ static Pair<Self, Value_t>	FromCartesian (const Vec3_t &cartesian)	__NE___;
+		ND_ Vec3_t						ToCartesian ()							C_NE___;
+		ND_ Vec3_t						ToCartesian (Value_t radius)			C_NE___;
 	};
 
 
@@ -61,13 +61,13 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline constexpr SphericalTempl<T>  SphericalTempl<T>::operator + (const Self &rhs) const
+	inline constexpr SphericalTempl<T>  SphericalTempl<T>::operator + (const Self &rhs) C_NE___
 	{
 		return Self{ theta + rhs.theta, phi + rhs.phi };
 	}
 	
 	template <typename T>
-	inline constexpr SphericalTempl<T>  SphericalTempl<T>::operator - (const Self &rhs) const
+	inline constexpr SphericalTempl<T>  SphericalTempl<T>::operator - (const Self &rhs) C_NE___
 	{
 		return Self{ theta - rhs.theta, phi - rhs.phi };
 	}
@@ -78,7 +78,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline Pair<SphericalTempl<T>, T>  SphericalTempl<T>::FromCartesian (const Vec<T,3> &cartesian)
+	inline Pair<SphericalTempl<T>, T>  SphericalTempl<T>::FromCartesian (const Vec<T,3> &cartesian) __NE___
 	{
 		const T	radius	= Length( cartesian );
 		const T	len		= Equals( radius, T{0} ) ? T{1} : radius;
@@ -94,7 +94,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	inline Vec<T,3>  SphericalTempl<T>::ToCartesian () const
+	inline Vec<T,3>  SphericalTempl<T>::ToCartesian () C_NE___
 	{
 		Vec<T,3>	cartesian;
 
@@ -107,7 +107,7 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	inline Vec<T,3>  SphericalTempl<T>::ToCartesian (T radius) const
+	inline Vec<T,3>  SphericalTempl<T>::ToCartesian (T radius) C_NE___
 	{
 		return ToCartesian() * radius;
 	}

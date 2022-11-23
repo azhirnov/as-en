@@ -15,7 +15,7 @@ namespace AE::Math
 	{
 	private:
 		template <typename T>
-		ND_ static constexpr T  _Abs (T val)
+		ND_ static constexpr T  _Abs (T val) __NE___
 		{
 			return val < 0 ? -val : val;
 		}
@@ -57,7 +57,7 @@ namespace AE::Math
 		static constexpr auto	Value	= Min( Lhs::Value, Rhs::Value );
 
 		template <typename T>
-		static constexpr T  Get (T lhs, T rhs)
+		static constexpr T  Get (T lhs, T rhs) __NE___
 		{
 			if constexpr( _Abs(Lhs::Value) < _Abs(Rhs::Value) )
 				return lhs + rhs * T(Rhs::Value / Lhs::Value);
@@ -76,7 +76,7 @@ namespace AE::Math
 		static constexpr auto	Value	= Min( Lhs::Value, Rhs::Value );
 
 		template <typename T>
-		static constexpr T  Get (T lhs, T rhs)
+		static constexpr T  Get (T lhs, T rhs) __NE___
 		{
 			if constexpr( _Abs(Lhs::Value) < _Abs(Rhs::Value) )
 				return lhs - rhs * T(Rhs::Value / Lhs::Value);
@@ -95,7 +95,7 @@ namespace AE::Math
 		static constexpr auto	Value	= Lhs::Value * Rhs::Value;
 
 		template <typename T>
-		static constexpr T  Get (T lhs, T rhs)
+		static constexpr T  Get (T lhs, T rhs) __NE___
 		{
 			return lhs * rhs;
 		}
@@ -111,7 +111,7 @@ namespace AE::Math
 		static constexpr auto	Value	= Lhs::Value / Rhs::Value;
 
 		template <typename T>
-		static constexpr T  Get (T lhs, T rhs)
+		static constexpr T  Get (T lhs, T rhs) __NE___
 		{
 			return lhs / rhs;
 		}
@@ -127,7 +127,7 @@ namespace AE::Math
 		static constexpr auto	Value	= decltype(S::Value){1} / S::Value;
 
 		template <typename T>
-		static constexpr T  Get (T val)
+		static constexpr T  Get (T val) __NE___
 		{
 			return T{1} / val;
 		}
@@ -143,7 +143,7 @@ namespace AE::Math
 		static constexpr auto	Value	= S::Value * Pow<S, Power-1>::Value;
 
 		template <typename T>
-		static constexpr T  Get (T val)
+		static constexpr T  Get (T val) __NE___
 		{
 			return val * T(Pow<S, Power-1>::Value);
 		}
@@ -155,7 +155,7 @@ namespace AE::Math
 		static constexpr auto	Value	= S::Value;
 
 		template <typename T>
-		static constexpr T  Get (T val)
+		static constexpr T  Get (T val) __NE___
 		{
 			return val;
 		}

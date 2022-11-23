@@ -73,7 +73,7 @@ namespace AE::Base
 	// methods
 	public:
 		template <typename B>
-		explicit WDataSourceRange (B && dataSource) __TH___ :
+		explicit WDataSourceRange (B && dataSource) __Th___ :
 			_dataSource{ FwdArg<B>(dataSource) },	// throw
 			_offset{ 0_b },
 			_capacity{ _dataSource ? _dataSource->Capacity() : 0_b }
@@ -82,7 +82,7 @@ namespace AE::Base
 		}
 		
 		template <typename B>
-		WDataSourceRange (B && dataSource, Bytes offset, Bytes capacity) __TH___ :
+		WDataSourceRange (B && dataSource, Bytes offset, Bytes capacity) __Th___ :
 			_dataSource{ FwdArg<B>(dataSource) },	// throw
 			_offset{ Min( offset, _dataSource ? _dataSource->Capacity() : 0_b )},
 			_capacity{ Min( capacity, _dataSource ? (_dataSource->Capacity() - _offset) : 0_b )}
@@ -97,7 +97,7 @@ namespace AE::Base
 		Bytes		Capacity ()					C_NE_OV		{ return _capacity; }
 
 		Bytes		Reserve (Bytes capacity)	__NE_OV;
-		Bytes		WriteBlock (Bytes offset, const void *buffer, Bytes size) __NE_OV;
+		Bytes		WriteBlock (Bytes, const void *, Bytes) __NE_OV;
 		
 		void		Flush ()					__NE_OV		{ ASSERT( IsOpen() );  return _dataSource->Flush(); }
 	};

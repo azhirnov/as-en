@@ -1,4 +1,15 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	FeatureSet is used to:
+	- validate shaders & pipelines:
+		- resource count
+		- workgroup size
+		- local memory size
+		- extensions, shader version, ...
+	- validate render state
+	- validate vertex input type
+	- select render technique
+*/
 
 #pragma once
 
@@ -237,35 +248,43 @@ namespace AE::Graphics
 		_visitor_( uint,				minTexelBufferElements,				)	/* maxTexelBufferElements	*/\
 		_visitor_( uint,				minUniformBufferSize,				)	/* maxUniformBufferRange	*/\
 		_visitor_( uint,				minStorageBufferSize,				)	/* maxStorageBufferRange	*/\
-		_visitor_( PerDescriptorSet,	perDescrSet,						)	/* Metal: no limits */\
+		_visitor_( PerDescriptorSet,	perDescrSet,						)	/* Metal: no limits			*/\
 		_visitor_( PerShaderStage,		perStage,							)\
-		_visitor_( uint,				minDescriptorSets,					)	/* maxBoundDescriptorSets */\
+		_visitor_( uint,				minDescriptorSets,					)	/* maxBoundDescriptorSets												*/\
 		_visitor_( uint,				minTexelOffset,						)	/* maxTexelOffset, minTexelOffset  - [-N-1...+N] for textureOffset()	*/\
 		_visitor_( uint,				minTexelGatherOffset,				)	/* maxTexelGatherOffset, minTexelGatherOffset							*/\
-		_visitor_( uint,				minFragmentOutputAttachments,		)	/* maxFragmentOutputAttachments */\
-		_visitor_( uint,				minFragmentDualSrcAttachments,		)	/* maxFragmentDualSrcAttachments */\
+		_visitor_( uint,				minFragmentOutputAttachments,		)	/* maxFragmentOutputAttachments											*/\
+		_visitor_( uint,				minFragmentDualSrcAttachments,		)	/* maxFragmentDualSrcAttachments										*/\
 		_visitor_( uint,				minFragmentCombinedOutputResources,	)	/* maxFragmentCombinedOutputResources = storage buffers + storage images + color attachments */\
-		_visitor_( uint,				minPushConstantsSize,				)	/* maxPushConstantsSize */\
+		_visitor_( uint,				minPushConstantsSize,				)	/* maxPushConstantsSize													*/\
 		_visitor_( uint,				minTotalThreadgroupSize,			)	/* only for Metal */\
 		_visitor_( uint,				minTotalTileMemory,					)	/* only for Metal */\
 		_visitor_( uint,				minVertAmplification,				)	/* only for Metal */\
 		/* compute shader */\
-		_visitor_( uint,		minComputeSharedMemorySize,		)	/* maxComputeSharedMemorySize */\
-		_visitor_( uint,		minComputeWorkGroupInvocations, )	/* maxComputeWorkGroupInvocations */\
-		_visitor_( uint,		minComputeWorkGroupSizeX,		)	/* maxComputeWorkGroupCount, local_size_x */\
-		_visitor_( uint,		minComputeWorkGroupSizeY,		)	/* local_size_y */\
-		_visitor_( uint,		minComputeWorkGroupSizeZ,		)	/* local_size_z */\
+		_visitor_( uint,		minComputeSharedMemorySize,		)	/* maxComputeSharedMemorySize				*/\
+		_visitor_( uint,		minComputeWorkGroupInvocations, )	/* maxComputeWorkGroupInvocations			*/\
+		_visitor_( uint,		minComputeWorkGroupSizeX,		)	/* maxComputeWorkGroupCount, local_size_x	*/\
+		_visitor_( uint,		minComputeWorkGroupSizeY,		)	/* local_size_y								*/\
+		_visitor_( uint,		minComputeWorkGroupSizeZ,		)	/* local_size_z								*/\
 		/* mesh shader */\
-		_visitor_( EFeature,	taskShader,					: 2 )	/*\																		*/\
-		_visitor_( EFeature,	meshShader,					: 2 )	/*-|--GL_EXT_mesh_shader												*/\
-		_visitor_( uint,		minTaskOutputCount,				)	/*-|					- maxTaskOutputCount							*/\
-		_visitor_( uint,		minTaskTotalMemorySize,			)	/*-|					- maxTaskTotalMemorySize						*/\
-		_visitor_( uint,		minTaskWorkGroupInvocations,	)	/*-|					- maxTaskWorkGroupInvocations	- local_size_x	*/\
-		_visitor_( uint,		minMeshTotalMemorySize,			)	/*-|					- maxMeshTotalMemorySize						*/\
-		_visitor_( uint,		minMeshOutputVertices,			)	/*-|					- maxMeshOutputVertices							*/\
-		_visitor_( uint,		minMeshOutputPrimitives,		)	/*-|					- maxMeshOutputPrimitives						*/\
-		_visitor_( uint,		minMeshMultiviewViewCount,		)	/*-|					- maxMeshMultiviewViewCount						*/\
-		_visitor_( uint,		minMeshWorkGroupInvocations,	)	/*/						- maxMeshWorkGroupInvocations	- local_size_x	*/\
+		_visitor_( EFeature,	taskShader,							: 2 )	/*\													*/\
+		_visitor_( EFeature,	meshShader,							: 2 )	/*-|--GL_EXT_mesh_shader							*/\
+		_visitor_( uint,		minTaskWorkGroupSize,					)	/*-|	- local_size_x/y/z, maxTaskWorkGroupSize	*/\
+		_visitor_( uint,		minMeshWorkGroupSize,					)	/*-|	- local_size_x/y/z, maxMeshWorkGroupSize	*/\
+		_visitor_( uint,		minMeshOutputVertices,					)	/*-|	- maxMeshOutputVertices						*/\
+		_visitor_( uint,		minMeshOutputPrimitives,				)	/*-|	- maxMeshOutputPrimitives					*/\
+		_visitor_( uint,		maxMeshOutputPerVertexGranularity,		)	/*-|	- meshOutputPerVertexGranularity			*/\
+		_visitor_( uint,		maxMeshOutputPerPrimitiveGranularity,	)	/*-|	- meshOutputPerPrimitiveGranularity			*/\
+		_visitor_( uint,		minTaskPayloadSize,						)	/*-|	- maxTaskPayloadSize						*/\
+		_visitor_( uint,		minTaskSharedMemorySize,				)	/*-|	- maxTaskSharedMemorySize					*/\
+		_visitor_( uint,		minTaskPayloadAndSharedMemorySize,		)	/*-|	- maxTaskPayloadAndSharedMemorySize			*/\
+		_visitor_( uint,		minMeshSharedMemorySize,				)	/*-|	- maxMeshSharedMemorySize					*/\
+		_visitor_( uint,		minMeshPayloadAndSharedMemorySize,		)	/*-|	- maxMeshPayloadAndSharedMemorySize			*/\
+		_visitor_( uint,		minMeshOutputMemorySize,				)	/*-|	- maxMeshOutputMemorySize					*/\
+		_visitor_( uint,		minMeshPayloadAndOutputMemorySize,		)	/*-|	- maxMeshPayloadAndOutputMemorySize			*/\
+		_visitor_( uint,		minMeshMultiviewViewCount,				)	/*-|	- maxMeshMultiviewViewCount					*/\
+		_visitor_( uint,		minPreferredTaskWorkGroupInvocations,	)	/*-|	- maxPreferredTaskWorkGroupInvocations		*/\
+		_visitor_( uint,		minPreferredMeshWorkGroupInvocations,	)	/*-|	- maxPreferredMeshWorkGroupInvocations		*/\
 		/* raster order group */\
 		_visitor_( uint,		minRasterOrderGroups,			)	/* only for Metal */\
 		/* shaders */\

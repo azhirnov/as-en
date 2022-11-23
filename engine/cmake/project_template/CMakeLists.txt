@@ -95,12 +95,6 @@ endif()
 if (${AE_ENABLE_MEMLEAK_CHECKS})
 	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_ENABLE_MEMLEAK_CHECKS" )
 endif ()
-
-if (${AE_NO_EXCEPTIONS})
-	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_NO_EXCEPTIONS=1" )
-else ()
-	target_compile_definitions( "ProjectTemplate" PUBLIC "AE_NO_EXCEPTIONS=0" )
-endif ()
 	
 if (NOT ${STD_VARIANT_SUPPORTED})
 	message( FATAL_ERROR "std::variant support required" )

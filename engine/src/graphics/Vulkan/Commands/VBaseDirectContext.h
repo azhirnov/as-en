@@ -32,7 +32,7 @@ namespace AE::Graphics::_hidden_
 		virtual ~_VBaseDirectContext ()														__NE___;
 
 	protected:
-		_VBaseDirectContext (VCommandBuffer cmdbuf, NtStringView dbgName, RGBA8u dbgColor)	__TH___;
+		_VBaseDirectContext (VCommandBuffer cmdbuf, NtStringView dbgName, RGBA8u dbgColor)	__Th___;
 
 		ND_ bool	_IsValid ()																C_NE___	{ return _cmdbuf.IsValid() and _cmdbuf.IsRecording(); }
 
@@ -61,8 +61,8 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VBaseDirectContext (const RenderTask &task)				__TH___;
-		VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf)	__TH___;
+		explicit VBaseDirectContext (const RenderTask &task)				__Th___;
+		VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf)	__Th___;
 		~VBaseDirectContext ()												__NE_OV;
 
 	protected:
@@ -85,7 +85,7 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline _VBaseDirectContext::_VBaseDirectContext (VCommandBuffer cmdbuf, NtStringView dbgName, RGBA8u dbgColor) __TH___ :
+	inline _VBaseDirectContext::_VBaseDirectContext (VCommandBuffer cmdbuf, NtStringView dbgName, RGBA8u dbgColor) __Th___ :
 		_cmdbuf{ RVRef( cmdbuf )}
 	{
 		CHECK_THROW( _IsValid() );
@@ -207,7 +207,7 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task) __TH___ :
+	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task) __Th___ :
 		VBaseDirectContext{	// throw
 			task,
 			RenderTaskScheduler().GetCommandPoolManager().GetCommandBuffer(
@@ -216,7 +216,7 @@ namespace AE::Graphics::_hidden_
 						null )}
 	{}
 	
-	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf) __TH___ :
+	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf) __Th___ :
 		_VBaseDirectContext{ RVRef(cmdbuf), task.DbgFullName(), task.DbgColor() },	// throw
 		_mngr{ task }
 	{

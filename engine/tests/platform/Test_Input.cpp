@@ -47,7 +47,9 @@ namespace
 		AppListener ()
 		{
 			TaskScheduler::CreateInstance();
-			Scheduler().Setup( 1 );
+
+			TaskScheduler::Config	cfg;
+			CHECK_FATAL( Scheduler().Setup( cfg ));
 		}
 
 		~AppListener () override
@@ -72,6 +74,7 @@ namespace
 			TEST( file.IsOpen() );
 
 			auto&	input = _window->InputActions();
+			Unused( input );
 
 			//TEST( input.LoadFromScript( file, SourceLoc{ ansi_path, 0 }));
 			//TEST( input.SetMode( InputModeName{"UI"} ));

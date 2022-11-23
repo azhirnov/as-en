@@ -46,7 +46,7 @@ namespace AE::Base
 		void	EndFastStream (const void* ptr)		__NE_OF;
 
 
-		ND_ RC<MemRefRStream>	ToSubStream (Bytes offset, Bytes size) C_TH___;
+		ND_ RC<MemRefRStream>	ToSubStream (Bytes offset, Bytes size) C_Th___;
 		
 		ND_ ArrayView<ubyte>	GetData ()			C_NE___	{ return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize(_size) }; }
 		ND_ ArrayView<ubyte>	GetRemainData ()	C_NE___	{ return GetData().section( usize(_pos), UMax ); }
@@ -118,7 +118,7 @@ namespace AE::Base
 		void		UpdateFastStream (OUT void* &begin, OUT const void* &end, Bytes reserve = DefaultAllocationSize) __NE_OV;
 		void		EndFastStream (const void* ptr)	__NE_OV;
 		
-		RC<RStream>	AsRStream ()					_____OV	{ return ToRStream(); }
+		RC<RStream>	AsRStream ()							{ return ToRStream(); }
 
 
 			void  Clear ()							__NE___;
@@ -126,7 +126,7 @@ namespace AE::Base
 
 		ND_ ArrayView<ubyte>	GetData ()			C_NE___	{ return ArrayView<ubyte>{ _data.data(), usize(_pos) }; }
 		ND_ Array<ubyte>		ReleaseData ()		__NE___	{ auto temp = RVRef(_data);  return temp; }
-		ND_ RC<MemRefRStream>	ToRStream ()		C_TH___	{ return MakeRC<MemRefRStream>( GetData() ); }
+		ND_ RC<MemRefRStream>	ToRStream ()		C_Th___	{ return MakeRC<MemRefRStream>( GetData() ); }
 	};
 
 

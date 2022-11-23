@@ -69,11 +69,11 @@ namespace AE::Graphics
 		SpirvVersion			_spirvVersion;
 		
 		DeviceProperties		_devProps;		// platform independent
-		Extensions				_extensions;
+		VExtensions				_extensions;
 
 		VulkanDeviceFnTable		_deviceFnTable;
 		
-		Properties				_properties;
+		VProperties				_properties;
 		ResourceFlags			_resFlags;
 		
 		ExtensionSet_t			_instanceExtensions;
@@ -89,8 +89,8 @@ namespace AE::Graphics
 		VDevice ();
 		~VDevice ();
 		
-		ND_ Extensions const&		GetExtensions ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _extensions; }
-		ND_ Properties const&		GetProperties ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _properties; }
+		ND_ VExtensions const&		GetExtensions ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _extensions; }
+		ND_ VProperties const&		GetProperties ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _properties; }
 		ND_ ResourceFlags const&	GetResourceFlags ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
 		ND_ DeviceProperties const&	GetDeviceProperties ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _devProps; }
 

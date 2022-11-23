@@ -17,7 +17,7 @@ if (${AE_DESKTOP})
 	add_subdirectory( "geometry_tools" )
 	add_subdirectory( "asset_packer" )
 	add_subdirectory( "shader_trace" )
-	add_subdirectory( "pipeline_compiler" )
+	#add_subdirectory( "pipeline_compiler" )
 endif ()
 
 if (DEFINED ANDROID)

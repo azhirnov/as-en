@@ -145,9 +145,9 @@ namespace AE::Graphics
 
 	// methods
 	private:
-		explicit MResourceManager (const MDevice &)			__TH___;
+		explicit MResourceManager (const MDevice &)			__Th___;
 
-		ND_ bool  Initialize (const GraphicsCreateInfo &)	__TH___;
+		ND_ bool  Initialize (const GraphicsCreateInfo &)	__Th___;
 			void  Deinitialize ()							__NE___;
 		
 
@@ -209,16 +209,13 @@ namespace AE::Graphics
 		
 		ND_ DescriptorAllocatorPtr	_ChooseDescAllocator (DescriptorAllocatorPtr userDefined);
 
-		template <typename ID>
-		ND_ auto const&  _GetDescription (ID id) const;
 
-
-		#include "graphics/Private/ResourceManagerFn.inl.h"
+		#include "graphics/Private/ResourceManagerDecl.h"
 	};
 	
 	
 #	define RESMNGR	MResourceManager
-#	include "graphics/Private/ResourceManagerHdr.inl.h"
+#	include "graphics/Private/ResourceManagerImpl.h"
 
 } // AE::Graphics
 

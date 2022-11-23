@@ -29,22 +29,22 @@ namespace AE::Math
 
 
 	// methods
-		BoundingSphere () {}
-		BoundingSphere (const Vec3_t &center, T radius) : center{center}, radius{abs(radius)} {}
+		BoundingSphere ()												__NE___	{}
+		BoundingSphere (const Vec3_t &center, T radius)					__NE___	: center{center}, radius{abs(radius)} {}
 
 
-		Self&  Move (const Vec3_t &delta)		{ center += delta;  return *this; }
-		Self&  Scale (T scale)					{ radius *= Abs(scale);  return *this; }
+		Self&  Move (const Vec3_t &delta)								__NE___	{ center += delta;  return *this; }
+		Self&  Scale (T scale)											__NE___	{ radius *= Abs(scale);  return *this; }
 		
 
-		Self&  Transform (const Transformation<T> &tr)
+		Self&  Transform (const Transformation<T> &tr)					__NE___
 		{
 			center  = tr.ToGlobalPosition( center );
 			radius *= tr.scale;
 			return *this;
 		}
 
-		ND_ bool  IsIntersects (const BoundingSphere<T> &other) const
+		ND_ bool  IsIntersects (const BoundingSphere<T> &other)			C_NE___
 		{
 			const T		dist = radius + other.radius;
 			constexpr T	err  = Epsilon<T>();
@@ -52,9 +52,9 @@ namespace AE::Math
 			return	Distance2( center, other.center ) < (dist * dist + err);
 		}
 
-		ND_ bool  IsIntersects (const AxisAlignedBoundingBox<T> &aabb) const;
+		ND_ bool  IsIntersects (const AxisAlignedBoundingBox<T> &aabb)	C_NE___;
 
-		ND_ AxisAlignedBoundingBox<T>  ToAABB () const;
+		ND_ AxisAlignedBoundingBox<T>  ToAABB ()						C_NE___;
 	};
 
 
