@@ -7,6 +7,46 @@
 
 namespace
 {
+	STATIC_ASSERT( sizeof(bool)	  == 1 );
+	STATIC_ASSERT( sizeof(Bool32) == 4 );
+
+	STATIC_ASSERT( sizeof(char)	 == 1 );		STATIC_ASSERT( IsInteger<         char >);
+	STATIC_ASSERT( sizeof(sbyte) == 1 );		STATIC_ASSERT( IsSignedInteger<   sbyte >);
+	STATIC_ASSERT( sizeof(ubyte) == 1 );		STATIC_ASSERT( IsUnsignedInteger< ubyte >);
+	
+	STATIC_ASSERT( sizeof(short)  == 2 );
+	STATIC_ASSERT( sizeof(sshort) == 2 );		STATIC_ASSERT( IsSignedInteger<   sshort >);
+	STATIC_ASSERT( sizeof(ushort) == 2 );		STATIC_ASSERT( IsUnsignedInteger< ushort >);
+	
+	STATIC_ASSERT( sizeof(int)  == 4 );			STATIC_ASSERT( IsSignedInteger<   int  >);
+	STATIC_ASSERT( sizeof(sint) == 4 );			STATIC_ASSERT( IsSignedInteger<   sint >);
+	STATIC_ASSERT( sizeof(uint) == 4 );			STATIC_ASSERT( IsUnsignedInteger< uint >);
+	
+	STATIC_ASSERT( sizeof(slong) == 8 );		STATIC_ASSERT( IsSignedInteger<   slong >);
+	STATIC_ASSERT( sizeof(ulong) == 8 );		STATIC_ASSERT( IsUnsignedInteger< ulong >);
+	
+	STATIC_ASSERT( sizeof(float)  == 4 );		STATIC_ASSERT( IsFloatPoint< float  >);
+	STATIC_ASSERT( sizeof(double) == 8 );		STATIC_ASSERT( IsFloatPoint< double >);
+
+	STATIC_ASSERT( sizeof(UFloat8) == 1 );		STATIC_ASSERT( IsAnyFloatPoint< UFloat8 >);
+	STATIC_ASSERT( sizeof(SFloat16) == 2 );		STATIC_ASSERT( IsAnyFloatPoint< SFloat16 >);
+	STATIC_ASSERT( sizeof(UFloat16) == 2 );		STATIC_ASSERT( IsAnyFloatPoint< UFloat16 >);
+
+	STATIC_ASSERT( not IsSameTypes< CharAnsi,  CharUtf8  >);
+	STATIC_ASSERT( not IsSameTypes< CharAnsi,  CharUtf16 >);
+	STATIC_ASSERT( not IsSameTypes< CharAnsi,  CharUtf32 >);
+	STATIC_ASSERT( not IsSameTypes< CharAnsi,  wchar_t   >);
+
+	STATIC_ASSERT( not IsSameTypes< CharUtf8,  CharUtf16 >);
+	STATIC_ASSERT( not IsSameTypes< CharUtf8,  CharUtf32 >);
+	STATIC_ASSERT( not IsSameTypes< CharUtf8,  wchar_t   >);
+
+	STATIC_ASSERT( not IsSameTypes< CharUtf16, CharUtf32 >);
+	STATIC_ASSERT( not IsSameTypes< CharUtf16, wchar_t   >);
+
+	STATIC_ASSERT( not IsSameTypes< CharUtf32, wchar_t   >);
+	
+
 	static void  Test_IsSpecializationOf ()
 	{
 		using T1 = ArrayView<int>;
@@ -121,18 +161,17 @@ namespace
 		{
 			int	i;
 
-			TrivialThrowable () __Th___ = default;
-			explicit TrivialThrowable (int ii) __Th___ : i{ii} {}
+			TrivialThrowable ()					__Th___ = default;
+			explicit TrivialThrowable (int ii)	__Th___ : i{ii} {}
 		};
 
 		struct NontrivialNothrowable
 		{
 			String	str;
 
-			NontrivialNothrowable () __NE___ { str = "11111"; }
-			explicit NontrivialNothrowable (const String &s) __NE___ : str{s} {}
-
-			~NontrivialNothrowable () __NE___ {}
+			NontrivialNothrowable ()						__NE___ { str = "11111"; }
+			explicit NontrivialNothrowable (const String &s)__NE___ : str{s} {}
+			~NontrivialNothrowable ()						__NE___ {}
 		};
 		
 		STATIC_ASSERT( IsNothrowCtor< TrivialThrowable, int >);
@@ -142,7 +181,6 @@ namespace
 
 	static void  Test_ArrayView ()
 	{
-		std::span<int>	s;
 		{
 			std::vector<int>	a1 {0,1,2};
 			auto				a2 = ArrayView{a1};

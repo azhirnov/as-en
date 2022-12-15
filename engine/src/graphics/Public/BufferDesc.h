@@ -22,7 +22,7 @@ namespace AE::Graphics
 		EMemoryType		memType		= EMemoryType::DeviceLocal;
 
 	// methods
-		BufferDesc () __NE___ {}
+		BufferDesc ()									__NE___ {}
 
 		BufferDesc (Bytes			size,
 					EBufferUsage	usage,
@@ -32,15 +32,15 @@ namespace AE::Graphics
 			size{size}, usage{usage}, options{options}, queues{queues}, memType{memType} {}
 		
 		// Will remove unsupported combinations
-		void  Validate () __NE___;
+		void  Validate ()								__NE___;
 
-		ND_ bool  operator == (const BufferDesc &rhs) C_NE___;
+		ND_ bool  operator == (const BufferDesc &rhs)	C_NE___;
 
-		BufferDesc&  SetSize (Bytes value)			__NE___	{ size		= value;	return *this; }
-		BufferDesc&  SetUsage (EBufferUsage value)	__NE___	{ usage		= value;	return *this; }
-		BufferDesc&  SetOptions (EBufferOpt value)	__NE___	{ options	= value;	return *this; }
-		BufferDesc&  SetQueues (EQueueMask value)	__NE___	{ queues	= value;	return *this; }
-		BufferDesc&  SetMemory (EMemoryType value)	__NE___	{ memType	= value;	return *this; }
+		BufferDesc&  SetSize (Bytes value)				__NE___	{ size		= value;	return *this; }
+		BufferDesc&  SetUsage (EBufferUsage value)		__NE___	{ usage		= value;	return *this; }
+		BufferDesc&  SetOptions (EBufferOpt value)		__NE___	{ options	= value;	return *this; }
+		BufferDesc&  SetQueues (EQueueMask value)		__NE___	{ queues	= value;	return *this; }
+		BufferDesc&  SetMemory (EMemoryType value)		__NE___	{ memType	= value;	return *this; }
 	};
 
 
@@ -57,16 +57,16 @@ namespace AE::Graphics
 		EPixelFormat		format	= Default;
 
 	// methods
-		BufferViewDesc () __NE___ {}
+		BufferViewDesc ()									__NE___ {}
 
 		BufferViewDesc (EPixelFormat	format,
 						Bytes			offset,
-						Bytes			size) __NE___ :
+						Bytes			size)				__NE___ :
 			offset{offset}, size{size}, format{format} {}
 
-		void  Validate (const BufferDesc &desc) __NE___;
+		void  Validate (const BufferDesc &desc)				__NE___;
 		
-		ND_ bool  operator == (const BufferViewDesc &rhs) C_NE___;
+		ND_ bool  operator == (const BufferViewDesc &rhs)	C_NE___;
 	};
 
 

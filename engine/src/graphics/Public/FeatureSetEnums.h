@@ -52,8 +52,9 @@ namespace AE::Graphics
 		Size,						//	|	uint gl_SubgroupSize								|	uint [[threads_per_simdgroup]]				|
 		InvocationID,				//	|	uint gl_SubgroupInvocationID						|	uint [[thread_index_in_simdgroup]]			|
 		Elect,						//	|	bool subgroupElect()								|	bool simd_is_first()						|
+		Barrier,					//	|														|	void simdgroup_barrier(mem_flags)			|
 		_Basic_Begin				= Size,
-		_Basic_End					= Elect,
+		_Basic_End					= Barrier,
 		
 		//								|-------------------------------------------------------|-----------------------------------------------|
 		// ---- Vote ----				|						GL_KHR_shader_subgroup_vote		|												|
@@ -148,10 +149,10 @@ namespace AE::Graphics
 		//PartitionedOr_NV,			//	|	T subgroupPartitionedOrNV(T value, uvec4 ballot)	|												|
 		//PartitionedXor_NV,		//	|	T subgroupPartitionedXorNV(T value, uvec4 ballot)	|												|
 		// TODO
-
+		
 		_Count
 	};
-	STATIC_ASSERT( uint(ESubgroupOperation::_Count) == 52 );
+	STATIC_ASSERT( uint(ESubgroupOperation::_Count) == 53 );
 
 
 	//
@@ -159,20 +160,20 @@ namespace AE::Graphics
 	//
 	enum class EVendorID : uint
 	{
-		Unknown		= 0,
 		AMD,
 		NVidia,
 		Intel,
-		ARM,
-		Qualcomm,
-		ImgTech,
+		ARM,			// Mali GPU
+		Qualcomm,		// Adreno GPU
+		ImgTech,		// PowerVR GPU
 		Microsoft,
 		Apple,
 		Mesa,
 		Broadcom,
 		Samsung,
 		VeriSilicon,
-		_Count
+		_Count,
+		Unknown		= _Count,
 	};
 
 
@@ -204,13 +205,12 @@ namespace AE::Graphics
 		\
 		/*---- Apple ----*/\
 		_visit_( Apple_A8 )				\
-		_visit_( Apple_A9 )				\
-		_visit_( Apple_A10 )			\
+		_visit_( Apple_A9_A10 )			\
 		_visit_( Apple_A11 )			\
 		_visit_( Apple_A12 )			\
 		_visit_( Apple_A13 )			\
 		_visit_( Apple_A14_M1 )			/* M1 Pro, M1 Max	*/\
-		_visit_( Apple_A15 )			\
+		_visit_( Apple_A15_M2 )			\
 		\
 		/*---- Mali ----*/\
 		_visit_( Mali_Midgard_Gen4 )	/* T820 ... T880	- vector	*/\
@@ -222,17 +222,18 @@ namespace AE::Graphics
 		_visit_( Mali_Valhall_Gen3 )	/* G310, G510, G610, G710		*/\
 		\
 		/*---- NVidia ----*/\
-		_visit_( NV_Maxwell )			/* 9xx													*/\
+		_visit_( NV_Maxwell )			/* 9xx, Titan X, Quadro Mxxxx							*/\
 		_visit_( NV_Maxwell_Tegra )		/* Tegra X1, Nintendo Switch, Shield TV					*/\
-		_visit_( NV_Pascal )			/* 10xx													*/\
+		_visit_( NV_Pascal )			/* 10xx, Titan X, Titan Xp, Quadro Pxxx					*/\
 		_visit_( NV_Pascal_MX )			/* MX 1xx, GTX 10xx Max-Q								*/\
 		_visit_( NV_Pascal_Tegra )		/* Tegra X2												*/\
-		_visit_( NV_Volta )				/* Volta, Xavier										*/\
-		_visit_( NV_Turing_16 )			/* 16xx, 16xx Max-Q										*/\
-		_visit_( NV_Turing )			/* 20xx													*/\
+		_visit_( NV_Volta )				/* Volta, Xavier, Titan V								*/\
+		_visit_( NV_Turing_16 )			/* 16xx, 16xx Max-Q, Quadro Txxx, Txxx					*/\
+		_visit_( NV_Turing )			/* 20xx, Quadro RTX	x000								*/\
 		_visit_( NV_Turing_MX )			/* MX230, MX250, MX330, MX350, MX450, MX550, MX570		*/\
-		_visit_( NV_Ampere )			/* 30xx													*/\
+		_visit_( NV_Ampere )			/* 30xx, RTX Ax000										*/\
 		_visit_( NV_Ampere_Orin )		/* Orin													*/\
+		_visit_( NV_Ada )				/* 40xx													*/\
 		\
 		/*---- Intel ----*/\
 		_visit_( Intel_Gen9 )			/* 620, 630										*/\
@@ -248,13 +249,54 @@ namespace AE::Graphics
 		/*---- Other ----*/\
 		_visit_( VeriSilicon )			/*  */\
 		_visit_( V3D_4 )				/* Raspberry Pi 4 */\
+		_visit_( SwiftShader )			/* emulation */\
 		
 		#define AE_GRAPHICS_DEVICE_VISIT( _name_ )				_name_,
 		AE_GRAPHICS_DEVICE_LIST( AE_GRAPHICS_DEVICE_VISIT )
 		#undef AE_GRAPHICS_DEVICE_VISIT
 
-		_Count
+		_Count,
+		Unknown			= _Count,
+
+		_Adreno_Begin	= Adreno_500,
+		_Adreno_End		= Adreno_700_DC4_SC5,
+
+		_AMD_Begin		= AMD_GCN1,
+		_AMD_End		= AMD_RDNA2_APU,
+
+		_Apple_Begin	= Apple_A8,
+		_Apple_End		= Apple_A15_M2,
+
+		_Mali_Begin		= Mali_Midgard_Gen4,
+		_Mali_End		= Mali_Valhall_Gen3,
+
+		_NV_Begin		= NV_Maxwell,
+		_NV_End			= NV_Ada,
+
+		_Intel_Begin	= Intel_Gen9,
+		_Intel_End		= Intel_Gen12,
+
+		_PowerVR_Begin	= PowerVR_Series8XE,
+		_PowerVR_End	= PowerVR_Series9XE,
+
+		_Other_Begin	= VeriSilicon,
 	};
+
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_Adreno_Begin)	== 0 );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_Adreno_Begin)	<  uint(EGraphicsDeviceID::_Adreno_End) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_Adreno_End)+1	== uint(EGraphicsDeviceID::_AMD_Begin) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_AMD_Begin)		<  uint(EGraphicsDeviceID::_AMD_End) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_AMD_End)+1		== uint(EGraphicsDeviceID::_Apple_Begin) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_Apple_Begin)	<  uint(EGraphicsDeviceID::_Apple_End) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_Apple_End)+1	== uint(EGraphicsDeviceID::_Mali_Begin) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_Mali_Begin)		<  uint(EGraphicsDeviceID::_Mali_End) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_Mali_End)+1		== uint(EGraphicsDeviceID::_NV_Begin) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_NV_Begin)		<  uint(EGraphicsDeviceID::_NV_End) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_NV_End)+1		== uint(EGraphicsDeviceID::_Intel_Begin) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_Intel_Begin)	<  uint(EGraphicsDeviceID::_Intel_End) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_Intel_End)+1	== uint(EGraphicsDeviceID::_PowerVR_Begin) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_PowerVR_Begin)	<  uint(EGraphicsDeviceID::_PowerVR_End) );
+	STATIC_ASSERT( uint(EGraphicsDeviceID::_PowerVR_End)+1	== uint(EGraphicsDeviceID::_Other_Begin) );
 
 
 } // AE::Graphics

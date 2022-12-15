@@ -1,56 +1,76 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#	if defined(AE_ENABLE_VULKAN)
-#		define CMDBATCH			VCommandBatch
-#		define DRAWCMDBATCH		VDrawCommandBatch
-#		define RESMNGR			VResourceManager
-#		define DEVICE			VDevice
-#		define CMDPOOLMNGR		VCommandPoolManager
-#		define RTSCHEDULER		VRenderTaskScheduler
-#		if not AE_VK_TIMELINE_SEMAPHORE
-#		  define ENABLE_VK_TIMELINE_SEMAPHORE
-#		endif
-
-#	elif defined(AE_ENABLE_METAL)
-#		define CMDBATCH			MCommandBatch
-#		define DRAWCMDBATCH		MDrawCommandBatch
-#		define RESMNGR			MResourceManager
-#		define DEVICE			MDevice
-#		define RTSCHEDULER		MRenderTaskScheduler
+#if defined(AE_ENABLE_VULKAN)
+#	define SUFFIX			V
+#	define CMDPOOLMNGR		VCommandPoolManager
+#	define RTSCHEDULER		VRenderTaskScheduler
+#	if not AE_VK_TIMELINE_SEMAPHORE
+#	  define ENABLE_VK_TIMELINE_SEMAPHORE
 #	endif
 
+#elif defined(AE_ENABLE_METAL)
+#	define SUFFIX			M
+#	define RTSCHEDULER		MRenderTaskScheduler
+
+#else
+#	error not implemented
+#endif
+//-----------------------------------------------------------------------------
+
+
 	// types
+	private:
+		using Device_t				= AE_PRIVATE_UNITE_RAW( SUFFIX, Device				);
+		using ResourceManager_t		= AE_PRIVATE_UNITE_RAW( SUFFIX, ResourceManager		);
+		using CommandBatch_t		= AE_PRIVATE_UNITE_RAW( SUFFIX, CommandBatch		);
+		using DrawCommandBatch_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, DrawCommandBatch	);
+
+
 	public:
-		class CommandBatchApi
+		class CommandBatchApi : Noninstancable
 		{
-			friend class CMDBATCH;
-			static void  Recycle (uint indexInPool)				__NE___;
-			static void  Submit (CMDBATCH &, ESubmitMode mode)	__NE___;
+			friend class AE_PRIVATE_UNITE_RAW( SUFFIX, CommandBatch );
+			static void  Recycle (uint indexInPool)					__NE___;
+			static void  Submit (CommandBatch_t&, ESubmitMode mode)	__NE___;
 		};
 
-		class DrawCommandBatchApi
+		class DrawCommandBatchApi : Noninstancable
 		{
-			friend class DRAWCMDBATCH;
+			friend class AE_PRIVATE_UNITE_RAW( SUFFIX, DrawCommandBatch );
 			static void  Recycle (uint indexInPool) __NE___;
 		};
 		
 		#ifdef ENABLE_VK_TIMELINE_SEMAPHORE
-		class VirtualFenceApi
+		class VirtualFenceApi : Noninstancable
 		{
-			friend class CMDBATCH::VirtualFence;
+			friend class CommandBatch_t::VirtualFence;
 			static void  Recycle (uint indexInPool) __NE___;
 		};
 		#endif
 
+		class RenderGraphImpl : Noncopyable
+		{
+		// variables
+		private:
 
+
+		// methods
+		public:
+
+			AE_GLOBALLY_ALLOC
+		};
+		
 	private:
-		static constexpr uint	_MaxPendingBatches		= 15;
+		static constexpr uint	_MaxPendingBatches		= GraphicsConfig::MaxPendingCmdBatches;
 		static constexpr uint	_MaxSubmittedBatches	= 32;
-		static constexpr uint	_MaxBeginDeps			= 64;
+		static constexpr uint	_MaxBeginFrameDeps		= 32;
 		static constexpr auto	_DefaultWaitTime		= seconds{10};
 		static constexpr uint	_BatchPerChunk			= 64;
 		static constexpr uint	_ChunkCount				= (_MaxPendingBatches * GraphicsConfig::MaxFrames + _BatchPerChunk - 1) / _BatchPerChunk;
 
-		using TempBatches_t = FixedArray< RC<CMDBATCH>, _MaxPendingBatches >;
+		STATIC_ASSERT( _MaxPendingBatches*2 <= _MaxSubmittedBatches );
+
+		using TempBatches_t = FixedArray< RC<CommandBatch_t>, _MaxPendingBatches >;
 
 		#ifdef ENABLE_VK_TIMELINE_SEMAPHORE
 		using VirtualFence		= VCommandBatch::VirtualFence;
@@ -59,7 +79,7 @@
 
 		struct alignas(AE_CACHE_LINE) QueueData
 		{
-			using BatchArray_t = StaticArray< RC<CMDBATCH>, _MaxPendingBatches >;
+			using BatchArray_t = StaticArray< RC<CommandBatch_t>, _MaxPendingBatches >;
 
 			union Bitfield
 			{
@@ -80,7 +100,7 @@
 
 		struct FrameData
 		{
-			using BatchQueue_t = Array< RC<CMDBATCH> >; //, Threading::GlobalLinearStdAllocatorRef< RC<CMDBATCH> > >;
+			using BatchQueue_t = Array< RC<CommandBatch_t> >; //, Threading::GlobalLinearStdAllocatorRef< RC<CommandBatch_t> > >;
 
 			Mutex			guard;
 			BatchQueue_t	submitted;	// TODO: array for VkFence/VkSemaphore for cache friendly access
@@ -89,10 +109,10 @@
 		using FrameUIDs_t	= StaticArray< AtomicFrameUID, GraphicsConfig::MaxFrames >;
 
 
-		using BatchPool_t		= Threading::LfIndexedPool2< CMDBATCH,		uint, _BatchPerChunk, _ChunkCount >;
-		using DrawBatchPool_t	= Threading::LfIndexedPool2< DRAWCMDBATCH,	uint, _BatchPerChunk, _ChunkCount >;
+		using BatchPool_t		= Threading::LfIndexedPool2< CommandBatch_t,		uint, _BatchPerChunk, _ChunkCount >;
+		using DrawBatchPool_t	= Threading::LfIndexedPool2< DrawCommandBatch_t,	uint, _BatchPerChunk, _ChunkCount >;
 
-		using BeginDepsArray_t	= Array< AsyncTask >; //, Threading::GlobalLinearStdAllocatorRef< AsyncTask > >;	// TODO
+		using BeginDepsArray_t	= FixedArray< AsyncTask, _MaxBeginFrameDeps >;
 		
 		using TimePoint_t		= std::chrono::high_resolution_clock::time_point;
 
@@ -136,11 +156,12 @@
 		PendingQueueMap_t				_queueMap;
 		PerFrame_t						_perFrame;
 
-		DEVICE const&					_device;
-		#ifdef CMDPOOLMNGR
+		Device_t const&					_device;
+	  #ifdef CMDPOOLMNGR
 		Unique<CMDPOOLMNGR>				_cmdPoolMngr;
-		#endif
-		Unique<RESMNGR>					_resMngr;
+	  #endif
+		Unique<ResourceManager_t>		_resMngr;
+		Unique<RenderGraphImpl>			_renderGraph;
 
 		RC<BatchSubmitDepsManager>		_submitDepMngr;
 		RC<BatchCompleteDepsManager>	_completeDepMngr;
@@ -156,7 +177,7 @@
 
 	// methods
 	public:
-		static void  CreateInstance (const DEVICE &dev);
+		static void  CreateInstance (const Device_t &dev);
 		static void  DestroyInstance ();
 		
 		ND_ bool		Initialize (const GraphicsCreateInfo &);
@@ -175,8 +196,20 @@
 			void		AddNextFrameDeps (ArrayView<AsyncTask> deps)		__NE___;
 			void		AddNextFrameDeps (AsyncTask dep)					__NE___;
 
-		ND_ RC<CMDBATCH>		CreateBatch (EQueueType queue, uint submitIdx, StringView dbgName = Default)								__NE___;
-		ND_ RC<DRAWCMDBATCH>	BeginAsyncDraw (const RenderPassDesc &desc, StringView dbgName = Default, RGBA8u dbgColor = HtmlColor::Red)	__NE___;	// first subpass
+
+	// low lvel render graph api //
+	
+			// valid bits: [0..GraphicsConfig::MaxPendingCmdBatches)
+			void		SkipSubmitIndices (EQueueType queue, uint bits)		__NE___;
+
+		ND_ RC<CommandBatch_t>	BeginCmdBatch (EQueueType	queue,
+											   uint			submitIdx,
+											   ESubmitMode	mode = ESubmitMode::Auto,
+											   DebugLabel	dbg	 = Default)	__NE___;
+
+	// high level render graph //
+		ND_ RenderGraphImpl &		Graph ()								__NE___	{ return *_renderGraph; }
+
 
 		// valid only if used before/after 'BeginFrame()'
 		ND_ FrameUID				GetFrameId ()							C_NE___	{ return _frameId.load(); }
@@ -185,19 +218,23 @@
 
 		ND_ uint					GetMaxFrames ()							C_NE___	{ return _frameId.load().MaxFrames(); }
 		
-		ND_ RESMNGR &				GetResourceManager ()					__NE___	{ ASSERT( _resMngr );  return *_resMngr; }
-		ND_ DEVICE const&			GetDevice ()							C_NE___	{ return _device; }
+		ND_ ResourceManager_t&		GetResourceManager ()					__NE___	{ ASSERT( _resMngr );  return *_resMngr; }
+		ND_ Device_t const&			GetDevice ()							C_NE___	{ return _device; }
 		
-		#ifdef CMDPOOLMNGR
+	  #ifdef CMDPOOLMNGR
 		ND_ CMDPOOLMNGR &			GetCommandPoolManager ()				__NE___	{ ASSERT( _cmdPoolMngr );  return *_cmdPoolMngr; }
-		#endif
+	  #endif
 		
 		PROFILE_ONLY(
 		  ND_ RC<IGraphicsProfiler>	GetProfiler ()							__NE___	{ return _profiler.get(); }
 		)
+			
+		AE_SCHEDULER_PROFILING(
+			void  DbgForEachBatch (const Threading::ITaskDependencyManager::CheckDepFn_t &fn, Bool pendingOnly) __NE___;)
+
 
 	private:
-		explicit RTSCHEDULER (const DEVICE &dev);
+		explicit RTSCHEDULER (const Device_t &dev);
 		~RTSCHEDULER ();
 
 		ND_ static RTSCHEDULER*	_Instance ()								__NE___;
@@ -206,7 +243,7 @@
 			bool	_FlushQueue (EQueueType q, FrameUID frameId, bool forceFlush);
 		
 		// returns 'false' if not complete
-		ND_ bool	_IsFrameComplete (FrameUID frameId);
+		ND_ bool	_IsFrameCompleted (FrameUID frameId);
 
 		ND_ bool	_WaitAll (milliseconds timeout);
 		
@@ -214,4 +251,8 @@
 			void	_SetState (EState newState)						{ _state.store( newState ); }
 		ND_ EState	_GetState ()									{ return _state.load(); }
 		
-	
+//-----------------------------------------------------------------------------
+
+#undef SUFFIX
+#undef CMDPOOLMNGR
+#undef ENABLE_VK_TIMELINE_SEMAPHORE

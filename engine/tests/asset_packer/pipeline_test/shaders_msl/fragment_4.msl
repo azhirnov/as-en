@@ -1,0 +1,10 @@
+
+
+[[fragment]]
+AE_STAGE_OUT  Main (AE_STAGE_IN( in ),
+					AE_SHADER_RESOURCES)
+{
+	AE_STAGE_OUT	out;
+	out.out_Color = descSet0.un_ColorTexture.sample( un_ColorTexture_sampler, in.texcoord ) * in.color;
+	return out;
+}

@@ -253,6 +253,7 @@ namespace AE::Base
 			explicit TempBuffer (void* ptr, Bytes size)			__NE___	: ptr{ptr}, size{size} {}
 		};
 
+	private:
 		static constexpr uint	_BufferSize = 1 << 14;
 
 

@@ -52,6 +52,10 @@ namespace AE::Graphics
 		
 		using ExtensionName_t	= FixedString<VK_MAX_EXTENSION_NAME_SIZE>;
 		using ExtensionSet_t	= FlatHashSet< ExtensionName_t >;
+		
+		static constexpr uint	MaxQueueFamilies = 32;
+		using QueueFamilyProperties_t	= FixedArray< VkQueueFamilyProperties, MaxQueueFamilies >;
+		using QueueCount_t				= FixedArray< uint, MaxQueueFamilies >;
 
 
 	// variables
@@ -111,18 +115,18 @@ namespace AE::Graphics
 		ND_ bool  HasInstanceExtension (StringView name)		C_NE___;
 		ND_ bool  HasDeviceExtension (StringView name)			C_NE___;
 		
-		bool  SetObjectName (ulong id, NtStringView name, VkObjectType type) C_NE___;
+			bool  SetObjectName (ulong id, NtStringView name, VkObjectType type)							C_NE___;
 
-		void  GetQueueFamilies (EQueueMask mask, OUT VQueueFamilyIndices_t &) C_NE___;
+			void  GetQueueFamilies (EQueueMask mask, OUT VQueueFamilyIndices_t &)							C_NE___;
 		
-		bool  GetMemoryTypeIndex (uint memoryTypeBits, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits optFlags,
-								  VkMemoryPropertyFlagBits excludeFlags, OUT uint &memoryTypeIndex)		C_NE___;
-		bool  GetMemoryTypeIndex (uint memoryTypeBits, EMemoryType memType, OUT uint &memoryTypeIndex)	C_NE___;
+		ND_ bool  GetMemoryTypeIndex (uint memoryTypeBits, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits optFlags,
+									  VkMemoryPropertyFlagBits excludeFlags, OUT uint &memoryTypeIndex)		C_NE___;
+		ND_ bool  GetMemoryTypeIndex (uint memoryTypeBits, EMemoryType memType, OUT uint &memoryTypeIndex)	C_NE___;
 		
-		bool  CheckConstantLimits ()			C_NE___;
-		bool  CheckExtensions ()				C_NE___;
+		ND_ bool  CheckConstantLimits ()						C_NE___;
+		ND_ bool  CheckExtensions ()							C_NE___;
 
-		void  InitFeatureSet (OUT FeatureSet &) C_NE___;
+			void  InitFeatureSet (OUT FeatureSet &)				C_NE___;
 	};
 
 
@@ -145,13 +149,13 @@ namespace AE::Graphics
 			FixedString<64>				debugName;
 
 		// methods
-			QueueCreateInfo () {}
+			QueueCreateInfo () __NE___ {}
 			
 			explicit QueueCreateInfo (VkQueueFlagBits			includeFlags,
 									  VkQueueFlagBits			excludeFlags	= Zero,
 									  float						priority		= 0.0f,
 									  VkQueueGlobalPriorityKHR	globalPriority	= VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR,
-									  StringView				name			= {}) :
+									  StringView				name			= {}) __NE___ :
 				includeFlags{includeFlags}, excludeFlags{excludeFlags},
 				priority{priority}, globalPriority{globalPriority},
 				debugName{name}
@@ -173,11 +177,6 @@ namespace AE::Graphics
 		};
 		using DebugReport_t = Function< void (const DebugReport &) >;
 
-	private:
-		static constexpr uint	MaxQueueFamilies = 32;
-		using QueueFamilyProperties_t	= FixedArray< VkQueueFamilyProperties, MaxQueueFamilies >;
-		using QueueCount_t				= FixedArray< uint, MaxQueueFamilies >;
-
 
 	// variable
 	private:
@@ -196,38 +195,38 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit VDeviceInitializer (bool enableInfoLog = false);
-		~VDeviceInitializer ();
+		explicit VDeviceInitializer (bool enableInfoLog = false)									__NE___;
+		~VDeviceInitializer ()																		__NE___;
 
-		ND_ InstanceVersion  GetMaxInstanceVersion () const;
+		ND_ InstanceVersion  GetMaxInstanceVersion ()												C_NE___;
 
 		ND_ bool  CreateInstance (NtStringView appName, NtStringView engineName, ArrayView<const char*> instanceLayers,
-								  ArrayView<const char*> instanceExtensions = {}, InstanceVersion version = {1,2}, uint appVer = 0, uint engineVer = 0);
+								  ArrayView<const char*> instanceExtensions = {}, InstanceVersion version = {1,2}, uint appVer = 0, uint engineVer = 0) __NE___;
 		//ND_ bool  SetInstance (VkInstance value, InstanceVersion version = {1,2}, ArrayView<const char*> instanceExtensions = {}, ArrayView<const char*> instanceLayers = {});
 
-			bool  DestroyInstance ();
+			bool  DestroyInstance ()																__NE___;
 
-		ND_ bool  ChooseDevice (StringView deviceName);
-		ND_ bool  ChooseHighPerformanceDevice ();
-		ND_ bool  SetPhysicalDevice (VkPhysicalDevice value);
+		ND_ bool  ChooseDevice (StringView deviceName)												__NE___;
+		ND_ bool  ChooseHighPerformanceDevice ()													__NE___;
+		ND_ bool  SetPhysicalDevice (VkPhysicalDevice value)										__NE___;
 
-		ND_ bool  CreateDefaultQueue ();
-		ND_ bool  CreateDefaultQueues (EQueueMask required, EQueueMask optional = Default);
-		ND_ bool  CreateQueues (ArrayView<QueueCreateInfo> queues);
+		ND_ bool  CreateDefaultQueue ()																__NE___;
+		ND_ bool  CreateDefaultQueues (EQueueMask required, EQueueMask optional = Default)			__NE___;
+		ND_ bool  CreateQueues (ArrayView<QueueCreateInfo> queues)									__NE___;
 		
-		ND_ bool  CreateLogicalDevice (ArrayView<const char*> extensions = {});
-			//bool  SetLogicalDevice (VkDevice value, ArrayView<const char*> extensions = {});
-			bool  DestroyLogicalDevice ();
+		ND_ bool  CreateLogicalDevice (ArrayView<const char*> extensions = {})						__NE___;
+			//bool  SetLogicalDevice (VkDevice value, ArrayView<const char*> extensions = {})		__NE___;
+			bool  DestroyLogicalDevice ()															__NE___;
 		
-			bool  CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT severity, DebugReport_t &&callback = Default);
-			void  DestroyDebugCallback ();
+			bool  CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT severity, DebugReport_t &&callback = Default)	__NE___;
+			void  DestroyDebugCallback ()															__NE___;
 
-		ND_ bool  Init (const VDeviceInitializer &otherDev);
-		ND_ bool  Init (const GraphicsCreateInfo &ci, ArrayView<const char*> instanceExtensions);
+		ND_ bool  Init (const VDeviceInitializer &otherDev)											__NE___;
+		ND_ bool  Init (const GraphicsCreateInfo &ci, ArrayView<const char*> instanceExtensions)	__NE___;
 
-		ND_ static ArrayView<const char*>	GetRecomendedInstanceLayers ();
+		ND_ static ArrayView<const char*>	GetRecomendedInstanceLayers ()							__NE___;
 
-		ND_ VulkanDeviceFnTable &			EditDeviceFnTable ()			{ DRC_EXLOCK( _drCheck ); return _deviceFnTable; }
+		ND_ VulkanDeviceFnTable &			EditDeviceFnTable ()									__NE___	{ DRC_EXLOCK( _drCheck ); return _deviceFnTable; }
 
 
 	private:
@@ -236,32 +235,35 @@ namespace AE::Graphics
 		#undef  VKFEATS_FN_DECL
 		
 		ND_ bool  _CreateInstance (const char* appName, const char* engineName, ArrayView<const char*> instanceLayers,
-								   ArrayView<const char*> instanceExtensions, InstanceVersion version, uint appVer, uint engineVer);
+								   ArrayView<const char*> instanceExtensions, InstanceVersion version, uint appVer, uint engineVer) __Th___;
 
-		void  _ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers, INOUT uint &version) const;
-		void  _ValidateInstanceLayers (INOUT Array<const char*> &layers) const;
-		void  _ValidateInstanceExtensions (INOUT Array<const char*> &ext) const;
-		void  _ValidateDeviceExtensions (VkPhysicalDevice physDev, INOUT Array<const char*> &ext) const;
-		void  _ValidateSpirvVersion (OUT SpirvVersion &ver) const;
-		void  _UpdateDeviceVersion (VkPhysicalDevice physicalDevice, OUT DeviceVersion &devVersion) const;
-		void  _SetResourceFlags (OUT ResourceFlags &) const;
-		void  _OnCreateInstance (ArrayView<const char*> instanceExtensions, ArrayView<const char*> instanceLayers);
-		void  _InitDeviceProperties (OUT DeviceProperties &props) const;
+		void  _ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers, INOUT uint &version)		C_Th___;
+		void  _ValidateInstanceLayers (INOUT Array<const char*> &layers)												C_Th___;
+		void  _ValidateInstanceExtensions (INOUT Array<const char*> &ext)												C_Th___;
+		bool  _ChooseHighPerformanceDevice ()																			__Th___;
+		bool  _CreateLogicalDevice (ArrayView<const char*> extensions)													__Th___;
+		void  _ValidateDeviceExtensions (VkPhysicalDevice physDev, INOUT Array<const char*> &ext)						C_Th___;
+		void  _ValidateSpirvVersion (OUT SpirvVersion &ver)																C_NE___;
+		void  _UpdateDeviceVersion (VkPhysicalDevice physicalDevice, OUT DeviceVersion &devVersion)						C_NE___;
+		void  _SetResourceFlags (OUT ResourceFlags &)																	C_NE___;
+		void  _OnCreateInstance (ArrayView<const char*> instanceExtensions, ArrayView<const char*> instanceLayers)		__Th___;
 
-		void  _LogInstance (ArrayView<const char*> instanceLayers) const;
-		void  _LogPhysicalDevices () const;
-		void  _LogLogicalDevice () const;
-		void  _LogResourceFlags () const;
+		void  _LogInstance (ArrayView<const char*> instanceLayers)														C_Th___;
+		void  _LogPhysicalDevices ()																					C_NE___;
+		void  _LogLogicalDevice ()																						C_Th___;
+		void  _LogResourceFlags ()																						C_Th___;
 
-		void  _InitQueues (ArrayView<VkQueueFamilyProperties> props, INOUT Queues_t &queues, INOUT QueueTypes_t &qtypes) const;
-		void  _ValidateQueueStages (INOUT Queues_t &queues) const;
+		void  _InitQueues (ArrayView<VkQueueFamilyProperties> props, INOUT Queues_t &queues, INOUT QueueTypes_t &qtypes)C_NE___;
+		void  _ValidateQueueStages (INOUT Queues_t &queues)																C_NE___;
 		
+		// new debug api
 		VKAPI_ATTR static VkBool32 VKAPI_CALL
 			_DebugUtilsCallback (VkDebugUtilsMessageSeverityFlagBitsEXT			messageSeverity,
 								 VkDebugUtilsMessageTypeFlagsEXT				messageTypes,
 								 const VkDebugUtilsMessengerCallbackDataEXT*	pCallbackData,
-								 void*											pUserData);
+								 void*											pUserData) __NE___;
 		
+		// old debug api for mobile devices
 		VKAPI_ATTR static VkBool32 VKAPI_CALL
 			_DebugReportCallback (VkDebugReportFlagsEXT			flags,
 								  VkDebugReportObjectTypeEXT	objectType,
@@ -270,9 +272,9 @@ namespace AE::Graphics
 								  int							/*messageCode*/,
 								  const char*					/*pLayerPrefix*/,
 								  const char*					pMessage,
-								  void*							pUserData);
+								  void*							pUserData) __NE___;
 
-		void  _DebugReport (const DebugReport &);
+		void  _DebugReport (const DebugReport &) __Th___;
 	};
 	
 	static constexpr VkDebugUtilsMessageSeverityFlagsEXT	DefaultDebugMessageSeverity =	//VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |

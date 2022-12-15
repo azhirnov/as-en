@@ -44,12 +44,12 @@ extern int Test_GraphicsHL (IApplication &app, IWindow &wnd)
 		WndListener (IApplication &app) : _app{app} {}
 		~WndListener () override {}
 		
-		void OnStateChanged (IWindow &, EState) override {}
-		void OnResize (IWindow &, const uint2 &) override {}
-		void OnUpdate (IWindow &) override {}
-		void OnSurfaceDestroyed (IWindow &) override {}
+		void OnStateChanged (IWindow &, EState)		__NE_OV {}
+		void OnResize (IWindow &, const uint2 &)	__NE_OV {}
+		void OnUpdate (IWindow &)					__NE_OV {}
+		void OnSurfaceDestroyed (IWindow &)			__NE_OV {}
 
-		void OnSurfaceCreated (IWindow &wnd) override
+		void OnSurfaceCreated (IWindow &wnd)		__NE_OV
 		{
 			GraphicsTests( _app, wnd );
 
@@ -72,13 +72,13 @@ extern int Test_GraphicsHL (IApplication &app, IWindow &wnd)
 			CHECK_FATAL( Scheduler().Setup( cfg ));
 		}
 
-		~AppListener () override
+		~AppListener () __NE_OV
 		{
 			Scheduler().Release();
 			TaskScheduler::DestroyInstance();
 		}
 
-		void  OnStart (IApplication &app) override
+		void  OnStart (IApplication &app) __NE_OV
 		{
 			UnitTests();
 			
@@ -86,16 +86,17 @@ extern int Test_GraphicsHL (IApplication &app, IWindow &wnd)
 			CHECK_FATAL( _window );
 		}
 		
-		void  BeforeWndUpdate (IApplication &) override {}
+		void  BeforeWndUpdate (IApplication &) __NE_OV {}
 
-		void  AfterWndUpdate (IApplication &app) override
+		void  AfterWndUpdate (IApplication &app) __NE_OV
 		{
 			if ( _window and _window->GetState() == IWindow::EState::Destroyed )
 				app.Terminate();
 		}
 
-		void  OnStop (IApplication &) override {}
+		void  OnStop (IApplication &) __NE_OV {}
 	};
+
 
 	Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 	{

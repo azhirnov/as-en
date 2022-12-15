@@ -21,7 +21,7 @@ namespace _hidden_
 			Destroyed,
 			InProgress,
 			_Finished,
-			Complete,
+			Completed,
 			Cancelled,
 		};
 
@@ -34,7 +34,7 @@ namespace _hidden_
 		
 		struct ResultWithRC : Result
 		{
-			RC<IAsyncDataSourceRequest>		self;
+			RC<IAsyncDataSourceRequest>		request;
 		};
 
 		using Promise_t	= Promise< ResultWithRC >;
@@ -53,7 +53,7 @@ namespace _hidden_
 
 		ND_ EStatus				Status ()		C_NE___ { return _status.load(); }
 
-		ND_ bool				IsComplete ()	C_NE___	{ return Status() == EStatus::Complete; }
+		ND_ bool				IsCompleted ()	C_NE___	{ return Status() == EStatus::Completed; }
 		ND_ bool				IsCancelled ()	C_NE___	{ return Status() == EStatus::Cancelled; }
 		ND_ bool				IsFinished ()	C_NE___	{ return Status() >  EStatus::_Finished; }
 
@@ -64,8 +64,8 @@ namespace _hidden_
 
 } // _hidden_
 
-	using AsyncDSRequest		= RC< _hidden_::IAsyncDataSourceRequest >;
-	using WeakAsyncDSRequest	= _hidden_::_TaskDependency< AsyncDSRequest, false >;
+	using AsyncDSRequest		= RC< Threading::_hidden_::IAsyncDataSourceRequest >;
+	using WeakAsyncDSRequest	= Threading::_hidden_::_TaskDependency< AsyncDSRequest, false >;
 
 
 
@@ -92,8 +92,9 @@ namespace _hidden_
 
 		ND_ virtual auto	ReadBlock (Bytes offset, Bytes size, RC<SharedMem> dstBlock)__NE___ -> ReadRequestPtr = 0;
 		ND_ virtual auto	ReadBlock (Bytes offset, Bytes size)						__NE___ -> ReadRequestPtr = 0;
-
-		ND_ virtual void	CancelAllRequests ()	__NE___ = 0;
+		
+		// returns 'true' if cancelled, 'false' if all requests already complete/cancelled or on other error.
+		ND_ virtual bool	CancelAllRequests ()	__NE___ = 0;
 	};
 
 
@@ -120,9 +121,10 @@ namespace _hidden_
 
 		ND_ virtual auto	WriteBlock (Bytes offset, Bytes size, RC<SharedMem> srcBlock) __NE___ -> WriteRequestPtr = 0;
 
-		ND_ virtual void	CancelAllRequests ()__NE___ = 0;
-
 		ND_ virtual auto	Alloc (Bytes size)	__NE___ -> RC<SharedMem> = 0;
+		
+		// returns 'true' if cancelled, 'false' if all requests already complete/cancelled or on other error.
+		ND_ virtual bool	CancelAllRequests ()__NE___ = 0;
 	};
 
 

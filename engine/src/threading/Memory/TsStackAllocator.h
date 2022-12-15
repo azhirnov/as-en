@@ -42,13 +42,13 @@ namespace AE::Base
 
 		StackAllocator (Self &&other)							__NE___
 		{
-			SAFE_EXLOCK( _guard, other._guard );
+			EXLOCK( _guard, other._guard );
 			_base = RVRef(other._base);
 		}
 
 		Self&  operator = (Self &&rhs)							__NE___
 		{
-			SAFE_EXLOCK( _guard, rhs._guard );
+			EXLOCK( _guard, rhs._guard );
 			_base = RVRef(rhs._base);
 			return *this;
 		}

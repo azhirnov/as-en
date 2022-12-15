@@ -60,12 +60,13 @@ namespace AE::PipelineCompiler
 	};
 	
 
-	enum class DescrSetUID			 : uint { Unknown = ~0u };
+	enum class DescrSetUID			: uint { Unknown = ~0u };
 	enum class PipelineLayoutUID	: uint { Unknown = ~0u };
-	enum class RenderTechUID		: uint	{ Unknown = ~0u };
+	enum class RenderTechUID		: uint { Unknown = ~0u };
+	enum class RTShaderBindingUID	: uint { Unknown = ~0u };
 
-	enum class RenderStateUID		 : uint	{ Unknown = ~0u };
-	enum class DepthStencilStateUID	 : uint	{ Unknown = ~0u };
+	enum class RenderStateUID		: uint { Unknown = ~0u };
+	enum class DepthStencilStateUID	: uint { Unknown = ~0u };
 
 
 	enum class ShaderUID : uint
@@ -128,7 +129,7 @@ namespace AE::PipelineCompiler
 		UNorm				= 0x4 << 4,
 		Int					= 0x5 << 4,
 		UInt				= 0x6 << 4,
-		sRGB				= 0x7 << 4,
+		sRGB				= 0x7 << 4,	// unorm
 		Depth				= 0x8 << 4,
 		Stencil				= 0x9 << 4,
 		DepthStencil		= 0xA << 4,
@@ -137,6 +138,8 @@ namespace AE::PipelineCompiler
 		Shadow				= 1 << 8,
 	};
 	AE_BIT_OPERATORS( EImageType );
+	
+	ND_ bool  EImageType_IsCompatible (EImageType lhs, EImageType rhs);
 
 
 
@@ -150,13 +153,15 @@ namespace AE::PipelineCompiler
 		struct Binding
 		{
 			// Vulkan: unique binding index
-			ushort		vkIndex			= UMax;
+			uint		vkIndex			= UMax;
 
 			// Metal
 			union {
-				ushort	mtlIndex		= UMax;	// index in argument buffer, if specified in 'usage'
-				ubyte	mtlPerStageIndex [2];	// [0] - vertex, tile, compute, [1] - fragment
+				uint					mtlIndex		= UMax;	// index in argument buffer, if specified in 'usage'
+				MetalBindingPerStage	mtlPerStageIndex;
 			};
+
+			Binding () {}
 
 			ND_ bool  IsVkDefined  ()	const	{ return vkIndex != UMax; }
 			ND_ bool  IsMetalDefined ()	const	{ return mtlIndex != UMax; }
@@ -164,13 +169,14 @@ namespace AE::PipelineCompiler
 			ND_ bool  operator == (const Binding &rhs) const	{ return (vkIndex == rhs.vkIndex) & All( mtlIndex == rhs.mtlIndex ); }
 			ND_ bool  operator != (const Binding &rhs) const	{ return not (*this == rhs); }
 		};
+		STATIC_ASSERT( sizeof(Binding) == 8 );
 		
 		using BindingIndex_t		= decltype(Binding::vkIndex);
-		using ArraySize_t			= ushort;
+		using ArraySize_t			= uint;
 		using DynamicOffsetIdx_t	= ushort;
 
 		static constexpr BindingIndex_t	InvalidIdx		= UMax;
-		static constexpr BindingIndex_t	UnassignedIdx	= 0x7FFF;	// for immutable sampler in Metal
+		static constexpr BindingIndex_t	UnassignedIdx	= ~0u - 1;	// for immutable sampler in Metal
 		
 		struct Buffer
 		{
@@ -220,10 +226,10 @@ namespace AE::PipelineCompiler
 
 		struct Uniform
 		{
+			Binding				binding;
+			ArraySize_t			arraySize	= UMax;			// 0 for runtime sized array
 			EDescriptorType		type		= Default;
 			EShaderStages		stages		= Default;
-			ArraySize_t			arraySize	= UMax;			// 0 for runtime sized array
-			Binding				binding;
 			union {
 				Buffer				buffer;
 				TexelBuffer			texelBuffer;
@@ -240,7 +246,7 @@ namespace AE::PipelineCompiler
 
 			Uniform () {}
 		};
-		STATIC_ASSERT( sizeof(Uniform) == 24 );
+		STATIC_ASSERT( sizeof(Uniform) == 28 );
 
 		using Uniforms_t	= Array<Pair< UniformName, Uniform >>;
 		using Samplers_t	= Array< SamplerName >;
@@ -256,6 +262,7 @@ namespace AE::PipelineCompiler
 		Samplers_t		samplerStorage;
 		DSLayoutName	name;
 		EDescSetUsage	usage	= Default;
+		EShaderStages	stages	= Default;
 
 
 	// methods
@@ -337,8 +344,9 @@ namespace AE::PipelineCompiler
 	public:
 		struct DescSetLayout
 		{
-			DescrSetUID		uid		= Default;
-			uint			index	= UMax;
+			DescrSetUID				uid			= Default;
+			uint					vkIndex		= UMax;
+			MetalBindingPerStage	mtlIndex;
 
 			ND_ bool	operator == (const DescSetLayout &rhs) const;
 			ND_ HashVal	CalcHash () const;
@@ -516,8 +524,8 @@ namespace AE::PipelineCompiler
 		FSNameArr_t				features;
 		PipelineLayoutUID		layout				= Default;
 		ShaderUID				shader				= Default;
-		ushort3					defaultLocalSize	{0};
-		ushort3					localSizeSpec		{ComputePipelineDesc::UndefinedLocalSize};
+		packed_ushort3			defaultLocalSize	{0};
+		packed_ushort3			localSizeSpec		{ComputePipelineDesc::UndefinedLocalSize};
 
 
 	// methods
@@ -585,10 +593,10 @@ namespace AE::PipelineCompiler
 		EPrimitive				outputTopology			= Default;
 		uint					maxVertices				= 0;
 		uint					maxIndices				= 0;
-		ushort3					taskDefaultLocalSize	{0};
-		ushort3					taskLocalSizeSpec		{MeshPipelineDesc::UndefinedLocalSize};
-		ushort3					meshDefaultLocalSize	{0};
-		ushort3					meshLocalSizeSpec		{MeshPipelineDesc::UndefinedLocalSize};
+		packed_ushort3			taskDefaultLocalSize	{0};
+		packed_ushort3			taskLocalSizeSpec		{MeshPipelineDesc::UndefinedLocalSize};
+		packed_ushort3			meshDefaultLocalSize	{0};
+		packed_ushort3			meshLocalSizeSpec		{MeshPipelineDesc::UndefinedLocalSize};
 		bool					earlyFragmentTests		= true;
 		
 
@@ -808,6 +816,53 @@ namespace AE::PipelineCompiler
 
 
 	//
+	// Serializable Ray Tracing Shader Binding Table
+	//
+	class SerializableRTShaderBindingTable final : public Serializing::ISerializable
+	{
+	// types
+	public:
+		static constexpr uint	INVALID_INDEX	= UMax;
+
+		struct BindingInfo
+		{
+			uint	index	= INVALID_INDEX;
+
+			ND_ bool	operator == (const BindingInfo &rhs)	const	{ return index == rhs.index; }
+			ND_ HashVal	CalcHash ()								const	{ return HashOf(index); }
+		};
+		using BindingTable_t	= ArrayView< BindingInfo >;
+
+
+	// variables
+	public:
+		PipelineName::Optimized_t	pplnName;
+
+		BindingInfo					raygen;
+		BindingTable_t				miss;
+		BindingTable_t				hit;
+		BindingTable_t				callable;
+
+
+	// methods
+	public:
+		SerializableRTShaderBindingTable () {}
+		
+		ND_ bool	operator == (const SerializableRTShaderBindingTable &rhs) const;
+		ND_ HashVal	CalcHash () const;
+
+		#ifdef AE_TEST_PIPELINE_COMPILER
+		ND_ String  ToString (const HashToName &) const;
+		#endif
+
+		// ISerializable
+		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
+	};
+
+
+
+	//
 	// Serializable Render Technique
 	//
 	class SerializableRenderTechnique final : public Serializing::ISerializable
@@ -816,6 +871,7 @@ namespace AE::PipelineCompiler
 	public:
 		using PipelineList_t	= ArrayView<Pair< PipelineName, PipelineSpecUID >>;
 		using FeatureSetList_t	= ArrayView< FeatureSetName >;
+		using SBTList_t			= ArrayView<Pair< RTShaderBindingName, RTShaderBindingUID >>;
 
 		class Pass final : public Serializing::ISerializable
 		{
@@ -846,6 +902,7 @@ namespace AE::PipelineCompiler
 		RenderTechName		name;
 		ArrayView< Pass >	passes;
 		PipelineList_t		pipelines;
+		SBTList_t			rtSBTs;
 
 
 	// methods
@@ -896,30 +953,30 @@ namespace AE::PipelineCompiler
 		ShaderBytecode (MetalBytecode_t code, const SpecConstants_t &spec);
 		ShaderBytecode (SpirvWithTrace code, const SpecConstants_t &spec);
 		
-		ND_ bool	operator == (const ShaderBytecode &rhs) const;
-		ND_ HashVal	CalcHash () const;
+		ND_ bool	operator == (const ShaderBytecode &rhs) C_NE___;
+		ND_ HashVal	CalcHash ()								C_NE___;
 		
 		#ifdef AE_TEST_PIPELINE_COMPILER
-		ND_ String  ToString (const HashToName &)	const;
-		ND_ String  ToString2 (const HashToName &)	const;
+		ND_ String  ToString (const HashToName &)			const;
+		ND_ String  ToString2 (const HashToName &)			const;
 		#endif
 
-		ND_ Bytes	GetDataSize ()					const	{ return dataSize; }
-		ND_ bool	WriteData (WStream &)			const;
-		ND_ bool	ReadData (RStream &stream);
+		ND_ Bytes	GetDataSize ()							C_NE___	{ return dataSize; }
+		ND_ bool	WriteData (WStream &)					C_NE___;
+		ND_ bool	ReadData (RStream &stream)				__NE___;
 
-		ND_ bool	IsSpirv ()						const	{ return HoldsAlternative< SpirvBytecode_t >( code ); }
-		ND_ bool	IsSpirvWithTrace ()				const	{ return HoldsAlternative< SpirvWithTrace >( code ); }
-		ND_ bool	IsMetalBytecode ()				const	{ return HoldsAlternative< MetalBytecode_t >( code ); }
+		ND_ bool	IsSpirv ()								C_NE___	{ return HoldsAlternative< SpirvBytecode_t >( code ); }
+		ND_ bool	IsSpirvWithTrace ()						C_NE___	{ return HoldsAlternative< SpirvWithTrace >( code ); }
+		ND_ bool	IsMetalBytecode ()						C_NE___	{ return HoldsAlternative< MetalBytecode_t >( code ); }
 		
 		// ISerializable
-		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
-		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
+		bool  Serialize (Serializing::Serializer &)			C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &)		__NE_OV;
 
 	private:
-		ND_ bool  _ReadSpirvData (Bytes spvDataSize, RStream &, OUT SpirvBytecode_t &);
-		ND_ bool  _ReadMetalData (RStream &, OUT MetalBytecode_t &);
-		ND_ bool  _ReadDbgSpirvData (RStream &, OUT SpirvWithTrace &);
+		ND_ bool  _ReadSpirvData (Bytes spvDataSize, RStream &, OUT SpirvBytecode_t &)	__NE___;
+		ND_ bool  _ReadMetalData (RStream &, OUT MetalBytecode_t &)						__NE___;
+		ND_ bool  _ReadDbgSpirvData (RStream &, OUT SpirvWithTrace &)					__NE___;
 
 		void  _CopySpecConst (const SpecConstants_t &spec);
 	};
@@ -986,6 +1043,8 @@ namespace AE::PipelineCompiler
 		using PipelineTemplMap_t			= HashMap< PipelineTmplName, PipelineTemplUID >;
 		using PipelineSpecMap_t				= HashMap< PipelineName, PipelineSpecUID >;
 
+		using RTShaderBindingTables_t		= Array< SerializableRTShaderBindingTable >;
+
 	public:
 		enum class EMarker : uint
 		{
@@ -1011,6 +1070,8 @@ namespace AE::PipelineCompiler
 			RayTracingPipelineSpec,
 			TilePipelineSpec,
 
+			RTShaderBindingTable,
+
 			RenderTechniques,
 			
 			SpirvShaders,		// Vulkan
@@ -1027,6 +1088,7 @@ namespace AE::PipelineCompiler
 		static constexpr uint	MaxRenTechCount			= 1 << 12;
 		static constexpr uint	MaxShaderCount			= 1 << 24;
 		static constexpr uint	MaxStateCount			= 1 << 16;
+		static constexpr uint	MaxSBTCount				= 1 << 16;
 		
 
 
@@ -1072,6 +1134,8 @@ namespace AE::PipelineCompiler
 		PipelineTemplMap_t			_pipelineTemplMap;
 		PipelineSpecMap_t			_pipelineSpecMap;
 
+		RTShaderBindingTables_t		_shaderBindingTables;
+
 		RenderTechniques_t			_rtech;
 
 		ShaderBytecodeArr_t			_spirvShaders;
@@ -1107,6 +1171,8 @@ namespace AE::PipelineCompiler
 		ND_ PipelineSpecUID		AddPipeline (const PipelineName &name, SerializableRayTracingPipelineSpec);
 
 		ND_ RenderTechUID		AddRenderTech (SerializableRenderTechnique);
+
+		ND_ RTShaderBindingUID	AddSBT (SerializableRTShaderBindingTable);
 
 		ND_ ShaderUID			AddSpirvShader (SpirvBytecode_t spirv, const SpecConstants_t &spec);
 		ND_ ShaderUID			AddSpirvShader (SpirvWithTrace dbgSpirv, const SpecConstants_t &spec);

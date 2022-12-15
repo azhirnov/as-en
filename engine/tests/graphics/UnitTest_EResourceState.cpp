@@ -11,8 +11,8 @@ namespace
 {
 	static void  EResourceState_Test1 ()
 	{
-		STATIC_ASSERT( EResourceState_RequireShaderStage( EResourceState::ShaderUniform ));
-		STATIC_ASSERT( not EResourceState_RequireShaderStage( EResourceState::Host_RW ));
+		TEST( EResourceState_RequireShaderStage( EResourceState::ShaderUniform ));
+		TEST( not EResourceState_RequireShaderStage( EResourceState::Host_RW ));
 		
 		TEST( not EResourceState_IsReadOnly( EResourceState::ShaderStorage_Write ));
 		TEST( EResourceState_IsReadOnly( EResourceState::ShaderStorage_Read ));

@@ -20,10 +20,10 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		constexpr MultiSamples () __NE___ {}
+		constexpr MultiSamples ()									__NE___ {}
 
 		template <typename T, typename = EnableIf<IsUnsignedInteger<T>> >
-		explicit MultiSamples (T samples) __NE___ : _value( CheckCast<ubyte>(IntLog2( samples )))
+		explicit MultiSamples (T samples)							__NE___ : _value( CheckCast<ubyte>(IntLog2( samples )))
 		{
 			ASSERT( IsPowerOfTwo( samples ));
 		}

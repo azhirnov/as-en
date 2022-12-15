@@ -15,7 +15,7 @@ const vec3	g_Colors[3] = vec3[](
 
 void dbg_EnableTraceRecording (bool b) {}
 
-void main ()
+void Main ()
 {
 	dbg_EnableTraceRecording( gl_VertexIndex == 1 || gl_VertexIndex == 2 );
 

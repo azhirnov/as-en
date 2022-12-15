@@ -388,19 +388,19 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  All (const TVec<T,2,Q> &v) __NE___
+	ND_ forceinline EnableIf<Math::_hidden_::IsBool<T>, bool>  All (const TVec<T,2,Q> &v) __NE___
 	{
 		return v.x & v.y;
 	}
 	
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  All (const TVec<T,3,Q> &v) __NE___
+	ND_ forceinline EnableIf<Math::_hidden_::IsBool<T>, bool>  All (const TVec<T,3,Q> &v) __NE___
 	{
 		return v.x & v.y & v.z;
 	}
 	
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  All (const TVec<T,4,Q> &v) __NE___
+	ND_ forceinline EnableIf<Math::_hidden_::IsBool<T>, bool>  All (const TVec<T,4,Q> &v) __NE___
 	{
 		return v.x & v.y & v.z & v.w;
 	}
@@ -413,19 +413,19 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  Any (const TVec<T,2,Q> &v) __NE___
+	ND_ forceinline EnableIf<Math::_hidden_::IsBool<T>, bool>  Any (const TVec<T,2,Q> &v) __NE___
 	{
 		return v.x | v.y;
 	}
 	
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  Any (const TVec<T,3,Q> &v) __NE___
+	ND_ forceinline EnableIf<Math::_hidden_::IsBool<T>, bool>  Any (const TVec<T,3,Q> &v) __NE___
 	{
 		return v.x | v.y | v.z;
 	}
 	
 	template <typename T, glm::qualifier Q>
-	ND_ forceinline EnableIf<_hidden_::IsBool<T>, bool>  Any (const TVec<T,4,Q> &v) __NE___
+	ND_ forceinline EnableIf<Math::_hidden_::IsBool<T>, bool>  Any (const TVec<T,4,Q> &v) __NE___
 	{
 		return v.x | v.y | v.z | v.w;
 	}

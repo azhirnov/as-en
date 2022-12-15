@@ -31,13 +31,13 @@ namespace AE::App
 		{
 		// interface
 		public:
-			virtual ~IAppListener () {}
+			virtual ~IAppListener ()						__NE___	{}
 
-			virtual void  BeforeWndUpdate (IApplication &) = 0;
-			virtual void  AfterWndUpdate (IApplication &) = 0;
+			virtual void  BeforeWndUpdate (IApplication &)	__NE___ = 0;
+			virtual void  AfterWndUpdate (IApplication &)	__NE___	= 0;
 
-			virtual void  OnStart (IApplication &) = 0;
-			virtual void  OnStop (IApplication &) = 0;
+			virtual void  OnStart (IApplication &)			__NE___	= 0;
+			virtual void  OnStop (IApplication &)			__NE___	= 0;
 		};
 
 		using Monitors_t		= FixedArray< Monitor, PlatformConfig::MaxMonitors >;
@@ -55,58 +55,58 @@ namespace AE::App
 		//   Windows, Linux, Mac supports multiple windows.
 		//   Thread safe: main thread only
 		//
-		ND_ virtual WindowPtr  CreateWindow (WndListenerPtr, const WindowDesc &wndDesc, IInputActions* dst = null) = 0;
+		ND_ virtual WindowPtr  CreateWindow (WndListenerPtr, const WindowDesc &wndDesc, IInputActions* dst = null)						__NE___ = 0;
 
 		
 		// Create VR device.
 		// Input actions can be used to redirect VR input actions to the same queue.
 		//   Thread safe: yes
 		//
-		ND_ virtual VRDevicePtr  CreateVRDevice (VRDevListenerPtr, IInputActions* dst = null, IVRDevice::EDeviceType type = Default) = 0;
+		ND_ virtual VRDevicePtr  CreateVRDevice (VRDevListenerPtr, IInputActions* dst = null, IVRDevice::EDeviceType type = Default)	__NE___ = 0;
 
 
 		// Read builtin file system.
 		//   Thread safe: no
 		//
-		ND_ virtual RC<IVirtualFileStorage>  OpenBuiltinStorage () = 0;
+		ND_ virtual RC<IVirtualFileStorage>  OpenBuiltinStorage ()																		__NE___	= 0;
 
 
 		// Returns array of monitors.
 		// Monitors must be updated if something has been changed (attached/detached monitor, monitor position changed in OS).
 		//   Thread safe: main thread only
 		//
-		ND_ virtual Monitors_t  GetMonitors (bool update = false) = 0;
+		ND_ virtual Monitors_t  GetMonitors (bool update = false)																		__NE___	= 0;
 
 
 		// Returns required extension names for Vulkan.
 		//   Thread safe: yes
 		//
-		ND_ virtual ArrayView<const char*>  GetVulkanInstanceExtensions () = 0;
+		ND_ virtual ArrayView<const char*>  GetVulkanInstanceExtensions ()																__NE___	= 0;
 
 
 		// Window may be closed from any thread,
 		// this method internally lock window to prevent destruction.
 		//   Thread safe: yes
 		//
-		//	virtual void  EnumWindows (const EnumWindowsFn_t &fn) = 0;
+		//	virtual void  EnumWindows (const EnumWindowsFn_t &fn)																		__NE___	= 0;
 
 
 		// Close all windows and delete app.
 		//   Thread safe: yes
 		//
-			virtual void  Terminate () = 0;
+			virtual void  Terminate ()																									__NE___	= 0;
 
 			
 		// Returns API/Framework name.
 		//   Thread safe: yes
 		//
-		ND_ virtual StringView  GetApiName () const = 0;
+		ND_ virtual StringView  GetApiName ()																							C_NE___ = 0;
 
 
 		// Returns time since startup.
 		//   Thread safe: yes
 		//
-		ND_ virtual Duration_t  GetTimeSinceStart () const = 0;
+		ND_ virtual Duration_t  GetTimeSinceStart ()																					C_NE___ = 0;
 
 
 		// TODO:

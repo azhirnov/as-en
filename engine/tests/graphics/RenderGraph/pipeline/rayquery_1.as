@@ -1,9 +1,12 @@
 
 void main ()
 {
+	if ( !IsVulkan() )
+		return;
+
 	{
 		DescriptorSetLayout@	ds = DescriptorSetLayout( "rquery1.ds1" );
-		ds.StorageImage( EShaderStages::Compute, "un_OutImage", ArraySize(1), EImageType::FImage2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+		ds.StorageImage( EShaderStages::Compute, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
 		ds.RayTracingScene( EShaderStages::Compute, "un_RtScene", ArraySize(1) );
 	}
 	{

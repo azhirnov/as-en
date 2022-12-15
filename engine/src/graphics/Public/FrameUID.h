@@ -84,6 +84,8 @@ namespace AE::Graphics
 		ND_ uint		MaxFrames ()					C_NE___	{ return uint(_bits.maxFrames); }
 		ND_ bool		IsValid ()						C_NE___	{ return _bits.maxFrames > 0; }
 
+		ND_ FrameUID	Next ()							C_NE___	{ return FrameUID{*this}.Inc(); }
+
 
 		FrameUID&  Inc () __NE___
 		{

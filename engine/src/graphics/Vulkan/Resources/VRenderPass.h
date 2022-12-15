@@ -63,27 +63,27 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VRenderPass () {}
-		~VRenderPass ();
+		VRenderPass ()																__NE___	{}
+		~VRenderPass ()																__NE___;
 
 		ND_ bool  Create (VResourceManager& resMngr, const SerializableRenderPassInfo &compatInfo, const SerializableVkRenderPass &vkInfo,
-						  VRenderPassID compatId, StringView dbgName = Default);
-			void  Destroy (VResourceManager &);
+						  VRenderPassID compatId, StringView dbgName = Default)		__NE___;
+			void  Destroy (VResourceManager &)										__NE___;
 
-		ND_ bool  GetMaxTileWorkgroupSize (const VDevice &dev, OUT uint2 &tileSize) const;
-		ND_ uint2 GetTileSizeGranularity (const VDevice &dev) const;
+		ND_ bool  GetMaxTileWorkgroupSize (const VDevice &dev, OUT uint2 &tileSize)	C_NE___;
+		ND_ uint2 GetTileSizeGranularity (const VDevice &dev)						C_NE___;
 
-		ND_ VkRenderPass				Handle ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _renderPass; }
-		ND_ VRenderPassID				CompatibpleRP ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _compatibleRP; }
+		ND_ VkRenderPass				Handle ()									C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderPass; }
+		ND_ VRenderPassID				CompatibpleRP ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _compatibleRP; }
 
-		ND_ AttachmentMap_t const&		AttachmentMap ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _attachmentMap; }
-		ND_ AttachmentStates_t const&	AttachmentStates ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _attStates; }
-		ND_ SPNameToIdx_t const&		SubpassMap ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _subpassMap; }
-		ND_ ArrayView<SubpassInfo>		Subpasses ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _subpasses; }
+		ND_ AttachmentMap_t const&		AttachmentMap ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _attachmentMap; }
+		ND_ AttachmentStates_t const&	AttachmentStates ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _attStates; }
+		ND_ SPNameToIdx_t const&		SubpassMap ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassMap; }
+		ND_ ArrayView<SubpassInfo>		Subpasses ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpasses; }
 
-		DEBUG_ONLY(  ND_ StringView		GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView		GetDebugName ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
-		DEBUG_ONLY( ND_ SubpassName::Optimized_t  GetFirstSubpassName () const { DRC_SHAREDLOCK( _drCheck );  return _firstSPName; })
+		DEBUG_ONLY( ND_ SubpassName::Optimized_t  GetFirstSubpassName ()			C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _firstSPName; })
 	};
 
 

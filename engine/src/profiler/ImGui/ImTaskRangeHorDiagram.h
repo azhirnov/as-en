@@ -13,6 +13,8 @@
 
 #ifdef AE_ENABLE_IMGUI
 
+# include "base/Containers/FixedMap.h"
+# include "base/Containers/FixedArray.h"
 # include "profiler/ImGui/Common.h"
 
 namespace AE::Profiler
@@ -31,8 +33,8 @@ namespace AE::Profiler
 			String		name;
 			RGBA8u		color;
 			uint		threadIdx;
-			double		begin;
-			double		end;
+			double		begin;		// nanoseconds
+			double		end;		// nanoseconds
 		};
 
 		struct ThreadInfo
@@ -41,9 +43,13 @@ namespace AE::Profiler
 			RGBA8u		color;
 		};
 
-		using UniqueThread_t	= FlatHashMap< usize, uint >;		// thread ID to index
-		using ThreadInfoMap_t	= Array< ThreadInfo >;
+		static constexpr uint	MaxThreads = 64;
+
+		using InfoIndex			= ubyte;
+		using UniqueThread_t	= FixedMap< usize, InfoIndex, MaxThreads >;		// thread ID to index
+		using ThreadInfoMap_t	= FixedArray< ThreadInfo, MaxThreads >;
 		using TaskArray_t		= Array< Task >;
+		using IdxInTInfoArr_t	= FixedArray< InfoIndex, MaxThreads >;
 
 		struct FrameData
 		{
@@ -51,10 +57,13 @@ namespace AE::Profiler
 
 			UniqueThread_t		threads;
 			ThreadInfoMap_t		threadInfos;
-			Array<uint>			sortedThreads;
 
-			double				min		= 0.0;
-			double				max		= 0.0;
+			// used to make thread position stable between frames
+			IdxInTInfoArr_t		sortedThreads;
+			IdxInTInfoArr_t		sortedThreads2;
+
+			double				min		= 0.0;	// nanoseconds
+			double				max		= 0.0;	// nanoseconds
 
 			void  Clear ();
 		};
@@ -64,17 +73,21 @@ namespace AE::Profiler
 
 	// variables
 	private:
-		FrameHistory_t		_frames;
+		FrameHistory_t			_frames;
 
-		uint				_frameIdx	: 1;
-		uint				_maxThreads	= 0;
+		uint					_enableTreeView	: 1;
+		uint					_frameIdx		: 1;
+		uint					_maxThreads		: 30;
+
+		DRC_ONLY( DataRaceCheck	_drCheck;)
 
 		
 	// methods
 	public:
-		ImTaskRangeHorDiagram () : _frameIdx{0} {}
+		ImTaskRangeHorDiagram () : _enableTreeView{true}, _frameIdx{0}, _maxThreads{0} {}
 
 		void  Draw (INOUT RectF &region);
+		void  EnableTreeView (bool value)		{ _enableTreeView = value; }
 
 		void  Begin ();
 		void  Add (StringView name, RGBA8u color, double begin, double end, usize threadId, StringView threadName);

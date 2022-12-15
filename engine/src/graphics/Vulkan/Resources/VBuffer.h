@@ -32,34 +32,37 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VBuffer () {}
-		~VBuffer ();
+		VBuffer ()										__NE___	{}
+		~VBuffer ()										__NE___;
 
-		ND_ bool  Create (VResourceManager &, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		ND_ bool  Create (const VDevice &, const VulkanBufferDesc &desc, StringView dbgName);
-			void  Destroy (VResourceManager &);
+		ND_ bool  Create (VResourceManager &, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+		ND_ bool  Create (const VResourceManager &, const VulkanBufferDesc &desc, StringView dbgName)					__NE___;
+			void  Destroy (VResourceManager &)																			__NE___;
 		
-		ND_ VulkanBufferDesc	GetNativeDescription () const;
+		ND_ VulkanBufferDesc	GetNativeDescription () C_NE___;
 
-		ND_ VkBuffer			Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _buffer; }
-		ND_ VDeviceAddress		GetDeviceAddress ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _address; }
-		ND_ VMemoryID			MemoryID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ VkBuffer			Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _buffer; }
+		ND_ VDeviceAddress		GetDeviceAddress ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  ASSERT( HasDeviceAddress() );  return _address; }
+		ND_ VMemoryID			MemoryID ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 
-		ND_ BufferDesc const&	Description ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ Bytes				Size ()					const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.size; }
-		ND_ bool				IsExclusiveSharing ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.queues == Default; }
-		ND_ bool				HasDeviceAddress ()		const	{ DRC_SHAREDLOCK( _drCheck );  return AllBits( _desc.usage, EBufferUsage::ShaderAddress ); }
+		ND_ BufferDesc const&	Description ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
+		ND_ Bytes				Size ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.size; }
+		ND_ bool				IsExclusiveSharing ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.queues == Default; }
+		ND_ bool				HasDeviceAddress ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return AllBits( _desc.usage, EBufferUsage::ShaderAddress ); }
 		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 		
-		ND_ static bool	 IsSupported (const VDevice &dev, const BufferDesc &desc);
-		ND_ bool		 IsSupported (const VDevice &dev, const BufferViewDesc &desc) const;
+		ND_ static bool	 IsSupported (const VResourceManager &, const BufferDesc &desc)		__NE___;
+		ND_ bool		 IsSupported (const VResourceManager &, const BufferViewDesc &desc)	C_NE___;
 
-		ND_ static Bytes  GetMemoryAlignment (const VDevice &dev, const BufferDesc &desc);
+		ND_ static Bytes GetMemoryAlignment (const VDevice &dev, const BufferDesc &desc)	__NE___;
 		
-		ND_ static bool  IsSupportedForVertex (const VDevice &dev, EVertexType type);
-		ND_ static bool  IsSupportedForASVertex (const VDevice &dev, EVertexType type);
+		ND_ static bool  IsSupportedForVertex (const VResourceManager &, EVertexType type)	__NE___;
+		ND_ static bool  IsSupportedForASVertex (const VResourceManager &, EVertexType type)__NE___;
+
+	private:
+		ND_ bool  _InitDeviceAddress (const VDevice &dev);
 	};
 	
 

@@ -26,7 +26,7 @@ namespace AE::Math
 			 >
 	struct PhysicalQuantity
 	{
-		STATIC_ASSERT( IsFloatPoint<ValueType> and IsScalar<ValueType> );
+		//STATIC_ASSERT( IsFloatPoint<ValueType> and IsScalar<ValueType> );
 
 	// types
 	public:
@@ -237,7 +237,7 @@ namespace AE::Math
 		};
 	}
 	template <typename T>
-	static constexpr bool	IsPhysicalQuantity = _hidden_::_IsPhysicalQuantity<T>::value;
+	static constexpr bool	IsPhysicalQuantity = Math::_hidden_::_IsPhysicalQuantity<T>::value;
 	
 /*
 =================================================
@@ -263,72 +263,84 @@ namespace AE::Math
 	{
 		struct Scale
 		{
-			struct Minute			{ static constexpr T  Value = T(60); };						// m
-			struct Hour				{ static constexpr T  Value = T(60 * 60); };				// h
-			struct Day				{ static constexpr T  Value = T(24 * 60 * 60); };			// d
-			struct Year				{ static constexpr T  Value = T(36525 * 24 * 6 * 6); };		// y
+			struct Minute					{ static constexpr T  Value = T(60); };						// m
+			struct Hour						{ static constexpr T  Value = T(60 * 60); };				// h
+			struct Day						{ static constexpr T  Value = T(24 * 60 * 60); };			// d
+			struct Year						{ static constexpr T  Value = T(36525 * 24 * 6 * 6); };		// y
 
-			struct Deca				{ static constexpr T  Value = T(10); };
-			struct Hecto			{ static constexpr T  Value = T(1.0e+2); };
-			struct Kilo				{ static constexpr T  Value = T(1.0e+3); };
-			struct Mega				{ static constexpr T  Value = T(1.0e+6); };
-			struct Giga				{ static constexpr T  Value = T(1.0e+9); };
-			struct Tera				{ static constexpr T  Value = T(1.0e+12); };
-			struct Peta				{ static constexpr T  Value = T(1.0e+15); };
-			struct Exa				{ static constexpr T  Value = T(1.0e+18); };
-			struct Zetta			{ static constexpr T  Value = T(1.0e+21); };
-			struct Yotta			{ static constexpr T  Value = T(1.0e+24); };
+			struct Deca						{ static constexpr T  Value = T(10); };
+			struct Hecto					{ static constexpr T  Value = T(1.0e+2); };
+			struct Kilo						{ static constexpr T  Value = T(1.0e+3); };
+			struct Mega						{ static constexpr T  Value = T(1.0e+6); };
+			struct Giga						{ static constexpr T  Value = T(1.0e+9); };
+			struct Tera						{ static constexpr T  Value = T(1.0e+12); };
+			struct Peta						{ static constexpr T  Value = T(1.0e+15); };
+			struct Exa						{ static constexpr T  Value = T(1.0e+18); };
+			struct Zetta					{ static constexpr T  Value = T(1.0e+21); };
+			struct Yotta					{ static constexpr T  Value = T(1.0e+24); };
+			struct Ronna					{ static constexpr T  Value = T(1.0e+27); };
+			struct Quetta					{ static constexpr T  Value = T(1.0e+30); };
 			
-			struct Kibi				{ static constexpr T  Value = T(1024.0); };			// kilo  / kibi
-			struct Mebi				{ static constexpr T  Value = T(1048.0e+3); };		// mega  / mebi
-			struct Gibi				{ static constexpr T  Value = T(1073.7e+6); };		// giga  / gibi
-			struct Tebi				{ static constexpr T  Value = T(1099.5e+9); };		// tera  / tebi
-			struct Pebi				{ static constexpr T  Value = T(1125.9e+12); };		// peta  / pebi
-			struct Exbi				{ static constexpr T  Value = T(1152.9e+15); };		// exa   / exbi
-			struct Zebi				{ static constexpr T  Value = T(1180.6e+18); };		// zetta / zebi
-			struct Yobi				{ static constexpr T  Value = T(1208.9e+21); };		// yotta / yobi
+			struct Kibi						{ static constexpr T  Value = T(1ull<<10); };				// kilo  / kibi
+			struct Mebi						{ static constexpr T  Value = T(1ull<<20); };				// mega  / mebi
+			struct Gibi						{ static constexpr T  Value = T(1ull<<30); };				// giga  / gibi
+			struct Tebi						{ static constexpr T  Value = T(1ull<<40); };				// tera  / tebi
+			struct Pebi						{ static constexpr T  Value = T(1ull<<50); };				// peta  / pebi
+			struct Exbi						{ static constexpr T  Value = T(1ull<<60); };				// exa   / exbi
+			struct Zebi						{ static constexpr T  Value = T(1ull<<60) * T(1ull<<10); };	// zetta / zebi
+			struct Yobi						{ static constexpr T  Value = T(1ull<<60) * T(1ull<<20); };	// yotta / yobi
 
-			struct Deci				{ static constexpr T  Value = T(1.0e-1); };
-			struct Centi			{ static constexpr T  Value = T(1.0e-2); };
-			struct Milli			{ static constexpr T  Value = T(1.0e-3); };
-			struct Micro			{ static constexpr T  Value = T(1.0e-6); };
-			struct Nano				{ static constexpr T  Value = T(1.0e-9); };
-			struct Pico				{ static constexpr T  Value = T(1.0e-12); };
-			struct Femto			{ static constexpr T  Value = T(1.0e-15); };
-			struct Atto				{ static constexpr T  Value = T(1.0e-18); };
-			struct Zepto			{ static constexpr T  Value = T(1.0e-21); };
-			struct Yocto			{ static constexpr T  Value = T(1.0e-24); };
+			struct Bytes					{ static constexpr T  Value = T(8.0); };
+			struct KibiBytes				{ static constexpr T  Value = T(8ull<<10); };				// kilo  / kibi
+			struct MebiBytes				{ static constexpr T  Value = T(8ull<<20); };				// mega  / mebi
+			struct GibiBytes				{ static constexpr T  Value = T(8ull<<30); };				// giga  / gibi
+			struct TebiBytes				{ static constexpr T  Value = T(8ull<<40); };				// tera  / tebi
+			struct PebiBytes				{ static constexpr T  Value = T(8ull<<50); };				// peta  / pebi
+			struct ExbiBytes				{ static constexpr T  Value = T(8ull<<50) * T(1ull<<10); };	// exa   / exbi
+			struct ZebiBytes				{ static constexpr T  Value = T(8ull<<50) * T(1ull<<20); };	// zetta / zebi
+			struct YobiBytes				{ static constexpr T  Value = T(8ull<<50) * T(1ull<<30); };	// yotta / yobi
 
-			struct Litre			{ static constexpr T  Value = T(1.0e-3); };					// m^3	L
+			struct Deci						{ static constexpr T  Value = T(1.0e-1); };
+			struct Centi					{ static constexpr T  Value = T(1.0e-2); };
+			struct Milli					{ static constexpr T  Value = T(1.0e-3); };
+			struct Micro					{ static constexpr T  Value = T(1.0e-6); };
+			struct Nano						{ static constexpr T  Value = T(1.0e-9); };
+			struct Pico						{ static constexpr T  Value = T(1.0e-12); };
+			struct Femto					{ static constexpr T  Value = T(1.0e-15); };
+			struct Atto						{ static constexpr T  Value = T(1.0e-18); };
+			struct Zepto					{ static constexpr T  Value = T(1.0e-21); };
+			struct Yocto					{ static constexpr T  Value = T(1.0e-24); };
 
-			struct ElectronVolt		{ static constexpr T  Value = T(1.602176620898e-19); };		// J	eV
-			struct Dalton			{ static constexpr T  Value = T(1.66053904020e-27); };		// kg	Da	amu
-			struct AstronomicalUnit	{ static constexpr T  Value = T(149597870700.0); };			// m	au
+			struct Litre					{ static constexpr T  Value = T(1.0e-3); };					// m^3	L
 
-			struct Angstrom			{ static constexpr T  Value = T(1.0e-10); };				// m	A
-			struct Bar				{ static constexpr T  Value = T(1.0e+5); };					// Pa	bar
-			struct Atmosphere		{ static constexpr T  Value = T(101325); };					// Pa
+			struct ElectronVolt				{ static constexpr T  Value = T(1.602176620898e-19); };		// J	eV
+			struct Dalton					{ static constexpr T  Value = T(1.66053904020e-27); };		// kg	Da	amu
+			struct AstronomicalUnit			{ static constexpr T  Value = T(149597870700.0); };			// m	au
 
-			struct SpeedOfLight		{ static constexpr T  Value = T(299792458); };				// m/s	c
-			struct SpeedOfGravity	{ static constexpr T  Value = T(299792458); };				// m/s	?
-			struct Parsec			{ static constexpr T  Value = T(3.0856776e+16); };			// m	pc
-			using LightMinute		= ValueScaleTempl::template Mul< SpeedOfLight, Minute >;
-			using LightHour			= ValueScaleTempl::template Mul< SpeedOfLight, Hour >;
-			using LightDay			= ValueScaleTempl::template Mul< SpeedOfLight, Day >;
-			using LightYear			= ValueScaleTempl::template Mul< SpeedOfLight, Year >;
+			struct Angstrom					{ static constexpr T  Value = T(1.0e-10); };				// m	A
+			struct Bar						{ static constexpr T  Value = T(1.0e+5); };					// Pa	bar
+			struct Atmosphere				{ static constexpr T  Value = T(101325); };					// Pa
 
-			struct GravitationalConstant	{ static constexpr T  Value = T(6.6740831e-11); };	// m^3 / (s^2 * kg)
-			struct GravitationalAcceleration{ static constexpr T  Value = T(9.80665); };		// m / s^2
+			struct SpeedOfLight				{ static constexpr T  Value = T(299792458); };				// m/s	c
+			struct SpeedOfGravity			{ static constexpr T  Value = T(299792458); };				// m/s	?
+			struct Parsec					{ static constexpr T  Value = T(3.0856776e+16); };			// m	pc
+			using LightMinute				= ValueScaleTempl::template Mul< SpeedOfLight, Minute >;
+			using LightHour					= ValueScaleTempl::template Mul< SpeedOfLight, Hour >;
+			using LightDay					= ValueScaleTempl::template Mul< SpeedOfLight, Day >;
+			using LightYear					= ValueScaleTempl::template Mul< SpeedOfLight, Year >;
+
+			struct GravitationalConstant	{ static constexpr T  Value = T(6.6740831e-11); };			// m^3 / (s^2 * kg)
+			struct GravitationalAcceleration{ static constexpr T  Value = T(9.80665); };				// m / s^2
 
 			struct AvogadroConstant			{ static constexpr T  Value = T(6.02214076e+23); };						// 1 / mol
 			struct Pi						{ static constexpr T  Value = T(3.14159265358979323846); };				// Pi
 			struct VacuumPermeabilityConst	{ static constexpr T  Value = Pi::Value * T(4 * 1.0000000008220e-7); };	// kg * m / (s * A)^2
 
-			struct GasConstant				{ static constexpr T  Value = T(8.314459848); };	// R = J / (K * mol)
-			struct EarthMass				{ static constexpr T  Value = T(5.9722e+24); };		// kg
-			struct SolarMass				{ static constexpr T  Value = T(1.98847e+30); };	// kg
-			struct SolarLuminosity			{ static constexpr T  Value = T(3.828e+26); };		// W
-			struct SolarRadius				{ static constexpr T  Value = T(6.957+8); };		// m
+			struct GasConstant				{ static constexpr T  Value = T(8.314459848); };			// R = J / (K * mol)
+			struct EarthMass				{ static constexpr T  Value = T(5.9722e+24); };				// kg
+			struct SolarMass				{ static constexpr T  Value = T(1.98847e+30); };			// kg
+			struct SolarLuminosity			{ static constexpr T  Value = T(3.828e+26); };				// W
+			struct SolarRadius				{ static constexpr T  Value = T(6.957+8); };				// m
 		};
 
 
@@ -343,16 +355,18 @@ namespace AE::Math
 		using Moles						= PhysicalQuantity< T, Dim::Mole >;						// mol
 		using Candelas					= PhysicalQuantity< T, Dim::Candela >;					// cd
 		using Currencies				= PhysicalQuantity< T, Dim::Currency >;					// $
+		using Bits						= PhysicalQuantity< T, Dim::Bit >;						// bit
 		
+		using Frequency					= PhysicalQuantity< T, Dim::Frequency >;				// 1 / s
 		using SquareMeters				= PhysicalQuantity< T, Dim::SquareMeter >;				// m^2
 		using CubicMeters				= PhysicalQuantity< T, Dim::CubicMeter >;				// m^3
-		using MetersPerSeconds			= PhysicalQuantity< T, Dim::MeterPerSecond >;			// m/s
-		using MetersPerSquareSeconds	= PhysicalQuantity< T, Dim::MeterPerSquareSecond >;		// m/s^2
+		using MetersPerSeconds			= PhysicalQuantity< T, Dim::MeterPerSecond >;			// m / s
+		using MetersPerSquareSeconds	= PhysicalQuantity< T, Dim::MeterPerSquareSecond >;		// m / s^2
 		using KilogramsPerSeconds		= PhysicalQuantity< T, Dim::KilogramPerSecond >;		// kg / s
-		using KilogramMetersPerSeconds	= PhysicalQuantity< T, Dim::KilogramMeterPerSecond >;	// kg * m/s
+		using KilogramMetersPerSeconds	= PhysicalQuantity< T, Dim::KilogramMeterPerSecond >;	// kg * m / s
 		using KilogramsPerCubicMeters	= PhysicalQuantity< T, Dim::KilogramPerCubicMeter >;	// p = kg / m^3
 		using Newtons					= PhysicalQuantity< T, Dim::Newton >;					// N
-		using NewtonMeters				= PhysicalQuantity< T, Dim::Joule >;					// N*m
+		using NewtonMeters				= PhysicalQuantity< T, Dim::Joule >;					// N * m
 		using Joules					= PhysicalQuantity< T, Dim::Joule >;					// J
 		using Pascals					= PhysicalQuantity< T, Dim::Pascal >;					// Pa
 		using Hertz						= PhysicalQuantity< T, Dim::Hertz >;					// Hz
@@ -369,6 +383,8 @@ namespace AE::Math
 		using Lux						= PhysicalQuantity< T, Dim::Lux >;						// lx
 		using AmpersPerMeters			= PhysicalQuantity< T, Dim::AmperPerMeter >;			// A / m
 		using KilogramsPerMoles			= PhysicalQuantity< T, Dim::KilogramPerMole >;			// kg / mol
+		using BitsPerSecond				= PhysicalQuantity< T, Dim::BitPerSecond >;				// bit / s
+
 
 		using Nanometers				= PhysicalQuantity< T, Dim::Meter, typename Scale::Nano >;				// nm
 		using Micrometers				= PhysicalQuantity< T, Dim::Meter, typename Scale::Micro >;				// um
@@ -436,6 +452,22 @@ namespace AE::Math
 		using GAcceleration				= PhysicalQuantity< T, Dim::MeterPerSquareSecond, typename Scale::GravitationalAcceleration >;	// g
 		using GConstant					= PhysicalQuantity< T, _GConstDim, typename Scale::GravitationalConstant >;	// G
 		using SolarLuminosity			= PhysicalQuantity< T, Dim::Watt, typename Scale::SolarLuminosity >;		// SL
+		
+		using KibiBits					= PhysicalQuantity< T, Dim::Bit, typename Scale::Kibi >;
+		using MebiBits					= PhysicalQuantity< T, Dim::Bit, typename Scale::Mebi >;
+		using GibiBits					= PhysicalQuantity< T, Dim::Bit, typename Scale::Gibi >;
+		using KibiBitsPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Kibi >;
+		using MebiBitsPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Mebi >;
+		using GibiBitsPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Gibi >;
+
+		using Bytes						= PhysicalQuantity< T, Dim::Bit, typename Scale::Bytes >;
+		using KibiBytes					= PhysicalQuantity< T, Dim::Bit, typename Scale::KibiBytes >;
+		using MebiBytes					= PhysicalQuantity< T, Dim::Bit, typename Scale::MebiBytes >;
+		using GibiBytes					= PhysicalQuantity< T, Dim::Bit, typename Scale::GibiBytes >;
+		using BytesPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Bytes >;
+		using KibiBytesPerSecond		= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::KibiBytes >;
+		using MebiBytesPerSecond		= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::MebiBytes >;
+		using GibiBytesPerSecond		= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::GibiBytes >;
 	};
 
 

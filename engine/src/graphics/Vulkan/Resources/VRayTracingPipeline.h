@@ -55,23 +55,26 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VRayTracingPipeline () {}
-		~VRayTracingPipeline ();
+		VRayTracingPipeline ()											__NE___	{}
+		~VRayTracingPipeline ()											__NE___;
 
-		ND_ bool  Create (VResourceManager &, const CreateInfo &ci);
-			void  Destroy (VResourceManager &);
+		ND_ bool  Create (VResourceManager &, const CreateInfo &ci)		__NE___;
+			void  Destroy (VResourceManager &)							__NE___;
 			
-		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result) const;
+		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result)	C_NE___;
 
-		ND_ Bytes  GetShaderGroupStackSize (const VDevice &, const RayTracingGroupName &group) const;
+		ND_ Bytes  GetShaderGroupStackSize (const VDevice &, const RayTracingGroupName &group)	C_NE___;
 
-		ND_ VkPipeline				Handle ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
-		ND_ VkPipelineLayout		Layout ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
-		ND_ VkPipelineBindPoint		BindPoint ()		const	{ return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR; }
-		ND_ VPipelineLayoutID		LayoutID ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ EPipelineDynamicState	DynamicState ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
+			bool  CopyHandle (const VDevice &, const RayTracingGroupName &name, OUT void* dst, Bytes dstSize)	C_NE___;
+			bool  CopyHandle (const VDevice &, uint index, OUT void* dst, Bytes dstSize)						C_NE___;
+
+		ND_ VkPipeline				Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
+		ND_ VkPipelineLayout		Layout ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
+		ND_ VkPipelineBindPoint		BindPoint ()			C_NE___	{ return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR; }
+		ND_ VPipelineLayoutID		LayoutID ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ EPipelineDynamicState	DynamicState ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
 		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 } // AE::Graphics

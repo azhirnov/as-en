@@ -24,18 +24,18 @@ namespace AE::App
 
 	// methods
 	public:
-		void  GetViewProj (OUT TViewProj<float> &) const override;
-		void  GetViewProj (OUT TViewProj<double> &) const override;
+		void  GetViewProj (OUT TViewProj<float> &)			C_NE_OV;
+		void  GetViewProj (OUT TViewProj<double> &)			C_NE_OV;
 
-		void  GetInvViewProj (OUT TViewProj<float> &) const override;
-		void  GetInvViewProj (OUT TViewProj<double> &) const override;
+		void  GetInvViewProj (OUT TViewProj<float> &)		C_NE_OV;
+		void  GetInvViewProj (OUT TViewProj<double> &)		C_NE_OV;
 
-		void  GetTransform (OUT Transformation<float> &) const override;
-		void  GetTransform (OUT Transformation<double> &) const override;
+		void  GetTransform (OUT Transformation<float> &)	C_NE_OV;
+		void  GetTransform (OUT Transformation<double> &)	C_NE_OV;
 
-		void  GenetateRays (RaysGrid &grid) const override;
+		void  GenetateRays (RaysGrid &grid)					C_NE_OV;
 
-		EPrecision  NativePrecision () const override	{ return EPrecision::Fp32; }
+		EPrecision  NativePrecision ()						C_NE_OV	{ return EPrecision::Fp32; }
 	};
 
 	
@@ -46,14 +46,14 @@ namespace AE::App
 =================================================
 */
 	template <typename T>
-	void  ProjectionImpl<T>::GetViewProj (OUT TViewProj<float> &result) const
+	void  ProjectionImpl<T>::GetViewProj (OUT TViewProj<float> &result) C_NE___
 	{
 		result.proj	= proj;
 		result.view	= view;
 	}
 	
 	template <typename T>
-	void  ProjectionImpl<T>::GetViewProj (OUT TViewProj<double> &result) const
+	void  ProjectionImpl<T>::GetViewProj (OUT TViewProj<double> &result) C_NE___
 	{
 		result.proj	= double4x4{proj};
 		result.view	= double4x4{view};
@@ -65,14 +65,14 @@ namespace AE::App
 =================================================
 */
 	template <typename T>
-	void  ProjectionImpl<T>::GetInvViewProj (OUT TViewProj<float> &result) const
+	void  ProjectionImpl<T>::GetInvViewProj (OUT TViewProj<float> &result) C_NE___
 	{
 		result.proj	= invProj;
 		result.view	= invView;
 	}
 	
 	template <typename T>
-	void  ProjectionImpl<T>::GetInvViewProj (OUT TViewProj<double> &result) const
+	void  ProjectionImpl<T>::GetInvViewProj (OUT TViewProj<double> &result) C_NE___
 	{
 		result.proj	= double4x4{invProj};
 		result.view	= double4x4{invView};
@@ -84,13 +84,13 @@ namespace AE::App
 =================================================
 */
 	template <typename T>
-	void  ProjectionImpl<T>::GetTransform (OUT Transformation<float> &result) const
+	void  ProjectionImpl<T>::GetTransform (OUT Transformation<float> &result) C_NE___
 	{
 		result = Transformation<float>{view};
 	}
 	
 	template <typename T>
-	void  ProjectionImpl<T>::GetTransform (OUT Transformation<double> &result) const
+	void  ProjectionImpl<T>::GetTransform (OUT Transformation<double> &result) C_NE___
 	{
 		result = Transformation<double>{ double4x4{ view }};
 	}
@@ -101,7 +101,7 @@ namespace AE::App
 =================================================
 */
 	template <typename T>
-	void  ProjectionImpl<T>::GenetateRays (RaysGrid &) const
+	void  ProjectionImpl<T>::GenetateRays (RaysGrid &) C_NE___
 	{
 		/*ASSERT( All( grid.Dimension() >= 2 ));
 		

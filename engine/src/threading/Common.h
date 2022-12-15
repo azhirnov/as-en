@@ -36,20 +36,14 @@
 
 // exclusive lock
 #ifndef EXLOCK
-#	define EXLOCK( _syncObj_ ) \
-		std::unique_lock	AE_PRIVATE_UNITE_RAW( __exLock, __COUNTER__ ) { _syncObj_ }
+#	define EXLOCK( ... ) \
+		std::scoped_lock	AE_PRIVATE_UNITE_RAW( __exLock, __COUNTER__ ) { __VA_ARGS__ }
 #endif
 
 // shared lock
 #ifndef SHAREDLOCK
 #	define SHAREDLOCK( _syncObj_ ) \
 		std::shared_lock	AE_PRIVATE_UNITE_RAW( __sharedLock, __COUNTER__ ) { _syncObj_ }
-#endif
-
-// deadlock safe exclusive lock
-#ifndef SAFE_EXLOCK
-#	define SAFE_EXLOCK( /* sync objects */... ) \
-		std::scoped_lock	AE_PRIVATE_UNITE_RAW( __safeLock, __COUNTER__ ) { __VA_ARGS__ }
 #endif
 
 
@@ -105,14 +99,14 @@ namespace AE::Threading
 	
 /*
 =================================================
-	CompilerFence
+	CompilerBarrier
 ----
 	Take effect only for compiler and CPU instruction reordering.
-	CompilerFence( Acquire ) - don't reorder with previous code
-	CompilerFence( Release ) - don't reorder with next code
+	CompilerBarrier( Acquire ) - don't reorder with previous code
+	CompilerBarrier( Release ) - don't reorder with next code
 =================================================
 */
-	forceinline void  CompilerFence (std::memory_order order) __NE___
+	forceinline void  CompilerBarrier (std::memory_order order) __NE___
 	{
 		ASSERT( order != std::memory_order_relaxed );
 		return std::atomic_signal_fence( order );

@@ -44,7 +44,7 @@ namespace AE::Graphics
 			ND_ Bytes				Offset ()	C_NE___	{ return _offset; }
 			ND_ Bytes				Size ()		C_NE___	{ return _size; }
 			ND_ DescriptorSetID		DescSet ()	C_NE___	{ return _ds; }
-			ND_ uint				DSIndex ()	C_NE___	{ return _dsIndex; }
+			ND_ DescSetBinding		DSIndex ()	C_NE___	{ return DescSetBinding{ _dsIndex }; }
 
 			ND_ bool				IsValid ()	C_NE___;
 		};

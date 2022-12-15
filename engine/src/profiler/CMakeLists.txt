@@ -8,3 +8,5 @@ target_link_libraries( "Profiler" PUBLIC "GraphicsHL" )
 if (TARGET "ImGUI-lib")
 	target_link_libraries( "Profiler" PUBLIC "ImGUI-lib" )
 endif()
+
+install( TARGETS "Profiler" ARCHIVE DESTINATION "lib" )

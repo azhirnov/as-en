@@ -102,7 +102,7 @@ namespace AE::Math
 		using Transposed_t	= MatrixStorage< T, Rows, Columns, EMatrixOrder::ColumnMajor, Align >;
 		using Column_t		= Vec< T, Rows >;
 		using Row_t			= Vec< T, Columns >;
-		using Dim_t			= _hidden_::_MatrixDim;
+		using Dim_t			= Math::_hidden_::_MatrixDim;
 
 	private:
 		using _Columns_t	= StaticArray< _AlignedVec, Columns >;
@@ -253,7 +253,7 @@ namespace AE::Math
 		using Transposed_t	= MatrixStorage< T, Rows, Columns, EMatrixOrder::RowMajor, Align >;
 		using Row_t			= Vec< T, Columns >;
 		using Column_t		= Vec< T, Rows >;
-		using Dim_t			= _hidden_::_MatrixDim;
+		using Dim_t			= Math::_hidden_::_MatrixDim;
 		
 	private:
 		using _Rows_t		= StaticArray< _AlignedVec, Rows >;

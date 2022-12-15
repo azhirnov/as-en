@@ -18,7 +18,7 @@ const vec3	g_Colors[3] = vec3[](
 	vec3(0.0, 0.0, 1.0)
 );
 
-void main ()
+void Main ()
 {
 	const uint I = gl_LocalInvocationID.x;
 

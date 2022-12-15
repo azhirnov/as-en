@@ -7,7 +7,7 @@
 //layout(location=0) out float2  out_Texcoord;
 
 
-void main ()
+void Main ()
 {
 	gl_Position  = drawUB.mvp * float4(in_Position, 1.0);
 	Out.Texcoord = in_Texcoord;

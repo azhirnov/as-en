@@ -40,6 +40,7 @@ extern void UnitTest_Math_Vec ();
 extern void UnitTest_NamedID ();
 extern void UnitTest_NtStringView ();
 extern void UnitTest_RingBuffer ();
+extern void UnitTest_RC ();
 extern void UnitTest_StackAllocator ();
 extern void UnitTest_DataSource ();
 extern void UnitTest_StringParser ();
@@ -93,6 +94,7 @@ int main ()
 	UnitTest_NamedID();
 	UnitTest_NtStringView();
 	UnitTest_RingBuffer();
+	UnitTest_RC();
 	UnitTest_StackAllocator();
 	UnitTest_StringParser();
 	UnitTest_StructView();

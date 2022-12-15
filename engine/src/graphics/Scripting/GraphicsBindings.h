@@ -60,6 +60,7 @@ namespace AE::Scripting
 	AE_DECL_SCRIPT_TYPE( Graphics::EVertexInputRate,	"EVertexInputRate"		);
 	AE_DECL_SCRIPT_TYPE( Graphics::EDescSetUsage,		"EDescSetUsage"			);
 	AE_DECL_SCRIPT_TYPE( Graphics::EPipelineOpt,		"EPipelineOpt"			);
+	AE_DECL_SCRIPT_TYPE( Graphics::EQueueMask,			"EQueueMask"			);
 	
 	// BindTypes
 	AE_DECL_SCRIPT_OBJ(	 Graphics::MultiSamples,		"MultiSamples"			);

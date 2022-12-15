@@ -33,8 +33,8 @@ namespace
 	public:
 		Db2_TestData&	t;
 
-		Db2_DrawTask (Db2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		Db2_DrawTask (Db2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -81,8 +81,8 @@ namespace
 	public:
 		Db2_TestData&	t;
 
-		Db2_CopyTask (Db2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		Db2_CopyTask (Db2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -163,7 +163,7 @@ no source
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 		}
 	};
 
@@ -193,11 +193,11 @@ no source
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Debugger2" );
+		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Debugger2"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< Db2_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin}, "Draw task" );
-		AsyncTask	task2	= batch->Add< Db2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
+		AsyncTask	task1	= batch->Add< Db2_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Draw task"} );
+		AsyncTask	task2	= batch->Add< Db2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 

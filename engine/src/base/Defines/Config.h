@@ -5,8 +5,16 @@
 
 #pragma once
 
+#ifdef AE_COMPILER_MSVC
+#  if _MSC_VER < 1900	// TODO
+#	define and		&&
+#	define or		||
+#	define not		!
+#  endif
+#endif
+
 // mem leak check
-#if defined(AE_COMPILER_MSVC) && defined(AE_ENABLE_MEMLEAK_CHECKS) && defined(AE_DEBUG)
+#if defined(AE_COMPILER_MSVC) and defined(AE_ENABLE_MEMLEAK_CHECKS) and defined(AE_DEBUG)
 #	define _CRTDBG_MAP_ALLOC
 #	include <crtdbg.h>
 #	include <stdlib.h>
@@ -26,11 +34,11 @@
 #	define AE_FAST_HASH		0
 #endif
 
-#if defined(AE_DEBUG) || defined(AE_DEVELOP)
+#if defined(AE_DEBUG) or defined(AE_DEVELOP)
 #	define AE_DBG_OR_DEV
 #endif
 
-#if defined(AE_DEBUG) || defined(AE_DEVELOP) || defined(AE_PROFILE)
+#if defined(AE_DEBUG) or defined(AE_DEVELOP) or defined(AE_PROFILE)
 #	define AE_DBG_OR_DEV_OR_PROF
 #endif
 
@@ -43,14 +51,14 @@
 #endif
 
 
-#if defined(AE_PLATFORM_LINUX)		|| \
-	defined(AE_PLATFORM_ANDROID)	|| \
-	defined(AE_PLATFORM_MACOS)		|| \
+#if defined(AE_PLATFORM_LINUX)		or \
+	defined(AE_PLATFORM_ANDROID)	or \
+	defined(AE_PLATFORM_MACOS)		or \
 	defined(AE_PLATFORM_IOS)
 #	define AE_PLATFORM_UNIX_BASED
 #endif
 
-#if defined(AE_PLATFORM_MACOS)	|| \
+#if defined(AE_PLATFORM_MACOS)	or \
 	defined(AE_PLATFORM_IOS)
 #	define AE_PLATFORM_APPLE
 #endif

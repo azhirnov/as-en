@@ -34,7 +34,7 @@ namespace AE::Base
 			DEBUG_ONLY( DbgInitMem( _buffer, Sizeof(_buffer) ));
 		}
 		
-		//explicit UntypedStorage (_hidden_::_Zero)						__NE___	: _buffer{}
+		//explicit UntypedStorage (Base::_hidden_::_Zero)				__NE___	: _buffer{}
 		//{}
 		
 		template <typename T>
@@ -121,7 +121,7 @@ namespace AE::Base
 			Dealloc();
 			
 			_size	= usize(sizeAndAlign.size);
-			_align	= POTValue::From( usize(sizeAndAlign.align) ).Get();
+			_align	= POTValue::From( usize(sizeAndAlign.align) ).GetPOT();
 
 			ASSERT( Size() == sizeAndAlign.size );
 			ASSERT( Align() == sizeAndAlign.align );

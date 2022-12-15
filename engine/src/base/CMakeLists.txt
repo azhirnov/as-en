@@ -46,6 +46,6 @@ endif()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
 	target_link_libraries( "Base" PUBLIC "log" )
-endif ()
+endif()
 
 install( TARGETS "Base" ARCHIVE DESTINATION "lib" )

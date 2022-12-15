@@ -1,7 +1,7 @@
 
 hitAttributeEXT vec3  out_hitAttribs;
 
-void main ()
+void Main ()
 {
 	const float radius = 0.5;
 	const vec3  center = vec3(0.25, 0.5, 2.0); // must match with AABB center

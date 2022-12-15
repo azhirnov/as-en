@@ -9,7 +9,7 @@ namespace
 		Strong<BufferID>			buf;
 		const Bytes					buf_size	= 32_Mb;
 		Array<ubyte>				buffer_data;
-		CommandBatchPtr			batch;
+		CommandBatchPtr				batch;
 		RC<GfxLinearMemAllocator>	gfxAlloc;
 		BufferStream				stream;
 		Atomic<uint>				counter		{0};
@@ -23,8 +23,8 @@ namespace
 	public:
 		US1_TestData&	t;
 
-		US1_UploadStreamTask (US1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor }, t{ t }
+		US1_UploadStreamTask (US1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg }, t{ t }
 		{}
 
 		void  Run () override
@@ -39,7 +39,7 @@ namespace
 			auto	arr = ArrayView<ubyte>{t.buffer_data}.section( usize(pos), UMax );
 			CHECK_TE( mem_view.Copy( arr ) == mem_view.DataSize() );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 			
 			const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
 			ASSERT( stat.dynamicWrite <= upload_limit );
@@ -53,13 +53,13 @@ namespace
 		US1_TestData&	t;
 
 		US1_FrameTask (US1_TestData& t) :
-			IAsyncTask{ EThread::Worker },
+			IAsyncTask{ ETaskQueue::Worker },
 			t{ t }
 		{}
 
 		void  Run () override
 		{
-			if ( t.stream.IsComplete() )
+			if ( t.stream.IsCompleted() )
 				return;
 
 			++t.counter;
@@ -71,10 +71,10 @@ namespace
 
 			AsyncTask	begin = rts.BeginFrame( cfg );
 
-			t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "UploadStream1" );
+			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"UploadStream1"} );
 			CHECK_TE( t.batch );
 			
-			AsyncTask	test	= t.batch->Add<US1_UploadStreamTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
+			AsyncTask	test	= t.batch->Add< US1_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
 			AsyncTask	end		= rts.EndFrame( Tuple{test} );
 
 			Continue( Tuple{end} );
@@ -105,7 +105,7 @@ namespace
 
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
-		CHECK_ERR( t.stream.IsComplete() );
+		CHECK_ERR( t.stream.IsCompleted() );
 		CHECK_ERR( t.counter.load() >= uint(t.buf_size / upload_limit) );
 	
 		CHECK_ERR( res_mngr.ReleaseResources( t.buf ));

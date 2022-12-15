@@ -205,8 +205,6 @@ namespace AE::PipelineCompiler
 
 
 	// methods
-		AE_DEFAULT_COPYABLE_NE( SubpassShaderIO );
-
 		ND_ bool	operator == (const SubpassShaderIO &rhs)C_NE___;
 		ND_ HashVal	CalcHash ()								C_NE___;
 

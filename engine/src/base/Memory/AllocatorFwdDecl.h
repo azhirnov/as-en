@@ -3,6 +3,8 @@
 #pragma once
 
 #include "base/Utils/Helpers.h"
+#include "base/Math/Math.h"
+#include "base/Math/Bytes.h"
 
 namespace AE::Base
 {

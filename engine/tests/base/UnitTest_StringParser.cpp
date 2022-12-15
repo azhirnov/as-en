@@ -165,6 +165,70 @@ namespace
 		StringParser::MoveToLine( "1\n2\n3\r\n4\r\n5\n6\n7\r8\n9\n10", OUT pos, 9 );
 		TEST( pos == 20 );
 	}
+
+
+	static void StringParser_Preprocessor_CPP ()
+	{
+		const char	source[] = 
+R"(aaaj sdi	kas jnd
+trurt qwa	fdgh
+#ifdef PART0
+	rt u3we		rqs
+	fdhrftqa qfgtdhjdsf	rfdgsdf
+#    endif
+	dsfgdf
+sdf dsh fed
+
+asdasd
+
+#if 0
+	as df hgsdfc
+		f	sdfsad dfasd asdfas
+#endif
+
+ssdgadds
+
+# ifdef PART1_1
+	sdfs dfhd sq wfd
+	#	ifdef PART2
+		rgg qeafa
+qfw edgedfg					
+efedhrsd fzsdsfdg		asdasd
+"  #  endif PART2 "
+sgszf dgd
+#endif // PART2
+sdfgswdfsa df
+adt fg sdfsdf
+#	endif // PART1	(PART1_1)
+
+asdasd sdhedtwqfdcdz
+		#ifdef PART5
+AOILAs,';llkmkljsad
+LDKFMSLD;F;'ASL,lksdnmdkjfnslkd
+lsdkfmsdlklas akdslmalksd
+#			endif // PART5
+)";
+
+		const StringView	defines[] = { "PART1", "PART2", "PART5" };
+		Array<StringView>	output;
+
+		StringParser::Preprocessor_CPP( source, defines, OUT output );
+
+		const char	expected0[] =
+R"(		rgg qeafa
+qfw edgedfg					
+efedhrsd fzsdsfdg		asdasd
+"  #  endif PART2 "
+sgszf dgd)";
+		const char	expected1[] =
+R"(AOILAs,';llkmkljsad
+LDKFMSLD;F;'ASL,lksdnmdkjfnslkd
+lsdkfmsdlklas akdslmalksd)";
+
+		TEST( output.size() == 2 );
+		TEST( output[0] == expected0 );
+		TEST( output[1] == expected1 );
+	}
 }
 
 
@@ -181,6 +245,7 @@ extern void UnitTest_StringParser ()
 	StringParser_ReadString();
 	StringParser_CalculateNumberOfLines();
 	StringParser_MoveToLine();
+	StringParser_Preprocessor_CPP();
 	
 	TEST_PASSED();
 }

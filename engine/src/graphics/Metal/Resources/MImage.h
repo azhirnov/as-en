@@ -30,31 +30,31 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MImage () {}
-		~MImage ();
+		MImage ()										__NE___	{}
+		~MImage ()										__NE___;
 		
-		ND_ bool  Create (MResourceManager &, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		ND_ bool  Create (const MetalImageDesc &desc, StringView dbgName);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (MResourceManager &, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+		ND_ bool  Create (const MResourceManager &, const MetalImageDesc &desc, StringView dbgName)						__NE___;
+			void  Destroy (MResourceManager &)																			__NE___;
 		
-		ND_ MetalImage			Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _image; }
-		ND_ ImageDesc const&	Description ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ MMemoryID			MemoryID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
-		ND_ bool				IsExclusiveSharing ()	const	{ return true; }
+		ND_ MetalImage			Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _image; }
+		ND_ ImageDesc const&	Description ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
+		ND_ MMemoryID			MemoryID ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ bool				IsExclusiveSharing ()	C_NE___	{ return true; }
 		
-		ND_ uint3 const			Dimension ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension; }
-		ND_ uint const			Width ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.x; }
-		ND_ uint const			Height ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.y; }
-		ND_ uint const			Depth ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.z; }
-		ND_ uint const			ArrayLayers ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.arrayLayers.Get(); }
-		ND_ uint const			MipmapLevels ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.maxLevel.Get(); }
-		ND_ EPixelFormat		PixelFormat ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.format; }
-		ND_ uint const			Samples ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _desc.samples.Get(); }
+		ND_ uint3 const			Dimension ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension; }
+		ND_ uint const			Width ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.x; }
+		ND_ uint const			Height ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.y; }
+		ND_ uint const			Depth ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.dimension.z; }
+		ND_ uint const			ArrayLayers ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.arrayLayers.Get(); }
+		ND_ uint const			MipmapLevels ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.maxLevel.Get(); }
+		ND_ EPixelFormat		PixelFormat ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.format; }
+		ND_ uint const			Samples ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.samples.Get(); }
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 			
-		ND_ static bool	 IsSupported (const MDevice &dev, const ImageDesc &desc);
-		ND_ bool		 IsSupported (const MDevice &dev, const ImageViewDesc &desc) const;
+		ND_ static bool	 IsSupported (const MResourceManager &, const ImageDesc &desc)		__NE___;
+		ND_ bool		 IsSupported (const MResourceManager &, const ImageViewDesc &desc)	C_NE___;
 	};
 
 

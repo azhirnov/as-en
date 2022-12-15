@@ -181,7 +181,7 @@ namespace AE::Math
 			  typename		 ValueScale	= ValueScaleTempl::Integer< typename VecType::value_type, 1 >,
 			  glm::qualifier Q			= GLMQuialifier
 			 >
-	using PhysicalQuantity_FromVec = _hidden_::_PhysicalQuantity_FromVec< VecType, Dimension, ValueScale, Q >::type;
+	using PhysicalQuantity_FromVec = typename Math::_hidden_::_PhysicalQuantity_FromVec< VecType, Dimension, ValueScale, Q >::type;
 
 /*
 =================================================
@@ -548,8 +548,8 @@ namespace _hidden_
 		using Scale = ValueScaleTempl::template Add< LhsScale, RhsScale >;
 		using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
-		return Type{ Distance(	_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
-								_hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
+		return Type{ Distance(	Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
+								Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
 	}
 	
 /*
@@ -565,8 +565,8 @@ namespace _hidden_
 		using Scale = ValueScaleTempl::template Add< LhsScale, RhsScale >;
 		using Type	= PhysicalQuantity< ValueType, Dimension, ValueScaleTempl::template Pow< Scale, 2 > >;
 		
-		return Type{ DistanceSqr( _hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
-								  _hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
+		return Type{ DistanceSqr( Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
+								  Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
 	}
 	
 /*

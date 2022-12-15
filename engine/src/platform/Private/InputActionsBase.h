@@ -67,17 +67,17 @@ namespace AE::App
 
 		// methods
 		public:
-			DubleBufferedQueue ();
-			~DubleBufferedQueue ();
+			DubleBufferedQueue ()																			__NE___;
+			~DubleBufferedQueue ()																			__NE___;
 			
-			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)	{ return CurrentQueue().Insert( name, id, data, dataSize ); }
-			bool  Insert (const InputActionName &name, ControllerID id)										{ return CurrentQueue().Insert( name, id ); }
+			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)	__NE___	{ return CurrentQueue().Insert( name, id, data, dataSize ); }
+			bool  Insert (const InputActionName &name, ControllerID id)										__NE___	{ return CurrentQueue().Insert( name, id ); }
 
-			ND_ ActionQueue&  CurrentQueue ()	{ return _actionQueues[ ulong(_curFrameId.load().Unique()) & 1 ]; }
+			ND_ ActionQueue&  CurrentQueue ()																__NE___	{ return _actionQueues[ ulong(_curFrameId.load().Unique()) & 1 ]; }
 		
-			void  _NextFrame (FrameUID frameId);
+			void  _NextFrame (FrameUID frameId)																__NE___;
 			
-			ND_ ActionQueueReader  _ReadInput (FrameUID frameId) const;
+			ND_ ActionQueueReader  _ReadInput (FrameUID frameId)											C_NE___;
 		};
 
 
@@ -89,28 +89,29 @@ namespace AE::App
 
 		// methods
 		public:
-			DubleBufferedQueueRef (DubleBufferedQueue &q) : _ref{&q} {}
-			DubleBufferedQueueRef (DubleBufferedQueueRef &&other) : _ref{other._ref} { other._ref = null; }
+			DubleBufferedQueueRef (DubleBufferedQueue &q)													__NE___	: _ref{&q} {}
+			DubleBufferedQueueRef (DubleBufferedQueueRef &&other)											__NE___	: _ref{other._ref} { other._ref = null; }
 
-			void  operator = (const DubleBufferedQueueRef &rhs)			{ _ref = rhs._ref; }
+			void  operator = (const DubleBufferedQueueRef &rhs)												__NE___	{ _ref = rhs._ref; }
 		
-			void  NextFrame (FrameUID frameId)							{ _ref->_NextFrame( frameId ); }
+			void  NextFrame (FrameUID frameId)																__NE___	{ _ref->_NextFrame( frameId ); }
 
-			ND_ ActionQueueReader  ReadInput (FrameUID frameId) const	{ return _ref->_ReadInput( frameId ); }
+			ND_ ActionQueueReader  ReadInput (FrameUID frameId)												C_NE___	{ return _ref->_ReadInput( frameId ); }
 			
-			ND_ DubleBufferedQueue*			Get ()			{ return _ref.get(); }
-			ND_ DubleBufferedQueue const*	Get ()	const	{ return _ref.get(); }
+			ND_ DubleBufferedQueue*			Get ()															__NE___	{ return _ref.get(); }
+			ND_ DubleBufferedQueue const*	Get ()															C_NE___	{ return _ref.get(); }
 
 			template <typename T>
-			bool  Insert (const InputActionName &name, ControllerID id, const T &data)						{ return _ref->Insert( name, id, &data, Sizeof(data) ); }
-			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)	{ return _ref->Insert( name, id, data, dataSize ); }
-			bool  Insert (const InputActionName &name, ControllerID id)										{ return _ref->Insert( name, id ); }
+			bool  Insert (const InputActionName &name, ControllerID id, const T &data)						__NE___	{ return _ref->Insert( name, id, &data, Sizeof(data) ); }
+			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)	__NE___	{ return _ref->Insert( name, id, data, dataSize ); }
+			bool  Insert (const InputActionName &name, ControllerID id)										__NE___	{ return _ref->Insert( name, id ); }
 		};
 
 
 	// variables
 	protected:
 		Ptr<InputMode const>		_curMode;
+		InputModeName				_inputMode;
 
 		DubleBufferedQueueRef		_dbQueueRef;
 		
@@ -129,47 +130,50 @@ namespace AE::App
 
 	// methods
 	public:
-		explicit InputActionsBase (DubleBufferedQueue &q) : _dbQueueRef{q} {}
-		~InputActionsBase () override;
+		explicit InputActionsBase (DubleBufferedQueue &q)													__NE___	: _dbQueueRef{q} {}
+		~InputActionsBase ()																				__NE_OV;
 		
-			void  Update (Duration_t timeSinceStart);
+			void  Update (Duration_t timeSinceStart)														__NE___;
 		
-		ND_ bool  RequiresLockAndHideCursor () const;
+		ND_ bool  RequiresLockAndHideCursor ()																C_NE___;
 
-		ND_ static DubleBufferedQueue*  GetQueue (IInputActions* act);
+		ND_ static DubleBufferedQueue*  GetQueue (IInputActions* act)										__NE___;
 		
-			void EnableVREmulation ()	{ _vrEmulation = true; }
+			void EnableVREmulation ()																		__NE___	{ DRC_EXLOCK( _drCheck );  _vrEmulation = true; }
 
 
 	// IInputActions //
-		void  NextFrame (FrameUID frameId) override						{ _dbQueueRef.NextFrame( frameId ); }
+		void  NextFrame (FrameUID frameId)																	__NE_OV	{ _dbQueueRef.NextFrame( frameId ); }
 
-		ActionQueueReader  ReadInput (FrameUID frameId) const override	{ return _dbQueueRef.ReadInput( frameId ); }
-
-		bool  SetMode (const InputModeName &value) override;
+		ActionQueueReader	ReadInput (FrameUID frameId)													C_NE_OV	{ return _dbQueueRef.ReadInput( frameId ); }
 		
-		bool  GetReflection (const InputModeName &mode, const InputActionName &action, OUT Reflection &) const override;
+		InputModeName		GetMode ()																		C_NE_OV	{ DRC_EXLOCK( _drCheck );  return _inputMode; }
 
-		bool  BeginBindAction (const InputModeName &mode, const InputActionName &action, EValueType type, EGestureType gesture) override;
-		bool  EndBindAction () override;
-		bool  IsBindActionActive () const override		{ DRC_EXLOCK( _drCheck );  return _bindAction.isActive; }
+		bool  SetMode (const InputModeName &value)															__NE_OV;
+		
+		bool  GetReflection (const InputModeName &mode, const InputActionName &action, OUT Reflection &)	C_NE_OV;
+
+		bool  BeginBindAction (const InputModeName &mode, const InputActionName &action,
+							   EValueType type, EGestureType gesture)										__NE_OV;
+		bool  EndBindAction ()																				__NE_OV;
+		bool  IsBindActionActive ()																			C_NE_OV	{ DRC_EXLOCK( _drCheck );  return _bindAction.isActive; }
 
 
 	protected:
-		void  _Reset ();
+		void  _Reset ()																						__NE___;
 		
 		template <typename T>
-		ND_ static constexpr InputKey	_Pack (T key, EGestureState state = EGestureState::Update) { return SerializableInputActions::_Pack( key, state ); }
+		ND_ static constexpr InputKey	_Pack (T key, EGestureState state = EGestureState::Update)			__NE___	{ return SerializableInputActions::_Pack( key, state ); }
 
-		void  _Update1F (InputKey key, ControllerID id, float value);
-		void  _Update2F (InputKey key, ControllerID id, float2 value);
+		void  _Update1F (InputKey key, ControllerID id, float value)										__NE___;
+		void  _Update2F (InputKey key, ControllerID id, float2 value)										__NE___;
 		
-		void  _Set2F (InputKey key, ControllerID id, EGestureType gesture, float2 value);
+		void  _Set2F (InputKey key, ControllerID id, EGestureType gesture, float2 value)					__NE___;
 		
 		template <typename T>
-		void  _UpdateKey (T type, EGestureState state, ControllerID id, Duration_t timestamp);
+		void  _UpdateKey (T type, EGestureState state, ControllerID id, Duration_t timestamp)				__NE___;
 
-		ND_ bool  _IsActiveQueue (const DubleBufferedQueue &q) const { return _dbQueueRef.Get() == &q; }
+		ND_ bool  _IsActiveQueue (const DubleBufferedQueue &q)												C_NE___ { return _dbQueueRef.Get() == &q; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -180,7 +184,7 @@ namespace AE::App
 	ValueType_ElementCount
 =================================================
 */
-	ND_ constexpr uint  ValueType_ElementCount (IInputActions::EValueType type)
+	ND_ constexpr uint  ValueType_ElementCount (IInputActions::EValueType type) __NE___
 	{
 		using EValueType = IInputActions::EValueType;
 		BEGIN_ENUM_CHECKS();
@@ -211,7 +215,7 @@ namespace AE::App
 	_Update1F
 =================================================
 */
-	forceinline void  InputActionsBase::_Update1F (InputKey key, ControllerID id, float value)
+	forceinline void  InputActionsBase::_Update1F (InputKey key, ControllerID id, float value) __NE___
 	{
 		auto	it = _curMode->actions.find( key );
 
@@ -233,7 +237,7 @@ namespace AE::App
 	_Update2F
 =================================================
 */
-	forceinline void  InputActionsBase::_Update2F (InputKey key, ControllerID id, float2 value)
+	forceinline void  InputActionsBase::_Update2F (InputKey key, ControllerID id, float2 value) __NE___
 	{
 		auto	it = _curMode->actions.find( key );
 
@@ -255,7 +259,7 @@ namespace AE::App
 	RequiresLockAndHideCursor
 =================================================
 */
-	forceinline bool  InputActionsBase::RequiresLockAndHideCursor () const
+	forceinline bool  InputActionsBase::RequiresLockAndHideCursor () C_NE___
 	{
 		if_likely( _curMode )
 		{
@@ -270,7 +274,7 @@ namespace AE::App
 =================================================
 */
 	template <typename T>
-	forceinline void  InputActionsBase::_UpdateKey (T type, EGestureState state, ControllerID id, Duration_t timestamp)
+	forceinline void  InputActionsBase::_UpdateKey (T type, EGestureState state, ControllerID id, Duration_t timestamp) __NE___
 	{
 		ASSERT( state != EGestureState::Update );
 

@@ -225,7 +225,9 @@ namespace AE::Graphics::_hidden_
 		// graphics commands
 		
 		struct BeginRenderPassCmd : BaseCmd
-		{};
+		{
+			MetalRenderPassDescRC	desc;		// TODO: RC or per frame autorelease
+		};
 		
 		struct EndRenderPassCmd : BaseCmd
 		{};
@@ -509,17 +511,17 @@ namespace AE::Graphics::_hidden_
 		template <typename CmdType, typename ...DynamicTypes>
 		ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)		__Th___	{ return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
 		
-		void  DebugMarker (NtStringView text)						__Th___;
-		void  PushDebugGroup (NtStringView text)					__Th___;
+		void  DebugMarker (DebugLabel dbg)							__Th___;
+		void  PushDebugGroup (DebugLabel dbg)						__Th___;
 		void  PopDebugGroup ()										__Th___;
 		void  CommitBarriers (const MBarrierManager::BarrierInfo &)	__Th___;
 
-		void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch, StringView taskName, RGBA8u color, IGraphicsProfiler::EContextType type)	__Th___;
-		void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch, IGraphicsProfiler::EContextType type)											__Th___;
+		void  ProfilerBeginContext (IGraphicsProfiler*, const void*, DebugLabel, IGraphicsProfiler::EContextType)	__Th___;
+		void  ProfilerEndContext (IGraphicsProfiler*, const void*, IGraphicsProfiler::EContextType)					__Th___;
 		
-		void  DbgFillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)																		__Th___;
+		void  DbgFillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)								__Th___;
 		
-		ND_ static bool  Execute (MetalCommandBuffer cmdbuf, void* root)																					__NE___;
+		ND_ static bool  Execute (INOUT MCommandBuffer &cmdbuf, void* root)											__NE___;
 		
 	private:
 		ND_ bool  _Validate (const void* root)						C_NE___	{ return SoftwareCmdBufBase::_Validate( root, Commands_t::Count ); }
@@ -557,13 +559,13 @@ namespace AE::Graphics::_hidden_
 	protected:
 		explicit _MBaseIndirectContext (MSoftwareCmdBufPtr cmdbuf)				__NE___: _cmdbuf{RVRef(cmdbuf)} {}
 
-		explicit _MBaseIndirectContext (NtStringView dbgName)					__Th___;
-		_MBaseIndirectContext (NtStringView dbgName, MSoftwareCmdBufPtr cmdbuf)	__Th___;
+		explicit _MBaseIndirectContext (DebugLabel dbg)							__Th___;
+		_MBaseIndirectContext (DebugLabel dbg, MSoftwareCmdBufPtr cmdbuf)		__Th___;
 
 		ND_ bool	_IsValid ()													C_NE___	{ return _cmdbuf and _cmdbuf->IsValid(); }
 
-		void  _DebugMarker (NtStringView text, RGBA8u)							__Th___	{ _cmdbuf->DebugMarker( text ); }
-		void  _PushDebugGroup (NtStringView text, RGBA8u)						__Th___	{ _cmdbuf->PushDebugGroup( text ); }
+		void  _DebugMarker (DebugLabel dbg)										__Th___	{ _cmdbuf->DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)									__Th___	{ _cmdbuf->PushDebugGroup( dbg ); }
 		void  _PopDebugGroup ()													__Th___	{ _cmdbuf->PopDebugGroup(); }
 
 		ND_ MBakedCommands		_EndCommandBuffer ()							__Th___;
@@ -617,7 +619,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task) __Th___ :
-		_MBaseIndirectContext{ task.DbgFullName() },
+		_MBaseIndirectContext{ DebugLabel{ task.DbgFullName() }},
 		_mngr{ task }
 	{}
 		
@@ -664,9 +666,9 @@ namespace AE::Graphics
 	'cmdbuf' must be in the recording state
 =================================================
 */
-	forceinline bool  MBakedCommands::Execute (MetalCommandBuffer cmdbuf) C_NE___
+	forceinline bool  MBakedCommands::Execute (INOUT MCommandBuffer &cmdbuf) C_NE___
 	{
-		return _hidden_::MSoftwareCmdBuf::Execute( cmdbuf, _root );
+		return Graphics::_hidden_::MSoftwareCmdBuf::Execute( INOUT cmdbuf, _root );
 	}
 
 } // AE::Graphics

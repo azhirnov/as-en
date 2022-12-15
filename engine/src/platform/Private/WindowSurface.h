@@ -9,6 +9,8 @@
 #	include "graphics/Vulkan/VSwapchain.h"
 #elif defined(AE_ENABLE_METAL)
 #	include "graphics/Metal/MSwapchain.h"
+#else
+#	error not implemented
 #endif
 
 namespace AE::App
@@ -31,6 +33,8 @@ namespace AE::App
 		using Swapchain_t = InPlace< Graphics::VSwapchainInitializer >;
 	  #elif defined(AE_ENABLE_METAL)
 		using Swapchain_t = InPlace< Graphics::MSwapchainInitializer >;
+	  #else
+	  #	error not implemented
 	  #endif
 
 
@@ -60,37 +64,40 @@ namespace AE::App
 
 	// methods
 	public:
-		WindowSurface ();
-		~WindowSurface ();
+		WindowSurface ()																							__NE___;
+		~WindowSurface ()																							__NE___;
 
-		ND_ bool  Init (IWindow &wnd, const Graphics::SwapchainDesc &desc);
+		ND_ bool  Init (IWindow &wnd, const Graphics::SwapchainDesc &desc)											__NE___;
 
 
 	// IOutputSurface //
-		bool			IsInitialized ()		const override;
-		RenderPassInfo	GetRenderPassInfo ()	const override;
+		bool			IsInitialized ()																			C_NE_OV;
+		RenderPassInfo	GetRenderPassInfo ()																		C_NE_OV;
 
-		AsyncTask	Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps) override;
-		bool		GetTargets (OUT RenderTargets_t &targets) const override;
-		AsyncTask	End (ArrayView<AsyncTask> deps) override;
+		AsyncTask	Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE_OV;
+		bool		GetTargets (OUT RenderTargets_t &targets)														C_NE_OV;
+		AsyncTask	End (ArrayView<AsyncTask> deps)																	__NE_OV;
 		
 
 	// IWindow private api
 	public:
-		void  CreateSwapchain ();
-		void  ResizeSwapchain (const uint2 &newSize);
-		void  DestroySwapchain ();
+		void  CreateSwapchain ()																					__NE___;
+		void  ResizeSwapchain (const uint2 &newSize)																__NE___;
+		void  DestroySwapchain ()																					__NE___;
 
 
 	private:
-		void  _UpdateMonitor ();	// must be pretected by '_guard'
+		// must be pretected by '_guard'
+		void  _UpdateMonitor ()																						__NE___;
 
 	  #if defined(AE_ENABLE_VULKAN)
-		ND_ static	Graphics::VResourceManager&	_GetResMngr ();
-		ND_ static	Graphics::VDevice const&	_GetDevice ();
+		ND_ static	Graphics::VResourceManager&	_GetResMngr ()														__NE___;
+		ND_ static	Graphics::VDevice const&	_GetDevice ()														__NE___;
 	  #elif defined(AE_ENABLE_METAL)
-		ND_ static	Graphics::MResourceManager&	_GetResMngr ();
-		ND_ static	Graphics::MDevice const&	_GetDevice ();
+		ND_ static	Graphics::MResourceManager&	_GetResMngr ()														__NE___;
+		ND_ static	Graphics::MDevice const&	_GetDevice ()														__NE___;
+	  #else
+	  #	error not implemented
 	  #endif
 	};
 

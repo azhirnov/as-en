@@ -12,7 +12,6 @@
 #include "res_loaders/DDS/DDSLoader.h"
 #include "res_loaders/DDS/DDSSaver.h"
 
-#include "PipelineCompiler.h"
 #include "../UnitTest_Common.h"
 
 using namespace AE::App;
@@ -35,13 +34,18 @@ RGTest::RGTest () :
 	
 	#elif defined(AE_ENABLE_METAL)
 		_refDumpPath{ AE_CURRENT_DIR "/Metal/ref" },
+		_metal{ True{"enable info log"} },
 		_swapchain{ _metal }
+	
+	#else
+	#	error not implemented
 	#endif
 {
 	// too slow
 	//_tests.emplace_back( &RGTest::Test_Buffer );
 	//_tests.emplace_back( &RGTest::Test_Image );
 
+	_tests.emplace_back( &RGTest::Test_FeatureSets );
 	_tests.emplace_back( &RGTest::Test_FrameCounter );
 	
 	_tests.emplace_back( &RGTest::Test_UploadStream1 );
@@ -57,13 +61,13 @@ RGTest::RGTest () :
 	_tests.emplace_back( &RGTest::Test_DrawAsync1 );
 	_tests.emplace_back( &RGTest::Test_DrawMesh1 );
 	_tests.emplace_back( &RGTest::Test_RayQuery1 );
+	_tests.emplace_back( &RGTest::Test_RayTracing1 );
 	_tests.emplace_back( &RGTest::Test_Debugger1 );
 	_tests.emplace_back( &RGTest::Test_Debugger2 );
 	
 	// TODO:
 	//_tests.emplace_back( &RGTest::Test_Draw3 );
 	//_tests.emplace_back( &RGTest::Test_AsyncCompute2 );
-	//_tests.emplace_back( &RGTest::Test_RayTracing1 );
 }
 
 /*
@@ -152,52 +156,10 @@ bool  RGTest::Run (IApplication &app, IWindow &wnd)
 */
 bool  RGTest::_CompilePipelines ()
 {
-#ifdef AE_PLATFORM_WINDOWS
-	using namespace AE::PipelineCompiler;
-
-	decltype(&CompilePipelines)		compile_pipelines = null;
-
-	Path	dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
-	dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
-
-	Library		lib;
-	CHECK_ERR( lib.Load( dll_path ));
-	CHECK_ERR( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
-		
-	CHECK_ERR( FileSystem::FindAndSetCurrent( "tests/graphics/RenderGraph", 5 ));
-
-	const Path			curr_dir			= FileSystem::CurrentPath();
-	const PathParams	pipeline_folder[]	= { {TXT( AE_SHARED_DATA "/feature_set" ), 0, EPathParamsFlags::Recursive},
-												{TXT("sampler"), 2}, {TXT("rtech"), 4}, {TXT("pipeline"), 5} };
-	const PathParams	pipelines[]			= { {TXT( "config_vk.as" ), 1} };
-	const CharType*		shader_folder[]		= { TXT("shaders") };
-	const Path			output_folder		= TXT("temp");
-	
-	FileSystem::RemoveAll( output_folder );
-	FileSystem::CreateDirectories( output_folder );
-
-	const Path	output		= FileSystem::ToAbsolute( output_folder / "pipelines.bin" );
-	const Path	output_cpp	= FileSystem::ToAbsolute( output_folder / ".." / "vk_types.h" );
-
-	PipelinesInfo	info	= {};
-	info.inPipelines		= pipelines;
-	info.inPipelineCount	= CountOf( pipelines );
-	info.pipelineFolders	= pipeline_folder;
-	info.pipelineFolderCount= CountOf( pipeline_folder );
-	info.includeDirs		= null;
-	info.includeDirCount	= 0;
-	info.shaderFolders		= shader_folder;
-	info.shaderFolderCount	= CountOf( shader_folder );
-	info.outputPackName		= output.c_str();
-	info.outputCppFile		= output_cpp.c_str();
-	info.addNameMapping		= true;	// for debugging
-
-	CHECK_ERR( compile_pipelines( &info ));
-
 	auto&	res_mngr = RenderTaskScheduler().GetResourceManager();
 
 	{
-		auto	file = MakeRC<FileRStream>( output );
+		auto	file = MakeRC<FileRStream>( AE_RES_PACK );
 		CHECK_ERR( file->IsOpen() );
 
 		PipelinePackDesc	desc;
@@ -211,13 +173,11 @@ bool  RGTest::_CompilePipelines ()
 	_pipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"DrawTestRT"}, Default );
 	CHECK_ERR( _pipelines );
 	
-	_acPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"AsyncCompTestRT"}, Default );
-	_msPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"DrawMeshesTestRT"}, Default );
-	_rtPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"RayTracingTestRT"}, Default );
-	_rqPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"RayQueryTestRT"}, Default );
+	_acPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"AsyncCompTestRT"},		Default );
+	_msPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"DrawMeshesTestRT"},	Default );
+	_rtPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"RayTracingTestRT"},	Default );
+	_rqPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"RayQueryTestRT"},		Default );
 
-	CHECK( FileSystem::SetCurrentPath( curr_dir ));
-#endif
 
 	return true;
 }
@@ -326,7 +286,7 @@ bool  RGTest::_RunTests ()
 			_testsFailed += uint(not passed);
 			_tests.pop_front();
 
-			Scheduler().ProcessTask( EThread::Main, 0 );
+			Scheduler().ProcessTask( ETaskQueue::Main, 0 );
 		}
 		else
 		{
@@ -427,6 +387,7 @@ extern void Test_VulkanRenderGraph (IApplication &app, IWindow &wnd)
 */
 bool  RGTest::_Create (IApplication &, IWindow &wnd)
 {
+	CHECK_ERR( _metal.ChooseHighPerformanceDevice() );
 	CHECK_ERR( _metal.CreateDefaultQueues( EQueueMask::Graphics, EQueueMask::All ));
 	CHECK_ERR( _metal.CreateLogicalDevice() );
 	CHECK_ERR( _metal.CheckConstantLimits() );
@@ -445,10 +406,14 @@ bool  RGTest::_Create (IApplication &, IWindow &wnd)
 	MSwapchainInitializer::CreateInfo	swapchain_ci;
 	swapchain_ci.viewSize = wnd.GetSurfaceSize();
 	CHECK_ERR( _swapchain.Create( &rts.GetResourceManager(), swapchain_ci ));
-
+	
 	for (uint i = 0; i < 2; ++i) {
-		Scheduler().AddThread( MakeRC<WorkerThread>( ThreadMask{}.insert( EThread::Worker ).insert( EThread::Renderer ),
-													 nanoseconds{1}, milliseconds{4}, "render thread" ));
+		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
+				EThreadArray{ EThread::Worker, EThread::Renderer },
+				nanoseconds{1},
+				milliseconds{4},
+				"render thread"s << ToString(i)
+			}));
 	}
 
 	CHECK_ERR( _CompilePipelines() );
@@ -474,7 +439,7 @@ bool  RGTest::_RunTests ()
 			_testsFailed += uint(not passed);
 			_tests.pop_front();
 
-			Scheduler().ProcessTask( EThread::Main, 0 );
+			Scheduler().ProcessTask( ETaskQueue::Main, 0 );
 		}
 		else
 		{

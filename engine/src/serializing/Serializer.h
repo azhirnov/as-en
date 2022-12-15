@@ -60,7 +60,7 @@ namespace AE::Serializing
 		template <typename T>				ND_ bool  _Serialize (const HSVColor &);
 		template <typename T, usize S>		ND_ bool  _Serialize (const TFixedString<T,S> &str)		{ return _Serialize(StringView{str}); }
 		
-		template <typename T, uint I, glm::qualifier Q>
+		template <typename T, int I, glm::qualifier Q>
 		ND_ bool  _Serialize (const TVec<T,I,Q> &);
 
 		template <usize Size, uint UID, uint Seed>

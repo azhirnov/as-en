@@ -21,7 +21,7 @@ namespace
 		dsl->AddUniformBuffer( uint(EShaderStages::Vertex), "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform );
 		dsl->AddStorageBuffer( uint(EShaderStages::Vertex | EShaderStages::Fragment), "storageBuf", ArraySize{2}, "ubuf", EAccessType::Coherent, EResourceState::ShaderStorage_RW );
 		dsl->AddUniformTexelBuffer( uint(EShaderStages::Fragment), "texBuffer", ArraySize{1}, EImageType::UInt | EImageType::Buffer, EResourceState::ShaderSample );
-		dsl->AddStorageImage( uint(EShaderStages::Fragment), "storageImage", ArraySize{1}, EImageType::Float | EImageType::Img2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+		dsl->AddStorageImage( uint(EShaderStages::Fragment), "storageImage", ArraySize{1}, EImageType::Img2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
 		dsl->AddCombinedImage( uint(EShaderStages::Fragment), "colorTex", ArraySize{1}, EImageType::Float | EImageType::Img2D, EResourceState::ShaderSample );
 		dsl->AddImmutableSampler( uint(EShaderStages::Fragment), "imtblSampler", "DefSampler" );
 		TEST( dsl->Build() );
@@ -51,7 +51,7 @@ namespace
 #endif
 #if SH_FRAG
   // state: ShaderSample | FragmentShader
-  layout(set=1, binding=2) uniform uisamplerBuffer texBuffer;
+  layout(set=1, binding=2) uniform usamplerBuffer texBuffer;
   // state: ShaderStorage_Write | FragmentShader
   layout(set=1, binding=3, rgba8) coherent uniform image2D storageImage;
   // state: ShaderSample | FragmentShader
@@ -62,6 +62,54 @@ namespace
 )";
 		TEST( src == ref );
 	}
+	
+	/*
+	static void  DSLayout_Test2 ()
+	{
+		DescriptorSetLayoutPtr	dsl{ new DescriptorSetLayout{ "PerMaterial" }};
+		dsl->SetUsage( uint(EDescSetUsage::UpdateTemplate) );
+		ds1->Parse( R"(
+ImtblSampler	DefSampler;
+DefSampler.SetFilter( Linear, Linear, Nearest );
+DefSampler.SetAddressMode( ClampToEdge, Repeat, MirrorRepeat );
+DefSampler.SetAnisotropy( 8.f );
+
+[[compatible std140]]
+	struct ubuf
+	{
+		uvec4 u;
+		ivec4 i;
+	};
+
+[[vertex]]
+	UniformBuffer< ubuf >		constBuf;
+
+[[vertex, fragment]]
+	StorageBuffer< ubuf >		storageBuf [2];
+
+[[fragment]]
+	UniformTexBuffer< uint >	texBuffer;
+	StorageImage2D< RGBA8 >		storageImage;
+	//StorageImage< uint >		storageImage;
+	
+	CombinedImage2D< float, DefSampler >	colorTex;
+	CombinedImage3D< float >				noiseTex;
+
+	SampledImage2D< float >		tex;
+	Sampler						samp;
+
+)" );
+		TEST( dsl->Build() );
+		
+		PipelineLayout::UniqueTypes_t	unique_types;
+
+		String	hdr = "\n", src;
+		dsl->ToGLSL( EShaderStages::Vertex | EShaderStages::Fragment, 2, INOUT hdr, INOUT src, INOUT unique_types );
+		src = hdr + src;
+
+		const String	ref = R"()";
+		TEST( src == ref );
+	}*/
 }
 
 
@@ -78,6 +126,7 @@ extern void  UnitTest_DSLayout_GLSL ()
 	
 	try {
 		DSLayout_Test1();
+		//DSLayout_Test2();		// TODO
 	} catch(...) {
 		TEST( false );
 	}

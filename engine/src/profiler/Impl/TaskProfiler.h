@@ -31,7 +31,7 @@ namespace AE::Profiler
 		struct TaskBeginCmd : BaseCmd
 		{
 			const void*		task;
-			double			time;
+			double			time;		// nanoseconds
 			usize			threadId;
 			uint			frameIdx;
 			//char			name []
@@ -40,7 +40,7 @@ namespace AE::Profiler
 		struct TaskEndCmd : BaseCmd
 		{
 			const void*		task;
-			double			time;
+			double			time;		// nanoseconds
 			usize			threadId;
 			uint			frameIdx;
 			//char			name []
@@ -153,10 +153,13 @@ namespace AE::Profiler
 
 
 	  // ITaskProfiler //
-		void  Begin (const Threading::IAsyncTask &)		__NE_OV;
-		void  End (const Threading::IAsyncTask &)		__NE_OV;
-		void  Enqueue (const Threading::IAsyncTask &)	__NE_OV;
-		void  AddThread (const Threading::IThread &)	__NE_OV;
+		void  Begin (const Threading::IAsyncTask &)				__NE_OV;
+		void  End (const Threading::IAsyncTask &)				__NE_OV;
+		void  Enqueue (const Threading::IAsyncTask &)			__NE_OV;
+		void  AddThread (const Threading::IThread &)			__NE_OV;
+		
+		void  BeginNonTaskWork (const void *id, StringView name)__NE_OV;
+		void  EndNonTaskWork (const void *id, StringView name)	__NE_OV;
 	};
 
 

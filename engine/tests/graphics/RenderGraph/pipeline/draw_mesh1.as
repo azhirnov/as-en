@@ -1,6 +1,9 @@
 
 void main ()
 {
+	if ( !IsVulkan() )
+		return;
+
 	MeshPipeline@	ppln = MeshPipeline( "draw_mesh1" );
 	ppln.AddFeatureSet( "MinMeshShader" );
 	

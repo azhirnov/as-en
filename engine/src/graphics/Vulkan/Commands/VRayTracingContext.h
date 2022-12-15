@@ -32,28 +32,28 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		void  BindDescriptorSet (uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default);
+		void  BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default)__Th___;
 
 		void  TraceRays (const uint3 &dim,
 						 const VkStridedDeviceAddressRegionKHR &raygen,
 						 const VkStridedDeviceAddressRegionKHR &miss,
 						 const VkStridedDeviceAddressRegionKHR &hit,
-						 const VkStridedDeviceAddressRegionKHR &callable);
+						 const VkStridedDeviceAddressRegionKHR &callable)											__Th___;
 
-		ND_ VkCommandBuffer	EndCommandBuffer ();
-		ND_ VCommandBuffer  ReleaseCommandBuffer ();
+		ND_ VkCommandBuffer	EndCommandBuffer ()																		__Th___;
+		ND_ VCommandBuffer  ReleaseCommandBuffer ()																	__Th___;
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectRayTracingCtx (const RenderTask &task);
-		_VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf);
+		explicit _VDirectRayTracingCtx (const RenderTask &task)														__Th___;
+		_VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf)										__Th___;
 		
 		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
 		void  _PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
 		void  _SetStackSize (Bytes size);
 		
-		void  _TraceRaysIndirect (VkDeviceAddress indirectDeviceAddress);
+		void  _TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress);
 		void  _TraceRaysIndirect (const VkStridedDeviceAddressRegionKHR &raygen,
 								  const VkStridedDeviceAddressRegionKHR &miss,
 								  const VkStridedDeviceAddressRegionKHR &hit,
@@ -80,28 +80,28 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		void  BindDescriptorSet (uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default);
+		void  BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default)__Th___;
 		
 		void  TraceRays (const uint3 &dim,
 						 const VkStridedDeviceAddressRegionKHR &raygen,
 						 const VkStridedDeviceAddressRegionKHR &miss,
 						 const VkStridedDeviceAddressRegionKHR &hit,
-						 const VkStridedDeviceAddressRegionKHR &callable);
+						 const VkStridedDeviceAddressRegionKHR &callable)											__Th___;
 
-		ND_ VBakedCommands		EndCommandBuffer ();
-		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ();
+		ND_ VBakedCommands		EndCommandBuffer ()																	__Th___;
+		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()																__Th___;
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectRayTracingCtx (const RenderTask &task);
-		_VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf);
+		explicit _VIndirectRayTracingCtx (const RenderTask &task)													__Th___;
+		_VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)									__Th___;
 		
 		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
 		void  _PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
 		void  _SetStackSize (Bytes size);
 		
-		void  _TraceRaysIndirect (VkDeviceAddress indirectDeviceAddress);
+		void  _TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress);
 		void  _TraceRaysIndirect (const VkStridedDeviceAddressRegionKHR &raygen,
 								  const VkStridedDeviceAddressRegionKHR &miss,
 								  const VkStridedDeviceAddressRegionKHR &hit,
@@ -116,7 +116,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VRayTracingContextImpl : public CtxImpl, public IRayTracingContext
+	class _VRayTracingContextImpl final : public CtxImpl, public IRayTracingContext
 	{
 	// types
 	public:
@@ -129,27 +129,33 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VRayTracingContextImpl (const RenderTask &task);
+		explicit _VRayTracingContextImpl (const RenderTask &task)													__Th___;
 		
 		template <typename RawCmdBufType>
-		_VRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf);
+		_VRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)										__Th___;
 
-		_VRayTracingContextImpl () = delete;
-		_VRayTracingContextImpl (const _VRayTracingContextImpl &) = delete;
+		_VRayTracingContextImpl ()																					= delete;
+		_VRayTracingContextImpl (const _VRayTracingContextImpl &)													= delete;
 		
 		using RawCtx::BindDescriptorSet;
 
-		void  BindPipeline (RayTracingPipelineID ppln)																override;
-		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)			override;
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						override;
-		void  SetStackSize (Bytes size)																				override	{ RawCtx::_SetStackSize( size ); }
+		void  BindPipeline (RayTracingPipelineID ppln)																__Th_OV;
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th_OV;
+		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th_OV;
+		void  SetStackSize (Bytes size)																				__Th_OV	{ RawCtx::_SetStackSize( size ); }
 		
-		void  TraceRays (const uint2 dim, const ShaderBindingTable &sbt);
-		void  TraceRays (const uint3 dim, const ShaderBindingTable &sbt);
-		void  TraceRaysIndirect (const ShaderBindingTable &sbt, VDeviceAddress address);
-		void  TraceRaysIndirect (const ShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset);
-		void  TraceRaysIndirect (VDeviceAddress address);
-		void  TraceRaysIndirect (BufferID indirectBuffer, Bytes indirectBufferOffset);
+		void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)											__Th_OV;
+		void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)											__Th_OV;
+		
+		void  TraceRays (const uint2 dim, RTShaderBindingID sbt)													__Th_OV;
+		void  TraceRays (const uint3 dim, RTShaderBindingID sbt)													__Th_OV;
+
+		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, VDeviceAddress address)							__Th___;
+		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes)					__Th_OV;
+		void  TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes)								__Th_OV;
+
+		void  TraceRaysIndirect2 (VDeviceAddress address)															__Th___;
+		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)								__Th_OV;
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -160,8 +166,8 @@ namespace AE::Graphics::_hidden_
 
 namespace AE::Graphics
 {
-	using VDirectRayTracingContext		= _hidden_::_VRayTracingContextImpl< _hidden_::_VDirectRayTracingCtx >;
-	using VIndirectRayTracingContext	= _hidden_::_VRayTracingContextImpl< _hidden_::_VIndirectRayTracingCtx >;
+	using VDirectRayTracingContext		= Graphics::_hidden_::_VRayTracingContextImpl< Graphics::_hidden_::_VDirectRayTracingCtx >;
+	using VIndirectRayTracingContext	= Graphics::_hidden_::_VRayTracingContextImpl< Graphics::_hidden_::_VIndirectRayTracingCtx >;
 
 } // AE::Graphics
 	
@@ -206,7 +212,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VRayTracingContextImpl<C>::BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
+	void  _VRayTracingContextImpl<C>::BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
 	{
 		auto&	desc_set = _GetResourcesOrThrow( ds );
 
@@ -232,14 +238,28 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VRayTracingContextImpl<C>::TraceRays (const uint2 dim, const ShaderBindingTable &sbt)
+	void  _VRayTracingContextImpl<C>::TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)
 	{
 		return TraceRays( uint3{ dim.x, dim.y, 1u }, sbt );
 	}
 
 	template <typename C>
-	void  _VRayTracingContextImpl<C>::TraceRays (const uint3 dim, const ShaderBindingTable &sbt)
+	void  _VRayTracingContextImpl<C>::TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)
 	{
+		RawCtx::TraceRays( dim, sbt.raygen, sbt.miss, sbt.hit, sbt.callable );
+	}
+	
+	template <typename C>
+	void  _VRayTracingContextImpl<C>::TraceRays (const uint2 dim, RTShaderBindingID sbtId)
+	{
+		auto&	sbt = _GetResourcesOrThrow( sbtId ).GetSBT();
+		RawCtx::TraceRays( uint3{ dim.x, dim.y, 1u }, sbt.raygen, sbt.miss, sbt.hit, sbt.callable );
+	}
+	
+	template <typename C>
+	void  _VRayTracingContextImpl<C>::TraceRays (const uint3 dim, RTShaderBindingID sbtId)
+	{
+		auto&	sbt = _GetResourcesOrThrow( sbtId ).GetSBT();
 		RawCtx::TraceRays( dim, sbt.raygen, sbt.miss, sbt.hit, sbt.callable );
 	}
 
@@ -249,33 +269,48 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const ShaderBindingTable &sbt, VDeviceAddress address)
+	void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, VDeviceAddress address)
 	{
 		RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, address );
 	}
 	
 	template <typename C>
-	void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const ShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)
+	void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)
 	{
 		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
 		ASSERT( buf.Size() <= indirectBufferOffset + sizeof(VkTraceRaysIndirectCommandKHR) );
 
 		RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, buf.GetDeviceAddress() + indirectBufferOffset );
 	}
-
+	
 	template <typename C>
-	void  _VRayTracingContextImpl<C>::TraceRaysIndirect (VDeviceAddress address)
+	void  _VRayTracingContextImpl<C>::TraceRaysIndirect (RTShaderBindingID sbtId, BufferID indirectBuffer, Bytes indirectBufferOffset)
 	{
-		RawCtx::_TraceRaysIndirect( address );
+		auto	[buf, sbt_obj]	= _GetResourcesOrThrow( indirectBuffer, sbtId );
+		auto&	sbt				= sbt_obj.GetSBT();
+		ASSERT( buf.Size() <= indirectBufferOffset + sizeof(VkTraceRaysIndirectCommandKHR) );
+
+		RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, buf.GetDeviceAddress() + indirectBufferOffset );
+	}
+	
+/*
+=================================================
+	TraceRaysIndirect2
+=================================================
+*/
+	template <typename C>
+	void  _VRayTracingContextImpl<C>::TraceRaysIndirect2 (VDeviceAddress address)
+	{
+		RawCtx::_TraceRaysIndirect2( address );
 	}
 	
 	template <typename C>
-	void  _VRayTracingContextImpl<C>::TraceRaysIndirect (BufferID indirectBuffer, Bytes indirectBufferOffset)
+	void  _VRayTracingContextImpl<C>::TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)
 	{
 		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
 		ASSERT( buf.Size() <= indirectBufferOffset + sizeof(VkTraceRaysIndirectCommand2KHR) );
 		
-		RawCtx::_TraceRaysIndirect( buf.GetDeviceAddress() + indirectBufferOffset );
+		RawCtx::_TraceRaysIndirect2( buf.GetDeviceAddress() + indirectBufferOffset );
 	}
 //-----------------------------------------------------------------------------
 	
@@ -303,14 +338,6 @@ namespace AE::Graphics::_hidden_
 	_TraceRaysIndirect
 =================================================
 */
-	inline void  _VDirectRayTracingCtx::_TraceRaysIndirect (VkDeviceAddress indirectDeviceAddress)
-	{
-		ASSERT( _states.pipeline != Default );
-		ASSERT( indirectDeviceAddress != Default );
-
-		vkCmdTraceRaysIndirect2KHR( _cmdbuf.Get(), indirectDeviceAddress );
-	}
-
 	inline void  _VDirectRayTracingCtx::_TraceRaysIndirect (const VkStridedDeviceAddressRegionKHR&	raygen,
 															const VkStridedDeviceAddressRegionKHR&	miss,
 															const VkStridedDeviceAddressRegionKHR&	hit,
@@ -321,6 +348,19 @@ namespace AE::Graphics::_hidden_
 		ASSERT( indirectDeviceAddress != Default );
 
 		vkCmdTraceRaysIndirectKHR( _cmdbuf.Get(), &raygen, &miss, &hit, &callable, VkDeviceAddress(indirectDeviceAddress) );
+	}
+	
+/*
+=================================================
+	_TraceRaysIndirect2
+=================================================
+*/
+	inline void  _VDirectRayTracingCtx::_TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress)
+	{
+		ASSERT( _states.pipeline != Default );
+		ASSERT( indirectDeviceAddress != Default );
+
+		vkCmdTraceRaysIndirect2KHR( _cmdbuf.Get(), indirectDeviceAddress );
 	}
 
 /*
@@ -343,12 +383,12 @@ namespace AE::Graphics::_hidden_
 	BindDescriptorSet
 =================================================
 */
-	inline void  _VDirectRayTracingCtx::BindDescriptorSet (uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
+	inline void  _VDirectRayTracingCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
 	{
 		ASSERT( _states.pplnLayout != Default );
 		ASSERT( ds != Default );
 
-		vkCmdBindDescriptorSets( _cmdbuf.Get(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, _states.pplnLayout, index, 1, &ds, uint(dynamicOffsets.size()), dynamicOffsets.data() );
+		vkCmdBindDescriptorSets( _cmdbuf.Get(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, _states.pplnLayout, index.vkIndex, 1, &ds, uint(dynamicOffsets.size()), dynamicOffsets.data() );
 	}
 	
 /*
@@ -400,11 +440,11 @@ namespace AE::Graphics::_hidden_
 	BindDescriptorSet
 =================================================
 */
-	inline void  _VIndirectRayTracingCtx::BindDescriptorSet (uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
+	inline void  _VIndirectRayTracingCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
 	{
 		CHECK_ERRV( _states.pplnLayout != Default );
 
-		_cmdbuf->BindDescriptorSet( VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, _states.pplnLayout, index, ds, dynamicOffsets );
+		_cmdbuf->BindDescriptorSet( VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, _states.pplnLayout, index.vkIndex, ds, dynamicOffsets );
 	}
 
 /*

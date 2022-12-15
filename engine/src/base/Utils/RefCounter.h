@@ -72,7 +72,8 @@ namespace AE::Base
 		template <typename T>
 			forceinline static int   DecRef (EnableRC<T> &obj)			__NE___	{ return obj._counter.fetch_sub( 1, std::memory_order_relaxed ); }
 		
-		// returns '1' if object have been destroyed
+		// returns '1' if object have been destroyed.
+		// 'ptr' can be null
 		template <typename T>
 			forceinline static int   DecRefAndRelease (INOUT T* &ptr)	__NE___;
 
@@ -104,6 +105,9 @@ namespace AE::Base
 	public:
 		RC ()											__NE___ {}
 		RC (std::nullptr_t)								__NE___ {}
+		
+		enum class DontIncRef {};
+		explicit RC (T* ptr, DontIncRef)				__NE___ : _ptr{ptr}				{}
 
 		RC (T* ptr)										__NE___ : _ptr{ptr}				{ _Inc(); }
 		RC (Ptr<T> ptr)									__NE___ : _ptr{ptr}				{ _Inc(); }
@@ -115,17 +119,17 @@ namespace AE::Base
 
 		~RC ()											__NE___ { _Dec(); }
 
-		Self&  operator = (std::nullptr_t)				__NE___ { _Dec();  _ptr = null;                return *this; }
-		Self&  operator = (T* rhs)						__NE___ { _Dec();  _ptr = rhs;        _Inc();  return *this; }
-		Self&  operator = (Ptr<T> rhs)					__NE___ { _Dec();  _ptr = rhs.get();  _Inc();  return *this; }
-		Self&  operator = (const Self &rhs)				__NE___ { _Dec();  _ptr = rhs._ptr;   _Inc();  return *this; }
-		Self&  operator = (Self &&rhs)					__NE___ { _Dec();  _ptr = rhs.release();       return *this; }
+		Self&  operator = (std::nullptr_t)				__NE___ {						_Dec();  _ptr = null;			return *this; }
+		Self&  operator = (T* rhs)						__NE___ { _Inc( rhs );			_Dec();  _ptr = rhs;			return *this; }
+		Self&  operator = (Ptr<T> rhs)					__NE___ { _Inc( rhs.get() );	_Dec();  _ptr = rhs.get();		return *this; }
+		Self&  operator = (const Self &rhs)				__NE___ { _Inc( rhs._ptr );		_Dec();  _ptr = rhs._ptr;		return *this; }
+		Self&  operator = (Self &&rhs)					__NE___ {						_Dec();  _ptr = rhs.release();	return *this; }
 
-		template <typename B, typename = EnableIf<IsBaseOf<T,B>> >
-		Self&  operator = (RC<B> &&rhs)					__NE___ { _Dec();  _ptr = static_cast<T*>(rhs.release());       return *this; }
+		template <typename B>
+		Self&  operator = (RC<B> &&rhs)					__NE___ { _Dec();  _ptr = static_cast<T*>(rhs.release());        return *this; }
 		
-		template <typename B, typename = EnableIf<IsBaseOf<T,B>> >
-		Self&  operator = (const RC<B> &&rhs)			__NE___ { _Dec();  _ptr = static_cast<T*>(rhs.get());  _Inc();  return *this; }
+		template <typename B>
+		Self&  operator = (const RC<B> &rhs)			__NE___ { _Inc( static_cast<T*>(rhs.get()) );  _Dec();  _ptr = static_cast<T*>(rhs.get());  return *this; }
 
 		ND_ bool  operator == (const T* rhs)			C_NE___ { return _ptr == rhs; }
 		ND_ bool  operator == (Ptr<T> rhs)				C_NE___ { return _ptr == rhs.get(); }
@@ -149,14 +153,15 @@ namespace AE::Base
 
 		ND_ explicit operator bool ()					C_NE___ { return _ptr != null; }
 
-			void	attach (T* ptr)						__NE___ { _Dec();  _ptr = ptr; }
-			void	reset (T* ptr)						__NE___ { _Dec();  _ptr = ptr;  _Inc(); }
+			void	attach (T* ptr)						__NE___ {				_Dec();  _ptr = ptr; }
+			void	reset (T* ptr)						__NE___ { _Inc( ptr );	_Dec();  _ptr = ptr; }
 
 			void	Swap (INOUT Self &rhs)				__NE___;
 
 	private:
-			void	_Inc ()								__NE___;
-			void	_Dec ()								__NE___;
+		static	void	_Inc (T* ptr)					__NE___;
+				void	_Inc ()							__NE___;
+				void	_Dec ()							__NE___;
 	};
 
 	
@@ -207,7 +212,7 @@ namespace AE::Base
 		using RC_t		= RC<T>;
 		using Self		= AtomicRC<T>;
 
-		STATIC_ASSERT( alignof(T) > 1 );	// because first bit is used for locked bit
+		STATIC_ASSERT( alignof(T) > 1 );	// because first bit is used for lock bit
 
 
 	// variables
@@ -217,48 +222,55 @@ namespace AE::Base
 
 	// methods
 	public:
-		AtomicRC ()									__NE___ {}
-		AtomicRC (std::nullptr_t)					__NE___ {}
+		AtomicRC ()													__NE___ {}
+		AtomicRC (std::nullptr_t)									__NE___ {}
 
-		AtomicRC (T* ptr)							__NE___ { _IncSet( ptr ); }
-		AtomicRC (Ptr<T> ptr)						__NE___ { _IncSet( ptr.get() ); }
-		AtomicRC (RC<T> && rc)						__NE___ { _ptr.store( rc.release().release(), std::memory_order_relaxed ); }
-		AtomicRC (const RC<T> &rc)					__NE___ { _IncSet( rc.get() ); }
+		AtomicRC (T* ptr)											__NE___ { _IncSet( ptr ); }
+		AtomicRC (Ptr<T> ptr)										__NE___ { _IncSet( ptr.get() ); }
+		AtomicRC (RC_t && rc)										__NE___ { _ptr.store( rc.release().release(), std::memory_order_relaxed ); }
+		AtomicRC (const RC_t &rc)									__NE___ { _IncSet( rc.get() ); }
 
-		~AtomicRC ()								__NE___ { _ResetDec(); }
+		~AtomicRC ()												__NE___ { _ResetDec(); }
 		
-		ND_ T *		unsafe_get ()					C_NE___ { return _RemoveLockBit( _ptr.load( std::memory_order_relaxed )); }
-		ND_ RC_t	release ()						__NE___;
+		ND_ T *		unsafe_get ()									C_NE___ { return _RemoveLockBit( _ptr.load( std::memory_order_relaxed )); }
+		ND_ RC_t	release ()										__NE___;
 
-		ND_ RC_t	get ()							__NE___;
+		ND_ RC_t	get ()											__NE___;
 
-			void	reset (T* ptr)					__NE___;
+			void	reset (T* ptr)									__NE___;
 
-		ND_ RC_t	exchange (T* ptr)				__NE___;
-		ND_ RC_t	exchange (RC_t rc)				__NE___;
+		ND_ RC_t	exchange (T* desired)							__NE___;
+		ND_ RC_t	exchange (RC_t desired)							__NE___;
 
-		Self&  operator = (std::nullptr_t)			__NE___ { _ResetDec();			return *this; }
-		Self&  operator = (T* rhs)					__NE___ { reset( rhs );			return *this; }
-		Self&  operator = (Ptr<T> rhs)				__NE___ { reset( rhs );			return *this; }
-		Self&  operator = (const RC<T> &rhs)		__NE___ { reset( rhs.get() );	return *this; }
-		Self&  operator = (RC<T> && rhs)			__NE___;
+		ND_ bool	CAS (INOUT RC_t& expected, RC_t desired)		__NE___	{ return _CAS<false>( INOUT expected, RVRef(desired) ); }
+		ND_ bool	CAS_Loop (INOUT RC_t& expected, RC_t desired)	__NE___	{ return _CAS<true>( INOUT expected, RVRef(desired) ); }
+
+
+		Self&  operator = (std::nullptr_t)							__NE___ { _ResetDec();			return *this; }
+		Self&  operator = (T* rhs)									__NE___ { reset( rhs );			return *this; }
+		Self&  operator = (Ptr<T> rhs)								__NE___ { reset( rhs );			return *this; }
+		Self&  operator = (const RC_t &rhs)							__NE___ { reset( rhs.get() );	return *this; }
+		Self&  operator = (RC_t && rhs)								__NE___;
 
 	private:
-		void  _IncSet (T *ptr)						__NE___;
-		void  _ResetDec ()							__NE___;
+		void  _IncSet (T *ptr)										__NE___;
+		void  _ResetDec ()											__NE___;
 		
-		ND_ T*		_Lock ()						__NE___;
-			void	_Unlock ()						__NE___;
-		ND_ T*		_Exchange (T* ptr)				__NE___;
+		ND_ T*		_Lock ()										__NE___;
+			void	_Unlock ()										__NE___;
+		ND_ T*		_Exchange (T* ptr)								__NE___;
+		
+		template <bool IsStrong>
+		ND_ bool	_CAS (INOUT RC_t& expected, RC_t desired)		__NE___;
 
-		static void  _Inc (T *ptr)					__NE___;
-		static void  _Dec (T *ptr)					__NE___;
+		static void  _Inc (T *ptr)									__NE___;
+		static void  _Dec (T *ptr)									__NE___;
 
-		ND_ static bool	_HasLockBit (T* ptr)		__NE___	{ return (usize(ptr) & usize{1}); }
+		ND_ static bool	_HasLockBit (T* ptr)						__NE___	{ return (usize(ptr) & usize{1}); }
 
-		ND_ static T*	_SetLockBit (T* ptr)		__NE___ { return reinterpret_cast< T *>((usize(ptr) | usize{1})); }
+		ND_ static T*	_SetLockBit (T* ptr)						__NE___ { return reinterpret_cast< T *>((usize(ptr) | usize{1})); }
 
-		ND_ static T*	_RemoveLockBit (T* ptr)		__NE___ { return reinterpret_cast< T *>((usize(ptr) & ~usize{1})); }
+		ND_ static T*	_RemoveLockBit (T* ptr)						__NE___ { return reinterpret_cast< T *>((usize(ptr) & ~usize{1})); }
 	};
 
 	
@@ -350,6 +362,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
+	forceinline void  RC<T>::_Inc (T* ptr) __NE___
+	{
+		if_likely( ptr != null )
+			RefCounterUtils::IncRef( *ptr );
+	}
+
+	template <typename T>
 	forceinline void  RC<T>::_Inc () __NE___
 	{
 		if_likely( _ptr != null )
@@ -398,7 +417,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	AtomicRC<T>&  AtomicRC<T>::operator = (RC<T> &&rhs) __NE___
+	AtomicRC<T>&  AtomicRC<T>::operator = (RC_t &&rhs) __NE___
 	{
 		_ResetDec();
 		
@@ -476,7 +495,7 @@ namespace AE::Base
 		T*	old = _Exchange( null );
 		ASSERT( not _HasLockBit( old ));
 
-		RC<T>	ptr;
+		RC_t	ptr;
 		ptr.attach( old );
 
 		return ptr;
@@ -490,7 +509,7 @@ namespace AE::Base
 	template <typename T>
 	RC<T>  AtomicRC<T>::get () __NE___
 	{
-		RC<T>	res{ _Lock() };
+		RC_t	res{ _Lock() };
 		_Unlock();
 		return res;
 	}
@@ -509,16 +528,70 @@ namespace AE::Base
 	
 /*
 =================================================
+	reset
+=================================================
+*/
+	template <typename T>
+	RC<T>  AtomicRC<T>::exchange (T* desired) __NE___
+	{
+		_Inc( desired );
+
+		T*	old = _Exchange( desired );
+
+		return RC_t{ old, RC_t::DontIncRef(0) };
+	}
+	
+	template <typename T>
+	RC<T>  AtomicRC<T>::exchange (RC_t desired) __NE___
+	{
+		T*	old = _Exchange( desired.release() );
+
+		return RC_t{ old, RC_t::DontIncRef(0) };
+	}
+	
+/*
+=================================================
+	CAS
+=================================================
+*/
+	template <typename T>
+	template <bool IsStrong>
+	ND_ bool  AtomicRC<T>::_CAS (INOUT RC_t& expected, RC_t desired) __NE___
+	{
+		T*	exp = expected.get();
+		T*	des	= desired.get();
+		
+		ASSERT( not _HasLockBit( exp ));
+		ASSERT( not _HasLockBit( des ));
+		
+		bool	res;
+		
+		if constexpr( IsStrong )
+			res = _ptr.compare_exchange_strong( INOUT exp, des, std::memory_order_relaxed, std::memory_order_relaxed );
+		else
+			res = _ptr.compare_exchange_weak( INOUT exp, des, std::memory_order_relaxed, std::memory_order_relaxed );
+		
+		if ( res ) {
+			RefCounterUtils::DecRefAndRelease( exp );
+			Unused( desired.release() );	// 'desired' copied to '_ptr' so don't decrease ref counter
+		}else
+			expected = exp;
+
+		return res;
+	}
+
+/*
+=================================================
 	_Exchange
 =================================================
 */
 	template <typename T>
-	T*  AtomicRC<T>::_Exchange (T* ptr) __NE___
+	T*  AtomicRC<T>::_Exchange (T* desired) __NE___
 	{
 		T*	exp = _RemoveLockBit( _ptr.load( std::memory_order_relaxed ));
 		
 		for (uint i = 0;
-			 not _ptr.compare_exchange_weak( INOUT exp, ptr, std::memory_order_relaxed, std::memory_order_relaxed );
+			 not _ptr.compare_exchange_weak( INOUT exp, desired, std::memory_order_relaxed, std::memory_order_relaxed );
 			 ++i)
 		{
 			if_unlikely( i > ThreadUtils::SpinBeforeLock() )

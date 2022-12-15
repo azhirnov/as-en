@@ -43,7 +43,7 @@ namespace _hidden_
 } // _hidden_
 
 	template <auto X>
-	static constexpr bool	CT_IsPowerOfTwo = _hidden_::_IsPowerOfTwo< ulong(X) >::value;
+	static constexpr bool	CT_IsPowerOfTwo = Base::_hidden_::_IsPowerOfTwo< ulong(X) >::value;
 	
 /*
 =================================================
@@ -60,7 +60,7 @@ namespace _hidden_
 } // _hidden_
 
 	template <auto X>
-	static constexpr int	CT_CeilIntLog2 = _hidden_::_CeilIntLog2<X>::value;
+	static constexpr int	CT_CeilIntLog2 = Base::_hidden_::_CeilIntLog2<X>::value;
 
 /*
 =================================================
@@ -96,6 +96,34 @@ namespace _hidden_
 */
 	template <auto X>
 	static constexpr usize		CT_BitCount = std::popcount(ulong( X ));
+	
+/*
+=================================================
+	CT_ToBitMask
+=================================================
+*/
+#ifdef AE_COMPILER_MSVC
+# pragma warning (push)
+# pragma warning (disable: 4293)
+#endif
+
+namespace _hidden_
+{
+	template <typename R, auto Count>
+	struct _ToBitMask {
+		STATIC_ASSERT( IsUnsignedInteger<R> );
+		static constexpr R	mask	=	Count >= sizeof(R)*8	? ~R{0} :
+										Count <  0				?  R{0} :
+																  (R{1} << Count) - 1;
+	};
+} // _hidden_
+
+#ifdef AE_COMPILER_MSVC
+# pragma warning (pop)
+#endif
+
+	template <typename T, auto Count>
+	static constexpr T	CT_ToBitMask = _hidden_::_ToBitMask< T, Count >::mask;
 
 
 } // AE::Base

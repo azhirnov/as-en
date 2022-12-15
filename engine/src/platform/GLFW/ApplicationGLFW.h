@@ -34,29 +34,29 @@ namespace AE::App
 
 	// methods
 	public:
-		static int   Run (Unique<IAppListener>);
-		static bool  GetMonitorInfo (GLFWmonitor*, OUT Monitor &);
+		static int   Run (Unique<IAppListener>)											__NE___;
+		static bool  GetMonitorInfo (GLFWmonitor*, OUT Monitor &)						__NE___;
 
 
 	// IApplication //
-		WindowPtr	CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*) override;
+		WindowPtr	CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)	__NE_OV;
 
-		Monitors_t	GetMonitors (bool update = false) override;
+		Monitors_t	GetMonitors (bool update = false)									__NE_OV;
 		
-		StringView	GetApiName () const override	{ return "glfw"; }
+		StringView	GetApiName ()														C_NE_OV	{ return "glfw"; }
 
-		RC<IVirtualFileStorage> OpenBuiltinStorage () override { return null; }
+		RC<IVirtualFileStorage> OpenBuiltinStorage ()									__NE_OV { return null; }
 
-		ArrayView<const char*>	GetVulkanInstanceExtensions () override;
+		ArrayView<const char*>	GetVulkanInstanceExtensions ()							__NE_OV;
 
 
 	private:
-		explicit ApplicationGLFW (Unique<IAppListener>);
-		~ApplicationGLFW ();
+		explicit ApplicationGLFW (Unique<IAppListener>)									__NE___;
+		~ApplicationGLFW ()																__NE___;
 
-		void  _MainLoop ();
+		void  _MainLoop ()																__NE___;
 
-		void  _UpdateMinitors (OUT Monitors_t &) const;
+		void  _UpdateMinitors (OUT Monitors_t &)										C_NE___;
 	};
 
 

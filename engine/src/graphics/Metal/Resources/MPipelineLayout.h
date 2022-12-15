@@ -19,9 +19,8 @@ namespace AE::Graphics
 	public:
 		struct DescSetLayout
 		{
-			DescriptorSetLayoutID		layoutId;
-			//VkDescriptorSetLayout		layout		= Default;	// TODO: remove?
-			uint						index		= 0;
+			DescriptorSetLayoutID			layoutId;
+			DescSetBinding					index;
 		};
 
 		using DescriptorSets_t	= FixedMap< DescriptorSetName::Optimized_t, DescSetLayout, GraphicsConfig::MaxDescriptorSets >;
@@ -32,7 +31,6 @@ namespace AE::Graphics
 	// variables
 	private:
 		DescriptorSets_t			_descriptorSets;
-		uint						_firstDescSet	= UMax;
 		
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
@@ -40,18 +38,18 @@ namespace AE::Graphics
 		
 	// methods
 	public:
-		MPipelineLayout () {}
-		~MPipelineLayout () {}
+		MPipelineLayout ()										__NE___	{}
+		~MPipelineLayout ()										__NE___	{}
 		
-		ND_ bool  Create (MResourceManager &resMngr, const DescriptorSets_t &descSetLayouts, const PushConstants_t &pushConstants, StringView dbgName);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (MResourceManager &resMngr, const DescriptorSets_t &descSetLayouts, const PushConstants_t &pushConstants,
+						  MetalArrayOfArgumentDescriptor emptyLayout, StringView dbgName)												__NE___;
+			void  Destroy (MResourceManager &)																							__NE___;
 		
-		ND_ bool  GetDescriptorSetLayout (const DescriptorSetName &id, OUT DescriptorSetLayoutID &layout, OUT uint &binding) const;
+		ND_ bool  GetDescriptorSetLayout (const DescriptorSetName &id, OUT DescriptorSetLayoutID &layout, OUT DescSetBinding &binding)	C_NE___;
+
+		ND_ DescriptorSets_t const&	GetDescriptorSets ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _descriptorSets; }
 		
-		ND_ uint					GetFirstDescriptorSet ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _firstDescSet; }
-		ND_ DescriptorSets_t const&	GetDescriptorSets ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _descriptorSets; }
-		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 } // AE::Graphics

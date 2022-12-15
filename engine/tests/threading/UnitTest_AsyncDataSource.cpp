@@ -60,7 +60,7 @@ namespace
 									TEST( res.data != null );
 									TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
 									TEST( res.offset == pos );
-									TEST( res.self.use_count() == 1 );		// because executed sequentially and synchroniously
+									TEST( res.request.use_count() == 1 );		// because executed sequentially and synchroniously
 
 									ulong	ref_buf [buf_size / sizeof(ulong)];
 
@@ -77,7 +77,7 @@ namespace
 						break;
 				}
 
-				TEST( req->IsComplete() );
+				TEST( req->IsCompleted() );
 				req = null;
 
 				TEST( scheduler->Wait( {task}, EThreadArray{ EThread::Worker } ));
@@ -96,7 +96,7 @@ namespace
 		TEST( scheduler->GetFileIOService() );
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep(
-				EThreadArray{ EThread::Worker, EThread2::FileIO }
+				EThreadArray{ EThread::Worker, EThread::FileIO }
 			)));
 
 		const ulong	file_size	= 32ull << 20;	// Mb
@@ -137,7 +137,7 @@ namespace
 				ulong		pos		= 0;
 
 			public:
-				ReadFileTask (RC<RFile> rfile) : IAsyncTask{EThread::Worker}, rfile{rfile} {}
+				ReadFileTask (RC<RFile> rfile) : IAsyncTask{ETaskQueue::Worker}, rfile{rfile} {}
 
 				void  Run () override
 				{
@@ -151,7 +151,7 @@ namespace
 											TEST( res.data != null );
 											TEST( res.dataSize == (cur_pos < file_size ? buf_size : 0) );
 											TEST( res.offset == cur_pos );
-											TEST( res.self.use_count() > 0 );	// is alive
+											TEST( res.request.use_count() > 0 );	// is alive
 
 											ulong	ref_buf [buf_size / sizeof(ulong)];
 
@@ -228,7 +228,7 @@ namespace
 				TEST( res.data != null );
 				TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
 				TEST( res.offset == pos );
-				TEST( res.self.use_count() > 0 );	// is alive
+				TEST( res.request.use_count() > 0 );	// is alive
 
 				ulong	ref_buf [buf_size / sizeof(ulong)];
 
@@ -249,7 +249,7 @@ namespace
 		TEST( scheduler->GetFileIOService() );
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep(
-				EThreadArray{ EThread::Worker, EThread2::FileIO }
+				EThreadArray{ EThread::Worker, EThread::FileIO }
 			)));
 
 		auto	task = scheduler->Run( AsyncReadDS_Test3_Coro< RFile, WFile >() );
@@ -298,7 +298,7 @@ namespace
 																	TEST( pos == res.offset );
 																	TEST( buf_size == res.dataSize );
 																	TEST( res.data == null );
-																	TEST( res.self == null );
+																	TEST( res.request == null );
 																})};
 				TEST( task );
 				
@@ -308,7 +308,7 @@ namespace
 						break;
 				}
 				
-				TEST( req->IsComplete() );
+				TEST( req->IsCompleted() );
 				req = null;
 
 				TEST( scheduler->Wait( {task}, EThreadArray{ EThread::Worker } ));

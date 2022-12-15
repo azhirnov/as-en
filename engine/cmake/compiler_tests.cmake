@@ -6,7 +6,7 @@ if (${COMPILER_MSVC})
 	set( AE_DEFAULT_CPPFLAGS "/std:c++latest" )
 else()
 	set( AE_DEFAULT_CPPFLAGS "-std=c++17" )
-endif ()
+endif()
 
 set( CMAKE_REQUIRED_FLAGS "${AE_DEFAULT_CPPFLAGS}" )
 message( STATUS "Run compiler tests with flags: ${CMAKE_REQUIRED_FLAGS}" )
@@ -27,7 +27,7 @@ if (STD_STRINGVIEW_SUPPORTED)
 	set( STD_STRINGVIEW_SUPPORTED ON CACHE INTERNAL "" FORCE )
 else()
 	set( STD_STRINGVIEW_SUPPORTED OFF CACHE INTERNAL "" FORCE )
-endif ()
+endif()
 
 #------------------------------------------------------------------------------
 check_cxx_source_compiles(
@@ -42,7 +42,7 @@ if (STD_OPTIONAL_SUPPORTED)
 	set( STD_OPTIONAL_SUPPORTED ON CACHE INTERNAL "" FORCE )
 else()
 	set( STD_OPTIONAL_SUPPORTED OFF CACHE INTERNAL "" FORCE )
-endif ()
+endif()
 
 #------------------------------------------------------------------------------
 check_cxx_source_compiles(
@@ -59,7 +59,7 @@ if (STD_VARIANT_SUPPORTED)
 	set( STD_VARIANT_SUPPORTED ON CACHE INTERNAL "" FORCE )
 else()
 	set( STD_VARIANT_SUPPORTED OFF CACHE INTERNAL "" FORCE )
-endif ()
+endif()
 
 #------------------------------------------------------------------------------
 check_cxx_source_compiles(
@@ -74,7 +74,7 @@ if (STD_FILESYSTEM_SUPPORTED)
 	set( STD_FILESYSTEM_SUPPORTED ON CACHE INTERNAL "" FORCE )
 else()
 	set( STD_FILESYSTEM_SUPPORTED OFF CACHE INTERNAL "" FORCE )
-endif ()
+endif()
 
 #------------------------------------------------------------------------------
 check_cxx_source_compiles(
@@ -92,12 +92,12 @@ elseif ((${CMAKE_SYSTEM_NAME} STREQUAL "Darwin") OR (${CMAKE_SYSTEM_NAME} STREQU
 	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=128" )
 else ()
 	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=64" ) # TODO
-endif ()
+endif()
 
 #------------------------------------------------------------------------------
 if (NOT ${COMPILER_MSVC})
 	set( CMAKE_REQUIRED_FLAGS "${AE_DEFAULT_CPPFLAGS} -Werror=unknown-pragmas" )
-endif ()
+endif()
 
 check_cxx_source_compiles(
 	"#pragma detect_mismatch( \"AE_DEBUG\", \"1\" )
@@ -108,7 +108,7 @@ check_cxx_source_compiles(
 
 if (CPP_DETECT_MISMATCH_SUPPORTED)
 	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CPP_DETECT_MISMATCH" )
-endif ()
+endif()
 set( CMAKE_REQUIRED_FLAGS "${AE_DEFAULT_CPPFLAGS}" )
 
 #------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ check_cxx_source_compiles(
 
 if (HAS_HASHFN_HashArrayRepresentation)
 	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_HAS_HASHFN_HashArrayRepresentation" )
-endif ()
+endif()
 
 #------------------------------------------------------------------------------
 check_cxx_source_compiles(
@@ -137,7 +137,7 @@ check_cxx_source_compiles(
 
 if (HAS_HASHFN_Murmur2OrCityhash)
 	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_HAS_HASHFN_Murmur2OrCityhash" )
-endif ()
+endif()
 
 #------------------------------------------------------------------------------
 check_cxx_source_compiles(
@@ -151,7 +151,7 @@ check_cxx_source_compiles(
 
 if (HAS_HASHFN_HashBytes)
 	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_HAS_HASHFN_HashBytes" )
-endif ()
+endif()
 
 #------------------------------------------------------------------------------
 

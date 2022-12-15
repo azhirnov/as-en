@@ -10,10 +10,10 @@ namespace AE::Networking
 {
 
 	//
-	// Socket Manager
+	// Socket Service
 	//
 
-	class SocketManager final : public Noncopyable
+	class SocketService final : public Noncopyable
 	{
 	// variables
 	private:
@@ -22,14 +22,14 @@ namespace AE::Networking
 
 	// methods
 	public:
-		ND_ static SocketManager&  Instance ()	__NE___;
+		ND_ static SocketService&  Instance ()	__NE___;
 		
-		ND_ bool  Initialize ()		__NE___;
-			bool  Deinitialize ()	__NE___;
+		ND_ bool  Initialize ()					__NE___;
+			bool  Deinitialize ()				__NE___;
 
 	private:
-		SocketManager ()			__NE___;
-		~SocketManager ()			__NE___;
+		SocketService ()						__NE___;
+		~SocketService ()						__NE___;
 	};
 
 

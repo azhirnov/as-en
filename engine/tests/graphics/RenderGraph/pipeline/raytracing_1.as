@@ -1,9 +1,12 @@
 
 void main ()
 {
+	if ( !IsVulkan() )
+		return;
+
 	DescriptorSetLayout@	ds = DescriptorSetLayout( "rtrace1.ds1" );
 	ds.AddFeatureSet( "MinRecursiveRayTracing" );
-	ds.StorageImage( EShaderStages::RayGen, "un_OutImage", ArraySize(1), EImageType::FImage2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+	ds.StorageImage( EShaderStages::RayGen, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
 	ds.RayTracingScene( EShaderStages::RayGen, "un_RtScene", ArraySize(1) );
 	
 	PipelineLayout@		pl = PipelineLayout( "rtrace1.pl" );
@@ -20,6 +23,8 @@ void main ()
 		rg.type		= EShader::RayGen;
 		rg.options	= EShaderOpt::Optimize;
 		rg.version	= EShaderVersion::SPIRV_1_4;
+		
+		rg.AddSpec( EValueType::UInt32, "HitGroupStride" );
 
 		ppln.AddGeneralShader( "Main", rg );
 	}
@@ -46,8 +51,25 @@ void main ()
 
 	// specialization
 	{
+		const uint	hit_group_stride = 2;
+		
 		RayTracingPipelineSpec@	spec = ppln.AddSpecialization( "rtrace1.def" );
 
+		spec.SetSpecValue( "HitGroupStride", hit_group_stride );
 		spec.AddToRenderTech( "RayTracingTestRT", "RayTrace_1" );
+
+		// shader binding table
+		{
+			RayTracingShaderBinding@	sbt = RayTracingShaderBinding( spec, "rtrace1.sbt0" );
+
+			sbt.BindRayGen( "Main" );
+
+			sbt.HitGroupStride( hit_group_stride );
+
+			sbt.BindMiss( "Miss", MissIndex(0) );
+			sbt.BindMiss( "Miss", MissIndex(1) );
+			
+			sbt.BindHitGroup( "TriHit",	InstanceIndex(1),	RayIndex(0) );
+		}
 	}
 }

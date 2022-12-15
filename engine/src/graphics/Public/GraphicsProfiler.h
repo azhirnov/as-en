@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	thread-safe: yes
+*/
 
 #pragma once
 
@@ -52,8 +55,12 @@ namespace AE::Graphics
 	
 	  #elif defined(AE_ENABLE_METAL)
 		// context
-		virtual void  BeginContext (const void* batch, MetalCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type)	__NE___	= 0;
+		virtual void  BeginContext (OUT MetalSampleBufferAttachments &sampleBuffers, const void* batch, MetalCommandBuffer cmdbuf,
+									StringView taskName, RGBA8u color, EContextType type)												__NE___	= 0;
 		virtual void  EndContext (const void* batch, MetalCommandBuffer cmdbuf, EContextType type)										__NE___	= 0;
+		
+	  #else
+	  #	error not implemented
 	  #endif
 
 		// frames

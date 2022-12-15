@@ -2,9 +2,8 @@
 
 #pragma once
 
-#include "base/Math/Math.h"
-#include "base/Math/Bytes.h"
-#include "base/Memory/UntypedAllocator.h"
+#include "base/Memory/AllocatorFwdDecl.h"
+#include "base/Memory/AllocatorHelper.h"
 #include "base/Containers/FixedArray.h"
 
 namespace AE::Base
@@ -31,9 +30,10 @@ namespace AE::Base
 			Bytes		size;		// used memory size
 			Bytes		capacity;	// size of block
 		};
-		using Blocks_t = FixedArray< Block, MaxBlocks >;
+		using Blocks_t	= FixedArray< Block, MaxBlocks >;
 		
-		static constexpr Bytes	_PtrAlign	= SizeOf<void *>;
+		using Helper_t	= AllocatorHelper< EAllocatorType::Linear >;
+
 		static constexpr Bytes	_Padding	= 0_b;
 
 
@@ -119,19 +119,20 @@ namespace AE::Base
 			if_likely( offset + sizeAndAlign.size <= block.capacity )
 			{
 				block.size = offset + sizeAndAlign.size;
+				Helper_t::OnAllocate( block.ptr + offset, sizeAndAlign );
 				return block.ptr + offset;
 			}
 		}
 
 		if_unlikely( _blocks.size() == _blocks.capacity() )
 		{
-			DBG_WARNING( "overflow" );
+			//DBG_WARNING( "overflow" );
 			return null;
 		}
 
 		Bytes	block_size	= _blockSize * (1 + _blocks.size() / 2);
 				block_size	= sizeAndAlign.size*2 < block_size ? block_size : sizeAndAlign.size*2;
-		void*	ptr			= _alloc.Allocate( SizeAndAlign{ block_size, _PtrAlign });
+		void*	ptr			= _alloc.Allocate( SizeAndAlign{ block_size, DefaultAllocatorAlign });
 
 		if_unlikely( ptr == null )
 		{
@@ -145,6 +146,7 @@ namespace AE::Base
 		DEBUG_ONLY( DbgInitMem( block.ptr, block.capacity ));
 			
 		block.size = offset + sizeAndAlign.size;
+		Helper_t::OnAllocate( block.ptr + offset, sizeAndAlign );
 		return block.ptr + offset;
 	}
 	
@@ -172,7 +174,7 @@ namespace AE::Base
 	void  LinearAllocator<A,MB,false>::Release () __NE___
 	{
 		for (auto& block : _blocks) {
-			_alloc.Deallocate( block.ptr, SizeAndAlign{ block.capacity, _PtrAlign });
+			_alloc.Deallocate( block.ptr, SizeAndAlign{ block.capacity, DefaultAllocatorAlign });
 		}
 		_blocks.clear();
 	}

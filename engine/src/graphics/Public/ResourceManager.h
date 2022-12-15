@@ -30,6 +30,9 @@
 
 #elif defined(AE_ENABLE_METAL)
 # include "graphics/Public/MetalTypes.h"
+
+#else
+#	error not implemented
 #endif
 
 namespace AE::Graphics
@@ -50,6 +53,9 @@ namespace AE::Graphics
 
 	  #elif defined(AE_ENABLE_METAL)
 		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
+		
+	  #else
+	  #	error not implemented
 	  #endif
 
 
@@ -68,6 +74,9 @@ namespace AE::Graphics
 
 		ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTGeometryDesc &desc, OUT Storage_t &data)	__NE___	= 0;
 		ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTSceneDesc &desc, OUT Storage_t &data)		__NE___	= 0;
+		
+	  #else
+	  #	error not implemented
 	  #endif
 
 		// returns 'true' if deallocated
@@ -111,6 +120,9 @@ namespace AE::Graphics
 			
 			Storage () {}
 		};
+		
+		#else
+		#	error not implemented
 		#endif
 
 
@@ -141,8 +153,9 @@ namespace AE::Graphics
 		struct PassInfo
 		{
 			//RenderTechPassName::Optimized_t	name;
-			ushort								index		= 0;
+			DescSetBinding						dsIndex;
 			EPassType							type		= Default;
+			ubyte								submitIdx	= UMax;
 			DescriptorSetLayoutID				dsLayoutId;
 
 			// graphics
@@ -158,7 +171,9 @@ namespace AE::Graphics
 		ND_ virtual TilePipelineID			GetTilePipeline (const PipelineName &name)			C_NE___ = 0;
 		ND_ virtual ComputePipelineID		GetComputePipeline (const PipelineName &name)		C_NE___ = 0;
 		ND_ virtual RayTracingPipelineID	GetRayTracingPipeline (const PipelineName &name)	C_NE___ = 0;
+		ND_ virtual RTShaderBindingID		GetRTShaderBinding (const RTShaderBindingName &name)C_NE___ = 0;
 		ND_ virtual PassInfo				GetPass (const RenderTechPassName &pass)			C_NE___ = 0;
+		ND_ virtual bool					FeatureSetSupported (const FeatureSetName &name)	C_NE___ = 0;
 	};
 	using RenderTechPipelinesPtr = RC< IRenderTechPipelines >;
 
@@ -189,9 +204,12 @@ namespace AE::Graphics
 		using NativeImageDesc_t		= MetalImageDesc;
 		using NativeBufferDesc_t	= MetalBufferDesc;
 		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
+		
+		#else
+		#	error not implemented
 		#endif
 
-		using DescSetAndBinding_t = Tuple< Strong<DescriptorSetID>, uint >;
+		using DescSetAndBinding_t = Tuple< Strong<DescriptorSetID>, DescSetBinding >;
 		
 		struct StagingBufferStat
 		{

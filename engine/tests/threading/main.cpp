@@ -2,6 +2,7 @@
 
 #include "base/Common.h"
 
+extern void UnitTest_AsyncMutex ();
 extern void UnitTest_Coroutine ();
 extern void UnitTest_Promise ();
 extern void UnitTest_TaskDeps ();
@@ -30,7 +31,7 @@ int main ()
 {
 	AE::Base::StaticLogger::LoggerDbgScope log{};
 
-	UnitTest_AsyncDataSource();
+	//UnitTest_AsyncDataSource();	// minimize disk usage
 	
 	UnitTest_LfIndexedPool2();
 	UnitTest_LfIndexedPool3();
@@ -43,9 +44,10 @@ int main ()
 	UnitTest_LfLinearAllocator();
 
 	UnitTest_SpinLock();
-
+	
 	UnitTest_TaskDeps();
 	UnitTest_TaskUsage();
+	UnitTest_AsyncMutex ();
 	UnitTest_Promise();
 	UnitTest_Coroutine();
 	

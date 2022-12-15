@@ -15,7 +15,6 @@
 
 # define DRC_EXLOCK( /* sync_obj */... )		EXLOCK( __VA_ARGS__ )
 # define DRC_SHAREDLOCK( /* sync_obj */... )	SHAREDLOCK( __VA_ARGS__ )
-# define DRC_SAFE_EXLOCK( /* sync_obj */... )	SAFE_EXLOCK( __VA_ARGS__ )
 # define DRC_ONLY( /* code */... )				__VA_ARGS__
 # define DRC_WRAP( _value_, _syncObj_ )			decltype(_syncObj_)::Wrapper<decltype(_value_)>{ _value_, _syncObj_ }
 
@@ -243,22 +242,22 @@ namespace AE::Threading
 namespace std
 {
 	template <>
-	struct unique_lock< AE::Threading::DataRaceCheck >
+	struct scoped_lock< AE::Threading::DataRaceCheck >
 	{
 	private:
 		AE::Threading::DataRaceCheck &	_lock;
 		bool							_locked	= false;
 
 	public:
-		explicit unique_lock (AE::Threading::DataRaceCheck &ref) : _lock{ref}
+		explicit scoped_lock (AE::Threading::DataRaceCheck &ref) : _lock{ref}
 		{
 			_locked = _lock.Lock();
 		}
 
-		unique_lock (const unique_lock &) = delete;
-		unique_lock (unique_lock &&) = delete;
+		scoped_lock (const scoped_lock &) = delete;
+		scoped_lock (scoped_lock &&) = delete;
 
-		~unique_lock ()
+		~scoped_lock ()
 		{
 			if ( _locked )
 				_lock.Unlock();
@@ -266,32 +265,32 @@ namespace std
 	};
 
 	template <>
-	struct unique_lock< const AE::Threading::DataRaceCheck > :
-		unique_lock< AE::Threading::DataRaceCheck >
+	struct scoped_lock< const AE::Threading::DataRaceCheck > :
+		scoped_lock< AE::Threading::DataRaceCheck >
 	{
-		explicit unique_lock (const AE::Threading::DataRaceCheck &ref) :
-			unique_lock< AE::Threading::DataRaceCheck >{ const_cast<AE::Threading::DataRaceCheck &>(ref) }
+		explicit scoped_lock (const AE::Threading::DataRaceCheck &ref) :
+			scoped_lock< AE::Threading::DataRaceCheck >{ const_cast<AE::Threading::DataRaceCheck &>(ref) }
 		{}
 	};
 
 
 	template <>
-	struct unique_lock< AE::Threading::RWDataRaceCheck >
+	struct scoped_lock< AE::Threading::RWDataRaceCheck >
 	{
 	private:
 		AE::Threading::RWDataRaceCheck &	_lock;
 		bool								_locked	= false;
 
 	public:
-		explicit unique_lock (AE::Threading::RWDataRaceCheck &ref) : _lock{ref}
+		explicit scoped_lock (AE::Threading::RWDataRaceCheck &ref) : _lock{ref}
 		{
 			_locked = _lock.LockExclusive();
 		}
 
-		unique_lock (const unique_lock &) = delete;
-		unique_lock (unique_lock &&) = delete;
+		scoped_lock (const scoped_lock &) = delete;
+		scoped_lock (scoped_lock &&) = delete;
 
-		~unique_lock ()
+		~scoped_lock ()
 		{
 			if ( _locked )
 				_lock.UnlockExclusive();
@@ -299,11 +298,11 @@ namespace std
 	};
 
 	template <>
-	struct unique_lock< const AE::Threading::RWDataRaceCheck > :
-		unique_lock< AE::Threading::RWDataRaceCheck >
+	struct scoped_lock< const AE::Threading::RWDataRaceCheck > :
+		scoped_lock< AE::Threading::RWDataRaceCheck >
 	{
-		explicit unique_lock (const AE::Threading::RWDataRaceCheck &ref) :
-			unique_lock< AE::Threading::RWDataRaceCheck >{ const_cast<AE::Threading::RWDataRaceCheck &>(ref) }
+		explicit scoped_lock (const AE::Threading::RWDataRaceCheck &ref) :
+			scoped_lock< AE::Threading::RWDataRaceCheck >{ const_cast<AE::Threading::RWDataRaceCheck &>(ref) }
 		{}
 	};
 
@@ -342,22 +341,22 @@ namespace std
 
 
 	template <>
-	struct unique_lock< AE::Threading::SingleThreadCheck >
+	struct scoped_lock< AE::Threading::SingleThreadCheck >
 	{
 	private:
 		AE::Threading::SingleThreadCheck &	_lock;
 		bool								_locked	= false;
 
 	public:
-		explicit unique_lock (AE::Threading::SingleThreadCheck &ref) : _lock{ref}
+		explicit scoped_lock (AE::Threading::SingleThreadCheck &ref) : _lock{ref}
 		{
 			_locked = _lock.Lock();
 		}
 
-		unique_lock (const unique_lock &) = delete;
-		unique_lock (unique_lock &&) = delete;
+		scoped_lock (const scoped_lock &) = delete;
+		scoped_lock (scoped_lock &&) = delete;
 
-		~unique_lock ()
+		~scoped_lock ()
 		{
 			if ( _locked )
 				_lock.Unlock();
@@ -365,11 +364,11 @@ namespace std
 	};
 
 	template <>
-	struct unique_lock< const AE::Threading::SingleThreadCheck > :
-		unique_lock< AE::Threading::SingleThreadCheck >
+	struct scoped_lock< const AE::Threading::SingleThreadCheck > :
+		scoped_lock< AE::Threading::SingleThreadCheck >
 	{
-		explicit unique_lock (const AE::Threading::SingleThreadCheck &ref) :
-			unique_lock< AE::Threading::SingleThreadCheck >{ const_cast<AE::Threading::SingleThreadCheck &>(ref) }
+		explicit scoped_lock (const AE::Threading::SingleThreadCheck &ref) :
+			scoped_lock< AE::Threading::SingleThreadCheck >{ const_cast<AE::Threading::SingleThreadCheck &>(ref) }
 		{}
 	};
 
@@ -379,7 +378,6 @@ namespace std
 
 # define DRC_EXLOCK( ... )
 # define DRC_SHAREDLOCK( ... )
-# define DRC_SAFE_EXLOCK( ... )
 # define DRC_ONLY( ... )
 # define DRC_WRAP( _value_, _syncObj_ )		AE::Threading::DRC_Dummy_Wrap<decltype(_value_)>{ _value_ }
 

@@ -40,7 +40,7 @@ namespace
 
 			uint	name;
 			TEST( mem_stream->Read( OUT name ));
-			TEST_EQ( name, InputActions_Name );
+			TEST_Eq( name, InputActions_Name );
 		}
 
 		Array<uint>	hashes;
@@ -56,13 +56,13 @@ namespace
 			offsets.push_back( uint(mem_stream->Size()) );
 		}
 
-		TEST_EQ( hashes.size(), 3 );
+		TEST_Eq( hashes.size(), 3 );
 
 		String	ser_str;
 
 		for (usize i = 0; i < hashes.size(); ++i)
 		{
-			TEST_L( offsets[i], offsets[i+1] );
+			TEST_Lt( offsets[i], offsets[i+1] );
 			
 			const uint	name = hashes[i];
 

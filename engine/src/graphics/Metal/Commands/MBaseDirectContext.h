@@ -24,24 +24,25 @@ namespace AE::Graphics::_hidden_
 
 	// variables
 	protected:
-		MCommandBuffer	_cmdbuf;
+		MCommandBuffer		_cmdbuf;
 
 
 	// methods
 	public:
-		virtual ~_MBaseDirectContext ()										__NE___;
+		virtual ~_MBaseDirectContext ()									__NE___;
 
 	protected:
-		_MBaseDirectContext (MCommandBuffer cmdbuf, NtStringView dbgName)	__Th___;
+		_MBaseDirectContext (MCommandBuffer cmdbuf, DebugLabel dbg)		__NE___;
 
-		ND_ bool	_IsValid ()												C_NE___	{ return _cmdbuf.IsValid(); }
-
-		void  _DebugMarker (MetalCommandEncoder encoder, NtStringView text);
-		void  _PushDebugGroup (MetalCommandEncoder encoder, NtStringView text);
-		void  _PopDebugGroup (MetalCommandEncoder encoder);
+		void  _DebugMarker (DebugLabel dbg);
+		void  _PushDebugGroup (DebugLabel dbg);
+		void  _PopDebugGroup ();
 
 		//void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data);
+		
+		ND_ bool					_IsValid ()							C_NE___	{ return _cmdbuf.IsRecording(); }
 
+		ND_ bool					_EndEncoding ();
 		ND_ MetalCommandBufferRC	_EndCommandBuffer ();
 		ND_ MCommandBuffer		 	_ReleaseCommandBuffer ();
 	};
@@ -61,8 +62,8 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit MBaseDirectContext (const RenderTask &task)				__Th___;
-		MBaseDirectContext (const RenderTask &task, MCommandBuffer cmdbuf)	__Th___;
+		explicit MBaseDirectContext (const RenderTask &task)				__NE___;
+		MBaseDirectContext (const RenderTask &task, MCommandBuffer cmdbuf)	__NE___;
 		~MBaseDirectContext ()												__NE_OV;
 
 	protected:
@@ -80,13 +81,11 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline _MBaseDirectContext::_MBaseDirectContext (MCommandBuffer cmdbuf, NtStringView dbgName) __Th___ :
+	inline _MBaseDirectContext::_MBaseDirectContext (MCommandBuffer cmdbuf, DebugLabel dbg) __NE___ :
 		_cmdbuf{ RVRef( cmdbuf )}
 	{
-		CHECK_THROW( _IsValid() );
-
-		DEBUG_ONLY( _cmdbuf.PushDebugGroup( dbgName ));
-		Unused( dbgName );
+		DEBUG_ONLY( _PushDebugGroup( dbg );)
+		Unused( dbg );
 	}
 
 /*
@@ -96,7 +95,7 @@ namespace AE::Graphics::_hidden_
 */
 	inline _MBaseDirectContext::~_MBaseDirectContext () __NE___
 	{
-		DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
+		DBG_CHECK_MSG( not (_cmdbuf.HasCmdBuf() or _cmdbuf.HasEncoder()), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
 	}
 //-----------------------------------------------------------------------------
 
@@ -107,15 +106,15 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline MBaseDirectContext::MBaseDirectContext (const RenderTask &task, MCommandBuffer cmdbuf) __Th___ :
-		_MBaseDirectContext{ RVRef(cmdbuf), task.DbgFullName() },	// throw
+	inline MBaseDirectContext::MBaseDirectContext (const RenderTask &task, MCommandBuffer cmdbuf) __NE___ :
+		_MBaseDirectContext{ RVRef(cmdbuf), DebugLabel{ task.DbgFullName() }},
 		_mngr{ task }
 	{
 		ASSERT( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
 	}
 
-	inline MBaseDirectContext::MBaseDirectContext (const RenderTask &task) __Th___ :
-		MBaseDirectContext{	// throw
+	inline MBaseDirectContext::MBaseDirectContext (const RenderTask &task) __NE___ :
+		MBaseDirectContext{
 			task,
 			MCommandBuffer::CreateCommandBuffer( task.GetBatchPtr()->GetQueueType() )}
 	{}

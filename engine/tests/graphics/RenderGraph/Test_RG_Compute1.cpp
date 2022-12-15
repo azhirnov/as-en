@@ -23,7 +23,7 @@ namespace
 		Strong<DescriptorSetID>		ds0;
 		Strong<DescriptorSetID>		ds1;
 		Strong<DescriptorSetID>		ds2;
-		uint						ds_index	= UMax;
+		DescSetBinding				ds_index;
 		
 		AsyncTask					result0;
 		AsyncTask					result1;
@@ -71,8 +71,8 @@ namespace
 	public:
 		C1_TestData&	t;
 
-		C1_ComputeTask (C1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		C1_ComputeTask (C1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -117,8 +117,8 @@ namespace
 	public:
 		C1_TestData&	t;
 
-		C1_CopyTask (C1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		C1_CopyTask (C1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -147,7 +147,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 		}
 	};
 
@@ -219,11 +219,11 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Compute1" );
+		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Compute1"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< C1_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, "Compute task" );
-		AsyncTask	task2	= batch->Add< C1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
+		AsyncTask	task1	= batch->Add< C1_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, 				{"Compute task"} );
+		AsyncTask	task2	= batch->Add< C1_CopyTask<CopyCtx>    >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 

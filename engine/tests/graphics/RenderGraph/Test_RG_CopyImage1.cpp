@@ -25,8 +25,8 @@ namespace
 	public:
 		CI1_TestData&	t;
 
-		CI1_CopyImageTask (CI1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		CI1_CopyImageTask (CI1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -76,7 +76,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 		}
 	};
 
@@ -121,10 +121,10 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "CopyImage2" );
+		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"CopyImage2"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< CI1_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, "Copy image task" );
+		AsyncTask	task1	= batch->Add< CI1_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Copy image task"} );
 		AsyncTask	end		= rts.EndFrame( Tuple{task1} );
 
 		CHECK_ERR( Scheduler().Wait({ end }));

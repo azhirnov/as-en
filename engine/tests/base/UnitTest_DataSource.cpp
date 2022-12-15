@@ -486,6 +486,8 @@ extern void UnitTest_DataSource ()
 	FastStream_Test3();
 	FastStream_Test4();
 
+	// minimize disk usage
+#if 0
 	Stream_Test1< FileRStream,		FileWStream >();
 	File_Test1<   FileRDataSource,	FileWDataSource >( false );
 
@@ -498,6 +500,7 @@ extern void UnitTest_DataSource ()
 		File_Test1<   FileRDataSource,		WinWFileDataSource	>( false );
 		File_Test1<   WinRFileDataSource,	WinWFileDataSource	>( true );
 	#endif
+#endif
 
 	FileSystem::SetCurrentPath( curr );
 

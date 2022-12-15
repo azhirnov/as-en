@@ -7,4 +7,6 @@ target_link_libraries( "ResourceLoaders" PUBLIC "Base" )
 target_include_directories( "ResourceLoaders" PUBLIC ".." )
 set_property( TARGET "ResourceLoaders" PROPERTY FOLDER "Engine/Tools" )
 
-target_link_libraries( "ResourceLoaders" PUBLIC "DevIL-lib" )
+if (TARGET "DevIL-lib")
+	target_link_libraries( "ResourceLoaders" PUBLIC "DevIL-lib" )
+endif()

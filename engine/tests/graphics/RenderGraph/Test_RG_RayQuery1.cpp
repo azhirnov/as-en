@@ -24,7 +24,7 @@ namespace
 		
 		ComputePipelineID			ppln;
 		Strong<DescriptorSetID>		ds;
-		uint						ds_index	= UMax;
+		DescSetBinding				ds_index;
 
 		AsyncTask					result;
 
@@ -48,8 +48,8 @@ namespace
 	public:
 		RQ1_TestData&	t;
 
-		RQ1_UploadTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		RQ1_UploadTask (RQ1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 		
@@ -105,8 +105,8 @@ namespace
 	public:
 		RQ1_TestData&	t;
 
-		RQ1_RayTracingTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		RQ1_RayTracingTask (RQ1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -141,8 +141,8 @@ namespace
 	public:
 		RQ1_TestData&	t;
 
-		RQ1_CopyTask (RQ1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		RQ1_CopyTask (RQ1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -161,7 +161,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 		}
 	};
 
@@ -224,9 +224,8 @@ namespace
 		CHECK_ERR( t.ppln );
 
 		{
-			auto [ds, idx] = res_mngr.CreateDescriptorSet( t.ppln, DescriptorSetName{"rquery1.ds1"} );
-			t.ds		= RVRef(ds);
-			t.ds_index	= idx;
+			StructSet( t.ds, t.ds_index ) = res_mngr.CreateDescriptorSet( t.ppln, DescriptorSetName{"rquery1.ds1"} );
+			CHECK_ERR( t.ds );
 
 			DescriptorUpdater	updater;
 
@@ -240,12 +239,12 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "RayQuery1" );
+		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"RayQuery1"} );
 		CHECK_ERR( t.batch );
 		
-		AsyncTask	task1	= t.batch->Add<RQ1_UploadTask<CtxTypes>>(	  Tuple{ArgRef(t)}, Tuple{begin}, "Upload RTAS task" );
-		AsyncTask	task2	= t.batch->Add<RQ1_RayTracingTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{task1}, "Ray tracing task" );
-		AsyncTask	task3	= t.batch->Add<RQ1_CopyTask<CopyCtx>>(		  Tuple{ArgRef(t)}, Tuple{task2}, "Readback task" );
+		AsyncTask	task1	= t.batch->Add< RQ1_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{begin},					{"Upload RTAS task"} );
+		AsyncTask	task2	= t.batch->Add< RQ1_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{task1},					{"Ray tracing task"} );
+		AsyncTask	task3	= t.batch->Add< RQ1_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task2}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task3} );
 

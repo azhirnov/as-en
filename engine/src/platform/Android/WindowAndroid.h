@@ -12,7 +12,7 @@
 # include "platform/Private/WindowBase.h"
 # include "platform/Android/Java.h"
 # include "platform/Android/InputActionsAndroid.h"
-# include "platform/IO/WindowSurface.h"
+# include "platform/Private/WindowSurface.h"
 
 
 namespace AE::App

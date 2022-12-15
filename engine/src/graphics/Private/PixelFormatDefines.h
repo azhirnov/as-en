@@ -241,143 +241,143 @@
 =================================================
 */
 #	define AE_PRIVATE_MTLPIXELFORMATS( _visitor_ ) \
-		_visitor_( RGBA16_SNorm,		RGBA16Snorm,			AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RGBA8_SNorm,			RGBA8Snorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( RGBA16_SNorm,		RGBA16Snorm,			macos 10.11, ios 8	)\
+		_visitor_( RGBA8_SNorm,			RGBA8Snorm,				macos 10.11, ios 8	)\
 		/*_visitor_( RGB16_SNorm,		,)*/\
 		/*_visitor_( RGB8_SNorm,		,)*/\
-		_visitor_( RG16_SNorm,			RG16Snorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RG8_SNorm,			RG8Snorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( R16_SNorm,			R16Snorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( R8_SNorm,			R8Snorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RGBA16_UNorm,		RGBA16Unorm,			AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RGBA8_UNorm,			RGBA8Unorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( RG16_SNorm,			RG16Snorm,				macos 10.11, ios 8	)\
+		_visitor_( RG8_SNorm,			RG8Snorm,				macos 10.11, ios 8	)\
+		_visitor_( R16_SNorm,			R16Snorm,				macos 10.11, ios 8	)\
+		_visitor_( R8_SNorm,			R8Snorm,				macos 10.11, ios 8	)\
+		_visitor_( RGBA16_UNorm,		RGBA16Unorm,			macos 10.11, ios 8	)\
+		_visitor_( RGBA8_UNorm,			RGBA8Unorm,				macos 10.11, ios 8	)\
 		/*_visitor_( RGB16_UNorm,		,)*/\
 		/*_visitor_( RGB8_UNorm,		,)*/\
-		_visitor_( RG16_UNorm,			RG16Unorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RG8_UNorm,			RG8Unorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( R16_UNorm,			R16Unorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( R8_UNorm,			R8Unorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RGB10_A2_UNorm,		RGB10A2Unorm,			AE_ARGS(@available( macos 10.11, ios 8, *)) ) /* TODO: check (BGR10A2Unorm ?) */\
-		_visitor_( RGBA4_UNorm,			ABGR4Unorm,				AE_ARGS(@available( macos 11.0,  ios 8, *)) ) /* TODO: check */ \
-		_visitor_( RGB5_A1_UNorm,		BGR5A1Unorm,			AE_ARGS(@available( macos 11.0,  ios 8, *)) ) /* TODO: check */ \
-		_visitor_( RGB_5_6_5_UNorm,		B5G6R5Unorm,			AE_ARGS(@available( macos 11.0,  ios 8, *)) ) /* TODO: check */ \
+		_visitor_( RG16_UNorm,			RG16Unorm,				macos 10.11, ios 8	)\
+		_visitor_( RG8_UNorm,			RG8Unorm,				macos 10.11, ios 8	)\
+		_visitor_( R16_UNorm,			R16Unorm,				macos 10.11, ios 8	)\
+		_visitor_( R8_UNorm,			R8Unorm,				macos 10.11, ios 8	)\
+		_visitor_( RGB10_A2_UNorm,		RGB10A2Unorm,			macos 10.11, ios 8	) /* TODO: check (BGR10A2Unorm ?) */\
+		_visitor_( RGBA4_UNorm,			ABGR4Unorm,				macos 11.0,  ios 8	) /* TODO: check */ \
+		_visitor_( RGB5_A1_UNorm,		BGR5A1Unorm,			macos 11.0,  ios 8	) /* TODO: check */ \
+		_visitor_( RGB_5_6_5_UNorm,		B5G6R5Unorm,			macos 11.0,  ios 8	) /* TODO: check */ \
 		/*_visitor_( BGR8_UNorm,		,)*/\
-		_visitor_( BGRA8_UNorm,			BGRA8Unorm,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( BGRA8_UNorm,			BGRA8Unorm,				macos 10.11, ios 8	)\
 		/*_visitor_( sRGB8,				,)*/\
-		_visitor_( sRGB8_A8,			RGBA8Unorm_sRGB,		AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( sRGB8_A8,			RGBA8Unorm_sRGB,		macos 10.11, ios 8	)\
 		/*_visitor_( sBGR8,				,)*/\
-		_visitor_( sBGR8_A8,			BGRA8Unorm_sRGB,		AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( R8I,					R8Sint,					AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RG8I,				RG8Sint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( sBGR8_A8,			BGRA8Unorm_sRGB,		macos 10.11, ios 8	)\
+		_visitor_( R8I,					R8Sint,					macos 10.11, ios 8	)\
+		_visitor_( RG8I,				RG8Sint,				macos 10.11, ios 8	)\
 		/*_visitor_( RGB8I,				,)*/\
-		_visitor_( RGBA8I,				RGBA8Sint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( R16I,				R16Sint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RG16I,				RG16Sint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( RGBA8I,				RGBA8Sint,				macos 10.11, ios 8	)\
+		_visitor_( R16I,				R16Sint,				macos 10.11, ios 8	)\
+		_visitor_( RG16I,				RG16Sint,				macos 10.11, ios 8	)\
 		/*_visitor_( RGB16I,			,)*/\
-		_visitor_( RGBA16I,				RGBA16Sint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( R32I,				R32Sint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RG32I,				RG32Sint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( RGBA16I,				RGBA16Sint,				macos 10.11, ios 8	)\
+		_visitor_( R32I,				R32Sint,				macos 10.11, ios 8	)\
+		_visitor_( RG32I,				RG32Sint,				macos 10.11, ios 8	)\
 		/*_visitor_( RGB32I,			,)*/\
-		_visitor_( RGBA32I,				RGBA32Sint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( RGBA32I,				RGBA32Sint,				macos 10.11, ios 8	)\
 		/*_visitor_( R64I,				,)*/\
-		_visitor_( R8U,					R8Uint,					AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RG8U,				RG8Uint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( R8U,					R8Uint,					macos 10.11, ios 8	)\
+		_visitor_( RG8U,				RG8Uint,				macos 10.11, ios 8	)\
 		/*_visitor_( RGB8U,				,)*/\
-		_visitor_( RGBA8U,				RGBA8Uint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( R16U,				R16Uint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RG16U,				RG16Uint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( RGBA8U,				RGBA8Uint,				macos 10.11, ios 8	)\
+		_visitor_( R16U,				R16Uint,				macos 10.11, ios 8	)\
+		_visitor_( RG16U,				RG16Uint,				macos 10.11, ios 8	)\
 		/*_visitor_( RGB16U,			,)*/\
-		_visitor_( RGBA16U,				RGBA16Uint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( R32U,				R32Uint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RG32U,				RG32Uint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( RGBA16U,				RGBA16Uint,				macos 10.11, ios 8	)\
+		_visitor_( R32U,				R32Uint,				macos 10.11, ios 8	)\
+		_visitor_( RG32U,				RG32Uint,				macos 10.11, ios 8	)\
 		/*_visitor_( RGB32U,			,)*/\
-		_visitor_( RGBA32U,				RGBA32Uint,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RGB10_A2U,			RGB10A2Uint,			AE_ARGS(@available( macos 10.11, ios 8, *)) ) /* TODO: check */ \
+		_visitor_( RGBA32U,				RGBA32Uint,				macos 10.11, ios 8	)\
+		_visitor_( RGB10_A2U,			RGB10A2Uint,			macos 10.11, ios 8	) /* TODO: check */ \
 		/*_visitor_( R64U,				,)*/\
-		_visitor_( R16F,				R16Float,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RG16F,				RG16Float,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( R16F,				R16Float,				macos 10.11, ios 8	)\
+		_visitor_( RG16F,				RG16Float,				macos 10.11, ios 8	)\
 		/*_visitor_( RGB16F,			,)*/\
-		_visitor_( RGBA16F,				RGBA16Float,			AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( R32F,				R32Float,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RG32F,				RG32Float,				AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( RGBA16F,				RGBA16Float,			macos 10.11, ios 8	)\
+		_visitor_( R32F,				R32Float,				macos 10.11, ios 8	)\
+		_visitor_( RG32F,				RG32Float,				macos 10.11, ios 8	)\
 		/*_visitor_( RGB32F,			,)*/\
-		_visitor_( RGBA32F,				RGBA32Float,			AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RGB_11_11_10F,		RG11B10Float,			AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( RGB_9F_E5,			RGB9E5Float,			AE_ARGS(@available( macos 10.11, ios 8, *)) )\
-		_visitor_( Depth16,				Depth16Unorm,			AE_ARGS(@available( macos 10.12, ios 13,*)) )\
+		_visitor_( RGBA32F,				RGBA32Float,			macos 10.11, ios 8	)\
+		_visitor_( RGB_11_11_10F,		RG11B10Float,			macos 10.11, ios 8	)\
+		_visitor_( RGB_9F_E5,			RGB9E5Float,			macos 10.11, ios 8	)\
+		_visitor_( Depth16,				Depth16Unorm,			macos 10.12, ios 13	)\
 		/*_visitor_( Depth24,			,)*/\
-		_visitor_( Depth32F,			Depth32Float,			AE_ARGS(@available( macos 10.11, ios 8, *)) )\
+		_visitor_( Depth32F,			Depth32Float,			macos 10.11, ios 8	)\
 		/*_visitor_( Depth16_Stencil8,	,)*/\
-		_visitor_( Depth24_Stencil8,	Depth24Unorm_Stencil8,	AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( Depth32F_Stencil8,	Depth32Float_Stencil8,	AE_ARGS(@available( macos 10.11, ios 9, *)) )\
+		_visitor_( Depth24_Stencil8,	Depth24Unorm_Stencil8,	macos 10.11			)\
+		_visitor_( Depth32F_Stencil8,	Depth32Float_Stencil8,	macos 10.11, ios 9	)\
 		/*_visitor_( BC1_RGB8_UNorm,	,)*/\
 		/*_visitor_( BC1_sRGB8,			,)*/\
-		_visitor_( BC1_RGB8_A1_UNorm,	BC1_RGBA,				AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC1_sRGB8_A1,		BC1_RGBA_sRGB,			AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC2_RGBA8_UNorm,		BC2_RGBA,				AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC2_sRGB8,			BC2_RGBA_sRGB,			AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC3_RGBA8_UNorm,		BC3_RGBA,				AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC3_sRGB8,			BC3_RGBA_sRGB,			AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC4_R8_SNorm,		BC4_RSnorm,				AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC4_R8_UNorm,		BC4_RUnorm,				AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC5_RG8_SNorm,		BC5_RGSnorm,			AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC5_RG8_UNorm,		BC5_RGUnorm,			AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC6H_RGB16F,			BC6H_RGBFloat,			AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC6H_RGB16UF,		BC6H_RGBUfloat,			AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC7_RGBA8_UNorm,		BC7_RGBAUnorm,			AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( BC7_sRGB8_A8,		BC7_RGBAUnorm_sRGB,		AE_ARGS(@available( macos 10.11, *)) )\
-		_visitor_( ETC2_RGB8_UNorm,		ETC2_RGB8,				AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ECT2_sRGB8,			ETC2_RGB8_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ETC2_RGB8_A1_UNorm,	ETC2_RGB8A1,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ETC2_sRGB8_A1,		ETC2_RGB8A1_sRGB,		AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ETC2_RGBA8_UNorm,	EAC_RGBA8,				AE_ARGS(@available( macos 11.0, ios 8, *)) ) /* TODO: check */ \
-		_visitor_( ETC2_sRGB8_A8,		EAC_RGBA8_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) ) /* TODO: check */ \
-		_visitor_( EAC_R11_SNorm,		EAC_R11Snorm,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( EAC_R11_UNorm,		EAC_R11Unorm,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( EAC_RG11_SNorm,		EAC_RG11Snorm,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( EAC_RG11_UNorm,		EAC_RG11Unorm,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_4x4,		ASTC_4x4_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_5x4,		ASTC_5x4_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_5x5,		ASTC_5x5_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_6x5,		ASTC_6x5_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_6x6,		ASTC_6x6_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_8x5,		ASTC_8x5_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_8x6,		ASTC_8x6_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_8x8,		ASTC_8x8_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_10x5,		ASTC_10x5_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_10x6,		ASTC_10x6_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_10x8,		ASTC_10x8_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_10x10,		ASTC_10x10_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_12x10,		ASTC_12x10_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA_12x12,		ASTC_12x12_LDR,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_4x4,	ASTC_4x4_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_5x4,	ASTC_5x4_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_5x5,	ASTC_5x5_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_6x5,	ASTC_6x5_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_6x6,	ASTC_6x6_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_8x5,	ASTC_8x5_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_8x6,	ASTC_8x6_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_8x8,	ASTC_8x8_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_10x5,	ASTC_10x5_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_10x6,	ASTC_10x6_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_10x8,	ASTC_10x8_sRGB,			AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_10x10,	ASTC_10x10_sRGB,		AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_12x10,	ASTC_12x10_sRGB,		AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_sRGB8_A8_12x12,	ASTC_12x12_sRGB,		AE_ARGS(@available( macos 11.0, ios 8, *)) )\
-		_visitor_( ASTC_RGBA16F_4x4,	ASTC_4x4_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_5x4,	ASTC_5x4_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_5x5,	ASTC_5x5_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_6x5,	ASTC_6x5_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_6x6,	ASTC_6x6_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_8x5,	ASTC_8x5_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_8x6,	ASTC_8x6_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_8x8,	ASTC_8x8_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_10x5,	ASTC_10x5_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_10x6,	ASTC_10x6_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_10x8,	ASTC_10x8_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_10x10,	ASTC_10x10_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_12x10,	ASTC_12x10_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
-		_visitor_( ASTC_RGBA16F_12x12,	ASTC_12x12_HDR,			AE_ARGS(@available( macos 11.0, ios 13,*)) )\
+		_visitor_( BC1_RGB8_A1_UNorm,	BC1_RGBA,				macos 10.11			)\
+		_visitor_( BC1_sRGB8_A1,		BC1_RGBA_sRGB,			macos 10.11			)\
+		_visitor_( BC2_RGBA8_UNorm,		BC2_RGBA,				macos 10.11			)\
+		_visitor_( BC2_sRGB8,			BC2_RGBA_sRGB,			macos 10.11			)\
+		_visitor_( BC3_RGBA8_UNorm,		BC3_RGBA,				macos 10.11			)\
+		_visitor_( BC3_sRGB8,			BC3_RGBA_sRGB,			macos 10.11			)\
+		_visitor_( BC4_R8_SNorm,		BC4_RSnorm,				macos 10.11			)\
+		_visitor_( BC4_R8_UNorm,		BC4_RUnorm,				macos 10.11			)\
+		_visitor_( BC5_RG8_SNorm,		BC5_RGSnorm,			macos 10.11			)\
+		_visitor_( BC5_RG8_UNorm,		BC5_RGUnorm,			macos 10.11			)\
+		_visitor_( BC6H_RGB16F,			BC6H_RGBFloat,			macos 10.11			)\
+		_visitor_( BC6H_RGB16UF,		BC6H_RGBUfloat,			macos 10.11			)\
+		_visitor_( BC7_RGBA8_UNorm,		BC7_RGBAUnorm,			macos 10.11			)\
+		_visitor_( BC7_sRGB8_A8,		BC7_RGBAUnorm_sRGB,		macos 10.11			)\
+		_visitor_( ETC2_RGB8_UNorm,		ETC2_RGB8,				macos 11.0, ios 8	)\
+		_visitor_( ECT2_sRGB8,			ETC2_RGB8_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ETC2_RGB8_A1_UNorm,	ETC2_RGB8A1,			macos 11.0, ios 8	)\
+		_visitor_( ETC2_sRGB8_A1,		ETC2_RGB8A1_sRGB,		macos 11.0, ios 8	)\
+		_visitor_( ETC2_RGBA8_UNorm,	EAC_RGBA8,				macos 11.0, ios 8	) /* TODO: check */ \
+		_visitor_( ETC2_sRGB8_A8,		EAC_RGBA8_sRGB,			macos 11.0, ios 8	) /* TODO: check */ \
+		_visitor_( EAC_R11_SNorm,		EAC_R11Snorm,			macos 11.0, ios 8	)\
+		_visitor_( EAC_R11_UNorm,		EAC_R11Unorm,			macos 11.0, ios 8	)\
+		_visitor_( EAC_RG11_SNorm,		EAC_RG11Snorm,			macos 11.0, ios 8	)\
+		_visitor_( EAC_RG11_UNorm,		EAC_RG11Unorm,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_4x4,		ASTC_4x4_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_5x4,		ASTC_5x4_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_5x5,		ASTC_5x5_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_6x5,		ASTC_6x5_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_6x6,		ASTC_6x6_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_8x5,		ASTC_8x5_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_8x6,		ASTC_8x6_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_8x8,		ASTC_8x8_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_10x5,		ASTC_10x5_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_10x6,		ASTC_10x6_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_10x8,		ASTC_10x8_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_10x10,		ASTC_10x10_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_12x10,		ASTC_12x10_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA_12x12,		ASTC_12x12_LDR,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_4x4,	ASTC_4x4_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_5x4,	ASTC_5x4_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_5x5,	ASTC_5x5_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_6x5,	ASTC_6x5_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_6x6,	ASTC_6x6_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_8x5,	ASTC_8x5_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_8x6,	ASTC_8x6_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_8x8,	ASTC_8x8_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_10x5,	ASTC_10x5_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_10x6,	ASTC_10x6_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_10x8,	ASTC_10x8_sRGB,			macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_10x10,	ASTC_10x10_sRGB,		macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_12x10,	ASTC_12x10_sRGB,		macos 11.0, ios 8	)\
+		_visitor_( ASTC_sRGB8_A8_12x12,	ASTC_12x12_sRGB,		macos 11.0, ios 8	)\
+		_visitor_( ASTC_RGBA16F_4x4,	ASTC_4x4_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_5x4,	ASTC_5x4_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_5x5,	ASTC_5x5_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_6x5,	ASTC_6x5_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_6x6,	ASTC_6x6_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_8x5,	ASTC_8x5_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_8x6,	ASTC_8x6_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_8x8,	ASTC_8x8_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_10x5,	ASTC_10x5_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_10x6,	ASTC_10x6_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_10x8,	ASTC_10x8_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_10x10,	ASTC_10x10_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_12x10,	ASTC_12x10_HDR,			macos 11.0, ios 13	)\
+		_visitor_( ASTC_RGBA16F_12x12,	ASTC_12x12_HDR,			macos 11.0, ios 13	)\
 
 /*
 =================================================
@@ -385,66 +385,66 @@
 =================================================
 */
 #	define AE_PRIVATE_MTLVERTEXFORMATS( _visitor_ ) \
-		_visitor_( Byte,				Char )\
-		_visitor_( Byte2,				Char2 )\
-		_visitor_( Byte3,				Char3 )\
-		_visitor_( Byte4,				Char4 )\
-		_visitor_( Byte_Norm,			CharNormalized )\
-		_visitor_( Byte2_Norm,			Char2Normalized )\
-		_visitor_( Byte3_Norm,			Char3Normalized )\
-		_visitor_( Byte4_Norm,			Char4Normalized )\
+		_visitor_( Byte,				Char,				macos 10.13, ios 11 )\
+		_visitor_( Byte2,				Char2,				macos 10.11, ios  8 )\
+		_visitor_( Byte3,				Char3,				macos 10.11, ios  8 )\
+		_visitor_( Byte4,				Char4,				macos 10.11, ios  8 )\
+		_visitor_( Byte_Norm,			CharNormalized,		macos 10.13, ios 11 )\
+		_visitor_( Byte2_Norm,			Char2Normalized,	macos 10.11, ios  8 )\
+		_visitor_( Byte3_Norm,			Char3Normalized,	macos 10.11, ios  8 )\
+		_visitor_( Byte4_Norm,			Char4Normalized,	macos 10.11, ios  8 )\
 		/*_visitor_( Byte_Scaled,		 )*/\
 		/*_visitor_( Byte2_Scaled,		 )*/\
 		/*_visitor_( Byte3_Scaled,		 )*/\
 		/*_visitor_( Byte4_Scaled,		 )*/\
-		_visitor_( UByte,				UChar )\
-		_visitor_( UByte2,				UChar2 )\
-		_visitor_( UByte3,				UChar3 )\
-		_visitor_( UByte4,				UChar4 )\
-		_visitor_( UByte_Norm,			UCharNormalized )\
-		_visitor_( UByte2_Norm,			UChar2Normalized )\
-		_visitor_( UByte3_Norm,			UChar3Normalized )\
-		_visitor_( UByte4_Norm,			UChar4Normalized )\
+		_visitor_( UByte,				UChar,				macos 10.13, ios 11 )\
+		_visitor_( UByte2,				UChar2,				macos 10.11, ios  8 )\
+		_visitor_( UByte3,				UChar3,				macos 10.11, ios  8 )\
+		_visitor_( UByte4,				UChar4,				macos 10.11, ios  8 )\
+		_visitor_( UByte_Norm,			UCharNormalized,	macos 10.13, ios 11 )\
+		_visitor_( UByte2_Norm,			UChar2Normalized,	macos 10.11, ios  8 )\
+		_visitor_( UByte3_Norm,			UChar3Normalized,	macos 10.11, ios  8 )\
+		_visitor_( UByte4_Norm,			UChar4Normalized,	macos 10.11, ios  8 )\
 		/*_visitor_( UByte_Scaled,		 )*/\
 		/*_visitor_( UByte2_Scaled,		 )*/\
 		/*_visitor_( UByte3_Scaled,		 )*/\
 		/*_visitor_( UByte4_Scaled,		 )*/\
-		_visitor_( Short,				Short )\
-		_visitor_( Short2,				Short2 )\
-		_visitor_( Short3,				Short3 )\
-		_visitor_( Short4,				Short4 )\
-		_visitor_( Short_Norm,			ShortNormalized )\
-		_visitor_( Short2_Norm,			Short2Normalized )\
-		_visitor_( Short3_Norm,			Short3Normalized )\
-		_visitor_( Short4_Norm,			Short4Normalized )\
+		_visitor_( Short,				Short,				macos 10.13, ios 11 )\
+		_visitor_( Short2,				Short2,				macos 10.11, ios  8 )\
+		_visitor_( Short3,				Short3,				macos 10.11, ios  8 )\
+		_visitor_( Short4,				Short4,				macos 10.11, ios  8 )\
+		_visitor_( Short_Norm,			ShortNormalized,	macos 10.13, ios 11 )\
+		_visitor_( Short2_Norm,			Short2Normalized,	macos 10.11, ios  8 )\
+		_visitor_( Short3_Norm,			Short3Normalized,	macos 10.11, ios  8 )\
+		_visitor_( Short4_Norm,			Short4Normalized,	macos 10.11, ios  8 )\
 		/*_visitor_( Short_Scaled,		 )*/\
 		/*_visitor_( Short2_Scaled,		 )*/\
 		/*_visitor_( Short3_Scaled,		 )*/\
 		/*_visitor_( Short4_Scaled,		 )*/\
-		_visitor_( UShort,				UShort )\
-		_visitor_( UShort2,				UShort2 )\
-		_visitor_( UShort3,				UShort3 )\
-		_visitor_( UShort4,				UShort4 )\
-		_visitor_( UShort_Norm,			UShortNormalized )\
-		_visitor_( UShort2_Norm,		UShort2Normalized )\
-		_visitor_( UShort3_Norm,		UShort3Normalized )\
-		_visitor_( UShort4_Norm,		UShort4Normalized )\
+		_visitor_( UShort,				UShort,				macos 10.13, ios 11 )\
+		_visitor_( UShort2,				UShort2,			macos 10.11, ios  8 )\
+		_visitor_( UShort3,				UShort3,			macos 10.11, ios  8 )\
+		_visitor_( UShort4,				UShort4,			macos 10.11, ios  8 )\
+		_visitor_( UShort_Norm,			UShortNormalized,	macos 10.13, ios 11 )\
+		_visitor_( UShort2_Norm,		UShort2Normalized,	macos 10.11, ios  8 )\
+		_visitor_( UShort3_Norm,		UShort3Normalized,	macos 10.11, ios  8 )\
+		_visitor_( UShort4_Norm,		UShort4Normalized,	macos 10.11, ios  8 )\
 		/*_visitor_( UShort_Scaled,		 )*/\
 		/*_visitor_( UShort2_Scaled,	 )*/\
 		/*_visitor_( UShort3_Scaled,	 )*/\
 		/*_visitor_( UShort4_Scaled,	 )*/\
-		_visitor_( Half,				Half )\
-		_visitor_( Half2,				Half2 )\
-		_visitor_( Half3,				Half3 )\
-		_visitor_( Half4,				Half4 )\
-		_visitor_( Int,					Int )\
-		_visitor_( Int2,				Int2 )\
-		_visitor_( Int3,				Int3 )\
-		_visitor_( Int4,				Int4 )\
-		_visitor_( UInt,				UInt )\
-		_visitor_( UInt2,				UInt2 )\
-		_visitor_( UInt3,				UInt3 )\
-		_visitor_( UInt4,				UInt4 )\
+		_visitor_( Half,				Half,				macos 10.13, ios 11 )\
+		_visitor_( Half2,				Half2,				macos 10.11, ios  8 )\
+		_visitor_( Half3,				Half3,				macos 10.11, ios  8 )\
+		_visitor_( Half4,				Half4,				macos 10.11, ios  8 )\
+		_visitor_( Int,					Int,				macos 10.11, ios  8 )\
+		_visitor_( Int2,				Int2,				macos 10.11, ios  8 )\
+		_visitor_( Int3,				Int3,				macos 10.11, ios  8 )\
+		_visitor_( Int4,				Int4,				macos 10.11, ios  8 )\
+		_visitor_( UInt,				UInt,				macos 10.11, ios  8 )\
+		_visitor_( UInt2,				UInt2,				macos 10.11, ios  8 )\
+		_visitor_( UInt3,				UInt3,				macos 10.11, ios  8 )\
+		_visitor_( UInt4,				UInt4,				macos 10.11, ios  8 )\
 		/*_visitor_( Long,				 )*/\
 		/*_visitor_( Long2,				 )*/\
 		/*_visitor_( Long3,				 )*/\
@@ -453,15 +453,101 @@
 		/*_visitor_( ULong2,			 )*/\
 		/*_visitor_( ULong3,			 )*/\
 		/*_visitor_( ULong4,			 )*/\
-		_visitor_( Float,				Float )\
-		_visitor_( Float2,				Float2 )\
-		_visitor_( Float3,				Float3 )\
-		_visitor_( Float4,				Float4 )\
+		_visitor_( Float,				Float,				macos 10.11, ios  8 )\
+		_visitor_( Float2,				Float2,				macos 10.11, ios  8 )\
+		_visitor_( Float3,				Float3,				macos 10.11, ios  8 )\
+		_visitor_( Float4,				Float4,				macos 10.11, ios  8 )\
 		/*_visitor_( Double,			 )*/\
 		/*_visitor_( Double2,			 )*/\
 		/*_visitor_( Double3,			 )*/\
 		/*_visitor_( Double4,			 )*/\
 		/*_visitor_( UInt_2_10_10_10,		 )*/\
-		_visitor_( UInt_2_10_10_10_Norm,	UInt1010102Normalized )\
+		_visitor_( UInt_2_10_10_10_Norm, UInt1010102Normalized,	macos 10.11, ios 8 )\
+		/*_visitor_( UInt_2_10_10_10_Scaled, )*/\
+
+/*
+=================================================
+	AE_PRIVATE_MTLATTRIBFORMATS
+=================================================
+*/
+#	define AE_PRIVATE_MTLATTRIBFORMATS( _visitor_ ) \
+		_visitor_( Byte,				Char,				macos 10.13, ios 11 )\
+		_visitor_( Byte2,				Char2,				macos 10.12, ios 10 )\
+		_visitor_( Byte3,				Char3,				macos 10.12, ios 10 )\
+		_visitor_( Byte4,				Char4,				macos 10.12, ios 10 )\
+		_visitor_( Byte_Norm,			CharNormalized,		macos 10.13, ios 11 )\
+		_visitor_( Byte2_Norm,			Char2Normalized,	macos 10.12, ios 10 )\
+		_visitor_( Byte3_Norm,			Char3Normalized,	macos 10.12, ios 10 )\
+		_visitor_( Byte4_Norm,			Char4Normalized,	macos 10.12, ios 10 )\
+		/*_visitor_( Byte_Scaled,		 )*/\
+		/*_visitor_( Byte2_Scaled,		 )*/\
+		/*_visitor_( Byte3_Scaled,		 )*/\
+		/*_visitor_( Byte4_Scaled,		 )*/\
+		_visitor_( UByte,				UChar,				macos 10.13, ios 11 )\
+		_visitor_( UByte2,				UChar2,				macos 10.12, ios 10 )\
+		_visitor_( UByte3,				UChar3,				macos 10.12, ios 10 )\
+		_visitor_( UByte4,				UChar4,				macos 10.12, ios 10 )\
+		_visitor_( UByte_Norm,			UCharNormalized,	macos 10.13, ios 11 )\
+		_visitor_( UByte2_Norm,			UChar2Normalized,	macos 10.12, ios 10 )\
+		_visitor_( UByte3_Norm,			UChar3Normalized,	macos 10.12, ios 10 )\
+		_visitor_( UByte4_Norm,			UChar4Normalized,	macos 10.12, ios 10 )\
+		/*_visitor_( UByte_Scaled,		 )*/\
+		/*_visitor_( UByte2_Scaled,		 )*/\
+		/*_visitor_( UByte3_Scaled,		 )*/\
+		/*_visitor_( UByte4_Scaled,		 )*/\
+		_visitor_( Short,				Short,				macos 10.13, ios 11 )\
+		_visitor_( Short2,				Short2,				macos 10.12, ios 10 )\
+		_visitor_( Short3,				Short3,				macos 10.12, ios 10 )\
+		_visitor_( Short4,				Short4,				macos 10.12, ios 10 )\
+		_visitor_( Short_Norm,			ShortNormalized,	macos 10.13, ios 11 )\
+		_visitor_( Short2_Norm,			Short2Normalized,	macos 10.12, ios 10 )\
+		_visitor_( Short3_Norm,			Short3Normalized,	macos 10.12, ios 10 )\
+		_visitor_( Short4_Norm,			Short4Normalized,	macos 10.12, ios 10 )\
+		/*_visitor_( Short_Scaled,		 )*/\
+		/*_visitor_( Short2_Scaled,		 )*/\
+		/*_visitor_( Short3_Scaled,		 )*/\
+		/*_visitor_( Short4_Scaled,		 )*/\
+		_visitor_( UShort,				UShort,				macos 10.13, ios 11 )\
+		_visitor_( UShort2,				UShort2,			macos 10.12, ios 10 )\
+		_visitor_( UShort3,				UShort3,			macos 10.12, ios 10 )\
+		_visitor_( UShort4,				UShort4,			macos 10.12, ios 10 )\
+		_visitor_( UShort_Norm,			UShortNormalized,	macos 10.13, ios 11 )\
+		_visitor_( UShort2_Norm,		UShort2Normalized,	macos 10.12, ios 10 )\
+		_visitor_( UShort3_Norm,		UShort3Normalized,	macos 10.12, ios 10 )\
+		_visitor_( UShort4_Norm,		UShort4Normalized,	macos 10.12, ios 10 )\
+		/*_visitor_( UShort_Scaled,		 )*/\
+		/*_visitor_( UShort2_Scaled,	 )*/\
+		/*_visitor_( UShort3_Scaled,	 )*/\
+		/*_visitor_( UShort4_Scaled,	 )*/\
+		_visitor_( Half,				Half,				macos 10.13, ios 11 )\
+		_visitor_( Half2,				Half2,				macos 10.12, ios 10 )\
+		_visitor_( Half3,				Half3,				macos 10.12, ios 10 )\
+		_visitor_( Half4,				Half4,				macos 10.12, ios 10 )\
+		_visitor_( Int,					Int,				macos 10.12, ios 10 )\
+		_visitor_( Int2,				Int2,				macos 10.12, ios 10 )\
+		_visitor_( Int3,				Int3,				macos 10.12, ios 10 )\
+		_visitor_( Int4,				Int4,				macos 10.12, ios 10 )\
+		_visitor_( UInt,				UInt,				macos 10.12, ios 10 )\
+		_visitor_( UInt2,				UInt2,				macos 10.12, ios 10 )\
+		_visitor_( UInt3,				UInt3,				macos 10.12, ios 10 )\
+		_visitor_( UInt4,				UInt4,				macos 10.12, ios 10 )\
+		/*_visitor_( Long,				 )*/\
+		/*_visitor_( Long2,				 )*/\
+		/*_visitor_( Long3,				 )*/\
+		/*_visitor_( Long4,				 )*/\
+		/*_visitor_( ULong,				 )*/\
+		/*_visitor_( ULong2,			 )*/\
+		/*_visitor_( ULong3,			 )*/\
+		/*_visitor_( ULong4,			 )*/\
+		_visitor_( Float,				Float,				macos 10.12, ios 10 )\
+		_visitor_( Float2,				Float2,				macos 10.12, ios 10 )\
+		_visitor_( Float3,				Float3,				macos 10.12, ios 10 )\
+		_visitor_( Float4,				Float4,				macos 10.12, ios 10 )\
+		/*_visitor_( Double,			 )*/\
+		/*_visitor_( Double2,			 )*/\
+		/*_visitor_( Double3,			 )*/\
+		/*_visitor_( Double4,			 )*/\
+		/*_visitor_( UInt_2_10_10_10,		 )*/\
+		_visitor_( UInt_2_10_10_10_Norm, UInt1010102Normalized,	macos 10.12, ios 10 )\
 		/*_visitor_( UInt_2_10_10_10_Scaled, )*/\
 

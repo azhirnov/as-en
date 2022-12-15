@@ -41,76 +41,90 @@ namespace _hidden_
 
 
 	// methods
-		constexpr Tuple ()									__NE___ = default;
+		constexpr Tuple ()											__NE___ = default;
 
-		constexpr Tuple (const Self &)						__Th___ = default;
-		constexpr Tuple (Self &&)							__NE___ = default;
-
-		constexpr Self&	operator = (const Self &)			__Th___ = default;
-		constexpr Self&	operator = (Self &&)				__NE___ = default;
+		constexpr Tuple (const Self &)								__Th___ = default;
+		constexpr Tuple (Self &&)									__NE___ = default;
 
 		template <typename ...UTypes>
-		constexpr explicit Tuple (UTypes&& ...args)			__Th___ : Base_t{ FwdArg<UTypes>(args)... } {}
+		constexpr explicit Tuple (UTypes&& ...args)					__Th___ : Base_t{ FwdArg<UTypes>(args)... } {}
 
 		template <typename ...UTypes>
-		constexpr Tuple (const Tuple<UTypes...> &other)		__Th___ : Base_t{ other.AsBase() } {}
+		constexpr Tuple (const Tuple<UTypes...> &other)				__Th___ : Base_t{ other.AsBase() } {}
 
 		template <typename ...UTypes>
-		constexpr Tuple (Tuple<UTypes...>&& other)			__Th___ : Base_t{ RVRef(other).AsBase() } {}
+		constexpr Tuple (Tuple<UTypes...>&& other)					__Th___ : Base_t{ RVRef(other).AsBase() } {}
+		
 
-		ND_ constexpr bool  operator == (const Self &rhs)	C_NE___	{ return AsBase() == rhs.AsBase(); }
-		ND_ constexpr bool  operator != (const Self &rhs)	C_NE___	{ return AsBase() != rhs.AsBase(); }
-		ND_ constexpr bool  operator >  (const Self &rhs)	C_NE___	{ return AsBase() >  rhs.AsBase(); }
-		ND_ constexpr bool  operator <  (const Self &rhs)	C_NE___	{ return AsBase() <  rhs.AsBase(); }
-		ND_ constexpr bool  operator >= (const Self &rhs)	C_NE___	{ return AsBase() >= rhs.AsBase(); }
-		ND_ constexpr bool  operator <= (const Self &rhs)	C_NE___	{ return AsBase() <= rhs.AsBase(); }
+		constexpr Self&	 operator = (const Self &)					__Th___ = default;
+		constexpr Self&	 operator = (Self &&)						__NE___ = default;
+		
+		template <typename ...UTypes>
+		constexpr Self&	 operator = (const Tuple<UTypes...> &rhs)	__NE___ { AsBase() = rhs.AsBase();  return *this; }
+
+		template <typename ...UTypes>
+		constexpr Self&	 operator = (Tuple<UTypes...>&&rhs)			__NE___ { AsBase() = RVRef(rhs).AsBase();  return *this; }
+
+
+		ND_ constexpr bool  operator == (const Self &rhs)			C_NE___	{ return AsBase() == rhs.AsBase(); }
+		ND_ constexpr bool  operator != (const Self &rhs)			C_NE___	{ return AsBase() != rhs.AsBase(); }
+		ND_ constexpr bool  operator >  (const Self &rhs)			C_NE___	{ return AsBase() >  rhs.AsBase(); }
+		ND_ constexpr bool  operator <  (const Self &rhs)			C_NE___	{ return AsBase() <  rhs.AsBase(); }
+		ND_ constexpr bool  operator >= (const Self &rhs)			C_NE___	{ return AsBase() >= rhs.AsBase(); }
+		ND_ constexpr bool  operator <= (const Self &rhs)			C_NE___	{ return AsBase() <= rhs.AsBase(); }
 
 		template <typename T>
-		ND_ constexpr T&				Get () 				r_NE___	{ return std::get<T>( *this ); }
+		ND_ constexpr T&				Get () 						r_NE___	{ return std::get<T>( *this ); }
 
 		template <typename T>
-		ND_ constexpr T const&			Get ()				CrNE___	{ return std::get<T>( *this ); }
+		ND_ constexpr T const&			Get ()						CrNE___	{ return std::get<T>( *this ); }
 		
 		template <typename T>
-		ND_ constexpr T &&				Get ()				rvNE___	{ return std::get<T>( RVRef(*this) ); }
+		ND_ constexpr T &&				Get ()						rvNE___	{ return std::get<T>( RVRef(*this) ); }
 
 		template <usize I>
-		ND_ constexpr decltype(auto)	Get ()				r_NE___	{ return std::get<I>( *this ); }
+		ND_ constexpr decltype(auto)	Get ()						r_NE___	{ return std::get<I>( *this ); }
 		
 		template <usize I>
-		ND_ constexpr decltype(auto)	Get ()				CrNE___	{ return std::get<I>( *this ); }
+		ND_ constexpr decltype(auto)	Get ()						CrNE___	{ return std::get<I>( *this ); }
 		
 		template <usize I>
-		ND_ constexpr decltype(auto)	Get ()				rvNE___	{ return std::get<I>( RVRef(*this) ); }
+		ND_ constexpr decltype(auto)	Get ()						rvNE___	{ return std::get<I>( RVRef(*this) ); }
 
-		ND_ constexpr usize				Count ()			C_NE___	{ return sizeof... (Types); }
+
+		ND_ constexpr usize				Count ()					C_NE___	{ return sizeof... (Types); }
 		
-		ND_ constexpr Base_t const&		AsBase ()			CrNE___	{ return static_cast<const Base_t &>(*this); }
-		ND_ constexpr Base_t &			AsBase ()			r_NE___	{ return static_cast<Base_t &>(*this); }
-		ND_ constexpr Base_t &&			AsBase ()			rvNE___	{ return static_cast<Base_t &&>( RVRef(*this) ); }
+		ND_ constexpr Base_t const&		AsBase ()					CrNE___	{ return static_cast<const Base_t &>(*this); }
+		ND_ constexpr Base_t &			AsBase ()					r_NE___	{ return static_cast<Base_t &>(*this); }
+		ND_ constexpr Base_t &&			AsBase ()					rvNE___	{ return static_cast<Base_t &&>( RVRef(*this) ); }
 
-		ND_ HashVal						CalcHash ()			C_NE___	{ return _RecursiveCalcHash<0>(); }
+		ND_ HashVal						CalcHash ()					C_NE___	{ return _RecursiveCalcHash<0>(); }
 
 		template <typename Fn>
-		constexpr decltype(auto)		Apply (Fn &&fn)		__Th___	//noexcept(std::is_nothrow_invocable_v<Fn>)
+		constexpr decltype(auto)		Apply (Fn &&fn)				__Th___	//noexcept(std::is_nothrow_invocable_v<Fn>)
 		{
 			return std::apply( FwdArg<Fn>(fn), static_cast<Base_t &>(*this) );
 		}
 
 		template <typename Fn>
-		constexpr decltype(auto)		Apply (Fn &&fn)		C_Th___	//const noexcept(std::is_nothrow_invocable_v<Fn>)
+		constexpr decltype(auto)		Apply (Fn &&fn)				C_Th___	//const noexcept(std::is_nothrow_invocable_v<Fn>)
 		{
 			return std::apply( FwdArg<Fn>(fn), static_cast<const Base_t &>(*this) );
 		}
 
 	private:
 		template <usize I>
-		ND_ HashVal  _RecursiveCalcHash ()					C_NE___
+		ND_ HashVal  _RecursiveCalcHash ()							C_NE___
 		{
 			if constexpr( I+1 < sizeof... (Types) )
 				return HashOf( Get<I>() ) + _RecursiveCalcHash<I+1>();
 			else
 				return HashOf( Get<I>() );
+		}
+
+		template <usize I>
+		static constexpr void  _RecursiveCopy ()
+		{
 		}
 	};
 
@@ -138,7 +152,7 @@ namespace _hidden_
 		using TypeList_t	= std::tuple< Types... >;
 		
 		template <typename T>
-		inline static constexpr usize	_Index	= _hidden_::TL_GetFirstIndex< T, 0, TypeList_t >::value;
+		inline static constexpr usize	_Index	= Base::_hidden_::TL_GetFirstIndex< T, 0, TypeList_t >::value;
 
 
 	// variables
@@ -172,6 +186,19 @@ namespace _hidden_
 		
 		template <usize I>
 		ND_ constexpr decltype(auto)	Get ()			rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		
+
+		// for structured bindings
+	#if 1
+		template <usize I>
+		ND_ constexpr decltype(auto)	get ()			r_NE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		
+		template <usize I>
+		ND_ constexpr decltype(auto)	get ()			CrNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+		
+		template <usize I>
+		ND_ constexpr decltype(auto)	get ()			rvNE___	{ ASSERT( IsNotNull<I>() );  return *_base.template Get<I>(); }
+	#endif
 
 
 		template <usize I>
@@ -234,7 +261,7 @@ namespace _hidden_
 	}
 
 	template <typename T>
-	static constexpr bool	IsTuple = _hidden_::_IsTuple< RemoveCVRef<T> >::value;
+	static constexpr bool	IsTuple = Base::_hidden_::_IsTuple< RemoveCVRef<T> >::value;
 	
 /*
 =================================================
@@ -256,18 +283,31 @@ namespace _hidden_
 	{
 		STATIC_ASSERT( IsTuple<Tuple1> );
 		STATIC_ASSERT( IsTuple<Tuple2> );
-		return _hidden_::_TupleConcat( FwdArg<Tuple1>(tuple1), FwdArg<Tuple2>(tuple2),
-									   typename RemoveCVRef< Tuple1 >::Indices_t{},
-									   typename RemoveCVRef< Tuple2 >::Indices_t{} );
+		return Base::_hidden_::_TupleConcat( FwdArg<Tuple1>(tuple1), FwdArg<Tuple2>(tuple2),
+											 typename RemoveCVRef< Tuple1 >::Indices_t{},
+											 typename RemoveCVRef< Tuple2 >::Indices_t{} );
 	}
 	
 	template <typename Tuple1, typename Tuple2, typename ...Tuples>
 	ND_ forceinline constexpr auto  TupleConcat (Tuple1&& tuple1, Tuple2&& tuple2, Tuples&& ...tuples) __Th___
 	{
-		return TupleConcat( FwdArg<Tuple1>(tuple1), TupleConcat( FwdArg<Tuple2>(tuple2), FwdArg<Tuples>(tuples)... ));
+		return TupleConcat( FwdArg<Tuple1>(tuple1),
+						    TupleConcat( FwdArg<Tuple2>(tuple2), FwdArg<Tuples>(tuples)... ));
+	}
+	
+/*
+=================================================
+	StructSet (same as std::tie)
+=================================================
+*/
+	template <typename ...Args>
+	ND_ constexpr Tuple<Args&...>  StructSet (Args&... args) __NE___
+	{
+		return Tuple< Args& ...>{ args... };
 	}
 
 } // AE::Base
+
 
 namespace std
 {
@@ -304,20 +344,5 @@ namespace std
 			return size_t(x.CalcHash());
 		}
 	};
-	
-	template <size_t I, typename ...Types>
-	ND_ constexpr decltype(auto)  get (const AE::Base::TupleRef<Types...> &t)		__NE___ {
-		return t.Get<I>();
-	}
-
-	template <size_t I, typename ...Types>
-	ND_ constexpr decltype(auto)  get (AE::Base::TupleRef<Types...> &t)				__NE___ {
-		return t.Get<I>();
-	}
-
-	template <size_t I, typename ...Types>
-	ND_ constexpr decltype(auto)  get (AE::Base::TupleRef<Types...> && t)			__NE___ {
-		return RVRef(t).Get<I>();
-	}
 
 } // std

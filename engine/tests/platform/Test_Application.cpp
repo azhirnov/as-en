@@ -35,7 +35,7 @@ namespace
 		uint	_counter	= 0;
 
 	public:
-		void OnStateChanged (IWindow &, EState state) override
+		void OnStateChanged (IWindow &, EState state) __NE_OV
 		{
 			switch ( state )
 			{
@@ -49,17 +49,17 @@ namespace
 			}
 		}
 
-		void OnSurfaceCreated (IWindow &) override
+		void OnSurfaceCreated (IWindow &) __NE_OV
 		{
 			events->push_back( 4 );
 		}
 
-		void OnSurfaceDestroyed (IWindow &) override
+		void OnSurfaceDestroyed (IWindow &) __NE_OV
 		{
 			events->push_back( 8 );
 		}
 
-		void OnUpdate (IWindow &wnd) override
+		void OnUpdate (IWindow &wnd) __NE_OV
 		{
 			if ( ++_counter > 1000 )
 			{
@@ -67,7 +67,7 @@ namespace
 			}
 		}
 		
-		void OnResize (IWindow &, const uint2 &) override
+		void OnResize (IWindow &, const uint2 &) __NE_OV
 		{}
 	};
 
@@ -86,13 +86,13 @@ namespace
 			CHECK_FATAL( Scheduler().Setup( cfg ));
 		}
 
-		~AppListener () override
+		~AppListener () __NE_OV
 		{
 			Scheduler().Release();
 			TaskScheduler::DestroyInstance();
 		}
 
-		void  OnStart (IApplication &app) override
+		void  OnStart (IApplication &app) __NE_OV
 		{
 			events->push_back( 1 );
 
@@ -106,17 +106,17 @@ namespace
 			TEST( _window );
 		}
 
-		void  OnStop (IApplication &) override
+		void  OnStop (IApplication &) __NE_OV
 		{
 			_window = null;
 
 			events->push_back( 11 );
 		}
 			
-		void  BeforeWndUpdate (IApplication &) override
+		void  BeforeWndUpdate (IApplication &) __NE_OV
 		{}
 
-		void  AfterWndUpdate (IApplication &app) override
+		void  AfterWndUpdate (IApplication &app) __NE_OV
 		{
 			if ( _window and _window->GetState() == IWindow::EState::Destroyed )
 				app.Terminate();

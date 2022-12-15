@@ -35,7 +35,7 @@ namespace AE::App
 		bool			fullscreen	: 1;
 		bool			borderless	: 1;
 
-		WindowDesc () :
+		WindowDesc () __NE___ :
 			resizable{false}, fullscreen{false}, borderless{false}
 		{}
 	};
@@ -68,15 +68,15 @@ namespace AE::App
 
 		// interface
 		public:
-			virtual ~IWndListener () {}
+			virtual ~IWndListener ()										__NE___	{}
 
-			virtual void  OnUpdate (IWindow &wnd) = 0;
-			virtual void  OnResize (IWindow &wnd, const uint2 &newSize) = 0;
+			virtual void  OnUpdate (IWindow &wnd)							__NE___	= 0;
+			virtual void  OnResize (IWindow &wnd, const uint2 &newSize)		__NE___	= 0;
 			
-			virtual void  OnSurfaceCreated (IWindow &wnd) = 0;
-			virtual void  OnSurfaceDestroyed (IWindow &wnd) = 0;
+			virtual void  OnSurfaceCreated (IWindow &wnd)					__NE___	= 0;
+			virtual void  OnSurfaceDestroyed (IWindow &wnd)					__NE___	= 0;
 
-			virtual void  OnStateChanged (IWindow &wnd, EState state) = 0;
+			virtual void  OnStateChanged (IWindow &wnd, EState state)		__NE___	= 0;
 		};
 
 		using EState = IWndListener::EState;
@@ -84,37 +84,38 @@ namespace AE::App
 
 	// interface
 	public:
+		virtual ~IWindow ()															__NE___ {}
 
 		// Close window.
 		//   Thread safe: no
 		//
-		virtual void  Close () = 0;
+		virtual void  Close ()														__NE___	= 0;
 		
 		// Return surface size.
 		//   Window size with border will be greater.
 		//   Thread safe: main thread only
 		//
-		ND_ virtual uint2  GetSurfaceSize () const = 0;
+		ND_ virtual uint2  GetSurfaceSize ()										C_NE___ = 0;
 		
 		// Returns current state.
 		//   Thread safe: no
 		//
-		ND_ virtual EState  GetState () const = 0;
+		ND_ virtual EState  GetState ()												C_NE___ = 0;
 		
 		// Returns current monitor for window.
 		//   Thread safe: main thread only
 		//
-		ND_ virtual Monitor  GetMonitor () const = 0;
+		ND_ virtual Monitor  GetMonitor ()											C_NE___ = 0;
 		
 		// Returns window native handles.
 		//   Thread safe: yes
 		//
-		ND_ virtual NativeWindow  GetNative () const = 0;
+		ND_ virtual NativeWindow  GetNative ()										C_NE___ = 0;
 		
 		// Returns input actions class.
 		//   Thread safe: yes
 		//
-		ND_ virtual IInputActions&  InputActions () = 0;
+		ND_ virtual IInputActions&  InputActions ()									__NE___	= 0;
 
 
 	// surface api
@@ -122,13 +123,13 @@ namespace AE::App
 		// Create or recreate rendering surface (swapchain).
 		//   Thread safe: main thread only, must be synchronized with 'GetSurface()'
 		//
-		ND_ virtual bool  CreateRenderSurface (const Graphics::SwapchainDesc &desc) = 0;
+		ND_ virtual bool  CreateRenderSurface (const Graphics::SwapchainDesc &desc)	__NE___	= 0;
 		
 		// Returns render surface reference.
 		// Surface must be successfully created using 'CreateRenderSurface()'.
 		//   Thread safe: must be synchronized with 'CreateRenderSurface()'
 		//
-		ND_ virtual IOutputSurface&  GetSurface () = 0;
+		ND_ virtual IOutputSurface&  GetSurface ()									__NE___	= 0;
 
 
 	// desctop only
@@ -136,23 +137,23 @@ namespace AE::App
 		// Set focus to the window.
 		//   Thread safe: main thread only
 		//
-		virtual void  SetFocus () const = 0;
+		virtual void  SetFocus ()													C_NE___ = 0;
 		
 		// Set surface size.
 		//   Thread safe: main thread only
 		//
-		virtual void  SetSize (const uint2 &size) = 0;
+		virtual void  SetSize (const uint2 &size)									__NE___	= 0;
 		
 		// Set window position.
 		//   Thread safe: main thread only
 		//
-		virtual void  SetPosition (const int2 &pos) = 0;
-		virtual void  SetPosition (Monitor::ID monitor, const int2 &pos) = 0;
+		virtual void  SetPosition (const int2 &pos)									__NE___	= 0;
+		virtual void  SetPosition (Monitor::ID monitor, const int2 &pos)			__NE___	= 0;
 		
 		// Set window title.
 		//   Thread safe: main thread only
 		//
-		virtual void  SetTitle (NtStringView title) = 0;
+		virtual void  SetTitle (NtStringView title)									__NE___	= 0;
 
 		// TODO:
 		//	hide cursor

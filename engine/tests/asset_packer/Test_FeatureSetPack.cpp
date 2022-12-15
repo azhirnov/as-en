@@ -37,11 +37,11 @@ namespace
 		{
 			uint	name;
 			TEST( file->Read( OUT name ));
-			TEST_EQ( name, PackOffsets_Name );
+			TEST_Eq( name, PackOffsets_Name );
 
 			PipelinePackOffsets		offsets;
 			TEST( file->Read( OUT offsets ));
-			TEST_L( offsets.featureSetOffset, ulong(file->Size()) );
+			TEST_Lt( offsets.featureSetOffset, ulong(file->Size()) );
 
 			TEST( file->SeekSet( Bytes{offsets.featureSetOffset} ));
 			TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.featureSetDataSize} ));
@@ -52,17 +52,17 @@ namespace
 			uint	version = 0;
 			uint	name	= 0;
 			TEST( des( OUT name, OUT version ));
-			TEST_EQ( name, FeatureSetPack_Name );
-			TEST_EQ( version, FeatureSetPack_Version );
+			TEST_Eq( name, FeatureSetPack_Name );
+			TEST_Eq( version, FeatureSetPack_Version );
 		}
 
 		uint	fs_size = 0;
 		TEST( des( OUT fs_size ));
-		TEST_EQ( fs_size, sizeof(FeatureSet) );
+		TEST_Eq( fs_size, sizeof(FeatureSet) );
 
 		uint	count = 0;
 		TEST( des( OUT count ));
-		TEST_EQ( count, 34 );
+		TEST_Eq( count, 32 );
 		
 		for (uint i = 0; i < count; ++i)
 		{

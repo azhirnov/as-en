@@ -23,4 +23,5 @@
 #undef MemoryBarrier
 #undef GetObject
 #undef GetClassName
-
+#undef min
+#undef max

@@ -55,13 +55,13 @@ namespace
 
 			st->Set( layout, str );
 
-			TEST_EQ( st->StaticSize(), Bytes{t.size} * arraySize );
+			TEST_Eq( st->StaticSize(), Bytes{t.size} * arraySize );
 
 			if ( AnyEqual( layout, EStructLayout::Compatible_Std140, EStructLayout::Std140 ))
 			{
-				TEST_EQ( st->Align(), AlignUp( Bytes{t.align}, 16_b ));
+				TEST_Eq( st->Align(), AlignUp( Bytes{t.align}, 16_b ));
 			}else{
-				TEST_EQ( st->Align(), Bytes{t.align} );
+				TEST_Eq( st->Align(), Bytes{t.align} );
 			}
 		}
 	}
@@ -124,8 +124,8 @@ namespace
 			ShaderStructTypePtr	st{ new ShaderStructType{ "MatTest"s << ToString(idx++) }};
 			st->Set( layout, String{t.name} << " val;" );
 
-			TEST_EQ( st->StaticSize(), Bytes{t.size} );
-			TEST_EQ( st->Align(), Bytes{t.align} );
+			TEST_Eq( st->StaticSize(), Bytes{t.size} );
+			TEST_Eq( st->Align(), Bytes{t.align} );
 		}
 	}
 	
@@ -154,9 +154,9 @@ namespace
 				 "int2		ii;" );
 
 		TEST( not st1->HasDynamicArray() );
-		TEST_EQ( st1->ArrayStride(),	0_b );
-		TEST_EQ( st1->StaticSize(),		16_b + 16_b );
-		TEST_EQ( st1->Align(),			16_b );
+		TEST_Eq( st1->ArrayStride(),	0_b );
+		TEST_Eq( st1->StaticSize(),		16_b + 16_b );
+		TEST_Eq( st1->Align(),			16_b );
 		
 
 		ShaderStructTypePtr	st2{ new ShaderStructType{ "StType2" }};
@@ -165,9 +165,9 @@ namespace
 				 "uint4		ua [4];" );
 		
 		TEST( not st2->HasDynamicArray() );
-		TEST_EQ( st2->ArrayStride(),	0_b );
-		TEST_EQ( st2->StaticSize(),		(16_b + 16_b) + (16_b * 4) );
-		TEST_EQ( st2->Align(),			16_b );
+		TEST_Eq( st2->ArrayStride(),	0_b );
+		TEST_Eq( st2->StaticSize(),		(16_b + 16_b) + (16_b * 4) );
+		TEST_Eq( st2->Align(),			16_b );
 
 
 		const String	glsl = ToGLSL( st2 );
@@ -282,9 +282,9 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 				);						// offset 32
 
 		TEST( not st1->HasDynamicArray() );
-		TEST_EQ( st1->ArrayStride(),	0_b );
-		TEST_EQ( st1->StaticSize(),		16_b + 16_b );
-		TEST_EQ( st1->Align(),			4_b );
+		TEST_Eq( st1->ArrayStride(),	0_b );
+		TEST_Eq( st1->StaticSize(),		16_b + 16_b );
+		TEST_Eq( st1->Align(),			4_b );
 		
 
 		ShaderStructTypePtr	st2{ new ShaderStructType{ "StType4" }};
@@ -295,9 +295,9 @@ static_assert( sizeof(StType2) == 96, "size mismatch" );
 				);							// offset 72
 		
 		TEST( not st2->HasDynamicArray() );
-		TEST_EQ( st2->ArrayStride(),	0_b );
-		TEST_EQ( st2->StaticSize(),		72_b );
-		TEST_EQ( st2->Align(),			4_b );
+		TEST_Eq( st2->ArrayStride(),	0_b );
+		TEST_Eq( st2->StaticSize(),		72_b );
+		TEST_Eq( st2->Align(),			4_b );
 
 
 		const String	glsl = ToGLSL( st2 );

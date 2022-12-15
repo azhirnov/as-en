@@ -73,7 +73,7 @@ namespace AE::Base
 		ND_ constexpr usize			length ()				C_NE___	{ return size(); }
 		ND_ static constexpr usize	capacity ()				__NE___	{ return StringSize; }
 		ND_ constexpr bool			empty ()				C_NE___	{ return _length == 0; }
-		ND_ constexpr CharT const *	c_str ()				C_NE___	{ return _array; }
+		ND_ constexpr CharT const *	c_str ()				C_NE___	{ return _array; }			// always non-null
 		ND_ constexpr CharT const *	data ()					C_NE___	{ return _array; }
 		ND_ CharT *					data ()					__NE___	{ return _array; }
 

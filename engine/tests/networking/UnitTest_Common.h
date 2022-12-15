@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "networking/Raw/SocketManager.h"
+#include "networking/Raw/SocketService.h"
 #include "../shared/UnitTest_Shared.h"
 
 using namespace AE::Threading;
@@ -18,7 +18,7 @@ struct LocalSocketMngr
 		TaskScheduler::Config	cfg;
 		TEST( Scheduler().Setup( cfg ));
 
-		TEST( SocketManager::Instance().Initialize() );
+		TEST( SocketService::Instance().Initialize() );
 	}
 
 	~LocalSocketMngr ()
@@ -26,12 +26,12 @@ struct LocalSocketMngr
 		Scheduler().Release();
 		TaskScheduler::DestroyInstance();
 
-		SocketManager::Instance().Deinitialize();
+		SocketService::Instance().Deinitialize();
 	}
 
-	SocketManager* operator -> ()
+	SocketService* operator -> ()
 	{
-		return &SocketManager::Instance();
+		return &SocketService::Instance();
 	}
 };
 

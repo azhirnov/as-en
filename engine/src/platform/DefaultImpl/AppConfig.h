@@ -17,17 +17,27 @@ namespace AE::App
 
 	struct AppConfig
 	{
-		struct SchedulerCreateInfo
+	// types
+	private:
+		using GraphicsCreateInfo	= Graphics::GraphicsCreateInfo;
+		using VRImageDesc			= IVRDevice::VRImageDesc;
+		using EThread				= Threading::EThread;
+
+		struct ThreadConfig : Threading::TaskScheduler::Config
 		{
-			uint	maxWorkerThreads	= 1;
+			EnumBitSet<EThread>		mask				{EThread::Worker, EThread::Renderer, EThread::FileIO};
+			uint					maxWorkerThreads	= 2;
 		};
 
-		Graphics::GraphicsCreateInfo	graphics;
-		SchedulerCreateInfo				threading;
-		WindowDesc						window;
 
-		bool							enableVR	= false;
-		IVRDevice::VRImageDesc			vr;
+	// variables
+	public:
+		GraphicsCreateInfo	graphics;
+		ThreadConfig		threading;
+		WindowDesc			window;
+
+		bool				enableVR	= false;
+		VRImageDesc			vr;
 	};
 
 

@@ -41,8 +41,8 @@ namespace AE::Graphics
 			FixedSet<EMemoryType, 8>	memTypes;
 		};
 
-		using Features		= MFeatureSet::Features;
-		using Properties	= MFeatureSet::Properties;
+		using MFeatures		= MFeatureSet::Features;
+		using MProperties	= MFeatureSet::Properties;
 
 
 	protected:
@@ -63,6 +63,8 @@ namespace AE::Graphics
 		MFeatureSet				_mtlFS;
 		ResourceFlags			_resFlags;
 
+		FixedString<64>			_devName;
+
 		DRC_ONLY(
 			RWDataRaceCheck		_drCheck;
 		)
@@ -70,27 +72,30 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MDevice ();
-		~MDevice ();
+		MDevice ()													__NE___;
+		~MDevice ()													__NE___;
 		
-		ND_ DeviceProperties const&	GetDeviceProperties ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _devProps; }
-		ND_ Features const&			GetFeatures ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _mtlFS.features; }
-		ND_ Properties const&		GetProperties ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _mtlFS.properties; }
-		ND_ ResourceFlags const&	GetResourceFlags ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
+		ND_ DeviceProperties const&	GetDeviceProperties ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _devProps; }
+		ND_ MFeatures const&		GetFeatures ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _mtlFS.features; }
+		ND_ MProperties const&		GetProperties ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _mtlFS.properties; }
+		ND_ ResourceFlags const&	GetResourceFlags ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
 
-		ND_ MetalVersion			GetVersion ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _version; }
-		ND_ MetalDevice				GetMtlDevice ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _device; }
-		ND_ ArrayView<MQueue>		GetQueues ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _queues; }
-		ND_ MQueuePtr				GetQueue (EQueueType type)	const	{ DRC_SHAREDLOCK( _drCheck );  return uint(type) < _queueTypes.size() ? _queueTypes[uint(type)] : null; }
-		ND_ EQueueMask				GetAvailableQueues ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
+		ND_ MetalVersion			GetVersion ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _version; }
+		ND_ MetalDevice				GetMtlDevice ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _device; }
+		ND_ ArrayView<MQueue>		GetQueues ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _queues; }
+		ND_ MQueuePtr				GetQueue (EQueueType type)		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint(type) < _queueTypes.size() ? _queueTypes[uint(type)] : null; }
+		ND_ EQueueMask				GetAvailableQueues ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
+		ND_ StringView				GetDeviceName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _devName; }
 		
-		ND_ bool					IsInitialized ()			const	{ DRC_SHAREDLOCK( _drCheck );  return bool(_device); }
+		ND_ bool					IsInitialized ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return bool(_device); }
 
-		bool  CheckConstantLimits () const;
-		bool  CheckExtensions () const;
+		ND_ bool  CheckConstantLimits ()							C_NE___;
+		ND_ bool  CheckExtensions ()								C_NE___;
 
-		void  InitFeatureSet (OUT FeatureSet &outFeatureSet)	const	{ DRC_SHAREDLOCK( _drCheck );  _mtlFS.InitFeatureSet( outFeatureSet ); }
+			void  InitFeatureSet (OUT FeatureSet &outFeatureSet)	C_NE___;
 
+	protected:
+		ND_ MGPUFamilies  _GetGPUFamilies ()						C_NE___;
 	};
 	
 
@@ -108,25 +113,24 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit MDeviceInitializer (bool enableInfoLog = false);
-		~MDeviceInitializer ();
+		explicit MDeviceInitializer (bool enableInfoLog = false)							__NE___;
+		~MDeviceInitializer ()																__NE___;
 		
-		ND_ bool  CreateDefaultQueue ();
-		ND_ bool  CreateDefaultQueues (EQueueMask required, EQueueMask optional = Default);
+		ND_ bool  ChooseHighPerformanceDevice ()											__NE___;
+		ND_ bool  CreateDefaultQueue ()														__NE___;
+		ND_ bool  CreateDefaultQueues (EQueueMask required, EQueueMask optional = Default)	__NE___;
 
-		ND_ bool  CreateLogicalDevice ();
-			bool  DestroyLogicalDevice ();
+		ND_ bool  CreateLogicalDevice ()													__NE___;
+			bool  DestroyLogicalDevice ()													__NE___;
 		
-		ND_ bool  Init (const GraphicsCreateInfo &ci);
+		ND_ bool  Init (const GraphicsCreateInfo &ci)										__NE___;
 
 	private:
-		void  _SetResourceFlags (OUT ResourceFlags &) const;
-		void  _InitDeviceProperties (OUT DeviceProperties &props) const;
-		void  _InitFeaturesAndProperties (OUT Features &, OUT Properties &) const;
+		void  _SetResourceFlags (OUT ResourceFlags &)										C_NE___;
+		void  _InitFeaturesAndProperties (OUT MFeatures &, OUT MProperties &)				C_NE___;
+		bool  _CreateLogicalDevice ()														__Th___;
 
-		void  _LogLogicalDevice () const;
-
-		ND_ MGPUFamilies  _GetGPUFamilies () const;
+		void  _LogLogicalDevice ()															C_Th___;
 	};
 
 

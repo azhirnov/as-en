@@ -1,4 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Raster order groups as subpasses:
+	https://developer.apple.com/videos/play/tech-talks/605/
+	https://developer.apple.com/documentation/metal/tailor_your_apps_for_apple_gpus_and_tile-based_deferred_rendering?language=objc
+*/
 
 #pragma once
 
@@ -70,17 +75,18 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MRenderPass () {}
-		~MRenderPass ();
+		MRenderPass ()																					__NE___	{}
+		~MRenderPass ()																					__NE___;
 
-		ND_ bool  Create (MResourceManager &, const SerializableRenderPassInfo &compatInfo, const SerializableMtlRenderPass &mtlInfo, StringView dbgName = Default);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (MResourceManager &, const SerializableRenderPassInfo &compatInfo, const SerializableMtlRenderPass &mtlInfo, StringView dbgName = Default) __NE___;
+			void  Destroy (MResourceManager &)															__NE___;
 
-		ND_ NS::ObjectRef  CreateRPDesc (const MResourceManager &, const RenderPassDesc &desc) const;	// MTLRenderPassDescriptor autorelease
+		ND_ MetalRenderPassDescRC  CreateRPDesc (const MResourceManager &, const RenderPassDesc &)		C_NE___;
 
-		ND_ PipelineRenderPassInfo		GetInfo ()		const;
+		ND_ PipelineRenderPassInfo		GetInfo ()														C_NE___;
+		ND_ uint						RasterOrderGroupCount ()										C_NE___;
 		
-		DEBUG_ONLY(  ND_ StringView		GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView		GetDebugName ()													C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

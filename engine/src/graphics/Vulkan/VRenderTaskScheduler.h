@@ -10,7 +10,7 @@
 # include "graphics/Vulkan/Commands/VDrawCommandBatch.h"
 # include "graphics/Vulkan/VResourceManager.h"
 
-namespace AE::Graphics { class VRenderTaskScheduler; }
+namespace AE::Graphics::_hidden_ { class _VDirectGraphicsCtx;  class _VIndirectGraphicsCtx; }
 namespace AE { Graphics::VRenderTaskScheduler&  RenderTaskScheduler () __NE___; }
 
 namespace AE::Graphics
@@ -23,18 +23,20 @@ namespace AE::Graphics
 	class VRenderTaskScheduler final
 	{
 		#include "graphics/Private/RenderTaskSchedulerDecl.h"
-	
-	// methods
-	public:
-		ND_ RC<VDrawCommandBatch>	BeginAsyncDraw (const VDrawCommandBatch &batch, StringView dbgName = Default, RGBA8u dbgColor = HtmlColor::Red)	__NE___;	// next subpass
 		
+	// types
+	public:
+		class GraphicsContextApi;
+
+		
+	// methods
 	private:
 		#if not AE_VK_TIMELINE_SEMAPHORE
 		ND_ RC<VirtualFence>  _CreateFence ();
 		#endif
 		
 		ND_ RC<VDrawCommandBatch>  _CreateDrawBatch (const VPrimaryCmdBufState &primaryState, ArrayView<VkViewport> viewports,
-													 ArrayView<VkRect2D> scissors, StringView dbgName, RGBA8u dbgColor);
+													 ArrayView<VkRect2D> scissors, DebugLabel dbg);
 		
 		ND_ bool	_FlushQueue_Fence (EQueueType queueType, TempBatches_t &pending);
 		ND_ bool	_FlushQueue_Timeline (EQueueType queueType, TempBatches_t &pending);
@@ -42,37 +44,22 @@ namespace AE::Graphics
 		ND_ bool	_IsFrameComplete_Fence (FrameUID frameId);
 		ND_ bool	_IsFrameComplete_Timeline (FrameUID frameId);
 	};
-
-
-#	include "graphics/Private/RenderTaskSchedulerImpl.h"
-
-/*
-=================================================
-	GAutorelease::dtor
-=================================================
-*/
-	template <usize IndexSize, usize GenerationSize, uint UID>
-	GAutorelease< HandleTmpl< IndexSize, GenerationSize, UID >>::~GAutorelease () __NE___
-	{
-		if ( _id )
-			RenderTaskScheduler().GetResourceManager().ReleaseResource( _id );
-	}
-
-} // AE::Graphics
 	
 
-namespace AE
-{
-/*
-=================================================
-	RenderTaskScheduler
-=================================================
-*/
-	ND_ forceinline Graphics::VRenderTaskScheduler&  RenderTaskScheduler () __NE___
-	{
-		return *Graphics::VRenderTaskScheduler::_Instance();
-	}
 
-} // AE
+	class VRenderTaskScheduler::GraphicsContextApi : Noninstancable
+	{
+		friend class _hidden_::_VDirectGraphicsCtx;
+		friend class _hidden_::_VIndirectGraphicsCtx;
+
+		ND_ static RC<VDrawCommandBatch>  CreateFirstPassBatch (VRenderTaskScheduler &rts,
+																const VPrimaryCmdBufState &primaryState, const RenderPassDesc &desc, DebugLabel dbg);
+		ND_ static RC<VDrawCommandBatch>  CreateNextPassBatch (VRenderTaskScheduler &rts,
+															   const VDrawCommandBatch &prevBatch, DebugLabel dbg);
+	};
+
+} // AE::Graphics
+
+# include "graphics/Private/RenderTaskSchedulerImpl.h"
 
 #endif // AE_ENABLE_VULKAN

@@ -32,17 +32,17 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		void  BindDescriptorSet (uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default);
-		void  DispatchIndirect (VkBuffer buffer, Bytes offset);
+		void  BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default)__Th___;
+		void  DispatchIndirect (VkBuffer buffer, Bytes offset)														__Th___;
 		
-		ND_ VkCommandBuffer	EndCommandBuffer ();
-		ND_ VCommandBuffer  ReleaseCommandBuffer ();
+		ND_ VkCommandBuffer	EndCommandBuffer ()																		__Th___;
+		ND_ VCommandBuffer  ReleaseCommandBuffer ()																	__Th___;
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectComputeCtx (const RenderTask &task);
-		_VDirectComputeCtx (const RenderTask &task, VCommandBuffer cmdbuf);
+		explicit _VDirectComputeCtx (const RenderTask &task)														__Th___;
+		_VDirectComputeCtx (const RenderTask &task, VCommandBuffer cmdbuf)											__Th___;
 
 		void  _Dispatch (const uint3 &groupCount);
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
@@ -69,17 +69,17 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		void  BindDescriptorSet (uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default);
-		void  DispatchIndirect (VkBuffer buffer, Bytes offset);
+		void  BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default)__Th___;
+		void  DispatchIndirect (VkBuffer buffer, Bytes offset)														__Th___;
 		
-		ND_ VBakedCommands		EndCommandBuffer ();
-		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ();
+		ND_ VBakedCommands		EndCommandBuffer ()																	__Th___;
+		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()																__Th___;
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectComputeCtx (const RenderTask &task);
-		_VIndirectComputeCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf);
+		explicit _VIndirectComputeCtx (const RenderTask &task)														__Th___;
+		_VIndirectComputeCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)									__Th___;
 
 		void  _Dispatch (const uint3 &groupCount);
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
@@ -94,7 +94,7 @@ namespace AE::Graphics::_hidden_
 	//
 	
 	template <typename CtxImpl>
-	class _VComputeContextImpl : public CtxImpl, public IComputeContext
+	class _VComputeContextImpl final : public CtxImpl, public IComputeContext
 	{
 	// types
 	public:
@@ -109,30 +109,30 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VComputeContextImpl (const RenderTask &task);
+		explicit _VComputeContextImpl (const RenderTask &task)														__Th___;
 
 		template <typename RawCmdBufType>
-		_VComputeContextImpl (const RenderTask &task, RawCmdBufType cmdbuf);
+		_VComputeContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)											__Th___;
 
-		_VComputeContextImpl () = delete;
-		_VComputeContextImpl (const _VComputeContextImpl &) = delete;
-		~_VComputeContextImpl () __NE_OV {}
+		_VComputeContextImpl ()																						= delete;
+		_VComputeContextImpl (const _VComputeContextImpl &)															= delete;
+		~_VComputeContextImpl ()																					__NE_OV {}
 
 		using RawCtx::BindDescriptorSet;
 
-		void  BindPipeline (ComputePipelineID ppln)															override;
-		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)	override;
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)				override;
+		void  BindPipeline (ComputePipelineID ppln)																	__Th_OV;
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th_OV;
+		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th_OV;
 		
 		using IComputeContext::Dispatch;
-		void  Dispatch (const uint3 &groupCount)															override	{ RawCtx::_Dispatch( groupCount ); }
+		void  Dispatch (const uint3 &groupCount)																	__Th_OV	{ RawCtx::_Dispatch( groupCount ); }
 		
-		void  DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)											{ RawCtx::_DispatchBase( baseGroup, groupCount ); }
-		void  DispatchBase (const uint2 &baseGroup, const uint2 &groupCount)											{ return DispatchBase( uint3{ baseGroup, 0u }, uint3{ groupCount, 1u }); }
+		void  DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)										__Th___	{ RawCtx::_DispatchBase( baseGroup, groupCount ); }
+		void  DispatchBase (const uint2 &baseGroup, const uint2 &groupCount)										__Th___	{ return DispatchBase( uint3{ baseGroup, 0u }, uint3{ groupCount, 1u }); }
 		
 		using RawCtx::DispatchIndirect;
 
-		void  DispatchIndirect (BufferID buffer, Bytes offset)												override;
+		void  DispatchIndirect (BufferID buffer, Bytes offset)														__Th_OV;
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -143,8 +143,8 @@ namespace AE::Graphics::_hidden_
 
 namespace AE::Graphics
 {
-	using VDirectComputeContext		= _hidden_::_VComputeContextImpl< _hidden_::_VDirectComputeCtx >;
-	using VIndirectComputeContext	= _hidden_::_VComputeContextImpl< _hidden_::_VIndirectComputeCtx >;
+	using VDirectComputeContext		= Graphics::_hidden_::_VComputeContextImpl< Graphics::_hidden_::_VDirectComputeCtx >;
+	using VIndirectComputeContext	= Graphics::_hidden_::_VComputeContextImpl< Graphics::_hidden_::_VIndirectComputeCtx >;
 
 } // AE::Graphics
 	
@@ -189,7 +189,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VComputeContextImpl<C>::BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
+	void  _VComputeContextImpl<C>::BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
 	{
 		auto&	desc_set = _GetResourcesOrThrow( ds );
 
@@ -229,12 +229,12 @@ namespace AE::Graphics::_hidden_
 	BindDescriptorSet
 =================================================
 */
-	inline void  _VDirectComputeCtx::BindDescriptorSet (uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
+	inline void  _VDirectComputeCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
 	{
 		ASSERT( _states.pplnLayout != Default );
 		ASSERT( ds != Default );
 
-		vkCmdBindDescriptorSets( _cmdbuf.Get(), _bindPoint, _states.pplnLayout, index, 1, &ds, uint(dynamicOffsets.size()), dynamicOffsets.data() );
+		vkCmdBindDescriptorSets( _cmdbuf.Get(), _bindPoint, _states.pplnLayout, index.vkIndex, 1, &ds, uint(dynamicOffsets.size()), dynamicOffsets.data() );
 	}
 	
 /*
@@ -296,11 +296,11 @@ namespace AE::Graphics::_hidden_
 	BindDescriptorSet
 =================================================
 */
-	inline void  _VIndirectComputeCtx::BindDescriptorSet (uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
+	inline void  _VIndirectComputeCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
 	{
 		ASSERT( _states.pplnLayout != Default );
 
-		_cmdbuf->BindDescriptorSet( _bindPoint, _states.pplnLayout, index, ds, dynamicOffsets );
+		_cmdbuf->BindDescriptorSet( _bindPoint, _states.pplnLayout, index.vkIndex, ds, dynamicOffsets );
 	}
 	
 /*

@@ -9,15 +9,6 @@
 #endif
 
 
-#ifdef AE_COMPILER_MSVC
-#  if _MSC_VER < 1900	// TODO
-#	define and		&&
-#	define or		||
-#	define not		!
-#  endif
-#endif
-
-
 // mark output and input-output function arguments
 
 // OUT for reference - argument is write only
@@ -127,9 +118,9 @@
 // no inline (for debugging)
 #ifndef AE_NOINLINE
 # if defined(AE_COMPILER_MSVC)
-#	define AE_NOINLINE	__declspec(noinline)
+#	define AE_NOINLINE		__declspec(noinline)
 # elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define AE_NOINLINE	__attribute__((noinline))
+#	define AE_NOINLINE		__attribute__((noinline))
 # else
 #	pragma warning ("'noinline' is not supported")
 #	define AE_NOINLINE
@@ -140,10 +131,10 @@
 // restrict (for variable)
 #ifndef RST
 # if defined(AE_COMPILER_MSVC)
-#	define RST	__restrict
+#	define RST				__restrict
 
 # elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define RST	__restrict__
+#	define RST				__restrict__
 # else
 #	define RST
 # endif
@@ -165,10 +156,10 @@
 
 // function name
 #ifdef AE_COMPILER_MSVC
-#	define AE_FUNCTION_NAME		__func__	//__FUNCTION__
+#	define AE_FUNCTION_NAME		__func__	//	local variable of type 'const char[]'
 
 #elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define AE_FUNCTION_NAME		__func__
+#	define AE_FUNCTION_NAME		__func__	//	local variable of type 'const char[]'
 
 #else
 #	define AE_FUNCTION_NAME		"unknown function"
@@ -227,12 +218,12 @@
 
 // thiscall, cdecl
 #ifdef AE_COMPILER_MSVC
-#	define AE_CDECL		__cdecl
-#	define AE_THISCALL	__thiscall
+#	define AE_CDECL			__cdecl
+#	define AE_THISCALL		__thiscall
 
 #elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define AE_CDECL		//__attribute__((cdecl))
-#	define AE_THISCALL	//__attribute__((thiscall))
+#	define AE_CDECL			//__attribute__((cdecl))
+#	define AE_THISCALL		//__attribute__((thiscall))
 #endif
 
 

@@ -195,7 +195,7 @@ namespace AE::Math
 			else
 			{
 				// Denormalized number -- renormalize it
-				while ( !(m & 0x00000400))
+				while ( not (m & 0x00000400))
 				{
 					m <<= 1;
 					e -=  1;

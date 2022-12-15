@@ -1,11 +1,32 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Command batch allows to records multiple command buffers in parallel and submit them as a single batch.
+	Software command buffers are supported to and will be automatically recorded to Metal command buffer before submitting.
+
+		Dependencies.
+
+	Dependencies are added to the whole batch.
+		
+	Batch in one queue depends on batch in another queue -> insert event dependency.
+	Batch depends on batch in the same queue -> use 'submitIdx' to manually reorder batches.
+
+		CmdBatchOnSubmit.
+
+	Used as AsyncTask input dependency to run task when command batch was submitted to the GPU.
+	For example for present image in swapchain.
+
+	Warning: don't use CmdBatchOnSubmit with deferred submission!
+	
+		Resource state tracking.
+
+	(not supported yet)
+*/
 
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Public/DeviceToHostSync.h"
-# include "graphics/Public/CommandBuffer.h"
+# include "graphics/Metal/Commands/MCommandBuffer.h"
 # include "graphics/Metal/Commands/MBakedCommands.h"
 # include "graphics/Private/LfCmdBufferPool.h"
 
@@ -18,10 +39,6 @@ namespace AE::Graphics
 
 	class MCommandBatch final : public IDeviceToHostSync
 	{
-		friend class MRenderTaskScheduler;
-		friend class RenderTask;
-		friend class MDrawCommandBatch;
-
 	// types
 	private:
 		//
@@ -33,162 +50,21 @@ namespace AE::Graphics
 		public:
 			CmdBufPool () __NE___ {}
 			
-			void  GetCommands (OUT MetalCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount) __NE___;
-		};
+			void  GetCommands (OUT MetalCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount)	__NE___;
+			bool  CommitIndirectBuffers (EQueueType queue, ECommandBufferType cmdbufType,
+										 const MPrimaryCmdBufState* primaryState = null)				__NE___;
 
-		//
-		// Submit Task
-		//
-		class SubmitTask final : public Threading::IAsyncTask
-		{
 		private:
-			RC<MCommandBatch>	_batch;
-			ESubmitMode			_mode;
-
-		public:
-			SubmitTask (RC<MCommandBatch> batch, ESubmitMode mode) __NE___ :
-				IAsyncTask{ EThread::Renderer },
-				_batch{RVRef(batch)}, _mode{mode} {}
-
-			void  Run () __Th_OV
-			{
-				CHECK( _batch->Submit( _mode ));
-			}
-
-			StringView  DbgName ()	C_NE_OV	{ return "Submit vulkan command batch"; }
-		};
-
-		using GpuDependencies_t	= FixedMap< MetalEvent, ulong, 7 >;
-		using OutDependencies_t = FixedTupleArray< 15, AsyncTask, uint >;	// { task, bitIndex }
-	
-		enum class EStatus : uint
-		{
-			Initial,		// after _Create()
-			Pending,		// after Submit()		// command batch is ready to be submitted to the GPU
-			Submitted,		// after _OnSubmit()	// command batch is already submitted to the GPU
-			Complete,		// after _OnComplete()	// command batch has been executed on the GPU
-			Destroyed,		// after _ReleaseObject()
+			ND_ bool  _CommitIndirectBuffers_Ordered (uint cmdTypes, EQueueType queue, ECommandBufferType cmdbufType, const MPrimaryCmdBufState* primaryState);
 		};
 		
-	
-	// variables
-	private:
-		// for render tasks
-		alignas(AE_CACHE_LINE)
-		  CmdBufPool			_cmdPool;
 		
-		alignas(AE_CACHE_LINE)
-		  Atomic<EStatus>		_status			{EStatus::Destroyed};
-		
-		FrameUID				_frameId;
-		EQueueType				_queueType		= Default;
-		const ubyte				_indexInPool;
-		ubyte					_submitIdx		= UMax;
-
-		// dependencies from another batches on another queue
-		// or dependencies for swapchain image
-		alignas(AE_CACHE_LINE)
-		  SpinLock				_gpuInDepsGuard;
-		GpuDependencies_t		_gpuInDeps;
-		alignas(AE_CACHE_LINE)
-		  SpinLock				_gpuOutDepsGuard;
-		GpuDependencies_t		_gpuOutDeps;
-		
-		// tasks which wait for batch to be submitted to the GPU
-		alignas(AE_CACHE_LINE)
-		  SpinLock				_onSubmitDepsGuard;
-		OutDependencies_t		_onSubmitDeps;
-		
-		// tasks which wait for batch to complete on the GPU side
-		alignas(AE_CACHE_LINE)
-		  SpinLock				_onCompleteDepsGuard;
-		OutDependencies_t		_onCompleteDeps;
-		
-		PROFILE_ONLY(
-			String					_dbgName;
-			RC<IGraphicsProfiler>	_profiler;
-		)
+		#include "graphics/Private/CommandBatchDecl.h"
 		
 		
 	// methods
-	public:
-		~MCommandBatch ();
-		
-		
-	// user api (thread safe)
-	public:
-
-		// command buffer api
-		template <typename TaskType, typename ...Ctor, typename ...Deps>
-		AsyncTask	Add (Tuple<Ctor...> &&		ctor	 = Default,
-						 const Tuple<Deps...>&	deps	 = Default,
-						 StringView				dbgName	 = Default,
-						 RGBA8u					dbgColor = HtmlColor::Yellow) __NE___;
-
-	  #ifdef AE_HAS_COROUTINE
-		template <typename PromiseT, typename ...Deps>
-		AsyncTask	Add (AE::Threading::CoroutineHandle<PromiseT>	handle,
-						 const Tuple<Deps...>&						deps	 = Default,
-						 StringView									dbgName  = Default,
-						 RGBA8u										dbgColor = HtmlColor::Yellow) __NE___;
-	  #endif
-	  
-	  
-		template <typename ...Deps>
-		AsyncTask  SubmitAsTask (const Tuple<Deps...>&	deps,
-								 ESubmitMode			mode = ESubmitMode::Deferred) __NE___;
-
-		ND_ bool  Submit (ESubmitMode mode = ESubmitMode::Deferred) __NE___;
-
-
-		// GPU to GPU dependency
-			bool  AddInputDependency (RC<MCommandBatch> batch);
-			bool  AddInputDependency (const MCommandBatch &batch);
-			
-			bool  AddInputSemaphore (MetalEvent sem, ulong value);
-			bool  AddInputSemaphore (const MetalCmdBatchDependency &dep);
-
-			bool  AddOutputSemaphore (MetalEvent sem, ulong value);
-			bool  AddOutputSemaphore (const MetalCmdBatchDependency &dep);
-
-		ND_ ECommandBufferType	GetCmdBufType ()		C_NE___	{ return ECommandBufferType::Primary_OneTimeSubmit; }
-		ND_ EQueueType			GetQueueType ()			C_NE___	{ return _queueType; }
-		ND_ FrameUID			GetFrameId ()			C_NE___	{ return _frameId; }
-		ND_ uint				GetSubmitIndex ()		C_NE___	{ return _submitIdx; }
-		ND_ uint				GetCmdBufIndex ()		const	{ return _cmdPool.Current(); }
-		ND_ bool				IsSubmitted ()			__NE___;
-		
-		PROFILE_ONLY(
-			ND_ StringView				DbgName ()		C_NE___	{ return _dbgName; }
-			ND_ Ptr<IGraphicsProfiler>	GetProfiler ()	C_NE___	{ return _profiler.get(); }
-		)
-		
-		
-	// IDeviceToHostSync
-	public:
-		ND_ bool  Wait (nanoseconds timeout)			__NE_OV;
-		ND_ bool  IsComplete ()							__NE_OV;
-
-		
-	// render task scheduler api
 	private:
-		explicit MCommandBatch (uint indexInPool)		__NE___;
-
-		ND_ bool  _Create (EQueueType queue, FrameUID frameId, uint submitIdx, StringView dbgName);
-			void  _OnSubmit2 ();
-			void  _OnComplete ();
-			
-			void  _OnSubmit ();
-
-
-	// helper functions
-	private:
-
-		// CPU to CPU dependency
-		ND_ bool  _AddOnCompleteDependency (AsyncTask task, uint index);
-		ND_ bool  _AddOnSubmitDependency (AsyncTask task, uint index);
-
-			void  _ReleaseObject () __NE_OV;
+		void  _Submit (MQueuePtr) __NE___;
 	};
 
 } // AE::Graphics

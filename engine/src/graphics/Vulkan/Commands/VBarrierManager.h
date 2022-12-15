@@ -68,8 +68,8 @@ namespace AE::Graphics::_hidden_
 			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
 			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
 			
-			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type)	C_NE___;
-			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type)	C_NE___;
+			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, DebugLabel dbg, IGraphicsProfiler::EContextType type)					C_NE___;
+			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, DebugLabel dbg, IGraphicsProfiler::EContextType type)					C_NE___;
 
 			void  ProfilerEndContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)										C_NE___;
 			void  ProfilerEndContext (VSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
@@ -188,8 +188,8 @@ namespace AE::Graphics::_hidden_
 		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)		 __Th_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  return this->_mngr.AcquireImageOwnership( image, srcQueue, srcState, dstState ); } \
 		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)		 __Th_OF { if_unlikely( this->_mngr._IsImageOverflow() ) {this->CommitBarriers();}  return this->_mngr.ReleaseImageOwnership( image, srcState, dstState, dstQueue ); } \
 		\
-		void  DebugMarker (NtStringView text, RGBA8u color)																		__Th_OF	{ RawCtx::_DebugMarker( text, color ); } \
-		void  PushDebugGroup (NtStringView text, RGBA8u color)																	__Th_OF	{ RawCtx::_PushDebugGroup( text, color ); } \
+		void  DebugMarker (DebugLabel dbg)																						__Th_OF	{ RawCtx::_DebugMarker( dbg ); } \
+		void  PushDebugGroup (DebugLabel dbg)																					__Th_OF	{ RawCtx::_PushDebugGroup( dbg ); } \
 		void  PopDebugGroup ()																									__Th_OF	{ RawCtx::_PopDebugGroup(); } \
 		\
 	private: \

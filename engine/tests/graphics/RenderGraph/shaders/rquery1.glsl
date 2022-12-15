@@ -1,5 +1,5 @@
 
-void main ()
+void Main ()
 {
 	const vec2 uv		 = vec2(gl_GlobalInvocationID.xy) / vec2((gl_WorkGroupSize.xy * gl_NumWorkGroups.xy) - 1);
 	const vec3 origin	 = vec3(uv.x, 1.0 - uv.y, -1.0f);

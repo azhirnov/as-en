@@ -3,7 +3,7 @@
 #pragma once
 
 #include "platform/Public/IWindow.h"
-#include "platform/IO/WindowSurface.h"
+#include "platform/Private/WindowSurface.h"
 
 namespace AE::App
 {
@@ -31,21 +31,21 @@ namespace AE::App
 
 	// methods
 	public:
-		explicit WindowBase (ApplicationBase &app) :
+		explicit WindowBase (ApplicationBase &app)							__NE___	:
 			_app{ app }
 		{}
 
-		WindowBase (ApplicationBase &app, Unique<IWndListener> listener) :
+		WindowBase (ApplicationBase &app, Unique<IWndListener> listener)	__NE___	:
 			_listener{ RVRef(listener) },
 			_app{ app }
 		{}
 
-		~WindowBase ();
+		~WindowBase ()														__NE_OV;
 		
-		IOutputSurface&	GetSurface ()			override	{ return _surface; }
-		EState			GetState ()		const	override	{ DRC_SHAREDLOCK( _drCheck );  return _wndState; }
+		IOutputSurface&	GetSurface ()										__NE_OV	{ return _surface; }
+		EState			GetState ()											C_NE_OV	{ DRC_SHAREDLOCK( _drCheck );  return _wndState; }
 
-		bool  CreateRenderSurface (const Graphics::SwapchainDesc &desc) override;
+		bool  CreateRenderSurface (const Graphics::SwapchainDesc &desc)		__NE_OV;
 		
 
 	protected:

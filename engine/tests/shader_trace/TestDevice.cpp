@@ -1498,7 +1498,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 			Array<uint8_t>	handles;  handles.resize(size);
 
 			for (uint i = 0; i < numGroups; ++i) {
-				VK_CALL( vkGetRayTracingShaderGroupHandlesKHR( GetVkDevice(), rtPipeline, i, 1, GetRayTracingProps().shaderGroupHandleSize, OUT handles.data() + alignment * i ));
+				VK_CHECK( vkGetRayTracingShaderGroupHandlesKHR( GetVkDevice(), rtPipeline, i, 1, GetRayTracingProps().shaderGroupHandleSize, OUT handles.data() + alignment * i ));
 			}	
 			vkCmdUpdateBuffer( cmd, sbt, 0, handles.size(), handles.data() );
 		});
@@ -1532,13 +1532,13 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 		VkCommandBufferBeginInfo	begin_info = {};
 		begin_info.sType	= VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		begin_info.flags	= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		VK_CALL( vkBeginCommandBuffer( cmdBuffer, &begin_info ));
+		VK_CHECK( vkBeginCommandBuffer( cmdBuffer, &begin_info ));
 
 		for (auto& cb : res.onUpdate) {
 			cb( cmdBuffer );
 		}
 
-		VK_CALL( vkEndCommandBuffer( cmdBuffer ));
+		VK_CHECK( vkEndCommandBuffer( cmdBuffer ));
 
 		VkSubmitInfo		submit_info = {};
 		submit_info.sType				= VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1547,7 +1547,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 
 		VK_CHECK_ERR( vkQueueSubmit( GetVkQueue(), 1, &submit_info, VK_NULL_HANDLE ));
 	}
-	VK_CALL( vkQueueWaitIdle( GetVkQueue() ));
+	VK_CHECK( vkQueueWaitIdle( GetVkQueue() ));
 	
 	vkDestroyBuffer( GetVkDevice(), vertex_buffer, null );
 	vkDestroyBuffer( GetVkDevice(), index_buffer, null );

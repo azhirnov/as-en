@@ -78,7 +78,7 @@ namespace AE::App
 
 			Ptr<const IProjection>	projection;
 
-			ND_ uint2  RegionSize ()	const	{ return uint2(region.Size()); }
+			ND_ uint2  RegionSize ()	C_NE___	{ return uint2(region.Size()); }
 		};
 		using RenderTargets_t = FixedArray< RenderTarget, Graphics::GraphicsConfig::MaxAttachments >;
 
@@ -104,19 +104,19 @@ namespace AE::App
 
 	// interface
 	public:
-		virtual ~IOutputSurface () {}
+		virtual ~IOutputSurface ()																								__NE___	{}
 		
 
 		// Returns 'true' if surface is initialized.
 		//   Thread safe: yes
 		//
-		ND_ virtual bool  IsInitialized () const = 0;
+		ND_ virtual bool  IsInitialized ()																						C_NE___ = 0;
 		
 
 		// Returns attachment parameters for render pass.
 		//   Thread safe: yes
 		//
-		ND_ virtual RenderPassInfo  GetRenderPassInfo () const = 0;
+		ND_ virtual RenderPassInfo  GetRenderPassInfo ()																		C_NE___ = 0;
 
 		// Begin rendering.
 		// Returns image acquire task which is implicitly synchronized with present/blit task which returned by 'End()', returns 'null' on error.
@@ -125,14 +125,14 @@ namespace AE::App
 		// 'deps'			- list of tasks which must be executed before.
 		//   Thread safe: yes
 		//
-		ND_ virtual AsyncTask  Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps) = 0;
+		ND_ virtual AsyncTask  Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE___	= 0;
 		
 
 		// Get render taqrgets.
 		// Must be used between 'Begin()' / 'End()'.
 		//   Thread safe: yes
 		//
-			virtual bool  GetTargets (OUT RenderTargets_t &targets) const = 0;
+			virtual bool  GetTargets (OUT RenderTargets_t &targets)																C_NE___ = 0;
 
 
 		// End rendering and present frame.
@@ -140,7 +140,7 @@ namespace AE::App
 		// 'deps'		- list of tasks which must be executed before, 'CmdBatchOnSubmit{endCmdBatch}' is imlicitlly added.
 		//   Thread safe: yes
 		//
-		ND_ virtual AsyncTask  End (ArrayView<AsyncTask> deps) = 0;
+		ND_ virtual AsyncTask  End (ArrayView<AsyncTask> deps)																	__NE___	= 0;
 	};
 
 

@@ -30,20 +30,20 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MRTScene () {}
-		~MRTScene ();
+		MRTScene ()											__NE___	{}
+		~MRTScene ()										__NE___;
 
-		ND_ bool  Create (MResourceManager &, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (MResourceManager &, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___;
+			void  Destroy (MResourceManager &)				__NE___;
 		
-		ND_ MetalAccelStruct		Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
-		ND_ MMemoryID				MemoryID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
-		ND_ RTSceneDesc const&		Description ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ bool					IsExclusiveSharing ()	const	{ return true; }
+		ND_ MetalAccelStruct		Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
+		ND_ MMemoryID				MemoryID ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ RTSceneDesc const&		Description ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
+		ND_ bool					IsExclusiveSharing ()	C_NE___	{ return true; }
 		
-		DEBUG_ONLY( ND_ StringView	GetDebugName ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY( ND_ StringView	GetDebugName ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 			
-		ND_ static RTASBuildSizes	GetBuildSizes (const MResourceManager &, const RTSceneBuild &desc);
+		ND_ static RTASBuildSizes	GetBuildSizes (const MResourceManager &, const RTSceneBuild &desc) __NE___;
 	};
 	
 

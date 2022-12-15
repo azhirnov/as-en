@@ -30,19 +30,19 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit VLargeMemAllocator (const VDevice &dev);
-		~VLargeMemAllocator () override;
+		explicit VLargeMemAllocator (const VDevice &dev)										__NE___;
+		~VLargeMemAllocator ()																	__NE_OV;
 		
 	  // IGfxMemAllocator //
-		bool  AllocForImage (ImageVk_t image, const ImageDesc &desc, OUT Storage_t &data) override;
-		bool  AllocForBuffer (BufferVk_t buffer, const BufferDesc &desc, OUT Storage_t &data) override;
+		bool  AllocForImage (ImageVk_t image, const ImageDesc &desc, OUT Storage_t &data)		__NE_OV;
+		bool  AllocForBuffer (BufferVk_t buffer, const BufferDesc &desc, OUT Storage_t &data)	__NE_OV;
 
-		bool  Dealloc (INOUT Storage_t &data) override;
+		bool  Dealloc (INOUT Storage_t &data)													__NE_OV;
 			
-		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info) const override;
+		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info)					C_NE_OV;
 		
-		Bytes  MinAlignment ()		const override;
-		Bytes  MaxAllocationSize ()	const override;
+		Bytes  MinAlignment ()																	C_NE_OV;
+		Bytes  MaxAllocationSize ()																C_NE_OV;
 
 	private:
 		ND_ static Data &		_CastStorage (Storage_t &data);

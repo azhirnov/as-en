@@ -21,3 +21,5 @@ source_group( "asset_packer" FILES ${ASSET_PACKER_SRC} )
 set_property( TARGET "GraphicsHL" PROPERTY FOLDER "Engine" )
 target_link_libraries( "GraphicsHL" PUBLIC "Graphics" "VFS" "Platform" )
 target_include_directories( "GraphicsHL" PUBLIC "${ASSET_PACKER_DIR}" )
+
+install( TARGETS "GraphicsHL" ARCHIVE DESTINATION "lib" )

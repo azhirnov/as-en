@@ -1,6 +1,6 @@
 #ifndef Vertex_draw2_DEFINED
 #	define Vertex_draw2_DEFINED
-	// size: 12, align: 16
+	// size: 12, align: 4 (16)
 	struct Vertex_draw2
 	{
 		static constexpr auto  TypeName = ShaderStructName{"Vertex_draw2"};

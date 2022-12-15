@@ -25,13 +25,13 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MSampler () {}
-		~MSampler ();
+		MSampler ()																			__NE___	{}
+		~MSampler ()																		__NE___;
 
-		ND_ bool  Create (const MDevice &dev, const SamplerDesc &desc, StringView dbgName);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (const MDevice &dev, const SamplerDesc &desc, StringView dbgName)	__NE___;
+			void  Destroy (MResourceManager &)												__NE___;
 
-		ND_ MetalSampler	Handle ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _sampler; }
+		ND_ MetalSampler	Handle ()														C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _sampler; }
 	};
 
 

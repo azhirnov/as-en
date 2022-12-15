@@ -48,8 +48,8 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VDefaultDescriptorAllocator () {}
-		~VDefaultDescriptorAllocator () override;
+		VDefaultDescriptorAllocator ()											__NE___	{}
+		~VDefaultDescriptorAllocator ()											__NE_OV;
 
 		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)		__NE_OV;
 		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)	__NE_OV;

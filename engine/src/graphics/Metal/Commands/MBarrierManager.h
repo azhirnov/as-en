@@ -65,11 +65,11 @@ namespace AE::Graphics::_hidden_
 		PROFILE_ONLY(
 			ND_ RenderTask const&	GetRenderTask ()					C_NE___	{ return *_task; }
 
-			void  ProfilerBeginContext (MetalCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)							C_NE___;
+			void  ProfilerBeginContext (OUT MetalSampleBufferAttachments &, MetalCommandBuffer, IGraphicsProfiler::EContextType)	C_NE___;
 			void  ProfilerBeginContext (MSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)								C_NE___;
 			
-			void  ProfilerBeginContext (MetalCommandBuffer cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type)	C_NE___;
-			void  ProfilerBeginContext (MSoftwareCmdBuf &cmdbuf, StringView name, RGBA8u color, IGraphicsProfiler::EContextType type)	C_NE___;
+			void  ProfilerBeginContext (OUT MetalSampleBufferAttachments &, MetalCommandBuffer, DebugLabel, IGraphicsProfiler::EContextType)C_NE___;
+			void  ProfilerBeginContext (MSoftwareCmdBuf &cmdbuf, DebugLabel, IGraphicsProfiler::EContextType)						C_NE___;
 
 			void  ProfilerEndContext (MetalCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)								C_NE___;
 			void  ProfilerEndContext (MSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)								C_NE___;
@@ -101,12 +101,17 @@ namespace AE::Graphics::_hidden_
 		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)			__NE___;
 
 	private:
-		void  _AddBarrier (MtlBarrierScope scope);
-		void  _AddSrcBarrier (MtlBarrierScope scope, MtlRenderStages beforeStages);
-		void  _AddSrcBarrier (Pair<MtlBarrierScope, MtlRenderStages> value)				{ _AddSrcBarrier( value.first, value.second ); }
-		void  _AddDstBarrier (MtlBarrierScope scope, MtlRenderStages afterStages);
-		void  _AddDstBarrier (Pair<MtlBarrierScope, MtlRenderStages> value)				{ _AddDstBarrier( value.first, value.second ); }
+		void  _AddBarrier (MtlBarrierScope scope)									__NE___;
+		void  _AddSrcBarrier (MtlBarrierScope scope, MtlRenderStages beforeStages)	__NE___;
+		void  _AddSrcBarrier (Pair<MtlBarrierScope, MtlRenderStages> value)			__NE___	{ _AddSrcBarrier( value.first, value.second ); }
+		void  _AddDstBarrier (MtlBarrierScope scope, MtlRenderStages afterStages)	__NE___;
+		void  _AddDstBarrier (Pair<MtlBarrierScope, MtlRenderStages> value)			__NE___	{ _AddDstBarrier( value.first, value.second ); }
 	};
+	
+
+#define MBARRIERMNGR_INHERIT_MBARRIERS \
+	private: \
+		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)											__Th___ { return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \
 	
 
 #define MBARRIERMNGR_INHERIT_BARRIERS \
@@ -136,8 +141,8 @@ namespace AE::Graphics::_hidden_
 		void  AcquireImageOwnership (ImageID image, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)			__Th_OF	{ this->_mngr.AcquireImageOwnership( image, srcQueue, srcState, dstState ); } \
 		void  ReleaseImageOwnership (ImageID image, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)			__Th_OF	{ this->_mngr.ReleaseImageOwnership( image, srcState, dstState, dstQueue ); } \
 		\
-		void  DebugMarker (NtStringView text, RGBA8u color)																			__Th_OF	{ RawCtx::_DebugMarker( text, color ); } \
-		void  PushDebugGroup (NtStringView text, RGBA8u color)																		__Th_OF	{ RawCtx::_PushDebugGroup( text, color ); } \
+		void  DebugMarker (DebugLabel dbg)																							__Th_OF	{ RawCtx::_DebugMarker( dbg ); } \
+		void  PushDebugGroup (DebugLabel dbg)																						__Th_OF	{ RawCtx::_PushDebugGroup( dbg ); } \
 		void  PopDebugGroup ()																										__Th_OF	{ RawCtx::_PopDebugGroup(); } \
 	private: \
 		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)											__Th___ { return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \
@@ -150,7 +155,7 @@ namespace AE::Graphics::_hidden_
 */
 	forceinline bool  MBarrierManager::NoPendingBarriers () C_NE___
 	{
-		return _barrier.scope != Default;
+		return _barrier.scope == Default;
 	}
 
 /*

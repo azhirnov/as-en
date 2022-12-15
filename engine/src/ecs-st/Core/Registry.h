@@ -119,8 +119,8 @@ namespace AE::ECS
 
 	// methods
 	public:
-		Registry ();
-		~Registry ();
+		Registry ()																		__Th___;
+		~Registry ()																	__NE___;
 
 
 		// entity

@@ -43,46 +43,32 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		ResourceBase () {}
+		ResourceBase ()							__NE___	{}
 
-		ResourceBase (Self &&) = delete;
-		ResourceBase (const Self &) = delete;
+		ResourceBase (Self &&)					= delete;
+		ResourceBase (const Self &)				= delete;
 
-		Self& operator = (Self &&) = delete;
-		Self& operator = (const Self &) = delete;
+		Self& operator = (Self &&)				= delete;
+		Self& operator = (const Self &)			= delete;
 
-		~ResourceBase ()
-		{
-			ASSERT( IsDestroyed() );
-		}
+		~ResourceBase ()						__NE___	{ ASSERT( IsDestroyed() ); }
 
-		void  AddRef () const
-		{
-			_refCounter.fetch_add( 1 );
-		}
-
-		ND_ int  ReleaseRef (int refCount) const
-		{
-			return (_refCounter.fetch_sub( refCount ) - refCount);
-		}
+			void	AddRef ()					C_NE___	{ _refCounter.fetch_add( 1 ); }
+		ND_ int		ReleaseRef (int refCount)	C_NE___	{ return (_refCounter.fetch_sub( refCount ) - refCount); }
 		
 
-		ND_ bool			IsCreated ()		const	{ return _GetState() == EState::Created; }
-		ND_ bool			IsDestroyed ()		const	{ return _GetState() <= EState::Failed; }
+		ND_ bool			IsCreated ()		C_NE___	{ return _GetState() == EState::Created; }
+		ND_ bool			IsDestroyed ()		C_NE___	{ return _GetState() <= EState::Failed; }
 
-		ND_ Generation_t	GetGeneration ()	const	{ return Generation_t(_generation.load()); }
-		ND_ int				GetRefCount ()		const	{ return _refCounter.load(); }
+		ND_ Generation_t	GetGeneration ()	C_NE___	{ return Generation_t(_generation.load()); }
+		ND_ int				GetRefCount ()		C_NE___	{ return _refCounter.load(); }
 
-		ND_ ResType&		Data ()						{ return _data; }
-		ND_ ResType const&	Data ()				const	{ return _data; }
-
-
-		ND_ bool  operator == (const Self &rhs) const	{ return _data == rhs._data; }
-		ND_ bool  operator != (const Self &rhs) const	{ return not (_data == rhs._data); }
+		ND_ ResType&		Data ()				__NE___	{ return _data; }
+		ND_ ResType const&	Data ()				C_NE___	{ return _data; }
 
 
 		template <typename ...Args>
-		ND_ bool  Create (Args&& ...args)
+		ND_ bool  Create (Args&& ...args)		__NE___
 		{
 			ASSERT( IsDestroyed() );
 			ASSERT( GetRefCount() == 0 );
@@ -96,7 +82,7 @@ namespace AE::Graphics
 		}
 
 		template <typename ...Args>
-		void  Destroy (Args&& ...args)
+		void  Destroy (Args&& ...args)			__NE___
 		{
 			ASSERT( not IsDestroyed() );
 			//ASSERT( GetRefCount() == 0 );
@@ -120,7 +106,7 @@ namespace AE::Graphics
 		}
 
 	private:
-		ND_ EState	_GetState ()	const	{ return _state.load(); }
+		ND_ EState	_GetState ()				C_NE___	{ return _state.load(); }
 	};
 
 

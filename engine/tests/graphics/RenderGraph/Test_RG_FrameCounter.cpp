@@ -10,7 +10,7 @@ namespace
 		Strong<BufferID>			buf;
 		const uint					maxCount	= 1000;
 		const Bytes					buf_size	= 4_b * maxCount;
-		CommandBatchPtr			batch;
+		CommandBatchPtr				batch;
 		Atomic<uint>				counter		{0};
 	};
 
@@ -20,8 +20,8 @@ namespace
 	public:
 		FC_TestData&	t;
 
-		FC_TestTask (FC_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		FC_TestTask (FC_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -32,7 +32,7 @@ namespace
 			const uint	id = t.counter.fetch_add( 1 );
 			ctx.FillBuffer( t.buf, Bytes{id} * 4_b, 4_b, uint(GetFrameId().Unique()) );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 		}
 	};
 
@@ -42,7 +42,7 @@ namespace
 		FC_TestData&	t;
 
 		FC_FrameTask (FC_TestData& t) :
-			IAsyncTask{ EThread::Worker },
+			IAsyncTask{ ETaskQueue::Worker },
 			t{ t }
 		{}
 
@@ -55,10 +55,10 @@ namespace
 
 			AsyncTask	begin = rts.BeginFrame();
 
-			t.batch	 = rts.CreateBatch( EQueueType::Graphics, 0, "FrameCounter" );
+			t.batch	 = rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Deferred, {"FrameCounter"} );
 			CHECK_TE( t.batch );
 			
-			AsyncTask	test	= t.batch->Add<FC_TestTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
+			AsyncTask	test	= t.batch->Add< FC_TestTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
 			AsyncTask	end		= rts.EndFrame( Tuple{test} );
 
 			Continue( Tuple{end} );

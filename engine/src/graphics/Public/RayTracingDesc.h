@@ -165,6 +165,9 @@ namespace AE::Graphics
 				Instance&  SetMask (uint value)							__NE___	{ mask				= value;		return *this; }
 				Instance&  SetInstanceOffset (uint value)				__NE___	{ instanceSBTOffset	= value;		return *this; }
 			};
+			
+		#else
+		#	error not implemented
 		#endif
 		STATIC_ASSERT( sizeof(Instance) == 64 );
 
@@ -263,6 +266,9 @@ namespace AE::Graphics
 		instanceSBTOffset	= 0;
 		rtasIndex			= 0;
 	}
+	
+#else
+#	error not implemented
 #endif
 
 } // AE::Graphics

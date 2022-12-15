@@ -21,6 +21,7 @@ namespace AE::Graphics
 		Device,
 		CommandQueue,
 		IOCommandQueue,					// macOS 13+, iOS 16.0+
+		IOCommandBuffer,				// macOS 13+, iOS 16.0+
 
 		CommandBuffer,
 		CommandEncoder,
@@ -30,6 +31,7 @@ namespace AE::Graphics
 		AccelStructCommandEncoder,		// macOS 11.0+, iOS 14.0+
 		BlitCommandEncoder,
 		ResourceStateCommandEncoder,	// macOS 11.0+, iOS 14.0+
+		RenderPassDescriptor,
 
 		ArrayOfArgumentDescriptor,		// macOS 10.13+, iOS 11.0+
 		ArgumentEncoder,				// macOS 10.13+, iOS 11.0+
@@ -74,16 +76,16 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MetalObject () {}
-		MetalObject (const Self &) = default;
-		MetalObject (std::nullptr_t) {}
-		explicit MetalObject (const void* ptr)	{ Attach( ptr ); }
+		MetalObject ()							__NE___	{}
+		MetalObject (const Self &)				__NE___	= default;
+		MetalObject (std::nullptr_t)			__NE___	{}
+		explicit MetalObject (const void* ptr)	__NE___	{ Attach( ptr ); }
 
-		Self&  operator = (const Self &) = default;
+		Self&  operator = (const Self &)		__NE___	= default;
 
-		ND_ explicit operator bool () const		{ return ObjectRef::operator bool(); }
+		ND_ explicit operator bool ()			C_NE___	{ return ObjectRef::operator bool(); }
 
-		ND_ auto  Cast () const;
+		ND_ auto  Cast ()						C_NE___;
 	};
 	
 	using MetalNSView							= MetalObject< EMetalObjType::NSView >;
@@ -95,6 +97,7 @@ namespace AE::Graphics
 	using MetalQueue							= MetalObject< EMetalObjType::CommandQueue >;
 	using MetalIOQueue							= MetalObject< EMetalObjType::IOCommandQueue >;
 	using MetalCommandBuffer					= MetalObject< EMetalObjType::CommandBuffer >;
+	using MetalIOCommandBuffer					= MetalObject< EMetalObjType::IOCommandBuffer >;
 	using MetalCommandEncoder					= MetalObject< EMetalObjType::CommandEncoder >;
 	using MetalComputeCommandEncoder			= MetalObject< EMetalObjType::ComputeCommandEncoder >;
 	using MetalRenderCommandEncoder				= MetalObject< EMetalObjType::RenderCommandEncoder >;
@@ -102,6 +105,7 @@ namespace AE::Graphics
 	using MetalAccelStructCommandEncoder		= MetalObject< EMetalObjType::AccelStructCommandEncoder >;
 	using MetalBlitCommandEncoder				= MetalObject< EMetalObjType::BlitCommandEncoder >;
 	using MetalResourceStateCommandEncoder		= MetalObject< EMetalObjType::ResourceStateCommandEncoder >;
+	using MetalRenderPassDesc					= MetalObject< EMetalObjType::RenderPassDescriptor >;
 	using MetalArrayOfArgumentDescriptor		= MetalObject< EMetalObjType::ArrayOfArgumentDescriptor >;
 	using MetalArgumentEncoder					= MetalObject< EMetalObjType::ArgumentEncoder >;
 	using MetalMemory							= MetalObject< EMetalObjType::Memory >;
@@ -137,6 +141,7 @@ namespace AE::Graphics
 	using MetalDeviceRC							= NS::ObjStrongPtr< MetalDevice >;
 	using MetalQueueRC							= NS::ObjStrongPtr< MetalQueue >;
 	using MetalIOQueueRC						= NS::ObjStrongPtr< MetalIOQueue >;
+	using MetalIOCommandBufferRC				= NS::ObjStrongPtr< MetalIOCommandBuffer >;
 	using MetalCommandBufferRC					= NS::ObjStrongPtr< MetalCommandBuffer >;
 	using MetalCommandEncoderRC					= NS::ObjStrongPtr< MetalCommandEncoder >;
 	using MetalComputeCommandEncoderRC			= NS::ObjStrongPtr< MetalComputeCommandEncoder >;
@@ -145,6 +150,7 @@ namespace AE::Graphics
 	using MetalAccelStructCommandEncoderRC		= NS::ObjStrongPtr< MetalAccelStructCommandEncoder >;
 	using MetalBlitCommandEncoderRC				= NS::ObjStrongPtr< MetalBlitCommandEncoder >;
 	using MetalResourceStateCommandEncoderRC	= NS::ObjStrongPtr< MetalResourceStateCommandEncoder >;
+	using MetalRenderPassDescRC					= NS::ObjStrongPtr< MetalRenderPassDesc >;
 	using MetalArrayOfArgumentDescriptorRC		= NS::ObjStrongPtr< MetalArrayOfArgumentDescriptor >;
 	using MetalArgumentEncoderRC				= NS::ObjStrongPtr< MetalArgumentEncoder >;
 	using MetalMemoryRC							= NS::ObjStrongPtr< MetalMemory >;
@@ -206,16 +212,56 @@ namespace AE::Graphics
 	//
 	struct MetalCmdBatchDependency
 	{
-		MetalSharedEvent	event;
-		ulong				value	= 0;
+		MetalEvent		event;			// or MetalSharedEvent
+		ulong			value	= 0;
 	};
 
 	
 	enum class MDeviceAddress : ulong { Unknown = 0 };
 	
-	ND_ inline MDeviceAddress  operator + (MDeviceAddress addr, Bytes offset) {
+	ND_ inline MDeviceAddress  operator + (MDeviceAddress addr, Bytes offset) __NE___ {
 		return MDeviceAddress(ulong(addr) + ulong(offset));
 	}
+
+	
+	//
+	// Metal Sample BUffer Attachments
+	//
+	struct MetalSampleBufferAttachments
+	{
+	// types
+		enum class EPass : uint
+		{
+			Unknown			= 0,
+			Blit,
+			Compute,
+			Render,
+			ResourceState,
+			AccelStruct,
+		};
+		using Self = MetalSampleBufferAttachments;
+
+
+	// variables
+		NS::Object		_obj;
+		EPass			_pass	= Default;
+
+
+	// methods
+		MetalSampleBufferAttachments ()					__NE___	{}
+		MetalSampleBufferAttachments (std::nullptr_t)	__NE___	{}
+		MetalSampleBufferAttachments (Self && other)	__NE___ : _obj{ RVRef(other._obj) }, _pass{other._pass}	{ other._pass = Default; }
+		
+		Self&  operator = (std::nullptr_t)				__NE___	{ _obj = Default;  _pass = Default;  return *this; }
+		
+		ND_ explicit operator bool ()					C_NE___	{ return bool{_obj} and _pass != Default; }
+
+		template <typename MetalType>
+		ND_ bool  MoveTo (MetalType* dst)				__NE___;
+		
+		template <typename MetalType>
+		ND_ bool  Set (MetalType* ptr)					__NE___;
+	};
 
 
 } // AE::Graphics

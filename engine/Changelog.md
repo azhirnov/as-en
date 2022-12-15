@@ -1,3 +1,15 @@
+
+## 22.12..136
+
+- AsyncMutex
+- EThread -> ETaskQueue, EThread2 -> EThread
+- VCommandBuffer can be migrated to another thread
+- Metal API
+- Metal: mesh shader
+- Vulkan: recursive ray tracing
+- Graphics: device features/properties refactoring
+
+
 ## 22.11.129
 
 - async data source (windows) + tests

@@ -17,7 +17,7 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		using Header	= _hidden_::SoftwareCmdBufBase::Header;
+		using Header	= Graphics::_hidden_::SoftwareCmdBufBase::Header;
 
 
 	// variables
@@ -42,11 +42,11 @@ namespace AE::Graphics
 
 		void  Destroy ()							__NE___
 		{
-			_hidden_::SoftwareCmdBufBase::Deallocate( _root );
+			Graphics::_hidden_::SoftwareCmdBufBase::Deallocate( _root );
 			_root = null;
 		}
 		
-		bool  Execute (MetalCommandBuffer cmdbuf)	C_NE___;
+		bool  Execute (INOUT MCommandBuffer &cmdbuf) C_NE___;
 
 		ND_ bool  IsValid ()						C_NE___
 		{

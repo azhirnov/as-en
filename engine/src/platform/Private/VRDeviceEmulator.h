@@ -12,7 +12,7 @@
 #include "platform/Private/InputActionsBase.h"
 #include "platform/Private/VRDeviceBase.h"
 #include "platform/Private/ProjectionImpl.h"
-#include "platform/IO/VRSurface.h"
+#include "platform/Private/VRSurface.h"
 
 #include "platform/GLFW/WindowGLFW.h"
 
@@ -39,12 +39,12 @@ namespace AE::App
 			VRDeviceEmulator &	_vrDev;
 
 		public:
-			explicit VRRenderSurface (VRDeviceEmulator &vr) : _vrDev{vr} {}
+			explicit VRRenderSurface (VRDeviceEmulator &vr)																__NE___	: _vrDev{vr} {}
 
 			// IOutputSurface //
-			AsyncTask	Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps) override;
-			bool		GetTargets (OUT RenderTargets_t &targets) const override;
-			AsyncTask	End (ArrayView<AsyncTask> deps) override;
+			AsyncTask	Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE_OV;
+			bool		GetTargets (OUT RenderTargets_t &targets)														C_NE_OV;
+			AsyncTask	End (ArrayView<AsyncTask> deps)																	__NE_OV;
 		};
 		
 
@@ -55,24 +55,24 @@ namespace AE::App
 			DubleBufferedQueue	_dbQueue;
 			
 		public:
-			InputActions (VRDeviceEmulator &vr, DubleBufferedQueue *q) :
+			InputActions (VRDeviceEmulator &vr, DubleBufferedQueue *q)																__NE___	:
 				InputActionsBase{q ? *q : _dbQueue}, _vrDev{vr}
 			{}
 			
 			// IInputActions //
-			ActionQueueReader  ReadInput (FrameUID frameId) const override;
-			void  NextFrame (FrameUID frameId) override;
-			bool  SetMode (const InputModeName &value) override;
-			bool  LoadSerialized (MemRefRStream &) override;
-			bool  GetReflection (const InputModeName &mode, const InputActionName &action, OUT Reflection &) const override;
+			ActionQueueReader  ReadInput (FrameUID frameId)																			C_NE_OV;
+			void  NextFrame (FrameUID frameId)																						__NE_OV;
+			bool  SetMode (const InputModeName &value)																				__NE_OV;
+			bool  LoadSerialized (MemRefRStream &)																					__NE_OV;
+			bool  GetReflection (const InputModeName &mode, const InputActionName &action, OUT Reflection &)						C_NE_OV;
 
-			bool  BeginBindAction (const InputModeName &mode, const InputActionName &action, EValueType type, EGestureType gesture) override;
-			bool  EndBindAction () override;
-			bool  IsBindActionActive () const override;
+			bool  BeginBindAction (const InputModeName &mode, const InputActionName &action, EValueType type, EGestureType gesture)	__NE_OV;
+			bool  EndBindAction ()																									__NE_OV;
+			bool  IsBindActionActive ()																								C_NE_OV;
 
 			// ISerializable //
-			bool  Serialize (Serializing::Serializer &)		C_NE_OV;
-			bool  Deserialize (Serializing::Deserializer &) __NE_OV;
+			bool  Serialize (Serializing::Serializer &)																				C_NE_OV;
+			bool  Deserialize (Serializing::Deserializer &)																			__NE_OV;
 		};
 
 		
@@ -82,16 +82,16 @@ namespace AE::App
 			VRDeviceEmulator &	_vrDev;
 
 		public:
-			explicit WindowEventListener (VRDeviceEmulator &vr) : _vrDev{vr} {}
-			~WindowEventListener () override {}
+			explicit WindowEventListener (VRDeviceEmulator &vr)		__NE___	: _vrDev{vr} {}
+			~WindowEventListener ()									__NE_OV {}
 
-			void  OnUpdate (IWindow &) override {}
-			void  OnResize (IWindow &, const uint2 &) override {}
+			void  OnUpdate (IWindow &)								__NE_OV {}
+			void  OnResize (IWindow &, const uint2 &)				__NE_OV {}
 			
-			void  OnSurfaceCreated (IWindow &) override {}
-			void  OnSurfaceDestroyed (IWindow &) override {}
+			void  OnSurfaceCreated (IWindow &)						__NE_OV {}
+			void  OnSurfaceDestroyed (IWindow &)					__NE_OV {}
 
-			void  OnStateChanged (IWindow &, EState) override;
+			void  OnStateChanged (IWindow &, EState)				__NE_OV;
 		};
 
 
@@ -117,22 +117,22 @@ namespace AE::App
 
 	// methods
 	public:
-		VRDeviceEmulator (IApplication &app, VRDeviceListener, IInputActions* dst);
-		~VRDeviceEmulator ();
+		VRDeviceEmulator (IApplication &app, VRDeviceListener, IInputActions* dst)	__NE___;
+		~VRDeviceEmulator ()														__NE___;
 
-		ND_ bool  Create ();
+		ND_ bool  Create ()															__NE___;
 
 	// VRDeviceBase //
-		bool  Update (Duration_t timeSinceStart) override;
+		bool  Update (Duration_t timeSinceStart)									__NE_OV;
 
 	// IVRDevice //
-		bool  Setup (const Settings &) override;
+		bool  Setup (const Settings &)												__NE_OV;
 		
-		StringView			GetApiName ()	const	override	{ return "vremulator"; }
-		IInputActions&		InputActions ()			override	{ return _input; }
-		IOutputSurface&		GetSurface ()			override	{ return _surface; }
+		StringView			GetApiName ()											C_NE_OV	{ return "vremulator"; }
+		IInputActions&		InputActions ()											__NE_OV	{ return _input; }
+		IOutputSurface&		GetSurface ()											__NE_OV	{ return _surface; }
 		
-		bool  CreateRenderSurface (const VRImageDesc &desc) override;
+		bool  CreateRenderSurface (const VRImageDesc &desc)							__NE_OV;
 
 	private:
 		void  _Destroy ();

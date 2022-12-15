@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#if 0
+#if 1
 #include "Test_RenderGraph.h"
 
 namespace
@@ -23,9 +23,10 @@ namespace
 		Strong<RTGeometryID>		rtGeom;
 		Strong<RTSceneID>			rtScene;
 		
+		RTShaderBindingID			sbt;
 		RayTracingPipelineID		ppln;
 		Strong<DescriptorSetID>		ds;
-		uint						ds_index	= UMax;
+		DescSetBinding				ds_index;
 
 		AsyncTask					result;
 
@@ -34,9 +35,6 @@ namespace
 
 		ImageComparator *			imgCmp		= null;
 		RC<GfxLinearMemAllocator>	gfxAlloc;
-
-		ShaderBindingTableManager	sbtMngr;
-		Unique<ShaderBindingTable>	sbt;
 
 		RTGeometryBuild::TrianglesInfo	triangleInfo;
 		RTGeometryBuild::TrianglesData	triangleData;
@@ -52,8 +50,8 @@ namespace
 	public:
 		RT1_TestData&	t;
 
-		RT1_UploadTask (RT1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		RT1_UploadTask (RT1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 		
@@ -63,21 +61,26 @@ namespace
 			CHECK_TE( lock.try_lock() );
 
 			typename CtxTypes::Transfer	copy_ctx{ *this };
+			
+			copy_ctx.AccumBarriers()
+				.MemoryBarrier( EResourceState::Host_Write, EResourceState::CopyDst );
+
+			RTSceneBuild	scene_build{ 1u, Default };
+			scene_build.SetScratchBuffer( t.scratch );
+			scene_build.SetInstanceData( t.instances );
 
 			RTSceneBuild::Instance	inst;
 			inst.Init();
+			scene_build.SetGeometry( t.rtGeom, INOUT inst );
 
 			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
 			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
 			CHECK_TE( copy_ctx.UploadBuffer( t.instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
 
-			t.sbt->Upload( copy_ctx );
-
-
 			typename CtxTypes::ASBuild	as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 			
 			as_ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::Host_Write, EResourceState::BuildRTAS_Read );
+				.MemoryBarrier( EResourceState::CopyDst, EResourceState::BuildRTAS_Read );
 
 			as_ctx.Build(
 				RTGeometryBuild{
@@ -85,16 +88,15 @@ namespace
 					ArrayView<RTGeometryBuild::TrianglesData>{ &t.triangleData, 1 },
 					Default, Default,
 					Default
-				},
+				}.SetScratchBuffer( t.scratch ),
 				t.rtGeom );
 			
 			as_ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::BuildRTAS_Read );
 
-			RTSceneBuild	build_cmd{ 1u, Default };
-			build_cmd.SetGeometry( t.rtGeom, INOUT inst );
+			as_ctx.Build( scene_build, t.rtScene );
 
-			as_ctx.Build( build_cmd, t.rtScene );
+			Execute( as_ctx );
 		}
 	};
 
@@ -105,8 +107,8 @@ namespace
 	public:
 		RT1_TestData&	t;
 
-		RT1_RayTracingTask (RT1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		RT1_RayTracingTask (RT1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -120,12 +122,13 @@ namespace
 			typename CtxTypes::RayTracing	ctx{ *this };
 
 			ctx.AccumBarriers()
-				.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::BuildRTAS_Read )
+				.MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS_Read | EResourceState::RayTracingShaders )
+				//.MemoryBarrier( EResourceState::Host_Write, EResourceState::RTShaderBindingTable )	// optional
 				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
 
 			ctx.BindPipeline( t.ppln );
 			ctx.BindDescriptorSet( t.ds_index, t.ds );
-			ctx.TraceRays( t.viewSize, *t.sbt );
+			ctx.TraceRays( t.viewSize, t.sbt );
 
 			ctx.AccumBarriers()
 				.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
@@ -141,8 +144,8 @@ namespace
 	public:
 		RT1_TestData&	t;
 
-		RT1_CopyTask (RT1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		RT1_CopyTask (RT1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -161,7 +164,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 		}
 	};
 
@@ -177,9 +180,9 @@ namespace
 		t.gfxAlloc	= MakeRC<GfxLinearMemAllocator>();
 		t.imgCmp	= imageCmp;
 		t.viewSize	= uint2{800, 600};
-
+		
 		t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
-										.SetUsage( EImageUsage::Sampled | EImageUsage::ColorAttachment | EImageUsage::TransferSrc ),
+										.SetUsage( EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
 									  "Image", t.gfxAlloc );
 		CHECK_ERR( t.img );
 	
@@ -212,13 +215,9 @@ namespace
 		t.rtGeom = res_mngr.CreateRTGeometry( RTGeometryDesc{ geom_sizes.rtasSize, Default }, "RT geometry", t.gfxAlloc );
 		CHECK_ERR( t.rtGeom );
 		
-		t.sbtMngr.Add( t.rtGeom, {RTGeometryName{"geom"}} );
-
 		auto	scene_sizes = res_mngr.GetRTSceneSizes( RTSceneBuild{ 1u, Default });
 		t.rtScene = res_mngr.CreateRTScene( RTSceneDesc{ scene_sizes.rtasSize, Default }, "RT scene", t.gfxAlloc );
 		CHECK_ERR( t.rtScene );
-		
-		t.sbtMngr.Add( t.rtScene, {RTInstanceName{"inst"}}, {t.rtGeom} );
 
 		t.scratch = res_mngr.CreateBuffer( BufferDesc{ Max( geom_sizes.buildScratchSize, scene_sizes.buildScratchSize ), EBufferUsage::ASBuild_Scratch },
 											"RTAS scratch buffer", t.gfxAlloc );
@@ -227,21 +226,31 @@ namespace
 		t.ppln = renderTech->GetRayTracingPipeline( PipelineName{"rtrace1.def"} );
 		CHECK_ERR( t.ppln );
 
+		t.sbt = renderTech->GetRTShaderBinding( RTShaderBindingName{"rtrace1.sbt0"} );
+		CHECK_ERR( t.sbt );
+
 		{
-			auto [ds, idx] = res_mngr.CreateDescriptorSet( t.ppln, DescriptorSetName{"rtrace1.ds1"} );
-			t.ds		= RVRef(ds);
-			t.ds_index	= idx;
+			StructSet( t.ds, t.ds_index ) = res_mngr.CreateDescriptorSet( t.ppln, DescriptorSetName{"rtrace1.ds1"} );
+			CHECK_ERR( t.ds );
+			
+			DescriptorUpdater	updater;
+
+			CHECK_ERR( updater.Set( t.ds, EDescUpdateMode::Partialy ));
+			updater.BindImage( UniformName{"un_OutImage"}, t.view );
+			updater.BindRayTracingScene( UniformName{"un_RtScene"}, t.rtScene );
+
+			CHECK_ERR( updater.Flush() );
 		}
 		CHECK_ERR( t.ds );
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "RayTracing1" );
+		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"RayTracing1"} );
 		CHECK_ERR( t.batch );
 		
-		AsyncTask	task1	= t.batch->Add< RT1_UploadTask<CtxTypes>	>( Tuple{ArgRef(t)}, Tuple{begin}, "Upload RTAS task" );
-		AsyncTask	task2	= t.batch->Add< RT1_RayTracingTask<CtxTypes>>( Tuple{ArgRef(t)}, Tuple{task1}, "Ray tracing task" );
-		AsyncTask	task3	= t.batch->Add< RT1_CopyTask<CopyCtx>		>( Tuple{ArgRef(t)}, Tuple{task2}, "Readback task" );
+		AsyncTask	task1	= t.batch->Add< RT1_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{begin},					{"Upload RTAS task"} );
+		AsyncTask	task2	= t.batch->Add< RT1_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{task1},					{"Ray tracing task"} );
+		AsyncTask	task3	= t.batch->Add< RT1_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task2}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task3} );
 
@@ -255,7 +264,7 @@ namespace
 
 		CHECK_ERR( res_mngr.ReleaseResources( t.view, t.img,
 											  t.vb, t.ib,
-											  t.rtGeom, t.rtScene /*, t.ds*/ ));
+											  t.rtGeom, t.rtScene, t.ds, t.instances, t.scratch ));
 
 		CHECK_ERR( t.isOK );
 		return true;
@@ -272,10 +281,10 @@ bool RGTest::Test_RayTracing1 ()
 	auto	img_cmp = _LoadReference( TEST_NAME );
 
 	CHECK_ERR(( RayTracing1Test< DirectCtx,   DirectCtx::Transfer   >( _rtPipelines, img_cmp.get() )));
-	//CHECK_ERR(( RayTracing1Test< DirectCtx,   IndirectCtx::Transfer >( _rtPipelines, img_cmp.get() )));
+	CHECK_ERR(( RayTracing1Test< DirectCtx,   IndirectCtx::Transfer >( _rtPipelines, img_cmp.get() )));
 
-	//CHECK_ERR(( RayTracing1Test< IndirectCtx, DirectCtx::Transfer   >( _rtPipelines, img_cmp.get() )));
-	//CHECK_ERR(( RayTracing1Test< IndirectCtx, IndirectCtx::Transfer >( _rtPipelines, img_cmp.get() )));
+	CHECK_ERR(( RayTracing1Test< IndirectCtx, DirectCtx::Transfer   >( _rtPipelines, img_cmp.get() )));
+	CHECK_ERR(( RayTracing1Test< IndirectCtx, IndirectCtx::Transfer >( _rtPipelines, img_cmp.get() )));
 	
 	CHECK_ERR( _CompareDumps( TEST_NAME ));
 

@@ -49,7 +49,7 @@ namespace AE::Base
 			template <typename T>
 			ND_ constexpr operator const T ()											C_NE___
 			{
-				//STATIC_ASSERT( std::is_integral_v<T> || std::is_enum_v<T> );
+				//STATIC_ASSERT( std::is_integral_v<T> or std::is_enum_v<T> );
 				return T(0);
 			}
 			
@@ -134,18 +134,18 @@ namespace AE::Base
 			bool	_value;
 
 		public:
-			constexpr BoolType (bool value)								__NE___	: _value{ value } {}
-			constexpr BoolType (const BoolType &other)					__NE___	: _value{ other._value } {}
+			constexpr			BoolType (const BoolType &other)				__NE___	: _value{ other._value } {}
+			constexpr explicit	BoolType (bool value)							__NE___	: _value{ value } {}
 			
-			constexpr BoolType (bool value, const char* description)	__NE___	: _value{ value } { (void)(description); }
+			constexpr explicit	BoolType (bool value, const char* description)	__NE___	: _value{ value } { (void)(description); }
 
-			constexpr BoolType& operator = (const BoolType &rhs)		__NE___	{ _value = rhs._value;  return *this; }
-			constexpr BoolType& operator = (bool rhs)					__NE___	{ _value = rhs;  return *this; }
+			constexpr BoolType& operator = (const BoolType &rhs)				__NE___	{ _value = rhs._value;  return *this; }
+			constexpr BoolType& operator = (bool rhs)							__NE___	{ _value = rhs;  return *this; }
 
-			ND_ bool*		operator & ()								__NE___	{ return &_value; }
-			ND_ bool const*	operator & ()								C_NE___	{ return &_value; }
+			ND_ bool*		operator & ()										__NE___	{ return &_value; }
+			ND_ bool const*	operator & ()										C_NE___	{ return &_value; }
 
-			ND_ constexpr operator bool ()								C_NE___	{ return _value; }
+			ND_ constexpr operator bool ()										C_NE___	{ return _value; }
 		};
 
 		template <bool Value>

@@ -17,7 +17,6 @@ namespace AE::Base
 	//
 	// Visual Studio Log output
 	//
-
 	class VisualStudioLogOutput final : public ILogger
 	{
 	public:
@@ -32,7 +31,6 @@ namespace AE::Base
 	//
 	// Android Log output
 	//
-	
 	class AndroidLogOutput final : public ILogger
 	{
 	private:
@@ -49,7 +47,6 @@ namespace AE::Base
 	//
 	// Console Log output
 	//
-	
 	class ConsoleLogOutput final : public ILogger
 	{
 	private:
@@ -62,12 +59,11 @@ namespace AE::Base
 #endif
 
 	
-#if defined(AE_PLATFORM_WINDOWS) and not defined(AE_CI_BUILD)
+#if (defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE)) and not defined(AE_CI_BUILD)
 
 	//
 	// Dialog Log output
 	//
-	
 	class DialogLogOutput final : public ILogger
 	{
 	private:
@@ -81,6 +77,9 @@ namespace AE::Base
 		{}
 
 		EResult  Process (const MessageInfo &info) __Th_OV;
+
+	private:
+		EResult  _ProcessImpl (const String &caption, const String &msg) __Th___;
 	};
 
 #endif
@@ -89,7 +88,6 @@ namespace AE::Base
 	//
 	// File Log output
 	//
-
 	class FileLogOutput final : public ILogger
 	{
 	private:
@@ -109,7 +107,6 @@ namespace AE::Base
 	//
 	// HTML Log output
 	//
-
 	class HtmlLogOutput final : public ILogger
 	{
 	// types
@@ -164,7 +161,8 @@ namespace AE::Base
 
 	private:
 		void	_SetColor (EColor col, EColor bg, INOUT String &str);
-		void	_Flush (StringView str) C_NE___;
+		void	_Flush (StringView str)					C_NE___;
 	};
+
 
 } // AE::Base

@@ -41,13 +41,13 @@ namespace AE::Base
 
 		LinearAllocator (Self &&other)						__NE___
 		{
-			SAFE_EXLOCK( _guard, other._guard );
+			EXLOCK( _guard, other._guard );
 			_base = RVRef(other._base);
 		}
 		
 		Self& operator = (Self &&rhs)						__NE___
 		{
-			SAFE_EXLOCK( _guard, other._guard );
+			EXLOCK( _guard, other._guard );
 			_base = RVRef(other._base);
 			return *this;
 		}

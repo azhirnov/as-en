@@ -32,6 +32,7 @@ namespace AE::Base
 
 		ND_ bool	Empty ()						C_NE___	{ return _ptr == _end; }
 		ND_ Bytes	RemainingSize ()				C_NE___	{ return Bytes{_end} - Bytes{_ptr}; }
+		ND_ Bytes	Position ()						C_NE___	{ return _stream->GetFastStreamPosition( _ptr ); }
 		
 		template <typename T>
 		ND_ forceinline bool  Read (OUT T& value)	__NE___
@@ -65,6 +66,7 @@ namespace AE::Base
 		
 		ND_ bool	Empty ()						C_NE___	{ return _ptr == _end; }
 		ND_ Bytes	RemainingSize ()				C_NE___	{ return Bytes{_end} - Bytes{_ptr}; }
+		ND_ Bytes	Position ()						C_NE___	{ return _stream->GetFastStreamPosition( _ptr ); }
 		
 		template <typename T>
 		ND_ forceinline bool  Write (const T& value)__NE___

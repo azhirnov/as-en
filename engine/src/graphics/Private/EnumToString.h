@@ -49,13 +49,15 @@ namespace AE::Base
 	using Graphics::EPipelineOpt;
 	using Graphics::EMemoryType;
 	using Graphics::EDescriptorType;
+	using Graphics::EColorSpace;
+	using Graphics::EPresentMode;
 	
 /*
 =================================================
 	ToString (EQueueType)
 =================================================
 */
-	ND_ inline StringView  ToString (EQueueType queue)
+	ND_ inline StringView  ToString (EQueueType queue) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( queue )
@@ -75,7 +77,7 @@ namespace AE::Base
 	ToString (EPixelFormat)
 =================================================
 */
-	ND_ inline StringView  ToString (EPixelFormat value)
+	ND_ inline StringView  ToString (EPixelFormat value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -98,7 +100,7 @@ namespace AE::Base
 	ToString (EAttachmentLoadOp)
 =================================================
 */
-	ND_ inline StringView  ToString (EAttachmentLoadOp value)
+	ND_ inline StringView  ToString (EAttachmentLoadOp value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -119,7 +121,7 @@ namespace AE::Base
 	ToString (EAttachmentStoreOp)
 =================================================
 */
-	ND_ inline StringView  ToString (EAttachmentStoreOp value)
+	ND_ inline StringView  ToString (EAttachmentStoreOp value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -140,7 +142,7 @@ namespace AE::Base
 	ToString (EShaderIO)
 =================================================
 */
-	ND_ inline StringView  ToString (EShaderIO value)
+	ND_ inline StringView  ToString (EShaderIO value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -169,7 +171,7 @@ namespace AE::Base
 	ToString (EShader)
 =================================================
 */
-	ND_ inline StringView  ToString (EShader value)
+	ND_ inline StringView  ToString (EShader value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -201,7 +203,7 @@ namespace AE::Base
 	ToString (EShaderStages)
 =================================================
 */
-	ND_ inline String  ToString (EShaderStages values)
+	ND_ inline String  ToString (EShaderStages values) __Th___
 	{
 		String	str;
 		while ( values != Default )
@@ -221,7 +223,7 @@ namespace AE::Base
 	ToString (EPrimitive)
 =================================================
 */
-	ND_ inline StringView  ToString (EPrimitive value)
+	ND_ inline StringView  ToString (EPrimitive value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -249,7 +251,7 @@ namespace AE::Base
 	ToString (EVendorID)
 =================================================
 */
-	ND_ inline StringView  ToString (EVendorID value)
+	ND_ inline StringView  ToString (EVendorID value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -266,8 +268,7 @@ namespace AE::Base
 			case EVendorID::Broadcom :	return "Broadcom";
 			case EVendorID::Samsung :	return "Samsung";
 			case EVendorID::VeriSilicon:return "VeriSilicon";
-			case EVendorID::_Count :
-			case EVendorID::Unknown :	break;
+			case EVendorID::_Count :	break;
 		}
 		END_ENUM_CHECKS();
 		RETURN_ERR( "unknown vendor id" );
@@ -278,7 +279,7 @@ namespace AE::Base
 	ToString (EFilter)
 =================================================
 */
-	ND_ inline StringView  ToString (EFilter value)
+	ND_ inline StringView  ToString (EFilter value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -298,7 +299,7 @@ namespace AE::Base
 	ToString (EMipmapFilter)
 =================================================
 */
-	ND_ inline StringView  ToString (EMipmapFilter value)
+	ND_ inline StringView  ToString (EMipmapFilter value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -319,7 +320,7 @@ namespace AE::Base
 	ToString (EAddressMode)
 =================================================
 */
-	ND_ inline StringView  ToString (EAddressMode value)
+	ND_ inline StringView  ToString (EAddressMode value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -342,7 +343,7 @@ namespace AE::Base
 	ToString (ECompareOp)
 =================================================
 */
-	ND_ inline StringView  ToString (ECompareOp value)
+	ND_ inline StringView  ToString (ECompareOp value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -368,7 +369,7 @@ namespace AE::Base
 	ToString (EBorderColor)
 =================================================
 */
-	ND_ inline StringView  ToString (EBorderColor value)
+	ND_ inline StringView  ToString (EBorderColor value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -392,7 +393,7 @@ namespace AE::Base
 	ToString (EReductionMode)
 =================================================
 */
-	ND_ inline StringView  ToString (EReductionMode value)
+	ND_ inline StringView  ToString (EReductionMode value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -414,7 +415,7 @@ namespace AE::Base
 	ToString (ESamplerUsage)
 =================================================
 */
-	ND_ inline StringView  ToString (ESamplerUsage value)
+	ND_ inline StringView  ToString (ESamplerUsage value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -434,7 +435,7 @@ namespace AE::Base
 	ToString (EVertexType)
 =================================================
 */
-	ND_ inline StringView  ToString (EVertexType value)
+	ND_ inline StringView  ToString (EVertexType value) __NE___
 	{
 		switch ( value )
 		{
@@ -450,7 +451,7 @@ namespace AE::Base
 	ToString (EGraphicsDeviceID)
 =================================================
 */
-	ND_ inline StringView  ToString (EGraphicsDeviceID value)
+	ND_ inline StringView  ToString (EGraphicsDeviceID value) __NE___
 	{
 		switch ( value )
 		{
@@ -466,7 +467,7 @@ namespace AE::Base
 	ToString (EVertexInputRate)
 =================================================
 */
-	ND_ inline StringView  ToString (EVertexInputRate value)
+	ND_ inline StringView  ToString (EVertexInputRate value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -485,7 +486,7 @@ namespace AE::Base
 	ToString (ELogicOp)
 =================================================
 */
-	ND_ inline StringView  ToString (ELogicOp value)
+	ND_ inline StringView  ToString (ELogicOp value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -519,7 +520,7 @@ namespace AE::Base
 	ToString (EBlendFactor)
 =================================================
 */
-	ND_ inline StringView  ToString (EBlendFactor value)
+	ND_ inline StringView  ToString (EBlendFactor value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -555,7 +556,7 @@ namespace AE::Base
 	ToString (EBlendOp)
 =================================================
 */
-	ND_ inline StringView  ToString (EBlendOp value)
+	ND_ inline StringView  ToString (EBlendOp value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -577,7 +578,7 @@ namespace AE::Base
 	ToString (EStencilOp)
 =================================================
 */
-	ND_ inline StringView  ToString (EStencilOp value)
+	ND_ inline StringView  ToString (EStencilOp value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -602,7 +603,7 @@ namespace AE::Base
 	ToString (EPolygonMode)
 =================================================
 */
-	ND_ inline StringView  ToString (EPolygonMode value)
+	ND_ inline StringView  ToString (EPolygonMode value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -622,7 +623,7 @@ namespace AE::Base
 	ToString (ECullMode)
 =================================================
 */
-	ND_ inline StringView  ToString (ECullMode value)
+	ND_ inline StringView  ToString (ECullMode value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -641,7 +642,7 @@ namespace AE::Base
 	ToString (EPipelineDynamicState)
 =================================================
 */
-	ND_ inline String  ToString (EPipelineDynamicState values)
+	ND_ inline String  ToString (EPipelineDynamicState values) __Th___
 	{
 		String	str;
 		while ( values != Zero )
@@ -677,7 +678,7 @@ namespace AE::Base
 	ToString (EDescSetUsage)
 =================================================
 */
-	ND_ inline String  ToString (EDescSetUsage values)
+	ND_ inline String  ToString (EDescSetUsage values) __Th___
 	{
 		String	str;
 		while ( values != Zero )
@@ -709,7 +710,7 @@ namespace AE::Base
 	ToString (EPipelineOpt)
 =================================================
 */
-	ND_ inline String  ToString (EPipelineOpt values)
+	ND_ inline String  ToString (EPipelineOpt values) __Th___
 	{
 		String	str;
 		while ( values != Zero )
@@ -745,7 +746,7 @@ namespace AE::Base
 	ToString (EMemoryType)
 =================================================
 */
-	ND_ inline String  ToString (EMemoryType values)
+	ND_ inline String  ToString (EMemoryType values) __Th___
 	{
 		String	str;
 		while ( values != Zero )
@@ -780,10 +781,65 @@ namespace AE::Base
 
 /*
 =================================================
+	ToString (EColorSpace)
+=================================================
+*/
+	ND_ inline StringView  ToString (EColorSpace value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EColorSpace::sRGB_nonlinear :			return "sRGB_nonlinear";
+			case EColorSpace::Display_P3_nonlinear :	return "Display_P3_nonlinear";
+			case EColorSpace::Extended_sRGB_linear :	return "Extended_sRGB_linear";
+			case EColorSpace::Display_P3_linear :		return "Display_P3_linear";
+			case EColorSpace::DCI_P3_nonlinear :		return "DCI_P3_nonlinear";
+			case EColorSpace::BT709_linear :			return "BT709_linear";
+			case EColorSpace::BT709_nonlinear :			return "BT709_nonlinear";
+			case EColorSpace::BT2020_linear :			return "BT2020_linear";
+			case EColorSpace::HDR10_ST2084 :			return "HDR10_ST2084";
+			case EColorSpace::DolbyVision :				return "DolbyVision";
+			case EColorSpace::HDR10_HLG :				return "HDR10_HLG";
+			case EColorSpace::AdobeRGB_linear :			return "AdobeRGB_linear";
+			case EColorSpace::AdobeRGB_nonlinear :		return "AdobeRGB_nonlinear";
+			case EColorSpace::PassThrough :				return "PassThrough";
+			case EColorSpace::Extended_sRGB_nonlinear :	return "Extended_sRGB_nonlinear";
+			case EColorSpace::_Count :
+			case EColorSpace::Unknown :					break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown color space" );
+	}
+
+/*
+=================================================
+	ToString (EPresentMode)
+=================================================
+*/
+	ND_ inline StringView  ToString (EPresentMode value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EPresentMode::Immediate :					return "Immediate";
+			case EPresentMode::Mailbox :					return "Mailbox";
+			case EPresentMode::FIFO :						return "FIFO";
+			case EPresentMode::FIFO_Relaxed :				return "FIFO_Relaxed";
+			case EPresentMode::SharedDemandRefresh :		return "SharedDemandRefresh";
+			case EPresentMode::SharedContinuousRefresh :	return "SharedContinuousRefresh";
+			case EPresentMode::_Count :
+			case EPresentMode::Unknown :					break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown present mode" );
+	}
+
+/*
+=================================================
 	ToString (EDescriptorType)
 =================================================
 */
-	ND_ inline StringView  ToString (EDescriptorType value)
+	ND_ inline StringView  ToString (EDescriptorType value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -807,7 +863,7 @@ namespace AE::Base
 		RETURN_ERR( "unknown descriptor type" );
 	}
 
-	ND_ inline StringView  ToString (EDescriptorType value, int)
+	ND_ inline StringView  ToString (EDescriptorType value, int) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -836,7 +892,7 @@ namespace AE::Base
 	ToString (ESubgroupOperation)
 =================================================
 */
-	ND_ inline StringView  ToString (ESubgroupOperation value)
+	ND_ inline StringView  ToString (ESubgroupOperation value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -845,6 +901,7 @@ namespace AE::Base
 			CASE( Size );
 			CASE( InvocationID );
 			CASE( Elect );
+			CASE( Barrier );
 			CASE( Any );
 			CASE( All );
 			CASE( AllEqual );
@@ -906,7 +963,7 @@ namespace AE::Base
 	ToString (EResourceState)
 =================================================
 */
-	ND_ inline String  ToString (const EResourceState value)
+	ND_ inline String  ToString (const EResourceState value) __Th___
 	{
 		String	str;
 		
@@ -1017,6 +1074,31 @@ namespace AE::Base
 			}
 		}
 
+		return str;
+	}
+
+/*
+=================================================
+	ToString (EnumBitSet)
+=================================================
+*/
+	template <typename E>
+	ND_ String  ToString (const EnumBitSet<E> &x) __Th___
+	{
+		String	str;
+		auto	tmp = x;
+		
+		for (usize i = 0;; ++i)
+		{
+			auto	e = tmp.ExtractFirst();
+			if_unlikely( ToNearUInt(e) >= tmp.size() )
+				break;
+
+			if ( i > 0 )
+				str << " | ";
+
+			str << Base::ToString( e );
+		}
 		return str;
 	}
 

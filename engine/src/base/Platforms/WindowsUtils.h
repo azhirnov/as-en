@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "base/Containers/NtStringView.h"
-#include "base/Utils/SourceLoc.h"
-
 #ifdef AE_PLATFORM_WINDOWS
+# include "base/Containers/NtStringView.h"
+# include "base/Utils/SourceLoc.h"
+# include "base/Utils/Version.h"
 
 namespace AE::Base
 {
@@ -23,6 +23,12 @@ namespace AE::Base
 			Bytes	allocationGranularity;
 		};
 
+		struct MemorySize
+		{
+			Bytes	total;
+			Bytes	available;
+		};
+
 
 	// functions
 
@@ -36,9 +42,13 @@ namespace AE::Base
 			static bool  CheckNetworkError (StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)			__NE___;
 			static bool  CheckNetworkError (uint err, StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error) __NE___;
 
+
 		// Memory //
-		ND_ static MemoryPageInfo  GetMemoryPageInfo ()						__NE___;
+		ND_ static MemoryPageInfo	GetMemoryPageInfo ()					__NE___;
+		ND_ static MemorySize		GetPhysicalMemorySize ()				__NE___;
+		ND_ static MemorySize		GetVirtualMemorySize ()					__NE___;
 		
+
 		// Thread //
 			static bool		NanoSleep (nanoseconds relativeTime)			__NE___;
 			static bool		WaitIO (milliseconds relativeTime)				__NE___;
@@ -56,6 +66,11 @@ namespace AE::Base
 		
 			static bool		ThreadYield ()									__NE___;
 			static void		ThreadPause ()									__NE___;
+			
+
+		// OS //
+		ND_ static Version3	GetOSVersion ()									__NE___;
+
 
 	private:
 		ND_ static bool  _CheckError (uint err, StringView msg, const SourceLoc &loc, ELogLevel level, ELogScope scope) __NE___;

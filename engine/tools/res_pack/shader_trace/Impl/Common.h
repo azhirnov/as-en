@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../include/ShaderTrace.h"
+#include "../Public/ShaderTrace.h"
 #include "base/Algorithms/StringUtils.h"
 
 #define HIGH_DETAIL_TRACE

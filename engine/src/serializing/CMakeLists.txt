@@ -4,3 +4,5 @@ source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 set_property( TARGET "Serializing" PROPERTY FOLDER "Engine" )
 target_include_directories( "Serializing" PUBLIC ".." )
 target_link_libraries( "Serializing" PUBLIC "Base" )
+
+install( TARGETS "Serializing" ARCHIVE DESTINATION "lib" )

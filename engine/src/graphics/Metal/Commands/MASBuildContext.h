@@ -22,24 +22,21 @@ namespace AE::Graphics::_hidden_
 	
 	class _MDirectASBuildCtx : public MBaseDirectContext
 	{
-	// variables
-	private:
-		MetalAccelStructCommandEncoderRC	_encoder;
-
-
 	// methods
 	public:
-		void  Copy (MetalAccelStruct src, MetalAccelStruct dst);
-		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst);
+		void  Copy (MetalAccelStruct src, MetalAccelStruct dst)				__Th___;
+		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst)	__Th___;
 		
-		ND_ MetalCommandBufferRC	EndCommandBuffer ();
-		ND_ MCommandBuffer		 	ReleaseCommandBuffer ();
+		ND_ MetalCommandBufferRC	EndCommandBuffer ()						__Th___;
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()					__Th___;
+
+		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MDirectASBuildCtx (const RenderTask &task);
-		_MDirectASBuildCtx (const RenderTask &task, MCommandBuffer cmdbuf);
+		explicit _MDirectASBuildCtx (const RenderTask &task)				__Th___;
+		_MDirectASBuildCtx (const RenderTask &task, MCommandBuffer cmdbuf)	__Th___;
 		
-		ND_ MetalCommandEncoder  _BaseEncoder ()					{ return MetalCommandEncoder{ _encoder.Ptr() }; }
+		ND_ auto  _Encoder ()												__NE___;
 		
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -49,9 +46,9 @@ namespace AE::Graphics::_hidden_
 
 		void  _WriteCompactedSize (MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
 		
-		void  _DebugMarker (NtStringView text, RGBA8u)				{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( _BaseEncoder(), text ); }
-		void  _PushDebugGroup (NtStringView text, RGBA8u)			{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( _BaseEncoder(), text ); }
-		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup( _BaseEncoder() ); }
+		void  _DebugMarker (DebugLabel dbg)							{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)						{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
 	};
 
 
@@ -64,15 +61,17 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  Copy (MetalAccelStruct src, MetalAccelStruct dst);
-		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst);
+		void  Copy (MetalAccelStruct src, MetalAccelStruct dst)					__Th___;
+		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst)		__Th___;
 		
-		ND_ MBakedCommands		EndCommandBuffer ();
-		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ();
+		ND_ MBakedCommands		EndCommandBuffer ()								__Th___;
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()							__Th___;
+
+		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MIndirectASBuildCtx (const RenderTask &task);
-		_MIndirectASBuildCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf);
+		explicit _MIndirectASBuildCtx (const RenderTask &task)					__Th___;
+		_MIndirectASBuildCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)__Th___;
 
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -90,7 +89,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _MASBuildContextImpl : public CtxImpl, public IASBuildContext
+	class _MASBuildContextImpl final : public CtxImpl, public IASBuildContext
 	{
 	// types
 	public:
@@ -103,34 +102,34 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _MASBuildContextImpl (const RenderTask &task) : RawCtx{ task } {}
+		explicit _MASBuildContextImpl (const RenderTask &task)																__Th___	: RawCtx{ task } {}
 		
 		template <typename RawCmdBufType>
-		_MASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
+		_MASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)													__Th___	: RawCtx{ task, RVRef(cmdbuf) } {}
 
-		_MASBuildContextImpl () = delete;
-		_MASBuildContextImpl (const _MASBuildContextImpl &) = delete;
+		_MASBuildContextImpl ()																								= delete;
+		_MASBuildContextImpl (const _MASBuildContextImpl &)																	= delete;
 
 		using RawCtx::Copy;
 		using RawCtx::CopyCompacted;
 		
-		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst) override final								{ RawCtx::_Build( cmd, dst ); }
-		void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst) override final			{ RawCtx::_Update( cmd, src, dst ); }
-		void  Copy   (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode = ERTASCopyMode::Clone) override final;
+		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst)															__Th_OV	{ RawCtx::_Build( cmd, dst ); }
+		void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)										__Th_OV	{ RawCtx::_Update( cmd, src, dst ); }
+		void  Copy   (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)						__Th_OV;
 		
-		void  Build  (const RTSceneBuild &cmd, RTSceneID dst) override final									{ RawCtx::_Build( cmd, dst ); }
-		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst) override final						{ RawCtx::_Update( cmd, src, dst ); }
-		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone) override final;
+		void  Build  (const RTSceneBuild &cmd, RTSceneID dst)																__Th_OV	{ RawCtx::_Build( cmd, dst ); }
+		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)												__Th_OV	{ RawCtx::_Update( cmd, src, dst ); }
+		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)								__Th_OV;
 
-		void  WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size) override final;
-		void  WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size) override final;
+		void  WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size)			__Th_OV;
+		void  WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size)			__Th_OV;
 
-		void  WriteProperty (ERTASProperty property, MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
+		void  WriteProperty (ERTASProperty property, MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size)	__Th___;
 
-		Promise<Bytes>  ReadProperty (ERTASProperty property, RTGeometryID as) override final;
-		Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as) override final;
+		Promise<Bytes>  ReadProperty (ERTASProperty property, RTGeometryID as)												__Th_OV;
+		Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as)													__Th_OV;
 
-		ND_ Promise<Bytes>  ReadProperty (ERTASProperty property, MetalAccelStruct as);
+		ND_ Promise<Bytes>  ReadProperty (ERTASProperty property, MetalAccelStruct as)										__Th___;
 
 		MBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -141,8 +140,8 @@ namespace AE::Graphics::_hidden_
 
 namespace AE::Graphics
 {
-	using MDirectASBuildContext		= _hidden_::_MASBuildContextImpl< _hidden_::_MDirectASBuildCtx >;
-	using MIndirectASBuildContext	= _hidden_::_MASBuildContextImpl< _hidden_::_MIndirectASBuildCtx >;
+	using MDirectASBuildContext		= Graphics::_hidden_::_MASBuildContextImpl< Graphics::_hidden_::_MDirectASBuildCtx >;
+	using MIndirectASBuildContext	= Graphics::_hidden_::_MASBuildContextImpl< Graphics::_hidden_::_MIndirectASBuildCtx >;
 
 } // AE::Graphics
 	
@@ -214,7 +213,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MASBuildContextImpl<C>::WriteProperty (ERTASProperty property, MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size)
 	{
-		CHECK_ERR( property == ERTASProperty::CompactedSize );
+		CHECK_ERRV( property == ERTASProperty::CompactedSize );
 
 		return RawCtx::_WriteCompactedSize( as, dstBuffer, offset, size );
 	}

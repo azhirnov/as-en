@@ -30,11 +30,11 @@ namespace
 	class WndListener final : public IWindow::IWndListener
 	{
 	public:
-		void OnStateChanged (IWindow &, EState) override {}
-		void OnSurfaceCreated (IWindow &) override {}
-		void OnSurfaceDestroyed (IWindow &) override {}
-		void OnUpdate (IWindow &wnd) override { wnd.Close(); }
-		void OnResize (IWindow &, const uint2 &) override {}
+		void OnStateChanged (IWindow &, EState)		__NE_OV {}
+		void OnSurfaceCreated (IWindow &)			__NE_OV {}
+		void OnSurfaceDestroyed (IWindow &)			__NE_OV {}
+		void OnUpdate (IWindow &wnd)				__NE_OV { wnd.Close(); }
+		void OnResize (IWindow &, const uint2 &)	__NE_OV {}
 	};
 
 
@@ -52,13 +52,13 @@ namespace
 			CHECK_FATAL( Scheduler().Setup( cfg ));
 		}
 
-		~AppListener () override
+		~AppListener () __NE_OV
 		{
 			Scheduler().Release();
 			TaskScheduler::DestroyInstance();
 		}
 
-		void  OnStart (IApplication &app) override
+		void  OnStart (IApplication &app) __NE_OV
 		{
 			WindowDesc	desc;
 
@@ -80,15 +80,15 @@ namespace
 			//TEST( input.SetMode( InputModeName{"UI"} ));
 		}
 
-		void  OnStop (IApplication &) override
+		void  OnStop (IApplication &) __NE_OV
 		{
 			_window = null;
 		}
 			
-		void  BeforeWndUpdate (IApplication &) override
+		void  BeforeWndUpdate (IApplication &) __NE_OV
 		{}
 
-		void  AfterWndUpdate (IApplication &app) override
+		void  AfterWndUpdate (IApplication &app) __NE_OV
 		{
 			if ( _window and _window->GetState() == IWindow::EState::Destroyed )
 				app.Terminate();

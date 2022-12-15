@@ -29,36 +29,33 @@ namespace AE::Graphics::_hidden_
 
 
 	// variables
-	private:
-		MetalComputeCommandEncoderRC	_encoder;
 	protected:
 		struct {
-			ushort3							localSize;
-		}								_states;
+			ushort3		localSize;
+		}			_states;
 
 		
 	// methods
 	public:
-		ND_ ArgSet_t  Arguments ()									{ return ArgSet_t{ _encoder }; }
+		ND_ ArgSet_t				Arguments ()								__NE___	{ return ArgSet_t{ _Encoder2() }; }
 		
-		ND_ MetalCommandBufferRC	EndCommandBuffer ();
-		ND_ MCommandBuffer		 	ReleaseCommandBuffer ();
+		ND_ MetalCommandBufferRC	EndCommandBuffer ()							__Th___;
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()						__Th___;
+
+		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MDirectRayTracingCtx (const RenderTask &task);
-		_MDirectRayTracingCtx (const RenderTask &task, MCommandBuffer cmdbuf);
+		_MDirectRayTracingCtx (const RenderTask &task)							__Th___;
+		_MDirectRayTracingCtx (const RenderTask &task, MCommandBuffer cmdbuf)	__Th___;
+		
+		ND_ auto  						_Encoder ()								__NE___;
+		ND_ MetalComputeCommandEncoder	_Encoder2 ()							__NE___	{ return MetalComputeCommandEncoder{ _cmdbuf.GetEncoder().Ptr() }; }
 
-		ND_ MetalCommandEncoder  _BaseEncoder ()					{ return MetalCommandEncoder{ _encoder.Ptr() }; }
+		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize)	{}
 
-		void  _Dispatch (const uint3 &groupCount)					{ DispatchThreadgroups( groupCount, uint3{_states.localSize} ); }
-		void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)	{ DispatchThreadgroupsIndirect( buffer, offset, uint3{_states.localSize} ); }
-
-		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
-		void  _BindDescriptorSet (uint index, const MDescriptorSet &ds, ArrayView<uint> dynamicOffsets);
-
-		void  _DebugMarker (NtStringView text, RGBA8u)				{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( _BaseEncoder(), text ); }
-		void  _PushDebugGroup (NtStringView text, RGBA8u)			{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( _BaseEncoder(), text ); }
-		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup( _BaseEncoder() ); }
+		void  _DebugMarker (DebugLabel dbg)							{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)						{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
 	};
 	
 
@@ -83,20 +80,18 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		ND_ ArgSet_t  Arguments ()									{ return ArgSet_t{ this->_cmdbuf.get() }; }
+		ND_ ArgSet_t			Arguments ()										__NE___	{ return ArgSet_t{ this->_cmdbuf.get() }; }
 		
-		ND_ MBakedCommands		EndCommandBuffer ();
-		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ();
+		ND_ MBakedCommands		EndCommandBuffer ()									__Th___;
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()								__Th___;
+
+		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MIndirectRayTracingCtx (const RenderTask &task);
-		_MIndirectRayTracingCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf);
+		_MIndirectRayTracingCtx (const RenderTask &task)							__Th___;
+		_MIndirectRayTracingCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)	__Th___;
 
-		void  _Dispatch (const uint3 &groupCount)					{ DispatchThreadgroups( uint3{_states.localSize}, groupCount ); }
-		void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)	{ DispatchThreadgroupsIndirect( buffer, offset, uint3{_states.localSize} ); }
-
-		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
-		void  _BindDescriptorSet (uint index, const MDescriptorSet &ds, ArrayView<uint> dynamicOffsets);
+		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize)		{}
 	};
 
 
@@ -106,7 +101,7 @@ namespace AE::Graphics::_hidden_
 	//
 	
 	template <typename CtxImpl>
-	class _MRayTracingContextImpl : public CtxImpl, public IRayTracingContext
+	class _MRayTracingContextImpl final : public CtxImpl, public IRayTracingContext
 	{
 	// types
 	public:
@@ -119,24 +114,30 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _MRayTracingContextImpl (const RenderTask &task) : RawCtx{ task } {}
+		explicit _MRayTracingContextImpl (const RenderTask &task)													__Th___	: RawCtx{ task } {}
 
 		template <typename RawCmdBufType>
-		_MRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
+		_MRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)										__Th___	: RawCtx{ task, RVRef(cmdbuf) } {}
 
-		_MRayTracingContextImpl () = delete;
-		_MRayTracingContextImpl (const _MRayTracingContextImpl &) = delete;
+		_MRayTracingContextImpl ()																					= delete;
+		_MRayTracingContextImpl (const _MRayTracingContextImpl &)													= delete;
 
-		void  BindPipeline (RayTracingPipelineID ppln) override final;
-		void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default) override final;
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) override final;
+		void  BindPipeline (RayTracingPipelineID ppln)																__Th_OV;
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th_OV;
+		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th_OV;
 
-		void  SetStackSize (Bytes size);
+		void  SetStackSize (Bytes size)																				__Th_OV;
 
-		void  TraceRays (const uint2 dim, const ShaderBindingTable &sbt);
-		void  TraceRays (const uint3 dim, const ShaderBindingTable &sbt);
-		void  TraceRaysIndirect (const ShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset);	// _DispatchIndirect
-		void  TraceRaysIndirect (BufferID indirectBuffer, Bytes indirectBufferOffset);									// _DispatchIndirect
+		void  TraceRays (const uint2 dim, RTShaderBindingID sbt)													__Th_OV;
+		void  TraceRays (const uint3 dim, RTShaderBindingID sbt)													__Th_OV;
+		
+		void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)											__Th_OV;
+		void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)											__Th_OV;
+		
+		void  TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)		__Th_OV;
+		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)__Th_OV;	// _DispatchIndirect
+		
+		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)								__Th_OV;	// _DispatchIndirect
 
 		MBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -147,8 +148,8 @@ namespace AE::Graphics::_hidden_
 
 namespace AE::Graphics
 {
-	using MDirectRayTracingContext		= _hidden_::_MRayTracingContextImpl< _hidden_::_MDirectRayTracingCtx >;
-	using MIndirectRayTracingContext	= _hidden_::_MRayTracingContextImpl< _hidden_::_MIndirectRayTracingCtx >;
+	using MDirectRayTracingContext		= Graphics::_hidden_::_MRayTracingContextImpl< Graphics::_hidden_::_MDirectRayTracingCtx >;
+	using MIndirectRayTracingContext	= Graphics::_hidden_::_MRayTracingContextImpl< Graphics::_hidden_::_MIndirectRayTracingCtx >;
 
 } // AE::Graphics
 	
@@ -174,11 +175,14 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _MRayTracingContextImpl<C>::BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
+	void  _MRayTracingContextImpl<C>::BindDescriptorSet (const DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
 	{
+		CHECK_THROW( dynamicOffsets.empty() );	// not supported yet
+		
 		auto&	desc_set = _GetResourcesOrThrow( ds );
-
-		RawCtx::_BindDescriptorSet( index, desc_set, dynamicOffsets );
+		ASSERT( desc_set.ShaderStages() == EShaderStages::Compute );	// TODO: ray tracing stages?
+		
+		this->Arguments().SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(index.mtlIndex.Compute()) );
 	}
 
 /*
@@ -192,6 +196,66 @@ namespace AE::Graphics::_hidden_
 		Unused( offset, size, values, stages );
 		// TODO
 		//RawCtx::_PushComputeConstant( offset, size, values, stages );
+	}
+	
+/*
+=================================================
+	SetStackSize
+=================================================
+*/
+	template <typename C>
+	void  _MRayTracingContextImpl<C>::SetStackSize (Bytes size)
+	{
+	}
+	
+/*
+=================================================
+	TraceRays
+=================================================
+*/
+	template <typename C>
+	void  _MRayTracingContextImpl<C>::TraceRays (const uint2 dim, RTShaderBindingID sbt)
+	{
+	}
+	
+	template <typename C>
+	void  _MRayTracingContextImpl<C>::TraceRays (const uint3 dim, RTShaderBindingID sbt)
+	{
+	}
+		
+	template <typename C>
+	void  _MRayTracingContextImpl<C>::TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)
+	{
+	}
+	
+	template <typename C>
+	void  _MRayTracingContextImpl<C>::TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)
+	{
+	}
+		
+/*
+=================================================
+	TraceRaysIndirect
+=================================================
+*/
+	template <typename C>
+	void  _MRayTracingContextImpl<C>::TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)
+	{
+	}
+	
+	template <typename C>
+	void  _MRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)
+	{
+	}
+	
+/*
+=================================================
+	TraceRaysIndirect2
+=================================================
+*/
+	template <typename C>	
+	void  _MRayTracingContextImpl<C>::TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)
+	{
 	}
 
 

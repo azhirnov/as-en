@@ -11,8 +11,10 @@ struct FragmentIn
 	float2	texCoord;
 };
 */
+
+// [[vertex]] - Metal 2.3
 vertex
-AE_STAGE_OUT  VSmain (AE_STAGE_IN( in ),
+AE_STAGE_OUT  Main (AE_STAGE_IN( in ),
 					AE_SHADER_RESOURCES)
 {
 	AE_STAGE_OUT	out;

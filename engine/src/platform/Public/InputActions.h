@@ -42,33 +42,6 @@ namespace AE::App
 			_Count,
 			Unknown	= 0xFF,
 		};
-		
-		struct DataTypes
-		{
-			struct Cursor1D
-			{
-				float			prev;
-				float			curr;
-				EGestureState	state;
-				Duration_t		duration;
-			};
-
-			struct Cursor2D
-			{
-				packed_float2	prev;
-				packed_float2	curr;
-				EGestureState	state;
-				Duration_t		duration;
-			};
-
-			struct Cursor3D
-			{
-				packed_float3	prev;
-				packed_float3	curr;
-				EGestureState	state;
-				Duration_t		duration;
-			};
-		};
 
 		
 		struct KeyReflection
@@ -117,18 +90,18 @@ namespace AE::App
 
 		// methods
 		public:
-			ActionQueue () {}
-			ActionQueue (ActionQueue &&);
-			ActionQueue (void* ptr, Bytes headerSize, Bytes dataSize);
+			ActionQueue ()																					__NE___	{}
+			ActionQueue (ActionQueue &&)																	__NE___;
+			ActionQueue (void* ptr, Bytes headerSize, Bytes dataSize)										__NE___;
 
-			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize);
-			bool  Insert (const InputActionName &name, ControllerID id);
+			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)	__NE___;
+			bool  Insert (const InputActionName &name, ControllerID id)										__NE___;
 
-			void  Reset ();
+			void  Reset ()																					__NE___;
 
-			ND_ uint			ReadPos ()				const	{ return _readPos.load(); }
-			ND_ Header const&	GetHeader (uint idx)	const	{ return _headers[idx]; }
-			ND_ void const*		GetData ()				const	{ return _data; }
+			ND_ uint			ReadPos ()																	C_NE___	{ return _readPos.load(); }
+			ND_ Header const&	GetHeader (uint idx)														C_NE___	{ return _headers[idx]; }
+			ND_ void const*		GetData ()																	C_NE___	{ return _data; }
 		};
 
 
@@ -149,44 +122,48 @@ namespace AE::App
 
 		// methods
 		public:
-			ActionQueueReader () {}
-			ActionQueueReader (const ActionQueueReader &) = default;
-			ActionQueueReader (ActionQueueReader &&) = default;
+			ActionQueueReader ()								__NE___	{}
+			ActionQueueReader (const ActionQueueReader &)		__NE___	= default;
+			ActionQueueReader (ActionQueueReader &&)			__NE___	= default;
 
-			explicit ActionQueueReader (const ActionQueue &);
+			explicit ActionQueueReader (const ActionQueue &)	__NE___;
 
-			ND_ bool  ReadHeader (OUT Header &);
+			ND_ bool  ReadHeader (OUT Header &)					__NE___;
 
 			template <typename T>
-			ND_ T const&  Data (Bytes offset) const;
+			ND_ T const&  Data (Bytes offset)					C_NE___;
 
-				void  Restart ()	{ _pos = 0; }
+				void  Restart ()								__NE___	{ _pos = 0; }
 		};
 
 		
 	// interface
 	public:
-		virtual ~IInputActions () {}
 		
 		// TODO
 		//   Thread safe: yes
 		//
-		ND_ virtual ActionQueueReader  ReadInput (FrameUID frameId) const = 0;
+		ND_ virtual ActionQueueReader  ReadInput (FrameUID frameId)																		C_NE___ = 0;
 		
 		// TODO
 		//   Thread safe: yes
 		//
-			virtual void  NextFrame (FrameUID frameId) = 0;
+			virtual void  NextFrame (FrameUID frameId)																					__NE___	= 0;
 			
 		// TODO
 		//   Thread safe: no
 		//
-		ND_ virtual bool  SetMode (const InputModeName &value) = 0;
+		ND_ virtual bool  SetMode (const InputModeName &value)																			__NE___	= 0;
 		
 		// TODO
 		//   Thread safe: no
 		//
-		ND_ virtual bool  LoadSerialized (MemRefRStream &stream) = 0;
+		ND_ virtual InputModeName  GetMode ()																							C_NE___ = 0;
+
+		// TODO
+		//   Thread safe: no
+		//
+		ND_ virtual bool  LoadSerialized (MemRefRStream &stream)																		__NE___	= 0;
 
 		// TODO: get reflection for UI
 
@@ -194,16 +171,16 @@ namespace AE::App
 		// Serialize key/gesture to action.
 		//   Thread safe: no
 		//
-		//ND_ virtual bool  Serialize (struct Serializer &) const = 0;
-		//ND_ virtual bool  Deserialize (struct Deserializer &) = 0;
+		//ND_ virtual bool  Serialize (struct Serializer &) const																		__NE___	= 0;
+		//ND_ virtual bool  Deserialize (struct Deserializer &)																			__NE___	= 0;
 		
 		// TODO
-		//ND_ virtual bool  SetScale (const float4 &scale) = 0;
+		//ND_ virtual bool  SetScale (const float4 &scale)																				__NE___	= 0;
 
 		// TODO
 		//   Thread safe: no
 		//
-		ND_ virtual bool  GetReflection (const InputModeName &mode, const InputActionName &action, OUT Reflection &) const = 0;
+		ND_ virtual bool  GetReflection (const InputModeName &mode, const InputActionName &action, OUT Reflection &)					C_NE___ = 0;
 
 
 	// bind action to input key/gesture //
@@ -211,18 +188,18 @@ namespace AE::App
 		// Begin user input recording.
 		//   Thread safe: no
 		//
-		virtual bool  BeginBindAction (const InputModeName &mode, const InputActionName &action, EValueType type, EGestureType gesture) = 0;
+		virtual bool  BeginBindAction (const InputModeName &mode, const InputActionName &action, EValueType type, EGestureType gesture)	__NE___ = 0;
 		
 		// Stop recording and create key/gesture to action mapping.
 		//   Thread safe: no
 		//
-		virtual bool  EndBindAction () = 0;
+		virtual bool  EndBindAction ()																									__NE___	= 0;
 		
 		// Returns 'true' if used between 'BeginBindAction()' and 'EndBindAction()',
 		// but can returns 'false' when first key/gesture are recorded.
 		//   Thread safe: no
 		//
-		ND_ virtual bool  IsBindActionActive () const = 0;
+		ND_ virtual bool  IsBindActionActive ()																							C_NE___ = 0;
 	};
 //-----------------------------------------------------------------------------
 	
@@ -233,7 +210,7 @@ namespace AE::App
 	constructor
 =================================================
 */
-	inline IInputActions::ActionQueueReader::ActionQueueReader (const ActionQueue &q) :
+	inline IInputActions::ActionQueueReader::ActionQueueReader (const ActionQueue &q) __NE___ :
 		_count{ q.ReadPos() },
 		_queue{ &q }
 	{
@@ -246,7 +223,7 @@ namespace AE::App
 	ReadHeader
 =================================================
 */
-	inline bool  IInputActions::ActionQueueReader::ReadHeader (OUT Header &header)
+	inline bool  IInputActions::ActionQueueReader::ReadHeader (OUT Header &header) __NE___
 	{
 		if_likely( _pos < _count )
 		{
@@ -275,7 +252,7 @@ namespace AE::App
 =================================================
 */
 	template <typename T>
-	T const&  IInputActions::ActionQueueReader::Data (Bytes offset) const
+	T const&  IInputActions::ActionQueueReader::Data (Bytes offset) C_NE___
 	{
 		STATIC_ASSERT( AlignOf<T> <= IInputActions::ActionQueue::_DataAlign );
 		return *Cast<T>( _queue->GetData() + offset );
@@ -289,14 +266,14 @@ namespace AE::App
 	constructor
 =================================================
 */
-	inline IInputActions::ActionQueue::ActionQueue (void* ptr, Bytes headerSize, Bytes dataSize) :
+	inline IInputActions::ActionQueue::ActionQueue (void* ptr, Bytes headerSize, Bytes dataSize) __NE___ :
 		_headers{ Cast<Header>( ptr )},
 		_data{ ptr + headerSize },
 		_maxHeaders{ headerSize / SizeOf<Header> },
 		_dataSize{ dataSize }
 	{}
 	
-	inline IInputActions::ActionQueue::ActionQueue (ActionQueue &&other) :
+	inline IInputActions::ActionQueue::ActionQueue (ActionQueue &&other) __NE___ :
 		_headers{ other._headers },
 		_data{ other._data },
 		_maxHeaders{ other._maxHeaders },
@@ -308,7 +285,7 @@ namespace AE::App
 	Insert
 =================================================
 */
-	inline bool  IInputActions::ActionQueue::Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)
+	inline bool  IInputActions::ActionQueue::Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize) __NE___
 	{
 		const uint		hdr_idx		= _writePos.fetch_add( 1 );
 		const Bytes		data_pos	= AlignUp( _dataPos, _DataAlign );
@@ -335,7 +312,7 @@ namespace AE::App
 		return true;
 	}
 	
-	inline bool  IInputActions::ActionQueue::Insert (const InputActionName &name, ControllerID id)
+	inline bool  IInputActions::ActionQueue::Insert (const InputActionName &name, ControllerID id) __NE___
 	{
 		const uint	hdr_idx = _writePos.fetch_add( 1 );
 		
@@ -358,7 +335,7 @@ namespace AE::App
 	Reset
 =================================================
 */
-	inline void  IInputActions::ActionQueue::Reset ()
+	inline void  IInputActions::ActionQueue::Reset () __NE___
 	{
 		_dataPos = 0_b;
 		_writePos.store( 0 );

@@ -33,6 +33,7 @@ namespace AE::Graphics
 		MetalRenderPipelineRC		_pipeline;
 		
 		ushort2						_localSize;
+		ubyte						_rasterOrderGroup	= UMax;
 		
 		Strong<MPipelineLayoutID>	_layoutId;
 		
@@ -42,18 +43,19 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MTilePipeline () {}
-		~MTilePipeline ();
+		MTilePipeline ()											__NE___	{}
+		~MTilePipeline ()											__NE___;
 
-		ND_ bool  Create (MResourceManager &, const CreateInfo &ci);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (MResourceManager &, const CreateInfo &ci)	__NE___;
+			void  Destroy (MResourceManager &)						__NE___;
 
-		ND_ MetalRenderPipeline		Handle ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
-		ND_ MPipelineLayoutID		LayoutID ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ uint2					LocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return uint2{_localSize}; }
-		ND_ EPipelineDynamicState	DynamicState ()		const	{ return Default; }
+		ND_ MetalRenderPipeline		Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
+		ND_ MPipelineLayoutID		LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ uint2					LocalSize ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint2{_localSize}; }
+		ND_ EPipelineDynamicState	DynamicState ()					C_NE___	{ return Default; }
+		ND_ uint					RasterOrderGroup ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rasterOrderGroup; }
 		
-		DEBUG_ONLY( ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY( ND_ StringView  GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 } // AE::Graphics

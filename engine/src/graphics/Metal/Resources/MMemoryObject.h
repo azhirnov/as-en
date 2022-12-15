@@ -29,18 +29,18 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MMemoryObject () {}
-		~MMemoryObject ();
+		MMemoryObject ()									__NE___	{}
+		~MMemoryObject ()									__NE___;
 		
-		ND_ bool  Create (OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		ND_ bool  Create (OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		ND_ bool  Create (OUT MetalAccelStructRC &as, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		ND_ bool  Create (OUT MetalAccelStructRC &as, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)		__NE___;
+		ND_ bool  Create (OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)			__NE___;
+		ND_ bool  Create (OUT MetalAccelStructRC &as, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+		ND_ bool  Create (OUT MetalAccelStructRC &as, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+			void  Destroy (MResourceManager &)																						__NE___;
 		
-		ND_ bool  GetMemoryInfo (OUT MetalMemoryObjInfo &) const;
+		ND_ bool  GetMemoryInfo (OUT MetalMemoryObjInfo &)	C_NE___;
 
-		DEBUG_ONLY(  ND_ StringView  GetDebugName () const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

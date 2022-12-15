@@ -25,12 +25,12 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  Copy (const VkCopyAccelerationStructureInfoKHR &info);
-		void  SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info);
-		void  DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info);
+		void  Copy (const VkCopyAccelerationStructureInfoKHR &info)							__Th___;
+		void  SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info)	__Th___;
+		void  DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info)__Th___;
 		
-		ND_ VkCommandBuffer	EndCommandBuffer ();
-		ND_ VCommandBuffer  ReleaseCommandBuffer ();
+		ND_ VkCommandBuffer	EndCommandBuffer ()												__Th___;
+		ND_ VCommandBuffer  ReleaseCommandBuffer ()											__Th___;
 		
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
@@ -56,12 +56,12 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  Copy (const VkCopyAccelerationStructureInfoKHR &info);
-		void  SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info);
-		void  DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info);
+		void  Copy (const VkCopyAccelerationStructureInfoKHR &info)							__Th___;
+		void  SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info)	__Th___;
+		void  DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info)__Th___;
 		
-		ND_ VBakedCommands		EndCommandBuffer ();
-		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ();
+		ND_ VBakedCommands		EndCommandBuffer ()											__Th___;
+		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()										__Th___;
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
@@ -84,7 +84,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VASBuildContextImpl : public CtxImpl, public IASBuildContext
+	class _VASBuildContextImpl final : public CtxImpl, public IASBuildContext
 	{
 	// types
 	public:
@@ -97,41 +97,41 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VASBuildContextImpl (const RenderTask &task);
+		explicit _VASBuildContextImpl (const RenderTask &task)														__Th___;
 		
 		template <typename RawCmdBufType>
-		_VASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf);
+		_VASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)											__Th___;
 
-		_VASBuildContextImpl () = delete;
-		_VASBuildContextImpl (const _VASBuildContextImpl &) = delete;
+		_VASBuildContextImpl ()																						= delete;
+		_VASBuildContextImpl (const _VASBuildContextImpl &)															= delete;
 
 		using RawCtx::Copy;
 		
-		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst)													override	{ RawCtx::_Build( cmd, dst ); }
-		void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)								override	{ RawCtx::_Update( cmd, src, dst ); }
-		void  Copy   (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)				override;
+		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst)													__Th_OV	{ RawCtx::_Build( cmd, dst ); }
+		void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)								__Th_OV	{ RawCtx::_Update( cmd, src, dst ); }
+		void  Copy   (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)				__Th_OV;
 
-		void  Build  (const RTSceneBuild &cmd, RTSceneID dst)														override;
-		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)										override;
-		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)						override;
+		void  Build  (const RTSceneBuild &cmd, RTSceneID dst)														__Th_OV;
+		void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)										__Th_OV;
+		void  Copy   (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)						__Th_OV;
 		
-		void  SerializeToMemory (RTGeometryID src, VDeviceAddress dst);
-		void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset);
+		void  SerializeToMemory (RTGeometryID src, VDeviceAddress dst)												__Th___;
+		void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)									__Th___;
 		
-		void  SerializeToMemory (RTSceneID src, VDeviceAddress dst);
-		void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset);
+		void  SerializeToMemory (RTSceneID src, VDeviceAddress dst)													__Th___;
+		void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)										__Th___;
 
-		void  DeserializeFromMemory (VDeviceAddress src, RTGeometryID dst);
-		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst);
+		void  DeserializeFromMemory (VDeviceAddress src, RTGeometryID dst)											__Th___;
+		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)								__Th___;
 		
-		void  DeserializeFromMemory (VDeviceAddress src, RTSceneID dst);
-		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst);
+		void  DeserializeFromMemory (VDeviceAddress src, RTSceneID dst)												__Th___;
+		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)									__Th___;
 		
-		void  WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size)	override	{ return _WriteProperty( property, as, dstBuffer, offset, size ); }
-		void  WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size)	override	{ return _WriteProperty( property, as, dstBuffer, offset, size ); }
+		void  WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size)	__Th_OV	{ return _WriteProperty( property, as, dstBuffer, offset, size ); }
+		void  WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size)	__Th_OV	{ return _WriteProperty( property, as, dstBuffer, offset, size ); }
 		
-		Promise<Bytes>  ReadProperty (ERTASProperty property, RTGeometryID as)										override	{ return _ReadProperty( property, as ); }
-		Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as)											override	{ return _ReadProperty( property, as ); }
+		Promise<Bytes>  ReadProperty (ERTASProperty property, RTGeometryID as)										__Th_OV	{ return _ReadProperty( property, as ); }
+		Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as)											__Th_OV	{ return _ReadProperty( property, as ); }
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 
@@ -151,8 +151,8 @@ namespace AE::Graphics::_hidden_
 
 namespace AE::Graphics
 {
-	using VDirectASBuildContext		= _hidden_::_VASBuildContextImpl< _hidden_::_VDirectASBuildCtx >;
-	using VIndirectASBuildContext	= _hidden_::_VASBuildContextImpl< _hidden_::_VIndirectASBuildCtx >;
+	using VDirectASBuildContext		= Graphics::_hidden_::_VASBuildContextImpl< Graphics::_hidden_::_VDirectASBuildCtx >;
+	using VIndirectASBuildContext	= Graphics::_hidden_::_VASBuildContextImpl< Graphics::_hidden_::_VIndirectASBuildCtx >;
 
 } // AE::Graphics
 	

@@ -50,14 +50,15 @@ namespace _hidden_
 	{
 		// from https://www.shadertoy.com/view/4dlcR4
 		// LICENSE: http://unlicense.org/
+		using namespace AE::Math::PseudoRandom::_hidden_;
 	
 		uint	x = p.x;
 		uint	y = p.y;
 
-		x *= _hidden_::IWeylConst().x;	// x' = Fx(x)
-		y *= _hidden_::IWeylConst().y;	// y' = Fy(y)
-		x ^= y;							// combine
-		x *= _hidden_::IWeylConst().z;	// MLCG constant
+		x *= IWeylConst().x;	// x' = Fx(x)
+		y *= IWeylConst().y;	// y' = Fy(y)
+		x ^= y;					// combine
+		x *= IWeylConst().z;	// MLCG constant
 		return x;
 	}
 
@@ -65,16 +66,17 @@ namespace _hidden_
 	{
 		// from https://www.shadertoy.com/view/4dlcR4
 		// LICENSE: http://unlicense.org/
+		using namespace AE::Math::PseudoRandom::_hidden_;
 	
 		uint	x = p.x;
 		uint	y = p.y;
 	
-		x *= _hidden_::IWeylConst().x;	// x' = Fx(x)
-		y *= _hidden_::IWeylConst().y;	// y' = Fy(y)
-		x += _hidden_::IWeylConst().y;	// some odd constant
-		y += _hidden_::IWeylConst().x;	// some odd constant
-		x ^= y;							// combine
-		x *= _hidden_::IWeylConst().z;	// MLCG constant
+		x *= IWeylConst().x;	// x' = Fx(x)
+		y *= IWeylConst().y;	// y' = Fy(y)
+		x += IWeylConst().y;	// some odd constant
+		y += IWeylConst().x;	// some odd constant
+		x ^= y;					// combine
+		x *= IWeylConst().z;	// MLCG constant
 		return x;
 	}
 	

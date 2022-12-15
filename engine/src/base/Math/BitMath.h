@@ -129,7 +129,7 @@ namespace AE::Math
 
 /*
 =================================================
-	IsPowerOfTwo
+	IsPowerOfTwo / IsSingleBitSet
 =================================================
 */
 	template <typename T>
@@ -145,6 +145,12 @@ namespace AE::Math
 		U	val = U( x );
 		return (val != U{0}) & ((val & (val - U{1})) == U{0});
 	#endif
+	}
+
+	template <typename T>
+	ND_ forceinline constexpr bool  IsSingleBitSet (const T &x) __NE___
+	{
+		return IsPowerOfTwo( x );
 	}
 	
 /*
@@ -455,6 +461,17 @@ namespace AE::Math
 		return SafeLeftBitShift( ToBitMask<T>( count ), firstBit );
 	}
 	
+/*
+=================================================
+	HasBit
+=================================================
+*/
+	template <typename T>
+	ND_ forceinline constexpr EnableIf<IsUnsignedInteger<T>, bool >  HasBit (const T &x, usize index) __NE___
+	{
+		return (x & (T{1} << index)) != 0;
+	}
+
 /*
 =================================================
 	ByteSwap

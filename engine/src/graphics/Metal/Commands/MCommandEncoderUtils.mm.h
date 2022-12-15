@@ -1,9 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#pragma once
-
-#include "graphics/Metal/MEnumCast.inl.h"
 #include "graphics/Private/EnumUtils.h"
+#include "graphics/Metal/MEnumCast.mm.h"
+#include "graphics/Metal/Commands/MCommandBuffer.mm.h"
 
 namespace AE::Graphics::_hidden_
 {
@@ -13,27 +12,32 @@ namespace AE::Graphics::_hidden_
 	CreateComputeEncoder
 =================================================
 */
-	ND_ inline MetalComputeCommandEncoderRC
-		CreateComputeEncoder (MetalCommandBuffer	cmdbuf,
-							  MTLDispatchType		dispatchType = MTLDispatchTypeSerial) // TODO: MTLDispatchTypeConcurrent
+	inline void  CreateComputeEncoder (INOUT MCommandBuffer					&cmdbuf,
+									   INOUT MetalSampleBufferAttachments 	&sampleBuffers,
+									   MTLDispatchType						dispatchType,
+									   NtStringView							dbgName) __NE___
 	{
-		MetalComputeCommandEncoderRC	encoder;
+		CHECK_ERRV( cmdbuf.GetCmdBuf() );
+
 		@autoreleasepool
 		{
-		  #if !AE_METAL_NATIVE_DEBUGGER
+		  #if not AE_METAL_NATIVE_DEBUGGER
 			if ( @available( macos 11.0, ios 14.0, *))
 			{
 				auto*	desc = [[[MTLComputePassDescriptor alloc] init] autorelease];
 				desc.dispatchType = dispatchType;
-				// TODO: sample counter
 
-				NSCastRetain( OUT encoder, [ cmdbuf.Cast() computeCommandEncoderWithDescriptor : desc ]);
+				CHECK( sampleBuffers.MoveTo( desc.sampleBufferAttachments ));
+
+				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() computeCommandEncoderWithDescriptor : desc ]);				// autorelease
 			}
 			else
 		  #endif
-				NSCastRetain( OUT encoder, [ cmdbuf.Cast() computeCommandEncoderWithDispatchType : dispatchType ]);
+				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() computeCommandEncoderWithDispatchType : dispatchType ]);	// autorelease
+			
+			if ( not dbgName.empty() )
+				[ cmdbuf.AsEncoder() setLabel: [NSString stringWithUTF8String : dbgName.c_str()] ];					// autorelease
 		}
-		return encoder;
 	}
 	
 /*
@@ -41,16 +45,54 @@ namespace AE::Graphics::_hidden_
 	CreateRenderEncoder
 =================================================
 */
-	ND_ inline MetalRenderCommandEncoderRC
-		CreateRenderEncoder (MetalCommandBuffer			cmdbuf,
-							 MTLRenderPassDescriptor*	desc)
+	inline void  CreateRenderEncoder (INOUT MCommandBuffer					&cmdbuf,
+									  MetalRenderPassDesc					mtlDesc,
+									  INOUT MetalSampleBufferAttachments 	&sampleBuffers,
+									  NtStringView							dbgName) __NE___
 	{
-		MetalRenderCommandEncoderRC	encoder;
+		CHECK_ERRV( cmdbuf.GetCmdBuf() );
+
 		@autoreleasepool
 		{
-			NSCastRetain( OUT encoder, [ cmdbuf.Cast() renderCommandEncoderWithDescriptor : desc ]);
+			MTLRenderPassDescriptor*	desc = mtlDesc.Cast();
+
+		  #if not AE_METAL_NATIVE_DEBUGGER
+			if ( @available( macos 11.0, ios 14.0, *))
+			{
+				CHECK( sampleBuffers.MoveTo( desc.sampleBufferAttachments ));
+			}
+		  #endif
+			
+			cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() renderCommandEncoderWithDescriptor : desc ]);	// autorelease
+			
+			if ( not dbgName.empty() )
+				[ cmdbuf.AsEncoder() setLabel: [NSString stringWithUTF8String : dbgName.c_str()] ];	// autorelease
 		}
-		return encoder;
+	}
+
+	inline void  CreateMtRenderEncoder (INOUT MCommandBuffer				&cmdbuf,
+										MetalRenderPassDesc					mtlDesc,
+									    INOUT MetalSampleBufferAttachments 	&sampleBuffers,
+										NtStringView						dbgName) __NE___
+	{
+		CHECK_ERRV( cmdbuf.GetCmdBuf() );
+
+		@autoreleasepool
+		{
+			MTLRenderPassDescriptor*	desc = mtlDesc.Cast();
+
+		  #if not AE_METAL_NATIVE_DEBUGGER
+			if ( @available( macos 11.0, ios 14.0, *))
+			{
+				CHECK( sampleBuffers.MoveTo( desc.sampleBufferAttachments ));
+			}
+		  #endif
+			
+			cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() parallelRenderCommandEncoderWithDescriptor : desc ]);	// autorelease
+			
+			if ( not dbgName.empty() )
+				[ cmdbuf.AsEncoder() setLabel: [NSString stringWithUTF8String : dbgName.c_str()] ];			// autorelease
+		}
 	}
 	
 /*
@@ -58,24 +100,32 @@ namespace AE::Graphics::_hidden_
 	CreateBlitEncoder
 =================================================
 */
-	ND_ inline MetalBlitCommandEncoderRC  CreateBlitEncoder (MetalCommandBuffer cmdbuf)
+	inline void  CreateBlitEncoder (INOUT MCommandBuffer 				&cmdbuf,
+									INOUT MetalSampleBufferAttachments 	&sampleBuffers,
+									NtStringView						dbgName) __NE___
 	{
-		MetalBlitCommandEncoderRC	encoder;
+		CHECK_ERRV( cmdbuf.GetCmdBuf() );
+
 		@autoreleasepool
 		{
-		  #if !AE_METAL_NATIVE_DEBUGGER
+		  #if not AE_METAL_NATIVE_DEBUGGER
 			if ( @available( macos 11.0, ios 14.0, *))
 			{
 				auto*	desc = [[[MTLBlitPassDescriptor alloc] init] autorelease];
-				// TODO: sample counter
+				
+				CHECK( sampleBuffers.MoveTo( desc.sampleBufferAttachments ));
 
-				NSCastRetain( OUT encoder, [ cmdbuf.Cast() blitCommandEncoderWithDescriptor : desc ]);
+				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() blitCommandEncoderWithDescriptor : desc ]);	// autorelease
 			}
 			else
 		  #endif
-				NSCastRetain( OUT encoder, [ cmdbuf.Cast() blitCommandEncoder ]);
+			{
+				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() blitCommandEncoder ]);							// autorelease
+			}
+				
+			if ( not dbgName.empty() )
+				[ cmdbuf.AsEncoder() setLabel: [NSString stringWithUTF8String : dbgName.c_str()] ];		// autorelease
 		}
-		return encoder;
 	}
 	
 /*
@@ -83,27 +133,33 @@ namespace AE::Graphics::_hidden_
 	CreateResourceStateEncoder
 =================================================
 */
-	ND_ inline MetalResourceStateCommandEncoderRC  CreateResourceStateEncoder (MetalCommandBuffer cmdbuf)
+	inline void  CreateResourceStateEncoder (INOUT MCommandBuffer 					&cmdbuf,
+											 INOUT MetalSampleBufferAttachments 	&sampleBuffers,
+											 NtStringView							dbgName) __NE___
 	{
-		MetalResourceStateCommandEncoderRC	encoder;
+		CHECK_ERRV( cmdbuf.GetCmdBuf() );
+
 		@autoreleasepool
 		{
-		  #if !AE_METAL_NATIVE_DEBUGGER
+		  #if not AE_METAL_NATIVE_DEBUGGER
 			if ( @available( macos 11.0, ios 14.0, *))
 			{
 				auto*	desc = [[[MTLResourceStatePassDescriptor alloc] init] autorelease];
-				// TODO: sample counter
+				
+				CHECK( sampleBuffers.MoveTo( desc.sampleBufferAttachments ));
 
-				NSCastRetain( OUT encoder, [ cmdbuf.Cast() resourceStateCommandEncoderWithDescriptor : desc ]);
+				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() resourceStateCommandEncoderWithDescriptor : desc ]);	// autorelease
 			}
 			else
 		  #endif
 			if ( @available( macos 11.0, ios 13.0, *))
 			{
-				NSCastRetain( OUT encoder, [ cmdbuf.Cast() resourceStateCommandEncoder ]);
+				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() resourceStateCommandEncoder ]);						// autorelease
 			}
+			
+			if ( not dbgName.empty() )
+				[ cmdbuf.AsEncoder() setLabel: [NSString stringWithUTF8String : dbgName.c_str()] ];				// autorelease
 		}
-		return encoder;
 	}
 	
 /*
@@ -111,27 +167,33 @@ namespace AE::Graphics::_hidden_
 	CreateAccelStructEncoder
 =================================================
 */
-	ND_ inline MetalAccelStructCommandEncoderRC  CreateAccelStructEncoder (MetalCommandBuffer cmdbuf)
+	inline void  CreateAccelStructEncoder (INOUT MCommandBuffer 				&cmdbuf,
+										   INOUT MetalSampleBufferAttachments 	&sampleBuffers,
+										   NtStringView							dbgName) __NE___
 	{
-		MetalAccelStructCommandEncoderRC	encoder;
+		CHECK_ERRV( cmdbuf.GetCmdBuf() );
+
 		@autoreleasepool
 		{
-		  #if 0 //!AE_METAL_NATIVE_DEBUGGER
+		  #if 0 //not AE_METAL_NATIVE_DEBUGGER and AE_METAL_3_0_BETA
 			if ( @available( macos 13.0, ios 16.0, *))
 			{
 				auto*	desc = [[[(MTLAccelerationStructurePassDescriptor alloc] init] autorelease];
-				// TODO: sample counter
+				
+				CHECK( sampleBuffers.MoveTo( desc.sampleBufferAttachments ));
 
-				NSCastRetain( OUT encoder, [ cmdbuf.Cast() accelerationStructureCommandEncoderWithDescriptor : desc ]);
+				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() accelerationStructureCommandEncoderWithDescriptor : desc ]);	// autorelease
 			}
 			else
 		  #endif
 			if ( @available( macos 11.0, ios 14.0, *))
 			{
-				NSCastRetain( OUT encoder, [ cmdbuf.Cast() accelerationStructureCommandEncoder ]);
+				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() accelerationStructureCommandEncoder ]);						// autorelease
 			}
+			
+			if ( not dbgName.empty() )
+				[ cmdbuf.AsEncoder() setLabel: [NSString stringWithUTF8String : dbgName.c_str()] ];						// autorelease
 		}
-		return encoder;
 	}
 //-----------------------------------------------------------------------------
 	
@@ -338,16 +400,6 @@ namespace AE::Graphics::_hidden_
 					slopeScale : rs.depthBiasSlopeFactor
 						 clamp : rs.depthBiasClamp ];
 	}
-
-/*
-=================================================
-	BindDescriptorSet
-=================================================
-*/
-	inline void  BindDescriptorSet (uint index, const MDescriptorSet &ds, ArrayView<uint> dynamicOffsets)
-	{
-		// TODO
-	}
 	
 /*
 =================================================
@@ -386,16 +438,18 @@ namespace AE::Graphics::_hidden_
 			dst.vertexBufferOffset	= NS::UInteger(data.vertexDataOffset);
 			dst.vertexStride		= NS::UInteger(data.vertexStride);
 			
+		  #if AE_METAL_3_0_BETA
 			if ( @available( macos 13.0, ios 16.0, *))
 			{
-				//dst.vertexFormat	= MEnumCast( info.vertexFormat );	// TODO
-				//if ( tb != null )
-				//{
-				//	dst.transformationMatrixBuffer		= tb->Handle().Cast();
-				//	dst.transformationMatrixBufferOffset	= NS::UInteger(data.transformDataOffset);
-				//}
+				dst.vertexFormat	= MEnumCast2( info.vertexFormat );
+				if ( tb != null )
+				{
+					dst.transformationMatrixBuffer			= tb->Handle().Cast();
+					dst.transformationMatrixBufferOffset	= NS::UInteger(data.transformDataOffset);
+				}
 			}
 			else
+		  #endif
 			{
 				CHECK_ERR( tb == null );
 			}
@@ -436,6 +490,7 @@ namespace AE::Graphics::_hidden_
 		desc.usage					= MEnumCast( cmd.options );
 		desc.geometryDescriptors	= geom_arr;
 		
+	  #if AE_METAL_3_0_BETA
 		if ( @available( macos 13.0, ios 16.0, *))
 		{
 			//desc.motionKeyframeCount		= ;	// TODO
@@ -444,6 +499,8 @@ namespace AE::Graphics::_hidden_
 			//desc.motionStartBorderMode	= ;
 			//desc.motionEndBorderMode		= ;
 		}
+	  #endif
+
 		return desc;
 	}
 
@@ -475,12 +532,14 @@ namespace AE::Graphics::_hidden_
 		desc.instanceDescriptorStride			= NS::UInteger(cmd.instanceData.stride);
 		desc.instancedAccelerationStructures	= as_arr;
 		
+	  #if AE_METAL_3_0_BETA
 		if ( @available( macos 13.0, ios 16.0, *))
 		{
 			//dst.motionTransformCount
 			//dst.motionTransformBuffer
 			//dst.motionTransformBufferOffset
 		}
+	  #endif
 
 		ASSERT( cmd.instanceData.stride == sizeof(MTLAccelerationStructureInstanceDescriptor) );
 

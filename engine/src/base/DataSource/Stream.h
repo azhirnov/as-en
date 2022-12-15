@@ -57,9 +57,15 @@ namespace AE::Base
 			end		= null;
 		}
 
-		virtual void  EndFastStream (const void* ptr)	__NE___
+		virtual void  EndFastStream (const void* ptr)				__NE___
 		{
 			Unused( ptr );
+		}
+
+		ND_ virtual Bytes  GetFastStreamPosition (const void* ptr)	__NE___
+		{
+			Unused( ptr );
+			return 0_b;
 		}
 		
 
@@ -163,10 +169,17 @@ namespace AE::Base
 			end		= null;
 		}
 
-		virtual void  EndFastStream (const void* ptr)		__NE___
+		virtual void  EndFastStream (const void* ptr)				__NE___
 		{
 			Unused( ptr );
 		}
+
+		ND_ virtual Bytes  GetFastStreamPosition (const void* ptr)	__NE___
+		{
+			Unused( ptr );
+			return 0_b;
+		}
+		
 
 		
 	// methods

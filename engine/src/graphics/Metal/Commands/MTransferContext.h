@@ -20,42 +20,47 @@ namespace AE::Graphics::_hidden_
 	
 	class _MDirectTransferCtx : public MBaseDirectContext
 	{
-	// variables
-	private:
-		MetalBlitCommandEncoderRC	_encoder;
-		
-		
 	// methods
 	public:
-		void  FillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data);
+		void  FillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)											__Th___;
 
-		void  CopyBuffer (MetalBuffer srcBuffer, MetalBuffer dstBuffer, ArrayView<BufferCopy> ranges);
-		void  CopyImage (MetalImage srcImage, MetalImage dstImage, ArrayView<ImageCopy> ranges);
+		void  CopyBuffer (MetalBuffer srcBuffer, MetalBuffer dstBuffer, ArrayView<BufferCopy> ranges)						__Th___;
+		void  CopyImage (MetalImage srcImage, MetalImage dstImage, ArrayView<ImageCopy> ranges)								__Th___;
 		
-		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy> ranges);
-		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy2> ranges);
+		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy> ranges)				__Th___;
+		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy2> ranges)			__Th___;
 
-		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges);
-		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges);
-		
-		ND_ MetalCommandBufferRC	EndCommandBuffer ();
-		ND_ MCommandBuffer		 	ReleaseCommandBuffer ();
+		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges)				__Th___;
+		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges)			__Th___;
+
+		ND_ MetalCommandBufferRC	EndCommandBuffer ()																		__Th___;
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()																	__Th___;
+
+		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MDirectTransferCtx (const RenderTask &task);
-		_MDirectTransferCtx (const RenderTask &task, MCommandBuffer cmdbuf);
-
-		ND_ MetalCommandEncoder  _BaseEncoder ()					{ return MetalCommandEncoder{ _encoder.Ptr() }; }
+		_MDirectTransferCtx (const RenderTask &task)																		__Th___;
+		_MDirectTransferCtx (const RenderTask &task, MCommandBuffer cmdbuf)													__Th___;
 		
+		ND_ auto  _Encoder ()																								__NE___;
+		
+		void  _ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges);
+		void  _ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges);
+		void  _ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges);
+		void  _ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges);
+
+		void  _BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions);
+		void  _ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions);
+
 		void  _GenerateMipmaps (MetalImage image);
 
 		void  _SynchronizeResource (MetalResource);
 		void  _SynchronizeResource (MetalBuffer buf)				{ _SynchronizeResource( MetalResource{ buf.Ptr() }); }
 		void  _SynchronizeResource (MetalImage img)					{ _SynchronizeResource( MetalResource{ img.Ptr() }); }
 		
-		void  _DebugMarker (NtStringView text, RGBA8u)				{ ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_DebugMarker( _BaseEncoder(), text ); }
-		void  _PushDebugGroup (NtStringView text, RGBA8u)			{ ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_PushDebugGroup( _BaseEncoder(), text ); }
-		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_PopDebugGroup( _BaseEncoder() ); }
+		void  _DebugMarker (DebugLabel dbg)							{ ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)						{ ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_PopDebugGroup(); }
 
 	private:
 		void  _CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, const MPixFormatInfo &, ArrayView<BufferImageCopy> ranges);
@@ -72,23 +77,25 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  FillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data);
+		void  FillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)									__Th___;
 
-		void  CopyBuffer (MetalBuffer srcBuffer, MetalBuffer dstBuffer, ArrayView<BufferCopy> ranges);
-		void  CopyImage (MetalImage srcImage, MetalImage dstImage, ArrayView<ImageCopy> ranges);
+		void  CopyBuffer (MetalBuffer srcBuffer, MetalBuffer dstBuffer, ArrayView<BufferCopy> ranges)				__Th___;
+		void  CopyImage (MetalImage srcImage, MetalImage dstImage, ArrayView<ImageCopy> ranges)						__Th___;
 		
-		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy> ranges);
-		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy2> ranges);
+		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy> ranges)		__Th___;
+		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy2> ranges)	__Th___;
 
-		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges);
-		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges);
+		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges)		__Th___;
+		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges)	__Th___;
 		
-		ND_ MBakedCommands		EndCommandBuffer ();
-		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ();
+		ND_ MBakedCommands		EndCommandBuffer ()																	__Th___;
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()																__Th___;
+
+		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MIndirectTransferCtx (const RenderTask &task);
-		_MIndirectTransferCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf);
+		_MIndirectTransferCtx (const RenderTask &task)																__Th___;
+		_MIndirectTransferCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)									__Th___;
 		
 		void  _GenerateMipmaps (MetalImage image);
 		
@@ -104,7 +111,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _MTransferContextImpl : public CtxImpl, public ITransferContext
+	class _MTransferContextImpl final : public CtxImpl, public ITransferContext
 	{
 	// types
 	public:
@@ -120,54 +127,54 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _MTransferContextImpl (const RenderTask &task) : RawCtx{ task } {}
+		explicit _MTransferContextImpl (const RenderTask &task)																							__Th___	: RawCtx{ task } {}
 		
 		template <typename RawCmdBufType>
-		_MTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) : RawCtx{ task, RVRef(cmdbuf) } {}
+		_MTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)																			__Th___	: RawCtx{ task, RVRef(cmdbuf) } {}
 
-		_MTransferContextImpl () = delete;
-		_MTransferContextImpl (const _MTransferContextImpl &) = delete;
+		_MTransferContextImpl ()																														= delete;
+		_MTransferContextImpl (const _MTransferContextImpl &)																							= delete;
 
 		using RawCtx::FillBuffer;
-		void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)																			override;
+		void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)																			__Th_OV;
 		
-		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)																override;
+		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)																__Th_OV;
 
 		using RawCtx::CopyBuffer;
 		using RawCtx::CopyImage;
 
-		void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)															override;
-		void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)																override;
+		void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)															__Th_OV;
+		void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)																__Th_OV;
 
 		using RawCtx::CopyBufferToImage;
 		using RawCtx::CopyImageToBuffer;
 
-		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)												override;
-		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)												override;
+		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)												__Th_OV;
+		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)												__Th_OV;
 
-		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)												override;
-		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)												override;
+		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)												__Th_OV;
+		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)												__Th_OV;
 
-		void  UploadBuffer (BufferID buffer, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)override;
-		void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)														override;
+		void  UploadBuffer (BufferID buffer, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)__Th_OV;
+		void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)														__Th_OV;
 
-		void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						override;
-		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						override;
+		void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						__Th_OV;
+		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						__Th_OV;
 
-		ND_ Promise<BufferMemView>	ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)	override;
-		ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)														override;
+		ND_ Promise<BufferMemView>	ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)	__Th_OV;
+		ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)														__Th_OV;
 		
-		ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)														override;
+		ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)														__Th_OV;
 
-		ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)														override;
+		ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)														__Th_OV;
 		
-		void  GenerateMipmaps (ImageID srcImage)																										override;
+		void  GenerateMipmaps (ImageID srcImage)																										__Th_OV;
 
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;
 		using ITransferContext::UploadImage;
 		
-		uint3  MinImageTransferGranularity ()																											C_NE_OF		{ return uint3{1}; }
+		uint3  MinImageTransferGranularity ()																											C_NE_OF	{ return uint3{1}; }
 
 		MBARRIERMNGR_INHERIT_BARRIERS
 			
@@ -185,8 +192,8 @@ namespace AE::Graphics::_hidden_
 
 namespace AE::Graphics
 {
-	using MDirectTransferContext	= _hidden_::_MTransferContextImpl< _hidden_::_MDirectTransferCtx >;
-	using MIndirectTransferContext	= _hidden_::_MTransferContextImpl< _hidden_::_MIndirectTransferCtx >;
+	using MDirectTransferContext	= Graphics::_hidden_::_MTransferContextImpl< Graphics::_hidden_::_MDirectTransferCtx >;
+	using MIndirectTransferContext	= Graphics::_hidden_::_MTransferContextImpl< Graphics::_hidden_::_MIndirectTransferCtx >;
 
 } // AE::Graphics
 	
@@ -261,7 +268,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MTransferContextImpl<C>::UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType)
 	{
-		ASSERT( not stream.IsComplete() );
+		ASSERT( not stream.IsCompleted() );
 
 		auto&	dst_buf = _GetResourcesOrThrow( stream.Buffer() );
 		ASSERT( _IsDeviceMemory( dst_buf ));
@@ -341,7 +348,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MTransferContextImpl<C>::UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType)
 	{
-		ASSERT( not stream.IsComplete() );
+		ASSERT( not stream.IsCompleted() );
 
 		auto&	dst_img = _GetResourcesOrThrow( stream.Image() );
 		ASSERT( _IsDeviceMemory( dst_img ));

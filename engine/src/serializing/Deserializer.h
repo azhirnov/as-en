@@ -69,7 +69,7 @@ namespace AE::Serializing
 											ND_ bool  _Deserialize (INOUT AnyTypeRef &);			// not defined
 											ND_ bool  _Deserialize (INOUT AnyTypeCRef &);			// not defined
 		
-		template <typename T, uint I, glm::qualifier Q>
+		template <typename T, int I, glm::qualifier Q>
 		ND_ bool  _Deserialize (INOUT TVec<T,I,Q> &);
 
 		template <usize Size, uint UID, uint Seed>

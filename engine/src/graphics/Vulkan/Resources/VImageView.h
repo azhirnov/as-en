@@ -28,17 +28,17 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VImageView () {}
-		~VImageView ();
+		VImageView ()									__NE___	{}
+		~VImageView ()									__NE___;
 
-		ND_ bool  Create (VResourceManager &, const ImageViewDesc &desc, ImageID imageId, StringView dbgName);
-			void  Destroy (VResourceManager &);
+		ND_ bool  Create (VResourceManager &, const ImageViewDesc &desc, ImageID imageId, StringView dbgName)	__NE___;
+			void  Destroy (VResourceManager &)																	__NE___;
 		
-		ND_ VkImageView				Handle ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _imageView; }
-		ND_ ImageViewDesc const&	Description ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ ImageID					Image ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _imageId; }
+		ND_ VkImageView				Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _imageView; }
+		ND_ ImageViewDesc const&	Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
+		ND_ ImageID					Image ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _imageId; }
 		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 	
 

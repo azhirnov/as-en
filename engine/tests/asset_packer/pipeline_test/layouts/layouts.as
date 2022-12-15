@@ -21,6 +21,7 @@ void GraphicsLayout ()
 	{
 		DescriptorSetLayout@	ds = DescriptorSetLayout( "DS_Material" );
 		ds.AddFeatureSet( "MinimalFS" );
+		ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
 		
 		ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", ArraySize(1), EImageType::FImage2D );
 		ds.ImtblSampler( EShaderStages::Fragment, "un_ColorTexture_sampler", "LinearRepeat"  );
@@ -68,16 +69,24 @@ void ComputeLayout ()
 		DescriptorSetLayout@	ds = DescriptorSetLayout( "DS_Compute" );
 		ds.AddFeatureSet( "MinimalFS" );
 		
-		ds.StorageImage( EShaderStages::Compute, "un_OutImage", ArraySize(1), EImageType::FImage2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
-	}
-	{
+		ds.StorageImage( EShaderStages::Compute, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+	}{
 		PipelineLayout@		pl = PipelineLayout( "Compute_PL_1" );
 		pl.DSLayout( 0, "DS_Compute" );
-	}
-	{
+	}{
 		PipelineLayout@		pl = PipelineLayout( "Compute_PL_1_Dbg" );
 		pl.DSLayout( 0, "DS_Compute" );
 		pl.AddDebugDSLayout( 1, EShaderOpt::Trace, EShaderStages::Compute );
+	}
+
+	{
+		DescriptorSetLayout@	ds = DescriptorSetLayout( "DS_Compute_2" );
+		ds.AddFeatureSet( "MinDesktop" );
+		
+		ds.StorageImage( EShaderStages::Compute, "un_Image", ArraySize(1), EImageType::2D, EPixelFormat::R32U, EAccessType::Coherent, EResourceState::ShaderStorage_RW );
+	}{
+		PipelineLayout@		pl = PipelineLayout( "Compute_PL_2" );
+		pl.DSLayout( 0, "DS_Compute_2" );
 	}
 }
 
@@ -90,7 +99,7 @@ void RayTracingLayout ()
 	DescriptorSetLayout@	ds = DescriptorSetLayout( "DS_RayTracing" );
 	ds.AddFeatureSet( "MinRecursiveRayTracing" );
 		
-	ds.StorageImage( EShaderStages::RayGen, "un_OutImage", ArraySize(1), EImageType::FImage2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+	ds.StorageImage( EShaderStages::RayGen, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
 	ds.RayTracingScene( EShaderStages::RayGen, "un_TLAS", ArraySize(1) );
 	
 	

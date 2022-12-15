@@ -44,18 +44,18 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MRayTracingPipeline () {}
-		~MRayTracingPipeline ();
+		MRayTracingPipeline ()										__NE___	{}
+		~MRayTracingPipeline ()										__NE___;
 
-		ND_ bool  Create (MResourceManager &, const CreateInfo &ci);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (MResourceManager &, const CreateInfo &ci)	__NE___;
+			void  Destroy (MResourceManager &)						__NE___;
 		
-		ND_ MetalComputePipeline	Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
-		ND_ MPipelineLayoutID		LayoutID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ uint3       			LocalSize ()			const	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_localSize}; }
-		ND_ EPipelineDynamicState	DynamicState ()			const	{ return Default; }
+		ND_ MetalComputePipeline	Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
+		ND_ MPipelineLayoutID		LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ uint3       			LocalSize ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_localSize}; }
+		ND_ EPipelineDynamicState	DynamicState ()					C_NE___	{ return Default; }
 		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 } // AE::Graphics

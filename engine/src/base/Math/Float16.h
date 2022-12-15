@@ -9,14 +9,14 @@ namespace AE::Math
 {
 
 	//
-	// Half (Float16)
+	// Half (SFloat16)
 	//
 
-	struct Float16
+	struct SFloat16
 	{
 	// types
 	public:
-		using Self	= Float16;
+		using Self	= SFloat16;
 
 	private:
 		enum class EValue : ushort {};
@@ -56,13 +56,13 @@ namespace AE::Math
 
 	// methods
 	private:
-		constexpr explicit Float16 (EValue val)			__NE___	: _valueU{ushort(val)} {}
+		constexpr explicit SFloat16 (EValue val)		__NE___	: _valueU{ushort(val)} {}
 
 	public:
-		constexpr Float16 ()							__NE___	: _value{0} {}
+		constexpr SFloat16 ()							__NE___	: _value{0} {}
 
-		constexpr Float16 (const Self &other)			__NE___	: _value{ other._value } {}
-		explicit Float16 (const float &f)				__NE___	: _value{ glm::detail::toFloat16( f )} {}
+		constexpr SFloat16 (const Self &other)			__NE___	: _value{ other._value } {}
+		explicit SFloat16 (const float &f)				__NE___	: _value{ glm::detail::toFloat16( f )} {}
 
 			constexpr Self&  operator = (Self rhs)		__NE___	{ _value = rhs._value;  return *this; }
 
@@ -90,14 +90,14 @@ namespace AE::Math
 		ND_ static constexpr float Epsilon ()			__NE___	{ return 2.0e-10f; }
 	};
 
-	using half = Float16;
+	using half = SFloat16;
 
 /*
 =================================================
 	GetFast
 =================================================
 */
-	forceinline constexpr float  Float16::GetFast () C_NE___
+	forceinline constexpr float  SFloat16::GetFast () C_NE___
 	{
 		FloatBits	f;
 		f.bits.s = _bits.s;
@@ -111,7 +111,7 @@ namespace AE::Math
 	SetFast
 =================================================
 */
-	forceinline constexpr Float16&  Float16::SetFast (float val) __NE___
+	forceinline constexpr SFloat16&  SFloat16::SetFast (float val) __NE___
 	{
 		FloatBits	f;
 		f.f		= val;
@@ -314,7 +314,7 @@ namespace AE::Math
 			else
 			{
 				// Denormalized number -- renormalize it
-				while ( !(m & 0x00000400))
+				while ( not (m & 0x00000400))
 				{
 					m <<= 1;
 					e -=  1;
@@ -388,9 +388,9 @@ namespace AE::Math
 
 namespace AE::Base
 {
-	template <>	struct TMemCopyAvailable< Float16 >			{ static constexpr bool  value = true; };
-	template <>	struct TZeroMemAvailable< Float16 >			{ static constexpr bool  value = true; };
-	template <>	struct TTrivialySerializable< Float16 >		{ static constexpr bool  value = true; };
+	template <>	struct TMemCopyAvailable< SFloat16 >		{ static constexpr bool  value = true; };
+	template <>	struct TZeroMemAvailable< SFloat16 >		{ static constexpr bool  value = true; };
+	template <>	struct TTrivialySerializable< SFloat16 >	{ static constexpr bool  value = true; };
 	
 	template <>	struct TMemCopyAvailable< UFloat16 >		{ static constexpr bool  value = true; };
 	template <>	struct TZeroMemAvailable< UFloat16 >		{ static constexpr bool  value = true; };
@@ -398,8 +398,8 @@ namespace AE::Base
 
 	namespace _hidden_
 	{
-		template <> struct _IsScalar< AE::Math::Float16 >		{ static constexpr bool  value = true; };
-		template <> struct _IsFloatPoint< AE::Math::Float16 >	{ static constexpr bool  value = true; };
+		template <> struct _IsScalar< AE::Math::SFloat16 >		{ static constexpr bool  value = true; };
+		template <> struct _IsFloatPoint< AE::Math::SFloat16 >	{ static constexpr bool  value = true; };
 		
 		template <> struct _IsScalar< AE::Math::UFloat16 >		{ static constexpr bool  value = true; };
 		template <> struct _IsFloatPoint< AE::Math::UFloat16 >	{ static constexpr bool  value = true; };
@@ -412,7 +412,7 @@ namespace AE::Base
 namespace std
 {
 	template <>
-	class numeric_limits< AE::Math::Float16 > final
+	class numeric_limits< AE::Math::SFloat16 > final
 	{
 	public:
 		static constexpr bool	is_signed		= true;
@@ -426,9 +426,9 @@ namespace std
 		static constexpr int	min_exponent	= -15;
 		static constexpr int	min_exponent10	= -1;	// TODO: check
 
-		ND_ static constexpr AE::Math::Float16  min () __NE___ { return AE::Math::Float16::Min(); }
+		ND_ static constexpr AE::Math::SFloat16  min () __NE___ { return AE::Math::SFloat16::Min(); }
 
-		ND_ static constexpr AE::Math::Float16  max () __NE___ { return AE::Math::Float16::Max(); }
+		ND_ static constexpr AE::Math::SFloat16  max () __NE___ { return AE::Math::SFloat16::Max(); }
 	};
 	
 	template <>

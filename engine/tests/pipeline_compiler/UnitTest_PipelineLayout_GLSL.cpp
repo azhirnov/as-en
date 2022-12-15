@@ -48,7 +48,7 @@ namespace
 	layout(offset=16, align=16) ivec4  i;
   } storageBuf [2];
   // state: ShaderSample | FragmentShader
-  layout(set=0, binding=2) uniform uisamplerBuffer texBuffer;
+  layout(set=0, binding=2) uniform usamplerBuffer texBuffer;
   // state: ShaderStorage_Write | FragmentShader
   layout(set=0, binding=3, rgba8) coherent uniform image2D storageImage;
   // state: ShaderSample | FragmentShader

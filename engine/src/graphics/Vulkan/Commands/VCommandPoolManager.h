@@ -8,7 +8,68 @@
 # include "graphics/Vulkan/Resources/VRenderPass.h"
 
 namespace AE::Graphics
-{	
+{
+namespace _hidden_
+{
+	struct CmdPoolUtils
+	{
+		using CmdBuffers_t = StaticArray< VkCommandBuffer, GraphicsConfig::MaxCmdBuffersPerPool >;
+
+		struct CmdPool
+		{
+			VkCommandPool		handle			= Default;
+			Atomic<uint>		count			{0};
+			CmdBuffers_t		buffers			{};
+		};
+		
+		using CmdPools_t	= StaticArray< CmdPool, GraphicsConfig::MaxCmdPoolsPerQueue >;
+
+		struct alignas(128) CmdPoolPerQueue
+		{
+			friend struct CmdPoolGuard;
+
+			Atomic<ulong>		assignedBits	{0};	// access to command pool and command buffers must be synchronized
+			Atomic<uint>		poolCount	{0};
+			CmdPools_t			_pools;
+			VQueuePtr			queue;
+		};
+
+		struct CmdPoolGuard
+		{
+		private:
+			static constexpr usize	_Mask = CT_ToBitMask< usize, CT_CeilIntLog2< GraphicsConfig::MaxCmdBuffersPerPool >>;
+			STATIC_ASSERT( _Mask <= alignof(CmdPoolPerQueue) );
+
+			usize	_ptr	= UMax;
+
+		public:
+			CmdPoolGuard ()										__NE___	{}
+			CmdPoolGuard (CmdPoolPerQueue &ref, usize idx)		__NE___ : _ptr{ usize(&ref) | idx } { ASSERT( _Ptr() == &ref );  ASSERT( idx == _BitIndex() ); }
+			CmdPoolGuard (const CmdPoolGuard &)					= delete;
+			CmdPoolGuard (CmdPoolGuard && other)				__NE___ : _ptr{other._ptr} { other._ptr = UMax; }
+
+			CmdPoolGuard&  operator = (const CmdPoolGuard&)		= delete;
+			CmdPoolGuard&  operator = (CmdPoolGuard && rhs)		__NE___	{ ASSERT( not IsLocked() );  _ptr = rhs._ptr;  rhs._ptr = UMax;  return *this; }
+
+			ND_ bool			IsValid ()						C_NE___	{ return _ptr != UMax; }
+			ND_ bool			IsLocked ()						C_NE___	{ return IsValid() and HasBit( _Ptr()->assignedBits.load(), _BitIndex() ); }
+
+			ND_ bool			try_lock ()						__NE___;
+				bool			unlock ()						__NE___;
+
+			ND_ CmdPool &		GetPool ()						__NE___	{ ASSERT( IsLocked() );  return _Ptr()->_pools[ _BitIndex() ]; }
+
+			ND_ explicit operator bool ()						C_NE___	{ return IsValid(); }
+
+		private:
+			ND_ uint				_BitIndex ()				C_NE___	{ return _ptr & _Mask; }
+			ND_ CmdPoolPerQueue*	_Ptr ()						C_NE___	{ return BitCast< CmdPoolPerQueue *>( _ptr & ~_Mask ); }
+		};
+	};
+
+} // _hidden_
+
+
 
 	//
 	// Vulkan Primary Command buffer State
@@ -18,16 +79,16 @@ namespace AE::Graphics
 	{
 		Ptr<const VRenderPass>		renderPass;
 		Ptr<const VFramebuffer>		framebuffer;
-		ubyte						subpassIndex		= UMax;
-		bool						hasViewLocalDeps	= false;	// for multiview rendering
 		FrameUID					frameId;
+		ulong						subpassIndex		: 8;
+		ulong						hasViewLocalDeps	: 1;	// for multiview rendering
+		ulong						useSecondaryCmdbuf	: 1;
 
-		VPrimaryCmdBufState () 	__NE___ {}
+		VPrimaryCmdBufState () 	__NE___ :
+			subpassIndex{0xFF}, hasViewLocalDeps{false}, useSecondaryCmdbuf{false}
+		{}
 
-		ND_ bool  IsValid () 	C_NE___
-		{
-			return (renderPass != null) & (framebuffer != null) & frameId.IsValid();
-		}
+		ND_ bool  IsValid () 	C_NE___	{ return (renderPass != null) & (framebuffer != null) & frameId.IsValid(); }
 
 		ND_ bool  operator == (const VPrimaryCmdBufState &rhs) C_NE___;
 	};
@@ -42,18 +103,27 @@ namespace AE::Graphics
 	{
 		friend class VCommandPoolManager;
 
+	// types
+	private:
+		using CmdPoolGuard	= _hidden_::CmdPoolUtils::CmdPoolGuard;
+
+
 	// variables
 	private:
-		VkCommandBuffer		_cmdbuf		= Default;
-		EQueueType			_queueType	= Default;
-		ECommandBufferType	_cmdType	= Default;
-		bool				_recording	= false;
-		RecursiveMutex *	_lock		= null;
+		VkCommandBuffer		_cmdbuf			= Default;
+		EQueueType			_queueType		= Default;
+		ECommandBufferType	_cmdType		= Default;
+		bool				_recording		= false;
+		CmdPoolGuard		_guard;
+		
+		DRC_ONLY(
+			Threading::SingleThreadCheck	_stCheck;
+		)
 
 
 	// methods
 	protected:
-		VCommandBuffer (VkCommandBuffer cmdbuf, EQueueType queueType, ECommandBufferType cmdType, RecursiveMutex& lock) __NE___;
+		VCommandBuffer (VkCommandBuffer cmdbuf, EQueueType queueType, ECommandBufferType cmdType, CmdPoolGuard lock) __NE___;
 
 		VCommandBuffer (const VCommandBuffer &)				 = delete;
 		VCommandBuffer&  operator = (const VCommandBuffer &) = delete;
@@ -67,11 +137,15 @@ namespace AE::Graphics
 
 		ND_ bool  EndAndRelease ()							__NE___;
 
-		ND_ EQueueType		GetQueueType ()					C_NE___	{ return _queueType; }
-		ND_ VkCommandBuffer	Get ()							C_NE___	{ ASSERT( IsValid() );  return _cmdbuf; }
-		ND_ bool			IsValid ()						C_NE___	{ return _cmdbuf != Default; }
-		ND_ bool			IsRecording ()					C_NE___	{ return _recording; }
-		ND_ VQueuePtr		GetQueue ()						C_NE___;
+		ND_ EQueueType			GetQueueType ()				C_NE___	{ return _queueType; }
+		ND_ VkCommandBuffer		Get ()						C_NE___	{ ASSERT( IsValid() );  ASSERT( _IsInCurrentThread() );  return _cmdbuf; }
+		ND_ bool				IsValid ()					C_NE___	{ return _cmdbuf != Default; }
+		ND_ bool				IsRecording ()				C_NE___	{ return _recording; }
+		ND_ ECommandBufferType	GetCommandBufferType ()		C_NE___	{ return _cmdType; }
+		ND_ VQueuePtr			GetQueue ()					C_NE___;
+
+	private:
+		DRC_ONLY( ND_ bool		_IsInCurrentThread ()		C_NE___	{ return _stCheck.Lock(); })
 	};
 
 
@@ -84,29 +158,16 @@ namespace AE::Graphics
 	{
 	// types
 	private:
-		static constexpr uint	CMD_COUNT	= GraphicsConfig::MaxCmdBuffersPerPool;
-		static constexpr uint	POOL_COUNT	= GraphicsConfig::MaxCmdPoolsPerQueue;
+		static constexpr uint	_CmdCount	= GraphicsConfig::MaxCmdBuffersPerPool;
+		static constexpr uint	_PoolCount	= GraphicsConfig::MaxCmdPoolsPerQueue;
 
-		using CmdBuffers_t = StaticArray< VkCommandBuffer, CMD_COUNT >;
+		using CmdBuffers_t		= _hidden_::CmdPoolUtils::CmdBuffers_t;
+		using CmdPool			= _hidden_::CmdPoolUtils::CmdPool;
+		using CmdPoolGuard		= _hidden_::CmdPoolUtils::CmdPoolGuard;
+		using CmdPoolPerQueue	= _hidden_::CmdPoolUtils::CmdPoolPerQueue;
 
-		struct CmdPool
-		{
-			RecursiveMutex		guard;	// access to command pool and command buffers must be synchronized
-			VkCommandPool		handle	= Default;
-			Atomic<uint>		count	{0};
-			CmdBuffers_t		buffers	{};
-		};
-		using CmdPools_t = StaticArray< CmdPool, POOL_COUNT >;
-
-		struct CmdPoolPerQueue
-		{
-			Atomic<uint>		poolCount	{0};
-			CmdPools_t			pools;
-			VQueuePtr			queue;
-		};
-
-		using Queues_t	= StaticArray< CmdPoolPerQueue, uint(EQueueType::_Count) >;
-		using Frames_t	= StaticArray< Queues_t, GraphicsConfig::MaxFrames >;
+		using Queues_t	= StaticArray< CmdPoolPerQueue,	uint(EQueueType::_Count) >;
+		using Frames_t	= StaticArray< Queues_t,		GraphicsConfig::MaxFrames >;
 
 
 	// variables

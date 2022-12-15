@@ -24,7 +24,6 @@
 #include "graphics/Public/RenderPassDesc.h"
 #include "graphics/Public/VulkanTypes.h"
 #include "graphics/Public/RayTracingDesc.h"
-#include "graphics/Public/ShaderBindingTable.h"
 
 #define VULKAN_ONLY( ... )
 #define METAL_ONLY( ... )
@@ -50,7 +49,7 @@ namespace AE::Graphics
 		virtual void  BindPipeline (GraphicsPipelineID ppln)																		__Th___	= 0;
 		virtual void  BindPipeline (MeshPipelineID ppln)																			__Th___	= 0;
 		virtual void  BindPipeline (TilePipelineID ppln)																			__Th___	= 0;
-		virtual void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)					__Th___ = 0;
+		virtual void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th___ = 0;
 		virtual void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages = EShaderStages::AllGraphics)__Th___	= 0;
 		
 	// dynamic states //
@@ -130,8 +129,8 @@ namespace AE::Graphics
 											 Bytes		stride)				__Th___	= 0;
 
 		// for debugging //
-		virtual void  DebugMarker (NtStringView text, RGBA8u color)			__Th___	= 0;
-		virtual void  PushDebugGroup (NtStringView text, RGBA8u color)		__Th___	= 0;
+		virtual void  DebugMarker (DebugLabel dbg)							__Th___	= 0;
+		virtual void  PushDebugGroup (DebugLabel dbg)						__Th___	= 0;
 		virtual void  PopDebugGroup ()										__Th___	= 0;
 		
 		// only for RW attachments //
@@ -179,8 +178,8 @@ namespace AE::Graphics
 		virtual void  CommitBarriers ()																										__Th___	= 0;
 
 		// for debugging
-		virtual void  DebugMarker (NtStringView text, RGBA8u color)																			__Th___	= 0;
-		virtual void  PushDebugGroup (NtStringView text, RGBA8u color)																		__Th___	= 0;
+		virtual void  DebugMarker (DebugLabel dbg)																							__Th___	= 0;
+		virtual void  PushDebugGroup (DebugLabel dbg)																						__Th___	= 0;
 		virtual void  PopDebugGroup ()																										__Th___	= 0;
 	};
 
@@ -262,7 +261,7 @@ namespace AE::Graphics
 		)
 
 		//		image:
-		//			in: { src leve;: EResourceState::BlitSrc, dst levels: EResourceState::Unknown }
+		//			in: { src level: EResourceState::BlitSrc, dst levels: EResourceState::Unknown }
 		//			out: EResourceState::BlitSrc
 		virtual void  GenerateMipmaps (ImageID image)																__Th___	= 0;
 
@@ -291,16 +290,16 @@ namespace AE::Graphics
 	{
 	// interface
 	public:
-		virtual void  BindPipeline (ComputePipelineID ppln)															__Th___	= 0;
-		virtual void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)	__Th___	= 0;
-		virtual void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)				__Th___	= 0;
+		virtual void  BindPipeline (ComputePipelineID ppln)																	__Th___	= 0;
+		virtual void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th___	= 0;
+		virtual void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th___	= 0;
 		
-		virtual void  Dispatch (const uint3 &groupCount)															__Th___	= 0;
+		virtual void  Dispatch (const uint3 &groupCount)																	__Th___	= 0;
 
 		//		buffer: EResourceState::IndirectBuffer
-		virtual void  DispatchIndirect (BufferID buffer, Bytes offset)												__Th___	= 0;
+		virtual void  DispatchIndirect (BufferID buffer, Bytes offset)														__Th___	= 0;
 
-				void  Dispatch (const uint2 &groupCount)															__Th___	{ return Dispatch( uint3{ groupCount, 1u }); }
+				void  Dispatch (const uint2 &groupCount)																	__Th___	{ return Dispatch( uint3{ groupCount, 1u }); }
 	};
 
 
@@ -313,13 +312,14 @@ namespace AE::Graphics
 	{
 	// interface
 	public:
-		//ND_ virtual IDrawContext*	BeginRenderPass (const RenderPassDesc &desc)	__Th___	= 0;
-		//ND_ virtual IDrawContext*	NextSubpass ()									__Th___	= 0;
-		//	virtual void			EndRenderPass ()								__Th___	= 0;
+	//	ND_ virtual IDrawContext		BeginRenderPass (const RenderPassDesc &desc)	__Th___	= 0;
+	//	ND_ virtual IDrawContext		NextSubpass (IDrawContext &prevPassCtx)			__Th___	= 0;
+	//		virtual void				EndRenderPass (IDrawContext &)					__Th___	= 0;
 
-		//virtual DrawCommandBatch*	BeginMtRenderPass ()							__Th___	= 0;
-		//virtual void				ExecuteCommands ()								__Th___	= 0;
-		//virtual DrawCommandBatch*	NextMtSubpass ()								__Th___	= 0;
+	//	ND_	virtual RC<DrawCommandBatch> BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg)			__Th___	= 0;
+	//	ND_ virtual RC<DrawCommandBatch> NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg)	__Th___	= 0;
+	//		virtual void				 ExecuteCommands (DrawCommandBatch &)									__Th___	= 0;
+	//		virtual void				 EndMtRenderPass ()
 	};
 
 
@@ -332,24 +332,31 @@ namespace AE::Graphics
 	{
 	// interface
 	public:
-		virtual void  BindPipeline (RayTracingPipelineID ppln)														__Th___	= 0;
-		virtual void  BindDescriptorSet (uint index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)	__Th___	= 0;
-		virtual void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)				__Th___	= 0;
+		virtual void  BindPipeline (RayTracingPipelineID ppln)																__Th___	= 0;
+		virtual void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th___	= 0;
+		virtual void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th___	= 0;
 
 		//		requires: EPipelineDynamicState::RTStackSize
-		virtual void  SetStackSize (Bytes size)																		__Th___	= 0;
+		virtual void  SetStackSize (Bytes size)																				__Th___	= 0;
 		
 		//		sbt.buffer:     EResourceState::RTShaderBindingTable
 		//		indirectBuffer: EResourceState::IndirectBuffer
-		virtual void  TraceRays (const uint2 dim, const ShaderBindingTable &sbt)									__Th___	= 0;
-		virtual void  TraceRays (const uint3 dim, const ShaderBindingTable &sbt)									__Th___	= 0;
-		virtual void  TraceRaysIndirect (const ShaderBindingTable &sbt,
-										 BufferID indirectBuffer, Bytes indirectBufferOffset)						__Th___	= 0;
-		virtual void  TraceRaysIndirect (BufferID indirectBuffer, Bytes indirectBufferOffset)						__Th___	= 0;
+		virtual void  TraceRays (const uint2 dim, RTShaderBindingID sbt)													__Th___	= 0;
+		virtual void  TraceRays (const uint3 dim, RTShaderBindingID sbt)													__Th___	= 0;
+
+		virtual void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)											__Th___	= 0;
+		virtual void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)											__Th___	= 0;
+
+		virtual void  TraceRaysIndirect (RTShaderBindingID sbt,
+										 BufferID indirectBuffer, Bytes indirectBufferOffset)								__Th___	= 0;
+		virtual void  TraceRaysIndirect (const RTShaderBindingTable &sbt,
+										 BufferID indirectBuffer, Bytes indirectBufferOffset)								__Th___	= 0;
+
+		virtual void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)								__Th___	= 0;
 		
 		VULKAN_ONLY(
-				void  TraceRaysIndirect (const ShaderBindingTable &sbt, VDeviceAddress address);
-				void  TraceRaysIndirect (VDeviceAddress address);
+				void  TraceRaysIndirect (const RTShaderBindingTable &sbt, VDeviceAddress address);
+				void  TraceRaysIndirect2 (VDeviceAddress address);
 		)
 	};
 

@@ -25,15 +25,15 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VSampler () {}
-		~VSampler ();
+		VSampler ()																					__NE___	{}
+		~VSampler ()																				__NE___;
 
-		ND_ bool  Create (const VDevice &dev, const VkSamplerCreateInfo &info, StringView dbgName);
-			void  Destroy (VResourceManager &);
+		ND_ bool  Create (const VDevice &dev, const VkSamplerCreateInfo &info, StringView dbgName)	__NE___;
+			void  Destroy (VResourceManager &)														__NE___;
 
-		ND_ VkSampler	Handle ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _sampler; }
+		ND_ VkSampler	Handle ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _sampler; }
 		
-		static void  ConvertSampler (const SamplerDesc &desc, OUT VkSamplerCreateInfo &info);
+		static void  ConvertSampler (const SamplerDesc &desc, OUT VkSamplerCreateInfo &info)		__NE___;
 	};
 	
 

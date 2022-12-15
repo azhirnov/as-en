@@ -23,30 +23,31 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  ClearColorImage (VkImage image, const VkClearColorValue &color, ArrayView<VkImageSubresourceRange> ranges);
-		void  ClearDepthStencilImage (VkImage image, const VkClearDepthStencilValue &depthStencil, ArrayView<VkImageSubresourceRange> ranges);
+		void  ClearColorImage (VkImage image, const VkClearColorValue &color, ArrayView<VkImageSubresourceRange> ranges)					__Th___;
+		void  ClearDepthStencilImage (VkImage image, const VkClearDepthStencilValue &depthStencil, ArrayView<VkImageSubresourceRange> ranges)__Th___;
 
-		void  FillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data);
-		void  UpdateBuffer (VkBuffer buffer, Bytes offset, Bytes size, const void* data);
+		void  FillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)																__Th___;
+		void  UpdateBuffer (VkBuffer buffer, Bytes offset, Bytes size, const void* data)													__Th___;
 
-		void  CopyBuffer (VkBuffer srcBuffer, VkBuffer dstBuffer, ArrayView<VkBufferCopy> ranges);
-		void  CopyImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageCopy> ranges);
+		void  CopyBuffer (VkBuffer srcBuffer, VkBuffer dstBuffer, ArrayView<VkBufferCopy> ranges)											__Th___;
+		void  CopyImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageCopy> ranges)													__Th___;
 
-		void  CopyBufferToImage (VkBuffer srcBuffer, VkImage dstImage, ArrayView<VkBufferImageCopy> ranges);
-		void  CopyImageToBuffer (VkImage srcImage, VkBuffer dstBuffer, ArrayView<VkBufferImageCopy> ranges);
+		void  CopyBufferToImage (VkBuffer srcBuffer, VkImage dstImage, ArrayView<VkBufferImageCopy> ranges)									__Th___;
+		void  CopyImageToBuffer (VkImage srcImage, VkBuffer dstBuffer, ArrayView<VkBufferImageCopy> ranges)									__Th___;
 		
-		void  BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions);
+		void  BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions)								__Th___;
+		void  ResolveImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageResolve> regions)											__Th___;
 
-		void  GenerateMipmaps (VkImage image, const uint3 &dimension, uint levelCount, uint layerCount, EImageAspect aspect);
+		void  GenerateMipmaps (VkImage image, const uint3 &dimension, uint levelCount, uint layerCount, EImageAspect aspect)				__Th___;
 		
-		ND_ VkCommandBuffer	EndCommandBuffer ();
-		ND_ VCommandBuffer  ReleaseCommandBuffer ();
+		ND_ VkCommandBuffer	EndCommandBuffer ()																								__Th___;
+		ND_ VCommandBuffer  ReleaseCommandBuffer ()																							__Th___;
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectTransferCtx (const RenderTask &task);
-		_VDirectTransferCtx (const RenderTask &task, VCommandBuffer cmdbuf);
+		explicit _VDirectTransferCtx (const RenderTask &task)																				__Th___;
+		_VDirectTransferCtx (const RenderTask &task, VCommandBuffer cmdbuf)																	__Th___;
 	};
 
 
@@ -59,30 +60,31 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  ClearColorImage (VkImage image, const VkClearColorValue &color, ArrayView<VkImageSubresourceRange> ranges);
-		void  ClearDepthStencilImage (VkImage image, const VkClearDepthStencilValue &depthStencil, ArrayView<VkImageSubresourceRange> ranges);
+		void  ClearColorImage (VkImage image, const VkClearColorValue &color, ArrayView<VkImageSubresourceRange> ranges)					__Th___;
+		void  ClearDepthStencilImage (VkImage image, const VkClearDepthStencilValue &depthStencil, ArrayView<VkImageSubresourceRange> ranges)__Th___;
 
-		void  FillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data);
-		void  UpdateBuffer (VkBuffer buffer, Bytes offset, Bytes size, const void* data);
+		void  FillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)																__Th___;
+		void  UpdateBuffer (VkBuffer buffer, Bytes offset, Bytes size, const void* data)													__Th___;
 
-		void  CopyBuffer (VkBuffer srcBuffer, VkBuffer dstBuffer, ArrayView<VkBufferCopy> ranges);
-		void  CopyImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageCopy> ranges);
+		void  CopyBuffer (VkBuffer srcBuffer, VkBuffer dstBuffer, ArrayView<VkBufferCopy> ranges)											__Th___;
+		void  CopyImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageCopy> ranges)													__Th___;
 
-		void  CopyBufferToImage (VkBuffer srcBuffer, VkImage dstImage, ArrayView<VkBufferImageCopy> ranges);
-		void  CopyImageToBuffer (VkImage srcImage, VkBuffer dstBuffer, ArrayView<VkBufferImageCopy> ranges);
+		void  CopyBufferToImage (VkBuffer srcBuffer, VkImage dstImage, ArrayView<VkBufferImageCopy> ranges)									__Th___;
+		void  CopyImageToBuffer (VkImage srcImage, VkBuffer dstBuffer, ArrayView<VkBufferImageCopy> ranges)									__Th___;
 		
-		void  BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions);
+		void  BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions)								__Th___;
+		void  ResolveImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageResolve> regions)											__Th___;
 		
-		void  GenerateMipmaps (VkImage image, const uint3 &dimension, uint levelCount, uint layerCount, EImageAspect aspect);
+		void  GenerateMipmaps (VkImage image, const uint3 &dimension, uint levelCount, uint layerCount, EImageAspect aspect)				__Th___;
 		
-		ND_ VBakedCommands		EndCommandBuffer ();
-		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ();
+		ND_ VBakedCommands		EndCommandBuffer ()																							__Th___;
+		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()																						__Th___;
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectTransferCtx (const RenderTask &task);
-		_VIndirectTransferCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf);
+		explicit _VIndirectTransferCtx (const RenderTask &task)																				__Th___;
+		_VIndirectTransferCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)															__Th___;
 	};
 
 
@@ -92,7 +94,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VTransferContextImpl : public CtxImpl, public ITransferContext
+	class _VTransferContextImpl final : public CtxImpl, public ITransferContext
 	{
 	// types
 	public:
@@ -119,56 +121,58 @@ namespace AE::Graphics::_hidden_
 		using RawCtx::ClearColorImage;
 		using RawCtx::ClearDepthStencilImage;
 		
-		void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)											{ _ClearColorImage( image, color, ranges ); }
-		void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)											{ _ClearColorImage( image, color, ranges ); }
-		void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)											{ _ClearColorImage( image, color, ranges ); }
-		void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges);
+		void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)											__Th___	{ _ClearColorImage( image, color, ranges ); }
+		void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)											__Th___	{ _ClearColorImage( image, color, ranges ); }
+		void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)											__Th___	{ _ClearColorImage( image, color, ranges ); }
+		void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges)							__Th___;
 
 		using RawCtx::UpdateBuffer;
-		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)																override;
+		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)																__Th_OV;
 
-		template <typename T>	void  UpdateBuffer (BufferID buffer, Bytes offset, ArrayView<T> data)													{ return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
-		template <typename T>	void  UpdateBuffer (BufferID buffer, Bytes offset, const Array<T> &data)												{ return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
+		template <typename T>	void  UpdateBuffer (BufferID buffer, Bytes offset, ArrayView<T> data)													__Th___	{ return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
+		template <typename T>	void  UpdateBuffer (BufferID buffer, Bytes offset, const Array<T> &data)												__Th___	{ return UpdateBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
 
 		using RawCtx::FillBuffer;
-		void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)																			override;
+		void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)																			__Th_OV;
 
 		using RawCtx::CopyBuffer;
 		using RawCtx::CopyImage;
 
-		void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)															override;
-		void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)																override;
+		void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)															__Th_OV;
+		void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)																__Th_OV;
 
 		using RawCtx::CopyBufferToImage;
 		using RawCtx::CopyImageToBuffer;
 
-		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)												override;
-		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)												override;
+		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)												__Th_OV;
+		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)												__Th_OV;
 		
-		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)												override;
-		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)												override;
+		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)												__Th_OV;
+		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)												__Th_OV;
 		
 		using RawCtx::BlitImage;
 
-		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions);
+		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)											__Th___;
+		
+		void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)														__Th___;
 
-		void  UploadBuffer (BufferID buffer, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)override;
-		void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)														override;
+		void  UploadBuffer (BufferID buffer, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)__Th_OV;
+		void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)														__Th_OV;
 
-		void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						override;
-		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						override;
+		void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						__Th_OV;
+		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						__Th_OV;
 
-		ND_ Promise<BufferMemView>	ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)	override;
-		ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)														override;
+		ND_ Promise<BufferMemView>	ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)	__Th_OV;
+		ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)														__Th_OV;
 		
 		ND_ bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped);
-		ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)														override;
+		ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)														__Th_OV;
 
-		ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)														override;
+		ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)														__Th_OV;
 		
 		using RawCtx::GenerateMipmaps;
 
-		void  GenerateMipmaps (ImageID image)																											override;
+		void  GenerateMipmaps (ImageID image)																											__Th_OV;
 
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;
@@ -202,8 +206,8 @@ namespace AE::Graphics::_hidden_
 
 namespace AE::Graphics
 {
-	using VDirectTransferContext	= _hidden_::_VTransferContextImpl< _hidden_::_VDirectTransferCtx >;
-	using VIndirectTransferContext	= _hidden_::_VTransferContextImpl< _hidden_::_VIndirectTransferCtx >;
+	using VDirectTransferContext	= Graphics::_hidden_::_VTransferContextImpl< Graphics::_hidden_::_VDirectTransferCtx >;
+	using VIndirectTransferContext	= Graphics::_hidden_::_VTransferContextImpl< Graphics::_hidden_::_VIndirectTransferCtx >;
 
 } // AE::Graphics
 	
@@ -408,7 +412,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VTransferContextImpl<C>::UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType)
 	{
-		ASSERT( not stream.IsComplete() );
+		ASSERT( not stream.IsCompleted() );
 
 		auto&	dst_buf = _GetResourcesOrThrow( stream.Buffer() );
 		ASSERT( _IsDeviceMemory( dst_buf ));
@@ -488,7 +492,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VTransferContextImpl<C>::UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType)
 	{
-		ASSERT( not stream.IsComplete() );
+		ASSERT( not stream.IsCompleted() );
 
 		auto&	dst_img = _GetResourcesOrThrow( stream.Image() );
 		ASSERT( _IsDeviceMemory( dst_img ));
@@ -715,7 +719,7 @@ namespace AE::Graphics::_hidden_
 			ASSERT( offset + size <= mem_info.size );
 
 			auto&	dev = this->_mngr.GetDevice();
-			VK_CALL( dev.vkFlushMappedMemoryRanges( dev.GetVkDevice(), 1, &range ));
+			VK_CHECK( dev.vkFlushMappedMemoryRanges( dev.GetVkDevice(), 1, &range ));
 		}
 		return true;
 	}
@@ -979,6 +983,49 @@ namespace AE::Graphics::_hidden_
 		
 /*
 =================================================
+	ResolveImage
+=================================================
+*/
+	template <typename C>
+	void  _VTransferContextImpl<C>::ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)
+	{
+		auto  [src_img, dst_img] = _GetResourcesOrThrow( srcImage, dstImage );
+		ASSERT( regions.size() );
+		
+		FixedArray<VkImageResolve, _LocalArraySize>	vk_regions;
+		const ImageDesc &							src_desc	= src_img.Description();
+		const ImageDesc &							dst_desc	= dst_img.Description();
+
+		for (usize i = 0; i < regions.size(); ++i)
+		{
+			auto&	src = regions[i];
+			auto&	dst = vk_regions.emplace_back();
+
+			ASSERT( All( src.srcOffset < src_desc.dimension ));
+			ASSERT( All( src.srcOffset + src.extent <= src_desc.dimension ));
+			ASSERT( All( src.dstOffset < dst_desc.dimension ));
+			ASSERT( All( src.dstOffset + src.extent <= dst_desc.dimension ));
+
+			dst.srcOffset	= { int(src.srcOffset.x), int(src.srcOffset.y), int(src.srcOffset.z) };
+			dst.dstOffset	= { int(src.dstOffset.x), int(src.dstOffset.y), int(src.dstOffset.z) };
+			dst.extent		= { src.extent.x,		  src.extent.y,			src.extent.z		 };
+
+			this->_ConvertImageSubresourceLayer( OUT dst.srcSubresource, src.srcSubres, src_desc );
+			this->_ConvertImageSubresourceLayer( OUT dst.dstSubresource, src.dstSubres, dst_desc );
+
+			if_unlikely( vk_regions.size() == vk_regions.capacity() )
+			{
+				RawCtx::ResolveImage( src_img.Handle(), dst_img.Handle(), vk_regions );
+				vk_regions.clear();
+			}
+		}
+		
+		if ( vk_regions.size() )
+			RawCtx::ResolveImage( src_img.Handle(), dst_img.Handle(), vk_regions );
+	}
+
+/*
+=================================================
 	GenerateMipmaps
 =================================================
 */
@@ -1226,6 +1273,24 @@ namespace AE::Graphics::_hidden_
 						dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 						uint(regions.size()), regions.data(), filter );
 		// TODO vkCmdBlitImage2KHR
+	}
+	
+/*
+=================================================
+	ResolveImage
+=================================================
+*/
+	inline void  _VDirectTransferCtx::ResolveImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageResolve> regions)
+	{
+		ASSERT( srcImage != Default );
+		ASSERT( dstImage != Default );
+		ASSERT( regions.size() );
+		ASSERT( _NoPendingBarriers() );
+
+		vkCmdResolveImage( _cmdbuf.Get(), srcImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+							dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+							uint(regions.size()), regions.data() );
+		// TODO vkCmdResolveImage2KHR
 	}
 
 

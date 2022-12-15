@@ -23,9 +23,9 @@ namespace AE::Graphics
 		uint	mac			= 0;
 		uint	metal		= 0;
 
-		MGPUFamilies () {}
+		MGPUFamilies ()			__NE___	{}
 
-		ND_ bool  IsValid ()	const	{ return common > 0 or apple > 0 or mac > 0 or metal > 0; }
+		ND_ bool  IsValid ()	C_NE___	{ return common > 0 or apple > 0 or mac > 0 or metal > 0; }
 	};
 	
 
@@ -87,7 +87,6 @@ namespace AE::Graphics
 			bool	dualSourceBlending						: 1;
 			bool	combinedMSAA_StoreAndResolve			: 1;
 			bool	MSAA_blits								: 1;
-			bool	programableSamplePosition				: 1;
 			bool	deferredStoreActions					: 1;
 			bool	textureBarriers							: 1;
 			bool	memoryBarriersAppleGPU					: 1;	// Supports: compute command encoders, and for vertex-to-vertex and vertex-to-fragment stages of render command encoders.
@@ -136,30 +135,29 @@ namespace AE::Graphics
 			bool	fastResourceLoading						: 1;	// TODO ???
 			bool	floatingPointAtomics					: 1;
 
-			// unsupported
-			bool	depthBounds								: 1;
-
 			ubyte	argbufTier;
 			ubyte	readWriteTextureTier;
 
-			Features () { ZeroMem( this, Sizeof(*this) ); }
+			Features ()							__NE___	{ ZeroMem( this, Sizeof(*this) ); }
 
-			ND_ bool  accelerationStructure () const	{ return rayTracingFromCompute or raytracingFromRender; }
+			ND_	bool  depthBounds ()			C_NE___	{ return false; }
+			ND_ bool  rayTracing ()				C_NE___	{ return rayTracingFromCompute or raytracingFromRender; }
+			ND_ bool  accelerationStructure ()	C_NE___	{ return rayTracingFromCompute or raytracingFromRender; }
 		};
 
 		struct Properties
 		{
 			// dynamic
-			uint		maxArgbufSamplers;
-			BitSet<8>	maxVertexAmplification;
-			BitSet<8>	maxTextureSampleCount;
+			uint		maxArgumentBufferSamplerCount;			// per app
+			BitSet<32>	maxVertexAmplification;
+			BitSet<32>	maxTextureSampleCount;
 
 			Bytes		maxThreadgroupMemoryLength;
 			uint3		maxThreadsPerThreadgroup3;
 			Bytes		sparseTileMemorySize;
 			Bytes		maxBufferSize;
 
-			Bytes		maxTransferRate;	// desktop only
+			Bytes		maxTransferRate;			// desktop only, defined for PCI-E
 
 			// function arguments
 			uint		maxNumberOfVertexAttribsPerVertexDescriptor;
@@ -185,9 +183,9 @@ namespace AE::Graphics
 			uint		maxNumberOfBufferInsideArgumentBuffer;				// per stage
 			uint		maxNumberOfTexturesInsideArgumentBuffer;			// per stage
 			uint		maxNumberOfSamplersInsideArgumentBuffer;			// per stage
+			uint		maxNumberOfArgumentBuffersInsideArgumentBuffer;
 
 			// resources
-			Bytes		minBufferOffsetAlignment;
 			uint		max1DTextureSize;
 			uint		max2DTextureSize;
 			uint		maxCubemapTextureSize;
@@ -220,9 +218,9 @@ namespace AE::Graphics
 	// methods
 	public:
 
-		void  InitFeatureSet (OUT FeatureSet &) const;
+		void  InitFeatureSet (const MGPUFamilies &, INOUT FeatureSet &) C_NE___;
 		
-		static void  InitFromFSTable (const MGPUFamilies &, INOUT Features &, INOUT Properties &);
+		static void  InitFromFSTable (const MGPUFamilies &, Version2 ver, INOUT Features &, INOUT Properties &) __NE___;
 	};
 
 

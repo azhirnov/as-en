@@ -48,17 +48,14 @@ namespace AE::Math
 	// methods
 	public:
 		constexpr TBytes ()								__NE___ : _value{0} {}
+		constexpr TBytes (Base::_hidden_::_UMax)		__NE___	: _value{UMax} {}
 
 		explicit constexpr TBytes (T value)				__NE___ : _value{value} {}
-		
-		explicit constexpr TBytes (std::align_val_t value) __NE___ : _value{usize(value)} {}
+		explicit constexpr TBytes (std::align_val_t val)__NE___ : _value{usize(val)} {}
+		explicit constexpr TBytes (const void* ptr)		__NE___	: _value{BitCast<usize>(ptr)} {}
 
 		template <typename B>
 		constexpr TBytes (const TBytes<B> &other)		__NE___	: _value{CheckCast<T>(other)} {}
-
-		explicit TBytes (const void* ptr)				__NE___	: _value{BitCast<usize>(ptr)} {}
-
-		constexpr TBytes (Base::_hidden_::_UMax)		__NE___	: _value{UMax} {}
 
 		ND_ explicit constexpr operator sbyte ()		C_NE___	{ return static_cast<sbyte >(_value); }
 		ND_ explicit constexpr operator sshort ()		C_NE___	{ return static_cast<sshort>(_value); }
@@ -92,11 +89,11 @@ namespace AE::Math
 		ND_ static constexpr Self	FromGb (T value)	__NE___	{ return Self( value << 30 ); }
 		
 
-		template <typename B>	ND_ static constexpr Self			SizeOf ()					__NE___	{ return Self( sizeof(B) ); }
-		template <typename B>	ND_ static constexpr Self			SizeOf (const B &)			__NE___	{ return Self( sizeof(B) ); }
+		template <typename B>	ND_ static constexpr Self			SizeOf ()					__NE___	{ STATIC_ASSERT( not IsVoid<B> );  return Self( sizeof(B) ); }
+		template <typename B>	ND_ static constexpr Self			SizeOf (const B &)			__NE___	{ STATIC_ASSERT( not IsVoid<B> );  return Self( sizeof(B) ); }
 		
-		template <typename B>	ND_ static constexpr Self			AlignOf ()					__NE___	{ return Self( alignof(B) ); }
-		template <typename B>	ND_ static constexpr Self			AlignOf (const B &)			__NE___	{ return Self( alignof(B) ); }
+		template <typename B>	ND_ static constexpr Self			AlignOf ()					__NE___	{ STATIC_ASSERT( not IsVoid<B> );  return Self( alignof(B) ); }
+		template <typename B>	ND_ static constexpr Self			AlignOf (const B &)			__NE___	{ STATIC_ASSERT( not IsVoid<B> );  return Self( alignof(B) ); }
 		
 		template <typename B>	ND_ static constexpr SizeAndAlign	SizeAndAlignOf ()			__NE___	{ return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
 		template <typename B>	ND_ static constexpr SizeAndAlign	SizeAndAlignOf (const B &)	__NE___	{ return SizeAndAlign{ SizeOf<B>(), AlignOf<B>() }; }
@@ -135,19 +132,19 @@ namespace AE::Math
 		
 
 			Self&			operator += (const T rhs)		__NE___	{ _value += rhs;  return *this; }
-		ND_ constexpr Self	operator +  (const T rhs)		C_NE___		{ return Self( _value + rhs ); }
+		ND_ constexpr Self	operator +  (const T rhs)		C_NE___	{ return Self( _value + rhs ); }
 		
 			Self&			operator -= (const T rhs)		__NE___	{ _value -= rhs;  return *this; }
-		ND_ constexpr Self	operator -  (const T rhs)		C_NE___		{ return Self( _value - rhs ); }
+		ND_ constexpr Self	operator -  (const T rhs)		C_NE___	{ return Self( _value - rhs ); }
 
 			Self&			operator *= (const T rhs)		__NE___	{ _value *= rhs;  return *this; }
-		ND_ constexpr Self	operator *  (const T rhs)		C_NE___		{ return Self( _value * rhs ); }
+		ND_ constexpr Self	operator *  (const T rhs)		C_NE___	{ return Self( _value * rhs ); }
 		
 			Self&			operator /= (const T rhs)		__NE___	{ _value /= rhs;  return *this; }
-		ND_ constexpr Self	operator /  (const T rhs)		C_NE___		{ return Self( _value / rhs ); }
+		ND_ constexpr Self	operator /  (const T rhs)		C_NE___	{ return Self( _value / rhs ); }
 		
 			Self&			operator %= (const T rhs)		__NE___	{ _value %= rhs;  return *this; }
-		ND_ constexpr Self	operator %  (const T rhs)		C_NE___		{ return Self( _value % rhs ); }
+		ND_ constexpr Self	operator %  (const T rhs)		C_NE___	{ return Self( _value % rhs ); }
 
 		ND_ constexpr bool	operator == (const Self &rhs)	C_NE___	{ return _value == rhs._value; }
 		ND_ constexpr bool	operator != (const Self &rhs)	C_NE___	{ return _value != rhs._value; }
@@ -233,7 +230,7 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	static constexpr bool  IsBytes = _hidden_::_IsBytes<T>::value;
+	static constexpr bool  IsBytes = Math::_hidden_::_IsBytes<T>::value;
 	
 /*
 =================================================
@@ -267,6 +264,17 @@ namespace AE::Math
 	ND_ forceinline TBytes<T>  CeilPOT (const TBytes<T> x) __NE___
 	{
 		return TBytes<T>{ CeilPOT( T{x} )};
+	}
+
+/*
+=================================================
+	IsPowerOfTwo
+=================================================
+*/
+	template <typename T>
+	ND_ forceinline constexpr bool  IsPowerOfTwo (const TBytes<T> x) __NE___
+	{
+		return IsPowerOfTwo( T{x} );
 	}
 
 } // AE::Math

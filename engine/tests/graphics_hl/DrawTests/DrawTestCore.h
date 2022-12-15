@@ -51,6 +51,9 @@ protected:
   #elif defined(AE_ENABLE_METAL)
 	MDeviceInitializer			_metal;
 	MSwapchainInitializer		_swapchain;
+	
+  #else
+  #	error not implemented
   #endif
 
 

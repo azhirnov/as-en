@@ -30,7 +30,7 @@ namespace
 	public:
 		ExeOrder&	value;
 
-		Test1_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test1_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -47,7 +47,7 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test1_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test1_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -63,12 +63,11 @@ namespace
 	{
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
-		ExeOrder		value;	// access to value protected by internal synchronizations
-		AsyncTask		task1	= scheduler->Run<Test1_Task1>( Tuple{ArgRef(value)} );
-		AsyncTask		task2	= scheduler->Run<Test1_Task2>( Tuple{ArgRef(value)}, Tuple{task1} );
-		TEST( task1 and task2 );
+		ExeOrder	value;	// access to value protected by internal synchronizations
+		AsyncTask	task1	= scheduler->Run<Test1_Task1>( Tuple{ArgRef(value)} );
+		AsyncTask	task2	= scheduler->Run<Test1_Task2>( Tuple{ArgRef(value)}, Tuple{task1} );
 		
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
 		
 		TEST( scheduler->Wait({ task1, task2 }));
 		TEST( task1->Status() == EStatus::Completed );
@@ -87,7 +86,7 @@ namespace
 	public:
 		ExeOrder&	value;
 
-		Test2_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test2_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -111,7 +110,7 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test2_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test2_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -135,15 +134,13 @@ namespace
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
 		ExeOrder		value;	// access to value protected by internal synchronizations
-
 		AsyncTask		task1	= scheduler->Run<Test2_Task1>( Tuple{ArgRef(value)} );
-		TEST( task1 );
+
 		TEST( scheduler->Cancel( task1 ));
 
 		AsyncTask		task2	= scheduler->Run<Test2_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
-		TEST( task2 );
 		
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
 		
 		TEST( scheduler->Wait({ task1, task2 }));
 		TEST( task1->Status() == EStatus::Canceled );
@@ -162,7 +159,7 @@ namespace
 	public:
 		ExeOrder&	value;
 
-		Test3_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test3_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -186,7 +183,7 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test3_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test3_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -210,15 +207,13 @@ namespace
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 
 		ExeOrder	value;	// access to value protected by internal synchronizations
-
 		AsyncTask	task1	= scheduler->Run<Test3_Task1>( Tuple{ArgRef(value)} );
-		TEST( task1 );
+
 		scheduler->Cancel( task1 );
 
 		AsyncTask	task2	= scheduler->Run<Test3_Task2>( Tuple{ArgRef(value)}, Tuple{WeakDep{task1}} );
-		TEST( task2 );
 		
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
 		
 		TEST( scheduler->Wait({ task1, task2 }));
 		TEST( task1->Status() == EStatus::Canceled );
@@ -254,7 +249,7 @@ namespace
 		public:
 			RC<Test4_TaskDepManager>	_mngr;
 
-			UpdateTask (const RC<Test4_TaskDepManager> &mngr) : IAsyncTask{ EThread::Worker }, _mngr{mngr}
+			UpdateTask (const RC<Test4_TaskDepManager> &mngr) : IAsyncTask{ ETaskQueue::Worker }, _mngr{mngr}
 			{}
 
 			void  Run () override
@@ -310,7 +305,7 @@ namespace
 	public:
 		ExeOrder&	value;
 
-		Test4_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test4_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -334,7 +329,7 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test4_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test4_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -365,12 +360,9 @@ namespace
 		scheduler->RegisterDependency<Test4_CustomDep>( task_mngr );
 
 		AsyncTask	task1	= scheduler->Run<Test4_Task1>( Tuple{ArgRef(value)} );
-		TEST( task1 );
-		
 		AsyncTask	task2	= scheduler->Run<Test4_Task2>( Tuple{ArgRef(value)}, Tuple{task1, custom_dep} );
-		TEST( task2 );
 		
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
 		
 		TEST( scheduler->Wait( {task1} ));
 		TEST( task1->Status() == EStatus::Completed );

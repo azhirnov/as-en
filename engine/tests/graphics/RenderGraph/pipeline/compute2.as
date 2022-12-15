@@ -3,7 +3,7 @@ void main ()
 {
 	{
 		DescriptorSetLayout@	ds = DescriptorSetLayout( "compute2.ds1" );
-		ds.StorageImage( EShaderStages::Compute, "un_Image", ArraySize(1), EImageType::FImage2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_RW );
+		ds.StorageImage( EShaderStages::Compute, "un_Image", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_RW );
 	}
 	{
 		PipelineLayout@		pl = PipelineLayout( "compute2.pl" );

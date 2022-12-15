@@ -23,7 +23,7 @@ namespace AE::Graphics
 	// variables
 	private:
 		MResourceManager &				_resMngr;
-		Ptr<const MDescriptorSetLayout>	_dsLayout;	// strong ref in '_descrSet'
+		Ptr<const MDescriptorSetLayout>	_dsLayout;	// strong ref in '_descSetId'
 		MetalArgumentEncoderRC			_encoder;
 
 		EDescUpdateMode					_mode		= Default;
@@ -67,7 +67,7 @@ namespace AE::Graphics
 		bool  _Flush ();
 
 		template <EDescriptorType DescType>
-		ND_ Tuple< const Uniform_t*, const Bytes16u* >  _FindUniform (const UniformName &name) const;
+		ND_ const Uniform_t*  _FindUniform (const UniformName &name) const;
 	};
 
 

@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "threading/TaskSystem/ThreadManager.h"
-#include "threading/Primitives/DataRaceCheck.h"
 #include "UnitTest_Common.h"
 
 
@@ -32,7 +31,7 @@ namespace
 		uint		iter	= 0;
 		
 	public:
-		Test1_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test1_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -69,7 +68,7 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test1_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test1_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -86,11 +85,9 @@ namespace
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
 		ExeOrder	value;	// access to value protected by internal synchronizations
-
 		auto		task1 = Cast<Test1_Task1>( scheduler->Run<Test1_Task1>( Tuple{ArgRef(value)} ));
-		TEST( task1 );
 
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
 		
 		TEST( scheduler->Wait({ task1 }));
 		TEST( task1->Status() == EStatus::Completed );
@@ -104,7 +101,6 @@ namespace
 		TEST( scheduler->Run( task1 ));
 
 		AsyncTask	task2 = scheduler->Run<Test1_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
-		TEST( task2 );
 		
 		TEST( scheduler->Wait({ task1, task2 }));
 		TEST( task1->Status() == EStatus::Completed );
@@ -125,7 +121,7 @@ namespace
 		uint		iter	= 0;
 		
 	public:
-		Test2_Task1 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test2_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -158,7 +154,7 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test2_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test2_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -175,12 +171,10 @@ namespace
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
 		ExeOrder	value;	// access to value protected by internal synchronizations
-
 		AsyncTask	task1	= scheduler->Run<Test2_Task1>( Tuple{ArgRef(value)} );
 		AsyncTask	task2	= scheduler->Run<Test2_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
-		TEST( task1 and task2 );
 		
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
 		
 		TEST( scheduler->Wait({ task1, task2 }));
 		TEST( task1->Status() == EStatus::Completed );
@@ -201,7 +195,7 @@ namespace
 		const uint	id;
 		
 	public:
-		Test3_Task1 (ExeOrder &val, uint id) : IAsyncTask{ EThread::Worker }, value{val}, id{id} {}
+		Test3_Task1 (ExeOrder &val, uint id) : IAsyncTask{ ETaskQueue::Worker }, value{val}, id{id} {}
 
 		void  Run () override
 		{
@@ -220,7 +214,7 @@ namespace
 		uint		iter	= 0;
 
 	public:
-		Test3_Task2 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test3_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -235,7 +229,6 @@ namespace
 					AsyncTask	task1 = Scheduler().Run<Test3_Task1>( Tuple{ArgRef(value), 1u} );
 					AsyncTask	task2 = Scheduler().Run<Test3_Task1>( Tuple{ArgRef(value), 2u}, Tuple{StrongDep{task1}} );
 					AsyncTask	task3 = Scheduler().Run<Test3_Task1>( Tuple{ArgRef(value), 3u}, Tuple{StrongDepArray{ task1, task2 }} );
-					TEST( task1 and task2 and task3 );
 		
 					// here access to the 'value' is not protected
 
@@ -264,7 +257,7 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test3_Task3 (ExeOrder &val) : IAsyncTask{ EThread::Worker }, value{val} {}
+		Test3_Task3 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
 
 		void  Run () override
 		{
@@ -281,13 +274,11 @@ namespace
 		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
 		
 		ExeOrder	value;	// access to value protected by internal synchronizations
-		
 		AsyncTask	task1	= scheduler->Run<Test3_Task2>( Tuple{ArgRef(value)} );
 		AsyncTask	task2	= scheduler->Run<Test3_Task3>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
-		TEST( task1 and task2 );
 		
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateDefault() ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
 		
 		TEST( scheduler->Wait({ task1, task2 }));
 		TEST( task1->Status() == EStatus::Completed );

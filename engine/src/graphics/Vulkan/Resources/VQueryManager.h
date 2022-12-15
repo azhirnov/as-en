@@ -4,6 +4,7 @@
 
 #ifdef AE_ENABLE_VULKAN
 
+# include "graphics/Public/QueryManager.h"
 # include "graphics/Vulkan/VDevice.h"
 
 namespace AE::Graphics
@@ -13,7 +14,7 @@ namespace AE::Graphics
 	// Vulkan Query Manager
 	//
 
-	class VQueryManager
+	class VQueryManager final : public IQueryManager
 	{
 	// types
 	public:

@@ -81,38 +81,38 @@ namespace AE::Graphics
 
 	// methods
 	protected:
-		explicit MSwapchain (const MDevice &);
+		explicit MSwapchain (const MDevice &)			__NE___;
 
 	public:
-		~MSwapchain ();
+		~MSwapchain ()									__NE___;
 
-			bool  GetColorFormats (OUT FeatureSet::PixelFormatSet_t &formats) const;
+			bool  GetColorFormats (OUT FeatureSet::PixelFormatSet_t &formats) C_NE___;
 			
-		ND_ bool  AcquireNextImage ();
-		ND_ bool  Present (MQueuePtr queue);
+		ND_ bool  AcquireNextImage ()					__NE___;
+		ND_ bool  Present (MQueuePtr queue)				__NE___;
 
-		ND_ bool			IsInitialized ()		const	{ DRC_SHAREDLOCK( _drCheck );  return bool(_mtlLayer) and _colorFormat != Default; }
+		ND_ bool			IsInitialized ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return bool(_mtlLayer) and _colorFormat != Default; }
 
-		ND_ MetalCALayer	GetMtlSurface ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _mtlLayer; }
+		ND_ MetalCALayer	GetMtlSurface ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _mtlLayer; }
 
-		ND_ uint2			GetSurfaceSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _surfaceSize; }
+		ND_ uint2			GetSurfaceSize ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _surfaceSize; }
 
-		ND_ EPixelFormat	GetColorFormat ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _colorFormat; }
-		ND_ EColorSpace		GetColorSpace ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _colorSpace; }
-		ND_ EPresentMode	GetPresentMode ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _presentMode; }
+		ND_ EPixelFormat	GetColorFormat ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _colorFormat; }
+		ND_ EColorSpace		GetColorSpace ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _colorSpace; }
+		ND_ EPresentMode	GetPresentMode ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _presentMode; }
 
-		ND_ uint			GetSwapchainLength ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _imageCount; }
+		ND_ uint			GetSwapchainLength ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _imageCount; }
 		
-		ND_ uint			GetCurretImageIndex ()	const;
-		ND_ bool			IsImageAcquired ()		const;
+		ND_ uint			GetCurretImageIndex ()		C_NE___;
+		ND_ bool			IsImageAcquired ()			C_NE___;
 
-		ND_ MetalImage		GetMtlCurrentImage ()		const;
-		ND_ ImageAndViewID	GetCurrentImageAndViewID ()	const;
-		ND_ ImageAndViewID	GetImageAndViewID (uint i)	const;
+		ND_ MetalImage		GetMtlCurrentImage ()		C_NE___;
+		ND_ ImageAndViewID	GetCurrentImageAndViewID ()	C_NE___;
+		ND_ ImageAndViewID	GetImageAndViewID (uint i)	C_NE___;
 		
 		// same as output params in 'AcquireNextImage()'
-		ND_ MetalCmdBatchDependency		GetImageAvailableSemaphore ()const;
-		ND_ MetalCmdBatchDependency		GetRenderFinishedSemaphore ()const;
+		ND_ MetalCmdBatchDependency		GetImageAvailableSemaphore ()	C_NE___;
+		ND_ MetalCmdBatchDependency		GetRenderFinishedSemaphore ()	C_NE___;
 	};
 	
 
@@ -131,14 +131,14 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit MSwapchainInitializer (const MDevice &);
+		explicit MSwapchainInitializer (const MDevice &)						__NE___;
 		
-		ND_ bool  CreateSurface (const NativeWindow &, StringView dbgName = {});
-			void  DestroySurface ();
+		ND_ bool  CreateSurface (const NativeWindow &, StringView dbgName = {})	__NE___;
+			void  DestroySurface ()												__NE___;
 
-		ND_ bool  IsSupported (EPresentMode presentMode, EPixelFormat colorFormat, EImageUsage colorImageUsage) const;
+		ND_ bool  IsSupported (EPresentMode presentMode, EPixelFormat colorFormat, EImageUsage colorImageUsage) C_NE___;
 
-		ND_ bool  ChooseFormat (INOUT EPixelFormat &colorFormat, INOUT EColorSpace &colorSpace) const;
+		ND_ bool  ChooseFormat (INOUT EPixelFormat &colorFormat, INOUT EColorSpace &colorSpace) C_NE___;
 
 		struct CreateInfo
 		{
@@ -151,19 +151,21 @@ namespace AE::Graphics
 		};
 		ND_ bool  Create (MResourceManager*	resMngr,
 						  const CreateInfo&	info,
-						  StringView		dbgName	= {});
+						  StringView		dbgName	= {})		__NE___;
 
 		ND_ bool  Create (MResourceManager&		resMngr,
 						  const uint2&			viewSize,
 						  const SwapchainDesc&	desc,
-						  StringView			dbgName	= {});
+						  StringView			dbgName	= {})	__NE___;
 
-			void  Destroy ();
+			void  Destroy ()									__NE___;
 
-		ND_ bool  Recreate (const uint2 &size);
+		ND_ bool  Recreate (const uint2 &size)					__NE___;
 
 	private:
-		ND_ bool  _Create (MResourceManager* resMngr, const CreateInfo& info, StringView dbgName);
+		ND_ bool  _Create (MResourceManager* resMngr, const CreateInfo& info, StringView dbgName)	__NE___;
+
+			void  _PrintInfo ()																		C_NE___;
 	};
 	
 

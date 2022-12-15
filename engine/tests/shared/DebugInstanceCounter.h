@@ -88,7 +88,7 @@ struct DebugInstanceCounter
 	{
 		String	str;
 		str << "\nObjectID:    " << ToString( UID )
-			<< "\nObj counter: " << ToString( _counter )
+			<< "\nObj counter: " << ToString( _counter )		// objects which is not destroyed
 			<< "\nEmpty ctors: " << ToString( _emptyCtorCnt )
 			<< "\nCopy ctors:  " << ToString( _copyCtorCnt )
 			<< "\nMove ctors:  " << ToString( _moveCtorCnt )

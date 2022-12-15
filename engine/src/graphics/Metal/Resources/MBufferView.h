@@ -27,17 +27,17 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MBufferView () {}
-		~MBufferView ();
+		MBufferView ()									__NE___	{}
+		~MBufferView ()									__NE___;
 
-		ND_ bool  Create (MResourceManager &, const BufferViewDesc &desc, BufferID bufferId, StringView dbgName);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (MResourceManager &, const BufferViewDesc &desc, BufferID bufferId, StringView dbgName) __NE___;
+			void  Destroy (MResourceManager &)			__NE___;
 		
-		ND_ MetalImage				Handle ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _bufferView; }
-		ND_ BufferViewDesc const&	Description ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ BufferID				Buffer ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
+		ND_ MetalImage				Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferView; }
+		ND_ BufferViewDesc const&	Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
+		ND_ BufferID				Buffer ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferId; }
 		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 	
 

@@ -157,7 +157,7 @@ namespace AE::Math
 		};
 	}
 	template <typename T>
-	static constexpr bool	IsPhysicalDimension = _hidden_::_IsPhysicalDimension<T>::value;
+	static constexpr bool	IsPhysicalDimension = Math::_hidden_::_IsPhysicalDimension<T>::value;
 
 
 
@@ -176,7 +176,7 @@ namespace AE::Math
 		using Mole				= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1 >;	// mol
 		using Candela			= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1 >;	// cd
 		using Currency			= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1 >;	// $
-		using Bits				= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1 >;	// bits
+		using Bit				= PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1 >;	// bit
 
 		using SquareMeter				= Meter::Pow< 2 >;										// m^2
 		using CubicMeter				= Meter::Pow< 3 >;										// m^3
@@ -200,8 +200,10 @@ namespace AE::Math
 		using Siemens					= NonDimensional::Div< Ohm >;							// S = 1 / Ohm
 		using Lumen						= Candela;												// lm = cd * (sr)
 		using Lux						= Lumen::Div< SquareMeter >;							// lx = lm / m^2
-		using AmperPerMeter				= Ampere::Div< Meter >;									// A/m
-		using KilogramPerMole			= Kilogram::Div< Mole >;								// kg/mol
+		using AmperPerMeter				= Ampere::Div< Meter >;									// A / m
+		using KilogramPerMole			= Kilogram::Div< Mole >;								// kg / mol
+		using BitPerSecond				= Bit::Div< Second >;									// bit / s
+		using Frequency					= NonDimensional::Div< Second >;						// 1 / s
 	};
 
 
@@ -235,7 +237,7 @@ namespace AE::Math
 	static constexpr bool	IsCurrencyUnits			= T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Currency >::value;
 	
 	template <typename T>
-	static constexpr bool	IsInformationUnits		= T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Bits >::value;
+	static constexpr bool	IsInformationUnits		= T::Dimension_t::template Equal< typename DefaultPhysicalDimensions::Bit >::value;
 
 	
 	//

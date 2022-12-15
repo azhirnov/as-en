@@ -183,11 +183,18 @@ namespace AE::Base
 		template <typename B>
 		StdAllocatorRef (const StdAllocatorRef<B,TAllocatorPtr>& other) __NE___ : _alloc{other.GetAllocatorPtr()} {}
 
-		Self&  operator = (const Self &)					= delete;
-		Self&  operator = (Self &&)							= default;
+		Self&  operator = (const Self &)							= delete;
+		Self&  operator = (Self &&)							__NE___	= default;
 
 		
-		ND_ T*  allocate (const usize count)				__NE___	{ return Cast<T>( _alloc->Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
+		// returns non-null pointer
+		ND_ T*  allocate (const usize count)				__Th___
+		{
+			T*	ptr = Cast<T>( _alloc->Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }));
+			if_unlikely( ptr == null )
+				throw std::bad_alloc{};
+			return ptr;
+		}
 
 		void  deallocate (T * const ptr, const usize count)	__NE___	{ return _alloc->Deallocate( ptr, SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }); }
 

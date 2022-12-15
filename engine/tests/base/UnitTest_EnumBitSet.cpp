@@ -56,6 +56,10 @@ namespace
 		bits.InsertRange( ETest::Bit_100, ETest::Bit_110 );
 		TEST( bits.AllInRange( ETest::Bit_100, ETest::Bit_110 ));
 		TEST( bits.AnyInRange( ETest::Bit2, ETest::Bit_100 ));
+
+		ETest	a0 = bits.ExtractFirst();
+		TEST( a0 == ETest::Bit_100 );
+		TEST( not bits.AllInRange( ETest::Bit_100, ETest::Bit_110 ));
 	}
 }
 

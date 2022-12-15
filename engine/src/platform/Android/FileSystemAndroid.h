@@ -51,7 +51,7 @@ namespace AE::App
 
 		Bytes		ReadSeq (OUT void *buffer, Bytes size)	__NE_OV;
 
-		RC<RDataSource>	AsRDataSource ()					__Th_OV;
+		RC<RDataSource>	AsRDataSource ()					__Th___;
 	};
 
 
@@ -83,7 +83,7 @@ namespace AE::App
 
 		Bytes		ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
 
-		RC<RStream>	AsRStream ()						__Th_OV;
+		RC<RStream>	AsRStream ()						__Th___;
 	};
 
 

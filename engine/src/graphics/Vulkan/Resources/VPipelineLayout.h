@@ -20,8 +20,7 @@ namespace AE::Graphics
 		struct DescSetLayout
 		{
 			DescriptorSetLayoutID		layoutId;
-			VkDescriptorSetLayout		layout		= Default;	// TODO: remove?
-			uint						index		= 0;
+			DescSetBinding				index;
 		};
 
 		using DescriptorSets_t		= FixedMap< DescriptorSetName::Optimized_t, DescSetLayout, GraphicsConfig::MaxDescriptorSets >;
@@ -42,22 +41,22 @@ namespace AE::Graphics
 		
 	// methods
 	public:
-		VPipelineLayout () {}
-		~VPipelineLayout ();
+		VPipelineLayout ()										__NE___	{}
+		~VPipelineLayout ()										__NE___;
 		
 		ND_ bool  Create (VResourceManager &resMngr, const DescriptorSets_t &descSetLayouts, const PushConstants_t &pushConstants,
-						  VkDescriptorSetLayout emptyLayout, StringView dbgName);
-			void  Destroy (VResourceManager &);
+						  VkDescriptorSetLayout emptyLayout, StringView dbgName)	__NE___;
+			void  Destroy (VResourceManager &)										__NE___;
 		
-		ND_ bool  GetDescriptorSetLayout (const DescriptorSetName &id, OUT DescriptorSetLayoutID &layout, OUT uint &binding) const;
+		ND_ bool  GetDescriptorSetLayout (const DescriptorSetName &id, OUT DescriptorSetLayoutID &layout, OUT DescSetBinding &binding) C_NE___;
 
-		ND_ VkPipelineLayout		Handle ()					const	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
+		ND_ VkPipelineLayout		Handle ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
 		
-		ND_ uint					GetFirstDescriptorSet ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _firstDescSet; }
-		ND_ DescriptorSets_t const&	GetDescriptorSets ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _descriptorSets; }
-		ND_ PushConstants_t const&	GetPushConstants ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _pushConstants; }
+		ND_ uint					GetFirstDescriptorSet ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _firstDescSet; }
+		ND_ DescriptorSets_t const&	GetDescriptorSets ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _descriptorSets; }
+		ND_ PushConstants_t const&	GetPushConstants ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pushConstants; }
 		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 } // AE::Graphics

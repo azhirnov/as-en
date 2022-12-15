@@ -45,6 +45,9 @@ namespace AE::Base
 			static bool  CompareLineByLine (StringView left, StringView right,
 											IfNotEqualFn && ifNotEqual,
 											IfSizeIsNotEqualFn && ifSizeNotEqual)									__Th___;
+
+			static void  Preprocessor_CPP (StringView str, ArrayView<StringView> defines,
+										   OUT Array<StringView> &result)											__Th___;
 	};
 	
 

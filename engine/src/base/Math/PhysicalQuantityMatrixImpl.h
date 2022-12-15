@@ -34,7 +34,7 @@ namespace AE::Math
 		STATIC_ASSERT( sizeof(VRow_t) == sizeof(QRow_t) );
 
 		using Inversed_t	= PhysicalQuantityMatrix< typename Quantity::Inversed_t, Columns, Rows, Q >;
-		using _Dim_t		= VMatrix_t::Dim_t;
+		using _Dim_t		= typename VMatrix_t::Dim_t;
 
 
 	// variables

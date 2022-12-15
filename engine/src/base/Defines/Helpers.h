@@ -43,34 +43,35 @@
 
 
 // bit operators
-#define AE_BIT_OPERATORS( _type_ ) \
-	ND_ constexpr _type_  operator |  (_type_ lhs, _type_ rhs)	{ return _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); } \
-	ND_ constexpr _type_  operator &  (_type_ lhs, _type_ rhs)	{ return _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); } \
-	\
-	constexpr _type_&  operator |= (_type_ &lhs, _type_ rhs)	{ return lhs = _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); } \
-	constexpr _type_&  operator &= (_type_ &lhs, _type_ rhs)	{ return lhs = _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); } \
-	\
-	ND_ constexpr _type_  operator ~ (_type_ lhs)				{ return _type_(~AE::Base::ToNearUInt(lhs)); } \
-	ND_ constexpr bool   operator ! (_type_ lhs)				{ return not AE::Base::ToNearUInt(lhs); } \
+#define AE_BIT_OPERATORS( _type_ )																																\
+	ND_ constexpr _type_	operator |  (_type_ lhs, _type_ rhs)	__NE___	{ return _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); }			\
+	ND_ constexpr _type_	operator &  (_type_ lhs, _type_ rhs)	__NE___	{ return _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); }			\
+																																								\
+		constexpr _type_&	operator |= (_type_ &lhs, _type_ rhs)	__NE___	{ return lhs = _type_( AE::Base::ToNearUInt(lhs) | AE::Base::ToNearUInt(rhs) ); }	\
+		constexpr _type_&	operator &= (_type_ &lhs, _type_ rhs)	__NE___	{ return lhs = _type_( AE::Base::ToNearUInt(lhs) & AE::Base::ToNearUInt(rhs) ); }	\
+																																								\
+	ND_ constexpr _type_	operator ~ (_type_ lhs)					__NE___	{ return _type_(~AE::Base::ToNearUInt(lhs)); }										\
+	ND_ constexpr bool		operator ! (_type_ lhs)					__NE___	{ return not AE::Base::ToNearUInt(lhs); }											\
 	
 
 // enable/disable checks for enums
 #if defined(AE_COMPILER_MSVC)
-#	define BEGIN_ENUM_CHECKS() \
-		__pragma (warning (push)) \
-		__pragma (warning (error: 4061)) /*enumerator 'identifier' in switch of enum 'enumeration' is not explicitly handled by a case label*/ \
-		__pragma (warning (error: 4062)) /*enumerator 'identifier' in switch of enum 'enumeration' is not handled*/ \
-		__pragma (warning (error: 4063)) /*case 'number' is not a valid value for switch of enum 'type'*/ \
+#	define BEGIN_ENUM_CHECKS()																													\
+		__pragma (warning (push))																												\
+		__pragma (warning (error: 4061)) /*enumerator 'identifier' in switch of enum 'enumeration' is not explicitly handled by a case label*/	\
+		__pragma (warning (error: 4062)) /*enumerator 'identifier' in switch of enum 'enumeration' is not handled*/								\
+		__pragma (warning (error: 4063)) /*case 'number' is not a valid value for switch of enum 'type'*/										\
 
 #	define END_ENUM_CHECKS() \
 		__pragma (warning (pop)) \
 
 #elif defined(AE_COMPILER_CLANG)
-#	define BEGIN_ENUM_CHECKS() \
-		 _Pragma( "clang diagnostic error \"-Wswitch\"" )
+#	define BEGIN_ENUM_CHECKS()							\
+		_Pragma("clang diagnostic push")				\
+		_Pragma( "clang diagnostic error \"-Wswitch\"" )\
 
 #	define END_ENUM_CHECKS() \
-		 _Pragma( "clang diagnostic ignored \"-Wswitch\"" )
+		_Pragma("clang diagnostic pop")
 
 #else
 #	define BEGIN_ENUM_CHECKS()
@@ -101,30 +102,30 @@
 #	define AE_PRIVATE_BREAK_POINT()	{}
 
 #	undef  AE_PRIVATE_CHECK
-#	define AE_PRIVATE_CHECK( _expr_, _text_ ) \
-		{if ( !(_expr_) ) { \
-			AE_LOGI( _text_ ); \
-			AE_PRIVATE_EXIT(); \
+#	define AE_PRIVATE_CHECK( _expr_, _text_ )		\
+		{if ( not (_expr_) ) {						\
+			AE_LOGI( _text_ );						\
+			AE_PRIVATE_EXIT();						\
 		}}
 
 #	undef  AE_PRIVATE_CHECK_ERR
-#	define AE_PRIVATE_CHECK_ERR( _expr_, _ret_ ) \
-		{if ( !(_expr_) ) { \
-			AE_LOGI( AE_TOSTRING( _expr_ )); \
-			AE_PRIVATE_EXIT(); \
+#	define AE_PRIVATE_CHECK_ERR( _expr_, _ret_ )	\
+		{if ( not (_expr_) ) {						\
+			AE_LOGI( AE_TOSTRING( _expr_ ));		\
+			AE_PRIVATE_EXIT();						\
 		}}
 
 #	undef  CHECK_FATAL
-#	define CHECK_FATAL( /* expr */... ) \
-		{if ( !(__VA_ARGS__) ) { \
-			AE_LOGI( AE_TOSTRING( __VA_ARGS__ )); \
-			AE_PRIVATE_EXIT(); \
+#	define CHECK_FATAL( /* expr */... )				\
+		{if ( not (__VA_ARGS__) ) {					\
+			AE_LOGI( AE_TOSTRING( __VA_ARGS__ ));	\
+			AE_PRIVATE_EXIT();						\
 		}}
 
 #	undef  AE_PRIVATE_RETURN_ERR
-#	define AE_PRIVATE_RETURN_ERR( _text_, _ret_ ) \
-		{AE_LOGI( _text_ ); \
-		 AE_PRIVATE_EXIT(); \
+#	define AE_PRIVATE_RETURN_ERR( _text_, _ret_ )	\
+		{AE_LOGI( _text_ );							\
+		 AE_PRIVATE_EXIT();							\
 		}
 
 # ifdef AE_DEBUG
@@ -138,17 +139,3 @@
 		AE_PRIVATE_CHECK( (__VA_ARGS__), AE_TOSTRING( __VA_ARGS__ ))
 
 #endif // AE_CI_BUILD
-
-
-#if 1
-#	define AE_DEFAULT_COPYABLE_NE( _name_ ) \
-		_name_ ()							__NE___ = default; \
-		\
-		_name_ (const _name_ &)				__NE___	= default; \
-		_name_ (_name_ &&)					__NE___	= default; \
-		\
-		_name_& operator = (const _name_ &)	__NE___	= default; \
-		_name_& operator = (_name_ &&)		__NE___	= default; \
-
-		
-#endif

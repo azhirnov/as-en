@@ -127,7 +127,7 @@ namespace AE::Math
 			  typename		 ValueScale	= ValueScaleTempl::Integer< typename MatType::Value_t, 1 >,
 			  glm::qualifier Q			= GLMQuialifier
 			 >
-	using PhysicalQuantity_FromMat = _hidden_::_PhysicalQuantity_FromMat< MatType, Dimension, ValueScale, Q >::type;
+	using PhysicalQuantity_FromMat = typename Math::_hidden_::_PhysicalQuantity_FromMat< MatType, Dimension, ValueScale, Q >::type;
 
 /*
 =================================================

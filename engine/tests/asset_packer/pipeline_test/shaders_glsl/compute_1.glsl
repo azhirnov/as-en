@@ -1,7 +1,7 @@
 
 #include "common.glsl"
 
-void main ()
+void Main ()
 {
 	float4 fragColor = float4(float(gl_LocalInvocationID.x) / float(gl_WorkGroupSize.x),
 							  float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y),

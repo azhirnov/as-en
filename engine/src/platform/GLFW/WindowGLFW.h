@@ -31,29 +31,29 @@ namespace AE::App
 
 	// methods
 	public:
-		~WindowGLFW ();
+		~WindowGLFW ()												__NE_OV;
 
-		ND_ GLFWwindow*  GetGLFWwindow ()	const	{ return _window; }
+		ND_ GLFWwindow*  GetGLFWwindow ()							C_NE___	{ return _window; }
 
 
 	// IWindow //
-		void	Close () override;
+		void	Close ()											__NE_OV;
 		
-		uint2	GetSurfaceSize ()	const override;
-		Monitor	GetMonitor ()		const override;
+		uint2	GetSurfaceSize ()									C_NE_OV;
+		Monitor	GetMonitor ()										C_NE_OV;
 
-		IInputActions&	InputActions ()		  override	{ return _input; }
-		NativeWindow	GetNative ()	const override;
+		IInputActions&	InputActions ()								__NE_OV	{ return _input; }
+		NativeWindow	GetNative ()								C_NE_OV;
 
-		void  SetSize (const uint2 &size) override;
-		void  SetPosition (const int2 &pos) override;
-		void  SetPosition (Monitor::ID monitor, const int2 &pos) override;
-		void  SetTitle (NtStringView title) override;
-		void  SetFocus () const override;
+		void  SetSize (const uint2 &size)							__NE_OV;
+		void  SetPosition (const int2 &pos)							__NE_OV;
+		void  SetPosition (Monitor::ID monitor, const int2 &pos)	__NE_OV;
+		void  SetTitle (NtStringView title)							__NE_OV;
+		void  SetFocus ()											C_NE_OV;
 
 
 	private:
-		WindowGLFW (ApplicationGLFW &app, Unique<IWndListener>, IInputActions*);
+		WindowGLFW (ApplicationGLFW &app, Unique<IWndListener>, IInputActions*) __NE___;
 
 		ND_ bool  _Create (const WindowDesc &desc);
 			void  _Destroy ();

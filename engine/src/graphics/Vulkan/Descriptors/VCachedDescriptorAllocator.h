@@ -33,10 +33,10 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VCachedDescriptorAllocator () {}
-		~VCachedDescriptorAllocator () __NE_OV;
+		VCachedDescriptorAllocator ()											__NE___	{}
+		~VCachedDescriptorAllocator ()											__NE_OV;
 
-		bool  Preallocate (ArrayView<Pair< DescriptorSetLayoutID, uint >> info);
+		bool  Preallocate (ArrayView<Pair< DescriptorSetLayoutID, uint >> info)	__NE___;
 
 		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)		__NE_OV;
 		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)	__NE_OV;

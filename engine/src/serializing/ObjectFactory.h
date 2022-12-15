@@ -173,3 +173,6 @@ namespace AE::Serializing
 	}
 
 } // AE::Serializing
+
+//#include "serializing/Serializer.inl.h"
+//#include "serializing/Deserializer.inl.h"

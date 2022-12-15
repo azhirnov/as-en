@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+// Macro defined in 'ResourceManagerDecl.h'
+
 /*
 =================================================
 	GetResource
@@ -283,6 +285,6 @@
 		CHECK_THROW( result.AllNonNull() );
 		return result;
 	}
-	
+//-----------------------------------------------------------------------------
 
 #undef RESMNGR

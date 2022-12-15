@@ -8,7 +8,7 @@
 namespace AE::Threading
 {
 
-	enum class EThread : ubyte
+	enum class ETaskQueue : ubyte
 	{
 		Main,		// thread with window message loop
 		Worker,
@@ -18,19 +18,19 @@ namespace AE::Threading
 	};
 
 
-	enum class EThread2 : ubyte
+	enum class EThread : ubyte
 	{
-		Main		= EThread::Main,
-		Worker		= EThread::Worker,
-		Renderer	= EThread::Renderer,
-		Network		= EThread::Network,
-		_Last		= EThread::_Count,
+		Main		= ubyte(ETaskQueue::Main),
+		Worker		= ubyte(ETaskQueue::Worker),
+		Renderer	= ubyte(ETaskQueue::Renderer),
+		Network		= ubyte(ETaskQueue::Network),
+		_Last		= ubyte(ETaskQueue::_Count),
 
 		FileIO,		// thread can not process tasks
 		_Count
 	};
-	STATIC_ASSERT( sizeof(EThread2) == sizeof(EThread) );
-	STATIC_ASSERT( uint(EThread::_Count) == 4 );
+	STATIC_ASSERT( sizeof(EThread) == sizeof(ETaskQueue) );
+	STATIC_ASSERT( uint(ETaskQueue::_Count) == 4 );
 
 
 
@@ -41,7 +41,7 @@ namespace AE::Threading
 	{
 	// variables
 	private:
-		FixedArray< EThread2, uint(EThread2::_Count) >	_arr;
+		FixedArray< EThread, uint(EThread::_Count) >	_arr;
 			
 
 	// methods
@@ -50,8 +50,8 @@ namespace AE::Threading
 		constexpr EThreadArray (EThreadArray &&)					__NE___	= default;
 		constexpr EThreadArray (const EThreadArray &)				__NE___	= default;
 
-		constexpr EThreadArray&  operator = (EThreadArray &&)		__NE___	= default;
-		constexpr EThreadArray&  operator = (const EThreadArray &)	__NE___	= default;
+		EThreadArray&  operator = (EThreadArray &&)					__NE___	= default;
+		EThreadArray&  operator = (const EThreadArray &)			__NE___	= default;
 
 		template <typename ...Args>
 		constexpr explicit EThreadArray (Args ...args)				__NE___	{ _Insert( args... ); }
@@ -65,21 +65,21 @@ namespace AE::Threading
 		ND_ constexpr auto		end ()								C_NE___	{ return _arr.end(); }
 
 
-		ND_ constexpr EnumBitSet<EThread>  ToThreadMask ()				C_NE___
+		ND_ constexpr EnumBitSet<ETaskQueue>  ToQueueMask ()		C_NE___
 		{
-			EnumBitSet<EThread>		result;
+			EnumBitSet<ETaskQueue>		result;
 			for (auto tt : *this)
 			{
-				if_likely( tt < EThread2::_Last )
-					result.insert( EThread(tt) );
+				if_likely( tt < EThread::_Last )
+					result.insert( ETaskQueue(tt) );
 			}
 			return result;
 		}
 
 
-		ND_ constexpr EnumBitSet<EThread2>  ToThread2Mask ()				C_NE___
+		ND_ constexpr EnumBitSet<EThread>  ToThreadMask ()			C_NE___
 		{
-			EnumBitSet<EThread2>	result;
+			EnumBitSet<EThread>	result;
 			for (auto tt : *this) {
 				result.insert( tt );
 			}
@@ -91,9 +91,9 @@ namespace AE::Threading
 		template <typename Arg0, typename ...Args>
 		constexpr void  _Insert (Arg0 arg0, Args ...args)			__NE___
 		{
-			STATIC_ASSERT(( IsSameTypes< Arg0, EThread > or IsSameTypes< Arg0, EThread2 > ));
+			STATIC_ASSERT(( IsSameTypes< Arg0, ETaskQueue > or IsSameTypes< Arg0, EThread > ));
 
-			_arr.try_push_back( EThread2(arg0) );
+			_arr.try_push_back( EThread(arg0) );
 
 			if constexpr( sizeof...(args) > 0 )
 				return _Insert( args... );

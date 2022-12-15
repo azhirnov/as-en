@@ -32,6 +32,7 @@ namespace AE::Graphics
 	// variables
 		mutable RecursiveMutex		guard;				// use when call vkQueueSubmit, vkQueueWaitIdle, vkQueueBindSparse, vkQueuePresentKHR,
 														// warning: don't use vkDeviceWaitIdle because it implicitly use all queues, so 'guard' must be locked for all queues.
+														// TODO: AsyncMutex ?
 		VkQueue						handle				= Default;
 		EQueueType					type				= Default;
 		EQueueFamily				familyIndex			= Default;
@@ -49,6 +50,7 @@ namespace AE::Graphics
 	// methods
 		VQueue () __NE___ {}
 
+		// move-ctor used only during device initialization, mutex is not moved
 		VQueue (VQueue &&other) __NE___ :
 			handle{other.handle}, type{other.type}, familyIndex{other.familyIndex}, familyFlags{other.familyFlags},
 			queueIndex{other.queueIndex}, priority{other.priority}, globalPriority{other.globalPriority},
@@ -295,13 +297,13 @@ namespace AE::Graphics
 		STATIC_ASSERT( CountOf(_AccessScopes) == uint(EPipelineScope::_Count) );
 
 	public:
-		ND_ static constexpr auto	GetStages (EPipelineScope scope)	{ return _StageScopes[uint(scope)]; }
-		ND_ static constexpr auto	GetAccess (EPipelineScope scope)	{ return _AccessScopes[uint(scope)]; }
+		ND_ static constexpr auto	GetStages (EPipelineScope scope)		__NE___	{ return _StageScopes[uint(scope)]; }
+		ND_ static constexpr auto	GetAccess (EPipelineScope scope)		__NE___	{ return _AccessScopes[uint(scope)]; }
 		
-		ND_ static constexpr auto	GetReadAccess (EPipelineScope scope)	{ return _AccessScopes[uint(scope)] & _ReadOnlyAccessMask; }
-		ND_ static constexpr auto	GetWriteAccess (EPipelineScope scope)	{ return _AccessScopes[uint(scope)] & _WriteOnlyAccessMask; }
+		ND_ static constexpr auto	GetReadAccess (EPipelineScope scope)	__NE___	{ return _AccessScopes[uint(scope)] & _ReadOnlyAccessMask; }
+		ND_ static constexpr auto	GetWriteAccess (EPipelineScope scope)	__NE___	{ return _AccessScopes[uint(scope)] & _WriteOnlyAccessMask; }
 
-		ND_ static constexpr auto	GetStages (std::initializer_list<EPipelineScope> scopes)
+		ND_ static constexpr auto	GetStages (std::initializer_list<EPipelineScope> scopes) __NE___
 		{
 			VkPipelineStageFlagBits2	result = 0;
 			for (auto scope : scopes)
@@ -309,7 +311,7 @@ namespace AE::Graphics
 			return result;
 		}
 
-		ND_ static constexpr auto	GetAccess (std::initializer_list<EPipelineScope> scopes)
+		ND_ static constexpr auto	GetAccess (std::initializer_list<EPipelineScope> scopes) __NE___
 		{
 			VkAccessFlagBits2	result = 0;
 			for (auto scope : scopes)
@@ -317,7 +319,7 @@ namespace AE::Graphics
 			return result;
 		}
 
-		ND_ static constexpr auto	GetStagesAndAccess (std::initializer_list<EPipelineScope> scopes)
+		ND_ static constexpr auto	GetStagesAndAccess (std::initializer_list<EPipelineScope> scopes) __NE___
 		{
 			auto	result = Tuple{ VkPipelineStageFlagBits2(0), VkAccessFlagBits2(0) };
 			for (auto scope : scopes) {

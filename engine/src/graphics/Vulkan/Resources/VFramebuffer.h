@@ -30,14 +30,14 @@ namespace AE::Graphics
 			Attachments_t	attachments;
 
 		// methods
-			Key (StructView<ImageViewID>, VRenderPassID, const uint3 &dim);
+			Key (StructView<ImageViewID>, VRenderPassID, const uint3 &dim) __NE___;
 
-			ND_ bool	operator == (const Key &) const;
-			ND_ HashVal	CalcHash () const;
+			ND_ bool	operator == (const Key &)	C_NE___;
+			ND_ HashVal	CalcHash ()					C_NE___;
 		};
 		
 		struct KeyHash {
-			ND_ usize  operator () (const Key &key) const {
+			ND_ usize  operator () (const Key &key) C_NE___ {
 				return usize(key.CalcHash());
 			}
 		};
@@ -63,31 +63,31 @@ namespace AE::Graphics
 		
 	// methods
 	public:
-		VFramebuffer () {}
-		~VFramebuffer ();
+		VFramebuffer ()									__NE___	{}
+		~VFramebuffer ()								__NE___;
 		
-		ND_ bool  Create (VResourceManager &, const RenderPassDesc &desc, VRenderPassID rpId, StringView dbgName = Default);
-			void  Destroy (VResourceManager &);
-		ND_ bool  SetCachePtr (CachePtr_t ptr);
+		ND_ bool  Create (VResourceManager &, const RenderPassDesc &desc, VRenderPassID rpId, StringView dbgName = Default)	__NE___;
+			void  Destroy (VResourceManager &)																				__NE___;
+		ND_ bool  SetCachePtr (CachePtr_t ptr)																				__NE___;
 
-		ND_ bool  IsAllResourcesAlive (const VResourceManager &) const;
+		ND_ bool  IsAllResourcesAlive (const VResourceManager &) C_NE___;
 
-		ND_ VkFramebuffer			Handle ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _framebuffer; }
-		ND_ VRenderPassID			RenderPassID ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _renderPassId; }
-		ND_ uint2 const&			Dimension ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _dimension; }
-		ND_ uint					Layers ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _layers.Get(); }
-		ND_ ArrayView<ImageViewID>	Attachments ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _attachments; }
-		ND_ ArrayView<ImageID>		Images ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _images; }
+		ND_ VkFramebuffer			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _framebuffer; }
+		ND_ VRenderPassID			RenderPassID ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderPassId; }
+		ND_ uint2 const&			Dimension ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dimension; }
+		ND_ uint					Layers ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layers.Get(); }
+		ND_ ArrayView<ImageViewID>	Attachments ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _attachments; }
+		ND_ ArrayView<ImageID>		Images ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _images; }
 		
-		DEBUG_ONLY( ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
 	private:
-		ND_ bool  _Create (VResourceManager &, const RenderPassDesc &desc, StringView dbgName);
+		ND_ bool  _Create (VResourceManager &, const RenderPassDesc &desc, StringView dbgName) __NE___;
 	};
 
 	
 	
-	inline VFramebuffer::Key::Key (StructView<ImageViewID> inAttachments, VRenderPassID rpId, const uint3 &dim) :
+	inline VFramebuffer::Key::Key (StructView<ImageViewID> inAttachments, VRenderPassID rpId, const uint3 &dim) __NE___ :
 		dimension{ dim },
 		renderPassId{ rpId }
 	{
@@ -95,7 +95,7 @@ namespace AE::Graphics
 			attachments.push_back( id );
 	}
 
-	inline bool  VFramebuffer::Key::operator == (const Key &rhs) const
+	inline bool  VFramebuffer::Key::operator == (const Key &rhs) C_NE___
 	{
 		return	All( dimension	== rhs.dimension )		&
 				(renderPassId	== rhs.renderPassId)	&

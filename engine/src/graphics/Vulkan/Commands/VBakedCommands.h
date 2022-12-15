@@ -17,7 +17,7 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		using Header	= _hidden_::SoftwareCmdBufBase::Header;
+		using Header	= Graphics::_hidden_::SoftwareCmdBufBase::Header;
 
 
 
@@ -43,7 +43,7 @@ namespace AE::Graphics
 
 		void  Destroy ()						__NE___
 		{
-			_hidden_::SoftwareCmdBufBase::Deallocate( _root );
+			Graphics::_hidden_::SoftwareCmdBufBase::Deallocate( _root );
 			_root = null;
 		}
 		

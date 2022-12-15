@@ -46,9 +46,7 @@ namespace _hidden_
 			
 		// methods
 		public:
-			promise_type () :
-				IAsyncTask{ EThread::Worker }
-			{}
+			promise_type ()											__NE___	: IAsyncTask{ ETaskQueue::Worker } {}
 
 			ND_ Coroutine_t			get_return_object ()			__NE___	{ return Coroutine_t{ *this }; }
 
@@ -121,6 +119,10 @@ namespace _hidden_
 
 		ND_ IAsyncTask::EStatus	_Status ()					C_NE___	{ return _coro ? _coro->Status() : IAsyncTask::EStatus::Canceled; }
 		ND_ ResultType			_Result ()					C_NE___	{ ASSERT( _coro );  ASSERT( _coro->Status() == IAsyncTask::EStatus::Completed );  return RVRef(_coro->_value); }
+
+	private:
+		friend class TaskScheduler;
+		void  _SetQueueType (ETaskQueue type)				__NE___	{ _coro->_SetQueueType( type ); }
 	};
 
 	
@@ -234,10 +236,12 @@ namespace _hidden_
 	}
 
 } // _hidden_
+//-----------------------------------------------------------------------------
+
 
 
 	template <typename ResultType>
-	using Coroutine = _hidden_::Coroutine<ResultType>;
+	using Coroutine = Threading::_hidden_::Coroutine<ResultType>;
 	
 /*
 =================================================
@@ -245,9 +249,9 @@ namespace _hidden_
 =================================================
 */
 	template <typename ...Types>
-	ND_ _hidden_::CoroutineAwaiter<Tuple<Types...>>  operator co_await (const Tuple<Coroutine<Types>...> &deps) __NE___
+	ND_ Threading::_hidden_::CoroutineAwaiter<Tuple<Types...>>  operator co_await (const Tuple<Coroutine<Types>...> &deps) __NE___
 	{
-		return _hidden_::CoroutineAwaiter<Tuple<Types...>>{ deps };
+		return Threading::_hidden_::CoroutineAwaiter<Tuple<Types...>>{ deps };
 	}
 
 

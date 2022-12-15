@@ -460,6 +460,22 @@ namespace AE::Base
 	{
 		return ToAnsiString<R>( BasicStringView<T>{ str }, defaultChar );
 	}
+
+/*
+=================================================
+	IsAnsiString
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr bool  IsAnsiString (const T *ptr, usize length)
+	{
+		for (usize i = 0; i < length; ++i)
+		{
+			if_unlikely( ToNearUInt(ptr[i]) > 0x7F )
+				return false;
+		}
+		return true;
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -794,15 +810,15 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, typename D, typename S>
-	ND_ String  ToString (const PhysicalQuantity<V,D,S> &value) __Th___
+	ND_ String  ToString (const PhysicalQuantity<V,D,S> &value, uint fractParts = 2, Bool exponent = True{}) __Th___
 	{
-		return ToString( value.GetScaled(), 2, True{"exponent"} ) << '[' << ToString( D{} ) << ']';
+		return ToString( value.GetScaled(), fractParts, exponent ) << '[' << ToString( D{} ) << ']';
 	}
 
 	template <typename V, typename D, typename S>
-	ND_ String  ToDebugString (const PhysicalQuantity<V,D,S> &value) __Th___
+	ND_ String  ToDebugString (const PhysicalQuantity<V,D,S> &value, uint fractParts = 2, Bool exponent = True{}) __Th___
 	{
-		return ToString( value.GetNonScaled(), 2, True{"exponent"} ) << '*' << ToString( S::Value, 2, True{"exponent"} ) << '[' << ToString( D{} ) << ']';
+		return ToString( value.GetNonScaled(), fractParts, exponent ) << '*' << ToString( S::Value, fractParts, exponent ) << '[' << ToString( D{} ) << ']';
 	}
 //-----------------------------------------------------------------------------
 	
@@ -901,27 +917,71 @@ namespace AE::Base
 	StringTo***
 =================================================
 */
+	template <typename T>
+	ND_ usize  StringToValue (StringView str, OUT T &result) __NE___
+	{
+		if constexpr( IsInteger<T> )
+		{
+			ASSERT( str.empty() or (str[0] != '-' and str[0] != '+') );
+
+			usize	off	= 0;
+			
+			if ( str.size() > 2 and ((str[0] == '0') & (ToLowerCase(str[1]) == 'x')) )
+				off = 2;
+			else
+			if ( str.size() > 1 and str[0] == '#' )
+				off = 1;
+
+			auto	err	= std::from_chars( str.data() + off, str.data() + str.size(), OUT result, off ? 16 : 10 );
+			ASSERT( err.ec == std::errc() );
+
+			return usize(err.ptr) - usize(str.data() + off);
+		}
+
+	  #ifdef AE_COMPILER_MSVC
+		if constexpr( IsFloatPoint<T> )
+		{
+			auto	err	= std::from_chars( str.data(), str.data() + str.size(), OUT result, std::chars_format::general );
+			ASSERT( err.ec == std::errc() );
+
+			return usize(err.ptr) - usize(str.data());
+		}
+	  #endif
+	}
+
 	ND_ inline int  StringToInt (StringView str, int base = 10) __NE___
 	{
 		ASSERT( base == 10 or base == 16 );
+		ASSERT( not StartsWith( str, "0x" ));
+
 		int		val = 0;
-		std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
+		auto	err	= std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
+
+		ASSERT( err.ec == std::errc() );
 		return val;
 	}
 	
 	ND_ inline uint  StringToUInt (StringView str, int base = 10) __NE___
 	{
 		ASSERT( base == 10 or base == 16 );
+		ASSERT( not StartsWith( str, "0x" ));
+
 		uint	val = 0;
-		std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
+		auto	err	= std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
+		
+		ASSERT( err.ec == std::errc() );
 		return val;
 	}
 	
 	ND_ inline ulong  StringToUInt64 (StringView str, int base = 10) __NE___
 	{
 		ASSERT( base == 10 or base == 16 );
+		ASSERT( not StartsWith( str, "0x" ));
+
 		ulong	val = 0;
-		std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
+		auto	err	= std::from_chars( str.data(), str.data() + str.size(), OUT val, base );
+		
+		ASSERT( err.ec == std::errc() );
 		return val;
 	}
 	
@@ -929,14 +989,14 @@ namespace AE::Base
 	ND_ inline float  StringToFloat (StringView str) __NE___
 	{
 		float	val = 0.0f;
-		std::from_chars( str.data(), str.data() + str.size(), OUT val, std::chars_format::general );
+		Unused( StringToValue( str, OUT val ));
 		return val;
 	}
 	
 	ND_ inline double  StringToDouble (StringView str) __NE___
 	{
 		double	val = 0.0;
-		std::from_chars( str.data(), str.data() + str.size(), OUT val, std::chars_format::general );
+		Unused( StringToValue( str, OUT val ));
 		return val;
 	}
 #endif

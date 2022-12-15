@@ -13,12 +13,14 @@
 # include "base/Math/Rectangle.h"
 
 # include "threading/Common.h"
+# include "threading/Primitives/DataRaceCheck.h"
 
 namespace AE::Profiler
 {
 	using namespace AE::Base;
 	
 	using AE::Threading::SharedMutex;
+	using AE::Threading::DataRaceCheck;
 
 } // AE::Profiler
 

@@ -78,7 +78,7 @@ namespace _hidden_
 		template <typename T>
 		ND_ EnableIf<IsInteger<T>, T>  Uniform () __NE___
 		{
-			using IT = typename _hidden_::Random_Uniform_IntType<T>::type;
+			using IT = typename Math::_hidden_::Random_Uniform_IntType<T>::type;
 			return T( Uniform<IT>( Base::MinValue<T>(), Base::MaxValue<T>() ));
 		}
 

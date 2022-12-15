@@ -62,11 +62,11 @@ namespace
 
 	static void  ToBitMask_Test1 ()
 	{
-		uint	a0 = ToBitMask<uint>( 0u );					TEST( a0 == 0 );
-		uint	a1 = ToBitMask<uint>( 32u );				TEST( a1 == ~0u );
-		uint	a2 = ToBitMask<uint>( 5u );					TEST( a2 == ((1u << 5)-1) );
-		uint	a3 = ToBitMask<uint>( -1 );					TEST( a3 == 0 );
-		uint	a4 = ToBitMask<uint>( MinValue<int>() );	TEST( a4 == 0 );
+		uint	a0 = ToBitMask<uint>( 0u );					TEST( a0 == 0 );				STATIC_ASSERT( CT_ToBitMask<uint, 0u >				== 0			 );
+		uint	a1 = ToBitMask<uint>( 32u );				TEST( a1 == ~0u );				STATIC_ASSERT( CT_ToBitMask<uint, 32u >				== ~0u			 );
+		uint	a2 = ToBitMask<uint>( 5u );					TEST( a2 == ((1u << 5)-1) );	STATIC_ASSERT( CT_ToBitMask<uint, 5u >				== ((1u << 5)-1) );
+		uint	a3 = ToBitMask<uint>( -1 );					TEST( a3 == 0 );				//STATIC_ASSERT( CT_ToBitMask<uint, -1 >				== 0		 );
+		uint	a4 = ToBitMask<uint>( MinValue<int>() );	TEST( a4 == 0 );				//STATIC_ASSERT( CT_ToBitMask<uint, MinValue<int>() >	== 0		 );
 	}
 }
 

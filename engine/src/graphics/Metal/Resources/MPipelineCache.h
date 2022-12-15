@@ -24,18 +24,18 @@ namespace AE::Graphics
 	
 	// methods
 	public:
-		MPipelineCache () {}
-		~MPipelineCache ();
+		MPipelineCache ()								__NE___	{}
+		~MPipelineCache ()								__NE___;
 
-		ND_ bool  Create (const MResourceManager& resMngr, StringView dbgName);
-		ND_ bool  Create (const MResourceManager& resMngr, StringView dbgName, const Path &);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (const MResourceManager& resMngr, StringView dbgName)					__NE___;
+		ND_ bool  Create (const MResourceManager& resMngr, StringView dbgName, const Path &)	__NE___;
+			void  Destroy (MResourceManager &)													__NE___;
 
-		ND_ bool  Serialize (const Path &) const;
+		ND_ bool  Serialize (const Path &)				C_NE___;
 
-		ND_ MetalBinaryArchive		Handle ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _pplnCache; }
+		ND_ MetalBinaryArchive		Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pplnCache; }
 		
-		DEBUG_ONLY( ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY( ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

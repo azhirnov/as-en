@@ -4,13 +4,15 @@
 
 #ifdef AE_ENABLE_OPENVR
 
+# include "base/Defines/StdInclude.h"
+# include "openvr_capi.h"
+
 # include "base/Platforms/Platform.h"
 
 # include "platform/Private/VRDeviceBase.h"
-# include "platform/IO/VRSurface.h"
+# include "platform/Private/VRSurface.h"
 # include "platform/OpenVR/InputActionsOpenVR.h"
 
-# include "openvr_capi.h"
 
 namespace AE::App
 {
@@ -73,12 +75,12 @@ namespace AE::App
 
 		// methods
 		public:
-			explicit VRRenderSurface (OpenVRDevice &vr) : _vrDev{vr} {}
+			explicit VRRenderSurface (OpenVRDevice &vr)																	__NE___: _vrDev{vr} {}
 
 			// IOutputSurface //
-			AsyncTask	Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps) override;
-			bool		GetTargets (OUT RenderTargets_t &targets) const override;
-			AsyncTask	End (ArrayView<AsyncTask> deps) override;
+			AsyncTask	Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE_OV;
+			bool		GetTargets (OUT RenderTargets_t &targets)														C_NE_OV;
+			AsyncTask	End (ArrayView<AsyncTask> deps)																	__NE_OV;
 		};
 
 		
@@ -121,24 +123,24 @@ namespace AE::App
 
 	// methods
 	public:
-		OpenVRDevice (VRDeviceListener, IInputActions* dst);
-		~OpenVRDevice ();
+		OpenVRDevice (VRDeviceListener, IInputActions* dst)						__NE___;
+		~OpenVRDevice ()														__NE___;
 
-		ND_ bool  Create ();
-		ND_ bool  Update (Duration_t timeSinceStart);
+		ND_ bool  Create ()														__NE___;
+		ND_ bool  Update (Duration_t timeSinceStart)							__NE___;
 
 
 	// IVRDevice //
-		bool  Setup (const Settings &) override;
+		bool  Setup (const Settings &)											__NE_OV;
 		
-		StringView			GetApiName ()	const	override	{ return "openvr"; }
-		IInputActions&		InputActions ()			override	{ return _input; }
-		IOutputSurface&		GetSurface ()			override	{ return _surface; }
+		StringView			GetApiName ()										C_NE_OV	{ return "openvr"; }
+		IInputActions&		InputActions ()										__NE_OV	{ return _input; }
+		IOutputSurface&		GetSurface ()										__NE_OV	{ return _surface; }
 		
-		bool  CreateRenderSurface (const VRImageDesc &desc) override;
+		bool  CreateRenderSurface (const VRImageDesc &desc)						__NE_OV;
 
 		#ifdef AE_ENABLE_VULKAN
-		  ND_ VkPhysicalDevice  GetRequiredVkPhysicalDevice (VkInstance inst);
+		  ND_ VkPhysicalDevice  GetRequiredVkPhysicalDevice (VkInstance inst)	__NE___;
 		#endif
 
 

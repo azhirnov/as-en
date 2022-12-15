@@ -135,7 +135,7 @@ namespace AE::Base
 	}
 
 	template <typename T>
-	using ToPointer = typename _hidden_::_ToPtr<T>::type;
+	using ToPointer = typename Base::_hidden_::_ToPtr<T>::type;
 
 
 

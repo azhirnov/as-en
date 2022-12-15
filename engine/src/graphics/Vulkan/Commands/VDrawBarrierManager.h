@@ -39,22 +39,22 @@ namespace AE::Graphics::_hidden_
 		explicit VDrawBarrierManager (const VPrimaryCmdBufState &primaryState)	__NE___;
 
 		template <typename ...IDs>
-		ND_ decltype(auto)			Get (IDs ...ids)						__Th___	{ return _resMngr.GetResourcesOrThrow( ids... ); }
+		ND_ decltype(auto)			Get (IDs ...ids)							__Th___	{ return _resMngr.GetResourcesOrThrow( ids... ); }
 
-		ND_ VDevice const&			GetDevice ()							C_NE___	{ return _resMngr.GetDevice(); }
-		ND_ VResourceManager&		GetResourceManager ()					C_NE___	{ return _resMngr; }
-		ND_ FrameUID				GetFrameId ()							C_NE___	{ return _primaryState.frameId; }
-		ND_ EQueueType				GetQueueType ()							C_NE___	{ return EQueueType::Graphics; }
-		ND_ auto const&				GetPrimaryCtxState ()					C_NE___	{ return _primaryState; }
+		ND_ VDevice const&			GetDevice ()								C_NE___	{ return _resMngr.GetDevice(); }
+		ND_ VResourceManager&		GetResourceManager ()						C_NE___	{ return _resMngr; }
+		ND_ FrameUID				GetFrameId ()								C_NE___	{ return _primaryState.frameId; }
+		ND_ EQueueType				GetQueueType ()								C_NE___	{ return EQueueType::Graphics; }
+		ND_ auto const&				GetPrimaryCtxState ()						C_NE___	{ return _primaryState; }
 
-		ND_ bool					IsSecondary ()							C_NE___	{ return _batch != null; }
-		ND_ VDrawCommandBatch *		GetBatchPtr ()							C_NE___	{ return _batch.get(); }
+		ND_ bool					IsSecondary ()								C_NE___	{ return _batch != null; }
+		ND_ Ptr<VDrawCommandBatch>	GetBatchPtr ()								C_NE___	{ return _batch.get(); }
 
-		ND_ const VkDependencyInfo*	GetBarriers ()							__NE___;
-		ND_ bool					NoPendingBarriers ()					C_NE___	{ return _imageBarriers.empty(); }
-		ND_ bool					HasPendingBarriers ()					C_NE___	{ return not NoPendingBarriers(); }
+		ND_ const VkDependencyInfo*	GetBarriers ()								__NE___;
+		ND_ bool					NoPendingBarriers ()						C_NE___	{ return _imageBarriers.empty(); }
+		ND_ bool					HasPendingBarriers ()						C_NE___	{ return not NoPendingBarriers(); }
 
-		void  ClearBarriers ()												__NE___;
+		void  ClearBarriers ()													__NE___;
 		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState) __NE___;
 
 	private:

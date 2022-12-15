@@ -16,24 +16,32 @@ namespace AE::Graphics
 
 	struct MQueue
 	{
+	// types
+		using Handle_t	= NS::ObjStrongPtr< NS::ObjectRef >;
+
+
 	// variables
 		mutable RecursiveMutex		guard;
-		MetalQueueRC				handle;
+		Handle_t					handle;
+		MetalIOQueueRC				ioHandle;
 		EQueueType					type		= Default;
 		DEBUG_ONLY( DebugName_t		debugName; )
 			
 	// methods
-		MQueue () {}
+		MQueue ()											__NE___	{}
 
-		MQueue (MQueue &&other) :
+		MQueue (MQueue &&other)								__NE___	:
 			handle{ RVRef(other.handle) }, type{other.type}
 			DEBUG_ONLY(, debugName{other.debugName})
 		{}
 
-		MQueue (const MQueue &other) :
+		MQueue (const MQueue &other)						__NE___	:
 			handle{other.handle}, type{other.type}
 			DEBUG_ONLY(, debugName{other.debugName})
 		{}
+
+		ND_ MetalQueue    Handle ()		C_NE___	{ return MetalQueue{ type != EQueueType::AsyncTransfer ? handle.Ptr() : null }; }
+		ND_ MetalIOQueue  IOHandle ()	C_NE___	{ return MetalIOQueue{ type == EQueueType::AsyncTransfer ? handle.Ptr() : null }; }
 	};
 	
 	using MQueuePtr = Ptr< const MQueue >;

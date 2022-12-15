@@ -17,7 +17,7 @@ namespace AE::Math
 		using _GLM_Mat_t	= glm::mat< glm::length_t(Columns), glm::length_t(Rows), T, Q >;
 		using Col_t			= typename _GLM_Mat_t::col_type;	// [Rows]
 		using Row_t			= typename _GLM_Mat_t::row_type;	// [Columns]
-		using Dim_t			= _hidden_::_MatrixDim;
+		using Dim_t			= Math::_hidden_::_MatrixDim;
 
 
 	// variables

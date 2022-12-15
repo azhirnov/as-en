@@ -49,7 +49,7 @@ namespace AE::Graphics
 	//
 	// Vulkan Device Functions Table
 	//
-	struct VulkanDeviceFnTable final
+	struct VulkanDeviceFnTable final : Noncopyable
 	{
 		friend struct VulkanLoader;
 		friend class VulkanDeviceFn;
@@ -63,13 +63,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VulkanDeviceFnTable () {}
-
-		VulkanDeviceFnTable (const VulkanDeviceFnTable &) = delete;
-		VulkanDeviceFnTable (VulkanDeviceFnTable &&) = delete;
-
-		VulkanDeviceFnTable&  operator = (const VulkanDeviceFnTable &) = delete;
-		VulkanDeviceFnTable&  operator = (VulkanDeviceFnTable &&) = delete;
+		VulkanDeviceFnTable () __NE___ {}
 	};
 
 
@@ -85,15 +79,15 @@ namespace AE::Graphics
 
 	// methods
 	protected:
-		void  VulkanDeviceFn_Init (const VulkanDeviceFn &other);
-		void  VulkanDeviceFn_Init (const VulkanDeviceFnTable *table);
+		void  VulkanDeviceFn_Init (const VulkanDeviceFn &other)			__NE___;
+		void  VulkanDeviceFn_Init (const VulkanDeviceFnTable *table)	__NE___;
 
 	public:
-		VulkanDeviceFn () : _table{null} {}
-		VulkanDeviceFn (const VulkanDeviceFn &) = default;
-		explicit VulkanDeviceFn (VulkanDeviceFnTable *table) : _table{table} {}
+		VulkanDeviceFn ()												__NE___	: _table{null} {}
+		VulkanDeviceFn (const VulkanDeviceFn &)							__NE___	= default;
+		explicit VulkanDeviceFn (VulkanDeviceFnTable *table)			__NE___	: _table{table} {}
 
-		ND_ VulkanDeviceFnTable const* _GetVkTable ()	C_NE___	{ return _table; }
+		ND_ VulkanDeviceFnTable const* _GetVkTable ()					C_NE___	{ return _table; }
 
 #		define VKLOADER_STAGE_INLINEFN
 #		 include "vulkan_loader/fn_vulkan_dev.h"
@@ -105,19 +99,17 @@ namespace AE::Graphics
 	//
 	// Vulkan Loader
 	//
-	struct VulkanLoader final
+	struct VulkanLoader final : Noninstancable
 	{
-		VulkanLoader () = delete;
-
-		ND_ static bool  Initialize (NtStringView libName = {});
-		ND_ static bool  LoadInstance (VkInstance instance);
-			static void  Unload ();
+		ND_ static bool  Initialize (NtStringView libName = {})															__NE___;
+		ND_ static bool  LoadInstance (VkInstance instance)																__NE___;
+			static void  Unload ()																						__NE___;
 		
-		ND_ static bool  LoadDevice (VkDevice device, OUT VulkanDeviceFnTable &table);
-			static void  ResetDevice (OUT VulkanDeviceFnTable &table);
+		ND_ static bool  LoadDevice (VkDevice device, OUT VulkanDeviceFnTable &table)									__NE___;
+			static void  ResetDevice (OUT VulkanDeviceFnTable &table)													__NE___;
 		
-			static void  SetupInstanceBackwardCompatibility (Version2 instanceVersion);
-			static void  SetupDeviceBackwardCompatibility (Version2 deviceVersion, INOUT VulkanDeviceFnTable &table);
+			static void  SetupInstanceBackwardCompatibility (Version2 instanceVersion)									__NE___;
+			static void  SetupDeviceBackwardCompatibility (Version2 deviceVersion, INOUT VulkanDeviceFnTable &table)	__NE___;
 	};
 
 } // AE::Graphics

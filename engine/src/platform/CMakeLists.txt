@@ -37,12 +37,14 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 
 else()
 	message( FATAL_ERROR "At least one window library must be supported" )
-endif ()
+endif()
 
 if (${AE_ENABLE_OPENVR})
 	target_link_libraries( "Platform" PUBLIC "OpenVR-lib" )
-endif ()
+endif()
 
 if (${AE_ENABLE_OPENXR})
 	target_link_libraries( "Platform" PUBLIC "OpenXR-lib" )
-endif ()
+endif()
+
+install( TARGETS "Platform" ARCHIVE DESTINATION "lib" )

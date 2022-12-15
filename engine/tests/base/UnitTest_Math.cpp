@@ -80,8 +80,8 @@ namespace
 
 	static void  Float16_Test1 ()
 	{
-		STATIC_ASSERT( IsScalar<Float16> );
-		STATIC_ASSERT( IsAnyFloatPoint<Float16> );
+		STATIC_ASSERT( IsScalar<SFloat16> );
+		STATIC_ASSERT( IsAnyFloatPoint<SFloat16> );
 
 		const float		f1	= 0.f;
 		const half		h1	{f1};

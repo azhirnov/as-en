@@ -228,8 +228,8 @@ namespace AE::Base
 	template <typename T, uint I, glm::qualifier Q>
 	struct TZeroMemAvailable< TVec<T,I,Q> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
 	
-	template <typename T, uint I, glm::qualifier Q>
-	struct TTrivialySerializable< TVec<T,I,Q> > { static constexpr bool  value = IsTrivialySerializable<T>; };
+	//template <typename T, uint I, glm::qualifier Q>
+	//struct TTrivialySerializable< TVec<T,I,Q> > { static constexpr bool  value = IsTrivialySerializable<T>; };
 
 	template <typename T>
 	struct TMemCopyAvailable< Quat<T> > { static constexpr bool  value = IsMemCopyAvailable<T>; };
@@ -237,8 +237,8 @@ namespace AE::Base
 	template <typename T>
 	struct TZeroMemAvailable< Quat<T> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
 	
-	template <typename T>
-	struct TTrivialySerializable< Quat<T> > { static constexpr bool  value = IsTrivialySerializable<T>; };
+	//template <typename T>
+	//struct TTrivialySerializable< Quat<T> > { static constexpr bool  value = IsTrivialySerializable<T>; };
 
 	template <typename T, uint Columns, uint Rows, glm::qualifier Q>
 	struct TMemCopyAvailable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsMemCopyAvailable<T>; };
@@ -246,8 +246,8 @@ namespace AE::Base
 	template <typename T, uint Columns, uint Rows, glm::qualifier Q>
 	struct TZeroMemAvailable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
 	
-	template <typename T, uint Columns, uint Rows, glm::qualifier Q>
-	struct TTrivialySerializable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsTrivialySerializable<T>; };
+	//template <typename T, uint Columns, uint Rows, glm::qualifier Q>
+	//struct TTrivialySerializable< TMatrix<T, Columns, Rows, Q> > { static constexpr bool  value = IsTrivialySerializable<T>; };
 	
 } // AE::Base
 

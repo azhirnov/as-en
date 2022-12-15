@@ -24,12 +24,13 @@ namespace AE::Threading
 	// methods
 	public:
 		template <typename Fn>
-		explicit FunctionTask (Fn &&fn, EThread type = EThread::Worker) :
-			IAsyncTask{ type }, _fn{ FwdArg<Fn>(fn) }
+		explicit FunctionTask (Fn && fn, ETaskQueue type = ETaskQueue::Worker) :
+			IAsyncTask{ type },
+			_fn{ FwdArg<Fn>(fn) }
 		{}
 
 	private:
-		void Run () override
+		void Run () __Th_OV
 		{
 			return _fn();
 		}

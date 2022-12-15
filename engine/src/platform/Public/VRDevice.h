@@ -31,10 +31,10 @@ namespace AE::App
 
 		// interface
 		public:
-			virtual ~IVRDeviceEventListener () {}
+			virtual ~IVRDeviceEventListener ()							__NE___	{}
 
-			virtual void  OnUpdate (IVRDevice &vr) = 0;
-			virtual void  OnStateChanged (IVRDevice &vr, EState state) = 0;
+			virtual void  OnUpdate (IVRDevice &vr)						__NE___	= 0;
+			virtual void  OnStateChanged (IVRDevice &vr, EState state)	__NE___	= 0;
 		};
 
 
@@ -68,31 +68,31 @@ namespace AE::App
 		// Terminate VR device.
 		//   Thread safe: yes
 		//
-			virtual void  Terminate () = 0;
+			virtual void  Terminate ()									__NE___	= 0;
 		
 			
 		// Change VR device settings.
 		//   Thread safe: yes ???
 		//
-		ND_	virtual bool  Setup (const Settings &) = 0;
+		ND_	virtual bool  Setup (const Settings &)						__NE___	= 0;
 		
 
 		// Returns current state.
 		//   Thread safe: no
 		//
-		ND_ virtual EState  GetState () const = 0;
+		ND_ virtual EState  GetState ()									C_NE___ = 0;
 
 
 		// Returns input actions class.
 		//   Thread safe: yes
 		//
-		ND_ virtual IInputActions&  InputActions () = 0;
+		ND_ virtual IInputActions&  InputActions ()						__NE___	= 0;
 		
 
 		// Returns VR API name.
 		//   Thread safe: yes
 		//
-		ND_ virtual StringView  GetApiName () const = 0;
+		ND_ virtual StringView  GetApiName ()							C_NE___ = 0;
 
 		// TODO: load controller model
 
@@ -102,14 +102,14 @@ namespace AE::App
 		// Create or recreate rendering surface (swapchain).
 		//   Thread safe: main thread only, must be synchronized with 'GetSurface()'
 		//
-		ND_ virtual bool  CreateRenderSurface (const VRImageDesc &desc) = 0;
+		ND_ virtual bool  CreateRenderSurface (const VRImageDesc &desc)	__NE___	= 0;
 		
 		
 		// Returns render surface reference.
 		// Surface must be successfully created using 'CreateRenderSurface()'.
 		//   Thread safe: must be synchronized with 'CreateRenderSurface()'
 		//
-		ND_ virtual IOutputSurface&  GetSurface () = 0;
+		ND_ virtual IOutputSurface&  GetSurface ()						__NE___	= 0;
 	};
 
 

@@ -30,15 +30,15 @@ namespace AE::App
 
 	// methods
 	public:
-		explicit InputActionsOpenVR (DubleBufferedQueue *q) : InputActionsBase{q ? *q : _dbQueue} {}
+		explicit InputActionsOpenVR (DubleBufferedQueue *q) __NE___	: InputActionsBase{q ? *q : _dbQueue} {}
 		
-		void  SetPose (ControllerID id, const float3x3 &rot, const float3 &pos, const float3 &vel, const float3 &avel);
-		void  OnAxisStateChanged (ControllerID id, uint key, const float2 &value, const float2 &delta, float dt);
-		void  OnButton (ControllerID id, uint axisIdx, EGestureState state);
+		void  SetPose (ControllerID id, const float3x3 &rot, const float3 &pos, const float3 &vel, const float3 &avel)	__NE___;
+		void  OnAxisStateChanged (ControllerID id, uint key, const float2 &value, const float2 &delta, float dt)		__NE___;
+		void  OnButton (ControllerID id, uint axisIdx, EGestureState state)												__NE___;
 		
 
 	// IInputActions //
-		bool  LoadSerialized (MemRefRStream &stream) override;
+		bool  LoadSerialized (MemRefRStream &stream)	__NE_OV;
 
 
 	// ISerializable //

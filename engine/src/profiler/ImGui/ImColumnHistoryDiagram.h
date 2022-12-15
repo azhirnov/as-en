@@ -56,12 +56,14 @@ namespace AE::Profiler
 
 	// variables
 	private:
-		double				_maxHeight			= 0.0;
-		int					_currentFrameIdx	= 0;
+		double					_maxHeight			= 0.0;
+		int						_currentFrameIdx	= 0;
 
-		UniqueNames_t		_uniqueNames;
-		Array<UNameInfo_t>	_uniqueNameArr;
-		FrameHistory_t		_frames;
+		UniqueNames_t			_uniqueNames;
+		Array<UNameInfo_t>		_uniqueNameArr;
+		FrameHistory_t			_frames;
+		
+		DRC_ONLY( DataRaceCheck	_drCheck;)
 
 
 	// methods

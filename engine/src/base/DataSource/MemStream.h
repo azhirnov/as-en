@@ -23,37 +23,38 @@ namespace AE::Base
 
 	// methods
 	public:
-		MemRefRStream (const void* ptr, Bytes size)	__NE___;
+		MemRefRStream (const void* ptr, Bytes size)		__NE___;
 
-		explicit MemRefRStream (StringView data)	__NE___ : MemRefRStream{data.data(), StringSizeOf(data)} {}
+		explicit MemRefRStream (StringView data)		__NE___ : MemRefRStream{data.data(), StringSizeOf(data)} {}
 
 		template <typename T>
-		explicit MemRefRStream (ArrayView<T> data)	__NE___ : MemRefRStream{data.data(), ArraySizeOf(data)} {}
+		explicit MemRefRStream (ArrayView<T> data)		__NE___ : MemRefRStream{data.data(), ArraySizeOf(data)} {}
 		
 
 		// RStream //
-		bool		IsOpen ()						C_NE_OF	{ return true; }
-		PosAndSize	PositionAndSize ()				C_NE_OF	{ return { _pos, _size }; }
+		bool		IsOpen ()							C_NE_OF	{ return true; }
+		PosAndSize	PositionAndSize ()					C_NE_OF	{ return { _pos, _size }; }
 		
-		ESourceType	GetSourceType ()				C_NE_OF;
+		ESourceType	GetSourceType ()					C_NE_OF;
 
-		bool	SeekSet (Bytes pos)					__NE_OF;
-		bool	SeekFwd (Bytes offset)				__NE_OF;
+		bool	SeekSet (Bytes pos)						__NE_OF;
+		bool	SeekFwd (Bytes offset)					__NE_OF;
 
-		Bytes	ReadSeq (OUT void *buffer, Bytes size) __NE_OF;
+		Bytes	ReadSeq (OUT void *buffer, Bytes size)	__NE_OF;
 		
 		void	UpdateFastStream (OUT const void* &begin, OUT const void* &end) __NE_OF;
-		void	EndFastStream (const void* ptr)		__NE_OF;
+		void	EndFastStream (const void* ptr)			__NE_OF;
+		Bytes	GetFastStreamPosition (const void* ptr)	__NE_OF;
 
 
 		ND_ RC<MemRefRStream>	ToSubStream (Bytes offset, Bytes size) C_Th___;
 		
-		ND_ ArrayView<ubyte>	GetData ()			C_NE___	{ return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize(_size) }; }
-		ND_ ArrayView<ubyte>	GetRemainData ()	C_NE___	{ return GetData().section( usize(_pos), UMax ); }
+		ND_ ArrayView<ubyte>	GetData ()				C_NE___	{ return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize(_size) }; }
+		ND_ ArrayView<ubyte>	GetRemainData ()		C_NE___	{ return GetData().section( usize(_pos), UMax ); }
 
 	protected:
-		MemRefRStream ()							__NE___ {}
-		void  _Set (const void* ptr, Bytes size)	__NE___;
+		MemRefRStream ()								__NE___ {}
+		void  _Set (const void* ptr, Bytes size)		__NE___;
 	};
 	
 
@@ -116,7 +117,8 @@ namespace AE::Base
 		void		Flush ()						__NE_OV	{}
 
 		void		UpdateFastStream (OUT void* &begin, OUT const void* &end, Bytes reserve = DefaultAllocationSize) __NE_OV;
-		void		EndFastStream (const void* ptr)	__NE_OV;
+		void		EndFastStream (const void* ptr)		__NE_OV;
+		Bytes		GetFastStreamPosition (const void*)	__NE_OF;
 		
 		RC<RStream>	AsRStream ()							{ return ToRStream(); }
 

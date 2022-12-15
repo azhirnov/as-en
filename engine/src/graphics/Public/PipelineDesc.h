@@ -133,8 +133,8 @@ namespace AE::Graphics
 		CompatRenderPassName::Optimized_t	renderPass;
 		SubpassName::Optimized_t			subpass;
 		ubyte								viewportCount	= 1;
-		ushort3								taskLocalSize	{UndefinedLocalSize};	// Vulkan: must be {x,1,1}
-		ushort3								meshLocalSize	{UndefinedLocalSize};	// Vulkan: must be {x,1,1}
+		packed_ushort3						taskLocalSize	{UndefinedLocalSize};
+		packed_ushort3						meshLocalSize	{UndefinedLocalSize};
 	};
 
 
@@ -145,7 +145,7 @@ namespace AE::Graphics
 
 	struct ComputePipelineDesc : BasePipelineDesc
 	{
-		ushort3		localSize	{UndefinedLocalSize};
+		packed_ushort3		localSize	{UndefinedLocalSize};
 	};
 
 
@@ -171,7 +171,7 @@ namespace AE::Graphics
 	{
 		CompatRenderPassName::Optimized_t	renderPass;
 		SubpassName::Optimized_t			subpass;
-		ushort2								localSize	{UndefinedLocalSize};
+		packed_ushort2						localSize	{UndefinedLocalSize};
 	};
 
 

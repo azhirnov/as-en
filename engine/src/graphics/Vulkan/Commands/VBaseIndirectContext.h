@@ -172,6 +172,16 @@ namespace AE::Graphics::_hidden_
 			//VkImageBlit		regions[];
 		};
 		
+		struct ResolveImageCmd : BaseCmd
+		{
+			VkImage				srcImage;
+			VkImageLayout		srcLayout;
+			VkImage				dstImage;
+			VkImageLayout		dstLayout;
+			uint				regionCount;
+			//VkImageResolve	regions[];
+		};
+
 		struct GenerateMipmapsCmd : BaseCmd
 		{
 			VkImage				image;
@@ -484,6 +494,7 @@ namespace AE::Graphics::_hidden_
 			_visitor_( CopyBufferToImageCmd )\
 			_visitor_( CopyImageToBufferCmd )\
 			_visitor_( BlitImageCmd )\
+			_visitor_( ResolveImageCmd )\
 			_visitor_( GenerateMipmapsCmd )\
 			_visitor_( CopyQueryPoolResultsCmd )\
 			/* compute commands */\
@@ -563,8 +574,8 @@ namespace AE::Graphics::_hidden_
 		template <typename CmdType, typename ...DynamicTypes>
 		ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)	__Th___	{ return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
 
-		void  DebugMarker (NtStringView text, RGBA8u color)		__Th___;
-		void  PushDebugGroup (NtStringView text, RGBA8u color)	__Th___;
+		void  DebugMarker (DebugLabel dbg)						__Th___;
+		void  PushDebugGroup (DebugLabel dbg)					__Th___;
 		void  PopDebugGroup ()									__Th___;
 		void  CommitBarriers (const VkDependencyInfoKHR &)		__Th___;
 		
@@ -610,24 +621,24 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		virtual ~_VBaseIndirectContext ()														__NE___;
+		virtual ~_VBaseIndirectContext ()												__NE___;
 
 	protected:
-		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf)								__NE___	: _cmdbuf{RVRef(cmdbuf)} {}
+		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf)						__NE___	: _cmdbuf{RVRef(cmdbuf)} {}
 
-		explicit _VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor)					__Th___;
-		_VBaseIndirectContext (NtStringView dbgName, RGBA8u dbgColor, VSoftwareCmdBufPtr cmdbuf)__Th___;
+		explicit _VBaseIndirectContext (DebugLabel dbg)									__Th___;
+		_VBaseIndirectContext (DebugLabel dbg, VSoftwareCmdBufPtr cmdbuf)				__Th___;
 
-		ND_ bool	_IsValid ()																	C_NE___	{ return _cmdbuf and _cmdbuf->IsValid(); }
+		ND_ bool	_IsValid ()															C_NE___	{ return _cmdbuf and _cmdbuf->IsValid(); }
 
-		void  _DebugMarker (NtStringView text, RGBA8u color)									__Th___	{ _cmdbuf->DebugMarker( text, color ); }
-		void  _PushDebugGroup (NtStringView text, RGBA8u color)									__Th___	{ _cmdbuf->PushDebugGroup( text, color ); }
-		void  _PopDebugGroup ()																	__Th___	{ _cmdbuf->PopDebugGroup(); }
+		void  _DebugMarker (DebugLabel dbg)												__Th___	{ _cmdbuf->DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)											__Th___	{ _cmdbuf->PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()															__Th___	{ _cmdbuf->PopDebugGroup(); }
 
-		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)				__Th___	{ _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
+		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)		__Th___	{ _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
 
-		ND_ VBakedCommands		_EndCommandBuffer ()											__Th___;
-		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()										__Th___;
+		ND_ VBakedCommands		_EndCommandBuffer ()									__Th___;
+		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()								__Th___;
 	};
 
 
@@ -679,7 +690,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task) __Th___ :
-		_VBaseIndirectContext{ task.DbgFullName(), task.DbgColor() },	// throw
+		_VBaseIndirectContext{ DebugLabel{ task.DbgFullName(), task.DbgColor() }},	// throw
 		_mngr{ task }
 	{}
 		
@@ -729,7 +740,7 @@ namespace AE::Graphics
 */
 	forceinline bool  VBakedCommands::Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) C_NE___
 	{
-		return _hidden_::VSoftwareCmdBuf::Execute( fn, cmdbuf, _root );
+		return Graphics::_hidden_::VSoftwareCmdBuf::Execute( fn, cmdbuf, _root );
 	}
 
 } // AE::Graphics

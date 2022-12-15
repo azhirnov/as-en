@@ -1,4 +1,5 @@
 
+#if SCRIPT
 void main ()
 {
 	ComputePipeline@	ppln = ComputePipeline( "compute_1" );
@@ -34,3 +35,4 @@ void main ()
 		spec.AddToRenderTech( "MinForward", "Compute1" );
 	}
 }
+#endif

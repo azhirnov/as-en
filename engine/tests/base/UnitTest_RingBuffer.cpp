@@ -95,6 +95,7 @@ namespace
 			}
 		}
 		TEST( Elem_t::CheckStatistic() );
+		TEST( VElem_t::CheckStatistic() );
 	}
 
 
@@ -128,6 +129,7 @@ namespace
 			}
 		}
 		TEST( Elem_t::CheckStatistic() );
+		TEST( VElem_t::CheckStatistic() );
 	}
 	
 

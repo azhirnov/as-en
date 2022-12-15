@@ -16,7 +16,7 @@ namespace _hidden_
 	static constexpr bool	IsFloatPoint			= std::is_floating_point_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsAnyFloatPoint			= _hidden_::_IsFloatPoint<T>::value;	// software or hardware
+	static constexpr bool	IsAnyFloatPoint			= Base::_hidden_::_IsFloatPoint<T>::value;	// software or hardware
 
 	template <typename T>
 	static constexpr bool	IsInteger				= std::is_integral_v<T>;
@@ -34,7 +34,7 @@ namespace _hidden_
 	static constexpr bool	IsUnsigned				= std::is_unsigned_v<T>;
 
 	template <typename T>
-	static constexpr bool	IsScalar				= _hidden_::_IsScalar<T>::value;
+	static constexpr bool	IsScalar				= Base::_hidden_::_IsScalar<T>::value;
 	
 	template <typename T>
 	static constexpr bool	IsEnum					= std::is_enum_v<T>;
@@ -242,7 +242,7 @@ namespace _hidden_
 		};
 	}
 	template <typename T>
-	using RemoveAllQualifiers	= typename _hidden_::RemoveAllQual<T>::type;
+	using RemoveAllQualifiers	= typename Base::_hidden_::RemoveAllQual<T>::type;
 
 	
 	namespace _hidden_
@@ -258,7 +258,7 @@ namespace _hidden_
 		};
 	}
 	template <typename T>
-	static constexpr bool	IsStaticArray = _hidden_::_IsStaticArray<T>::value;
+	static constexpr bool	IsStaticArray = Base::_hidden_::_IsStaticArray<T>::value;
 
 	namespace _hidden_
 	{
@@ -273,7 +273,7 @@ namespace _hidden_
 		};
 	}
 	template <typename T>
-	static constexpr bool	IsArray = _hidden_::_IsStdVector<T>::value;
+	static constexpr bool	IsArray = Base::_hidden_::_IsStdVector<T>::value;
 
 	
 /*
@@ -303,7 +303,7 @@ namespace _hidden_
 	}
 	
 	template <usize Base, usize Size>
-	using MakeIndexRange = typename _hidden_::_MakeIndexRange< Size, Base >::type;
+	using MakeIndexRange = typename Base::_hidden_::_MakeIndexRange< Size, Base >::type;
 
 /*
 =================================================

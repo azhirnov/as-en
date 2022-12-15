@@ -8,6 +8,7 @@
 #pragma once
 
 #include "graphics/Public/IDs.h"
+#include "graphics/Public/ShaderEnums.h"
 #include "graphics/Public/EResourceState.h"
 #include "graphics/Public/BufferDesc.h"
 #include "graphics/Public/ImageDesc.h"
@@ -66,6 +67,77 @@ namespace AE::Graphics
 		UpdateTemplate,
 
 		Unknown			= 0xFF
+	};
+	
+
+	struct MetalBindingPerStage
+	{
+		StaticArray< ubyte, 3 >		data { UMax, UMax, UMax };
+
+		constexpr MetalBindingPerStage ()					__NE___	{}
+		explicit constexpr MetalBindingPerStage (ubyte idx) __NE___	: data{ idx, idx, idx } {}
+
+		ND_ constexpr bool		operator == (MetalBindingPerStage rhs)	C_NE___	{ return data == rhs.data; }
+
+		ND_ constexpr bool		IsDefined ()	C_NE___	{ return (data[0] != UMax) | (data[1] != UMax) | (data[2] != UMax); }
+		ND_ constexpr bool		Has (usize idx)	C_NE___	{ ASSERT( idx < data.size() );	return data[idx] != UMax; }
+		ND_ constexpr ubyte		Get (usize idx)	C_NE___	{ ASSERT( Has( idx ));			return data[idx]; }
+		
+		ND_ constexpr ubyte		Vertex	 ()		C_NE___	{ return Get(0); }
+		ND_ constexpr ubyte		Tile	 ()		C_NE___	{ return Get(0); }
+		ND_ constexpr ubyte		Compute	 ()		C_NE___	{ return Get(0); }
+		ND_ constexpr ubyte		Mesh	 ()		C_NE___	{ return Get(0); }
+		ND_ constexpr ubyte		Fragment ()		C_NE___	{ return Get(1); }
+		ND_ constexpr ubyte		MeshTask ()		C_NE___	{ return Get(2); }
+		
+		ND_ static constexpr int	ShaderToIndex (EShader type) __NE___
+		{
+			switch ( type ) {
+				case EShader::Vertex :
+				case EShader::Tile :
+				case EShader::Compute :
+				case EShader::Mesh :		return 0;
+				case EShader::Fragment :	return 1;
+				case EShader::MeshTask :	return 2;
+			}
+			return -1;
+		}
+
+		ND_ static constexpr int	StageToIndex (EShaderStages stage) __NE___
+		{
+			ASSERT( IsSingleBitSet( stage ));
+			switch ( stage ) {
+				case EShaderStages::Vertex :
+				case EShaderStages::Tile :
+				case EShaderStages::Compute :
+				case EShaderStages::Mesh :		return 0;
+				case EShaderStages::Fragment :	return 1;
+				case EShaderStages::MeshTask :	return 2;
+			}
+			return -1;
+		}
+
+		ND_ ubyte const*	PtrForShader (EShaderStages stage)	C_NE___	{ int i = StageToIndex( stage );  return i >= 0 ? &data[i] : null; }
+		ND_ ubyte*			PtrForShader (EShaderStages stage)	__NE___	{ int i = StageToIndex( stage );  return i >= 0 ? &data[i] : null; }
+		
+		ND_ ubyte const*	PtrForShader (EShader type)			C_NE___	{ int i = ShaderToIndex( type );  return i >= 0 ? &data[i] : null; }
+		ND_ ubyte*			PtrForShader (EShader type)			__NE___	{ int i = ShaderToIndex( type );  return i >= 0 ? &data[i] : null; }
+		
+		ND_ ubyte			ForShader (EShaderStages stage)		C_NE___	{ auto* ptr = PtrForShader( stage );  return ptr != null ? *ptr : UMax; }
+		ND_ ubyte			ForShader (EShader type)			C_NE___	{ auto* ptr = PtrForShader( type );   return ptr != null ? *ptr : UMax; }
+	};
+
+
+	union DescSetBinding
+	{
+		uint					vkIndex		= UMax;
+		MetalBindingPerStage	mtlIndex;
+
+		explicit constexpr DescSetBinding ()									__NE___	{}
+		explicit constexpr DescSetBinding (uint vulkanBinding)					__NE___	: vkIndex{vulkanBinding} {}
+		explicit constexpr DescSetBinding (MetalBindingPerStage metalBinding)	__NE___	: mtlIndex{metalBinding} {}
+
+		ND_ constexpr bool  operator == (const DescSetBinding &rhs)				C_NE___	{ return vkIndex == rhs.vkIndex; }
 	};
 
 

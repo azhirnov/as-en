@@ -275,7 +275,7 @@ namespace AE::PipelineCompiler
 */
 	ND_ inline MtlPixelFormat  MEnumCast (EPixelFormat value)
 	{
-#		define FMT_BUILDER( _engineFmt_, _mtlFormat_, _apiVer_ ) \
+#		define FMT_BUILDER( _engineFmt_, _mtlFormat_, _apiVer_, ... ) \
 			case EPixelFormat::_engineFmt_ : return MtlPixelFormat::_mtlFormat_;
 		
 		BEGIN_ENUM_CHECKS();
@@ -381,7 +381,7 @@ namespace AE::Base
 */
 	ND_ inline StringView  ToString (MtlPixelFormat value)
 	{
-#		define FMT_BUILDER( _engineFmt_, _mtlFormat_, _apiVer_ ) \
+#		define FMT_BUILDER( _engineFmt_, _mtlFormat_, ... ) \
 			case MtlPixelFormat::_mtlFormat_ : return AE_TOSTRING( MTLPixelFormat ## _mtlFormat_ );
 		
 		switch ( value )

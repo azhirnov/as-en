@@ -2,7 +2,7 @@
 
 #pragma once
 
-#if defined(AE_PLATFORM_WINDOWS) && !defined(AE_ENABLE_GLFW)
+#if defined(AE_PLATFORM_WINDOWS) and not defined(AE_ENABLE_GLFW)
 
 # include "platform/Private/ApplicationBase.h"
 # include "platform/WinAPI/WindowWinAPI.h"
@@ -37,32 +37,32 @@ namespace AE::App
 	// methods
 	public:
 
-		StringView	GetClassName () const		{ return _className; }
-		void*		GetHInstance ()	const		{ return _instance; }
+		StringView	GetClassName ()														C_NE___	{ return _className; }
+		void*		GetHInstance ()														C_NE___	{ return _instance; }
 
-		static int  Run (Unique<IAppListener>);
+		static int  Run (Unique<IAppListener>)											__NE___;
 
 
 	// IApplication //
-		WindowPtr	CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*) override;
+		WindowPtr	CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)	__NE_OV;
 
-		Monitors_t	GetMonitors (bool update = false) override;
+		Monitors_t	GetMonitors (bool update = false)									__NE_OV;
 		
-		StringView	GetApiName () const override	{ return "winapi"; }
+		StringView	GetApiName ()														C_NE_OV	{ return "winapi"; }
 		
-		RC<IVirtualFileStorage> OpenBuiltinStorage () override { return null; }
+		RC<IVirtualFileStorage> OpenBuiltinStorage ()									__NE_OV { return null; }
 
-		ArrayView<const char*>  GetVulkanInstanceExtensions () override;
+		ArrayView<const char*>  GetVulkanInstanceExtensions ()							__NE_OV;
 
 
 	private:
-		explicit ApplicationWinAPI (Unique<IAppListener>);
-		~ApplicationWinAPI ();
+		explicit ApplicationWinAPI (Unique<IAppListener>)								__NE___;
+		~ApplicationWinAPI ()															__NE___;
 
-		ND_ bool  _RegisterClass ();
-			void  _MainLoop ();
+		ND_ bool  _RegisterClass ()														__NE___;
+			void  _MainLoop ()															__NE___;
 
-			void  _UpdateMinitors (OUT Monitors_t &) const;
+			void  _UpdateMinitors (OUT Monitors_t &)									C_NE___;
 	};
 
 

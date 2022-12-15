@@ -157,7 +157,7 @@ namespace AE::Graphics
 		VertexPplnStore				= 1 << 13,		// storage image store and atomic operations in vertex, geometry, tessellation shaders
 		FragmentPplnStore			= 1 << 14,		// storage image store and atomic operations in fragment shader
 
-		LosslessRTCompression		= 1 << 15,		// Metal only, allow to use hardware lossless compression for the color attachments
+		LossyRTCompression			= 1 << 15,		// Metal only, allow to use hardware lossy compression for the color attachments
 
 		_Last,
 		SparseResidencyAliased		= SparseResidency | SparseAliased,

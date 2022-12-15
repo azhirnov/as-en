@@ -141,7 +141,7 @@ namespace AE::Scripting
 
 		void  CreatePodValue (int flags = 0)															__Th___;
 		void  CreateClassValue (int flags = 0)															__Th___;
-		void  CreateRef (int flags = 0, Bool hasFactory = true)											__Th___;
+		void  CreateRef (int flags = 0, Bool hasFactory = True{})										__Th___;
 		void  CreateRef (T* (*create)(), void (T:: *addRef)(), void (T:: *releaseRef)(), int flags = 0)	__Th___;
 
 

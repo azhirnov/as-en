@@ -37,6 +37,7 @@ namespace AE::Graphics
 	using ImageViewID			= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 13 >;
 	using RTGeometryID			= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 14 >;		// bottom-level AS
 	using RTSceneID				= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 15 >;		// top-level AS
+	using RTShaderBindingID		= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 16 >;		// shader binding table
 	
 	//using MaterialID			= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 20 >;
 	using ImageInAtlasID		= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 21 >;
@@ -51,11 +52,11 @@ namespace AE::Graphics
 	using PipelineTmplName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 7,  AE_OPTIMIZE_IDS >;	// pipeline template to create custom specialization
 	using RenderTechName		= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 8,  AE_OPTIMIZE_IDS >;
 	using RenderTechPassName	= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 9,  AE_OPTIMIZE_IDS >;
-	using VertexName			= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 10, AE_OPTIMIZE_IDS >;
 	using VertexBufferName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 11, AE_OPTIMIZE_IDS >;
 	using RayTracingGroupName	= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 12, AE_OPTIMIZE_IDS >;
-	using RTGeometryName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 13, AE_OPTIMIZE_IDS >;
-	using RTInstanceName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 14, AE_OPTIMIZE_IDS >;
+	//using RTGeometryName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 13, AE_OPTIMIZE_IDS >;
+	//using RTInstanceName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 14, AE_OPTIMIZE_IDS >;
+	using RTShaderBindingName	= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 15, AE_OPTIMIZE_IDS >;
 	using SamplerName			= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 20, AE_OPTIMIZE_IDS >;
 	using AttachmentName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 21, AE_OPTIMIZE_IDS >;
 	using RenderPassName		= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 22, AE_OPTIMIZE_IDS >;
@@ -69,11 +70,11 @@ namespace AE::Graphics
 	using ImageInAtlasName		= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 40, AE_OPTIMIZE_IDS >;
 
 
-	static constexpr AttachmentName		Attachment_Depth {"Depth"};
-	static constexpr AttachmentName		Attachment_DepthStencil {"DepthStencil"};
+	static constexpr AttachmentName		Attachment_Depth		{"Depth"};
+	static constexpr AttachmentName		Attachment_DepthStencil	{"DepthStencil"};
 
-	static constexpr SubpassName		Subpass_ExternalIn  {"ExternalIn"};
-	static constexpr SubpassName		Subpass_ExternalOut {"ExternalOut"};
+	static constexpr SubpassName		Subpass_ExternalIn		{"ExternalIn"};
+	static constexpr SubpassName		Subpass_ExternalOut		{"ExternalOut"};
 
 
 	//
@@ -136,13 +137,17 @@ namespace AE::Graphics
 		~GAutorelease ()					__NE___;
 		
 		ND_ ID_t		Get ()				C_NE___	{ return _id.Get(); }
-		ND_ ID_t		Release ()								{ return _id.Release(); }
+		ND_ ID_t		Release ()			__NE___	{ return _id.Release(); }
 		ND_ bool		IsValid ()			C_NE___	{ return _id.IsValid(); }
 		
 		ND_ explicit	operator bool ()	C_NE___	{ return IsValid(); }
 
 		ND_ 			operator ID_t ()	C_NE___	{ return _id.Get(); }
 	};
+	
+	
+	template <typename IDType>
+	GAutorelease (Strong<IDType>) -> GAutorelease<IDType>;
 
 
 } // AE::Graphics

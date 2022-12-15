@@ -38,19 +38,19 @@ namespace AE::App
 
 	// methods
 	public:
-		explicit InputActionsGLFW (DubleBufferedQueue *q) : InputActionsBase{q ? *q : _dbQueue} {}
+		explicit InputActionsGLFW (DubleBufferedQueue *q) __NE___ : InputActionsBase{q ? *q : _dbQueue} {}
 		
 		// api for window
-		void  SetKey (int key, EGestureState state, Duration_t timestamp);
-		void  SetMouseButton (int button, EGestureState state, Duration_t timestamp);
-		void  SetCursorPos (float2 pos);
-		void  SetMouseWheel (float2 delta);
-		void  SetMonitor (const uint2 &surfaceSize, const Monitor &);
-		void  CursorPosChanged (float2 pos)				{ _cursorPos = pos; }
+		void  SetKey (int key, EGestureState state, Duration_t timestamp)				__NE___;
+		void  SetMouseButton (int button, EGestureState state, Duration_t timestamp)	__NE___;
+		void  SetCursorPos (float2 pos)													__NE___;
+		void  SetMouseWheel (float2 delta)												__NE___;
+		void  SetMonitor (const uint2 &surfaceSize, const Monitor &)					__NE___;
+		void  CursorPosChanged (float2 pos)												__NE___	{ _cursorPos = pos; }
 
 
 	// IInputActions //
-		bool  LoadSerialized (MemRefRStream &stream) override;
+		bool  LoadSerialized (MemRefRStream &stream)	__NE_OV;
 
 
 	// ISerializable //

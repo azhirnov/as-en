@@ -26,16 +26,16 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VMemoryObject () {}
-		~VMemoryObject ();
+		VMemoryObject ()									__NE___	{}
+		~VMemoryObject ()									__NE___;
 
-		ND_ bool  Create (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-		ND_ bool  Create (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName);
-			void  Destroy (VResourceManager &);
+		ND_ bool  Create (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)__NE___;
+		ND_ bool  Create (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+			void  Destroy (VResourceManager &)																		__NE___;
 		
-		ND_ bool  GetMemoryInfo (OUT VulkanMemoryObjInfo &) const;
+		ND_ bool  GetMemoryInfo (OUT VulkanMemoryObjInfo &) C_NE___;
 		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName () const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 	
 

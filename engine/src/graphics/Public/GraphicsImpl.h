@@ -36,7 +36,7 @@ namespace AE::Graphics
 	
 	struct IndirectCtx
 	{
-		using CommandBuffer	= _hidden_::VSoftwareCmdBufPtr;
+		using CommandBuffer	= Graphics::_hidden_::VSoftwareCmdBufPtr;
 		using Transfer		= VIndirectTransferContext;
 		using Compute		= VIndirectComputeContext;
 		using Draw			= VIndirectDrawContext;
@@ -48,13 +48,15 @@ namespace AE::Graphics
 	// RenderTask
 	// CoroutineRenderTask
 	// RenderTask_Get
-	// RenderTask_Execute
-	// RenderTask_ExecuteAndSubmit
+	// RenderTask_Execute()
+	// RenderTask_AddInputDependency()
 
 	// DrawTask
 	// CoroutineDrawTask
 	// DrawTask_Get
-	// DrawTask_Execute
+	// DrawTask_Execute()
+
+	using GRenderTaskScheduler	= VRenderTaskScheduler;
 
 	using CommandBatch			= VCommandBatch;
 	using CommandBatchPtr		= RC< CommandBatch >;
@@ -81,6 +83,7 @@ namespace AE::Graphics
 # include "graphics/Metal/Commands/MDrawContext.h"
 # include "graphics/Metal/Commands/MGraphicsContext.h"
 # include "graphics/Metal/Commands/MASBuildContext.h"
+# include "graphics/Metal/Commands/MRayTracingContext.h"
 
 # include "graphics/Metal/Descriptors/MDescriptorUpdater.h"
 
@@ -98,28 +101,32 @@ namespace AE::Graphics
 		using Draw			= MDirectDrawContext;
 		using Graphics		= MDirectGraphicsContext;
 		using ASBuild		= MDirectASBuildContext;
+		using RayTracing	= MDirectRayTracingContext;
 	};
 	
 	struct IndirectCtx
 	{
-		using CommandBuffer	= _hidden_::MSoftwareCmdBuf;
+		using CommandBuffer	= Graphics::_hidden_::MSoftwareCmdBufPtr;
 		using Transfer		= MIndirectTransferContext;
 		using Compute		= MIndirectComputeContext;
 		using Draw			= MIndirectDrawContext;
 		using Graphics		= MIndirectGraphicsContext;
 		using ASBuild		= MIndirectASBuildContext;
+		using RayTracing	= MIndirectRayTracingContext;
 	};
 	
 	// RenderTask
 	// CoroutineRenderTask
 	// RenderTask_Get
-	// RenderTask_Execute
-	// RenderTask_ExecuteAndSubmit
+	// RenderTask_Execute()
+	// RenderTask_AddInputDependency()
 
 	// DrawTask
 	// CoroutineDrawTask
 	// DrawTask_Get
-	// DrawTask_Execute
+	// DrawTask_Execute()
+
+	using GRenderTaskScheduler	= MRenderTaskScheduler;
 
 	using CommandBatch			= MCommandBatch;
 	using CommandBatchPtr		= RC< CommandBatch >;
@@ -162,7 +169,7 @@ namespace AE::Graphics
 	
 	struct IndirectCtx
 	{
-		using CommandBuffer	= _hidden_::RSoftwareCmdBufPtr;
+		using CommandBuffer	= Graphics::_hidden_::RSoftwareCmdBufPtr;
 		using Transfer		= RIndirectTransferContext;
 		using Compute		= RIndirectComputeContext;
 		using Draw			= RIndirectDrawContext;
@@ -174,13 +181,15 @@ namespace AE::Graphics
 	// RenderTask
 	// CoroutineRenderTask
 	// RenderTask_Get
-	// RenderTask_Execute
-	// RenderTask_ExecuteAndSubmit
+	// RenderTask_Execute()
+	// RenderTask_AddInputDependency()
 
 	// DrawTask
 	// CoroutineDrawTask
 	// DrawTask_Get
-	// DrawTask_Execute
+	// DrawTask_Execute()
+
+	using GRenderTaskScheduler	= RRenderTaskScheduler;
 
 	using CommandBatch			= RCommandBatch;
 	using CommandBatchPtr		= RC< CommandBatch >;

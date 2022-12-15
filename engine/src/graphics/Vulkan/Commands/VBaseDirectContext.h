@@ -29,15 +29,15 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		virtual ~_VBaseDirectContext ()														__NE___;
+		virtual ~_VBaseDirectContext ()													__NE___;
 
 	protected:
-		_VBaseDirectContext (VCommandBuffer cmdbuf, NtStringView dbgName, RGBA8u dbgColor)	__Th___;
+		_VBaseDirectContext (VCommandBuffer cmdbuf, DebugLabel dbg)						__Th___;
 
-		ND_ bool	_IsValid ()																C_NE___	{ return _cmdbuf.IsValid() and _cmdbuf.IsRecording(); }
+		ND_ bool	_IsValid ()															C_NE___	{ return _cmdbuf.IsValid() and _cmdbuf.IsRecording(); }
 
-		void  _DebugMarker (NtStringView text, RGBA8u color);
-		void  _PushDebugGroup (NtStringView text, RGBA8u color);
+		void  _DebugMarker (DebugLabel dbg);
+		void  _PushDebugGroup (DebugLabel dbg);
 		void  _PopDebugGroup ();
 
 		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data);
@@ -68,8 +68,8 @@ namespace AE::Graphics::_hidden_
 	protected:
 		void  _CommitBarriers ();
 		
-		void  _DebugMarker (NtStringView text, RGBA8u color)						{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_DebugMarker( text, color ); }
-		void  _PushDebugGroup (NtStringView text, RGBA8u color)						{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( text, color ); }
+		void  _DebugMarker (DebugLabel dbg)											{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)										{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( dbg ); }
 		void  _PopDebugGroup ()														{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PopDebugGroup(); }
 
 		ND_ bool	_NoPendingBarriers ()									C_NE___	{ return _mngr.NoPendingBarriers(); }
@@ -85,16 +85,16 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline _VBaseDirectContext::_VBaseDirectContext (VCommandBuffer cmdbuf, NtStringView dbgName, RGBA8u dbgColor) __Th___ :
+	inline _VBaseDirectContext::_VBaseDirectContext (VCommandBuffer cmdbuf, DebugLabel dbg) __Th___ :
 		_cmdbuf{ RVRef( cmdbuf )}
 	{
 		CHECK_THROW( _IsValid() );
 
 		VulkanDeviceFn_Init( RenderTaskScheduler().GetDevice() );
 		DEBUG_ONLY(
-			_PushDebugGroup( dbgName, dbgColor );
+			_PushDebugGroup( dbg );
 		)
-		Unused( dbgName, dbgColor );
+		Unused( dbg );
 	}
 
 /*
@@ -148,14 +148,14 @@ namespace AE::Graphics::_hidden_
 	_DebugMarker
 =================================================
 */
-	inline void  _VBaseDirectContext::_DebugMarker (NtStringView text, RGBA8u color)
+	inline void  _VBaseDirectContext::_DebugMarker (DebugLabel dbg)
 	{
-		ASSERT( not text.empty() );
+		ASSERT( not dbg.label.empty() );
 
 		VkDebugUtilsLabelEXT	info = {};
 		info.sType		= VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
-		info.pLabelName	= text.size() ? text.c_str() : "";
-		MemCopy( info.color, RGBA32f{color} );
+		info.pLabelName	= NtStringView{dbg.label}.c_str();
+		MemCopy( info.color, RGBA32f{dbg.color} );
 			
 		vkCmdInsertDebugUtilsLabelEXT( _cmdbuf.Get(), &info );
 	}
@@ -165,14 +165,14 @@ namespace AE::Graphics::_hidden_
 	_PushDebugGroup
 =================================================
 */
-	inline void  _VBaseDirectContext::_PushDebugGroup (NtStringView text, RGBA8u color)
+	inline void  _VBaseDirectContext::_PushDebugGroup (DebugLabel dbg)
 	{
-		ASSERT( not text.empty() );
+		ASSERT( not dbg.label.empty() );
 
 		VkDebugUtilsLabelEXT	info = {};
 		info.sType		= VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
-		info.pLabelName	= text.size() ? text.c_str() : "";
-		MemCopy( info.color, RGBA32f{color} );
+		info.pLabelName	= NtStringView{dbg.label}.c_str();
+		MemCopy( info.color, RGBA32f{dbg.color} );
 
 		vkCmdBeginDebugUtilsLabelEXT( _cmdbuf.Get(), &info );
 	}
@@ -217,7 +217,7 @@ namespace AE::Graphics::_hidden_
 	{}
 	
 	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf) __Th___ :
-		_VBaseDirectContext{ RVRef(cmdbuf), task.DbgFullName(), task.DbgColor() },	// throw
+		_VBaseDirectContext{ RVRef(cmdbuf), DebugLabel{ task.DbgFullName(), task.DbgColor() }},	// throw
 		_mngr{ task }
 	{
 		ASSERT( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );

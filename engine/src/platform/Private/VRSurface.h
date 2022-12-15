@@ -38,18 +38,18 @@ namespace AE::App
 
 	// methods
 	public:
-		VRSurface ();
-		~VRSurface ();
+		VRSurface ()										__NE___;
+		~VRSurface ()										__NE___;
 
-		ND_ bool  Create (const VRImageDesc &desc);
-			void  Destroy ();
+		ND_ bool  Create (const VRImageDesc &desc)			__NE___;
+			void  Destroy ()								__NE___;
 
 
 	// IOutputSurface //
-		bool			IsInitialized ()		const override;
-		RenderPassInfo	GetRenderPassInfo ()	const override;
+		bool			IsInitialized ()					C_NE_OV;
+		RenderPassInfo	GetRenderPassInfo ()				C_NE_OV;
 
-		bool  GetTargets (OUT RenderTargets_t &targets) const override;
+		bool  GetTargets (OUT RenderTargets_t &targets)		C_NE_OV;
 	};
 
 

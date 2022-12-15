@@ -26,7 +26,7 @@ namespace AE::Threading
 
 	// variables
 	private:
-		StdAtomic<uint>		_flag { 0 };
+		Atomic<uint>	_flag { 0 };
 
 		static constexpr auto	AcquireOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
 		static constexpr auto	ReleaseOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
@@ -41,7 +41,7 @@ namespace AE::Threading
 		
 		~TSpinLock ()				__NE___
 		{
-			ASSERT( _flag.load(EMemoryOrder::Relaxed) == 0 );
+			ASSERT( _flag.load() == 0 );
 		}
 
 		ND_ bool  try_lock ()		__NE___
@@ -89,23 +89,27 @@ namespace AE::Threading
 	//
 	// Read-Write Spin Lock
 	//
-
-	struct RWSpinLock final : public Noncopyable
+	
+	template <bool IsRelaxedOrder>
+	struct TRWSpinLock final : public Noncopyable
 	{
 	// variables
 	private:
-		StdAtomic<int>		_flag { 0 };	// 0 -- unlocked, -1 -- write lock, >0 -- read lock
+		Atomic<int>		_flag { 0 };	// 0 -- unlocked, -1 -- write lock, >0 -- read lock
+		
+		static constexpr auto	AcquireOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
+		static constexpr auto	ReleaseOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
 
 
 	// methods
 	public:
-		RWSpinLock ()					__NE___ {}
-		~RWSpinLock ()					__NE___	{ ASSERT( _flag.load() == 0 ); }
+		TRWSpinLock ()					__NE___ {}
+		~TRWSpinLock ()					__NE___	{ ASSERT( _flag.load() == 0 ); }
 
 		ND_ bool  try_lock ()			__NE___
 		{
 			int	exp = 0;
-			return _flag.compare_exchange_strong( INOUT exp, -1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
+			return _flag.compare_exchange_strong( INOUT exp, -1, AcquireOrder, EMemoryOrder::Relaxed );
 		}
 
 
@@ -113,7 +117,7 @@ namespace AE::Threading
 		void  lock ()					__NE___
 		{
 			int	exp = 0;
-			for (uint i = 0; not _flag.compare_exchange_weak( INOUT exp, -1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed ); ++i)
+			for (uint i = 0; not _flag.compare_exchange_weak( INOUT exp, -1, AcquireOrder, EMemoryOrder::Relaxed ); ++i)
 			{
 				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
 				{
@@ -130,9 +134,9 @@ namespace AE::Threading
 		void  unlock ()					__NE___
 		{
 		  #ifdef AE_DEBUG
-			ASSERT( _flag.exchange( 0, EMemoryOrder::Release ) == -1 );
+			ASSERT( _flag.exchange( 0, ReleaseOrder ) == -1 );
 		  #else
-			_flag.store( 0, EMemoryOrder::Release );
+			_flag.store( 0, ReleaseOrder );
 		  #endif
 		}
 
@@ -141,7 +145,7 @@ namespace AE::Threading
 		{
 			int	exp = 0;
 			for (uint i = 0;
-				 not _flag.compare_exchange_weak( INOUT exp, exp + 1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
+				 not _flag.compare_exchange_weak( INOUT exp, exp + 1, AcquireOrder, EMemoryOrder::Relaxed );
 				 ++i)
 			{
 				if_unlikely( exp < 0 or i > 100 )
@@ -158,7 +162,7 @@ namespace AE::Threading
 		{
 			int	exp = 0;
 			for (uint i = 0;
-				 not _flag.compare_exchange_weak( INOUT exp, exp + 1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
+				 not _flag.compare_exchange_weak( INOUT exp, exp + 1, AcquireOrder, EMemoryOrder::Relaxed );
 				 ++i)
 			{
 				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
@@ -175,7 +179,7 @@ namespace AE::Threading
 		// for std::shared_lock
 		void  unlock_shared ()			__NE___
 		{
-			int	old = _flag.fetch_sub( 1, EMemoryOrder::Release );
+			int	old = _flag.fetch_sub( 1, ReleaseOrder );
 			ASSERT( old >= 0 );
 			Unused( old );
 		}
@@ -184,14 +188,14 @@ namespace AE::Threading
 		ND_ bool  try_shared_to_exclusive () __NE___
 		{
 			int	exp = 1;
-			return _flag.compare_exchange_strong( INOUT exp, -1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
+			return _flag.compare_exchange_strong( INOUT exp, -1 );
 		}
 
 		void  shared_to_exclusive ()	__NE___
 		{
 			int	exp = 1;
 			for (uint i = 0;
-				 not _flag.compare_exchange_weak( INOUT exp, -1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
+				 not _flag.compare_exchange_weak( INOUT exp, -1 );
 				 ++i)
 			{
 				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
@@ -209,10 +213,14 @@ namespace AE::Threading
 		void  exclusive_to_shared ()	__NE___
 		{
 			int	exp = -1;
-			_flag.compare_exchange_strong( INOUT exp, 1, EMemoryOrder::Acquire, EMemoryOrder::Relaxed );
+			Unused( _flag.compare_exchange_strong( INOUT exp, 1 ));
 			ASSERT( exp == -1 );
 		}
 	};
+
+
+	using RWSpinLock		= TRWSpinLock< false >;
+	using RWSpinLockRelaxed	= TRWSpinLock< true >;
 
 
 

@@ -66,6 +66,7 @@
 		bool  inlineUniformBlock          : 1;   // VK_EXT_inline_uniform_block 
 		bool  subgroupSizeControl         : 1;   // VK_EXT_subgroup_size_control 
 		bool  astcHdr                     : 1;   // VK_EXT_texture_compression_astc_hdr 
+		bool  texelBufferAlignment        : 1;   // VK_EXT_texel_buffer_alignment 
 
 		// ---- ext ----
 		bool  swapchain                   : 1;   // VK_KHR_swapchain 
@@ -206,6 +207,10 @@
 
 		// VK_EXT_texture_compression_astc_hdr
 		VkPhysicalDeviceTextureCompressionASTCHDRFeaturesEXT  astcHdrFeats;
+
+		// VK_EXT_texel_buffer_alignment
+		VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT  texelBufferAlignmentFeats;
+		VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT  texelBufferAlignmentProps;
 
 		// VK_KHR_push_descriptor
 		VkPhysicalDevicePushDescriptorPropertiesKHR  pushDescriptorProps;
@@ -429,6 +434,7 @@
 			VK_KHR_ZERO_INITIALIZE_WORKGROUP_MEMORY_EXTENSION_NAME,
 			VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME,
 			VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME,
+			VK_EXT_TEXEL_BUFFER_ALIGNMENT_EXTENSION_NAME,
 		};
 		static const char* core_1_3_ext_1_1[] =
 		{
@@ -577,6 +583,7 @@
 		_extensions.inlineUniformBlock          = (GetDeviceVersion() >= DeviceVersion{1,3}) or (HasDeviceExtension( VK_EXT_INLINE_UNIFORM_BLOCK_EXTENSION_NAME ));
 		_extensions.subgroupSizeControl         = (GetDeviceVersion() >= DeviceVersion{1,3}) or (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME ));
 		_extensions.astcHdr                     = (GetDeviceVersion() >= DeviceVersion{1,3}) or (HasDeviceExtension( VK_EXT_TEXTURE_COMPRESSION_ASTC_HDR_EXTENSION_NAME ));
+		_extensions.texelBufferAlignment        = (GetDeviceVersion() >= DeviceVersion{1,3}) or (HasDeviceExtension( VK_EXT_TEXEL_BUFFER_ALIGNMENT_EXTENSION_NAME ));
 		_extensions.swapchain                   = (HasDeviceExtension( VK_KHR_SWAPCHAIN_EXTENSION_NAME ));
 		_extensions.displaySwapchain            = (HasDeviceExtension( VK_KHR_DISPLAY_SWAPCHAIN_EXTENSION_NAME ));
 		_extensions.depthRangeUnrestricted      = (HasDeviceExtension( VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME ));
@@ -815,6 +822,15 @@
 				*next_feat = &_properties.astcHdrFeats;
 				next_feat  = &_properties.astcHdrFeats.pNext;
 				_properties.astcHdrFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXTURE_COMPRESSION_ASTC_HDR_FEATURES_EXT;
+			}
+			if ( _extensions.texelBufferAlignment )
+			{
+				*next_feat = &_properties.texelBufferAlignmentFeats;
+				next_feat  = &_properties.texelBufferAlignmentFeats.pNext;
+				_properties.texelBufferAlignmentFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_FEATURES_EXT;
+				*next_props = &_properties.texelBufferAlignmentProps;
+				next_props  = &_properties.texelBufferAlignmentProps.pNext;
+				_properties.texelBufferAlignmentProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TEXEL_BUFFER_ALIGNMENT_PROPERTIES_EXT;
 			}
 			if ( _extensions.pushDescriptor )
 			{
@@ -1148,56 +1164,57 @@
 			<< "\n  inlineUniformBlock:         " << ToString( _extensions.inlineUniformBlock )
 			<< "\n  subgroupSizeControl:. . . . " << ToString( _extensions.subgroupSizeControl )
 			<< "\n  astcHdr:                    " << ToString( _extensions.astcHdr )
+			<< "\n  texelBufferAlignment: . . . " << ToString( _extensions.texelBufferAlignment )
 			<< "\n  ---- ext ----"
-			<< "\n  swapchain:. . . . . . . . . " << ToString( _extensions.swapchain )
-			<< "\n  displaySwapchain:           " << ToString( _extensions.displaySwapchain )
-			<< "\n  depthRangeUnrestricted: . . " << ToString( _extensions.depthRangeUnrestricted )
-			<< "\n  pushDescriptor:             " << ToString( _extensions.pushDescriptor )
-			<< "\n  memoryPriority: . . . . . . " << ToString( _extensions.memoryPriority )
-			<< "\n  vertexDivisor:              " << ToString( _extensions.vertexDivisor )
-			<< "\n  depthClip:. . . . . . . . . " << ToString( _extensions.depthClip )
-			<< "\n  portabilitySubset:          " << ToString( _extensions.portabilitySubset )
-			<< "\n  loadOpNone: . . . . . . . . " << ToString( _extensions.loadOpNone )
-			<< "\n  pagebleDeviceLocalMemory:   " << ToString( _extensions.pagebleDeviceLocalMemory )
-			<< "\n  sampleLocations:. . . . . . " << ToString( _extensions.sampleLocations )
-			<< "\n  fragmentBarycentric:        " << ToString( _extensions.fragmentBarycentric )
-			<< "\n  meshShader: . . . . . . . . " << ToString( _extensions.meshShader )
-			<< "\n  fragShaderInterlock:        " << ToString( _extensions.fragShaderInterlock )
-			<< "\n  shaderClock:. . . . . . . . " << ToString( _extensions.shaderClock )
-			<< "\n  shaderTerminateInvocation:  " << ToString( _extensions.shaderTerminateInvocation )
-			<< "\n  shaderAtomicFloat:. . . . . " << ToString( _extensions.shaderAtomicFloat )
-			<< "\n  shaderAtomicFloat2:         " << ToString( _extensions.shaderAtomicFloat2 )
+			<< "\n  swapchain:                  " << ToString( _extensions.swapchain )
+			<< "\n  displaySwapchain: . . . . . " << ToString( _extensions.displaySwapchain )
+			<< "\n  depthRangeUnrestricted:     " << ToString( _extensions.depthRangeUnrestricted )
+			<< "\n  pushDescriptor: . . . . . . " << ToString( _extensions.pushDescriptor )
+			<< "\n  memoryPriority:             " << ToString( _extensions.memoryPriority )
+			<< "\n  vertexDivisor:. . . . . . . " << ToString( _extensions.vertexDivisor )
+			<< "\n  depthClip:                  " << ToString( _extensions.depthClip )
+			<< "\n  portabilitySubset:. . . . . " << ToString( _extensions.portabilitySubset )
+			<< "\n  loadOpNone:                 " << ToString( _extensions.loadOpNone )
+			<< "\n  pagebleDeviceLocalMemory: . " << ToString( _extensions.pagebleDeviceLocalMemory )
+			<< "\n  sampleLocations:            " << ToString( _extensions.sampleLocations )
+			<< "\n  fragmentBarycentric:. . . . " << ToString( _extensions.fragmentBarycentric )
+			<< "\n  meshShader:                 " << ToString( _extensions.meshShader )
+			<< "\n  fragShaderInterlock:. . . . " << ToString( _extensions.fragShaderInterlock )
+			<< "\n  shaderClock:                " << ToString( _extensions.shaderClock )
+			<< "\n  shaderTerminateInvocation:. " << ToString( _extensions.shaderTerminateInvocation )
+			<< "\n  shaderAtomicFloat:          " << ToString( _extensions.shaderAtomicFloat )
+			<< "\n  shaderAtomicFloat2: . . . . " << ToString( _extensions.shaderAtomicFloat2 )
 			<< "\n  workgroupMemExplicitLayout: " << ToString( _extensions.workgroupMemExplicitLayout )
-			<< "\n  shaderImageAtomicInt64:     " << ToString( _extensions.shaderImageAtomicInt64 )
-			<< "\n  queueGlobalPriority:. . . . " << ToString( _extensions.queueGlobalPriority )
-			<< "\n  performanceQuery:           " << ToString( _extensions.performanceQuery )
-			<< "\n  calibratedTimestamps: . . . " << ToString( _extensions.calibratedTimestamps )
-			<< "\n  toolingInfo:                " << ToString( _extensions.toolingInfo )
-			<< "\n  memoryBudget: . . . . . . . " << ToString( _extensions.memoryBudget )
-			<< "\n  memoryReport:               " << ToString( _extensions.memoryReport )
-			<< "\n  fragShadingRate:. . . . . . " << ToString( _extensions.fragShadingRate )
-			<< "\n  fragDensityMap:             " << ToString( _extensions.fragDensityMap )
-			<< "\n  fragDensityMap2:. . . . . . " << ToString( _extensions.fragDensityMap2 )
-			<< "\n  pipelineLibrary:            " << ToString( _extensions.pipelineLibrary )
-			<< "\n  deferredHostOps:. . . . . . " << ToString( _extensions.deferredHostOps )
-			<< "\n  accelerationStructure:      " << ToString( _extensions.accelerationStructure )
-			<< "\n  rayTracingPipeline: . . . . " << ToString( _extensions.rayTracingPipeline )
-			<< "\n  rayQuery:                   " << ToString( _extensions.rayQuery )
-			<< "\n  rayTracingMaintenance1: . . " << ToString( _extensions.rayTracingMaintenance1 )
-			<< "\n  astcDecodeMode:             " << ToString( _extensions.astcDecodeMode )
-			<< "\n  imageCompressionCtrl: . . . " << ToString( _extensions.imageCompressionCtrl )
-			<< "\n  swapchainCompressionCtrl:   " << ToString( _extensions.swapchainCompressionCtrl )
-			<< "\n  imageFootprintNV: . . . . . " << ToString( _extensions.imageFootprintNV )
-			<< "\n  deviceGeneratedCmdsNV:      " << ToString( _extensions.deviceGeneratedCmdsNV )
-			<< "\n  shaderSMBuiltinsNV: . . . . " << ToString( _extensions.shaderSMBuiltinsNV )
-			<< "\n  rasterizationOrderAMD:      " << ToString( _extensions.rasterizationOrderAMD )
-			<< "\n  shaderCorePropsAMD: . . . . " << ToString( _extensions.shaderCorePropsAMD )
-			<< "\n  rasterizationOrderGroup:    " << ToString( _extensions.rasterizationOrderGroup )
-			<< "\n  subpassShadingHW: . . . . . " << ToString( _extensions.subpassShadingHW )
-			<< "\n  renderPassShaderResolve:    " << ToString( _extensions.renderPassShaderResolve )
-			<< "\n  incrementalPresent: . . . . " << ToString( _extensions.incrementalPresent )
-			<< "\n  presentId:                  " << ToString( _extensions.presentId )
-			<< "\n  presentWait:. . . . . . . . " << ToString( _extensions.presentWait );
+			<< "\n  shaderImageAtomicInt64: . . " << ToString( _extensions.shaderImageAtomicInt64 )
+			<< "\n  queueGlobalPriority:        " << ToString( _extensions.queueGlobalPriority )
+			<< "\n  performanceQuery: . . . . . " << ToString( _extensions.performanceQuery )
+			<< "\n  calibratedTimestamps:       " << ToString( _extensions.calibratedTimestamps )
+			<< "\n  toolingInfo:. . . . . . . . " << ToString( _extensions.toolingInfo )
+			<< "\n  memoryBudget:               " << ToString( _extensions.memoryBudget )
+			<< "\n  memoryReport: . . . . . . . " << ToString( _extensions.memoryReport )
+			<< "\n  fragShadingRate:            " << ToString( _extensions.fragShadingRate )
+			<< "\n  fragDensityMap: . . . . . . " << ToString( _extensions.fragDensityMap )
+			<< "\n  fragDensityMap2:            " << ToString( _extensions.fragDensityMap2 )
+			<< "\n  pipelineLibrary:. . . . . . " << ToString( _extensions.pipelineLibrary )
+			<< "\n  deferredHostOps:            " << ToString( _extensions.deferredHostOps )
+			<< "\n  accelerationStructure:. . . " << ToString( _extensions.accelerationStructure )
+			<< "\n  rayTracingPipeline:         " << ToString( _extensions.rayTracingPipeline )
+			<< "\n  rayQuery: . . . . . . . . . " << ToString( _extensions.rayQuery )
+			<< "\n  rayTracingMaintenance1:     " << ToString( _extensions.rayTracingMaintenance1 )
+			<< "\n  astcDecodeMode: . . . . . . " << ToString( _extensions.astcDecodeMode )
+			<< "\n  imageCompressionCtrl:       " << ToString( _extensions.imageCompressionCtrl )
+			<< "\n  swapchainCompressionCtrl: . " << ToString( _extensions.swapchainCompressionCtrl )
+			<< "\n  imageFootprintNV:           " << ToString( _extensions.imageFootprintNV )
+			<< "\n  deviceGeneratedCmdsNV:. . . " << ToString( _extensions.deviceGeneratedCmdsNV )
+			<< "\n  shaderSMBuiltinsNV:         " << ToString( _extensions.shaderSMBuiltinsNV )
+			<< "\n  rasterizationOrderAMD:. . . " << ToString( _extensions.rasterizationOrderAMD )
+			<< "\n  shaderCorePropsAMD:         " << ToString( _extensions.shaderCorePropsAMD )
+			<< "\n  rasterizationOrderGroup:. . " << ToString( _extensions.rasterizationOrderGroup )
+			<< "\n  subpassShadingHW:           " << ToString( _extensions.subpassShadingHW )
+			<< "\n  renderPassShaderResolve:. . " << ToString( _extensions.renderPassShaderResolve )
+			<< "\n  incrementalPresent:         " << ToString( _extensions.incrementalPresent )
+			<< "\n  presentId:. . . . . . . . . " << ToString( _extensions.presentId )
+			<< "\n  presentWait:                " << ToString( _extensions.presentWait );
 		return src;
 	}
 #endif // VKFEATS_FN_IMPL

@@ -2,7 +2,7 @@ if (DEFINED ANDROID)
 	set( AE_ENABLE_SCRIPTING OFF CACHE INTERNAL "" FORCE )
 elseif (${AE_ENABLE_ANGELSCRIPT})
 	set( AE_ENABLE_SCRIPTING ON CACHE INTERNAL "" FORCE )
-endif ()
+endif()
 
 if (${AE_ENABLE_SCRIPTING})
 	file( GLOB_RECURSE SOURCES "*.*" )
@@ -14,5 +14,7 @@ if (${AE_ENABLE_SCRIPTING})
 	
 	if (${AE_ENABLE_ANGELSCRIPT})
 		target_link_libraries( "Scripting" PUBLIC "AngelScript-lib" )
-	endif ()
+	endif()
+
+	install( TARGETS "Scripting" ARCHIVE DESTINATION "lib" )
 endif()

@@ -18,7 +18,7 @@ namespace AE
 	using ssize		= intptr_t;
 	using usize		= size_t;
 
-#ifdef __cpp_char8_t
+#if defined(__cpp_char8_t) and not defined(AE_PLATFORM_APPLE)
 	using CharUtf8	= char8_t;	// C++20
 #else
 	enum class CharUtf8 : char {};
@@ -71,6 +71,8 @@ namespace AE::Base
 	using String		= BasicString< CharAnsi >;
 	using WString		= BasicString< wchar_t >;
 	using U8String		= BasicString< CharUtf8 >;
+	using U16String		= BasicString< CharUtf16 >;
+	using U32String		= BasicString< CharUtf32 >;
 
 	template <typename T,
 			  typename A = std::allocator<T>>
@@ -92,6 +94,8 @@ namespace AE::Base
 	using StringView		= BasicStringView< CharAnsi >;
 	using WStringView		= BasicStringView< wchar_t >;
 	using U8StringView		= BasicStringView< CharUtf8 >;
+	using U16StringView		= BasicStringView< CharUtf16 >;
+	using U32StringView		= BasicStringView< CharUtf32 >;
 
 	template <typename T>	using Function		= std::function< T >;
 
@@ -120,6 +124,7 @@ namespace AE::Base
 	using secondsf		= std::chrono::duration<float>;
 	using secondsd		= std::chrono::duration<double>;
 	using nanosecondsd	= std::chrono::duration<double, std::nano>;
+	using minutes		= std::chrono::minutes;
 	
 
 /*

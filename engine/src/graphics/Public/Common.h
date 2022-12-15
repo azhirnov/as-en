@@ -39,6 +39,8 @@ namespace AE::Graphics
 	//
 	struct GraphicsConfig final : Noninstancable
 	{
+		// Values may be greater than current limit, used only to reserve memory.
+
 		// buffer
 		static constexpr uint	MaxVertexBuffers		= 8;
 		static constexpr uint	MaxVertexAttribs		= 16;
@@ -60,45 +62,49 @@ namespace AE::Graphics
 		static constexpr uint	MinFrames				= 2;
 		static constexpr uint	MaxFrames				= 4;
 		static constexpr uint	MaxCmdBuffersPerPool	= 16;
-		static constexpr uint	MaxCmdPoolsPerQueue		= 8;	// == max render threads
+		static constexpr uint	MaxCmdPoolsPerQueue		= 8;						// == max render threads
 
 		static constexpr uint	MaxCmdBufPerBatch		= 32;
 
-		//static constexpr Bytes	MinBufferBlockSize		= 64_b;	// for stream uploading
+		static constexpr uint	MaxPendingCmdBatches	= 15;
 	};
 
 
+
 	//
-	// Compile-time Device Limits
+	// Debug Label
 	//
-	static constexpr struct
+	struct DebugLabel
 	{
-		// shader resources
-		uint	minUniformBufferOffsetAlignment			= 256;		// nvidia - 64/256, amd -  16,  intel -  64,  mali -  16,  adreno - 64,   apple - 16/32/256
-		uint	minStorageBufferOffsetAlignment			= 256;		// nvidia - 16,     amd -   4,  intel -  64,  mali - 256,  adreno - 64,   apple - 16
-		uint	minVertexBufferOffsetAlignment			= 256;		// vulkan - 1 (not specified),											  apple - 16
-		uint	minTexelBufferOffsetAlignment			= 256;		// nvidia - 16,     amd -   4,  intel -  64,  mali - 256,  adreno - 64,   apple - ?
-		uint	maxUniformBufferRange					= 65536;	// nvidia - 64k,    amd - inf,  intel - inf,  mali - 64k,  adreno - 64k,  apple - 4k/inf?
-		uint	maxDescriptorSetUniformBuffersDynamic	= 8;		// nvidia - 15,     amd -   8,  intel -  16,  mali -   8,  adreno - 32,   apple - 31
-		uint	maxDescriptorSetStorageBuffersDynamic	= 4;		// nvidia - 16,     amd -   8,  intel -  16,  mali -   4,  adreno - 16,   apple - 31
-		uint	maxDescriptorSetInputAttachments		= 4;
-		uint	maxBoundDescriptorSets					= 4;		// nvidia -  32,    amd -  32,  intel -   8,  mali -   4,  adreno -   4,  apple - 31
-		uint	maxVertexInputAttributes				= 16;		// nvidia -  32,    amd -  64,  intel -  32,  mali -  16,  adreno -  32,  apple - 31
-		uint	maxPushConstantsSize					= 128;		// nvidia - 256,    amd - 128,  intel - 256,  mali - 128,  adreno - 128,  apple - 4k
-		uint	minThreadgroupMemoryLengthAlign			= 16;		//																		  apple - 16
+		static constexpr struct {
+			const RGBA8u	Undefined			= RGBA8u{255, 255, 255, 0};		// transparent white
 
-		// render targets
-		uint	maxColorAttachments						= 4;		// nvidia -   8,    amd -   8,  intel -   8,  mali -   4,  adreno -   8,  apple - 4
-		uint	maxFramebufferLayers					= 256;		//																		  apple - 2048
+			const RGBA8u	GraphicsQueue		= HtmlColor::Red;
+			const RGBA8u	AsyncComputeQueue	= HtmlColor::Orange;
+			const RGBA8u	AsyncTransfersQueue	= HtmlColor::Violet;
 
-		// copy
-		uint	minMemoryMapAlignment					= 64;		// nvidia - 64,     amd -  64,  intel -  64,  mali -  64,  adreno - 64,   apple - ?
-		uint	minNonCoherentAtomSize					= 128;		// nvidia - 64,     amd - 128,  intel -   1,  mali -  64,  adreno -  1,   apple - ?
-		uint	minOptimalBufferCopyOffsetAlignment		= 64;		// nvidia -   1,    amd -   1,  intel -  64,  mali -  64,  adreno -  64,  apple - 1
-		uint	minOptimalBufferCopyRowPitchAlignment	= 64;		// nvidia -   1,    amd -   1,  intel -  64,  mali -  64,  adreno -  64,  apple - 256
+			const RGBA8u	AsyncDrawBatch		= HtmlColor::Yellow;
+			
+			const RGBA8u	GraphicsCtx			= HtmlColor::Red;
+			const RGBA8u	ComputeCtx			= HtmlColor::Orange;
+			const RGBA8u	TransferCtx			= HtmlColor::Violet;
+			const RGBA8u	DrawCtx				= HtmlColor::Yellow;
+			const RGBA8u	AccelStructBuiltCtx	= HtmlColor::Lime;
+			const RGBA8u	RayTracingCtx		= HtmlColor::Blue;
 
-		uint	minComputeWorkgroupInvocations			= 64;		// nvidia - 1024,   amd - 1024, intel - 1024, mali -  64,  adreno - 128,  apple - 512
-	} DeviceLimits;
+		} ColorTable;
+
+
+	// variables
+		StringView		label;
+		RGBA8u			color	= ColorTable.Undefined;
+		
+
+	// methods
+		constexpr DebugLabel (Base::_hidden_::DefaultType)		__NE___								{}
+		constexpr DebugLabel (StringView label)					__NE___	: label{label}				{}
+		constexpr DebugLabel (StringView label, RGBA8u color)	__NE___	: label{label}, color{color}{}
+	};
 
 
 } // AE::Graphics

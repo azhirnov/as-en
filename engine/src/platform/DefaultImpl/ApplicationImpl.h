@@ -25,6 +25,9 @@ namespace AE::App
 
 	  #elif defined(AE_ENABLE_METAL)
 		Graphics::MDeviceInitializer	_metal;
+		
+	  #else
+	  #	error not implemented
 	  #endif
 			
 		Array<WindowPtr>	_windows;
@@ -34,18 +37,18 @@ namespace AE::App
 
 	// methods
 	protected:
-		explicit ApplicationImpl (const AppConfig &cfg);
+		explicit ApplicationImpl (const AppConfig &cfg)	__NE___;
 	public:
-		~ApplicationImpl () override;
+		~ApplicationImpl ()								__NE_OV;
 
-		ND_ AppConfig const&  Config () const	{ return _config; }
+		ND_ AppConfig const&  Config ()					C_NE___	{ return _config; }
 
 
 	// IAppListener //
-		void  OnStart (IApplication &) override;
-		void  OnStop  (IApplication &) override;
+		void  OnStart (IApplication &)					__NE_OV;
+		void  OnStop  (IApplication &)					__NE_OV;
 
-		void  AfterWndUpdate (IApplication &) override;
+		void  AfterWndUpdate (IApplication &)			__NE_OV;
 
 
 	private:
@@ -56,6 +59,9 @@ namespace AE::App
 	  #elif defined(AE_ENABLE_METAL)
 		bool  _CreateMetal (IApplication &app);
 		bool  _DestroyMetal ();
+		
+	  #else
+	  #	error not implemented
 	  #endif
 	};
 

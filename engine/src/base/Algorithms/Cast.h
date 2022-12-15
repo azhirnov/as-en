@@ -202,7 +202,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From>
-	ND_ inline constexpr To  CheckCast (const From& src) __NE___
+	ND_ inline constexpr To  CheckCast (const From &src) __NE___
 	{
 	#ifdef AE_COMPILER_MSVC
 	#	pragma warning (push)
@@ -232,6 +232,37 @@ namespace AE::Base
 	#endif
 	}
 	
+/*
+=================================================
+	CheckCast
+=================================================
+*/
+	template <typename To, typename From>
+	ND_ inline constexpr bool  CheckCast (OUT To &dst, const From &src) __NE___
+	{
+	#ifdef AE_COMPILER_MSVC
+	#	pragma warning (push)
+	#	pragma warning (disable: 4244)
+	#endif
+	#ifdef AE_COMPILER_CLANG
+	#	pragma clang diagnostic push
+	#   pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+	#   pragma clang diagnostic ignored "-Wimplicit-int-conversion"
+	#   pragma clang diagnostic ignored "-Wshorten-64-to-32"
+	#endif
+
+		dst = static_cast<To>(src);
+
+		return static_cast<From>(static_cast<To>(src)) == src;
+		
+	#ifdef AE_COMPILER_MSVC
+	#	pragma warning (pop)
+	#endif
+	#ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic pop
+	#endif
+	}
+
 /*
 =================================================
 	LimitCast

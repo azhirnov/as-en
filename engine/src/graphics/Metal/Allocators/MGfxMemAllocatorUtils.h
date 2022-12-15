@@ -36,13 +36,13 @@ namespace AE::Graphics
 				value{ (opts & 0xFF'FFFF) | ((type & 0xF) << 24) | ((uint(resType) & 3) << 30) }
 			{}
 
-			ND_ bool  operator == (const Key &rhs)	C_NE___ { return value == rhs.value; }
-			ND_ bool  operator <  (const Key &rhs)	C_NE___ { return value <  rhs.value; }
-			ND_ bool  operator >  (const Key &rhs)	C_NE___ { return value >  rhs.value; }
+			ND_ bool  operator == (const Key &rhs)		C_NE___ { return value == rhs.value; }
+			ND_ bool  operator <  (const Key &rhs)		C_NE___ { return value <  rhs.value; }
+			ND_ bool  operator >  (const Key &rhs)		C_NE___ { return value >  rhs.value; }
 
-			ND_ uint		HeapType ()				C_NE___	{ return (value >> 24) & 0xF; }		// MTLHeapType
-			ND_ uint		ResourceOptions ()		C_NE___	{ return value & 0xFF'FFFF; }		// MTLResourceOptions
-			ND_ EResType	ResourceType ()			C_NE___	{ return EResType(value >> 30); }
+			ND_ uint		HeapType ()					C_NE___	{ return (value >> 24) & 0xF; }		// MTLHeapType
+			ND_ uint		ResourceOptions ()			C_NE___	{ return value & 0xFF'FFFF; }		// MTLResourceOptions
+			ND_ EResType	ResourceType ()				C_NE___	{ return EResType(value >> 30); }
 		};
 	};
 

@@ -15,7 +15,7 @@ namespace AE::Graphics
 	VkColorSpaceKHR_ToString
 =================================================
 */
-	ND_ inline StringView  VkColorSpaceKHR_ToString (VkColorSpaceKHR value)
+	ND_ inline StringView  VkColorSpaceKHR_ToString (VkColorSpaceKHR value) __NE___
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
@@ -161,7 +161,7 @@ namespace AE::Graphics
 	VkFormat_ToString
 =================================================
 */
-	ND_ inline StringView  VkFormat_ToString (VkFormat value)
+	ND_ inline StringView  VkFormat_ToString (VkFormat value) __NE___
 	{
 #		define FMT_BUILDER( _engineFmt_, _vkFormat_ ) \
 			case _vkFormat_ : return #_vkFormat_;

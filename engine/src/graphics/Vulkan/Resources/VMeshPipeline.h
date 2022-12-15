@@ -38,6 +38,7 @@ namespace AE::Graphics
 		EPipelineDynamicState		_dynamicState			= Default;
 		EPipelineOpt				_options				= Default;
 		//bool						_earlyFragmentTests		= true;
+		ubyte						_subpassIndex			= UMax;
 
 		Strong<VPipelineLayoutID>	_layoutId;
 		
@@ -49,25 +50,26 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VMeshPipeline () {}
-		~VMeshPipeline ();
+		VMeshPipeline ()											__NE___	{}
+		~VMeshPipeline ()											__NE___;
 
-		ND_ bool  Create (VResourceManager &, const CreateInfo &ci);
-			void  Destroy (VResourceManager &);
+		ND_ bool  Create (VResourceManager &, const CreateInfo &ci)	__NE___;
+			void  Destroy (VResourceManager &)						__NE___;
 			
-		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result) const;
+		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result) C_NE___;
 
-		ND_ VkPipeline				Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
-		ND_ VkPipelineLayout		Layout ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
-		ND_ VkPipelineBindPoint		BindPoint ()			const	{ return VK_PIPELINE_BIND_POINT_GRAPHICS; }
-		ND_ VPipelineLayoutID		LayoutID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ EPipelineDynamicState	DynamicState ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
-		//ND_ bool					IsEarlyFragmentTests ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _earlyFragmentTests; }
+		ND_ VkPipeline				Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
+		ND_ VkPipelineLayout		Layout ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
+		ND_ VkPipelineBindPoint		BindPoint ()					C_NE___	{ return VK_PIPELINE_BIND_POINT_GRAPHICS; }
+		ND_ VPipelineLayoutID		LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ EPipelineDynamicState	DynamicState ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
+		//ND_ bool					IsEarlyFragmentTests ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _earlyFragmentTests; }
+		ND_ uint					RenderPassSubpassIndex ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }
 		
-		ND_ uint3					TaskLocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_taskLocalSize}; }
-		ND_ uint3					MeshLocalSize ()		const	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_meshLocalSize}; }
+		ND_ uint3					TaskLocalSize ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_taskLocalSize}; }
+		ND_ uint3					MeshLocalSize ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_meshLocalSize}; }
 		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY(  ND_ StringView  GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

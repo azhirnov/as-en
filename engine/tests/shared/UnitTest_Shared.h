@@ -13,11 +13,11 @@ using namespace AE::Base;
 		CHECK_FATAL_MSG( All( (_lhs_) _op_ (_rhs_) ), \
 			AE::Base::String{AE_TOSTRING( _lhs_ )} << " (" << AE::Base::ToString(_lhs_) << ") " << AE_TOSTRING(_op_) << " (" << AE::Base::ToString(_rhs_) << ") " << AE_TOSTRING( _rhs_ ))
 
-#define TEST_EQ( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), ==, (_rhs_) )
+#define TEST_Eq( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), ==, (_rhs_) )
 #define TEST_NE( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), !=, (_rhs_) )
-#define TEST_G(  _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), >,  (_rhs_) )
+#define TEST_Gt( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), >,  (_rhs_) )
 #define TEST_GE( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), >=, (_rhs_) )
-#define TEST_L(  _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), <,  (_rhs_) )
+#define TEST_Lt( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), <,  (_rhs_) )
 #define TEST_LE( _lhs_, _rhs_ )		__PRIVATE_TEST_OP( (_lhs_), <=, (_rhs_) )
 
 

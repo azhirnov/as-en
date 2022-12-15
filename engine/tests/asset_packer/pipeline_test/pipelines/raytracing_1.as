@@ -1,7 +1,7 @@
 
 void main ()
 {
-	if ( !IsVulkan() )
+	if ( !IsVulkan() )	// TODO
 		return;
 
 	RayTracingPipeline@	ppln = RayTracingPipeline( "raytracing_1" );
@@ -15,6 +15,8 @@ void main ()
 		rg.type		= EShader::RayGen;
 		rg.options	= EShaderOpt::Optimize;
 		rg.version	= EShaderVersion::SPIRV_1_4;
+
+		rg.AddSpec( EValueType::UInt32, "sbtRecordStride" );
 
 		ppln.AddGeneralShader( "Main", rg );
 	}
@@ -60,15 +62,27 @@ void main ()
 
 	// specialization
 	{
+		const uint	hit_group_stride = 2;
+
 		RayTracingPipelineSpec@	spec = ppln.AddSpecialization( "raytracing_1.def" );
 
+		spec.SetSpecValue( "sbtRecordStride", hit_group_stride );
 		spec.AddToRenderTech( "RayTracing", "Trace1" );
-	}
 
-	// shader binding table
-	{
-		//RayTracingShaderBinding@	sbt = RayTracingShaderBinding( ppln, "raytracing_1.sbt0" );
+		// shader binding table
+		{
+			RayTracingShaderBinding@	sbt = RayTracingShaderBinding( spec, "raytracing_1.sbt0" );
 
-		// TODO
+			sbt.BindRayGen( "Main" );
+
+			sbt.HitGroupStride( hit_group_stride );
+
+			sbt.BindMiss( "Miss", MissIndex(0) );
+			sbt.BindMiss( "Miss", MissIndex(1) );
+			
+			sbt.BindHitGroup( "TriHit1",	InstanceIndex(0),	RayIndex(0) );
+			sbt.BindHitGroup( "TriHit2",	InstanceIndex(1),	RayIndex(0) );
+			sbt.BindHitGroup( "ProcHit1",	InstanceIndex(2),	RayIndex(0) );
+		}
 	}
 }

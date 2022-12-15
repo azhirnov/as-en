@@ -38,6 +38,7 @@ namespace AE::Graphics
 			float		maxDepth	= 1.0f;
 		};
 
+	private:
 		using Attachments_t	= FixedMap< AttachmentName, Attachment, GraphicsConfig::MaxAttachments >;
 		using Viewports_t	= FixedArray< Viewport, GraphicsConfig::MaxViewports >;
 
@@ -89,6 +90,8 @@ namespace AE::Graphics
 		
 		template <typename T>
 		Self&  AddViewport (const Vec<T,2> &size, float minDepth = 0.0f, float maxDepth = 1.0f)						__NE___;
+
+		Self&  DefaultViewport ()																					__NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -209,11 +212,20 @@ namespace AE::Graphics
 	template <typename T>
 	RenderPassDesc&  RenderPassDesc::AddViewport (const Vec<T,2> &size, float minDepth, float maxDepth) __NE___
 	{
-		ASSERT( All( int2(size) > 0 ));
-		ASSERT( All( area.LeftTop() <= 0 ));
-		ASSERT( All( area.RightBottom() >= int2(size) ));
-
-		viewports.push_back({ RectF{float2(), float2(size)}, minDepth, maxDepth });
+		return AddViewport( Rectangle<T>{size}, minDepth, maxDepth );
+	}
+	
+/*
+=================================================
+	DefaultViewport
+=================================================
+*/
+	inline RenderPassDesc&  RenderPassDesc::DefaultViewport () __NE___
+	{
+		Viewport&	dst = viewports.emplace_back();
+		dst.rect		= RectF{area};
+		dst.minDepth	= 0.0f;
+		dst.maxDepth	= 1.0f;
 		return *this;
 	}
 

@@ -34,7 +34,7 @@ namespace
 		// async compute
 		ComputePipelineID			cppln;
 		Strong<DescriptorSetID>		cpplnDS [2];
-		uint						cpplnDSIndex	= UMax;
+		DescSetBinding				cpplnDSIndex;
 		
 		AsyncTask					result [2];
 		bool						isOK   [2] = {false, false};
@@ -54,8 +54,8 @@ namespace
 		AC1_TestData&	t;
 		const uint		fi;
 
-		AC1_GraphicsTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		AC1_GraphicsTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ batch, dbg },
 			t{ t },
 			fi{ frameIdx & 1 }
 		{
@@ -87,7 +87,7 @@ namespace
 			ctx.AccumBarriers()
 				.ImageBarrier( t.image[fi], img_gfx_state, img_comp_state );
 			
-			ExecuteAndSubmit( ctx, ESubmitMode::Immediately );
+			Execute( ctx );
 		}
 	};
 
@@ -99,8 +99,8 @@ namespace
 		AC1_TestData&	t;
 		const uint		fi;
 
-		AC1_ComputeTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		AC1_ComputeTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ batch, dbg },
 			t{ t },
 			fi{ frameIdx & 1 }
 		{
@@ -118,7 +118,7 @@ namespace
 			ctx.BindDescriptorSet( t.cpplnDSIndex, t.cpplnDS[fi] );
 			ctx.Dispatch( DivCeil( t.imageSize, 4u ));
 			
-			ExecuteAndSubmit( ctx, ESubmitMode::Immediately );
+			Execute( ctx );
 		}
 	};
 	
@@ -129,8 +129,8 @@ namespace
 	public:
 		AC1_TestData&	t;
 
-		AC1_CopyTask (AC1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		AC1_CopyTask (AC1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -161,7 +161,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 		}
 	};
 	
@@ -171,10 +171,10 @@ namespace
 	{
 	public:
 		AC1_TestData&		t;
-		CommandBatchPtr	lastBatch;
+		CommandBatchPtr		lastBatch;
 
 		AC1_FrameTask (AC1_TestData& t) :
-			IAsyncTask{ EThread::Worker },
+			IAsyncTask{ ETaskQueue::Worker },
 			t{ t }
 		{}
 
@@ -186,12 +186,12 @@ namespace
 			{
 				AsyncTask	begin = rts.BeginFrame();
 
-				auto		batch = rts.CreateBatch( EQueueType::Graphics, 0, "copy task" );
+				auto		batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"copy task"} );
 				CHECK_TE( batch );
 
 				CHECK_TE( batch->AddInputDependency( lastBatch ));
 				
-				AsyncTask	read_task	= batch->Add< AC1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, "Readback task" );
+				AsyncTask	read_task	= batch->Add< AC1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Readback task"} );
 				AsyncTask	end			= rts.EndFrame( Tuple{read_task} );
 				
 				++t.frameIdx;
@@ -203,20 +203,20 @@ namespace
 
 			AsyncTask	begin		= rts.BeginFrame();
 			
-			auto		batch_gfx	= rts.CreateBatch( EQueueType::Graphics, 0, "graphics batch" );
+			auto		batch_gfx	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"graphics batch"} );
 			CHECK_TE( batch_gfx );
 			
 			// sync with previous frame
 			CHECK_TE( batch_gfx->AddInputDependency( lastBatch ));
 
-			auto		batch_ac	= rts.CreateBatch( EQueueType::AsyncCompute, 0, "compute batch" );
+			auto		batch_ac	= rts.BeginCmdBatch( EQueueType::AsyncCompute, 0, ESubmitMode::Immediately, {"compute batch"} );
 			CHECK_TE( batch_ac );
 
 			// graphics to compute sync
 			CHECK_TE( batch_ac->AddInputDependency( batch_gfx ));
 			
-			AsyncTask	gfx_task	= batch_gfx->Add<	AC1_GraphicsTask<CtxTypes>	>( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{begin},	 "graphics task" );
-			AsyncTask	comp_task	= batch_ac->Add<	AC1_ComputeTask<CtxTypes>	>( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{gfx_task}, "async compute task" );
+			AsyncTask	gfx_task	= batch_gfx->Add< AC1_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{begin},	 True{"Last"}, {"graphics task"} );
+			AsyncTask	comp_task	= batch_ac ->Add< AC1_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{gfx_task}, True{"Last"}, {"async compute task"} );
 			AsyncTask	end			= rts.EndFrame( Tuple{ gfx_task, comp_task });
 
 			lastBatch = batch_ac;

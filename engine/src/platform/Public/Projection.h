@@ -27,26 +27,26 @@ namespace AE::App
 
 	// methods
 	public:
-		RaysGrid () {}
+		RaysGrid ()											__NE___	{}
 		
-		RaysGrid (float4* rays, const uint2 &dim) : _rays{rays}, _dim{dim}
+		RaysGrid (float4* rays, const uint2 &dim)			__NE___	: _rays{rays}, _dim{dim}
 		{
 			ASSERT( _rays != null );
 		}
 
-		ND_ uint2 const&  Dimension () const			{ return _dim; }
+		ND_ uint2 const&  Dimension ()						C_NE___	{ return _dim; }
 
-		ND_ float4&  operator () (const uint2 &pos)		{ return (*this)( pos.x, pos.y ); }
+		ND_ float4&  operator () (const uint2 &pos)			__NE___	{ return (*this)( pos.x, pos.y ); }
 
-		ND_ float4&  operator () (uint x, uint y)
+		ND_ float4&  operator () (uint x, uint y)			__NE___
 		{
 			ASSERT( _rays != null );
 			ASSERT( x < _dim.x and y < _dim.y );
 			return _rays[ _dim.x * y + x ];
 		}
 
-		ND_ float4 const&  operator () (const uint2 &pos)	const	{ return const_cast< RaysGrid *>(this)->operator()( pos ); }
-		ND_ float4 const&  operator () (uint x, uint y)		const	{ return const_cast< RaysGrid *>(this)->operator()( x, y ); }
+		ND_ float4 const&  operator () (const uint2 &pos)	C_NE___	{ return const_cast< RaysGrid *>(this)->operator()( pos ); }
+		ND_ float4 const&  operator () (uint x, uint y)		C_NE___	{ return const_cast< RaysGrid *>(this)->operator()( x, y ); }
 	};
 
 
@@ -78,29 +78,29 @@ namespace AE::App
 	public:
 
 		// Some devices (VR) requires you to use view/proj matrices which returned by API.
-			virtual void  GetViewProj (OUT TViewProj<float> &) const = 0;
-			virtual void  GetViewProj (OUT TViewProj<double> &) const = 0;
+			virtual void  GetViewProj (OUT TViewProj<float> &)			C_NE___ = 0;
+			virtual void  GetViewProj (OUT TViewProj<double> &)			C_NE___ = 0;
 
-			virtual void  GetInvViewProj (OUT TViewProj<float> &) const = 0;
-			virtual void  GetInvViewProj (OUT TViewProj<double> &) const = 0;
+			virtual void  GetInvViewProj (OUT TViewProj<float> &)		C_NE___ = 0;
+			virtual void  GetInvViewProj (OUT TViewProj<double> &)		C_NE___ = 0;
 
 		// Same as view matrix.
-			virtual void  GetTransform (OUT Transformation<float> &) const = 0;
-			virtual void  GetTransform (OUT Transformation<double> &) const = 0;
+			virtual void  GetTransform (OUT Transformation<float> &)	C_NE___ = 0;
+			virtual void  GetTransform (OUT Transformation<double> &)	C_NE___ = 0;
 
 		// Frustum calculated form view/proj matrix.
-		//	virtual void  GetFrustum (OUT FrustumTempl<float> &) const = 0;
-		//	virtual void  GetFrustum (OUT FrustumTempl<double> &) const = 0;
+		//	virtual void  GetFrustum (OUT FrustumTempl<float> &)		C_NE___ = 0;
+		//	virtual void  GetFrustum (OUT FrustumTempl<double> &)		C_NE___ = 0;
 
 		// Generate low resolution ray grid to support specific screen types.
 		// Should be used for VR, curved screens and other.
-			virtual void  GenetateRays (RaysGrid &grid) const = 0;
+			virtual void  GenetateRays (RaysGrid &grid)					C_NE___ = 0;
 
 		// Some devices may use low or high precission for matrices.
-		ND_ virtual EPrecision  NativePrecision () const = 0;
+		ND_ virtual EPrecision  NativePrecision ()						C_NE___ = 0;
 
 		// for shader builder
-		//ND_ virtual String  GetSource () const = 0;
+		//ND_ virtual String  GetSource ()								C_NE___ = 0;
 	};
 
 

@@ -38,6 +38,7 @@ namespace AE::Graphics
 		MDynamicRenderState			_renderState;
 		
 		EPipelineDynamicState		_dynamicState		= Default;
+		ubyte						_rasterOrderGroup	= UMax;
 
 		VBtoIndex_t					_vertexBuffers;
 		
@@ -49,23 +50,24 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MGraphicsPipeline () {}
-		~MGraphicsPipeline ();
+		MGraphicsPipeline ()											__NE___	{}
+		~MGraphicsPipeline ()											__NE___;
 
-		ND_ bool  Create (MResourceManager &, const CreateInfo &ci);
-			void  Destroy (MResourceManager &);
+		ND_ bool  Create (MResourceManager &, const CreateInfo &ci)		__NE___;
+			void  Destroy (MResourceManager &)							__NE___;
 		
-		ND_ uint  GetVertexBufferIndex (const VertexBufferName &name) const;
+		ND_ uint  GetVertexBufferIndex (const VertexBufferName &name)	C_NE___;
 
-		ND_ MetalRenderPipeline			Handle ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
-		ND_ MetalDepthStencilState		DepthStencilState ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _dsState; }
-		ND_ MDynamicRenderState const&	GetRenderState ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _renderState; }
-		//ND_ auto						GetRenderState ()		const	{ return DRC_WRAP( _renderState, _drCheck ); }
-		ND_ MPipelineLayoutID			LayoutID ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
-		ND_ EPipelineDynamicState		DynamicState ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
-		ND_ EPrimitive					Topology ()				const	{ DRC_SHAREDLOCK( _drCheck );  return _renderState.topology; }
+		ND_ MetalRenderPipeline			Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
+		ND_ MetalDepthStencilState		DepthStencilState ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dsState; }
+		ND_ MDynamicRenderState const&	GetRenderState ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderState; }
+		//ND_ auto						GetRenderState ()				C_NE___	{ return DRC_WRAP( _renderState, _drCheck ); }
+		ND_ MPipelineLayoutID			LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ EPipelineDynamicState		DynamicState ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
+		ND_ EPrimitive					Topology ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderState.topology; }
+		ND_ uint						RasterOrderGroup ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rasterOrderGroup; }
 		
-		DEBUG_ONLY( ND_ StringView		GetDebugName ()			const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY( ND_ StringView		GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 } // AE::Graphics

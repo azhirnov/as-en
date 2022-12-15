@@ -30,7 +30,7 @@ namespace AE::Base
 			_message = name;
 			
 			using namespace AE::Threading;
-			CompilerFence( EMemoryOrder::Release );
+			CompilerBarrier( EMemoryOrder::Release );
 		}
 
 
@@ -40,14 +40,14 @@ namespace AE::Base
 			_message << "time profiler: " << name << (name.empty() ? "" : ", ") << "function: " << func;
 			
 			using namespace AE::Threading;
-			CompilerFence( EMemoryOrder::Release );
+			CompilerBarrier( EMemoryOrder::Release );
 		}
 		
 
 		~TimeProfiler ()
 		{
 			using namespace AE::Threading;
-			CompilerFence( EMemoryOrder::Acquire );
+			CompilerBarrier( EMemoryOrder::Acquire );
 
 			_message << "; TIME: " << ToString( Clock_t::now() - _startTime, 3 );
 

@@ -518,7 +518,9 @@ namespace AE::Base
 	template <usize I, typename Arg0, typename ...Args>
 	constexpr void  FixedTupleArray<S, Types...>::_PushBack (Arg0 &&arg0, Args&&... args) __Th___
 	{
-		PlacementNew< Types_t::Get<I> >( _Data<I>() + _count, FwdArg<Arg0>(arg0) );	// throw
+		using T = typename Types_t::template Get<I>;
+
+		PlacementNew<T>( _Data<I>() + _count, FwdArg<Arg0>(arg0) );	// throw
 			
 		if constexpr( I+1 < Types_t::Count )
 			_PushBack<I+1>( FwdArg<Args>(args)... );	// throw
@@ -533,7 +535,9 @@ namespace AE::Base
 	template <usize I, typename Arg0, typename ...Args>
 	constexpr void  FixedTupleArray<S, Types...>::_Insert (usize pos, Arg0 &&arg0, Args&&... args) __Th___
 	{
-		PlacementNew< Types_t::Get<I> >( _Data<I>() + pos, FwdArg<Arg0>(arg0) );	// throw
+		using T = typename Types_t::template Get<I>;
+
+		PlacementNew<T>( _Data<I>() + pos, FwdArg<Arg0>(arg0) );	// throw
 			
 		if constexpr( I+1 < Types_t::Count )
 			_Insert<I+1>( pos, FwdArg<Args>(args)... );	// throw

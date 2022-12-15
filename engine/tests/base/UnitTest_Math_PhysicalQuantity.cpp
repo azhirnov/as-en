@@ -55,9 +55,9 @@ namespace
 		auto		a2 = GConstant{1.0} * SolarMass{3.0e+6};	TEST(Equals( a2.GetScaled(), 6.6740831e-11 * 1.98847e+30 * 3.0e+6 ));
 		Accel		a3 = a2 / LightYears{26000.0}.Pow<2>();		TEST(Equals( a3.GetScaled(), 6.58e-15 ));
 
-		TEST( ToString( GConstant{1.0} ) == "6.67e-11[m^3 / (s^-2 * kg^-1)]" );
-		TEST( ToString( a2 ) == "3.98e+26[m^3 / s^-2]" );
-		TEST( ToString( a3 ) == "6.58e-15[m / s^-2]" );
+		TEST( ToString( GConstant{1.0}, 2, True{"exponent"} )	== "6.67e-11[m^3 / (s^-2 * kg^-1)]" );
+		TEST( ToString( a2,				2, True{"exponent"} )	== "3.98e+26[m^3 / s^-2]" );
+		TEST( ToString( a3,				2, True{"exponent"} )	== "6.58e-15[m / s^-2]" );
 	}
 
 

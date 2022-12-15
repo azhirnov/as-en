@@ -11,11 +11,20 @@
 
 #include "threading/Common.h"
 
-#ifdef __cpp_lib_barrier
+// even if __cpp_lib_barrier is supported it requires macos 11.0
+#if defined(AE_PLATFORM_MACOS) and (AE_PLATFORM_TARGET_VERSION_MAJOR < 11)
+#	define AE_BARRIER_MODE	2
+#endif
+
+#if not defined(AE_BARRIER_MODE) and defined(__cpp_lib_barrier)
 #	define AE_BARRIER_MODE	3
-#elif defined(AE_WINDOWS_TARGET_VERSION) and (AE_WINDOWS_TARGET_VERSION >= 8)
+#endif
+
+#if not defined(AE_BARRIER_MODE) and defined(AE_PLATFORM_WINDOWS) and (AE_PLATFORM_TARGET_VERSION_MAJOR >= 8)
 #	define AE_BARRIER_MODE	0
-#else
+#endif
+
+#ifndef AE_BARRIER_MODE
 #	define AE_BARRIER_MODE	2	// or 1
 #endif
 

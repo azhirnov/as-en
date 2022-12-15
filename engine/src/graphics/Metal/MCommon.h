@@ -1,4 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+	https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf
+*/
 
 #pragma once
 
@@ -45,17 +49,19 @@ namespace AE::Graphics
 	using AE::Threading::GraphicsFrameAllocatorRef;
 	using AE::Threading::BitAtomic;
 	using AE::Threading::FAtomic;
-	using AE::Threading::EThread;
+	using AE::Threading::ETaskQueue;
 	
 #	if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::RWDataRaceCheck;
 #	endif
 
 	class MDevice;
+	class MCommandBuffer;
 	class MResourceManager;
 	class MCommandBatch;
 	class MRenderPass;
 	struct MPixFormatInfo;
+	class MRenderTaskScheduler;
 	
 	DEBUG_ONLY(
 		using DebugName_t = FixedString<64>;
@@ -66,12 +72,11 @@ namespace AE::Graphics
 	using MTempLinearAllocator	= LinearAllocator< UntypedAllocator, 8, false >;	// TODO: use fast block allocator
 	using MTempStackAllocator	= StackAllocator< UntypedAllocator, 8, false >;
 	
-
+													// in MSL:
 	enum class MTextureIndex		: ubyte {};		// [[ texture(x) ]]
 	enum class MBufferIndex			: ubyte {};		// [[ buffer(x) ]]
 	enum class MSamplerIndex		: ubyte {};		// [[ sampler(x) ]]
 	enum class MThreadgroupIndex	: ubyte {};		// [[ threadgroup(x) ]]
-	enum class MCounterIndex		: ubyte {};
 
 	
 	using MSamplerID			= HandleTmpl< 16, 16, Graphics::_hidden_::MetalIDs_Start + 1 >;
@@ -119,7 +124,7 @@ namespace AE::Graphics
 	//
 	struct MConfig final : Noninstancable
 	{
-		static constexpr uint	MaxQueues			= 2;	// TODO ?
+		static constexpr uint	MaxQueues			= 4;
 		static constexpr uint	VertexBufferOffset	= 31 - GraphicsConfig::MaxVertexBuffers;
 	};
 	
@@ -136,7 +141,7 @@ namespace AE::Graphics
 		double	znear		= 0.0;
 		double	zfar		= 1.0;
 
-		MViewport () {}
+		MViewport ()	__NE___	{}
 	};
 
 
@@ -150,7 +155,7 @@ namespace AE::Graphics
 		NS::UInteger	height	= 0;
 		NS::UInteger	width	= 0;
 
-		MScissorRect () {}
+		MScissorRect ()	__NE___	{}
 	};
 
 
@@ -164,10 +169,10 @@ namespace AE::Graphics
 		float	blue	= 0.0f;
 		float	alpha	= 0.0f;
 
-		MClearColor () {}
-		MClearColor (float r, float g, float b, float a) : red{r}, green{g}, blue{b}, alpha{a} {}
-		MClearColor (const RGBA32f &col) : MClearColor{col.r, col.g, col.b, col.a} {}
-		MClearColor (const RGBA8u &col) : MClearColor{RGBA32f{col}} {}
+		MClearColor ()										__NE___	{}
+		MClearColor (float r, float g, float b, float a)	__NE___	: red{r}, green{g}, blue{b}, alpha{a} {}
+		MClearColor (const RGBA32f &col)					__NE___	: MClearColor{col.r, col.g, col.b, col.a} {}
+		MClearColor (const RGBA8u &col)						__NE___	: MClearColor{RGBA32f{col}} {}
 	};
 
 

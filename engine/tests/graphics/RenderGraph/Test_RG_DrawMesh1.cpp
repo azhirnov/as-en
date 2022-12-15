@@ -17,7 +17,7 @@ namespace
 
 		AsyncTask					result;
 
-		CommandBatchPtr			batch;
+		CommandBatchPtr				batch;
 		bool						isOK	= false;
 
 		ImageComparator *			imgCmp	= null;
@@ -31,8 +31,8 @@ namespace
 	public:
 		DM1_TestData&	t;
 
-		DM1_DrawTask (DM1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		DM1_DrawTask (DM1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -73,8 +73,8 @@ namespace
 	public:
 		DM1_TestData&	t;
 
-		DM1_CopyTask (DM1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		DM1_CopyTask (DM1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -93,7 +93,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 		}
 	};
 
@@ -123,11 +123,11 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "DrawMesh1" );
+		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"DrawMesh1"} );
 		CHECK_ERR( t.batch );
 
-		AsyncTask	task1	= t.batch->Add< DM1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin}, "Draw task" );
-		AsyncTask	task2	= t.batch->Add< DM1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
+		AsyncTask	task1	= t.batch->Add< DM1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},				{"Draw task"} );
+		AsyncTask	task2	= t.batch->Add< DM1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 

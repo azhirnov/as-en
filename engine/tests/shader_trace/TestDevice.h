@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../source/Common.h"
+#include "../Impl/Common.h"
 #include "VDevice.h"
 
 namespace AE::PipelineCompiler

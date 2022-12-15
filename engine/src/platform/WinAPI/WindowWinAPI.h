@@ -2,11 +2,11 @@
 
 #pragma once
 
-#if defined(AE_PLATFORM_WINDOWS) && !defined(AE_ENABLE_GLFW)
+#if defined(AE_PLATFORM_WINDOWS) and not defined(AE_ENABLE_GLFW)
 
 # include "platform/Private/WindowBase.h"
+# include "platform/Private/WindowSurface.h"
 # include "platform/WinAPI/InputActionsWinAPI.h"
-# include "platform/IO/WindowSurface.h"
 
 namespace AE::App
 {
@@ -45,38 +45,38 @@ namespace AE::App
 
 	// methods
 	public:
-		~WindowWinAPI ();
+		~WindowWinAPI ()													__NE_OV;
 
 	// IWindow //
-		void	Close () override;
+		void		Close ()												__NE_OV;
 		
-		uint2		GetSurfaceSize ()	const override;
-		Monitor		GetMonitor ()		const override;
+		uint2		GetSurfaceSize ()										C_NE_OV;
+		Monitor		GetMonitor ()											C_NE_OV;
 		
-		IInputActions&	InputActions ()		  override	{ return _input; }
-		NativeWindow	GetNative ()	const override;
+		IInputActions&	InputActions ()										__NE_OV	{ return _input; }
+		NativeWindow	GetNative ()										C_NE_OV;
 
-		void  SetSize (const uint2 &size) override;
-		void  SetPosition (const int2 &pos) override;
-		void  SetPosition (Monitor::ID monitor, const int2 &pos) override;
-		void  SetTitle (NtStringView title) override;
-		void  SetFocus () const override;
+		void  SetSize (const uint2 &size)									__NE_OV;
+		void  SetPosition (const int2 &pos)									__NE_OV;
+		void  SetPosition (Monitor::ID monitor, const int2 &pos)			__NE_OV;
+		void  SetTitle (NtStringView title)									__NE_OV;
+		void  SetFocus ()													C_NE_OV;
 
 
 	private:
-		explicit WindowWinAPI (ApplicationWinAPI &app, Unique<IWndListener>, IInputActions*);
+		explicit WindowWinAPI (ApplicationWinAPI &, Unique<IWndListener>, IInputActions*) __NE___;
 
-		ND_ ApplicationWinAPI&  _GetApp () const;
+		ND_ ApplicationWinAPI&  _GetApp ()									C_NE___;
 
-		ND_ bool  _Create (const WindowDesc &desc);
-			void  _Destroy ();
-		ND_ bool  _Update ();
-		ND_ ssize _ProcessMessage (uint uMsg, usize wParam, ssize lParam);
-			void  _UpdateDescription ();
-			void  _ShowWindow (EVisibility value) const;
+		ND_ bool  _Create (const WindowDesc &desc)							__NE___;
+			void  _Destroy ()												__NE___;
+		ND_ bool  _Update ()												__NE___;
+		ND_ ssize _ProcessMessage (uint uMsg, usize wParam, ssize lParam)	__NE___;
+			void  _UpdateDescription ()										__NE___;
+			void  _ShowWindow (EVisibility value)							C_NE___;
 
-			void  _LockAndHideCursor (bool value);
-			void  _ClipCursor ();
+			void  _LockAndHideCursor (bool value)							__NE___;
+			void  _ClipCursor ()											__NE___;
 	};
 
 

@@ -1,10 +1,20 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Vulkan:
+		* can combine direct & indirect contexts
+	
+	Metal:
+		* use only direct or indirect context
+*/
 
 #if defined(AE_ENABLE_VULKAN)
 #	define DRAWCMDBATCH		VDrawCommandBatch
 
 #elif defined(AE_ENABLE_METAL)
 #	define DRAWCMDBATCH		MDrawCommandBatch
+
+#else
+#	error not implemented
 #endif
 
 namespace AE::Graphics
@@ -29,14 +39,14 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		DrawTask (RC<DRAWCMDBATCH> batch, StringView dbgName, RGBA8u dbgColor = HtmlColor::Lime) __Th___ :
-			IAsyncTask{ EThread::Renderer },
+		DrawTask (RC<DRAWCMDBATCH> batch, DebugLabel dbg) __Th___ :
+			IAsyncTask{ ETaskQueue::Renderer },
 			_batch{ RVRef(batch) },
 			_drawIndex{ _GetPool().Acquire() }
-			PROFILE_ONLY(, _dbgName{ dbgName }, _dbgColor{ dbgColor })
+			PROFILE_ONLY(, _dbgName{ dbg.label }, _dbgColor{ _ValidateDbgColor( dbg.color )})
 		{
 			CHECK_THROW( _drawIndex != UMax );	// command buffer pool overflow
-			Unused( dbgName, dbgColor );
+			Unused( dbg );
 		}
 
 		~DrawTask ()									__NE___;
@@ -52,7 +62,7 @@ namespace AE::Graphics
 		void  OnCancel ()								__NE_OV;
 		
 		#ifdef AE_DBG_OR_DEV_OR_PROF
-			ND_ String			DbgFullName ()			C_NE___	{ return String{} << _batch->DbgName() << " |" << ToString(GetDrawOrderIndex()) << "| " << _dbgName; }
+			ND_ String			DbgFullName ()			C_NE___	{ return String{_batch->DbgName()} << " |" << ToString(GetDrawOrderIndex()) << "| " << _dbgName; }
 			ND_ StringView		DbgName ()				C_NE_OF	{ return _dbgName; }
 			ND_ RGBA8u			DbgColor ()				C_NE___	{ return _dbgColor; }
 		#else
@@ -68,8 +78,58 @@ namespace AE::Graphics
 		void  Execute (CmdBufType &cmdbuf)				__Th___;
 
 	private:
-		ND_ DRAWCMDBATCH::CmdBufPool&  _GetPool ()		__NE___	{ return _batch->_cmdPool; }
+		ND_ DRAWCMDBATCH::CmdBufPool_t&  _GetPool ()	__NE___	{ return _batch->_cmdPool; }
+
+		PROFILE_ONLY(
+		ND_ static RGBA8u  _ValidateDbgColor (RGBA8u color)
+		{
+			if ( color == DebugLabel::ColorTable.Undefined )
+				return DebugLabel::ColorTable.AsyncDrawBatch;
+			else
+				return color;
+		})
 	};
+
+
+
+	//
+	// Draw Task Function
+	//
+
+	class DrawTaskFn final : public DrawTask
+	{
+	// types
+	public:
+		using Func_t	= Function< void (DrawTaskFn &) >;
+
+
+	// variables
+	private:
+		Func_t	_fn;
+
+
+	// methods
+	public:
+		template <typename Fn>
+		DrawTaskFn (Fn && fn, RC<DRAWCMDBATCH> batch, DebugLabel dbg) __Th___ :
+			DrawTask{ RVRef(batch), dbg },
+			_fn{ FwdArg<Fn>(fn) }
+		{}
+		
+		template <typename CmdBufType>
+		void  Execute (CmdBufType &cmdbuf) __Th___
+		{
+			return DrawTask::Execute( cmdbuf );
+		}
+
+	private:
+		void Run () __Th_OV
+		{
+			return _fn( *this );
+		}
+	};
+//-----------------------------------------------------------------------------
+
 	
 	
 /*
@@ -120,7 +180,23 @@ namespace AE::Graphics
 	void  DrawTask::Execute (CmdBufType &cmdbuf) __Th___
 	{
 		ASSERT( IsValid() );
-		_GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );	// throw
+
+		#if defined(AE_ENABLE_VULKAN)
+			_GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );	// throw
+
+		#elif defined(AE_ENABLE_METAL)
+			if constexpr( CmdBufType::IsIndirectContext )
+			{
+				_GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );	// throw
+			}
+			else
+			{
+				CHECK( cmdbuf.EndEncoding() );
+				_GetPool().Complete( INOUT _drawIndex );
+			}
+		#else
+		#	error not implemented
+		#endif
 	}
 
 } // AE::Graphics
@@ -198,46 +274,33 @@ namespace AE::Threading::_hidden_
 
 	// methods
 	public:
-		DrawTaskCoroutineRunner (Handle_t handle, RC<AE::Graphics::DRAWCMDBATCH> batch, StringView dbgName, RGBA8u dbgColor = HtmlColor::Lime) __Th___ :
-			DrawTask{ RVRef(batch), dbgName, dbgColor },
+		DrawTaskCoroutineRunner (Handle_t handle, RC<AE::Graphics::DRAWCMDBATCH> batch, AE::Graphics::DebugLabel dbg) __Th___ :
+			DrawTask{ RVRef(batch), dbg },
 			_coroutine{ RVRef(handle) }
 		{
 			ASSERT( _coroutine.IsValid() );
 			_coroutine.Promise().Init( this );
 		}
 
-		~DrawTaskCoroutineRunner ()				__NE_OV
-		{
-			ASSERT( _coroutine.Done() );
-		}
-
-		DEBUG_ONLY( ND_ bool  DbgIsRunning ()	C_NE___	{ return _IsRunning(); })
+		~DrawTaskCoroutineRunner ()																	__NE_OV	{ ASSERT( IsCompleted() ? _coroutine.Done() : true ); }
 		
-
 		template <typename CmdBufType>
-		void  Execute (CmdBufType &cmdbuf)		__Th___
-		{
-			return DrawTask::Execute( cmdbuf );
-		}
-
+			void  Execute (CmdBufType &cmdbuf)														__Th___	{ return DrawTask::Execute( cmdbuf ); }
 
 		// must be inside coroutine!
 		template <typename ...Deps>
-		static void  ContinueTask (DrawTaskCoroutineRunner &task, const Tuple<Deps...> &deps) __NE___
-		{
-			return task.Continue( deps );
-		}
+			static void  ContinueTask (DrawTaskCoroutineRunner &task, const Tuple<Deps...> &deps)	__NE___	{ return task.Continue( deps ); }
+			static void  FailTask (DrawTaskCoroutineRunner &task)									__NE___	{ return task.OnFailure(); }
+		ND_ static bool  IsCanceledTask (DrawTaskCoroutineRunner &task)								__NE___	{ return task.IsCanceled(); }
+		ND_ static auto  GetTaskStatus (DrawTaskCoroutineRunner &task)								__NE___	{ return task.Status(); }
+		ND_ static auto  GetTaskQueue (DrawTaskCoroutineRunner &task)								__NE___	{ return task.QueueType(); }
 
-		static void  FailTask (DrawTaskCoroutineRunner &task) __NE___
-		{
-			return task.OnFailure();
-		}
 
 	private:
 		void  Run () __Th_OV
 		{
 			ASSERT( _coroutine.IsValid() );
-			_coroutine.Resume();
+			_coroutine.Resume();	// throw
 
 			if_likely( _coroutine.Done() )
 				_coroutine.Promise().Reset( this );
@@ -277,13 +340,7 @@ namespace AE::Threading::_hidden_
 		_task.store( null );
 	#endif
 	}
-
-} // AE::Threading::_hidden_
-
-
-namespace AE::Graphics
-{
-	using CoroutineDrawTask = Threading::_hidden_::DrawTaskCoroutine::Handle_t;
+	
 
 
 	//
@@ -291,11 +348,12 @@ namespace AE::Graphics
 	//
 	struct DrawTask_Get
 	{
-		explicit DrawTask_Get () {}
+		constexpr DrawTask_Get () {}
 
-		ND_ auto  operator co_await ()
+		ND_ auto  operator co_await () const
 		{
 			using Promise_t = AE::Threading::_hidden_::DrawTaskCoroutineRunner::Promise_t;
+			using DrawTask	= AE::Graphics::DrawTask;
 
 			struct Awaiter
 			{
@@ -318,6 +376,16 @@ namespace AE::Graphics
 			return Awaiter{};
 		}
 	};
+
+} // AE::Threading::_hidden_
+
+
+namespace AE::Graphics
+{
+	using CoroutineDrawTask = Threading::_hidden_::DrawTaskCoroutine::Handle_t;
+
+
+	static constexpr Threading::_hidden_::DrawTask_Get	DrawTask_Get {};
 	
 
 	//
@@ -359,6 +427,7 @@ namespace AE::Graphics
 		}
 	};
 
+
 } // AE::Graphics
 # endif // AE_HAS_COROUTINE
 //-----------------------------------------------------------------------------
@@ -375,15 +444,21 @@ namespace AE::Graphics
 	template <typename TaskType, typename ...Ctor, typename ...Deps>
 	AsyncTask  DRAWCMDBATCH::Add (Tuple<Ctor...> &&		ctorArgs,
 								  const Tuple<Deps...>&	deps,
-								  StringView			dbgName,
-								  RGBA8u				dbgColor) __NE___
+								  DebugLabel			dbg) __NE___
 	{
-		//ASSERT( not IsSubmitted() );
 		STATIC_ASSERT( IsBaseOf< DrawTask, TaskType >);
+		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
 		
+		PROFILE_ONLY(
+			if ( dbg.color == DebugLabel::ColorTable.Undefined )
+				dbg.color = _dbgColor;
+		)
+			
+		// DrawTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
+		// DrawTask internally creates command buffer and throw exception if can't.
 		try {
-			auto	task = ctorArgs.Apply([this, dbgName, dbgColor] (auto&& ...args)
-										  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbgName, dbgColor ); });	// throw
+			auto	task = ctorArgs.Apply([this, dbg] (auto&& ...args)
+										  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });	// throw
 
 			if_likely( Scheduler().Run( task, deps ))
 				return task;
@@ -402,14 +477,20 @@ namespace AE::Graphics
 	template <typename PromiseT, typename ...Deps>
 	AsyncTask  DRAWCMDBATCH::Add (AE::Threading::CoroutineHandle<PromiseT>	handle,
 								  const Tuple<Deps...>&						deps,
-								  StringView								dbgName,
-								  RGBA8u									dbgColor) __NE___
+								  DebugLabel								dbg) __NE___
 	{
-		//ASSERT( not IsSubmitted() );
 		STATIC_ASSERT( IsSameTypes< AE::Threading::CoroutineHandle<PromiseT>, CoroutineDrawTask >);
+		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
 		
+		PROFILE_ONLY(
+			if ( dbg.color == DebugLabel::ColorTable.Undefined )
+				dbg.color = _dbgColor;
+		)
+			
+		// DrawTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
+		// DrawTask internally creates command buffer and throw exception if can't.
 		try {
-			auto	task = MakeRC<AE::Threading::_hidden_::DrawTaskCoroutineRunner>( RVRef(handle), GetRC(), dbgName, dbgColor );	// throw
+			auto	task = MakeRC<AE::Threading::_hidden_::DrawTaskCoroutineRunner>( RVRef(handle), GetRC(), dbg );	// throw
 
 			if_likely( Scheduler().Run( task, deps ))
 				return task;
@@ -419,6 +500,21 @@ namespace AE::Graphics
 		return Scheduler().GetCanceledTask();
 	}
 # endif
+	
+/*
+=================================================
+	EndRecording
+----
+	helper method - prevent new draw tasks on this batch
+=================================================
+*/
+	inline void  DRAWCMDBATCH::EndRecording () __NE___
+	{
+		EStatus	exp	= EStatus::Recording;
+		bool	res	= _status.compare_exchange_strong( INOUT exp, EStatus::Pending );
+		ASSERT( res );
+	}
+
 
 } // AE::Graphics
 //-----------------------------------------------------------------------------

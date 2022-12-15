@@ -13,8 +13,8 @@ namespace
 		
 		Strong<ComputePipelineID>	ppln;
 		
-		Strong<DescriptorSetID>		ds0;
-		uint						ds0_index	= UMax;
+		Strong<DescriptorSetID>		ds;
+		DescSetBinding				ds_index;
 		
 		ShaderDebugger				debugger;
 
@@ -59,8 +59,8 @@ namespace
 	public:
 		Db1_TestData&	t;
 
-		Db1_ComputeTask (Db1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		Db1_ComputeTask (Db1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -82,7 +82,7 @@ namespace
 				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
 			
 			comp_ctx.BindPipeline( t.ppln );
-			comp_ctx.BindDescriptorSet( t.ds0_index, t.ds0 );
+			comp_ctx.BindDescriptorSet( t.ds_index, t.ds );
 			comp_ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
 			comp_ctx.Dispatch({ 2, 2, 1 });
 			
@@ -99,8 +99,8 @@ namespace
 	public:
 		Db1_TestData&	t;
 
-		Db1_CopyTask (Db1_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		Db1_CopyTask (Db1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -152,7 +152,7 @@ no source
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 		}
 	};
 
@@ -182,15 +182,12 @@ no source
 		}
 		
 		{
-			auto [ds0, idx0] = res_mngr.CreateDescriptorSet( t.ppln, DescriptorSetName{"dbg1_compute.ds1"} );
-
-			t.ds0_index = idx0;
-			t.ds0 = RVRef(ds0);
-			CHECK_ERR( t.ds0 );
+			StructSet( t.ds, t.ds_index ) = res_mngr.CreateDescriptorSet( t.ppln, DescriptorSetName{"dbg1_compute.ds1"} );
+			CHECK_ERR( t.ds );
 
 			DescriptorUpdater	updater;
 
-			CHECK_ERR( updater.Set( t.ds0, EDescUpdateMode::Partialy ));
+			CHECK_ERR( updater.Set( t.ds, EDescUpdateMode::Partialy ));
 			updater.BindImage( UniformName{"un_OutImage"}, t.view );
 
 			CHECK_ERR( updater.Flush() );
@@ -198,11 +195,11 @@ no source
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		auto		batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Debugger1" );
+		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Debugger1"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< Db1_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin}, "Compute task" );
-		AsyncTask	task2	= batch->Add< Db1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
+		AsyncTask	task1	= batch->Add< Db1_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Compute task"} );
+		AsyncTask	task2	= batch->Add< Db1_CopyTask<CopyCtx>     >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 
@@ -214,7 +211,7 @@ no source
 		CHECK_ERR( Scheduler().Wait({ t.result }));
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
-		CHECK_ERR( res_mngr.ReleaseResources( t.view, t.img, t.ds0, t.ppln ));
+		CHECK_ERR( res_mngr.ReleaseResources( t.view, t.img, t.ds, t.ppln ));
 		CHECK_ERR( t.isOK );
 
 		return true;

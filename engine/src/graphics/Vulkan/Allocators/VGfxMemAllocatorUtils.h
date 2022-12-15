@@ -22,19 +22,19 @@ namespace AE::Graphics
 
 			ushort		value	= UMax;
 
-			Key () {}
+			Key ()											__NE___	{}
 			
-			Key (uint idx, bool shaderAddr, bool isImage) :
+			Key (uint idx, bool shaderAddr, bool isImage)	__NE___	:
 				value{ushort( (idx & _IndexMask) | (shaderAddr ? _ShaderAddrBit : 0) | (isImage ? _IsImageBit : 0) )}
 			{}
 
-			ND_ bool  operator == (const Key &rhs) const { return value == rhs.value; }
-			ND_ bool  operator <  (const Key &rhs) const { return value <  rhs.value; }
-			ND_ bool  operator >  (const Key &rhs) const { return value >  rhs.value; }
+			ND_ bool  operator == (const Key &rhs)	C_NE___ { return value == rhs.value; }
+			ND_ bool  operator <  (const Key &rhs)	C_NE___ { return value <  rhs.value; }
+			ND_ bool  operator >  (const Key &rhs)	C_NE___ { return value >  rhs.value; }
 
-			ND_ uint  TypeIndex ()			const	{ return value & _IndexMask; }
-			ND_ bool  IsShaderAddress ()	const	{ return value & _ShaderAddrBit; }
-			ND_ bool  IsImage ()			const	{ return value & _IsImageBit; }
+			ND_ uint  TypeIndex ()					C_NE___	{ return value & _IndexMask; }
+			ND_ bool  IsShaderAddress ()			C_NE___	{ return value & _ShaderAddrBit; }
+			ND_ bool  IsImage ()					C_NE___	{ return value & _IsImageBit; }
 		};
 	};
 

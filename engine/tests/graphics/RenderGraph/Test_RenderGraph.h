@@ -14,12 +14,19 @@
 
 #include "graphics_test/GraphicsTest.h"
 
-#ifdef AE_ENABLE_VULKAN
-# include "VulkanSyncLog.h"
-#endif
-
 using namespace AE;
 using namespace AE::Graphics;
+
+#if defined(AE_ENABLE_VULKAN)
+# include "VulkanSyncLog.h"
+# include "cpp/vk_types.h"
+
+#elif defined(AE_ENABLE_METAL)
+# include "cpp/mac_types.h"
+
+#else
+#	error not implemented
+#endif
 
 using EStatus = AE::Threading::IAsyncTask::EStatus;
 
@@ -58,6 +65,9 @@ protected:
   #elif defined(AE_ENABLE_METAL)
 	MDeviceInitializer			_metal;
 	MSwapchainInitializer		_swapchain;
+	
+  #else
+  #	error not implemented
   #endif
 
 
@@ -86,6 +96,7 @@ private:
 private:
 	bool  Test_Image ();
 	bool  Test_Buffer ();
+	bool  Test_FeatureSets ();
 	bool  Test_FrameCounter ();
 
 	bool  Test_CopyBuffer1 ();

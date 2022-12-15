@@ -37,10 +37,10 @@ namespace AE::Threading
 			WorkerConfig (const EThreadArray &threads, nanoseconds sleepStep, nanoseconds maxSleepOnIdle, StringView name) __NE___ :
 				threads{threads}, sleepStep{sleepStep}, maxSleepOnIdle{maxSleepOnIdle}, name{name} {}
 				
-			ND_ static WorkerConfig  CreateNonSleep (StringView name = "worker")								__NE___	{ return CreateNonSleep( EThreadArray{ EThread::Worker }, name ); }
+			ND_ static WorkerConfig  CreateNonSleep (StringView name = "worker")								__NE___	{ return CreateNonSleep( EThreadArray{ ETaskQueue::Worker }, name ); }
 			ND_ static WorkerConfig  CreateNonSleep (const EThreadArray &threads, StringView name = "worker")	__NE___;
 			
-			ND_ static WorkerConfig  CreateDefault (StringView name = "worker")									__NE___	{ return CreateDefault( EThreadArray{ EThread::Worker }, name ); }
+			ND_ static WorkerConfig  CreateDefault (StringView name = "worker")									__NE___	{ return CreateDefault( EThreadArray{ ETaskQueue::Worker }, name ); }
 			ND_ static WorkerConfig  CreateDefault (const EThreadArray &threads, StringView name = "worker")	__NE___;
 		};
 
@@ -48,6 +48,8 @@ namespace AE::Threading
 	// methods
 	public:
 		ND_ static RC<IThread>  CreateThread (const WorkerConfig &cfg)	__NE___;
+
+		ND_ static bool  SetupThreads (const TaskScheduler::Config &cfg, EnumBitSet<EThread> mask, uint maxThreads) __NE___;
 	};
 
 

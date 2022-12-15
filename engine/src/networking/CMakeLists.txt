@@ -6,3 +6,5 @@ source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 set_property( TARGET "Networking" PROPERTY FOLDER "Engine" )
 target_link_libraries( "Networking" PUBLIC "Threading" )
 target_compile_definitions( "Networking" PUBLIC "AE_ENABLE_NETWORKING" )
+
+install( TARGETS "Networking" ARCHIVE DESTINATION "lib" )

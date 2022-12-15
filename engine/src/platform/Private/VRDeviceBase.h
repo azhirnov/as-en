@@ -34,24 +34,24 @@ namespace AE::App
 
 	// methods
 	public:
-		explicit VRDeviceBase (VRDeviceListener listener) :
+		explicit VRDeviceBase (VRDeviceListener listener)	__NE___	:
 			_listener{ RVRef(listener) }
 		{
 			CHECK( _listener );
 		}
 
-		~VRDeviceBase ()
+		~VRDeviceBase ()									__NE___
 		{}
 		
-		EState  GetState () const override final	{ DRC_SHAREDLOCK( _drCheck );  return _hmdState; }
+		EState  GetState ()									C_NE_OF	{ DRC_SHAREDLOCK( _drCheck );  return _hmdState; }
 		
-		void  Terminate () override
+		void  Terminate ()									__NE_OV
 		{
 			_isRunning.store( false );
 		}
 
 		// used only in IApplication implementation
-		virtual bool  Update (Duration_t timeSinceStart) = 0;
+		virtual bool  Update (Duration_t timeSinceStart)	__NE___	= 0;
 		
 
 	protected:

@@ -8,9 +8,10 @@
 # include "graphics/Metal/Commands/MCommandBuffer.h"
 # include "graphics/Metal/Commands/MCommandBatch.h"
 # include "graphics/Metal/Commands/MDrawCommandBatch.h"
+# include "graphics/Metal/Commands/MImageOpHelper.h"
 # include "graphics/Metal/MResourceManager.h"
 
-namespace AE::Graphics { class MRenderTaskScheduler; }
+namespace AE::Graphics::_hidden_ { class _MDirectGraphicsCtx;  class _MIndirectGraphicsCtx; }
 namespace AE { Graphics::MRenderTaskScheduler&  RenderTaskScheduler () __NE___; }
 
 namespace AE::Graphics
@@ -24,32 +25,51 @@ namespace AE::Graphics
 	{
 		#include "graphics/Private/RenderTaskSchedulerDecl.h"
 		
+	// types
+	public:
+		class DirectGraphicsContextApi;
+		class IndirectGraphicsContextApi;
+
+
+	// variables
+	private:
+		_hidden_::MImageOpHelper		_imageOps;
+
 		
 	// methods
 	private:
-		ND_ RC<MDrawCommandBatch>  _CreateDrawBatch (const MPrimaryCmdBufState &primaryState, ArrayView<RenderPassDesc::Viewport> viewports, StringView dbgName);
+		ND_ RC<MDrawCommandBatch>  _CreateDrawBatch (MetalParallelRenderCommandEncoderRC encoder, const MPrimaryCmdBufState &primaryState,
+													 ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg);
 
 		ND_ bool	_FlushQueue2 (EQueueType queueType, TempBatches_t &pending);
 	};
 	
-#	include "graphics/Private/RenderTaskSchedulerImpl.h"
+
+
+	class MRenderTaskScheduler::DirectGraphicsContextApi : Noninstancable
+	{
+		friend class _hidden_::_MDirectGraphicsCtx;
+
+		ND_ static RC<MDrawCommandBatch>  CreateFirstPassBatch (MRenderTaskScheduler &rts,
+																MetalParallelRenderCommandEncoderRC encoder, const MPrimaryCmdBufState &primaryState,
+																ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg);
+		ND_ static RC<MDrawCommandBatch>  CreateNextPassBatch (MRenderTaskScheduler &rts,
+																MetalParallelRenderCommandEncoderRC encoder, const MPrimaryCmdBufState &primaryState,
+																ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg);
+	};
+
+	class MRenderTaskScheduler::IndirectGraphicsContextApi : Noninstancable
+	{
+		friend class _hidden_::_MIndirectGraphicsCtx;
+
+		ND_ static RC<MDrawCommandBatch>  CreateFirstPassBatch (MRenderTaskScheduler &rts, const MPrimaryCmdBufState &primaryState,
+																ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg);
+		ND_ static RC<MDrawCommandBatch>  CreateNextPassBatch (MRenderTaskScheduler &rts, const MPrimaryCmdBufState &primaryState,
+																ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg);
+	};
 	
 } // AE::Graphics
-//-----------------------------------------------------------------------------
 
-
-namespace AE
-{
-/*
-=================================================
-	RenderTaskScheduler
-=================================================
-*/
-	ND_ forceinline Graphics::MRenderTaskScheduler&  RenderTaskScheduler () __NE___
-	{
-		return *Graphics::MRenderTaskScheduler::_Instance();
-	}
-
-} // AE
+# include "graphics/Private/RenderTaskSchedulerImpl.h"
 
 #endif // AE_ENABLE_METAL

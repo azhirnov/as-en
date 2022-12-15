@@ -22,9 +22,12 @@ extern void UnitTest_PixelFormat ();
 	extern void Test_VulkanRenderGraph (IApplication &app, IWindow &wnd);
 
 #elif defined(AE_ENABLE_METAL)
-	//extern void Test_MetalDevice ();
-	//extern void Test_MetalSwapchain (IApplication &app, IWindow &wnd);
+	extern void Test_MetalDevice ();
+	extern void Test_MetalSwapchain (IApplication &app, IWindow &wnd);
 	extern void Test_MetalRenderGraph (IApplication &app, IWindow &wnd);
+	
+#else
+#	error not implemented
 #endif
 
 
@@ -51,6 +54,9 @@ static void  RenderTests (IApplication &app, IWindow &wnd)
 		//Test_MetalDevice();
 		//Test_MetalSwapchain( app, wnd );
 		Test_MetalRenderGraph( app, wnd );
+		
+	#else
+	#	error not implemented
 	#endif
 }
 
@@ -73,14 +79,14 @@ extern int Test_Graphics (IApplication &app, IWindow &wnd)
 
 	public:
 		WndListener (IApplication &app) : _app{app} {}
-		~WndListener () override {}
+		~WndListener ()								__NE_OV {}
 
-		void OnStateChanged (IWindow &, EState) override {}
-		void OnResize (IWindow &, const uint2 &) override {}
-		void OnUpdate (IWindow &) override {}
-		void OnSurfaceDestroyed (IWindow &) override {}
+		void OnStateChanged (IWindow &, EState)		__NE_OV {}
+		void OnResize (IWindow &, const uint2 &)	__NE_OV {}
+		void OnUpdate (IWindow &)					__NE_OV {}
+		void OnSurfaceDestroyed (IWindow &)			__NE_OV {}
 
-		void OnSurfaceCreated (IWindow &wnd) override
+		void OnSurfaceCreated (IWindow &wnd)		__NE_OV
 		{
 			RenderTests( _app, wnd );
 
@@ -103,13 +109,13 @@ extern int Test_Graphics (IApplication &app, IWindow &wnd)
 			CHECK_FATAL( Scheduler().Setup( cfg ));
 		}
 
-		~AppListener () override
+		~AppListener () __NE_OV
 		{
 			Scheduler().Release();
 			TaskScheduler::DestroyInstance();
 		}
 
-		void  OnStart (IApplication &app) override
+		void  OnStart (IApplication &app) __NE_OV
 		{
 			UnitTests();
 			
@@ -117,16 +123,17 @@ extern int Test_Graphics (IApplication &app, IWindow &wnd)
 			CHECK_FATAL( _window );
 		}
 
-		void  BeforeWndUpdate (IApplication &) override {}
+		void  BeforeWndUpdate (IApplication &) __NE_OV {}
 
-		void  AfterWndUpdate (IApplication &app) override
+		void  AfterWndUpdate (IApplication &app) __NE_OV
 		{
 			if ( _window and _window->GetState() == IWindow::EState::Destroyed )
 				app.Terminate();
 		}
 
-		void  OnStop (IApplication &) override {}
+		void  OnStop (IApplication &) __NE_OV {}
 	};
+
 
 	Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 	{

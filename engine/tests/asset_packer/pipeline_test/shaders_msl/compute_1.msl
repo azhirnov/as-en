@@ -2,10 +2,12 @@
 
 constant uint3 gl_WorkGroupSize = uint3(localSizeX, localSizeY, localSizeZ);
 
-kernel void  Main (	AE_SHADER_RESOURCES,
-					uint3 gl_LocalInvocationID  [[thread_position_in_threadgroup]],
-					uint3 gl_GlobalInvocationID [[thread_position_in_grid]]
-				   )
+// [[kernel]] - Metal 2.3
+kernel
+void  Main (AE_SHADER_RESOURCES,
+			uint3 gl_LocalInvocationID  [[thread_position_in_threadgroup]],
+			uint3 gl_GlobalInvocationID [[thread_position_in_grid]]
+		   )
 {
 	float4 fragColor = float4(float(LocalID.x) / float(gl_WorkGroupSize.x),
 							  float(LocalID.y) / float(gl_WorkGroupSize.y),

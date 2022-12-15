@@ -1,6 +1,10 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+	// Macro defined in 'RenderTaskSchedulerDecl.h'
 	
-	
+namespace AE::Graphics
+{
+
 	//
 	// Batch Complete Dependency Manager
 	//
@@ -9,9 +13,10 @@
 	{
 	// methods
 	public:
-		~BatchCompleteDepsManager () __NE_OV {}
-
-		bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE_OV;
+		bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)	__NE_OV;
+		
+		AE_SCHEDULER_PROFILING(
+			void  DbgDetectDeadlock (const CheckDepFn_t &fn)					__NE_OV;)
 
 		AE_GLOBALLY_ALLOC
 	};
@@ -26,9 +31,10 @@
 	{
 	// methods
 	public:
-		~BatchSubmitDepsManager () __NE_OV {}
-
-		bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE_OV;
+		bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)	__NE_OV;
+		
+		AE_SCHEDULER_PROFILING(
+			void  DbgDetectDeadlock (const CheckDepFn_t &fn)					__NE_OV;)
 
 		AE_GLOBALLY_ALLOC
 	};
@@ -47,7 +53,7 @@
 
 	public:
 		BeginFrameTask (FrameUID frameId, const BeginFrameConfig &cfg) :
-			IAsyncTask{EThread::Renderer}, _frameId{frameId}, _config{cfg}
+			IAsyncTask{ETaskQueue::Renderer}, _frameId{frameId}, _config{cfg}
 		{}
 			
 		void  Run ()			override;
@@ -69,7 +75,7 @@
 
 	public:
 		explicit EndFrameTask (FrameUID frameId) :
-			IAsyncTask{EThread::Renderer}, _frameId{frameId}
+			IAsyncTask{ETaskQueue::Renderer}, _frameId{frameId}
 		{}
 			
 		void  Run ()			override;
@@ -95,7 +101,7 @@
 		FrameUID	frame_id = _frameId.Inc();
 		_perFrameUID[ frame_id.Index() ].store( frame_id );
 
-		AsyncTask	task = MakeRC<RTSCHEDULER::BeginFrameTask>( frame_id, cfg );	// throw	// TODO: catch
+		AsyncTask	task = MakeRC< RTSCHEDULER::BeginFrameTask >( frame_id, cfg );	// throw	// TODO: catch
 		
 		PROFILE_ONLY(
 			if ( auto prof = GetProfiler() )
@@ -103,6 +109,7 @@
 		)
 
 		EXLOCK( _beginDepsGuard );
+		// TODO: copy to temp array?
 
 		if_likely( Scheduler().Run( task, TupleConcat( Tuple{ ArrayView<AsyncTask>{ _beginDeps }}, deps )))
 		{
@@ -127,7 +134,7 @@
 		CHECK_ERR( AnyEqual( _GetState(), EState::BeginFrame, EState::RecordFrame ),
 				   Scheduler().GetCanceledTask() );
 		
-		AsyncTask	task = MakeRC<RTSCHEDULER::EndFrameTask>( _frameId.load() );	// throw
+		AsyncTask	task = MakeRC< RTSCHEDULER::EndFrameTask >( _frameId.load() );	// throw	// TODO: catch
 
 		if_likely( Scheduler().Run( task, deps ))
 		{
@@ -137,33 +144,45 @@
 		else
 			return Scheduler().GetCanceledTask();
 	}
+
+/*
+=================================================
+	GAutorelease::dtor
+=================================================
+*/
+	template <usize IndexSize, usize GenerationSize, uint UID>
+	GAutorelease< HandleTmpl< IndexSize, GenerationSize, UID >>::~GAutorelease () __NE___
+	{
+		if ( _id )
+			RenderTaskScheduler().GetResourceManager().ReleaseResource( _id );
+	}
+
+} // AE::Graphics
+	
+
+namespace AE
+{
+/*
+=================================================
+	RenderTaskScheduler
+=================================================
+*/
+	ND_ forceinline Graphics::RTSCHEDULER&  RenderTaskScheduler () __NE___
+	{
+		return *Graphics::RTSCHEDULER::_Instance();
+	}
 	
 /*
 =================================================
-	AddNextFrameDeps
+	RenderGraph
 =================================================
 */
-	inline void  RTSCHEDULER::AddNextFrameDeps (ArrayView<AsyncTask> deps) __NE___
+	ND_ forceinline Graphics::RTSCHEDULER::RenderGraphImpl&  RenderGraph () __NE___
 	{
-		EXLOCK( _beginDepsGuard );
-
-		for (auto& dep : deps)
-			_beginDeps.push_back( dep );	// throw
-
-		ASSERT( _beginDeps.size() <= _MaxBeginDeps );
-	}
-	
-	inline void  RTSCHEDULER::AddNextFrameDeps (AsyncTask dep) __NE___
-	{
-		EXLOCK( _beginDepsGuard );
-		_beginDeps.push_back( RVRef(dep) );	// throw
-		ASSERT( _beginDeps.size() <= _MaxBeginDeps );
+		return RenderTaskScheduler().Graph();
 	}
 
-#	undef CMDBATCH
-#	undef DRAWCMDBATCH
-#	undef RESMNGR
-#	undef DEVICE
-#	undef CMDPOOLMNGR
-#	undef RTSCHEDULER
-#	undef ENABLE_VK_TIMELINE_SEMAPHORE
+} // AE
+//-----------------------------------------------------------------------------
+
+#undef RTSCHEDULER

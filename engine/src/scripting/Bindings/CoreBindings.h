@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "scripting/Impl/ScriptEngine.inl.h"
+//#include "scripting/Impl/ScriptEngine.inl.h"
 #include "scriptarray.h"
 
 #include "base/Math/Vec.h"

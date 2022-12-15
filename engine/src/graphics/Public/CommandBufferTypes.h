@@ -96,6 +96,27 @@ namespace AE::Graphics
 		uint3					dstOffset;
 		uint3					extent;
 	};
+
+
+	struct RTShaderBindingTable
+	{
+		// non-portable
+		#ifdef AE_ENABLE_VULKAN
+			VkStridedDeviceAddressRegionKHR		raygen		{};
+			VkStridedDeviceAddressRegionKHR		miss		{};
+			VkStridedDeviceAddressRegionKHR		hit			{};
+			VkStridedDeviceAddressRegionKHR		callable	{};
+
+		#elif defined(AE_ENABLE_METAL)
+			MetalIntersectionFnTable			intersectionTable;
+			MetalVisibleFnTable					visibleTable;
+			
+		#else
+		#	error not implemented
+		#endif
+
+		RTShaderBindingTable () {}
+	};
 //-----------------------------------------------------------------------------
 
 	
@@ -243,7 +264,7 @@ namespace AE::Graphics
 		ND_ Bytes		Begin ()			C_NE___	{ return _offset; }
 		ND_ Bytes		End ()				C_NE___	{ return _offset + _size; }
 		ND_ Bytes		RemainSize ()		C_NE___	{ return _size - pos; }
-		ND_ bool		IsComplete ()		C_NE___	{ return pos >= _size; }
+		ND_ bool		IsCompleted ()		C_NE___	{ return pos >= _size; }
 	};
 
 
@@ -271,7 +292,7 @@ namespace AE::Graphics
 		ND_ uint3 const&	Begin ()					C_NE___	{ return _desc.imageOffset; }
 		ND_ uint3			End ()						C_NE___	{ return _desc.imageOffset + _desc.imageSize; }
 		ND_ uint3 const&	RegionSize ()				C_NE___	{ return _desc.imageSize; }
-		ND_ bool			IsComplete ()				C_NE___	{ return posYZ[1] >= _desc.imageSize.z; }
+		ND_ bool			IsCompleted ()				C_NE___	{ return posYZ[1] >= _desc.imageSize.z; }
 
 		ND_ UploadImageDesc const&  ToUploadDesc ()		C_NE___ { return _desc; }
 	};
@@ -305,6 +326,8 @@ namespace AE::Graphics
 
 	enum class ESubmitMode : ubyte
 	{
+		Auto	= 0,
+
 		// Allows RG to accumulate batches to minimize CPU overhead.
 		Deferred,
 
@@ -313,6 +336,8 @@ namespace AE::Graphics
 
 		// Block untill batch is not submitted
 		Force,
+
+		Unknown	= Auto,
 	};
 
 

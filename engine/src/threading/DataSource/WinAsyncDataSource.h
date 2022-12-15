@@ -33,17 +33,24 @@ namespace AE::Threading
 	private:
 		static constexpr uint	OverlappedOffset = sizeof(void*)*4;
 
-		using AsyncRequestPtr = RC<_hidden_::IAsyncDataSourceRequest>;
+		using AsyncRequestPtr = RC<Threading::_hidden_::IAsyncDataSourceRequest>;
 
 
 		//
 		// Request Base
 		//
-		class _RequestBase : public _hidden_::IAsyncDataSourceRequest
+		class _RequestBase : public Threading::_hidden_::IAsyncDataSourceRequest
 		{
 		// types
 		protected:
-			using Dependencies_t	= FixedTupleArray< 4, AsyncTask, ubyte >;	// { task, bitIndex }
+			struct TaskDependency
+			{
+				ubyte	bitIndex : 6;	// index in 64 bit value
+				ubyte	isStrong : 1;
+			};
+
+			using Dependencies_t	= FixedTupleArray< 4, AsyncTask, TaskDependency >;
+			
 
 		// variables
 		protected:
@@ -65,23 +72,23 @@ namespace AE::Threading
 		public:
 
 			// IAsyncDataSourceRequest //
-			bool		Cancel ()				__NE_OF;
-			Result		GetResult ()			C_NE_OF;
+			bool		Cancel ()					__NE_OF;
+			Result		GetResult ()				C_NE_OF;
 
 		protected:
-			explicit _RequestBase (Index_t idx)	__NE___;
+			explicit _RequestBase (Index_t idx)		__NE___;
 
-			void  _Init (Bytes offset, RC<SharedMem> data, RC<IDataSource> ds, const File_t &file) __NE___;
-			void  _Cleanup ()					__NE___;
+			void  _Init (Bytes offset, RC<SharedMem> data, RC<IDataSource> ds, const File_t &file)	__NE___;
+			void  _Cleanup ()						__NE___;
 			
-			ND_ ResultWithRC  _GetResult1 ()	__NE___;
-			ND_ ResultWithRC  _GetResult2 ()	__NE___;
+			ND_ ResultWithRC  _GetResult1 ()		__NE___;
+			ND_ ResultWithRC  _GetResult2 ()		__NE___;
 
 		private:
 			friend class WindowsIOService;
-			void  _Complete (Bytes size)		__NE___;
+				void  _Complete (Bytes size, long err, const void* ov)								__NE___;
 
-			ND_ bool  _AddOnCompleteDependency (AsyncTask task, INOUT uint &index) __NE___;
+			ND_ bool  _AddOnCompleteDependency (AsyncTask task, INOUT uint &index, bool isStrong)	__NE___;
 		};
 		
 
@@ -129,9 +136,9 @@ namespace AE::Threading
 
 	private:
 		template <typename T, usize ChunkSize, usize MaxChunks>
-		using PoolTmpl			= LfIndexedPool2< T, Index_t, ChunkSize, MaxChunks, GlobalLinearAllocatorRef >;
+		using PoolTmpl				= LfIndexedPool2< T, Index_t, ChunkSize, MaxChunks, GlobalLinearAllocatorRef >;
 
-		using ReadRequestPool_t	= PoolTmpl< ReadRequest,  1u<<10, 8 >;
+		using ReadRequestPool_t		= PoolTmpl< ReadRequest,  1u<<10, 8 >;
 		using WriteRequestPool_t	= PoolTmpl< WriteRequest, 1u<<10, 8 >;
 
 
@@ -244,7 +251,7 @@ namespace AE::Threading
 		AsyncDSRequest	ReadBlock (Bytes, Bytes)				__NE_OV;
 		AsyncDSRequest	ReadBlock (Bytes, Bytes, RC<SharedMem>)	__NE_OV;
 
-		void			CancelAllRequests ()					__NE_OV;
+		bool			CancelAllRequests ()					__NE_OV;
 	};
 //-----------------------------------------------------------------------------
 
@@ -299,7 +306,7 @@ namespace AE::Threading
 		//Bytes			Size ()									C_NE_OV;
 
 		AsyncDSRequest	WriteBlock (Bytes, Bytes, RC<SharedMem>)__NE_OV;
-		void			CancelAllRequests ()					__NE_OV;
+		bool			CancelAllRequests ()					__NE_OV;
 		RC<SharedMem>	Alloc (Bytes size)						__NE_OV;
 	};
 

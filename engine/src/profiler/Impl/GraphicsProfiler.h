@@ -23,7 +23,7 @@ namespace AE::Profiler
 	private:
 		using BatchNameMap_t	= FlatHashMap< const void*, String >;
 
-	  #ifdef AE_ENABLE_VULKAN
+	  #if defined(AE_ENABLE_VULKAN)
 		using Query				= Graphics::VQueryManager::Query;
 		using PipelineStatistic	= Graphics::VQueryManager::PipelineStatistic;
 		
@@ -43,6 +43,30 @@ namespace AE::Profiler
 			ND_ bool	operator == (const BatchCmdbufKey &rhs) const;
 			ND_ HashVal	CalcHash () const;
 		};
+		
+	  #elif defined(AE_ENABLE_METAL)
+		using Query				= Graphics::MQueryManager::Query;
+		using PipelineStatistic	= Graphics::MQueryManager::PipelineStatistic;
+		
+		struct BatchCmdbufKey
+		{
+			const void*			batch;
+		//	MetalCommandBuffer	cmdbuf;
+			EContextType		type;
+
+			BatchCmdbufKey () {}
+
+			BatchCmdbufKey (const void*			batch,
+						//	MetalCommandBuffer	cmdbuf,
+							EContextType		type) :
+				batch{batch}, type{type} {}
+
+			ND_ bool	operator == (const BatchCmdbufKey &rhs) const;
+			ND_ HashVal	CalcHash () const;
+		};
+
+	  #else
+	  #	error not implemented
 	  #endif
 
 		struct ContextInfo
@@ -123,8 +147,12 @@ namespace AE::Profiler
 
 	  #elif defined(AE_ENABLE_METAL)
 		// context
-		void  BeginContext (const void* batch, MetalCommandBuffer cmdbuf, StringView taskName, RGBA8u color, EContextType type)		__NE_OV;
-		void  EndContext (const void* batch, MetalCommandBuffer cmdbuf, EContextType type) __NE_OV;
+		void  BeginContext (OUT MetalSampleBufferAttachments &sampleBuffers, const void* batch, MetalCommandBuffer cmdbuf,
+							StringView taskName, RGBA8u color, EContextType type)													__NE_OV;
+		void  EndContext (const void* batch, MetalCommandBuffer cmdbuf, EContextType type)											__NE_OV;
+		
+	  #else
+	  #	error not implemented
 	  #endif
 
 		// frames

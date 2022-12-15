@@ -16,7 +16,7 @@ namespace AE::Threading
 
 #ifdef AE_LFAS_ENABLED
 	template <typename T>
-	using StdAtomic = LFAS::CPP::Atomic< T >;
+	using StdAtomic = LFAS::CPP::StdAtomic< T >;
 	using LFAS::CPP::EMemoryOrder;
 #else
 	template <typename T>
@@ -459,6 +459,6 @@ namespace AE::Threading
 	}
 	
 	template <typename T>
-	using BytesAtomic = typename _hidden_::TBytesAtomic<T>::type;
+	using BytesAtomic = typename Threading::_hidden_::TBytesAtomic<T>::type;
 
 } // AE::Threading

@@ -38,8 +38,6 @@ namespace AE::Base
 
 		Bytes		ReadBlock (Bytes, OUT void *, Bytes)__NE_OF;
 		
-	//	RC<RStream>	AsRStream ()		override final	{ return Default; }
-		
 
 		ND_ ArrayView<ubyte>	GetData ()				C_NE___	{ return ArrayView<ubyte>{ Cast<ubyte>(_dataPtr), usize(_size) }; }
 

@@ -39,6 +39,9 @@ namespace AE::Graphics
 		uint			_count;		// number of commands in '_pool'
 		Pool_t			_pool;
 
+		// don't use 'UMax' because after ++ it will be 0 - valid value again.
+		static constexpr uint	_CounterLargeValue = (1u << 31);
+
 		DRC_ONLY( RWDataRaceCheck	_drCheck; )	// for '_pool' and '_count'
 
 
@@ -181,13 +184,34 @@ namespace AE::Graphics
 	{
 		DRC_SHAREDLOCK( _drCheck );
 
-		const uint	count = _counter.exchange( uint(_pool.size()) );
+		// on first call '_count' must be 0, on second call may not be 0 - error
+		//ASSERT( _count == 0 );
+
+		const uint	count = _counter.exchange( _CounterLargeValue );
+
+		if ( count >= _CounterLargeValue )
+		{
+			ASSERT( _count > 0 );
+			return;	// already locked
+		}
+
 		_count = Min( count, uint(_pool.size()) );
 
 		// set unused bits to 1
 		uint	mask = ~ToBitMask<uint>(_count);
 		if ( mask )
 			_ready.fetch_or( mask );
+	}
+	
+/*
+=================================================
+	IsLocked
+=================================================
+*/
+	template <typename A, typename B>
+	bool  LfCmdBufferPool<A,B>::IsLocked () __NE___
+	{
+		return _counter.load() > _CounterLargeValue;
 	}
 
 /*

@@ -9,7 +9,7 @@ namespace
 		Strong<ImageID>				image;
 		ImageMemView				imageData;
 		const uint2					dimension	{1u << 12};
-		CommandBatchPtr			batch;
+		CommandBatchPtr				batch;
 		RC<GfxLinearMemAllocator>	gfxAlloc;
 		ImageStream					stream;
 		Atomic<uint>				counter		{0};
@@ -23,8 +23,8 @@ namespace
 	public:
 		US2_TestData&	t;
 
-		US2_UploadStreamTask (US2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor }, t{ t }
+		US2_UploadStreamTask (US2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg }, t{ t }
 		{}
 
 		void  Run () override
@@ -46,7 +46,7 @@ namespace
 			CHECK_TE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
 					  copied == mem_view.ImageSize() );
 
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 			
 			const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
 			ASSERT( stat.dynamicWrite <= upload_limit );
@@ -60,13 +60,13 @@ namespace
 		US2_TestData&	t;
 
 		US2_FrameTask (US2_TestData& t) :
-			IAsyncTask{ EThread::Worker },
+			IAsyncTask{ ETaskQueue::Worker },
 			t{ t }
 		{}
 
 		void  Run () override
 		{
-			if ( t.stream.IsComplete() )
+			if ( t.stream.IsCompleted() )
 				return;
 
 			auto&	rts = RenderTaskScheduler();
@@ -76,7 +76,7 @@ namespace
 
 			AsyncTask	begin = rts.BeginFrame( cfg );
 
-			t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "UploadStream2" );
+			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"UploadStream2"} );
 			CHECK_TE( t.batch );
 			
 		#ifdef AE_HAS_COROUTINE
@@ -84,7 +84,7 @@ namespace
 				[] (US2_TestData &t) -> CoroutineRenderTask
 				{
 					// same as 'US2_UploadStreamTask'
-					auto	hnd = co_await RenderTask_Get{};
+					auto	hnd = co_await RenderTask_Get;
 
 					DirectCtx::Transfer	ctx{ *hnd };
 
@@ -103,16 +103,16 @@ namespace
 					CHECK_CE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
 							  copied == mem_view.ImageSize() );
 
-					co_await RenderTask_ExecuteAndSubmit( ctx );
+					co_await RenderTask_Execute( ctx );
 			
 					const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( hnd->GetFrameId() );
 					ASSERT( stat.dynamicWrite <= upload_limit );
 					
 					co_return;
 				}( t ),
-				Tuple{begin}, "test task" );
+				Tuple{begin}, True{"Last"}, {"test task"} );
 		#else
-			AsyncTask	test = t.batch->Add<US2_UploadStreamTask>( Tuple{ArgRef(t)}, Tuple{begin}, "test task" );
+			AsyncTask	test = t.batch->Add< US2_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
 		#endif
 
 			AsyncTask	end = rts.EndFrame( Tuple{test} );
@@ -162,7 +162,7 @@ namespace
 
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
-		CHECK_ERR( t.stream.IsComplete() );
+		CHECK_ERR( t.stream.IsCompleted() );
 		CHECK_ERR( t.counter.load() >= uint(t.imageData.ImageSize() / upload_limit) );
 	
 		CHECK_ERR( res_mngr.ReleaseResources( t.image ));

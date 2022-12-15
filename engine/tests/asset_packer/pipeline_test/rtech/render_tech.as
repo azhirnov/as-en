@@ -20,11 +20,41 @@ void MinimalRTech ()
 }
 
 
+void DeferredRTech ()
+{
+	RenderTechnique@ rtech = RenderTechnique( "MinDeferred" );
+	rtech.AddFeatureSet( "MinimalFS" );
+	
+	{
+		GraphicsPass@	pass = rtech.AddGraphicsPass( "DepthPrepass" );
+
+		pass.SetRenderPass( "Multipass.V2", /*subpass*/"DepthPrepass" );
+	}
+	{
+		GraphicsPass@	pass = rtech.AddGraphicsPass( "GBuffer" );
+
+		pass.SetRenderPass( "Multipass.V2", /*subpass*/"GBuffer" );
+	}
+	{
+		GraphicsPass@	pass = rtech.AddGraphicsPass( "Translucent" );
+
+		pass.SetRenderPass( "Multipass.V2", /*subpass*/"Translucent" );
+	}
+	{
+		GraphicsPass@	pass = rtech.AddGraphicsPass( "Lighting" );
+
+		pass.SetRenderPass( "Multipass.V2", /*subpass*/"Lighting" );
+	}
+	{
+		GraphicsPass@	pass = rtech.AddGraphicsPass( "PostProcess" );
+
+		pass.SetRenderPass( "Multipass.V2", /*subpass*/"PostProcess" );
+	}
+}
+
+
 void MeshRTech ()
 {
-	if ( !IsVulkan() )
-		return;
-
 	RenderTechnique@ rtech = RenderTechnique( "MeshForward" );
 
 	rtech.AddFeatureSet( "MinMeshShader" );
@@ -42,9 +72,6 @@ void MeshRTech ()
 
 void RayTracingRTech ()
 {
-	if ( !IsVulkan() )
-		return;
-	
 	RenderTechnique@ rtech = RenderTechnique( "RayTracing" );
 
 	rtech.AddFeatureSet( "MinRecursiveRayTracing" );
@@ -58,6 +85,7 @@ void RayTracingRTech ()
 void main ()
 {
 	MinimalRTech();
+	DeferredRTech();
 	MeshRTech();
 	RayTracingRTech();
 }

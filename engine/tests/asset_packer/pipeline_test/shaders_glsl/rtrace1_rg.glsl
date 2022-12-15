@@ -1,7 +1,7 @@
 
 layout(location=0) rayPayloadEXT vec4  payload;
 
-void main ()
+void Main ()
 {
 	const vec2 uv			= vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
 	const vec3 origin		= vec3(uv.x, 1.0 - uv.y, -1.0);
@@ -12,7 +12,7 @@ void main ()
 				 gl_RayFlagsNoneEXT,	// rayFlags
 				 0xFF,					// cullMask
 				 0,						// sbtRecordOffset
-				 1,						// sbtRecordStride
+				 sbtRecordStride,		// sbtRecordStride
 				 0,						// missIndex
 				 origin,				// ray origin
 				 0.01,					// ray min range

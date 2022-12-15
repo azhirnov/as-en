@@ -2,10 +2,8 @@
 
 #pragma once
 
-#include "base/Math/BitMath.h"
-#include "base/Math/Bytes.h"
-#include "base/Memory/UntypedAllocator.h"
 #include "base/Memory/AllocatorFwdDecl.h"
+#include "base/Memory/AllocatorHelper.h"
 #include "base/Containers/FixedArray.h"
 #include "base/CompileTime/Math.h"
 
@@ -50,10 +48,11 @@ namespace AE::Base
 
 		using Blocks_t			= FixedArray< Block, MaxBlocks >;
 		using BookmarkStack_t	= FixedArray< Bookmark, 32 >;
+		
+		using Helper_t			= AllocatorHelper< EAllocatorType::Stack >;
 
 		static constexpr uint	_PtrOffset		= CT_CeilIntLog2< MaxBlocks >;
 		static constexpr usize	_BlockIndexMask	= (1u << _PtrOffset) - 1;
-		static constexpr Bytes	_PtrAlign		= SizeOf<void *>;
 
 
 	// variables
@@ -84,17 +83,19 @@ namespace AE::Base
 		ND_ T*		Allocate (usize count = 1)				__NE___	{ return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> })); }
 		ND_ void*	Allocate (const SizeAndAlign)			__NE___;
 		
-			void  Deallocate (void*, const SizeAndAlign)	__NE___	{}
+			void	Deallocate (void*, const SizeAndAlign)	__NE___	{}
 
-			bool		Commit (Bookmark bm, Bytes size)	__NE___;
+			bool	Commit (Bookmark bm, Bytes size)		__NE___;
 
-		ND_ auto		PushAuto ()							__NE___	{ return AutoReleaseBookmark{ *this }; }
+		ND_ auto	PushAuto ()								__NE___	{ return AutoReleaseBookmark{ *this }; }
 
-		ND_ Bookmark	Push ()								__NE___;
-			void		Pop (Bookmark bm)					__NE___;
+		ND_ Bookmark Push ()								__NE___;
+			void	 Pop (Bookmark bm)						__NE___;
 
-			void		Discard ()							__NE___;
-			void		Release ()							__NE___;
+			void	Discard ()								__NE___;
+			void	Release ()								__NE___;
+			
+		ND_ Bytes	TotalSize ()							C_NE___;
 
 	private:
 		ND_ static Pair<usize, usize>  _UnpackBookmark (Bookmark bm) __NE___;
@@ -157,6 +158,7 @@ namespace AE::Base
 			if_likely( sizeAndAlign.size <= (block.capacity - offset) )
 			{
 				block.size = offset + sizeAndAlign.size;
+				Helper_t::OnAllocate( block.ptr + offset, sizeAndAlign );
 				return block.ptr + offset;
 			}
 		}
@@ -169,7 +171,7 @@ namespace AE::Base
 
 		Bytes	block_size	= _blockSize * (1 + _blocks.size()/2);
 				block_size	= sizeAndAlign.size*2 < block_size ? block_size : block_size*2;
-		void*	ptr			= _alloc.Allocate( SizeAndAlign{ block_size, _PtrAlign });
+		void*	ptr			= _alloc.Allocate( SizeAndAlign{ block_size, DefaultAllocatorAlign });
 
 		if_unlikely( ptr == null )
 		{
@@ -183,6 +185,7 @@ namespace AE::Base
 		DEBUG_ONLY( DbgInitMem( block.ptr, block.capacity ));
 			
 		block.size = offset + sizeAndAlign.size;
+		Helper_t::OnAllocate( block.ptr + offset, sizeAndAlign );
 		return block.ptr + offset;
 	}
 	
@@ -286,7 +289,7 @@ namespace AE::Base
 	void  StackAllocator<A,B,false>::Release () __NE___
 	{
 		for (auto& block : _blocks) {
-			_alloc.Deallocate( block.ptr, SizeAndAlign{ block.capacity, _PtrAlign });
+			_alloc.Deallocate( block.ptr, SizeAndAlign{ block.capacity, DefaultAllocatorAlign });
 		}
 		_blocks.clear();
 		_bookmarks.clear();
@@ -305,5 +308,21 @@ namespace AE::Base
 		usize	off	= u >> _PtrOffset;
 		return { idx, off };
 	}
+	
+/*
+=================================================
+	TotalSize
+=================================================
+*/
+	template <typename A, uint B>
+	Bytes  StackAllocator<A,B,false>::TotalSize () C_NE___
+	{
+		Bytes	size;
+		for (auto& block : _blocks) {
+			size += block.capacity;
+		}
+		return size;
+	}
+
 
 } // AE::Base

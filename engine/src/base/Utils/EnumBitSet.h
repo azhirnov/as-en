@@ -24,12 +24,11 @@ namespace AE::Base
 		static constexpr uint	_ArraySize	= (_BitCount + _ElemSize - 1) / _ElemSize;
 
 		using Self		= EnumBitSet<E>;
-		using Index_t	= ToUnsignedInteger<E>;
 		using Elem_t	= Conditional< (_ElemSize > 32), ulong, uint >;
 		using BitArr_t	= StaticArray< Elem_t, _ArraySize >;
+		using Index_t	= ByteSizeToUInt< Max( sizeof(E), sizeof(usize) )>;
 
-
-		STATIC_ASSERT( sizeof(E) == sizeof(Index_t) );
+		STATIC_ASSERT( sizeof(E) <= sizeof(Index_t) );
 		STATIC_ASSERT( _BitCount <= _ElemSize * _ArraySize );
 		STATIC_ASSERT( _BitCount > 0 );
 		STATIC_ASSERT( _BitCount <= sizeof(BitArr_t)*8 );
@@ -39,6 +38,10 @@ namespace AE::Base
 	private:
 		BitArr_t	_bits = {};
 
+		//   [0]     [1]     [2]
+		// [|||||] [|||||] [||....]
+		//                    ^-- _LastElemMask
+
 
 	// methods
 	public:
@@ -47,7 +50,12 @@ namespace AE::Base
 		constexpr EnumBitSet ()								__NE___ {}
 		constexpr EnumBitSet (const Self &)					__NE___ = default;
 
+		template <typename Arg0, typename ...Args>
+		explicit constexpr EnumBitSet (Arg0, Args ...)		__NE___;
+
 			constexpr Self&  operator = (const Self &)		__NE___ = default;
+
+			constexpr Self&  operator = (Base::_hidden_::DefaultType)	__NE___	{ clear();  return *this; }
 			
 			constexpr Self&  set (E value, bool bit)		__NE___;
 			constexpr Self&  insert (E value)				__NE___;
@@ -61,7 +69,7 @@ namespace AE::Base
 
 		ND_ constexpr bool  contains (E value)				C_NE___;
 
-		ND_ constexpr bool  All ()							C_NE___;
+		ND_ constexpr bool  All ()							C_NE___	{ return BitCount() == _BitCount; }
 		ND_ constexpr bool  Any ()							C_NE___;
 		
 		ND_ constexpr bool  Any (const Self &rhs)			C_NE___;
@@ -72,6 +80,9 @@ namespace AE::Base
 
 		ND_ constexpr bool  AnyInRange (E first, E last)	C_NE___;
 		ND_ constexpr bool  AllInRange (E first, E last)	C_NE___;
+		
+			constexpr Self&  operator |= (E rhs)			__NE___	{ return insert( rhs ); }
+			constexpr Self&  operator &= (E rhs)			__NE___	{ return erase( rhs ); }
 
 			constexpr Self&  operator |= (const Self &rhs)	__NE___;
 			constexpr Self&  operator &= (const Self &rhs)	__NE___;
@@ -90,10 +101,26 @@ namespace AE::Base
 
 		ND_ constexpr BitArr_t const&  ToArray ()			C_NE___	{ return _bits; }
 
-		ND_ HashVal CalcHash ()								C_NE___;
+		ND_ constexpr usize		BitCount ()					C_NE___;
+		ND_ constexpr usize		ZeroCount ()				C_NE___	{ return size() - BitCount(); }
+		ND_ constexpr E			ExtractFirst ()				__NE___;
+
+		ND_ HashVal  CalcHash ()							C_NE___;
 	};
 	
 	
+/*
+=================================================
+	constructor
+=================================================
+*/
+	template <typename E>
+	template <typename Arg0, typename ...Args>
+	constexpr EnumBitSet<E>::EnumBitSet (Arg0 arg0, Args ...args) __NE___
+	{
+		Unused( insert( arg0 ), insert( args )... );
+	}
+
 /*
 =================================================
 	insert
@@ -186,10 +213,10 @@ namespace AE::Base
 			
 		for_likely (Index_t i = first_idx; i <= last_idx; ++i)
 		{
-			const Index_t	min_val	= Max( Index_t(first), i *_ElemSize );
+			const Index_t	min_val	= Max( Index_t(first), i * _ElemSize );
 			const Index_t	count	= Index_t(last) - min_val + 1;
 
-			_bits[i] &= ~ToBitMask<Elem_t>( min_val - (i *_ElemSize), count );
+			_bits[i] &= ~ToBitMask<Elem_t>( min_val - (i * _ElemSize), count );
 		}
 		return *this;
 	}
@@ -244,19 +271,6 @@ namespace AE::Base
 	All
 =================================================
 */
-	template <typename E>
-	constexpr bool  EnumBitSet<E>::All () C_NE___
-	{
-		usize	accum = 0;
-		for (uint i = 0; i < _ArraySize - 1; ++i)
-		{
-			accum += BitCount( _bits[i] );
-		}
-		accum += BitCount( _bits.back() & _LastElemMask );
-
-		return accum == _BitCount;
-	}
-	
 	template <typename E>
 	constexpr bool  EnumBitSet<E>::All (const Self &rhs) C_NE___
 	{
@@ -346,7 +360,7 @@ namespace AE::Base
 			const Index_t	min_val	= Max( Index_t(first), i *_ElemSize );
 			const Index_t	count	= Index_t(last) - min_val + 1;
 
-			accum += BitCount( _bits[i] & ToBitMask<Elem_t>( min_val - (i *_ElemSize), count ));
+			accum += Math::BitCount( _bits[i] & ToBitMask<Elem_t>( min_val - (i *_ElemSize), count ));
 		}
 		return accum == (Index_t(last) - Index_t(first) + 1);
 	}
@@ -399,6 +413,44 @@ namespace AE::Base
 				return _bits[i] < rhs._bits[i];
 		}
 		return (_bits.back() & _LastElemMask) < (rhs._bits.back() & _LastElemMask);
+	}
+	
+/*
+=================================================
+	BitCount
+=================================================
+*/
+	template <typename E>
+	constexpr usize  EnumBitSet<E>::BitCount () C_NE___
+	{
+		usize	cnt = 0;
+		for (uint i = 0; i < _ArraySize - 1; ++i)
+		{
+			cnt += Math::BitCount( _bits[i] );
+		}
+		cnt += Math::BitCount( _bits.back() & _LastElemMask );
+		ASSERT( cnt <= size() );
+		return cnt;
+	}
+
+/*
+=================================================
+	ExtractFirst
+=================================================
+*/
+	template <typename E>
+	constexpr E  EnumBitSet<E>::ExtractFirst () __NE___
+	{
+		for (uint i = 0; i < _ArraySize - 1; ++i)
+		{
+			if ( _bits[i] != Default )
+				return E( ExtractBitLog2( INOUT _bits[i] ) + i * _ElemSize );
+		}
+
+		if ( (_bits.back() & _LastElemMask) != Default )
+			return E( ExtractBitLog2( INOUT _bits.back() ) + (_ArraySize - 1) * _ElemSize );
+
+		return E(size());
 	}
 
 /*

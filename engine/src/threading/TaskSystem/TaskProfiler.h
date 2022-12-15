@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	thread-safe: yes
+*/
 
 #pragma once
 
@@ -26,6 +29,10 @@ namespace AE::Threading
 
 		// When new thread are added to task scheduler.
 		virtual void  AddThread (const IThread &)	__NE___	= 0;
+
+		// Used for work outside of task.
+		virtual void  BeginNonTaskWork (const void *id, StringView name)__NE___ = 0;
+		virtual void  EndNonTaskWork (const void *id, StringView name)	__NE___ = 0;
 	};
 
 

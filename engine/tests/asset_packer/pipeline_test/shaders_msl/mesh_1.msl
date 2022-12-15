@@ -1,0 +1,65 @@
+
+constant float2	g_Positions[3] = {
+	float2(0.0, -0.5),
+	float2(0.5, 0.5),
+	float2(-0.5, 0.5)
+};
+
+constant float3	g_Colors[3] = {
+	float3(1.0, 0.0, 0.0),
+	float3(0.0, 1.0, 0.0),
+	float3(0.0, 0.0, 1.0)
+};
+
+
+// 2.19.2 Mesh Type
+/*
+struct mesh_1_io {
+	float4	position	[[position]];	// GLSL: gl_MeshVerticesEXT[].gl_Position
+	float2	texcoord;					// GLSL: Out[].texcoord		(user-defined output block)
+	float4	color;						// GLSL: Out[].color
+};
+*/
+
+using MeshType = metal::mesh<	mesh_1_io,						// vertex type
+								void,							// primitive type
+								3,								// maximum number of vertices,		GLSL: layout(max_vertices=3) out;
+								1,								// maximum number of primitives,	GLSL: layout(max_primitives=1) out;
+								metal::topology::triangle		// topology of the mesh,			GLSL: layout(triangles) out;
+							>;
+
+[[mesh, max_total_threads_per_threadgroup(3)]]
+void Main (MeshType	output,
+		   uint		I		[[thread_index_in_threadgroup]]		// GLSL: gl_LocalInvocationID
+		  )
+{
+	// GLSL: SetMeshOutputsEXT( x, 1 )
+	output.set_primitive_count( 1 );
+
+	// add vertex
+	{
+		mesh_1_io	v;
+		v.position	= float4( g_Positions[I], 0.0, 1.0 );
+		v.texcoord	= g_Positions[I];
+		v.color		= float4( g_Colors[I], 1.0 );
+
+		output.set_vertex( I, v );
+
+		// GLSL:
+		//	gl_MeshVerticesEXT[I].gl_Position =
+		//	Out[I].texcoord					  =
+		//	Out[I].color					  =
+	}
+
+	// if non-void primitive type
+	//output.set_primitive( index, primitive );
+
+	// add indices
+	if ( I == 0 )
+	{
+		// GLSL: gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
+		output.set_index( 0, 0 );
+		output.set_index( 1, 1 );
+		output.set_index( 2, 2 );
+	}
+}

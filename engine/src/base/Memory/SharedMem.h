@@ -6,6 +6,7 @@
 #include "base/Memory/IAllocator.h"
 #include "base/Containers/ArrayView.h"
 #include "base/Math/Math.h"
+#include "base/Math/POTValue.h"
 
 namespace AE::Base
 {
@@ -36,7 +37,7 @@ namespace _hidden_
 		using Self			= TSharedMem< ExtraDataType >;
 
 	private:
-		using Extra_t		= _hidden_::TSharedMem_Extra< ExtraDataType >;
+		using Extra_t		= Base::_hidden_::TSharedMem_Extra< ExtraDataType >;
 
 		static constexpr bool	_HasExtra = not IsVoid< ExtraDataType >;
 
@@ -44,7 +45,7 @@ namespace _hidden_
 	// variables
 	private:
 		Bytes32u		_size;
-		Bytes16u		_align;
+		POTValue		_align;
 		Extra_t			_extra;
 		Allocator_t		_allocator;
 
@@ -54,6 +55,7 @@ namespace _hidden_
 		ND_ void const*		Data ()			C_NE___	{ return this + AlignUp( SizeOf<Self>, _align ); }
 		ND_ void*			Data ()			__NE___	{ return this + AlignUp( SizeOf<Self>, _align ); }
 		ND_ Bytes			Size ()			C_NE___	{ return _size; }
+		ND_ Bytes			Align ()		C_NE___	{ return Bytes{ _align.ToValue<usize>() }; }
 		ND_ auto			Allocator ()	C_NE___	{ return _allocator; }
 		
 		ND_ auto&			Extra ()		__NE___	{ if constexpr( _HasExtra ) return &_extra.data; }
@@ -71,12 +73,12 @@ namespace _hidden_
 
 
 	private:
-		TSharedMem (Bytes size, Bytes align, Allocator_t alloc)		__NE___ : _size{size}, _align{align}, _allocator{alloc} {}
-		~TSharedMem ()												__NE_OV	{}
+		TSharedMem (Bytes size, POTValue align, Allocator_t alloc)		__NE___ : _size{size}, _align{align}, _allocator{alloc} {}
+		~TSharedMem ()													__NE_OV	{}
 
-		void  _ReleaseObject ()										__NE_OV;
+		void  _ReleaseObject ()											__NE_OV;
 
-		ND_ static SizeAndAlign  _CalcSize (Bytes size, Bytes align)__NE___;
+		ND_ static SizeAndAlign  _CalcSize (Bytes size, POTValue align)	__NE___;
 	};
 
 	using SharedMem = TSharedMem<void>;
@@ -103,7 +105,7 @@ namespace _hidden_
 	ArrayView<T>  TSharedMem<E>::ToView () C_NE___
 	{
 		ASSERT( _size % SizeOf<T> == 0 );
-		ASSERT( AlignOf<T> <= _align );
+		ASSERT( POTAlignOf<T> <= _align );
 		return ArrayView<T>{ Cast<T>(Data()), _size / SizeOf<T> };
 	}
 		
@@ -128,10 +130,11 @@ namespace _hidden_
 	{
 		if_likely( alloc and size > 0 )
 		{
-			void*	self = alloc->Allocate( _CalcSize( size, align ));
+			auto	align_pot	= POTValue::From( align );
+			void*	self		= alloc->Allocate( _CalcSize( size, align_pot ));
 
 			if_likely( self != null )
-				return RC<Self>{ new(self) Self{ size, align, RVRef(alloc) }};
+				return RC<Self>{ new(self) Self{ size, align_pot, RVRef(alloc) }};
 		}
 		return Default;
 	}
@@ -142,11 +145,12 @@ namespace _hidden_
 =================================================
 */
 	template <typename E>
-	TSharedMem<E>::Allocator_t  TSharedMem<E>::CreateAllocator () __NE___
+	typename TSharedMem<E>::Allocator_t  TSharedMem<E>::CreateAllocator () __NE___
 	{
 		CATCH_ERR(
 			return Self::Allocator_t{ new AllocatorImpl< UntypedAllocator >{} };
 		)
+		return null;
 	}
 	
 /*
@@ -155,9 +159,9 @@ namespace _hidden_
 =================================================
 */
 	template <typename E>
-	SizeAndAlign  TSharedMem<E>::_CalcSize (Bytes size, Bytes align) __NE___
+	SizeAndAlign  TSharedMem<E>::_CalcSize (Bytes size, POTValue align) __NE___
 	{
-		return SizeAndAlign{ AlignUp( SizeOf<Self>, align ) + size, Max( AlignOf<Self>, align )};
+		return SizeAndAlign{ AlignUp( SizeOf<Self>, align ) + size, Bytes{Max( POTAlignOf<Self>, align ).template ToValue<usize>()} };
 	}
 	
 /*
@@ -179,6 +183,8 @@ namespace _hidden_
 		_allocator.~RC();
 
 		alloc->Deallocate( ptr, sa );
+
+		// don't call 'delete this'
 
 		// TODO: flush cache ?
 	}

@@ -5,6 +5,8 @@
 #include "base/Algorithms/Cast.h"
 #include "base/CompileTime/Math.h"
 #include "base/Math/Vec.h"
+#include "base/Math/Bytes.h"
+#include "base/Math/BitMath.h"
 
 namespace AE::Math
 {
@@ -43,14 +45,17 @@ namespace AE::Math
 		ND_ explicit constexpr operator ushort ()		C_NE___	{ ASSERT(_value < CT_SizeOfInBits<ushort>);  return static_cast<ushort>(1u   << _value); }
 		ND_ explicit constexpr operator uint ()			C_NE___	{ ASSERT(_value < CT_SizeOfInBits<uint  >);  return static_cast<uint  >(1u   << _value); }
 		ND_ explicit constexpr operator ulong ()		C_NE___	{ ASSERT(_value < CT_SizeOfInBits<ulong >);  return static_cast<ulong >(1ull << _value); }
-
-	#ifdef AE_PLATFORM_APPLE
-		ND_ explicit constexpr operator ssize ()		C_NE___	{ ASSERT(_value < CT_SizeOfInBits<ssize>);  return static_cast<ssize>(ssize{1} << _value); }
-		ND_ explicit constexpr operator usize ()		C_NE___	{ ASSERT(_value < CT_SizeOfInBits<usize>);  return static_cast<usize>(usize{1} << _value); }
-	#endif
+		
+	  #if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE)
+		ND_ explicit constexpr operator signed long ()	C_NE___	{ ASSERT(_value < CT_SizeOfInBits<signed long>);  return static_cast<signed long>(1) << _value; }
+		ND_ explicit constexpr operator unsigned long()	C_NE___	{ ASSERT(_value < CT_SizeOfInBits<unsigned long>);  return static_cast<unsigned long>(1) << _value; }
+	  #endif
 		
 		template <typename IT>
 		ND_ static constexpr Self  From (IT value)		__NE___	{ return Self{ T( IntLog2( value ))}; }
+		
+		template <typename IT>
+		ND_ static constexpr Self  From (TBytes<IT> val)__NE___	{ return Self{ T( IntLog2( IT{val} ))}; }
 
 		ND_ constexpr Self		operator *  (Self rhs)	C_NE___	{ return Self{ _value + rhs._value }; }
 		ND_ constexpr Self		operator /  (Self rhs)	C_NE___	{ ASSERT( _value >= rhs._value );  return Self{ _value - rhs._value }; }
@@ -67,11 +72,17 @@ namespace AE::Math
 		ND_ constexpr Self		Max (Self rhs)			C_NE___	{ return Self{ Math::Max( _value, rhs._value )}; }
 		ND_ constexpr Self		Min (Self rhs)			C_NE___	{ return Self{ Math::Min( _value, rhs._value )}; }
 
-		ND_ constexpr T			Get ()					C_NE___	{ return _value; }
+		ND_ constexpr T			GetPOT ()				C_NE___	{ return _value; }
+
+		template <typename IT>
+		ND_ constexpr IT		ToValue ()				C_NE___	{ ASSERT( _value < CT_SizeOfInBits<IT> );  return IT{1} << _value; }
 
 		template <typename IT>
 		ND_ constexpr IT		BitMask ()				C_NE___	{ return _value < CT_SizeOfInBits<IT> ? (IT{1} << _value) - 1 : ~IT{0}; }
 		
+		template <typename IT>
+		ND_ constexpr IT		InvBitMask ()			C_NE___	{ return _value < CT_SizeOfInBits<IT> ? ~(IT{1} << _value) - 1 : IT{0}; }
+
 		template <typename IT>
 		ND_ friend constexpr IT  operator * (const Self lhs, const IT rhs) __NE___
 		{
@@ -104,10 +115,81 @@ namespace AE::Math
 			return lhs >> rhs._value;
 		}
 	};
-	
+
+
 	using POTValue = TPowerOf2Value< uint >;
+
+	template <typename T>
+	inline static constexpr POTValue	POTSizeOf	= POTValue{CT_IntLog2<sizeof(T)>};
+	
+	template <typename T>
+	inline static constexpr POTValue	POTAlignOf	= POTValue{CT_IntLog2<alignof(T)>};
+
 
 	ND_ inline constexpr POTValue operator "" _pot (unsigned long long value) __NE___	{ return POTValue{ uint(value) }; }
 
+	
+/*
+=================================================
+	AlignDown
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr auto  AlignDown (const T &value, const POTValue alignPOT) __NE___
+	{
+		const auto	pot = alignPOT.GetPOT();
+
+		if constexpr( IsPointer<T> )
+			return BitCast<T>( (BitCast<usize>(value) >> pot) << pot );
+		else
+		if constexpr( IsBytes<T> )
+			return T{ (typename T::Value_t{value} >> pot) << pot };
+		else
+			return (value >> pot) << pot;
+	}
+
+/*
+=================================================
+	AlignUp
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr auto  AlignUp (const T &value, const POTValue alignPOT) __NE___
+	{
+		const auto	pot = alignPOT.GetPOT();
+
+		if constexpr( IsPointer<T> )
+		{
+			const usize	mask = (usize{1} << pot) - 1;
+			return BitCast<T>( (BitCast<usize>(value) + mask) & ~mask );
+		}else
+		if constexpr( IsBytes<T> )
+		{
+			const auto	mask = (typename T::Value_t{1} << pot) - 1;
+			return T{ (typename T::Value_t{value} + mask) & ~mask };
+		}else{
+			const auto	mask = (T{1} << pot) - 1;
+			return (value + mask) & ~mask;
+		}
+	}
+	
+/*
+=================================================
+	IsAligned
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr bool  IsAligned (const T &value, const POTValue alignPOT) __NE___
+	{
+		const auto	pot = alignPOT.GetPOT();
+
+		if constexpr( IsPointer<T> )
+			return (BitCast<usize>(value) & ((usize{1} << pot) - 1)) == 0;
+		else
+		if constexpr( IsBytes<T> )
+			return (value & ((typename T::Value_t{1} << pot) - 1)) == 0;
+		else
+			return (value & ((T{1} << pot) - 1)) == 0;
+	}
 
 } // AE::Math

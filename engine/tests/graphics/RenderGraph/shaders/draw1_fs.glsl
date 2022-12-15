@@ -4,7 +4,7 @@ layout(location=0) out vec4  out_Color;
 
 void dbg_EnableTraceRecording (bool b) {}
 
-void main ()
+void Main ()
 {
 	dbg_EnableTraceRecording( int(gl_FragCoord.x) == 400 && int(gl_FragCoord.y) == 300 );
 	

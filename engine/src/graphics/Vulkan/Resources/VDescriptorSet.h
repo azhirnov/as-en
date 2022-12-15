@@ -35,16 +35,16 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VDescriptorSet () {}
-		~VDescriptorSet ();
+		VDescriptorSet ()							__NE___	{}
+		~VDescriptorSet ()							__NE___;
 
-		ND_ bool  Create (VResourceManager &, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName);
-			void  Destroy (VResourceManager &);
+		ND_ bool  Create (VResourceManager &, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName)	__NE___;
+			void  Destroy (VResourceManager &)																						__NE___;
 
-		ND_ VkDescriptorSet			Handle ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _descrSet.handle; }
-		ND_ DescriptorSetLayoutID	LayoutID ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ VkDescriptorSet			Handle ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _descrSet.handle; }
+		ND_ DescriptorSetLayoutID	LayoutID ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		
-		DEBUG_ONLY( ND_ StringView  GetDebugName ()	const	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+		DEBUG_ONLY( ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 	
 

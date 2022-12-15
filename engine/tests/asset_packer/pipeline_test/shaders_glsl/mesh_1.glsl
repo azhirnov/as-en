@@ -1,7 +1,7 @@
 
 #include "common.glsl"
 
-layout(local_size_x=3) in;
+layout(local_size_x=3, local_size_y=1, local_size_z=1) in;
 layout(triangles) out;
 layout(max_vertices=3, max_primitives=1) out;
 /*
@@ -28,7 +28,7 @@ const vec3	g_Colors[3] = vec3[](
 	vec3(0.0, 0.0, 1.0)
 );
 
-void main ()
+void Main ()
 {
 	const uint I = gl_LocalInvocationID.x;
 

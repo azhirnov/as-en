@@ -9,6 +9,15 @@
 	- validate render state
 	- validate vertex input type
 	- select render technique
+
+	Special behaviour:
+		Metal:
+			max dynamic buffers	per stage limit	= 31
+			max dynamic buffers	(vertex stage)	= minVertexBuffers + minDescriptorSets + dynamicUB + dynamicSB
+			max dynamic buffers	(other stages)	= minDescriptorSets + dynamicUB + dynamicSB
+			
+			max buffers per desc set limit		= Min( minStorageBuffers, minUniformBuffers, minAccelStructures )
+			max buffers per desc set			= minStorageBuffers + minUniformBuffers + minAccelStructures
 */
 
 #pragma once
@@ -19,6 +28,9 @@
 #include "graphics/Public/FeatureSetEnums.h"
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/VertexEnums.h"
+#include "graphics/Public/BufferDesc.h"
+#include "graphics/Public/ImageDesc.h"
+#include "graphics/Public/Queue.h"
 
 namespace AE::Graphics
 {
@@ -51,7 +63,8 @@ namespace AE::Graphics
 		using SubgroupOperationBits	= EnumBitSet< ESubgroupOperation >;
 		using PixelFormatSet_t		= EnumBitSet< EPixelFormat >;
 		using VertexFormatSet_t		= EnumBitSet< EVertexType >;
-		using SampleCountBits_t		= BitSet<32>;
+		
+		enum class SampleCountBits : uint { Unknown = 0 };
 
 		template <typename E>
 		struct IncludeExcludeBits
@@ -66,11 +79,28 @@ namespace AE::Graphics
 		using VendorIDs_t		= IncludeExcludeBits< EVendorID >;
 		using GraphicsDevices_t	= IncludeExcludeBits< EGraphicsDeviceID >;
 
+		struct Queues
+		{
+			EQueueMask	supported	= Default;
+			EQueueMask	required	= Default;
+
+			ND_ bool	operator == (const Queues &rhs)	C_NE___	{ return supported == rhs.supported and required == rhs.required; }
+			ND_ HashVal	CalcHash ()						C_NE___	{ return HashOf(supported) + HashOf(required); }
+		};
+
 		static constexpr uint	MinSpirvVersion	= 100;
 		static constexpr uint	MaxSpirvVersion	= 150;
 
 		static constexpr uint	MinMetalVersion	= 200;
 		static constexpr uint	MaxMetalVersion	= 300;
+
+		struct ShaderVersion
+		{
+			uint	spirv	= 0;
+			uint	metal	= 0;
+
+			ND_ HashVal  CalcHash ()	C_NE___	{ return HashOf(spirv) + HashOf(metal); }
+		};
 
 
 	#define AE_FEATURE_SET_FIELDS( _visitor_ ) \
@@ -210,7 +240,8 @@ namespace AE::Graphics
 		_visitor_( EFeature,	fragmentShadingRateWithSampleMask,					: 2 )	/*-|								*/\
 		_visitor_( EFeature,	fragmentShadingRateWithShaderSampleMask,			: 2 )	/*-|								*/\
 		_visitor_( EFeature,	fragmentShadingRateWithFragmentShaderInterlock,		: 2 )	/*-|								*/\
-		_visitor_( EFeature,	fragmentShadingRateWithCustomSampleLocations,		: 2 )	/*-/								*/\
+		_visitor_( EFeature,	fragmentShadingRateWithCustomSampleLocations,		: 2 )	/*-|								*/\
+		/*_visitor_( PixelFormatSet_t,	fragmentShadingRateFormats,						)	/ * /								*/\
 		/* fragment density map */\
 		_visitor_( EFeature,	fragmentDensityMap,						: 2 )	/*\												*/\
 		_visitor_( EFeature,	fragmentDensityMapDynamic,				: 2 )	/*-|											*/\
@@ -218,18 +249,19 @@ namespace AE::Graphics
 		_visitor_( EFeature,	fragmentDensityInvocations,				: 2 )	/*-|											*/\
 		_visitor_( EFeature,	subsampledLoads,						: 2 )	/*-|											*/\
 		_visitor_( uint,		minSubsampledArrayLayers,					)	/*-|	- maxSubsampledArrayLayers				*/\
-		_visitor_( uint,		minDescriptorSetSubsampledSamplers,			)	/*/		- maxDescriptorSetSubsampledSamplers	*/\
+		_visitor_( uint,		minDescriptorSetSubsampledSamplers,			)	/*-|	- maxDescriptorSetSubsampledSamplers	*/\
+		/*_visitor_( PixelFormatSet_t,	fragmentDencityFormats,				)	/ * /											*/\
 		/* inline ray tracing */\
-		_visitor_( EFeature,		rayQuery,		: 2 )		/* GL_EXT_ray_query */\
-		_visitor_( EShaderStages,	rayQueryStages,		)\
+		_visitor_( EFeature,		rayQuery,							: 2 )	/* GL_EXT_ray_query */\
+		_visitor_( EShaderStages,	rayQueryStages,							)\
 		/* ray tracing */\
-		_visitor_( EFeature,	rayTracingPipeline,					: 2 )	/* GL_EXT_ray_tracing */\
-		/*_visitor_( EFeature,rayTracingPipelineTraceRaysIndirect,: 2 )*/\
-		_visitor_( EFeature,	rayTraversalPrimitiveCulling,		: 2 )	/* GL_EXT_ray_flags_primitive_culling */\
-		_visitor_( uint,		minRayRecursionDepth,					)	/* maxRayRecursionDepth */\
+		_visitor_( EFeature,		rayTracingPipeline,					: 2 )	/* GL_EXT_ray_tracing, VK_KHR_ray_tracing_pipeline */\
+		/*_visitor_( EFeature,		rayTracingPipelineTraceRaysIndirect,: 2 )	*/\
+		_visitor_( EFeature,		rayTraversalPrimitiveCulling,		: 2 )	/* GL_EXT_ray_flags_primitive_culling */\
+		_visitor_( uint,			minRayRecursionDepth,					)	/* maxRayRecursionDepth */\
+		/*_visitor_( uint,			minRayHitAttributeSize,					)	/ * maxRayHitAttributeSize */\
 		/* shader version */\
-		_visitor_( uint,		minSpirvVersion, )	/* 100..150 */\
-		_visitor_( uint,		minMetalVersion, )	/* 200..240 */\
+		_visitor_( ShaderVersion,	minShaderVersion, )\
 		/* multiview */\
 		_visitor_( EFeature,	multiview,					: 2 )	/*\												*/\
 		_visitor_( EFeature,	multiviewGeometryShader,	: 2 )	/*-|											*/\
@@ -241,6 +273,7 @@ namespace AE::Graphics
 		/* sample locations */\
 		_visitor_( EFeature,	sampleLocations,			: 2 )	/* VK_EXT_sample_locations */\
 		_visitor_( EFeature,	variableSampleLocations,	: 2 )\
+		/*_visitor_( SampleCountBits,sampleLocationSampleCounts,)	/ * */\
 		/* tessellation */\
 		_visitor_( EFeature,	tessellationIsolines,	: 2 )\
 		_visitor_( EFeature,	tessellationPointMode,	: 2 )\
@@ -253,7 +286,7 @@ namespace AE::Graphics
 		_visitor_( uint,				minDescriptorSets,					)	/* maxBoundDescriptorSets												*/\
 		_visitor_( uint,				minTexelOffset,						)	/* maxTexelOffset, minTexelOffset  - [-N-1...+N] for textureOffset()	*/\
 		_visitor_( uint,				minTexelGatherOffset,				)	/* maxTexelGatherOffset, minTexelGatherOffset							*/\
-		_visitor_( uint,				minFragmentOutputAttachments,		)	/* maxFragmentOutputAttachments											*/\
+		_visitor_( uint,				minFragmentOutputAttachments,		)	/* maxFragmentOutputAttachments, maxColorAttachments					*/\
 		_visitor_( uint,				minFragmentDualSrcAttachments,		)	/* maxFragmentDualSrcAttachments										*/\
 		_visitor_( uint,				minFragmentCombinedOutputResources,	)	/* maxFragmentCombinedOutputResources = storage buffers + storage images + color attachments */\
 		_visitor_( uint,				minPushConstantsSize,				)	/* maxPushConstantsSize													*/\
@@ -311,16 +344,18 @@ namespace AE::Graphics
 		_visitor_( EFeature,			textureCompressionASTC_HDR,	: 2 )\
 		_visitor_( EFeature,			textureCompressionBC,		: 2 )\
 		_visitor_( EFeature,			textureCompressionETC2,		: 2 )\
-		_visitor_( EFeature,			imageViewMinLod,			: 2 )	/* minLod */\
+		_visitor_( EFeature,			imageViewMinLod,			: 2 )	/* VK_EXT_image_view_min_lod, minLod */\
 		_visitor_( EFeature,			multisampleArrayImage,		: 2 )\
 		_visitor_( uint,				minImageArrayLayers,			)	/* maxImageArrayLayers */\
-		_visitor_( PixelFormatSet_t,	storageImageAtomicFormats,		)	/* VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT			*/\
-		_visitor_( PixelFormatSet_t,	storageImageFormats,			)	/* VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT					*/\
-		_visitor_( PixelFormatSet_t,	attachmentBlendFormats,			)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT			*/\
+		_visitor_( PixelFormatSet_t,	storageImageAtomicFormats,		)	/* VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT				*/\
+		_visitor_( PixelFormatSet_t,	storageImageFormats,			)	/* VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT		TODO: R or W	*/\
+		_visitor_( PixelFormatSet_t,	attachmentBlendFormats,			)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT				*/\
 		_visitor_( PixelFormatSet_t,	attachmentFormats,				)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |	VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT */\
-		_visitor_( PixelFormatSet_t,	linearSampledFormats,			)	/* VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT	*/\
-		/*_visitor_( PixelFormatSet_t,	minmaxFilterFormats,			)	/ * VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT	*/\
+		_visitor_( PixelFormatSet_t,	linearSampledFormats,			)	/* VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT		*/\
+		/*_visitor_( PixelFormatSet_t,	minmaxFilterFormats,			)	/ * VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT		*/\
 		_visitor_( PixelFormatSet_t,	swapchainFormats,				)\
+		/*_visitor_( PixelFormatSet_t,	sparseImageFormats,				)	/ * */\
+		/*_visitor_( PixelFormatSet_t,	multisampleImageFormats,		)	/ * */\
 		\
 		\
 	/*---- sampler ----*/\
@@ -332,12 +367,18 @@ namespace AE::Graphics
 		_visitor_( EFeature,	samplerMipLodBias,					: 2 )\
 		_visitor_( float,		minSamplerAnisotropy,					)	/* maxSamplerAnisotropy */\
 		_visitor_( float,		minSamplerLodBias,						)	/* maxSamplerLodBias	*/\
+		/*_visitor_( SampleCountBits,	sampledImageColorSampleCounts,	)	/ * */\
+		/*_visitor_( SampleCountBits,	sampledImageDepthSampleCounts,	)	/ * */\
+		/*_visitor_( SampleCountBits,	sampledImageIntegerSampleCounts,)	/ * */\
+		/*_visitor_( SampleCountBits,	sampledImageStencilSampleCounts,)	/ * */\
+		/*_visitor_( SampleCountBits,	storageImageSampleCounts,		)	/ * */\
 		\
 		\
 	/*---- framebuffer ----*/\
-		_visitor_( SampleCountBits_t,	framebufferColorSampleCounts,	)	/* 	*/\
-		_visitor_( SampleCountBits_t,	framebufferDepthSampleCounts,	)	/* 	*/\
-		_visitor_( uint,				minFramebufferLayers,			)	/* maxFramebufferLayers		*/\
+		_visitor_( SampleCountBits,	framebufferColorSampleCounts,	)		/* 	*/\
+		_visitor_( SampleCountBits,	framebufferDepthSampleCounts,	)		/* 	*/\
+		/*_visitor_( SampleCountBits,framebufferIntegerColorSampleCounts,)	/* 	*/\
+		_visitor_( uint,			minFramebufferLayers,			)		/* maxFramebufferLayers		*/\
 		\
 		\
 	/*---- render pass ----*/\
@@ -349,6 +390,7 @@ namespace AE::Graphics
 		\
 		\
 	/* other */\
+		_visitor_( Queues,				queues,		)\
 		_visitor_( VendorIDs_t,			vendorIds,	)\
 		_visitor_( GraphicsDevices_t,	devicesIds,	)\
 
@@ -356,6 +398,7 @@ namespace AE::Graphics
 		// TODO:
 		//	min total memory size
 		//	min/max resolution ?
+		//	supported queries - for dynamic resolution rendering and other techniques
 	
 
 	// variables
@@ -375,33 +418,40 @@ namespace AE::Graphics
 
 
 	// methods
-		FeatureSet ()										__NE___;
+		FeatureSet ()																__NE___;
 
-			void  SetAll (EFeature value)					__NE___;
-			void  SetDefault ()								__NE___;
+			void  SetAll (EFeature value)											__NE___;
+			void  SetDefault ()														__NE___;
 
-		ND_ bool  IsValid ()								C_NE___;
-			void  Validate ()								__NE___;
+			void  AddDevice (uint vendorId, uint deviceId, StringView name)			__NE___;
 
-		ND_ bool  IsSupported (const RenderState &rs)		C_NE___;
+		ND_ bool  IsValid ()														C_NE___;
+			void  Validate ()														__NE___;
 
-			void  MergeMin (const FeatureSet &rhs)			__NE___;
-			void  MergeMax (const FeatureSet &rhs)			__NE___;
+		ND_ bool  IsSupported (const RenderState &rs)								C_NE___;
+		ND_ bool  IsSupported (const BufferDesc &desc)								C_NE___;
+		ND_ bool  IsSupported (const BufferDesc &desc, const BufferViewDesc &view)	C_NE___;
+		ND_ bool  IsSupported (const ImageDesc &desc)								C_NE___;
+		ND_ bool  IsSupported (const ImageDesc &desc, const ImageViewDesc &view)	C_NE___;
 
-		ND_ bool  IsCompatible (const FeatureSet &rhs)		C_NE___;
-		ND_ bool  DbgIsCompatible (const FeatureSet &rhs)	C_NE___;
+			void  MergeMin (const FeatureSet &rhs)									__NE___;
+			void  MergeMax (const FeatureSet &rhs)									__NE___;
 
-		ND_ bool  operator == (const FeatureSet &rhs)		C_NE___;
-		ND_ bool  operator != (const FeatureSet &rhs)		C_NE___	{ return not (rhs == *this);}
-		ND_ bool  operator >= (const FeatureSet &rhs)		C_NE___;
-		ND_ bool  operator <= (const FeatureSet &rhs)		C_NE___	{ return rhs >= *this; }
+		ND_ bool  IsCompatible (const FeatureSet &rhs)								C_NE___;
+		ND_ bool  DbgIsCompatible (const FeatureSet &rhs)							C_NE___;
 
-		ND_ HashVal  CalcHash ()							C_NE___;
+		ND_ bool  operator == (const FeatureSet &rhs)								C_NE___;
+		ND_ bool  operator != (const FeatureSet &rhs)								C_NE___	{ return not (rhs == *this);}
+		ND_ bool  operator >= (const FeatureSet &rhs)								C_NE___;
+		ND_ bool  operator <= (const FeatureSet &rhs)								C_NE___	{ return rhs >= *this; }
+
+		ND_ HashVal  CalcHash ()													C_NE___;
 
 	private:
 		template <bool Mutable>
-		bool  _Validate ()									__NE___;
+		bool  _Validate ()															__NE___;
 	};
+	STATIC_ASSERT( sizeof(FeatureSet) == 680 );
 
 } // AE::Graphics
 

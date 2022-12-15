@@ -12,7 +12,6 @@
 
 #include "threading/TaskSystem/ThreadManager.h"
 
-#include "PipelineCompiler.h"
 #include "../UnitTest_Common.h"
 
 using namespace AE::App;
@@ -44,7 +43,10 @@ DrawTestCore::DrawTestCore () :
 		_swapchain{ _vulkan }
 	#elif defined(AE_ENABLE_METAL)
 		_refDumpPath{ AE_CURRENT_DIR "/Metal/ref" },
+		_metal{ True{"enable info log"} },
 		_swapchain{ _metal }
+	#else
+	#	error not implemented
 	#endif
 {
 	_tests.emplace_back( &DrawTestCore::Test_Canvas_Rect );
@@ -117,52 +119,10 @@ bool  DrawTestCore::SaveImage (StringView name, const ImageMemView &view)
 */
 bool  DrawTestCore::_CompilePipelines ()
 {
-#ifdef AE_PLATFORM_WINDOWS
-	using namespace AE::PipelineCompiler;
-
-	decltype(&CompilePipelines)		compile_pipelines = null;
-
-	Path	dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
-	dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
-
-	Library		lib;
-	CHECK_ERR( lib.Load( dll_path ));
-	CHECK_ERR( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
-		
-	CHECK_ERR( FileSystem::FindAndSetCurrent( "tests/graphics_hl/DrawTests", 5 ));
-
-	const Path			curr_dir			= FileSystem::CurrentPath();
-	const PathParams	pipeline_folder[]	= { {TXT( AE_SHARED_DATA "/feature_set" ), 0, EPathParamsFlags::Recursive},
-												{TXT("sampler"), 2}, {TXT("rtech"), 4}, {TXT("pipeline"), 5} };
-	const PathParams	pipelines[]			= { {TXT( "config.as" ), 1}, {TXT(AE_CANVAS_VERTS), 3} };
-	const CharType*		shader_folder[]		= { TXT("shaders") };
-	const Path			output_folder		= TXT("temp");
-	
-	FileSystem::RemoveAll( output_folder );
-	FileSystem::CreateDirectories( output_folder );
-
-	const Path	output		= FileSystem::ToAbsolute( output_folder / "pipelines.bin" );
-	const Path	output_cpp	= FileSystem::ToAbsolute( output_folder / ".." / "vk_types.h" );
-
-	PipelinesInfo	info = {};
-	info.inPipelines		= pipelines;
-	info.inPipelineCount	= CountOf( pipelines );
-	info.pipelineFolders	= pipeline_folder;
-	info.pipelineFolderCount= CountOf( pipeline_folder );
-	info.includeDirs		= null;
-	info.includeDirCount	= 0;
-	info.shaderFolders		= shader_folder;
-	info.shaderFolderCount	= CountOf( shader_folder );
-	info.outputPackName		= output.c_str();
-	info.outputCppFile		= output_cpp.c_str();
-	info.addNameMapping		= true;	// for debugging
-
-	CHECK_ERR( compile_pipelines( &info ));
-
 	auto&	res_mngr = RenderTaskScheduler().GetResourceManager();
 
 	{
-		auto	file = MakeRC<FileRStream>( output );
+		auto	file = MakeRC<FileRStream>( AE_RES_PACK );
 		CHECK_ERR( file->IsOpen() );
 
 		PipelinePackDesc	desc;
@@ -175,9 +135,6 @@ bool  DrawTestCore::_CompilePipelines ()
 
 	_canvasPpln = res_mngr.LoadRenderTech( Default, RenderTechName{"CanvasDrawTest"}, Default );
 	CHECK_ERR( _canvasPpln );
-
-	CHECK( FileSystem::SetCurrentPath( curr_dir ));
-#endif
 
 	return true;
 }
@@ -287,7 +244,7 @@ bool  DrawTestCore::_RunTests ()
 			_testsFailed += uint(not passed);
 			_tests.pop_front();
 
-			Scheduler().ProcessTask( EThread::Main, 0 );
+			Scheduler().ProcessTask( ETaskQueue::Main, 0 );
 		}
 		else
 		{
@@ -390,11 +347,13 @@ bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
 	MSwapchainInitializer::CreateInfo	swapchain_ci;
 	swapchain_ci.viewSize = wnd.GetSurfaceSize();
 	CHECK_ERR( _swapchain.Create( &rts.GetResourceManager(), swapchain_ci ));
-
-	for (uint i = 0; i < 2; ++i) {
-		Scheduler().AddThread( MakeRC<WorkerThread>( ThreadMask{}.insert( EThread::Worker ).insert( EThread::Renderer ),
-													 nanoseconds{1}, milliseconds{4}, "render thread" ));
-	}
+	
+	Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
+			EThreadArray{ EThread::Worker, EThread::Renderer },
+			nanoseconds{1},
+			milliseconds{4},
+			"render thread"
+		}));
 
 	CHECK_ERR( _CompilePipelines() );
 
@@ -419,7 +378,7 @@ bool  DrawTestCore::_RunTests ()
 			_testsFailed += uint(not passed);
 			_tests.pop_front();
 
-			Scheduler().ProcessTask( EThread::Main, 0 );
+			Scheduler().ProcessTask( ETaskQueue::Main, 0 );
 		}
 		else
 		{

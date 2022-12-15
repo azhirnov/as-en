@@ -52,8 +52,8 @@ namespace AE::ECS
 
 	using Threading::Atomic;
 
-	using EntityID	= HandleTmpl< 16, 16, _hidden_::ECSIDs_Start + 1 >;
-	using QueryID	= HandleTmpl< 16, 16, _hidden_::ECSIDs_Start + 2 >;
+	using EntityID	= HandleTmpl< 16, 16, ECS::_hidden_::ECSIDs_Start + 1 >;
+	using QueryID	= HandleTmpl< 16, 16, ECS::_hidden_::ECSIDs_Start + 2 >;
 	
 
 	struct ECS_Config

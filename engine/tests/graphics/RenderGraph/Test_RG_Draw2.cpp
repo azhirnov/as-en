@@ -2,13 +2,6 @@
 
 #include "Test_RenderGraph.h"
 
-#ifdef AE_ENABLE_VULKAN
-# include "vk_types.h"
-#endif
-#ifdef AE_ENABLE_METAL
-# include "mtl_types.h"
-#endif
-
 namespace
 {
 	struct D2_TestData
@@ -46,8 +39,8 @@ namespace
 	public:
 		D2_TestData&	t;
 
-		D2_DrawTask (D2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		D2_DrawTask (D2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -100,8 +93,8 @@ namespace
 	public:
 		D2_TestData&	t;
 
-		D2_CopyTask (D2_TestData& t, CommandBatchPtr batch, StringView dbgName, RGBA8u dbgColor) :
-			RenderTask{ batch, dbgName, dbgColor },
+		D2_CopyTask (D2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
 
@@ -120,7 +113,7 @@ namespace
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
-			ExecuteAndSubmit( ctx );
+			Execute( ctx );
 		}
 	};
 
@@ -154,11 +147,11 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		t.batch	= rts.CreateBatch( EQueueType::Graphics, 0, "Draw2" );
+		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Draw2"} );
 		CHECK_ERR( t.batch );
 
-		AsyncTask	task1	= t.batch->Add< D2_DrawTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin}, "Draw task" );
-		AsyncTask	task2	= t.batch->Add< D2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, "Readback task" );
+		AsyncTask	task1	= t.batch->Add< D2_DrawTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},				{"Draw task"} );
+		AsyncTask	task2	= t.batch->Add< D2_CopyTask<CopyCtx>  >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 

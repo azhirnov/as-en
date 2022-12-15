@@ -9,7 +9,7 @@ namespace
 	class DummyTask final : public IAsyncTask
 	{
 	public:
-		DummyTask (uint id) : IAsyncTask{EThread::Worker}
+		DummyTask (uint id) : IAsyncTask{ETaskQueue::Worker}
 		{
 			Unused( id );
 			_DbgSet( EStatus::Pending );

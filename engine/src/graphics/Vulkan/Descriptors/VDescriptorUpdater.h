@@ -42,7 +42,7 @@ namespace AE::Graphics
 	// variables
 	private:
 		VResourceManager &				_resMngr;
-		Ptr<const VDescriptorSetLayout>	_dsLayout;	// strong ref in '_descrSet'
+		Ptr<const VDescriptorSetLayout>	_dsLayout;	// strong ref in '_descSetId'
 		VkDescriptorSet					_dsHandle	= Default;	
 
 		EDescUpdateMode					_mode		= Default;
