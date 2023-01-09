@@ -19,12 +19,13 @@ namespace AE::Graphics
 	public:
 		struct CreateInfo
 		{
+			VPipelinePack const&									pplnPack;
 			PipelineCompiler::SerializableGraphicsPipeline const&	templCI;
 			GraphicsPipelineDesc const&								specCI;
 			VPipelineLayoutID										layoutId;
 			ArrayView< VPipelinePack::ShaderModuleRef >				shaders;
 			PipelineCacheID											cacheId;
-			VPipelinePack::Allocator_t *							allocator		= null;
+			VPipelinePack::Allocator_t *							allocator	= null;
 		};
 
 	private:

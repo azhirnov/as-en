@@ -1,25 +1,26 @@
+#include <pipeline_compiler>
 
 void main ()
 {
-	ShaderStructType@	st = ShaderStructType( "Vertex_draw2" );
+	RC<ShaderStructType>	st = ShaderStructType( "Vertex_draw2" );
 	st.Set( "packed_float2		Position;" +
 			"packed_ubyte_norm4	Color;" );
 
-	VertexBufferInput@	vb = VertexBufferInput( "draw2.vb" );
+	RC<VertexBufferInput>	vb = VertexBufferInput( "draw2.vb" );
 	vb.Add( "vb", st );
 
-	GraphicsPipeline@	ppln = GraphicsPipeline( "draw2" );
+	RC<GraphicsPipeline>	ppln = GraphicsPipeline( "draw2" );
 	ppln.AddFeatureSet( "MinimalFS" );
 	ppln.SetVertexInput( vb );
 	
 	{
-		Shader@	vs	= Shader();
+		RC<Shader>	vs	= Shader();
 		vs.file		= "draw2_vs.glsl";
 		vs.options	= EShaderOpt::Optimize;
 		ppln.SetVertexShader( vs );
 	}
 	{
-		Shader@	fs	= Shader();
+		RC<Shader>	fs	= Shader();
 		fs.file		= "draw1_fs.glsl";
 		fs.options	= EShaderOpt::Optimize;
 		ppln.SetFragmentShader( fs );
@@ -27,7 +28,7 @@ void main ()
 
 	// specialization
 	{
-		GraphicsPipelineSpec@	spec = ppln.AddSpecialization( "draw2" );
+		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "draw2" );
 		spec.AddToRenderTech( "DrawTestRT", "Draw_1" );
 		spec.SetViewportCount( 1 );
 

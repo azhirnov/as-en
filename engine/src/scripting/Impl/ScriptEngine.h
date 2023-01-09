@@ -23,6 +23,7 @@
 #include "base/Math/BitMath.h"
 #include "base/Utils/RefCounter.h"
 #include "base/Utils/SourceLoc.h"
+#include "base/Utils/FileSystem.h"
 
 #ifndef AE_DBG_SCRIPTS
 # ifdef AE_DEBUG
@@ -62,14 +63,15 @@ namespace AE::Scripting
 			String		name;
 			String		script;
 			SourceLoc	dbgLocation;
+			bool		usePreprocessor	= false;
 
 			ModuleSource () {}
 
-			ModuleSource (NtStringView name, NtStringView script, const SourceLoc &loc = Default) :
-				name{name}, script{script}, dbgLocation{loc} {}
+			ModuleSource (StringView name, StringView script, const SourceLoc &loc = Default, Bool preprocess = False{}) :
+				name{name}, script{script}, dbgLocation{loc}, usePreprocessor{preprocess} {}
 
-			ModuleSource (String name, String script, const SourceLoc &loc = Default) :
-				name{RVRef(name)}, script{RVRef(script)}, dbgLocation{loc} {}
+			ModuleSource (String name, String script, const SourceLoc &loc = Default, Bool preprocess = False{}) :
+				name{RVRef(name)}, script{RVRef(script)}, dbgLocation{loc}, usePreprocessor{preprocess} {}
 		};
 
 	private:
@@ -111,13 +113,20 @@ namespace AE::Scripting
 		using ModuleSource		= ScriptModule::ModuleSource;
 	private:
 		using DbgLocationMap_t	= ScriptModule::DbgLocationMap_t;
-
+		using CppHeaderMap_t	= FlatHashMap< String, Pair<usize, int> >;		// index in '_cppHeaders'
+		
 
 	// variables
 	private:
 		Ptr< AngelScript::asIScriptEngine >		_engine;
 		std::atomic<usize>						_moduleIndex	{0};
 		
+		// Generate C++ header to use autocomplete in IDE for scripts
+		std::mutex					_cppHeaderGuard;
+		CppHeaderMap_t				_cppHeaderMap;
+		Array<String>				_cppHeaders;
+		bool						_genCppHeader	= false;
+
 		#if AE_DBG_SCRIPTS
 			std::recursive_mutex	_dbgLocationGuard;
 			DbgLocationMap_t		_dbgLocation;
@@ -136,11 +145,12 @@ namespace AE::Scripting
 		ND_ AngelScript::asIScriptEngine const *	operator -> ()	C_NE___	{ return _engine.operator->(); }
 
 		ND_ bool  IsInitialized ()									C_NE___	{ return bool{_engine}; }
+		ND_ bool  IsUsingCppHeader ()								C_NE___	{ return _genCppHeader; }
 
-		ND_ bool  Create ();
-		ND_ bool  Create (AngelScript::asIScriptEngine *se);
+		ND_ bool  Create (Bool genCppHeader = False{});
+		ND_ bool  Create (AngelScript::asIScriptEngine *se, Bool genCppHeader = False{});
 
-		ND_ ScriptModulePtr  CreateModule (ArrayView<ModuleSource> src);
+		ND_ ScriptModulePtr  CreateModule (ArrayView<ModuleSource> src, ArrayView<StringView> defines = Default);
 		
 		template <typename Fn>
 		ND_ ScriptFnPtr<Fn>  CreateScript (StringView entry, const ScriptModulePtr &module);
@@ -160,9 +170,15 @@ namespace AE::Scripting
 		bool  SetNamespace (NtStringView name);
 		bool  SetDefaultNamespace ();
 
+			void  AddCppHeader (StringView typeName, String str, int flags);
+			void  GetCppHeader (OUT String &str, OUT HashVal32 &hash);
+		ND_	bool  SaveCppHeader (const Path &fname);
+
 
 	// utils //
 		ND_ static bool  _CheckError (int err, StringView asFunc, StringView func, const SourceLoc &loc);
+
+		ND_ static bool  _Preprocessor (StringView, OUT String &, ArrayView<StringView> defines);
 
 	private:
 		ND_ bool  _CreateContext (const String &signature, const ScriptModulePtr &module, OUT AngelScript::asIScriptContext* &ctx);

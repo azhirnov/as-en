@@ -1,18 +1,19 @@
+#include <pipeline_compiler>
 
 void main ()
 {
-	GraphicsPipeline@	ppln = GraphicsPipeline( "draw1" );
+	RC<GraphicsPipeline>	ppln = GraphicsPipeline( "draw1" );
 	ppln.AddFeatureSet( "MinimalFS" );
 	ppln.SetVertexInput( "VB_Position_f2, VB_UVf2_Col8" );
 	
 	{
-		Shader@	vs	= Shader();
+		RC<Shader>	vs	= Shader();
 		vs.file		= "draw1_vs.glsl";
 		vs.options	= EShaderOpt::Optimize;
 		ppln.SetVertexShader( vs );
 	}
 	{
-		Shader@	fs	= Shader();
+		RC<Shader>	fs	= Shader();
 		fs.file		= "draw1_fs.glsl";
 		fs.options	= EShaderOpt::Optimize;
 		ppln.SetFragmentShader( fs );
@@ -20,7 +21,7 @@ void main ()
 
 	// specialization
 	{
-		GraphicsPipelineSpec@	spec = ppln.AddSpecialization( "rect_tristrip" );
+		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "rect_tristrip" );
 		spec.AddToRenderTech( "CanvasDrawTest", "Draw_1" );
 		spec.SetViewportCount( 1 );
 
@@ -32,7 +33,7 @@ void main ()
 		spec.SetRenderState( rs );
 	}
 	{
-		GraphicsPipelineSpec@	spec = ppln.AddSpecialization( "rect_trilist" );
+		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "rect_trilist" );
 		spec.AddToRenderTech( "CanvasDrawTest", "Draw_1" );
 		spec.SetViewportCount( 1 );
 
@@ -44,7 +45,7 @@ void main ()
 		spec.SetRenderState( rs );
 	}
 	{
-		GraphicsPipelineSpec@	spec = ppln.AddSpecialization( "rect_trilist_lines" );
+		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "rect_trilist_lines" );
 		spec.AddToRenderTech( "CanvasDrawTest", "Draw_1" );
 		spec.SetViewportCount( 1 );
 

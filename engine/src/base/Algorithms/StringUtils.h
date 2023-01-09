@@ -467,7 +467,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ constexpr bool  IsAnsiString (const T *ptr, usize length)
+	ND_ constexpr bool  IsAnsiString (const T *ptr, usize length) __NE___
 	{
 		for (usize i = 0; i < length; ++i)
 		{
@@ -475,6 +475,18 @@ namespace AE::Base
 				return false;
 		}
 		return true;
+	}
+
+	template <typename T>
+	ND_ constexpr bool  IsAnsiString (BasicStringView<T> str) __NE___
+	{
+		return IsAnsiString( str.data(), str.length() );
+	}
+
+	template <typename T, typename A>
+	ND_ constexpr bool  IsAnsiString (const BasicString<T,A> &str) __NE___
+	{
+		return IsAnsiString( str.c_str(), str.length() );
 	}
 //-----------------------------------------------------------------------------
 

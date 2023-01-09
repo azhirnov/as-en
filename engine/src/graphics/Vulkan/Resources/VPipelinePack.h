@@ -31,53 +31,9 @@ namespace AE::Graphics
 
 	using ShaderTracePtr = Ptr< const PipelineCompiler::ShaderTrace >;
 
-
-	//
-	// Vulkan Pipeline Pack
-	//
-
-	class VPipelinePack
-	{
-	// types
-	public:
-		struct ShaderModuleRef
-		{
-			VkShaderStageFlagBits									stage			= Zero;
-			VkShaderModule											module			= Default;
-			PipelineCompiler::ShaderBytecode::OptSpecConst_t const*	shaderConstants	= null;
-			ShaderTracePtr											dbgTrace;
-			
-			ND_ bool		IsValid ()	C_NE___	{ return module != Default and shaderConstants != null; }
-			ND_ const char*	Entry ()	C_NE___	{ return "Main"; }
-		};
-		
-	private:
-
-		//
-		// Shader Module
-		//
-		struct alignas(AE_CACHE_LINE) ShaderModule
-		{
-			Threading::RWSpinLock										guard;		// protects 'module', 'dbgTrace', 'constants'
-			Bytes32u													offset;
-			Bytes32u													dataSize;
-			ubyte														shaderTypeIdx	= UMax;
-			mutable VkShaderModule										module			= Default;
-			mutable Unique< PipelineCompiler::ShaderTrace >				dbgTrace;
-			mutable PipelineCompiler::ShaderBytecode::OptSpecConst_t	constants;
-		};
-		STATIC_ASSERT( sizeof(ShaderModule) == 128 );
-
-
-		#include "graphics/Private/PipelinePackDecl.h"
-
-
-	// variables
-	private:
-		GfxMemAllocatorPtr		_sbtAllocator;
-	};
-
-
 } // AE::Graphics
+
+// implementation
+# include "graphics/Private/PipelinePack.h"
 
 #endif // AE_ENABLE_VULKAN

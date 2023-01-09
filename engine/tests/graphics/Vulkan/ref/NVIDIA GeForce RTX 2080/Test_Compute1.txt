@@ -1,8 +1,13 @@
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Compute1 |0| Compute task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -56,10 +61,19 @@ name: 'command-buffer'
       layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
 }
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Compute1 |1| Readback task'
+    depth: 1
+  ----------
+
   CopyImageToBuffer
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -86,6 +100,10 @@ name: 'command-buffer'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
   ----------
 
 }
@@ -95,10 +113,15 @@ signalSemaphore = {
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Compute1 |0| Compute task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -152,6 +175,15 @@ name: 'command-buffer'
       layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
+  BeginDebugLabel
+    name:  'Compute1 |1| Readback task'
+    depth: 1
+  ----------
+
   CopyImageToBuffer
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -178,6 +210,10 @@ name: 'command-buffer'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
   ----------
 
 }
@@ -187,10 +223,15 @@ signalSemaphore = {
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Compute1 |0| Compute task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -244,10 +285,19 @@ name: 'command-buffer'
       layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
 }
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Compute1 |1| Readback task'
+    depth: 1
+  ----------
+
   CopyImageToBuffer
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -274,6 +324,10 @@ name: 'command-buffer'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
   ----------
 
 }

@@ -432,6 +432,29 @@ namespace AE::Math
 
 /*
 =================================================
+	All/Any
+=================================================
+*/
+	template <typename T, typename ...Args>
+	ND_ forceinline bool  All (const T &arg0, const Args& ...args) __NE___
+	{
+		if constexpr( sizeof...(Args) )
+			return bool{arg0} & All( args... );
+		else
+			return arg0;
+	}
+	
+	template <typename T, typename ...Args>
+	ND_ forceinline bool  Any (const T &arg0, const Args& ...args) __NE___
+	{
+		if constexpr( sizeof...(Args) )
+			return bool{arg0} | Any( args... );
+		else
+			return arg0;
+	}
+
+/*
+=================================================
 	Sum
 =================================================
 */
@@ -610,10 +633,16 @@ namespace AE::Math
 		}
 	}
 	
-	template <typename T0, typename T1, typename T2, typename ...Types>
-	ND_ forceinline constexpr auto  Min (const T0 &arg0, const T1 &arg1, const T2 &arg2, const Types& ...args) __NE___
+	template <typename T0, typename ...Types>
+	ND_ forceinline constexpr auto  Min (const T0 &arg0, const Types& ...args) __NE___
 	{
-		return Min( arg0, Min( arg1, arg2, args... ));
+		if constexpr( sizeof...(Types) == 0 )
+			return arg0;
+		else
+		if constexpr( sizeof...(Types) == 1 )
+			return Min( arg0, args... );
+		else
+			return Min( arg0, Min( args... ));
 	}
 	
 /*
@@ -659,10 +688,16 @@ namespace AE::Math
 		}
 	}
 
-	template <typename T0, typename T1, typename T2, typename ...Types>
-	ND_ forceinline constexpr auto  Max (const T0 &arg0, const T1 &arg1, const T2 &arg2, const Types& ...args) __NE___
+	template <typename T0, typename ...Types>
+	ND_ forceinline constexpr auto  Max (const T0 &arg0, const Types& ...args) __NE___
 	{
-		return Max( arg0, Max( arg1, arg2, args... ));
+		if constexpr( sizeof...(Types) == 0 )
+			return arg0;
+		else
+		if constexpr( sizeof...(Types) == 1 )
+			return Max( arg0, args... );
+		else
+			return Max( arg0, Max( args... ));
 	}
 	
 /*
@@ -670,16 +705,16 @@ namespace AE::Math
 	AssignMin / AssignMax
 =================================================
 */
-	template <typename T>
-	forceinline void  AssignMin (INOUT T& lhs, const T &rhs) __NE___
+	template <typename T0, typename T1, typename ...Types>
+	forceinline void  AssignMin (INOUT T0 &dst, const T1 &arg0, const Types& ...args) __NE___
 	{
-		lhs = Min( lhs, rhs );
+		dst = Min( dst, arg0, args... );
 	}
 	
-	template <typename T>
-	forceinline void  AssignMax (INOUT T& lhs, const T &rhs) __NE___
+	template <typename T0, typename T1, typename ...Types>
+	forceinline void  AssignMax (INOUT T0 &dst, const T1 &arg0, const Types& ...args) __NE___
 	{
-		lhs = Max( lhs, rhs );
+		dst = Max( dst, arg0, args... );
 	}
 
 /*

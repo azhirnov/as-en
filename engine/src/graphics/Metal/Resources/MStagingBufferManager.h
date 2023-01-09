@@ -18,25 +18,7 @@
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Metal/MDevice.h"
 
-namespace AE::Graphics
-{
-	
-	//
-	// Metal Staging Buffer Manager
-	//
-
-	class MStagingBufferManager final
-	{
-	// types
-	public:
-		using NativeBuffer_t		= MetalBuffer;
-		using ResourceManager_t		= MResourceManager;
-		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
-		
-		#include "graphics/Private/StagingBufferManagerDecl.h"
-	};
-
-
-} // AE::Graphics
+// implementation
+# include "graphics/Private/StagingBufferManager.h"
 
 #endif // AE_ENABLE_METAL

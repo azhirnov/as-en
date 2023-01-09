@@ -170,10 +170,10 @@ namespace _hidden_
 			if ( stat > EStatus::_Interropted )
 			{
 				curCoro.promise().Cancel();
-				return true;	// suspent & cancel
+				return true;	// suspend & cancel
 			}
 				
-			curCoro.promise().Continue(Tuple{ AsyncTask{_coro} });
+			curCoro.promise().Continue( Tuple{ AsyncTask{_coro} });
 
 			// task may be cancelled
 			if_unlikely( curCoro.promise().IsFinished() )
@@ -211,7 +211,21 @@ namespace _hidden_
 		ND_ bool  await_suspend (std::coroutine_handle<P> curCoro) __NE___
 		{
 			STATIC_ASSERT( IsSpecializationOf< typename P::Coroutine_t, CoroutineImpl >);
-			// TODO
+			
+			using EStatus = IAsyncTask::EStatus;
+
+			const auto	stats_arr	= _deps.Apply( [] (auto&& ...args) { return StaticArray< EStatus, sizeof...(Types) >{ args._Status() ... }; });
+			const auto	stats		= ArrayView<EStatus>{ stats_arr };
+			
+			if ( stats.AllEqual( EStatus::Completed ))
+				return false;	// resume
+
+			if ( stats.AllGreater( EStatus::_Finished ) and
+				 stats.AllGreater( EStatus::_Interropted ))
+			{
+				curCoro.promise().Cancel();
+				return true;	// suspend & cancel
+			}
 
 			curCoro.promise().Continue( _deps.Apply( [] (auto&& ...args) { return Tuple{ AsyncTask{args} ... }; }));
 			

@@ -2,11 +2,13 @@
 
 #pragma once
 
-#include "base/Math/Bytes.h"
-#include "base/Utils/Helpers.h"
-#include "base/Utils/SourceLoc.h"
+#include "base/Defines/StdInclude.h"
 
 #ifdef AE_PLATFORM_UNIX_BASED
+
+# include "base/Math/Bytes.h"
+# include "base/Utils/Helpers.h"
+# include "base/Utils/SourceLoc.h"
 
 namespace AE::Base
 {
@@ -36,8 +38,10 @@ namespace AE::Base
 			static bool  CheckNetworkError (StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)			__NE___;
 			static bool  CheckNetworkError (int err, StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)	__NE___;
 		
+
 		// Memory //
 		ND_ static MemoryPageInfo  GetMemoryPageInfo () __NE___;
+
 
 		// Thread //
 			// interval > 4000ns
@@ -46,6 +50,7 @@ namespace AE::Base
 			static bool		WaitIO (milliseconds relativeTime)		__NE___;
 			
 			static bool		ThreadYield ()							__NE___;
+
 
 	private:
 		ND_ static bool  _CheckError (int err, StringView msg, const SourceLoc &loc, ELogLevel level, ELogScope scope) __NE___;

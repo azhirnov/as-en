@@ -116,15 +116,16 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VRayTracingContextImpl final : public CtxImpl, public IRayTracingContext
+	class _VRayTracingContextImpl : public CtxImpl, public IRayTracingContext
 	{
 	// types
 	public:
 		static constexpr bool	IsRayTracingContext			= true;
 		static constexpr bool	IsVulkanRayTracingContext	= true;
 	private:
-		using RawCtx	= CtxImpl;
-		using AccumBar	= VAccumBarriers< _VRayTracingContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= VAccumBarriers< _VRayTracingContextImpl< CtxImpl >>;
+		using DeferredBar	= VAccumDeferredBarriersForCtx< _VRayTracingContextImpl< CtxImpl >>;
 
 
 	// methods

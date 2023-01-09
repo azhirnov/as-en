@@ -171,15 +171,21 @@ namespace AE::Base
 
 			template <typename K, typename V>
 			Pair<iterator,bool>  emplace (K&& key, V&& value)		noexcept(AllNothrowCopyCtor<Key, Value>);
-			
-			template <typename K, typename V>
-			bool				 try_emplace (K&& key, V&& value)	noexcept(AllNothrowCopyCtor<Key, Value>);
 
 			Pair<iterator,bool>  insert (const pair_type &value)	noexcept(AllNothrowCopyCtor<Key, Value>)	{ return emplace( value.first, value.second ); }
 			Pair<iterator,bool>  insert (pair_type&& value)			__NE___										{ return emplace( RVRef(value.first), RVRef(value.second) ); }
 			
 			template <typename K, typename V>
 			Pair<iterator,bool>  insert_or_assign (K&& key, V&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
+			
+
+		// on overflow 'iterator' will be 'null'
+			template <typename K, typename V>
+			Pair<iterator,bool>	 try_emplace (K&& key, V&& value)	noexcept(AllNothrowCopyCtor<Key, Value>);
+
+			template <typename K, typename V>
+			Pair<iterator,bool>  try_insert_or_assign (K&& key, V&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
+
 			
 		// same as operator [] in std
 			template <typename KeyType>
@@ -419,13 +425,13 @@ namespace _hidden_
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename KeyType, typename ValueType>
-	bool  FixedMap<K,V,S,KS,VS>::try_emplace (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<K, V>)
+	Pair< typename FixedMap<K,V,S,KS,VS>::iterator, bool >
+		FixedMap<K,V,S,KS,VS>::try_emplace (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<K, V>)
 	{
 		if_unlikely( _count >= capacity() )
-			return false;
+			return {};
 
-		auto [iter, inserted] = emplace( FwdArg<KeyType>(key), FwdArg<ValueType>(value) );	// throw
-		return inserted;
+		return emplace( FwdArg<KeyType>(key), FwdArg<ValueType>(value) );	// throw
 	}
 
 /*
@@ -503,6 +509,22 @@ namespace _hidden_
 
 		_indices[i]	= Index_t(j);
 		return { iterator{ this, j }, true };
+	}
+	
+/*
+=================================================
+	try_insert_or_assign
+=================================================
+*/
+	template <typename K, typename V, usize S, typename KS, typename VS>
+	template <typename KeyType, typename ValueType>
+	Pair< typename FixedMap<K,V,S,KS,VS>::iterator, bool >
+		FixedMap<K,V,S,KS,VS>::try_insert_or_assign (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<K, V>)
+	{
+		if_unlikely( _count >= capacity() )
+			return {};
+
+		return insert_or_assign( FwdArg<KeyType>(key), FwdArg<ValueType>(value) );	// throw
 	}
 
 /*

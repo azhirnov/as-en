@@ -73,6 +73,16 @@ namespace AE::Base
 	using U8String		= BasicString< CharUtf8 >;
 	using U16String		= BasicString< CharUtf16 >;
 	using U32String		= BasicString< CharUtf32 >;
+	
+
+	template <typename T>
+	using BasicStringView	= std::basic_string_view<T>;
+	using StringView		= BasicStringView< CharAnsi >;
+	using WStringView		= BasicStringView< wchar_t >;
+	using U8StringView		= BasicStringView< CharUtf8 >;
+	using U16StringView		= BasicStringView< CharUtf16 >;
+	using U32StringView		= BasicStringView< CharUtf32 >;
+
 
 	template <typename T,
 			  typename A = std::allocator<T>>
@@ -88,14 +98,6 @@ namespace AE::Base
 	template <typename T>	using Optional		= std::optional< T >;
 
 	constexpr std::nullopt_t	NullOptional	= std::nullopt;
-	
-	template <typename T>
-	using BasicStringView	= std::basic_string_view<T>;
-	using StringView		= BasicStringView< CharAnsi >;
-	using WStringView		= BasicStringView< wchar_t >;
-	using U8StringView		= BasicStringView< CharUtf8 >;
-	using U16StringView		= BasicStringView< CharUtf16 >;
-	using U32StringView		= BasicStringView< CharUtf32 >;
 
 	template <typename T>	using Function		= std::function< T >;
 

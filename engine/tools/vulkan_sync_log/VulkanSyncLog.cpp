@@ -88,11 +88,12 @@ namespace
 		{
 			VkRenderPass					rp		= Default;
 			String							name;
-			VkRenderPassCreateInfo			info	= {};
-			Array<VkAttachmentDescription>	attachments;
-			Array<VkSubpassDescription>		subpasses;
-			Array<VkSubpassDependency>		dependencies;
-			Array<VkAttachmentReference>	references;
+			VkRenderPassCreateInfo2			info	= {};
+			Array<VkAttachmentDescription2>	attachments;
+			Array<VkSubpassDescription2>	subpasses;
+			Array<VkSubpassDependency2>		dependencies;
+			Array<VkMemoryBarrier2>			barriers;
+			Array<VkAttachmentReference2>	references;
 			Array<uint>						preserve;
 		};
 		using RenderPassMap_t = FlatHashMap< VkRenderPass, RenderPassData >;
@@ -157,15 +158,16 @@ namespace
 			};
 			using BindPoints_t = StaticArray< DescrSetArray_t, 3 >;
 
-			VkCommandBuffer		cmdBuffer		= Default;
-			EState				state			= EState::Initial;
-			VkRenderPass		currentRP		= Default;
-			VkFramebuffer		currentFB		= Default;
-			uint				subpassIndex	= UMax;
+			VkCommandBuffer		cmdBuffer			= Default;
+			EState				state				= EState::Initial;
+			VkRenderPass		currentRP			= Default;
+			VkFramebuffer		currentFB			= Default;
+			uint				subpassIndex		= UMax;
 			String				log;
 			String				name;
 			BindPoints_t		bindPoints;
-			uint				queueFamilyIndex = UMax;
+			uint				queueFamilyIndex	= UMax;
+			int					dbgLabelDepth		= 0;
 
 			void  Clear ();
 		};
@@ -207,8 +209,9 @@ namespace
 	// variables
 	public:
 		RecursiveMutex			guard;
-		bool					enableLog	= false;
+		bool					enableLog		= false;
 		String					log;
+
 		QueueNameMap_t			queueMap;
 		SemaphoreNameMap_t		semaphoreMap;
 		FenceNameMap_t			fenceMap;
@@ -527,16 +530,44 @@ namespace
 		auto&	rp = logger.renderPassMap.insert_or_assign( *pRenderPass, VulkanLogger::RenderPassData{} ).first->second;
 
 		rp.rp	= *pRenderPass;
-		rp.info	= *pCreateInfo;
 		rp.name	= "render-pass-" + ToString( logger.resourceStat.renderPassCount );
 		++logger.resourceStat.renderPassCount;
 
+		return VK_SUCCESS;
+	}
+	
+/*
+=================================================
+	Wrap_vkCreateRenderPass2
+=================================================
+*/
+	VkResult VKAPI_CALL Wrap_vkCreateRenderPass2 (VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass)
+	{
+		auto&	logger = VulkanLogger::Get();
+		EXLOCK( logger.guard );
+
+		VkResult	res = logger.vkCreateRenderPass2KHR( device, pCreateInfo, pAllocator, OUT pRenderPass );
+		if_unlikely( res != VK_SUCCESS )
+			return res;
+
+		auto&	rp  = logger.renderPassMap.insert_or_assign( *pRenderPass, VulkanLogger::RenderPassData{} ).first->second;
+
+		rp.rp	= *pRenderPass;
+		rp.name	= "render-pass-" + ToString( logger.resourceStat.renderPassCount );
+		++logger.resourceStat.renderPassCount;
+		
 		rp.attachments.assign( pCreateInfo->pAttachments, pCreateInfo->pAttachments + pCreateInfo->attachmentCount );
 		rp.dependencies.assign( pCreateInfo->pDependencies, pCreateInfo->pDependencies + pCreateInfo->dependencyCount );
+		rp.barriers.resize( pCreateInfo->dependencyCount );
 		rp.subpasses.assign( pCreateInfo->pSubpasses, pCreateInfo->pSubpasses + pCreateInfo->subpassCount );
-		rp.info.pAttachments	= rp.attachments.data();
-		rp.info.pDependencies	= rp.dependencies.data();
-		rp.info.pSubpasses		= rp.subpasses.data();
+
+		rp.info							= *pCreateInfo;
+		rp.info.pNext					= null;
+		rp.info.pAttachments			= rp.attachments.data();
+		rp.info.pDependencies			= rp.dependencies.data();
+		rp.info.pSubpasses				= rp.subpasses.data();
+		rp.info.correlatedViewMaskCount	= 0;
+		rp.info.pCorrelatedViewMasks	= null;
 
 		usize	ref_count		= 0;
 		usize	preserve_count	= 0;
@@ -554,6 +585,8 @@ namespace
 
 		for (auto& sp : rp.subpasses)
 		{
+			sp.pNext = null;
+
 			std::memcpy( rp.references.data() + ref_count, sp.pInputAttachments, sizeof(*sp.pInputAttachments) * sp.inputAttachmentCount );
 			sp.pInputAttachments	 = rp.references.data() + ref_count;
 			ref_count				+= sp.inputAttachmentCount;
@@ -581,29 +614,24 @@ namespace
 			preserve_count			+= sp.preserveAttachmentCount;
 		}
 
-		return VK_SUCCESS;
-	}
-	
-/*
-=================================================
-	Wrap_vkCreateRenderPass2
-=================================================
-*/
-	VkResult VKAPI_CALL Wrap_vkCreateRenderPass2 (VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass)
-	{
-		auto&	logger = VulkanLogger::Get();
-		EXLOCK( logger.guard );
+		for (auto& ref : rp.references) {
+			ref.pNext = null;
+		}
+		for (auto& att : rp.attachments) {
+			att.pNext = null;
+		}
+		for (usize i = 0; i < rp.dependencies.size(); ++i)
+		{
+			auto&	dep = rp.dependencies[i];
+			auto*	bar	= Cast<VkMemoryBarrier2>( dep.pNext );
+			CHECK( bar != null );
+			CHECK( bar->pNext == null and bar->sType == VK_STRUCTURE_TYPE_MEMORY_BARRIER_2 );
 
-		VkResult	res = logger.vkCreateRenderPass2KHR( device, pCreateInfo, pAllocator, OUT pRenderPass );
-		if_unlikely( res != VK_SUCCESS )
-			return res;
+			rp.barriers[i]			= *bar;
+			rp.barriers[i].pNext	= null;
+			dep.pNext				= &rp.barriers[i];
+		}
 
-		auto&	rp  = logger.renderPassMap.insert_or_assign( *pRenderPass, VulkanLogger::RenderPassData{} ).first->second;
-
-		rp.rp	= *pRenderPass;
-		rp.name	= "render-pass-" + ToString( logger.resourceStat.renderPassCount );
-		++logger.resourceStat.renderPassCount;
-		
 		return VK_SUCCESS;
 	}
 	
@@ -1052,6 +1080,7 @@ namespace
 			{
 				auto&	cmdbuf = iter->second;
 				ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+				ASSERT( cmdbuf.dbgLabelDepth == 0 );
 
 				cmdbuf.state = VulkanLogger::CommandBufferData::EState::Pending;
 			}
@@ -1073,7 +1102,27 @@ namespace
 		{
 			String	log;
 			log	<< "==================================================\n"
-				<< "Batch: '" << logger.queueMap[ queue ] << "'\n";
+				<< "Batch in queue: '" << logger.queueMap[ queue ] << '\'';
+			
+			const auto	PrintQueueFamilyIdx = [&] ()
+			{{
+				for (uint i = 0; i < submitCount; ++i)
+				{
+					auto&	batch = pSubmits[i];
+					for (uint j = 0; j < batch.commandBufferCount; ++j)
+					{
+						auto	cmd_it = logger.commandBuffers.find( batch.pCommandBuffers[j] );
+						if ( cmd_it == logger.commandBuffers.end() )
+							continue;
+
+						auto&	cmdbuf = cmd_it->second;
+						log << ", (" << ToString( cmdbuf.queueFamilyIndex ) << ')';
+						return;
+					}
+				}
+			}};
+			PrintQueueFamilyIdx();
+			log << '\n';
 			
 			if ( fence != Default )
 			{
@@ -1085,23 +1134,7 @@ namespace
 			for (uint i = 0; i < submitCount; ++i)
 			{
 				auto&	batch = pSubmits[i];
-				for (uint j = 0; j < batch.commandBufferCount; ++j)
-				{
-					auto	cmd_it = logger.commandBuffers.find( batch.pCommandBuffers[j] );
-					if ( cmd_it == logger.commandBuffers.end() )
-						continue;
 
-					auto&	cmdbuf = cmd_it->second;
-					cmdbuf.state = VulkanLogger::CommandBufferData::EState::Initial;
-
-					log << "--------------------------------------------------\n";
-					log << "name: '" << cmdbuf.name << "'\n{\n";
-					log << cmdbuf.log;
-					log << "}\n";
-
-					cmdbuf.log.clear();
-				}
-				
 				const VkTimelineSemaphoreSubmitInfo*	timeline = null;
 				for (auto* next = Cast<VkBaseInStructure>(batch.pNext); next != null;)
 				{
@@ -1111,10 +1144,10 @@ namespace
 						break;
 					}
 				}
-				
-				log << "--------------------------------------------------\n";
+
 				if ( batch.waitSemaphoreCount > 0 )
 				{
+					log << "--------------------------------------------------\n";
 					log << "waitSemaphore = {";
 					for (uint j = 0; j < batch.waitSemaphoreCount; ++j)
 					{
@@ -1142,8 +1175,27 @@ namespace
 					}
 					log << "\n}\n";
 				}
+
+				for (uint j = 0; j < batch.commandBufferCount; ++j)
+				{
+					auto	cmd_it = logger.commandBuffers.find( batch.pCommandBuffers[j] );
+					if ( cmd_it == logger.commandBuffers.end() )
+						continue;
+
+					auto&	cmdbuf = cmd_it->second;
+					cmdbuf.state = VulkanLogger::CommandBufferData::EState::Initial;
+
+					log << "--------------------------------------------------\n";
+					log << "name: '" << cmdbuf.name << "'\n{\n";
+					log << cmdbuf.log;
+					log << "}\n";
+
+					cmdbuf.log.clear();
+				}
+				
 				if ( batch.signalSemaphoreCount > 0 )
 				{
+					log << "--------------------------------------------------\n";
 					log << "signalSemaphore = {";
 					for (uint j = 0; j < batch.signalSemaphoreCount; ++j)
 					{
@@ -1175,7 +1227,9 @@ namespace
 				<< "==================================================\n";
 		}
 
-		return logger.vkQueueSubmit( queue, submitCount, pSubmits, fence );
+		auto	err = logger.vkQueueSubmit( queue, submitCount, pSubmits, fence );
+		ASSERT( err == VK_SUCCESS );
+		return err;
 	}
 	
 /*
@@ -1192,7 +1246,30 @@ namespace
 		{
 			String	log;
 			log	<< "==================================================\n"
-				<< "Batch: '" << logger.queueMap[ queue ] << "'\n";
+				<< "Batch in queue: '" << logger.queueMap[ queue ] << '\'';
+
+			const auto	PrintQueueFamilyIdx = [&] ()
+			{{
+				for (uint i = 0; i < submitCount; ++i)
+				{
+					auto&	batch = pSubmits[i];
+					for (uint j = 0; j < batch.commandBufferInfoCount; ++j)
+					{
+						auto&	cmd_info = batch.pCommandBufferInfos[j];
+						ASSERT( cmd_info.pNext == null );
+
+						auto	cmd_it = logger.commandBuffers.find( cmd_info.commandBuffer );
+						if ( cmd_it == logger.commandBuffers.end() )
+							continue;
+
+						auto&	cmdbuf = cmd_it->second;
+						log << ", (" << ToString( cmdbuf.queueFamilyIndex ) << ')';
+						return;
+					}
+				}
+			}};
+			PrintQueueFamilyIdx();
+			log << '\n';
 
 			if ( fence != Default )
 			{
@@ -1204,6 +1281,30 @@ namespace
 			for (uint i = 0; i < submitCount; ++i)
 			{
 				auto&	batch = pSubmits[i];
+
+				if ( batch.waitSemaphoreInfoCount > 0 )
+				{
+					log << "--------------------------------------------------\n";
+					log << "waitSemaphore = {";
+					for (uint j = 0; j < batch.waitSemaphoreInfoCount; ++j)
+					{
+						auto&	sem = batch.pWaitSemaphoreInfos[j];
+						#if 1
+							log << "\n  '"
+								<< logger.GetSyncName( sem.semaphore, sem.value )
+								<< "',  stage: " << VkPipelineStage2ToString( sem.stageMask );
+						#else
+							log << "\n  '";
+							auto	sem_it = logger.semaphoreMap.find( sem.semaphore );
+							log << (sem_it != logger.semaphoreMap.end() ? sem_it->second : "<unknown>"s);
+							//log << ", [" << ToString<16>( ulong(sem.semaphore) ) << "]";
+							log << "',  stage: " << VkPipelineStage2ToString( sem.stageMask )
+								<< ",  value: " << ToString( sem.value );
+						#endif
+					}
+					log << "\n}\n";
+				}
+
 				for (uint j = 0; j < batch.commandBufferInfoCount; ++j)
 				{
 					auto&	cmd_info = batch.pCommandBufferInfos[j];
@@ -1224,30 +1325,9 @@ namespace
 					cmdbuf.log.clear();
 				}
 				
-				log << "--------------------------------------------------\n";
-				if ( batch.waitSemaphoreInfoCount > 0 )
-				{
-					log << "waitSemaphore = {";
-					for (uint j = 0; j < batch.waitSemaphoreInfoCount; ++j)
-					{
-						auto&	sem = batch.pWaitSemaphoreInfos[j];
-						#if 1
-							log << "\n  '"
-								<< logger.GetSyncName( sem.semaphore, sem.value )
-								<< "',  stage: " << VkPipelineStage2ToString( sem.stageMask );
-						#else
-							log << "\n  '";
-							auto	sem_it = logger.semaphoreMap.find( sem.semaphore );
-							log << (sem_it != logger.semaphoreMap.end() ? sem_it->second : "<unknown>"s);
-							//log << ", [" << ToString<16>( ulong(sem.semaphore) ) << "]";
-							log << "',  stage: " << VkPipelineStage2ToString( sem.stageMask )
-								<< ",  value: " << ToString( sem.value );
-						#endif
-					}
-					log << "\n}\n";
-				}
 				if ( batch.signalSemaphoreInfoCount > 0 )
 				{
+					log << "--------------------------------------------------\n";
 					log << "signalSemaphore = {";
 					for (uint j = 0; j < batch.signalSemaphoreInfoCount; ++j)
 					{
@@ -1273,7 +1353,77 @@ namespace
 				<< "==================================================\n";
 		}
 
-		return logger.vkQueueSubmit2KHR( queue, submitCount, pSubmits, fence );
+		auto	err = logger.vkQueueSubmit2KHR( queue, submitCount, pSubmits, fence );
+		ASSERT( err == VK_SUCCESS );
+		return err;
+	}
+	
+/*
+=================================================
+	Wrap_vkAcquireNextImageKHR
+=================================================
+*/
+	VkResult VKAPI_CALL Wrap_vkAcquireNextImageKHR (VkDevice device, VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, OUT uint32_t* pImageIndex)
+	{
+		auto&	logger = VulkanLogger::Get();
+		EXLOCK( logger.guard );
+		
+		if ( logger.enableLog )
+		{
+			String	log;
+			log	<< "==================================================\n"
+				<< "Acquire swapchain image\n";
+			
+			if ( fence != Default )
+			{
+				auto	fence_it = logger.fenceMap.find( fence );
+				if ( fence_it != logger.fenceMap.end() )
+					log << "fence: '" << fence_it->second << "'\n";
+			}
+
+			if ( semaphore != Default )
+				log << "signalSemaphore:  " << logger.GetSyncName( semaphore, 0 ) << '\n';
+
+			logger.log << log
+				<< "==================================================\n";
+		}
+
+		return logger.vkAcquireNextImageKHR( device, swapchain, timeout, semaphore, fence, OUT pImageIndex );
+	}
+	
+/*
+=================================================
+	Wrap_vkQueuePresentKHR
+=================================================
+*/
+	VkResult VKAPI_CALL Wrap_vkQueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
+	{
+		auto&	logger = VulkanLogger::Get();
+		EXLOCK( logger.guard );
+		
+		if ( logger.enableLog )
+		{
+			String	log;
+			log	<< "==================================================\n"
+				<< "Present in queue: '" << logger.queueMap[ queue ] << "'\n";
+			
+			if ( pPresentInfo->waitSemaphoreCount > 0 )
+			{
+				log << "waitSemaphore = {";
+				for (uint j = 0; j < pPresentInfo->waitSemaphoreCount; ++j)
+				{
+					log << "\n  '"
+						<< logger.GetSyncName( pPresentInfo->pWaitSemaphores[j], 0 )
+						<< "'";
+				}
+				log << "\n}\n";
+			}
+
+			logger.log << log
+				<< "==================================================\n";
+		}
+
+		return logger.vkQueuePresentKHR( queue, pPresentInfo );
 	}
 
 /*
@@ -1452,6 +1602,9 @@ namespace
 
 		auto&	log = cmdbuf.log;
 
+		if ( not EndsWith( log, "\n\n" ))
+			log << '\n';
+
 		log << "  PipelineBarrier\n";
 		log << "    stage:           " << VkPipelineStageToString( srcStageMask ) << " ---> " << VkPipelineStageToString( dstStageMask ) << '\n';
 		log << "    dependencyFlags: " << VkDependencyFlagsToString( dependencyFlags ) << "\n";
@@ -1479,6 +1632,13 @@ namespace
 
 			if ( not (barrier.offset == 0 and barrier.size == VK_WHOLE_SIZE) )
 				log << "      range:  [" << ToString( Bytes{barrier.offset} ) << ", " << (barrier.size == VK_WHOLE_SIZE ? "whole" : ToString( Bytes{barrier.offset + barrier.size} )) << ")\n";
+			
+			if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
+			{
+				log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
+					<< (cmdbuf.queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
+						cmdbuf.queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+			}
 		}
 
 		for (uint i = 0; i < imageMemoryBarrierCount; ++i)
@@ -1510,6 +1670,13 @@ namespace
 				log << "      layers:  [" << ToString( barrier.subresourceRange.baseArrayLayer ) << ", "
 					<< (barrier.subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS ? "whole" : ToString( barrier.subresourceRange.baseArrayLayer + barrier.subresourceRange.layerCount )) << ")\n";
 			}
+			
+			if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
+			{
+				log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
+					<< (cmdbuf.queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
+						cmdbuf.queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+			}
 		}
 
 		log << "  ----------\n\n";
@@ -1520,7 +1687,7 @@ namespace
 	Wrap_vkCmdPipelineBarrier2
 =================================================
 */
-	void VKAPI_CALL  Wrap_vkCmdPipelineBarrier2 (VkCommandBuffer commandBuffer, const VkDependencyInfoKHR* pInfo)
+	void VKAPI_CALL  Wrap_vkCmdPipelineBarrier2 (VkCommandBuffer commandBuffer, const VkDependencyInfo* pInfo)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdPipelineBarrier2KHR( commandBuffer, pInfo );
@@ -1537,6 +1704,9 @@ namespace
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
 		
 		auto&	log = cmdbuf.log;
+		
+		if ( not EndsWith( log, "\n\n" ))
+			log << '\n';
 
 		log << "  PipelineBarrier2\n";
 
@@ -1569,6 +1739,13 @@ namespace
 
 			if ( not (barrier.offset == 0 and barrier.size == VK_WHOLE_SIZE) )
 				log << "      range:  [" << ToString( Bytes{barrier.offset} ) << ", " << (barrier.size == VK_WHOLE_SIZE ? "whole" : ToString( Bytes{barrier.offset + barrier.size} )) << ")\n";
+			
+			if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
+			{
+				log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
+					<< (cmdbuf.queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
+						cmdbuf.queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+			}
 		}
 		
 		for (uint i = 0; i < pInfo->imageMemoryBarrierCount; ++i)
@@ -1600,6 +1777,13 @@ namespace
 				log << "      layers:  [" << ToString( barrier.subresourceRange.baseArrayLayer ) << ", "
 					<< (barrier.subresourceRange.layerCount == VK_REMAINING_ARRAY_LAYERS ? "whole" : ToString( barrier.subresourceRange.baseArrayLayer + barrier.subresourceRange.layerCount )) << ")\n";
 			}
+			
+			if ( barrier.srcQueueFamilyIndex != barrier.dstQueueFamilyIndex )
+			{
+				log << "      queue:   " << ToString( barrier.srcQueueFamilyIndex ) << " ---> " << ToString( barrier.dstQueueFamilyIndex )
+					<< (cmdbuf.queueFamilyIndex == barrier.srcQueueFamilyIndex ? "  (release)" :
+						cmdbuf.queueFamilyIndex == barrier.dstQueueFamilyIndex ? "  (acquire)" : "") << '\n';
+			}
 		}
 
 		log << "  ----------\n\n";
@@ -1610,8 +1794,8 @@ namespace
 	GetPreviousLayout
 =================================================
 */
-	static VkImageLayout GetPreviousLayout (const VulkanLogger::FramebufferData& framebuffer, const VulkanLogger::RenderPassData& renderPass,
-											uint subpassIndex, uint attachmentIndex, VkImageLayout currentLasyout)
+	static VkImageLayout  GetPreviousLayout (const VulkanLogger::FramebufferData& framebuffer, const VulkanLogger::RenderPassData& renderPass,
+											 uint subpassIndex, uint attachmentIndex, VkImageLayout currentLasyout)
 	{
 		Unused( framebuffer );
 
@@ -1687,6 +1871,178 @@ namespace
 	
 /*
 =================================================
+	PrintRPImageViewName
+=================================================
+*/
+	ND_ static bool  PrintRPImageViewName (String &log, VkImageView id)
+	{
+		auto&	logger	= VulkanLogger::Get();
+
+		auto	view_it = logger.imageViewMap.find( id );
+		if ( view_it == logger.imageViewMap.end() )
+			return false;
+
+		auto	img_it = logger.imageMap.find( view_it->second.info.image );
+		if ( img_it == logger.imageMap.end() )
+			return false;
+
+		log << "      view:    '" << view_it->second.name << "'\n";
+		log << "      image:   '" << img_it->second.name << "'\n";
+		return true;
+	}
+
+/*
+=================================================
+	PrintRenderPass
+=================================================
+*/
+	static void  PrintRenderPass (VulkanLogger::CommandBufferData &cmdbuf, uint subpassIndex)
+	{
+		auto&	logger	= VulkanLogger::Get();
+		auto&	log		= cmdbuf.log;
+
+		auto	rp_it = logger.renderPassMap.find( cmdbuf.currentRP );
+		if ( rp_it == logger.renderPassMap.end() )
+			return;
+
+		auto	fb_it = logger.framebufferMap.find( cmdbuf.currentFB );
+		if ( fb_it == logger.framebufferMap.end() )
+			return;
+
+		auto&	rp = rp_it->second;
+		auto&	fb = fb_it->second;
+
+		if ( subpassIndex == 0 )
+		{
+			log << "    renderPass:  '" << rp.name << "'\n";
+		//	log << "    framebuffer: '" << fb.name << "'\n";
+		}
+
+		auto&	pass = rp.info.pSubpasses [cmdbuf.subpassIndex];
+
+		for (uint i = 0; i < pass.colorAttachmentCount; ++i)
+		{
+			auto&	ref	= pass.pColorAttachments[i];
+			auto&	at	= rp.info.pAttachments[ref.attachment];
+			
+			log << "    color attachment:\n";
+
+			if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
+				return;
+
+			if ( subpassIndex == 0 )
+			{
+				log << "      layout:  " << VkImageLayoutToString( at.initialLayout );
+
+				if ( at.initialLayout != ref.layout )
+					log << " ---> " << VkImageLayoutToString( ref.layout );
+
+				log << "\n      loadOp:  " << VkAttachmentLoadOpToString( at.loadOp ) << "\n";
+			}
+			else
+			{
+				auto	prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
+				log << "      layout:  " << VkImageLayoutToString( prev );
+
+				if ( prev != ref.layout )
+					log << " ---> " << VkImageLayoutToString( ref.layout );
+				log << '\n';
+			}
+		}
+
+		if ( pass.pDepthStencilAttachment != null )
+		{
+			auto&	ref	= *pass.pDepthStencilAttachment;
+			auto&	at	= rp.info.pAttachments[ref.attachment];
+
+			log << "    depth-stencil attachment:\n";
+
+			if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
+				return;
+
+			log << "      layout:        " << VkImageLayoutToString( at.initialLayout );
+			
+			if ( subpassIndex == 0 )
+			{
+				if ( at.initialLayout != ref.layout )
+					log << " ---> " << VkImageLayoutToString( ref.layout );
+				log << '\n';
+				log << "      depthLoadOp:   " << VkAttachmentLoadOpToString( at.loadOp ) << '\n';
+				log << "      stencilLoadOp: " << VkAttachmentLoadOpToString( at.stencilLoadOp ) << '\n';
+			}
+			else
+			{
+				auto	prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
+				log << "      layout:        " << VkImageLayoutToString( prev );
+
+				if ( prev != ref.layout )
+					log << " ---> " << VkImageLayoutToString( ref.layout );
+				log << '\n';
+			}
+		}
+		
+		if ( subpassIndex != 0 and subpassIndex != VK_SUBPASS_EXTERNAL )
+		{
+			if ( pass.pResolveAttachments != null )
+			{
+				for (uint i = 0; i < pass.colorAttachmentCount; ++i)
+				{
+					auto&	ref  = pass.pResolveAttachments[i];
+					auto	prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
+
+					log << "    resolve attachment:\n";
+
+					if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
+						return;
+
+					log << "      layout:  " << VkImageLayoutToString( prev );
+
+					if ( prev != ref.layout )
+						log << " ---> " << VkImageLayoutToString( ref.layout );
+				
+					log << '\n';
+				}
+			}
+
+			for (uint i = 0; i < pass.inputAttachmentCount; ++i)
+			{
+				auto&	ref  = pass.pInputAttachments[i];
+				auto	prev = GetPreviousLayout( fb, rp, subpassIndex, ref.attachment, ref.layout );
+
+				log << "    input attachment:\n";
+				
+				if ( not PrintRPImageViewName( log, fb.attachments[ref.attachment] ))
+					return;
+
+				log << "      layout:  " << VkImageLayoutToString( prev );
+
+				if ( prev != ref.layout )
+					log << " ---> " << VkImageLayoutToString( ref.layout );
+			
+				log << '\n';
+			}
+		}
+
+		for (usize i = 0; i < rp.dependencies.size(); ++i)
+		{
+			const auto&	dep = rp.dependencies[i];
+			const auto&	bar	= rp.barriers[i];
+
+			if ( dep.dstSubpass == subpassIndex )
+			{
+				log << "    dependency:\n";
+				log << "      subpass: " << (dep.srcSubpass == VK_SUBPASS_EXTERNAL ? "External" : ToString( dep.srcSubpass) ) << " ---> "
+										 << (dep.dstSubpass == VK_SUBPASS_EXTERNAL ? "External" : ToString( dep.dstSubpass) ) << '\n';
+				log << "      stage:   " << VkPipelineStage2ToString( bar.srcStageMask ) << " ---> " << VkPipelineStage2ToString( bar.dstStageMask ) << '\n';
+				log << "      access:  " << VkAccessFlags2ToString( bar.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( bar.dstAccessMask ) << '\n';
+			}
+		}
+
+		log << "  ----------\n\n";
+	}
+	
+/*
+=================================================
 	Wrap_vkCmdBeginRenderPass
 =================================================
 */
@@ -1707,82 +2063,15 @@ namespace
 		cmdbuf.currentRP	= pRenderPassBegin->renderPass;
 		cmdbuf.currentFB	= pRenderPassBegin->framebuffer;
 		cmdbuf.subpassIndex	= 0;
-
+		
 		if ( not logger.enableLog )
 			return;
+		
+		if ( not EndsWith( cmdbuf.log, "\n\n" ))
+			cmdbuf.log << '\n';
 
-		auto&	log = cmdbuf.log;
-		log << "  BeginRenderPass\n";
-
-		auto	rp_it = logger.renderPassMap.find( cmdbuf.currentRP );
-		if ( rp_it == logger.renderPassMap.end() )
-			return;
-
-		auto	fb_it = logger.framebufferMap.find( cmdbuf.currentFB );
-		if ( fb_it == logger.framebufferMap.end() )
-			return;
-
-		auto&	rp = rp_it->second;
-		auto&	fb = fb_it->second;
-
-		log << "    renderPass:  '" << rp.name << "'\n";
-		log << "    framebuffer: '" << fb.name << "'\n";
-
-		auto&	pass = rp.info.pSubpasses[cmdbuf.subpassIndex];
-
-		for (uint i = 0; i < pass.colorAttachmentCount; ++i)
-		{
-			auto&	ref	= pass.pColorAttachments[i];
-			auto&	at	= rp.info.pAttachments[ref.attachment];
-
-			auto	view_it = logger.imageViewMap.find( fb.attachments[ref.attachment] );
-			if ( view_it == logger.imageViewMap.end() )
-				return;
-
-			log << "    color attachment:\n";
-			log << "      name:   '" << view_it->second.name << "'\n";
-			log << "      layout: " << VkImageLayoutToString( at.initialLayout );
-
-			if ( at.initialLayout != ref.layout )
-				log << " ---> " << VkImageLayoutToString( ref.layout );
-
-			log << '\n';
-			log << "      loadOp: " << VkAttachmentLoadOpToString( at.loadOp ) << "\n";
-		}
-
-		if ( pass.pDepthStencilAttachment != null )
-		{
-			auto&	ref	= *pass.pDepthStencilAttachment;
-			auto&	at	= rp.info.pAttachments[ref.attachment];
-
-			auto	view_it = logger.imageViewMap.find( fb.attachments[ref.attachment] );
-			if ( view_it == logger.imageViewMap.end() )
-				return;
-
-			log << "    depth-stencil attachment:\n";
-			log << "      name:          '" << view_it->second.name << "'\n";
-			log << "      layout:        " << VkImageLayoutToString( at.initialLayout );
-
-			if ( at.initialLayout != ref.layout )
-				log << " ---> " << VkImageLayoutToString( ref.layout );
-
-			log << '\n';
-			log << "      depthLoadOp:   " << VkAttachmentLoadOpToString( at.loadOp ) << '\n';
-			log << "      stencilLoadOp: " << VkAttachmentLoadOpToString( at.stencilLoadOp ) << '\n';
-		}
-
-		for (auto& dep : rp.dependencies)
-		{
-			if ( dep.dstSubpass == cmdbuf.subpassIndex )
-			{
-				log << "    dependency:\n";
-				log << "      source: " << (dep.srcSubpass == VK_SUBPASS_EXTERNAL ? "External" : ToString( dep.srcSubpass) ) << '\n';
-				log << "      stage:  " << VkPipelineStageToString( dep.srcStageMask ) << " ---> " << VkPipelineStageToString( dep.dstStageMask ) << '\n';
-				log << "      access: " << VkAccessFlagsToString( dep.srcAccessMask ) << " ---> " << VkAccessFlagsToString( dep.dstAccessMask ) << '\n';
-			}
-		}
-
-		log << "  ----------\n\n";
+		 cmdbuf.log << "  BeginRenderPass\n";
+		PrintRenderPass( cmdbuf, cmdbuf.subpassIndex );
 	}
 	
 /*
@@ -1810,9 +2099,14 @@ namespace
 
 		if ( not logger.enableLog )
 			return;
+		
+		if ( not EndsWith( cmdbuf.log, "\n\n" ))
+			cmdbuf.log << '\n';
 
-		auto&	log = cmdbuf.log;
-		log << "  BeginRenderPass2\n";
+		 cmdbuf.log << "  BeginRenderPass2\n";
+		PrintRenderPass( cmdbuf, cmdbuf.subpassIndex );
+
+		// TODO: pRenderPassBegin->pNext
 	}
 	
 /*
@@ -1839,127 +2133,14 @@ namespace
 			return;
 
 		auto&	log = cmdbuf.log;
+		
+		if ( not EndsWith( log, "\n\n" ))
+			log << '\n';
+
 		log << "  NextSubpass\n";
 		log << "    index: " << ToString( cmdbuf.subpassIndex ) << '\n';
 
-		auto	rp_it = logger.renderPassMap.find( cmdbuf.currentRP );
-		if ( rp_it == logger.renderPassMap.end() )
-			return;
-
-		auto	fb_it = logger.framebufferMap.find( cmdbuf.currentFB );
-		if ( fb_it == logger.framebufferMap.end() )
-			return;
-
-		auto&	rp	 = rp_it->second;
-		auto&	fb	 = fb_it->second;
-		auto&	pass = rp.info.pSubpasses[cmdbuf.subpassIndex];
-
-		for (uint i = 0; i < pass.colorAttachmentCount; ++i)
-		{
-			auto&	ref	= pass.pColorAttachments[i];
-			auto&	at	= rp.info.pAttachments[ref.attachment];
-
-			auto	view_it = logger.imageViewMap.find( fb.attachments[ref.attachment] );
-			if ( view_it == logger.imageViewMap.end() )
-				return;
-
-			const VkImageLayout	prev = GetPreviousLayout( fb, rp, cmdbuf.subpassIndex, ref.attachment, ref.layout );
-
-			log << "    color attachment:\n";
-			log << "      name:    '" << view_it->second.name << "'\n";
-			log << "      samples: " << VkSampleCountFlagBitsToString( at.samples ) << '\n';
-			log << "      layout:  " << VkImageLayoutToString( prev );
-
-			if ( prev != ref.layout )
-				log << " ---> " << VkImageLayoutToString( ref.layout );
-			
-			log << "\n";
-			log << "      loadOp:  " << VkAttachmentLoadOpToString( at.loadOp ) << '\n';
-		}
-
-		if ( pass.pResolveAttachments )
-		{
-			for (uint i = 0; i < pass.colorAttachmentCount; ++i)
-			{
-				auto&	ref	= pass.pResolveAttachments[i];
-				auto&	at	= rp.info.pAttachments[ref.attachment];
-
-				auto	view_it = logger.imageViewMap.find( fb.attachments[ref.attachment] );
-				if ( view_it == logger.imageViewMap.end() )
-					return;
-
-				const VkImageLayout	prev = GetPreviousLayout( fb, rp, cmdbuf.subpassIndex, ref.attachment, ref.layout );
-
-				log << "    resolve attachment:\n";
-				log << "      name:    '" << view_it->second.name << "'\n";
-				log << "      samples: " << VkSampleCountFlagBitsToString( at.samples ) << '\n';
-				log << "      layout:  " << VkImageLayoutToString( prev );
-
-				if ( prev != ref.layout )
-					log << " ---> " << VkImageLayoutToString( ref.layout );
-				
-				log << '\n';
-			}
-		}
-
-		for (uint i = 0; i < pass.inputAttachmentCount; ++i)
-		{
-			auto&	ref	= pass.pInputAttachments[i];
-			auto&	at	= rp.info.pAttachments[ref.attachment];
-
-			auto	view_it = logger.imageViewMap.find( fb.attachments[ref.attachment] );
-			if ( view_it == logger.imageViewMap.end() )
-				return;
-
-			const VkImageLayout	prev = GetPreviousLayout( fb, rp, cmdbuf.subpassIndex, ref.attachment, ref.layout );
-
-			log << "    input attachment:\n";
-			log << "      name:    '" << view_it->second.name + "'\n";
-			log << "      samples: " << VkSampleCountFlagBitsToString( at.samples ) << '\n';
-			log << "      layout:  " << VkImageLayoutToString( prev );
-
-			if ( prev != ref.layout )
-				log << " ---> " << VkImageLayoutToString( ref.layout );
-			
-			log << '\n';
-		}
-
-		if ( pass.pDepthStencilAttachment != null )
-		{
-			auto&	ref	= *pass.pDepthStencilAttachment;
-			auto&	at	= rp.info.pAttachments[ref.attachment];
-
-			auto	view_it = logger.imageViewMap.find( fb.attachments[ref.attachment] );
-			if ( view_it == logger.imageViewMap.end() )
-				return;
-
-			const VkImageLayout prev = GetPreviousLayout( fb, rp, cmdbuf.subpassIndex, ref.attachment, ref.layout );
-
-			log << "    depth-stencil attachment:\n";
-			log << "      name:    '" << view_it->second.name << "'\n";
-			log << "      samples: " << VkSampleCountFlagBitsToString( at.samples ) << '\n';
-			log << "      layout:  " << VkImageLayoutToString( prev );
-
-			if ( prev != ref.layout )
-				log << " ---> " << VkImageLayoutToString( ref.layout );
-			
-			log << '\n';
-		}
-
-		for (auto& dep : rp.dependencies)
-		{
-			if ( dep.dstSubpass == cmdbuf.subpassIndex )
-			{
-				log << "    dependency:\n";
-				log << "      source: " << (dep.srcSubpass == VK_SUBPASS_EXTERNAL ? "External" : ToString(dep.srcSubpass)) << '\n';
-				log << "      stage:  " << VkPipelineStageToString( dep.srcStageMask ) << " ---> " << VkPipelineStageToString( dep.dstStageMask ) << "\n";
-				log << "      access: " << VkAccessFlagsToString( dep.srcAccessMask ) << " ---> " << VkAccessFlagsToString( dep.dstAccessMask ) << "\n";
-			}
-		}
-
-		// TODO: preserve attachments
-
-		log << "  ----------\n\n";
+		PrintRenderPass( cmdbuf, cmdbuf.subpassIndex );
 	}
 	
 /*
@@ -1984,9 +2165,16 @@ namespace
 
 		if ( not logger.enableLog )
 			return;
-
+		
 		auto&	log = cmdbuf.log;
+		
+		if ( not EndsWith( log, "\n\n" ))
+			log << '\n';
+
 		log << "  NextSubpass2\n";
+		log << "    index: " << ToString( cmdbuf.subpassIndex ) << '\n';
+
+		PrintRenderPass( cmdbuf, cmdbuf.subpassIndex );
 	}
 	
 /*
@@ -2029,73 +2217,14 @@ namespace
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
 
-		const auto	old_rp = cmdbuf.currentRP;
-		const auto	old_fb = cmdbuf.currentFB;
+		if ( logger.enableLog )
+		{
+			cmdbuf.log << "  EndRenderPass\n";
+		}
 
 		cmdbuf.currentRP	= Default;
 		cmdbuf.currentFB	= Default;
-		cmdbuf.subpassIndex	= UMax;
-
-		if ( not logger.enableLog )
-			return;
-
-		auto&	log = cmdbuf.log;
-		log << "  EndRenderPass\n";
-
-		auto	rp_it = logger.renderPassMap.find( old_rp );
-		if ( rp_it == logger.renderPassMap.end() )
-			return;
-
-		auto	fb_it = logger.framebufferMap.find( old_fb );
-		if ( fb_it == logger.framebufferMap.end() )
-			return;
-
-		auto&	rp = rp_it->second;
-		auto&	fb = fb_it->second;
-
-		for (usize i = 0; i < rp.info.attachmentCount; ++i)
-		{
-			auto&	at = rp.info.pAttachments[i];
-
-			auto	view_it = logger.imageViewMap.find( fb.attachments[i] );
-			if ( view_it == logger.imageViewMap.end() )
-				return;
-
-			const VkImageLayout prev = GetPreviousLayout( fb, rp, VK_SUBPASS_EXTERNAL, uint(i), at.finalLayout );
-
-			log << "    attachment:\n";
-			log << "      name:    '" << view_it->second.name << "'\n";
-			log << "      samples: " << VkSampleCountFlagBitsToString( at.samples ) << '\n';
-			log << "      layout:  " << VkImageLayoutToString( prev );
-
-			if ( prev != at.finalLayout )
-				log << " ---> " << VkImageLayoutToString( at.finalLayout );
-			
-			log << "\n";
-
-			if ( IsDepthStencilFormat( at.format ))
-			{
-				log << "      depthStoreOp:   " << VkAttachmentStoreOpToString( at.storeOp ) << '\n';
-				log << "      stencilStoreOp: " << VkAttachmentStoreOpToString( at.stencilStoreOp ) << '\n';
-			}
-			else
-			{
-				log << "      storeOp: " << VkAttachmentStoreOpToString( at.storeOp ) << '\n';
-			}
-		}
-
-		for (auto& dep : rp.dependencies)
-		{
-			if ( dep.dstSubpass == VK_SUBPASS_EXTERNAL )
-			{
-				log << "    dependency:\n";
-				log << "      source: " << (dep.srcSubpass == VK_SUBPASS_EXTERNAL ? "External" : ToString( dep.srcSubpass )) << '\n';
-				log << "      stage:  " << VkPipelineStageToString( dep.srcStageMask ) << " ---> " << VkPipelineStageToString( dep.dstStageMask ) << '\n';
-				log << "      access: " << VkAccessFlagsToString( dep.srcAccessMask ) << " ---> " << VkAccessFlagsToString( dep.dstAccessMask ) << '\n';
-			}
-		}
-
-		log << "  ----------\n\n";
+		cmdbuf.subpassIndex	= VK_SUBPASS_EXTERNAL;
 	}
 	
 /*
@@ -2116,6 +2245,9 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+		
+		const auto	old_rp = cmdbuf.currentRP;
+		const auto	old_fb = cmdbuf.currentFB;
 
 		cmdbuf.currentRP	= Default;
 		cmdbuf.currentFB	= Default;
@@ -2123,9 +2255,69 @@ namespace
 
 		if ( not logger.enableLog )
 			return;
-
+		
 		auto&	log = cmdbuf.log;
+
+		if ( not EndsWith( log, "\n\n" ))
+			log << '\n';
+
 		log << "  EndRenderPass2\n";
+
+		auto	rp_it = logger.renderPassMap.find( old_rp );
+		if ( rp_it == logger.renderPassMap.end() )
+			return;
+
+		auto	fb_it = logger.framebufferMap.find( old_fb );
+		if ( fb_it == logger.framebufferMap.end() )
+			return;
+
+		auto&	rp = rp_it->second;
+		auto&	fb = fb_it->second;
+
+		for (usize i = 0; i < rp.info.attachmentCount; ++i)
+		{
+			auto&	at   = rp.info.pAttachments[i];
+			auto	prev = GetPreviousLayout( fb, rp, VK_SUBPASS_EXTERNAL, uint(i), at.finalLayout );
+
+			log << "    attachment:\n";
+			
+			if ( not PrintRPImageViewName( log, fb.attachments[i] ))
+				return;
+
+			log << "      layout:  " << VkImageLayoutToString( prev );
+
+			if ( prev != at.finalLayout )
+				log << " ---> " << VkImageLayoutToString( at.finalLayout );
+			
+			log << "\n";
+
+			if ( IsDepthStencilFormat( at.format ))
+			{
+				log << "      depthStoreOp:   " << VkAttachmentStoreOpToString( at.storeOp ) << '\n';
+				log << "      stencilStoreOp: " << VkAttachmentStoreOpToString( at.stencilStoreOp ) << '\n';
+			}
+			else
+			{
+				log << "      storeOp: " << VkAttachmentStoreOpToString( at.storeOp ) << '\n';
+			}
+		}
+		
+		for (usize i = 0; i < rp.dependencies.size(); ++i)
+		{
+			const auto&	dep = rp.dependencies[i];
+			const auto&	bar	= rp.barriers[i];
+
+			if ( dep.dstSubpass == VK_SUBPASS_EXTERNAL )
+			{
+				log << "    dependency:\n";
+				log << "      subpass: " << (dep.srcSubpass == VK_SUBPASS_EXTERNAL ? "External" : ToString( dep.srcSubpass) ) << " ---> "
+										 << (dep.dstSubpass == VK_SUBPASS_EXTERNAL ? "External" : ToString( dep.dstSubpass) ) << '\n';
+				log << "      stage:   " << VkPipelineStage2ToString( bar.srcStageMask ) << " ---> " << VkPipelineStage2ToString( bar.dstStageMask ) << '\n';
+				log << "      access:  " << VkAccessFlags2ToString( bar.srcAccessMask ) << " ---> " << VkAccessFlags2ToString( bar.dstAccessMask ) << '\n';
+			}
+		}
+
+		log << "  ----------\n\n";
 	}
 	
 /*
@@ -3348,6 +3540,90 @@ namespace
 
 		logger.vkDestroyAccelerationStructureKHR( device, accelerationStructure, pAllocator );
 	}
+		
+/*
+=================================================
+	Wrap_vkCmdInsertDebugUtilsLabelEXT
+=================================================
+*/
+	void VKAPI_CALL Wrap_vkCmdInsertDebugUtilsLabelEXT (VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT* pLabelInfo)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdInsertDebugUtilsLabelEXT( commandBuffer, pLabelInfo );
+
+		auto	iter = logger.commandBuffers.find( commandBuffer );
+		if ( iter == logger.commandBuffers.end() )
+			return;
+
+		auto&	cmdbuf = iter->second;
+		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+		
+		if ( not logger.enableLog )
+			return;
+
+		auto&	log = cmdbuf.log;
+		log << "  InsertDebugLabel\n";
+		log << "    name: " << pLabelInfo->pLabelName;
+		log << "\n  ----------\n\n";
+	}
+	
+/*
+=================================================
+	Wrap_vkCmdBeginDebugUtilsLabelEXT
+=================================================
+*/
+	void VKAPI_CALL Wrap_vkCmdBeginDebugUtilsLabelEXT (VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT* pLabelInfo)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdBeginDebugUtilsLabelEXT( commandBuffer, pLabelInfo );
+
+		auto	iter = logger.commandBuffers.find( commandBuffer );
+		if ( iter == logger.commandBuffers.end() )
+			return;
+
+		auto&	cmdbuf = iter->second;
+		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+		
+		const int	depth = ++cmdbuf.dbgLabelDepth;
+		
+		if ( not logger.enableLog )
+			return;
+
+		auto&	log = cmdbuf.log;
+		log << "  BeginDebugLabel\n";
+		log << "    name:  '" << pLabelInfo->pLabelName << "'\n";
+		log << "    depth: " << ToString( depth ) << "\n";
+		log << "  ----------\n\n";
+	}
+	
+/*
+=================================================
+	Wrap_vkCmdEndDebugUtilsLabelEXT
+=================================================
+*/
+	void VKAPI_CALL Wrap_vkCmdEndDebugUtilsLabelEXT (VkCommandBuffer commandBuffer)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdEndDebugUtilsLabelEXT( commandBuffer );
+
+		auto	iter = logger.commandBuffers.find( commandBuffer );
+		if ( iter == logger.commandBuffers.end() )
+			return;
+
+		auto&	cmdbuf = iter->second;
+		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+		
+		const int	depth = cmdbuf.dbgLabelDepth--;
+		ASSERT( cmdbuf.dbgLabelDepth >= 0 );
+
+		if ( not logger.enableLog )
+			return;
+
+		auto&	log = cmdbuf.log;
+		log << "  EndDebugLabel\n";
+		log << "    depth: " << ToString( depth ) << "\n";
+		log << "  ----------\n\n";
+	}
 
 } // namespace
 //-----------------------------------------------------------------------------
@@ -3365,6 +3641,7 @@ namespace
 		currentFB		= Default;
 		subpassIndex	= UMax;
 		bindPoints		= Default;
+		dbgLabelDepth	= 0;
 		log.clear();
 	}
 	
@@ -3566,12 +3843,19 @@ namespace
 		table._var_vkCreateSemaphore				= &Wrap_vkCreateSemaphore;
 		table._var_vkDestroySemaphore				= &Wrap_vkDestroySemaphore;
 		table._var_vkGetSwapchainImagesKHR			= &Wrap_vkGetSwapchainImagesKHR;
+		table._var_vkCreateAccelerationStructureKHR	= &Wrap_vkCreateAccelerationStructureKHR;
+		table._var_vkDestroyAccelerationStructureKHR= &Wrap_vkDestroyAccelerationStructureKHR;
 
 		table._var_vkQueueSubmit					= &Wrap_vkQueueSubmit;
 		table._var_vkQueueSubmit2KHR				= &Wrap_vkQueueSubmit2KHR;
 		table._var_vkSetDebugUtilsObjectNameEXT		= &Wrap_vkSetDebugUtilsObjectNameEXT;
+		table._var_vkAcquireNextImageKHR			= &Wrap_vkAcquireNextImageKHR;
+		table._var_vkQueuePresentKHR				= &Wrap_vkQueuePresentKHR;
 		// TODO: bind sparse
 
+		table._var_vkCmdInsertDebugUtilsLabelEXT	= &Wrap_vkCmdInsertDebugUtilsLabelEXT;
+		table._var_vkCmdBeginDebugUtilsLabelEXT		= &Wrap_vkCmdBeginDebugUtilsLabelEXT;
+		table._var_vkCmdEndDebugUtilsLabelEXT		= &Wrap_vkCmdEndDebugUtilsLabelEXT;
 		table._var_vkCmdBindDescriptorSets			= &Wrap_vkCmdBindDescriptorSets;
 		table._var_vkCmdPipelineBarrier				= &Wrap_vkCmdPipelineBarrier;
 		table._var_vkCmdPipelineBarrier2KHR			= &Wrap_vkCmdPipelineBarrier2;
@@ -3615,8 +3899,6 @@ namespace
 		table._var_vkCmdDrawMeshTasksIndirectCountEXT= &Wrap_vkCmdDrawMeshTasksIndirectCount;
 		table._var_vkCmdTraceRaysKHR				= &Wrap_vkCmdTraceRaysKHR;
 		table._var_vkCmdTraceRaysIndirectKHR		= &Wrap_vkCmdTraceRaysIndirectKHR;
-		table._var_vkCreateAccelerationStructureKHR	= &Wrap_vkCreateAccelerationStructureKHR;
-		table._var_vkDestroyAccelerationStructureKHR= &Wrap_vkDestroyAccelerationStructureKHR;
 	}
 
 /*
@@ -3723,7 +4005,7 @@ void  VulkanSyncLog::Disable ()
 	GetLog
 =================================================
 */
-void  VulkanSyncLog::GetLog (OUT String &log) const
+void  VulkanSyncLog::GetLog (OUT String &log)
 {
 	auto&	logger = VulkanLogger::Get();
 	EXLOCK( logger.guard );

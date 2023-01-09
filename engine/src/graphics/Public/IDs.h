@@ -67,6 +67,7 @@ namespace AE::Graphics
 	using ShaderStructName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 27, true >;
 	using DSLayoutName			= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 28, AE_OPTIMIZE_IDS >;
 	
+	using RenderTargetName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 39, AE_OPTIMIZE_IDS >;
 	using ImageInAtlasName		= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 40, AE_OPTIMIZE_IDS >;
 
 
@@ -124,6 +125,8 @@ namespace AE::Graphics
 	// types
 	public:
 		using ID_t	= HandleTmpl< IndexSize, GenerationSize, UID >;
+		using Self	= GAutorelease< ID_t >;
+
 
 	// variables
 	private:
@@ -132,17 +135,27 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		GAutorelease ()						__NE___	{}
-		GAutorelease (Strong<ID_t> id)		__NE___	: _id{RVRef(id)} {}
-		~GAutorelease ()					__NE___;
+		GAutorelease ()							__NE___	{}
+		GAutorelease (Strong<ID_t> id)			__NE___	: _id{ RVRef(id) }			{}
+		GAutorelease (Self && other)			__NE___	: _id{ RVRef(other._id) }	{}
+		~GAutorelease ()						__NE___	{ _ReleaseRef(); }
 		
-		ND_ ID_t		Get ()				C_NE___	{ return _id.Get(); }
-		ND_ ID_t		Release ()			__NE___	{ return _id.Release(); }
-		ND_ bool		IsValid ()			C_NE___	{ return _id.IsValid(); }
-		
-		ND_ explicit	operator bool ()	C_NE___	{ return IsValid(); }
+		GAutorelease (const Self &)				= delete;
+		Self&  operator = (const Self &)		= delete;
 
-		ND_ 			operator ID_t ()	C_NE___	{ return _id.Get(); }
+		Self&  operator = (Strong<ID_t> rhs)	__NE___	{ _ReleaseRef();  _id = RVRef(rhs);		return *this; }
+		Self&  operator = (Self && rhs)			__NE___	{ _ReleaseRef();  _id = RVRef(rhs._id);	return *this; }
+
+		ND_ ID_t			Get ()				C_NE___	{ return _id.Get(); }
+		ND_ Strong<ID_t>	Release ()			__NE___	{ Strong<ID_t> tmp = RVRef(_id);  return tmp; }
+		ND_ bool			IsValid ()			C_NE___	{ return _id.IsValid(); }
+		
+		ND_ explicit		operator bool ()	C_NE___	{ return IsValid(); }
+
+		ND_ 				operator ID_t ()	C_NE___	{ return _id.Get(); }
+
+	private:
+		void  _ReleaseRef ()					__NE___;
 	};
 	
 	

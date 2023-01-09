@@ -44,7 +44,7 @@ RGTest::RGTest () :
 	// too slow
 	//_tests.emplace_back( &RGTest::Test_Buffer );
 	//_tests.emplace_back( &RGTest::Test_Image );
-
+	
 	_tests.emplace_back( &RGTest::Test_FeatureSets );
 	_tests.emplace_back( &RGTest::Test_FrameCounter );
 	
@@ -54,8 +54,11 @@ RGTest::RGTest () :
 	_tests.emplace_back( &RGTest::Test_CopyBuffer1 );
 	_tests.emplace_back( &RGTest::Test_CopyBuffer2 );
 	_tests.emplace_back( &RGTest::Test_CopyImage1 );
+	_tests.emplace_back( &RGTest::Test_CopyImage2 );
 	_tests.emplace_back( &RGTest::Test_Compute1 );
 	_tests.emplace_back( &RGTest::Test_AsyncCompute1 );
+	_tests.emplace_back( &RGTest::Test_AsyncCompute2 );
+	_tests.emplace_back( &RGTest::Test_AsyncCompute3 );
 	_tests.emplace_back( &RGTest::Test_Draw1 );
 	_tests.emplace_back( &RGTest::Test_Draw2 );
 	_tests.emplace_back( &RGTest::Test_DrawAsync1 );
@@ -64,10 +67,9 @@ RGTest::RGTest () :
 	_tests.emplace_back( &RGTest::Test_RayTracing1 );
 	_tests.emplace_back( &RGTest::Test_Debugger1 );
 	_tests.emplace_back( &RGTest::Test_Debugger2 );
-	
+
 	// TODO:
 	//_tests.emplace_back( &RGTest::Test_Draw3 );
-	//_tests.emplace_back( &RGTest::Test_AsyncCompute2 );
 }
 
 /*
@@ -379,7 +381,7 @@ extern void Test_VulkanRenderGraph (IApplication &app, IWindow &wnd)
 
 
 
-#if not defined(AE_ENABLE_VULKAN) and defined(AE_ENABLE_METAL)
+#ifdef AE_ENABLE_METAL
 /*
 =================================================
 	_Create

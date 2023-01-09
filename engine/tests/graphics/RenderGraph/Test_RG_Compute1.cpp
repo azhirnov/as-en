@@ -222,8 +222,8 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Compute1"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< C1_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, 				{"Compute task"} );
-		AsyncTask	task2	= batch->Add< C1_CopyTask<CopyCtx>    >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},	{"Readback task"} );
+		AsyncTask	task1	= batch->Run< C1_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, 				{"Compute task"} );
+		AsyncTask	task2	= batch->Run< C1_CopyTask<CopyCtx>    >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 

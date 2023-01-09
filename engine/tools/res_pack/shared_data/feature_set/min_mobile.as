@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -30,7 +31,7 @@ void main ()
 
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "MinMobile" );
+	RC<FeatureSet>  fset = FeatureSet( "MinMobile" );
 
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);

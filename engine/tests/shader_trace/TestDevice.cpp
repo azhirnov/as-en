@@ -67,7 +67,7 @@ bool  TestDevice::Create ()
 	CHECK_ERR( _vulkan.CreateInstance( "GLSLTrace", "AE", _vulkan.GetRecomendedInstanceLayers() ));
 	
 	_vulkan.CreateDebugCallback( DefaultDebugMessageSeverity,
-								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  /*CHECK_FATAL(not rep.isError);*/ });
+								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  CHECK_FATAL(not rep.isError); });
 
 	CHECK_ERR( _vulkan.ChooseHighPerformanceDevice() );
 	CHECK_ERR( _vulkan.CreateDefaultQueue() );

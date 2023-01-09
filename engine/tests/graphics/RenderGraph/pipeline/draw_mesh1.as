@@ -1,14 +1,15 @@
+#include <pipeline_compiler>
 
 void main ()
 {
 	if ( !IsVulkan() )
 		return;
 
-	MeshPipeline@	ppln = MeshPipeline( "draw_mesh1" );
+	RC<MeshPipeline>	ppln = MeshPipeline( "draw_mesh1" );
 	ppln.AddFeatureSet( "MinMeshShader" );
 	
 	{
-		Shader@	ms	= Shader();
+		RC<Shader>	ms	= Shader();
 		ms.file		= "draw_mesh1_ms.glsl";
 		ms.options	= EShaderOpt::Optimize;
 		ms.version	= EShaderVersion::SPIRV_1_4;
@@ -16,7 +17,7 @@ void main ()
 		ppln.SetMeshShader( ms );
 	}
 	{
-		Shader@	fs	= Shader();
+		RC<Shader>	fs	= Shader();
 		fs.file		= "draw_mesh1_fs.glsl";
 		fs.options	= EShaderOpt::Optimize;
 		fs.version	= EShaderVersion::SPIRV_1_4;
@@ -25,7 +26,7 @@ void main ()
 
 	// specialization
 	{
-		MeshPipelineSpec@	spec = ppln.AddSpecialization( "draw_mesh1" );
+		RC<MeshPipelineSpec>	spec = ppln.AddSpecialization( "draw_mesh1" );
 		spec.AddToRenderTech( "DrawMeshesTestRT", "DrawMeshes_1" );
 		spec.SetViewportCount( 1 );
 		spec.SetMeshGroupSize( 3 );

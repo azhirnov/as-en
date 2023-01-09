@@ -89,7 +89,7 @@ namespace AE::Graphics
 		};
 
 		static constexpr uint	MinSpirvVersion	= 100;
-		static constexpr uint	MaxSpirvVersion	= 150;
+		static constexpr uint	MaxSpirvVersion	= 160;
 
 		static constexpr uint	MinMetalVersion	= 200;
 		static constexpr uint	MaxMetalVersion	= 300;

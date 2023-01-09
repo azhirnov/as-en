@@ -36,7 +36,7 @@ namespace AE::Graphics
 		Atomic<uint>	_ready;		// 1 - commands recording have been completed and added to pool
 		Atomic<uint>	_cmdTypes;	// 0 - vulkan cmd buffer, 1 - backed commands
 		Atomic<uint>	_counter;	// index in '_pool'
-		uint			_count;		// number of commands in '_pool'
+		Atomic<uint>	_count;		// number of commands in '_pool'
 		Pool_t			_pool;
 
 		// don't use 'UMax' because after ++ it will be 0 - valid value again.
@@ -55,6 +55,7 @@ namespace AE::Graphics
 			void  Add (INOUT uint& idx, NativeCmdBuffer_t cmdbuf)	__NE___;
 			void  Add (INOUT uint& idx, BakedCommands_t ctx)		__NE___;
 			void  Complete (INOUT uint& idx)						__NE___;
+		ND_ uint  Count ()											__NE___	{ ASSERT( IsLocked() );  return _count.load(); }
 
 		// owner api
 			void  Lock ()											__NE___;
@@ -176,7 +177,6 @@ namespace AE::Graphics
 ----
 	prevent for reserving new slots for command buffers, call for 'Acquire()' will fail.
 	call once per frame.
-	not thread safe !!!
 =================================================
 */
 	template <typename A, typename B>
@@ -187,18 +187,19 @@ namespace AE::Graphics
 		// on first call '_count' must be 0, on second call may not be 0 - error
 		//ASSERT( _count == 0 );
 
-		const uint	count = _counter.exchange( _CounterLargeValue );
+		uint	count = _counter.exchange( _CounterLargeValue );
 
 		if ( count >= _CounterLargeValue )
 		{
-			ASSERT( _count > 0 );
+			ASSERT( _count.load() > 0 );
 			return;	// already locked
 		}
 
-		_count = Min( count, uint(_pool.size()) );
+		count = Min( count, uint(_pool.size()) );
+		_count.store( count );
 
 		// set unused bits to 1
-		uint	mask = ~ToBitMask<uint>(_count);
+		uint	mask = ~ToBitMask<uint>( count );
 		if ( mask )
 			_ready.fetch_or( mask );
 	}
@@ -211,7 +212,7 @@ namespace AE::Graphics
 	template <typename A, typename B>
 	bool  LfCmdBufferPool<A,B>::IsLocked () __NE___
 	{
-		return _counter.load() > _CounterLargeValue;
+		return _counter.load() >= _CounterLargeValue;
 	}
 
 /*
@@ -236,12 +237,12 @@ namespace AE::Graphics
 			}
 		})
 
-		ZeroMem( OUT _pool.data(), Sizeof(_pool) );
-		_count = 0;
-		
-		_counter.store( 0 );
 		_ready.store( 0 );
 		_cmdTypes.store( 0 );
+		_counter.store( 0 );
+		_count.store( 0 );
+
+		ZeroMem( OUT _pool.data(), Sizeof(_pool) );
 
 		MemoryBarrier( EMemoryOrder::Release );
 	}
@@ -279,7 +280,7 @@ namespace AE::Graphics
 		ASSERT( _cmdTypes.load() == 0 );	// software command buffers is not supported here
 		ASSERT( IsReady() );
 
-		for (uint i = 0; i < _count; ++i)
+		for (uint i = 0, cnt = _count.load(); i < cnt; ++i)
 		{
 			// command buffer can be null
 			if_likely( _pool[i].native != NativeCmdBuffer_t{} )

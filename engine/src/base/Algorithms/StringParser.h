@@ -30,8 +30,6 @@ namespace AE::Base
 			static void  ReadCurrLine (StringView str, INOUT usize &pos, OUT StringView &result)					__NE___;
 			static void  ReadLineToEnd (StringView str, INOUT usize &pos, OUT StringView &result)					__NE___;
 
-			static bool  ReadTo (StringView str, StringView endSymbol, INOUT usize &pos, OUT StringView &result)	__NE___;
-
 			static bool  ReadString (StringView str, INOUT usize &pos, OUT StringView &result)						__NE___;
 			
 			static void  DivideLines (StringView str, OUT Array<StringView> &lines)									__Th___;

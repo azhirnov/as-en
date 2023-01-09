@@ -348,9 +348,9 @@ namespace AE::Threading::_hidden_
 	//
 	struct DrawTask_Get
 	{
-		constexpr DrawTask_Get () {}
+		constexpr DrawTask_Get ()		__NE___ {}
 
-		ND_ auto  operator co_await () const
+		ND_ auto  operator co_await ()	C_NE___
 		{
 			using Promise_t = AE::Threading::_hidden_::DrawTaskCoroutineRunner::Promise_t;
 			using DrawTask	= AE::Graphics::DrawTask;
@@ -368,7 +368,42 @@ namespace AE::Threading::_hidden_
 				{
 					auto*	task = curCoro.promise().GetTask();
 					if_likely( task != null )
-						_dtask = RVRef(task);
+						_dtask = task;
+					
+					return false;	// resume coroutine
+				}
+			};
+			return Awaiter{};
+		}
+	};
+
+
+	//
+	// Get Draw Task Handle reference
+	//
+	struct DrawTask_GetRef
+	{
+		constexpr DrawTask_GetRef ()	__NE___	{}
+
+		ND_ auto  operator co_await ()	C_NE___
+		{
+			using Promise_t = AE::Threading::_hidden_::DrawTaskCoroutineRunner::Promise_t;
+			using DrawTask	= AE::Graphics::DrawTask;
+
+			struct Awaiter
+			{
+			private:
+				DrawTask*	_dtask = null;
+
+			public:
+				ND_ bool		await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
+				ND_ DrawTask &	await_resume ()		__NE___	{ ASSERT( _dtask != null );  return *_dtask; }
+
+				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
+				{
+					auto*	task = curCoro.promise().GetTask();
+					if_likely( task != null )
+						_dtask = task;
 					
 					return false;	// resume coroutine
 				}
@@ -382,10 +417,11 @@ namespace AE::Threading::_hidden_
 
 namespace AE::Graphics
 {
-	using CoroutineDrawTask = Threading::_hidden_::DrawTaskCoroutine::Handle_t;
+	using DrawTaskCoro = Threading::_hidden_::DrawTaskCoroutine::Handle_t;
 
 
-	static constexpr Threading::_hidden_::DrawTask_Get	DrawTask_Get {};
+	static constexpr Threading::_hidden_::DrawTask_Get		DrawTask_Get	{};
+	static constexpr Threading::_hidden_::DrawTask_GetRef	DrawTask_GetRef {};
 	
 
 	//
@@ -396,9 +432,9 @@ namespace AE::Graphics
 	{
 		CmdBufType &	_cmdbuf;
 
-		explicit DrawTask_Execute (CmdBufType &cmdbuf) : _cmdbuf{cmdbuf} {}
+		explicit DrawTask_Execute (CmdBufType &cmdbuf) __NE___ : _cmdbuf{cmdbuf} {}
 
-		ND_ auto  operator co_await ()
+		ND_ auto  operator co_await () __NE___
 		{
 			using Promise_t = AE::Threading::_hidden_::DrawTaskCoroutineRunner::Promise_t;
 			using Runner_t	= AE::Threading::_hidden_::DrawTaskCoroutineRunner;
@@ -431,92 +467,3 @@ namespace AE::Graphics
 } // AE::Graphics
 # endif // AE_HAS_COROUTINE
 //-----------------------------------------------------------------------------
-
-
-
-namespace AE::Graphics
-{
-/*
-=================================================
-	Add
-=================================================
-*/
-	template <typename TaskType, typename ...Ctor, typename ...Deps>
-	AsyncTask  DRAWCMDBATCH::Add (Tuple<Ctor...> &&		ctorArgs,
-								  const Tuple<Deps...>&	deps,
-								  DebugLabel			dbg) __NE___
-	{
-		STATIC_ASSERT( IsBaseOf< DrawTask, TaskType >);
-		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
-		
-		PROFILE_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable.Undefined )
-				dbg.color = _dbgColor;
-		)
-			
-		// DrawTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
-		// DrawTask internally creates command buffer and throw exception if can't.
-		try {
-			auto	task = ctorArgs.Apply([this, dbg] (auto&& ...args)
-										  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });	// throw
-
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
-		}
-		catch(...) {}
-		
-		return Scheduler().GetCanceledTask();
-	}
-
-/*
-=================================================
-	Add
-=================================================
-*/
-# ifdef AE_HAS_COROUTINE
-	template <typename PromiseT, typename ...Deps>
-	AsyncTask  DRAWCMDBATCH::Add (AE::Threading::CoroutineHandle<PromiseT>	handle,
-								  const Tuple<Deps...>&						deps,
-								  DebugLabel								dbg) __NE___
-	{
-		STATIC_ASSERT( IsSameTypes< AE::Threading::CoroutineHandle<PromiseT>, CoroutineDrawTask >);
-		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
-		
-		PROFILE_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable.Undefined )
-				dbg.color = _dbgColor;
-		)
-			
-		// DrawTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
-		// DrawTask internally creates command buffer and throw exception if can't.
-		try {
-			auto	task = MakeRC<AE::Threading::_hidden_::DrawTaskCoroutineRunner>( RVRef(handle), GetRC(), dbg );	// throw
-
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
-		}
-		catch(...) {}
-
-		return Scheduler().GetCanceledTask();
-	}
-# endif
-	
-/*
-=================================================
-	EndRecording
-----
-	helper method - prevent new draw tasks on this batch
-=================================================
-*/
-	inline void  DRAWCMDBATCH::EndRecording () __NE___
-	{
-		EStatus	exp	= EStatus::Recording;
-		bool	res	= _status.compare_exchange_strong( INOUT exp, EStatus::Pending );
-		ASSERT( res );
-	}
-
-
-} // AE::Graphics
-//-----------------------------------------------------------------------------
-
-#undef DRAWCMDBATCH

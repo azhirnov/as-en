@@ -19,6 +19,7 @@ namespace AE::Graphics
 	public:
 		struct CreateInfo
 		{
+			MPipelinePack const&									pplnPack;
 			PipelineCompiler::SerializableGraphicsPipeline const&	templCI;
 			GraphicsPipelineDesc const&								specCI;
 			MPipelineLayoutID										layoutId;

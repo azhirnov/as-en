@@ -11,16 +11,16 @@ namespace AE::Graphics
 	// Vulkan Synchronization Logger
 	//
 
-	class VulkanSyncLog
+	class VulkanSyncLog //: Noninstancable
 	{
 	public:
-		void  Initialize (INOUT VulkanDeviceFnTable &, FlatHashMap<VkQueue, String> queueNames);
-		void  Deinitialize (INOUT VulkanDeviceFnTable &);
+		static void  Initialize (INOUT VulkanDeviceFnTable &, FlatHashMap<VkQueue, String> queueNames);
+		static void  Deinitialize (INOUT VulkanDeviceFnTable &);
 
-		void  Enable ();
-		void  Disable ();
+		static void  Enable ();
+		static void  Disable ();
 
-		void  GetLog (OUT String &) const;
+		static void  GetLog (OUT String &);
 	};
 
 } // AE::Graphics

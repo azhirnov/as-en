@@ -1,4 +1,5 @@
-if (TARGET "ShaderTrace")
+if ((TARGET "ShaderTrace") AND ${AE_ENABLE_VULKAN})
+
 	set( GRAPHICS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics" )
 	set( GRAPHICS_SRC
 		"${GRAPHICS_DIR}/Public/DeviceProperties.h"
@@ -15,6 +16,7 @@ if (TARGET "ShaderTrace")
 	set( VK_SOURCES 
 		"${VK_FILES_PATH}/VDevice.h"
 		"${VK_FILES_PATH}/VDevice.cpp"
+		"${VK_FILES_PATH}/VDeviceFS.cpp"
 		"${VK_FILES_PATH}/VulkanLoader.h"
 		"${VK_FILES_PATH}/VulkanLoader.cpp"
 		"${VK_FILES_PATH}/VulkanCheckError.h"

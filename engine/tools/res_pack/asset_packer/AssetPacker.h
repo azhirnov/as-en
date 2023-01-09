@@ -20,11 +20,12 @@ namespace AE::AssetPacker
 
 	struct AssetInfo
 	{
-		const CharType * const*	inFiles			= null;
-		usize					inFileCount		= 0;
+		const CharType * const*	inFiles				= null;
+		usize					inFileCount			= 0;
 		
-		const CharType *		tempFile		= null;
-		const CharType *		outputArchive	= null;
+		const CharType *		tempFile			= null;
+		const CharType *		outputArchive		= null;
+		const CharType *		outputScriptFile	= null;
 	};
 
 

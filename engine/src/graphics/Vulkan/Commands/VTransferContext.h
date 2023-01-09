@@ -94,7 +94,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VTransferContextImpl final : public CtxImpl, public ITransferContext
+	class _VTransferContextImpl : public CtxImpl, public ITransferContext
 	{
 	// types
 	public:
@@ -104,20 +104,21 @@ namespace AE::Graphics::_hidden_
 		static constexpr uint	_LocalArraySize			= 16;
 		static constexpr Bytes	_StagingBufOffsetAlign	= 4_b;
 
-		using RawCtx	= CtxImpl;
-		using AccumBar	= VAccumBarriers< _VTransferContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= VAccumBarriers< _VTransferContextImpl< CtxImpl >>;
+		using DeferredBar	= VAccumDeferredBarriersForCtx< _VTransferContextImpl< CtxImpl >>;
 
 
 	// methods
 	public:
-		explicit _VTransferContextImpl (const RenderTask &task);
+		explicit _VTransferContextImpl (const RenderTask &task)																							__Th___;
 		
 		template <typename RawCmdBufType>
-		_VTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf);
+		_VTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)																			__Th___;
 
-		_VTransferContextImpl () = delete;
-		_VTransferContextImpl (const _VTransferContextImpl &) = delete;
-		
+		_VTransferContextImpl ()																														= delete;
+		_VTransferContextImpl (const _VTransferContextImpl &)																							= delete;
+
 		using RawCtx::ClearColorImage;
 		using RawCtx::ClearDepthStencilImage;
 		

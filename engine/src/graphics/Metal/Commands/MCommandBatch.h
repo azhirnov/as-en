@@ -30,48 +30,12 @@
 # include "graphics/Metal/Commands/MBakedCommands.h"
 # include "graphics/Private/LfCmdBufferPool.h"
 
-namespace AE::Graphics
+namespace AE::Graphics::_hidden_
 {
+	class MAccumBarriersForTask;
+}
 
-	//
-	// Metal Command Batch
-	//
-
-	class MCommandBatch final : public IDeviceToHostSync
-	{
-	// types
-	private:
-		//
-		// Command Buffer Pool
-		//
-		struct CmdBufPool : LfCmdBufferPool< MetalCommandBuffer, MBakedCommands >
-		{
-		// methods
-		public:
-			CmdBufPool () __NE___ {}
-			
-			void  GetCommands (OUT MetalCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount)	__NE___;
-			bool  CommitIndirectBuffers (EQueueType queue, ECommandBufferType cmdbufType,
-										 const MPrimaryCmdBufState* primaryState = null)				__NE___;
-
-		private:
-			ND_ bool  _CommitIndirectBuffers_Ordered (uint cmdTypes, EQueueType queue, ECommandBufferType cmdbufType, const MPrimaryCmdBufState* primaryState);
-		};
-		
-		
-		#include "graphics/Private/CommandBatchDecl.h"
-		
-		
-	// methods
-	private:
-		void  _Submit (MQueuePtr) __NE___;
-	};
-
-} // AE::Graphics
-//-----------------------------------------------------------------------------
-
-
-#	include "graphics/Private/RenderTask.h"
-//-----------------------------------------------------------------------------
+// implementation
+# include "graphics/Private/CommandBatch.h"
 
 #endif // AE_ENABLE_METAL

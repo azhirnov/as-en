@@ -39,6 +39,21 @@
 	STATIC_ASSERT( sizeof(PushConst2) == 16 );
 #endif
 
+#ifndef BufferRef_DEFINED
+#	define BufferRef_DEFINED
+	// size: 24, align: 16
+	struct BufferRef
+	{
+		static constexpr auto  TypeName = ShaderStructName{"BufferRef"};
+
+		float3  Position;
+		float2  Texcoord;
+	};
+	STATIC_ASSERT( offsetof(BufferRef, Position) == 0 );
+	STATIC_ASSERT( offsetof(BufferRef, Texcoord) == 16 );
+	STATIC_ASSERT( sizeof(BufferRef) == 32 );
+#endif
+
 #ifndef vb_input1_DEFINED
 #	define vb_input1_DEFINED
 	// size: 16, align: 4 (16)

@@ -360,7 +360,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _MDrawContextImpl final : public CtxImpl, public IDrawContext
+	class _MDrawContextImpl : public CtxImpl, public IDrawContext
 	{
 	// types
 	public:
@@ -372,6 +372,12 @@ namespace AE::Graphics::_hidden_
 		using AccumBar		= MAccumDrawBarriers< _MDrawContextImpl< CtxImpl >>;
 		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
 		using Viewports_t	= ArrayView< RenderPassDesc::Viewport >;
+		using BoundDS_t		= StaticArray< DescriptorSetID, GraphicsConfig::MaxDescriptorSets >;
+
+
+	// variables
+	private:
+		BoundDS_t	_boundDS	{};
 
 		
 	// methods
@@ -550,21 +556,47 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MDrawContextImpl<C>::BindDescriptorSet (const DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
 	{
-		CHECK_THROW( dynamicOffsets.empty() );	// not supported yet
+		const bool	is_bound = (_boundDS[ index.mtlIndex.BindingIndex() ] == ds);
+		_boundDS[ index.mtlIndex.BindingIndex() ] = ds;
 		
-		auto&	desc_set = _GetResourcesOrThrow( ds );
+		if_unlikely( is_bound and dynamicOffsets.empty() )
+			return;
+
+		auto&	desc_set	= _GetResourcesOrThrow( ds );
+		auto	dyn_bufs	= desc_set.GetDynamicBuffers();
+
+		CHECK_THROW( dyn_bufs.size() == dynamicOffsets.size() );
+
+		const auto	BindDynBufs = [&] (auto && args, uint idx)
+		{{
+			if ( is_bound )
+			{
+				for (usize i = 0; i < dynamicOffsets.size(); ++i, ++idx)
+				{
+					args.SetBufferOffset( Bytes{dynamicOffsets[i]}, MBufferIndex(idx) );
+				}
+			}
+			else
+			{
+				for (usize i = 0; i < dynamicOffsets.size(); ++i, ++idx)
+				{
+					args.SetBuffer( dyn_bufs.at<MetalBuffer>(i), dyn_bufs.at<Bytes>(i), MBufferIndex(idx) );
+					args.SetBufferOffset( Bytes{dynamicOffsets[i]}, MBufferIndex(idx) );
+				}
+				args.SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(idx) );
+			}
+		}};
 		
 		for (EShaderStages stages = desc_set.ShaderStages(); stages != Default;)
 		{
 			const EShader	type = ExtractBitLog2<EShader>( INOUT stages );
-
 			switch ( type )
 			{
-				case EShader::Vertex :		this->VertexArguments()	 .SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(index.mtlIndex.Vertex()) );	break;
-				case EShader::Fragment :	this->FragmentArguments().SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(index.mtlIndex.Fragment()) );	break;
-				case EShader::MeshTask :	this->MeshTaskArguments().SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(index.mtlIndex.MeshTask()) );	break;
-				case EShader::Mesh :		this->MeshArguments()	 .SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(index.mtlIndex.Mesh()) );		break;
-				case EShader::Tile :		this->TileArguments()	 .SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(index.mtlIndex.Tile()) );		break;
+				case EShader::Vertex :		BindDynBufs( this->VertexArguments(),	index.mtlIndex.Vertex() );		break;
+				case EShader::Fragment :	BindDynBufs( this->FragmentArguments(),	index.mtlIndex.Fragment() );	break;
+				case EShader::MeshTask :	BindDynBufs( this->MeshTaskArguments(),	index.mtlIndex.MeshTask() );	break;
+				case EShader::Mesh :		BindDynBufs( this->MeshArguments(),		index.mtlIndex.Mesh() );		break;
+				case EShader::Tile :		BindDynBufs( this->TileArguments(),		index.mtlIndex.Tile() );		break;
 				default :					CHECK_THROW(false);
 			}
 		}

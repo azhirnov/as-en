@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -50,7 +51,7 @@ void main ()
 
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "part.MinDescriptorIndexing" );
+	RC<FeatureSet>  fset = FeatureSet( "part.MinDescriptorIndexing" );
 
 	fset.shaderSampledImageArrayDynamicIndexing (True);
 	fset.shaderStorageBufferArrayDynamicIndexing (True);

@@ -191,7 +191,7 @@ namespace
 
 				CHECK_TE( batch->AddInputDependency( lastBatch ));
 				
-				AsyncTask	read_task	= batch->Add< AC1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Readback task"} );
+				AsyncTask	read_task	= batch->Run< AC1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Readback task"} );
 				AsyncTask	end			= rts.EndFrame( Tuple{read_task} );
 				
 				++t.frameIdx;
@@ -215,14 +215,14 @@ namespace
 			// graphics to compute sync
 			CHECK_TE( batch_ac->AddInputDependency( batch_gfx ));
 			
-			AsyncTask	gfx_task	= batch_gfx->Add< AC1_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{begin},	 True{"Last"}, {"graphics task"} );
-			AsyncTask	comp_task	= batch_ac ->Add< AC1_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{gfx_task}, True{"Last"}, {"async compute task"} );
+			AsyncTask	gfx_task	= batch_gfx->Run< AC1_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{begin},	 True{"Last"}, {"graphics task"} );
+			AsyncTask	comp_task	= batch_ac ->Run< AC1_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{gfx_task}, True{"Last"}, {"async compute task"} );
 			AsyncTask	end			= rts.EndFrame( Tuple{ gfx_task, comp_task });
 
 			lastBatch = batch_ac;
 
 			++t.frameIdx;
-			Continue( Tuple{end} );
+			return Continue( Tuple{end} );
 		}
 
 		StringView  DbgName ()	C_NE_OV	{ return "AC1_FrameTask"; }

@@ -35,6 +35,7 @@ namespace AE::Graphics
 		void  Validate ()								__NE___;
 
 		ND_ bool  operator == (const BufferDesc &rhs)	C_NE___;
+		ND_ bool  IsExclusiveSharing ()					C_NE___	{ return queues == Default; }
 
 		BufferDesc&  SetSize (Bytes value)				__NE___	{ size		= value;	return *this; }
 		BufferDesc&  SetUsage (EBufferUsage value)		__NE___	{ usage		= value;	return *this; }

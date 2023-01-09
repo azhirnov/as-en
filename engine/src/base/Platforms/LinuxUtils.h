@@ -25,6 +25,10 @@ namespace AE::Base
 		ND_	static uint		GetProcessorCoreIndex ()															__NE___;	// current logical CPU core
 		
 			static void		ThreadPause ()																		__NE___;
+
+
+		// OS //
+		ND_ static String		GetOSName ()																	__NE___;
 	};
 
 } // AE::Base

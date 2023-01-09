@@ -175,6 +175,19 @@ namespace AE::Graphics
 		MClearColor (const RGBA8u &col)						__NE___	: MClearColor{RGBA32f{col}} {}
 	};
 
+	
+	//
+	// Dependency Info
+	//
+	struct MDependencyInfo
+	{
+		MtlBarrierScope		scope			= Default;
+		MtlRenderStages		beforeStages	= Default;
+		MtlRenderStages		afterStages		= Default;
+
+		//Array<MetalResource>	resources;	// TODO
+	};
+
 
 } // AE::Graphics
 

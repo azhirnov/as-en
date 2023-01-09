@@ -20,6 +20,7 @@ namespace AE::Graphics
 	// types
 	private:
 		using DescrSetStorage_t	= IDescriptorAllocator::Storage;
+		using DynamicBuffers_t	= TupleArrayView< MetalBuffer, Bytes >;
 
 
 	// variables
@@ -47,6 +48,7 @@ namespace AE::Graphics
 		ND_ MetalBuffer				Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return IsArgumentBuffer() ? _descrSet.handle : Default; }
 		ND_ DescriptorSetLayoutID	LayoutID ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		
+		ND_ DynamicBuffers_t		GetDynamicBuffers ()	C_NE___;
 		ND_ EShaderStages			ShaderStages ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _stages; }
 		ND_ bool					IsArgumentBuffer ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return AllBits( _usage, EDescSetUsage::ArgumentBuffer ); }
 		

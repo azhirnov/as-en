@@ -1,18 +1,19 @@
+#include <pipeline_compiler>
 
 void main ()
 {
-	GraphicsPipeline@	ppln = GraphicsPipeline( "draw2" );
+	RC<GraphicsPipeline>	ppln = GraphicsPipeline( "draw2" );
 	ppln.AddFeatureSet( "MinimalFS" );
 	ppln.SetVertexInput( "VB_Position_f2, VB_Color8" );
 	
 	{
-		Shader@	vs	= Shader();
+		RC<Shader>	vs	= Shader();
 		vs.file		= "draw2_vs.glsl";
 		vs.options	= EShaderOpt::Optimize;
 		ppln.SetVertexShader( vs );
 	}
 	{
-		Shader@	fs	= Shader();
+		RC<Shader>	fs	= Shader();
 		fs.file		= "draw1_fs.glsl";
 		fs.options	= EShaderOpt::Optimize;
 		ppln.SetFragmentShader( fs );
@@ -20,7 +21,7 @@ void main ()
 
 	// specialization
 	{
-		GraphicsPipelineSpec@	spec = ppln.AddSpecialization( "draw2" );
+		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "draw2" );
 		spec.AddToRenderTech( "CanvasDrawTest", "Draw_1" );
 		spec.SetViewportCount( 1 );
 

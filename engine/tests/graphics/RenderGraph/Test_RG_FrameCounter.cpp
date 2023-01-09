@@ -58,10 +58,10 @@ namespace
 			t.batch	 = rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Deferred, {"FrameCounter"} );
 			CHECK_TE( t.batch );
 			
-			AsyncTask	test	= t.batch->Add< FC_TestTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
+			AsyncTask	test	= t.batch->Run< FC_TestTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
 			AsyncTask	end		= rts.EndFrame( Tuple{test} );
 
-			Continue( Tuple{end} );
+			return Continue( Tuple{end} );
 		}
 
 		StringView  DbgName ()	C_NE_OV	{ return "FC_FrameTask"; }

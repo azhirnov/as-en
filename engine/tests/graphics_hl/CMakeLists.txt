@@ -16,6 +16,8 @@ if (TARGET "GraphicsHL")
 	set_property( TARGET "Tests.GraphicsHL" PROPERTY FOLDER "Engine/Tests" )
 	target_link_libraries( "Tests.GraphicsHL" PUBLIC "Platform" "GraphicsHL" "GraphicsTestUtils" )
 	target_compile_definitions( "Tests.GraphicsHL" PUBLIC AE_TEST_GRAPHICS_HL )
+	
+	target_include_directories( "Tests.GraphicsHL" PUBLIC "${DATA_FOLDER}/scripts" )
 
 	target_compile_definitions( "Tests.GraphicsHL" PRIVATE
 		AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}"
@@ -33,10 +35,6 @@ if (TARGET "GraphicsHL")
 		)
 		set_property( TARGET "Tests.GraphicsHL.PackRes" PROPERTY FOLDER "Engine/Tests" )
 		add_dependencies( "PACK_RES" "Tests.GraphicsHL.PackRes" )
-	endif()
-
-	if (TARGET "VulkanSyncLog")
-		target_link_libraries( "Tests.GraphicsHL" PUBLIC "VulkanSyncLog" )
 	endif()
 
 	if (${AE_ENABLE_VULKAN})

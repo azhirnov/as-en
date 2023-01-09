@@ -1,3 +1,4 @@
+#include <offline_packer>
 
 void main ()
 {
@@ -10,7 +11,7 @@ void main ()
 	// pipeline compiler
 	for (uint i = 0; i < suffix.size(); ++i)
 	{
-		ScriptPipelineCompiler@		ppln = ScriptPipelineCompiler();
+		RC<ScriptPipelineCompiler>		ppln = ScriptPipelineCompiler();
 		ppln.AddPipelineFolder( GetSharedFeatureSetPath(), EPathParamsFlags::Recursive );
 		ppln.AddPipeline( "config_" + suffix[i] + ".as" );
 		ppln.AddPipelineFolder( "sampler" );

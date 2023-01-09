@@ -1,9 +1,10 @@
+#include <pipeline_compiler>
 
 void main ()
 {
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "part.Apple7_Mac_Metal3" );
+	RC<FeatureSet>  fset = FeatureSet( "part.Apple7_Mac_Metal3" );
 
 	fset.alphaToOne (True);
 	fset.depthBiasClamp (True);

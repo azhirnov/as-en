@@ -795,8 +795,11 @@ namespace AE::Graphics
 				
 			case EResourceState::ShaderRTAS_Read :					outStage = sh_stages;													outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;																																								ASSERT( sh_stages );	break;
 			case EResourceState::RTShaderBindingTable :				outStage = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;				outAccess = VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR;																																															break;
-
+				
+			case EResourceState::General :							outStage = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;						outAccess = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT;																				outLayout = VK_IMAGE_LAYOUT_GENERAL;															break;
+			
 			case EResourceState::Preserve :
+			case EResourceState::_AccessCount :
 			case EResourceState::_AccessMask :
 			case EResourceState::DSTestBeforeFS :
 			case EResourceState::DSTestAfterFS :
@@ -1382,6 +1385,41 @@ namespace AE::Graphics
 	
 /*
 =================================================
+	AEEnumCast (VkColorSpaceKHR)
+=================================================
+*/
+	ND_ inline EColorSpace  AEEnumCast (VkColorSpaceKHR value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case VK_COLOR_SPACE_SRGB_NONLINEAR_KHR :		return EColorSpace::sRGB_nonlinear;
+
+			// requires 'swapchainColorspace' (VK_EXT_swapchain_colorspace)
+			case VK_COLOR_SPACE_DISPLAY_P3_NONLINEAR_EXT :	return EColorSpace::Display_P3_nonlinear;
+			case VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT :	return EColorSpace::Extended_sRGB_linear;
+			case VK_COLOR_SPACE_DISPLAY_P3_LINEAR_EXT :		return EColorSpace::Display_P3_linear;
+			case VK_COLOR_SPACE_DCI_P3_NONLINEAR_EXT :		return EColorSpace::DCI_P3_nonlinear;
+			case VK_COLOR_SPACE_BT709_LINEAR_EXT :			return EColorSpace::BT709_linear;
+			case VK_COLOR_SPACE_BT709_NONLINEAR_EXT :		return EColorSpace::BT709_nonlinear;
+			case VK_COLOR_SPACE_BT2020_LINEAR_EXT :			return EColorSpace::BT2020_linear;
+			case VK_COLOR_SPACE_HDR10_ST2084_EXT :			return EColorSpace::HDR10_ST2084;
+			case VK_COLOR_SPACE_DOLBYVISION_EXT :			return EColorSpace::DolbyVision;
+			case VK_COLOR_SPACE_HDR10_HLG_EXT :				return EColorSpace::HDR10_HLG;
+			case VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT :		return EColorSpace::AdobeRGB_linear;
+			case VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT :	return EColorSpace::AdobeRGB_nonlinear;
+			case VK_COLOR_SPACE_PASS_THROUGH_EXT :			return EColorSpace::PassThrough;
+			case VK_COLOR_SPACE_EXTENDED_SRGB_NONLINEAR_EXT:return EColorSpace::Extended_sRGB_nonlinear;
+
+			case VK_COLOR_SPACE_DISPLAY_NATIVE_AMD :
+			case VK_COLOR_SPACE_MAX_ENUM_KHR :				break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown color space" );
+	}
+
+/*
+=================================================
 	VEnumCast (EPresentMode)
 =================================================
 */
@@ -1404,6 +1442,30 @@ namespace AE::Graphics
 		RETURN_ERR( "unknown present mode", VK_PRESENT_MODE_MAX_ENUM_KHR );
 	}
 	
+
+/*
+=================================================
+	AEEnumCast (VkPresentModeKHR)
+=================================================
+*/
+	ND_ inline EPresentMode  AEEnumCast (VkPresentModeKHR value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case VK_PRESENT_MODE_IMMEDIATE_KHR :				return EPresentMode::Immediate;
+			case VK_PRESENT_MODE_MAILBOX_KHR :					return EPresentMode::Mailbox;
+			case VK_PRESENT_MODE_FIFO_KHR :						return EPresentMode::FIFO;
+			case VK_PRESENT_MODE_FIFO_RELAXED_KHR :				return EPresentMode::FIFO_Relaxed;
+			case VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR :	return EPresentMode::SharedDemandRefresh;
+			case VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR:	return EPresentMode::SharedContinuousRefresh;
+
+			case VK_PRESENT_MODE_MAX_ENUM_KHR :					break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown present mode" );
+	}
+
 /*
 =================================================
 	VEnumCast (EQueryType)

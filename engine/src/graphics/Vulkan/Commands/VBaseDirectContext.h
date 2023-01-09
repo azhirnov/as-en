@@ -6,6 +6,7 @@
 # include "graphics/Public/CommandBuffer.h"
 # include "graphics/Vulkan/Commands/VBarrierManager.h"
 # include "graphics/Vulkan/Commands/VDrawBarrierManager.h"
+# include "graphics/Vulkan/Commands/VAccumDeferredBarriers.h"
 # include "graphics/Vulkan/VRenderTaskScheduler.h"
 
 namespace AE::Graphics::_hidden_
@@ -29,7 +30,9 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		virtual ~_VBaseDirectContext ()													__NE___;
+		virtual ~_VBaseDirectContext ()													__NE___	{ DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" ); }
+		
+		void  PipelineBarrier (const VkDependencyInfo &info);
 
 	protected:
 		_VBaseDirectContext (VCommandBuffer cmdbuf, DebugLabel dbg)						__Th___;
@@ -44,6 +47,9 @@ namespace AE::Graphics::_hidden_
 
 		ND_ VkCommandBuffer	_EndCommandBuffer ();
 		ND_ VCommandBuffer  _ReleaseCommandBuffer ();
+
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf)		__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf)	__NE___;
 	};
 	
 
@@ -63,7 +69,7 @@ namespace AE::Graphics::_hidden_
 	public:
 		explicit VBaseDirectContext (const RenderTask &task)				__Th___;
 		VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf)	__Th___;
-		~VBaseDirectContext ()												__NE_OV;
+		~VBaseDirectContext ()												__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
 		void  _CommitBarriers ();
@@ -71,6 +77,8 @@ namespace AE::Graphics::_hidden_
 		void  _DebugMarker (DebugLabel dbg)											{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_DebugMarker( dbg ); }
 		void  _PushDebugGroup (DebugLabel dbg)										{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( dbg ); }
 		void  _PopDebugGroup ()														{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PopDebugGroup(); }
+		
+		ND_ VkCommandBuffer	_EndCommandBuffer ();
 
 		ND_ bool	_NoPendingBarriers ()									C_NE___	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetExtensions ()										C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
@@ -95,16 +103,6 @@ namespace AE::Graphics::_hidden_
 			_PushDebugGroup( dbg );
 		)
 		Unused( dbg );
-	}
-
-/*
-=================================================
-	destructor
-=================================================
-*/
-	inline _VBaseDirectContext::~_VBaseDirectContext () __NE___
-	{
-		DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
 	}
 	
 /*
@@ -136,7 +134,7 @@ namespace AE::Graphics::_hidden_
 		ASSERT( _IsValid() );
 
 		// don't call vkEndCommandBuffer
-		DEBUG_ONLY( _PopDebugGroup() );
+		//DEBUG_ONLY( _PopDebugGroup() );
 
 		VCommandBuffer	res = RVRef(_cmdbuf);
 		ASSERT( not _IsValid() );
@@ -198,6 +196,43 @@ namespace AE::Graphics::_hidden_
 
 		vkCmdFillBuffer( _cmdbuf.Get(), buffer, VkDeviceSize(offset), VkDeviceSize(size), data );
 	}
+	
+/*
+=================================================
+	_ReuseOrCreateCommandBuffer
+=================================================
+*/
+	inline VCommandBuffer  _VBaseDirectContext::_ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf) __NE___
+	{
+		if ( cmdbuf.IsValid() )
+			return RVRef(cmdbuf);
+		else
+			return RenderTaskScheduler().GetCommandPoolManager().GetCommandBuffer(
+						batch.GetQueueType(),
+						batch.GetCmdBufType(),
+						null );
+	}
+	
+	inline VCommandBuffer  _VBaseDirectContext::_ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf) __NE___
+	{
+		if ( cmdbuf.IsValid() )
+			return RVRef(cmdbuf);
+		else
+			return RenderTaskScheduler().GetCommandPoolManager().GetCommandBuffer(
+						batch.GetQueueType(),
+						batch.GetCmdBufType(),
+						&batch.GetPrimaryCtxState() );
+	}
+	
+/*
+=================================================
+	PipelineBarrier
+=================================================
+*/
+	inline void  _VBaseDirectContext::PipelineBarrier (const VkDependencyInfo &info)
+	{
+		vkCmdPipelineBarrier2KHR( _cmdbuf.Get(), &info );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -207,31 +242,22 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task) __Th___ :
-		VBaseDirectContext{	// throw
-			task,
-			RenderTaskScheduler().GetCommandPoolManager().GetCommandBuffer(
-						task.GetBatchPtr()->GetQueueType(),
-						task.GetBatchPtr()->GetCmdBufType(),
-						null )}
-	{}
-	
 	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf) __Th___ :
-		_VBaseDirectContext{ RVRef(cmdbuf), DebugLabel{ task.DbgFullName(), task.DbgColor() }},	// throw
+		_VBaseDirectContext{	// throw
+			_ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf) ),
+			DebugLabel{ task.DbgFullName(), task.DbgColor() }
+		},
 		_mngr{ task }
 	{
 		ASSERT( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
+
+		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+			PipelineBarrier( *bar );
 	}
-	
-/*
-=================================================
-	destructor
-=================================================
-*/
-	inline VBaseDirectContext::~VBaseDirectContext () __NE___
-	{
-		ASSERT( _NoPendingBarriers() );
-	}
+		
+	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task) __Th___ :
+		VBaseDirectContext{ task, Default }
+	{}
 
 /*
 =================================================
@@ -243,9 +269,22 @@ namespace AE::Graphics::_hidden_
 		auto* bar = _mngr.GetBarriers();
 		if_unlikely( bar != null )
 		{
-			vkCmdPipelineBarrier2KHR( _cmdbuf.Get(), bar );
+			PipelineBarrier( *bar );
 			_mngr.ClearBarriers();
 		}
+	}
+	
+/*
+=================================================
+	_EndCommandBuffer
+=================================================
+*/
+	inline VkCommandBuffer  VBaseDirectContext::_EndCommandBuffer ()
+	{
+		if ( auto* bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
+			PipelineBarrier( *bar );
+
+		return _VBaseDirectContext::_EndCommandBuffer();
 	}
 
 

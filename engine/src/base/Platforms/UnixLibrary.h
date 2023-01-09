@@ -2,9 +2,9 @@
 
 #pragma once
 
-#ifdef AE_PLATFORM_UNIX_BASED
+#include "base/Defines/StdInclude.h"
 
-# include "base/Defines/StdInclude.h"
+#ifdef AE_PLATFORM_UNIX_BASED
 # include <dlfcn.h>
 
 # include "base/Utils/Helpers.h"
@@ -40,7 +40,7 @@ namespace AE::Base
 		template <typename T>
 		bool  GetProcAddr (NtStringView name, OUT T &result) C_NE___;
 		
-		ND_ Path  GetPath ()				C______;
+		ND_ Path  GetPath ()				C_NE___;
 
 		ND_ explicit operator bool ()		C_NE___		{ return _handle != null; }
 	};
@@ -96,7 +96,7 @@ namespace AE::Base
 	GetPath
 =================================================
 */
-	inline Path  UnixLibrary::GetPath () C______
+	inline Path  UnixLibrary::GetPath () C_NE___
 	{
 	#ifdef AE_PLATFORM_ANDROID
 		RETURN_ERR( "not supported" );
@@ -109,7 +109,7 @@ namespace AE::Base
 		char	buf [PATH_MAX] = {};
 		CHECK_ERR( ::dlinfo( _handle, RTLD_DI_ORIGIN, buf ) == 0 );
 
-		return Path{ buf };
+		CATCH_ERR( return Path{ buf };)
 	#endif
 	}
 

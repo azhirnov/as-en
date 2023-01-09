@@ -17,6 +17,7 @@ if (TARGET "Graphics")
 	target_link_libraries( "Tests.Graphics" PUBLIC "Graphics" "Platform" "GraphicsTestUtils" )
 
 	target_include_directories( "Tests.Graphics" PUBLIC "." )
+	target_include_directories( "Tests.Graphics" PUBLIC "${DATA_FOLDER}/scripts" )
 
 	target_compile_definitions( "Tests.Graphics" PUBLIC AE_TEST_GRAPHICS )
 		
@@ -35,10 +36,6 @@ if (TARGET "Graphics")
 		)
 		set_property( TARGET "Tests.Graphics.PackRes" PROPERTY FOLDER "Engine/Tests" )
 		add_dependencies( "PACK_RES" "Tests.Graphics.PackRes" )
-	endif()
-
-	if (TARGET "VulkanSyncLog")
-		target_link_libraries( "Tests.Graphics" PUBLIC "VulkanSyncLog" )
 	endif()
 
 	if (${AE_ENABLE_VULKAN})

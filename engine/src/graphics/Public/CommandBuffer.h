@@ -339,14 +339,15 @@ namespace AE::Graphics
 		//		requires: EPipelineDynamicState::RTStackSize
 		virtual void  SetStackSize (Bytes size)																				__Th___	= 0;
 		
-		//		sbt.buffer:     EResourceState::RTShaderBindingTable
-		//		indirectBuffer: EResourceState::IndirectBuffer
+		//		sbt: EResourceState::RTShaderBindingTable
 		virtual void  TraceRays (const uint2 dim, RTShaderBindingID sbt)													__Th___	= 0;
 		virtual void  TraceRays (const uint3 dim, RTShaderBindingID sbt)													__Th___	= 0;
 
 		virtual void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)											__Th___	= 0;
 		virtual void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)											__Th___	= 0;
-
+		
+		//		sbt:            EResourceState::RTShaderBindingTable
+		//		indirectBuffer: EResourceState::IndirectBuffer
 		virtual void  TraceRaysIndirect (RTShaderBindingID sbt,
 										 BufferID indirectBuffer, Bytes indirectBufferOffset)								__Th___	= 0;
 		virtual void  TraceRaysIndirect (const RTShaderBindingTable &sbt,
@@ -391,18 +392,18 @@ namespace AE::Graphics
 		virtual void  Copy (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)							__Th___	= 0;
 		virtual void  Copy (RTSceneID src, RTSceneID dst, ERTASCopyMode mode = ERTASCopyMode::Clone)								__Th___	= 0;
 
-		//		as:        EREsourceState::CopyRTAS_Read
-		//		dstBuffer: EREsourceState::CopyDst
+		//		as:        EResourceState::CopyRTAS_Read
+		//		dstBuffer: EResourceState::CopyDst
 		virtual void  WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size = UMax)	__Th___	= 0;
 		virtual void  WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size = UMax)		__Th___	= 0;
 		
-		//		as: EREsourceState::CopyRTAS_Read
+		//		as: EResourceState::CopyRTAS_Read
 		ND_ virtual Promise<Bytes>  ReadProperty (ERTASProperty property, RTGeometryID as)											__Th___	= 0;
 		ND_ virtual Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as)												__Th___	= 0;
 		
 		VULKAN_ONLY(
-				//		src: EREsourceState::CopyRTAS_Read
-				//		dst: EREsourceState::CopyRTAS_Write
+				//		src: EResourceState::CopyRTAS_Read
+				//		dst: EResourceState::CopyRTAS_Write
 				void  SerializeToMemory (RTGeometryID src, VDeviceAddress dst);
 				void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset);
 		

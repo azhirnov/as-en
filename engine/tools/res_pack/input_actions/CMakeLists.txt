@@ -1,4 +1,3 @@
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 set( PLATFORM_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/platform" )
 set( PLATFORM_SRC

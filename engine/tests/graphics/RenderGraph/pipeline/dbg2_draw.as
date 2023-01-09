@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -5,22 +6,22 @@ void main ()
 		return;
 
 	{
-		PipelineLayout@		pl = PipelineLayout( "dbg2_draw.pl" );
+		RC<PipelineLayout>		pl = PipelineLayout( "dbg2_draw.pl" );
 		pl.AddDebugDSLayout( EShaderOpt::Trace, EShaderStages::Fragment | EShaderStages::Vertex );
 		pl.Define( "#define DEBUG" );
 	}
 
-	GraphicsPipeline@	ppln = GraphicsPipeline( "dbg2_draw" );
+	RC<GraphicsPipeline>	ppln = GraphicsPipeline( "dbg2_draw" );
 	ppln.SetLayout( "dbg2_draw.pl" );
 	
 	{
-		Shader@	vs	= Shader();
+		RC<Shader>	vs	= Shader();
 		vs.file		= "draw1_vs.glsl";
 		vs.options	= EShaderOpt::Trace;
 		ppln.SetVertexShader( vs );
 	}
 	{
-		Shader@	fs	= Shader();
+		RC<Shader>	fs	= Shader();
 		fs.file		= "draw1_fs.glsl";
 		fs.options	= EShaderOpt::Trace;
 		ppln.SetFragmentShader( fs );
@@ -28,7 +29,7 @@ void main ()
 
 	// specialization
 	{
-		GraphicsPipelineSpec@	spec = ppln.AddSpecialization( "dbg2_draw" );
+		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "dbg2_draw" );
 		spec.AddToRenderTech( "DrawTestRT", "Draw_1" );
 		spec.SetViewportCount( 1 );
 

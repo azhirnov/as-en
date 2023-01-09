@@ -59,10 +59,10 @@ namespace AE::Base
 		ND_ static bool  Exists (const Path &p)			__NE___;
 		
 		// returns 'true' if path refers to a file
-		ND_ static bool  IsFile (const Path &p)			__NE___;
+		ND_ static bool  IsFile (const Path &p)			__NE___	{ return Exists( p ) and not _IsDirectory( p ); }
 
 		// returns 'true' if path refers to a directory
-		ND_ static bool  IsDirectory (const Path &p)	__NE___;
+		ND_ static bool  IsDirectory (const Path &p)	__NE___	{ return Exists( p ) and _IsDirectory( p ); }
 
 		// returns current path
 		ND_ static Path  CurrentPath ();
@@ -110,6 +110,9 @@ namespace AE::Base
 		#ifdef AE_PLATFORM_WINDOWS
 		ND_ static Path  GetWindowsPath ();
 		#endif
+
+	private:
+		ND_ static bool  _IsDirectory (const Path &p)	__NE___;
 	};
 
 	
@@ -150,14 +153,8 @@ namespace AE::Base
 		std::error_code	ec;
 		return _ae_fs_::exists( p, OUT ec );
 	}
-	
-	inline bool  FileSystem::IsFile (const Path &p) __NE___
-	{
-		std::error_code	ec;
-		return not _ae_fs_::is_directory( p, OUT ec );	// TODO
-	}
 
-	inline bool  FileSystem::IsDirectory (const Path &p) __NE___
+	inline bool  FileSystem::_IsDirectory (const Path &p) __NE___
 	{
 		std::error_code	ec;
 		return _ae_fs_::is_directory( p, OUT ec );
@@ -261,6 +258,11 @@ namespace std
 # if _MSC_VER >= 1933
 #	define AE_HAS_PATH_HASH
 # endif
+#endif
+
+#ifdef AE_COMPILER_CLANG
+	// TODO: check version
+#	define AE_HAS_PATH_HASH
 #endif
 
 #ifndef AE_HAS_PATH_HASH

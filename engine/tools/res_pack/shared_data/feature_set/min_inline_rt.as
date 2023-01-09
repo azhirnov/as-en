@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -22,7 +23,7 @@ void main ()
 
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "MinInlineRayTracing" );
+	RC<FeatureSet>  fset = FeatureSet( "MinInlineRayTracing" );
 
 	fset.depthBiasClamp (True);
 	fset.dualSrcBlend (True);

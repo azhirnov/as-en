@@ -39,7 +39,7 @@ namespace AE::Graphics
 		ND_ MetalAccelStruct		Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ MMemoryID				MemoryID ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 		ND_ RTSceneDesc const&		Description ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ bool					IsExclusiveSharing ()	C_NE___	{ return true; }
+		ND_ bool					IsExclusiveSharing ()	C_NE___	{ return false; }
 		
 		DEBUG_ONLY( ND_ StringView	GetDebugName ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 			

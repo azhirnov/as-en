@@ -133,14 +133,14 @@ no source
 
 //> color: float4 {0.000000, 0.000000, 1.000000, 0.000000}
 //  gl_LocalInvocationID: uint3 {0, 0, 0}
-46. color = vec4(float(gl_LocalInvocationID.x) / float(gl_WorkGroupSize.x),
-47. 					  float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y),
-48. 					  1.0, 0.0);
+63. color = vec4(float(gl_LocalInvocationID.x) / float(gl_WorkGroupSize.x),
+64. 					  float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y),
+65. 					  1.0, 0.0);
 
 //> imageStore(): void
 //  color: float4 {0.000000, 0.000000, 1.000000, 0.000000}
 //  gl_GlobalInvocationID: uint3 {8, 8, 0}
-50. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
+67. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 )";
 						ok &= (trace_str[0] == ref_str);
@@ -198,8 +198,8 @@ no source
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Debugger1"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< Db1_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Compute task"} );
-		AsyncTask	task2	= batch->Add< Db1_CopyTask<CopyCtx>     >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+		AsyncTask	task1	= batch->Run< Db1_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Compute task"} );
+		AsyncTask	task2	= batch->Run< Db1_CopyTask<CopyCtx>     >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 

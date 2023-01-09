@@ -1,7 +1,8 @@
+#include <pipeline_compiler>
 
 void main ()
 {
-	GraphicsPipeline@	ppln = GraphicsPipeline( "graphics_1" );
+	RC<GraphicsPipeline>	ppln = GraphicsPipeline( "graphics_1" );
 	ppln.AddFeatureSet( "MinimalFS" );
 	ppln.SetLayout( "Graphics_PL_1" );
 	ppln.SetVertexInput( "vb_input1" );
@@ -9,13 +10,13 @@ void main ()
 	ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "graphics_1.io" );
 
 	{
-		Shader@	vs = Shader();
+		RC<Shader>	vs = Shader();
 		vs.file		= "vertex_1.glsl";
 		vs.options	= EShaderOpt::Optimize;
 		ppln.SetVertexShader( vs );
 	}
 	{
-		Shader@	fs = Shader();
+		RC<Shader>	fs = Shader();
 		fs.file		= "fragment_1.glsl";
 		fs.options	= EShaderOpt::Optimize;
 		ppln.SetFragmentShader( fs );
@@ -25,7 +26,7 @@ void main ()
 
 	// specialization
 	{
-		GraphicsPipelineSpec@	spec = ppln.AddSpecialization( "graphics_1 rp:Simple" );
+		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "graphics_1 rp:Simple" );
 		spec.AddToRenderTech( "MinForward", "Graphics1" );
 		spec.SetViewportCount( 1 );
 

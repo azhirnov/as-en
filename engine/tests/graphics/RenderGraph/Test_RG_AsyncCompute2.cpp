@@ -5,16 +5,15 @@
 
   .------------------------.
   |      frame 1           |
-  |             .----------|-------------.
+  |             .------------------------.
   |             |        frame 2         |
-  |-------------|----------|--.----------|
+  |-------------|-------------.----------|
   |  graphics1  |  graphics2  |          |
-  |-------------|----------|--|----------|
+  |-------------|-------------|----------|
   |             | compute1 |  | compute2 |
   '-------------'----------'--'----------'
 */
 
-#if 0
 #include "Test_RenderGraph.h"
 
 namespace
@@ -42,24 +41,20 @@ namespace
 		
 		ImageComparator *			imgCmp	= null;
 		RC<GfxLinearMemAllocator>	gfxAlloc;
-		RenderTechPipelinesPtr		renderTech;
-
-		RenderGraph					rg;
 	};
-
-	constexpr auto	img_gfx_state	= EResourceState::ShaderSample | EResourceState::FragmentShader;
-	constexpr auto	img_comp_state	= EResourceState::ShaderStorage_RW | EResourceState::ComputeShader;
-
+	
 
 	template <typename CtxTypes>
 	class AC2_GraphicsTask final : public RenderTask
 	{
 	public:
 		AC2_TestData&	t;
+		const uint		fi;
 
-		AC2_GraphicsTask (AC2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
+		AC2_GraphicsTask (AC2_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ batch, dbg },
+			t{ t },
+			fi{ frameIdx & 1 }
 		{
 			CHECK( batch->GetQueueType() == EQueueType::Graphics );
 		}
@@ -69,27 +64,19 @@ namespace
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
 
-			const uint	fi = t.frameIdx.load() & 1;
-
 			typename CtxTypes::Graphics		ctx{ *this };
-
-			ctx.AcquireResources();
-			ctx.CommitBarriers();
-
+			
 			// draw
 			{
 				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.imageSize }
-										.AddViewport( t.imageSize )
-										.AddTarget( AttachmentName{"Color"}, t.view[fi], RGBA32f{1.0f} ));
+									.AddViewport( t.imageSize )
+									.AddTarget( AttachmentName{"Color"}, t.view[fi], RGBA32f{1.0f} ));
 
 				dctx.BindPipeline( t.gppln );
 				dctx.Draw( 3 );
 				
 				ctx.EndRenderPass( dctx );
 			}
-			
-			ctx.ReleaseResources();
-			ctx.CommitBarriers();
 			
 			Execute( ctx );
 		}
@@ -101,10 +88,12 @@ namespace
 	{
 	public:
 		AC2_TestData&	t;
+		const uint		fi;
 
-		AC2_ComputeTask (AC2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
+		AC2_ComputeTask (AC2_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
+			RenderTask{ batch, dbg },
+			t{ t },
+			fi{ frameIdx & 1 }
 		{
 			CHECK( batch->GetQueueType() == EQueueType::AsyncCompute );
 		}
@@ -113,33 +102,25 @@ namespace
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
-			
-			const uint	fi = t.frameIdx.load() & 1;
 
 			typename CtxTypes::Compute	ctx{ *this };
 			
-			ctx.AcquireResources();
-			ctx.CommitBarriers();
-
 			ctx.BindPipeline( t.cppln );
 			ctx.BindDescriptorSet( t.cpplnDSIndex, t.cpplnDS[fi] );
 			ctx.Dispatch( DivCeil( t.imageSize, 4u ));
 			
-			ctx.ReleaseResources();
-			ctx.CommitBarriers();
-
 			Execute( ctx );
 		}
 	};
 	
 
 	template <typename Ctx>
-	class CopyTask final : public RenderTask
+	class AC2_CopyTask final : public RenderTask
 	{
 	public:
 		AC2_TestData&	t;
 
-		CopyTask (AC2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+		AC2_CopyTask (AC2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
 			RenderTask{ RVRef(batch), dbg },
 			t{ t }
 		{}
@@ -150,13 +131,6 @@ namespace
 			CHECK_TE( lock.try_lock() );
 			
 			Ctx		ctx{ *this };
-			
-			ctx.AcquireResources();
-			ctx.CommitBarriers();
-
-			ctx.ResourceUsage( t.image[0], EResourceState::CopySrc );
-			ctx.ResourceUsage( t.image[1], EResourceState::CopySrc );
-			ctx.CommitBarriers();
 
 			ReadbackImageDesc	readback;
 			readback.heapType = EStagingHeapType::Dynamic;
@@ -171,9 +145,6 @@ namespace
 									{
 										p->isOK[1] = p->imgCmp->Compare( view );
 									})};
-
-			ctx.ReleaseResources();
-			ctx.CommitBarriers();
 			
 			Execute( ctx );
 		}
@@ -184,7 +155,8 @@ namespace
 	class AC2_FrameTask final : public Threading::IAsyncTask
 	{
 	public:
-		AC2_TestData&	t;
+		AC2_TestData&		t;
+		CommandBatchPtr		lastBatch;
 
 		AC2_FrameTask (AC2_TestData& t) :
 			IAsyncTask{ ETaskQueue::Worker },
@@ -193,19 +165,33 @@ namespace
 
 		void  Run () override
 		{
+			constexpr auto	img_gfx_state	= EResourceState::ShaderSample | EResourceState::FragmentShader;
+			constexpr auto	img_comp_state	= EResourceState::ShaderStorage_RW | EResourceState::ComputeShader;
+
+			auto&	rts = RenderTaskScheduler();
+			
 			if ( t.frameIdx.load() == 3 )
 			{
-				AsyncTask	begin = t.rg.BeginFrame();
+				AsyncTask	begin = rts.BeginFrame();
 
-				auto	batch = t.rg.BeginCmdBatch( EQueueType::Graphics, {"copy task"} );
+				auto		batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"copy task"} );
 				CHECK_TE( batch );
 
-				batch->AcquireResource( t.image[0], img_comp_state );
-				batch->AcquireResource( t.image[1], img_comp_state );
-				//batch->ReadbackDeviceData();
+				CHECK_TE( batch->AddInputDependency( lastBatch ));
+
+				auto	initial = batch->DeferredBarriers();
+				initial	.AcquireImageOwnership( t.image[0], EQueueType::AsyncCompute, img_comp_state, img_gfx_state )
+						.AcquireImageOwnership( t.image[1], EQueueType::AsyncCompute, img_comp_state, img_gfx_state )
+						.ImageBarrier( t.image[0], img_gfx_state, EResourceState::CopySrc )
+						.ImageBarrier( t.image[1], img_gfx_state, EResourceState::CopySrc );
 				
-				AsyncTask	read_task	= batch->Add<CopyTask<CopyCtx>>( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Readback task"} );
-				AsyncTask	end			= t.rg.EndFrame( Tuple{read_task} );
+				auto	final = batch->DeferredBarriers();
+				final.MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
+				
+				AsyncTask	read_task	= batch->Run< AC2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{begin},
+																			   initial.Get(), final.Get(),
+																			   True{"Last"}, {"Readback task"} );
+				AsyncTask	end			= rts.EndFrame( Tuple{read_task} );
 				
 				++t.frameIdx;
 				return Continue( Tuple{end} );
@@ -214,36 +200,58 @@ namespace
 			if ( t.frameIdx.load() > 3 )
 				return;
 			
-			const uint	fi = t.frameIdx.load() & 1;
-
-			AsyncTask	begin = t.rg.BeginFrame();
+			const uint		fi		= t.frameIdx.load() & 1;
+			AsyncTask		begin	= rts.BeginFrame();
 			
 			CommandBatchPtr	batch_gfx;
-			CommandBatchPtr	batch_ac;
-
-			// render graph planning stage
+			AsyncTask		gfx_task;
 			{
-				// init graphics batch
-				batch_gfx = t.rg.BeginCmdBatch( t.renderTech, RenderTechPassName{"Draw_1"}, EQueueType::Graphics, {"graphics batch"} );
+				batch_gfx	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"graphics batch"} );
 				CHECK_TE( batch_gfx );
 
-				// init compute batch
-				batch_ac = t.rg.BeginCmdBatch( t.renderTech, RenderTechPassName{"Compute_1"}, EQueueType::AsyncCompute, {"compute batch"} );
-				CHECK_TE( batch_ac );
+				// sync with previous frame
+				CHECK_TE( batch_gfx->AddInputDependency( lastBatch ));
+			
+				auto	initial = batch_gfx->DeferredBarriers();
+				if ( t.frameIdx.load() < 2 )
+					initial.ImageBarrier( t.image[fi], EResourceState::Invalidate, img_gfx_state );
+				else
+					initial.AcquireImageOwnership( t.image[fi], EQueueType::AsyncCompute, img_comp_state, img_gfx_state );
+				
+				auto	final = batch_gfx->DeferredBarriers();
+				final.ReleaseImageOwnership( t.image[fi], img_gfx_state, img_comp_state, EQueueType::AsyncCompute );
 
-				batch_gfx->AcquireResource( t.image[fi], EResourceState::Invalidate | img_gfx_state );
-				batch_ac->AcquireResource( t.image[fi], img_comp_state );
-
-				t.rg.BuildBatchGraph();
+				gfx_task = batch_gfx->Run< AC2_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{begin},
+																		 initial.Get(), final.Get(),
+																		 True{"Last"}, {"graphics task"} );
 			}
 
-			AsyncTask	gfx_task	= batch_gfx->Add< AC2_GraphicsTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},		True{"Last"}, {"graphics task"} );
-			AsyncTask	comp_task	= batch_ac->Add<  AC2_ComputeTask<CtxTypes>  >( Tuple{ArgRef(t)}, Tuple{gfx_task},	True{"Last"}, {"async compute task"} );
+			CommandBatchPtr	batch_ac;
+			AsyncTask		comp_task;
+			{
+				batch_ac	= rts.BeginCmdBatch( EQueueType::AsyncCompute, 0, ESubmitMode::Immediately, {"compute batch"} );
+				CHECK_TE( batch_ac );
 
-			AsyncTask	end			= t.rg.EndFrame( Tuple{ gfx_task, comp_task });
+				// graphics to compute sync
+				CHECK_TE( batch_ac->AddInputDependency( batch_gfx ));
+				
+				auto	initial = batch_ac->DeferredBarriers();
+				initial.AcquireImageOwnership( t.image[fi], EQueueType::Graphics, img_gfx_state, img_comp_state );
+				
+				auto	final = batch_ac->DeferredBarriers();
+				final.ReleaseImageOwnership( t.image[fi], img_comp_state, img_gfx_state, EQueueType::Graphics );
+
+				comp_task = batch_ac->Run< AC2_ComputeTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() }, Tuple{gfx_task},
+																		initial.Get(), final.Get(),
+																	    True{"Last"}, {"async compute task"} );
+			}
+
+			AsyncTask	end = rts.EndFrame( Tuple{ gfx_task, comp_task });
+
+			lastBatch = batch_ac;
 
 			++t.frameIdx;
-			Continue( Tuple{end} );
+			return Continue( Tuple{end} );
 		}
 
 		StringView  DbgName ()	C_NE_OV	{ return "AC2_FrameTask"; }
@@ -258,9 +266,8 @@ namespace
 		AC2_TestData	t;
 		const auto		format		= EPixelFormat::RGBA8_UNorm;
 		
-		t.renderTech	= renderTech;
-		t.gfxAlloc		= MakeRC<GfxLinearMemAllocator>();
-		t.imgCmp		= imageCmp;
+		t.gfxAlloc	= MakeRC<GfxLinearMemAllocator>();
+		t.imgCmp	= imageCmp;
 
 		t.image[0] = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
 												.SetFormat( format )
@@ -271,10 +278,6 @@ namespace
 												.SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
 										   "Image-1", t.gfxAlloc );
 		CHECK_ERR( t.image[0] and t.image[1] );
-
-		// track resource state by render graph
-		t.rg.AddResource( t.image[0], Default );
-		t.rg.AddResource( t.image[1], Default );
 	
 		t.view[0] = res_mngr.CreateImageView( ImageViewDesc{}, t.image[0], "ImageView-0" );
 		t.view[1] = res_mngr.CreateImageView( ImageViewDesc{}, t.image[1], "ImageView-1" );
@@ -311,18 +314,19 @@ namespace
 		
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
+
 		CHECK_ERR( t.frameIdx.load() == 4 );
 		
 		CHECK_ERR( Scheduler().Wait({ t.result[0], t.result[1] }));
 		CHECK_ERR( t.result[0]->Status() == EStatus::Completed );
 		CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
+		CHECK_ERR( t.isOK[0] );
+		CHECK_ERR( t.isOK[1] );
 
 		CHECK_ERR( res_mngr.ReleaseResources(	t.view[0], t.view[1],
 												t.image[0], t.image[1],
 												t.cpplnDS[0], t.cpplnDS[1] ));
-		
-		CHECK_ERR( t.isOK[0] );
-		CHECK_ERR( t.isOK[1] );
+
 		return true;
 	}
 
@@ -344,4 +348,3 @@ bool RGTest::Test_AsyncCompute2 ()
 	AE_LOGI( TEST_NAME << " - passed" );
 	return true;
 }
-#endif

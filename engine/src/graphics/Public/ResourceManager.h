@@ -161,6 +161,7 @@ namespace AE::Graphics
 			// graphics
 			RenderPassName::Optimized_t			renderPass;
 			SubpassName::Optimized_t			subpass;
+			PipelinePackID						packId;
 		};
 
 

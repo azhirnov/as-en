@@ -93,7 +93,8 @@ namespace AE::Base
 	public:
 		MemWDataSource ()							__NE___;
 		
-		explicit MemWDataSource (Bytes bufferSize, Bytes maxSize = UMax) __NE___;
+		explicit MemWDataSource (Array<ubyte> data, Bytes maxSize = 0_b)	__NE___;
+		explicit MemWDataSource (Bytes bufferSize, Bytes maxSize = UMax)	__NE___;
 
 
 		// WDataSource //

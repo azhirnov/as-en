@@ -21,6 +21,7 @@ namespace AE::Scripting
 
 		static void  Name (INOUT String &);
 		static void  ArgName (INOUT String &s);
+		static void  CppArg (INOUT String &s);
 		static uint  SizeOf ();
 	};*/
 
@@ -34,6 +35,7 @@ namespace AE::Scripting
 
 		static void  Name (INOUT String &s)		{ s += "void"; }
 		static void  ArgName (INOUT String &s)	{ s += "void"; }
+		static void  CppArg (INOUT String &s)	{ s += "void"; }
 	};
 
 #	define AE_DECL_SCRIPT_TYPE( _type_, _name_ ) \
@@ -47,6 +49,7 @@ namespace AE::Scripting
 			\
 			static void  Name (INOUT String &s)		{ s += (_name_); } \
 			static void  ArgName (INOUT String &s)	{ s += (_name_); } \
+			static void  CppArg (INOUT String &s)	{ s += (_name_); } \
 		}
 	
 #	define AE_DECL_SCRIPT_OBJ( _type_, _name_ ) \
@@ -60,6 +63,7 @@ namespace AE::Scripting
 			\
 			static void  Name (INOUT String &s)		{ s += (_name_); } \
 			static void  ArgName (INOUT String &s)	{ s += (_name_); } \
+			static void  CppArg (INOUT String &s)	{ s += (_name_); } \
 		}
 
 #	define AE_DECL_SCRIPT_OBJ_RC( _type_, _name_ ) \
@@ -73,6 +77,7 @@ namespace AE::Scripting
 			\
 			static void  Name (INOUT String &s)		{ s += (_name_); } \
 			static void  ArgName (INOUT String &s)	{ s += (_name_); } \
+			static void  CppArg (INOUT String &s)	{ s += (_name_); } \
 		}; \
 		\
 		template <> \
@@ -86,6 +91,7 @@ namespace AE::Scripting
 			\
 			static void  Name (INOUT String &s)		{ s += _name_; s += '@'; } \
 			static void  ArgName (INOUT String &s)	{ s += _name_; s += '@'; } \
+			static void  CppArg (INOUT String &s)	{ s += "RC<";  s += _name_; s += ">"; } \
 		}; \
 		\
 		template <> \
@@ -99,6 +105,7 @@ namespace AE::Scripting
 			\
 			static void  Name (INOUT String &s)		{ s += _name_; s += '@'; } \
 			static void  ArgName (INOUT String &s)	{ s += _name_; s += '@'; } \
+			static void  CppArg (INOUT String &s)	{ s += "RC<";  s += _name_; s += ">"; } \
 		}; \
 		\
 		template <> struct ScriptTypeInfo < const _type_* > {}; \
@@ -123,7 +130,7 @@ namespace AE::Scripting
 
 
 	// only 'in' and 'inout' are supported
-#	define AE_DECL_SCRIPT_WRAP( _templ_, _buildName_, _buildArg_ ) \
+#	define AE_DECL_SCRIPT_WRAP( _templ_, _name_, _arg_, _cppArg_ ) \
 		template <typename T> \
 		struct ScriptTypeInfo < _templ_ > \
 		{ \
@@ -133,8 +140,9 @@ namespace AE::Scripting
 			static constexpr bool is_object		 = false; \
 			static constexpr bool is_ref_counted = false; \
 			\
-			static void  Name (INOUT String &s)		{ _buildName_; } \
-			static void  ArgName (INOUT String &s)	{ _buildArg_; } \
+			static void  Name (INOUT String &s)		{ _name_; } \
+			static void  ArgName (INOUT String &s)	{ _arg_; } \
+			static void  CppArg (INOUT String &s)	{ _cppArg_; } \
 		}
 
 #	define MULTILINE_ARG( ... )  __VA_ARGS__
@@ -146,6 +154,10 @@ namespace AE::Scripting
 						 MULTILINE_ARG(
 							s += "const ";
 							Base_t::Name( s );
+						 ),
+						 MULTILINE_ARG(
+							s += "const ";
+							Base_t::CppArg( s );
 						 ));
 
 	AE_DECL_SCRIPT_WRAP( const T &,
@@ -158,6 +170,11 @@ namespace AE::Scripting
 							s += "const ";
 							Base_t::Name( s );
 							s += " &in";
+						 ),
+						 MULTILINE_ARG(
+							s += "const ";
+							Base_t::CppArg( s );
+							s += " &";
 						 ));
 		
 	AE_DECL_SCRIPT_WRAP( T &,
@@ -168,6 +185,10 @@ namespace AE::Scripting
 						 MULTILINE_ARG(
 							Base_t::Name( s );
 							s += " &inout";
+						 ),
+						 MULTILINE_ARG(
+							Base_t::CppArg( s );
+							s += " &";
 						 ));
 		
 	AE_DECL_SCRIPT_WRAP( const T *,
@@ -180,6 +201,11 @@ namespace AE::Scripting
 							s += "const ";
 							Base_t::Name( s );
 							s += " &in";
+						 ),
+						 MULTILINE_ARG(
+							s += "const ";
+							Base_t::CppArg( s );
+							s += " &";
 						 ));
 		
 	AE_DECL_SCRIPT_WRAP( T *,
@@ -190,6 +216,10 @@ namespace AE::Scripting
 						 MULTILINE_ARG(
 							Base_t::Name( s );
 							s += " &inout";
+						 ),
+						 MULTILINE_ARG(
+							Base_t::CppArg( s );
+							s += " &";
 						 ));
 #	undef MULTILINE_ARG
 
@@ -345,16 +375,10 @@ namespace AE::Scripting
 	{
 
 		template <typename T>
-		struct GlobalFunction
-		{
-			static void  GetDescriptor (OUT String &, StringView, uint, uint);
-		};
+		struct GlobalFunction;
 
 		template <typename T>
-		struct MemberFunction
-		{
-			static void  GetDescriptor (OUT String &, StringView, uint, uint);
-		};
+		struct MemberFunction;
 		
 
 		struct ArgsToString_Func
@@ -378,16 +402,59 @@ namespace AE::Scripting
 			}
 		};
 
+
 		template <typename Typelist>
 		struct ArgsToString
 		{
-			static void  Get (OUT String &str, uint first, uint last)
+			static void  Get (INOUT String &str, uint first, uint last)
 			{
 				ArgsToString_Func	func( first, last, INOUT str );
 				Typelist::Visit( func );
 			}
 			
-			static void  GetArgs (OUT String &str, uint offsetFromStart, uint offsetFromEnd)
+			static void  GetArgs (INOUT String &str, uint offsetFromStart, uint offsetFromEnd)
+			{
+				ASSERT( offsetFromEnd < Typelist::Count );
+
+				str += '(';
+				Get( INOUT str, offsetFromStart, Typelist::Count - offsetFromEnd );
+				str += ')';
+			}
+		};
+
+		
+		struct CppArgsToString_Func
+		{
+			String &	result;
+			const uint	first;
+			const uint	last;
+		
+			CppArgsToString_Func (uint first, uint last, INOUT String &str) : 
+				result(str), first(first), last(last)
+			{
+				ASSERT( first <= last );
+			}
+
+			template <typename T, usize Index>
+			void  operator () ()
+			{
+				if ( Index < first or Index > last )	return;
+				if ( Index > first )					result += ", ";
+				ScriptTypeInfo<T>::CppArg( INOUT result );
+			}
+		};
+
+
+		template <typename Typelist>
+		struct CppArgsToString
+		{
+			static void  Get (INOUT String &str, uint first, uint last)
+			{
+				CppArgsToString_Func	func( first, last, INOUT str );
+				Typelist::Visit( func );
+			}
+			
+			static void  GetCppArgs (INOUT String &str, uint offsetFromStart, uint offsetFromEnd)
 			{
 				ASSERT( offsetFromEnd < Typelist::Count );
 
@@ -404,19 +471,34 @@ namespace AE::Scripting
 			using TypeList_t	= TypeList< Types... >;
 			using Result_t		= Ret;
 				
-			static void  GetDescriptor (OUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			static void  GetDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
 			{
 				// can not convert between R* to SharedPtr<R>
 				STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
 
-				ScriptTypeInfo< Result_t >::Name( OUT str );
+				ScriptTypeInfo< Result_t >::Name( INOUT str );
 				(str += ' ') += name;
 				GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
 			}
 
-			static void  GetArgs (OUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			static void  GetArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
 			{
-				ArgsToString< TypeList_t >::GetArgs( OUT str, offsetFromStart, offsetFromEnd );
+				ArgsToString< TypeList_t >::GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
+			}
+			
+			static void  GetCppDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			{
+				// can not convert between R* to SharedPtr<R>
+				STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
+
+				ScriptTypeInfo< Result_t >::CppArg( INOUT str );
+				((str += "  ") += name) += ' ';
+				GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
+			}
+			
+			static void  GetCppArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			{
+				CppArgsToString< TypeList_t >::GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
 			}
 		};
 		
@@ -429,19 +511,33 @@ namespace AE::Scripting
 		{
 			using TypeList_t	= TypeList<>;
 			using Result_t		= Ret;
-				
-			static void  GetDescriptor (OUT String &str, StringView name, uint = 0, uint = 0)
+			
+			static void  GetDescriptor (INOUT String &str, StringView name, uint = 0, uint = 0)
 			{
 				// can not convert between R* to SharedPtr<R>
 				STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
 
-				ScriptTypeInfo< Result_t >::Name( OUT str );
+				ScriptTypeInfo< Result_t >::Name( INOUT str );
 				((str += ' ') += name) += "()";
 			}
 
-			static void  GetArgs (OUT String &str, uint = 0, uint = 0)
+			static void  GetArgs (INOUT String &str, uint = 0, uint = 0)
 			{
 				str += "()";
+			}
+			
+			static void  GetCppDescriptor (INOUT String &str, StringView name, uint = 0, uint = 0)
+			{
+				// can not convert between R* to SharedPtr<R>
+				STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
+
+				ScriptTypeInfo< Result_t >::CppArg( INOUT str );
+				((str += "  ") += name) += " ()";
+			}
+
+			static void  GetCppArgs (INOUT String &str, uint = 0, uint = 0)
+			{
+				str += " ()";
 			}
 		};
 		
@@ -462,14 +558,24 @@ namespace AE::Scripting
 			using TypeList_t	= TypeList< Types... >;
 			using Result_t		= Ret;
 				
-			static void  GetDescriptor (OUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			static void  GetDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
 			{
-				GlobalFunction< Result_t (*) (Types...) >::GetDescriptor( OUT str, name, offsetFromStart, offsetFromEnd );
+				GlobalFunction< Result_t (*) (Types...) >::GetDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
 			}
 
-			static void  GetArgs (OUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			static void  GetArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
 			{
-				GlobalFunction< Result_t (*) (Types...) >::GetArgs( OUT str, offsetFromStart, offsetFromEnd );
+				GlobalFunction< Result_t (*) (Types...) >::GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
+			}
+				
+			static void  GetCppDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			{
+				GlobalFunction< Result_t (*) (Types...) >::GetCppDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
+			}
+
+			static void  GetCppArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			{
+				GlobalFunction< Result_t (*) (Types...) >::GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
 			}
 		};
 		
@@ -483,14 +589,24 @@ namespace AE::Scripting
 			using TypeList_t	= TypeList<>;
 			using Result_t		= Ret;
 				
-			static void  GetDescriptor (OUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			static void  GetDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
 			{
-				GlobalFunction< Result_t (*) () >::GetDescriptor( OUT str, name, offsetFromStart, offsetFromEnd );
+				GlobalFunction< Result_t (*) () >::GetDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
 			}
 
-			static void  GetArgs (OUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			static void  GetArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
 			{
-				GlobalFunction< Result_t (*) () >::GetArgs( OUT str, offsetFromStart, offsetFromEnd );
+				GlobalFunction< Result_t (*) () >::GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
+			}
+				
+			static void  GetCppDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			{
+				GlobalFunction< Result_t (*) () >::GetCppDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
+			}
+
+			static void  GetCppArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			{
+				GlobalFunction< Result_t (*) () >::GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
 			}
 		};
 			
@@ -504,15 +620,26 @@ namespace AE::Scripting
 			using TypeList_t	= TypeList< Types... >;
 			using Result_t		= Ret;
 				
-			static void  GetDescriptor (OUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			static void  GetDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
 			{
-				GlobalFunction< Result_t (*) (Types...) >::GetDescriptor( OUT str, name, offsetFromStart, offsetFromEnd );
+				GlobalFunction< Result_t (*) (Types...) >::GetDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
 				str += " const";
 			}
 
-			static void  GetArgs (OUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			static void  GetArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
 			{
-				GlobalFunction< Result_t (*) (Types...) >::GetArgs( OUT str, offsetFromStart, offsetFromEnd );
+				GlobalFunction< Result_t (*) (Types...) >::GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
+			}
+				
+			static void  GetCppDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			{
+				GlobalFunction< Result_t (*) (Types...) >::GetCppDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
+				str += " const";
+			}
+
+			static void  GetCppArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			{
+				GlobalFunction< Result_t (*) (Types...) >::GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
 			}
 		};
 			
@@ -526,15 +653,26 @@ namespace AE::Scripting
 			using TypeList_t	= TypeList<>;
 			using Result_t		= Ret;
 				
-			static void  GetDescriptor (OUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			static void  GetDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
 			{
-				GlobalFunction< Result_t (*) () >::GetDescriptor( OUT str, name, offsetFromStart, offsetFromEnd );
+				GlobalFunction< Result_t (*) () >::GetDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
 				str += " const";
 			}
 
-			static void  GetArgs (OUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			static void  GetArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
 			{
-				GlobalFunction< Result_t (*) () >::GetArgs( OUT str, offsetFromStart, offsetFromEnd );
+				GlobalFunction< Result_t (*) () >::GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
+			}
+				
+			static void  GetCppDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			{
+				GlobalFunction< Result_t (*) () >::GetCppDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
+				str += " const";
+			}
+
+			static void  GetCppArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+			{
+				GlobalFunction< Result_t (*) () >::GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
 			}
 		};
 

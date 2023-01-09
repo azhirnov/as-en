@@ -13,7 +13,81 @@
 #endif
 //-----------------------------------------------------------------------------
 
+namespace AE::Graphics
+{
+	
+	//
+	// Pipeline Pack
+	//
+
+	class PPLNPACK
+	{
 	// types
+	#if defined(AE_ENABLE_VULKAN)
+
+	public:
+		struct ShaderModuleRef
+		{
+			VkShaderStageFlagBits									stage			= Zero;
+			VkShaderModule											module			= Default;
+			PipelineCompiler::ShaderBytecode::OptSpecConst_t const*	shaderConstants	= null;
+			ShaderTracePtr											dbgTrace;
+			
+			ND_ bool		IsValid ()	C_NE___	{ return module != Default and shaderConstants != null; }
+			ND_ const char*	Entry ()	C_NE___	{ return "Main"; }
+		};
+		
+	private:
+
+		//
+		// Shader Module
+		//
+		struct alignas(AE_CACHE_LINE) ShaderModule
+		{
+			Threading::RWSpinLock										guard;		// protects 'module', 'dbgTrace', 'constants'
+			Bytes32u													offset;
+			Bytes32u													dataSize;
+			ubyte														shaderTypeIdx	= UMax;
+			mutable VkShaderModule										module			= Default;
+			mutable Unique< PipelineCompiler::ShaderTrace >				dbgTrace;
+			mutable PipelineCompiler::ShaderBytecode::OptSpecConst_t	constants;
+		};
+		STATIC_ASSERT( sizeof(ShaderModule) == 128 );
+
+	#elif defined(AE_ENABLE_METAL)
+
+	public:
+		struct ShaderModuleRef
+		{
+			EShader													type			= Default;
+			MetalLibrary											lib;
+			PipelineCompiler::ShaderBytecode::OptSpecConst_t const*	shaderConstants	= null;
+			
+			ND_ bool		IsValid ()	C_NE___	{ return bool{lib} and shaderConstants != null; }
+			ND_ const char*	Entry ()	C_NE___	{ return "Main"; }
+		};
+		
+	private:
+
+		//
+		// Shader Module
+		//
+		struct alignas(AE_CACHE_LINE) ShaderModule
+		{
+			Threading::RWSpinLock										guard;		// protects 'module', 'dbgTrace', 'constants'
+			Bytes32u													offset;
+			Bytes32u													dataSize;
+			ubyte														shaderTypeIdx	= UMax;
+			mutable MetalLibraryRC										lib;
+			mutable PipelineCompiler::ShaderBytecode::OptSpecConst_t	constants;
+		};
+		STATIC_ASSERT( sizeof(ShaderModule) == 128 );
+
+	#else
+	#	error not implemented
+	#endif
+
+
 	public:
 		using Allocator_t = Threading::LfLinearAllocator< usize(SmallAllocationSize * 16) >;
 
@@ -85,9 +159,9 @@
 
 		using StackAllocator_t		= StackAllocator< UntypedAllocator, 16, false >;
 		using FeatureNames_t		= THashSet< FeatureSetName::Optimized_t >;
-		using SamplerRefs_t			= THashMap< SamplerName::Optimized_t, SamplerID_t >;
-		using DSLayoutMap_t			= THashMap< DSLayoutName::Optimized_t, DescriptorSetLayoutID >;
-		using PplnTemplMap_t		= THashMap< PipelineTmplName::Optimized_t, PipelineCompiler::PipelineTemplUID >;
+		using SamplerRefs_t			= THashMap< SamplerName::Optimized_t,		SamplerID_t >;
+		using DSLayoutMap_t			= THashMap< DSLayoutName::Optimized_t,		DescriptorSetLayoutID >;
+		using PplnTemplMap_t		= THashMap< PipelineTmplName::Optimized_t,	PipelineCompiler::PipelineTemplUID >;
 
 	public:
 
@@ -124,9 +198,9 @@
 		private:
 			PPLNPACK &						_pack;
 			RenderTechName::Optimized_t		_name;
-			bool							_isSupported	: 1;
-			bool							_isLoaded		: 1;
-			bool							_isTryLoad		: 1;
+			bool							_isSupported		: 1;
+			bool							_isLoaded			: 1;
+			bool							_wasAttampToLoad	: 1;
 			Passes_t						_passes;
 			PplnSpecMap_t					_pipelines;
 			RTSBTMap_t						_rtSbtMap;
@@ -234,7 +308,10 @@
 		  InPlace<FeatureNames_t>	_allFeatureSets;
 		)
 		DEBUG_ONLY( DebugName_t		_debugName; )
-
+			
+		#if defined(AE_ENABLE_VULKAN)
+		GfxMemAllocatorPtr			_sbtAllocator;
+		#endif
 
 	// methods
 	public:
@@ -310,7 +387,10 @@
 			_Extract (ResMngr_t &, const PipelineTmplName &name, const TemplType &templArr) const;
 
 		ND_ RenderState const*  _GetRenderState (PipelineCompiler::RenderStateUID uid) const;
-		
+	};
+
+
+} // AE::Graphics
 //-----------------------------------------------------------------------------
 
 #undef SUFFIX

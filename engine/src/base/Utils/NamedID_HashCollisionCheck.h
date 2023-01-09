@@ -48,6 +48,8 @@ namespace AE::Base
 		ND_ uint  RecalculateSeed (const NamedID<Size, UID, Optimize, Seed> &)	__Th___;
 
 		ND_ bool  HasCollisions ()												C_NE___;
+
+			void  Clear ()														__NE___;
 		
 	private:
 		ND_ uint  _RecalculateSeed (Info &) const								__Th___;

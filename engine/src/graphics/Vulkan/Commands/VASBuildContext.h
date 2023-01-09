@@ -84,15 +84,16 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VASBuildContextImpl final : public CtxImpl, public IASBuildContext
+	class _VASBuildContextImpl : public CtxImpl, public IASBuildContext
 	{
 	// types
 	public:
 		static constexpr bool	IsASBuildContext		= true;
 		static constexpr bool	IsVulkanASBuildContext	= true;
 	private:
-		using RawCtx	= CtxImpl;
-		using AccumBar	= VAccumBarriers< _VASBuildContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= VAccumBarriers< _VASBuildContextImpl< CtxImpl >>;
+		using DeferredBar	= VAccumDeferredBarriersForCtx< _VASBuildContextImpl< CtxImpl >>;
 
 
 	// methods
@@ -104,7 +105,7 @@ namespace AE::Graphics::_hidden_
 
 		_VASBuildContextImpl ()																						= delete;
 		_VASBuildContextImpl (const _VASBuildContextImpl &)															= delete;
-
+		
 		using RawCtx::Copy;
 		
 		void  Build  (const RTGeometryBuild &cmd, RTGeometryID dst)													__Th_OV	{ RawCtx::_Build( cmd, dst ); }
@@ -395,7 +396,7 @@ namespace AE::Graphics::_hidden_
 		return Threading::MakePromise( [query] () -> Threading::PromiseResult<Bytes>
 										{
 											auto&	rts			= RenderTaskScheduler();
-											auto&	query_mngr	= rts.GetResourceManager().GetQueryManager();
+											auto&	query_mngr	= rts.GetQueryManager();
 											Bytes	size;
 											CHECK_PE( query_mngr.GetRTASProperty( rts.GetDevice(), query, OUT &size, Sizeof(size) ));
 											return size;

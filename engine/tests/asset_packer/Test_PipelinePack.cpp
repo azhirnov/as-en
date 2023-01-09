@@ -22,6 +22,7 @@ namespace
 		const CharType *	shader_folder[]		= { TXT("shaders_glsl"), TXT("shaders_msl") };
 		const CharType *	include_dir[]		= { TXT("shaders_glsl/include"), TXT("shaders_msl/include") };
 		const Path			output_folder		= TXT("_output");
+		const Path			output_script		= TXT( AE_SHARED_DATA "/scripts/pipeline_compiler" );
 		const Path			ref_dump_fname		= FileSystem::ToAbsolute( refName );
 		
 		FileSystem::RemoveAll( output_folder );
@@ -41,6 +42,7 @@ namespace
 		info.shaderFolderCount	= CountOf( shader_folder );
 		info.outputPackName		= output.c_str();
 		info.outputCppFile		= output_cpp.c_str();
+		info.outputScriptFile	= output_script.c_str();
 		info.addNameMapping		= true;
 
 		TEST( compile_pipelines( &info ));
@@ -376,6 +378,7 @@ namespace
 
 extern void Test_PipelinePack ()
 {
+#ifdef AE_PIPELINE_COMPILER_LIBRARY
 	{
 		Path	dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
 		dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
@@ -388,6 +391,7 @@ extern void Test_PipelinePack ()
 		PipelinePack_Test2();
 	}
 	TEST_PASSED();
+#endif
 }
 
 

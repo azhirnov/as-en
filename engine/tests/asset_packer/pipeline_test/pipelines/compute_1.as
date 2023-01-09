@@ -1,11 +1,12 @@
+#include <pipeline_compiler>
 
 #if SCRIPT
 void main ()
 {
-	ComputePipeline@	ppln = ComputePipeline( "compute_1" );
+	RC<ComputePipeline>	ppln = ComputePipeline( "compute_1" );
 	ppln.AddFeatureSet( "MinimalFS" );
 
-	Shader@	cs = Shader();
+	RC<Shader>	cs = Shader();
 	cs.SetComputeSpecAndDefault( 8, 8 );
 
 	if ( IsVulkan() )
@@ -30,7 +31,7 @@ void main ()
 
 	// specialization
 	{
-		ComputePipelineSpec@	spec = ppln.AddSpecialization( "compute_1.def" );
+		RC<ComputePipelineSpec>		spec = ppln.AddSpecialization( "compute_1.def" );
 
 		spec.AddToRenderTech( "MinForward", "Compute1" );
 	}

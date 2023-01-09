@@ -28,11 +28,12 @@ namespace AE::InputActions
 	struct InputActionsInfo
 	{
 		// input
-		const CharType* const*	inFiles			= null;
-		usize					inFileCount		= 0;
+		const CharType* const*	inFiles				= null;
+		usize					inFileCount			= 0;
 
 		// output
-		const CharType *		outputPackName	= null;
+		const CharType *		outputPackName		= null;
+		const CharType *		outputScriptFile	= null;
 	};
 
 	extern "C" bool AE_IA_API ConvertInputActions (const InputActionsInfo *info);

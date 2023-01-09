@@ -102,12 +102,14 @@ private:
 	bool  Test_CopyBuffer1 ();
 	bool  Test_CopyBuffer2 ();
 	bool  Test_CopyImage1 ();
+	bool  Test_CopyImage2 ();
 	bool  Test_UploadStream1 ();
 	bool  Test_UploadStream2 ();
 	
 	bool  Test_Compute1 ();
 	bool  Test_AsyncCompute1 ();
 	bool  Test_AsyncCompute2 ();
+	bool  Test_AsyncCompute3 ();
 
 	bool  Test_Draw1 ();
 	bool  Test_Draw2 ();		// virtex buffer

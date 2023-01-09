@@ -1,9 +1,10 @@
+#include <pipeline_compiler>
 
 void main ()
 {
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "MinimalFS" );
+	RC<FeatureSet>  fset = FeatureSet( "MinimalFS" );
 
 	fset.independentBlend (True);
 	fset.sampleRateShading (True);

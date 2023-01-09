@@ -72,6 +72,11 @@ namespace AE::Base
 		ND_ static Version3	GetOSVersion ()									__NE___;
 
 
+		// Clipboard //
+		ND_ static bool		GetClipboardData (OUT WString &result, void* wnd = null)	__NE___;
+		ND_ static bool		GetClipboardData (OUT String &result, void* wnd = null)		__NE___;
+
+
 	private:
 		ND_ static bool  _CheckError (uint err, StringView msg, const SourceLoc &loc, ELogLevel level, ELogScope scope) __NE___;
 	};

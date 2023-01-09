@@ -36,7 +36,7 @@ namespace AE::Threading
 		public:
 			FrameAlloc ()					__NE___	: _idx{0} {}
 
-			void  Next ()					__NE___	{ ++_idx;  _alloc[_idx].Discard(); }
+			void  NextFrame ()				__NE___	{ ++_idx;  _alloc[_idx].Discard(); }
 
 			ND_ FrameAllocator_t&  Get ()	__NE___	{ return _alloc[_idx]; }
 		};

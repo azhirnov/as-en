@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -11,7 +12,7 @@ void main ()
 
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "MinRecursiveRayTracing" );
+	RC<FeatureSet>  fset = FeatureSet( "MinRecursiveRayTracing" );
 
 	fset.depthBiasClamp (True);
 	fset.depthBounds (True);

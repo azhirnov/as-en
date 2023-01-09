@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "base/Algorithms/StringUtils.h"
 #include "scripting/Impl/ScriptEngine.h"
 #include "scripting/Impl/ScriptTypes.h"
 
@@ -130,14 +131,18 @@ namespace AE::Scripting
 	private:
 		ScriptEnginePtr		_engine;
 		String				_name;
-		int					_flags;
+		int					_flags		= 0;	// asEObjTypeFlags
+
+		bool				_genHeader	= false;
+		String				_header;
 
 
 	// methods
 	public:
 		explicit ClassBinder (const ScriptEnginePtr &eng);
 		ClassBinder (const ScriptEnginePtr &eng, StringView name);
-		
+		~ClassBinder ();
+
 
 		void  CreatePodValue (int flags = 0)															__Th___;
 		void  CreateClassValue (int flags = 0)															__Th___;
@@ -172,12 +177,12 @@ namespace AE::Scripting
 		template <typename Func>
 		void  AddMethodFromGlobalObjLast (Func funcPtr, StringView name)	__Th___;
 
-		ND_ OperatorBinder						Operators ()			{ return OperatorBinder( this ); }
+		ND_ OperatorBinder						Operators ()						{ return OperatorBinder( this ); }
 
-		ND_ StringView							Name ()			const	{ return _name; }
+		ND_ StringView							Name ()						const	{ return _name; }
 
-		ND_ const ScriptEnginePtr &				GetEngine ()	const	{ return _engine; }
-		ND_ Ptr< AngelScript::asIScriptEngine >	GetASEngine ()			{ return _engine->Get(); }
+		ND_ const ScriptEnginePtr &				GetEngine ()				const	{ return _engine; }
+		ND_ Ptr< AngelScript::asIScriptEngine >	GetASEngine ()						{ return _engine->Get(); }
 
 
 	private:
@@ -197,7 +202,7 @@ namespace AE::Scripting
 */
 namespace _hidden_ {
 	template <typename Func>
-	inline constexpr bool  IsGlobal ()
+	constexpr bool  IsGlobal ()
 	{
 		return IsSameTypes< typename FunctionInfo<Func>::clazz, void >;
 	}
@@ -210,17 +215,31 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline ClassBinder<T>::ClassBinder (const ScriptEnginePtr &eng) :
-		_engine{ eng }, _flags{ 0 }
+	ClassBinder<T>::ClassBinder (const ScriptEnginePtr &eng) :
+		_engine{ eng }, _genHeader{ eng->IsUsingCppHeader() }
 	{
-		ScriptTypeInfo< T >::Name( OUT _name );
+		ScriptTypeInfo< T >::Name( INOUT _name );
 	}
 	
 	template <typename T>
-	inline ClassBinder<T>::ClassBinder (const ScriptEnginePtr &eng, StringView name) :
-		_engine{ eng }, _name{ name }, _flags{ 0 }
-	{}
+	ClassBinder<T>::ClassBinder (const ScriptEnginePtr &eng, StringView name) :
+		_engine{ eng }, _name{ name }, _genHeader{ eng->IsUsingCppHeader() }
+	{
+		ASSERT( not _name.empty() );
+	}
 	
+/*
+=================================================
+	destructor
+=================================================
+*/
+	template <typename T>
+	ClassBinder<T>::~ClassBinder ()
+	{
+		if_unlikely( _genHeader )
+			_engine->AddCppHeader( _name, RVRef(_header), _flags );
+	}
+
 /*
 =================================================
 	_IsSame
@@ -246,8 +265,8 @@ namespace _hidden_ {
 		static String Desc (StringView name)
 		{
 			String signature;
-			ScriptTypeInfo< TOut >::Name( OUT signature );		((signature += " ") += name) += "(";
-			ScriptTypeInfo< TIn >::ArgName( OUT signature );	signature += ") const";
+			ScriptTypeInfo< TOut >::Name( INOUT signature );	((signature += " ") += name) += "(";
+			ScriptTypeInfo< TIn >::ArgName( INOUT signature );	signature += ") const";
 			return signature;
 		}
 	};
@@ -258,7 +277,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline void  ClassBinder<T>::CreatePodValue (int flags) __Th___
+	void  ClassBinder<T>::CreatePodValue (int flags) __Th___
 	{
 		using namespace AngelScript;
 		
@@ -283,17 +302,12 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline void  ClassBinder<T>::CreateClassValue (int flags) __Th___
+	void  ClassBinder<T>::CreateClassValue (int flags) __Th___
 	{
 		using namespace AngelScript;
 
-		//STATIC_ASSERT( alignof(T) <= 8 );
-
 		_flags = asOBJ_VALUE | asOBJ_APP_CLASS_CDAK | flags;
 
-		//if constexpr( alignof(T) == 16 )
-		//	_flags |= asOBJ_APP_ALIGN16;
-		//else
 		if constexpr( alignof(T) == 8 )
 			_flags |= asOBJ_APP_CLASS_ALIGN8;
 
@@ -308,7 +322,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline void  ClassBinder<T>::CreateRef (int flags, const Bool hasFactory) __Th___
+	void  ClassBinder<T>::CreateRef (int flags, const Bool hasFactory) __Th___
 	{
 		using constructor_t = T * (*) ();
 
@@ -326,7 +340,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline void  ClassBinder<T>::CreateRef (T* (*create)(), void (T:: *addRef)(), void (T:: *releaseRef)(), int flags) __Th___
+	void  ClassBinder<T>::CreateRef (T* (*create)(), void (T:: *addRef)(), void (T:: *releaseRef)(), int flags) __Th___
 	{
 		using namespace AngelScript;
 
@@ -334,6 +348,9 @@ namespace _hidden_ {
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectType( _name.c_str(), sizeof(T), _flags ));
 		
+		if_unlikely( _genHeader )
+			_header << "struct " << _name << "\n{\n";
+
 		if ( addRef != null )
 		{
 			AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_ADDREF, "void AddRef()",
@@ -351,12 +368,10 @@ namespace _hidden_ {
 			AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_FACTORY,
 														(_name + "@ new_" + _name + "()").c_str(),
 														asFUNCTION( create ), asCALL_CDECL ));
+
+			if_unlikely( _genHeader )
+				_header << '\t' << _name << " ();\n";
 		}
-		/*
-		AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(),
-										(String(_name) << " & opAssign(const " << _name << " &in)").c_str(),
-										asMETHOD( T, operator = ), asCALL_THISCALL ));
-		*/
 	}
 
 /*
@@ -365,15 +380,21 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T>
-	inline void  ClassBinder<T>::_Create (const int flags) __Th___
+	void  ClassBinder<T>::_Create (const int flags) __Th___
 	{
 		using namespace AngelScript;
+		
+		if_unlikely( _genHeader )
+			_header << "struct " << _name << "\n{\n";
 
 		// constructor
 		if ( AllBits( flags, asOBJ_APP_CLASS_CONSTRUCTOR ))
 		{
 			AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_CONSTRUCT, "void f()",
 											asFUNCTION( &AngelScriptHelper::Constructor<T> ), asCALL_GENERIC ));
+			
+			if_unlikely( _genHeader )
+				_header << '\t' << _name << " ();\n";
 		}
 
 		// destructor
@@ -389,6 +410,9 @@ namespace _hidden_ {
 			AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_CONSTRUCT,
 											("void f(const " + _name + " &in)").c_str(),
 											asFUNCTION( &AngelScriptHelper::CopyConstructor<T> ), asCALL_GENERIC ));
+			
+			if_unlikely( _genHeader )
+				_header << '\t' << _name << " (const " << _name << "&);\n";
 		}
 
 		// assignment 
@@ -397,6 +421,9 @@ namespace _hidden_ {
 			AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(),
 											(_name + " & opAssign(const " + _name + " &in)").c_str(),
 											asFUNCTION( &AngelScriptHelper::CopyAssign<T> ), asCALL_GENERIC ));
+			
+			if_unlikely( _genHeader )
+				_header << '\t' << _name << "&  operator = (const " << _name << "&);\n";
 		}
 	}
 	
@@ -407,7 +434,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddConstructor (Func ctorPtr) __Th___
+	void  ClassBinder<T>::AddConstructor (Func ctorPtr) __Th___
 	{
 		using namespace AngelScript;
 
@@ -415,10 +442,17 @@ namespace _hidden_ {
 		STATIC_ASSERT(( IsSameTypes< void *, typename GlobalFunction<Func>::TypeList_t::Front::type > ));
 
 		String	signature("void f ");
-		GlobalFunction<Func>::GetArgs( OUT signature, 1 );	// skip	(void *)
+		GlobalFunction<Func>::GetArgs( INOUT signature, 1 );	// skip	(void *)
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_CONSTRUCT,
 										signature.c_str(), asFUNCTION( *ctorPtr ), asCALL_CDECL_OBJFIRST ));
+		
+		if_unlikely( _genHeader )
+		{
+			_header << '\t' << _name << ' ';
+			GlobalFunction<Func>::GetCppArgs( INOUT _header, 1 );	// skip	(void *)
+			_header << ";\n";
+		}
 	}
 	
 /*
@@ -428,7 +462,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddFactoryCtor (Func ctorPtr) __Th___
+	void  ClassBinder<T>::AddFactoryCtor (Func ctorPtr) __Th___
 	{
 		using namespace AngelScript;
 		
@@ -436,10 +470,17 @@ namespace _hidden_ {
 		STATIC_ASSERT(( IsSameTypes< T*, typename GlobalFunction<Func>::Result_t > ));
 
 		String	signature(_name + "@ new_" + _name);
-		GlobalFunction<Func>::GetArgs( OUT signature );
+		GlobalFunction<Func>::GetArgs( INOUT signature );
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectBehaviour( _name.c_str(), asBEHAVE_FACTORY,
 										signature.c_str(), asFUNCTION( *ctorPtr ), asCALL_CDECL ));
+		
+		if_unlikely( _genHeader )
+		{
+			_header << '\t' << _name << ' ';
+			GlobalFunction<Func>::GetCppArgs( INOUT _header );
+			_header << ";\n";
+		}
 	}
 	
 /*
@@ -449,21 +490,24 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename B>
-	inline void  ClassBinder<T>::AddProperty (B T::* value, StringView name) __Th___
+	void  ClassBinder<T>::AddProperty (B T::* value, StringView name) __Th___
 	{
 		String	signature;
-		ScriptTypeInfo<B>::Name( OUT signature );
+		ScriptTypeInfo<B>::Name( INOUT signature );
 		(signature += ' ') += name;
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectProperty( _name.c_str(), signature.c_str(), int(OffsetOf( value )) ));
+		
+		if_unlikely( _genHeader )
+			_header << '\t' << signature << ";\n";
 	}
 	
 	template <typename T>
 	template <typename A, typename B>
-	inline void  ClassBinder<T>::AddProperty (A T::* base, B A::* value, StringView name) __Th___
+	void  ClassBinder<T>::AddProperty (A T::* base, B A::* value, StringView name) __Th___
 	{
 		String	signature;
-		ScriptTypeInfo<B>::Name( OUT signature );
+		ScriptTypeInfo<B>::Name( INOUT signature );
 		(signature += ' ') += name;
 
 		Bytes	base_off	= OffsetOf( base );
@@ -471,20 +515,26 @@ namespace _hidden_ {
 		CHECK( base_off + value_off < SizeOf<T> );
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectProperty( _name.c_str(), signature.c_str(), int(base_off + value_off) ));
+		
+		if_unlikely( _genHeader )
+			_header << '\t' << signature << ";\n";
 	}
 
 	template <typename T>
 	template <typename B>
-	inline void  ClassBinder<T>::AddProperty (const T &self, B &value, StringView name) __Th___
+	void  ClassBinder<T>::AddProperty (const T &self, B &value, StringView name) __Th___
 	{
 		String	signature;
-		ScriptTypeInfo<B>::Name( OUT signature );
+		ScriptTypeInfo<B>::Name( INOUT signature );
 		(signature += ' ') += name;
 
 		const ssize		offset = BitCast<ssize>(&value) - BitCast<ssize>(&self);
 		CHECK( offset >= 0 and offset <= ssize(sizeof(T) - sizeof(B)) );
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectProperty( _name.c_str(), signature.c_str(), int(offset) ));
+		
+		if_unlikely( _genHeader )
+			_header << '\t' << signature << ";\n";
 	}
 
 /*
@@ -494,16 +544,23 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddMethod (Func methodPtr, StringView name) __Th___
+	void  ClassBinder<T>::AddMethod (Func methodPtr, StringView name) __Th___
 	{
 		using namespace AngelScript;
 
 		String	signature;
-		MemberFunction<Func>::GetDescriptor( OUT signature, name );
+		MemberFunction<Func>::GetDescriptor( INOUT signature, name );
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(), signature.c_str(),
 								asSMethodPtr< sizeof( void (T::*)() ) >::Convert( reinterpret_cast<void (T::*)()>(methodPtr) ),
 								asCALL_THISCALL ));
+		
+		if_unlikely( _genHeader )
+		{
+			_header << '\t';
+			MemberFunction<Func>::GetCppDescriptor( INOUT _header, name );
+			_header << ";\n";
+		}
 	}
 	
 /*
@@ -513,7 +570,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddMethodFromGlobal (Func funcPtr, StringView name) __Th___
+	void  ClassBinder<T>::AddMethodFromGlobal (Func funcPtr, StringView name) __Th___
 	{
 		using Args = typename GlobalFunction<Func>::TypeList_t;
 		STATIC_ASSERT( Args::Count > 0 );
@@ -535,7 +592,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddMethodFromGlobalObjFirst (Func funcPtr, StringView name) __Th___
+	void  ClassBinder<T>::AddMethodFromGlobalObjFirst (Func funcPtr, StringView name) __Th___
 	{
 		using namespace AngelScript;
 		
@@ -545,14 +602,20 @@ namespace _hidden_ {
 		STATIC_ASSERT( _IsSame< FrontArg >::value );
 
 		String	signature;
-		GlobalFunction<Func>::GetDescriptor( OUT signature, name, 1, 0 );
+		GlobalFunction<Func>::GetDescriptor( INOUT signature, name, 1, 0 );
 
 		if constexpr( IsConst< FrontArg > or IsConst<RemovePointer< FrontArg >> )
-		{
 			signature += " const";
-		}
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(), signature.c_str(), asFUNCTION( *funcPtr ), asCALL_CDECL_OBJFIRST ));
+		
+		if_unlikely( _genHeader )
+		{
+			_header << '\t';
+			GlobalFunction<Func>::GetCppDescriptor( INOUT _header, name, 1, 0 );
+			if constexpr( IsConst< FrontArg > or IsConst<RemovePointer< FrontArg >> )  _header << " const";
+			_header << ";\n";
+		}
 	}
 		
 /*
@@ -562,7 +625,7 @@ namespace _hidden_ {
 */
 	template <typename T>
 	template <typename Func>
-	inline void  ClassBinder<T>::AddMethodFromGlobalObjLast (Func funcPtr, StringView name) __Th___
+	void  ClassBinder<T>::AddMethodFromGlobalObjLast (Func funcPtr, StringView name) __Th___
 	{
 		using namespace AngelScript;
 		
@@ -572,14 +635,20 @@ namespace _hidden_ {
 		STATIC_ASSERT( _IsSame< BackArg >::value );
 
 		String	signature;
-		GlobalFunction<Func>::GetDescriptor( OUT signature, name, 0, 1 );
+		GlobalFunction<Func>::GetDescriptor( INOUT signature, name, 0, 1 );
 		
 		if constexpr( IsConst< BackArg > or IsConst<RemovePointer< BackArg >> )
-		{
 			signature += " const";
-		}
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(), signature.c_str(), asFUNCTION( *funcPtr ), asCALL_CDECL_OBJLAST ));
+		
+		if_unlikely( _genHeader )
+		{
+			_header << '\t';
+			GlobalFunction<Func>::GetCppDescriptor( INOUT signature, name, 0, 1 );
+			if constexpr( IsConst< BackArg > or IsConst<RemovePointer< BackArg >> )  _header << " const";
+			_header << ";\n";
+		}
 	}
 
 /*
@@ -588,13 +657,22 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Unary (EUnaryOperator op, Func func) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Unary (EUnaryOperator op, Func func) __Th___
 	{
+		using FuncInfo	= FunctionInfo<Func>;
+
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
+		{
+			STATIC_ASSERT( FuncInfo::args::Count == 1 );
 			_binder->AddMethodFromGlobalObjFirst( func, _UnaryToStr( op ));
+		}
 		else
+		{
+			STATIC_ASSERT( FuncInfo::args::Count == 0 );
 			_binder->AddMethod( func, _UnaryToStr( op ));
-		
+		}
 		return *this;
 	}
 
@@ -604,13 +682,22 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::BinaryAssign (EBinaryOperator op, Func func) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::BinaryAssign (EBinaryOperator op, Func func) __Th___
 	{
-		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
-			_binder->AddMethodFromGlobalObjFirst( func, _BinAssignToStr( op ));
-		else
-			_binder->AddMethod( func, _BinAssignToStr( op ));
+		using FuncInfo	= FunctionInfo<Func>;
+		
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
+		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
+		{
+			STATIC_ASSERT( FuncInfo::args::Count == 2 );
+			_binder->AddMethodFromGlobalObjFirst( func, _BinAssignToStr( op ));
+		}
+		else
+		{
+			STATIC_ASSERT( FuncInfo::args::Count == 1 );
+			_binder->AddMethod( func, _BinAssignToStr( op ));
+		}
 		return *this;
 	}
 
@@ -620,8 +707,10 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename OutType, typename ...InTypes>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Index () __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Index () __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		if constexpr( IsConst<OutType>() )
 			return Index( static_cast< OutType (T::*) (InTypes...) const >( &T::operator [] ));
 		else
@@ -629,8 +718,10 @@ namespace _hidden_ {
 	}
 	
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Index (Func func) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Index (Func func) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
 			_binder->AddMethodFromGlobalObjFirst( func, "opIndex" );
 		else
@@ -645,29 +736,37 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename OutType, typename ...InTypes>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (T::*func) (InTypes...) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (T::*func) (InTypes...) ) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethod( func, "opCall" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType, typename ...InTypes>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (T::*func) (InTypes...) const ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (T::*func) (InTypes...) const ) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethod( func, "opCall" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType, typename ...InTypes>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (*func) (T&, InTypes...) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (*func) (T&, InTypes...) ) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethodFromGlobalObjFirst( func, "opCall" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType, typename ...InTypes>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (*func) (const T&, InTypes...) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (*func) (const T&, InTypes...) ) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethodFromGlobalObjFirst( func, "opCall" );
 		return *this;
 	}
@@ -678,21 +777,25 @@ namespace _hidden_ {
 =================================================
 */
 	/*template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert () __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert () __Th___
 	{
 		return Convert( static_cast< OutType (T::*) () const >() );
 	}*/
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert ( OutType (T::*func) () const ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert ( OutType (T::*func) () const ) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethod( func, "opConv" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert ( OutType (*func) (const T &) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert ( OutType (*func) (const T &) ) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethodFromGlobalObjFirst( func, "opConv" );
 		return *this;
 	}
@@ -703,35 +806,43 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast () __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast () __Th___
 	{
 		return Cast( static_cast< OutType const& (T::*) () const >( &T::operator OutType ));
 	}
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType& (T::*func) () ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType& (T::*func) () ) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethod( func, "opCast" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType const& (T::*func) () const ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType const& (T::*func) () const ) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethod( func, "opCast" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType& (*func) (T &) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType& (*func) (T &) ) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethodFromGlobalObjFirst( func, "opCast" );
 		return *this;
 	}
 	
 	template <typename T> template <typename OutType>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType const& (*func) (const T &) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType const& (*func) (const T &) ) __Th___
 	{
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethodFromGlobalObjFirst( func, "opCast" );
 		return *this;
 	}
@@ -742,13 +853,22 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Binary (EBinaryOperator op, Func func) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Binary (EBinaryOperator op, Func func) __Th___
 	{
-		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
-			_binder->AddMethodFromGlobalObjFirst( func, _BinToStr( op ));
-		else
-			_binder->AddMethod( func, _BinToStr( op ));
+		using FuncInfo	= FunctionInfo<Func>;
 		
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
+		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
+		{
+			STATIC_ASSERT( FuncInfo::args::Count == 2 );
+			_binder->AddMethodFromGlobalObjFirst( func, _BinToStr( op ));
+		}
+		else
+		{
+			STATIC_ASSERT( FuncInfo::args::Count == 1 );
+			_binder->AddMethod( func, _BinToStr( op ));
+		}
 		return *this;
 	}
 
@@ -758,10 +878,13 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::BinaryRH (EBinaryOperator op, Func func) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::BinaryRH (EBinaryOperator op, Func func) __Th___
 	{
 		STATIC_ASSERT( Scripting::_hidden_::IsGlobal<Func>() );
+		STATIC_ASSERT( FunctionInfo<Func>::args::Count == 2 );
 		
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		_binder->AddMethodFromGlobalObjLast( func, _BinRightToStr( op ));
 		return *this;
 	}
@@ -772,12 +895,14 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Equals (Func func) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Equals (Func func) __Th___
 	{
 		using FuncInfo = FunctionInfo<Func>;
 
 		STATIC_ASSERT( IsSameTypes< typename FuncInfo::result, bool > );
 		
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
 		{
 			STATIC_ASSERT( FuncInfo::args::Count == 2 );
@@ -787,8 +912,10 @@ namespace _hidden_ {
 			_binder->AddMethodFromGlobalObjFirst( func, "opEquals" );
 		}
 		else
+		{
+			STATIC_ASSERT( FuncInfo::args::Count == 1 );
 			_binder->AddMethod( func, "opEquals" );
-		
+		}
 		return *this;
 	}
 	
@@ -798,7 +925,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename Func>
-	inline typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Compare (Func func) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Compare (Func func) __Th___
 	{
 		using FuncInfo = FunctionInfo<Func>;
 
@@ -807,6 +934,8 @@ namespace _hidden_ {
 		STATIC_ASSERT(( IsSameTypes< typename FuncInfo::args::template Get<0>, T > or IsSameTypes< typename FuncInfo::args::template Get<0>, const T& > ));
 		STATIC_ASSERT(( IsSameTypes< typename FuncInfo::args::template Get<1>, T > or IsSameTypes< typename FuncInfo::args::template Get<1>, const T& > ));
 		
+		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
+
 		if constexpr( Scripting::_hidden_::IsGlobal<Func>() )
 			_binder->AddMethodFromGlobalObjFirst( func, "opCmp" );
 		else

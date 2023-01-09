@@ -19,14 +19,16 @@ namespace
 	{
 		const CharType*		files[]			= { TXT("glfw.as"), TXT("android.as"), TXT("winapi.as") };
 		const Path			output			= TXT("input_actions.bin");
+		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/input_actions" );
 		const Path			ref_dump_fname	= FileSystem::ToAbsolute( "input_actions_ref.txt" );
 		
 		FileSystem::Remove( output );
 
 		InputActionsInfo	info = {};
-		info.inFiles		= files;
-		info.inFileCount	= CountOf( files );
-		info.outputPackName	= output.c_str();
+		info.inFiles			= files;
+		info.inFileCount		= CountOf( files );
+		info.outputPackName		= output.c_str();
+		info.outputScriptFile	= output_script.c_str();
 
 		TEST( convert_input_actions( &info ));
 		

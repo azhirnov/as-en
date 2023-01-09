@@ -124,7 +124,7 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"CopyImage2"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< CI1_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Copy image task"} );
+		AsyncTask	task1	= batch->Run< CI1_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Copy image task"} );
 		AsyncTask	end		= rts.EndFrame( Tuple{task1} );
 
 		CHECK_ERR( Scheduler().Wait({ end }));

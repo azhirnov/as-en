@@ -46,14 +46,14 @@ namespace AE::Graphics
 	};
 
 	// RenderTask
-	// CoroutineRenderTask
-	// RenderTask_Get
+	// RenderTaskCoro
+	// RenderTask_Get, RenderTask_GetRef
 	// RenderTask_Execute()
 	// RenderTask_AddInputDependency()
 
 	// DrawTask
-	// CoroutineDrawTask
-	// DrawTask_Get
+	// DrawTaskCoro
+	// DrawTask_Get, DrawTask_GetRef
 	// DrawTask_Execute()
 
 	using GRenderTaskScheduler	= VRenderTaskScheduler;
@@ -77,7 +77,7 @@ namespace AE::Graphics
 
 
 
-#if not defined(AE_ENABLE_VULKAN) and defined(AE_ENABLE_METAL)
+#ifdef AE_ENABLE_METAL
 # include "graphics/Metal/Commands/MTransferContext.h"
 # include "graphics/Metal/Commands/MComputeContext.h"
 # include "graphics/Metal/Commands/MDrawContext.h"
@@ -116,14 +116,14 @@ namespace AE::Graphics
 	};
 	
 	// RenderTask
-	// CoroutineRenderTask
-	// RenderTask_Get
+	// RenderTaskCoro
+	// RenderTask_Get, RenderTask_GetRef
 	// RenderTask_Execute()
 	// RenderTask_AddInputDependency()
 
 	// DrawTask
-	// CoroutineDrawTask
-	// DrawTask_Get
+	// DrawTaskCoro
+	// DrawTask_Get, DrawTask_GetRef
 	// DrawTask_Execute()
 
 	using GRenderTaskScheduler	= MRenderTaskScheduler;
@@ -179,14 +179,14 @@ namespace AE::Graphics
 	};
 	
 	// RenderTask
-	// CoroutineRenderTask
-	// RenderTask_Get
+	// RenderTaskCoro
+	// RenderTask_Get, RenderTask_GetRef
 	// RenderTask_Execute()
 	// RenderTask_AddInputDependency()
 
 	// DrawTask
-	// CoroutineDrawTask
-	// DrawTask_Get
+	// DrawTaskCoro
+	// DrawTask_Get, DrawTask_GetRef
 	// DrawTask_Execute()
 
 	using GRenderTaskScheduler	= RRenderTaskScheduler;

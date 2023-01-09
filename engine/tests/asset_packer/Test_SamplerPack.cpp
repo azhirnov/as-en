@@ -97,6 +97,7 @@ namespace
 
 extern void Test_SamplerPack ()
 {
+#ifdef AE_PIPELINE_COMPILER_LIBRARY
 	{
 		Path	dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
 		dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
@@ -110,4 +111,5 @@ extern void Test_SamplerPack ()
 		SamplerPack_Test1();
 	}
 	TEST_PASSED();
+#endif
 }

@@ -85,17 +85,18 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _MGraphicsContextImpl final : public CtxImpl, public IGraphicsContext
+	class _MGraphicsContextImpl : public CtxImpl, public IGraphicsContext
 	{
 	// types
 	public:
 		static constexpr bool	IsGraphicsContext		= true;
 		static constexpr bool	IsMetalGraphicsContext	= true;
 
-		using DrawCtx	= typename CtxImpl::_DrawCtx;
+		using DrawCtx		= typename CtxImpl::_DrawCtx;
 	private:
-		using RawCtx	= CtxImpl;
-		using AccumBar	= MAccumBarriers< _MGraphicsContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= MAccumBarriers< _MGraphicsContextImpl< CtxImpl >>;
+		using DeferredBar	= MAccumDeferredBarriersForCtx< _MGraphicsContextImpl< CtxImpl >>;
 
 
 	// variables
@@ -116,6 +117,7 @@ namespace AE::Graphics::_hidden_
 		_MGraphicsContextImpl ()															= delete;
 		_MGraphicsContextImpl (const _MGraphicsContextImpl &)								= delete;
 		
+
 		// returns invalid state if outside of render pass
 		ND_ MPrimaryCmdBufState const&  GetState ()											C_NE___	{ return _primaryState; }
 		ND_ bool						IsInsideRenderPass ()								C_NE___	{ return _primaryState.IsValid(); }

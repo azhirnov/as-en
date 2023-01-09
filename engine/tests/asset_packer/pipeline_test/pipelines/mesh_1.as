@@ -1,7 +1,8 @@
+#include <pipeline_compiler>
 
 void main ()
 {
-	MeshPipeline@	ppln = MeshPipeline( "mesh_1" );
+	RC<MeshPipeline>	ppln = MeshPipeline( "mesh_1" );
 	ppln.SetLayout( "Graphics_PL_2" );
 	ppln.AddFeatureSet( "MinMeshShader" );
 	ppln.SetShaderIO( EShader::Mesh, EShader::Fragment, "mesh_1.io" );
@@ -9,13 +10,13 @@ void main ()
 	if ( IsVulkan() )
 	{
 		{
-			Shader@	ms = Shader();
+			RC<Shader>	ms = Shader();
 			ms.file		= "mesh_1.glsl";
 			ms.options	= EShaderOpt::Optimize;
 			ms.version	= EShaderVersion::SPIRV_1_4;
 			ppln.SetMeshShader( ms );
 		}{
-			Shader@	fs = Shader();
+			RC<Shader>	fs = Shader();
 			fs.file		= "fragment_3.glsl";
 			fs.options	= EShaderOpt::DebugInfo;
 			fs.version	= EShaderVersion::SPIRV_1_4;
@@ -27,13 +28,13 @@ void main ()
 	{
 		ppln.SetFragmentOutputFromRenderPass( "Simple", /*subpass*/"Main" );
 		{
-			Shader@	ms = Shader();
+			RC<Shader>	ms = Shader();
 			ms.file		= "mesh_1.msl";
 			ms.options	= EShaderOpt::Optimize;
 			ms.version	= EShaderVersion::Metal_3_0;
 			ppln.SetMeshShader( ms );
 		}{
-			Shader@	fs = Shader();
+			RC<Shader>	fs = Shader();
 			fs.file		= "fragment_4.msl";
 			fs.options	= EShaderOpt::DebugInfo;
 			fs.version	= EShaderVersion::Metal_3_0;
@@ -45,7 +46,7 @@ void main ()
 	
 	// specialization
 	{
-		MeshPipelineSpec@	spec = ppln.AddSpecialization( "mesh_1 rp:Simple" );
+		RC<MeshPipelineSpec>	spec = ppln.AddSpecialization( "mesh_1 rp:Simple" );
 		spec.AddToRenderTech( "MeshForward", "Graphics1" );
 		spec.SetViewportCount( 1 );
 	}

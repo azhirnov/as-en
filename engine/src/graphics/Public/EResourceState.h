@@ -93,7 +93,10 @@ namespace AE::Graphics
 
 		ShadingRateImage,
 		FragmentDensityMap,
-		
+
+		General,						// all stages & all access types
+
+		_AccessCount,
 		_AccessMask						= 0x3F,
 
 		// flags
@@ -115,7 +118,7 @@ namespace AE::Graphics
 		_InvalidState					= 0xFFFF,
 	};
 	
-	STATIC_ASSERT( EResourceState::FragmentDensityMap < EResourceState::_AccessMask );
+	STATIC_ASSERT( EResourceState::_AccessCount < EResourceState::_AccessMask );
 
 
 	ND_ forceinline constexpr EResourceState  operator | (EResourceState lhs, EResourceState rhs)
@@ -146,67 +149,5 @@ namespace AE::Graphics
 		return EResourceState(~uint(x));
 	}
 
-	/*
-		BEGIN_ENUM_CHECKS();
-		switch ( state & EResourceState::_AccessMask )
-		{
-			case EResourceState::Invalidate :
-			case EResourceState::Preserve :
-			case EResourceState::ShaderStorage_Read :
-			case EResourceState::ShaderStorage_Write :
-			case EResourceState::ShaderStorage_RW :
-			case EResourceState::ShaderUniform :
-			case EResourceState::ShaderSample :
-			case EResourceState::CopySrc :
-			case EResourceState::CopyDst :
-			case EResourceState::ClearDst :
-			case EResourceState::BlitSrc :
-			case EResourceState::BlitDst :
-			case EResourceState::InputColorAttachment :
-			case EResourceState::InputColorAttachment_RW :
-			case EResourceState::ColorAttachment_Write :
-			case EResourceState::ColorAttachment_RW :
-			case EResourceState::DepthStencilAttachment_Read :
-			case EResourceState::DepthStencilAttachment_Write :
-			case EResourceState::DepthStencilAttachment_RW :
-			case EResourceState::DepthTest_StencilRW :
-			case EResourceState::DepthRW_StencilTest :
-			case EResourceState::DepthStencilTest_ShaderSample :
-			case EResourceState::InputDepthStencilAttachment :
-			case EResourceState::InputDepthStencilAttachment_RW :
-			case EResourceState::DepthTest_DepthSample_StencilRW :
-			case EResourceState::Host_Read :
-			case EResourceState::Host_Write :
-			case EResourceState::Host_RW :
-			case EResourceState::PresentImage :
-			case EResourceState::IndirectBuffer :
-			case EResourceState::IndexBuffer :
-			case EResourceState::VertexBuffer :
-			case EResourceState::ShadingRateImage :
-			case EResourceState::FragmentDensityMap :
-			case EResourceState::CopyRTAS_Read :
-			case EResourceState::CopyRTAS_Write :
-			case EResourceState::BuildRTAS_Read :
-			case EResourceState::BuildRTAS_Write :
-			case EResourceState::BuildRTAS_RW :
-			case EResourceState::BuildRTAS_ScratchBuffer :
-			case EResourceState::ShaderRTAS_Read :
-			case EResourceState::RTShaderBindingTable :
-			case EResourceState::_AccessMask :
-			case EResourceState::DSTestBeforeFS :
-			case EResourceState::DSTestAfterFS :
-			case EResourceState::Invalidate :
-			case EResourceState::_FlagsMask :
-			case EResourceState::PreRasterizationShaders :
-			case EResourceState::TileShader :
-			case EResourceState::FragmentShader :
-			case EResourceState::PostRasterizationShaders :
-			case EResourceState::ComputeShader :
-			case EResourceState::RayTracingShaders :
-			case EResourceState::AllGraphicsShaders :
-			case EResourceState::AllShaders :
-		}
-		END_ENUM_CHECKS();
-		*/
 
 } // AE::Graphics

@@ -214,6 +214,8 @@ namespace AE::Graphics
 	{
 		MetalEvent		event;			// or MetalSharedEvent
 		ulong			value	= 0;
+
+		ND_ explicit operator bool ()	C_NE___	{ return bool{event}; }
 	};
 
 	

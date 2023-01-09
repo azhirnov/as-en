@@ -214,7 +214,8 @@ namespace AE::Graphics
 		ND_ bool  CreateDefaultQueues (EQueueMask required, EQueueMask optional = Default)			__NE___;
 		ND_ bool  CreateQueues (ArrayView<QueueCreateInfo> queues)									__NE___;
 		
-		ND_ bool  CreateLogicalDevice (ArrayView<const char*> extensions = {})						__NE___;
+		ND_ bool  CreateLogicalDevice (ArrayView<const char*> extensions = {},
+									   const FeatureSet* fsToDeviceFeatures = null)					__NE___;
 			//bool  SetLogicalDevice (VkDevice value, ArrayView<const char*> extensions = {})		__NE___;
 			bool  DestroyLogicalDevice ()															__NE___;
 		
@@ -241,7 +242,7 @@ namespace AE::Graphics
 		void  _ValidateInstanceLayers (INOUT Array<const char*> &layers)												C_Th___;
 		void  _ValidateInstanceExtensions (INOUT Array<const char*> &ext)												C_Th___;
 		bool  _ChooseHighPerformanceDevice ()																			__Th___;
-		bool  _CreateLogicalDevice (ArrayView<const char*> extensions)													__Th___;
+		bool  _CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures)			__Th___;
 		void  _ValidateDeviceExtensions (VkPhysicalDevice physDev, INOUT Array<const char*> &ext)						C_Th___;
 		void  _ValidateSpirvVersion (OUT SpirvVersion &ver)																C_NE___;
 		void  _UpdateDeviceVersion (VkPhysicalDevice physicalDevice, OUT DeviceVersion &devVersion)						C_NE___;
@@ -256,6 +257,8 @@ namespace AE::Graphics
 		void  _InitQueues (ArrayView<VkQueueFamilyProperties> props, INOUT Queues_t &queues, INOUT QueueTypes_t &qtypes)C_NE___;
 		void  _ValidateQueueStages (INOUT Queues_t &queues)																C_NE___;
 		
+		ND_ bool  _InitFeaturesAndPropertiesByFeatureSet (const FeatureSet &fs)											__NE___;
+
 		// new debug api
 		VKAPI_ATTR static VkBool32 VKAPI_CALL
 			_DebugUtilsCallback (VkDebugUtilsMessageSeverityFlagBitsEXT			messageSeverity,

@@ -94,7 +94,7 @@ namespace AE::Graphics::_hidden_
 	//
 	
 	template <typename CtxImpl>
-	class _VComputeContextImpl final : public CtxImpl, public IComputeContext
+	class _VComputeContextImpl : public CtxImpl, public IComputeContext
 	{
 	// types
 	public:
@@ -103,8 +103,9 @@ namespace AE::Graphics::_hidden_
 	protected:
 		static constexpr uint	_LocalArraySize			= 16;
 	private:
-		using RawCtx	= CtxImpl;
-		using AccumBar	= VAccumBarriers< _VComputeContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= VAccumBarriers< _VComputeContextImpl< CtxImpl >>;
+		using DeferredBar	= VAccumDeferredBarriersForCtx< _VComputeContextImpl< CtxImpl >>;
 
 
 	// methods
@@ -116,8 +117,7 @@ namespace AE::Graphics::_hidden_
 
 		_VComputeContextImpl ()																						= delete;
 		_VComputeContextImpl (const _VComputeContextImpl &)															= delete;
-		~_VComputeContextImpl ()																					__NE_OV {}
-
+		
 		using RawCtx::BindDescriptorSet;
 
 		void  BindPipeline (ComputePipelineID ppln)																	__Th_OV;

@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -28,7 +29,7 @@ void main ()
 
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "part.MinNonUniformDescriptorIndexing" );
+	RC<FeatureSet>  fset = FeatureSet( "part.MinNonUniformDescriptorIndexing" );
 
 	fset.runtimeDescriptorArray (True);
 

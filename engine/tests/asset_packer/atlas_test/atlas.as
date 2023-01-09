@@ -1,7 +1,8 @@
+#include <asset_packer>
 
 void main ()
 {
-	ImageAtlas@	atlas = ImageAtlas();
+	RC<ImageAtlas>	atlas = ImageAtlas();
 	
 	atlas.Padding( 2 );
 	atlas.Add( "Blue", 	"blue.png" );

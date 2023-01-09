@@ -242,9 +242,9 @@ namespace
 		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"RayQuery1"} );
 		CHECK_ERR( t.batch );
 		
-		AsyncTask	task1	= t.batch->Add< RQ1_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{begin},					{"Upload RTAS task"} );
-		AsyncTask	task2	= t.batch->Add< RQ1_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{task1},					{"Ray tracing task"} );
-		AsyncTask	task3	= t.batch->Add< RQ1_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task2}, True{"Last"},	{"Readback task"} );
+		AsyncTask	task1	= t.batch->Run< RQ1_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{begin},					{"Upload RTAS task"} );
+		AsyncTask	task2	= t.batch->Run< RQ1_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{task1},					{"Ray tracing task"} );
+		AsyncTask	task3	= t.batch->Run< RQ1_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task2}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task3} );
 

@@ -222,21 +222,21 @@ namespace AE::Graphics
 		_visit_( Mali_Valhall_Gen3 )	/* G310, G510, G610, G710		*/\
 		\
 		/*---- NVidia ----*/\
-		_visit_( NV_Maxwell )			/* 9xx, Titan X, Quadro Mxxxx							*/\
+		_visit_( NV_Maxwell )			/* GTX 9xx, Titan X, Quadro Mxxxx						*/\
 		_visit_( NV_Maxwell_Tegra )		/* Tegra X1, Nintendo Switch, Shield TV					*/\
-		_visit_( NV_Pascal )			/* 10xx, Titan X, Titan Xp, Quadro Pxxx					*/\
+		_visit_( NV_Pascal )			/* GTX 10xx, Titan X, Titan Xp, Quadro Pxxx				*/\
 		_visit_( NV_Pascal_MX )			/* MX 1xx, GTX 10xx Max-Q								*/\
 		_visit_( NV_Pascal_Tegra )		/* Tegra X2												*/\
 		_visit_( NV_Volta )				/* Volta, Xavier, Titan V								*/\
-		_visit_( NV_Turing_16 )			/* 16xx, 16xx Max-Q, Quadro Txxx, Txxx					*/\
+		_visit_( NV_Turing_16 )			/* GTX 16xx, 16xx Max-Q, Quadro Txxx, Txxx				*/\
 		_visit_( NV_Turing )			/* 20xx, Quadro RTX	x000								*/\
 		_visit_( NV_Turing_MX )			/* MX230, MX250, MX330, MX350, MX450, MX550, MX570		*/\
-		_visit_( NV_Ampere )			/* 30xx, RTX Ax000										*/\
+		_visit_( NV_Ampere )			/* RTX 30xx, RTX Ax000									*/\
 		_visit_( NV_Ampere_Orin )		/* Orin													*/\
-		_visit_( NV_Ada )				/* 40xx													*/\
+		_visit_( NV_Ada )				/* RTX 40xx												*/\
 		\
 		/*---- Intel ----*/\
-		_visit_( Intel_Gen9 )			/* 620, 630										*/\
+		_visit_( Intel_Gen9 )			/* UHD 620, 630									*/\
 		_visit_( Intel_Gen11 )			/* Iris Plus, Core 10xxx						*/\
 		_visit_( Intel_Gen12 )			/* UHD Graphics 7xx, Iris Xe, Core 11xxx		*/\
 		\

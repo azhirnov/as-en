@@ -7,6 +7,7 @@ extern void UnitTest_Class ();
 extern void UnitTest_MathFunc ();
 extern void UnitTest_String ();
 extern void UnitTest_Exceptions ();
+extern void UnitTest_Preprocessor ();
 
 
 #ifdef AE_PLATFORM_ANDROID
@@ -22,6 +23,7 @@ int main ()
 	UnitTest_MathFunc();
 	UnitTest_String();
 	UnitTest_Exceptions();
+	UnitTest_Preprocessor();
 
 	// TODO: multithreading test
 

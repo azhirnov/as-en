@@ -1,9 +1,10 @@
+#include <input_actions>
 
 void main (ActionBindings& bindings)
 {
 	// UI bindings
 	{
-		BindingsMode@	bind = bindings.CreateMode( "UI" );
+		RC<BindingsMode>	bind = bindings.CreateMode( "UI" );
 
 		bind.Add( WinAPI_Input::Enter,
 				  ActionInfo( "Enter", EGestureType::Down ));
@@ -11,18 +12,18 @@ void main (ActionBindings& bindings)
 
 	// Game bindings
 	{
-		BindingsMode@	bind = bindings.CreateMode( "Game" );
+		RC<BindingsMode>	bind = bindings.CreateMode( "Game" );
 	}
 	
 	// Player bindings
 	{
-		BindingsMode@	bind = bindings.CreateMode( "Player" );
+		RC<BindingsMode>	bind = bindings.CreateMode( "Player" );
 		bind.Inherit( "Game" );
 	}
 	
 	// Vehicle bindings
 	{
-		BindingsMode@	bind = bindings.CreateMode( "Vehicle" );
+		RC<BindingsMode>	bind = bindings.CreateMode( "Vehicle" );
 		bind.Inherit( "Game" );
 	}
 }

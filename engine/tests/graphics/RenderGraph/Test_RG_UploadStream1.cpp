@@ -74,10 +74,10 @@ namespace
 			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"UploadStream1"} );
 			CHECK_TE( t.batch );
 			
-			AsyncTask	test	= t.batch->Add< US1_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
+			AsyncTask	test	= t.batch->Run< US1_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
 			AsyncTask	end		= rts.EndFrame( Tuple{test} );
 
-			Continue( Tuple{end} );
+			return Continue( Tuple{end} );
 		}
 
 		StringView  DbgName ()	C_NE_OV	{ return "US1_FrameTask"; }

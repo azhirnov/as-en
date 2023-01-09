@@ -51,7 +51,7 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MDirectComputeCtx (const RenderTask &task)																			__Th___;
+		explicit _MDirectComputeCtx (const RenderTask &task)																__Th___ : _MDirectComputeCtx{ task, MCommandBuffer{} } {}
 		_MDirectComputeCtx (const RenderTask &task, MCommandBuffer cmdbuf)													__Th___;
 		
 		ND_ auto  						_Encoder ()			__NE___;
@@ -103,7 +103,7 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MIndirectComputeCtx (const RenderTask &task)																		__Th___;
+		explicit _MIndirectComputeCtx (const RenderTask &task)																__Th___ : _MIndirectComputeCtx{ task, Default } {}
 		_MIndirectComputeCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)											__Th___;
 
 		void  _Dispatch (const uint3 &groupCount)					{ DispatchThreadgroups( uint3{_states.localSize}, groupCount ); }
@@ -119,23 +119,30 @@ namespace AE::Graphics::_hidden_
 	//
 	
 	template <typename CtxImpl>
-	class _MComputeContextImpl final : public CtxImpl, public IComputeContext
+	class _MComputeContextImpl : public CtxImpl, public IComputeContext
 	{
 	// types
 	public:
 		static constexpr bool	IsComputeContext		= true;
 		static constexpr bool	IsMetalComputeContext	= true;
 	private:
-		using RawCtx	= CtxImpl;
-		using AccumBar	= MAccumBarriers< _MComputeContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= MAccumBarriers< _MComputeContextImpl< CtxImpl >>;
+		using DeferredBar	= MAccumDeferredBarriersForCtx< _MComputeContextImpl< CtxImpl >>;
+		using BoundDS_t		= StaticArray< DescriptorSetID, GraphicsConfig::MaxDescriptorSets >;
+		
+
+	// variables
+	private:
+		BoundDS_t	_boundDS	{};
 
 
 	// methods
 	public:
-		explicit _MComputeContextImpl (const RenderTask &task)														__Th___	: RawCtx{ task } {}
+		explicit _MComputeContextImpl (const RenderTask &task)														__Th___;
 
 		template <typename RawCmdBufType>
-		_MComputeContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)											__Th___	: RawCtx{ task, RVRef(cmdbuf) } {}
+		_MComputeContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)											__Th___;
 
 		_MComputeContextImpl ()																						= delete;
 		_MComputeContextImpl (const _MComputeContextImpl &)															= delete;
@@ -169,6 +176,25 @@ namespace AE::Graphics::_hidden_
 {
 /*
 =================================================
+	constructor
+=================================================
+*/
+	template <typename C>
+	_MComputeContextImpl<C>::_MComputeContextImpl (const RenderTask &task) : RawCtx{ task }
+	{
+		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+	}
+		
+	template <typename C>
+	template <typename RawCmdBufType>
+	_MComputeContextImpl<C>::_MComputeContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+		RawCtx{ task, RVRef(cmdbuf) }
+	{
+		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+	}
+
+/*
+=================================================
 	BindPipeline
 =================================================
 */
@@ -190,10 +216,38 @@ namespace AE::Graphics::_hidden_
 	{
 		CHECK_THROW( dynamicOffsets.empty() );	// not supported yet
 	
-		auto&	desc_set = _GetResourcesOrThrow( ds );
-		ASSERT( desc_set.ShaderStages() == EShaderStages::Compute );
+		const bool	is_bound = (_boundDS[ index.mtlIndex.BindingIndex() ] == ds);
+		_boundDS[ index.mtlIndex.BindingIndex() ] = ds;
+		
+		if_unlikely( is_bound and dynamicOffsets.empty() )
+			return;
+		
+		auto&	desc_set	= _GetResourcesOrThrow( ds );
+		auto	dyn_bufs	= desc_set.GetDynamicBuffers();
 
-		this->Arguments().SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(index.mtlIndex.Compute()) );
+		CHECK_THROW( dyn_bufs.size() == dynamicOffsets.size() );
+		ASSERT( desc_set.ShaderStages() == EShaderStages::Compute );
+		
+		uint	idx		= index.mtlIndex.Vertex();
+		auto	args	= this->Arguments();
+
+		if ( is_bound )
+		{
+			for (usize i = 0; i < dynamicOffsets.size(); ++i, ++idx)
+			{
+				args.SetBufferOffset( Bytes{dynamicOffsets[i]}, MBufferIndex(idx) );
+			}
+		}
+		else
+		{
+			for (usize i = 0; i < dynamicOffsets.size(); ++i, ++idx)
+			{
+				args.SetBuffer( dyn_bufs.at<MetalBuffer>(i), dyn_bufs.at<Bytes>(i), MBufferIndex(idx) );
+				args.SetBufferOffset( Bytes{dynamicOffsets[i]}, MBufferIndex(idx) );
+			}
+		}
+
+		args.SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(index.mtlIndex.Compute()) );
 	}
 
 /*

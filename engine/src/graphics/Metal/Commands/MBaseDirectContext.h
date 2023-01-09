@@ -6,6 +6,7 @@
 # include "graphics/Public/CommandBuffer.h"
 # include "graphics/Metal/Commands/MBarrierManager.h"
 # include "graphics/Metal/Commands/MDrawBarrierManager.h"
+# include "graphics/Metal/Commands/MAccumDeferredBarriers.h"
 # include "graphics/Metal/MRenderTaskScheduler.h"
 
 namespace AE::Graphics::_hidden_
@@ -30,6 +31,8 @@ namespace AE::Graphics::_hidden_
 	// methods
 	public:
 		virtual ~_MBaseDirectContext ()									__NE___;
+		
+		void  PipelineBarrier (const MDependencyInfo &info);
 
 	protected:
 		_MBaseDirectContext (MCommandBuffer cmdbuf, DebugLabel dbg)		__NE___;
@@ -45,6 +48,9 @@ namespace AE::Graphics::_hidden_
 		ND_ bool					_EndEncoding ();
 		ND_ MetalCommandBufferRC	_EndCommandBuffer ();
 		ND_ MCommandBuffer		 	_ReleaseCommandBuffer ();
+
+		ND_ static MCommandBuffer  _ReuseOrCreateCommandBuffer (const MCommandBatch &batch, MCommandBuffer cmdbuf)		__NE___;
+		ND_ static MCommandBuffer  _ReuseOrCreateCommandBuffer (const MDrawCommandBatch &batch, MCommandBuffer cmdbuf)	__NE___;
 	};
 	
 
@@ -64,13 +70,15 @@ namespace AE::Graphics::_hidden_
 	public:
 		explicit MBaseDirectContext (const RenderTask &task)				__NE___;
 		MBaseDirectContext (const RenderTask &task, MCommandBuffer cmdbuf)	__NE___;
-		~MBaseDirectContext ()												__NE_OV;
+		~MBaseDirectContext ()												__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
-		void  _CommitBarriers ();
+			void	_CommitBarriers ();
 
 		ND_ bool	_NoPendingBarriers ()									C_NE___	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetFeatures ()											C_NE___	{ return _mngr.GetDevice().GetFeatures(); }
+
+		ND_ MetalCommandBufferRC	_EndCommandBuffer ();
 	};
 //-----------------------------------------------------------------------------
 
@@ -97,6 +105,19 @@ namespace AE::Graphics::_hidden_
 	{
 		DBG_CHECK_MSG( not (_cmdbuf.HasCmdBuf() or _cmdbuf.HasEncoder()), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
 	}
+
+/*
+=================================================
+	_ReuseOrCreateCommandBuffer
+=================================================
+*/
+	inline MCommandBuffer  _MBaseDirectContext::_ReuseOrCreateCommandBuffer (const MCommandBatch &batch, MCommandBuffer cmdbuf) __NE___
+	{
+		if ( cmdbuf.HasCmdBuf() or cmdbuf.HasEncoder() )
+			return RVRef(cmdbuf);
+		else
+			return MCommandBuffer::CreateCommandBuffer( batch.GetQueueType() );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -107,26 +128,48 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	inline MBaseDirectContext::MBaseDirectContext (const RenderTask &task, MCommandBuffer cmdbuf) __NE___ :
-		_MBaseDirectContext{ RVRef(cmdbuf), DebugLabel{ task.DbgFullName() }},
+		_MBaseDirectContext{
+			_ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf) ),
+			DebugLabel{ task.DbgFullName() }
+		},
 		_mngr{ task }
 	{
 		ASSERT( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
-	}
 
+		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+			PipelineBarrier( *bar );
+	}
+		
 	inline MBaseDirectContext::MBaseDirectContext (const RenderTask &task) __NE___ :
-		MBaseDirectContext{
-			task,
-			MCommandBuffer::CreateCommandBuffer( task.GetBatchPtr()->GetQueueType() )}
+		MBaseDirectContext{ task, MCommandBuffer{} }
 	{}
 	
 /*
 =================================================
-	destructor
+	_EndCommandBuffer
 =================================================
 */
-	inline MBaseDirectContext::~MBaseDirectContext () __NE___
+	inline MetalCommandBufferRC  MBaseDirectContext::_EndCommandBuffer ()
 	{
-		ASSERT( _NoPendingBarriers() );
+		if ( auto* bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
+			PipelineBarrier( *bar );
+
+		return _MBaseDirectContext::_EndCommandBuffer();
+	}
+
+/*
+=================================================
+	_CommitBarriers
+=================================================
+*/
+	inline void  MBaseDirectContext::_CommitBarriers ()
+	{
+		auto* bar = _mngr.GetBarriers();
+		if_unlikely( bar != null )
+		{
+			PipelineBarrier( *bar );
+			_mngr.ClearBarriers();
+		}
 	}
 
 	

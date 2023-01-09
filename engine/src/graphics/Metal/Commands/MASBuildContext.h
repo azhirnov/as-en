@@ -33,7 +33,7 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MDirectASBuildCtx (const RenderTask &task)				__Th___;
+		explicit _MDirectASBuildCtx (const RenderTask &task)				__Th___ : _MDirectASBuildCtx{ task, MCommandBuffer{} } {}
 		_MDirectASBuildCtx (const RenderTask &task, MCommandBuffer cmdbuf)	__Th___;
 		
 		ND_ auto  _Encoder ()												__NE___;
@@ -70,7 +70,7 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MIndirectASBuildCtx (const RenderTask &task)					__Th___;
+		explicit _MIndirectASBuildCtx (const RenderTask &task)					__Th___ : _MIndirectASBuildCtx{ task, Default } {}
 		_MIndirectASBuildCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)__Th___;
 
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
@@ -89,23 +89,24 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _MASBuildContextImpl final : public CtxImpl, public IASBuildContext
+	class _MASBuildContextImpl : public CtxImpl, public IASBuildContext
 	{
 	// types
 	public:
 		static constexpr bool	IsASBuildContext		= true;
 		static constexpr bool	IsMetalASBuildContext	= true;
 	private:
-		using RawCtx	= CtxImpl;
-		using AccumBar	= MAccumBarriers< _MASBuildContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= MAccumBarriers< _MASBuildContextImpl< CtxImpl >>;
+		using DeferredBar	= MAccumDeferredBarriersForCtx< _MASBuildContextImpl< CtxImpl >>;
 
 
 	// methods
 	public:
-		explicit _MASBuildContextImpl (const RenderTask &task)																__Th___	: RawCtx{ task } {}
+		explicit _MASBuildContextImpl (const RenderTask &task)																__Th___;
 		
 		template <typename RawCmdBufType>
-		_MASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)													__Th___	: RawCtx{ task, RVRef(cmdbuf) } {}
+		_MASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)													__Th___;
 
 		_MASBuildContextImpl ()																								= delete;
 		_MASBuildContextImpl (const _MASBuildContextImpl &)																	= delete;
@@ -148,7 +149,25 @@ namespace AE::Graphics
 
 namespace AE::Graphics::_hidden_
 {
-	
+/*
+=================================================
+	constructor
+=================================================
+*/
+	template <typename C>
+	_MASBuildContextImpl<C>::_MASBuildContextImpl (const RenderTask &task) : RawCtx{ task }
+	{
+		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+	}
+		
+	template <typename C>
+	template <typename RawCmdBufType>
+	_MASBuildContextImpl<C>::_MASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+		RawCtx{ task, RVRef(cmdbuf) }
+	{
+		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+	}
+
 /*
 =================================================
 	Copy

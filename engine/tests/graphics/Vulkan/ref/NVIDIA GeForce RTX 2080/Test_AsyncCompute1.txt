@@ -1,8 +1,13 @@
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -13,8 +18,37 @@ name: 'command-buffer'
   ----------
 
   BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task - RP'
+    depth: 2
+  ----------
+
   Draw
+
   EndRenderPass2
+    attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -24,6 +58,10 @@ name: 'command-buffer'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
   ----------
 
+  EndDebugLabel
+    depth: 2
+  ----------
+
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -31,29 +69,48 @@ signalSemaphore = {
 }
 ==================================================
 ==================================================
-Batch: 'AsyncCompute'
+Batch in queue: 'AsyncCompute', (2)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'compute batch |0| async compute task'
+    depth: 1
+  ----------
+
   Dispatch
     descriptors:
       image: 'Image-0', layout: GENERAL
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
 }
 --------------------------------------------------
-waitSemaphore = {
-  'sync-0',  stage: ALL_COMMANDS
-}
 signalSemaphore = {
   'sync-1',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -64,8 +121,37 @@ name: 'command-buffer'
   ----------
 
   BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView-1'
+      image:   'Image-1'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task - RP'
+    depth: 2
+  ----------
+
   Draw
+
   EndRenderPass2
+    attachment:
+      view:    'ImageView-1'
+      image:   'Image-1'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -75,39 +161,59 @@ name: 'command-buffer'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
   ----------
 
+  EndDebugLabel
+    depth: 2
+  ----------
+
 }
 --------------------------------------------------
-waitSemaphore = {
-  'sync-1',  stage: ALL_COMMANDS
-}
 signalSemaphore = {
   'sync-2',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'AsyncCompute'
+Batch in queue: 'AsyncCompute', (2)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-2',  stage: ALL_COMMANDS
+}
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'compute batch |0| async compute task'
+    depth: 1
+  ----------
+
   Dispatch
     descriptors:
       image: 'Image-1', layout: GENERAL
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
 }
 --------------------------------------------------
-waitSemaphore = {
-  'sync-2',  stage: ALL_COMMANDS
-}
 signalSemaphore = {
   'sync-3',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-3',  stage: ALL_COMMANDS
+}
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -118,8 +224,37 @@ name: 'command-buffer'
   ----------
 
   BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task - RP'
+    depth: 2
+  ----------
+
   Draw
+
   EndRenderPass2
+    attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -129,35 +264,55 @@ name: 'command-buffer'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
   ----------
 
+  EndDebugLabel
+    depth: 2
+  ----------
+
 }
 --------------------------------------------------
-waitSemaphore = {
-  'sync-3',  stage: ALL_COMMANDS
-}
 signalSemaphore = {
   'sync-4',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'AsyncCompute'
---------------------------------------------------
-name: 'command-buffer'
-{
-  Dispatch
-}
+Batch in queue: 'AsyncCompute', (2)
 --------------------------------------------------
 waitSemaphore = {
   'sync-4',  stage: ALL_COMMANDS
 }
+--------------------------------------------------
+name: 'command-buffer'
+{
+  BeginDebugLabel
+    name:  'compute batch |0| async compute task'
+    depth: 1
+  ----------
+
+  Dispatch
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
 signalSemaphore = {
   'sync-5',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-5',  stage: ALL_COMMANDS
+}
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'copy task |0| Readback task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -193,20 +348,26 @@ name: 'command-buffer'
       access: TRANSFER_WRITE ---> HOST_READ
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
 }
 --------------------------------------------------
-waitSemaphore = {
-  'sync-5',  stage: ALL_COMMANDS
-}
 signalSemaphore = {
   'sync-6',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -217,8 +378,37 @@ name: 'command-buffer'
   ----------
 
   BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task - RP'
+    depth: 2
+  ----------
+
   Draw
+
   EndRenderPass2
+    attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -228,6 +418,10 @@ name: 'command-buffer'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
   ----------
 
+  EndDebugLabel
+    depth: 2
+  ----------
+
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -235,29 +429,48 @@ signalSemaphore = {
 }
 ==================================================
 ==================================================
-Batch: 'AsyncCompute'
+Batch in queue: 'AsyncCompute', (2)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-7',  stage: ALL_COMMANDS
+}
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'compute batch |0| async compute task'
+    depth: 1
+  ----------
+
   Dispatch
     descriptors:
       image: 'Image-0', layout: GENERAL
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
 }
 --------------------------------------------------
-waitSemaphore = {
-  'sync-7',  stage: ALL_COMMANDS
-}
 signalSemaphore = {
   'sync-8',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-8',  stage: ALL_COMMANDS
+}
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -268,8 +481,37 @@ name: 'command-buffer'
   ----------
 
   BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView-1'
+      image:   'Image-1'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task - RP'
+    depth: 2
+  ----------
+
   Draw
+
   EndRenderPass2
+    attachment:
+      view:    'ImageView-1'
+      image:   'Image-1'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -279,39 +521,59 @@ name: 'command-buffer'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
   ----------
 
+  EndDebugLabel
+    depth: 2
+  ----------
+
 }
 --------------------------------------------------
-waitSemaphore = {
-  'sync-8',  stage: ALL_COMMANDS
-}
 signalSemaphore = {
   'sync-9',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'AsyncCompute'
+Batch in queue: 'AsyncCompute', (2)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-9',  stage: ALL_COMMANDS
+}
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'compute batch |0| async compute task'
+    depth: 1
+  ----------
+
   Dispatch
     descriptors:
       image: 'Image-1', layout: GENERAL
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
 }
 --------------------------------------------------
-waitSemaphore = {
-  'sync-9',  stage: ALL_COMMANDS
-}
 signalSemaphore = {
   'sync-10',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-10',  stage: ALL_COMMANDS
+}
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -322,8 +584,37 @@ name: 'command-buffer'
   ----------
 
   BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'graphics batch |0| graphics task - RP'
+    depth: 2
+  ----------
+
   Draw
+
   EndRenderPass2
+    attachment:
+      view:    'ImageView-0'
+      image:   'Image-0'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -333,35 +624,55 @@ name: 'command-buffer'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
   ----------
 
+  EndDebugLabel
+    depth: 2
+  ----------
+
 }
 --------------------------------------------------
-waitSemaphore = {
-  'sync-10',  stage: ALL_COMMANDS
-}
 signalSemaphore = {
   'sync-11',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'AsyncCompute'
---------------------------------------------------
-name: 'command-buffer'
-{
-  Dispatch
-}
+Batch in queue: 'AsyncCompute', (2)
 --------------------------------------------------
 waitSemaphore = {
   'sync-11',  stage: ALL_COMMANDS
 }
+--------------------------------------------------
+name: 'command-buffer'
+{
+  BeginDebugLabel
+    name:  'compute batch |0| async compute task'
+    depth: 1
+  ----------
+
+  Dispatch
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
 signalSemaphore = {
   'sync-12',  stage: ALL_COMMANDS
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+waitSemaphore = {
+  'sync-12',  stage: ALL_COMMANDS
+}
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'copy task |0| Readback task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -397,11 +708,12 @@ name: 'command-buffer'
       access: TRANSFER_WRITE ---> HOST_READ
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
 }
 --------------------------------------------------
-waitSemaphore = {
-  'sync-12',  stage: ALL_COMMANDS
-}
 signalSemaphore = {
   'sync-13',  stage: ALL_COMMANDS
 }

@@ -1012,11 +1012,13 @@ namespace AE::Base
 			case EResourceState::FragmentDensityMap :				str += "FragmentDensityMap";					break;
 			case EResourceState::Unknown :							str += "Unknown";								break;
 			case EResourceState::Preserve :							str += "Preserve";								break;
+			case EResourceState::General :							str += "General";								break;
 
 			case EResourceState::DSTestBeforeFS :
 			case EResourceState::DSTestAfterFS :
 			case EResourceState::Invalidate :
 			case EResourceState::_FlagsMask :
+			case EResourceState::_AccessCount :
 			case EResourceState::_AccessMask :
 			case EResourceState::PreRasterizationShaders :
 			case EResourceState::TileShader :

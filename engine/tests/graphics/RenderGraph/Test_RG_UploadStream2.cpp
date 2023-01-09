@@ -80,13 +80,13 @@ namespace
 			CHECK_TE( t.batch );
 			
 		#ifdef AE_HAS_COROUTINE
-			AsyncTask	test = t.batch->Add(
-				[] (US2_TestData &t) -> CoroutineRenderTask
+			AsyncTask	test = t.batch->Run(
+				[] (US2_TestData &t) -> RenderTaskCoro
 				{
 					// same as 'US2_UploadStreamTask'
-					auto	hnd = co_await RenderTask_Get;
+					RenderTask&		self = co_await RenderTask_GetRef;
 
-					DirectCtx::Transfer	ctx{ *hnd };
+					DirectCtx::Transfer	ctx{ self };
 
 					const uint3	pos = uint3{ 0u, t.stream.posYZ };
 			
@@ -105,19 +105,19 @@ namespace
 
 					co_await RenderTask_Execute( ctx );
 			
-					const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( hnd->GetFrameId() );
+					const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( self.GetFrameId() );
 					ASSERT( stat.dynamicWrite <= upload_limit );
 					
 					co_return;
 				}( t ),
 				Tuple{begin}, True{"Last"}, {"test task"} );
 		#else
-			AsyncTask	test = t.batch->Add< US2_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
+			AsyncTask	test = t.batch->Run< US2_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
 		#endif
 
 			AsyncTask	end = rts.EndFrame( Tuple{test} );
 
-			Continue( Tuple{end} );
+			return Continue( Tuple{end} );
 		}
 
 		StringView  DbgName ()	C_NE_OV	{ return "US2_FrameTask"; }

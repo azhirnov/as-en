@@ -39,6 +39,7 @@ namespace AE::Graphics
 		void  Validate ()									__NE___;
 		
 		ND_ bool  operator == (const ImageDesc &rhs)		C_NE___;
+		ND_ bool  IsExclusiveSharing ()						C_NE___	{ return queues == Default; }
 		
 		ImageDesc&  SetType (EImage value)					__NE___;
 		ImageDesc&  SetType (EImageDim value)				__NE___	{ imageType		= value;				return *this; }

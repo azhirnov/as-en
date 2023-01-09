@@ -139,7 +139,9 @@ namespace AE::PipelineCompiler
 	};
 	AE_BIT_OPERATORS( EImageType );
 	
-	ND_ bool  EImageType_IsCompatible (EImageType lhs, EImageType rhs);
+	ND_ bool		EImageType_IsCompatible (EImageType lhs, EImageType rhs)	__NE___;
+	ND_ EImageType	EImageType_FromPixelFormat (EPixelFormat fmt)				__NE___;
+	ND_ EImageType	EImageType_FromImage (EImage type, bool ms)					__NE___;
 
 
 

@@ -17,11 +17,6 @@ namespace AE::Graphics::_hidden_
 
 	class MDrawBarrierManager
 	{
-	// types
-	public:
-		using BarrierInfo = MBarrierManager::BarrierInfo;
-
-
 	// variables
 	private:
 		const MPrimaryCmdBufState	_primaryState;
@@ -47,7 +42,7 @@ namespace AE::Graphics::_hidden_
 		ND_ bool					IsSecondary ()								C_NE___	{ return _batch != null; }
 		ND_ Ptr<MDrawCommandBatch>	GetBatchPtr ()								C_NE___	{ return _batch.get(); }
 		
-		ND_ const BarrierInfo*		GetBarriers ()								__NE___	{ return null; }	// TODO
+		ND_ const MDependencyInfo*	GetBarriers ()								__NE___	{ return null; }	// TODO
 		ND_ bool					NoPendingBarriers ()						C_NE___	{ return true; }
 		ND_ bool					HasPendingBarriers ()						C_NE___	{ return false; }
 

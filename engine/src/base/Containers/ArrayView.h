@@ -106,6 +106,13 @@ namespace AE::Base
 		ND_ constexpr bool  operator <= (ArrayView<T> rhs)		C_NE___	{ return not (*this > rhs); }
 
 
+		ND_ constexpr bool  AllEqual (const T &rhs)				C_NE___	{ return _All( rhs, std::equal_to<T>{} ); }
+		ND_ constexpr bool  AllGreater (const T &rhs)			C_NE___	{ return _All( rhs, std::greater<T>{} ); }
+		ND_ constexpr bool  AllGreaterEqual (const T &rhs)		C_NE___	{ return _All( rhs, std::greater_equal<T>{} ); }
+		ND_ constexpr bool  AllLess (const T &rhs)				C_NE___	{ return _All( rhs, std::less<T>{} ); }
+		ND_ constexpr bool  AllLessEqual (const T &rhs)			C_NE___	{ return _All( rhs, std::less_equal<T>{} ); }
+
+
 		ND_ constexpr ArrayView<T> section (usize first, usize count) C_NE___
 		{
 			return first < size() ?
@@ -120,6 +127,18 @@ namespace AE::Base
 			STATIC_ASSERT( sizeof(R) > sizeof(T) ? (sizeof(R) % sizeof(T) == 0) : (sizeof(T) % sizeof(R) == 0) );
 
 			return ArrayView<R>{ static_cast<const R*>(static_cast<const void *>( _array )), (_count * sizeof(T)) / sizeof(R) };
+		}
+
+	private:
+		
+		template <typename Op>
+		ND_ constexpr bool  _All (const T &rhs, const Op &op) C_NE___
+		{
+			for (usize i = 0; i < size(); ++i) {
+				if_unlikely( not op( _array[i], rhs ))
+					return false;
+			}
+			return not empty();
 		}
 	};
 

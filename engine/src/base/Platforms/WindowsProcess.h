@@ -3,11 +3,6 @@
 #pragma once
 
 #ifdef AE_PLATFORM_WINDOWS
-# include "base/Defines/StdInclude.h"
-# include <thread>
-# include <mutex>
-
-# include "base/Math/BitMath.h"
 # include "base/Utils/FileSystem.h"
 
 namespace AE::Base

@@ -40,9 +40,10 @@ namespace AE::Graphics
 		};
 
 	private:
-		using AttachmentMap_t	= FixedMap< AttachmentName::Optimized_t, AttachmentIdx, GraphicsConfig::MaxAttachments >;
-		using SPNameToIdx_t		= FixedMap< SubpassName::Optimized_t, ubyte, GraphicsConfig::MaxSubpasses >;
-		using Subpasses_t		= FixedArray< SubpassInfo, GraphicsConfig::MaxSubpasses >;
+		using AttachmentMap_t		= FixedMap< AttachmentName::Optimized_t, AttachmentIdx, GraphicsConfig::MaxAttachments >;
+		using SPNameToIdx_t			= FixedMap< SubpassName::Optimized_t, ubyte, GraphicsConfig::MaxSubpasses >;
+		using Subpasses_t			= FixedArray< SubpassInfo, GraphicsConfig::MaxSubpasses >;
+		using AttachmentPixFormat_t	= StaticArray< VkFormat, GraphicsConfig::MaxAttachments >;
 
 
 	// variables
@@ -54,10 +55,12 @@ namespace AE::Graphics
 		AttachmentStates_t			_attStates;
 		SPNameToIdx_t				_subpassMap;
 		Subpasses_t					_subpasses;
-		
-		DEBUG_ONLY( SubpassName::Optimized_t	_firstSPName; )
-			
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
+
+		DEBUG_ONLY(
+			AttachmentPixFormat_t	 _pixFormats;
+			SubpassName::Optimized_t _firstSPName;
+			DebugName_t				 _debugName;
+		)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
 
 
@@ -81,9 +84,11 @@ namespace AE::Graphics
 		ND_ SPNameToIdx_t const&		SubpassMap ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassMap; }
 		ND_ ArrayView<SubpassInfo>		Subpasses ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpasses; }
 
-		DEBUG_ONLY(  ND_ StringView		GetDebugName ()								C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
-
-		DEBUG_ONLY( ND_ SubpassName::Optimized_t  GetFirstSubpassName ()			C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _firstSPName; })
+		DEBUG_ONLY(
+			ND_ ArrayView<VkFormat>			GetPixelFormat ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pixFormats; }
+			ND_ StringView					GetDebugName ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; }
+			ND_ SubpassName::Optimized_t	GetFirstSubpassName ()					C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _firstSPName; }
+		)
 	};
 
 

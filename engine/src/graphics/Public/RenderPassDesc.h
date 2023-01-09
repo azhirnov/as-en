@@ -28,7 +28,7 @@ namespace AE::Graphics
 			ImageViewID		imageView;
 			ClearValue_t	clearValue;				// default is black color
 			EResourceState	initial		= Default;	// allow to transit from known state to required by render pass
-			EResourceState	final		= Default;
+			EResourceState	final		= Default;	// allow to transit from render pass state to expected state
 		};
 
 		struct Viewport
@@ -48,20 +48,22 @@ namespace AE::Graphics
 		Attachments_t	attachments;
 		Viewports_t		viewports;
 		RectI			area;
-		ImageLayer		layerCount;
+		ImageLayer		layerCount		= 1_layer;
 		RenderPassName	renderPassName;
 		SubpassName		subpassName;		// optional
+		PipelinePackID	packId;
 
 		// TODO:
 		//	- tile size	(Metal)
 		//	- image block size (Metal)
 		//	- threadgroup size (Metal)
 		//	- RRM (Metal)
-		//	- time profiling
 
 
 	// methods
 	public:
+		RenderPassDesc () __NE___ {}
+
 		template <typename T> RenderPassDesc (const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)											__NE___;
 		template <typename T> RenderPassDesc (const RenderPassName &rpName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)											__NE___;
 
@@ -149,9 +151,13 @@ namespace AE::Graphics
 			auto	info = rtech->GetPass( pass );
 			ASSERT( info.type == IRenderTechPipelines::EPassType::Graphics );
 			ASSERT( info.renderPass.IsDefined() );
-
-			renderPassName	= RenderPassName{ info.renderPass };
-			subpassName		= SubpassName{ info.subpass };
+			
+			if_likely( info.type == IRenderTechPipelines::EPassType::Graphics )
+			{
+				renderPassName	= RenderPassName{ info.renderPass };
+				subpassName		= SubpassName{ info.subpass };
+				packId			= info.packId;
+			}
 		}
 	}
 	
@@ -174,7 +180,7 @@ namespace AE::Graphics
 	{
 		ASSERT( imageView );
 
-		attachments.insert_or_assign( id, Attachment{ imageView, NullUnion{}, initial, final });
+		attachments.try_insert_or_assign( id, Attachment{ imageView, NullUnion{}, initial, final });
 		return *this;
 	}
 	
@@ -189,7 +195,7 @@ namespace AE::Graphics
 	{
 		ASSERT( imageView );
 
-		attachments.insert_or_assign( id, Attachment{ imageView, clearValue, initial, final });
+		attachments.try_insert_or_assign( id, Attachment{ imageView, clearValue, initial, final });
 		return *this;
 	}
 	
@@ -205,7 +211,7 @@ namespace AE::Graphics
 		ASSERT( All( area.LeftTop() <= int2(rect.LeftTop()) ));
 		ASSERT( All( area.RightBottom() >= int2(rect.RightBottom()) ));
 
-		viewports.push_back({ RectF{rect}, minDepth, maxDepth });
+		viewports.try_push_back({ RectF{rect}, minDepth, maxDepth });
 		return *this;
 	}
 
@@ -222,6 +228,8 @@ namespace AE::Graphics
 */
 	inline RenderPassDesc&  RenderPassDesc::DefaultViewport () __NE___
 	{
+		ASSERT( viewports.empty() );
+
 		Viewport&	dst = viewports.emplace_back();
 		dst.rect		= RectF{area};
 		dst.minDepth	= 0.0f;

@@ -115,11 +115,11 @@ no source
 
 //> (out): float4 {0.500000, 0.500000, 0.000000, 1.000000}
 //  gl_VertexIndex: int {1}
-51. gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
+68. gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
 
 //> v_Color: float3 {0.000000, 1.000000, 0.000000}
 //  gl_VertexIndex: int {1}
-52. v_Color		= g_Colors[gl_VertexIndex];
+69. v_Color		= g_Colors[gl_VertexIndex];
 
 )";
 						const char	vs2_ref_str[] = 
@@ -129,11 +129,11 @@ no source
 
 //> (out): float4 {-0.500000, 0.500000, 0.000000, 1.000000}
 //  gl_VertexIndex: int {2}
-51. gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
+68. gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
 
 //> v_Color: float3 {0.000000, 0.000000, 1.000000}
 //  gl_VertexIndex: int {2}
-52. v_Color		= g_Colors[gl_VertexIndex];
+69. v_Color		= g_Colors[gl_VertexIndex];
 
 )";
 						const char	fs_ref_str[] =
@@ -144,11 +144,11 @@ no source
 
 //> out_Color: float3 {0.498333, 0.252083, 0.249583}
 //  v_Color: float3 {0.498333, 0.252083, 0.249583}
-40. out_Color.rgb = v_Color.rgb;
+57. out_Color.rgb = v_Color.rgb;
 
 //> out_Color: float4 {0.498333, 0.252083, 0.249583, 0.500000}
 //  v_Color: float3 {0.498333, 0.252083, 0.249583}
-41. out_Color.a   = fract(v_Color.r + v_Color.g + v_Color.b + 0.5f);
+58. out_Color.a   = fract(v_Color.r + v_Color.g + v_Color.b + 0.5f);
 
 )";
 
@@ -196,8 +196,8 @@ no source
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Debugger2"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< Db2_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Draw task"} );
-		AsyncTask	task2	= batch->Add< Db2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+		AsyncTask	task1	= batch->Run< Db2_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Draw task"} );
+		AsyncTask	task2	= batch->Run< Db2_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 

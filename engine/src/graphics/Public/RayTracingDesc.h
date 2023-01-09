@@ -115,10 +115,12 @@ namespace AE::Graphics
 	{
 		Bytes			size;		// same as RTASBuildSizes::size
 		ERTASOptions	options		= Default;
-		//EQueueMask	queues		= Default;	// TODO
+		
+		RTGeometryDesc ()									__NE___ {}
+		RTGeometryDesc (Bytes size, ERTASOptions opt)		__NE___ : size{size}, options{opt} {}
 
-		RTGeometryDesc ()								__NE___ {}
-		RTGeometryDesc (Bytes size, ERTASOptions opt)	__NE___ : size{size}, options{opt} {}
+		ND_ bool  operator == (const RTGeometryDesc &rhs)	__NE___	{ return (size == rhs.size) & (options == rhs.options); }
+		ND_ bool  IsExclusiveSharing ()						C_NE___	{ return false; }
 	};
 
 	
@@ -222,10 +224,12 @@ namespace AE::Graphics
 	{
 		Bytes			size;		// same as RTASBuildSizes::size
 		ERTASOptions	options		= Default;
-		//EQueueMask	queues		= Default;	// TODO
 		
-		RTSceneDesc ()								__NE___	{}
-		RTSceneDesc (Bytes size, ERTASOptions opt)	__NE___	: size{size}, options{opt} {}
+		RTSceneDesc ()									__NE___	{}
+		RTSceneDesc (Bytes size, ERTASOptions opt)		__NE___	: size{size}, options{opt} {}
+		
+		ND_ bool  operator == (const RTSceneDesc &rhs)	__NE___	{ return (size == rhs.size) & (options == rhs.options); }
+		ND_ bool  IsExclusiveSharing ()					C_NE___	{ return false; }
 	};
 
 
@@ -272,20 +276,3 @@ namespace AE::Graphics
 #endif
 
 } // AE::Graphics
-
-
-# ifdef AE_CPP_DETECT_MISMATCH
-
-#  ifdef AE_ENABLE_VULKAN
-#	pragma detect_mismatch( "AE_ENABLE_VULKAN", "1" )
-#  else
-#	pragma detect_mismatch( "AE_ENABLE_VULKAN", "0" )
-#  endif
-
-#  ifdef AE_ENABLE_METAL
-#	pragma detect_mismatch( "AE_ENABLE_METAL", "1" )
-#  else
-#	pragma detect_mismatch( "AE_ENABLE_METAL", "0" )
-#  endif
-
-#endif // AE_CPP_DETECT_MISMATCH

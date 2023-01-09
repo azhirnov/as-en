@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -27,7 +28,7 @@ void main ()
 
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "MinDesktop" );
+	RC<FeatureSet>  fset = FeatureSet( "MinDesktop" );
 
 	fset.depthBiasClamp (True);
 	fset.dualSrcBlend (True);

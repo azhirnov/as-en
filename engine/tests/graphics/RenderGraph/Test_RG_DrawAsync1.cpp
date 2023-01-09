@@ -128,15 +128,15 @@ namespace
 				lock.unlock();
 				
 				#ifdef AE_HAS_COROUTINE
-					const auto	CreateDrawTask = [] (DA1_TestData &t, const uint firstVertex) -> CoroutineDrawTask
+					const auto	CreateDrawTask = [] (DA1_TestData &t, const uint firstVertex) -> DrawTaskCoro
 					{{
-						auto	hnd = co_await DrawTask_Get;
+						DrawTask&	self = co_await DrawTask_GetRef;
 
 						// same as 'DA1_DrawTask'
 						DeferSharedLock	lock {t.guard};
 						CHECK_CE( lock.try_lock() );
 
-						typename CtxTypes::Draw		dctx{ *hnd };
+						typename CtxTypes::Draw		dctx{ self };
 			
 						CHECK_CE( dctx.BindVertexBuffer( t.ppln, VertexBufferName{"vb"}, t.vb, 0_b ));
 
@@ -151,17 +151,17 @@ namespace
 						co_return;
 					}};
 					StaticArray< AsyncTask, 4 >	draw_tasks = {
-						drawBatch->Add( CreateDrawTask( t, 0 ), Tuple{}, {"draw cmd 1"} ),
-						drawBatch->Add( CreateDrawTask( t, 3 ), Tuple{}, {"draw cmd 2"} ),
-						drawBatch->Add( CreateDrawTask( t, 6 ), Tuple{}, {"draw cmd 3"} ),
-						drawBatch->Add( CreateDrawTask( t, 9 ), Tuple{}, {"draw cmd 4"} )
+						drawBatch->Run( CreateDrawTask( t, 0 ), Tuple{}, {"draw cmd 1"} ),
+						drawBatch->Run( CreateDrawTask( t, 3 ), Tuple{}, {"draw cmd 2"} ),
+						drawBatch->Run( CreateDrawTask( t, 6 ), Tuple{}, {"draw cmd 3"} ),
+						drawBatch->Run( CreateDrawTask( t, 9 ), Tuple{}, {"draw cmd 4"} )
 					};
 				#else
 					StaticArray< AsyncTask, 4 >	draw_tasks = {
-						drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 0u }, Tuple{}, {"draw cmd 1"} ),
-						drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 3u }, Tuple{}, {"draw cmd 2"} ),
-						drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 6u }, Tuple{}, {"draw cmd 3"} ),
-						drawBatch->Add< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 9u }, Tuple{}, {"draw cmd 4"} )
+						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 0u }, Tuple{}, {"draw cmd 1"} ),
+						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 3u }, Tuple{}, {"draw cmd 2"} ),
+						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 6u }, Tuple{}, {"draw cmd 3"} ),
+						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 9u }, Tuple{}, {"draw cmd 4"} )
 					};
 				#endif
 				drawBatch->EndRecording();	// optional
@@ -251,8 +251,8 @@ namespace
 		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"DrawAsync1"} );
 		CHECK_ERR( t.batch );
 
-		AsyncTask	task1	= t.batch->Add< DA1_RenderPassTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},				  {"Draw task"} );
-		AsyncTask	task2	= t.batch->Add< DA1_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+		AsyncTask	task1	= t.batch->Run< DA1_RenderPassTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},				  {"Draw task"} );
+		AsyncTask	task2	= t.batch->Run< DA1_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 

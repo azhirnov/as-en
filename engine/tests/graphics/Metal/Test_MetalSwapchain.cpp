@@ -1,11 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "platform/Public/IWindow.h"
-#include "platform/Public/IApplication.h"
-#include "../UnitTest_Common.h"
-using namespace AE::App;
+#ifdef AE_ENABLE_METAL
 
-#if defined(AE_ENABLE_METAL) and defined(AE_PLATFORM_APPLE)
+# include "platform/Public/IWindow.h"
+# include "platform/Public/IApplication.h"
+# include "../UnitTest_Common.h"
+using namespace AE::App;
 
 # include "graphics/Metal/MDevice.h"
 # include "graphics/Metal/MSwapchain.h"

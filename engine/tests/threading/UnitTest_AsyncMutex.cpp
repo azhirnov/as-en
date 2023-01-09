@@ -14,6 +14,7 @@ namespace
 	struct Test1_SharedData
 	{
 		AsyncMutex		mutex;
+		Mutex			mutex2;
 		ulong			counter	= 0;
 
 		static constexpr uint	repeat_count	= 100;
@@ -31,11 +32,13 @@ namespace
 
 		void  Run () override
 		{
-			ASSERT( EndsWith( __func__, "Run" ));
 			{
 				ASYNC_EXLOCK( data.mutex );
+				CHECK_TE( data.mutex2.try_lock() );
 
 				++data.counter;
+				
+				data.mutex2.unlock();
 			}
 
 			if ( ++counter < Test1_SharedData::repeat_count )

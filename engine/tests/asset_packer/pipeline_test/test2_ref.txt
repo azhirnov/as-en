@@ -3,7 +3,7 @@ RenderTechniques {
   [0]
     name     = 'MinForward'
     features = {
-      'MinimalFS', 'part.Swapchain_RGBA8_UNorm', 'MinDesktop'
+      'MinimalFS', 'part.Swapchain_RGBA8_UNorm', 'MinRecursiveRayTracing', 'MinDesktop'
     }
     passes = {
       [0] Pass {
@@ -16,10 +16,11 @@ RenderTechniques {
       }
     }
     pipelines = {
-      [0]  'compute_1.def', 30000001
-      [1]  'compute_2.def', 30000000
-      [2]  'graphics_4 rp:Simple', 10000001
-      [3]  'graphics_1 rp:Simple', 10000000
+      [0]  'compute_1.def', 30000000
+      [1]  'compute_2.def', 30000002
+      [2]  'compute_3.def', 30000001
+      [3]  'graphics_4 rp:Simple', 10000000
+      [4]  'graphics_1 rp:Simple', 10000001
     }
     shader binding tables = {}
   ----------------------
@@ -50,6 +51,10 @@ RenderStates {
         write         = false
         test          = true
       }
+      inputAssembly = {
+        topology         = TriangleList
+        primitiveRestart = false
+      }
     }
   [1]
     renderState = {
@@ -57,10 +62,6 @@ RenderStates {
         compareOp     = LEqual
         write         = false
         test          = true
-      }
-      inputAssembly = {
-        topology         = TriangleList
-        primitiveRestart = false
       }
     }
 }
@@ -147,6 +148,19 @@ DescrSetLayouts {
       format       = R32U
     }
   ----------------------
+  [5]
+    name   = 'DS_Compute_3'
+    usage  = 0
+    stages = Compute
+    [0] UniformBuffer {
+      name         = 'bufferRef'
+      vkIndex      = 0
+      mtlIndex     = Compute: 0
+      state        = ShaderUniform | ComputeShader
+      staticSize   = 24 b
+      arrayStride  = 0 b
+    }
+  ----------------------
 }
 
 PipelineLayouts {
@@ -155,7 +169,7 @@ PipelineLayouts {
       name     = 'DS_Compute'
       uid      = 3
       vkIndex  = 0
-      mtlIndex = v/t/c/m: 0
+      mtlIndex = v/t/c/m: 0 idx: 0
     }
   ----------------------
   [1]
@@ -163,13 +177,13 @@ PipelineLayouts {
       name     = 'DS_Material'
       uid      = 1
       vkIndex  = 1
-      mtlIndex = f: 0
+      mtlIndex = f: 0 idx: 1
     }
     [1] DescrSet {
       name     = 'DS_PerDraw2D'
       uid      = 2
       vkIndex  = 2
-      mtlIndex = v/t/c/m: 0
+      mtlIndex = v/t/c/m: 0 idx: 2
     }
   ----------------------
   [2]
@@ -177,7 +191,7 @@ PipelineLayouts {
       name     = 'DS_Compute_2'
       uid      = 4
       vkIndex  = 0
-      mtlIndex = v/t/c/m: 0
+      mtlIndex = v/t/c/m: 0 idx: 0
     }
   ----------------------
   [3]
@@ -185,7 +199,7 @@ PipelineLayouts {
       name     = 'DS_Material'
       uid      = 1
       vkIndex  = 1
-      mtlIndex = f: 0
+      mtlIndex = f: 0 idx: 1
     }
   ----------------------
   [4]
@@ -193,21 +207,29 @@ PipelineLayouts {
       name     = 'DS_Material'
       uid      = 1
       vkIndex  = 1
-      mtlIndex = f: 0
+      mtlIndex = f: 0 idx: 1
     }
     [1] DescrSet {
       name     = 'DS_PerDraw3D'
       uid      = 2
       vkIndex  = 2
-      mtlIndex = v/t/c/m: 0
+      mtlIndex = v/t/c/m: 0 idx: 2
     }
   ----------------------
   [5]
     [0] DescrSet {
+      name     = 'DS_Compute_3'
+      uid      = 5
+      vkIndex  = 0
+      mtlIndex = v/t/c/m: 0 idx: 0
+    }
+  ----------------------
+  [6]
+    [0] DescrSet {
       name     = 'DS_Material'
       uid      = 1
       vkIndex  = 0
-      mtlIndex = f: 0
+      mtlIndex = f: 0 idx: 0
     }
     [0] PushConst {
       name       = 'pc1'
@@ -224,32 +246,32 @@ PipelineLayouts {
       size       = 16 b
     }
   ----------------------
-  [6]
+  [7]
     [0] DescrSet {
       name     = 'DS_Compute'
       uid      = 3
       vkIndex  = 0
-      mtlIndex = v/t/c/m: 0
+      mtlIndex = v/t/c/m: 0 idx: 0
     }
     [1] DescrSet {
       name     = 'ShaderTrace'
       uid      = 0
       vkIndex  = 1
-      mtlIndex = v/t/c/m: 1
+      mtlIndex = v/t/c/m: 1 idx: 1
     }
   ----------------------
 }
 
 GraphicsPipelineTempl {
   [0]
-    layout  = 5
+    layout  = 4
     shaders = {
-      Vertex = 30000002
-      Fragment = 30000003
+      Vertex = 30000001
+      Fragment = 30000002
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
     vertexAttribs = {
-      type   = Float2
+      type   = Float3
       index  = 0
       -------------
       type   = Float2
@@ -262,8 +284,8 @@ GraphicsPipelineTempl {
   [1]
     layout  = 1
     shaders = {
-      Vertex = 30000004
-      Fragment = 30000005
+      Vertex = 30000005
+      Fragment = 30000006
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
     vertexAttribs = {
@@ -278,14 +300,14 @@ GraphicsPipelineTempl {
     featureSets = { 'MinimalFS' }
   ----------------------
   [2]
-    layout  = 4
+    layout  = 6
     shaders = {
-      Vertex = 30000008
-      Fragment = 30000009
+      Vertex = 30000009
+      Fragment = 3000000a
     }
     topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
     vertexAttribs = {
-      type   = Float3
+      type   = Float2
       index  = 0
       -------------
       type   = Float2
@@ -301,8 +323,8 @@ MeshPipelineTempl {
   [0]
     layout  = 3
     shaders = {
-      Mesh = 30000000
-      Fragment = 30000001
+      Mesh = 30000003
+      Fragment = 30000004
     }
     outputTopology       = TriangleList
     maxVertices          = 0
@@ -314,50 +336,30 @@ MeshPipelineTempl {
 
 ComputePipelineTempl {
   [0]
+    layout  = 0
+    shader  = 30000000
+    featureSets = { 'MinimalFS' }
+  ----------------------
+  [1]
+    layout  = 5
+    shader  = 30000007
+    defaultLocalSize = { 8, 8, 1 }
+    localSizeSpec = { 0, 1, Undefined }
+    featureSets = { 'MinRecursiveRayTracing' }
+  ----------------------
+  [2]
     layout  = 2
-    shader  = 30000006
+    shader  = 30000008
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
     featureSets = { 'MinDesktop' }
-  ----------------------
-  [1]
-    layout  = 0
-    shader  = 30000007
-    featureSets = { 'MinimalFS' }
   ----------------------
 }
 
 GraphicsPipelineSpec {
   [0]
-    templUID      = 10000001
-    rStateUID     = 1
-    dsStateUID    = 0
-    renderPass    = 'Simple'
-    subpass       = 'Main'
-    viewportCount = 1
-    dynamicState  = 0
-    options       = Optimize
-    vertexBuffers = {
-      [0] {
-        name     = 'vb'
-        typeName = 'vb_input1'
-        rate     = Vertex
-        index    = 0
-        stride   = 16 b
-        attribs  = {
-          type   = Float3
-          offset = 0 b
-          index  = 0
-          -------------
-          type   = UShort2_Norm
-          offset = 12 b
-          index  = 1
-          -------------
-      }
-    }
-  [1]
-    templUID      = 10000002
-    rStateUID     = 1
+    templUID      = 10000000
+    rStateUID     = 0
     dsStateUID    = 0
     renderPass    = 'Simple'
     subpass       = 'Main'
@@ -390,12 +392,39 @@ GraphicsPipelineSpec {
           -------------
       }
     }
+  [1]
+    templUID      = 10000001
+    rStateUID     = 0
+    dsStateUID    = 0
+    renderPass    = 'Simple'
+    subpass       = 'Main'
+    viewportCount = 1
+    dynamicState  = 0
+    options       = Optimize
+    vertexBuffers = {
+      [0] {
+        name     = 'vb'
+        typeName = 'vb_input1'
+        rate     = Vertex
+        index    = 0
+        stride   = 16 b
+        attribs  = {
+          type   = Float3
+          offset = 0 b
+          index  = 0
+          -------------
+          type   = UShort2_Norm
+          offset = 12 b
+          index  = 1
+          -------------
+      }
+    }
 }
 
 MeshPipelineSpec {
   [0]
     templUID      = 20000000
-    rStateUID     = 0
+    rStateUID     = 1
     dsStateUID    = 0
     renderPass    = 'Simple'
     subpass       = 'Main'
@@ -413,50 +442,58 @@ ComputePipelineSpec {
     templUID     = 30000001
     dynamicState = 0
     options      = Optimize
+  [2]
+    templUID     = 30000002
+    dynamicState = 0
+    options      = Optimize
 }
 
 PipelineTemplNames {
   [0]  'graphics_2', 10000001
-  [1]  'compute_2', 30000000
+  [1]  'compute_2', 30000002
   [2]  'mesh_1', 20000000
-  [3]  'graphics_3', 10000000
-  [4]  'compute_1', 30000001
-  [5]  'graphics_1', 10000001
-  [6]  'graphics_4', 10000002
+  [3]  'compute_3', 30000001
+  [4]  'graphics_3', 10000002
+  [5]  'compute_1', 30000000
+  [6]  'graphics_1', 10000001
+  [7]  'graphics_4', 10000000
 }
 
 MetalMacShaders {
   [0]  offset = 0 b
-  [1]  offset = 4 Kb
-  [2]  offset = 70 Kb
-  [3]  offset = 73 Kb
-  [4]  offset = 77 Kb
+  [1]  offset = 3530 b
+  [2]  offset = 6 Kb
+  [3]  offset = 9 Kb
+  [4]  offset = 14 Kb
   [5]  offset = 80 Kb
-  [6]  offset = 84 Kb
-  [7]  offset = 88 Kb
-  [8]  offset = 91 Kb
-  [9]  offset = 95 Kb
+  [6]  offset = 83 Kb
+  [7]  offset = 87 Kb
+  [8]  offset = 90 Kb
+  [9]  offset = 94 Kb
+  [10]  offset = 97 Kb
 }
 
 MetalMacShaderData {
   [0]
-    codeSize = 4 Kb
-  [1]
-    codeSize = 65 Kb
-  [2]
-    codeSize = 3294 b
-  [3]
-    codeSize = 3680 b
-  [4]
-    codeSize = 3662 b
-  [5]
-    codeSize = 3680 b
-  [6]
-    codeSize = 4 Kb
-  [7]
     codeSize = 3526 b
-  [8]
+  [1]
     codeSize = 3278 b
-  [9]
+  [2]
     codeSize = 3414 b
+  [3]
+    codeSize = 4 Kb
+  [4]
+    codeSize = 65 Kb
+  [5]
+    codeSize = 3662 b
+  [6]
+    codeSize = 3680 b
+  [7]
+    codeSize = 2672 b
+  [8]
+    codeSize = 4 Kb
+  [9]
+    codeSize = 3294 b
+  [10]
+    codeSize = 3680 b
 }

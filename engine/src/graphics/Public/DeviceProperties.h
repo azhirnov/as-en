@@ -56,9 +56,11 @@ namespace AE::Graphics
 			Bytes32u	minUniformBufferOffsetAlign		{1};
 			Bytes32u	minStorageBufferOffsetAlign		{1};
 			Bytes32u	minThreadgroupMemoryLengthAlign	{1};	// Metal only
-			Bytes32u	minVertexBufferOffsetAlign		{1};
 			Bytes32u	minUniformTexelBufferOffsetAlign{1};
 			Bytes32u	minStorageTexelBufferOffsetAlign{1};
+			
+			Bytes32u	minVertexBufferOffsetAlign		{1};
+			uint		minVertexBufferElementsAlign	{1};
 
 			Bytes32u	maxUniformBufferRange			{1};
 
@@ -96,9 +98,9 @@ namespace AE::Graphics
 		{
 			constexpr CT_DeviceProperties ()
 			{
-				STATIC_ASSERT( sizeof(DeviceProperties) == 120 );
+				STATIC_ASSERT( sizeof(DeviceProperties) == 128 );
 
-				STATIC_ASSERT( sizeof(res) == sizeof(uint)*12 );
+				STATIC_ASSERT( sizeof(res) == sizeof(uint)*13 );
 				{
 					res.minUniformBufferOffsetAlign			= 256_b;	// nvidia - 64/256,  amd -  16,   intel -  64,   mali -  16,   adreno -  64,   apple - 16/32/256
 					res.minStorageBufferOffsetAlign			= 256_b;	// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16
@@ -106,6 +108,7 @@ namespace AE::Graphics
 					res.minUniformTexelBufferOffsetAlign	= 256_b;	// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16/32/256
 					res.minStorageTexelBufferOffsetAlign	= 256_b;	// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16/32/256
 					res.minVertexBufferOffsetAlign			= 256_b;	// vulkan -  1 (not specified),											       apple - 16
+					res.minVertexBufferElementsAlign		= 4;		// nvidia -  1,      amd -   1,   intel -   1,   mali -  4,    adreno - ?,     apple - ?
 					res.maxUniformBufferRange				= 16_Kb;	// nvidia - 64k,     amd - inf,   intel - inf,   mali - 64k,   adreno - 64k,   apple - inf         other - 16k
 					res.maxBoundDescriptorSets				= 4;		// nvidia - 32,      amd -  32,   intel -   8,   mali -   4,   adreno -   4,   apple - 31
 					res.minMemoryMapAlignment				= 4_Kb;		// nvidia - 64,      amd -  64,   intel -  4k,   mali -  64,   adreno -  64,   apple - ?

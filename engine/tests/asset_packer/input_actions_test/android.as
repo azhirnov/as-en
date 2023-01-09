@@ -1,8 +1,9 @@
+#include <input_actions>
 
 void main (Android_ActionBindings& bindings)
 {
 	// UI bindings
 	{
-		Android_BindingsMode@	bind = bindings.CreateMode( "UI" );
+		RC<Android_BindingsMode>	bind = bindings.CreateMode( "UI" );
 	}
 }

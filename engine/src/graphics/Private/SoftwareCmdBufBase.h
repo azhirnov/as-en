@@ -83,6 +83,9 @@ namespace AE::Graphics::_hidden_
 	template <typename CommandsList, typename CmdType, typename ...DynamicTypes>
 	CmdType&  SoftwareCmdBufBase::_CreateCmd (usize dynamicArraySize) __Th___
 	{
+		constexpr auto	max_align = TypeList< CmdType, DynamicTypes... >::template ForEach_Max< TypeListUtils::GetTypeAlign >();
+		STATIC_ASSERT( max_align <= BaseAlign );
+
 		Bytes	size	= AlignUp( _CalcCmdSize< 0, TypeList<DynamicTypes...> >( SizeOf<CmdType>, dynamicArraySize ), BaseAlign );
 		auto*	cmd		= Cast<CmdType>( _Allocate( size ));	// throw
 

@@ -249,6 +249,7 @@ namespace AE::Scripting
 
 		static void  Name (INOUT String &s)		{ s+= "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s += ">"; }
 		static void  ArgName (INOUT String &s)	{ s+= "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s += ">"; }
+		static void  CppArg (INOUT String &s)	{ s+= "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s += ">"; }
 	};
 
 

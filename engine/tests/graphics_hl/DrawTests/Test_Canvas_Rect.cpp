@@ -163,8 +163,8 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Canvas batch"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< CR1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Draw task"} );
-		AsyncTask	task2	= batch->Add< CR1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+		AsyncTask	task1	= batch->Run< CR1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Draw task"} );
+		AsyncTask	task2	= batch->Run< CR1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
 

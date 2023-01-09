@@ -45,7 +45,7 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MDirectRayTracingCtx (const RenderTask &task)							__Th___;
+		explicit _MDirectRayTracingCtx (const RenderTask &task)					__Th___ : _MDirectRayTracingCtx{ task, MCommandBuffer{} } {}
 		_MDirectRayTracingCtx (const RenderTask &task, MCommandBuffer cmdbuf)	__Th___;
 		
 		ND_ auto  						_Encoder ()								__NE___;
@@ -88,7 +88,7 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MIndirectRayTracingCtx (const RenderTask &task)							__Th___;
+		explicit _MIndirectRayTracingCtx (const RenderTask &task)					__Th___ : _MIndirectRayTracingCtx{ task, Default } {}
 		_MIndirectRayTracingCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)	__Th___;
 
 		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize)		{}
@@ -101,23 +101,24 @@ namespace AE::Graphics::_hidden_
 	//
 	
 	template <typename CtxImpl>
-	class _MRayTracingContextImpl final : public CtxImpl, public IRayTracingContext
+	class _MRayTracingContextImpl : public CtxImpl, public IRayTracingContext
 	{
 	// types
 	public:
 		static constexpr bool	IsRayTracingContext			= true;
 		static constexpr bool	IsMetalRayTracingContext	= true;
 	private:
-		using RawCtx	= CtxImpl;
-		using AccumBar	= MAccumBarriers< _MRayTracingContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= MAccumBarriers< _MRayTracingContextImpl< CtxImpl >>;
+		using DeferredBar	= MAccumDeferredBarriersForCtx< _MRayTracingContextImpl< CtxImpl >>;
 
 
 	// methods
 	public:
-		explicit _MRayTracingContextImpl (const RenderTask &task)													__Th___	: RawCtx{ task } {}
+		explicit _MRayTracingContextImpl (const RenderTask &task)													__Th___;
 
 		template <typename RawCmdBufType>
-		_MRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)										__Th___	: RawCtx{ task, RVRef(cmdbuf) } {}
+		_MRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)										__Th___;
 
 		_MRayTracingContextImpl ()																					= delete;
 		_MRayTracingContextImpl (const _MRayTracingContextImpl &)													= delete;
@@ -156,6 +157,25 @@ namespace AE::Graphics
 
 namespace AE::Graphics::_hidden_
 {
+/*
+=================================================
+	constructor
+=================================================
+*/
+	template <typename C>
+	_MRayTracingContextImpl<C>::_MRayTracingContextImpl (const RenderTask &task) : RawCtx{ task }
+	{
+		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+	}
+		
+	template <typename C>
+	template <typename RawCmdBufType>
+	_MRayTracingContextImpl<C>::_MRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+		RawCtx{ task, RVRef(cmdbuf) }
+	{
+		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+	}
+
 /*
 =================================================
 	BindPipeline

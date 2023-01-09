@@ -1,7 +1,8 @@
+#include <pipeline_compiler>
 
 void main ()
 {
-	GraphicsPipeline@	ppln = GraphicsPipeline( "graphics_4" );
+	RC<GraphicsPipeline>	ppln = GraphicsPipeline( "graphics_4" );
 	ppln.AddFeatureSet( "MinimalFS" );
 	ppln.SetLayout( "Graphics_PL_4" );
 	ppln.SetVertexInput( "vb_layout1" );
@@ -11,14 +12,14 @@ void main ()
 		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "graphics_1.io" );
 		
 		{
-			Shader@	vs = Shader();
+			RC<Shader>	vs = Shader();
 			vs.file		= "vertex_3.glsl";
 			vs.options	= EShaderOpt::Optimize;
 			vs.version	= EShaderVersion::SPIRV_1_0;
 			ppln.SetVertexShader( vs );
 		}
 		{
-			Shader@	fs = Shader();
+			RC<Shader>	fs = Shader();
 			fs.file		= "fragment_2.glsl";
 			fs.options	= EShaderOpt::Optimize;
 			fs.version	= EShaderVersion::SPIRV_1_0;
@@ -33,13 +34,13 @@ void main ()
 		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "graphics_4.io" );
 
 		{
-			Shader@	vs = Shader();
+			RC<Shader>	vs = Shader();
 			vs.file		= "vertex_3.msl";
 			vs.version	= EShaderVersion::Metal_2_0;
 			ppln.SetVertexShader( vs );
 		}
 		{
-			Shader@	fs = Shader();
+			RC<Shader>	fs = Shader();
 			fs.file		= "fragment_3.msl";
 			fs.version	= EShaderVersion::Metal_2_0;
 			ppln.SetFragmentShader( fs );
@@ -49,7 +50,7 @@ void main ()
 
 	// specialization
 	{
-		GraphicsPipelineSpec@	spec = ppln.AddSpecialization( "graphics_4 rp:Simple" );
+		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "graphics_4 rp:Simple" );
 		spec.AddToRenderTech( "MinForward", "Graphics1" );
 		spec.SetViewportCount( 1 );
 		spec.SetVertexInput( "vb_input3" );

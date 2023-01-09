@@ -1,5 +1,13 @@
 
-## 22.12..136
+## 23.01.138
+
+- Graphics: deferred pipeline barriers
+- Scripting: preprocessor
+- Scripting: generate header to enable autocomplete in IDE
+- RenderGraph
+
+
+## 22.12.136
 
 - AsyncMutex
 - EThread -> ETaskQueue, EThread2 -> EThread

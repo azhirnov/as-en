@@ -96,6 +96,34 @@ namespace AE::Base
 
 
 	//
+	// Scoped Set Value
+	//
+	template <typename T>
+	class ScopedSet : public Noncopyable
+	{
+	private:
+		T &			_ref;
+		T			_finalValue;
+
+	public:
+		ScopedSet (T& ref, T initial, T final) :
+			_ref{ref}, _finalValue{RVRef(final)}
+		{
+			_ref = RVRef(initial);
+		}
+
+		~ScopedSet ()
+		{
+			_ref = RVRef(_finalValue);
+		}
+	};
+
+#	define SCOPED_SET( _ref_, _initial_, _final_ ) \
+		AE::Base::ScopedSet		AE_PRIVATE_UNITE_RAW( __scopedSet, __COUNTER__ ) { _ref_, _initial_, _final_ }
+
+
+
+	//
 	// As Pointer
 	//
 	template <typename T>

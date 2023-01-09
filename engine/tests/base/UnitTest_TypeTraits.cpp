@@ -196,7 +196,11 @@ namespace
 		}*/{
 			auto	d2		= ArrayView{ 0, 1, 2 };
 			STATIC_ASSERT( IsSameTypes< decltype(d2), ArrayView<int> >);
-		}
+		}/*{
+			StaticArray< int, 5 >	e1 {0,1,2,3};
+			auto					e2 = ArrayView{e1};
+			STATIC_ASSERT( IsSameTypes< decltype(e2), ArrayView<int> >);
+		}*/
 	}
 }
 

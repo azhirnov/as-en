@@ -1,9 +1,10 @@
+#include <input_actions>
 
 void main (WinAPI_ActionBindings& bindings)
 {
 	// UI bindings
 	{
-		WinAPI_BindingsMode@	bind = bindings.CreateMode( "UI" );
+		RC<WinAPI_BindingsMode>	bind = bindings.CreateMode( "UI" );
 
 		bind.Add( WinAPI_Input::Enter,
 				  ActionInfo( "Enter", EGestureType::Down ));

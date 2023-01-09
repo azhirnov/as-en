@@ -127,7 +127,7 @@ namespace AE::Base
 		ND_ bool  Store (WStream &dstFile)			C_NE___;
 
 		ND_ ArrayView<ubyte>	GetData ()			C_NE___	{ return ArrayView<ubyte>{ _data.data(), usize(_pos) }; }
-		ND_ Array<ubyte>		ReleaseData ()		__NE___	{ auto temp = RVRef(_data);  return temp; }
+		ND_ Array<ubyte>		ReleaseData ()		__NE___;
 		ND_ RC<MemRefRStream>	ToRStream ()		C_Th___	{ return MakeRC<MemRefRStream>( GetData() ); }
 	};
 

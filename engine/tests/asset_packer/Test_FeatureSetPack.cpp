@@ -82,6 +82,7 @@ namespace
 
 extern void Test_FeatureSetPack ()
 {
+#ifdef AE_PIPELINE_COMPILER_LIBRARY
 	{
 		Path	dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
 		dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
@@ -95,4 +96,5 @@ extern void Test_FeatureSetPack ()
 		FeatureSetPack_Test1();
 	}
 	TEST_PASSED();
+#endif
 }

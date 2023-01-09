@@ -53,6 +53,8 @@ namespace AE::Graphics
 		ND_ bool			IsValid ()				C_NE___	{ return _exeIndex != UMax; }
 		ND_ EQueueType		GetQueueType ()			C_NE___	{ return _batch->GetQueueType(); }
 		ND_ EQueueMask		GetQueueMask ()			C_NE___	{ return EQueueMask(0) | GetQueueType(); }
+		ND_ bool			IsFirstInBatch ()		C_NE___	{ return _exeIndex == 0; }
+		ND_ bool			IsLastInBatch ()		C_NE___;
 
 
 	// IAsyncTask
@@ -84,12 +86,16 @@ namespace AE::Graphics
 		PROFILE_ONLY(
 		ND_ static RGBA8u  _ValidateDbgColor (EQueueType queue, RGBA8u color)
 		{
-			if ( color == DebugLabel::ColorTable.Undefined ) {
+			if ( color == DebugLabel::ColorTable.Undefined )
+			{
+				BEGIN_ENUM_CHECKS();
 				switch ( queue ) {
 					case EQueueType::Graphics :			return DebugLabel::ColorTable.GraphicsQueue;
 					case EQueueType::AsyncCompute :		return DebugLabel::ColorTable.AsyncComputeQueue;
 					case EQueueType::AsyncTransfer :	return DebugLabel::ColorTable.AsyncTransfersQueue;
+					case EQueueType::Unknown :			break;
 				}
+				END_ENUM_CHECKS();
 			}
 			return color;
 		})
@@ -212,6 +218,18 @@ namespace AE::Graphics
 			_submit = false;
 			CHECK( GetBatchPtr()->_Submit() );
 		}
+	}
+	
+/*
+=================================================
+	IsLastInBatch
+=================================================
+*/
+	inline bool  RenderTask::IsLastInBatch () C_NE___
+	{
+		const uint	count = _batch->PendingCmdBufs();
+		ASSERT( _exeIndex < count );
+		return _exeIndex+1 == count;
 	}
 
 } // AE::Graphics
@@ -391,14 +409,50 @@ namespace AE::Threading::_hidden_
 		}
 	};
 
+
+	//
+	// Get Render Task Handle reference
+	//
+	struct RenderTask_GetRef
+	{
+		constexpr RenderTask_GetRef ()	__NE___ {}
+
+		ND_ auto  operator co_await ()	C_NE___
+		{
+			using Promise_t		= AE::Threading::_hidden_::RenderTaskCoroutineRunner::Promise_t;
+			using RenderTask	= AE::Graphics::RenderTask;
+
+			struct Awaiter
+			{
+			private:
+				RenderTask *	_rtask	= null;
+
+			public:
+				ND_ bool			await_ready ()	C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
+				ND_ RenderTask &	await_resume ()	__NE___	{ ASSERT( _rtask != null );  return *_rtask; }
+
+				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
+				{
+					auto*	task = curCoro.promise().GetTask();
+					if_likely( task != null )
+						_rtask = task;
+					
+					return false;	// resume coroutine
+				}
+			};
+			return Awaiter{};
+		}
+	};
+
 } // AE::Threading::_hidden_
 
   
 namespace AE::Graphics
 {
-	using CoroutineRenderTask = Threading::_hidden_::RenderTaskCoroutine::Handle_t;
+	using RenderTaskCoro = Threading::_hidden_::RenderTaskCoroutine::Handle_t;
 
-	static constexpr Threading::_hidden_::RenderTask_Get	RenderTask_Get {};
+	static constexpr Threading::_hidden_::RenderTask_Get		RenderTask_Get		{};
+	static constexpr Threading::_hidden_::RenderTask_GetRef		RenderTask_GetRef	{};
 
 
 
@@ -486,135 +540,3 @@ namespace AE::Graphics
 	
 } // AE::Graphics
 # endif // AE_HAS_COROUTINE
-//-----------------------------------------------------------------------------
-
-
-
-namespace AE::Graphics
-{
-/*
-=================================================
-	_EndRecording
-=================================================
-*/
-	inline bool  CMDBATCH::_EndRecording () __NE___
-	{
-		EStatus	exp = EStatus::Initial;
-		bool	res = _status.compare_exchange_strong( INOUT exp, EStatus::Recorded );
-
-		ASSERT( res );
-		return res;
-	}
-
-/*
-=================================================
-	Add
-=================================================
-*/
-	template <typename TaskType, typename ...Ctor, typename ...Deps>
-	AsyncTask  CMDBATCH::Add (Tuple<Ctor...> &&		ctorArgs,
-							  const Tuple<Deps...>&	deps,
-							  Bool					isLastTaskInBatch,
-							  DebugLabel			dbg) __NE___
-	{
-		STATIC_ASSERT( IsBaseOf< RenderTask, TaskType >);
-		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
-		
-		PROFILE_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable.Undefined )
-				dbg.color = _dbgColor;
-		)
-
-		// RenderTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
-		// RenderTask internally creates command buffer and throw exception if can't.
-		try {
-			auto	task = ctorArgs.Apply([this, dbg] (auto&& ...args)
-										  { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });	// throw
-			
-			if_unlikely( isLastTaskInBatch )
-			{
-				task->_submit = true;
-				_EndRecording();
-			}
-
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
-		}
-		catch(...) {}
-		
-		return Scheduler().GetCanceledTask();
-	}
-	
-	template <typename TaskType, typename ...Ctor, typename ...Deps>
-	AsyncTask  CMDBATCH::Add (Tuple<Ctor...> &&		ctorArgs,
-							  const Tuple<Deps...>&	deps,
-							  DebugLabel			dbg) __NE___
-	{
-		return Add<TaskType>( RVRef(ctorArgs), deps, False{}, dbg );
-	}
-
-/*
-=================================================
-	Add
-=================================================
-*/
-# ifdef AE_HAS_COROUTINE
-	template <typename PromiseT, typename ...Deps>
-	AsyncTask  CMDBATCH::Add (AE::Threading::CoroutineHandle<PromiseT>	handle,
-							  const Tuple<Deps...>&						deps,
-							  Bool										isLastTaskInBatch,
-							  DebugLabel								dbg) __NE___
-	{
-		STATIC_ASSERT( IsSameTypes< AE::Threading::CoroutineHandle<PromiseT>, CoroutineRenderTask >);
-		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
-		
-		PROFILE_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable.Undefined )
-				dbg.color = _dbgColor;
-		)
-
-		// RenderTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
-		// RenderTask internally creates command buffer and throw exception if can't.
-		try {
-			auto	task = MakeRC<AE::Threading::_hidden_::RenderTaskCoroutineRunner>( RVRef(handle), GetRC(), dbg );	// throw
-			
-			if_unlikely( isLastTaskInBatch )
-			{
-				task->_submit = true;
-				_EndRecording();
-			}
-
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
-		}
-		catch(...) {}
-
-		return Scheduler().GetCanceledTask();
-	}
-	
-	template <typename PromiseT, typename ...Deps>
-	AsyncTask  CMDBATCH::Add (AE::Threading::CoroutineHandle<PromiseT>	handle,
-							  const Tuple<Deps...>&						deps,
-							  DebugLabel								dbg) __NE___
-	{
-		return Add( handle, deps, False{}, dbg );
-	}
-# endif
-	
-/*
-=================================================
-	SubmitAsTask
-=================================================
-*/
-	template <typename ...Deps>
-	AsyncTask  CMDBATCH::SubmitAsTask (const Tuple<Deps...> &deps) __NE___
-	{
-		CHECK_ERR( _EndRecording(), Scheduler().GetCanceledTask() );
-
-		return Scheduler().Run< SubmitBatchTask >( Tuple{ GetRC<CMDBATCH>() }, deps );
-	}
-
-} // AE::Graphics
-//-----------------------------------------------------------------------------
-
-#undef CMDBATCH

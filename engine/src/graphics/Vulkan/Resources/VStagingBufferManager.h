@@ -17,29 +17,7 @@
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Vulkan/VDevice.h"
 
-namespace AE::Graphics
-{
-
-	//
-	// Vulkan Staging Buffer Manager
-	//
-
-	class VStagingBufferManager final
-	{
-	// types
-	public:
-		using NativeBuffer_t		= VkBuffer;
-		using ResourceManager_t		= VResourceManager;
-		using NativeMemObjInfo_t	= VulkanMemoryObjInfo;
-
-		#include "graphics/Private/StagingBufferManagerDecl.h"
-
-	// methods
-	public:
-		void  AcquireMappedMemory (FrameUID frameId, VkDeviceMemory memory, Bytes offset, Bytes size) __NE___;
-	};
-	
-
-} // AE::Graphics
+// implementation
+# include "graphics/Private/StagingBufferManager.h"
 
 #endif // AE_ENABLE_VULKAN

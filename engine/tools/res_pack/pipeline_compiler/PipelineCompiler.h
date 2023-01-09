@@ -60,6 +60,7 @@ namespace AE::PipelineCompiler
 		// output
 		const CharType *		outputPackName		= null;
 		const CharType *		outputCppFile		= null;
+		const CharType *		outputScriptFile	= null;
 		bool					addNameMapping		= false;
 	};
 

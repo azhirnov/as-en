@@ -31,7 +31,7 @@ namespace AE::Graphics
 		ND_ constexpr uint	Get ()									C_NE___	{ return 1u << _value; }
 		ND_ constexpr uint	GetPowerOf2 ()							C_NE___	{ return _value; }
 
-		ND_ constexpr bool	IsEnabled ()							C_NE___	{ return _value > 0; }
+		ND_ constexpr bool	IsEnabled ()							C_NE___	{ return _value > 1; }
 
 		ND_ constexpr bool	operator == (const MultiSamples &rhs)	C_NE___	{ return _value == rhs._value; }
 		ND_ constexpr bool	operator != (const MultiSamples &rhs)	C_NE___	{ return _value != rhs._value; }

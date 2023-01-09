@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -5,22 +6,22 @@ void main ()
 		return;
 
 	{
-		DescriptorSetLayout@	ds = DescriptorSetLayout( "rquery1.ds1" );
+		RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "rquery1.ds1" );
 		ds.StorageImage( EShaderStages::Compute, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
 		ds.RayTracingScene( EShaderStages::Compute, "un_RtScene", ArraySize(1) );
 	}
 	{
-		PipelineLayout@		pl = PipelineLayout( "rquery1.pl" );
+		RC<PipelineLayout>		pl = PipelineLayout( "rquery1.pl" );
 		pl.DSLayout( 0, "rquery1.ds1" );
 	}
 
 
-	ComputePipeline@	ppln = ComputePipeline( "rquery1" );
+	RC<ComputePipeline>		ppln = ComputePipeline( "rquery1" );
 	ppln.SetLayout( "rquery1.pl" );
 	ppln.AddFeatureSet( "MinInlineRayTracing" );
 
 	{
-		Shader@	cs	= Shader();
+		RC<Shader>	cs	= Shader();
 		cs.file		= "rquery1.glsl";
 		cs.version	= EShaderVersion::SPIRV_1_4;
 		cs.options	= EShaderOpt::Optimize;
@@ -30,7 +31,7 @@ void main ()
 
 	// specialization
 	{
-		ComputePipelineSpec@	spec = ppln.AddSpecialization( "rquery1.def" );
+		RC<ComputePipelineSpec>		spec = ppln.AddSpecialization( "rquery1.def" );
 		spec.AddToRenderTech( "RayQueryTestRT", "RayTrace_1" );
 	}
 }

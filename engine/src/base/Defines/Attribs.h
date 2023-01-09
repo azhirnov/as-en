@@ -129,6 +129,7 @@
 
 
 // restrict (for variable)
+// TODO: create RstPtr<>
 #ifndef RST
 # if defined(AE_COMPILER_MSVC)
 #	define RST				__restrict
@@ -142,6 +143,7 @@
 
 
 // restrict & nodiscard (for fn result)
+// TODO: create RstPtr<>
 #ifndef NDRST
 # if defined(AE_COMPILER_MSVC)
 #	define NDRST( _type_ )		ND_ __declspec(restrict)  _type_
@@ -266,7 +268,7 @@
 
 
 #if (defined(AE_CPU_ARCH_ARM32) and defined(__ARM_NEON__)) or defined(AE_CPU_ARCH_ARM64)
-//#	define AE_SIMD_NEON
+//#	define AE_SIMD_NEON		// TODO: Neon32, Neon64, SVE, SVE2
 //# define AE_SIMD_NEON_HALF
 
 #	include <arm_neon.h>

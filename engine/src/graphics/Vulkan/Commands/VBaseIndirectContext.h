@@ -5,6 +5,7 @@
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Vulkan/Commands/VBakedCommands.h"
 # include "graphics/Vulkan/Commands/VBarrierManager.h"
+# include "graphics/Vulkan/Commands/VAccumDeferredBarriers.h"
 # include "graphics/Vulkan/VRenderTaskScheduler.h"
 
 namespace AE::Graphics::_hidden_
@@ -449,7 +450,7 @@ namespace AE::Graphics::_hidden_
 			VkStridedDeviceAddressRegionKHR		miss;
 			VkStridedDeviceAddressRegionKHR		hit;
 			VkStridedDeviceAddressRegionKHR		callable;
-			uint3								dim;
+			packed_uint3						dim;
 		};
 
 		struct TraceRaysIndirectCmd : BaseCmd
@@ -577,7 +578,7 @@ namespace AE::Graphics::_hidden_
 		void  DebugMarker (DebugLabel dbg)						__Th___;
 		void  PushDebugGroup (DebugLabel dbg)					__Th___;
 		void  PopDebugGroup ()									__Th___;
-		void  CommitBarriers (const VkDependencyInfoKHR &)		__Th___;
+		void  CommitBarriers (const VkDependencyInfo &)			__Th___;
 		
 		void  BindDescriptorSet (VkPipelineBindPoint bindPoint, VkPipelineLayout layout, uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default)	__Th___;
 		void  BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout)																__Th___;
@@ -621,7 +622,9 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		virtual ~_VBaseIndirectContext ()												__NE___;
+		virtual ~_VBaseIndirectContext ()												__NE___	{ DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" ); }
+		
+		void  PipelineBarrier (const VkDependencyInfo &info)							__Th___	{ _cmdbuf->CommitBarriers( info ); }
 
 	protected:
 		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf)						__NE___	: _cmdbuf{RVRef(cmdbuf)} {}
@@ -639,6 +642,8 @@ namespace AE::Graphics::_hidden_
 
 		ND_ VBakedCommands		_EndCommandBuffer ()									__Th___;
 		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()								__Th___;
+
+		ND_ static VSoftwareCmdBufPtr  _ReuseOrCreateCommandBuffer (VSoftwareCmdBufPtr cmdbuf) __Th___;
 	};
 
 
@@ -658,31 +663,20 @@ namespace AE::Graphics::_hidden_
 	public:
 		explicit VBaseIndirectContext (const RenderTask &task)						__Th___;
 		VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)	__Th___;
-		~VBaseIndirectContext ()													__NE_OV;
+		~VBaseIndirectContext ()													__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
-		void  _CommitBarriers ()													__Th___;
+			void	_CommitBarriers ()												__Th___;
 
 		ND_ bool	_NoPendingBarriers ()											C_NE___	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetExtensions ()												C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
 		ND_ auto&	_GetFeatures ()													C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
+			
+		ND_ VBakedCommands		_EndCommandBuffer ()								__Th___;
 	};
 //-----------------------------------------------------------------------------
-	
 
-	
-/*
-=================================================
-	destructor
-=================================================
-*/
-	inline _VBaseIndirectContext::~_VBaseIndirectContext () __NE___
-	{
-		DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" );
-	}
-//-----------------------------------------------------------------------------
 
-	
 
 /*
 =================================================
@@ -692,21 +686,17 @@ namespace AE::Graphics::_hidden_
 	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task) __Th___ :
 		_VBaseIndirectContext{ DebugLabel{ task.DbgFullName(), task.DbgColor() }},	// throw
 		_mngr{ task }
-	{}
+	{
+		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+			PipelineBarrier( *bar );
+	}
 		
 	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf) __Th___ :
-		_VBaseIndirectContext{ RVRef(cmdbuf) },
+		_VBaseIndirectContext{ _ReuseOrCreateCommandBuffer( RVRef(cmdbuf) )},
 		_mngr{ task }
-	{}
-	
-/*
-=================================================
-	destructor
-=================================================
-*/
-	inline VBaseIndirectContext::~VBaseIndirectContext () __NE___
 	{
-		ASSERT( _NoPendingBarriers() );
+		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
+			PipelineBarrier( *bar );
 	}
 		
 /*
@@ -723,7 +713,19 @@ namespace AE::Graphics::_hidden_
 			_mngr.ClearBarriers();
 		}
 	}
+	
+/*
+=================================================
+	_EndCommandBuffer
+=================================================
+*/
+	inline VBakedCommands  VBaseIndirectContext::_EndCommandBuffer () __Th___
+	{
+		if ( auto* bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
+			PipelineBarrier( *bar );
 
+		return _VBaseIndirectContext::_EndCommandBuffer();
+	}
 
 } // AE::Graphics::_hidden_
 //-----------------------------------------------------------------------------

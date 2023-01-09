@@ -175,7 +175,7 @@ bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
 
 	// this is a test and the test should fail for any validation error
 	_vulkan.CreateDebugCallback( DefaultDebugMessageSeverity,
-								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  /*CHECK_FATAL(not rep.isError);*/ });
+								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  CHECK_FATAL(not rep.isError); });
 	
 	CHECK_ERR( _vulkan.ChooseHighPerformanceDevice() );
 	CHECK_ERR( _vulkan.CreateDefaultQueues( EQueueMask::Graphics, EQueueMask::All ));
@@ -321,7 +321,7 @@ bool  DrawTestCore::_CompareDumps (StringView filename) const
 
 
 
-#if not defined(AE_ENABLE_VULKAN) and defined(AE_ENABLE_METAL)
+#ifdef AE_ENABLE_METAL
 /*
 =================================================
 	_Create

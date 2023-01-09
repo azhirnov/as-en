@@ -148,7 +148,7 @@ namespace AE::Base
 		ND_ T &		operator *  ()						C_NE___	{ ASSERT( _ptr != null );  return *_ptr; }
 
 		ND_ T *		get ()								C_NE___ { return _ptr; }
-		ND_ T *		release ()							__NE___ { T* p = _ptr;  _ptr = null;  return p; }
+		ND_ T *		release ()							__NE___ { T* p = _ptr;  _ptr = null;  return p; }	// TODO: detach?
 		ND_ int		use_count ()						C_NE___ { return _ptr != null ? RefCounterUtils::UseCount( *_ptr ) : 0; }
 
 		ND_ explicit operator bool ()					C_NE___ { return _ptr != null; }

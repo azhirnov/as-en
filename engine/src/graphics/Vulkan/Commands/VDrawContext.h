@@ -100,7 +100,7 @@ namespace AE::Graphics::_hidden_
 	private:
 		_VDirectDrawCtx (const DrawTask &task, CmdBuf_t cmdbuf)														__Th___;
 	protected:
-		explicit _VDirectDrawCtx (const DrawTask &task)																__Th___;
+		explicit _VDirectDrawCtx (const DrawTask &task)																__Th___ : _VDirectDrawCtx{ task, Default } {}
 		_VDirectDrawCtx (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf, DebugLabel dbg)							__Th___;
 
 		void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState flags);
@@ -264,7 +264,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VDrawContextImpl final : public CtxImpl, public IDrawContext
+	class _VDrawContextImpl : public CtxImpl, public IDrawContext
 	{
 	// types
 	public:

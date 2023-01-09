@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -16,7 +17,7 @@ void main ()
 
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "MinMeshShader" );
+	RC<FeatureSet>  fset = FeatureSet( "MinMeshShader" );
 
 	fset.depthBiasClamp (True);
 	fset.dualSrcBlend (True);

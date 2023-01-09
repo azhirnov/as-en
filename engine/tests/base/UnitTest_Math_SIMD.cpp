@@ -17,6 +17,8 @@ namespace
 		const auto			a4 = (a1 == a3);
 
 		TEST( a4.All() );
+	#else
+		AE_LOGI( "SIMD_SimdFloat4 - not supported" );
 	#endif
 	}
 	
@@ -30,6 +32,8 @@ namespace
 		const auto			a4 = (a1 == a3);
 
 		TEST( a4.All() );
+	#else
+		AE_LOGI( "SIMD_SimdDouble2 - not supported" );
 	#endif
 	}
 
@@ -43,6 +47,8 @@ namespace
 		const auto		a4 = (a1 == a3);
 
 		TEST( a4.All() );
+	#else
+		AE_LOGI( "SIMD_SimdTInt128 - not supported" );
 	#endif
 	}
 }

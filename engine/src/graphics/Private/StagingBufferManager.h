@@ -11,9 +11,32 @@
 #endif
 //-----------------------------------------------------------------------------
 
+namespace AE::Graphics
+{
 
+	//
+	// Staging Buffer Manager
+	//
+
+	class STBUFMNGR final
+	{
 	// types
 	public:
+
+	  #if defined(AE_ENABLE_VULKAN)
+		using NativeBuffer_t		= VkBuffer;
+		using ResourceManager_t		= VResourceManager;
+		using NativeMemObjInfo_t	= VulkanMemoryObjInfo;
+		
+	  #elif defined(AE_ENABLE_METAL)
+		using NativeBuffer_t		= MetalBuffer;
+		using ResourceManager_t		= MResourceManager;
+		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
+
+	  #else
+	  #	error not implemented
+	  #endif
+
 		
 		struct StagingBufferResult
 		{
@@ -238,6 +261,19 @@
 		void  _AllocDynamicImage (FrameUID frameId, Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign, const uint2 &texelBlockSize,
 								  const uint3 &imageOffset, const uint3 &imageDataSize, bool upload,
 								  INOUT StagingImageResultRanges &result, DynamicBuffers& db) const;
+
+
+  #if defined(AE_ENABLE_VULKAN)
+
+	// methods
+	public:
+		void  AcquireMappedMemory (FrameUID frameId, VkDeviceMemory memory, Bytes offset, Bytes size) __NE___;
+
+  #endif
+	};
+	
+
+} // AE::Graphics
 //-----------------------------------------------------------------------------
 
 #undef STBUFMNGR

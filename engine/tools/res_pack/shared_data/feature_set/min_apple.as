@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -15,7 +16,7 @@ void main ()
 
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "MinApple" );
+	RC<FeatureSet>  fset = FeatureSet( "MinApple" );
 
 	fset.alphaToOne (True);
 	fset.depthBiasClamp (True);

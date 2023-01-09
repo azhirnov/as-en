@@ -86,7 +86,7 @@ namespace
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"CopyBuffer2"} );
 		CHECK_ERR( batch );
 
-		AsyncTask	task1	= batch->Add< CB2_CopyBufferTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Copy buffer task"} );
+		AsyncTask	task1	= batch->Run< CB2_CopyBufferTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Copy buffer task"} );
 		AsyncTask	end		= rts.EndFrame( Tuple{task1} );
 
 		CHECK_ERR( Scheduler().Wait({ end }));

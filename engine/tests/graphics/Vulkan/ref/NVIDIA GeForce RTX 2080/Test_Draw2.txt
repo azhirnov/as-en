@@ -1,8 +1,13 @@
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Draw2 |0| Draw task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
@@ -14,6 +19,11 @@ name: 'command-buffer'
     src: 'SSWB {f:1} {q:Graphics}'
     dst: 'vertex buffer'
       copy [0, 36) ---> [0, 36)
+  ----------
+
+  BeginDebugLabel
+    name:  'Draw2 |0| Draw task'
+    depth: 2
   ----------
 
   PipelineBarrier2
@@ -29,8 +39,37 @@ name: 'command-buffer'
   ----------
 
   BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'Draw2 |0| Draw task - RP'
+    depth: 3
+  ----------
+
   Draw
+
   EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -40,10 +79,19 @@ name: 'command-buffer'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
+  EndDebugLabel
+    depth: 3
+  ----------
+
 }
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Draw2 |1| Readback task'
+    depth: 1
+  ----------
+
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -56,6 +104,10 @@ name: 'command-buffer'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
   ----------
 
 }
@@ -65,10 +117,15 @@ signalSemaphore = {
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Draw2 |0| Draw task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
@@ -80,6 +137,11 @@ name: 'command-buffer'
     src: 'SSWB {f:0} {q:Graphics}'
     dst: 'vertex buffer'
       copy [0, 36) ---> [0, 36)
+  ----------
+
+  BeginDebugLabel
+    name:  'Draw2 |0| Draw task'
+    depth: 2
   ----------
 
   PipelineBarrier2
@@ -95,8 +157,37 @@ name: 'command-buffer'
   ----------
 
   BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'Draw2 |0| Draw task - RP'
+    depth: 3
+  ----------
+
   Draw
+
   EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -106,10 +197,19 @@ name: 'command-buffer'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
+  EndDebugLabel
+    depth: 3
+  ----------
+
 }
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Draw2 |1| Readback task'
+    depth: 1
+  ----------
+
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -124,6 +224,10 @@ name: 'command-buffer'
       access: TRANSFER_WRITE ---> HOST_READ
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -131,10 +235,15 @@ signalSemaphore = {
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Draw2 |0| Draw task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
@@ -161,8 +270,37 @@ name: 'command-buffer'
   ----------
 
   BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'Draw2 |0| Draw task - RP'
+    depth: 2
+  ----------
+
   Draw
+
   EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -172,10 +310,19 @@ name: 'command-buffer'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
+  EndDebugLabel
+    depth: 2
+  ----------
+
 }
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Draw2 |1| Readback task'
+    depth: 1
+  ----------
+
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -190,6 +337,10 @@ name: 'command-buffer'
       access: TRANSFER_WRITE ---> HOST_READ
   ----------
 
+  EndDebugLabel
+    depth: 1
+  ----------
+
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -197,10 +348,15 @@ signalSemaphore = {
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'Draw2 |0| Draw task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
@@ -227,8 +383,37 @@ name: 'command-buffer'
   ----------
 
   BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'Draw2 |0| Draw task - RP'
+    depth: 2
+  ----------
+
   Draw
+
   EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
@@ -236,6 +421,15 @@ name: 'command-buffer'
       stage:   FRAGMENT_SHADER ---> COPY
       access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  EndDebugLabel
+    depth: 2
+  ----------
+
+  BeginDebugLabel
+    name:  'Draw2 |1| Readback task'
+    depth: 2
   ----------
 
   CopyImageToBuffer
@@ -250,6 +444,10 @@ name: 'command-buffer'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 2
   ----------
 
 }

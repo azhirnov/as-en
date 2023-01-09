@@ -1,8 +1,13 @@
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'CopyBuffer2 |0| Copy buffer task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
@@ -18,8 +23,7 @@ name: 'command-buffer'
 
   PipelineBarrier2
     dependencyFlags: 0
-    BufferBarrier:
-      name:   'buf_1'
+    MemoryBarrier:
       stage:  COPY ---> COPY
       access: TRANSFER_WRITE ---> TRANSFER_READ
   ----------
@@ -32,10 +36,13 @@ name: 'command-buffer'
 
   PipelineBarrier2
     dependencyFlags: 0
-    BufferBarrier:
-      name:   'buf_2'
+    MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
   ----------
 
 }
@@ -45,10 +52,15 @@ signalSemaphore = {
 }
 ==================================================
 ==================================================
-Batch: 'Graphics'
+Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'command-buffer'
 {
+  BeginDebugLabel
+    name:  'CopyBuffer2 |0| Copy buffer task'
+    depth: 1
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
@@ -64,8 +76,7 @@ name: 'command-buffer'
 
   PipelineBarrier2
     dependencyFlags: 0
-    BufferBarrier:
-      name:   'buf_1'
+    MemoryBarrier:
       stage:  COPY ---> COPY
       access: TRANSFER_WRITE ---> TRANSFER_READ
   ----------
@@ -78,10 +89,13 @@ name: 'command-buffer'
 
   PipelineBarrier2
     dependencyFlags: 0
-    BufferBarrier:
-      name:   'buf_2'
+    MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
   ----------
 
 }

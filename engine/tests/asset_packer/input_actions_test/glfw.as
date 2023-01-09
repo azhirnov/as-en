@@ -1,9 +1,10 @@
+#include <input_actions>
 
 void main (GLFW_ActionBindings& bindings)
 {
 	// UI bindings
 	{
-		GLFW_BindingsMode@	bind = bindings.CreateMode( "UI" );
+		RC<GLFW_BindingsMode>	bind = bindings.CreateMode( "UI" );
 
 		bind.Add( GLFW_Input::Enter,
 				  ActionInfo( "Enter", EGestureType::Down ));

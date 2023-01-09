@@ -126,12 +126,14 @@ namespace
 				//.MemoryBarrier( EResourceState::Host_Write, EResourceState::RTShaderBindingTable )	// optional
 				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
 
+			auto	bar = ctx.DeferredBarriers();
+			bar.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+
 			ctx.BindPipeline( t.ppln );
 			ctx.BindDescriptorSet( t.ds_index, t.ds );
 			ctx.TraceRays( t.viewSize, t.sbt );
 
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
+			bar.Commit();
 				
 			Execute( ctx );
 		}
@@ -248,9 +250,9 @@ namespace
 		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"RayTracing1"} );
 		CHECK_ERR( t.batch );
 		
-		AsyncTask	task1	= t.batch->Add< RT1_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{begin},					{"Upload RTAS task"} );
-		AsyncTask	task2	= t.batch->Add< RT1_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{task1},					{"Ray tracing task"} );
-		AsyncTask	task3	= t.batch->Add< RT1_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task2}, True{"Last"},	{"Readback task"} );
+		AsyncTask	task1	= t.batch->Run< RT1_UploadTask<CtxTypes>     >( Tuple{ArgRef(t)}, Tuple{begin},					{"Upload RTAS task"} );
+		AsyncTask	task2	= t.batch->Run< RT1_RayTracingTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{task1},					{"Ray tracing task"} );
+		AsyncTask	task3	= t.batch->Run< RT1_CopyTask<CopyCtx>        >( Tuple{ArgRef(t)}, Tuple{task2}, True{"Last"},	{"Readback task"} );
 
 		AsyncTask	end		= rts.EndFrame( Tuple{task3} );
 

@@ -53,10 +53,12 @@ namespace AE::Base
 		ND_ static Version3			GetOSVersion ()																__NE___;
 
 		#ifdef AE_PLATFORM_MACOS
+		ND_ static StringView		GetOSName ()																__NE___ { return "MacOS"; }
 			static constexpr bool	Is_MacOS	= true;
 			static constexpr bool	Is_iOS		= false;
 		#endif
 		#ifdef AE_PLATFORM_IOS
+		ND_ static StringView		GetOSName ()																__NE___ { return "iOS"; }
 			static constexpr bool	Is_MacOS	= false;
 			static constexpr bool	Is_iOS		= true;
 		#endif

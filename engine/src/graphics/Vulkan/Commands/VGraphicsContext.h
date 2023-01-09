@@ -87,17 +87,18 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _VGraphicsContextImpl final : public CtxImpl, public IGraphicsContext
+	class _VGraphicsContextImpl : public CtxImpl, public IGraphicsContext
 	{
 	// types
 	public:
 		static constexpr bool	IsGraphicsContext		= true;
 		static constexpr bool	IsVulkanGraphicsContext	= true;
 
-		using DrawCtx	= typename CtxImpl::_DrawCtx;
+		using DrawCtx		= typename CtxImpl::_DrawCtx;
 	private:
-		using RawCtx	= CtxImpl;
-		using AccumBar	= VAccumBarriers< _VGraphicsContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= VAccumBarriers< _VGraphicsContextImpl< CtxImpl >>;
+		using DeferredBar	= VAccumDeferredBarriersForCtx< _VGraphicsContextImpl< CtxImpl >>;
 
 
 	// variables
@@ -107,37 +108,38 @@ namespace AE::Graphics::_hidden_
 		
 	// methods
 	public:
-		explicit _VGraphicsContextImpl (const RenderTask &task)								__Th___;
+		explicit _VGraphicsContextImpl (const RenderTask &task)										__Th___;
 		
 		template <typename RawCmdBufType>
-		_VGraphicsContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)				__Th___;
+		_VGraphicsContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)						__Th___;
 		
 		// continue render pass
 		template <typename RawCmdBufType>
-		_VGraphicsContextImpl (const RenderTask &, const VDrawCommandBatch &, RawCmdBufType) __Th___;
+		_VGraphicsContextImpl (const RenderTask &, const VDrawCommandBatch &, RawCmdBufType)		__Th___;
 
-		_VGraphicsContextImpl ()															= delete;
-		_VGraphicsContextImpl (const _VGraphicsContextImpl &)								= delete;
-		
+		_VGraphicsContextImpl ()																	= delete;
+		_VGraphicsContextImpl (const _VGraphicsContextImpl &)										= delete;
+
+
 		// returns invalid state if outside of render pass
-		ND_ VPrimaryCmdBufState const&  GetState ()											C_NE___	{ return _primaryState; }
-		ND_ bool						IsInsideRenderPass ()								C_NE___	{ return _primaryState.IsValid(); }
-		ND_ bool						IsSecondaryCmdbuf ()								C_NE___	{ return _primaryState.useSecondaryCmdbuf; }
+		ND_ VPrimaryCmdBufState const&  GetState ()													C_NE___	{ return _primaryState; }
+		ND_ bool						IsInsideRenderPass ()										C_NE___	{ return _primaryState.IsValid(); }
+		ND_ bool						IsSecondaryCmdbuf ()										C_NE___	{ return _primaryState.useSecondaryCmdbuf; }
 
 
 		// synchronious rendering api
-		ND_ DrawCtx	BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)				__Th___;
-		ND_ DrawCtx	NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg = Default)						__Th___;
-			void	EndRenderPass (DrawCtx& ctx)														__Th___;
-			void	EndRenderPass (DrawCtx& ctx, const RenderPassDesc &desc)							__Th___;
+		ND_ DrawCtx	BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)			__Th___;
+		ND_ DrawCtx	NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg = Default)					__Th___;
+			void	EndRenderPass (DrawCtx& ctx)													__Th___;
+			void	EndRenderPass (DrawCtx& ctx, const RenderPassDesc &desc)						__Th___;
 
 			
 		// asynchronious rendering api
-		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)			__Th___;
-		ND_ auto	NextMtSubpass (const VDrawCommandBatch &prevPassBatch, DebugLabel dbg = Default)	__Th___;
-			void	EndMtRenderPass ()																	__Th___;
-			void	EndMtRenderPass (const RenderPassDesc &desc)										__Th___;
-			void	ExecuteSecondary (VDrawCommandBatch &batch)											__Th___;
+		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)		__Th___;
+		ND_ auto	NextMtSubpass (const VDrawCommandBatch &prevPassBatch, DebugLabel dbg = Default)__Th___;
+			void	EndMtRenderPass ()																__Th___;
+			void	EndMtRenderPass (const RenderPassDesc &desc)									__Th___;
+			void	ExecuteSecondary (VDrawCommandBatch &batch)										__Th___;
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -169,7 +171,7 @@ namespace AE::Graphics::_hidden_
 	inline VkCommandBuffer  _VDirectGraphicsCtx::EndCommandBuffer ()
 	{
 		ASSERT( _NoPendingBarriers() );
-		return _VBaseDirectContext::_EndCommandBuffer();	// throw
+		return VBaseDirectContext::_EndCommandBuffer();  // throw
 	}
 	
 /*
@@ -180,7 +182,7 @@ namespace AE::Graphics::_hidden_
 	inline VCommandBuffer  _VDirectGraphicsCtx::ReleaseCommandBuffer ()
 	{
 		ASSERT( _NoPendingBarriers() );
-		return _VBaseDirectContext::_ReleaseCommandBuffer();
+		return VBaseDirectContext::_ReleaseCommandBuffer();
 	}
 //-----------------------------------------------------------------------------
 
@@ -194,7 +196,7 @@ namespace AE::Graphics::_hidden_
 	inline VBakedCommands  _VIndirectGraphicsCtx::EndCommandBuffer ()
 	{
 		ASSERT( _NoPendingBarriers() );
-		return _VBaseIndirectContext::_EndCommandBuffer();	// throw
+		return VBaseIndirectContext::_EndCommandBuffer();  // throw
 	}
 	
 /*
@@ -205,7 +207,7 @@ namespace AE::Graphics::_hidden_
 	inline VSoftwareCmdBufPtr  _VIndirectGraphicsCtx::ReleaseCommandBuffer ()
 	{
 		ASSERT( _NoPendingBarriers() );
-		return _VBaseIndirectContext::_ReleaseCommandBuffer();
+		return VBaseIndirectContext::_ReleaseCommandBuffer();
 	}
 //-----------------------------------------------------------------------------
 

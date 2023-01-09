@@ -25,3 +25,4 @@
 #undef GetClassName
 #undef min
 #undef max
+#undef UpdateResource

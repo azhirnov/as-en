@@ -69,7 +69,9 @@ namespace AE::Graphics
 	{
 		VkSemaphore					semaphore	= Default;
 		ulong						value		= 0;		// for timeline semaphore
-		VkPipelineStageFlags2KHR	stages		= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;
+	//	VkPipelineStageFlags2KHR	stages		= VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR;
+
+		ND_ explicit operator bool ()	C_NE___	{ return semaphore != Default; }
 	};
 
 

@@ -201,6 +201,32 @@ namespace AE::App
 		//
 		ND_ virtual bool  IsBindActionActive ()																							C_NE___ = 0;
 	};
+
+
+
+	//
+	// Thread-safe Input Actions
+	//
+	struct TsInputActions
+	{
+	public:
+		using ActionQueueReader = IInputActions::ActionQueueReader;
+
+	private:
+		Ptr<IInputActions>	_ia;
+
+	public:
+		TsInputActions ()										__NE___	{}
+		TsInputActions (Ptr<IInputActions> ia)					__NE___ : _ia{ia} {}
+		TsInputActions (const TsInputActions &other)			__NE___ : _ia{other._ia} {}
+
+		ND_ ActionQueueReader	ReadInput (FrameUID frameId)	C_NE___	{ return _ia->ReadInput( frameId ); }
+			void				NextFrame (FrameUID frameId)	__NE___	{ return _ia->NextFrame( frameId ); }
+
+		ND_ explicit operator bool ()							C_NE___	{ return bool{_ia}; }
+
+		ND_ Ptr<IInputActions>	Unsafe ()						C_NE___	{ return _ia; }
+	};
 //-----------------------------------------------------------------------------
 	
 

@@ -199,23 +199,17 @@ namespace AE::Math
 	template <typename T, int I, glm::qualifier Q>
 	using TVec = glm::vec< I, T, Q >;
 
-	template <typename T, int I>
-	using Vec = TVec< T, I, GLMQuialifier >;
-	
-	template <typename T, int I>
-	using PackedVec = TVec< T, I, glm::qualifier::packed_highp >;
-
 	template <typename T>
 	struct Quat;
 
 	template <typename T, uint Columns, uint Rows, glm::qualifier Q>
 	struct TMatrix;
+
+	template <typename T, int I>	using Vec		= TVec< T, I, GLMQuialifier >;
+	template <typename T, int I>	using PackedVec	= TVec< T, I, glm::qualifier::packed_highp >;
 	
-	template <typename T, uint Columns, uint Rows>
-	using Matrix = TMatrix< T, Columns, Rows, GLMQuialifier >;
-	
-	template <typename T, uint Columns, uint Rows>
-	using PackedMatrix = TMatrix< T, Columns, Rows, glm::qualifier::packed_highp >;
+	template <typename T, uint Columns, uint Rows>	using Matrix		= TMatrix< T, Columns, Rows, GLMQuialifier >;
+	template <typename T, uint Columns, uint Rows>	using PackedMatrix	= TMatrix< T, Columns, Rows, glm::qualifier::packed_highp >;
 
 } // AE::Math
 

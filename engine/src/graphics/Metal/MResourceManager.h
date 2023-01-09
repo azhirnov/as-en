@@ -39,35 +39,7 @@
 
 # include "graphics/Metal/Descriptors/MDefaultDescriptorAllocator.h"
 
-namespace AE::Graphics
-{
-
-	//
-	// Metal Resource Manager
-	//
-
-	class MResourceManager final : public IResourceManager
-	{
-		#include "graphics/Private/ResourceManagerDecl.h"
-
-	// methods
-	public:
-		ND_ bool	CreateBufferAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)			__NE___;
-		ND_ bool	CreateImageAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)				__NE___;
-		ND_ bool	CreateAccelStructAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalAccelStructRC &as, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
-		ND_ bool	CreateAccelStructAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalAccelStructRC &as, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)		__NE___;
-
-		ND_ Strong<PipelineCacheID>	LoadPipelineCache (const Path &filename) 						__NE___;
-		
-		ND_ MetalSampler			GetMtlSampler (const SamplerName &name)							C_NE___;
-		ND_ Strong<MSamplerID>		CreateSampler (const SamplerDesc &desc, StringView dbgName)		__NE___;
-		
-		ND_ Strong<MRenderPassID>	CreateRenderPass (const SerializableRenderPassInfo &info, const SerializableMtlRenderPass &mtlInfo)	__NE___;
-	};
-	
-	
-#	include "graphics/Private/ResourceManagerImpl.h"
-
-} // AE::Graphics
+// implementation	
+# include "graphics/Private/ResourceManager.h"
 
 #endif // AE_ENABLE_METAL

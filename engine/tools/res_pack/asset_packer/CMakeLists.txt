@@ -22,9 +22,17 @@ source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( "external/graphics" FILES ${GRAPHICS_SRC} )
 source_group( "external/vfs" FILES ${VFS_SRC} )
 
-target_link_libraries( "AssetPacker" PUBLIC "Serializing" "Scripting" "ResourceLoaders" "AtlasTools" "FreeType-lib" "msdfgen-lib" )
+target_link_libraries( "AssetPacker" PUBLIC "Serializing" "Scripting" "ResourceLoaders" "AtlasTools" )
 target_compile_definitions( "AssetPacker" PUBLIC "AE_BUILD_ASSET_PACKER" )
 target_include_directories( "AssetPacker" PUBLIC "." )
+
+if (TARGET "FreeType-lib")
+	target_link_libraries( "AssetPacker" PUBLIC "FreeType-lib" )
+endif()
+
+if (TARGET "msdfgen-lib")
+	target_link_libraries( "AssetPacker" PUBLIC "msdfgen-lib" )
+endif()
 
 add_library( "AssetPacker-shared" SHARED
 	"AssetPacker.h"

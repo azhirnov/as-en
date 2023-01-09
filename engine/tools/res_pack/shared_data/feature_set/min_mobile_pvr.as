@@ -1,3 +1,4 @@
+#include <pipeline_compiler>
 
 void main ()
 {
@@ -7,7 +8,7 @@ void main ()
 
 	const EFeature	True  = EFeature::RequireTrue;
 
-	FeatureSet@  fset = FeatureSet( "MinMobilePowerVR" );
+	RC<FeatureSet>  fset = FeatureSet( "MinMobilePowerVR" );
 
 	fset.alphaToOne (True);
 	fset.depthBiasClamp (True);

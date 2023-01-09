@@ -523,10 +523,10 @@ namespace AE::Math
 	Exchange
 =================================================
 */
-	template <typename T>
-	ND_ constexpr T  Exchange (INOUT T &lhs, const T &rhs)
+	template <typename T1, typename T2>
+	ND_ constexpr T1  Exchange (INOUT T1 &lhs, const T2 &rhs)
 	{
-		T	tmp = lhs;
+		T1	tmp = lhs;
 		lhs = rhs;
 		return tmp;
 	}

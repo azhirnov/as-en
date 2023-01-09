@@ -22,27 +22,27 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  FillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)											__Th___;
+		void  FillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)									__Th___;
 
-		void  CopyBuffer (MetalBuffer srcBuffer, MetalBuffer dstBuffer, ArrayView<BufferCopy> ranges)						__Th___;
-		void  CopyImage (MetalImage srcImage, MetalImage dstImage, ArrayView<ImageCopy> ranges)								__Th___;
+		void  CopyBuffer (MetalBuffer srcBuffer, MetalBuffer dstBuffer, ArrayView<BufferCopy> ranges)				__Th___;
+		void  CopyImage (MetalImage srcImage, MetalImage dstImage, ArrayView<ImageCopy> ranges)						__Th___;
 		
-		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy> ranges)				__Th___;
-		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy2> ranges)			__Th___;
+		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy> ranges)		__Th___;
+		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy2> ranges)	__Th___;
 
-		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges)				__Th___;
-		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges)			__Th___;
+		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges)		__Th___;
+		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges)	__Th___;
 
-		ND_ MetalCommandBufferRC	EndCommandBuffer ()																		__Th___;
-		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()																	__Th___;
+		ND_ MetalCommandBufferRC	EndCommandBuffer ()																__Th___;
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()															__Th___;
 
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MDirectTransferCtx (const RenderTask &task)																		__Th___;
-		_MDirectTransferCtx (const RenderTask &task, MCommandBuffer cmdbuf)													__Th___;
+		explicit _MDirectTransferCtx (const RenderTask &task)														__Th___ : _MDirectTransferCtx{ task, MCommandBuffer{} } {}
+		_MDirectTransferCtx (const RenderTask &task, MCommandBuffer cmdbuf)											__Th___;
 		
-		ND_ auto  _Encoder ()																								__NE___;
+		ND_ auto  _Encoder ()																						__NE___;
 		
 		void  _ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges);
 		void  _ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges);
@@ -94,7 +94,7 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MIndirectTransferCtx (const RenderTask &task)																__Th___;
+		explicit _MIndirectTransferCtx (const RenderTask &task)														__Th___ : _MIndirectTransferCtx{ task, Default } {}
 		_MIndirectTransferCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)									__Th___;
 		
 		void  _GenerateMipmaps (MetalImage image);
@@ -111,7 +111,7 @@ namespace AE::Graphics::_hidden_
 	//
 
 	template <typename CtxImpl>
-	class _MTransferContextImpl final : public CtxImpl, public ITransferContext
+	class _MTransferContextImpl : public CtxImpl, public ITransferContext
 	{
 	// types
 	public:
@@ -121,16 +121,17 @@ namespace AE::Graphics::_hidden_
 		static constexpr uint	_LocalArraySize			= 16;
 		static constexpr Bytes	_StagingBufOffsetAlign	= 4_b;
 
-		using RawCtx	= CtxImpl;
-		using AccumBar	= MAccumBarriers< _MTransferContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= MAccumBarriers< _MTransferContextImpl< CtxImpl >>;
+		using DeferredBar	= MAccumDeferredBarriersForCtx< _MTransferContextImpl< CtxImpl >>;
 
 
 	// methods
 	public:
-		explicit _MTransferContextImpl (const RenderTask &task)																							__Th___	: RawCtx{ task } {}
+		explicit _MTransferContextImpl (const RenderTask &task)																							__Th___;
 		
 		template <typename RawCmdBufType>
-		_MTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)																			__Th___	: RawCtx{ task, RVRef(cmdbuf) } {}
+		_MTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)																			__Th___;
 
 		_MTransferContextImpl ()																														= delete;
 		_MTransferContextImpl (const _MTransferContextImpl &)																							= delete;
@@ -200,6 +201,25 @@ namespace AE::Graphics
 
 namespace AE::Graphics::_hidden_
 {
+/*
+=================================================
+	constructor
+=================================================
+*/
+	template <typename C>
+	_MTransferContextImpl<C>::_MTransferContextImpl (const RenderTask &task) : RawCtx{ task }
+	{
+		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
+	}
+		
+	template <typename C>
+	template <typename RawCmdBufType>
+	_MTransferContextImpl<C>::_MTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+		RawCtx{ task, RVRef(cmdbuf) }
+	{
+		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
+	}
+
 /*
 =================================================
 	FillBuffer

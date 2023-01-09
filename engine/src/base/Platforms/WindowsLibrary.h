@@ -40,7 +40,7 @@ namespace AE::Base
 		template <typename T>
 		bool  GetProcAddr (NtStringView name, OUT T &result) C_NE___;
 
-		ND_ Path  GetPath ()				C______;
+		ND_ Path  GetPath ()				C_NE___;
 
 		ND_ explicit operator bool ()		C_NE___	{ return _handle != null; }
 	};
@@ -112,14 +112,14 @@ namespace AE::Base
 	GetPath
 =================================================
 */
-	inline Path  WindowsLibrary::GetPath () C______
+	inline Path  WindowsLibrary::GetPath () C_NE___
 	{
 		CHECK_ERR( _handle != null );
 
 		wchar_t	buf[MAX_PATH] = {};
 		CHECK_ERR( ::GetModuleFileNameW( _handle, buf, DWORD(CountOf(buf)) ) != FALSE );
 
-		return Path{ buf };	// throw
+		CATCH_ERR( return Path{ buf };)
 	}
 
 

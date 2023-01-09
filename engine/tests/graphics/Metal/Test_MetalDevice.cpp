@@ -1,8 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Common.h"
-
-#if defined(AE_ENABLE_METAL) and defined(AE_PLATFORM_APPLE)
+#ifdef AE_ENABLE_METAL
 # include "graphics/Metal/MDevice.h"
 # include "../UnitTest_Common.h"
 
