@@ -26,7 +26,7 @@ name: 'command-buffer'
       name:    'SrcImage'
       stage:   ALL_COMMANDS ---> COPY
       access:  MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
-      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+      layout:  GENERAL ---> TRANSFER_DST_OPTIMAL
   ----------
 
   CopyBufferToImage
@@ -45,8 +45,8 @@ name: 'command-buffer'
       layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
     ImageBarrier:
       name:    'DstImage'
-      stage:   ALL_COMMANDS ---> COPY
-      access:  MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
       layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
   ----------
 
@@ -76,6 +76,11 @@ name: 'command-buffer'
 
   PipelineBarrier2
     dependencyFlags: 0
+    ImageBarrier:
+      name:    'DstImage'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
     ImageBarrier:
       name:    'SrcImage'
       stage:   COPY ---> ALL_COMMANDS
@@ -128,7 +133,7 @@ name: 'command-buffer'
       name:    'SrcImage'
       stage:   ALL_COMMANDS ---> COPY
       access:  MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
-      layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
+      layout:  GENERAL ---> TRANSFER_DST_OPTIMAL
   ----------
 
   CopyBufferToImage
@@ -147,8 +152,8 @@ name: 'command-buffer'
       layout:  TRANSFER_DST_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
     ImageBarrier:
       name:    'DstImage'
-      stage:   ALL_COMMANDS ---> COPY
-      access:  MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+      stage:   COPY ---> COPY
+      access:  0 ---> TRANSFER_WRITE
       layout:  UNDEFINED ---> TRANSFER_DST_OPTIMAL
   ----------
 
@@ -180,6 +185,11 @@ name: 'command-buffer'
     dependencyFlags: 0
     ImageBarrier:
       name:    'SrcImage'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+    ImageBarrier:
+      name:    'DstImage'
       stage:   COPY ---> ALL_COMMANDS
       access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL

@@ -46,7 +46,7 @@ namespace AE::Graphics
 
 		Strong<VPipelineLayoutID>	_layoutId;
 		InPlace<NameToHandle_t>		_nameToHandle;		// allocated by pipeline pack linear allocator
-		ArrayView<ubyte>			_groupHandles;		// allocated by pipeline pack linear allocator
+		ArrayView<ulong>			_groupHandles;		// allocated by pipeline pack linear allocator
 		ArrayView<ShaderTracePtr>	_dbgTrace;			// allocated by pipeline pack linear allocator
 
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
@@ -61,7 +61,7 @@ namespace AE::Graphics
 		ND_ bool  Create (VResourceManager &, const CreateInfo &ci)		__NE___;
 			void  Destroy (VResourceManager &)							__NE___;
 			
-		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result)	C_NE___;
+		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, ShaderDebugger::ELogFormat, OUT Array<String> &result)	C_NE___;
 
 		ND_ Bytes  GetShaderGroupStackSize (const VDevice &, const RayTracingGroupName &group)	C_NE___;
 

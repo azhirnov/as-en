@@ -74,14 +74,20 @@ namespace AE::Profiler
 	  #	error not implemented
 	  #endif
 
+		struct Pass
+		{
+		//	Query			pplnStat;
+			Query			timestamp;
+			String			name;
+			RGBA8u			color;
+			bool			recorded	= false;	// set 'true' in 'EndContext()'
+		};
+
 		struct ContextInfo
 		{
 			EQueueType		queue		= Default;
 			EContextType	ctxType		= Default;
-			Query			pplnStat;
-			Query			timestamp;
-			String			name;
-			RGBA8u			color;
+			Array<Pass>		passes;
 		};
 		using ActiveCmdbufs_t = FlatHashMap< BatchCmdbufKey, ContextInfo, DefaultHasher_CalcHash<BatchCmdbufKey> >;
 

@@ -15,7 +15,7 @@ namespace
 		TEST( sock2.Listen( 4000 ));
 		TEST( sock2.IsOpen() );
 
-		std::thread	listener{ [&] ()
+		StdThread	listener{ [&] ()
 			{
 				Array<char>	recv_data;
 				for (uint i = 0; i < 100; ++i)

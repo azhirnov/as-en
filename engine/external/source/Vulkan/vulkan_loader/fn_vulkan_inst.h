@@ -79,8 +79,6 @@
 	extern PFN_vkGetPhysicalDeviceMultisamplePropertiesEXT  _var_vkGetPhysicalDeviceMultisamplePropertiesEXT;
 	extern PFN_vkCreateHeadlessSurfaceEXT  _var_vkCreateHeadlessSurfaceEXT;
 	extern PFN_vkAcquireDrmDisplayEXT  _var_vkAcquireDrmDisplayEXT;
-	extern PFN_vkAcquireWinrtDisplayNV  _var_vkAcquireWinrtDisplayNV;
-	extern PFN_vkGetWinrtDisplayNV  _var_vkGetWinrtDisplayNV;
 
 
 # ifdef VULKAN_BETA_H_
@@ -170,8 +168,6 @@
 	PFN_vkGetPhysicalDeviceMultisamplePropertiesEXT  _var_vkGetPhysicalDeviceMultisamplePropertiesEXT = null;
 	PFN_vkCreateHeadlessSurfaceEXT  _var_vkCreateHeadlessSurfaceEXT = null;
 	PFN_vkAcquireDrmDisplayEXT  _var_vkAcquireDrmDisplayEXT = null;
-	PFN_vkAcquireWinrtDisplayNV  _var_vkAcquireWinrtDisplayNV = null;
-	PFN_vkGetWinrtDisplayNV  _var_vkGetWinrtDisplayNV = null;
 
 
 # ifdef VULKAN_BETA_H_
@@ -261,8 +257,6 @@
 		VKAPI_ATTR forceinline void vkGetPhysicalDeviceMultisamplePropertiesEXT (VkPhysicalDevice physicalDevice, VkSampleCountFlagBits samples, VkMultisamplePropertiesEXT * pMultisampleProperties)								{ return _var_vkGetPhysicalDeviceMultisamplePropertiesEXT( physicalDevice, samples, pMultisampleProperties ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkCreateHeadlessSurfaceEXT (VkInstance instance, const VkHeadlessSurfaceCreateInfoEXT * pCreateInfo, const VkAllocationCallbacks * pAllocator, VkSurfaceKHR * pSurface)								{ return _var_vkCreateHeadlessSurfaceEXT( instance, pCreateInfo, pAllocator, pSurface ); }
 	ND_ VKAPI_ATTR forceinline VkResult vkAcquireDrmDisplayEXT (VkPhysicalDevice physicalDevice, int32_t drmFd, VkDisplayKHR display)								{ return _var_vkAcquireDrmDisplayEXT( physicalDevice, drmFd, display ); }
-	ND_ VKAPI_ATTR forceinline VkResult vkAcquireWinrtDisplayNV (VkPhysicalDevice physicalDevice, VkDisplayKHR display)								{ return _var_vkAcquireWinrtDisplayNV( physicalDevice, display ); }
-	ND_ VKAPI_ATTR forceinline VkResult vkGetWinrtDisplayNV (VkPhysicalDevice physicalDevice, uint32_t deviceRelativeId, VkDisplayKHR * pDisplay)								{ return _var_vkGetWinrtDisplayNV( physicalDevice, deviceRelativeId, pDisplay ); }
 
 
 # ifdef VULKAN_BETA_H_
@@ -352,8 +346,6 @@
 	VKAPI_ATTR void VKAPI_CALL Dummy_vkGetPhysicalDeviceMultisamplePropertiesEXT (VkPhysicalDevice , VkSampleCountFlagBits , VkMultisamplePropertiesEXT * )			{  VK_LOG( "used dummy function 'vkGetPhysicalDeviceMultisamplePropertiesEXT'" );  return;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkCreateHeadlessSurfaceEXT (VkInstance , const VkHeadlessSurfaceCreateInfoEXT * , const VkAllocationCallbacks * , VkSurfaceKHR * )			{  VK_LOG( "used dummy function 'vkCreateHeadlessSurfaceEXT'" );  return VK_RESULT_MAX_ENUM;  }
 	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkAcquireDrmDisplayEXT (VkPhysicalDevice , int32_t , VkDisplayKHR )			{  VK_LOG( "used dummy function 'vkAcquireDrmDisplayEXT'" );  return VK_RESULT_MAX_ENUM;  }
-	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkAcquireWinrtDisplayNV (VkPhysicalDevice , VkDisplayKHR )			{  VK_LOG( "used dummy function 'vkAcquireWinrtDisplayNV'" );  return VK_RESULT_MAX_ENUM;  }
-	VKAPI_ATTR VkResult VKAPI_CALL Dummy_vkGetWinrtDisplayNV (VkPhysicalDevice , uint32_t , VkDisplayKHR * )			{  VK_LOG( "used dummy function 'vkGetWinrtDisplayNV'" );  return VK_RESULT_MAX_ENUM;  }
 
 
 # ifdef VULKAN_BETA_H_
@@ -443,8 +435,6 @@
 	Load( OUT _var_vkGetPhysicalDeviceMultisamplePropertiesEXT, "vkGetPhysicalDeviceMultisamplePropertiesEXT", Dummy_vkGetPhysicalDeviceMultisamplePropertiesEXT );
 	Load( OUT _var_vkCreateHeadlessSurfaceEXT, "vkCreateHeadlessSurfaceEXT", Dummy_vkCreateHeadlessSurfaceEXT );
 	Load( OUT _var_vkAcquireDrmDisplayEXT, "vkAcquireDrmDisplayEXT", Dummy_vkAcquireDrmDisplayEXT );
-	Load( OUT _var_vkAcquireWinrtDisplayNV, "vkAcquireWinrtDisplayNV", Dummy_vkAcquireWinrtDisplayNV );
-	Load( OUT _var_vkGetWinrtDisplayNV, "vkGetWinrtDisplayNV", Dummy_vkGetWinrtDisplayNV );
 
 
 # ifdef VULKAN_BETA_H_

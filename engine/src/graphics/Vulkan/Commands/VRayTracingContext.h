@@ -46,8 +46,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectRayTracingCtx (const RenderTask &task)														__Th___;
-		_VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf)										__Th___;
+		explicit _VDirectRayTracingCtx (const RenderTask &task)														__Th___ : VBaseDirectContext{ task, ECtxType::RayTracing } {}
+		_VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf)										__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), ECtxType::RayTracing } {}
 		
 		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
 		void  _PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
@@ -94,8 +94,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectRayTracingCtx (const RenderTask &task)													__Th___;
-		_VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)									__Th___;
+		explicit _VIndirectRayTracingCtx (const RenderTask &task)													__Th___ : VBaseIndirectContext{ task, ECtxType::RayTracing } {}
+		_VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)									__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), ECtxType::RayTracing } {}
 		
 		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
 		void  _PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
@@ -122,6 +122,8 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsRayTracingContext			= true;
 		static constexpr bool	IsVulkanRayTracingContext	= true;
+
+		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
 	private:
 		using RawCtx		= CtxImpl;
 		using AccumBar		= VAccumBarriers< _VRayTracingContextImpl< CtxImpl >>;
@@ -131,9 +133,7 @@ namespace AE::Graphics::_hidden_
 	// methods
 	public:
 		explicit _VRayTracingContextImpl (const RenderTask &task)													__Th___;
-		
-		template <typename RawCmdBufType>
-		_VRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)										__Th___;
+		_VRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)											__Th___;
 
 		_VRayTracingContextImpl ()																					= delete;
 		_VRayTracingContextImpl (const _VRayTracingContextImpl &)													= delete;
@@ -187,8 +187,7 @@ namespace AE::Graphics::_hidden_
 	}
 		
 	template <typename C>
-	template <typename RawCmdBufType>
-	_VRayTracingContextImpl<C>::_VRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+	_VRayTracingContextImpl<C>::_VRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf) }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));

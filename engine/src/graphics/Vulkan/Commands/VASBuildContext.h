@@ -35,8 +35,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectASBuildCtx (const RenderTask &task);
-		_VDirectASBuildCtx (const RenderTask &task, VCommandBuffer cmdbuf);
+		explicit _VDirectASBuildCtx (const RenderTask &task)								__Th___ : VBaseDirectContext{ task, ECtxType::ASBuild } {}
+		_VDirectASBuildCtx (const RenderTask &task, VCommandBuffer cmdbuf)					__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), ECtxType::ASBuild } {}
 		
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -66,8 +66,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectASBuildCtx (const RenderTask &task);
-		_VIndirectASBuildCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf);
+		explicit _VIndirectASBuildCtx (const RenderTask &task)								__Th___ : VBaseIndirectContext{ task, ECtxType::ASBuild } {}
+		_VIndirectASBuildCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)			__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), ECtxType::ASBuild } {}
 
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -90,6 +90,8 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsASBuildContext		= true;
 		static constexpr bool	IsVulkanASBuildContext	= true;
+
+		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
 	private:
 		using RawCtx		= CtxImpl;
 		using AccumBar		= VAccumBarriers< _VASBuildContextImpl< CtxImpl >>;
@@ -99,9 +101,7 @@ namespace AE::Graphics::_hidden_
 	// methods
 	public:
 		explicit _VASBuildContextImpl (const RenderTask &task)														__Th___;
-		
-		template <typename RawCmdBufType>
-		_VASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)											__Th___;
+		_VASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)												__Th___;
 
 		_VASBuildContextImpl ()																						= delete;
 		_VASBuildContextImpl (const _VASBuildContextImpl &)															= delete;
@@ -225,8 +225,7 @@ namespace AE::Graphics::_hidden_
 	}
 		
 	template <typename C>
-	template <typename RawCmdBufType>
-	_VASBuildContextImpl<C>::_VASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+	_VASBuildContextImpl<C>::_VASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf) }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));

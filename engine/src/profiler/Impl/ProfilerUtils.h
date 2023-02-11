@@ -23,8 +23,6 @@ namespace AE::Profiler
 
 	using AE::Threading::Atomic;
 	using AE::Threading::FAtomic;
-	using AE::Threading::SharedMutex;
-	using AE::Threading::Mutex;
 
 
 

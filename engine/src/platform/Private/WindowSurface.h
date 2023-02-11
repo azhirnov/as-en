@@ -15,8 +15,6 @@
 
 namespace AE::App
 {
-	using AE::Threading::SharedMutex;
-
 
 	//
 	// Window Output Surface
@@ -28,6 +26,7 @@ namespace AE::App
 	private:
 		class AcquireNextImageTask;
 		class PresentImageTask;
+		class RecreateSwapchainTask;
 
 	  #if defined(AE_ENABLE_VULKAN)
 		using Swapchain_t = InPlace< Graphics::VSwapchainInitializer >;
@@ -42,7 +41,7 @@ namespace AE::App
 	private:
 		mutable SharedMutex		_guard;
 
-		bool					_initialized	{false};
+		Atomic<bool>			_initialized	{false};
 		Atomic<ushort>			_imageIndex;
 		int2					_surfaceSize;				// pretected by '_guard'
 		float2					_pixToMm;					// pretected by '_guard'
@@ -71,18 +70,24 @@ namespace AE::App
 
 
 	// IOutputSurface //
-		bool			IsInitialized ()																			C_NE_OV;
+		bool			IsInitialized ()																			C_NE_OV	{ return _initialized.load(); }
 		RenderPassInfo	GetRenderPassInfo ()																		C_NE_OV;
 
-		AsyncTask	Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE_OV;
-		bool		GetTargets (OUT RenderTargets_t &targets)														C_NE_OV;
-		AsyncTask	End (ArrayView<AsyncTask> deps)																	__NE_OV;
+		AsyncTask		Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask>)	__NE_OV;
+		bool			GetTargets (OUT RenderTargets_t &targets)													C_NE_OV;
+		AsyncTask		End (ArrayView<AsyncTask> deps)																__NE_OV;
 		
+		AllImages_t		GetAllImages ()																				C_NE_OV;
+		TargetSizes_t	GetTargetSizes ()																			C_NE_OV;
+		ColorFormats_t	GetColorFormats ()																			C_NE_OV;
+		PresentModes_t	GetPresentModes ()																			C_NE_OV;
+		SurfaceInfo		GetSurfaceInfo ()																			C_NE_OV;
+
 
 	// IWindow private api
 	public:
 		void  CreateSwapchain ()																					__NE___;
-		void  ResizeSwapchain (const uint2 &newSize)																__NE___;
+		void  ResizeSwapchain ()																					__NE___;
 		void  DestroySwapchain ()																					__NE___;
 
 
@@ -90,15 +95,7 @@ namespace AE::App
 		// must be pretected by '_guard'
 		void  _UpdateMonitor ()																						__NE___;
 
-	  #if defined(AE_ENABLE_VULKAN)
-		ND_ static	Graphics::VResourceManager&	_GetResMngr ()														__NE___;
-		ND_ static	Graphics::VDevice const&	_GetDevice ()														__NE___;
-	  #elif defined(AE_ENABLE_METAL)
-		ND_ static	Graphics::MResourceManager&	_GetResMngr ()														__NE___;
-		ND_ static	Graphics::MDevice const&	_GetDevice ()														__NE___;
-	  #else
-	  #	error not implemented
-	  #endif
+		bool  _CreateSwapchain ()																					__NE___;
 	};
 
 

@@ -61,6 +61,24 @@ namespace _hidden_
 
 	template <auto X>
 	static constexpr int	CT_CeilIntLog2 = Base::_hidden_::_CeilIntLog2<X>::value;
+	
+/*
+=================================================
+	CT_FloorPOT
+=================================================
+*/
+namespace _hidden_
+{
+	template <auto X>
+	struct _FloorPOT {
+		using T							= decltype(X);
+		static constexpr int	il2		= CT_IntLog2<X>;
+		static constexpr T		value	= il2 >= 0 ? (T{1} << il2) : T{0};
+	};
+} // _hidden_
+
+	template <auto X>
+	static constexpr auto	CT_FloorPOT = Base::_hidden_::_FloorPOT<X>::value;
 
 /*
 =================================================

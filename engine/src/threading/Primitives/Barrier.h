@@ -243,7 +243,7 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit Barrier (usize numThreads) : _barrier{numThreads}
+		explicit Barrier (ssize numThreads) : _barrier{ptrdiff_t(numThreads)}
 		{}
 
 		Barrier (Barrier &&) = delete;
@@ -257,7 +257,7 @@ namespace AE::Threading
 			_barrier.arrive_and_wait();
 		}
 
-		ND_ static constexpr usize  max ()	{ return std::barrier<>::max(); }
+		ND_ static constexpr ssize  max ()	{ return std::barrier<>::max(); }
 	};
 
 } // AE::Threading

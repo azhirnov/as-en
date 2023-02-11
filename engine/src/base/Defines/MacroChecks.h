@@ -34,7 +34,7 @@
 #endif
 
 #ifdef AE_PLATFORM_UNIX_BASED
-#	if not (defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_ANDROID) or defined(AE_PLATFORM_MACOS) or defined(AE_PLATFORM_IOS))
+#	if not (defined(AE_PLATFORM_LINUX) or defined(AE_PLATFORM_ANDROID) or defined(AE_PLATFORM_MACOS) or defined(AE_PLATFORM_IOS) or defined(AE_PLATFORM_EMSCRIPTEN))
 #		error platform is not Unix-based
 #	endif
 #endif
@@ -90,28 +90,34 @@
 
 
 // check features
-#ifndef __cpp_threadsafe_static_init
+#ifndef AE_PLATFORM_EMSCRIPTEN	// TODO: flag for emscripten multithreading
+# ifndef __cpp_threadsafe_static_init
 #	error '__cpp_threadsafe_static_init' feature required
+# endif
 #endif
 
 
 // SIMD
-#ifdef AE_SIMD_NEON
-# ifdef AE_SIMD_AVX
+#if AE_SIMD_NEON
+# if AE_SIMD_AVX
 #	error AE_SIMD_AVX is not compatible with AE_SIMD_NEON
 # endif
-# ifdef AE_SIMD_SSE
+# if AE_SIMD_SSE
 #	error AE_SIMD_SSE is not compatible with AE_SIMD_NEON
 # endif
-# ifdef AE_SIMD_AES
+# if AE_SIMD_AES
 #	error AE_SIMD_AES is not compatible with AE_SIMD_NEON
 # endif
 #endif
 
-#if defined(AE_SIMD_AVX) or defined(AE_SIMD_SSE) or defined(AE_SIMD_AES)
-# if defined(AE_SIMD_NEON) or defined(AE_SIMD_NEON_HALF)
+#if (AE_SIMD_AVX | AE_SIMD_SSE | AE_SIMD_AES)
+# if (AE_SIMD_NEON | AE_SIMD_NEON_HALF)
 #	error AE_SIMD_AVX and AE_SIMD_SSE and AE_SIMD_AES are not compatible with AE_SIMD_NEON
 # endif
+#endif
+
+#ifndef AE_HAS_SIMD
+#	error AE_HAS_SIMD must be defined
 #endif
 
 
@@ -196,6 +202,12 @@
 #	pragma detect_mismatch( "AE_PLATFORM_EMSCRIPTEN", "1" )
 #  else
 #	pragma detect_mismatch( "AE_PLATFORM_EMSCRIPTEN", "0" )
+#  endif
+
+#  ifdef AE_DISABLE_THREADS
+#	pragma detect_mismatch( "AE_DISABLE_THREADS", "1" )
+#  else
+#	pragma detect_mismatch( "AE_DISABLE_THREADS", "0" )
 #  endif
 
 #  ifdef AE_PLATFORM_TARGET_VERSION_MAJOR
@@ -302,13 +314,13 @@
 
 
 // SIMD
-#  ifdef AE_SIMD_NEON
+#  if AE_SIMD_NEON
 #	pragma detect_mismatch( "AE_SIMD_NEON", "1" )
 #  else
 #	pragma detect_mismatch( "AE_SIMD_NEON", "0" )
 #  endif
 
-#  ifdef AE_SIMD_NEON_HALF
+#  if AE_SIMD_NEON_HALF
 #	pragma detect_mismatch( "AE_SIMD_NEON_HALF", "1" )
 #  else
 #	pragma detect_mismatch( "AE_SIMD_NEON_HALF", "0" )
@@ -348,10 +360,22 @@
 #	pragma detect_mismatch( "AE_SIMD_SSE", "0" )
 #  endif
 
-#  ifdef AE_SIMD_AES
+#  if AE_SIMD_AES
 #	pragma detect_mismatch( "AE_SIMD_AES", "1" )
 #  else
 #	pragma detect_mismatch( "AE_SIMD_AES", "0" )
+#  endif
+
+#  if AE_HAS_SIMD
+#	pragma detect_mismatch( "AE_HAS_SIMD", "1" )
+#  else
+#	pragma detect_mismatch( "AE_HAS_SIMD", "0" )
+#  endif
+
+#  if AE_OPTIMAL_MEMORY_ORDER
+#	pragma detect_mismatch( "AE_OPTIMAL_MEMORY_ORDER", "1" )
+#  else
+#	pragma detect_mismatch( "AE_OPTIMAL_MEMORY_ORDER", "0" )
 #  endif
 
 #endif // AE_CPP_DETECT_MISMATCH

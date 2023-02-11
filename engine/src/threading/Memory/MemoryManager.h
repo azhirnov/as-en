@@ -22,6 +22,8 @@ namespace AE::Threading
 
 	class MemoryManagerImpl final : public Noncopyable
 	{
+		friend struct InPlace<MemoryManagerImpl>;
+
 	// types
 	public:
 		using GlobalLinearAllocator_t	= LfLinearAllocator< 16u<<20, AE_CACHE_LINE, 32 >;
@@ -77,12 +79,11 @@ namespace AE::Threading
 
 
 	private:
-		MemoryManagerImpl ()	__NE___;
-		~MemoryManagerImpl ()	__NE___;
+		MemoryManagerImpl ()											__NE___;
+		~MemoryManagerImpl ()											__NE___;
 		
-		friend MemoryManagerImpl&  AE::MemoryManager () __NE___;
-
-		ND_ static MemoryManagerImpl*  _Instance () __NE___;
+		friend MemoryManagerImpl&		AE::MemoryManager ()			__NE___;
+		ND_ static MemoryManagerImpl&	_Instance ()					__NE___;
 	};
 
 } // AE::Threading
@@ -97,7 +98,7 @@ namespace AE
 */
 	ND_ forceinline Threading::MemoryManagerImpl&  MemoryManager () __NE___
 	{
-		return *Threading::MemoryManagerImpl::_Instance();
+		return Threading::MemoryManagerImpl::_Instance();
 	}
 
 } // AE

@@ -259,7 +259,7 @@ namespace AE::Graphics::_hidden_
 	{
 		STATIC_ASSERT( ShaderType == EShader::Compute or ShaderType == EShader::MeshTask );
 	
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetThreadgroupMemoryLengthCmd >();
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetThreadgroupMemoryLengthCmd >();	// throw
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.length		= length;
@@ -271,7 +271,7 @@ namespace AE::Graphics::_hidden_
 	{
 		STATIC_ASSERT( ShaderType == EShader::Tile );
 		
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetThreadgroupMemoryLengthCmd >();
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetThreadgroupMemoryLengthCmd >();	// throw
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.length		= length;
@@ -281,7 +281,7 @@ namespace AE::Graphics::_hidden_
 	template <EShader ShaderType>
 	void  MArgumentSetter<ShaderType,false>::SetBuffer (MetalBuffer buffer, Bytes offset, MBufferIndex index)
 	{
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBufferCmd >();
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBufferCmd >();	// throw
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.buffer		= buffer;
@@ -291,7 +291,7 @@ namespace AE::Graphics::_hidden_
 	template <EShader ShaderType>
 	void  MArgumentSetter<ShaderType,false>::SetBufferOffset (Bytes offset, MBufferIndex index)
 	{
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBufferOffsetCmd >();
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBufferOffsetCmd >();	// throw
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.offset		= offset;
@@ -302,7 +302,7 @@ namespace AE::Graphics::_hidden_
 	{
 		CHECK_ERRV( dataSize <= 1_Kb );	// 4 Kb in specs
 
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBytesCmd, ubyte >( usize(dataSize) );
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetBytesCmd, ubyte >( usize(dataSize) );	// throw
 		auto*		dst	= static_cast< void *>(&cmd + 1);
 
 		cmd.shaderType	= ShaderType;
@@ -315,7 +315,7 @@ namespace AE::Graphics::_hidden_
 	template <EShader ShaderType>
 	void  MArgumentSetter<ShaderType,false>::SetSampler (MetalSampler sampler, MSamplerIndex index)
 	{
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetSamplerCmd >();
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetSamplerCmd >();	// throw
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.sampler		= sampler;
@@ -324,7 +324,7 @@ namespace AE::Graphics::_hidden_
 	template <EShader ShaderType>
 	void  MArgumentSetter<ShaderType,false>::SetSampler (MetalSampler sampler, float lodMinClamp, float lodMaxClamp, MSamplerIndex index)
 	{
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetSampler2Cmd >();
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetSampler2Cmd >();	// throw
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.sampler		= sampler;
@@ -335,7 +335,7 @@ namespace AE::Graphics::_hidden_
 	template <EShader ShaderType>
 	void  MArgumentSetter<ShaderType,false>::SetTexture (MetalImage texture, MTextureIndex index)
 	{
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetTextureCmd >();
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetTextureCmd >();	// throw
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.texture		= texture;
@@ -344,7 +344,7 @@ namespace AE::Graphics::_hidden_
 	template <EShader ShaderType>
 	void  MArgumentSetter<ShaderType,false>::SetVisibleFunctionTable (MetalVisibleFnTable table, MBufferIndex index)
 	{
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetVisibleFunctionTableCmd >();
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetVisibleFunctionTableCmd >();	// throw
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.table		= table;
@@ -353,7 +353,7 @@ namespace AE::Graphics::_hidden_
 	template <EShader ShaderType>
 	void  MArgumentSetter<ShaderType,false>::SetIntersectionFunctionTable (MetalIntersectionFnTable table, MBufferIndex index)
 	{
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetIntersectionFunctionTableCmd >();
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetIntersectionFunctionTableCmd >();	// throw
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.table		= table;
@@ -362,7 +362,7 @@ namespace AE::Graphics::_hidden_
 	template <EShader ShaderType>
 	void  MArgumentSetter<ShaderType,false>::SetAccelerationStructure (MetalAccelStruct as, MBufferIndex index)
 	{
-		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetAccelerationStructureCmd >();
+		auto&		cmd	= _cmdbuf->CreateCmd< MSoftwareCmdBuf::SetAccelerationStructureCmd >();	// throw
 		cmd.shaderType	= ShaderType;
 		cmd.index		= index;
 		cmd.as			= as;

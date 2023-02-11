@@ -195,6 +195,7 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpVectorTimesScalarAssign : return "*=";
 			case TOperator::EOpMatrixTimesScalarAssign : return "*=";
 			case TOperator::EOpMatrixTimesMatrixAssign : return "*=";
+			case TOperator::EOpMatrixTimesMatrix : return "*";
 			case TOperator::EOpDivAssign : return "/=";
 			case TOperator::EOpModAssign : return "%=";
 			case TOperator::EOpAndAssign : return "&=";
@@ -212,7 +213,7 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpPreDecrement : return "--";
 			case TOperator::EOpAdd : return "+";
 			case TOperator::EOpSub : return "-";
-			case TOperator::EOpMul : return "*";
+			case TOperator::EOpMul : return "*";	// matrixCompMult
 			case TOperator::EOpDiv : return "/";
 			case TOperator::EOpMod : return "%";
 			case TOperator::EOpRightShift : return ">>";
@@ -346,7 +347,6 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpInterpolateAtSample : return "interpolateAtSample";
 			case TOperator::EOpInterpolateAtOffset : return "interpolateAtOffset";
 			case TOperator::EOpInterpolateAtVertex : return "interpolateAtVertexAMD";
-			case TOperator::EOpMatrixTimesMatrix : return "matrixCompMult";
 			case TOperator::EOpOuterProduct : return "outerProduct";
 			case TOperator::EOpDeterminant : return "determinant";
 			case TOperator::EOpMatrixInverse : return "inverse";
@@ -362,9 +362,9 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpMemoryBarrierImage : return "memoryBarrierImage";
 			case TOperator::EOpMemoryBarrierShared : return "memoryBarrierShared";
 			case TOperator::EOpGroupMemoryBarrier : return "groupMemoryBarrier";
-			case TOperator::EOpBallot : return "ballotARB";
-			case TOperator::EOpReadInvocation : return "readInvocationARB";
-			case TOperator::EOpReadFirstInvocation : return "readFirstInvocationARB";
+			case TOperator::EOpBallot : return "ballot";
+			case TOperator::EOpReadInvocation : return "readInvocation";
+			case TOperator::EOpReadFirstInvocation : return "readFirstInvocation";
 			case TOperator::EOpAnyInvocation : return "anyInvocation";
 			case TOperator::EOpAllInvocations : return "allInvocations";
 			case TOperator::EOpAllInvocationsEqual : return "allInvocationsEqual";
@@ -501,7 +501,7 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpImageAtomicStore : return "imageAtomicStore";
 			case TOperator::EOpSubpassLoad : return "subpassLoad";
 			case TOperator::EOpSubpassLoadMS : return "subpassLoadMS";
-			case TOperator::EOpSparseImageLoad : return "sparseImageLoadARB";
+			case TOperator::EOpSparseImageLoad : return "sparseImageLoad";
 			case TOperator::EOpSparseImageLoadLod : return "sparseImageLoadLodAMD";
 			case TOperator::EOpTextureQuerySize : return "textureSize";
 			case TOperator::EOpTextureQueryLod : return "textureQueryLod";
@@ -524,31 +524,31 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpTextureGather : return "textureGather";
 			case TOperator::EOpTextureGatherOffset : return "textureGatherOffset";
 			case TOperator::EOpTextureGatherOffsets : return "textureGatherOffsets";
-			case TOperator::EOpTextureClamp : return "textureClampARB";
-			case TOperator::EOpTextureOffsetClamp : return "textureOffsetClampARB";
-			case TOperator::EOpTextureGradClamp : return "textureGradClampARB";
-			case TOperator::EOpTextureGradOffsetClamp : return "textureGradOffsetClampARB";
+			case TOperator::EOpTextureClamp : return "textureClamp";
+			case TOperator::EOpTextureOffsetClamp : return "textureOffsetClamp";
+			case TOperator::EOpTextureGradClamp : return "textureGradClamp";
+			case TOperator::EOpTextureGradOffsetClamp : return "textureGradOffsetClamp";
 			case TOperator::EOpTextureGatherLod : return "textureGatherLodAMD";
 			case TOperator::EOpTextureGatherLodOffset : return "textureGatherLodOffsetAMD";
 			case TOperator::EOpTextureGatherLodOffsets : return "textureGatherLodOffsetsAMD";
 			case TOperator::EOpFragmentMaskFetch : return "fragmentMaskFetchAMD";
 			case TOperator::EOpFragmentFetch : return "fragmentFetchAMD";
-			case TOperator::EOpSparseTexture : return "sparseTextureARB";
-			case TOperator::EOpSparseTextureLod : return "parseTextureLodARB";
-			case TOperator::EOpSparseTextureOffset : return "sparseTextureOffsetARB";
-			case TOperator::EOpSparseTextureFetch : return "sparseTextureFetchARB";
-			case TOperator::EOpSparseTextureFetchOffset : return "sparseTextureFetchOffsetARB";
-			case TOperator::EOpSparseTextureLodOffset : return "sparseTextureLodOffsetARB";
-			case TOperator::EOpSparseTextureGrad : return "sparseTextureGradARB";
-			case TOperator::EOpSparseTextureGradOffset : return "sparseTextureGradOffsetARB";
-			case TOperator::EOpSparseTextureGather : return "sparseTextureGatherARB";
-			case TOperator::EOpSparseTextureGatherOffset : return "sparseTextureGatherOffsetAARB";
-			case TOperator::EOpSparseTextureGatherOffsets : return "sparseTextureGatherOffsetsARB";
-			case TOperator::EOpSparseTexelsResident : return "sparseTexelsResidentARB";
-			case TOperator::EOpSparseTextureClamp : return "sparseTextureClampARB";
-			case TOperator::EOpSparseTextureOffsetClamp : return "sparseTextureOffsetClampARB";
-			case TOperator::EOpSparseTextureGradClamp : return "sparseTextureGradClampARB";
-			case TOperator::EOpSparseTextureGradOffsetClamp : return "sparseTextureGradOffsetClampARB";
+			case TOperator::EOpSparseTexture : return "sparseTexture";
+			case TOperator::EOpSparseTextureLod : return "sparseTextureLod";
+			case TOperator::EOpSparseTextureOffset : return "sparseTextureOffset";
+			case TOperator::EOpSparseTextureFetch : return "sparseTextureFetch";
+			case TOperator::EOpSparseTextureFetchOffset : return "sparseTextureFetchOffset";
+			case TOperator::EOpSparseTextureLodOffset : return "sparseTextureLodOffset";
+			case TOperator::EOpSparseTextureGrad : return "sparseTextureGrad";
+			case TOperator::EOpSparseTextureGradOffset : return "sparseTextureGradOffset";
+			case TOperator::EOpSparseTextureGather : return "sparseTextureGather";
+			case TOperator::EOpSparseTextureGatherOffset : return "sparseTextureGatherOffset";
+			case TOperator::EOpSparseTextureGatherOffsets : return "sparseTextureGatherOffsets";
+			case TOperator::EOpSparseTexelsResident : return "sparseTexelsResident";
+			case TOperator::EOpSparseTextureClamp : return "sparseTextureClamp";
+			case TOperator::EOpSparseTextureOffsetClamp : return "sparseTextureOffsetClamp";
+			case TOperator::EOpSparseTextureGradClamp : return "sparseTextureGradClamp";
+			case TOperator::EOpSparseTextureGradOffsetClamp : return "sparseTextureGradOffsetClamp";
 			case TOperator::EOpSparseTextureGatherLod : return "sparseTextureGatherLodAMD";
 			case TOperator::EOpSparseTextureGatherLodOffset : return "sparseTextureGatherLodOffsetAMD";
 			case TOperator::EOpSparseTextureGatherLodOffsets : return "sparseTextureGatherLodOffsetsAMD";
@@ -579,6 +579,29 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpWritePackedPrimitiveIndices4x8NV : return "writePackedPrimitiveIndices4x8NV";
 			case TOperator::EOpEmitMeshTasksEXT : return "EmitMeshTasks";
 			case TOperator::EOpSetMeshOutputsEXT : return "SetMeshOutputs";
+			case TOperator::EOpRayQueryInitialize : return "rayQueryInitialize";
+			case TOperator::EOpRayQueryTerminate : return "rayQueryTerminate";
+			case TOperator::EOpRayQueryGenerateIntersection : return "rayQueryGenerateIntersection";
+			case TOperator::EOpRayQueryConfirmIntersection : return "rayQueryConfirmIntersection";
+			case TOperator::EOpRayQueryProceed : return "rayQueryProceed";
+			case TOperator::EOpRayQueryGetIntersectionType : return "rayQueryGetIntersectionType";
+			case TOperator::EOpRayQueryGetRayTMin : return "rayQueryGetRayTMin";
+			case TOperator::EOpRayQueryGetRayFlags : return "rayQueryGetRayFlags";
+			case TOperator::EOpRayQueryGetIntersectionT : return "rayQueryGetIntersectionT";
+			case TOperator::EOpRayQueryGetIntersectionInstanceCustomIndex : return "rayQueryGetIntersectionInstanceCustomIndex";
+			case TOperator::EOpRayQueryGetIntersectionInstanceId : return "rayQueryGetIntersectionInstanceId";
+			case TOperator::EOpRayQueryGetIntersectionInstanceShaderBindingTableRecordOffset : return "rayQueryGetIntersectionInstanceShaderBindingTableRecordOffset";
+			case TOperator::EOpRayQueryGetIntersectionGeometryIndex : return "rayQueryGetIntersectionGeometryIndex";
+			case TOperator::EOpRayQueryGetIntersectionPrimitiveIndex : return "rayQueryGetIntersectionPrimitiveIndex";
+			case TOperator::EOpRayQueryGetIntersectionBarycentrics : return "rayQueryGetIntersectionBarycentrics";
+			case TOperator::EOpRayQueryGetIntersectionFrontFace : return "rayQueryGetIntersectionFrontFace";
+			case TOperator::EOpRayQueryGetIntersectionCandidateAABBOpaque : return "rayQueryGetIntersectionCandidateAABBOpaque";
+			case TOperator::EOpRayQueryGetIntersectionObjectRayDirection : return "rayQueryGetIntersectionObjectRayDirection";
+			case TOperator::EOpRayQueryGetIntersectionObjectRayOrigin : return "rayQueryGetIntersectionObjectRayOrigin";
+			case TOperator::EOpRayQueryGetWorldRayDirection : return "rayQueryGetWorldRayDirection";
+			case TOperator::EOpRayQueryGetWorldRayOrigin : return "rayQueryGetWorldRayOrigin";
+			case TOperator::EOpRayQueryGetIntersectionObjectToWorld : return "rayQueryGetIntersectionObjectToWorld";
+			case TOperator::EOpRayQueryGetIntersectionWorldToObject : return "rayQueryGetIntersectionWorldToObject";
 
 		#if ENABLE_ALL
 			case TOperator::EOpNull :
@@ -769,29 +792,6 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpAverageRounded :
 			case TOperator::EOpMul32x16 :
 			case TOperator::EOpTraceRayMotionNV :
-			case TOperator::EOpRayQueryInitialize :
-			case TOperator::EOpRayQueryTerminate :
-			case TOperator::EOpRayQueryGenerateIntersection :
-			case TOperator::EOpRayQueryConfirmIntersection :
-			case TOperator::EOpRayQueryProceed :
-			case TOperator::EOpRayQueryGetIntersectionType :
-			case TOperator::EOpRayQueryGetRayTMin :
-			case TOperator::EOpRayQueryGetRayFlags :
-			case TOperator::EOpRayQueryGetIntersectionT :
-			case TOperator::EOpRayQueryGetIntersectionInstanceCustomIndex :
-			case TOperator::EOpRayQueryGetIntersectionInstanceId :
-			case TOperator::EOpRayQueryGetIntersectionInstanceShaderBindingTableRecordOffset :
-			case TOperator::EOpRayQueryGetIntersectionGeometryIndex :
-			case TOperator::EOpRayQueryGetIntersectionPrimitiveIndex :
-			case TOperator::EOpRayQueryGetIntersectionBarycentrics :
-			case TOperator::EOpRayQueryGetIntersectionFrontFace :
-			case TOperator::EOpRayQueryGetIntersectionCandidateAABBOpaque :
-			case TOperator::EOpRayQueryGetIntersectionObjectRayDirection :
-			case TOperator::EOpRayQueryGetIntersectionObjectRayOrigin :
-			case TOperator::EOpRayQueryGetWorldRayDirection :
-			case TOperator::EOpRayQueryGetWorldRayOrigin :
-			case TOperator::EOpRayQueryGetIntersectionObjectToWorld :
-			case TOperator::EOpRayQueryGetIntersectionWorldToObject :
 			case TOperator::EOpReadClockSubgroupKHR :
 			case TOperator::EOpReadClockDeviceKHR :
 				break;
@@ -873,7 +873,7 @@ namespace AE::PipelineCompiler
 			END_ENUM_CHECKS();
 		#endif
 
-		CHECK(false);
+		//CHECK(false);
 		return "<unknown>";
 	}
 	

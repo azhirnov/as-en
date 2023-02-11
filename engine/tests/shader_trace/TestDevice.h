@@ -22,13 +22,13 @@ namespace AE::PipelineCompiler
 	{
 	// variables
 	public:
-		VkCommandPool			cmdPool				= VK_NULL_HANDLE;
-		VkCommandBuffer			cmdBuffer			= VK_NULL_HANDLE;
-		VkDescriptorPool		descPool			= VK_NULL_HANDLE;
-		VkBuffer				debugOutputBuf		= VK_NULL_HANDLE;
-		VkBuffer				readBackBuf			= VK_NULL_HANDLE;
-		VkDeviceMemory			debugOutputMem		= VK_NULL_HANDLE;
-		VkDeviceMemory			readBackMem			= VK_NULL_HANDLE;
+		VkCommandPool			cmdPool				= Default;
+		VkCommandBuffer			cmdBuffer			= Default;
+		VkDescriptorPool		descPool			= Default;
+		VkBuffer				debugOutputBuf		= Default;
+		VkBuffer				readBackBuf			= Default;
+		VkDeviceMemory			debugOutputMem		= Default;
+		VkDeviceMemory			readBackMem			= Default;
 		void *					readBackPtr			= null;
 		uint					debugOutputSize		= 128 << 20;
 
@@ -74,6 +74,9 @@ namespace AE::PipelineCompiler
 									  OUT VkRenderPass &outRenderPass, OUT VkImage &outImage,
 									  OUT VkFramebuffer &outFramebuffer);
 
+		ND_ bool  CreateStorageImage (VkFormat format, uint width, uint height, VkImageUsageFlags imageUsage,
+									  OUT VkImage &outImage, OUT VkImageView &outView);
+
 		ND_ bool  CreateGraphicsPipelineVar1 (VkShaderModule vertShader, VkShaderModule fragShader,
 											  VkDescriptorSetLayout dsLayout, VkRenderPass renderPass,
 											  OUT VkPipelineLayout &outPipelineLayout, OUT VkPipeline &outPipeline);
@@ -88,8 +91,8 @@ namespace AE::PipelineCompiler
 
 		struct RTData
 		{
-			VkDeviceAddress				shaderGroupSize		= 0;
-			VkDeviceAddress				shaderGroupAlign	= 0;
+			VkDeviceSize				shaderGroupSize		= 0;
+			VkDeviceSize				shaderGroupAlign	= 0;
 			VkBuffer					shaderBindingTable	= Default;
 			VkDeviceAddress				sbtAddress			= Default;
 			VkAccelerationStructureKHR	topLevelAS			= Default;
@@ -108,6 +111,8 @@ namespace AE::PipelineCompiler
 		ND_ bool  TestPerformanceOutput (Array<VkShaderModule> modules, Array<String> fnNames);
 	
 		ND_ bool  CheckTimeMap (Array<VkShaderModule> modules, float emptyPxFactor = 1.0f);
+
+		ND_ bool  SaveImage (VkImage image, VkImageLayout layout, uint width, uint height, const Path &filename);
 
 			void  FreeTempHandles ();
 

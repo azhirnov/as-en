@@ -27,7 +27,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -36,6 +36,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -46,7 +50,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -60,7 +64,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -151,7 +155,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -160,6 +164,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -170,7 +178,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -184,7 +192,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -276,7 +284,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -285,6 +293,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -295,7 +307,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -309,7 +321,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -464,7 +476,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -473,6 +485,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -483,7 +499,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -497,7 +513,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -588,7 +604,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -597,6 +613,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -607,7 +627,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -621,7 +641,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -713,7 +733,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -722,6 +742,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -732,7 +756,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -746,7 +770,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }

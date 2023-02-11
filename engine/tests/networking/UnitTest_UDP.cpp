@@ -11,7 +11,7 @@ namespace
 
 		const char	send_data[] = "12346ewiofdklijnskdn";
 
-		std::thread	listener{ [&] ()
+		StdThread	listener{ [&] ()
 			{
 				UdpSocket	sock2;
 				TEST( sock2.Open( 4000 ));

@@ -2,15 +2,14 @@
 
 #pragma once
 
-#ifdef AE_ENABLE_GLFW
+#include "platform/GLFW/GLFWCommon.h"
 
+#ifdef AE_ENABLE_GLFW
 # include "platform/Private/WindowBase.h"
 # include "platform/GLFW/InputActionsGLFW.h"
 
 namespace AE::App
 {
-	class ApplicationGLFW;
-
 
 	//
 	// GLFW Window

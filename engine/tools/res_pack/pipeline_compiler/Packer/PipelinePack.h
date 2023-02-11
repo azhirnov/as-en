@@ -14,18 +14,12 @@
 #include "graphics/Public/PipelineDesc.h"
 #include "Packer/PackCommon.h"
 
-#ifdef AE_ENABLE_GLSL_TRACE
-# include "ShaderTrace.h"
-#endif
-
 namespace AE::PipelineCompiler
 {
-#	ifndef AE_ENABLE_GLSL_TRACE
-	struct ShaderTrace {};
-#	endif
-
 	using namespace AE::Graphics;
 	
+	struct ShaderTrace;
+
 	using SpirvBytecode_t	= Array<uint>;
 	using MetalBytecode_t	= Array<ubyte>;
 
@@ -43,20 +37,15 @@ namespace AE::PipelineCompiler
 		Unique<ShaderTrace>		trace;
 		
 	// methods
-		SpirvWithTrace () {}
-		SpirvWithTrace (SpirvWithTrace &&) = default;
+		SpirvWithTrace ()									__NE___;
+		SpirvWithTrace (SpirvWithTrace &&)					__NE___;
+		SpirvWithTrace (const SpirvWithTrace &other);
+		~SpirvWithTrace ()									__NE___;
 
-		SpirvWithTrace&  operator = (SpirvWithTrace &&) = default;
+		SpirvWithTrace&  operator = (SpirvWithTrace &&)		__NE___;
+		SpirvWithTrace&  operator = (const SpirvWithTrace &);
 
-		#ifdef AE_ENABLE_GLSL_TRACE
-		SpirvWithTrace (const SpirvWithTrace &other) : bytecode{other.bytecode}, trace{other.trace->Clone()} {}
-
-		ND_ bool  operator == (const SpirvWithTrace &rhs) const
-		{
-			return	(bytecode == rhs.bytecode) and (trace != null) == (rhs.trace != null) and
-					(trace ? (*trace == *rhs.trace) : true);
-		}
-		#endif
+		ND_ bool  operator == (const SpirvWithTrace &rhs)	C_NE___;
 	};
 	
 
@@ -121,6 +110,7 @@ namespace AE::PipelineCompiler
 		ImgCubeArray		= 8,
 		Img3D				= 9,
 		Buffer				= 10,	// for texel buffer
+		_TexCount,
 		
 		_ValMask			= 0xF << 4,
 		Float				= 0x1 << 4,
@@ -133,11 +123,17 @@ namespace AE::PipelineCompiler
 		Depth				= 0x8 << 4,
 		Stencil				= 0x9 << 4,
 		DepthStencil		= 0xA << 4,
+		_LastVal,
 		
 		_QualMask			= 0xF << 8,
 		Shadow				= 1 << 8,
+		_LastQual,
 	};
 	AE_BIT_OPERATORS( EImageType );
+
+	STATIC_ASSERT( EImageType::_TexCount < EImageType::_TexMask );
+	STATIC_ASSERT( EImageType::_LastVal  < EImageType::_ValMask );
+	STATIC_ASSERT( EImageType::_LastQual < EImageType::_QualMask );
 	
 	ND_ bool		EImageType_IsCompatible (EImageType lhs, EImageType rhs)	__NE___;
 	ND_ EImageType	EImageType_FromPixelFormat (EPixelFormat fmt)				__NE___;
@@ -299,7 +295,7 @@ namespace AE::PipelineCompiler
 		struct PushConst
 		{
 			ShaderStructName	typeName;
-			EShaderStages		stageFlags;
+			EShaderStages		stageFlags		= Default;
 			Bytes16u			offset;
 			Bytes16u			size;
 
@@ -492,7 +488,7 @@ namespace AE::PipelineCompiler
 	{
 	// variables
 	public:
-		PipelineTemplUID			templUID;
+		PipelineTemplUID			templUID		= Default;
 		RenderStateUID				rStateUID		= Default;
 		DepthStencilStateUID		dsStateUID		= Default;
 		GraphicsPipelineDesc		desc;
@@ -555,7 +551,7 @@ namespace AE::PipelineCompiler
 	{
 	// variables
 	public:
-		PipelineTemplUID		templUID;
+		PipelineTemplUID		templUID	= Default;
 		ComputePipelineDesc		desc;
 
 
@@ -627,7 +623,7 @@ namespace AE::PipelineCompiler
 	{
 	// variables
 	public:
-		PipelineTemplUID		templUID;
+		PipelineTemplUID		templUID		= Default;
 		RenderStateUID			rStateUID		= Default;
 		DepthStencilStateUID	dsStateUID		= Default;
 		MeshPipelineDesc		desc;
@@ -734,7 +730,7 @@ namespace AE::PipelineCompiler
 	{
 	// variables
 	public:
-		PipelineTemplUID		templUID;
+		PipelineTemplUID		templUID	= Default;
 		RayTracingPipelineDesc	desc;
 
 
@@ -795,7 +791,7 @@ namespace AE::PipelineCompiler
 	{
 	// variables
 	public:
-		PipelineTemplUID		templUID;
+		PipelineTemplUID		templUID	= Default;
 		TilePipelineDesc		desc;
 
 
@@ -844,6 +840,7 @@ namespace AE::PipelineCompiler
 		BindingTable_t				miss;
 		BindingTable_t				hit;
 		BindingTable_t				callable;
+		uint						hitGroupStride	= 0;
 
 
 	// methods

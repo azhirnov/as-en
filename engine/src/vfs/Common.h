@@ -4,10 +4,12 @@
 
 #include "base/Utils/RefCounter.h"
 #include "base/DataSource/Stream.h"
+#include "base/DataSource/DataSource.h"
 #include "base/Utils/NamedID.h"
 
 #include "threading/TaskSystem/Promise.h"
 #include "threading/Primitives/DataRaceCheck.h"
+#include "threading/DataSource/AsyncDataSource.h"
 
 namespace AE::VFS::_hidden_
 {
@@ -22,7 +24,7 @@ namespace AE::VFS
 	using namespace AE::Base;
 
 	using AE::Threading::Promise;
-	using AE::Threading::SharedMutex;
+	using AE::Threading::AsyncRDataSource;
 	
 #	if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::DataRaceCheck;

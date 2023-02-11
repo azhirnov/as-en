@@ -101,24 +101,24 @@ namespace AE::Scripting
 
 
 			// call
-			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (T::*) (InTypes...) )			__Th___;	// x(...)
-			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (T::*) (InTypes...) const )		__Th___;
-			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (*) (T&, InTypes...) )			__Th___;
-			template <typename OutType, typename ...InTypes>	Self &	Call ( OutType (*) (const T&, InTypes...) )		__Th___;
+			template <typename OutType, typename ...InTypes>	Self &	Call (OutType (T::*) (InTypes...))			__Th___;	// x(...)
+			template <typename OutType, typename ...InTypes>	Self &	Call (OutType (T::*) (InTypes...) const)	__Th___;
+			template <typename OutType, typename ...InTypes>	Self &	Call (OutType (*) (T&, InTypes...))			__Th___;
+			template <typename OutType, typename ...InTypes>	Self &	Call (OutType (*) (const T&, InTypes...))	__Th___;
 
 
 			// convert
 			template <typename OutType> Self &	Convert ()									__Th___;	// y(x)
-			template <typename OutType> Self &	Convert ( OutType (T::*) () const )			__Th___;
-			template <typename OutType> Self &	Convert ( OutType (*) (const T &) )			__Th___;
+			template <typename OutType> Self &	Convert (OutType (T::*) () const)			__Th___;
+			template <typename OutType> Self &	Convert (OutType (*) (const T &))			__Th___;
 
 
 			// cast
 			template <typename OutType> Self &	Cast ()										__Th___;	// y(x)
-			template <typename OutType> Self &	Cast ( OutType& (T::*) () )					__Th___;
-			template <typename OutType> Self &	Cast ( OutType const& (T::*) () const )		__Th___;
-			template <typename OutType> Self &	Cast ( OutType& (*) (T &) )					__Th___;
-			template <typename OutType> Self &	Cast ( OutType const& (*) (const T &) )		__Th___;
+			template <typename OutType> Self &	Cast (OutType& (T::*) ())					__Th___;
+			template <typename OutType> Self &	Cast (OutType const& (T::*) () const)		__Th___;
+			template <typename OutType> Self &	Cast (OutType& (*) (T &))					__Th___;
+			template <typename OutType> Self &	Cast (OutType const& (*) (const T &))		__Th___;
 
 
 			// compare
@@ -548,11 +548,14 @@ namespace _hidden_ {
 	{
 		using namespace AngelScript;
 
+		using C = typename FunctionInfo<Func>::clazz;
+		STATIC_ASSERT( IsBaseOf< C, T >);
+
 		String	signature;
 		MemberFunction<Func>::GetDescriptor( INOUT signature, name );
 
 		AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(), signature.c_str(),
-								asSMethodPtr< sizeof( void (T::*)() ) >::Convert( reinterpret_cast<void (T::*)()>(methodPtr) ),
+								asSMethodPtr< sizeof( void (C::*)() ) >::Convert( reinterpret_cast<void (C::*)()>(methodPtr) ),
 								asCALL_THISCALL ));
 		
 		if_unlikely( _genHeader )
@@ -736,7 +739,7 @@ namespace _hidden_ {
 =================================================
 */
 	template <typename T> template <typename OutType, typename ...InTypes>
-	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (T::*func) (InTypes...) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call (OutType (T::*func) (InTypes...)) __Th___
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
@@ -745,7 +748,7 @@ namespace _hidden_ {
 	}
 	
 	template <typename T> template <typename OutType, typename ...InTypes>
-	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (T::*func) (InTypes...) const ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call (OutType (T::*func) (InTypes...) const) __Th___
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
@@ -754,7 +757,7 @@ namespace _hidden_ {
 	}
 	
 	template <typename T> template <typename OutType, typename ...InTypes>
-	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (*func) (T&, InTypes...) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call (OutType (*func) (T&, InTypes...)) __Th___
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
@@ -763,7 +766,7 @@ namespace _hidden_ {
 	}
 	
 	template <typename T> template <typename OutType, typename ...InTypes>
-	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call ( OutType (*func) (const T&, InTypes...) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Call (OutType (*func) (const T&, InTypes...)) __Th___
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
@@ -783,7 +786,7 @@ namespace _hidden_ {
 	}*/
 	
 	template <typename T> template <typename OutType>
-	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert ( OutType (T::*func) () const ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert (OutType (T::*func) () const) __Th___
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
@@ -792,7 +795,7 @@ namespace _hidden_ {
 	}
 	
 	template <typename T> template <typename OutType>
-	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert ( OutType (*func) (const T &) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Convert (OutType (*func) (const T &)) __Th___
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
@@ -812,7 +815,7 @@ namespace _hidden_ {
 	}
 	
 	template <typename T> template <typename OutType>
-	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType& (T::*func) () ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast (OutType& (T::*func) ()) __Th___
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
@@ -821,7 +824,7 @@ namespace _hidden_ {
 	}
 	
 	template <typename T> template <typename OutType>
-	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType const& (T::*func) () const ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast (OutType const& (T::*func) () const) __Th___
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
@@ -830,7 +833,7 @@ namespace _hidden_ {
 	}
 	
 	template <typename T> template <typename OutType>
-	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType& (*func) (T &) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast (OutType& (*func) (T &)) __Th___
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
@@ -839,7 +842,7 @@ namespace _hidden_ {
 	}
 	
 	template <typename T> template <typename OutType>
-	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast ( OutType const& (*func) (const T &) ) __Th___
+	typename ClassBinder<T>::OperatorBinder&  ClassBinder<T>::OperatorBinder::Cast (OutType const& (*func) (const T &)) __Th___
 	{
 		SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 

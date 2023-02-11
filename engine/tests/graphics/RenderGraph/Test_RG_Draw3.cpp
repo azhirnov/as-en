@@ -11,8 +11,8 @@ namespace
 
 		uint2						viewSize;
 
-		Strong<ImageID>				img;
-		Strong<ImageViewID>			view;
+		GAutorelease<ImageID>		img;
+		GAutorelease<ImageViewID>	view;
 		
 		GraphicsPipelineID			ppln;
 
@@ -147,8 +147,6 @@ namespace
 		CHECK_ERR( Scheduler().Wait({ t.result }));
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
-		CHECK_ERR( res_mngr.ReleaseResources( t.view, t.img ));
-
 		CHECK_ERR( t.isOK );
 		return true;
 	}
@@ -159,17 +157,18 @@ namespace
 bool RGTest::Test_Draw3 ()
 {
 	auto	img_cmp = _LoadReference( TEST_NAME );
+	bool	result	= true;
 
-	CHECK_ERR(( Draw3Test< DirectCtx,   DirectCtx::Transfer   >( _pipelines, img_cmp.get() )));
-	CHECK_ERR(( Draw3Test< DirectCtx,   IndirectCtx::Transfer >( _pipelines, img_cmp.get() )));
+	RG_CHECK( Draw3Test< DirectCtx,   DirectCtx::Transfer   >( _pipelines, img_cmp.get() ));
+	RG_CHECK( Draw3Test< DirectCtx,   IndirectCtx::Transfer >( _pipelines, img_cmp.get() ));
 
-	CHECK_ERR(( Draw3Test< IndirectCtx, DirectCtx::Transfer   >( _pipelines, img_cmp.get() )));
-	CHECK_ERR(( Draw3Test< IndirectCtx, IndirectCtx::Transfer >( _pipelines, img_cmp.get() )));
+	RG_CHECK( Draw3Test< IndirectCtx, DirectCtx::Transfer   >( _pipelines, img_cmp.get() ));
+	RG_CHECK( Draw3Test< IndirectCtx, IndirectCtx::Transfer >( _pipelines, img_cmp.get() ));
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }
 
 #endif

@@ -26,24 +26,42 @@ namespace AE::Graphics
 		uint				_exeIndex	= UMax;		// execution order index
 		bool				_submit		= false;
 		
-		PROFILE_ONLY(
-			const String	_dbgName;
-			const RGBA8u	_dbgColor;
+		DBG_GRAPHICS_ONLY(
+			String			_dbgName;
+			 RGBA8u			_dbgColor;
 		)
 
 
 	// methods
-	public:
+	protected:
 		RenderTask (RC<CMDBATCH> batch, DebugLabel dbg) __Th___ :
 			IAsyncTask{ ETaskQueue::Renderer },
 			_batch{ RVRef(batch) },
 			_exeIndex{ _GetPool().Acquire() }
-			PROFILE_ONLY(, _dbgName{ dbg.label }, _dbgColor{ _ValidateDbgColor( GetQueueType(), dbg.color )})
+			DBG_GRAPHICS_ONLY(, _dbgName{ dbg.label }, _dbgColor{ _ValidateDbgColor( GetQueueType(), dbg.color )})
 		{
 			CHECK_THROW( IsValid() );	// command buffer pool overflow
 			Unused( dbg );
 		}
 
+		enum class _DelayedInit {};
+		explicit RenderTask (_DelayedInit) __NE___ :
+			IAsyncTask{ ETaskQueue::Renderer }
+		{}
+
+		ND_ bool  _Init (RC<CMDBATCH> batch, DebugLabel dbg) __NE___
+		{
+			_batch		= RVRef(batch);
+			_exeIndex	= _GetPool().Acquire();
+			
+			DBG_GRAPHICS_ONLY(
+				_dbgName	= dbg.label;
+				_dbgColor	= _ValidateDbgColor( GetQueueType(), dbg.color );
+			)
+			return IsValid();
+		}
+
+	public:
 		~RenderTask ()								__NE___	{ _CancelTaskInBatch(); }
 		
 		ND_ RC<CMDBATCH>	GetBatchRC ()			C_NE___	{ return _batch; }
@@ -61,15 +79,15 @@ namespace AE::Graphics
 	public:
 			void			OnCancel ()				__NE_OV	{ _CancelTaskInBatch();  IAsyncTask::OnCancel(); }
 		
-		#ifdef AE_DBG_OR_DEV_OR_PROF
-			ND_ String		DbgFullName ()			C_NE___;
-			ND_ StringView  DbgName ()				C_NE_OF	{ return _dbgName; }
-			ND_ RGBA8u		DbgColor ()				C_NE___	{ return _dbgColor; }
-		#else
-			ND_ String		DbgFullName ()			C_NE___	{ return Default; }
-			ND_ StringView  DbgName ()				C_NE_OF	{ return Default; }
-			ND_ RGBA8u		DbgColor ()				C_NE___	{ return HtmlColor::Yellow; }
-		#endif
+	  #if AE_DBG_GRAPHICS
+		ND_ String			DbgFullName ()			C_NE___;
+		ND_ StringView		DbgName ()				C_NE_OF	{ return _dbgName; }
+		ND_ RGBA8u			DbgColor ()				C_NE___	{ return _dbgColor; }
+	  #else
+		ND_ String			DbgFullName ()			C_NE___	{ return Default; }
+		ND_ StringView		DbgName ()				C_NE_OF	{ return Default; }
+		ND_ RGBA8u			DbgColor ()				C_NE___	{ return DebugLabel::ColorTable::GraphicsQueue; }
+	  #endif
 
 
 	protected:
@@ -83,16 +101,16 @@ namespace AE::Graphics
 
 		void  _CancelTaskInBatch ()					__NE___;
 
-		PROFILE_ONLY(
+		DBG_GRAPHICS_ONLY(
 		ND_ static RGBA8u  _ValidateDbgColor (EQueueType queue, RGBA8u color)
 		{
-			if ( color == DebugLabel::ColorTable.Undefined )
+			if ( color == DebugLabel::ColorTable::Undefined )
 			{
 				BEGIN_ENUM_CHECKS();
 				switch ( queue ) {
-					case EQueueType::Graphics :			return DebugLabel::ColorTable.GraphicsQueue;
-					case EQueueType::AsyncCompute :		return DebugLabel::ColorTable.AsyncComputeQueue;
-					case EQueueType::AsyncTransfer :	return DebugLabel::ColorTable.AsyncTransfersQueue;
+					case EQueueType::Graphics :			return DebugLabel::ColorTable::GraphicsQueue;
+					case EQueueType::AsyncCompute :		return DebugLabel::ColorTable::AsyncComputeQueue;
+					case EQueueType::AsyncTransfer :	return DebugLabel::ColorTable::AsyncTransfersQueue;
 					case EQueueType::Unknown :			break;
 				}
 				END_ENUM_CHECKS();
@@ -240,139 +258,103 @@ namespace AE::Graphics
 # ifdef AE_HAS_COROUTINE
 namespace AE::Threading::_hidden_
 {
-	class RenderTaskCoroutineRunner;
 
 	//
 	// Async Render Task Coroutine
 	//
-	class RenderTaskCoroutine
+	class RenderTaskCoro final
 	{
+	// types
 	public:
-		struct promise_type;
-		using Handle_t = CoroutineHandle< promise_type >;
+		class promise_type;
+		using Handle_t	= std::coroutine_handle< promise_type >;
 		
 		//
 		// promise_type
 		//
-		struct promise_type final
+		class promise_type final : public AE::Graphics::RenderTask
 		{
-		// types
-		public:
-			using Task_t = RenderTaskCoroutineRunner;
-
-
-		// variables
-		private:
-			Atomic< Task_t *>		_task	{null};
+			friend class RenderTaskCoro;
 
 		// methods
 		public:
-									~promise_type ()		__NE___	{ ASSERT( _task.load() == null ); }
+			promise_type ()										__NE___ : RenderTask{ _DelayedInit{0} } {}
 
-			ND_ Handle_t			get_return_object ()	__NE___	{ return Handle_t::FromPromise( *this ); }
+			ND_ RenderTaskCoro		get_return_object ()		__NE___	{ return RenderTaskCoro{ *this }; }
 
-			ND_ std::suspend_always	initial_suspend ()		C_NE___	{ return {}; }			// delayed start
-			ND_ std::suspend_always	final_suspend ()		C_NE___	{ return {}; }			// must not be 'suspend_never'	// TODO: don't suspend
+			ND_ std::suspend_always	initial_suspend ()			C_NE___	{ return {}; }			// delayed start
+			ND_ std::suspend_always	final_suspend ()			C_NE___	{ return {}; }			// must not be 'suspend_never'	// TODO: don't suspend
 
-				void				return_void ()			C_NE___	{}
+				void				return_void ()				C_NE___	{}
 					
-				void				unhandled_exception ()	C_Th___	{ throw; }				// rethrow exceptions
+				void				unhandled_exception ()		C_Th___	{ throw; }				// rethrow exceptions
+			
+		public:
+				void  Cancel ()									__NE___	{ Unused( RenderTask::_SetCancellationState() ); }
+				void  Fail ()									__NE___	{ RenderTask::OnFailure(); }
+			ND_ bool  IsCanceled ()								__NE___	{ return RenderTask::IsCanceled(); }
 				
-			ND_ Task_t*				GetTask ()				C_NE___;
+			template <typename ...Deps>
+			void  Continue (const Tuple<Deps...> &deps)			__NE___	{ return RenderTask::Continue( deps ); }
+			
+			template <typename CmdBufType>
+			void  Execute (CmdBufType &cmdbuf)					__Th___	{ return RenderTask::Execute( cmdbuf ); }
+			
+			ND_ bool  _Init (RC<AE::Graphics::CMDBATCH>	batch,
+							 AE::Graphics::DebugLabel	dbg)	__NE___
+			{
+				return RenderTask::_Init( RVRef(batch), dbg );
+			}
 
 		private:
-			friend class RenderTaskCoroutineRunner;
-				void				Init (Task_t *task)		__NE___;
-				void				Reset (Task_t *task)	__NE___;
-		};
-	};
-	
+			void  Run ()										__Th_OV
+			{
+				auto	coro_handle = Handle_t::from_promise( *this );
+				coro_handle.resume();	// throw
 
-	//
-	// Render Coroutine runner as Async Task
-	//
-	class RenderTaskCoroutineRunner final : public AE::Graphics::RenderTask
-	{
-	// types
-	public:
-		using Promise_t		= typename RenderTaskCoroutine::promise_type;
-		using Handle_t		= typename RenderTaskCoroutine::Handle_t;
-		using ESubmitMode	= AE::Graphics::ESubmitMode;
+				if_unlikely( bool{coro_handle} and not coro_handle.done() )
+					ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
+			}
+
+			void  _ReleaseObject ()								__NE_OV
+			{
+				MemoryBarrier( EMemoryOrder::Acquire );
+				ASSERT( IsFinished() );
+				
+				auto	coro_handle = Handle_t::from_promise( *this );
+
+				// internally calls 'promise_type' dtor
+				coro_handle.destroy();
+			}
+		};
 
 
 	// variables
 	private:
-		Handle_t	_coroutine;
-		
+		RC<promise_type>	_coro;
+
 
 	// methods
 	public:
-		RenderTaskCoroutineRunner (Handle_t handle, RC<AE::Graphics::CMDBATCH> batch, AE::Graphics::DebugLabel dbg) __Th___ :
-			RenderTask{ RVRef(batch), dbg },
-			_coroutine{ RVRef(handle) }
-		{
-			ASSERT( _coroutine.IsValid() );
-			_coroutine.Promise().Init( this );
-		}
+		RenderTaskCoro ()										__NE___ {}
+		explicit RenderTaskCoro (promise_type &p)				__NE___ : _coro{ p.GetRC<promise_type>() } {}
+		explicit RenderTaskCoro (Handle_t handle)				__NE___ : _coro{ handle.promise().GetRC<promise_type>() } {}
+		~RenderTaskCoro ()										__NE___ {}
 
-		~RenderTaskCoroutineRunner ()																__NE_OV	{ ASSERT( IsCompleted() ? _coroutine.Done() : true ); }
+		RenderTaskCoro (RenderTaskCoro &&)						__NE___ = default;
+		RenderTaskCoro (const RenderTaskCoro &)					__NE___ = default;
+
+		RenderTaskCoro&  operator = (RenderTaskCoro &&)			__NE___ = default;
+		RenderTaskCoro&  operator = (const RenderTaskCoro &)	__NE___ = default;
+
+		operator AsyncTask ()									C_NE___	{ return _coro; }
+		explicit operator RC<Graphics::RenderTask> ()			C_NE___	{ return _coro; }
+		explicit operator bool ()								C_NE___	{ return bool{_coro}; }
 		
-		template <typename CmdBufType>
-			void  Execute (CmdBufType &cmdbuf)														__Th___	{ return RenderTask::Execute( cmdbuf ); }
-
-		// must be inside coroutine!
-		template <typename ...Deps>
-			static void  ContinueTask (RenderTaskCoroutineRunner &task, const Tuple<Deps...> &deps)	__NE___	{ return task.Continue( deps ); }
-			static void  FailTask (RenderTaskCoroutineRunner &task)									__NE___	{ return task.OnFailure(); }
-		ND_ static bool  IsCanceledTask (RenderTaskCoroutineRunner &task)							__NE___	{ return task.IsCanceled(); }
-		ND_ static auto  GetTaskStatus (RenderTaskCoroutineRunner &task)							__NE___	{ return task.Status(); }
-		ND_ static auto  GetTaskQueue (RenderTaskCoroutineRunner &task)								__NE___	{ return task.QueueType(); }
-
-
-	private:
-		void  Run () __Th_OV
-		{
-			ASSERT( _coroutine.IsValid() );
-			_coroutine.Resume();	// throw
-
-			if_likely( _coroutine.Done() )
-				_coroutine.Promise().Reset( this );
-			else
-				ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
-		}
-			
-		void  OnCancel () __NE_OV
-		{
-			RenderTask::OnCancel();
-			_coroutine.Promise().Reset( this );
-		}
+		ND_ Graphics::RenderTask&	AsRenderTask ()				__NE___	{ return *_coro; }
+		ND_ promise_type&			Promise ()					__NE___	{ return *_coro; }
 	};
 	
-
-	inline RenderTaskCoroutineRunner*  RenderTaskCoroutine::promise_type::GetTask () C_NE___
-	{
-		auto* t = _task.load();
-		ASSERT( t != null );
-		ASSERT( AsyncTask{t}.use_count() > 1 );
-		ASSERT( t->DbgIsRunning() );
-		return t;
-	}
-
-	inline void  RenderTaskCoroutine::promise_type::Init (RenderTaskCoroutineRunner *task) __NE___
-	{
-		ASSERT( task != null );
-		_task.store( task );
-	}
-
-	inline void  RenderTaskCoroutine::promise_type::Reset (RenderTaskCoroutineRunner *task) __NE___
-	{
-	#ifdef AE_DEBUG
-		ASSERT( _task.exchange( null ) == task );
-	#else
-		Unused( task );
-		_task.store( null );
-	#endif
-	}
 
 
 	//
@@ -384,7 +366,7 @@ namespace AE::Threading::_hidden_
 
 		ND_ auto  operator co_await ()	C_NE___
 		{
-			using Promise_t		= AE::Threading::_hidden_::RenderTaskCoroutineRunner::Promise_t;
+			using Promise_t		= AE::Threading::_hidden_::RenderTaskCoro::promise_type;
 			using RenderTask	= AE::Graphics::RenderTask;
 
 			struct Awaiter
@@ -398,10 +380,7 @@ namespace AE::Threading::_hidden_
 
 				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
 				{
-					auto*	task = curCoro.promise().GetTask();
-					if_likely( task != null )
-						_rtask = RVRef(task);
-					
+					_rtask = curCoro.promise().GetRC<RenderTask>();
 					return false;	// resume coroutine
 				}
 			};
@@ -419,7 +398,7 @@ namespace AE::Threading::_hidden_
 
 		ND_ auto  operator co_await ()	C_NE___
 		{
-			using Promise_t		= AE::Threading::_hidden_::RenderTaskCoroutineRunner::Promise_t;
+			using Promise_t		= AE::Threading::_hidden_::RenderTaskCoro::promise_type;
 			using RenderTask	= AE::Graphics::RenderTask;
 
 			struct Awaiter
@@ -433,10 +412,7 @@ namespace AE::Threading::_hidden_
 
 				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) __NE___
 				{
-					auto*	task = curCoro.promise().GetTask();
-					if_likely( task != null )
-						_rtask = task;
-					
+					_rtask = &curCoro.promise();
 					return false;	// resume coroutine
 				}
 			};
@@ -449,7 +425,7 @@ namespace AE::Threading::_hidden_
   
 namespace AE::Graphics
 {
-	using RenderTaskCoro = Threading::_hidden_::RenderTaskCoroutine::Handle_t;
+	using RenderTaskCoro = Threading::_hidden_::RenderTaskCoro;
 
 	static constexpr Threading::_hidden_::RenderTask_Get		RenderTask_Get		{};
 	static constexpr Threading::_hidden_::RenderTask_GetRef		RenderTask_GetRef	{};
@@ -468,9 +444,9 @@ namespace AE::Graphics
 		explicit RenderTask_AddInputDependency (CMDBATCH* batch)				__NE___ : ptr{batch} {}
 		explicit RenderTask_AddInputDependency (const RC<CMDBATCH> &batch)		__NE___ : ptr{batch.get()} {}
 		
-		ND_ auto  operator co_await () C_NE___
+		ND_ auto  operator co_await ()											C_NE___
 		{
-			using Promise_t = AE::Threading::_hidden_::RenderTaskCoroutineRunner::Promise_t;
+			using Promise_t = AE::Threading::_hidden_::RenderTaskCoro::promise_type;
 
 			struct Awaiter
 			{
@@ -480,17 +456,16 @@ namespace AE::Graphics
 			public:
 				explicit Awaiter (CMDBATCH const* ptr) __NE___ : _ptr{ptr} {}
 
-				ND_ bool  await_ready ()	C_NE___	{ return _ptr == null; }	// call 'await_suspend()' to get coroutine handle
+				ND_ bool  await_ready ()	C_NE___	{ return _ptr == null; }
 					void  await_resume ()	C_NE___	{}
 
 				ND_ bool  await_suspend (std::coroutine_handle< Promise_t > curCoro) C_NE___
 				{
-					auto*	task = curCoro.promise().GetTask();
-					if_likely( task != null )
-					{
-						ASSERT( _ptr != null );		// because of 'await_ready()'
-						CHECK( task->GetBatchPtr()->AddInputDependency( *_ptr ));
-					}
+					auto&	rtask = curCoro.promise();
+
+					ASSERT( _ptr != null );		// because of 'await_ready()'
+					CHECK( rtask.GetBatchPtr()->AddInputDependency( *_ptr ));
+
 					return false;	// resume coroutine
 				}
 			};
@@ -507,12 +482,11 @@ namespace AE::Graphics
 	{
 		CmdBufType &	_cmdbuf;
 
-		explicit RenderTask_Execute (CmdBufType &cmdbuf) __NE___ : _cmdbuf{cmdbuf} {}
+		explicit RenderTask_Execute (CmdBufType &cmdbuf)__NE___ : _cmdbuf{cmdbuf} {}
 
-		ND_ auto  operator co_await () __NE___
+		ND_ auto  operator co_await ()					__NE___
 		{
-			using Promise_t = AE::Threading::_hidden_::RenderTaskCoroutineRunner::Promise_t;
-			using Runner_t	= AE::Threading::_hidden_::RenderTaskCoroutineRunner;
+			using Promise_t = AE::Threading::_hidden_::RenderTaskCoro::promise_type;
 
 			struct Awaiter
 			{
@@ -527,11 +501,9 @@ namespace AE::Graphics
 
 				ND_ bool	await_suspend (std::coroutine_handle< Promise_t > curCoro) __Th___
 				{
-					Runner_t*	task = curCoro.promise().GetTask();
-					if_likely( task != null )
-						task->Execute( _cmdbuf );	// throw
-					
-					return false;	// resume coroutine
+					auto&	rtask = curCoro.promise();
+					rtask.Execute( _cmdbuf );	// throw
+					return false;				// resume coroutine
 				}
 			};
 			return Awaiter{ _cmdbuf };

@@ -83,9 +83,15 @@ namespace _hidden_
 		ulong						subpassIndex		: 8;
 		ulong						hasViewLocalDeps	: 1;	// for multiview rendering
 		ulong						useSecondaryCmdbuf	: 1;
+		void*						userData;
+
+		DEBUG_ONLY(
+			VRenderPassID			_rpId;
+			VFramebufferID			_fbId;
+		)
 
 		VPrimaryCmdBufState () 	__NE___ :
-			subpassIndex{0xFF}, hasViewLocalDeps{false}, useSecondaryCmdbuf{false}
+			subpassIndex{0xFF}, hasViewLocalDeps{false}, useSecondaryCmdbuf{false}, userData{null}
 		{}
 
 		ND_ bool  IsValid () 	C_NE___	{ return (renderPass != null) & (framebuffer != null) & frameId.IsValid(); }
@@ -125,27 +131,31 @@ namespace _hidden_
 	protected:
 		VCommandBuffer (VkCommandBuffer cmdbuf, EQueueType queueType, ECommandBufferType cmdType, CmdPoolGuard lock) __NE___;
 
-		VCommandBuffer (const VCommandBuffer &)				 = delete;
-		VCommandBuffer&  operator = (const VCommandBuffer &) = delete;
+		VCommandBuffer (const VCommandBuffer &)					= delete;
+		VCommandBuffer&  operator = (const VCommandBuffer &)	= delete;
 
 	public:
-		VCommandBuffer ()									__NE___	{}
-		VCommandBuffer (VCommandBuffer &&)					__NE___;
-		~VCommandBuffer ()									__NE___;
+		VCommandBuffer ()										__NE___	{}
+		VCommandBuffer (VCommandBuffer &&)						__NE___;
+		~VCommandBuffer ()										__NE___;
 
-		VCommandBuffer&  operator = (VCommandBuffer && rhs) __NE___;
+		VCommandBuffer&  operator = (VCommandBuffer && rhs)		__NE___;
 
-		ND_ bool  EndAndRelease ()							__NE___;
+		ND_ bool  EndAndRelease ()								__NE___;
 
-		ND_ EQueueType			GetQueueType ()				C_NE___	{ return _queueType; }
-		ND_ VkCommandBuffer		Get ()						C_NE___	{ ASSERT( IsValid() );  ASSERT( _IsInCurrentThread() );  return _cmdbuf; }
-		ND_ bool				IsValid ()					C_NE___	{ return _cmdbuf != Default; }
-		ND_ bool				IsRecording ()				C_NE___	{ return _recording; }
-		ND_ ECommandBufferType	GetCommandBufferType ()		C_NE___	{ return _cmdType; }
-		ND_ VQueuePtr			GetQueue ()					C_NE___;
+		ND_ EQueueType			GetQueueType ()					C_NE___	{ return _queueType; }
+		ND_ VkCommandBuffer		Get ()							C_NE___	{ ASSERT( IsValid() );  ASSERT( _IsInCurrentThread() );  return _cmdbuf; }
+		ND_ bool				IsValid ()						C_NE___	{ return _cmdbuf != Default; }
+		ND_ bool				IsRecording ()					C_NE___	{ return _recording; }
+		ND_ ECommandBufferType	GetCommandBufferType ()			C_NE___	{ return _cmdType; }
+		ND_ VQueuePtr			GetQueue ()						C_NE___;
+		
+		void  DebugMarker (VulkanDeviceFn fn, NtStringView label, RGBA8u color)		__NE___;
+		void  PushDebugGroup (VulkanDeviceFn fn, NtStringView label, RGBA8u color)	__NE___;
+		void  PopDebugGroup (VulkanDeviceFn fn)										__NE___;
 
 	private:
-		DRC_ONLY( ND_ bool		_IsInCurrentThread ()		C_NE___	{ return _stCheck.Lock(); })
+		DRC_ONLY( ND_ bool		_IsInCurrentThread ()			C_NE___	{ return _stCheck.Lock(); })
 	};
 
 

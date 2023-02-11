@@ -15,6 +15,23 @@ namespace AE::Graphics
 	using DescriptorAllocatorPtr = RC< IDescriptorAllocator >;
 
 
+	enum class EDeviceValidation : uint
+	{
+		Disabled				= 0,
+		Enabled					= 1,			// Vulkan: StandardPreset
+
+		// Vulkan presets
+		//    requires: VExtensions::validationFlags (VK_EXT_validation_features)
+		MinimalPreset			= 1 << 24,
+		SynchronizationPreset	= 2 << 24,
+		BestPracticesPreset		= 3 << 24,
+		ShaderBasedPreset		= 4 << 24,
+		ShaderPrintfPreset		= 5 << 24,
+
+		// Metal
+	};
+
+
 	//
 	// Graphics Create Info
 	//
@@ -53,19 +70,19 @@ namespace AE::Graphics
 		
 		struct
 		{
-			String			appName			= "Test";
-			String			deviceName;		// keep empty for auto-detect
-			EQueueMask		requiredQueues	= EQueueMask::Graphics;
-			EQueueMask		optionalQueues	= Default;
-			bool			debuggable		= true;
+			String				appName			= "Test";
+			String				deviceName;		// keep empty for auto-detect
+			EQueueMask			requiredQueues	= EQueueMask::Graphics;
+			EQueueMask			optionalQueues	= Default;
+			EDeviceValidation	validation		= EDeviceValidation::Enabled;
 		}	device;
 
 		struct
 		{
-			EPixelFormat	format			= EPixelFormat::RGBA8_UNorm;
-			EColorSpace		colorSpace		= EColorSpace::sRGB_nonlinear;
-			EImageUsage		usage			= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;	// TODO: keep ColorAttachment only
-			EPresentMode	presentMode		= EPresentMode::FIFO;
+			EPixelFormat		format			= EPixelFormat::RGBA8_UNorm;
+			EColorSpace			colorSpace		= EColorSpace::sRGB_nonlinear;
+			EImageUsage			usage			= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;	// TODO: keep ColorAttachment only
+			EPresentMode		presentMode		= EPresentMode::FIFO;
 		}	swapchain;
 	};
 

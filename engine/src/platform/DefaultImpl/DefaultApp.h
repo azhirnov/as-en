@@ -39,9 +39,11 @@ namespace AE::App
 	  #	error not implemented
 	  #endif
 			
-		Array<WindowPtr>	_windows;
-		VRDevicePtr			_vrDevice;
-		const AppConfig		_config;
+		Array<WindowPtr>			_windows;
+		VRDevicePtr					_vrDevice;
+
+		const AppConfig				_config;
+		Threading::EThreadArray		_allowProcessInMain;
 
 
 	// methods

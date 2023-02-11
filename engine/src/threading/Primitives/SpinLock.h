@@ -2,8 +2,9 @@
 
 #pragma once
 
-#include "base/Platforms/Platform.h"
 #ifndef AE_LFAS_ENABLED
+# include "base/CompileTime/Math.h"
+# include "base/Platforms/Platform.h"
 # include "base/Utils/Helpers.h"
 # include "threading/Primitives/Atomic.h"
 #endif
@@ -26,7 +27,7 @@ namespace AE::Threading
 
 	// variables
 	private:
-		Atomic<uint>	_flag { 0 };
+		Atomic<uint>	_flag {0};		// 0 -- unlocked, 1 -- locked
 
 		static constexpr auto	AcquireOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
 		static constexpr auto	ReleaseOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
@@ -44,14 +45,19 @@ namespace AE::Threading
 			ASSERT( _flag.load() == 0 );
 		}
 
+		
+		ND_ bool  is_unlocked ()	__NE___	{ return _flag.load() == 0; }
+		ND_ bool  is_locked ()		__NE___	{ return _flag.load() != 0;	}
+
+
 		ND_ bool  try_lock ()		__NE___
 		{
 			uint	exp = 0;
 			return _flag.compare_exchange_strong( INOUT exp, 1, AcquireOrder, EMemoryOrder::Relaxed );
 		}
 
-
-		// for std::lock_guard
+		
+		// for std::lock_guard / std::unique_lock / std::scoped_lock
 		void  lock ()				__NE___
 		{
 			uint	exp = 0;
@@ -95,7 +101,7 @@ namespace AE::Threading
 	{
 	// variables
 	private:
-		Atomic<int>		_flag { 0 };	// 0 -- unlocked, -1 -- write lock, >0 -- read lock
+		Atomic<int>		_flag {0};		// 0 -- unlocked, -1 -- write lock, >0 -- read lock
 		
 		static constexpr auto	AcquireOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
 		static constexpr auto	ReleaseOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
@@ -105,6 +111,14 @@ namespace AE::Threading
 	public:
 		TRWSpinLock ()					__NE___ {}
 		~TRWSpinLock ()					__NE___	{ ASSERT( _flag.load() == 0 ); }
+		
+		ND_ bool  is_unlocked ()		__NE___	{ return _flag.load() == 0; }
+		ND_ bool  is_locked ()			__NE___	{ return _flag.load() < 0; }
+		ND_ bool  is_shared_locked ()	__NE___	{ return _flag.load() > 0; }
+
+
+	//-------------------------------------------------
+	// exclusive (read-write)
 
 		ND_ bool  try_lock ()			__NE___
 		{
@@ -113,7 +127,7 @@ namespace AE::Threading
 		}
 
 
-		// for std::lock_guard / std::unique_lock
+		// for std::lock_guard / std::unique_lock / std::scoped_lock
 		void  lock ()					__NE___
 		{
 			int	exp = 0;
@@ -130,7 +144,7 @@ namespace AE::Threading
 			}
 		}
 		
-		// for std::lock_guard / std::unique_lock
+		// for std::lock_guard / std::unique_lock / std::scoped_lock
 		void  unlock ()					__NE___
 		{
 		  #ifdef AE_DEBUG
@@ -139,7 +153,10 @@ namespace AE::Threading
 			_flag.store( 0, ReleaseOrder );
 		  #endif
 		}
+		
 
+	//-------------------------------------------------
+	// shared (read-only)
 		
 		ND_ bool  try_lock_shared ()	__NE___
 		{
@@ -184,6 +201,9 @@ namespace AE::Threading
 			Unused( old );
 		}
 
+		
+	//-------------------------------------------------
+	// exclusive <-> shared
 
 		ND_ bool  try_shared_to_exclusive () __NE___
 		{
@@ -209,7 +229,6 @@ namespace AE::Threading
 			}
 		}
 
-
 		void  exclusive_to_shared ()	__NE___
 		{
 			int	exp = -1;
@@ -225,22 +244,26 @@ namespace AE::Threading
 
 
 	//
-	// Spin Lock combined with pointer
+	// Spin Lock combined with value
 	//
 
-	template <typename PtrType, bool IsRelaxedOrder>
-	struct TPtrSpinLock final : public Noncopyable
+	template <typename ValueType, uint LockBit, bool IsRelaxedOrder>
+	struct TValueWithSpinLockBit final : public Noncopyable
 	{
-		STATIC_ASSERT( alignof(PtrType) > 1, "1 byte align is not supported" );
-
 	// types
 	private:
-		using Self = TPtrSpinLock< PtrType, IsRelaxedOrder >;
+		STATIC_ASSERT( LockBit < CT_SizeOfInBits<ValueType> );
+		STATIC_ASSERT( not IsPointer<ValueType> or (LockBit == 0 and alignof(ValueType) > 1) );
+
+		using Self		= TValueWithSpinLockBit< ValueType, LockBit, IsRelaxedOrder >;
+		using UInt_t	= ToUnsignedInteger< ValueType >;
+
+		static constexpr UInt_t	_LockMask	= UInt_t{1} << LockBit;
 
 
 	// variables
 	private:
-		Atomic< PtrType *>	_ptr { null };
+		Atomic< ValueType >		_value {};
 
 		static constexpr auto	AcquireOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
 		static constexpr auto	ReleaseOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
@@ -248,30 +271,27 @@ namespace AE::Threading
 
 	// methods
 	public:
-		TPtrSpinLock ()					__NE___ {}
-		explicit TPtrSpinLock (PtrType* ptr) __NE___ : _ptr{ptr} {}
+		TValueWithSpinLockBit ()					__NE___ {}
+		explicit TValueWithSpinLockBit (ValueType v)__NE___ : _value{v} { ASSERT( not _HasLockBit( _value.load() )); }
 
-		TPtrSpinLock (const Self &)		= delete;
-		TPtrSpinLock (Self &&)			= delete;
+		TValueWithSpinLockBit (const Self &)		= delete;
+		TValueWithSpinLockBit (Self &&)				= delete;
 		
-		~TPtrSpinLock ()				__NE___
-		{
-			ASSERT( not _HasLockBit( _ptr.load() ));
-		}
+		~TValueWithSpinLockBit ()					__NE___	{ ASSERT( not _HasLockBit( _value.load() )); }
 
-		ND_ bool  try_lock ()			__NE___
+		ND_ bool  try_lock ()						__NE___
 		{
-			PtrType*	exp = _RemoveLockBit( _ptr.load() );
-			return _ptr.compare_exchange_strong( INOUT exp, _SetLockBit( exp ), AcquireOrder, EMemoryOrder::Relaxed );
+			ValueType	exp = _RemoveLockBit( _value.load() );
+			return _value.compare_exchange_strong( INOUT exp, _SetLockBit( exp ), AcquireOrder, EMemoryOrder::Relaxed );
 		}
 
 
 		// for std::lock_guard
-		void  lock ()					__NE___
+		void  lock ()								__NE___
 		{
-			PtrType*	exp = _RemoveLockBit( _ptr.load() );
+			ValueType	exp = _RemoveLockBit( _value.load() );
 			for (uint i = 0;
-				 not _ptr.CAS( INOUT exp, _SetLockBit( exp ), AcquireOrder, EMemoryOrder::Relaxed );
+				 not _value.CAS( INOUT exp, _SetLockBit( exp ), AcquireOrder, EMemoryOrder::Relaxed );
 				 ++i)
 			{
 				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
@@ -285,29 +305,29 @@ namespace AE::Threading
 			}
 		}
 
-		void  unlock ()					__NE___
+		void  unlock ()								__NE___
 		{
-			PtrType*	exp = _RemoveLockBit( _ptr.load() );
-			PtrType*	prev = _ptr.exchange( exp, ReleaseOrder );
+			ValueType	exp = _RemoveLockBit( _value.load() );
+			ValueType	prev = _value.exchange( exp, ReleaseOrder );
 			Unused( prev );
 			ASSERT( prev == _SetLockBit( exp ));
 		}
 
-		ND_ bool			IsLocked () C_NE___	{ return _HasLockBit( _ptr.load() ); }
+		ND_ bool			IsLocked ()				C_NE___	{ return _HasLockBit( _value.load() ); }
 
-		ND_ PtrType*		get ()		__NE___	{ return _RemoveLockBit( _ptr.load() ); }
-		ND_ PtrType const*	get ()		C_NE___	{ return _RemoveLockBit( _ptr.load() ); }
+		ND_ ValueType		get ()					__NE___	{ return _RemoveLockBit( _value.load() ); }
+		ND_ ValueType const	get ()					C_NE___	{ return _RemoveLockBit( _value.load() ); }
 
 
-		void  set (PtrType* ptr)		__NE___
+		void  set (ValueType val)					__NE___
 		{
 			ASSERT( IsLocked() );
-			ASSERT( not _HasLockBit( ptr ));
+			ASSERT( not _HasLockBit( val ));
 
-						ptr = _SetLockBit( ptr );
-			PtrType*	exp = _ptr.load();
+						val = _SetLockBit( val );
+			ValueType	exp = _value.load();
 
-			for (uint i = 0; not _ptr.CAS( INOUT exp, ptr ); ++i)
+			for (uint i = 0; not _value.CAS( INOUT exp, val ); ++i)
 			{
 				if_unlikely( i > ThreadUtils::SpinBeforeLock() )
 				{
@@ -322,25 +342,25 @@ namespace AE::Threading
 
 
 	private:
-		ND_ static bool  _HasLockBit (PtrType* ptr)			__NE___
+		ND_ static bool  _HasLockBit (ValueType val)		__NE___
 		{
-			return (usize(ptr) & usize{1});
+			return (BitCast<UInt_t>(val) & _LockMask);
 		}
 
-		ND_ static PtrType*  _SetLockBit (PtrType* ptr)		__NE___
+		ND_ static ValueType  _SetLockBit (ValueType val)	__NE___
 		{
-			return reinterpret_cast< PtrType *>((usize(ptr) | usize{1}));
+			return BitCast< ValueType >((BitCast<UInt_t>(val) | _LockMask));
 		}
 
-		ND_ static PtrType*  _RemoveLockBit (PtrType* ptr)	__NE___
+		ND_ static ValueType  _RemoveLockBit (ValueType val)__NE___
 		{
-			return reinterpret_cast< PtrType *>((usize(ptr) & ~usize{1}));
+			return BitCast< ValueType >((BitCast<UInt_t>(val) & ~_LockMask));
 		}
 	};
 	
 
-	template <typename T> using PtrSpinLock			= TPtrSpinLock< T, false >;
-	template <typename T> using PtrSpinLockRelaxed	= TPtrSpinLock< T, true >;
+	template <typename T> using PtrWithSpinLock			= TValueWithSpinLockBit< T*, 0, false >;
+	template <typename T> using PtrWithSpinLockRelaxed	= TValueWithSpinLockBit< T*, 0, true >;
 
 
 } // AE::Threading

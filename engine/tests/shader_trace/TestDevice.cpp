@@ -3,7 +3,9 @@
 #include "TestDevice.h"
 #include "base/Algorithms/StringParser.h"
 #include "base/DataSource/MemStream.h"
+#include "base/DataSource/FileStream.h"
 #include "serializing/ObjectFactory.h"
+#include "res_loaders/DDS/DDSSaver.h"
 
 #ifdef AE_COMPILER_MSVC
 #	pragma warning (push, 0)
@@ -20,21 +22,15 @@
 #include "glslang/SPIRV/GLSL.std.450.h"
 #include "StandAlone/ResourceLimits.cpp"
 
-using namespace glslang;
-
 // spirv cross
-#ifdef ENABLE_SPIRV_CROSS
-#	include "spirv_cross.hpp"
-#	include "spirv_glsl.hpp"
+#ifdef AE_ENABLE_SPIRV_CROSS
+#	include "spirv_cross/spirv_cross.hpp"
+#	include "spirv_cross/spirv_glsl.hpp"
 #endif
 
 #ifdef ENABLE_OPT
 #	include "spirv-tools/optimizer.hpp"
 #	include "spirv-tools/libspirv.h"
-#endif
-
-#ifdef __linux__
-#   define fopen_s( _outFile_, _name_, _mode_ ) (*(_outFile_) = fopen( (_name_), (_mode_) ))
 #endif
 
 #ifdef AE_COMPILER_MSVC
@@ -49,7 +45,7 @@ namespace AE::PipelineCompiler
 // using git compare new references with origin, only float values may differ slightly.
 // Then set 'UpdateReferences' to 'false' and run tests again.
 // All tests must pass.
-static const bool	UpdateReferences = false;
+static const bool	UpdateReferences = true;
 
 
 /*
@@ -64,10 +60,14 @@ bool  TestDevice::Create ()
 	glslang::InitializeProcess();
 	_tempBuf.reserve( 1024 );
 	
-	CHECK_ERR( _vulkan.CreateInstance( "GLSLTrace", "AE", _vulkan.GetRecomendedInstanceLayers() ));
+	VDeviceInitializer::InstanceCreateInfo	inst_ci;
+	inst_ci.appName			= "GLSLTrace";
+	inst_ci.instanceLayers	= _vulkan.GetRecomendedInstanceLayers();
+
+	CHECK_ERR( _vulkan.CreateInstance( inst_ci ));
 	
 	_vulkan.CreateDebugCallback( DefaultDebugMessageSeverity,
-								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  CHECK_FATAL(not rep.isError); });
+								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  CHECK(not rep.isError); });
 
 	CHECK_ERR( _vulkan.ChooseHighPerformanceDevice() );
 	CHECK_ERR( _vulkan.CreateDefaultQueue() );
@@ -211,38 +211,38 @@ void  TestDevice::_DestroyResources ()
 	if ( cmdPool )
 	{
 		vkDestroyCommandPool( GetVkDevice(), cmdPool, null );
-		cmdPool		= VK_NULL_HANDLE;
-		cmdBuffer	= VK_NULL_HANDLE;
+		cmdPool		= Default;
+		cmdBuffer	= Default;
 	}
 
 	if ( descPool )
 	{
 		vkDestroyDescriptorPool( GetVkDevice(), descPool, null );
-		descPool = VK_NULL_HANDLE;
+		descPool = Default;
 	}
 
 	if ( debugOutputBuf )
 	{
 		vkDestroyBuffer( GetVkDevice(), debugOutputBuf, null );
-		debugOutputBuf = VK_NULL_HANDLE;
+		debugOutputBuf = Default;
 	}
 
 	if ( readBackBuf )
 	{
 		vkDestroyBuffer( GetVkDevice(), readBackBuf, null );
-		readBackBuf = VK_NULL_HANDLE;
+		readBackBuf = Default;
 	}
 
 	if ( debugOutputMem )
 	{
 		vkFreeMemory( GetVkDevice(), debugOutputMem, null );
-		debugOutputMem = VK_NULL_HANDLE;
+		debugOutputMem = Default;
 	}
 
 	if ( readBackMem )
 	{
 		vkFreeMemory( GetVkDevice(), readBackMem, null );
-		readBackMem = VK_NULL_HANDLE;
+		readBackMem = Default;
 	}
 }
 
@@ -282,21 +282,19 @@ bool  TestDevice::Compile  (OUT VkShaderModule &		shaderModule,
 							ETraceMode					mode,
 							uint						dbgBufferSetIndex)
 {
-	Array<const char *>		shader_src;
 	const bool				debuggable	= dbgBufferSetIndex != ~0u;
 	Unique<ShaderTrace>		debug_info	{ debuggable ? new ShaderTrace{} : null };
 	const String			header		= "#version 460 core\n"
 										  "#extension GL_ARB_separate_shader_objects : require\n"
 										  "#extension GL_ARB_shading_language_420pack : require\n";
 	
-	shader_src.push_back( header.data() );
-	shader_src.insert( shader_src.end(), source.begin(), source.end() );
+	source.insert( source.begin(), header.data() );
 	
 	EShTargetLanguageVersion	spv_version = EShTargetSpv_1_3;
 	if ( shaderType >= EShLangRayGen )
 		spv_version = EShTargetSpv_1_4;
 
-	if ( not _Compile( OUT _tempBuf, OUT debug_info.get(), dbgBufferSetIndex, shader_src, shaderType, mode, spv_version ))
+	if ( not _Compile( OUT _tempBuf, OUT debug_info.get(), dbgBufferSetIndex, source, shaderType, mode, spv_version ))
 		return false;
 
 	VkShaderModuleCreateInfo	info = {};
@@ -407,7 +405,9 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 		}
 		END_ENUM_CHECKS();
 	
-		dbgInfo->SetSource( source.data(), null, source.size() );
+		for (auto* src : source) {
+			dbgInfo->AddSource( StringView{src} );
+		}
 	}
 
 	SpvOptions				spv_options;
@@ -425,7 +425,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 	CHECK_ERR( spirvData.size() );
 	
 	// for debugging
-	#if 0 //defined(ENABLE_SPIRV_CROSS)
+	#if 0 //def AE_ENABLE_SPIRV_CROSS
 	//if ( logger.getAllMessages().size() )
 	{
 		spirv_cross::CompilerGLSL			compiler {spirvData.data(), spirvData.size()};
@@ -444,9 +444,9 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 		opt.fragment.default_float_precision	= spirv_cross::CompilerGLSL::Options::Precision::Highp;
 		opt.fragment.default_int_precision		= spirv_cross::CompilerGLSL::Options::Precision::Highp;
 
-		compiler.set_common_options(opt);
+		compiler.set_common_options( opt );
 
-		std::String	glsl_src = compiler.compile();
+		String	glsl_src = compiler.compile();	// throw
 		AE_LOGI( glsl_src );
 	}
 	#endif
@@ -483,7 +483,7 @@ bool  TestDevice::_GetDebugOutput (VkShaderModule shaderModule, const void *ptr,
 	auto	iter = _debuggableShaders.find( shaderModule );
 	CHECK_ERR( iter != _debuggableShaders.end() );
 
-	return iter->second->ParseShaderTrace( ptr, Bytes{maxSize}, OUT result );
+	return iter->second->ParseShaderTrace( ptr, Bytes{maxSize}, ShaderTrace::ELogFormat::Text, OUT result );
 }
 
 /*
@@ -542,6 +542,61 @@ bool  TestDevice::CreateDebugDescriptorSet (VkShaderStageFlags stages, OUT VkDes
 
 /*
 =================================================
+	CreateStorageImage
+=================================================
+*/
+bool  TestDevice::CreateStorageImage (VkFormat format, uint width, uint height, VkImageUsageFlags imageUsage,
+									  OUT VkImage &outImage, OUT VkImageView &outView)
+{
+	VkImageCreateInfo	image_ci = {};
+	image_ci.sType			= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	image_ci.flags			= 0;
+	image_ci.imageType		= VK_IMAGE_TYPE_2D;
+	image_ci.format			= format;
+	image_ci.extent			= { width, height, 1 };
+	image_ci.mipLevels		= 1;
+	image_ci.arrayLayers	= 1;
+	image_ci.samples		= VK_SAMPLE_COUNT_1_BIT;
+	image_ci.tiling			= VK_IMAGE_TILING_OPTIMAL;
+	image_ci.usage			= imageUsage | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	image_ci.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
+	image_ci.initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
+
+	VK_CHECK_ERR( vkCreateImage( GetVkDevice(), &image_ci, null, OUT &outImage ));
+	tempHandles.emplace_back( EHandleType::Image, ulong(outImage) );
+
+	VkMemoryRequirements	mem_req;
+	vkGetImageMemoryRequirements( GetVkDevice(), outImage, OUT &mem_req );
+		
+	// allocate GetVkDevice() local memory
+	VkMemoryAllocateInfo	alloc_info = {};
+	alloc_info.sType			= VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	alloc_info.allocationSize	= mem_req.size;
+	CHECK_ERR( GetMemoryTypeIndex( mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, OUT alloc_info.memoryTypeIndex ));
+		
+	VkDeviceMemory	image_mem;
+	VK_CHECK_ERR( vkAllocateMemory( GetVkDevice(), &alloc_info, null, OUT &image_mem ));
+	tempHandles.emplace_back( EHandleType::Memory, ulong(image_mem) );
+
+	VK_CHECK_ERR( vkBindImageMemory( GetVkDevice(), outImage, image_mem, 0 ));
+	
+	VkImageViewCreateInfo	view_ci = {};
+	view_ci.sType				= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	view_ci.flags				= 0;
+	view_ci.image				= outImage;
+	view_ci.viewType			= VK_IMAGE_VIEW_TYPE_2D;
+	view_ci.format				= format;
+	view_ci.components			= { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
+	view_ci.subresourceRange	= { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+	VK_CHECK_ERR( vkCreateImageView( GetVkDevice(), &view_ci, null, OUT &outView ));
+	tempHandles.emplace_back( EHandleType::ImageView, ulong(outView) );
+	
+	return true;
+}
+
+/*
+=================================================
 	CreateRenderTarget
 =================================================
 */
@@ -561,7 +616,7 @@ bool  TestDevice::CreateRenderTarget (VkFormat colorFormat, uint width, uint hei
 		info.arrayLayers	= 1;
 		info.samples		= VK_SAMPLE_COUNT_1_BIT;
 		info.tiling			= VK_IMAGE_TILING_OPTIMAL;
-		info.usage			= imageUsage | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		info.usage			= imageUsage | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 		info.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
 		info.initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
 
@@ -585,7 +640,7 @@ bool  TestDevice::CreateRenderTarget (VkFormat colorFormat, uint width, uint hei
 	}
 
 	// create image view
-	VkImageView		view = VK_NULL_HANDLE;
+	VkImageView		view = Default;
 	{
 		VkImageViewCreateInfo	info = {};
 		info.sType				= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -774,7 +829,7 @@ bool  TestDevice::CreateGraphicsPipelineVar1 (VkShaderModule vertShader, VkShade
 	info.renderPass				= renderPass;
 	info.subpass				= 0;
 
-	VK_CHECK_ERR( vkCreateGraphicsPipelines( GetVkDevice(), VK_NULL_HANDLE, 1, &info, null, OUT &outPipeline ));
+	VK_CHECK_ERR( vkCreateGraphicsPipelines( GetVkDevice(), Default, 1, &info, null, OUT &outPipeline ));
 	tempHandles.emplace_back( EHandleType::Pipeline, ulong(outPipeline) );
 
 	return true;
@@ -888,7 +943,7 @@ bool  TestDevice::CreateGraphicsPipelineVar2 (VkShaderModule vertShader, VkShade
 	info.renderPass				= renderPass;
 	info.subpass				= 0;
 
-	VK_CHECK_ERR( vkCreateGraphicsPipelines( GetVkDevice(), VK_NULL_HANDLE, 1, &info, null, OUT &outPipeline ));
+	VK_CHECK_ERR( vkCreateGraphicsPipelines( GetVkDevice(), Default, 1, &info, null, OUT &outPipeline ));
 	tempHandles.emplace_back( EHandleType::Pipeline, ulong(outPipeline) );
 
 	return true;
@@ -989,7 +1044,7 @@ bool  TestDevice::CreateMeshPipelineVar1 (VkShaderModule meshShader, VkShaderMod
 	info.renderPass				= renderPass;
 	info.subpass				= 0;
 
-	VK_CHECK_ERR( vkCreateGraphicsPipelines( GetVkDevice(), VK_NULL_HANDLE, 1, &info, null, OUT &outPipeline ));
+	VK_CHECK_ERR( vkCreateGraphicsPipelines( GetVkDevice(), Default, 1, &info, null, OUT &outPipeline ));
 	tempHandles.emplace_back( EHandleType::Pipeline, ulong(outPipeline) );
 
 	return true;
@@ -1019,10 +1074,10 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 		DrawCallbacks_t			onUpdate;
 	};
 
-	static const float3		vertices[] = {
-		{ 0.25f, 0.25f, 0.0f },
-		{ 0.75f, 0.25f, 0.0f },
-		{ 0.50f, 0.75f, 0.0f }
+	static const float4		vertices[] = {
+		{ 0.25f, 0.25f, 0.0f, 0.0f },
+		{ 0.75f, 0.25f, 0.0f, 0.0f },
+		{ 0.50f, 0.75f, 0.0f, 0.0f }
 	};
 	static const uint		indices[] = {
 		0, 1, 2
@@ -1139,7 +1194,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 		VkAccelerationStructureGeometryKHR		geometry[1] = {};
 		geometry[0].sType			= VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
 		geometry[0].geometryType	= VK_GEOMETRY_TYPE_TRIANGLES_KHR;
-		geometry[0].flags			= VK_GEOMETRY_OPAQUE_BIT_KHR;
+		geometry[0].flags			= 0;
 		geometry[0].geometry.triangles.sType		= VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
 		geometry[0].geometry.triangles.vertexFormat	= VK_FORMAT_R32G32B32_SFLOAT;
 		geometry[0].geometry.triangles.maxVertex	= uint(CountOf( vertices ));
@@ -1214,6 +1269,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 				addr_info.accelerationStructure	= outRTData.bottomLevelAS;
 
 				blas_addr = vkGetAccelerationStructureDeviceAddressKHR( GetVkDevice(), &addr_info );
+				CHECK_ERR( blas_addr != 0 );
 				return true;
 			});
 		}
@@ -1276,10 +1332,11 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 			buf_info.buffer		= instance_buffer;
 
 			instance_buffer_addr = vkGetBufferDeviceAddressKHR( GetVkDevice(), &buf_info );
+			CHECK_ERR( instance_buffer_addr != 0 );
 			return true;
 		});
 		
-		res.onUpdate.push_back( [this, instance_buffer, blas_addr] (VkCommandBuffer cmdbuf)
+		res.onUpdate.push_back( [this, instance_buffer, &blas_addr] (VkCommandBuffer cmdbuf)
 		{
 			VkAccelerationStructureInstanceKHR	instance [instance_count] = {};
 			instance[0].transform.matrix[0][0]		= 1.0f;
@@ -1376,16 +1433,6 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 		
 		res.onUpdate.push_back( [&] (VkCommandBuffer cmd)
 		{
-			// write-read memory barrier for 'bottomLevelAS'
-			// execution barrier for 'scratchBuffer'
-			VkMemoryBarrier		barrier = {};
-			barrier.sType			= VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-			barrier.srcAccessMask	= VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR | VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
-			barrier.dstAccessMask	= VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR | VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
-			
-			vkCmdPipelineBarrier( cmd, VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR, VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
-								  0, 1, &barrier, 0, null, 0, null );
-
 			VkAccelerationStructureGeometryKHR	geometry	= {};
 			geometry.sType									= VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
 			geometry.flags									= 0;
@@ -1447,13 +1494,14 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 			buf_info.buffer		= scratch_buffer;
 
 			scratch_buffer_addr = vkGetBufferDeviceAddressKHR( GetVkDevice(), &buf_info );
+			CHECK_ERR( scratch_buffer_addr != 0 );
 			return true;
 		});
 	}
 
 	// create shader binding table
 	{
-		const uint	alignment	= Max( GetRayTracingProps().shaderGroupHandleSize, GetRayTracingProps().shaderGroupBaseAlignment );
+		const VkDeviceSize	alignment = Max( GetRayTracingProps().shaderGroupHandleSize, GetRayTracingProps().shaderGroupBaseAlignment );
 
 		outRTData.shaderGroupSize	= GetRayTracingProps().shaderGroupHandleSize;
 		outRTData.shaderGroupAlign	= alignment;
@@ -1490,17 +1538,18 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 			buf_info.buffer		= outRTData.shaderBindingTable;
 
 			outRTData.sbtAddress = vkGetBufferDeviceAddressKHR( GetVkDevice(), &buf_info );
+			CHECK_ERR( outRTData.sbtAddress != 0 );
 			return true;
 		});
 
 		res.onUpdate.push_back( [this, sbt = outRTData.shaderBindingTable, rtPipeline, numGroups, alignment, size = info.size] (VkCommandBuffer cmd)
 		{
-			Array<uint8_t>	handles;  handles.resize(size);
+			Array<ulong>	handles;  handles.resize( size / sizeof(ulong) );
 
 			for (uint i = 0; i < numGroups; ++i) {
-				VK_CHECK( vkGetRayTracingShaderGroupHandlesKHR( GetVkDevice(), rtPipeline, i, 1, GetRayTracingProps().shaderGroupHandleSize, OUT handles.data() + alignment * i ));
+				VK_CHECK( vkGetRayTracingShaderGroupHandlesKHR( GetVkDevice(), rtPipeline, i, 1, GetRayTracingProps().shaderGroupHandleSize, OUT handles.data() + Bytes{alignment * i} ));
 			}	
-			vkCmdUpdateBuffer( cmd, sbt, 0, handles.size(), handles.data() );
+			vkCmdUpdateBuffer( cmd, sbt, 0, handles.size() * sizeof(handles[0]), handles.data() );
 		});
 	}
 	
@@ -1524,7 +1573,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 
 	// bind resources
 	for (auto& bind : res.onBind) {
-		CHECK_ERR( bind());
+		CHECK_ERR( bind() );
 	}
 
 	// update resources
@@ -1532,22 +1581,31 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 		VkCommandBufferBeginInfo	begin_info = {};
 		begin_info.sType	= VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		begin_info.flags	= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		VK_CHECK( vkBeginCommandBuffer( cmdBuffer, &begin_info ));
+		VK_CHECK_ERR( vkBeginCommandBuffer( cmdBuffer, &begin_info ));
 
-		for (auto& cb : res.onUpdate) {
+		for (auto& cb : res.onUpdate)
+		{
+			VkMemoryBarrier		barrier = {};
+			barrier.sType			= VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+			barrier.srcAccessMask	= VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_HOST_READ_BIT;
+			barrier.dstAccessMask	= VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_HOST_READ_BIT;
+			
+			vkCmdPipelineBarrier( cmdBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+								  0, 1, &barrier, 0, null, 0, null );
+
 			cb( cmdBuffer );
 		}
 
-		VK_CHECK( vkEndCommandBuffer( cmdBuffer ));
+		VK_CHECK_ERR( vkEndCommandBuffer( cmdBuffer ));
 
 		VkSubmitInfo		submit_info = {};
 		submit_info.sType				= VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submit_info.commandBufferCount	= 1;
 		submit_info.pCommandBuffers		= &cmdBuffer;
 
-		VK_CHECK_ERR( vkQueueSubmit( GetVkQueue(), 1, &submit_info, VK_NULL_HANDLE ));
+		VK_CHECK_ERR( vkQueueSubmit( GetVkQueue(), 1, &submit_info, Default ));
 	}
-	VK_CHECK( vkQueueWaitIdle( GetVkQueue() ));
+	VK_CHECK_ERR( vkQueueWaitIdle( GetVkQueue() ));
 	
 	vkDestroyBuffer( GetVkDevice(), vertex_buffer, null );
 	vkDestroyBuffer( GetVkDevice(), index_buffer, null );
@@ -1574,7 +1632,7 @@ bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String re
 	{
 		Array<String>	temp;
 		CHECK_ERR( _GetDebugOutput( module, readBackPtr, debugOutputSize, OUT temp ));
-		CHECK_ERR( temp.size() );
+		CHECK( temp.size() );
 		debug_output.insert( debug_output.end(), temp.begin(), temp.end() );
 	}
 
@@ -1584,30 +1642,19 @@ bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String re
 		(merged += str) += "//---------------------------\n\n";
 	}
 
-	// TODO: use FileRStream
 	if ( UpdateReferences )
 	{
-		FILE*	file = null;
-		fopen_s( OUT &file, (String{DATA_PATH} + referenceFile).c_str(), "wb" );
-		CHECK_ERR( file );
-		CHECK_ERR( fwrite( merged.c_str(), sizeof(merged[0]), merged.size(), file ) == merged.size() );
-		fclose( file );
+		FileWStream		file {Path{DATA_PATH} /= referenceFile};
+		CHECK_ERR( file.IsOpen() );
+		CHECK_ERR( file.Write( merged ));
 		return true;
 	}
 
 	String	file_data;
 	{
-		FILE*	file = null;
-		fopen_s( OUT &file, (String{DATA_PATH} + referenceFile).c_str(), "rb" );
-		CHECK_ERR( file );
-		
-		CHECK_ERR( fseek( file, 0, SEEK_END ) == 0 );
-		const long	size = ftell( file );
-		CHECK_ERR( fseek( file, 0, SEEK_SET ) == 0 );
-
-		file_data.resize( size );
-		CHECK_ERR( fread( file_data.data(), sizeof(file_data[0]), file_data.size(), file ) == file_data.size() );
-		fclose( file );
+		FileRStream		file {Path{DATA_PATH} /= referenceFile};
+		CHECK_ERR( file.IsOpen() );
+		CHECK_ERR( file.Read( file.RemainingSize(), OUT file_data ));
 	}
 	
 	CHECK_ERR( StringParser::CompareLineByLine( file_data, merged,
@@ -1748,5 +1795,108 @@ void  TestDevice::FreeTempHandles ()
 	}
 	tempHandles.clear();
 }
+
+/*
+=================================================
+	SaveImage
+=================================================
+*/
+bool  TestDevice::SaveImage (VkImage image, VkImageLayout layout, uint width, uint height, const Path &filename)
+{
+	VkBuffer		readback_buf;
+	VkDeviceMemory	readback_mem;
+
+	VkBufferCreateInfo	buffer_ci = {};
+	buffer_ci.sType		= VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	buffer_ci.size		= width * height * 4;
+	buffer_ci.usage		= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		
+	VK_CHECK_ERR( vkCreateBuffer( GetVkDevice(), &buffer_ci, null, OUT &readback_buf ));
+	tempHandles.emplace_back( EHandleType::Buffer, ulong(readback_buf) );
+
+	VkMemoryRequirements	mem_req = {};
+	vkGetBufferMemoryRequirements( GetVkDevice(), readback_buf, OUT &mem_req );
+
+	VkMemoryAllocateInfo	mem_alloc_info = {};
+	mem_alloc_info.sType			= VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	mem_alloc_info.allocationSize	= mem_req.size;
+	CHECK_ERR( GetMemoryTypeIndex( mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, OUT mem_alloc_info.memoryTypeIndex ));
+		
+	VK_CHECK_ERR( vkAllocateMemory( GetVkDevice(), &mem_alloc_info, null, OUT &readback_mem ));
+	tempHandles.emplace_back( EHandleType::Memory, ulong(readback_mem) );
+
+	VK_CHECK_ERR( vkBindBufferMemory( GetVkDevice(), readback_buf, readback_mem, 0));
+
+
+	VkCommandBufferBeginInfo	begin_info = {};
+	begin_info.sType	= VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	begin_info.flags	= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	VK_CHECK_ERR( vkBeginCommandBuffer( cmdBuffer, &begin_info ));
+	
+	{
+		VkImageMemoryBarrier barrier {};
+		barrier.sType               = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.oldLayout           = layout;
+		barrier.newLayout           = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		barrier.srcAccessMask		= VK_ACCESS_MEMORY_WRITE_BIT;
+		barrier.dstAccessMask		= VK_ACCESS_TRANSFER_READ_BIT;
+		barrier.image               = image;
+		barrier.subresourceRange    = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+			
+		vkCmdPipelineBarrier( cmdBuffer,
+							  VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0,
+							  0, null, 0, null, 1, &barrier );
+	}
+	{
+		VkBufferImageCopy	region = {};
+		region.bufferOffset		= 0;
+		region.bufferRowLength	= width;
+		region.bufferImageHeight= height;
+		region.imageSubresource	= { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+		region.imageOffset		= { 0, 0, 0 };
+		region.imageExtent		= { width, height, 1 };
+
+		vkCmdCopyImageToBuffer( cmdBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, readback_buf, 1, &region );
+	}
+
+	VK_CHECK_ERR( vkEndCommandBuffer( cmdBuffer ));
+
+	VkSubmitInfo		submit_info = {};
+	submit_info.sType				= VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.commandBufferCount	= 1;
+	submit_info.pCommandBuffers		= &cmdBuffer;
+
+	VK_CHECK_ERR( vkQueueSubmit( GetVkQueue(), 1, &submit_info, Default ));
+	VK_CHECK_ERR( vkQueueWaitIdle( GetVkQueue() ));
+	
+
+	void*	mapped_ptr;
+	VK_CHECK_ERR( vkMapMemory( GetVkDevice(), readback_mem, 0, width*height*4, 0, OUT &mapped_ptr ));
+
+	ResLoader::IntermImage::Mipmaps_t	mm;
+	mm.resize( 1 );
+	mm[0].resize( 1 );
+		
+	auto&	lvl = mm[0][0];
+	lvl.dimension	= {width, height, 1};
+	lvl.format		= EPixelFormat::RGBA8_UNorm;
+	lvl.rowPitch	= Bytes{width*4};
+	lvl.slicePitch	= lvl.rowPitch * height;
+	
+	Unused( lvl.SetPixelDataRef( mapped_ptr, lvl.slicePitch ));
+
+	ResLoader::IntermImage	img{ RVRef(mm), EImage_2D };
+	FileWStream				file {filename};
+
+	CHECK_ERR( file.IsOpen() );
+	
+	ResLoader::DDSSaver	saver;
+	CHECK_ERR( saver.SaveImage( file, img, Default ));
+
+	return true;
+}
+
 
 } // AE::PipelineCompiler

@@ -20,6 +20,9 @@ namespace AE::Base
 	private:
 		template <typename T>
 		using NonAnyTypeRef = DisableIf< IsConst<T> or IsSameTypes< T, AnyTypeRef > or IsSameTypes< T, AnyTypeCRef >, int >;
+		
+		template <typename T>
+		inline static constexpr bool	IsNtCopy = IsNothrowCopyCtor<T> and IsNothrowDefaultCtor<T>;
 
 
 	// variables
@@ -36,14 +39,15 @@ namespace AE::Base
 
 		template <typename T>	AnyTypeRef (T &value, NonAnyTypeRef<T> = 0) __NE___ : _typeId{ typeid(T) }, _ref{ std::addressof(value) } {}
 
-		template <typename T>	ND_ bool	Is ()			C_NE___	{ return _typeId == typeid(T); }
-		template <typename T>	ND_ bool	Is (const T &)	C_NE___	{ return _typeId == typeid(T); }
+		template <typename T>	ND_ bool	Is ()			C_NE___						{ return _typeId == typeid(T); }
+		template <typename T>	ND_ bool	Is (const T &)	C_NE___						{ return _typeId == typeid(T); }
 
-		template <typename T>	ND_ T *		GetIf ()		C_NE___	{ return Is<T>() ? static_cast<T*>( _ref ) : null; }
-		template <typename T>	ND_ T &		As ()			C_NE___	{ ASSERT( Is<T>() );  return *static_cast<T*>( _ref ); }
+		template <typename T>	ND_ T *		GetIf ()		C_NE___						{ return Is<T>() ? static_cast<T*>( _ref ) : null; }
+		template <typename T>	ND_ T		GetCopyIf ()	const noexcept(IsNtCopy<T>)	{ return Is<T>() ? *static_cast<T*>( _ref ) : T{}; }
+		template <typename T>	ND_ T &		As ()			C_NE___						{ ASSERT( Is<T>() );  return *static_cast<T*>( _ref ); }
 
-		ND_ std::type_index		GetType ()					C_NE___	{ return _typeId; }
-		ND_ StringView			GetTypeName ()				C_NE___	{ return _typeId.name(); }
+		ND_ std::type_index		GetType ()					C_NE___						{ return _typeId; }
+		ND_ StringView			GetTypeName ()				C_NE___						{ return _typeId.name(); }
 	};
 	
 
@@ -62,6 +66,9 @@ namespace AE::Base
 		template <typename T>
 		using NonAnyTypeCRef = DisableIf< IsSameTypes< T, AnyTypeRef > or IsSameTypes< T, AnyTypeCRef >, int >;
 
+		template <typename T>
+		inline static constexpr bool	IsNtCopy = IsNothrowCopyCtor<T> and IsNothrowDefaultCtor<T>;
+
 
 	// variables
 	private:
@@ -78,14 +85,15 @@ namespace AE::Base
 		template <typename T>	AnyTypeCRef (T &value, NonAnyTypeRef<T> = 0)				 __NE___ : _typeId{ typeid(T) }, _ref{ std::addressof(value) } {}
 		template <typename T>	explicit AnyTypeCRef (const T &value, NonAnyTypeCRef<T> = 0) __NE___ : _typeId{ typeid(T) }, _ref{ std::addressof(value) } {}
 
-		template <typename T>	ND_ bool		Is ()			C_NE___	{ return _typeId == typeid(T); }
-		template <typename T>	ND_ bool		Is (const T &)	C_NE___	{ return _typeId == typeid(T); }
+		template <typename T>	ND_ bool		Is ()			C_NE___						{ return _typeId == typeid(T); }
+		template <typename T>	ND_ bool		Is (const T &)	C_NE___						{ return _typeId == typeid(T); }
 
-		template <typename T>	ND_ T const *	GetIf ()		C_NE___	{ return Is<T>() ? static_cast<T const*>( _ref ) : null; }
-		template <typename T>	ND_ T const &	As ()			C_NE___	{ ASSERT( Is<T>() );  return *static_cast<T const*>( _ref ); }
+		template <typename T>	ND_ T const *	GetIf ()		C_NE___						{ return Is<T>() ? static_cast<T const*>( _ref ) : null; }
+		template <typename T>	ND_ T			GetCopyIf ()	const noexcept(IsNtCopy<T>)	{ return Is<T>() ? *static_cast<T*>( _ref ) : T{}; }
+		template <typename T>	ND_ T const &	As ()			C_NE___						{ ASSERT( Is<T>() );  return *static_cast<T const*>( _ref ); }
 		
-		ND_ std::type_index		GetType ()						C_NE___	{ return _typeId; }
-		ND_ StringView			GetTypeName ()					C_NE___	{ return _typeId.name(); }
+		ND_ std::type_index		GetType ()						C_NE___						{ return _typeId; }
+		ND_ StringView			GetTypeName ()					C_NE___						{ return _typeId.name(); }
 	};
 
 

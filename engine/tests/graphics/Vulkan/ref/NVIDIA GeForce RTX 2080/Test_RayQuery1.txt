@@ -33,16 +33,23 @@ name: 'command-buffer'
       copy [60, 124) ---> [0, 64)
   ----------
 
-  BeginDebugLabel
-    name:  'RayQuery1 |0| Upload RTAS task'
-    depth: 2
-  ----------
-
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
       stage:  COPY ---> ACCELERATION_STRUCTURE_BUILD
       access: TRANSFER_WRITE ---> ACCELERATION_STRUCTURE_READ
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT geometry'
+    scratch: 'RTAS scratch buffer'
+    type: BottomLevel
+    mode: Build
+    [0] Triangles
+      vertexData:    'RTAS vertex buffer'
+      indexData:     'RTAS index buffer'
+      transformData: null
+    ----
   ----------
 
   PipelineBarrier2
@@ -52,8 +59,18 @@ name: 'command-buffer'
       access: ACCELERATION_STRUCTURE_WRITE ---> ACCELERATION_STRUCTURE_READ
   ----------
 
+  BuildAccelerationStructures
+    dstAS: 'RT scene'
+    scratch: 'RTAS scratch buffer'
+    type: TopLevel
+    mode: Build
+    [0] Instances
+      data: 'RTAS instance buffer'
+    ----
+  ----------
+
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -164,16 +181,23 @@ name: 'command-buffer'
       copy [60, 124) ---> [0, 64)
   ----------
 
-  BeginDebugLabel
-    name:  'RayQuery1 |0| Upload RTAS task'
-    depth: 2
-  ----------
-
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
       stage:  COPY ---> ACCELERATION_STRUCTURE_BUILD
       access: TRANSFER_WRITE ---> ACCELERATION_STRUCTURE_READ
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT geometry'
+    scratch: 'RTAS scratch buffer'
+    type: BottomLevel
+    mode: Build
+    [0] Triangles
+      vertexData:    'RTAS vertex buffer'
+      indexData:     'RTAS index buffer'
+      transformData: null
+    ----
   ----------
 
   PipelineBarrier2
@@ -183,8 +207,18 @@ name: 'command-buffer'
       access: ACCELERATION_STRUCTURE_WRITE ---> ACCELERATION_STRUCTURE_READ
   ----------
 
+  BuildAccelerationStructures
+    dstAS: 'RT scene'
+    scratch: 'RTAS scratch buffer'
+    type: TopLevel
+    mode: Build
+    [0] Instances
+      data: 'RTAS instance buffer'
+    ----
+  ----------
+
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -302,11 +336,33 @@ name: 'command-buffer'
       access: TRANSFER_WRITE ---> ACCELERATION_STRUCTURE_READ
   ----------
 
+  BuildAccelerationStructures
+    dstAS: 'RT geometry'
+    scratch: 'RTAS scratch buffer'
+    type: BottomLevel
+    mode: Build
+    [0] Triangles
+      vertexData:    'RTAS vertex buffer'
+      indexData:     'RTAS index buffer'
+      transformData: null
+    ----
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
       stage:  ACCELERATION_STRUCTURE_BUILD ---> ACCELERATION_STRUCTURE_BUILD
       access: ACCELERATION_STRUCTURE_WRITE ---> ACCELERATION_STRUCTURE_READ
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT scene'
+    scratch: 'RTAS scratch buffer'
+    type: TopLevel
+    mode: Build
+    [0] Instances
+      data: 'RTAS instance buffer'
+    ----
   ----------
 
   EndDebugLabel
@@ -424,11 +480,33 @@ name: 'command-buffer'
       access: TRANSFER_WRITE ---> ACCELERATION_STRUCTURE_READ
   ----------
 
+  BuildAccelerationStructures
+    dstAS: 'RT geometry'
+    scratch: 'RTAS scratch buffer'
+    type: BottomLevel
+    mode: Build
+    [0] Triangles
+      vertexData:    'RTAS vertex buffer'
+      indexData:     'RTAS index buffer'
+      transformData: null
+    ----
+  ----------
+
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
       stage:  ACCELERATION_STRUCTURE_BUILD ---> ACCELERATION_STRUCTURE_BUILD
       access: ACCELERATION_STRUCTURE_WRITE ---> ACCELERATION_STRUCTURE_READ
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT scene'
+    scratch: 'RTAS scratch buffer'
+    type: TopLevel
+    mode: Build
+    [0] Instances
+      data: 'RTAS instance buffer'
+    ----
   ----------
 
   EndDebugLabel

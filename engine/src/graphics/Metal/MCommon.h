@@ -32,18 +32,13 @@
 # define AE_METAL_NATIVE_DEBUGGER	0
 
 // beta extension in old versions
-# define AE_METAL_3_0_BETA		1
+# define AE_METAL_3_0_BETA		1	// TODO: remove
 
 
 namespace AE::Graphics
 {
-	using AE::Threading::Mutex;
-	using AE::Threading::SharedMutex;
 	using AE::Threading::SpinLock;
 	using AE::Threading::RWSpinLock;
-	using AE::Threading::RecursiveMutex;
-	using AE::Threading::EMemoryOrder;
-	using AE::Threading::MemoryBarrier;
 	using AE::Threading::AsyncTask;
 	using AE::Threading::GlobalLinearAllocatorRef;
 	using AE::Threading::GraphicsFrameAllocatorRef;
@@ -91,8 +86,8 @@ namespace AE::Graphics
 	enum class MtlBarrierScope : ubyte
 	{
 		Buffers			= 1 << 0,
-		RenderTargets	= 1 << 1,
-		Textures		= 1 << 2,
+		Textures		= 1 << 1,
+		RenderTargets	= 1 << 2,
 		_Last,
 		All				= ((_Last - 1) << 1) - 1,
 		Unknown			= 0,

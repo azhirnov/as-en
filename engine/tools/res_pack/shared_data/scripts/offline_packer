@@ -1,0 +1,482 @@
+//78DB0B8F
+#include <vector>
+#include <string>
+
+using int8		= std::int8_t;
+using uint8		= std::uint8_t;
+using int16		= std::int16_t;
+using uint16	= std::uint16_t;
+using int		= std::int32_t;
+using uint		= std::uint32_t;
+using int64		= std::int64_t;
+using uint64	= std::uint64_t;
+using string	= std::string;
+
+template <typename T>
+struct RC;
+
+template <typename T>
+using array = std::vector<T>;
+
+struct sbyte2;
+struct short2;
+struct short4;
+struct short3;
+struct float4;
+struct ScriptAssetPacker;
+struct uint4;
+struct int4;
+struct EPathParamsFlags;
+struct bool2;
+struct bool3;
+struct int2;
+struct uint3;
+struct ubyte4;
+struct uint2;
+struct int3;
+struct ubyte3;
+struct ubyte2;
+struct bool4;
+struct ScriptInputActions;
+struct sbyte4;
+struct sbyte3;
+struct float2;
+struct ScriptPipelineCompiler;
+struct float3;
+
+int  Abs (int);
+int  Square (int);
+int  Min (int, int);
+int  Max (int, int);
+int  Clamp (int, int, int);
+int  IntLog2 (int);
+int  BitScanReverse (int);
+int  BitScanForward (int);
+uint  BitCount (int);
+bool  IsPowerOfTwo (int);
+uint  Square (uint);
+uint  Min (uint, uint);
+uint  Max (uint, uint);
+uint  Clamp (uint, uint, uint);
+int  IntLog2 (uint);
+int  BitScanReverse (uint);
+int  BitScanForward (uint);
+uint  BitCount (uint);
+bool  IsPowerOfTwo (uint);
+float  Abs (float);
+float  Square (float);
+float  Min (float, float);
+float  Max (float, float);
+float  Clamp (float, float, float);
+float  Floor (float);
+float  Ceil (float);
+float  Trunc (float);
+float  Fract (float);
+float  Round (float);
+float  Mod (float, float);
+float  Wrap (float, float, float);
+float  Sqrt (float);
+float  Pow (float, float);
+float  Ln (float);
+float  Log (float, float);
+float  Log2 (float);
+float  Log10 (float);
+float  Exp (float);
+float  Exp2 (float);
+float  Exp10 (float);
+float  Sin (float);
+float  SinH (float);
+float  ASin (float);
+float  Cos (float);
+float  CosH (float);
+float  ACos (float);
+float  Tan (float);
+float  TanH (float);
+float  ATan (float, float);
+float  Lerp (float, float, float);
+struct bool2
+{
+	bool2 ();
+	bool2 (const bool2&);
+	bool2&  operator = (const bool2&);
+	bool x;
+	bool y;
+	bool2 (bool);
+	bool2 (const bool3 &);
+	bool2 (const bool4 &);
+	bool2 (bool, bool);
+};
+
+struct bool3
+{
+	bool3 ();
+	bool3 (const bool3&);
+	bool3&  operator = (const bool3&);
+	bool x;
+	bool y;
+	bool z;
+	bool3 (bool);
+	bool3 (const bool2 &);
+	bool3 (const bool4 &);
+	bool3 (const bool2 &, bool);
+	bool3 (bool, bool, bool);
+};
+
+struct bool4
+{
+	bool4 ();
+	bool4 (const bool4&);
+	bool4&  operator = (const bool4&);
+	bool x;
+	bool y;
+	bool z;
+	bool w;
+	bool4 (bool);
+	bool4 (const bool2 &);
+	bool4 (const bool3 &);
+	bool4 (const bool2 &, const bool2 &);
+	bool4 (const bool3 &, bool);
+	bool4 (bool, bool, bool, bool);
+};
+
+struct sbyte2
+{
+	sbyte2 ();
+	sbyte2 (const sbyte2&);
+	sbyte2&  operator = (const sbyte2&);
+	int8 x;
+	int8 y;
+	sbyte2 (int8);
+	sbyte2 (const sbyte3 &);
+	sbyte2 (const sbyte4 &);
+	sbyte2 (int8, int8);
+};
+
+struct sbyte3
+{
+	sbyte3 ();
+	sbyte3 (const sbyte3&);
+	sbyte3&  operator = (const sbyte3&);
+	int8 x;
+	int8 y;
+	int8 z;
+	sbyte3 (int8);
+	sbyte3 (const sbyte2 &);
+	sbyte3 (const sbyte4 &);
+	sbyte3 (const sbyte2 &, int8);
+	sbyte3 (int8, int8, int8);
+};
+
+struct sbyte4
+{
+	sbyte4 ();
+	sbyte4 (const sbyte4&);
+	sbyte4&  operator = (const sbyte4&);
+	int8 x;
+	int8 y;
+	int8 z;
+	int8 w;
+	sbyte4 (int8);
+	sbyte4 (const sbyte2 &);
+	sbyte4 (const sbyte3 &);
+	sbyte4 (const sbyte2 &, const sbyte2 &);
+	sbyte4 (const sbyte3 &, int8);
+	sbyte4 (int8, int8, int8, int8);
+};
+
+struct ubyte2
+{
+	ubyte2 ();
+	ubyte2 (const ubyte2&);
+	ubyte2&  operator = (const ubyte2&);
+	uint8 x;
+	uint8 y;
+	ubyte2 (uint8);
+	ubyte2 (const ubyte3 &);
+	ubyte2 (const ubyte4 &);
+	ubyte2 (uint8, uint8);
+};
+
+struct ubyte3
+{
+	ubyte3 ();
+	ubyte3 (const ubyte3&);
+	ubyte3&  operator = (const ubyte3&);
+	uint8 x;
+	uint8 y;
+	uint8 z;
+	ubyte3 (uint8);
+	ubyte3 (const ubyte2 &);
+	ubyte3 (const ubyte4 &);
+	ubyte3 (const ubyte2 &, uint8);
+	ubyte3 (uint8, uint8, uint8);
+};
+
+struct ubyte4
+{
+	ubyte4 ();
+	ubyte4 (const ubyte4&);
+	ubyte4&  operator = (const ubyte4&);
+	uint8 x;
+	uint8 y;
+	uint8 z;
+	uint8 w;
+	ubyte4 (uint8);
+	ubyte4 (const ubyte2 &);
+	ubyte4 (const ubyte3 &);
+	ubyte4 (const ubyte2 &, const ubyte2 &);
+	ubyte4 (const ubyte3 &, uint8);
+	ubyte4 (uint8, uint8, uint8, uint8);
+};
+
+struct short2
+{
+	short2 ();
+	short2 (const short2&);
+	short2&  operator = (const short2&);
+	int16 x;
+	int16 y;
+	short2 (int16);
+	short2 (const short3 &);
+	short2 (const short4 &);
+	short2 (int16, int16);
+};
+
+struct short3
+{
+	short3 ();
+	short3 (const short3&);
+	short3&  operator = (const short3&);
+	int16 x;
+	int16 y;
+	int16 z;
+	short3 (int16);
+	short3 (const short2 &);
+	short3 (const short4 &);
+	short3 (const short2 &, int16);
+	short3 (int16, int16, int16);
+};
+
+struct short4
+{
+	short4 ();
+	short4 (const short4&);
+	short4&  operator = (const short4&);
+	int16 x;
+	int16 y;
+	int16 z;
+	int16 w;
+	short4 (int16);
+	short4 (const short2 &);
+	short4 (const short3 &);
+	short4 (const short2 &, const short2 &);
+	short4 (const short3 &, int16);
+	short4 (int16, int16, int16, int16);
+};
+
+struct int2
+{
+	int2 ();
+	int2 (const int2&);
+	int2&  operator = (const int2&);
+	int x;
+	int y;
+	int2 (int);
+	int2 (const int3 &);
+	int2 (const int4 &);
+	int2 (int, int);
+};
+
+struct int3
+{
+	int3 ();
+	int3 (const int3&);
+	int3&  operator = (const int3&);
+	int x;
+	int y;
+	int z;
+	int3 (int);
+	int3 (const int2 &);
+	int3 (const int4 &);
+	int3 (const int2 &, int);
+	int3 (int, int, int);
+};
+
+struct int4
+{
+	int4 ();
+	int4 (const int4&);
+	int4&  operator = (const int4&);
+	int x;
+	int y;
+	int z;
+	int w;
+	int4 (int);
+	int4 (const int2 &);
+	int4 (const int3 &);
+	int4 (const int2 &, const int2 &);
+	int4 (const int3 &, int);
+	int4 (int, int, int, int);
+};
+
+struct uint2
+{
+	uint2 ();
+	uint2 (const uint2&);
+	uint2&  operator = (const uint2&);
+	uint x;
+	uint y;
+	uint2 (uint);
+	uint2 (const uint3 &);
+	uint2 (const uint4 &);
+	uint2 (uint, uint);
+};
+
+struct uint3
+{
+	uint3 ();
+	uint3 (const uint3&);
+	uint3&  operator = (const uint3&);
+	uint x;
+	uint y;
+	uint z;
+	uint3 (uint);
+	uint3 (const uint2 &);
+	uint3 (const uint4 &);
+	uint3 (const uint2 &, uint);
+	uint3 (uint, uint, uint);
+};
+
+struct uint4
+{
+	uint4 ();
+	uint4 (const uint4&);
+	uint4&  operator = (const uint4&);
+	uint x;
+	uint y;
+	uint z;
+	uint w;
+	uint4 (uint);
+	uint4 (const uint2 &);
+	uint4 (const uint3 &);
+	uint4 (const uint2 &, const uint2 &);
+	uint4 (const uint3 &, uint);
+	uint4 (uint, uint, uint, uint);
+};
+
+struct float2
+{
+	float2 ();
+	float2 (const float2&);
+	float2&  operator = (const float2&);
+	float x;
+	float y;
+	float2 (float);
+	float2 (const float3 &);
+	float2 (const float4 &);
+	float2 (float, float);
+};
+
+struct float3
+{
+	float3 ();
+	float3 (const float3&);
+	float3&  operator = (const float3&);
+	float x;
+	float y;
+	float z;
+	float3 (float);
+	float3 (const float2 &);
+	float3 (const float4 &);
+	float3 (const float2 &, float);
+	float3 (float, float, float);
+};
+
+struct float4
+{
+	float4 ();
+	float4 (const float4&);
+	float4&  operator = (const float4&);
+	float x;
+	float y;
+	float z;
+	float w;
+	float4 (float);
+	float4 (const float2 &);
+	float4 (const float3 &);
+	float4 (const float2 &, const float2 &);
+	float4 (const float3 &, float);
+	float4 (float, float, float, float);
+};
+
+bool  All (const bool2 &);
+bool  Any (const bool2 &);
+bool  All (const bool3 &);
+bool  Any (const bool3 &);
+bool  All (const bool4 &);
+bool  Any (const bool4 &);
+float3  Cross (const float3 &, const float3 &);
+string  GetSharedFeatureSetPath ();
+string  GetSharedShadersPath ();
+string  GetCanvasVerticesPath ();
+string  GetOutputDir ();
+struct EPathParamsFlags
+{
+	EPathParamsFlags () {}
+	EPathParamsFlags (uint) {}
+	operator uint () const;
+	static constexpr uint Unknown = 0;
+	static constexpr uint Recursive = 1;
+};
+
+struct ScriptPipelineCompiler
+{
+	ScriptPipelineCompiler ();
+	void  AddPipelineFolder (const string &, uint, EPathParamsFlags);
+	void  AddPipelineFolder (const string &, EPathParamsFlags);
+	void  AddPipelineFolder (const string &);
+	void  AddPipeline (const string &, uint, EPathParamsFlags);
+	void  AddPipeline (const string &, EPathParamsFlags);
+	void  AddPipeline (const string &);
+	void  AddShaderFolder (const string &);
+	void  IncludeDir (const string &);
+	void  Compile (const string &);
+	void  Compile (const string &, const string &);
+	void  CompileWithNameMapping (const string &, const string &);
+	void  CompileWithNameMapping (const string &);
+};
+
+struct ScriptInputActions
+{
+	ScriptInputActions ();
+	void  Add (const string &);
+	void  Convert (const string &);
+};
+
+struct ScriptAssetPacker
+{
+	ScriptAssetPacker ();
+	void  Add (const string &);
+	void  AddFolder (const string &);
+	void  SetTempFile (const string &);
+	void  ToArchive (const string &);
+};
+
+template <>
+struct RC<ScriptAssetPacker> : ScriptAssetPacker
+{
+	RC (const ScriptAssetPacker &);
+};
+
+template <>
+struct RC<ScriptInputActions> : ScriptInputActions
+{
+	RC (const ScriptInputActions &);
+};
+
+template <>
+struct RC<ScriptPipelineCompiler> : ScriptPipelineCompiler
+{
+	RC (const ScriptPipelineCompiler &);
+};
+

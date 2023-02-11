@@ -54,7 +54,8 @@
 #if defined(AE_PLATFORM_LINUX)		or \
 	defined(AE_PLATFORM_ANDROID)	or \
 	defined(AE_PLATFORM_MACOS)		or \
-	defined(AE_PLATFORM_IOS)
+	defined(AE_PLATFORM_IOS)		or \
+	defined(AE_PLATFORM_EMSCRIPTEN)
 #	define AE_PLATFORM_UNIX_BASED
 #endif
 
@@ -67,6 +68,14 @@
 	defined(AE_CPU_ARCH_ARM32)
 #	define AE_CPU_ARCH_ARM_BASED
 #endif
+
+
+#if not defined(AE_OPTIMAL_MEMORY_ORDER) and (not defined(AE_DBG_OR_DEV))
+#  define AE_OPTIMAL_MEMORY_ORDER	1
+#else
+#  define AE_OPTIMAL_MEMORY_ORDER	0
+#endif
+
 
 #ifdef __INTELLISENSE__
 #  define AE_PLATFORM_ANDROID

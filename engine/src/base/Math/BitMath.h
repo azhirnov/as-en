@@ -339,12 +339,18 @@ namespace AE::Math
 /*
 =================================================
 	SafeLeftBitShift / SafeRightBitShift
+----
+	in specs:
+	  For negative 'x' the behaviour of << is undefined (until C++20).
+	  In any case, if the value of the right operand is negative or is greater or equal
+	  to the number of bits in the promoted left operand, the behavior is undefined.
 =================================================
 */
 	template <typename T>
 	ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  SafeLeftBitShift (const T& x, usize shift) __NE___
 	{
 		STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
+		ASSERT( x >= T(0) );
 		
 		return T( ToNearUInt(x) << (shift & (sizeof(x)*8 - 1)) );
 	}
@@ -353,6 +359,7 @@ namespace AE::Math
 	ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  SafeRightBitShift (const T& x, usize shift) __NE___
 	{
 		STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
+		ASSERT( x >= T(0) );
 
 		return T( ToNearUInt(x) >> (shift & (sizeof(x)*8 - 1)) );
 	}
@@ -470,6 +477,28 @@ namespace AE::Math
 	ND_ forceinline constexpr EnableIf<IsUnsignedInteger<T>, bool >  HasBit (const T &x, usize index) __NE___
 	{
 		return (x & (T{1} << index)) != 0;
+	}
+	
+/*
+=================================================
+	ToBit
+=================================================
+*/
+	template <typename T>
+	ND_ forceinline constexpr EnableIf<IsUnsignedInteger<T>, T >  ToBit (usize index) __NE___
+	{
+		return T{1} << index;
+	}
+
+/*
+=================================================
+	ReadBits
+=================================================
+*
+	template <typename T>
+	ND_ forceinline constexpr EnableIf<IsUnsignedInteger<T>, T >  ReadBits (const T bits, usize offset, usize bitCount) __NE___
+	{
+		return (bits >> offset) & ((T{1} << bitCount) - 1);
 	}
 
 /*

@@ -27,7 +27,7 @@ namespace AE::Base
 
 	// variables
 	private:
-		Threading::Mutex	_guard;
+		Mutex				_guard;
 		BaseAlloc_t			_base;
 
 

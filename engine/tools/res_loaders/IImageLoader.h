@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Thread-safe: yes
+*/
 
 #pragma once
 
@@ -20,9 +23,17 @@ namespace AE::ResLoader
 
 	// methods
 	public:
-		virtual bool  LoadImage (INOUT IntermImage &image, RStream &stream, bool flipY = false, Allocator_t allocator = null) = 0;
+		virtual bool  LoadImage (INOUT IntermImage&	image,
+								 RStream &			stream,
+								 Bool				flipY		= False{},
+								 Allocator_t		allocator	= null,
+								 EImageFormat		fileFormat	= Default)	__NE___ = 0;
 
-		bool  LoadImage (INOUT IntermImage &image, ArrayView<Path> directories, bool flipY = false, Allocator_t allocator = null);
+		bool  LoadImage (INOUT IntermImage&	image,
+						 ArrayView<Path>	directories,
+						 Bool				flipY		= False{},
+						 Allocator_t		allocator	= null,
+						 EImageFormat		fileFormat	= Default)			__NE___;
 
 
 	protected:

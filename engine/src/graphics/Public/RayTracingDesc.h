@@ -142,6 +142,7 @@ namespace AE::Graphics
 				uint				flags				:  8;	// ERTInstanceOpt
 				VDeviceAddress		rtas;
 
+				Instance ()												__NE___ {}
 				void	   Init ()										__NE___;
 				Instance&  SetIdentity ()								__NE___	{ transform			= RTMatrixStorage::Identity();	return *this; }
 				Instance&  SetTransform (const RTMatrixStorage &value)	__NE___	{ transform			= value;		return *this; }
@@ -160,6 +161,7 @@ namespace AE::Graphics
 				uint				instanceSBTOffset;
 				uint				rtasIndex;
 				
+				Instance ()												__NE___ {}
 				void	   Init ()										__NE___;
 				Instance&  SetIdentity ()								__NE___	{ transform			= RTMatrixStorage::Identity();	return *this; }
 				Instance&  SetTransform (const RTMatrixStorage &value)	__NE___	{ transform			= value;		return *this; }
@@ -242,6 +244,22 @@ namespace AE::Graphics
 		Bytes		rtasSize;
 		Bytes		buildScratchSize;
 		Bytes		updateScratchSize;
+	};
+
+
+
+	//
+	// Ray Tracing Shader Binding Table description
+	//
+	struct RTShaderBindingDesc
+	{
+		uint	maxMissShaders : 16;
+		uint	hitGroupStride : 16;	// in shader only 4 bits are used
+		uint	maxInstances;			// 'instanceSBTOffset' has 24 bits
+		// TODO: max callable
+
+		RTShaderBindingDesc () __NE___ :
+			maxMissShaders{0xFFFF}, hitGroupStride{0xFFFF}, maxInstances{UMax} {}
 	};
 	
 	

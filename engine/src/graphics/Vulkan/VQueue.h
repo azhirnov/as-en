@@ -207,66 +207,7 @@ namespace AE::Graphics
 		
 		static constexpr auto	_AllAccessMask =
 			VK_ACCESS_2_MEMORY_READ_BIT |
-			VK_ACCESS_2_MEMORY_WRITE_BIT |
-			_HostAccessMask |
-			_TransferAccessMask |
-			_ComputeAccessMask |
-			_RayTracingAccessMask |
-			_RTAccelStructBuildAccessMask |
-			_GraphicsAccessMask |
-			_VideoAccessMask;
-
-
-		static constexpr auto	_ReadOnlyAccessMask =
-			VK_ACCESS_2_HOST_READ_BIT |
-			VK_ACCESS_2_MEMORY_READ_BIT |
-			VK_ACCESS_2_TRANSFER_READ_BIT |
-			VK_ACCESS_2_UNIFORM_READ_BIT |
-			VK_ACCESS_2_SHADER_READ_BIT  |									// same as UNIFORM_READ | SHADER_SAMPLED_READ | SHADER_STORAGE_READ
-			VK_ACCESS_2_SHADER_SAMPLED_READ_BIT |
-			VK_ACCESS_2_SHADER_STORAGE_READ_BIT |
-			VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR |				// VK_KHR_acceleration_structure
-			VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT |
-			VK_ACCESS_2_INDEX_READ_BIT |
-			VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT |
-			VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT |
-			VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT |
-			VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-			VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR |		// VK_KHR_fragment_shading_rate 
-			VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT |					// VK_EXT_fragment_density_map
-			VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR |					// VK_KHR_ray_tracing_pipeline
-			VK_ACCESS_2_MICROMAP_READ_BIT_EXT |								// VK_EXT_opacity_micromap
-			VK_ACCESS_2_OPTICAL_FLOW_READ_BIT_NV |							// VK_NV_optical_flow
-			VK_ACCESS_2_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT |			// VK_EXT_transform_feedback
-			VK_ACCESS_2_CONDITIONAL_RENDERING_READ_BIT_EXT |				// VK_EXT_conditional_rendering
-			VK_ACCESS_2_COMMAND_PREPROCESS_READ_BIT_NV |					// VK_NV_device_generated_commands
-			VK_ACCESS_2_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT |			// VK_EXT_blend_operation_advanced
-			VK_ACCESS_2_INVOCATION_MASK_READ_BIT_HUAWEI						// VK_HUAWEI_invocation_mask
-			//VK_ACCESS_2_DESCRIPTOR_BUFFER_READ_BIT_EXT					// VK_EXT_descriptor_buffer
-		#ifdef VK_ENABLE_BETA_EXTENSIONS
-			| VK_ACCESS_2_VIDEO_DECODE_READ_BIT_KHR							// VK_KHR_video_encode_queue
-			| VK_ACCESS_2_VIDEO_ENCODE_READ_BIT_KHR							// VK_KHR_video_encode_queue
-		#endif
-			;
-		static constexpr auto	_WriteOnlyAccessMask =
-			VK_ACCESS_2_HOST_WRITE_BIT |
-			VK_ACCESS_2_SHADER_WRITE_BIT  |									// same as STORAGE_WRITE
-			VK_ACCESS_2_MEMORY_WRITE_BIT |
-			VK_ACCESS_2_TRANSFER_WRITE_BIT |
-			VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT |
-			VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR |				// VK_KHR_acceleration_structure
-			VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT |
-			VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
-			VK_ACCESS_2_MICROMAP_WRITE_BIT_EXT  |							// VK_EXT_opacity_micromap
-			VK_ACCESS_2_OPTICAL_FLOW_WRITE_BIT_NV |							// VK_NV_optical_flow
-			VK_ACCESS_2_TRANSFORM_FEEDBACK_WRITE_BIT_EXT |					// VK_EXT_transform_feedback
-			VK_ACCESS_2_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT |			// VK_EXT_transform_feedback
-			VK_ACCESS_2_COMMAND_PREPROCESS_WRITE_BIT_NV						// VK_NV_device_generated_commands
-		#ifdef VK_ENABLE_BETA_EXTENSIONS
-			| VK_ACCESS_2_VIDEO_DECODE_WRITE_BIT_KHR						// VK_KHR_video_encode_queue
-			| VK_ACCESS_2_VIDEO_ENCODE_WRITE_BIT_KHR						// VK_KHR_video_encode_queue
-		#endif
-			;
+			VK_ACCESS_2_MEMORY_WRITE_BIT;
 		
 		static constexpr VkPipelineStageFlagBits2	_StageScopes  [] = {
 			_HostStageMask,								// Host
@@ -297,11 +238,63 @@ namespace AE::Graphics
 		STATIC_ASSERT( CountOf(_AccessScopes) == uint(EPipelineScope::_Count) );
 
 	public:
+		static constexpr auto	ReadOnlyAccessMask =
+			VK_ACCESS_2_HOST_READ_BIT |
+			VK_ACCESS_2_MEMORY_READ_BIT |
+			VK_ACCESS_2_TRANSFER_READ_BIT |
+			VK_ACCESS_2_UNIFORM_READ_BIT |
+			VK_ACCESS_2_SHADER_READ_BIT  |									// same as UNIFORM_READ | SHADER_SAMPLED_READ | SHADER_STORAGE_READ
+			VK_ACCESS_2_SHADER_SAMPLED_READ_BIT |
+			VK_ACCESS_2_SHADER_STORAGE_READ_BIT |
+			VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR |				// VK_KHR_acceleration_structure
+			VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT |
+			VK_ACCESS_2_INDEX_READ_BIT |
+			VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT |
+			VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT |
+			VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT |
+			VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+			VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR |		// VK_KHR_fragment_shading_rate 
+			VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT |					// VK_EXT_fragment_density_map
+			VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR |					// VK_KHR_ray_tracing_pipeline
+			VK_ACCESS_2_MICROMAP_READ_BIT_EXT |								// VK_EXT_opacity_micromap
+			VK_ACCESS_2_OPTICAL_FLOW_READ_BIT_NV |							// VK_NV_optical_flow
+			VK_ACCESS_2_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT |			// VK_EXT_transform_feedback
+			VK_ACCESS_2_CONDITIONAL_RENDERING_READ_BIT_EXT |				// VK_EXT_conditional_rendering
+			VK_ACCESS_2_COMMAND_PREPROCESS_READ_BIT_NV |					// VK_NV_device_generated_commands
+			VK_ACCESS_2_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT |			// VK_EXT_blend_operation_advanced
+			VK_ACCESS_2_INVOCATION_MASK_READ_BIT_HUAWEI						// VK_HUAWEI_invocation_mask
+			//VK_ACCESS_2_DESCRIPTOR_BUFFER_READ_BIT_EXT					// VK_EXT_descriptor_buffer
+		#ifdef VK_ENABLE_BETA_EXTENSIONS
+			| VK_ACCESS_2_VIDEO_DECODE_READ_BIT_KHR							// VK_KHR_video_encode_queue
+			| VK_ACCESS_2_VIDEO_ENCODE_READ_BIT_KHR							// VK_KHR_video_encode_queue
+		#endif
+			;
+		static constexpr auto	WriteOnlyAccessMask =
+			VK_ACCESS_2_HOST_WRITE_BIT |
+			VK_ACCESS_2_SHADER_WRITE_BIT  |									// same as STORAGE_WRITE
+			VK_ACCESS_2_MEMORY_WRITE_BIT |
+			VK_ACCESS_2_TRANSFER_WRITE_BIT |
+			VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT |
+			VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR |				// VK_KHR_acceleration_structure
+			VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT |
+			VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT |
+			VK_ACCESS_2_MICROMAP_WRITE_BIT_EXT  |							// VK_EXT_opacity_micromap
+			VK_ACCESS_2_OPTICAL_FLOW_WRITE_BIT_NV |							// VK_NV_optical_flow
+			VK_ACCESS_2_TRANSFORM_FEEDBACK_WRITE_BIT_EXT |					// VK_EXT_transform_feedback
+			VK_ACCESS_2_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT |			// VK_EXT_transform_feedback
+			VK_ACCESS_2_COMMAND_PREPROCESS_WRITE_BIT_NV						// VK_NV_device_generated_commands
+		#ifdef VK_ENABLE_BETA_EXTENSIONS
+			| VK_ACCESS_2_VIDEO_DECODE_WRITE_BIT_KHR						// VK_KHR_video_encode_queue
+			| VK_ACCESS_2_VIDEO_ENCODE_WRITE_BIT_KHR						// VK_KHR_video_encode_queue
+		#endif
+			;
+
+	public:
 		ND_ static constexpr auto	GetStages (EPipelineScope scope)		__NE___	{ return _StageScopes[uint(scope)]; }
 		ND_ static constexpr auto	GetAccess (EPipelineScope scope)		__NE___	{ return _AccessScopes[uint(scope)]; }
 		
-		ND_ static constexpr auto	GetReadAccess (EPipelineScope scope)	__NE___	{ return _AccessScopes[uint(scope)] & _ReadOnlyAccessMask; }
-		ND_ static constexpr auto	GetWriteAccess (EPipelineScope scope)	__NE___	{ return _AccessScopes[uint(scope)] & _WriteOnlyAccessMask; }
+		ND_ static constexpr auto	GetReadAccess (EPipelineScope scope)	__NE___	{ return _AccessScopes[uint(scope)] & ReadOnlyAccessMask; }
+		ND_ static constexpr auto	GetWriteAccess (EPipelineScope scope)	__NE___	{ return _AccessScopes[uint(scope)] & WriteOnlyAccessMask; }
 
 		ND_ static constexpr auto	GetStages (std::initializer_list<EPipelineScope> scopes) __NE___
 		{

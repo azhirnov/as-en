@@ -4,6 +4,7 @@
 #include "../base/UnitTest_Common.h"
 using namespace AE::Threading;
 
+#ifndef AE_DISABLE_THREADS
 namespace
 {
 	class DummyTask final : public IAsyncTask
@@ -41,12 +42,12 @@ namespace
 
 		const uint	thread_count = Max( 2u, ThreadUtils::MaxThreadCount() );
 		
-		Array< std::thread >	threads;
+		Array< StdThread >	threads;
 		threads.reserve( thread_count - 1 );
 		
 		for (uint tid = 0; tid < thread_count - 1; ++tid)
 		{
-			threads.push_back( std::thread{ [&q, tid]()
+			threads.push_back( StdThread{ [&q, tid]()
 				{
 					for (uint c = 0; c < 1000; ++c)
 					{
@@ -80,3 +81,10 @@ extern void UnitTest_LfTaskQueue ()
 
 	TEST_PASSED();
 }
+
+#else
+
+extern void UnitTest_LfTaskQueue ()
+{}
+
+#endif

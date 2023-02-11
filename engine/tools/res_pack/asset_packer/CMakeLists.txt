@@ -1,4 +1,3 @@
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 set( GRAPHICS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/graphics" )
 set( GRAPHICS_SRC
@@ -23,7 +22,7 @@ source_group( "external/graphics" FILES ${GRAPHICS_SRC} )
 source_group( "external/vfs" FILES ${VFS_SRC} )
 
 target_link_libraries( "AssetPacker" PUBLIC "Serializing" "Scripting" "ResourceLoaders" "AtlasTools" )
-target_compile_definitions( "AssetPacker" PUBLIC "AE_BUILD_ASSET_PACKER" )
+target_compile_definitions( "AssetPacker" PRIVATE "AE_BUILD_ASSET_PACKER" "AE_OPTIMIZE_IDS=0" )
 target_include_directories( "AssetPacker" PUBLIC "." )
 
 if (TARGET "FreeType-lib")

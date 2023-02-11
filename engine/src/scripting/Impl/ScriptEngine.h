@@ -83,8 +83,8 @@ namespace AE::Scripting
 		AngelScript::asIScriptModule*	_module;
 		
 		#if AE_DBG_SCRIPTS
-			mutable std::recursive_mutex	_dbgLocationGuard;
-			DbgLocationMap_t				_dbgLocation;
+			mutable RecursiveMutex		_dbgLocationGuard;
+			DbgLocationMap_t			_dbgLocation;
 		#endif
 
 
@@ -122,13 +122,13 @@ namespace AE::Scripting
 		std::atomic<usize>						_moduleIndex	{0};
 		
 		// Generate C++ header to use autocomplete in IDE for scripts
-		std::mutex					_cppHeaderGuard;
+		Mutex						_cppHeaderGuard;
 		CppHeaderMap_t				_cppHeaderMap;
 		Array<String>				_cppHeaders;
 		bool						_genCppHeader	= false;
 
 		#if AE_DBG_SCRIPTS
-			std::recursive_mutex	_dbgLocationGuard;
+			RecursiveMutex			_dbgLocationGuard;
 			DbgLocationMap_t		_dbgLocation;
 		#endif
 

@@ -2,8 +2,9 @@
 
 #pragma once
 
-#if defined(AE_PLATFORM_WINDOWS) and not defined(AE_ENABLE_GLFW)
+#include "platform/WinAPI/WinAPICommon.h"
 
+#ifdef AE_WINAPI_WINDOW
 # include "platform/Private/ApplicationBase.h"
 # include "platform/WinAPI/WindowWinAPI.h"
 # include "platform/Private/ApplicationBase.h"
@@ -68,4 +69,4 @@ namespace AE::App
 
 } // AE::App
 
-#endif // AE_PLATFORM_WINDOWS and not AE_ENABLE_GLFW
+#endif // AE_WINAPI_WINDOW

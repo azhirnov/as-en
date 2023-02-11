@@ -39,29 +39,36 @@ namespace AE::VFS
 
 	// methods
 	public:
-		DiskDynamicStorage () {}
-		~DiskDynamicStorage () override {}
+		DiskDynamicStorage ()														__NE___	{}
+		~DiskDynamicStorage ()														__NE_OV {}
 
 		ND_ bool  Create (const Path &folder);
 
 
 	  // IVirtualFileStorage //
-		RC<RStream>		OpenAsStream (const FileName &name) const override;
-		RC<RDataSource>	OpenAsSource (const FileName &name) const override;
+		bool  Open (OUT RC<RStream> &stream, const FileName &name)					C_NE_OV;
+		bool  Open (OUT RC<RDataSource> &ds, const FileName &name)					C_NE_OV;
+		bool  Open (OUT RC<AsyncRDataSource> &ds, const FileName &name)				C_NE_OV;
 
-		bool	Exists (const FileName &name) const override;
-		bool	Exists (const FileGroupName &name) const override;
+		bool  Exists (const FileName &name)											C_NE_OV;
+		bool  Exists (const FileGroupName &name)									C_NE_OV;
 
 	private:
-		void				_Append (INOUT GlobalFileMap_t &) const override					{}
-		RC<RStream>			_OpenAsStreamByIter (const FileName &, const void*) const override	{ DBG_WARNING("not supported");  return Default; }
-		RC<RDataSource>		_OpenAsSourceByIter (const FileName &, const void*) const override	{ DBG_WARNING("not supported");  return Default; }
-		
-		ND_ RC<RStream>		_OpenAsStream (const FileName &name) const;
-		ND_ RC<RDataSource>	_OpenAsSource (const FileName &name) const;
-		ND_ bool			_Exists (const FileName &name) const;
+		void  _Append (INOUT GlobalFileMap_t &)										C_Th_OV	{}
 
-		ND_ bool  _Update () const;
+		bool  _OpenByIter (OUT RC<RStream>&, const FileName &, const void*)			C_NE_OV	{ DBG_WARNING("not supported");  return false; }
+		bool  _OpenByIter (OUT RC<RDataSource>&, const FileName &, const void*)		C_NE_OV	{ DBG_WARNING("not supported");  return false; }
+		bool  _OpenByIter (OUT RC<AsyncRDataSource>&, const FileName &, const void*)C_NE_OV	{ DBG_WARNING("not supported");  return false; }
+		
+		template <typename ImplType, typename ResultType>
+		ND_ bool  _Open (OUT ResultType &, const FileName &name)					C_NE___;
+
+		template <typename ImplType, typename ResultType>
+		ND_ bool  _Open2 (OUT ResultType &, const FileName &name)					C_NE___;
+
+		ND_ bool  _Exists (const FileName &name)									C_NE___;
+
+		ND_ bool  _Update ()														C_NE___;
 	};
 
 

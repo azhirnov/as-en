@@ -29,13 +29,16 @@ namespace AE::Base
 	struct FixedSet
 	{
 		STATIC_ASSERT( ArraySize < 256 );
-		//STATIC_ASSERT( IsNothrowMoveCtor<Value> );
+		STATIC_ASSERT( IsNothrowDtor< Value >);
+		//STATIC_ASSERT( IsNothrowMoveCtor< Value >);
 
 	// types
 	private:
 		using Self			= FixedSet< Value, ArraySize, Policy >;
 		using Index_t		= Conditional< (ArraySize < 0xFF), ubyte, Conditional< (ArraySize < 0xFFFF), ushort, uint >>;
 		using CPolicy_t		= Policy;
+		
+		static constexpr bool	_IsNothrowCopy = IsNothrowCopyCtor<Value>;
 
 	public:
 		using value_type		= Value;
@@ -57,7 +60,7 @@ namespace AE::Base
 	public:
 		FixedSet ()													__NE___;
 		FixedSet (Self &&)											__NE___;
-		FixedSet (const Self &)										noexcept(IsNothrowCopyCtor<Value>);
+		FixedSet (const Self &)										noexcept(_IsNothrowCopy);
 
 		~FixedSet ()												__NE___	{ clear(); }
 		
@@ -70,22 +73,22 @@ namespace AE::Base
 		ND_ static constexpr usize	capacity ()						__NE___	{ return ArraySize; }
 
 			Self&	operator = (Self &&)							__NE___;
-			Self&	operator = (const Self &)						noexcept(IsNothrowCopyCtor<Value>);
+			Self&	operator = (const Self &)						noexcept(_IsNothrowCopy);
 
 		ND_ bool	operator == (const Self &rhs)					C_NE___;
 		ND_ bool	operator != (const Self &rhs)					C_NE___	{ return not (*this == rhs); }
 
 			template <typename ValueType>
-			Pair<iterator,bool>  emplace (ValueType&& value)		noexcept(IsNothrowCopyCtor<Value>);
+			Pair<iterator,bool>  emplace (ValueType&& value)		noexcept(_IsNothrowCopy);
 
-			Pair<iterator,bool>  insert (const Value &value)		noexcept(IsNothrowCopyCtor<Value>)	{ return emplace( value ); }
-			Pair<iterator,bool>  insert (Value&& value)				__NE___								{ return emplace( RVRef(value) ); }
+			Pair<iterator,bool>  insert (const Value &value)		noexcept(_IsNothrowCopy)	{ return emplace( value ); }
+			Pair<iterator,bool>  insert (Value&& value)				__NE___						{ return emplace( RVRef(value) ); }
 			
 			template <typename ValueType>
-			Pair<iterator,bool>  insert_or_assign (ValueType&& value) noexcept(IsNothrowCopyCtor<Value>);
+			Pair<iterator,bool>  insert_or_assign (ValueType&& value) noexcept(_IsNothrowCopy);
 			
 			template <typename ValueType>
-			bool		try_insert (ValueType&& value)				noexcept(IsNothrowCopyCtor<Value>);
+			bool		try_insert (ValueType&& value)				noexcept(_IsNothrowCopy);
 			
 			template <typename KeyType>
 			bool		erase (const KeyType &key)					__NE___;
@@ -137,7 +140,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	FixedSet<V,S,CS>::FixedSet (const Self &other) noexcept(IsNothrowCopyCtor<V>) : _count{ other._count }
+	FixedSet<V,S,CS>::FixedSet (const Self &other) noexcept(_IsNothrowCopy) : _count{ other._count }
 	{
 		ASSERT( not _IsMemoryAliased( &other ));
 
@@ -191,7 +194,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, usize S, typename CS>
-	FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (const Self &rhs) noexcept(IsNothrowCopyCtor<V>)
+	FixedSet<V,S,CS>&  FixedSet<V,S,CS>::operator = (const Self &rhs) noexcept(_IsNothrowCopy)
 	{
 		ASSERT( not _IsMemoryAliased( &rhs ));
 		
@@ -246,7 +249,7 @@ namespace AE::Base
 */
 	template <typename V, usize S, typename CS>
 	template <typename ValueType>
-	bool  FixedSet<V,S,CS>::try_insert (ValueType&& value) noexcept(IsNothrowCopyCtor<V>)
+	bool  FixedSet<V,S,CS>::try_insert (ValueType&& value) noexcept(_IsNothrowCopy)
 	{
 		if_likely( _count < capacity() )
 		{
@@ -264,7 +267,7 @@ namespace AE::Base
 	template <typename V, usize S, typename CS>
 	template <typename ValueType>
 	Pair< typename FixedSet<V,S,CS>::iterator, bool >
-		FixedSet<V,S,CS>::emplace (ValueType&& value) noexcept(IsNothrowCopyCtor<V>)
+		FixedSet<V,S,CS>::emplace (ValueType&& value) noexcept(_IsNothrowCopy)
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< ValueType, value_type, Index_t >;
 
@@ -298,7 +301,7 @@ namespace AE::Base
 	template <typename V, usize S, typename CS>
 	template <typename ValueType>
 	Pair< typename FixedSet<V,S,CS>::iterator, bool >
-		FixedSet<V,S,CS>::insert_or_assign (ValueType&& value) noexcept(IsNothrowCopyCtor<V>)
+		FixedSet<V,S,CS>::insert_or_assign (ValueType&& value) noexcept(_IsNothrowCopy)
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< ValueType, value_type, Index_t >;
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Vec.h"
+#include "base/Math/Math.h"
 #include "base/Math/Bytes.h"
 
 namespace AE::Math
@@ -15,7 +15,7 @@ namespace AE::Math
 	template <typename T>
 	struct Range
 	{
-		STATIC_ASSERT( IsScalar<T> or IsBytes<T> );
+		//STATIC_ASSERT( IsScalar<T> or IsBytes<T> );
 
 	// types
 	public:
@@ -32,8 +32,10 @@ namespace AE::Math
 	public:
 		constexpr Range () __NE___ : begin{}, end{}
 		{
+		  #ifdef AE_COMPILETIME_OFFSETOF
 			// check if supported cast Rectangle to array
 			STATIC_ASSERT( offsetof(Self, begin) + sizeof(T) == offsetof(Self, end) );
+		  #endif
 		}
 
 		constexpr Range (T begin, T end) __NE___ :
@@ -59,8 +61,5 @@ namespace AE::Math
 	using RangeU	= Range<uint>;
 	using RangeF	= Range<float>;
 	using RangeD	= Range<double>;
-
-	
-
 
 } // AE::Math

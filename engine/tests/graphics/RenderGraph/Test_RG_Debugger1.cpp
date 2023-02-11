@@ -6,22 +6,22 @@ namespace
 {
 	struct Db1_TestData
 	{
-		Mutex						guard;
+		Mutex							guard;
 
-		Strong<ImageID>				img;
-		Strong<ImageViewID>			view;
+		GAutorelease<ImageID>			img;
+		GAutorelease<ImageViewID>		view;
 		
-		Strong<ComputePipelineID>	ppln;
+		GAutorelease<ComputePipelineID>	ppln;
 		
-		Strong<DescriptorSetID>		ds;
-		DescSetBinding				ds_index;
+		GAutorelease<DescriptorSetID>	ds;
+		DescSetBinding					ds_index;
 		
-		ShaderDebugger				debugger;
+		ShaderDebugger					debugger;
 
-		AsyncTask					result;
-		bool						isOK		= false;
+		AsyncTask						result;
+		bool							isOK		= false;
 
-		RC<GfxLinearMemAllocator>	gfxAlloc;
+		RC<GfxLinearMemAllocator>		gfxAlloc;
 	};
 
 	
@@ -133,14 +133,14 @@ no source
 
 //> color: float4 {0.000000, 0.000000, 1.000000, 0.000000}
 //  gl_LocalInvocationID: uint3 {0, 0, 0}
-63. color = vec4(float(gl_LocalInvocationID.x) / float(gl_WorkGroupSize.x),
-64. 					  float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y),
-65. 					  1.0, 0.0);
+6. color = vec4(float(gl_LocalInvocationID.x) / float(gl_WorkGroupSize.x),
+7. 					  float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y),
+8. 					  1.0, 0.0);
 
 //> imageStore(): void
 //  color: float4 {0.000000, 0.000000, 1.000000, 0.000000}
 //  gl_GlobalInvocationID: uint3 {8, 8, 0}
-67. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
+10. 	imageStore( un_OutImage, ivec2(gl_GlobalInvocationID.xy), color );
 
 )";
 						ok &= (trace_str[0] == ref_str);
@@ -195,7 +195,7 @@ no source
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Debugger1"} );
+		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Debugger1"} );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Run< Db1_ComputeTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Compute task"} );
@@ -211,7 +211,6 @@ no source
 		CHECK_ERR( Scheduler().Wait({ t.result }));
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
-		CHECK_ERR( res_mngr.ReleaseResources( t.view, t.img, t.ds, t.ppln ));
 		CHECK_ERR( t.isOK );
 
 		return true;
@@ -222,10 +221,12 @@ no source
 
 bool RGTest::Test_Debugger1 ()
 {
-	CHECK_ERR(( Debugger1Test< DirectCtx, DirectCtx::Transfer >()));
+	bool	result = true;
+
+	RG_CHECK( Debugger1Test< DirectCtx, DirectCtx::Transfer >());
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

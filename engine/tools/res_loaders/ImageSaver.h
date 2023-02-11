@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Thread-safe: yes
+*/
 
 #pragma once
 
@@ -16,10 +19,9 @@ namespace AE::ResLoader
 	{
 	// methods
 	public:
-		bool  SaveImage (StringView filename, const IntermImage &image);
-		bool  SaveImage (const Path &filename, const IntermImage &image);
+		bool  SaveImage (const Path &filename, const IntermImage &image, EImageFormat fileFormat = Default)		__NE___;
 
-		virtual bool  SaveImage (WStream &stream, const IntermImage &image) = 0;
+		virtual bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat = Default)	__NE___ = 0;
 	};
 
 

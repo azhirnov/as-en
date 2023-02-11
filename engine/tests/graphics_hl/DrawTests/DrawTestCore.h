@@ -94,4 +94,7 @@ ND_ inline String  _GetFuncName (StringView src)
 		return String{ src };
 }
 
-# define TEST_NAME	_GetFuncName( AE_FUNCTION_NAME )
+
+# define TEST_NAME			_GetFuncName( AE_FUNCTION_NAME )
+
+# define RG_CHECK( ... )	{ bool res = (__VA_ARGS__);  CHECK_MSG( res, AE_TOSTRING( __VA_ARGS__ ));  result &= res; }

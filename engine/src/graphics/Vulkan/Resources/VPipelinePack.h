@@ -12,6 +12,7 @@
 # include "threading/Memory/LfLinearAllocator.h"
 
 # include "graphics/Public/ResourceManager.h"
+# include "graphics/Public/ShaderDebugger.h"
 
 # include "PipelineCompilerImpl.h"
 
@@ -30,6 +31,7 @@ namespace AE::Graphics
 	class VRTShaderBindingTable;
 
 	using ShaderTracePtr = Ptr< const PipelineCompiler::ShaderTrace >;
+	
 
 } // AE::Graphics
 

@@ -45,7 +45,7 @@ namespace
 
 		void CacheSymbolNode (TIntermSymbol* node, bool isUserDefined)
 		{
-			_cachedSymbols.insert({ node->getName(), node });
+			_cachedSymbols.emplace( node->getName(), node );
 			AddSymbol( node, isUserDefined );
 		}
 
@@ -71,6 +71,7 @@ void  DebugInfo::AddSymbol (TIntermSymbol* node, bool isUserDefined)
 {
 	ASSERT( node );
 	ASSERT( isUserDefined or not _startedUserDefinedSymbols );
+	Unused( isUserDefined );
 
 	_maxSymbolId = Max( _maxSymbolId, node->getId() );
 }
@@ -111,7 +112,7 @@ TIntermBinary*  DebugInfo::GetDebugStorageField (const char* name) const
 {
 	CHECK_ERR( _dbgStorage );
 		
-	TPublicType		index_type;		index_type.init({});
+	TPublicType		index_type;		index_type.init( Default );
 	index_type.basicType			= TBasicType::EbtInt;
 	index_type.qualifier.storage	= TStorageQualifier::EvqConst;
 
@@ -273,7 +274,7 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 	//      coherent float  outPixels [];
 	//  } dbg_ShaderTrace;
 	
-	TPublicType		type;		type.init({});
+	TPublicType		type;		type.init( Default );
 	type.basicType				= TBasicType::EbtFloat;
 	type.vectorSize				= 2;
 	type.qualifier.storage		= TStorageQualifier::EvqBuffer;
@@ -307,9 +308,9 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 	TType*			pixels		= new TType{type};		pixels->setFieldName( "outPixels" );
 
 	TTypeList*		type_list	= new TTypeList{};
-	type_list->push_back({ scale,		TSourceLoc{} });
-	type_list->push_back({ dimension,	TSourceLoc{} });
-	type_list->push_back({ pixels,		TSourceLoc{} });
+	type_list->emplace_back( scale,		TSourceLoc{} );
+	type_list->emplace_back( dimension,	TSourceLoc{} );
+	type_list->emplace_back( pixels,	TSourceLoc{} );
 
 	TQualifier		block_qual;	block_qual.clear();
 	block_qual.storage			= TStorageQualifier::EvqBuffer;
@@ -342,7 +343,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( shader == EShLangFragment and not dbgInfo.GetCachedSymbolNode( "gl_FragCoord" ))
 	{
-		TPublicType		vec4_type;	vec4_type.init({});
+		TPublicType		vec4_type;	vec4_type.init( Default );
 		vec4_type.basicType			= TBasicType::EbtFloat;
 		vec4_type.vectorSize		= 4;
 		vec4_type.qualifier.storage	= TStorageQualifier::EvqFragCoord;
@@ -355,7 +356,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( is_compute and not dbgInfo.GetCachedSymbolNode( "gl_GlobalInvocationID" ))
 	{
-		TPublicType		uint_type;	uint_type.init({});
+		TPublicType		uint_type;	uint_type.init( Default );
 		uint_type.basicType			= TBasicType::EbtUint;
 		uint_type.vectorSize		= 3;
 		uint_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
@@ -368,7 +369,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( need_launch_id and not dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" ))
 	{
-		TPublicType		uint_type;	uint_type.init({});
+		TPublicType		uint_type;	uint_type.init( Default );
 		uint_type.basicType			= TBasicType::EbtUint;
 		uint_type.vectorSize		= 3;
 		uint_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
@@ -387,7 +388,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 */
 ND_ static TIntermBinary*  GetFragmentCoord (TIntermSymbol* coord, DebugInfo &dbgInfo)
 {
-	TPublicType		type;		type.init({});
+	TPublicType		type;		type.init( Default );
 	type.basicType				= TBasicType::EbtInt;
 	type.vectorSize				= 1;
 	type.qualifier.precision	= TPrecisionQualifier::EpqHigh;
@@ -475,7 +476,7 @@ ND_ static TIntermBinary*  GetFragmentCoord (TIntermSymbol* coord, DebugInfo &db
 */
 ND_ static TIntermBinary*  GetComputeCoord (TIntermSymbol* coord, DebugInfo &dbgInfo)
 {
-	TPublicType		type;		type.init({});
+	TPublicType		type;		type.init( Default );
 	type.basicType				= TBasicType::EbtFloat;
 	type.vectorSize				= 2;
 	type.qualifier.precision	= TPrecisionQualifier::EpqHigh;
@@ -551,7 +552,7 @@ ND_ static TIntermBinary*  GetComputeCoord (TIntermSymbol* coord, DebugInfo &dbg
 */
 ND_ static TIntermBinary*  GetRayTracingCoord (TIntermSymbol* coord, DebugInfo &dbgInfo)
 {
-	TPublicType		type;		type.init({});
+	TPublicType		type;		type.init( Default );
 	type.basicType				= TBasicType::EbtFloat;
 	type.vectorSize				= 2;
 	type.qualifier.precision	= TPrecisionQualifier::EpqHigh;
@@ -634,13 +635,13 @@ ND_ static bool  InsertShaderTimeMeasurementToEntry (TIntermAggregate* entry, De
 {
 	TIntermSymbol*	start_time	= null;
 
-	TPublicType		type;		type.init({});
+	TPublicType		type;		type.init( Default );
 	type.basicType				= TBasicType::EbtInt;
 	type.vectorSize				= 2;
 	type.qualifier.storage		= TStorageQualifier::EvqTemporary;
 	type.qualifier.precision	= TPrecisionQualifier::EpqHigh;
 			
-	TPublicType		index_type;	 index_type.init({});
+	TPublicType		index_type;	 index_type.init( Default );
 	index_type.basicType		 = TBasicType::EbtInt;
 	index_type.qualifier.storage = TStorageQualifier::EvqConst;
 	

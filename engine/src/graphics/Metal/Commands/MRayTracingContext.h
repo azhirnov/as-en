@@ -12,7 +12,7 @@
 # include "graphics/Metal/Commands/MBaseDirectContext.h"
 # include "graphics/Metal/Commands/MAccumBarriers.h"
 # include "graphics/Metal/Commands/MArgumentSetter.h"
-# include "graphics/Metal/MRenderTaskScheduler.h"
+# include "graphics/Metal/Commands/MBoundDescriptorSets.h"
 
 namespace AE::Graphics::_hidden_
 {
@@ -51,11 +51,11 @@ namespace AE::Graphics::_hidden_
 		ND_ auto  						_Encoder ()								__NE___;
 		ND_ MetalComputeCommandEncoder	_Encoder2 ()							__NE___	{ return MetalComputeCommandEncoder{ _cmdbuf.GetEncoder().Ptr() }; }
 
-		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize)	{}
+		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
 
-		void  _DebugMarker (DebugLabel dbg)							{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
-		void  _PushDebugGroup (DebugLabel dbg)						{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
-		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
+		void  _DebugMarker (DebugLabel dbg)												{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)											{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()															{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
 	};
 	
 
@@ -91,7 +91,7 @@ namespace AE::Graphics::_hidden_
 		explicit _MIndirectRayTracingCtx (const RenderTask &task)					__Th___ : _MIndirectRayTracingCtx{ task, Default } {}
 		_MIndirectRayTracingCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)	__Th___;
 
-		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize)		{}
+		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
 	};
 
 
@@ -107,24 +107,29 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsRayTracingContext			= true;
 		static constexpr bool	IsMetalRayTracingContext	= true;
+
+		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
 	private:
 		using RawCtx		= CtxImpl;
 		using AccumBar		= MAccumBarriers< _MRayTracingContextImpl< CtxImpl >>;
 		using DeferredBar	= MAccumDeferredBarriersForCtx< _MRayTracingContextImpl< CtxImpl >>;
 
+		
+	// variables
+	private:
+		MBoundDescriptorSets	_boundDS;
+
 
 	// methods
 	public:
 		explicit _MRayTracingContextImpl (const RenderTask &task)													__Th___;
-
-		template <typename RawCmdBufType>
-		_MRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)										__Th___;
+		_MRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)											__Th___;
 
 		_MRayTracingContextImpl ()																					= delete;
 		_MRayTracingContextImpl (const _MRayTracingContextImpl &)													= delete;
 
 		void  BindPipeline (RayTracingPipelineID ppln)																__Th_OV;
-		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th_OV;
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th_OV	{ _boundDS.Bind( *this, index, ds, dynamicOffsets ); }
 		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th_OV;
 
 		void  SetStackSize (Bytes size)																				__Th_OV;
@@ -169,8 +174,7 @@ namespace AE::Graphics::_hidden_
 	}
 		
 	template <typename C>
-	template <typename RawCmdBufType>
-	_MRayTracingContextImpl<C>::_MRayTracingContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+	_MRayTracingContextImpl<C>::_MRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf) }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
@@ -187,22 +191,6 @@ namespace AE::Graphics::_hidden_
 		auto&	cppln = _GetResourcesOrThrow( ppln );
 
 		RawCtx::_BindPipeline( cppln.Handle(), cppln.LocalSize() );
-	}
-	
-/*
-=================================================
-	BindDescriptorSet
-=================================================
-*/
-	template <typename C>
-	void  _MRayTracingContextImpl<C>::BindDescriptorSet (const DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
-	{
-		CHECK_THROW( dynamicOffsets.empty() );	// not supported yet
-		
-		auto&	desc_set = _GetResourcesOrThrow( ds );
-		ASSERT( desc_set.ShaderStages() == EShaderStages::Compute );	// TODO: ray tracing stages?
-		
-		this->Arguments().SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(index.mtlIndex.Compute()) );
 	}
 
 /*
@@ -226,6 +214,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MRayTracingContextImpl<C>::SetStackSize (Bytes size)
 	{
+		Unused( size );
 	}
 	
 /*
@@ -236,21 +225,25 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MRayTracingContextImpl<C>::TraceRays (const uint2 dim, RTShaderBindingID sbt)
 	{
+		Unused( dim, sbt );
 	}
 	
 	template <typename C>
 	void  _MRayTracingContextImpl<C>::TraceRays (const uint3 dim, RTShaderBindingID sbt)
 	{
+		Unused( dim, sbt );
 	}
 		
 	template <typename C>
 	void  _MRayTracingContextImpl<C>::TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)
 	{
+		Unused( dim, sbt );
 	}
 	
 	template <typename C>
 	void  _MRayTracingContextImpl<C>::TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)
 	{
+		Unused( dim, sbt );
 	}
 		
 /*
@@ -261,11 +254,13 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MRayTracingContextImpl<C>::TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)
 	{
+		Unused( sbt, indirectBuffer, indirectBufferOffset );
 	}
 	
 	template <typename C>
 	void  _MRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)
 	{
+		Unused( sbt, indirectBuffer, indirectBufferOffset );
 	}
 	
 /*
@@ -276,6 +271,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>	
 	void  _MRayTracingContextImpl<C>::TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)
 	{
+		Unused( indirectBuffer, indirectBufferOffset );
 	}
 
 

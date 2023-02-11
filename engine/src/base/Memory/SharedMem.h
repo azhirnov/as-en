@@ -45,7 +45,7 @@ namespace _hidden_
 	// variables
 	private:
 		Bytes32u		_size;
-		POTValue		_align;
+		POTBytes		_align;
 		Extra_t			_extra;
 		Allocator_t		_allocator;
 
@@ -55,7 +55,7 @@ namespace _hidden_
 		ND_ void const*		Data ()			C_NE___	{ return this + AlignUp( SizeOf<Self>, _align ); }
 		ND_ void*			Data ()			__NE___	{ return this + AlignUp( SizeOf<Self>, _align ); }
 		ND_ Bytes			Size ()			C_NE___	{ return _size; }
-		ND_ Bytes			Align ()		C_NE___	{ return Bytes{ _align.ToValue<usize>() }; }
+		ND_ Bytes			Align ()		C_NE___	{ return Bytes{ _align }; }
 		ND_ auto			Allocator ()	C_NE___	{ return _allocator; }
 		
 		ND_ auto&			Extra ()		__NE___	{ if constexpr( _HasExtra ) return &_extra.data; }
@@ -73,12 +73,12 @@ namespace _hidden_
 
 
 	private:
-		TSharedMem (Bytes size, POTValue align, Allocator_t alloc)		__NE___ : _size{size}, _align{align}, _allocator{alloc} {}
+		TSharedMem (Bytes size, POTBytes align, Allocator_t alloc)		__NE___ : _size{size}, _align{align}, _allocator{alloc} {}
 		~TSharedMem ()													__NE_OV	{}
 
 		void  _ReleaseObject ()											__NE_OV;
 
-		ND_ static SizeAndAlign  _CalcSize (Bytes size, POTValue align)	__NE___;
+		ND_ static SizeAndAlign  _CalcSize (Bytes size, POTBytes align)	__NE___;
 	};
 
 	using SharedMem = TSharedMem<void>;
@@ -130,7 +130,7 @@ namespace _hidden_
 	{
 		if_likely( alloc and size > 0 )
 		{
-			auto	align_pot	= POTValue::From( align );
+			auto	align_pot	= POTBytes{ align };
 			void*	self		= alloc->Allocate( _CalcSize( size, align_pot ));
 
 			if_likely( self != null )
@@ -159,9 +159,9 @@ namespace _hidden_
 =================================================
 */
 	template <typename E>
-	SizeAndAlign  TSharedMem<E>::_CalcSize (Bytes size, POTValue align) __NE___
+	SizeAndAlign  TSharedMem<E>::_CalcSize (Bytes size, POTBytes align) __NE___
 	{
-		return SizeAndAlign{ AlignUp( SizeOf<Self>, align ) + size, Bytes{Max( POTAlignOf<Self>, align ).template ToValue<usize>()} };
+		return SizeAndAlign{ AlignUp( SizeOf<Self>, align ) + size, Bytes{Max( POTAlignOf<Self>, align )} };
 	}
 	
 /*

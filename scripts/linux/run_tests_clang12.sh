@@ -10,7 +10,7 @@ export CXX=/usr/bin/clang++-12
 
 mkdir _build
 cd _build
-cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug ".." -DAE_SIMD_SSE=42
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DAE_SIMD_SSE=42 ".."
 
 cmake --build . --config Debug
 ctest -C Debug --verbose

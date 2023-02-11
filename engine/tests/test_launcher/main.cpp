@@ -21,10 +21,10 @@ private:
     uint			_counter	= 0;
 
 public:
-    WndListener (IApplication &app) : _app{app} {}
-    ~WndListener () override {}
+    WndListener (IApplication &app) __NE___ : _app{app} {}
+    ~WndListener ()                 __NE_OV {}
 
-    void OnStateChanged (IWindow &, EState state) override
+    void OnStateChanged (IWindow &, EState state) __NE_OV
     {
         switch ( state )
         {
@@ -38,7 +38,7 @@ public:
         }
     }
 
-    void OnUpdate (IWindow &wnd) override
+    void OnUpdate (IWindow &wnd) __NE_OV
     {
         if ( ++_counter == 100 )
         {
@@ -46,12 +46,12 @@ public:
         }
     }
 
-    void OnResize (IWindow &, const uint2 &) override
+    void OnResize (IWindow &, const uint2 &) __NE_OV
     {
         AE_LOGI( "OnResize" );
     }
 
-    void OnSurfaceCreated (IWindow &wnd) override
+    void OnSurfaceCreated (IWindow &wnd) __NE_OV
     {
         AE_LOGI( "OnSurfaceCreated" );
 		#ifdef AE_TEST_BASE
@@ -83,7 +83,7 @@ public:
 		#endif
     }
 
-    void OnSurfaceDestroyed (IWindow &) override
+    void OnSurfaceDestroyed (IWindow &) __NE_OV
     {
         AE_LOGI( "OnSurfaceDestroyed" );
     }
@@ -96,18 +96,18 @@ private:
     WindowPtr  _window;
 
 public:
-    AppListener () {}
-    ~AppListener () override {}
+    AppListener ()                          __NE___ {}
+    ~AppListener ()                         __NE_OV {}
 
-    void OnStart (IApplication &app) override
+    void OnStart (IApplication &app)        __NE_OV
     {
         _window = app.CreateWindow( MakeUnique<WndListener>( app ), Default );
         CHECK_FATAL( _window );
     }
-    void OnStop (IApplication &) override {}
+    void OnStop (IApplication &)            __NE_OV {}
 
-    void BeforeWndUpdate (IApplication &a) override {}
-    void AfterWndUpdate (IApplication &a) override {}
+    void BeforeWndUpdate (IApplication &a)  __NE_OV {}
+    void AfterWndUpdate (IApplication &a)   __NE_OV {}
 };
 
 

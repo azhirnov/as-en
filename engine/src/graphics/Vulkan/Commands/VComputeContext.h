@@ -41,8 +41,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectComputeCtx (const RenderTask &task)														__Th___;
-		_VDirectComputeCtx (const RenderTask &task, VCommandBuffer cmdbuf)											__Th___;
+		explicit _VDirectComputeCtx (const RenderTask &task)														__Th___ : VBaseDirectContext{ task, ECtxType::Compute } {}
+		_VDirectComputeCtx (const RenderTask &task, VCommandBuffer cmdbuf)											__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), ECtxType::Compute } {}
 
 		void  _Dispatch (const uint3 &groupCount);
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
@@ -78,8 +78,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectComputeCtx (const RenderTask &task)														__Th___;
-		_VIndirectComputeCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)									__Th___;
+		explicit _VIndirectComputeCtx (const RenderTask &task)														__Th___ : VBaseIndirectContext{ task, ECtxType::Compute } {}
+		_VIndirectComputeCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)									__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), ECtxType::Compute } {}
 
 		void  _Dispatch (const uint3 &groupCount);
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
@@ -100,9 +100,11 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsComputeContext		= true;
 		static constexpr bool	IsVulkanComputeContext	= true;
-	protected:
-		static constexpr uint	_LocalArraySize			= 16;
+
+		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
 	private:
+		static constexpr uint	_LocalArraySize			= 16;
+
 		using RawCtx		= CtxImpl;
 		using AccumBar		= VAccumBarriers< _VComputeContextImpl< CtxImpl >>;
 		using DeferredBar	= VAccumDeferredBarriersForCtx< _VComputeContextImpl< CtxImpl >>;
@@ -111,9 +113,7 @@ namespace AE::Graphics::_hidden_
 	// methods
 	public:
 		explicit _VComputeContextImpl (const RenderTask &task)														__Th___;
-
-		template <typename RawCmdBufType>
-		_VComputeContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)											__Th___;
+		_VComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)												__Th___;
 
 		_VComputeContextImpl ()																						= delete;
 		_VComputeContextImpl (const _VComputeContextImpl &)															= delete;
@@ -163,8 +163,7 @@ namespace AE::Graphics::_hidden_
 	}
 		
 	template <typename C>
-	template <typename RawCmdBufType>
-	_VComputeContextImpl<C>::_VComputeContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+	_VComputeContextImpl<C>::_VComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf) }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));

@@ -46,9 +46,9 @@ namespace AE::Graphics::_hidden_
 
 		void  _WriteCompactedSize (MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
 		
-		void  _DebugMarker (DebugLabel dbg)							{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
-		void  _PushDebugGroup (DebugLabel dbg)						{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
-		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
+		void  _DebugMarker (DebugLabel dbg)											{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()														{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
 	};
 
 
@@ -95,6 +95,8 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsASBuildContext		= true;
 		static constexpr bool	IsMetalASBuildContext	= true;
+
+		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
 	private:
 		using RawCtx		= CtxImpl;
 		using AccumBar		= MAccumBarriers< _MASBuildContextImpl< CtxImpl >>;
@@ -104,9 +106,7 @@ namespace AE::Graphics::_hidden_
 	// methods
 	public:
 		explicit _MASBuildContextImpl (const RenderTask &task)																__Th___;
-		
-		template <typename RawCmdBufType>
-		_MASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)													__Th___;
+		_MASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)														__Th___;
 
 		_MASBuildContextImpl ()																								= delete;
 		_MASBuildContextImpl (const _MASBuildContextImpl &)																	= delete;
@@ -161,8 +161,7 @@ namespace AE::Graphics::_hidden_
 	}
 		
 	template <typename C>
-	template <typename RawCmdBufType>
-	_MASBuildContextImpl<C>::_MASBuildContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+	_MASBuildContextImpl<C>::_MASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf) }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
@@ -218,7 +217,7 @@ namespace AE::Graphics::_hidden_
 	{
 		auto  [src_as, dst_buf] = _GetResourcesOrThrow( as, dstBuffer );
 
-		RawCtx::_WriteCompactedSize( src_as.Handle(), dst_buf.Handle(), offset, size );
+		return WriteProperty( property, src_as.Handle(), dst_buf.Handle(), offset, size );
 	}
 	
 	template <typename C>
@@ -226,7 +225,7 @@ namespace AE::Graphics::_hidden_
 	{
 		auto  [src_as, dst_buf] = _GetResourcesOrThrow( as, dstBuffer );
 
-		RawCtx::_WriteCompactedSize( src_as.Handle(), dst_buf.Handle(), offset, size );
+		return WriteProperty( property, src_as.Handle(), dst_buf.Handle(), offset, size );
 	}
 	
 	template <typename C>

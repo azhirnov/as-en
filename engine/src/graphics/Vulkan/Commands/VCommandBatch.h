@@ -18,8 +18,9 @@
 	Warning: don't use CmdBatchOnSubmit with deferred submission!
 	
 		Resource state tracking.
-
-	(not supported yet)
+		
+	Use 'DeferredBarriers()' and 'initialBarriers' & 'finalBarriers' arguments in 'Run()' method
+	to transit states in batch planning stage.
 */
 
 #pragma once

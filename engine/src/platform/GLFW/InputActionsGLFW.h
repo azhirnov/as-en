@@ -2,11 +2,11 @@
 
 #pragma once
 
+#include "platform/GLFW/GLFWCommon.h"
+
 #ifdef AE_ENABLE_GLFW
 # include "platform/Private/InputActionsBase.h"
 # include "platform/GLFW/SerializableInputActionsGLFW.h"
-
-typedef struct GLFWwindow GLFWwindow;
 
 namespace AE::App
 {

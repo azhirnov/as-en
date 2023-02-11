@@ -13,6 +13,10 @@
 #endif
 //-----------------------------------------------------------------------------
 
+#ifdef AE_HAS_COROUTINE
+namespace AE::Threading::_hidden_ { class DrawTaskCoro; }
+#endif
+
 namespace AE::Graphics
 {
 
@@ -49,6 +53,10 @@ namespace AE::Graphics
 			Pending,		// after EndRecording()
 			Submitted,		// Vulkan: after GetCmdBuffers(), Metal: after EndAllSecondary()
 		};
+		
+	  #ifdef AE_HAS_COROUTINE
+		using DrawTaskCoro_t = AE::Threading::_hidden_::DrawTaskCoro;
+	  #endif
 
 	public:
 		using Viewports_t			= FixedArray< Viewport_t, GraphicsConfig::MaxViewports >;
@@ -75,7 +83,7 @@ namespace AE::Graphics
 		Viewports_t				_viewports;
 		Scissors_t				_scissors;
 
-		PROFILE_ONLY(
+		DBG_GRAPHICS_ONLY(
 			RGBA8u					_dbgColor;
 			String					_dbgName;
 			RC<IGraphicsProfiler>	_profiler;
@@ -91,10 +99,10 @@ namespace AE::Graphics
 						 DebugLabel				dbg		= Default) __NE___;
 		
 	  #ifdef AE_HAS_COROUTINE
-		template <typename PromiseT, typename ...Deps>
-		AsyncTask	Run (AE::Threading::CoroutineHandle<PromiseT>	handle,
-						 const Tuple<Deps...>&						deps	= Default,
-						 DebugLabel									dbg		= Default) __NE___;
+		template <typename ...Deps>
+		AsyncTask	Run (DrawTaskCoro_t			coro,
+						 const Tuple<Deps...>&	deps	= Default,
+						 DebugLabel				dbg		= Default) __NE___;
 	  #endif
 
 		void  EndRecording ()									__NE___;
@@ -105,10 +113,10 @@ namespace AE::Graphics
 		ND_ PrimaryCmdBufState_t const&	GetPrimaryCtxState ()	C_NE___	{ return _primaryState; }
 		ND_ ArrayView<Viewport_t>		GetViewports ()			C_NE___	{ return _viewports; }
 		ND_ ArrayView<Scissor_t>		GetScissors ()			C_NE___	{ return _scissors; }
-		ND_ bool						IsRecording ()			__NE___	{ return _status.load() == EStatus::Recording; }
-		ND_ bool						IsSubmitted ()			__NE___	{ return _status.load() == EStatus::Submitted; }
+		ND_ bool						IsRecording ()			C_NE___	{ return _status.load() == EStatus::Recording; }
+		ND_ bool						IsSubmitted ()			C_NE___	{ return _status.load() == EStatus::Submitted; }
 		
-		PROFILE_ONLY(
+		DBG_GRAPHICS_ONLY(
 			ND_ Ptr<IGraphicsProfiler>	GetProfiler ()			C_NE___	{ return _profiler.get(); }
 			ND_ DebugLabel				DbgLabel ()				C_NE___	{ return DebugLabel{ _dbgName, _dbgColor }; }
 			ND_ StringView				DbgName ()				C_NE___	{ return _dbgName; }
@@ -118,14 +126,15 @@ namespace AE::Graphics
 		
 	// render task scheduler api
 	private:
-		explicit DRAWCMDBATCH (uint indexInPool) __NE___ :
+		explicit DRAWCMDBATCH (uint indexInPool)				__NE___ :
 			_indexInPool{ CheckCast<ubyte>( indexInPool )}
 		{}
 
 		bool  _Create (const PrimaryCmdBufState_t &primaryState,
-					   ArrayView<Viewport_t> viewports, ArrayView<Scissor_t> scissors, DebugLabel dbg) __NE___;
+					   ArrayView<Viewport_t> viewports, ArrayView<Scissor_t> scissors,
+					   DebugLabel dbg)							__NE___;
 
-		void  _ReleaseObject () __NE_OV;
+		void  _ReleaseObject ()									__NE_OV;
 		
 
 	//-----------------------------------------------------
@@ -180,8 +189,8 @@ namespace AE::Graphics
 		STATIC_ASSERT( IsBaseOf< DrawTask, TaskType >);
 		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
 		
-		PROFILE_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable.Undefined )
+		DBG_GRAPHICS_ONLY(
+			if ( dbg.color == DebugLabel::ColorTable::Undefined )
 				dbg.color = _dbgColor;
 		)
 			
@@ -205,28 +214,27 @@ namespace AE::Graphics
 =================================================
 */
 # ifdef AE_HAS_COROUTINE
-	template <typename PromiseT, typename ...Deps>
-	AsyncTask  DRAWCMDBATCH::Run (AE::Threading::CoroutineHandle<PromiseT>	handle,
-								  const Tuple<Deps...>&						deps,
-								  DebugLabel								dbg) __NE___
+	template <typename ...Deps>
+	AsyncTask  DRAWCMDBATCH::Run (DrawTaskCoro			coro,
+								  const Tuple<Deps...>&	deps,
+								  DebugLabel			dbg) __NE___
 	{
-		STATIC_ASSERT( IsSameTypes< AE::Threading::CoroutineHandle<PromiseT>, DrawTaskCoro >);
-		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
+		CHECK_ERR( IsRecording(),	Scheduler().GetCanceledTask() );
+		CHECK_ERR( coro,			Scheduler().GetCanceledTask() );
 		
-		PROFILE_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable.Undefined )
+		DBG_GRAPHICS_ONLY(
+			if ( dbg.color == DebugLabel::ColorTable::Undefined )
 				dbg.color = _dbgColor;
 		)
 			
-		// DrawTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
+		// DrawTask internally calls '_cmdPool.Acquire()' and return error on pool overflow.
 		// DrawTask internally creates command buffer and throw exception if can't.
-		try {
-			auto	task = MakeRC<AE::Threading::_hidden_::DrawTaskCoroutineRunner>( RVRef(handle), GetRC(), dbg );	// throw
-
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
-		}
-		catch(...) {}
+			
+		auto&	dtask = coro.AsDrawTask();
+		CHECK_ERR( dtask._Init( GetRC<DRAWCMDBATCH>(), dbg ),  Scheduler().GetCanceledTask() );
+		
+		if_likely( Scheduler().Run( AsyncTask{coro}, deps ))
+			return coro;
 
 		return Scheduler().GetCanceledTask();
 	}

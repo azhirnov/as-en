@@ -42,9 +42,15 @@ namespace AE::App
 			explicit VRRenderSurface (VRDeviceEmulator &vr)																__NE___	: _vrDev{vr} {}
 
 			// IOutputSurface //
-			AsyncTask	Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE_OV;
-			bool		GetTargets (OUT RenderTargets_t &targets)														C_NE_OV;
-			AsyncTask	End (ArrayView<AsyncTask> deps)																	__NE_OV;
+			AsyncTask		Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE_OV;
+			bool			GetTargets (OUT RenderTargets_t &targets)														C_NE_OV;
+			AsyncTask		End (ArrayView<AsyncTask> deps)																	__NE_OV;
+
+			AllImages_t		GetAllImages ()																					C_NE_OV;
+			TargetSizes_t	GetTargetSizes ()																				C_NE_OV	{ return Default; }
+			ColorFormats_t	GetColorFormats ()																				C_NE_OV	{ return Default; }
+			PresentModes_t	GetPresentModes ()																				C_NE_OV	{ return Default; }
+			SurfaceInfo		GetSurfaceInfo ()																				C_NE_OV	{ return Default; }
 		};
 		
 

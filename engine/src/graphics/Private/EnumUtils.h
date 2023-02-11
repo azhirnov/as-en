@@ -22,8 +22,8 @@ namespace AE::Graphics
 	{
 		BEGIN_ENUM_CHECKS();
 		switch ( value ) {
-			case EIndex::UShort :	return SizeOf<uint16_t>;
-			case EIndex::UInt :		return SizeOf<uint32_t>;
+			case EIndex::UShort :	return SizeOf<ushort>;
+			case EIndex::UInt :		return SizeOf<uint>;
 			case EIndex::Unknown :
 			case EIndex::_Count :	break;
 		}
@@ -61,17 +61,17 @@ namespace AE::Graphics
 		switch ( scalar_type )
 		{
 			case EVertexType::_Byte :
-			case EVertexType::_UByte :	return SizeOf<uint8_t> * vec_size;
+			case EVertexType::_UByte :	return SizeOf<ubyte>	* vec_size;
 			case EVertexType::_Short :
-			case EVertexType::_UShort :	return SizeOf<uint16_t> * vec_size;
+			case EVertexType::_UShort :	return SizeOf<ushort>	* vec_size;
 			case EVertexType::_Int :
-			case EVertexType::_UInt :	return SizeOf<uint32_t> * vec_size;
+			case EVertexType::_UInt :	return SizeOf<uint>		* vec_size;
 			case EVertexType::_Long :
-			case EVertexType::_ULong :	return SizeOf<uint64_t> * vec_size;
+			case EVertexType::_ULong :	return SizeOf<ulong>	* vec_size;
 
-			case EVertexType::_Half :	return SizeOf<uint16_t> * vec_size;
-			case EVertexType::_Float :	return SizeOf<uint32_t> * vec_size;
-			case EVertexType::_Double :	return SizeOf<uint64_t> * vec_size;
+			case EVertexType::_Half :	return SizeOf<half>		* vec_size;
+			case EVertexType::_Float :	return SizeOf<float>	* vec_size;
+			case EVertexType::_Double :	return SizeOf<double>	* vec_size;
 		}
 		RETURN_ERR( "not supported" );
 	}

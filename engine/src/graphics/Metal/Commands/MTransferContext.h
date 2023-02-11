@@ -117,21 +117,21 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsTransferContext		= true;
 		static constexpr bool	IsMetalTransferContext	= true;
+
+		using CmdBuf_t			= typename CtxImpl::CmdBuf_t;
 	private:
 		static constexpr uint	_LocalArraySize			= 16;
 		static constexpr Bytes	_StagingBufOffsetAlign	= 4_b;
 
-		using RawCtx		= CtxImpl;
-		using AccumBar		= MAccumBarriers< _MTransferContextImpl< CtxImpl >>;
-		using DeferredBar	= MAccumDeferredBarriersForCtx< _MTransferContextImpl< CtxImpl >>;
+		using RawCtx			= CtxImpl;
+		using AccumBar			= MAccumBarriers< _MTransferContextImpl< CtxImpl >>;
+		using DeferredBar		= MAccumDeferredBarriersForCtx< _MTransferContextImpl< CtxImpl >>;
 
 
 	// methods
 	public:
 		explicit _MTransferContextImpl (const RenderTask &task)																							__Th___;
-		
-		template <typename RawCmdBufType>
-		_MTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)																			__Th___;
+		_MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)																					__Th___;
 
 		_MTransferContextImpl ()																														= delete;
 		_MTransferContextImpl (const _MTransferContextImpl &)																							= delete;
@@ -169,6 +169,8 @@ namespace AE::Graphics::_hidden_
 
 		ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)														__Th_OV;
 		
+		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)											__Th_OV;
+
 		void  GenerateMipmaps (ImageID srcImage)																										__Th_OV;
 
 		using ITransferContext::UpdateHostBuffer;
@@ -213,8 +215,7 @@ namespace AE::Graphics::_hidden_
 	}
 		
 	template <typename C>
-	template <typename RawCmdBufType>
-	_MTransferContextImpl<C>::_MTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+	_MTransferContextImpl<C>::_MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf) }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
@@ -269,7 +270,7 @@ namespace AE::Graphics::_hidden_
 		MStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
 		MStagingBufferManager::BufferRanges_t	buffers;
 		
-		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, this->_mngr.GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
+		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
 		
 		for (auto& src_buf : buffers)
 		{
@@ -298,7 +299,7 @@ namespace AE::Graphics::_hidden_
 		MStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
 		MStagingBufferManager::BufferRanges_t	buffers;
 
-		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, this->_mngr.GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
+		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
 		
 		for (auto& src_buf : buffers)
 		{
@@ -325,7 +326,7 @@ namespace AE::Graphics::_hidden_
 		MStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
 
 		MStagingBufferManager::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, uploadDesc, img_desc, this->_mngr.GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+		sbm.GetImageRanges( OUT res, uploadDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
 		
 		if_unlikely( res.buffers.empty() )
 			return;
@@ -384,7 +385,7 @@ namespace AE::Graphics::_hidden_
 		upload_desc.heapType	 = heapType;
 
 		MStagingBufferManager::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, upload_desc, img_desc, this->_mngr.GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+		sbm.GetImageRanges( OUT res, upload_desc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
 		
 		if_unlikely( res.buffers.empty() )
 			return;
@@ -450,7 +451,7 @@ namespace AE::Graphics::_hidden_
 		
 		MStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
 		MStagingBufferManager::BufferRanges_t	buffers;
-		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, this->_mngr.GetFrameId(), heapType, this->_mngr.GetQueueType(), False{"readback"} );
+		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), False{"readback"} );
 		
 		BufferMemView	mem_view;
 		for (auto& dst_buf : buffers)
@@ -461,7 +462,7 @@ namespace AE::Graphics::_hidden_
 		}
 		ASSERT( buffers.size() == mem_view.Parts().size() );
 
-		return Threading::MakePromiseFromValue(	mem_view, Tuple{ this->_mngr.GetBatchRC() });
+		return Threading::MakePromiseFromValue( mem_view, Tuple{ this->_mngr.GetBatchRC() });
 	}
 	
 /*
@@ -485,7 +486,7 @@ namespace AE::Graphics::_hidden_
 			RawCtx::_SynchronizeResource( src_buf.Handle() );
 		}
 
-		return Threading::MakePromiseFromValue(	mem_view, Tuple{ this->_mngr.GetBatchRC() });
+		return Threading::MakePromiseFromValue( mem_view, Tuple{ this->_mngr.GetBatchRC() });
 	}
 	
 /*
@@ -503,7 +504,7 @@ namespace AE::Graphics::_hidden_
 		MStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
 
 		MStagingBufferManager::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, readDesc, img_desc, this->_mngr.GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
+		sbm.GetImageRanges( OUT res, readDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
 		
 		if_unlikely( res.buffers.empty() )
 			return Default;
@@ -535,8 +536,10 @@ namespace AE::Graphics::_hidden_
 		}
 		ASSERT( res.buffers.size() == mem_view.Parts().size() );
 		
-		ImageMemView	img_mem_view{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask };
-		return Threading::MakePromiseFromValue(	img_mem_view, Tuple{ this->_mngr.GetBatchRC() });
+		return	Threading::MakePromiseFromValue(
+					ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask },
+					Tuple{ this->_mngr.GetBatchRC() }
+				);
 	}
 
 /*

@@ -68,7 +68,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ constexpr T  CalcAverage (T begin, T end) __NE___
+	ND_ constexpr EnableIf<IsScalar<T>, T>  CalcAverage (T begin, T end) __NE___
 	{
 		if constexpr( IsFloatPoint<T> )
 			return (begin * T{0.5}) + (end * T{0.5});

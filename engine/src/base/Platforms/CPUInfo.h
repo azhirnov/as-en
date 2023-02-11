@@ -11,6 +11,7 @@ namespace AE::Base
 
 	enum class ECPUArch : ubyte
 	{
+		X86,
 		X64,
 		ARM_32,
 		ARM_64,
@@ -54,17 +55,19 @@ namespace AE::Base
 		// x86-x64 features
 			bool	AVX			: 1;	// AE_SIMD_AVX 1
 			bool	AVX256		: 1;	// AE_SIMD_AVX 2
-			bool	AVX512		: 1;
+			bool	AVX512		: 1;	// AE_SIMD_AVX 3
 
-			bool	SSE2		: 1;	// AE_SIMD_SSE 2
-			bool	SSE3		: 1;	// AE_SIMD_SSE 3
-			bool	SSE41		: 1;	// AE_SIMD_SSE 4.1
-			bool	SSE42		: 1;	// AE_SIMD_SSE 4.2
+			bool	SSE2		: 1;	// AE_SIMD_SSE 20
+			bool	SSE3		: 1;	// AE_SIMD_SSE 30
+			bool	SSE41		: 1;	// AE_SIMD_SSE 41
+			bool	SSE42		: 1;	// AE_SIMD_SSE 42
 
 			bool	POPCNT		: 1;
 
 			bool	AES			: 1;	// AE_SIMD_AES 1
 
+			bool	CRC32		: 1;
+			bool	SHA128		: 1;
 			bool	SHA256		: 1;
 			bool	SHA512		: 1;
 

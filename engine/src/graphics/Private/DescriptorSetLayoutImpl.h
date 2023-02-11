@@ -140,6 +140,7 @@
 
 			ASSERT( prev_type != next_type ? prev_type < next_type : prev_name < next_name );
 		})
+		Unused( ci );
 	}
 //-----------------------------------------------------------------------------
 

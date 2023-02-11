@@ -164,6 +164,7 @@ namespace AE::Base
 
 } // AE::Base
 
+
 namespace AE
 {
 	class Exception final

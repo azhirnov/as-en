@@ -49,7 +49,10 @@ namespace AE::Threading
 	public:
 		ND_ static RC<IThread>  CreateThread (const WorkerConfig &cfg)	__NE___;
 
-		ND_ static bool  SetupThreads (const TaskScheduler::Config &cfg, EnumBitSet<EThread> mask, uint maxThreads) __NE___;
+		ND_ static bool  SetupThreads (const TaskScheduler::Config	&cfg,
+									   EnumBitSet<EThread>			 mask,
+									   uint							 maxThreads,
+									   OUT EThreadArray				&allowProcessInMain) __NE___;
 	};
 
 

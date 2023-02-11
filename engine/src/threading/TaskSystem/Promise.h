@@ -146,7 +146,13 @@ namespace _hidden_
 
 		bool  Cancel ()														__NE___;
 
+		template <typename Fn>
+		bool  WithResult (Fn && fn)											__Th___;
+
 		explicit operator AsyncTask ()										C_NE___	{ return _impl; }
+		explicit operator bool ()											C_NE___	{ return bool{_impl}; }
+
+		ND_ IAsyncTask::EStatus  Status ()									C_NE___;
 		
 	private:
 		template <typename Fn>
@@ -275,11 +281,10 @@ namespace _hidden_
 		ND_ T		await_resume ()							__NE___	{ return _promise._Result(); }
 		
 		// return task to scheduler with new dependencies
-		void  await_suspend (std::coroutine_handle< AsyncTaskCoroutine::promise_type > curCoro) __NE___
+		template <typename P>
+		ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
 		{
-			auto	task = curCoro.promise().GetTask();
-			CHECK_ERRV( task );
-			CoroutineRunnerTask::ContinueTask( *task, Tuple{_promise._impl} );
+			return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl( curCoro, _promise._impl );
 		}
 	};
 	
@@ -295,8 +300,7 @@ namespace _hidden_
 	public:
 		explicit PromiseAwaiter (const Tuple<Promise<Types>...> &deps) __NE___ : _deps{deps} {}
 		
-		// pause coroutine execution if dependencies are not complete
-		ND_ bool  await_ready ()										C_NE___		{ return false; }	// TODO: check all deps for early exit
+		ND_ bool  await_ready ()										C_NE___	{ return false; }
 		
 		// return promise results
 		ND_ Tuple< Types... >  await_resume ()							__NE___
@@ -307,11 +311,9 @@ namespace _hidden_
 		}
 		
 		// return task to scheduler with new dependencies
-		void  await_suspend (std::coroutine_handle< AsyncTaskCoroutine::promise_type > curCoro) __NE___
+		ND_ bool  await_suspend (std::coroutine_handle< AsyncTaskCoro::promise_type > curCoro) __NE___
 		{
-			auto	task = curCoro.promise().GetTask();
-			CHECK_ERRV( task );
-			CoroutineRunnerTask::ContinueTask( *task, _deps.Apply( [] (auto&& ...args) { return Tuple{ AsyncTask{args} ... }; }) );
+			return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl2( curCoro, _deps );
 		}
 	};
 
@@ -637,6 +639,34 @@ namespace _hidden_
 	T  Promise<T>::_Result () C_NE___
 	{
 		return _impl ? _impl->Result() : Default;
+	}
+	
+/*
+=================================================
+	Status
+=================================================
+*/
+	template <typename T>
+	IAsyncTask::EStatus  Promise<T>::Status () C_NE___
+	{
+		return _impl ? _impl->Status() : IAsyncTask::EStatus::Initial; 
+	}
+	
+/*
+=================================================
+	WithResult
+=================================================
+*/
+	template <typename T>
+	template <typename Fn>
+	bool  Promise<T>::WithResult (Fn && fn) __Th___
+	{
+		if ( _impl and _impl->IsCompleted() )
+		{
+			fn( _impl->Result() );	// may throw
+			return true;
+		}
+		return false;
 	}
 //-----------------------------------------------------------------------------
 

@@ -46,7 +46,8 @@ namespace AE::Graphics
 		ND_ bool						IsExclusiveSharing ()															C_NE___	{ return false; }
 		
 		DEBUG_ONLY(  ND_ StringView		GetDebugName ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
-			
+		
+
 		ND_ static bool				IsSerializedMemoryCompatible (const VDevice &dev, const void* ptr, Bytes size)		__NE___;
 
 		ND_ static RTASBuildSizes	GetBuildSizes (const VResourceManager &, const RTSceneBuild &desc)					__NE___;

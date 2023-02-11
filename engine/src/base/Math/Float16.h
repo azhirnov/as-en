@@ -79,7 +79,7 @@ namespace AE::Math
 
 		ND_ explicit operator float ()					C_NE___	{ return Get(); }
 
-	  #ifdef AE_SIMD_NEON
+	  #if AE_SIMD_NEON
 		ND_ explicit operator float16_t ()				C_NE___	{ return BitCast<float16_t>( _valueU ); }
 	  #endif
 		

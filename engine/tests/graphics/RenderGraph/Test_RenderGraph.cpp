@@ -67,6 +67,9 @@ RGTest::RGTest () :
 	_tests.emplace_back( &RGTest::Test_RayTracing1 );
 	_tests.emplace_back( &RGTest::Test_Debugger1 );
 	_tests.emplace_back( &RGTest::Test_Debugger2 );
+	_tests.emplace_back( &RGTest::Test_Debugger3 );
+	_tests.emplace_back( &RGTest::Test_Debugger4 );
+	_tests.emplace_back( &RGTest::Test_Debugger5 );
 
 	// TODO:
 	//_tests.emplace_back( &RGTest::Test_Draw3 );
@@ -213,13 +216,27 @@ GraphicsCreateInfo  RGTest::_GetGraphicsCreateInfo ()
 */
 bool  RGTest::_Create (IApplication &app, IWindow &wnd)
 {
-	ArrayView<const char*>	window_ext = app.GetVulkanInstanceExtensions();
+	{	
+		const VkValidationFeatureEnableEXT	sync_enable_feats  [] = { VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT };
+		const VkValidationFeatureDisableEXT	sync_disable_feats [] = { VK_VALIDATION_FEATURE_DISABLE_CORE_CHECKS_EXT };
 
-	CHECK_ERR( _vulkan.CreateInstance( "TestApp", AE_ENGINE_NAME, _vulkan.GetRecomendedInstanceLayers(), window_ext, {1,2} ));
+		VDeviceInitializer::InstanceCreateInfo	inst_ci;
+		inst_ci.appName				= "TestApp";
+		inst_ci.instanceLayers		= _vulkan.GetRecomendedInstanceLayers();
+		inst_ci.instanceExtensions	= app.GetVulkanInstanceExtensions();
+		inst_ci.version				= {1,3};
+
+		#if 0
+		inst_ci.enableValidations	= sync_enable_feats;
+		inst_ci.disableValidations	= sync_disable_feats;
+		#endif
+
+		CHECK_ERR( _vulkan.CreateInstance( inst_ci ));
+	}
 
 	// this is a test and the test should fail for any validation error
 	_vulkan.CreateDebugCallback( DefaultDebugMessageSeverity,
-								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  /*CHECK_FATAL(not rep.isError);*/ });
+								 [] (const VDeviceInitializer::DebugReport &rep) { AE_LOG_SE(rep.message);  CHECK_FATAL(not rep.isError); });
 	
 	CHECK_ERR( _vulkan.ChooseHighPerformanceDevice() );
 	CHECK_ERR( _vulkan.CreateDefaultQueues( EQueueMask::Graphics, EQueueMask::All ));

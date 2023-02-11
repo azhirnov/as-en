@@ -50,7 +50,7 @@ namespace AE::Graphics::_hidden_
 		ND_ MQueuePtr				GetQueue ()							C_NE___	{ return GetDevice().GetQueue( GetQueueType() ); }
 		ND_ RenderTask const&		GetRenderTask ()					C_NE___	{ ASSERT( _task != null );  return *_task; }
 		
-		PROFILE_ONLY(
+		DBG_GRAPHICS_ONLY(
 			void  ProfilerBeginContext (OUT MetalSampleBufferAttachments &, MetalCommandBuffer, IGraphicsProfiler::EContextType)	C_NE___;
 			void  ProfilerBeginContext (MSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)								C_NE___;
 			
@@ -111,12 +111,22 @@ namespace AE::Graphics::_hidden_
 		using RawCtx::_GetBarrierMngr; \
 		using RawCtx::PipelineBarrier; \
 		\
-		void  CommitBarriers ()																										__Th_OV { RawCtx::_CommitBarriers(); } \
+		void  CommitBarriers ()																										__Th_OV \
+		{																																	\
+			auto* bar = this->_mngr.GetBarriers();																							\
+			if_unlikely( bar != null )																										\
+			{																																\
+				PipelineBarrier( *bar );																									\
+				this->_mngr.ClearBarriers();																								\
+			}																																\
+		}																																	\
 		\
 		ND_ AccumBar				AccumBarriers ()																				__NE___ { return AccumBar{ *this }; } \
 		ND_ DeferredBar				DeferredBarriers ()																				__NE___ { return DeferredBar{ this->_mngr.GetBatch(), *this }; } \
 		\
+		ND_ FrameUID				GetFrameId ()																					C_NE_OF { return this->_mngr.GetFrameId(); } \
 		ND_ MCommandBatch const&	GetCommandBatch ()																				C_NE___ { return this->_mngr.GetBatch(); } \
+		ND_ RC<MCommandBatch>		GetCommandBatchRC ()																			C_NE___ { return this->_mngr.GetBatchRC(); } \
 		\
 		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)										__Th_OV	{ this->_mngr.BufferBarrier( buffer, srcState, dstState ); } \
 		\
@@ -144,6 +154,7 @@ namespace AE::Graphics::_hidden_
 		void  PushDebugGroup (DebugLabel dbg)																						__Th_OV	{ RawCtx::_PushDebugGroup( dbg ); } \
 		void  PopDebugGroup ()																										__Th_OV	{ RawCtx::_PopDebugGroup(); } \
 	private: \
+		friend class MBoundDescriptorSets; \
 		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)											__Th___ { return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \
 //-----------------------------------------------------------------------------
 

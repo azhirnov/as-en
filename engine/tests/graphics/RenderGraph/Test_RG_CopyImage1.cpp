@@ -6,8 +6,8 @@ namespace
 {
 	struct CI1_TestData
 	{
-		Strong<ImageID>				img_1;
-		Strong<ImageID>				img_2;
+		GAutorelease<ImageID>		img_1;
+		GAutorelease<ImageID>		img_2;
 		ImageMemView				img_view;
 		uint2						src_offset;
 		uint2						dst_offset;
@@ -121,7 +121,7 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"CopyImage2"} );
+		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"CopyImage2"} );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Run< CI1_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Copy image task"} );
@@ -135,8 +135,6 @@ namespace
 		CHECK_ERR( Scheduler().Wait({ t.result }));
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
-		CHECK_ERR( res_mngr.ReleaseResources( t.img_1, t.img_2 ));
-
 		CHECK_ERR( t.isOK );
 		return true;
 	}
@@ -146,11 +144,13 @@ namespace
 
 bool RGTest::Test_CopyImage1 ()
 {
-	CHECK_ERR( CopyImage1Test< DirectCtx::Transfer   >());
-	CHECK_ERR( CopyImage1Test< IndirectCtx::Transfer >());
+	bool	result = true;
+
+	RG_CHECK( CopyImage1Test< DirectCtx::Transfer   >());
+	RG_CHECK( CopyImage1Test< IndirectCtx::Transfer >());
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

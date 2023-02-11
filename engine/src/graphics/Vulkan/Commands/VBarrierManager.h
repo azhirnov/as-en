@@ -64,7 +64,7 @@ namespace AE::Graphics::_hidden_
 		ND_ VQueuePtr				GetQueue ()							C_NE___	{ return GetDevice().GetQueue( GetQueueType() ); }
 		ND_ RenderTask const&		GetRenderTask ()					C_NE___	{ ASSERT( _task != null );  return *_task; }
 		
-		PROFILE_ONLY(
+		DBG_GRAPHICS_ONLY(
 			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
 			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
 			
@@ -176,7 +176,9 @@ namespace AE::Graphics::_hidden_
 		ND_ AccumBar				AccumBarriers ()																			 __NE___ { return AccumBar{ *this }; } \
 		ND_ DeferredBar				DeferredBarriers ()																			 __NE___ { return DeferredBar{ this->_mngr.GetBatch(), *this }; } \
 		\
+		ND_ FrameUID				GetFrameId ()																				 C_NE_OF { return this->_mngr.GetFrameId(); } \
 		ND_ VCommandBatch const&	GetCommandBatch ()																			 C_NE___ { return this->_mngr.GetBatch(); } \
+		ND_ RC<VCommandBatch>		GetCommandBatchRC ()																		 C_NE___ { return this->_mngr.GetBatchRC(); } \
 		\
 		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									 __Th_OV { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  return this->_mngr.BufferBarrier( buffer, srcState, dstState ); } \
 		\

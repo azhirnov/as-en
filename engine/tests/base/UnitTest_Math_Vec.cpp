@@ -52,9 +52,11 @@ namespace
 		TestVecAlign<slong>();
 		TestVecAlign<ushort>();
 	
+	  #if AE_HAS_SIMD
 		STATIC_ASSERT( alignof(ushort3)	== sizeof(ushort)*4 );
 		STATIC_ASSERT( alignof(uint3)	== sizeof(uint)*4 );
 		STATIC_ASSERT( alignof(uint4)	== sizeof(uint)*4);
+	  #endif
 
 		STATIC_ASSERT( alignof(packed_uint3) == sizeof(uint) );
 	}

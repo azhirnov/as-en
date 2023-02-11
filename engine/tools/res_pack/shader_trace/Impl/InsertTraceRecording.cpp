@@ -20,7 +20,7 @@ namespace
 
 		struct StackFrame
 		{
-			TIntermNode*		node;
+			TIntermNode*		node	= null;
 			SrcLoc				loc;
 		};
 
@@ -100,21 +100,21 @@ namespace
 		void  Enter (TIntermNode* node);
 		void  Leave (TIntermNode* node);
 
-		ND_ CallStack_t const&	GetCallStack ()			const					{ return _callStack; }
+		ND_ CallStack_t const&	GetCallStack ()							const	{ return _callStack; }
 		ND_ TIntermAggregate*	GetCurrentFunction ();
 
 		ND_ TIntermTyped*		GetInjection ();
 			void				InjectNode (TIntermTyped *node);
 
-		ND_ uint				GetSourceLocation (TIntermNode* node, const TSourceLoc &curr);
+		ND_ uint				GetSourceLocation (TIntermNode* node, const TSourceLoc &curr, bool setColumnToZero = false);
 		ND_ uint				GetCustomSourceLocation (TIntermNode* node, const TSourceLoc &curr);
 
-		ND_ SrcLoc const&		GetCurrentLocation () const						{ return _callStack.back().loc; }
+		ND_ SrcLoc				GetCurrentLocation ()					const	{ return _callStack.back().loc; }
 			void				AddLocation (const TSourceLoc &loc);
 			void				AddLocation (const SrcLoc &src);
 
-			void							RequestFunc (const TString &fname)		{ _requiredFunctions.insert( fname ); }
-		ND_ RequiredFunctions_t const&	GetRequiredFunctions ()		const		{ return _requiredFunctions; }
+			void				RequestFunc (const TString &fname)				{ _requiredFunctions.insert( fname ); }
+		ND_ auto const&			GetRequiredFunctions ()					const	{ return _requiredFunctions; }
 
 			void				AddSymbol (TIntermSymbol* node);
 		ND_ slong				GetUniqueSymbolID ()							{ return ++_maxSymbolId; }
@@ -124,7 +124,7 @@ namespace
 
 		void CacheSymbolNode (TIntermSymbol* node)
 		{
-			_cachedSymbols.insert({ node->getName(), node });
+			_cachedSymbols.emplace( node->getName(), node );
 			AddSymbol( node );
 		}
 
@@ -161,20 +161,6 @@ ND_ static TIntermAggregate*  RecordShaderInfo (const TSourceLoc &loc, DebugInfo
 
 /*
 =================================================
-	CombineHash
-=================================================
-*/
-ND_ inline usize  CombineHash (usize lhs, usize rhs)
-{
-	const usize		mask	= (sizeof(lhs)*8 - 1);
-	usize			shift	= 4;
-
-	shift &= mask;
-	return lhs ^ ((rhs << shift) | (rhs >> ( ~(shift-1) & mask )));
-}
-
-/*
-=================================================
 	Enter
 =================================================
 */
@@ -185,7 +171,7 @@ void  DebugInfo::Enter (TIntermNode* node)
 	StackFrame	frame;
 	frame.node			= node;
 	frame.loc.sourceId	= _GetSourceId( node->getLoc() );
-	frame.loc.begin		= SrcPoint{ uint(node->getLoc().line), uint(node->getLoc().column) };
+	frame.loc.begin		= SrcPoint{ node->getLoc() };
 	frame.loc.end		= frame.loc.begin;
 
 	_callStack.push_back( frame );
@@ -250,23 +236,27 @@ void  DebugInfo::InjectNode (TIntermTyped *node)
 	GetSourceLocation
 =================================================
 */
-uint  DebugInfo::GetSourceLocation (TIntermNode* node, const TSourceLoc &curr)
+uint  DebugInfo::GetSourceLocation (TIntermNode* node, const TSourceLoc &curr, bool setColumnToZero)
 {
 	VariableID	id;
 	uint		swizzle;
 	_GetVariableID( node, OUT id, OUT swizzle );
 
-	SrcPoint	point	{ uint(curr.line), uint(curr.column) };
+	SrcPoint	point	{ curr };
 	SrcLoc		range	= _callStack.back().loc;
 	uint		src_id	= _GetSourceId( curr );
 
 	ASSERT( range.sourceId != ~0u );
 	ASSERT( range.sourceId == src_id );
+	Unused( src_id );
 	
-	range.begin.value = Min( range.begin.value,	point.value );
-	range.end.value   = Max( range.end.value,   point.value );
+	range.begin.SetMin( point );
+	range.end  .SetMax( point );
 
-	_exprLocations.push_back({ id, swizzle, range, point, {} });
+	if ( setColumnToZero )
+		range.begin._packed.column = 0;
+
+	_exprLocations.emplace_back( id, swizzle, range, point, Default );
 	return uint(_exprLocations.size()-1);
 }
 
@@ -284,7 +274,7 @@ uint  DebugInfo::GetCustomSourceLocation (TIntermNode* node, const TSourceLoc &c
 	SrcLoc	range{ 0, uint(curr.line), uint(curr.column) };
 	range.sourceId = _GetSourceId( curr );
 
-	_exprLocations.push_back({ id, swizzle, range, range.begin, {} });
+	_exprLocations.emplace_back( id, swizzle, range, range.begin, Default );
 	return uint(_exprLocations.size()-1);
 }
 
@@ -300,20 +290,20 @@ void  DebugInfo::AddLocation (const TSourceLoc &loc)
 
 void  DebugInfo::AddLocation (const SrcLoc &src)
 {
-	if ( _callStack.empty() )
+	if ( _callStack.empty() or src.IsNotDefined() )
 		return;
 
 	auto&	dst = _callStack.back().loc;
 
-	if ( dst.sourceId == 0 and dst.begin.value == 0 and dst.end.value == 0 )
+	if ( dst.IsNotDefined() )
 	{
 		dst = src;
 		return;
 	}
 
-	//CHECK( src.sourceId == dst.sourceId );
-	dst.begin.value = Min( dst.begin.value,	src.begin.value );
-	dst.end.value	= Max( dst.end.value,	src.end.value );
+	CHECK( src.sourceId == dst.sourceId );
+	dst.begin.SetMin( src.begin );
+	dst.end  .SetMax( src.end );
 }
 
 /*
@@ -341,7 +331,7 @@ TIntermBinary*  DebugInfo::GetDebugStorageField (const char* name) const
 {
 	CHECK_ERR( _dbgStorage );
 		
-	TPublicType		index_type;		index_type.init({});
+	TPublicType		index_type;		index_type.init( Default );
 	index_type.basicType			= TBasicType::EbtInt;
 	index_type.qualifier.storage	= TStorageQualifier::EvqConst;
 
@@ -552,12 +542,12 @@ void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint
 	{
 		auto	iter = _varInfos.find( symb->getId() );
 		if ( iter == _varInfos.end() )
-			iter = _varInfos.insert({ symb->getId(), VariableInfo{new_id, symb->getName().c_str(), {}} }).first;
+			iter = _varInfos.emplace( symb->getId(), VariableInfo{ new_id, symb->getName().c_str(), Default }).first;
 
 		auto&	locations = iter->second.locations;
 
-		if ( locations.empty() or locations.back() != node->getLoc() )
-			locations.push_back( node->getLoc() );
+		if ( locations.empty() or locations.back() != symb->getLoc() )
+			locations.push_back( symb->getLoc() );
 
 		id = iter->second.id;
 		return;
@@ -608,7 +598,7 @@ void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint
 			{
 				auto	iter = _fieldMap.find( field );
 				if ( iter == _fieldMap.end() )
-					iter = _fieldMap.insert({ field, VariableInfo{new_id, name.c_str(), {}} }).first;
+					iter = _fieldMap.emplace( field, VariableInfo{ new_id, name.c_str(), Default }).first;
 
 				auto&	locations = iter->second.locations;
 
@@ -633,12 +623,12 @@ void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint
 			auto	iter = _fnCallMap.find({ name, op->getLoc() });
 
 			if ( iter == _fnCallMap.end() )
-				iter = _fnCallMap.insert({ FnCallLocation{name, op->getLoc()}, VariableInfo{new_id, name, {}} }).first;
+				iter = _fnCallMap.emplace( FnCallLocation{ name, op->getLoc() }, VariableInfo{ new_id, name, Default }).first;
 			
 			auto&	locations = iter->second.locations;
 
 			if ( locations.empty() or locations.back() != op->getLoc() )
-				locations.push_back( node->getLoc() );
+				locations.push_back( op->getLoc() );
 			
 			id = iter->second.id;
 			return;
@@ -663,7 +653,7 @@ uint  DebugInfo::_GetSourceId (const TSourceLoc &loc) const
 	{
 		auto	iter = _includedFilesMap.find( loc.name->c_str() );
 		CHECK( iter != _includedFilesMap.end() );
-		CHECK( loc.string == 0 );
+		//CHECK( loc.string == 0 );
 
 		return iter->second;
 	}
@@ -857,9 +847,9 @@ static void  CreateGraphicsShaderDebugStorage (TTypeList* typeList, INOUT TPubli
 	TType*	padding	= new TType{type};			padding->setFieldName( "padding1" );
 	type.qualifier.layoutOffset += sizeof(int);
 
-	typeList->push_back({ fragcoord_x,	TSourceLoc{} });
-	typeList->push_back({ fragcoord_y,	TSourceLoc{} });
-	typeList->push_back({ padding,		TSourceLoc{} });
+	typeList->emplace_back( fragcoord_x,	TSourceLoc{} );
+	typeList->emplace_back( fragcoord_y,	TSourceLoc{} );
+	typeList->emplace_back( padding,		TSourceLoc{} );
 }
 
 /*
@@ -880,9 +870,9 @@ static void  CreateComputeShaderDebugStorage (TTypeList* typeList, INOUT TPublic
 	TType*	thread_id_z	= new TType{type};		thread_id_z->setFieldName( "globalInvocationZ" );
 	type.qualifier.layoutOffset += sizeof(uint);
 	
-	typeList->push_back({ thread_id_x,	TSourceLoc{} });
-	typeList->push_back({ thread_id_y,	TSourceLoc{} });
-	typeList->push_back({ thread_id_z,	TSourceLoc{} });
+	typeList->emplace_back( thread_id_x,	TSourceLoc{} );
+	typeList->emplace_back( thread_id_y,	TSourceLoc{} );
+	typeList->emplace_back( thread_id_z,	TSourceLoc{} );
 }
 
 /*
@@ -903,9 +893,9 @@ static void  CreateRayTracingShaderDebugStorage (TTypeList* typeList, INOUT TPub
 	TType*	thread_id_z	= new TType{type};		thread_id_z->setFieldName( "launchID_z" );
 	type.qualifier.layoutOffset += sizeof(uint);
 	
-	typeList->push_back({ thread_id_x,	TSourceLoc{} });
-	typeList->push_back({ thread_id_y,	TSourceLoc{} });
-	typeList->push_back({ thread_id_z,	TSourceLoc{} });
+	typeList->emplace_back( thread_id_x,	TSourceLoc{} );
+	typeList->emplace_back( thread_id_y,	TSourceLoc{} );
+	typeList->emplace_back( thread_id_z,	TSourceLoc{} );
 }
 
 /*
@@ -935,7 +925,7 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 	//		restrict uint  outData [];
 	//	} dbg_ShaderTrace"
 	
-	TPublicType		uint_type;			uint_type.init({});
+	TPublicType		uint_type;			uint_type.init( Default );
 	uint_type.basicType					= TBasicType::EbtUint;
 	uint_type.qualifier.storage			= TStorageQualifier::EvqBuffer;
 	uint_type.qualifier.layoutMatrix	= TLayoutMatrix::ElmColumnMajor;
@@ -990,8 +980,8 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 
 	TType*			data_arr	= new TType{uint_type};		data_arr->setFieldName( "outData" );
 
-	type_list->push_back({ position,	TSourceLoc{} });
-	type_list->push_back({ data_arr,	TSourceLoc{} });
+	type_list->emplace_back( position,	TSourceLoc{} );
+	type_list->emplace_back( data_arr,	TSourceLoc{} );
 
 	TQualifier		block_qual;	block_qual.clear();
 	block_qual.storage			= TStorageQualifier::EvqBuffer;
@@ -1044,7 +1034,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( shader == EShLangFragment and not dbgInfo.GetCachedSymbolNode( "gl_FragCoord" ))
 	{
-		TPublicType		vec4_type;	vec4_type.init({});
+		TPublicType		vec4_type;	vec4_type.init( Default );
 		vec4_type.basicType			= TBasicType::EbtFloat;
 		vec4_type.vectorSize		= 4;
 		vec4_type.qualifier.storage	= TStorageQualifier::EvqFragCoord;
@@ -1060,7 +1050,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 	
 	if ( need_primitive_id and not dbgInfo.GetCachedSymbolNode( "gl_PrimitiveID" ))
 	{
-		TPublicType		int_type;	int_type.init({});
+		TPublicType		int_type;	int_type.init( Default );
 		int_type.basicType			= TBasicType::EbtInt;
 		int_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		int_type.qualifier.builtIn	= TBuiltInVariable::EbvPrimitiveId;
@@ -1073,7 +1063,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( is_compute and not dbgInfo.GetCachedSymbolNode( "gl_GlobalInvocationID" ))
 	{
-		TPublicType		uint_type;	uint_type.init({});
+		TPublicType		uint_type;	uint_type.init( Default );
 		uint_type.basicType			= TBasicType::EbtUint;
 		uint_type.vectorSize		= 3;
 		uint_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
@@ -1086,7 +1076,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( is_compute and not dbgInfo.GetCachedSymbolNode( "gl_LocalInvocationID" ))
 	{
-		TPublicType		uint_type;	uint_type.init({});
+		TPublicType		uint_type;	uint_type.init( Default );
 		uint_type.basicType			= TBasicType::EbtUint;
 		uint_type.vectorSize		= 3;
 		uint_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
@@ -1099,7 +1089,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( is_compute and not dbgInfo.GetCachedSymbolNode( "gl_WorkGroupID" ))
 	{
-		TPublicType		uint_type;	uint_type.init({});
+		TPublicType		uint_type;	uint_type.init( Default );
 		uint_type.basicType			= TBasicType::EbtUint;
 		uint_type.vectorSize		= 3;
 		uint_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
@@ -1112,7 +1102,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 	
 	if ( need_invocation_id and not dbgInfo.GetCachedSymbolNode( "gl_InvocationID" ))
 	{
-		TPublicType		int_type;	int_type.init({});
+		TPublicType		int_type;	int_type.init( Default );
 		int_type.basicType			= TBasicType::EbtInt;
 		int_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		int_type.qualifier.builtIn	= TBuiltInVariable::EbvInvocationId;
@@ -1124,7 +1114,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 	
 	if ( shader == EShLangGeometry and not dbgInfo.GetCachedSymbolNode( "gl_PrimitiveIDIn" ))
 	{
-		TPublicType		int_type;	int_type.init({});
+		TPublicType		int_type;	int_type.init( Default );
 		int_type.basicType			= TBasicType::EbtInt;
 		int_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		int_type.qualifier.builtIn	= TBuiltInVariable::EbvPrimitiveId;
@@ -1136,7 +1126,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 	
 	if ( shader == EShLangTessEvaluation and not dbgInfo.GetCachedSymbolNode( "gl_TessCoord" ))
 	{
-		TPublicType		float_type;		float_type.init({});
+		TPublicType		float_type;		float_type.init( Default );
 		float_type.basicType			= TBasicType::EbtFloat;
 		float_type.vectorSize			= 3;
 		float_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
@@ -1149,7 +1139,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 	
 	if ( shader == EShLangTessEvaluation and not dbgInfo.GetCachedSymbolNode( "gl_TessLevelInner" ))
 	{
-		TPublicType		float_type;		float_type.init({});
+		TPublicType		float_type;		float_type.init( Default );
 		float_type.basicType			= TBasicType::EbtFloat;
 		float_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		float_type.qualifier.builtIn	= TBuiltInVariable::EbvTessLevelInner;
@@ -1163,7 +1153,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 	
 	if ( shader == EShLangTessEvaluation and not dbgInfo.GetCachedSymbolNode( "gl_TessLevelOuter" ))
 	{
-		TPublicType		float_type;		float_type.init({});
+		TPublicType		float_type;		float_type.init( Default );
 		float_type.basicType			= TBasicType::EbtFloat;
 		float_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		float_type.qualifier.builtIn	= TBuiltInVariable::EbvTessLevelOuter;
@@ -1177,7 +1167,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( need_launch_id and not dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" ))
 	{
-		TPublicType		uint_type;	uint_type.init({});
+		TPublicType		uint_type;	uint_type.init( Default );
 		uint_type.basicType			= TBasicType::EbtUint;
 		uint_type.vectorSize		= 3;
 		uint_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
@@ -1190,7 +1180,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( shader == EShLangVertex and not dbgInfo._isOpenGL and not dbgInfo.GetCachedSymbolNode( "gl_VertexIndex" ))
 	{
-		TPublicType		int_type;	int_type.init({});
+		TPublicType		int_type;	int_type.init( Default );
 		int_type.basicType			= TBasicType::EbtInt;
 		int_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		int_type.qualifier.builtIn	= TBuiltInVariable::EbvVertexIndex;
@@ -1202,7 +1192,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 	
 	if ( shader == EShLangVertex and dbgInfo._isOpenGL and not dbgInfo.GetCachedSymbolNode( "gl_VertexID" ))
 	{
-		TPublicType		int_type;	int_type.init({});
+		TPublicType		int_type;	int_type.init( Default );
 		int_type.basicType			= TBasicType::EbtInt;
 		int_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		int_type.qualifier.builtIn	= TBuiltInVariable::EbvVertexId;
@@ -1214,7 +1204,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( shader == EShLangVertex and not dbgInfo._isOpenGL and not dbgInfo.GetCachedSymbolNode( "gl_InstanceIndex" ))
 	{
-		TPublicType		int_type;	int_type.init({});
+		TPublicType		int_type;	int_type.init( Default );
 		int_type.basicType			= TBasicType::EbtInt;
 		int_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		int_type.qualifier.builtIn	= TBuiltInVariable::EbvInstanceIndex;
@@ -1226,7 +1216,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 
 	if ( shader == EShLangVertex and dbgInfo._isOpenGL and not dbgInfo.GetCachedSymbolNode( "gl_InstanceID" ))
 	{
-		TPublicType		int_type;	int_type.init({});
+		TPublicType		int_type;	int_type.init( Default );
 		int_type.basicType			= TBasicType::EbtInt;
 		int_type.qualifier.storage	= TStorageQualifier::EvqVaryingIn;
 		int_type.qualifier.builtIn	= TBuiltInVariable::EbvInstanceId;
@@ -1246,7 +1236,7 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 */
 ND_ static TIntermAggregate*  CreateAppendToTraceBody2 (DebugInfo &dbgInfo)
 {
-	TPublicType		uint_type;	uint_type.init({});
+	TPublicType		uint_type;	uint_type.init( Default );
 	uint_type.basicType			= TBasicType::EbtUint;
 	uint_type.qualifier.storage = TStorageQualifier::EvqConstReadOnly;
 
@@ -1386,9 +1376,9 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody2 (DebugInfo &dbgInfo)
 */
 ND_ static TIntermAggregate*  CreateAppendToTraceBody (const TString &fnName, DebugInfo &dbgInfo)
 {
-	TPublicType		value_type;	value_type.init({});
-	TPublicType		uint_type;	uint_type.init({});
-	TPublicType		index_type;	index_type.init({});
+	TPublicType		value_type;	value_type.init( Default );
+	TPublicType		uint_type;	uint_type.init( Default );
+	TPublicType		index_type;	index_type.init( Default );
 
 	uint_type.basicType			= TBasicType::EbtUint;
 	uint_type.qualifier.storage = TStorageQualifier::EvqConstReadOnly;
@@ -1567,7 +1557,7 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody (const TString &fnName, De
 		// "ToUint(...)"
 		const auto	TypeToUint	= [] (TIntermTyped* operand, int index) -> TIntermTyped*
 		{{
-			TPublicType		utype;	utype.init({});
+			TPublicType		utype;	utype.init( Default );
 			utype.basicType			= TBasicType::EbtUint;
 			utype.qualifier.storage = TStorageQualifier::EvqGlobal;
 
@@ -1702,7 +1692,7 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody (const TString &fnName, De
 		if ( value_type.matrixCols and value_type.matrixRows )
 		{
 			TIntermTyped*	mat			= fn_args->getSequence()[0]->getAsTyped();
-			TPublicType		pub_type;	pub_type.init({});
+			TPublicType		pub_type;	pub_type.init( Default );
 
 			pub_type.basicType			= mat->getType().getBasicType();
 			pub_type.qualifier.storage	= mat->getType().getQualifier().storage;
@@ -1749,7 +1739,7 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody (const TString &fnName, De
 			TIntermBinary*			field_access	= new TIntermBinary{ TOperator::EOpIndexDirect };
 			TIntermTyped*			vec				= fn_args->getSequence()[0]->getAsTyped();
 			
-			TPublicType		pub_type;	pub_type.init({});
+			TPublicType		pub_type;	pub_type.init( Default );
 			pub_type.basicType			= vec->getType().getBasicType();
 			pub_type.qualifier.storage	= vec->getType().getQualifier().storage;
 
@@ -1809,14 +1799,15 @@ ND_ static bool  AppendShaderInputVaryings (TIntermAggregate* body, DebugInfo &d
 	{
 		TIntermSymbol*	symb = node->getAsSymbolNode();
 
-		if ( not symb or symb->getQualifier().storage != TStorageQualifier::EvqVaryingIn )
+		if ( symb == null or
+			 not AnyEqual( symb->getQualifier().storage, TStorageQualifier::EvqVaryingIn, TStorageQualifier::EvqHitAttr ))
 			continue;
 
 		if ( symb->isStruct() )
 		{
 			auto&	struct_fields = *symb->getType().getStruct();
 			
-			TPublicType		index_type;		index_type.init({});
+			TPublicType		index_type;		index_type.init( Default );
 			index_type.basicType			= TBasicType::EbtInt;
 			index_type.qualifier.storage	= TStorageQualifier::EvqConst;
 
@@ -1963,7 +1954,7 @@ ND_ static TIntermAggregate*  RecordTessEvaluationShaderInfo (const TSourceLoc &
 		body->getSequence().push_back( CreateAppendToTrace( tess_coord, loc_id, dbgInfo ));
 	}
 	
-	TPublicType		index_type;		index_type.init({});
+	TPublicType		index_type;		index_type.init( Default );
 	index_type.basicType			= TBasicType::EbtInt;
 	index_type.qualifier.storage	= TStorageQualifier::EvqConst;
 
@@ -1972,7 +1963,7 @@ ND_ static TIntermAggregate*  RecordTessEvaluationShaderInfo (const TSourceLoc &
 		TIntermSymbol*		inner_level	= dbgInfo.GetCachedSymbolNode( "gl_TessLevelInner" );
 		const uint			loc_id		= dbgInfo.GetCustomSourceLocation( inner_level, loc );
 		TIntermAggregate*	vec2_ctor	= new TIntermAggregate{ TOperator::EOpConstructVec2 };
-		TPublicType			float_type;	float_type.init({});
+		TPublicType			float_type;	float_type.init( Default );
 		float_type.basicType			= TBasicType::EbtFloat;
 		float_type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 		float_type.qualifier.builtIn	= TBuiltInVariable::EbvTessLevelInner;
@@ -2001,7 +1992,7 @@ ND_ static TIntermAggregate*  RecordTessEvaluationShaderInfo (const TSourceLoc &
 		TIntermSymbol*		outer_level	= dbgInfo.GetCachedSymbolNode( "gl_TessLevelOuter" );
 		const uint			loc_id		= dbgInfo.GetCustomSourceLocation( outer_level, loc );
 		TIntermAggregate*	vec4_ctor	= new TIntermAggregate{ TOperator::EOpConstructVec4 };
-		TPublicType			float_type;	float_type.init({});
+		TPublicType			float_type;	float_type.init( Default );
 		float_type.basicType			= TBasicType::EbtFloat;
 		float_type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 		float_type.qualifier.builtIn	= TBuiltInVariable::EbvTessLevelOuter;
@@ -2309,6 +2300,10 @@ ND_ static TIntermAggregate*  RecordHitShaderInfo (const TSourceLoc &loc, DebugI
 		const uint	loc_id = dbgInfo.GetCustomSourceLocation( world_to_object, loc );
 		body->getSequence().push_back( CreateAppendToTrace( world_to_object, loc_id, dbgInfo ));
 	}
+	
+	// hitAttributeEXT
+	CHECK_ERR( AppendShaderInputVaryings( body, dbgInfo ));
+
 	return body;
 }
 
@@ -2528,19 +2523,19 @@ ND_ static TIntermAggregate*  RecordShaderInfo (const TSourceLoc &loc, DebugInfo
 */
 ND_ static TIntermOperator*  CreateFragmentShaderIsDebugInvocation (DebugInfo &dbgInfo)
 {
-	TPublicType		bool_type;	bool_type.init({});
+	TPublicType		bool_type;	bool_type.init( Default );
 	bool_type.basicType			= TBasicType::EbtBool;
 	bool_type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 
-	TPublicType		int_type;	int_type.init({});
+	TPublicType		int_type;	int_type.init( Default );
 	int_type.basicType			= TBasicType::EbtInt;
 	int_type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 	
-	TPublicType		float_type;	 float_type.init({});
+	TPublicType		float_type;	 float_type.init( Default );
 	float_type.basicType		 = TBasicType::EbtFloat;
 	float_type.qualifier.storage = TStorageQualifier::EvqTemporary;
 	
-	TPublicType		index_type;	 index_type.init({});
+	TPublicType		index_type;	 index_type.init( Default );
 	index_type.basicType		 = TBasicType::EbtInt;
 	index_type.qualifier.storage = TStorageQualifier::EvqConst;
 	
@@ -2610,15 +2605,15 @@ ND_ static TIntermOperator*  CreateFragmentShaderIsDebugInvocation (DebugInfo &d
 */
 ND_ static TIntermOperator*  CreateComputeShaderIsDebugInvocation (DebugInfo &dbgInfo)
 {
-	TPublicType		bool_type;	bool_type.init({});
+	TPublicType		bool_type;	bool_type.init( Default );
 	bool_type.basicType			= TBasicType::EbtBool;
 	bool_type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 
-	TPublicType		uint_type;	uint_type.init({});
+	TPublicType		uint_type;	uint_type.init( Default );
 	uint_type.basicType			= TBasicType::EbtUint;
 	uint_type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 
-	TPublicType		index_type;	 index_type.init({});
+	TPublicType		index_type;	 index_type.init( Default );
 	index_type.basicType		 = TBasicType::EbtInt;
 	index_type.qualifier.storage = TStorageQualifier::EvqConst;
 
@@ -2704,15 +2699,15 @@ ND_ static TIntermOperator*  CreateComputeShaderIsDebugInvocation (DebugInfo &db
 */
 ND_ static TIntermOperator*  CreateRayTracingShaderIsDebugInvocation (DebugInfo &dbgInfo)
 {	
-	TPublicType		bool_type;	bool_type.init({});
+	TPublicType		bool_type;	bool_type.init( Default );
 	bool_type.basicType			= TBasicType::EbtBool;
 	bool_type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 
-	TPublicType		uint_type;	uint_type.init({});
+	TPublicType		uint_type;	uint_type.init( Default );
 	uint_type.basicType			= TBasicType::EbtUint;
 	uint_type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 
-	TPublicType		index_type;	 index_type.init({});
+	TPublicType		index_type;	 index_type.init( Default );
 	index_type.basicType		 = TBasicType::EbtInt;
 	index_type.qualifier.storage = TStorageQualifier::EvqConst;
 
@@ -2799,7 +2794,7 @@ ND_ static TIntermOperator*  CreateRayTracingShaderIsDebugInvocation (DebugInfo 
 ND_ static bool  InsertGlobalVariablesAndBuffers (TIntermAggregate* linkerObjs, TIntermAggregate* globalVars, uint initialPosition, DebugInfo &dbgInfo)
 {
 	// "bool dbg_EnableRecording"
-	TPublicType		type;	type.init({});
+	TPublicType		type;	type.init( Default );
 	type.basicType			= TBasicType::EbtBool;
 	type.qualifier.storage	= TStorageQualifier::EvqGlobal;
 
@@ -2923,7 +2918,7 @@ ND_ static bool  CreateEnableIfBody (TIntermAggregate* fnDecl, DebugInfo &dbgInf
 	TIntermAggregate*	branch_body			= RecordShaderInfo( TSourceLoc{}, dbgInfo );
 	CHECK_ERR( is_enable_recording and is_debug_enabled and branch_body );
 
-	TPublicType		type;	type.init({});
+	TPublicType		type;	type.init( Default );
 	type.basicType			= TBasicType::EbtBool;
 	type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 
@@ -2986,7 +2981,7 @@ ND_ static bool  CreatePauseBody (TIntermAggregate* fnDecl, DebugInfo &dbgInfo)
 	TIntermSymbol*		is_debug_enabled = dbgInfo.GetCachedSymbolNode( "dbg_IsEnabled" );
 	CHECK_ERR( is_debug_enabled );
 
-	TPublicType		type;	type.init({});
+	TPublicType		type;	type.init( Default );
 	type.basicType			= TBasicType::EbtBool;
 	type.qualifier.storage	= TStorageQualifier::EvqTemporary;
 	
@@ -3111,14 +3106,14 @@ ND_ static TIntermAggregate*  CreateAppendToTrace2 (uint sourceLoc, DebugInfo &d
 	fcall->setType( TType{ TBasicType::EbtVoid, TStorageQualifier::EvqGlobal });
 	fcall->getQualifierList().push_back( TStorageQualifier::EvqConstReadOnly );
 	
-	TPublicType		uint_type;		uint_type.init({});
+	TPublicType		uint_type;		uint_type.init( Default );
 	uint_type.basicType				= TBasicType::EbtUint;
 	uint_type.qualifier.storage		= TStorageQualifier::EvqConst;
 
 	TConstUnionArray		loc_value(1);	loc_value[0].setUConst( sourceLoc );
 	TIntermConstantUnion*	loc_const		= new TIntermConstantUnion{ loc_value, TType{uint_type} };
 	
-	loc_const->setLoc({});
+	loc_const->setLoc( Default );
 	fcall->getSequence().push_back( loc_const );
 
 	dbgInfo.RequestFunc( fcall->getName() );
@@ -3214,6 +3209,54 @@ ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermTyped* exprNode, uint 
 
 /*
 =================================================
+	LogTraceRayPayload
+=================================================
+*/
+static bool  LogTraceRayPayload (TIntermAggregate* dstSeq, TIntermAggregate* fn, DebugInfo &dbgInfo)
+{
+	CHECK_ERR( fn->getSequence().size() == 11 );
+
+	auto*	payload_arg = fn->getSequence()[10]->getAsConstantUnion();
+	CHECK_ERR( payload_arg != null );
+	CHECK_ERR( payload_arg->getConstArray().size() == 1 );
+	CHECK_ERR( payload_arg->getConstArray()[0].getType() == TBasicType::EbtInt );
+
+	const uint	payload_idx = payload_arg->getConstArray()[0].getIConst();
+	
+	// find payload variable
+	CHECK_ERR( dbgInfo.GetCallStack().size() );
+
+	TIntermAggregate*	root		= dbgInfo.GetCallStack().front().node->getAsAggregate();
+	TIntermAggregate*	linker_objs	= null;
+	CHECK_ERR( root );
+
+	for (auto* node : root->getSequence()) {
+		if ( auto* aggr = node->getAsAggregate(); aggr != null and aggr->getOp() == TOperator::EOpLinkerObjects ) {
+			linker_objs = aggr;
+			break;
+		}
+	}
+	CHECK_ERR( linker_objs );
+
+	for (auto* node : linker_objs->getSequence())
+	{
+		if ( auto* symb = node->getAsSymbolNode();
+			symb != null													and
+			symb->getQualifier().storage == TStorageQualifier::EvqPayload	and
+			symb->getQualifier().hasLocation()								and
+			symb->getQualifier().layoutLocation == payload_idx )
+		{
+			const uint	loc_id = dbgInfo.GetCustomSourceLocation( symb, payload_arg->getLoc() );
+
+			dstSeq->getSequence().push_back( CreateAppendToTrace( symb, loc_id, dbgInfo ) );
+			return true;
+		}
+	}
+	RETURN_ERR( "can't find payload symbol" );
+}
+
+/*
+=================================================
 	ProcessFunctionCall
 ----
 	log out/inout parameters and returned value
@@ -3241,7 +3284,7 @@ static void  ProcessFunctionCall (TIntermOperator* node, DebugInfo &dbgInfo)
 		// this is location at the end of the function call
 		TSourceLoc	loc = node->getLoc();
 
-		// try to find location at the begin of the function call
+		// try to find location at the begining of the function call
 		if ( dbgInfo.GetCallStack().size() > 1 and
 			 node->getType().getBasicType() != TBasicType::EbtVoid )
 		{
@@ -3263,21 +3306,25 @@ static void  ProcessFunctionCall (TIntermOperator* node, DebugInfo &dbgInfo)
 #		endif
 		}
 
-		// temporary fix
-		if ( loc == node->getLoc() )
-			loc.column = 0;
-		
-		const uint	loc_id = dbgInfo.GetSourceLocation( node, loc );
+		const uint	loc_id = dbgInfo.GetSourceLocation( node, loc, true );
 
 		if ( node->getType().getBasicType() == TBasicType::EbtVoid )
 		{
 			TIntermAggregate*	temp = new TIntermAggregate{ TOperator::EOpSequence };
 			temp->getSequence().push_back( node );
 			temp->getSequence().push_back( CreateAppendToTrace2( loc_id, dbgInfo ));
+
+			// special case for 'traceRays()' to log payload
+			if ( TIntermAggregate* fn = node->getAsAggregate();  fn != null and fn->getOp() == TOperator::EOpTraceKHR )
+			{
+				LogTraceRayPayload( temp, fn, dbgInfo );
+			}
+
 			dbgInfo.InjectNode( temp );
 		}
 		else
 			dbgInfo.InjectNode( CreateAppendToTrace( node, loc_id, dbgInfo ));
+
 	}
 }
 

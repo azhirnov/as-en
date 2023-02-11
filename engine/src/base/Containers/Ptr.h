@@ -41,7 +41,29 @@ namespace AE::Base
 
 		ND_ bool  operator == (const Ptr<T> &rhs)	C_NE___	{ return _value == rhs._value; }
 		ND_ bool  operator != (const Ptr<T> &rhs)	C_NE___	{ return not (*this == rhs); }
+		ND_ bool  operator <  (const Ptr<T> &rhs)	C_NE___ { return _value <  rhs._value; }
+		ND_ bool  operator >  (const Ptr<T> &rhs)	C_NE___ { return _value >  rhs._value; }
+		ND_ bool  operator <= (const Ptr<T> &rhs)	C_NE___ { return _value <= rhs._value; }
+		ND_ bool  operator >= (const Ptr<T> &rhs)	C_NE___ { return _value >= rhs._value; }
 	};
+
+
+	namespace _hidden_
+	{
+		template <typename T>
+		struct _RemovePtr {
+			using type = T;
+		};
+
+		template <typename T>
+		struct _RemovePtr< Ptr<T> > {
+			using type = T;
+		};
+
+	} // _hidden_
+
+	template <typename T>
+	using RemovePtr = typename Base::_hidden_::_RemovePtr<T>::type;
 
 } // AE::Base
 

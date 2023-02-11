@@ -210,7 +210,8 @@ namespace AE::Graphics
 		#	error not implemented
 		#endif
 
-		using DescSetAndBinding_t = Tuple< Strong<DescriptorSetID>, DescSetBinding >;
+		using DescSetAndBinding_t	= Tuple< Strong<DescriptorSetID>, DescSetBinding >;
+		using AsyncRTechPipelines	= Promise< RenderTechPipelinesPtr >;
 		
 		struct StagingBufferStat
 		{
@@ -247,14 +248,21 @@ namespace AE::Graphics
 		ND_ virtual RTASBuildSizes				GetRTGeometrySizes (const RTGeometryBuild &desc)																__NE___	= 0;
 		ND_ virtual RTASBuildSizes				GetRTSceneSizes (const RTSceneBuild &desc)																		__NE___	= 0;
 
-		ND_ virtual DescSetAndBinding_t			CreateDescriptorSet (GraphicsPipelineID   ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___	= 0;
-		ND_ virtual DescSetAndBinding_t			CreateDescriptorSet (MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___	= 0;
-		ND_ virtual DescSetAndBinding_t			CreateDescriptorSet (ComputePipelineID    ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___	= 0;
-		ND_ virtual DescSetAndBinding_t			CreateDescriptorSet (RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___	= 0;
-		ND_ virtual DescSetAndBinding_t			CreateDescriptorSet (TilePipelineID		  ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___	= 0;
-		
-		ND_ virtual Strong<DescriptorSetID>		CreateDescriptorSet (PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)			__NE___	= 0;
-		ND_ virtual Strong<DescriptorSetID>		CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)								__NE___	= 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, GraphicsPipelineID   ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, ComputePipelineID    ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, TilePipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)										 __NE___ = 0;
+		ND_ virtual bool						CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)															 __NE___ = 0;
+
+		ND_ DescSetAndBinding_t					CreateDescriptorSet (GraphicsPipelineID   ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+		ND_ DescSetAndBinding_t					CreateDescriptorSet (MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+		ND_ DescSetAndBinding_t					CreateDescriptorSet (ComputePipelineID    ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+		ND_ DescSetAndBinding_t					CreateDescriptorSet (RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+		ND_ DescSetAndBinding_t					CreateDescriptorSet (TilePipelineID		  ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+		ND_ Strong<DescriptorSetID>				CreateDescriptorSet (PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)			__NE___;
+		ND_ Strong<DescriptorSetID>				CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)								__NE___;
 
 		// warning: pipeline compilation and shader loading may be slow
 		ND_ virtual Strong<GraphicsPipelineID>	CreateGraphicsPipeline	(PipelinePackID packId, const PipelineTmplName &name, const GraphicsPipelineDesc	&desc, PipelineCacheID cache = Default)		__NE___	= 0;
@@ -263,13 +271,14 @@ namespace AE::Graphics
 		ND_ virtual Strong<RayTracingPipelineID>CreateRayTracingPipeline(PipelinePackID packId, const PipelineTmplName &name, const RayTracingPipelineDesc	&desc, PipelineCacheID cache = Default)		__NE___	= 0;
 		ND_ virtual Strong<TilePipelineID>		CreateTilePipeline		(PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc		&desc, PipelineCacheID cache = Default)		__NE___	= 0;
 
-		ND_ virtual Strong<PipelineCacheID>		CreatePipelineCache () = 0;
+		ND_ virtual Strong<PipelineCacheID>		CreatePipelineCache ()										__NE___ = 0;
 		
 		// load default pack
 			virtual bool						InitializeResources (const PipelinePackDesc &desc)			__NE___	= 0;
 		ND_ virtual Strong<PipelinePackID>		LoadPipelinePack (const PipelinePackDesc &desc)				__NE___	= 0;
 		ND_ virtual Array<RenderTechName>		GetSupportedRenderTechs (PipelinePackID id)					C_NE___	= 0;
 
+		// Returns 'true' if resource is alive.
 		ND_ virtual bool						IsResourceAlive (ImageID			id)						C_NE___ = 0;
 		ND_ virtual bool						IsResourceAlive (BufferID			id)						C_NE___ = 0;
 		ND_ virtual bool						IsResourceAlive (ImageViewID		id)						C_NE___ = 0;
@@ -280,7 +289,8 @@ namespace AE::Graphics
 		ND_ virtual bool						IsResourceAlive (RTGeometryID		id)						C_NE___ = 0;
 		ND_ virtual bool						IsResourceAlive (RTSceneID			id)						C_NE___ = 0;
 
-		// returns 'true' if resource has been destroyed (when ref counter is zero).
+		// Decrease ref counter and delay destruction until current frame complete execution on GPU.
+		// Returns 'true' if resource has been destroyed (when ref counter is zero).
 			virtual bool						ReleaseResource (INOUT Strong<ImageID>				&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<BufferID>				&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<ImageViewID>			&id)	__NE___	= 0;
@@ -296,17 +306,18 @@ namespace AE::Graphics
 			virtual bool						ReleaseResource (INOUT Strong<RTGeometryID>			&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<RTSceneID>			&id)	__NE___	= 0;
 
-		// returned reference is valid until resource is alive
+		// Returned reference is valid until resource is alive
 		ND_ virtual BufferDesc const&			GetDescription (BufferID id)								C_NE___ = 0;
 		ND_ virtual ImageDesc const&			GetDescription (ImageID id)									C_NE___ = 0;
 		ND_ virtual BufferViewDesc const&		GetDescription (BufferViewID id)							C_NE___ = 0;
 		ND_ virtual ImageViewDesc const&		GetDescription (ImageViewID id)								C_NE___ = 0;
+		ND_ virtual RTShaderBindingDesc const&	GetDescription (RTShaderBindingID id)						C_NE___	= 0;
 
 		// By default all resources destroyed when all pending command buffers are complete execution.
 		// Returns 'true' if wasn't empty.
 			virtual bool						ForceReleaseResources ()									__NE___	= 0;
 		
-		// native
+		// Returns native handle.
 		ND_ virtual NativeBuffer_t				GetBufferHandle (BufferID id)								C_NE___ = 0;
 		ND_ virtual NativeImage_t				GetImageHandle (ImageID id)									C_NE___ = 0;
 		ND_ virtual NativeBufferView_t			GetBufferViewHandle (BufferViewID id)						C_NE___ = 0;
@@ -317,12 +328,60 @@ namespace AE::Graphics
 
 		// async loading
 		//	Pipeline compilation may be distributed to multiple threads.
-		ND_ virtual Promise<RenderTechPipelinesPtr>	LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache = Default)__NE___	= 0;
-		ND_ virtual RenderTechPipelinesPtr			LoadRenderTech (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache = Default)		__NE___	= 0;
+		ND_ virtual AsyncRTechPipelines			LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache = Default)__NE___	= 0;
+		ND_ virtual RenderTechPipelinesPtr		LoadRenderTech (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache = Default)		__NE___	= 0;
 
 		// statistics
 		ND_ virtual StagingBufferStat			GetStagingBufferFrameStat (FrameUID frameId)				C_NE___ = 0;
 	};
+
+	
+/*
+=================================================
+	CreateDescriptorSet
+=================================================
+*/
+	inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (GraphicsPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		DescSetAndBinding_t	result;
+		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+	}
+
+	inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (MeshPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		DescSetAndBinding_t	result;
+		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+	}
+
+	inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (ComputePipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		DescSetAndBinding_t	result;
+		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+	}
+
+	inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		DescSetAndBinding_t	result;
+		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+	}
+
+	inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (TilePipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		DescSetAndBinding_t	result;
+		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+	}
+
+	inline Strong<DescriptorSetID>  IResourceManager::CreateDescriptorSet (PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		Strong<DescriptorSetID>	result;
+		return CreateDescriptorSets( OUT &result, 1, packId, dslName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+	}
+
+	inline Strong<DescriptorSetID>  IResourceManager::CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+	{
+		Strong<DescriptorSetID>	result;
+		return CreateDescriptorSets( OUT &result, 1, layoutId, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+	}
 
 
 } // AE::Graphics

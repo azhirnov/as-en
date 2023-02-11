@@ -16,9 +16,18 @@
 #include "base/Containers/FixedSet.h"
 #include "base/DataSource/Stream.h"
 
+#include "threading/Primitives/DataRaceCheck.h"
 #include "threading/TaskSystem/TaskScheduler.h"
 #include "threading/TaskSystem/Promise.h"
 #include "threading/Memory/MemoryManager.h"
+
+#ifdef AE_DBG_OR_DEV_OR_PROF
+#	define AE_DBG_GRAPHICS				1
+#	define DBG_GRAPHICS_ONLY( ... )		__VA_ARGS__
+#else
+#	define AE_DBG_GRAPHICS				0
+#	define DBG_GRAPHICS_ONLY( ... )		
+#endif
 
 namespace AE::Graphics
 {
@@ -32,6 +41,10 @@ namespace AE::Graphics
 	using AE::Threading::DeferSharedLock;
 	using AE::Threading::EMemoryOrder;
 	using AE::Threading::MemoryBarrier;
+	
+#	if AE_ENABLE_DATA_RACE_CHECK
+	using AE::Threading::RWDataRaceCheck;
+#	endif
 
 
 	//
@@ -76,28 +89,28 @@ namespace AE::Graphics
 	//
 	struct DebugLabel
 	{
-		static constexpr struct {
-			const RGBA8u	Undefined			= RGBA8u{255, 255, 255, 0};		// transparent white
+		struct ColorTable
+		{
+			static constexpr RGBA8u		Undefined			= RGBA8u{255, 255, 255, 0};		// transparent white
 
-			const RGBA8u	GraphicsQueue		= HtmlColor::Red;
-			const RGBA8u	AsyncComputeQueue	= HtmlColor::Orange;
-			const RGBA8u	AsyncTransfersQueue	= HtmlColor::Violet;
+			static constexpr RGBA8u		GraphicsQueue		= HtmlColor::Red;
+			static constexpr RGBA8u		AsyncComputeQueue	= HtmlColor::Orange;
+			static constexpr RGBA8u		AsyncTransfersQueue	= HtmlColor::Violet;
 
-			const RGBA8u	AsyncDrawBatch		= HtmlColor::Yellow;
+			static constexpr RGBA8u		AsyncDrawBatch		= HtmlColor::Yellow;
 			
-			const RGBA8u	GraphicsCtx			= HtmlColor::Red;
-			const RGBA8u	ComputeCtx			= HtmlColor::Orange;
-			const RGBA8u	TransferCtx			= HtmlColor::Violet;
-			const RGBA8u	DrawCtx				= HtmlColor::Yellow;
-			const RGBA8u	AccelStructBuiltCtx	= HtmlColor::Lime;
-			const RGBA8u	RayTracingCtx		= HtmlColor::Blue;
-
-		} ColorTable;
+			static constexpr RGBA8u		GraphicsCtx			= HtmlColor::Red;
+			static constexpr RGBA8u		ComputeCtx			= HtmlColor::Orange;
+			static constexpr RGBA8u		TransferCtx			= HtmlColor::Violet;
+			static constexpr RGBA8u		DrawCtx				= HtmlColor::Yellow;
+			static constexpr RGBA8u		AccelStructBuiltCtx	= HtmlColor::Lime;
+			static constexpr RGBA8u		RayTracingCtx		= HtmlColor::Blue;
+		};
 
 
 	// variables
 		StringView		label;
-		RGBA8u			color	= ColorTable.Undefined;
+		RGBA8u			color	= ColorTable::Undefined;
 		
 
 	// methods

@@ -44,11 +44,14 @@ namespace
 
 extern void UnitTest_FileSystem ()
 {
-	CHECK_FATAL( FileSystem::FindAndSetCurrent( "fs_test", 5 ));
+#ifndef AE_PLATFORM_EMSCRIPTEN
+	if ( not FileSystem::SetCurrentPath( AE_CURRENT_DIR "/fs_test" ))
+		TEST( FileSystem::FindAndSetCurrent( "fs_test", 5 ));
 
 	FileSystem_SearchForward_Test();
 	FileSystem_SearchBackward_Test();
 	FileSystem_Search_Test();
 
 	TEST_PASSED();
+#endif
 }

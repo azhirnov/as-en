@@ -64,7 +64,7 @@ namespace AE::Graphics
 		
 		ND_ uint  GetVertexBufferIndex (const VertexBufferName &name)	C_NE___;
 		
-		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result) C_NE___;
+		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, ShaderDebugger::ELogFormat, OUT Array<String> &result) C_NE___;
 
 		ND_ VkPipeline				Handle ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ VkPipelineLayout		Layout ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }

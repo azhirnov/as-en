@@ -12,7 +12,7 @@
 namespace AE::HuLang::_hidden_
 {
 	// tag: NamedID UID
-	static constexpr uint	NamedIDs_Start	= 2 << 24;
+	static constexpr uint	NamedIDs_Start	= 3 << 24;
 
 } // AE::HuLang::_hidden_
 

@@ -181,7 +181,7 @@ static bool CreatePipeline (TestDevice &vulkan, VkShaderModule vertShader, VkSha
 	info.renderPass				= renderPass;
 	info.subpass				= 0;
 
-	VK_CHECK_ERR( vulkan.vkCreateGraphicsPipelines( vulkan.GetVkDevice(), VK_NULL_HANDLE, 1, &info, null, OUT &outPipeline ));
+	VK_CHECK_ERR( vulkan.vkCreateGraphicsPipelines( vulkan.GetVkDevice(), Default, 1, &info, null, OUT &outPipeline ));
 	vulkan.tempHandles.emplace_back( TestDevice::EHandleType::Pipeline, ulong(outPipeline) );
 
 	return true;
@@ -330,7 +330,7 @@ extern bool ShaderTrace_Test6 (TestDevice& vulkan)
 		submit.commandBufferCount	= 1;
 		submit.pCommandBuffers		= &vulkan.cmdBuffer;
 
-		VK_CHECK_ERR( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, VK_NULL_HANDLE ));
+		VK_CHECK_ERR( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, Default ));
 		VK_CHECK_ERR( vulkan.vkQueueWaitIdle( vulkan.GetVkQueue() ));
 	}
 	

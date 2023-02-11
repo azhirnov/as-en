@@ -13,6 +13,8 @@
 #include "base/Math/Bytes.h"
 #include "base/Math/Color.h"
 #include "base/Math/BitMath.h"
+#include "base/Math/POTValue.h"
+
 #include "base/Algorithms/ArrayUtils.h"
 #include "base/Memory/MemUtils.h"
 #include "base/Containers/NtStringView.h"
@@ -618,12 +620,23 @@ namespace AE::Base
 	ND_ String  ToString (const RGBAColor<T> &value) __Th___
 	{
 		String	str = "( "s;
-
 		for (uint i = 0; i < 4; ++i)
 		{
-			if_likely( i > 0 )
-				str << ", ";
+			if_likely( i > 0 ) str << ", ";
 			str << ToString( value[i] );
+		}
+		str << " )";
+		return str;
+	}
+
+	template <typename T>
+	ND_ EnableIf<IsFloatPoint<T>, String>  ToString (const RGBAColor<T> &value, uint fractParts) __Th___
+	{
+		String	str = "( "s;
+		for (uint i = 0; i < 4; ++i)
+		{
+			if_likely( i > 0 ) str << ", ";
+			str << ToString( value[i], fractParts );
 		}
 		str << " )";
 		return str;
@@ -664,6 +677,17 @@ namespace AE::Base
 						str << ToString( SafeRightBitShift( val, 40 )) << " Tb";
 		
 		return str;
+	}
+
+/*
+=================================================
+	ToString (TPowerOf2Value)
+=================================================
+*/
+	template <typename T>
+	ND_ String  ToString (const TPowerOf2Value<T> &value) __Th___
+	{
+		return ToString( ulong{value} );
 	}
 
 /*

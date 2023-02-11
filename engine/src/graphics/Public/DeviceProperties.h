@@ -25,19 +25,19 @@ namespace AE::Graphics
 		struct RayTracingProperties
 		{
 			// acceleration structure data alignment
-			Bytes32u	vertexDataAlign				{1};
-			Bytes32u	vertexStrideAlign			{1};
-			Bytes32u	indexDataAlign				{1};
+			POTBytes	vertexDataAlign;
+			POTBytes	vertexStrideAlign;
+			POTBytes	indexDataAlign;
 
-			Bytes32u	aabbDataAlign				{1};
-			Bytes32u	aabbStrideAlign				{1};
+			POTBytes	aabbDataAlign;
+			POTBytes	aabbStrideAlign;
 
-			Bytes32u	transformDataAlign			{1};
+			POTBytes	transformDataAlign;
 
-			Bytes32u	instanceDataAlign			{1};
-			Bytes32u	instanceStrideAlign			{1};
+			POTBytes	instanceDataAlign;
+			POTBytes	instanceStrideAlign;
 
-			Bytes32u	minScratchBufferOffsetAlign	{1};
+			POTBytes	minScratchBufferOffsetAlign;
 		
 			// acceleration structure limits
 			ulong		maxGeometries				= 0;
@@ -46,6 +46,7 @@ namespace AE::Graphics
 
 			// ray tracing pipeline limits
 			uint		maxRecursion				= 0;
+			uint		maxDispatchInvocations		= 0;
 		};
 
 		//
@@ -53,13 +54,13 @@ namespace AE::Graphics
 		//
 		struct ResourceAlignment
 		{
-			Bytes32u	minUniformBufferOffsetAlign		{1};
-			Bytes32u	minStorageBufferOffsetAlign		{1};
-			Bytes32u	minThreadgroupMemoryLengthAlign	{1};	// Metal only
-			Bytes32u	minUniformTexelBufferOffsetAlign{1};
-			Bytes32u	minStorageTexelBufferOffsetAlign{1};
+			POTBytes	minUniformBufferOffsetAlign;
+			POTBytes	minStorageBufferOffsetAlign;
+			POTBytes	minThreadgroupMemoryLengthAlign;		// Metal only
+			POTBytes	minUniformTexelBufferOffsetAlign;
+			POTBytes	minStorageTexelBufferOffsetAlign;
 			
-			Bytes32u	minVertexBufferOffsetAlign		{1};
+			POTBytes	minVertexBufferOffsetAlign;
 			uint		minVertexBufferElementsAlign	{1};
 
 			Bytes32u	maxUniformBufferRange			{1};
@@ -67,24 +68,40 @@ namespace AE::Graphics
 			uint		maxBoundDescriptorSets			= 0;
 			
 			// mapped memory
-			Bytes32u	minMemoryMapAlignment			{1};	// TODO: vulkan only?
-			Bytes32u	minNonCoherentAtomSize			{1};
+			POTBytes	minMemoryMapAlign;						// TODO: vulkan only?
+			POTBytes	minNonCoherentAtomSize;
 
-			Bytes32u	minBufferCopyOffsetAlign		{1};	// buffer <-> buffer copy alignment		Vulkan: optimal, Metal: required
-			Bytes32u	minBufferCopyRowPitchAlign		{1};	// buffer <-> image copy alignment		Vulkan: optimal, Metal: required
+			POTBytes	minBufferCopyOffsetAlign;				// buffer <-> buffer copy alignment		Vulkan: optimal, Metal: required
+			POTBytes	minBufferCopyRowPitchAlign;				// buffer <-> image copy alignment		Vulkan: optimal, Metal: required
+		};
+
+		//
+		// Shader Hardware Properties
+		//
+		struct ShaderHWProperties
+		{
+			uint		cores			= 0;	// NV: SM,  Apple: core,  ARM: core,  AMD: engine * shaderArrays * CU
+			uint		warpsPerCore	= 0;	// Apple: EU,  AMD: SIMD
+			uint		threadsPerWarp	= 0;	// number of ALU
+
+			ND_ uint	TotalWarps ()	C_NE___	{ return cores * warpsPerCore; }	// warning: some warps may be acquired by another process
+			ND_ uint	TotalThreads ()	C_NE___	{ return TotalWarps() * threadsPerWarp; }
 		};
 
 
 	// variables
 		ResourceAlignment		res;
 		RayTracingProperties	rayTracing;
+		ShaderHWProperties		shaderHW;
 
 
 	// methods
-		ND_ bool  CompareWithConstant ()						C_NE___;
+		ND_ bool  CompareWithConstant (AnyTypeCRef vkExt_mtlFS)			C_NE___;
 
-			void  Init (AnyTypeCRef vkExt, AnyTypeCRef vkProps) __NE___;
-			void  Init (AnyTypeCRef mtlFS)						__NE___;
+			void  InitVulkan (AnyTypeCRef vkExt, AnyTypeCRef vkProps)	__NE___;
+			void  InitMetal (AnyTypeCRef mtlFS, StringView devName)		__NE___;
+
+			void  Print ()												C_NE___;
 	};
 	
 
@@ -98,46 +115,48 @@ namespace AE::Graphics
 		{
 			constexpr CT_DeviceProperties ()
 			{
-				STATIC_ASSERT( sizeof(DeviceProperties) == 128 );
+				STATIC_ASSERT( sizeof(DeviceProperties) == 88 );
 
-				STATIC_ASSERT( sizeof(res) == sizeof(uint)*13 );
+				STATIC_ASSERT( sizeof(res) == 24 );
 				{
-					res.minUniformBufferOffsetAlign			= 256_b;	// nvidia - 64/256,  amd -  16,   intel -  64,   mali -  16,   adreno -  64,   apple - 16/32/256
-					res.minStorageBufferOffsetAlign			= 256_b;	// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16
-					res.minThreadgroupMemoryLengthAlign		= 16_b;		//																		       apple - 16
-					res.minUniformTexelBufferOffsetAlign	= 256_b;	// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16/32/256
-					res.minStorageTexelBufferOffsetAlign	= 256_b;	// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16/32/256
-					res.minVertexBufferOffsetAlign			= 256_b;	// vulkan -  1 (not specified),											       apple - 16
-					res.minVertexBufferElementsAlign		= 4;		// nvidia -  1,      amd -   1,   intel -   1,   mali -  4,    adreno - ?,     apple - ?
-					res.maxUniformBufferRange				= 16_Kb;	// nvidia - 64k,     amd - inf,   intel - inf,   mali - 64k,   adreno - 64k,   apple - inf         other - 16k
-					res.maxBoundDescriptorSets				= 4;		// nvidia - 32,      amd -  32,   intel -   8,   mali -   4,   adreno -   4,   apple - 31
-					res.minMemoryMapAlignment				= 4_Kb;		// nvidia - 64,      amd -  64,   intel -  4k,   mali -  64,   adreno -  64,   apple - ?
-					res.minNonCoherentAtomSize				= 256_b;	// nvidia - 64,      amd - 128,   intel - 256,   mali -  64,   adreno -   1,   apple - 16/32/256
-					res.minBufferCopyOffsetAlign			= 256_b;	// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 1           other - 256
-					res.minBufferCopyRowPitchAlign			= 256_b;	// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 256         other - 256
+					res.minUniformBufferOffsetAlign			= POTBytes_From< 256 >;		// nvidia - 64/256,  amd -  16,   intel -  64,   mali -  16,   adreno -  64,   apple - 16/32/256
+					res.minStorageBufferOffsetAlign			= POTBytes_From< 256 >;		// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16
+					res.minThreadgroupMemoryLengthAlign		= POTBytes_From<  16 >;		//																		       apple - 16
+					res.minUniformTexelBufferOffsetAlign	= POTBytes_From< 256 >;		// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16/32/256
+					res.minStorageTexelBufferOffsetAlign	= POTBytes_From< 256 >;		// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16/32/256
+					res.minVertexBufferOffsetAlign			= POTBytes_From< 256 >;		// vulkan -  1 (not specified),											       apple - 16
+					res.minVertexBufferElementsAlign		= 4;						// nvidia -  1,      amd -   1,   intel -   1,   mali -  4,    adreno - ?,     apple - ?
+					res.maxUniformBufferRange				= 16_Kb;					// nvidia - 64k,     amd - inf,   intel - inf,   mali - 64k,   adreno - 64k,   apple - inf         other - 16k
+					res.maxBoundDescriptorSets				= 4;						// nvidia - 32,      amd -  32,   intel -   8,   mali -   4,   adreno -   4,   apple - 31
+					res.minMemoryMapAlign					= POTBytes_From< 4<<10 >;	// nvidia - 64,      amd -  64,   intel -  4k,   mali -  64,   adreno -  64,   apple - ?
+					res.minNonCoherentAtomSize				= POTBytes_From< 256 >;		// nvidia - 64,      amd - 128,   intel - 256,   mali -  64,   adreno -   1,   apple - 16/32/256
+					res.minBufferCopyOffsetAlign			= POTBytes_From< 256 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 1           other - 256
+					res.minBufferCopyRowPitchAlign			= POTBytes_From< 256 >;		// nvidia -  1,      amd -   1,   intel - 128,   mali -  64,   adreno -  64,   apple - 256         other - 256
 				}
-				STATIC_ASSERT( sizeof(rayTracing) == 72 );
+				STATIC_ASSERT( sizeof(rayTracing) == 48 );
 				{
-					rayTracing.vertexDataAlign				= 16_b;
-					rayTracing.vertexStrideAlign			= 16_b;
-					rayTracing.indexDataAlign				= 32_b;
+					rayTracing.vertexDataAlign				= POTBytes_From< 16 >;
+					rayTracing.vertexStrideAlign			= POTBytes_From< 16 >;
+					rayTracing.indexDataAlign				= POTBytes_From< 32 >;
 
-					rayTracing.aabbStrideAlign				= 4_b;
-					rayTracing.aabbDataAlign				= Max( 8_b, AlignUp( rayTracing.aabbStrideAlign, res.minStorageBufferOffsetAlign ));
+					rayTracing.aabbStrideAlign				= POTBytes_From< 4 >;
+					rayTracing.aabbDataAlign				= Max( POTBytes_From< 8 >, rayTracing.aabbStrideAlign, res.minStorageBufferOffsetAlign );
 
-					rayTracing.transformDataAlign			= 16_b;
+					rayTracing.transformDataAlign			= POTBytes_From< 16 >;
 
-					rayTracing.instanceDataAlign			= Max( 64_b, res.minStorageBufferOffsetAlign );
-					rayTracing.instanceStrideAlign			= 64_b;
+					rayTracing.instanceDataAlign			= Max( POTBytes_From< 64 >, res.minStorageBufferOffsetAlign );
+					rayTracing.instanceStrideAlign			= POTBytes_From< 64 >;
 
-					rayTracing.minScratchBufferOffsetAlign	= 256_b;
+					rayTracing.minScratchBufferOffsetAlign	= POTBytes_From< 256 >;
 
 					rayTracing.maxGeometries				= 16777215;
 					rayTracing.maxInstances					= 16777215;
 					rayTracing.maxPrimitives				= 536870911;
 
-					rayTracing.maxRecursion					= 0;	// only inline ray tracing
+					rayTracing.maxRecursion					= 1;						// nvidia/intel - 31, amd/samsung - 1, apple - ???
+					rayTracing.maxDispatchInvocations		= 67108864;					// amd/samsung/nvidia - 1073741824, amd - 67108864, intel - 4294967295, apple - ???
 				}
+				// ignore shaderHW
 			}
 		};
 	}

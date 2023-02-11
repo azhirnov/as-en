@@ -18,9 +18,13 @@ const vec3	g_Colors[3] = vec3[](
 	vec3(0.0, 0.0, 1.0)
 );
 
+void dbg_EnableTraceRecording (bool b) {}
+
 void Main ()
 {
 	const uint I = gl_LocalInvocationID.x;
+	
+	dbg_EnableTraceRecording( gl_GlobalInvocationID.x == 0 );
 
 	gl_MeshVerticesEXT[I].gl_Position	= vec4( g_Positions[I], 0.0, 1.0 );
 	Output[I].color						= vec4( g_Colors[I], 1.0 );

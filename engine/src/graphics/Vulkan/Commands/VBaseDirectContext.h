@@ -21,6 +21,8 @@ namespace AE::Graphics::_hidden_
 	// types
 	public:
 		static constexpr bool	IsIndirectContext = false;
+		
+		using CmdBuf_t = VCommandBuffer;
 
 
 	// variables
@@ -35,21 +37,21 @@ namespace AE::Graphics::_hidden_
 		void  PipelineBarrier (const VkDependencyInfo &info);
 
 	protected:
-		_VBaseDirectContext (VCommandBuffer cmdbuf, DebugLabel dbg)						__Th___;
+		explicit _VBaseDirectContext (VCommandBuffer cmdbuf)							__Th___;
 
 		ND_ bool	_IsValid ()															C_NE___	{ return _cmdbuf.IsValid() and _cmdbuf.IsRecording(); }
 
-		void  _DebugMarker (DebugLabel dbg);
-		void  _PushDebugGroup (DebugLabel dbg);
-		void  _PopDebugGroup ();
+		void  _DebugMarker (DebugLabel dbg)														{ _cmdbuf.DebugMarker( *this, dbg.label, dbg.color ); }
+		void  _PushDebugGroup (DebugLabel dbg)													{ _cmdbuf.PushDebugGroup( *this, dbg.label, dbg.color ); }
+		void  _PopDebugGroup ()																	{ _cmdbuf.PopDebugGroup( *this ); }
 
 		void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data);
 
 		ND_ VkCommandBuffer	_EndCommandBuffer ();
 		ND_ VCommandBuffer  _ReleaseCommandBuffer ();
 
-		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf)		__NE___;
-		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf)	__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg)		__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg)	__NE___;
 	};
 	
 
@@ -60,6 +62,11 @@ namespace AE::Graphics::_hidden_
 
 	class VBaseDirectContext : public _VBaseDirectContext
 	{
+	// types
+	protected:
+		using ECtxType = IGraphicsProfiler::EContextType;
+
+
 	// variables
 	protected:
 		VBarrierManager		_mngr;
@@ -67,22 +74,22 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VBaseDirectContext (const RenderTask &task)				__Th___;
-		VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf)	__Th___;
-		~VBaseDirectContext ()												__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
+		explicit VBaseDirectContext (const RenderTask &task, ECtxType ctxType)	__Th___	: VBaseDirectContext{ task, Default, ctxType } {}
+		VBaseDirectContext (const RenderTask &, VCommandBuffer, ECtxType)		__Th___;
+		~VBaseDirectContext ()													__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
 		void  _CommitBarriers ();
 		
-		void  _DebugMarker (DebugLabel dbg)											{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_DebugMarker( dbg ); }
-		void  _PushDebugGroup (DebugLabel dbg)										{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( dbg ); }
-		void  _PopDebugGroup ()														{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PopDebugGroup(); }
+		void  _DebugMarker (DebugLabel dbg)												{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)											{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()															{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PopDebugGroup(); }
 		
 		ND_ VkCommandBuffer	_EndCommandBuffer ();
 
-		ND_ bool	_NoPendingBarriers ()									C_NE___	{ return _mngr.NoPendingBarriers(); }
-		ND_ auto&	_GetExtensions ()										C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
-		ND_ auto&	_GetFeatures ()											C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
+		ND_ bool	_NoPendingBarriers ()										C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ auto&	_GetExtensions ()											C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
+		ND_ auto&	_GetFeatures ()												C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -93,96 +100,12 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline _VBaseDirectContext::_VBaseDirectContext (VCommandBuffer cmdbuf, DebugLabel dbg) __Th___ :
+	inline _VBaseDirectContext::_VBaseDirectContext (VCommandBuffer cmdbuf) __Th___ :
 		_cmdbuf{ RVRef( cmdbuf )}
 	{
 		CHECK_THROW( _IsValid() );
 
 		VulkanDeviceFn_Init( RenderTaskScheduler().GetDevice() );
-		DEBUG_ONLY(
-			_PushDebugGroup( dbg );
-		)
-		Unused( dbg );
-	}
-	
-/*
-=================================================
-	_EndCommandBuffer
-=================================================
-*/
-	inline VkCommandBuffer  _VBaseDirectContext::_EndCommandBuffer ()
-	{
-		ASSERT( _IsValid() );
-
-		VkCommandBuffer	cmd = _cmdbuf.Get();
-
-		DEBUG_ONLY( _PopDebugGroup() );
-
-		// end recording and release ownership
-		CHECK_THROW( _cmdbuf.EndAndRelease() );	// throw
-
-		return cmd;
-	}
-	
-/*
-=================================================
-	_ReleaseCommandBuffer
-=================================================
-*/
-	inline VCommandBuffer  _VBaseDirectContext::_ReleaseCommandBuffer ()
-	{
-		ASSERT( _IsValid() );
-
-		// don't call vkEndCommandBuffer
-		//DEBUG_ONLY( _PopDebugGroup() );
-
-		VCommandBuffer	res = RVRef(_cmdbuf);
-		ASSERT( not _IsValid() );
-		return res;
-	}
-
-/*
-=================================================
-	_DebugMarker
-=================================================
-*/
-	inline void  _VBaseDirectContext::_DebugMarker (DebugLabel dbg)
-	{
-		ASSERT( not dbg.label.empty() );
-
-		VkDebugUtilsLabelEXT	info = {};
-		info.sType		= VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
-		info.pLabelName	= NtStringView{dbg.label}.c_str();
-		MemCopy( info.color, RGBA32f{dbg.color} );
-			
-		vkCmdInsertDebugUtilsLabelEXT( _cmdbuf.Get(), &info );
-	}
-	
-/*
-=================================================
-	_PushDebugGroup
-=================================================
-*/
-	inline void  _VBaseDirectContext::_PushDebugGroup (DebugLabel dbg)
-	{
-		ASSERT( not dbg.label.empty() );
-
-		VkDebugUtilsLabelEXT	info = {};
-		info.sType		= VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT;
-		info.pLabelName	= NtStringView{dbg.label}.c_str();
-		MemCopy( info.color, RGBA32f{dbg.color} );
-
-		vkCmdBeginDebugUtilsLabelEXT( _cmdbuf.Get(), &info );
-	}
-	
-/*
-=================================================
-	_PopDebugGroup
-=================================================
-*/
-	inline void  _VBaseDirectContext::_PopDebugGroup ()
-	{
-		vkCmdEndDebugUtilsLabelEXT( _cmdbuf.Get() );
 	}
 	
 /*
@@ -195,33 +118,6 @@ namespace AE::Graphics::_hidden_
 		ASSERT( buffer != Default );
 
 		vkCmdFillBuffer( _cmdbuf.Get(), buffer, VkDeviceSize(offset), VkDeviceSize(size), data );
-	}
-	
-/*
-=================================================
-	_ReuseOrCreateCommandBuffer
-=================================================
-*/
-	inline VCommandBuffer  _VBaseDirectContext::_ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf) __NE___
-	{
-		if ( cmdbuf.IsValid() )
-			return RVRef(cmdbuf);
-		else
-			return RenderTaskScheduler().GetCommandPoolManager().GetCommandBuffer(
-						batch.GetQueueType(),
-						batch.GetCmdBufType(),
-						null );
-	}
-	
-	inline VCommandBuffer  _VBaseDirectContext::_ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf) __NE___
-	{
-		if ( cmdbuf.IsValid() )
-			return RVRef(cmdbuf);
-		else
-			return RenderTaskScheduler().GetCommandPoolManager().GetCommandBuffer(
-						batch.GetQueueType(),
-						batch.GetCmdBufType(),
-						&batch.GetPrimaryCtxState() );
 	}
 	
 /*
@@ -242,22 +138,19 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf) __Th___ :
+	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf, ECtxType ctxType) __Th___ :
 		_VBaseDirectContext{	// throw
-			_ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf) ),
-			DebugLabel{ task.DbgFullName(), task.DbgColor() }
+			_ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf), DebugLabel{ task.DbgFullName(), task.DbgColor() })
 		},
 		_mngr{ task }
 	{
 		ASSERT( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
+		
+		DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( _cmdbuf.Get(), ctxType ); )
 
 		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
 			PipelineBarrier( *bar );
 	}
-		
-	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task) __Th___ :
-		VBaseDirectContext{ task, Default }
-	{}
 
 /*
 =================================================

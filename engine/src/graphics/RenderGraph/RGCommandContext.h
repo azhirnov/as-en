@@ -18,13 +18,6 @@ namespace AE::RG::_hidden_
 		\
 		void  ImageViewBarrier (ImageViewID view, EResourceState srcState, EResourceState dstState)								 __Th_OV { return _ctx.ImageViewBarrier( view, srcState, dstState ); } \
 		\
-		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)													 __NE_OV { return _ctx.MemoryBarrier( srcState, dstState ); } \
-		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													 __NE_OV { return _ctx.MemoryBarrier( srcScope, dstScope ); } \
-		void  MemoryBarrier ()																									 __NE_OV { return _ctx.MemoryBarrier(); } \
-		\
-		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)												 __NE_OV { return _ctx.ExecutionBarrier( srcScope, dstScope ); } \
-		void  ExecutionBarrier ()																								 __NE_OV { return _ctx.ExecutionBarrier(); } \
-		\
 		void  AcquireBufferOwnership (BufferID buffer, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)	 __Th_OV { return _ctx.AcquireBufferOwnership( buffer, srcQueue, srcState, dstState ); } \
 		void  ReleaseBufferOwnership (BufferID buffer, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)	 __Th_OV { return _ctx.ReleaseBufferOwnership( buffer, srcState, dstState, dstQueue ); } \
 		\
@@ -35,30 +28,45 @@ namespace AE::RG::_hidden_
 		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																			 __NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _Batch().GetUserData() ); } \
 		ND_ uint							_ExeIdx ()																			 __NE___ { return _ctx._GetBarrierMngr().GetRenderTask().GetExecutionIndex(); } \
 		ND_ auto&							_ResMngr ()																			 __NE___ { return _ctx._GetBarrierMngr().GetResourceManager(); } \
+		ND_ RenderTask const&				_RTask ()																			 __NE___ { return _ctx._GetBarrierMngr().GetRenderTask(); } \
 		\
 	public: \
 		void  CommitBarriers ()																									 __Th_OV { return _ctx.CommitBarriers(); } \
+		\
+		void  MemoryBarrier (EResourceState srcState, EResourceState dstState)													 __NE_OV { return _ctx.MemoryBarrier( srcState, dstState ); } \
+		void  MemoryBarrier (EPipelineScope srcScope, EPipelineScope dstScope)													 __NE_OV { return _ctx.MemoryBarrier( srcScope, dstScope ); } \
+		void  MemoryBarrier ()																									 __NE_OV { return _ctx.MemoryBarrier(); } \
+		\
+		void  ExecutionBarrier (EPipelineScope srcScope, EPipelineScope dstScope)												 __NE_OV { return _ctx.ExecutionBarrier( srcScope, dstScope ); } \
+		void  ExecutionBarrier ()																								 __NE_OV { return _ctx.ExecutionBarrier(); } \
 		\
 		void  DebugMarker (DebugLabel dbg)																						 __Th_OV { return _ctx.DebugMarker( dbg ); } \
 		void  PushDebugGroup (DebugLabel dbg)																					 __Th_OV { return _ctx.PushDebugGroup( dbg ); } \
 		void  PopDebugGroup ()																									 __Th_OV { return _ctx.PopDebugGroup(); } \
 		\
-		ND_ CommandBatch const&		GetCommandBatch ()																			 C_NE___ { return _ctx.GetCommandBatch(); } \
+		ND_ FrameUID								GetFrameId ()																 C_NE_OF { return _ctx.GetFrameId(); } \
+		\
+		ND_ CommandBatch const&						GetCommandBatch ()															 C_NE___ { return _ctx.GetCommandBatch(); } \
+		ND_ CommandBatchPtr							GetCommandBatchRC ()														 C_NE___ { return _ctx.GetCommandBatchRC(); } \
+		ND_ RGCommandBatchPtr::RGBatchData const&	GetRGBatchData ()															 C_NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _ctx._GetBarrierMngr().GetBatch().GetUserData() ); } \
 		\
 		void  ResourceState (BufferID     id, EResourceState state)																 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
 		void  ResourceState (ImageID      id, EResourceState state)																 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
-		void  ResourceState (ImageViewID  id, EResourceState state)																 __Th___ { auto* v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v->Image(),  state ); } \
-		void  ResourceState (BufferViewID id, EResourceState state)																 __Th___ { auto* v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v->Buffer(), state ); } \
+		void  ResourceState (ImageViewID  id, EResourceState state)																 __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.Image(),  state ); } \
+		void  ResourceState (BufferViewID id, EResourceState state)																 __Th___ { auto& v = _ResMngr().GetResourcesOrThrow( id );  _RGBatch().ResourceState( _ExeIdx(), _ctx, v.Buffer(), state ); } \
 		void  ResourceState (RTSceneID    id, EResourceState state)																 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
 		void  ResourceState (RTGeometryID id, EResourceState state)																 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
 		\
-		ND_ auto  EndCommandBuffer ()																							 __Th___	\
-		{																																	\
-			if ( _ctx._GetBarrierMngr().GetRenderTask().IsLastInBatch() )																	\
-				_RGBatch().FinalBarriers( _ExeIdx(), _ctx );																				\
-																																			\
-			return _ctx.EndCommandBuffer();																									\
-		}																																	\
+		ND_ auto  ReleaseCommandBuffer ()																						 __Th___ { return _ctx.ReleaseCommandBuffer(); } \
+		ND_ auto  EndCommandBuffer ()																							 __Th___ { _RGBatch().FinalBarriers( _ExeIdx(), _ctx );  return _ctx.EndCommandBuffer(); } \
+		\
+		void  AddSurfaceTargets (const App::IOutputSurface::RenderTargets_t &targets)											 __NE___ { _RGBatch().AddSurfaceTargets( _ExeIdx(), targets ); } \
+		\
+		void  UploadMemoryBarrier (EResourceState dstState)																		 __NE___ { _RGBatch().UploadMemoryBarrier( _ExeIdx(), _ctx, dstState ); } \
+		void  ReadbackMemoryBarrier (EResourceState srcState)																	 __NE___ { _RGBatch().ReadbackMemoryBarrier( _ExeIdx(), _ctx, srcState ); } \
+		\
+		ND_ bool  HasUploadMemoryBarrier (EResourceState dstState)																 __NE___ { return _RGBatch().HasUploadMemoryBarrier( _ExeIdx(), dstState ); } \
+		ND_ bool  HasReadbackMemoryBarrier (EResourceState srcState)															 __NE___ { return _RGBatch().HasReadbackMemoryBarrier( _ExeIdx(), srcState ); } \
 
 
 	
@@ -75,37 +83,38 @@ namespace AE::RG::_hidden_
 
 		static constexpr bool	IsIndirectContext	= BaseCtx::IsIndirectContext;
 		static constexpr bool	IsTransferContext	= true;
+		
+		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
 
 
 	// variables
 	private:
 		BaseCtx		_ctx;
 
+
 	// methods
 	public:
-		explicit TransferContext (const RenderTask &task)													__Th___ : _ctx{ task } {}
+		explicit TransferContext (const RenderTask &task)														__Th___ : _ctx{ task } {}
+		TransferContext (const RenderTask &task, CmdBuf_t cmdbuf)												__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+
+		TransferContext ()																						= delete;
+		TransferContext (const TransferContext &)																= delete;
+
+		ND_ BaseCtx&  GetBaseContext ()																			__NE___	{ return _ctx; }
+
+		void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)									__Th_OV;
+		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)						__Th_OV;
 		
-		template <typename RawCmdBufType>
-		TransferContext (const RenderTask &task, RawCmdBufType cmdbuf)										__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
-
-		TransferContext ()																					= delete;
-		TransferContext (const TransferContext &)															= delete;
-
-		ND_ BaseCtx&  GetBaseContext ()																		__NE___	{ return _ctx; }
-
-		void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)								__Th_OV;
-		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)					__Th_OV;
-		
-		void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)				__Th_OV;
-		void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)					__Th_OV;
-		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)	__Th_OV;
-		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)	__Th_OV;
-		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)	__Th_OV;
-		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)	__Th_OV;
+		void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)					__Th_OV;
+		void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)						__Th_OV;
+		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)		__Th_OV;
+		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)		__Th_OV;
+		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)		__Th_OV;
+		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)		__Th_OV;
 		
 		void  UploadBuffer (BufferID buffer, Bytes offset, Bytes requiredSize, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)__Th_OV;
 			
-		void  UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)			__Th_OV;
+		void  UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)				__Th_OV;
 
 		Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)__Th_OV;
 		Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)													__Th_OV;
@@ -113,13 +122,15 @@ namespace AE::RG::_hidden_
 		void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)		__Th_OV;
 		void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType = EStagingHeapType::Dynamic)			__Th_OV;
 
-		bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)				__Th_OV;
+		bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)					__Th_OV;
 		
-		Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)				__Th_OV;
+		Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)					__Th_OV;
 		
-		uint3  MinImageTransferGranularity ()																C_NE_OV	{ return _ctx.MinImageTransferGranularity(); }
+		uint3  MinImageTransferGranularity ()																	C_NE_OV	{ return _ctx.MinImageTransferGranularity(); }
+		
+		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)	__Th_OV;
 
-		void  GenerateMipmaps (ImageID image)																__Th_OV;
+		void  GenerateMipmaps (ImageID image)																	__Th_OV;
 		
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;
@@ -143,18 +154,19 @@ namespace AE::RG::_hidden_
 
 		static constexpr bool	IsIndirectContext	= BaseCtx::IsIndirectContext;
 		static constexpr bool	IsComputeContext	= true;
+		
+		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
 
 
 	// variables
 	private:
 		BaseCtx		_ctx;
 
+
 	// methods
 	public:
 		explicit ComputeContext (const RenderTask &task)															__Th___ : _ctx{ task } {}
-
-		template <typename RawCmdBufType>
-		ComputeContext (const RenderTask &task, RawCmdBufType cmdbuf)												__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+		ComputeContext (const RenderTask &task, CmdBuf_t cmdbuf)													__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
 
 		ComputeContext ()																							= delete;
 		ComputeContext (const ComputeContext &)																		= delete;
@@ -172,7 +184,138 @@ namespace AE::RG::_hidden_
 
 		RG_INHERIT_BARRIERS
 	};
+	
 
+
+	//
+	// Draw Context
+	//
+	
+	template <typename BaseCtx>
+	class DrawContext final : public IDrawContext
+	{
+	// types
+	public:
+		STATIC_ASSERT( BaseCtx::IsDrawContext );
+
+		static constexpr bool	IsIndirectContext	= BaseCtx::IsIndirectContext;
+		static constexpr bool	IsDrawContext		= true;
+		
+		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+
+
+	// variables
+	private:
+		BaseCtx		_ctx;
+
+
+	// methods
+	public:
+		explicit DrawContext (const DrawTask &task)																			__Th___	: _ctx{ task } {}
+		explicit DrawContext (BaseCtx && ctx)																				__Th___	: _ctx{ RVRef(ctx) } {}
+
+		DrawContext ()																										= delete;
+		DrawContext (const DrawContext &)																					= delete;
+		
+		ND_ BaseCtx&  GetBaseContext ()																						__NE___	{ return _ctx; }
+
+	// pipeline and shader resources //
+		void  BindPipeline (GraphicsPipelineID ppln)																		__Th_OV	{ return _ctx.BindPipeline( ppln ); }
+		void  BindPipeline (MeshPipelineID ppln)																			__Th_OV	{ return _ctx.BindPipeline( ppln ); }
+		void  BindPipeline (TilePipelineID ppln)																			__Th_OV	{ return _ctx.BindPipeline( ppln ); }
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th_OV	{ return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
+		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages = EShaderStages::AllGraphics)__Th_OV	{ return _ctx.PushConstant( offset, size, values, stages ); }
+		
+	// dynamic states //
+		void  SetViewport (const Viewport_t &viewport)																		__Th_OV	{ return _ctx.SetViewport( viewport ); }
+		void  SetViewports (ArrayView<Viewport_t> viewports)																__Th_OV	{ return _ctx.SetViewports( viewports ); }
+		void  SetScissor (const RectI &scissor)																				__Th_OV	{ return _ctx.SetScissor( scissor ); }
+		void  SetScissors (ArrayView<RectI> scissors)																		__Th_OV	{ return _ctx.SetScissors( scissors ); }
+		void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)				__Th_OV	{ return _ctx.SetDepthBias( depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor ); }
+		void  SetStencilReference (uint reference)																			__Th_OV	{ return _ctx.SetStencilReference( reference ); }
+		void  SetStencilReference (uint frontReference, uint backReference)													__Th_OV	{ return _ctx.SetStencilReference( frontReference, backReference ); }
+		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV	{ return _ctx.SetBlendConstants( color ); }
+
+	// draw commands //
+		
+		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)												__Th_OV;
+		void  BindVertexBuffer (uint index, BufferID buffer, Bytes offset)													__Th_OV;
+		void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)					__Th_OV;
+		bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)		__Th_OV;
+		
+		using IDrawContext::Draw;
+		using IDrawContext::DrawIndexed;
+		using IDrawContext::DrawIndirect;
+		using IDrawContext::DrawIndexedIndirect;
+
+		void  Draw (uint vertexCount,
+					uint instanceCount	= 1,
+					uint firstVertex	= 0,
+					uint firstInstance	= 0)																				__Th_OV	{ return _ctx.Draw( vertexCount, instanceCount, firstVertex, firstInstance ); }
+
+		void  DrawIndexed (uint indexCount,
+						   uint instanceCount	= 1,
+						   uint firstIndex		= 0,
+						   int  vertexOffset	= 0,
+						   uint firstInstance	= 0)																		__Th_OV	{ return _ctx.DrawIndexed( indexCount, instanceCount, firstIndex, vertexOffset, firstInstance ); }
+
+		void  DrawIndirect (BufferID	indirectBuffer,
+							Bytes		indirectBufferOffset,
+							uint		drawCount,
+							Bytes		stride)																				__Th_OV;
+		
+		void  DrawIndexedIndirect (BufferID		indirectBuffer,
+								   Bytes		indirectBufferOffset,
+								   uint			drawCount,
+								   Bytes		stride)																		__Th_OV;
+
+		// tile shader //
+		void  DispatchTile ()																								__Th_OV	{ return _ctx.DispatchTile(); }
+		
+		// mesh shader //
+		void  DrawMeshTasks (const uint3 &taskCount)																		__Th_OV	{ return _ctx.DrawMeshTasks( taskCount ); }
+		
+		void  DrawMeshTasksIndirect (BufferID	indirectBuffer,
+									 Bytes		indirectBufferOffset,
+									 uint		drawCount,
+									 Bytes		stride)																		__Th_OV;
+
+		// for debugging //
+		void  DebugMarker (DebugLabel dbg)																					__Th_OV	{ return _ctx.DebugMarker( dbg ); }
+		void  PushDebugGroup (DebugLabel dbg)																				__Th_OV	{ return _ctx.PushDebugGroup( dbg ); }
+		void  PopDebugGroup ()																								__Th_OV	{ return _ctx.PopDebugGroup(); }
+		
+		// only for RW attachments //
+		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)						__Th_OV	{ return _ctx.AttachmentBarrier( name, srcState, dstState ); }
+		void  CommitBarriers ()																								__Th_OV	{ return _ctx.CommitBarriers(); }
+		
+		// vertex stream //
+		bool  AllocVStream (Bytes size, OUT VertexStream &result)															__Th_OV;
+		
+		// clear //
+		bool  ClearAttachment (AttachmentName name, const RGBA32f &color,   const RectI &rect, ImageLayer baseLayer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+		bool  ClearAttachment (AttachmentName name, const RGBA32u &color,   const RectI &rect, ImageLayer baseLayer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+		bool  ClearAttachment (AttachmentName name, const RGBA32i &color,   const RectI &rect, ImageLayer baseLayer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+		bool  ClearAttachment (AttachmentName name, const RGBA8u  &color,   const RectI &rect, ImageLayer baseLayer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+		bool  ClearAttachment (AttachmentName name, const DepthStencil &ds, const RectI &rect, ImageLayer baseLayer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, ds, rect, baseLayer, layerCount ); }
+
+		// check state //
+		ND_ bool  CheckResourceState (ImageID      id, EResourceState state)												__NE___	{ return _RGBatch().CheckResourceState( _ExeIdx(), id, state ); }
+		ND_ bool  CheckResourceState (BufferID     id, EResourceState state)												__NE___	{ return _RGBatch().CheckResourceState( _ExeIdx(), id, state ); }
+		ND_ bool  CheckResourceState (RTGeometryID id, EResourceState state)												__NE___	{ return _RGBatch().CheckResourceState( _ExeIdx(), id, state ); }
+		ND_ bool  CheckResourceState (RTSceneID    id, EResourceState state)												__NE___	{ return _RGBatch().CheckResourceState( _ExeIdx(), id, state ); }
+		
+		ND_ FrameUID	GetFrameId ()																						C_NE_OF { return _ctx.GetFrameId(); }
+		
+		ND_ bool  HasUploadMemoryBarrier (EResourceState dstState)															__NE___ { return _RGBatch().HasUploadMemoryBarrier( _ExeIdx(), dstState ); } \
+		ND_ bool  HasReadbackMemoryBarrier (EResourceState srcState)														__NE___ { return _RGBatch().HasReadbackMemoryBarrier( _ExeIdx(), srcState ); } \
+
+	private:
+		ND_ uint							_ExeIdx ()																		__NE___ { return _RTask().GetExecutionIndex(); }
+		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																		__NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _RTask().GetBatchPtr()->GetUserData() ); }
+		ND_ RenderTask const&				_RTask ()																		__NE___	{ ASSERT( _ctx.GetPrimaryCtxState().userData != null );  return *Cast<RenderTask>( _ctx.GetPrimaryCtxState().userData ); }
+	};
+	
 
 
 	//
@@ -189,23 +332,22 @@ namespace AE::RG::_hidden_
 		static constexpr bool	IsIndirectContext	= BaseCtx::IsIndirectContext;
 		static constexpr bool	IsGraphicsContext	= true;
 
-		using DrawCtx = typename BaseCtx::DrawCtx;
+		using DrawCtx	= DrawContext< typename BaseCtx::DrawCtx >;
+		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
 
 
 	// variables
 	private:
 		BaseCtx		_ctx;
 
+
 	// methods
 	public:
 		explicit GraphicsContext (const RenderTask &task)											__Th___ : _ctx{ task } {}
-		
-		template <typename RawCmdBufType>
-		GraphicsContext (const RenderTask &task, RawCmdBufType cmdbuf)								__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+		GraphicsContext (const RenderTask &task, CmdBuf_t cmdbuf)									__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
 		
 		// continue render pass
-		template <typename RawCmdBufType>
-		GraphicsContext (const RenderTask &task, const DrawCommandBatch &batch, RawCmdBufType cmdbuf)__Th___ : _ctx{ task, batch, RVRef(cmdbuf) } {}
+		GraphicsContext (const RenderTask &task, const DrawCommandBatch &batch, CmdBuf_t cmdbuf)	__Th___ : _ctx{ task, batch, RVRef(cmdbuf) } {}
 
 		GraphicsContext ()																			= delete;
 		GraphicsContext (const GraphicsContext &)													= delete;
@@ -217,11 +359,12 @@ namespace AE::RG::_hidden_
 		ND_ bool		IsSecondaryCmdbuf ()														C_NE___	{ return _ctx.IsSecondaryCmdbuf(); }
 
 		ND_ DrawCtx	BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)			__Th___;
-		ND_ DrawCtx	NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg = Default)					__Th___	{ return _ctx.NextSubpass( prevPassCtx, dbg ); }
+		ND_ DrawCtx	NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg = Default)					__Th___;
 			void	EndRenderPass (DrawCtx& ctx)													__Th___;
 			
+		// returns 'DrawCommandBatch'
 		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)		__Th___;
-		ND_ auto	NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg = Default)	__Th___	{ return _ctx.NextMtSubpass( prevPassBatch, dbg ); }
+		ND_ auto	NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg = Default)	__Th___;
 			void	EndMtRenderPass ()																__Th___;
 			void	ExecuteSecondary (DrawCommandBatch &batch)										__Th___	{ return _ctx.ExecuteSecondary( batch ); }
 
@@ -243,18 +386,19 @@ namespace AE::RG::_hidden_
 
 		static constexpr bool	IsIndirectContext	= BaseCtx::IsIndirectContext;
 		static constexpr bool	IsRayTracingContext	= true;
+		
+		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
 
 
 	// variables
 	private:
 		BaseCtx		_ctx;
 
+
 	// methods
 	public:
 		explicit RayTracingContext (const RenderTask &task)																__Th___	: _ctx{ task } {}
-		
-		template <typename RawCmdBufType>
-		RayTracingContext (const RenderTask &task, RawCmdBufType cmdbuf)												__Th___	: _ctx{ task, cmdbuf } {}
+		RayTracingContext (const RenderTask &task, CmdBuf_t cmdbuf)														__Th___	: _ctx{ task, cmdbuf } {}
 
 		RayTracingContext ()																							= delete;
 		RayTracingContext (const RayTracingContext &)																	= delete;
@@ -296,18 +440,19 @@ namespace AE::RG::_hidden_
 
 		static constexpr bool	IsIndirectContext	= BaseCtx::IsIndirectContext;
 		static constexpr bool	IsASBuildContext	= true;
+		
+		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
 
 
 	// variables
 	private:
 		BaseCtx		_ctx;
 
+
 	// methods
 	public:
 		explicit ASBuildContext (const RenderTask &task)																	__Th___	: _ctx{ task } {}
-		
-		template <typename RawCmdBufType>
-		ASBuildContext (const RenderTask &task, RawCmdBufType cmdbuf)														__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+		ASBuildContext (const RenderTask &task, CmdBuf_t cmdbuf)															__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
 
 		ASBuildContext ()																									= delete;
 		ASBuildContext (const ASBuildContext &)																				= delete;
@@ -331,107 +476,6 @@ namespace AE::RG::_hidden_
 
 		RG_INHERIT_BARRIERS
 	};
-	
-
-
-	//
-	// Draw Context
-	//
-	/*
-	template <typename BaseCtx>
-	class DrawContext final : public IDrawContext
-	{
-	// types
-	public:
-		STATIC_ASSERT( BaseCtx::IsDrawBuildContext );
-
-		static constexpr bool	IsIndirectContext	= BaseCtx::IsIndirectContext;
-		static constexpr bool	IsDrawBuildContext	= true;
-
-
-	// variables
-	private:
-		BaseCtx		_ctx;
-
-
-	// methods
-	public:
-		DrawContext (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf, DebugLabel dbg)										__Th___;
-		explicit DrawContext (const DrawTask &task)																			__Th___;
-		
-		DrawContext ()																										= delete;
-		DrawContext (const DrawContext &)																					= delete;
-		
-		ND_ BaseCtx&  GetBaseContext ()																						__NE___	{ return _ctx; }
-
-	// pipeline and shader resources //
-		void  BindPipeline (GraphicsPipelineID ppln)																		__Th_OV;
-		void  BindPipeline (MeshPipelineID ppln)																			__Th_OV;
-		void  BindPipeline (TilePipelineID ppln)																			__Th_OV;
-		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th_OV;
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages = EShaderStages::AllGraphics)__Th_OV;
-		
-	// dynamic states //
-		void  SetViewport (const Viewport_t &viewport)																		__Th_OV;
-		void  SetViewports (ArrayView<Viewport_t> viewports)																__Th_OV;
-		void  SetScissor (const RectI &scissor)																				__Th_OV;
-		void  SetScissors (ArrayView<RectI> scissors)																		__Th_OV;
-		void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)				__Th_OV;
-		void  SetStencilReference (uint reference)																			__Th_OV;
-		void  SetStencilReference (uint frontReference, uint backReference)													__Th_OV;
-		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV;
-
-	// draw commands //
-		
-		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)												__Th_OV;
-		void  BindVertexBuffer (uint index, BufferID buffer, Bytes offset)													__Th_OV;
-		void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)					__Th_OV;
-		bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)		__Th_OV;
-
-		void  Draw (uint vertexCount,
-					uint instanceCount	= 1,
-					uint firstVertex	= 0,
-					uint firstInstance	= 0)						__Th_OV;
-
-		void  DrawIndexed (uint indexCount,
-						   uint instanceCount	= 1,
-						   uint firstIndex		= 0,
-						   int  vertexOffset	= 0,
-						   uint firstInstance	= 0)				__Th_OV;
-
-		void  DrawIndirect (BufferID	indirectBuffer,
-							Bytes		indirectBufferOffset,
-							uint		drawCount,
-							Bytes		stride)						__Th_OV;
-		
-		void  DrawIndexedIndirect (BufferID		indirectBuffer,
-								   Bytes		indirectBufferOffset,
-								   uint			drawCount,
-								   Bytes		stride)				__Th_OV;
-
-		// tile shader //
-		void  DispatchTile ()										__Th_OV;
-		
-		// mesh shader //
-		void  DrawMeshTasks (const uint3 &taskCount)				__Th_OV;
-		
-		void  DrawMeshTasksIndirect (BufferID	indirectBuffer,
-									 Bytes		indirectBufferOffset,
-									 uint		drawCount,
-									 Bytes		stride)				__Th_OV;
-
-		// for debugging //
-		void  DebugMarker (DebugLabel dbg)							__Th_OV;
-		void  PushDebugGroup (DebugLabel dbg)						__Th_OV;
-		void  PopDebugGroup ()										__Th_OV;
-		
-		// only for RW attachments //
-		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)	__Th_OV;
-		void  CommitBarriers ()																			__Th_OV;
-		
-		// vertex stream //
-		bool  AllocVStream (Bytes size, OUT VertexStream &result)										__Th_OV;
-	};*/
 //-----------------------------------------------------------------------------
 	
 
@@ -509,8 +553,9 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::UploadBuffer (BufferID buffer, Bytes offset, Bytes requiredSize, OUT BufferMemView &memView, EStagingHeapType heapType) __Th___
 	{
+		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( buffer, EResourceState::CopyDst );
-		// TODO: check for UploadMemory() barrier in batch
+
 		_ctx.CommitBarriers();
 		_ctx.UploadBuffer( buffer, offset, requiredSize, OUT memView, heapType );
 	}
@@ -518,8 +563,9 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView) __Th___
 	{
+		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( image, EResourceState::CopyDst );
-		// TODO: check for UploadMemory() barrier in batch
+
 		_ctx.CommitBarriers();
 		_ctx.UploadImage( image, desc, OUT memView );
 	}
@@ -528,7 +574,8 @@ namespace AE::RG::_hidden_
 	Promise<BufferMemView>  TransferContext<C>::ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType) __Th___
 	{
 		ResourceState( buffer, EResourceState::CopySrc );
-		// TODO: check for ReadbackMemory() barrier in batch
+		ReadbackMemoryBarrier( EResourceState::CopyDst );
+
 		_ctx.CommitBarriers();
 		return _ctx.ReadbackBuffer( buffer, offset, size, heapType );
 	}
@@ -537,7 +584,8 @@ namespace AE::RG::_hidden_
 	Promise<ImageMemView>  TransferContext<C>::ReadbackImage (ImageID image, const ReadbackImageDesc &desc) __Th___
 	{
 		ResourceState( image, EResourceState::CopySrc );
-		// TODO: check for ReadbackMemory() barrier in batch
+		ReadbackMemoryBarrier( EResourceState::CopyDst );
+
 		_ctx.CommitBarriers();
 		return _ctx.ReadbackImage( image, desc );
 	}
@@ -545,8 +593,9 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType) __Th___
 	{
+		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( stream.Buffer(), EResourceState::CopyDst );
-		// TODO: check for UploadMemory() barrier in batch
+
 		_ctx.CommitBarriers();
 		_ctx.UploadBuffer( INOUT stream, OUT memView, heapType );
 	}
@@ -554,8 +603,9 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  TransferContext<C>::UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType) __Th___
 	{
+		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( stream.Image(), EResourceState::CopyDst );
-		// TODO: check for UploadMemory() barrier in batch
+
 		_ctx.CommitBarriers();
 		_ctx.UploadImage( INOUT stream, OUT memView, heapType );
 	}
@@ -582,6 +632,15 @@ namespace AE::RG::_hidden_
 		_ctx.CommitBarriers();
 		_ctx.GenerateMipmaps( image );
 	}
+	
+	template <typename C>
+	void  TransferContext<C>::BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions) __Th___
+	{
+		ResourceState( srcImage, EResourceState::BlitSrc );
+		ResourceState( dstImage, EResourceState::BlitDst );
+		_ctx.CommitBarriers();
+		_ctx.BlitImage( srcImage, dstImage, filter, regions );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -594,42 +653,118 @@ namespace AE::RG::_hidden_
 		return _ctx.DispatchIndirect( buffer, offset );
 	}
 //-----------------------------------------------------------------------------
-
-
+	
+	
+	
+	template <typename C>
+	void  DrawContext<C>::BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType) __Th___
+	{
+		CHECK( CheckResourceState( buffer, EResourceState::IndexBuffer ));
+		return _ctx.BindIndexBuffer( buffer, offset, indexType );
+	}
 
 	template <typename C>
-	typename GraphicsContext<C>::DrawCtx  GraphicsContext<C>::BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg) __Th___
+	void  DrawContext<C>::BindVertexBuffer (uint index, BufferID buffer, Bytes offset) __Th___
 	{
-		for (auto [name, att] : desc.attachments)
-		{
-			CHECK( att.initial == Default );
-			CHECK( att.final == Default );
-		}
-		return _ctx.BeginRenderPass( desc, dbg );
+		CHECK( CheckResourceState( buffer, EResourceState::VertexBuffer ));
+		return _ctx.BindVertexBuffer( index, buffer, offset );
 	}
 	
 	template <typename C>
+	void  DrawContext<C>::BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets) __Th___
+	{
+		for (auto id : buffers) {
+			CHECK( CheckResourceState( id, EResourceState::VertexBuffer ));
+		}
+		return _ctx.BindVertexBuffers( firstBinding, buffers, offsets );
+	}
+	
+	template <typename C>
+	bool  DrawContext<C>::BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset) __Th___
+	{
+		CHECK( CheckResourceState( buffer, EResourceState::VertexBuffer ));
+		return _ctx.BindVertexBuffer( pplnId, name, buffer, offset );
+	}
+		
+	template <typename C>
+	void  DrawContext<C>::DrawIndirect (BufferID	indirectBuffer,
+										Bytes		indirectBufferOffset,
+										uint		drawCount,
+										Bytes		stride) __Th___
+	{
+		CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
+		return _ctx.DrawIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
+	}
+		
+	template <typename C>
+	void  DrawContext<C>::DrawIndexedIndirect (BufferID		indirectBuffer,
+											   Bytes		indirectBufferOffset,
+											   uint			drawCount,
+											   Bytes		stride) __Th___
+	{
+		CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
+		return _ctx.DrawIndexedIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
+	}
+	
+	template <typename C>
+	void  DrawContext<C>::DrawMeshTasksIndirect (BufferID	indirectBuffer,
+												 Bytes		indirectBufferOffset,
+												 uint		drawCount,
+												 Bytes		stride) __Th___
+	{
+		CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
+		return _ctx.DrawMeshTasksIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
+	}
+	
+	template <typename C>
+	bool  DrawContext<C>::AllocVStream (Bytes size, OUT VertexStream &result) __Th___
+	{
+		CHECK( HasUploadMemoryBarrier( EResourceState::VertexBuffer ));
+		return _ctx.AllocVStream( size, OUT result );
+	}
+//-----------------------------------------------------------------------------
+
+
+
+	template <typename C>
+	typename GraphicsContext<C>::DrawCtx  GraphicsContext<C>::BeginRenderPass (const RenderPassDesc &inDesc, DebugLabel dbg) __Th___
+	{
+		RenderPassDesc	desc = inDesc;
+		_RGBatch().SetRenderPassInitialStates( _ExeIdx(), INOUT desc );
+		return DrawCtx{ _ctx.BeginRenderPass( desc, dbg, BitCast< void *>(&_RTask()) )};
+	}
+	
+	template <typename C>
+	typename GraphicsContext<C>::DrawCtx  GraphicsContext<C>::NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg) __Th___
+	{
+		return DrawCtx{ _ctx.NextSubpass( prevPassCtx, dbg, BitCast< void *>(&_RTask()) )};
+	}
+
+	template <typename C>
 	void  GraphicsContext<C>::EndRenderPass (DrawCtx& ctx) __Th___
 	{
-		_RGBatch().SetRenderPassFinalStates( _ExeIdx(), _ctx.GetState() );
-		return _ctx.EndRenderPass( ctx );
+		_RGBatch().SetRenderPassFinalStates( _ExeIdx(), ctx.GetBaseContext().GetPrimaryCtxState() );
+		return _ctx.EndRenderPass( ctx.GetBaseContext() );
 	}
-			
+	
 	template <typename C>
-	auto  GraphicsContext<C>::BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg) __Th___
+	auto  GraphicsContext<C>::BeginMtRenderPass (const RenderPassDesc &inDesc, DebugLabel dbg) __Th___
 	{
-		for (auto [name, att] : desc.attachments)
-		{
-			CHECK( att.initial == Default );
-			CHECK( att.final == Default );
-		}
-		return _ctx.BeginMtRenderPass( desc, dbg );
+		RenderPassDesc	desc = inDesc;
+		_RGBatch().SetRenderPassInitialStates( _ExeIdx(), INOUT desc );
+		return _ctx.BeginMtRenderPass( desc, dbg, BitCast< void *>(&_RTask()) );
 	}
-			
+	
+	template <typename C>
+	auto  GraphicsContext<C>::NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg) __Th___
+	{
+		return _ctx.NextMtSubpass( prevPassBatch, dbg, BitCast< void *>(&_RTask()) );
+	}
+
 	template <typename C>
 	void  GraphicsContext<C>::EndMtRenderPass () __Th___
 	{
-		_RGBatch().SetRenderPassFinalStates( _ExeIdx(), _ctx.GetState() );
+		_RGBatch().SetRenderPassFinalStates( _ExeIdx(), _ctx.GetPrimaryCtxState() );
 		return _ctx.EndMtRenderPass();
 	}
 //-----------------------------------------------------------------------------

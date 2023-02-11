@@ -2,11 +2,9 @@
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
+#include "platform/Android/AndroidCommon.h"
 
 #ifdef AE_PLATFORM_ANDROID
-# include <android/asset_manager_jni.h>
-
 # include "base/Utils/FileSystem.h"
 # include "base/Utils/NamedID_HashCollisionCheck.h"
 # include "base/Memory/LinearAllocator.h"

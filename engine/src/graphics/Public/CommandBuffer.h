@@ -27,6 +27,7 @@
 
 #define VULKAN_ONLY( ... )
 #define METAL_ONLY( ... )
+#define UNIMPLEMENTED( ... )
 
 namespace AE::Graphics
 {
@@ -137,8 +138,22 @@ namespace AE::Graphics
 		virtual void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)	__Th___	= 0;
 		virtual void  CommitBarriers ()																			__Th___ = 0;
 		
+		// clear //
+		virtual bool  ClearAttachment (AttachmentName, const RGBA32f &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th___ = 0;
+		virtual bool  ClearAttachment (AttachmentName, const RGBA32u &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th___ = 0;
+		virtual bool  ClearAttachment (AttachmentName, const RGBA32i &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th___ = 0;
+		virtual bool  ClearAttachment (AttachmentName, const RGBA8u  &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th___ = 0;
+		virtual bool  ClearAttachment (AttachmentName, const DepthStencil &, const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th___ = 0;
+
 		// vertex stream //
 		ND_ virtual bool  AllocVStream (Bytes size, OUT VertexStream &result)									__Th___ = 0;
+
+		ND_ virtual FrameUID  GetFrameId ()																		C_NE___	= 0;
+		
+		UNIMPLEMENTED(
+			PrimaryCmdBufState const&	GetPrimaryCtxState ()													C_NE___;
+			DrawCommandBatch const*		GetCommandBatch ()														C_NE___;	// can be null
+		)
 	};
 
 
@@ -181,6 +196,15 @@ namespace AE::Graphics
 		virtual void  DebugMarker (DebugLabel dbg)																							__Th___	= 0;
 		virtual void  PushDebugGroup (DebugLabel dbg)																						__Th___	= 0;
 		virtual void  PopDebugGroup ()																										__Th___	= 0;
+
+		ND_ virtual FrameUID  GetFrameId ()																									C_NE___	= 0;
+
+		UNIMPLEMENTED(
+			CommandBatch const&		GetCommandBatch ()																						C_NE___;
+			CommandBatchPtr			GetCommandBatchRC ()																					C_NE___;
+			AccumBar				AccumBarriers ()																						__NE___;
+			DeferredBar				DeferredBarriers ()																						__NE___;
+		)
 	};
 
 	
@@ -246,18 +270,21 @@ namespace AE::Graphics
 	// only in compute queue //
 	
 		VULKAN_ONLY(
-					void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges);
-					void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges);
-					void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges);
+				void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges);
+				void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges);
+				void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges);
 		)
 		
 
 	// only in graphics queue //
+	
+		//		srcImage: EResourceState::BlitSrc
+		//		dstImage: EResourceState::BlitDst
+		virtual void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)	__Th___ = 0;
 			
 		VULKAN_ONLY(
-					void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges);
-					void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions);
-					void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions);
+				void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges);
+				void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions);
 		)
 
 		//		image:
@@ -474,3 +501,4 @@ namespace AE::Graphics
 
 #undef VULKAN_ONLY
 #undef METAL_ONLY
+#undef UNIMPLEMENTED

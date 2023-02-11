@@ -570,8 +570,9 @@ PipelineTemplNames {
 
 RTShaderBindingTable {
   [0]
-    ppln name: raytracing_1.def
-    ray gen:   0
+    ppln name:        raytracing_1.def
+    ray gen:          0
+    hit group stride: 2
     miss shaders = {
         1, 1
     }
@@ -592,11 +593,11 @@ SpirvShaders {
   [7]  offset = 30 Kb
   [8]  offset = 32 Kb
   [9]  offset = 35 Kb
-  [10]  offset = 37 Kb
+  [10]  offset = 38 Kb
   [11]  offset = 41 Kb
-  [12]  offset = 43 Kb
+  [12]  offset = 44 Kb
   [13]  offset = 46 Kb
-  [14]  offset = 48 Kb
+  [14]  offset = 49 Kb
   [15]  offset = 51 Kb
 }
 
@@ -605,51 +606,51 @@ SpirvShaderData {
     codeSize = 6 Kb
     withTrace
   [1]
-    codeSize = 2652 b
-    codeHash = 9f37538a032509e9
+    codeSize = 2676 b
+    codeHash = 57692d0170056eed
   [2]
-    codeSize = 2164 b
-    codeHash = 8b6d3a7e6954e081
+    codeSize = 2188 b
+    codeHash = 4dd18f62299f5a29
   [3]
     codeSize = 4 Kb
-    codeHash = 352351ec035149ab
+    codeHash = 5226298ed9205a5f
   [4]
-    codeSize = 3020 b
-    codeHash = 2e411a9ec9f5bf22
+    codeSize = 3044 b
+    codeHash = 9b5754d5a7eac906
   [5]
     codeSize = 4 Kb
-    codeHash = a5cdb3794f18df1f
+    codeHash = 61d6ec473922846b
   [6]
-    codeSize = 3544 b
-    codeHash = f1e8c3b08d707e30
+    codeSize = 3568 b
+    codeHash = b673e16e7c939000
     spec     = {
       [0] 'sbtRecordStride', 0
     }
   [7]
-    codeSize = 2132 b
-    codeHash = 4304dce268b5e61b
+    codeSize = 2156 b
+    codeHash = f4e6365c535846e3
   [8]
-    codeSize = 2620 b
-    codeHash = 996b5afea49e48c
+    codeSize = 2644 b
+    codeHash = 211c3abb89159388
   [9]
-    codeSize = 2900 b
-    codeHash = b430a1fcee9704a
+    codeSize = 2924 b
+    codeHash = b4cf98419a17c2b2
   [10]
-    codeSize = 3324 b
-    codeHash = 3c8d953bd935bf07
+    codeSize = 3348 b
+    codeHash = b5d9d572cc4730df
   [11]
-    codeSize = 2724 b
-    codeHash = e4b0649b2513bf96
+    codeSize = 2748 b
+    codeHash = 281063429f6a116
   [12]
-    codeSize = 2340 b
-    codeHash = 58e3822028b95d35
+    codeSize = 2364 b
+    codeHash = fed2e08e6060c235
   [13]
-    codeSize = 2496 b
-    codeHash = 1a04d99aede385f5
+    codeSize = 2520 b
+    codeHash = 2821df585445b1f5
   [14]
-    codeSize = 2716 b
-    codeHash = 202a2fd97f362ff1
+    codeSize = 2740 b
+    codeHash = 4a016192ee2a5895
   [15]
-    codeSize = 2288 b
-    codeHash = 8dc6cc8505b7b706
+    codeSize = 2312 b
+    codeHash = cc2b94473c9292e
 }

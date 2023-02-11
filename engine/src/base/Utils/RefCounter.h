@@ -7,6 +7,7 @@
 #include "base/Memory/MemUtils.h"
 #include "base/Platforms/ThreadUtils.h"
 #include "base/Utils/Helpers.h"
+#include "base/Utils/Threading.h"
 
 namespace AE::Base
 {
@@ -15,20 +16,13 @@ namespace AE::Base
 
 	struct RefCounterUtils;
 
-	
+
 	//
 	// Enable Reference Counting
 	//
-
-	template <typename T>
-	struct EnableRC : public Noncopyable
+	class EnableRCBase : public Noncopyable
 	{
 		friend struct RefCounterUtils;
-
-	// types
-	private:
-		using _EnableRC_t = EnableRC< T >;
-
 
 	// variables
 	private:
@@ -39,18 +33,20 @@ namespace AE::Base
 
 	// methods
 	public:
-		EnableRC ()						__NE___ {}
-		virtual ~EnableRC ()			__NE___ { ASSERT( _counter.load( std::memory_order_relaxed ) == 0 ); }
-
-		ND_ RC<T>  GetRC ()				__NE___;
-		
-		template <typename B>
-		ND_ RC<B>  GetRC ()				__NE___;	// TODO: const?
+		virtual ~EnableRCBase ()		__NE___ { ASSERT( _counter.load( EMemoryOrder::Relaxed ) == 0 ); }
 
 	protected:
 		// this methods allows to catch object destruction and change bechavior,
 		// for example - add back to object pool.
-		virtual void  _ReleaseObject () __NE___;
+		virtual void  _ReleaseObject () __NE___
+		{
+			// update cache before calling destructor
+			std::atomic_thread_fence( EMemoryOrder::Acquire );
+			delete this;
+
+			// TODO: flush cache depends on allocator - default allocator flush cache because of internal sync, lock-free allocator may not flush cache
+			//std::atomic_thread_fence( EMemoryOrder::Release );
+		}
 	};
 
 	
@@ -61,24 +57,20 @@ namespace AE::Base
 	struct RefCounterUtils final : Noninstancable
 	{
 		// returns previous value of ref counter
-		template <typename T>
-			forceinline static int   IncRef (EnableRC<T> &obj)			__NE___	{ return obj._counter.fetch_add( 1, std::memory_order_relaxed ); }
+			forceinline static int   IncRef (EnableRCBase &obj)			__NE___	{ return obj._counter.fetch_add( 1, EMemoryOrder::Relaxed ); }
 		
 		// returns previous value of ref counter
-		template <typename T>
-			forceinline static int   AddRef (EnableRC<T> &obj, int cnt)	__NE___	{ return obj._counter.fetch_add( cnt, std::memory_order_relaxed ); }
+			forceinline static int   AddRef (EnableRCBase &obj, int cnt)__NE___	{ return obj._counter.fetch_add( cnt, EMemoryOrder::Relaxed ); }
 
 		// returns '1' if object must be destroyed
-		template <typename T>
-			forceinline static int   DecRef (EnableRC<T> &obj)			__NE___	{ return obj._counter.fetch_sub( 1, std::memory_order_relaxed ); }
+			forceinline static int   DecRef (EnableRCBase &obj)			__NE___	{ return obj._counter.fetch_sub( 1, EMemoryOrder::Relaxed ); }
 		
 		// returns '1' if object have been destroyed.
 		// 'ptr' can be null
 		template <typename T>
 			forceinline static int   DecRefAndRelease (INOUT T* &ptr)	__NE___;
 
-		template <typename T>
-		ND_ forceinline static int   UseCount (EnableRC<T> &obj)		__NE___	{ return obj._counter.load( std::memory_order_relaxed ); }
+		ND_ forceinline static int   UseCount (EnableRCBase &obj)		__NE___	{ return obj._counter.load( EMemoryOrder::Relaxed ); }
 	};
 
 
@@ -163,6 +155,80 @@ namespace AE::Base
 				void	_Inc ()							__NE___;
 				void	_Dec ()							__NE___;
 	};
+	
+
+	
+	//
+	// Enable Reference Counting
+	//
+
+	template <typename T>
+	class EnableRC : public EnableRCBase
+	{
+	// methods
+	public:
+		EnableRC ()				__NE___ {}
+
+		ND_ RC<T>  GetRC ()		__NE___	{ return RC<T>{ static_cast<T*>(this) }; }
+		
+		template <typename B>
+		ND_ RC<B>  GetRC ()		__NE___	{ return RC<B>{ static_cast<B*>(this) }; }
+	};
+
+
+
+	//
+	// Pointer which depends on RC
+	//
+
+	template <typename T>
+	class WithRC
+	{
+	// types
+	public:
+		using RC_t	= RC< EnableRCBase >;
+		using Self	= WithRC< T >;
+
+		STATIC_ASSERT( not IsBaseOf< EnableRCBase, T >);
+
+
+	// variables
+	private:
+		T *		_ptr	= null;
+		RC_t	_rc;
+
+
+	// methods
+	public:
+		WithRC ()											__NE___	{}
+		WithRC (Self &&)									__NE___	= default;
+		WithRC (const Self &)								__NE___	= default;
+		template <typename B>	WithRC (T* ptr, RC<B> rc)	__NE___	: _ptr{ptr}, _rc{RVRef(rc)} { ASSERT( (_ptr != null) == bool{_rc} ); }
+
+		Self&  operator = (const Self &)					__NE___	= default;
+		Self&  operator = (Self &&)							__NE___	= default;
+
+		ND_ bool  operator == (const T* rhs)				C_NE___	{ return _ptr == rhs; }
+		ND_ bool  operator == (Ptr<T> rhs)					C_NE___	{ return _ptr == rhs; }
+		ND_ bool  operator == (const Self &rhs)				C_NE___	{ return _ptr == rhs._ptr; }
+		ND_ bool  operator == (std::nullptr_t)				C_NE___ { return _ptr == null; }
+		
+		template <typename B>
+		ND_ bool  operator != (const B& rhs)				C_NE___ { return not (*this == rhs); }
+
+		ND_ bool  operator <  (const Self &rhs)				C_NE___ { return _ptr <  rhs._ptr; }
+		ND_ bool  operator >  (const Self &rhs)				C_NE___ { return _ptr >  rhs._ptr; }
+		ND_ bool  operator <= (const Self &rhs)				C_NE___ { return _ptr <= rhs._ptr; }
+		ND_ bool  operator >= (const Self &rhs)				C_NE___ { return _ptr >= rhs._ptr; }
+		
+		ND_ T *		operator -> ()							C_NE___ { ASSERT( _ptr != null );  return _ptr; }
+		ND_ T &		operator *  ()							C_NE___	{ ASSERT( _ptr != null );  return *_ptr; }
+		ND_ T *		get ()									C_NE___ { return _ptr; }
+		
+		ND_ explicit operator bool ()						C_NE___ { return _ptr != null; }
+		
+		ND_ int		use_count ()							C_NE___ { return _rc.use_count(); }
+	};
 
 	
 
@@ -191,7 +257,7 @@ namespace AE::Base
 			ASSERT( cnt == 1 );
 			
 			// update cache before calling destructor
-			std::atomic_thread_fence( std::memory_order_acquire );
+			std::atomic_thread_fence( EMemoryOrder::Acquire );
 
 			PlacementDelete( INOUT obj );
 		}
@@ -227,12 +293,12 @@ namespace AE::Base
 
 		AtomicRC (T* ptr)											__NE___ { _IncSet( ptr ); }
 		AtomicRC (Ptr<T> ptr)										__NE___ { _IncSet( ptr.get() ); }
-		AtomicRC (RC_t && rc)										__NE___ { _ptr.store( rc.release().release(), std::memory_order_relaxed ); }
+		AtomicRC (RC_t && rc)										__NE___ { _ptr.store( rc.release().release(), EMemoryOrder::Relaxed ); }
 		AtomicRC (const RC_t &rc)									__NE___ { _IncSet( rc.get() ); }
 
 		~AtomicRC ()												__NE___ { _ResetDec(); }
 		
-		ND_ T *		unsafe_get ()									C_NE___ { return _RemoveLockBit( _ptr.load( std::memory_order_relaxed )); }
+		ND_ T *		unsafe_get ()									C_NE___ { return _RemoveLockBit( _ptr.load( EMemoryOrder::Relaxed )); }
 		ND_ RC_t	release ()										__NE___;
 
 		ND_ RC_t	get ()											__NE___;
@@ -348,7 +414,7 @@ namespace AE::Base
 
 			if_unlikely( res == 1 )
 			{
-				static_cast< typename T::_EnableRC_t *>( ptr )->_ReleaseObject();
+				static_cast< EnableRCBase *>( ptr )->_ReleaseObject();
 				ptr = null;
 			}
 			return res;
@@ -567,9 +633,9 @@ namespace AE::Base
 		bool	res;
 		
 		if constexpr( IsStrong )
-			res = _ptr.compare_exchange_strong( INOUT exp, des, std::memory_order_relaxed, std::memory_order_relaxed );
+			res = _ptr.compare_exchange_strong( INOUT exp, des, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed );
 		else
-			res = _ptr.compare_exchange_weak( INOUT exp, des, std::memory_order_relaxed, std::memory_order_relaxed );
+			res = _ptr.compare_exchange_weak( INOUT exp, des, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed );
 		
 		if ( res ) {
 			RefCounterUtils::DecRefAndRelease( exp );
@@ -588,10 +654,10 @@ namespace AE::Base
 	template <typename T>
 	T*  AtomicRC<T>::_Exchange (T* desired) __NE___
 	{
-		T*	exp = _RemoveLockBit( _ptr.load( std::memory_order_relaxed ));
+		T*	exp = _RemoveLockBit( _ptr.load( EMemoryOrder::Relaxed ));
 		
 		for (uint i = 0;
-			 not _ptr.compare_exchange_weak( INOUT exp, desired, std::memory_order_relaxed, std::memory_order_relaxed );
+			 not _ptr.compare_exchange_weak( INOUT exp, desired, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed );
 			 ++i)
 		{
 			if_unlikely( i > ThreadUtils::SpinBeforeLock() )
@@ -616,9 +682,9 @@ namespace AE::Base
 	template <typename T>
 	T*  AtomicRC<T>::_Lock () __NE___
 	{
-		T*	exp = _RemoveLockBit( _ptr.load( std::memory_order_relaxed ));
+		T*	exp = _RemoveLockBit( _ptr.load( EMemoryOrder::Relaxed ));
 		for (uint i = 0;
-			 not _ptr.compare_exchange_weak( INOUT exp, _SetLockBit( exp ), std::memory_order_relaxed, std::memory_order_relaxed );
+			 not _ptr.compare_exchange_weak( INOUT exp, _SetLockBit( exp ), EMemoryOrder::Relaxed, EMemoryOrder::Relaxed );
 			 ++i)
 		{
 			if_unlikely( i > ThreadUtils::SpinBeforeLock() )
@@ -643,47 +709,10 @@ namespace AE::Base
 	template <typename T>
 	void  AtomicRC<T>::_Unlock () __NE___
 	{
-		T*	exp		= _RemoveLockBit( _ptr.load( std::memory_order_relaxed ));
-		T*	prev	= _ptr.exchange( exp, std::memory_order_relaxed );
+		T*	exp		= _RemoveLockBit( _ptr.load( EMemoryOrder::Relaxed ));
+		T*	prev	= _ptr.exchange( exp, EMemoryOrder::Relaxed );
 		Unused( prev );
 		ASSERT( prev == _SetLockBit( exp ));
-	}
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-	GetRC
-=================================================
-*/
-	template <typename T>
-	forceinline RC<T>  EnableRC<T>::GetRC () __NE___
-	{
-		return RC<T>{ static_cast<T*>(this) };
-	}
-	
-	template <typename T>
-	template <typename B>
-	forceinline RC<B>  EnableRC<T>::GetRC () __NE___
-	{
-		return RC<B>{ static_cast<B*>(this) };
-	}
-
-/*
-=================================================
-	_ReleaseObject
-=================================================
-*/
-	template <typename T>
-	void  EnableRC<T>::_ReleaseObject () __NE___
-	{
-		// update cache before calling destructor
-		std::atomic_thread_fence( std::memory_order_acquire );
-		delete this;
-
-		// TODO: flush cache depends on allocator - default allocator flush cache because of internal sync, lock-free allocator may not flush cache
-		//std::atomic_thread_fence( std::memory_order_release );
 	}
 //-----------------------------------------------------------------------------
 

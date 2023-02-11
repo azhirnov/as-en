@@ -6,7 +6,7 @@
 #include "base/Algorithms/StringUtils.h"
 
 #define HIGH_DETAIL_TRACE
-#define USE_STORAGE_QUALIFIERS
+//#define USE_STORAGE_QUALIFIERS
 
 
 // glslang includes
@@ -82,6 +82,15 @@ namespace AE::PipelineCompiler
 				lhs.line	!= rhs.line		? lhs.line	 < rhs.line		:
 											  lhs.column < rhs.column;
 	}
+	
+/*
+=================================================
+	SourcePoint
+=================================================
+*/
+	inline ShaderTrace::SourcePoint::SourcePoint (const TSourceLoc &loc) :
+		SourcePoint{ uint(loc.line), uint(loc.column) }
+	{}
 
 # endif // AE_ENABLE_GLSLANG
 

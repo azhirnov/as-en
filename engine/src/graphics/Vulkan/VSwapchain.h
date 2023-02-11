@@ -63,7 +63,10 @@ namespace AE::Graphics
 
 		EPixelFormat					_colorFormat		= Default;
 		
-		DRC_ONLY( RWDataRaceCheck		_drCheck; )
+		DRC_ONLY(
+			RWDataRaceCheck				_drCheck;
+			RWDataRaceCheck				_drCheck2;		// for '_currImageIndex' and '_semaphoreId'
+		)
 
 
 	// methods
@@ -87,8 +90,8 @@ namespace AE::Graphics
 		ND_ VkSwapchainKHR				GetVkSwapchain ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkSwapchain; }
 
 		// same as output params in 'AcquireNextImage()'
-		ND_ VkSemaphore					GetImageAvailableSemaphore ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _imageAvailableSem[_semaphoreId]; }
-		ND_ VkSemaphore					GetRenderFinishedSemaphore ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderFinishedSem[_semaphoreId]; }
+		ND_ VkSemaphore					GetImageAvailableSemaphore ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck2 ); return _imageAvailableSem[_semaphoreId]; }
+		ND_ VkSemaphore					GetRenderFinishedSemaphore ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck2 ); return _renderFinishedSem[_semaphoreId]; }
 
 		ND_ uint2						GetSurfaceSize ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _surfaceSize; }
 
@@ -101,8 +104,8 @@ namespace AE::Graphics
 		ND_ VkCompositeAlphaFlagBitsKHR	GetVkCompositeAlphaMode ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkCompositeAlpha; }
 
 		ND_ uint						GetSwapchainLength ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint(_vkImages.size()); }
-		ND_ uint						GetCurretImageIndex ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _currImageIndex; }
-		ND_ bool						IsImageAcquired ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return GetCurretImageIndex() < GetSwapchainLength(); }
+		ND_ uint						GetCurretImageIndex ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck2 ); return _currImageIndex; }
+		ND_ bool						IsImageAcquired ()				C_NE___	{ return GetCurretImageIndex() < GetSwapchainLength(); }
 
 		ND_ VkImageUsageFlagBits		GetVkImageUsage ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vkColorImageUsage; }
 		ND_ VkImage						GetVkCurrentImage ()			C_NE___;
@@ -125,15 +128,15 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit VSwapchainInitializer (const VDevice &dev);
+		explicit VSwapchainInitializer (const VDevice &dev)																	__NE___;
 
-		ND_ bool  CreateSurface (const NativeWindow &, StringView dbgName = {});
-			void  DestroySurface ();
+		ND_ bool  CreateSurface (const NativeWindow &, StringView dbgName = Default)										__NE___;
+			void  DestroySurface ()																							__NE___;
 
-		ND_ bool  IsSupported (VkPresentModeKHR presentMode, VkFormat colorFormat, VkImageUsageFlagBits colorImageUsage) const;
-		ND_ bool  IsSupported (EPresentMode presentMode, EPixelFormat colorFormat, EImageUsage colorImageUsage) const;
+		ND_ bool  IsSupported (VkPresentModeKHR presentMode, VkFormat colorFormat, VkImageUsageFlagBits colorImageUsage)	C_NE___;
+		ND_ bool  IsSupported (EPresentMode presentMode, EPixelFormat colorFormat, EImageUsage colorImageUsage)				C_NE___;
 		
-		ND_ bool  ChooseColorFormat (INOUT VkFormat &colorFormat, INOUT VkColorSpaceKHR &colorSpace) const;
+		ND_ bool  ChooseColorFormat (INOUT VkFormat &colorFormat, INOUT VkColorSpaceKHR &colorSpace)						C_NE___;
 
 		struct CreateInfo
 		{
@@ -148,33 +151,31 @@ namespace AE::Graphics
 		};
 		ND_ bool  Create (VResourceManager*	resMngr,
 						  const CreateInfo&	info,
-						  StringView		dbgName	= {});
+						  StringView		dbgName	= Default)																__NE___;
 		
 		ND_ bool  Create (VResourceManager&		resMngr,
 						  const uint2&			viewSize,
 						  const SwapchainDesc&	desc,
-						  StringView			dbgName	= {});
+						  StringView			dbgName	= Default)															__NE___;
 
-			void  Destroy ();
-
-		ND_ bool  Recreate (const uint2 &size);
+			void  Destroy ()																								__NE___;
 		
-		ND_ static ArrayView<const char*>  GetInstanceExtensions ();
+		ND_ static ArrayView<const char*>  GetInstanceExtensions ()															__NE___;
 
 	private:
-		ND_ bool  _Create (VResourceManager* resMngr, const CreateInfo& info, StringView dbgName);
-		ND_ bool  _CreateColorAttachment (VResourceManager* resMngr);
-			void  _PrintInfo () const;
+		ND_ bool  _Create (VResourceManager* resMngr, const CreateInfo& info, StringView dbgName)							__NE___;
+		ND_ bool  _CreateColorAttachment (VResourceManager* resMngr)														__NE___;
+			void  _PrintInfo ()																								C_NE___;
 
-		ND_ bool  _CreateSemaphores ();
-			void  _DestroySemaphores ();
+		ND_ bool  _CreateSemaphores ()																						__NE___;
+			void  _DestroySemaphores ()																						__NE___;
 
-		ND_ bool  _GetImageUsage (OUT VkImageUsageFlags &imageUsage,	VkPresentModeKHR presentMode, VkFormat colorFormat, const VkSurfaceCapabilitiesKHR &surfaceCaps) const;
-		ND_ bool  _GetCompositeAlpha (INOUT VkCompositeAlphaFlagBitsKHR &compositeAlpha, const VkSurfaceCapabilitiesKHR &surfaceCaps) const;
-			void  _GetPresentMode (INOUT VkPresentModeKHR &presentMode) const;
-			void  _GetSwapChainExtent (INOUT VkExtent2D &extent, const VkSurfaceCapabilitiesKHR &surfaceCaps) const;
-			void  _GetSurfaceTransform (INOUT VkSurfaceTransformFlagBitsKHR &transform, const VkSurfaceCapabilitiesKHR &surfaceCaps) const;
-			void  _GetSurfaceImageCount (INOUT uint &minImageCount, const VkSurfaceCapabilitiesKHR &surfaceCaps) const;
+		ND_ bool  _GetImageUsage (OUT VkImageUsageFlags &imageUsage,	VkPresentModeKHR presentMode, VkFormat colorFormat, const VkSurfaceCapabilitiesKHR &surfaceCaps)C_NE___;
+		ND_ bool  _GetCompositeAlpha (INOUT VkCompositeAlphaFlagBitsKHR &compositeAlpha, const VkSurfaceCapabilitiesKHR &surfaceCaps)									C_NE___;
+			void  _GetPresentMode (INOUT VkPresentModeKHR &presentMode)																									C_NE___;
+			void  _GetSwapChainExtent (INOUT VkExtent2D &extent, const VkSurfaceCapabilitiesKHR &surfaceCaps)															C_NE___;
+			void  _GetSurfaceTransform (INOUT VkSurfaceTransformFlagBitsKHR &transform, const VkSurfaceCapabilitiesKHR &surfaceCaps)									C_NE___;
+			void  _GetSurfaceImageCount (INOUT uint &minImageCount, const VkSurfaceCapabilitiesKHR &surfaceCaps)														C_NE___;
 	};
 
 

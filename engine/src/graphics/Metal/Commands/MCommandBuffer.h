@@ -24,9 +24,10 @@ namespace AE::Graphics
 		FrameUID				frameId;
 		ulong					rasterOrderGroup	: 8;
 		ulong					useSecondaryCmdbuf	: 1;	// parallel encoder
+		void*					userData;
 
 		MPrimaryCmdBufState ()	__NE___	:
-			rasterOrderGroup{0xFF}, useSecondaryCmdbuf{false}
+			rasterOrderGroup{0xFF}, useSecondaryCmdbuf{false}, userData{null}
 		{}
 
 		ND_ bool  IsValid ()	C_NE___	{ return (renderPass != null) & frameId.IsValid(); }
@@ -127,6 +128,13 @@ namespace AE::Graphics
 
 		ND_ static MCommandBuffer	CreateCommandBuffer (EQueueType)	__NE___;
 		ND_ static MCommandBuffer	CreateEmptyCmdBuffer (EQueueType)	__NE___;
+
+		
+		void  DebugMarker (DebugLabel dbg)								__NE___;
+		void  PushDebugGroup (DebugLabel dbg)							__NE___;
+		void  PopDebugGroup ()											__NE___;
+		
+		void  PipelineBarrier (const MDependencyInfo &info)				__NE___;
 
 	private:
 		DRC_ONLY( ND_ bool			_IsInCurrentThread ()				C_NE___	{ return _stCheck.Lock(); })

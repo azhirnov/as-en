@@ -2,9 +2,6 @@
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
-#include <mutex>
-
 #include "base/Common.h"
 #include "base/DataSource/Stream.h"
 #include "base/Math/Random.h"
@@ -50,7 +47,7 @@ namespace AE::Base
 	class ConsoleLogOutput final : public ILogger
 	{
 	private:
-		std::mutex		_guard;
+		Mutex		_guard;
 
 	public:
 		EResult  Process (const MessageInfo &info) __Th_OV;
@@ -59,7 +56,7 @@ namespace AE::Base
 #endif
 
 	
-#if (defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE)) and not defined(AE_CI_BUILD)
+#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE)
 
 	//
 	// Dialog Log output
@@ -67,19 +64,43 @@ namespace AE::Base
 	class DialogLogOutput final : public ILogger
 	{
 	private:
-		std::mutex			_guard;
+		Mutex				_guard;
 		const LevelBits		_levelBits;
 		const ScopeBits		_scopeBits;
+		const ThreadID		_mainThread;	// for Apple
 
 	public:
 		DialogLogOutput (LevelBits levelBits, ScopeBits scopeBits) :
-			_levelBits{ levelBits }, _scopeBits{ scopeBits }
+			_levelBits{ levelBits }, _scopeBits{ scopeBits },
+			_mainThread{ std::this_thread::get_id() }
 		{}
 
 		EResult  Process (const MessageInfo &info) __Th_OV;
 
 	private:
 		EResult  _ProcessImpl (const String &caption, const String &msg) __Th___;
+	};
+
+#endif
+
+	
+#ifdef AE_PLATFORM_EMSCRIPTEN
+
+	//
+	// Dialog Log output
+	//
+	class DialogLogOutputEms final : public ILogger
+	{
+	private:
+		const LevelBits		_levelBits;
+		const ScopeBits		_scopeBits;
+
+	public:
+		DialogLogOutputEms (LevelBits levelBits, ScopeBits scopeBits) :
+			_levelBits{ levelBits }, _scopeBits{ scopeBits }
+		{}
+
+		EResult  Process (const MessageInfo &info) __Th_OV;
 	};
 
 #endif
@@ -91,7 +112,7 @@ namespace AE::Base
 	class FileLogOutput final : public ILogger
 	{
 	private:
-		std::mutex						_guard;
+		Mutex							_guard;
 		RC< WStream >					_file;
 		FlatHashMap< usize, String >	_threadNames;
 
@@ -113,6 +134,8 @@ namespace AE::Base
 	private:
 		enum class EColor : uint
 		{
+			Unknown		= 0,
+
 			Blue		= 0x0000FF,
 			Navy		= 0x0000AB,
 			Violet		= 0x8A2BE2,
@@ -133,7 +156,7 @@ namespace AE::Base
 
 		struct ThreadInfo
 		{
-			EColor	bgColor;
+			EColor	bgColor		= Default;
 			String	name;
 		};
 		using ThreadInfoMap_t = FlatHashMap< usize, ThreadInfo >;
@@ -141,7 +164,7 @@ namespace AE::Base
 
 	// variables
 	private:
-		std::mutex			_guard;
+		Mutex				_guard;
 
 		RC< WStream >		_file;
 		uint				_txtColor;

@@ -12,6 +12,7 @@
 
 namespace glslang {
 	class TIntermediate;
+	struct TSourceLoc;
 }
 
 namespace AE::PipelineCompiler
@@ -28,19 +29,37 @@ namespace AE::PipelineCompiler
 	{
 	// types
 	public:
+		enum class ELogFormat : uint
+		{
+			Unknown,
+			Text,			// as plane text with part of source code 
+			VS_Console,		// compatible with VS outpit, allow navigation to code by click
+			VSCode,			// click to file path will open shader source file
+			_Count
+		};
+
 		enum class VariableID : uint { Unknown = ~0u };
 
-		struct SourcePoint
+		union SourcePoint
 		{
-			ulong	value	= UMax;
+			struct {
+				uint	column;
+				uint	line;
+			}		_packed;
+			ulong	_ul			= UMax;
 
 			SourcePoint () {}
-			SourcePoint (uint line, uint column) : value{(ulong(line) << 32) | column } {}
+			SourcePoint (uint line, uint column) : _ul{(ulong(line) << 32) | column } {}
+			explicit SourcePoint (const glslang::TSourceLoc &);
 
-			ND_ bool  operator == (const SourcePoint &rhs) const	{ return value == rhs.value; }
+			ND_ bool  operator == (const SourcePoint &rhs)	const	{ return _ul == rhs._ul; }
+			ND_ bool  operator >  (const SourcePoint &rhs)	const	{ return _ul >  rhs._ul; }
 
-			ND_ uint  Line ()	const	{ return uint(value >> 32); }
-			ND_ uint  Column ()	const	{ return uint(value & 0xFFFFFFFF); }
+				void  SetMin (const SourcePoint &rhs)				{ _ul = Min( _ul, rhs._ul ); }
+				void  SetMax (const SourcePoint &rhs)				{ _ul = Max( _ul, rhs._ul ); }
+				
+			ND_ uint  Line ()								const	{ return uint(_ul >> 32); }
+			ND_ uint  Column ()								const	{ return uint(_ul & 0xFFFFFFFF); }
 		};
 
 		struct SourceLocation
@@ -50,11 +69,10 @@ namespace AE::PipelineCompiler
 			SourcePoint		end;
 
 			SourceLocation () {}
-			SourceLocation (uint sourceId, uint line, uint column) : sourceId{sourceId}, begin{line, column}, end{line, column} {}
+			SourceLocation (uint sourceId, uint line, uint column);
 
-			ND_ bool  operator == (const SourceLocation &rhs) const {
-				return (sourceId == rhs.sourceId) & (begin == rhs.begin) & (end == rhs.end);
-			}
+			ND_ bool  operator == (const SourceLocation &rhs)	const;
+			ND_ bool  IsNotDefined ()							const;
 		};
 
 		struct ExprInfo
@@ -65,21 +83,19 @@ namespace AE::PipelineCompiler
 			SourcePoint			point;				// location of operator
 			Array<VariableID>	vars;				// all variables IDs in this expression
 			
-			ND_ bool  operator == (const ExprInfo &rhs) const {
-				return	(varID == rhs.varID) & (swizzle == rhs.swizzle) & (range == rhs.range) & (point == rhs.point) & (vars == rhs.vars);
-			}
+			ND_ bool  operator == (const ExprInfo &rhs) const;
 		};
 
 		struct SourceInfo
 		{
 			using LineRange = Pair< usize, usize >;
 
+			String				filename;
 			String				code;
-			Array<LineRange>	lines;		// offset in bytes for each line in 'code'
+			uint				firstLine	= 0;
+			Array<LineRange>	lines;				// offset in bytes for each line in 'code'
 			
-			ND_ bool  operator == (const SourceInfo &rhs) const {
-				return	(code == rhs.code) & (lines == rhs.lines);
-			}
+			ND_ bool  operator == (const SourceInfo &rhs) const;
 		};
 
 		using VarNames_t	= HashMap< VariableID, String >;
@@ -126,12 +142,12 @@ namespace AE::PipelineCompiler
 		ND_ bool  InsertShaderClockHeatmap (glslang::TIntermediate &, uint descSetIndex);
 	
 		// Converts binary trace into string.
-		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, OUT Array<String> &result) const;
+		ND_ bool  ParseShaderTrace (const void *ptr, Bytes maxSize, ELogFormat format, OUT Array<String> &result) const;
 
 		// Source code required for 'ParseShaderTrace' function.
-		void  SetSource (const char* const* sources, const usize *lengths, usize count);
-		void  SetSource (const char* source, usize length);
-		void  IncludeSource (const char* filename, const char* source, usize length);	// if used '#include'
+		void  AddSource (StringView source);
+		void  AddSource (StringView filename, uint firstLine, StringView source);
+		void  IncludeSource (StringView filename, StringView source);	// if used '#include'
 		void  GetSource (OUT String &result) const;
 
 		ND_ bool  operator == (const ShaderTrace &rhs) const;
@@ -143,7 +159,8 @@ namespace AE::PipelineCompiler
 		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 
 	private:
-		void  _AppendSource (const char* source, usize length);
+		void  _AppendSource (StringView filename, uint firstLine, StringView source);
 	};
+
 
 } // AE::PipelineCompiler

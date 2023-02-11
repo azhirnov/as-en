@@ -67,7 +67,7 @@ namespace AE::Math
 		ND_ explicit constexpr operator uint ()			C_NE___	{ return static_cast<uint  >(_value); }
 		ND_ explicit constexpr operator ulong ()		C_NE___	{ return static_cast<ulong >(_value); }
 
-	  #if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE)
+	  #if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_APPLE) or defined(AE_PLATFORM_EMSCRIPTEN)
 		ND_ explicit constexpr operator signed long ()	C_NE___ { return static_cast< signed long >(_value); }
 		ND_ explicit constexpr operator unsigned long ()C_NE___ { return static_cast< unsigned long >(_value); }
 	  #endif
@@ -145,6 +145,12 @@ namespace AE::Math
 		
 			Self&			operator %= (const T rhs)		__NE___	{ _value %= rhs;  return *this; }
 		ND_ constexpr Self	operator %  (const T rhs)		C_NE___	{ return Self( _value % rhs ); }
+
+		ND_ Self&			operator >>= (const T rhs)		__NE___	{ _value >>= rhs;  return *this; }
+		ND_ constexpr Self	operator >>  (const T rhs)		C_NE___	{ return Self{ _value >> rhs }; }
+		
+		ND_ Self&			operator <<= (const T rhs)		__NE___	{ _value <<= rhs;  return *this; }
+		ND_ constexpr Self	operator <<  (const T rhs)		C_NE___	{ return Self{ _value << rhs }; }
 
 		ND_ constexpr bool	operator == (const Self &rhs)	C_NE___	{ return _value == rhs._value; }
 		ND_ constexpr bool	operator != (const Self &rhs)	C_NE___	{ return _value != rhs._value; }

@@ -6,6 +6,7 @@
 # include "base/Platforms/UnixUtils.h"
 # include "base/Containers/NtStringView.h"
 # include "base/Utils/Version.h"
+# include "base/Utils/Threading.h"
 
 namespace AE::Base
 {
@@ -36,8 +37,8 @@ namespace AE::Base
 			static void		SetThreadName (NtStringView name)													__NE___;
 		ND_ static String	GetThreadName ();
 
-			static bool		SetThreadAffinity (const std::thread::native_handle_type &handle, uint coreIdx)		__NE___;
-			static bool		SetThreadPriority (const std::thread::native_handle_type &handle, float priority)	__NE___;
+			static bool		SetThreadAffinity (const ThreadHandle &handle, uint coreIdx)						__NE___;
+			static bool		SetThreadPriority (const ThreadHandle &handle, float priority)						__NE___;
 			
 		ND_	static uint		GetProcessorCoreIndex ()															__NE___;	// current logical CPU core
 		

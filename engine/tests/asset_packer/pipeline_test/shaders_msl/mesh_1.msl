@@ -28,7 +28,7 @@ using MeshType = metal::mesh<	mesh_1_io,						// vertex type
 								metal::topology::triangle		// topology of the mesh,			GLSL: layout(triangles) out;
 							>;
 
-[[mesh, max_total_threads_per_threadgroup(3)]]
+[[mesh, max_total_threads_per_threadgroup(3)]]					// GLSL: local_size_x
 void Main (MeshType	output,
 		   uint		I		[[thread_index_in_threadgroup]]		// GLSL: gl_LocalInvocationID
 		  )

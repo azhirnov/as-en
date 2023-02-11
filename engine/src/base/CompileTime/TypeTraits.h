@@ -101,6 +101,8 @@ namespace _hidden_
 	template <typename T>
 	static constexpr bool	IsArithmetic			= std::is_arithmetic_v<T>;
 	
+
+
 	template <typename T>
 	static constexpr bool	IsNothrowable			= std::is_nothrow_move_constructible_v<T>		and
 													  std::is_nothrow_default_constructible_v<T>	and
@@ -108,36 +110,45 @@ namespace _hidden_
 													  std::is_nothrow_copy_constructible_v<T>		and
 													  std::is_nothrow_destructible_v<T>				and
 													  std::is_nothrow_move_assignable_v<T>;
-
 	template <typename T>
 	static constexpr bool	IsNothrowCopyCtor		= std::is_nothrow_copy_constructible_v<T>		or
 													  std::is_trivially_copy_constructible_v<T>;
-
 	template <typename T>
 	static constexpr bool	IsNothrowDtor			= std::is_nothrow_destructible_v<T>				or
 													  std::is_trivially_destructible_v<T>;
-
-	template <typename T> struct IsNothrowCopyCtor_t { static constexpr bool  value = IsNothrowCopyCtor<T>; };
-
 	template <typename T>
 	static constexpr bool	IsNothrowMoveCtor		= std::is_nothrow_move_constructible_v<T>		or
 													  std::is_trivially_move_constructible_v<T>;
-	
-	template <typename T> struct IsNothrowMoveCtor_t { static constexpr bool  value = IsNothrowMoveCtor<T>; };
-
 	template <typename T>
 	static constexpr bool	IsNothrowDefaultCtor	= std::is_nothrow_default_constructible_v<T>	or
 													  std::is_trivially_default_constructible_v<T>;
-	
-	template <typename T> struct IsNothrowDefaultCtor_t { static constexpr bool  value = IsNothrowDefaultCtor<T>; };
+	template <typename T>
+	static constexpr bool	IsNothrowCopyAssignable	= std::is_nothrow_copy_assignable_v<T>			or
+													  (IsNothrowCopyCtor<T> and IsNothrowDtor<T>);		// if used dtor + ctor
+	template <typename T>
+	static constexpr bool	IsNothrowMoveAssignable	= std::is_nothrow_move_assignable_v<T>			or
+													  (IsNothrowMoveCtor<T> and IsNothrowDtor<T>);		// if used dtor + move ctor
 	
 	template <typename T, typename ...Args>
 	static constexpr bool	IsNothrowCtor			= std::is_nothrow_constructible_v< T, Args... >		or
 													  std::is_trivially_constructible_v< T, Args... >	or
 													  (std::is_constructible_v< T, Args... > and std::is_trivial_v<T>);
+
 	
-	template <typename T, typename ...Args>
-	struct IsNothrowCtor_t { static constexpr bool  value = IsNothrowCtor< T, Args... >; };
+	template <typename T>					struct IsNothrowDtor_t				{ static constexpr bool  value = IsNothrowDtor<T>; };
+	template <typename T>					struct IsNothrowCopyCtor_t			{ static constexpr bool  value = IsNothrowCopyCtor<T>; };
+	template <typename T>					struct IsNothrowMoveCtor_t			{ static constexpr bool  value = IsNothrowMoveCtor<T>; };
+	template <typename T>					struct IsNothrowDefaultCtor_t		{ static constexpr bool  value = IsNothrowDefaultCtor<T>; };
+	template <typename T>					struct IsNothrowMoveAssignable_t	{ static constexpr bool  value = IsNothrowMoveAssignable<T>; };
+	template <typename T>					struct IsNothrowCopyAssignable_t	{ static constexpr bool  value = IsNothrowCopyAssignable<T>; };
+	template <typename T, typename ...Args>	struct IsNothrowCtor_t				{ static constexpr bool  value = IsNothrowCtor< T, Args... >; };
+
+
+	template <typename Fn>
+	static constexpr bool	IsNothrowInvocable		= std::is_nothrow_invocable_v<Fn>;
+
+	template <typename Fn> struct IsNothrowInvocable_t { static constexpr bool  value = IsNothrowInvocable<Fn>; };
+
 
 	
 	template <typename T>

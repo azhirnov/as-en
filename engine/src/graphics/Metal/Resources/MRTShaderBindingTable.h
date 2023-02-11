@@ -25,7 +25,10 @@ namespace AE::Graphics
 
 	// variables
 	private:
+		RTShaderBindingDesc				_desc;
 
+		DEBUG_ONLY(	DebugName_t			_debugName;	)
+		DRC_ONLY(	RWDataRaceCheck		_drCheck;	)
 
 	// methods
 	public:
@@ -35,7 +38,9 @@ namespace AE::Graphics
 		ND_ bool  Create (MResourceManager &, const CreateInfo &)	__NE___	{ return true; }
 			void  Destroy (MResourceManager &)						__NE___	{}
 
-		DEBUG_ONLY(  ND_ StringView		GetDebugName ()				C_NE___	{ return Default; })
+		ND_ RTShaderBindingDesc const&	Description ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
+		
+		DEBUG_ONLY(  ND_ StringView		GetDebugName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 
 

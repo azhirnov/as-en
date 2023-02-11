@@ -24,12 +24,7 @@ name: 'command-buffer'
     dependencyFlags: 0
     MemoryBarrier:
       stage:  COPY ---> COMPUTE_SHADER
-      access: TRANSFER_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
-  ----------
-
-  BeginDebugLabel
-    name:  'Debugger1 |0| Compute task'
-    depth: 2
+      access: TRANSFER_WRITE ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
   ----------
 
   PipelineBarrier2
@@ -57,7 +52,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }

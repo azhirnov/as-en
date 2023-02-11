@@ -7,20 +7,20 @@ namespace AE::Base
 namespace _hidden_
 {
 	template <typename RefType, usize I, typename TL>
-	struct TL_GetFirstIndex;
+	struct Tuple_GetFirstIndex;
 
 	template <typename RefType, usize I>
-	struct TL_GetFirstIndex< RefType, I, std::tuple<> >
+	struct Tuple_GetFirstIndex< RefType, I, std::tuple<> >
 	{
 		inline static constexpr usize	value = UMax;
 	};
 
 	template <typename RefType, usize I, typename Head, typename... Tail>
-	struct TL_GetFirstIndex< RefType, I, std::tuple<Head, Tail...> >
+	struct Tuple_GetFirstIndex< RefType, I, std::tuple<Head, Tail...> >
 	{
 		inline static constexpr usize	value = Conditional< IsSameTypes<RefType, Head>,
 													std::integral_constant<usize, I>,
-													TL_GetFirstIndex< RefType, I+1, std::tuple<Tail...> > >::value;
+													Tuple_GetFirstIndex< RefType, I+1, std::tuple<Tail...> > >::value;
 	};
 
 } // _hidden_
@@ -100,14 +100,17 @@ namespace _hidden_
 
 		ND_ HashVal						CalcHash ()					C_NE___	{ return _RecursiveCalcHash<0>(); }
 
+		template <typename ...Args>
+		constexpr void					Set (Args && ...args)		__Th___	{ _RecursiveSet<0>( FwdArg<Args>(args)... ); }
+
 		template <typename Fn>
-		constexpr decltype(auto)		Apply (Fn &&fn)				__Th___	//noexcept(std::is_nothrow_invocable_v<Fn>)
+		constexpr decltype(auto)		Apply (Fn &&fn)				__Th___
 		{
 			return std::apply( FwdArg<Fn>(fn), static_cast<Base_t &>(*this) );
 		}
 
 		template <typename Fn>
-		constexpr decltype(auto)		Apply (Fn &&fn)				C_Th___	//const noexcept(std::is_nothrow_invocable_v<Fn>)
+		constexpr decltype(auto)		Apply (Fn &&fn)				C_Th___
 		{
 			return std::apply( FwdArg<Fn>(fn), static_cast<const Base_t &>(*this) );
 		}
@@ -122,9 +125,13 @@ namespace _hidden_
 				return HashOf( Get<I>() );
 		}
 
-		template <usize I>
-		static constexpr void  _RecursiveCopy ()
+		template <usize I, typename Arg0, typename ...Args>
+		constexpr void  _RecursiveSet (Arg0 &&arg0, Args&& ...args) __Th___
 		{
+			Get<I>() = FwdArg<Arg0>(arg0);
+
+			if constexpr( I+1 < sizeof... (Types) )
+				_RecursiveSet<I+1>( FwdArg<Args>(args)... );
 		}
 	};
 
@@ -152,7 +159,7 @@ namespace _hidden_
 		using TypeList_t	= std::tuple< Types... >;
 		
 		template <typename T>
-		inline static constexpr usize	_Index	= Base::_hidden_::TL_GetFirstIndex< T, 0, TypeList_t >::value;
+		inline static constexpr usize	_Index	= Base::_hidden_::Tuple_GetFirstIndex< T, 0, TypeList_t >::value;
 
 
 	// variables
@@ -224,6 +231,7 @@ namespace _hidden_
 		ND_ constexpr Tuple_t &			AsTuple ()		r_NE___	{ return _base; }
 		ND_ constexpr Tuple_t &			AsTuple ()		rvNE___	{ return _base; }
 		ND_ constexpr CRef_t const&		AsConst ()		CrNE___	{ return reinterpret_cast<CRef_t const&>(*this); }
+
 
 	private:
 		template <usize I>

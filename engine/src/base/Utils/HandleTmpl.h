@@ -102,7 +102,7 @@ namespace AE::Base
 
 
 	//
-	// Strong Reference
+	// Strong Reference for HandleTmpl
 	//
 
 	template <typename IDType>
@@ -183,12 +183,18 @@ namespace AE::Base
 
 	// methods
 	public:
-		StrongAtom ()									__NE___ : _id{ ID_t{}.Data() }	{}
-		explicit StrongAtom (ID_t id)					__NE___ : _id{id.Data()}		{}
+		StrongAtom ()									__NE___ : _id{ ID_t{}.Data() }		{}
+		explicit StrongAtom (StrongID_t id)				__NE___ : _id{id.Release().Data()}	{}
 		~StrongAtom ()									__NE___	{ ASSERT(not IsValid()); } // handle must be released
 		
-		ND_ ID_t		Attach (ID_t id)				__NE___	{ return ID_t::FromData( _id.exchange( id.Data(), std::memory_order_relaxed )); }
-		ND_ ID_t		Attach (StrongID_t id)			__NE___	{ return Attach( id.Release() ); }
+		StrongAtom (Self &&)							= delete;
+		StrongAtom (const Self &)						= delete;
+
+		Self&  operator = (Self &&)						= delete;
+		Self&  operator = (const Self &)				= delete;
+
+		ND_ StrongID_t	Attach (ID_t id)				__NE___	{ return StrongID_t{ ID_t::FromData( _id.exchange( id.Data(), std::memory_order_relaxed ))}; }
+		ND_ StrongID_t	Attach (StrongID_t id)			__NE___	{ return Attach( id.Release() ); }
 
 		ND_ StrongID_t	Release ()						__NE___	{ return StrongID_t{ ID_t::FromData( _id.exchange( ID_t{}.Data(), std::memory_order_relaxed ))}; }
 
@@ -198,8 +204,8 @@ namespace AE::Base
 		ND_ explicit	operator bool ()				C_NE___	{ return IsValid(); }
 		ND_ 			operator ID_t ()				C_NE___	{ return Get(); }
 		
-		ND_ bool		operator == (const ID_t &rhs)	C_NE___	{ return Get() == rhs._id; }
-		ND_ bool		operator != (const ID_t &rhs)	C_NE___	{ return Get() != rhs._id; }
+		ND_ bool		operator == (const ID_t &rhs)	C_NE___	{ return Get() == rhs; }
+		ND_ bool		operator != (const ID_t &rhs)	C_NE___	{ return Get() != rhs; }
 	};
 
 	

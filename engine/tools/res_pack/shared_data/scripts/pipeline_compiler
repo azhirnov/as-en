@@ -1,0 +1,2679 @@
+//91ADBA79
+#include <vector>
+#include <string>
+
+using int8		= std::int8_t;
+using uint8		= std::uint8_t;
+using int16		= std::int16_t;
+using uint16	= std::uint16_t;
+using int		= std::int32_t;
+using uint		= std::uint32_t;
+using int64		= std::int64_t;
+using uint64	= std::uint64_t;
+using string	= std::string;
+
+template <typename T>
+struct RC;
+
+template <typename T>
+using array = std::vector<T>;
+
+struct float2;
+struct FeatureSet;
+struct RenderState_StencilFaceState;
+struct float3;
+struct NamedRenderState;
+struct EPipelineOpt;
+struct EImageAspect;
+struct EVendorID;
+struct EStencilOp;
+struct ShaderStructType;
+struct ComputePass;
+struct EResourceState;
+struct InstanceIndex;
+struct EBlendFactor;
+struct MeshPipeline;
+struct EShaderIO;
+struct EValueType;
+struct EAttachmentStoreOp;
+struct EImageType;
+struct Shader;
+struct EAttachmentLoadOp;
+struct RayIndex;
+struct RenderState_MultisampleState;
+struct EVertexInputRate;
+struct ECompilationTarget;
+struct EDescSetUsage;
+struct EPolygonMode;
+struct EBorderColor;
+struct TilePipelineSpec;
+struct bool4;
+struct Sampler;
+struct TilePipeline;
+struct GraphicsPipelineSpec;
+struct EAddressMode;
+struct bool2;
+struct int3;
+struct ArraySize;
+struct PipelineLayout;
+struct bool3;
+struct RGBA32i;
+struct int4;
+struct EVertexType;
+struct DescriptorSetLayout;
+struct EFeature;
+struct MissIndex;
+struct int2;
+struct RenderPass;
+struct ImageLayer;
+struct RenderState_ColorBuffer_ColorMask;
+struct RGBA32f;
+struct RenderTechnique;
+struct RayTracingShaderBinding;
+struct HSVColor;
+struct RayTracingPipeline;
+struct EFilter;
+struct sbyte2;
+struct ECullMode;
+struct MultiSamples;
+struct RenderState_ColorBuffer;
+struct EQueueMask;
+struct EBlendOp;
+struct MeshPipelineSpec;
+struct GraphicsPipeline;
+struct RenderState_StencilBufferState;
+struct EShaderOpt;
+struct short2;
+struct EShaderProprocessor;
+struct RenderState_ColorBuffer_BlendFactor;
+struct RGBA8u;
+struct EPipelineDynamicState;
+struct ELogicOp;
+struct short4;
+struct EPrimitive;
+struct sbyte4;
+struct EPixelFormat;
+struct sbyte3;
+struct EMipmapFilter;
+struct DepthStencil;
+struct GraphicsPass;
+struct short3;
+struct VertexBufferInput;
+struct CallableIndex;
+struct RenderState;
+struct AttachmentSpec;
+struct ComputePipelineSpec;
+struct RenderState_RasterizationState;
+struct RayTracingPipelineSpec;
+struct EAttachment;
+struct Attachment;
+struct EStructLayout;
+struct RGBA32u;
+struct ESubgroupTypes;
+struct EFormatFeature;
+struct RenderState_InputAssemblyState;
+struct ESubgroupOperation;
+struct ubyte3;
+struct EGraphicsDeviceID;
+struct RenderState_ColorBuffersState;
+struct ubyte2;
+struct EShader;
+struct Align;
+struct RenderState_ColorBuffer_BlendOp;
+struct CompatibleRenderPass;
+struct uint3;
+struct uint2;
+struct EShaderStages;
+struct EAccessType;
+struct RenderState_DepthBufferState;
+struct EMutableRenderState;
+struct EReductionMode;
+struct GlobalConfig;
+struct ComputePipeline;
+struct ShaderIO;
+struct MipmapLevel;
+struct ubyte4;
+struct ESamplerUsage;
+struct uint4;
+struct EShaderVersion;
+struct float4;
+struct ECompareOp;
+
+int  Abs (int);
+int  Square (int);
+int  Min (int, int);
+int  Max (int, int);
+int  Clamp (int, int, int);
+int  IntLog2 (int);
+int  BitScanReverse (int);
+int  BitScanForward (int);
+uint  BitCount (int);
+bool  IsPowerOfTwo (int);
+uint  Square (uint);
+uint  Min (uint, uint);
+uint  Max (uint, uint);
+uint  Clamp (uint, uint, uint);
+int  IntLog2 (uint);
+int  BitScanReverse (uint);
+int  BitScanForward (uint);
+uint  BitCount (uint);
+bool  IsPowerOfTwo (uint);
+float  Abs (float);
+float  Square (float);
+float  Min (float, float);
+float  Max (float, float);
+float  Clamp (float, float, float);
+float  Floor (float);
+float  Ceil (float);
+float  Trunc (float);
+float  Fract (float);
+float  Round (float);
+float  Mod (float, float);
+float  Wrap (float, float, float);
+float  Sqrt (float);
+float  Pow (float, float);
+float  Ln (float);
+float  Log (float, float);
+float  Log2 (float);
+float  Log10 (float);
+float  Exp (float);
+float  Exp2 (float);
+float  Exp10 (float);
+float  Sin (float);
+float  SinH (float);
+float  ASin (float);
+float  Cos (float);
+float  CosH (float);
+float  ACos (float);
+float  Tan (float);
+float  TanH (float);
+float  ATan (float, float);
+float  Lerp (float, float, float);
+struct bool2
+{
+	bool2 ();
+	bool2 (const bool2&);
+	bool2&  operator = (const bool2&);
+	bool x;
+	bool y;
+	bool2 (bool);
+	bool2 (const bool3 &);
+	bool2 (const bool4 &);
+	bool2 (bool, bool);
+};
+
+struct bool3
+{
+	bool3 ();
+	bool3 (const bool3&);
+	bool3&  operator = (const bool3&);
+	bool x;
+	bool y;
+	bool z;
+	bool3 (bool);
+	bool3 (const bool2 &);
+	bool3 (const bool4 &);
+	bool3 (const bool2 &, bool);
+	bool3 (bool, bool, bool);
+};
+
+struct bool4
+{
+	bool4 ();
+	bool4 (const bool4&);
+	bool4&  operator = (const bool4&);
+	bool x;
+	bool y;
+	bool z;
+	bool w;
+	bool4 (bool);
+	bool4 (const bool2 &);
+	bool4 (const bool3 &);
+	bool4 (const bool2 &, const bool2 &);
+	bool4 (const bool3 &, bool);
+	bool4 (bool, bool, bool, bool);
+};
+
+struct sbyte2
+{
+	sbyte2 ();
+	sbyte2 (const sbyte2&);
+	sbyte2&  operator = (const sbyte2&);
+	int8 x;
+	int8 y;
+	sbyte2 (int8);
+	sbyte2 (const sbyte3 &);
+	sbyte2 (const sbyte4 &);
+	sbyte2 (int8, int8);
+};
+
+struct sbyte3
+{
+	sbyte3 ();
+	sbyte3 (const sbyte3&);
+	sbyte3&  operator = (const sbyte3&);
+	int8 x;
+	int8 y;
+	int8 z;
+	sbyte3 (int8);
+	sbyte3 (const sbyte2 &);
+	sbyte3 (const sbyte4 &);
+	sbyte3 (const sbyte2 &, int8);
+	sbyte3 (int8, int8, int8);
+};
+
+struct sbyte4
+{
+	sbyte4 ();
+	sbyte4 (const sbyte4&);
+	sbyte4&  operator = (const sbyte4&);
+	int8 x;
+	int8 y;
+	int8 z;
+	int8 w;
+	sbyte4 (int8);
+	sbyte4 (const sbyte2 &);
+	sbyte4 (const sbyte3 &);
+	sbyte4 (const sbyte2 &, const sbyte2 &);
+	sbyte4 (const sbyte3 &, int8);
+	sbyte4 (int8, int8, int8, int8);
+};
+
+struct ubyte2
+{
+	ubyte2 ();
+	ubyte2 (const ubyte2&);
+	ubyte2&  operator = (const ubyte2&);
+	uint8 x;
+	uint8 y;
+	ubyte2 (uint8);
+	ubyte2 (const ubyte3 &);
+	ubyte2 (const ubyte4 &);
+	ubyte2 (uint8, uint8);
+};
+
+struct ubyte3
+{
+	ubyte3 ();
+	ubyte3 (const ubyte3&);
+	ubyte3&  operator = (const ubyte3&);
+	uint8 x;
+	uint8 y;
+	uint8 z;
+	ubyte3 (uint8);
+	ubyte3 (const ubyte2 &);
+	ubyte3 (const ubyte4 &);
+	ubyte3 (const ubyte2 &, uint8);
+	ubyte3 (uint8, uint8, uint8);
+};
+
+struct ubyte4
+{
+	ubyte4 ();
+	ubyte4 (const ubyte4&);
+	ubyte4&  operator = (const ubyte4&);
+	uint8 x;
+	uint8 y;
+	uint8 z;
+	uint8 w;
+	ubyte4 (uint8);
+	ubyte4 (const ubyte2 &);
+	ubyte4 (const ubyte3 &);
+	ubyte4 (const ubyte2 &, const ubyte2 &);
+	ubyte4 (const ubyte3 &, uint8);
+	ubyte4 (uint8, uint8, uint8, uint8);
+};
+
+struct short2
+{
+	short2 ();
+	short2 (const short2&);
+	short2&  operator = (const short2&);
+	int16 x;
+	int16 y;
+	short2 (int16);
+	short2 (const short3 &);
+	short2 (const short4 &);
+	short2 (int16, int16);
+};
+
+struct short3
+{
+	short3 ();
+	short3 (const short3&);
+	short3&  operator = (const short3&);
+	int16 x;
+	int16 y;
+	int16 z;
+	short3 (int16);
+	short3 (const short2 &);
+	short3 (const short4 &);
+	short3 (const short2 &, int16);
+	short3 (int16, int16, int16);
+};
+
+struct short4
+{
+	short4 ();
+	short4 (const short4&);
+	short4&  operator = (const short4&);
+	int16 x;
+	int16 y;
+	int16 z;
+	int16 w;
+	short4 (int16);
+	short4 (const short2 &);
+	short4 (const short3 &);
+	short4 (const short2 &, const short2 &);
+	short4 (const short3 &, int16);
+	short4 (int16, int16, int16, int16);
+};
+
+struct int2
+{
+	int2 ();
+	int2 (const int2&);
+	int2&  operator = (const int2&);
+	int x;
+	int y;
+	int2 (int);
+	int2 (const int3 &);
+	int2 (const int4 &);
+	int2 (int, int);
+};
+
+struct int3
+{
+	int3 ();
+	int3 (const int3&);
+	int3&  operator = (const int3&);
+	int x;
+	int y;
+	int z;
+	int3 (int);
+	int3 (const int2 &);
+	int3 (const int4 &);
+	int3 (const int2 &, int);
+	int3 (int, int, int);
+};
+
+struct int4
+{
+	int4 ();
+	int4 (const int4&);
+	int4&  operator = (const int4&);
+	int x;
+	int y;
+	int z;
+	int w;
+	int4 (int);
+	int4 (const int2 &);
+	int4 (const int3 &);
+	int4 (const int2 &, const int2 &);
+	int4 (const int3 &, int);
+	int4 (int, int, int, int);
+};
+
+struct uint2
+{
+	uint2 ();
+	uint2 (const uint2&);
+	uint2&  operator = (const uint2&);
+	uint x;
+	uint y;
+	uint2 (uint);
+	uint2 (const uint3 &);
+	uint2 (const uint4 &);
+	uint2 (uint, uint);
+};
+
+struct uint3
+{
+	uint3 ();
+	uint3 (const uint3&);
+	uint3&  operator = (const uint3&);
+	uint x;
+	uint y;
+	uint z;
+	uint3 (uint);
+	uint3 (const uint2 &);
+	uint3 (const uint4 &);
+	uint3 (const uint2 &, uint);
+	uint3 (uint, uint, uint);
+};
+
+struct uint4
+{
+	uint4 ();
+	uint4 (const uint4&);
+	uint4&  operator = (const uint4&);
+	uint x;
+	uint y;
+	uint z;
+	uint w;
+	uint4 (uint);
+	uint4 (const uint2 &);
+	uint4 (const uint3 &);
+	uint4 (const uint2 &, const uint2 &);
+	uint4 (const uint3 &, uint);
+	uint4 (uint, uint, uint, uint);
+};
+
+struct float2
+{
+	float2 ();
+	float2 (const float2&);
+	float2&  operator = (const float2&);
+	float x;
+	float y;
+	float2 (float);
+	float2 (const float3 &);
+	float2 (const float4 &);
+	float2 (float, float);
+};
+
+struct float3
+{
+	float3 ();
+	float3 (const float3&);
+	float3&  operator = (const float3&);
+	float x;
+	float y;
+	float z;
+	float3 (float);
+	float3 (const float2 &);
+	float3 (const float4 &);
+	float3 (const float2 &, float);
+	float3 (float, float, float);
+};
+
+struct float4
+{
+	float4 ();
+	float4 (const float4&);
+	float4&  operator = (const float4&);
+	float x;
+	float y;
+	float z;
+	float w;
+	float4 (float);
+	float4 (const float2 &);
+	float4 (const float3 &);
+	float4 (const float2 &, const float2 &);
+	float4 (const float3 &, float);
+	float4 (float, float, float, float);
+};
+
+bool  All (const bool2 &);
+bool  Any (const bool2 &);
+bool  All (const bool3 &);
+bool  Any (const bool3 &);
+bool  All (const bool4 &);
+bool  Any (const bool4 &);
+float3  Cross (const float3 &, const float3 &);
+struct RGBA32f
+{
+	RGBA32f ();
+	RGBA32f (const RGBA32f&);
+	RGBA32f&  operator = (const RGBA32f&);
+	RGBA32f (float);
+	RGBA32f (float, float, float, float);
+	float r;
+	float g;
+	float b;
+	float a;
+	RGBA32f (const HSVColor &, float);
+	RGBA32f (const RGBA8u &);
+	RGBA32f (const RGBA32u &);
+};
+
+struct RGBA32i
+{
+	RGBA32i ();
+	RGBA32i (const RGBA32i&);
+	RGBA32i&  operator = (const RGBA32i&);
+	RGBA32i (int);
+	RGBA32i (int, int, int, int);
+	int r;
+	int g;
+	int b;
+	int a;
+	RGBA32i (const RGBA8u &);
+	RGBA32i (const RGBA32u &);
+};
+
+struct RGBA32u
+{
+	RGBA32u ();
+	RGBA32u (const RGBA32u&);
+	RGBA32u&  operator = (const RGBA32u&);
+	RGBA32u (uint);
+	RGBA32u (uint, uint, uint, uint);
+	uint r;
+	uint g;
+	uint b;
+	uint a;
+	RGBA32u (const RGBA8u &);
+	RGBA32u (const RGBA32i &);
+};
+
+struct RGBA8u
+{
+	RGBA8u ();
+	RGBA8u (const RGBA8u&);
+	RGBA8u&  operator = (const RGBA8u&);
+	RGBA8u (uint8);
+	RGBA8u (uint8, uint8, uint8, uint8);
+	uint8 r;
+	uint8 g;
+	uint8 b;
+	uint8 a;
+	RGBA8u (const RGBA32i &);
+	RGBA8u (const RGBA32u &);
+	RGBA8u (const RGBA32f &);
+	RGBA8u  Lerp (const RGBA8u &, float);
+};
+
+struct HSVColor
+{
+	HSVColor ();
+	HSVColor (const HSVColor&);
+	HSVColor&  operator = (const HSVColor&);
+	float h;
+	float s;
+	float v;
+	HSVColor (float);
+	HSVColor (float, float);
+	HSVColor (float, float, float);
+	HSVColor (const RGBA32f &);
+};
+
+struct DepthStencil
+{
+	DepthStencil ();
+	DepthStencil (const DepthStencil&);
+	DepthStencil&  operator = (const DepthStencil&);
+	float depth;
+	uint stencil;
+	DepthStencil (float, int);
+};
+
+struct EPixelFormat
+{
+	EPixelFormat () {}
+	EPixelFormat (uint) {}
+	operator uint () const;
+	static constexpr uint RGBA16_SNorm = 0;
+	static constexpr uint RGBA8_SNorm = 1;
+	static constexpr uint RGB16_SNorm = 2;
+	static constexpr uint RGB8_SNorm = 3;
+	static constexpr uint RG16_SNorm = 4;
+	static constexpr uint RG8_SNorm = 5;
+	static constexpr uint R16_SNorm = 6;
+	static constexpr uint R8_SNorm = 7;
+	static constexpr uint RGBA16_UNorm = 8;
+	static constexpr uint RGBA8_UNorm = 9;
+	static constexpr uint RGB16_UNorm = 10;
+	static constexpr uint RGB8_UNorm = 11;
+	static constexpr uint RG16_UNorm = 12;
+	static constexpr uint RG8_UNorm = 13;
+	static constexpr uint R16_UNorm = 14;
+	static constexpr uint R8_UNorm = 15;
+	static constexpr uint RGB10_A2_UNorm = 16;
+	static constexpr uint RGBA4_UNorm = 17;
+	static constexpr uint RGB5_A1_UNorm = 18;
+	static constexpr uint RGB_5_6_5_UNorm = 19;
+	static constexpr uint BGR8_UNorm = 20;
+	static constexpr uint BGRA8_UNorm = 21;
+	static constexpr uint sRGB8 = 22;
+	static constexpr uint sRGB8_A8 = 23;
+	static constexpr uint sBGR8 = 24;
+	static constexpr uint sBGR8_A8 = 25;
+	static constexpr uint R8I = 26;
+	static constexpr uint RG8I = 27;
+	static constexpr uint RGB8I = 28;
+	static constexpr uint RGBA8I = 29;
+	static constexpr uint R16I = 30;
+	static constexpr uint RG16I = 31;
+	static constexpr uint RGB16I = 32;
+	static constexpr uint RGBA16I = 33;
+	static constexpr uint R32I = 34;
+	static constexpr uint RG32I = 35;
+	static constexpr uint RGB32I = 36;
+	static constexpr uint RGBA32I = 37;
+	static constexpr uint R64I = 38;
+	static constexpr uint R8U = 39;
+	static constexpr uint RG8U = 40;
+	static constexpr uint RGB8U = 41;
+	static constexpr uint RGBA8U = 42;
+	static constexpr uint R16U = 43;
+	static constexpr uint RG16U = 44;
+	static constexpr uint RGB16U = 45;
+	static constexpr uint RGBA16U = 46;
+	static constexpr uint R32U = 47;
+	static constexpr uint RG32U = 48;
+	static constexpr uint RGB32U = 49;
+	static constexpr uint RGBA32U = 50;
+	static constexpr uint RGB10_A2U = 51;
+	static constexpr uint R64U = 52;
+	static constexpr uint R16F = 53;
+	static constexpr uint RG16F = 54;
+	static constexpr uint RGB16F = 55;
+	static constexpr uint RGBA16F = 56;
+	static constexpr uint R32F = 57;
+	static constexpr uint RG32F = 58;
+	static constexpr uint RGB32F = 59;
+	static constexpr uint RGBA32F = 60;
+	static constexpr uint RGB_11_11_10F = 61;
+	static constexpr uint RGB_9F_E5 = 62;
+	static constexpr uint Depth16 = 63;
+	static constexpr uint Depth24 = 64;
+	static constexpr uint Depth32F = 65;
+	static constexpr uint Depth16_Stencil8 = 66;
+	static constexpr uint Depth24_Stencil8 = 67;
+	static constexpr uint Depth32F_Stencil8 = 68;
+	static constexpr uint BC1_RGB8_UNorm = 69;
+	static constexpr uint BC1_sRGB8 = 70;
+	static constexpr uint BC1_RGB8_A1_UNorm = 71;
+	static constexpr uint BC1_sRGB8_A1 = 72;
+	static constexpr uint BC2_RGBA8_UNorm = 73;
+	static constexpr uint BC2_sRGB8 = 74;
+	static constexpr uint BC3_RGBA8_UNorm = 75;
+	static constexpr uint BC3_sRGB8 = 76;
+	static constexpr uint BC4_R8_SNorm = 77;
+	static constexpr uint BC4_R8_UNorm = 78;
+	static constexpr uint BC5_RG8_SNorm = 79;
+	static constexpr uint BC5_RG8_UNorm = 80;
+	static constexpr uint BC6H_RGB16F = 81;
+	static constexpr uint BC6H_RGB16UF = 82;
+	static constexpr uint BC7_RGBA8_UNorm = 83;
+	static constexpr uint BC7_sRGB8_A8 = 84;
+	static constexpr uint ETC2_RGB8_UNorm = 85;
+	static constexpr uint ECT2_sRGB8 = 86;
+	static constexpr uint ETC2_RGB8_A1_UNorm = 87;
+	static constexpr uint ETC2_sRGB8_A1 = 88;
+	static constexpr uint ETC2_RGBA8_UNorm = 89;
+	static constexpr uint ETC2_sRGB8_A8 = 90;
+	static constexpr uint EAC_R11_SNorm = 91;
+	static constexpr uint EAC_R11_UNorm = 92;
+	static constexpr uint EAC_RG11_SNorm = 93;
+	static constexpr uint EAC_RG11_UNorm = 94;
+	static constexpr uint ASTC_RGBA_4x4 = 95;
+	static constexpr uint ASTC_RGBA_5x4 = 96;
+	static constexpr uint ASTC_RGBA_5x5 = 97;
+	static constexpr uint ASTC_RGBA_6x5 = 98;
+	static constexpr uint ASTC_RGBA_6x6 = 99;
+	static constexpr uint ASTC_RGBA_8x5 = 100;
+	static constexpr uint ASTC_RGBA_8x6 = 101;
+	static constexpr uint ASTC_RGBA_8x8 = 102;
+	static constexpr uint ASTC_RGBA_10x5 = 103;
+	static constexpr uint ASTC_RGBA_10x6 = 104;
+	static constexpr uint ASTC_RGBA_10x8 = 105;
+	static constexpr uint ASTC_RGBA_10x10 = 106;
+	static constexpr uint ASTC_RGBA_12x10 = 107;
+	static constexpr uint ASTC_RGBA_12x12 = 108;
+	static constexpr uint ASTC_sRGB8_A8_4x4 = 109;
+	static constexpr uint ASTC_sRGB8_A8_5x4 = 110;
+	static constexpr uint ASTC_sRGB8_A8_5x5 = 111;
+	static constexpr uint ASTC_sRGB8_A8_6x5 = 112;
+	static constexpr uint ASTC_sRGB8_A8_6x6 = 113;
+	static constexpr uint ASTC_sRGB8_A8_8x5 = 114;
+	static constexpr uint ASTC_sRGB8_A8_8x6 = 115;
+	static constexpr uint ASTC_sRGB8_A8_8x8 = 116;
+	static constexpr uint ASTC_sRGB8_A8_10x5 = 117;
+	static constexpr uint ASTC_sRGB8_A8_10x6 = 118;
+	static constexpr uint ASTC_sRGB8_A8_10x8 = 119;
+	static constexpr uint ASTC_sRGB8_A8_10x10 = 120;
+	static constexpr uint ASTC_sRGB8_A8_12x10 = 121;
+	static constexpr uint ASTC_sRGB8_A8_12x12 = 122;
+	static constexpr uint ASTC_RGBA16F_4x4 = 123;
+	static constexpr uint ASTC_RGBA16F_5x4 = 124;
+	static constexpr uint ASTC_RGBA16F_5x5 = 125;
+	static constexpr uint ASTC_RGBA16F_6x5 = 126;
+	static constexpr uint ASTC_RGBA16F_6x6 = 127;
+	static constexpr uint ASTC_RGBA16F_8x5 = 128;
+	static constexpr uint ASTC_RGBA16F_8x6 = 129;
+	static constexpr uint ASTC_RGBA16F_8x8 = 130;
+	static constexpr uint ASTC_RGBA16F_10x5 = 131;
+	static constexpr uint ASTC_RGBA16F_10x6 = 132;
+	static constexpr uint ASTC_RGBA16F_10x8 = 133;
+	static constexpr uint ASTC_RGBA16F_10x10 = 134;
+	static constexpr uint ASTC_RGBA16F_12x10 = 135;
+	static constexpr uint ASTC_RGBA16F_12x12 = 136;
+	static constexpr uint SwapchainColor = 254;
+};
+
+struct EAttachmentLoadOp
+{
+	EAttachmentLoadOp () {}
+	EAttachmentLoadOp (uint) {}
+	operator uint () const;
+	static constexpr uint Invalidate = 0;
+	static constexpr uint Load = 1;
+	static constexpr uint Clear = 2;
+	static constexpr uint None = 3;
+};
+
+struct EAttachmentStoreOp
+{
+	EAttachmentStoreOp () {}
+	EAttachmentStoreOp (uint) {}
+	operator uint () const;
+	static constexpr uint Invalidate = 0;
+	static constexpr uint Store = 1;
+	static constexpr uint None = 2;
+};
+
+struct ECompareOp
+{
+	ECompareOp () {}
+	ECompareOp (uint) {}
+	operator uint () const;
+	static constexpr uint Never = 0;
+	static constexpr uint Less = 1;
+	static constexpr uint Equal = 2;
+	static constexpr uint LEqual = 3;
+	static constexpr uint Greater = 4;
+	static constexpr uint NotEqual = 5;
+	static constexpr uint GEqual = 6;
+	static constexpr uint Always = 7;
+};
+
+struct EBlendFactor
+{
+	EBlendFactor () {}
+	EBlendFactor (uint) {}
+	operator uint () const;
+	static constexpr uint Zero = 0;
+	static constexpr uint One = 1;
+	static constexpr uint SrcColor = 2;
+	static constexpr uint OneMinusSrcColor = 3;
+	static constexpr uint DstColor = 4;
+	static constexpr uint OneMinusDstColor = 5;
+	static constexpr uint SrcAlpha = 6;
+	static constexpr uint OneMinusSrcAlpha = 7;
+	static constexpr uint DstAlpha = 8;
+	static constexpr uint OneMinusDstAlpha = 9;
+	static constexpr uint ConstColor = 10;
+	static constexpr uint OneMinusConstColor = 11;
+	static constexpr uint ConstAlpha = 12;
+	static constexpr uint OneMinusConstAlpha = 13;
+	static constexpr uint SrcAlphaSaturate = 14;
+	static constexpr uint Src1Color = 15;
+	static constexpr uint OneMinusSrc1Color = 16;
+	static constexpr uint Src1Alpha = 17;
+	static constexpr uint OneMinusSrc1Alpha = 18;
+};
+
+struct EBlendOp
+{
+	EBlendOp () {}
+	EBlendOp (uint) {}
+	operator uint () const;
+	static constexpr uint Add = 0;
+	static constexpr uint Sub = 1;
+	static constexpr uint RevSub = 2;
+	static constexpr uint Min = 3;
+	static constexpr uint Max = 4;
+};
+
+struct ELogicOp
+{
+	ELogicOp () {}
+	ELogicOp (uint) {}
+	operator uint () const;
+	static constexpr uint None = 0;
+	static constexpr uint Clear = 1;
+	static constexpr uint Set = 2;
+	static constexpr uint Copy = 3;
+	static constexpr uint CopyInverted = 4;
+	static constexpr uint NoOp = 5;
+	static constexpr uint Invert = 6;
+	static constexpr uint And = 7;
+	static constexpr uint NotAnd = 8;
+	static constexpr uint Or = 9;
+	static constexpr uint NotOr = 10;
+	static constexpr uint Xor = 11;
+	static constexpr uint Equiv = 12;
+	static constexpr uint AndReverse = 13;
+	static constexpr uint AndInverted = 14;
+	static constexpr uint OrReverse = 15;
+	static constexpr uint OrInverted = 16;
+};
+
+struct EStencilOp
+{
+	EStencilOp () {}
+	EStencilOp (uint) {}
+	operator uint () const;
+	static constexpr uint Keep = 0;
+	static constexpr uint Zero = 1;
+	static constexpr uint Replace = 2;
+	static constexpr uint Incr = 3;
+	static constexpr uint IncrWrap = 4;
+	static constexpr uint Decr = 5;
+	static constexpr uint DecrWrap = 6;
+	static constexpr uint Invert = 7;
+};
+
+struct EPolygonMode
+{
+	EPolygonMode () {}
+	EPolygonMode (uint) {}
+	operator uint () const;
+	static constexpr uint Point = 0;
+	static constexpr uint Line = 1;
+	static constexpr uint Fill = 2;
+};
+
+struct EPrimitive
+{
+	EPrimitive () {}
+	EPrimitive (uint) {}
+	operator uint () const;
+	static constexpr uint Point = 0;
+	static constexpr uint LineList = 1;
+	static constexpr uint LineStrip = 2;
+	static constexpr uint LineListAdjacency = 3;
+	static constexpr uint LineStripAdjacency = 4;
+	static constexpr uint TriangleList = 5;
+	static constexpr uint TriangleStrip = 6;
+	static constexpr uint TriangleFan = 7;
+	static constexpr uint TriangleListAdjacency = 8;
+	static constexpr uint TriangleStripAdjacency = 9;
+	static constexpr uint Patch = 10;
+};
+
+struct ECullMode
+{
+	ECullMode () {}
+	ECullMode (uint) {}
+	operator uint () const;
+	static constexpr uint None = 0;
+	static constexpr uint Front = 1;
+	static constexpr uint Back = 2;
+	static constexpr uint FontAndBack = 3;
+};
+
+struct EPipelineDynamicState
+{
+	EPipelineDynamicState () {}
+	EPipelineDynamicState (uint) {}
+	operator uint () const;
+	static constexpr uint None = 0;
+	static constexpr uint StencilCompareMask = 1;
+	static constexpr uint StencilWriteMask = 2;
+	static constexpr uint StencilReference = 4;
+	static constexpr uint DepthBias = 8;
+	static constexpr uint BlendConstants = 16;
+	static constexpr uint RTStackSize = 64;
+};
+
+struct EResourceState
+{
+	EResourceState () {}
+	EResourceState (uint) {}
+	operator uint () const;
+	static constexpr uint Unknown = 0;
+	static constexpr uint Preserve = 1;
+	static constexpr uint ShaderStorage_Read = 2;
+	static constexpr uint ShaderStorage_Write = 3;
+	static constexpr uint ShaderStorage_RW = 4;
+	static constexpr uint ShaderUniform = 5;
+	static constexpr uint ShaderSample = 6;
+	static constexpr uint CopySrc = 7;
+	static constexpr uint CopyDst = 8;
+	static constexpr uint ClearDst = 9;
+	static constexpr uint BlitSrc = 10;
+	static constexpr uint BlitDst = 11;
+	static constexpr uint InputColorAttachment = 12;
+	static constexpr uint InputColorAttachment_RW = 13;
+	static constexpr uint ColorAttachment_Write = 14;
+	static constexpr uint ColorAttachment_RW = 15;
+	static constexpr uint DepthStencilAttachment_Read = 16;
+	static constexpr uint DepthStencilAttachment_Write = 17;
+	static constexpr uint DepthStencilAttachment_RW = 18;
+	static constexpr uint DepthTest_StencilRW = 19;
+	static constexpr uint DepthRW_StencilTest = 20;
+	static constexpr uint DepthStencilTest_ShaderSample = 23;
+	static constexpr uint DepthTest_DepthSample_StencilRW = 24;
+	static constexpr uint InputDepthStencilAttachment = 21;
+	static constexpr uint InputDepthStencilAttachment_RW = 22;
+	static constexpr uint Host_Read = 25;
+	static constexpr uint Host_Write = 26;
+	static constexpr uint Host_RW = 27;
+	static constexpr uint PresentImage = 28;
+	static constexpr uint IndirectBuffer = 29;
+	static constexpr uint IndexBuffer = 30;
+	static constexpr uint VertexBuffer = 31;
+	static constexpr uint ShadingRateImage = 40;
+	static constexpr uint FragmentDensityMap = 41;
+	static constexpr uint CopyRTAS_Read = 32;
+	static constexpr uint CopyRTAS_Write = 33;
+	static constexpr uint BuildRTAS_Read = 34;
+	static constexpr uint BuildRTAS_Write = 35;
+	static constexpr uint BuildRTAS_RW = 36;
+	static constexpr uint BuildRTAS_ScratchBuffer = 37;
+	static constexpr uint ShaderRTAS_Read = 38;
+	static constexpr uint RTShaderBindingTable = 39;
+	static constexpr uint DSTestBeforeFS = 256;
+	static constexpr uint DSTestAfterFS = 512;
+	static constexpr uint Invalidate = 1024;
+	static constexpr uint General = 42;
+	static constexpr uint PreRasterizationShaders = 2048;
+	static constexpr uint TileShader = 4096;
+	static constexpr uint FragmentShader = 8192;
+	static constexpr uint PostRasterizationShaders = 12288;
+	static constexpr uint ComputeShader = 16384;
+	static constexpr uint RayTracingShaders = 32768;
+	static constexpr uint AllGraphicsShaders = 14336;
+	static constexpr uint AllShaders = 63488;
+	static constexpr uint ColorAttachment = 15;
+	static constexpr uint InputDepthAttachment = 21;
+	static constexpr uint DepthStencilAttachment = 786;
+};
+
+struct EImageAspect
+{
+	EImageAspect () {}
+	EImageAspect (uint) {}
+	operator uint () const;
+	static constexpr uint Color = 1;
+	static constexpr uint Depth = 2;
+	static constexpr uint Stencil = 4;
+};
+
+struct EShaderIO
+{
+	EShaderIO () {}
+	EShaderIO (uint) {}
+	operator uint () const;
+	static constexpr uint Int = 1;
+	static constexpr uint UInt = 2;
+	static constexpr uint Float = 3;
+	static constexpr uint UFloat = 4;
+	static constexpr uint Half = 5;
+	static constexpr uint UNorm = 6;
+	static constexpr uint SNorm = 7;
+	static constexpr uint sRGB = 8;
+	static constexpr uint AnyColor = 9;
+	static constexpr uint Depth = 10;
+	static constexpr uint Stencil = 11;
+	static constexpr uint DepthStencil = 12;
+};
+
+struct ESubgroupTypes
+{
+	ESubgroupTypes () {}
+	ESubgroupTypes (uint) {}
+	operator uint () const;
+	static constexpr uint Float16 = 32;
+	static constexpr uint Float32 = 1;
+	static constexpr uint Int8 = 4;
+	static constexpr uint Int16 = 8;
+	static constexpr uint Int32 = 2;
+	static constexpr uint Int64 = 16;
+};
+
+struct ESubgroupOperation
+{
+	ESubgroupOperation () {}
+	ESubgroupOperation (uint) {}
+	operator uint () const;
+	static constexpr uint Size = 0;
+	static constexpr uint InvocationID = 1;
+	static constexpr uint Elect = 2;
+	static constexpr uint Barrier = 3;
+	static constexpr uint Any = 4;
+	static constexpr uint All = 5;
+	static constexpr uint AllEqual = 6;
+	static constexpr uint Add = 7;
+	static constexpr uint Mul = 8;
+	static constexpr uint Min = 9;
+	static constexpr uint Max = 10;
+	static constexpr uint And = 11;
+	static constexpr uint Or = 12;
+	static constexpr uint Xor = 13;
+	static constexpr uint InclusiveMul = 14;
+	static constexpr uint InclusiveAdd = 15;
+	static constexpr uint InclusiveMin = 16;
+	static constexpr uint InclusiveMax = 17;
+	static constexpr uint InclusiveAnd = 18;
+	static constexpr uint InclusiveOr = 19;
+	static constexpr uint InclusiveXor = 20;
+	static constexpr uint ExclusiveAdd = 21;
+	static constexpr uint ExclusiveMul = 22;
+	static constexpr uint ExclusiveMin = 23;
+	static constexpr uint ExclusiveMax = 24;
+	static constexpr uint ExclusiveAnd = 25;
+	static constexpr uint ExclusiveOr = 26;
+	static constexpr uint ExclusiveXor = 27;
+	static constexpr uint Ballot = 28;
+	static constexpr uint Broadcast = 29;
+	static constexpr uint BroadcastFirst = 30;
+	static constexpr uint InverseBallot = 31;
+	static constexpr uint BallotBitExtract = 32;
+	static constexpr uint BallotBitCount = 33;
+	static constexpr uint BallotInclusiveBitCount = 34;
+	static constexpr uint BallotExclusiveBitCount = 35;
+	static constexpr uint BallotFindLSB = 36;
+	static constexpr uint BallotFindMSB = 37;
+	static constexpr uint Shuffle = 38;
+	static constexpr uint ShuffleXor = 39;
+	static constexpr uint ShuffleUp = 40;
+	static constexpr uint ShuffleDown = 41;
+	static constexpr uint ClusteredAdd = 42;
+	static constexpr uint ClusteredMul = 43;
+	static constexpr uint ClusteredMin = 44;
+	static constexpr uint ClusteredMax = 45;
+	static constexpr uint ClusteredAnd = 46;
+	static constexpr uint ClusteredOr = 47;
+	static constexpr uint ClusteredXor = 48;
+	static constexpr uint QuadBroadcast = 49;
+	static constexpr uint QuadSwapHorizontal = 50;
+	static constexpr uint QuadSwapVertical = 51;
+	static constexpr uint QuadSwapDiagonal = 52;
+	static constexpr uint _Basic_Begin = 0;
+	static constexpr uint _Basic_End = 3;
+	static constexpr uint _Vote_Begin = 4;
+	static constexpr uint _Vote_End = 6;
+	static constexpr uint _Arithmetic_Begin = 7;
+	static constexpr uint _Arithmetic_End = 27;
+	static constexpr uint _Ballot_Begin = 28;
+	static constexpr uint _Ballot_End = 37;
+	static constexpr uint _Shuffle_Begin = 38;
+	static constexpr uint _Shuffle_End = 39;
+	static constexpr uint _ShuffleRelative_Begin = 40;
+	static constexpr uint _ShuffleRelative_End = 41;
+	static constexpr uint _Clustered_Begin = 42;
+	static constexpr uint _Clustered_End = 48;
+	static constexpr uint _Quad_Begin = 49;
+	static constexpr uint _Quad_End = 52;
+};
+
+struct EFeature
+{
+	EFeature () {}
+	EFeature (uint) {}
+	operator uint () const;
+	static constexpr uint Ignore = 0;
+	static constexpr uint RequireTrue = 2;
+	static constexpr uint RequireFalse = 1;
+};
+
+struct EShader
+{
+	EShader () {}
+	EShader (uint) {}
+	operator uint () const;
+	static constexpr uint Vertex = 0;
+	static constexpr uint TessControl = 1;
+	static constexpr uint TessEvaluation = 2;
+	static constexpr uint Geometry = 3;
+	static constexpr uint Fragment = 4;
+	static constexpr uint Compute = 5;
+	static constexpr uint Tile = 6;
+	static constexpr uint MeshTask = 7;
+	static constexpr uint Mesh = 8;
+	static constexpr uint RayGen = 9;
+	static constexpr uint RayAnyHit = 10;
+	static constexpr uint RayClosestHit = 11;
+	static constexpr uint RayMiss = 12;
+	static constexpr uint RayIntersection = 13;
+	static constexpr uint RayCallable = 14;
+};
+
+struct EShaderStages
+{
+	EShaderStages () {}
+	EShaderStages (uint) {}
+	operator uint () const;
+	static constexpr uint Vertex = 1;
+	static constexpr uint TessControl = 2;
+	static constexpr uint TessEvaluation = 4;
+	static constexpr uint Geometry = 8;
+	static constexpr uint Fragment = 16;
+	static constexpr uint Compute = 32;
+	static constexpr uint Tile = 64;
+	static constexpr uint MeshTask = 128;
+	static constexpr uint Mesh = 256;
+	static constexpr uint RayGen = 512;
+	static constexpr uint RayAnyHit = 1024;
+	static constexpr uint RayClosestHit = 2048;
+	static constexpr uint RayMiss = 4096;
+	static constexpr uint RayIntersection = 8192;
+	static constexpr uint RayCallable = 16384;
+	static constexpr uint All = 32767;
+	static constexpr uint AllGraphics = 415;
+	static constexpr uint AllRayTracing = 32256;
+};
+
+struct EVendorID
+{
+	EVendorID () {}
+	EVendorID (uint) {}
+	operator uint () const;
+	static constexpr uint AMD = 0;
+	static constexpr uint NVidia = 1;
+	static constexpr uint Intel = 2;
+	static constexpr uint ARM = 3;
+	static constexpr uint Qualcomm = 4;
+	static constexpr uint ImgTech = 5;
+	static constexpr uint Microsoft = 6;
+	static constexpr uint Apple = 7;
+	static constexpr uint Mesa = 8;
+	static constexpr uint Broadcom = 9;
+	static constexpr uint Samsung = 10;
+	static constexpr uint VeriSilicon = 11;
+};
+
+struct EVertexType
+{
+	EVertexType () {}
+	EVertexType (uint) {}
+	operator uint () const;
+	static constexpr uint Byte = 4;
+	static constexpr uint Byte2 = 5;
+	static constexpr uint Byte3 = 6;
+	static constexpr uint Byte4 = 7;
+	static constexpr uint Byte_Norm = 68;
+	static constexpr uint Byte2_Norm = 69;
+	static constexpr uint Byte3_Norm = 70;
+	static constexpr uint Byte4_Norm = 71;
+	static constexpr uint Byte_Scaled = 132;
+	static constexpr uint Byte2_Scaled = 133;
+	static constexpr uint Byte3_Scaled = 134;
+	static constexpr uint Byte4_Scaled = 135;
+	static constexpr uint UByte = 8;
+	static constexpr uint UByte2 = 9;
+	static constexpr uint UByte3 = 10;
+	static constexpr uint UByte4 = 11;
+	static constexpr uint UByte_Norm = 72;
+	static constexpr uint UByte2_Norm = 73;
+	static constexpr uint UByte3_Norm = 74;
+	static constexpr uint UByte4_Norm = 75;
+	static constexpr uint UByte_Scaled = 136;
+	static constexpr uint UByte2_Scaled = 137;
+	static constexpr uint UByte3_Scaled = 138;
+	static constexpr uint UByte4_Scaled = 139;
+	static constexpr uint Short = 12;
+	static constexpr uint Short2 = 13;
+	static constexpr uint Short3 = 14;
+	static constexpr uint Short4 = 15;
+	static constexpr uint Short_Norm = 76;
+	static constexpr uint Short2_Norm = 77;
+	static constexpr uint Short3_Norm = 78;
+	static constexpr uint Short4_Norm = 79;
+	static constexpr uint Short_Scaled = 140;
+	static constexpr uint Short2_Scaled = 141;
+	static constexpr uint Short3_Scaled = 142;
+	static constexpr uint Short4_Scaled = 143;
+	static constexpr uint UShort = 16;
+	static constexpr uint UShort2 = 17;
+	static constexpr uint UShort3 = 18;
+	static constexpr uint UShort4 = 19;
+	static constexpr uint UShort_Norm = 80;
+	static constexpr uint UShort2_Norm = 81;
+	static constexpr uint UShort3_Norm = 82;
+	static constexpr uint UShort4_Norm = 83;
+	static constexpr uint UShort_Scaled = 144;
+	static constexpr uint UShort2_Scaled = 145;
+	static constexpr uint UShort3_Scaled = 146;
+	static constexpr uint UShort4_Scaled = 147;
+	static constexpr uint Int = 20;
+	static constexpr uint Int2 = 21;
+	static constexpr uint Int3 = 22;
+	static constexpr uint Int4 = 23;
+	static constexpr uint UInt = 24;
+	static constexpr uint UInt2 = 25;
+	static constexpr uint UInt3 = 26;
+	static constexpr uint UInt4 = 27;
+	static constexpr uint Long = 28;
+	static constexpr uint Long2 = 29;
+	static constexpr uint Long3 = 30;
+	static constexpr uint Long4 = 31;
+	static constexpr uint ULong = 32;
+	static constexpr uint ULong2 = 33;
+	static constexpr uint ULong3 = 34;
+	static constexpr uint ULong4 = 35;
+	static constexpr uint Half = 36;
+	static constexpr uint Half2 = 37;
+	static constexpr uint Half3 = 38;
+	static constexpr uint Half4 = 39;
+	static constexpr uint Float = 40;
+	static constexpr uint Float2 = 41;
+	static constexpr uint Float3 = 42;
+	static constexpr uint Float4 = 43;
+	static constexpr uint Double = 44;
+	static constexpr uint Double2 = 45;
+	static constexpr uint Double3 = 46;
+	static constexpr uint Double4 = 47;
+	static constexpr uint UInt_2_10_10_10 = 51;
+	static constexpr uint UInt_2_10_10_10_Norm = 115;
+	static constexpr uint UInt_2_10_10_10_Scaled = 179;
+};
+
+struct EGraphicsDeviceID
+{
+	EGraphicsDeviceID () {}
+	EGraphicsDeviceID (uint) {}
+	operator uint () const;
+	static constexpr uint Adreno_500 = 0;
+	static constexpr uint Adreno_600 = 1;
+	static constexpr uint Adreno_600_QC4 = 2;
+	static constexpr uint Adreno_600_OC4 = 3;
+	static constexpr uint Adreno_600_QC5 = 4;
+	static constexpr uint Adreno_700_SC3 = 5;
+	static constexpr uint Adreno_700_DC4_SC5 = 6;
+	static constexpr uint AMD_GCN1 = 7;
+	static constexpr uint AMD_GCN2 = 8;
+	static constexpr uint AMD_GCN3 = 9;
+	static constexpr uint AMD_GCN4 = 10;
+	static constexpr uint AMD_GCN5 = 11;
+	static constexpr uint AMD_GCN5_APU = 12;
+	static constexpr uint AMD_RDNA1 = 13;
+	static constexpr uint AMD_RDNA2 = 14;
+	static constexpr uint AMD_RDNA2_APU = 15;
+	static constexpr uint Apple_A8 = 16;
+	static constexpr uint Apple_A9_A10 = 17;
+	static constexpr uint Apple_A11 = 18;
+	static constexpr uint Apple_A12 = 19;
+	static constexpr uint Apple_A13 = 20;
+	static constexpr uint Apple_A14_M1 = 21;
+	static constexpr uint Apple_A15_M2 = 22;
+	static constexpr uint Mali_Midgard_Gen4 = 23;
+	static constexpr uint Mali_Bifrost_Gen1 = 24;
+	static constexpr uint Mali_Bifrost_Gen2 = 25;
+	static constexpr uint Mali_Bifrost_Gen3 = 26;
+	static constexpr uint Mali_Valhall_Gen1 = 27;
+	static constexpr uint Mali_Valhall_Gen2 = 28;
+	static constexpr uint Mali_Valhall_Gen3 = 29;
+	static constexpr uint NV_Maxwell = 30;
+	static constexpr uint NV_Maxwell_Tegra = 31;
+	static constexpr uint NV_Pascal = 32;
+	static constexpr uint NV_Pascal_MX = 33;
+	static constexpr uint NV_Pascal_Tegra = 34;
+	static constexpr uint NV_Volta = 35;
+	static constexpr uint NV_Turing_16 = 36;
+	static constexpr uint NV_Turing = 37;
+	static constexpr uint NV_Turing_MX = 38;
+	static constexpr uint NV_Ampere = 39;
+	static constexpr uint NV_Ampere_Orin = 40;
+	static constexpr uint NV_Ada = 41;
+	static constexpr uint Intel_Gen9 = 42;
+	static constexpr uint Intel_Gen11 = 43;
+	static constexpr uint Intel_Gen12 = 44;
+	static constexpr uint PowerVR_Series8XE = 45;
+	static constexpr uint PowerVR_Series8XEP = 46;
+	static constexpr uint PowerVR_Series8XT = 47;
+	static constexpr uint PowerVR_Series9XE = 48;
+	static constexpr uint VeriSilicon = 49;
+	static constexpr uint V3D_4 = 50;
+	static constexpr uint SwiftShader = 51;
+};
+
+struct EFilter
+{
+	EFilter () {}
+	EFilter (uint) {}
+	operator uint () const;
+	static constexpr uint Nearest = 0;
+	static constexpr uint Linear = 1;
+};
+
+struct EMipmapFilter
+{
+	EMipmapFilter () {}
+	EMipmapFilter (uint) {}
+	operator uint () const;
+	static constexpr uint None = 0;
+	static constexpr uint Nearest = 1;
+	static constexpr uint Linear = 2;
+};
+
+struct EAddressMode
+{
+	EAddressMode () {}
+	EAddressMode (uint) {}
+	operator uint () const;
+	static constexpr uint Repeat = 0;
+	static constexpr uint MirrorRepeat = 1;
+	static constexpr uint ClampToEdge = 2;
+	static constexpr uint ClampToBorder = 3;
+	static constexpr uint MirrorClampToEdge = 4;
+	static constexpr uint Clamp = 2;
+	static constexpr uint MirrorClamp = 4;
+};
+
+struct EBorderColor
+{
+	EBorderColor () {}
+	EBorderColor (uint) {}
+	operator uint () const;
+	static constexpr uint FloatTransparentBlack = 0;
+	static constexpr uint FloatOpaqueBlack = 1;
+	static constexpr uint FloatOpaqueWhite = 2;
+	static constexpr uint IntTransparentBlack = 3;
+	static constexpr uint IntOpaqueBlack = 4;
+	static constexpr uint IntOpaqueWhite = 5;
+};
+
+struct EReductionMode
+{
+	EReductionMode () {}
+	EReductionMode (uint) {}
+	operator uint () const;
+	static constexpr uint Average = 0;
+	static constexpr uint Min = 1;
+	static constexpr uint Max = 2;
+};
+
+struct ESamplerUsage
+{
+	ESamplerUsage () {}
+	ESamplerUsage (uint) {}
+	operator uint () const;
+	static constexpr uint Default = 0;
+	static constexpr uint Subsampled = 1;
+	static constexpr uint SubsampledCoarseReconstruction = 2;
+};
+
+struct EVertexInputRate
+{
+	EVertexInputRate () {}
+	EVertexInputRate (uint) {}
+	operator uint () const;
+	static constexpr uint Vertex = 0;
+	static constexpr uint Instance = 1;
+};
+
+struct EDescSetUsage
+{
+	EDescSetUsage () {}
+	EDescSetUsage (uint) {}
+	operator uint () const;
+	static constexpr uint AllowPartialyUpdate = 1;
+	static constexpr uint UpdateTemplate = 2;
+	static constexpr uint ArgumentBuffer = 4;
+	static constexpr uint MutableArgBuffer = 8;
+};
+
+struct EPipelineOpt
+{
+	EPipelineOpt () {}
+	EPipelineOpt (uint) {}
+	operator uint () const;
+	static constexpr uint Optimize = 1;
+	static constexpr uint CS_DispatchBase = 2;
+	static constexpr uint RT_NoNullAnyHitShaders = 4;
+	static constexpr uint RT_NoNullClosestHitShaders = 8;
+	static constexpr uint RT_NoNullMissShaders = 16;
+	static constexpr uint RT_NoNullIntersectionShaders = 32;
+	static constexpr uint RT_SkipTriangles = 64;
+	static constexpr uint RT_SkipAABBs = 128;
+};
+
+struct EQueueMask
+{
+	EQueueMask () {}
+	EQueueMask (uint) {}
+	operator uint () const;
+	static constexpr uint Graphics = 1;
+	static constexpr uint AsyncCompute = 2;
+	static constexpr uint AsyncTransfer = 4;
+};
+
+struct MultiSamples
+{
+	MultiSamples ();
+	MultiSamples (const MultiSamples&);
+	MultiSamples&  operator = (const MultiSamples&);
+	MultiSamples (uint);
+};
+
+struct ImageLayer
+{
+	ImageLayer ();
+	ImageLayer (const ImageLayer&);
+	ImageLayer&  operator = (const ImageLayer&);
+	ImageLayer (uint);
+};
+
+struct MipmapLevel
+{
+	MipmapLevel ();
+	MipmapLevel (const MipmapLevel&);
+	MipmapLevel&  operator = (const MipmapLevel&);
+	MipmapLevel (uint);
+};
+
+struct RenderState_ColorBuffer_BlendFactor
+{
+	RenderState_ColorBuffer_BlendFactor ();
+	RenderState_ColorBuffer_BlendFactor (const RenderState_ColorBuffer_BlendFactor&);
+	RenderState_ColorBuffer_BlendFactor&  operator = (const RenderState_ColorBuffer_BlendFactor&);
+	EBlendFactor color;
+	EBlendFactor alpha;
+	void  set (EBlendFactor);
+	void  set (EBlendFactor, EBlendFactor);
+};
+
+struct RenderState_ColorBuffer_BlendOp
+{
+	RenderState_ColorBuffer_BlendOp ();
+	RenderState_ColorBuffer_BlendOp (const RenderState_ColorBuffer_BlendOp&);
+	RenderState_ColorBuffer_BlendOp&  operator = (const RenderState_ColorBuffer_BlendOp&);
+	EBlendOp color;
+	EBlendOp alpha;
+	void  set (EBlendOp);
+	void  set (EBlendOp, EBlendOp);
+};
+
+struct RenderState_ColorBuffer_ColorMask
+{
+	RenderState_ColorBuffer_ColorMask ();
+	RenderState_ColorBuffer_ColorMask (const RenderState_ColorBuffer_ColorMask&);
+	RenderState_ColorBuffer_ColorMask&  operator = (const RenderState_ColorBuffer_ColorMask&);
+	void  setR (bool);
+	void  setG (bool);
+	void  setB (bool);
+	void  setA (bool);
+	void  setRGBA (bool);
+};
+
+struct RenderState_ColorBuffer
+{
+	RenderState_ColorBuffer ();
+	RenderState_ColorBuffer (const RenderState_ColorBuffer&);
+	RenderState_ColorBuffer&  operator = (const RenderState_ColorBuffer&);
+	RenderState_ColorBuffer_BlendFactor srcBlendFactor;
+	RenderState_ColorBuffer_BlendFactor dstBlendFactor;
+	RenderState_ColorBuffer_BlendOp blendOp;
+	bool blend;
+	RenderState_ColorBuffer_ColorMask colorMask;
+};
+
+struct RenderState_ColorBuffersState
+{
+	RenderState_ColorBuffersState ();
+	RenderState_ColorBuffersState (const RenderState_ColorBuffersState&);
+	RenderState_ColorBuffersState&  operator = (const RenderState_ColorBuffersState&);
+	void  SetColorBuffer (uint, const RenderState_ColorBuffer &);
+	RenderState_ColorBuffer &  GetColorBuffer (uint);
+	ELogicOp logicOp;
+	RGBA32f blendColor;
+};
+
+struct RenderState_StencilFaceState
+{
+	RenderState_StencilFaceState ();
+	RenderState_StencilFaceState (const RenderState_StencilFaceState&);
+	RenderState_StencilFaceState&  operator = (const RenderState_StencilFaceState&);
+	EStencilOp failOp;
+	EStencilOp depthFailOp;
+	EStencilOp passOp;
+	ECompareOp compareOp;
+	uint8 reference;
+	uint8 writeMask;
+	uint8 compareMask;
+};
+
+struct RenderState_StencilBufferState
+{
+	RenderState_StencilBufferState ();
+	RenderState_StencilBufferState (const RenderState_StencilBufferState&);
+	RenderState_StencilBufferState&  operator = (const RenderState_StencilBufferState&);
+	RenderState_StencilFaceState front;
+	RenderState_StencilFaceState back;
+	bool enabled;
+};
+
+struct RenderState_DepthBufferState
+{
+	RenderState_DepthBufferState ();
+	RenderState_DepthBufferState (const RenderState_DepthBufferState&);
+	RenderState_DepthBufferState&  operator = (const RenderState_DepthBufferState&);
+	float minBounds;
+	float maxBounds;
+	bool boundsEnabled;
+	ECompareOp compareOp;
+	bool write;
+	bool test;
+};
+
+struct RenderState_InputAssemblyState
+{
+	RenderState_InputAssemblyState ();
+	RenderState_InputAssemblyState (const RenderState_InputAssemblyState&);
+	RenderState_InputAssemblyState&  operator = (const RenderState_InputAssemblyState&);
+	EPrimitive topology;
+	bool primitiveRestart;
+};
+
+struct RenderState_RasterizationState
+{
+	RenderState_RasterizationState ();
+	RenderState_RasterizationState (const RenderState_RasterizationState&);
+	RenderState_RasterizationState&  operator = (const RenderState_RasterizationState&);
+	float depthBiasConstFactor;
+	float depthBiasClamp;
+	float depthBiasSlopeFactor;
+	bool depthBias;
+	EPolygonMode polygonMode;
+	bool depthClamp;
+	bool rasterizerDiscard;
+	bool frontFaceCCW;
+	ECullMode cullMode;
+};
+
+struct RenderState_MultisampleState
+{
+	RenderState_MultisampleState ();
+	RenderState_MultisampleState (const RenderState_MultisampleState&);
+	RenderState_MultisampleState&  operator = (const RenderState_MultisampleState&);
+	uint sampleMask;
+	float minSampleShading;
+	MultiSamples samples;
+	bool sampleShading;
+	bool alphaToCoverage;
+	bool alphaToOne;
+};
+
+struct RenderState
+{
+	RenderState ();
+	RenderState (const RenderState&);
+	RenderState&  operator = (const RenderState&);
+	RenderState_ColorBuffersState color;
+	RenderState_DepthBufferState depth;
+	RenderState_StencilBufferState stencil;
+	RenderState_InputAssemblyState inputAssembly;
+	RenderState_RasterizationState rasterization;
+	RenderState_MultisampleState multisample;
+};
+
+struct EShaderVersion
+{
+	EShaderVersion () {}
+	EShaderVersion (uint) {}
+	operator uint () const;
+	static constexpr uint SPIRV_1_0 = 268435472;
+	static constexpr uint SPIRV_1_1 = 268435473;
+	static constexpr uint SPIRV_1_2 = 268435474;
+	static constexpr uint SPIRV_1_3 = 268435475;
+	static constexpr uint SPIRV_1_4 = 268435476;
+	static constexpr uint SPIRV_1_5 = 268435477;
+	static constexpr uint SPIRV_1_6 = 268435478;
+	static constexpr uint Metal_2_0 = 1073741856;
+	static constexpr uint Metal_2_1 = 1073741857;
+	static constexpr uint Metal_2_2 = 1073741858;
+	static constexpr uint Metal_2_3 = 1073741859;
+	static constexpr uint Metal_2_4 = 1073741860;
+	static constexpr uint Metal_3_0 = 1073741872;
+	static constexpr uint Metal_iOS_2_0 = 536870944;
+	static constexpr uint Metal_iOS_2_1 = 536870945;
+	static constexpr uint Metal_iOS_2_2 = 536870946;
+	static constexpr uint Metal_iOS_2_3 = 536870947;
+	static constexpr uint Metal_iOS_2_4 = 536870948;
+	static constexpr uint Metal_iOS_3_0 = 536870960;
+	static constexpr uint Metal_Mac_2_0 = 805306400;
+	static constexpr uint Metal_Mac_2_1 = 805306401;
+	static constexpr uint Metal_Mac_2_2 = 805306402;
+	static constexpr uint Metal_Mac_2_3 = 805306403;
+	static constexpr uint Metal_Mac_2_4 = 805306404;
+	static constexpr uint Metal_Mac_3_0 = 805306416;
+};
+
+struct EShaderOpt
+{
+	EShaderOpt () {}
+	EShaderOpt (uint) {}
+	operator uint () const;
+	static constexpr uint DebugInfo = 1;
+	static constexpr uint Trace = 2;
+	static constexpr uint FuncProfiling = 4;
+	static constexpr uint TimeHeateMap = 8;
+	static constexpr uint Optimize = 16;
+	static constexpr uint OptimizeSize = 32;
+	static constexpr uint StrongOptimization = 64;
+	static constexpr uint WarnAsError = 1024;
+};
+
+struct EAccessType
+{
+	EAccessType () {}
+	EAccessType (uint) {}
+	operator uint () const;
+	static constexpr uint Coherent = 1;
+	static constexpr uint Volatile = 2;
+	static constexpr uint Restrict = 3;
+	static constexpr uint DeviceCoherent = 5;
+	static constexpr uint QueueFamilyCoherent = 6;
+	static constexpr uint WorkgroupCoherent = 7;
+	static constexpr uint SubgroupCoherent = 8;
+	static constexpr uint NonPrivate = 9;
+};
+
+struct EImageType
+{
+	EImageType () {}
+	EImageType (uint) {}
+	operator uint () const;
+	static constexpr uint 1D = 1;
+	static constexpr uint 1DArray = 2;
+	static constexpr uint 2D = 3;
+	static constexpr uint 2DArray = 4;
+	static constexpr uint 2DMS = 5;
+	static constexpr uint 2DMSArray = 6;
+	static constexpr uint Cube = 7;
+	static constexpr uint CubeArray = 8;
+	static constexpr uint 3D = 9;
+	static constexpr uint Buffer = 10;
+	static constexpr uint Float = 16;
+	static constexpr uint Half = 32;
+	static constexpr uint SNorm = 48;
+	static constexpr uint UNorm = 64;
+	static constexpr uint Int = 80;
+	static constexpr uint UInt = 96;
+	static constexpr uint sRGB = 112;
+	static constexpr uint Depth = 128;
+	static constexpr uint Stencil = 144;
+	static constexpr uint DepthStencil = 160;
+	static constexpr uint Shadow = 256;
+	static constexpr uint FImage1D = 17;
+	static constexpr uint FImage2D = 19;
+	static constexpr uint FImage2D_sRGB = 115;
+	static constexpr uint FImage3D = 25;
+	static constexpr uint FImage1DArray = 18;
+	static constexpr uint FImage2DArray = 20;
+	static constexpr uint FImageCube = 23;
+	static constexpr uint FImageCubeArray = 24;
+	static constexpr uint FImage2DMS = 21;
+	static constexpr uint FImage2DMSArray = 22;
+	static constexpr uint FImageBuffer = 26;
+	static constexpr uint HImage1D = 33;
+	static constexpr uint HImage2D = 35;
+	static constexpr uint HImage3D = 41;
+	static constexpr uint HImage1DArray = 34;
+	static constexpr uint HImage2DArray = 36;
+	static constexpr uint HImageCube = 39;
+	static constexpr uint HImageCubeArray = 40;
+	static constexpr uint HImage2DMS = 37;
+	static constexpr uint HImage2DMSArray = 38;
+	static constexpr uint HImageBuffer = 42;
+	static constexpr uint Image1DShadow = 385;
+	static constexpr uint Image2DShadow = 387;
+	static constexpr uint Image1DArrayShadow = 386;
+	static constexpr uint Image2DArrayShadow = 388;
+	static constexpr uint ImageCubeShadow = 391;
+	static constexpr uint ImageCubeArrayShadow = 392;
+	static constexpr uint IImage1D = 81;
+	static constexpr uint IImage2D = 83;
+	static constexpr uint IImage3D = 89;
+	static constexpr uint IImage1DArray = 82;
+	static constexpr uint IImage2DArray = 84;
+	static constexpr uint IImageCube = 87;
+	static constexpr uint IImageCubeArray = 88;
+	static constexpr uint IImage2DMS = 85;
+	static constexpr uint IImage2DMSArray = 86;
+	static constexpr uint IImageBuffer = 90;
+	static constexpr uint UImage1D = 97;
+	static constexpr uint UImage2D = 99;
+	static constexpr uint UImage3D = 105;
+	static constexpr uint UImage1DArray = 98;
+	static constexpr uint UImage2DArray = 100;
+	static constexpr uint UImageCube = 103;
+	static constexpr uint UImageCubeArray = 104;
+	static constexpr uint UImage2DMS = 101;
+	static constexpr uint UImage2DMSArray = 102;
+	static constexpr uint UImageBuffer = 106;
+};
+
+struct ECompilationTarget
+{
+	ECompilationTarget () {}
+	ECompilationTarget (uint) {}
+	operator uint () const;
+	static constexpr uint Vulkan = 1;
+	static constexpr uint Metal_iOS = 2;
+	static constexpr uint Metal_Mac = 3;
+};
+
+struct EStructLayout
+{
+	EStructLayout () {}
+	EStructLayout (uint) {}
+	operator uint () const;
+	static constexpr uint Compatible_Std140 = 0;
+	static constexpr uint Compatible_Std430 = 1;
+	static constexpr uint Metal = 2;
+	static constexpr uint Std140 = 3;
+	static constexpr uint Std430 = 4;
+};
+
+struct EValueType
+{
+	EValueType () {}
+	EValueType (uint) {}
+	operator uint () const;
+	static constexpr uint Bool8 = 1;
+	static constexpr uint Bool32 = 2;
+	static constexpr uint Int8 = 3;
+	static constexpr uint Int16 = 4;
+	static constexpr uint Int32 = 5;
+	static constexpr uint Int64 = 6;
+	static constexpr uint UInt8 = 7;
+	static constexpr uint UInt16 = 8;
+	static constexpr uint UInt32 = 9;
+	static constexpr uint UInt64 = 10;
+	static constexpr uint Float16 = 11;
+	static constexpr uint Float32 = 12;
+	static constexpr uint Float64 = 13;
+	static constexpr uint Int8_Norm = 14;
+	static constexpr uint Int16_Norm = 15;
+	static constexpr uint UInt8_Norm = 16;
+	static constexpr uint UInt16_Norm = 17;
+};
+
+struct EShaderProprocessor
+{
+	EShaderProprocessor () {}
+	EShaderProprocessor (uint) {}
+	operator uint () const;
+	static constexpr uint None = 0;
+	static constexpr uint AEStyle = 1;
+};
+
+struct GlobalConfig
+{
+	GlobalConfig ();
+	GlobalConfig (const GlobalConfig&);
+	GlobalConfig&  operator = (const GlobalConfig&);
+	void  SetTarget (ECompilationTarget);
+	void  SetShaderVersion (EShaderVersion);
+	void  SetSpirvToMslVersion (EShaderVersion);
+	void  SetShaderOptions (EShaderOpt);
+	void  SetDefaultLayout (EStructLayout);
+	void  SetPipelineOptions (EPipelineOpt);
+	void  SetPreprocessor (EShaderProprocessor);
+};
+
+struct NamedRenderState
+{
+	NamedRenderState ();
+	NamedRenderState (const string &);
+	RenderState_ColorBuffersState color;
+	RenderState_DepthBufferState depth;
+	RenderState_StencilBufferState stencil;
+	RenderState_InputAssemblyState inputAssembly;
+	RenderState_RasterizationState rasterization;
+	RenderState_MultisampleState multisample;
+};
+
+struct EFormatFeature
+{
+	EFormatFeature () {}
+	EFormatFeature (uint) {}
+	operator uint () const;
+	static constexpr uint StorageImageAtomic = 1;
+	static constexpr uint StorageImage = 2;
+	static constexpr uint AttachmentBlend = 4;
+	static constexpr uint Attachment = 8;
+	static constexpr uint LinearSampled = 16;
+	static constexpr uint UniformTexelBuffer = 32;
+	static constexpr uint StorageTexelBuffer = 64;
+	static constexpr uint StorageTexelBufferAtomic = 128;
+	static constexpr uint Swapchain = 256;
+};
+
+struct FeatureSet
+{
+	FeatureSet ();
+	FeatureSet (const string &);
+	void  AddTexelFormats (uint, const array<EPixelFormat> &);
+	void  AddSubgroupOperation (ESubgroupOperation);
+	void  AddSubgroupOperations (const array<ESubgroupOperation> &);
+	void  AddSubgroupOperationRange (ESubgroupOperation, ESubgroupOperation);
+	void  AddVertexFormats (const array<EVertexType> &);
+	void  AddAccelStructVertexFormats (const array<EVertexType> &);
+	void  IncludeVendor (EVendorID);
+	void  ExcludeVendor (EVendorID);
+	void  IncludeVendors (const array<EVendorID> &);
+	void  ExcludeVendors (const array<EVendorID> &);
+	void  IncludeDevice (EGraphicsDeviceID);
+	void  ExcludeDevice (EGraphicsDeviceID);
+	void  MergeMin (RC<FeatureSet>);
+	void  MergeMax (RC<FeatureSet>);
+	void  Copy (RC<FeatureSet>);
+	void  framebufferColorSampleCounts (const array<uint> &);
+	void  framebufferDepthSampleCounts (const array<uint> &);
+	void  minSpirvVersion (uint);
+	void  minMetalVersion (uint);
+	void  supportedQueues (EQueueMask);
+	void  requiredQueues (EQueueMask);
+	void  alphaToOne (EFeature);
+	void  depthBiasClamp (EFeature);
+	void  depthBounds (EFeature);
+	void  depthClamp (EFeature);
+	void  dualSrcBlend (EFeature);
+	void  fillModeNonSolid (EFeature);
+	void  independentBlend (EFeature);
+	void  logicOp (EFeature);
+	void  sampleRateShading (EFeature);
+	void  constantAlphaColorBlendFactors (EFeature);
+	void  pointPolygons (EFeature);
+	void  separateStencilMaskRef (EFeature);
+	void  triangleFans (EFeature);
+	void  subgroupTypes (uint);
+	void  subgroupStages (uint);
+	void  subgroupQuadStages (uint);
+	void  requiredSubgroupSizeStages (uint);
+	void  subgroup (EFeature);
+	void  subgroupBroadcastDynamicId (EFeature);
+	void  subgroupSizeControl (EFeature);
+	void  shaderSubgroupUniformControlFlow (EFeature);
+	void  minSubgroupSize (uint);
+	void  maxSubgroupSize (uint);
+	void  shaderInt8 (EFeature);
+	void  shaderInt16 (EFeature);
+	void  shaderInt64 (EFeature);
+	void  shaderFloat16 (EFeature);
+	void  shaderFloat64 (EFeature);
+	void  storageBuffer16BitAccess (EFeature);
+	void  uniformAndStorageBuffer16BitAccess (EFeature);
+	void  storageInputOutput16 (EFeature);
+	void  storageBuffer8BitAccess (EFeature);
+	void  uniformAndStorageBuffer8BitAccess (EFeature);
+	void  uniformBufferStandardLayout (EFeature);
+	void  scalarBlockLayout (EFeature);
+	void  bufferDeviceAddress (EFeature);
+	void  storagePushConstant8 (EFeature);
+	void  storagePushConstant16 (EFeature);
+	void  fragmentStoresAndAtomics (EFeature);
+	void  vertexPipelineStoresAndAtomics (EFeature);
+	void  shaderImageInt64Atomics (EFeature);
+	void  shaderBufferInt64Atomics (EFeature);
+	void  shaderSharedInt64Atomics (EFeature);
+	void  shaderBufferFloat32Atomics (EFeature);
+	void  shaderBufferFloat32AtomicAdd (EFeature);
+	void  shaderBufferFloat64Atomics (EFeature);
+	void  shaderBufferFloat64AtomicAdd (EFeature);
+	void  shaderSharedFloat32Atomics (EFeature);
+	void  shaderSharedFloat32AtomicAdd (EFeature);
+	void  shaderSharedFloat64Atomics (EFeature);
+	void  shaderSharedFloat64AtomicAdd (EFeature);
+	void  shaderImageFloat32Atomics (EFeature);
+	void  shaderImageFloat32AtomicAdd (EFeature);
+	void  shaderBufferFloat16Atomics (EFeature);
+	void  shaderBufferFloat16AtomicAdd (EFeature);
+	void  shaderBufferFloat16AtomicMinMax (EFeature);
+	void  shaderBufferFloat32AtomicMinMax (EFeature);
+	void  shaderBufferFloat64AtomicMinMax (EFeature);
+	void  shaderSharedFloat16Atomics (EFeature);
+	void  shaderSharedFloat16AtomicAdd (EFeature);
+	void  shaderSharedFloat16AtomicMinMax (EFeature);
+	void  shaderSharedFloat32AtomicMinMax (EFeature);
+	void  shaderSharedFloat64AtomicMinMax (EFeature);
+	void  shaderImageFloat32AtomicMinMax (EFeature);
+	void  sparseImageFloat32AtomicMinMax (EFeature);
+	void  shaderOutputViewportIndex (EFeature);
+	void  shaderOutputLayer (EFeature);
+	void  shaderSubgroupClock (EFeature);
+	void  shaderDeviceClock (EFeature);
+	void  shaderClipDistance (EFeature);
+	void  shaderCullDistance (EFeature);
+	void  shaderResourceMinLod (EFeature);
+	void  shaderDrawParameters (EFeature);
+	void  runtimeDescriptorArray (EFeature);
+	void  shaderSMBuiltinsNV (EFeature);
+	void  shaderSampleRateInterpolationFunctions (EFeature);
+	void  shaderSampledImageArrayDynamicIndexing (EFeature);
+	void  shaderStorageBufferArrayDynamicIndexing (EFeature);
+	void  shaderStorageImageArrayDynamicIndexing (EFeature);
+	void  shaderUniformBufferArrayDynamicIndexing (EFeature);
+	void  shaderInputAttachmentArrayDynamicIndexing (EFeature);
+	void  shaderUniformTexelBufferArrayDynamicIndexing (EFeature);
+	void  shaderStorageTexelBufferArrayDynamicIndexing (EFeature);
+	void  shaderUniformBufferArrayNonUniformIndexing (EFeature);
+	void  shaderSampledImageArrayNonUniformIndexing (EFeature);
+	void  shaderStorageBufferArrayNonUniformIndexing (EFeature);
+	void  shaderStorageImageArrayNonUniformIndexing (EFeature);
+	void  shaderInputAttachmentArrayNonUniformIndexing (EFeature);
+	void  shaderUniformTexelBufferArrayNonUniformIndexing (EFeature);
+	void  shaderStorageTexelBufferArrayNonUniformIndexing (EFeature);
+	void  shaderStorageImageMultisample (EFeature);
+	void  shaderStorageImageReadWithoutFormat (EFeature);
+	void  shaderStorageImageWriteWithoutFormat (EFeature);
+	void  vulkanMemoryModel (EFeature);
+	void  vulkanMemoryModelDeviceScope (EFeature);
+	void  vulkanMemoryModelAvailabilityVisibilityChains (EFeature);
+	void  shaderDemoteToHelperInvocation (EFeature);
+	void  shaderTerminateInvocation (EFeature);
+	void  shaderZeroInitializeWorkgroupMemory (EFeature);
+	void  shaderIntegerDotProduct (EFeature);
+	void  fragmentShaderSampleInterlock (EFeature);
+	void  fragmentShaderPixelInterlock (EFeature);
+	void  fragmentShaderShadingRateInterlock (EFeature);
+	void  pipelineFragmentShadingRate (EFeature);
+	void  primitiveFragmentShadingRate (EFeature);
+	void  attachmentFragmentShadingRate (EFeature);
+	void  primitiveFragmentShadingRateWithMultipleViewports (EFeature);
+	void  layeredShadingRateAttachments (EFeature);
+	void  fragmentShadingRateWithShaderDepthStencilWrites (EFeature);
+	void  fragmentShadingRateWithSampleMask (EFeature);
+	void  fragmentShadingRateWithShaderSampleMask (EFeature);
+	void  fragmentShadingRateWithFragmentShaderInterlock (EFeature);
+	void  fragmentShadingRateWithCustomSampleLocations (EFeature);
+	void  fragmentDensityMap (EFeature);
+	void  fragmentDensityMapDynamic (EFeature);
+	void  fragmentDensityMapNonSubsampledImages (EFeature);
+	void  fragmentDensityInvocations (EFeature);
+	void  subsampledLoads (EFeature);
+	void  minSubsampledArrayLayers (uint);
+	void  minDescriptorSetSubsampledSamplers (uint);
+	void  rayQuery (EFeature);
+	void  rayQueryStages (uint);
+	void  rayTracingPipeline (EFeature);
+	void  rayTraversalPrimitiveCulling (EFeature);
+	void  minRayRecursionDepth (uint);
+	void  multiview (EFeature);
+	void  multiviewGeometryShader (EFeature);
+	void  multiviewTessellationShader (EFeature);
+	void  minMultiviewViewCount (uint);
+	void  multiViewport (EFeature);
+	void  minViewports (uint);
+	void  sampleLocations (EFeature);
+	void  variableSampleLocations (EFeature);
+	void  tessellationIsolines (EFeature);
+	void  tessellationPointMode (EFeature);
+	void  minTexelBufferElements (uint);
+	void  minUniformBufferSize (uint);
+	void  minStorageBufferSize (uint);
+	void  minDescriptorSets (uint);
+	void  minTexelOffset (uint);
+	void  minTexelGatherOffset (uint);
+	void  minFragmentOutputAttachments (uint);
+	void  minFragmentDualSrcAttachments (uint);
+	void  minFragmentCombinedOutputResources (uint);
+	void  minPushConstantsSize (uint);
+	void  minTotalThreadgroupSize (uint);
+	void  minTotalTileMemory (uint);
+	void  minVertAmplification (uint);
+	void  minComputeSharedMemorySize (uint);
+	void  minComputeWorkGroupInvocations (uint);
+	void  minComputeWorkGroupSizeX (uint);
+	void  minComputeWorkGroupSizeY (uint);
+	void  minComputeWorkGroupSizeZ (uint);
+	void  taskShader (EFeature);
+	void  meshShader (EFeature);
+	void  minTaskWorkGroupSize (uint);
+	void  minMeshWorkGroupSize (uint);
+	void  minMeshOutputVertices (uint);
+	void  minMeshOutputPrimitives (uint);
+	void  maxMeshOutputPerVertexGranularity (uint);
+	void  maxMeshOutputPerPrimitiveGranularity (uint);
+	void  minTaskPayloadSize (uint);
+	void  minTaskSharedMemorySize (uint);
+	void  minTaskPayloadAndSharedMemorySize (uint);
+	void  minMeshSharedMemorySize (uint);
+	void  minMeshPayloadAndSharedMemorySize (uint);
+	void  minMeshOutputMemorySize (uint);
+	void  minMeshPayloadAndOutputMemorySize (uint);
+	void  minMeshMultiviewViewCount (uint);
+	void  minPreferredTaskWorkGroupInvocations (uint);
+	void  minPreferredMeshWorkGroupInvocations (uint);
+	void  minRasterOrderGroups (uint);
+	void  geometryShader (EFeature);
+	void  tessellationShader (EFeature);
+	void  computeShader (EFeature);
+	void  tileShader (EFeature);
+	void  minVertexAttributes (uint);
+	void  minVertexBuffers (uint);
+	void  imageCubeArray (EFeature);
+	void  textureCompressionASTC_LDR (EFeature);
+	void  textureCompressionASTC_HDR (EFeature);
+	void  textureCompressionBC (EFeature);
+	void  textureCompressionETC2 (EFeature);
+	void  imageViewMinLod (EFeature);
+	void  multisampleArrayImage (EFeature);
+	void  minImageArrayLayers (uint);
+	void  samplerAnisotropy (EFeature);
+	void  samplerMirrorClampToEdge (EFeature);
+	void  samplerFilterMinmax (EFeature);
+	void  filterMinmaxImageComponentMapping (EFeature);
+	void  samplerMipLodBias (EFeature);
+	void  minSamplerAnisotropy (float);
+	void  minSamplerLodBias (float);
+	void  minFramebufferLayers (uint);
+	void  variableMultisampleRate (EFeature);
+	void  metalArgBufferTier (uint);
+	void  perDescrSet_minInputAttachments (uint);
+	void  perDescrSet_minSampledImages (uint);
+	void  perDescrSet_minSamplers (uint);
+	void  perDescrSet_minStorageBuffers (uint);
+	void  perDescrSet_minStorageImages (uint);
+	void  perDescrSet_minUniformBuffers (uint);
+	void  perDescrSet_minAccelStructures (uint);
+	void  perDescrSet_minTotalResources (uint);
+	void  perStage_minInputAttachments (uint);
+	void  perStage_minSampledImages (uint);
+	void  perStage_minSamplers (uint);
+	void  perStage_minStorageBuffers (uint);
+	void  perStage_minStorageImages (uint);
+	void  perStage_minUniformBuffers (uint);
+	void  perStage_minAccelStructures (uint);
+	void  perStage_minTotalResources (uint);
+};
+
+RC<FeatureSet>  FindFeatureSet (const string &);
+struct Align
+{
+	Align ();
+	Align (const Align&);
+	Align&  operator = (const Align&);
+	Align (uint);
+};
+
+struct ArraySize
+{
+	ArraySize ();
+	ArraySize (const ArraySize&);
+	ArraySize&  operator = (const ArraySize&);
+	ArraySize (uint);
+};
+
+struct Shader
+{
+	Shader ();
+	string source;
+	string file;
+	string defines;
+	EShaderVersion version;
+	EShaderOpt options;
+	EShader type;
+	void  AddSpec (EValueType, const string &);
+	void  Define (const string &);
+	void  SetComputeSpec1 ();
+	void  SetComputeSpec2 ();
+	void  SetComputeSpec3 ();
+	void  SetComputeSpecAndDefault (uint);
+	void  SetComputeSpecAndDefault (uint, uint);
+	void  SetComputeSpecAndDefault (uint, uint, uint);
+	void  SetComputeLocalSize (uint);
+	void  SetComputeLocalSize (uint, uint);
+	void  SetComputeLocalSize (uint, uint, uint);
+	void  SetMeshSpec1 ();
+	void  SetMeshSpec2 ();
+	void  SetMeshSpec3 ();
+	void  SetMeshSpecAndDefault (uint);
+	void  SetMeshSpecAndDefault (uint, uint);
+	void  SetMeshSpecAndDefault (uint, uint, uint);
+	void  SetMeshLocalSize (uint);
+	void  SetMeshLocalSize (uint, uint);
+	void  SetMeshLocalSize (uint, uint, uint);
+};
+
+struct ShaderStructType
+{
+	ShaderStructType ();
+	ShaderStructType (const string &);
+	void  AddFeatureSet (const string &);
+	void  Set (EStructLayout, const string &);
+	void  Set (const string &);
+	string  FieldsToString () const;
+};
+
+void  SameAttribs (const string &, const string &);
+struct VertexBufferInput
+{
+	VertexBufferInput ();
+	VertexBufferInput (const string &);
+	void  Add (const string &, const string &, uint);
+	void  Add (const string &, const RC<ShaderStructType> &, uint);
+	void  Add (const string &, const string &);
+	void  Add (const string &, const RC<ShaderStructType> &);
+	void  Add (const string &, const string &, const Align &);
+	void  Add (const string &, const RC<ShaderStructType> &, const Align &);
+	void  AddFeatureSet (const string &);
+};
+
+struct DescriptorSetLayout
+{
+	DescriptorSetLayout ();
+	DescriptorSetLayout (const string &);
+	void  AddFeatureSet (const string &);
+	void  Define (const string &);
+	void  UniformBuffer (uint, const string &, const ArraySize &, const string &, EResourceState);
+	void  UniformBuffer (uint, const string &, const ArraySize &, const string &);
+	void  UniformBufferDynamic (uint, const string &, const ArraySize &, const string &, EResourceState);
+	void  UniformBufferDynamic (uint, const string &, const ArraySize &, const string &);
+	void  StorageBuffer (uint, const string &, const ArraySize &, const string &, EAccessType, EResourceState);
+	void  StorageBuffer (uint, const string &, const ArraySize &, const string &);
+	void  StorageBufferDynamic (uint, const string &, const ArraySize &, const string &, EAccessType, EResourceState);
+	void  StorageBufferDynamic (uint, const string &, const ArraySize &, const string &);
+	void  UniformTexelBuffer (uint, const string &, const ArraySize &, EImageType, EResourceState);
+	void  UniformTexelBuffer (uint, const string &, const ArraySize &, EImageType);
+	void  StorageTexelBuffer (uint, const string &, const ArraySize &, EImageType, EResourceState);
+	void  StorageTexelBuffer (uint, const string &, const ArraySize &, EImageType);
+	void  StorageImage (uint, const string &, const ArraySize &, EImageType, EPixelFormat, EAccessType, EResourceState);
+	void  StorageImage (uint, const string &, const ArraySize &, EImageType, EPixelFormat);
+	void  StorageImage (uint, const string &, const ArraySize &, EImageType);
+	void  SampledImage (uint, const string &, const ArraySize &, EImageType, EResourceState);
+	void  SampledImage (uint, const string &, const ArraySize &, EImageType);
+	void  CombinedImage (uint, const string &, const ArraySize &, EImageType);
+	void  CombinedImage (uint, const string &, const ArraySize &, EImageType, EResourceState);
+	void  CombinedImage (uint, const string &, EImageType, EResourceState, const string &);
+	void  CombinedImage (uint, const string &, EImageType, const string &);
+	void  SubpassInputFromRenderTech (const string &, const string &);
+	void  SubpassInputFromRenderPass (const string &, const string &);
+	void  SubpassInput (uint, const string &, EImageType, EResourceState);
+	void  SubpassInput (uint, const string &, EImageType);
+	void  Sampler (uint, const string &, const ArraySize &);
+	void  ImtblSampler (uint, const string &, const string &);
+	void  RayTracingScene (uint, const string &, const ArraySize &);
+	void  SetUsage (uint);
+};
+
+struct PipelineLayout
+{
+	PipelineLayout ();
+	PipelineLayout (const string &);
+	void  AddFeatureSet (const string &);
+	void  DSLayout (uint, const string &);
+	void  DSLayout (const string &, uint, const string &);
+	void  DSLayout (uint, const RC<DescriptorSetLayout> &);
+	void  DSLayout (const string &, uint, const RC<DescriptorSetLayout> &);
+	void  AddDebugDSLayout (EShaderOpt, uint);
+	void  AddDebugDSLayout (uint, EShaderOpt, uint);
+	void  PushConst (const string &, const string &, uint);
+	void  PushConst (const string &, const RC<ShaderStructType> &, uint);
+	void  Define (const string &);
+};
+
+struct EMutableRenderState
+{
+	EMutableRenderState () {}
+	EMutableRenderState (uint) {}
+	operator uint () const;
+};
+
+struct GraphicsPass
+{
+	GraphicsPass ();
+	void  SetRenderPass (const string &, const string &);
+	void  SetRenderState (const RenderState &);
+	void  SetRenderState (const string &);
+	void  SetMutableStates (EMutableRenderState);
+	void  SetDSLayout (const string &);
+};
+
+struct ComputePass
+{
+	ComputePass ();
+	void  SetDSLayout (const string &);
+};
+
+struct RenderTechnique
+{
+	RenderTechnique ();
+	RenderTechnique (const string &);
+	void  AddFeatureSet (const string &);
+	RC<GraphicsPass>  AddGraphicsPass (const string &);
+	RC<ComputePass>  AddComputePass (const string &);
+	RC<GraphicsPass>  CopyGraphicsPass (const string &, const string &, const string &);
+	RC<ComputePass>  CopyComputePass (const string &, const string &, const string &);
+};
+
+struct GraphicsPipelineSpec
+{
+	GraphicsPipelineSpec ();
+	void  SetSpecValue (const string &, uint);
+	void  SetSpecValue (const string &, int);
+	void  SetSpecValue (const string &, float);
+	void  SetDynamicState (uint);
+	void  SetRenderState (const RenderState &);
+	void  SetRenderState2 (const string &);
+	void  SetViewportCount (uint);
+	void  AddToRenderTech (const string &, const string &);
+	void  SetOptions (EPipelineOpt);
+	void  SetVertexInput (const string &);
+	void  SetVertexInput (const RC<VertexBufferInput> &);
+};
+
+struct GraphicsPipeline
+{
+	GraphicsPipeline ();
+	GraphicsPipeline (const string &);
+	void  Define (const string &);
+	void  SetVertexShader (const RC<Shader> &);
+	void  SetTessControlShader (const RC<Shader> &);
+	void  SetTessEvalShader (const RC<Shader> &);
+	void  SetGeometryShader (const RC<Shader> &);
+	void  SetFragmentShader (const RC<Shader> &);
+	RC<GraphicsPipelineSpec>  AddSpecialization (const string &);
+	void  TestRenderPass (const string &, const string &);
+	void  AddFeatureSet (const string &);
+	void  SetLayout (const string &);
+	void  SetLayout (const RC<PipelineLayout> &);
+	void  SetVertexInput (const string &);
+	void  SetVertexInput (const RC<VertexBufferInput> &);
+	void  SetShaderIO (EShader, EShader, const string &);
+	void  SetFragmentOutputFromRenderTech (const string &, const string &);
+	void  SetFragmentOutputFromRenderPass (const string &, const string &);
+};
+
+struct MeshPipelineSpec
+{
+	MeshPipelineSpec ();
+	void  SetSpecValue (const string &, uint);
+	void  SetSpecValue (const string &, int);
+	void  SetSpecValue (const string &, float);
+	void  SetDynamicState (uint);
+	void  SetRenderState (const RenderState &);
+	void  SetRenderState2 (const string &);
+	void  SetViewportCount (uint);
+	void  SetTaskGroupSize (uint);
+	void  SetTaskGroupSize (uint, uint);
+	void  SetTaskGroupSize (uint, uint, uint);
+	void  SetMeshGroupSize (uint);
+	void  SetMeshGroupSize (uint, uint);
+	void  SetMeshGroupSize (uint, uint, uint);
+	void  AddToRenderTech (const string &, const string &);
+	void  SetOptions (EPipelineOpt);
+};
+
+struct MeshPipeline
+{
+	MeshPipeline ();
+	MeshPipeline (const string &);
+	void  Define (const string &);
+	void  SetTaskShader (const RC<Shader> &);
+	void  SetMeshShader (const RC<Shader> &);
+	void  SetFragmentShader (const RC<Shader> &);
+	RC<MeshPipelineSpec>  AddSpecialization (const string &);
+	void  TestRenderPass (const string &, const string &);
+	void  AddFeatureSet (const string &);
+	void  SetLayout (const string &);
+	void  SetLayout (const RC<PipelineLayout> &);
+	void  SetShaderIO (EShader, EShader, const string &);
+	void  SetFragmentOutputFromRenderTech (const string &, const string &);
+	void  SetFragmentOutputFromRenderPass (const string &, const string &);
+};
+
+struct ComputePipelineSpec
+{
+	ComputePipelineSpec ();
+	void  SetSpecValue (const string &, uint);
+	void  SetSpecValue (const string &, int);
+	void  SetSpecValue (const string &, float);
+	void  SetDynamicState (uint);
+	void  SetLocalGroupSize (uint);
+	void  SetLocalGroupSize (uint, uint);
+	void  SetLocalGroupSize (uint, uint, uint);
+	void  AddToRenderTech (const string &, const string &);
+	void  SetOptions (EPipelineOpt);
+};
+
+struct ComputePipeline
+{
+	ComputePipeline ();
+	ComputePipeline (const string &);
+	void  Define (const string &);
+	void  SetShader (const RC<Shader> &);
+	RC<ComputePipelineSpec>  AddSpecialization (const string &);
+	void  AddFeatureSet (const string &);
+	void  SetLayout (const string &);
+	void  SetLayout (const RC<PipelineLayout> &);
+};
+
+struct TilePipelineSpec
+{
+	TilePipelineSpec ();
+	void  SetSpecValue (const string &, uint);
+	void  SetSpecValue (const string &, int);
+	void  SetSpecValue (const string &, float);
+	void  SetDynamicState (uint);
+	void  SetLocalGroupSize (uint);
+	void  SetLocalGroupSize (uint, uint);
+	void  AddToRenderTech (const string &, const string &);
+	void  SetOptions (EPipelineOpt);
+};
+
+struct TilePipeline
+{
+	TilePipeline ();
+	TilePipeline (const string &);
+	void  Define (const string &);
+	void  SetShader (const RC<Shader> &);
+	RC<TilePipelineSpec>  AddSpecialization (const string &);
+	void  AddFeatureSet (const string &);
+	void  SetLayout (const string &);
+	void  SetLayout (const RC<PipelineLayout> &);
+};
+
+struct RayTracingPipelineSpec
+{
+	RayTracingPipelineSpec ();
+	void  SetSpecValue (const string &, uint);
+	void  SetSpecValue (const string &, int);
+	void  SetSpecValue (const string &, float);
+	void  SetDynamicState (uint);
+	void  AddToRenderTech (const string &, const string &);
+	void  SetOptions (EPipelineOpt);
+	void  MaxRecursionDepth (uint);
+};
+
+struct RayTracingPipeline
+{
+	RayTracingPipeline ();
+	RayTracingPipeline (const string &);
+	void  Define (const string &);
+	RC<RayTracingPipelineSpec>  AddSpecialization (const string &);
+	void  AddFeatureSet (const string &);
+	void  SetLayout (const string &);
+	void  SetLayout (const RC<PipelineLayout> &);
+	void  AddGeneralShader (const string &, const RC<Shader> &);
+	void  AddTriangleHitGroup (const string &, const RC<Shader> &, const RC<Shader> &);
+	void  AddProceduralHitGroup (const string &, const RC<Shader> &, const RC<Shader> &, const RC<Shader> &);
+};
+
+const string InitialLayout;
+const string Subpass_ExternalIn;
+const string FinalLayout;
+const string Subpass_ExternalOut;
+const string Subpass_Main;
+const string Attachment_Color;
+const string Attachment_Depth;
+const string Attachment_DepthStencil;
+struct EAttachment
+{
+	EAttachment () {}
+	EAttachment (uint) {}
+	operator uint () const;
+	static constexpr uint Invalidate = 0;
+	static constexpr uint Color = 1;
+	static constexpr uint ReadWrite = 3;
+	static constexpr uint ColorResolve = 2;
+	static constexpr uint Input = 4;
+	static constexpr uint Depth = 5;
+	static constexpr uint Preserve = 6;
+	static constexpr uint DepthStencil = 5;
+};
+
+struct ShaderIO
+{
+	ShaderIO ();
+	ShaderIO (const ShaderIO&);
+	ShaderIO&  operator = (const ShaderIO&);
+	ShaderIO (const string &);
+	ShaderIO (const string &, EShaderIO);
+	ShaderIO (uint, const string &, EShaderIO);
+	ShaderIO (uint, const string &);
+};
+
+struct Attachment
+{
+	Attachment ();
+	EPixelFormat format;
+	MultiSamples samples;
+	void  Usage (const string &, EAttachment);
+	void  Usage (const string &, EAttachment, const ShaderIO &);
+	void  Usage (const string &, EAttachment, const ShaderIO &, const ShaderIO &);
+	void  Print () const;
+};
+
+struct AttachmentSpec
+{
+	AttachmentSpec ();
+	EAttachmentLoadOp loadOp;
+	EAttachmentStoreOp storeOp;
+	void  Layout (const string &, EResourceState);
+	void  Layout (const string &, uint);
+	void  GenOptimalLayouts ();
+	void  GenOptimalLayouts (EResourceState, EResourceState);
+	void  GenOptimalLayouts (uint, uint);
+	void  Print () const;
+};
+
+struct RenderPass
+{
+	RenderPass ();
+	RC<AttachmentSpec>  AddAttachment (const string &);
+	void  GenOptimalLayouts ();
+	void  Print () const;
+};
+
+struct CompatibleRenderPass
+{
+	CompatibleRenderPass ();
+	CompatibleRenderPass (const string &);
+	RC<RenderPass>  AddSpecialization (const string &);
+	RC<Attachment>  AddAttachment (const string &);
+	void  AddSubpass (const string &);
+	void  Print () const;
+	void  AddFeatureSet (const string &);
+};
+
+struct Sampler
+{
+	Sampler ();
+	Sampler (const string &);
+	void  AddFeatureSet (const string &);
+	void  Filter (EFilter, EFilter, EMipmapFilter);
+	void  AddressMode (EAddressMode);
+	void  AddressMode (EAddressMode, EAddressMode, EAddressMode);
+	void  MipLodBias (float);
+	void  LodRange (float, float);
+	void  Anisotropy (float);
+	void  CompareOp (ECompareOp);
+	void  BorderColor (EBorderColor);
+	void  NormCoordinates (bool);
+	void  ReductionMode (EReductionMode);
+	void  Usage (ESamplerUsage);
+};
+
+struct MissIndex
+{
+	MissIndex ();
+	MissIndex (const MissIndex&);
+	MissIndex&  operator = (const MissIndex&);
+	MissIndex (uint);
+};
+
+struct InstanceIndex
+{
+	InstanceIndex ();
+	InstanceIndex (const InstanceIndex&);
+	InstanceIndex&  operator = (const InstanceIndex&);
+	InstanceIndex (uint);
+};
+
+struct RayIndex
+{
+	RayIndex ();
+	RayIndex (const RayIndex&);
+	RayIndex&  operator = (const RayIndex&);
+	RayIndex (uint);
+};
+
+struct CallableIndex
+{
+	CallableIndex ();
+	CallableIndex (const CallableIndex&);
+	CallableIndex&  operator = (const CallableIndex&);
+	CallableIndex (uint);
+};
+
+struct RayTracingShaderBinding
+{
+	RayTracingShaderBinding ();
+	RayTracingShaderBinding (const RC<RayTracingPipelineSpec> &, const string &);
+	void  HitGroupStride (uint);
+	void  BindRayGen (const string &);
+	void  BindMiss (const string &, const MissIndex &);
+	void  BindHitGroup (const string &, const InstanceIndex &, const RayIndex &);
+	void  BindCallable (const string &, const CallableIndex &);
+};
+
+bool  IsVulkan ();
+bool  IsMetal_iOS ();
+bool  IsMetal_Mac ();
+bool  IsMetal ();
+#define SCRIPT
+
+template <>
+struct RC<FeatureSet> : FeatureSet
+{
+	RC (const FeatureSet &);
+};
+
+template <>
+struct RC<NamedRenderState> : NamedRenderState
+{
+	RC (const NamedRenderState &);
+};
+
+template <>
+struct RC<ShaderStructType> : ShaderStructType
+{
+	RC (const ShaderStructType &);
+};
+
+template <>
+struct RC<ComputePass> : ComputePass
+{
+	RC (const ComputePass &);
+};
+
+template <>
+struct RC<MeshPipeline> : MeshPipeline
+{
+	RC (const MeshPipeline &);
+};
+
+template <>
+struct RC<Shader> : Shader
+{
+	RC (const Shader &);
+};
+
+template <>
+struct RC<TilePipelineSpec> : TilePipelineSpec
+{
+	RC (const TilePipelineSpec &);
+};
+
+template <>
+struct RC<Sampler> : Sampler
+{
+	RC (const Sampler &);
+};
+
+template <>
+struct RC<TilePipeline> : TilePipeline
+{
+	RC (const TilePipeline &);
+};
+
+template <>
+struct RC<GraphicsPipelineSpec> : GraphicsPipelineSpec
+{
+	RC (const GraphicsPipelineSpec &);
+};
+
+template <>
+struct RC<PipelineLayout> : PipelineLayout
+{
+	RC (const PipelineLayout &);
+};
+
+template <>
+struct RC<DescriptorSetLayout> : DescriptorSetLayout
+{
+	RC (const DescriptorSetLayout &);
+};
+
+template <>
+struct RC<RenderPass> : RenderPass
+{
+	RC (const RenderPass &);
+};
+
+template <>
+struct RC<RenderTechnique> : RenderTechnique
+{
+	RC (const RenderTechnique &);
+};
+
+template <>
+struct RC<RayTracingShaderBinding> : RayTracingShaderBinding
+{
+	RC (const RayTracingShaderBinding &);
+};
+
+template <>
+struct RC<RayTracingPipeline> : RayTracingPipeline
+{
+	RC (const RayTracingPipeline &);
+};
+
+template <>
+struct RC<MeshPipelineSpec> : MeshPipelineSpec
+{
+	RC (const MeshPipelineSpec &);
+};
+
+template <>
+struct RC<GraphicsPipeline> : GraphicsPipeline
+{
+	RC (const GraphicsPipeline &);
+};
+
+template <>
+struct RC<GraphicsPass> : GraphicsPass
+{
+	RC (const GraphicsPass &);
+};
+
+template <>
+struct RC<VertexBufferInput> : VertexBufferInput
+{
+	RC (const VertexBufferInput &);
+};
+
+template <>
+struct RC<AttachmentSpec> : AttachmentSpec
+{
+	RC (const AttachmentSpec &);
+};
+
+template <>
+struct RC<ComputePipelineSpec> : ComputePipelineSpec
+{
+	RC (const ComputePipelineSpec &);
+};
+
+template <>
+struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
+{
+	RC (const RayTracingPipelineSpec &);
+};
+
+template <>
+struct RC<Attachment> : Attachment
+{
+	RC (const Attachment &);
+};
+
+template <>
+struct RC<CompatibleRenderPass> : CompatibleRenderPass
+{
+	RC (const CompatibleRenderPass &);
+};
+
+template <>
+struct RC<ComputePipeline> : ComputePipeline
+{
+	RC (const ComputePipeline &);
+};
+

@@ -86,10 +86,10 @@ namespace AE::Threading
 	// methods
 	public:
 		explicit LfIndexedPool3 (const Allocator_t &alloc = Allocator_t{}) __NE___;
-		~LfIndexedPool3 ()									__NE___	{ Release(); }
+		~LfIndexedPool3 ()									__NE___	{ Release( True{"check for assigned"} ); }
 		
 
-		void  Release (bool checkForAssigned = true)		__NE___;
+		void  Release (Bool checkForAssigned)				__NE___;
 		
 		template <typename FN>
 		void  UnassignAll (FN &&visitor)					__NE___;

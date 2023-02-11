@@ -6,8 +6,8 @@ namespace
 {
 	struct CB1_TestData
 	{
-		Strong<BufferID>			buf_1;
-		Strong<BufferID>			buf_2;
+		GAutorelease<BufferID>		buf_1;
+		GAutorelease<BufferID>		buf_2;
 		const Bytes					buf_size	= 128_b;
 		Array<ubyte>				buffer_data;
 		AsyncTask					result;
@@ -86,7 +86,7 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"CopyBuffer1"} );
+		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"CopyBuffer1"} );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Run< CB1_CopyBufferTask<Ctx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Copy buffer task"} );
@@ -100,8 +100,6 @@ namespace
 		CHECK_ERR( Scheduler().Wait({ t.result }));
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
-		CHECK_ERR( res_mngr.ReleaseResources( t.buf_1, t.buf_2 ));
-
 		CHECK_ERR( t.isOK );
 		return true;
 	}
@@ -111,11 +109,13 @@ namespace
 
 bool RGTest::Test_CopyBuffer1 ()
 {
-	CHECK_ERR( CopyBuffer1Test< DirectCtx::Transfer   >());
-	CHECK_ERR( CopyBuffer1Test< IndirectCtx::Transfer >());
+	bool	result = true;
+
+	RG_CHECK( CopyBuffer1Test< DirectCtx::Transfer   >());
+	RG_CHECK( CopyBuffer1Test< IndirectCtx::Transfer >());
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

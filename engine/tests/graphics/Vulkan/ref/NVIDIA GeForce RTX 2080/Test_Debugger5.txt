@@ -1,0 +1,188 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'command-buffer'
+{
+  BeginDebugLabel
+    name:  'Debugger5 |0| Upload RTAS task'
+    depth: 1
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  HOST ---> COPY
+      access: HOST_WRITE ---> TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:1} {q:Graphics}'
+    dst: 'RTAS vertex buffer'
+      copy [0, 48) ---> [0, 48)
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:1} {q:Graphics}'
+    dst: 'RTAS index buffer'
+      copy [48, 60) ---> [0, 12)
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:1} {q:Graphics}'
+    dst: 'RTAS instance buffer'
+      copy [60, 124) ---> [0, 64)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> ACCELERATION_STRUCTURE_BUILD
+      access: TRANSFER_WRITE ---> ACCELERATION_STRUCTURE_READ
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT geometry'
+    scratch: 'RTAS scratch buffer'
+    type: BottomLevel
+    mode: Build
+    [0] Triangles
+      vertexData:    'RTAS vertex buffer'
+      indexData:     'RTAS index buffer'
+      transformData: null
+    ----
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ACCELERATION_STRUCTURE_BUILD ---> ACCELERATION_STRUCTURE_BUILD
+      access: ACCELERATION_STRUCTURE_WRITE ---> ACCELERATION_STRUCTURE_READ
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT scene'
+    scratch: 'RTAS scratch buffer'
+    type: TopLevel
+    mode: Build
+    [0] Instances
+      data: 'RTAS instance buffer'
+    ----
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+name: 'command-buffer'
+{
+  BeginDebugLabel
+    name:  'Debugger5 |1| Ray tracing task'
+    depth: 1
+  ----------
+
+  FillBuffer
+    dst:     'debug storage buffer'
+    offset:  16
+    size:    1048560
+  ----------
+
+  UpdateBuffer
+    dst:     'debug storage buffer'
+    offset:  0
+    size:    16
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> COMPUTE_SHADER
+      access: TRANSFER_WRITE ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ACCELERATION_STRUCTURE_BUILD ---> COMPUTE_SHADER
+      access: ACCELERATION_STRUCTURE_WRITE ---> ACCELERATION_STRUCTURE_READ
+    ImageBarrier:
+      name:    'Image'
+      stage:   COMPUTE_SHADER ---> COMPUTE_SHADER
+      access:  0 ---> SHADER_STORAGE_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  Dispatch
+    descriptors:
+      image: 'Image', layout: GENERAL
+      accel struct: 'RT scene'
+      buffer: 'debug storage buffer'
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+name: 'command-buffer'
+{
+  BeginDebugLabel
+    name:  'Debugger5 |2| Readback task'
+    depth: 1
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COMPUTE_SHADER ---> COPY
+      access: SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+  ----------
+
+  CopyBuffer
+    src: 'debug storage buffer'
+    dst: 'readback dbg buffer'
+      copy [0, 1048576) ---> [0, 1048576)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================

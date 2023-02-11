@@ -15,6 +15,7 @@
 #include "graphics_test/GraphicsTest.h"
 
 using namespace AE;
+using namespace AE::Threading;
 using namespace AE::Graphics;
 
 #if defined(AE_ENABLE_VULKAN)
@@ -124,8 +125,9 @@ private:
 
 	bool  Test_Debugger1 ();	// compute
 	bool  Test_Debugger2 ();	// graphics
-	//bool  Test_Debugger3 ();	// mesh
-	//bool  Test_Debugger4 ();	// ray tracing
+	bool  Test_Debugger3 ();	// mesh
+	bool  Test_Debugger4 ();	// ray tracing
+	bool  Test_Debugger5 ();	// ray query
 };
 
 	
@@ -140,4 +142,7 @@ ND_ inline String  _GetFuncName (StringView src)
 		return String{ src };
 }
 
-# define TEST_NAME	_GetFuncName( AE_FUNCTION_NAME )
+
+# define TEST_NAME			_GetFuncName( AE_FUNCTION_NAME )
+
+# define RG_CHECK( ... )	{ bool res = (__VA_ARGS__);  CHECK_MSG( res, AE_TOSTRING( __VA_ARGS__ ));  result &= res; }

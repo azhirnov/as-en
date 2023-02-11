@@ -102,20 +102,20 @@ namespace
 			TEST( storage.Create( arch ));
 
 			{
-				RC<RStream>		stream = storage.OpenAsStream( name1 );
-				TEST( stream );
+				RC<RStream>		stream;
+				TEST( storage.Open( OUT stream, name1 ));
 				TEST( CompareFiles( file1, *stream, file1_size ));
 			}{
-				RC<RStream>		stream = storage.OpenAsStream( name2 );
-				TEST( stream );
+				RC<RStream>		stream;
+				TEST( storage.Open( OUT stream, name2 ));
 				TEST( CompareFiles( file2, *stream, file2_size ));
 			}{
-				RC<RStream>		stream = storage.OpenAsStream( name3 );
-				TEST( stream );
+				RC<RStream>		stream;
+				TEST( storage.Open( OUT stream, name3 ));
 				TEST( CompareFiles( file3, *stream, file3_size ));
 			}{
-				RC<RDataSource>	ds = storage.OpenAsSource( name4 );
-				TEST( ds );
+				RC<RDataSource>	ds;
+				TEST( storage.Open( OUT ds, name4 ));
 				TEST( CompareFiles( file4, *ds, file4_size ));
 			}
 		}

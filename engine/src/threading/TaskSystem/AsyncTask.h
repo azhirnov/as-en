@@ -14,7 +14,7 @@
 
 	bool		co_await Coro_IsCanceled
 	EStatus		co_await Coro_Status
-	ETaskQueue	co_await Coro_Queue
+	ETaskQueue	co_await Coro_TaskQueue
 */
 
 #pragma once
@@ -114,6 +114,9 @@ namespace AE::Threading
 		{
 			ubyte	bitIndex : 7;	// to reset bit in '_waitBits'
 			ubyte	isStrong : 1;	// to increment '_canceledDepsCount'
+
+			TaskDependency ()									__NE___ : bitIndex{0x7F}, isStrong{0} {}
+			explicit TaskDependency (uint index, bool strong)	__NE___ : bitIndex{ubyte(index)}, isStrong{strong} {}
 		};
 
 	private:
@@ -133,7 +136,10 @@ namespace AE::Threading
 
 			void  Init (uint idx)	__NE___;
 		};
+	
+	  #if AE_PLATFORM_BITS == 64
 		STATIC_ASSERT( sizeof(OutputChunk) == 128 );
+	  #endif
 
 		using WaitBits_t = ulong;
 
@@ -145,7 +151,7 @@ namespace AE::Threading
 		Atomic< uint >				_canceledDepsCount	{0};					// > 0 if canceled		// TODO: pack with '_status'
 		Atomic< WaitBits_t >		_waitBits			{~WaitBits_t{0}};		// 0 - all complete, otherwise - has uncomplete dependencies
 		
-		PtrSpinLock< OutputChunk >	_output				{null};
+		PtrWithSpinLock< OutputChunk >	_output				{null};
 
 		PROFILE_ONLY(
 			RC<ITaskProfiler>		_profiler;
@@ -223,34 +229,38 @@ namespace AE::Threading
 # ifdef AE_HAS_COROUTINE
   namespace _hidden_
   {
-	class CoroutineRunnerTask;
+	template <typename DepsType>
+	class AsyncTaskCoro_Awaiter;
 
 
 	//
 	// Async Task Coroutine
 	//
-	class AsyncTaskCoroutine
+	class AsyncTaskCoro final
 	{
 	public:
-		struct promise_type;
-		using Handle_t = CoroutineHandle< promise_type >;
-
-		struct promise_type final
+		class promise_type;
+		using Handle_t	= std::coroutine_handle< promise_type >;
+		
+		//
+		// promise_type
+		//
+		class promise_type final : public IAsyncTask
 		{
-		// types
-		public:
-			using Task_t = CoroutineRunnerTask;
-
-
+			friend class AsyncTaskCoro;
+			
 		// variables
 		private:
-			Atomic< Task_t *>		_task	{null};
+		  #ifdef AE_DBG_OR_DEV
+			String		_dbgName;
+		  #endif
+
 
 		// methods
 		public:
-									~promise_type ()		__NE___	{ ASSERT( _task.load() == null ); }
-
-			ND_ Handle_t			get_return_object ()	__NE___	{ return Handle_t::FromPromise( *this ); }
+			promise_type ()									__NE___	: IAsyncTask{ ETaskQueue::Worker } {}
+			
+			ND_ AsyncTaskCoro		get_return_object ()	__NE___	{ return AsyncTaskCoro{ *this }; }
 
 			ND_ std::suspend_always	initial_suspend ()		C_NE___	{ return {}; }			// delayed start
 			ND_ std::suspend_always	final_suspend ()		C_NE___	{ return {}; }			// must not be 'suspend_never'	// TODO: don't suspend
@@ -258,110 +268,157 @@ namespace AE::Threading
 				void				return_void ()			C_NE___	{}
 					
 				void				unhandled_exception ()	C_Th___	{ throw; }				// rethrow exceptions
+				
+			#ifdef AE_DBG_OR_DEV
+				StringView			DbgName ()				C_NE_OV	{ return _dbgName; }
+			#else
+				StringView			DbgName ()				C_NE_OV	{ return "AsyncTaskCoro"; }
+			#endif
 
-			ND_ Task_t*				GetTask ()				C_NE___;
+			
+		public:
+				void  Cancel ()								__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }
+				void  Fail ()								__NE___	{ IAsyncTask::OnFailure(); }
+			ND_ bool  IsCanceled ()							__NE___	{ return IAsyncTask::IsCanceled(); }
+				
+			template <typename ...Deps>
+			void  Continue (const Tuple<Deps...> &deps)		__NE___	{ return IAsyncTask::Continue( deps ); }
+
 
 		private:
-			friend class CoroutineRunnerTask;
-				void				Init (Task_t *task)		__NE___;
-				void				Reset (Task_t *task)	__NE___;
+			void  Run ()									__Th_OV
+			{
+				auto	coro_handle = Handle_t::from_promise( *this );
+				coro_handle.resume();	// throw
+
+				if_unlikely( bool{coro_handle} and not coro_handle.done() )
+					ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
+			}
+
+			void  _ReleaseObject ()							__NE_OV
+			{
+				MemoryBarrier( EMemoryOrder::Acquire );
+				ASSERT( IsFinished() );
+				
+				auto	coro_handle = Handle_t::from_promise( *this );
+
+				// internally calls 'promise_type' dtor
+				coro_handle.destroy();
+			}
 		};
-	};
-
-
-
-	//
-	// Coroutine runner as Async Task
-	//
-	class CoroutineRunnerTask final : public IAsyncTask
-	{
-	// types
-	public:
-		using Promise_t	= typename AsyncTaskCoroutine::promise_type;
-		using Handle_t	= typename AsyncTaskCoroutine::Handle_t;
-
+			
 
 	// variables
 	private:
-		Handle_t	_coroutine;
+		RC<promise_type>	_coro;
 
 
 	// methods
 	public:
-		explicit CoroutineRunnerTask (Handle_t handle, ETaskQueue type = ETaskQueue::Worker)	__NE___ :
-			IAsyncTask{ type }, _coroutine{ RVRef(handle) }
-		{
-			ASSERT( _coroutine.IsValid() );
-			_coroutine.Promise().Init( this );
-		}
+		AsyncTaskCoro ()									__NE___ {}
+		explicit AsyncTaskCoro (promise_type &p)			__NE___ : _coro{ p.GetRC<promise_type>() } {}
+		explicit AsyncTaskCoro (Handle_t handle)			__NE___ : _coro{ handle.promise().GetRC<promise_type>() } {}
+		~AsyncTaskCoro ()									__NE___ {}
 
-		~CoroutineRunnerTask ()																	__NE_OV { ASSERT( IsCompleted() ? _coroutine.Done() : true ); }
+		AsyncTaskCoro (AsyncTaskCoro &&)					__NE___ = default;
+		AsyncTaskCoro (const AsyncTaskCoro &)				__NE___ = default;
 
-		// must be inside coroutine!
-		template <typename ...Deps>
-			static void  ContinueTask (CoroutineRunnerTask &task, const Tuple<Deps...> &deps)	__NE___ { return task.Continue( deps ); }
-			static void  FailTask (CoroutineRunnerTask &task)									__NE___	{ return task.OnFailure(); }
-		ND_ static bool  IsCanceledTask (CoroutineRunnerTask &task)								__NE___	{ return task.IsCanceled(); }
-		ND_ static auto  GetTaskStatus (CoroutineRunnerTask &task)								__NE___	{ return task.Status(); }
-		ND_ static auto  GetTaskQueue (CoroutineRunnerTask &task)								__NE___	{ return task.QueueType(); }
+		AsyncTaskCoro&  operator = (AsyncTaskCoro &&)		__NE___ = default;
+		AsyncTaskCoro&  operator = (const AsyncTaskCoro &)	__NE___ = default;
 
-
+		operator AsyncTask ()								C_NE___	{ return _coro; }
+		explicit operator bool ()							C_NE___	{ return bool{_coro}; }
+		
 	private:
-		void  Run () __Th_OV
+		friend class Threading::TaskScheduler;
+		void  _InitCoro (ETaskQueue type, StringView name)	__NE___
 		{
-			ASSERT( _coroutine.IsValid() );
-			_coroutine.Resume();	// throw
-
-			if_likely( _coroutine.Done() )
-				_coroutine.Promise().Reset( this );
-			else
-				ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
+			_coro->_SetQueueType( type );
+			Unused( name );
+		  #ifdef AE_DBG_OR_DEV
+			_coro->_dbgName = String{name};
+		  #endif
 		}
-			
-		void  OnCancel () __NE_OV
-		{
-			IAsyncTask::OnCancel();
-			_coroutine.Promise().Reset( this );
-		}
-
-		StringView  DbgName () C_NE_OV	{ return "coroutine"; }
 	};
 
 	
-	inline CoroutineRunnerTask*  AsyncTaskCoroutine::promise_type::GetTask () C_NE___
-	{
-		auto* t = _task.load();
-		ASSERT( t != null );
-		ASSERT( AsyncTask{t}.use_count() > 1 );
-		ASSERT( t->DbgIsRunning() );
-		return t;
-	}
-
-	inline void  AsyncTaskCoroutine::promise_type::Init (CoroutineRunnerTask *task) __NE___
-	{
-		ASSERT( task != null );
-		_task.store( task );
-	}
-
-	inline void  AsyncTaskCoroutine::promise_type::Reset (CoroutineRunnerTask *task) __NE___
-	{
-	#ifdef AE_DEBUG
-		ASSERT( _task.exchange( null ) == task );
-	#else
-		Unused( task );
-		_task.store( null );
-	#endif
-	}
-
-
 	//
-	// Coroutine Runner Awaiter
+	// Coroutine Awaiter
 	//
-	template <typename DepsType>
-	class CoroutineRunnerAwaiter;
-	
+	class AsyncTaskCoro_AwaiterImpl
+	{
+	// methods
+	private:
+		ND_ forceinline static IAsyncTask::EStatus  _GetStatus (const AsyncTask &task)	__NE___	{ return task ? task->Status() : IAsyncTask::EStatus::Canceled; }
+		
+		template <typename T>
+		ND_ forceinline static IAsyncTask::EStatus  _GetStatus (const T &other)			__NE___	{ return _GetStatus( AsyncTask{ other }); }
+
+
+	public:
+		template <typename P>
+		ND_ static bool  AwaitSuspendImpl (std::coroutine_handle<P> curCoro, const AsyncTask &dep) __NE___
+		{
+			// compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
+			STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
+
+			using EStatus = IAsyncTask::EStatus;
+				
+			const EStatus	stat = _GetStatus( dep );
+
+			if ( stat == EStatus::Completed )
+				return false;	// resume
+
+			if ( stat > EStatus::_Interropted )
+			{
+				curCoro.promise().Cancel();
+				return true;	// suspend & cancel
+			}
+				
+			curCoro.promise().Continue( Tuple{ dep });
+
+			// task may be cancelled
+			if_unlikely( curCoro.promise().IsFinished() )
+				return false;	// resume
+
+			return true;	// suspend
+		}
+
+
+		template <typename P, typename ...Deps>
+		ND_ static bool  AwaitSuspendImpl2 (std::coroutine_handle<P> curCoro, const Tuple<Deps...> &deps) __NE___
+		{
+			// compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
+			STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
+
+			using EStatus = IAsyncTask::EStatus;
+
+			const auto	stats_arr	= deps.Apply( [] (auto&& ...args) { return StaticArray< EStatus, sizeof...(Deps) >{ _GetStatus( args ) ... }; });
+			const auto	stats		= ArrayView<EStatus>{ stats_arr };
+			
+			if ( stats.AllEqual( EStatus::Completed ))
+				return false;	// resume
+
+			if ( stats.AllGreater( EStatus::_Finished ) and
+				 stats.AllGreater( EStatus::_Interropted ))
+			{
+				curCoro.promise().Cancel();
+				return true;	// suspend & cancel
+			}
+
+			curCoro.promise().Continue( deps.Apply( [] (auto&& ...args) { return Tuple{ AsyncTask{args} ... }; }));
+			
+			// task may be cancelled
+			if_unlikely( curCoro.promise().IsFinished() )
+				return false;	// resume
+
+			return true;	// suspend
+		}
+	};
+
+
 	template <>
-	class CoroutineRunnerAwaiter< AsyncTask >
+	class AsyncTaskCoro_Awaiter< AsyncTask >
 	{
 	// variables
 	private:
@@ -370,26 +427,23 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit CoroutineRunnerAwaiter (const AsyncTask &dep) __NE___ : _dep{dep} {}
+		explicit AsyncTaskCoro_Awaiter (const AsyncTask &dep) __NE___ : _dep{dep} {}
 
-		// pause coroutine execution if dependency is not complete
-		ND_ bool	await_ready ()		C_NE___	{ return _dep ? _dep->IsFinished() : true; }
+		ND_ bool	await_ready ()		C_NE___	{ return false; }
 
 			void	await_resume ()		__NE___	{}
 		
 		// return task to scheduler with new dependencies
 		template <typename P>
-		void  await_suspend (std::coroutine_handle<P> curCoro) __NE___
+		ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
 		{
-			auto*	task = curCoro.promise().GetTask();
-			CHECK_ERRV( task != null );
-			P::Task_t::ContinueTask( *task, Tuple{_dep} );
+			return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl( curCoro, _dep );
 		}
 	};
 
 
 	template <typename ...Deps>
-	class CoroutineRunnerAwaiter< Tuple<Deps...> >
+	class AsyncTaskCoro_Awaiter< Tuple<Deps...> >
 	{
 	// variables
 	private:
@@ -398,28 +452,25 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit CoroutineRunnerAwaiter (const Tuple<Deps...> &deps) __NE___ : _deps{deps} {}
+		explicit AsyncTaskCoro_Awaiter (const Tuple<Deps...> &deps) __NE___ : _deps{deps} {}
 
-		// pause coroutine execution if dependencies are not complete
 		ND_ bool	await_ready ()		C_NE___	{ return false; }
 
 			void	await_resume ()		__NE___	{}
 		
 		// return task to scheduler with new dependencies
 		template <typename P>
-		void  await_suspend (std::coroutine_handle<P> curCoro) __NE___
+		ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
 		{
-			auto*	task = curCoro.promise().GetTask();
-			CHECK_ERRV( task != null );
-			P::Task_t::ContinueTask( *task, _deps );
+			return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl2( curCoro, _deps );
 		}
 	};
 
 
 	//
-	// Coroutine Runner Error (for CHECK_CE)
+	// Coroutine Error (for CHECK_CE)
 	//
-	class CoroutineRunnerError
+	class AsyncTaskCoro_Error final
 	{
 	private:
 		struct Awaiter
@@ -430,16 +481,16 @@ namespace AE::Threading
 			template <typename P>
 			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
 			{
-				auto*	task = curCoro.promise().GetTask();
-				if_likely( task != null )
-					P::Task_t::FailTask( *task );
+				// compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
+				STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
 					
+				curCoro.promise().Fail();
 				return false;	// always resume coroutine
 			}
 		};
 
 	public:
-		explicit CoroutineRunnerError ()	__NE___ {}
+		explicit AsyncTaskCoro_Error ()		__NE___ {}
 
 		ND_ auto  operator co_await ()		C_NE___	{ return Awaiter{}; }
 	};
@@ -448,7 +499,7 @@ namespace AE::Threading
 	//
 	// Coroutine Is Canceled
 	//
-	class Coroutine_IsCanceled
+	class Coroutine_IsCanceled final
 	{
 	private:
 		struct Awaiter
@@ -463,10 +514,10 @@ namespace AE::Threading
 			template <typename P>
 			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
 			{
-				auto*	task = curCoro.promise().GetTask();
-				if_likely( task != null )
-					_isCanceled = P::Task_t::IsCanceledTask( *task );
-					
+				// compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
+				STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
+
+				_isCanceled = curCoro.promise().IsCanceled();	
 				return false;	// always resume coroutine
 			}
 		};
@@ -481,7 +532,7 @@ namespace AE::Threading
 	//
 	// Coroutine Status
 	//
-	class Coroutine_Status
+	class Coroutine_Status final
 	{
 	private:
 		struct Awaiter
@@ -496,10 +547,10 @@ namespace AE::Threading
 			template <typename P>
 			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
 			{
-				auto*	task = curCoro.promise().GetTask();
-				if_likely( task != null )
-					_status = P::Task_t::GetTaskStatus( *task );
+				// compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
+				STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
 					
+				_status = curCoro.promise().Status();	
 				return false;	// always resume coroutine
 			}
 		};
@@ -514,7 +565,7 @@ namespace AE::Threading
 	//
 	// Coroutine Queue
 	//
-	class Coroutine_Queue
+	class Coroutine_Queue final
 	{
 	private:
 		struct Awaiter
@@ -529,10 +580,10 @@ namespace AE::Threading
 			template <typename P>
 			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
 			{
-				auto*	task = curCoro.promise().GetTask();
-				if_likely( task != null )
-					_queue = P::Task_t::GetTaskQueue( *task );
+				// compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
+				STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
 					
+				_queue = curCoro.promise().QueueType();	
 				return false;	// always resume coroutine
 			}
 		};
@@ -550,40 +601,27 @@ namespace AE::Threading
   
 	static constexpr Threading::_hidden_::Coroutine_IsCanceled	Coro_IsCanceled	{};
 	static constexpr Threading::_hidden_::Coroutine_Status		Coro_Status		{};
-	static constexpr Threading::_hidden_::Coroutine_Queue		Coro_Queue		{};
+	static constexpr Threading::_hidden_::Coroutine_Queue		Coro_TaskQueue	{};
 
-
-/*
-=================================================
-	MakeCoroutineTask
-----
-	warning: for lamba don't use capture!
-=================================================
-*/
-	using CoroutineTask = Threading::_hidden_::AsyncTaskCoroutine::Handle_t;
-	
-	ND_ inline AsyncTask  MakeCoroutineTask (CoroutineTask handle, ETaskQueue type = ETaskQueue::Worker) __Th___
-	{
-		return AsyncTask{ new Threading::_hidden_::CoroutineRunnerTask{ RVRef(handle), type }};
-	}
+	using CoroTask = Threading::_hidden_::AsyncTaskCoro;
 
 /*
 =================================================
 	operator co_await (task dependencies)
 ----
-	it is safe to use reference because CoroutineRunnerAwaiter object
-	destroyed before Tuple destruction.
+	it is safe to use reference because 'AsyncTaskCoro_Awaiter' object
+	destroyed before 'Tuple' destruction.
 =================================================
 */
 	ND_ inline auto  operator co_await (const AsyncTask &dep) __NE___
 	{
-		return Threading::_hidden_::CoroutineRunnerAwaiter< AsyncTask >{ dep };
+		return Threading::_hidden_::AsyncTaskCoro_Awaiter< AsyncTask >{ dep };
 	}
 
 	template <typename ...Deps>
 	ND_ auto  operator co_await (const Tuple<Deps...> &deps) __NE___
 	{
-		return Threading::_hidden_::CoroutineRunnerAwaiter< Tuple<Deps...> >{ deps };
+		return Threading::_hidden_::AsyncTaskCoro_Awaiter< Tuple<Deps...> >{ deps };
 	}
 
 # endif // AE_HAS_COROUTINE

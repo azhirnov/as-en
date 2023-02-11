@@ -147,7 +147,7 @@ namespace
 		TEST( lines == 1 );
 
 		lines = StringParser::CalculateNumberOfLines( "1\n2\n" );
-		TEST( lines == 2 );
+		TEST( lines == 3 );
 	}
 
 

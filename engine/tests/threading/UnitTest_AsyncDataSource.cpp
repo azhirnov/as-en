@@ -5,6 +5,7 @@
 #include "threading/TaskSystem/ThreadManager.h"
 #include "UnitTest_Common.h"
 
+#ifndef AE_DISABLE_THREADS
 namespace
 {
 	using EStatus		= IAsyncTask::EStatus;
@@ -183,7 +184,7 @@ namespace
 
 #ifdef AE_HAS_COROUTINE
 	template <typename RFile, typename WFile>
-	static CoroutineTask  AsyncReadDS_Test3_Coro ()
+	static CoroTask  AsyncReadDS_Test3_Coro ()
 	{
 		const ulong	file_size	= 32ull << 20;	// Mb
 		const uint	buf_size	= 4u << 10;		// Kb
@@ -364,3 +365,10 @@ extern void UnitTest_AsyncDataSource ()
 	FileSystem::SetCurrentPath( curr );
 	TEST_PASSED();
 }
+
+#else
+
+extern void UnitTest_AsyncDataSource ()
+{}
+
+#endif // AE_DISABLE_THREADS

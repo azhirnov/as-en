@@ -8,6 +8,7 @@
 #include "base/Math/Bool32.h"
 #include "base/Math/Float8.h"
 #include "base/Math/Float16.h"
+#include "base/Math/Range.h"
 #include "base/Algorithms/Cast.h"
 
 namespace glm
@@ -1030,11 +1031,18 @@ namespace AE::Math
 	Remap
 =================================================
 */
-	template <typename T, glm::qualifier Q>
-	ND_ forceinline auto  Remap (const TVec<T,2,Q> &src, const TVec<T,2,Q> &dst, const T& x) __NE___
+	template <typename T>
+	ND_ forceinline EnableIf< IsScalar<T>, T >  Remap (const Range<T> &src, const Range<T> &dst, const T& x) __NE___
 	{
 		STATIC_ASSERT( IsFloatPoint<T> );
-		return (x - src[0]) / (src[1] - src[0]) * (dst[1] - dst[0]) + dst[0];
+		return ((x - src.begin) / src.Size()) * dst.Size() + dst.begin;
+	}
+	
+	template <typename T, int I, glm::qualifier Q>
+	ND_ forceinline TVec<T,I,Q>  Remap (const Range<TVec<T,I,Q>> &src, const Range<TVec<T,I,Q>> &dst, const TVec<T,I,Q>& x) __NE___
+	{
+		STATIC_ASSERT( IsFloatPoint<T> );
+		return ((x - src.begin) / src.Size()) * dst.Size() + dst.begin;
 	}
 	
 /*
@@ -1042,12 +1050,12 @@ namespace AE::Math
 	RemapClamped
 =================================================
 */
-	template <typename T, glm::qualifier Q>
-	ND_ forceinline auto  RemapClamped (const TVec<T,2,Q> &src, const TVec<T,2,Q> &dst, const T& x) __NE___
+	template <typename T>
+	ND_ forceinline T  RemapClamped (const Range<T> &src, const Range<T> &dst, const T& x) __NE___
 	{
-		return Clamp( Remap( src, dst, x ), dst[0], dst[1] );
+		return Clamp( Remap( src, dst, x ), dst.begin, dst.end );
 	}
-	
+
 /*
 =================================================
 	ToUNorm
@@ -1207,6 +1215,22 @@ namespace AE::Math
 		}
 		return result;
 	}
+	
+/*
+=================================================
+	CalcAverage
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ TVec<T,I,Q>  CalcAverage (const TVec<T,I,Q> &begin, const TVec<T,I,Q> &end) __NE___
+	{
+		TVec<T,I,Q>		result;
+		for (int i = 0; i < I; ++i) {
+			result[i] = CalcAverage( begin[i], end[i] );
+		}
+		return result;
+	}
+
 
 } // AE::Math
 
@@ -1237,7 +1261,7 @@ namespace AE::Base
 namespace std
 {
 #if AE_FAST_HASH
-	template <typename T, uint32_t I, glm::qualifier Q>
+	template <typename T, int I, glm::qualifier Q>
 	struct hash< AE::Math::TVec<T,I,Q> > {
 		ND_ size_t  operator () (const AE::Math::TVec<T,I,Q> &value) C_NE___ {
 			return size_t(AE::Base::HashOf( value.data(), value.size() * sizeof(T) ));

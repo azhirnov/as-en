@@ -175,3 +175,88 @@ namespace std
 #endif
 
 } // std
+
+
+// check definitions
+// TODO: move to Abseil-lib
+#ifdef AE_CPP_DETECT_MISMATCH
+
+#  ifdef ABSL_HAVE_EXCEPTIONS
+#	pragma detect_mismatch( "ABSL_HAVE_EXCEPTIONS", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_HAVE_EXCEPTIONS", "0" )
+#  endif
+
+#  ifdef ABSL_IS_LITTLE_ENDIAN
+#	pragma detect_mismatch( "ABSL_IS_LITTLE_ENDIAN", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_IS_LITTLE_ENDIAN", "0" )
+#  endif
+
+#  ifdef ABSL_USES_STD_ANY
+#	pragma detect_mismatch( "ABSL_USES_STD_ANY", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_USES_STD_ANY", "0" )
+#  endif
+
+#  ifdef ABSL_USES_STD_OPTIONAL
+#	pragma detect_mismatch( "ABSL_USES_STD_OPTIONAL", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_USES_STD_OPTIONAL", "0" )
+#  endif
+
+#  ifdef ABSL_USES_STD_VARIANT
+#	pragma detect_mismatch( "ABSL_USES_STD_VARIANT", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_USES_STD_VARIANT", "0" )
+#  endif
+
+#  ifdef ABSL_USES_STD_STRING_VIEW
+#	pragma detect_mismatch( "ABSL_USES_STD_STRING_VIEW", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_USES_STD_STRING_VIEW", "0" )
+#  endif
+
+#  ifdef ABSL_HAVE_MEMORY_SANITIZER
+#	pragma detect_mismatch( "ABSL_HAVE_MEMORY_SANITIZER", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_HAVE_MEMORY_SANITIZER", "0" )
+#  endif
+
+#  ifdef ABSL_HAVE_THREAD_SANITIZER
+#	pragma detect_mismatch( "ABSL_HAVE_THREAD_SANITIZER", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_HAVE_THREAD_SANITIZER", "0" )
+#  endif
+
+#  ifdef ABSL_HAVE_ADDRESS_SANITIZER
+#	pragma detect_mismatch( "ABSL_HAVE_ADDRESS_SANITIZER", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_HAVE_ADDRESS_SANITIZER", "0" )
+#  endif
+
+#  ifdef ABSL_HAVE_HWADDRESS_SANITIZER
+#	pragma detect_mismatch( "ABSL_HAVE_HWADDRESS_SANITIZER", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_HAVE_HWADDRESS_SANITIZER", "0" )
+#  endif
+
+#  ifdef ABSL_HAVE_LEAK_SANITIZER
+#	pragma detect_mismatch( "ABSL_HAVE_LEAK_SANITIZER", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_HAVE_LEAK_SANITIZER", "0" )
+#  endif
+
+#  ifdef ABSL_HAVE_CLASS_TEMPLATE_ARGUMENT_DEDUCTION
+#	pragma detect_mismatch( "ABSL_HAVE_CLASS_TEMPLATE_ARGUMENT_DEDUCTION", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_HAVE_CLASS_TEMPLATE_ARGUMENT_DEDUCTION", "0" )
+#  endif
+
+#  ifdef ABSL_INTERNAL_HAS_RTTI
+#	pragma detect_mismatch( "ABSL_INTERNAL_HAS_RTTI", "1" )
+#  else
+#	pragma detect_mismatch( "ABSL_INTERNAL_HAS_RTTI", "0" )
+#  endif
+
+#endif // AE_CPP_DETECT_MISMATCH

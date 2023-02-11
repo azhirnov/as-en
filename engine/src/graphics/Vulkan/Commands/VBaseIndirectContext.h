@@ -253,7 +253,7 @@ namespace AE::Graphics::_hidden_
 		struct ExecuteCommandsCmd : BaseCmd
 		{
 			uint				count;
-			// VkCommandBuffer	commands[];
+			//VkCommandBuffer	commands[];
 		};
 		
 		//-------------------------------------------------
@@ -402,6 +402,12 @@ namespace AE::Graphics::_hidden_
 
 		struct DispatchTileCmd : BaseCmd
 		{};
+
+		struct ClearAttachmentsCmd : BaseCmd
+		{
+			VkClearAttachment	clear;
+			VkClearRect			rect;
+		};
 		
 		//-------------------------------------------------
 		// acceleration structure build commands
@@ -528,6 +534,7 @@ namespace AE::Graphics::_hidden_
 			_visitor_( DrawMeshTasksIndirectCmd )\
 			_visitor_( DrawMeshTasksIndirectCountCmd )\
 			_visitor_( DispatchTileCmd )\
+			_visitor_( ClearAttachmentsCmd )\
 			/* acceleration structure build commands */\
 			_visitor_( BuildASCmd )\
 			_visitor_( CopyASCmd )\
@@ -578,7 +585,7 @@ namespace AE::Graphics::_hidden_
 		void  DebugMarker (DebugLabel dbg)						__Th___;
 		void  PushDebugGroup (DebugLabel dbg)					__Th___;
 		void  PopDebugGroup ()									__Th___;
-		void  CommitBarriers (const VkDependencyInfo &)			__Th___;
+		void  PipelineBarrier (const VkDependencyInfo &)		__Th___;
 		
 		void  BindDescriptorSet (VkPipelineBindPoint bindPoint, VkPipelineLayout layout, uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default)	__Th___;
 		void  BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout)																__Th___;
@@ -609,6 +616,8 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsIndirectContext = true;
 		
+		using CmdBuf_t = VSoftwareCmdBufPtr;
+
 	protected:
 		#define AE_BASE_IND_CTX_VISIT( _name_ )		using _name_ = VSoftwareCmdBuf::_name_;
 		AE_BASE_IND_CTX_COMMANDS( AE_BASE_IND_CTX_VISIT )
@@ -624,12 +633,11 @@ namespace AE::Graphics::_hidden_
 	public:
 		virtual ~_VBaseIndirectContext ()												__NE___	{ DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" ); }
 		
-		void  PipelineBarrier (const VkDependencyInfo &info)							__Th___	{ _cmdbuf->CommitBarriers( info ); }
+		void  PipelineBarrier (const VkDependencyInfo &info)							__Th___	{ _cmdbuf->PipelineBarrier( info ); }
 
 	protected:
-		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf)						__NE___	: _cmdbuf{RVRef(cmdbuf)} {}
-
-		explicit _VBaseIndirectContext (DebugLabel dbg)									__Th___;
+		explicit _VBaseIndirectContext (DebugLabel dbg)									__Th___ : _VBaseIndirectContext{ dbg, Default } {}
+		explicit _VBaseIndirectContext (VSoftwareCmdBufPtr cmdbuf)						__Th___	: _cmdbuf{RVRef(cmdbuf)} { CHECK_THROW( _IsValid() ); }
 		_VBaseIndirectContext (DebugLabel dbg, VSoftwareCmdBufPtr cmdbuf)				__Th___;
 
 		ND_ bool	_IsValid ()															C_NE___	{ return _cmdbuf and _cmdbuf->IsValid(); }
@@ -643,7 +651,7 @@ namespace AE::Graphics::_hidden_
 		ND_ VBakedCommands		_EndCommandBuffer ()									__Th___;
 		ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()								__Th___;
 
-		ND_ static VSoftwareCmdBufPtr  _ReuseOrCreateCommandBuffer (VSoftwareCmdBufPtr cmdbuf) __Th___;
+		ND_ static VSoftwareCmdBufPtr  _ReuseOrCreateCommandBuffer (VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg) __Th___;
 	};
 
 
@@ -654,6 +662,11 @@ namespace AE::Graphics::_hidden_
 
 	class VBaseIndirectContext : public _VBaseIndirectContext
 	{
+	// types
+	protected:
+		using ECtxType = IGraphicsProfiler::EContextType;
+
+
 	// variables
 	protected:
 		VBarrierManager		_mngr;
@@ -661,8 +674,8 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VBaseIndirectContext (const RenderTask &task)						__Th___;
-		VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)	__Th___;
+		explicit VBaseIndirectContext (const RenderTask &task, ECtxType ctxType)	__Th___ : VBaseIndirectContext{ task, Default, ctxType } {}
+		VBaseIndirectContext (const RenderTask &, VSoftwareCmdBufPtr, ECtxType)		__Th___;
 		~VBaseIndirectContext ()													__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
@@ -677,24 +690,32 @@ namespace AE::Graphics::_hidden_
 //-----------------------------------------------------------------------------
 
 
+	
+/*
+=================================================
+	constructor
+=================================================
+*/
+	inline _VBaseIndirectContext::_VBaseIndirectContext (DebugLabel dbg, VSoftwareCmdBufPtr cmdbuf) __Th___ :
+		_cmdbuf{ _ReuseOrCreateCommandBuffer( RVRef(cmdbuf), dbg )}
+	{
+		CHECK_THROW( _IsValid() );
+	}
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
 	constructor
 =================================================
 */
-	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task) __Th___ :
-		_VBaseIndirectContext{ DebugLabel{ task.DbgFullName(), task.DbgColor() }},	// throw
+	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, ECtxType ctxType) __Th___ :
+		_VBaseIndirectContext{ DebugLabel{ task.DbgFullName(), task.DbgColor() }, RVRef(cmdbuf) },
 		_mngr{ task }
 	{
-		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
-			PipelineBarrier( *bar );
-	}
-		
-	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf) __Th___ :
-		_VBaseIndirectContext{ _ReuseOrCreateCommandBuffer( RVRef(cmdbuf) )},
-		_mngr{ task }
-	{
+		DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( *_cmdbuf, ctxType ); )
+
 		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
 			PipelineBarrier( *bar );
 	}
@@ -709,7 +730,7 @@ namespace AE::Graphics::_hidden_
 		auto* bar = _mngr.GetBarriers();
 		if_unlikely( bar != null )
 		{
-			_cmdbuf->CommitBarriers( *bar );	// throw
+			_cmdbuf->PipelineBarrier( *bar );	// throw
 			_mngr.ClearBarriers();
 		}
 	}

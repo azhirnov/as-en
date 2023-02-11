@@ -14,7 +14,6 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  CreateComputeEncoder (INOUT MCommandBuffer					&cmdbuf,
 									   INOUT MetalSampleBufferAttachments 	&sampleBuffers,
-									   MTLDispatchType						dispatchType,
 									   NtStringView							dbgName) __NE___
 	{
 		CHECK_ERRV( cmdbuf.GetCmdBuf() );
@@ -25,18 +24,18 @@ namespace AE::Graphics::_hidden_
 			if ( @available( macos 11.0, ios 14.0, *))
 			{
 				auto*	desc = [[[MTLComputePassDescriptor alloc] init] autorelease];
-				desc.dispatchType = dispatchType;
+				desc.dispatchType = MTLDispatchTypeConcurrent;
 
 				CHECK( sampleBuffers.MoveTo( desc.sampleBufferAttachments ));
 
-				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() computeCommandEncoderWithDescriptor : desc ]);				// autorelease
+				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() computeCommandEncoderWithDescriptor : desc ]);							// autorelease
 			}
 			else
 		  #endif
-				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() computeCommandEncoderWithDispatchType : dispatchType ]);	// autorelease
+				cmdbuf.SetEncoder([ cmdbuf.AsCmdBuffer() computeCommandEncoderWithDispatchType : MTLDispatchTypeConcurrent ]);	// autorelease
 			
 			if ( not dbgName.empty() )
-				[ cmdbuf.AsEncoder() setLabel: [NSString stringWithUTF8String : dbgName.c_str()] ];					// autorelease
+				[ cmdbuf.AsEncoder() setLabel: [NSString stringWithUTF8String : dbgName.c_str()] ];								// autorelease
 		}
 	}
 	

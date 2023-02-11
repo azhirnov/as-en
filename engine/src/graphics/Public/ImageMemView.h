@@ -66,7 +66,7 @@ namespace AE::Graphics
 		ND_ Bytes			ImageSize ()				C_NE___	{ return SlicePitch() * _dimension.z; }
 		ND_ Bytes			ContentSize ()				C_NE___	{ return _content.DataSize(); }
 		ND_ EPixelFormat	Format ()					C_NE___	{ return _format; }
-		EImageAspect		Aspect ()					C_NE___	{ return _aspect; }
+		ND_ EImageAspect	Aspect ()					C_NE___	{ return _aspect; }
 		ND_ auto			Parts ()					__NE___	{ return _content.Parts(); }
 		ND_ auto			Parts ()					C_NE___	{ return _content.Parts(); }
 		ND_ bool			Empty ()					C_NE___	{ return _content.Empty(); }

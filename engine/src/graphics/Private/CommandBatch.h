@@ -18,6 +18,10 @@
 
 namespace AE::RG::_hidden_ { class RGCommandBatchPtr; }
 
+#ifdef AE_HAS_COROUTINE
+namespace AE::Threading::_hidden_ { class RenderTaskCoro; }
+#endif
+
 namespace AE::Graphics
 {
 
@@ -143,7 +147,8 @@ namespace AE::Graphics
 
 
 		using GpuDependencies_t	= FixedMap< GpuSyncObj_t, ulong, 7 >;
-		using OutDependencies_t = FixedTupleArray< 15, AsyncTask, Threading::IAsyncTask::TaskDependency >;		// { task, bitIndex }
+		using TaskDependency	= Threading::IAsyncTask::TaskDependency;
+		using OutDependencies_t = FixedTupleArray< 15, AsyncTask, TaskDependency >;								// { task, bitIndex }
 		using PerTaskBarriers_t	= StaticArray< const _TaskBarriers_t*, GraphicsConfig::MaxCmdBufPerBatch*2 >;	// data allocated by per-frame allocator
 
 		enum class EStatus : uint
@@ -155,6 +160,10 @@ namespace AE::Graphics
 			Submitted,		// after _OnSubmit()	// command batch is already submitted to the GPU
 			Completed,		// after _OnComplete()	// command batch has been executed on the GPU
 		};
+		
+	  #ifdef AE_HAS_COROUTINE
+		using RenderTaskCoro_t = AE::Threading::_hidden_::RenderTaskCoro;
+	  #endif
 
 	public:
 		using AccumBarriers_t	= Graphics::_hidden_:: AE_PRIVATE_UNITE_RAW( SUFFIX, AccumBarriersForTask );
@@ -214,7 +223,7 @@ namespace AE::Graphics
 
 		PerTaskBarriers_t		_perTaskBarriers;
 		
-		PROFILE_ONLY(
+		DBG_GRAPHICS_ONLY(
 			String					_dbgName;
 			RGBA8u					_dbgColor;
 			RC<IGraphicsProfiler>	_profiler;
@@ -223,7 +232,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		~CMDBATCH () __NE___;
+		~CMDBATCH ()												__NE___;
 
 
 	// user api (thread safe)
@@ -258,29 +267,30 @@ namespace AE::Graphics
 
 
 	  #ifdef AE_HAS_COROUTINE
-		template <typename PromiseT, typename ...Deps>
-		AsyncTask	Run (AE::Threading::CoroutineHandle<PromiseT>	handle,
-						 const Tuple<Deps...>&						deps,
-						 const TaskBarriers_t*						initialBarriers,
-						 const TaskBarriers_t*						finalBarriers,
-						 Bool										isLastTaskInBatch,
-						 DebugLabel									dbg		= Default) __NE___;
+		template <typename ...Deps>
+		AsyncTask	Run (RenderTaskCoro_t		coro,
+						 const Tuple<Deps...>&	deps,
+						 const TaskBarriers_t*	initialBarriers,
+						 const TaskBarriers_t*	finalBarriers,
+						 Bool					isLastTaskInBatch,
+						 DebugLabel				dbg		= Default)	__NE___;
 		
-		template <typename PromiseT, typename ...Deps>
-		AsyncTask	Run (AE::Threading::CoroutineHandle<PromiseT>	handle,
-						 const Tuple<Deps...>&						deps,
-						 Bool										isLastTaskInBatch,
-						 DebugLabel									dbg		= Default) __NE___;
+		template <typename ...Deps>
+		AsyncTask	Run (RenderTaskCoro_t		coro,
+						 const Tuple<Deps...>&	deps,
+						 Bool					isLastTaskInBatch,
+						 DebugLabel				dbg		= Default)	__NE___;
 
-		template <typename PromiseT, typename ...Deps>
-		AsyncTask	Run (AE::Threading::CoroutineHandle<PromiseT>	handle,
-						 const Tuple<Deps...>&						deps	= Default,
-						 DebugLabel									dbg		= Default) __NE___;
+		template <typename ...Deps>
+		AsyncTask	Run (RenderTaskCoro_t		coro,
+						 const Tuple<Deps...>&	deps	= Default,
+						 DebugLabel				dbg		= Default)	__NE___;
 	  #endif
 
 		template <typename ...Deps>
-		AsyncTask  SubmitAsTask (const Tuple<Deps...>&	deps)					__NE___;
+		AsyncTask	SubmitAsTask (const Tuple<Deps...>&	deps)					__NE___;
 
+		void		SetSubmissionMode (ESubmitMode mode)						__NE___;
 
 		ND_ AccumBarriers_t			DeferredBarriers ()							__NE___;
 		ND_ TaskBarriers_t const*	ExtractInitialBarriers (uint exeIndex)		__NE___	{ return Exchange( INOUT _perTaskBarriers[ exeIndex*2+0 ], null ); }
@@ -310,7 +320,7 @@ namespace AE::Graphics
 		ND_ uint						CurrentCmdBufIndex ()					C_NE___	{ return _cmdPool.Current(); }	// valid range [0 .. GraphicsConfig::MaxCmdBufPerBatch)
 		ND_ void *						GetUserData ()							C_NE___	{ return _userData; }
 
-		PROFILE_ONLY(
+		DBG_GRAPHICS_ONLY(
 			ND_ DebugLabel				DbgLabel ()								C_NE___	{ return DebugLabel{ _dbgName, _dbgColor }; }
 			ND_ StringView				DbgName ()								C_NE___	{ return _dbgName; }
 			ND_ RGBA8u					DbgColor ()								C_NE___	{ return _dbgColor; }
@@ -329,7 +339,7 @@ namespace AE::Graphics
 		explicit CMDBATCH (uint indexInPool)									__NE___;
 
 		ND_ bool  _Create (EQueueType queue, FrameUID frameId, uint submitIdx,
-						   ESubmitMode mode, DebugLabel dbg, void* userData)	__NE___;
+						   DebugLabel dbg, void* userData)						__NE___;
 			void  _OnSubmit2 ()													__NE___;
 			void  _OnComplete ()												__NE___;
 			
@@ -445,8 +455,8 @@ namespace AE::Graphics
 		STATIC_ASSERT( IsBaseOf< RenderTask, TaskType >);
 		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
 		
-		PROFILE_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable.Undefined )
+		DBG_GRAPHICS_ONLY(
+			if ( dbg.color == DebugLabel::ColorTable::Undefined )
 				dbg.color = _dbgColor;
 		)
 
@@ -496,59 +506,58 @@ namespace AE::Graphics
 =================================================
 */
 # ifdef AE_HAS_COROUTINE
-	template <typename PromiseT, typename ...Deps>
-	AsyncTask  CMDBATCH::Run (AE::Threading::CoroutineHandle<PromiseT>	handle,
-							  const Tuple<Deps...>&						deps,
-							  const TaskBarriers_t*						initialBarriers,
-							  const TaskBarriers_t*						finalBarriers,
-							  Bool										isLastTaskInBatch,
-							  DebugLabel								dbg) __NE___
+	template <typename ...Deps>
+	AsyncTask  CMDBATCH::Run (RenderTaskCoro		coro,
+							  const Tuple<Deps...>&	deps,
+							  const TaskBarriers_t*	initialBarriers,
+							  const TaskBarriers_t*	finalBarriers,
+							  Bool					isLastTaskInBatch,
+							  DebugLabel			dbg) __NE___
 	{
-		STATIC_ASSERT( IsSameTypes< AE::Threading::CoroutineHandle<PromiseT>, RenderTaskCoro >);
-		CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
+		CHECK_ERR( IsRecording(),	Scheduler().GetCanceledTask() );
+		CHECK_ERR( coro,			Scheduler().GetCanceledTask() );
 		
-		PROFILE_ONLY(
-			if ( dbg.color == DebugLabel::ColorTable.Undefined )
+		DBG_GRAPHICS_ONLY(
+			if ( dbg.color == DebugLabel::ColorTable::Undefined )
 				dbg.color = _dbgColor;
 		)
 
-		// RenderTask internally calls '_cmdPool.Acquire()' and throw exception on pool overflow.
+		// RenderTask internally calls '_cmdPool.Acquire()' and return error on pool overflow.
 		// RenderTask internally creates command buffer and throw exception if can't.
-		try {
-			auto	task = MakeRC<AE::Threading::_hidden_::RenderTaskCoroutineRunner>( RVRef(handle), GetRC(), dbg );	// throw
 			
-			if_unlikely( isLastTaskInBatch )
-			{
-				task->_submit = true;
-				_EndRecording();
-			}
-			
-			_perTaskBarriers[ task->GetExecutionIndex()*2+0 ] = initialBarriers;
-			_perTaskBarriers[ task->GetExecutionIndex()*2+1 ] = finalBarriers;
+		auto&	rtask = coro.AsRenderTask();
+		CHECK_ERR( rtask._Init( GetRC<CMDBATCH>(), dbg ),  Scheduler().GetCanceledTask() );
 
-			if_likely( Scheduler().Run( task, deps ))
-				return task;
+		if_unlikely( isLastTaskInBatch )
+		{
+			rtask._submit = true;
+			_EndRecording();
 		}
-		catch(...) {}
+			
+		_perTaskBarriers[ rtask.GetExecutionIndex()*2+0 ] = initialBarriers;
+		_perTaskBarriers[ rtask.GetExecutionIndex()*2+1 ] = finalBarriers;
+
+		if_likely( Scheduler().Run( AsyncTask{coro}, deps ))
+			return coro;
 
 		return Scheduler().GetCanceledTask();
 	}
 	
-	template <typename PromiseT, typename ...Deps>
-	AsyncTask  CMDBATCH::Run (AE::Threading::CoroutineHandle<PromiseT>	handle,
-							  const Tuple<Deps...>&						deps,
-							  Bool										isLastTaskInBatch,
-							  DebugLabel								dbg) __NE___
+	template <typename ...Deps>
+	AsyncTask  CMDBATCH::Run (RenderTaskCoro		coro,
+							  const Tuple<Deps...>&	deps,
+							  Bool					isLastTaskInBatch,
+							  DebugLabel			dbg) __NE___
 	{
-		return Run( RVRef(handle), deps, null, null, isLastTaskInBatch, dbg );
+		return Run( RVRef(coro), deps, null, null, isLastTaskInBatch, dbg );
 	}
 
-	template <typename PromiseT, typename ...Deps>
-	AsyncTask  CMDBATCH::Run (AE::Threading::CoroutineHandle<PromiseT>	handle,
-							  const Tuple<Deps...>&						deps,
-							  DebugLabel								dbg) __NE___
+	template <typename ...Deps>
+	AsyncTask  CMDBATCH::Run (RenderTaskCoro		coro,
+							  const Tuple<Deps...>&	deps,
+							  DebugLabel			dbg) __NE___
 	{
-		return Run( RVRef(handle), deps, null, null, False{}, dbg );
+		return Run( RVRef(coro), deps, null, null, False{}, dbg );
 	}
 # endif
 	

@@ -8,18 +8,76 @@ namespace AE::PipelineCompiler
 
 /*
 =================================================
+	ExprInfo
+=================================================
+*/
+	bool  ShaderTrace::ExprInfo::operator == (const ExprInfo &rhs) const
+	{
+		return	(varID		== rhs.varID)	&
+				(swizzle	== rhs.swizzle)	&
+				(range		== rhs.range)	&
+				(point		== rhs.point)	&
+				(vars		== rhs.vars);
+	}
+//-----------------------------------------------------------------------------
+
+	
+/*
+=================================================
+	SourceInfo
+=================================================
+*/
+	bool  ShaderTrace::SourceInfo::operator == (const SourceInfo &rhs) const
+	{
+		return	(code		== rhs.code)		&
+				(filename	== rhs.filename)	&
+				(firstLine	== rhs.firstLine)	&
+				(lines		== rhs.lines);
+	}
+//-----------------------------------------------------------------------------
+	
+
+
+/*
+=================================================
+	SourceLocation
+=================================================
+*/
+	ShaderTrace::SourceLocation::SourceLocation (uint sourceId, uint line, uint column) :
+		sourceId{sourceId},
+		begin{line, column},
+		end{line, column}
+	{}
+
+	bool  ShaderTrace::SourceLocation::operator == (const SourceLocation &rhs) const
+	{
+		return	(sourceId	== rhs.sourceId)	&
+				(begin		== rhs.begin)		&
+				(end		== rhs.end);
+	}
+
+	bool  ShaderTrace::SourceLocation::IsNotDefined () const
+	{
+		return	(sourceId	== 0)	&
+				(begin._ul	== 0)	&
+				(end._ul	== 0);
+	}
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
 	_AppendSource
 =================================================
 */
-	void  ShaderTrace::_AppendSource (const char* source, usize length)
+	void  ShaderTrace::_AppendSource (StringView filename, uint firstLine, StringView source)
 	{
-		CHECK_ERRV( length > 0 );
-		CHECK_ERRV( source != null );
-
 		SourceInfo	info;
 		usize		pos = 0;
 
-		info.code.assign( source, length );
+		info.filename	= String{filename};
+		info.code		= String{source};
+		info.firstLine	= firstLine;
 		info.lines.reserve( 64 );
 
 		for (usize j = 0, len = info.code.length(); j < len; ++j)
@@ -30,61 +88,50 @@ namespace AE::PipelineCompiler
 			// windows style "\r\n"
 			if ( c == '\r' and n == '\n' )
 			{
-				info.lines.push_back({ pos, j });
+				info.lines.emplace_back( pos, j );
 				pos = (++j) + 1;
 			}
 			else
 			// linux style "\n" (or mac style "\r")
 			if ( c == '\n' or c == '\r' )
 			{
-				info.lines.push_back({ pos, j });
+				info.lines.emplace_back( pos, j );
 				pos = j + 1;
 			}
 		}
 
 		if ( pos < info.code.length() )
-			info.lines.push_back({ pos, info.code.length() });
+			info.lines.emplace_back( pos, info.code.length() );
 
 		_sources.push_back( RVRef(info) );
 	}
 
 /*
 =================================================
-	SetSource
+	AddSource / IncludeSource
 =================================================
 */
-	void  ShaderTrace::SetSource (const char* const* sources, const usize *lengths, usize count)
+	void  ShaderTrace::AddSource (StringView source)
 	{
-		CHECK_ERRV( count > 0 );
-		CHECK_ERRV( sources != null );
+		CHECK_ERRV( not source.empty() );
 
-		_sources.clear();
-		_sources.reserve( count );
-
-		for (usize i = 0; i < count; ++i)
-		{
-			CHECK_ERRV( sources[i] != null );
-			_AppendSource( sources[i], (lengths ? lengths[i] : strlen(sources[i])) );
-		}
+		_AppendSource( Default, 0, source );
 	}
 
-	void  ShaderTrace::SetSource (const char* source, usize length)
+	void  ShaderTrace::AddSource (StringView filename, uint firstLine, StringView source)
 	{
-		CHECK_ERRV( length > 0 );
-		CHECK_ERRV( source != null );
+		CHECK_ERRV( not source.empty() );
 
-		const char*	sources[] = { source };
-		return SetSource( sources, &length, 1 );
+		_AppendSource( filename, firstLine, source );
 	}
 
-	void  ShaderTrace::IncludeSource (const char* filename, const char* source, usize length)
+	void  ShaderTrace::IncludeSource (StringView filename, StringView source)
 	{
-		CHECK_ERRV( length > 0 );
-		CHECK_ERRV( source != null );
-		CHECK_ERRV( filename != null );
+		CHECK_ERRV( not source.empty() );
+		CHECK_ERRV( not filename.empty() );
 
 		_fileMap.insert_or_assign( String(filename), uint(_sources.size()) );
-		_AppendSource( source, length );
+		_AppendSource( filename, 0, source );
 	}
 
 /*
@@ -107,44 +154,75 @@ namespace AE::PipelineCompiler
 			result.append( src.code );
 		}
 	}
+
+/*
+=================================================
+	operator ==
+=================================================
+*/
+	bool  ShaderTrace::operator == (const ShaderTrace &rhs) const
+	{
+		return	_exprLocations		== rhs._exprLocations	and
+				_varNames			== rhs._varNames		and
+				_sources			== rhs._sources			and
+				_posOffset			== rhs._posOffset		and
+				_dataOffset			== rhs._dataOffset		and
+				_initialPosition	== rhs._initialPosition;
+	}
+	
+/*
+=================================================
+	Clone
+=================================================
+*/
+	Unique<ShaderTrace>  ShaderTrace::Clone () const
+	{
+		auto	ptr = MakeUnique<ShaderTrace>();
+		ptr->_exprLocations		= _exprLocations;
+		ptr->_varNames			= _varNames;
+		ptr->_sources			= _sources;
+		ptr->_posOffset			= _posOffset;
+		ptr->_dataOffset		= _dataOffset;
+		ptr->_initialPosition	= _initialPosition;
+		return ptr;
+	}
 //-----------------------------------------------------------------------------
-
-
+	
 namespace
 {
 	using namespace Serializing;
 
-	ND_ static bool  Serialize_SourcePoint (Serializer &ser, const ShaderTrace::SourcePoint &x) {
-		return ser( x.value );
+	ND_ inline bool  Serialize_SourcePoint (Serializer &ser, const ShaderTrace::SourcePoint &x) {
+		return ser( x._ul );
 	}
 
-	ND_ static bool  Deserialize_SourcePoint (Deserializer &des, OUT ShaderTrace::SourcePoint &x) {
-		return des( OUT x.value );
+	ND_ inline bool  Deserialize_SourcePoint (Deserializer &des, OUT ShaderTrace::SourcePoint &x) {
+		return des( OUT x._ul );
 	}
 
 	
-	ND_ static bool  Serialize_SourceLocation (Serializer &ser, const ShaderTrace::SourceLocation &x) {
-		return	ser( x.sourceId )						and
-				Serialize_SourcePoint( ser, x.begin )	and
+	ND_ inline bool  Serialize_SourceLocation (Serializer &ser, const ShaderTrace::SourceLocation &x) {
+		return	ser( x.sourceId )								and
+				Serialize_SourcePoint( ser, x.begin )			and
 				Serialize_SourcePoint( ser, x.end );
 	}
 
-	ND_ static bool  Deserialize_SourceLocation (Deserializer &des, OUT ShaderTrace::SourceLocation &x) {
-		return	des( OUT x.sourceId )						and
-				Deserialize_SourcePoint( des, OUT x.begin )	and
+	ND_ inline bool  Deserialize_SourceLocation (Deserializer &des, OUT ShaderTrace::SourceLocation &x) {
+		return	des( OUT x.sourceId )							and
+				Deserialize_SourcePoint( des, OUT x.begin )		and
 				Deserialize_SourcePoint( des, OUT x.end );
 	}
 
 	
-	ND_ static bool  Serialize_ExprInfo (Serializer &ser, const ShaderTrace::ExprInfo &x) {
-		return	ser( x.varID )								and
-				ser( x.swizzle )							and
-				Serialize_SourceLocation( ser, x.range )	and
-				Serialize_SourcePoint( ser, x.point )		and
+	ND_ inline bool  Serialize_ExprInfo (Serializer &ser, const ShaderTrace::ExprInfo &x) {
+		return	ser( x.varID )									and
+				ser( x.swizzle )								and
+				Serialize_SourceLocation( ser, x.range )		and
+				Serialize_SourcePoint( ser, x.point )			and
 				ser( x.vars );
 	}
 
-	ND_ static bool  Deserialize_ExprInfo (Deserializer &des, OUT ShaderTrace::ExprInfo &x) {
+	ND_ inline bool  Deserialize_ExprInfo (Deserializer &des, OUT ShaderTrace::ExprInfo &x) {
 		return	des( OUT x.varID )								and
 				des( OUT x.swizzle )							and
 				Deserialize_SourceLocation( des, OUT x.range )	and
@@ -153,16 +231,15 @@ namespace
 	}
 
 	
-	ND_ static bool  Serialize_SourceInfo (Serializer &ser, const ShaderTrace::SourceInfo &x) {
-		return	ser( x.code )	and
-				ser( x.lines );
+	ND_ inline bool  Serialize_SourceInfo (Serializer &ser, const ShaderTrace::SourceInfo &x) {
+		return	ser( x.filename, x.code, x.firstLine, x.lines );
 	}
 
-	ND_ static bool  Deserialize_SourceInfo (Deserializer &des, OUT ShaderTrace::SourceInfo &x) {
-		return	des( OUT x.code )	and
-				des( OUT x.lines );
+	ND_ inline bool  Deserialize_SourceInfo (Deserializer &des, OUT ShaderTrace::SourceInfo &x) {
+		return	des( OUT x.filename, OUT x.code, OUT x.firstLine, OUT x.lines );
 	}
-}
+
+} // namespace
 
 /*
 =================================================
@@ -193,7 +270,7 @@ namespace
 
 		return result;
 	}
-	
+
 /*
 =================================================
 	Deserialize
@@ -244,38 +321,6 @@ namespace
 		catch (...) {
 			return false;
 		}
-	}
-	
-/*
-=================================================
-	operator ==
-=================================================
-*/
-	bool  ShaderTrace::operator == (const ShaderTrace &rhs) const
-	{
-		return	_exprLocations		== rhs._exprLocations	and
-				_varNames			== rhs._varNames		and
-				_sources			== rhs._sources			and
-				_posOffset			== rhs._posOffset		and
-				_dataOffset			== rhs._dataOffset		and
-				_initialPosition	== rhs._initialPosition;
-	}
-	
-/*
-=================================================
-	Clone
-=================================================
-*/
-	Unique<ShaderTrace>  ShaderTrace::Clone () const
-	{
-		auto	ptr = MakeUnique<ShaderTrace>();
-		ptr->_exprLocations		= _exprLocations;
-		ptr->_varNames			= _varNames;
-		ptr->_sources			= _sources;
-		ptr->_posOffset			= _posOffset;
-		ptr->_dataOffset		= _dataOffset;
-		ptr->_initialPosition	= _initialPosition;
-		return ptr;
 	}
 
 

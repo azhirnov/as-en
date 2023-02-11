@@ -17,7 +17,7 @@ namespace AE::Graphics::_hidden_
 	{
 	// types
 	public:
-		static constexpr uint	BaseAlign	= 8;
+		static constexpr uint	BaseAlign	= 16;
 		static constexpr Bytes	BlockSize	{ DefaultAllocationSize };
 
 		struct Header

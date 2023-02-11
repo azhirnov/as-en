@@ -27,6 +27,8 @@ namespace AE::App
 	using Graphics::MultiSamples;
 	using Graphics::EPixelFormat;
 	using Graphics::EImageUsage;
+	using Graphics::EPresentMode;
+	using Graphics::EColorSpace;
 	using Graphics::CommandBatchPtr;
 
 
@@ -57,6 +59,8 @@ namespace AE::App
 			Unknown,
 		};
 
+		static constexpr uint	MaxOutputTargets	= 8;
+
 
 		//
 		// Render Target
@@ -75,12 +79,24 @@ namespace AE::App
 			EResourceState			finalState		= Default;
 
 			ETargetType				type			= Default;
+			EColorSpace				colorSpace		= Default;
 
 			Ptr<const IProjection>	projection;
 
 			ND_ uint2  RegionSize ()	C_NE___	{ return uint2(region.Size()); }
 		};
-		using RenderTargets_t = FixedArray< RenderTarget, Graphics::GraphicsConfig::MaxAttachments >;
+		using RenderTargets_t = FixedArray< RenderTarget, MaxOutputTargets >;
+
+
+		//
+		// All Images which is used by surface
+		//
+		struct AllImages_t
+		{
+			FixedArray< ImageID, 16 >	images;
+			EResourceState				initialState	= Default;
+			EResourceState				finalState		= Default;
+		};
 
 
 		//
@@ -95,10 +111,42 @@ namespace AE::App
 				MultiSamples	samples;
 				ETargetType		type		= Default;
 			};
-			using Attachments_t = FixedArray< Attachment, Graphics::GraphicsConfig::MaxAttachments >;
+			using Attachments_t = FixedArray< Attachment, MaxOutputTargets >;
 
 		// variables
 			Attachments_t	attachments;
+		};
+
+
+		//
+		// Color format & color space
+		//
+		struct ColorFormat
+		{
+			EPixelFormat	format	= Default;
+			EColorSpace		space	= Default;
+
+			ND_ bool  operator == (const ColorFormat &rhs)	C_NE___	{ return format == rhs.format and space == rhs.space; }
+		};
+
+		using ColorFormats_t	= FixedArray< ColorFormat, 16 >;
+		using PresentModes_t	= FixedArray< EPresentMode, 8 >;
+		using TargetSizes_t		= FixedArray< uint2, MaxOutputTargets >;
+
+
+		//
+		// Surface Info
+		//
+		struct SurfaceInfo
+		{
+			// current states
+		//	TargetSizes_t		targetSizes;
+			ColorFormat			format;
+			EPresentMode		presentMode		= Default;
+
+			// available modes
+		//	ColorFormats_t		colorFormats;
+		//	PresentModes_t		presentModes;
 		};
 
 
@@ -141,6 +189,41 @@ namespace AE::App
 		//   Thread safe: yes
 		//
 		ND_ virtual AsyncTask  End (ArrayView<AsyncTask> deps)																	__NE___	= 0;
+
+
+		// Returns all images which is created by surface.
+		// Can be used outside of 'Begin()/End()' scope.
+		// Images can be deleted at any moument, so result may be deprecated.
+		// If not changed then result is equal to 'RenderTarget::imageId' which returs by 'GetTargets()'.
+		//   Thread safe: yes
+		//
+		ND_ virtual AllImages_t  GetAllImages ()																				C_NE___ = 0;
+		
+
+		// Returns current surface sizes.
+		// Size can be changed at any moument, so result may be deprecated.
+		// If not changed then result is equal to 'RenderTarget::RegionSize()' which returs by 'GetTargets()'.
+		//   Thread safe: yes
+		//
+		ND_ virtual TargetSizes_t  GetTargetSizes ()																			C_NE___ = 0;
+
+		
+		// Returns all supprted color formats and color spaces.
+		//   Thread safe: yes
+		//
+		ND_ virtual ColorFormats_t  GetColorFormats ()																			C_NE___ = 0;
+
+
+		// Returns all supported present modes.
+		//   Thread safe: yes
+		//
+		ND_ virtual PresentModes_t  GetPresentModes ()																			C_NE___ = 0;
+
+		
+		// Returns current mode.
+		//   Thread safe: yes
+		//
+		ND_ virtual SurfaceInfo  GetSurfaceInfo ()																				C_NE___ = 0;
 	};
 
 

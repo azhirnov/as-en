@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+// TODO: NSThread
+
 #pragma once
 
 #include "base/Common.h"
@@ -182,7 +184,7 @@ namespace AE::NS
 	// NSArray
 	//
 	template<typename T>
-	class Array final : public NS::_hidden_::ArrayBase
+	class ConstArray final : public NS::_hidden_::ArrayBase
 	{
 	// methods
 	public:

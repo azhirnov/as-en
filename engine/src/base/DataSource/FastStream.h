@@ -9,6 +9,7 @@
 
 namespace AE::Base
 {
+	#pragma strict_gs_check (push, on)
 
 	//
 	// Read-only Fast stream
@@ -205,5 +206,7 @@ namespace AE::Base
 		DBG_WARNING( "should never happen" );
 		return true;
 	}
+	
+	#pragma strict_gs_check (pop)
 
 } // AE::Serializing

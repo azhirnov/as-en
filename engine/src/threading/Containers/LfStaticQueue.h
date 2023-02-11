@@ -89,9 +89,6 @@ namespace AE::Threading
 
 		template <typename ArrayType>
 		ND_ bool  ExtractAll (OUT ArrayType &dstArr) __NE___;
-
-		template <typename FN>
-			void  Visit (FN &&fn)					__NE___;
 	};
 
 } // AE::Threading

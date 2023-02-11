@@ -4,6 +4,7 @@
 #include "base/Containers/FixedTupleArray.h"
 #include "UnitTest_Common.h"
 
+#ifndef AE_DISABLE_THREADS
 namespace
 {
 	static void  LfLinearAllocator_Test1 ()
@@ -11,13 +12,13 @@ namespace
 		static constexpr uint	MaxThreads	= 8;
 		static constexpr uint	ElemSize	= 8;
 
-		FixedArray< std::thread, MaxThreads >	worker_thread;
+		FixedArray< StdThread, MaxThreads >		worker_thread;
 		StaticArray< Array<void*>, MaxThreads >	thread_data;
 		LfLinearAllocator< 4<<10 >				alloc;
 
 		for (uint i = 0; i < MaxThreads; ++i)
 		{
-			worker_thread.emplace_back( std::thread{
+			worker_thread.emplace_back( StdThread{
 				[&alloc, data = &thread_data[i]] ()
 				{
 					for (;;)
@@ -60,3 +61,10 @@ extern void UnitTest_LfLinearAllocator ()
 
 	TEST_PASSED();
 }
+
+#else
+
+extern void UnitTest_LfLinearAllocator ()
+{}
+
+#endif

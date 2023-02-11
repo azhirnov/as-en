@@ -1,8 +1,9 @@
 cd ../..
+rm -rf _build_arm64
 
-mkdir _build
-cd _build
-cmake -G "Xcode" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 ".."
+mkdir _build_arm64
+cd _build_arm64
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES=arm64 ".."
 
-cmake --build . --config Release
-ctest -C Release --verbose
+cmake --build . --config Debug
+ctest -C Debug --verbose

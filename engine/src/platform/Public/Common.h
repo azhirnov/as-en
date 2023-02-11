@@ -36,9 +36,6 @@ namespace AE::App
 
 	using Threading::Atomic;
 	using Threading::BytesAtomic;
-	using Threading::EMemoryOrder;
-	using Threading::Mutex;
-	using Threading::RecursiveMutex;
 	using Threading::AsyncTask;
 
 #  if AE_ENABLE_DATA_RACE_CHECK
@@ -93,15 +90,3 @@ namespace AE::App
 	};
 
 } // AE::App
-
-
-// check definitions
-#ifdef AE_CPP_DETECT_MISMATCH
-
-#  ifdef AE_ENABLE_GLFW
-#	pragma detect_mismatch( "AE_ENABLE_GLFW", "1" )
-#  else
-#	pragma detect_mismatch( "AE_ENABLE_GLFW", "0" )
-#  endif
-
-#endif // AE_CPP_DETECT_MISMATCH

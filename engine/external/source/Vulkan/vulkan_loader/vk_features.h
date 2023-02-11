@@ -113,6 +113,7 @@
 		bool  rasterizationOrderAMD       : 1;   // VK_AMD_rasterization_order 
 		bool  shaderCorePropsAMD          : 1;   // VK_AMD_shader_core_properties 
 		bool  rasterizationOrderGroup     : 1;   // VK_ARM_rasterization_order_attachment_access 
+		bool  shaderCoreBuiltinsARM       : 1;   // VK_ARM_shader_core_builtins 
 		bool  subpassShadingHW            : 1;   // VK_HUAWEI_subpass_shading 
 		bool  renderPassShaderResolve     : 1;   // VK_QCOM_render_pass_shader_resolve 
 		bool  incrementalPresent          : 1;   // VK_KHR_incremental_present 
@@ -323,6 +324,10 @@
 		// VK_ARM_rasterization_order_attachment_access
 		VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesEXT  rasterizationOrderGroupFeats;
 
+		// VK_ARM_shader_core_builtins
+		VkPhysicalDeviceShaderCoreBuiltinsFeaturesARM  shaderCoreBuiltinsARMFeats;
+		VkPhysicalDeviceShaderCoreBuiltinsPropertiesARM  shaderCoreBuiltinsARMProps;
+
 		// VK_HUAWEI_subpass_shading
 		VkPhysicalDeviceSubpassShadingFeaturesHUAWEI  subpassShadingHWFeats;
 		VkPhysicalDeviceSubpassShadingPropertiesHUAWEI  subpassShadingHWProps;
@@ -480,6 +485,7 @@
 			VK_AMD_RASTERIZATION_ORDER_EXTENSION_NAME,
 			VK_AMD_SHADER_CORE_PROPERTIES_EXTENSION_NAME,
 			VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME,
+			VK_ARM_SHADER_CORE_BUILTINS_EXTENSION_NAME,
 			VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME,
 			VK_QCOM_RENDER_PASS_SHADER_RESOLVE_EXTENSION_NAME,
 			VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME,
@@ -628,6 +634,7 @@
 		_extensions.rasterizationOrderAMD       = (HasDeviceExtension( VK_AMD_RASTERIZATION_ORDER_EXTENSION_NAME ));
 		_extensions.shaderCorePropsAMD          = (HasDeviceExtension( VK_AMD_SHADER_CORE_PROPERTIES_EXTENSION_NAME ));
 		_extensions.rasterizationOrderGroup     = (HasDeviceExtension( VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME ));
+		_extensions.shaderCoreBuiltinsARM       = (HasDeviceExtension( VK_ARM_SHADER_CORE_BUILTINS_EXTENSION_NAME ));
 		_extensions.subpassShadingHW            = (HasDeviceExtension( VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME ));
 		_extensions.renderPassShaderResolve     = (HasDeviceExtension( VK_QCOM_RENDER_PASS_SHADER_RESOLVE_EXTENSION_NAME ));
 		_extensions.incrementalPresent          = (HasDeviceExtension( VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME ));
@@ -1066,6 +1073,15 @@
 				next_feat  = &_properties.rasterizationOrderGroupFeats.pNext;
 				_properties.rasterizationOrderGroupFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_FEATURES_EXT;
 			}
+			if ( _extensions.shaderCoreBuiltinsARM )
+			{
+				*next_feat = &_properties.shaderCoreBuiltinsARMFeats;
+				next_feat  = &_properties.shaderCoreBuiltinsARMFeats.pNext;
+				_properties.shaderCoreBuiltinsARMFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_FEATURES_ARM;
+				*next_props = &_properties.shaderCoreBuiltinsARMProps;
+				next_props  = &_properties.shaderCoreBuiltinsARMProps.pNext;
+				_properties.shaderCoreBuiltinsARMProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_CORE_BUILTINS_PROPERTIES_ARM;
+			}
 			if ( _extensions.subpassShadingHW )
 			{
 				*next_feat = &_properties.subpassShadingHWFeats;
@@ -1210,11 +1226,12 @@
 			<< "\n  rasterizationOrderAMD:. . . " << ToString( _extensions.rasterizationOrderAMD )
 			<< "\n  shaderCorePropsAMD:         " << ToString( _extensions.shaderCorePropsAMD )
 			<< "\n  rasterizationOrderGroup:. . " << ToString( _extensions.rasterizationOrderGroup )
-			<< "\n  subpassShadingHW:           " << ToString( _extensions.subpassShadingHW )
-			<< "\n  renderPassShaderResolve:. . " << ToString( _extensions.renderPassShaderResolve )
-			<< "\n  incrementalPresent:         " << ToString( _extensions.incrementalPresent )
-			<< "\n  presentId:. . . . . . . . . " << ToString( _extensions.presentId )
-			<< "\n  presentWait:                " << ToString( _extensions.presentWait );
+			<< "\n  shaderCoreBuiltinsARM:      " << ToString( _extensions.shaderCoreBuiltinsARM )
+			<< "\n  subpassShadingHW: . . . . . " << ToString( _extensions.subpassShadingHW )
+			<< "\n  renderPassShaderResolve:    " << ToString( _extensions.renderPassShaderResolve )
+			<< "\n  incrementalPresent: . . . . " << ToString( _extensions.incrementalPresent )
+			<< "\n  presentId:                  " << ToString( _extensions.presentId )
+			<< "\n  presentWait:. . . . . . . . " << ToString( _extensions.presentWait );
 		return src;
 	}
 #endif // VKFEATS_FN_IMPL

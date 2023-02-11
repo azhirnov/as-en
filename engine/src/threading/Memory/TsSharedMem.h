@@ -75,14 +75,14 @@ namespace AE::Threading
 	private:
 		RWSpinLock		_guard;		// used to protect access to '_Data()'
 		Bytes32u		_size;
-		POTValue		_align;
+		POTBytes		_align;
 		Allocator_t		_allocator;
 
 
 	// methods
 	public:
 		ND_ Bytes		Size ()			C_NE___	{ return _size; }
-		ND_ Bytes		Align ()		C_NE___	{ return Bytes{ _align.ToValue<usize>() }; }
+		ND_ Bytes		Align ()		C_NE___	{ return Bytes{ _align }; }
 		ND_ auto		Allocator ()	C_NE___	{ return _allocator; }
 
 		ND_ ReadAccess	Read ()			__NE___	{ return ReadAccess{  _guard.try_lock_shared()	? this : null }; }
@@ -94,7 +94,7 @@ namespace AE::Threading
 
 
 	private:
-		TsSharedMem (Bytes size, POTValue align, Allocator_t alloc)		__NE___ : _size{size}, _align{align}, _allocator{RVRef(alloc)} {}
+		TsSharedMem (Bytes size, POTBytes align, Allocator_t alloc)		__NE___ : _size{size}, _align{align}, _allocator{RVRef(alloc)} {}
 		~TsSharedMem ()													__NE_OV {}
 		
 		ND_ void const*		_Data ()									C_NE___	{ return this + AlignUp( SizeOf<Self>, _align ); }
@@ -102,7 +102,7 @@ namespace AE::Threading
 
 		void  _ReleaseObject ()											__NE_OV;
 
-		ND_ static SizeAndAlign  _CalcSize (Bytes size, POTValue align)	__NE___;
+		ND_ static SizeAndAlign  _CalcSize (Bytes size, POTBytes align)	__NE___;
 	};
 
 	
@@ -111,9 +111,9 @@ namespace AE::Threading
 	_CalcSize
 =================================================
 */
-	inline SizeAndAlign  TsSharedMem::_CalcSize (Bytes size, POTValue align) __NE___
+	inline SizeAndAlign  TsSharedMem::_CalcSize (Bytes size, POTBytes align) __NE___
 	{
-		return SizeAndAlign{ AlignUp( SizeOf<Self>, align ) + size, Bytes{Max( POTAlignOf<Self>, align ).ToValue<usize>()} };
+		return SizeAndAlign{ AlignUp( SizeOf<Self>, align ) + size, Bytes{Max( POTAlignOf<Self>, align )} };
 	}
 	
 /*

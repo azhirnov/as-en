@@ -268,7 +268,7 @@
 
 
 #if (defined(AE_CPU_ARCH_ARM32) and defined(__ARM_NEON__)) or defined(AE_CPU_ARCH_ARM64)
-//#	define AE_SIMD_NEON		// TODO: Neon32, Neon64, SVE, SVE2
+#	define AE_SIMD_NEON			1	// TODO: Neon32, Neon64, SVE, SVE2
 //# define AE_SIMD_NEON_HALF
 
 #	include <arm_neon.h>
@@ -305,11 +305,33 @@
 
 
 #ifndef AE_SIMD_AVX
-#	define AE_SIMD_AVX	0
+#	define AE_SIMD_AVX			0
 #endif
 #ifndef AE_SIMD_SSE
-#	define AE_SIMD_SSE	0
+#	define AE_SIMD_SSE			0
 #endif
 #ifndef AE_SIMD_AES
-#	define AE_SIMD_AES	0
+#	define AE_SIMD_AES			0
 #endif
+#ifndef AE_SIMD_NEON
+#	define AE_SIMD_NEON			0
+#endif
+#ifndef AE_SIMD_NEON_HALF
+#	define AE_SIMD_NEON_HALF	0
+#endif
+
+
+#if (AE_SIMD_AVX | AE_SIMD_SSE | AE_SIMD_NEON)
+#	define AE_HAS_SIMD			1
+#else
+#	define AE_HAS_SIMD			0
+#endif
+
+
+// allow to use 'offsetof(0' in 'static_assert()'
+#ifndef AE_PLATFORM_EMSCRIPTEN
+#	define AE_COMPILETIME_OFFSETOF
+#endif
+
+
+#define INTERNAL_LINKAGE( ... )		namespace { static __VA_ARGS__ ; }

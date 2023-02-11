@@ -43,12 +43,7 @@ namespace AE::Threading
 		{
 		// types
 		protected:
-			struct TaskDependency
-			{
-				ubyte	bitIndex : 6;	// index in 64 bit value
-				ubyte	isStrong : 1;
-			};
-
+			using TaskDependency	= IAsyncTask::TaskDependency;
 			using Dependencies_t	= FixedTupleArray< 4, AsyncTask, TaskDependency >;
 			
 
@@ -72,17 +67,17 @@ namespace AE::Threading
 		public:
 
 			// IAsyncDataSourceRequest //
-			bool		Cancel ()					__NE_OF;
-			Result		GetResult ()				C_NE_OF;
+			bool		Cancel ()																	__NE_OF;
+			Result		GetResult ()																C_NE_OF;
 
 		protected:
-			explicit _RequestBase (Index_t idx)		__NE___;
+			explicit _RequestBase (Index_t idx)														__NE___;
 
 			void  _Init (Bytes offset, RC<SharedMem> data, RC<IDataSource> ds, const File_t &file)	__NE___;
-			void  _Cleanup ()						__NE___;
+			void  _Cleanup ()																		__NE___;
 			
-			ND_ ResultWithRC  _GetResult1 ()		__NE___;
-			ND_ ResultWithRC  _GetResult2 ()		__NE___;
+			ND_ ResultWithRC  _GetResult1 ()														__NE___;
+			ND_ ResultWithRC  _GetResult2 ()														__NE___;
 
 		private:
 			friend class WindowsIOService;
@@ -109,7 +104,7 @@ namespace AE::Threading
 			friend class AsyncRDataSourceApi;
 			ND_ bool  _Create (RC<WinAsyncRDataSource> file, Bytes offset, Bytes size, RC<SharedMem> dst) __NE___;
 			
-				void  _ReleaseObject () __NE_OV;
+				void  _ReleaseObject ()			__NE_OV;
 		};
 
 
@@ -130,7 +125,7 @@ namespace AE::Threading
 			friend class AsyncWDataSourceApi;
 			ND_ bool  _Create (RC<WinAsyncWDataSource> file, Bytes offset, Bytes size, RC<SharedMem> src) __NE___;
 			
-				void  _ReleaseObject () __NE_OV;
+				void  _ReleaseObject ()			__NE_OV;
 		};
 
 

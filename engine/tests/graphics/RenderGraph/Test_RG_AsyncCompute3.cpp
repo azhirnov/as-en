@@ -21,29 +21,29 @@ namespace
 {
 	struct AC3_TestData
 	{
-		Mutex						guard;
+		Mutex							guard;
 
 		// shared
-		Strong<ImageID>				image [2];
-		Strong<ImageViewID>			view  [2];
-		const uint2					imageSize	{800, 600};
-		Atomic<uint>				frameIdx	{0};
+		GAutorelease<ImageID>			image [2];
+		GAutorelease<ImageViewID>		view  [2];
+		const uint2						imageSize	{800, 600};
+		Atomic<uint>					frameIdx	{0};
 
 		// graphics
-		GraphicsPipelineID			gppln;
+		GraphicsPipelineID				gppln;
 
 		// async compute
-		ComputePipelineID			cppln;
-		Strong<DescriptorSetID>		cpplnDS [2];
-		DescSetBinding				cpplnDSIndex;
+		ComputePipelineID				cppln;
+		GAutorelease<DescriptorSetID>	cpplnDS [2];
+		DescSetBinding					cpplnDSIndex;
 		
-		AsyncTask					result [2];
-		bool						isOK   [2] = {false, false};
+		AsyncTask						result [2];
+		bool							isOK   [2] = {false, false};
 		
-		ImageComparator *			imgCmp	= null;
-		RC<GfxLinearMemAllocator>	gfxAlloc;
+		ImageComparator *				imgCmp	= null;
+		RC<GfxLinearMemAllocator>		gfxAlloc;
 
-		RG::RenderGraph				rg;
+		RG::RenderGraph					rg;
 	};
 	
 
@@ -173,10 +173,11 @@ namespace
 				auto		batch		= t.rg.CmdBatch( EQueueType::AsyncCompute, {"copy task"} )
 												.UseResource( t.image[0] )
 												.UseResource( t.image[1] )
+												.ReadbackMemory()
 												.Begin();
 				CHECK_TE( batch );
 
-				AsyncTask	read_task	= batch.Task< AC3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
+				AsyncTask	read_task	= batch.template Task< AC3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
 												.Last().Run( Tuple{begin} );
 				AsyncTask	end			= t.rg.EndFrame( Tuple{read_task} );
 				
@@ -204,8 +205,8 @@ namespace
 
 
 			// add tasks to cmd batches
-			AsyncTask	gfx_task	= batch_gfx.Task< AC3_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"graphics task"}      ).Last().Run( Tuple{begin} );
-			AsyncTask	comp_task	= batch_ac .Task< AC3_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"async compute task"} ).Last().Run( Tuple{gfx_task} );
+			AsyncTask	gfx_task	= batch_gfx.template Task< AC3_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"graphics task"}      ).Last().Run( Tuple{begin} );
+			AsyncTask	comp_task	= batch_ac .template Task< AC3_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"async compute task"} ).Last().Run( Tuple{gfx_task} );
 
 			AsyncTask	end			= t.rg.EndFrame( Tuple{ gfx_task, comp_task });
 
@@ -230,12 +231,10 @@ namespace
 
 		t.image[0] = t.rg.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
 											.SetFormat( format )
-											//.SetQueues( EQueueMask::Graphics | EQueueMask::AsyncCompute )
 											.SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
 										"Image-0", t.gfxAlloc );
 		t.image[1] = t.rg.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
 											.SetFormat( format )
-											//.SetQueues( EQueueMask::Graphics | EQueueMask::AsyncCompute )
 											.SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
 										"Image-1", t.gfxAlloc );
 		CHECK_ERR( t.image[0] and t.image[1] );
@@ -284,10 +283,6 @@ namespace
 		CHECK_ERR( t.isOK[0] );
 		CHECK_ERR( t.isOK[1] );
 
-		CHECK_ERR( res_mngr.ReleaseResources(	t.view[0], t.view[1],
-												t.image[0], t.image[1],
-												t.cpplnDS[0], t.cpplnDS[1] ));
-
 		return true;
 	}
 
@@ -300,12 +295,13 @@ bool RGTest::Test_AsyncCompute3 ()
 		return true; // skip
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
+	bool	result	= true;
 
-	CHECK_ERR(( AsyncCompute3Test< RG::DirectCtx,   RG::DirectCtx::Transfer   >( _acPipelines, img_cmp.get() )));
-	CHECK_ERR(( AsyncCompute3Test< RG::IndirectCtx, RG::IndirectCtx::Transfer >( _acPipelines, img_cmp.get() )));
+	RG_CHECK( AsyncCompute3Test< RG::DirectCtx,   RG::DirectCtx::Transfer   >( _acPipelines, img_cmp.get() ));
+	RG_CHECK( AsyncCompute3Test< RG::IndirectCtx, RG::IndirectCtx::Transfer >( _acPipelines, img_cmp.get() ));
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

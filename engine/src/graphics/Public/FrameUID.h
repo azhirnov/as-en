@@ -23,9 +23,6 @@ namespace AE::Graphics
 
 	// types
 	private:
-		static constexpr uint	_FrameBits = CT_IntLog2< GraphicsConfig::MaxFrames > + 1;
-		STATIC_ASSERT( (1u << _FrameBits) - 1 >= GraphicsConfig::MaxFrames );
-
 		// ulong - 58 bits enought for 360 Ghz * 9.3e+9 days
 		//       - 28 bits enought for 360 Ghz * 8.6 hours
 		// uint  - 26 bits enought for 360 Ghz * 2.1 hours
@@ -33,17 +30,24 @@ namespace AE::Graphics
 		using Value_t	= ulong;
 		using SValue_t	= ToSignedInteger<Value_t>;
 
+		static constexpr uint	_FrameBits		= CT_IntLog2< GraphicsConfig::MaxFrames >;
+		static constexpr uint	_MaxFrameBits	= _FrameBits + 1;
+		static constexpr uint	_CounterBits	= CT_SizeOfInBits<Value_t> - _FrameBits - _MaxFrameBits;
+
+		STATIC_ASSERT( ToBit<uint>( _FrameBits ) == GraphicsConfig::MaxFrames );
+		STATIC_ASSERT( ToBitMask<uint>( _MaxFrameBits ) >= GraphicsConfig::MaxFrames );
+
 		enum class _EFrameUID : Value_t {};
 		
 		struct _Bits
 		{
-			Value_t		counter		: (CT_SizeOfInBits<Value_t> - _FrameBits*2);	// unique frame index, 											
-			Value_t		index		: _FrameBits;	// non-unique frame index in range 0 .. GraphicsCreateInfo::maxFrames
-			Value_t		maxFrames	: _FrameBits;
+			Value_t		counter		: _CounterBits;		// unique frame index, 											
+			Value_t		index		: _FrameBits;		// non-unique frame index in range [0 .. GraphicsCreateInfo::MaxFrames)
+			Value_t		maxFrames	: _MaxFrameBits;	// value in range [0 .. GraphicsCreateInfo::MaxFrames]
 		};
 
 		STATIC_ASSERT( sizeof(_Bits) == sizeof(Value_t) );
-		STATIC_ASSERT( (CT_SizeOfInBits<Value_t> - _FrameBits*2) >= 28 );
+		STATIC_ASSERT( _CounterBits >= 28 );
 
 
 	// variables
@@ -77,7 +81,7 @@ namespace AE::Graphics
 		ND_ bool  operator >=  (const FrameUID &rhs)	C_NE___	{ return not (*this < rhs); }
 
 
-		ND_ _EFrameUID	Unique ()						C_NE___	{ return _EFrameUID(_bits.counter); }
+		ND_ _EFrameUID	Unique ()						C_NE___	{ return _EFrameUID(_bits.counter); }	// use 'ulong(f.Unique())' or other cast
 		ND_ uint		Index ()						C_NE___	{ return uint(_bits.index); }
 		ND_ uint		PrevIndex ()					C_NE___	{ return uint((_bits.index - 1) % _bits.maxFrames); }
 		ND_ uint		NextIndex ()					C_NE___	{ return uint((_bits.index + 1) % _bits.maxFrames); }

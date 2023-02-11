@@ -10,8 +10,8 @@ namespace
 
 		uint2						viewSize;
 
-		Strong<ImageID>				img;
-		Strong<ImageViewID>			view;
+		GAutorelease<ImageID>		img;
+		GAutorelease<ImageViewID>	view;
 		
 		GraphicsPipelineID			ppln;
 		
@@ -115,11 +115,11 @@ no source
 
 //> (out): float4 {0.500000, 0.500000, 0.000000, 1.000000}
 //  gl_VertexIndex: int {1}
-68. gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
+22. gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
 
 //> v_Color: float3 {0.000000, 1.000000, 0.000000}
 //  gl_VertexIndex: int {1}
-69. v_Color		= g_Colors[gl_VertexIndex];
+23. v_Color		= g_Colors[gl_VertexIndex];
 
 )";
 						const char	vs2_ref_str[] = 
@@ -129,11 +129,11 @@ no source
 
 //> (out): float4 {-0.500000, 0.500000, 0.000000, 1.000000}
 //  gl_VertexIndex: int {2}
-68. gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
+22. gl_Position	= vec4( g_Positions[gl_VertexIndex], 0.0, 1.0 );
 
 //> v_Color: float3 {0.000000, 0.000000, 1.000000}
 //  gl_VertexIndex: int {2}
-69. v_Color		= g_Colors[gl_VertexIndex];
+23. v_Color		= g_Colors[gl_VertexIndex];
 
 )";
 						const char	fs_ref_str[] =
@@ -144,11 +144,11 @@ no source
 
 //> out_Color: float3 {0.498333, 0.252083, 0.249583}
 //  v_Color: float3 {0.498333, 0.252083, 0.249583}
-57. out_Color.rgb = v_Color.rgb;
+11. out_Color.rgb = v_Color.rgb;
 
 //> out_Color: float4 {0.498333, 0.252083, 0.249583, 0.500000}
 //  v_Color: float3 {0.498333, 0.252083, 0.249583}
-58. out_Color.a   = fract(v_Color.r + v_Color.g + v_Color.b + 0.5f);
+12. out_Color.a   = fract(v_Color.r + v_Color.g + v_Color.b + 0.5f);
 
 )";
 
@@ -159,7 +159,7 @@ no source
 
 						p->isOK = ok;
 					}
-			  })};
+				})};
 			
 			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 			
@@ -193,7 +193,7 @@ no source
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Debugger2"} );
+		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Debugger2"} );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Run< Db2_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Draw task"} );
@@ -209,8 +209,6 @@ no source
 		CHECK_ERR( Scheduler().Wait({ t.result }));
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
-		CHECK_ERR( res_mngr.ReleaseResources( t.view, t.img ));
-
 		CHECK_ERR( t.isOK );
 		return true;
 	}
@@ -221,11 +219,12 @@ no source
 bool RGTest::Test_Debugger2 ()
 {
 	auto	img_cmp = _LoadReference( TEST_NAME );
+	bool	result	= true;
 
-	CHECK_ERR(( Debugger2Test< DirectCtx, DirectCtx::Transfer >( _pipelines, img_cmp.get() )));
+	RG_CHECK( Debugger2Test< DirectCtx, DirectCtx::Transfer >( _pipelines, img_cmp.get() ));
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

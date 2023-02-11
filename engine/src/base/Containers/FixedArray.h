@@ -23,8 +23,8 @@ namespace AE::Base
 			 >
 	struct FixedArray
 	{
+		STATIC_ASSERT( IsNothrowDtor<T> );
 		//STATIC_ASSERT( IsNothrowMoveCtor<T> );
-		//STATIC_ASSERT( IsNothrowDefaultCtor<T> );
 
 	// types
 	public:
@@ -36,6 +36,8 @@ namespace AE::Base
 		using CPolicy_t		= Policy;
 		using Count_t		= Conditional< (ArraySize <= MaxValue<ubyte>()), ubyte, ushort >;
 		STATIC_ASSERT( ArraySize < MaxValue<Count_t>() );
+
+		static constexpr bool	_IsNothrowCopy = IsNothrowCopyCtor<T>;
 
 
 	// variables
@@ -50,9 +52,9 @@ namespace AE::Base
 	// methods
 	public:
 		constexpr FixedArray ()									__NE___;
-		constexpr FixedArray (std::initializer_list<T> list)	noexcept(IsNothrowCopyCtor<T>);		// TODO: use Args... to allow move ctor
-		constexpr FixedArray (ArrayView<T> view)				noexcept(IsNothrowCopyCtor<T>);
-		constexpr FixedArray (const Self &other)				noexcept(IsNothrowCopyCtor<T>);
+		constexpr FixedArray (std::initializer_list<T> list)	noexcept(_IsNothrowCopy);		// TODO: use Args... to allow move ctor
+		constexpr FixedArray (ArrayView<T> view)				noexcept(_IsNothrowCopy);
+		constexpr FixedArray (const Self &other)				noexcept(_IsNothrowCopy);
 		constexpr FixedArray (Self &&other)						__NE___;
 
 		~FixedArray ()											__NE___	{ clear(); }
@@ -89,26 +91,26 @@ namespace AE::Base
 		ND_ constexpr bool  operator <= (ArrayView<T> rhs)		C_NE___	{ return ArrayView<T>{*this} <= rhs; }
 		
 
-		constexpr Self&  operator = (const Self &rhs)			noexcept(IsNothrowCopyCtor<T>);
-		constexpr Self&  operator = (ArrayView<T> rhs)			noexcept(IsNothrowCopyCtor<T>);
+		constexpr Self&  operator = (const Self &rhs)			noexcept(_IsNothrowCopy);
+		constexpr Self&  operator = (ArrayView<T> rhs)			noexcept(_IsNothrowCopy);
 		constexpr Self&  operator = (Self &&rhs)				__NE___;
 
-		constexpr void  assign (const_iterator beginIter, const_iterator endIter)	noexcept(IsNothrowCopyCtor<T>);
-		constexpr void  append (ArrayView<T> items)									noexcept(IsNothrowCopyCtor<T>);
+		constexpr void  assign (const_iterator beginIter, const_iterator endIter)	noexcept(_IsNothrowCopy);
+		constexpr void  append (ArrayView<T> items)									noexcept(_IsNothrowCopy);
 
-		constexpr void  push_back (const T &value)				noexcept(IsNothrowCopyCtor<T>);
+		constexpr void  push_back (const T &value)				noexcept(_IsNothrowCopy);
 		constexpr void  push_back (T &&value)					__NE___;
 
 		template <typename ...Args>
-		constexpr T&    emplace_back (Args&& ...args)			noexcept(IsNothrowCopyCtor<T>);
+		constexpr T&    emplace_back (Args&& ...args)			noexcept(_IsNothrowCopy);
 
 		constexpr void  pop_back ()								__NE___;
 
-		constexpr bool  try_push_back (const T &value)			noexcept(IsNothrowCopyCtor<T>);
+		constexpr bool  try_push_back (const T &value)			noexcept(_IsNothrowCopy);
 		constexpr bool  try_push_back (T&& value)				__NE___;
 		
 		template <typename ...Args>
-		constexpr bool  try_emplace_back (Args&& ...args)		noexcept(IsNothrowCopyCtor<T>);
+		constexpr bool  try_emplace_back (Args&& ...args)		noexcept(_IsNothrowCopy);
 
 		constexpr void  insert (usize pos, T &&value)			__NE___;
 
@@ -142,21 +144,21 @@ namespace AE::Base
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>::FixedArray (std::initializer_list<T> list) noexcept(IsNothrowCopyCtor<T>) : FixedArray()
+	constexpr FixedArray<T,S,CS>::FixedArray (std::initializer_list<T> list) noexcept(_IsNothrowCopy) : FixedArray()
 	{
 		ASSERT( list.size() <= capacity() );
 		assign( list.begin(), list.end() );		// throw
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>::FixedArray (ArrayView<T> view) noexcept(IsNothrowCopyCtor<T>) : FixedArray()
+	constexpr FixedArray<T,S,CS>::FixedArray (ArrayView<T> view) noexcept(_IsNothrowCopy) : FixedArray()
 	{
 		ASSERT( view.size() <= capacity() );
 		assign( view.begin(), view.end() );		// throw
 	}
 	
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>::FixedArray (const Self &other) noexcept(IsNothrowCopyCtor<T>) : FixedArray()
+	constexpr FixedArray<T,S,CS>::FixedArray (const Self &other) noexcept(_IsNothrowCopy) : FixedArray()
 	{
 		assign( other.begin(), other.end() );	// throw
 	}
@@ -176,14 +178,14 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (const Self &rhs) noexcept(IsNothrowCopyCtor<T>)
+	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (const Self &rhs) noexcept(_IsNothrowCopy)
 	{
 		assign( rhs.begin(), rhs.end() );	// throw
 		return *this;
 	}
 		
 	template <typename T, usize S, typename CS>
-	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<T> rhs) noexcept(IsNothrowCopyCtor<T>)
+	constexpr FixedArray<T,S,CS>&  FixedArray<T,S,CS>::operator = (ArrayView<T> rhs) noexcept(_IsNothrowCopy)
 	{
 		ASSERT( rhs.size() < capacity() );
 		assign( rhs.begin(), rhs.end() );	// throw
@@ -210,7 +212,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::assign (const_iterator beginIter, const_iterator endIter) noexcept(IsNothrowCopyCtor<T>)
+	constexpr void  FixedArray<T,S,CS>::assign (const_iterator beginIter, const_iterator endIter) noexcept(_IsNothrowCopy)
 	{
 		ASSERT( beginIter <= endIter );
 		ASSERT( not _IsMemoryAliased( beginIter, endIter ));
@@ -229,7 +231,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::append (ArrayView<T> items) noexcept(IsNothrowCopyCtor<T>)
+	constexpr void  FixedArray<T,S,CS>::append (ArrayView<T> items) noexcept(_IsNothrowCopy)
 	{
 		for (auto& item : items) {
 			push_back( item );		// throw
@@ -242,7 +244,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr void  FixedArray<T,S,CS>::push_back (const T &value) noexcept(IsNothrowCopyCtor<T>)
+	constexpr void  FixedArray<T,S,CS>::push_back (const T &value) noexcept(_IsNothrowCopy)
 	{
 		ASSERT( _count < capacity() );
 		PlacementNew<T>( data() + _count, value );	// throw
@@ -264,7 +266,7 @@ namespace AE::Base
 */
 	template <typename T, usize S, typename CS>
 	template <typename ...Args>
-	constexpr T&  FixedArray<T,S,CS>::emplace_back (Args&& ...args) noexcept(IsNothrowCopyCtor<T>)
+	constexpr T&  FixedArray<T,S,CS>::emplace_back (Args&& ...args) noexcept(_IsNothrowCopy)
 	{
 		ASSERT( _count < capacity() );
 		T* ptr = data() + _count;
@@ -293,7 +295,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename T, usize S, typename CS>
-	constexpr bool  FixedArray<T,S,CS>::try_push_back (const T &value) noexcept(IsNothrowCopyCtor<T>)
+	constexpr bool  FixedArray<T,S,CS>::try_push_back (const T &value) noexcept(_IsNothrowCopy)
 	{
 		if_likely( _count < capacity() )
 		{
@@ -323,7 +325,7 @@ namespace AE::Base
 */
 	template <typename T, usize S, typename CS>
 	template <typename ...Args>
-	constexpr bool  FixedArray<T,S,CS>::try_emplace_back (Args&& ...args) noexcept(IsNothrowCopyCtor<T>)
+	constexpr bool  FixedArray<T,S,CS>::try_emplace_back (Args&& ...args) noexcept(_IsNothrowCopy)
 	{
 		if_likely( _count < capacity() )
 		{

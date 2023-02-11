@@ -38,6 +38,7 @@ elseif (${AE_ENABLE_GLFW})
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 	# Raw WinAPI is supported
 	target_link_libraries( "Platform" PUBLIC "Shcore.lib" "Dxva2.lib" )
+	target_compile_definitions( "Platform" PUBLIC AE_WINAPI_WINDOW )
 
 else()
 	message( FATAL_ERROR "At least one window library must be supported" )

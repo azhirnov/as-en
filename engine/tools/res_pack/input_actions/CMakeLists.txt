@@ -19,7 +19,7 @@ source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( "external/platform" FILES ${PLATFORM_SRC} )
 
 target_link_libraries( "InputActionsBinding" PUBLIC "Serializing" "Scripting" )
-target_compile_definitions( "InputActionsBinding" PUBLIC "AE_BUILD_INPUT_ACTIONS_BINDING" )
+target_compile_definitions( "InputActionsBinding" PRIVATE "AE_BUILD_INPUT_ACTIONS_BINDING" "AE_OPTIMIZE_IDS=0" )
 target_include_directories( "InputActionsBinding" PUBLIC "." "${PLATFORM_SRC}/.." )
 
 add_library( "InputActionsBinding-shared" SHARED

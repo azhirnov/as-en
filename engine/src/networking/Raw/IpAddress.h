@@ -50,7 +50,7 @@ namespace AE::Networking
 		ND_ uint	Address ()				C_NE___	{ return _address; }
 		ND_ ushort	Port ()					C_NE___	{ return _port; }
 
-		ND_ String	ToString ()				C______;
+		ND_ String	ToString ()				C_Th___;
 
 		ND_ static IpAddress  FromServiceUDP (NtStringView hostName, NtStringView serviceName)	__NE___;
 		ND_ static IpAddress  FromServiceTCP (NtStringView hostName, NtStringView serviceName)	__NE___;

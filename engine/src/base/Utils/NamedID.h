@@ -20,6 +20,14 @@ namespace AE::Base
 		using Self			= NamedID< Size, UID, Optimize, Seed >;
 		using WithString_t	= NamedID< Size, UID, false, Seed >;
 		using Optimized_t	= NamedID< Size, UID, true, Seed >;
+		
+		using Hasher_t		= std::hash< Self >;
+		
+		struct EqualTo_t {
+			ND_ bool  operator () (const Self &lhs, const Self &rhs) const {
+				return lhs._hash == rhs._hash;
+			}
+		};
 
 
 	// variables

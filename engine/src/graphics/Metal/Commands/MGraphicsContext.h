@@ -42,9 +42,9 @@ namespace AE::Graphics::_hidden_
 		void  _NextMtSubpass () const;
 		void  _EndMtRenderPass ();
 		
-		void  _DebugMarker (DebugLabel dbg)							{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
-		void  _PushDebugGroup (DebugLabel dbg)						{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
-		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
+		void  _DebugMarker (DebugLabel dbg)											{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()														{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
 	};
 
 
@@ -93,6 +93,7 @@ namespace AE::Graphics::_hidden_
 		static constexpr bool	IsMetalGraphicsContext	= true;
 
 		using DrawCtx		= typename CtxImpl::_DrawCtx;
+		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
 	private:
 		using RawCtx		= CtxImpl;
 		using AccumBar		= MAccumBarriers< _MGraphicsContextImpl< CtxImpl >>;
@@ -106,37 +107,34 @@ namespace AE::Graphics::_hidden_
 		
 	// methods
 	public:
-		explicit _MGraphicsContextImpl (const RenderTask &task)								__Th___;
-		
-		template <typename RawCmdBufType>
-		_MGraphicsContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)				__Th___;
-		
-		template <typename RawCmdBufType>
-		_MGraphicsContextImpl (const RenderTask &, const MDrawCommandBatch &, RawCmdBufType) __Th___;
+		explicit _MGraphicsContextImpl (const RenderTask &task)																__Th___;
+		_MGraphicsContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)														__Th___;
+		_MGraphicsContextImpl (const RenderTask &, const MDrawCommandBatch &, CmdBuf_t)										__Th___;
 
-		_MGraphicsContextImpl ()															= delete;
-		_MGraphicsContextImpl (const _MGraphicsContextImpl &)								= delete;
+		_MGraphicsContextImpl ()																							= delete;
+		_MGraphicsContextImpl (const _MGraphicsContextImpl &)																= delete;
 		
 
 		// returns invalid state if outside of render pass
-		ND_ MPrimaryCmdBufState const&  GetState ()											C_NE___	{ return _primaryState; }
-		ND_ bool						IsInsideRenderPass ()								C_NE___	{ return _primaryState.IsValid(); }
-		ND_ bool						IsSecondaryCmdbuf ()								C_NE___	{ return _primaryState.useSecondaryCmdbuf; }
+		ND_ MPrimaryCmdBufState const&  GetState ()																			C_NE___	{ return _primaryState; }
+		ND_ bool						IsInsideRenderPass ()																C_NE___	{ return _primaryState.IsValid(); }
+		ND_ bool						IsSecondaryCmdbuf ()																C_NE___	{ return _primaryState.useSecondaryCmdbuf; }
 
 
 		// synchronious rendering api
-		ND_ DrawCtx	BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)				__Th___;
-		ND_ DrawCtx	NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg = Default)						__Th___;
-			void	EndRenderPass (DrawCtx& ctx)														__Th___;
-			void	EndRenderPass (DrawCtx& ctx, const RenderPassDesc &desc)							__Th___;
+		ND_ DrawCtx	BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default, void* userData = null)			__Th___;
+		ND_ DrawCtx	NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg = Default, void* userData = null)						__Th___;
+			void	EndRenderPass (DrawCtx& ctx)																			__Th___;
+			void	EndRenderPass (DrawCtx& ctx, const RenderPassDesc &desc)												__Th___;
 
 			
-		// asynchronious rendering api (Metal compatible)
-		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)			__Th___;
-		ND_ auto	NextMtSubpass (const MDrawCommandBatch &prevPassBatch, DebugLabel dbg = Default)	__Th___;
-			void	EndMtRenderPass ()																	__Th___;
-			void	EndMtRenderPass (const RenderPassDesc &desc)										__Th___;
-			void	ExecuteSecondary (MDrawCommandBatch &batch)											__Th___;
+		// asynchronious rendering api
+		// returns 'MDrawCommandBatch'
+		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default, void* userData = null)			__Th___;
+		ND_ auto	NextMtSubpass (const MDrawCommandBatch &prevPassBatch, DebugLabel dbg = Default, void* userData = null)	__Th___;
+			void	EndMtRenderPass ()																						__Th___;
+			void	EndMtRenderPass (const RenderPassDesc &desc)															__Th___;
+			void	ExecuteSecondary (MDrawCommandBatch &batch)																__Th___;
 
 		MBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -168,16 +166,14 @@ namespace AE::Graphics::_hidden_
 	}
 	
 	template <typename C>
-	template <typename RawCmdBufType>
-	_MGraphicsContextImpl<C>::_MGraphicsContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+	_MGraphicsContextImpl<C>::_MGraphicsContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf) }	// throw
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics, task.GetQueueMask() ));
 	}
 	
 	template <typename C>
-	template <typename RawCmdBufType>
-	_MGraphicsContextImpl<C>::_MGraphicsContextImpl (const RenderTask &task, const MDrawCommandBatch &batch, RawCmdBufType cmdbuf) :
+	_MGraphicsContextImpl<C>::_MGraphicsContextImpl (const RenderTask &task, const MDrawCommandBatch &batch, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf) },				// throw
 		_primaryState{ batch.GetPrimaryCtxState() }
 	{
@@ -192,7 +188,7 @@ namespace AE::Graphics::_hidden_
 */
 	template <typename C>
 	typename _MGraphicsContextImpl<C>::DrawCtx
-		_MGraphicsContextImpl<C>::BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg)
+		_MGraphicsContextImpl<C>::BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg, void* userData)
 	{
 		ASSERT( this->_NoPendingBarriers() );
 
@@ -201,16 +197,21 @@ namespace AE::Graphics::_hidden_
 
 		RawCtx::_BeginRenderPass( _primaryState, desc, dbg );
 		
+		_primaryState.userData = userData;
+
 		CommitBarriers();	// for RG
 		
-		String	dbg_name;
-		PROFILE_ONLY(
+		DBG_GRAPHICS_ONLY(
+			String	dbg_name;
+
 			dbg_name += this->_mngr.GetRenderTask().DbgFullName();
 			dbg_name += " - ";
 			dbg_name += (dbg.label.empty() ? StringView{"RP"} : dbg.label);
+		
+			this->PushDebugGroup( DebugLabel{ dbg_name, dbg.color });
 		)
 
-		return DrawCtx{ _primaryState, this->ReleaseCommandBuffer(), desc.viewports, DebugLabel{ dbg_name, dbg.color }};	// throw
+		return DrawCtx{ _primaryState, this->ReleaseCommandBuffer(), desc.viewports };	// throw
 	}
 
 /*
@@ -220,7 +221,7 @@ namespace AE::Graphics::_hidden_
 */
 	template <typename C>
 	typename _MGraphicsContextImpl<C>::DrawCtx
-		_MGraphicsContextImpl<C>::NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg)
+		_MGraphicsContextImpl<C>::NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg, void* userData)
 	{
 		ASSERT( this->_NoPendingBarriers() );
 		ASSERT( _primaryState.IsValid() );
@@ -229,6 +230,20 @@ namespace AE::Graphics::_hidden_
 		
 		++_primaryState.rasterOrderGroup;
 		ASSERT( uint{_primaryState.rasterOrderGroup} < _primaryState.renderPass->RasterOrderGroupCount() );
+		
+		_primaryState.userData = userData;
+
+		DBG_GRAPHICS_ONLY(
+			prevPassCtx.PopDebugGroup();
+			
+			String	dbg_name;
+
+			dbg_name += this->_mngr.GetRenderTask().DbgFullName();
+			dbg_name += " - ";
+			dbg_name += (dbg.label.empty() ? StringView{String{"ROG-"} + ToString(_primaryState.rasterOrderGroup)} : dbg.label);
+
+			prevPassCtx.PushDebugGroup( DebugLabel{ dbg_name, dbg.color });
+		)
 
 		return RVRef(prevPassCtx);
 	}
@@ -245,6 +260,8 @@ namespace AE::Graphics::_hidden_
 		ASSERT( _primaryState.IsValid() );
 		ASSERT( not IsSecondaryCmdbuf() );
 		ASSERT( ctx._IsValid() );
+		
+		DBG_GRAPHICS_ONLY( ctx.PopDebugGroup();)
 
 		_primaryState = Default;
 		
@@ -260,6 +277,8 @@ namespace AE::Graphics::_hidden_
 		ASSERT( not IsSecondaryCmdbuf() );
 		ASSERT( ctx._IsValid() );
 		
+		DBG_GRAPHICS_ONLY( ctx.PopDebugGroup();)
+
 		this->_cmdbuf = ctx.ReleaseCommandBuffer();
 		ASSERT( this->_IsValid() );
 
@@ -275,7 +294,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	auto  _MGraphicsContextImpl<C>::BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg)
+	auto  _MGraphicsContextImpl<C>::BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg, void* userData)
 	{
 		ASSERT( this->_NoPendingBarriers() );
 		
@@ -283,6 +302,8 @@ namespace AE::Graphics::_hidden_
 		CommitBarriers();	// for RG
 
 		_primaryState.useSecondaryCmdbuf = true;
+		_primaryState.userData			 = userData;
+
 		ASSERT( IsSecondaryCmdbuf() );
 
 		auto	batch = RawCtx::_BeginFirstAsyncPass( _primaryState, desc, dbg );
@@ -298,13 +319,15 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	auto  _MGraphicsContextImpl<C>::NextMtSubpass (const MDrawCommandBatch &prevPassBatch, DebugLabel dbg)
+	auto  _MGraphicsContextImpl<C>::NextMtSubpass (const MDrawCommandBatch &prevPassBatch, DebugLabel dbg, void* userData)
 	{
 		ASSERT( this->_NoPendingBarriers() );
 		ASSERT( _primaryState.IsValid() );
 		ASSERT( IsSecondaryCmdbuf() );
 		ASSERT( this->_IsValid() );
 		
+		_primaryState.userData = userData;
+
 		auto	batch = RawCtx::_BeginNextAsyncPass( prevPassBatch, dbg );
 		CHECK_THROW( batch );
 		

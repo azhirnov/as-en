@@ -6,7 +6,7 @@ namespace
 {
 	struct US1_TestData
 	{
-		Strong<BufferID>			buf;
+		GAutorelease<BufferID>		buf;
 		const Bytes					buf_size	= 32_Mb;
 		Array<ubyte>				buffer_data;
 		CommandBatchPtr				batch;
@@ -71,7 +71,7 @@ namespace
 
 			AsyncTask	begin = rts.BeginFrame( cfg );
 
-			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"UploadStream1"} );
+			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream1"} );
 			CHECK_TE( t.batch );
 			
 			AsyncTask	test	= t.batch->Run< US1_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
@@ -105,10 +105,10 @@ namespace
 
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
+
 		CHECK_ERR( t.stream.IsCompleted() );
 		CHECK_ERR( t.counter.load() >= uint(t.buf_size / upload_limit) );
 	
-		CHECK_ERR( res_mngr.ReleaseResources( t.buf ));
 		return true;
 	}
 
@@ -117,10 +117,12 @@ namespace
 
 bool RGTest::Test_UploadStream1 ()
 {
-	CHECK_ERR( UploadStream1Test() );
+	bool	result = true;
+
+	RG_CHECK( UploadStream1Test() );
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

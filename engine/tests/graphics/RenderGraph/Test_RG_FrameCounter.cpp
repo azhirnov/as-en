@@ -7,7 +7,7 @@ namespace
 	struct FC_TestData
 	{
 		RC<GfxLinearMemAllocator>	gfxAlloc;
-		Strong<BufferID>			buf;
+		GAutorelease<BufferID>		buf;
 		const uint					maxCount	= 1000;
 		const Bytes					buf_size	= 4_b * maxCount;
 		CommandBatchPtr				batch;
@@ -55,7 +55,7 @@ namespace
 
 			AsyncTask	begin = rts.BeginFrame();
 
-			t.batch	 = rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Deferred, {"FrameCounter"} );
+			t.batch	 = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"FrameCounter"} );
 			CHECK_TE( t.batch );
 			
 			AsyncTask	test	= t.batch->Run< FC_TestTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
@@ -84,7 +84,6 @@ namespace
 		CHECK_ERR( rts.WaitAll() );
 		CHECK_ERR( t.counter.load() >= t.maxCount );
 
-		CHECK_ERR( res_mngr.ReleaseResources( t.buf ));
 		return true;
 	}
 
@@ -93,10 +92,12 @@ namespace
 
 bool RGTest::Test_FrameCounter ()
 {
-	CHECK_ERR( FrameCounterTest() );
+	bool	result = true;
+
+	RG_CHECK( FrameCounterTest() );
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

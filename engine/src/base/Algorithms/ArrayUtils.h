@@ -268,6 +268,8 @@ namespace AE::Base
 	template <typename Iter, typename Cmp>
 	ND_ bool  IsSorted (Iter begin, Iter end, Cmp && fn) __NE___
 	{
+		STATIC_ASSERT( IsNothrowInvocable<Cmp> );
+
 		if ( begin == end )
 			return true;
 
@@ -319,23 +321,54 @@ namespace AE::Base
 		std::sort( arr.begin(), arr.end() );
 		arr.erase( std::unique( arr.begin(), arr.end() ), arr.end() );
 	}
+
+	template <typename T, typename Compare>
+	void  RemoveDuplicates (INOUT Array<T> &arr, Compare comp) __NE___
+	{
+		STATIC_ASSERT( IsNothrowInvocable<Compare> );
+
+		std::sort( arr.begin(), arr.end(), comp );
+		arr.erase( std::unique( arr.begin(), arr.end() ), arr.end() );
+	}
 	
 /*
 =================================================
-	RemoveDuplicates
+	ArrayContains
+----
+	for non-sorted arrays
 =================================================
 */
 	template <typename Iter, typename T>
 	ND_ bool  ArrayContains (Iter begin, Iter end, const T &value) __NE___
 	{
-		ASSERT( begin != end );
-		return std::find( begin, end, value ) != end;
+		return	begin != end						and	// empty container, will return true otherwise
+				std::find( begin, end, value ) != end;
 	}
 	
 	template <typename A, typename T>
 	ND_ bool  ArrayContains (ArrayView<A> arr, const T &value) __NE___
 	{
 		return ArrayContains( arr.begin(), arr.end(), value );
+	}
+	
+/*
+=================================================
+	IndexOfArrayElement
+=================================================
+*/
+	template <typename Iter, typename T>
+	ND_ usize  IndexOfArrayElement (Iter begin, Iter end, const T &value)
+	{
+		auto	it = std::find( begin, end, value );
+		return	it != end ?
+					usize(std::distance( begin, it )) :
+					usize(UMax);
+	}
+	
+	template <typename A, typename T>
+	ND_ usize  IndexOfArrayElement (ArrayView<A> arr, const T &value)
+	{
+		return IndexOfArrayElement( arr.begin(), arr.end(), value );
 	}
 
 

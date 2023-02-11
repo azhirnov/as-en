@@ -27,7 +27,7 @@ namespace _hidden_
 
 		struct Result
 		{
-			Bytes			offset;
+			Bytes			offset;					// 'offset' argument from 'ReadBlock()' or 'WriteBlock()'
 			Bytes			dataSize;				// actually readn / written
 			void const*		data		= null;		// read-only non-null memory if successfully completed, null otherwise.
 		};
@@ -64,8 +64,9 @@ namespace _hidden_
 
 } // _hidden_
 
-	using AsyncDSRequest		= RC< Threading::_hidden_::IAsyncDataSourceRequest >;
-	using WeakAsyncDSRequest	= Threading::_hidden_::_TaskDependency< AsyncDSRequest, false >;
+	using AsyncDSRequestResult		= Threading::_hidden_::IAsyncDataSourceRequest::ResultWithRC;
+	using AsyncDSRequest			= RC< Threading::_hidden_::IAsyncDataSourceRequest >;
+	using WeakAsyncDSRequest		= Threading::_hidden_::_TaskDependency< AsyncDSRequest, false >;
 
 
 
@@ -90,11 +91,14 @@ namespace _hidden_
 
 		ND_ virtual Bytes	Size ()					C_NE___ = 0;
 
+		// returns null on error
 		ND_ virtual auto	ReadBlock (Bytes offset, Bytes size, RC<SharedMem> dstBlock)__NE___ -> ReadRequestPtr = 0;
 		ND_ virtual auto	ReadBlock (Bytes offset, Bytes size)						__NE___ -> ReadRequestPtr = 0;
 		
+		ND_ ReadRequestPtr	ReadRemaining (Bytes offset = 0_b)							__NE___	{ return ReadBlock( offset, Size() - offset ); }
+
 		// returns 'true' if cancelled, 'false' if all requests already complete/cancelled or on other error.
-		ND_ virtual bool	CancelAllRequests ()	__NE___ = 0;
+			virtual bool	CancelAllRequests ()	__NE___ = 0;
 	};
 
 
@@ -118,13 +122,14 @@ namespace _hidden_
 			ESourceType		GetSourceType ()	C_NE_OV	{ return ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::Async | ESourceType::ThreadSafe; }
 
 		//ND_ virtual Bytes	Size ()				C_NE___ = 0;
-
+			
+		// returns null on error
 		ND_ virtual auto	WriteBlock (Bytes offset, Bytes size, RC<SharedMem> srcBlock) __NE___ -> WriteRequestPtr = 0;
 
 		ND_ virtual auto	Alloc (Bytes size)	__NE___ -> RC<SharedMem> = 0;
 		
 		// returns 'true' if cancelled, 'false' if all requests already complete/cancelled or on other error.
-		ND_ virtual bool	CancelAllRequests ()__NE___ = 0;
+			virtual bool	CancelAllRequests ()__NE___ = 0;
 	};
 
 

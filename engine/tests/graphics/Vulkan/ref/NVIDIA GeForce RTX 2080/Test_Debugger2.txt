@@ -23,13 +23,8 @@ name: 'command-buffer'
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
-      stage:  COPY ---> VERTEX_SHADER | TESSELLATION_CONTROL_SHADER | TESSELLATION_EVALUATION_SHADER | GEOMETRY_SHADER | FRAGMENT_SHADER | TASK_SHADER_BIT_NV | MESH_SHADER_BIT_NV
-      access: TRANSFER_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
-  ----------
-
-  BeginDebugLabel
-    name:  'Debugger2 |0| Draw task'
-    depth: 2
+      stage:  COPY ---> VERTEX_SHADER | TESSELLATION_CONTROL_SHADER | TESSELLATION_EVALUATION_SHADER | GEOMETRY_SHADER | FRAGMENT_SHADER | TASK_SHADER | MESH_SHADER
+      access: TRANSFER_WRITE ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
   ----------
 
   PipelineBarrier2
@@ -51,17 +46,21 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
     name:  'Debugger2 |0| Draw task - RP'
-    depth: 3
+    depth: 2
   ----------
 
   Draw
     descriptors:
       buffer: 'debug storage buffer'
+  ----------
+
+  EndDebugLabel
+    depth: 2
   ----------
 
   EndRenderPass2
@@ -73,7 +72,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -86,7 +85,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 3
+    depth: 1
   ----------
 
 }
@@ -108,7 +107,7 @@ name: 'command-buffer'
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
-      stage:  VERTEX_SHADER | TESSELLATION_CONTROL_SHADER | TESSELLATION_EVALUATION_SHADER | GEOMETRY_SHADER | FRAGMENT_SHADER | TASK_SHADER_BIT_NV | MESH_SHADER_BIT_NV ---> COPY
+      stage:  VERTEX_SHADER | TESSELLATION_CONTROL_SHADER | TESSELLATION_EVALUATION_SHADER | GEOMETRY_SHADER | FRAGMENT_SHADER | TASK_SHADER | MESH_SHADER ---> COPY
       access: SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
   ----------
 

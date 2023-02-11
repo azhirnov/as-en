@@ -5,7 +5,9 @@
 #pragma once
 
 #include "base/Math/Bytes.h"
+#include "base/Utils/Threading.h"
 #include "base/Platforms/ThreadUtils.h"
+
 #ifndef AE_LFAS_ENABLED
 # include "threading/Common.h"
 #endif
@@ -14,14 +16,14 @@ namespace AE::Threading
 {
 	using AE::Base::ThreadUtils;
 
-#ifdef AE_LFAS_ENABLED
+#  ifdef AE_LFAS_ENABLED
 	template <typename T>
 	using StdAtomic = LFAS::CPP::StdAtomic< T >;
 	using LFAS::CPP::EMemoryOrder;
-#else
+#  else
 	template <typename T>
 	using StdAtomic = std::atomic< T >;
-#endif
+#  endif
 
 
 	//
@@ -206,9 +208,12 @@ namespace AE::Threading
 		ND_ bool	compare_exchange_weak (INOUT T& expected, T desired, MO_t success, MO_t failure)	__NE___ { return _value.compare_exchange_weak( INOUT _Ref(expected), _Cast(desired), success, failure ); }
 		ND_ bool	compare_exchange_strong (INOUT T& expected, T desired, MO_t success, MO_t failure)	__NE___ { return _value.compare_exchange_strong( INOUT _Ref(expected), _Cast(desired), success, failure ); }
 		
-		ND_ bool	CAS (INOUT T& expected, T desired)								__NE___ { return _value.compare_exchange_weak( INOUT _Ref(expected), _Cast(desired), OnSuccess, OnFailure ); }
-		ND_ bool	CAS (INOUT T& expected, T desired, MO_t success, MO_t failure)	__NE___ { return _value.compare_exchange_weak( INOUT _Ref(expected), _Cast(desired), success, failure ); }
+		ND_ bool	CAS (INOUT T& expected, T desired)									__NE___ { return _value.compare_exchange_weak( INOUT _Ref(expected), _Cast(desired), OnSuccess, OnFailure ); }
+		ND_ bool	CAS (INOUT T& expected, T desired, MO_t success, MO_t failure)		__NE___ { return _value.compare_exchange_weak( INOUT _Ref(expected), _Cast(desired), success, failure ); }
 		
+		ND_ bool	CAS_Loop (INOUT T& expected, T desired)								__NE___ { return _value.compare_exchange_strong( INOUT _Ref(expected), _Cast(desired), OnSuccess, OnFailure ); }
+		ND_ bool	CAS_Loop (INOUT T& expected, T desired, MO_t success, MO_t failure)	__NE___ { return _value.compare_exchange_strong( INOUT _Ref(expected), _Cast(desired), success, failure ); }
+
 		T	fetch_and (IT arg)						__NE___ { return _Cast( _value.fetch_and( arg, OnSuccess )); }
 		T	fetch_or  (IT arg)						__NE___ { return _Cast( _value.fetch_or(  arg, OnSuccess )); }
 		T	fetch_xor (IT arg)						__NE___ { return _Cast( _value.fetch_xor( arg, OnSuccess )); }
@@ -230,6 +235,20 @@ namespace AE::Threading
 
 		T	SetBit (usize bit, MO_t memOrder)		__NE___ { return fetch_or( IT{1} << bit, memOrder ); }
 		T	ResetBit (usize bit, MO_t memOrder)		__NE___ { return fetch_and( ~(IT{1} << bit), memOrder ); }
+		
+		T  Max (T arg)								__NE___
+		{
+			T	exp = load();
+			for (; (exp <= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
+			return exp;
+		}
+
+		T  Min (T arg)								__NE___
+		{
+			T	exp = load();
+			for (; (exp >= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
+			return exp;
+		}
 
 	private:
 		ND_ static forceinline IT	_Cast (const T &value)		__NE___ { return BitCast<IT>( value ); }
@@ -406,8 +425,11 @@ namespace AE::Threading
 		ND_ bool	compare_exchange_weak (INOUT value_type& expected, value_type desired, MO_t success, MO_t failure)	__NE___ { return _value.compare_exchange_weak( INOUT expected, desired, success, failure ); }
 		ND_ bool	compare_exchange_strong (INOUT value_type& expected, value_type desired, MO_t success, MO_t failure)__NE___ { return _value.compare_exchange_strong( INOUT expected, desired, success, failure ); }
 		
-		ND_ bool	CAS (INOUT value_type& expected, value_type desired)								__NE___ { return _value.compare_exchange_weak( INOUT expected, desired, OnSuccess, OnFailure ); }
-		ND_ bool	CAS (INOUT value_type& expected, value_type desired, MO_t success, MO_t failure)	__NE___ { return _value.compare_exchange_weak( INOUT expected, desired, success, failure ); }
+		ND_ bool	CAS (INOUT value_type& expected, value_type desired)									__NE___ { return _value.compare_exchange_weak( INOUT expected, desired, OnSuccess, OnFailure ); }
+		ND_ bool	CAS (INOUT value_type& expected, value_type desired, MO_t success, MO_t failure)		__NE___ { return _value.compare_exchange_weak( INOUT expected, desired, success, failure ); }
+		
+		ND_ bool	CAS_loop (INOUT value_type& expected, value_type desired)								__NE___ { return _value.compare_exchange_strong( INOUT expected, desired, OnSuccess, OnFailure ); }
+		ND_ bool	CAS_loop (INOUT value_type& expected, value_type desired, MO_t success, MO_t failure)	__NE___ { return _value.compare_exchange_strong( INOUT expected, desired, success, failure ); }
 
 		value_type	fetch_add (ssize arg)					__NE___ { return _value.fetch_add( arg, OnSuccess ); }
 		value_type	fetch_sub (ssize arg)					__NE___ { return _value.fetch_sub( arg, OnSuccess ); }
@@ -422,14 +444,14 @@ namespace AE::Threading
 		value_type  Max (value_type arg)					__NE___
 		{
 			value_type	exp = load();
-			for (; (exp <= arg) and not CAS( INOUT exp, arg );) {}
+			for (; (exp <= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
 			return exp;
 		}
 
 		value_type  Min (value_type arg)					__NE___
 		{
 			value_type	exp = load();
-			for (; (exp >= arg) and not CAS( INOUT exp, arg );) {}
+			for (; (exp >= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
 			return exp;
 		}
 	};
@@ -460,5 +482,6 @@ namespace AE::Threading
 	
 	template <typename T>
 	using BytesAtomic = typename Threading::_hidden_::TBytesAtomic<T>::type;
+
 
 } // AE::Threading

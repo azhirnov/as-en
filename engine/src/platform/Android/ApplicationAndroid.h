@@ -2,11 +2,9 @@
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
+#include "platform/Android/AndroidCommon.h"
 
 #ifdef AE_PLATFORM_ANDROID
-# include <android/asset_manager_jni.h>
-
 # include "platform/Public/Common.h"
 # include "platform/Public/IApplication.h"
 # include "platform/Android/WindowAndroid.h"
@@ -55,46 +53,46 @@ namespace AE::App
 
 	// methods
 	private:
-		explicit ApplicationAndroid (Unique<IAppListener>);
+		explicit ApplicationAndroid (Unique<IAppListener>)								__NE___;
 
-		void _OnDestroy ();
+		void _OnDestroy ()																__NE___;
 
-		ND_ WinID  _AddWindow (SharedPtr<WindowAndroid> wnd);
+		ND_ WinID  _AddWindow (SharedPtr<WindowAndroid> wnd)							__NE___;
 
 	public:
-		~ApplicationAndroid ();
+		~ApplicationAndroid ()															__NE___;
 
-		void  BeforeUpdate ();
-		void  AfterUpdate ();
+		void  BeforeUpdate ()															__NE___;
+		void  AfterUpdate ()															__NE___;
 
-		ND_ static ApplicationAndroid*&						_GetAppInstance ();
-		ND_ static SharedPtr<WindowAndroid>					_GetAppWindow (WinID id);
-		ND_ static Pair< SharedPtr<WindowAndroid>, WinID >	_GetNewWindow ();
+		ND_ static ApplicationAndroid*&						_GetAppInstance ()			__NE___;
+		ND_ static SharedPtr<WindowAndroid>					_GetAppWindow (WinID id)	__NE___;
+		ND_ static Pair< SharedPtr<WindowAndroid>, WinID >	_GetNewWindow ()			__NE___;
 
 
 	// IApplication //
-		WindowPtr		CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*) override;
+		WindowPtr		CreateWindow (WndListenerPtr, const WindowDesc &, IInputActions*)__NE_OV;
 
-		Monitors_t		GetMonitors (bool update = false) override;
+		Monitors_t		GetMonitors (bool update = false)								__NE_OV;
 
-		RC<IVirtualFileStorage> OpenBuiltinStorage () override;
+		RC<IVirtualFileStorage> OpenBuiltinStorage ()									__NE_OV;
 
-		ArrayView<const char*>	GetVulkanInstanceExtensions () override;
+		ArrayView<const char*>	GetVulkanInstanceExtensions ()							__NE_OV;
 		
-		void			Terminate () override;
+		void			Terminate ()													__NE_OV;
 		
-		StringView		GetApiName () const override	{ return "android"; }
+		StringView		GetApiName ()													C_NE_OV	{ return "android"; }
 
 
 	// called from java
 	public:
-		static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app, jobject assetMngr);
-		static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring, jstring, jstring, jstring, jstring);
-		static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass, jint width, jint height, jint ppi, jint orientation);
-		static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass);
+		static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app, jobject assetMngr)								__NE___;
+		static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring, jstring, jstring, jstring, jstring)			__NE___;
+		static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass, jint width, jint height, jint ppi, jint orientation)	__NE___;
+		static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass)															__NE___;
 
-		static jint  OnJniLoad (JavaVM* vm);
-		static void  OnJniUnload (JavaVM* vm);
+		static jint  OnJniLoad (JavaVM* vm)																					__NE___;
+		static void  OnJniUnload (JavaVM* vm)																				__NE___;
 	};
 
 

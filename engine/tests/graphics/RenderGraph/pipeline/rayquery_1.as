@@ -6,13 +6,13 @@ void main ()
 		return;
 
 	{
-		RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "rquery1.ds1" );
+		RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "rquery1.ds0" );
 		ds.StorageImage( EShaderStages::Compute, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
 		ds.RayTracingScene( EShaderStages::Compute, "un_RtScene", ArraySize(1) );
 	}
 	{
 		RC<PipelineLayout>		pl = PipelineLayout( "rquery1.pl" );
-		pl.DSLayout( 0, "rquery1.ds1" );
+		pl.DSLayout( 0, "rquery1.ds0" );
 	}
 
 

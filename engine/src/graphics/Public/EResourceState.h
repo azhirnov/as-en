@@ -148,6 +148,17 @@ namespace AE::Graphics
 	{
 		return EResourceState(~uint(x));
 	}
+	
+/*
+=================================================
+	EResourceState_IsSameStates
+=================================================
+*/
+	ND_ forceinline constexpr bool  EResourceState_IsSameStates (EResourceState srcState, EResourceState dstState) __NE___
+	{
+		constexpr auto	mask = EResourceState::_AccessMask | EResourceState::Invalidate;
+		return (srcState & mask) == (dstState & mask);
+	}
 
 
 } // AE::Graphics

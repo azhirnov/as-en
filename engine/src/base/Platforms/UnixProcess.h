@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/Utils/FileSystem.h"
+#include "base/Utils/Threading.h"
 
 #ifdef AE_PLATFORM_UNIX_BASED
 
@@ -34,7 +35,7 @@ namespace AE::Base
 	// methods
 	public:
 		static bool  Execute (const String &commandLine, EFlags flags = EFlags::NoWindow, milliseconds timeout = _DefTimeout);
-		static bool  Execute (const String &commandLine, INOUT String &output, std::mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
+		static bool  Execute (const String &commandLine, INOUT String &output, Mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
 	};
 	
 	AE_BIT_OPERATORS( UnixProcess::EFlags );

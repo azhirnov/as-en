@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/Math/Vec.h"
+#include "base/Math/Color.h"
 
 namespace AE::Math
 {
@@ -80,6 +81,11 @@ namespace _hidden_
 		{
 			using IT = typename Math::_hidden_::Random_Uniform_IntType<T>::type;
 			return T( Uniform<IT>( Base::MinValue<T>(), Base::MaxValue<T>() ));
+		}
+
+		ND_ RGBA32f  UniformColor () __NE___
+		{
+			return RGBA32f{ HSVColor{ Uniform( 0.f, 0.75f )}};
 		}
 
 

@@ -23,7 +23,13 @@ namespace AE::Base
 	template <typename T>
 	struct TypeToType
 	{
-		using type	= T;
+		using type		= T;
+	};
+	
+	template <typename T>
+	struct TypeToValue_t
+	{
+		using Value_t	= T;
 	};
 
 	

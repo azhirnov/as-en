@@ -2,23 +2,18 @@
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
+#include "platform/Android/AndroidCommon.h"
 
 #ifdef AE_PLATFORM_ANDROID
-
-# include <android/native_window.h>
-
 # include "platform/Public/Common.h"
 # include "platform/Private/WindowBase.h"
 # include "platform/Android/Java.h"
 # include "platform/Android/InputActionsAndroid.h"
 # include "platform/Private/WindowSurface.h"
 
-
 namespace AE::App
 {
 	using namespace AE::Java;
-	class ApplicationAndroid;
 
 
 	//
@@ -50,46 +45,46 @@ namespace AE::App
 
 	// methods
 	public:
-		WindowAndroid ();
+		WindowAndroid ()								__NE___;
 
 
 	// IWindow //
-		void	Close () override;
+		void			Close ()						__NE_OV;
 
-		uint2	GetSurfaceSize ()	const override;
-		Monitor	GetMonitor ()		const override;
+		uint2			GetSurfaceSize ()				C_NE_OV;
+		Monitor			GetMonitor ()					C_NE_OV;
 
-		IInputActions&	InputActions ()		  override	{ return _input; }
-		NativeWindow	GetNative ()	const override;
+		IInputActions&	InputActions ()					__NE_OV	{ return _input; }
+		NativeWindow	GetNative ()					C_NE_OV;
 
 		// desctop only
-		void  SetSize (const uint2 &) override {}
-		void  SetPosition (const int2 &) override {}
-		void  SetPosition (Monitor::ID, const int2 &) override {}
-		void  SetTitle (NtStringView) override {}
-		void  SetFocus () const override {}
+		void  SetSize (const uint2 &)					__NE_OV {}
+		void  SetPosition (const int2 &)				__NE_OV {}
+		void  SetPosition (Monitor::ID, const int2 &)	__NE_OV {}
+		void  SetTitle (NtStringView)					__NE_OV {}
+		void  SetFocus ()								C_NE_OV {}
 
 
 	private:
-		void  _Init (Unique<IWndListener> listener, IInputActions* dstActions);
+		void  _Init (Unique<IWndListener> listener, IInputActions* dstActions)	__NE___;
 
-		ND_ ApplicationAndroid&  _App ();
+		ND_ ApplicationAndroid&  _App ()				__NE___;
 
 
 	// called from java
 	public:
-		static WinID JNICALL  native_OnCreate (JNIEnv*, jclass, jobject wnd);
-		static void  JNICALL  native_OnDestroy (JNIEnv*, jclass, WinID wndId);
-		static void  JNICALL  native_OnStart (JNIEnv*, jclass, WinID wndId);
-		static void  JNICALL  native_OnStop (JNIEnv*, jclass, WinID wndId);
-		static void  JNICALL  native_OnEnterForeground (JNIEnv*, jclass, WinID wndId);
-		static void  JNICALL  native_OnEnterBackground (JNIEnv*, jclass, WinID wndId);
-		static void  JNICALL  native_SurfaceChanged (JNIEnv*, jclass, WinID wndId, jobject surface);
-		static void  JNICALL  native_SurfaceDestroyed (JNIEnv*, jclass, WinID wndId);
-		static void  JNICALL  native_Update (JNIEnv*, jclass, WinID wndId);
-		static void  JNICALL  native_OnKey (JNIEnv*, jclass, WinID wndId, jint keycode, jint action);
-		static void  JNICALL  native_OnTouch (JNIEnv*, jclass, WinID wndId, jint action, jint count, jfloatArray data);
-		static void  JNICALL  native_OnOrientationChanged (JNIEnv*, jclass, WinID wndId, jint newOrientation);
+		static WinID JNICALL  native_OnCreate (JNIEnv*, jclass, jobject wnd)											__NE___;
+		static void  JNICALL  native_OnDestroy (JNIEnv*, jclass, WinID wndId)											__NE___;
+		static void  JNICALL  native_OnStart (JNIEnv*, jclass, WinID wndId)												__NE___;
+		static void  JNICALL  native_OnStop (JNIEnv*, jclass, WinID wndId)												__NE___;
+		static void  JNICALL  native_OnEnterForeground (JNIEnv*, jclass, WinID wndId)									__NE___;
+		static void  JNICALL  native_OnEnterBackground (JNIEnv*, jclass, WinID wndId)									__NE___;
+		static void  JNICALL  native_SurfaceChanged (JNIEnv*, jclass, WinID wndId, jobject surface)						__NE___;
+		static void  JNICALL  native_SurfaceDestroyed (JNIEnv*, jclass, WinID wndId)									__NE___;
+		static void  JNICALL  native_Update (JNIEnv*, jclass, WinID wndId)												__NE___;
+		static void  JNICALL  native_OnKey (JNIEnv*, jclass, WinID wndId, jint keycode, jint action)					__NE___;
+		static void  JNICALL  native_OnTouch (JNIEnv*, jclass, WinID wndId, jint action, jint count, jfloatArray data)	__NE___;
+		static void  JNICALL  native_OnOrientationChanged (JNIEnv*, jclass, WinID wndId, jint newOrientation)			__NE___;
 	};
 
 

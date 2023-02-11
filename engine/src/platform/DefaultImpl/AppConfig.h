@@ -25,8 +25,8 @@ namespace AE::App
 
 		struct ThreadConfig : Threading::TaskScheduler::Config
 		{
-			EnumBitSet<EThread>		mask				{EThread::Worker, EThread::Renderer, EThread::FileIO};
-			uint					maxWorkerThreads	= 2;
+			EnumBitSet<EThread>		mask		{EThread::Worker, EThread::Renderer, EThread::FileIO};
+			uint					maxThreads	= 2;
 		};
 
 

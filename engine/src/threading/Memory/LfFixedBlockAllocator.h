@@ -88,8 +88,8 @@ namespace AE::Threading
 	// variables
 	private:
 		ChunkInfos_t		_chunkInfo;
-		const POTValue		_blockSize;
-		const POTValue		_blockAlign;
+		const POTBytes		_blockSize;
+		const POTBytes		_blockAlign;
 
 		NO_UNIQUE_ADDRESS BlockAllocator_t	_blockAlloc;
 		NO_UNIQUE_ADDRESS GenAllocator_t	_genAlloc;
@@ -113,10 +113,10 @@ namespace AE::Threading
 	
 				void	Release (bool checkMemLeak)	__NE___;
 
-		ND_ Bytes		BlockSize ()				C_NE___	{ return Bytes{ ulong( _blockSize )}; }
-		ND_ Bytes		BlockAlign ()				C_NE___	{ return Bytes{ ulong( _blockAlign )}; }
-		ND_ POTValue	BlockSizePOT ()				C_NE___	{ return _blockSize; }
-		ND_ POTValue	BlockAlignPOT ()			C_NE___	{ return _blockAlign; }
+		ND_ Bytes		BlockSize ()				C_NE___	{ return Bytes{ _blockSize }; }
+		ND_ Bytes		BlockAlign ()				C_NE___	{ return Bytes{ _blockAlign }; }
+		ND_ POTBytes	BlockSizePOT ()				C_NE___	{ return _blockSize; }
+		ND_ POTBytes	BlockAlignPOT ()			C_NE___	{ return _blockAlign; }
 
 		ND_ Bytes		LargeBlockSize ()			C_NE___	{ return BlockSize() * ChunkSize; }
 		ND_ Bytes		MaxMemorySize ()			C_NE___	{ return LargeBlockSize() * MaxChunks; }

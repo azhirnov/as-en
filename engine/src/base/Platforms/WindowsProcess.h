@@ -4,6 +4,7 @@
 
 #ifdef AE_PLATFORM_WINDOWS
 # include "base/Utils/FileSystem.h"
+# include "base/Utils/Threading.h"
 
 namespace AE::Base
 {
@@ -52,12 +53,12 @@ namespace AE::Base
 		bool  Terminate (milliseconds timeout = _DefTimeout);
 		
 		bool  WaitAndClose (milliseconds timeout = _DefTimeout);
-		bool  WaitAndClose (INOUT String &output, std::mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
+		bool  WaitAndClose (INOUT String &output, Mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
 
 		static bool  Execute (String &commandLine, EFlags flags = EFlags::NoWindow, milliseconds timeout = _DefTimeout);
 		static bool  Execute (WString &commandLine, EFlags flags = EFlags::NoWindow, milliseconds timeout = _DefTimeout);
-		static bool  Execute (String &commandLine, INOUT String &output, std::mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
-		static bool  Execute (WString &commandLine, INOUT String &output, std::mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
+		static bool  Execute (String &commandLine, INOUT String &output, Mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
+		static bool  Execute (WString &commandLine, INOUT String &output, Mutex *outputGuard = null, milliseconds timeout = _DefTimeout);
 
 	private:
 		template <typename T>

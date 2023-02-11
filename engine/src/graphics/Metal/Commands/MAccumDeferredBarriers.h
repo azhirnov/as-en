@@ -93,12 +93,9 @@ namespace _hidden_
 	//
 	class MAccumBarriersForTask final : public MAccumDeferredBarriers
 	{
-		friend class MCommandBatch;
-
 	// mthods
-	private:
-		MAccumBarriersForTask (MCommandBatch &batch)__NE___ : MAccumDeferredBarriers{batch} {}
 	public:
+		MAccumBarriersForTask (MCommandBatch &batch)__NE___ : MAccumDeferredBarriers{batch} {}
 		ND_ const MDependencyInfo*  Get ()			__NE___	{ return _mngr.AllocBarriers(); }
 	};
 	

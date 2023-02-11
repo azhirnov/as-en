@@ -75,15 +75,15 @@ namespace AE::Threading
 	// methods
 	public:
 		explicit LfStaticIndexedPool (const Allocator_t &alloc = Allocator_t{}) __NE___;
-		~LfStaticIndexedPool ()							__NE___	{ Release(); }
+		~LfStaticIndexedPool ()							__NE___	{ Release( True{"check for assigned"} ); }
 
-			void  Release ()							__NE___;
+			void  Release (Bool checkForAssigned)		__NE___;
 
 			template <typename FN>
-			void  UnassignAll (FN && fn)				__NE___;
+			void  UnassignAll (FN && fn)				noexcept(IsNothrowInvocable<FN>);
 		
 			template <typename FN>
-			void  ForEach (FN && fn)					__NE___;
+			void  ForEach (FN && fn)					noexcept(IsNothrowInvocable<FN>);
 
 		ND_ auto  Assign ()								__NE___	{ Index_t idx;  return Assign( OUT idx ) ? idx : UMax; }
 		ND_ bool  Assign (OUT Index_t &outIndex)		__NE___;

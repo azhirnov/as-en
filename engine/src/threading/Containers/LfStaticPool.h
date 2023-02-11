@@ -90,7 +90,7 @@ namespace AE::Threading
 		void  Release ()							__NE___	{ return Release( [](Value_t &value) { value.~Value_t(); }); }
 
 		template <typename FN>
-		void  Release (FN &&fn)						__NE___;
+		void  Release (FN &&fn)						noexcept(IsNothrowInvocable<FN>);
 
 		template <typename T>
 		ND_ bool  Put (T && value)					__NE___;

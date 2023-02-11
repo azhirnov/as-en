@@ -48,4 +48,9 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
 	target_link_libraries( "Base" PUBLIC "log" )
 endif()
 
+if (APPLE)
+	find_library( COCOA_LIBRARY Cocoa REQUIRED )
+	target_link_libraries( "Base" PRIVATE ${COCOA_LIBRARY} )
+endif()
+
 install( TARGETS "Base" ARCHIVE DESTINATION "lib" )

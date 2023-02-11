@@ -3,8 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-# include "threading/Containers/LfIndexedPool2.h"
-
 # include "graphics/Metal/Commands/MCommandBuffer.h"
 # include "graphics/Metal/Commands/MCommandBatch.h"
 # include "graphics/Metal/Commands/MDrawCommandBatch.h"

@@ -10,10 +10,10 @@ namespace
 
 		uint2						viewSize;
 
-		Strong<ImageID>				img;
-		Strong<ImageViewID>			view;
+		GAutorelease<ImageID>		img;
+		GAutorelease<ImageViewID>	view;
 
-		Strong<BufferID>			vb;
+		GAutorelease<BufferID>		vb;
 		
 		GraphicsPipelineID			ppln;
 
@@ -147,7 +147,7 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Draw2"} );
+		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Draw2"} );
 		CHECK_ERR( t.batch );
 
 		AsyncTask	task1	= t.batch->Run< D2_DrawTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},				{"Draw task"} );
@@ -163,8 +163,6 @@ namespace
 		CHECK_ERR( Scheduler().Wait({ t.result }));
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
-		CHECK_ERR( res_mngr.ReleaseResources( t.view, t.img, t.vb ));
-
 		CHECK_ERR( t.isOK );
 		return true;
 	}
@@ -175,15 +173,16 @@ namespace
 bool RGTest::Test_Draw2 ()
 {
 	auto	img_cmp = _LoadReference( TEST_NAME );
+	bool	result	= true;
 
-	CHECK_ERR(( Draw2Test< DirectCtx,   DirectCtx::Transfer   >( _pipelines, img_cmp.get() )));
-	CHECK_ERR(( Draw2Test< DirectCtx,   IndirectCtx::Transfer >( _pipelines, img_cmp.get() )));
+	RG_CHECK( Draw2Test< DirectCtx,   DirectCtx::Transfer   >( _pipelines, img_cmp.get() ));
+	RG_CHECK( Draw2Test< DirectCtx,   IndirectCtx::Transfer >( _pipelines, img_cmp.get() ));
 
-	CHECK_ERR(( Draw2Test< IndirectCtx, DirectCtx::Transfer   >( _pipelines, img_cmp.get() )));
-	CHECK_ERR(( Draw2Test< IndirectCtx, IndirectCtx::Transfer >( _pipelines, img_cmp.get() )));
+	RG_CHECK( Draw2Test< IndirectCtx, DirectCtx::Transfer   >( _pipelines, img_cmp.get() ));
+	RG_CHECK( Draw2Test< IndirectCtx, IndirectCtx::Transfer >( _pipelines, img_cmp.get() ));
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

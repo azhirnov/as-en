@@ -28,11 +28,15 @@ if ((TARGET "ShaderTrace") AND ${AE_ENABLE_VULKAN})
 	source_group( "graphics" FILES ${GRAPHICS_SRC} )
 
 	set_property( TARGET "Tests.ShaderTrace" PROPERTY FOLDER "Engine/Tests" )
-	target_link_libraries( "Tests.ShaderTrace" PUBLIC "ShaderTrace" )
+	target_link_libraries( "Tests.ShaderTrace" PUBLIC "ShaderTrace" "Graphics" "ResourceLoaders" )
 	target_link_libraries( "Tests.ShaderTrace" PUBLIC "Vulkan-lib" "VulkanExtEmulation" )
 
 	target_include_directories( "Tests.ShaderTrace" PRIVATE "${VK_FILES_PATH}" )
 	target_compile_definitions( "Tests.ShaderTrace" PUBLIC "DATA_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/ref/\"" )
 	
+	if (TARGET "SPIRV-Cross-lib")
+		target_link_libraries( "Tests.ShaderTrace" PUBLIC "SPIRV-Cross-lib" )
+	endif()
+
 	add_test( NAME "Tests.ShaderTrace" COMMAND "Tests.ShaderTrace" )
 endif()

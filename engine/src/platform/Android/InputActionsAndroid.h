@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "platform/Public/Common.h"
+#include "platform/Android/AndroidCommon.h"
 
 #ifdef AE_PLATFORM_ANDROID
 # include "platform/Private/InputActionsBase.h"
@@ -37,17 +37,17 @@ namespace AE::App
 		
 	// methods
 	public:
-		InputActionsAndroid () : InputActionsBase{_dbQueue} {}
+		InputActionsAndroid ()																		__NE___	: InputActionsBase{_dbQueue} {}
 		
-		void  SetKey (int key, EGestureState state);
-		void  SetTouch (uint touchId, float x, float y, EGestureState state, Duration_t timestamp);
-		void  SetMonitor (const uint2 &surfaceSize, const Monitor &);
+		void  SetKey (int key, EGestureState state)													__NE___;
+		void  SetTouch (uint touchId, float x, float y, EGestureState state, Duration_t timestamp)	__NE___;
+		void  SetMonitor (const uint2 &surfaceSize, const Monitor &)								__NE___;
 
-		void  SetQueue (DubleBufferedQueue *);
+		void  SetQueue (DubleBufferedQueue *)														__NE___;
 
 
 	// IInputActions //
-		bool  LoadSerialized (MemRefRStream &stream) override;
+		bool  LoadSerialized (MemRefRStream &stream)	__NE_OV;
 		
 
 	// ISerializable //

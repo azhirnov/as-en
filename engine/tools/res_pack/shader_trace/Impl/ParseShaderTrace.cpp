@@ -1,5 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+// TODO: VS style output: 'file (line): message'
+
 #include "Common.h"
 
 #ifdef AE_ENABLE_GLSLANG
@@ -40,9 +42,8 @@ namespace
 
 		EbtNumTypes
 	};
-#else
-	STATIC_ASSERT( uint(TBasicType::EbtNumTypes) == 22 );
 #endif
+	STATIC_ASSERT( uint(TBasicType::EbtNumTypes) == 22 );
 
 
 	//
@@ -56,6 +57,7 @@ namespace
 		using VarNames_t		= ShaderTrace::VarNames_t;
 		using Sources_t			= ShaderTrace::Sources_t;
 		using SourceLocation	= ShaderTrace::SourceLocation;
+		using ELogFormat		= ShaderTrace::ELogFormat;
 
 		union Value
 		{
@@ -99,16 +101,16 @@ namespace
 
 	public:
 		ND_ bool  AddState (const ExprInfo &expr, TBasicType type, uint rows, uint cols, const uint *data,
-							const VarNames_t &varNames, const Sources_t &src, INOUT String &result);
+							const VarNames_t &varNames, const Sources_t &src, ELogFormat format, INOUT String &result);
 
 		ND_ bool  AddTime (const ExprInfo &expr, uint rows, uint cols, const uint *data);
 
-		ND_ bool  Flush (const VarNames_t &varNames, const Sources_t &src, INOUT String &result);
+		ND_ bool  Flush (const VarNames_t &varNames, const Sources_t &src, ELogFormat format, INOUT String &result);
 
 
 	private:
-		ND_ bool  _FlushStates (const VarNames_t &varNames, const Sources_t &src, INOUT String &result);
-		ND_ bool  _FlushProfiling (const Sources_t &src, INOUT String &result);
+		ND_ bool  _FlushStates (const VarNames_t &varNames, const Sources_t &src, ELogFormat format, INOUT String &result);
+		ND_ bool  _FlushProfiling (const Sources_t &src, ELogFormat format, INOUT String &result);
 
 		ND_ static ulong		HashOf (VariableID id, uint col)	{ return (ulong(id) << 32) | col; }
 		ND_ static VariableID	VarFromHash (ulong h)				{ return VariableID(h >> 32); }
@@ -166,10 +168,11 @@ namespace
 =================================================
 */
 	bool  Trace::AddState (const ExprInfo &expr, TBasicType type, uint rows, uint cols, const uint *data,
-						   const VarNames_t &varNames, const Sources_t &sources, INOUT String &result)
+						   const VarNames_t &varNames, const Sources_t &sources, ELogFormat format,
+						   INOUT String &result)
 	{
 		if ( not (_lastLoc == expr.range) )
-			CHECK_ERR( _FlushStates( varNames, sources, INOUT result ));
+			CHECK_ERR( _FlushStates( varNames, sources, format, INOUT result ));
 
 		const auto	AppendID = [this] (ulong newID)
 		{{
@@ -186,7 +189,7 @@ namespace
 			auto	iter = _states.find( id );
 
 			if ( iter == _states.end() or expr.varID == VariableID::Unknown )
-				iter = _states.insert_or_assign( id, VariableState{ {}, type, rows, false } ).first;
+				iter = _states.insert_or_assign( id, VariableState{ Default, type, rows, false }).first;
 
 			VariableState&	var = iter->second;
 
@@ -196,7 +199,7 @@ namespace
 
 			if ( var.type == TBasicType::EbtVoid )
 			{
-				var.value = {};
+				var.value = Default;
 				var.count = 0;
 			}
 			else
@@ -317,16 +320,16 @@ namespace
 		String	str;
 
 		if ( rows > 1 )
-			str += TypeToString( rows );
+			str << TypeToString( rows );
 
-		str += " {";
+		str << " {";
 
 		for (uint r = 0; r < rows; ++r)
 		{
-			str += (r ? ", " : "") + TypeToString( values[r] );
+			str << (r ? ", " : "") + TypeToString( values[r] );
 		}
 	
-		str += "}\n";
+		str << "}\n";
 		return str;
 	}
 
@@ -335,29 +338,53 @@ namespace
 	AppendSourceRange
 =================================================
 */
-	ND_ static bool  AppendSourceRange (const Trace::SourceLocation &loc, const Trace::Sources_t &sources, INOUT String &result)
+	ND_ static bool  AppendSourceRange (const Trace::SourceLocation &loc, const Trace::Sources_t &sources, Trace::ELogFormat format, INOUT String &result)
 	{
 		CHECK_ERR( loc.sourceId < sources.size() );
 
 		const auto&		src			= sources[ loc.sourceId ];
 		const uint		start_line	= Max( 1u, loc.begin.Line() ) - 1;	// because first line is 1
-		const uint		end_line	= Max( 1u, loc.end.Line() ) - 1;
+		const uint		end_line	= Max( 1u, loc.end  .Line() ) - 1;
 		const uint		start_col	= Max( 1u, loc.begin.Column() ) - 1;
-		const uint		end_col		= Max( 1u, loc.end.Column() ) - 1;
+		const uint		end_col		= Max( 1u, loc.end  .Column() ) - 1;
+		const uint		file_line	= loc.begin.Line() >= src.firstLine ? loc.begin.Line() - src.firstLine : 0;
 
 		CHECK_ERR( start_line < src.lines.size() );
 		CHECK_ERR( end_line < src.lines.size() );
 
 		if ( loc.sourceId == 0 and end_line == 0 and end_col == 0 )
-			result += "no source\n";
-		else
+		{
+			result << "no source\n";
+			return true;
+		}
+
+		BEGIN_ENUM_CHECKS();
+		switch ( format )
+		{
+			// pattern: 'file (line): ...'
+			case Trace::ELogFormat::VS_Console :
+				result << src.filename << " (" << ToString(file_line) << "):\n";
+				break;
+	
+			// pattern: 'url#line'
+			case Trace::ELogFormat::VSCode :
+				result << "file:///" << src.filename << "#" << ToString(file_line) << "\n";
+				break;
+				
+			case Trace::ELogFormat::Text :
+			case Trace::ELogFormat::Unknown :
+			case Trace::ELogFormat::_Count :	break;
+		}
+		END_ENUM_CHECKS();
+
 		for (uint i = start_line; i <= end_line; ++i)
 		{
-			result += ToString(i+1) + ". ";
+			result << ToString(i+1) + ". ";
 
 			usize	start	= src.lines[i].first;
 			usize	end		= src.lines[i].second;
 		
+			// TODO
 			/*if ( i == end_line ) {
 				CHECK_ERR( start + end_col < end );
 				end = start + end_col;
@@ -369,12 +396,13 @@ namespace
 
 			if ( start < end )
 			{
-				result += src.code.substr( start, end - start );
-				result += '\n';
+				result << src.code.substr( start, end - start );
+				result << '\n';
 			}
 			else
-				result += "invalid source location\n";
+				result << "invalid source location\n";
 		}
+
 		return true;
 	}
 
@@ -383,7 +411,7 @@ namespace
 	Trace::_FlushStates
 =================================================
 */
-	bool  Trace::_FlushStates (const VarNames_t &varNames, const Sources_t &sources, INOUT String &result)
+	bool  Trace::_FlushStates (const VarNames_t &varNames, const Sources_t &sources, ELogFormat format, INOUT String &result)
 	{
 		const auto	Convert = [this, &varNames, INOUT &result] (ulong varHash) -> bool
 		{{
@@ -456,7 +484,7 @@ namespace
 		}
 		_pending.clear();
 
-		CHECK_ERR( AppendSourceRange( _lastLoc, sources, INOUT result ));
+		CHECK_ERR( AppendSourceRange( _lastLoc, sources, format, INOUT result ));
 
 		result << '\n';
 
@@ -468,7 +496,7 @@ namespace
 	Trace::_FlushProfiling
 =================================================
 */
-	bool  Trace::_FlushProfiling (const Sources_t &sources, INOUT String &result)
+	bool  Trace::_FlushProfiling (const Sources_t &sources, ELogFormat format, INOUT String &result)
 	{
 		if ( _profiling.empty() )
 			return true;
@@ -513,7 +541,7 @@ namespace
 
 			result << "// invocations:    " << ToString( time.count ) << "\n";
 
-			CHECK_ERR( AppendSourceRange( expr.range, sources, INOUT result ));
+			CHECK_ERR( AppendSourceRange( expr.range, sources, format, INOUT result ));
 			result << "\n";
 		}
 
@@ -525,10 +553,10 @@ namespace
 	Trace::Flush
 =================================================
 */
-	bool  Trace::Flush (const VarNames_t &varNames, const Sources_t &sources, INOUT String &result)
+	bool  Trace::Flush (const VarNames_t &varNames, const Sources_t &sources, ELogFormat format, INOUT String &result)
 	{
-		CHECK_ERR( _FlushStates( varNames, sources, INOUT result ));
-		CHECK_ERR( _FlushProfiling( sources, INOUT result ));
+		CHECK_ERR( _FlushStates( varNames, sources, format, INOUT result ));
+		CHECK_ERR( _FlushProfiling( sources, format, INOUT result ));
 
 		return true;
 	}
@@ -559,6 +587,7 @@ namespace
 		}
 		RETURN_ERR( "not supported" );
 	}
+
 } // namespace
 //-----------------------------------------------------------------------------
 
@@ -569,12 +598,18 @@ namespace
 	ParseShaderTrace
 =================================================
 */
-	bool  ShaderTrace::ParseShaderTrace (const void *ptr, const Bytes inMaxSize, OUT Array<String> &result) const
+	bool  ShaderTrace::ParseShaderTrace (const void *ptr, const Bytes inMaxSize, ELogFormat format, OUT Array<String> &result) const
 	{
+		if ( format == Default )
+			format = ELogFormat::Text;
+
 		result.clear();
 
+		const ulong		count = *(static_cast<uint const*>(ptr) + _posOffset / sizeof(uint));
+		if ( count == 0 )
+			return true;
+
 		const ulong		max_size	= ulong(inMaxSize);
-		const ulong		count		= *(static_cast<uint const*>(ptr) + _posOffset / sizeof(uint));
 		uint const*		start_ptr	= static_cast<uint const*>(ptr) + _dataOffset / sizeof(uint);
 		uint const*		end_ptr		= start_ptr + Min( count, (max_size - _dataOffset) / sizeof(uint) );
 		Array<Trace>	shaders;
@@ -629,14 +664,14 @@ namespace
 			if ( t_basic == ShaderTrace::TBasicType_Clock )
 				CHECK_ERR( trace->AddTime( expr, row_size, col_size, data ))
 			else
-				CHECK_ERR( trace->AddState( expr, t_basic, row_size, col_size, data, _varNames, _sources, INOUT str ));
+				CHECK_ERR( trace->AddState( expr, t_basic, row_size, col_size, data, _varNames, _sources, format, INOUT str ));
 
 			trace->lastPosition = pos;
 		}
 
 		for (usize i = 0; i < shaders.size(); ++i)
 		{
-			CHECK_ERR( shaders[i].Flush( _varNames, _sources, INOUT result[i] ));
+			CHECK_ERR( shaders[i].Flush( _varNames, _sources, format, INOUT result[i] ));
 		}
 		return true;
 	}

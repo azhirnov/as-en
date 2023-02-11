@@ -6,6 +6,7 @@
 # include "base/Containers/NtStringView.h"
 # include "base/Utils/SourceLoc.h"
 # include "base/Utils/Version.h"
+# include "base/Utils/Threading.h"
 
 namespace AE::Base
 {
@@ -59,8 +60,8 @@ namespace AE::Base
 			static void		SetThreadName (NtStringView name)				__NE___;
 		ND_ static String	GetThreadName ();
 
-			static bool		SetThreadAffinity (const std::thread::native_handle_type &handle, uint coreIdx)		__NE___;
-			static bool		SetThreadPriority (const std::thread::native_handle_type &handle, float priority)	__NE___;
+			static bool		SetThreadAffinity (const ThreadHandle &handle, uint coreIdx)	__NE___;
+			static bool		SetThreadPriority (const ThreadHandle &handle, float priority)	__NE___;
 			
 		ND_	static uint		GetProcessorCoreIndex ()						__NE___;	// current logical CPU core
 		
@@ -73,12 +74,18 @@ namespace AE::Base
 
 
 		// Clipboard //
-		ND_ static bool		GetClipboardData (OUT WString &result, void* wnd = null)	__NE___;
-		ND_ static bool		GetClipboardData (OUT String &result, void* wnd = null)		__NE___;
+		ND_ static bool		ClipboardExtract (OUT WString &result, void* wnd = null)	__NE___;
+		ND_ static bool		ClipboardExtract (OUT String &result, void* wnd = null)		__NE___;
+		ND_ static bool		ClipboardPut (WStringView str, void* wnd = null)			__NE___;
+		ND_ static bool		ClipboardPut (StringView str, void* wnd = null)				__NE___;
 
 
 	private:
 		ND_ static bool  _CheckError (uint err, StringView msg, const SourceLoc &loc, ELogLevel level, ELogScope scope) __NE___;
+
+		template <typename DataType, uint Format>
+		ND_ static bool  _ClipboardExtract (OUT DataType &result, void* wnd)						__NE___;
+		ND_ static bool  _ClipboardPut (const void* data, Bytes dataSize, uint format, void* wnd)	__NE___;
 	};
 
 } // AE::Base

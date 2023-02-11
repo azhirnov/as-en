@@ -2,10 +2,11 @@
 
 #pragma once
 
+#include "platform/OpenVR/OpenVRCommon.h"
+
 #ifdef AE_ENABLE_OPENVR
 # include "platform/Private/InputActionsBase.h"
 # include "platform/OpenVR/SerializableInputActionsOpenVR.h"
-# include "openvr_capi.h"
 
 namespace AE::App
 {

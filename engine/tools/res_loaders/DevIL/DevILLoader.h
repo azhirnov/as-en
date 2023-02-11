@@ -3,8 +3,7 @@
 #pragma once
 
 #ifdef AE_ENABLE_DEVIL
-
-#include "res_loaders/IImageLoader.h"
+# include "res_loaders/IImageLoader.h"
 
 namespace AE::ResLoader
 {
@@ -17,7 +16,7 @@ namespace AE::ResLoader
 	{
 	// methods
 	public:
-		bool  LoadImage (INOUT IntermImage &image, RStream &stream, bool flipY, Allocator_t allocator) override;
+		bool  LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE_OV;
 		using IImageLoader::LoadImage;
 	};
 

@@ -28,7 +28,7 @@ namespace AE::InputActions
 	struct InputActionsInfo
 	{
 		// input
-		const CharType* const*	inFiles				= null;
+		const CharType* const*	inFiles				= null;		// [inFileCount]
 		usize					inFileCount			= 0;
 
 		// output

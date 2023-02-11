@@ -233,7 +233,8 @@ namespace AE::Graphics
 		private:
 			ND_ bool  _PreloadShaders (const ResMngr_t &)									__NE___;
 
-			void  _PrintPipelines (PipelineCompiler::PipelineSpecUID mask)					C_NE___;
+			void  _PrintPipelines (const PipelineName &name,
+								   PipelineCompiler::PipelineSpecUID mask)					C_NE___;
 		
 			template <PipelineCompiler::PipelineSpecUID  SpecMask,
 					  PipelineCompiler::PipelineTemplUID TemplMask,
@@ -243,13 +244,13 @@ namespace AE::Graphics
 				_Extract (PipelineCompiler::PipelineSpecUID uid, SpecType &specArr, TemplType &templArr,
 						  const FeatureNames_t &unsupportedFS DEBUG_ONLY(, const FeatureNames_t &allFeatureSets )) __NE___;
 
-			ND_ PipelineID  _CompileGraphicsPipeline   (ResMngr_t &, const PipelineCompiler::SerializableGraphicsPipelineSpec  &, const PipelineCompiler::SerializableGraphicsPipeline  &, PipelineCacheID) __NE___;
-			ND_ PipelineID  _CompileMeshPipeline       (ResMngr_t &, const PipelineCompiler::SerializableMeshPipelineSpec      &, const PipelineCompiler::SerializableMeshPipeline      &, PipelineCacheID) __NE___;
-			ND_ PipelineID  _CompileComputePipeline    (ResMngr_t &, const PipelineCompiler::SerializableComputePipelineSpec   &, const PipelineCompiler::SerializableComputePipeline   &, PipelineCacheID) __NE___;
-			ND_ PipelineID  _CompileRayTracingPipeline (ResMngr_t &, const PipelineCompiler::SerializableRayTracingPipelineSpec&, const PipelineCompiler::SerializableRayTracingPipeline&, PipelineCacheID) __NE___;
-			ND_ PipelineID  _CompileTilePipeline       (ResMngr_t &, const PipelineCompiler::SerializableTilePipelineSpec	   &, const PipelineCompiler::SerializableTilePipeline		&, PipelineCacheID) __NE___;
+			ND_ PipelineID  _CompileGraphicsPipeline   (ResMngr_t &, const PipelineCompiler::SerializableGraphicsPipelineSpec  &, const PipelineCompiler::SerializableGraphicsPipeline  &, PipelineCacheID, StringView) __NE___;
+			ND_ PipelineID  _CompileMeshPipeline       (ResMngr_t &, const PipelineCompiler::SerializableMeshPipelineSpec      &, const PipelineCompiler::SerializableMeshPipeline      &, PipelineCacheID, StringView) __NE___;
+			ND_ PipelineID  _CompileComputePipeline    (ResMngr_t &, const PipelineCompiler::SerializableComputePipelineSpec   &, const PipelineCompiler::SerializableComputePipeline   &, PipelineCacheID, StringView) __NE___;
+			ND_ PipelineID  _CompileRayTracingPipeline (ResMngr_t &, const PipelineCompiler::SerializableRayTracingPipelineSpec&, const PipelineCompiler::SerializableRayTracingPipeline&, PipelineCacheID, StringView) __NE___;
+			ND_ PipelineID  _CompileTilePipeline       (ResMngr_t &, const PipelineCompiler::SerializableTilePipelineSpec	   &, const PipelineCompiler::SerializableTilePipeline		&, PipelineCacheID, StringView) __NE___;
 
-			ND_ RTShaderBindingID  _CreateRTShaderBinding (ResMngr_t &, const PipelineCompiler::SerializableRTShaderBindingTable &) __NE___;
+			ND_ RTShaderBindingID  _CreateRTShaderBinding (ResMngr_t &, const PipelineCompiler::SerializableRTShaderBindingTable &, StringView) __NE___;
 		};
 
 	private:
@@ -321,8 +322,8 @@ namespace AE::Graphics
 		ND_ bool  Create (ResMngr_t &, const PipelinePackDesc &desc)																								__NE___;
 			void  Destroy (ResMngr_t &)																																__NE___;
 			
-		ND_ RenderPassID_t			GetRenderPass (const RenderPassName &name)																						C_NE___;
-		ND_ RenderPassID_t			GetRenderPass (const CompatRenderPassName &name)																				C_NE___;
+		ND_ RenderPassID_t			GetRenderPass (const ResMngr_t &, const RenderPassName &name)																	C_NE___;
+		ND_ RenderPassID_t			GetRenderPass (const ResMngr_t &, const CompatRenderPassName &name)																C_NE___;
 
 		ND_ SamplerID_t				GetSampler (const SamplerName &name)																							C_NE___;
 		ND_ Array<RenderTechName>	GetSupportedRenderTechs ()																										C_NE___;

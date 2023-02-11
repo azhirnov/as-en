@@ -3,7 +3,6 @@
 #include "VulkanSyncLog.h"
 #include "base/Algorithms/StringUtils.h"
 #include "base/Containers/FixedMap.h"
-#include "threading/Common.h"
 #include "graphics/Public/ImageUtils.h"
 
 using namespace AE;
@@ -48,10 +47,27 @@ namespace
 		};
 		using ImageViewMap_t = FlatHashMap< VkImageView, ImageViewData >;
 
+		struct DeviceAddressRange
+		{
+			ulong					address	= 0;
+			ulong					size	= 0;
+			VkBuffer				buffer	= Default;
+		};
+		struct DeviceAddressKey
+		{
+			ulong					address	= 0;
+
+			explicit DeviceAddressKey (VkDeviceAddress addr) : address{addr} {}
+
+			ND_ bool  operator >  (const DeviceAddressRange &rhs) const	{ return address >= rhs.address + rhs.size; }
+			ND_ bool  operator == (const DeviceAddressRange &rhs) const	{ return address >= rhs.address and address < rhs.address + rhs.size; }
+		};
+		using DevAddressToBuffer_t	= Array< DeviceAddressRange >;
 
 		struct BufferData
 		{
 			VkBuffer				buffer	= Default;
+			VkDeviceAddress			address	= 0;
 			String					name	= {};
 			VkBufferCreateInfo		info	= {};
 		};
@@ -221,6 +237,7 @@ namespace
 		ImageViewMap_t			imageViewMap;
 		BufferMap_t				bufferMap;
 		BufferViewMap_t			bufferViewMap;
+		DevAddressToBuffer_t	devAddrToBuffer;
 		AccelStructMap_t		accelStructMap;
 		FramebufferMap_t		framebufferMap;
 		RenderPassMap_t			renderPassMap;
@@ -244,6 +261,10 @@ namespace
 
 			void	ResetSyncNames ();
 		ND_ String	GetSyncName (VkSemaphore sem, ulong val);
+
+		ND_ String  GetBufferName (VkDeviceOrHostAddressConstKHR addr)	{ return GetBufferName( addr.deviceAddress ); }
+		ND_ String  GetBufferName (VkDeviceOrHostAddressKHR addr)		{ return GetBufferName( addr.deviceAddress ); }
+		ND_ String  GetBufferName (VkDeviceAddress addr);
 
 		ND_ static VulkanLogger&  Get ()
 		{
@@ -273,10 +294,10 @@ namespace
 	VkPipelineStage2ToString
 =================================================
 */
-	ND_ static String  VkPipelineStage2ToString (VkPipelineStageFlags2KHR stages)
+	ND_ static String  VkPipelineStage2ToString (VkPipelineStageFlags2 stages)
 	{
-		if ( AllBits( stages, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT_KHR ))
-			return VkPipelineStageFlagBits2ToString( stages );
+		if ( AllBits( stages, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT ))
+			return VkPipelineStageFlagBits2ToString( VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT );
 
 		return VkPipelineStageFlags2ToString( stages );
 	}
@@ -315,7 +336,16 @@ namespace
 		auto&	logger = VulkanLogger::Get();
 		{
 			EXLOCK( logger.guard );
-			logger.bufferMap.erase( buffer );
+
+			auto	it = logger.bufferMap.find( buffer );
+			if ( it != logger.bufferMap.end() )
+			{
+				usize	idx = LowerBound2( logger.devAddrToBuffer, VulkanLogger::DeviceAddressKey{it->second.address} );
+				if ( idx != UMax )
+					logger.devAddrToBuffer.erase( logger.devAddrToBuffer.begin() + idx );
+
+				logger.bufferMap.erase( it );
+			}
 		}
 		logger.vkDestroyBuffer( device, buffer, pAllocator );
 	}
@@ -405,7 +435,7 @@ namespace
 	Wrap_vkGetSwapchainImagesKHR
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkGetSwapchainImagesKHR (VkDevice device, VkSwapchainKHR swapchain, uint32_t* pSwapchainImageCount, VkImage* pSwapchainImages)
+	VkResult VKAPI_CALL Wrap_vkGetSwapchainImagesKHR (VkDevice device, VkSwapchainKHR swapchain, uint* pSwapchainImageCount, VkImage* pSwapchainImages)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -842,9 +872,6 @@ namespace
 
 		EXLOCK( logger.guard );
 		
-		if ( not logger.enableLog )
-			return VK_SUCCESS;
-
 		for (uint i = 0; i < pAllocateInfo->descriptorSetCount; ++i)
 		{
 			auto&	desc_set	= logger.descSetMap.insert_or_assign( pDescriptorSets[i], VulkanLogger::DescriptorSetData{} ).first->second;
@@ -885,8 +912,9 @@ namespace
 		logger.vkUpdateDescriptorSets( device, descriptorWriteCount, pDescriptorWrites, descriptorCopyCount, pDescriptorCopies );
 
 		EXLOCK( logger.guard );
-		if ( not logger.enableLog )
-			return;
+		
+		//if ( not logger.enableLog )
+		//	return;
 
 		for (uint j = 0; j < descriptorWriteCount; ++j)
 		{
@@ -1363,7 +1391,7 @@ namespace
 	Wrap_vkAcquireNextImageKHR
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkAcquireNextImageKHR (VkDevice device, VkSwapchainKHR swapchain, uint64_t timeout, VkSemaphore semaphore, VkFence fence, OUT uint32_t* pImageIndex)
+	VkResult VKAPI_CALL Wrap_vkAcquireNextImageKHR (VkDevice device, VkSwapchainKHR swapchain, ulong timeout, VkSemaphore semaphore, VkFence fence, OUT uint* pImageIndex)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -2179,7 +2207,7 @@ namespace
 	
 /*
 =================================================
-	Wrap_vkCmdEndRenderPass
+	IsDepthStencilFormat
 =================================================
 */
 	ND_ static bool  IsDepthStencilFormat (VkFormat fmt)
@@ -2331,6 +2359,8 @@ namespace
 		logger.vkCmdCopyBuffer( commandBuffer, srcBuffer, dstBuffer, regionCount, pRegions );
 
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -2338,9 +2368,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 
 		auto&	log = cmdbuf.log;
 		log << "  CopyBuffer\n";
@@ -2376,7 +2403,7 @@ namespace
 				<< "), ext:(" << ToString( offset.x + extent.width ) << ", " << ToString( offset.y + extent.height ) << ", " << ToString( offset.z + extent.depth )
 				<< "), mip:" << ToString( subres.mipLevel )
 				<< ", layers:[" << ToString( subres.baseArrayLayer )
-				<< ", " << ToString( subres.baseArrayLayer + subres.layerCount ) << "), "
+				<< ", " << (subres.layerCount == VK_REMAINING_ARRAY_LAYERS ? "Remaining"s : ToString( subres.baseArrayLayer + subres.layerCount )) << "), "
 				<< VkImageAspectFlagsToString( subres.aspectMask ) << " }";
 	}
 	
@@ -2387,8 +2414,10 @@ namespace
 */
 	ND_ static String  SubresourceRangeToString (const VkImageSubresourceRange &subres)
 	{
-		return	"{ mip:["s << ToString( subres.baseMipLevel ) << ", " << ToString( subres.baseMipLevel + subres.levelCount )
-				<< "), layers:[" << ToString( subres.baseArrayLayer ) << ", " << ToString( subres.baseArrayLayer + subres.layerCount ) << "), "
+		return	"{ mips:["s << ToString( subres.baseMipLevel ) << ", "
+				<< (subres.levelCount == VK_REMAINING_MIP_LEVELS ? "Remaining"s : ToString( subres.baseMipLevel + subres.levelCount ))
+				<< "), layers:[" << ToString( subres.baseArrayLayer ) << ", "
+				<< (subres.layerCount == VK_REMAINING_ARRAY_LAYERS ? "Remaining"s : ToString( subres.baseArrayLayer + subres.layerCount )) << "), "
 				<< VkImageAspectFlagsToString( subres.aspectMask ) << " }";
 	}
 	
@@ -2653,6 +2682,8 @@ namespace
 		logger.vkCmdCopyImage( commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions );
 
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -2660,9 +2691,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 
 		auto&	log = cmdbuf.log;
 		log << "  CopyImage\n";
@@ -2701,6 +2729,8 @@ namespace
 		logger.vkCmdBlitImage( commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter );
 		
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -2708,9 +2738,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-	
-		if ( not logger.enableLog )
-			return;
 
 		auto&	log = cmdbuf.log;
 		log << "  BlitImage\n";
@@ -2752,6 +2779,8 @@ namespace
 		logger.vkCmdCopyBufferToImage( commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions );
 		
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -2759,9 +2788,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 
 		auto&	log = cmdbuf.log;
 		log << "  CopyBufferToImage\n";
@@ -2799,6 +2825,8 @@ namespace
 		logger.vkCmdCopyImageToBuffer( commandBuffer, srcImage, srcImageLayout, dstBuffer, regionCount, pRegions );
 		
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -2806,9 +2834,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 
 		auto&	log = cmdbuf.log;
 		log << "  CopyImageToBuffer\n";
@@ -2845,6 +2870,8 @@ namespace
 		logger.vkCmdUpdateBuffer( commandBuffer, dstBuffer, dstOffset, dataSize, pData );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -2852,9 +2879,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 
 		auto&	log = cmdbuf.log;
 		log << "  UpdateBuffer\n";
@@ -2880,6 +2904,8 @@ namespace
 		logger.vkCmdFillBuffer( commandBuffer, dstBuffer, dstOffset, size, data );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -2887,9 +2913,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 
 		auto&	log = cmdbuf.log;
 		log << "  FillBuffer\n";
@@ -2916,6 +2939,8 @@ namespace
 		logger.vkCmdClearColorImage( commandBuffer, image, imageLayout, pColor, rangeCount, pRanges );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -2923,9 +2948,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 
 		auto& log = cmdbuf.log;
 		log << "  ClearColorImage\n";
@@ -2955,6 +2977,8 @@ namespace
 		logger.vkCmdClearDepthStencilImage( commandBuffer, image, imageLayout, pDepthStencil, rangeCount, pRanges );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -2962,9 +2986,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		auto& log = cmdbuf.log;
 		log << "  ClearDepthStencilImage\n";
@@ -2993,6 +3014,8 @@ namespace
 		logger.vkCmdClearAttachments( commandBuffer, attachmentCount, pAttachments, rectCount, pRects );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3000,9 +3023,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		auto& log = cmdbuf.log;
 		log << "  ClearAttachments\n";
@@ -3021,6 +3041,8 @@ namespace
 		logger.vkCmdResolveImage( commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3028,9 +3050,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		auto& log = cmdbuf.log;
 		log << "  ResolveImage\n";
@@ -3068,6 +3087,8 @@ namespace
 		logger.vkCmdDispatch( commandBuffer, groupCountX, groupCountY, groupCountZ );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3075,9 +3096,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  Dispatch\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
@@ -3094,6 +3112,8 @@ namespace
 		logger.vkCmdDispatchBase( commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3101,9 +3121,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  DispatchBase\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
@@ -3120,6 +3137,8 @@ namespace
 		logger.vkCmdDispatchIndirect( commandBuffer, buffer, offset );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3127,9 +3146,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  DispatchIndirect\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_COMPUTE );
@@ -3146,6 +3162,8 @@ namespace
 		logger.vkCmdDraw( commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3153,9 +3171,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  Draw\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
@@ -3172,6 +3187,8 @@ namespace
 		logger.vkCmdDrawIndexed( commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3179,9 +3196,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  DrawIndexed\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
@@ -3198,6 +3212,8 @@ namespace
 		logger.vkCmdDrawIndirect( commandBuffer, buffer, offset, drawCount, stride );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3205,9 +3221,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  DrawIndirect\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
@@ -3224,6 +3237,8 @@ namespace
 		logger.vkCmdDrawIndexedIndirect( commandBuffer, buffer, offset, drawCount, stride );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3231,9 +3246,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  DrawIndexedIndirect\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
@@ -3251,6 +3263,8 @@ namespace
 		logger.vkCmdDrawIndirectCountKHR( commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3258,9 +3272,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  DrawIndirectCount\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
@@ -3278,6 +3289,8 @@ namespace
 		logger.vkCmdDrawIndexedIndirectCountKHR( commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3285,37 +3298,8 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  DrawIndexedIndirectCount\n";
-		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
-	}
-	
-/*
-=================================================
-	Wrap_vkCmdDrawMeshTasksNV
-=================================================
-*/
-	void VKAPI_CALL Wrap_vkCmdDrawMeshTasksNV (VkCommandBuffer commandBuffer, uint taskCount, uint firstTask)
-	{
-		auto&	logger = VulkanLogger::Get();
-		logger.vkCmdDrawMeshTasksNV( commandBuffer, taskCount, firstTask );
-	
-		EXLOCK( logger.guard );
-		
-		auto	iter = logger.commandBuffers.find( commandBuffer );
-		if ( iter == logger.commandBuffers.end() )
-			return;
-
-		auto&	cmdbuf = iter->second;
-		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
-		
-		cmdbuf.log << "  DrawMeshTasksNV\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
 	}
 	
@@ -3330,6 +3314,8 @@ namespace
 		logger.vkCmdDrawMeshTasksEXT( commandBuffer, groupCountX, groupCountY, groupCountZ );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3337,9 +3323,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  DrawMeshTasks\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
@@ -3353,9 +3336,11 @@ namespace
 	void VKAPI_CALL Wrap_vkCmdDrawMeshTasksIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride)
 	{
 		auto&	logger = VulkanLogger::Get();
-		logger.vkCmdDrawMeshTasksIndirectNV( commandBuffer, buffer, offset, drawCount, stride );
+		logger.vkCmdDrawMeshTasksIndirectEXT( commandBuffer, buffer, offset, drawCount, stride );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3363,9 +3348,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  DrawMeshTasksIndirect\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
@@ -3380,9 +3362,11 @@ namespace
 														  VkDeviceSize countBufferOffset, uint maxDrawCount, uint stride)
 	{
 		auto&	logger = VulkanLogger::Get();
-		logger.vkCmdDrawMeshTasksIndirectCountNV( commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
+		logger.vkCmdDrawMeshTasksIndirectCountEXT( commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3390,9 +3374,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  DrawMeshTasksIndirectCount\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_GRAPHICS );
@@ -3412,6 +3393,8 @@ namespace
 								  pCallableShaderBindingTable, width, height, depth );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3419,9 +3402,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  TraceRays\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR );
@@ -3441,6 +3421,8 @@ namespace
 										  pCallableShaderBindingTable, indirectDeviceAddress );
 	
 		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 		
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3448,9 +3430,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-
-		if ( not logger.enableLog )
-			return;
 		
 		cmdbuf.log << "  TraceRaysIndirect\n";
 		logger._PrintResourceUsage( cmdbuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR );
@@ -3493,11 +3472,13 @@ namespace
 		}
 		END_ENUM_CHECKS();
 
+		ds_array->resize( Max( ds_array->size(), firstSet + descriptorSetCount ));
+
 		for (uint i = 0; i < descriptorSetCount; ++i)
 		{
-			ds_array->resize( Max( ds_array->size(), firstSet + i + 1 ));
-
 			(*ds_array)[firstSet + i] = pDescriptorSets[i];
+
+			ASSERT( logger.descSetMap.contains( pDescriptorSets[i] ));
 		}
 	}
 	
@@ -3540,7 +3521,39 @@ namespace
 
 		logger.vkDestroyAccelerationStructureKHR( device, accelerationStructure, pAllocator );
 	}
+	
+/*
+=================================================
+	Wrap_vkGetBufferDeviceAddressKHR
+=================================================
+*/
+	VkDeviceAddress VKAPI_CALL Wrap_vkGetBufferDeviceAddressKHR (VkDevice device, const VkBufferDeviceAddressInfo* pInfo)
+	{
+		auto&	logger	= VulkanLogger::Get();
+		auto	addr	= logger.vkGetBufferDeviceAddressKHR( device, pInfo );
+
+		if ( addr == 0 )
+			return addr;
 		
+		EXLOCK( logger.guard );
+		{
+			auto	buf_it = logger.bufferMap.find( pInfo->buffer );
+			if ( buf_it != logger.bufferMap.end() )
+			{
+				buf_it->second.address = addr;
+	
+				VulkanLogger::DeviceAddressRange	range;
+				range.address	= addr;
+				range.size		= buf_it->second.info.size;
+				range.buffer	= buf_it->second.buffer;
+
+				usize	idx = LowerBound( ArrayView{logger.devAddrToBuffer}, VulkanLogger::DeviceAddressKey{addr} );
+				logger.devAddrToBuffer.insert( logger.devAddrToBuffer.begin() + idx, range );
+			}
+		}
+		return addr;
+	}
+
 /*
 =================================================
 	Wrap_vkCmdInsertDebugUtilsLabelEXT
@@ -3550,6 +3563,10 @@ namespace
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdInsertDebugUtilsLabelEXT( commandBuffer, pLabelInfo );
+		
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3557,9 +3574,6 @@ namespace
 
 		auto&	cmdbuf = iter->second;
 		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
-		
-		if ( not logger.enableLog )
-			return;
 
 		auto&	log = cmdbuf.log;
 		log << "  InsertDebugLabel\n";
@@ -3576,6 +3590,8 @@ namespace
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdBeginDebugUtilsLabelEXT( commandBuffer, pLabelInfo );
+		
+		EXLOCK( logger.guard );
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3605,6 +3621,8 @@ namespace
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdEndDebugUtilsLabelEXT( commandBuffer );
+		
+		EXLOCK( logger.guard );
 
 		auto	iter = logger.commandBuffers.find( commandBuffer );
 		if ( iter == logger.commandBuffers.end() )
@@ -3620,8 +3638,274 @@ namespace
 			return;
 
 		auto&	log = cmdbuf.log;
+		
+		if ( not EndsWith( log, "\n\n" ))
+			log << '\n';
+
 		log << "  EndDebugLabel\n";
 		log << "    depth: " << ToString( depth ) << "\n";
+		log << "  ----------\n\n";
+	}
+
+/*
+=================================================
+	Wrap_vkCmdCopyQueryPoolResults
+=================================================
+*/
+	void VKAPI_CALL Wrap_vkCmdCopyQueryPoolResults (VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint firstQuery, uint queryCount,
+													VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride, VkQueryResultFlags flags)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdCopyQueryPoolResults( commandBuffer, queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags );
+		
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto	iter = logger.commandBuffers.find( commandBuffer );
+		if ( iter == logger.commandBuffers.end() )
+			return;
+
+		auto&	cmdbuf = iter->second;
+		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+
+		auto	buf_it = logger.bufferMap.find( dstBuffer );
+		if ( buf_it == logger.bufferMap.end() )
+			return;
+
+		auto&	log = cmdbuf.log;
+		log << "  CopyQueryPoolResults\n";
+		log << "    dstBuffer: '" << buf_it->second.name << "'\n";
+		log << "    dstRange:  [" << ToString(dstOffset) << ", "
+			<< ToString( dstOffset + queryCount * stride + (AllBits(flags, VK_QUERY_RESULT_64_BIT) ? sizeof(ulong) : sizeof(uint))) << ")\n";
+		log << "  ----------\n\n";
+	}
+
+/*
+=================================================
+	Wrap_vkCmdBuildAccelerationStructuresKHR
+=================================================
+*/
+	void VKAPI_CALL Wrap_vkCmdBuildAccelerationStructuresKHR (VkCommandBuffer commandBuffer, uint infoCount, const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+															  const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdBuildAccelerationStructuresKHR( commandBuffer, infoCount, pInfos, ppBuildRangeInfos );
+		
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto	iter = logger.commandBuffers.find( commandBuffer );
+		if ( iter == logger.commandBuffers.end() )
+			return;
+
+		auto&	cmdbuf = iter->second;
+		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+
+		auto&	log = cmdbuf.log;
+		log << "  BuildAccelerationStructures\n";
+
+		const auto	LogGeometry = [&logger, &log] (const VkAccelerationStructureGeometryKHR &geom)
+		{{
+			BEGIN_ENUM_CHECKS();
+			switch ( geom.geometryType )
+			{
+				case VK_GEOMETRY_TYPE_TRIANGLES_KHR :
+					log << "Triangles\n";
+					log << "      vertexData:    " << logger.GetBufferName( geom.geometry.triangles.vertexData ) << '\n';
+					log << "      indexData:     " << logger.GetBufferName( geom.geometry.triangles.indexData ) << '\n';
+					log << "      transformData: " << logger.GetBufferName( geom.geometry.triangles.transformData ) << '\n';
+					break;
+				case VK_GEOMETRY_TYPE_AABBS_KHR :
+					log << "AABBs\n";
+					log << "      data: " << logger.GetBufferName( geom.geometry.aabbs.data ) << '\n';
+					break;
+				case VK_GEOMETRY_TYPE_INSTANCES_KHR :
+					log << "Instances\n";
+					log << "      data: " << logger.GetBufferName( geom.geometry.instances.data ) << '\n';
+					break;
+				case VK_GEOMETRY_TYPE_MAX_ENUM_KHR :
+				default :
+					DBG_WARNING("unknown geometry type");
+					break;
+			}
+			END_ENUM_CHECKS();
+		}};
+
+		for (uint i = 0; i < infoCount; ++i)
+		{
+			const auto&	info		= pInfos[i];
+			auto		src_as_it	= logger.accelStructMap.find( info.srcAccelerationStructure );
+			auto		dst_as_it	= logger.accelStructMap.find( info.dstAccelerationStructure );
+
+			if ( src_as_it != logger.accelStructMap.end() )
+				log << "    srcAS: '" << src_as_it->second.name << "'\n";
+			
+			if ( dst_as_it != logger.accelStructMap.end() )
+				log << "    dstAS: '" << dst_as_it->second.name << "'\n";
+
+			log << "    scratch: " << logger.GetBufferName( info.scratchData ) << '\n';
+
+			log << "    type: " << (info.type == VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR		? "TopLevel" :
+									info.type == VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR	? "BottomLevel" : "") << '\n';
+			log << "    mode: " << (info.mode == VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR		? "Build" :
+									info.mode == VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR	? "Update" : "") << '\n';
+
+			if ( info.pGeometries != null )
+			{
+				for (uint j = 0; j < info.geometryCount; ++j)
+				{
+					log << "    [" << ToString(i) << "] ";
+					LogGeometry( info.pGeometries[i] );
+				}
+			}
+			if ( info.ppGeometries != null )
+			{
+				for (uint j = 0; j < info.geometryCount; ++j)
+				{
+					log << "    [" << ToString(i) << "] ";
+					LogGeometry( *(info.ppGeometries[i]) );
+				}
+			}
+			log << "    ----\n";
+		}
+		log << "  ----------\n\n";
+	}
+
+/*
+=================================================
+	Wrap_vkCmdWriteAccelerationStructuresPropertiesKHR
+=================================================
+*/
+	void VKAPI_CALL Wrap_vkCmdWriteAccelerationStructuresPropertiesKHR (VkCommandBuffer commandBuffer, uint accelerationStructureCount,
+																		const VkAccelerationStructureKHR* pAccelerationStructures, VkQueryType queryType,
+																		VkQueryPool queryPool, uint firstQuery)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdWriteAccelerationStructuresPropertiesKHR( commandBuffer, accelerationStructureCount, pAccelerationStructures, queryType, queryPool, firstQuery );
+		
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto	iter = logger.commandBuffers.find( commandBuffer );
+		if ( iter == logger.commandBuffers.end() )
+			return;
+
+		auto&	cmdbuf = iter->second;
+		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+
+		auto&	log = cmdbuf.log;
+		log << "  WriteAccelerationStructuresProperties\n";
+		log << "    AccelerationStructures: ";
+
+		for (uint i = 0; i < accelerationStructureCount; ++i)
+		{
+			auto	as_it = logger.accelStructMap.find( pAccelerationStructures[i] );
+			if ( as_it == logger.accelStructMap.end() )
+				continue;
+
+			log << (i > 0 ? ", " : "") << "'" << as_it->second.name << "'";
+		}
+		log << "  ----------\n\n";
+	}
+	
+/*
+=================================================
+	Wrap_vkCmdCopyAccelerationStructureKHR
+=================================================
+*/
+	void VKAPI_CALL Wrap_vkCmdCopyAccelerationStructureKHR (VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureInfoKHR* pInfo)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdCopyAccelerationStructureKHR( commandBuffer, pInfo );
+		
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto	iter = logger.commandBuffers.find( commandBuffer );
+		if ( iter == logger.commandBuffers.end() )
+			return;
+		
+		auto	src_as_it	= logger.accelStructMap.find( pInfo->src );
+		auto	dst_as_it	= logger.accelStructMap.find( pInfo->dst );
+
+		if ( src_as_it == logger.accelStructMap.end() or dst_as_it == logger.accelStructMap.end() )
+			return;
+
+		auto&	cmdbuf = iter->second;
+		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+
+		auto&	log = cmdbuf.log;
+		log << "  CopyAccelerationStructure\n";
+		log << "    srcAS: '" << src_as_it->second.name << "'\n";
+		log << "    dstAS: '" << dst_as_it->second.name << "'\n";
+		log << "  ----------\n\n";
+	}
+	
+/*
+=================================================
+	Wrap_vkCmdCopyAccelerationStructureToMemoryKHR
+=================================================
+*/
+	void VKAPI_CALL Wrap_vkCmdCopyAccelerationStructureToMemoryKHR (VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureToMemoryInfoKHR* pInfo)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdCopyAccelerationStructureToMemoryKHR( commandBuffer, pInfo );
+		
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto	iter = logger.commandBuffers.find( commandBuffer );
+		if ( iter == logger.commandBuffers.end() )
+			return;
+		
+		auto	as_it = logger.accelStructMap.find( pInfo->src );
+		if ( as_it == logger.accelStructMap.end() )
+			return;
+
+		auto&	cmdbuf = iter->second;
+		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+
+		auto&	log = cmdbuf.log;
+		log << "  CopyAccelerationStructureToMemory\n";
+		log << "    srcAS:  '" << as_it->second.name << "'\n";
+		log << "    dstBuf: " << logger.GetBufferName( pInfo->dst ) << '\n';
+		log << "  ----------\n\n";
+	}
+
+/*
+=================================================
+	Wrap_vkCmdCopyMemoryToAccelerationStructureKHR
+=================================================
+*/
+	void VKAPI_CALL Wrap_vkCmdCopyMemoryToAccelerationStructureKHR (VkCommandBuffer commandBuffer, const VkCopyMemoryToAccelerationStructureInfoKHR* pInfo)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		logger.vkCmdCopyMemoryToAccelerationStructureKHR( commandBuffer, pInfo );
+		
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return;
+
+		auto	iter = logger.commandBuffers.find( commandBuffer );
+		if ( iter == logger.commandBuffers.end() )
+			return;
+		
+		auto	as_it = logger.accelStructMap.find( pInfo->dst );
+		if ( as_it == logger.accelStructMap.end() )
+			return;
+
+		auto&	cmdbuf = iter->second;
+		ASSERT( cmdbuf.cmdBuffer == commandBuffer );
+
+		auto&	log = cmdbuf.log;
+		log << "  CopyMemoryToAccelerationStructure\n";
+		log << "    srcBuf: " << logger.GetBufferName( pInfo->src ) << '\n';
+		log << "    dstAS:  '" << as_it->second.name << "'\n";
 		log << "  ----------\n\n";
 	}
 
@@ -3845,6 +4129,7 @@ namespace
 		table._var_vkGetSwapchainImagesKHR			= &Wrap_vkGetSwapchainImagesKHR;
 		table._var_vkCreateAccelerationStructureKHR	= &Wrap_vkCreateAccelerationStructureKHR;
 		table._var_vkDestroyAccelerationStructureKHR= &Wrap_vkDestroyAccelerationStructureKHR;
+		table._var_vkGetBufferDeviceAddressKHR		= &Wrap_vkGetBufferDeviceAddressKHR;
 
 		table._var_vkQueueSubmit					= &Wrap_vkQueueSubmit;
 		table._var_vkQueueSubmit2KHR				= &Wrap_vkQueueSubmit2KHR;
@@ -3891,14 +4176,18 @@ namespace
 		table._var_vkCmdDrawIndexedIndirectCount	= &Wrap_vkCmdDrawIndexedIndirectCount;
 		table._var_vkCmdDrawIndirectCountKHR		= &Wrap_vkCmdDrawIndirectCount;
 		table._var_vkCmdDrawIndexedIndirectCountKHR	= &Wrap_vkCmdDrawIndexedIndirectCount;
-		table._var_vkCmdDrawMeshTasksNV				= &Wrap_vkCmdDrawMeshTasksNV;
-		table._var_vkCmdDrawMeshTasksIndirectNV		= &Wrap_vkCmdDrawMeshTasksIndirect;
-		table._var_vkCmdDrawMeshTasksIndirectCountNV= &Wrap_vkCmdDrawMeshTasksIndirectCount;
 		table._var_vkCmdDrawMeshTasksEXT			= &Wrap_vkCmdDrawMeshTasks;
 		table._var_vkCmdDrawMeshTasksIndirectEXT	= &Wrap_vkCmdDrawMeshTasksIndirect;
 		table._var_vkCmdDrawMeshTasksIndirectCountEXT= &Wrap_vkCmdDrawMeshTasksIndirectCount;
 		table._var_vkCmdTraceRaysKHR				= &Wrap_vkCmdTraceRaysKHR;
 		table._var_vkCmdTraceRaysIndirectKHR		= &Wrap_vkCmdTraceRaysIndirectKHR;
+		table._var_vkCmdCopyQueryPoolResults		= &Wrap_vkCmdCopyQueryPoolResults;
+
+		table._var_vkCmdBuildAccelerationStructuresKHR			 = &Wrap_vkCmdBuildAccelerationStructuresKHR;
+		table._var_vkCmdWriteAccelerationStructuresPropertiesKHR = &Wrap_vkCmdWriteAccelerationStructuresPropertiesKHR;
+		table._var_vkCmdCopyAccelerationStructureKHR			 = &Wrap_vkCmdCopyAccelerationStructureKHR;
+		table._var_vkCmdCopyAccelerationStructureToMemoryKHR	 = &Wrap_vkCmdCopyAccelerationStructureToMemoryKHR;
+		table._var_vkCmdCopyMemoryToAccelerationStructureKHR	 = &Wrap_vkCmdCopyMemoryToAccelerationStructureKHR;
 	}
 
 /*
@@ -3942,6 +4231,26 @@ namespace
 
 		_syncNameMap.emplace( MakePair( sem, val ), name );
 		return name;
+	}
+	
+/*
+=================================================
+	GetBufferName
+=================================================
+*/
+	String  VulkanLogger::GetBufferName (VkDeviceAddress addr)
+	{
+		if ( addr == 0 )
+			return "null";
+
+		usize	idx = LowerBound2( devAddrToBuffer, DeviceAddressKey{addr} );
+		if ( idx != UMax )
+		{
+			auto	it = bufferMap.find( devAddrToBuffer[ idx ].buffer );
+			if ( it != bufferMap.end() )
+				return "'"s << it->second.name << '\'';
+		}
+		return "<unknown>";
 	}
 
 } // namespace

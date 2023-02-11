@@ -12,15 +12,15 @@
 # include "base/Math/Color.h"
 # include "base/Math/Rectangle.h"
 
-# include "threading/Common.h"
 # include "threading/Primitives/DataRaceCheck.h"
 
 namespace AE::Profiler
 {
 	using namespace AE::Base;
 	
-	using AE::Threading::SharedMutex;
+	#if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::DataRaceCheck;
+	#endif
 
 } // AE::Profiler
 

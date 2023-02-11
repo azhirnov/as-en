@@ -6,34 +6,34 @@ namespace
 {
 	struct C1_TestData
 	{
-		Mutex						guard;
+		Mutex								guard;
 
-		Strong<ImageID>				img0;
-		Strong<ImageID>				img1;
-		Strong<ImageID>				img2;
+		GAutorelease<ImageID>				img0;
+		GAutorelease<ImageID>				img1;
+		GAutorelease<ImageID>				img2;
 		
-		Strong<ImageViewID>			view0;
-		Strong<ImageViewID>			view1;
-		Strong<ImageViewID>			view2;
+		GAutorelease<ImageViewID>			view0;
+		GAutorelease<ImageViewID>			view1;
+		GAutorelease<ImageViewID>			view2;
 		
-		Strong<ComputePipelineID>	ppln0;
-		Strong<ComputePipelineID>	ppln1;
-		Strong<ComputePipelineID>	ppln2;
+		GAutorelease<ComputePipelineID>		ppln0;
+		GAutorelease<ComputePipelineID>		ppln1;
+		GAutorelease<ComputePipelineID>		ppln2;
 		
-		Strong<DescriptorSetID>		ds0;
-		Strong<DescriptorSetID>		ds1;
-		Strong<DescriptorSetID>		ds2;
-		DescSetBinding				ds_index;
+		GAutorelease<DescriptorSetID>		ds0;
+		GAutorelease<DescriptorSetID>		ds1;
+		GAutorelease<DescriptorSetID>		ds2;
+		DescSetBinding						ds_index;
 		
-		AsyncTask					result0;
-		AsyncTask					result1;
-		AsyncTask					result2;
+		AsyncTask							result0;
+		AsyncTask							result1;
+		AsyncTask							result2;
 
-		bool						isOK_0		= false;
-		bool						isOK_1		= false;
-		bool						isOK_2		= false;
+		bool								isOK_0		= false;
+		bool								isOK_1		= false;
+		bool								isOK_2		= false;
 
-		RC<GfxLinearMemAllocator>	gfxAlloc;
+		RC<GfxLinearMemAllocator>			gfxAlloc;
 	};
 
 	
@@ -219,7 +219,7 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Compute1"} );
+		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Compute1"} );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Run< C1_ComputeTask<CompCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, 				{"Compute task"} );
@@ -237,11 +237,6 @@ namespace
 		CHECK_ERR( t.result1->Status() == EStatus::Completed );
 		CHECK_ERR( t.result2->Status() == EStatus::Completed );
 
-		CHECK_ERR( res_mngr.ReleaseResources(	t.view0, t.view1, t.view2,
-												t.img0, t.img1, t.img2,
-												t.ds0, t.ds1, t.ds2,
-												t.ppln0, t.ppln1, t.ppln2 ));
-
 		CHECK_ERR( t.isOK_0 );
 		CHECK_ERR( t.isOK_1 );
 		CHECK_ERR( t.isOK_2 );
@@ -254,12 +249,14 @@ namespace
 
 bool RGTest::Test_Compute1 ()
 {
-	CHECK_ERR(( Compute1Test< DirectCtx::Compute,   DirectCtx::Transfer   >()));
-	CHECK_ERR(( Compute1Test< IndirectCtx::Compute, IndirectCtx::Transfer >()));
-	CHECK_ERR(( Compute1Test< DirectCtx::Compute,   IndirectCtx::Transfer >()));
+	bool	result = true;
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( Compute1Test< DirectCtx::Compute,   DirectCtx::Transfer   >());
+	RG_CHECK( Compute1Test< IndirectCtx::Compute, IndirectCtx::Transfer >());
+	RG_CHECK( Compute1Test< DirectCtx::Compute,   IndirectCtx::Transfer >());
+	
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

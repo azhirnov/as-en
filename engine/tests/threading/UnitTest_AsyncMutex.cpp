@@ -4,7 +4,7 @@
 #include "threading/TaskSystem/AsyncMutex.h"
 #include "UnitTest_Common.h"
 
-
+#ifndef AE_DISABLE_THREADS
 namespace
 {
 	using EStatus = IAsyncTask::EStatus;
@@ -83,3 +83,11 @@ extern void UnitTest_AsyncMutex ()
 
 	TEST_PASSED();
 }
+
+#else
+
+
+extern void UnitTest_AsyncMutex ()
+{}
+
+#endif // AE_DISABLE_THREADS

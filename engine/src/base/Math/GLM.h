@@ -23,13 +23,12 @@
 
 // enable simd
 //	WIndows, Linux, Mac with Intel, Android x64
-#if defined(AE_SIMD_AVX) or defined(AE_SIMD_SSE)
+#if AE_SIMD_AVX | AE_SIMD_SSE
 # if AE_SIMD_AVX >= 2
 #	define GLM_FORCE_AVX2	// float/double/int64
 # elif AE_SIMD_AVX >= 1
 #	define GLM_FORCE_AVX	// float/double
-#endif
-# if AE_SIMD_SSE >= 42
+# elif AE_SIMD_SSE >= 42
 #	define GLM_FORCE_SSE42	// float
 # elif AE_SIMD_SSE >= 41
 #	define GLM_FORCE_SSE41	// float
@@ -41,11 +40,19 @@
 #	define GLM_FORCE_SSE2	// float
 # elif AE_SIMD_SSE >= 10
 #	define GLM_FORCE_SSE	// float
+# else
+#	define GLM_FORCE_XYZW_ONLY
+#	undef  GLM_FORCE_INTRINSICS
 # endif
-#endif
-//	Android, iOS or Mac M1...
-#if defined(AE_SIMD_NEON)
+
+//	Android, iOS or Mac M1, M2 ...
+#elif AE_SIMD_NEON
 #	define GLM_FORCE_NEON
+
+// disable intrinsics
+#else
+#	define GLM_FORCE_XYZW_ONLY
+#	undef  GLM_FORCE_INTRINSICS
 #endif
 
 
@@ -190,7 +197,9 @@
 
 namespace AE::Math
 {
-# if (GLM_ARCH & GLM_ARCH_SIMD_BIT)
+	STATIC_ASSERT( bool(AE_HAS_SIMD != 0) == ((GLM_ARCH & GLM_ARCH_SIMD_BIT) != 0) );
+
+# if AE_HAS_SIMD
 	static constexpr auto	GLMQuialifier	= glm::qualifier::aligned_highp;
 # else
 	static constexpr auto	GLMQuialifier	= glm::qualifier::highp;

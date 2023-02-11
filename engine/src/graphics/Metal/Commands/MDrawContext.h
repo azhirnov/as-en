@@ -11,6 +11,7 @@
 # include "graphics/Metal/Commands/MBaseDirectContext.h"
 # include "graphics/Metal/Commands/MAccumBarriers.h"
 # include "graphics/Metal/Commands/MArgumentSetter.h"
+# include "graphics/Metal/Commands/MBoundDescriptorSets.h"
 
 namespace AE::Graphics::_hidden_
 {
@@ -26,8 +27,6 @@ namespace AE::Graphics::_hidden_
 	{
 	// types
 	public:
-		using CmdBuf_t	= MCommandBuffer;
-
 		struct VertexAmplificationViewMapping
 		{
 			uint	renderTargetArrayIndexOffset;
@@ -122,6 +121,8 @@ namespace AE::Graphics::_hidden_
 		void  BindIndexBuffer (MetalBuffer buffer, Bytes offset, EIndex indexType)							__Th___;
 		void  BindVertexBuffer (uint index, MetalBuffer buffer, Bytes offset)								__Th___;
 		void  BindVertexBuffers (uint firstBinding, ArrayView<MetalBuffer> buffers, ArrayView<Bytes> offsets)__Th___;
+
+		void  UseHeaps (ArrayView<MetalMemory> heaps)														__Th___;
 		
 		ND_ bool  					EndEncoding ()															__Th___;
 		ND_ MetalCommandBufferRC	EndCommandBuffer ()														__Th___;
@@ -129,7 +130,7 @@ namespace AE::Graphics::_hidden_
 
 	protected:
 		_MDirectDrawCtx (const DrawTask &task)																__Th___;
-		_MDirectDrawCtx (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, DebugLabel dbg)					__Th___;
+		_MDirectDrawCtx (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf)									__Th___;
 
 		void  _BindPipeline (MetalRenderPipeline ppln, MetalDepthStencilState ds, const MDynamicRenderState &rs);
 		void  _BindGraphicsPipeline (MetalRenderPipeline ppln, MetalDepthStencilState ds, const MDynamicRenderState &rs, EPipelineDynamicState flags);
@@ -221,7 +222,6 @@ namespace AE::Graphics::_hidden_
 	{
 	// types
 	public:
-		using CmdBuf_t							= MSoftwareCmdBufPtr;
 		using VertexAmplificationViewMapping	= _MDirectDrawCtx::VertexAmplificationViewMapping;
 		using PplnStates						= _MDirectDrawCtx::PplnStates;
 		using EPplnType							= _MDirectDrawCtx::EPplnType;
@@ -279,7 +279,7 @@ namespace AE::Graphics::_hidden_
 
 	protected:
 		explicit _MIndirectDrawCtx (const DrawTask &task)													__Th___;
-		_MIndirectDrawCtx (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, DebugLabel dbg)				__Th___;
+		_MIndirectDrawCtx (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf)								__Th___;
 		
 		void  _BindPipeline (MetalRenderPipeline ppln, MetalDepthStencilState ds, const MDynamicRenderState &rs);
 		void  _BindGraphicsPipeline (MetalRenderPipeline ppln, MetalDepthStencilState ds, const MDynamicRenderState &rs, EPipelineDynamicState flags);
@@ -288,11 +288,11 @@ namespace AE::Graphics::_hidden_
 		void  _BindTilePipeline (MetalRenderPipeline ppln, const uint2 &threadsPerTile);
 
 		void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor);
-		void  _SetStencilReference (uint reference)								{ _SetStencilReference( reference, reference ); }
+		void  _SetStencilReference (uint reference)																	{ _SetStencilReference( reference, reference ); }
 		void  _SetStencilReference (uint frontReference, uint backReference);
-		void  _SetViewport (const Viewport_t &viewport)							{ _SetViewports({ viewport }); }
+		void  _SetViewport (const Viewport_t &viewport)																{ _SetViewports({ viewport }); }
 		void  _SetViewports (ArrayView<Viewport_t> viewports);
-		void  _SetScissor (const RectI &scissor)								{ _SetScissors({ scissor }); }
+		void  _SetScissor (const RectI &scissor)																	{ _SetScissors({ scissor }); }
 		void  _SetScissors (ArrayView<RectI> scissors);
 		void  _SetBlendConstants (const RGBA32f &color);
 		
@@ -367,23 +367,24 @@ namespace AE::Graphics::_hidden_
 		static constexpr bool	IsDrawContext		= true;
 		static constexpr bool	IsMetalDrawContext	= true;
 		
+		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
+
 	private:
 		using RawCtx		= CtxImpl;
 		using AccumBar		= MAccumDrawBarriers< _MDrawContextImpl< CtxImpl >>;
-		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
 		using Viewports_t	= ArrayView< RenderPassDesc::Viewport >;
-		using BoundDS_t		= StaticArray< DescriptorSetID, GraphicsConfig::MaxDescriptorSets >;
-
+		
 
 	// variables
 	private:
-		BoundDS_t	_boundDS	{};
+		MBoundDescriptorSets	_boundDS;
 
 		
 	// methods
 	public:
-		_MDrawContextImpl (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, Viewports_t, DebugLabel dbg)				__Th___;
+		_MDrawContextImpl (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, Viewports_t)								__Th___;
 		explicit _MDrawContextImpl (const DrawTask &task)																__Th___;
+		explicit _MDrawContextImpl (_MDrawContextImpl && other)															__Th___;
 		
 		_MDrawContextImpl ()																							= delete;
 		_MDrawContextImpl (const _MDrawContextImpl &)																	= delete;
@@ -393,7 +394,7 @@ namespace AE::Graphics::_hidden_
 		void  BindPipeline (MeshPipelineID ppln)																		__Th_OV;
 		void  BindPipeline (TilePipelineID ppln)																		__Th_OV;
 
-		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)	__Th_OV;
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)	__Th_OV	{ _boundDS.Bind( *this, index, ds, dynamicOffsets ); }
 		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)							__Th_OV;
 		
 		// dynamic states
@@ -454,6 +455,13 @@ namespace AE::Graphics::_hidden_
 
 		void  CommitBarriers ()																							__Th_OV	{ RawCtx::_CommitBarriers(); }
 
+		// clear //
+		bool  ClearAttachment (AttachmentName, const RGBA32f &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA32u &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA32i &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA8u  &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const DepthStencil &, const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		
 		void  DebugMarker (DebugLabel dbg)																				__Th_OV	{ RawCtx::_DebugMarker( dbg ); }
 		void  PushDebugGroup (DebugLabel dbg)																			__Th_OV	{ RawCtx::_PushDebugGroup( dbg ); }
 		void  PopDebugGroup ()																							__Th_OV	{ RawCtx::_PopDebugGroup(); }
@@ -466,12 +474,13 @@ namespace AE::Graphics::_hidden_
 		ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result)													__Th_OV;
 		
 		ND_ MPrimaryCmdBufState const&	GetPrimaryCtxState ()															C_NE___	{ return this->_mngr.GetPrimaryCtxState(); }
+		ND_ FrameUID					GetFrameId ()																	C_NE_OF	{ return this->_mngr.GetFrameId(); }
 		
 		ND_ bool  _IsValid ()																							C_NE___	{ return RawCtx::_IsValid(); }
 
 	private:
-		template <typename ...IDs>
-		ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)															__Th___	{ return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); }
+		friend class MBoundDescriptorSets;
+		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)								__Th___	{ return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); }
 	};
 
 } // AE::Graphics::_hidden_
@@ -495,8 +504,8 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_MDrawContextImpl<C>::_MDrawContextImpl (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, Viewports_t viewports, DebugLabel dbg) :
-		RawCtx{ state, RVRef(cmdbuf), dbg }	// throw
+	_MDrawContextImpl<C>::_MDrawContextImpl (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, Viewports_t viewports) :
+		RawCtx{ state, RVRef(cmdbuf) }	// throw
 	{
 		SetViewports( viewports );
 	}
@@ -546,60 +555,6 @@ namespace AE::Graphics::_hidden_
 		ASSERT( tppln.RasterOrderGroup() == GetPrimaryCtxState().rasterOrderGroup );
 		
 		RawCtx::_BindTilePipeline( tppln.Handle(), tppln.LocalSize() );
-	}
-
-/*
-=================================================
-	BindDescriptorSet
-=================================================
-*/
-	template <typename C>
-	void  _MDrawContextImpl<C>::BindDescriptorSet (const DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
-	{
-		const bool	is_bound = (_boundDS[ index.mtlIndex.BindingIndex() ] == ds);
-		_boundDS[ index.mtlIndex.BindingIndex() ] = ds;
-		
-		if_unlikely( is_bound and dynamicOffsets.empty() )
-			return;
-
-		auto&	desc_set	= _GetResourcesOrThrow( ds );
-		auto	dyn_bufs	= desc_set.GetDynamicBuffers();
-
-		CHECK_THROW( dyn_bufs.size() == dynamicOffsets.size() );
-
-		const auto	BindDynBufs = [&] (auto && args, uint idx)
-		{{
-			if ( is_bound )
-			{
-				for (usize i = 0; i < dynamicOffsets.size(); ++i, ++idx)
-				{
-					args.SetBufferOffset( Bytes{dynamicOffsets[i]}, MBufferIndex(idx) );
-				}
-			}
-			else
-			{
-				for (usize i = 0; i < dynamicOffsets.size(); ++i, ++idx)
-				{
-					args.SetBuffer( dyn_bufs.at<MetalBuffer>(i), dyn_bufs.at<Bytes>(i), MBufferIndex(idx) );
-					args.SetBufferOffset( Bytes{dynamicOffsets[i]}, MBufferIndex(idx) );
-				}
-				args.SetBuffer( desc_set.Handle(), 0_b, MBufferIndex(idx) );
-			}
-		}};
-		
-		for (EShaderStages stages = desc_set.ShaderStages(); stages != Default;)
-		{
-			const EShader	type = ExtractBitLog2<EShader>( INOUT stages );
-			switch ( type )
-			{
-				case EShader::Vertex :		BindDynBufs( this->VertexArguments(),	index.mtlIndex.Vertex() );		break;
-				case EShader::Fragment :	BindDynBufs( this->FragmentArguments(),	index.mtlIndex.Fragment() );	break;
-				case EShader::MeshTask :	BindDynBufs( this->MeshTaskArguments(),	index.mtlIndex.MeshTask() );	break;
-				case EShader::Mesh :		BindDynBufs( this->MeshArguments(),		index.mtlIndex.Mesh() );		break;
-				case EShader::Tile :		BindDynBufs( this->TileArguments(),		index.mtlIndex.Tile() );		break;
-				default :					CHECK_THROW(false);
-			}
-		}
 	}
 	
 /*
@@ -692,6 +647,7 @@ namespace AE::Graphics::_hidden_
 									  uint firstVertex,
 									  uint firstInstance)
 	{
+		_boundDS.UseHeapsAndResources( *this );
 		RawCtx::_DrawPrimitives( vertexCount, instanceCount, firstVertex, firstInstance );
 	}
 	
@@ -707,6 +663,7 @@ namespace AE::Graphics::_hidden_
 											 int  vertexOffset,
 											 uint firstInstance)
 	{
+		_boundDS.UseHeapsAndResources( *this );
 		RawCtx::_DrawIndexedPrimitives( indexCount, instanceCount, firstIndex, vertexOffset, firstInstance );
 	}
 	
@@ -722,7 +679,8 @@ namespace AE::Graphics::_hidden_
 											  Bytes		stride)
 	{
 		auto&	buf = _GetResourcesOrThrow( indirectBuffer ); 
-
+		
+		_boundDS.UseHeapsAndResources( *this );
 		RawCtx::_DrawPrimitivesIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
 	}
 	
@@ -738,7 +696,8 @@ namespace AE::Graphics::_hidden_
 													 Bytes		stride)
 	{
 		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
-
+		
+		_boundDS.UseHeapsAndResources( *this );
 		RawCtx::_DrawIndexedPrimitivesIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
 	}
 	
@@ -750,6 +709,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MDrawContextImpl<C>::DispatchTile ()
 	{
+		_boundDS.UseHeapsAndResources( *this );
 		RawCtx::_DispatchTile();
 	}
 	
@@ -761,6 +721,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _MDrawContextImpl<C>::DrawMeshTasks (const uint3 &taskCount)
 	{
+		_boundDS.UseHeapsAndResources( *this );
 		RawCtx::_DrawMeshTasks( taskCount );
 	}
 	
@@ -776,7 +737,8 @@ namespace AE::Graphics::_hidden_
 													   Bytes	stride)
 	{
 		auto&	buf = _GetResourcesOrThrow( indirectBuffer ); 
-
+		
+		_boundDS.UseHeapsAndResources( *this );
 		RawCtx::_DrawMeshTasksIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
 	}
 
@@ -788,7 +750,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	bool  _MDrawContextImpl<C>::AllocVStream (Bytes size, OUT VertexStream &result)
 	{
-		return this->_mngr.GetResourceManager().GetStagingManager().AllocVStream( this->_mngr.GetFrameId(), size, OUT result );
+		return this->_mngr.GetResourceManager().GetStagingManager().AllocVStream( GetFrameId(), size, OUT result );
 	}
 
 

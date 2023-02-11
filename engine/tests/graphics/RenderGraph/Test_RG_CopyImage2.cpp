@@ -7,8 +7,8 @@ namespace
 {
 	struct CI2_TestData
 	{
-		Strong<ImageID>				img_1;
-		Strong<ImageID>				img_2;
+		GAutorelease<ImageID>		img_1;
+		GAutorelease<ImageID>		img_2;
 		ImageMemView				img_view;
 		uint2						src_offset;
 		uint2						dst_offset;
@@ -35,8 +35,6 @@ namespace
 		void  Run () override
 		{
 			Ctx		ctx{ *this };
-			
-			ctx.ResourceState( t.img_2, EResourceState::Invalidate );
 
 			UploadImageDesc	upload;
 			upload.aspectMask	= EImageAspect::Color;
@@ -119,18 +117,17 @@ namespace
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch.Task< CI2_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, {"Copy image task"} )
+								.UseResource( t.img_2 )
 								.Last().Run( Tuple{begin} );
 		AsyncTask	end		= t.rg.EndFrame( Tuple{task1} );
 
 		CHECK_ERR( Scheduler().Wait({ end }));
 		CHECK_ERR( end->Status() == EStatus::Completed );
 
-		CHECK_ERR( RenderTaskScheduler().WaitAll() );
+		CHECK_ERR( t.rg.WaitAll() );
 		
 		CHECK_ERR( Scheduler().Wait({ t.result }));
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
-
-		CHECK_ERR( t.rg.ReleaseResources( t.img_1, t.img_2 ));
 
 		CHECK_ERR( t.isOK );
 		return true;
@@ -141,11 +138,13 @@ namespace
 
 bool RGTest::Test_CopyImage2 ()
 {
-	CHECK_ERR( CopyImage2Test< RG::DirectCtx::Transfer   >());
-	CHECK_ERR( CopyImage2Test< RG::IndirectCtx::Transfer >());
+	bool	result = true;
+
+	RG_CHECK( CopyImage2Test< RG::DirectCtx::Transfer   >());
+	RG_CHECK( CopyImage2Test< RG::IndirectCtx::Transfer >());
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

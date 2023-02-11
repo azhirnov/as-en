@@ -1,0 +1,143 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'command-buffer'
+{
+  BeginDebugLabel
+    name:  'Debugger3 |0| Draw mesh task'
+    depth: 1
+  ----------
+
+  FillBuffer
+    dst:     'debug storage buffer'
+    offset:  16
+    size:    1048560
+  ----------
+
+  UpdateBuffer
+    dst:     'debug storage buffer'
+    offset:  0
+    size:    16
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> VERTEX_SHADER | TESSELLATION_CONTROL_SHADER | TESSELLATION_EVALUATION_SHADER | GEOMETRY_SHADER | FRAGMENT_SHADER | TASK_SHADER | MESH_SHADER
+      access: TRANSFER_WRITE ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'Debugger3 |0| Draw mesh task - RP'
+    depth: 2
+  ----------
+
+  DrawMeshTasks
+    descriptors:
+      buffer: 'debug storage buffer'
+  ----------
+
+  EndDebugLabel
+    depth: 2
+  ----------
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+name: 'command-buffer'
+{
+  BeginDebugLabel
+    name:  'Debugger3 |1| Readback task'
+    depth: 1
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  VERTEX_SHADER | TESSELLATION_CONTROL_SHADER | TESSELLATION_EVALUATION_SHADER | GEOMETRY_SHADER | FRAGMENT_SHADER | TASK_SHADER | MESH_SHADER ---> COPY
+      access: SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+  ----------
+
+  CopyBuffer
+    src: 'debug storage buffer'
+    dst: 'readback dbg buffer'
+      copy [0, 1048576) ---> [0, 1048576)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================

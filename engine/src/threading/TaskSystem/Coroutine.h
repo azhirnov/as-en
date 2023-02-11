@@ -12,7 +12,7 @@ namespace AE::Threading
 namespace _hidden_
 {
 	template <typename T>
-	class CoroutineAwaiter;
+	class CoroutineImpl_Awaiter;
 
 
 	//
@@ -43,6 +43,11 @@ namespace _hidden_
 		// variables
 		private:
 			ResultType		_value;
+		
+		  #ifdef AE_DBG_OR_DEV
+			String			_dbgName;
+		  #endif
+
 			
 		// methods
 		public:
@@ -56,19 +61,25 @@ namespace _hidden_
 				void				return_value (ResultType value)	__NE___	{ _value = RVRef(value); }		// set value by 'co_return'
 
 				void				unhandled_exception ()			C_Th___	{ throw; }						// rethrow exceptions
-
-				StringView			DbgName ()						C_NE_OV	{ return "coroutine"; }
+				
+			#ifdef AE_DBG_OR_DEV
+				StringView			DbgName ()						C_NE_OV	{ return _dbgName; }
+			#else
+				StringView			DbgName ()						C_NE_OV	{ return "Coroutine<>"; }
+			#endif
 
 			
 		public:
-			void  Cancel ()											__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }
+				void  Cancel ()										__NE___	{ Unused( IAsyncTask::_SetCancellationState() ); }
+				void  Fail ()										__NE___	{ IAsyncTask::OnFailure(); }
+			ND_ bool  IsCanceled ()									__NE___	{ return IAsyncTask::IsCanceled(); }
 				
 			template <typename ...Deps>
 			void  Continue (const Tuple<Deps...> &deps)				__NE___	{ return IAsyncTask::Continue( deps ); }
 
 
 		private:
-			void  Run () __Th_OV
+			void  Run ()											__Th_OV
 			{
 				auto	coro_handle = Handle_t::from_promise( *this );
 				coro_handle.resume();	// throw
@@ -77,7 +88,7 @@ namespace _hidden_
 					ASSERT( AnyEqual( Status(), EStatus::Cancellation, EStatus::Continue, EStatus::Failed ));
 			}
 
-			void  _ReleaseObject () __NE_OV
+			void  _ReleaseObject ()									__NE_OV
 			{
 				MemoryBarrier( EMemoryOrder::Acquire );
 				ASSERT( IsFinished() );
@@ -98,8 +109,8 @@ namespace _hidden_
 	// methods
 	public:
 		CoroutineImpl ()									__NE___ {}
-		explicit CoroutineImpl (promise_type &p)			__NE___ : _coro{ p.GetRC<promise_type>() } {}
-		explicit CoroutineImpl (Handle_t handle)			__NE___ : _coro{ handle.Promise().GetRC<promise_type>() } {}
+		explicit CoroutineImpl (promise_type &p)			__NE___ : _coro{ p.template GetRC<promise_type>() } {}
+		explicit CoroutineImpl (Handle_t handle)			__NE___ : _coro{ handle.promise().template GetRC<promise_type>() } {}
 		~CoroutineImpl ()									__NE___ {}
 
 		CoroutineImpl (CoroutineImpl &&)					__NE___ = default;
@@ -115,14 +126,19 @@ namespace _hidden_
 
 	private:
 		template <typename T>
-		friend class CoroutineAwaiter;
+		friend class CoroutineImpl_Awaiter;
 
-		ND_ IAsyncTask::EStatus	_Status ()					C_NE___	{ return _coro ? _coro->Status() : IAsyncTask::EStatus::Canceled; }
-		ND_ ResultType			_Result ()					C_NE___	{ ASSERT( _coro );  ASSERT( _coro->Status() == IAsyncTask::EStatus::Completed );  return RVRef(_coro->_value); }
+		ND_ ResultType	_Result ()							C_NE___	{ ASSERT( _coro );  ASSERT( _coro->Status() == IAsyncTask::EStatus::Completed );  return RVRef(_coro->_value); }
 
 	private:
-		friend class TaskScheduler;
-		void  _SetQueueType (ETaskQueue type)				__NE___	{ _coro->_SetQueueType( type ); }
+		friend class Threading::TaskScheduler;
+		void  _InitCoro (ETaskQueue type, StringView name)	__NE___
+		{
+			_coro->_SetQueueType( type );
+		  #ifdef AE_DBG_OR_DEV
+			_coro->_dbgName = String{name};
+		  #endif
+		}
 	};
 
 	
@@ -135,57 +151,38 @@ namespace _hidden_
 
 
 	//
-	// Coroutine Awaiter
+	// Coroutine Awaiter (same as AsyncTaskCoro_Awaiter)
 	//
 
 	template <typename T>
-	class CoroutineAwaiter
+	class CoroutineImpl_Awaiter
 	{
 	// variables
 	private:
-		Coroutine<T> const&		_coro;
+		Coroutine<T> const&		_dep;
 
 	// methods
 	public:
-		explicit CoroutineAwaiter (const Coroutine<T> &coro) : _coro{coro} {}
+		explicit CoroutineImpl_Awaiter (const Coroutine<T> &coro) : _dep{coro} {}
 
 		ND_ bool	await_ready ()		C_NE___	{ return false; }
 
 		// return promise result
-		ND_ T		await_resume ()		__NE___	{ return _coro._Result(); }
+		ND_ T		await_resume ()		__NE___	{ return _dep._Result(); }
 		
 		// return task to scheduler with new dependencies
 		template <typename P>
 		ND_ bool  await_suspend (std::coroutine_handle<P> curCoro) __NE___
 		{
 			STATIC_ASSERT( IsSpecializationOf< typename P::Coroutine_t, CoroutineImpl >);
-
-			using EStatus = IAsyncTask::EStatus;
-				
-			const EStatus	stat = _coro._Status();
-
-			if ( stat == EStatus::Completed )
-				return false;	// resume
-
-			if ( stat > EStatus::_Interropted )
-			{
-				curCoro.promise().Cancel();
-				return true;	// suspend & cancel
-			}
-				
-			curCoro.promise().Continue( Tuple{ AsyncTask{_coro} });
-
-			// task may be cancelled
-			if_unlikely( curCoro.promise().IsFinished() )
-				return false;	// resume
-
-			return true;	// suspend
+			
+			return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl( curCoro, AsyncTask{_dep} );
 		}
 	};
 	
 
 	template <typename ...Types>
-	class CoroutineAwaiter< Tuple< Types... >>
+	class CoroutineImpl_Awaiter< Tuple< Types... >>
 	{
 	// variables
 	private:
@@ -193,10 +190,9 @@ namespace _hidden_
 
 	// methods
 	public:
-		explicit CoroutineAwaiter (const Tuple<Coroutine<Types>...> &deps) __NE___ : _deps{deps} {}
+		explicit CoroutineImpl_Awaiter (const Tuple<Coroutine<Types>...> &deps) __NE___ : _deps{deps} {}
 		
-		// pause coroutine execution if dependencies are not complete
-		ND_ bool  await_ready ()				C_NE___	{ return false; }	// TODO: check all deps for early exit
+		ND_ bool  await_ready ()				C_NE___	{ return false; }
 		
 		// return promise results
 		ND_ Tuple< Types... >  await_resume ()	__NE___
@@ -212,28 +208,7 @@ namespace _hidden_
 		{
 			STATIC_ASSERT( IsSpecializationOf< typename P::Coroutine_t, CoroutineImpl >);
 			
-			using EStatus = IAsyncTask::EStatus;
-
-			const auto	stats_arr	= _deps.Apply( [] (auto&& ...args) { return StaticArray< EStatus, sizeof...(Types) >{ args._Status() ... }; });
-			const auto	stats		= ArrayView<EStatus>{ stats_arr };
-			
-			if ( stats.AllEqual( EStatus::Completed ))
-				return false;	// resume
-
-			if ( stats.AllGreater( EStatus::_Finished ) and
-				 stats.AllGreater( EStatus::_Interropted ))
-			{
-				curCoro.promise().Cancel();
-				return true;	// suspend & cancel
-			}
-
-			curCoro.promise().Continue( _deps.Apply( [] (auto&& ...args) { return Tuple{ AsyncTask{args} ... }; }));
-			
-			// task may be cancelled
-			if_unlikely( curCoro.promise().IsFinished() )
-				return false;	// resume
-
-			return true;	// suspend
+			return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl2( curCoro, _deps );
 		}
 	};
 	
@@ -246,7 +221,7 @@ namespace _hidden_
 	template <typename ResultType>
 	auto  CoroutineImpl<ResultType>::operator co_await () C_NE___
 	{
-		return CoroutineAwaiter<ResultType>{ *this };
+		return CoroutineImpl_Awaiter<ResultType>{ *this };
 	}
 
 } // _hidden_
@@ -255,7 +230,7 @@ namespace _hidden_
 
 
 	template <typename ResultType>
-	using Coroutine = Threading::_hidden_::Coroutine<ResultType>;
+	using Coroutine = Threading::_hidden_::Coroutine< ResultType >;
 	
 /*
 =================================================
@@ -263,9 +238,9 @@ namespace _hidden_
 =================================================
 */
 	template <typename ...Types>
-	ND_ Threading::_hidden_::CoroutineAwaiter<Tuple<Types...>>  operator co_await (const Tuple<Coroutine<Types>...> &deps) __NE___
+	ND_ Threading::_hidden_::CoroutineImpl_Awaiter<Tuple<Types...>>  operator co_await (const Tuple<Coroutine<Types>...> &deps) __NE___
 	{
-		return Threading::_hidden_::CoroutineAwaiter<Tuple<Types...>>{ deps };
+		return Threading::_hidden_::CoroutineImpl_Awaiter<Tuple<Types...>>{ deps };
 	}
 
 

@@ -26,3 +26,5 @@
 #undef min
 #undef max
 #undef UpdateResource
+#undef _fstat
+#undef _stat

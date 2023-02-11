@@ -17,9 +17,12 @@ extern void Test_VulkanSwapchain (IApplication &app, IWindow &wnd)
 	VDeviceInitializer		vulkan;
 	VSwapchainInitializer	swapchain{ vulkan };
 
-	ArrayView<const char*>	window_ext = app.GetVulkanInstanceExtensions();
+	VDeviceInitializer::InstanceCreateInfo	inst_ci;
+	inst_ci.appName				= "TestApp";
+	inst_ci.instanceLayers		= vulkan.GetRecomendedInstanceLayers();
+	inst_ci.instanceExtensions	= app.GetVulkanInstanceExtensions();
 
-	CHECK_FATAL( vulkan.CreateInstance( "TestApp", AE_ENGINE_NAME, vulkan.GetRecomendedInstanceLayers(), window_ext ));
+	CHECK_FATAL( vulkan.CreateInstance( inst_ci ));
 	CHECK_FATAL( vulkan.ChooseHighPerformanceDevice() );
 	CHECK_FATAL( vulkan.CreateDefaultQueue() );
 	CHECK_FATAL( vulkan.CreateLogicalDevice() );

@@ -2,11 +2,9 @@
 
 #pragma once
 
+#include "platform/OpenVR/OpenVRCommon.h"
+
 #ifdef AE_ENABLE_OPENVR
-
-# include "base/Defines/StdInclude.h"
-# include "openvr_capi.h"
-
 # include "base/Platforms/Platform.h"
 
 # include "platform/Private/VRDeviceBase.h"
@@ -155,7 +153,7 @@ namespace AE::App
 		
 		ND_ ControllerID  _GetControllerID (uint tdi) const;
 
-		ND_ String  _GetTrackedDeviceString (TrackedDeviceIndex_t unDevice, TrackedDeviceProperty prop, TrackedPropertyError *peError = null) const;
+		ND_ String  _GetTrackedDeviceString (TrackedDeviceIndex_t unDevice, TrackedDeviceProperty prop, TrackedPropertyError *peError = null) C_NE___;
 	};
 
 

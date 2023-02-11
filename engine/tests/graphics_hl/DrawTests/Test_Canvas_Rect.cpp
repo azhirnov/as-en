@@ -12,8 +12,8 @@ namespace
 
 		uint2						viewSize;
 
-		Strong<ImageID>				img;
-		Strong<ImageViewID>			view;
+		GAutorelease<ImageID>		img;
+		GAutorelease<ImageViewID>	view;
 		
 		GraphicsPipelineID			ppln_tristrip;
 		GraphicsPipelineID			ppln_trilist;
@@ -160,7 +160,7 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"Canvas batch"} );
+		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Canvas batch"} );
 		CHECK_ERR( batch );
 
 		AsyncTask	task1	= batch->Run< CR1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},				 {"Draw task"} );
@@ -177,8 +177,6 @@ namespace
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
 		CHECK_ERR( t.isOK );
-
-		CHECK_ERR( res_mngr.ReleaseResources( t.view, t.img ));
 		return true;
 	}
 
@@ -188,15 +186,16 @@ namespace
 bool DrawTestCore::Test_Canvas_Rect ()
 {
 	auto	img_cmp = _LoadReference( TEST_NAME );
+	bool	result	= true;
 
-	CHECK_ERR(( CanvasRect< DirectCtx,   DirectCtx::Transfer   >( _canvas.get(), _canvasPpln, img_cmp.get() )));
-	CHECK_ERR(( CanvasRect< DirectCtx,   IndirectCtx::Transfer >( _canvas.get(), _canvasPpln, img_cmp.get() )));
+	RG_CHECK( CanvasRect< DirectCtx,   DirectCtx::Transfer   >( _canvas.get(), _canvasPpln, img_cmp.get() ));
+	RG_CHECK( CanvasRect< DirectCtx,   IndirectCtx::Transfer >( _canvas.get(), _canvasPpln, img_cmp.get() ));
 
-	CHECK_ERR(( CanvasRect< IndirectCtx, DirectCtx::Transfer   >( _canvas.get(), _canvasPpln, img_cmp.get() )));
-	CHECK_ERR(( CanvasRect< IndirectCtx, IndirectCtx::Transfer >( _canvas.get(), _canvasPpln, img_cmp.get() )));
+	RG_CHECK( CanvasRect< IndirectCtx, DirectCtx::Transfer   >( _canvas.get(), _canvasPpln, img_cmp.get() ));
+	RG_CHECK( CanvasRect< IndirectCtx, IndirectCtx::Transfer >( _canvas.get(), _canvasPpln, img_cmp.get() ));
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

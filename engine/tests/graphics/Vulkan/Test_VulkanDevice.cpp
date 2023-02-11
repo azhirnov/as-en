@@ -11,7 +11,11 @@ extern void Test_VulkanDevice ()
 	{
 		VDeviceInitializer	dev;
 
-		CHECK_FATAL( dev.CreateInstance( "TestApp", AE_ENGINE_NAME, dev.GetRecomendedInstanceLayers() ));
+		VDeviceInitializer::InstanceCreateInfo	inst_ci;
+		inst_ci.appName			= "TestApp";
+		inst_ci.instanceLayers	= dev.GetRecomendedInstanceLayers();
+		CHECK_FATAL( dev.CreateInstance( inst_ci ));
+
 		CHECK_FATAL( dev.ChooseHighPerformanceDevice() );
 		CHECK_FATAL( dev.CreateDefaultQueue() );
 		CHECK_FATAL( dev.CreateLogicalDevice() );

@@ -35,6 +35,15 @@ namespace AE::RG::_hidden_
 		using Frames_t	= StaticArray< PerFrame, GraphicsConfig::MaxFrames >;
 
 
+		struct OutSurfaceInfo
+		{
+			AsyncTask			acquireImageTask;
+			RGCommandBatchPtr	forBatch;
+		};
+		static constexpr uint	MaxOutSurfaces = 4;
+		using OutputSurfaces_t	= FixedMap< Ptr<App::IOutputSurface>, OutSurfaceInfo, MaxOutSurfaces >;
+
+
 		struct CmdBatchBuilder
 		{
 		// variables
@@ -49,40 +58,59 @@ namespace AE::RG::_hidden_
 
 			void  _UseResource (ResourceKey key, EResourceState initial, EResourceState final)					__NE___;
 		public:
+			// 'initial' - resource state in first render task (command buffer)
+			// 'final'   - resource state in last render task
 			ND_ CmdBatchBuilder &&	UseResource (ImageID      id, EResourceState initial, EResourceState final)	rvNE___	{ _UseResource( ResourceKey{id}, initial, final );  return RVRef(*this); }
 			ND_ CmdBatchBuilder &&	UseResource (BufferID     id, EResourceState initial, EResourceState final)	rvNE___	{ _UseResource( ResourceKey{id}, initial, final );  return RVRef(*this); }
 			ND_ CmdBatchBuilder &&	UseResource (RTGeometryID id, EResourceState initial, EResourceState final)	rvNE___	{ _UseResource( ResourceKey{id}, initial, final );  return RVRef(*this); }
 			ND_ CmdBatchBuilder &&	UseResource (RTSceneID    id, EResourceState initial, EResourceState final)	rvNE___	{ _UseResource( ResourceKey{id}, initial, final );  return RVRef(*this); }
-		//	ND_ CmdBatchBuilder &&	UseResource (ImageViewID  id, EResourceState initial, EResourceState final)	rvNE___;
-		//	ND_ CmdBatchBuilder &&	UseResource (BufferViewID id, EResourceState initial, EResourceState final)	rvNE___;
+			ND_ CmdBatchBuilder &&	UseResource (ImageViewID  id, EResourceState initial, EResourceState final)	rvNE___;
+			ND_ CmdBatchBuilder &&	UseResource (BufferViewID id, EResourceState initial, EResourceState final)	rvNE___;
 		
 			ND_ CmdBatchBuilder &&	UseResource (ImageID      id, EResourceState initialOrFinal)				rvNE___	{ _UseResource( ResourceKey{id}, initialOrFinal, initialOrFinal );  return RVRef(*this); }
 			ND_ CmdBatchBuilder &&	UseResource (BufferID     id, EResourceState initialOrFinal)				rvNE___	{ _UseResource( ResourceKey{id}, initialOrFinal, initialOrFinal );  return RVRef(*this); }
 			ND_ CmdBatchBuilder &&	UseResource (RTGeometryID id, EResourceState initialOrFinal)				rvNE___	{ _UseResource( ResourceKey{id}, initialOrFinal, initialOrFinal );  return RVRef(*this); }
 			ND_ CmdBatchBuilder &&	UseResource (RTSceneID    id, EResourceState initialOrFinal)				rvNE___	{ _UseResource( ResourceKey{id}, initialOrFinal, initialOrFinal );  return RVRef(*this); }
+			ND_ CmdBatchBuilder &&	UseResource (ImageViewID  id, EResourceState initialOrFinal)				rvNE___	{ return RVRef(*this).UseResource( id, initialOrFinal, initialOrFinal ); }
+			ND_ CmdBatchBuilder &&	UseResource (BufferViewID id, EResourceState initialOrFinal)				rvNE___	{ return RVRef(*this).UseResource( id, initialOrFinal, initialOrFinal ); }
 			
+			// resource will be in default state
 			ND_ CmdBatchBuilder &&	UseResource (ImageID      id)												rvNE___	{ _UseResource( ResourceKey{id}, Default, Default );  return RVRef(*this); }
 			ND_ CmdBatchBuilder &&	UseResource (BufferID     id)												rvNE___	{ _UseResource( ResourceKey{id}, Default, Default );  return RVRef(*this); }
 			ND_ CmdBatchBuilder &&	UseResource (RTGeometryID id)												rvNE___	{ _UseResource( ResourceKey{id}, Default, Default );  return RVRef(*this); }
 			ND_ CmdBatchBuilder &&	UseResource (RTSceneID    id)												rvNE___	{ _UseResource( ResourceKey{id}, Default, Default );  return RVRef(*this); }
-		//	ND_ CmdBatchBuilder &&	UseResource (ImageViewID  id)												rvNE___;
-		//	ND_ CmdBatchBuilder &&	UseResource (BufferViewID id)												rvNE___;
+			ND_ CmdBatchBuilder &&	UseResource (ImageViewID  id)												rvNE___	{ return RVRef(*this).UseResource( id, Default, Default ); }
+			ND_ CmdBatchBuilder &&	UseResource (BufferViewID id)												rvNE___	{ return RVRef(*this).UseResource( id, Default, Default ); }
 		
+			template <typename ID>
+			ND_ CmdBatchBuilder &&	UseResources (ArrayView<ID>, EResourceState initial, EResourceState final)	rvNE___;
+
+			template <typename ID>
+			ND_ CmdBatchBuilder &&	UseResources (ArrayView<ID> ids, EResourceState initialOrFinal)				rvNE___;
+
+			template <typename ID>
+			ND_ CmdBatchBuilder &&	UseResources (ArrayView<ID> ids)											rvNE___;
+
 			ND_ CmdBatchBuilder &&	UploadMemory ()																rvNE___;
 			ND_ CmdBatchBuilder &&	ReadbackMemory ()															rvNE___;
 
 			ND_ RGCommandBatchPtr	Begin ()																	rvNE___	{ return RVRef(_batch); }
 		};
 
+		static constexpr auto	DefaultWaitTime	= GRenderTaskScheduler::DefaultWaitTime;
+
 
 	// variables
 	private:
 		GRenderTaskScheduler&		_rts;
 		FrameUID					_prevFrameId;
-
 		Frames_t					_frames;
+
+		// data for cyrrent frame
+		AsyncTask					_beginFrame;
 		SemToBatch_t				_semToBatch;
 		RGBatchDataPool_t			_rgDataPool;
+		OutputSurfaces_t			_outSurfaces;
 		
 		DRC_ONLY( RWDataRaceCheck	_drCheck;)
 
@@ -105,10 +133,11 @@ namespace AE::RG::_hidden_
 		ND_ FrameUID	GetPrevFrameId ()										C_NE___	{ return _prevFrameId; }
 		ND_ FrameUID	GetNextFrameId ()										C_NE___	{ return _prevFrameId.Next(); }
 
+		ND_ bool		WaitAll (milliseconds timeout = DefaultWaitTime)		__NE___;
 
-	// input surface //
-	
-	// output surface //
+
+	// surface //
+		ND_ AsyncTask	BeginOnSurface (Ptr<App::IOutputSurface> surface, RGCommandBatchPtr batch) __NE___;
 
 
 	// graph //
@@ -119,6 +148,8 @@ namespace AE::RG::_hidden_
 	private:
 		ND_ PerFrame &			_CurrentFrame ()								__NE___	{ return _frames[ _prevFrameId.Index() ]; }
 		ND_ RGCommandBatchPtr	_CmdBatch (EQueueType queue, DebugLabel dbg)	__NE___;
+
+			void				_ClearCurrentFrame ()							__NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -136,15 +167,13 @@ namespace AE::RG::_hidden_
 
 		_prevFrameId = _rts.GetFrameId();
 
-		auto&	f = _CurrentFrame();
-
-		for (auto& q : f.queues) {
+		for (auto& q : _CurrentFrame().queues) {
 			q.submitIdx = 0;
 		}
-		_rgDataPool.clear();
-		_semToBatch.clear();
+		_ClearCurrentFrame();
 
-		return _rts.BeginFrame( cfg, deps );	// throw
+		_beginFrame = _rts.BeginFrame( cfg, deps );	// throw
+		return _beginFrame;
 	}
 	
 /*
@@ -157,9 +186,19 @@ namespace AE::RG::_hidden_
 	{
 		DRC_EXLOCK( _drCheck );
 
-		// TODO present
+		// present output surfaces
+		FixedArray< AsyncTask, MaxOutSurfaces >		present_tasks;
 
-		AsyncTask	end_frame	= _rts.EndFrame( deps );	// throw
+		for (auto [surface, info] : _outSurfaces)
+		{
+			ASSERT( info.acquireImageTask );
+
+			if_likely( auto task = surface->End( Default ))	// will present after batch submission
+				present_tasks.push_back( task );
+		}
+		
+		AsyncTask	end_frame	= _rts.EndFrame( TupleConcat( deps, Tuple{ArrayView<AsyncTask>{ present_tasks }} ));	// throw	// TODO: optimize
+	//	AsyncTask	end_frame	= _rts.EndFrame( deps );	// throw
 		auto&		f			= _CurrentFrame();
 		
 		for (usize i = 0; i < f.queues.size(); ++i)
@@ -167,8 +206,48 @@ namespace AE::RG::_hidden_
 			if ( f.queues[i].submitIdx > 0 )
 				_rts.SkipCmdBatches( EQueueType(i), UMax );
 		}
+		
+		// start next frame only after present	// TODO: optimize?
+		_rts.AddNextFrameDeps( present_tasks );
+
+		_beginFrame = null;
 
 		return end_frame;
+	}
+//-----------------------------------------------------------------------------
+	
+
+
+/*
+=================================================
+	UseResources
+=================================================
+*/
+	template <typename ID>
+	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (ArrayView<ID> ids, EResourceState initial, EResourceState final) rvNE___
+	{
+		for (auto id : ids) {
+			_UseResource( ResourceKey{id}, initial, final );
+		}
+		return RVRef(*this);
+	}
+
+	template <typename ID>
+	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (ArrayView<ID> ids, EResourceState initialOrFinal) rvNE___
+	{
+		for (auto id : ids) {
+			_UseResource( ResourceKey{id}, initialOrFinal, initialOrFinal );
+		}
+		return RVRef(*this);
+	}
+
+	template <typename ID>
+	RenderGraph::CmdBatchBuilder&&  RenderGraph::CmdBatchBuilder::UseResources (ArrayView<ID> ids) rvNE___
+	{
+		for (auto id : ids) {
+			_UseResource( ResourceKey{id}, Default, Default );
+		}
+		return RVRef(*this);
 	}
 
 

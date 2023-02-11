@@ -27,7 +27,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -36,6 +36,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -46,7 +50,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -60,7 +64,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -137,7 +141,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -146,6 +150,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -156,7 +164,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -170,7 +178,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -251,7 +259,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -260,6 +268,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -270,7 +282,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -284,7 +296,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -318,6 +330,7 @@ name: 'command-buffer'
   ----------
 
   Dispatch
+
   EndDebugLabel
     depth: 1
   ----------
@@ -342,9 +355,9 @@ name: 'command-buffer'
     dependencyFlags: 0
     ImageBarrier:
       name:    'Image-0'
-      stage:   ALL_COMMANDS ---> COPY
-      access:  MEMORY_READ | MEMORY_WRITE ---> TRANSFER_READ
-      layout:  UNDEFINED ---> TRANSFER_SRC_OPTIMAL
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
   CopyImageToBuffer
@@ -358,9 +371,9 @@ name: 'command-buffer'
     dependencyFlags: 0
     ImageBarrier:
       name:    'Image-1'
-      stage:   ALL_COMMANDS ---> COPY
-      access:  MEMORY_READ | MEMORY_WRITE ---> TRANSFER_READ
-      layout:  UNDEFINED ---> TRANSFER_SRC_OPTIMAL
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
   CopyImageToBuffer
@@ -373,12 +386,12 @@ name: 'command-buffer'
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
-      name:    'Image-1'
+      name:    'Image-0'
       stage:   COPY ---> ALL_COMMANDS
       access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
     ImageBarrier:
-      name:    'Image-0'
+      name:    'Image-1'
       stage:   COPY ---> ALL_COMMANDS
       access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
@@ -387,8 +400,8 @@ name: 'command-buffer'
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
-      stage:  COMPUTE_SHADER ---> ALL_COMMANDS
-      access: SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> MEMORY_READ | MEMORY_WRITE
+      stage:  COMPUTE_SHADER | COPY ---> ALL_COMMANDS
+      access: TRANSFER_WRITE | SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> HOST_READ | MEMORY_READ | MEMORY_WRITE
   ----------
 
   EndDebugLabel
@@ -430,7 +443,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -439,6 +452,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -449,7 +466,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -463,7 +480,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -540,7 +557,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -549,6 +566,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -559,7 +580,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -573,7 +594,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -654,7 +675,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -663,6 +684,10 @@ name: 'command-buffer'
   ----------
 
   Draw
+
+  EndDebugLabel
+    depth: 2
+  ----------
 
   EndRenderPass2
     attachment:
@@ -673,7 +698,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -687,7 +712,7 @@ name: 'command-buffer'
   ----------
 
   EndDebugLabel
-    depth: 2
+    depth: 1
   ----------
 
 }
@@ -721,6 +746,7 @@ name: 'command-buffer'
   ----------
 
   Dispatch
+
   EndDebugLabel
     depth: 1
   ----------
@@ -745,9 +771,9 @@ name: 'command-buffer'
     dependencyFlags: 0
     ImageBarrier:
       name:    'Image-0'
-      stage:   ALL_COMMANDS ---> COPY
-      access:  MEMORY_READ | MEMORY_WRITE ---> TRANSFER_READ
-      layout:  UNDEFINED ---> TRANSFER_SRC_OPTIMAL
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
   CopyImageToBuffer
@@ -761,9 +787,9 @@ name: 'command-buffer'
     dependencyFlags: 0
     ImageBarrier:
       name:    'Image-1'
-      stage:   ALL_COMMANDS ---> COPY
-      access:  MEMORY_READ | MEMORY_WRITE ---> TRANSFER_READ
-      layout:  UNDEFINED ---> TRANSFER_SRC_OPTIMAL
+      stage:   COMPUTE_SHADER ---> COPY
+      access:  SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
   CopyImageToBuffer
@@ -790,8 +816,8 @@ name: 'command-buffer'
   PipelineBarrier2
     dependencyFlags: 0
     MemoryBarrier:
-      stage:  COMPUTE_SHADER ---> ALL_COMMANDS
-      access: SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> MEMORY_READ | MEMORY_WRITE
+      stage:  COMPUTE_SHADER | COPY ---> ALL_COMMANDS
+      access: TRANSFER_WRITE | SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> HOST_READ | MEMORY_READ | MEMORY_WRITE
   ----------
 
   EndDebugLabel

@@ -5,13 +5,13 @@ void main ()
 	if ( !IsVulkan() )
 		return;
 
-	RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "rtrace1.ds1" );
+	RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "rtrace1.ds0" );
 	ds.AddFeatureSet( "MinRecursiveRayTracing" );
 	ds.StorageImage( EShaderStages::RayGen, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
 	ds.RayTracingScene( EShaderStages::RayGen, "un_RtScene", ArraySize(1) );
 	
 	RC<PipelineLayout>		pl = PipelineLayout( "rtrace1.pl" );
-	pl.DSLayout( 0, "rtrace1.ds1" );
+	pl.DSLayout( 0, "rtrace1.ds0" );
 	
 
 	RC<RayTracingPipeline>	ppln = RayTracingPipeline( "rtrace1" );
@@ -66,11 +66,12 @@ void main ()
 			sbt.BindRayGen( "Main" );
 
 			sbt.HitGroupStride( hit_group_stride );
-
-			sbt.BindMiss( "Miss", MissIndex(0) );
-			sbt.BindMiss( "Miss", MissIndex(1) );
 			
-			sbt.BindHitGroup( "TriHit",	InstanceIndex(1),	RayIndex(0) );
+			sbt.BindMiss( "Miss", MissIndex(0) );	// traceRays() with missIndex = 0
+			sbt.BindMiss( "Miss", MissIndex(1) );	// traceRays() with missIndex = 1
+			
+			sbt.BindHitGroup( "TriHit",	InstanceIndex(0),	RayIndex(0) );	// traceRays() with sbtRecordOffset = 0
+			sbt.BindHitGroup( "TriHit",	InstanceIndex(0),	RayIndex(1) );	// traceRays() with sbtRecordOffset = 1
 		}
 	}
 }

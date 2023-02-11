@@ -37,7 +37,6 @@ namespace AE::Graphics
 
 		ResType					_data;
 
-		// reference counter may be used for cached resources like samples, pipeline layout and other
 		mutable Atomic<int>		_refCounter	{0};
 
 

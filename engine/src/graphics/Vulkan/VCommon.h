@@ -14,11 +14,6 @@
 # include "base/Memory/LinearAllocator.h"
 # include "base/Memory/StackAllocator.h"
 
-# ifdef AE_DBG_OR_DEV_OR_PROF
-#	include "base/Algorithms/StringUtils.h"
-# endif
-
-# include "threading/Primitives/DataRaceCheck.h"
 # include "threading/Primitives/Atomic.h"
 # include "threading/TaskSystem/TaskScheduler.h"
 # include "threading/TaskSystem/Promise.h"
@@ -43,22 +38,15 @@
 
 namespace AE::Graphics
 {
-	using AE::Threading::Mutex;
-	using AE::Threading::SharedMutex;
 	using AE::Threading::SpinLock;
 	using AE::Threading::RWSpinLock;
 	using AE::Threading::SpinLockRelaxed;
-	using AE::Threading::RecursiveMutex;
 	using AE::Threading::AsyncTask;
 	using AE::Threading::GlobalLinearAllocatorRef;
 	using AE::Threading::GraphicsFrameAllocatorRef;
 	using AE::Threading::BitAtomic;
 	using AE::Threading::FAtomic;
 	using AE::Threading::ETaskQueue;
-	
-#	if AE_ENABLE_DATA_RACE_CHECK
-	using AE::Threading::RWDataRaceCheck;
-#	endif
 
 	class VDevice;
 	class VResourceManager;

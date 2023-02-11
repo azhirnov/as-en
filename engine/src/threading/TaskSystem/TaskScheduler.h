@@ -187,7 +187,10 @@ namespace AE::Threading
 
 			Chunk () __NE___ {}
 		};
+
+	  #if AE_PLATFORM_BITS == 64
 		STATIC_ASSERT( sizeof(Chunk) == 1_Kb );
+	  #endif
 		STATIC_ASSERT( TasksPerChunk * MaxChunks * MaxDepth < 1'000'000 );
 
 		using ChunkArray_t	= StaticArray< Chunk *, MaxChunks >;
@@ -250,6 +253,7 @@ namespace AE::Threading
 	class TaskScheduler final : public Noncopyable
 	{
 		friend class IAsyncTask;	// calls '_AddDependencies()', '_GetChunkPool()'
+		friend struct InPlace<TaskScheduler>;
 
 	// types
 	public:
@@ -328,7 +332,7 @@ namespace AE::Threading
 			BitAtomic<TimePoint_t>		lastUpdate;
 			Atomic<ulong>				numChecks	{0};
 			Atomic<ulong>				numLocks	{0};
-			const secondsf				interval	{2.f};
+			const secondsf				interval	{10.f};
 			const double				minRate		{0.01};
 		}							_deadlockCheck;)
 
@@ -369,19 +373,21 @@ namespace AE::Threading
 	  #ifdef AE_HAS_COROUTINE
 		template <typename ...Deps>
 		AsyncTask  Run (ETaskQueue				queueType,
-						CoroutineTask			handle,
-						const Tuple<Deps...> &	deps	= Default)					__NE___;
+						CoroTask				coro,
+						const Tuple<Deps...> &	deps	= Default,
+						StringView				dbgName	= Default)					__NE___;
 
 		template <typename ...Deps>
-		AsyncTask  Run (CoroutineTask			handle,
+		AsyncTask  Run (CoroTask				coro,
 						const Tuple<Deps...> &	deps	= Default)					__NE___;
 		
 		template <typename T,
 				  typename ...Deps
 				 >
-		ND_ Coroutine<T>  Run (ETaskQueue			queueType,
-							   Coroutine<T>			coro,
-							   const Tuple<Deps...>	&deps	= Default)				__NE___;
+		ND_ Coroutine<T>  Run (ETaskQueue				queueType,
+							   Coroutine<T>				coro,
+							   const Tuple<Deps...> &	deps	= Default,
+							   StringView				dbgName	= Default)			__NE___;
 
 		template <typename T,
 				  typename ...Deps
@@ -430,7 +436,7 @@ namespace AE::Threading
 		TaskScheduler ();
 		~TaskScheduler ()															__NE___;
 		
-		ND_ static TaskScheduler*  _Instance ()										__NE___;
+		ND_ static TaskScheduler&  _Instance ()										__NE___;
 
 		ND_ bool  _InitIOServices ()												__NE___;
 
@@ -555,29 +561,28 @@ namespace AE::Threading
 #ifdef AE_HAS_COROUTINE
 
 	template <typename ...Deps>
-	AsyncTask  TaskScheduler::Run (ETaskQueue queueType, CoroutineTask handle, const Tuple<Deps...> &deps) __NE___
+	AsyncTask  TaskScheduler::Run (ETaskQueue queueType, CoroTask coro, const Tuple<Deps...> &deps, StringView dbgName) __NE___
 	{
-		AsyncTask	task;
-		CATCH_ERR(
-			task = MakeCoroutineTask( RVRef(handle), queueType ),	// throw
-			GetCanceledTask()
-		)
+		CHECK_ERR( coro );
+		coro._InitCoro( queueType, dbgName );
+
+		AsyncTask	task = AsyncTask{coro};
 
 		CHECK_ERR( Run( task, deps ), GetCanceledTask() );
 		return task;
 	}
 	
 	template <typename ...Deps>
-	AsyncTask  TaskScheduler::Run (CoroutineTask handle, const Tuple<Deps...> &deps) __NE___
+	AsyncTask  TaskScheduler::Run (CoroTask coro, const Tuple<Deps...> &deps) __NE___
 	{
-		return Run( ETaskQueue::Worker, RVRef(handle), deps );
+		return Run( ETaskQueue::Worker, RVRef(coro), deps );
 	}
 	
 	template <typename T, typename ...Deps>
-	Coroutine<T>  TaskScheduler::Run (ETaskQueue queueType, Coroutine<T> coro, const Tuple<Deps...> &deps) __NE___
+	Coroutine<T>  TaskScheduler::Run (ETaskQueue queueType, Coroutine<T> coro, const Tuple<Deps...> &deps, StringView dbgName) __NE___
 	{
 		CHECK_ERR( coro );
-		coro._SetQueueType( queueType );
+		coro._InitCoro( queueType, dbgName );
 
 		AsyncTask	task		= AsyncTask{coro};
 		uint		bit_index	= 0;
@@ -638,6 +643,9 @@ namespace AE::Threading
 			// implicitlly it is strong dependency
 			if constexpr( IsSpecializationOf< T, RC > and IsBaseOf< IAsyncTask, RemoveRC<T> >) {
 				if_unlikely( not _AddTaskDependencies( task, args.template Get<I>(), True{"strong"}, INOUT bitIndex )) return false;
+			//}else
+			//if constexpr( std::is_convertible_v< T, AsyncTask >) {
+			//	if_unlikely( not _AddTaskDependencies( task, AsyncTask{args.template Get<I>()}, True{"strong"}, INOUT bitIndex )) return false;
 			}else{
 				if_unlikely( not _AddCustomDependency( task, args.template Get<I>(), INOUT bitIndex )) return false;
 			}
@@ -737,7 +745,7 @@ namespace AE
 */
 	ND_ forceinline Threading::TaskScheduler&  Scheduler () __NE___
 	{
-		return *Threading::TaskScheduler::_Instance();
+		return Threading::TaskScheduler::_Instance();
 	}
 
 } // AE

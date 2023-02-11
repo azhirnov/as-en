@@ -75,7 +75,7 @@ static bool CreatePipeline (TestDevice &vulkan, VkShaderModule compShader, Array
 	info.stage.pName	= "main";
 	info.layout			= outPipelineLayout;
 
-	VK_CHECK_ERR( vulkan.vkCreateComputePipelines( vulkan.GetVkDevice(), VK_NULL_HANDLE, 1, &info, null, OUT &outPipeline ));
+	VK_CHECK_ERR( vulkan.vkCreateComputePipelines( vulkan.GetVkDevice(), Default, 1, &info, null, OUT &outPipeline ));
 	vulkan.tempHandles.emplace_back( TestDevice::EHandleType::Pipeline, ulong(outPipeline) );
 
 	return true;
@@ -92,55 +92,7 @@ extern bool ShaderTrace_Test12 (TestDevice& vulkan)
 	VkImage			image;
 	VkImageView		image_view;
 	uint			width = 16, height = 16;
-	{
-		VkImageCreateInfo	info = {};
-		info.sType			= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		info.flags			= 0;
-		info.imageType		= VK_IMAGE_TYPE_2D;
-		info.format			= VK_FORMAT_R8G8B8A8_UNORM;
-		info.extent			= { width, height, 1 };
-		info.mipLevels		= 1;
-		info.arrayLayers	= 1;
-		info.samples		= VK_SAMPLE_COUNT_1_BIT;
-		info.tiling			= VK_IMAGE_TILING_OPTIMAL;
-		info.usage			= VK_IMAGE_USAGE_STORAGE_BIT;
-		info.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
-		info.initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
-
-		VK_CHECK_ERR( vulkan.vkCreateImage( vulkan.GetVkDevice(), &info, null, OUT &image ));
-		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::Image, ulong(image) );
-
-		VkMemoryRequirements	mem_req;
-		vulkan.vkGetImageMemoryRequirements( vulkan.GetVkDevice(), image, OUT &mem_req );
-		
-		// allocate GetVkDevice() local memory
-		VkMemoryAllocateInfo	alloc_info = {};
-		alloc_info.sType			= VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		alloc_info.allocationSize	= mem_req.size;
-		CHECK_ERR( vulkan.GetMemoryTypeIndex( mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, OUT alloc_info.memoryTypeIndex ));
-
-		VkDeviceMemory	image_mem;
-		VK_CHECK_ERR( vulkan.vkAllocateMemory( vulkan.GetVkDevice(), &alloc_info, null, OUT &image_mem ));
-		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::Memory, ulong(image_mem) );
-
-		VK_CHECK_ERR( vulkan.vkBindImageMemory( vulkan.GetVkDevice(), image, image_mem, 0 ));
-	}
-
-	// create image view
-	{
-		VkImageViewCreateInfo	info = {};
-		info.sType				= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		info.flags				= 0;
-		info.image				= image;
-		info.viewType			= VK_IMAGE_VIEW_TYPE_2D;
-		info.format				= VK_FORMAT_R8G8B8A8_UNORM;
-		info.components			= { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
-		info.subresourceRange	= { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-
-		VK_CHECK_ERR( vulkan.vkCreateImageView( vulkan.GetVkDevice(), &info, null, OUT &image_view ));
-		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::ImageView, ulong(image_view) );
-	}
-
+	CHECK_ERR( vulkan.CreateStorageImage( VK_FORMAT_R8G8B8A8_UNORM, width, height, 0, OUT image, OUT image_view ));
 
 	// create pipeline
 	VkShaderModule	comp_shader;
@@ -289,7 +241,7 @@ extern bool ShaderTrace_Test12 (TestDevice& vulkan)
 		submit.commandBufferCount	= 1;
 		submit.pCommandBuffers		= &vulkan.cmdBuffer;
 
-		VK_CHECK_ERR( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, VK_NULL_HANDLE ));
+		VK_CHECK_ERR( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, Default ));
 		VK_CHECK_ERR( vulkan.vkQueueWaitIdle( vulkan.GetVkQueue() ));
 	}
 

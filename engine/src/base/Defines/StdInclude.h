@@ -35,3 +35,13 @@
 #include <atomic>
 #include <thread>
 #include <exception>
+
+#include <atomic>
+#include <mutex>
+#include <shared_mutex>
+#include <thread>
+#include <condition_variable>
+
+#ifdef __cpp_lib_barrier
+#  include <barrier>
+#endif

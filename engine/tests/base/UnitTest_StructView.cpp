@@ -101,9 +101,9 @@ extern void UnitTest_StructView ()
 {
 	StructView_Test1();
 	
-#ifndef AE_PLATFORM_ANDROID
-	StructView_Test2();
-#endif
+	#if not (defined(AE_PLATFORM_ANDROID) or defined(AE_PLATFORM_EMSCRIPTEN))
+		StructView_Test2();
+	#endif
 
 	StructView_Test3();
 

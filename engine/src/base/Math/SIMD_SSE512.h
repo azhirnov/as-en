@@ -10,7 +10,7 @@
 namespace AE::Math
 {
 	/*
-# if AE_SIMD_AVX >= 3
+#if AE_SIMD_AVX >= 3
 	//
 	// 128 bit half (AVX512_FP16 + AVX512VL)
 	//
@@ -54,13 +54,13 @@ namespace AE::Math
 	public:
 		SimdHalf16 ()	__NE___	: _value{_mm256_setzero_ps()}	{}
 	};
-# endif // AE_SIMD_AVX >= 3
+#endif // AE_SIMD_AVX >= 3
 	*/
 
 //-----------------------------------------------------------------------------
 
 
-# if AE_SIMD_AVX >= 3
+#if AE_SIMD_AVX >= 3
 
 	//
 	// 512 bit float (AVX512)
@@ -163,6 +163,6 @@ namespace AE::Math
 	};
 
 
-# endif // AE_SIMD_AVX >= 3
+#endif // AE_SIMD_AVX >= 3
 
 } // AE::Math

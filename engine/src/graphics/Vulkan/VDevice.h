@@ -139,6 +139,19 @@ namespace AE::Graphics
 	{
 	// types
 	public:
+		struct InstanceCreateInfo
+		{
+			StringView									appName				= AE_ENGINE_NAME " App";
+			StringView									engineName			= AE_ENGINE_NAME;
+			ArrayView<const char*>						instanceLayers;
+			ArrayView<const char*>						instanceExtensions;
+			InstanceVersion								version				{1,3};
+			uint										appVer				= 0;
+			uint										engineVer			= 0;
+			ArrayView<VkValidationFeatureEnableEXT>		enableValidations;
+			ArrayView<VkValidationFeatureDisableEXT>	disableValidations;
+		};
+
 		struct QueueCreateInfo
 		{
 		// variables
@@ -200,9 +213,9 @@ namespace AE::Graphics
 
 		ND_ InstanceVersion  GetMaxInstanceVersion ()												C_NE___;
 
-		ND_ bool  CreateInstance (NtStringView appName, NtStringView engineName, ArrayView<const char*> instanceLayers,
-								  ArrayView<const char*> instanceExtensions = {}, InstanceVersion version = {1,2}, uint appVer = 0, uint engineVer = 0) __NE___;
-		//ND_ bool  SetInstance (VkInstance value, InstanceVersion version = {1,2}, ArrayView<const char*> instanceExtensions = {}, ArrayView<const char*> instanceLayers = {});
+		ND_ bool  CreateInstance (const InstanceCreateInfo &ci)										__NE___;
+
+		//ND_ bool  SetInstance (VkInstance value, const InstanceCreateInfo &ci)					__NE___;
 
 			bool  DestroyInstance ()																__NE___;
 
@@ -214,12 +227,13 @@ namespace AE::Graphics
 		ND_ bool  CreateDefaultQueues (EQueueMask required, EQueueMask optional = Default)			__NE___;
 		ND_ bool  CreateQueues (ArrayView<QueueCreateInfo> queues)									__NE___;
 		
-		ND_ bool  CreateLogicalDevice (ArrayView<const char*> extensions = {},
-									   const FeatureSet* fsToDeviceFeatures = null)					__NE___;
+		ND_ bool  CreateLogicalDevice (ArrayView<const char*>	extensions			= {},
+									   const FeatureSet*		fsToDeviceFeatures	= null)			__NE___;
 			//bool  SetLogicalDevice (VkDevice value, ArrayView<const char*> extensions = {})		__NE___;
 			bool  DestroyLogicalDevice ()															__NE___;
 		
-			bool  CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT severity, DebugReport_t &&callback = Default)	__NE___;
+			bool  CreateDebugCallback (VkDebugUtilsMessageSeverityFlagsEXT	severity,
+									   DebugReport_t &&						callback = Default)		__NE___;
 			void  DestroyDebugCallback ()															__NE___;
 
 		ND_ bool  Init (const VDeviceInitializer &otherDev)											__NE___;
@@ -235,12 +249,13 @@ namespace AE::Graphics
 		#include "vulkan_loader/vk_features.h"
 		#undef  VKFEATS_FN_DECL
 		
-		ND_ bool  _CreateInstance (const char* appName, const char* engineName, ArrayView<const char*> instanceLayers,
-								   ArrayView<const char*> instanceExtensions, InstanceVersion version, uint appVer, uint engineVer) __Th___;
+		ND_ bool  _CreateInstance (NtStringView appName, NtStringView engineName, ArrayView<const char*> instanceLayers,
+								   ArrayView<const char*> instanceExtensions, InstanceVersion version,
+								   uint appVer, uint engineVer, const VkValidationFeaturesEXT *pValidation)				__Th___;
 
 		void  _ValidateInstanceVersion (VkInstance instance, ArrayView<const char*> layers, INOUT uint &version)		C_Th___;
 		void  _ValidateInstanceLayers (INOUT Array<const char*> &layers)												C_Th___;
-		void  _ValidateInstanceExtensions (INOUT Array<const char*> &ext)												C_Th___;
+		void  _ValidateInstanceExtensions (Array<const char*> layers, INOUT Array<const char*> &ext)					C_Th___;
 		bool  _ChooseHighPerformanceDevice ()																			__Th___;
 		bool  _CreateLogicalDevice (ArrayView<const char*> extensions, const FeatureSet* fsToDeviceFeatures)			__Th___;
 		void  _ValidateDeviceExtensions (VkPhysicalDevice physDev, INOUT Array<const char*> &ext)						C_Th___;

@@ -20,27 +20,27 @@ namespace
 {
 	struct AC2_TestData
 	{
-		Mutex						guard;
+		Mutex							guard;
 
 		// shared
-		Strong<ImageID>				image [2];
-		Strong<ImageViewID>			view  [2];
-		const uint2					imageSize	{800, 600};
-		Atomic<uint>				frameIdx	{0};
+		GAutorelease<ImageID>			image [2];
+		GAutorelease<ImageViewID>		view  [2];
+		const uint2						imageSize	{800, 600};
+		Atomic<uint>					frameIdx	{0};
 
 		// graphics
-		GraphicsPipelineID			gppln;
+		GraphicsPipelineID				gppln;
 
 		// async compute
-		ComputePipelineID			cppln;
-		Strong<DescriptorSetID>		cpplnDS [2];
-		DescSetBinding				cpplnDSIndex;
+		ComputePipelineID				cppln;
+		GAutorelease<DescriptorSetID>	cpplnDS [2];
+		DescSetBinding					cpplnDSIndex;
 		
-		AsyncTask					result [2];
-		bool						isOK   [2] = {false, false};
+		AsyncTask						result [2];
+		bool							isOK   [2] = {false, false};
 		
-		ImageComparator *			imgCmp	= null;
-		RC<GfxLinearMemAllocator>	gfxAlloc;
+		ImageComparator *				imgCmp	= null;
+		RC<GfxLinearMemAllocator>		gfxAlloc;
 	};
 	
 
@@ -174,7 +174,7 @@ namespace
 			{
 				AsyncTask	begin = rts.BeginFrame();
 
-				auto		batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"copy task"} );
+				auto		batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"copy task"} );
 				CHECK_TE( batch );
 
 				CHECK_TE( batch->AddInputDependency( lastBatch ));
@@ -206,7 +206,7 @@ namespace
 			CommandBatchPtr	batch_gfx;
 			AsyncTask		gfx_task;
 			{
-				batch_gfx	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"graphics batch"} );
+				batch_gfx	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"graphics batch"} );
 				CHECK_TE( batch_gfx );
 
 				// sync with previous frame
@@ -229,7 +229,7 @@ namespace
 			CommandBatchPtr	batch_ac;
 			AsyncTask		comp_task;
 			{
-				batch_ac	= rts.BeginCmdBatch( EQueueType::AsyncCompute, 0, ESubmitMode::Immediately, {"compute batch"} );
+				batch_ac	= rts.BeginCmdBatch( EQueueType::AsyncCompute, 0, {"compute batch"} );
 				CHECK_TE( batch_ac );
 
 				// graphics to compute sync
@@ -323,10 +323,6 @@ namespace
 		CHECK_ERR( t.isOK[0] );
 		CHECK_ERR( t.isOK[1] );
 
-		CHECK_ERR( res_mngr.ReleaseResources(	t.view[0], t.view[1],
-												t.image[0], t.image[1],
-												t.cpplnDS[0], t.cpplnDS[1] ));
-
 		return true;
 	}
 
@@ -339,12 +335,13 @@ bool RGTest::Test_AsyncCompute2 ()
 		return true; // skip
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
+	bool	result	= true;
 
-	CHECK_ERR(( AsyncCompute2Test< DirectCtx,   DirectCtx::Transfer   >( _acPipelines, img_cmp.get() )));
-	CHECK_ERR(( AsyncCompute2Test< IndirectCtx, IndirectCtx::Transfer >( _acPipelines, img_cmp.get() )));
+	RG_CHECK( AsyncCompute2Test< DirectCtx,   DirectCtx::Transfer   >( _acPipelines, img_cmp.get() ));
+	RG_CHECK( AsyncCompute2Test< IndirectCtx, IndirectCtx::Transfer >( _acPipelines, img_cmp.get() ));
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

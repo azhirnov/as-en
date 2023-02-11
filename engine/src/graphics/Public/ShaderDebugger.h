@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "graphics/Public/GraphicsImpl.h"
+#include "graphics/Public/CommandBuffer.h"
 
 namespace AE::Graphics
 {
@@ -20,7 +20,16 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		using ParseTraceFn_t = bool (*) (const void* ppln, const void *ptr, Bytes maxSize, OUT Array<String> &result);
+		enum class ELogFormat : uint
+		{
+			Unknown,
+			Text,			// as plane text with part of source code 
+			VS_Console,		// compatible with VS outpit, allow navigation to code by click
+			VSCode,			// click to file path will open shader source file
+			_Count
+		};
+
+		using ParseTraceFn_t = bool (*) (const void* ppln, const void *ptr, Bytes maxSize, ELogFormat, OUT Array<String> &result);
 
 		struct Result
 		{
@@ -89,30 +98,30 @@ namespace AE::Graphics
 		~ShaderDebugger ();
 
 		ND_ bool  AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln, const uint3 &globalID,
-								   const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)		__Th___;
+								   const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)			__Th___;
 
 		ND_ bool  AllocForCompute (OUT Result &result, ITransferContext &ctx, ComputePipelineID ppln,
-								   const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)		__Th___;
+								   const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)			__Th___;
 		
 		ND_ bool  AllocForRayTracing (OUT Result &result, ITransferContext &ctx, RayTracingPipelineID ppln, const uint3 &launchID,
-									  const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)	__Th___;
+									  const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)		__Th___;
 		
 		ND_ bool  AllocForRayTracing (OUT Result &result, ITransferContext &ctx, RayTracingPipelineID ppln,
-									  const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)	__Th___;
+									  const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)		__Th___;
 
 		template <typename PplnID>
 		ND_ bool  AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln, const uint2 &fragCoord,
-									const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)		__Th___;
+									const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)			__Th___;
 		
 		template <typename PplnID>
 		ND_ bool  AllocForGraphics (OUT Result &result, ITransferContext &ctx, PplnID ppln,
-									const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)		__Th___;
+									const DescriptorSetName &dsName = _DbgShaderTrace, Bytes size = _SingleBufferSize)			__Th___;
 
 
-		ND_ Promise<Array<String>>  Read (ITransferContext &ctx, const Result &result)										__Th___;
-		ND_ Promise<Array<String>>  ReadAll (ITransferContext &ctx)															__Th___;
+		ND_ Promise<Array<String>>  Read (ITransferContext &ctx, const Result &request, ELogFormat format = Default)			__Th___;
+		ND_ Promise<Array<String>>  ReadAll (ITransferContext &ctx, ELogFormat format = Default)								__Th___;
 
-			void  Reset ();
+			void  Reset ()																										__Th___;
 
 
 	private:
@@ -130,7 +139,7 @@ namespace AE::Graphics
 		ND_ bool  _AllocStorage (Bytes size, INOUT Result &result);
 		ND_ bool  _InitDS (const Result &info) const;
 
-		ND_ static Array<String>  _Parse (ArrayView<ubyte> view, const void* ppln, ParseTraceFn_t fn);
+		ND_ static Array<String>  _Parse (ArrayView<ubyte> view, const void* ppln, ParseTraceFn_t fn, ELogFormat format);
 
 		ND_ static Promise<Array<String>>  _Merge (Array<Promise<Array<String>>> tasks);
 	};

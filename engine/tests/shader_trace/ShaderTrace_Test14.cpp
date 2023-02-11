@@ -34,9 +34,11 @@ void main ()
 {
 	dbg_EnableTraceRecording( gl_LaunchIDEXT.x == 60 && gl_LaunchIDEXT.y == 40 );
 
-	const vec2 uv = vec2(gl_LaunchIDEXT.xy) / vec2(gl_LaunchSizeEXT.xy - 1);
-	const vec3 origin = vec3(uv.x, 1.0f - uv.y, -1.0f);
+	const vec2 uv		 = vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
+	const vec3 origin	 = vec3(uv.x, 1.0f - uv.y, -1.0f);
 	const vec3 direction = vec3(0.0f, 0.0f, 1.0f);
+
+	payload = vec4(0.0);
 
 	traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
 				 /*sbtRecordOffset*/0, /*sbtRecordStride*/0, /*missIndex*/0,
@@ -44,7 +46,8 @@ void main ()
 				 /*direction*/direction, /*Tmax*/10.0f,
 				 /*payload*/PAYLOAD_LOC );
 
-	imageStore( un_Output, ivec2(gl_LaunchIDEXT), payload );
+	vec4 color = payload;
+	imageStore( un_Output, ivec2(gl_LaunchIDEXT), color );
 }
 )#";
 		CHECK_ERR( vulkan.Compile( OUT rayGenShader, {rt_shader, raygen_shader_source}, EShLangRayGen, ETraceMode::DebugTrace, 1 ));
@@ -73,7 +76,7 @@ hitAttributeEXT vec2  HitAttribs;
 
 void main ()
 {
-	dbg_EnableTraceRecording( gl_LaunchIDEXT.x == 70 && gl_LaunchIDEXT.y == 80 );
+	dbg_EnableTraceRecording( gl_LaunchIDEXT.x == 60 && gl_LaunchIDEXT.y == 40 );
 
 	const vec3 barycentrics = vec3(1.0f - HitAttribs.x - HitAttribs.y, HitAttribs.x, HitAttribs.y);
 	payload = vec4(barycentrics, 1.0);
@@ -147,7 +150,6 @@ static bool CreatePipeline (TestDevice &vulkan, VkShaderModule rayGenShader, VkS
 	groups[MISS_SHADER].anyHitShader		= VK_SHADER_UNUSED_KHR;
 	groups[MISS_SHADER].intersectionShader	= VK_SHADER_UNUSED_KHR;
 
-
 	// create pipeline
 	VkRayTracingPipelineCreateInfoKHR 	info = {};
 	info.sType			= VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR;
@@ -179,55 +181,7 @@ extern bool ShaderTrace_Test14 (TestDevice& vulkan)
 	VkImage			image;
 	VkImageView		image_view;
 	uint			width = 128, height = 128;
-	{
-		VkImageCreateInfo	info = {};
-		info.sType			= VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		info.flags			= 0;
-		info.imageType		= VK_IMAGE_TYPE_2D;
-		info.format			= VK_FORMAT_R8G8B8A8_UNORM;
-		info.extent			= { width, height, 1 };
-		info.mipLevels		= 1;
-		info.arrayLayers	= 1;
-		info.samples		= VK_SAMPLE_COUNT_1_BIT;
-		info.tiling			= VK_IMAGE_TILING_OPTIMAL;
-		info.usage			= VK_IMAGE_USAGE_STORAGE_BIT;
-		info.sharingMode	= VK_SHARING_MODE_EXCLUSIVE;
-		info.initialLayout	= VK_IMAGE_LAYOUT_UNDEFINED;
-
-		VK_CHECK_ERR( vulkan.vkCreateImage( vulkan.GetVkDevice(), &info, null, OUT &image ));
-		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::Image, ulong(image) );
-
-		VkMemoryRequirements	mem_req;
-		vulkan.vkGetImageMemoryRequirements( vulkan.GetVkDevice(), image, OUT &mem_req );
-		
-		// allocate GetVkDevice() local memory
-		VkMemoryAllocateInfo	alloc_info = {};
-		alloc_info.sType			= VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		alloc_info.allocationSize	= mem_req.size;
-		CHECK_ERR( vulkan.GetMemoryTypeIndex( mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, OUT alloc_info.memoryTypeIndex ));
-		
-		VkDeviceMemory	image_mem;
-		VK_CHECK_ERR( vulkan.vkAllocateMemory( vulkan.GetVkDevice(), &alloc_info, null, OUT &image_mem ));
-		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::Memory, ulong(image_mem) );
-
-		VK_CHECK_ERR( vulkan.vkBindImageMemory( vulkan.GetVkDevice(), image, image_mem, 0 ));
-	}
-
-	// create image view
-	{
-		VkImageViewCreateInfo	info = {};
-		info.sType				= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		info.flags				= 0;
-		info.image				= image;
-		info.viewType			= VK_IMAGE_VIEW_TYPE_2D;
-		info.format				= VK_FORMAT_R8G8B8A8_UNORM;
-		info.components			= { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
-		info.subresourceRange	= { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-
-		VK_CHECK_ERR( vulkan.vkCreateImageView( vulkan.GetVkDevice(), &info, null, OUT &image_view ));
-		vulkan.tempHandles.emplace_back( TestDevice::EHandleType::ImageView, ulong(image_view) );
-	}
-
+	CHECK_ERR( vulkan.CreateStorageImage( VK_FORMAT_R8G8B8A8_UNORM, width, height, 0, OUT image, OUT image_view ));
 
 	// create pipeline
 	VkShaderModule	raygen_shader, miss_shader, hit_shader;
@@ -397,7 +351,7 @@ extern bool ShaderTrace_Test14 (TestDevice& vulkan)
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		
 		vulkan.vkCmdPipelineBarrier( vulkan.cmdBuffer, VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-									 0, null, 1, &barrier, 0, null);
+									 0, null, 1, &barrier, 0, null );
 	}
 	
 	// copy shader debug output into host visible memory
@@ -419,9 +373,11 @@ extern bool ShaderTrace_Test14 (TestDevice& vulkan)
 		submit.commandBufferCount	= 1;
 		submit.pCommandBuffers		= &vulkan.cmdBuffer;
 
-		VK_CHECK_ERR( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, VK_NULL_HANDLE ));
+		VK_CHECK_ERR( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, Default ));
 		VK_CHECK_ERR( vulkan.vkQueueWaitIdle( vulkan.GetVkQueue() ));
 	}
+
+	//vulkan.SaveImage( image, VK_IMAGE_LAYOUT_GENERAL, width, height, R"()" );
 
 	CHECK_ERR( vulkan.TestDebugTraceOutput( {raygen_shader, miss_shader/*, hit_shader*/}, "ShaderTrace_Test14.txt" ));
 	

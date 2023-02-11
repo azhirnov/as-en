@@ -24,11 +24,13 @@ namespace AE::Math
 	// methods
 		constexpr RGBAColor ()									__NE___ : r{T{0}}, g{T{0}}, b{T{0}}, a{T{0}}
 		{
+		  #ifdef AE_COMPILETIME_OFFSETOF
 			// check if supported cast from Color to array
 			STATIC_ASSERT( offsetof(Self, r) + sizeof(T) == offsetof(Self, g) );
 			STATIC_ASSERT( offsetof(Self, g) + sizeof(T) == offsetof(Self, b) );
 			STATIC_ASSERT( offsetof(Self, b) + sizeof(T) == offsetof(Self, a) );
 			STATIC_ASSERT( sizeof(T)*(size()-1) == (offsetof(Self, a) - offsetof(Self, r)) );
+		  #endif
 		}
 
 		constexpr RGBAColor (T r, T g, T b, T a)				__NE___ : r{r}, g{g}, b{b}, a{a}
@@ -54,8 +56,8 @@ namespace AE::Math
 		
 		ND_ constexpr bool operator != (const RGBAColor<T> &rhs) C_NE___ { return not (*this == rhs); }
 		
-		ND_ operator PackedVec<T,4> ()							C_NE___	{ return {r,g,b,a}; }
-		ND_ operator Vec<T,4>       ()							C_NE___	{ return {r,g,b,a}; }
+		template <glm::qualifier Q>
+		ND_ operator TVec<T,4,Q> ()								C_NE___	{ return {r,g,b,a}; }
 		
 
 		ND_ static constexpr T  MaxValue ()						__NE___
@@ -147,7 +149,7 @@ namespace AE::Math
 
 		ND_ constexpr bool  operator == (const HSVColor &rhs)					C_NE___
 		{
-			const float eps = RGBA32f::Epsilon();
+			constexpr float eps = RGBA32f::Epsilon();
 
 			return Equals( h, rhs.h, eps ) & Equals( s, rhs.s, eps ) & Equals( v, rhs.v, eps );
 		}

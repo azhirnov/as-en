@@ -6,7 +6,7 @@ namespace
 {
 	struct US2_TestData
 	{
-		Strong<ImageID>				image;
+		GAutorelease<ImageID>		image;
 		ImageMemView				imageData;
 		const uint2					dimension	{1u << 12};
 		CommandBatchPtr				batch;
@@ -76,13 +76,17 @@ namespace
 
 			AsyncTask	begin = rts.BeginFrame( cfg );
 
-			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"UploadStream2"} );
+			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream2"} );
 			CHECK_TE( t.batch );
 			
 		#ifdef AE_HAS_COROUTINE
 			AsyncTask	test = t.batch->Run(
 				[] (US2_TestData &t) -> RenderTaskCoro
 				{
+					CHECK( not co_await Coro_IsCanceled );
+					CHECK( (co_await Coro_Status) == EStatus::InProgress );
+					CHECK( (co_await Coro_TaskQueue) == ETaskQueue::Renderer );
+
 					// same as 'US2_UploadStreamTask'
 					RenderTask&		self = co_await RenderTask_GetRef;
 
@@ -162,10 +166,10 @@ namespace
 
 		CHECK_ERR( Scheduler().Wait( {task} ));
 		CHECK_ERR( rts.WaitAll() );
+
 		CHECK_ERR( t.stream.IsCompleted() );
 		CHECK_ERR( t.counter.load() >= uint(t.imageData.ImageSize() / upload_limit) );
-	
-		CHECK_ERR( res_mngr.ReleaseResources( t.image ));
+
 		return true;
 	}
 
@@ -174,10 +178,12 @@ namespace
 
 bool RGTest::Test_UploadStream2 ()
 {
-	CHECK_ERR( UploadStream2Test() );
+	bool	result = true;
+
+	RG_CHECK( UploadStream2Test() );
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

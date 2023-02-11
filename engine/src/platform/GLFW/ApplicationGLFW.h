@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include "platform/GLFW/GLFWCommon.h"
+
 #ifdef AE_ENABLE_GLFW
 # include "platform/Public/IApplication.h"
 # include "platform/GLFW/WindowGLFW.h"
 # include "platform/Private/ApplicationBase.h"
-
-typedef struct GLFWmonitor GLFWmonitor;
 
 namespace AE::App
 {

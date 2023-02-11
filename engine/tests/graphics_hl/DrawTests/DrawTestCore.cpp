@@ -169,9 +169,13 @@ GraphicsCreateInfo  DrawTestCore::_GetGraphicsCreateInfo ()
 */
 bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
 {
-	ArrayView<const char*>	window_ext = app.GetVulkanInstanceExtensions();
+	VDeviceInitializer::InstanceCreateInfo	inst_ci;
+	inst_ci.appName				= "TestApp";
+	inst_ci.instanceLayers		= _vulkan.GetRecomendedInstanceLayers();
+	inst_ci.instanceExtensions	= app.GetVulkanInstanceExtensions();
+	inst_ci.version				= {1,2};
 
-	CHECK_ERR( _vulkan.CreateInstance( "TestApp", AE_ENGINE_NAME, _vulkan.GetRecomendedInstanceLayers(), window_ext, {1,2} ));
+	CHECK_ERR( _vulkan.CreateInstance( inst_ci ));
 
 	// this is a test and the test should fail for any validation error
 	_vulkan.CreateDebugCallback( DefaultDebugMessageSeverity,

@@ -10,8 +10,8 @@ namespace
 
 		uint2						viewSize;
 
-		Strong<ImageID>				img;
-		Strong<ImageViewID>			view;
+		GAutorelease<ImageID>		img;
+		GAutorelease<ImageViewID>	view;
 		
 		MeshPipelineID				ppln;
 
@@ -86,7 +86,7 @@ namespace
 			Ctx		ctx{ *this };
 
 			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then( [p = &t] (const ImageMemView &view)
+						.Then(	[p = &t] (const ImageMemView &view)
 								{
 									p->isOK = p->imgCmp->Compare( view );
 								})};
@@ -99,7 +99,7 @@ namespace
 
 	
 	template <typename CtxType, typename CopyCtx>
-	static bool  DrawTest (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+	static bool  DrawMesh1Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
 	{
 		auto&			rts			= RenderTaskScheduler();
 		auto&			res_mngr	= rts.GetResourceManager();
@@ -123,7 +123,7 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"DrawMesh1"} );
+		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"DrawMesh1"} );
 		CHECK_ERR( t.batch );
 
 		AsyncTask	task1	= t.batch->Run< DM1_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},				{"Draw task"} );
@@ -139,8 +139,6 @@ namespace
 		CHECK_ERR( Scheduler().Wait({ t.result }));
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
-		CHECK_ERR( res_mngr.ReleaseResources( t.view, t.img ));
-
 		CHECK_ERR( t.isOK );
 		return true;
 	}
@@ -154,15 +152,16 @@ bool RGTest::Test_DrawMesh1 ()
 		return true; // skip
 
 	auto	img_cmp = _LoadReference( TEST_NAME );
+	bool	result	= true;
 
-	CHECK_ERR(( DrawTest< DirectCtx,   DirectCtx::Transfer   >( _msPipelines, img_cmp.get() )));
-	CHECK_ERR(( DrawTest< DirectCtx,   IndirectCtx::Transfer >( _msPipelines, img_cmp.get() )));
+	RG_CHECK( DrawMesh1Test< DirectCtx,   DirectCtx::Transfer   >( _msPipelines, img_cmp.get() ));
+	RG_CHECK( DrawMesh1Test< DirectCtx,   IndirectCtx::Transfer >( _msPipelines, img_cmp.get() ));
 
-	CHECK_ERR(( DrawTest< IndirectCtx, DirectCtx::Transfer   >( _msPipelines, img_cmp.get() )));
-	CHECK_ERR(( DrawTest< IndirectCtx, IndirectCtx::Transfer >( _msPipelines, img_cmp.get() )));
+	RG_CHECK( DrawMesh1Test< IndirectCtx, DirectCtx::Transfer   >( _msPipelines, img_cmp.get() ));
+	RG_CHECK( DrawMesh1Test< IndirectCtx, IndirectCtx::Transfer >( _msPipelines, img_cmp.get() ));
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

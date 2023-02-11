@@ -4,8 +4,7 @@
 #include "threading/TaskSystem/ThreadManager.h"
 #include "UnitTest_Common.h"
 
-#ifdef AE_HAS_COROUTINE
-
+#if defined(AE_HAS_COROUTINE) and not defined(AE_DISABLE_THREADS)
 namespace
 {
 	using EStatus = IAsyncTask::EStatus;
@@ -31,22 +30,24 @@ namespace
 		
 		ExeOrder	value;	// access to value protected by internal synchronizations
 
-		auto	task1 = MakeCoroutineTask(
-							[] (ExeOrder &value) -> CoroutineTask
+		AsyncTask	task1 = [] (ExeOrder &value) -> CoroTask
 							{
+								TEST( not co_await Coro_IsCanceled );
+								TEST( (co_await Coro_Status) == EStatus::InProgress );
+								TEST( (co_await Coro_TaskQueue) == ETaskQueue::Worker );
+
 								TEST( value.guard.try_lock() );
 								value.str += '1';
 								value.guard.unlock();
 								co_return;
-							}( value ));
-		auto	task2 = MakeCoroutineTask(
-							[] (ExeOrder &value) -> CoroutineTask
+							}( value );
+		AsyncTask	task2 = [] (ExeOrder &value) -> CoroTask
 							{
 								TEST( value.guard.try_lock() );
 								value.str += '2';
 								value.guard.unlock();
 								co_return;
-							}( value ));
+							}( value );
 
 
 		scheduler->Run( task2, Tuple{ task1 });
@@ -70,16 +71,14 @@ namespace
 		
 		ExeOrder	value;	// access to value protected by internal synchronizations
 
-		auto	task1 = MakeCoroutineTask(
-							[] (ExeOrder &value) -> CoroutineTask
+		AsyncTask	task1 = [] (ExeOrder &value) -> CoroTask
 							{
 								TEST( value.guard.try_lock() );
 								value.str += '1';
 								value.guard.unlock();
 								co_return;
-							}( value ));
-		auto	task2 = MakeCoroutineTask(
-							[] (ExeOrder &value, AsyncTask task1) -> CoroutineTask
+							}( value );
+		AsyncTask	task2 = [] (ExeOrder &value, AsyncTask task1) -> CoroTask
 							{
 								// add dependency inside coroutine
 								co_await task1;
@@ -90,7 +89,7 @@ namespace
 								value.guard.unlock();
 								co_return;
 							}
-							( value, task1 ));
+							( value, task1 );
 		
 		scheduler->Run( task2 );
 		scheduler->Run( task1 );
@@ -116,8 +115,7 @@ namespace
 		auto		p2	= MakePromise( [] () { return "-3"s; });
 		ExeOrder	value;
 		
-		auto	task1 = MakeCoroutineTask(
-							[] (ExeOrder &value, auto p0, auto p1, auto p2) -> CoroutineTask
+		AsyncTask	task1 = [] (ExeOrder &value, auto p0, auto p1, auto p2) -> CoroTask
 							{
 								String	s0		 = co_await p0;
 								auto	[s1, s2] = co_await Tuple{ p1, p2 };
@@ -127,7 +125,7 @@ namespace
 								value.guard.unlock();
 								co_return;
 							}
-							( value, p0, p1, p2 ));
+							( value, p0, p1, p2 );
 		scheduler->Run( task1 );
 		
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
@@ -156,6 +154,10 @@ namespace
 		auto		p3 = scheduler->Run(
 							[] (ExeOrder &value, auto p0, auto p1, auto p2) -> Coroutine<String>
 							{
+								TEST( not co_await Coro_IsCanceled );
+								TEST( (co_await Coro_Status) == EStatus::InProgress );
+								TEST( (co_await Coro_TaskQueue) == ETaskQueue::Worker );
+
 								String	s0		 = co_await p0;
 								auto	[s1, s2] = co_await Tuple{ p1, p2 };
 								
@@ -238,4 +240,4 @@ extern void UnitTest_Coroutine ()
 extern void UnitTest_Coroutine ()
 {}
 
-#endif // AE_HAS_COROUTINE
+#endif // AE_HAS_COROUTINE and not AE_DISABLE_THREADS

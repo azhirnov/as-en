@@ -1,10 +1,23 @@
 
+## 23.2.143
+
+ - Graphics: improved RenderGraph
+ - Graphics/Vulkan/Debug: clear image in RP when used loadOp = don't care and in barrier when used undefined layout.
+ - Graphics: recreate swapchain asynchroniuosly.
+ - Threading: refactoring for coroutines
+ - Emscripten initial support
+ - ShaderTrace: RayQuery support, ray tracing payload logging, VS IDE output format.
+ - MacOS: support for x64
+ - Threading: Synchronized<> type
+ - Graphics: refactoring for immediatlly/delayed resource destruction
+
+
 ## 23.01.138
 
 - Graphics: deferred pipeline barriers
 - Scripting: preprocessor
 - Scripting: generate header to enable autocomplete in IDE
-- RenderGraph
+- Graphics: RenderGraph
 
 
 ## 22.12.136

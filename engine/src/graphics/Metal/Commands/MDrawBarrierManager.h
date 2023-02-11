@@ -22,6 +22,8 @@ namespace AE::Graphics::_hidden_
 		const MPrimaryCmdBufState	_primaryState;
 		Ptr<MDrawCommandBatch>		_batch;		// can be null
 		
+		MDependencyInfo				_barrier;
+
 		MResourceManager &			_resMngr;
 
 
@@ -42,16 +44,53 @@ namespace AE::Graphics::_hidden_
 		ND_ bool					IsSecondary ()								C_NE___	{ return _batch != null; }
 		ND_ Ptr<MDrawCommandBatch>	GetBatchPtr ()								C_NE___	{ return _batch.get(); }
 		
-		ND_ const MDependencyInfo*	GetBarriers ()								__NE___	{ return null; }	// TODO
-		ND_ bool					NoPendingBarriers ()						C_NE___	{ return true; }
-		ND_ bool					HasPendingBarriers ()						C_NE___	{ return false; }
+		ND_ const MDependencyInfo*	GetBarriers ()								__NE___;
+		ND_ bool					NoPendingBarriers ()						C_NE___;
+		ND_ bool					HasPendingBarriers ()						C_NE___	{ return not NoPendingBarriers(); }
+		
+		ND_ uint					GetAttachmentIndex (AttachmentName name)	C_NE___;
 
-		void  ClearBarriers ()													__NE___	{}	// TODO
-		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState) __NE___	{ Unused( name, srcState, dstState ); }	// TODO
+		void  ClearBarriers ()													__NE___;
+		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState) __NE___;
 
 	private:
-		void  _Init ();
+		void  _Init ()															__NE___;
 	};
+	
+
+
+/*
+=================================================
+	NoPendingBarriers
+=================================================
+*/
+	forceinline bool  MDrawBarrierManager::NoPendingBarriers () C_NE___
+	{
+		return _barrier.scope == Default;
+	}
+
+/*
+=================================================
+	GetBarriers
+=================================================
+*/
+	forceinline const MDependencyInfo*  MDrawBarrierManager::GetBarriers () __NE___
+	{
+		return HasPendingBarriers() ? &_barrier : null;
+	}
+	
+/*
+=================================================
+	ClearBarriers
+=================================================
+*/
+	forceinline void  MDrawBarrierManager::ClearBarriers () __NE___
+	{
+		_barrier.scope			= Default;
+		_barrier.beforeStages	= Default;
+		_barrier.afterStages	= Default;
+	}
+
 
 } // AE::Graphics::_hidden_
 

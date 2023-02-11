@@ -70,6 +70,12 @@ namespace AE::Graphics
 		template <typename T> RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)				__NE___;
 		template <typename T> RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)				__NE___;
 		
+		template <typename T> RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)					__NE___;
+		template <typename T> RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)					__NE___;
+
+		template <typename T> RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers = 1_layer)__NE___;
+		template <typename T> RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2>     &size, ImageLayer layers = 1_layer)__NE___;
+
 		template <typename T> RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Rectangle<T> &rect, ImageLayer layers = 1_layer)	__NE___;
 		template <typename T> RenderPassDesc (const RenderTechPipelinesPtr &rtech, const RenderTechPassName &pass, const Vec<T,2>     &size, ImageLayer layers = 1_layer)	__NE___;
 
@@ -105,13 +111,23 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename T>
+	RenderPassDesc::RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
+		RenderPassDesc{ packId, rpName, SubpassName{}, rect, layers }
+	{}
+	
+	template <typename T>
+	RenderPassDesc::RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
+		RenderPassDesc{ packId, rpName, RectI{int2{0}, int2(size)}, layers }
+	{}
+
+	template <typename T>
 	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
-		RenderPassDesc{ rpName, SubpassName{}, rect, layers }
+		RenderPassDesc{ Default, rpName, SubpassName{}, rect, layers }
 	{}
 	
 	template <typename T>
 	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
-		RenderPassDesc{ rpName, RectI{int2{0}, int2(size)}, layers }
+		RenderPassDesc{ Default, rpName, RectI{int2{0}, int2(size)}, layers }
 	{}
 
 /*
@@ -120,8 +136,8 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename T>
-	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
-		area{RectI(rect)}, layerCount{layers}, renderPassName{rpName}, subpassName{spName}
+	RenderPassDesc::RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
+		area{RectI(rect)}, layerCount{layers}, renderPassName{rpName}, subpassName{spName}, packId{packId}
 	{
 		ASSERT( area.IsValid() );
 		ASSERT( renderPassName.IsDefined() );
@@ -129,8 +145,18 @@ namespace AE::Graphics
 	}
 	
 	template <typename T>
+	RenderPassDesc::RenderPassDesc (PipelinePackID packId, const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
+		RenderPassDesc{ packId, rpName, spName, RectI{int2{0}, int2(size)}, layers }
+	{}
+
+	template <typename T>
+	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Rectangle<T> &rect, ImageLayer layers) __NE___ :
+		RenderPassDesc{ Default, rpName, spName, rect, layers }
+	{}
+
+	template <typename T>
 	RenderPassDesc::RenderPassDesc (const RenderPassName &rpName, const SubpassName &spName, const Vec<T,2> &size, ImageLayer layers) __NE___ :
-		RenderPassDesc{ rpName, spName, RectI{int2{0}, int2(size)}, layers }
+		RenderPassDesc{ Default, rpName, spName, RectI{int2{0}, int2(size)}, layers }
 	{}
 
 /*

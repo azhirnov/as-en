@@ -3,8 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-# include "threading/Containers/LfIndexedPool2.h"
-
 # include "graphics/Vulkan/Commands/VCommandPoolManager.h"
 # include "graphics/Vulkan/Commands/VCommandBatch.h"
 # include "graphics/Vulkan/Commands/VDrawCommandBatch.h"

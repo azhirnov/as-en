@@ -11,12 +11,12 @@
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/MipmapLevel.h"
 #include "graphics/Public/ImageLayer.h"
+#include "graphics/Public/ImageDesc.h"
+
+#include "res_loaders/Common.h"
 
 namespace AE::ResLoader
 {
-	using namespace AE::Base;
-	using namespace AE::Graphics;
-
 
 	//
 	// Intermediate Image

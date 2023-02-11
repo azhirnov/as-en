@@ -78,29 +78,33 @@ namespace AE::VFS
 
 	// methods
 	public:
-		ArchiveStaticStorage () {}
-		~ArchiveStaticStorage () override {}
+		ArchiveStaticStorage ()																	__NE___	{}
+		~ArchiveStaticStorage ()																__NE_OV {}
 
 		ND_ bool  Create (RC<RDataSource> archive);
 		ND_ bool  Create (const Path &filename);
 
-
+		
 	  // IVirtualFileStorage //
-		RC<RStream>		OpenAsStream (const FileName &name) const override;
-		RC<RDataSource>	OpenAsSource (const FileName &name) const override;
+		bool  Open (OUT RC<RStream> &stream, const FileName &name)								C_NE_OV;
+		bool  Open (OUT RC<RDataSource> &ds, const FileName &name)								C_NE_OV;
+		bool  Open (OUT RC<AsyncRDataSource> &ds, const FileName &name)							C_NE_OV;
 
-		bool	Exists (const FileName &name) const override;
-		bool	Exists (const FileGroupName &name) const override;
+		bool  Exists (const FileName &name)														C_NE_OV;
+		bool  Exists (const FileGroupName &name)												C_NE_OV;
 
 	private:
-		void			_Append (INOUT GlobalFileMap_t &) const override;
-		RC<RStream>		_OpenAsStreamByIter (const FileName &name, const void* ref) const override;
-		RC<RDataSource>	_OpenAsSourceByIter (const FileName &name, const void* ref) const override;
+		void  _Append (INOUT GlobalFileMap_t &)													C_Th_OV;
 
-		ND_ bool  _ReadHeader (RDataSource &ds);
+		bool  _OpenByIter (OUT RC<RStream> &stream, const FileName &name, const void* ref)		C_NE_OV;
+		bool  _OpenByIter (OUT RC<RDataSource> &ds, const FileName &name, const void* ref)		C_NE_OV;
+		bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, const FileName &name, const void* ref)	C_NE_OV;
 		
-		ND_ RC<RStream>		_OpenAsStream (const FileInfo &) const;
-		ND_ RC<RDataSource>	_OpenAsSource (const FileInfo &) const;
+		bool  _Open2 (OUT RC<RStream> &stream, const FileInfo &info)							C_NE___;
+		bool  _Open2 (OUT RC<RDataSource> &ds, const FileInfo &info)							C_NE___;
+	//	bool  _Open2 (OUT RC<AsyncRDataSource> &ds, const FileInfo &info)						C_NE___;
+
+		ND_ bool  _ReadHeader (RDataSource &ds)													__NE___;
 	};
 
 

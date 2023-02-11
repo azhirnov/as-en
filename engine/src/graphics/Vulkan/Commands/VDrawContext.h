@@ -24,11 +24,6 @@ namespace AE::Graphics::_hidden_
 	
 	class _VDirectDrawCtx : public _VBaseDirectContext
 	{
-	// types
-	public:
-		using CmdBuf_t = VCommandBuffer;
-
-
 	// variables
 	private:
 		struct {
@@ -98,10 +93,10 @@ namespace AE::Graphics::_hidden_
 		ND_ VCommandBuffer  ReleaseCommandBuffer ()																	__Th___;
 		
 	private:
-		_VDirectDrawCtx (const DrawTask &task, CmdBuf_t cmdbuf)														__Th___;
+		_VDirectDrawCtx (const DrawTask &task, VCommandBuffer cmdbuf)												__Th___;
 	protected:
 		explicit _VDirectDrawCtx (const DrawTask &task)																__Th___ : _VDirectDrawCtx{ task, Default } {}
-		_VDirectDrawCtx (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf, DebugLabel dbg)							__Th___;
+		_VDirectDrawCtx (const VPrimaryCmdBufState &state, VCommandBuffer cmdbuf)									__Th___;
 
 		void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState flags);
 		void  _PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
@@ -128,6 +123,8 @@ namespace AE::Graphics::_hidden_
 		void  _DispatchTile ();
 
 		void  _CommitBarriers ();
+		
+		void  _ClearAttachment (const VkClearAttachment &clear, const VkClearRect &rect);
 
 		ND_ bool	_NoPendingBarriers ()	C_NE___	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetExtensions ()		C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
@@ -147,11 +144,6 @@ namespace AE::Graphics::_hidden_
 	
 	class _VIndirectDrawCtx : public _VBaseIndirectContext
 	{
-	// types
-	public:
-		using CmdBuf_t = VSoftwareCmdBufPtr;
-
-
 	// variables
 	private:
 		struct {
@@ -219,7 +211,7 @@ namespace AE::Graphics::_hidden_
 
 	protected:
 		explicit _VIndirectDrawCtx (const DrawTask &task)															__Th___;
-		_VIndirectDrawCtx (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf, DebugLabel dbg)						__Th___;
+		_VIndirectDrawCtx (const VPrimaryCmdBufState &state, VSoftwareCmdBufPtr cmdbuf)								__Th___;
 		
 		void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState flags);
 		void  _PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
@@ -246,6 +238,8 @@ namespace AE::Graphics::_hidden_
 		void  _DispatchTile ();
 
 		void  _CommitBarriers ();
+		
+		void  _ClearAttachment (const VkClearAttachment &clear, const VkClearRect &rect);
 
 		ND_ bool	_NoPendingBarriers ()	C_NE___	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetExtensions ()		C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
@@ -271,16 +265,17 @@ namespace AE::Graphics::_hidden_
 		static constexpr bool	IsDrawContext		= true;
 		static constexpr bool	IsVulkanDrawContext	= true;
 		
+		using CmdBuf_t	= typename CtxImpl::CmdBuf_t;
 	private:
 		using RawCtx	= CtxImpl;
 		using AccumBar	= VAccumDrawBarriers< _VDrawContextImpl< CtxImpl >>;
-		using CmdBuf_t	= typename CtxImpl::CmdBuf_t;
 
 		
 	// methods
 	public:
-		_VDrawContextImpl (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf, DebugLabel dbg)						__Th___;
+		_VDrawContextImpl (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf)										__Th___;
 		explicit _VDrawContextImpl (const DrawTask &task)															__Th___;
+		explicit _VDrawContextImpl (_VDrawContextImpl && other)														__Th___;
 		
 		_VDrawContextImpl ()																						= delete;
 		_VDrawContextImpl (const _VDrawContextImpl &)																= delete;
@@ -319,11 +314,11 @@ namespace AE::Graphics::_hidden_
 		// draw commands
 		using RawCtx::BindIndexBuffer;
 
-		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)											__Th_OV;
-		void  BindVertexBuffer (uint index, BufferID buffer, Bytes offset)												__Th_OV;
-		void  BindVertexBuffer (uint index, VkBuffer buffer, Bytes offset)												__Th___;
-		void  BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<Bytes> offsets)				__Th___;
-		void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)				__Th_OV;
+		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)										__Th_OV;
+		void  BindVertexBuffer (uint index, BufferID buffer, Bytes offset)											__Th_OV;
+		void  BindVertexBuffer (uint index, VkBuffer buffer, Bytes offset)											__Th___;
+		void  BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<Bytes> offsets)			__Th___;
+		void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)			__Th_OV;
 		bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)	__Th_OV;
 
 		using RawCtx::DrawIndirect;
@@ -337,31 +332,31 @@ namespace AE::Graphics::_hidden_
 		void  Draw (uint vertexCount,
 					uint instanceCount	= 1,
 					uint firstVertex	= 0,
-					uint firstInstance	= 0)																	__Th_OV;
+					uint firstInstance	= 0)																		__Th_OV;
 
 		void  DrawIndexed (uint indexCount,
 						   uint instanceCount	= 1,
 						   uint firstIndex		= 0,
 						   int  vertexOffset	= 0,
-						   uint firstInstance	= 0)															__Th_OV;
+						   uint firstInstance	= 0)																__Th_OV;
 
 		void  DrawIndirect (BufferID	indirectBuffer,
 							Bytes		indirectBufferOffset,
 							uint		drawCount,
-							Bytes		stride)																	__Th_OV;
+							Bytes		stride)																		__Th_OV;
 
 		void  DrawIndexedIndirect (BufferID		indirectBuffer,
 								   Bytes		indirectBufferOffset,
 								   uint			drawCount,
-								   Bytes		stride)															__Th_OV;
+								   Bytes		stride)																__Th_OV;
 
 		// mesh shader
-		void  DrawMeshTasks (const uint3 &taskCount)															__Th_OV	{ RawCtx::_DrawMeshTasks( taskCount ); }
+		void  DrawMeshTasks (const uint3 &taskCount)																__Th_OV	{ RawCtx::_DrawMeshTasks( taskCount ); }
 
 		void  DrawMeshTasksIndirect (BufferID	indirectBuffer,
 									 Bytes		indirectBufferOffset,
 									 uint		drawCount,
-									 Bytes		stride)															__Th_OV;
+									 Bytes		stride)																__Th_OV;
 
 		// extension
 		using RawCtx::DrawIndirectCount;
@@ -372,14 +367,14 @@ namespace AE::Graphics::_hidden_
 								 BufferID	countBuffer,
 								 Bytes		countBufferOffset,
 								 uint		maxDrawCount,
-								 Bytes		stride)																__Th___;
+								 Bytes		stride)																	__Th___;
 
 		void  DrawIndexedIndirectCount (BufferID	indirectBuffer,
 										Bytes		indirectBufferOffset,
 										BufferID	countBuffer,
 										Bytes		countBufferOffset,
 										uint		maxDrawCount,
-										Bytes		stride)														__Th___;
+										Bytes		stride)															__Th___;
 
 		using RawCtx::DrawMeshTasksIndirect;
 		using RawCtx::DrawMeshTasksIndirectCount;
@@ -389,27 +384,37 @@ namespace AE::Graphics::_hidden_
 										  BufferID	countBuffer,
 										  Bytes		countBufferOffset,
 										  uint		maxDrawCount,
-										  Bytes		stride)														__Th___;
+										  Bytes		stride)															__Th___;
 		
 		// tile shader
-		void  DispatchTile ()																					__Th_OV	{ RawCtx::_DispatchTile(); }
+		void  DispatchTile ()																						__Th_OV	{ RawCtx::_DispatchTile(); }
 
-		void  DebugMarker (DebugLabel dbg)																		__Th_OV	{ RawCtx::_DebugMarker( dbg ); }
-		void  PushDebugGroup (DebugLabel dbg)																	__Th_OV	{ RawCtx::_PushDebugGroup( dbg ); }
-		void  PopDebugGroup ()																					__Th_OV	{ RawCtx::_PopDebugGroup(); }
+		void  DebugMarker (DebugLabel dbg)																			__Th_OV	{ RawCtx::_DebugMarker( dbg ); }
+		void  PushDebugGroup (DebugLabel dbg)																		__Th_OV	{ RawCtx::_PushDebugGroup( dbg ); }
+		void  PopDebugGroup ()																						__Th_OV	{ RawCtx::_PopDebugGroup(); }
 		
-		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)			__Th_OV	{ RawCtx::AttachmentBarrier( name, srcState, dstState ); }
+		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)				__Th_OV	{ RawCtx::AttachmentBarrier( name, srcState, dstState ); }
 		
-		void  CommitBarriers ()																					__Th_OV	{ return RawCtx::_CommitBarriers(); }
+		void  CommitBarriers ()																						__Th_OV	{ return RawCtx::_CommitBarriers(); }
+
+		// clear //
+		bool  ClearAttachment (AttachmentName, const RGBA32f &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA32u &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA32i &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA8u  &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const DepthStencil &, const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
 
 		// vertex stream
-		ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result)											__Th_OV;
+		ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result)												__Th_OV;
 		
-		ND_ VPrimaryCmdBufState const&	GetPrimaryCtxState ()													C_NE___	{ return this->_mngr.GetPrimaryCtxState(); }
+		ND_ VPrimaryCmdBufState const&	GetPrimaryCtxState ()														C_NE___	{ return this->_mngr.GetPrimaryCtxState(); }
+		ND_ FrameUID					GetFrameId ()																C_NE_OF	{ return this->_mngr.GetFrameId(); }
 		
 	private:
 		template <typename ...IDs>
-		ND_ decltype(auto)	_GetResourcesOrThrow (IDs ...ids)													__Th___	{ return this->_mngr.Get( ids... ); }
+		ND_ decltype(auto)	_GetResourcesOrThrow (IDs ...ids)														__Th___	{ return this->_mngr.Get( ids... ); }
+
+		bool  _ClearAttachment (AttachmentName name, VkClearAttachment &, const RectI &, ImageLayer baseLayer, uint layerCount) __Th___;
 	};
 
 } // AE::Graphics::_hidden_
@@ -433,8 +438,13 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VDrawContextImpl<C>::_VDrawContextImpl (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf, DebugLabel dbg) :
-		RawCtx{ state, RVRef(cmdbuf), dbg }	// throw
+	_VDrawContextImpl<C>::_VDrawContextImpl (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf) :
+		RawCtx{ state, RVRef(cmdbuf) }	// throw
+	{}
+	
+	template <typename C>
+	_VDrawContextImpl<C>::_VDrawContextImpl (_VDrawContextImpl && other) __Th___ :
+		RawCtx{ other.GetPrimaryCtxState(), RVRef(other._cmdbuf) }	// throw
 	{}
 	
 	template <typename C>
@@ -861,7 +871,78 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	bool  _VDrawContextImpl<C>::AllocVStream (Bytes size, OUT VertexStream &result)
 	{
-		return this->_mngr.GetResourceManager().GetStagingManager().AllocVStream( this->_mngr.GetFrameId(), size, OUT result );
+		return this->_mngr.GetResourceManager().GetStagingManager().AllocVStream( GetFrameId(), size, OUT result );
+	}
+	
+/*
+=================================================
+	ClearAttachment
+=================================================
+*/
+	template <typename C>
+	bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName name, const RGBA32f &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+	{
+		VkClearAttachment	clear_att	= {};
+		clear_att.aspectMask			= VK_IMAGE_ASPECT_COLOR_BIT;
+		MemCopy( OUT clear_att.clearValue.color.int32, color );
+
+		return _ClearAttachment( name, clear_att, rect, baseLayer, layerCount );
+	}
+	
+	template <typename C>
+	bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName name, const RGBA32u &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+	{
+		VkClearAttachment	clear_att	= {};
+		clear_att.aspectMask			= VK_IMAGE_ASPECT_COLOR_BIT;
+		MemCopy( OUT clear_att.clearValue.color.int32, color );
+
+		return _ClearAttachment( name, clear_att, rect, baseLayer, layerCount );
+	}
+	
+	template <typename C>
+	bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName name, const RGBA32i &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+	{
+		VkClearAttachment	clear_att	= {};
+		clear_att.aspectMask			= VK_IMAGE_ASPECT_COLOR_BIT;
+		MemCopy( OUT clear_att.clearValue.color.int32, color );
+
+		return _ClearAttachment( name, clear_att, rect, baseLayer, layerCount );
+	}
+	
+	template <typename C>
+	bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName name, const RGBA8u &color, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+	{
+		return ClearAttachment( name, RGBA32f{color}, rect, baseLayer, layerCount );
+	}
+	
+	template <typename C>
+	bool  _VDrawContextImpl<C>::ClearAttachment (AttachmentName name, const DepthStencil &dsClear, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+	{
+		VkClearAttachment	clear_att		= {};
+		clear_att.aspectMask				= VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		clear_att.clearValue.depthStencil	= { dsClear.depth, dsClear.stencil };
+
+		return _ClearAttachment( name, clear_att, rect, baseLayer, layerCount );
+	}
+	
+	template <typename C>
+	bool  _VDrawContextImpl<C>::_ClearAttachment (AttachmentName name, VkClearAttachment &clearAtt, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
+	{
+		ASSERT( rect.IsValid() );
+
+		const uint	idx = this->_mngr.GetAttachmentIndex( name );
+		CHECK_ERR( idx != UMax );
+
+		clearAtt.colorAttachment = idx;
+
+		VkClearRect		vk_rect	= {};
+		vk_rect.rect.offset		= { rect.left, rect.top };
+		vk_rect.rect.extent		= { uint(rect.Width()), uint(rect.Height()) };
+		vk_rect.baseArrayLayer	= baseLayer.Get();
+		vk_rect.layerCount		= layerCount;
+
+		RawCtx::_ClearAttachment( clearAtt, vk_rect );
+		return true;
 	}
 //-----------------------------------------------------------------------------
 
@@ -1207,387 +1288,18 @@ namespace AE::Graphics::_hidden_
 			_mngr.ClearBarriers();
 		}
 	}
-//-----------------------------------------------------------------------------
-
-
 	
 /*
 =================================================
-	_BindPipeline
+	_ClearAttachment
 =================================================
 */
-	inline void  _VIndirectDrawCtx::_BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState flags)
+	inline void  _VDirectDrawCtx::_ClearAttachment (const VkClearAttachment &clear, const VkClearRect &rect)
 	{
-		_states.bindPoint	= bindPoint;
-		_states.pplnLayout	= layout;
-		_states.flags		= flags;
-
-		_cmdbuf->BindPipeline( bindPoint, ppln, layout );
-	}
-	
-/*
-=================================================
-	BindDescriptorSet
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
-	{
-		ASSERT( _states.pplnLayout != Default );
-
-		_cmdbuf->BindDescriptorSet( _states.bindPoint, _states.pplnLayout, index.vkIndex, ds, dynamicOffsets );
+		ASSERT( _NoPendingBarriers() );
+		vkCmdClearAttachments( _cmdbuf.Get(), 1, &clear, 1, &rect );
 	}
 
-/*
-=================================================
-	_PushGraphicsConstant
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::_PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
-	{
-		ASSERT( _states.pplnLayout != Default );
-		ASSERT( IsAligned( size, sizeof(uint) ));
-
-		_cmdbuf->PushConstant( _states.pplnLayout, offset, size, values, stages );
-	}
-
-/*
-=================================================
-	SetViewport
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::SetViewport (uint first, ArrayView<VkViewport> viewports)
-	{
-		ASSERT( not viewports.empty() );
-		ASSERT( _GetFeatures().multiViewport or (first + viewports.size() == 0) );
-
-		auto&	cmd = _cmdbuf->CreateCmd< SetViewportCmd, VkViewport >( viewports.size() );	// throw
-		auto*	dst	= Cast<VkViewport>( AlignUp( static_cast<void*>(&cmd + 1), AlignOf<VkViewport> ));
-			
-		cmd.first	= ushort(first);
-		cmd.count	= ushort(viewports.size());
-		MemCopy( OUT dst, viewports.data(), ArraySizeOf(viewports) );
-	}
-
-/*
-=================================================
-	SetScissor
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::SetScissor (uint first, ArrayView<VkRect2D> scissors)
-	{
-		ASSERT( not scissors.empty() );
-		ASSERT( _GetFeatures().multiViewport or (first + scissors.size() == 0) );
-
-		auto&	cmd	= _cmdbuf->CreateCmd< SetScissorCmd, VkRect2D >( scissors.size() );	// throw
-		auto*	dst	= Cast<VkRect2D>( AlignUp( static_cast<void*>(&cmd + 1), AlignOf<VkRect2D> ));
-
-		cmd.first	= ushort(first);
-		cmd.count	= ushort(scissors.size());
-		MemCopy( OUT dst, scissors.data(), ArraySizeOf(scissors) );
-	}
-	
-/*
-=================================================
-	_SetDepthBias
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::_SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)
-	{
-		ASSERT( AllBits( _states.flags, EPipelineDynamicState::DepthBias ));
-		ASSERT( _GetFeatures().depthBiasClamp or IsZero( depthBiasClamp ));
-
-		auto&	cmd	= _cmdbuf->CreateCmd< SetDepthBiasCmd >();	// throw
-		cmd.depthBiasConstantFactor	= depthBiasConstantFactor;
-		cmd.depthBiasClamp			= depthBiasClamp;
-		cmd.depthBiasSlopeFactor	= depthBiasSlopeFactor;
-	}
-	
-/*
-=================================================
-	_SetDepthBounds
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::_SetDepthBounds (float minDepthBounds, float maxDepthBounds)
-	{
-		ASSERT( _GetFeatures().depthBounds );
-		//ASSERT( AllBits( _states.flags, EPipelineDynamicState::DepthBounds ));
-
-		auto&	cmd	= _cmdbuf->CreateCmd< SetDepthBoundsCmd >();	// throw
-		cmd.minDepthBounds	= minDepthBounds;
-		cmd.maxDepthBounds	= maxDepthBounds;
-	}
-	
-/*
-=================================================
-	SetStencilCompareMask
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::SetStencilCompareMask (VkStencilFaceFlagBits faceMask, uint compareMask)
-	{
-		ASSERT( AllBits( _states.flags, EPipelineDynamicState::StencilCompareMask ));
-		auto&	cmd	= _cmdbuf->CreateCmd< SetStencilCompareMaskCmd >();	// throw
-		cmd.faceMask	= faceMask;
-		cmd.compareMask	= compareMask;
-	}
-	
-/*
-=================================================
-	SetStencilWriteMask
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::SetStencilWriteMask (VkStencilFaceFlagBits faceMask, uint writeMask)
-	{
-		ASSERT( AllBits( _states.flags, EPipelineDynamicState::StencilWriteMask ));
-		auto&	cmd	= _cmdbuf->CreateCmd< SetStencilWriteMaskCmd >();	// throw
-		cmd.faceMask	= faceMask;
-		cmd.writeMask	= writeMask;
-	}
-	
-/*
-=================================================
-	SetStencilReference
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::SetStencilReference (VkStencilFaceFlagBits faceMask, uint reference)
-	{
-		ASSERT( AllBits( _states.flags, EPipelineDynamicState::StencilReference ));
-		auto&	cmd	= _cmdbuf->CreateCmd< SetStencilReferenceCmd >();	// throw
-		cmd.faceMask	= faceMask;
-		cmd.reference	= reference;
-	}
-	
-/*
-=================================================
-	_SetBlendConstants
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::_SetBlendConstants (const RGBA32f &color)
-	{
-		ASSERT( AllBits( _states.flags, EPipelineDynamicState::BlendConstants ));
-		auto&	cmd	= _cmdbuf->CreateCmd< SetBlendConstantsCmd >();	// throw
-		cmd.color	= color;
-	}
-	
-/*
-=================================================
-	BindIndexBuffer
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::BindIndexBuffer (VkBuffer buffer, Bytes offset, EIndex indexType)
-	{
-		auto&	cmd	= _cmdbuf->CreateCmd< BindIndexBufferCmd >();	// throw
-		cmd.buffer		= buffer;
-		cmd.offset		= VkDeviceSize(offset);
-		cmd.indexType	= VEnumCast(indexType);
-	}
-
-/*
-=================================================
-	_Draw
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::_Draw (uint vertexCount,
-										   uint instanceCount,
-										   uint firstVertex,
-										   uint firstInstance)
-	{
-		auto&	cmd	= _cmdbuf->CreateCmd< DrawCmd >();	// throw
-		cmd.vertexCount		= vertexCount;
-		cmd.instanceCount	= instanceCount;
-		cmd.firstVertex		= firstVertex;
-		cmd.firstInstance	= firstInstance;
-	}
-	
-/*
-=================================================
-	_DrawIndexed
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::_DrawIndexed (uint indexCount,
-												  uint instanceCount,
-												  uint firstIndex,
-												  int  vertexOffset,
-												  uint firstInstance)
-	{
-		auto&	cmd	= _cmdbuf->CreateCmd< DrawIndexedCmd >();	// throw
-		cmd.indexCount		= indexCount;
-		cmd.instanceCount	= instanceCount;
-		cmd.firstIndex		= firstIndex;
-		cmd.vertexOffset	= vertexOffset;
-		cmd.firstInstance	= firstInstance;
-	}
-	
-/*
-=================================================
-	DrawIndirect
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::DrawIndirect (VkBuffer	indirectBuffer,
-												  Bytes		indirectBufferOffset,
-												  uint		drawCount,
-												  Bytes		stride)
-	{
-		ASSERT( stride >= sizeof(VkDrawIndirectCommand ) );
-
-		auto&	cmd	= _cmdbuf->CreateCmd< DrawIndirectCmd >();	// throw
-		cmd.indirectBuffer		= indirectBuffer;
-		cmd.indirectBufferOffset= VkDeviceSize(indirectBufferOffset);
-		cmd.drawCount			= drawCount;
-		cmd.stride				= uint(stride);
-	}
-	
-/*
-=================================================
-	DrawIndexedIndirect
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::DrawIndexedIndirect (VkBuffer	indirectBuffer,
-														 Bytes		indirectBufferOffset,
-														 uint		drawCount,
-														 Bytes		stride)
-	{
-		ASSERT( stride >= sizeof(VkDrawIndexedIndirectCommand ) );
-
-		auto&	cmd	= _cmdbuf->CreateCmd< DrawIndexedIndirectCmd >();	// throw
-		cmd.indirectBuffer		= indirectBuffer;
-		cmd.indirectBufferOffset= VkDeviceSize(indirectBufferOffset);
-		cmd.drawCount			= drawCount;
-		cmd.stride				= uint(stride);
-	}
-	
-/*
-=================================================
-	DrawIndexed
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::DrawIndirectCount (VkBuffer	indirectBuffer,
-													   Bytes	indirectBufferOffset,
-													   VkBuffer	countBuffer,
-													   Bytes	countBufferOffset,
-													   uint		maxDrawCount,
-													   Bytes	stride)
-	{
-		ASSERT( _GetExtensions().drawIndirectCount );
-		ASSERT( stride >= sizeof(VkDrawIndirectCommand ) );
-
-		auto&	cmd	= _cmdbuf->CreateCmd< DrawIndirectCountCmd >();	// throw
-		cmd.indirectBuffer		= indirectBuffer;
-		cmd.indirectBufferOffset= VkDeviceSize(indirectBufferOffset);
-		cmd.countBuffer			= countBuffer;
-		cmd.countBufferOffset	= VkDeviceSize(countBufferOffset);
-		cmd.maxDrawCount		= maxDrawCount;
-		cmd.stride				= uint(stride);
-	}
-	
-/*
-=================================================
-	DrawIndexed
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::DrawIndexedIndirectCount (VkBuffer	indirectBuffer,
-															  Bytes		indirectBufferOffset,
-															  VkBuffer	countBuffer,
-															  Bytes		countBufferOffset,
-															  uint		maxDrawCount,
-															  Bytes		stride)
-	{
-		ASSERT( _GetExtensions().drawIndirectCount );
-		ASSERT( stride >= sizeof(VkDrawIndexedIndirectCommand ) );
-
-		auto&	cmd	= _cmdbuf->CreateCmd< DrawIndexedIndirectCountCmd >();	// throw
-		cmd.indirectBuffer		= indirectBuffer;
-		cmd.indirectBufferOffset= VkDeviceSize(indirectBufferOffset);
-		cmd.countBuffer			= countBuffer;
-		cmd.countBufferOffset	= VkDeviceSize(countBufferOffset);
-		cmd.maxDrawCount		= maxDrawCount;
-		cmd.stride				= uint(stride);
-	}
-
-/*
-=================================================
-	_DrawMeshTasks
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::_DrawMeshTasks (const uint3 &taskCount)
-	{
-		ASSERT( _GetExtensions().meshShader );
-
-		auto&	cmd	= _cmdbuf->CreateCmd< DrawMeshTasksCmd >();	// throw
-		cmd.taskCount	= taskCount;
-	}
-	
-/*
-=================================================
-	DrawMeshTasksIndirect
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::DrawMeshTasksIndirect (VkBuffer	indirectBuffer,
-														   Bytes	indirectBufferOffset,
-														   uint		drawCount,
-														   Bytes	stride)
-	{
-		ASSERT( _GetExtensions().meshShader );
-		ASSERT( drawCount > 0 );
-		ASSERT( stride >= sizeof(VkDrawMeshTasksIndirectCommandEXT) );
-
-		auto&	cmd	= _cmdbuf->CreateCmd< DrawMeshTasksIndirectCmd >();	// throw
-		cmd.indirectBuffer		= indirectBuffer;
-		cmd.indirectBufferOffset= VkDeviceSize(indirectBufferOffset);
-		cmd.drawCount			= drawCount;
-		cmd.stride				= uint(stride);
-	}
-	
-/*
-=================================================
-	DrawMeshTasksIndirectCountNV
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::DrawMeshTasksIndirectCount (VkBuffer	indirectBuffer,
-																Bytes		indirectBufferOffset,
-																VkBuffer	countBuffer,
-																Bytes		countBufferOffset,
-																uint		maxDrawCount,
-																Bytes		stride)
-	{
-		ASSERT( _GetExtensions().meshShader );
-		ASSERT( maxDrawCount > 0 );
-		ASSERT( stride >= sizeof(VkDrawMeshTasksIndirectCommandEXT) );
-
-		auto&	cmd	= _cmdbuf->CreateCmd< DrawMeshTasksIndirectCountCmd >();	// throw
-		cmd.indirectBuffer		= indirectBuffer;
-		cmd.indirectBufferOffset= VkDeviceSize(indirectBufferOffset);
-		cmd.countBuffer			= countBuffer;
-		cmd.countBufferOffset	= VkDeviceSize(countBufferOffset);
-		cmd.maxDrawCount		= maxDrawCount;
-		cmd.stride				= uint(stride);
-	}
-	
-/*
-=================================================
-	_DispatchTile
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::_DispatchTile ()
-	{
-		ASSERT( _GetExtensions().subpassShadingHW );
-
-		Unused( _cmdbuf->CreateCmd< DispatchTileCmd >());	// throw
-	}
-	
-/*
-=================================================
-	_CommitBarriers
-=================================================
-*/
-	inline void  _VIndirectDrawCtx::_CommitBarriers ()
-	{
-	    auto* bar = _mngr.GetBarriers();
-		if_unlikely( bar != null )
-		{
-			_cmdbuf->CommitBarriers( *bar );
-			_mngr.ClearBarriers();
-		}
-	}
 
 } // AE::Graphics::_hidden_
 

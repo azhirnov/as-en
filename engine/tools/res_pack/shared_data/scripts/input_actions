@@ -1,0 +1,1222 @@
+//6A9942D5
+#include <vector>
+#include <string>
+
+using int8		= std::int8_t;
+using uint8		= std::uint8_t;
+using int16		= std::int16_t;
+using uint16	= std::uint16_t;
+using int		= std::int32_t;
+using uint		= std::uint32_t;
+using int64		= std::int64_t;
+using uint64	= std::uint64_t;
+using string	= std::string;
+
+template <typename T>
+struct RC;
+
+template <typename T>
+using array = std::vector<T>;
+
+struct int3;
+struct VecSwizzle;
+struct GLFW_BindingsMode;
+struct uint3;
+struct bool3;
+struct Android_Input;
+struct EGestureType;
+struct Android_ActionBindings;
+struct ubyte3;
+struct sbyte4;
+struct ubyte2;
+struct short3;
+struct float2;
+struct sbyte3;
+struct short2;
+struct float3;
+struct EValueType;
+struct WinAPI_Input;
+struct uint4;
+struct EGestureState;
+struct GLFW_ActionBindings;
+struct OpenVR_BindingsMode;
+struct WinAPI_BindingsMode;
+struct Android_BindingsMode;
+struct ActionInfo;
+struct WinAPI_ActionBindings;
+struct short4;
+struct OpenVR_ActionBindings;
+struct OpenVR_Input;
+struct float4;
+struct bool4;
+struct sbyte2;
+struct ubyte4;
+struct int4;
+struct GLFW_Input;
+struct uint2;
+struct int2;
+struct bool2;
+
+int  Abs (int);
+int  Square (int);
+int  Min (int, int);
+int  Max (int, int);
+int  Clamp (int, int, int);
+int  IntLog2 (int);
+int  BitScanReverse (int);
+int  BitScanForward (int);
+uint  BitCount (int);
+bool  IsPowerOfTwo (int);
+uint  Square (uint);
+uint  Min (uint, uint);
+uint  Max (uint, uint);
+uint  Clamp (uint, uint, uint);
+int  IntLog2 (uint);
+int  BitScanReverse (uint);
+int  BitScanForward (uint);
+uint  BitCount (uint);
+bool  IsPowerOfTwo (uint);
+float  Abs (float);
+float  Square (float);
+float  Min (float, float);
+float  Max (float, float);
+float  Clamp (float, float, float);
+float  Floor (float);
+float  Ceil (float);
+float  Trunc (float);
+float  Fract (float);
+float  Round (float);
+float  Mod (float, float);
+float  Wrap (float, float, float);
+float  Sqrt (float);
+float  Pow (float, float);
+float  Ln (float);
+float  Log (float, float);
+float  Log2 (float);
+float  Log10 (float);
+float  Exp (float);
+float  Exp2 (float);
+float  Exp10 (float);
+float  Sin (float);
+float  SinH (float);
+float  ASin (float);
+float  Cos (float);
+float  CosH (float);
+float  ACos (float);
+float  Tan (float);
+float  TanH (float);
+float  ATan (float, float);
+float  Lerp (float, float, float);
+struct bool2
+{
+	bool2 ();
+	bool2 (const bool2&);
+	bool2&  operator = (const bool2&);
+	bool x;
+	bool y;
+	bool2 (bool);
+	bool2 (const bool3 &);
+	bool2 (const bool4 &);
+	bool2 (bool, bool);
+};
+
+struct bool3
+{
+	bool3 ();
+	bool3 (const bool3&);
+	bool3&  operator = (const bool3&);
+	bool x;
+	bool y;
+	bool z;
+	bool3 (bool);
+	bool3 (const bool2 &);
+	bool3 (const bool4 &);
+	bool3 (const bool2 &, bool);
+	bool3 (bool, bool, bool);
+};
+
+struct bool4
+{
+	bool4 ();
+	bool4 (const bool4&);
+	bool4&  operator = (const bool4&);
+	bool x;
+	bool y;
+	bool z;
+	bool w;
+	bool4 (bool);
+	bool4 (const bool2 &);
+	bool4 (const bool3 &);
+	bool4 (const bool2 &, const bool2 &);
+	bool4 (const bool3 &, bool);
+	bool4 (bool, bool, bool, bool);
+};
+
+struct sbyte2
+{
+	sbyte2 ();
+	sbyte2 (const sbyte2&);
+	sbyte2&  operator = (const sbyte2&);
+	int8 x;
+	int8 y;
+	sbyte2 (int8);
+	sbyte2 (const sbyte3 &);
+	sbyte2 (const sbyte4 &);
+	sbyte2 (int8, int8);
+};
+
+struct sbyte3
+{
+	sbyte3 ();
+	sbyte3 (const sbyte3&);
+	sbyte3&  operator = (const sbyte3&);
+	int8 x;
+	int8 y;
+	int8 z;
+	sbyte3 (int8);
+	sbyte3 (const sbyte2 &);
+	sbyte3 (const sbyte4 &);
+	sbyte3 (const sbyte2 &, int8);
+	sbyte3 (int8, int8, int8);
+};
+
+struct sbyte4
+{
+	sbyte4 ();
+	sbyte4 (const sbyte4&);
+	sbyte4&  operator = (const sbyte4&);
+	int8 x;
+	int8 y;
+	int8 z;
+	int8 w;
+	sbyte4 (int8);
+	sbyte4 (const sbyte2 &);
+	sbyte4 (const sbyte3 &);
+	sbyte4 (const sbyte2 &, const sbyte2 &);
+	sbyte4 (const sbyte3 &, int8);
+	sbyte4 (int8, int8, int8, int8);
+};
+
+struct ubyte2
+{
+	ubyte2 ();
+	ubyte2 (const ubyte2&);
+	ubyte2&  operator = (const ubyte2&);
+	uint8 x;
+	uint8 y;
+	ubyte2 (uint8);
+	ubyte2 (const ubyte3 &);
+	ubyte2 (const ubyte4 &);
+	ubyte2 (uint8, uint8);
+};
+
+struct ubyte3
+{
+	ubyte3 ();
+	ubyte3 (const ubyte3&);
+	ubyte3&  operator = (const ubyte3&);
+	uint8 x;
+	uint8 y;
+	uint8 z;
+	ubyte3 (uint8);
+	ubyte3 (const ubyte2 &);
+	ubyte3 (const ubyte4 &);
+	ubyte3 (const ubyte2 &, uint8);
+	ubyte3 (uint8, uint8, uint8);
+};
+
+struct ubyte4
+{
+	ubyte4 ();
+	ubyte4 (const ubyte4&);
+	ubyte4&  operator = (const ubyte4&);
+	uint8 x;
+	uint8 y;
+	uint8 z;
+	uint8 w;
+	ubyte4 (uint8);
+	ubyte4 (const ubyte2 &);
+	ubyte4 (const ubyte3 &);
+	ubyte4 (const ubyte2 &, const ubyte2 &);
+	ubyte4 (const ubyte3 &, uint8);
+	ubyte4 (uint8, uint8, uint8, uint8);
+};
+
+struct short2
+{
+	short2 ();
+	short2 (const short2&);
+	short2&  operator = (const short2&);
+	int16 x;
+	int16 y;
+	short2 (int16);
+	short2 (const short3 &);
+	short2 (const short4 &);
+	short2 (int16, int16);
+};
+
+struct short3
+{
+	short3 ();
+	short3 (const short3&);
+	short3&  operator = (const short3&);
+	int16 x;
+	int16 y;
+	int16 z;
+	short3 (int16);
+	short3 (const short2 &);
+	short3 (const short4 &);
+	short3 (const short2 &, int16);
+	short3 (int16, int16, int16);
+};
+
+struct short4
+{
+	short4 ();
+	short4 (const short4&);
+	short4&  operator = (const short4&);
+	int16 x;
+	int16 y;
+	int16 z;
+	int16 w;
+	short4 (int16);
+	short4 (const short2 &);
+	short4 (const short3 &);
+	short4 (const short2 &, const short2 &);
+	short4 (const short3 &, int16);
+	short4 (int16, int16, int16, int16);
+};
+
+struct int2
+{
+	int2 ();
+	int2 (const int2&);
+	int2&  operator = (const int2&);
+	int x;
+	int y;
+	int2 (int);
+	int2 (const int3 &);
+	int2 (const int4 &);
+	int2 (int, int);
+};
+
+struct int3
+{
+	int3 ();
+	int3 (const int3&);
+	int3&  operator = (const int3&);
+	int x;
+	int y;
+	int z;
+	int3 (int);
+	int3 (const int2 &);
+	int3 (const int4 &);
+	int3 (const int2 &, int);
+	int3 (int, int, int);
+};
+
+struct int4
+{
+	int4 ();
+	int4 (const int4&);
+	int4&  operator = (const int4&);
+	int x;
+	int y;
+	int z;
+	int w;
+	int4 (int);
+	int4 (const int2 &);
+	int4 (const int3 &);
+	int4 (const int2 &, const int2 &);
+	int4 (const int3 &, int);
+	int4 (int, int, int, int);
+};
+
+struct uint2
+{
+	uint2 ();
+	uint2 (const uint2&);
+	uint2&  operator = (const uint2&);
+	uint x;
+	uint y;
+	uint2 (uint);
+	uint2 (const uint3 &);
+	uint2 (const uint4 &);
+	uint2 (uint, uint);
+};
+
+struct uint3
+{
+	uint3 ();
+	uint3 (const uint3&);
+	uint3&  operator = (const uint3&);
+	uint x;
+	uint y;
+	uint z;
+	uint3 (uint);
+	uint3 (const uint2 &);
+	uint3 (const uint4 &);
+	uint3 (const uint2 &, uint);
+	uint3 (uint, uint, uint);
+};
+
+struct uint4
+{
+	uint4 ();
+	uint4 (const uint4&);
+	uint4&  operator = (const uint4&);
+	uint x;
+	uint y;
+	uint z;
+	uint w;
+	uint4 (uint);
+	uint4 (const uint2 &);
+	uint4 (const uint3 &);
+	uint4 (const uint2 &, const uint2 &);
+	uint4 (const uint3 &, uint);
+	uint4 (uint, uint, uint, uint);
+};
+
+struct float2
+{
+	float2 ();
+	float2 (const float2&);
+	float2&  operator = (const float2&);
+	float x;
+	float y;
+	float2 (float);
+	float2 (const float3 &);
+	float2 (const float4 &);
+	float2 (float, float);
+};
+
+struct float3
+{
+	float3 ();
+	float3 (const float3&);
+	float3&  operator = (const float3&);
+	float x;
+	float y;
+	float z;
+	float3 (float);
+	float3 (const float2 &);
+	float3 (const float4 &);
+	float3 (const float2 &, float);
+	float3 (float, float, float);
+};
+
+struct float4
+{
+	float4 ();
+	float4 (const float4&);
+	float4&  operator = (const float4&);
+	float x;
+	float y;
+	float z;
+	float w;
+	float4 (float);
+	float4 (const float2 &);
+	float4 (const float3 &);
+	float4 (const float2 &, const float2 &);
+	float4 (const float3 &, float);
+	float4 (float, float, float, float);
+};
+
+bool  All (const bool2 &);
+bool  Any (const bool2 &);
+bool  All (const bool3 &);
+bool  Any (const bool3 &);
+bool  All (const bool4 &);
+bool  Any (const bool4 &);
+float3  Cross (const float3 &, const float3 &);
+struct VecSwizzle
+{
+	VecSwizzle ();
+	VecSwizzle (const VecSwizzle&);
+	VecSwizzle&  operator = (const VecSwizzle&);
+	VecSwizzle (const string &);
+};
+
+struct EGestureState
+{
+	EGestureState () {}
+	EGestureState (uint) {}
+	operator uint () const;
+	static constexpr uint Begin = 0;
+	static constexpr uint Update = 1;
+	static constexpr uint End = 2;
+};
+
+struct EGestureType
+{
+	EGestureType () {}
+	EGestureType (uint) {}
+	operator uint () const;
+	static constexpr uint Hold = 0;
+	static constexpr uint Move = 1;
+	static constexpr uint LongPress_Move = 2;
+	static constexpr uint Scale2D = 3;
+	static constexpr uint Rotate2D = 4;
+	static constexpr uint Down = 5;
+	static constexpr uint Click = 6;
+	static constexpr uint LongPress = 8;
+	static constexpr uint DoubleClick = 7;
+};
+
+struct EValueType
+{
+	EValueType () {}
+	EValueType (uint) {}
+	operator uint () const;
+	static constexpr uint Unknown = 255;
+	static constexpr uint Bool = 0;
+	static constexpr uint Int = 1;
+	static constexpr uint Float = 2;
+	static constexpr uint Float2 = 3;
+	static constexpr uint Float3 = 4;
+	static constexpr uint Float4 = 5;
+	static constexpr uint Quat = 6;
+	static constexpr uint Float4x4 = 7;
+	static constexpr uint String = 8;
+};
+
+struct ActionInfo
+{
+	ActionInfo ();
+	ActionInfo (const ActionInfo&);
+	ActionInfo&  operator = (const ActionInfo&);
+	ActionInfo (const string &, EValueType);
+	ActionInfo (const string &, EValueType, const float4 &);
+	ActionInfo (const string &, EGestureType);
+	ActionInfo (const string &, EValueType, EGestureType);
+	ActionInfo (const string &, EValueType, EGestureType, const float4 &);
+	ActionInfo (const string &, EValueType, EGestureType, const VecSwizzle &);
+	ActionInfo (const string &, EValueType, EGestureType, const VecSwizzle &, const float4 &);
+	EValueType type;
+	EGestureType gesture;
+	VecSwizzle swizzle;
+};
+
+struct GLFW_Input
+{
+	GLFW_Input () {}
+	GLFW_Input (uint) {}
+	operator uint () const;
+	static constexpr uint Space = 32;
+	static constexpr uint Apostrophe = 39;
+	static constexpr uint Comma = 44;
+	static constexpr uint Minus = 45;
+	static constexpr uint Period = 46;
+	static constexpr uint Slash = 47;
+	static constexpr uint 0 = 48;
+	static constexpr uint 1 = 49;
+	static constexpr uint 2 = 50;
+	static constexpr uint 3 = 51;
+	static constexpr uint 4 = 52;
+	static constexpr uint 5 = 53;
+	static constexpr uint 6 = 54;
+	static constexpr uint 7 = 55;
+	static constexpr uint 8 = 56;
+	static constexpr uint 9 = 57;
+	static constexpr uint Semicolon = 59;
+	static constexpr uint Equal = 61;
+	static constexpr uint A = 65;
+	static constexpr uint B = 66;
+	static constexpr uint C = 67;
+	static constexpr uint D = 68;
+	static constexpr uint E = 69;
+	static constexpr uint F = 70;
+	static constexpr uint G = 71;
+	static constexpr uint H = 72;
+	static constexpr uint I = 73;
+	static constexpr uint J = 74;
+	static constexpr uint K = 75;
+	static constexpr uint L = 76;
+	static constexpr uint M = 77;
+	static constexpr uint N = 78;
+	static constexpr uint O = 79;
+	static constexpr uint P = 80;
+	static constexpr uint Q = 81;
+	static constexpr uint R = 82;
+	static constexpr uint S = 83;
+	static constexpr uint T = 84;
+	static constexpr uint U = 85;
+	static constexpr uint V = 86;
+	static constexpr uint W = 87;
+	static constexpr uint X = 88;
+	static constexpr uint Y = 89;
+	static constexpr uint Z = 90;
+	static constexpr uint LeftBracket = 91;
+	static constexpr uint BackSlash = 92;
+	static constexpr uint RightBracket = 93;
+	static constexpr uint GraveAccent = 96;
+	static constexpr uint World1 = 161;
+	static constexpr uint World2 = 162;
+	static constexpr uint Escape = 256;
+	static constexpr uint Enter = 257;
+	static constexpr uint Tab = 258;
+	static constexpr uint Backspace = 259;
+	static constexpr uint Insert = 260;
+	static constexpr uint Delete = 261;
+	static constexpr uint ArrowRight = 262;
+	static constexpr uint ArrowLeft = 263;
+	static constexpr uint ArrowDown = 264;
+	static constexpr uint ArrowUp = 265;
+	static constexpr uint PageUp = 266;
+	static constexpr uint PageDown = 267;
+	static constexpr uint Home = 268;
+	static constexpr uint End = 269;
+	static constexpr uint CapsLock = 280;
+	static constexpr uint ScrollLock = 281;
+	static constexpr uint NumLock = 282;
+	static constexpr uint PrintScreen = 283;
+	static constexpr uint Pause = 284;
+	static constexpr uint F1 = 290;
+	static constexpr uint F2 = 291;
+	static constexpr uint F3 = 292;
+	static constexpr uint F4 = 293;
+	static constexpr uint F5 = 294;
+	static constexpr uint F6 = 295;
+	static constexpr uint F7 = 296;
+	static constexpr uint F8 = 297;
+	static constexpr uint F9 = 298;
+	static constexpr uint F10 = 299;
+	static constexpr uint F11 = 300;
+	static constexpr uint F12 = 301;
+	static constexpr uint F13 = 302;
+	static constexpr uint F14 = 303;
+	static constexpr uint F15 = 304;
+	static constexpr uint F16 = 305;
+	static constexpr uint F17 = 306;
+	static constexpr uint F18 = 307;
+	static constexpr uint F19 = 308;
+	static constexpr uint F20 = 309;
+	static constexpr uint F21 = 310;
+	static constexpr uint F22 = 311;
+	static constexpr uint F23 = 312;
+	static constexpr uint F24 = 313;
+	static constexpr uint F25 = 314;
+	static constexpr uint LeftShift = 340;
+	static constexpr uint LeftControl = 341;
+	static constexpr uint LeftAlt = 342;
+	static constexpr uint LeftSuper = 343;
+	static constexpr uint RightShift = 344;
+	static constexpr uint RightControl = 345;
+	static constexpr uint RightAlt = 346;
+	static constexpr uint RightSuper = 347;
+	static constexpr uint Menu = 348;
+	static constexpr uint KP_0 = 320;
+	static constexpr uint KP_1 = 321;
+	static constexpr uint KP_2 = 322;
+	static constexpr uint KP_3 = 323;
+	static constexpr uint KP_4 = 324;
+	static constexpr uint KP_5 = 325;
+	static constexpr uint KP_6 = 326;
+	static constexpr uint KP_7 = 327;
+	static constexpr uint KP_8 = 328;
+	static constexpr uint KP_9 = 329;
+	static constexpr uint KP_Decimal = 330;
+	static constexpr uint KP_Divide = 331;
+	static constexpr uint KP_Multiply = 332;
+	static constexpr uint KP_Subtract = 333;
+	static constexpr uint KP_Add = 334;
+	static constexpr uint KP_Enter = 335;
+	static constexpr uint KP_Equal = 336;
+	static constexpr uint MouseBtn1 = 0;
+	static constexpr uint MouseBtn2 = 1;
+	static constexpr uint MouseBtn3 = 2;
+	static constexpr uint MouseBtn4 = 3;
+	static constexpr uint MouseBtn5 = 4;
+	static constexpr uint MouseBtn6 = 5;
+	static constexpr uint MouseBtn7 = 6;
+	static constexpr uint MouseBtn8 = 7;
+	static constexpr uint MouseLeft = 0;
+	static constexpr uint MouseRight = 1;
+	static constexpr uint MouseMiddle = 2;
+	static constexpr uint MouseWheel = 358;
+	static constexpr uint CursorPos = 359;
+	static constexpr uint CursorPos_mm = 360;
+	static constexpr uint CursorDelta = 361;
+	static constexpr uint CursorDelta_norm = 362;
+	static constexpr uint TouchPos = 363;
+	static constexpr uint TouchPos_mm = 364;
+	static constexpr uint TouchDelta = 365;
+	static constexpr uint TouchDelta_norm = 366;
+};
+
+struct GLFW_BindingsMode
+{
+	GLFW_BindingsMode ();
+	void  Add (GLFW_Input, const ActionInfo &);
+	void  Inherit (const string &);
+	void  LockAndHideCursor ();
+};
+
+struct GLFW_ActionBindings
+{
+	GLFW_ActionBindings ();
+	RC<GLFW_BindingsMode>  CreateMode (const string &);
+};
+
+struct WinAPI_Input
+{
+	WinAPI_Input () {}
+	WinAPI_Input (uint) {}
+	operator uint () const;
+	static constexpr uint Backspace = 8;
+	static constexpr uint Tab = 9;
+	static constexpr uint Clear = 12;
+	static constexpr uint Enter = 13;
+	static constexpr uint LeftShift = 16;
+	static constexpr uint RightShift = 4096;
+	static constexpr uint LeftCtrl = 17;
+	static constexpr uint RightCtrl = 4352;
+	static constexpr uint LeftAlt = 18;
+	static constexpr uint RightAlt = 4608;
+	static constexpr uint Pause = 19;
+	static constexpr uint CapsLock = 20;
+	static constexpr uint Escape = 27;
+	static constexpr uint Space = 32;
+	static constexpr uint PageUp = 8448;
+	static constexpr uint PageDown = 8704;
+	static constexpr uint End = 8960;
+	static constexpr uint Home = 9216;
+	static constexpr uint ArrowLeft = 9472;
+	static constexpr uint ArrowUp = 9728;
+	static constexpr uint ArrowRight = 9984;
+	static constexpr uint ArrowDown = 10240;
+	static constexpr uint Select = 41;
+	static constexpr uint Print = 42;
+	static constexpr uint Execute = 43;
+	static constexpr uint Snapshot = 44;
+	static constexpr uint Insert = 11520;
+	static constexpr uint Delete = 11776;
+	static constexpr uint Help = 47;
+	static constexpr uint 0 = 48;
+	static constexpr uint 1 = 49;
+	static constexpr uint 2 = 50;
+	static constexpr uint 3 = 51;
+	static constexpr uint 4 = 52;
+	static constexpr uint 5 = 53;
+	static constexpr uint 6 = 54;
+	static constexpr uint 7 = 55;
+	static constexpr uint 8 = 56;
+	static constexpr uint 9 = 57;
+	static constexpr uint A = 65;
+	static constexpr uint B = 66;
+	static constexpr uint C = 67;
+	static constexpr uint D = 68;
+	static constexpr uint E = 69;
+	static constexpr uint F = 70;
+	static constexpr uint G = 71;
+	static constexpr uint H = 72;
+	static constexpr uint I = 73;
+	static constexpr uint J = 74;
+	static constexpr uint K = 75;
+	static constexpr uint L = 76;
+	static constexpr uint M = 77;
+	static constexpr uint N = 78;
+	static constexpr uint O = 79;
+	static constexpr uint P = 80;
+	static constexpr uint Q = 81;
+	static constexpr uint R = 82;
+	static constexpr uint S = 83;
+	static constexpr uint T = 84;
+	static constexpr uint U = 85;
+	static constexpr uint V = 86;
+	static constexpr uint W = 87;
+	static constexpr uint X = 88;
+	static constexpr uint Y = 89;
+	static constexpr uint Z = 90;
+	static constexpr uint LeftWin = 91;
+	static constexpr uint RightWin = 23552;
+	static constexpr uint LeftApps = 93;
+	static constexpr uint RightApps = 23808;
+	static constexpr uint Sleep = 95;
+	static constexpr uint F1 = 112;
+	static constexpr uint F2 = 113;
+	static constexpr uint F3 = 114;
+	static constexpr uint F4 = 115;
+	static constexpr uint F5 = 116;
+	static constexpr uint F6 = 117;
+	static constexpr uint F7 = 118;
+	static constexpr uint F8 = 119;
+	static constexpr uint F9 = 120;
+	static constexpr uint F10 = 121;
+	static constexpr uint F11 = 122;
+	static constexpr uint F12 = 123;
+	static constexpr uint F13 = 124;
+	static constexpr uint F14 = 125;
+	static constexpr uint F15 = 126;
+	static constexpr uint F16 = 127;
+	static constexpr uint F17 = 128;
+	static constexpr uint F18 = 129;
+	static constexpr uint F19 = 130;
+	static constexpr uint F20 = 131;
+	static constexpr uint F21 = 132;
+	static constexpr uint F22 = 133;
+	static constexpr uint F23 = 134;
+	static constexpr uint F24 = 135;
+	static constexpr uint NumLock = 144;
+	static constexpr uint ScrollLock = 145;
+	static constexpr uint BrowserBack = 166;
+	static constexpr uint BrowserForward = 167;
+	static constexpr uint BrowserRefresh = 168;
+	static constexpr uint BrowserStop = 169;
+	static constexpr uint BrowserSearch = 170;
+	static constexpr uint BrowserFavorites = 171;
+	static constexpr uint BrowserHome = 172;
+	static constexpr uint VolumeMute = 173;
+	static constexpr uint VolumeDown = 174;
+	static constexpr uint VolumeUp = 175;
+	static constexpr uint MediaNextTrack = 176;
+	static constexpr uint MediaPrevTrack = 177;
+	static constexpr uint MediaStop = 178;
+	static constexpr uint MediaPlayPause = 179;
+	static constexpr uint LaunchMail = 180;
+	static constexpr uint LaunchMediaSelect = 181;
+	static constexpr uint LaunchApp1 = 182;
+	static constexpr uint LaunchApp2 = 183;
+	static constexpr uint Semicolon = 186;
+	static constexpr uint Equal = 187;
+	static constexpr uint Comma = 188;
+	static constexpr uint Minus = 189;
+	static constexpr uint Period = 190;
+	static constexpr uint Slash = 191;
+	static constexpr uint GraveAccent = 192;
+	static constexpr uint LeftBracket = 219;
+	static constexpr uint BackSlash = 220;
+	static constexpr uint RightBracket = 221;
+	static constexpr uint Apostrophe = 222;
+	static constexpr uint KP_Enter = 3328;
+	static constexpr uint KP_0 = 96;
+	static constexpr uint KP_1 = 97;
+	static constexpr uint KP_2 = 98;
+	static constexpr uint KP_3 = 99;
+	static constexpr uint KP_4 = 100;
+	static constexpr uint KP_5 = 101;
+	static constexpr uint KP_6 = 102;
+	static constexpr uint KP_7 = 103;
+	static constexpr uint KP_8 = 104;
+	static constexpr uint KP_9 = 105;
+	static constexpr uint KP_Multiply = 106;
+	static constexpr uint KP_Add = 107;
+	static constexpr uint KP_Separator = 108;
+	static constexpr uint KP_Subtract = 109;
+	static constexpr uint KP_Decimal = 110;
+	static constexpr uint KP_Divide = 111;
+	static constexpr uint KP_Divide2 = 28416;
+	static constexpr uint KP_End = 35;
+	static constexpr uint KP_ArrowLeft = 37;
+	static constexpr uint KP_ArrowUp = 38;
+	static constexpr uint KP_ArrowRight = 39;
+	static constexpr uint KP_ArrowDown = 40;
+	static constexpr uint KP_Home = 36;
+	static constexpr uint KP_PageUp = 33;
+	static constexpr uint KP_PageDown = 34;
+	static constexpr uint KP_Insert = 45;
+	static constexpr uint KP_Delete = 46;
+	static constexpr uint MouseBtn0 = 0;
+	static constexpr uint MouseBtn1 = 1;
+	static constexpr uint MouseBtn2 = 2;
+	static constexpr uint MouseBtn3 = 3;
+	static constexpr uint MouseBtn4 = 4;
+	static constexpr uint MouseLeft = 0;
+	static constexpr uint MouseRight = 1;
+	static constexpr uint MouseMiddle = 2;
+	static constexpr uint MouseWheelX = 57089;
+	static constexpr uint MouseWheelY = 57090;
+	static constexpr uint CursorPos = 57091;
+	static constexpr uint CursorPos_mm = 57092;
+	static constexpr uint CursorDelta = 57093;
+	static constexpr uint CursorDelta_norm = 57094;
+	static constexpr uint TouchPos = 57095;
+	static constexpr uint TouchPos_mm = 57096;
+	static constexpr uint TouchDelta = 57097;
+	static constexpr uint TouchDelta_norm = 57098;
+};
+
+struct WinAPI_BindingsMode
+{
+	WinAPI_BindingsMode ();
+	void  Add (WinAPI_Input, const ActionInfo &);
+	void  Inherit (const string &);
+	void  LockAndHideCursor ();
+};
+
+struct WinAPI_ActionBindings
+{
+	WinAPI_ActionBindings ();
+	RC<WinAPI_BindingsMode>  CreateMode (const string &);
+};
+
+struct Android_Input
+{
+	Android_Input () {}
+	Android_Input (uint) {}
+	operator uint () const;
+	static constexpr uint Back = 4;
+	static constexpr uint 0 = 7;
+	static constexpr uint 1 = 8;
+	static constexpr uint 2 = 9;
+	static constexpr uint 3 = 10;
+	static constexpr uint 4 = 11;
+	static constexpr uint 5 = 12;
+	static constexpr uint 6 = 13;
+	static constexpr uint 7 = 14;
+	static constexpr uint 8 = 15;
+	static constexpr uint 9 = 16;
+	static constexpr uint Star = 17;
+	static constexpr uint Paund = 18;
+	static constexpr uint VolumeUp = 24;
+	static constexpr uint VolumeDown = 25;
+	static constexpr uint VolumeMute = 164;
+	static constexpr uint Power = 26;
+	static constexpr uint Camera = 27;
+	static constexpr uint Clear = 28;
+	static constexpr uint A = 29;
+	static constexpr uint B = 30;
+	static constexpr uint C = 31;
+	static constexpr uint D = 32;
+	static constexpr uint E = 33;
+	static constexpr uint F = 34;
+	static constexpr uint G = 35;
+	static constexpr uint H = 36;
+	static constexpr uint I = 37;
+	static constexpr uint J = 38;
+	static constexpr uint K = 39;
+	static constexpr uint L = 40;
+	static constexpr uint M = 41;
+	static constexpr uint N = 42;
+	static constexpr uint O = 43;
+	static constexpr uint P = 44;
+	static constexpr uint Q = 45;
+	static constexpr uint R = 46;
+	static constexpr uint S = 47;
+	static constexpr uint T = 48;
+	static constexpr uint U = 49;
+	static constexpr uint V = 50;
+	static constexpr uint W = 51;
+	static constexpr uint X = 52;
+	static constexpr uint Y = 53;
+	static constexpr uint Z = 54;
+	static constexpr uint Comma = 55;
+	static constexpr uint Period = 56;
+	static constexpr uint LeftAlt = 57;
+	static constexpr uint RightAlt = 58;
+	static constexpr uint LeftShift = 59;
+	static constexpr uint RightShift = 60;
+	static constexpr uint Tab = 61;
+	static constexpr uint Space = 62;
+	static constexpr uint Sym = 63;
+	static constexpr uint Browser = 64;
+	static constexpr uint LaunchMail = 65;
+	static constexpr uint Enter = 66;
+	static constexpr uint Delete = 67;
+	static constexpr uint Grave = 68;
+	static constexpr uint Minus = 69;
+	static constexpr uint Equals = 70;
+	static constexpr uint LeftBracket = 71;
+	static constexpr uint RightBracket = 72;
+	static constexpr uint BackSlash = 73;
+	static constexpr uint Semicolon = 74;
+	static constexpr uint Apostrophe = 75;
+	static constexpr uint Slash = 76;
+	static constexpr uint At = 77;
+	static constexpr uint Num = 78;
+	static constexpr uint Plus = 81;
+	static constexpr uint Menu = 82;
+	static constexpr uint Notification = 83;
+	static constexpr uint Search = 84;
+	static constexpr uint MicMute = 91;
+	static constexpr uint PageUp = 92;
+	static constexpr uint PageDown = 93;
+	static constexpr uint PictSymbols = 94;
+	static constexpr uint SwitchCharset = 95;
+	static constexpr uint Escape = 111;
+	static constexpr uint ForwardDelete = 112;
+	static constexpr uint LeftControl = 113;
+	static constexpr uint RightControl = 114;
+	static constexpr uint CapsLock = 115;
+	static constexpr uint ScrollLock = 116;
+	static constexpr uint LeftMeta = 117;
+	static constexpr uint RightMeta = 118;
+	static constexpr uint Function = 119;
+	static constexpr uint SysRq = 120;
+	static constexpr uint PauseBreak = 121;
+	static constexpr uint MoveHome = 122;
+	static constexpr uint MoveEnd = 123;
+	static constexpr uint Insert = 124;
+	static constexpr uint Forward = 125;
+	static constexpr uint F1 = 131;
+	static constexpr uint F2 = 132;
+	static constexpr uint F3 = 133;
+	static constexpr uint F4 = 134;
+	static constexpr uint F5 = 135;
+	static constexpr uint F6 = 136;
+	static constexpr uint F7 = 137;
+	static constexpr uint F8 = 138;
+	static constexpr uint F9 = 139;
+	static constexpr uint F10 = 140;
+	static constexpr uint F11 = 141;
+	static constexpr uint F12 = 142;
+	static constexpr uint NumLock = 143;
+	static constexpr uint Info = 165;
+	static constexpr uint ChannelUp = 166;
+	static constexpr uint ChannelDown = 167;
+	static constexpr uint ZoomIn = 168;
+	static constexpr uint ZoomOut = 169;
+	static constexpr uint Window = 171;
+	static constexpr uint Guide = 172;
+	static constexpr uint DVR = 173;
+	static constexpr uint Bookmark = 174;
+	static constexpr uint Captions = 175;
+	static constexpr uint Settings = 176;
+	static constexpr uint AppSwitch = 187;
+	static constexpr uint LangSwitch = 204;
+	static constexpr uint MannerMode = 205;
+	static constexpr uint 3DMode = 206;
+	static constexpr uint Contacts = 207;
+	static constexpr uint Calendar = 208;
+	static constexpr uint Music = 209;
+	static constexpr uint Calculator = 210;
+	static constexpr uint ZenkakuHankaku = 211;
+	static constexpr uint Eisu = 212;
+	static constexpr uint Muhenkan = 213;
+	static constexpr uint Henkan = 214;
+	static constexpr uint KatakanaHiragana = 215;
+	static constexpr uint Yen = 216;
+	static constexpr uint Ro = 217;
+	static constexpr uint Kana = 218;
+	static constexpr uint Assist = 219;
+	static constexpr uint BrightnessDown = 220;
+	static constexpr uint BrightnessUp = 221;
+	static constexpr uint Sleep = 223;
+	static constexpr uint Wakeup = 224;
+	static constexpr uint Pairing = 225;
+	static constexpr uint 11 = 227;
+	static constexpr uint 12 = 228;
+	static constexpr uint LastChannel = 229;
+	static constexpr uint VoiceAssist = 231;
+	static constexpr uint Help = 259;
+	static constexpr uint NavPrev = 260;
+	static constexpr uint NavNext = 261;
+	static constexpr uint NavIn = 262;
+	static constexpr uint NavOut = 263;
+	static constexpr uint StemPrimary = 264;
+	static constexpr uint Stem1 = 265;
+	static constexpr uint Stem2 = 266;
+	static constexpr uint Stem3 = 267;
+	static constexpr uint SoftSleep = 276;
+	static constexpr uint Cut = 277;
+	static constexpr uint Copy = 278;
+	static constexpr uint Paste = 279;
+	static constexpr uint SysNavUp = 280;
+	static constexpr uint SysNavDown = 281;
+	static constexpr uint SysNavLeft = 282;
+	static constexpr uint SysNavRight = 283;
+	static constexpr uint AllApps = 284;
+	static constexpr uint Refresh = 285;
+	static constexpr uint ThumbsUp = 286;
+	static constexpr uint ThumbsDown = 287;
+	static constexpr uint ProfileSwitch = 288;
+	static constexpr uint MediaPlayPause = 85;
+	static constexpr uint MediaStop = 86;
+	static constexpr uint MediaNext = 87;
+	static constexpr uint MediaPrev = 88;
+	static constexpr uint MediaRewind = 89;
+	static constexpr uint MediaFastForward = 90;
+	static constexpr uint MediaPlay = 126;
+	static constexpr uint MediaPause = 127;
+	static constexpr uint MediaClose = 128;
+	static constexpr uint MediaEject = 129;
+	static constexpr uint MediaRecord = 130;
+	static constexpr uint MediaAudioTrack = 222;
+	static constexpr uint MediaTopMenu = 226;
+	static constexpr uint MediaSkipForward = 272;
+	static constexpr uint MediaSkipBackward = 273;
+	static constexpr uint MediaStepForward = 274;
+	static constexpr uint MediaStepBackward = 275;
+	static constexpr uint DPadUp = 19;
+	static constexpr uint DPadDown = 20;
+	static constexpr uint DPadLeft = 21;
+	static constexpr uint DPadRight = 22;
+	static constexpr uint DPadCenter = 23;
+	static constexpr uint DPadUpLeft = 268;
+	static constexpr uint DPadDownLeft = 269;
+	static constexpr uint DPadUpRight = 270;
+	static constexpr uint DPadDownRight = 271;
+	static constexpr uint GPadA = 96;
+	static constexpr uint GPadB = 97;
+	static constexpr uint GPadC = 98;
+	static constexpr uint GPadX = 99;
+	static constexpr uint GPadY = 100;
+	static constexpr uint GPadZ = 101;
+	static constexpr uint GPadL1 = 102;
+	static constexpr uint GPadR1 = 103;
+	static constexpr uint GPadL2 = 104;
+	static constexpr uint GPadR2 = 105;
+	static constexpr uint GPadThumbL = 106;
+	static constexpr uint GPadThumbR = 107;
+	static constexpr uint GPadStart = 108;
+	static constexpr uint GPadSelect = 109;
+	static constexpr uint GPadMode = 110;
+	static constexpr uint GPad1 = 188;
+	static constexpr uint GPad2 = 189;
+	static constexpr uint GPad3 = 190;
+	static constexpr uint GPad4 = 191;
+	static constexpr uint GPad5 = 192;
+	static constexpr uint GPad6 = 193;
+	static constexpr uint GPad7 = 194;
+	static constexpr uint GPad8 = 195;
+	static constexpr uint GPad9 = 196;
+	static constexpr uint GPad10 = 197;
+	static constexpr uint GPad11 = 198;
+	static constexpr uint GPad12 = 199;
+	static constexpr uint GPad13 = 200;
+	static constexpr uint GPad14 = 201;
+	static constexpr uint GPad15 = 202;
+	static constexpr uint GPad16 = 203;
+	static constexpr uint KP_0 = 144;
+	static constexpr uint KP_1 = 145;
+	static constexpr uint KP_2 = 146;
+	static constexpr uint KP_3 = 147;
+	static constexpr uint KP_4 = 148;
+	static constexpr uint KP_5 = 149;
+	static constexpr uint KP_6 = 150;
+	static constexpr uint KP_7 = 151;
+	static constexpr uint KP_8 = 152;
+	static constexpr uint KP_9 = 153;
+	static constexpr uint KP_Divide = 154;
+	static constexpr uint KP_Multiply = 155;
+	static constexpr uint KP_Subtract = 156;
+	static constexpr uint KP_Add = 157;
+	static constexpr uint KP_Dot = 158;
+	static constexpr uint KP_Comma = 159;
+	static constexpr uint KP_Enter = 160;
+	static constexpr uint KP_Equal = 161;
+	static constexpr uint KP_LeftParen = 162;
+	static constexpr uint KP_RightParen = 163;
+	static constexpr uint TV = 170;
+	static constexpr uint TV_Power = 177;
+	static constexpr uint TV_Input = 178;
+	static constexpr uint TV_STBPower = 179;
+	static constexpr uint TV_STBInput = 180;
+	static constexpr uint AV_Power = 181;
+	static constexpr uint AVR_Input = 182;
+	static constexpr uint TV_ProgRed = 183;
+	static constexpr uint TV_ProgGreen = 184;
+	static constexpr uint TV_ProgYellow = 185;
+	static constexpr uint TV_ProgBlue = 186;
+	static constexpr uint TV_DataService = 230;
+	static constexpr uint TV_RadioService = 232;
+	static constexpr uint TV_Teletext = 233;
+	static constexpr uint TV_NumberEntry = 234;
+	static constexpr uint TV_TerrestrialAnalog = 235;
+	static constexpr uint TV_TerrestrialDigital = 236;
+	static constexpr uint TV_Satellite = 237;
+	static constexpr uint TV_SatelliteBS = 238;
+	static constexpr uint TV_SattelliteCS = 239;
+	static constexpr uint TV_SatelliteService = 240;
+	static constexpr uint TV_Network = 241;
+	static constexpr uint TV_AntennaCable = 242;
+	static constexpr uint TV_InputHdmi1 = 243;
+	static constexpr uint TV_InputHdmi2 = 244;
+	static constexpr uint TV_InputHdmi3 = 245;
+	static constexpr uint TV_InputHdmi4 = 246;
+	static constexpr uint TV_inputComposite1 = 247;
+	static constexpr uint TV_inputComposite2 = 248;
+	static constexpr uint TV_InputComponent1 = 249;
+	static constexpr uint TV_InputComponent2 = 250;
+	static constexpr uint TV_InputVGA1 = 251;
+	static constexpr uint TV_AudioDesc = 252;
+	static constexpr uint TV_AudioDescMixUp = 253;
+	static constexpr uint TV_AudioDescMixDown = 254;
+	static constexpr uint TV_ZoomMode = 255;
+	static constexpr uint TV_ContentsMenu = 256;
+	static constexpr uint TV_MediaContextMenu = 257;
+	static constexpr uint TV_TimerProgramming = 258;
+};
+
+struct Android_BindingsMode
+{
+	Android_BindingsMode ();
+	void  Add (Android_Input, const ActionInfo &);
+	void  Inherit (const string &);
+};
+
+struct Android_ActionBindings
+{
+	Android_ActionBindings ();
+	RC<Android_BindingsMode>  CreateMode (const string &);
+};
+
+struct OpenVR_Input
+{
+	OpenVR_Input () {}
+	OpenVR_Input (uint) {}
+	operator uint () const;
+	static constexpr uint Space = 32;
+};
+
+struct OpenVR_BindingsMode
+{
+	OpenVR_BindingsMode ();
+	void  Add (OpenVR_Input, const ActionInfo &);
+	void  Inherit (const string &);
+};
+
+struct OpenVR_ActionBindings
+{
+	OpenVR_ActionBindings ();
+	RC<OpenVR_BindingsMode>  CreateMode (const string &);
+};
+
+template <>
+struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
+{
+	RC (const GLFW_BindingsMode &);
+};
+
+template <>
+struct RC<Android_ActionBindings> : Android_ActionBindings
+{
+	RC (const Android_ActionBindings &);
+};
+
+template <>
+struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
+{
+	RC (const GLFW_ActionBindings &);
+};
+
+template <>
+struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
+{
+	RC (const OpenVR_BindingsMode &);
+};
+
+template <>
+struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
+{
+	RC (const WinAPI_BindingsMode &);
+};
+
+template <>
+struct RC<Android_BindingsMode> : Android_BindingsMode
+{
+	RC (const Android_BindingsMode &);
+};
+
+template <>
+struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
+{
+	RC (const WinAPI_ActionBindings &);
+};
+
+template <>
+struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
+{
+	RC (const OpenVR_ActionBindings &);
+};
+

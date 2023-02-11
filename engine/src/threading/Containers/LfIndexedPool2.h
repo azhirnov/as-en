@@ -89,21 +89,21 @@ namespace AE::Threading
 		  SpinLockRelaxed			_topLevelGuard;		// only for '_topLevel' modification
 		Atomic< TopLevelBits_t >	_topLevel;			// 0 - is unassigned bit, 1 - assigned bit
 
-		ChunkInfos_t		_chunkInfo;
-		ChunkData_t			_chunkData;
+		ChunkInfos_t				_chunkInfo;
+		ChunkData_t					_chunkData;
 
 		NO_UNIQUE_ADDRESS
-		 Allocator_t		_allocator;
+		 Allocator_t				_allocator;
 
 
 	// methods
 	public:
 		explicit LfIndexedPool2 (const Allocator_t &alloc = Default)__NE___;
-		~LfIndexedPool2 ()											__NE___	{ Release(); }
+		~LfIndexedPool2 ()											__NE___	{ Release( True{"check for assigned"} ); }
 	
 		template <typename FN>
-		void Release (FN &&dtor, bool checkForAssigned)				__NE___;
-		void Release (bool checkForAssigned = true)					__NE___	{ return Release( [](Value_t& value) { value.~Value_t(); }, checkForAssigned ); }
+		void  Release (FN &&dtor, Bool checkForAssigned)			__NE___;
+		void  Release (Bool checkForAssigned)						__NE___	{ return Release( [](Value_t& value) { value.~Value_t(); }, checkForAssigned ); }
 		
 		template <typename FN>
 		ND_ bool  Assign (OUT Index_t &outIndex, FN &&ctor)			__NE___;

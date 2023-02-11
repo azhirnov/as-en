@@ -46,8 +46,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectTransferCtx (const RenderTask &task)																				__Th___;
-		_VDirectTransferCtx (const RenderTask &task, VCommandBuffer cmdbuf)																	__Th___;
+		explicit _VDirectTransferCtx (const RenderTask &task)																				__Th___ : VBaseDirectContext{ task, ECtxType::Transfer } {}
+		_VDirectTransferCtx (const RenderTask &task, VCommandBuffer cmdbuf)																	__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), ECtxType::Transfer } {}
 	};
 
 
@@ -83,8 +83,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectTransferCtx (const RenderTask &task)																				__Th___;
-		_VIndirectTransferCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)															__Th___;
+		explicit _VIndirectTransferCtx (const RenderTask &task)																				__Th___ : VBaseIndirectContext{ task, ECtxType::Transfer } {}
+		_VIndirectTransferCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)															__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), ECtxType::Transfer } {}
 	};
 
 
@@ -100,21 +100,21 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsTransferContext		= true;
 		static constexpr bool	IsVulkanTransferContext	= true;
+
+		using CmdBuf_t			= typename CtxImpl::CmdBuf_t;
 	private:
 		static constexpr uint	_LocalArraySize			= 16;
 		static constexpr Bytes	_StagingBufOffsetAlign	= 4_b;
 
-		using RawCtx		= CtxImpl;
-		using AccumBar		= VAccumBarriers< _VTransferContextImpl< CtxImpl >>;
-		using DeferredBar	= VAccumDeferredBarriersForCtx< _VTransferContextImpl< CtxImpl >>;
+		using RawCtx			= CtxImpl;
+		using AccumBar			= VAccumBarriers< _VTransferContextImpl< CtxImpl >>;
+		using DeferredBar		= VAccumDeferredBarriersForCtx< _VTransferContextImpl< CtxImpl >>;
 
 
 	// methods
 	public:
 		explicit _VTransferContextImpl (const RenderTask &task)																							__Th___;
-		
-		template <typename RawCmdBufType>
-		_VTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf)																			__Th___;
+		_VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)																					__Th___;
 
 		_VTransferContextImpl ()																														= delete;
 		_VTransferContextImpl (const _VTransferContextImpl &)																							= delete;
@@ -153,7 +153,7 @@ namespace AE::Graphics::_hidden_
 		
 		using RawCtx::BlitImage;
 
-		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)											__Th___;
+		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)											__Th_OV;
 		
 		void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)														__Th___;
 
@@ -227,8 +227,7 @@ namespace AE::Graphics::_hidden_
 	}
 		
 	template <typename C>
-	template <typename RawCmdBufType>
-	_VTransferContextImpl<C>::_VTransferContextImpl (const RenderTask &task, RawCmdBufType cmdbuf) :
+	_VTransferContextImpl<C>::_VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf) }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
@@ -394,7 +393,7 @@ namespace AE::Graphics::_hidden_
 		VStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
 		VStagingBufferManager::BufferRanges_t	buffers;
 
-		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, this->_mngr.GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
+		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
 
 		for (auto& src_buf : buffers)
 		{
@@ -423,7 +422,7 @@ namespace AE::Graphics::_hidden_
 		VStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
 		VStagingBufferManager::BufferRanges_t	buffers;
 
-		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, this->_mngr.GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
+		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
 		
 		for (auto& src_buf : buffers)
 		{
@@ -450,7 +449,7 @@ namespace AE::Graphics::_hidden_
 		VStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
 
 		VStagingBufferManager::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, uploadDesc, img_desc, this->_mngr.GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+		sbm.GetImageRanges( OUT res, uploadDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
 		
 		if_unlikely( res.buffers.empty() )
 			return;
@@ -509,7 +508,7 @@ namespace AE::Graphics::_hidden_
 		upload_desc.heapType	 = heapType;
 
 		VStagingBufferManager::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, upload_desc, img_desc, this->_mngr.GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+		sbm.GetImageRanges( OUT res, upload_desc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
 		
 		if_unlikely( res.buffers.empty() )
 			return;
@@ -577,7 +576,7 @@ namespace AE::Graphics::_hidden_
 		
 		VStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
 		VStagingBufferManager::BufferRanges_t	buffers;
-		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, this->_mngr.GetFrameId(), heapType, this->_mngr.GetQueueType(), False{"readback"} );
+		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), False{"readback"} );
 		
 		BufferMemView	mem_view;
 		for (auto& dst_buf : buffers)
@@ -607,7 +606,7 @@ namespace AE::Graphics::_hidden_
 		if_unlikely( not AllBits( mem_info.flags, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT ))
 		{
 			ASSERT( offset + size <= mem_info.size );
-			this->_mngr.GetStagingManager().AcquireMappedMemory( this->_mngr.GetFrameId(), mem_info.memory, mem_info.offset, size );
+			this->_mngr.GetStagingManager().AcquireMappedMemory( GetFrameId(), mem_info.memory, mem_info.offset, size );
 		}
 
 		return Threading::MakePromiseFromValue( mem_view, Tuple{ this->_mngr.GetBatchRC() });
@@ -628,7 +627,7 @@ namespace AE::Graphics::_hidden_
 		VStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
 
 		VStagingBufferManager::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, readDesc, img_desc, this->_mngr.GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
+		sbm.GetImageRanges( OUT res, readDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
 		
 		if_unlikely( res.buffers.empty() )
 			return Default;
@@ -642,8 +641,8 @@ namespace AE::Graphics::_hidden_
 		copy.bufferRowLength	= res.bufferRowLength;
 
 		BufferMemView	mem_view;
-		uint3			min {~0u};
-		uint3			max {0};
+		uint3			min		{~0u};
+		uint3			max		{0};
 
 		for (auto& dst_buf : res.buffers)
 		{
@@ -660,8 +659,10 @@ namespace AE::Graphics::_hidden_
 		}
 		ASSERT( res.buffers.size() == mem_view.Parts().size() );
 		
-		ImageMemView	img_mem_view{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask };
-		return Threading::MakePromiseFromValue( img_mem_view, Tuple{ this->_mngr.GetBatchRC() });
+		return Threading::MakePromiseFromValue(
+					ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask },
+					Tuple{ this->_mngr.GetBatchRC() }
+				);
 	}
 	
 /*

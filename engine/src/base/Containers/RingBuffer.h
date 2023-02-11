@@ -28,8 +28,9 @@ namespace AE::Base
 			 >
 	struct RingBuffer
 	{
-		STATIC_ASSERT( IsNothrowMoveCtor<T> );
-		//STATIC_ASSERT( IsNothrowDefaultCtor<T> );
+		STATIC_ASSERT( IsNothrowDtor< T >);
+		STATIC_ASSERT( IsNothrowMoveCtor< T >);
+		//STATIC_ASSERT( IsNothrowDefaultCtor< T >);
 
 	// types
 	private:
@@ -458,8 +459,8 @@ namespace AE::Base
 			_Reallocate( capacity() + 1, true );	// throw
 		
 		CPolicy_t::Copy( _array + _end, AddressOf(value), 1 );	// throw
-		_end	= _WrapIndex( _end + 1 );
 		_packed	&= ~_EmptyBit;
+		_end	= _WrapIndex( _end + 1 );
 
 		_UpdateDbgView();
 	}

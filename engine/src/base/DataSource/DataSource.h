@@ -254,7 +254,7 @@ namespace AE::Base
 		};
 
 	private:
-		static constexpr uint	_BufferSize = 1 << 14;
+		static constexpr uint	_BufferSize = 1 << 13;
 
 
 	// methods

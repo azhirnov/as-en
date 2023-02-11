@@ -44,17 +44,17 @@ namespace AE::PipelineCompiler
 	struct PipelinesInfo
 	{
 		// input pipelines
-		const PathParams *		pipelineFolders		= null;
+		const PathParams *		pipelineFolders		= null;		// [pipelineFolderCount]
 		usize					pipelineFolderCount	= 0;
-		const PathParams *		inPipelines			= null;
+		const PathParams *		inPipelines			= null;		// [inPipelineCount]
 		usize					inPipelineCount		= 0;
 
 		// input shaders
-		const CharType * const*	shaderFolders		= null;
+		const CharType * const*	shaderFolders		= null;		// [shaderFolderCount]
 		usize					shaderFolderCount	= 0;
 
 		// include directories
-		const CharType * const*	includeDirs			= null;
+		const CharType * const*	includeDirs			= null;		// [includeDirCount]
 		usize					includeDirCount		= 0;
 
 		// output

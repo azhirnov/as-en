@@ -53,12 +53,14 @@ namespace AE::Graphics::_hidden_
 		ND_ const VkDependencyInfo*	GetBarriers ()								__NE___;
 		ND_ bool					NoPendingBarriers ()						C_NE___	{ return _imageBarriers.empty(); }
 		ND_ bool					HasPendingBarriers ()						C_NE___	{ return not NoPendingBarriers(); }
+		
+		ND_ uint					GetAttachmentIndex (AttachmentName name)	C_NE___;
 
 		void  ClearBarriers ()													__NE___;
 		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState) __NE___;
 
 	private:
-		void  _Init () __NE___;
+		void  _Init ()															__NE___;
 	};
 
 

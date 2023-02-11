@@ -515,7 +515,7 @@ namespace AE::Graphics::_hidden_
 		void  DebugMarker (DebugLabel dbg)							__Th___;
 		void  PushDebugGroup (DebugLabel dbg)						__Th___;
 		void  PopDebugGroup ()										__Th___;
-		void  CommitBarriers (const MDependencyInfo &)				__Th___;
+		void  PipelineBarrier (const MDependencyInfo &)				__Th___;
 
 		void  ProfilerBeginContext (IGraphicsProfiler*, const void*, DebugLabel, IGraphicsProfiler::EContextType)	__Th___;
 		void  ProfilerEndContext (IGraphicsProfiler*, const void*, IGraphicsProfiler::EContextType)					__Th___;
@@ -542,6 +542,8 @@ namespace AE::Graphics::_hidden_
 	public:
 		static constexpr bool	IsIndirectContext = true;
 		
+		using CmdBuf_t = MSoftwareCmdBufPtr;
+
 	protected:
 		#define AE_BASE_IND_CTX_VISIT( _name_ )		using _name_ = MSoftwareCmdBuf::_name_;
 		AE_BASE_IND_CTX_COMMANDS( AE_BASE_IND_CTX_VISIT )
@@ -557,12 +559,11 @@ namespace AE::Graphics::_hidden_
 	public:
 		virtual ~_MBaseIndirectContext ()										__NE___	{ DBG_CHECK_MSG( not _IsValid(), "you forget to call 'EndCommandBuffer()' or 'ReleaseCommandBuffer()'" ); }
 		
-		void  PipelineBarrier (const MDependencyInfo &info)						__Th___	{ _cmdbuf->CommitBarriers( info ); }
+		void  PipelineBarrier (const MDependencyInfo &info)						__Th___	{ _cmdbuf->PipelineBarrier( info ); }
 
 	protected:
-		explicit _MBaseIndirectContext (MSoftwareCmdBufPtr cmdbuf)				__NE___: _cmdbuf{RVRef(cmdbuf)} {}
-
 		explicit _MBaseIndirectContext (DebugLabel dbg)							__Th___;
+		explicit _MBaseIndirectContext (MSoftwareCmdBufPtr cmdbuf)				__Th___: _cmdbuf{RVRef(cmdbuf)}  { CHECK_THROW( _IsValid() ); }
 		_MBaseIndirectContext (DebugLabel dbg, MSoftwareCmdBufPtr cmdbuf)		__Th___;
 
 		ND_ bool	_IsValid ()													C_NE___	{ return _cmdbuf and _cmdbuf->IsValid(); }
@@ -574,7 +575,7 @@ namespace AE::Graphics::_hidden_
 		ND_ MBakedCommands		_EndCommandBuffer ()							__Th___;
 		ND_ MSoftwareCmdBufPtr  _ReleaseCommandBuffer ()						__Th___;
 
-		ND_ static MSoftwareCmdBufPtr  _ReuseOrCreateCommandBuffer (MSoftwareCmdBufPtr cmdbuf) __Th___;
+		ND_ static MSoftwareCmdBufPtr  _ReuseOrCreateCommandBuffer (MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg) __Th___;
 	};
 
 
@@ -592,18 +593,30 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit MBaseIndirectContext (const RenderTask &task)					__Th___;
+		explicit MBaseIndirectContext (const RenderTask &task)					__Th___ : MBaseIndirectContext{ task, Default } {}
 		MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)__Th___;
 		~MBaseIndirectContext ()												__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
-			void	_CommitBarriers ()											__Th___;
-
 		ND_ bool	_NoPendingBarriers ()										C_NE___	{ return _mngr.NoPendingBarriers(); }
 		ND_ auto&	_GetFeatures ()												C_NE___	{ return _mngr.GetDevice().GetFeatures(); }
 
 		ND_ MBakedCommands		_EndCommandBuffer ()							__Th___;
 	};
+//-----------------------------------------------------------------------------
+
+
+	
+/*
+=================================================
+	constructor
+=================================================
+*/
+	inline _MBaseIndirectContext::_MBaseIndirectContext (DebugLabel dbg, MSoftwareCmdBufPtr cmdbuf) __Th___ :
+		_cmdbuf{ _ReuseOrCreateCommandBuffer( RVRef(cmdbuf), dbg )}
+	{
+		CHECK_THROW( _IsValid() );
+	}
 //-----------------------------------------------------------------------------
 
 
@@ -613,35 +626,12 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task) __Th___ :
-		_MBaseIndirectContext{ DebugLabel{ task.DbgFullName() }},	// throw
-		_mngr{ task }
-	{
-		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
-			PipelineBarrier( *bar );
-	}
-		
 	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf) __Th___ :
-		_MBaseIndirectContext{ _ReuseOrCreateCommandBuffer( RVRef(cmdbuf) )},
+		_MBaseIndirectContext{ DebugLabel{ task.DbgFullName(), task.DbgColor() }, RVRef(cmdbuf) },
 		_mngr{ task }
 	{
 		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
 			PipelineBarrier( *bar );
-	}
-	
-/*
-=================================================
-	_CommitBarriers
-=================================================
-*/
-	inline void  MBaseIndirectContext::_CommitBarriers () __Th___
-	{
-		auto* bar = _mngr.GetBarriers();
-		if_unlikely( bar != null )
-		{
-			PipelineBarrier( *bar );	// throw
-			_mngr.ClearBarriers();
-		}
 	}
 	
 /*

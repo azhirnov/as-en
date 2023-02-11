@@ -8,7 +8,7 @@ namespace
 {
 	static void  PtrSpinLock_Test1 ()
 	{
-		using LackablePtr	= TPtrSpinLock< int, true >;
+		using LackablePtr	= PtrWithSpinLockRelaxed< int >;
 
 		int			i = 0;
 		LackablePtr	p {&i};

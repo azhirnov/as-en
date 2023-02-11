@@ -15,13 +15,17 @@
 # elif defined(AE_PLATFORM_APPLE)
 #	define AE_PRIVATE_BREAK_POINT()		__builtin_debugtrap()
 
+# elif defined(AE_PLATFORM_EMSCRIPTEN)
+	namespace AE { void _ems_debugbreak (); }
+#	define AE_PRIVATE_BREAK_POINT()		AE::_ems_debugbreak()
+
 # elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
 #	include <csignal>
 #	define AE_PRIVATE_BREAK_POINT()		std::raise( SIGTRAP )
 # endif
 
 #else
-# define AE_PRIVATE_BREAK_POINT()	{}
+# define AE_PRIVATE_BREAK_POINT()		{}
 #endif
 
 
@@ -36,7 +40,7 @@
 
 
 // debug only check
-#ifndef ASSERT
+#if 1
 # ifdef AE_DEBUG
 #	define ASSERT									CHECK		// TODO: DBG_CHECK
 #	define ASSERT_Eq								CHECK_Eq	// ==
@@ -66,7 +70,7 @@
 
 
 // development check
-#ifndef DEV_CHECK
+#if 1
 # ifdef AE_DBG_OR_DEV
 #	define DEV_CHECK								CHECK
 #	define DEV_CHECK_ERR							CHECK_ERR
@@ -221,6 +225,11 @@
 #	define CHECK_PE( /* expr, return_if_false */... ) \
 		AE_PRIVATE_CHECK_ERR(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
 								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Threading::CancelPromise ))
+
+#	define CHECK_PE_MSG( /* expr, message */... ) \
+		AE_PRIVATE_CHECK_ERR2(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
+								AE::Threading::CancelPromise, \
+								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING( AE_PRIVATE_GETARG_0( __VA_ARGS__ ))) )
 #endif
 
 
@@ -230,7 +239,7 @@
 		{if_likely(( _expr_ )) {}																			\
 		 else_unlikely {																					\
 			AE_LOGE( AE_TOSTRING( _text_ ));																\
-			co_await AE::Threading::_hidden_::CoroutineRunnerError{};	/* call 'IAsyncTask::OnFailure()' */\
+			co_await AE::Threading::_hidden_::AsyncTaskCoro_Error{};	/* call 'IAsyncTask::OnFailure()' */\
 			co_return;	/* exit from coroutine */															\
 		}}
 
@@ -274,7 +283,7 @@
 #endif
 
 
-// 
+// throw exception
 #if 1
 #	define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ )		\
 		{if_likely(( _expr_ )) {}							\
@@ -297,7 +306,11 @@
 #	define CHECK_THROW( /*expr, exception*/... ) \
 		AE_PRIVATE_CHECK_THROW(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
 								AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
+#endif
 
+
+// catch exceptions
+#if 1
 #	define CATCH( ... )			\
 		try { __VA_ARGS__; }	\
 		catch(...) {}
@@ -314,4 +327,32 @@
 		AE_PRIVATE_CATCH_ERR( AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
 							  AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
 
+#	define CATCH_ERRV( _expr_ ) \
+		CATCH_ERR( (_expr_), void() )
+
+#endif
+
+
+// assumption
+#if 1
+# if __has_cpp_attribute(assume)
+#	define AE_PRIVATE_ASSUME( _expr_ )		{ [[assume( _expr_ )]]; }
+
+# elif defined(AE_COMPILER_MSVC)
+#	define AE_PRIVATE_ASSUME( _expr_ )		{__assume( _expr_ );}
+
+# elif defined(AE_COMPILER_CLANG)
+#	define AE_PRIVATE_ASSUME( _expr_ )		{__builtin_assume( _expr_ );}
+
+# elif defined(AE_COMPILER_GCC)
+#	define AE_PRIVATE_ASSUME( _expr_ )		{ if (not (_expr_)) __builtin_unreachable(); }
+# else
+#	error not implemented!
+# endif
+
+# ifdef AE_DEBUG
+#	define ASSUME							ASSERT
+# else
+#	define ASSUME							AE_PRIVATE_ASSUME
+# endif
 #endif

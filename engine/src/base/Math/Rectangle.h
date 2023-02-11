@@ -31,11 +31,13 @@ namespace AE::Math
 		constexpr Rectangle ()										__NE___ :
 			left{T{0}}, top{T{0}}, right{T{0}}, bottom{T{0}}
 		{
+		  #ifdef AE_COMPILETIME_OFFSETOF
 			// check if supported cast Rectangle to array
 			STATIC_ASSERT( offsetof(Self, left)  + sizeof(T) == offsetof(Self, top) );
 			STATIC_ASSERT( offsetof(Self, top)   + sizeof(T) == offsetof(Self, right) );
 			STATIC_ASSERT( offsetof(Self, right) + sizeof(T) == offsetof(Self, bottom) );
 			STATIC_ASSERT( sizeof(T[3]) == (offsetof(Self, bottom) - offsetof(Self, left)) );
+		  #endif
 		}
 		
 		constexpr Rectangle (T left, T top, T right, T bottom)		__NE___ :

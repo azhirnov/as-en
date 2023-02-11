@@ -36,8 +36,10 @@ namespace AE::Base
 	struct FixedMap
 	{
 		STATIC_ASSERT( ArraySize < 256 );
-		//STATIC_ASSERT( IsNothrowMoveCtor<Key> );
-		//STATIC_ASSERT( IsNothrowMoveCtor<Value> );
+		STATIC_ASSERT( IsNothrowDtor< Key >);
+		STATIC_ASSERT( IsNothrowDtor< Value >);
+		//STATIC_ASSERT( IsNothrowMoveCtor< Key >);
+		//STATIC_ASSERT( IsNothrowMoveCtor< Value >);
 
 	// types
 	private:
@@ -48,6 +50,8 @@ namespace AE::Base
 		using KPolicy_t		= KeyPolicy;
 		using VPolicy_t		= ValuePolicy;
 		
+		static constexpr bool	_IsNothrowCopy = AllNothrowCopyCtor< Key, Value >;
+
 
 		template <typename PairType>
 		struct TPairPtr
@@ -149,7 +153,7 @@ namespace AE::Base
 	public:
 		FixedMap ()													__NE___;
 		FixedMap (Self &&)											__NE___;
-		FixedMap (const Self &)										noexcept(AllNothrowCopyCtor<Key, Value>);
+		FixedMap (const Self &)										noexcept(_IsNothrowCopy);
 
 		~FixedMap ()												__NE___	{ clear(); }
 
@@ -164,32 +168,32 @@ namespace AE::Base
 		ND_ static constexpr usize	capacity ()						__NE___	{ return ArraySize; }
 		
 			Self&	operator = (Self &&)							__NE___;
-			Self&	operator = (const Self &)						noexcept(AllNothrowCopyCtor<Key, Value>);
+			Self&	operator = (const Self &)						noexcept(_IsNothrowCopy);
 
 		ND_ bool	operator == (const Self &rhs)					C_NE___;
 		ND_ bool	operator != (const Self &rhs)					C_NE___	{ return not (*this == rhs); }
 
 			template <typename K, typename V>
-			Pair<iterator,bool>  emplace (K&& key, V&& value)		noexcept(AllNothrowCopyCtor<Key, Value>);
+			Pair<iterator,bool>  emplace (K&& key, V&& value)		noexcept(_IsNothrowCopy);
 
-			Pair<iterator,bool>  insert (const pair_type &value)	noexcept(AllNothrowCopyCtor<Key, Value>)	{ return emplace( value.first, value.second ); }
-			Pair<iterator,bool>  insert (pair_type&& value)			__NE___										{ return emplace( RVRef(value.first), RVRef(value.second) ); }
+			Pair<iterator,bool>  insert (const pair_type &value)	noexcept(_IsNothrowCopy)	{ return emplace( value.first, value.second ); }
+			Pair<iterator,bool>  insert (pair_type&& value)			__NE___						{ return emplace( RVRef(value.first), RVRef(value.second) ); }
 			
 			template <typename K, typename V>
-			Pair<iterator,bool>  insert_or_assign (K&& key, V&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
+			Pair<iterator,bool>  insert_or_assign (K&& key, V&& value) noexcept(_IsNothrowCopy);
 			
 
 		// on overflow 'iterator' will be 'null'
 			template <typename K, typename V>
-			Pair<iterator,bool>	 try_emplace (K&& key, V&& value)	noexcept(AllNothrowCopyCtor<Key, Value>);
+			Pair<iterator,bool>	 try_emplace (K&& key, V&& value)	noexcept(_IsNothrowCopy);
 
 			template <typename K, typename V>
-			Pair<iterator,bool>  try_insert_or_assign (K&& key, V&& value) noexcept(AllNothrowCopyCtor<Key, Value>);
+			Pair<iterator,bool>  try_insert_or_assign (K&& key, V&& value) noexcept(_IsNothrowCopy);
 
 			
 		// same as operator [] in std
 			template <typename KeyType>
-		ND_ Value &			operator () (KeyType&& key)				noexcept(AllNothrowCopyCtor<Key, Value>)	{ auto[iter, inst] = emplace( FwdArg<KeyType>(key), Value{} );  return iter->second; }
+		ND_ Value &			operator () (KeyType&& key)				noexcept(_IsNothrowCopy)	{ auto[iter, inst] = emplace( FwdArg<KeyType>(key), Value{} );  return iter->second; }
 
 			template <typename KeyType>
 		ND_ const_iterator	find (const KeyType &key)				C_NE___	{ return _Find<const_iterator>( *this, key ); }
@@ -256,7 +260,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	FixedMap<K,V,S,KS,VS>::FixedMap (const Self &other) noexcept(AllNothrowCopyCtor<K, V>) : _count{ other._count }
+	FixedMap<K,V,S,KS,VS>::FixedMap (const Self &other) noexcept(_IsNothrowCopy) : _count{ other._count }
 	{
 		ASSERT( not _IsMemoryAliased( &other ));
 
@@ -314,7 +318,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename K, typename V, usize S, typename KS, typename VS>
-	FixedMap<K,V,S,KS,VS>&  FixedMap<K,V,S,KS,VS>::operator = (const Self &rhs) noexcept(AllNothrowCopyCtor<K, V>)
+	FixedMap<K,V,S,KS,VS>&  FixedMap<K,V,S,KS,VS>::operator = (const Self &rhs) noexcept(_IsNothrowCopy)
 	{
 		ASSERT( not _IsMemoryAliased( &rhs ));
 		
@@ -426,7 +430,7 @@ namespace _hidden_
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename KeyType, typename ValueType>
 	Pair< typename FixedMap<K,V,S,KS,VS>::iterator, bool >
-		FixedMap<K,V,S,KS,VS>::try_emplace (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<K, V>)
+		FixedMap<K,V,S,KS,VS>::try_emplace (KeyType&& key, ValueType&& value) noexcept(_IsNothrowCopy)
 	{
 		if_unlikely( _count >= capacity() )
 			return {};
@@ -442,7 +446,7 @@ namespace _hidden_
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename KeyType, typename ValueType>
 	Pair< typename FixedMap<K,V,S,KS,VS>::iterator, bool >
-		FixedMap<K,V,S,KS,VS>::emplace (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<K, V>)
+		FixedMap<K,V,S,KS,VS>::emplace (KeyType&& key, ValueType&& value) noexcept(_IsNothrowCopy)
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, K, Index_t >;
 
@@ -477,7 +481,7 @@ namespace _hidden_
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename KeyType, typename ValueType>
 	Pair< typename FixedMap<K,V,S,KS,VS>::iterator, bool >
-		FixedMap<K,V,S,KS,VS>::insert_or_assign (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<K, V>)
+		FixedMap<K,V,S,KS,VS>::insert_or_assign (KeyType&& key, ValueType&& value) noexcept(_IsNothrowCopy)
 	{
 		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, K, Index_t >;
 
@@ -519,7 +523,7 @@ namespace _hidden_
 	template <typename K, typename V, usize S, typename KS, typename VS>
 	template <typename KeyType, typename ValueType>
 	Pair< typename FixedMap<K,V,S,KS,VS>::iterator, bool >
-		FixedMap<K,V,S,KS,VS>::try_insert_or_assign (KeyType&& key, ValueType&& value) noexcept(AllNothrowCopyCtor<K, V>)
+		FixedMap<K,V,S,KS,VS>::try_insert_or_assign (KeyType&& key, ValueType&& value) noexcept(_IsNothrowCopy)
 	{
 		if_unlikely( _count >= capacity() )
 			return {};

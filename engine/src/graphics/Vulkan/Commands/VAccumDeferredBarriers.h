@@ -100,15 +100,13 @@ namespace _hidden_
 	//
 	class VAccumBarriersForTask final : public VAccumDeferredBarriers
 	{
-		friend class VCommandBatch;
-
-	// mthods
-	private:
-		VAccumBarriersForTask (VCommandBatch &batch)		__NE___ : VAccumDeferredBarriers{batch} {}
+	// methods
 	public:
-		ND_ const VkDependencyInfo*  Get ()					__NE___	{ return _mngr.AllocBarriers(); }
+		explicit VAccumBarriersForTask (VCommandBatch &batch)	__NE___ : VAccumDeferredBarriers{batch} {}
+
+		ND_ const VkDependencyInfo*  Get ()						__NE___	{ return _mngr.AllocBarriers(); }
 		
-		VAccumBarriersForTask (VAccumBarriersForTask &&)	__NE___	= default;
+		VAccumBarriersForTask (VAccumBarriersForTask &&)		__NE___	= default;
 	};
 	
 
@@ -119,10 +117,10 @@ namespace _hidden_
 	DeferredBarriers
 =================================================
 */
-	inline VCommandBatch::AccumBarriers_t  VCommandBatch::DeferredBarriers () __NE___
+	inline _hidden_::VAccumBarriersForTask  VCommandBatch::DeferredBarriers () __NE___
 	{
 		ASSERT( IsRecording() );
-		return AccumBarriers_t{ *this };
+		return _hidden_::VAccumBarriersForTask{ *this };
 	}
 
 

@@ -16,6 +16,7 @@ namespace AE::GraphicsTest
 	{
 	// variables
 	private:
+		Mutex					_guard;
 		Path					_fname;
 		bool					_loaded		= false;
 		bool					_newRef		= false;

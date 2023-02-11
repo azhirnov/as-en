@@ -2,6 +2,12 @@
 
 #pragma once
 
+#include "base/Defines/StdInclude.h"
+
+#ifdef AE_COMPILER_MSVC
+# include <excpt.h>
+#endif
+
 #include "base/Memory/MemUtils.h"
 #include "base/Memory/AllocatorFwdDecl.h"
 #include "base/Memory/AllocatorHelper.h"
@@ -143,12 +149,30 @@ namespace AE::Base
 	public:
 		ND_ static void*	Allocate (Bytes size)		__NE___
 		{
-			void*	ptr = alloca( usize(size) );
+			ASSERT( size <= 1_Kb );		// _ALLOCA_S_THRESHOLD
+
+			void*	ptr = _AllocImpl( size );
 			AllocatorHelper< EAllocatorType::OnStack >::OnAllocate( ptr, size );
 			return ptr;
 		}
 
 			static void		Deallocate (void *)			__NE___	{}
+
+
+	private:
+		ND_ static forceinline void*  _AllocImpl (Bytes size) __NE___
+		{
+		  #ifdef AE_COMPILER_MSVC
+			__try {
+				return _alloca( usize(size) );
+			}
+			__except( GetExceptionCode() == 0xC00000FDl ) {	// STATUS_STACK_OVERFLOW
+				_resetstkoflw();
+			}
+		  #else
+			return alloca( usize(size) );
+		  #endif
+		}
 	};
 
 } // AE::Base

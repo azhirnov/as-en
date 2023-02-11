@@ -10,10 +10,10 @@ namespace
 
 		uint2						viewSize;
 
-		Strong<ImageID>				img;
-		Strong<ImageViewID>			view;
+		GAutorelease<ImageID>		img;
+		GAutorelease<ImageViewID>	view;
 
-		Strong<BufferID>			vb;
+		GAutorelease<BufferID>		vb;
 		
 		GraphicsPipelineID			ppln;
 
@@ -130,6 +130,17 @@ namespace
 				#ifdef AE_HAS_COROUTINE
 					const auto	CreateDrawTask = [] (DA1_TestData &t, const uint firstVertex) -> DrawTaskCoro
 					{{
+						{
+							bool	is_canceled = co_await Coro_IsCanceled;
+							CHECK( not is_canceled );
+						}{
+							auto	status = co_await Coro_Status;
+							CHECK( status == EStatus::InProgress );
+						}{
+							auto	type = co_await Coro_TaskQueue;
+							CHECK( type == ETaskQueue::Renderer );
+						}
+
 						DrawTask&	self = co_await DrawTask_GetRef;
 
 						// same as 'DA1_DrawTask'
@@ -248,7 +259,7 @@ namespace
 
 		AsyncTask	begin	= rts.BeginFrame();
 
-		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, ESubmitMode::Immediately, {"DrawAsync1"} );
+		t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"DrawAsync1"} );
 		CHECK_ERR( t.batch );
 
 		AsyncTask	task1	= t.batch->Run< DA1_RenderPassTask<CtxTypes> >( Tuple{ArgRef(t)}, Tuple{begin},				  {"Draw task"} );
@@ -264,8 +275,6 @@ namespace
 		CHECK_ERR( Scheduler().Wait({ t.result }));
 		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
-		CHECK_ERR( res_mngr.ReleaseResources( t.view, t.img, t.vb ));
-
 		CHECK_ERR( t.isOK );
 		return true;
 	}
@@ -276,15 +285,16 @@ namespace
 bool RGTest::Test_DrawAsync1 ()
 {
 	auto	img_cmp = _LoadReference( TEST_NAME );
+	bool	result	= true;
 
-	CHECK_ERR(( DrawAsync1Test< DirectCtx,   DirectCtx::Transfer   >( _pipelines, img_cmp.get() )));
-	CHECK_ERR(( DrawAsync1Test< DirectCtx,   IndirectCtx::Transfer >( _pipelines, img_cmp.get() )));
+	RG_CHECK( DrawAsync1Test< DirectCtx,   DirectCtx::Transfer   >( _pipelines, img_cmp.get() ));
+	RG_CHECK( DrawAsync1Test< DirectCtx,   IndirectCtx::Transfer >( _pipelines, img_cmp.get() ));
 
-	CHECK_ERR(( DrawAsync1Test< IndirectCtx, DirectCtx::Transfer   >( _pipelines, img_cmp.get() )));
-	CHECK_ERR(( DrawAsync1Test< IndirectCtx, IndirectCtx::Transfer >( _pipelines, img_cmp.get() )));
+	RG_CHECK( DrawAsync1Test< IndirectCtx, DirectCtx::Transfer   >( _pipelines, img_cmp.get() ));
+	RG_CHECK( DrawAsync1Test< IndirectCtx, IndirectCtx::Transfer >( _pipelines, img_cmp.get() ));
 	
-	CHECK_ERR( _CompareDumps( TEST_NAME ));
+	RG_CHECK( _CompareDumps( TEST_NAME ));
 
 	AE_LOGI( TEST_NAME << " - passed" );
-	return true;
+	return result;
 }

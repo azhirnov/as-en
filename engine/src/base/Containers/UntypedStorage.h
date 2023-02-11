@@ -106,8 +106,8 @@ namespace AE::Base
 		~DynUntypedStorage ()							__NE___ { Dealloc(); }
 
 		ND_ Bytes			Size ()						C_NE___	{ return Bytes{_size}; }
-		ND_ POTValue		AlignPOT ()					C_NE___	{ return POTValue{ubyte( _align )}; }
-		ND_ Bytes			Align ()					C_NE___	{ return Bytes{usize{ AlignPOT() }}; }
+		ND_ POTBytes		AlignPOT ()					C_NE___	{ return POTBytes{PowerOfTwo( _align )}; }
+		ND_ Bytes			Align ()					C_NE___	{ return Bytes{ AlignPOT() }; }
 		
 		NDRST(void * )		Data ()						__NE___	{ return _ptr; }
 		NDRST(const void*)	Data ()						C_NE___	{ return _ptr; }
@@ -121,7 +121,7 @@ namespace AE::Base
 			Dealloc();
 			
 			_size	= usize(sizeAndAlign.size);
-			_align	= POTValue::From( usize(sizeAndAlign.align) ).GetPOT();
+			_align	= POTBytes( sizeAndAlign.align ).GetPOT();
 
 			ASSERT( Size() == sizeAndAlign.size );
 			ASSERT( Align() == sizeAndAlign.align );

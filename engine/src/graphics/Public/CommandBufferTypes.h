@@ -199,9 +199,30 @@ namespace AE::Graphics
 	
 	struct TraceRayIndirectCommand2
 	{
-		// TODO
+		#ifdef AE_ENABLE_VULKAN
+			VkDeviceAddress		raygenShaderRecordAddress;
+			VkDeviceSize		raygenShaderRecordSize;
+			VkDeviceAddress		missShaderBindingTableAddress;
+			VkDeviceSize		missShaderBindingTableSize;
+			VkDeviceSize		missShaderBindingTableStride;
+			VkDeviceAddress		hitShaderBindingTableAddress;
+			VkDeviceSize		hitShaderBindingTableSize;
+			VkDeviceSize		hitShaderBindingTableStride;
+			VkDeviceAddress		callableShaderBindingTableAddress;
+			VkDeviceSize		callableShaderBindingTableSize;
+			VkDeviceSize		callableShaderBindingTableStride;
+			uint				width;
+			uint				height;
+			uint				depth;
+
+		#elif defined(AE_ENABLE_METAL)
+			// TODO
+			
+		#else
+		#	error not implemented
+		#endif
 	};
-	//STATIC_ASSERT( sizeof(TraceRayIndirectCommand2) == 12 );
+	//STATIC_ASSERT( sizeof(TraceRayIndirectCommand2) == 104 );
 
 //-----------------------------------------------------------------------------
 
@@ -292,9 +313,11 @@ namespace AE::Graphics
 		ND_ uint3 const&	Begin ()					C_NE___	{ return _desc.imageOffset; }
 		ND_ uint3			End ()						C_NE___	{ return _desc.imageOffset + _desc.imageSize; }
 		ND_ uint3 const&	RegionSize ()				C_NE___	{ return _desc.imageSize; }
-		ND_ bool			IsCompleted ()				C_NE___	{ return posYZ[1] >= _desc.imageSize.z; }
+		ND_ auto const&		ToUploadDesc ()				C_NE___ { return _desc; }
+		ND_ Bytes			DataOffset ()				C_NE___	{ return posYZ[0] * _desc.dataRowPitch + posYZ[1] * _desc.dataSlicePitch; }
 
-		ND_ UploadImageDesc const&  ToUploadDesc ()		C_NE___ { return _desc; }
+		ND_ bool			IsInitialized ()			C_NE___	{ return _imageId != Default; }
+		ND_ bool			IsCompleted ()				C_NE___	{ return IsInitialized() & (posYZ[1] >= _desc.imageSize.z); }
 	};
 //-----------------------------------------------------------------------------
 	

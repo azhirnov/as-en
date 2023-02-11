@@ -9,7 +9,7 @@
 #include "base/Math/GLM.h"
 #include "base/Math/Float16.h"
 
-#ifdef AE_SIMD_NEON
+#if AE_SIMD_NEON
 
 namespace AE::Math
 {
@@ -37,7 +37,7 @@ namespace AE::Math
 
 
 
-# ifdef AE_SIMD_NEON_HALF
+# if AE_SIMD_NEON_HALF
 
 	//
 	// 64 bit half float (Neon)
@@ -705,7 +705,7 @@ namespace AE::Math
 
 
 
-# ifdef AE_SIMD_NEON_HALF
+# if AE_SIMD_NEON_HALF
 
 	//
 	// 128 bit half float (Neon)
@@ -827,9 +827,9 @@ namespace AE::Math
 			ND_ Bool4  operator ~ ()					C_NE___	{ return Bool4{ vmvnq_u32( _value )}; }
 			ND_ bool   operator [] (usize i)			C_NE___	{ ASSERT( i < 4 );  return _value[i] == UMax; }
 
-			ND_ bool  All ()							C_NE___	{ return uint32_t(_value[0] & _value[1] & _value[2] & _value[3]) == UMax; }
-			ND_ bool  Any ()							C_NE___	{ return uint32_t(_value[0] | _value[1] | _value[2] | _value[3]) == UMax; }
-			ND_ bool  None ()							C_NE___	{ return uint32_t(_value[0] | _value[1] | _value[2] | _value[3]) == 0; }
+			ND_ bool  All ()							C_NE___	{ return uint(_value[0] & _value[1] & _value[2] & _value[3]) == UMax; }
+			ND_ bool  Any ()							C_NE___	{ return uint(_value[0] | _value[1] | _value[2] | _value[3]) == UMax; }
+			ND_ bool  None ()							C_NE___	{ return uint(_value[0] | _value[1] | _value[2] | _value[3]) == 0; }
 		};
 
 
@@ -928,9 +928,9 @@ namespace AE::Math
 		//	ND_ Bool2  operator ~ ()					C_NE___	{ return Bool2{ vmvnq_u64( _value )}; }
 			ND_ bool   operator [] (usize i)			C_NE___	{ ASSERT( i < 2 );  return _value[i] == UMax; }
 
-			ND_ bool  All ()							C_NE___	{ return uint64_t(_value[0] & _value[1]) == UMax; }
-			ND_ bool  Any ()							C_NE___	{ return uint64_t(_value[0] | _value[1]) == UMax; }
-			ND_ bool  None ()							C_NE___	{ return uint64_t(_value[0] | _value[1]) == 0; }
+			ND_ bool  All ()							C_NE___	{ return ulong(_value[0] & _value[1]) == UMax; }
+			ND_ bool  Any ()							C_NE___	{ return ulong(_value[0] | _value[1]) == UMax; }
+			ND_ bool  None ()							C_NE___	{ return ulong(_value[0] | _value[1]) == 0; }
 		};
 
 
@@ -1014,7 +1014,7 @@ namespace AE::Math
 
 
 	
-# ifdef AE_SIMD_NEON_HALF
+# if AE_SIMD_NEON_HALF
 	inline SimdHalf4::Bool4::Bool4 (const SimdUShort4 &v) __NE___ : _value{v.Get()} {}
 
 	template <typename T> ND_ EnableIf< IsSameTypes<T,float>,  SimdFloat4>		SimdHalf4::Cast ()		C_NE___	{ return SimdFloat4{ vcvt_f32_f16( _value )}; }

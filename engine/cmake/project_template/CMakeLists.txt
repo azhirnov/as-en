@@ -22,6 +22,11 @@ source_group( TREE "${EXTERNAL_FOLDER}/.." FILES ${EXERNAL_CMAKE} )
 
 target_compile_definitions( "ProjectTemplate" PUBLIC ${AE_COMPILER_DEFINITIONS} )
 	
+# All Configurations
+if (PROJECTS_SHARED_DEFINES)
+	target_compile_definitions( "ProjectTemplate" PUBLIC ${PROJECTS_SHARED_DEFINES} )
+endif()
+
 # Debug
 if (PROJECTS_SHARED_DEFINES_DEBUG)
 	target_compile_definitions( "ProjectTemplate" PUBLIC $<$<CONFIG:Debug>: ${PROJECTS_SHARED_DEFINES_DEBUG}> )

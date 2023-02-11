@@ -24,8 +24,6 @@
 #include "base/Algorithms/ArrayUtils.h"
 #include "base/Memory/IAllocator.h"
 
-#include "threading/Common.h"
-
 // for NamedID
 #define AE_SERIALIZE_HASH_ONLY	1
 #define AE_DEBUG_SERIALIZER		0
@@ -33,8 +31,6 @@
 namespace AE::Serializing
 {
 	using namespace AE::Base;
-
-	using SharedMutex = Threading::SharedMutex;
 	
 	using SerializedID = NamedID< 32, 0x400, AE_OPTIMIZE_IDS, UMax >;
 	
