@@ -82,12 +82,3 @@ namespace AE::Base
 	template <> struct TTrivialySerializable< AE::Graphics::BufferViewDesc >	{ static constexpr bool  value = true; };
 
 } // AE::Base
-
-namespace std
-{
-	template <>
-	struct hash< AE::Graphics::BufferViewDesc > {
-		ND_ size_t  operator () (const AE::Graphics::BufferViewDesc &value) C_NE___;
-	};
-
-} // std

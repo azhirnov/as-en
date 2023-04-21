@@ -40,11 +40,11 @@ namespace
 			}
 
 			ImageMemView	mem_view;
-			ctx.UploadImage( INOUT t.stream, OUT mem_view, EStagingHeapType::Dynamic );
+			ctx.UploadImage( INOUT t.stream, OUT mem_view );
 
 			Bytes	copied;
 			CHECK_TE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
-					  copied == mem_view.ImageSize() );
+					  copied == mem_view.Image2DSize() );
 
 			Execute( ctx );
 			
@@ -101,11 +101,11 @@ namespace
 					}
 
 					ImageMemView	mem_view;
-					ctx.UploadImage( INOUT t.stream, OUT mem_view, EStagingHeapType::Dynamic );
+					ctx.UploadImage( INOUT t.stream, OUT mem_view );
 
 					Bytes	copied;
 					CHECK_CE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
-							  copied == mem_view.ImageSize() );
+							  copied == mem_view.Image2DSize() );
 
 					co_await RenderTask_Execute( ctx );
 			
@@ -159,7 +159,8 @@ namespace
 		t.imageData = ImageMemView{ img_data, uint3{}, uint3{t.dimension, 0}, 0_b, 0_b, format, EImageAspect::Color };
 
 		UploadImageDesc	upload_desc;
-		upload_desc.imageSize = uint3{t.dimension, 1u};
+		upload_desc.imageSize	= uint3{t.dimension, 1u};
+		upload_desc.heapType	= EStagingHeapType::Dynamic;
 		t.stream = ImageStream{ t.image, upload_desc };
 		
 		auto	task = Scheduler().Run<US2_FrameTask>( Tuple{ArgRef(t)} );
@@ -168,7 +169,7 @@ namespace
 		CHECK_ERR( rts.WaitAll() );
 
 		CHECK_ERR( t.stream.IsCompleted() );
-		CHECK_ERR( t.counter.load() >= uint(t.imageData.ImageSize() / upload_limit) );
+		CHECK_ERR( t.counter.load() >= uint(t.imageData.Image2DSize() / upload_limit) );
 
 		return true;
 	}

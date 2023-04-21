@@ -96,10 +96,8 @@ namespace AE::Graphics::_hidden_
 		ND_ FragmentArgSet_t	FragmentArguments ()														__NE___	{ ASSERT( _states.type != EPplnType::Tile );	return FragmentArgSet_t{ _Encoder2() }; }
 		ND_ TileArgSet_t		TileArguments ()															__NE___	{ ASSERT( _states.type == EPplnType::Tile );	return TileArgSet_t{ _Encoder2() }; }
 
-	  #if AE_METAL_3_0_BETA
 		ND_ MeshArgSet_t		MeshArguments ()															__NE___	{ ASSERT( _states.type == EPplnType::Mesh );	return MeshArgSet_t{ _Encoder2() }; }
 		ND_ MeshTaskArgSet_t	MeshTaskArguments ()														__NE___	{ ASSERT( _states.type == EPplnType::Mesh );	return MeshTaskArgSet_t{ _Encoder2() }; }
-	  #endif
 
 		void  SetDepthStencilState (MetalDepthStencilState ds)												__Th___;
 
@@ -247,11 +245,8 @@ namespace AE::Graphics::_hidden_
 		ND_ VertexArgSet_t		VertexArguments ()															__NE___	{ ASSERT( _states.type == EPplnType::Graphics );return VertexArgSet_t{ this->_cmdbuf.get() }; }
 		ND_ FragmentArgSet_t	FragmentArguments ()														__NE___	{ ASSERT( _states.type != EPplnType::Tile );	return FragmentArgSet_t{ this->_cmdbuf.get() }; }
 		ND_ TileArgSet_t		TileArguments ()															__NE___	{ ASSERT( _states.type == EPplnType::Tile );	return TileArgSet_t{ this->_cmdbuf.get() }; }
-
-	  #if AE_METAL_3_0_BETA
 		ND_ MeshArgSet_t		MeshArguments ()															__NE___	{ ASSERT( _states.type == EPplnType::Mesh );	return MeshArgSet_t{ this->_cmdbuf.get() }; }
 		ND_ MeshTaskArgSet_t	MeshTaskArguments ()														__NE___	{ ASSERT( _states.type == EPplnType::Mesh );	return MeshTaskArgSet_t{ this->_cmdbuf.get() }; }
-	  #endif
 
 		void  SetDepthStencilState (MetalDepthStencilState ds)												__Th___;
 

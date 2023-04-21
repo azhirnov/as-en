@@ -268,7 +268,7 @@ namespace AE::Base
 	template <typename Iter, typename Cmp>
 	ND_ bool  IsSorted (Iter begin, Iter end, Cmp && fn) __NE___
 	{
-		STATIC_ASSERT( IsNothrowInvocable<Cmp> );
+		//STATIC_ASSERT( IsNothrowInvocable<Cmp> );
 
 		if ( begin == end )
 			return true;

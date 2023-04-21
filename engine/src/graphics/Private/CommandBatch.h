@@ -1,4 +1,27 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Command batch allows to records multiple command buffers in parallel and submit them as a single batch.
+	Software command buffers are supported to and will be automatically recorded to Vulkan command buffer before submitting.
+
+		Dependencies.
+
+	Dependencies are added to the whole batch.
+		
+	Batch in graphics queue depends on batch in compute/transfer queue -> insert semaphore dependency.
+	Batch depends on batch in the same queue -> use 'submitIdx' to manually reorder batches.
+
+		CmdBatchOnSubmit.
+
+	Used as AsyncTask input dependency to run task when command batch was submitted to the GPU.
+	For example for present image in swapchain.
+
+	Warning: don't use CmdBatchOnSubmit with deferred submission!
+	
+		Resource state tracking.
+		
+	Use 'DeferredBarriers()' and 'initialBarriers' & 'finalBarriers' arguments in 'Run()' method
+	to transit states in batch planning stage.
+*/
 
 #if defined(AE_ENABLE_VULKAN)
 #	define SUFFIX			V
@@ -10,6 +33,10 @@
 #elif defined(AE_ENABLE_METAL)
 #	define SUFFIX			M
 #	define CMDBATCH			MCommandBatch
+
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#	define SUFFIX			R
+#	define CMDBATCH			RCommandBatch
 
 #else
 #	error not implemented
@@ -84,6 +111,26 @@ namespace AE::Graphics
 
 		private:
 			ND_ bool  _CommitIndirectBuffers_Ordered (uint cmdTypes, EQueueType queue, ECommandBufferType cmdbufType, const MPrimaryCmdBufState* primaryState);
+		};
+		
+
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		using GpuSyncObj_t			= RemoteSemaphore;
+		using CmdBatchDependency_t	= RemoteCmdBatchDependency;
+		using _TaskBarriers_t		= RDependencyInfo;
+
+		//
+		// Command Buffer Pool
+		//
+		struct CmdBufPool : LfCmdBufferPool< void*, RBakedCommands >
+		{
+		// methods
+		public:
+			CmdBufPool () __NE___ {}
+			
+			void  GetCommands (OUT RBakedCommands* cmdbufs, OUT uint &cmdbufCount, uint maxCount)	__NE___;
+			bool  CommitIndirectBuffers (EQueueType queue, ECommandBufferType cmdbufType,
+										 const RPrimaryCmdBufState* primaryState = null)			__NE___;
 		};
 
 	  #else
@@ -174,29 +221,33 @@ namespace AE::Graphics
 	private:
 		// for render tasks
 		alignas(AE_CACHE_LINE)
-		  CmdBufPool			_cmdPool;
+		  CmdBufPool				_cmdPool;
 
 		alignas(AE_CACHE_LINE)
-		  Atomic<EStatus>		_status			{EStatus::Destroyed};
+		  Atomic<EStatus>			_status			{EStatus::Destroyed};
 		
-		FrameUID				_frameId;
-		EQueueType				_queueType		= Default;
-		const ubyte				_indexInPool;
-		ubyte					_submitIdx		= UMax;
-		ESubmitMode				_submitMode		= ESubmitMode::Auto;
+		FrameUID					_frameId;
+		EQueueType					_queueType		= Default;
+		const ubyte					_indexInPool;
+		ubyte						_submitIdx		= UMax;
+		ESubmitMode					_submitMode		= ESubmitMode::Auto;
 
-		void*					_userData		= null;
+		void*						_userData		= null;
 
 		#if defined(AE_ENABLE_VULKAN)
 		# if AE_VK_TIMELINE_SEMAPHORE
-			VkSemaphore			_tlSemaphore	= Default;
-			Atomic<ulong>		_tlSemaphoreVal	{0};
+			VkSemaphore				_tlSemaphore	= Default;
+			Atomic<ulong>			_tlSemaphoreVal	{0};
 		# else
-			RC<VirtualFence>	_fence;
+			RC<VirtualFence>		_fence;
 		# endif
 		#elif defined(AE_ENABLE_METAL)
-			MetalSharedEventRC	_tlSemaphore;
-			Atomic<ulong>		_tlSemaphoreVal	{0};
+			MetalSharedEventRC		_tlSemaphore;
+			Atomic<ulong>			_tlSemaphoreVal	{0};
+
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			RemoteSemaphore			_tlSemaphore;
+			Atomic<ulong>			_tlSemaphoreVal	{0};
 		#else
 		#	error not implemented
 		#endif
@@ -204,24 +255,24 @@ namespace AE::Graphics
 		// dependencies from another batches on another queue
 		// or dependencies for swapchain image
 		alignas(AE_CACHE_LINE)
-		  SpinLock				_gpuInDepsGuard;
-		GpuDependencies_t		_gpuInDeps;
+		  SpinLock					_gpuInDepsGuard;
+		GpuDependencies_t			_gpuInDeps;
 
 		alignas(AE_CACHE_LINE)
-		  SpinLock				_gpuOutDepsGuard;
-		GpuDependencies_t		_gpuOutDeps;
+		  SpinLock					_gpuOutDepsGuard;
+		GpuDependencies_t			_gpuOutDeps;
 		
 		// tasks which wait for batch to be submitted to the GPU
 		alignas(AE_CACHE_LINE)
-		  SpinLock				_onSubmitDepsGuard;
-		OutDependencies_t		_onSubmitDeps;
+		  SpinLock					_onSubmitDepsGuard;
+		OutDependencies_t			_onSubmitDeps;
 		
 		// tasks which wait for batch to complete on the GPU side
 		alignas(AE_CACHE_LINE)
-		  SpinLock				_onCompleteDepsGuard;
-		OutDependencies_t		_onCompleteDeps;
+		  SpinLock					_onCompleteDepsGuard;
+		OutDependencies_t			_onCompleteDeps;
 
-		PerTaskBarriers_t		_perTaskBarriers;
+		PerTaskBarriers_t			_perTaskBarriers	{};
 		
 		DBG_GRAPHICS_ONLY(
 			String					_dbgName;
@@ -352,8 +403,8 @@ namespace AE::Graphics
 	// helper functions
 	private:
 		// CPU to CPU dependency
-		ND_ bool  _AddOnCompleteDependency (AsyncTask task, uint index)			__NE___;
-		ND_ bool  _AddOnSubmitDependency (AsyncTask task, uint index)			__NE___;
+		ND_ bool  _AddOnCompleteDependency (AsyncTask task, INOUT uint &index)	__NE___;
+		ND_ bool  _AddOnSubmitDependency (AsyncTask task, INOUT uint &index)	__NE___;
 
 			void  _ReleaseObject ()												__NE_OV;
 
@@ -379,6 +430,10 @@ namespace AE::Graphics
 	  #elif defined(AE_ENABLE_METAL)
 
 			void  _Submit (MQueuePtr) __NE___;
+			
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+
+			void  _Submit (RQueuePtr) __NE___;
 
 	  #else
 	  #	error not implemented

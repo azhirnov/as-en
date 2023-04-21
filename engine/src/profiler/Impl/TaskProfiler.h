@@ -16,7 +16,9 @@ namespace AE::Profiler
 	{
 	// types
 	private:
+		using ThreadPtr		= RC<Threading::IThread>;
 		using Allocator_t	= UntypedAllocator;
+		enum class ThreadID : usize {};
 
 		struct BaseCmd
 		{
@@ -32,7 +34,7 @@ namespace AE::Profiler
 		{
 			const void*		task;
 			double			time;		// nanoseconds
-			usize			threadId;
+			ThreadID		threadId;
 			uint			frameIdx;
 			//char			name []
 		};
@@ -41,7 +43,7 @@ namespace AE::Profiler
 		{
 			const void*		task;
 			double			time;		// nanoseconds
-			usize			threadId;
+			ThreadID		threadId;
 			uint			frameIdx;
 			//char			name []
 		};
@@ -102,9 +104,6 @@ namespace AE::Profiler
 				void			_Complete (const void* ptr, uint pos);
 		};
 
-
-		using ThreadNames_t	= HashMap< usize, String >;
-
 		static constexpr uint	_FirstFrameIdx	= 2;
 		static constexpr uint	_LastFrameIdx	= _FirstFrameIdx + 2;
 
@@ -119,11 +118,19 @@ namespace AE::Profiler
 		{
 			StringView		name;
 			double			begin;
-			usize			threadId;
+			ThreadID		threadId;
 			uint			frameIdx;
 		};
 
-		using TaskMap_t	= FlatHashMap< const void*, TaskInfo >;
+		using TaskMap_t		= FlatHashMap< const void*, TaskInfo >;
+		using Caption_t		= FixedString<64>;
+
+		struct ThreadInfo
+		{
+			Caption_t		caption;
+			ThreadPtr		thread;
+		};
+		using ThreadInfos_t	= HashMap< ThreadID, ThreadInfo >;	// keep ref to 'caption'
 
 
 	// variables
@@ -132,8 +139,8 @@ namespace AE::Profiler
 
 		LfTaskCommands	_taskCmds;
 		
-		SharedMutex		_threadNamesGuard;
-		ThreadNames_t	_threadNames;
+		SharedMutex		_threadInfosGuard;
+		ThreadInfos_t	_threadInfos;
 
 		TaskMap_t		_tmpTaskMap;
 
@@ -149,17 +156,20 @@ namespace AE::Profiler
 		
 		void  DrawImGUI ();
 		void  Draw (Canvas &) {}
-		void  Update ();
+		void  Update (secondsf dt);
 
 
 	  // ITaskProfiler //
 		void  Begin (const Threading::IAsyncTask &)				__NE_OV;
 		void  End (const Threading::IAsyncTask &)				__NE_OV;
 		void  Enqueue (const Threading::IAsyncTask &)			__NE_OV;
-		void  AddThread (const Threading::IThread &)			__NE_OV;
+		void  AddThread (ThreadPtr)								__NE_OV;
 		
 		void  BeginNonTaskWork (const void *id, StringView name)__NE_OV;
 		void  EndNonTaskWork (const void *id, StringView name)	__NE_OV;
+
+	private:
+		void  _UpdateThreadFreq ();
 	};
 
 

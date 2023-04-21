@@ -197,8 +197,7 @@ namespace AE::RG::_hidden_
 				present_tasks.push_back( task );
 		}
 		
-		AsyncTask	end_frame	= _rts.EndFrame( TupleConcat( deps, Tuple{ArrayView<AsyncTask>{ present_tasks }} ));	// throw	// TODO: optimize
-	//	AsyncTask	end_frame	= _rts.EndFrame( deps );	// throw
+		AsyncTask	end_frame	= _rts.EndFrame( deps );	// throw
 		auto&		f			= _CurrentFrame();
 		
 		for (usize i = 0; i < f.queues.size(); ++i)
@@ -207,7 +206,7 @@ namespace AE::RG::_hidden_
 				_rts.SkipCmdBatches( EQueueType(i), UMax );
 		}
 		
-		// start next frame only after present	// TODO: optimize?
+		// start next frame only after present
 		_rts.AddNextFrameDeps( present_tasks );
 
 		_beginFrame = null;

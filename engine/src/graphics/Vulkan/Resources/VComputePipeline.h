@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Vulkan/Resources/VPipelinePack.h"
 
 namespace AE::Graphics
@@ -21,7 +20,7 @@ namespace AE::Graphics
 		{
 			PipelineCompiler::SerializableComputePipeline const&	templCI;
 			ComputePipelineDesc const&								specCI;
-			VPipelineLayoutID										layoutId;
+			PipelineLayoutID										layoutId;
 			VPipelinePack::ShaderModuleRef							shader;
 			PipelineCacheID											cacheId;
 		};
@@ -35,7 +34,7 @@ namespace AE::Graphics
 		ushort3						_localSize;
 		EPipelineOpt				_options			= Default;
 
-		Strong<VPipelineLayoutID>	_layoutId;
+		Strong<PipelineLayoutID>	_layoutId;
 		
 		ShaderTracePtr				_dbgTrace;
 
@@ -56,7 +55,7 @@ namespace AE::Graphics
 		ND_ VkPipeline				Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ VkPipelineLayout		Layout ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
 		ND_ VkPipelineBindPoint		BindPoint ()					C_NE___	{ return VK_PIPELINE_BIND_POINT_COMPUTE; }
-		ND_ VPipelineLayoutID		LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ PipelineLayoutID		LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ uint3       			LocalSize ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_localSize}; }
 		ND_ EPipelineDynamicState	DynamicState ()					C_NE___	{ return Default; }
 		ND_ bool					AllowDispatchBase ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return AllBits( _options, EPipelineOpt::CS_DispatchBase ); }

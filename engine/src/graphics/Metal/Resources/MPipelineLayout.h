@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Metal/Resources/MDescriptorSetLayout.h"
 
 namespace AE::Graphics

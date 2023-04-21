@@ -21,6 +21,30 @@ namespace AE::Graphics
 
 
 	//
+	// Surface Format
+	//
+	enum class ESurfaceFormat : ubyte
+	{
+		BGRA8_sRGB_nonlinear,			// BGRA8_UNorm,		sRGB_nonlinear
+		RGBA8_sRGB_nonlinear,			// RGBA8_UNorm,		sRGB_nonlinear
+		BGRA8_BT709_nonlinear,			// BGRA8_UNorm,		BT709_nonlinear
+
+		RGBA16F_Extended_sRGB_linear,	// RGBA16F,			Extended_sRGB_linear
+		RGBA16F_sRGB_nonlinear,			// RGBA16F,			sRGB_nonlinear
+		RGBA16F_BT709_nonlinear,		// RGBA16F,			BT709_nonlinear
+		RGBA16F_HDR10_ST2084,			// RGBA16F,			HDR10_ST2084
+		RGBA16F_BT2020_linear,			// RGBA16F,			BT2020_linear
+
+		RGB10A2_sRGB_nonlinear,			// RGB10_A2_UNorm,	sRGB_nonlinear
+		RGB10A2_HDR10_ST2084,			// RGB10_A2_UNorm,	HDR10_ST2084
+
+		_Count,
+		Unknown	= 0xFF,
+	};
+
+
+
+	//
 	// Subgroup Types
 	//
 	enum class ESubgroupTypes : ubyte
@@ -46,47 +70,61 @@ namespace AE::Graphics
 	//
 	enum class ESubgroupOperation : uint
 	{
+		//
+		// Inclusive suffix - function includes invocations from 0 to `InvocationID.
+		// Exclusive suffix - function includes invocations from 0 to `InvocationID` but current invocation is not included.
+
 		//								|						GLSL							|						MSL						|
 		//								|-------------------------------------------------------|-----------------------------------------------|
 		// ---- Basic ----				|						GL_KHR_shader_subgroup_basic	|												|
-		Size,						//	|	uint gl_SubgroupSize								|	uint [[threads_per_simdgroup]]				|
-		InvocationID,				//	|	uint gl_SubgroupInvocationID						|	uint [[thread_index_in_simdgroup]]			|
-		Elect,						//	|	bool subgroupElect()								|	bool simd_is_first()						|
-		Barrier,					//	|														|	void simdgroup_barrier(mem_flags)			|
-		_Basic_Begin				= Size,
+		IndexAndSize,				//	|	uint gl_SubgroupSize								|	uint [[threads_per_simdgroup]]				| - size of the subgroup
+									//	|	uint gl_SubgroupInvocationID						|	uint [[thread_index_in_simdgroup]]			| - invocation index in the subgroup
+									//	|														|	uint [[thread_index_in_quadgroup]]			| - invocation index in the guadgroup
+									//	|	uint gl_SubgroupID									|	uint [[simdgroup_index_in_threadgroup]]		| - subgroup index in workgroup
+									//	|														|	uint [[quadgroup_index_in_threadgroup]]		| - quadgroup index in workgroup
+									//	|	uint gl_NumSubgroups								|	uint [[simdgroups_per_threadgroup]]			| - num subgroups per workgroup
+									//	|														|	uint [[quadgroups_per_threadgroup]]			| - num quadgroups per workgroup
+									//	|-------------------------------------------------------|-----------------------------------------------|
+		Elect,						//	|	bool subgroupElect()								|	bool simd_is_first()						| - exactly one invocation will return true
+		Barrier,					//	|	void subgroupBarrier()								|	void simdgroup_barrier(mem_none)			| - execution barrier
+									//	|	void subgroupMemoryBarrier()						|	void simdgroup_barrier(all)					| - wait for the completion of accesses to all memory types
+									//	|	void subgroupMemoryBarrierBuffer()					|	void simdgroup_barrier(mem_device)			| - wait for the completion of accesses to buffer memory
+									//	|	void subgroupMemoryBarrierShared()					|	void simdgroup_barrier(???)					| - wait for the completion of accesses to shared memory
+									//	|	void subgroupMemoryBarrierImage()					|	void simdgroup_barrier(mem_texture)			| - wait for the completion of accesses to image memory
+		_Basic_Begin				= IndexAndSize,
 		_Basic_End					= Barrier,
 		
 		//								|-------------------------------------------------------|-----------------------------------------------|
-		// ---- Vote ----				|						GL_KHR_shader_subgroup_vote		|												|
-		Any,						//	|	bool subgroupAny(bool value)						|	bool simd_any(bool value)					|
-		All,						//	|	bool subgroupAll(bool value)						|	bool simd_all(bool value)					|
+		// ---- Vote ----				|						GL_KHR_shader_subgroup_vote		|												| - returns true if any active invocation has 'value == true'
+		Any,						//	|	bool subgroupAny(bool value)						|	bool simd_any(bool value)					| - returns true if all active invocation have 'value == true'
+		All,						//	|	bool subgroupAll(bool value)						|	bool simd_all(bool value)					| - returns true if all active invocation have a 'value' that is equal
 		AllEqual,					//	|	bool subgroupAllEqual(T value)						|	-											|
 		_Vote_Begin					= Any,
 		_Vote_End					= AllEqual,
 
 		//								|-------------------------------------------------------|-----------------------------------------------|
 		// ---- Arithmetic ----			|					GL_KHR_shader_subgroup_arithmetic	|												|
-		Add,						//	|	T subgroupAdd(T value)								|	T simd_sum(T value)							|
-		Mul,						//	|	T subgroupMul(T value)								|	T simd_product(T value)						|
-		Min,						//	|	T subgroupMin(T value)								|	T simd_min(T value)							|
-		Max,						//	|	T subgroupMax(T value)								|	T simd_max(T value)							|
-		And,						//	|	T subgroupAnd(T value)								|	T simd_and(T value)							|
-		Or,							//	|	T subgroupOr(T value)								|	T simd_or(T value)							|
-		Xor,						//	|	T subgroupXor(T value)								|	T simd_xor(T value)							|
-		InclusiveMul,				//	|	T subgroupInclusiveMul(T value)						|	T simd_prefix_inclusive_product(T value)	|
-		InclusiveAdd,				//	|	T subgroupInclusiveAdd(T value)						|	T simd_prefix_inclusive_sum(T value)		|
-		InclusiveMin,				//	|	T subgroupInclusiveMin(T value)						|	-											|
-		InclusiveMax,				//	|	T subgroupInclusiveMax(T value)						|	-											|
-		InclusiveAnd,				//	|	T subgroupInclusiveAnd(T value)						|	-											|
-		InclusiveOr,				//	|	T subgroupInclusiveOr(T value)						|	-											|
-		InclusiveXor,				//	|	T subgroupInclusiveXor(T value)						|	-											|
-		ExclusiveAdd,				//	|	T subgroupExclusiveAdd(T value)						|	T simd_prefix_exclusive_sum(T value)		|
-		ExclusiveMul,				//	|	T subgroupExclusiveMul(T value)						|	T simd_prefix_exclusive_product (T value)	|
-		ExclusiveMin,				//	|	T subgroupExclusiveMin(T value)						|	-											|
-		ExclusiveMax,				//	|	T subgroupExclusiveMax(T value)						|	-											|
-		ExclusiveAnd,				//	|	T subgroupExclusiveAnd(T value)						|	-											|
-		ExclusiveOr,				//	|	T subgroupExclusiveOr(T value)						|	-											|
-		ExclusiveXor,				//	|	T subgroupExclusiveXor(T value)						|	-											|
+		Add,						//	|	T subgroupAdd(T value)								|	T simd_sum(T value)							| - returns the summation of all active invocation provided 'value's
+		Mul,						//	|	T subgroupMul(T value)								|	T simd_product(T value)						| - returns the multiplication of all active invocation-provided 'value's.
+		Min,						//	|	T subgroupMin(T value)								|	T simd_min(T value)							| - returns the minimum <value> of all active invocation-provided 'value's.
+		Max,						//	|	T subgroupMax(T value)								|	T simd_max(T value)							| - returns the maximum <value> of all active invocation-provided 'value's.
+		And,						//	|	T subgroupAnd(T value)								|	T simd_and(T value)							| - returns the bitwise AND of all active invocation provided 'value's.
+		Or,							//	|	T subgroupOr(T value)								|	T simd_or(T value)							| - returns the bitwise OR of all active invocation provided 'value's.
+		Xor,						//	|	T subgroupXor(T value)								|	T simd_xor(T value)							| - returns the bitwise XOR of all active invocation provided 'value's.
+		InclusiveMul,				//	|	T subgroupInclusiveMul(T value)						|	T simd_prefix_inclusive_product(T value)	| - returns an inclusive scan operation that is the multiplication of all active invocation-provided 'value's.
+		InclusiveAdd,				//	|	T subgroupInclusiveAdd(T value)						|	T simd_prefix_inclusive_sum(T value)		| - returns an inclusive scan operation that is the summation of all active invocation-provided 'value's.
+		InclusiveMin,				//	|	T subgroupInclusiveMin(T value)						|	-											| - returns an inclusive scan operation that is the minimum <value> of all active invocation-provided 'value's.
+		InclusiveMax,				//	|	T subgroupInclusiveMax(T value)						|	-											| - returns an inclusive scan operation that is the maximum <value> of all active invocation-provided 'value's.
+		InclusiveAnd,				//	|	T subgroupInclusiveAnd(T value)						|	-											| - returns an inclusive scan operation that is the bitwise AND of all active invocation-provided 'value's.
+		InclusiveOr,				//	|	T subgroupInclusiveOr(T value)						|	-											| - returns an inclusive scan operation that is the bitwise OR of all active invocation-provided 'value's.
+		InclusiveXor,				//	|	T subgroupInclusiveXor(T value)						|	-											| - returns an inclusive scan operation that is the bitwise XOR of all active invocation-provided 'value's.
+		ExclusiveAdd,				//	|	T subgroupExclusiveAdd(T value)						|	T simd_prefix_exclusive_sum(T value)		| - returns an exclusive scan operation that is the summation of all active invocation-provided 'value's.
+		ExclusiveMul,				//	|	T subgroupExclusiveMul(T value)						|	T simd_prefix_exclusive_product (T value)	| - returns an exclusive scan operation that is the multiplication of all active invocation-provided 'value's.
+		ExclusiveMin,				//	|	T subgroupExclusiveMin(T value)						|	-											| - returns an exclusive scan operation that is the minimum <value> of all active invocation-provided 'value's.
+		ExclusiveMax,				//	|	T subgroupExclusiveMax(T value)						|	-											| - returns an exclusive scan operation that is the maximum <value> of all active invocation-provided 'value's.
+		ExclusiveAnd,				//	|	T subgroupExclusiveAnd(T value)						|	-											| - returns an exclusive scan operation that is the bitwise AND of all active invocation-provided 'value's.
+		ExclusiveOr,				//	|	T subgroupExclusiveOr(T value)						|	-											| - returns an exclusive scan operation that is the bitwise OR of all active invocation-provided 'value's.
+		ExclusiveXor,				//	|	T subgroupExclusiveXor(T value)						|	-											| - returns an exclusive scan operation that is the bitwise XOR of all active invocation-provided 'value's.
 		_Arithmetic_Begin			= Add,
 		_Arithmetic_End				= ExclusiveXor,
 
@@ -152,7 +190,7 @@ namespace AE::Graphics
 		
 		_Count
 	};
-	STATIC_ASSERT( uint(ESubgroupOperation::_Count) == 53 );
+	STATIC_ASSERT( uint(ESubgroupOperation::_Count) == 52 );
 
 
 	//
@@ -182,7 +220,7 @@ namespace AE::Graphics
 	//
 	enum class EGraphicsDeviceID : uint
 	{
-	#define AE_GRAPHICS_DEVICE_LIST( _visit_ ) \
+	#define AE_GRAPHICS_DEVICE_LIST( _visit_ )\
 		/*---- Adreno ----*/\
 		_visit_( Adreno_500 )			\
 		_visit_( Adreno_600 )			/* 605, 608, 610, 612, 615, 616, 618, 619L, 620		with dual channel LPDDR4							*/\
@@ -190,7 +228,7 @@ namespace AE::Graphics
 		_visit_( Adreno_600_OC4 )		/* 680, 685, 690									with octa channel LPDDR4X							*/\
 		_visit_( Adreno_600_QC5 )		/* 643, 650, 660									with quad channel LPDDR5							*/\
 		_visit_( Adreno_700_SC3 )		/* 702												with single channel LPDDR3							*/\
-		_visit_( Adreno_700_DC4_SC5 )	/* 730												with dual channel LPDDR4 or single channel LPDDR5	*/\
+		_visit_( Adreno_700_DC4_SC5 )	/* 730, 740											with dual channel LPDDR4 or single channel LPDDR5	*/\
 		\
 		/*---- AMD ----*/\
 		_visit_( AMD_GCN1 )				/* 520, 610									*/\
@@ -213,6 +251,8 @@ namespace AE::Graphics
 		_visit_( Apple_A15_M2 )			\
 		\
 		/*---- Mali ----*/\
+		_visit_( Mali_Midgard_Gen2 )	/* T622, T624, T628, T678		*/\
+		_visit_( Mali_Midgard_Gen3 )	/* T720, T760					*/\
 		_visit_( Mali_Midgard_Gen4 )	/* T820 ... T880	- vector	*/\
 		_visit_( Mali_Bifrost_Gen1 )	/* G31, G51, G71	- scalar	*/\
 		_visit_( Mali_Bifrost_Gen2 )	/* G52, G72						*/\
@@ -220,6 +260,7 @@ namespace AE::Graphics
 		_visit_( Mali_Valhall_Gen1 )	/* G57, G77						*/\
 		_visit_( Mali_Valhall_Gen2 )	/* G68, G78						*/\
 		_visit_( Mali_Valhall_Gen3 )	/* G310, G510, G610, G710		*/\
+		_visit_( Mali_Valhall_Gen4 )	/* G615, G715					*/\
 		\
 		/*---- NVidia ----*/\
 		_visit_( NV_Maxwell )			/* GTX 9xx, Titan X, Quadro Mxxxx						*/\
@@ -267,8 +308,8 @@ namespace AE::Graphics
 		_Apple_Begin	= Apple_A8,
 		_Apple_End		= Apple_A15_M2,
 
-		_Mali_Begin		= Mali_Midgard_Gen4,
-		_Mali_End		= Mali_Valhall_Gen3,
+		_Mali_Begin		= Mali_Midgard_Gen2,
+		_Mali_End		= Mali_Valhall_Gen4,
 
 		_NV_Begin		= NV_Maxwell,
 		_NV_End			= NV_Ada,

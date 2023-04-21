@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	// include:
 	//	Apple M1 driver 0.2.1914 on Osx 12.0

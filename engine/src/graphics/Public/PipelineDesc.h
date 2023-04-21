@@ -62,7 +62,7 @@ namespace AE::Graphics
 		RC<RStream>			stream;
 		PipelinePackID		parentPackId;
 		EPipelinePackOpt	options			= EPipelinePackOpt::All;
-		EPixelFormat		swapchainFmt	= Default;
+		EPixelFormat		surfaceFormat	= Default;
 		StringView			dbgName;
 	};
 
@@ -97,8 +97,8 @@ namespace AE::Graphics
 		{
 			EVertexType		type			= Default;
 			Bytes16u		offset;
-			ubyte			index			= UMax;
-			ubyte			bufferBinding	= UMax;
+			ubyte			index			= UMax;		// attrib index in shader
+			ubyte			bufferBinding	= UMax;		// index in 'vertexBuffers'
 		};
 
 		struct VertexBuffer
@@ -106,11 +106,12 @@ namespace AE::Graphics
 			VertexBufferName::Optimized_t	name;
 			ShaderStructName::Optimized_t	typeName;
 			EVertexInputRate				rate		= Default;
-			ubyte							index		= UMax;
+			ubyte							index		= UMax;			// for 'ctx.BindVertexBuffer()'
 			Bytes16u						stride;
+			uint							divisor		= 0;
 		};
 		STATIC_ASSERT( sizeof(VertexInput) == 6 );
-		STATIC_ASSERT( sizeof(VertexBuffer) == 12 );
+		STATIC_ASSERT( sizeof(VertexBuffer) == 16 );
 
 	// variables
 		Ptr<const RenderState>				renderStatePtr;

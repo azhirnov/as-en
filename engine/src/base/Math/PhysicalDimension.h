@@ -65,15 +65,15 @@ namespace AE::Math
 				(seconds + Rhs::seconds),  (kilograms + Rhs::kilograms),  (meters + Rhs::meters),      (amperes + Rhs::amperes),
 				(kelvins + Rhs::kelvins),  (moles + Rhs::moles),          (candelas + Rhs::candelas),  (currency + Rhs::currency),	(bits + Rhs::bits)
 			};
-			using type = PhysicalDimension<	values[0].numerator, values[0].denominator,
-											values[1].numerator, values[1].denominator,
-											values[2].numerator, values[2].denominator,
-											values[3].numerator, values[3].denominator,
-											values[4].numerator, values[4].denominator,
-											values[5].numerator, values[5].denominator,
-											values[6].numerator, values[6].denominator,
-											values[7].numerator, values[7].denominator,
-											values[8].numerator, values[8].denominator >;
+			using type = PhysicalDimension<	values[0].num, values[0].den,
+											values[1].num, values[1].den,
+											values[2].num, values[2].den,
+											values[3].num, values[3].den,
+											values[4].num, values[4].den,
+											values[5].num, values[5].den,
+											values[6].num, values[6].den,
+											values[7].num, values[7].den,
+											values[8].num, values[8].den >;
 		};
 
 		
@@ -83,29 +83,29 @@ namespace AE::Math
 				(seconds - Rhs::seconds),  (kilograms - Rhs::kilograms),  (meters - Rhs::meters),      (amperes - Rhs::amperes),
 				(kelvins - Rhs::kelvins),  (moles - Rhs::moles),          (candelas - Rhs::candelas),  (currency - Rhs::currency),	(bits - Rhs::bits)
 			};
-			using type = PhysicalDimension<	values[0].numerator, values[0].denominator,
-											values[1].numerator, values[1].denominator,
-											values[2].numerator, values[2].denominator,
-											values[3].numerator, values[3].denominator,
-											values[4].numerator, values[4].denominator,
-											values[5].numerator, values[5].denominator,
-											values[6].numerator, values[6].denominator,
-											values[7].numerator, values[7].denominator,
-											values[8].numerator, values[8].denominator >;
+			using type = PhysicalDimension<	values[0].num, values[0].den,
+											values[1].num, values[1].den,
+											values[2].num, values[2].den,
+											values[3].num, values[3].den,
+											values[4].num, values[4].den,
+											values[5].num, values[5].den,
+											values[6].num, values[6].den,
+											values[7].num, values[7].den,
+											values[8].num, values[8].den >;
 		};
 		
 
 		template <uint value>
 		struct _Pow {
-			using type = PhysicalDimension<	seconds.numerator	* value,	seconds.denominator,
-											kilograms.numerator	* value,	kilograms.denominator,
-											meters.numerator	* value,	meters.denominator,
-											amperes.numerator	* value,	amperes.denominator,
-											kelvins.numerator	* value,	kelvins.denominator,
-											moles.numerator		* value,	moles.denominator,
-											candelas.numerator	* value,	candelas.denominator,
-											currency.numerator	* value,	currency.denominator,
-											bits.numerator		* value,	bits.denominator >;
+			using type = PhysicalDimension<	seconds  .num * value,	seconds  .den,
+											kilograms.num * value,	kilograms.den,
+											meters   .num * value,	meters   .den,
+											amperes  .num * value,	amperes  .den,
+											kelvins  .num * value,	kelvins  .den,
+											moles    .num * value,	moles    .den,
+											candelas .num * value,	candelas .den,
+											currency .num * value,	currency .den,
+											bits     .num * value,	bits     .den >;
 		};
 		
 		

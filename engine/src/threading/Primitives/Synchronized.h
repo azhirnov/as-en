@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "base/CompileTime/TypeList.h"
 #include "threading/Common.h"
 
 namespace AE::Threading
@@ -93,10 +94,10 @@ namespace _hidden_
 		//STATIC_ASSERT( Types_t::AllNothrowMoveCtor );
 
 	private:
-		using TypesNoRC_t	= Types_t::template Apply< RemoveRC >;
-		using TypesNoPtr_t	= Types_t::template Apply< RemovePtr >;
-		using TypesNoPtr2_t	= Types_t::template Apply< RemovePointer >;
-		using Tuple_t		= Types_t::AsTuple::type;
+		using TypesNoRC_t	= typename Types_t::template Apply< RemoveRC >;
+		using TypesNoPtr_t	= typename Types_t::template Apply< RemovePtr >;
+		using TypesNoPtr2_t	= typename Types_t::template Apply< RemovePointer >;
+		using Tuple_t		= typename Types_t::AsTuple::type;
 
 		template <typename T>
 		ND_ static constexpr usize  _IndexOf ()
@@ -155,7 +156,7 @@ namespace _hidden_
 			ND_ RawT const&  Get ()							C_NE___
 			{
 				ASSERT( _locked );
-				return _ref._values.Get<Index>();
+				return _ref._values.template Get<Index>();
 			}
 			
 			template <usize		Index,
@@ -164,7 +165,7 @@ namespace _hidden_
 			ND_ RawT const&  Get ()							C_NE___
 			{
 				ASSERT( _locked );
-				return _ref._values.Get<Index>();
+				return _ref._values.template Get<Index>();
 			}
 		};
 
@@ -199,7 +200,7 @@ namespace _hidden_
 			ND_ RawT&	Get ()								__NE___
 			{
 				ASSERT( _locked );
-				return _ref._values.Get<Index>();
+				return _ref._values.template Get<Index>();
 			}
 			
 			template <usize		Index,
@@ -208,7 +209,7 @@ namespace _hidden_
 			ND_ RawT&	Get ()								__NE___
 			{
 				ASSERT( _locked );
-				return _ref._values.Get<Index>();
+				return _ref._values.template Get<Index>();
 			}
 		};
 
@@ -264,7 +265,7 @@ namespace _hidden_
 		ND_ RawT  Read ()					const noexcept(IsNothrowCopyCtor<RawT>)
 		{
 			SHAREDLOCK( _sync );
-			return _values.Get<Index>();
+			return _values.template Get<Index>();
 		}
 		
 		template <usize		Index,
@@ -273,7 +274,7 @@ namespace _hidden_
 		ND_ RawT  Read ()					const noexcept(IsNothrowCopyCtor<RawT>)
 		{
 			SHAREDLOCK( _sync );
-			return _values.Get<Index>();
+			return _values.template Get<Index>();
 		}
 
 		ND_ Tuple_t  ReadAll ()				const noexcept(Types_t::AllNothrowCopyCtor)
@@ -288,7 +289,7 @@ namespace _hidden_
 		{
 			STATIC_ASSERT( Types_t::template HasSingle<T> );
 			EXLOCK( _sync );
-			_values.Get<T>() = value;
+			_values.template Get<T>() = value;
 		}
 		
 		template <typename T>
@@ -296,7 +297,7 @@ namespace _hidden_
 		{
 			STATIC_ASSERT( Types_t::template HasSingle<T> );
 			EXLOCK( _sync );
-			_values.Get<T>() = RVRef(value);
+			_values.template Get<T>() = RVRef(value);
 		}
 
 		template <typename ...Args>
@@ -314,7 +315,7 @@ namespace _hidden_
 		void  Reset ()						noexcept(IsNothrowCopyCtor<RawT>)
 		{
 			EXLOCK( _sync );
-			_values.Get<Index>() = RawT{};
+			_values.template Get<Index>() = RawT{};
 		}
 		
 		template <usize		Index,
@@ -323,7 +324,7 @@ namespace _hidden_
 		void  Reset ()						noexcept(IsNothrowCopyCtor<RawT>)
 		{
 			EXLOCK( _sync );
-			_values.Get<Index>() = RawT{};
+			_values.template Get<Index>() = RawT{};
 		}
 
 
@@ -337,10 +338,10 @@ namespace _hidden_
 		template <typename	T,
 				  usize		Index			= _IndexOf<T>()
 				 >
-		ND_ auto  ConstPtr ()				C_NE___	{ return Threading::_hidden_::Synchronized_ConstPtr{ _sync, _values.Get<Index>() }; }
+		ND_ auto  ConstPtr ()				C_NE___	{ return Threading::_hidden_::Synchronized_ConstPtr{ _sync, _values.template Get<Index>() }; }
 		
 		template <usize Index>
-		ND_ auto  ConstPtr ()				C_NE___	{ return Threading::_hidden_::Synchronized_ConstPtr{ _sync, _values.Get<Index>() }; }
+		ND_ auto  ConstPtr ()				C_NE___	{ return Threading::_hidden_::Synchronized_ConstPtr{ _sync, _values.template Get<Index>() }; }
 		
 		template <typename	T>
 		ND_ auto  Ptr ()					C_NE___	{ return ConstPtr<T>(); }
@@ -352,10 +353,10 @@ namespace _hidden_
 		template <typename	T,
 				  usize		Index			= _IndexOf<T>()
 				 >
-		ND_ auto  MutablePtr ()				__NE___	{ return Threading::_hidden_::Synchronized_MutablePtr{ _sync, _values.Get<Index>() }; }
+		ND_ auto  MutablePtr ()				__NE___	{ return Threading::_hidden_::Synchronized_MutablePtr{ _sync, _values.template Get<Index>() }; }
 		
 		template <usize Index>
-		ND_ auto  MutablePtr ()				__NE___	{ return Threading::_hidden_::Synchronized_MutablePtr{ _sync, _values.Get<Index>() }; }
+		ND_ auto  MutablePtr ()				__NE___	{ return Threading::_hidden_::Synchronized_MutablePtr{ _sync, _values.template Get<Index>() }; }
 		
 		template <typename	T>
 		ND_ auto  Ptr ()					__NE___	{ return MutablePtr<T>(); }

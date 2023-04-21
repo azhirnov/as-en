@@ -55,7 +55,7 @@ namespace AE::Threading
 		ND_ bool  Wait (const std::chrono::duration<Rep, Period>& timeout) __NE___
 		{
 			constexpr uint	MaxTimeout	= UMax;
-			const auto		dt			= std::chrono::duration_cast<milliseconds>( timeout ).count();
+			const auto		dt			= Cast<milliseconds>( timeout ).count();
 
 			return _Wait( dt > MaxTimeout ? MaxTimeout : uint(dt) );
 		}

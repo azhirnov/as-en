@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Vulkan/VCommon.h"
 
@@ -34,8 +33,10 @@ namespace AE::Graphics
 		~VLargeMemAllocator ()																	__NE_OV;
 		
 	  // IGfxMemAllocator //
-		bool  AllocForImage (ImageVk_t image, const ImageDesc &desc, OUT Storage_t &data)		__NE_OV;
-		bool  AllocForBuffer (BufferVk_t buffer, const BufferDesc &desc, OUT Storage_t &data)	__NE_OV;
+		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)			__NE_OV;
+		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)		__NE_OV;
+		bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &data)__NE_OV;
+		bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &data)	__NE_OV;
 
 		bool  Dealloc (INOUT Storage_t &data)													__NE_OV;
 			

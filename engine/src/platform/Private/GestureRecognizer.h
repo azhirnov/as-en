@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "platform/Public/InputActions.h"
 #include "platform/Public/IApplication.h"
+#include "platform/Private/InputActionsBase.h"
 
 namespace AE::App
 {
@@ -16,65 +16,91 @@ namespace AE::App
 	{
 	// types
 	private:
-		using Duration_t = IApplication::Duration_t;
+		using Duration_t	= IApplication::Duration_t;
+		using InputKey		= InputActionsBase::InputKey;
+		using GestureBits_t	= EnumBitSet< EGestureType >;
 
 		struct Touch
 		{
-			float2		delta;		// mm
-			float2		pos;		// mm
+			float2		delta;		// pix
+			float2		pos;		// pix
 
 			Duration_t	startTime	{};
-			float2		startPos;	// mm
+			float2		startPos;	// pix
 			
 			Touch () {}
 		};
 
 		static constexpr uint	MaxTouches	= 8;
 
+		enum class TouchID : ushort { Unknown = 0xFFFF };
+
+		using TouchIDs_t	= StaticArray< TouchID,			MaxTouches >;
+		using TouchData_t	= StaticArray< Touch,			MaxTouches >;
+		using TouchStates_t	= StaticArray< EGestureState,	MaxTouches >;
+		
+		static constexpr auto	_LongPressDuration		= InputActionsBase::_LongPressDuration;
+		static constexpr auto	_DoubleTapMaxDuration	= InputActionsBase::_DoubleTapMaxDuration;
+		static constexpr auto	_SingleTapMaxDuration	= InputActionsBase::_ClickMaxDuration;
+
 
 	// variables
 	private:
-		uint										_activeTouches	= 0;
-		StaticArray< ushort, MaxTouches >			_touchIDs;			// map touch id to touch data
-		StaticArray< Touch, MaxTouches >			_touchData;
-		StaticArray< EGestureState, MaxTouches >	_touchStates;
+		uint				_activeTouches	= 0;
+		TouchIDs_t			_touchIDs;			// map touch id to touch data
+		TouchData_t			_touchData;
+		TouchStates_t		_touchStates;
 
 		struct {
-			bool			isActive		= false;
-			ubyte			touchIdx		= UMax;
-			Duration_t		lastTapTime		{};
-		}				_tapRecognizer;
+			bool				isActive		= false;
+			bool				doubleTap		= false;
+			ubyte				touchIdx		= UMax;
+			Duration_t			lastTapTime		{};
+		}					_tapRecognizer;
 
 		struct {
-			float2			prevPos;
-			ubyte			touchIdx		= UMax;
-			bool			isActive		= false;
-		}				_dragRecognizer;
+			EGestureState		state			= Default;
+			ubyte				touchIdx		= UMax;
 
-	public:
-		struct {
-			EGestureType	type			= Default;
-			float2			pos;
-		}				tapGesture;
+			ND_ bool			IsActive ()		{ return state < EGestureState::End; }
+		}					_dragRecognizer;
 
 		struct {
-			EGestureState	state			= Default;
-			float2			pos;
-		}				dragGesture;
+			bool				isActive		= false;
+			TouchID				touchID0		= Default;
+			TouchID				touchID1		= Default;
+			float				scale			= 0.f;
+			float				rotate			= 0.f;
+		}					_twoTouchRecognizer;
+
+		const ushort		_keyTouchPosPx;
+		const ushort		_keyTouchPosMm;
+		const ushort		_keyTouchDeltaPx;
+		const ushort		_keyTouchDeltaNorm;
+		const ushort		_keyMultiTouch;
+
+		static const auto	_id					= ControllerID::Touchscreen;
 
 
 	// methods
 	public:
-		GestureRecognizer () {}
+		GestureRecognizer (ushort keyTouchPosPx, ushort keyTouchPosMm,
+						   ushort keyTouchDeltaPx, ushort keyTouchDeltaNorm,
+						   ushort keyMultiTouch)													__NE___;
 		
-		void  Update (Duration_t timestamp);
-
-		void  SetTouch (uint id, float2 posInMm, EGestureState state, Duration_t timestamp);
+		void  Update (Duration_t timestamp, InputActionsBase &ia)									__NE___;
+		void  SetTouch (uint id, const float2 posInPx, EGestureState state, Duration_t timestamp)	__NE___;
 
 
 	private:
-		void  _RecognizeTaps (uint activeCount, int touchIdx, Duration_t timestamp);
-		void  _RecognizeDragging (uint activeCount, int touchIdx, Duration_t timestamp);
+		void  _RecognizeTaps (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
+		void  _RecognizeDragging (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
+		void  _Recognize2Touch (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
+		
+		template <typename T>
+		ND_ static constexpr InputKey	_Pack (T key,
+											   EGestureType gesture,
+											   EGestureState state = EGestureState::Update)	__NE___ { return InputActionsBase::_Pack( key, gesture, state ); }
 	};
 
 

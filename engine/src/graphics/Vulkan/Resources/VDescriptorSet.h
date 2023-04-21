@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/DescriptorSet.h"
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Vulkan/Resources/VDescriptorSetLayout.h"

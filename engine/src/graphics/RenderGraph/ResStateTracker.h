@@ -86,8 +86,12 @@ namespace AE::RG::_hidden_
 
 	  #if defined(AE_ENABLE_VULKAN)
 		using CmdBatchDependency_t	= VulkanCmdBatchDependency;
+
 	  #elif defined(AE_ENABLE_METAL)
 		using CmdBatchDependency_t	= MetalCmdBatchDependency;
+
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		using CmdBatchDependency_t	= RemoteCmdBatchDependency;
 	  #endif
 
 	public:
@@ -212,12 +216,12 @@ namespace AE::RG::_hidden_
 		template <typename ID>	void  RemoveResource (const Strong<ID> &id)																					__NE___	{ return RemoveResource( ResourceKey{id.Get()} ); }
 								void  RemoveResource (ResourceKey key)																						__NE___;
 		
-		template <typename ID>	bool  GetDefaultState (ID				  id, OUT EResourceState &defaultState)												C_NE___	{ return GetDefaultState( ResourceKey{id} ); }
-		template <typename ID>	bool  GetDefaultState (const Strong<ID> & id, OUT EResourceState &defaultState)												C_NE___	{ return GetDefaultState( ResourceKey{id.Get()} ); }
+		template <typename ID>	bool  GetDefaultState (ID				  id, OUT EResourceState &defaultState)												C_NE___	{ return GetDefaultState( ResourceKey{id}, OUT defaultState ); }
+		template <typename ID>	bool  GetDefaultState (const Strong<ID> & id, OUT EResourceState &defaultState)												C_NE___	{ return GetDefaultState( ResourceKey{id.Get()}, OUT defaultState ); }
 								bool  GetDefaultState (ResourceKey		 key, OUT EResourceState &defaultState)												C_NE___;
 		
-		template <typename ID>	bool  SetDefaultState (ID				  id, EResourceState defaultState)													__NE___	{ return SetDefaultState( ResourceKey{id} ); }
-		template <typename ID>	bool  SetDefaultState (const Strong<ID> & id, EResourceState defaultState)													__NE___	{ return SetDefaultState( ResourceKey{id.Get()} ); }
+		template <typename ID>	bool  SetDefaultState (ID				  id, EResourceState defaultState)													__NE___	{ return SetDefaultState( ResourceKey{id}, defaultState ); }
+		template <typename ID>	bool  SetDefaultState (const Strong<ID> & id, EResourceState defaultState)													__NE___	{ return SetDefaultState( ResourceKey{id.Get()}, defaultState ); }
 								bool  SetDefaultState (ResourceKey		 key, EResourceState defaultState)													__NE___;
 
 		ND_ bool  UpdateResource (ResourceKey key, EResourceState newState, const CommandBatch &newBatch, OUT ResGlobalState &oldState)						__NE___;
@@ -243,8 +247,11 @@ namespace AE::RG::_hidden_
 			bool					ReleaseResource (INOUT Strong<RTGeometryID>	&id)																		__NE___;
 			bool					ReleaseResource (INOUT Strong<RTSceneID>	&id)																		__NE___;
 			
-		template <typename Arg0, typename ...Args>
+			template <typename Arg0, typename ...Args>
 			bool					ReleaseResources (Arg0 &arg0, Args& ...args)																			__NE___;
+			
+			template <typename ArrayType>
+			void					ReleaseResourceArray (INOUT ArrayType &arr)																				__NE___;
 
 	protected:
 		ND_ bool  _AddResource2 (ResourceKey key, const ResGlobalState &info)																				__NE___;
@@ -272,6 +279,17 @@ namespace AE::RG::_hidden_
 			return res & ReleaseResources( FwdArg<Args&>( args )... );
 		else
 			return res;
+	}
+	
+/*
+=================================================
+	ReleaseResourceArray
+=================================================
+*/
+	template <typename ArrayType>
+	void  ResStateTracker::ReleaseResourceArray (INOUT ArrayType &arr) __NE___
+	{
+		for (auto& id : arr) { ReleaseResource( INOUT id ); }
 	}
 
 

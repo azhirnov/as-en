@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Metal/Resources/MPipelinePack.h"
 
 namespace AE::Graphics
@@ -21,7 +20,7 @@ namespace AE::Graphics
 		{
 			PipelineCompiler::SerializableComputePipeline const&	templCI;
 			ComputePipelineDesc const&								specCI;
-			MPipelineLayoutID										layoutId;
+			PipelineLayoutID										layoutId;
 			MPipelinePack::ShaderModuleRef							shader;
 			PipelineCacheID											cacheId;
 			MPipelinePack::Allocator_t *							allocator		= null;
@@ -34,7 +33,7 @@ namespace AE::Graphics
 		
 		ushort3						_localSize;
 		
-		Strong<MPipelineLayoutID>	_layoutId;
+		Strong<PipelineLayoutID>	_layoutId;
 
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
@@ -54,7 +53,7 @@ namespace AE::Graphics
 		ND_ Bytes	ImageblockMemoryLength (const uint2 &imageBlockDim) C_NE___;
 
 		ND_ MetalComputePipeline	Handle ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
-		ND_ MPipelineLayoutID		LayoutID ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ PipelineLayoutID		LayoutID ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ uint3       			LocalSize ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint3{_localSize}; }
 		ND_ EPipelineDynamicState	DynamicState ()						C_NE___	{ return Default; }
 		

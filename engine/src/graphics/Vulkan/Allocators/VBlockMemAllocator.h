@@ -8,7 +8,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Vulkan/Allocators/VGfxMemAllocatorUtils.h"
 
@@ -72,19 +71,21 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VBlockMemAllocator (Bytes blockSize, Bytes pageSize)								__NE___;
-		~VBlockMemAllocator ()																__NE_OV;
+		VBlockMemAllocator (Bytes blockSize, Bytes pageSize)									__NE___;
+		~VBlockMemAllocator ()																	__NE_OV;
 		
 	  // IGfxMemAllocator //
-		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)		__NE_OV;
-		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) __NE_OV;
+		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)			__NE_OV;
+		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)		__NE_OV;
+		bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &data)__NE_OV;
+		bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &data)	__NE_OV;
 
-		bool  Dealloc (INOUT Storage_t &data)												__NE_OV;
+		bool  Dealloc (INOUT Storage_t &data)													__NE_OV;
 			
-		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info)				C_NE_OV;
+		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info)					C_NE_OV;
 		
-		Bytes  MinAlignment ()																C_NE_OV	{ return _blockSize; }
-		Bytes  MaxAllocationSize ()															C_NE_OV	{ return _blockSize; }
+		Bytes  MinAlignment ()																	C_NE_OV	{ return _blockSize; }
+		Bytes  MaxAllocationSize ()																C_NE_OV	{ return _blockSize; }
 
 
 	private:

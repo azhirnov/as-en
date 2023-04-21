@@ -29,27 +29,29 @@ namespace AE::App
 	private:
 		DubleBufferedQueue	_dbQueue;
 
-		float2				_cursorPos;
+		float2				_cursorPosPx;
+		float2				_cursorDeltaSNorm;
+		float2				_mouseWheel;
+
+		bool				_touchActive		: 1;
+		bool				_touchBegin			: 1;
+		bool				_touchEnd			: 1;
 		
-		float2				_toSNorm;
-		float2				_pixToMm;
-		uint2				_surfaceSize;
-		
-		bool				_mouseLBPressed		= false;
+		float2				_surfaceSize;
 
 		GestureRecognizer	_gestureRecognizer;
 
 
 	// methods
 	public:
-		explicit InputActionsWinAPI (DubleBufferedQueue *q)					__NE___	: InputActionsBase{q ? *q : _dbQueue} {}
+		explicit InputActionsWinAPI (DubleBufferedQueue *q)					__NE___;
 			
 		ND_ bool  ProcessMessage (uint uMsg, usize wParam, ssize lParam,
 								  Duration_t timestamp, bool hasFocus)		__NE___;
 		ND_ bool  Register (void* wnd)										__NE___;
 			void  Unregister ()												__NE___;
 			void  SetMonitor (const uint2 &surfaceSize, const Monitor &)	__NE___;
-			void  CursorPosChanged (float2 pos)								__NE___	{ _cursorPos = pos; }
+			void  CursorPosChanged (float2 pos)								__NE___	{ _cursorPosPx = pos; }
 
 			void  Update (Duration_t timeSinceStart)						__NE___;
 
@@ -66,7 +68,7 @@ namespace AE::App
 	private:
 		void  _SetCursorPos (float2 pos)									__NE___;
 		void  _SetCursorDelta (float2 pos)									__NE___;
-		void  _SetMouseWheel (EInputType type, float delta)					__NE___;
+		void  _SetMouseWheel (uint idx, float delta)						__NE___;
 
 		ND_ static constexpr bool  _IsKey (EInputType type)					__NE___	{ return SerializableInputActionsWinAPI::_IsKey( type ); }
 		ND_ static constexpr bool  _IsCursor1D (EInputType type)			__NE___	{ return SerializableInputActionsWinAPI::_IsCursor1D( type ); }

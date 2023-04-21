@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	// include:
 	//	NVIDIA GeForce RTX 2080.json

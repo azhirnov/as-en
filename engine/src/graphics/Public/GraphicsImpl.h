@@ -1,8 +1,54 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+types:
+	
+	DirectCtx::CommandBuffer
+	DirectCtx::Transfer
+	DirectCtx::Compute
+	DirectCtx::Draw
+	DirectCtx::Graphics
+	DirectCtx::ASBuild
+	DirectCtx::RayTracing
+	DirectCtx::VideoDecode
+	DirectCtx::VideoEncode
+	
+	IndirectCtx::CommandBuffer
+	IndirectCtx::Transfer
+	IndirectCtx::Compute
+	IndirectCtx::Draw
+	IndirectCtx::Graphics
+	IndirectCtx::ASBuild
+	IndirectCtx::RayTracing
+	IndirectCtx::VideoDecode
+	IndirectCtx::VideoEncode
+
+	RenderTask
+	RenderTaskCoro
+	RenderTask_Get, RenderTask_GetRef
+	RenderTask_Execute()
+	RenderTask_AddInputDependency()
+
+	DrawTask
+	DrawTaskCoro
+	DrawTask_Get, DrawTask_GetRef
+	DrawTask_Execute()
+	
+	CommandBatch
+	CommandBatchPtr
+	CmdBatchOnSubmit
+
+	DrawCommandBatch
+	DrawCommandBatchPtr
+
+	DescriptorUpdater
+
+	GfxLinearMemAllocator
+	GfxBlockMemAllocator
+*/
 
 #pragma once
 
-#ifdef AE_ENABLE_VULKAN
+#if defined(AE_ENABLE_VULKAN) and not defined(AE_ENABLE_REMOTE_GRAPHICS)
 # include "graphics/Vulkan/Commands/VTransferContext.h"
 # include "graphics/Vulkan/Commands/VComputeContext.h"
 # include "graphics/Vulkan/Commands/VDrawContext.h"
@@ -32,6 +78,8 @@ namespace AE::Graphics
 		using Graphics		= VDirectGraphicsContext;
 		using ASBuild		= VDirectASBuildContext;
 		using RayTracing	= VDirectRayTracingContext;
+	//	using VideoDecode	= VDirectVideoDecodeContext;
+	//	using VideoEncode	= VDirectVideoEncodeContext;
 	};
 	
 	struct IndirectCtx
@@ -43,24 +91,14 @@ namespace AE::Graphics
 		using Graphics		= VIndirectGraphicsContext;
 		using ASBuild		= VIndirectASBuildContext;
 		using RayTracing	= VIndirectRayTracingContext;
+	//	using VideoDecode	= VIndirectVideoDecodeContext;
+	//	using VideoEncode	= VIndirectVideoEncodeContext;
 	};
-
-	// RenderTask
-	// RenderTaskCoro
-	// RenderTask_Get, RenderTask_GetRef
-	// RenderTask_Execute()
-	// RenderTask_AddInputDependency()
-
-	// DrawTask
-	// DrawTaskCoro
-	// DrawTask_Get, DrawTask_GetRef
-	// DrawTask_Execute()
 
 	using GRenderTaskScheduler	= VRenderTaskScheduler;
 
 	using CommandBatch			= VCommandBatch;
 	using CommandBatchPtr		= RC< CommandBatch >;
-	// CmdBatchOnSubmit
 
 	using DrawCommandBatch		= VDrawCommandBatch;
 	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;
@@ -77,7 +115,7 @@ namespace AE::Graphics
 
 
 
-#ifdef AE_ENABLE_METAL
+#if defined(AE_ENABLE_METAL) and not defined(AE_ENABLE_REMOTE_GRAPHICS)
 # include "graphics/Metal/Commands/MTransferContext.h"
 # include "graphics/Metal/Commands/MComputeContext.h"
 # include "graphics/Metal/Commands/MDrawContext.h"
@@ -102,6 +140,8 @@ namespace AE::Graphics
 		using Graphics		= MDirectGraphicsContext;
 		using ASBuild		= MDirectASBuildContext;
 		using RayTracing	= MDirectRayTracingContext;
+	//	using VideoDecode	= MDirectVideoDecodeContext;
+	//	using VideoEncode	= MDirectVideoEncodeContext;
 	};
 	
 	struct IndirectCtx
@@ -113,24 +153,14 @@ namespace AE::Graphics
 		using Graphics		= MIndirectGraphicsContext;
 		using ASBuild		= MIndirectASBuildContext;
 		using RayTracing	= MIndirectRayTracingContext;
+	//	using VideoDecode	= MIndirectVideoDecodeContext;
+	//	using VideoEncode	= MIndirectVideoEncodeContext;
 	};
-	
-	// RenderTask
-	// RenderTaskCoro
-	// RenderTask_Get, RenderTask_GetRef
-	// RenderTask_Execute()
-	// RenderTask_AddInputDependency()
-
-	// DrawTask
-	// DrawTaskCoro
-	// DrawTask_Get, DrawTask_GetRef
-	// DrawTask_Execute()
 
 	using GRenderTaskScheduler	= MRenderTaskScheduler;
 
 	using CommandBatch			= MCommandBatch;
 	using CommandBatchPtr		= RC< CommandBatch >;
-	// CmdBatchOnSubmit
 	
 	using DrawCommandBatch		= MDrawCommandBatch;
 	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;
@@ -153,47 +183,36 @@ namespace AE::Graphics
 # include "graphics/Remote/Commands/RDrawContext.h"
 # include "graphics/Remote/Commands/RGraphicsContext.h"
 # include "graphics/Remote/Commands/RASBuildContext.h"
+# include "graphics/Remote/Commands/RRayTracingContext.h"
+
+# include "graphics/Remote/Descriptors/RDescriptorUpdater.h"
+
+# include "graphics/Remote/RRenderTaskScheduler.h"
+
+# include "graphics/Remote/Allocators/RBlockMemAllocator.h"
+# include "graphics/Remote/Allocators/RLinearMemAllocator.h"
 
 namespace AE::Graphics
 {
 	struct DirectCtx
 	{
-		using CommandBuffer	= RCommandBuffer;
-		using Transfer		= RDirectTransferContext;
-		using Compute		= RDirectComputeContext;
-		using Draw			= RDirectDrawContext;
-		using Graphics		= RDirectGraphicsContext;
-		using ASBuild		= RDirectASBuildContext;
-		using RayTracing	= RDirectRayTracingContext;
-	};
-	
-	struct IndirectCtx
-	{
 		using CommandBuffer	= Graphics::_hidden_::RSoftwareCmdBufPtr;
-		using Transfer		= RIndirectTransferContext;
-		using Compute		= RIndirectComputeContext;
-		using Draw			= RIndirectDrawContext;
-		using Graphics		= RIndirectGraphicsContext;
-		using ASBuild		= RIndirectASBuildContext;
-		using RayTracing	= RIndirectRayTracingContext;
+		using Transfer		= RTransferContext;
+		using Compute		= RComputeContext;
+		using Draw			= RDrawContext;
+		using Graphics		= RGraphicsContext;
+		using ASBuild		= RASBuildContext;
+		using RayTracing	= RRayTracingContext;
+	//	using VideoDecode	= RVideoDecodeContext;
+	//	using VideoEncode	= RVideoEncodeContext;
 	};
 	
-	// RenderTask
-	// RenderTaskCoro
-	// RenderTask_Get, RenderTask_GetRef
-	// RenderTask_Execute()
-	// RenderTask_AddInputDependency()
-
-	// DrawTask
-	// DrawTaskCoro
-	// DrawTask_Get, DrawTask_GetRef
-	// DrawTask_Execute()
+	using IndirectCtx			= DirectCtx;
 
 	using GRenderTaskScheduler	= RRenderTaskScheduler;
 
 	using CommandBatch			= RCommandBatch;
 	using CommandBatchPtr		= RC< CommandBatch >;
-	// CmdBatchOnSubmit
 
 	using DrawCommandBatch		= RDrawCommandBatch;
 	using DrawCommandBatchPtr	= RC< DrawCommandBatch >;

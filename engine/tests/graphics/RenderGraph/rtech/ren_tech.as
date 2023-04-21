@@ -110,7 +110,7 @@ void DeclRayQueryRenderTech ()
 }
 
 
-void main ()
+void ASmain ()
 {
 	DeclRenderPasses();
 	DeclRenderTech();

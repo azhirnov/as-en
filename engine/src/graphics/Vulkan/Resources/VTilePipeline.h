@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Vulkan/Resources/VPipelinePack.h"
 
 namespace AE::Graphics
@@ -22,7 +21,7 @@ namespace AE::Graphics
 			VPipelinePack const&								pplnPack;
 			PipelineCompiler::SerializableTilePipeline const&	templCI;
 			TilePipelineDesc const&								specCI;
-			VPipelineLayoutID									layoutId;
+			PipelineLayoutID									layoutId;
 			VPipelinePack::ShaderModuleRef						shader;
 			PipelineCacheID										cacheId;
 		};
@@ -37,7 +36,7 @@ namespace AE::Graphics
 		EPipelineOpt				_options			= Default;
 		ubyte						_subpassIndex		= UMax;
 
-		Strong<VPipelineLayoutID>	_layoutId;
+		Strong<PipelineLayoutID>	_layoutId;
 		
 		ShaderTracePtr				_dbgTrace;
 
@@ -58,7 +57,7 @@ namespace AE::Graphics
 		ND_ VkPipeline				Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ VkPipelineLayout		Layout ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
 		ND_ VkPipelineBindPoint		BindPoint ()					C_NE___	{ return VK_PIPELINE_BIND_POINT_SUBPASS_SHADING_HUAWEI; }
-		ND_ VPipelineLayoutID		LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ PipelineLayoutID		LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ uint2					LocalSize ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint2{_localSize}; }
 		ND_ EPipelineDynamicState	DynamicState ()					C_NE___	{ return Default; }
 		ND_ uint					RenderPassSubpassIndex ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }

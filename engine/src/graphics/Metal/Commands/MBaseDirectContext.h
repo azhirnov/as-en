@@ -4,6 +4,7 @@
 
 #ifdef AE_ENABLE_METAL
 # include "graphics/Public/CommandBuffer.h"
+# include "graphics/Private/ContextValidation.h"
 # include "graphics/Metal/Commands/MBarrierManager.h"
 # include "graphics/Metal/Commands/MDrawBarrierManager.h"
 # include "graphics/Metal/Commands/MAccumDeferredBarriers.h"

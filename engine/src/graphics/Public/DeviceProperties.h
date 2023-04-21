@@ -8,6 +8,8 @@
 #pragma once
 
 #include "graphics/Public/Common.h"
+#include "graphics/Public/ResourceEnums.h"
+#include "graphics/Public/DescriptorSet.h"
 
 namespace AE::Graphics
 {
@@ -73,6 +75,10 @@ namespace AE::Graphics
 
 			POTBytes	minBufferCopyOffsetAlign;				// buffer <-> buffer copy alignment		Vulkan: optimal, Metal: required
 			POTBytes	minBufferCopyRowPitchAlign;				// buffer <-> image copy alignment		Vulkan: optimal, Metal: required
+
+			// video
+		//	POTBytes	minVideoBitstreamBufferOffsetAlignment;
+		//	POTBytes	minVideoBitstreamBufferSizeAlignment;
 		};
 
 		//
@@ -107,6 +113,39 @@ namespace AE::Graphics
 
 
 	//
+	// Device Resource Flags
+	//
+	struct DeviceResourceFlags
+	{
+		// contains all available resource usage & options and memory types
+
+		EBufferUsage	bufferUsage		= Default;
+		EBufferOpt		bufferOptions	= Default;
+
+		EImageUsage		imageUsage		= Default;
+		EImageOpt		imageOptions	= Default;
+
+		EnumBitSet<EDescriptorType>	descrTypes;
+
+		FixedSet<EMemoryType, 8>	memTypes;
+	};
+
+
+
+	//
+	// Device Memory Info
+	//
+	struct DeviceMemoryInfo
+	{
+		Bytes	deviceUsage;		// VRAM used by process
+		Bytes	deviceAvailable;	// VRAM totally available (used and free)
+		Bytes	hostUsage;			// RAM used by GPU process
+		Bytes	hostAvailable;		// RAM totally available (used and free)
+	};
+
+
+
+	//
 	// Compiletime Device Properties
 	//
 	namespace _hidden_
@@ -124,7 +163,7 @@ namespace AE::Graphics
 					res.minThreadgroupMemoryLengthAlign		= POTBytes_From<  16 >;		//																		       apple - 16
 					res.minUniformTexelBufferOffsetAlign	= POTBytes_From< 256 >;		// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16/32/256
 					res.minStorageTexelBufferOffsetAlign	= POTBytes_From< 256 >;		// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16/32/256
-					res.minVertexBufferOffsetAlign			= POTBytes_From< 256 >;		// vulkan -  1 (not specified),											       apple - 16
+					res.minVertexBufferOffsetAlign			= POTBytes_From< 16 >;		// vulkan -  1 (not specified),											       apple - 16
 					res.minVertexBufferElementsAlign		= 4;						// nvidia -  1,      amd -   1,   intel -   1,   mali -  4,    adreno - ?,     apple - ?
 					res.maxUniformBufferRange				= 16_Kb;					// nvidia - 64k,     amd - inf,   intel - inf,   mali - 64k,   adreno - 64k,   apple - inf         other - 16k
 					res.maxBoundDescriptorSets				= 4;						// nvidia - 32,      amd -  32,   intel -   8,   mali -   4,   adreno -   4,   apple - 31

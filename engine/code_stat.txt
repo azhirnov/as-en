@@ -1,6 +1,6 @@
-CPP files: 1270, source lines: 189'294, comment lines: 42'792, data size: 8'621'347
-ObjC files: 44, source lines: 7'120, comment lines: 2'366, data size: 336'376
-Shader files: 195, source lines: 25'354, comment lines: 6'612, data size: 1'245'691
-Script files: 125, source lines: 8'527, comment lines: 441, data size: 429'750
-Java files: 4, source lines: 261, comment lines: 37, data size: 9'671
-Docs files: 21, source lines: 759, comment lines: 0, data size: 20'207
+CPP files: 1456, source lines: 208'916, comment lines: 47'888, data size: 9'624'037
+ObjC files: 47, source lines: 7'091, comment lines: 2'373, data size: 335'532
+Shader files: 202, source lines: 26'902, comment lines: 6'858, data size: 1'316'607
+Script files: 145, source lines: 11'031, comment lines: 622, data size: 540'703
+Java files: 6, source lines: 338, comment lines: 43, data size: 13'161
+Docs files: 21, source lines: 826, comment lines: 0, data size: 22'130

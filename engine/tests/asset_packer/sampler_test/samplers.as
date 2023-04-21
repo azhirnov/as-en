@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	{
 		RC<Sampler>		samp = Sampler( "NearestClamp" );
@@ -45,5 +45,18 @@ void main ()
 		samp.Anisotropy( 12.0f );
 		samp.AddFeatureSet( "MinimalFS" );
 		samp.AddFeatureSet( "MinDesktop" );
+	}
+	{
+		RC<Sampler>		samp = Sampler( "NearestClamp|ycbcr|G8_B8R8_420_UNorm" );
+		samp.Filter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
+		samp.AddressMode( EAddressMode::Clamp, EAddressMode::Clamp, EAddressMode::Clamp );
+
+		samp.Ycbcr_Format( EPixelFormat::G8_B8R8_420_UNorm );
+		samp.Ycbcr_Model( ESamplerYcbcrModelConversion::Ycbcr_709 );
+		samp.Ycbcr_Range( ESamplerYcbcrRange::ITU_Full );
+		//samp.Ycbcr_Components();
+		samp.Ycbcr_XChromaOffset( ESamplerChromaLocation::CositedEven );
+		samp.Ycbcr_YChromaOffset( ESamplerChromaLocation::CositedEven );
+		samp.Ycbcr_ChromaFilter( EFilter::Nearest );
 	}
 }

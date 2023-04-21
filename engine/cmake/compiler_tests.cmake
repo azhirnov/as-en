@@ -110,7 +110,7 @@ if (NOT ${COMPILER_MSVC})
 endif()
 
 check_cxx_source_compiles(
-	"#pragma detect_mismatch( \"AE_DEBUG\", \"1\" )
+	"#pragma detect_mismatch( \"AE_CFG_DEBUG\", \"1\" )
 	int main () {
 		return 0;
 	}"

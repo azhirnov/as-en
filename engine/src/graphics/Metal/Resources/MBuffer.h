@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Public/BufferDesc.h"
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Public/IDs.h"
@@ -22,7 +21,7 @@ namespace AE::Graphics
 	private:
 		MetalBufferRC			_buffer;
 		BufferDesc				_desc;
-		Strong<MMemoryID>		_memoryId;
+		Strong<MemoryID>		_memoryId;
 		
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
@@ -38,7 +37,7 @@ namespace AE::Graphics
 			void  Destroy (MResourceManager &)																			__NE___;
 		
 		ND_ MetalBuffer			Handle ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _buffer; }
-		ND_ MMemoryID			MemoryID ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ MemoryID			MemoryID ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 		ND_ bool				IsExclusiveSharing ()		C_NE___	{ return false; }
 
 		ND_ BufferDesc const&	Description ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }

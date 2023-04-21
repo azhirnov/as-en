@@ -135,50 +135,54 @@ namespace AE::Scripting
 
 	// methods
 	public:
-		ScriptEngine ();
-		~ScriptEngine ();
+		ScriptEngine ()																		__NE___;
+		~ScriptEngine ()																	__NE___;
 
-		ND_ AngelScript::asIScriptEngine *			Get ()			__NE___	{ return _engine.operator->(); }
-		ND_ AngelScript::asIScriptEngine const *	Get ()			C_NE___	{ return _engine.operator->(); }
+		ND_ AngelScript::asIScriptEngine *			Get ()									__NE___	{ return _engine.operator->(); }
+		ND_ AngelScript::asIScriptEngine const *	Get ()									C_NE___	{ return _engine.operator->(); }
 
-		ND_ AngelScript::asIScriptEngine *			operator -> ()	__NE___	{ return _engine.operator->(); }
-		ND_ AngelScript::asIScriptEngine const *	operator -> ()	C_NE___	{ return _engine.operator->(); }
+		ND_ AngelScript::asIScriptEngine *			operator -> ()							__NE___	{ return _engine.operator->(); }
+		ND_ AngelScript::asIScriptEngine const *	operator -> ()							C_NE___	{ return _engine.operator->(); }
 
-		ND_ bool  IsInitialized ()									C_NE___	{ return bool{_engine}; }
-		ND_ bool  IsUsingCppHeader ()								C_NE___	{ return _genCppHeader; }
+		ND_ bool  IsInitialized ()															C_NE___	{ return bool{_engine}; }
+		ND_ bool  IsUsingCppHeader ()														C_NE___	{ return _genCppHeader; }
 
-		ND_ bool  Create (Bool genCppHeader = False{});
-		ND_ bool  Create (AngelScript::asIScriptEngine *se, Bool genCppHeader = False{});
+		ND_ bool  Create (Bool genCppHeader = False{})										__NE___;
+		ND_ bool  Create (AngelScript::asIScriptEngine *se, Bool genCppHeader = False{})	__NE___;
 
-		ND_ ScriptModulePtr  CreateModule (ArrayView<ModuleSource> src, ArrayView<StringView> defines = Default);
+		ND_ ScriptModulePtr  CreateModule (ArrayView<ModuleSource> src,
+										   ArrayView<StringView> defines = Default)			__NE___;
 		
 		template <typename Fn>
-		ND_ ScriptFnPtr<Fn>  CreateScript (StringView entry, const ScriptModulePtr &module);
-
-		template <typename T>
-		void  AddFunction (T func, StringView name)					__Th___;
-
-		//template <typename T>
-		//void  AddFunctionTemplate (T func, StringView name);
-
-		template <typename T>
-		void  AddProperty (INOUT T &var, StringView name)			__Th___;
+		ND_ ScriptFnPtr<Fn>  CreateScript (StringView entry, const ScriptModulePtr &module)	__NE___;
 		
 		template <typename T>
-		void  AddConstProperty (const T &var, StringView name)		__Th___;
+		ND_ bool  IsRegistred ()															__NE___;
+		ND_ bool  IsRegistred (NtStringView name)											__NE___;
 
-		bool  SetNamespace (NtStringView name);
-		bool  SetDefaultNamespace ();
 
-			void  AddCppHeader (StringView typeName, String str, int flags);
-			void  GetCppHeader (OUT String &str, OUT HashVal32 &hash);
-		ND_	bool  SaveCppHeader (const Path &fname);
+		template <typename T>
+		void  AddFunction (T func, StringView name)											__Th___;
+
+		template <typename T>
+		void  AddProperty (INOUT T &var, StringView name)									__Th___;
+		
+		template <typename T>
+		void  AddConstProperty (const T &var, StringView name)								__Th___;
+
+		bool  SetNamespace (NtStringView name)												__NE___;
+		bool  SetDefaultNamespace ()														__NE___;
+
+
+			void  AddCppHeader (StringView typeName, String str, int flags)					__Th___;
+			void  GetCppHeader (OUT String &str, OUT HashVal32 &hash)						__Th___;
+		ND_	bool  SaveCppHeader (const Path &fname)											__Th___;
 
 
 	// utils //
-		ND_ static bool  _CheckError (int err, StringView asFunc, StringView func, const SourceLoc &loc);
+		ND_ static bool  _CheckError (int err, StringView asFunc, StringView func, const SourceLoc &loc)__NE___;
 
-		ND_ static bool  _Preprocessor (StringView, OUT String &, ArrayView<StringView> defines);
+		ND_ static bool  _Preprocessor (StringView, OUT String &, ArrayView<StringView> defines)		__NE___;
 
 	private:
 		ND_ bool  _CreateContext (const String &signature, const ScriptModulePtr &module, OUT AngelScript::asIScriptContext* &ctx);
@@ -209,9 +213,10 @@ namespace AE::Scripting
 
 
 	enum class AngelScriptException {};
+	
 
 
-# ifdef AE_RELEASE
+# ifdef AE_CFG_RELEASE
 #	define AS_CHECK( /* expr */... )	{AE::Base::Unused( __VA_ARGS__ );}
 
 # else

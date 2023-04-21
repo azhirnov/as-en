@@ -46,20 +46,20 @@ namespace AE::Math
 			constexpr Self&	operator =  (const Self &)		__NE___	= default;
 			constexpr Self&	operator =  (Self &&)			__NE___	= default;
 
-			Self &	operator += (const Self &rhs)			__NE___;
+			Self&	operator += (const Self &rhs)			__NE___;
 		ND_ Self	operator +  (const Self &rhs)			C_NE___	{ return Self{*this} += rhs; }
 		
-			Self &	operator -= (const Self &rhs)			__NE___	{ return Self{*this} += rhs.Inversed(); }
+			Self&	operator -= (const Self &rhs)			__NE___	{ return Self{*this} += rhs.Inversed(); }
 		ND_ Self	operator -  (const Self &rhs)			C_NE___	{ return Self{*this} -= rhs; }
 
 		ND_ bool	operator == (const Self &rhs)			C_NE___;
 		ND_ bool	operator != (const Self &rhs)			C_NE___	{ return not (*this == rhs); }
 
-			Self &	Move (const Vec3_t &delta)				__NE___;
-			Self &	Rotate (const Quat_t &delta)			__NE___;
-			Self &	Scale (float scale)						__NE___;
+			Self&	Move (const Vec3_t &delta)				__NE___;
+			Self&	Rotate (const Quat_t &delta)			__NE___;
+			Self&	Scale (float scale)						__NE___;
 
-			Self &	Inverse ()								__NE___;
+			Self&	Inverse ()								__NE___;
 		ND_ Self	Inversed ()								C_NE___	{ return Self{*this}.Inverse(); }
 
 		ND_ Mat4_t	ToMatrix ()								C_NE___;

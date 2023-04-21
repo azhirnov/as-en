@@ -30,7 +30,7 @@ namespace AE::VFS
 		Allocator_t		_allocator;
 
 		DEBUG_ONLY(
-		  NamedID_HashCollisionCheck	_hasCollisionCheck;
+		  NamedID_HashCollisionCheck	_hashCollisionCheck;
 		)
 		DRC_ONLY(
 			RWDataRaceCheck		_drCheck;

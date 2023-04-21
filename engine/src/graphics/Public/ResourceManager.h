@@ -24,12 +24,16 @@
 #include "graphics/Public/RayTracingDesc.h"
 #include "graphics/Public/FrameUID.h"
 #include "graphics/Public/GraphicsCreateInfo.h"
+#include "graphics/Public/Video.h"
 
 #if defined(AE_ENABLE_VULKAN)
 # include "graphics/Public/VulkanTypes.h"
 
 #elif defined(AE_ENABLE_METAL)
 # include "graphics/Public/MetalTypes.h"
+
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+# include "graphics/Public/RemoteGraphicsTypes.h"
 
 #else
 #	error not implemented
@@ -50,9 +54,13 @@ namespace AE::Graphics
 
 	  #if defined(AE_ENABLE_VULKAN)
 		using NativeMemObjInfo_t	= VulkanMemoryObjInfo;
+		using VideoStorageArr_t		= FixedArray< Storage_t, 8 >;
 
 	  #elif defined(AE_ENABLE_METAL)
 		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
+
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		using NativeMemObjInfo_t	= RemoteMemoryObjInfo;
 		
 	  #else
 	  #	error not implemented
@@ -64,10 +72,13 @@ namespace AE::Graphics
 	  #if defined(AE_ENABLE_VULKAN)
 		// 'desc.memType' and 'desc.usage' are required
 		ND_ virtual bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)				__NE___	= 0;
-		
+
 		// 'desc.memType' and 'desc.usage' are required
 		ND_ virtual bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)			__NE___	= 0;
 		
+		ND_ virtual bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &)		__NE___	{ return false; }
+		ND_ virtual bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &)			__NE___	{ return false; }
+
 	  #elif defined(AE_ENABLE_METAL)
 		ND_ virtual MetalImageRC	AllocForImage (const ImageDesc &desc, OUT Storage_t &data)					__NE___	= 0;
 		ND_ virtual MetalBufferRC	AllocForBuffer (const BufferDesc &desc, OUT Storage_t &data)				__NE___	= 0;
@@ -75,6 +86,9 @@ namespace AE::Graphics
 		ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTGeometryDesc &desc, OUT Storage_t &data)	__NE___	= 0;
 		ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTSceneDesc &desc, OUT Storage_t &data)		__NE___	= 0;
 		
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		// not implemented
+
 	  #else
 	  #	error not implemented
 	  #endif
@@ -120,6 +134,12 @@ namespace AE::Graphics
 			
 			Storage () {}
 		};
+
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		struct Storage
+		{
+			// TODO
+		};
 		
 		#else
 		#	error not implemented
@@ -162,19 +182,23 @@ namespace AE::Graphics
 			RenderPassName::Optimized_t			renderPass;
 			SubpassName::Optimized_t			subpass;
 			PipelinePackID						packId;
+
+			ND_ bool  IsDefined ()	C_NE___	{ return type != Default; }
 		};
 
 
 	// interface
 	public:
-		ND_ virtual GraphicsPipelineID		GetGraphicsPipeline (const PipelineName &name)		C_NE___ = 0;
-		ND_ virtual MeshPipelineID			GetMeshPipeline (const PipelineName &name)			C_NE___ = 0;
-		ND_ virtual TilePipelineID			GetTilePipeline (const PipelineName &name)			C_NE___ = 0;
-		ND_ virtual ComputePipelineID		GetComputePipeline (const PipelineName &name)		C_NE___ = 0;
-		ND_ virtual RayTracingPipelineID	GetRayTracingPipeline (const PipelineName &name)	C_NE___ = 0;
-		ND_ virtual RTShaderBindingID		GetRTShaderBinding (const RTShaderBindingName &name)C_NE___ = 0;
-		ND_ virtual PassInfo				GetPass (const RenderTechPassName &pass)			C_NE___ = 0;
-		ND_ virtual bool					FeatureSetSupported (const FeatureSetName &name)	C_NE___ = 0;
+		ND_ virtual GraphicsPipelineID		GetGraphicsPipeline (const PipelineName &name)									C_NE___ = 0;
+		ND_ virtual MeshPipelineID			GetMeshPipeline (const PipelineName &name)										C_NE___ = 0;
+		ND_ virtual TilePipelineID			GetTilePipeline (const PipelineName &name)										C_NE___ = 0;
+		ND_ virtual ComputePipelineID		GetComputePipeline (const PipelineName &name)									C_NE___ = 0;
+		ND_ virtual RayTracingPipelineID	GetRayTracingPipeline (const PipelineName &name)								C_NE___ = 0;
+		ND_ virtual RTShaderBindingID		GetRTShaderBinding (const RTShaderBindingName &name)							C_NE___ = 0;
+		ND_ virtual PassInfo				GetPass (const RenderTechPassName &pass)										C_NE___ = 0;
+
+		ND_ virtual EPixelFormat			GetAttachmentFormat (const RenderTechPassName &pass, const AttachmentName &)	C_NE___ = 0;
+		ND_ virtual bool					FeatureSetSupported (const FeatureSetName &name)								C_NE___ = 0;	// for debugging
 	};
 	using RenderTechPipelinesPtr = RC< IRenderTechPipelines >;
 
@@ -195,6 +219,8 @@ namespace AE::Graphics
 		using NativeImageView_t		= VkImageView;
 		using NativeImageDesc_t		= VulkanImageDesc;
 		using NativeBufferDesc_t	= VulkanBufferDesc;
+		using NativeImageViewDesc_t	= VulkanImageViewDesc;
+		using NativeBufferViewDesc_t= VulkanBufferViewDesc;
 		using NativeMemObjInfo_t	= VulkanMemoryObjInfo;
 		
 		#elif defined(AE_ENABLE_METAL)
@@ -204,7 +230,20 @@ namespace AE::Graphics
 		using NativeImageView_t		= MetalImage;
 		using NativeImageDesc_t		= MetalImageDesc;
 		using NativeBufferDesc_t	= MetalBufferDesc;
+		using NativeImageViewDesc_t	= MetalImageViewDesc;
+		using NativeBufferViewDesc_t= MetalBufferViewDesc;
 		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
+
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		using NativeBuffer_t		= R_BufferID;
+		using NativeImage_t			= R_ImageID;
+		using NativeBufferView_t	= R_BufferViewID;
+		using NativeImageView_t		= R_ImageViewID;
+		using NativeImageDesc_t		= Noninstancable;
+		using NativeBufferDesc_t	= Noninstancable;
+		using NativeImageViewDesc_t	= Noninstancable;
+		using NativeBufferViewDesc_t= Noninstancable;
+		using NativeMemObjInfo_t	= RemoteMemoryObjInfo;
 		
 		#else
 		#	error not implemented
@@ -230,18 +269,24 @@ namespace AE::Graphics
 		ND_ virtual bool						IsSupported (EMemoryType memType)																				C_NE___ = 0;
 		ND_ virtual bool						IsSupported (const BufferDesc &desc)																			C_NE___ = 0;
 		ND_ virtual bool						IsSupported (const ImageDesc &desc)																				C_NE___ = 0;
+		ND_ virtual bool						IsSupported (const VideoImageDesc &desc)																		C_NE___ = 0;
+		ND_ virtual bool						IsSupported (const VideoBufferDesc &desc)																		C_NE___ = 0;
+		ND_ virtual bool						IsSupported (const VideoSessionDesc &desc)																		C_NE___ = 0;
 		ND_ virtual bool						IsSupported (BufferID buffer, const BufferViewDesc &desc)														C_NE___ = 0;
 		ND_ virtual bool						IsSupported (ImageID image, const ImageViewDesc &desc)															C_NE___ = 0;
 
 		ND_ virtual Strong<ImageID>				CreateImage (const ImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)			__NE___ = 0;
 		ND_ virtual Strong<BufferID>			CreateBuffer (const BufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE___ = 0;
 		
-		ND_ virtual Strong<ImageID>				CreateImage (const NativeImageDesc_t &desc, StringView dbgName)													__NE___	= 0;
-		ND_ virtual Strong<BufferID>			CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName)												__NE___	= 0;
+		ND_ virtual Strong<ImageID>				CreateImage (const NativeImageDesc_t &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE___	= 0;
+		ND_ virtual Strong<BufferID>			CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE___	= 0;
 
 		ND_ virtual Strong<ImageViewID>			CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName = Default)						__NE___	= 0;
 		ND_ virtual Strong<BufferViewID>		CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName = Default)					__NE___	= 0;
 		
+		ND_ virtual Strong<ImageViewID>			CreateImageView (const NativeImageViewDesc_t &desc, ImageID image, StringView dbgName = Default)				__NE___ = 0;
+		ND_ virtual Strong<BufferViewID>		CreateBufferView (const NativeBufferViewDesc_t &desc, BufferID buffer, StringView dbgName = Default)			__NE___ = 0;
+
 		ND_ virtual Strong<RTGeometryID>		CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE___	= 0;
 		ND_ virtual Strong<RTSceneID>			CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE___	= 0;
 
@@ -271,8 +316,13 @@ namespace AE::Graphics
 		ND_ virtual Strong<RayTracingPipelineID>CreateRayTracingPipeline(PipelinePackID packId, const PipelineTmplName &name, const RayTracingPipelineDesc	&desc, PipelineCacheID cache = Default)		__NE___	= 0;
 		ND_ virtual Strong<TilePipelineID>		CreateTilePipeline		(PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc		&desc, PipelineCacheID cache = Default)		__NE___	= 0;
 
-		ND_ virtual Strong<PipelineCacheID>		CreatePipelineCache ()										__NE___ = 0;
+		// video
+		ND_ virtual Strong<VideoSessionID>		CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE___	= 0;
+		ND_ virtual Strong<VideoBufferID>		CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE___	= 0;
+		ND_ virtual Strong<VideoImageID>		CreateVideoImage (const VideoImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE___	= 0;
 		
+		ND_ virtual Strong<PipelineCacheID>		CreatePipelineCache ()										__NE___ = 0;
+
 		// load default pack
 			virtual bool						InitializeResources (const PipelinePackDesc &desc)			__NE___	= 0;
 		ND_ virtual Strong<PipelinePackID>		LoadPipelinePack (const PipelinePackDesc &desc)				__NE___	= 0;
@@ -288,6 +338,9 @@ namespace AE::Graphics
 		ND_ virtual bool						IsResourceAlive (PipelinePackID		id)						C_NE___ = 0;
 		ND_ virtual bool						IsResourceAlive (RTGeometryID		id)						C_NE___ = 0;
 		ND_ virtual bool						IsResourceAlive (RTSceneID			id)						C_NE___ = 0;
+		ND_ virtual bool						IsResourceAlive (VideoSessionID		id)						C_NE___ = 0;
+		ND_ virtual bool						IsResourceAlive (VideoBufferID		id)						C_NE___ = 0;
+		ND_ virtual bool						IsResourceAlive (VideoImageID		id)						C_NE___ = 0;
 
 		// Decrease ref counter and delay destruction until current frame complete execution on GPU.
 		// Returns 'true' if resource has been destroyed (when ref counter is zero).
@@ -295,6 +348,7 @@ namespace AE::Graphics
 			virtual bool						ReleaseResource (INOUT Strong<BufferID>				&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<ImageViewID>			&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<BufferViewID>			&id)	__NE___	= 0;
+			virtual bool						ReleaseResource (INOUT Strong<DescriptorSetID>		&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<PipelineCacheID>		&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<PipelinePackID>		&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<GraphicsPipelineID>	&id)	__NE___	= 0;
@@ -302,9 +356,11 @@ namespace AE::Graphics
 			virtual bool						ReleaseResource (INOUT Strong<ComputePipelineID>	&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<RayTracingPipelineID>	&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<TilePipelineID>		&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<DescriptorSetID>		&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<RTGeometryID>			&id)	__NE___	= 0;
 			virtual bool						ReleaseResource (INOUT Strong<RTSceneID>			&id)	__NE___	= 0;
+			virtual bool						ReleaseResource (INOUT Strong<VideoSessionID>		&id)	__NE___	= 0;
+			virtual bool						ReleaseResource (INOUT Strong<VideoBufferID>		&id)	__NE___	= 0;
+			virtual bool						ReleaseResource (INOUT Strong<VideoImageID>			&id)	__NE___	= 0;
 
 		// Returned reference is valid until resource is alive
 		ND_ virtual BufferDesc const&			GetDescription (BufferID id)								C_NE___ = 0;
@@ -312,6 +368,9 @@ namespace AE::Graphics
 		ND_ virtual BufferViewDesc const&		GetDescription (BufferViewID id)							C_NE___ = 0;
 		ND_ virtual ImageViewDesc const&		GetDescription (ImageViewID id)								C_NE___ = 0;
 		ND_ virtual RTShaderBindingDesc const&	GetDescription (RTShaderBindingID id)						C_NE___	= 0;
+		ND_ virtual VideoImageDesc const&		GetDescription (VideoImageID id)							C_NE___	= 0;
+		ND_ virtual VideoBufferDesc const&		GetDescription (VideoBufferID id)							C_NE___	= 0;
+		ND_ virtual VideoSessionDesc const&		GetDescription (VideoSessionID id)							C_NE___	= 0;
 
 		// By default all resources destroyed when all pending command buffers are complete execution.
 		// Returns 'true' if wasn't empty.

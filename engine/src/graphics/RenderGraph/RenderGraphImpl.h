@@ -17,6 +17,8 @@ namespace AE::RG
 		using Graphics		= RG::_hidden_::GraphicsContext< AE::Graphics::DirectCtx::Graphics >;
 		using ASBuild		= RG::_hidden_::ASBuildContext< AE::Graphics::DirectCtx::ASBuild >;
 		using RayTracing	= RG::_hidden_::RayTracingContext< AE::Graphics::DirectCtx::RayTracing >;
+	//	using VideoDecode	= RG::_hidden_::VideoDecodeContext< AE::Graphics::DirectCtx::VideoDecode >;
+	//	using VideoEncode	= RG::_hidden_::VideoEncodeContext< AE::Graphics::DirectCtx::VideoEncode >;
 	};
 	
 	struct IndirectCtx
@@ -28,6 +30,8 @@ namespace AE::RG
 		using Graphics		= RG::_hidden_::GraphicsContext< AE::Graphics::IndirectCtx::Graphics >;
 		using ASBuild		= RG::_hidden_::ASBuildContext< AE::Graphics::IndirectCtx::ASBuild >;
 		using RayTracing	= RG::_hidden_::RayTracingContext< AE::Graphics::IndirectCtx::RayTracing >;
+	//	using VideoDecode	= RG::_hidden_::VideoDecodeContext< AE::Graphics::IndirectCtx::VideoDecode >;
+	//	using VideoEncode	= RG::_hidden_::VideoEncodeContext< AE::Graphics::IndirectCtx::VideoEncode >;
 	};
 
 	using RenderGraph		= RG::_hidden_::RenderGraph;

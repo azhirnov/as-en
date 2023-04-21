@@ -1,7 +1,7 @@
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'Debugger2 |0| Draw task'
 {
   BeginDebugLabel
     name:  'Debugger2 |0| Draw task'
@@ -90,7 +90,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'Debugger2 |1| Readback task'
 {
   BeginDebugLabel
     name:  'Debugger2 |1| Readback task'

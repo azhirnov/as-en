@@ -4,9 +4,6 @@
 
 #if defined(AE_PLATFORM_MACOS) or defined(AE_PLATFORM_IOS)
 # include "base/Platforms/UnixUtils.h"
-# include "base/Containers/NtStringView.h"
-# include "base/Utils/Version.h"
-# include "base/Utils/Threading.h"
 
 namespace AE::Base
 {
@@ -34,11 +31,16 @@ namespace AE::Base
 	// functions
 	
 		// Thread //
-			static void		SetThreadName (NtStringView name)													__NE___;
-		ND_ static String	GetThreadName ();
+			static void		SetCurrentThreadName (NtStringView name)											__NE___;
+		ND_ static String	GetCurrentThreadName ()																__Th___;
+		
+		ND_ static ThreadHandle  GetCurrentThreadHandle ()														__NE___;
 
 			static bool		SetThreadAffinity (const ThreadHandle &handle, uint coreIdx)						__NE___;
 			static bool		SetThreadPriority (const ThreadHandle &handle, float priority)						__NE___;
+			
+			static bool		SetCurrentThreadAffinity (uint coreIdx)												__NE___;
+			static bool		SetCurrentThreadPriority (float priority)											__NE___;
 			
 		ND_	static uint		GetProcessorCoreIndex ()															__NE___;	// current logical CPU core
 		

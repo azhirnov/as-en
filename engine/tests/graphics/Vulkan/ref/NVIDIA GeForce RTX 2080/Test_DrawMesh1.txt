@@ -1,7 +1,7 @@
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'DrawMesh1 |0| Draw task'
 {
   BeginDebugLabel
     name:  'DrawMesh1 |0| Draw task'
@@ -68,7 +68,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'DrawMesh1 |1| Readback task'
 {
   BeginDebugLabel
     name:  'DrawMesh1 |1| Readback task'
@@ -102,7 +102,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'DrawMesh1 |0| Draw task'
 {
   BeginDebugLabel
     name:  'DrawMesh1 |0| Draw task'
@@ -169,7 +169,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'DrawMesh1 |1| Readback task'
@@ -203,7 +203,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'DrawMesh1 |0| Draw task'
@@ -270,7 +270,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'DrawMesh1 |1| Readback task'
 {
   BeginDebugLabel
     name:  'DrawMesh1 |1| Readback task'
@@ -304,7 +304,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'DrawMesh1 |0| Draw task'

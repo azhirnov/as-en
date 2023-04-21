@@ -2,7 +2,7 @@
 #
 # Build config:
 #	- Debug    -- enable all checks
-#	- Develop  -- enable some optimization but keep some debug checks
+#	- Develop  -- enable some optimization but keep most debug checks, exclude long-time checks
 #	- Profile  -- enable some optimizations but keep debug info for profiling
 #	- Release  -- enable all optimizations
 
@@ -102,10 +102,10 @@ set( PROJECTS_SHARED_DEFINES
 set( CMAKE_CONFIGURATION_TYPES Release Profile Develop Debug )
 set( CMAKE_CONFIGURATION_TYPES "${CMAKE_CONFIGURATION_TYPES}" CACHE STRING "Configurations" FORCE )
 
-set( PROJECTS_SHARED_DEFINES_RELEASE "AE_RELEASE" )
-set( PROJECTS_SHARED_DEFINES_PROFILE "AE_PROFILE" )
-set( PROJECTS_SHARED_DEFINES_DEVELOP "AE_DEVELOP" )
-set( PROJECTS_SHARED_DEFINES_DEBUG   "AE_DEBUG"   )
+set( PROJECTS_SHARED_DEFINES_RELEASE "AE_CFG_RELEASE"	"AE_RELEASE")
+set( PROJECTS_SHARED_DEFINES_PROFILE "AE_CFG_PROFILE"	"AE_RELEASE")
+set( PROJECTS_SHARED_DEFINES_DEVELOP "AE_CFG_DEVELOP"	"AE_DEBUG"	)
+set( PROJECTS_SHARED_DEFINES_DEBUG   "AE_CFG_DEBUG"		"AE_DEBUG"	)
 
 
 #==================================================================================================
@@ -318,7 +318,7 @@ endif()
 # GCC/Clang shared settings
 #==================================================================================================
 set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "-Wno-unused -Wno-switch -Wno-undef -Wno-comment" )
-set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-braces -Wuninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Werror=array-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch )
+set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Werror=array-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch )
 
 #if (${AE_NO_EXCEPTIONS})
 #	set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -fno-exceptions" )
@@ -394,7 +394,7 @@ endif()
 # https://clang.llvm.org/docs/DiagnosticsReference.html
 #==================================================================================================
 set( CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -Wnarrowing" )
-set( CLANG_SHARED_LOCAL_WARNING_LIST  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} -Wnarrowing -Wlogical-op-parentheses -frtti -Wunused -Wconditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch )
+set( CLANG_SHARED_LOCAL_WARNING_LIST  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} -Wnarrowing -Wlogical-op-parentheses -frtti -Wunused -Werror=conditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch )
 
 
 #==================================================================================================
@@ -480,17 +480,29 @@ if ( COMPILER_CLANG_EMSCRIPTEN )
 	
 	set( CLANG_SHARED_OPTS ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST} -pthread )
 	set( CURRENT_EXE_LINKER_FLAGS "-s WASM=1" )
-	#set( CURRENT_EXE_LINKER_FLAGS "-s DISABLE_EXCEPTION_CATCHING=0" )	# exceptions are turned off by default in -O1 and above
+	#set( CURRENT_EXE_LINKER_FLAGS "-s DISABLE_EXCEPTION_CATCHING=0" )						# exceptions are turned off by default in -O1 and above
 	#set( CURRENT_EXE_LINKER_FLAGS "${CURRENT_EXE_LINKER_FLAGS} -s ALLOW_MEMORY_GROWTH=0 -s INITIAL_MEMORY=268435456" )
 	set( CURRENT_EXE_LINKER_FLAGS "${CURRENT_EXE_LINKER_FLAGS} -s ALLOW_MEMORY_GROWTH=1" )
-	set( CURRENT_EXE_LINKER_FLAGS "${CURRENT_EXE_LINKER_FLAGS} s MAX_WEBGL_VERSION=2" )
+	set( CURRENT_EXE_LINKER_FLAGS "${CURRENT_EXE_LINKER_FLAGS} -s MAX_WEBGL_VERSION=2" )
 	
-	set( AE_DISABLE_THREADS ON  CACHE BOOL "disable std::thread for compatibility with emscripten" )
+	set( AE_DISABLE_THREADS		ON  CACHE BOOL "disable std::thread for compatibility with emscripten" )
+	set( AE_EMS_NATIVE_SOCKETS	OFF CACHE BOOL "use native WebSockets, otherwise - emulate POSIX sockets" )
+
 	if (${AE_DISABLE_THREADS})
 		set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_DISABLE_THREADS" )
 	else()
 		#set( CURRENT_EXE_LINKER_FLAGS "${CURRENT_EXE_LINKER_FLAGS} -s USE_PTHREADS -s PTHREAD_POOL_SIZE=1" )
 		set( CURRENT_EXE_LINKER_FLAGS "${CURRENT_EXE_LINKER_FLAGS} -s USE_PTHREADS -s PROXY_TO_PTHREAD" )
+	endif()
+
+	if (${AE_EMS_NATIVE_SOCKETS})
+		set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_EMS_NATIVE_SOCKETS" )
+		set( CURRENT_EXE_LINKER_FLAGS "${CURRENT_EXE_LINKER_FLAGS} -lwebsocket.js" )
+	else()
+		if (${AE_DISABLE_THREADS})
+			message( FATAL_ERROR "POSIX sockets requires '-s USE_PTHREADS -s PROXY_TO_PTHREAD' flags" )
+		endif()
+		set( CURRENT_EXE_LINKER_FLAGS "${CURRENT_EXE_LINKER_FLAGS} -lwebsocket.js -sPROXY_POSIX_SOCKETS" )
 	endif()
 
 	set( CURRENT_EXE_LINKER_FLAGS_DBG "${CURRENT_EXE_LINKER_FLAGS} -s DEMANGLE_SUPPORT=1 --source-map-base http://localhost:9090/_build_ems/bin/" )

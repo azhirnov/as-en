@@ -192,21 +192,18 @@ namespace AE::App
 
 			KeyBegin			= 8,
 			KeyEnd				= 0xDF << 8,
-
-			Cursor1DBegin		= KeyEnd + 1,
-			MouseWheelX			= Cursor1DBegin,// float (delta)
-			MouseWheelY,						// float (delta)
-			Cursor1DEnd			= MouseWheelY,
 			
+			MultiTouch			= KeyEnd + 10,		// float2 (scale, rotate)
 			Cursor2DBegin,
-			CursorPos			= Cursor2DBegin,// float2 (absolute in pixels)
-			CursorPos_mm,						// float2 (absolute in mm)
-			CursorDelta,						// float2 (delta in pixels)
-			CursorDelta_norm,					// snorm2
-			TouchPos,							// float2 (absolute in pixels)
-			TouchPos_mm,						// float2 (absolute in mm)
-			TouchDelta,							// float2 (delta in pixels)
-			TouchDelta_norm,					// snorm2
+			MouseWheel			= Cursor2DBegin,	// float2 (delta)
+			CursorPos,								// float2 (absolute in pixels)
+			CursorPos_mm,							// float2 (absolute in mm)
+			CursorDelta,							// float2 (delta in pixels)
+			CursorDelta_norm,						// snorm2
+			TouchPos,								// float2 (absolute in pixels)
+			TouchPos_mm,							// float2 (absolute in mm)
+			TouchDelta,								// float2 (delta in pixels)
+			TouchDelta_norm,						// snorm2
 			Cursor2DEnd			= TouchDelta_norm,
 
 			_Count,
@@ -227,11 +224,12 @@ namespace AE::App
 
 
 	// SerializableInputActions //
-		bool  IsKey (ushort type)		const override	{ return _IsKey( EInputType(type) ); }
-		bool  IsCursor1D (ushort type)	const override	{ return _IsCursor1D( EInputType(type) ); }
-		bool  IsCursor2D (ushort type)	const override	{ return _IsCursor2D( EInputType(type) ); }
+		bool  IsKey (ushort type)			const override	{ return _IsKey( EInputType(type) ); }
+		bool  IsKeyOrTouch (ushort type)	const override	{ return _IsKeyOrTouch( EInputType(type) ); }
+		bool  IsCursor1D (ushort type)		const override	{ return _IsCursor1D( EInputType(type) ); }
+		bool  IsCursor2D (ushort type)		const override	{ return _IsCursor2D( EInputType(type) ); }
 		
-		String  ToString () const override;
+		String  ToString ()					const override;
 
 	  #ifdef AE_ENABLE_SCRIPTING
 		bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc) override;
@@ -241,6 +239,7 @@ namespace AE::App
 
 	private:
 		ND_ static constexpr bool  _IsKey (EInputType type);
+		ND_ static constexpr bool  _IsKeyOrTouch (EInputType type);
 		ND_ static constexpr bool  _IsCursor1D (EInputType type);
 		ND_ static constexpr bool  _IsCursor2D (EInputType type);
 	};
@@ -251,18 +250,22 @@ namespace AE::App
 	_Is***
 =================================================
 */
-	forceinline constexpr bool  SerializableInputActionsWinAPI::_IsKey (EInputType type)
-	{
+	forceinline constexpr bool  SerializableInputActionsWinAPI::_IsKey (EInputType type) {
 		return	((type >= EInputType::MouseBegin) & (type <= EInputType::MouseEnd)) |
 				((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
 	}
+	
+	forceinline constexpr bool  SerializableInputActionsWinAPI::_IsKeyOrTouch (EInputType type) {
+		return _IsKey( type ) | (type == EInputType::TouchPos) | (type == EInputType::TouchPos_mm);
+	}
 
-	forceinline constexpr bool  SerializableInputActionsWinAPI::_IsCursor1D (EInputType type) {
-		return (type >= EInputType::Cursor1DBegin) & (type <= EInputType::Cursor1DEnd);
+	forceinline constexpr bool  SerializableInputActionsWinAPI::_IsCursor1D (EInputType) {
+		return false;
 	}
 
 	forceinline constexpr bool  SerializableInputActionsWinAPI::_IsCursor2D (EInputType type) {
-		return (type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd);
+		return	((type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd))	|
+				(type == EInputType::MultiTouch);
 	}
 
 

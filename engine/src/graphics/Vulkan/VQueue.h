@@ -3,13 +3,12 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/Queue.h"
 # include "graphics/Vulkan/VCommon.h"
 
 namespace AE::Graphics
 {
-	enum class EQueueFamily : uint
+	enum class VQueueFamily : uint
 	{
 		_Count		= VConfig::MaxQueues,
 		External	= VK_QUEUE_FAMILY_EXTERNAL,
@@ -35,7 +34,7 @@ namespace AE::Graphics
 														// TODO: AsyncMutex ?
 		VkQueue						handle				= Default;
 		EQueueType					type				= Default;
-		EQueueFamily				familyIndex			= Default;
+		VQueueFamily				familyIndex			= Default;
 		VkQueueFlagBits				familyFlags			= Zero;
 		uint						queueIndex			= UMax;
 		float						priority			= 0.0f;

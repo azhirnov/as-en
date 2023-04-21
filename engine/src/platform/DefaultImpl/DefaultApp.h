@@ -7,14 +7,17 @@
 #include "platform/DefaultImpl/IBaseApp.h"
 
 #if defined(AE_ENABLE_VULKAN)
-# include "graphics/Vulkan/VDevice.h"
-# include "VulkanSyncLog.h"
+#	include "graphics/Vulkan/VDevice.h"
+#	include "VulkanSyncLog.h"
 
 #elif defined(AE_ENABLE_METAL)
-# include "graphics/Metal/MDevice.h"
+#	include "graphics/Metal/MDevice.h"
+
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#	include "graphics/Remote/RDevice.h"
 
 #else
-# error not implemented
+#	error not implemented
 #endif
 
 
@@ -34,6 +37,9 @@ namespace AE::App
 
 	  #elif defined(AE_ENABLE_METAL)
 		Graphics::MDeviceInitializer	_metal;
+
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		Graphics::RDeviceInitializer	_remote;
 		
 	  #else
 	  #	error not implemented
@@ -41,6 +47,7 @@ namespace AE::App
 			
 		Array<WindowPtr>			_windows;
 		VRDevicePtr					_vrDevice;
+		RC<IBaseApp>				_impl;
 
 		const AppConfig				_config;
 		Threading::EThreadArray		_allowProcessInMain;
@@ -48,11 +55,12 @@ namespace AE::App
 
 	// methods
 	protected:
-		explicit DefaultAppListener (const AppConfig &)	__NE___;
+		explicit DefaultAppListener (const AppConfig &, RC<IBaseApp>)	__NE___;
 	public:
 		~DefaultAppListener ()							__NE_OV;
 
-		ND_ AppConfig const&  Config ()					C_NE___	{ return _config; }
+		ND_ AppConfig const&	Config ()				C_NE___	{ return _config; }
+		ND_ IBaseApp &			GetBaseApp ()			__NE___	{ return *_impl; }
 
 
 	// IAppListener //
@@ -64,7 +72,7 @@ namespace AE::App
 
 
 	protected:
-		ND_ bool  _OnStartImpl (RC<IBaseApp> impl, IApplication &app) __NE___;
+		ND_ bool  _OnStartImpl (IApplication &app)		__NE___;
 
 	private:
 	  #if defined(AE_ENABLE_VULKAN)
@@ -74,6 +82,10 @@ namespace AE::App
 	  #elif defined(AE_ENABLE_METAL)
 		bool  _CreateMetal (IApplication &app);
 		bool  _DestroyMetal ();
+
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		bool  _CreateRemoteGraphics (IApplication &app);
+		bool  _DestroyRemoteGraphics ();
 		
 	  #else
 	  #	error not implemented

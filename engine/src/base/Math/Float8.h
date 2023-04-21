@@ -278,6 +278,7 @@ namespace AE::Base
 	{
 		template <> struct _IsScalar< AE::Math::UFloat8 >		{ static constexpr bool  value = true; };
 		template <> struct _IsFloatPoint< AE::Math::UFloat8 >	{ static constexpr bool  value = true; };
+		template <> struct _IsSigned< AE::Math::UFloat8 >		{ static constexpr bool  value = false; };
 	}
 
 } // AE::Base

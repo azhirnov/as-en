@@ -7,10 +7,16 @@
 
 #pragma once
 
+#include "threading/Primitives/SpinLock.h"
+#include "threading/Primitives/Synchronized.h"
+
 #include "graphics/Public/CommandBuffer.h"
 
 namespace AE::Graphics
 {
+	using AE::Threading::RWSpinLock;
+	using AE::Threading::Synchronized;
+
 
 	//
 	// Shader Debugger
@@ -40,8 +46,8 @@ namespace AE::Graphics
 			DescriptorSetID		_ds;
 			ushort				_dsIndex	= UMax;
 			EResourceState		_state		= Default;
-			BufferID			_device;
-			BufferID			_host;
+			BufferID			_deviceBuf;
+			BufferID			_hostBuf;
 			Bytes				_offset;
 			Bytes				_size;
 			const void *		_ppln		= null;
@@ -49,7 +55,7 @@ namespace AE::Graphics
 			
 		// methods
 		public:
-			ND_ BufferID			Buffer ()	C_NE___	{ return _device; }
+			ND_ BufferID			Buffer ()	C_NE___	{ return _deviceBuf; }
 			ND_ Bytes				Offset ()	C_NE___	{ return _offset; }
 			ND_ Bytes				Size ()		C_NE___	{ return _size; }
 			ND_ DescriptorSetID		DescSet ()	C_NE___	{ return _ds; }
@@ -79,17 +85,15 @@ namespace AE::Graphics
 
 	// variables
 	private:
-		Array< Buffer >		_buffers;
-		Array< Result >		_pending;
-		DSArray_t			_dsArray;
+		Synchronized< RWSpinLock, Array< Buffer >>	_buffers;
+		Synchronized< RWSpinLock, Array< Result >>	_pending;
+		Synchronized< RWSpinLock, DSArray_t >		_dsArray;
 
-		GfxMemAllocatorPtr	_gfxAlloc;
+		AtomicRC< IGfxMemAllocator >				_gfxAlloc;
 
-		const Bytes			_blockSize;
+		const Bytes									_blockSize;
 		
-		DRC_ONLY(
-			RWDataRaceCheck	_drCheck;
-		)
+		DRC_ONLY( RWDataRaceCheck					_drCheck;)
 
 
 	// methods
@@ -120,6 +124,8 @@ namespace AE::Graphics
 
 		ND_ Promise<Array<String>>  Read (ITransferContext &ctx, const Result &request, ELogFormat format = Default)			__Th___;
 		ND_ Promise<Array<String>>  ReadAll (ITransferContext &ctx, ELogFormat format = Default)								__Th___;
+
+		ND_ bool  HasPendingRequests ()																							__NE___	{ return not _pending->empty(); }
 
 			void  Reset ()																										__Th___;
 

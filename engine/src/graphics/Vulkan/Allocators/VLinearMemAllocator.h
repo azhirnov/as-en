@@ -8,7 +8,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Vulkan/Allocators/VGfxMemAllocatorUtils.h"
 
@@ -32,9 +31,9 @@ namespace AE::Graphics
 			void*				mapped			= null;
 			uint				memTypeIndex	= UMax;
 
-			Page () {}
+			Page ()					__NE___	{}
 
-			Page (Page && other) :
+			Page (Page && other)	__NE___ :
 				memory{ other.memory },	capacity{ other.capacity }, size{ other.size },
 				mapped{ other.mapped }, memTypeIndex{ other.memTypeIndex }
 			{}
@@ -62,22 +61,24 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		explicit VLinearMemAllocator (Bytes pageSize = 0_b)									__NE___;
-		~VLinearMemAllocator ()																__NE_OV;
+		explicit VLinearMemAllocator (Bytes pageSize = 0_b)										__NE___;
+		~VLinearMemAllocator ()																	__NE_OV;
 		
-		void  SetPageSize (Bytes size);
-		void  Discard ();
+		void  SetPageSize (Bytes size)															__NE___;
+		void  Discard ()																		__NE___;
 
 	  // IGfxMemAllocator //
-		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)		__NE_OV;
-		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) __NE_OV;
+		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)			__NE_OV;
+		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)		__NE_OV;
+		bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &data)__NE_OV;
+		bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &data)	__NE_OV;
 
-		bool  Dealloc (INOUT Storage_t &data)												__NE_OV;
+		bool  Dealloc (INOUT Storage_t &data)													__NE_OV;
 			
-		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info)				C_NE_OV;
+		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info)					C_NE_OV;
 		
-		Bytes  MinAlignment ()																C_NE_OV	{ return 1_b; }
-		Bytes  MaxAllocationSize ()															C_NE_OV	{ return _pageSize; }
+		Bytes  MinAlignment ()																	C_NE_OV	{ return 1_b; }
+		Bytes  MaxAllocationSize ()																C_NE_OV	{ return _pageSize; }
 
 
 	private:

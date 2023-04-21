@@ -49,7 +49,7 @@ namespace AE::Threading
 		struct alignas(AE_CACHE_LINE) MemBlock
 		{
 			Atomic< void *>		mem		{null};
-			Atomic< usize >		size	{0};
+			Atomic< usize >		size	{0};			// <= _Capacity
 		};
 		using MemBlocks_t = StaticArray< MemBlock, MaxBlocks >;
 		
@@ -72,16 +72,21 @@ namespace AE::Threading
 		explicit LfLinearAllocator (const Allocator_t &alloc = Allocator_t{}) __NE___;
 		~LfLinearAllocator ()												__NE___	{ Release(); }
 
-		void  Release ()													__NE___;
-		void  Discard ()													__NE___;
+		
+		// must be externally synchronized
+			void   Release ()												__NE___;
+			void   Discard ()												__NE___;
+		ND_ Bytes  CurrentSize ()											C_NE___;
+
 		
 		template <typename T>
 		ND_ T*		Allocate (usize count = 1)								__NE___	{ return Cast<T>( Allocate( SizeAndAlignOf<T> * count )); }
 		ND_ void*	Allocate (Bytes size)									__NE___	{ return Allocate( SizeAndAlign{ size, DefaultAllocatorAlign }); }
 		ND_ void*	Allocate (const SizeAndAlign sizeAndAlign)				__NE___;
 
+		// only for debugging
 		void  Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)		__NE___;
-		void  Deallocate (void *ptr, const Bytes size)						__NE___	{ Deallocate( ptr, size, 1_b ); }
+		void  Deallocate (void *ptr, const Bytes size)						__NE___	{ Deallocate( ptr, SizeAndAlign{ size, 1_b }); }
 		void  Deallocate (void *ptr)										__NE___	{ Unused( ptr ); }
 
 		

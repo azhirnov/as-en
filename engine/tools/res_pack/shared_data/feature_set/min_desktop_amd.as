@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	// include:
 	//	AMD Radeon RX 5700 XT driver 2.0.213 on Windows 10
@@ -153,6 +154,8 @@ void main ()
 	fset.geometryShader (True);
 	fset.tessellationShader (True);
 	fset.computeShader (True);
+	fset.vertexDivisor (True);
+	fset.minVertexAttribDivisor (4294967295);
 	fset.minVertexAttributes (32);
 	fset.minVertexBuffers (32);
 	fset.AddVertexFormats({
@@ -266,6 +269,7 @@ void main ()
 	fset.samplerFilterMinmax (True);
 	fset.filterMinmaxImageComponentMapping (True);
 	fset.samplerMipLodBias (True);
+	fset.samplerYcbcrConversion (True);
 	fset.minSamplerAnisotropy (16.00);
 	fset.minSamplerLodBias (16.00);
 	fset.framebufferColorSampleCounts({ 1, 2, 4, 8 });

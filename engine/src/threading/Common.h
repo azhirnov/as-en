@@ -11,7 +11,7 @@
 #include "base/Utils/Threading.h"
 #include "base/Utils/RefCounter.h"
 
-#if not defined(AE_ENABLE_DATA_RACE_CHECK) and (defined(AE_DBG_OR_DEV) or defined(AE_CI_BUILD))
+#if not defined(AE_ENABLE_DATA_RACE_CHECK) and (defined(AE_DEBUG) or defined(AE_CI_BUILD))
 #	define AE_ENABLE_DATA_RACE_CHECK	1
 #else
 #	define AE_ENABLE_DATA_RACE_CHECK	0

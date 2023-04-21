@@ -5,7 +5,6 @@
 #include "graphics/Public/ResourceManager.h"
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Metal/Allocators/MGfxMemAllocatorUtils.h"
 
 namespace AE::Graphics

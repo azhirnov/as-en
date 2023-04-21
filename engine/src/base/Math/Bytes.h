@@ -30,8 +30,8 @@ namespace AE::Math
 			constexpr SizeAndAlign ()								__NE___	{}
 			constexpr SizeAndAlign (const SizeAndAlign &)			__NE___	= default;
 			
-			template <typename B>
-			constexpr explicit SizeAndAlign (B inSize, B inAlign)	__NE___	: size{inSize}, align{inAlign} {}
+			template <typename B1, typename B2>
+			constexpr explicit SizeAndAlign (B1 inSize, B2 inAlign)	__NE___	: size{inSize}, align{inAlign} {}
 
 			template <typename B>
 			constexpr explicit SizeAndAlign (const B &other)		__NE___	: size{other.size}, align{other.align} {}

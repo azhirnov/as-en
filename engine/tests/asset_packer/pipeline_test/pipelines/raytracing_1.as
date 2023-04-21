@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	if ( !IsVulkan() )	// TODO
 		return;

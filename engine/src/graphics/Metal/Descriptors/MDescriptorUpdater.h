@@ -35,36 +35,46 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		MDescriptorUpdater ()																										__NE___;
-		~MDescriptorUpdater ()																										__NE_OV;
+		MDescriptorUpdater ()																															__NE___;
+		~MDescriptorUpdater ()																															__NE_OV;
 		
-		bool  Set (DescriptorSetID descrSetId, EDescUpdateMode mode)																__NE_OV;
-		bool  Flush ()																												__NE_OV;
+		bool  Set (DescriptorSetID descrSetId, EDescUpdateMode mode)																					__NE_OV;
+		bool  Flush ()																																	__NE_OV;
 
-		bool  BindImage  (const UniformName &name, ImageViewID image, uint elementIndex = 0)										__NE_OV;
-		bool  BindImages (const UniformName &name, ArrayView<ImageViewID> images, uint firstIndex = 0)								__NE_OV;
-		uint  ImageCount (const UniformName &name)																					C_NE_OV;
 
-		bool  BindTexture  (const UniformName &name, ImageViewID image, const SamplerName &sampler, uint elementIndex = 0)			__NE_OV;
-		bool  BindTextures (const UniformName &name, ArrayView<ImageViewID> images, const SamplerName &sampler, uint firstIndex = 0)__NE_OV;
-		uint  TextureCount (const UniformName &name)																				C_NE_OV;
+		bool  BindImage  (const UniformName &name, ImageViewID image, uint elementIndex = 0)															__NE_OV;
+		bool  BindImages (const UniformName &name, ArrayView<ImageViewID> images, uint firstIndex = 0)													__NE_OV;
+		uint  ImageCount (const UniformName &name)																										C_NE_OV;
+		
+		bool  BindVideoImage (const UniformName &name, VideoImageID image, uint elementIndex = 0)														__NE_OV;
 
-		bool  BindSampler  (const UniformName &name, const SamplerName &sampler, uint elementIndex = 0)								__NE_OV;
-		bool  BindSamplers (const UniformName &name, ArrayView<SamplerName> samplers, uint firstIndex = 0)							__NE_OV;
-		uint  SamplerCount (const UniformName &name)																				C_NE_OV;
 
-		bool  BindBuffer  (const UniformName &name, BufferID buffer, uint elementIndex = 0)											__NE_OV;
-		bool  BindBuffer  (const UniformName &name, BufferID buffer, Bytes offset, Bytes size, uint elementIndex = 0)				__NE_OV;
-		bool  BindBuffers (const UniformName &name, ArrayView<BufferID> buffers, uint firstIndex = 0)								__NE_OV;
-		uint  BufferCount (const UniformName &name)																					C_NE_OV;
+		bool  BindTexture  (const UniformName &name, ImageViewID image, const SamplerName &sampler, uint elementIndex = 0)								__NE_OV;
+		bool  BindTextures (const UniformName &name, ArrayView<ImageViewID> images, const SamplerName &sampler, uint firstIndex = 0)					__NE_OV;
+		uint  TextureCount (const UniformName &name)																									C_NE_OV;
 
-		bool  BindTexelBuffer  (const UniformName &name, BufferViewID view, uint elementIndex = 0)									__NE_OV;
-		bool  BindTexelBuffers (const UniformName &name, ArrayView<BufferViewID> views, uint firstIndex = 0)						__NE_OV;
-		uint  TexelBufferCount (const UniformName &name)																			C_NE_OV;
 
-		bool  BindRayTracingScene (const UniformName &name, RTSceneID scene, uint elementIndex = 0)									__NE_OV;
-		bool  BindRayTracingScenes (const UniformName &name, ArrayView<RTSceneID> scenes, uint firstIndex = 0)						__NE_OV;
-		uint  RayTracingSceneCount (const UniformName &name)																		C_NE_OV;
+		bool  BindSampler  (const UniformName &name, const SamplerName &sampler, uint elementIndex = 0)													__NE_OV;
+		bool  BindSamplers (const UniformName &name, ArrayView<SamplerName> samplers, uint firstIndex = 0)												__NE_OV;
+		uint  SamplerCount (const UniformName &name)																									C_NE_OV;
+
+
+		bool  BindBuffer  (const UniformName &name, const ShaderStructName &typeName, BufferID buffer, uint elementIndex = 0)							__NE_OV;
+		bool  BindBuffer  (const UniformName &name, const ShaderStructName &typeName, BufferID buffer, Bytes offset, Bytes size, uint elementIndex = 0)	__NE_OV;
+		bool  BindBuffers (const UniformName &name, const ShaderStructName &typeName, ArrayView<BufferID> buffers, uint firstIndex = 0)					__NE_OV;
+		uint  BufferCount (const UniformName &name)																										C_NE_OV;
+		
+		ShaderStructName  GetBufferStructName (const UniformName &name)																					C_NE_OV;
+
+
+		bool  BindTexelBuffer  (const UniformName &name, BufferViewID view, uint elementIndex = 0)														__NE_OV;
+		bool  BindTexelBuffers (const UniformName &name, ArrayView<BufferViewID> views, uint firstIndex = 0)											__NE_OV;
+		uint  TexelBufferCount (const UniformName &name)																								C_NE_OV;
+
+
+		bool  BindRayTracingScene (const UniformName &name, RTSceneID scene, uint elementIndex = 0)														__NE_OV;
+		bool  BindRayTracingScenes (const UniformName &name, ArrayView<RTSceneID> scenes, uint firstIndex = 0)											__NE_OV;
+		uint  RayTracingSceneCount (const UniformName &name)																							C_NE_OV;
 
 		
 	private:

@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	RC<ShaderStructType>	st = ShaderStructType( "Vertex_draw2" );
 	st.Set( "packed_float2		Position;" +

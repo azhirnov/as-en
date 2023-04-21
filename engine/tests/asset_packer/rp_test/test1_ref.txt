@@ -9,7 +9,7 @@ Subpasses {
       [0] AnyColor, 'out_Color'
     }
 }
-FeatureSets = { 'MinimalFS', 'part.Swapchain_RGBA8_UNorm' }
+FeatureSets = { 'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear' }
 name               = --
 ci.pNext           = null
 ci.flags           = 0
@@ -231,6 +231,90 @@ ci.pDependencies   = {
 }
 =========================================================================
 
+Name:  'UIRenderPass'
+Attachments {
+  [0] 'Color'
+}
+Subpasses {
+  [0] 'Main'
+    colorAttachments = {
+      [0] AnyColor, 'out_Color'
+    }
+}
+FeatureSets = { 'MinimalFS' }
+name               = --
+ci.pNext           = null
+ci.flags           = 0
+ci.attachmentCount = 1
+ci.pAttachments    = {
+  [0].pNext          = null
+  [0].flags          = 0
+  [0].format         = SwapchainColor
+  [0].samples        = 1
+  [0].loadOp         = DONT_CARE
+  [0].storeOp        = DONT_CARE
+  [0].stencilLoadOp  = DONT_CARE
+  [0].stencilStoreOp = DONT_CARE
+  [0].initialLayout  = GENERAL  (Unknown)
+  [0].finalLayout    = GENERAL  (Unknown)
+}
+ci.subpassCount = 1
+ci.pSubpasses   = {
+  [0].pNext                = null
+  [0].flags                = 0
+  [0].pipelineBindPoint    = GRAPHICS
+  [0].viewMask             = 0
+  [0].inputAttachmentCount = 0
+  [0].colorAttachmentCount = 1
+  [0].pColorAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 0
+    [0].layout     = GENERAL
+    [0].aspectMask = 0
+  }
+  [0].pDepthStencilAttachment = {}
+  [0].preserveAttachmentCount = 0
+}
+ci.dependencyCount = 0
+=========================================================================
+
+
+name               = 'UIRenderPass.def'
+ci.pNext           = null
+ci.flags           = 0
+ci.attachmentCount = 1
+ci.pAttachments    = {
+  [0].pNext          = null
+  [0].flags          = 0
+  [0].format         = SwapchainColor
+  [0].samples        = 1
+  [0].loadOp         = CLEAR
+  [0].storeOp        = STORE
+  [0].stencilLoadOp  = DONT_CARE
+  [0].stencilStoreOp = DONT_CARE
+  [0].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment_RW)
+  [0].finalLayout    = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment_RW)
+}
+ci.subpassCount = 1
+ci.pSubpasses   = {
+  [0].pNext                = null
+  [0].flags                = 0
+  [0].pipelineBindPoint    = GRAPHICS
+  [0].viewMask             = 0
+  [0].inputAttachmentCount = 0
+  [0].colorAttachmentCount = 1
+  [0].pColorAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 0
+    [0].layout     = COLOR_ATTACHMENT_OPTIMAL
+    [0].aspectMask = 0
+  }
+  [0].pDepthStencilAttachment = {}
+  [0].preserveAttachmentCount = 0
+}
+ci.dependencyCount = 0
+=========================================================================
+
 Name:  'Multipass'
 Attachments {
   [0] 'Color'
@@ -267,7 +351,7 @@ Subpasses {
       [0] UNorm, 'in_GBuffer_Color'
     }
 }
-FeatureSets = { 'MinimalFS', 'part.Swapchain_RGBA8_sRGB' }
+FeatureSets = { 'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear' }
 name               = --
 ci.pNext           = null
 ci.flags           = 0

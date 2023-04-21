@@ -7,6 +7,7 @@
 # include "base/Utils/SourceLoc.h"
 # include "base/Utils/Version.h"
 # include "base/Utils/Threading.h"
+# include "base/Platforms/CPUInfo.h"
 
 namespace AE::Base
 {
@@ -34,8 +35,8 @@ namespace AE::Base
 	// functions
 
 		// Errors //
-		ND_ static uint  GetErrorCode ()									__NE___;
-		ND_ static uint  GetNetworkErrorCode ()								__NE___;
+		ND_ static uint  GetErrorCode ()													__NE___;
+		ND_ static uint  GetNetworkErrorCode ()												__NE___;
 
 			static bool  CheckError (StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)					__NE___;
 			static bool  CheckError (uint err, StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)		__NE___;
@@ -45,39 +46,54 @@ namespace AE::Base
 
 
 		// Memory //
-		ND_ static MemoryPageInfo	GetMemoryPageInfo ()					__NE___;
-		ND_ static MemorySize		GetPhysicalMemorySize ()				__NE___;
-		ND_ static MemorySize		GetVirtualMemorySize ()					__NE___;
+		ND_ static MemoryPageInfo	GetMemoryPageInfo ()									__NE___;
+		ND_ static MemorySize		GetPhysicalMemorySize ()								__NE___;
+		ND_ static MemorySize		GetVirtualMemorySize ()									__NE___;
 		
 
 		// Thread //
-			static bool		NanoSleep (nanoseconds relativeTime)			__NE___;
-			static bool		WaitIO (milliseconds relativeTime)				__NE___;
+			static bool		NanoSleep (nanoseconds relativeTime)							__NE___;
+			static bool		WaitIO (milliseconds relativeTime)								__NE___;
 
-			static bool		GetTimerResolution (OUT nanoseconds &period)	__NE___;
-			static bool		SetTimerResolution (milliseconds period)		__NE___;
+			static bool		GetTimerResolution (OUT nanoseconds &period)					__NE___;
+			static bool		SetTimerResolution (milliseconds period)						__NE___;
 
-			static void		SetThreadName (NtStringView name)				__NE___;
-		ND_ static String	GetThreadName ();
+		ND_ static ThreadHandle  GetCurrentThreadHandle ()									__NE___;
+
+			static void		SetCurrentThreadName (NtStringView name)						__NE___;
+		ND_ static String	GetCurrentThreadName ()											__Th___;
 
 			static bool		SetThreadAffinity (const ThreadHandle &handle, uint coreIdx)	__NE___;
 			static bool		SetThreadPriority (const ThreadHandle &handle, float priority)	__NE___;
 			
-		ND_	static uint		GetProcessorCoreIndex ()						__NE___;	// current logical CPU core
+			static bool		SetCurrentThreadAffinity (uint coreIdx)							__NE___;
+			static bool		SetCurrentThreadPriority (float priority)						__NE___;
+
+		ND_	static uint		GetProcessorCoreIndex ()										__NE___;	// current logical CPU core
 		
-			static bool		ThreadYield ()									__NE___;
-			static void		ThreadPause ()									__NE___;
+			static bool		ThreadYield ()													__NE___;
+			static void		ThreadPause ()													__NE___;
 			
 
 		// OS //
-		ND_ static Version3	GetOSVersion ()									__NE___;
+		ND_ static Version3		GetOSVersion ()												__NE___;
+		
+		#ifdef AE_RELEASE
+		ND_ static StringView	GetOSName ()												__NE___	{ return "Windows"; }
+		#else
+		ND_ static String		GetOSName ()												__NE___;
+		#endif
+
+
+		// Locale //
+			static bool  GetLocales (OUT Array<String> &)									__NE___;
 
 
 		// Clipboard //
-		ND_ static bool		ClipboardExtract (OUT WString &result, void* wnd = null)	__NE___;
-		ND_ static bool		ClipboardExtract (OUT String &result, void* wnd = null)		__NE___;
-		ND_ static bool		ClipboardPut (WStringView str, void* wnd = null)			__NE___;
-		ND_ static bool		ClipboardPut (StringView str, void* wnd = null)				__NE___;
+		ND_ static bool		ClipboardExtract (OUT WString &result, void* wnd = null)		__NE___;
+		ND_ static bool		ClipboardExtract (OUT String &result, void* wnd = null)			__NE___;
+		ND_ static bool		ClipboardPut (WStringView str, void* wnd = null)				__NE___;
+		ND_ static bool		ClipboardPut (StringView str, void* wnd = null)					__NE___;
 
 
 	private:
@@ -91,7 +107,7 @@ namespace AE::Base
 } // AE::Base
 
 
-#ifdef AE_DBG_OR_DEV
+#ifdef AE_DEBUG
 #	define WIN_CHECK_DEV( _msg_ ) \
 		AE::Base::WindowsUtils::CheckError( (_msg_), SourceLoc_Current(), AE::ELogLevel::Debug )
 

@@ -9,11 +9,13 @@ namespace
 	{
 		LocalSocketMngr	mngr;
 
-		const char	send_data[] = "12346ewiofdklijnskdn";
+		const char	send_data1[] = "12346ewiofdklijnskdn";
+		const char	send_data2[] = "woihfdifkhjnwopefjseoivnj";
+		const Bytes	send_data_size = Sizeof(send_data1) + Sizeof(send_data2);
 
-		TcpSocket	sock2;
-		TEST( sock2.Listen( 4000 ));
-		TEST( sock2.IsOpen() );
+		TcpSocket	server;
+		TEST( server.Listen( 4000 ));
+		TEST( server.IsOpen() );
 
 		StdThread	listener{ [&] ()
 			{
@@ -25,39 +27,57 @@ namespace
 					char		buf[128];
 
 					TcpSocket	client;
-					if ( client.Accept( sock2, OUT addr ))
+					if ( client.Accept( server, OUT addr ))
 					{
-						AE_LOGI( "Connected to "s << addr.ToString() );
+						AE_LOGI( "TCP: connected to "s << addr.ToString() );
 
-						if ( client.Receive( buf, Sizeof(buf), OUT recv ) and recv > 0 )
+						if ( client.Receive( OUT buf, Sizeof(buf), OUT recv ) and recv > 0 )
 						{
 							recv_data.insert( recv_data.end(), buf, buf + recv );
 
-							AE_LOGI( "Received "s << ToString(recv) );
+							AE_LOGI( "TCP: received "s << ToString(recv) );
+
+							Bytes	sent;
+							if ( not client.Send( buf, recv, OUT sent ) or sent != recv )
+							{
+								AE_LOGI( "TCP: failed to send back" );
+							}
 						}
 					}
 					
-					if ( recv_data.size() >= sizeof(send_data) )
+					if ( ArraySizeOf(recv_data) >= send_data_size )
 						break;
 
 					ThreadUtils::Sleep( milliseconds{100} );
 				}
 
-				TEST( sizeof(send_data) == recv_data.size() );
-				TEST( ArrayView<char>{send_data} == recv_data );
+				TEST( ArraySizeOf(recv_data) >= send_data_size );
+				TEST( ArrayView<char>{send_data1} == ArrayView<char>{recv_data}.section( 0, CountOf(send_data1) ));
+				TEST( ArrayView<char>{send_data2} == ArrayView<char>{recv_data}.section( CountOf(send_data1), CountOf(send_data2) ));
 			}};
 
-		TcpSocket	sock1;
-		TEST( sock1.Connect( IpAddress::FromHostPortTCP( "localhost", 4000 ) ));
-		TEST( sock1.IsOpen() );
+		TcpSocket	client;
+		TEST( client.Connect( IpAddress::FromHostPortTCP( "localhost", 4000 ) ));
+		TEST( client.IsOpen() );
 
 		Bytes	sent;
-		TEST( sock1.Send( send_data, Sizeof(send_data), OUT sent ));
-		TEST( sent == Sizeof(send_data) );
+		TEST( client.Send( send_data1, Sizeof(send_data1), OUT sent ));
+		TEST( sent == Sizeof(send_data1) );
+		
+		TEST( client.Send( send_data2, Sizeof(send_data2), OUT sent ));
+		TEST( sent == Sizeof(send_data2) );
+
+		Bytes	recv;
+		char	buf[128];
+		for (; client.Receive( OUT buf, Sizeof(buf), OUT recv ) and recv == 0;) {}
+
+		TEST( recv == send_data_size );
+		TEST( ArrayView<char>{send_data1} == ArrayView<char>{buf}.section( 0, CountOf(send_data1) ));
+		TEST( ArrayView<char>{send_data2} == ArrayView<char>{buf}.section( CountOf(send_data1), CountOf(send_data2) ));
 
 		listener.join();
 
-		sock1.Close();
+		client.Close();
 	}
 }
 

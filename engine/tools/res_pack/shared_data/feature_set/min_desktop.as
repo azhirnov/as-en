@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	// include:
 	//	Intel(R) UHD Graphics 620.json

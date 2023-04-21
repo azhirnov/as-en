@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	// include:
 	//	NVIDIA GeForce RTX 2080.json
@@ -155,6 +156,7 @@ void main ()
 	fset.geometryShader (True);
 	fset.tessellationShader (True);
 	fset.computeShader (True);
+	fset.vertexDivisor (True);
 	fset.minVertexAttributes (32);
 	fset.minVertexBuffers (32);
 	fset.AddVertexFormats({
@@ -264,11 +266,21 @@ void main ()
 		EPixelFormat::BC1_RGB8_UNorm, EPixelFormat::BC1_sRGB8, EPixelFormat::BC1_RGB8_A1_UNorm, EPixelFormat::BC1_sRGB8_A1, 
 		EPixelFormat::BC2_RGBA8_UNorm, EPixelFormat::BC2_sRGB8, EPixelFormat::BC3_RGBA8_UNorm, EPixelFormat::BC3_sRGB8, 
 		EPixelFormat::BC4_R8_SNorm, EPixelFormat::BC4_R8_UNorm, EPixelFormat::BC5_RG8_SNorm, EPixelFormat::BC5_RG8_UNorm, 
-		EPixelFormat::BC6H_RGB16F, EPixelFormat::BC6H_RGB16UF, EPixelFormat::BC7_RGBA8_UNorm, EPixelFormat::BC7_sRGB8_A8
+		EPixelFormat::BC6H_RGB16F, EPixelFormat::BC6H_RGB16UF, EPixelFormat::BC7_RGBA8_UNorm, EPixelFormat::BC7_sRGB8_A8, 
+		EPixelFormat::G8B8G8R8_422_UNorm, EPixelFormat::B8G8R8G8_422_UNorm, EPixelFormat::G8_B8R8_420_UNorm, EPixelFormat::G8_B8R8_422_UNorm, 
+		EPixelFormat::G8_B8_R8_420_UNorm, EPixelFormat::G8_B8_R8_422_UNorm, EPixelFormat::G8_B8_R8_444_UNorm, EPixelFormat::B10x6G10x6R10x6G10x6_422_UNorm, 
+		EPixelFormat::G10x6B10x6G10x6R10x6_422_UNorm, EPixelFormat::G10x6_B10x6R10x6_420_UNorm, EPixelFormat::G10x6_B10x6R10x6_422_UNorm, EPixelFormat::G10x6_B10x6_R10x6_420_UNorm, 
+		EPixelFormat::G10x6_B10x6_R10x6_422_UNorm, EPixelFormat::G10x6_B10x6_R10x6_444_UNorm, EPixelFormat::R10x6G10x6B10x6A10x6_UNorm, EPixelFormat::R10x6G10x6_UNorm, 
+		EPixelFormat::R10x6_UNorm, EPixelFormat::B12x4G12x4R12x4G12x4_422_UNorm, EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm, EPixelFormat::G12x4_B12x4R12x4_420_UNorm, 
+		EPixelFormat::G12x4_B12x4R12x4_422_UNorm, EPixelFormat::G12x4_B12x4_R12x4_420_UNorm, EPixelFormat::G12x4_B12x4_R12x4_422_UNorm, EPixelFormat::G12x4_B12x4_R12x4_444_UNorm, 
+		EPixelFormat::R12x4G12x4B12x4A12x4_UNorm, EPixelFormat::R12x4G12x4_UNorm, EPixelFormat::R12x4_UNorm, EPixelFormat::B16G16R16G16_422_UNorm, 
+		EPixelFormat::G16B16G16R16_422_UNorm, EPixelFormat::G16_B16R16_420_UNorm, EPixelFormat::G16_B16R16_422_UNorm, EPixelFormat::G16_B16_R16_420_UNorm, 
+		EPixelFormat::G16_B16_R16_422_UNorm
 	});
 	fset.samplerAnisotropy (True);
 	fset.samplerMirrorClampToEdge (True);
 	fset.samplerMipLodBias (True);
+	fset.samplerYcbcrConversion (True);
 	fset.minSamplerAnisotropy (16.00);
 	fset.minSamplerLodBias (15.00);
 	fset.framebufferColorSampleCounts({ 1, 2, 4, 8 });

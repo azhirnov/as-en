@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Vulkan/VResourceManager.h"
 # include "graphics/Vulkan/Commands/VCommandPoolManager.h"
 # include "graphics/Vulkan/Commands/VCommandBatch.h"
@@ -63,6 +62,7 @@ namespace AE::Graphics::_hidden_
 		ND_ EQueueType				GetQueueType ()						C_NE___	{ return _batch.GetQueueType(); }
 		ND_ VQueuePtr				GetQueue ()							C_NE___	{ return GetDevice().GetQueue( GetQueueType() ); }
 		ND_ RenderTask const&		GetRenderTask ()					C_NE___	{ ASSERT( _task != null );  return *_task; }
+		ND_ bool					IsFirstInQueue ()					C_NE___	{ return GetBatch().GetSubmitIndex() == 0 and GetRenderTask().IsFirstInBatch(); }
 		
 		DBG_GRAPHICS_ONLY(
 			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
@@ -205,6 +205,9 @@ namespace AE::Graphics::_hidden_
 		void  DebugMarker (DebugLabel dbg)																						 __Th_OV { RawCtx::_DebugMarker( dbg ); } \
 		void  PushDebugGroup (DebugLabel dbg)																					 __Th_OV { RawCtx::_PushDebugGroup( dbg ); } \
 		void  PopDebugGroup ()																									 __Th_OV { RawCtx::_PopDebugGroup(); } \
+		\
+		template <usize I, usize G, uint U>  ND_ auto const&  GetResourceDescription (HandleTmpl<I,G,U> id)						 C_NE___ { return this->_mngr.GetResourceManager().GetDescription( id ); } \
+		template <usize I, usize G, uint U>  ND_ auto const&  GetResourceDescription (Strong<HandleTmpl<I,G,U>> &id)			 C_NE___ { return GetResourceDescription( id.Get() ); } \
 		\
 	private: \
 		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)										 __Th___ { return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \

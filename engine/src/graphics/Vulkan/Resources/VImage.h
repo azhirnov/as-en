@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/ImageDesc.h"
 # include "graphics/Public/EResourceState.h"
 # include "graphics/Public/IDs.h"
@@ -26,7 +25,7 @@ namespace AE::Graphics
 		
 		VkImageAspectFlagBits	_aspectMask		= Zero;
 		
-		Strong<VMemoryID>		_memoryId;
+		Strong<MemoryID>		_memoryId;
 		
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
@@ -37,14 +36,14 @@ namespace AE::Graphics
 		VImage ()											__NE___	{}
 		~VImage ()											__NE___;
 
-		ND_ bool  Create (VResourceManager &, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
-		ND_ bool  Create (const VResourceManager &dev, const VulkanImageDesc &desc, StringView dbgName)					__NE___;
-			void  Destroy (VResourceManager &)																			__NE___;
+		ND_ bool  Create (VResourceManager &, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)			__NE___;
+		ND_ bool  Create (VResourceManager &dev, const VulkanImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+			void  Destroy (VResourceManager &)																					__NE___;
 
 		ND_ VulkanImageDesc		GetNativeDescription ()		C_NE___;
 
 		ND_ VkImage				Handle ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _image; }
-		ND_ VMemoryID			MemoryID ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ MemoryID			MemoryID ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 		ND_ ImageDesc const&	Description ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 		ND_ VkImageAspectFlags	AspectMask ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _aspectMask; }
 

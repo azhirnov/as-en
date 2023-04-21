@@ -6,6 +6,7 @@
 #include "base/Math/POTValue.h"
 #include "base/Memory/UntypedAllocator.h"
 #include "base/Utils/Helpers.h"
+#include "base/Utils/RestrictPtr.h"
 
 namespace AE::Base
 {
@@ -92,9 +93,9 @@ namespace AE::Base
 
 	// variables
 	private:
-		void * RST	_ptr	= null;
-		usize		_size	: 28;
-		usize		_align	: 4;
+		RstPtr<void>	_ptr;
+		usize			_size	: 28;
+		usize			_align	: 4;
 
 
 	// methods
@@ -105,15 +106,15 @@ namespace AE::Base
 
 		~DynUntypedStorage ()							__NE___ { Dealloc(); }
 
-		ND_ Bytes			Size ()						C_NE___	{ return Bytes{_size}; }
-		ND_ POTBytes		AlignPOT ()					C_NE___	{ return POTBytes{PowerOfTwo( _align )}; }
-		ND_ Bytes			Align ()					C_NE___	{ return Bytes{ AlignPOT() }; }
+		ND_ Bytes				Size ()					C_NE___	{ return Bytes{_size}; }
+		ND_ POTBytes			AlignPOT ()				C_NE___	{ return POTBytes{PowerOfTwo( _align )}; }
+		ND_ Bytes				Align ()				C_NE___	{ return Bytes{ AlignPOT() }; }
+		ND_ bool				Empty ()				C_NE___	{ return _ptr == null; }
 		
-		NDRST(void * )		Data ()						__NE___	{ return _ptr; }
-		NDRST(const void*)	Data ()						C_NE___	{ return _ptr; }
+		ND_ RstPtr<void>		Data ()					__NE___	{ return _ptr; }
+		ND_ RstPtr<const void>	Data ()					C_NE___	{ return RstPtr<const void>{ _ptr.get() }; }
 
-
-		ND_ explicit operator bool ()					C_NE___	{ return _ptr != null; }
+		ND_ explicit operator bool ()					C_NE___	{ return not Empty(); }
 
 
 		bool  Alloc (const SizeAndAlign sizeAndAlign)	__NE___
@@ -126,14 +127,14 @@ namespace AE::Base
 			ASSERT( Size() == sizeAndAlign.size );
 			ASSERT( Align() == sizeAndAlign.align );
 
-			_ptr = Allocator_t::Allocate( sizeAndAlign );
-			return _ptr != null;
+			_ptr = RstPtr<void>{ Allocator_t::Allocate( sizeAndAlign )};
+			return _ptr;
 		}
 
 		void  Dealloc ()								__NE___
 		{
-			if ( _ptr != null )
-				Allocator_t::Deallocate( _ptr, SizeAndAlign{ Size(), Align() });
+			if ( _ptr )
+				Allocator_t::Deallocate( _ptr.get(), SizeAndAlign{ Size(), Align() });
 
 			_ptr	= null;
 			_size	= 0;
@@ -145,14 +146,27 @@ namespace AE::Base
 		ND_ T*  Ptr (Bytes offset = 0_b)				__NE___
 		{
 			ASSERT( SizeOf<T> + offset <= Size() );
-			return Base::Cast<T>( _ptr + offset );
+			return Base::Cast<T>( _ptr.get() + offset );
 		}
 
 		template <typename T>
 		ND_ T const*  Ptr (Bytes offset = 0_b)			C_NE___
 		{
 			ASSERT( SizeOf<T> + offset <= Size() );
-			return Base::Cast<T>( _ptr + offset );
+			return Base::Cast<T>( _ptr.get() + offset );
+		}
+
+
+		ND_ void*  Ptr (Bytes offset = 0_b)				__NE___
+		{
+			ASSERT( offset <= Size() );
+			return _ptr.get() + offset;
+		}
+
+		ND_ void const*  Ptr (Bytes offset = 0_b)		C_NE___
+		{
+			ASSERT( offset <= Size() );
+			return _ptr.get() + offset;
 		}
 
 		template <typename T>

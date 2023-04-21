@@ -42,7 +42,7 @@ namespace AE::Graphics
 
 
 		// default types
-	#define AE_VERTEXTYPE_LIST( _visitor_ ) \
+	#define AE_VERTEXTYPE_LIST( _visitor_ )\
 		_visitor_( Byte,				_Byte )\
 		_visitor_( Byte2,				_Byte | _Vec2 )\
 		_visitor_( Byte3,				_Byte | _Vec3 )\

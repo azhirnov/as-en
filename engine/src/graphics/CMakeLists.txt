@@ -1,4 +1,4 @@
-if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL})
+if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
 
 	file( GLOB_RECURSE PRIVATE_SOURCES "Private/*.*" )
 	file( GLOB_RECURSE PUBLIC_SOURCES "Public/*.*" )
@@ -12,9 +12,12 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL})
 		message( FATAL_ERROR "AE_ENABLE_METAL must be enabled" )
 	endif()
 
-	if (${AE_ENABLE_METAL} OR MSVC)
+	if (${AE_ENABLE_METAL} OR (MSVC AND NOT ${AE_ENABLE_REMOTE_GRAPHICS}))
 		file( GLOB_RECURSE METAL_CPP_SOURCES "Metal/*.h" "Metal/*.cpp" )
 		file( GLOB_RECURSE METAL_OBJC_SOURCES "Metal/*.mm" )
+	endif()
+	if (MSVC OR ${AE_ENABLE_REMOTE_GRAPHICS})
+		file( GLOB_RECURSE REMOTE_SOURCES "Remote/*.h" "Remote/*.cpp" )
 	endif()
 
 	set( PIPELINE_COMPILER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/pipeline_compiler" )
@@ -44,6 +47,7 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL})
 		${PRIVATE_SOURCES} ${PUBLIC_SOURCES} ${RG_SOURCES} ${SCRIPTING_SOURCES}
 		${VULKAN_SOURCES}
 		${METAL_CPP_SOURCES} ${METAL_OBJC_SOURCES}
+		${REMOTE_SOURCES}
 	)
 
 	add_library( "Graphics" STATIC ${SOURCES} ${PIPELINE_COMPILER_SRC} ${SHADER_TRACE_SRC} )
@@ -74,6 +78,15 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL})
 		else()
 			set_source_files_properties( ${METAL_OBJC_SOURCES} PROPERTIES HEADER_FILE_ONLY TRUE )
 		endif()
+	endif()
+
+	if (${AE_ENABLE_REMOTE_GRAPHICS})
+		target_link_libraries( "Graphics" PUBLIC "Networking" )
+		target_compile_definitions( "Graphics" PRIVATE AE_ENABLE_REMOTE_GRAPHICS )
+	endif()
+
+	if (WIN32)
+		target_link_libraries( "Graphics" PUBLIC "NVPerf-lib" )
 	endif()
 
 	install( TARGETS "Graphics" ARCHIVE DESTINATION "lib" )

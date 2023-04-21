@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Metal/MResourceManager.h"
 # include "graphics/Metal/MRenderTaskScheduler.h"
 
@@ -153,6 +152,10 @@ namespace AE::Graphics::_hidden_
 		void  DebugMarker (DebugLabel dbg)																							__Th_OV	{ RawCtx::_DebugMarker( dbg ); } \
 		void  PushDebugGroup (DebugLabel dbg)																						__Th_OV	{ RawCtx::_PushDebugGroup( dbg ); } \
 		void  PopDebugGroup ()																										__Th_OV	{ RawCtx::_PopDebugGroup(); } \
+		\
+		template <usize I, usize G, uint U>  ND_ auto const&  GetResourceDescription (HandleTmpl<I,G,U> id)							C_NE___ { return this->_mngr.GetResourceManager().GetDescription( id ); } \
+		template <usize I, usize G, uint U>  ND_ auto const&  GetResourceDescription (Strong<HandleTmpl<I,G,U>> &id)				C_NE___ { return GetResourceDescription( id.Get() ); } \
+		\
 	private: \
 		friend class MBoundDescriptorSets; \
 		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)											__Th___ { return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \

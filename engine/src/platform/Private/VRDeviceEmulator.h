@@ -46,11 +46,11 @@ namespace AE::App
 			bool			GetTargets (OUT RenderTargets_t &targets)														C_NE_OV;
 			AsyncTask		End (ArrayView<AsyncTask> deps)																	__NE_OV;
 
-			AllImages_t		GetAllImages ()																					C_NE_OV;
-			TargetSizes_t	GetTargetSizes ()																				C_NE_OV	{ return Default; }
-			ColorFormats_t	GetColorFormats ()																				C_NE_OV	{ return Default; }
-			PresentModes_t	GetPresentModes ()																				C_NE_OV	{ return Default; }
-			SurfaceInfo		GetSurfaceInfo ()																				C_NE_OV	{ return Default; }
+			AllImages_t			GetAllImages ()																				C_NE_OV;
+			TargetSizes_t		GetTargetSizes ()																			C_NE_OV	{ return Default; }
+			SurfaceFormats_t	GetSurfaceFormats ()																		C_NE_OV	{ return Default; }
+			PresentModes_t		GetPresentModes ()																			C_NE_OV	{ return Default; }
+			SurfaceInfo			GetSurfaceInfo ()																			C_NE_OV	{ return Default; }
 		};
 		
 

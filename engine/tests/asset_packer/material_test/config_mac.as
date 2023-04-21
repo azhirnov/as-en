@@ -1,5 +1,6 @@
+#include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	GlobalConfig	cfg;
 	cfg.SetTarget( ECompilationTarget::Metal_Mac );

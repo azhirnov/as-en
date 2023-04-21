@@ -37,7 +37,7 @@ namespace AE::App
 			Unknown				= Default
 		};
 
-		using Name_t			= FixedString< 64 >;
+		using Name_t			= FixedString< 32 >;
 		using NativeMonitor_t	= void *;
 
 
@@ -51,7 +51,6 @@ namespace AE::App
 		float2				ppi;					// pixels per inch
 		uint				freq		= 0;		// update frequency in Hz
 		EOrientation		orient		= Default;
-		ubyte3				colorBits;				// r, g, b size in bits
 
 		Name_t				name;
 		NativeMonitor_t		native		= null;
@@ -66,7 +65,14 @@ namespace AE::App
 		ND_ bool		IsVertical ()							C_NE___	{ return not IsHorizontal(); }
 
 		ND_ float2		DipsPerPixel ()							C_NE___	{ return ppi / _DipToPixel(); }
+
+	#if 0
 		ND_ float2		MillimetersPerPixel ()					C_NE___	{ return physicalSize.meters / RegionSize(); }
+		ND_ float2		PixelPerMillimeters ()					C_NE___	{ return RegionSize() / (physicalSize.meters * 1.0e+3f); }
+	#else
+		ND_ float2		MillimetersPerPixel ()					C_NE___	{ return 1.f / (ppi * _InchsInMillimeter()); }
+	//	ND_ float2		PixelPerMillimeters ()					C_NE___	{ return ppi * _InchsInMillimeter(); }
+	#endif
 
 		ND_ float2		RegionSize ()							C_NE___	{ return float2(region.pixels.Size()); }
 
@@ -109,6 +115,7 @@ namespace AE::App
 		ND_ Dips2f		ClampDips (const Dips2f &c)				C_NE___	{ return Dips2f{   Math::Clamp( c.dips,		float2{0},	PixelsToDips( Pixels2f{RegionSize()} ).dips )}; }
 
 		ND_ static constexpr float	_MetersInInch ()			__NE___	{ return 0.0254f; }
+		ND_ static constexpr float	_InchsInMillimeter ()		__NE___	{ return 0.0393700787f; }
 		ND_ static constexpr float	_DipToPixel ()				__NE___	{ return 160.0f; }
 	};
 

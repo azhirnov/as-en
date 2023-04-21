@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Metal/Resources/MPipelinePack.h"
 
 namespace AE::Graphics
@@ -22,7 +21,7 @@ namespace AE::Graphics
 			MPipelinePack const&								pplnPack;
 			PipelineCompiler::SerializableTilePipeline const&	templCI;
 			TilePipelineDesc const&								specCI;
-			MPipelineLayoutID									layoutId;
+			PipelineLayoutID									layoutId;
 			MPipelinePack::ShaderModuleRef						shader;
 			PipelineCacheID										cacheId;
 			MPipelinePack::Allocator_t *						allocator		= null;
@@ -36,7 +35,7 @@ namespace AE::Graphics
 		ushort2						_localSize;
 		ubyte						_rasterOrderGroup	= UMax;
 		
-		Strong<MPipelineLayoutID>	_layoutId;
+		Strong<PipelineLayoutID>	_layoutId;
 		
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
@@ -51,7 +50,7 @@ namespace AE::Graphics
 			void  Destroy (MResourceManager &)						__NE___;
 
 		ND_ MetalRenderPipeline		Handle ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
-		ND_ MPipelineLayoutID		LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ PipelineLayoutID		LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ uint2					LocalSize ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return uint2{_localSize}; }
 		ND_ EPipelineDynamicState	DynamicState ()					C_NE___	{ return Default; }
 		ND_ uint					RasterOrderGroup ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rasterOrderGroup; }

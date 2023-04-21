@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/Math/GLM.h"
+#include "base/Math/Color.h"
 
 namespace AE::Math
 {
@@ -22,37 +23,32 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr VecSwizzle ()										__NE___	{}
-		
-		explicit VecSwizzle (const PackedVec<uint,4> &comp)			__NE___	: _value{0}
-		{
-			ASSERT(All( comp <= 7u ));
-
-			_value |= (comp.x & _Mask) << 12;
-			_value |= (comp.y & _Mask) << 8;
-			_value |= (comp.z & _Mask) << 4;
-			_value |= (comp.w & _Mask);
-		}
+		constexpr VecSwizzle ()																	__NE___	{}
+		explicit VecSwizzle (const PackedVec<uint,4> &comp)										__NE___;
 		
 		template <typename T, int I, glm::qualifier Q>
-		ND_ TVec<T,4,Q>			Transform (const TVec<T,I,Q> &src)	C_NE___;
-		ND_ PackedVec<uint,4>	ToVec ()							C_NE___;
+		ND_ TVec<T,4,Q>			Transform (const TVec<T,I,Q> &src)								C_NE___;
+		
+		template <typename T>
+		ND_ RGBAColor<T>		Transform (const RGBAColor<T> &src)								C_NE___;
 
-		ND_ constexpr uint		Get ()								C_NE___	{ return _value; }
-		ND_ constexpr bool		IsUndefined ()						C_NE___	{ return _value == 0; }
+		ND_ PackedVec<uint,4>	ToVec ()														C_NE___;
+
+		ND_ constexpr uint		Get ()															C_NE___	{ return _value; }
+		ND_ constexpr bool		IsUndefined ()													C_NE___	{ return _value == 0; }
 		
-		ND_ constexpr bool		operator == (VecSwizzle rhs)		C_NE___	{ return _value == rhs._value; }
-		ND_ constexpr bool		operator >  (VecSwizzle rhs)		C_NE___	{ return _value >  rhs._value; }
+		ND_ constexpr bool		operator == (VecSwizzle rhs)									C_NE___	{ return _value == rhs._value; }
+		ND_ constexpr bool		operator >  (VecSwizzle rhs)									C_NE___	{ return _value >  rhs._value; }
 		
-		ND_ static constexpr VecSwizzle  VecDefault (usize size)	__NE___;
+		ND_ static constexpr VecSwizzle  VecDefault (usize size)								__NE___;
 		
 		friend constexpr VecSwizzle  operator "" _vecSwizzle (const char *str, const usize len) __NE___;
 
 
 	private:
-		explicit constexpr VecSwizzle (ushort val)					__NE___	: _value{val} {}
+		explicit constexpr VecSwizzle (ushort val)												__NE___	: _value{val} {}
 
-		ND_ static constexpr uint  _CharToValue (char c)			__NE___;
+		ND_ static constexpr uint  _CharToValue (char c)										__NE___;
 	};
 
 	
@@ -99,6 +95,21 @@ namespace AE::Math
 	
 /*
 =================================================
+	constructor
+=================================================
+*/
+	inline VecSwizzle::VecSwizzle (const PackedVec<uint,4> &comp) __NE___ : _value{0}
+	{
+		ASSERT(All( comp <= 7u ));
+
+		_value |= (comp.x & _Mask) << 12;
+		_value |= (comp.y & _Mask) << 8;
+		_value |= (comp.z & _Mask) << 4;
+		_value |= (comp.w & _Mask);
+	}
+
+/*
+=================================================
 	Transform
 =================================================
 */
@@ -119,6 +130,28 @@ namespace AE::Math
 		return result;
 	}
 	
+/*
+=================================================
+	Transform
+=================================================
+*/
+	template <typename T>
+	RGBAColor<T>  VecSwizzle::Transform (const RGBAColor<T> &src) C_NE___
+	{
+		T	temp [8] = {};
+		for (int i = 0; i < 4; ++i) temp[i+1] = src[i];
+		temp[6] = T{1};
+		temp[7] = T{-1};
+		
+		const PackedVec<uint,4>	sw = ToVec();
+		RGBAColor<T>			result;
+
+		for (int i = 0; i < 4; ++i) {
+			result[i] = temp[ sw[i] ];
+		}
+		return result;
+	}
+
 /*
 =================================================
 	ToVec

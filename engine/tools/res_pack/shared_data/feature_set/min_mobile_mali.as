@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	// include:
 	//	Mali-T830 driver 28.0.0 on Android 9.0

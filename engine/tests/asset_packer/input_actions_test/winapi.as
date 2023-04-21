@@ -1,6 +1,6 @@
 #include <input_actions>
 
-void main (WinAPI_ActionBindings& bindings)
+void ASmain (WinAPI_ActionBindings& bindings)
 {
 	// UI bindings
 	{

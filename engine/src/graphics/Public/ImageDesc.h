@@ -19,18 +19,23 @@ namespace AE::Graphics
 
 	struct ImageDesc
 	{
+	// types
+		using FormatList_t = FixedArray< EPixelFormat, 4 >;
+
+
 	// variables
 		uint3				dimension;				// width, height, depth
-		ImageLayer			arrayLayers	= 1_layer;
-		MipmapLevel			maxLevel	= 1_mipmap;
-		EImageDim			imageType	= Default;
-		EImageOpt			options		= Default;
-		EImageUsage			usage		= Default;
-		EPixelFormat		format		= Default;
+		ImageLayer			arrayLayers		= 1_layer;
+		MipmapLevel			maxLevel		= 1_mipmap;
+		EImageDim			imageType		= Default;
+		EImageOpt			options			= Default;
+		EImageUsage			usage			= Default;
+		EPixelFormat		format			= Default;
 		MultiSamples		samples;				// if > 1 then enabled multisampling
-		EMemoryType			memType		= EMemoryType::DeviceLocal;
-		EQueueMask			queues		= Default;
-		// TODO: image view formats list instead of mutable format
+		EMemoryType			memType			= EMemoryType::DeviceLocal;
+		EQueueMask			queues			= Default;
+		FormatList_t		viewFormats;
+
 
 	// methods
 		ImageDesc ()										__NE___ {}
@@ -57,6 +62,7 @@ namespace AE::Graphics
 		ImageDesc&  SetAllMipmaps ()						__NE___	{ maxLevel		= MipmapLevel::Max();	return *this; }
 		ImageDesc&  SetQueues (EQueueMask value)			__NE___	{ queues		= value;				return *this; }
 		ImageDesc&  SetMemory (EMemoryType value)			__NE___	{ memType		= value;				return *this; }
+		ImageDesc&  AddViewFormat (EPixelFormat value)		__NE___	{ viewFormats.try_push_back( value );	return *this; }
 
 		ND_ static ImageDesc  CreateColorAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)	__NE___;
 		ND_ static ImageDesc  CreateDepthAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)	__NE___;
@@ -74,14 +80,16 @@ namespace AE::Graphics
 	struct ImageViewDesc
 	{
 	// variables
-		EImage				viewType	= Default;
-		EPixelFormat		format		= Default;	// optional
-		EImageAspect		aspectMask	= Default;
+		EImage				viewType		= Default;
+		EPixelFormat		format			= Default;	// optional
+		EImageAspect		aspectMask		= Default;
+		EImageUsage			extUsage		= Default;
 		MipmapLevel			baseLevel;
-		ushort				levelCount	= UMax;
+		ushort				levelCount		= UMax;
 		ImageLayer			baseLayer;
-		ushort				layerCount	= UMax;
+		ushort				layerCount		= UMax;
 		ImageSwizzle		swizzle;
+
 
 	// methods
 		ImageViewDesc () __NE___ {}
@@ -109,6 +117,7 @@ namespace AE::Graphics
 		ImageViewDesc&  SetArrayLayers (uint base, uint count)	__NE___	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast<ushort>(count);  return *this; }
 		ImageViewDesc&  SetSwizzle (ImageSwizzle value)			__NE___	{ swizzle	= value;				return *this; }
 		ImageViewDesc&  SetAspect (EImageAspect value)			__NE___	{ aspectMask= value;				return *this; }
+		ImageViewDesc&  SetExtUsage (EImageUsage value)			__NE___	{ extUsage	= value;				return *this; }
 	};
 
 

@@ -98,7 +98,7 @@ namespace AE::Math
 		if constexpr( IsPointer<T0> )
 		{
 			Bytes	byte_align{ align };
-			return BitCast<T0>( (BitCast<usize>(value) / byte_align) * byte_align );
+			return BitCast<T0>(usize( (BitCast<usize>(value) / byte_align) * byte_align ));
 		}
 		else
 			return (value / align) * align;
@@ -116,7 +116,7 @@ namespace AE::Math
 		if constexpr( IsPointer<T0> )
 		{
 			Bytes	byte_align{ align };
-			return BitCast<T0>( ((BitCast<usize>(value) + byte_align-1) / byte_align) * byte_align );
+			return BitCast<T0>(usize( ((BitCast<usize>(value) + byte_align-1) / byte_align) * byte_align ));
 		}
 		else
 			return ((value + align-1) / align) * align;

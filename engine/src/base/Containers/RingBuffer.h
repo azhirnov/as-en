@@ -131,82 +131,85 @@ namespace AE::Base
 
 	// methods
 	public:
-		RingBuffer ()									__NE___ {}
-		RingBuffer (const Self &other)					__Th___;
-		RingBuffer (Self &&other)						__NE___;
+		RingBuffer ()										__NE___ {}
+		RingBuffer (const Self &other)						__Th___;
+		RingBuffer (Self &&other)							__NE___;
 
-		~RingBuffer ()									__NE___	{ _Release(); }
+		~RingBuffer ()										__NE___	{ _Release(); }
 
-			Self&		operator = (const Self &rhs)	__Th___;
-			Self&		operator = (Self &&rhs)			__NE___;
+			Self&		operator = (const Self &rhs)		__Th___;
+			Self&		operator = (Self &&rhs)				__NE___;
 
-		ND_ bool		operator == (ArrayView<T> rhs)	C_NE___;
-		ND_ bool		operator == (const Self &rhs)	C_NE___;
+		ND_ bool		operator == (ArrayView<T> rhs)		C_NE___;
+		ND_ bool		operator == (const Self &rhs)		C_NE___;
 		
-		ND_ bool		operator != (ArrayView<T> rhs)	C_NE___	{ return not (*this == rhs); }
-		ND_ bool		operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
+		ND_ bool		operator != (ArrayView<T> rhs)		C_NE___	{ return not (*this == rhs); }
+		ND_ bool		operator != (const Self &rhs)		C_NE___	{ return not (*this == rhs); }
 		
-		ND_ T		&	operator [] (usize i)			__NE___;
-		ND_ T const	&	operator [] (usize i)			C_NE___;
+		ND_ T		&	operator [] (usize i)				__NE___;
+		ND_ T const	&	operator [] (usize i)				C_NE___;
 
-		ND_ T &			front ()						__NE___;
-		ND_ T const&	front ()						C_NE___;
+		ND_ T &			front ()							__NE___;
+		ND_ T const&	front ()							C_NE___;
 
-		ND_ T &			back ()							__NE___;
-		ND_ T const&	back ()							C_NE___;
+		ND_ T &			back ()								__NE___;
+		ND_ T const&	back ()								C_NE___;
 		
-		ND_ usize		size ()							C_NE___;
-		ND_ bool		empty ()						C_NE___		{ return _packed & _EmptyBit; }
-		ND_ usize		capacity ()						C_NE___		{ return _packed & ~_EmptyBit; }
+		ND_ usize		size ()								C_NE___;
+		ND_ bool		empty ()							C_NE___		{ return _packed & _EmptyBit; }
+		ND_ usize		capacity ()							C_NE___		{ return _packed & ~_EmptyBit; }
 		
-			void		push_front (const T &value)		__Th___;
-			void		push_front (T&& value)			__Th___;
+			void		push_front (const T &value)			__Th___;
+			void		push_front (T&& value)				__Th___;
 
-			void		push_back (const T &value)		__Th___;
-			void		push_back (T&& value)			__Th___;
+			void		push_back (const T &value)			__Th___;
+			void		push_back (T&& value)				__Th___;
 
-			void		pop_front ()					__NE___;
-			void		pop_back ()						__NE___;
+			void		pop_front ()						__NE___;
+			void		pop_back ()							__NE___;
 
 			template <typename ...Types>
-			void		emplace_front (Types&& ...args)	__Th___;
+			void		emplace_front (Types&& ...args)		__Th___;
 			
 			template <typename ...Types>
-			void		emplace_back (Types&& ...args)	__Th___;
+			void		emplace_back (Types&& ...args)		__Th___;
 
-		ND_ T			ExtractFront ()					__NE___;
-		ND_ T			ExtractBack ()					__NE___;
+		ND_ T			ExtractFront ()						__NE___;
+		ND_ T			ExtractBack ()						__NE___;
 
-		ND_	iterator		begin ()					__NE___	{ return iterator{ this, 0 }; }
-		ND_	const_iterator	begin ()					C_NE___	{ return const_iterator{ this, 0 }; }
-		ND_	iterator		end ()						__NE___	{ return begin() + size(); }
-		ND_	const_iterator	end ()						C_NE___	{ return begin() + size(); }
+			void		EraseFront (usize count)			__NE___;
+			void		EraseBack (usize count)				__NE___;
+
+		ND_	iterator		begin ()						__NE___	{ return iterator{ this, 0 }; }
+		ND_	const_iterator	begin ()						C_NE___	{ return const_iterator{ this, 0 }; }
+		ND_	iterator		end ()							__NE___	{ return begin() + size(); }
+		ND_	const_iterator	end ()							C_NE___	{ return begin() + size(); }
 		
-			void		reserve (usize newSize)			__Th___;
-			void		clear ()						__NE___;
+			void		reserve (usize newSize)				__Th___;
+			void		clear ()							__NE___;
 
-		ND_ HashVal		CalcHash ()						C_NE___;
+		ND_ HashVal		CalcHash ()							C_NE___;
 			void		GetParts (OUT ArrayView<T> &part0, OUT ArrayView<T> &part1) C_NE___;
 			
-			void		AppendFront (ArrayView<T> value)__Th___;
-			void		AppendBack (ArrayView<T> value)	__Th___;
+			void		AppendFront (ArrayView<T> value)	__Th___;
+			void		AppendBack (ArrayView<T> value)		__Th___;
 
 	private:
-		void  _Release ()								__NE___;
-		void  _Copy (const Self &other)					__Th___;
+		void  _Release ()									__NE___;
+		void  _Copy (const Self &other)						__Th___;
 
 		void  _Reallocate (usize newSize, bool allowReserve)__Th___;	// bad_array_new_length, bad_alloc
 
-		ND_ Offset_t  _WrapIndex (ssize i)				C_NE___;
-		ND_ Offset_t  _SizeMask ()						C_NE___	{ return empty() ? 0 : ~Offset_t{0}; }
+		ND_ Offset_t  _WrapIndex (ssize i)					C_NE___;
+		ND_ Offset_t  _SizeMask ()							C_NE___	{ return empty() ? 0 : ~Offset_t{0}; }
 
 		template <typename B>
-		void  _AppendFront (B* src, usize count)		__Th___;
+		void  _AppendFront (B* src, usize count)			__Th___;
 		
 		template <typename B>
-		void  _AppendBack (B* src, usize count)			__Th___;
+		void  _AppendBack (B* src, usize count)				__Th___;
 
-		void  _UpdateDbgView ()							__NE___;
+		void  _UpdateDbgView ()								__NE___;
 	};
 
 	
@@ -884,6 +887,50 @@ namespace AE::Base
 		return _AppendBack<const T>( value.data(), value.size() );	// throw
 	}
 	
+/*
+=================================================
+	EraseFront
+=================================================
+*/
+	template <typename T, typename S>
+	void  RingBuffer<T,S>::EraseFront (usize count) __NE___
+	{
+		count = Min( count, size() );
+
+		for (usize i = 0; i < count; ++i)
+		{
+			CPolicy_t::Destroy( _array + _first, 1 );
+			_first = _WrapIndex( _first + 1 );
+		}
+
+		if ( _first == _end )
+			_packed |= _EmptyBit;
+			
+		_UpdateDbgView();
+	}
+	
+/*
+=================================================
+	EraseBack
+=================================================
+*/
+	template <typename T, typename S>
+	void  RingBuffer<T,S>::EraseBack (usize count) __NE___
+	{
+		count = Min( count, size() );
+
+		for (usize i = 0; i < count; ++i)
+		{
+			_end = _WrapIndex( ssize(_end) - 1 );
+			CPolicy_t::Destroy( _array + _end, 1 );
+		}
+
+		if ( _first == _end )
+			_packed |= _EmptyBit;
+
+		_UpdateDbgView();
+	}
+
 /*
 =================================================
 	_UpdateDbgView

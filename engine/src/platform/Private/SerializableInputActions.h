@@ -5,10 +5,8 @@
 #include "base/Common.h"
 #include "base/CompileTime/StringToID.h"
 #include "base/Math/VecSwizzle.h"
+#include "base/Utils/NamedID_HashCollisionCheck.h"
 
-#if not AE_OPTIMIZE_IDS
-#	include "base/Utils/NamedID_HashCollisionCheck.h"
-#endif
 #ifdef AE_ENABLE_SCRIPTING
 #	include "scripting/Impl/ScriptTypes.h"
 #endif
@@ -29,7 +27,9 @@ namespace AE::App
 
 	// types
 	public:
-		using EValueType	= IInputActions::EValueType;
+		using EValueType		= IInputActions::EValueType;
+		using PackedScale_t		= half;
+		using PackedScale4_t	= PackedVec< PackedScale_t, 4 >;
 
 		struct ScriptActionInfo
 		{
@@ -37,10 +37,10 @@ namespace AE::App
 			EValueType			type		= Default;
 			EGestureType		gesture		= Default;
 			VecSwizzle			swizzle		= VecSwizzle::VecDefault(4);
-			packed_uhalf4		scale		{float4{1.0f}};
+			PackedScale4_t		scale		{float4{1.0f}};
 
 			ScriptActionInfo () {}
-			ScriptActionInfo (StringView a, EValueType t, EGestureType g, VecSwizzle sw, const packed_uhalf4 &sc) :
+			ScriptActionInfo (StringView a, EValueType t, EGestureType g, VecSwizzle sw, const PackedScale4_t &sc) :
 				action{a}, type{t}, gesture{g}, swizzle{sw}, scale{sc} {}
 		};
 
@@ -57,7 +57,7 @@ namespace AE::App
 			EValueType			valueType	= Default;
 			EGestureType		gesture		= Default;
 			VecSwizzle			swizzle		= VecSwizzle::VecDefault(4);
-			packed_uhalf4		scale		{float4{1.0f}};
+			PackedScale4_t		scale		{float4{1.0f}};
 
 			ND_ packed_float4	Transform (const float4 &in) const;
 			ND_ float4			GetScale () const;
@@ -97,9 +97,7 @@ namespace AE::App
 
 				const InputModeName		name_id {name};
 			
-				#if not AE_OPTIMIZE_IDS
-				_self->_hashCollisionCheck.Add( name_id );
-				#endif
+				_self->_hashCollisionCheck.Add( name_id, name );
 			
 				InputMode&	mode = _self->_modeMap( name_id );
 				ASSERT( mode.actions.empty() );
@@ -130,23 +128,22 @@ namespace AE::App
 
 	// variables
 	protected:
-		ModeMap_t		_modeMap;
+		ModeMap_t					_modeMap;
 		
-		const uint		_version;
+		const uint					_version;
 
-		#if not AE_OPTIMIZE_IDS
-		  NamedID_HashCollisionCheck	_hashCollisionCheck;
-		#endif
+		NamedID_HashCollisionCheck	_hashCollisionCheck;
 
 
 	// methods
 	public:
-		SerializableInputActions (uint ver) : _version{ver} {}
-		virtual ~SerializableInputActions ();
+		SerializableInputActions (uint ver)				__NE___	: _version{ver} {}
+		virtual ~SerializableInputActions ()			__NE___;
 
-		ND_ virtual bool  IsKey (ushort type)		const = 0;
-		ND_ virtual bool  IsCursor1D (ushort type)	const = 0;
-		ND_ virtual bool  IsCursor2D (ushort type)	const = 0;
+		ND_ virtual bool  IsKey (ushort type)			const = 0;
+		ND_ virtual bool  IsKeyOrTouch (ushort type)	const = 0;
+		ND_ virtual bool  IsCursor1D (ushort type)		const = 0;
+		ND_ virtual bool  IsCursor2D (ushort type)		const = 0;
 		
 	  #ifdef AE_ENABLE_SCRIPTING
 		ND_ virtual bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc) = 0;
@@ -154,7 +151,7 @@ namespace AE::App
 
 		ND_ bool  Merge (const SerializableInputActions &other);
 		
-		ND_ virtual String  ToString () const = 0;
+		ND_ virtual String  ToString ()					const = 0;
 
 		ND_ static bool  LoadSerialized (OUT ModeMap_t &modeMap, uint version, uint nameHash, MemRefRStream &stream);
 
@@ -174,9 +171,9 @@ namespace AE::App
 
 	protected:
 		template <typename T>
-		ND_ static constexpr InputKey	_Pack (T key, EGestureState state = EGestureState::Update);
+		ND_ static constexpr InputKey	_Pack (T key, EGestureType gesture, EGestureState state = EGestureState::Update) __NE___;
 
-		ND_ static constexpr Pair<uint,EGestureState>  _Unpack (InputKey key);
+		ND_ static constexpr auto		_Unpack (InputKey key) __NE___ -> Tuple< uint, EGestureType, EGestureState >;
 		
 		ND_ static Array<Pair<InputKey,		 const ActionInfo *>>	_ToArray (const ActionMap_t &actions);
 		ND_ static Array<Pair<InputModeName, const InputMode *>>	_ToArray (const ModeMap_t &modes);
@@ -189,10 +186,13 @@ namespace AE::App
 */
 	template <typename T>
 	forceinline constexpr SerializableInputActions::InputKey
-		SerializableInputActions::_Pack (T key, EGestureState state)
+		SerializableInputActions::_Pack (T key, EGestureType gesture, EGestureState state) __NE___
 	{
-		ASSERT( uint(key) <= 0xFFF'FFFF );
-		return InputKey( uint(key) | (uint(state) << 28) );
+		ASSERT( uint(key) <= 0xFF'FFFF );
+		ASSERT( uint(gesture) <= 0xF );
+		ASSERT( uint(state) <= 0xF );
+
+		return InputKey( uint(key) | (uint(gesture) << 24) | (uint(state) << 28) );
 	}
 
 /*
@@ -200,10 +200,11 @@ namespace AE::App
 	_Unpack
 =================================================
 */
-	forceinline constexpr Pair<uint,EGestureState>  SerializableInputActions::_Unpack (InputKey key)
+	forceinline constexpr auto  SerializableInputActions::_Unpack (InputKey key) __NE___ -> Tuple< uint, EGestureType, EGestureState >
 	{
-		return { (uint(key) & 0xFFF'FFFF),
-				EGestureState(uint(key) >> 28) };
+		return Tuple{	(uint(key) & 0xFF'FFFF),
+						EGestureType( (uint(key) >> 24) & 0xF ),
+						EGestureState( (uint(key) >> 28) & 0xF )};
 	}
 
 /*

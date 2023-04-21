@@ -26,10 +26,12 @@ namespace AE::App
 
 	// variables
 	private:
-		RecursiveMutex		_windowsGuard;
+		RecursiveMutex		_windowsGuard;		// TODO: can be removed
 		WindowArray_t		_windows;
 		
 		Monitors_t			_cachedMonitors;
+
+		Locales_t			_locales;
 
 
 	// methods
@@ -44,6 +46,8 @@ namespace AE::App
 		Monitors_t	GetMonitors (bool update = false)									__NE_OV;
 		
 		StringView	GetApiName ()														C_NE_OV	{ return "glfw"; }
+		
+		Locales_t	GetLocales ()														C_NE_OV	{ return _locales; }
 
 		RC<IVirtualFileStorage> OpenBuiltinStorage ()									__NE_OV { return null; }
 
@@ -57,6 +61,7 @@ namespace AE::App
 		void  _MainLoop ()																__NE___;
 
 		void  _UpdateMinitors (OUT Monitors_t &)										C_NE___;
+		void  _GetLocales (OUT Locales_t &)												C_NE___;
 	};
 
 

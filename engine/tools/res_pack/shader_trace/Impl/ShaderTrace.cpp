@@ -70,13 +70,13 @@ namespace AE::PipelineCompiler
 	_AppendSource
 =================================================
 */
-	void  ShaderTrace::_AppendSource (StringView filename, uint firstLine, StringView source)
+	void  ShaderTrace::_AppendSource (String filename, uint firstLine, String source)
 	{
 		SourceInfo	info;
 		usize		pos = 0;
 
-		info.filename	= String{filename};
-		info.code		= String{source};
+		info.filename	= RVRef(filename);
+		info.code		= RVRef(source);
 		info.firstLine	= firstLine;
 		info.lines.reserve( 64 );
 
@@ -108,30 +108,42 @@ namespace AE::PipelineCompiler
 
 /*
 =================================================
-	AddSource / IncludeSource
+	AddSource
 =================================================
 */
 	void  ShaderTrace::AddSource (StringView source)
 	{
 		CHECK_ERRV( not source.empty() );
 
-		_AppendSource( Default, 0, source );
+		_AppendSource( Default, 0, String{source} );
 	}
 
 	void  ShaderTrace::AddSource (StringView filename, uint firstLine, StringView source)
 	{
 		CHECK_ERRV( not source.empty() );
 
-		_AppendSource( filename, firstLine, source );
+		_AppendSource( String{filename}, firstLine, String{source} );
 	}
-
-	void  ShaderTrace::IncludeSource (StringView filename, StringView source)
+	
+	void  ShaderTrace::AddSource (const Path &filename, uint firstLine, StringView source)
 	{
 		CHECK_ERRV( not source.empty() );
-		CHECK_ERRV( not filename.empty() );
 
-		_fileMap.insert_or_assign( String(filename), uint(_sources.size()) );
-		_AppendSource( filename, 0, source );
+		return _AppendSource( ToString(filename), firstLine, String{source} );
+	}
+
+/*
+=================================================
+	IncludeSource
+=================================================
+*/
+	void  ShaderTrace::IncludeSource (StringView headerName, const Path &fullPath, StringView source)
+	{
+		CHECK_ERRV( not source.empty() );
+		CHECK_ERRV( not headerName.empty() );
+
+		_fileMap.insert_or_assign( String(headerName), uint(_sources.size()) );
+		_AppendSource( ToString(fullPath), 0, String{source} );
 	}
 
 /*

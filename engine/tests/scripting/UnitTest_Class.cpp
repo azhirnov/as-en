@@ -197,14 +197,14 @@ namespace
 		
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
-			int main (int i) {
+			int ASmain (int i) {
 				Test1_CL@ c = Test1_CL();
 				return c.F() + i;
 			}
 		)#";
 
 		int	res = 0;
-		TEST( Run< int (int) >( se, script, "main", SourceLoc{__FILE__, line}, OUT res, 1 ));
+		TEST( Run< int (int) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, 1 ));
 		TEST( res == 3+1 );
 	}
 
@@ -224,7 +224,7 @@ namespace
 
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
-			int main (int i) {
+			int ASmain (int i) {
 				Test2_Value p1 = Test2_Value();
 				Test2_Value p2 = Test2_Value( 5 );
 				p1.i *= 10;
@@ -235,7 +235,7 @@ namespace
 		)#";
 
 		int	res = 0;
-		TEST( Run< int (int) >( se, script, "main", SourceLoc{__FILE__, line}, OUT res, 2 ));
+		TEST( Run< int (int) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, 2 ));
 		TEST( res == 5 + ((4*10)+2) );
 	}
 
@@ -254,14 +254,14 @@ namespace
 
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
-			uint main () {
+			uint ASmain () {
 				EEnum e = EEnum_Value1;
 				return e + EEnum_Value2;
 			}
 		)#";
 	
 		uint	res = 0;
-		TEST( Run< uint () >( se, script, "main", SourceLoc{__FILE__, line}, OUT res ));
+		TEST( Run< uint () >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
 		TEST( res == uint(EEnum::Value1) + uint(EEnum::Value2) );
 	}
 
@@ -276,13 +276,13 @@ namespace
 		{
 			static const int  line		= __LINE__ + 1;
 			static const char script[]	= R"#(
-				int main (int x) {
+				int ASmain (int x) {
 					return 10 + x;
 				}
 			)#";
 
 			int	res = 0;
-			TEST( ::Run< int (int) >( engine, script, "main", SourceLoc{__FILE__, line}, OUT res, value ));
+			TEST( ::Run< int (int) >( engine, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, value ));
 
 			return res;
 		}
@@ -293,7 +293,7 @@ namespace
 	{
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
-			int main ()
+			int ASmain ()
 			{
 				Script sc;
 				return sc.Run( 1 );
@@ -310,7 +310,7 @@ namespace
 		)
 
 		int	res = 0;
-		TEST( Run< int() >( se, script, "main", SourceLoc{__FILE__, line}, OUT res ));
+		TEST( Run< int() >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
 		TEST( res == 11 );
 
 		ScriptCl::engine = null;
@@ -328,7 +328,7 @@ namespace
 
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
-			int main (Test5_CL@ c) {
+			int ASmain (Test5_CL@ c) {
 				return c.F() + 22;
 			}
 		)#";
@@ -336,7 +336,7 @@ namespace
 		ScriptRC<Test5_CL>	arg{ new Test5_CL{11} };
 		int					res = 0;
 
-		TEST( Run< int(Test5_CL*) >( se, script, "main", SourceLoc{__FILE__, line}, OUT res, arg ));
+		TEST( Run< int(Test5_CL*) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, arg ));
 		TEST( res == 11+22 );
 		TEST( arg->__Counter() == 1 );
 	}
@@ -353,7 +353,7 @@ namespace
 		
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
-			Test6_CL@ main () {
+			Test6_CL@ ASmain () {
 				Test6_CL@ c = Test6_CL();
 				c.Set( 11 );
 				return c;
@@ -361,7 +361,7 @@ namespace
 		)#";
 
 		Test6_CL*	res = null;
-		TEST( Run< Test6_CL*() >( se, script, "main", SourceLoc{__FILE__, line}, OUT res ));
+		TEST( Run< Test6_CL*() >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
 		TEST( res );
 		TEST( res->__Counter() == 1 );
 		TEST( res->i == 11 );
@@ -381,7 +381,7 @@ namespace
 		
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
-			int main (Test7_Value& p) {
+			int ASmain (Test7_Value& p) {
 				p.Append( 5 );
 				return p.F();
 			}
@@ -389,7 +389,7 @@ namespace
 
 		Test7_Value	val{3};
 		int			res = 0;
-		TEST( Run< int (Test7_Value*) >( se, script, "main", SourceLoc{__FILE__, line}, OUT res, &val ));
+		TEST( Run< int (Test7_Value*) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, &val ));
 		TEST( res == 3+5 );
 	}
 
@@ -406,7 +406,7 @@ namespace
 		
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
-			Test8_CL@ main (Test8_CL@ c) {
+			Test8_CL@ ASmain (Test8_CL@ c) {
 				c.Set( 11 );
 				Test8_CL@ a = Test8_CL();
 				a.Set( 22 );
@@ -417,7 +417,7 @@ namespace
 		Test8_Ptr	arg{ new Test8_CL{} };
 		Test8_Ptr	res;
 
-		TEST( Run< Test8_CL* (Test8_CL*) >( se, script, "main", SourceLoc{__FILE__, line}, OUT res, arg.Get() ));
+		TEST( Run< Test8_CL* (Test8_CL*) >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res, arg.Get() ));
 		TEST( res );
 		TEST( arg->__Counter() == 1 );
 		TEST( arg->i == 11 );
@@ -445,7 +445,7 @@ namespace
 		}
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
-			Test9_2_CL@ main () {
+			Test9_2_CL@ ASmain () {
 				Test9_2_CL@ a = Test9_2_CL();
 				a.Add( Test9_1_CL( 1 ));
 				a.Add( Test9_1_CL( 2 ));
@@ -457,7 +457,7 @@ namespace
 
 		Test9_2_Ptr	res;
 
-		TEST( Run< Test9_2_CL*() >( se, script, "main", SourceLoc{__FILE__, line}, OUT res ));
+		TEST( Run< Test9_2_CL*() >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
 		TEST( res );
 		TEST( res->__Counter() == 1 );
 		TEST( res->arr.size() == 4 );
@@ -492,14 +492,14 @@ namespace
 
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
-			uint main () {
+			uint ASmain () {
 				EEnumBit e = EEnumBit(EEnumBit_Value1 | EEnumBit_Value3);
 				return e;
 			}
 		)#";
 	
 		uint	res = 0;
-		TEST( Run< uint () >( se, script, "main", SourceLoc{__FILE__, line}, OUT res ));
+		TEST( Run< uint () >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
 		TEST( res == uint(EEnumBit::Value1 | EEnumBit::Value3) );
 	}
 }

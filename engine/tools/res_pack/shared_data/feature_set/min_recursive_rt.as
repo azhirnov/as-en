@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	// include:
 	//	NVIDIA GeForce RTX 2080.json
@@ -158,6 +159,8 @@ void main ()
 	fset.geometryShader (True);
 	fset.tessellationShader (True);
 	fset.computeShader (True);
+	fset.vertexDivisor (True);
+	fset.minVertexAttribDivisor (4294967295);
 	fset.minVertexAttributes (32);
 	fset.minVertexBuffers (32);
 	fset.AddVertexFormats({
@@ -276,6 +279,7 @@ void main ()
 	fset.samplerFilterMinmax (True);
 	fset.filterMinmaxImageComponentMapping (True);
 	fset.samplerMipLodBias (True);
+	fset.samplerYcbcrConversion (True);
 	fset.minSamplerAnisotropy (16.00);
 	fset.minSamplerLodBias (15.00);
 	fset.framebufferColorSampleCounts({ 1, 2, 4, 8 });

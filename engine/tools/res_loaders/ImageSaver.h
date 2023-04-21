@@ -19,9 +19,15 @@ namespace AE::ResLoader
 	{
 	// methods
 	public:
-		bool  SaveImage (const Path &filename, const IntermImage &image, EImageFormat fileFormat = Default)		__NE___;
+		bool  SaveImage (const Path	&		filename,
+						 const IntermImage&	image,
+						 EImageFormat		fileFormat	= Default,
+						 Bool				flipY		= False{})		__NE___;
 
-		virtual bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat = Default)	__NE___ = 0;
+		virtual bool  SaveImage (WStream &			stream,
+								 const IntermImage&	image,
+								 EImageFormat		fileFormat,
+								 Bool				flipY		= False{})	__NE___ = 0;
 	};
 
 

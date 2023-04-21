@@ -62,7 +62,7 @@ namespace
 
 		uint	count = 0;
 		TEST( des( OUT count ));
-		TEST_Eq( count, 32 );
+		TEST_Eq( count, 36 );
 		
 		for (uint i = 0; i < count; ++i)
 		{

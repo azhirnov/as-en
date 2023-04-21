@@ -71,9 +71,9 @@ namespace AE::Base
 	CT_Hash (string)
 =================================================
 */
-	ND_ inline constexpr THashVal<uint>  CT_Hash (const char *str, usize len, uint seed) __NE___
+	ND_ inline constexpr HashVal32  CT_Hash (const char *str, usize len, uint seed) __NE___
 	{
-		return THashVal<uint>{ Base::_hidden_::crc32_hash( str, len, seed )};
+		return HashVal32{ Base::_hidden_::crc32_hash( str, len, seed )};
 	}
 
 

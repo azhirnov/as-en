@@ -1,6 +1,6 @@
 #include <input_actions>
 
-void main (Android_ActionBindings& bindings)
+void ASmain (Android_ActionBindings& bindings)
 {
 	// UI bindings
 	{

@@ -45,6 +45,7 @@ namespace AE::App
 		using VRDevListenerPtr	= Unique< IVRDevice::IVRDeviceEventListener >;
 		using EnumWindowsFn_t	= Function< void (ArrayView< IWindow* >) >;
 		using Duration_t		= IInputActions::Duration_t;
+		using Locales_t			= FixedArray< LocaleName, 4 >;
 
 
 	// interface
@@ -107,6 +108,12 @@ namespace AE::App
 		//   Thread safe: yes
 		//
 		ND_ virtual Duration_t  GetTimeSinceStart ()																					C_NE___ = 0;
+
+
+		// Returns array of supported locales.
+		//   Thread safe: yes
+		//
+		ND_ virtual Locales_t  GetLocales ()																							C_NE___ = 0;
 
 
 		// TODO:

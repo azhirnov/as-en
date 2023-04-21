@@ -82,25 +82,29 @@ namespace AE::Math
 		ND_ friend constexpr Self  operator - (T lhs, Self rhs)	__NE___	{ return Self{ lhs - rhs._value }; }
 		ND_ friend constexpr Self  operator * (T lhs, Self rhs)	__NE___	{ return Self{ lhs * rhs._value }; }
 		ND_ friend constexpr Self  operator / (T lhs, Self rhs)	__NE___	{ return Self{ lhs / rhs._value }; }
+
+		ND_ static constexpr Self  FromDeg (T value)			__NE___	{ return Self{ DegToRad() * value }; }
 	};
 
 
-	using Rad		= RadiansTempl<float>;
-	using RadiansF	= RadiansTempl<float>;
-	using RadiansD	= RadiansTempl<double>;
+	using Rad			= RadiansTempl<float>;
+	using RadiansF		= RadiansTempl<float>;
+	using RadiansD		= RadiansTempl<double>;
+
+	template <typename T, int I, glm::qualifier Q>
+	using TRadianVec	= TVec< RadiansTempl<T>, I, Q >;
+
+	template <typename T, int I>
+	using RadianVec		= Vec< RadiansTempl<T>, I >;
 
 	inline static constexpr Rad  Pi = Rad::Pi();
 	
 	ND_ constexpr Rad  operator "" _rad (long double value)			__NE___	{ return Rad{ Rad::Value_t(value) }; }
 	ND_ constexpr Rad  operator "" _rad (unsigned long long value)	__NE___	{ return Rad{ Rad::Value_t(value) }; }
 	
-	ND_ constexpr Rad  operator "" _deg (long double value)			__NE___	{ return Rad{ Rad::DegToRad() * Rad::Value_t(value) }; }
-	ND_ constexpr Rad  operator "" _deg (unsigned long long value)	__NE___	{ return Rad{ Rad::DegToRad() * Rad::Value_t(value) }; }
+	ND_ constexpr Rad  operator "" _deg (long double value)			__NE___	{ return Rad::FromDeg( Rad::Value_t(value) ); }
+	ND_ constexpr Rad  operator "" _deg (unsigned long long value)	__NE___	{ return Rad::FromDeg( Rad::Value_t(value) ); }
 
-
-	template <typename T, int I>
-	using RadianVec = Vec< RadiansTempl<T>, I >;
-	
 
 /*
 =================================================

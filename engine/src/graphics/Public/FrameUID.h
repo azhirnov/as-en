@@ -89,9 +89,11 @@ namespace AE::Graphics
 		ND_ bool		IsValid ()						C_NE___	{ return _bits.maxFrames > 0; }
 
 		ND_ FrameUID	Next ()							C_NE___	{ return FrameUID{*this}.Inc(); }
+		ND_ FrameUID	NextCycle ()					C_NE___ { return FrameUID{ _bits.counter + _bits.maxFrames, 0, MaxFrames() }; }
+		ND_ SValue_t	Diff (FrameUID rhs)				C_NE___ { return SValue_t(_bits.counter) - SValue_t(rhs._bits.counter); }
 
 
-		FrameUID&  Inc () __NE___
+		FrameUID&  Inc ()								__NE___
 		{
 			ASSERT( _bits.maxFrames > 0 );
 			_bits.index = (_bits.index + 1) % _bits.maxFrames;
@@ -100,7 +102,7 @@ namespace AE::Graphics
 			return *this;
 		}
 
-		ND_ Optional<FrameUID>  PrevCycle () C_NE___
+		ND_ Optional<FrameUID>  PrevCycle ()			C_NE___
 		{
 			if_likely( _bits.maxFrames <= _bits.counter )
 			{
@@ -111,11 +113,6 @@ namespace AE::Graphics
 			return NullOptional;
 		}
 
-		ND_ SValue_t  Diff (FrameUID rhs) C_NE___
-		{
-			return SValue_t(_bits.counter) - SValue_t(rhs._bits.counter);
-		}
-
 		ND_ static FrameUID  FromIndex (uint idx, uint maxFrames) __NE___
 		{
 			ASSERT( maxFrames <= GraphicsConfig::MaxFrames );
@@ -123,7 +120,7 @@ namespace AE::Graphics
 			return FrameUID{ 0, idx, maxFrames };
 		}
 
-		ND_ static FrameUID  Init (uint maxFrames) __NE___
+		ND_ static FrameUID  Init (uint maxFrames)		__NE___
 		{
 			CHECK( maxFrames > 0 );
 			CHECK( maxFrames <= GraphicsConfig::MaxFrames );

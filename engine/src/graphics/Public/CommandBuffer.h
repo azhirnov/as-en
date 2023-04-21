@@ -246,13 +246,13 @@ namespace AE::Graphics
 
 	// partially upload //
 		//		stream.buffer, stream.image: EResourceState::CopyDst
-			virtual void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)		__Th___ = 0;
-			virtual void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType = EStagingHeapType::Dynamic)			__Th___ = 0;
+			virtual void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView)						__Th___ = 0;
+			virtual void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView)						__Th___ = 0;
 
 	// partially read //
 		//		stream.buffer, stream.image: EResourceState::CopySrc
-		//ND_ Promise<BufferMemView>  ReadbackBuffer (BufferStream &stream, EStagingHeapType heapType = EStagingHeapType::Static)					__Th___;
-		//ND_ Promise<ImageMemView>   ReadbackImage (ImageStream &stream, EStagingHeapType heapType = EStagingHeapType::Static)						__Th___;
+		//ND_ Promise<BufferMemView>  ReadbackBuffer (BufferStream &stream)											__Th___;
+		//ND_ Promise<ImageMemView>   ReadbackImage (ImageStream &stream)											__Th___;
 
 	// only for host-visible memory //
 		//		buffer: EResourceState::Host_Write
@@ -325,7 +325,8 @@ namespace AE::Graphics
 
 		//		buffer: EResourceState::IndirectBuffer
 		virtual void  DispatchIndirect (BufferID buffer, Bytes offset)														__Th___	= 0;
-
+		
+				void  Dispatch (const uint   groupCount)																	__Th___	{ return Dispatch( uint3{ groupCount, 1u, 1u }); }
 				void  Dispatch (const uint2 &groupCount)																	__Th___	{ return Dispatch( uint3{ groupCount, 1u }); }
 	};
 
@@ -448,6 +449,32 @@ namespace AE::Graphics
 			//	void  BuildIndirect (VDeviceAddress indirectMem);
 			//	void  BuildIndirect (Bytes indirectBuffer, Bytes indirectBufferOffset);
 		)
+	};
+
+
+
+	//
+	// Video Decode
+	//
+
+	class IVideoDecodeContext : public IBaseContext
+	{
+	// interface
+	public:
+		virtual void  Decode (const VideoDecodeCmd &)	__Th___ = 0;
+	};
+
+
+
+	//
+	// Video Encode
+	//
+
+	class IVideoEncodeContext : public IBaseContext
+	{
+	// interface
+	public:
+		virtual void  Encode (const VideoEncodeCmd &)	__Th___ = 0;
 	};
 //-----------------------------------------------------------------------------
 

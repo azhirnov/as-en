@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "base/Containers/InPlace.h"
 # include "base/Memory/LinearAllocator.h"
 # include "serializing/Common.h"

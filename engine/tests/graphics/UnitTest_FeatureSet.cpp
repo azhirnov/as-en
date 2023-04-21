@@ -109,24 +109,27 @@ namespace
 
 extern void UnitTest_FeatureSet ()
 {
-	ASSERT_Eq( OffsetOf( &FeatureSet::subgroupOperations ),			8 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minSubgroupSize ),			28 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minSubsampledArrayLayers ),	60 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minRayRecursionDepth ),		76 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minVertAmplification ),		220 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minRasterOrderGroups ),		312 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minImageArrayLayers ),		468 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minSamplerLodBias ),			624 );
+	const auto	h = FeatureSet::GetHashOfFieldNames();
+	ASSERT( h == HashVal64{0x4c6463bf77cecc38} );
+
+	ASSERT_Eq( OffsetOf( &FeatureSet::subgroupOperations ),				  8 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minSubgroupSize ),				 28 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minSubsampledArrayLayers ),		 60 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minRayRecursionDepth ),			 76 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minVertAmplification ),			220 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minRasterOrderGroups ),			312 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minImageArrayLayers ),			476 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minSamplerLodBias ),				660 );
 	
-	ASSERT_Eq( OffsetOf( &FeatureSet::framebufferColorSampleCounts ),	628 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::framebufferDepthSampleCounts ),	632 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minFramebufferLayers ),			636 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::metalArgBufferTier ),				644 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::vendorIds ),						652 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::framebufferColorSampleCounts ),	664 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::framebufferDepthSampleCounts ),	668 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minFramebufferLayers ),			672 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::metalArgBufferTier ),				680 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::vendorIds ),						688 );
 
-	ASSERT_Eq( OffsetOf( &FeatureSet::devicesIds ),					664 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::devicesIds ),						696 );
 
-	STATIC_ASSERT( sizeof(FeatureSet) == 680 );
+	STATIC_ASSERT( sizeof(FeatureSet) == 712 );
 
 	FeatureSet_Test1();
 	FeatureSet_Test2();

@@ -49,17 +49,17 @@ namespace _hidden_
 	// interface
 	public:
 		// returns 'true' if cancelled, 'false' if already complete/cancelled or on other error.
-			virtual bool		Cancel ()		__NE___	= 0;
+			virtual bool		Cancel ()										__NE___	= 0;
 
-		ND_ EStatus				Status ()		C_NE___ { return _status.load(); }
+		ND_ EStatus				Status ()										C_NE___ { return _status.load(); }
 
-		ND_ bool				IsCompleted ()	C_NE___	{ return Status() == EStatus::Completed; }
-		ND_ bool				IsCancelled ()	C_NE___	{ return Status() == EStatus::Cancelled; }
-		ND_ bool				IsFinished ()	C_NE___	{ return Status() >  EStatus::_Finished; }
+		ND_ bool				IsCompleted ()									C_NE___	{ return Status() == EStatus::Completed; }
+		ND_ bool				IsCancelled ()									C_NE___	{ return Status() == EStatus::Cancelled; }
+		ND_ bool				IsFinished ()									C_NE___	{ return Status() >  EStatus::_Finished; }
 
-		ND_ virtual Result		GetResult ()	C_NE___ = 0;
+		ND_ virtual Result		GetResult ()									C_NE___ = 0;
 
-		ND_ virtual Promise_t	AsPromise ()	__NE___ = 0;
+		ND_ virtual Promise_t	AsPromise (ETaskQueue q = ETaskQueue::Worker)	__NE___ = 0;
 	};
 
 } // _hidden_

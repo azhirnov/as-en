@@ -11,17 +11,17 @@ namespace
 	{
 		using Dim = DefaultPhysicalDimensions;
 	
-		STATIC_ASSERT( Dim::MeterPerSecond::meters.numerator == 1 );
-		STATIC_ASSERT( Dim::MeterPerSecond::meters.denominator == 1 );
-		STATIC_ASSERT( Dim::MeterPerSecond::seconds.numerator == -1 );
-		STATIC_ASSERT( Dim::MeterPerSecond::seconds.denominator == 1 );
+		STATIC_ASSERT( Dim::MeterPerSecond::meters.num == 1 );
+		STATIC_ASSERT( Dim::MeterPerSecond::meters.den == 1 );
+		STATIC_ASSERT( Dim::MeterPerSecond::seconds.num == -1 );
+		STATIC_ASSERT( Dim::MeterPerSecond::seconds.den == 1 );
 
 		using M2 = DefaultPhysicalDimensions::Meter::Pow<2>;
 
-		STATIC_ASSERT( M2::meters.numerator == 2 );
-		STATIC_ASSERT( M2::meters.denominator == 1 );
-		STATIC_ASSERT( M2::seconds.numerator == 0 );
-		STATIC_ASSERT( M2::seconds.denominator == 1 );
+		STATIC_ASSERT( M2::meters.num == 2 );
+		STATIC_ASSERT( M2::meters.den == 1 );
+		STATIC_ASSERT( M2::seconds.num == 0 );
+		STATIC_ASSERT( M2::seconds.den == 1 );
 	}
 
 

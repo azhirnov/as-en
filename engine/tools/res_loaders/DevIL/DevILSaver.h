@@ -16,7 +16,7 @@ namespace AE::ResLoader
 	{
 	// methods
 	public:
-		bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat) __NE_OV;
+		bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat, Bool flipY = False{}) __NE_OV;
 		using IImageSaver::SaveImage;
 	};
 

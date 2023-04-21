@@ -304,6 +304,42 @@ namespace AE::PipelineCompiler
 			case EPixelFormat::Depth16_Stencil8 :
 			case EPixelFormat::BC1_RGB8_UNorm :
 			case EPixelFormat::BC1_sRGB8 :
+			
+			case EPixelFormat::G8B8G8R8_422_UNorm :
+			case EPixelFormat::B8G8R8G8_422_UNorm :
+			case EPixelFormat::B16G16R16G16_422_UNorm :
+			case EPixelFormat::G16B16G16R16_422_UNorm :
+			case EPixelFormat::B10x6G10x6R10x6G10x6_422_UNorm :
+			case EPixelFormat::G10x6B10x6G10x6R10x6_422_UNorm :
+			case EPixelFormat::B12x4G12x4R12x4G12x4_422_UNorm :
+			case EPixelFormat::G12x4B12x4G12x4R12x4_422_UNorm :
+			case EPixelFormat::G8_B8R8_422_UNorm :
+			case EPixelFormat::G16_B16R16_422_UNorm :
+			case EPixelFormat::G10x6_B10x6R10x6_422_UNorm :
+			case EPixelFormat::G12x4_B12x4R12x4_422_UNorm :
+			case EPixelFormat::G8_B8_R8_422_UNorm :
+			case EPixelFormat::G16_B16_R16_422_UNorm :
+			case EPixelFormat::G10x6_B10x6_R10x6_422_UNorm :
+			case EPixelFormat::G12x4_B12x4_R12x4_422_UNorm :
+			case EPixelFormat::G8_B8R8_420_UNorm :
+			case EPixelFormat::G16_B16R16_420_UNorm :
+			case EPixelFormat::G10x6_B10x6R10x6_420_UNorm :
+			case EPixelFormat::G12x4_B12x4R12x4_420_UNorm :
+			case EPixelFormat::G8_B8_R8_420_UNorm :
+			case EPixelFormat::G16_B16_R16_420_UNorm :
+			case EPixelFormat::G10x6_B10x6_R10x6_420_UNorm :
+			case EPixelFormat::G12x4_B12x4_R12x4_420_UNorm :
+			case EPixelFormat::G8_B8_R8_444_UNorm :
+			case EPixelFormat::G16_B16_R16_444_UNorm :
+			case EPixelFormat::G10x6_B10x6_R10x6_444_UNorm :
+			case EPixelFormat::G12x4_B12x4_R12x4_444_UNorm :
+			case EPixelFormat::R10x6G10x6B10x6A10x6_UNorm :
+			case EPixelFormat::R10x6G10x6_UNorm :
+			case EPixelFormat::R10x6_UNorm :
+			case EPixelFormat::R12x4G12x4B12x4A12x4_UNorm :
+			case EPixelFormat::R12x4G12x4_UNorm :
+			case EPixelFormat::R12x4_UNorm :
+
 			case EPixelFormat::_Count :
 			case EPixelFormat::Unknown :		break;
 		}

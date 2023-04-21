@@ -73,6 +73,8 @@ namespace
 	template <typename T>
 	ND_ bool  Convert (OUT String &result, BasicStringView<T> path)
 	{
+		result.clear();
+
 		if constexpr( IsSameTypes< T, CharAnsi >)
 		{
 			CHECK_ERR( path.length() <= FileName::MaxStringLength() );

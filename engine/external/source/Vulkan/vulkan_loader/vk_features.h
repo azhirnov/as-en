@@ -82,6 +82,7 @@
 		bool  sampleLocations             : 1;   // VK_EXT_sample_locations 
 		bool  fragmentBarycentric         : 1;   // VK_KHR_fragment_shader_barycentric 
 		bool  meshShader                  : 1;   // VK_EXT_mesh_shader 
+		bool  rasterOrderAttachment       : 1;   // VK_EXT_rasterization_order_attachment_access 
 		bool  fragShaderInterlock         : 1;   // VK_EXT_fragment_shader_interlock 
 		bool  shaderClock                 : 1;   // VK_KHR_shader_clock 
 		bool  shaderTerminateInvocation   : 1;   // VK_KHR_shader_terminate_invocation 
@@ -107,15 +108,20 @@
 		bool  astcDecodeMode              : 1;   // VK_EXT_astc_decode_mode 
 		bool  imageCompressionCtrl        : 1;   // VK_EXT_image_compression_control 
 		bool  swapchainCompressionCtrl    : 1;   // VK_EXT_image_compression_control_swapchain 
+		bool  videoQueue                  : 1;   // VK_KHR_video_queue 
+		bool  videoEncodeQueue            : 1;   // VK_KHR_video_encode_queue 
+		bool  videoDecodeQueue            : 1;   // VK_KHR_video_decode_queue 
+		bool  videoDecodeH264             : 1;   // VK_KHR_video_decode_h264 
+		bool  videoDecodeH265             : 1;   // VK_KHR_video_decode_h265 
+		bool  videoEncodeH264             : 1;   // VK_EXT_video_encode_h264 
+		bool  videoEncodeH265             : 1;   // VK_EXT_video_encode_h265 
 		bool  imageFootprintNV            : 1;   // VK_NV_shader_image_footprint 
 		bool  deviceGeneratedCmdsNV       : 1;   // VK_NV_device_generated_commands 
 		bool  shaderSMBuiltinsNV          : 1;   // VK_NV_shader_sm_builtins 
-		bool  rasterizationOrderAMD       : 1;   // VK_AMD_rasterization_order 
 		bool  shaderCorePropsAMD          : 1;   // VK_AMD_shader_core_properties 
 		bool  rasterizationOrderGroup     : 1;   // VK_ARM_rasterization_order_attachment_access 
 		bool  shaderCoreBuiltinsARM       : 1;   // VK_ARM_shader_core_builtins 
 		bool  subpassShadingHW            : 1;   // VK_HUAWEI_subpass_shading 
-		bool  renderPassShaderResolve     : 1;   // VK_QCOM_render_pass_shader_resolve 
 		bool  incrementalPresent          : 1;   // VK_KHR_incremental_present 
 		bool  presentId                   : 1;   // VK_KHR_present_id 
 		bool  presentWait                 : 1;   // VK_KHR_present_wait 
@@ -460,6 +466,7 @@
 			VK_EXT_PAGEABLE_DEVICE_LOCAL_MEMORY_EXTENSION_NAME,
 			VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME,
 			VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME,
+			VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME,
 			VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME,
 			VK_KHR_SHADER_CLOCK_EXTENSION_NAME,
 			VK_KHR_SHADER_TERMINATE_INVOCATION_EXTENSION_NAME,
@@ -482,12 +489,10 @@
 			VK_EXT_IMAGE_COMPRESSION_CONTROL_EXTENSION_NAME,
 			VK_EXT_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_EXTENSION_NAME,
 			VK_NV_SHADER_IMAGE_FOOTPRINT_EXTENSION_NAME,
-			VK_AMD_RASTERIZATION_ORDER_EXTENSION_NAME,
 			VK_AMD_SHADER_CORE_PROPERTIES_EXTENSION_NAME,
 			VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME,
 			VK_ARM_SHADER_CORE_BUILTINS_EXTENSION_NAME,
 			VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME,
-			VK_QCOM_RENDER_PASS_SHADER_RESOLVE_EXTENSION_NAME,
 			VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME,
 			VK_KHR_PRESENT_ID_EXTENSION_NAME,
 			VK_KHR_PRESENT_WAIT_EXTENSION_NAME,
@@ -499,6 +504,13 @@
 			VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
 			VK_KHR_RAY_QUERY_EXTENSION_NAME,
 			VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME,
+			VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,
+			VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME,
+			VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME,
+			VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME,
+			VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME,
+			VK_EXT_VIDEO_ENCODE_H264_EXTENSION_NAME,
+			VK_EXT_VIDEO_ENCODE_H265_EXTENSION_NAME,
 			VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME,
 			VK_NV_SHADER_SM_BUILTINS_EXTENSION_NAME,
 		};
@@ -603,6 +615,7 @@
 		_extensions.sampleLocations             = (HasDeviceExtension( VK_EXT_SAMPLE_LOCATIONS_EXTENSION_NAME ));
 		_extensions.fragmentBarycentric         = (HasDeviceExtension( VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME ));
 		_extensions.meshShader                  = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_EXT_MESH_SHADER_EXTENSION_NAME ));
+		_extensions.rasterOrderAttachment       = (HasDeviceExtension( VK_EXT_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME ));
 		_extensions.fragShaderInterlock         = (HasDeviceExtension( VK_EXT_FRAGMENT_SHADER_INTERLOCK_EXTENSION_NAME ));
 		_extensions.shaderClock                 = (HasDeviceExtension( VK_KHR_SHADER_CLOCK_EXTENSION_NAME ));
 		_extensions.shaderTerminateInvocation   = (HasDeviceExtension( VK_KHR_SHADER_TERMINATE_INVOCATION_EXTENSION_NAME ));
@@ -628,15 +641,20 @@
 		_extensions.astcDecodeMode              = (HasDeviceExtension( VK_EXT_ASTC_DECODE_MODE_EXTENSION_NAME ));
 		_extensions.imageCompressionCtrl        = (HasDeviceExtension( VK_EXT_IMAGE_COMPRESSION_CONTROL_EXTENSION_NAME ));
 		_extensions.swapchainCompressionCtrl    = (HasDeviceExtension( VK_EXT_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_EXTENSION_NAME ));
+		_extensions.videoQueue                  = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_KHR_VIDEO_QUEUE_EXTENSION_NAME ));
+		_extensions.videoEncodeQueue            = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME ));
+		_extensions.videoDecodeQueue            = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_KHR_VIDEO_DECODE_QUEUE_EXTENSION_NAME ));
+		_extensions.videoDecodeH264             = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_KHR_VIDEO_DECODE_H264_EXTENSION_NAME ));
+		_extensions.videoDecodeH265             = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_KHR_VIDEO_DECODE_H265_EXTENSION_NAME ));
+		_extensions.videoEncodeH264             = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_EXT_VIDEO_ENCODE_H264_EXTENSION_NAME ));
+		_extensions.videoEncodeH265             = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_EXT_VIDEO_ENCODE_H265_EXTENSION_NAME ));
 		_extensions.imageFootprintNV            = (HasDeviceExtension( VK_NV_SHADER_IMAGE_FOOTPRINT_EXTENSION_NAME ));
 		_extensions.deviceGeneratedCmdsNV       = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME ));
 		_extensions.shaderSMBuiltinsNV          = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_NV_SHADER_SM_BUILTINS_EXTENSION_NAME ));
-		_extensions.rasterizationOrderAMD       = (HasDeviceExtension( VK_AMD_RASTERIZATION_ORDER_EXTENSION_NAME ));
 		_extensions.shaderCorePropsAMD          = (HasDeviceExtension( VK_AMD_SHADER_CORE_PROPERTIES_EXTENSION_NAME ));
 		_extensions.rasterizationOrderGroup     = (HasDeviceExtension( VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME ));
 		_extensions.shaderCoreBuiltinsARM       = (HasDeviceExtension( VK_ARM_SHADER_CORE_BUILTINS_EXTENSION_NAME ));
 		_extensions.subpassShadingHW            = (HasDeviceExtension( VK_HUAWEI_SUBPASS_SHADING_EXTENSION_NAME ));
-		_extensions.renderPassShaderResolve     = (HasDeviceExtension( VK_QCOM_RENDER_PASS_SHADER_RESOLVE_EXTENSION_NAME ));
 		_extensions.incrementalPresent          = (HasDeviceExtension( VK_KHR_INCREMENTAL_PRESENT_EXTENSION_NAME ));
 		_extensions.presentId                   = (HasDeviceExtension( VK_KHR_PRESENT_ID_EXTENSION_NAME ));
 		_extensions.presentWait                 = (HasDeviceExtension( VK_KHR_PRESENT_WAIT_EXTENSION_NAME ));
@@ -1195,40 +1213,46 @@
 			<< "\n  sampleLocations:            " << ToString( _extensions.sampleLocations )
 			<< "\n  fragmentBarycentric:. . . . " << ToString( _extensions.fragmentBarycentric )
 			<< "\n  meshShader:                 " << ToString( _extensions.meshShader )
-			<< "\n  fragShaderInterlock:. . . . " << ToString( _extensions.fragShaderInterlock )
-			<< "\n  shaderClock:                " << ToString( _extensions.shaderClock )
-			<< "\n  shaderTerminateInvocation:. " << ToString( _extensions.shaderTerminateInvocation )
-			<< "\n  shaderAtomicFloat:          " << ToString( _extensions.shaderAtomicFloat )
-			<< "\n  shaderAtomicFloat2: . . . . " << ToString( _extensions.shaderAtomicFloat2 )
+			<< "\n  rasterOrderAttachment:. . . " << ToString( _extensions.rasterOrderAttachment )
+			<< "\n  fragShaderInterlock:        " << ToString( _extensions.fragShaderInterlock )
+			<< "\n  shaderClock:. . . . . . . . " << ToString( _extensions.shaderClock )
+			<< "\n  shaderTerminateInvocation:  " << ToString( _extensions.shaderTerminateInvocation )
+			<< "\n  shaderAtomicFloat:. . . . . " << ToString( _extensions.shaderAtomicFloat )
+			<< "\n  shaderAtomicFloat2:         " << ToString( _extensions.shaderAtomicFloat2 )
 			<< "\n  workgroupMemExplicitLayout: " << ToString( _extensions.workgroupMemExplicitLayout )
-			<< "\n  shaderImageAtomicInt64: . . " << ToString( _extensions.shaderImageAtomicInt64 )
-			<< "\n  queueGlobalPriority:        " << ToString( _extensions.queueGlobalPriority )
-			<< "\n  performanceQuery: . . . . . " << ToString( _extensions.performanceQuery )
-			<< "\n  calibratedTimestamps:       " << ToString( _extensions.calibratedTimestamps )
-			<< "\n  toolingInfo:. . . . . . . . " << ToString( _extensions.toolingInfo )
-			<< "\n  memoryBudget:               " << ToString( _extensions.memoryBudget )
-			<< "\n  memoryReport: . . . . . . . " << ToString( _extensions.memoryReport )
-			<< "\n  fragShadingRate:            " << ToString( _extensions.fragShadingRate )
-			<< "\n  fragDensityMap: . . . . . . " << ToString( _extensions.fragDensityMap )
-			<< "\n  fragDensityMap2:            " << ToString( _extensions.fragDensityMap2 )
-			<< "\n  pipelineLibrary:. . . . . . " << ToString( _extensions.pipelineLibrary )
-			<< "\n  deferredHostOps:            " << ToString( _extensions.deferredHostOps )
-			<< "\n  accelerationStructure:. . . " << ToString( _extensions.accelerationStructure )
-			<< "\n  rayTracingPipeline:         " << ToString( _extensions.rayTracingPipeline )
-			<< "\n  rayQuery: . . . . . . . . . " << ToString( _extensions.rayQuery )
-			<< "\n  rayTracingMaintenance1:     " << ToString( _extensions.rayTracingMaintenance1 )
-			<< "\n  astcDecodeMode: . . . . . . " << ToString( _extensions.astcDecodeMode )
-			<< "\n  imageCompressionCtrl:       " << ToString( _extensions.imageCompressionCtrl )
-			<< "\n  swapchainCompressionCtrl: . " << ToString( _extensions.swapchainCompressionCtrl )
+			<< "\n  shaderImageAtomicInt64:     " << ToString( _extensions.shaderImageAtomicInt64 )
+			<< "\n  queueGlobalPriority:. . . . " << ToString( _extensions.queueGlobalPriority )
+			<< "\n  performanceQuery:           " << ToString( _extensions.performanceQuery )
+			<< "\n  calibratedTimestamps: . . . " << ToString( _extensions.calibratedTimestamps )
+			<< "\n  toolingInfo:                " << ToString( _extensions.toolingInfo )
+			<< "\n  memoryBudget: . . . . . . . " << ToString( _extensions.memoryBudget )
+			<< "\n  memoryReport:               " << ToString( _extensions.memoryReport )
+			<< "\n  fragShadingRate:. . . . . . " << ToString( _extensions.fragShadingRate )
+			<< "\n  fragDensityMap:             " << ToString( _extensions.fragDensityMap )
+			<< "\n  fragDensityMap2:. . . . . . " << ToString( _extensions.fragDensityMap2 )
+			<< "\n  pipelineLibrary:            " << ToString( _extensions.pipelineLibrary )
+			<< "\n  deferredHostOps:. . . . . . " << ToString( _extensions.deferredHostOps )
+			<< "\n  accelerationStructure:      " << ToString( _extensions.accelerationStructure )
+			<< "\n  rayTracingPipeline: . . . . " << ToString( _extensions.rayTracingPipeline )
+			<< "\n  rayQuery:                   " << ToString( _extensions.rayQuery )
+			<< "\n  rayTracingMaintenance1: . . " << ToString( _extensions.rayTracingMaintenance1 )
+			<< "\n  astcDecodeMode:             " << ToString( _extensions.astcDecodeMode )
+			<< "\n  imageCompressionCtrl: . . . " << ToString( _extensions.imageCompressionCtrl )
+			<< "\n  swapchainCompressionCtrl:   " << ToString( _extensions.swapchainCompressionCtrl )
+			<< "\n  videoQueue: . . . . . . . . " << ToString( _extensions.videoQueue )
+			<< "\n  videoEncodeQueue:           " << ToString( _extensions.videoEncodeQueue )
+			<< "\n  videoDecodeQueue: . . . . . " << ToString( _extensions.videoDecodeQueue )
+			<< "\n  videoDecodeH264:            " << ToString( _extensions.videoDecodeH264 )
+			<< "\n  videoDecodeH265:. . . . . . " << ToString( _extensions.videoDecodeH265 )
+			<< "\n  videoEncodeH264:            " << ToString( _extensions.videoEncodeH264 )
+			<< "\n  videoEncodeH265:. . . . . . " << ToString( _extensions.videoEncodeH265 )
 			<< "\n  imageFootprintNV:           " << ToString( _extensions.imageFootprintNV )
 			<< "\n  deviceGeneratedCmdsNV:. . . " << ToString( _extensions.deviceGeneratedCmdsNV )
 			<< "\n  shaderSMBuiltinsNV:         " << ToString( _extensions.shaderSMBuiltinsNV )
-			<< "\n  rasterizationOrderAMD:. . . " << ToString( _extensions.rasterizationOrderAMD )
-			<< "\n  shaderCorePropsAMD:         " << ToString( _extensions.shaderCorePropsAMD )
-			<< "\n  rasterizationOrderGroup:. . " << ToString( _extensions.rasterizationOrderGroup )
-			<< "\n  shaderCoreBuiltinsARM:      " << ToString( _extensions.shaderCoreBuiltinsARM )
-			<< "\n  subpassShadingHW: . . . . . " << ToString( _extensions.subpassShadingHW )
-			<< "\n  renderPassShaderResolve:    " << ToString( _extensions.renderPassShaderResolve )
+			<< "\n  shaderCorePropsAMD: . . . . " << ToString( _extensions.shaderCorePropsAMD )
+			<< "\n  rasterizationOrderGroup:    " << ToString( _extensions.rasterizationOrderGroup )
+			<< "\n  shaderCoreBuiltinsARM:. . . " << ToString( _extensions.shaderCoreBuiltinsARM )
+			<< "\n  subpassShadingHW:           " << ToString( _extensions.subpassShadingHW )
 			<< "\n  incrementalPresent: . . . . " << ToString( _extensions.incrementalPresent )
 			<< "\n  presentId:                  " << ToString( _extensions.presentId )
 			<< "\n  presentWait:. . . . . . . . " << ToString( _extensions.presentWait );

@@ -93,6 +93,9 @@ namespace AE::Base
 		// 
 		static bool  CopyFile (const Path &from, const Path &to)		__NE___;
 		static bool  CopyDirectory (const Path &from, const Path &to)	__NE___;
+
+		// moves or renames filesystem object
+		static bool  Rename (const Path &oldName, const Path &newName)	__NE___;
 		
 		// writes file system capacity and available space
 		static bool  GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available) __NE___;
@@ -120,6 +123,10 @@ namespace AE::Base
 
 		static bool  Search (const Path &ref, uint backwardDepth, uint forwardDepth, OUT Path &result)						__Th___;
 		static bool  Search (const Path &base, const Path &ref, uint backwardDepth, uint forwardDepth, OUT Path &result)	__Th___;
+
+		// 
+		static void  FindUnusedFilename (const Function< void (OUT Path &, usize idx) > &	buildName,
+										 const Function< bool (const Path &) > &			consume)						__Th___;
 
 
 	// platform dependent
@@ -228,65 +235,6 @@ namespace AE::Base
 		ND_ bool  operator >  (const DirectoryEntry &rhs)	C_NE___	{ return _entry >  rhs._entry; }
 		ND_ bool  operator <= (const DirectoryEntry &rhs)	C_NE___	{ return _entry <= rhs._entry; }
 		ND_ bool  operator >= (const DirectoryEntry &rhs)	C_NE___	{ return _entry >= rhs._entry; }
-	};
-
-
-
-	//
-	// Raw pointer to Path
-	//
-	template <typename T>
-	struct PtrToPath
-	{
-	// types
-	public:
-		using Self	= PtrToPath<T>;
-
-	// variables
-	private:
-		const T*	_ptr	= null;
-
-	// methods
-	public:
-		PtrToPath (const T* ptr)			__NE___	: _ptr{ptr} {}
-		PtrToPath (Self &&)					__NE___	= default;
-		PtrToPath (const Self &)			__NE___	= default;
-
-		ND_ operator Path ()				C_NE___	{ return _ptr != null ? Path{_ptr} : Default; }
-
-		ND_ bool  operator == (Self rhs)	C_NE___	{ return _ptr == rhs._ptr; }
-		ND_ bool  operator != (Self rhs)	C_NE___	{ return _ptr != rhs._ptr; }
-
-		ND_ Self  operator + (usize rhs)	C_NE___	{ return Self{ _ptr + rhs }; }
-	};
-
-
-
-	//
-	// Raw pointer array to Path
-	//
-	template <typename T>
-	struct PtrToPathArray
-	{
-	// types
-	public:
-		using Self	= PtrToPathArray<T>;
-
-	// variables
-	private:
-		const T* const*		_arr	= null;
-		const usize			_count	= 0;
-
-	// methods
-	public:
-		PtrToPathArray (const T* const* arr, usize count) __NE___ : _arr{arr}, _count{count} {}
-
-		ND_ operator Array<Path> () C_NE___
-		{
-			Array<Path>  result {_count};
-			for (usize i = 0; i < _count; ++i) { if ( _arr[i] != null ) result[i] = Path{_arr[i]}; }
-			return result;
-		}
 	};
 //-----------------------------------------------------------------------------
 	
@@ -428,6 +376,13 @@ namespace AE::Base
 		return not ec;
 	}
 	
+	inline bool  FileSystem::Rename (const Path &oldName, const Path &newName) __NE___
+	{
+		std::error_code	ec;
+		_ae_fs_::rename( oldName, newName, OUT ec );
+		return not ec;
+	}
+
 	inline bool  FileSystem::GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available) __NE___
 	{
 		std::error_code	ec;

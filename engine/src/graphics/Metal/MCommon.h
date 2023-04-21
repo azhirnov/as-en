@@ -7,7 +7,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "base/Algorithms/Cast.h"
 # include "base/Containers/Ptr.h"
 # include "base/Containers/FixedArray.h"
@@ -30,9 +29,6 @@
 
 // Xcode frame debugger doesn't support sample counters
 # define AE_METAL_NATIVE_DEBUGGER	0
-
-// beta extension in old versions
-# define AE_METAL_3_0_BETA		1	// TODO: remove
 
 
 namespace AE::Graphics
@@ -65,19 +61,13 @@ namespace AE::Graphics
 	// Used for temporary allocations.
 	// thread-safe: no
 	using MTempLinearAllocator	= LinearAllocator< UntypedAllocator, 8, false >;	// TODO: use fast block allocator
-	using MTempStackAllocator	= StackAllocator< UntypedAllocator, 8, false >;
+	using MTempStackAllocator	= StackAllocator<  UntypedAllocator, 8, false >;
 	
 													// in MSL:
 	enum class MTextureIndex		: ubyte {};		// [[ texture(x) ]]
 	enum class MBufferIndex			: ubyte {};		// [[ buffer(x) ]]
 	enum class MSamplerIndex		: ubyte {};		// [[ sampler(x) ]]
 	enum class MThreadgroupIndex	: ubyte {};		// [[ threadgroup(x) ]]
-
-	
-	using MSamplerID			= HandleTmpl< 16, 16, Graphics::_hidden_::MetalIDs_Start + 1 >;
-	using MPipelineLayoutID		= HandleTmpl< 16, 16, Graphics::_hidden_::MetalIDs_Start + 2 >;
-	using MRenderPassID			= HandleTmpl< 16, 16, Graphics::_hidden_::MetalIDs_Start + 4 >;
-	using MMemoryID				= HandleTmpl< 32, 32, Graphics::_hidden_::MetalIDs_Start + 6 >;
 
 	
 	//

@@ -1,10 +1,11 @@
 #include <input_actions>
 
-void main (GLFW_ActionBindings& bindings)
+void ASmain (GLFW_ActionBindings& bindings)
 {
 	// UI bindings
 	{
 		RC<GLFW_BindingsMode>	bind = bindings.CreateMode( "UI" );
+		bind.LockAndHideCursor();
 
 		bind.Add( GLFW_Input::Enter,
 				  ActionInfo( "Enter", EGestureType::Down ));

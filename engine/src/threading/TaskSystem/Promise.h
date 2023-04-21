@@ -130,68 +130,72 @@ namespace _hidden_
 
 	// methods
 	public:
-		Promise ()															__NE___ {}
+		Promise ()																	__NE___ {}
 
-		Promise (Self &&)													__NE___ = default;
-		Promise (const Self &)												__NE___ = default;
+		Promise (Self &&)															__NE___ = default;
+		Promise (const Self &)														__NE___ = default;
 
-		Self& operator = (Self &&)											__NE___ = default;
-		Self& operator = (const Self &)										__NE___ = default;
-
-		template <typename Fn>
-		auto  Then (Fn &&fn, ETaskQueue queueType = ETaskQueue::Worker)		__Th___;
+		Self& operator = (Self &&)													__NE___ = default;
+		Self& operator = (const Self &)												__NE___ = default;
 
 		template <typename Fn>
-		auto  Except (Fn &&fn, ETaskQueue queueType = ETaskQueue::Worker)	__Th___;
-
-		bool  Cancel ()														__NE___;
+		auto  Then (Fn &&fn,
+					StringView dbgName		= Default,
+					ETaskQueue queueType	= ETaskQueue::Worker)					__Th___;
 
 		template <typename Fn>
-		bool  WithResult (Fn && fn)											__Th___;
+		auto  Except (Fn &&fn,
+					  StringView dbgName	= Default,
+					  ETaskQueue queueType	= ETaskQueue::Worker)					__Th___;
 
-		explicit operator AsyncTask ()										C_NE___	{ return _impl; }
-		explicit operator bool ()											C_NE___	{ return bool{_impl}; }
+		bool  Cancel ()																__NE___;
 
-		ND_ IAsyncTask::EStatus  Status ()									C_NE___;
+		template <typename Fn>
+		bool  WithResult (Fn && fn)													__Th___;
+
+		explicit operator AsyncTask ()												C_NE___	{ return _impl; }
+		explicit operator bool ()													C_NE___	{ return bool{_impl}; }
+
+		ND_ IAsyncTask::EStatus  Status ()											C_NE___;
 		
 	private:
 		template <typename Fn>
-		auto  _Then (Fn &&fn, ETaskQueue queueType)							__Th___;
+		auto  _Then (Fn &&fn, StringView, ETaskQueue queueType)						__Th___;
 		
 		template <typename Fn>
-		auto  _Except (Fn &&fn, ETaskQueue queueType)						__Th___;
+		auto  _Except (Fn &&fn, StringView, ETaskQueue queueType)					__Th___;
 
 		template <typename A>
-		Promise (A &&val, bool except, ETaskQueue, ValueArg)				__Th___;
+		Promise (A &&val, bool except, StringView, ETaskQueue, ValueArg)			__Th___;
 		
 		template <typename A>
-		Promise (A &&val, bool except, ETaskQueue, CompleteValueArg)		__Th___;
+		Promise (A &&val, bool except, StringView, ETaskQueue, CompleteValueArg)	__Th___;
 
 		template <typename Fn>
-		Promise (Fn &&fn, bool except, ETaskQueue, FunctionArg)				__Th___;
+		Promise (Fn &&fn, bool except, StringView, ETaskQueue, FunctionArg)			__Th___;
 
-		ND_ T  _Result ()													C_NE___;
+		ND_ T  _Result ()															C_NE___;
 
 		template <typename Fn, typename ...Deps>
-		friend auto  MakePromise (Fn &&, const Tuple<Deps...> &, ETaskQueue) __Th___;
+		friend auto  MakePromise (Fn &&, const Tuple<Deps...> &, StringView, ETaskQueue)		__Th___;
 		
 		template <typename ...Args>
-		friend auto  MakePromiseFrom (Args&& ...)							__Th___;
+		friend auto  MakePromiseFrom (Args&& ...)												__Th___;
 		
 		template <typename A>
-		friend auto  MakePromiseFromArray (Array<Promise<A>>, ETaskQueue)	__Th___;
+		friend auto  MakePromiseFromArray (Array<Promise<A>>, StringView, ETaskQueue)			__Th___;
 
 		template <typename A>
-		friend auto  MakePromiseFromArray (Array< Promise< Array<A> >>, ETaskQueue) __Th___;
+		friend auto  MakePromiseFromArray (Array< Promise< Array<A> >>, StringView, ETaskQueue) __Th___;
 		
 		template <typename Fn>
-		friend auto  MakeDelayedPromise (Fn &&fn, ETaskQueue)				__Th___;
+		friend auto  MakeDelayedPromise (Fn &&fn, StringView, ETaskQueue)						__Th___;
 		
 		template <typename B, typename ...Deps>
-		friend auto  MakePromiseFromValue (B &&, const Tuple<Deps...> &, ETaskQueue) __Th___;
+		friend auto  MakePromiseFromValue (B &&, const Tuple<Deps...> &, StringView, ETaskQueue) __Th___;
 
 		template <typename B>
-		friend auto  MakeDelayedPromiseFromValue (B &&, ETaskQueue)			__Th___;
+		friend auto  MakeDelayedPromiseFromValue (B &&, StringView, ETaskQueue)					__Th___;
 		
 		template <typename B>
 		friend class Promise;
@@ -222,20 +226,24 @@ namespace _hidden_
 		Result_t		_result;
 		Func_t			_func;
 		const bool		_isExept;
+		
+	  #ifdef AE_DEBUG
+		String			_dbgName;
+	  #endif
 
 
 	// methods
 	public:
 		template <typename Fn>
-		_InternalImpl (Fn &&fn, bool except, ETaskQueue, Promise<T>::FunctionArg)			__NE___;
+		_InternalImpl (Fn &&fn, bool except, StringView, ETaskQueue, Promise<T>::FunctionArg)			__NE___;
 
 		template <typename A>
-		_InternalImpl (A && value, bool except, ETaskQueue, Promise<T>::ValueArg)			__NE___;
+		_InternalImpl (A && value, bool except, StringView, ETaskQueue, Promise<T>::ValueArg)			__NE___;
 		
 		template <typename A>
-		_InternalImpl (A && value, bool except, ETaskQueue, Promise<T>::CompleteValueArg)	__NE___;
+		_InternalImpl (A && value, bool except, StringView, ETaskQueue, Promise<T>::CompleteValueArg)	__NE___;
 
-		ND_ decltype(auto)  Result ()														C_NE___
+		ND_ decltype(auto)  Result ()					C_NE___
 		{
 			ASSERT( Status() == EStatus::Completed );
 			MemoryBarrier( EMemoryOrder::Acquire );
@@ -244,13 +252,18 @@ namespace _hidden_
 				return _result.Value();
 		}
 
-		ND_ bool  IsExcept ()																C_NE___	{ return _isExept; }
+		ND_ bool  IsExcept ()							C_NE___	{ return _isExept; }
 		
-		StringView  DbgName ()																C_NE_OV	{ return "Promise"; }
+	  #ifdef AE_DEBUG
+		StringView  DbgName ()							C_NE_OV	{ return _dbgName; }
+	  #else
+		StringView  DbgName ()							C_NE_OV	{ return "Promise"; }
+	  #endif
+
 
 	private:
-		void  Run ()																		__Th_OV;
-		void  OnCancel ()																	__NE_OV;
+		void  Run ()									__Th_OV;
+		void  OnCancel ()								__NE_OV;
 	};
 //-----------------------------------------------------------------------------
 
@@ -462,20 +475,20 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	Promise<T>::Promise (Fn &&fn, bool except, ETaskQueue queueType, FunctionArg flag) __Th___ :
-		_impl{ MakeRC<_InternalImpl>( FwdArg<Fn>(fn), except, queueType, flag )}
+	Promise<T>::Promise (Fn &&fn, bool except, StringView dbgName, ETaskQueue queueType, FunctionArg flag) __Th___ :
+		_impl{ MakeRC<_InternalImpl>( FwdArg<Fn>(fn), except, dbgName, queueType, flag )}
 	{}
 
 	template <typename T>
 	template <typename A>
-	Promise<T>::Promise (A &&value, bool except, ETaskQueue queueType, ValueArg flag) __Th___ :
-		_impl{ MakeRC<_InternalImpl>( FwdArg<A>(value), except, queueType, flag )}
+	Promise<T>::Promise (A &&value, bool except, StringView dbgName, ETaskQueue queueType, ValueArg flag) __Th___ :
+		_impl{ MakeRC<_InternalImpl>( FwdArg<A>(value), except, dbgName, queueType, flag )}
 	{}
 	
 	template <typename T>
 	template <typename A>
-	Promise<T>::Promise (A &&value, bool except, ETaskQueue queueType, CompleteValueArg flag) __Th___ :
-		_impl{ MakeRC<_InternalImpl>( FwdArg<A>(value), except, queueType, flag )}
+	Promise<T>::Promise (A &&value, bool except, StringView dbgName, ETaskQueue queueType, CompleteValueArg flag) __Th___ :
+		_impl{ MakeRC<_InternalImpl>( FwdArg<A>(value), except, dbgName, queueType, flag )}
 	{}
 
 /*
@@ -485,7 +498,7 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	auto  Promise<T>::_Then (Fn &&fn, ETaskQueue queueType) __Th___
+	auto  Promise<T>::_Then (Fn &&fn, StringView dbgName, ETaskQueue queueType) __Th___
 	{
 		using FI		= FunctionInfo< Fn >;
 		using Result	= typename Threading::_hidden_::ResultToPromise< typename FI::result >::type;
@@ -499,6 +512,7 @@ namespace _hidden_
 								return PromiseResult<void>{};
 							},
 							false,
+							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
 		}
@@ -507,7 +521,11 @@ namespace _hidden_
 		{
 			STATIC_ASSERT( FI::args::Count == 0 );
 		
-			return Result{ FwdArg<Fn>(fn), false, queueType, typename Result::FunctionArg{} };
+			return Result{	FwdArg<Fn>(fn),
+							false,
+							dbgName,
+							queueType,
+							typename Result::FunctionArg{} };
 		}
 		else
 		if constexpr( IsVoid< typename FI::result > )
@@ -521,6 +539,7 @@ namespace _hidden_
 								return PromiseResult<void>{};
 							},
 							false,
+							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
 		}
@@ -533,6 +552,7 @@ namespace _hidden_
 								return fn( in->Result() );
 							},
 							false,
+							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
 		}
@@ -545,14 +565,22 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	auto  Promise<T>::Then (Fn &&fn, ETaskQueue queueType) __Th___
+	auto  Promise<T>::Then (Fn &&fn, StringView dbgName, ETaskQueue queueType) __Th___
 	{
 		using FI		= FunctionInfo< Fn >;
 		using Result	= typename Threading::_hidden_::ResultToPromise< typename FI::result >::type;
 
 		if_likely( _impl )
 		{
-			auto	result = _Then( FwdArg<Fn>(fn), queueType );	// throw
+		  #ifdef AE_DEBUG
+			String	temp;
+			if ( dbgName.empty() ) {
+				(temp = _impl->DbgName()) += "-Then";
+				dbgName = temp;
+			}
+		  #endif
+
+			auto	result = _Then( FwdArg<Fn>(fn), dbgName, queueType );	// throw
 			
 			if ( _impl->IsExcept() )
 			{
@@ -575,7 +603,7 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	auto  Promise<T>::_Except (Fn &&fn, ETaskQueue queueType) __Th___
+	auto  Promise<T>::_Except (Fn &&fn, StringView dbgName, ETaskQueue queueType) __Th___
 	{
 		using FI		= FunctionInfo< Fn >;
 		using Result	= typename Threading::_hidden_::ResultToPromise< typename FI::result >::type;
@@ -589,22 +617,35 @@ namespace _hidden_
 								return PromiseResult<void>{};
 							},
 							true,
+							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
 		}
 		else
 		{
-			return Result{ FwdArg<Fn>(fn), true, queueType, typename Result::FunctionArg{} };
+			return Result{	FwdArg<Fn>(fn),
+							true,
+							dbgName,
+							queueType,
+							typename Result::FunctionArg{} };
 		}
 	}
 
 	template <typename T>
 	template <typename Fn>
-	auto  Promise<T>::Except (Fn &&fn, ETaskQueue queueType) __Th___
+	auto  Promise<T>::Except (Fn &&fn, StringView dbgName, ETaskQueue queueType) __Th___
 	{
 		if_likely( _impl )
 		{
-			auto	result = _Except( FwdArg<Fn>(fn), queueType );		// throw
+		  #ifdef AE_DEBUG
+			String	temp;
+			if ( dbgName.empty() ) {
+				(temp = _impl->DbgName()) += "-Except";
+				dbgName = temp;
+			}
+		  #endif
+
+			auto	result = _Except( FwdArg<Fn>(fn), dbgName, queueType );  // throw
 			
 			// on error promise will be marked as cancelled.
 			Scheduler().Run( AsyncTask{result}, Tuple{StrongDep{_impl}} );
@@ -678,31 +719,44 @@ namespace _hidden_
 */
 	template <typename T>
 	template <typename Fn>
-	Promise<T>::_InternalImpl::_InternalImpl (Fn &&fn, bool except, ETaskQueue queueType, Promise<T>::FunctionArg) __NE___ :
+	Promise<T>::_InternalImpl::_InternalImpl (Fn &&fn, bool except, StringView dbgName, ETaskQueue queueType, Promise<T>::FunctionArg) __NE___ :
 		IAsyncTask{ queueType },
 		_result{ CancelPromise },
 		_func{ FwdArg<Fn>(fn) },
 		_isExept{ except }
+		#ifdef AE_DEBUG
+		, _dbgName{ dbgName.empty() ? "Promise" : dbgName }
+		#endif
 	{
 		ASSERT( _func );
+		Unused( dbgName );
 	}
 	
 	template <typename T>
 	template <typename A>
-	Promise<T>::_InternalImpl::_InternalImpl (A &&value, bool except, ETaskQueue queueType, Promise<T>::ValueArg) __NE___ :
+	Promise<T>::_InternalImpl::_InternalImpl (A &&value, bool except, StringView dbgName, ETaskQueue queueType, Promise<T>::ValueArg) __NE___ :
 		IAsyncTask{ queueType },
 		_result{ FwdArg<A>(value) },
 		_isExept{ except }
-	{}
+		#ifdef AE_DEBUG
+		, _dbgName{ dbgName.empty() ? "Promise" : dbgName }
+		#endif
+	{
+		Unused( dbgName );
+	}
 
 	template <typename T>
 	template <typename A>
-	Promise<T>::_InternalImpl::_InternalImpl (A &&value, bool except, ETaskQueue queueType, Promise<T>::CompleteValueArg) __NE___ :
+	Promise<T>::_InternalImpl::_InternalImpl (A &&value, bool except, StringView dbgName, ETaskQueue queueType, Promise<T>::CompleteValueArg) __NE___ :
 		IAsyncTask{ queueType },
 		_result{ FwdArg<A>(value) },
 		_isExept{ except }
+		#ifdef AE_DEBUG
+		, _dbgName{ dbgName.empty() ? "Promise" : dbgName }
+		#endif
 	{
 		_MakeCompleted();
+		Unused( dbgName );
 	}
 
 /*
@@ -754,7 +808,9 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	ND_ auto  MakeDelayedPromiseFromValue (T && value, ETaskQueue queueType = ETaskQueue::Worker) __Th___
+	ND_ auto  MakeDelayedPromiseFromValue (T &&			value,
+										   StringView	dbgName		= Default,
+										   ETaskQueue	queueType	= ETaskQueue::Worker) __Th___
 	{
 		STATIC_ASSERT( not std::is_invocable_v<T> );
 		
@@ -765,6 +821,7 @@ namespace _hidden_
 
 		return Result{	FwdArg<T>(value),
 						false,
+						dbgName,
 						queueType,
 						typename Result::ValueArg{} };
 	}
@@ -777,7 +834,10 @@ namespace _hidden_
 =================================================
 */
 	template <typename T, typename ...Deps>
-	ND_ auto  MakePromiseFromValue (T && value, const Tuple<Deps...> &dependsOn = Default, ETaskQueue queueType = ETaskQueue::Worker) __Th___
+	ND_ auto  MakePromiseFromValue (T &&					value,
+									const Tuple<Deps...> &	dependsOn	= Default,
+									StringView				dbgName		= Default,
+									ETaskQueue				queueType	= ETaskQueue::Worker) __Th___
 	{
 		STATIC_ASSERT( not std::is_invocable_v<T> );
 		
@@ -793,12 +853,13 @@ namespace _hidden_
 			// return completed promise if there are no dependencies
 			return Result{	FwdArg<T>(value),
 							false,
+							dbgName,
 							queueType,
 							typename Result::CompleteValueArg{} };
 		}
 		else
 		{
-			Result	result = MakeDelayedPromiseFromValue( FwdArg<T>(value), queueType );
+			Result	result = MakeDelayedPromiseFromValue( FwdArg<T>(value), dbgName, queueType );
 
 			// on error promise will be marked as cancelled
 			Unused( Scheduler().Run( AsyncTask{result}, dependsOn ));
@@ -815,7 +876,9 @@ namespace _hidden_
 =================================================
 */
 	template <typename Fn>
-	ND_ auto  MakeDelayedPromise (Fn &&fn, ETaskQueue queueType = ETaskQueue::Worker) __Th___
+	ND_ auto  MakeDelayedPromise (Fn &&			fn,
+								  StringView	dbgName		= Default,
+								  ETaskQueue	queueType	= ETaskQueue::Worker) __Th___
 	{
 		STATIC_ASSERT( std::is_invocable_v<Fn> );
 		
@@ -829,12 +892,13 @@ namespace _hidden_
 								return PromiseResult<void>{};
 							},
 							false,
+							dbgName,
 							queueType,
 							typename Result::FunctionArg{} };
 		}
 		else
 		{
-			return Result{ FwdArg<Fn>(fn), false, queueType, typename Result::FunctionArg{} };
+			return Result{ FwdArg<Fn>(fn), false, dbgName, queueType, typename Result::FunctionArg{} };
 		}
 	}
 
@@ -844,11 +908,14 @@ namespace _hidden_
 =================================================
 */
 	template <typename Fn, typename ...Deps>
-	ND_ auto  MakePromise (Fn &&fn, const Tuple<Deps...> &dependsOn = Default, ETaskQueue queueType = ETaskQueue::Worker) __Th___
+	ND_ auto  MakePromise (Fn &&					fn,
+						   const Tuple<Deps...> &	dependsOn	= Default,
+						   StringView				dbgName		= Default,
+						   ETaskQueue				queueType	= ETaskQueue::Worker) __Th___
 	{
-		auto	result = MakeDelayedPromise( FwdArg<Fn>(fn), queueType );
+		auto	result = MakeDelayedPromise( FwdArg<Fn>(fn), dbgName, queueType );
 		
-			// on error promise will be marked as cancelled
+		// on error promise will be marked as cancelled
 		Unused( Scheduler().Run( AsyncTask{result}, dependsOn ));
 
 		return result;
@@ -877,7 +944,9 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	ND_ auto  MakePromiseFromArray (Array<Promise<T>> args, ETaskQueue queueType = ETaskQueue::Worker) __Th___
+	ND_ auto  MakePromiseFromArray (Array<Promise<T>>	args,
+									StringView			dbgName		= Default,
+									ETaskQueue			queueType	= ETaskQueue::Worker) __Th___
 	{
 		Array<AsyncTask>	deps;		// TODO: optimize
 		deps.reserve( args.size() );
@@ -898,11 +967,14 @@ namespace _hidden_
 						return Tuple{ temp };
 					},
 					Tuple{ deps },
+					dbgName,
 					queueType );
 	}
 	
 	template <typename T>
-	ND_ auto  MakePromiseFromArray (Array< Promise< Array<T> >> args, ETaskQueue queueType = ETaskQueue::Worker) __Th___
+	ND_ auto  MakePromiseFromArray (Array< Promise< Array<T> >> args,
+									StringView					dbgName		= Default,
+									ETaskQueue					queueType	= ETaskQueue::Worker) __Th___
 	{
 		Array<AsyncTask>	deps;		// TODO: optimize
 		deps.reserve( args.size() );
@@ -927,6 +999,7 @@ namespace _hidden_
 						return temp;
 					},
 					Tuple{ deps },
+					dbgName,
 					queueType );
 	}
 

@@ -29,15 +29,15 @@ namespace AE::ResLoader
 		struct Level
 		{
 		public:
-			uint3			dimension;
-			EPixelFormat	format		= Default;
-			ImageLayer		layer		= 0_layer;
-			MipmapLevel		mipmap		= 0_mipmap;
-			Bytes			rowPitch;
-			Bytes			slicePitch;
+			uint3				dimension;
+			EPixelFormat		format		= Default;
+			ImageLayer			layer		= 0_layer;
+			MipmapLevel			mipmap		= 0_mipmap;
+			Bytes				rowPitch;
+			Bytes				slicePitch;
 		private:
-			void*			_pixels		= null;
-			RC<SharedMem>	_storage;	// can be null
+			void*				_pixels		= null;
+			RC<SharedMem>		_storage;	// can be null
 
 		public:
 			ND_ bool	operator == (const Level &) const;

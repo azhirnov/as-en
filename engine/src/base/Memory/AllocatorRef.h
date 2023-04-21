@@ -134,7 +134,7 @@ namespace AE::Base
 		AlignedAllocatorRefBaseAlign (AllocatorType &alloc)	__NE___ : _alloc{alloc} {}
 
 		template <typename T>
-		ND_ T*		Allocate (usize count = 1)				__NE___	{ return Cast<T>( Allocate( SizeOf<T> * count )); }
+		ND_ T*		Allocate (usize count = 1)				__NE___	{ STATIC_ASSERT( alignof(T) <= BaseAlign );  return Cast<T>( Allocate( SizeOf<T> * count )); }
 		ND_ void*	Allocate (Bytes size)					__NE___	{ return _alloc.Allocate( SizeAndAlign{ size, Bytes{BaseAlign} }); }
 
 		void  Deallocate (void* ptr, Bytes size)			__NE___	{ return _alloc.Deallocate( ptr, SizeAndAlign{ size, Bytes{BaseAlign} }); }

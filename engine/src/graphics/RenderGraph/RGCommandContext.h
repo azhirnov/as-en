@@ -119,8 +119,8 @@ namespace AE::RG::_hidden_
 		Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)__Th_OV;
 		Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)													__Th_OV;
 
-		void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)		__Th_OV;
-		void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType = EStagingHeapType::Dynamic)			__Th_OV;
+		void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView)								__Th_OV;
+		void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView)								__Th_OV;
 
 		bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)					__Th_OV;
 		
@@ -476,6 +476,80 @@ namespace AE::RG::_hidden_
 
 		RG_INHERIT_BARRIERS
 	};
+
+
+
+	//
+	// Video Decode Context
+	//
+	
+	template <typename BaseCtx>
+	class VideoDecodeContext final : public IVideoDecodeContext
+	{
+	// types
+	public:
+		STATIC_ASSERT( BaseCtx::IsVideoDecodeContext );
+
+		static constexpr bool	IsIndirectContext		= BaseCtx::IsIndirectContext;
+		static constexpr bool	IsVideoDecodeContext	= true;
+		
+		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+
+
+	// variables
+	private:
+		BaseCtx		_ctx;
+
+
+	// methods
+	public:
+		explicit VideoDecodeContext (const RenderTask &task)																__Th___	: _ctx{ task } {}
+		VideoDecodeContext (const RenderTask &task, CmdBuf_t cmdbuf)														__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+
+		VideoDecodeContext ()																								= delete;
+		VideoDecodeContext (const VideoDecodeContext &)																		= delete;
+		
+		ND_ BaseCtx&  GetBaseContext ()																						__NE___	{ return _ctx; }
+
+		RG_INHERIT_BARRIERS
+	};
+
+
+
+	//
+	// Video Encode Context
+	//
+	
+	template <typename BaseCtx>
+	class VideoEncodeContext final : public IVideoEncodeContext
+	{
+	// types
+	public:
+		STATIC_ASSERT( BaseCtx::IsVideoEncodeContext );
+
+		static constexpr bool	IsIndirectContext		= BaseCtx::IsIndirectContext;
+		static constexpr bool	IsVideoEncodeContext	= true;
+		
+		using CmdBuf_t	= typename BaseCtx::CmdBuf_t;
+
+
+	// variables
+	private:
+		BaseCtx		_ctx;
+
+
+	// methods
+	public:
+		explicit VideoEncodeContext (const RenderTask &task)																__Th___	: _ctx{ task } {}
+		VideoEncodeContext (const RenderTask &task, CmdBuf_t cmdbuf)														__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+
+		VideoEncodeContext ()																								= delete;
+		VideoEncodeContext (const VideoEncodeContext &)																		= delete;
+		
+		ND_ BaseCtx&  GetBaseContext ()																						__NE___	{ return _ctx; }
+
+		RG_INHERIT_BARRIERS
+	};
 //-----------------------------------------------------------------------------
 	
 
@@ -591,23 +665,23 @@ namespace AE::RG::_hidden_
 	}
 
 	template <typename C>
-	void  TransferContext<C>::UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType) __Th___
+	void  TransferContext<C>::UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView) __Th___
 	{
 		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( stream.Buffer(), EResourceState::CopyDst );
 
 		_ctx.CommitBarriers();
-		_ctx.UploadBuffer( INOUT stream, OUT memView, heapType );
+		_ctx.UploadBuffer( INOUT stream, OUT memView );
 	}
 	
 	template <typename C>
-	void  TransferContext<C>::UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType) __Th___
+	void  TransferContext<C>::UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView) __Th___
 	{
 		UploadMemoryBarrier( EResourceState::CopySrc );
 		ResourceState( stream.Image(), EResourceState::CopyDst );
 
 		_ctx.CommitBarriers();
-		_ctx.UploadImage( INOUT stream, OUT memView, heapType );
+		_ctx.UploadImage( INOUT stream, OUT memView );
 	}
 	
 	template <typename C>

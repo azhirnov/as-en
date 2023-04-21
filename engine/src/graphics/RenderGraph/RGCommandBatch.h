@@ -317,8 +317,8 @@ namespace AE::RG::_hidden_
 
 		// memory barrier 'Host -> Vertex|Index|Copy' is valid if used in previous tasks too
 		
-		const uint	mask	= ToBitMask<uint>( GraphicsConfig::MaxCmdBufPerBatch );
-		const uint	bits	= (_uploadMemory.load() & mask) & ToBitMask<uint>( taskIdx+1 );
+		constexpr	uint	mask	= ToBitMask<uint>( GraphicsConfig::MaxCmdBufPerBatch );
+		const		uint	bits	= (_uploadMemory.load() & mask) & ToBitMask<uint>( taskIdx+1 );
 		return bits != 0;
 	}
 
@@ -347,8 +347,8 @@ namespace AE::RG::_hidden_
 		
 		// memory barrier 'Copy -> Host' is valid if used in subsequent tasks too
 		
-		const uint	mask	= ToBitMask<uint>( GraphicsConfig::MaxCmdBufPerBatch );
-		const uint	bits	= (_readbackMemory.load() & mask) & ~ToBitMask<uint>( taskIdx+1 );
+		constexpr	uint	mask	= ToBitMask<uint>( GraphicsConfig::MaxCmdBufPerBatch );
+		const		uint	bits	= (_readbackMemory.load() & mask) & ~ToBitMask<uint>( taskIdx+1 );
 		return bits != 0;
 	}
 

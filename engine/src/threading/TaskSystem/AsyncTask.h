@@ -137,9 +137,7 @@ namespace AE::Threading
 			void  Init (uint idx)	__NE___;
 		};
 	
-	  #if AE_PLATFORM_BITS == 64
-		STATIC_ASSERT( sizeof(OutputChunk) == 128 );
-	  #endif
+		STATIC_ASSERT_64( sizeof(OutputChunk) == 128 );
 
 		using WaitBits_t = ulong;
 
@@ -170,9 +168,9 @@ namespace AE::Threading
 		ND_ EStatus		Status ()					C_NE___	{ return _status.load(); }
 
 		ND_ bool		IsInQueue ()				C_NE___	{ return Status() <  EStatus::_Finished; }
-		ND_ bool		IsFinished ()				C_NE___	{ return Status() >  EStatus::_Finished; }
-		ND_ bool		IsInterropted ()			C_NE___	{ return Status() >  EStatus::_Interropted; }
-		ND_ bool		IsCompleted ()				C_NE___	{ return Status() == EStatus::Completed; }
+		ND_ bool		IsFinished ()				C_NE___	{ return Status() >  EStatus::_Finished; }		// status: Completed / Failed / Canceled
+		ND_ bool		IsInterropted ()			C_NE___	{ return Status() >  EStatus::_Interropted; }	// status: Failed / Canceled
+		ND_ bool		IsCompleted ()				C_NE___	{ return Status() == EStatus::Completed; }		// status: Completed
 
 		ND_ virtual StringView	DbgName ()			C_NE___ = 0;
 		
@@ -224,7 +222,57 @@ namespace AE::Threading
 	};
 //-----------------------------------------------------------------------------
 	
+
+
+	//
+	// Function as Async Task
+	//
+
+	class AsyncTaskFn final : public IAsyncTask
+	{
+	// types
+	public:
+		using Func_t	= Function< void () >;
+
+
+	// variables
+	private:
+		Func_t		_fn;
+
+	  #ifdef AE_DEBUG
+		String		_dbgName;
+	  #endif
+
+
+	// methods
+	public:
+		template <typename Fn>
+		explicit AsyncTaskFn (Fn && fn, StringView dbgName = Default, ETaskQueue type = ETaskQueue::Worker) :
+			IAsyncTask{ type },
+			_fn{ FwdArg<Fn>(fn) }
+			#ifdef AE_DEBUG
+			, _dbgName{ dbgName }
+			#endif
+		{
+			Unused( dbgName );
+		}
+
+
+	private:
+		void Run () __Th_OV
+		{
+			return _fn();
+		}
+
+	#ifdef AE_DEBUG
+		StringView  DbgName () C_NE_OV	{ return _dbgName; }
+	#else
+		StringView  DbgName () C_NE_OV	{ return "AsyncTaskFn"; }
+	#endif
+	};
+//-----------------------------------------------------------------------------
 	
+
 	
 # ifdef AE_HAS_COROUTINE
   namespace _hidden_
@@ -251,7 +299,7 @@ namespace AE::Threading
 			
 		// variables
 		private:
-		  #ifdef AE_DBG_OR_DEV
+		  #ifdef AE_DEBUG
 			String		_dbgName;
 		  #endif
 
@@ -269,7 +317,7 @@ namespace AE::Threading
 					
 				void				unhandled_exception ()	C_Th___	{ throw; }				// rethrow exceptions
 				
-			#ifdef AE_DBG_OR_DEV
+			#ifdef AE_DEBUG
 				StringView			DbgName ()				C_NE_OV	{ return _dbgName; }
 			#else
 				StringView			DbgName ()				C_NE_OV	{ return "AsyncTaskCoro"; }
@@ -335,7 +383,7 @@ namespace AE::Threading
 		{
 			_coro->_SetQueueType( type );
 			Unused( name );
-		  #ifdef AE_DBG_OR_DEV
+		  #ifdef AE_DEBUG
 			_coro->_dbgName = String{name};
 		  #endif
 		}

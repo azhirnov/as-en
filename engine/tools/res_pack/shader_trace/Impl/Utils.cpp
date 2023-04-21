@@ -795,6 +795,40 @@ namespace AE::PipelineCompiler
 			case TOperator::EOpReadClockSubgroupKHR :
 			case TOperator::EOpReadClockDeviceKHR :
 				break;
+				
+			// GL_NV_shader_invocation_reorder
+			case TOperator::EOpHitObjectTraceRayNV :
+			case TOperator::EOpHitObjectTraceRayMotionNV :
+			case TOperator::EOpHitObjectRecordHitNV :
+			case TOperator::EOpHitObjectRecordHitMotionNV :
+			case TOperator::EOpHitObjectRecordHitWithIndexNV :
+			case TOperator::EOpHitObjectRecordHitWithIndexMotionNV :
+			case TOperator::EOpHitObjectRecordMissNV :
+			case TOperator::EOpHitObjectRecordMissMotionNV :
+			case TOperator::EOpHitObjectRecordEmptyNV :
+			case TOperator::EOpHitObjectExecuteShaderNV :
+			case TOperator::EOpHitObjectIsEmptyNV :
+			case TOperator::EOpHitObjectIsMissNV :
+			case TOperator::EOpHitObjectIsHitNV :
+			case TOperator::EOpHitObjectGetRayTMinNV :
+			case TOperator::EOpHitObjectGetRayTMaxNV :
+			case TOperator::EOpHitObjectGetObjectRayOriginNV :
+			case TOperator::EOpHitObjectGetObjectRayDirectionNV :
+			case TOperator::EOpHitObjectGetWorldRayOriginNV :
+			case TOperator::EOpHitObjectGetWorldRayDirectionNV :
+			case TOperator::EOpHitObjectGetWorldToObjectNV :
+			case TOperator::EOpHitObjectGetObjectToWorldNV :
+			case TOperator::EOpHitObjectGetInstanceCustomIndexNV :
+			case TOperator::EOpHitObjectGetInstanceIdNV :
+			case TOperator::EOpHitObjectGetGeometryIndexNV :
+			case TOperator::EOpHitObjectGetPrimitiveIndexNV :
+			case TOperator::EOpHitObjectGetHitKindNV :
+			case TOperator::EOpHitObjectGetShaderBindingTableRecordIndexNV :
+			case TOperator::EOpHitObjectGetShaderRecordBufferHandleNV :
+			case TOperator::EOpHitObjectGetAttributesNV :
+			case TOperator::EOpHitObjectGetCurrentTimeNV :
+			case TOperator::EOpReorderThreadNV :
+				break;
 		#endif
 
 		// HLSL

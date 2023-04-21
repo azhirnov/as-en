@@ -17,7 +17,7 @@ namespace AE::Base
 	struct ThreadUtils : Noninstancable
 	{
 			static void		SetName (NtStringView name)										__NE___;
-		ND_ static String	GetName ();
+		ND_ static String	GetName ()														__Th___;
 		
 		// interval ~10ms
 			template <typename R, typename P>
@@ -28,9 +28,15 @@ namespace AE::Base
 
 			template <typename R, typename P>
 			static bool		WaitIO (const std::chrono::duration<R,P>& relativeTime)			__NE___	{ return _WaitIOms( milliseconds{relativeTime} ); }
+			
+		ND_ static ThreadHandle  GetCurrentThreadHandle ()									__NE___;
+		ND_ static bool		IsCurrentThread (const ThreadHandle &)							__NE___;
 
 			static bool		SetAffinity (const ThreadHandle &, uint coreIdx)				__NE___;
 			static bool		SetPriority (const ThreadHandle &, float priority)				__NE___;
+			
+			static bool		SetAffinity (uint coreIdx)										__NE___;	// for current thread
+			static bool		SetPriority (float priority)									__NE___;	// for current thread
 
 		ND_	static uint		GetCoreIndex ()													__NE___;	// current logical CPU core
 			

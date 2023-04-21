@@ -108,6 +108,7 @@ namespace AE::Graphics::_hidden_
 		using RawCtx		= CtxImpl;
 		using AccumBar		= VAccumBarriers< _VComputeContextImpl< CtxImpl >>;
 		using DeferredBar	= VAccumDeferredBarriersForCtx< _VComputeContextImpl< CtxImpl >>;
+		using Validator_t	= ComputeContextValidation;
 
 
 	// methods
@@ -203,6 +204,8 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VComputeContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
 	{
+		Validator_t::PushConstant( size );
+
 		RawCtx::_PushComputeConstant( offset, size, values, stages );
 	}
 	
@@ -215,7 +218,7 @@ namespace AE::Graphics::_hidden_
 	void  _VComputeContextImpl<C>::DispatchIndirect (BufferID bufferid, Bytes offset)
 	{
 		auto&	buf = _GetResourcesOrThrow( bufferid );
-		ASSERT( buf.Size() >= offset + sizeof(DispatchIndirectCommand) );
+		Validator_t::DispatchIndirect( buf, offset );
 
 		RawCtx::DispatchIndirect( buf.Handle(), offset );
 	}
@@ -297,8 +300,6 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  _VIndirectComputeCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
 	{
-		ASSERT( _states.pplnLayout != Default );
-
 		_cmdbuf->BindDescriptorSet( _bindPoint, _states.pplnLayout, index.vkIndex, ds, dynamicOffsets );
 	}
 	

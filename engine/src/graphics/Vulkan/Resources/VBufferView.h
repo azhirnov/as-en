@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Vulkan/Resources/VBuffer.h"
 
 namespace AE::Graphics
@@ -19,6 +18,8 @@ namespace AE::Graphics
 	private:
 		VkBufferView			_bufferView			= Default;
 		BufferViewDesc			_desc;
+		bool					_canBeDestroyed		= true;
+
 		Strong<BufferID>		_bufferId;
 		
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
@@ -30,8 +31,9 @@ namespace AE::Graphics
 		VBufferView ()									__NE___	{}
 		~VBufferView ()									__NE___;
 
-		ND_ bool  Create (VResourceManager &, const BufferViewDesc &desc, BufferID bufferId, StringView dbgName)__NE___;
-			void  Destroy (VResourceManager &)																	__NE___;
+		ND_ bool  Create (VResourceManager &, const BufferViewDesc &desc, BufferID bufferId, StringView dbgName)		__NE___;
+		ND_ bool  Create (VResourceManager &, const VulkanBufferViewDesc &desc, BufferID bufferId, StringView dbgName)	__NE___;
+			void  Destroy (VResourceManager &)																			__NE___;
 		
 		ND_ VkBufferView			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _bufferView; }
 		ND_ BufferViewDesc const&	Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }

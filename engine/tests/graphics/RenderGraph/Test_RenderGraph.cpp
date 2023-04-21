@@ -29,13 +29,15 @@ extern void Test_Buffer (IResourceManager &resMngr);
 RGTest::RGTest () :
 	#if defined(AE_ENABLE_VULKAN)
 		_refDumpPath{ AE_CURRENT_DIR "/Vulkan/ref" },
-		_vulkan{ True{"enable info log"} },
-		_swapchain{ _vulkan }
+		_vulkan{ True{"enable info log"} }
 	
 	#elif defined(AE_ENABLE_METAL)
 		_refDumpPath{ AE_CURRENT_DIR "/Metal/ref" },
-		_metal{ True{"enable info log"} },
-		_swapchain{ _metal }
+		_metal{ True{"enable info log"} }
+
+	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		_refDumpPath{ AE_CURRENT_DIR "/Remote/ref" },
+		_remote{ True{"enable info log"} }
 	
 	#else
 	#	error not implemented
@@ -47,6 +49,7 @@ RGTest::RGTest () :
 	
 	_tests.emplace_back( &RGTest::Test_FeatureSets );
 	_tests.emplace_back( &RGTest::Test_FrameCounter );
+	_tests.emplace_back( &RGTest::Test_ImageFormat );
 	
 	_tests.emplace_back( &RGTest::Test_UploadStream1 );
 	_tests.emplace_back( &RGTest::Test_UploadStream2 );
@@ -169,9 +172,9 @@ bool  RGTest::_CompilePipelines ()
 
 		PipelinePackDesc	desc;
 		desc.stream			= file;
-		desc.swapchainFmt	= _swapchain.GetColorFormat();
+		desc.surfaceFormat	= _swapchain.GetDescription().format;
 
-		CHECK_ERR( desc.swapchainFmt != Default );
+		CHECK_ERR( desc.surfaceFormat != Default );
 		CHECK_ERR( res_mngr.InitializeResources( desc ));
 	}
 
@@ -265,9 +268,9 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
 	CHECK_ERR( _swapchain.CreateSurface( wnd.GetNative() ));
 	CHECK_ERR( rts.GetResourceManager().OnSurfaceCreated( _swapchain ));
 	
-	VSwapchainInitializer::CreateInfo	swapchain_ci;
+	VSwapchainInitializer::VSwapchainDesc	swapchain_ci;
 	swapchain_ci.viewSize = wnd.GetSurfaceSize();
-	CHECK_ERR( _swapchain.Create( &rts.GetResourceManager(), swapchain_ci ));
+	CHECK_ERR( _swapchain.Create( swapchain_ci ));
 
 	for (uint i = 0; i < 2; ++i) {
 		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
@@ -422,9 +425,8 @@ bool  RGTest::_Create (IApplication &, IWindow &wnd)
 	CHECK_ERR( _swapchain.CreateSurface( wnd.GetNative() ));
 	CHECK_ERR( rts.GetResourceManager().OnSurfaceCreated( _swapchain ));
 	
-	MSwapchainInitializer::CreateInfo	swapchain_ci;
-	swapchain_ci.viewSize = wnd.GetSurfaceSize();
-	CHECK_ERR( _swapchain.Create( &rts.GetResourceManager(), swapchain_ci ));
+	SwapchainDesc	swapchain_ci;
+	CHECK_ERR( _swapchain.Create( wnd.GetSurfaceSize(), swapchain_ci ));
 	
 	for (uint i = 0; i < 2; ++i) {
 		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{

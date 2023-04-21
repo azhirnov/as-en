@@ -309,32 +309,51 @@ namespace AE::App
 
 		enum class EInputType : ushort
 		{
-			KeyBegin		= 0,
-			KeyEnd			= 512,
+			KeyBegin			= 0,
+			KeyEnd				= 512,
 			
 			#define AE_ANDROID_KEY_CODES_VISITOR( _key_, _code_, _name_, _and_code_ )		_key_ = _code_,
 			AE_ANDROID_KEY_CODES( AE_ANDROID_KEY_CODES_VISITOR )
 			#undef AE_ANDROID_KEY_CODES_VISITOR
 			
-			// touch ?
+			// touch
+			MultiTouch			= KeyEnd + 10,		// float2 (scale, rotate)
+			Cursor2DBegin,
+			TouchPos			= Cursor2DBegin,	// float2 (absolute in pixels)
+			TouchPos_mm,							// float2 (absolute in mm)
+			TouchDelta,								// float2 (delta in pixels)
+			TouchDelta_norm,						// snorm2
+			Cursor2DEnd			= TouchDelta_norm,
 
 			// https://developer.android.com/guide/topics/sensors/sensors_overview
-			Accelerometer	= KeyEnd + 1,	// float3 (m/s2)
-			AirTemperature,					// float  (celsious)
-			Gravity,						// float3 (m/s2)
-			Gyroscope,						// float3 (rad/s)
-			AmbientLight,					// float  (lux)
-			LinearAcceleration,				// float3 (m/s2)
-			MagneticField,					// float3 (micro tesla)
-			Orientation,					// float3
-			AirPressure,					// float  (hPa or mbar)
-			Proximity,						// float  (mm)
-			RelativeHumidity,				// float  (%)
-			RotationVector,					// float3 (rad ?)
-			Pose6DOF,						// float4x4 ?
-			StepCount,						// ?
-			GeoLocation,					// double2 ?
-			BatteryState,					// ?
+			
+			Sensors1fBegin		= Cursor2DEnd + 1,
+			AirTemperature		= Sensors1fBegin,	// float  (celsious)
+			AmbientLight,							// float  (lux)
+			AirPressure,							// float  (hPa or mbar)
+			Proximity,								// float  (mm)
+			RelativeHumidity,						// float  (%)
+			StepCount,								// ?
+			BatteryState,							// ?
+			Sensors1fEnd		= BatteryState,
+			
+			Sensors2dBegin		= Sensors1fEnd + 1,
+			GeoLocation			= Sensors2dBegin,	// double2 ?
+			Sensors2dEnd		= GeoLocation,
+			
+			Sensors3fBegin		= Sensors2dEnd + 1,
+			Accelerometer		= Sensors3fBegin,	// float3 (m/s2)
+			Gravity,								// float3 (m/s2)
+			Gyroscope,								// float3 (rad/s)
+			LinearAcceleration,						// float3 (m/s2)
+			MagneticField,							// float3 (micro tesla)
+			Orientation,							// float3
+			RotationVector,							// float3 (rad ?)
+			Sensors3fEnd		= RotationVector,
+			
+			Sensors4x4fBegin	= Sensors3fEnd + 1,
+			Pose6DOF			= Sensors4x4fBegin,	// float4x4 ?
+			Sensors4x4fEnd		= Pose6DOF,
 
 			_Count,
 			Unknown				= 0xFFFF,
@@ -354,11 +373,12 @@ namespace AE::App
 
 
 	// SerializableInputActions //
-		bool  IsKey (ushort type)		const override	{ return _IsKey( EInputType(type) ); }
-		bool  IsCursor1D (ushort type)	const override	{ return _IsCursor1D( EInputType(type) ); }
-		bool  IsCursor2D (ushort type)	const override	{ return _IsCursor2D( EInputType(type) ); }
+		bool  IsKey (ushort type)			const override	{ return _IsKey( EInputType(type) ); }
+		bool  IsKeyOrTouch (ushort type)	const override	{ return _IsKeyOrTouch( EInputType(type) ); }
+		bool  IsCursor1D (ushort type)		const override	{ return _IsCursor1D( EInputType(type) ); }
+		bool  IsCursor2D (ushort type)		const override	{ return _IsCursor2D( EInputType(type) ); }
 		
-		String  ToString () const override;
+		String  ToString ()					const override;
 
 	  #ifdef AE_ENABLE_SCRIPTING
 		bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc) override;
@@ -368,8 +388,13 @@ namespace AE::App
 
 	private:
 		ND_ static constexpr bool  _IsKey (EInputType type);
+		ND_ static constexpr bool  _IsKeyOrTouch (EInputType type);
 		ND_ static constexpr bool  _IsCursor1D (EInputType type);
 		ND_ static constexpr bool  _IsCursor2D (EInputType type);
+		ND_ static constexpr bool  _IsSensor1f (EInputType type);
+		ND_ static constexpr bool  _IsSensor2d (EInputType type);
+		ND_ static constexpr bool  _IsSensor3f (EInputType type);
+		ND_ static constexpr bool  _IsSensor4x4f (EInputType type);
 	};
 
 	
@@ -382,14 +407,35 @@ namespace AE::App
 		return (type >= EInputType::KeyBegin) & (type <= EInputType::KeyEnd);
 	}
 
-	forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor1D (EInputType ) {
-		return false; //(type >= EInputType::Cursor1DBegin) & (type <= EInputType::Cursor1DEnd);
+	forceinline constexpr bool  SerializableInputActionsAndroid::_IsKeyOrTouch (EInputType type) {
+		return _IsKey( type ) | (type == EInputType::TouchPos) | (type == EInputType::TouchPos_mm);
 	}
 
-	forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor2D (EInputType ) {
-		return false; //(type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd);
+	forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor1D (EInputType type) {
+		return _IsSensor1f( type );
 	}
 
+	forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor2D (EInputType type) {
+		return	((type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd))	|
+				_IsSensor2d( type )															|
+				(type == EInputType::MultiTouch);
+	}
+	
+	forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor1f (EInputType type) {
+		return (type >= EInputType::Sensors1fBegin) & (type <= EInputType::Sensors1fEnd);
+	}
+
+	forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor2d (EInputType type) {
+		return (type >= EInputType::Sensors2dBegin) & (type <= EInputType::Sensors2dEnd);
+	}
+
+	forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor3f (EInputType type) {
+		return (type >= EInputType::Sensors3fBegin) & (type <= EInputType::Sensors3fEnd);
+	}
+
+	forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor4x4f (EInputType type) {
+		return (type >= EInputType::Sensors4x4fBegin) & (type <= EInputType::Sensors4x4fEnd);
+	}
 
 } // AE::App
 

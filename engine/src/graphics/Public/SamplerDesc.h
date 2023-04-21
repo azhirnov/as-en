@@ -4,6 +4,8 @@
 
 #include "graphics/Public/Common.h"
 #include "graphics/Public/RenderStateEnums.h"
+#include "graphics/Public/ResourceEnums.h"
+#include "graphics/Public/ImageSwizzle.h"
 #include "graphics/Public/IDs.h"
 
 namespace AE::Graphics
@@ -117,6 +119,73 @@ namespace AE::Graphics
 		SamplerDesc (const SamplerDesc &) = default;
 
 		SamplerDesc&  operator = (const SamplerDesc &) = default;
+
+		ND_ bool  operator == (const SamplerDesc &)	const;
+	};
+//-----------------------------------------------------------------------------
+
+
+
+	enum class ESamplerChromaLocation : ubyte
+	{
+		CositedEven,
+		Midpoint,
+		
+		_Count,
+		Unknown	= 0xFF,
+	};
+
+
+	enum class ESamplerYcbcrModelConversion : ubyte
+	{
+		RGB_Identity,
+		Ycbcr_Identity,
+		Ycbcr_709,
+		Ycbcr_601,
+		Ycbcr_2020,
+		
+		_Count,
+		Unknown	= 0xFF,
+	};
+
+
+	enum class ESamplerYcbcrRange : ubyte
+	{
+		ITU_Full,
+		ITU_Narrow,
+		
+		_Count,
+		Unknown	= 0xFF,
+	};
+
+
+
+	//
+	// Sampler Ycbcr Conversion description
+	//
+
+	class SamplerYcbcrConversionDesc
+	{
+	// variables
+	public:
+		EPixelFormat					format						= Default;
+		ESamplerYcbcrModelConversion	ycbcrModel					= Default;
+		ESamplerYcbcrRange				ycbcrRange					= Default;
+		ImageSwizzle					components;
+		ESamplerChromaLocation			xChromaOffset				= ESamplerChromaLocation::CositedEven;
+		ESamplerChromaLocation			yChromaOffset				= ESamplerChromaLocation::CositedEven;
+		EFilter							chromaFilter				= EFilter::Nearest;
+		bool							forceExplicitReconstruction	= false;
+
+
+	// methods
+	public:
+		SamplerYcbcrConversionDesc () = default;
+		SamplerYcbcrConversionDesc (const SamplerYcbcrConversionDesc &) = default;
+
+		SamplerYcbcrConversionDesc&  operator = (const SamplerYcbcrConversionDesc &) = default;
+
+		ND_ bool  operator == (const SamplerYcbcrConversionDesc &)	const;
 	};
 
 

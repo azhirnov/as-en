@@ -92,10 +92,8 @@ namespace AE::Graphics::_hidden_
 		ND_ VkCommandBuffer	EndCommandBuffer ()																		__Th___;
 		ND_ VCommandBuffer  ReleaseCommandBuffer ()																	__Th___;
 		
-	private:
-		_VDirectDrawCtx (const DrawTask &task, VCommandBuffer cmdbuf)												__Th___;
 	protected:
-		explicit _VDirectDrawCtx (const DrawTask &task)																__Th___ : _VDirectDrawCtx{ task, Default } {}
+		explicit _VDirectDrawCtx (const DrawTask &task)																__Th___;
 		_VDirectDrawCtx (const VPrimaryCmdBufState &state, VCommandBuffer cmdbuf)									__Th___;
 
 		void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState flags);
@@ -265,10 +263,11 @@ namespace AE::Graphics::_hidden_
 		static constexpr bool	IsDrawContext		= true;
 		static constexpr bool	IsVulkanDrawContext	= true;
 		
-		using CmdBuf_t	= typename CtxImpl::CmdBuf_t;
+		using CmdBuf_t		= typename CtxImpl::CmdBuf_t;
 	private:
-		using RawCtx	= CtxImpl;
-		using AccumBar	= VAccumDrawBarriers< _VDrawContextImpl< CtxImpl >>;
+		using RawCtx		= CtxImpl;
+		using AccumBar		= VAccumDrawBarriers< _VDrawContextImpl< CtxImpl >>;
+		using Validator_t	= DrawContextValidation;
 
 		
 	// methods
@@ -398,11 +397,11 @@ namespace AE::Graphics::_hidden_
 		void  CommitBarriers ()																						__Th_OV	{ return RawCtx::_CommitBarriers(); }
 
 		// clear //
-		bool  ClearAttachment (AttachmentName, const RGBA32f &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
-		bool  ClearAttachment (AttachmentName, const RGBA32u &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
-		bool  ClearAttachment (AttachmentName, const RGBA32i &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
-		bool  ClearAttachment (AttachmentName, const RGBA8u  &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
-		bool  ClearAttachment (AttachmentName, const DepthStencil &, const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA32f &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA32u &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA32i &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA8u  &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const DepthStencil &, const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
 
 		// vertex stream
 		ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result)												__Th_OV;
@@ -514,7 +513,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VDrawContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
 	{
-		ASSERT( IsAligned( size, sizeof(uint) ));
+		Validator_t::PushConstant( size );
 
 		RawCtx::_PushGraphicsConstant( offset, size, values, stages );
 	}
@@ -533,7 +532,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VDrawContextImpl<C>::SetViewports (ArrayView<Viewport_t> viewports)
 	{
-		ASSERT( not viewports.empty() );
+		Validator_t::SetViewports( viewports );
 		
 		StaticArray< VkViewport, GraphicsConfig::MaxViewports >	vk_viewports;
 
@@ -566,7 +565,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VDrawContextImpl<C>::SetScissors (ArrayView<RectI> scissors)
 	{
-		ASSERT( not scissors.empty() );
+		Validator_t::SetScissors( scissors );
 
 		StaticArray< VkRect2D, GraphicsConfig::MaxViewports >	vk_scissors;
 
@@ -710,16 +709,14 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VDrawContextImpl<C>::BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)
 	{
-		ASSERT( buffers.size() == offsets.size() );
-		ASSERT( buffers.size() <= GraphicsConfig::MaxVertexBuffers );
 		STATIC_ASSERT( sizeof(Bytes) == sizeof(VkDeviceSize) );
+		Validator_t::BindVertexBuffers( firstBinding, buffers, offsets );
 
 		StaticArray< VkBuffer, GraphicsConfig::MaxVertexBuffers >	dst_buffers;
 
 		for (uint i = 0; i < buffers.size(); ++i)
 		{
 			auto&	buffer	= _GetResourcesOrThrow( buffers[i] );
-			
 			dst_buffers[i]	= buffer.Handle();
 		}
 
@@ -928,7 +925,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	bool  _VDrawContextImpl<C>::_ClearAttachment (AttachmentName name, VkClearAttachment &clearAtt, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
 	{
-		ASSERT( rect.IsValid() );
+		Validator_t::ClearAttachment( rect );
 
 		const uint	idx = this->_mngr.GetAttachmentIndex( name );
 		CHECK_ERR( idx != UMax );
@@ -996,7 +993,7 @@ namespace AE::Graphics::_hidden_
 	inline void  _VDirectDrawCtx::SetViewport (uint first, ArrayView<VkViewport> viewports)
 	{
 		ASSERT( not viewports.empty() );
-		ASSERT( _GetFeatures().multiViewport or (first + viewports.size() == 0) );
+		ASSERT( _GetFeatures().multiViewport or (first + viewports.size() == 1) );
 
 		vkCmdSetViewport( _cmdbuf.Get(), first, uint(viewports.size()), viewports.data() );
 	}
@@ -1009,7 +1006,7 @@ namespace AE::Graphics::_hidden_
 	inline void  _VDirectDrawCtx::SetScissor (uint first, ArrayView<VkRect2D> scissors)
 	{
 		ASSERT( not scissors.empty() );
-		ASSERT( _GetFeatures().multiViewport or (first + scissors.size() == 0) );
+		ASSERT( _GetFeatures().multiViewport or (first + scissors.size() == 1) );
 
 		vkCmdSetScissor( _cmdbuf.Get(), first, uint(scissors.size()), scissors.data() );
 	}
@@ -1205,7 +1202,7 @@ namespace AE::Graphics::_hidden_
 	{
 		ASSERT( _GetExtensions().drawIndirectCount );
 		ASSERT( maxDrawCount > 0 );
-		ASSERT( stride >= sizeof(VkDrawIndexedIndirectCommand ) );
+		ASSERT( stride >= sizeof(VkDrawIndexedIndirectCommand) );
 
 		vkCmdDrawIndexedIndirectCountKHR( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset),
 										  countBuffer, VkDeviceSize(countBufferOffset),

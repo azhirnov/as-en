@@ -3,7 +3,7 @@
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 project( "AsEn"
-		 VERSION 23.2.143	# year, month, version
+		 VERSION 23.4.153	# year, month, version
 		 LANGUAGES C CXX )
 if (APPLE)
 	enable_language(OBJC)
@@ -29,4 +29,4 @@ endif ()
 #----------------------------------------------------------
 
 add_subdirectory( "engine" )
-
+add_subdirectory( "samples" )

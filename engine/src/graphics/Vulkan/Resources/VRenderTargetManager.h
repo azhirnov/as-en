@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/ImageDesc.h"
 # include "graphics/Vulkan/VCommon.h"
 

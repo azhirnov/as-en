@@ -13,6 +13,9 @@
 #elif defined(AE_ENABLE_METAL)
 #	define DRAWCMDBATCH		MDrawCommandBatch
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#	define DRAWCMDBATCH		RDrawCommandBatch
+
 #else
 #	error not implemented
 #endif
@@ -202,7 +205,7 @@ namespace AE::Graphics
 		ASSERT( IsValid() );
 
 		#if defined(AE_ENABLE_VULKAN)
-			_GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );	// throw
+			_GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );		// throw
 
 		#elif defined(AE_ENABLE_METAL)
 			if constexpr( CmdBufType::IsIndirectContext )
@@ -214,6 +217,10 @@ namespace AE::Graphics
 				CHECK( cmdbuf.EndEncoding() );
 				_GetPool().Complete( INOUT _drawIndex );
 			}
+
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			_GetPool().Add( INOUT _drawIndex, cmdbuf.EndCommandBuffer() );		// throw
+
 		#else
 		#	error not implemented
 		#endif

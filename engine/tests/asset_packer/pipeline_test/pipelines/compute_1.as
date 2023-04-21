@@ -1,7 +1,7 @@
 #include <pipeline_compiler>
 
 #if SCRIPT
-void main ()
+void ASmain ()
 {
 	RC<ComputePipeline>	ppln = ComputePipeline( "compute_1" );
 	ppln.AddFeatureSet( "MinimalFS" );

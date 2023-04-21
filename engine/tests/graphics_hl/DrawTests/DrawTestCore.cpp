@@ -39,12 +39,10 @@ extern void Test_DrawTests (IApplication &app, IWindow &wnd)
 DrawTestCore::DrawTestCore () :
 	#if defined(AE_ENABLE_VULKAN)
 		_refDumpPath{ AE_CURRENT_DIR "/Vulkan/ref" },
-		_vulkan{ True{"enable info log"} },
-		_swapchain{ _vulkan }
+		_vulkan{ True{"enable info log"} }
 	#elif defined(AE_ENABLE_METAL)
 		_refDumpPath{ AE_CURRENT_DIR "/Metal/ref" },
-		_metal{ True{"enable info log"} },
-		_swapchain{ _metal }
+		_metal{ True{"enable info log"} }
 	#else
 	#	error not implemented
 	#endif
@@ -108,7 +106,7 @@ bool  DrawTestCore::SaveImage (StringView name, const ImageMemView &view)
 	DDSSaver	saver;
 	IntermImage	img;	CHECK( img.SetData( view, null ));
 
-	CHECK_ERR( Cast<IImageSaver>(&saver)->SaveImage( path, img ));
+	CHECK_ERR( saver.SaveImage( path, img ));
 	return true;
 }
 
@@ -127,9 +125,9 @@ bool  DrawTestCore::_CompilePipelines ()
 
 		PipelinePackDesc	desc;
 		desc.stream			= file;
-		desc.swapchainFmt	= _swapchain.GetColorFormat();
+		desc.surfaceFormat	= _swapchain.GetDescription().format;
 
-		CHECK_ERR( desc.swapchainFmt != Default );
+		CHECK_ERR( desc.surfaceFormat != Default );
 		CHECK_ERR( res_mngr.InitializeResources( desc ));
 	}
 
@@ -208,9 +206,9 @@ bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
 	CHECK_ERR( _swapchain.CreateSurface( wnd.GetNative() ));
 	CHECK_ERR( rts.GetResourceManager().OnSurfaceCreated( _swapchain ));
 	
-	VSwapchainInitializer::CreateInfo	swapchain_ci;
+	VSwapchainInitializer::VSwapchainDesc	swapchain_ci;
 	swapchain_ci.viewSize = wnd.GetSurfaceSize();
-	CHECK_ERR( _swapchain.Create( &rts.GetResourceManager(), swapchain_ci ));
+	CHECK_ERR( _swapchain.Create( swapchain_ci ));
 	
 	_canvas.reset( new Canvas{} );
 
@@ -331,7 +329,7 @@ bool  DrawTestCore::_CompareDumps (StringView filename) const
 	_Create
 =================================================
 */
-bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
+bool  DrawTestCore::_Create (IApplication &, IWindow &wnd)
 {
 	CHECK_ERR( _metal.CreateDefaultQueues( EQueueMask::Graphics, EQueueMask::All ));
 	CHECK_ERR( _metal.CreateLogicalDevice() );
@@ -348,9 +346,8 @@ bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
 	CHECK_ERR( _swapchain.CreateSurface( wnd.GetNative() ));
 	CHECK_ERR( rts.GetResourceManager().OnSurfaceCreated( _swapchain ));
 	
-	MSwapchainInitializer::CreateInfo	swapchain_ci;
-	swapchain_ci.viewSize = wnd.GetSurfaceSize();
-	CHECK_ERR( _swapchain.Create( &rts.GetResourceManager(), swapchain_ci ));
+	SwapchainDesc	swapchain_ci;
+	CHECK_ERR( _swapchain.Create( wnd.GetSurfaceSize(), swapchain_ci ));
 	
 	Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
 			EThreadArray{ EThread::Worker, EThread::Renderer },

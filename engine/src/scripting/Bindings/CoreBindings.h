@@ -2,7 +2,7 @@
 
 #pragma once
 
-//#include "scripting/Impl/ScriptEngine.inl.h"
+#include "scripting/Impl/ScriptEngine.inl.h"
 #include "scriptarray.h"
 
 #include "base/Math/Vec.h"
@@ -33,8 +33,14 @@ namespace AE::Scripting
 		static void  BindColor (const ScriptEnginePtr &se)			__Th___;
 		static void  BindString (const ScriptEnginePtr &se)			__Th___;
 		static void  BindArray (const ScriptEnginePtr &se)			__Th___;
-		static void  BindLog (const ScriptEnginePtr &se)			__Th___;
+		static void  BindLog (const ScriptEnginePtr &se)			__Th___;	// requires 'String'
 		// TODO: physical types
+
+		static void  BindToString (const ScriptEnginePtr &se,					// requires 'String'
+								   bool scalar,
+								   bool vec,
+								   bool rect,
+								   bool color)						__Th___;
 	};
 
 

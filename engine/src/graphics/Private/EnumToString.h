@@ -14,6 +14,9 @@
 #include "graphics/Public/DescriptorSet.h"
 #include "graphics/Public/PipelineDesc.h"
 #include "graphics/Public/RayTracingEnums.h"
+#include "graphics/Public/VideoEnums.h"
+#include "graphics/Public/ImageSwizzle.h"
+#include "graphics/Private/PixelFormatDefines.h"
 
 namespace AE::Base
 {
@@ -51,6 +54,10 @@ namespace AE::Base
 	using Graphics::EDescriptorType;
 	using Graphics::EColorSpace;
 	using Graphics::EPresentMode;
+	using Graphics::ESamplerChromaLocation;
+	using Graphics::ESamplerYcbcrModelConversion;
+	using Graphics::ESamplerYcbcrRange;
+	using Graphics::ImageSwizzle;
 	
 /*
 =================================================
@@ -65,6 +72,8 @@ namespace AE::Base
 			case EQueueType::Graphics :		return "Graphics";
 			case EQueueType::AsyncCompute :	return "AsyncCompute";
 			case EQueueType::AsyncTransfer:	return "AsyncTransfer";
+			case EQueueType::VideoEncode :	return "VideoEncode";
+			case EQueueType::VideoDecode :	return "VideoDecode";
 			case EQueueType::_Count :
 			case EQueueType::Unknown :		break;
 		}
@@ -94,7 +103,6 @@ namespace AE::Base
 		RETURN_ERR( "unknown pixel format" );
 	}
 
-	
 /*
 =================================================
 	ToString (EAttachmentLoadOp)
@@ -898,8 +906,7 @@ namespace AE::Base
 		switch ( value )
 		{
 			#define CASE( _name_ )	case ESubgroupOperation::_name_ : return AE_TOSTRING( _name_ )
-			CASE( Size );
-			CASE( InvocationID );
+			CASE( IndexAndSize );
 			CASE( Elect );
 			CASE( Barrier );
 			CASE( Any );
@@ -1103,5 +1110,83 @@ namespace AE::Base
 		}
 		return str;
 	}
+
+/*
+=================================================
+	ToString (ESamplerChromaLocation)
+=================================================
+*/
+	ND_ inline StringView  ToString (ESamplerChromaLocation value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case ESamplerChromaLocation::CositedEven :	return "CositedEven";
+			case ESamplerChromaLocation::Midpoint :		return "Midpoint";
+			case ESamplerChromaLocation::_Count :
+			case ESamplerChromaLocation::Unknown :		break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown sampler chroma location" );
+	}
+
+/*
+=================================================
+	ToString (ESamplerYcbcrModelConversion)
+=================================================
+*/
+	ND_ inline StringView  ToString (ESamplerYcbcrModelConversion value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case ESamplerYcbcrModelConversion::RGB_Identity :	return "RGB_Identity";
+			case ESamplerYcbcrModelConversion::Ycbcr_Identity :	return "Ycbcr_Identity";
+			case ESamplerYcbcrModelConversion::Ycbcr_709 :		return "Ycbcr_709";
+			case ESamplerYcbcrModelConversion::Ycbcr_601 :		return "Ycbcr_601";
+			case ESamplerYcbcrModelConversion::Ycbcr_2020 :		return "Ycbcr_2020";
+			case ESamplerYcbcrModelConversion::_Count :
+			case ESamplerYcbcrModelConversion::Unknown :		break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown sampler ycbcr model conversion" );
+	}
+
+/*
+=================================================
+	ToString (ESamplerYcbcrRange)
+=================================================
+*/
+	ND_ inline StringView  ToString (ESamplerYcbcrRange value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case ESamplerYcbcrRange::ITU_Full :		return "ITU_Full";
+			case ESamplerYcbcrRange::ITU_Narrow :	return "ITU_Narrow";
+			case ESamplerYcbcrRange::_Count :
+			case ESamplerYcbcrRange::Unknown :		break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown sampler ycbcr range" );
+	}
+
+/*
+=================================================
+	ToString (ImageSwizzle)
+=================================================
+*/
+	ND_ inline String  ToString (const ImageSwizzle &value) __NE___
+	{
+		String			str;
+		const uint4		comp		= value.ToVec();
+		const char		comp_str[]	= ".RGBA01";
+
+		for (uint i = 0; i < 4; ++i) {
+			str << comp_str[ comp[i] ];
+		}
+		return str;
+	}
+
 
 } // AE::Base

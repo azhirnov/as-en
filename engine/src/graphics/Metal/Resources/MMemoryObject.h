@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Public/BufferDesc.h"
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Public/IDs.h"

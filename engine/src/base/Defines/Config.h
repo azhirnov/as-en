@@ -14,7 +14,7 @@
 #endif
 
 // mem leak check
-#if defined(AE_COMPILER_MSVC) and defined(AE_ENABLE_MEMLEAK_CHECKS) and defined(AE_DEBUG)
+#if defined(AE_COMPILER_MSVC) and defined(AE_ENABLE_MEMLEAK_CHECKS) and defined(AE_CFG_DEBUG)
 #	define _CRTDBG_MAP_ALLOC
 #	include <crtdbg.h>
 #	include <stdlib.h>
@@ -29,21 +29,17 @@
 #	define AE_DUMP_MEMLEAKS()	(true)
 #endif
 
+#if defined(AE_CFG_DEBUG) or defined(AE_CFG_DEVELOP) or defined(AE_CFG_PROFILE)
+#	define AE_DBG_OR_DEV_OR_PROF
+#endif
+
 // Config
 #ifndef AE_FAST_HASH
 #	define AE_FAST_HASH		0
 #endif
 
-#if defined(AE_DEBUG) or defined(AE_DEVELOP)
-#	define AE_DBG_OR_DEV
-#endif
-
-#if defined(AE_DEBUG) or defined(AE_DEVELOP) or defined(AE_PROFILE)
-#	define AE_DBG_OR_DEV_OR_PROF
-#endif
-
 #ifndef AE_OPTIMIZE_IDS
-# ifdef AE_DBG_OR_DEV
+# ifdef AE_DEBUG
 #	define AE_OPTIMIZE_IDS	0
 # else
 #	define AE_OPTIMIZE_IDS	1
@@ -59,18 +55,18 @@
 #	define AE_PLATFORM_UNIX_BASED
 #endif
 
-#if defined(AE_PLATFORM_MACOS)	or \
+#if defined(AE_PLATFORM_MACOS)		or \
 	defined(AE_PLATFORM_IOS)
 #	define AE_PLATFORM_APPLE
 #endif
 
-#if defined(AE_CPU_ARCH_ARM64)	or \
+#if defined(AE_CPU_ARCH_ARM64)		or \
 	defined(AE_CPU_ARCH_ARM32)
 #	define AE_CPU_ARCH_ARM_BASED
 #endif
 
 
-#if not defined(AE_OPTIMAL_MEMORY_ORDER) and (not defined(AE_DBG_OR_DEV))
+#if not defined(AE_OPTIMAL_MEMORY_ORDER) and (not defined(AE_CFG_DEBUG))
 #  define AE_OPTIMAL_MEMORY_ORDER	1
 #else
 #  define AE_OPTIMAL_MEMORY_ORDER	0

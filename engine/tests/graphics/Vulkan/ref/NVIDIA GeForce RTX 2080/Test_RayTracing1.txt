@@ -1,7 +1,7 @@
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'RayTracing1 |0| Upload RTAS task'
 {
   BeginDebugLabel
     name:  'RayTracing1 |0| Upload RTAS task'
@@ -75,7 +75,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'RayTracing1 |1| Ray tracing task'
 {
   BeginDebugLabel
     name:  'RayTracing1 |1| Ray tracing task'
@@ -115,7 +115,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'RayTracing1 |2| Readback task'
 {
   BeginDebugLabel
     name:  'RayTracing1 |2| Readback task'
@@ -149,7 +149,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'RayTracing1 |0| Upload RTAS task'
 {
   BeginDebugLabel
     name:  'RayTracing1 |0| Upload RTAS task'
@@ -223,7 +223,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'RayTracing1 |1| Ray tracing task'
 {
   BeginDebugLabel
     name:  'RayTracing1 |1| Ray tracing task'
@@ -263,7 +263,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'RayTracing1 |2| Readback task'
@@ -297,7 +297,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'RayTracing1 |0| Upload RTAS task'
@@ -407,7 +407,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'RayTracing1 |2| Readback task'
 {
   BeginDebugLabel
     name:  'RayTracing1 |2| Readback task'
@@ -441,7 +441,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'RayTracing1 |0| Upload RTAS task'

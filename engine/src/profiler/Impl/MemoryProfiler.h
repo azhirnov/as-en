@@ -21,7 +21,7 @@ namespace AE::Profiler
 		
 		void  DrawImGUI () {}
 		void  Draw (Canvas &) {}
-		void  Update () {}
+		void  Update (secondsf) {}
 	};
 
 

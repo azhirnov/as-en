@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	{
 		RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "compute2.ds1" );

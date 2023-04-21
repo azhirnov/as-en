@@ -134,3 +134,4 @@ namespace AE::Threading
 } // AE::Threading
 
 //#include "threading/Memory/LfFixedBlockAllocator.inl.h"
+#undef AE_LFFIXEDBLOCKALLOC_DEBUG

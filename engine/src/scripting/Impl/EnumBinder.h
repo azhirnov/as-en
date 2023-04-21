@@ -30,15 +30,17 @@ namespace AE::Scripting
 
 	// methods
 	public:
-		explicit EnumBinder (const ScriptEnginePtr &eng);
-		~EnumBinder ();
+		explicit EnumBinder (const ScriptEnginePtr &eng)		__NE___;
+		~EnumBinder ()											__NE___;
 
-		void  Create ()								__Th___;
+			void  Create ()										__Th___;
+		ND_ bool  IsRegistred ()								C_NE___;
 
-		void  AddValue (StringView name, T value)	__Th___;
+			void  AddValue (StringView name, T value)			__Th___;
 
-		ND_ StringView							Name ()		const	{ return _name; }
-		ND_ Ptr< AngelScript::asIScriptEngine >	GetASEngine ()		{ return _engine->Get(); }
+		ND_ StringView							Name ()			C_NE___	{ return _name; }
+		ND_ const ScriptEnginePtr &				GetEngine ()	C_NE___	{ return _engine; }
+		ND_ Ptr< AngelScript::asIScriptEngine >	GetASEngine ()	__NE___	{ return _engine->Get(); }
 	};
 
 
@@ -49,7 +51,7 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T>
-	EnumBinder<T>::EnumBinder (const ScriptEnginePtr &eng) :
+	EnumBinder<T>::EnumBinder (const ScriptEnginePtr &eng) __NE___ :
 		_engine{ eng }, _genHeader{ eng->IsUsingCppHeader() }
 	{
 		ScriptTypeInfo< T >::Name( OUT _name );
@@ -61,7 +63,7 @@ namespace AE::Scripting
 =================================================
 */
 	template <typename T>
-	EnumBinder<T>::~EnumBinder ()
+	EnumBinder<T>::~EnumBinder () __NE___
 	{
 		if_unlikely( _genHeader )
 			_engine->AddCppHeader( _name, RVRef(_header), AngelScript::asOBJ_ENUM );
@@ -75,7 +77,7 @@ namespace AE::Scripting
 	template <typename T>
 	void  EnumBinder<T>::Create () __Th___
 	{
-		int	res = GetASEngine()->RegisterEnum( NtStringView{Name()}.c_str() );
+		int	res = GetASEngine()->RegisterEnum( _name.c_str() );
 		
 		if ( res == AngelScript::asALREADY_REGISTERED )
 			AE_LOGE( "enum '" + String{Name()} + "' already registerd" );
@@ -108,6 +110,17 @@ namespace AE::Scripting
 	
 /*
 =================================================
+	IsRegistred
+=================================================
+*/
+	template <typename T>
+	bool  EnumBinder<T>::IsRegistred () C_NE___
+	{
+		return _engine->IsRegistred( _name );
+	}
+
+/*
+=================================================
 	AddValue
 =================================================
 */
@@ -116,7 +129,7 @@ namespace AE::Scripting
 	{
 		ASSERT( slong(value) >= MinValue<int>() and slong(value) <= MaxValue<int>() );
 
-		AS_CHECK_THROW( GetASEngine()->RegisterEnumValue( NtStringView{Name()}.c_str(), (String{Name()} + '_' + String{valueName}).c_str(), int(value) ));
+		AS_CHECK_THROW( GetASEngine()->RegisterEnumValue( _name.c_str(), (String{Name()} + '_' + String{valueName}).c_str(), int(value) ));
 		
 		if_unlikely( _genHeader )
 		{

@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Vulkan/Resources/VDescriptorSetLayout.h"
 
 namespace AE::Graphics

@@ -8,7 +8,7 @@ namespace AE::Networking
 {
 
 	//
-	// Base Socket for BSD system
+	// Base Socket
 	//
 
 	class BaseSocket
@@ -26,6 +26,12 @@ namespace AE::Networking
 		#else
 			#error Unsupported platform!
 		#endif
+
+		struct _Config
+		{
+			Bytes	sendBufferSize		= 1_Mb;
+			Bytes	receiveBufferSize	= 1_Mb;
+		};
 
 
 	// variables
@@ -46,6 +52,8 @@ namespace AE::Networking
 
 	protected:
 		ND_ bool  _SetNonBlocking ()					__NE___;
+		ND_ bool  _SetSendBufferSize (Bytes size)		__NE___;
+		ND_ bool  _SetReceiveBufferSize (Bytes size)	__NE___;
 	};
 
 } // AE::Networking

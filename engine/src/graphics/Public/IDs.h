@@ -12,6 +12,7 @@ namespace AE::Graphics::_hidden_
 	static constexpr uint	GraphicsIDs_Start	= 1 << 24;
 	static constexpr uint	VulkanIDs_Start		= 2 << 24;
 	static constexpr uint	MetalIDs_Start		= 3 << 24;
+	static constexpr uint	RemoteIDs_Start		= 4 << 24;
 
 	// tag: NamedID UID
 	static constexpr uint	NamedIDs_Start		= 1 << 24;
@@ -39,8 +40,18 @@ namespace AE::Graphics
 	using RTSceneID				= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 15 >;		// top-level AS
 	using RTShaderBindingID		= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 16 >;		// shader binding table
 	
+	// for internal usage
+	using SamplerID				= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 17 >;
+	using PipelineLayoutID		= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 18 >;
+	using RenderPassID			= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 19 >;
+	using MemoryID				= HandleTmpl< 32, 32, Graphics::_hidden_::GraphicsIDs_Start + 20 >;
+
 	//using MaterialID			= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 20 >;
-	using ImageInAtlasID		= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 21 >;
+	using ImageInAtlasID		= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 30 >;
+	
+	using VideoSessionID		= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 40 >;
+	using VideoBufferID			= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 41 >;
+	using VideoImageID			= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 42 >;
 
 
 	using UniformName			= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 1,  AE_OPTIMIZE_IDS >;
@@ -69,6 +80,7 @@ namespace AE::Graphics
 	
 	using RenderTargetName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 39, AE_OPTIMIZE_IDS >;
 	using ImageInAtlasName		= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 40, AE_OPTIMIZE_IDS >;
+	using MaterialName			= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 41, AE_OPTIMIZE_IDS >;
 
 
 	static constexpr AttachmentName		Attachment_Depth		{"Depth"};

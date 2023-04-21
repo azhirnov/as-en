@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "base/Algorithms/Cast.h"
 # include "base/Containers/Ptr.h"
 # include "base/Containers/FixedArray.h"
@@ -54,8 +53,6 @@ namespace AE::Graphics
 	class VFramebuffer;
 	class VCommandPoolManager;
 	class VCommandBatch;
-	class RenderTask;
-	class DrawTask;
 	class VRenderTaskScheduler;
 
 	DEBUG_ONLY(
@@ -65,14 +62,10 @@ namespace AE::Graphics
 	// Used for temporary allocations.
 	// thread-safe: no
 	using VTempLinearAllocator	= LinearAllocator< UntypedAllocator, 8, false >;	// TODO: use fast block allocator
-	using VTempStackAllocator	= StackAllocator< UntypedAllocator, 8, false >;
+	using VTempStackAllocator	= StackAllocator<  UntypedAllocator, 8, false >;
 
 	
-	using VSamplerID			= HandleTmpl< 16, 16, Graphics::_hidden_::VulkanIDs_Start + 1 >;
-	using VPipelineLayoutID		= HandleTmpl< 16, 16, Graphics::_hidden_::VulkanIDs_Start + 2 >;
-	using VRenderPassID			= HandleTmpl< 16, 16, Graphics::_hidden_::VulkanIDs_Start + 4 >;
-	using VFramebufferID		= HandleTmpl< 16, 16, Graphics::_hidden_::VulkanIDs_Start + 5 >;
-	using VMemoryID				= HandleTmpl< 32, 32, Graphics::_hidden_::VulkanIDs_Start + 6 >;
+	using VFramebufferID		= HandleTmpl< 16, 16, Graphics::_hidden_::VulkanIDs_Start + 1 >;
 
 
 	//
@@ -80,7 +73,9 @@ namespace AE::Graphics
 	//
 	struct VConfig final : Noninstancable
 	{
-		static constexpr uint	MaxQueues	= 4;
+		static constexpr uint	MaxQueues		= uint(EQueueType::_Count) + 1;
+
+		static constexpr uint	MaxVideoMaxReq	= 8;
 		
 		// for query manager
 		static constexpr uint	TimestampQueryPerFrame			= 1000;
@@ -89,22 +84,6 @@ namespace AE::Graphics
 
 		static constexpr uint	ASCompactedSizeQueryPerFrame	= 1000;
 		static constexpr uint	ASSerializationQueryPerFrame	= 1000;
-	};
-	
-
-	//
-	// Query type
-	//
-	enum class EQueryType : ubyte
-	{
-		Timestamp,
-		PipelineStatistic,
-		Performance,
-		AccelStructCompactedSize,
-		AccelStructSize,				// require 'VK_KHR_ray_tracing_maintenance1'
-		AccelStructSerializationSize,
-		_Count,
-		Unknown	= 0xFF,
 	};
 
 	
@@ -131,6 +110,7 @@ namespace AE::Graphics
 	VULKAN_ENUM_BIT_OPERATORS( VkGeometryFlagBitsKHR );
 	VULKAN_ENUM_BIT_OPERATORS( VkGeometryInstanceFlagBitsKHR );
 	VULKAN_ENUM_BIT_OPERATORS( VkBuildAccelerationStructureFlagBitsKHR );
+	VULKAN_ENUM_BIT_OPERATORS( VkSamplerCreateFlagBits );
 #undef VULKAN_ENUM_BIT_OPERATORS
 
 } // AE::Graphics

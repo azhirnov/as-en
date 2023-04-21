@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	// include:
 	//	Apple A12 GPU driver 0.2.1915 on Ios 15.3
@@ -14,6 +15,7 @@ void main ()
 	//	V3D 4.2 driver 21.2.5 on Android 12.0
 	//	Mali-G52 MC2 driver 26.0.0 on Android 11.0
 	//	Adreno (TM) 730 driver 512.615.0 on Android 12.0
+	//	rockchip orangepi5 driver 12.0.0 on Android 12.0
 	//	Mali-G72 driver 26.0.0 on Android 11.0
 	//	Mali-G76 driver 32.1.0 on Android 12.0
 	//	Samsung Xclipse 920 driver 2.0.0 on Android 12.0

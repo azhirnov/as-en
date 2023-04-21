@@ -29,9 +29,10 @@ namespace AE::Base
 
 	// methods
 	public:
-		ND_ bool  operator == (const UntypedAllocator &)		C_NE___
+		template <typename T>
+		ND_ static T*     Allocate (usize count = 1)__NE___
 		{
-			return true;
+			return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }));
 		}
 
 		// with default alignment
@@ -83,6 +84,11 @@ namespace AE::Base
 				::operator delete ( ptr, usize(sizeAndAlign.size), std::align_val_t(usize(sizeAndAlign.align)) );
 			//#endif
 		}
+
+		ND_ bool  operator == (const UntypedAllocator &)		C_NE___
+		{
+			return true;
+		}
 	};
 
 
@@ -103,6 +109,13 @@ namespace AE::Base
 		
 	// methods
 	public:
+		template <typename T>
+		ND_ static T*     Allocate (usize count = 1)__NE___
+		{
+			STATIC_ASSERT( alignof(T) <= BaseAlign );
+			return Cast<T>( Allocate( SizeOf<T> * count ));
+		}
+
 		ND_ static void*  Allocate (Bytes size)					__NE___
 		{
 			void*	ptr = ::operator new ( usize(size), std::align_val_t(BaseAlign), std::nothrow_t{} );
@@ -138,41 +151,55 @@ namespace AE::Base
 	//
 	// On Stack Allocator
 	//
+	
+# ifdef AE_COMPILER_MSVC
+#	define AllocateOnStack2( _outPtr_, _sizeInBytes_ )												\
+		{																							\
+			STATIC_ASSERT( IsBytes< decltype(_sizeInBytes_) >);										\
+			ASSERT( (_sizeInBytes_) <= 1_Kb );			/* _ALLOCA_S_THRESHOLD */					\
+			_outPtr_ = Cast< RemovePointer<decltype(_outPtr_)> >(_alloca( usize(_sizeInBytes_) ));	\
+		}																							\
 
-	class UntypedOnStackAllocator
-	{
-	// types
-	public:
-		static constexpr bool	IsThreadSafe = true;
+# elif 0
+#	define AllocateOnStack2( _outPtr_, _sizeInBytes_ )												\
+		{																							\
+			_outPtr_ = null;																		\
+			__try {																					\
+				ASSERT( _sizeInBytes_ <= 1_Kb );			/* _ALLOCA_S_THRESHOLD */				\
+				_outPtr_ = Cast< decltype(*_outPtr_) >(_alloca( usize(_sizeInBytes_) ));			\
+			}																						\
+			__except( GetExceptionCode() == 0xC00000FDl ) {	/* STATUS_STACK_OVERFLOW */				\
+				_resetstkoflw();																	\
+			}																						\
+		}																							\
 
-	// methods
-	public:
-		ND_ static void*	Allocate (Bytes size)		__NE___
-		{
-			ASSERT( size <= 1_Kb );		// _ALLOCA_S_THRESHOLD
+# else
+#	define AllocateOnStack2( _outPtr_, _sizeInBytes_ )												\
+		{																							\
+			STATIC_ASSERT( IsBytes< decltype(_sizeInBytes_) >);										\
+			ASSERT( (_sizeInBytes_) <= 1_Kb );			/* _ALLOCA_S_THRESHOLD */					\
+			_outPtr_ = Cast< RemovePointer<decltype(_outPtr_)> >(alloca( usize(_sizeInBytes_) ));	\
+		}																							\
 
-			void*	ptr = _AllocImpl( size );
-			AllocatorHelper< EAllocatorType::OnStack >::OnAllocate( ptr, size );
-			return ptr;
-		}
-
-			static void		Deallocate (void *)			__NE___	{}
+# endif
 
 
-	private:
-		ND_ static forceinline void*  _AllocImpl (Bytes size) __NE___
-		{
-		  #ifdef AE_COMPILER_MSVC
-			__try {
-				return _alloca( usize(size) );
-			}
-			__except( GetExceptionCode() == 0xC00000FDl ) {	// STATUS_STACK_OVERFLOW
-				_resetstkoflw();
-			}
-		  #else
-			return alloca( usize(size) );
-		  #endif
-		}
-	};
+#	define AllocateOnStack( _outPtr_, _count_ )														\
+		AllocateOnStack2( _outPtr_, (SizeOf<RemovePointer<decltype(_outPtr_)>> * _count_) );
+	
+#	define AllocateOnStack_WithCtor( _outPtr_, _count_ )											\
+		{																							\
+			AllocateOnStack2( _outPtr_, (SizeOf<RemovePointer<decltype(_outPtr_)>> * _count_) );	\
+			for (usize i = 0, cnt = _count_; i < cnt; ++i) {										\
+				PlacementNew< RemovePointer<decltype(_outPtr_)> >( _outPtr_ + i );					\
+			}																						\
+		}																							\
+
+#	define AllocateOnStack_ZeroMem( _outPtr_, _count_ )												\
+		{																							\
+			AllocateOnStack2( _outPtr_, (SizeOf<RemovePointer<decltype(_outPtr_)>> * _count_) );	\
+			ZeroMem( _outPtr_, _count_ );															\
+		}																							\
+
 
 } // AE::Base

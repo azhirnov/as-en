@@ -1,8 +1,8 @@
 cd ../..
 rmdir /Q /S "_build22"
 
-mkdir _build_22
-cd _build_22
-cmake -G "Visual Studio 17 2022" -A x64 -DAE_SIMD_AVX=2 ".."
+mkdir _build22
+cd _build22
+cmake -G "Visual Studio 17 2022" -A x64 -DAE_SIMD_AVX=2 -DAE_ENABLE_VULKAN=ON ".."
 
 pause

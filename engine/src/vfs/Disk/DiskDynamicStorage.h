@@ -31,9 +31,10 @@ namespace AE::VFS
 		mutable FileMap_t		_map;
 		mutable TimePoint_t		_lastUpdate;
 		Path					_folder;
+		String					_prefix;
 
 		DEBUG_ONLY(
-		  mutable NamedID_HashCollisionCheck	_hasCollisionCheck;
+		  mutable NamedID_HashCollisionCheck	_hashCollisionCheck;
 		)
 
 
@@ -42,7 +43,7 @@ namespace AE::VFS
 		DiskDynamicStorage ()														__NE___	{}
 		~DiskDynamicStorage ()														__NE_OV {}
 
-		ND_ bool  Create (const Path &folder);
+		ND_ bool  Create (const Path &folder, StringView prefix = Default);
 
 
 	  // IVirtualFileStorage //

@@ -480,7 +480,7 @@ namespace AE::Graphics::_hidden_
 
 
 	private:
-		#define AE_BASE_IND_CTX_COMMANDS( _visitor_ ) \
+		#define AE_BASE_IND_CTX_COMMANDS( _visitor_ )\
 			/* shared commands */\
 			_visitor_( DebugMarkerCmd )\
 			_visitor_( PushDebugGroupCmd )\

@@ -1,5 +1,5 @@
 #include <input_actions>
 
-void main (ActionBindings& bindings)
+void ASmain (ActionBindings& bindings)
 {
 }

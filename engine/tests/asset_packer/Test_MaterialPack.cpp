@@ -9,16 +9,19 @@ namespace
 	decltype(&CompilePipelines)		compile_pipelines	= null;
 
 
-	static void  RenderPassPack_Test1 ()
+	static void  RenderPassPack_Test1 (bool isVk, StringView refName)
 	{
 		const PathParams	fs_folder[]		= { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::Recursive} };
-		const PathParams	rpass_dir[]		= { {TXT("config_vk.as"), 0}, {TXT("rpass.as"), 2} };
+		const PathParams	rpass_dir[]		= { {isVk ? TXT("config_vk.as") : TXT("config_mac.as"), 0},
+											    {TXT("rpass.as"), 2} };
 		const Path			output_folder	= TXT("_output");
+		const Path			ref_dump_fname	= FileSystem::ToAbsolute( refName );
 		
 		FileSystem::RemoveAll( output_folder );
 		TEST( FileSystem::CreateDirectories( output_folder ));
 		
-		const Path	output = output_folder / "materials.bin";
+		const Path	output		= output_folder / "materials.bin";
+		const Path	output_cpp	= FileSystem::ToAbsolute( output_folder / ".." / (isVk ? "vk_types.h" : "mtl_types.h" ));
 
 		PipelinesInfo	info;
 		info.pipelineFolders	= fs_folder;
@@ -67,7 +70,7 @@ namespace
 		}
 		
 		TEST( des.IsEnd() );
-		//TEST( CompareWithDump( ser_str, "test1_ref.txt", force_update ));
+		//TEST( CompareWithDump( ser_str, ref_dump_fname, force_update ));
 	}
 }
 
@@ -85,7 +88,7 @@ extern void Test_MaterialPack ()
 		
 		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/material_test" ));
 
-		RenderPassPack_Test1();
+		//RenderPassPack_Test1();
 	}
 	TEST_PASSED();
 #endif

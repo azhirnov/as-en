@@ -2,13 +2,13 @@
 
 #pragma once
 
-# include "base/Utils/Version.h"
-# include "base/CompileTime/StringToID.h"
-# include "graphics/Public/DeviceProperties.h"
-# include "graphics/Public/ResourceEnums.h"
-# include "graphics/Public/FeatureSet.h"
-# include "graphics/Public/DescriptorSet.h"
-# include "graphics/Public/GraphicsCreateInfo.h"
+#include "base/Utils/Version.h"
+#include "base/CompileTime/StringToID.h"
+#include "graphics/Public/DeviceProperties.h"
+#include "graphics/Public/ResourceEnums.h"
+#include "graphics/Public/FeatureSet.h"
+#include "graphics/Public/DescriptorSet.h"
+#include "graphics/Public/GraphicsCreateInfo.h"
 
 namespace AE::Graphics
 {

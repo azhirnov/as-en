@@ -12,7 +12,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_IMGUI
-
 # include "profiler/ImGui/Common.h"
 
 namespace AE::Profiler
@@ -56,19 +55,19 @@ namespace AE::Profiler
 
 	// variables
 	private:
+		mutable SharedMutex		_guard;
+
 		double					_maxHeight			= 0.0;
 		int						_currentFrameIdx	= 0;
 
 		UniqueNames_t			_uniqueNames;
 		Array<UNameInfo_t>		_uniqueNameArr;
 		FrameHistory_t			_frames;
-		
-		DRC_ONLY( DataRaceCheck	_drCheck;)
 
 
 	// methods
 	public:
-		void  Draw (INOUT RectF &region);
+		void  Draw (INOUT RectF &region) const;
 
 		void  Begin ();
 		void  Add (const String &name, RGBA8u color, double begin, double end);

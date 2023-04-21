@@ -8,6 +8,7 @@ namespace _hidden_
 {
 	template <typename T> struct _IsScalar		{ static constexpr bool  value = std::is_scalar_v<T>; };
 	template <typename T> struct _IsFloatPoint	{ static constexpr bool  value = std::is_floating_point_v<T>; };
+	template <typename T> struct _IsSigned		{ static constexpr bool  value = std::is_signed_v<T>; };
 
 } // _hidden_
 
@@ -17,6 +18,12 @@ namespace _hidden_
 
 	template <typename T>
 	static constexpr bool	IsAnyFloatPoint			= Base::_hidden_::_IsFloatPoint<T>::value;	// software or hardware
+
+	template <typename T>
+	static constexpr bool	IsSignedFloatPoint		= IsAnyFloatPoint<T> and Base::_hidden_::_IsSigned<T>::value;
+	
+	template <typename T>
+	static constexpr bool	IsUnsignedFloatPoint	= IsAnyFloatPoint<T> and not Base::_hidden_::_IsSigned<T>::value;
 
 	template <typename T>
 	static constexpr bool	IsInteger				= std::is_integral_v<T>;
@@ -101,6 +108,8 @@ namespace _hidden_
 	template <typename T>
 	static constexpr bool	IsArithmetic			= std::is_arithmetic_v<T>;
 	
+	template <typename T>
+	static constexpr bool	IsAbstract				= std::is_abstract_v<T>;
 
 
 	template <typename T>
@@ -287,6 +296,9 @@ namespace _hidden_
 	static constexpr bool	IsArray = Base::_hidden_::_IsStdVector<T>::value;
 
 	
+	template <typename T>
+	static constexpr bool	IsDuration = IsSpecializationOf< T, std::chrono::duration >;
+
 /*
 =================================================
 	IndexSequence

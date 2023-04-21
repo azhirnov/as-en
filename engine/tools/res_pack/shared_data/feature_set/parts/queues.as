@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	{
 		RC<FeatureSet>  fset = FeatureSet( "part.AsyncCompute" );

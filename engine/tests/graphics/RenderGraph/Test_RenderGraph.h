@@ -25,6 +25,9 @@ using namespace AE::Graphics;
 #elif defined(AE_ENABLE_METAL)
 # include "cpp/mac_types.h"
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+# include "cpp/vk_types.h"
+
 #else
 #	error not implemented
 #endif
@@ -66,6 +69,10 @@ protected:
   #elif defined(AE_ENABLE_METAL)
 	MDeviceInitializer			_metal;
 	MSwapchainInitializer		_swapchain;
+
+  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+	RDeviceInitializer			_remote;
+	RSwapchainInitializer		_swapchain;
 	
   #else
   #	error not implemented
@@ -99,6 +106,7 @@ private:
 	bool  Test_Buffer ();
 	bool  Test_FeatureSets ();
 	bool  Test_FrameCounter ();
+	bool  Test_ImageFormat ();
 
 	bool  Test_CopyBuffer1 ();
 	bool  Test_CopyBuffer2 ();

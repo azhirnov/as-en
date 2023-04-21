@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Metal/MResourceManager.h"
 # include "graphics/Metal/MRenderTaskScheduler.h"
 # include "graphics/Metal/Commands/MBarrierManager.h"

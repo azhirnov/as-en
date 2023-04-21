@@ -6,6 +6,7 @@
 #include "graphics/Public/BufferMemView.h"
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/ImageUtils.h"
+#include "graphics/Public/ImageSwizzle.h"
 
 namespace AE::Graphics
 {
@@ -63,7 +64,8 @@ namespace AE::Graphics
 		ND_ Bytes			BytesPerBlock ()			C_NE___	{ return ImageUtils::BytesPerBlock( _bitsPerBlock, TexelBlockSize() ); }
 		ND_ Bytes			MinRowSize ()				C_NE___	{ return ImageUtils::RowSize( _dimension.x, _bitsPerBlock, TexelBlockSize() ); };
 		ND_ Bytes			MinSliceSize ()				C_NE___	{ return ImageUtils::SliceSize( _dimension.y, RowPitch(), TexelBlockSize() ); }
-		ND_ Bytes			ImageSize ()				C_NE___	{ return SlicePitch() * _dimension.z; }
+		ND_ Bytes			Image2DSize ()				C_NE___	{ return RowPitch() * _dimension.y; }
+		ND_ Bytes			Image3DSize ()				C_NE___	{ return SlicePitch() * _dimension.z; }
 		ND_ Bytes			ContentSize ()				C_NE___	{ return _content.DataSize(); }
 		ND_ EPixelFormat	Format ()					C_NE___	{ return _format; }
 		ND_ EImageAspect	Aspect ()					C_NE___	{ return _aspect; }
@@ -110,19 +112,34 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		using PixStorage_t		= StaticArray<uint,4>;
+		template <typename T>	using LoadPixelTFn_t	= void (*) (const CRow_t &, uint x, OUT T &);
+		template <typename T>	using StorePixelTFn_t	= void (*) (OUT Row_t, uint x, const T &);
 
-		using LoadPixelFn_t		= void (*) (const CRow_t &, uint x, OUT PixStorage_t &);
-		using LoadRGBA32fFn_t	= void (*) (const CRow_t &, uint x, OUT RGBA32f &);
-		using LoadRGBA32uFn_t	= void (*) (const CRow_t &, uint x, OUT RGBA32u &);
-		using LoadRGBA32iFn_t	= void (*) (const CRow_t &, uint x, OUT RGBA32i &);
-		using LoadDSFn_t		= void (*) (const CRow_t &, uint x, OUT DepthStencil &);
+		using PixStorage_t		= StaticArray<uint,4>;
 		
-		using StorePixelFn_t	= void (*) (OUT Row_t, uint x, const PixStorage_t &);
-		using StoreRGBA32fFn_t	= void (*) (OUT Row_t, uint x, const RGBA32f &);
-		using StoreRGBA32uFn_t	= void (*) (OUT Row_t, uint x, const RGBA32u &);
-		using StoreRGBA32iFn_t	= void (*) (OUT Row_t, uint x, const RGBA32i &);
-		using StoreDSFn_t		= void (*) (OUT Row_t, uint x, const DepthStencil &);
+		using LoadPixelFn_t		= LoadPixelTFn_t< PixStorage_t >;
+		using LoadRGBA32fFn_t	= LoadPixelTFn_t< RGBA32f >;
+		using LoadRGBA32uFn_t	= LoadPixelTFn_t< RGBA32u >;
+		using LoadRGBA32iFn_t	= LoadPixelTFn_t< RGBA32i >;
+		using LoadDSFn_t		= LoadPixelTFn_t< DepthStencil >;
+		
+		using StorePixelFn_t	= StorePixelTFn_t< PixStorage_t >;
+		using StoreRGBA32fFn_t	= StorePixelTFn_t< RGBA32f >;
+		using StoreRGBA32uFn_t	= StorePixelTFn_t< RGBA32u >;
+		using StoreRGBA32iFn_t	= StorePixelTFn_t< RGBA32i >;
+		using StoreDSFn_t		= StorePixelTFn_t< DepthStencil >;
+
+		struct Swizzle
+		{
+			uint4	_value;
+
+			Swizzle (VecSwizzle src0, VecSwizzle src1)		__NE___;
+			Swizzle (ImageSwizzle src0, ImageSwizzle src1)	__NE___;
+			Swizzle (const uint4 &src0, const uint4 & src1)	__NE___;
+
+			template <typename T>
+			ND_ RGBAColor<T>  Transform (const RGBAColor<T> &src0, const RGBAColor<T> &src1) C_NE___;
+		};
 
 
 	// variables
@@ -140,9 +157,14 @@ namespace AE::Graphics
 		
 	// methods
 	public:
-		RWImageMemView () __NE___;
-		RWImageMemView (const ImageMemView& other) __NE___;
+		RWImageMemView ()											__NE___;
+		RWImageMemView (const ImageMemView& other)					__NE___;
 		RWImageMemView (const BufferMemView& content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
+		RWImageMemView (void *content, Bytes contentSize, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___;
+
+		template <typename T>
+		RWImageMemView (Array<T> &content, const uint3 &off, const uint3 &dim, Bytes rowPitch, Bytes slicePitch, EPixelFormat format, EImageAspect aspect) __NE___ :
+			RWImageMemView{ BufferMemView{content}, off, dim, rowPitch, slicePitch, format, aspect } {}
 
 		void  Load (const uint3 &point, OUT RGBA32f &col)			C_NE___
 		{
@@ -193,11 +215,20 @@ namespace AE::Graphics
 			return _storeDS( GetRow( point.y, point.z ), point.x, ds );
 		}
 
-
-		ND_ bool  Blit (const RWImageMemView &src, OUT Bytes &readn, OUT Bytes &written)																		__NE___;
-		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim, OUT Bytes &readn, OUT Bytes &written)	__NE___;
-		ND_ bool  Blit (const RWImageMemView &src)																												__NE___;
-		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim)										__NE___;
+		// convert between different formats without filtering
+		ND_ bool  Blit (const RWImageMemView &src)																			__NE___;
+		ND_ bool  Blit (const RWImageMemView &src, OUT Bytes &readn, OUT Bytes &written)									__NE___;
+		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim)	__NE___;
+		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage, const uint3 &dim,
+						OUT Bytes &readn, OUT Bytes &written)																__NE___;
+		
+		// with component swizzle
+		ND_ bool  Blit (const RWImageMemView &src, const Swizzle &swizzle)													__NE___;
+		ND_ bool  Blit (const RWImageMemView &src, const Swizzle &swizzle, OUT Bytes &readn, OUT Bytes &written)			__NE___;
+		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage,
+						const uint3 &dim, const Swizzle &swizzle)															__NE___;
+		ND_ bool  Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage,
+						const uint3 &dim, const Swizzle &swizzle, OUT Bytes &readn, OUT Bytes &written)						__NE___;
 
 
 		ND_ bool  Fill (const RGBA32f &col)											__NE___	{ return Fill( col, uint3{}, Dimension() ); }
@@ -208,9 +239,15 @@ namespace AE::Graphics
 		ND_ bool  Fill (const RGBA32u &col, const uint3 &offset, const uint3 &dim)	__NE___;
 		ND_ bool  Fill (const RGBA32i &col, const uint3 &offset, const uint3 &dim)	__NE___;
 
+
 	private:
 		ND_ bool  _Fill (const CRow_t &data, const uint3 &offset, const uint3 &dim)	__NE___;
-
+		
+		template <typename T>
+		ND_ bool  _Blit (const uint3 &dstOffset, const uint3 &srcOffset, const RWImageMemView &srcImage,
+						 const uint3 &dim, const Swizzle &swizzle, LoadPixelTFn_t<T> loadSrc, LoadPixelTFn_t<T> loadDst,
+						 StorePixelTFn_t<T> store, OUT Bytes &readn, OUT Bytes &written) __NE___;
 	};
+
 
 } // AE::Graphics

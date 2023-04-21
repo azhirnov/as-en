@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Public/DescriptorSet.h"
 # include "graphics/Metal/MCommon.h"
 # include "PipelineCompilerImpl.h"
@@ -37,8 +36,8 @@ namespace AE::Graphics
 		Bytes16u::SizeAndAlign				_argbufSizeAlign;
 		EShaderStages						_stages			= Default;
 
-
-		#include "graphics/Private/DescriptorSetLayoutDecl.h"
+		
+		#include "graphics/Private/DescriptorSetLayout.h"
 
 
 	// methods
@@ -62,8 +61,8 @@ namespace AE::Graphics
 		ND_ bool  _AddUniform (const Uniform_t &un, OUT Bytes16u* offset) __NE___;
 	};
 	
-
-	#include "graphics/Private/DescriptorSetLayoutImpl.h"
+	
+	#include "graphics/Private/DescriptorSetLayout.inl.h"
 
 } // AE::Graphics
 

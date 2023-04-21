@@ -10,24 +10,32 @@ bool RGTest::Test_FeatureSets ()
 {
 	// test swapchain feature set parts
 	{
-		FeatureSet::PixelFormatSet_t	formats;
-		TEST( _swapchain.GetColorFormats( OUT formats ));
+		FeatureSet::SurfaceFormatSet_t	formats;
+		TEST( _swapchain.GetSurfaceFormats( OUT formats ));
 
 		for (;;)
 		{
-			EPixelFormat	fmt = formats.ExtractFirst();
-			if ( fmt == EPixelFormat::_Count )
+			ESurfaceFormat	fmt = formats.ExtractFirst();
+			if ( fmt >= ESurfaceFormat::_Count )
 				break;
 
+			BEGIN_ENUM_CHECKS();
 			switch ( fmt )
 			{
-				case EPixelFormat::BGRA8_UNorm :	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Swapchain_BGRA8_UNorm"} ));		break;
-				case EPixelFormat::sBGR8_A8 :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Swapchain_BGRA8_sRGB"} ));		break;
-				case EPixelFormat::RGBA8_UNorm :	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Swapchain_RGBA8_UNorm"} ));		break;
-				case EPixelFormat::sRGB8_A8 :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Swapchain_RGBA8_sRGB"} ));		break;
-				case EPixelFormat::RGB10_A2_UNorm :	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Swapchain_RGB10A2"} ));			break;
-				case EPixelFormat::RGBA16F :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Swapchain_RGBA16f"} ));			break;
+				case ESurfaceFormat::BGRA8_sRGB_nonlinear :			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_BGRA8_sRGB_nonlinear"} ));			break;
+				case ESurfaceFormat::RGBA8_sRGB_nonlinear :			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_RGBA8_sRGB_nonlinear"} ));			break;
+				case ESurfaceFormat::BGRA8_BT709_nonlinear :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_BGRA8_BT709_nonlinear"} ));			break;
+				case ESurfaceFormat::RGBA16F_Extended_sRGB_linear:	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_RGBA16F_Extended_sRGB_linear"} ));	break;
+				case ESurfaceFormat::RGBA16F_sRGB_nonlinear :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_RGBA16F_sRGB_nonlinear"} ));		break;
+				case ESurfaceFormat::RGBA16F_BT709_nonlinear :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_RGBA16F_BT709_nonlinear"} ));		break;
+				case ESurfaceFormat::RGBA16F_HDR10_ST2084 :			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_RGBA16F_HDR10_ST2084"} ));			break;
+				case ESurfaceFormat::RGBA16F_BT2020_linear :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_RGBA16F_BT2020_linear"} ));			break;
+				case ESurfaceFormat::RGB10A2_sRGB_nonlinear :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_RGB10A2_sRGB_nonlinear"} ));		break;
+				case ESurfaceFormat::RGB10A2_HDR10_ST2084 :			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.Surface_RGB10A2_HDR10_ST2084"} ));			break;
+				case ESurfaceFormat::_Count :
+				case ESurfaceFormat::Unknown :						break;
 			}
+			END_ENUM_CHECKS();
 		}
 	}
 
@@ -49,12 +57,12 @@ bool RGTest::Test_FeatureSets ()
 
 		switch ( vendor )
 		{
-			case EVendorID::AMD :			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopAMD"} ));		break;
-			case EVendorID::NVidia :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopNV"} ));		break;
-			case EVendorID::Intel :			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopIntel"} ));	break;
-			case EVendorID::ARM :			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileMali"} ));		break;
-			case EVendorID::Qualcomm :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileAdreno"} ));	break;
-			case EVendorID::ImgTech :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobilePowerVR"} ));	break;
+			case EVendorID::AMD :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopAMD"} ));		break;
+			case EVendorID::NVidia :	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopNV"} ));		break;
+			case EVendorID::Intel :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopIntel"} ));	break;
+			case EVendorID::ARM :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileMali"} ));		break;
+			case EVendorID::Qualcomm :	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileAdreno"} ));	break;
+			case EVendorID::ImgTech :	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobilePowerVR"} ));	break;
 		}
 
 		if ( (dev >= EGraphicsDeviceID::Adreno_500			and dev <= EGraphicsDeviceID::_Adreno_End)	or
@@ -140,6 +148,9 @@ bool RGTest::Test_FeatureSets ()
 		if ( _metal.GetFeatures().meshShader )
 			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMeshShader"} ));
 		
+	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		// do nothing
+
 	#else
 	#	error not implemented
 	#endif

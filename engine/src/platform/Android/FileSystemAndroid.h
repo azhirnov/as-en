@@ -24,7 +24,7 @@ namespace AE::App
 	// Stream for Android
 	//
 
-    class AndroidRStream final : public RStream
+	class AndroidRStream final : public RStream
 	{
 	// variables
 	private:
@@ -40,7 +40,7 @@ namespace AE::App
 		~AndroidRStream ()									__NE___	{ AAsset_close( _asset ); }
 		
 		// RStream //
-		bool		IsOpen ()								C_NE_OV	{ return true; }
+		bool		IsOpen ()								C_NE_OV	{ return _asset != null; }
 		PosAndSize	PositionAndSize ()						C_NE_OV;
 		ESourceType	GetSourceType ()						C_NE_OV;
 		
@@ -75,7 +75,7 @@ namespace AE::App
 		~AndroidRDataSource ()							__NE___	{ AAsset_close( _asset ); }
 		
 		// RDataSource //
-		bool		IsOpen ()							C_NE_OV	{ return true; }
+		bool		IsOpen ()							C_NE_OV	{ return _asset != null; }
 		Bytes		Size ()								C_NE_OV	{ return _size; }
 		ESourceType	GetSourceType ()					C_NE_OV;
 
@@ -94,9 +94,9 @@ namespace AE::App
 	{
 	// types
 	private:
-		using FileMap_t		= FlatHashMap< FileName::Optimized_t, const char* >;
-		using Allocator_t	= LinearAllocator<>;
-		//using AsyncRStream	= Threading::AsyncRStream;
+		using FileMap_t			= FlatHashMap< FileName::Optimized_t, const char* >;
+		using Allocator_t		= LinearAllocator<>;
+		using AsyncRDataSource	= Threading::AsyncRDataSource;
 
 		
 	// variables
@@ -107,7 +107,7 @@ namespace AE::App
 
 		DEBUG_ONLY(
 		  String						_folder;
-		  NamedID_HashCollisionCheck	_hasCollisionCheck;
+		  NamedID_HashCollisionCheck	_hashCollisionCheck;
 		)
 		DRC_ONLY(
 			RWDataRaceCheck		_drCheck;
@@ -116,23 +116,31 @@ namespace AE::App
 
 	// methods
 	public:
-		FileSystemAndroid () {}
-		~FileSystemAndroid () override {}
+		FileSystemAndroid ()																		__NE___ {}
+		~FileSystemAndroid ()																		__NE_OV {}
 
 		ND_ bool  Create (AAssetManager* mngr, StringView folder);
 
-
+		
 	  // IVirtualFileStorage //
-		RC<RStream>		OpenAsStream (const FileName &name) const override;
-		RC<RDataSource>	OpenAsSource (const FileName &name) const override;
+		bool  Open (OUT RC<RStream> &stream, const FileName &name)									C_NE_OV;
+		bool  Open (OUT RC<RDataSource> &ds, const FileName &name)									C_NE_OV;
+		bool  Open (OUT RC<AsyncRDataSource> &ds, const FileName &name)								C_NE_OV;
 
-		bool	Exists (const FileName &name) const override;
-		bool	Exists (const FileGroupName &name) const override;
+		bool  Exists (const FileName &name)															C_NE_OV;
+		bool  Exists (const FileGroupName &name)													C_NE_OV;
 
 	private:
-		void			_Append (INOUT GlobalFileMap_t &) const override;
-		RC<RStream>		_OpenAsStreamByIter (const FileName &name, const void* ref) const override;
-		RC<RDataSource>	_OpenAsSourceByIter (const FileName &name, const void* ref) const override;
+		void  _Append (INOUT GlobalFileMap_t &)														C_Th_OV;
+		bool  _OpenByIter (OUT RC<RStream> &stream, const FileName &name, const void* ref)			C_NE_OV;
+		bool  _OpenByIter (OUT RC<RDataSource> &ds, const FileName &name, const void* ref)			C_NE_OV;
+		bool  _OpenByIter (OUT RC<AsyncRDataSource> &ds, const FileName &name, const void* ref)		C_NE_OV;
+
+		template <typename ImplType, typename ResultType>
+		ND_ bool  _Open (OUT ResultType &, const FileName &name)									C_NE___;
+
+		template <typename ImplType, typename ResultType>
+		ND_ bool  _OpenByIter2 (OUT ResultType &, const FileName &name, const void* ref, int mode)	C_NE___;
 	};
 
 

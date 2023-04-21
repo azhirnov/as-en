@@ -11,7 +11,7 @@ namespace AE::Networking
 {
 
 	//
-	// UDP Socket for BSD system
+	// UDP Socket
 	//
 
 	class UdpSocket final : public BaseSocket
@@ -26,6 +26,8 @@ namespace AE::Networking
 			uint	recvPackets = 0;
 		};
 
+		using Config = BaseSocket::_Config;
+
 
 	// variables
 	private:
@@ -36,17 +38,12 @@ namespace AE::Networking
 	public:
 		UdpSocket ()																					__NE___	{}
 
-		ND_ bool  Open (ushort port)																	__NE___;
+		ND_ bool  Open (ushort port, const Config &cfg = Default)										__NE___;
 
 			bool  Send (const IpAddress &addr, const void* data, Bytes dataSize, OUT Bytes &sent)		C_NE___;
 			bool  Receive (OUT IpAddress &addr, OUT void* data, Bytes dataSize, OUT Bytes &received)	C_NE___;
 
 		ND_ Statistic const&  Stats ()																	C_NE___	{ return _stat; }
-
-
-	private:
-		ND_ bool  _SetSendBufferSize (int size)															__NE___;
-		ND_ bool  _SetReceiveBufferSize (int size)														__NE___;
 	};
 
 

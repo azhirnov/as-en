@@ -34,21 +34,26 @@ namespace AE::GeometryTools
 
 	// methods
 	public:
-		CubeRenderer () {}
-		~CubeRenderer ();
+		CubeRenderer ()																	__NE___	{}
+		~CubeRenderer ()																__NE___;
 
-		ND_ bool  Create (IResourceManager &, ITransferContext &ctx);
-			void  Destroy (IResourceManager &);
+		ND_ bool  Create (IResourceManager &, ITransferContext &ctx)					__NE___;
+			void  Destroy (IResourceManager &)											__NE___;
 
-		ND_ bool  IsCreated () const	{ return _vertexBuffer and _indexBuffer; }
+		ND_ bool  IsCreated ()															C_NE___	{ return _vertexBuffer and _indexBuffer; }
 
 			template <typename DrawCtx>
-			void  Draw (DrawCtx &ctx, uint instanceCount = 1, uint firstInstance = 0) const;
+			void  Draw (DrawCtx &ctx, uint instanceCount = 1, uint firstInstance = 0)	C_NE___;
 	};
 
 	
+/*
+=================================================
+	Draw
+=================================================
+*/
 	template <typename DrawCtx>
-	void  CubeRenderer::Draw (DrawCtx &ctx, uint instanceCount, uint firstInstance) const
+	void  CubeRenderer::Draw (DrawCtx &ctx, uint instanceCount, uint firstInstance) C_NE___
 	{
 		ctx.BindVertexBuffer( 0, _vertexBuffer, 0_b );
 		ctx.BindIndexBuffer( _indexBuffer, 0_b, EIndex::UInt );

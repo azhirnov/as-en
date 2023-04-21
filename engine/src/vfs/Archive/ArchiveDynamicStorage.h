@@ -27,7 +27,7 @@ namespace AE::VFS
 	private:
 
 		DEBUG_ONLY(
-		  NamedID_HashCollisionCheck	_hasCollisionCheck;
+		  NamedID_HashCollisionCheck	_hashCollisionCheck;
 		)
 		DRC_ONLY(
 			RWDataRaceCheck		_drCheck;

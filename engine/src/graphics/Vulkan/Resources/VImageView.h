@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Vulkan/Resources/VImage.h"
 
 namespace AE::Graphics
@@ -19,6 +18,7 @@ namespace AE::Graphics
 	private:
 		VkImageView			_imageView			= Default;
 		ImageViewDesc		_desc;
+		bool				_canBeDestroyed		= true;
 		
 		Strong<ImageID>		_imageId;
 		
@@ -31,8 +31,9 @@ namespace AE::Graphics
 		VImageView ()									__NE___	{}
 		~VImageView ()									__NE___;
 
-		ND_ bool  Create (VResourceManager &, const ImageViewDesc &desc, ImageID imageId, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)																	__NE___;
+		ND_ bool  Create (VResourceManager &, const ImageViewDesc &desc, ImageID imageId, StringView dbgName)		__NE___;
+		ND_ bool  Create (VResourceManager &, const VulkanImageViewDesc &desc, ImageID imageId, StringView dbgName)	__NE___;
+			void  Destroy (VResourceManager &)																		__NE___;
 		
 		ND_ VkImageView				Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _imageView; }
 		ND_ ImageViewDesc const&	Description ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }

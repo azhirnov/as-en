@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Vulkan/Resources/VPipelinePack.h"
 
 namespace AE::Graphics
@@ -22,14 +21,15 @@ namespace AE::Graphics
 			VPipelinePack const&									pplnPack;
 			PipelineCompiler::SerializableGraphicsPipeline const&	templCI;
 			GraphicsPipelineDesc const&								specCI;
-			VPipelineLayoutID										layoutId;
+			PipelineLayoutID										layoutId;
 			ArrayView< VPipelinePack::ShaderModuleRef >				shaders;
 			PipelineCacheID											cacheId;
 			VPipelinePack::Allocator_t *							allocator	= null;
 		};
 
 	private:
-		using VBtoIndex_t = FixedMap< VertexBufferName::Optimized_t, ubyte, GraphicsConfig::MaxVertexBuffers >;
+		using VBtoIndex_t	= FixedMap< VertexBufferName::Optimized_t, ubyte, GraphicsConfig::MaxVertexBuffers >;
+		using VBArray_t		= ArrayView< VertexBufferName::Optimized_t >;
 
 
 	// variables
@@ -46,7 +46,7 @@ namespace AE::Graphics
 
 		VBtoIndex_t					_vertexBuffers;
 
-		Strong<VPipelineLayoutID>	_layoutId;
+		Strong<PipelineLayoutID>	_layoutId;
 		
 		ArrayView<ShaderTracePtr>	_dbgTrace;				// allocated by pipeline pack linear allocator
 
@@ -69,11 +69,13 @@ namespace AE::Graphics
 		ND_ VkPipeline				Handle ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
 		ND_ VkPipelineLayout		Layout ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layout; }
 		ND_ VkPipelineBindPoint		BindPoint ()						C_NE___	{ return VK_PIPELINE_BIND_POINT_GRAPHICS; }
-		ND_ VPipelineLayoutID		LayoutID ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ PipelineLayoutID		LayoutID ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ EPipelineDynamicState	DynamicState ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
 		ND_ EPrimitive				Topology ()							C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _topology; }
 		//ND_ bool					IsEarlyFragmentTests ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _earlyFragmentTests; }
 		ND_ uint					RenderPassSubpassIndex ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }
+		ND_ VBArray_t				GetVertexBuffers ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vertexBuffers.GetKeyArray(); }
+
 		
 		DEBUG_ONLY(  ND_ StringView  GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};

@@ -65,7 +65,7 @@ namespace AE::Math
 
 		// for transformation
 			Self&			Move (const Vec3_t &delta)						__NE___;
-			Self&			Move2 (const Vec3_t &delta)						__NE___;
+			Self&			Move3D (const Vec3_t &delta)					__NE___;
 
 		ND_ Vec3_t const&	Position ()										C_NE___	{ return _transform.position; }
 		ND_ Quat_t const&	Orientation ()									C_NE___	{ return _transform.orientation; }
@@ -229,14 +229,14 @@ namespace AE::Math
 
 /*
 =================================================
-	Move2
+	Move3D
 ----
 	x - forward/backward
 	y - side
 	z - up/down
 =================================================
 */
-	inline VRCamera&  VRCamera::Move2 (const vec3 &delta) __NE___
+	inline VRCamera&  VRCamera::Move3D (const vec3 &delta) __NE___
 	{
 		const mat4x4	view_mat	= ToRotationMatrix();
 		const vec3		up_dir		{ 0.0f, 1.0f, 0.0f };

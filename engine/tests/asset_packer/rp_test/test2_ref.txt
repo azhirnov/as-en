@@ -9,7 +9,7 @@ Subpasses {
       [0] AnyColor, 'out_Color'
     }
 }
-FeatureSets = { 'MinimalFS', 'part.Swapchain_RGBA8_UNorm' }
+FeatureSets = { 'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear' }
 name              = --
 colorAttachments  = {
   [0].format         = SwapchainColor
@@ -60,6 +60,36 @@ depthAttachment = {
 }
 =========================================================================
 
+Name:  'UIRenderPass'
+Attachments {
+  [0] 'Color'
+}
+Subpasses {
+  [0] 'Main'
+    colorAttachments = {
+      [0] AnyColor, 'out_Color'
+    }
+}
+FeatureSets = { 'MinimalFS' }
+name              = --
+colorAttachments  = {
+  [0].format         = SwapchainColor
+  [0].loadAction     = MTLLoadActionDontCare
+  [0].storeAction    = MTLStoreActionDontCare
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+}
+=========================================================================
+
+
+name              = 'UIRenderPass.def'
+colorAttachments  = {
+  [0].format         = SwapchainColor
+  [0].loadAction     = MTLLoadActionClear
+  [0].storeAction    = MTLStoreActionStore
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+}
+=========================================================================
+
 Name:  'Multipass'
 Attachments {
   [0] 'Color'
@@ -96,7 +126,7 @@ Subpasses {
       [0] UNorm, 'in_GBuffer_Color'
     }
 }
-FeatureSets = { 'MinimalFS', 'part.Swapchain_RGBA8_sRGB' }
+FeatureSets = { 'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear' }
 name              = --
 colorAttachments  = {
   [0].format         = MTLPixelFormatRGBA8Unorm

@@ -26,17 +26,16 @@ namespace AE::Base
 
 	// methods
 	public:
-		//MemWriter ()														{}
-		MemWriter (void *ptr, Bytes size) : _ptr{ptr}, _size{usize(size)}	{ ASSERT( Bytes{ptr} > _MaxAlign ); }	// IsAllocated() == true
-		explicit MemWriter (Bytes align) : _ptr{align}, _size{UMax}			{ ASSERT( align <= _MaxAlign ); }		// IsAllocated() == false
+		MemWriter (void *ptr, Bytes size)					__NE___	: _ptr{ptr}, _size{usize(size)}	{ ASSERT( Bytes{ptr} > _MaxAlign ); }	// IsAllocated() == true
+		explicit MemWriter (Bytes align)					__NE___	: _ptr{align}, _size{UMax}		{ ASSERT( align <= _MaxAlign ); }		// IsAllocated() == false
 
 
-		void  AlignTo (Bytes align)
+		void  AlignTo (Bytes align)							__NE___
 		{
 			Unused( Reserve( 0_b, align ));
 		}
 
-		ND_ void*  Reserve (Bytes size, Bytes align)
+		ND_ void*  Reserve (Bytes size, Bytes align)		__NE___
 		{
 			ASSERT( _ptr != null );
 			usize	result = AlignUp( usize(_ptr) + _offset, usize(align) );
@@ -49,54 +48,54 @@ namespace AE::Base
 
 
 		template <typename T>
-		ND_ T&  Reserve ()
+		ND_ T&  Reserve ()									__NE___
 		{
 			return *Cast<T>( Reserve( SizeOf<T>, AlignOf<T> ));
 		}
 
 		template <typename T, typename ...Args>
-		ND_ T&  Emplace (Args&& ...args) __Th___
+		ND_ T&  Emplace (Args&& ...args)					__Th___
 		{
 			ASSERT( IsAllocated() );
-			return *PlacementNew<T>( &Reserve<T>(), FwdArg<Args>( args )... );	// throw
+			return *PlacementNew<T>( &Reserve<T>(), FwdArg<Args>( args )... ); // throw
 		}
 
 		template <typename T, typename ...Args>
-		ND_ T&  EmplaceSized (Bytes size, Args&& ...args) __Th___
+		ND_ T&  EmplaceSized (Bytes size, Args&& ...args)	__Th___
 		{
 			ASSERT( IsAllocated() );
 			ASSERT( size >= SizeOf<T> );
-			return *PlacementNew<T>( Reserve( size, AlignOf<T> ), FwdArg<Args>( args )... );	// throw
+			return *PlacementNew<T>( Reserve( size, AlignOf<T> ), FwdArg<Args>( args )... );  // throw
 		}
 
 
 		template <typename T>
-		ND_ T*  ReserveArray (usize count)
+		ND_ T*  ReserveArray (usize count)					__NE___
 		{
 			return count ? Cast<T>( Reserve( SizeOf<T> * count, AlignOf<T> )) : null;
 		}
 
 		template <typename T, typename ...Args>
-		ND_ T*  EmplaceArray (usize count, Args&& ...args) __Th___
+		ND_ T*  EmplaceArray (usize count, Args&& ...args)	__Th___
 		{
 			ASSERT( IsAllocated() );
 			T*	result = ReserveArray<T>( count );
 
 			for (usize i = 0; i < count; ++i) {
-				PlacementNew<T>( result + i, FwdArg<Args>( args )... );	// throw
+				PlacementNew<T>( result + i, FwdArg<Args>( args )... );  // throw
 			}
 			return result;
 		}
 
 
-		void  Clear ()
+		void  Clear ()										__NE___
 		{
 			ASSERT( IsAllocated() );
 			ZeroMem( _ptr, Bytes{_size} );
 		}
 
 
-		ND_ Bytes  OffsetOf (void *ptr, Bytes defaultValue = UMax) const
+		ND_ Bytes  OffsetOf (void *ptr, Bytes defaultValue = UMax) C_NE___
 		{
 			if ( ptr ) {
 				ASSERT( ptr >= _ptr and ptr < _ptr + Bytes{_size} );
@@ -105,10 +104,10 @@ namespace AE::Base
 			return defaultValue;
 		}
 
-		ND_ bool	IsAllocated ()		const	{ return Bytes{_ptr} > _MaxAlign; }
-		ND_ Bytes	AllocatedSize ()	const	{ return Bytes{_offset}; }
-		ND_ Bytes	MaxSize ()			const	{ return Bytes{_size}; }
-		ND_ void*	Data ()				const	{ return _ptr; }
+		ND_ bool	IsAllocated ()							C_NE___	{ return Bytes{_ptr} > _MaxAlign; }
+		ND_ Bytes	AllocatedSize ()						C_NE___	{ return Bytes{_offset}; }
+		ND_ Bytes	MaxSize ()								C_NE___	{ return Bytes{_size}; }
+		ND_ void*	Data ()									C_NE___	{ return _ptr; }
 	};
 
 

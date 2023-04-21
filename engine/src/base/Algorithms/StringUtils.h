@@ -14,6 +14,7 @@
 #include "base/Math/Color.h"
 #include "base/Math/BitMath.h"
 #include "base/Math/POTValue.h"
+#include "base/Utils/Version.h"
 
 #include "base/Algorithms/ArrayUtils.h"
 #include "base/Memory/MemUtils.h"
@@ -173,7 +174,7 @@ namespace AE::Base
 	}
 //-----------------------------------------------------------------------------
 
-	
+
 
 /*
 =================================================
@@ -356,6 +357,20 @@ namespace AE::Base
 	FindAndReplace
 =================================================
 */
+	inline uint  FindAndReplace (INOUT String& str, char oldSymb, char newSymb) __Th___
+	{
+		String::size_type	pos		= 0;
+		uint				count	= 0;
+
+		while ( (pos = StringView{str}.find( oldSymb, pos )) != StringView::npos )
+		{
+			str[pos] = newSymb;
+			++pos;
+			++count;
+		}
+		return count;
+	}
+
 	inline uint  FindAndReplace (INOUT String& str, StringView oldStr, StringView newStr) __Th___
 	{
 		String::size_type	pos		= 0;
@@ -701,7 +716,7 @@ namespace AE::Base
 		using SecondsD_t  = std::chrono::duration<double>;
 		using MicroSecD_t = std::chrono::duration<double, std::micro>;
 
-		const double	time	 = std::chrono::duration_cast<SecondsD_t>( value ).count();
+		const double	time	 = Cast<SecondsD_t>( value ).count();
 		const double	abs_time = Abs( time );
 		String			str;
 
@@ -718,9 +733,9 @@ namespace AE::Base
 			str << ToString( time * 1.0e+3, precission ) << " ms";
 		else
 		if ( abs_time > 1.0e-7 )
-			str << ToString( std::chrono::duration_cast<MicroSecD_t>( value ).count(), precission ) << " us";
+			str << ToString( Cast<MicroSecD_t>( value ).count(), precission ) << " us";
 		else
-			str << ToString( std::chrono::duration_cast<nanosecondsd>( value ).count(), precission ) << " ns";
+			str << ToString( Cast<nanosecondsd>( value ).count(), precission ) << " ns";
 
 		return str;
 	}
@@ -758,10 +773,10 @@ namespace AE::Base
 	template <typename T>
 	ND_ String  ToString (Fractional<T> value) __Th___
 	{
-		String	str = ToString( value.numerator );
+		String	str = ToString( value.num );
 
-		if ( value.numerator != 0 and value.denominator > 1 )
-			str << '/' << ToString( value.denominator );
+		if ( value.num != 0 and value.den > 1 )
+			str << '/' << ToString( value.den );
 
 		return str;
 	}
@@ -809,7 +824,7 @@ namespace AE::Base
 				str << " * ";
 
 			str << name;
-			if ( not (frac.IsInteger() and frac.numerator == 1) )
+			if ( not (frac.IsInteger() and frac.num == 1) )
 				str << '^' << ToString( frac );
 
 			++cnt;
@@ -846,15 +861,49 @@ namespace AE::Base
 =================================================
 */
 	template <typename V, typename D, typename S>
-	ND_ String  ToString (const PhysicalQuantity<V,D,S> &value, uint fractParts = 2, Bool exponent = True{}) __Th___
+	ND_ EnableIf<IsInteger<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value) __Th___
 	{
-		return ToString( value.GetScaled(), fractParts, exponent ) << '[' << ToString( D{} ) << ']';
+		return ToString( value.GetScaled() ) << '[' << ToString( D{} ) << ']';
 	}
 
 	template <typename V, typename D, typename S>
-	ND_ String  ToDebugString (const PhysicalQuantity<V,D,S> &value, uint fractParts = 2, Bool exponent = True{}) __Th___
+	ND_ EnableIf<IsFloatPoint<V>, String>  ToString (const PhysicalQuantity<V,D,S> &value, uint fractParts = 2, Bool exponent = True{}) __Th___
+	{
+		return ToString( value.GetScaled(), fractParts, exponent ) << '[' << ToString( D{} ) << ']';
+	}
+	
+/*
+=================================================
+	ToString (PhysicalQuantity)
+=================================================
+*/
+	template <typename V, typename D, typename S>
+	ND_ EnableIf<IsInteger<V>, String>  ToDebugString (const PhysicalQuantity<V,D,S> &value) __Th___
+	{
+		return ToString( value.GetNonScaled() ) << '*' << ToString( S::Value ) << '[' << ToString( D{} ) << ']';
+	}
+
+	template <typename V, typename D, typename S>
+	ND_ EnableIf<IsFloatPoint<V>, String>  ToDebugString (const PhysicalQuantity<V,D,S> &value, uint fractParts = 2, Bool exponent = True{}) __Th___
 	{
 		return ToString( value.GetNonScaled(), fractParts, exponent ) << '*' << ToString( S::Value, fractParts, exponent ) << '[' << ToString( D{} ) << ']';
+	}
+
+/*
+=================================================
+	ToString (Version)
+=================================================
+*/
+	template <ulong UID>
+	ND_ String  ToString (TVersion2<UID> value) __Th___
+	{
+		return ToString( value.major ) << '.' << ToString( value.minor );
+	}
+	
+	template <ulong UID>
+	ND_ String  ToString (TVersion3<UID> value) __Th___
+	{
+		return ToString( value.major ) << '.' << ToString( value.minor ) << '.' << ToString( value.patch );
 	}
 //-----------------------------------------------------------------------------
 	
@@ -943,6 +992,21 @@ namespace AE::Base
 			}
 		}
 		return str;
+	}
+//-----------------------------------------------------------------------------
+	
+
+
+/*
+=================================================
+	ToString_HMS (time units)
+=================================================
+*/
+	ND_ inline String  ToString_HMS (const double sec) __Th___
+	{
+		return	ToString( uint(Floor( sec / 3600.0 )) ) << ':' <<
+				FormatAlignedI<10>( uint(Floor( sec / 60.0 )) % 60, 2, '0' ) << ':' <<
+				FormatAlignedI<10>( uint(sec) % 60, 2, '0' );
 	}
 //-----------------------------------------------------------------------------
 

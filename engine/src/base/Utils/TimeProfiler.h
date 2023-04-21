@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/Algorithms/StringUtils.h"
+#include "base/Utils/Threading.h"
 #include "base/Utils/SourceLoc.h"
 
 namespace AE::Base
@@ -28,7 +29,6 @@ namespace AE::Base
 		{
 			_message = name;
 			
-			using namespace AE::Threading;
 			CompilerBarrier( EMemoryOrder::Release );
 		}
 
@@ -38,20 +38,18 @@ namespace AE::Base
 		{
 			_message << "time profiler: " << name << (name.empty() ? "" : ", ") << "function: " << func;
 			
-			using namespace AE::Threading;
 			CompilerBarrier( EMemoryOrder::Release );
 		}
 		
 
 		~TimeProfiler ()
 		{
-			using namespace AE::Threading;
 			CompilerBarrier( EMemoryOrder::Acquire );
 
 			_message << "; TIME: " << ToString( Clock_t::now() - _startTime, 3 );
 
-			if ( _file ) {
-				AE_PRIVATE_LOGI( _message, _srcLoc.file, _srcLoc.line );
+			if ( not _srcLoc.file.empty() ) {
+				AE_PRIVATE_LOG_I( _message, _srcLoc.file, _srcLoc.line );
 			}else{
 				AE_LOGI( _message );
 			}
@@ -59,11 +57,14 @@ namespace AE::Base
 	};
 
 
+# if 1
 #	define AE_TIMEPROFILER( /* debug_name */... ) \
 		AE::Base::TimeProfiler	AE_PRIVATE_UNITE_RAW( __timeProf, __COUNTER__ ) ( \
 										AE_PRIVATE_GETRAW( AE_PRIVATE_GETARG_0( "" __VA_ARGS__, "no name" )), \
 										AE_FUNCTION_NAME, \
-										SourceLoc_Current() ) \
-
+										SourceLoc_Current() )
+# else
+#	define AE_TIMEPROFILER( /* debug_name */... )
+# endif
 
 } // AE::Base

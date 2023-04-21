@@ -9,7 +9,7 @@ namespace
 	static void  ScriptString_Test1 (const ScriptEnginePtr &se)
 	{
 		const char	script[] = R"#(
-			int main () {
+			int ASmain () {
 				string	str = "12345678";
 				LogDebug( str );
 				return str.length();
@@ -17,7 +17,7 @@ namespace
 		)#";
 
 		int	res = 0;
-		TEST( Run< int() >( se, script, "main", OUT res ));
+		TEST( Run< int() >( se, script, "ASmain", OUT res ));
 		TEST( res == 8 );
 	}
 
@@ -25,7 +25,7 @@ namespace
 	static void  ScriptString_Test2 (const ScriptEnginePtr &se)
 	{
 		const char	script[] = R"#(
-			int main () {
+			int ASmain () {
 				string	str = "12345678";
 				str += "abcd";
 				LogDebug( str );
@@ -34,7 +34,7 @@ namespace
 		)#";
 
 		int	res = 0;
-		TEST( Run< int() >( se, script, "main", OUT res ));
+		TEST( Run< int() >( se, script, "ASmain", OUT res ));
 		TEST( res == 12 );
 	}
 
@@ -42,7 +42,7 @@ namespace
 	static void  ScriptString_Test3 (const ScriptEnginePtr &se)
 	{
 		const char	script[] = R"#(
-			int main () {
+			int ASmain () {
 				string	str = "abcd";
 				str += 1234;
 				LogDebug( str );
@@ -51,7 +51,7 @@ namespace
 		)#";
 
 		int	res = 0;
-		TEST( Run< int() >( se, script, "main", OUT res ));
+		TEST( Run< int() >( se, script, "ASmain", OUT res ));
 		TEST( res == 8 );
 	}
 
@@ -59,7 +59,7 @@ namespace
 	static void  ScriptString_Test4 (const ScriptEnginePtr &se)
 	{
 		const char	script[] = R"#(
-			int main () {
+			int ASmain () {
 				string	str = "a";
 				str = str + 0 + "b" + 1 + "c" + 2;
 				LogDebug( str );
@@ -68,7 +68,7 @@ namespace
 		)#";
 
 		int	res = 0;
-		TEST( Run< int() >( se, script, "main", OUT res ));
+		TEST( Run< int() >( se, script, "ASmain", OUT res ));
 		TEST( res == 1 );
 	}
 
@@ -76,7 +76,7 @@ namespace
 	static void  ScriptString_Test5 (const ScriptEnginePtr &se)
 	{
 		const char	script[] = R"#(
-			int main (string str) {
+			int ASmain (string str) {
 				str = str + 0 + "b" + 1 + "c" + 2;
 				LogDebug( str );
 				return (str == "a0b1c2" ? 1 : 0);
@@ -85,7 +85,7 @@ namespace
 
 		String	arg = "a";
 		int		res = 0;
-		TEST( Run< int(String) >( se, script, "main", OUT res, arg ));
+		TEST( Run< int(String) >( se, script, "ASmain", OUT res, arg ));
 		TEST( res == 1 );
 	}
 
@@ -93,21 +93,21 @@ namespace
 	static void  ScriptString_Test6 (const ScriptEnginePtr &se)
 	{
 		const char	script[] = R"#(
-			string main () {
+			string ASmain () {
 				string str = "a" + 0 + "b" + 1 + "c" + 2;
 				return str;
 			}
 		)#";
 
 		String	res;
-		TEST( Run< String() >( se, script, "main", OUT res ));
+		TEST( Run< String() >( se, script, "ASmain", OUT res ));
 		TEST( res == "a0b1c2" );
 	}
 
 	static void  ScriptString_Test7 (const ScriptEnginePtr &se)
 	{
 		const char	script[] = R"#(
-			string main () {
+			string ASmain () {
 				LogDebug( prop );
 				return prop;
 			}
@@ -117,7 +117,7 @@ namespace
 		se->AddConstProperty( prop, "prop" );
 
 		String	res;
-		TEST( Run< String() >( se, script, "main", OUT res ));
+		TEST( Run< String() >( se, script, "ASmain", OUT res ));
 		TEST( res == prop );
 	}
 }

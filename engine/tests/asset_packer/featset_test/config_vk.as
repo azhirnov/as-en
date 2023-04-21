@@ -1,5 +1,5 @@
 
-void main ()
+void ASmain ()
 {
 	GlobalConfig	cfg;
 	cfg.SetTarget( ECompilationTarget::Vulkan );

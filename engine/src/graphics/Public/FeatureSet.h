@@ -63,6 +63,7 @@ namespace AE::Graphics
 		using SubgroupOperationBits	= EnumBitSet< ESubgroupOperation >;
 		using PixelFormatSet_t		= EnumBitSet< EPixelFormat >;
 		using VertexFormatSet_t		= EnumBitSet< EVertexType >;
+		using SurfaceFormatSet_t	= EnumBitSet< ESurfaceFormat >;
 		
 		enum class SampleCountBits : uint { Unknown = 0 };
 
@@ -103,7 +104,7 @@ namespace AE::Graphics
 		};
 
 
-	#define AE_FEATURE_SET_FIELDS( _visitor_ ) \
+	#define AE_FEATURE_SET_FIELDS( _visitor_ )\
 	/*---- render states ----*/\
 		_visitor_( EFeature,	alphaToOne,						: 2 )\
 		_visitor_( EFeature,	depthBiasClamp,					: 2 )\
@@ -196,6 +197,7 @@ namespace AE::Graphics
 		_visitor_( EFeature,	shaderDrawParameters,			: 2 )	/* BaseVertexID, BaseInstanceID, DrawIndexID */\
 		_visitor_( EFeature,	runtimeDescriptorArray,			: 2 )	/* SPIRV: RuntimeDescriptorArrayEXT */\
 		_visitor_( EFeature,	shaderSMBuiltinsNV,				: 2 )	/* GL_NV_shader_sm_builtins */\
+		_visitor_( EFeature,	shaderCoreBuiltinsARM,			: 2 )	/* GL_ARM_shader_core_builtins */\
 		_visitor_( EFeature,	shaderSampleRateInterpolationFunctions,	: 2 )\
 		/* array dynamic indexing */\
 		_visitor_( EFeature,	shaderSampledImageArrayDynamicIndexing,			: 2 )\
@@ -326,8 +328,10 @@ namespace AE::Graphics
 		_visitor_( EFeature,	computeShader,		: 2 )\
 		_visitor_( EFeature,	tileShader,			: 2 )	/* GL_HUAWEI_subpass_shading	*/\
 		/* vertex buffer */\
-		_visitor_( uint,		minVertexAttributes,	)	/* maxVertexInputAttributes */\
-		_visitor_( uint,		minVertexBuffers,		)	/* maxVertexInputBindings */\
+		_visitor_( EFeature,	vertexDivisor,		: 2 )	/* \ 									*/\
+		_visitor_( uint,		minVertexAttribDivisor,	)	/*-|-- VK_EXT_vertex_attribute_divisor	*/\
+		_visitor_( uint,		minVertexAttributes,	)	/* maxVertexInputAttributes				*/\
+		_visitor_( uint,		minVertexBuffers,		)	/* maxVertexInputBindings				*/\
 		\
 		\
 	/*---- buffer ----*/\
@@ -353,18 +357,21 @@ namespace AE::Graphics
 		_visitor_( PixelFormatSet_t,	attachmentFormats,				)	/* VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT |	VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT */\
 		_visitor_( PixelFormatSet_t,	linearSampledFormats,			)	/* VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT		*/\
 		/*_visitor_( PixelFormatSet_t,	minmaxFilterFormats,			)	/ * VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_MINMAX_BIT		*/\
-		_visitor_( PixelFormatSet_t,	swapchainFormats,				)\
+		_visitor_( SurfaceFormatSet_t,	surfaceFormats,					)	/* */\
 		/*_visitor_( PixelFormatSet_t,	sparseImageFormats,				)	/ * */\
 		/*_visitor_( PixelFormatSet_t,	multisampleImageFormats,		)	/ * */\
+		_visitor_( PixelFormatSet_t,	compressedAttachmentFormats,	)	/* */\
+		_visitor_( PixelFormatSet_t,	lossyCompressedAttachmentFormats,)	/* */\
 		\
 		\
 	/*---- sampler ----*/\
 		_visitor_( EFeature,	samplerAnisotropy,					: 2 )\
-		_visitor_( EFeature,	samplerMirrorClampToEdge,			: 2 )\
+		_visitor_( EFeature,	samplerMirrorClampToEdge,			: 2 )	/* VK_KHR_sampler_mirror_clamp_to_edge */\
 		_visitor_( EFeature,	samplerFilterMinmax,				: 2 )\
 		_visitor_( EFeature,	filterMinmaxImageComponentMapping,	: 2 )\
 		/*_visitor_( EFeature,	filterMinmaxSingleComponentFormats,	: 2 )*/\
 		_visitor_( EFeature,	samplerMipLodBias,					: 2 )\
+		_visitor_( EFeature,	samplerYcbcrConversion,				: 2 )	/* VK_KHR_sampler_ycbcr_conversion */\
 		_visitor_( float,		minSamplerAnisotropy,					)	/* maxSamplerAnisotropy */\
 		_visitor_( float,		minSamplerLodBias,						)	/* maxSamplerLodBias	*/\
 		/*_visitor_( SampleCountBits,	sampledImageColorSampleCounts,	)	/ * */\
@@ -447,11 +454,14 @@ namespace AE::Graphics
 
 		ND_ HashVal  CalcHash ()													C_NE___;
 
+		ND_ static HashVal64  GetHashOfFieldNames ()								__NE___;
+
+
 	private:
 		template <bool Mutable>
 		bool  _Validate ()															__NE___;
 	};
-	STATIC_ASSERT( sizeof(FeatureSet) == 680 );
+	STATIC_ASSERT( sizeof(FeatureSet) == 712 );
 
 } // AE::Graphics
 

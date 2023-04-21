@@ -5,6 +5,7 @@
 #include "profiler/Impl/GraphicsProfiler.h"
 #include "profiler/Impl/MemoryProfiler.h"
 #include "profiler/Impl/TaskProfiler.h"
+#include "profiler/Impl/HwpcProfiler.h"
 
 namespace AE::Profiler
 {
@@ -22,15 +23,15 @@ namespace AE::Profiler
 
 	// variables
 	private:
-	#ifdef AE_DBG_OR_DEV_OR_PROF
+	#ifndef AE_CFG_RELEASE
 		Atomic<bool>			_enabled	{true};
+		secondsf				_updateRate	{1.f};
+		TimePoint_t				_lastUpdate;
 
 		RC<TaskProfiler>		_task;
 		RC<GraphicsProfiler>	_graphics;
 		RC<MemoryProfiler>		_memory;
-
-		seconds					_updateRate	{1};
-		TimePoint_t				_lastUpdate;
+		Unique<HwpcProfiler>	_hwpcProf;
 	#endif
 
 

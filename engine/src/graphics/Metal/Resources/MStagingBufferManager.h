@@ -12,7 +12,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "base/Containers/RingBuffer.h"
 # include "graphics/Public/CommandBufferTypes.h"
 # include "graphics/Public/ResourceManager.h"

@@ -16,7 +16,24 @@
 # ifdef AE_COMPILER_MSVC
 #	pragma warning (push)
 #	pragma warning (disable: 4668)
+#	pragma warning (disable: 4005)
 #	include <Windows.h>
+#	include <WinSock2.h>
+#	include <ws2tcpip.h>
+#	include <processthreadsapi.h>
+#	include <timeapi.h>
+#	include <ntsecapi.h>
+#	include <ntstatus.h>
+#	include <Sddl.h>
+#	include <windowsx.h> 
+#	include <hidusage.h>
+#	include <VersionHelpers.h>
+	// Windows 8.1
+#	include <ShellScalingAPI.h>		
+	// Windows Vista 
+#	include <LowLevelMonitorConfigurationAPI.h>
+#	include <PhysicalMonitorEnumerationAPI.h>
+//#	include <HighLevelMonitorConfigurationAPI.h>
 #	pragma warning (pop)
 # endif
 

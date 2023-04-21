@@ -32,6 +32,20 @@ namespace AE::Graphics
 	};
 
 
+	enum class EDeviceFlags : uint
+	{
+		Unknown					= 0,
+		SetStableClock			= 1 << 0,		// required for GPU profiling, don't use in release!
+
+		_Last,
+		All						= ((_Last - 1) << 1) - 1,
+		_NvApiMask				= SetStableClock,
+		_ArmProfMask			= 0,
+	};
+	AE_BIT_OPERATORS( EDeviceFlags );
+
+
+
 	//
 	// Graphics Create Info
 	//
@@ -40,7 +54,7 @@ namespace AE::Graphics
 		uint	maxFrames	= 2;
 
 		// staging buffers //
-		using SizePerQueue_t = StaticArray< Bytes32u, 3 >;
+		using SizePerQueue_t = StaticArray< Bytes32u, 5 >;
 		struct {
 			// static staging buffers allocated at engine start
 			SizePerQueue_t	writeStaticSize			= {};
@@ -75,14 +89,16 @@ namespace AE::Graphics
 			EQueueMask			requiredQueues	= EQueueMask::Graphics;
 			EQueueMask			optionalQueues	= Default;
 			EDeviceValidation	validation		= EDeviceValidation::Enabled;
+			EDeviceFlags		devFlags		= Default;
 		}	device;
 
 		struct
 		{
 			EPixelFormat		format			= EPixelFormat::RGBA8_UNorm;
 			EColorSpace			colorSpace		= EColorSpace::sRGB_nonlinear;
-			EImageUsage			usage			= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;	// TODO: keep ColorAttachment only
 			EPresentMode		presentMode		= EPresentMode::FIFO;
+			EImageUsage			usage			= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;	// TODO: keep ColorAttachment only
+			EImageOpt			options			= EImageOpt::BlitDst;
 		}	swapchain;
 	};
 

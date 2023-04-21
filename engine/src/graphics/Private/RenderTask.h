@@ -6,6 +6,9 @@
 #elif defined(AE_ENABLE_METAL)
 #	define CMDBATCH			MCommandBatch
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#	define CMDBATCH			RCommandBatch
+
 #else
 #	error not implemented
 #endif
@@ -74,6 +77,9 @@ namespace AE::Graphics
 		ND_ bool			IsFirstInBatch ()		C_NE___	{ return _exeIndex == 0; }
 		ND_ bool			IsLastInBatch ()		C_NE___;
 
+		template <typename CmdBufType>
+		void  Execute (CmdBufType &cmdbuf)			__Th___;
+
 
 	// IAsyncTask
 	public:
@@ -93,8 +99,6 @@ namespace AE::Graphics
 	protected:
 		void  OnFailure ()							__NE___	{ _CancelTaskInBatch();  IAsyncTask::OnFailure(); }
 
-		template <typename CmdBufType>
-		void  Execute (CmdBufType &cmdbuf)			__Th___;
 
 	private:
 		ND_ CMDBATCH::CmdBufPool&  _GetPool ()		__NE___	{ return _batch->_cmdPool; }
@@ -203,6 +207,9 @@ namespace AE::Graphics
 				_GetPool().Add( INOUT _exeIndex, cmdbuf.EndCommandBuffer() );			// throw
 			else
 				_GetPool().Add( INOUT _exeIndex, cmdbuf.EndCommandBuffer().Release() );	// throw
+			
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			_GetPool().Add( INOUT _exeIndex, cmdbuf.EndCommandBuffer() );				// throw
 
 		#else
 		#	error not implemented

@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	RC<ComputePipeline>		ppln = ComputePipeline( "compute_2" );
 	ppln.AddFeatureSet( "MinDesktop" );

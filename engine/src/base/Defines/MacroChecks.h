@@ -3,25 +3,38 @@
 #pragma once
 
 
-#if defined(AE_DEBUG)
-#  if defined(AE_DEVELOP) or defined(AE_PROFILE) or defined(AE_RELEASE)
+#if defined(AE_CFG_DEBUG)
+#  if defined(AE_CFG_DEVELOP) or defined(AE_CFG_PROFILE) or defined(AE_CFG_RELEASE)
 #	error only one configuration must be enabled!
 #  endif
-#elif defined(AE_DEVELOP)
-#  if defined(AE_DEBUG) or defined(AE_PROFILE) or defined(AE_RELEASE)
+#elif defined(AE_CFG_DEVELOP)
+#  if defined(AE_CFG_DEBUG) or defined(AE_CFG_PROFILE) or defined(AE_CFG_RELEASE)
 #	error only one configuration must be enabled!
 #  endif
-#elif defined(AE_PROFILE)
-#  if defined(AE_DEBUG) or defined(AE_DEVELOP) or defined(AE_RELEASE)
+#elif defined(AE_CFG_PROFILE)
+#  if defined(AE_CFG_DEBUG) or defined(AE_CFG_DEVELOP) or defined(AE_CFG_RELEASE)
 #	error only one configuration must be enabled!
 #  endif
-#elif defined(AE_RELEASE)
-#  if defined(AE_DEBUG) or defined(AE_DEVELOP) or defined(AE_PROFILE)
+#elif defined(AE_CFG_RELEASE)
+#  if defined(AE_CFG_DEBUG) or defined(AE_CFG_DEVELOP) or defined(AE_CFG_PROFILE)
 #	error only one configuration must be enabled!
 #  endif
 #else
 #	error unknown configuration!
 #endif
+
+
+#ifdef AE_DEBUG
+# ifdef AE_RELEASE
+#	error only one of AE_DEBUG and AE_RELEASE can be defined
+# endif
+#endif
+#ifdef AE_RELEASE
+# ifdef AE_DEBUG
+#	error only one of AE_DEBUG and AE_RELEASE can be defined
+# endif
+#endif
+
 
 #if defined(AE_PLATFORM_LINUX)		or \
 	defined(AE_PLATFORM_ANDROID)	or \
@@ -124,28 +137,28 @@
 // check definitions
 #ifdef AE_CPP_DETECT_MISMATCH
 
-#  ifdef AE_DEBUG
-#	pragma detect_mismatch( "AE_DEBUG", "1" )
+#  ifdef AE_CFG_DEBUG
+#	pragma detect_mismatch( "AE_CFG_DEBUG", "1" )
 #  else
-#	pragma detect_mismatch( "AE_DEBUG", "0" )
+#	pragma detect_mismatch( "AE_CFG_DEBUG", "0" )
 #  endif
 
-#  ifdef AE_DEVELOP
-#	pragma detect_mismatch( "AE_DEVELOP", "1" )
+#  ifdef AE_CFG_DEVELOP
+#	pragma detect_mismatch( "AE_CFG_DEVELOP", "1" )
 #  else
-#	pragma detect_mismatch( "AE_DEVELOP", "0" )
+#	pragma detect_mismatch( "AE_CFG_DEVELOP", "0" )
 #  endif
 
-#  ifdef AE_PROFILE
-#	pragma detect_mismatch( "AE_PROFILE", "1" )
+#  ifdef AE_CFG_PROFILE
+#	pragma detect_mismatch( "AE_CFG_PROFILE", "1" )
 #  else
-#	pragma detect_mismatch( "AE_PROFILE", "0" )
+#	pragma detect_mismatch( "AE_CFG_PROFILE", "0" )
 #  endif
 
-#  ifdef AE_RELEASE
-#	pragma detect_mismatch( "AE_RELEASE", "1" )
+#  ifdef AE_CFG_RELEASE
+#	pragma detect_mismatch( "AE_CFG_RELEASE", "1" )
 #  else
-#	pragma detect_mismatch( "AE_RELEASE", "0" )
+#	pragma detect_mismatch( "AE_CFG_RELEASE", "0" )
 #  endif
 
 #  if defined(AE_FAST_HASH) and AE_FAST_HASH
@@ -376,6 +389,12 @@
 #	pragma detect_mismatch( "AE_OPTIMAL_MEMORY_ORDER", "1" )
 #  else
 #	pragma detect_mismatch( "AE_OPTIMAL_MEMORY_ORDER", "0" )
+#  endif
+
+#  if AE_OPTIMIZE_IDS
+#	pragma detect_mismatch( "AE_OPTIMIZE_IDS", "1" )
+#  else
+#	pragma detect_mismatch( "AE_OPTIMIZE_IDS", "0" )
 #  endif
 
 #endif // AE_CPP_DETECT_MISMATCH

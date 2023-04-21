@@ -64,7 +64,7 @@ namespace AE::Math
 	{
 		STATIC_ASSERT( IsScalarOrEnum< T1 > );
 		STATIC_ASSERT( IsScalarOrEnum< T2 > );
-		ASSERT( rhs != T2(0) );
+		//ASSERT( rhs != T2(0) );
 
 		return ( ToNearUInt(lhs) & ToNearUInt(rhs) ) == ToNearUInt(rhs);
 	}
@@ -97,7 +97,7 @@ namespace AE::Math
 	{
 		STATIC_ASSERT( IsScalarOrEnum< T1 > );
 		STATIC_ASSERT( IsScalarOrEnum< T2 > );
-		ASSERT( rhs != T2(0) );
+		//ASSERT( rhs != T2(0) );
 
 		return !!( ToNearUInt(lhs) & ToNearUInt(rhs) );
 	}
@@ -161,7 +161,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T>, int >  IntLog2 (const T& x) __NE___
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, int >  IntLog2 (const T& x) __NE___
 	{
 		STATIC_ASSERT( IsInteger<T> or IsEnum<T> );
 
@@ -182,10 +182,10 @@ namespace AE::Math
 		
 	#elif defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG)
 		if constexpr( sizeof(x) == 8 )
-			return ulong(x) > 0 ? (sizeof(x)*8)-1 - __builtin_clzll( ulong(x) ) : INVALID_INDEX;
+			return ulong(x) > 0 ? 63 - __builtin_clzll( ulong(x) ) : INVALID_INDEX;
 		else
 		if constexpr( sizeof(x) <= 4 )
-			return uint(x) > 0 ? (sizeof(x)*8)-1 - __builtin_clz( uint(x) ) : INVALID_INDEX;
+			return uint(x) > 0 ? 31 - __builtin_clz( uint(x) ) : INVALID_INDEX;
 
 	#else
 		#error add BitScanReverse implementation
@@ -193,7 +193,7 @@ namespace AE::Math
 	}
 
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T>, int >  BitScanReverse (const T& x) __NE___
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, int >  BitScanReverse (const T& x) __NE___
 	{
 		return IntLog2( x );
 	}
@@ -206,7 +206,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T>, int >  CeilIntLog2 (const T& x) __NE___
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, int >  CeilIntLog2 (const T& x) __NE___
 	{
 		int	i = IntLog2( x );
 		return i >= 0 ? i + int(not IsPowerOfTwo( x )) : MinValue<int>();
@@ -269,7 +269,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T>, usize >  BitCount (const T& x) __NE___
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, usize >  BitCount (const T& x) __NE___
 	{
 		STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 		
@@ -306,7 +306,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T>, usize >  CountLZero (const T& x) __NE___
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, usize >  CountLZero (const T& x) __NE___
 	{
 		STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 		
@@ -325,7 +325,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T>, usize >  CountLOne (const T& x) __NE___
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, usize >  CountLOne (const T& x) __NE___
 	{
 		STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 		
@@ -551,14 +551,14 @@ namespace AE::Math
 =================================================
 */
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T>, T >  FloorPOT (const T x) __NE___
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  FloorPOT (const T x) __NE___
 	{
 		int	i = IntLog2( x );
 		return i >= 0 ? (T{1} << i) : T{0};
 	}
 
 	template <typename T>
-	ND_ forceinline EnableIf<IsScalar<T>, T >  CeilPOT (const T x) __NE___
+	ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  CeilPOT (const T x) __NE___
 	{
 		int	i = IntLog2( x );
 		return i >= 0 ? (T{1} << (i + int(not IsPowerOfTwo( x )))) : T{0};

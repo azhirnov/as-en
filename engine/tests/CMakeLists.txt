@@ -13,6 +13,7 @@ add_subdirectory( "graphics_hl" )
 add_subdirectory( "ecs-st" )
 add_subdirectory( "vfs" )
 add_subdirectory( "hulang" )
+add_subdirectory( "video" )
 	
 if (${AE_DESKTOP})
 	add_subdirectory( "atlas_tools" )

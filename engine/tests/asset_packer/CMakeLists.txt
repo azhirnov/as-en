@@ -54,7 +54,7 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 	set_property( TARGET "Tests.AssetPacker" PROPERTY FOLDER "Engine/Tests" )
 	target_link_libraries( "Tests.AssetPacker" PUBLIC "Base" "Vulkan-lib" )
 	
-	target_include_directories( "Tests.AssetPacker" PUBLIC "${DATA_FOLDER}/scripts" )
+	target_include_directories( "Tests.AssetPacker" PUBLIC "${DATA_FOLDER}/scripts" "${DATA_FOLDER}/shaders" )
 
 	if (TARGET "ShaderTrace")
 		target_link_libraries( "Tests.AssetPacker" PUBLIC "ShaderTrace" )

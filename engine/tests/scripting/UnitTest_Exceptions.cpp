@@ -10,14 +10,14 @@ namespace
 	{
 		static const int	 line		= __LINE__ + 1;
 		static const char	script[]	= R"#(
-			bool main () {
+			bool ASmain () {
 				LogFatal( "aaaa" );
 				return true;
 			}
 		)#";
 
 		bool	res = false;
-		TEST( Run< bool() >( se, script, "main", SourceLoc{__FILE__, line}, OUT res ) == false );
+		TEST( Run< bool() >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ) == false );
 		TEST( res == false );
 	}
 }

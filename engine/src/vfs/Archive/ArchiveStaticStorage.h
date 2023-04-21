@@ -4,7 +4,6 @@
 
 #include "base/CompileTime/StringToID.h"
 #include "base/Utils/FileSystem.h"
-#include "base/Utils/NamedID_HashCollisionCheck.h"
 #include "base/Memory/LinearAllocator.h"
 #include "base/Math/PackedInt.h"
 
@@ -36,6 +35,8 @@ namespace AE::VFS
 			Brotli		= 1 << 1,		// SequentialAccess
 			InMemory	= 1 << 2,		// RandomAccess | Buffered
 		//	Encrypted	= 1 << 3,		// SequentialAccess
+			_Last,
+			All			= ((_Last - 1) << 1) - 1,
 			Unknown		= Raw,
 
 			BrotliInMemory			= Brotli | InMemory,

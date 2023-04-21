@@ -7,4 +7,7 @@ if (TARGET "PipelineCompiler")
 
 	set_property( TARGET "Tests.PipelineCompiler" PROPERTY FOLDER "Engine/Tests" )
 	target_link_libraries( "Tests.PipelineCompiler" PUBLIC "PipelineCompiler" )
+	target_compile_definitions( "Tests.PipelineCompiler" PRIVATE "AE_TEST_PIPELINE_COMPILER" )
+
+	add_test( NAME "Tests.PipelineCompiler" COMMAND "Tests.PipelineCompiler" )
 endif()

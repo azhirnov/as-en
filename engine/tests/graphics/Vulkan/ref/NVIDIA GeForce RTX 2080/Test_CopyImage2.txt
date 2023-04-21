@@ -1,7 +1,7 @@
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'CopyImage2 |0| Copy image task'
 {
   BeginDebugLabel
     name:  'CopyImage2 |0| Copy image task'
@@ -108,7 +108,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'CopyImage2 |0| Copy image task'
@@ -184,12 +184,12 @@ name: 'command-buffer'
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
-      name:    'SrcImage'
+      name:    'DstImage'
       stage:   COPY ---> ALL_COMMANDS
       access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
     ImageBarrier:
-      name:    'DstImage'
+      name:    'SrcImage'
       stage:   COPY ---> ALL_COMMANDS
       access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL

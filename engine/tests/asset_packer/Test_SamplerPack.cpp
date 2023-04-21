@@ -73,8 +73,8 @@ namespace
 		Array<SamplerSerializer>	samplers;
 		TEST( des( OUT samplers ));
 		
-		TEST_Eq( samp_names.size(), 7 );
-		TEST_Eq( samplers.size(), 7 );
+		TEST_Eq( samp_names.size(), 8 );
+		TEST_Eq( samplers.size(), 8 );
 		
 		String	ser_str;
 

@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/DescriptorSet.h"
 # include "graphics/Vulkan/VCommon.h"
 # include "PipelineCompilerImpl.h"
@@ -19,12 +18,14 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		using Uniform_t		= PipelineCompiler::DescriptorSetLayoutDesc::Uniform;
-		using Uniforms_t	= Tuple< uint, UniformName::Optimized_t const*, Uniform_t const*, Bytes16u* >;
+		using UniformOffsets_t	= PipelineCompiler::DescriptorSetLayoutDesc::UniformOffsets_t;
+		using Uniform_t			= PipelineCompiler::DescriptorSetLayoutDesc::Uniform;
+		using Uniforms_t		= Tuple< uint, UniformName::Optimized_t const*, Uniform_t const*, Bytes16u* >;
 
 		struct CreateInfo
 		{
 			Uniforms_t				uniforms;
+			UniformOffsets_t		unOffsets;
 			ArrayView<VkSampler>	samplerStorage;
 			EDescSetUsage			usage;
 			StringView				dbgName;
@@ -49,7 +50,7 @@ namespace AE::Graphics
 		uint						_bindCount		= 0;
 		Bytes32u					_updateTmplSize;
 		
-		#include "graphics/Private/DescriptorSetLayoutDecl.h"
+		#include "graphics/Private/DescriptorSetLayout.h"
 
 
 	// methods
@@ -71,9 +72,7 @@ namespace AE::Graphics
 		ND_ bool  _AddUniform (const Uniform_t &un, ArrayView<VkSampler> samplerStorage, OUT Bytes16u* offset, INOUT DescriptorBinding &binding)C_NE___;
 			void  _AddBuffer (const Buffer &buf, INOUT VkDescriptorSetLayoutBinding &bind, INOUT DescriptorBinding &binding)					C_NE___;
 	};
-	
-	
-	#include "graphics/Private/DescriptorSetLayoutImpl.h"
+
 
 } // AE::Graphics
 

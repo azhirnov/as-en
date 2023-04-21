@@ -12,7 +12,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_IMGUI
-
 # include "base/Containers/FixedMap.h"
 # include "base/Containers/FixedArray.h"
 # include "profiler/ImGui/Common.h"
@@ -28,6 +27,8 @@ namespace AE::Profiler
 	{
 	// types
 	private:
+		enum class ThreadID : usize {};
+
 		struct Task
 		{
 			String		name;
@@ -46,7 +47,7 @@ namespace AE::Profiler
 		static constexpr uint	MaxThreads = 64;
 
 		using InfoIndex			= ubyte;
-		using UniqueThread_t	= FixedMap< usize, InfoIndex, MaxThreads >;		// thread ID to index
+		using UniqueThread_t	= FixedMap< ThreadID, InfoIndex, MaxThreads >;		// thread ID to index
 		using ThreadInfoMap_t	= FixedArray< ThreadInfo, MaxThreads >;
 		using TaskArray_t		= Array< Task >;
 		using IdxInTInfoArr_t	= FixedArray< InfoIndex, MaxThreads >;
@@ -73,24 +74,24 @@ namespace AE::Profiler
 
 	// variables
 	private:
+		mutable SharedMutex		_guard;
+
 		FrameHistory_t			_frames;
 
 		uint					_enableTreeView	: 1;
 		uint					_frameIdx		: 1;
 		uint					_maxThreads		: 30;
 
-		DRC_ONLY( DataRaceCheck	_drCheck;)
-
 		
 	// methods
 	public:
 		ImTaskRangeHorDiagram () : _enableTreeView{true}, _frameIdx{0}, _maxThreads{0} {}
 
-		void  Draw (INOUT RectF &region);
-		void  EnableTreeView (bool value)		{ _enableTreeView = value; }
+		void  Draw (INOUT RectF &region)		const;
+		void  EnableTreeView (bool value)		{ EXLOCK( _guard );  _enableTreeView = value; }
 
 		void  Begin ();
-		void  Add (StringView name, RGBA8u color, double begin, double end, usize threadId, StringView threadName);
+		void  Add (StringView name, RGBA8u color, double begin, double end, usize threadId, StringView threadCaption);
 		void  End ();
 	};
 

@@ -10,28 +10,22 @@ namespace AE::App
 
 	enum class EGestureType : ubyte
 	{
-		// continious
-		//   state: Begin -> Update -> End/Cancel
-		Hold,
-		Move,
-		LongPress_Move,		// long press to start gesture, then move - only for mouse or touch
-		Scale2D,			// 2 pointer gesture
-		Rotate2D,			// 2 pointer gesture
-
 		// single
 		//   state: End
-		Down,				// on key down
-		Click,				// on key up - may be slower
-		DoubleClick,
-		LongPress,
+		Down,				// params:							|	on key down
+		Click,				// params:							|	on key up - may be slower
+		DoubleClick,		// params:							|	on first click - update, on second click - end
+
+		// continious
+		//   state: Begin -> Update -> End/Cancel
+		Hold,				// params:							|	
+		LongPress,			// params: f1(0..1)					|
+		Move,				// params: f1/2/3/4					|
+		LongPress_Move,		// params: f3(pos, 0..1)			|	long press to start gesture, then move - only for mouse or touch
+		ScaleRotate2D,		// params: f2/4(delta, absolute)	|	2 pointer gesture
 
 		_Count,
 		Unknown	= 0xF,
-
-		// flags
-		//_Millimeters	= 1 << 8,
-		//_Pixels			= 1 << 9,
-		//_SNorm			= 1 << 10,
 	};
 
 

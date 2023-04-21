@@ -77,12 +77,15 @@ namespace AE::Graphics
 		ND_ Chunk const*	GetFirst ()							C_NE___	{ return _first; }
 		ND_ uint			GetMaxChars ()						C_NE___	{ return _maxChars; }
 
-		ND_ U8String		ToString ()							C______;
+		ND_ U8String		ToString ()							C_NE___;
 		
 
 		// ISerializable //
 		bool  Serialize (Serializing::Serializer &)				C_NE_OV;
 		bool  Deserialize (Serializing::Deserializer &)			__NE_OV;
+
+	private:
+		ND_ U8String		_ToString ()						C_Th___;
 	};
 	
 
@@ -110,21 +113,21 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		PrecalculatedFormattedText ()					__NE___	{}
+		PrecalculatedFormattedText ()							__NE___	{}
 
-		Self&  SetText (FormattedText value)			__Th___	{ _text = RVRef(value);	return *this; }
-		Self&  SetSpacing (float value)					__NE___	{ _spacing  = value;	return *this; }
-		Self&  SetWordWrap (bool value)					__NE___	{ _wordWrap = value;	return *this; }
+		Self&  SetText (FormattedText value)					__NE___	{ _text = RVRef(value);	return *this; }
+		Self&  SetSpacing (float value)							__NE___	{ _spacing  = value;	return *this; }
+		Self&  SetWordWrap (bool value)							__NE___	{ _wordWrap = value;	return *this; }
 
-		ND_ FormattedText const&	Text ()				C_NE___	{ return _text; }
-		ND_ float					Spacing ()			C_NE___	{ return _spacing; }
-		ND_ float2 const&			RegionSize ()		C_NE___	{ return _size; }
-		ND_ bool					IsWordWrap ()		C_NE___	{ return _wordWrap; }
-		ND_ ArrayView<float>		LineHeights ()		C_NE___	{ return _lineHeight; }
+		ND_ FormattedText const&	Text ()						C_NE___	{ return _text; }
+		ND_ float					Spacing ()					C_NE___	{ return _spacing; }
+		ND_ float2 const&			RegionSize ()				C_NE___	{ return _size; }
+		ND_ bool					IsWordWrap ()				C_NE___	{ return _wordWrap; }
+		ND_ ArrayView<float>		LineHeights ()				C_NE___	{ return _lineHeight; }
 			
 		// ISerializable //
-		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
-		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
+		bool  Serialize (Serializing::Serializer &)				C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &)			__NE_OV;
 	};
 
 

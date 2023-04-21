@@ -46,13 +46,12 @@ namespace AE::App
 
 
 	// SerializableInputActions //
-		bool  IsKey (ushort type)		const override	{ return _IsKey( EInputType(type) ); }
-		bool  IsCursor1D (ushort type)	const override	{ return _IsCursor1D( EInputType(type) ); }
-		bool  IsCursor2D (ushort type)	const override	{ return _IsCursor2D( EInputType(type) ); }
+		bool  IsKey (ushort type)			const override	{ return _IsKey( EInputType(type) ); }
+		bool  IsKeyOrTouch (ushort type)	const override	{ return _IsKeyOrTouch( EInputType(type) ); }
+		bool  IsCursor1D (ushort type)		const override	{ return _IsCursor1D( EInputType(type) ); }
+		bool  IsCursor2D (ushort type)		const override	{ return _IsCursor2D( EInputType(type) ); }
 		
-	  #if not AE_OPTIMIZE_IDS
-		String  ToString () const override;
-	  #endif
+		String  ToString ()					const override;
 
 	  #ifdef AE_ENABLE_SCRIPTING
 		bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc) override;
@@ -62,6 +61,7 @@ namespace AE::App
 
 	private:
 		ND_ static constexpr bool  _IsKey (EInputType type);
+		ND_ static constexpr bool  _IsKeyOrTouch (EInputType type);
 		ND_ static constexpr bool  _IsCursor1D (EInputType type);
 		ND_ static constexpr bool  _IsCursor2D (EInputType type);
 	};
@@ -72,10 +72,13 @@ namespace AE::App
 	_Is***
 =================================================
 */
-	forceinline constexpr bool  SerializableInputActionsOpenVR::_IsKey (EInputType)
-	{
+	forceinline constexpr bool  SerializableInputActionsOpenVR::_IsKey (EInputType) {
 		return false;	//((type >= EInputType::MouseBegin) & (type <= EInputType::MouseEnd)) |
 				//((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
+	}
+	
+	forceinline constexpr bool  SerializableInputActionsOpenVR::_IsKeyOrTouch (EInputType) {
+		return false;
 	}
 
 	forceinline constexpr bool  SerializableInputActionsOpenVR::_IsCursor1D (EInputType) {

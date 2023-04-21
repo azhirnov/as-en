@@ -1,5 +1,21 @@
 
-## 23.2.143
+## 23.04.xxx
+
+ - Graphics: NVPerf integration
+ - Math: FPVCamera, FlightCamera
+ - Profiling: ARM perf counters
+ - Profiling: perf counters visualization
+ - Platform: multitouch gesture recognition
+
+
+## 23.03.147
+
+ - Graphics: lock-free swapchain
+ - Graphics: ycbcr sampler, multiplanar image
+ - Video: ffmpeg encoder / decoder
+
+
+## 23.02.143
 
  - Graphics: improved RenderGraph
  - Graphics/Vulkan/Debug: clear image in RP when used loadOp = don't care and in barrier when used undefined layout.

@@ -28,3 +28,5 @@
 #undef UpdateResource
 #undef _fstat
 #undef _stat
+#undef near
+#undef far

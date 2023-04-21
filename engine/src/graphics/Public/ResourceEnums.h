@@ -117,8 +117,8 @@ namespace AE::Graphics
 	
 	enum class EImageUsage : uint
 	{
-		TransferSrc					= 1 << 0,		// for all copy operations
-		TransferDst					= 1 << 1,		// for all copy operations
+		TransferSrc					= 1 << 0,		// for all copy operations (copy/blit)
+		TransferDst					= 1 << 1,		// for all copy operations (copy/blit/clear)
 		Sampled						= 1 << 2,		// access in shader as texture
 		Storage						= 1 << 3,		// access in shader as image
 		ColorAttachment				= 1 << 4,		// color or resolve attachment
@@ -138,26 +138,30 @@ namespace AE::Graphics
 
 	enum class EImageOpt : uint
 	{
-		CubeCompatible				= 1 << 0,		// allows to create CubeMap and CubeMapArray from 2D Array
-		MutableFormat				= 1 << 1,		// allows to change image format
-		Array2DCompatible			= 1 << 2,		// allows to create 2D Array view from 3D image
-		BlockTexelViewCompatible	= 1 << 3,		// allows to create view with uncompressed format for compressed image
+		BlitSrc						= 1 << 0,
+		BlitDst						= 1 << 1,
+		CubeCompatible				= 1 << 2,		// allows to create CubeMap and CubeMapArray from 2D Array
+		MutableFormat				= 1 << 3,		// allows to change image format
+		Array2DCompatible			= 1 << 4,		// allows to create 2D Array view from 3D image
+		BlockTexelViewCompatible	= 1 << 5,		// allows to create view with uncompressed format for compressed image
 
-		SparseResidency				= 1 << 4,		// allows unbound regions
-		SparseAliased				= 1 << 5,		// allows bind memory block to multiple regions or different images
+		SparseResidency				= 1 << 6,		// allows unbound regions
+		SparseAliased				= 1 << 7,		// allows bind memory block to multiple regions or different images
 
-		Alias						= 1 << 6,		// two images can share same memory object
-		SampleLocationsCompatible	= 1 << 7,		// only for depth/stencil
-		Subsampled					= 1 << 8,		// intermediate attachments to use with fragment density map
+		Alias						= 1 << 8,		// two images can share same memory object
+		SampleLocationsCompatible	= 1 << 9,		// only for depth/stencil
+		Subsampled					= 1 << 10,		// intermediate attachments to use with fragment density map
 		
-		StorageAtomic				= 1 << 9,		// atomic operations on image
-		ColorAttachmentBlend		= 1 << 10,		// blend operations on color attachment
-		SampledLinear				= 1 << 11,		// linear filtering for sampled image
-		SampledMinMax				= 1 << 12,		// minmax filtering for sampled image
-		VertexPplnStore				= 1 << 13,		// storage image store and atomic operations in vertex, geometry, tessellation shaders
-		FragmentPplnStore			= 1 << 14,		// storage image store and atomic operations in fragment shader
+		StorageAtomic				= 1 << 11,		// atomic operations on image
+		ColorAttachmentBlend		= 1 << 12,		// blend operations on color attachment
+		SampledLinear				= 1 << 13,		// linear filtering for sampled image
+		SampledMinMax				= 1 << 14,		// minmax filtering for sampled image
+		VertexPplnStore				= 1 << 15,		// storage image store and atomic operations in vertex, geometry, tessellation shaders
+		FragmentPplnStore			= 1 << 16,		// storage image store and atomic operations in fragment shader
 
-		LossyRTCompression			= 1 << 15,		// Metal only, allow to use hardware lossy compression for the color attachments
+		LossyRTCompression			= 1 << 17,		// Metal only, allow to use hardware lossy compression for the color attachments
+
+		//DepthComparison	// TODO
 
 		_Last,
 		SparseResidencyAliased		= SparseResidency | SparseAliased,
@@ -174,6 +178,11 @@ namespace AE::Graphics
 		Depth			= 1 << 1,
 		Stencil			= 1 << 2,
 		Metadata		= 1 << 3,
+
+		Plane_0			= 1 << 4,
+		Plane_1			= 1 << 5,
+		Plane_2			= 1 << 6,
+
 		_Last,
 
 		DepthStencil	= Depth | Stencil,
@@ -207,9 +216,9 @@ namespace AE::Graphics
 	enum class EColorSpace : ubyte
 	{
 		sRGB_nonlinear,
-		Display_P3_nonlinear,
-		Extended_sRGB_linear,
-		Display_P3_linear,
+		Display_P3_nonlinear,		//
+		Extended_sRGB_linear,		// scRGB, backward compatible with sRGB, {1,1,1} = 80 nit, {125.0} = 10000 nit.
+		Display_P3_linear,			// sRGB curve with extended range
 		DCI_P3_nonlinear,
 		BT709_linear,
 		BT709_nonlinear,
@@ -219,8 +228,8 @@ namespace AE::Graphics
 		HDR10_HLG,
 		AdobeRGB_linear,
 		AdobeRGB_nonlinear,
-		PassThrough,
-		Extended_sRGB_nonlinear,
+		PassThrough,				// color components are used 'as is'
+		Extended_sRGB_nonlinear,	// scRGB, backward compatible with sRGB, {1,1,1} = 80 nit, {7.83} = 10000 nit.
 
 		_Count,
 		Unknown		= 0xFF,
@@ -243,7 +252,7 @@ namespace AE::Graphics
 
 	enum class EPixelFormat : ubyte
 	{
-	#define AE_PIXELFORMAT_LIST( _visitor_ ) \
+	#define AE_PIXELFORMAT_LIST( _visitor_ )\
 		\
 		/* signed normalized */\
 		_visitor_( RGBA16_SNorm		)\
@@ -402,7 +411,60 @@ namespace AE::Graphics
 		_visitor_( ASTC_RGBA16F_10x8	)\
 		_visitor_( ASTC_RGBA16F_10x10	)\
 		_visitor_( ASTC_RGBA16F_12x10	)\
-		_visitor_( ASTC_RGBA16F_12x12	)
+		_visitor_( ASTC_RGBA16F_12x12	)\
+		\
+		/* requires samplerYcbcrConversion */\
+		/*		8bpc */\
+		_visitor_( G8B8G8R8_422_UNorm )					/* 4:2:2	1 plane		4*8bit		8bpc */\
+		_visitor_( B8G8R8G8_422_UNorm )					/* 4:2:2	1 plane		4*8bit		8bpc */\
+		\
+		_visitor_( G8_B8R8_420_UNorm )					/* 4:2:0	2 planes	3*8bit		8bpc */\
+		_visitor_( G8_B8R8_422_UNorm )					/* 4:2:2	2 planes	3*8bit		8bpc */\
+		\
+		_visitor_( G8_B8_R8_420_UNorm )					/* 4:2:0	3 planes	3*8bit		8bpc */\
+		_visitor_( G8_B8_R8_422_UNorm )					/* 4:2:2	3 planes	3*8bit		8bpc */\
+		_visitor_( G8_B8_R8_444_UNorm )					/* 4:4:4	3 planes	3*8bit		8bpc */\
+		\
+		/*		10bpc */\
+		_visitor_( B10x6G10x6R10x6G10x6_422_UNorm )		/* 4:2:2	1 plane		4*16bit		10bpc */\
+		_visitor_( G10x6B10x6G10x6R10x6_422_UNorm )		/* 4:2:2	1 plane		4*16bit		10bpc */\
+		\
+		_visitor_( G10x6_B10x6R10x6_420_UNorm )			/* 4:2:0	2 planes	3*16bit		10bpc */\
+		_visitor_( G10x6_B10x6R10x6_422_UNorm )			/* 4:2:2	2 planes	3*16bit		10bpc */\
+		\
+		_visitor_( G10x6_B10x6_R10x6_420_UNorm )		/* 4:2:0	3 planes	3*16bit		10bpc */\
+		_visitor_( G10x6_B10x6_R10x6_422_UNorm )		/* 4:2:2	3 planes	3*16bit		10bpc */\
+		_visitor_( G10x6_B10x6_R10x6_444_UNorm )		/* 4:4:4	3 planes	3*16bit		10bpc */\
+		\
+		_visitor_( R10x6G10x6B10x6A10x6_UNorm )			/* RGBA					4*16bit		10bpc */\
+		_visitor_( R10x6G10x6_UNorm )					/* RG					2*16bit		10bpc */\
+		_visitor_( R10x6_UNorm )						/* R					1*16bit		10bpc */\
+		\
+		/*		12bpc */\
+		_visitor_( B12x4G12x4R12x4G12x4_422_UNorm )		/* 4:2:2	1 plane		4*16bit		12bpc */\
+		_visitor_( G12x4B12x4G12x4R12x4_422_UNorm )		/* 4:2:2	1 plane		4*16bit		12bpc */\
+		\
+		_visitor_( G12x4_B12x4R12x4_420_UNorm )			/* 4:2:0	2 planes	3*16bit		12bpc */\
+		_visitor_( G12x4_B12x4R12x4_422_UNorm )			/* 4:2:2	2 planes	3*16bit		12bpc */\
+		\
+		_visitor_( G12x4_B12x4_R12x4_420_UNorm )		/* 4:2:0	3 planes	3*16bit		12bpc */\
+		_visitor_( G12x4_B12x4_R12x4_422_UNorm )		/* 4:2:2	3 planes	3*16bit		12bpc */\
+		_visitor_( G12x4_B12x4_R12x4_444_UNorm )		/* 4:4:4	3 planes	3*16bit		12bpc */\
+		\
+		_visitor_( R12x4G12x4B12x4A12x4_UNorm )			/* RGBA					4*16bit		12bpc */\
+		_visitor_( R12x4G12x4_UNorm )					/* RG					2*16bit		12bpc */\
+		_visitor_( R12x4_UNorm )						/* R					1*16bit		12bpc */\
+		\
+		/*		16bpc */\
+		_visitor_( B16G16R16G16_422_UNorm )				/* 4:2:2	1 plane		4*16bit		16bpc */\
+		_visitor_( G16B16G16R16_422_UNorm )				/* 4:2:2	1 plane		4*16bit		16bpc */\
+		\
+		_visitor_( G16_B16R16_420_UNorm )				/* 4:2:0	2 planes	3*16bit		16bpc */\
+		_visitor_( G16_B16R16_422_UNorm )				/* 4:2:2	2 planes	3*16bit		16bpc */\
+		\
+		_visitor_( G16_B16_R16_420_UNorm )				/* 4:2:0	3 planes	3*16bit		16bpc */\
+		_visitor_( G16_B16_R16_422_UNorm )				/* 4:2:2	3 planes	3*16bit		16bpc */\
+		_visitor_( G16_B16_R16_444_UNorm )				/* 4:4:4	3 planes	3*16bit		16bpc */\
 
 		#define AE_PIXELFORMAT_VISIT( _name_ )	_name_,
 		AE_PIXELFORMAT_LIST( AE_PIXELFORMAT_VISIT )
@@ -411,10 +473,11 @@ namespace AE::Graphics
 		_Count,
 		
 		// special value which will be replaced by current swapchain color format.
-		SwapchainColor = 0xFE,
+		SwapchainColor	= 0xFE,
 
 		Unknown			= 0xFF,
 	};
+	STATIC_ASSERT( uint(EPixelFormat::_Count) < uint(EPixelFormat::SwapchainColor) );
 	
 
 	enum class EShaderIO : ubyte

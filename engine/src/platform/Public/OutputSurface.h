@@ -30,6 +30,7 @@ namespace AE::App
 	using Graphics::EPresentMode;
 	using Graphics::EColorSpace;
 	using Graphics::CommandBatchPtr;
+	using Graphics::SurfaceFormat;
 
 
 
@@ -82,8 +83,12 @@ namespace AE::App
 			EColorSpace				colorSpace		= Default;
 
 			Ptr<const IProjection>	projection;
-
-			ND_ uint2  RegionSize ()	C_NE___	{ return uint2(region.Size()); }
+			
+			ND_ uint2	RegionSize ()			C_NE___	{ return RegionSizePxu(); }
+			ND_ uint2	RegionSizePxu ()		C_NE___	{ return uint2(region.Size()); }
+			ND_ int2	RegionSizePxi ()		C_NE___	{ return region.Size(); }
+			ND_ float2	RegionSizePxf ()		C_NE___	{ return float2(region.Size()); }
+			ND_ float2	RegionSizeMm ()			C_NE___	{ return float2(region.Size()) * pixToMm; }
 		};
 		using RenderTargets_t = FixedArray< RenderTarget, MaxOutputTargets >;
 
@@ -117,19 +122,7 @@ namespace AE::App
 			Attachments_t	attachments;
 		};
 
-
-		//
-		// Color format & color space
-		//
-		struct ColorFormat
-		{
-			EPixelFormat	format	= Default;
-			EColorSpace		space	= Default;
-
-			ND_ bool  operator == (const ColorFormat &rhs)	C_NE___	{ return format == rhs.format and space == rhs.space; }
-		};
-
-		using ColorFormats_t	= FixedArray< ColorFormat, 16 >;
+		using SurfaceFormats_t	= FixedArray< SurfaceFormat, 16 >;
 		using PresentModes_t	= FixedArray< EPresentMode, 8 >;
 		using TargetSizes_t		= FixedArray< uint2, MaxOutputTargets >;
 
@@ -141,11 +134,11 @@ namespace AE::App
 		{
 			// current states
 		//	TargetSizes_t		targetSizes;
-			ColorFormat			format;
+			SurfaceFormat		format;
 			EPresentMode		presentMode		= Default;
 
 			// available modes
-		//	ColorFormats_t		colorFormats;
+		//	SurfaceFormats_t	surfaceFormats;
 		//	PresentModes_t		presentModes;
 		};
 
@@ -211,7 +204,7 @@ namespace AE::App
 		// Returns all supprted color formats and color spaces.
 		//   Thread safe: yes
 		//
-		ND_ virtual ColorFormats_t  GetColorFormats ()																			C_NE___ = 0;
+		ND_ virtual SurfaceFormats_t  GetSurfaceFormats ()																		C_NE___ = 0;
 
 
 		// Returns all supported present modes.
@@ -224,6 +217,12 @@ namespace AE::App
 		//   Thread safe: yes
 		//
 		ND_ virtual SurfaceInfo  GetSurfaceInfo ()																				C_NE___ = 0;
+		
+
+		// Set color format, color space and present mode.
+		//   Thread safe: yes
+		//
+		ND_ virtual bool  SetSurfaceMode (const SurfaceInfo &)																	__NE___ = 0;
 	};
 
 

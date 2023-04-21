@@ -172,32 +172,35 @@ namespace AE::PipelineCompiler
 		using BindingIndex_t		= decltype(Binding::vkIndex);
 		using ArraySize_t			= uint;
 		using DynamicOffsetIdx_t	= ushort;
+		using SamplerIdx_t			= ushort;	// in 'samplerStorage'
 
 		static constexpr BindingIndex_t	InvalidIdx		= UMax;
 		static constexpr BindingIndex_t	UnassignedIdx	= ~0u - 1;	// for immutable sampler in Metal
 		
 		struct Buffer
 		{
-			EResourceState		state;
-			DynamicOffsetIdx_t	dynamicOffsetIndex;
+			EResourceState		state					= Default;
+			DynamicOffsetIdx_t	dynamicOffsetIndex		= UMax;
 			Bytes32u			staticSize;
 			Bytes32u			arrayStride;
-			//ShaderStructName	typeName;	// TODO: keep?
+			ShaderStructName	typeName;
 
 			ND_ bool  HasDynamicOffset ()	const	{ return dynamicOffsetIndex != UMax; }
 		};
 
 		struct TexelBuffer
 		{
-			EResourceState		state;
-			EImageType			type;
+			EResourceState		state					= Default;
+			EImageType			type					= Default;
 		};
 
 		struct Image
 		{
 			EResourceState		state;
 			EImageType			type;
-			EPixelFormat		format;		// if explicitly defined
+			EPixelFormat		format;								// if explicitly defined
+			ubyte				subpassInputIdx			= UMax;		// only for input attachment
+			SamplerIdx_t		samplerOffsetInStorage	= UMax;
 		};
 
 		struct Sampler
@@ -205,18 +208,12 @@ namespace AE::PipelineCompiler
 
 		struct ImmutableSampler : Sampler
 		{
-			uint				offsetInStorage;		// in 'samplerStorage'
-		};
-
-		struct ImageWithSampler
-		{
-			Image				image;
-			uint				samplerOffsetInStorage;	// in 'samplerStorage'
+			SamplerIdx_t		offsetInStorage			= UMax;
 		};
 
 		struct SubpassInput : Image
 		{
-			ubyte				index;
+			ubyte				index					= UMax;
 		};
 
 		struct RayTracingScene
@@ -225,29 +222,26 @@ namespace AE::PipelineCompiler
 		struct Uniform
 		{
 			Binding				binding;
-			ArraySize_t			arraySize	= UMax;			// 0 for runtime sized array
-			EDescriptorType		type		= Default;
-			EShaderStages		stages		= Default;
+			ArraySize_t			arraySize				= UMax;		// 0 for runtime sized array
+			EDescriptorType		type					= Default;
+			EShaderStages		stages					= Default;
 			union {
 				Buffer				buffer;
 				TexelBuffer			texelBuffer;
-				Image				storageImage;
-				Image				sampledImage;
-				Image				combinedImage;
-				SubpassInput		subpassInput;
-				ImageWithSampler	combinedImageWithSampler;
+				Image				image;
 				Sampler				sampler;
 				ImmutableSampler	immutableSampler;
 				RayTracingScene		rtScene;
-				uint				_data [3] = {};
 			};
 
 			Uniform () {}
 		};
-		STATIC_ASSERT( sizeof(Uniform) == 28 );
 
 		using Uniforms_t	= Array<Pair< UniformName, Uniform >>;
 		using Samplers_t	= Array< SamplerName >;
+		
+		// uniforms are sorted by types, this array map desc type to uniform offset to speedup search
+		using UniformOffsets_t = StaticArray< ushort, 6 >;
 
 	public:
 		static constexpr usize	MaxUniforms	= 1 << 10;
@@ -256,6 +250,7 @@ namespace AE::PipelineCompiler
 
 	// variables
 	public:
+		FSNameArr_t		features;
 		Uniforms_t		uniforms;
 		Samplers_t		samplerStorage;
 		DSLayoutName	name;
@@ -1157,11 +1152,11 @@ namespace AE::PipelineCompiler
 		ND_ RenderStateUID		AddRenderState (SerializableRenderState);
 		ND_ DepthStencilStateUID AddDepthStencilState (SerializableDepthStencilState);
 
-		ND_ PipelineTemplUID	AddPipeline (const PipelineTmplName &name, SerializableGraphicsPipeline);
-		ND_ PipelineTemplUID	AddPipeline (const PipelineTmplName &name, SerializableMeshPipeline);
-		ND_ PipelineTemplUID	AddPipeline (const PipelineTmplName &name, SerializableComputePipeline);
-		ND_ PipelineTemplUID	AddPipeline (const PipelineTmplName &name, SerializableTilePipeline);
-		ND_ PipelineTemplUID	AddPipeline (const PipelineTmplName &name, SerializableRayTracingPipeline);
+		ND_ Pair<PipelineTemplUID, bool>	AddPipeline (const PipelineTmplName &name, SerializableGraphicsPipeline);
+		ND_ Pair<PipelineTemplUID, bool>	AddPipeline (const PipelineTmplName &name, SerializableMeshPipeline);
+		ND_ Pair<PipelineTemplUID, bool>	AddPipeline (const PipelineTmplName &name, SerializableComputePipeline);
+		ND_ Pair<PipelineTemplUID, bool>	AddPipeline (const PipelineTmplName &name, SerializableTilePipeline);
+		ND_ Pair<PipelineTemplUID, bool>	AddPipeline (const PipelineTmplName &name, SerializableRayTracingPipeline);
 
 		ND_ PipelineSpecUID		AddPipeline (const PipelineName &name, SerializableGraphicsPipelineSpec);
 		ND_ PipelineSpecUID		AddPipeline (const PipelineName &name, SerializableMeshPipelineSpec);
@@ -1225,7 +1220,7 @@ namespace AE::PipelineCompiler
 		ND_ ShaderUID  _AddMslShader (MetalBytecode_t msl, const SpecConstants_t &spec, ShaderUID mask, ArrType &arr, MapType &mapType);
 
 		template <typename PplnType, typename PplnArr, typename PplnMap>
-		ND_ PipelineTemplUID  _AddPipelineTmpl (const PipelineTmplName &name, PplnType, PplnArr&, PplnMap&, PipelineTemplUID uidType);
+		ND_ Pair<PipelineTemplUID, bool>  _AddPipelineTmpl (const PipelineTmplName &name, PplnType, PplnArr&, PplnMap&, PipelineTemplUID uidType);
 		
 		template <typename PplnType, typename PplnArr, typename PplnMap>
 		ND_ PipelineSpecUID  _AddPipelineSpec (const PipelineName &name, PplnType, PplnArr&, PplnMap&, PipelineSpecUID uidType);

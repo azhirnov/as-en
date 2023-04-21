@@ -62,7 +62,7 @@ namespace
 		using FnCallMap_t			= HashMap< FnCallLocation, VariableInfo, FnCallLocationHash >;
 		using StructFieldMap_t		= HashMap< FieldInfo, VariableInfo, FieldInfoHash >;
 		using CallStack_t			= Array< StackFrame >;
-		using FileMap_t				= HashMap< String, uint >;
+		using FileMap_t				= ShaderTrace::FileMap_t;
 
 
 	public:
@@ -649,7 +649,7 @@ void  DebugInfo::_GetVariableID (TIntermNode* node, OUT VariableID &id, OUT uint
 */
 uint  DebugInfo::_GetSourceId (const TSourceLoc &loc) const
 {
-	if ( loc.name )
+	if ( loc.name != null )
 	{
 		auto	iter = _includedFilesMap.find( loc.name->c_str() );
 		CHECK( iter != _includedFilesMap.end() );
@@ -3165,6 +3165,7 @@ ND_ static TIntermAggregate*  CreateAppendToTrace (TIntermTyped* exprNode, uint 
 		case TBasicType::EbtAccStruct :
 		case TBasicType::EbtRayQuery :
 		case TBasicType::EbtSpirvType :
+		case TBasicType::EbtHitObjectNV :
 		default :						RETURN_ERR( "not supported" );
 	}
 	END_ENUM_CHECKS();

@@ -38,24 +38,25 @@ namespace AE::App
 
 	// methods
 	public:
-		VRSurface ()										__NE___;
-		~VRSurface ()										__NE___;
+		VRSurface ()											__NE___;
+		~VRSurface ()											__NE___;
 
-		ND_ bool  Create (const VRImageDesc &desc)			__NE___;
-			void  Destroy ()								__NE___;
+		ND_ bool  Create (const VRImageDesc &desc)				__NE___;
+			void  Destroy ()									__NE___;
 
 
 	// IOutputSurface //
-		bool			IsInitialized ()					C_NE_OV;
-		RenderPassInfo	GetRenderPassInfo ()				C_NE_OV;
+		bool			IsInitialized ()						C_NE_OV;
+		RenderPassInfo	GetRenderPassInfo ()					C_NE_OV;
+		bool			SetSurfaceMode (const SurfaceInfo &)	__NE_OV	{ return false; }
 
-		bool			GetTargets (OUT RenderTargets_t &)	C_NE_OV;
+		bool			GetTargets (OUT RenderTargets_t &)		C_NE_OV;
 
-		AllImages_t		GetAllImages ()						C_NE_OV;
-		TargetSizes_t	GetTargetSizes ()					C_NE_OV	{ return Default; }
-		ColorFormats_t  GetColorFormats ()					C_NE_OV	{ return Default; }
-		PresentModes_t  GetPresentModes ()					C_NE_OV	{ return Default; }
-		SurfaceInfo		GetSurfaceInfo ()					C_NE_OV	{ return Default; }
+		AllImages_t			GetAllImages ()						C_NE_OV;
+		TargetSizes_t		GetTargetSizes ()					C_NE_OV	{ return Default; }
+		SurfaceFormats_t	GetSurfaceFormats ()				C_NE_OV	{ return Default; }
+		PresentModes_t		GetPresentModes ()					C_NE_OV	{ return Default; }
+		SurfaceInfo			GetSurfaceInfo ()					C_NE_OV	{ return Default; }
 	};
 
 

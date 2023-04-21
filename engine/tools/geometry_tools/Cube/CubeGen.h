@@ -35,10 +35,10 @@ namespace AE::GeometryTools
 
 	// methods
 	public:
-		bool  Create ();
+		ND_	bool  Create ()						__NE___;
 
-		ND_ ArrayView<Vertex>	GetVertices ()	const	{ return _vertices; }
-		ND_ ArrayView<uint>		GetIndices ()	const	{ return _indices; }
+		ND_ ArrayView<Vertex>	GetVertices ()	C_NE___	{ return _vertices; }
+		ND_ ArrayView<uint>		GetIndices ()	C_NE___	{ return _indices; }
 	};
 
 

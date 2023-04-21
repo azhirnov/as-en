@@ -59,7 +59,7 @@ void DeclRenderTech ()
 }
 
 
-void main ()
+void ASmain ()
 {
 	DeclRenderPasses();
 	DeclRenderTech();

@@ -34,7 +34,7 @@ namespace
 			const Bytes	pos = t.stream.pos;
 
 			BufferMemView	mem_view;
-			ctx.UploadBuffer( INOUT t.stream, OUT mem_view, EStagingHeapType::Dynamic );
+			ctx.UploadBuffer( INOUT t.stream, OUT mem_view );
 
 			auto	arr = ArrayView<ubyte>{t.buffer_data}.section( usize(pos), UMax );
 			CHECK_TE( mem_view.Copy( arr ) == mem_view.DataSize() );
@@ -99,7 +99,7 @@ namespace
 			t.buffer_data[i] = ubyte(i);
 		}
 
-		t.stream = BufferStream{ t.buf, 0_b, t.buf_size };
+		t.stream = BufferStream{ t.buf, 0_b, t.buf_size, 0_b, EStagingHeapType::Dynamic };
 		
 		auto	task = Scheduler().Run<US1_FrameTask>( Tuple{ArgRef(t)} );
 

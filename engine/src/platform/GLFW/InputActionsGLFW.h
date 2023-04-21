@@ -27,35 +27,39 @@ namespace AE::App
 	// variables
 	private:
 		DubleBufferedQueue	_dbQueue;
-
-		float2				_cursorPos;
-
-		float2				_toSNorm;
-		float2				_pixToMm;
-
-		bool				_mouseLBPressed		= false;
 		
+		float2				_cursorPosPx;
+		float2				_cursorDeltaPx;
+
+		bool				_touchActive		: 1;
+		bool				_touchBegin			: 1;
+		bool				_touchEnd			: 1;
+		
+		GestureRecognizer	_gestureRecognizer;
+
 
 	// methods
 	public:
-		explicit InputActionsGLFW (DubleBufferedQueue *q) __NE___ : InputActionsBase{q ? *q : _dbQueue} {}
+		explicit InputActionsGLFW (DubleBufferedQueue *q)							__NE___;
 		
 		// api for window
-		void  SetKey (int key, EGestureState state, Duration_t timestamp)				__NE___;
-		void  SetMouseButton (int button, EGestureState state, Duration_t timestamp)	__NE___;
-		void  SetCursorPos (float2 pos)													__NE___;
-		void  SetMouseWheel (float2 delta)												__NE___;
-		void  SetMonitor (const uint2 &surfaceSize, const Monitor &)					__NE___;
-		void  CursorPosChanged (float2 pos)												__NE___	{ _cursorPos = pos; }
+		void  SetKey (int key, EGestureState state, Duration_t timestamp)			__NE___;
+		void  SetMouseButton (int button, EGestureState state, Duration_t timestamp)__NE___;
+		void  SetCursorPos (float2 pos)												__NE___;
+		void  SetMouseWheel (float2 delta)											__NE___;
+		void  SetMonitor (const uint2 &surfaceSize, const Monitor &)				__NE___;
+		void  CursorPosChanged (float2 pos)											__NE___	{ _cursorPosPx = pos; }
+		
+		void  Update (Duration_t timeSinceStart)									__NE___;
 
 
 	// IInputActions //
-		bool  LoadSerialized (MemRefRStream &stream)	__NE_OV;
+		bool  LoadSerialized (MemRefRStream &stream)								__NE_OV;
 
 
 	// ISerializable //
-		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
-		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
+		bool  Serialize (Serializing::Serializer &)									C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &)								__NE_OV;
 		
 
 	private:

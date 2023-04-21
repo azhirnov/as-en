@@ -1,8 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "threading/TaskSystem/TaskScheduler.h"
-#include "../base/UnitTest_Common.h"
-using namespace AE::Threading;
+#include "UnitTest_Common.h"
 
 #ifndef AE_DISABLE_THREADS
 namespace
@@ -25,6 +24,8 @@ namespace
 
 	static void  LfTaskQueue_Test1 ()
 	{
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
+
 		LfTaskQueue		q{ Default, "" };
 		const uint		count = 1'000;
 
@@ -38,7 +39,8 @@ namespace
 
 	static void  LfTaskQueue_Test2 ()
 	{
-		LfTaskQueue		q{ Default, "" };
+		LocalTaskScheduler	scheduler {WorkerQueueCount(1)};
+		LfTaskQueue			q{ Default, "" };
 
 		const uint	thread_count = Max( 2u, ThreadUtils::MaxThreadCount() );
 		

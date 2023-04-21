@@ -20,7 +20,7 @@ endif()
 
 # choose window library
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Android")
-	target_link_libraries( "Platform" PUBLIC "android" )
+	target_link_libraries( "Platform" PUBLIC "android" )	# "nativewindow" for API 30+
 
 elseif (${AE_ENABLE_GLFW})
 	target_link_libraries( "Platform" PUBLIC "GLFW-lib" )

@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Public/SamplerDesc.h"
 # include "graphics/Metal/MCommon.h"
 

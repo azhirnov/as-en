@@ -113,7 +113,7 @@ namespace AE::Math
 =================================================
 */
 	template <typename T, uint C, uint R, uint Q, glm::qualifier Qf>
-	ND_ inline TMatrix<T,Q,R,Qf>  operator * (const TMatrix<T,C,R, Qf> &lhs, const TMatrix<T,Q,C,Qf> &rhs) __NE___
+	ND_ TMatrix<T,Q,R,Qf>  operator * (const TMatrix<T,C,R, Qf> &lhs, const TMatrix<T,Q,C,Qf> &rhs) __NE___
 	{
 		return TMatrix<T,Q,R,Qf>{ lhs._value * rhs._value };
 	}
@@ -134,20 +134,43 @@ namespace AE::Math
 		return res;
 	}
 	
+
 /*
 =================================================
 	Quat()
 =================================================
 */
-	template <typename T>
-	template <glm::qualifier Q>
-	inline Quat<T>::Quat (const TMatrix<T,3,3,Q> &m) __NE___ : _value{glm::quat_cast(m)}
-	{}
+	template <typename T, glm::qualifier Q>
+	Quat<T,Q>::Quat (const TMatrix<T,3,3,Q> &m) __NE___ : _value{glm::quat_cast(m)} {}
 	
-	template <typename T>
-	template <glm::qualifier Q>
-	inline Quat<T>::Quat (const TMatrix<T,4,4,Q> &m) __NE___ : _value{glm::quat_cast(m)}
-	{}
+	template <typename T, glm::qualifier Q>
+	Quat<T,Q>::Quat (const TMatrix<T,4,4,Q> &m) __NE___ : _value{glm::quat_cast(m)} {}
+	
+/*
+=================================================
+	Axis*
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	typename Quat<T,Q>::Vec3_t  Quat<T,Q>::AxisX () C_NE___
+	{
+		Mat3_t	mat {*this};	// TODO: optimize
+		return Vec3_t( mat[0][0], mat[1][0], mat[2][0] );
+	}
+
+	template <typename T, glm::qualifier Q>
+	typename Quat<T,Q>::Vec3_t  Quat<T,Q>::AxisY () C_NE___
+	{
+		Mat3_t	mat {*this};	// TODO: optimize
+		return Vec3_t( mat[0][1], mat[1][1], mat[2][1] );
+	}
+
+	template <typename T, glm::qualifier Q>
+	typename Quat<T,Q>::Vec3_t  Quat<T,Q>::AxisZ () C_NE___
+	{
+		Mat3_t	mat {*this};	// TODO: optimize
+		return Vec3_t( mat[0][2], mat[1][2], mat[2][2] );
+	}
 
 
 } // AE::Math

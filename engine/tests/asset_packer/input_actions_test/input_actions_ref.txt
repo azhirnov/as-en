@@ -5,15 +5,7 @@ InputActionsAndroid {
 
 InputActionsGLFW {
   '891542da' {
-    lockAndHideCursor: false
-    InputKey: MouseBtn1, state: Begin
-    {
-      name:    'ff08b95a'
-      value:   Float4
-      gesture: Hold
-      swizzle: 0+00
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
-    }
+    lockAndHideCursor: true
     InputKey: MouseBtn2, state: Begin
     {
       name:    '1f88c31b'
@@ -38,6 +30,22 @@ InputActionsGLFW {
       swizzle: 0000
       scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
+    InputKey: MouseBtn1, state: Begin
+    {
+      name:    'ff08b95a'
+      value:   Float4
+      gesture: Hold
+      swizzle: 0+00
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+    }
+    InputKey: CursorPos, state: Begin
+    {
+      name:    'c2d36fb8'
+      value:   Float2
+      gesture: Move
+      swizzle: XY00
+      scale:   ( 0.500000, 0.250000, 0.000000, 0.000000 )
+    }
     InputKey: MouseBtn1, state: Update
     {
       name:    'ff08b95a'
@@ -54,6 +62,30 @@ InputActionsGLFW {
       swizzle: XY00
       scale:   ( 0.500000, 0.250000, 0.000000, 0.000000 )
     }
+    InputKey: MouseBtn2, state: End
+    {
+      name:    '1f88c31b'
+      value:   none
+      gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+    }
+    InputKey: Escape, state: End
+    {
+      name:    'cdfc6e09'
+      value:   none
+      gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+    }
+    InputKey: Enter, state: End
+    {
+      name:    '78b1ef6a'
+      value:   none
+      gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+    }
     InputKey: MouseBtn1, state: End
     {
       name:    'ff08b95a'
@@ -62,20 +94,20 @@ InputActionsGLFW {
       swizzle: 0+00
       scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
+    InputKey: CursorPos, state: End
+    {
+      name:    'c2d36fb8'
+      value:   Float2
+      gesture: Move
+      swizzle: XY00
+      scale:   ( 0.500000, 0.250000, 0.000000, 0.000000 )
+    }
   }
 }
 
 InputActionsWinAPI {
   '891542da' {
     lockAndHideCursor: false
-    InputKey: MouseBtn0, state: Begin
-    {
-      name:    'ff08b95a'
-      value:   none
-      gesture: Hold
-      swizzle: 0000
-      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
-    }
     InputKey: MouseBtn1, state: Begin
     {
       name:    '1f88c31b'
@@ -100,6 +132,22 @@ InputActionsWinAPI {
       swizzle: 0000
       scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
+    InputKey: MouseBtn0, state: Begin
+    {
+      name:    'ff08b95a'
+      value:   none
+      gesture: Hold
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+    }
+    InputKey: CursorPos, state: Begin
+    {
+      name:    'c2d36fb8'
+      value:   Float2
+      gesture: Move
+      swizzle: XY00
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+    }
     InputKey: MouseBtn0, state: Update
     {
       name:    'ff08b95a'
@@ -116,12 +164,44 @@ InputActionsWinAPI {
       swizzle: XY00
       scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
+    InputKey: MouseBtn1, state: End
+    {
+      name:    '1f88c31b'
+      value:   none
+      gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+    }
+    InputKey: Enter, state: End
+    {
+      name:    '78b1ef6a'
+      value:   none
+      gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+    }
+    InputKey: Escape, state: End
+    {
+      name:    'cdfc6e09'
+      value:   none
+      gesture: Down
+      swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+    }
     InputKey: MouseBtn0, state: End
     {
       name:    'ff08b95a'
       value:   none
       gesture: Hold
       swizzle: 0000
+      scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
+    }
+    InputKey: CursorPos, state: End
+    {
+      name:    'c2d36fb8'
+      value:   Float2
+      gesture: Move
+      swizzle: XY00
       scale:   ( 1.000000, 1.000000, 1.000000, 1.000000 )
     }
   }

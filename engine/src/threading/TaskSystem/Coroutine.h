@@ -44,7 +44,7 @@ namespace _hidden_
 		private:
 			ResultType		_value;
 		
-		  #ifdef AE_DBG_OR_DEV
+		  #ifdef AE_DEBUG
 			String			_dbgName;
 		  #endif
 
@@ -62,7 +62,7 @@ namespace _hidden_
 
 				void				unhandled_exception ()			C_Th___	{ throw; }						// rethrow exceptions
 				
-			#ifdef AE_DBG_OR_DEV
+			#ifdef AE_DEBUG
 				StringView			DbgName ()						C_NE_OV	{ return _dbgName; }
 			#else
 				StringView			DbgName ()						C_NE_OV	{ return "Coroutine<>"; }
@@ -135,7 +135,7 @@ namespace _hidden_
 		void  _InitCoro (ETaskQueue type, StringView name)	__NE___
 		{
 			_coro->_SetQueueType( type );
-		  #ifdef AE_DBG_OR_DEV
+		  #ifdef AE_DEBUG
 			_coro->_dbgName = String{name};
 		  #endif
 		}

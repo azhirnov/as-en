@@ -21,12 +21,18 @@ namespace AE::Base
 		constexpr THashVal ()									__NE___	{}
 		explicit constexpr THashVal (T val)						__NE___ : _value{val} {}
 
+		template <typename B>
+		explicit constexpr THashVal (THashVal<B> h)				__NE___ : _value{static_cast<T>(B{h})} {}
+
 		ND_ constexpr bool	operator == (const THashVal &rhs)	C_NE___	{ return _value == rhs._value; }
 		ND_ constexpr bool	operator != (const THashVal &rhs)	C_NE___	{ return not (*this == rhs); }
 		ND_ constexpr bool	operator >  (const THashVal &rhs)	C_NE___	{ return _value > rhs._value; }
 		ND_ constexpr bool  operator <  (const THashVal &rhs)	C_NE___	{ return _value < rhs._value; }
 
-		constexpr THashVal&  operator << (const THashVal &rhs)	__NE___
+		constexpr THashVal&  operator << (const THashVal &rhs)	__NE___	{ Append( rhs );  return *this; }
+		constexpr THashVal&  operator += (const THashVal &rhs)	__NE___	{ Append( rhs );  return *this; }
+
+		constexpr void  Append (const THashVal &rhs)			__NE___
 		{
 			const T	mask	= (sizeof(_value)*8 - 1);
 			T		val		= rhs._value;
@@ -34,8 +40,6 @@ namespace AE::Base
 
 			shift  &= mask;
 			_value ^= (val << shift) | (val >> ( ~(shift-1) & mask ));
-
-			return *this;
 		}
 
 		ND_ constexpr const THashVal<T>  operator + (const THashVal<T> &rhs) C_NE___
@@ -71,6 +75,7 @@ namespace AE::Base
 
 	using HashVal	= THashVal<usize>;
 	using HashVal32	= THashVal<uint>;
+	using HashVal64	= THashVal<ulong>;
 
 
 	//

@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Private/EnumToString.h"
 # include "graphics/Vulkan/VCommon.h"
 
@@ -163,7 +162,7 @@ namespace AE::Graphics
 */
 	ND_ inline StringView  VkFormat_ToString (VkFormat value) __NE___
 	{
-#		define FMT_BUILDER( _engineFmt_, _vkFormat_ ) \
+#		define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
 			case _vkFormat_ : return #_vkFormat_;
 		
 		switch ( value )

@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Public/CommandBuffer.h"
 # include "graphics/Metal/Commands/MBarrierManager.h"
 

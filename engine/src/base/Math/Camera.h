@@ -111,6 +111,10 @@ namespace AE::Math
 			projection = Mat4_t::Frustum( viewport, range );
 			return *this;
 		}
+
+		static const Vec3_t  UpDir ()														__NE___	{ return Vec3_t( T(0), T(1), T(0) ); }
+		static const Vec3_t  RightDir ()													__NE___	{ return Vec3_t( T(1), T(0), T(0) ); }
+		static const Vec3_t  ForwardDir ()													__NE___	{ return Vec3_t( T(0), T(0), T(1) ); }
 	};
 
 

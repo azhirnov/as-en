@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	{
 		RC<Sampler>		samp = Sampler( "NearestClamp" );

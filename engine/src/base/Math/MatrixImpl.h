@@ -18,6 +18,7 @@ namespace AE::Math
 		using Col_t			= typename _GLM_Mat_t::col_type;	// [Rows]
 		using Row_t			= typename _GLM_Mat_t::row_type;	// [Columns]
 		using Dim_t			= Math::_hidden_::_MatrixDim;
+		using Rect_t		= Rectangle<T>;
 
 
 	// variables
@@ -53,7 +54,7 @@ namespace AE::Math
 				 const Col_t &col2)														__NE___ :
 			_value{ col0, col1, col2 } {}
 
-		explicit TMatrix (const Quat<T> &q)												__NE___	: _value{glm::mat3_cast(q._value)} {}
+		explicit TMatrix (const Quat<T,Q> &q)											__NE___	: _value{glm::mat3_cast(q._value)} {}
 		
 		ND_ static Self  FromScalar (Value_t value)										__NE___	{ return Self{ Col_t{value}, Col_t{value}, Col_t{value} }; }
 	#endif
@@ -65,7 +66,7 @@ namespace AE::Math
 				 const Col_t &col3)														__NE___ :
 			_value{ col0, col1, col2, col3 } {}
 
-		explicit TMatrix (const Quat<T> &q)												__NE___	: _value{glm::mat4_cast(q._value)} {}
+		explicit TMatrix (const Quat<T,Q> &q)											__NE___	: _value{glm::mat4_cast(q._value)} {}
 		
 		ND_ static Self  FromScalar (Value_t value)										__NE___	{ return Self{ Col_t{value}, Col_t{value}, Col_t{value}, Col_t{value} }; }
 	#endif
@@ -136,6 +137,9 @@ namespace AE::Math
 		ND_ static Self  Translate (const Vec<T,3> &translation)											__NE___	{ return Self{ glm::translate( Self::Identity()._value, translation )}; }
 		ND_ static Self  Scale (const Vec<T,3> &scale)														__NE___	{ return Self{ glm::scale( Self::Identity()._value, scale )}; }
 		ND_ static Self  Scale (const T scale)																__NE___	{ return Scale( Vec<T,3>{ scale }); }
+		
+		ND_ Vec<T,3>	 Project (const Vec<T,3> &pos, const Rect_t &viewport)								C_NE___;
+		ND_ Vec<T,3>	 UnProject (const Vec<T,3> &pos, const Rect_t &viewport)							C_NE___;
 	#endif
 		
 	#if Columns >= 3 and Rows >= 3
@@ -282,6 +286,47 @@ namespace AE::Math
 		proj[3][2] = -T(2) * zNear;
 		return proj;
 	}
+	
+/*
+=================================================
+	Project
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	Vec<T,3>  TMatrix<T, Columns, Rows, Q>::Project (const Vec<T,3> &pos, const Rect_t &viewport) C_NE___
+	{
+		Vec<T,4>		temp	= (*this) * Vec<T,4>( pos, T(1) );
+		Vec<T,2> const	size	= viewport.Size();
+
+		temp  /= temp.w;
+		temp   = temp * T(0.5) + T(0.5);
+		temp.x = temp.x * size.x + viewport.left;
+		temp.y = temp.y * size.y + viewport.bottom;
+
+		return Vec<T,3>{ temp };
+	}
+	
+/*
+=================================================
+	UnProject
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	Vec<T,3>  TMatrix<T, Columns, Rows, Q>::UnProject (const Vec<T,3> &pos, const Rect_t &viewport) C_NE___
+	{
+		Vec<T,4>		temp	= Vec<T,4>{ pos, T(1) };
+		Vec<T,2> const	size	= viewport.Size();
+
+		temp.x	= (temp.x - viewport.left) / size.x;
+		temp.y	= (temp.y - viewport.bottom) / size.y;
+		temp	= temp * T(2) - T(1);
+
+		temp	 = (*this) * temp;
+		temp	/= temp.w;
+
+		return Vec<T,3>{ temp };
+	}
+
 #endif
 
 } // AE::Math

@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Thread-safe:  no
+*/
 
 #pragma once
 
@@ -16,7 +19,7 @@ namespace AE::Base
 	// types
 	private:
 		using StString_t	= FixedString<64>;
-		using UniqueIDs_t	= HashMultiMap< usize, StString_t >;
+		using UniqueIDs_t	= HashMultiMap< /*hash*/usize, StString_t >;
 		
 		struct Info
 		{
@@ -32,27 +35,36 @@ namespace AE::Base
 
 	// variables
 	private:
-		IdMap_t		_idMap;
+		IdMap_t		_uidMap;
 
 
 	// methods
 	public:
-		~NamedID_HashCollisionCheck ();
+		~NamedID_HashCollisionCheck ()												__NE___;
 		
 		// require write lock
-		template <usize Size, uint UID, bool Optimize, uint Seed>
-		void  Add (const NamedID<Size, UID, Optimize, Seed> &id)				__Th___;
+		template <usize Size, uint UID, uint Seed>
+		void  Add (const NamedID<Size, UID, false, Seed> &id)						__Th___;
 		
+		template <usize Size, uint UID, bool Optimize, uint Seed>
+		void  Add (const NamedID<Size, UID, Optimize, Seed> &id, StringView name)	__Th___;
+
+		void  Merge (const NamedID_HashCollisionCheck &src)							__Th___;
+
+
 		// require read lock
 		template <usize Size, uint UID, bool Optimize, uint Seed>
-		ND_ uint  RecalculateSeed (const NamedID<Size, UID, Optimize, Seed> &)	__Th___;
+		ND_ StringView  GetString (const NamedID<Size, UID, Optimize, Seed> &id)	C_NE___;
 
-		ND_ bool  HasCollisions ()												C_NE___;
+		template <usize Size, uint UID, bool Optimize, uint Seed>
+		ND_ uint  RecalculateSeed (const NamedID<Size, UID, Optimize, Seed> &)		__Th___;
 
-			void  Clear ()														__NE___;
+		ND_ bool  HasCollisions ()													C_NE___;
+
+			void  Clear ()															__NE___;
 		
 	private:
-		ND_ uint  _RecalculateSeed (Info &) const								__Th___;
+		ND_ uint  _RecalculateSeed (Info &) const									__Th___;
 	};
 
 	
@@ -62,30 +74,61 @@ namespace AE::Base
 =================================================
 */
 	template <usize Size, uint UID, bool Optimize, uint Seed>
-	inline void  NamedID_HashCollisionCheck::Add (const NamedID<Size, UID, Optimize, Seed> &id) __Th___
+	void  NamedID_HashCollisionCheck::Add (const NamedID<Size, UID, Optimize, Seed> &id, StringView name) __Th___
 	{
-		if constexpr( not Optimize )
+		STATIC_ASSERT( Size <= StString_t::capacity() );
+
+		auto&		info	 = _uidMap.emplace( UID, Info{Seed} ).first->second;	// throw
+		const usize	key		 = usize(id.GetHash());
+		auto		it		 = info.data.find( key );
+		bool		inserted = false;
+
+		for (; it != info.data.end() and it->first == key; ++it)
 		{
-			STATIC_ASSERT( Size <= StString_t::capacity() );
-
-			auto&	info	 = _idMap.emplace( UID, Info{Seed} ).first->second;	// throw
-			usize	key		 = usize(id.GetHash());
-			auto	iter	 = info.data.find( key );
-			bool	inserted = false;
-
-			for (; iter != info.data.end() and iter->first == key; ++iter)
+			if ( it->second != name )
 			{
-				if ( iter->second != id.GetName() )
-				{
-					DBG_WARNING( "hash collision detected" );
-					info.hasCollisions = true;
-				}
-				inserted = true;
+				DBG_WARNING( "hash collision detected" );
+				info.hasCollisions = true;
 			}
-
-			if ( not inserted )
-				info.data.emplace( key, id.GetName() );	// throw
+			inserted = true;
 		}
+
+		if ( not inserted )
+			info.data.emplace( key, StString_t{name} );	// throw
+	}
+	
+/*
+=================================================
+	Add
+=================================================
+*/
+	template <usize Size, uint UID, uint Seed>
+	void  NamedID_HashCollisionCheck::Add (const NamedID<Size, UID, false, Seed> &id) __Th___
+	{
+		return Add( id, id.GetName() );
+	}
+
+/*
+=================================================
+	GetString
+=================================================
+*/
+	template <usize Size, uint UID, bool Optimize, uint Seed>
+	StringView  NamedID_HashCollisionCheck::GetString (const NamedID<Size, UID, Optimize, Seed> &id) C_NE___
+	{
+		auto	uid_it = _uidMap.find( UID );
+		if ( uid_it != _uidMap.end() )
+		{
+			const usize	key		 = usize(id.GetHash());
+			auto&		name_map = uid_it->second.data;
+			auto		it		 = name_map.find( key );
+
+			ASSERT( not uid_it->second.hasCollisions );
+
+			if ( it != name_map.end() )
+				return StringView{it->second};
+		}
+		return Default;
 	}
 
 /*
@@ -94,16 +137,16 @@ namespace AE::Base
 =================================================
 */
 	template <usize Size, uint UID, bool Optimize, uint Seed>
-	inline uint  NamedID_HashCollisionCheck::RecalculateSeed (const NamedID<Size, UID, Optimize, Seed> &) __Th___
+	uint  NamedID_HashCollisionCheck::RecalculateSeed (const NamedID<Size, UID, Optimize, Seed> &) __Th___
 	{
-		auto	iter = _idMap.find( UID );
-		if ( iter == _idMap.end() )
+		auto	uid_it = _uidMap.find( UID );
+		if ( uid_it == _uidMap.end() )
 			return Seed;
 		
-		if ( iter->second.seed != Seed )
-			return iter->second.seed;
+		if ( uid_it->second.seed != Seed )
+			return uid_it->second.seed;
 
-		return _RecalculateSeed( iter->second );	// throw
+		return _RecalculateSeed( uid_it->second );	// throw
 	}
 
 

@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	RC<GraphicsPipeline>	ppln = GraphicsPipeline( "graphics_1" );
 	ppln.AddFeatureSet( "MinimalFS" );
@@ -31,7 +31,23 @@ void main ()
 		spec.SetViewportCount( 1 );
 
 		RenderState	rs;
-		rs.inputAssembly.topology = EPrimitive::TriangleList;
+		rs.inputAssembly.topology	= EPrimitive::TriangleList;
+		rs.depth.test				= true;
+		rs.depth.write				= true;
+
+		spec.SetRenderState( rs );
+	}
+
+	// specialization
+	{
+		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "graphics_1 rp:UI" );
+		spec.AddToRenderTech( "UI.RTech", "Graphics0" );
+		spec.SetViewportCount( 1 );
+
+		RenderState	rs;
+		rs.inputAssembly.topology	= EPrimitive::TriangleList;
+	//	rs.depth.test				= true;		// error
+	//	rs.depth.write				= true;		// error
 
 		spec.SetRenderState( rs );
 	}

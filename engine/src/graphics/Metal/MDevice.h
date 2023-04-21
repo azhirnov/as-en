@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "base/Utils/Version.h"
 # include "base/CompileTime/StringToID.h"
 # include "graphics/Public/DeviceProperties.h"
@@ -25,24 +24,13 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		using MetalVersion	= TVersion2< "Metal"_StringToID >;
+		using MetalVersion		= TVersion2< "Metal"_StringToID >;
 
-		// contains all available resource usage & options and memory types
-		struct ResourceFlags
-		{
-			EBufferUsage	bufferUsage		= Default;
-			EBufferOpt		bufferOptions	= Default;
+		using ResourceFlags		= DeviceResourceFlags;
+		using DevMemoryInfoOpt	= Optional< DeviceMemoryInfo >;
 
-			EImageUsage		imageUsage		= Default;
-			EImageOpt		imageOptions	= Default;
-
-			EnumBitSet<EDescriptorType>	descrTypes;
-
-			FixedSet<EMemoryType, 8>	memTypes;
-		};
-
-		using MFeatures		= MFeatureSet::Features;
-		using MProperties	= MFeatureSet::Properties;
+		using MFeatures			= MFeatureSet::Features;
+		using MProperties		= MFeatureSet::Properties;
 
 
 	protected:
@@ -88,6 +76,8 @@ namespace AE::Graphics
 		ND_ StringView				GetDeviceName ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _devName; }
 		
 		ND_ bool					IsInitialized ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return bool(_device); }
+		
+		ND_ DevMemoryInfoOpt		GetMemoryUsage ()				C_NE___;
 
 		ND_ bool  CheckConstantLimits ()							C_NE___;
 		ND_ bool  CheckExtensions ()								C_NE___;

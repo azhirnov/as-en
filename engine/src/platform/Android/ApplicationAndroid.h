@@ -34,6 +34,8 @@ namespace AE::App
 		Monitor					_displayInfo;
 		WinID					_windowCounter	= 0;
 		bool 					_started		= false;
+
+		Locales_t				_locales;
 		
 		struct {
 			JavaObj					application;
@@ -65,6 +67,8 @@ namespace AE::App
 		void  BeforeUpdate ()															__NE___;
 		void  AfterUpdate ()															__NE___;
 
+		void  SetRotation (int)															__NE___;
+
 		ND_ static ApplicationAndroid*&						_GetAppInstance ()			__NE___;
 		ND_ static SharedPtr<WindowAndroid>					_GetAppWindow (WinID id)	__NE___;
 		ND_ static Pair< SharedPtr<WindowAndroid>, WinID >	_GetNewWindow ()			__NE___;
@@ -82,17 +86,20 @@ namespace AE::App
 		void			Terminate ()													__NE_OV;
 		
 		StringView		GetApiName ()													C_NE_OV	{ return "android"; }
+		
+		Locales_t		GetLocales ()													C_NE_OV	{ return _locales; }
 
 
 	// called from java
+	private:
+		static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app, jobject assetMngr)						__NE___;
+		static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring, jstring, jstring, jstring, jstring)	__NE___;
+		static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass, jint width, jint height,
+													float xdpi, float ydpi, jint orientation)						__NE___;
+		static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass, jstring, jstring)								__NE___;
 	public:
-		static void JNICALL  native_OnCreate (JNIEnv*, jclass, jobject app, jobject assetMngr)								__NE___;
-		static void JNICALL  native_SetDirectories (JNIEnv*, jclass, jstring, jstring, jstring, jstring, jstring)			__NE___;
-		static void JNICALL  native_SetDisplayInfo (JNIEnv*, jclass, jint width, jint height, jint ppi, jint orientation)	__NE___;
-		static void JNICALL  native_SetSystemInfo (JNIEnv*, jclass)															__NE___;
-
-		static jint  OnJniLoad (JavaVM* vm)																					__NE___;
-		static void  OnJniUnload (JavaVM* vm)																				__NE___;
+		static jint  OnJniLoad (JavaVM* vm)																			__NE___;
+		static void  OnJniUnload (JavaVM* vm)																		__NE___;
 	};
 
 

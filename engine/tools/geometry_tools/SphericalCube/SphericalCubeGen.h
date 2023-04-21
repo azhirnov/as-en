@@ -29,11 +29,13 @@ namespace AE::GeometryTools
 		};
 		STATIC_ASSERT( sizeof(Vertex) == 32 );
 
+		using Index_t	= uint;
+
 
 	// variables
 	protected:
 		Array<Vertex>	_vertices;
-		Array<uint>		_indices;
+		Array<Index_t>	_indices;
 
 		uint			_minLod			= 0;
 		uint			_maxLod			= 0;
@@ -42,18 +44,22 @@ namespace AE::GeometryTools
 
 	// methods
 	public:
-		bool  Create (uint minLod, uint maxLod, bool quads);
+		ND_	bool  Create (uint minLod, uint maxLod, bool quads)								__NE___;
 
-		bool  GetVertices (uint lod, uint face, OUT ArrayView<Vertex> &result) const;
-		bool  GetIndices (uint lod, uint face, OUT ArrayView<uint> &result) const;
+			bool  GetVertices (uint lod, uint face, OUT ArrayView<Vertex> &result)			C_NE___;
+			bool  GetIndices (uint lod, uint face, OUT ArrayView<Index_t> &result)			C_NE___;
 
-		ND_ static uint  CalcFaceVertCount (uint lod);
-		ND_ static uint  CalcVertCount (uint lod);
+		ND_ static uint  CalcFaceVertCount (uint lod)										__NE___;
+		ND_ static uint  CalcVertCount (uint lod)											__NE___;
 	
-		ND_ static uint  CalcFaceIndexCount (uint lod, bool useQuads);
-		ND_ static uint  CalcIndexCount (uint lod, bool useQuads);
+		ND_ static uint  CalcFaceIndexCount (uint lod, bool useQuads)						__NE___;
+		ND_ static uint  CalcIndexCount (uint lod, bool useQuads)							__NE___;
 		
-		ND_ static bool  RayCast (const float3 &center, float radius, const float3 &begin, const float3 &end, OUT float3 &outIntersection);
+		ND_ static bool  RayCast (const float3 &center, float radius, const float3 &begin,
+								  const float3 &end, OUT float3 &outIntersection)			__NE___;
+
+		ND_ ArrayView<Vertex>	GetVertices ()												C_NE___	{ return _vertices; }
+		ND_ ArrayView<Index_t>	GetIndices ()												C_NE___	{ return _indices; }
 	};
 
 

@@ -99,7 +99,8 @@ namespace AE::Base
 	inline Path  UnixLibrary::GetPath () C_NE___
 	{
 	#ifdef AE_PLATFORM_ANDROID
-		RETURN_ERR( "not supported" );
+		// not supported
+		return Default;
 	#elif defined(AE_PLATFORM_APPLE)
 		RETURN_ERR( "not supported" );
 	#else

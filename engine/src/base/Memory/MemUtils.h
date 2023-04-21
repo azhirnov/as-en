@@ -261,6 +261,15 @@ namespace AE::Base
 		std::memset( OUT ptr, 0, usize{size} );
 	}
 	
+	template <typename T>
+	forceinline void  ZeroMem (OUT T* ptr, usize count) __NE___
+	{
+		STATIC_ASSERT( IsZeroMemAvailable<T> );
+		ASSERT( (count == 0) or ((ptr != null) == (count != 0)) );
+
+		std::memset( OUT ptr, 0, sizeof(T) * count );
+	}
+	
 /*
 =================================================
 	SecureZeroMem
@@ -286,11 +295,12 @@ namespace AE::Base
 	CopyCString
 =================================================
 */
-	template <typename T, usize S>
-	forceinline void  CopyCString (OUT T (&dst)[S], const T* src) __NE___
+	template <usize S1, usize S2>
+	forceinline void  CopyCString (OUT char (&dst)[S1], const char (&src)[S2])
 	{
+		STATIC_ASSERT( S1 >= S2 );
 		#ifdef AE_COMPILER_MSVC
-			::strcpy_s( OUT dst, src );
+			Unused( ::strcpy_s( OUT dst, src ));
 		#else
 			::strcpy( OUT dst, src );
 		#endif

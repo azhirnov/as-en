@@ -236,10 +236,9 @@ namespace AE::Base
 	// Static Reference Counter
 	//
 
-	template <typename T>
 	struct StaticRC final : Noninstancable
 	{
-		template <typename ...Args>
+		template <typename T, typename ...Args>
 		static void  New (INOUT T& obj, Args&& ...args)	__Th___
 		{
 			// warning: don't use 'GetRC()' inside ctor!
@@ -249,7 +248,8 @@ namespace AE::Base
 			Unused( cnt );
 			ASSERT( cnt == 0 );
 		}
-
+		
+		template <typename T>
 		static void  Delete (INOUT T& obj)				__NE___
 		{
 			const int	cnt = RefCounterUtils::DecRef( obj );
@@ -278,8 +278,6 @@ namespace AE::Base
 		using RC_t		= RC<T>;
 		using Self		= AtomicRC<T>;
 
-		STATIC_ASSERT( alignof(T) > 1 );	// because first bit is used for lock bit
-
 
 	// variables
 	private:
@@ -296,14 +294,15 @@ namespace AE::Base
 		AtomicRC (RC_t && rc)										__NE___ { _ptr.store( rc.release().release(), EMemoryOrder::Relaxed ); }
 		AtomicRC (const RC_t &rc)									__NE___ { _IncSet( rc.get() ); }
 
-		~AtomicRC ()												__NE___ { _ResetDec(); }
+		~AtomicRC ()												__NE___ { _ResetDec();  STATIC_ASSERT( alignof(T) > 1 ); /* because first bit is used for lock bit */}
 		
 		ND_ T *		unsafe_get ()									C_NE___ { return _RemoveLockBit( _ptr.load( EMemoryOrder::Relaxed )); }
 		ND_ RC_t	release ()										__NE___;
 
-		ND_ RC_t	get ()											__NE___;
+		ND_ RC_t	load ()											__NE___;
 
-			void	reset (T* ptr)									__NE___;
+			void	store (T* ptr)									__NE___;
+			void	store (RC_t ptr)								__NE___	{ store( ptr.get() ); }		// TODO: optimize
 
 		ND_ RC_t	exchange (T* desired)							__NE___;
 		ND_ RC_t	exchange (RC_t desired)							__NE___;
@@ -313,9 +312,9 @@ namespace AE::Base
 
 
 		Self&  operator = (std::nullptr_t)							__NE___ { _ResetDec();			return *this; }
-		Self&  operator = (T* rhs)									__NE___ { reset( rhs );			return *this; }
-		Self&  operator = (Ptr<T> rhs)								__NE___ { reset( rhs );			return *this; }
-		Self&  operator = (const RC_t &rhs)							__NE___ { reset( rhs.get() );	return *this; }
+		Self&  operator = (T* rhs)									__NE___ { store( rhs );			return *this; }
+		Self&  operator = (Ptr<T> rhs)								__NE___ { store( rhs );			return *this; }
+		Self&  operator = (const RC_t &rhs)							__NE___ { store( rhs.get() );	return *this; }
 		Self&  operator = (RC_t && rhs)								__NE___;
 
 	private:
@@ -349,11 +348,6 @@ namespace AE::Base
 
 		template <typename T>
 		struct _RemoveRC< RC<T> > {
-			using type = T;
-		};
-		
-		template <typename T>
-		struct _RemoveRC< StaticRC<T> > {
 			using type = T;
 		};
 		
@@ -569,11 +563,11 @@ namespace AE::Base
 	
 /*
 =================================================
-	get
+	load
 =================================================
 */
 	template <typename T>
-	RC<T>  AtomicRC<T>::get () __NE___
+	RC<T>  AtomicRC<T>::load () __NE___
 	{
 		RC_t	res{ _Lock() };
 		_Unlock();
@@ -582,11 +576,11 @@ namespace AE::Base
 	
 /*
 =================================================
-	reset
+	store
 =================================================
 */
 	template <typename T>
-	void  AtomicRC<T>::reset (T* ptr) __NE___
+	void  AtomicRC<T>::store (T* ptr) __NE___
 	{
 		_ResetDec();
 		_IncSet( ptr );
@@ -594,7 +588,7 @@ namespace AE::Base
 	
 /*
 =================================================
-	reset
+	exchange
 =================================================
 */
 	template <typename T>

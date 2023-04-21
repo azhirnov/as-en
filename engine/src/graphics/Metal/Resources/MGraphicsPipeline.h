@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Metal/Resources/MPipelinePack.h"
 
 namespace AE::Graphics
@@ -22,14 +21,15 @@ namespace AE::Graphics
 			MPipelinePack const&									pplnPack;
 			PipelineCompiler::SerializableGraphicsPipeline const&	templCI;
 			GraphicsPipelineDesc const&								specCI;
-			MPipelineLayoutID										layoutId;
+			PipelineLayoutID										layoutId;
 			ArrayView< MPipelinePack::ShaderModuleRef >				shaders;
 			PipelineCacheID											cacheId;
 			MPipelinePack::Allocator_t *							allocator		= null;
 		};
 
 	private:
-		using VBtoIndex_t = FixedMap< VertexBufferName::Optimized_t, MBufferIndex, GraphicsConfig::MaxVertexBuffers >;
+		using VBtoIndex_t	= FixedMap< VertexBufferName::Optimized_t, MBufferIndex, GraphicsConfig::MaxVertexBuffers >;
+		using VBArray_t		= ArrayView< VertexBufferName::Optimized_t >;
 
 
 	// variables
@@ -43,7 +43,7 @@ namespace AE::Graphics
 
 		VBtoIndex_t					_vertexBuffers;
 		
-		Strong<MPipelineLayoutID>	_layoutId;
+		Strong<PipelineLayoutID>	_layoutId;
 
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
@@ -63,10 +63,11 @@ namespace AE::Graphics
 		ND_ MetalDepthStencilState		DepthStencilState ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dsState; }
 		ND_ MDynamicRenderState const&	GetRenderState ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderState; }
 		//ND_ auto						GetRenderState ()				C_NE___	{ return DRC_WRAP( _renderState, _drCheck ); }
-		ND_ MPipelineLayoutID			LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ PipelineLayoutID			LayoutID ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ EPipelineDynamicState		DynamicState ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
 		ND_ EPrimitive					Topology ()						C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderState.topology; }
 		ND_ uint						RasterOrderGroup ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rasterOrderGroup; }
+		ND_ VBArray_t					GetVertexBuffers ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vertexBuffers.GetKeyArray(); }
 		
 		DEBUG_ONLY( ND_ StringView		GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};

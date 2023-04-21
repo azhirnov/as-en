@@ -157,30 +157,31 @@ namespace AE::App
 			AE_GLFW_KEY_CODES( AE_GLFW_KEY_CODES_VISITOR )
 			#undef AE_GLFW_KEY_CODES_VISITOR
 
-			MouseBegin		= MouseBtn1,	// GLFW_MOUSE_BUTTON_1
-			MouseEnd		= MouseBtn8,	// GLFW_MOUSE_BUTTON_LAST
+			MouseBegin			= MouseBtn1,	// GLFW_MOUSE_BUTTON_1
+			MouseEnd			= MouseBtn8,	// GLFW_MOUSE_BUTTON_LAST
 
-			MouseLeft		= MouseBtn1,
-			MouseRight		= MouseBtn2,
-			MouseMiddle		= MouseBtn3,
+			MouseLeft			= MouseBtn1,
+			MouseRight			= MouseBtn2,
+			MouseMiddle			= MouseBtn3,
 
-			KeyBegin		= 32,	// GLFW_KEY_SPACE
-			KeyEnd			= 348,	// GLFW_KEY_LAST
-
-			Cursor2DBegin	= KeyEnd + 10,
-			MouseWheel		= Cursor2DBegin,// float2
-			CursorPos,						// float2 (absolute in pixels)
-			CursorPos_mm,					// float2 (absolute in mm)
-			CursorDelta,					// float2 (delta in pixels)
-			CursorDelta_norm,				// snorm2
-			TouchPos,						// float2 (absolute in pixels)
-			TouchPos_mm,					// float2 (absolute in mm)
-			TouchDelta,						// float2 (delta in pixels)
-			TouchDelta_norm,				// snorm2
-			Cursor2DEnd		= TouchDelta_norm,
+			KeyBegin			= 32,	// GLFW_KEY_SPACE
+			KeyEnd				= 348,	// GLFW_KEY_LAST
+			
+			MultiTouch			= KeyEnd + 10,		// float2 (scale, rotate)
+			Cursor2DBegin,
+			MouseWheel			= Cursor2DBegin,// float2 (delta)
+			CursorPos,							// float2 (absolute in pixels)
+			CursorPos_mm,						// float2 (absolute in mm)
+			CursorDelta,						// float2 (delta in pixels)
+			CursorDelta_norm,					// snorm2
+			TouchPos,							// float2 (absolute in pixels)
+			TouchPos_mm,						// float2 (absolute in mm)
+			TouchDelta,							// float2 (delta in pixels)
+			TouchDelta_norm,					// snorm2
+			Cursor2DEnd			= TouchDelta_norm,
 
 			_Count,
-			Unknown			= 0xFFFF,
+			Unknown				= 0xFFFF,
 		};
 
 		struct ScriptBindingsMode;
@@ -197,11 +198,12 @@ namespace AE::App
 
 
 	// SerializableInputActions //
-		bool  IsKey (ushort type)		const override	{ return _IsKey( EInputType(type) ); }
-		bool  IsCursor1D (ushort type)	const override	{ return _IsCursor1D( EInputType(type) ); }
-		bool  IsCursor2D (ushort type)	const override	{ return _IsCursor2D( EInputType(type) ); }
+		bool  IsKey (ushort type)			const override	{ return _IsKey( EInputType(type) ); }
+		bool  IsKeyOrTouch (ushort type)	const override	{ return _IsKeyOrTouch( EInputType(type) ); }
+		bool  IsCursor1D (ushort type)		const override	{ return _IsCursor1D( EInputType(type) ); }
+		bool  IsCursor2D (ushort type)		const override	{ return _IsCursor2D( EInputType(type) ); }
 		
-		String  ToString () const override;
+		String  ToString ()					const override;
 
 	  #ifdef AE_ENABLE_SCRIPTING
 		bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc) override;
@@ -211,6 +213,7 @@ namespace AE::App
 
 	private:
 		ND_ static constexpr bool  _IsKey (EInputType type);
+		ND_ static constexpr bool  _IsKeyOrTouch (EInputType type);
 		ND_ static constexpr bool  _IsCursor1D (EInputType type);
 		ND_ static constexpr bool  _IsCursor2D (EInputType type);
 	};
@@ -221,10 +224,13 @@ namespace AE::App
 	_Is***
 =================================================
 */
-	forceinline constexpr bool  SerializableInputActionsGLFW::_IsKey (EInputType type)
-	{
+	forceinline constexpr bool  SerializableInputActionsGLFW::_IsKey (EInputType type) {
 		return	((type >= EInputType::MouseBegin) & (type <= EInputType::MouseEnd)) |
 				((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
+	}
+	
+	forceinline constexpr bool  SerializableInputActionsGLFW::_IsKeyOrTouch (EInputType type) {
+		return	_IsKey( type ) | (type == EInputType::TouchPos) | (type == EInputType::TouchPos_mm);
 	}
 
 	forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor1D (EInputType) {
@@ -232,7 +238,8 @@ namespace AE::App
 	}
 
 	forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor2D (EInputType type) {
-		return (type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd);
+		return	((type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd))	|
+				(type == EInputType::MultiTouch);
 	}
 
 

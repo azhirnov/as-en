@@ -13,7 +13,7 @@
 namespace AE::Math
 {
 
-	template <typename T>
+	template <typename T, glm::qualifier Q>
 	struct Quat
 	{
 		STATIC_ASSERT( IsScalar<T> );
@@ -22,12 +22,15 @@ namespace AE::Math
 	// types
 	public:
 		using Value_t		= T;
-		using Self			= Quat< T >;
-		using _GLM_Quat_t	= glm::qua< T, GLMQuialifier >;
-		using Vec3_t		= Vec< T, 3 >;
-		using Vec4_t		= Vec< T, 4 >;
+		using Self			= Quat< T, Q >;
+		using _GLM_Quat_t	= glm::qua< T, Q >;
+		using Vec2_t		= TVec< T, 2, Q >;
+		using Vec3_t		= TVec< T, 3, Q >;
+		using Vec4_t		= TVec< T, 4, Q >;
 		using Rad_t			= RadiansTempl< T >;
 		using Rad3_t		= RadianVec< T, 3 >;
+		using Mat3_t		= TMatrix< T, 3, 3, Q >;
+		using Mat4_t		= TMatrix< T, 4, 4, Q >;
 
 
 	// variables
@@ -48,7 +51,7 @@ namespace AE::Math
 		explicit Quat (const _GLM_Quat_t &val)				__NE___	: _value{val} {}
 
 		template <typename B>
-		explicit Quat (const Quat<B> &other)				__NE___	: _value{other._value} {}
+		explicit Quat (const Quat<B,Q> &other)				__NE___	: _value{other._value} {}
 
 		Quat (Self &&other)									__NE___	: _value{other._value} {} 
 
@@ -56,8 +59,8 @@ namespace AE::Math
 
 		explicit Quat (const Rad3_t &eulerAngles)			__NE___	: _value{ Vec3_t{ T(eulerAngles.x), T(eulerAngles.y), T(eulerAngles.z) }} {}
 		
-		template <glm::qualifier Q>	explicit Quat (const TMatrix<T,3,3,Q> &m) __NE___;
-		template <glm::qualifier Q>	explicit Quat (const TMatrix<T,4,4,Q> &m) __NE___;
+		explicit Quat (const Mat3_t &m)						__NE___;
+		explicit Quat (const Mat4_t &m)						__NE___;
 
 			Self&	Inverse ()								__NE___	{ _value = glm::inverse( _value );  return *this; }
 		ND_ Self	Inversed ()								C_NE___	{ return Self{ glm::inverse( _value )}; }
@@ -100,7 +103,10 @@ namespace AE::Math
 		ND_ Self	Conjugate ()							C_NE___	{ return Self{ glm::conjugate( _value )}; }
 		ND_ T		Length ()								C_NE___	{ return glm::length( _value ); }
 
-		ND_ Vec3_t	ToDirection ()							C_NE___;
+		ND_ Vec3_t  ToDirection ()							C_NE___;
+		ND_ Vec3_t  AxisX ()								C_NE___;
+		ND_ Vec3_t  AxisY ()								C_NE___;
+		ND_ Vec3_t  AxisZ ()								C_NE___;
 
 		ND_ Self	Slerp (const Self &q, T a)				C_NE___	{ return Self{ glm::mix( _value, q._value, a )}; }
 
@@ -110,11 +116,13 @@ namespace AE::Math
 		ND_ static Self  RotateY (Rad_t angle)				__NE___	{ return Self{ glm::rotate( Identity()._value, T(angle), Vec3_t{T{0}, T{1}, T{0}} )}; }
 		ND_ static Self  RotateZ (Rad_t angle)				__NE___	{ return Self{ glm::rotate( Identity()._value, T(angle), Vec3_t{T{0}, T{0}, T{1}} )}; }
 		ND_ static Self  Rotate (const Rad3_t &angle)		__NE___	{ return RotateX( angle.x ) * RotateY( angle.y ) * RotateZ( angle.z ); }
+		ND_ static Self  Rotate2 (const Rad3_t &angle)		__NE___;
 
 		ND_ static Self  FromDirection (const Vec3_t &dir, const Vec3_t &up) __NE___;
 	};
 
-	using QuatF = Quat< float >;
+	using QuatF			= Quat< float, GLMQuialifier >;
+	using PackedQuatF	= Quat< float, glm::qualifier::packed_highp >;
 
 	
 /*
@@ -122,8 +130,8 @@ namespace AE::Math
 	Dot
 =================================================
 */
-	template <typename T>
-	ND_ inline T  Dot (const Quat<T> &lhs, const Quat<T> &rhs) __NE___
+	template <typename T, glm::qualifier Q>
+	ND_ T  Dot (const Quat<T,Q> &lhs, const Quat<T,Q> &rhs) __NE___
 	{
 		return glm::dot( lhs._value, rhs._value );
 	}
@@ -133,10 +141,10 @@ namespace AE::Math
 	Cross
 =================================================
 */
-	template <typename T>
-	ND_ inline Quat<T>  Cross (const Quat<T> &lhs, const Quat<T> &rhs) __NE___
+	template <typename T, glm::qualifier Q>
+	ND_ Quat<T,Q>  Cross (const Quat<T,Q> &lhs, const Quat<T,Q> &rhs) __NE___
 	{
-		return Quat<T>{ glm::cross( lhs._value, rhs._value )};
+		return Quat<T,Q>{ glm::cross( lhs._value, rhs._value )};
 	}
 	
 /*
@@ -144,8 +152,8 @@ namespace AE::Math
 	operator ==
 =================================================
 */
-	template <typename T>
-	inline bool4  Quat<T>::operator == (const Self &rhs) C_NE___
+	template <typename T, glm::qualifier Q>
+	bool4  Quat<T,Q>::operator == (const Self &rhs) C_NE___
 	{
 		return bool4{ x == rhs.x, y == rhs.y, z == rhs.z, w == rhs.w };
 	}
@@ -155,8 +163,8 @@ namespace AE::Math
 	Equals
 =================================================
 */
-	template <typename T>
-	ND_ forceinline bool4  Equals (const Quat<T> &lhs, const Quat<T> &rhs, const T &err = Epsilon<T>()) __NE___
+	template <typename T, glm::qualifier Q>
+	ND_ bool4  Equals (const Quat<T,Q> &lhs, const Quat<T,Q> &rhs, const T &err = Epsilon<T>()) __NE___
 	{
 		return bool4{
 				Math::Equals( lhs.x, rhs.x, err ),
@@ -170,8 +178,8 @@ namespace AE::Math
 	ToDirection
 =================================================
 */
-	template <typename T>
-	inline Vec<T,3>  Quat<T>::ToDirection () C_NE___
+	template <typename T, glm::qualifier Q>
+	typename Quat<T,Q>::Vec3_t  Quat<T,Q>::ToDirection () C_NE___
 	{
 		return Vec3_t(	T{2} * x * z + T{2} * y * w,
 						T{2} * z * y - T{2} * x * w,
@@ -183,13 +191,39 @@ namespace AE::Math
 	FromDirection
 =================================================
 */
-	template <typename T>
-	inline Quat<T>  Quat<T>::FromDirection (const Vec3_t &dir, const Vec3_t &up) __NE___
+	template <typename T, glm::qualifier Q>
+	Quat<T,Q>  Quat<T,Q>::FromDirection (const Vec3_t &dir, const Vec3_t &up) __NE___
 	{
 		Vec3_t	hor = Math::Normalize( Cross( up, dir ));
 		Vec3_t	ver = Math::Normalize( Cross( dir, hor ));
 
 		return Self{glm::quat_cast( glm::tmat3x3<T>{ hor, ver, dir })};
+	}
+	
+/*
+=================================================
+	Rotate2
+=================================================
+*/
+	template <typename T, glm::qualifier Q>
+	Quat<T,Q>  Quat<T,Q>::Rotate2 (const Rad3_t &angle) __NE___
+	{
+		const Vec2_t	scr = SinCos( angle.x * T(0.5) );
+		const Vec2_t	scp = SinCos( angle.y * T(0.5) );
+		const Vec2_t	scy = SinCos( angle.z * T(0.5) );
+
+		const T	cpcy = scp[1] * scy[1];
+		const T	spcy = scp[0] * scy[1];
+		const T	cpsy = scp[1] * scy[0];
+		const T	spsy = scp[0] * scy[0];
+		
+		Self	result;
+		result.x = scr[0] * cpcy - scr[1] * spsy;
+		result.y = scr[1] * spcy + scr[0] * cpsy;
+		result.z = scr[1] * cpsy - scr[0] * spcy;
+		result.w = scr[1] * cpcy + scr[0] * spsy;
+
+		return result.Normalize();
 	}
 
 

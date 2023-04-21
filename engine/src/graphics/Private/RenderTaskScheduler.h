@@ -12,6 +12,10 @@
 #	define SUFFIX			M
 #	define RTSCHEDULER		MRenderTaskScheduler
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#	define SUFFIX			R
+#	define RTSCHEDULER		RRenderTaskScheduler
+
 #else
 #	error not implemented
 #endif
@@ -116,6 +120,8 @@ namespace AE::Graphics
 		using DrawBatchPool_t	= Threading::LfIndexedPool2< DrawCommandBatch_t,	uint, _BatchPerChunk, _ChunkCount >;
 
 		using BeginDepsArray_t	= FixedArray< AsyncTask, _MaxBeginFrameDeps >;
+		using BeginDepsFrames_t	= StaticArray< BeginDepsArray_t, GraphicsConfig::MaxFrames >;
+		using BeginDepsSync_t	= Synchronized< SpinLock, BeginDepsFrames_t >;
 		
 		using TimePoint_t		= std::chrono::high_resolution_clock::time_point;
 
@@ -169,8 +175,7 @@ namespace AE::Graphics
 		RC<BatchCompleteDepsManager>	_completeDepMngr;
 		
 		alignas(AE_CACHE_LINE)
-		  SpinLock						_beginDepsGuard;
-		BeginDepsArray_t				_beginDeps;
+		  BeginDepsSync_t				_beginDeps;
 		
 		DBG_GRAPHICS_ONLY(
 			AtomicRC<IGraphicsProfiler>	_profiler;
@@ -184,23 +189,29 @@ namespace AE::Graphics
 		
 		ND_ bool		Initialize (const GraphicsCreateInfo &);
 			void		Deinitialize ();
-			void		SetProfiler (RC<IGraphicsProfiler> profiler)		__NE___;
+			void		SetProfiler (RC<IGraphicsProfiler> profiler)			__NE___;
 
 		template <typename ...Deps>
 		ND_ AsyncTask	BeginFrame (const BeginFrameConfig& cfg  = Default,
-									const Tuple<Deps...>  & deps = Default)	__Th___;
+									const Tuple<Deps...>  & deps = Default)		__Th___;
 		
 		template <typename ...Deps>
-		ND_ AsyncTask	EndFrame (const Tuple<Deps...> &deps = Default)		__Th___;
+		ND_ AsyncTask	EndFrame (const Tuple<Deps...> &deps = Default)			__Th___;
+		
+		ND_ AsyncTask	WaitFrame (FrameUID)									__NE___;
+		ND_ AsyncTask	WaitNextFrame ()										__NE___	{ return WaitFrame( GetFrameId().Inc() ); }
 
-		ND_ bool		WaitAll (milliseconds timeout = DefaultWaitTime)	__NE___;
+		ND_ bool		WaitAll (milliseconds timeout = DefaultWaitTime)		__NE___;
+		
+			void		AddFrameDeps (FrameUID, ArrayView<AsyncTask> deps)		__NE___;
+			void		AddFrameDeps (FrameUID, AsyncTask dep)					__NE___;
 
-			void		AddNextFrameDeps (ArrayView<AsyncTask> deps)		__NE___;
-			void		AddNextFrameDeps (AsyncTask dep)					__NE___;
+			void		AddNextFrameDeps (ArrayView<AsyncTask> deps)			__NE___	{ AddFrameDeps( GetFrameId().Inc(), deps ); }
+			void		AddNextFrameDeps (AsyncTask dep)						__NE___	{ AddFrameDeps( GetFrameId().Inc(), RVRef(dep) ); }
 
 	
 			// valid bits: [0..GraphicsConfig::MaxPendingCmdBatches)
-			void		SkipCmdBatches (EQueueType queue, uint bits)		__NE___;
+			void		SkipCmdBatches (EQueueType queue, uint bits)			__NE___;
 
 		ND_ RC<CommandBatch_t>	BeginCmdBatch (EQueueType	queue,
 											   uint			submitIdx,
@@ -209,22 +220,22 @@ namespace AE::Graphics
 
 
 		// valid only if used before/after 'BeginFrame()'
-		ND_ FrameUID				GetFrameId ()							C_NE___	{ return _frameId.load(); }
-		ND_ TimePoint_t				GetFrameBeginTime ()					C_NE___	{ return _lastUpdate.load(); }
-		ND_ secondsf				GetFrameTimeDelta ()					C_NE___	{ return secondsf{_timeDelta.load()}; }
+		ND_ FrameUID				GetFrameId ()								C_NE___	{ return _frameId.load(); }
+		ND_ TimePoint_t				GetFrameBeginTime ()						C_NE___	{ return _lastUpdate.load(); }
+		ND_ secondsf				GetFrameTimeDelta ()						C_NE___	{ return secondsf{_timeDelta.load()}; }
 
-		ND_ uint					GetMaxFrames ()							C_NE___	{ return _frameId.load().MaxFrames(); }
+		ND_ uint					GetMaxFrames ()								C_NE___	{ return _frameId.load().MaxFrames(); }
 		
-		ND_ ResourceManager_t&		GetResourceManager ()					__NE___	{ ASSERT( _resMngr );  return *_resMngr; }
-		ND_ QueryManager_t&			GetQueryManager ()						__NE___	{ return GetResourceManager().GetQueryManager(); }
-		ND_ Device_t const&			GetDevice ()							C_NE___	{ return _device; }
+		ND_ ResourceManager_t&		GetResourceManager ()						__NE___	{ ASSERT( _resMngr );  return *_resMngr; }
+		ND_ QueryManager_t&			GetQueryManager ()							__NE___	{ return GetResourceManager().GetQueryManager(); }
+		ND_ Device_t const&			GetDevice ()								C_NE___	{ return _device; }
 		
 	  #ifdef CMDPOOLMNGR
-		ND_ CMDPOOLMNGR &			GetCommandPoolManager ()				__NE___	{ ASSERT( _cmdPoolMngr );  return *_cmdPoolMngr; }
+		ND_ CMDPOOLMNGR &			GetCommandPoolManager ()					__NE___	{ ASSERT( _cmdPoolMngr );  return *_cmdPoolMngr; }
 	  #endif
 		
 		DBG_GRAPHICS_ONLY(
-		  ND_ RC<IGraphicsProfiler>	GetProfiler ()							__NE___	{ return _profiler.get(); }
+		  ND_ RC<IGraphicsProfiler>	GetProfiler ()								__NE___	{ return _profiler.load(); }
 		)
 			
 		AE_SCHEDULER_PROFILING(
@@ -235,8 +246,8 @@ namespace AE::Graphics
 		explicit RTSCHEDULER (const Device_t &dev);
 		~RTSCHEDULER ();
 
-		ND_ static RTSCHEDULER&	_Instance ()								__NE___;
-		friend RTSCHEDULER&  	AE::RenderTaskScheduler ()					__NE___;
+		ND_ static RTSCHEDULER&	_Instance ()									__NE___;
+		friend RTSCHEDULER&  	AE::RenderTaskScheduler ()						__NE___;
 		
 			bool	_FlushQueue (EQueueType q, FrameUID frameId, bool forceFlush);
 		
@@ -295,6 +306,11 @@ namespace AE::Graphics
 
 		ND_ bool	_FlushQueue2 (EQueueType queueType, TempBatches_t &pending);
 		
+
+	//-----------------------------------------------------
+	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		
+		// TODO
 
 	//-----------------------------------------------------
 	#else
@@ -356,6 +372,10 @@ namespace AE::Graphics
 		ND_ static RC<MDrawCommandBatch>  CreateNextPassBatch (MRenderTaskScheduler &rts, const MPrimaryCmdBufState &primaryState,
 																ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg)						__NE___;
 	};
+	
+# elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+
+	// TODO
 
 #else
 #	error not implemented
@@ -414,10 +434,14 @@ namespace AE::Graphics
 			IAsyncTask{ETaskQueue::Renderer}, _frameId{frameId}, _config{cfg}
 		{}
 			
-		void  Run ()			override;
+		void  Run ()			__Th_OV;
 		void  OnCancel ()		__NE_OV;
 
 		StringView  DbgName ()	C_NE_OF { return "BeginFrame"; }
+
+	private:
+		bool  _RunImpl ()		__Th___;
+		void  _ResetStates()	__NE___;
 	};
 
 
@@ -436,10 +460,14 @@ namespace AE::Graphics
 			IAsyncTask{ETaskQueue::Renderer}, _frameId{frameId}
 		{}
 			
-		void  Run ()			override;
+		void  Run ()			__Th_OV;
 		void  OnCancel ()		__NE_OV;
 
 		StringView  DbgName ()	C_NE_OF { return "EndFrame"; }
+
+	private:
+		bool  _RunImpl ()		__Th___;
+		void  _ResetStates()	__NE___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -466,12 +494,14 @@ namespace AE::Graphics
 				prof->RequestNextFrame( frame_id );
 		)
 
-		EXLOCK( _beginDepsGuard );
-		// TODO: copy to temp array?
+		auto	begin_deps2 = _beginDeps.WriteNoLock();
+		EXLOCK( begin_deps2 );
 
-		if_likely( Scheduler().Run( task, TupleConcat( Tuple{ ArrayView<AsyncTask>{ _beginDeps }}, deps )))
+		auto&	begin_deps = (*begin_deps2)[ frame_id.Index() ];
+
+		if_likely( Scheduler().Run( task, TupleConcat( Tuple{ ArrayView<AsyncTask>{ begin_deps }}, deps )))
 		{
-			_beginDeps.clear();
+			begin_deps.clear();
 			return task;
 		}
 		else

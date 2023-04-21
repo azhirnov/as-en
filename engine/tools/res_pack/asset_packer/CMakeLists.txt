@@ -9,20 +9,13 @@ set( GRAPHICS_SRC
 	#"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp"
 )
 
-set( VFS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/vfs" )
-set( VFS_SRC
-	"${VFS_DIR}/Archive/ArchivePacker.h"
-	#"${VFS_DIR}/Archive/ArchivePacker.cpp"
-)
-
 file( GLOB_RECURSE SOURCES "*.*" )
-add_library( "AssetPacker" STATIC ${SOURCES} ${GRAPHICS_SRC} ${VFS_SRC} )
+add_library( "AssetPacker" STATIC ${SOURCES} ${GRAPHICS_SRC} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( "external/graphics" FILES ${GRAPHICS_SRC} )
-source_group( "external/vfs" FILES ${VFS_SRC} )
 
-target_link_libraries( "AssetPacker" PUBLIC "Serializing" "Scripting" "ResourceLoaders" "AtlasTools" )
-target_compile_definitions( "AssetPacker" PRIVATE "AE_BUILD_ASSET_PACKER" "AE_OPTIMIZE_IDS=0" )
+target_link_libraries( "AssetPacker" PUBLIC "Serializing" "Scripting" "ResourceLoaders" "AtlasTools" "VFS" )
+target_compile_definitions( "AssetPacker" PRIVATE "AE_BUILD_ASSET_PACKER" )
 target_include_directories( "AssetPacker" PUBLIC "." )
 
 if (TARGET "FreeType-lib")

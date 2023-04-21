@@ -86,7 +86,7 @@ namespace _hidden_
 =================================================
 */
 	template <typename T>
-	inline void  StringToColor (OUT HSVColor &col, BasicStringView<T> str) __NE___
+	void  StringToColor (OUT HSVColor &col, BasicStringView<T> str) __NE___
 	{
 		HashVal	u = HashOf( str );
 		//float	h = (float(usize(u) & 0xFF) / float(0xFF));
@@ -96,7 +96,7 @@ namespace _hidden_
 	}
 	
 	template <typename T>
-	inline void  StringToColor (OUT RGBA32f &col, BasicStringView<T> str) __NE___
+	void  StringToColor (OUT RGBA32f &col, BasicStringView<T> str) __NE___
 	{
 		HSVColor	hsv;
 		StringToColor( OUT hsv, str );
@@ -104,11 +104,34 @@ namespace _hidden_
 	}
 	
 	template <typename T>
-	inline void  StringToColor (OUT RGBA8u &col, BasicStringView<T> str) __NE___
+	void  StringToColor (OUT RGBA8u &col, BasicStringView<T> str) __NE___
 	{
 		RGBA32f	rgba;
 		StringToColor( OUT rgba, str );
 		col = RGBA8u{ rgba };
+	}
+
+/*
+=================================================
+	IntToColor
+=================================================
+*/
+	template <typename T>
+	void  IntToColor (OUT RGBA32f &col, const T value) __NE___
+	{
+		STATIC_ASSERT( IsInteger<T> );
+		
+		HashVal	u = HashOf( value );
+		float	h = float(u.Cast<ushort>() & 0xFF) / float(0xFF);
+		col = RGBA32f{ HSVColor{ h * 0.74f }};
+	}
+
+	template <typename T>
+	void  IntToColor (OUT RGBA8u &col, const T value) __NE___
+	{
+		RGBA32f	tmp;
+		IntToColor( OUT tmp, value );
+		col = RGBA8u{ tmp };
 	}
 
 

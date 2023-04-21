@@ -19,16 +19,36 @@ namespace AE::Base
 		Unknown	= 0xFF,
 	};
 
+	enum class ECPUVendor : ubyte
+	{
+		Unknown,
+		AMD,
+		ARM,
+		Apple,
+		Intel,
+		Qualcomm,
+		Broadcom,
+		Cavium,
+		Fujitsu,
+		HiSilicon,
+		NVidia,
+		AppliedMicro,
+		Samsung,
+		Marvell,
+		HuaxintongSemiconductor,
+		Ampere,
+	};
+
 	enum class ECoreType : ubyte
 	{
-		// Android: Cortex X1
+		// ARM: Cortex X1, X2
 		HighPerformance,
 
-		// Android: Cortex A72 - A78
+		// ARM: Cortex A72 - A78
 		// All cores on x64 type processors.
 		Performance,
 
-		// Android: Cortex A52 - A57
+		// ARM: Cortex A52 - A57
 		// E-cores on new Intel processors.
 		EnergyEfficient,
 
@@ -49,7 +69,7 @@ namespace AE::Base
 	struct CpuArchInfo
 	{
 	// types
-	private:
+	public:
 		struct Features
 		{
 		// x86-x64 features
@@ -59,6 +79,7 @@ namespace AE::Base
 
 			bool	SSE2		: 1;	// AE_SIMD_SSE 20
 			bool	SSE3		: 1;	// AE_SIMD_SSE 30
+			bool	SSSE3		: 1;	// AE_SIMD_SSE 31
 			bool	SSE41		: 1;	// AE_SIMD_SSE 41
 			bool	SSE42		: 1;	// AE_SIMD_SSE 42
 
@@ -70,34 +91,67 @@ namespace AE::Base
 			bool	SHA128		: 1;
 			bool	SHA256		: 1;
 			bool	SHA512		: 1;
+			bool	SHA3		: 1;
 
 		// ARM features
 			bool	NEON		: 1;	// AE_SIMD_NEON
 			bool	NEON_fp16	: 1;
 			bool	NEON_hpfp	: 1;	// half precission
+			bool	SVE			: 1;
+			bool	SVE2		: 1;
+			bool	SVEAES		: 1;
 
 		// shared features
 			bool	CmpXchg16	: 1;	// 128 bit atomic compare exchange
 		};
+		
+		struct CacheGeom
+		{
+			uint		lineSize		: 16;	// bytes
+			uint		associativity	: 16;
+			Bytes32u	size;
 
+			CacheGeom () : lineSize{0}, associativity{0} {}
+		};
+
+		struct CacheInfo
+		{
+			CacheGeom	L1_Inst;
+			CacheGeom	L1_Data;
+			CacheGeom	L2;
+			CacheGeom	L3;
+		};
+
+		using MHz_t				= uint;
 		using CoreBits_t		= BitSet< 256 >;
 		static constexpr uint	MaxCores	= 4;
+
 
 		struct Core
 		{
 			FixedString<64>	name;
 			ECoreType		type			= Default;
-			uint			baseClock		= 0;	// MHz
-			uint			maxClock		= 0;	// MHz
+			MHz_t			baseClock		= 0;
+			MHz_t			maxClock		= 0;
 			CoreBits_t		logicalBits		= {};
 			CoreBits_t		physicalBits	= {};
 
-			Core () __NE___ = default;
+			Core ()							__NE___ = default;
+
+			ND_ uint  LogicalCount ()		C_NE___	{ return uint(logicalBits.count()); }
+			ND_ uint  PhysicalCount ()		C_NE___	{ return uint(physicalBits.count()); }
+			
+			ND_ bool  HasVirtualCores ()	C_NE___	{ return logicalBits != physicalBits; }
+
+			ND_ uint  FirstLogicalCore ()	C_NE___	{ return BitScanForward( logicalBits.to_ullong() ); }
+			ND_ uint  LastLogicalCore ()	C_NE___	{ return BitScanReverse( logicalBits.to_ullong() ); }
 		};
 		using Cores_t	= FixedArray< Core, MaxCores >;
 
+
 		struct Processor
 		{
+			ECPUVendor		vendor				= Default;
 			ECPUArch		arch				= Default;
 			uint			physicalCoreCount	= 0;
 			uint			logicalCoreCount	= 0;
@@ -109,17 +163,22 @@ namespace AE::Base
 	public:
 		Features	feats	= {};
 		Processor	cpu		= {};
+		CacheInfo	cache	= {};
 
 
 	// methods
 	private:
 		CpuArchInfo ();
 
-	public:
-		ND_ String  Print ()			C______;
-		ND_ bool	IsGLMSupported ()	C_NE___;
+		void  _Validate ();
 
-		ND_ static CpuArchInfo const&  Get ();
+	public:
+		ND_ String		Print ()					C_NE___;
+		ND_ bool		IsGLMSupported ()			C_NE___;
+
+		ND_ Core const*	GetCore (uint idx)			C_NE___;
+
+		ND_ static CpuArchInfo const&  Get ()		__NE___;
 	};
 
 
@@ -130,12 +189,16 @@ namespace AE::Base
 
 	struct CpuPerformance
 	{
-		// TODO:
-		//	- frequency
-		//	- temperature
+	// types
+		using MHz_t	= uint;
+		
+
+	// methods
+		ND_ static MHz_t  GetFrequency (uint core)										__NE___;
+			static uint   GetFrequency (OUT MHz_t* result, uint maxCount)				__NE___;
+
+			static uint   GetUsage (OUT float* user, OUT float* kernel, uint maxCount)	__NE___;
 	};
 
-	
-	template <> struct TZeroMemAvailable< CpuArchInfo > { static constexpr bool  value = true; };
 
 } // AE::Base

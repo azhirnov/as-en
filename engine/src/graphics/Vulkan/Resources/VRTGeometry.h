@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/BufferDesc.h"
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Public/IDs.h"
@@ -25,7 +24,7 @@ namespace AE::Graphics
 		VkBuffer					_buffer			= Default;
 		RTGeometryDesc				_desc;
 		
-		Strong<VMemoryID>			_memoryId;
+		Strong<MemoryID>			_memoryId;
 		
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
@@ -42,7 +41,7 @@ namespace AE::Graphics
 		ND_ VkAccelerationStructureKHR	Handle ()																			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _accelStruct; }
 		ND_ VDeviceAddress				GetDeviceAddress ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _address; }
 		ND_ RTGeometryDesc const&		Description ()																		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ VMemoryID					MemoryID ()																			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ MemoryID					MemoryID ()																			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 		ND_ bool						IsExclusiveSharing ()																C_NE___	{ return false; }
 		
 		DEBUG_ONLY(  ND_ StringView		GetDebugName ()																		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })

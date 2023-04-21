@@ -96,6 +96,7 @@ namespace AE::Graphics::_hidden_
 		using RawCtx		= CtxImpl;
 		using AccumBar		= VAccumBarriers< _VASBuildContextImpl< CtxImpl >>;
 		using DeferredBar	= VAccumDeferredBarriersForCtx< _VASBuildContextImpl< CtxImpl >>;
+		using Validator_t	= ASBuildContextValidation;
 
 
 	// methods
@@ -392,16 +393,17 @@ namespace AE::Graphics::_hidden_
 		
 		RawCtx::_WriteProperty( src_as.Handle(), query );
 
-		return Threading::MakePromise( [query] () -> Threading::PromiseResult<Bytes>
+		return Threading::MakePromise(	[query] () -> Threading::PromiseResult<Bytes>
 										{
-											auto&	rts			= RenderTaskScheduler();
-											auto&	query_mngr	= rts.GetQueryManager();
+											auto&	query_mngr	= RenderTaskScheduler().GetQueryManager();
 											Bytes	size;
-											CHECK_PE( query_mngr.GetRTASProperty( rts.GetDevice(), query, OUT &size, Sizeof(size) ));
+											CHECK_PE( query_mngr.GetRTASProperty( query, OUT &size, Sizeof(size) ));
 											return size;
 										},
-										Tuple{ this->_mngr.GetBatchRC() }
-									  );
+										Tuple{ this->_mngr.GetBatchRC() },
+										"VASBuildContext::ReadProperty",
+										ETaskQueue::Renderer
+									 );
 	}
 	
 /*
@@ -428,8 +430,7 @@ namespace AE::Graphics::_hidden_
 	void  _VASBuildContextImpl<C>::SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)
 	{
 		auto&	dst_buf	= _GetResourcesOrThrow( dst );
-		ASSERT( dst_buf.Size() > dstOffset );
-		ASSERT( dst_buf.HasDeviceAddress() );	// TODO: throw?
+		Validator_t::SerializeToMemory( dst_buf, dstOffset );
 
 		return SerializeToMemory( src, dst_buf.GetDeviceAddress() + dstOffset );
 	}
@@ -453,8 +454,7 @@ namespace AE::Graphics::_hidden_
 	void  _VASBuildContextImpl<C>::SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)
 	{
 		auto&	dst_buf	= _GetResourcesOrThrow( dst );
-		ASSERT( dst_buf.Size() > dstOffset );
-		ASSERT( dst_buf.HasDeviceAddress() );	// TODO: throw?
+		Validator_t::SerializeToMemory( dst_buf, dstOffset );
 
 		return SerializeToMemory( src, dst_buf.GetDeviceAddress() + dstOffset );
 	}
@@ -483,8 +483,7 @@ namespace AE::Graphics::_hidden_
 	void  _VASBuildContextImpl<C>::DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)
 	{
 		auto&	src_buf	= _GetResourcesOrThrow( src );
-		ASSERT( src_buf.Size() > srcOffset );
-		ASSERT( src_buf.HasDeviceAddress() );	// TODO: throw?
+		Validator_t::SerializeToMemory( src_buf, srcOffset );
 
 		return SerializeToMemory( src_buf.GetDeviceAddress() + srcOffset, dst );
 	}
@@ -508,8 +507,7 @@ namespace AE::Graphics::_hidden_
 	void  _VASBuildContextImpl<C>::DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)
 	{
 		auto&	src_buf	= _GetResourcesOrThrow( src );
-		ASSERT( src_buf.Size() > srcOffset );
-		ASSERT( src_buf.HasDeviceAddress() );	// TODO: throw?
+		Validator_t::SerializeToMemory( src_buf, srcOffset );
 
 		return SerializeToMemory( src_buf.GetDeviceAddress() + srcOffset, dst );
 	}

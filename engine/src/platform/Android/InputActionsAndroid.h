@@ -28,31 +28,30 @@ namespace AE::App
 	// variables
 	private:
 		DubleBufferedQueue	_dbQueue;
-
-		float2				_toSNorm;
-		float2				_pixToMm;
 		
 		GestureRecognizer	_gestureRecognizer;
 
 		
 	// methods
 	public:
-		InputActionsAndroid ()																		__NE___	: InputActionsBase{_dbQueue} {}
+		InputActionsAndroid ()																		__NE___;
 		
-		void  SetKey (int key, EGestureState state)													__NE___;
+		void  SetKey (int key, EGestureState state, Duration_t timestamp, uint count)				__NE___;
 		void  SetTouch (uint touchId, float x, float y, EGestureState state, Duration_t timestamp)	__NE___;
 		void  SetMonitor (const uint2 &surfaceSize, const Monitor &)								__NE___;
 
 		void  SetQueue (DubleBufferedQueue *)														__NE___;
+		
+		void  Update (Duration_t timeSinceStart)													__NE___;
 
 
 	// IInputActions //
-		bool  LoadSerialized (MemRefRStream &stream)	__NE_OV;
+		bool  LoadSerialized (MemRefRStream &stream)												__NE_OV;
 		
 
 	// ISerializable //
-		bool  Serialize (Serializing::Serializer &)		C_NE_OV;
-		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
+		bool  Serialize (Serializing::Serializer &)													C_NE_OV;
+		bool  Deserialize (Serializing::Deserializer &)												__NE_OV;
 
 
 	private:

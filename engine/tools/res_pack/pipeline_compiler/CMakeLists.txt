@@ -21,7 +21,7 @@ if (TARGET "GLSLang-lib")
 	source_group( "external/graphics" FILES ${GRAPHICS_SRC} )
 
 	target_link_libraries( "PipelineCompiler" PUBLIC "Serializing" "Scripting" )
-	target_compile_definitions( "PipelineCompiler" PRIVATE "AE_BUILD_PIPELINE_COMPILER" "AE_TEST_PIPELINE_COMPILER" "AE_OPTIMIZE_IDS=0" )
+	target_compile_definitions( "PipelineCompiler" PRIVATE "AE_BUILD_PIPELINE_COMPILER" "AE_TEST_PIPELINE_COMPILER" )
 	target_include_directories( "PipelineCompiler" PUBLIC "." )
 
 	if (WIN32)

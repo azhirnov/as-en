@@ -1,7 +1,7 @@
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'CopyImage2 |0| Copy image task'
 {
   BeginDebugLabel
     name:  'CopyImage2 |0| Copy image task'
@@ -85,7 +85,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'CopyImage2 |0| Copy image task'

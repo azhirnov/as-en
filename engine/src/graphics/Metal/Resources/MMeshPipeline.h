@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "graphics/Metal/Resources/MPipelinePack.h"
 
 namespace AE::Graphics
@@ -22,7 +21,7 @@ namespace AE::Graphics
 			MPipelinePack const&								pplnPack;
 			PipelineCompiler::SerializableMeshPipeline const&	templCI;
 			MeshPipelineDesc const&								specCI;
-			MPipelineLayoutID									layoutId;
+			PipelineLayoutID									layoutId;
 			ArrayView< MPipelinePack::ShaderModuleRef >			shaders;
 			PipelineCacheID										cacheId;
 			MPipelinePack::Allocator_t *						allocator		= null;
@@ -41,7 +40,7 @@ namespace AE::Graphics
 		EPipelineDynamicState		_dynamicState		= Default;
 		ubyte						_rasterOrderGroup	= UMax;
 		
-		Strong<MPipelineLayoutID>	_layoutId;
+		Strong<PipelineLayoutID>	_layoutId;
 		
 		DEBUG_ONLY(	DebugName_t		_debugName;	)
 		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
@@ -58,7 +57,7 @@ namespace AE::Graphics
 		ND_ MetalRenderPipeline			Handle ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _pipeline; }
 		ND_ MetalDepthStencilState		DepthStencilState ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dsState; }
 		ND_ MDynamicRenderState const&	GetRenderState ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderState; }
-		ND_ MPipelineLayoutID			LayoutID ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
+		ND_ PipelineLayoutID			LayoutID ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layoutId; }
 		ND_ EPipelineDynamicState		DynamicState ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dynamicState; }
 		ND_ uint						RasterOrderGroup ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _rasterOrderGroup; }
 

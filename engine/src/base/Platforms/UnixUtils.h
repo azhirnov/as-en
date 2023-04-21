@@ -9,6 +9,10 @@
 # include "base/Math/Bytes.h"
 # include "base/Utils/Helpers.h"
 # include "base/Utils/SourceLoc.h"
+# include "base/Utils/Threading.h"
+# include "base/Utils/Version.h"
+# include "base/Platforms/CPUInfo.h"
+# include "base/Containers/NtStringView.h"
 
 namespace AE::Base
 {

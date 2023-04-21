@@ -12,6 +12,9 @@ namespace AE::Graphics
 		Graphics,			// also supports compute and transfer commands
 		AsyncCompute,		// separate compute queue
 		AsyncTransfer,		// separate transfer queue
+		VideoEncode,
+		VideoDecode,
+
 		// TODO:
 		//	- async ray tracing
 		//	- async graphics (Metal)
@@ -26,7 +29,9 @@ namespace AE::Graphics
 		Graphics		= 1 << uint(EQueueType::Graphics),
 		AsyncCompute	= 1 << uint(EQueueType::AsyncCompute),
 		AsyncTransfer	= 1 << uint(EQueueType::AsyncTransfer),
-		All				= Graphics | AsyncCompute | AsyncTransfer,
+		VideoEncode		= 1 << uint(EQueueType::VideoEncode),
+		VideoDecode		= 1 << uint(EQueueType::VideoDecode),
+		All				= Graphics | AsyncCompute | AsyncTransfer | VideoEncode | VideoDecode,
 		Unknown			= 0,
 	};
 	AE_BIT_OPERATORS( EQueueMask );

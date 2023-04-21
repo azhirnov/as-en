@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	// include:
 	//	PowerVR Rogue GE8320 driver 1.386.1368 on Android 11.0
@@ -94,6 +95,8 @@ void main ()
 	fset.minComputeWorkGroupSizeY (512);
 	fset.minComputeWorkGroupSizeZ (64);
 	fset.computeShader (True);
+	fset.vertexDivisor (True);
+	fset.minVertexAttribDivisor (4294967295);
 	fset.minVertexAttributes (16);
 	fset.minVertexBuffers (16);
 	fset.AddVertexFormats({

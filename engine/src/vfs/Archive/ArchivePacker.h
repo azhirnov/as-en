@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "base/Utils/NamedID_HashCollisionCheck.h"
 #include "vfs/Archive/ArchiveStaticStorage.h"
 
 namespace AE::VFS
@@ -33,7 +34,7 @@ namespace AE::VFS
 		Path			_tempFile;
 		RC<WStream>		_archive;
 
-		NamedID_HashCollisionCheck	_hasCollisionCheck;
+		NamedID_HashCollisionCheck	_hashCollisionCheck;
 		
 		DRC_ONLY(
 			DataRaceCheck	_drCheck;
@@ -54,10 +55,15 @@ namespace AE::VFS
 		ND_ bool  Add (const FileName::WithString_t &name, RStream &stream, EFileType type);
 		ND_ bool  Add (const FileName::WithString_t &name, const Path &filename, EFileType type);
 
+		ND_ bool  AddArchive (const Path &filename);
+		ND_ bool  AddArchive (RC<RDataSource> archive);
+
 	private:
 		ND_ bool  _AddFile (FileName::Optimized_t name, const FileInfo &info);
 		ND_ bool  _Store (WStream &dstStream, Bytes archiveSize);
 		ND_ uint  _BrotliCompression (RStream &stream, const FileName::WithString_t &name, FileInfo &info, Bytes startPos, Bytes size);
+
+		ND_ bool  _AddArchive (ArchiveStaticStorage &);
 	};
 
 

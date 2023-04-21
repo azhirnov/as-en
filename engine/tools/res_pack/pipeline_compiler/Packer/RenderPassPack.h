@@ -227,6 +227,8 @@ namespace AE::PipelineCompiler
 		struct Subpass final : SubpassShaderIO
 		{
 			ubyte	subpassIndex	= UMax;
+			bool	hasDepth		= false;
+			bool	hasStencil		= false;
 
 			// ISerializable
 			bool  Serialize (Serializing::Serializer &)		C_NE_OV;
@@ -239,16 +241,16 @@ namespace AE::PipelineCompiler
 
 
 	private:
-		using Attachments_t	= FixedMap< AttachmentName::Optimized_t, ubyte, GraphicsConfig::MaxAttachments >;
-		using Subpasses_t	= FixedMap< SubpassName::Optimized_t, Subpass, GraphicsConfig::MaxSubpasses >;
-		using FeatureSets_t	= FixedSet< FeatureSetName::Optimized_t, 8 >;
+		using AttachmentNameToIdx_t	= FixedMap< AttachmentName::Optimized_t, ubyte, GraphicsConfig::MaxAttachments >;
+		using SubpassShaderIO_t		= FixedMap< SubpassName::Optimized_t, Subpass, GraphicsConfig::MaxSubpasses >;
+		using FeatureSets_t			= FixedSet< FeatureSetName::Optimized_t, 8 >;
 
 
 	// variables
 	public:
 		CompatRenderPassName::Optimized_t	name;
-		Attachments_t						attachments;
-		Subpasses_t							subpasses;
+		AttachmentNameToIdx_t				attachments;
+		SubpassShaderIO_t					subpasses;
 		FeatureSets_t						features;
 
 

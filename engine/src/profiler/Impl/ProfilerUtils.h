@@ -9,6 +9,7 @@
 #ifdef AE_ENABLE_IMGUI
 # include "profiler/ImGui/ImColumnHistoryDiagram.h"
 # include "profiler/ImGui/ImTaskRangeHorDiagram.h"
+# include "profiler/ImGui/ImLineGraph.h"
 #endif
 
 namespace AE::Profiler
@@ -51,8 +52,8 @@ namespace AE::Profiler
 		ND_ usize			CurrentThreadID ()	const	{ return ThreadUtils::GetIntID(); }
 		ND_ uint			CoreIndex ()		const	{ return ThreadUtils::GetCoreIndex(); }
 
-		ND_ secondsf		CurrentTime ()		const	{ return std::chrono::duration_cast<secondsf>( TimePoint_t::clock::now() - _startTime ); }
-		ND_ nanosecondsd	CurrentTimeNano ()	const	{ return std::chrono::duration_cast<nanosecondsd>( TimePoint_t::clock::now() - _startTime ); }
+		ND_ secondsf		CurrentTime ()		const	{ return Cast<secondsf>( TimePoint_t::clock::now() - _startTime ); }
+		ND_ nanosecondsd	CurrentTimeNano ()	const	{ return Cast<nanosecondsd>( TimePoint_t::clock::now() - _startTime ); }
 	};
 
 

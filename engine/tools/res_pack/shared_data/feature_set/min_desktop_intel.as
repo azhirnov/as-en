@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	// include:
 	//	Intel(R) UHD Graphics 620.json
@@ -148,6 +149,8 @@ void main ()
 	fset.geometryShader (True);
 	fset.tessellationShader (True);
 	fset.computeShader (True);
+	fset.vertexDivisor (True);
+	fset.minVertexAttribDivisor (0xfffffff);
 	fset.minVertexAttributes (28);
 	fset.minVertexBuffers (28);
 	fset.AddVertexFormats({

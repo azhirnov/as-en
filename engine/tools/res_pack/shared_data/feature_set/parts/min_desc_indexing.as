@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	// include:
 	//	Intel(R) UHD Graphics 620.json
@@ -31,6 +32,7 @@ void main ()
 	//	Mali-G71 driver 575.795.1934 on Android 7.1
 	//	Mali-G52 MC2 driver 26.0.0 on Android 11.0
 	//	Adreno (TM) 730 driver 512.615.0 on Android 12.0
+	//	rockchip orangepi5 driver 12.0.0 on Android 12.0
 	//	Mali-G72 driver 26.0.0 on Android 11.0
 	//	Mali-G76 driver 32.1.0 on Android 12.0
 	//	Samsung Xclipse 920 driver 2.0.0 on Android 12.0

@@ -33,10 +33,10 @@ namespace AE::Graphics
 
 	// variables
 	protected:
-		Atomic<uint>	_ready;		// 1 - commands recording have been completed and added to pool
-		Atomic<uint>	_cmdTypes;	// 0 - vulkan cmd buffer, 1 - backed commands
-		Atomic<uint>	_counter;	// index in '_pool'
-		Atomic<uint>	_count;		// number of commands in '_pool'
+		Atomic<uint>	_ready		{0};	// 1 - commands recording have been completed and added to pool
+		Atomic<uint>	_cmdTypes	{0};	// 0 - vulkan cmd buffer, 1 - backed commands
+		Atomic<uint>	_counter	{0};	// index in '_pool'
+		Atomic<uint>	_count		{0};	// number of commands in '_pool'
 		Pool_t			_pool;
 
 		// don't use 'UMax' because after ++ it will be 0 - valid value again.
@@ -228,14 +228,16 @@ namespace AE::Graphics
 	{
 		DRC_EXLOCK( _drCheck );
 
-		DEBUG_ONLY({
+		#ifdef AE_DEBUG
+		{
 			uint	types = _cmdTypes.load();
 			while ( types != 0 )
 			{
 				int	i = ExtractBitLog2( INOUT types );
 				ASSERT( not _pool[i].baked.IsValid() );
 			}
-		})
+		}
+		#endif
 
 		_ready.store( 0 );
 		_cmdTypes.store( 0 );

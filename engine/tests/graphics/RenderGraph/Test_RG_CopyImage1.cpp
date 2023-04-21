@@ -47,7 +47,7 @@ namespace
 
 			Bytes	copied;
 			CHECK_TE( upload_mem.Copy( t.img_view, OUT copied ) and
-					  copied == t.img_view.ImageSize() );
+					  copied == t.img_view.Image2DSize() );
 
 			ctx.AccumBarriers()
 				.ImageBarrier( t.img_1, EResourceState::CopyDst, EResourceState::CopySrc )

@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/ResourceEnums.h"
 # include "graphics/Public/RenderStateEnums.h"
 # include "graphics/Public/ShaderEnums.h"
@@ -12,6 +11,9 @@
 # include "graphics/Public/VertexEnums.h"
 # include "graphics/Public/PipelineDesc.h"
 # include "graphics/Public/RayTracingEnums.h"
+# include "graphics/Public/QueryManager.h"
+# include "graphics/Public/VideoEnums.h"
+# include "graphics/Public/SamplerDesc.h"
 # include "graphics/Private/EnumUtils.h"
 # include "graphics/Private/PixelFormatDefines.h"
 # include "graphics/Vulkan/VCommon.h"
@@ -145,7 +147,7 @@ namespace AE::Graphics
 */
 	ND_ inline VkFormat  VEnumCast (EVertexType value) __NE___
 	{
-	#define FMT_BUILDER( _engineFmt_, _vkFormat_ ) \
+	#define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
 			case EVertexType::_engineFmt_ : return _vkFormat_;
 
 		switch ( value )
@@ -448,6 +450,8 @@ namespace AE::Graphics
 				case EImageOpt::SampleLocationsCompatible :		flags |= VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT;					break;
 				case EImageOpt::Subsampled :					flags |= VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT;										break;
 					
+				case EImageOpt::BlitSrc :
+				case EImageOpt::BlitDst :
 				case EImageOpt::StorageAtomic :
 				case EImageOpt::ColorAttachmentBlend :
 				case EImageOpt::SampledLinear :
@@ -512,6 +516,29 @@ namespace AE::Graphics
 
 /*
 =================================================
+	AEEnumCast (VkImageViewType)
+=================================================
+*/
+	ND_ inline EImage  AEEnumCast (VkImageViewType value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case VK_IMAGE_VIEW_TYPE_1D :			return EImage_1D;
+			case VK_IMAGE_VIEW_TYPE_1D_ARRAY :		return EImage_1DArray;
+			case VK_IMAGE_VIEW_TYPE_2D :			return EImage_2D;
+			case VK_IMAGE_VIEW_TYPE_2D_ARRAY :		return EImage_2DArray;
+			case VK_IMAGE_VIEW_TYPE_CUBE :			return EImage_Cube;
+			case VK_IMAGE_VIEW_TYPE_CUBE_ARRAY :	return EImage_CubeArray;
+			case VK_IMAGE_VIEW_TYPE_3D :			return EImage_3D;
+			case VK_IMAGE_VIEW_TYPE_MAX_ENUM :		break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unsupported image view type" );
+	}
+
+/*
+=================================================
 	VEnumCast (EImageUsage)
 =================================================
 */
@@ -572,10 +599,51 @@ namespace AE::Graphics
 				case EImageAspect::Depth :		flags |= VK_IMAGE_ASPECT_DEPTH_BIT;		break;
 				case EImageAspect::Stencil :	flags |= VK_IMAGE_ASPECT_STENCIL_BIT;	break;
 				case EImageAspect::Metadata :	flags |= VK_IMAGE_ASPECT_METADATA_BIT;	break;
+				case EImageAspect::Plane_0 :	flags |= VK_IMAGE_ASPECT_PLANE_0_BIT;	break;
+				case EImageAspect::Plane_1 :	flags |= VK_IMAGE_ASPECT_PLANE_1_BIT;	break;
+				case EImageAspect::Plane_2 :	flags |= VK_IMAGE_ASPECT_PLANE_2_BIT;	break;
 				case EImageAspect::_Last :
 				case EImageAspect::DepthStencil :
 				case EImageAspect::Unknown :	// to shutup warnings
 				default :						RETURN_ERR( "invalid image aspect type", Zero );
+			}
+			END_ENUM_CHECKS();
+		}
+		ASSERT( flags != Zero );
+		return flags;
+	}
+
+/*
+=================================================
+	AEEnumCast (VkImageAspectFlagBits)
+=================================================
+*/
+	ND_ inline EImageAspect  AEEnumCast (VkImageAspectFlagBits values) __NE___
+	{
+		EImageAspect	flags = Zero;
+		
+		while ( values != Zero )
+		{
+			VkImageAspectFlagBits	t = ExtractBit( INOUT values );
+			
+			BEGIN_ENUM_CHECKS();
+			switch ( t )
+			{
+				case VK_IMAGE_ASPECT_COLOR_BIT :				flags |= EImageAspect::Color;		break;
+				case VK_IMAGE_ASPECT_DEPTH_BIT :				flags |= EImageAspect::Depth;		break;
+				case VK_IMAGE_ASPECT_STENCIL_BIT :				flags |= EImageAspect::Stencil;		break;
+				case VK_IMAGE_ASPECT_METADATA_BIT :				flags |= EImageAspect::Metadata;	break;
+				case VK_IMAGE_ASPECT_PLANE_0_BIT :				flags |= EImageAspect::Plane_0;		break;
+				case VK_IMAGE_ASPECT_PLANE_1_BIT :				flags |= EImageAspect::Plane_1;		break;
+				case VK_IMAGE_ASPECT_PLANE_2_BIT :				flags |= EImageAspect::Plane_2;		break;
+
+				case VK_IMAGE_ASPECT_NONE :
+				case VK_IMAGE_ASPECT_MEMORY_PLANE_0_BIT_EXT :
+				case VK_IMAGE_ASPECT_MEMORY_PLANE_1_BIT_EXT :
+				case VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT :
+				case VK_IMAGE_ASPECT_MEMORY_PLANE_3_BIT_EXT :
+				case VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM :
+				default :										RETURN_ERR( "invalid image aspect type", Zero );
 			}
 			END_ENUM_CHECKS();
 		}
@@ -880,7 +948,7 @@ namespace AE::Graphics
 */
 	ND_ inline VkFormat  VEnumCast (EPixelFormat value) __NE___
 	{
-#		define FMT_BUILDER( _engineFmt_, _vkFormat_ ) \
+#		define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
 			case EPixelFormat::_engineFmt_ : return _vkFormat_;
 		
 		BEGIN_ENUM_CHECKS();
@@ -894,7 +962,6 @@ namespace AE::Graphics
 		END_ENUM_CHECKS();
 
 #		undef FMT_BUILDER
-
 		RETURN_ERR( "invalid pixel format", VK_FORMAT_MAX_ENUM );
 	}
 	
@@ -905,7 +972,7 @@ namespace AE::Graphics
 */
 	ND_ inline EPixelFormat  AEEnumCast (VkFormat value) __NE___
 	{
-#		define FMT_BUILDER( _engineFmt_, _vkFormat_ ) \
+#		define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
 			case _vkFormat_ : return EPixelFormat::_engineFmt_;
 		
 		switch ( value )
@@ -914,8 +981,8 @@ namespace AE::Graphics
 		}
 
 #		undef FMT_BUILDER
-
-		RETURN_ERR( "invalid pixel format" );
+		//RETURN_ERR( "invalid pixel format" );
+		return Default;
 	}
 
 /*
@@ -943,10 +1010,11 @@ namespace AE::Graphics
 	AEEnumCast (VkImageUsageFlagBits)
 =================================================
 */
-	inline void  AEEnumCast (VkImageUsageFlagBits usage, OUT EImageUsage& outUsage, OUT EMemoryType& outMemType) __NE___
+	inline void  AEEnumCast (VkImageUsageFlagBits usage, OUT EImageUsage& outUsage, OUT EMemoryType& outMemType, OUT EVideoImageUsage &outVideoUsage) __NE___
 	{
-		outUsage	= Default;
-		outMemType	= Default;
+		outUsage		= Default;
+		outVideoUsage	= Default;
+		outMemType		= Default;
 		
 		STATIC_ASSERT( uint(EImageUsage::All) == 0x1FF );
 		while ( usage != Zero )
@@ -969,13 +1037,14 @@ namespace AE::Graphics
 					outUsage	|= EImageUsage::ColorAttachment | EImageUsage::DepthStencilAttachment | EImageUsage::InputAttachment;
 					outMemType	|= EMemoryType::Transient;
 					break;
+					
+				case VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR :		outVideoUsage |= EVideoImageUsage::DecodeDpb;		break;
+				case VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR :		outVideoUsage |= EVideoImageUsage::DecodeDst;		break;
+				case VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR :		outVideoUsage |= EVideoImageUsage::DecodeSrc;		break;
+				case VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR :		outVideoUsage |= EVideoImageUsage::EncodeDpb;		break;
+				case VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR :		outVideoUsage |= EVideoImageUsage::EncodeDst;		break;
+				case VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR :		outVideoUsage |= EVideoImageUsage::EncodeSrc;		break;
 
-				case VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR :
-				case VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR :
-				case VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR :
-				case VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR :
-				case VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR :
-				case VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR :
 				case VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI:
 				case VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT :
 				case VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM :
@@ -985,6 +1054,12 @@ namespace AE::Graphics
 			}
 			END_ENUM_CHECKS();
 		}
+	}
+
+	inline void  AEEnumCast (VkImageUsageFlagBits usage, OUT EImageUsage& outUsage, OUT EMemoryType& outMemType) __NE___
+	{
+		EVideoImageUsage	vusage;
+		AEEnumCast( usage, OUT outUsage, OUT outMemType, OUT vusage );
 	}
 	
 /*
@@ -1010,7 +1085,7 @@ namespace AE::Graphics
 	{
 		EImageOpt	result = Zero;
 		
-		STATIC_ASSERT( uint(EImageOpt::All) == 0xFFFF );
+		STATIC_ASSERT( uint(EImageOpt::All) == 0x3FFFF );
 		while ( values != Zero )
 		{
 			VkImageCreateFlagBits	t = ExtractBit( INOUT values );
@@ -1028,11 +1103,12 @@ namespace AE::Graphics
 				case VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT :				result |= EImageOpt::BlockTexelViewCompatible;	break;
 				case VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT :	result |= EImageOpt::SampleLocationsCompatible;	break;
 
+				case VK_IMAGE_CREATE_DISJOINT_BIT :									break;	// skip
+
 				case VK_IMAGE_CREATE_SPARSE_BINDING_BIT :
 				case VK_IMAGE_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT :
 				case VK_IMAGE_CREATE_EXTENDED_USAGE_BIT :
 				case VK_IMAGE_CREATE_PROTECTED_BIT :
-				case VK_IMAGE_CREATE_DISJOINT_BIT :
 				case VK_IMAGE_CREATE_FLAG_BITS_MAX_ENUM :
 				case VK_IMAGE_CREATE_CORNER_SAMPLED_BIT_NV :
 				case VK_IMAGE_CREATE_2D_VIEW_COMPATIBLE_BIT_EXT :
@@ -1040,8 +1116,7 @@ namespace AE::Graphics
 				case VK_IMAGE_CREATE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_BIT_EXT :
 				case VK_IMAGE_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT :
 
-				default :
-					RETURN_ERR( "unsupported image create flags" );
+				default :															RETURN_ERR( "unsupported image create flags" );
 			}
 			END_ENUM_CHECKS();
 		}
@@ -1206,6 +1281,7 @@ namespace AE::Graphics
 				case VK_SHADER_STAGE_TASK_BIT_EXT :					result |= EShaderStages::MeshTask;			break;
 				case VK_SHADER_STAGE_MESH_BIT_EXT :					result |= EShaderStages::Mesh;				break;
 				case VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI :	result |= EShaderStages::Tile;				break;
+				case VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI :	// TODO
 				case VK_SHADER_STAGE_ALL_GRAPHICS :
 				case VK_SHADER_STAGE_ALL :
 				default :											RETURN_ERR( "unknown shader stage" );		break;
@@ -1493,6 +1569,418 @@ namespace AE::Graphics
 		}
 		END_ENUM_CHECKS();
 		RETURN_ERR( "unknown query type", VK_QUERY_TYPE_MAX_ENUM );
+	}
+
+/*
+=================================================
+	VEnumCast (EVideoCodec)
+=================================================
+*/
+	ND_ inline VkVideoCodecOperationFlagBitsKHR  VEnumCast (EVideoCodecMode mode, EVideoCodec codec)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( mode )
+		{
+			case EVideoCodecMode::Decode :
+				switch ( codec )
+				{
+					case EVideoCodec::H264 :	return VK_VIDEO_CODEC_OPERATION_DECODE_H264_BIT_KHR;
+					case EVideoCodec::H265 :	return VK_VIDEO_CODEC_OPERATION_DECODE_H265_BIT_KHR;
+
+					case EVideoCodec::GIF :
+					case EVideoCodec::MPEG4 :
+					case EVideoCodec::WEBP :
+					case EVideoCodec::VP8 :
+					case EVideoCodec::VP9 :
+					case EVideoCodec::AV1 :
+					case EVideoCodec::_Count :
+					case EVideoCodec::Unknown :
+					default :
+						RETURN_ERR( "unsupported EVideoCodec for Decode mode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
+				}
+				break;
+
+			case EVideoCodecMode::Encode :
+				switch ( codec )
+				{
+					case EVideoCodec::H264 :	return VK_VIDEO_CODEC_OPERATION_ENCODE_H264_BIT_EXT;
+					case EVideoCodec::H265 :	return VK_VIDEO_CODEC_OPERATION_ENCODE_H265_BIT_EXT;
+
+					case EVideoCodec::GIF :
+					case EVideoCodec::MPEG4 :
+					case EVideoCodec::WEBP :
+					case EVideoCodec::VP8 :
+					case EVideoCodec::VP9 :
+					case EVideoCodec::AV1 :
+					case EVideoCodec::_Count :
+					case EVideoCodec::Unknown :
+					default :
+						RETURN_ERR( "unsupported EVideoCodec for Encode mode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
+				}
+				break;
+				
+			case EVideoCodecMode::_Count :
+			case EVideoCodecMode::Unknown :
+			default :
+				RETURN_ERR( "unsupported EVideoCodecMode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
+		}
+		END_ENUM_CHECKS();
+	}
+
+/*
+=================================================
+	VEnumCast (EVideoChromaSubsampling)
+=================================================
+*/
+	ND_ inline VkVideoChromaSubsamplingFlagBitsKHR  VEnumCast (EVideoChromaSubsampling value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EVideoChromaSubsampling::Monochrome :	return VK_VIDEO_CHROMA_SUBSAMPLING_MONOCHROME_BIT_KHR;
+			case EVideoChromaSubsampling::_420 :		return VK_VIDEO_CHROMA_SUBSAMPLING_420_BIT_KHR;
+			case EVideoChromaSubsampling::_422 :		return VK_VIDEO_CHROMA_SUBSAMPLING_422_BIT_KHR;
+			case EVideoChromaSubsampling::_444 :		return VK_VIDEO_CHROMA_SUBSAMPLING_444_BIT_KHR;
+			case EVideoChromaSubsampling::Unknown :
+			default :
+				RETURN_ERR( "unsupported EVideoChromaSubsampling", VK_VIDEO_CHROMA_SUBSAMPLING_INVALID_KHR );
+		}
+		END_ENUM_CHECKS();
+	}
+
+/*
+=================================================
+	VEnumCast_VideoComponentBitDepth
+=================================================
+*/
+	ND_ inline VkVideoComponentBitDepthFlagBitsKHR  VEnumCast_VideoComponentBitDepth (uint value)
+	{
+		switch ( value )
+		{
+			case 8 :	return VK_VIDEO_COMPONENT_BIT_DEPTH_8_BIT_KHR;
+			case 10 :	return VK_VIDEO_COMPONENT_BIT_DEPTH_10_BIT_KHR;
+			case 12 :	return VK_VIDEO_COMPONENT_BIT_DEPTH_12_BIT_KHR;
+		}
+		RETURN_ERR( "unsupported VideoComponentBitDepth", VK_VIDEO_COMPONENT_BIT_DEPTH_INVALID_KHR );
+	}
+
+/*
+=================================================
+	VEnumCast (EStdVideoH264ProfileIdc)
+=================================================
+*/
+	ND_ inline StdVideoH264ProfileIdc  VEnumCast (EStdVideoH264ProfileIdc value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EStdVideoH264ProfileIdc::Baseline :				return STD_VIDEO_H264_PROFILE_IDC_BASELINE;
+			case EStdVideoH264ProfileIdc::Main :					return STD_VIDEO_H264_PROFILE_IDC_MAIN;
+			case EStdVideoH264ProfileIdc::High :					return STD_VIDEO_H264_PROFILE_IDC_HIGH;
+			case EStdVideoH264ProfileIdc::Hight444_Predictive :		return STD_VIDEO_H264_PROFILE_IDC_HIGH_444_PREDICTIVE;
+
+			case EStdVideoH264ProfileIdc::_Count :
+			case EStdVideoH264ProfileIdc::Unknown :					break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unsupported StdVideoH264ProfileIdc", STD_VIDEO_H264_PROFILE_IDC_INVALID );
+	}
+
+/*
+=================================================
+	VEnumCast (EStdVideoH265ProfileIdc)
+=================================================
+*/
+	ND_ inline StdVideoH265ProfileIdc  VEnumCast (EStdVideoH265ProfileIdc value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EStdVideoH265ProfileIdc::Main :				return STD_VIDEO_H265_PROFILE_IDC_MAIN;
+			case EStdVideoH265ProfileIdc::Main10 :				return STD_VIDEO_H265_PROFILE_IDC_MAIN_10;
+			case EStdVideoH265ProfileIdc::MainStillPicture :	return STD_VIDEO_H265_PROFILE_IDC_MAIN_STILL_PICTURE;
+			case EStdVideoH265ProfileIdc::RangeExtensions :		return STD_VIDEO_H265_PROFILE_IDC_FORMAT_RANGE_EXTENSIONS;
+			case EStdVideoH265ProfileIdc::SCC_Extensions :		return STD_VIDEO_H265_PROFILE_IDC_SCC_EXTENSIONS;
+
+			case EStdVideoH265ProfileIdc::_Count :
+			case EStdVideoH265ProfileIdc::Unknown :				break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unsupported StdVideoH265ProfileIdc", STD_VIDEO_H265_PROFILE_IDC_INVALID );
+	}
+
+/*
+=================================================
+	VEnumCast (EVideoDecodeH264PictureLayout)
+=================================================
+*/
+	ND_ inline VkVideoDecodeH264PictureLayoutFlagBitsKHR  VEnumCast (EVideoDecodeH264PictureLayout value)
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EVideoDecodeH264PictureLayout::Progressive :					return VK_VIDEO_DECODE_H264_PICTURE_LAYOUT_PROGRESSIVE_KHR;
+			case EVideoDecodeH264PictureLayout::InterlacedInterleavedLines :	return VK_VIDEO_DECODE_H264_PICTURE_LAYOUT_INTERLACED_INTERLEAVED_LINES_BIT_KHR;
+			case EVideoDecodeH264PictureLayout::InterlacedSeparatePlanes :		return VK_VIDEO_DECODE_H264_PICTURE_LAYOUT_INTERLACED_SEPARATE_PLANES_BIT_KHR;
+
+			case EVideoDecodeH264PictureLayout::_Count :
+			case EVideoDecodeH264PictureLayout::Unknown :						break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unsupported VideoDecodeH264PictureLayout", VK_VIDEO_DECODE_H264_PICTURE_LAYOUT_FLAG_BITS_MAX_ENUM_KHR );
+	}
+
+/*
+=================================================
+	VEnumCast (EVideoBufferUsage)
+=================================================
+*/
+	ND_ inline VkBufferUsageFlagBits  VEnumCast (EVideoBufferUsage usage)
+	{
+		VkBufferUsageFlagBits	flags = Zero;
+		
+		while ( usage != Zero )
+		{
+			EVideoBufferUsage	t = ExtractBit( INOUT usage );
+			
+			BEGIN_ENUM_CHECKS();
+			switch ( t )
+			{
+				case EVideoBufferUsage::DecodeSrc :		flags |= VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR;	break;
+				case EVideoBufferUsage::DecodeDst :		flags |= VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR;	break;
+		
+				case EVideoBufferUsage::EncodeSrc :		flags |= VK_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR;	break;
+				case EVideoBufferUsage::EncodeDst :		flags |= VK_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR;	break;
+
+				case EVideoBufferUsage::_Last :
+				case EVideoBufferUsage::All :
+				case EVideoBufferUsage::Unknown :
+				default :								RETURN_ERR( "unsupported EVideoBufferUsage", Zero );
+			}
+			END_ENUM_CHECKS();
+		}
+		return flags;
+	}
+
+/*
+=================================================
+	VEnumCast (EVideoImageUsage)
+=================================================
+*/
+	ND_ inline VkImageUsageFlagBits  VEnumCast (EVideoImageUsage usage)
+	{
+		VkImageUsageFlagBits	flags = Zero;
+
+		while ( usage != Zero )
+		{
+			EVideoImageUsage	t = ExtractBit( INOUT usage );
+			
+			BEGIN_ENUM_CHECKS();
+			switch ( t )
+			{
+				case EVideoImageUsage::DecodeSrc :	flags |= VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR;	break;
+				case EVideoImageUsage::DecodeDst :	flags |= VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR;	break;
+				case EVideoImageUsage::DecodeDpb :	flags |= VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR;	break;
+		
+				case EVideoImageUsage::EncodeSrc :	flags |= VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR;	break;
+				case EVideoImageUsage::EncodeDst :	flags |= VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR;	break;
+				case EVideoImageUsage::EncodeDpb :	flags |= VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR;	break;
+
+				case EVideoImageUsage::_Last :
+				case EVideoImageUsage::All :
+				case EVideoImageUsage::Unknown :
+				default :							RETURN_ERR( "unsupported EVideoImageUsage", Zero );
+			}
+			END_ENUM_CHECKS();
+		}
+		return flags;
+	}
+	
+/*
+=================================================
+	VEnumCast (EFilter)
+=================================================
+*/
+	ND_ inline VkFilter  VEnumCast (EFilter value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EFilter::Nearest :	return VK_FILTER_NEAREST;
+			case EFilter::Linear :	return VK_FILTER_LINEAR;
+			case EFilter::Unknown :
+			case EFilter::_Count :	break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown filter mode", VK_FILTER_MAX_ENUM );
+	}
+
+/*
+=================================================
+	VEnumCast (ESamplerMipmapMode)
+=================================================
+*/
+	ND_ inline VkSamplerMipmapMode  VEnumCast (EMipmapFilter value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EMipmapFilter::None :
+			case EMipmapFilter::Nearest :	return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+			case EMipmapFilter::Linear :	return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			case EMipmapFilter::Unknown :
+			case EMipmapFilter::_Count :	break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown sampler mipmap mode", VK_SAMPLER_MIPMAP_MODE_MAX_ENUM );
+	}
+
+/*
+=================================================
+	VEnumCast (ESamplerAddressMode)
+=================================================
+*/
+	ND_ inline VkSamplerAddressMode  VEnumCast (EAddressMode value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EAddressMode::Repeat :				return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			case EAddressMode::MirrorRepeat :		return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+			case EAddressMode::ClampToEdge :		return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			case EAddressMode::ClampToBorder :		return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+			case EAddressMode::MirrorClampToEdge :	return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
+			case EAddressMode::Unknown :
+			case EAddressMode::_Count :				break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown sampler address mode", VK_SAMPLER_ADDRESS_MODE_MAX_ENUM );
+	}
+
+/*
+=================================================
+	VEnumCast (EBorderColor)
+=================================================
+*/
+	ND_ inline VkBorderColor  VEnumCast (EBorderColor value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EBorderColor::FloatTransparentBlack :	return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+			case EBorderColor::FloatOpaqueBlack :		return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+			case EBorderColor::FloatOpaqueWhite :		return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+			case EBorderColor::IntTransparentBlack :	return VK_BORDER_COLOR_INT_TRANSPARENT_BLACK;
+			case EBorderColor::IntOpaqueBlack :			return VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+			case EBorderColor::IntOpaqueWhite :			return VK_BORDER_COLOR_INT_OPAQUE_WHITE;
+			case EBorderColor::Unknown :
+			case EBorderColor::_Count :					break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown border color type", VK_BORDER_COLOR_MAX_ENUM );
+	}
+
+/*
+=================================================
+	VEnumCast (ESamplerUsage)
+=================================================
+*/
+	ND_ inline VkSamplerCreateFlagBits  VEnumCast (ESamplerUsage value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case ESamplerUsage::Default :							return Zero;
+			case ESamplerUsage::Subsampled :						return VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT;
+			case ESamplerUsage::SubsampledCoarseReconstruction :	return VK_SAMPLER_CREATE_SUBSAMPLED_BIT_EXT | VK_SAMPLER_CREATE_SUBSAMPLED_COARSE_RECONSTRUCTION_BIT_EXT;
+			case ESamplerUsage::_Count :							break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown sampler flags", VK_SAMPLER_CREATE_FLAG_BITS_MAX_ENUM );
+	}
+
+/*
+=================================================
+	VEnumCast (ESamplerChromaLocation)
+=================================================
+*/
+	ND_ inline VkChromaLocation  VEnumCast (ESamplerChromaLocation value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case ESamplerChromaLocation::CositedEven :	return VK_CHROMA_LOCATION_COSITED_EVEN;
+			case ESamplerChromaLocation::Midpoint :		return VK_CHROMA_LOCATION_MIDPOINT;
+
+			case ESamplerChromaLocation::Unknown :
+			case ESamplerChromaLocation::_Count :		break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown ycbcr sampler chroma location", VK_CHROMA_LOCATION_MAX_ENUM );
+	}
+
+/*
+=================================================
+	VEnumCast (ESamplerYcbcrModelConversion)
+=================================================
+*/
+	ND_ inline VkSamplerYcbcrModelConversion  VEnumCast (ESamplerYcbcrModelConversion value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case ESamplerYcbcrModelConversion::RGB_Identity :	return VK_SAMPLER_YCBCR_MODEL_CONVERSION_RGB_IDENTITY;
+			case ESamplerYcbcrModelConversion::Ycbcr_Identity :	return VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_IDENTITY;
+			case ESamplerYcbcrModelConversion::Ycbcr_709 :		return VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_709;
+			case ESamplerYcbcrModelConversion::Ycbcr_601 :		return VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_601;
+			case ESamplerYcbcrModelConversion::Ycbcr_2020 :		return VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_2020;
+
+			case ESamplerYcbcrModelConversion::Unknown :
+			case ESamplerYcbcrModelConversion::_Count :			break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown sampler ycbcr model", VK_SAMPLER_YCBCR_MODEL_CONVERSION_MAX_ENUM );
+	}
+
+/*
+=================================================
+	VEnumCast (ESamplerYcbcrRange)
+=================================================
+*/
+	ND_ inline VkSamplerYcbcrRange  VEnumCast (ESamplerYcbcrRange value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case ESamplerYcbcrRange::ITU_Full :		return VK_SAMPLER_YCBCR_RANGE_ITU_FULL;
+			case ESamplerYcbcrRange::ITU_Narrow :	return VK_SAMPLER_YCBCR_RANGE_ITU_NARROW;
+
+			case ESamplerYcbcrRange::Unknown :
+			case ESamplerYcbcrRange::_Count :		break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown sampler ycbcr range", VK_SAMPLER_YCBCR_RANGE_MAX_ENUM );
+	}
+	
+/*
+=================================================
+	VEnumCast (ImageSwizzle)
+=================================================
+*/
+	ND_ inline VkComponentMapping  VEnumCast (const ImageSwizzle &value) __NE___
+	{
+		constexpr VkComponentSwizzle	components[] = {
+			VK_COMPONENT_SWIZZLE_IDENTITY,	// unknown
+			VK_COMPONENT_SWIZZLE_R,
+			VK_COMPONENT_SWIZZLE_G,
+			VK_COMPONENT_SWIZZLE_B,
+			VK_COMPONENT_SWIZZLE_A,
+			VK_COMPONENT_SWIZZLE_ZERO,
+			VK_COMPONENT_SWIZZLE_ONE
+		};
+		const uint4			swizzle	= Min( uint4(uint(CountOf(components)-1)), value.ToVec() );
+		VkComponentMapping	result	= { components[swizzle.x], components[swizzle.y], components[swizzle.z], components[swizzle.w] };
+		return result;
 	}
 
 

@@ -17,9 +17,10 @@ namespace AE::Graphics
 	{
 		EPixelFormat	format			= Default;
 		EColorSpace		colorSpace		= EColorSpace::sRGB_nonlinear;
-		EImageUsage		usage			= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;	// TODO: keep ColorAttachment only
 		EPresentMode	presentMode		= EPresentMode::FIFO;
-		uint			minImageCount	= 2;
+		ubyte			minImageCount	= 2;
+		EImageUsage		usage			= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;	// TODO: keep ColorAttachment only
+		EImageOpt		options			= EImageOpt::BlitDst;
 
 		SwapchainDesc ()								__NE___	{}
 		SwapchainDesc (const SwapchainDesc &)			__NE___	= default;
@@ -27,10 +28,25 @@ namespace AE::Graphics
 		SwapchainDesc (const GraphicsCreateInfo &info)	__NE___ :
 			format{ info.swapchain.format },
 			colorSpace{ info.swapchain.colorSpace },
-			usage{ info.swapchain.usage },
 			presentMode{ info.swapchain.presentMode },
-			minImageCount{ info.maxFrames }
+			minImageCount{ CheckCast<ubyte>( info.maxFrames )},
+			usage{ info.swapchain.usage },
+			options{ info.swapchain.options }
 		{}
+	};
+	
+
+
+	//
+	// Surface Format
+	//
+
+	struct SurfaceFormat
+	{
+		EPixelFormat	format	= Default;
+		EColorSpace		space	= Default;
+
+		ND_ bool  operator == (const SurfaceFormat &rhs)	C_NE___	{ return format == rhs.format and space == rhs.space; }
 	};
 
 

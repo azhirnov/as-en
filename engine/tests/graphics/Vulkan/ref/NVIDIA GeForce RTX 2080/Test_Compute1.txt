@@ -1,7 +1,7 @@
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'Compute1 |0| Compute task'
 {
   BeginDebugLabel
     name:  'Compute1 |0| Compute task'
@@ -67,7 +67,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'Compute1 |1| Readback task'
 {
   BeginDebugLabel
     name:  'Compute1 |1| Readback task'
@@ -115,7 +115,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'Compute1 |0| Compute task'
@@ -225,7 +225,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'Compute1 |0| Compute task'
 {
   BeginDebugLabel
     name:  'Compute1 |0| Compute task'
@@ -291,7 +291,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'Compute1 |1| Readback task'

@@ -1,6 +1,6 @@
 #include <asset_packer>
 
-void main ()
+void ASmain ()
 {
 	RC<ImageAtlas>	atlas = ImageAtlas();
 	

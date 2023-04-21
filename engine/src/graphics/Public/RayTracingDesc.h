@@ -131,7 +131,7 @@ namespace AE::Graphics
 	struct RTSceneBuild
 	{
 	// types
-		#ifdef AE_ENABLE_VULKAN
+		#if defined(AE_ENABLE_VULKAN)
 			// VkAccelerationStructureInstanceKHR
 			struct Instance
 			{
@@ -151,7 +151,7 @@ namespace AE::Graphics
 				Instance&  SetInstanceOffset (uint value)				__NE___	{ instanceSBTOffset	= value;		return *this; }
 			};
 
-		#elif defined(AE_ENABLE_METAL)
+		#elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 			// MTLAccelerationStructureInstanceDescriptor
 			struct Instance
 			{
@@ -188,8 +188,8 @@ namespace AE::Graphics
 		ERTASOptions		options				= Default;
 		ScratchBuffer		scratch;
 		InstanceBuffer		instanceData;
-
-	  #ifdef AE_ENABLE_METAL
+		
+	  #if defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 		GeomArray_t			geomArray;
 		GeomMap_t			geomMap;
 	  #endif
@@ -278,8 +278,8 @@ namespace AE::Graphics
 		flags				= 0;
 		rtas				= Default;
 	}
-
-#elif defined(AE_ENABLE_METAL)
+	
+#elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
 	inline void  RTSceneBuild::Instance::Init () __NE___
 	{
 		transform			= RTMatrixStorage::Identity();

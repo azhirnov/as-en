@@ -1,6 +1,6 @@
 #include <offline_packer>
 
-void main ()
+void ASmain ()
 {
 	const string	output = GetOutputDir();
 
@@ -11,7 +11,7 @@ void main ()
 	// pipeline compiler
 	for (uint i = 0; i < suffix.size(); ++i)
 	{
-		RC<ScriptPipelineCompiler>		ppln = ScriptPipelineCompiler();
+		RC<PipelineCompiler>	ppln = PipelineCompiler();
 		ppln.AddPipelineFolder( GetSharedFeatureSetPath(), EPathParamsFlags::Recursive );
 		ppln.AddPipeline( "config_" + suffix[i] + ".as" );
 		ppln.AddPipelineFolder( "sampler" );

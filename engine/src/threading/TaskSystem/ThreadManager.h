@@ -25,8 +25,8 @@ namespace AE::Threading
 		{
 		// variables
 			EThreadArray		threads;
-			nanoseconds			sleepStep;
-			nanoseconds			maxSleepOnIdle;
+			nanoseconds			sleepStep		{0};
+			nanoseconds			maxSleepOnIdle	{0};
 			FixedString<64>		name;
 
 		// methods
@@ -53,6 +53,10 @@ namespace AE::Threading
 									   EnumBitSet<EThread>			 mask,
 									   uint							 maxThreads,
 									   OUT EThreadArray				&allowProcessInMain) __NE___;
+
+	private:
+		friend class TaskScheduler;
+		ND_ static RC<IThread>  _CreateMainThread ()					__NE___;
 	};
 
 

@@ -8,7 +8,7 @@ namespace
 	static void  ScriptArray_Test1 (const ScriptEnginePtr &se)
 	{
 		const char	script[] = R"#(
-			int main () {
+			int ASmain () {
 				array<int16>	arr;
 				arr.push_back( 1 );
 				arr.push_back( 2 );
@@ -19,7 +19,7 @@ namespace
 		)#";
 
 		int	res = 0;
-		TEST( Run< int() >( se, script, "main", OUT res ));
+		TEST( Run< int() >( se, script, "ASmain", OUT res ));
 		TEST( res == 3 );
 	}
 
@@ -40,7 +40,7 @@ namespace
 		};
 
 		const char	script[] = R"#(
-			void main () {
+			void ASmain () {
 				array<int>	arr;
 				arr.push_back( 1 );
 				arr.push_back( 2 );
@@ -51,7 +51,7 @@ namespace
 		TEST_NOTHROW(
 			se->AddFunction( &Utils::CheckArray, "CheckArray" );
 		)
-		TEST( Run< void() >( se, script, "main" ));
+		TEST( Run< void() >( se, script, "ASmain" ));
 	}
 
 
@@ -77,7 +77,7 @@ namespace
 		};
 
 		const char	script[] = R"#(
-			int main () {
+			int ASmain () {
 				array<string>	arr;
 				arr.push_back( "1" );
 				arr.push_back( "2" );
@@ -93,7 +93,7 @@ namespace
 		)
 
 		int	res = 0;
-		TEST( Run< int() >( se, script, "main", OUT res ));
+		TEST( Run< int() >( se, script, "ASmain", OUT res ));
 		TEST( res == 3 );
 	}
 }

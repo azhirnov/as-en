@@ -1,4 +1,4 @@
-//78DB0B8F
+//08FF8CCB
 #include <vector>
 #include <string>
 
@@ -18,31 +18,33 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct sbyte2;
-struct short2;
-struct short4;
-struct short3;
-struct float4;
-struct ScriptAssetPacker;
-struct uint4;
+struct ubyte2;
+struct EFileType;
+struct ubyte4;
 struct int4;
 struct EPathParamsFlags;
-struct bool2;
 struct bool3;
-struct int2;
-struct uint3;
-struct ubyte4;
 struct uint2;
-struct int3;
-struct ubyte3;
-struct ubyte2;
 struct bool4;
-struct ScriptInputActions;
+struct uint3;
+struct int3;
+struct bool2;
+struct Archive;
+struct int2;
+struct uint4;
+struct short4;
 struct sbyte4;
+struct sbyte2;
+struct float3;
+struct float4;
+struct short3;
 struct sbyte3;
 struct float2;
-struct ScriptPipelineCompiler;
-struct float3;
+struct short2;
+struct InputActions;
+struct PipelineCompiler;
+struct AssetPacker;
+struct ubyte3;
 
 int  Abs (int);
 int  Square (int);
@@ -420,6 +422,7 @@ string  GetSharedFeatureSetPath ();
 string  GetSharedShadersPath ();
 string  GetCanvasVerticesPath ();
 string  GetOutputDir ();
+void  DeleteFolder (const string &);
 struct EPathParamsFlags
 {
 	EPathParamsFlags () {}
@@ -429,9 +432,20 @@ struct EPathParamsFlags
 	static constexpr uint Recursive = 1;
 };
 
-struct ScriptPipelineCompiler
+struct EFileType
 {
-	ScriptPipelineCompiler ();
+	EFileType () {}
+	EFileType (uint) {}
+	operator uint () const;
+	static constexpr uint Raw = 1;
+	static constexpr uint Brotli = 2;
+	static constexpr uint InMemory = 4;
+	static constexpr uint BrotliInMemory = 6;
+};
+
+struct PipelineCompiler
+{
+	PipelineCompiler ();
 	void  AddPipelineFolder (const string &, uint, EPathParamsFlags);
 	void  AddPipelineFolder (const string &, EPathParamsFlags);
 	void  AddPipelineFolder (const string &);
@@ -446,37 +460,56 @@ struct ScriptPipelineCompiler
 	void  CompileWithNameMapping (const string &);
 };
 
-struct ScriptInputActions
+struct InputActions
 {
-	ScriptInputActions ();
+	InputActions ();
 	void  Add (const string &);
 	void  Convert (const string &);
 };
 
-struct ScriptAssetPacker
+struct AssetPacker
 {
-	ScriptAssetPacker ();
+	AssetPacker ();
 	void  Add (const string &);
 	void  AddFolder (const string &);
 	void  SetTempFile (const string &);
 	void  ToArchive (const string &);
 };
 
-template <>
-struct RC<ScriptAssetPacker> : ScriptAssetPacker
+struct Archive
 {
-	RC (const ScriptAssetPacker &);
+	Archive ();
+	void  SetTempFile (const string &);
+	void  SetDefaultFileType (EFileType);
+	void  Add (const string &, const string &, EFileType);
+	void  Add (const string &, EFileType);
+	void  Add (const string &, const string &);
+	void  Add (const string &);
+	void  AddArchive (const string &);
+	void  Store (const string &);
 };
 
 template <>
-struct RC<ScriptInputActions> : ScriptInputActions
+struct RC<Archive> : Archive
 {
-	RC (const ScriptInputActions &);
+	RC (const Archive &);
 };
 
 template <>
-struct RC<ScriptPipelineCompiler> : ScriptPipelineCompiler
+struct RC<InputActions> : InputActions
 {
-	RC (const ScriptPipelineCompiler &);
+	RC (const InputActions &);
+};
+
+template <>
+struct RC<PipelineCompiler> : PipelineCompiler
+{
+	RC (const PipelineCompiler &);
+};
+
+template <>
+struct RC<AssetPacker> : AssetPacker
+{
+	RC (const AssetPacker &);
 };
 

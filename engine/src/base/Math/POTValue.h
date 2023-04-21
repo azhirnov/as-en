@@ -103,7 +103,7 @@ namespace AE::Math
 		}
 		
 		template <typename IT>
-		ND_ constexpr IT  Cast () C_NE___
+		ND_ constexpr IT  Cast ()										C_NE___
 		{
 			if constexpr( IsSignedInteger<IT> )
 			{
@@ -160,6 +160,29 @@ namespace AE::Math
 	template <typename T>
 	static constexpr bool  IsPowerOf2Value = Math::_hidden_::_IsPowerOf2Value<T>::value;
 
+	
+/*
+=================================================
+	Min / Max / Clamp
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr TPowerOf2Value<T>  Min (const TPowerOf2Value<T> x, const TPowerOf2Value<T> y) __NE___
+	{
+		return TPowerOf2Value<T>{ PowerOfTwo( Math::Min( x.GetPOT(), y.GetPOT() ))};
+	}
+
+	template <typename T>
+	ND_ constexpr TPowerOf2Value<T>  Max (const TPowerOf2Value<T> x, const TPowerOf2Value<T> y) __NE___
+	{
+		return TPowerOf2Value<T>{ PowerOfTwo( Math::Max( x.GetPOT(), y.GetPOT() ))};
+	}
+	
+	template <typename T>
+	ND_ constexpr TPowerOf2Value<T>  Clamp (const TPowerOf2Value<T> x, const TPowerOf2Value<T> minValue, const TPowerOf2Value<T> maxValue) __NE___
+	{
+		return TPowerOf2Value<T>{ PowerOfTwo( Math::Clamp( x.GetPOT(), minValue.GetPOT(), maxValue.GetPOT() ))};
+	}
 
 /*
 =================================================

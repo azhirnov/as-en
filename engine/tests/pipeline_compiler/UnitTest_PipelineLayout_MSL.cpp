@@ -62,7 +62,7 @@ constexpr sampler imtblSampler (
 #define AE_SHADER_RESOURCES \
   /* state: ShaderStorage_RW | PreRasterizationShaders | FragmentShader */\
   /* static size: 32 b, array stride: 0 b */\
-  device ubuf storageBuf [[buffer(0)]] [2],\
+  device ubuf storageBuf [[buffer(3)]] [2],\
   /* state: ShaderSample | FragmentShader */\
   texture_buffer< uint, access::read > texBuffer [[texture(0)]],\
   /* state: ShaderStorage_Write | FragmentShader */\

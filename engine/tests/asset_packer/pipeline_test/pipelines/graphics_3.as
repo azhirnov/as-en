@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	RC<GraphicsPipeline>	ppln = GraphicsPipeline( "graphics_3" );
 	ppln.AddFeatureSet( "MinimalFS" );

@@ -86,17 +86,18 @@ namespace _hidden_
 		void*						userData;
 
 		DEBUG_ONLY(
-			VRenderPassID			_rpId;
+			RenderPassID			_rpId;
 			VFramebufferID			_fbId;
 		)
 
-		VPrimaryCmdBufState () 	__NE___ :
+		VPrimaryCmdBufState () 									__NE___ :
 			subpassIndex{0xFF}, hasViewLocalDeps{false}, useSecondaryCmdbuf{false}, userData{null}
 		{}
 
-		ND_ bool  IsValid () 	C_NE___	{ return (renderPass != null) & (framebuffer != null) & frameId.IsValid(); }
+		ND_ bool  IsValid () 									C_NE___	{ return (renderPass != null) & (framebuffer != null) & frameId.IsValid(); }
+		ND_ uint  LayerCount ()									C_NE___;
 
-		ND_ bool  operator == (const VPrimaryCmdBufState &rhs) C_NE___;
+		ND_ bool  operator == (const VPrimaryCmdBufState &rhs)	C_NE___;
 	};
 
 
@@ -153,6 +154,8 @@ namespace _hidden_
 		void  DebugMarker (VulkanDeviceFn fn, NtStringView label, RGBA8u color)		__NE___;
 		void  PushDebugGroup (VulkanDeviceFn fn, NtStringView label, RGBA8u color)	__NE___;
 		void  PopDebugGroup (VulkanDeviceFn fn)										__NE___;
+
+		void  SetDebugName (NtStringView label)										__NE___;
 
 	private:
 		DRC_ONLY( ND_ bool		_IsInCurrentThread ()			C_NE___	{ return _stCheck.Lock(); })

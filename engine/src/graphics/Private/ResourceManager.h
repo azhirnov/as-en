@@ -8,6 +8,10 @@
 #	define SUFFIX		M
 #	define RESMNGR		MResourceManager
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#	define SUFFIX		R
+#	define RESMNGR		RResourceManager
+
 #else
 #	error not implemented
 #endif
@@ -59,13 +63,11 @@ namespace AE::Graphics
 		using DescriptorSetLayout_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, DescriptorSetLayout		);
 		using PipelineLayout_t		= AE_PRIVATE_UNITE_RAW( SUFFIX, PipelineLayout			);
 		using ShaderBindingTable_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, RTShaderBindingTable	);
+		using VideoBuffer_t			= AE_PRIVATE_UNITE_RAW( SUFFIX, VideoBuffer				);
+		using VideoImage_t			= AE_PRIVATE_UNITE_RAW( SUFFIX, VideoImage				);
+		using VideoSession_t		= AE_PRIVATE_UNITE_RAW( SUFFIX, VideoSession			);
 
-		using SamplerID_t			= AE_PRIVATE_UNITE_RAW( SUFFIX, SamplerID				);
-		using RenderPassID_t		= AE_PRIVATE_UNITE_RAW( SUFFIX, RenderPassID			);
-		using PipelineLayoutID_t	= AE_PRIVATE_UNITE_RAW( SUFFIX, PipelineLayoutID		);
-		using MemoryID_t			= AE_PRIVATE_UNITE_RAW( SUFFIX, MemoryID				);
-		
-		using MemObjPool_t			= PoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, MemoryObject		),		MemoryID_t,					MaxMemoryObjs,	64 >;
+		using MemObjPool_t			= PoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, MemoryObject		),		MemoryID,					MaxMemoryObjs,	64 >;
 		using BufferPool_t			= PoolTmpl< Buffer_t,												BufferID,					MaxBuffers,		32 >;
 		using BufferViewPool_t		= PoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, BufferView		),		BufferViewID,				MaxBuffers,		32 >;
 		using ImagePool_t			= PoolTmpl< Image_t,												ImageID,					MaxImages,		32 >;
@@ -79,12 +81,15 @@ namespace AE::Graphics
 		using DescSetPool_t			= PoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, DescriptorSet		),		DescriptorSetID,			MaxDescSets,	 8 >;
 		using RTGeomPool_t			= PoolTmpl< RTGeometry_t,											RTGeometryID,				MaxRTObjects,	 8 >;
 		using RTScenePool_t			= PoolTmpl< RTScene_t,												RTSceneID,					MaxRTObjects,	 8 >;
-		using PplnLayoutPool_t		= PoolTmpl<	PipelineLayout_t,										PipelineLayoutID_t,			MaxDSLayouts,	 8 >;
+		using PplnLayoutPool_t		= PoolTmpl<	PipelineLayout_t,										PipelineLayoutID,			MaxDSLayouts,	 8 >;
 		using SBTPool_t				= PoolTmpl<	ShaderBindingTable_t,									RTShaderBindingID,			1u << 8,		 8 >;
-		using SamplerPool_t			= StPoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, Sampler			),		SamplerID_t,				4096 >;
-		using RenderPassPool_t		= StPoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, RenderPass		),		RenderPassID_t,				1024 >;
+		using SamplerPool_t			= StPoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, Sampler			),		SamplerID,					4096 >;
+		using RenderPassPool_t		= StPoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, RenderPass		),		RenderPassID,				1024 >;
 		using PipelineCachePool_t	= StPoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, PipelineCache	),		PipelineCacheID,			  64 >;
-		using PipelinePackPool_t	= StPoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, PipelinePack	),		PipelinePackID,				  32 >;
+		using PipelinePackPool_t	= PoolTmpl< AE_PRIVATE_UNITE_RAW( SUFFIX, PipelinePack	),			PipelinePackID,				32,				32 >;
+		using VideoBufferPool_t		= PoolTmpl< VideoBuffer_t,											VideoBufferID,				MaxBuffers,		32 >;
+		using VideoImagePool_t		= PoolTmpl< VideoImage_t,											VideoImageID,				MaxImages,		32 >;
+		using VideoSessionPool_t	= PoolTmpl< VideoSession_t,											VideoSessionID,				1u << 8,		32 >;
 		
 	  #ifdef AE_ENABLE_VULKAN
 		using FramebufferPool_t		= StPoolTmpl< VFramebuffer,											VFramebufferID,				 128 >;
@@ -92,14 +97,15 @@ namespace AE::Graphics
 	  #endif
 
 		struct _ResourceDestructor;
-		using AllResourceIDs_t		= TypeList< BufferViewID, ImageViewID, BufferID, ImageID, SamplerID_t,
-												PipelineCacheID, PipelinePackID, DescriptorSetLayoutID, PipelineLayoutID_t, DescriptorSetID,
+		using AllResourceIDs_t		= TypeList< BufferViewID, ImageViewID, BufferID, ImageID, SamplerID,
+												PipelineCacheID, PipelinePackID, DescriptorSetLayoutID, PipelineLayoutID, DescriptorSetID,
 											  #ifdef AE_ENABLE_VULKAN
-												VFramebufferID,
+												VFramebufferID,	// Can be added to release list to decrease reference counter
 											  #endif
-												RenderPassID_t, GraphicsPipelineID, ComputePipelineID, MeshPipelineID, RayTracingPipelineID, TilePipelineID,
+												RenderPassID, GraphicsPipelineID, ComputePipelineID, MeshPipelineID, RayTracingPipelineID, TilePipelineID,
 												RTGeometryID, RTSceneID, RTShaderBindingID,
-												MemoryID_t		// must be in  the end
+												VideoBufferID, VideoImageID, VideoSessionID,
+												MemoryID		// must be in  the end
 											>;
 
 		//---- Expired resources ----//
@@ -110,10 +116,7 @@ namespace AE::Graphics
 	private:
 		using AllVkResources_t		= TypeListUtils::Merge<
 											AllResourceIDs_t,
-											TypeList<
-												// Can be added to release list to decrease reference counter
-												VFramebufferID,
-												// native handles
+											TypeList<	// native handles
 												VkSwapchainKHR
 											>>;
 		struct VExpiredResource
@@ -187,6 +190,10 @@ namespace AE::Graphics
 			FramebufferCache_t		fbCache;
 		  #endif
 
+			VideoBufferPool_t		vbuffers;
+			VideoImagePool_t		vimages;
+			VideoSessionPool_t		vsessions;
+
 			MemObjPool_t			memObjs;
 		}						_resPool;
 		
@@ -203,10 +210,10 @@ namespace AE::Graphics
 	  #endif
 
 		StrongAtom<PipelinePackID>		_defaultPack;
-		Strong<SamplerID_t>				_defaultSampler;
+		Strong<SamplerID>				_defaultSampler;
 		Strong<DescriptorSetLayoutID>	_emptyDSLayout;
 
-		#ifdef AE_DBG_OR_DEV
+		#ifdef AE_DEBUG
 		 mutable SharedMutex			_hashToNameGuard;
 		 PipelineCompiler::HashToName	_hashToName;		// for debugging
 		#endif
@@ -232,6 +239,9 @@ namespace AE::Graphics
 		ND_ bool					IsSupported (EMemoryType memType)																				C_NE_OV;
 		ND_ bool					IsSupported (const BufferDesc &desc)																			C_NE_OV;
 		ND_ bool					IsSupported (const ImageDesc &desc)																				C_NE_OV;
+		ND_ bool					IsSupported (const VideoImageDesc &desc)																		C_NE_OV;
+		ND_ bool					IsSupported (const VideoBufferDesc &desc)																		C_NE_OV;
+		ND_ bool					IsSupported (const VideoSessionDesc &desc)																		C_NE_OV;
 		ND_ bool					IsSupported (BufferID buffer, const BufferViewDesc &desc)														C_NE_OV;
 		ND_ bool					IsSupported (ImageID image, const ImageViewDesc &desc)															C_NE_OV;
 		
@@ -245,18 +255,21 @@ namespace AE::Graphics
 
 		ND_ Strong<DescriptorSetLayoutID>	CreateDescriptorSetLayout (const DescriptorSetLayout_t::CreateInfo &ci)									__NE___;
 		
-		ND_ Strong<PipelineLayoutID_t>	CreatePipelineLayout (const PipelineLayout_t::DescriptorSets_t &descSetLayouts,
+		ND_ Strong<PipelineLayoutID>	CreatePipelineLayout (const PipelineLayout_t::DescriptorSets_t &descSetLayouts,
 															  const PipelineLayout_t::PushConstants_t &pushConstants, StringView dbgName = Default)	__NE___;
 
 		ND_ Strong<ImageID>			CreateImage (const ImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)			__NE_OV;
 		ND_ Strong<BufferID>		CreateBuffer (const BufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE_OV;
 		
-		ND_ Strong<ImageID>			CreateImage (const NativeImageDesc_t &desc, StringView dbgName = Default)										__NE_OV;
-		ND_ Strong<BufferID>		CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName = Default)										__NE_OV;
+		ND_ Strong<ImageID>			CreateImage (const NativeImageDesc_t &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE_OV;
+		ND_ Strong<BufferID>		CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE_OV;
 		
 		ND_ Strong<ImageViewID>		CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName = Default)						__NE_OV;
 		ND_ Strong<BufferViewID>	CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName = Default)					__NE_OV;
 		
+		ND_ Strong<ImageViewID>		CreateImageView (const NativeImageViewDesc_t &desc, ImageID image, StringView dbgName = Default)				__NE_OV;
+		ND_ Strong<BufferViewID>	CreateBufferView (const NativeBufferViewDesc_t &desc, BufferID buffer, StringView dbgName = Default)			__NE_OV;
+
 		ND_ Strong<RTGeometryID>	CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE_OV;
 		ND_ Strong<RTSceneID>		CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE_OV;
 		
@@ -290,13 +303,17 @@ namespace AE::Graphics
 		ND_ NativeBufferView_t		GetBufferViewHandle (BufferViewID id)																			C_NE_OV;
 		ND_ NativeImageView_t		GetImageViewHandle (ImageViewID id)																				C_NE_OV;
 
-		ND_ SamplerID_t				GetSampler (const SamplerName &name)																			C_NE___;
+		ND_ SamplerID				GetSampler (const SamplerName &name)																			C_NE___;
 
-		ND_ RenderPassID_t			GetCompatibleRenderPass (PipelinePackID packId, const CompatRenderPassName &name)								C_NE___;
-		ND_ RenderPassID_t			GetCompatibleRenderPass (PipelinePackID packId, const RenderPassName &name)										C_NE___;
-		ND_ RenderPassID_t			GetRenderPass (PipelinePackID packId, const RenderPassName &name)												C_NE___;
+		ND_ RenderPassID			GetCompatibleRenderPass (PipelinePackID packId, const CompatRenderPassName &name)								C_NE___;
+		ND_ RenderPassID			GetCompatibleRenderPass (PipelinePackID packId, const RenderPassName &name)										C_NE___;
+		ND_ RenderPassID			GetRenderPass (PipelinePackID packId, const RenderPassName &name)												C_NE___;
 
 		ND_ Strong<PipelineCacheID>		CreatePipelineCache ()																						__NE_OV;
+		
+		ND_ Strong<VideoSessionID>		CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE_OV;
+		ND_ Strong<VideoBufferID>		CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE_OV;
+		ND_ Strong<VideoImageID>		CreateVideoImage (const VideoImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE_OV;
 
 		ND_ AsyncRTechPipelines			LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache)				__NE_OV;
 		ND_ RenderTechPipelinesPtr		LoadRenderTech      (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache)				__NE_OV;
@@ -309,7 +326,7 @@ namespace AE::Graphics
 		
 			bool	GetMemoryInfo (ImageID id, OUT NativeMemObjInfo_t &info)							C_NE_OV;
 			bool	GetMemoryInfo (BufferID id, OUT NativeMemObjInfo_t &info)							C_NE_OV;
-			bool	GetMemoryInfo (MemoryID_t id, OUT NativeMemObjInfo_t &info)							C_NE___;
+			bool	GetMemoryInfo (MemoryID id, OUT NativeMemObjInfo_t &info)							C_NE___;
 
 			bool	ReleaseResource (INOUT Strong<ImageID>				&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
 			bool	ReleaseResource (INOUT Strong<BufferID>				&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
@@ -325,6 +342,9 @@ namespace AE::Graphics
 			bool	ReleaseResource (INOUT Strong<DescriptorSetID>		&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
 			bool	ReleaseResource (INOUT Strong<RTGeometryID>			&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
 			bool	ReleaseResource (INOUT Strong<RTSceneID>			&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
+			bool	ReleaseResource (INOUT Strong<VideoSessionID>		&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
+			bool	ReleaseResource (INOUT Strong<VideoBufferID>		&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
+			bool	ReleaseResource (INOUT Strong<VideoImageID>			&id)							__NE_OV	{ return DelayedRelease( INOUT id ) == 0; }
 
 			template <typename ArrayType>
 			void	ReleaseResourceArray (INOUT ArrayType &arr)											__NE___	{ for (auto& id : arr) {DelayedRelease( INOUT id );} }
@@ -354,6 +374,9 @@ namespace AE::Graphics
 		ND_ BufferViewDesc const&		GetDescription (BufferViewID id)								C_NE_OV;
 		ND_ ImageViewDesc const&		GetDescription (ImageViewID id)									C_NE_OV;
 		ND_ RTShaderBindingDesc const&	GetDescription (RTShaderBindingID id)							C_NE_OV;
+		ND_ VideoImageDesc const&		GetDescription (VideoImageID id)								C_NE_OV;
+		ND_ VideoBufferDesc const&		GetDescription (VideoBufferID id)								C_NE_OV;
+		ND_ VideoSessionDesc const&		GetDescription (VideoSessionID id)								C_NE_OV;
 
 		ND_ FeatureSet const&		GetFeatureSet ()													C_NE___	{ return _featureSet; }
 		ND_ PipelinePackID			GetDefaultPack ()													C_NE___	{ return _defaultPack; }
@@ -371,6 +394,9 @@ namespace AE::Graphics
 		ND_ bool			IsResourceAlive (PipelinePackID		id)										C_NE_OV	{ return IsAlive( id ); }
 		ND_ bool			IsResourceAlive (RTGeometryID		id)										C_NE_OV	{ return IsAlive( id ); }
 		ND_ bool			IsResourceAlive (RTSceneID			id)										C_NE_OV	{ return IsAlive( id ); }
+		ND_ bool			IsResourceAlive (VideoSessionID		id)										C_NE_OV	{ return IsAlive( id ); }
+		ND_ bool			IsResourceAlive (VideoBufferID		id)										C_NE_OV	{ return IsAlive( id ); }
+		ND_ bool			IsResourceAlive (VideoImageID		id)										C_NE_OV	{ return IsAlive( id ); }
 		
 		template <usize IS, usize GS, uint UID>
 		ND_ auto			AcquireResource (HandleTmpl<IS, GS, UID> id)								__NE___;
@@ -399,7 +425,7 @@ namespace AE::Graphics
 		template <usize Size, uint UID, bool Opt, uint Seed>
 		ND_ String  HashToName (const NamedID< Size, UID, Opt, Seed > &name)							C_NE___;
 		
-		#ifdef AE_DBG_OR_DEV
+		#ifdef AE_DEBUG
 			void  AddHashToName (const PipelineCompiler::HashToName &value)								__NE___;
 		#endif
 
@@ -451,10 +477,13 @@ namespace AE::Graphics
 		ND_ auto&		_GetResourcePool (const RTGeometryID &)					__NE___	{ return _resPool.rtGeom; }
 		ND_ auto&		_GetResourcePool (const RTSceneID &)					__NE___	{ return _resPool.rtScene; }
 		ND_ auto&		_GetResourcePool (const RTShaderBindingID &)			__NE___	{ return _resPool.rtSBT; }
-		ND_ auto&		_GetResourcePool (const PipelineLayoutID_t &)			__NE___	{ return _resPool.pplnLayouts; }
-		ND_ auto&		_GetResourcePool (const SamplerID_t &)					__NE___	{ return _resPool.samplers; }
-		ND_ auto&		_GetResourcePool (const RenderPassID_t &)				__NE___	{ return _resPool.renderPass; }
-		ND_ auto&		_GetResourcePool (const MemoryID_t &)					__NE___	{ return _resPool.memObjs; }
+		ND_ auto&		_GetResourcePool (const PipelineLayoutID &)				__NE___	{ return _resPool.pplnLayouts; }
+		ND_ auto&		_GetResourcePool (const SamplerID &)					__NE___	{ return _resPool.samplers; }
+		ND_ auto&		_GetResourcePool (const RenderPassID &)					__NE___	{ return _resPool.renderPass; }
+		ND_ auto&		_GetResourcePool (const MemoryID &)						__NE___	{ return _resPool.memObjs; }
+		ND_ auto&		_GetResourcePool (const VideoBufferID &)				__NE___	{ return _resPool.vbuffers; }
+		ND_ auto&		_GetResourcePool (const VideoImageID &)					__NE___	{ return _resPool.vimages; }
+		ND_ auto&		_GetResourcePool (const VideoSessionID &)				__NE___	{ return _resPool.vsessions; }
 		
 		template <typename ID>
 		ND_ const auto&  _GetResourceCPool (const ID &id)						C_NE___	{ return const_cast< RemoveAllQualifiers<decltype(*this)> &>(*this)._GetResourcePool( id ); }
@@ -475,10 +504,13 @@ namespace AE::Graphics
 		ND_ StringView  _GetResourcePoolName (const RTGeometryID &)				__NE___	{ return "rtGeometry"; }
 		ND_ StringView  _GetResourcePoolName (const RTSceneID &)				__NE___	{ return "rtScene"; }
 		ND_ StringView  _GetResourcePoolName (const RTShaderBindingID &)		__NE___	{ return "rtSBT"; }
-		ND_ StringView	_GetResourcePoolName (const PipelineLayoutID_t &)		__NE___	{ return "pplnLayouts"; }
-		ND_ StringView	_GetResourcePoolName (const SamplerID_t &)				__NE___	{ return "samplers"; }
-		ND_ StringView	_GetResourcePoolName (const RenderPassID_t &)			__NE___	{ return "renderPass"; }
-		ND_ StringView	_GetResourcePoolName (const MemoryID_t &)				__NE___	{ return "memObjs"; }
+		ND_ StringView	_GetResourcePoolName (const PipelineLayoutID &)			__NE___	{ return "pplnLayouts"; }
+		ND_ StringView	_GetResourcePoolName (const SamplerID &)				__NE___	{ return "samplers"; }
+		ND_ StringView	_GetResourcePoolName (const RenderPassID &)				__NE___	{ return "renderPass"; }
+		ND_ StringView	_GetResourcePoolName (const MemoryID &)					__NE___	{ return "memObjs"; }
+		ND_ StringView	_GetResourcePoolName (const VideoBufferID &)			__NE___	{ return "videoBuffers"; }
+		ND_ StringView	_GetResourcePoolName (const VideoImageID &)				__NE___	{ return "videoImages"; }
+		ND_ StringView	_GetResourcePoolName (const VideoSessionID &)			__NE___	{ return "videoSessions"; }
 		
 	  #ifdef AE_ENABLE_VULKAN
 		ND_ auto&		_GetResourcePool (const VFramebufferID &)				__NE___	{ return _resPool.framebuffers; }
@@ -519,26 +551,28 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		ND_ Strong<VMemoryID>		CreateMemoryObj (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
-		ND_ Strong<VMemoryID>		CreateMemoryObj (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+		ND_ Strong<MemoryID>		CreateMemoryObj (VkBuffer buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+		ND_ Strong<MemoryID>		CreateMemoryObj (VkImage image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
 
-		ND_ Strong<PipelineCacheID>	LoadPipelineCache (RC<RStream> stream)											__NE___;
+		ND_ Strong<PipelineCacheID>	LoadPipelineCache (RC<RStream> stream)													__NE___;
 
-		ND_ Strong<VSamplerID>		CreateSampler (const VkSamplerCreateInfo &info, StringView dbgName = Default)	__NE___;
-		ND_ VkSampler				GetVkSampler (const SamplerName &name)											C_NE___;
+		ND_ Strong<SamplerID>		CreateSampler (const VkSamplerCreateInfo &, const VkSamplerYcbcrConversionCreateInfo *,
+												   StringView dbgName = Default)											__NE___;
+		ND_ VkSampler				GetVkSampler (const SamplerName &name)													C_NE___;
 		
-		ND_ Strong<VRenderPassID>	CreateRenderPass (const SerializableRenderPassInfo &info, const SerializableVkRenderPass &vkInfo, VRenderPassID compatId)	__NE___;
-		ND_ VFramebufferID			CreateFramebuffer (const RenderPassDesc &desc)									__NE___;
-			void					RemoveFramebufferCache (VFramebuffer::CachePtr_t iter)							__NE___;	// call from VFramebuffer
+		ND_ Strong<RenderPassID>	CreateRenderPass (const SerializableRenderPassInfo &, const SerializableVkRenderPass &,
+													  RenderPassID compatId, StringView dbgName)							__NE___;
+		ND_ VFramebufferID			CreateFramebuffer (const RenderPassDesc &desc)											__NE___;
+			void					RemoveFramebufferCache (VFramebuffer::CachePtr_t iter)									__NE___;	// call from VFramebuffer
 
-			void					DelayedRelease (VkSwapchainKHR handle)											__NE___	{ _DelayedReleaseResource2( handle ); }
+			void					DelayedRelease (VkSwapchainKHR handle)													__NE___	{ _DelayedReleaseResource2( handle ); }
 
 	private:
 
-		void  _InitReleaseResourceByIDFns ()																		__NE___;
+		void  _InitReleaseResourceByIDFns ()																				__NE___;
 
 		// resource api
-		void  _DestroyVkResource (const VExpiredResource &res)														__NE___;
+		void  _DestroyVkResource (const VExpiredResource &res)																__NE___;
 
 
 	//-----------------------------------------------------
@@ -546,18 +580,23 @@ namespace AE::Graphics
 		
 	// methods
 	public:
-		ND_ bool	CreateBufferAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)			__NE___;
-		ND_ bool	CreateImageAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)				__NE___;
-		ND_ bool	CreateAccelStructAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalAccelStructRC &as, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
-		ND_ bool	CreateAccelStructAndMemoryObj (OUT Strong<MMemoryID> &memId, OUT MetalAccelStructRC &as, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)		__NE___;
+		ND_ bool	CreateBufferAndMemoryObj (OUT Strong<MemoryID> &memId, OUT MetalBufferRC &buffer, const BufferDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)			__NE___;
+		ND_ bool	CreateImageAndMemoryObj (OUT Strong<MemoryID> &memId, OUT MetalImageRC &image, const ImageDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)				__NE___;
+		ND_ bool	CreateAccelStructAndMemoryObj (OUT Strong<MemoryID> &memId, OUT MetalAccelStructRC &as, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
+		ND_ bool	CreateAccelStructAndMemoryObj (OUT Strong<MemoryID> &memId, OUT MetalAccelStructRC &as, const RTSceneDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)		__NE___;
 
-		ND_ Strong<PipelineCacheID>	LoadPipelineCache (const Path &filename) 										__NE___;
+		ND_ Strong<PipelineCacheID>	LoadPipelineCache (const Path &filename) 												__NE___;
 		
-		ND_ MetalSampler			GetMtlSampler (const SamplerName &name)											C_NE___;
-		ND_ Strong<MSamplerID>		CreateSampler (const SamplerDesc &desc, StringView dbgName)						__NE___;
+		ND_ MetalSampler			GetMtlSampler (const SamplerName &name)													C_NE___;
+		ND_ Strong<SamplerID>		CreateSampler (const SamplerDesc &desc, StringView dbgName)								__NE___;
 		
-		ND_ Strong<MRenderPassID>	CreateRenderPass (const SerializableRenderPassInfo &info, const SerializableMtlRenderPass &mtlInfo)	__NE___;
+		ND_ Strong<RenderPassID>	CreateRenderPass (const SerializableRenderPassInfo &, const SerializableMtlRenderPass &,
+													  StringView dbgName)													__NE___;
+		
 
+	//-----------------------------------------------------
+	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		// TODO
 
 	//-----------------------------------------------------
 	#else
@@ -744,6 +783,18 @@ namespace AE::Graphics
 	inline RTShaderBindingDesc const&  RESMNGR::GetDescription (RTShaderBindingID id) C_NE___ {
 		return _GetDescription( id );
 	}
+	
+	inline VideoImageDesc const&  RESMNGR::GetDescription (VideoImageID id) C_NE___ {
+		return _GetDescription( id );
+	}
+	
+	inline VideoBufferDesc const&  RESMNGR::GetDescription (VideoBufferID id) C_NE___ {
+		return _GetDescription( id );
+	}
+	
+	inline VideoSessionDesc const&  RESMNGR::GetDescription (VideoSessionID id) C_NE___ {
+		return _GetDescription( id );
+	}
 
 /*
 =================================================
@@ -889,7 +940,7 @@ namespace AE::Graphics
 	template <usize Size, uint UID, bool Opt, uint Seed>
 	String  RESMNGR::HashToName (const NamedID< Size, UID, Opt, Seed > &name) C_NE___
 	{
-		#ifdef AE_DBG_OR_DEV
+		#ifdef AE_DEBUG
 			if constexpr( Opt )
 			{
 				SHAREDLOCK( _hashToNameGuard );

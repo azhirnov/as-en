@@ -98,7 +98,7 @@ namespace AE::Threading
 			explicit ReadRequest (Index_t idx)	__NE___ : _RequestBase{idx} {}
 			
 			// IAsyncDataSourceRequest //
-			Promise_t	AsPromise ()			__NE_OF;
+			Promise_t	AsPromise (ETaskQueue)	__NE_OF;
 
 		private:
 			friend class AsyncRDataSourceApi;
@@ -119,7 +119,7 @@ namespace AE::Threading
 			explicit WriteRequest (Index_t idx)	__NE___	: _RequestBase{idx} {}
 			
 			// IAsyncDataSourceRequest //
-			Promise_t	AsPromise ()			__NE_OF;
+			Promise_t	AsPromise (ETaskQueue)	__NE_OF;
 
 		private:
 			friend class AsyncWDataSourceApi;

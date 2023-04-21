@@ -109,6 +109,7 @@ namespace AE::Graphics::_hidden_
 		using RawCtx			= CtxImpl;
 		using AccumBar			= VAccumBarriers< _VTransferContextImpl< CtxImpl >>;
 		using DeferredBar		= VAccumDeferredBarriersForCtx< _VTransferContextImpl< CtxImpl >>;
+		using Validator_t		= TransferContextValidation;
 
 
 	// methods
@@ -160,13 +161,13 @@ namespace AE::Graphics::_hidden_
 		void  UploadBuffer (BufferID buffer, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)__Th_OV;
 		void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)														__Th_OV;
 
-		void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						__Th_OV;
-		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)						__Th_OV;
+		void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView)																			__Th_OV;
+		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView)																				__Th_OV;
 
 		ND_ Promise<BufferMemView>	ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)	__Th_OV;
 		ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)														__Th_OV;
 		
-		ND_ bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped);
+		ND_ bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)													__Th___;
 		ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)														__Th_OV;
 
 		ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)														__Th_OV;
@@ -186,12 +187,6 @@ namespace AE::Graphics::_hidden_
 	private:
 		template <typename ColType>
 		void  _ClearColorImage (ImageID image, const ColType &color, ArrayView<ImageSubresourceRange> ranges);
-
-		ND_ bool  _IsHostMemory (const VBuffer &buffer);
-		ND_ bool  _IsHostMemory (const VImage &image);
-		
-		ND_ bool  _IsDeviceMemory (const VBuffer &buffer);
-		ND_ bool  _IsDeviceMemory (const VImage &image);
 
 		static void  _ConvertImageSubresourceRange (OUT VkImageSubresourceRange& dst, const ImageSubresourceRange& src, const ImageDesc &desc);
 		static void  _ConvertImageSubresourceLayer (OUT VkImageSubresourceLayers &dst, const ImageSubresourceLayers &src, const ImageDesc &desc);
@@ -221,50 +216,15 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VTransferContextImpl<C>::_VTransferContextImpl (const RenderTask &task) : RawCtx{ task }
-	{
-		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
-	}
+	_VTransferContextImpl<C>::_VTransferContextImpl (const RenderTask &task) :
+		_VTransferContextImpl{ task, Default }
+	{}
 		
 	template <typename C>
 	_VTransferContextImpl<C>::_VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
 		RawCtx{ task, RVRef(cmdbuf) }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
-	}
-
-/*
-=================================================
-	_IsHostMemory
-=================================================
-*/
-	template <typename C>
-	bool  _VTransferContextImpl<C>::_IsHostMemory (const VBuffer &buffer)
-	{
-		return AnyBits( buffer.Description().memType, EMemoryType::HostCachedCocherent );
-	}
-	
-	template <typename C>
-	bool  _VTransferContextImpl<C>::_IsHostMemory (const VImage &image)
-	{
-		return AnyBits( image.Description().memType, EMemoryType::HostCachedCocherent );
-	}
-	
-/*
-=================================================
-	_IsDeviceMemory
-=================================================
-*/
-	template <typename C>
-	bool  _VTransferContextImpl<C>::_IsDeviceMemory (const VBuffer &buffer)
-	{
-		return AnyBits( buffer.Description().memType, EMemoryType::DeviceLocal );
-	}
-	
-	template <typename C>
-	bool  _VTransferContextImpl<C>::_IsDeviceMemory (const VImage &image)
-	{
-		return AnyBits( image.Description().memType, EMemoryType::DeviceLocal );
 	}
 
 /*
@@ -277,7 +237,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::_ClearColorImage (ImageID imageId, const ColType &color, ArrayView<ImageSubresourceRange> ranges)
 	{
 		auto&	img = _GetResourcesOrThrow( imageId );
-		ASSERT( ranges.size() );
+		Validator_t::ClearColorImage( img, ranges );
 
 		VkClearColorValue										clear_value;
 		FixedArray<VkImageSubresourceRange, _LocalArraySize>	vk_ranges;
@@ -312,7 +272,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::ClearDepthStencilImage (ImageID imageId, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges)
 	{
 		auto&	img = _GetResourcesOrThrow( imageId );
-		ASSERT( ranges.size() );
+		Validator_t::ClearDepthStencilImage( img, ranges );
 
 		VkClearDepthStencilValue								clear_value;
 		FixedArray<VkImageSubresourceRange, _LocalArraySize>	vk_ranges;
@@ -348,8 +308,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::FillBuffer (BufferID bufferId, Bytes offset, Bytes size, uint data)
 	{
 		auto&	buf = _GetResourcesOrThrow( bufferId );
-		ASSERT( offset < buf.Size() );
-		ASSERT( size == UMax or (offset + size <= buf.Size()) );
+		Validator_t::FillBuffer( buf, offset, size );
 
 		offset	= Min( offset, buf.Size()-1 );
 		size	= Min( size, buf.Size() - offset );
@@ -366,8 +325,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::UpdateBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)
 	{
 		auto&	buf = _GetResourcesOrThrow( bufferId );
-		ASSERT( size > 0_b );
-		ASSERT( data != null );
+		Validator_t::UpdateBuffer( buf, offset, size, data );
 
 		RawCtx::UpdateBuffer( buf.Handle(), offset, size, data );
 	}
@@ -381,11 +339,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::UploadBuffer (BufferID bufferId, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType)
 	{
 		auto&	dst_buf = _GetResourcesOrThrow( bufferId );
-		ASSERT( _IsDeviceMemory( dst_buf ));
-		
-		ASSERT( offset < dst_buf.Size() );
-		ASSERT( size == UMax or (offset + size <= dst_buf.Size()) );
-		ASSERT( memView.Empty() );
+		Validator_t::UploadBuffer( dst_buf, offset, size, memView );
 		
 		offset	= Min( offset, dst_buf.Size() );
 		size	= Min( size, dst_buf.Size() - offset );
@@ -410,19 +364,17 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VTransferContextImpl<C>::UploadBuffer (BufferStream &stream, OUT BufferMemView &memView, EStagingHeapType heapType)
+	void  _VTransferContextImpl<C>::UploadBuffer (BufferStream &stream, OUT BufferMemView &memView)
 	{
 		ASSERT( not stream.IsCompleted() );
 
 		auto&	dst_buf = _GetResourcesOrThrow( stream.Buffer() );
-		ASSERT( _IsDeviceMemory( dst_buf ));
-		ASSERT( stream.End() <= dst_buf.Size() );
-		ASSERT( memView.Empty() );
+		Validator_t::UploadBuffer( dst_buf, stream.pos, stream.RemainSize(), memView );
 		
 		VStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
 		VStagingBufferManager::BufferRanges_t	buffers;
 
-		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
+		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), True{"uload"} );
 		
 		for (auto& src_buf : buffers)
 		{
@@ -443,7 +395,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::UploadImage (ImageID imageId, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView)
 	{
 		auto&	dst_img = _GetResourcesOrThrow( imageId );
-		ASSERT( _IsDeviceMemory( dst_img ));
+		Validator_t::UploadImage( dst_img );
 
 		const ImageDesc&		img_desc	= dst_img.Description();
 		VStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
@@ -490,12 +442,12 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VTransferContextImpl<C>::UploadImage (ImageStream &stream, OUT ImageMemView &memView, EStagingHeapType heapType)
+	void  _VTransferContextImpl<C>::UploadImage (ImageStream &stream, OUT ImageMemView &memView)
 	{
 		ASSERT( not stream.IsCompleted() );
 
 		auto&	dst_img = _GetResourcesOrThrow( stream.Image() );
-		ASSERT( _IsDeviceMemory( dst_img ));
+		Validator_t::UploadImage( dst_img );
 
 		const ImageDesc&		img_desc	= dst_img.Description();
 		VStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
@@ -505,7 +457,6 @@ namespace AE::Graphics::_hidden_
 		UploadImageDesc	upload_desc = stream.ToUploadDesc();
 		upload_desc.imageOffset	+= uint3{ 0, stream.posYZ };
 		upload_desc.imageSize	-= uint3{ 0, stream.posYZ };
-		upload_desc.heapType	 = heapType;
 
 		VStagingBufferManager::StagingImageResultRanges	res;
 		sbm.GetImageRanges( OUT res, upload_desc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
@@ -566,10 +517,7 @@ namespace AE::Graphics::_hidden_
 	Promise<BufferMemView>  _VTransferContextImpl<C>::ReadbackBuffer (BufferID bufferId, Bytes offset, Bytes size, EStagingHeapType heapType)
 	{
 		auto&	src_buf = _GetResourcesOrThrow( bufferId );
-		ASSERT( _IsDeviceMemory( src_buf ));
-
-		ASSERT( offset < src_buf.Size() );
-		ASSERT( size == UMax or (offset + size <= src_buf.Size()) );
+		Validator_t::ReadbackBuffer( src_buf, offset, size );
 		
 		offset	= Min( offset, src_buf.Size() );
 		size	= Min( size, src_buf.Size() - offset );
@@ -587,7 +535,11 @@ namespace AE::Graphics::_hidden_
 		}
 		ASSERT( buffers.size() == mem_view.Parts().size() );
 
-		return Threading::MakePromiseFromValue( mem_view, Tuple{ this->_mngr.GetBatchRC() });
+		return Threading::MakePromiseFromValue(	mem_view,
+												Tuple{ this->_mngr.GetBatchRC() },
+												"VTransferContext::ReadbackBuffer",
+												ETaskQueue::Renderer
+											   );
 	}
 	
 /*
@@ -609,7 +561,11 @@ namespace AE::Graphics::_hidden_
 			this->_mngr.GetStagingManager().AcquireMappedMemory( GetFrameId(), mem_info.memory, mem_info.offset, size );
 		}
 
-		return Threading::MakePromiseFromValue( mem_view, Tuple{ this->_mngr.GetBatchRC() });
+		return Threading::MakePromiseFromValue(	mem_view,
+												Tuple{ this->_mngr.GetBatchRC() },
+												"VTransferContext::ReadHostBuffer",
+												ETaskQueue::Renderer
+											   );
 	}
 	
 /*
@@ -621,7 +577,7 @@ namespace AE::Graphics::_hidden_
 	Promise<ImageMemView>   _VTransferContextImpl<C>::ReadbackImage (ImageID imageId, const ReadbackImageDesc &readDesc)
 	{
 		auto&	src_img = _GetResourcesOrThrow( imageId );
-		ASSERT( _IsDeviceMemory( src_img ));
+		Validator_t::ReadbackImage( src_img );
 		
 		const ImageDesc&		img_desc	= src_img.Description();
 		VStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
@@ -661,7 +617,9 @@ namespace AE::Graphics::_hidden_
 		
 		return Threading::MakePromiseFromValue(
 					ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask },
-					Tuple{ this->_mngr.GetBatchRC() }
+					Tuple{ this->_mngr.GetBatchRC() },
+					"VTransferContext::ReadbackImage",
+					ETaskQueue::Renderer
 				);
 	}
 	
@@ -683,7 +641,7 @@ namespace AE::Graphics::_hidden_
 	bool  _VTransferContextImpl<C>::_MapHostBuffer (BufferID bufferId, INOUT Bytes &offset, INOUT Bytes &size, OUT VulkanMemoryObjInfo &memInfo)
 	{
 		auto&	buf = _GetResourcesOrThrow( bufferId );
-		ASSERT( _IsHostMemory( buf ));
+		Validator_t::MapHostBuffer( buf, offset, size );
 
 		auto&	mem = _GetResourcesOrThrow( buf.MemoryID() );
 		CHECK_ERR( mem.GetMemoryInfo( OUT memInfo ));
@@ -735,7 +693,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)
 	{
 		auto  [src_buf, dst_buf] = _GetResourcesOrThrow( srcBuffer, dstBuffer );
-		ASSERT( ranges.size() );
+		Validator_t::CopyBuffer( src_buf, dst_buf, ranges );
 
 		FixedArray<VkBufferCopy, _LocalArraySize>	vk_ranges;
 		const Bytes									src_size	= src_buf.Size();
@@ -745,11 +703,6 @@ namespace AE::Graphics::_hidden_
 		{
 			auto&	src = ranges[i];
 			auto&	dst = vk_ranges.emplace_back();
-
-			ASSERT( All( src.srcOffset < src_size ));
-			ASSERT( All( src.dstOffset < dst_size ));
-			ASSERT( All( (src.srcOffset + src.size) <= src_size ));
-			ASSERT( All( (src.dstOffset + src.size) <= dst_size ));
 
 			dst.srcOffset	= VkDeviceSize(Min( src.srcOffset, src_size-1 ));
 			dst.dstOffset	= VkDeviceSize(Min( src.dstOffset, dst_size-1 ));
@@ -775,7 +728,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)
 	{
 		auto  [src_img, dst_img] = _GetResourcesOrThrow( srcImage, dstImage );
-		ASSERT( ranges.size() );
+		Validator_t::CopyImage( src_img, dst_img, ranges );
 
 		FixedArray<VkImageCopy, _LocalArraySize>	vk_ranges;
 		const ImageDesc &							src_desc	= src_img.Description();
@@ -785,11 +738,6 @@ namespace AE::Graphics::_hidden_
 		{
 			auto&	src = ranges[i];
 			auto&	dst = vk_ranges.emplace_back();
-
-			ASSERT( All( src.srcOffset < src_img.Dimension() ));
-			ASSERT( All( (src.srcOffset + src.extent) <= src_img.Dimension() ));
-			ASSERT( All( src.dstOffset < dst_img.Dimension() ));
-			ASSERT( All( (src.dstOffset + src.extent) <= dst_img.Dimension() ));
 
 			dst.srcOffset	= { int(src.srcOffset.x), int(src.srcOffset.y), int(src.srcOffset.z) };
 			dst.dstOffset	= { int(src.dstOffset.x), int(src.dstOffset.y), int(src.dstOffset.z) };
@@ -818,7 +766,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)
 	{
 		auto  [src_buf, dst_img] = _GetResourcesOrThrow( srcBuffer, dstImage );
-		ASSERT( ranges.size() );
+		Validator_t::CopyBufferToImage( src_buf, dst_img, ranges );
 
 		FixedArray<VkBufferImageCopy, _LocalArraySize>	vk_ranges;
 		const ImageDesc &								img_desc	= dst_img.Description();
@@ -850,7 +798,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)
 	{
 		auto  [src_buf, dst_img] = _GetResourcesOrThrow( srcBuffer, dstImage );
-		ASSERT( ranges.size() );
+		Validator_t::CopyBufferToImage( src_buf, dst_img, ranges );
 
 		FixedArray<VkBufferImageCopy, _LocalArraySize>	vk_ranges;
 		const ImageDesc &								img_desc	= dst_img.Description();
@@ -883,7 +831,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)
 	{
 		auto  [src_img, dst_buf] = _GetResourcesOrThrow( srcImage, dstBuffer );
-		ASSERT( ranges.size() );
+		Validator_t::CopyImageToBuffer( src_img, dst_buf, ranges );
 		
 		FixedArray<VkBufferImageCopy, _LocalArraySize>	vk_ranges;
 		const ImageDesc &								img_desc	= src_img.Description();
@@ -915,7 +863,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)
 	{
 		auto  [src_img, dst_buf] = _GetResourcesOrThrow( srcImage, dstBuffer );
-		ASSERT( ranges.size() );
+		Validator_t::CopyImageToBuffer( src_img, dst_buf, ranges );
 		
 		FixedArray<VkBufferImageCopy, _LocalArraySize>	vk_ranges;
 		const ImageDesc &								img_desc	= src_img.Description();
@@ -948,7 +896,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter blitFilter, ArrayView<ImageBlit> regions)
 	{
 		auto  [src_img, dst_img] = _GetResourcesOrThrow( srcImage, dstImage );
-		ASSERT( regions.size() );
+		Validator_t::BlitImage( src_img, dst_img, regions );
 		
 		FixedArray<VkImageBlit, _LocalArraySize>	vk_regions;
 		const ImageDesc &							src_desc	= src_img.Description();
@@ -959,11 +907,6 @@ namespace AE::Graphics::_hidden_
 		{
 			auto&	src = regions[i];
 			auto&	dst = vk_regions.emplace_back();
-
-			ASSERT( All( src.srcOffset0 <= src_desc.dimension ));
-			ASSERT( All( src.srcOffset1 <= src_desc.dimension ));
-			ASSERT( All( src.dstOffset0 <= dst_desc.dimension ));
-			ASSERT( All( src.dstOffset1 <= dst_desc.dimension ));
 
 			dst.srcOffsets[0] = { int(src.srcOffset0.x), int(src.srcOffset0.y), int(src.srcOffset0.z) };
 			dst.srcOffsets[1] = { int(src.srcOffset1.x), int(src.srcOffset1.y), int(src.srcOffset1.z) };
@@ -992,7 +935,7 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)
 	{
 		auto  [src_img, dst_img] = _GetResourcesOrThrow( srcImage, dstImage );
-		ASSERT( regions.size() );
+		Validator_t::ResolveImage( src_img, dst_img, regions );
 		
 		FixedArray<VkImageResolve, _LocalArraySize>	vk_regions;
 		const ImageDesc &							src_desc	= src_img.Description();
@@ -1002,11 +945,6 @@ namespace AE::Graphics::_hidden_
 		{
 			auto&	src = regions[i];
 			auto&	dst = vk_regions.emplace_back();
-
-			ASSERT( All( src.srcOffset < src_desc.dimension ));
-			ASSERT( All( src.srcOffset + src.extent <= src_desc.dimension ));
-			ASSERT( All( src.dstOffset < dst_desc.dimension ));
-			ASSERT( All( src.dstOffset + src.extent <= dst_desc.dimension ));
 
 			dst.srcOffset	= { int(src.srcOffset.x), int(src.srcOffset.y), int(src.srcOffset.z) };
 			dst.dstOffset	= { int(src.dstOffset.x), int(src.dstOffset.y), int(src.dstOffset.z) };
@@ -1036,6 +974,7 @@ namespace AE::Graphics::_hidden_
 	{
 		auto&				img = _GetResourcesOrThrow( image );
 		ImageDesc const&	desc = img.Description();
+		Validator_t::GenerateMipmaps( img );
 
 		RawCtx::GenerateMipmaps( img.Handle(), desc.dimension,
 								 desc.maxLevel.Get(), desc.arrayLayers.Get(),
@@ -1149,6 +1088,10 @@ namespace AE::Graphics::_hidden_
 		ASSERT( image != Default );
 		ASSERT( ranges.size() );
 		ASSERT( _NoPendingBarriers() );
+		DEBUG_ONLY(
+			for (auto& range : ranges) {
+				ASSERT( range.aspectMask == VK_IMAGE_ASPECT_COLOR_BIT );
+			})
 
 		vkCmdClearColorImage( _cmdbuf.Get(), image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &color, uint(ranges.size()), ranges.data() );
 	}
@@ -1163,6 +1106,10 @@ namespace AE::Graphics::_hidden_
 		ASSERT( image != Default );
 		ASSERT( ranges.size() );
 		ASSERT( _NoPendingBarriers() );
+		DEBUG_ONLY(
+			for (auto& range : ranges) {
+				ASSERT( not AnyBits( range.aspectMask, ~(VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) ));
+			})
 
 		vkCmdClearDepthStencilImage( _cmdbuf.Get(), image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &depthStencil, uint(ranges.size()), ranges.data() );
 	}

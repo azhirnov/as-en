@@ -2,6 +2,15 @@
 /*
  Neon:
 	https://developer.arm.com/architectures/instruction-sets/intrinsics/
+
+ Features:
+	__ARM_FEATURE_BF16
+	__ARM_FEATURE_SVE
+	__ARM_FEATURE_SVE_BF16
+	__ARM_FEATURE_BF16_SCALAR_ARITHMETIC
+
+TODO:
+	intrinsics: asimd, aes, pmull sha1 sha2 crc32, fphp, asimdhp, asimdrdm, asimddp
 */
 
 #pragma once
@@ -23,7 +32,6 @@ namespace AE::Math
 	using SimdUInt2		= SimdTInt64< uint >;
 	
 	struct SimdFloat4;
-	struct SimdDouble2;
 	struct SimdHalf8;
 	template <typename IntType> struct SimdTInt128;
 	using SimdByte16	= SimdTInt128< sbyte >;
@@ -34,7 +42,10 @@ namespace AE::Math
 	using SimdUInt4		= SimdTInt128< uint >;
 	using SimdLong2		= SimdTInt128< slong >;
 	using SimdULong2	= SimdTInt128< ulong >;
-
+	
+# ifdef __aarch64__
+	struct SimdDouble2;
+# endif
 
 
 # if AE_SIMD_NEON_HALF
@@ -851,7 +862,6 @@ namespace AE::Math
 		ND_ Self  operator +  (const Self &rhs)			C_NE___	{ return Add( rhs ); }
 		ND_ Self  operator -  (const Self &rhs)			C_NE___	{ return Sub( rhs ); }
 		ND_ Self  operator *  (const Self &rhs)			C_NE___	{ return Mul( rhs ); }
-		ND_ Self  operator /  (const Self &rhs)			C_NE___	{ return Div( rhs ); }
 		
 		ND_ Value_t			operator [] (usize i)		C_NE___	{ ASSERT( i < count );  return _value[i]; }
 		ND_ Native_t const&	Get ()						C_NE___	{ return _value; }
@@ -859,7 +869,6 @@ namespace AE::Math
 		ND_ Self  Add (const Self &rhs)					C_NE___	{ return Self{ vaddq_f32( _value, rhs._value )}; }
 		ND_ Self  Sub (const Self &rhs)					C_NE___	{ return Self{ vsubq_f32( _value, rhs._value )}; }
 		ND_ Self  Mul (const Self &rhs)					C_NE___	{ return Self{ vmulq_f32( _value, rhs._value )}; }
-		ND_ Self  Div (const Self &rhs)					C_NE___	{ return Self{ vdivq_f32( _value, rhs._value )}; }
 		
 		ND_ Self  Mul (Value_t rhs)						C_NE___	{ return Self{ vmulq_n_f32( _value, rhs )}; }
 
@@ -883,10 +892,15 @@ namespace AE::Math
 		ND_ Self  MulSub (const Self &b, const Self &c) C_NE___	{ return Self{ vmlsq_f32(   _value, b._value, c._value )}; }	// a - (b * c)
 		ND_ Self  MulSub (const Self &b, Value_t c)		C_NE___	{ return Self{ vmlsq_n_f32( _value, b._value, c )}; }			//
 
+	  #ifdef __aarch64__
+		ND_ Self  operator /  (const Self &rhs)			C_NE___	{ return Div( rhs ); }
+		ND_ Self  Div (const Self &rhs)					C_NE___	{ return Self{ vdivq_f32( _value, rhs._value )}; }
+
 		ND_ Self  FMAdd  (const Self &b, const Self &c)	C_NE___	{ return Self{ vfmaq_f32(   _value, b._value, c._value )}; }	// (a * b) + c
 		ND_ Self  FMAdd  (const Self &b, Value_t c)		C_NE___	{ return Self{ vfmaq_n_f32( _value, b._value, c )}; }			//
 		ND_ Self  FMSub  (const Self &b, const Self &c)	C_NE___	{ return Self{ vfmsq_f32(   _value, b._value, c._value )}; }	// (a * b) - c
 		ND_ Self  FMSub  (const Self &b, Value_t c)		C_NE___	{ return Self{ vfmsq_n_f32( _value, b._value, c )}; }			//
+	  #endif
 		
 	//	template <uint Lane> ND_ Self  Mul (const Self &rhs)							C_NE___	{ STATIC_ASSERT( Lane < count );  return Self{ vmulq_lane_f32( _value, rhs, Lane )}; }					// a * b[lane]
 	//	template <uint Lane> ND_ Self  MulAdd (const Self &b, const Self &c)			C_NE___	{ STATIC_ASSERT( Lane < count );  return Self{ vmlaq_lane_f32( _value, b._value, c._value, Lane )}; }	// a + (b * c[Lane])
@@ -901,9 +915,11 @@ namespace AE::Math
 	};
 
 
+	
+#ifdef __aarch64__
 
 	//
-	// 128 bit double (Neon)
+	// 128 bit double (Neon64)
 	//
 #	define AE_SIMD_SimdDouble2
 	struct SimdDouble2
@@ -976,6 +992,8 @@ namespace AE::Math
 		ND_ Self  Negative ()							C_NE___	{ return Self{ vnegq_f64( _value )}; }		// -x
 	};
 	
+#endif // __aarch64__
+
 	
 
 	//

@@ -35,18 +35,18 @@ namespace AE::GeometryTools
 	// methods
 	public:
 		// position projection
-		ND_ static double3  ForwardProjection (const double2 &ncoord, ECubeFace face);
-		ND_ static float3   ForwardProjection (const float2 &ncoord, ECubeFace face);
+		ND_ static double3  ForwardProjection (const double2 &ncoord, ECubeFace face)		__NE___;
+		ND_ static float3   ForwardProjection (const float2 &ncoord, ECubeFace face)		__NE___;
 
-		ND_ static Pair<double2, ECubeFace>  InverseProjection (const double3 &coord);
-		ND_ static Pair<float2, ECubeFace>   InverseProjection (const float3 &coord);
+		ND_ static Pair<double2, ECubeFace>  InverseProjection (const double3 &coord)		__NE___;
+		ND_ static Pair<float2, ECubeFace>   InverseProjection (const float3 &coord)		__NE___;
 		
 		// texture coordinate projection
-		ND_ static double3  ForwardTexProjection (const double2 &ncoord, ECubeFace face);
-		ND_ static float3   ForwardTexProjection (const float2 &ncoord, ECubeFace face);
+		ND_ static double3  ForwardTexProjection (const double2 &ncoord, ECubeFace face)	__NE___;
+		ND_ static float3   ForwardTexProjection (const float2 &ncoord, ECubeFace face)		__NE___;
 
-		ND_ static Pair<double2, ECubeFace>  InverseTexProjection (const double3 &coord);
-		ND_ static Pair<float2, ECubeFace>   InverseTexProjection (const float3 &coord);
+		ND_ static Pair<double2, ECubeFace>  InverseTexProjection (const double3 &coord)	__NE___;
+		ND_ static Pair<float2, ECubeFace>   InverseTexProjection (const float3 &coord)		__NE___;
 	};
 
 
@@ -57,7 +57,7 @@ namespace AE::GeometryTools
 	project 2D coord to cube face
 =================================================
 */
-	ND_ inline double3  RotateVec (const double3 &c, ECubeFace face)
+	ND_ inline double3  RotateVec (const double3 &c, ECubeFace face) __NE___
 	{
 		switch ( face )
 		{
@@ -78,7 +78,7 @@ namespace AE::GeometryTools
 	project 3D coord on cube/sphere to face 2D coord
 =================================================
 */
-	ND_ inline Tuple<double2, double, ECubeFace>  InverseRotation (const double3 &c)
+	ND_ inline Tuple<double2, double, ECubeFace>  InverseRotation (const double3 &c) __NE___
 	{
 		// front (xy space)
 		if ( (Abs(c.x) <= c.z) & (c.z > 0.0) & (Abs(c.y) <= c.z) )
@@ -111,12 +111,12 @@ namespace AE::GeometryTools
 */
 	struct OriginCube
 	{
-		ND_ static double3  Forward (const double2 &ncoord, ECubeFace face)
+		ND_ static double3  Forward (const double2 &ncoord, ECubeFace face) __NE___
 		{
 			return RotateVec( double3{ ncoord, 1.0 }, face );
 		}
 
-		ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord)
+		ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord) __NE___
 		{
 			auto[c, z, face] = InverseRotation( coord );
 			return { c, face };
@@ -130,12 +130,12 @@ namespace AE::GeometryTools
 */
 	struct IdentitySphericalCube
 	{
-		ND_ static double3  Forward (const double2 &ncoord, ECubeFace face)
+		ND_ static double3  Forward (const double2 &ncoord, ECubeFace face) __NE___
 		{
 			return Normalize( RotateVec( double3{ ncoord, 1.0 }, face ));
 		}
 
-		ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord)
+		ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord) __NE___
 		{
 			auto[c, z, face] = InverseRotation( coord );
 			c /= z;
@@ -153,7 +153,7 @@ namespace AE::GeometryTools
 		static constexpr double  warp_theta		= 0.868734829276;
 		static constexpr double  tan_warp_theta	= 1.182286685546; //tan( warp_theta );
 		
-		ND_ static double3  Forward (const double2 &ncoord, ECubeFace face)
+		ND_ static double3  Forward (const double2 &ncoord, ECubeFace face) __NE___
 		{
 			double	x = tan( warp_theta * ncoord.x ) / tan_warp_theta;
 			double	y = tan( warp_theta * ncoord.y ) / tan_warp_theta;
@@ -161,7 +161,7 @@ namespace AE::GeometryTools
 			return Normalize( RotateVec( double3{x, y, 1.0}, face ));
 		}
 
-		ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord)
+		ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord) __NE___
 		{
 			auto[c, z, face] = InverseRotation( coord );
 			c /= z;
@@ -189,12 +189,12 @@ namespace AE::GeometryTools
 */
 	struct TextureProjection
 	{
-		ND_ static double3  Forward (const double2 &ncoord, ECubeFace face)
+		ND_ static double3  Forward (const double2 &ncoord, ECubeFace face) __NE___
 		{
 			return IdentitySphericalCube::Forward( ncoord, face ) * 0.5;
 		}
 
-		ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord)
+		ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord) __NE___
 		{
 			return IdentitySphericalCube::Inverse( coord * 2.0 );
 		}
@@ -207,7 +207,7 @@ namespace AE::GeometryTools
 */
 	struct TextureYFlipProjection
 	{
-		ND_ static double3  Forward (const double2 &ncoord, ECubeFace face)
+		ND_ static double3  Forward (const double2 &ncoord, ECubeFace face) __NE___
 		{
 			if ( face == ECubeFace::YPos )
 				face = ECubeFace::YNeg;
@@ -218,7 +218,7 @@ namespace AE::GeometryTools
 			return IdentitySphericalCube::Forward( ncoord, face ) * 0.5;
 		}
 
-		ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord)
+		ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord) __NE___
 		{
 			return IdentitySphericalCube::Inverse( coord * 2.0 );
 		}
@@ -233,13 +233,13 @@ namespace AE::GeometryTools
 =================================================
 */
 	template <typename PP, typename TP>
-	double3  SphericalCubeProjection<PP,TP>::ForwardProjection (const double2 &ncoord, ECubeFace face)
+	double3  SphericalCubeProjection<PP,TP>::ForwardProjection (const double2 &ncoord, ECubeFace face) __NE___
 	{
 		return Projection_t::Forward( ncoord, face );
 	}
 	
 	template <typename PP, typename TP>
-	float3  SphericalCubeProjection<PP,TP>::ForwardProjection (const float2 &ncoord, ECubeFace face)
+	float3  SphericalCubeProjection<PP,TP>::ForwardProjection (const float2 &ncoord, ECubeFace face) __NE___
 	{
 		return float3(Projection_t::Forward( double2(ncoord), face ));
 	}
@@ -250,14 +250,14 @@ namespace AE::GeometryTools
 =================================================
 */
 	template <typename PP, typename TP>
-	Pair<double2, ECubeFace>  SphericalCubeProjection<PP,TP>::InverseProjection (const double3 &coord)
+	Pair<double2, ECubeFace>  SphericalCubeProjection<PP,TP>::InverseProjection (const double3 &coord) __NE___
 	{
 		auto[c, face] = Projection_t::Inverse( coord );
 		return { c, face };
 	}
 	
 	template <typename PP, typename TP>
-	Pair<float2, ECubeFace>  SphericalCubeProjection<PP,TP>::InverseProjection (const float3 &coord)
+	Pair<float2, ECubeFace>  SphericalCubeProjection<PP,TP>::InverseProjection (const float3 &coord) __NE___
 	{
 		auto[c, face] = Projection_t::Inverse( double3(coord) );
 		return { float2(c), face };
@@ -269,13 +269,13 @@ namespace AE::GeometryTools
 =================================================
 */
 	template <typename PP, typename TP>
-	double3  SphericalCubeProjection<PP,TP>::ForwardTexProjection (const double2 &ncoord, ECubeFace face)
+	double3  SphericalCubeProjection<PP,TP>::ForwardTexProjection (const double2 &ncoord, ECubeFace face) __NE___
 	{
 		return TextureProjection_t::Forward( ncoord, face );
 	}
 	
 	template <typename PP, typename TP>
-	float3  SphericalCubeProjection<PP,TP>::ForwardTexProjection (const float2 &ncoord, ECubeFace face)
+	float3  SphericalCubeProjection<PP,TP>::ForwardTexProjection (const float2 &ncoord, ECubeFace face) __NE___
 	{
 		return float3(TextureProjection_t::Forward( double2(ncoord), face ));
 	}
@@ -286,14 +286,14 @@ namespace AE::GeometryTools
 =================================================
 */
 	template <typename PP, typename TP>
-	Pair<double2, ECubeFace>  SphericalCubeProjection<PP,TP>::InverseTexProjection (const double3 &coord)
+	Pair<double2, ECubeFace>  SphericalCubeProjection<PP,TP>::InverseTexProjection (const double3 &coord) __NE___
 	{
 		auto[c, face] = TextureProjection_t::Inverse( coord );
 		return { c, face };
 	}
 	
 	template <typename PP, typename TP>
-	Pair<float2, ECubeFace>  SphericalCubeProjection<PP,TP>::InverseTexProjection (const float3 &coord)
+	Pair<float2, ECubeFace>  SphericalCubeProjection<PP,TP>::InverseTexProjection (const float3 &coord) __NE___
 	{
 		auto[c, face] = TextureProjection_t::Inverse( double3(coord) );
 		return { float2(c), face };

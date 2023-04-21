@@ -9,6 +9,8 @@ using namespace AE;
 using namespace AE::Graphics;
 using namespace AE::Threading;
 
+#define PRINT_ALL_DS	1
+
 namespace
 {
 #	include "vulkan_loader/vkenum_to_str.h"
@@ -307,7 +309,7 @@ namespace
 	Wrap_vkCreateBuffer
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateBuffer (VkDevice device, const VkBufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateBuffer (VkDevice device, const VkBufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBuffer* pBuffer)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -331,7 +333,7 @@ namespace
 	Wrap_vkDestroyBuffer
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyBuffer (VkDevice device, VkBuffer buffer, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyBuffer (VkDevice device, VkBuffer buffer, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -355,7 +357,7 @@ namespace
 	Wrap_vkCreateBufferView
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateBufferView (VkDevice device, const VkBufferViewCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBufferView* pView)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateBufferView (VkDevice device, const VkBufferViewCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkBufferView* pView)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -381,7 +383,7 @@ namespace
 	Wrap_vkDestroyBufferView
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyBufferView (VkDevice device, VkBufferView bufferView, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyBufferView (VkDevice device, VkBufferView bufferView, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -396,7 +398,7 @@ namespace
 	Wrap_vkCreateImage
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateImage (VkDevice device, const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImage* pImage)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateImage (VkDevice device, const VkImageCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImage* pImage)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -420,7 +422,7 @@ namespace
 	Wrap_vkDestroyImage
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyImage (VkDevice device, VkImage image, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyImage (VkDevice device, VkImage image, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -435,7 +437,7 @@ namespace
 	Wrap_vkGetSwapchainImagesKHR
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkGetSwapchainImagesKHR (VkDevice device, VkSwapchainKHR swapchain, uint* pSwapchainImageCount, VkImage* pSwapchainImages)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkGetSwapchainImagesKHR (VkDevice device, VkSwapchainKHR swapchain, uint* pSwapchainImageCount, VkImage* pSwapchainImages)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -465,7 +467,7 @@ namespace
 	Wrap_vkCreateImageView
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateImageView (VkDevice device, const VkImageViewCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImageView* pView)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateImageView (VkDevice device, const VkImageViewCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkImageView* pView)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -491,7 +493,7 @@ namespace
 	Wrap_vkDestroyImageView
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyImageView (VkDevice device, VkImageView imageView, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyImageView (VkDevice device, VkImageView imageView, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -506,7 +508,7 @@ namespace
 	Wrap_vkCreateFramebuffer
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateFramebuffer (VkDevice device, const VkFramebufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkFramebuffer* pFramebuffer)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateFramebuffer (VkDevice device, const VkFramebufferCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkFramebuffer* pFramebuffer)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -533,7 +535,7 @@ namespace
 	Wrap_vkDestroyFramebuffer
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyFramebuffer (VkDevice device, VkFramebuffer framebuffer, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyFramebuffer (VkDevice device, VkFramebuffer framebuffer, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -548,7 +550,7 @@ namespace
 	Wrap_vkCreateRenderPass
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateRenderPass (VkDevice device, const VkRenderPassCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateRenderPass (VkDevice device, const VkRenderPassCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -571,7 +573,7 @@ namespace
 	Wrap_vkCreateRenderPass2
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateRenderPass2 (VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateRenderPass2 (VkDevice device, const VkRenderPassCreateInfo2* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkRenderPass* pRenderPass)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -670,7 +672,7 @@ namespace
 	Wrap_vkDestroyRenderPass
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyRenderPass (VkDevice device, VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyRenderPass (VkDevice device, VkRenderPass renderPass, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -685,8 +687,8 @@ namespace
 	Wrap_vkCreateGraphicsPipelines
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateGraphicsPipelines (VkDevice device, VkPipelineCache pipelineCache, uint createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos,
-														const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateGraphicsPipelines (VkDevice device, VkPipelineCache pipelineCache, uint createInfoCount, const VkGraphicsPipelineCreateInfo* pCreateInfos,
+																	const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -711,8 +713,8 @@ namespace
 	Wrap_vkCreateComputePipelines
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateComputePipelines (VkDevice device, VkPipelineCache pipelineCache, uint createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos,
-													   const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateComputePipelines (VkDevice device, VkPipelineCache pipelineCache, uint createInfoCount, const VkComputePipelineCreateInfo* pCreateInfos,
+																  const VkAllocationCallbacks* pAllocator, VkPipeline* pPipelines)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -737,7 +739,7 @@ namespace
 	Wrap_vkDestroyPipeline
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyPipeline (VkDevice device, VkPipeline pipeline, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyPipeline (VkDevice device, VkPipeline pipeline, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -752,7 +754,7 @@ namespace
 	Wrap_vkCreateCommandPool
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateCommandPool (VkDevice device, const VkCommandPoolCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkCommandPool* pCommandPool)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateCommandPool (VkDevice device, const VkCommandPoolCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkCommandPool* pCommandPool)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -774,7 +776,7 @@ namespace
 	Wrap_vkDestroyCommandPool
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyCommandPool (VkDevice device, VkCommandPool commandPool, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyCommandPool (VkDevice device, VkCommandPool commandPool, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -789,7 +791,7 @@ namespace
 	Wrap_vkAllocateCommandBuffers
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkAllocateCommandBuffers (VkDevice device, const VkCommandBufferAllocateInfo* pAllocateInfo, VkCommandBuffer* pCommandBuffers)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkAllocateCommandBuffers (VkDevice device, const VkCommandBufferAllocateInfo* pAllocateInfo, VkCommandBuffer* pCommandBuffers)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -823,8 +825,8 @@ namespace
 	Wrap_vkCreateDescriptorSetLayout
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateDescriptorSetLayout (VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
-														  const VkAllocationCallbacks* pAllocator, VkDescriptorSetLayout* pSetLayout)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateDescriptorSetLayout (VkDevice device, const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+																	 const VkAllocationCallbacks* pAllocator, VkDescriptorSetLayout* pSetLayout)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -847,7 +849,7 @@ namespace
 	Wrap_vkDestroyDescriptorSetLayout
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyDescriptorSetLayout (VkDevice device, VkDescriptorSetLayout descriptorSetLayout, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyDescriptorSetLayout (VkDevice device, VkDescriptorSetLayout descriptorSetLayout, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -862,7 +864,7 @@ namespace
 	Wrap_vkAllocateDescriptorSets
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkAllocateDescriptorSets (VkDevice device, const VkDescriptorSetAllocateInfo* pAllocateInfo, VkDescriptorSet* pDescriptorSets)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkAllocateDescriptorSets (VkDevice device, const VkDescriptorSetAllocateInfo* pAllocateInfo, VkDescriptorSet* pDescriptorSets)
 	{
 		auto&	 logger = VulkanLogger::Get();
 		VkResult res	= logger.vkAllocateDescriptorSets( device, pAllocateInfo, OUT pDescriptorSets );
@@ -888,7 +890,7 @@ namespace
 	Wrap_vkFreeDescriptorSets
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkFreeDescriptorSets (VkDevice device, VkDescriptorPool descriptorPool, uint descriptorSetCount, const VkDescriptorSet* pDescriptorSets)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkFreeDescriptorSets (VkDevice device, VkDescriptorPool descriptorPool, uint descriptorSetCount, const VkDescriptorSet* pDescriptorSets)
 	{
 		auto&	 logger = VulkanLogger::Get();
 		{
@@ -905,8 +907,8 @@ namespace
 	Wrap_vkUpdateDescriptorSets
 =================================================
 */
-	void VKAPI_CALL Wrap_vkUpdateDescriptorSets (VkDevice device, uint descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
-												 uint descriptorCopyCount, const VkCopyDescriptorSet* pDescriptorCopies)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkUpdateDescriptorSets (VkDevice device, uint descriptorWriteCount, const VkWriteDescriptorSet* pDescriptorWrites,
+															uint descriptorCopyCount, const VkCopyDescriptorSet* pDescriptorCopies)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkUpdateDescriptorSets( device, descriptorWriteCount, pDescriptorWrites, descriptorCopyCount, pDescriptorCopies );
@@ -980,13 +982,15 @@ namespace
 					for (uint i = 0; i < write_as->accelerationStructureCount; ++i)
 						dst.accelStructs[i + write.dstArrayElement] = write_as->pAccelerationStructures[i];
 					break;
-				}	
+				}
+				case VK_DESCRIPTOR_TYPE_MAX_ENUM :
+					break;	// may be immutable sampler
+
 				case VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT :
 				case VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV :
 				case VK_DESCRIPTOR_TYPE_MUTABLE_VALVE :
 				case VK_DESCRIPTOR_TYPE_SAMPLE_WEIGHT_IMAGE_QCOM :
 				case VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM :
-				case VK_DESCRIPTOR_TYPE_MAX_ENUM :
 				default :
 					DBG_WARNING( "unsupported descriptor type" );
 					break;
@@ -1000,7 +1004,7 @@ namespace
 	Wrap_vkCreateFence
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateFence (VkDevice device, const VkFenceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkFence* pFence)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateFence (VkDevice device, const VkFenceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkFence* pFence)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -1020,7 +1024,7 @@ namespace
 	Wrap_vkDestroyFence
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyFence (VkDevice device, VkFence fence, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyFence (VkDevice device, VkFence fence, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -1035,7 +1039,7 @@ namespace
 	Wrap_vkCreateSemaphore
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateSemaphore (VkDevice device, const VkSemaphoreCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSemaphore* pSemaphore)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateSemaphore (VkDevice device, const VkSemaphoreCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkSemaphore* pSemaphore)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -1055,7 +1059,7 @@ namespace
 	Wrap_vkDestroySemaphore
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroySemaphore (VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroySemaphore (VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator)
 	{
 		auto&	logger = VulkanLogger::Get();
 		{
@@ -1070,7 +1074,7 @@ namespace
 	Wrap_vkBeginCommandBuffer
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkBeginCommandBuffer (VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkBeginCommandBuffer (VkCommandBuffer commandBuffer, const VkCommandBufferBeginInfo* pBeginInfo)
 	{
 		auto&	 logger = VulkanLogger::Get();
 		VkResult res	= logger.vkBeginCommandBuffer( commandBuffer, pBeginInfo );
@@ -1097,7 +1101,7 @@ namespace
 	Wrap_vkEndCommandBuffer
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkEndCommandBuffer (VkCommandBuffer commandBuffer)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkEndCommandBuffer (VkCommandBuffer commandBuffer)
 	{
 		auto&	 logger = VulkanLogger::Get();
 		{
@@ -1121,7 +1125,7 @@ namespace
 	Wrap_vkQueueSubmit
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkQueueSubmit (VkQueue queue, uint submitCount, const VkSubmitInfo* pSubmits, VkFence fence)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkQueueSubmit (VkQueue queue, uint submitCount, const VkSubmitInfo* pSubmits, VkFence fence)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -1265,7 +1269,7 @@ namespace
 	Wrap_vkQueueSubmit2KHR
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkQueueSubmit2KHR (VkQueue queue, uint submitCount, const VkSubmitInfo2KHR* pSubmits, VkFence fence)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkQueueSubmit2KHR (VkQueue queue, uint submitCount, const VkSubmitInfo2KHR* pSubmits, VkFence fence)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -1391,7 +1395,7 @@ namespace
 	Wrap_vkAcquireNextImageKHR
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkAcquireNextImageKHR (VkDevice device, VkSwapchainKHR swapchain, ulong timeout, VkSemaphore semaphore, VkFence fence, OUT uint* pImageIndex)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkAcquireNextImageKHR (VkDevice device, VkSwapchainKHR swapchain, ulong timeout, VkSemaphore semaphore, VkFence fence, OUT uint* pImageIndex)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -1424,7 +1428,7 @@ namespace
 	Wrap_vkQueuePresentKHR
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkQueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkQueuePresentKHR (VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -1459,7 +1463,17 @@ namespace
 	Wrap_vkSetDebugUtilsObjectNameEXT
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkSetDebugUtilsObjectNameEXT (VkDevice device, const VkDebugUtilsObjectNameInfoEXT* pNameInfo)
+	template <typename To, typename From>
+	ND_ To  VBitCast (const From &src)
+	{
+	#	if AE_PLATFORM_BITS == 64
+			return BitCast<To>( src );
+	#	else
+			return UnsafeBitCast<To>( src );
+	#	endif
+	}
+
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkSetDebugUtilsObjectNameEXT (VkDevice device, const VkDebugUtilsObjectNameInfoEXT* pNameInfo)
 	{
 		auto&	logger = VulkanLogger::Get();
 		EXLOCK( logger.guard );
@@ -1469,7 +1483,7 @@ namespace
 		{
 			case VK_OBJECT_TYPE_COMMAND_BUFFER :
 			{
-				auto	iter = logger.commandBuffers.find( BitCast<VkCommandBuffer>(pNameInfo->objectHandle) );
+				auto	iter = logger.commandBuffers.find( VBitCast<VkCommandBuffer>(pNameInfo->objectHandle) );
 				if ( iter != logger.commandBuffers.end() )
 					iter->second.name = pNameInfo->pObjectName;
 				break;
@@ -1477,7 +1491,7 @@ namespace
 
 			case VK_OBJECT_TYPE_BUFFER :
 			{
-				auto	iter = logger.bufferMap.find( BitCast<VkBuffer>(pNameInfo->objectHandle) );
+				auto	iter = logger.bufferMap.find( VBitCast<VkBuffer>(pNameInfo->objectHandle) );
 				if ( iter != logger.bufferMap.end() )
 					iter->second.name = pNameInfo->pObjectName;
 				break;
@@ -1485,7 +1499,7 @@ namespace
 
 			case VK_OBJECT_TYPE_BUFFER_VIEW :
 			{
-				auto	iter = logger.bufferViewMap.find( BitCast<VkBufferView>(pNameInfo->objectHandle) );
+				auto	iter = logger.bufferViewMap.find( VBitCast<VkBufferView>(pNameInfo->objectHandle) );
 				if ( iter != logger.bufferViewMap.end() )
 					iter->second.name = pNameInfo->pObjectName;
 				break;
@@ -1493,7 +1507,7 @@ namespace
 
 			case VK_OBJECT_TYPE_IMAGE :
 			{
-				auto	iter = logger.imageMap.find( BitCast<VkImage>(pNameInfo->objectHandle) );
+				auto	iter = logger.imageMap.find( VBitCast<VkImage>(pNameInfo->objectHandle) );
 				if ( iter != logger.imageMap.end() )
 					iter->second.name = pNameInfo->pObjectName;
 				break;
@@ -1501,7 +1515,7 @@ namespace
 
 			case VK_OBJECT_TYPE_IMAGE_VIEW :
 			{
-				auto	iter = logger.imageViewMap.find( BitCast<VkImageView>(pNameInfo->objectHandle) );
+				auto	iter = logger.imageViewMap.find( VBitCast<VkImageView>(pNameInfo->objectHandle) );
 				if ( iter != logger.imageViewMap.end() )
 					iter->second.name = pNameInfo->pObjectName;
 				break;
@@ -1509,7 +1523,7 @@ namespace
 
 			case VK_OBJECT_TYPE_RENDER_PASS :
 			{
-				auto	iter = logger.renderPassMap.find( BitCast<VkRenderPass>(pNameInfo->objectHandle) );
+				auto	iter = logger.renderPassMap.find( VBitCast<VkRenderPass>(pNameInfo->objectHandle) );
 				if ( iter != logger.renderPassMap.end() )
 					iter->second.name = pNameInfo->pObjectName;
 				break;
@@ -1517,7 +1531,7 @@ namespace
 
 			case VK_OBJECT_TYPE_FRAMEBUFFER :
 			{
-				auto	iter = logger.framebufferMap.find( BitCast<VkFramebuffer>(pNameInfo->objectHandle) );
+				auto	iter = logger.framebufferMap.find( VBitCast<VkFramebuffer>(pNameInfo->objectHandle) );
 				if ( iter != logger.framebufferMap.end() )
 					iter->second.name = pNameInfo->pObjectName;
 				break;
@@ -1525,7 +1539,7 @@ namespace
 
 			case VK_OBJECT_TYPE_PIPELINE :
 			{
-				auto	iter = logger.pipelineMap.find( BitCast<VkPipeline>(pNameInfo->objectHandle) );
+				auto	iter = logger.pipelineMap.find( VBitCast<VkPipeline>(pNameInfo->objectHandle) );
 				if ( iter != logger.pipelineMap.end() )
 					iter->second.name = pNameInfo->pObjectName;
 				break;
@@ -1533,7 +1547,7 @@ namespace
 
 			case VK_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT :
 			{
-				auto	iter = logger.descSetLayoutMap.find( BitCast<VkDescriptorSetLayout>(pNameInfo->objectHandle) );
+				auto	iter = logger.descSetLayoutMap.find( VBitCast<VkDescriptorSetLayout>(pNameInfo->objectHandle) );
 				if ( iter != logger.descSetLayoutMap.end() )
 					iter->second.name = pNameInfo->pObjectName;
 				break;
@@ -1541,7 +1555,7 @@ namespace
 			
 			case VK_OBJECT_TYPE_ACCELERATION_STRUCTURE_KHR :
 			{
-				auto	iter = logger.accelStructMap.find( BitCast<VkAccelerationStructureKHR>(pNameInfo->objectHandle) );
+				auto	iter = logger.accelStructMap.find( VBitCast<VkAccelerationStructureKHR>(pNameInfo->objectHandle) );
 				if ( iter != logger.accelStructMap.end() )
 					iter->second.name = pNameInfo->pObjectName;
 				break;
@@ -1549,13 +1563,13 @@ namespace
 
 			case VK_OBJECT_TYPE_SEMAPHORE :
 			{
-				logger.semaphoreMap[ BitCast<VkSemaphore>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
+				logger.semaphoreMap[ VBitCast<VkSemaphore>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
 				break;
 			}
 
 			case VK_OBJECT_TYPE_FENCE :
 			{
-				logger.fenceMap[ BitCast<VkFence>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
+				logger.fenceMap[ VBitCast<VkFence>(pNameInfo->objectHandle) ] = pNameInfo->pObjectName;
 				break;
 			}
 
@@ -1608,10 +1622,10 @@ namespace
 	Wrap_vkCmdPipelineBarrier
 =================================================
 */
-	void VKAPI_CALL  Wrap_vkCmdPipelineBarrier (VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags,
-												uint memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers,
-												uint bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers,
-												uint imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers)
+	VKAPI_ATTR void VKAPI_CALL  Wrap_vkCmdPipelineBarrier (VkCommandBuffer commandBuffer, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask, VkDependencyFlags dependencyFlags,
+															uint memoryBarrierCount, const VkMemoryBarrier* pMemoryBarriers,
+															uint bufferMemoryBarrierCount, const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+															uint imageMemoryBarrierCount, const VkImageMemoryBarrier* pImageMemoryBarriers)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdPipelineBarrier( commandBuffer, srcStageMask, dstStageMask, dependencyFlags, memoryBarrierCount, pMemoryBarriers,
@@ -1715,7 +1729,7 @@ namespace
 	Wrap_vkCmdPipelineBarrier2
 =================================================
 */
-	void VKAPI_CALL  Wrap_vkCmdPipelineBarrier2 (VkCommandBuffer commandBuffer, const VkDependencyInfo* pInfo)
+	VKAPI_ATTR void VKAPI_CALL  Wrap_vkCmdPipelineBarrier2 (VkCommandBuffer commandBuffer, const VkDependencyInfo* pInfo)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdPipelineBarrier2KHR( commandBuffer, pInfo );
@@ -2074,7 +2088,7 @@ namespace
 	Wrap_vkCmdBeginRenderPass
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdBeginRenderPass (VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, VkSubpassContents contents)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBeginRenderPass (VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, VkSubpassContents contents)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdBeginRenderPass( commandBuffer, pRenderPassBegin, contents );
@@ -2107,7 +2121,7 @@ namespace
 	Wrap_vkCmdBeginRenderPass2
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdBeginRenderPass2 (VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, const VkSubpassBeginInfo* pSubpassBeginInfo)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBeginRenderPass2 (VkCommandBuffer commandBuffer, const VkRenderPassBeginInfo* pRenderPassBegin, const VkSubpassBeginInfo* pSubpassBeginInfo)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdBeginRenderPass2KHR( commandBuffer, pRenderPassBegin, pSubpassBeginInfo );
@@ -2142,7 +2156,7 @@ namespace
 	Wrap_vkCmdNextSubpass
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdNextSubpass (VkCommandBuffer commandBuffer, VkSubpassContents contents)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdNextSubpass (VkCommandBuffer commandBuffer, VkSubpassContents contents)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdNextSubpass( commandBuffer, contents );
@@ -2176,7 +2190,7 @@ namespace
 	Wrap_vkCmdNextSubpass2
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdNextSubpass2 (VkCommandBuffer commandBuffer, const VkSubpassBeginInfo* pSubpassBeginInfo, const VkSubpassEndInfo* pSubpassEndInfo)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdNextSubpass2 (VkCommandBuffer commandBuffer, const VkSubpassBeginInfo* pSubpassBeginInfo, const VkSubpassEndInfo* pSubpassEndInfo)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdNextSubpass2KHR( commandBuffer, pSubpassBeginInfo, pSubpassEndInfo );
@@ -2231,7 +2245,7 @@ namespace
 	Wrap_vkCmdEndRenderPass
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdEndRenderPass (VkCommandBuffer commandBuffer)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdEndRenderPass (VkCommandBuffer commandBuffer)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdEndRenderPass( commandBuffer );
@@ -2260,7 +2274,7 @@ namespace
 	Wrap_vkCmdEndRenderPass2
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdEndRenderPass2 (VkCommandBuffer commandBuffer, const VkSubpassEndInfo* pSubpassEndInfo)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdEndRenderPass2 (VkCommandBuffer commandBuffer, const VkSubpassEndInfo* pSubpassEndInfo)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdEndRenderPass2KHR( commandBuffer, pSubpassEndInfo );
@@ -2353,7 +2367,7 @@ namespace
 	Wrap_vkCmdCopyBuffer
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdCopyBuffer (VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkBuffer dstBuffer, uint regionCount, const VkBufferCopy* pRegions)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyBuffer (VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkBuffer dstBuffer, uint regionCount, const VkBufferCopy* pRegions)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdCopyBuffer( commandBuffer, srcBuffer, dstBuffer, regionCount, pRegions );
@@ -2675,8 +2689,8 @@ namespace
 	Wrap_vkCmdCopyImage
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdCopyImage (VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout,
-										 uint regionCount, const VkImageCopy* pRegions)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyImage (VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout,
+													uint regionCount, const VkImageCopy* pRegions)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdCopyImage( commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions );
@@ -2722,8 +2736,8 @@ namespace
 	Wrap_vkCmdBlitImage
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdBlitImage (VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout,
-										 uint regionCount, const VkImageBlit* pRegions, VkFilter filter)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBlitImage (VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout,
+													uint regionCount, const VkImageBlit* pRegions, VkFilter filter)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdBlitImage( commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions, filter );
@@ -2772,8 +2786,8 @@ namespace
 	Wrap_vkCmdCopyBufferToImage
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdCopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage, VkImageLayout dstImageLayout,
-												 uint regionCount, const VkBufferImageCopy* pRegions)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyBufferToImage (VkCommandBuffer commandBuffer, VkBuffer srcBuffer, VkImage dstImage, VkImageLayout dstImageLayout,
+															uint regionCount, const VkBufferImageCopy* pRegions)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdCopyBufferToImage( commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount, pRegions );
@@ -2818,8 +2832,8 @@ namespace
 	Wrap_vkCmdCopyImageToBuffer
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdCopyImageToBuffer (VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkBuffer dstBuffer,
-												 uint regionCount, const VkBufferImageCopy* pRegions)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyImageToBuffer (VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkBuffer dstBuffer,
+															uint regionCount, const VkBufferImageCopy* pRegions)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdCopyImageToBuffer( commandBuffer, srcImage, srcImageLayout, dstBuffer, regionCount, pRegions );
@@ -2864,7 +2878,7 @@ namespace
 	Wrap_vkCmdUpdateBuffer
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdUpdateBuffer (VkCommandBuffer commandBuffer, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdUpdateBuffer (VkCommandBuffer commandBuffer, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize dataSize, const void* pData)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdUpdateBuffer( commandBuffer, dstBuffer, dstOffset, dataSize, pData );
@@ -2898,7 +2912,7 @@ namespace
 	Wrap_vkCmdFillBuffer
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdFillBuffer (VkCommandBuffer commandBuffer, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, uint data)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdFillBuffer (VkCommandBuffer commandBuffer, VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize size, uint data)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdFillBuffer( commandBuffer, dstBuffer, dstOffset, size, data );
@@ -2932,8 +2946,8 @@ namespace
 	Wrap_vkCmdClearColorImage
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdClearColorImage (VkCommandBuffer commandBuffer, VkImage image, VkImageLayout imageLayout, const VkClearColorValue* pColor,
-											   uint rangeCount, const VkImageSubresourceRange* pRanges)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdClearColorImage (VkCommandBuffer commandBuffer, VkImage image, VkImageLayout imageLayout, const VkClearColorValue* pColor,
+														  uint rangeCount, const VkImageSubresourceRange* pRanges)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdClearColorImage( commandBuffer, image, imageLayout, pColor, rangeCount, pRanges );
@@ -2970,8 +2984,8 @@ namespace
 	Wrap_vkCmdClearDepthStencilImage
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdClearDepthStencilImage (VkCommandBuffer commandBuffer, VkImage image, VkImageLayout imageLayout, const VkClearDepthStencilValue* pDepthStencil,
-													  uint rangeCount, const VkImageSubresourceRange* pRanges)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdClearDepthStencilImage (VkCommandBuffer commandBuffer, VkImage image, VkImageLayout imageLayout, const VkClearDepthStencilValue* pDepthStencil,
+																 uint rangeCount, const VkImageSubresourceRange* pRanges)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdClearDepthStencilImage( commandBuffer, image, imageLayout, pDepthStencil, rangeCount, pRanges );
@@ -3008,7 +3022,7 @@ namespace
 	Wrap_vkCmdClearAttachments
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdClearAttachments (VkCommandBuffer commandBuffer, uint attachmentCount, const VkClearAttachment* pAttachments, uint rectCount, const VkClearRect* pRects)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdClearAttachments (VkCommandBuffer commandBuffer, uint attachmentCount, const VkClearAttachment* pAttachments, uint rectCount, const VkClearRect* pRects)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdClearAttachments( commandBuffer, attachmentCount, pAttachments, rectCount, pRects );
@@ -3034,8 +3048,8 @@ namespace
 	Wrap_vkCmdResolveImage
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdResolveImage (VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout,
-											uint regionCount, const VkImageResolve* pRegions)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdResolveImage (VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage, VkImageLayout dstImageLayout,
+														uint regionCount, const VkImageResolve* pRegions)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdResolveImage( commandBuffer, srcImage, srcImageLayout, dstImage, dstImageLayout, regionCount, pRegions );
@@ -3081,7 +3095,7 @@ namespace
 	Wrap_vkCmdDispatch
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDispatch (VkCommandBuffer commandBuffer, uint groupCountX, uint groupCountY, uint groupCountZ)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDispatch (VkCommandBuffer commandBuffer, uint groupCountX, uint groupCountY, uint groupCountZ)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDispatch( commandBuffer, groupCountX, groupCountY, groupCountZ );
@@ -3106,7 +3120,7 @@ namespace
 	Wrap_vkCmdDispatchBase
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDispatchBase (VkCommandBuffer commandBuffer, uint baseGroupX, uint baseGroupY, uint baseGroupZ, uint groupCountX, uint groupCountY, uint groupCountZ)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDispatchBase (VkCommandBuffer commandBuffer, uint baseGroupX, uint baseGroupY, uint baseGroupZ, uint groupCountX, uint groupCountY, uint groupCountZ)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDispatchBase( commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ );
@@ -3131,7 +3145,7 @@ namespace
 	Wrap_vkCmdDispatchIndirect
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDispatchIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDispatchIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDispatchIndirect( commandBuffer, buffer, offset );
@@ -3156,7 +3170,7 @@ namespace
 	Wrap_vkCmdDraw
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDraw (VkCommandBuffer commandBuffer, uint vertexCount, uint instanceCount, uint firstVertex, uint firstInstance)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDraw (VkCommandBuffer commandBuffer, uint vertexCount, uint instanceCount, uint firstVertex, uint firstInstance)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDraw( commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance );
@@ -3181,7 +3195,7 @@ namespace
 	Wrap_vkCmdDrawIndexed
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDrawIndexed (VkCommandBuffer commandBuffer, uint indexCount, uint instanceCount, uint firstIndex, int vertexOffset, uint firstInstance)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDrawIndexed (VkCommandBuffer commandBuffer, uint indexCount, uint instanceCount, uint firstIndex, int vertexOffset, uint firstInstance)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDrawIndexed( commandBuffer, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance );
@@ -3206,7 +3220,7 @@ namespace
 	Wrap_vkCmdDrawIndirect
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDrawIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDrawIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDrawIndirect( commandBuffer, buffer, offset, drawCount, stride );
@@ -3231,7 +3245,7 @@ namespace
 	Wrap_vkCmdDrawIndexedIndirect
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDrawIndexedIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDrawIndexedIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDrawIndexedIndirect( commandBuffer, buffer, offset, drawCount, stride );
@@ -3256,8 +3270,8 @@ namespace
 	Wrap_vkCmdDrawIndirectCount
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDrawIndirectCount (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
-												 VkDeviceSize countBufferOffset, uint maxDrawCount, uint stride)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDrawIndirectCount (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
+															VkDeviceSize countBufferOffset, uint maxDrawCount, uint stride)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDrawIndirectCountKHR( commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
@@ -3282,8 +3296,8 @@ namespace
 	Wrap_vkCmdDrawIndexedIndirectCount
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDrawIndexedIndirectCount (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
-														VkDeviceSize countBufferOffset, uint maxDrawCount, uint stride)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDrawIndexedIndirectCount (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
+																	VkDeviceSize countBufferOffset, uint maxDrawCount, uint stride)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDrawIndexedIndirectCountKHR( commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
@@ -3308,7 +3322,7 @@ namespace
 	Wrap_vkCmdDrawMeshTasks
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDrawMeshTasks (VkCommandBuffer commandBuffer, uint groupCountX, uint groupCountY, uint groupCountZ)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDrawMeshTasks (VkCommandBuffer commandBuffer, uint groupCountX, uint groupCountY, uint groupCountZ)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDrawMeshTasksEXT( commandBuffer, groupCountX, groupCountY, groupCountZ );
@@ -3333,7 +3347,7 @@ namespace
 	Wrap_vkCmdDrawMeshTasksIndirect
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDrawMeshTasksIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDrawMeshTasksIndirect (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, uint drawCount, uint stride)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDrawMeshTasksIndirectEXT( commandBuffer, buffer, offset, drawCount, stride );
@@ -3358,8 +3372,8 @@ namespace
 	Wrap_vkCmdDrawMeshTasksIndirectCount
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdDrawMeshTasksIndirectCount (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
-														  VkDeviceSize countBufferOffset, uint maxDrawCount, uint stride)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDrawMeshTasksIndirectCount (VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset, VkBuffer countBuffer,
+																	 VkDeviceSize countBufferOffset, uint maxDrawCount, uint stride)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdDrawMeshTasksIndirectCountEXT( commandBuffer, buffer, offset, countBuffer, countBufferOffset, maxDrawCount, stride );
@@ -3384,9 +3398,9 @@ namespace
 	Wrap_vkCmdTraceRaysKHR
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdTraceRaysKHR (VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
-											const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable, const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
-											const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable, uint width, uint height, uint depth)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdTraceRaysKHR (VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+														const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable, const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+														const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable, uint width, uint height, uint depth)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdTraceRaysKHR( commandBuffer, pRaygenShaderBindingTable, pMissShaderBindingTable, pHitShaderBindingTable,
@@ -3412,9 +3426,9 @@ namespace
 	Wrap_vkCmdTraceRaysIndirectKHR
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdTraceRaysIndirectKHR (VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
-													const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable, const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
-													const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable, VkDeviceAddress indirectDeviceAddress)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdTraceRaysIndirectKHR (VkCommandBuffer commandBuffer, const VkStridedDeviceAddressRegionKHR* pRaygenShaderBindingTable,
+																const VkStridedDeviceAddressRegionKHR* pMissShaderBindingTable, const VkStridedDeviceAddressRegionKHR* pHitShaderBindingTable,
+																const VkStridedDeviceAddressRegionKHR* pCallableShaderBindingTable, VkDeviceAddress indirectDeviceAddress)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdTraceRaysIndirectKHR( commandBuffer, pRaygenShaderBindingTable, pMissShaderBindingTable, pHitShaderBindingTable,
@@ -3440,8 +3454,9 @@ namespace
 	Wrap_vkCmdBindDescriptorSets
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdBindDescriptorSets (VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
-												  uint firstSet, uint descriptorSetCount, const VkDescriptorSet* pDescriptorSets, uint dynamicOffsetCount, const uint* pDynamicOffsets)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBindDescriptorSets (VkCommandBuffer commandBuffer, VkPipelineBindPoint pipelineBindPoint, VkPipelineLayout layout,
+															 uint firstSet, uint descriptorSetCount, const VkDescriptorSet* pDescriptorSets,
+															 uint dynamicOffsetCount, const uint* pDynamicOffsets)
 	{
 		auto&	logger = VulkanLogger::Get();
 		logger.vkCmdBindDescriptorSets( commandBuffer, pipelineBindPoint, layout, firstSet, descriptorSetCount, pDescriptorSets, dynamicOffsetCount, pDynamicOffsets );
@@ -3487,10 +3502,10 @@ namespace
 	Wrap_vkCreateAccelerationStructureKHR
 =================================================
 */
-	VkResult VKAPI_CALL Wrap_vkCreateAccelerationStructureKHR (VkDevice										device,
-															   const VkAccelerationStructureCreateInfoKHR*	pCreateInfo,
-															   const VkAllocationCallbacks*					pAllocator,
-															   VkAccelerationStructureKHR*					pAccelerationStructure)
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkCreateAccelerationStructureKHR (VkDevice										device,
+																		  const VkAccelerationStructureCreateInfoKHR*	pCreateInfo,
+																		  const VkAllocationCallbacks*					pAllocator,
+																		  VkAccelerationStructureKHR*					pAccelerationStructure)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		VkResult	res		= logger.vkCreateAccelerationStructureKHR( device, pCreateInfo, pAllocator, OUT pAccelerationStructure );
@@ -3509,9 +3524,9 @@ namespace
 	Wrap_vkDestroyAccelerationStructureKHR
 =================================================
 */
-	void VKAPI_CALL Wrap_vkDestroyAccelerationStructureKHR (VkDevice						device,
-															VkAccelerationStructureKHR		accelerationStructure,
-															const VkAllocationCallbacks*	pAllocator)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkDestroyAccelerationStructureKHR (VkDevice							device,
+																		VkAccelerationStructureKHR		accelerationStructure,
+																		const VkAllocationCallbacks*	pAllocator)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		{
@@ -3527,7 +3542,7 @@ namespace
 	Wrap_vkGetBufferDeviceAddressKHR
 =================================================
 */
-	VkDeviceAddress VKAPI_CALL Wrap_vkGetBufferDeviceAddressKHR (VkDevice device, const VkBufferDeviceAddressInfo* pInfo)
+	VKAPI_ATTR VkDeviceAddress VKAPI_CALL Wrap_vkGetBufferDeviceAddressKHR (VkDevice device, const VkBufferDeviceAddressInfo* pInfo)
 	{
 		auto&	logger	= VulkanLogger::Get();
 		auto	addr	= logger.vkGetBufferDeviceAddressKHR( device, pInfo );
@@ -3559,7 +3574,7 @@ namespace
 	Wrap_vkCmdInsertDebugUtilsLabelEXT
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdInsertDebugUtilsLabelEXT (VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT* pLabelInfo)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdInsertDebugUtilsLabelEXT (VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT* pLabelInfo)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdInsertDebugUtilsLabelEXT( commandBuffer, pLabelInfo );
@@ -3586,7 +3601,7 @@ namespace
 	Wrap_vkCmdBeginDebugUtilsLabelEXT
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdBeginDebugUtilsLabelEXT (VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT* pLabelInfo)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBeginDebugUtilsLabelEXT (VkCommandBuffer commandBuffer, const VkDebugUtilsLabelEXT* pLabelInfo)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdBeginDebugUtilsLabelEXT( commandBuffer, pLabelInfo );
@@ -3617,7 +3632,7 @@ namespace
 	Wrap_vkCmdEndDebugUtilsLabelEXT
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdEndDebugUtilsLabelEXT (VkCommandBuffer commandBuffer)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdEndDebugUtilsLabelEXT (VkCommandBuffer commandBuffer)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdEndDebugUtilsLabelEXT( commandBuffer );
@@ -3652,8 +3667,8 @@ namespace
 	Wrap_vkCmdCopyQueryPoolResults
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdCopyQueryPoolResults (VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint firstQuery, uint queryCount,
-													VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride, VkQueryResultFlags flags)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyQueryPoolResults (VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint firstQuery, uint queryCount,
+																VkBuffer dstBuffer, VkDeviceSize dstOffset, VkDeviceSize stride, VkQueryResultFlags flags)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdCopyQueryPoolResults( commandBuffer, queryPool, firstQuery, queryCount, dstBuffer, dstOffset, stride, flags );
@@ -3686,8 +3701,8 @@ namespace
 	Wrap_vkCmdBuildAccelerationStructuresKHR
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdBuildAccelerationStructuresKHR (VkCommandBuffer commandBuffer, uint infoCount, const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
-															  const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdBuildAccelerationStructuresKHR (VkCommandBuffer commandBuffer, uint infoCount, const VkAccelerationStructureBuildGeometryInfoKHR* pInfos,
+																		 const VkAccelerationStructureBuildRangeInfoKHR* const* ppBuildRangeInfos)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdBuildAccelerationStructuresKHR( commandBuffer, infoCount, pInfos, ppBuildRangeInfos );
@@ -3778,9 +3793,9 @@ namespace
 	Wrap_vkCmdWriteAccelerationStructuresPropertiesKHR
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdWriteAccelerationStructuresPropertiesKHR (VkCommandBuffer commandBuffer, uint accelerationStructureCount,
-																		const VkAccelerationStructureKHR* pAccelerationStructures, VkQueryType queryType,
-																		VkQueryPool queryPool, uint firstQuery)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdWriteAccelerationStructuresPropertiesKHR (VkCommandBuffer commandBuffer, uint accelerationStructureCount,
+																					const VkAccelerationStructureKHR* pAccelerationStructures, VkQueryType queryType,
+																					VkQueryPool queryPool, uint firstQuery)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdWriteAccelerationStructuresPropertiesKHR( commandBuffer, accelerationStructureCount, pAccelerationStructures, queryType, queryPool, firstQuery );
@@ -3816,7 +3831,7 @@ namespace
 	Wrap_vkCmdCopyAccelerationStructureKHR
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdCopyAccelerationStructureKHR (VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureInfoKHR* pInfo)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyAccelerationStructureKHR (VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureInfoKHR* pInfo)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdCopyAccelerationStructureKHR( commandBuffer, pInfo );
@@ -3850,7 +3865,7 @@ namespace
 	Wrap_vkCmdCopyAccelerationStructureToMemoryKHR
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdCopyAccelerationStructureToMemoryKHR (VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureToMemoryInfoKHR* pInfo)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyAccelerationStructureToMemoryKHR (VkCommandBuffer commandBuffer, const VkCopyAccelerationStructureToMemoryInfoKHR* pInfo)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdCopyAccelerationStructureToMemoryKHR( commandBuffer, pInfo );
@@ -3882,7 +3897,7 @@ namespace
 	Wrap_vkCmdCopyMemoryToAccelerationStructureKHR
 =================================================
 */
-	void VKAPI_CALL Wrap_vkCmdCopyMemoryToAccelerationStructureKHR (VkCommandBuffer commandBuffer, const VkCopyMemoryToAccelerationStructureInfoKHR* pInfo)
+	VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdCopyMemoryToAccelerationStructureKHR (VkCommandBuffer commandBuffer, const VkCopyMemoryToAccelerationStructureInfoKHR* pInfo)
 	{
 		auto&		logger	= VulkanLogger::Get();
 		logger.vkCmdCopyMemoryToAccelerationStructureKHR( commandBuffer, pInfo );
@@ -3981,10 +3996,12 @@ namespace
 					{
 						for (usize a = 0; a < bind.images.size(); ++a)
 						{
+						  #if PRINT_ALL_DS == 0
 							if ( bind.processed[a][family_idx] )
 								continue;
 
 							bind.processed[a][family_idx] = true;
+						  #endif
 
 							auto	view_it = imageViewMap.find( bind.images[a].imageView );
 							if ( view_it == imageViewMap.end() )
@@ -4004,10 +4021,12 @@ namespace
 					{
 						for (usize a = 0; a < bind.texelBuffers.size(); ++a)
 						{
+						  #if PRINT_ALL_DS == 0
 							if ( bind.processed[a][family_idx] )
 								continue;
 
 							bind.processed[a][family_idx] = true;
+						  #endif
 
 							auto	view_it = bufferViewMap.find( bind.texelBuffers[a] );
 							if ( view_it == bufferViewMap.end() )
@@ -4029,10 +4048,12 @@ namespace
 					{
 						for (usize a = 0; a < bind.buffers.size(); ++a)
 						{
+						  #if PRINT_ALL_DS == 0
 							if ( bind.processed[a][family_idx] )
 								continue;
 
 							bind.processed[a][family_idx] = true;
+						  #endif
 
 							auto	buf_it = bufferMap.find( bind.buffers[a].buffer );
 							if ( buf_it == bufferMap.end() )
@@ -4047,10 +4068,12 @@ namespace
 					{
 						for (usize a = 0; a < bind.accelStructs.size(); ++a)
 						{
+						  #if PRINT_ALL_DS == 0
 							if ( bind.processed[a][family_idx] )
 								continue;
 
 							bind.processed[a][family_idx] = true;
+						  #endif
 							
 							auto	as_it = accelStructMap.find( bind.accelStructs[a] );
 							if ( as_it == accelStructMap.end() )
@@ -4061,12 +4084,14 @@ namespace
 						}
 						break;
 					}
+					case VK_DESCRIPTOR_TYPE_MAX_ENUM :
+						break;
+
 					case VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK_EXT :
 					case VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_NV :
 					case VK_DESCRIPTOR_TYPE_MUTABLE_VALVE :
 					case VK_DESCRIPTOR_TYPE_SAMPLE_WEIGHT_IMAGE_QCOM :
 					case VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM :
-					case VK_DESCRIPTOR_TYPE_MAX_ENUM :
 					default :
 						DBG_WARNING( "unsupported descriptor type" );
 						break;

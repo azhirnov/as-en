@@ -174,7 +174,7 @@ namespace AE::Graphics::_hidden_
 
 		@autoreleasepool
 		{
-		  #if 0 //not AE_METAL_NATIVE_DEBUGGER and AE_METAL_3_0_BETA
+		  #if 0 //not AE_METAL_NATIVE_DEBUGGER
 			if ( @available( macos 13.0, ios 16.0, *))
 			{
 				auto*	desc = [[[(MTLAccelerationStructurePassDescriptor alloc] init] autorelease];
@@ -437,7 +437,6 @@ namespace AE::Graphics::_hidden_
 			dst.vertexBufferOffset	= NS::UInteger(data.vertexDataOffset);
 			dst.vertexStride		= NS::UInteger(data.vertexStride);
 			
-		  #if AE_METAL_3_0_BETA
 			if ( @available( macos 13.0, ios 16.0, *))
 			{
 				dst.vertexFormat	= MEnumCast2( info.vertexFormat );
@@ -448,7 +447,6 @@ namespace AE::Graphics::_hidden_
 				}
 			}
 			else
-		  #endif
 			{
 				CHECK_ERR( tb == null );
 			}
@@ -489,7 +487,6 @@ namespace AE::Graphics::_hidden_
 		desc.usage					= MEnumCast( cmd.options );
 		desc.geometryDescriptors	= geom_arr;
 		
-	  #if AE_METAL_3_0_BETA
 		if ( @available( macos 13.0, ios 16.0, *))
 		{
 			//desc.motionKeyframeCount		= ;	// TODO
@@ -498,7 +495,6 @@ namespace AE::Graphics::_hidden_
 			//desc.motionStartBorderMode	= ;
 			//desc.motionEndBorderMode		= ;
 		}
-	  #endif
 
 		return desc;
 	}
@@ -531,14 +527,12 @@ namespace AE::Graphics::_hidden_
 		desc.instanceDescriptorStride			= NS::UInteger(cmd.instanceData.stride);
 		desc.instancedAccelerationStructures	= as_arr;
 		
-	  #if AE_METAL_3_0_BETA
 		if ( @available( macos 13.0, ios 16.0, *))
 		{
 			//dst.motionTransformCount
 			//dst.motionTransformBuffer
 			//dst.motionTransformBufferOffset
 		}
-	  #endif
 
 		ASSERT( cmd.instanceData.stride == sizeof(MTLAccelerationStructureInstanceDescriptor) );
 

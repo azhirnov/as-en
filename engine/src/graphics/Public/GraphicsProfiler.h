@@ -31,6 +31,8 @@ namespace AE::Graphics
 			RenderPass,
 			ASBuild,
 			RayTracing,
+			VideoDecode,
+			VideoEncode,
 			Unknown		= 0xFF
 		};
 
@@ -59,6 +61,11 @@ namespace AE::Graphics
 									StringView taskName, RGBA8u color, EContextType type)												__NE___	= 0;
 		virtual void  EndContext (const void* batch, MetalCommandBuffer cmdbuf, EContextType type)										__NE___	= 0;
 		
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		// context
+		virtual void  BeginContext (const void* batch, StringView taskName, RGBA8u color, EContextType type)							__NE___	= 0;
+		virtual void  EndContext (const void* batch, EContextType type)																	__NE___	= 0;
+
 	  #else
 	  #	error not implemented
 	  #endif

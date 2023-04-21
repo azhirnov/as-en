@@ -128,6 +128,7 @@ namespace AE::Graphics::_hidden_
 		using RawCtx		= CtxImpl;
 		using AccumBar		= VAccumBarriers< _VRayTracingContextImpl< CtxImpl >>;
 		using DeferredBar	= VAccumDeferredBarriersForCtx< _VRayTracingContextImpl< CtxImpl >>;
+		using Validator_t	= RayTracingContextValidation;
 
 
 	// methods
@@ -227,7 +228,7 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VRayTracingContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
 	{
-		ASSERT( IsAligned( size, sizeof(uint) ));
+		Validator_t::PushConstant( size );
 
 		RawCtx::_PushConstant( offset, size, values, stages );
 	}
@@ -278,7 +279,7 @@ namespace AE::Graphics::_hidden_
 	void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)
 	{
 		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
-		ASSERT( buf.Size() <= indirectBufferOffset + sizeof(VkTraceRaysIndirectCommandKHR) );
+		Validator_t::TraceRaysIndirect( buf, indirectBufferOffset );
 
 		RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, buf.GetDeviceAddress() + indirectBufferOffset );
 	}
@@ -288,7 +289,7 @@ namespace AE::Graphics::_hidden_
 	{
 		auto	[buf, sbt_obj]	= _GetResourcesOrThrow( indirectBuffer, sbtId );
 		auto&	sbt				= sbt_obj.GetSBT();
-		ASSERT( buf.Size() <= indirectBufferOffset + sizeof(VkTraceRaysIndirectCommandKHR) );
+		Validator_t::TraceRaysIndirect( buf, indirectBufferOffset );
 
 		RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, buf.GetDeviceAddress() + indirectBufferOffset );
 	}
@@ -308,7 +309,7 @@ namespace AE::Graphics::_hidden_
 	void  _VRayTracingContextImpl<C>::TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)
 	{
 		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
-		ASSERT( buf.Size() <= indirectBufferOffset + sizeof(VkTraceRaysIndirectCommand2KHR) );
+		Validator_t::TraceRaysIndirect2( buf, indirectBufferOffset );
 		
 		RawCtx::_TraceRaysIndirect2( buf.GetDeviceAddress() + indirectBufferOffset );
 	}
@@ -328,7 +329,7 @@ namespace AE::Graphics::_hidden_
 													const VkStridedDeviceAddressRegionKHR &callable)
 	{
 		ASSERT( _states.pipeline != Default );
-		ASSERT( All( dim > uint3{0} ));
+		RayTracingContextValidation::TraceRays( dim );
 
 		vkCmdTraceRaysKHR( _cmdbuf.Get(), &raygen, &miss, &hit, &callable, dim.x, dim.y, dim.z );
 	}
@@ -398,7 +399,6 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  _VDirectRayTracingCtx::_PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
 	{
-		ASSERT( IsAligned( size, sizeof(uint) ));
 		ASSERT( _states.pplnLayout != Default );
 
 		vkCmdPushConstants( _cmdbuf.Get(), _states.pplnLayout, VEnumCast(stages), uint(offset), uint(size), values );
@@ -442,8 +442,6 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  _VIndirectRayTracingCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
 	{
-		CHECK_ERRV( _states.pplnLayout != Default );
-
 		_cmdbuf->BindDescriptorSet( VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, _states.pplnLayout, index.vkIndex, ds, dynamicOffsets );
 	}
 

@@ -400,9 +400,11 @@ namespace AE::Base
 	{
 		template <> struct _IsScalar< AE::Math::SFloat16 >		{ static constexpr bool  value = true; };
 		template <> struct _IsFloatPoint< AE::Math::SFloat16 >	{ static constexpr bool  value = true; };
+		template <> struct _IsSigned< AE::Math::SFloat16 >		{ static constexpr bool  value = true; };
 		
 		template <> struct _IsScalar< AE::Math::UFloat16 >		{ static constexpr bool  value = true; };
 		template <> struct _IsFloatPoint< AE::Math::UFloat16 >	{ static constexpr bool  value = true; };
+		template <> struct _IsSigned< AE::Math::UFloat16 >		{ static constexpr bool  value = false; };
 	}
 
 } // AE::Base

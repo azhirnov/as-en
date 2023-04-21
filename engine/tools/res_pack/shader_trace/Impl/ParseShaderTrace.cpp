@@ -34,16 +34,13 @@ namespace
 		EbtAccStruct,
 		EbtReference,
 		EbtRayQuery,
-		// SPIR-V type defined by spirv_type
+		EbtHitObjectNV,
 		EbtSpirvType,
-
-		// HLSL types that live only temporarily.
 		EbtString,
-
 		EbtNumTypes
 	};
 #endif
-	STATIC_ASSERT( uint(TBasicType::EbtNumTypes) == 22 );
+	STATIC_ASSERT( uint(TBasicType::EbtNumTypes) == 23 );
 
 
 	//

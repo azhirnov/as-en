@@ -5,7 +5,7 @@
 #include "base/Memory/IAllocator.h"
 #include "base/CompileTime/StringToID.h"
 
-#if defined(AE_TEST_PIPELINE_COMPILER) or defined(AE_DBG_OR_DEV)
+#if defined(AE_TEST_PIPELINE_COMPILER) or defined(AE_DEBUG)
 # include "HashToName.h"
 #endif
 
@@ -29,7 +29,7 @@ namespace AE::PipelineCompiler
 	static constexpr uint	SamplerPack_Version			= 1;
 	static constexpr uint	SamplerPack_Name			= uint("SampPack"_StringToID);
 
-	static constexpr uint	PipelinePack_Version		= 1;
+	static constexpr uint	PipelinePack_Version		= 2;
 	static constexpr uint	PipelinePack_Name			= uint("PplnPack"_StringToID);
 	
 	static constexpr uint	ShaderPack_Version			= 1;

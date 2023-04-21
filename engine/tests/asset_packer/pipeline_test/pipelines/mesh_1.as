@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void main ()
+void ASmain ()
 {
 	RC<MeshPipeline>	ppln = MeshPipeline( "mesh_1" );
 	ppln.SetLayout( "Graphics_PL_2" );

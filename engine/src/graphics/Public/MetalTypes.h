@@ -187,6 +187,7 @@ namespace AE::Graphics
 	};
 
 
+
 	//
 	// Metal Image description
 	//
@@ -197,6 +198,17 @@ namespace AE::Graphics
 	};
 
 
+
+	//
+	// Metal Image View description
+	//
+	struct MetalImageViewDesc
+	{
+		// TODO
+	};
+
+
+
 	//
 	// Metal Buffer desciption
 	//
@@ -204,6 +216,16 @@ namespace AE::Graphics
 	{
 		MetalBuffer		buffer;
 		bool			canBeDestroyed	= true;
+	};
+
+
+
+	//
+	// Metal Buffer View
+	//
+	struct MetalBufferViewDesc
+	{
+		// TODO
 	};
 
 

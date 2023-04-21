@@ -38,7 +38,7 @@ if (TARGET "Graphics")
 		add_dependencies( "PACK_RES" "Tests.Graphics.PackRes" )
 	endif()
 
-	if (${AE_ENABLE_VULKAN})
+	if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_REMOTE_GRAPHICS})
 		target_compile_definitions( "Tests.Graphics" PRIVATE
 			AE_REF_IMG_PATH="${AE_EXTERNAL_REP_PATH}/tests/graphics/vulkan"
 			AE_RES_PACK="${AE_TEMP_FOLDER}/engine/graphics/vk/pipelines.bin" )

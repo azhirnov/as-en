@@ -45,7 +45,7 @@ namespace
 
 			Bytes			copied;
 			CHECK_TE( upload_mem.Copy( t.img_view, OUT copied ) and
-					  copied == t.img_view.ImageSize() );
+					  copied == t.img_view.Image2DSize() );
 
 			ImageCopy		copy;
 			copy.srcOffset				= uint3{ t.src_offset, 0u };

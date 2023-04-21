@@ -62,7 +62,7 @@ namespace AE::Base
 
 /*
 =================================================
-	Cast
+	Cast (pointer)
 =================================================
 */
 	template <typename R, typename T>
@@ -120,7 +120,30 @@ namespace AE::Base
 	{
 		return std::static_pointer_cast<R>( other );
 	}
+
+	template <typename T>
+	ND_ forceinline T*  Cast (std::nullptr_t) __NE___
+	{
+		return static_cast<T*>(null);
+	}
 	
+/*
+=================================================
+	Cast (chrono)
+=================================================
+*/
+    template <typename To, typename Rep, typename Period, EnableIf<IsDuration<To>, int> = 0>
+	ND_ constexpr To  Cast (const std::chrono::duration<Rep, Period> &value) __NE___
+	{
+		return std::chrono::duration_cast<To>( value );
+	}
+
+	template <typename ToDuration, typename Clock, typename Duration, EnableIf<IsDuration<ToDuration>, int> = 0>
+	ND_ constexpr std::chrono::time_point<Clock, ToDuration>  Cast (const std::chrono::time_point<Clock, Duration> &value) __NE___
+	{
+		return std::chrono::time_point_cast<ToDuration>( value );
+	}
+
 /*
 =================================================
 	DynCast
@@ -185,7 +208,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From>
-	ND_ inline constexpr To  UnsafeBitCast (const From& src) __NE___
+	ND_ constexpr To  UnsafeBitCast (const From& src) __NE___
 	{
 		//STATIC_ASSERT( sizeof(From) <= sizeof(To), "cast will lost data!" );
 		STATIC_ASSERT( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
@@ -201,67 +224,40 @@ namespace AE::Base
 	CheckCast
 =================================================
 */
-	template <typename To, typename From>
-	ND_ inline constexpr To  CheckCast (const From &src) __NE___
-	{
-	#ifdef AE_COMPILER_MSVC
-	#	pragma warning (push)
-	#	pragma warning (disable: 4244)
-	#endif
-	#ifdef AE_COMPILER_CLANG
-	#	pragma clang diagnostic push
-	#   pragma clang diagnostic ignored "-Wimplicit-float-conversion"
-	#   pragma clang diagnostic ignored "-Wimplicit-int-conversion"
-	#   pragma clang diagnostic ignored "-Wshorten-64-to-32"
-	#endif
+#ifdef AE_COMPILER_MSVC
+#	pragma warning (push)
+#	pragma warning (disable: 4244)
+#endif
+#ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wimplicit-float-conversion"
+#   pragma clang diagnostic ignored "-Wimplicit-int-conversion"
+#   pragma clang diagnostic ignored "-Wshorten-64-to-32"
+#endif
 
+	template <typename To, typename From>
+	ND_ constexpr To  CheckCast (const From &src) __NE___
+	{
 		if constexpr( IsSigned<From> and IsUnsigned<To> )
-		{
 			ASSERT( src >= From(0) );
-		}
 
 		ASSERT( static_cast<From>(static_cast<To>(src)) == src );
-
 		return static_cast<To>(src);
-		
-	#ifdef AE_COMPILER_MSVC
-	#	pragma warning (pop)
-	#endif
-	#ifdef AE_COMPILER_CLANG
-#	pragma clang diagnostic pop
-	#endif
+	}
+
+	template <typename To, typename From>
+	ND_ constexpr bool  CheckCast (OUT To &dst, const From &src) __NE___
+	{
+		dst = static_cast<To>(src);
+		return static_cast<From>(static_cast<To>(src)) == src;
 	}
 	
-/*
-=================================================
-	CheckCast
-=================================================
-*/
-	template <typename To, typename From>
-	ND_ inline constexpr bool  CheckCast (OUT To &dst, const From &src) __NE___
-	{
-	#ifdef AE_COMPILER_MSVC
-	#	pragma warning (push)
-	#	pragma warning (disable: 4244)
-	#endif
-	#ifdef AE_COMPILER_CLANG
-	#	pragma clang diagnostic push
-	#   pragma clang diagnostic ignored "-Wimplicit-float-conversion"
-	#   pragma clang diagnostic ignored "-Wimplicit-int-conversion"
-	#   pragma clang diagnostic ignored "-Wshorten-64-to-32"
-	#endif
-
-		dst = static_cast<To>(src);
-
-		return static_cast<From>(static_cast<To>(src)) == src;
-		
-	#ifdef AE_COMPILER_MSVC
-	#	pragma warning (pop)
-	#endif
-	#ifdef AE_COMPILER_CLANG
+#ifdef AE_COMPILER_MSVC
+#	pragma warning (pop)
+#endif
+#ifdef AE_COMPILER_CLANG
 #	pragma clang diagnostic pop
-	#endif
-	}
+#endif
 
 /*
 =================================================
@@ -269,7 +265,7 @@ namespace AE::Base
 =================================================
 */
 	template <typename To, typename From>
-	ND_ inline constexpr To  LimitCast (const From& src) __NE___
+	ND_ constexpr To  LimitCast (const From& src) __NE___
 	{
 		STATIC_ASSERT( MaxValue<From>() >= MaxValue<To>() );
 

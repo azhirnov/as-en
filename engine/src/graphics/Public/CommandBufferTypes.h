@@ -110,6 +110,9 @@ namespace AE::Graphics
 		#elif defined(AE_ENABLE_METAL)
 			MetalIntersectionFnTable			intersectionTable;
 			MetalVisibleFnTable					visibleTable;
+
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			// TODO
 			
 		#else
 		#	error not implemented
@@ -217,6 +220,9 @@ namespace AE::Graphics
 
 		#elif defined(AE_ENABLE_METAL)
 			// TODO
+
+		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+			// TODO
 			
 		#else
 		#	error not implemented
@@ -234,6 +240,8 @@ namespace AE::Graphics
 		Dynamic		= 1 << 1,
 		Any			= Static | Dynamic,		// try static, then dynamic
 	};
+
+	// TODO: UploadBufferDesc
 
 	
 	//
@@ -264,28 +272,32 @@ namespace AE::Graphics
 	{
 	// variables
 	public:
-		Bytes		pos;
+		Bytes				pos;
 	private:
-		Bytes		_size;
-		Bytes		_offset;
-		Bytes		_blockSize;
-		BufferID	_bufferId;	// TODO: Strong ?
+		Bytes				_size;
+		Bytes				_offset;
+		Bytes				_blockSize;
+		BufferID			_bufferId;	// TODO: Strong ?
+		EStagingHeapType	_heapType		= EStagingHeapType::Static;
 
 	// methods
 	public:
 		BufferStream () __NE___ {}
-		BufferStream (BufferID id, Bytes offset, Bytes size, Bytes blockSize = 0_b) __NE___ :
-			_size{size}, _offset{offset}, _blockSize{blockSize}, _bufferId{id} {}
+		BufferStream (BufferID id, Bytes offset, Bytes size, Bytes blockSize = 0_b, EStagingHeapType heapType = EStagingHeapType::Static) __NE___ :
+			_size{size}, _offset{offset}, _blockSize{blockSize}, _bufferId{id}, _heapType{heapType} {}
 
-		BufferStream&  operator = (const BufferStream &) __NE___ = default;
+		BufferStream&  operator = (const BufferStream &)	__NE___ = default;
+		
+		BufferStream&  SetHeapType (EStagingHeapType type)	__NE___	{ _heapType = type;  return *this; }
 
-		ND_ BufferID	Buffer ()			C_NE___	{ return _bufferId; }
-		ND_ Bytes		DataSize ()			C_NE___	{ return _size; }
-		ND_ Bytes		OffsetAndPos ()		C_NE___	{ return _offset + pos; }
-		ND_ Bytes		Begin ()			C_NE___	{ return _offset; }
-		ND_ Bytes		End ()				C_NE___	{ return _offset + _size; }
-		ND_ Bytes		RemainSize ()		C_NE___	{ return _size - pos; }
-		ND_ bool		IsCompleted ()		C_NE___	{ return pos >= _size; }
+		ND_ BufferID			Buffer ()					C_NE___	{ return _bufferId; }
+		ND_ Bytes				DataSize ()					C_NE___	{ return _size; }
+		ND_ Bytes				OffsetAndPos ()				C_NE___	{ return _offset + pos; }
+		ND_ Bytes				Begin ()					C_NE___	{ return _offset; }
+		ND_ Bytes				End ()						C_NE___	{ return _offset + _size; }
+		ND_ Bytes				RemainSize ()				C_NE___	{ return _size - pos; }
+		ND_ bool				IsCompleted ()				C_NE___	{ return pos >= _size; }
+		ND_ EStagingHeapType	HeapType ()					C_NE___	{ return _heapType; }
 	};
 
 
@@ -307,17 +319,20 @@ namespace AE::Graphics
 		ImageStream (ImageID id, const UploadImageDesc &desc) __NE___ :
 			_imageId{id}, _desc{desc} {}
 
-		ImageStream&  operator = (const ImageStream &)	__NE___ = default;
+		ImageStream&  operator = (const ImageStream &)		__NE___ = default;
 
-		ND_ ImageID			Image ()					C_NE___	{ return _imageId; }
-		ND_ uint3 const&	Begin ()					C_NE___	{ return _desc.imageOffset; }
-		ND_ uint3			End ()						C_NE___	{ return _desc.imageOffset + _desc.imageSize; }
-		ND_ uint3 const&	RegionSize ()				C_NE___	{ return _desc.imageSize; }
-		ND_ auto const&		ToUploadDesc ()				C_NE___ { return _desc; }
-		ND_ Bytes			DataOffset ()				C_NE___	{ return posYZ[0] * _desc.dataRowPitch + posYZ[1] * _desc.dataSlicePitch; }
+		ImageStream&  SetHeapType (EStagingHeapType type)	__NE___	{ _desc.heapType = type;  return *this; }
 
-		ND_ bool			IsInitialized ()			C_NE___	{ return _imageId != Default; }
-		ND_ bool			IsCompleted ()				C_NE___	{ return IsInitialized() & (posYZ[1] >= _desc.imageSize.z); }
+		ND_ ImageID				Image ()					C_NE___	{ return _imageId; }
+		ND_ uint3 const&		Begin ()					C_NE___	{ return _desc.imageOffset; }
+		ND_ uint3				End ()						C_NE___	{ return _desc.imageOffset + _desc.imageSize; }
+		ND_ uint3 const&		RegionSize ()				C_NE___	{ return _desc.imageSize; }
+		ND_ auto const&			ToUploadDesc ()				C_NE___ { return _desc; }
+		ND_ Bytes				DataOffset ()				C_NE___	{ return posYZ[0] * _desc.dataRowPitch + posYZ[1] * _desc.dataSlicePitch; }
+		ND_ EStagingHeapType	HeapType ()					C_NE___	{ return _desc.heapType; }
+
+		ND_ bool				IsInitialized ()			C_NE___	{ return _imageId != Default; }
+		ND_ bool				IsCompleted ()				C_NE___	{ return IsInitialized() & (posYZ[1] >= _desc.imageSize.z); }
 	};
 //-----------------------------------------------------------------------------
 	
@@ -332,6 +347,24 @@ namespace AE::Graphics
 		BufferID	id;						// single buffer for all, bind it once
 		Bytes		offset;					// offset in buffer
 		Bytes		size;					// same as in request
+	};
+//-----------------------------------------------------------------------------
+
+	
+	
+	//
+	// Video Decode command
+	//
+	struct VideoDecodeCmd
+	{
+	};
+
+	
+	//
+	// Video Encode command
+	//
+	struct VideoEncodeCmd
+	{
 	};
 //-----------------------------------------------------------------------------
 

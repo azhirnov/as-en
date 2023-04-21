@@ -4,7 +4,7 @@
 
 
 // debug break
-#ifdef AE_DBG_OR_DEV
+#ifdef AE_DEBUG
 # if defined(AE_COMPILER_MSVC)
 #	define AE_PRIVATE_BREAK_POINT()		__debugbreak()
 
@@ -40,7 +40,20 @@
 
 
 // debug only check
-#if 1
+# ifdef AE_CFG_DEBUG
+#	define DBG_CHECK_ERR							CHECK_ERR
+#	define DBG_CHECK_MSG							CHECK_MSG
+#	define DBG_CHECK_ERR_MSG						CHECK_ERR_MSG
+#	define DBG_WARNING( _msg_ )						CHECK_MSG( false, _msg_ )
+# else
+#	define DBG_CHECK_ERR( /* expr, return */... )	{}
+#	define DBG_CHECK_MSG( /* expr, message */... )	{}
+#	define DBG_CHECK_ERR_MSG( /* expr, msg */... )	{}
+#	define DBG_WARNING( /* message */... )			{}
+# endif
+
+
+// debug/dev only check
 # ifdef AE_DEBUG
 #	define ASSERT									CHECK		// TODO: DBG_CHECK
 #	define ASSERT_Eq								CHECK_Eq	// ==
@@ -49,10 +62,6 @@
 #	define ASSERT_GE								CHECK_GE	// >=
 #	define ASSERT_Lt								CHECK_Lt	// <
 #	define ASSERT_LE								CHECK_LE	// <=
-#	define DBG_CHECK_ERR							CHECK_ERR
-#	define DBG_CHECK_MSG							CHECK_MSG
-#	define DBG_CHECK_ERR_MSG						CHECK_ERR_MSG
-#	define DBG_WARNING( _msg_ )						CHECK_MSG( false, _msg_ )
 # else
 #	define ASSERT( /* expr */... )					{}
 #	define ASSERT_Eq( /* lhs, rhs */... )			{}			// ==
@@ -61,29 +70,22 @@
 #	define ASSERT_GE( /* lhs, rhs */... )			{}			// >=
 #	define ASSERT_Lt( /* lhs, rhs */... )			{}			// <
 #	define ASSERT_LE( /* lhs, rhs */... )			{}			// <=
-#	define DBG_CHECK_ERR( /* expr, return */... )	{}
-#	define DBG_CHECK_MSG( /* expr, message */... )	{}
-#	define DBG_CHECK_ERR_MSG( /* expr, msg */... )	{}
-#	define DBG_WARNING( /* message */... )			{}
 # endif
-#endif
 
 
 // development check
-#if 1
-# ifdef AE_DBG_OR_DEV
+#ifdef AE_DEBUG
 #	define DEV_CHECK								CHECK
 #	define DEV_CHECK_ERR							CHECK_ERR
 #	define DEV_CHECK_MSG							CHECK_MSG
 #	define DEV_CHECK_ERR_MSG						CHECK_ERR_MSG
 #	define DEV_WARNING( _msg_ )						CHECK_MSG( false, _msg_ )
-# else
+#else
 #	define DEV_CHECK( /* expr */... )				{}
 #	define DEV_CHECK_ERR( /* expr, return */... )	{}
 #	define DEV_CHECK_MSG( /* expr, message */... )	{}
 #	define DEV_CHECK_ERR_MSG( /* expr, msg */... )	{}
 #	define DEV_WARNING( /* message */... )			{}
-# endif
 #endif
 
 
@@ -93,22 +95,6 @@
 #	define AE_LOG_DBG								AE_LOGI
 # else
 #	define AE_LOG_DBG( /* msg, file, line */... )	{}
-# endif
-#endif
-
-#ifndef AE_LOG_DEV
-# ifdef AE_DBG_OR_DEV
-#	define AE_LOG_DEV								AE_LOGI
-# else
-#	define AE_LOG_DEV( /* msg, file, line */... )	{}
-# endif
-#endif
-
-#ifndef AE_LOG_PROF
-# ifdef AE_DBG_OR_DEV
-#	define AE_LOG_PROF								AE_LOGI
-# else
-#	define AE_LOG_PROF( /* msg, file, line */... )	{}
 # endif
 #endif
 
@@ -254,6 +240,19 @@
 #	define STATIC_ASSERT( /* expr, msg */... ) \
 		static_assert(	AE_PRIVATE_GETRAW( AE_PRIVATE_GETARG_0( __VA_ARGS__ )), \
 						AE_PRIVATE_GETRAW( AE_PRIVATE_GETARG_1( __VA_ARGS__, AE_TOSTRING(__VA_ARGS__))) )
+
+	// only for 64 bit
+# if AE_PLATFORM_BITS == 64
+#	define STATIC_ASSERT_64( /* expr, msg */... )		STATIC_ASSERT( __VA_ARGS__ )
+# else
+#	define STATIC_ASSERT_64( /* expr, msg */... )
+# endif
+
+# ifdef AE_COMPILER_MSVC
+#	define STATIC_ASSERT_MSVC( /* expr, msg */... )		STATIC_ASSERT( __VA_ARGS__ )
+# else
+#	define STATIC_ASSERT_MSVC( /* expr, msg */... )
+# endif
 #endif
 
 

@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "base/Utils/FileSystem.h"
 #include "serializing/ISerializable.h"
 
 namespace glslang {
@@ -147,7 +148,10 @@ namespace AE::PipelineCompiler
 		// Source code required for 'ParseShaderTrace' function.
 		void  AddSource (StringView source);
 		void  AddSource (StringView filename, uint firstLine, StringView source);
-		void  IncludeSource (StringView filename, StringView source);	// if used '#include'
+		void  AddSource (const Path &filename, uint firstLine, StringView source);
+
+		void  IncludeSource (StringView headerName, const Path &fullPath, StringView source);	// if used '#include'
+
 		void  GetSource (OUT String &result) const;
 
 		ND_ bool  operator == (const ShaderTrace &rhs) const;
@@ -159,7 +163,7 @@ namespace AE::PipelineCompiler
 		bool  Deserialize (Serializing::Deserializer &) __NE_OV;
 
 	private:
-		void  _AppendSource (StringView filename, uint firstLine, StringView source);
+		void  _AppendSource (String filename, uint firstLine, String source);
 	};
 
 

@@ -26,8 +26,7 @@ namespace AE::Base
 			case EGestureType::Hold :			return "Hold";
 			case EGestureType::Move :			return "Move";
 			case EGestureType::LongPress_Move :	return "LongPress_Move";
-			case EGestureType::Scale2D :		return "Scale2D";
-			case EGestureType::Rotate2D :		return "Rotate2D";
+			case EGestureType::ScaleRotate2D :	return "ScaleRotate2D";
 
 			// single
 			case EGestureType::Down :			return "Down";

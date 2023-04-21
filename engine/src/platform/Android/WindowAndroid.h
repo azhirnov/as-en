@@ -72,7 +72,7 @@ namespace AE::App
 
 
 	// called from java
-	public:
+	private:
 		static WinID JNICALL  native_OnCreate (JNIEnv*, jclass, jobject wnd)											__NE___;
 		static void  JNICALL  native_OnDestroy (JNIEnv*, jclass, WinID wndId)											__NE___;
 		static void  JNICALL  native_OnStart (JNIEnv*, jclass, WinID wndId)												__NE___;
@@ -81,9 +81,10 @@ namespace AE::App
 		static void  JNICALL  native_OnEnterBackground (JNIEnv*, jclass, WinID wndId)									__NE___;
 		static void  JNICALL  native_SurfaceChanged (JNIEnv*, jclass, WinID wndId, jobject surface)						__NE___;
 		static void  JNICALL  native_SurfaceDestroyed (JNIEnv*, jclass, WinID wndId)									__NE___;
-		static void  JNICALL  native_Update (JNIEnv*, jclass, WinID wndId)												__NE___;
-		static void  JNICALL  native_OnKey (JNIEnv*, jclass, WinID wndId, jint keycode, jint action)					__NE___;
-		static void  JNICALL  native_OnTouch (JNIEnv*, jclass, WinID wndId, jint action, jint count, jfloatArray data)	__NE___;
+		static jint  JNICALL  native_Update (JNIEnv*, jclass, WinID wndId)												__NE___;
+		static void  JNICALL  native_OnKey (JNIEnv*, jclass, WinID wndId, jint keycode, jint action, jint count)		__NE___;
+		static void  JNICALL  native_OnTouch (JNIEnv*, jclass, WinID wndId, jint action, jint changedIndex,
+											  jint touchCount, jfloatArray touchData)									__NE___;
 		static void  JNICALL  native_OnOrientationChanged (JNIEnv*, jclass, WinID wndId, jint newOrientation)			__NE___;
 	};
 

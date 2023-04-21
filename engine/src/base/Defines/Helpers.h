@@ -15,26 +15,18 @@
 
 
 // debug only scope
+// #ifdef/endif takes at least 3 lines, this macro doesn't add overhead on line count
 #ifndef DEBUG_ONLY
-# if defined(AE_DEBUG)
+# ifdef AE_DEBUG
 #	define DEBUG_ONLY( /* code */... )		__VA_ARGS__
 # else
 #	define DEBUG_ONLY( /* code */... )
 # endif
 #endif
 
-// develop only scope
-#ifndef DEVELOP_ONLY
-# if defined(AE_DEBUG) or defined(AE_DEVELOP)
-#	define DEVELOP_ONLY( /* code */... )	__VA_ARGS__
-# else
-#	define DEVELOP_ONLY( /* code */... )
-# endif
-#endif
-
 // profile onle scope
 #ifndef PROFILE_ONLY
-# if defined(AE_DEBUG) or defined(AE_DEVELOP) or defined(AE_PROFILE)
+# if defined(AE_CFG_DEBUG) or defined(AE_CFG_DEVELOP) or defined(AE_CFG_PROFILE)
 #	define PROFILE_ONLY( /* code */... )	__VA_ARGS__
 # else
 #	define PROFILE_ONLY( /* code */... )
@@ -128,7 +120,7 @@
 		 AE_PRIVATE_EXIT();							\
 		}
 
-# ifdef AE_DEBUG
+# ifdef AE_CFG_DEBUG
 #	undef  ASSERT
 #	define ASSERT	CHECK
 # endif

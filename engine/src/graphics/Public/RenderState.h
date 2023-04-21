@@ -148,7 +148,7 @@ namespace AE::Graphics
 			bool				boundsEnabled	= false;				// enable 'minBounds' and 'maxBounds'
 			ECompareOp			compareOp		= ECompareOp::LEqual;	// if 'test' enabled
 			bool				write			= false;				// depth write enabled
-			bool				test			= true;					// depth test enabled
+			bool				test			= false;				// depth test enabled
 
 		// methods
 			DepthBufferState ()										__NE___	{}
@@ -244,13 +244,13 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		RenderState ()										__NE___	{}
+		RenderState ()																	__NE___	{}
 
-		ND_ bool	operator == (const RenderState &rhs)	C_NE___;
-		ND_ HashVal	CalcHash ()								C_NE___;
+		ND_ bool	operator == (const RenderState &rhs)								C_NE___;
+		ND_ HashVal	CalcHash ()															C_NE___;
 
-			void	Set (const MDepthStencilState &ds, const MDynamicRenderState &rs) __NE___;
-			void	SetDefault (EPipelineDynamicState)		__NE___;
+			void	Set (const MDepthStencilState &ds, const MDynamicRenderState &rs)	__NE___;
+			void	SetDefault (EPipelineDynamicState)									__NE___;
 	};
 	STATIC_ASSERT( sizeof(RenderState) == 148 );
 	

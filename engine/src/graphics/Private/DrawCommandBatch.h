@@ -8,6 +8,10 @@
 #	define SUFFIX			M
 #	define DRAWCMDBATCH		MDrawCommandBatch
 
+#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+#	define SUFFIX			R
+#	define DRAWCMDBATCH		RDrawCommandBatch
+
 #else
 #	error not implemented
 #endif
@@ -38,10 +42,16 @@ namespace AE::Graphics
 	  #if defined(AE_ENABLE_VULKAN)
 		using Viewport_t			= VkViewport;
 		using Scissor_t				= VkRect2D;
+
 	  #elif defined(AE_ENABLE_METAL)
 		using Encoder_t				= MetalParallelRenderCommandEncoderRC;
 		using Viewport_t			= RenderPassDesc::Viewport;
 		using Scissor_t				= RectI;
+
+	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		using Viewport_t			= RenderPassDesc::Viewport;
+		using Scissor_t				= RectI;
+
 	  #else
 	  #	error not implemented
 	  #endif
@@ -144,6 +154,7 @@ namespace AE::Graphics
 	public:
 		bool  GetCmdBuffers (OUT uint &count, INOUT StaticArray< VkCommandBuffer, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___;
 
+
 	//-----------------------------------------------------
 	#elif defined(AE_ENABLE_METAL)
 
@@ -159,6 +170,15 @@ namespace AE::Graphics
 					    DebugLabel dbg) __NE___;
 
 		// call '_Create()' for indirect commands
+
+
+	//-----------------------------------------------------
+	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+		
+	// methods
+	public:
+		bool  GetCmdBuffers (OUT uint &count, INOUT StaticArray< RBakedCommands, GraphicsConfig::MaxCmdBufPerBatch > &cmdbufs) __NE___;
+
 
 	//-----------------------------------------------------
 	#else

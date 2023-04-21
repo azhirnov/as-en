@@ -24,9 +24,11 @@ namespace AE::ResLoader
 		RadianceHDR,	// .hdr
 		OpenEXR,		// .exr
 		KTX,			// .ktx
+		_Count
 	};
 	
-	ND_ EImageFormat  PathToImageFileFormat (const Path &path);
+	ND_ EImageFormat	PathToImageFileFormat (const Path &path)	__NE___;
+	ND_ StringView		ImageFileFormatToExt (EImageFormat)			__NE___;
 
 
 } // AE::ResLoader

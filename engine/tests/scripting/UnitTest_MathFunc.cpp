@@ -10,9 +10,9 @@ namespace
 	{
 		int script_res;
 		bool res = Run< int() >( se, R"#(
-			int main() {
+			int ASmain () {
 				return Max( 2, -4 );
-			})#", "main", OUT script_res );
+			})#", "ASmain", OUT script_res );
 		TEST( res );
 		TEST( script_res == 2 );
 	}
@@ -22,12 +22,12 @@ namespace
 	{
 		int script_res;
 		bool res = Run< int() >( se, R"#(
-			int main() {
+			int ASmain () {
 				uint2 a( 1, 2 );
 				uint2 b = a + 4;
 				uint2 c = b & 1;
 				return c.x == 1 ? 1 : c.y == 1 ? 2 : 0;
-			})#", "main", OUT script_res );
+			})#", "ASmain", OUT script_res );
 		TEST( res );
 		TEST( script_res == 1 );
 	}

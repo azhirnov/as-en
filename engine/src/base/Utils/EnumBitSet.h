@@ -103,7 +103,10 @@ namespace AE::Base
 
 		ND_ constexpr usize		BitCount ()					C_NE___;
 		ND_ constexpr usize		ZeroCount ()				C_NE___	{ return size() - BitCount(); }
+
 		ND_ constexpr E			ExtractFirst ()				__NE___;
+		ND_ constexpr E			First ()					C_NE___;	// first non-zero bit
+		ND_ constexpr E			Last ()						C_NE___;	// last non-zero bit
 
 		ND_ HashVal  CalcHash ()							C_NE___;
 	};
@@ -449,6 +452,46 @@ namespace AE::Base
 
 		if ( (_bits.back() & _LastElemMask) != Default )
 			return E( ExtractBitLog2( INOUT _bits.back() ) + (_ArraySize - 1) * _ElemSize );
+
+		return E(size());
+	}
+	
+/*
+=================================================
+	First
+=================================================
+*/
+	template <typename E>
+	constexpr E  EnumBitSet<E>::First () C_NE___
+	{
+		for (uint i = 0; i < _ArraySize - 1; ++i)
+		{
+			if ( _bits[i] != Default )
+				return E( BitScanReverse( INOUT _bits[i] ) + i * _ElemSize );
+		}
+
+		if ( (_bits.back() & _LastElemMask) != Default )
+			return E( BitScanReverse( INOUT _bits.back() ) + (_ArraySize - 1) * _ElemSize );
+
+		return E(size());
+	}
+	
+/*
+=================================================
+	Last
+=================================================
+*/
+	template <typename E>
+	constexpr E  EnumBitSet<E>::Last () C_NE___
+	{
+		if ( (_bits.back() & _LastElemMask) != Default )
+			return E( BitScanReverse( INOUT _bits.back() ) + (_ArraySize - 1) * _ElemSize );
+
+		for (int i = _ArraySize - 1; i >= 0; --i)
+		{
+			if ( _bits[i] != Default )
+				return E( BitScanReverse( INOUT _bits[i] ) + i * _ElemSize );
+		}
 
 		return E(size());
 	}

@@ -9,7 +9,6 @@
 namespace AE::Base
 {
 	class UntypedAllocator;
-	class UntypedOnStackAllocator;	// may be unsafe!
 	
 	template <usize BaseAlign>
 	class UntypedAllocatorBaseAlign;

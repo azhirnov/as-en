@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "base/Utils/Version.h"
 # include "base/CompileTime/StringToID.h"
 # include "graphics/Public/DeviceProperties.h"
@@ -11,6 +10,7 @@
 # include "graphics/Public/FeatureSet.h"
 # include "graphics/Public/DescriptorSet.h"
 # include "graphics/Vulkan/VQueue.h"
+# include "graphics/Vulkan/Utils/VNvPerf.h"
 
 namespace AE::Graphics
 {
@@ -31,19 +31,8 @@ namespace AE::Graphics
 		#include "vulkan_loader/vk_features.h"
 		#undef  VKFEATS_STRUCT
 
-		// contains all available resource usage & options and memory types
-		struct ResourceFlags
-		{
-			EBufferUsage	bufferUsage		= Default;
-			EBufferOpt		bufferOptions	= Default;
-
-			EImageUsage		imageUsage		= Default;
-			EImageOpt		imageOptions	= Default;
-
-			EnumBitSet<EDescriptorType>	descrTypes;
-
-			FixedSet<EMemoryType, 8>	memTypes;
-		};
+		using ResourceFlags		= DeviceResourceFlags;
+		using DevMemoryInfoOpt	= Optional< DeviceMemoryInfo >;
 
 
 	protected:
@@ -82,6 +71,8 @@ namespace AE::Graphics
 		
 		ExtensionSet_t			_instanceExtensions;
 		ExtensionSet_t			_deviceExtensions;
+		
+		VNvPerf					_nvPerf;
 
 		DRC_ONLY(
 			RWDataRaceCheck		_drCheck;
@@ -90,8 +81,8 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VDevice ();
-		~VDevice ();
+		VDevice ()												__NE___;
+		~VDevice ()												__NE___;
 		
 		ND_ VExtensions const&		GetExtensions ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _extensions; }
 		ND_ VProperties const&		GetProperties ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _properties; }
@@ -111,16 +102,26 @@ namespace AE::Graphics
 
 		ND_ bool					IsInitialized ()			C_NE___	{ return GetVkDevice() != Default; }
 
+		ND_ VNvPerf const&			GetNvPerf ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _nvPerf; }
+		ND_ bool					HasNvPerf ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _nvPerf.IsInitialized(); }
+
+		ND_ DevMemoryInfoOpt		GetMemoryUsage ()			C_NE___;
+
+
 		// check extensions
 		ND_ bool  HasInstanceExtension (StringView name)		C_NE___;
 		ND_ bool  HasDeviceExtension (StringView name)			C_NE___;
 		
+		template <typename T>
+			bool  SetObjectName (T id, NtStringView name, VkObjectType type)								C_NE___;
 			bool  SetObjectName (ulong id, NtStringView name, VkObjectType type)							C_NE___;
 
 			void  GetQueueFamilies (EQueueMask mask, OUT VQueueFamilyIndices_t &)							C_NE___;
 		
-		ND_ bool  GetMemoryTypeIndex (uint memoryTypeBits, VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits optFlags,
-									  VkMemoryPropertyFlagBits excludeFlags, OUT uint &memoryTypeIndex)		C_NE___;
+		ND_ bool  GetMemoryTypeIndex (uint memoryTypeBits,
+									  VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits optIncludeFlags,
+									  VkMemoryPropertyFlagBits excludeFlags, VkMemoryPropertyFlagBits optExcludeFlags,
+									  OUT uint &memoryTypeIndex)											C_NE___;
 		ND_ bool  GetMemoryTypeIndex (uint memoryTypeBits, EMemoryType memType, OUT uint &memoryTypeIndex)	C_NE___;
 		
 		ND_ bool  CheckConstantLimits ()						C_NE___;
@@ -190,19 +191,25 @@ namespace AE::Graphics
 		};
 		using DebugReport_t = Function< void (const DebugReport &) >;
 
+	private:
+		struct DbgReportData
+		{
+			VkDebugReportCallbackEXT	debugReportCallback		= Default;
+			VkDebugUtilsMessengerEXT	debugUtilsMessenger		= Default;
+			DebugReport_t				callback;
+
+			bool						breakOnValidationError	= true;
+			Array<ObjectDbgInfo>		tempObjectDbgInfos;
+			String						tempString;
+		};
+
 
 	// variable
 	private:
-		VkDebugReportCallbackEXT	_debugReportCallback	= Default;
-		VkDebugUtilsMessengerEXT	_debugUtilsMessenger	= Default;
-		DebugReport_t				_callback;
-		
-		Mutex						_guard;
-		bool						_breakOnValidationError	= true;
-		bool						_enableInfoLog			= false;
-		Array<ObjectDbgInfo>		_tempObjectDbgInfos;
-		String						_tempString;
+		Synchronized< Mutex,
+			DbgReportData >			_dbgReport;
 
+		bool						_enableInfoLog			= false;
 		bool						_isCopy					= false;
 
 
@@ -212,6 +219,9 @@ namespace AE::Graphics
 		~VDeviceInitializer ()																		__NE___;
 
 		ND_ InstanceVersion  GetMaxInstanceVersion ()												C_NE___;
+		
+			bool  LoadNvPerf ()																		__NE___;
+			bool  LoadArmProfiler ()																__NE___;
 
 		ND_ bool  CreateInstance (const InstanceCreateInfo &ci)										__NE___;
 
@@ -292,13 +302,25 @@ namespace AE::Graphics
 								  const char*					pMessage,
 								  void*							pUserData) __NE___;
 
-		void  _DebugReport (const DebugReport &) __Th___;
+		void  _DebugReport (INOUT String &, bool breakOnError, DebugReport_t &cb, const DebugReport &) __Th___;
 	};
 	
 	static constexpr VkDebugUtilsMessageSeverityFlagsEXT	DefaultDebugMessageSeverity =	//VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
 																							//VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
 																							VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
 																							VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	
+/*
+=================================================
+	SetObjectName
+=================================================
+*/
+	template <typename T>
+	bool  VDevice::SetObjectName (T id, NtStringView name, VkObjectType type) C_NE___
+	{
+		STATIC_ASSERT( sizeof(T) <= sizeof(ulong) );
+		return SetObjectName( ulong(id), name, type );
+	}
 
 
 } // AE::Graphics

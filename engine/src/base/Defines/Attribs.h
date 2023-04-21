@@ -99,7 +99,7 @@
 
 // force inline
 #ifndef forceinline
-# if defined(AE_DBG_OR_DEV)
+# if defined(AE_DEBUG)
 #	define forceinline		inline
 
 # elif defined(AE_COMPILER_MSVC)
@@ -267,12 +267,26 @@
 #endif
 
 
+// function argument name
+#define NAMED_ARG( _name_, /*arg*/... )		(__VA_ARGS__)
+//#define NAMED_ARG( _name_, /*arg*/... )	._name_ = (__VA_ARGS__)		// not supported yet
+
+
 #if (defined(AE_CPU_ARCH_ARM32) and defined(__ARM_NEON__)) or defined(AE_CPU_ARCH_ARM64)
 #	define AE_SIMD_NEON			1	// TODO: Neon32, Neon64, SVE, SVE2
 //# define AE_SIMD_NEON_HALF
 
 #	include <arm_neon.h>
+#	ifdef __ARM_FEATURE_SVE
+#	  include <arm_sve.h>
+#	endif
 	// TODO: arm64_neon.h
+#endif
+
+#if defined(AE_CPU_ARCH_ARM32) or defined(AE_CPU_ARCH_ARM64)
+# ifndef __ARM_FP
+#	error soft-FP is not supported
+# endif
 #endif
 
 #if defined(AE_CPU_ARCH_X64) or defined(AE_CPU_ARCH_X86)

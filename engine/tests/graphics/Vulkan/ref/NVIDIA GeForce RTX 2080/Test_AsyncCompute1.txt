@@ -1,7 +1,7 @@
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'graphics batch |0| graphics task'
 {
   BeginDebugLabel
     name:  'graphics batch |0| graphics task'
@@ -79,7 +79,7 @@ waitSemaphore = {
   'sync-0',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'compute batch |0| async compute task'
 {
   BeginDebugLabel
     name:  'compute batch |0| async compute task'
@@ -108,7 +108,7 @@ waitSemaphore = {
   'sync-1',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'graphics batch |0| graphics task'
 {
   BeginDebugLabel
     name:  'graphics batch |0| graphics task'
@@ -186,7 +186,7 @@ waitSemaphore = {
   'sync-2',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'compute batch |0| async compute task'
 {
   BeginDebugLabel
     name:  'compute batch |0| async compute task'
@@ -215,7 +215,7 @@ waitSemaphore = {
   'sync-3',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'graphics batch |0| graphics task'
 {
   BeginDebugLabel
     name:  'graphics batch |0| graphics task'
@@ -293,7 +293,7 @@ waitSemaphore = {
   'sync-4',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'compute batch |0| async compute task'
 {
   BeginDebugLabel
     name:  'compute batch |0| async compute task'
@@ -301,6 +301,9 @@ name: 'command-buffer'
   ----------
 
   Dispatch
+    descriptors:
+      image: 'Image-0', layout: GENERAL
+  ----------
 
   EndDebugLabel
     depth: 1
@@ -319,7 +322,7 @@ waitSemaphore = {
   'sync-5',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'copy task |0| Readback task'
 {
   BeginDebugLabel
     name:  'copy task |0| Readback task'
@@ -374,7 +377,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'graphics batch |0| graphics task'
@@ -452,7 +455,7 @@ waitSemaphore = {
   'sync-7',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'compute batch |0| async compute task'
@@ -481,7 +484,7 @@ waitSemaphore = {
   'sync-8',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'graphics batch |0| graphics task'
@@ -559,7 +562,7 @@ waitSemaphore = {
   'sync-9',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'compute batch |0| async compute task'
@@ -588,7 +591,7 @@ waitSemaphore = {
   'sync-10',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'graphics batch |0| graphics task'
@@ -666,7 +669,7 @@ waitSemaphore = {
   'sync-11',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'compute batch |0| async compute task'
@@ -674,6 +677,9 @@ name: 'command-buffer'
   ----------
 
   Dispatch
+    descriptors:
+      image: 'Image-0', layout: GENERAL
+  ----------
 
   EndDebugLabel
     depth: 1
@@ -692,7 +698,7 @@ waitSemaphore = {
   'sync-12',  stage: ALL_COMMANDS
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'copy task |0| Readback task'

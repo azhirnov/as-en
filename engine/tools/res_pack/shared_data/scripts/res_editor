@@ -1,4 +1,4 @@
-//693A1E9B
+//C926CA12
 #include <vector>
 #include <string>
 
@@ -18,77 +18,88 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct ComputePass;
-struct float4;
-struct EStencilOp;
-struct DynamicSize;
-struct uint4;
-struct EPostprocess;
-struct ECompareOp;
-struct MipmapLevel;
-struct EReductionMode;
-struct ESamplerUsage;
-struct uint2;
-struct ubyte4;
-struct EShaderStages;
-struct uint3;
-struct EShader;
-struct ESubgroupOperation;
-struct ubyte2;
-struct EGraphicsDeviceID;
-struct ESubgroupTypes;
-struct RGBA32u;
-struct ubyte3;
-struct Image;
-struct sbyte3;
-struct short3;
-struct RGBA8u;
-struct short2;
-struct EMipmapFilter;
-struct EPixelFormat;
-struct EPrimitive;
-struct sbyte4;
-struct Buffer;
-struct DepthStencil;
-struct ELogicOp;
-struct EPipelineDynamicState;
-struct short4;
-struct EBlendOp;
-struct ECullMode;
-struct EFilter;
 struct EFeature;
-struct sbyte2;
-struct EQueueMask;
-struct int4;
-struct HSVColor;
-struct MultiSamples;
 struct RGBA32f;
-struct ImageLayer;
-struct bool3;
-struct bool2;
-struct int3;
-struct EVertexType;
-struct int2;
+struct MultiSamples;
+struct EQueueMask;
+struct HSVColor;
+struct EFilter;
+struct sbyte2;
+struct ECullMode;
+struct ELogicOp;
+struct EBlendOp;
+struct short4;
+struct EPipelineDynamicState;
+struct Buffer;
+struct EPixelFormat;
 struct bool4;
-struct EAddressMode;
 struct RGBA32i;
-struct EImageType;
-struct EBorderColor;
-struct EPolygonMode;
-struct EDescSetUsage;
-struct EAttachmentLoadOp;
-struct EImageAspect;
-struct EVertexInputRate;
+struct EVertexType;
+struct int3;
+struct bool2;
+struct int2;
+struct bool3;
+struct ESamplerChromaLocation;
+struct ImageLayer;
+struct int4;
 struct EAttachmentStoreOp;
-struct Postprocess;
-struct EShaderIO;
-struct EBlendFactor;
-struct EResourceState;
-struct DbgViewFlags;
-struct EVendorID;
+struct EVertexInputRate;
+struct EImageType;
+struct EAttachmentLoadOp;
+struct EDescSetUsage;
+struct EBorderColor;
+struct FreeCamera;
+struct EPolygonMode;
+struct EPassFlags;
+struct EAddressMode;
 struct float2;
 struct float3;
+struct EStencilOp;
+struct EResourceState;
+struct DbgViewFlags;
+struct ComputePass;
 struct EPipelineOpt;
+struct EImageAspect;
+struct EVendorID;
+struct Controller2D;
+struct Postprocess;
+struct EBlendFactor;
+struct EShaderIO;
+struct BaseController;
+struct MipmapLevel;
+struct EPostprocess;
+struct uint4;
+struct DynamicDim;
+struct ECompareOp;
+struct float4;
+struct FlightCamera;
+struct ESurfaceFormat;
+struct EShader;
+struct EShaderStages;
+struct uint3;
+struct uint2;
+struct ESamplerYcbcrRange;
+struct ubyte4;
+struct EReductionMode;
+struct ESamplerUsage;
+struct RGBA32u;
+struct Image;
+struct EGraphicsDeviceID;
+struct ubyte3;
+struct ubyte2;
+struct ESubgroupTypes;
+struct VideoImage;
+struct FPVCamera;
+struct ESubgroupOperation;
+struct short2;
+struct DepthStencil;
+struct short3;
+struct RGBA8u;
+struct sbyte4;
+struct EPrimitive;
+struct sbyte3;
+struct EMipmapFilter;
+struct ESamplerYcbcrModelConversion;
 
 struct EImageType
 {
@@ -772,6 +783,40 @@ struct EPixelFormat
 	static constexpr uint ASTC_RGBA16F_10x10 = 134;
 	static constexpr uint ASTC_RGBA16F_12x10 = 135;
 	static constexpr uint ASTC_RGBA16F_12x12 = 136;
+	static constexpr uint G8B8G8R8_422_UNorm = 137;
+	static constexpr uint B8G8R8G8_422_UNorm = 138;
+	static constexpr uint G8_B8R8_420_UNorm = 139;
+	static constexpr uint G8_B8R8_422_UNorm = 140;
+	static constexpr uint G8_B8_R8_420_UNorm = 141;
+	static constexpr uint G8_B8_R8_422_UNorm = 142;
+	static constexpr uint G8_B8_R8_444_UNorm = 143;
+	static constexpr uint B10x6G10x6R10x6G10x6_422_UNorm = 144;
+	static constexpr uint G10x6B10x6G10x6R10x6_422_UNorm = 145;
+	static constexpr uint G10x6_B10x6R10x6_420_UNorm = 146;
+	static constexpr uint G10x6_B10x6R10x6_422_UNorm = 147;
+	static constexpr uint G10x6_B10x6_R10x6_420_UNorm = 148;
+	static constexpr uint G10x6_B10x6_R10x6_422_UNorm = 149;
+	static constexpr uint G10x6_B10x6_R10x6_444_UNorm = 150;
+	static constexpr uint R10x6G10x6B10x6A10x6_UNorm = 151;
+	static constexpr uint R10x6G10x6_UNorm = 152;
+	static constexpr uint R10x6_UNorm = 153;
+	static constexpr uint B12x4G12x4R12x4G12x4_422_UNorm = 154;
+	static constexpr uint G12x4B12x4G12x4R12x4_422_UNorm = 155;
+	static constexpr uint G12x4_B12x4R12x4_420_UNorm = 156;
+	static constexpr uint G12x4_B12x4R12x4_422_UNorm = 157;
+	static constexpr uint G12x4_B12x4_R12x4_420_UNorm = 158;
+	static constexpr uint G12x4_B12x4_R12x4_422_UNorm = 159;
+	static constexpr uint G12x4_B12x4_R12x4_444_UNorm = 160;
+	static constexpr uint R12x4G12x4B12x4A12x4_UNorm = 161;
+	static constexpr uint R12x4G12x4_UNorm = 162;
+	static constexpr uint R12x4_UNorm = 163;
+	static constexpr uint B16G16R16G16_422_UNorm = 164;
+	static constexpr uint G16B16G16R16_422_UNorm = 165;
+	static constexpr uint G16_B16R16_420_UNorm = 166;
+	static constexpr uint G16_B16R16_422_UNorm = 167;
+	static constexpr uint G16_B16_R16_420_UNorm = 168;
+	static constexpr uint G16_B16_R16_422_UNorm = 169;
+	static constexpr uint G16_B16_R16_444_UNorm = 170;
 	static constexpr uint SwapchainColor = 254;
 };
 
@@ -1013,6 +1058,9 @@ struct EImageAspect
 	static constexpr uint Color = 1;
 	static constexpr uint Depth = 2;
 	static constexpr uint Stencil = 4;
+	static constexpr uint Plane_0 = 16;
+	static constexpr uint Plane_1 = 32;
+	static constexpr uint Plane_2 = 64;
 };
 
 struct EShaderIO
@@ -1052,75 +1100,74 @@ struct ESubgroupOperation
 	ESubgroupOperation () {}
 	ESubgroupOperation (uint) {}
 	operator uint () const;
-	static constexpr uint Size = 0;
-	static constexpr uint InvocationID = 1;
-	static constexpr uint Elect = 2;
-	static constexpr uint Barrier = 3;
-	static constexpr uint Any = 4;
-	static constexpr uint All = 5;
-	static constexpr uint AllEqual = 6;
-	static constexpr uint Add = 7;
-	static constexpr uint Mul = 8;
-	static constexpr uint Min = 9;
-	static constexpr uint Max = 10;
-	static constexpr uint And = 11;
-	static constexpr uint Or = 12;
-	static constexpr uint Xor = 13;
-	static constexpr uint InclusiveMul = 14;
-	static constexpr uint InclusiveAdd = 15;
-	static constexpr uint InclusiveMin = 16;
-	static constexpr uint InclusiveMax = 17;
-	static constexpr uint InclusiveAnd = 18;
-	static constexpr uint InclusiveOr = 19;
-	static constexpr uint InclusiveXor = 20;
-	static constexpr uint ExclusiveAdd = 21;
-	static constexpr uint ExclusiveMul = 22;
-	static constexpr uint ExclusiveMin = 23;
-	static constexpr uint ExclusiveMax = 24;
-	static constexpr uint ExclusiveAnd = 25;
-	static constexpr uint ExclusiveOr = 26;
-	static constexpr uint ExclusiveXor = 27;
-	static constexpr uint Ballot = 28;
-	static constexpr uint Broadcast = 29;
-	static constexpr uint BroadcastFirst = 30;
-	static constexpr uint InverseBallot = 31;
-	static constexpr uint BallotBitExtract = 32;
-	static constexpr uint BallotBitCount = 33;
-	static constexpr uint BallotInclusiveBitCount = 34;
-	static constexpr uint BallotExclusiveBitCount = 35;
-	static constexpr uint BallotFindLSB = 36;
-	static constexpr uint BallotFindMSB = 37;
-	static constexpr uint Shuffle = 38;
-	static constexpr uint ShuffleXor = 39;
-	static constexpr uint ShuffleUp = 40;
-	static constexpr uint ShuffleDown = 41;
-	static constexpr uint ClusteredAdd = 42;
-	static constexpr uint ClusteredMul = 43;
-	static constexpr uint ClusteredMin = 44;
-	static constexpr uint ClusteredMax = 45;
-	static constexpr uint ClusteredAnd = 46;
-	static constexpr uint ClusteredOr = 47;
-	static constexpr uint ClusteredXor = 48;
-	static constexpr uint QuadBroadcast = 49;
-	static constexpr uint QuadSwapHorizontal = 50;
-	static constexpr uint QuadSwapVertical = 51;
-	static constexpr uint QuadSwapDiagonal = 52;
+	static constexpr uint IndexAndSize = 0;
+	static constexpr uint Elect = 1;
+	static constexpr uint Barrier = 2;
+	static constexpr uint Any = 3;
+	static constexpr uint All = 4;
+	static constexpr uint AllEqual = 5;
+	static constexpr uint Add = 6;
+	static constexpr uint Mul = 7;
+	static constexpr uint Min = 8;
+	static constexpr uint Max = 9;
+	static constexpr uint And = 10;
+	static constexpr uint Or = 11;
+	static constexpr uint Xor = 12;
+	static constexpr uint InclusiveMul = 13;
+	static constexpr uint InclusiveAdd = 14;
+	static constexpr uint InclusiveMin = 15;
+	static constexpr uint InclusiveMax = 16;
+	static constexpr uint InclusiveAnd = 17;
+	static constexpr uint InclusiveOr = 18;
+	static constexpr uint InclusiveXor = 19;
+	static constexpr uint ExclusiveAdd = 20;
+	static constexpr uint ExclusiveMul = 21;
+	static constexpr uint ExclusiveMin = 22;
+	static constexpr uint ExclusiveMax = 23;
+	static constexpr uint ExclusiveAnd = 24;
+	static constexpr uint ExclusiveOr = 25;
+	static constexpr uint ExclusiveXor = 26;
+	static constexpr uint Ballot = 27;
+	static constexpr uint Broadcast = 28;
+	static constexpr uint BroadcastFirst = 29;
+	static constexpr uint InverseBallot = 30;
+	static constexpr uint BallotBitExtract = 31;
+	static constexpr uint BallotBitCount = 32;
+	static constexpr uint BallotInclusiveBitCount = 33;
+	static constexpr uint BallotExclusiveBitCount = 34;
+	static constexpr uint BallotFindLSB = 35;
+	static constexpr uint BallotFindMSB = 36;
+	static constexpr uint Shuffle = 37;
+	static constexpr uint ShuffleXor = 38;
+	static constexpr uint ShuffleUp = 39;
+	static constexpr uint ShuffleDown = 40;
+	static constexpr uint ClusteredAdd = 41;
+	static constexpr uint ClusteredMul = 42;
+	static constexpr uint ClusteredMin = 43;
+	static constexpr uint ClusteredMax = 44;
+	static constexpr uint ClusteredAnd = 45;
+	static constexpr uint ClusteredOr = 46;
+	static constexpr uint ClusteredXor = 47;
+	static constexpr uint QuadBroadcast = 48;
+	static constexpr uint QuadSwapHorizontal = 49;
+	static constexpr uint QuadSwapVertical = 50;
+	static constexpr uint QuadSwapDiagonal = 51;
 	static constexpr uint _Basic_Begin = 0;
-	static constexpr uint _Basic_End = 3;
-	static constexpr uint _Vote_Begin = 4;
-	static constexpr uint _Vote_End = 6;
-	static constexpr uint _Arithmetic_Begin = 7;
-	static constexpr uint _Arithmetic_End = 27;
-	static constexpr uint _Ballot_Begin = 28;
-	static constexpr uint _Ballot_End = 37;
-	static constexpr uint _Shuffle_Begin = 38;
-	static constexpr uint _Shuffle_End = 39;
-	static constexpr uint _ShuffleRelative_Begin = 40;
-	static constexpr uint _ShuffleRelative_End = 41;
-	static constexpr uint _Clustered_Begin = 42;
-	static constexpr uint _Clustered_End = 48;
-	static constexpr uint _Quad_Begin = 49;
-	static constexpr uint _Quad_End = 52;
+	static constexpr uint _Basic_End = 2;
+	static constexpr uint _Vote_Begin = 3;
+	static constexpr uint _Vote_End = 5;
+	static constexpr uint _Arithmetic_Begin = 6;
+	static constexpr uint _Arithmetic_End = 26;
+	static constexpr uint _Ballot_Begin = 27;
+	static constexpr uint _Ballot_End = 36;
+	static constexpr uint _Shuffle_Begin = 37;
+	static constexpr uint _Shuffle_End = 38;
+	static constexpr uint _ShuffleRelative_Begin = 39;
+	static constexpr uint _ShuffleRelative_End = 40;
+	static constexpr uint _Clustered_Begin = 41;
+	static constexpr uint _Clustered_End = 47;
+	static constexpr uint _Quad_Begin = 48;
+	static constexpr uint _Quad_End = 51;
 };
 
 struct EFeature
@@ -1313,35 +1360,38 @@ struct EGraphicsDeviceID
 	static constexpr uint Apple_A13 = 20;
 	static constexpr uint Apple_A14_M1 = 21;
 	static constexpr uint Apple_A15_M2 = 22;
-	static constexpr uint Mali_Midgard_Gen4 = 23;
-	static constexpr uint Mali_Bifrost_Gen1 = 24;
-	static constexpr uint Mali_Bifrost_Gen2 = 25;
-	static constexpr uint Mali_Bifrost_Gen3 = 26;
-	static constexpr uint Mali_Valhall_Gen1 = 27;
-	static constexpr uint Mali_Valhall_Gen2 = 28;
-	static constexpr uint Mali_Valhall_Gen3 = 29;
-	static constexpr uint NV_Maxwell = 30;
-	static constexpr uint NV_Maxwell_Tegra = 31;
-	static constexpr uint NV_Pascal = 32;
-	static constexpr uint NV_Pascal_MX = 33;
-	static constexpr uint NV_Pascal_Tegra = 34;
-	static constexpr uint NV_Volta = 35;
-	static constexpr uint NV_Turing_16 = 36;
-	static constexpr uint NV_Turing = 37;
-	static constexpr uint NV_Turing_MX = 38;
-	static constexpr uint NV_Ampere = 39;
-	static constexpr uint NV_Ampere_Orin = 40;
-	static constexpr uint NV_Ada = 41;
-	static constexpr uint Intel_Gen9 = 42;
-	static constexpr uint Intel_Gen11 = 43;
-	static constexpr uint Intel_Gen12 = 44;
-	static constexpr uint PowerVR_Series8XE = 45;
-	static constexpr uint PowerVR_Series8XEP = 46;
-	static constexpr uint PowerVR_Series8XT = 47;
-	static constexpr uint PowerVR_Series9XE = 48;
-	static constexpr uint VeriSilicon = 49;
-	static constexpr uint V3D_4 = 50;
-	static constexpr uint SwiftShader = 51;
+	static constexpr uint Mali_Midgard_Gen2 = 23;
+	static constexpr uint Mali_Midgard_Gen3 = 24;
+	static constexpr uint Mali_Midgard_Gen4 = 25;
+	static constexpr uint Mali_Bifrost_Gen1 = 26;
+	static constexpr uint Mali_Bifrost_Gen2 = 27;
+	static constexpr uint Mali_Bifrost_Gen3 = 28;
+	static constexpr uint Mali_Valhall_Gen1 = 29;
+	static constexpr uint Mali_Valhall_Gen2 = 30;
+	static constexpr uint Mali_Valhall_Gen3 = 31;
+	static constexpr uint Mali_Valhall_Gen4 = 32;
+	static constexpr uint NV_Maxwell = 33;
+	static constexpr uint NV_Maxwell_Tegra = 34;
+	static constexpr uint NV_Pascal = 35;
+	static constexpr uint NV_Pascal_MX = 36;
+	static constexpr uint NV_Pascal_Tegra = 37;
+	static constexpr uint NV_Volta = 38;
+	static constexpr uint NV_Turing_16 = 39;
+	static constexpr uint NV_Turing = 40;
+	static constexpr uint NV_Turing_MX = 41;
+	static constexpr uint NV_Ampere = 42;
+	static constexpr uint NV_Ampere_Orin = 43;
+	static constexpr uint NV_Ada = 44;
+	static constexpr uint Intel_Gen9 = 45;
+	static constexpr uint Intel_Gen11 = 46;
+	static constexpr uint Intel_Gen12 = 47;
+	static constexpr uint PowerVR_Series8XE = 48;
+	static constexpr uint PowerVR_Series8XEP = 49;
+	static constexpr uint PowerVR_Series8XT = 50;
+	static constexpr uint PowerVR_Series9XE = 51;
+	static constexpr uint VeriSilicon = 52;
+	static constexpr uint V3D_4 = 53;
+	static constexpr uint SwiftShader = 54;
 };
 
 struct EFilter
@@ -1453,6 +1503,55 @@ struct EQueueMask
 	static constexpr uint Graphics = 1;
 	static constexpr uint AsyncCompute = 2;
 	static constexpr uint AsyncTransfer = 4;
+	static constexpr uint VideoEncode = 8;
+	static constexpr uint VideoDecode = 16;
+};
+
+struct ESamplerChromaLocation
+{
+	ESamplerChromaLocation () {}
+	ESamplerChromaLocation (uint) {}
+	operator uint () const;
+	static constexpr uint CositedEven = 0;
+	static constexpr uint Midpoint = 1;
+};
+
+struct ESamplerYcbcrModelConversion
+{
+	ESamplerYcbcrModelConversion () {}
+	ESamplerYcbcrModelConversion (uint) {}
+	operator uint () const;
+	static constexpr uint RGB_Identity = 0;
+	static constexpr uint Ycbcr_Identity = 1;
+	static constexpr uint Ycbcr_709 = 2;
+	static constexpr uint Ycbcr_601 = 3;
+	static constexpr uint Ycbcr_2020 = 4;
+};
+
+struct ESamplerYcbcrRange
+{
+	ESamplerYcbcrRange () {}
+	ESamplerYcbcrRange (uint) {}
+	operator uint () const;
+	static constexpr uint ITU_Full = 0;
+	static constexpr uint ITU_Narrow = 1;
+};
+
+struct ESurfaceFormat
+{
+	ESurfaceFormat () {}
+	ESurfaceFormat (uint) {}
+	operator uint () const;
+	static constexpr uint BGRA8_sRGB_nonlinear = 0;
+	static constexpr uint RGBA8_sRGB_nonlinear = 1;
+	static constexpr uint BGRA8_BT709_nonlinear = 2;
+	static constexpr uint RGBA16F_Extended_sRGB_linear = 3;
+	static constexpr uint RGBA16F_sRGB_nonlinear = 4;
+	static constexpr uint RGBA16F_BT709_nonlinear = 5;
+	static constexpr uint RGBA16F_HDR10_ST2084 = 6;
+	static constexpr uint RGBA16F_BT2020_linear = 7;
+	static constexpr uint RGB10A2_sRGB_nonlinear = 8;
+	static constexpr uint RGB10A2_HDR10_ST2084 = 9;
 };
 
 struct MultiSamples
@@ -1486,13 +1585,30 @@ struct DbgViewFlags
 	operator uint () const;
 	static constexpr uint NoCopy = 1;
 	static constexpr uint None = 0;
+	static constexpr uint Histogram = 2;
 };
 
-struct DynamicSize
+struct DynamicDim
 {
-	DynamicSize ();
-	RC<DynamicSize>  opMul (int) const;
-	RC<DynamicSize>  opDiv (int) const;
+	DynamicDim ();
+	RC<DynamicDim>  opMul (int) const;
+	RC<DynamicDim>  opDiv (int) const;
+	RC<DynamicDim>  Mul (int) const;
+	RC<DynamicDim>  Div (int) const;
+	RC<DynamicDim>  DivRound (int) const;
+	RC<DynamicDim>  DivCeil (int) const;
+	RC<DynamicDim>  opMul (const int2 &) const;
+	RC<DynamicDim>  opDiv (const int2 &) const;
+	RC<DynamicDim>  Mul (const int2 &) const;
+	RC<DynamicDim>  Div (const int2 &) const;
+	RC<DynamicDim>  DivRound (const int2 &) const;
+	RC<DynamicDim>  DivCeil (const int2 &) const;
+	RC<DynamicDim>  opMul (const int3 &) const;
+	RC<DynamicDim>  opDiv (const int3 &) const;
+	RC<DynamicDim>  Mul (const int3 &) const;
+	RC<DynamicDim>  Div (const int3 &) const;
+	RC<DynamicDim>  DivRound (const int3 &) const;
+	RC<DynamicDim>  DivCeil (const int3 &) const;
 };
 
 struct Image
@@ -1505,16 +1621,25 @@ struct Image
 	Image (EPixelFormat, const uint2 &, const MipmapLevel &);
 	Image (EPixelFormat, const uint3 &, const MipmapLevel &);
 	Image (EPixelFormat, const uint2 &, const ImageLayer &, const MipmapLevel &);
-	Image (EPixelFormat, const RC<DynamicSize> &);
-	Image (EPixelFormat, const RC<DynamicSize> &, const ImageLayer &);
-	Image (EPixelFormat, const RC<DynamicSize> &, const MipmapLevel &);
-	Image (EPixelFormat, const RC<DynamicSize> &, const ImageLayer &, const MipmapLevel &);
+	Image (EPixelFormat, const RC<DynamicDim> &);
+	Image (EPixelFormat, const RC<DynamicDim> &, const ImageLayer &);
+	Image (EPixelFormat, const RC<DynamicDim> &, const MipmapLevel &);
+	Image (EPixelFormat, const RC<DynamicDim> &, const ImageLayer &, const MipmapLevel &);
 	void  Name (const string &);
 	void  LoadLayer (const string &, uint);
 	bool  IsMutableDimension ();
 	uint2  Dimension2 ();
 	uint3  Dimension3 ();
-	RC<DynamicSize>  Dimension ();
+	RC<DynamicDim>  Dimension ();
+};
+
+struct VideoImage
+{
+	VideoImage ();
+	VideoImage (const string &);
+	VideoImage (EPixelFormat, const string &);
+	void  Name (const string &);
+	RC<DynamicDim>  Dimension ();
 };
 
 struct Buffer
@@ -1576,6 +1701,36 @@ struct Buffer
 	void  UInt4Array (const string &, uint);
 };
 
+struct BaseController
+{
+};
+
+struct Controller2D
+{
+	Controller2D ();
+};
+
+struct FlightCamera
+{
+	FlightCamera ();
+	void  FovY (float);
+	void  ClipPlanes (float, float);
+};
+
+struct FPVCamera
+{
+	FPVCamera ();
+	void  FovY (float);
+	void  ClipPlanes (float, float);
+};
+
+struct FreeCamera
+{
+	FreeCamera ();
+	void  FovY (float);
+	void  ClipPlanes (float, float);
+};
+
 struct EPostprocess
 {
 	EPostprocess () {}
@@ -1588,18 +1743,22 @@ struct EPostprocess
 	static constexpr uint Shadertoy_360 = 16;
 };
 
+struct EPassFlags
+{
+	EPassFlags () {}
+	EPassFlags (uint) {}
+	operator uint () const;
+	static constexpr uint None = 0;
+	static constexpr uint Enable_ShaderTrace = 1;
+	static constexpr uint Enable_ShaderFnProf = 2;
+	static constexpr uint Enable_ShaderTmProf = 4;
+	static constexpr uint Enable_AllShaderDbg = 7;
+};
+
 struct Postprocess
 {
 	Postprocess ();
-	Postprocess (const string &);
-	Postprocess (const string &, EPostprocess);
-	Postprocess (EPostprocess);
-	Postprocess (EPostprocess, const string &);
-	void  Input (const string &, const RC<Image> &, const string &);
-	void  Output (const RC<Image> &);
-	void  Output (const RC<Image> &, const MipmapLevel &);
-	void  Output (const RC<Image> &, const ImageLayer &);
-	void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &);
+	void  SetDebugLabel (const string &);
 	void  SetDebugLabel (const string &, const RGBA8u &);
 	void  SliderI (const string &);
 	void  Slider (const string &, int, int);
@@ -1612,12 +1771,42 @@ struct Postprocess
 	void  Slider (const string &, const float3 &, const float3 &);
 	void  Slider (const string &, const float4 &, const float4 &);
 	void  ColorSelector (const string &);
+	Postprocess (const string &);
+	Postprocess (const string &, EPostprocess);
+	Postprocess (EPostprocess);
+	Postprocess (EPostprocess, const string &);
+	Postprocess (EPostprocess, EPassFlags);
+	Postprocess (EPostprocess, const string &, EPassFlags);
+	void  Input (const string &, const RC<Image> &, const string &);
+	void  Input (const string &, const RC<VideoImage> &, const string &);
+	void  Input (const RC<BaseController> &);
+	void  Output (const RC<Image> &);
+	void  Output (const RC<Image> &, const MipmapLevel &);
+	void  Output (const RC<Image> &, const ImageLayer &);
+	void  Output (const RC<Image> &, const ImageLayer &, const MipmapLevel &);
+	void  OutputBlend (const RC<Image> &, EBlendFactor, EBlendFactor, EBlendOp);
 };
 
 struct ComputePass
 {
-	ComputePass ();
+	void  SetDebugLabel (const string &);
+	void  SetDebugLabel (const string &, const RGBA8u &);
+	void  SliderI (const string &);
+	void  Slider (const string &, int, int);
+	void  Slider (const string &, const int2 &, const int2 &);
+	void  Slider (const string &, const int3 &, const int3 &);
+	void  Slider (const string &, const int4 &, const int4 &);
+	void  Slider (const string &);
+	void  Slider (const string &, float, float);
+	void  Slider (const string &, const float2 &, const float2 &);
+	void  Slider (const string &, const float3 &, const float3 &);
+	void  Slider (const string &, const float4 &, const float4 &);
+	void  ColorSelector (const string &);
+	ComputePass  ();
 	ComputePass (const string &);
+	ComputePass (const string &, const string &);
+	ComputePass (const string &, EPassFlags);
+	ComputePass (const string &, const string &, EPassFlags);
 	void  LocalSize (uint);
 	void  LocalSize (uint, uint);
 	void  LocalSize (uint, uint, uint);
@@ -1628,20 +1817,25 @@ struct ComputePass
 	void  DispathGroups (uint, uint, uint);
 	void  DispathGroups (const uint2 &);
 	void  DispathGroups (const uint3 &);
+	void  DispathGroups (const RC<DynamicDim> &);
 	void  DispathThreads (uint);
 	void  DispathThreads (uint, uint);
 	void  DispathThreads (uint, uint, uint);
 	void  DispathThreads (const uint2 &);
 	void  DispathThreads (const uint3 &);
+	void  DispathThreads (const RC<DynamicDim> &);
 	void  ArgIn (const string &, const RC<Buffer> &);
 	void  ArgOut (const string &, const RC<Buffer> &);
 	void  ArgInOut (const string &, const RC<Buffer> &);
 	void  ArgIn (const string &, const RC<Image> &);
 	void  ArgOut (const string &, const RC<Image> &);
 	void  ArgInOut (const string &, const RC<Image> &);
+	void  ArgIn (const string &, const RC<Image> &, const string &);
+	void  ArgIn (const string &, const RC<VideoImage> &, const string &);
+	void  ArgIn (const RC<BaseController> &);
 };
 
-RC<DynamicSize>  SurfaceSize ();
+RC<DynamicDim>  SurfaceSize ();
 void  Present (const RC<Image> &);
 void  Present (const RC<Image> &, const MipmapLevel &);
 void  Present (const RC<Image> &, const ImageLayer &);
@@ -1651,15 +1845,51 @@ void  DbgView (const RC<Image> &, const MipmapLevel &, DbgViewFlags);
 void  DbgView (const RC<Image> &, const ImageLayer &, DbgViewFlags);
 void  DbgView (const RC<Image> &, const ImageLayer &, const MipmapLevel &, DbgViewFlags);
 template <>
+struct RC<Buffer> : Buffer
+{
+	RC (const Buffer &);
+};
+
+template <>
+struct RC<FreeCamera> : FreeCamera
+{
+	RC (const FreeCamera &);
+};
+
+template <>
 struct RC<ComputePass> : ComputePass
 {
 	RC (const ComputePass &);
 };
 
 template <>
-struct RC<DynamicSize> : DynamicSize
+struct RC<Controller2D> : Controller2D
 {
-	RC (const DynamicSize &);
+	RC (const Controller2D &);
+};
+
+template <>
+struct RC<Postprocess> : Postprocess
+{
+	RC (const Postprocess &);
+};
+
+template <>
+struct RC<BaseController> : BaseController
+{
+	RC (const BaseController &);
+};
+
+template <>
+struct RC<DynamicDim> : DynamicDim
+{
+	RC (const DynamicDim &);
+};
+
+template <>
+struct RC<FlightCamera> : FlightCamera
+{
+	RC (const FlightCamera &);
 };
 
 template <>
@@ -1669,14 +1899,14 @@ struct RC<Image> : Image
 };
 
 template <>
-struct RC<Buffer> : Buffer
+struct RC<VideoImage> : VideoImage
 {
-	RC (const Buffer &);
+	RC (const VideoImage &);
 };
 
 template <>
-struct RC<Postprocess> : Postprocess
+struct RC<FPVCamera> : FPVCamera
 {
-	RC (const Postprocess &);
+	RC (const FPVCamera &);
 };
 

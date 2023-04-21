@@ -71,6 +71,7 @@ namespace AE::App
 				InputActionName	name;
 				Bytes32u		offset;			// TODO: use ushort ?
 				ControllerID	controllerId;
+				EGestureState	state;
 			};
 			static constexpr Bytes	_DataAlign {4};
 
@@ -94,8 +95,8 @@ namespace AE::App
 			ActionQueue (ActionQueue &&)																	__NE___;
 			ActionQueue (void* ptr, Bytes headerSize, Bytes dataSize)										__NE___;
 
-			bool  Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize)	__NE___;
-			bool  Insert (const InputActionName &name, ControllerID id)										__NE___;
+			bool  Insert (const InputActionName &, ControllerID, EGestureState, const void*, Bytes)			__NE___;
+			bool  Insert (const InputActionName &, ControllerID, EGestureState)								__NE___;
 
 			void  Reset ()																					__NE___;
 
@@ -311,7 +312,7 @@ namespace AE::App
 	Insert
 =================================================
 */
-	inline bool  IInputActions::ActionQueue::Insert (const InputActionName &name, ControllerID id, const void* data, Bytes dataSize) __NE___
+	inline bool  IInputActions::ActionQueue::Insert (const InputActionName &name, ControllerID id, EGestureState state, const void* data, Bytes dataSize) __NE___
 	{
 		const uint		hdr_idx		= _writePos.fetch_add( 1 );
 		const Bytes		data_pos	= AlignUp( _dataPos, _DataAlign );
@@ -327,9 +328,11 @@ namespace AE::App
 			return false;
 		}
 
-		_headers[hdr_idx].name			= name;
-		_headers[hdr_idx].offset		= data_pos;
-		_headers[hdr_idx].controllerId	= id;
+		auto&		hdr		= _headers[hdr_idx];
+		hdr.name			= name;
+		hdr.offset			= data_pos;
+		hdr.controllerId	= id;
+		hdr.state			= state;
 
 		std::memcpy( OUT _data + data_pos, data, usize(dataSize) );
 
@@ -338,7 +341,7 @@ namespace AE::App
 		return true;
 	}
 	
-	inline bool  IInputActions::ActionQueue::Insert (const InputActionName &name, ControllerID id) __NE___
+	inline bool  IInputActions::ActionQueue::Insert (const InputActionName &name, ControllerID id, EGestureState state) __NE___
 	{
 		const uint	hdr_idx = _writePos.fetch_add( 1 );
 		
@@ -348,9 +351,11 @@ namespace AE::App
 			return false;
 		}
 		
-		_headers[hdr_idx].name			= name;
-		_headers[hdr_idx].offset		= UMax;
-		_headers[hdr_idx].controllerId	= id;
+		auto&		hdr		= _headers[hdr_idx];
+		hdr.name			= name;
+		hdr.offset			= UMax;
+		hdr.controllerId	= id;
+		hdr.state			= state;
 
 		_readPos.store( hdr_idx+1, EMemoryOrder::Release );
 		return true;

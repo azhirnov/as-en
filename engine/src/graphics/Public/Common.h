@@ -20,13 +20,14 @@
 #include "threading/TaskSystem/TaskScheduler.h"
 #include "threading/TaskSystem/Promise.h"
 #include "threading/Memory/MemoryManager.h"
+#include "threading/Primitives/Synchronized.h"
 
-#ifdef AE_DBG_OR_DEV_OR_PROF
-#	define AE_DBG_GRAPHICS				1
-#	define DBG_GRAPHICS_ONLY( ... )		__VA_ARGS__
-#else
+#ifdef AE_CFG_RELEASE
 #	define AE_DBG_GRAPHICS				0
 #	define DBG_GRAPHICS_ONLY( ... )		
+#else
+#	define AE_DBG_GRAPHICS				1
+#	define DBG_GRAPHICS_ONLY( ... )		__VA_ARGS__
 #endif
 
 namespace AE::Graphics
@@ -41,10 +42,14 @@ namespace AE::Graphics
 	using AE::Threading::DeferSharedLock;
 	using AE::Threading::EMemoryOrder;
 	using AE::Threading::MemoryBarrier;
+	using AE::Threading::Synchronized;
 	
 #	if AE_ENABLE_DATA_RACE_CHECK
 	using AE::Threading::RWDataRaceCheck;
 #	endif
+	
+	class RenderTask;
+	class DrawTask;
 
 
 	//

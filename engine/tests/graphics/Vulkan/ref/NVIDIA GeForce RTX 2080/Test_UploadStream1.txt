@@ -1,7 +1,7 @@
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -27,7 +27,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -53,7 +53,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -79,7 +79,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -105,7 +105,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -131,7 +131,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -157,7 +157,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -183,7 +183,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -209,7 +209,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -235,7 +235,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -261,7 +261,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -287,7 +287,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -313,7 +313,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -339,7 +339,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -365,7 +365,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -391,7 +391,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -417,7 +417,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -443,7 +443,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -469,7 +469,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -495,7 +495,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -521,7 +521,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -547,7 +547,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -573,7 +573,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -599,7 +599,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -625,7 +625,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -651,7 +651,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -677,7 +677,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -703,7 +703,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -729,7 +729,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -755,7 +755,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -781,7 +781,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -807,7 +807,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'
@@ -833,7 +833,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'UploadStream1 |0| test task'
 {
   BeginDebugLabel
     name:  'UploadStream1 |0| test task'

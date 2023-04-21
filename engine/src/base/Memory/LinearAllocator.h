@@ -63,7 +63,7 @@ namespace AE::Base
 		ND_ void*	Allocate (const SizeAndAlign)			__NE___;
 		
 		void  Deallocate (void *, Bytes)					__NE___ {}
-		void  Deallocate (void *, const SizeAndAlign )		__NE___ {}
+		void  Deallocate (void *, const SizeAndAlign)		__NE___ {}
 
 		void  Discard ()									__NE___;
 		void  Release ()									__NE___;

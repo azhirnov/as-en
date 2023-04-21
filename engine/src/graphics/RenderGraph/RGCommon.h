@@ -22,6 +22,9 @@ namespace _hidden_
 
 	#elif defined(AE_ENABLE_METAL)
 	using PrimaryCmdBufState_t	= MPrimaryCmdBufState;
+	
+	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+	using PrimaryCmdBufState_t	= RPrimaryCmdBufState;
 
 	#else
 	#	error not implemented

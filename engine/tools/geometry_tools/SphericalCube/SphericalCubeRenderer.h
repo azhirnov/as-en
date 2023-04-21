@@ -17,34 +17,60 @@ namespace AE::GeometryTools
 	// Spherical Cube Renderer
 	//
 
-	class SphericalCubeRenderer final : public SphericalCubeGen
+	class SphericalCubeRenderer final : public SphericalCubeProjection< TangentialSphericalCube, TextureProjection >
 	{
+	// types
+	public:
+		using Vertex	= SphericalCubeGen::Vertex;
+		using Index_t	= SphericalCubeGen::Index_t;
+	private:
+		using Base_t	= SphericalCubeGen;
+
+
 	// variables
 	private:
 		Strong<BufferID>	_vertexBuffer;
 		Strong<BufferID>	_indexBuffer;
+		
+		uint				_minLod			= 0;
+		uint				_maxLod			= 0;
+		bool				_quads			= false;
 
 
 	// methods
 	public:
-		SphericalCubeRenderer () {}
-		~SphericalCubeRenderer ();
+		SphericalCubeRenderer ()																							__NE___	{}
+		~SphericalCubeRenderer ()																							__NE___;
 
-		ND_ bool  Create (IResourceManager &, ITransferContext &ctx, uint minLod, uint maxLod, bool quads);
-			void  Destroy (IResourceManager &);
+		ND_ bool  Create (IResourceManager &, ITransferContext &ctx, uint minLod, uint maxLod, bool quads)					__NE___;
+			void  Destroy (IResourceManager &)																				__NE___;
 		
-		ND_ bool  IsCreated () const	{ return _vertexBuffer and _indexBuffer; }
+		ND_ bool  IsCreated ()																								C_NE___	{ return _vertexBuffer and _indexBuffer; }
 		
 			template <typename DrawCtx>
-			bool  Draw (DrawCtx &ctx, uint lod) const;
+			bool  Draw (DrawCtx &ctx, uint lod)																				C_NE___;
 
-		ND_ bool  GetVertexBuffer (uint lod, uint face, OUT BufferID &id, OUT Range<Bytes> &range, OUT uint2 &vertCount) const;
-		ND_ bool  GetIndexBuffer (uint lod, uint face, OUT BufferID &id, OUT Range<Bytes> &range, OUT uint &indexCount) const;
+		ND_ bool  GetVertexBuffer (uint lod, uint face, OUT BufferID &id, OUT Range<Bytes> &range, OUT uint2 &vertCount)	C_NE___;
+		ND_ bool  GetIndexBuffer (uint lod, uint face, OUT BufferID &id, OUT Range<Bytes> &range, OUT uint &indexCount)		C_NE___;
+
+		ND_ static uint  CalcFaceVertCount (uint lod)																		__NE___	{ return Base_t::CalcFaceVertCount( lod ); }
+		ND_ static uint  CalcVertCount (uint lod)																			__NE___	{ return Base_t::CalcVertCount( lod ); }
+	
+		ND_ static uint  CalcFaceIndexCount (uint lod, bool useQuads)														__NE___	{ return Base_t::CalcFaceIndexCount( lod, useQuads ); }
+		ND_ static uint  CalcIndexCount (uint lod, bool useQuads)															__NE___	{ return Base_t::CalcIndexCount( lod, useQuads ); }
+		
+		ND_ static bool  RayCast (const float3 &center, float radius, const float3 &begin,
+								  const float3 &end, OUT float3 &outIntersection)											__NE___	{ return Base_t::RayCast( center, radius, begin, end, OUT outIntersection ); }
 	};
 
 	
+/*
+=================================================
+	Draw
+=================================================
+*/
 	template <typename DrawCtx>
-	bool  SphericalCubeRenderer::Draw (DrawCtx &ctx, uint lod) const
+	bool  SphericalCubeRenderer::Draw (DrawCtx &ctx, uint lod) C_NE___
 	{
 		CHECK_ERR( lod >= _minLod and lod <= _maxLod );
 		lod = Clamp( lod, _minLod, _maxLod );
@@ -53,9 +79,10 @@ namespace AE::GeometryTools
 		Range<Bytes>	vb_range, ib_range;
 		uint2			vert_cnt;
 		uint			idx_cnt;
+		const uint		face	= 0;
 
-		CHECK_ERR( GetVertexBuffer( lod, 0, OUT vb, OUT vb_range, OUT vert_cnt ));
-		CHECK_ERR( GetIndexBuffer( lod, 0, OUT ib, OUT ib_range, OUT idx_cnt ));
+		CHECK_ERR( GetVertexBuffer( lod, face, OUT vb, OUT vb_range, OUT vert_cnt ));
+		CHECK_ERR( GetIndexBuffer( lod, face, OUT ib, OUT ib_range, OUT idx_cnt ));
 		
 		ctx.BindVertexBuffer( 0, vb, vb_range.Offset() );
 		ctx.BindIndexBuffer( ib, ib_range.Offset(), EIndex::UInt );

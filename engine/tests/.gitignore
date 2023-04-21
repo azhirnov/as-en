@@ -8,3 +8,4 @@
 /base/UnitTest_Crypto.cpp
 /base/ds_test/*.txt
 /threading/ds_test/*.txt
+/video/video_test

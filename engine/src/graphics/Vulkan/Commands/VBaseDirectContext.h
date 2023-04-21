@@ -4,6 +4,7 @@
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Public/CommandBuffer.h"
+# include "graphics/Private/ContextValidation.h"
 # include "graphics/Vulkan/Commands/VBarrierManager.h"
 # include "graphics/Vulkan/Commands/VDrawBarrierManager.h"
 # include "graphics/Vulkan/Commands/VAccumDeferredBarriers.h"
@@ -50,8 +51,9 @@ namespace AE::Graphics::_hidden_
 		ND_ VkCommandBuffer	_EndCommandBuffer ();
 		ND_ VCommandBuffer  _ReleaseCommandBuffer ();
 
-		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg)		__NE___;
-		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg)	__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg, bool firstInQueue)	__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, const RenderTask &task)				__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg)					__NE___;
 	};
 	
 
@@ -139,9 +141,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf, ECtxType ctxType) __Th___ :
-		_VBaseDirectContext{	// throw
-			_ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf), DebugLabel{ task.DbgFullName(), task.DbgColor() })
-		},
+		_VBaseDirectContext{_ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf), task )},  // throw
 		_mngr{ task }
 	{
 		ASSERT( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );

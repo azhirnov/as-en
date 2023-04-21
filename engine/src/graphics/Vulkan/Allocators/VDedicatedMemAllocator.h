@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Vulkan/VCommon.h"
 
@@ -20,10 +19,10 @@ namespace AE::Graphics
 	private:
 		struct Data
 		{
-			VkDeviceMemory	mem;
+			VkDeviceMemory	mem			= Default;
 			Bytes			size;
-			void*			mapped;
-			uint			index;
+			void*			mapped		= null;
+			uint			index		= UMax;
 		};
 
 
@@ -38,19 +37,21 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		VDedicatedMemAllocator ()															__NE___;
-		~VDedicatedMemAllocator ()															__NE_OV;
+		VDedicatedMemAllocator ()																__NE___;
+		~VDedicatedMemAllocator ()																__NE_OV;
 		
 	  // IGfxMemAllocator //
-		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)		__NE_OV;
-		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data) __NE_OV;
+		bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)			__NE_OV;
+		bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)		__NE_OV;
+		bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &data)__NE_OV;
+		bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &data)	__NE_OV;
 
-		bool  Dealloc (INOUT Storage_t &data)												__NE_OV;
+		bool  Dealloc (INOUT Storage_t &data)													__NE_OV;
 			
-		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info)				C_NE_OV;
+		bool  GetInfo (const Storage_t &data, OUT VulkanMemoryObjInfo &info)					C_NE_OV;
 		
-		Bytes  MinAlignment ()																C_NE_OV	{ return 1_b; }
-		Bytes  MaxAllocationSize ()															C_NE_OV;
+		Bytes  MinAlignment ()																	C_NE_OV	{ return 1_b; }
+		Bytes  MaxAllocationSize ()																C_NE_OV;
 
 
 	private:

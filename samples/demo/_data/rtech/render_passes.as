@@ -1,0 +1,68 @@
+#include <pipeline_compiler>
+
+void UIPass ()
+{
+	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "UIPass" );
+	compat.AddFeatureSet( "MinimalFS" );
+
+	const string	pass = "Main";
+	compat.AddSubpass( pass );
+
+	{
+		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
+		rt.format		= EPixelFormat::SwapchainColor;
+		rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
+	}
+
+	// specialization
+	{
+		RC<RenderPass>	rp = compat.AddSpecialization( "UIPass.def" );
+
+		RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+		rt.loadOp	= EAttachmentLoadOp::Clear;
+		rt.storeOp	= EAttachmentStoreOp::Store;
+		rt.Layout( pass, EResourceState::ColorAttachment );
+	}
+}
+
+
+void SceneRPass ()
+{
+	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "SceneRPass" );
+	compat.AddFeatureSet( "MinimalFS" );
+
+	const string	pass = "Main";
+	compat.AddSubpass( pass );
+
+	{
+		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
+		rt.format		= EPixelFormat::SwapchainColor;
+		rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
+	}{
+		RC<Attachment>	ds	= compat.AddAttachment( Attachment_Depth );
+		ds.format		= EPixelFormat::Depth32F;
+		ds.Usage( pass, EAttachment::Depth );
+	}
+
+	// specialization
+	{
+		RC<RenderPass>	rp = compat.AddSpecialization( "SceneRPass.def" );
+
+		RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+		rt.loadOp	= EAttachmentLoadOp::Clear;
+		rt.storeOp	= EAttachmentStoreOp::Store;
+		rt.Layout( pass, EResourceState::ColorAttachment );
+		
+		RC<AttachmentSpec>	ds = rp.AddAttachment( Attachment_Depth );
+		ds.loadOp	= EAttachmentLoadOp::Clear;
+		ds.storeOp	= EAttachmentStoreOp::Invalidate;
+		ds.Layout( pass, EResourceState::DepthStencilAttachment );
+	}
+}
+
+
+void ASmain ()
+{
+	UIPass();
+	SceneRPass();
+}

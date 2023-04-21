@@ -1,12 +1,19 @@
-file( GLOB_RECURSE SOURCES "*.*" )
-add_library( "Profiler" STATIC ${SOURCES} )
-source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
+if (TARGET "GraphicsHL")
 
-set_property( TARGET "Profiler" PROPERTY FOLDER "Engine" )
-target_link_libraries( "Profiler" PUBLIC "GraphicsHL" )
+	file( GLOB_RECURSE SOURCES "*.*" )
+	add_library( "Profiler" STATIC ${SOURCES} )
+	source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 
-if (TARGET "ImGUI-lib")
-	target_link_libraries( "Profiler" PUBLIC "ImGUI-lib" )
+	set_property( TARGET "Profiler" PROPERTY FOLDER "Engine" )
+	target_link_libraries( "Profiler" PUBLIC "GraphicsHL" )
+
+	if (TARGET "ImGUI-lib")
+		target_link_libraries( "Profiler" PUBLIC "ImGUI-lib" )
+	endif()
+	
+	if (DEFINED ANDROID)
+		target_link_libraries( "Profiler" PUBLIC "ARM-HWCPipe-lib" "HWPerfCounter-lib" )
+	endif()
+
+	install( TARGETS "Profiler" ARCHIVE DESTINATION "lib" )
 endif()
-
-install( TARGETS "Profiler" ARCHIVE DESTINATION "lib" )

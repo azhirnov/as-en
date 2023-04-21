@@ -61,7 +61,7 @@
 #include "threading/Containers/LfIndexedPool2.h"
 #include "threading/Memory/GlobalLinearAllocator.h"
 
-#ifdef AE_DBG_OR_DEV
+#ifdef AE_DEBUG
 #	define AE_SCHEDULER_PROFILING( /* code */... )	__VA_ARGS__
 #else
 #	define AE_SCHEDULER_PROFILING( /* code */... )
@@ -80,13 +80,28 @@ namespace AE::Threading
 	//
 	class IThread : public EnableRC< IThread >
 	{
+	// types
+	public:
+		struct ProfilingInfo
+		{
+			StringView		threadName;
+			StringView		coreName;
+			usize			threadId	= 0;
+			uint			coreId		= 0;
+			uint			curFreq		= 0;	// MHz
+			uint			minFreq		= 0;	// MHz
+			uint			maxFreq		= 0;	// MHz
+		};
+
+
 	// interface
 	public:
 		virtual bool  Attach (uint uid)					__NE___ = 0;
 		virtual void  Detach ()							__NE___ = 0;
 
-		ND_ virtual StringView  DbgName ()				C_NE___	{ return "thread"; }
-		ND_ virtual usize		DbgID ()				C_NE___ = 0;
+		ND_ virtual usize			DbgID ()			C_NE___ = 0;
+	//	ND_ virtual StringView		DbgName ()			C_NE___	{ return "thread"; }
+		ND_ virtual ProfilingInfo	GetProfilingInfo ()	C_NE___ = 0;
 
 	// helper functions (try to not use it)
 	protected:
@@ -188,9 +203,7 @@ namespace AE::Threading
 			Chunk () __NE___ {}
 		};
 
-	  #if AE_PLATFORM_BITS == 64
-		STATIC_ASSERT( sizeof(Chunk) == 1_Kb );
-	  #endif
+		STATIC_ASSERT_64( sizeof(Chunk) == 1_Kb );
 		STATIC_ASSERT( TasksPerChunk * MaxChunks * MaxDepth < 1'000'000 );
 
 		using ChunkArray_t	= StaticArray< Chunk *, MaxChunks >;
@@ -231,7 +244,7 @@ namespace AE::Threading
 			
 
 	  // debugging //
-	  #ifdef AE_DBG_OR_DEV
+	  #ifdef AE_DEBUG
 
 			void	DbgDetectDeadlock (const Function<void (AsyncTask)> &fn)__NE___;
 		ND_ ulong	GetTotalProcessedTasks ()								C_NE___	{ return _totalProcessed.load(); }
@@ -261,6 +274,7 @@ namespace AE::Threading
 		{
 			uint	maxWorkerQueues	= 1;
 			uint	maxIOThreads	= 0;
+			uint	coreIdStep		= 1;	// should be 1 or 2
 		};
 
 	private:
@@ -320,6 +334,8 @@ namespace AE::Threading
 
 		Mutex				_threadGuard;
 		Array<ThreadPtr>	_threads;
+		Atomic<uint>		_coreId				{0};	// TODO: remove, use thread manager to bind thread to cpu core
+		ThreadPtr			_mainThread;
 
 		RC<IOService>		_fileIOService;
 
@@ -424,7 +440,7 @@ namespace AE::Threading
 		ND_ static constexpr nanoseconds  GetDefaultTimeout ()						__NE___;
 		
 		PROFILE_ONLY(
-			ND_ RC<ITaskProfiler>	GetProfiler ()									__NE___	{ return _profiler.get(); }
+			ND_ RC<ITaskProfiler>	GetProfiler ()									__NE___	{ return _profiler.load(); }
 		)
 
 
@@ -463,7 +479,7 @@ namespace AE::Threading
 */
 	constexpr nanoseconds  TaskScheduler::GetDefaultTimeout () __NE___
 	{
-		#ifdef AE_DBG_OR_DEV
+		#ifdef AE_DEBUG
 			return minutes{60};		// 60 min - for debugging
 		#else
 			return seconds{30};		// 30 sec

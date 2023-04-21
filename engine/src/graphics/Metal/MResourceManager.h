@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-
 # include "threading/Containers/LfIndexedPool3.h"
 # include "threading/Containers/LfStaticIndexedPool.h"
 
@@ -36,6 +35,10 @@
 
 # include "graphics/Metal/Resources/MStagingBufferManager.h"
 # include "graphics/Metal/Resources/MQueryManager.h"
+
+# include "graphics/Metal/Video/MVideoBuffer.h"
+# include "graphics/Metal/Video/MVideoImage.h"
+# include "graphics/Metal/Video/MVideoSession.h"
 
 # include "graphics/Metal/Descriptors/MDefaultDescriptorAllocator.h"
 

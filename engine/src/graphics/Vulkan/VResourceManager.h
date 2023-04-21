@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Private/ResourceBase.h"
 # include "graphics/Vulkan/VDevice.h"
@@ -33,6 +32,10 @@
 
 # include "graphics/Vulkan/Resources/VStagingBufferManager.h"
 # include "graphics/Vulkan/Resources/VQueryManager.h"
+
+# include "graphics/Vulkan/Video/VVideoBuffer.h"
+# include "graphics/Vulkan/Video/VVideoImage.h"
+# include "graphics/Vulkan/Video/VVideoSession.h"
 
 # include "threading/Containers/LfIndexedPool3.h"
 # include "threading/Containers/LfStaticIndexedPool.h"

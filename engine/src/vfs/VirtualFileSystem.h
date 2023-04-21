@@ -22,7 +22,6 @@ namespace AE::VFS
 	//
 	// Virtual File System Storage interface
 	//
-
 	class IVirtualFileStorage : public EnableRC<IVirtualFileStorage>
 	{
 		friend class VirtualFileSystem;
@@ -60,7 +59,6 @@ namespace AE::VFS
 	//
 	// Virtual File System
 	//
-
 	class VirtualFileSystem final
 	{
 		friend struct InPlace<VirtualFileSystem>;
@@ -107,6 +105,22 @@ namespace AE::VFS
 		friend VirtualFileSystem&		AE::GetVFS ()						__NE___;
 		ND_ static VirtualFileSystem&	_Instance ()						__NE___;
 	};
+
+
+
+	//
+	// Virtual File Storage Factory
+	//
+	class VirtualFileStorageFactory : public Noninstancable
+	{
+	public:
+		ND_ static RC<IVirtualFileStorage>  CreateStaticArchive (RC<RDataSource> archive)							__NE___;
+		ND_ static RC<IVirtualFileStorage>  CreateStaticArchive (const Path &filename)								__NE___;
+		
+		ND_ static RC<IVirtualFileStorage>  CreateStaticFolder (const Path &folder, StringView prefix = Default)	__NE___;
+		ND_ static RC<IVirtualFileStorage>  CreateDynamicFolder (const Path &folder, StringView prefix = Default)	__NE___;
+	};
+
 	
 } // AE::VFS
 

@@ -1,6 +1,7 @@
 #include <pipeline_compiler>
 
-void main ()
+
+void ASmain ()
 {
 	const EFeature	True  = EFeature::RequireTrue;
 

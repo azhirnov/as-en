@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-
 # include "graphics/Public/ImageDesc.h"
 # include "graphics/Public/RenderPassDesc.h"
 # include "graphics/Vulkan/VCommon.h"
@@ -26,11 +25,11 @@ namespace AE::Graphics
 		{
 		// variables
 			uint3			dimension;
-			VRenderPassID	renderPassId;
+			RenderPassID	renderPassId;
 			Attachments_t	attachments;
 
 		// methods
-			Key (StructView<ImageViewID>, VRenderPassID, const uint3 &dim) __NE___;
+			Key (StructView<ImageViewID>, RenderPassID, const uint3 &dim) __NE___;
 
 			ND_ bool	operator == (const Key &)	C_NE___;
 			ND_ HashVal	CalcHash ()					C_NE___;
@@ -49,7 +48,7 @@ namespace AE::Graphics
 	// variables
 	private:
 		VkFramebuffer				_framebuffer	= Default;
-		Strong<VRenderPassID>		_renderPassId;
+		Strong<RenderPassID>		_renderPassId;
 
 		uint2						_dimension;
 		ImageLayer					_layers;
@@ -66,16 +65,16 @@ namespace AE::Graphics
 		VFramebuffer ()									__NE___	{}
 		~VFramebuffer ()								__NE___;
 		
-		ND_ bool  Create (VResourceManager &, const RenderPassDesc &desc, VRenderPassID rpId, StringView dbgName = Default)	__NE___;
+		ND_ bool  Create (VResourceManager &, const RenderPassDesc &desc, RenderPassID rpId, StringView dbgName = Default)	__NE___;
 			void  Destroy (VResourceManager &)																				__NE___;
 		ND_ bool  SetCachePtr (CachePtr_t ptr)																				__NE___;
 
 		ND_ bool  IsAllResourcesAlive (const VResourceManager &) C_NE___;
 
 		ND_ VkFramebuffer			Handle ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _framebuffer; }
-		ND_ VRenderPassID			RenderPassID ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderPassId; }
+		ND_ RenderPassID			RenderPass ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _renderPassId; }
 		ND_ uint2 const&			Dimension ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _dimension; }
-		ND_ uint					Layers ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layers.Get(); }
+		ND_ uint					LayerCount ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _layers.Get(); }
 		ND_ ArrayView<ImageViewID>	Attachments ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _attachments; }
 		ND_ ArrayView<ImageID>		Images ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _images; }
 		
@@ -87,7 +86,7 @@ namespace AE::Graphics
 
 	
 	
-	inline VFramebuffer::Key::Key (StructView<ImageViewID> inAttachments, VRenderPassID rpId, const uint3 &dim) __NE___ :
+	inline VFramebuffer::Key::Key (StructView<ImageViewID> inAttachments, RenderPassID rpId, const uint3 &dim) __NE___ :
 		dimension{ dim },
 		renderPassId{ rpId }
 	{

@@ -151,33 +151,33 @@ namespace AE::Base
 
 	// methods
 	public:
-		FixedMap ()													__NE___;
-		FixedMap (Self &&)											__NE___;
-		FixedMap (const Self &)										noexcept(_IsNothrowCopy);
+		FixedMap ()														__NE___;
+		FixedMap (Self &&)												__NE___;
+		FixedMap (const Self &)											noexcept(_IsNothrowCopy);
 
-		~FixedMap ()												__NE___	{ clear(); }
+		~FixedMap ()													__NE___	{ clear(); }
 
-		ND_ usize			size ()									C_NE___	{ return _count; }
-		ND_ bool			empty ()								C_NE___	{ return _count == 0; }
+		ND_ usize			size ()										C_NE___	{ return _count; }
+		ND_ bool			empty ()									C_NE___	{ return _count == 0; }
 
-		ND_ iterator		begin ()								__NE___	{ return iterator{ this, 0 }; }
-		ND_ const_iterator	begin ()								C_NE___	{ return const_iterator{ this, 0 }; }
-		ND_ iterator		end ()									__NE___	{ return begin() + _count; }
-		ND_ const_iterator	end ()									C_NE___	{ return begin() + _count; }
+		ND_ iterator		begin ()									__NE___	{ return iterator{ this, 0 }; }
+		ND_ const_iterator	begin ()									C_NE___	{ return const_iterator{ this, 0 }; }
+		ND_ iterator		end ()										__NE___	{ return begin() + _count; }
+		ND_ const_iterator	end ()										C_NE___	{ return begin() + _count; }
 		
-		ND_ static constexpr usize	capacity ()						__NE___	{ return ArraySize; }
+		ND_ static constexpr usize	capacity ()							__NE___	{ return ArraySize; }
 		
-			Self&	operator = (Self &&)							__NE___;
-			Self&	operator = (const Self &)						noexcept(_IsNothrowCopy);
+			Self&	operator = (Self &&)								__NE___;
+			Self&	operator = (const Self &)							noexcept(_IsNothrowCopy);
 
-		ND_ bool	operator == (const Self &rhs)					C_NE___;
-		ND_ bool	operator != (const Self &rhs)					C_NE___	{ return not (*this == rhs); }
+		ND_ bool	operator == (const Self &rhs)						C_NE___;
+		ND_ bool	operator != (const Self &rhs)						C_NE___	{ return not (*this == rhs); }
 
 			template <typename K, typename V>
-			Pair<iterator,bool>  emplace (K&& key, V&& value)		noexcept(_IsNothrowCopy);
+			Pair<iterator,bool>  emplace (K&& key, V&& value)			noexcept(_IsNothrowCopy);
 
-			Pair<iterator,bool>  insert (const pair_type &value)	noexcept(_IsNothrowCopy)	{ return emplace( value.first, value.second ); }
-			Pair<iterator,bool>  insert (pair_type&& value)			__NE___						{ return emplace( RVRef(value.first), RVRef(value.second) ); }
+			Pair<iterator,bool>  insert (const pair_type &value)		noexcept(_IsNothrowCopy)	{ return emplace( value.first, value.second ); }
+			Pair<iterator,bool>  insert (pair_type&& value)				__NE___						{ return emplace( RVRef(value.first), RVRef(value.second) ); }
 			
 			template <typename K, typename V>
 			Pair<iterator,bool>  insert_or_assign (K&& key, V&& value) noexcept(_IsNothrowCopy);
@@ -185,7 +185,7 @@ namespace AE::Base
 
 		// on overflow 'iterator' will be 'null'
 			template <typename K, typename V>
-			Pair<iterator,bool>	 try_emplace (K&& key, V&& value)	noexcept(_IsNothrowCopy);
+			Pair<iterator,bool>	 try_emplace (K&& key, V&& value)		noexcept(_IsNothrowCopy);
 
 			template <typename K, typename V>
 			Pair<iterator,bool>  try_insert_or_assign (K&& key, V&& value) noexcept(_IsNothrowCopy);
@@ -193,47 +193,50 @@ namespace AE::Base
 			
 		// same as operator [] in std
 			template <typename KeyType>
-		ND_ Value &			operator () (KeyType&& key)				noexcept(_IsNothrowCopy)	{ auto[iter, inst] = emplace( FwdArg<KeyType>(key), Value{} );  return iter->second; }
+		ND_ Value &			operator () (KeyType&& key)					noexcept(_IsNothrowCopy)	{ auto[iter, inst] = emplace( FwdArg<KeyType>(key), Value{} );  return iter->second; }
 
 			template <typename KeyType>
-		ND_ const_iterator	find (const KeyType &key)				C_NE___	{ return _Find<const_iterator>( *this, key ); }
+		ND_ const_iterator	find (const KeyType &key)					C_NE___	{ return _Find<const_iterator>( *this, key ); }
 			template <typename KeyType>
-		ND_ iterator		find (const KeyType &key)				__NE___	{ return _Find<iterator>( *this, key ); }
+		ND_ iterator		find (const KeyType &key)					__NE___	{ return _Find<iterator>( *this, key ); }
 		
 			template <typename KeyType>
-		ND_ usize			count (const KeyType &key)				C_NE___	{ return contains( key ) ? 1 : 0; }
+		ND_ usize			count (const KeyType &key)					C_NE___	{ return contains( key ) ? 1 : 0; }
 			template <typename KeyType>
-		ND_ bool			contains (const KeyType &key)			C_NE___;
+		ND_ bool			contains (const KeyType &key)				C_NE___;
 		
 			template <typename KeyType>
-			bool			EraseByKey (const KeyType &key)			__NE___;
+			bool			EraseByKey (const KeyType &key)				__NE___;
 
-			iterator		EraseByIter (const iterator &iter)		__NE___;
-			const_iterator	EraseByIter (const const_iterator &iter)__NE___;
+			iterator		EraseByIter (const iterator &iter)			__NE___;
+			const_iterator	EraseByIter (const const_iterator &iter)	__NE___;
+			
+			template <typename KeyType>
+		ND_ bool			Extract (const KeyType &key, OUT Value &)	__NE___;
 
-		ND_ HashVal			CalcHash ()								C_NE___;
-		ND_ HashVal			CalcKeyHash ()							C_NE___;
+		ND_ HashVal			CalcHash ()									C_NE___;
+		ND_ HashVal			CalcKeyHash ()								C_NE___;
 		
-			void			clear ()								__NE___;
-			void			reserve (usize)							__NE___	{} // ignore
+			void			clear ()									__NE___;
+			void			reserve (usize)								__NE___	{} // ignore
 
 		// cache friendly access to unsorted data
 
-		ND_ PairRef_t	operator [] (usize i)						__NE___;
-		ND_ PairCRef_t	operator [] (usize i)						C_NE___;
+		ND_ PairRef_t	operator [] (usize i)							__NE___;
+		ND_ PairCRef_t	operator [] (usize i)							C_NE___;
 
-		ND_ ArrayView<Key>		GetKeyArray ()						C_NE___	{ return { &_keyArray[0], _count }; }
-		ND_ ArrayView<Value>	GetValueArray ()					C_NE___	{ return { &_valArray[0], _count }; }
+		ND_ ArrayView<Key>		GetKeyArray ()							C_NE___	{ return { &_keyArray[0], _count }; }
+		ND_ ArrayView<Value>	GetValueArray ()						C_NE___	{ return { &_valArray[0], _count }; }
 
-		ND_ Pair<ArrayView<Key>, ArrayView<Value>>  ToArray ()		C_NE___	{ return {GetKeyArray(), GetValueArray()}; }
+		ND_ Pair<ArrayView<Key>, ArrayView<Value>>  ToArray ()			C_NE___	{ return {GetKeyArray(), GetValueArray()}; }
 
 	private:
-		void  _Erase (Index_t idx)									__NE___;
+		void  _Erase (Index_t idx)										__NE___;
 
 		template <typename IterType, typename MapType, typename KeyType>
-		ND_ static IterType  _Find (MapType &map, const KeyType &key) __NE___;
+		ND_ static IterType  _Find (MapType &map, const KeyType &key)	__NE___;
 
-		ND_ forceinline bool _IsMemoryAliased (const Self* other)	C_NE___
+		ND_ forceinline bool _IsMemoryAliased (const Self* other)		C_NE___
 		{
 			return IsIntersects( this, this+1, other, other+1 );
 		}
@@ -566,6 +569,30 @@ namespace _hidden_
 		return (i < _count) and (key == _keyArray[_indices[i]]);
 	}
 	
+/*
+=================================================
+	Extract
+=================================================
+*/
+	template <typename K, typename V, usize S, typename KS, typename VS>
+	template <typename KeyType>
+	bool  FixedMap<K,V,S,KS,VS>::Extract (const KeyType &key, OUT value_type &outValue) __NE___
+	{
+		using BinarySearch = Base::_hidden_::RecursiveBinarySearch< KeyType, K, Index_t >;
+
+		usize	i = BinarySearch::LowerBound( _count, key, _indices, _keyArray );
+		
+		if_likely( i < _count and key == _keyArray[_indices[i]] )
+		{
+			const Index_t	idx = _indices[i];
+			outValue = RVRef(_valArray[idx]);
+			
+			_Erase( idx );
+			return true;
+		}
+		return false;
+	}
+
 /*
 =================================================
 	EraseByKey

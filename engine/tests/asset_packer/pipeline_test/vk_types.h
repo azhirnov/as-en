@@ -1,14 +1,14 @@
-#ifndef UBlock_DEFINED
-#	define UBlock_DEFINED
-	// size: 64, align: 16
-	struct UBlock
+#ifndef VB_3_Pos_DEFINED
+#	define VB_3_Pos_DEFINED
+	// size: 12, align: 4 (16)
+	struct VB_3_Pos
 	{
-		static constexpr auto  TypeName = ShaderStructName{"UBlock"};
+		static constexpr auto  TypeName = ShaderStructName{"VB_3_Pos"};
 
-		float4x4_storage  mvp;
+		packed_float3  Position;
 	};
-	STATIC_ASSERT( offsetof(UBlock, mvp) == 0 );
-	STATIC_ASSERT( sizeof(UBlock) == 64 );
+	STATIC_ASSERT( offsetof(VB_3_Pos, Position) == 0 );
+	STATIC_ASSERT( sizeof(VB_3_Pos) == 12 );
 #endif
 
 #ifndef PushConst1_DEFINED
@@ -39,6 +39,19 @@
 	STATIC_ASSERT( sizeof(PushConst2) == 16 );
 #endif
 
+#ifndef UBlock_DEFINED
+#	define UBlock_DEFINED
+	// size: 64, align: 16
+	struct UBlock
+	{
+		static constexpr auto  TypeName = ShaderStructName{"UBlock"};
+
+		float4x4_storage  mvp;
+	};
+	STATIC_ASSERT( offsetof(UBlock, mvp) == 0 );
+	STATIC_ASSERT( sizeof(UBlock) == 64 );
+#endif
+
 #ifndef BufferRef_DEFINED
 #	define BufferRef_DEFINED
 	// size: 24, align: 16
@@ -67,19 +80,6 @@
 	STATIC_ASSERT( offsetof(vb_input1, Position) == 0 );
 	STATIC_ASSERT( offsetof(vb_input1, Texcoord) == 12 );
 	STATIC_ASSERT( sizeof(vb_input1) == 16 );
-#endif
-
-#ifndef VB_3_Pos_DEFINED
-#	define VB_3_Pos_DEFINED
-	// size: 12, align: 4 (16)
-	struct VB_3_Pos
-	{
-		static constexpr auto  TypeName = ShaderStructName{"VB_3_Pos"};
-
-		packed_float3  Position;
-	};
-	STATIC_ASSERT( offsetof(VB_3_Pos, Position) == 0 );
-	STATIC_ASSERT( sizeof(VB_3_Pos) == 12 );
 #endif
 
 #ifndef VB_3_Attribs_DEFINED

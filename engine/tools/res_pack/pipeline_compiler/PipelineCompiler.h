@@ -22,6 +22,8 @@ namespace AE::PipelineCompiler
 	{
 		Unknown		= 0,
 		Recursive	= 1 << 0,
+		_Last,
+		All			= ((_Last - 1) << 1) - 1,
 	};
 
 

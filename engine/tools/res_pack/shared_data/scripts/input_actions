@@ -1,4 +1,4 @@
-//6A9942D5
+//85596001
 #include <vector>
 #include <string>
 
@@ -18,44 +18,44 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct int3;
-struct VecSwizzle;
-struct GLFW_BindingsMode;
-struct uint3;
-struct bool3;
-struct Android_Input;
-struct EGestureType;
-struct Android_ActionBindings;
-struct ubyte3;
-struct sbyte4;
-struct ubyte2;
-struct short3;
-struct float2;
-struct sbyte3;
-struct short2;
-struct float3;
-struct EValueType;
-struct WinAPI_Input;
-struct uint4;
-struct EGestureState;
-struct GLFW_ActionBindings;
-struct OpenVR_BindingsMode;
-struct WinAPI_BindingsMode;
-struct Android_BindingsMode;
+struct sbyte2;
 struct ActionInfo;
 struct WinAPI_ActionBindings;
-struct short4;
-struct OpenVR_ActionBindings;
-struct OpenVR_Input;
 struct float4;
-struct bool4;
-struct sbyte2;
-struct ubyte4;
-struct int4;
+struct short4;
+struct short3;
+struct float3;
+struct Android_BindingsMode;
+struct short2;
+struct float2;
+struct sbyte3;
+struct sbyte4;
+struct WinAPI_Input;
+struct VecSwizzle;
+struct EValueType;
+struct GLFW_BindingsMode;
+struct ubyte2;
+struct EGestureType;
+struct ubyte3;
+struct Android_ActionBindings;
 struct GLFW_Input;
+struct bool4;
+struct uint3;
+struct int4;
+struct bool2;
+struct ubyte4;
 struct uint2;
 struct int2;
-struct bool2;
+struct bool3;
+struct int3;
+struct WinAPI_BindingsMode;
+struct EGestureState;
+struct uint4;
+struct Android_Input;
+struct OpenVR_BindingsMode;
+struct OpenVR_ActionBindings;
+struct OpenVR_Input;
+struct GLFW_ActionBindings;
 
 int  Abs (int);
 int  Square (int);
@@ -452,15 +452,14 @@ struct EGestureType
 	EGestureType () {}
 	EGestureType (uint) {}
 	operator uint () const;
-	static constexpr uint Hold = 0;
-	static constexpr uint Move = 1;
-	static constexpr uint LongPress_Move = 2;
-	static constexpr uint Scale2D = 3;
-	static constexpr uint Rotate2D = 4;
-	static constexpr uint Down = 5;
-	static constexpr uint Click = 6;
-	static constexpr uint LongPress = 8;
-	static constexpr uint DoubleClick = 7;
+	static constexpr uint Hold = 3;
+	static constexpr uint Move = 5;
+	static constexpr uint LongPress_Move = 6;
+	static constexpr uint ScaleRotate2D = 7;
+	static constexpr uint Down = 0;
+	static constexpr uint Click = 1;
+	static constexpr uint LongPress = 4;
+	static constexpr uint DoubleClick = 2;
 };
 
 struct EValueType
@@ -633,15 +632,16 @@ struct GLFW_Input
 	static constexpr uint MouseLeft = 0;
 	static constexpr uint MouseRight = 1;
 	static constexpr uint MouseMiddle = 2;
-	static constexpr uint MouseWheel = 358;
-	static constexpr uint CursorPos = 359;
-	static constexpr uint CursorPos_mm = 360;
-	static constexpr uint CursorDelta = 361;
-	static constexpr uint CursorDelta_norm = 362;
-	static constexpr uint TouchPos = 363;
-	static constexpr uint TouchPos_mm = 364;
-	static constexpr uint TouchDelta = 365;
-	static constexpr uint TouchDelta_norm = 366;
+	static constexpr uint MultiTouch = 358;
+	static constexpr uint MouseWheel = 359;
+	static constexpr uint CursorPos = 360;
+	static constexpr uint CursorPos_mm = 361;
+	static constexpr uint CursorDelta = 362;
+	static constexpr uint CursorDelta_norm = 363;
+	static constexpr uint TouchPos = 364;
+	static constexpr uint TouchPos_mm = 365;
+	static constexpr uint TouchDelta = 366;
+	static constexpr uint TouchDelta_norm = 367;
 };
 
 struct GLFW_BindingsMode
@@ -824,16 +824,16 @@ struct WinAPI_Input
 	static constexpr uint MouseLeft = 0;
 	static constexpr uint MouseRight = 1;
 	static constexpr uint MouseMiddle = 2;
-	static constexpr uint MouseWheelX = 57089;
-	static constexpr uint MouseWheelY = 57090;
-	static constexpr uint CursorPos = 57091;
-	static constexpr uint CursorPos_mm = 57092;
-	static constexpr uint CursorDelta = 57093;
-	static constexpr uint CursorDelta_norm = 57094;
-	static constexpr uint TouchPos = 57095;
-	static constexpr uint TouchPos_mm = 57096;
-	static constexpr uint TouchDelta = 57097;
-	static constexpr uint TouchDelta_norm = 57098;
+	static constexpr uint MultiTouch = 57098;
+	static constexpr uint MouseWheel = 57099;
+	static constexpr uint CursorPos = 57100;
+	static constexpr uint CursorPos_mm = 57101;
+	static constexpr uint CursorDelta = 57102;
+	static constexpr uint CursorDelta_norm = 57103;
+	static constexpr uint TouchPos = 57104;
+	static constexpr uint TouchPos_mm = 57105;
+	static constexpr uint TouchDelta = 57106;
+	static constexpr uint TouchDelta_norm = 57107;
 };
 
 struct WinAPI_BindingsMode
@@ -1136,6 +1136,27 @@ struct Android_Input
 	static constexpr uint TV_ContentsMenu = 256;
 	static constexpr uint TV_MediaContextMenu = 257;
 	static constexpr uint TV_TimerProgramming = 258;
+	static constexpr uint MultiTouch = 522;
+	static constexpr uint TouchPos = 523;
+	static constexpr uint TouchPos_mm = 524;
+	static constexpr uint TouchDelta = 525;
+	static constexpr uint TouchDelta_norm = 526;
+	static constexpr uint AirTemperature = 527;
+	static constexpr uint AmbientLight = 528;
+	static constexpr uint AirPressure = 529;
+	static constexpr uint Proximity = 530;
+	static constexpr uint RelativeHumidity = 531;
+	static constexpr uint StepCount = 532;
+	static constexpr uint BatteryState = 533;
+	static constexpr uint GeoLocation = 534;
+	static constexpr uint Accelerometer = 535;
+	static constexpr uint Gravity = 536;
+	static constexpr uint Gyroscope = 537;
+	static constexpr uint LinearAcceleration = 538;
+	static constexpr uint MagneticField = 539;
+	static constexpr uint Orientation = 540;
+	static constexpr uint RotationVector = 541;
+	static constexpr uint Pose6DOF = 542;
 };
 
 struct Android_BindingsMode
@@ -1173,6 +1194,18 @@ struct OpenVR_ActionBindings
 };
 
 template <>
+struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
+{
+	RC (const WinAPI_ActionBindings &);
+};
+
+template <>
+struct RC<Android_BindingsMode> : Android_BindingsMode
+{
+	RC (const Android_BindingsMode &);
+};
+
+template <>
 struct RC<GLFW_BindingsMode> : GLFW_BindingsMode
 {
 	RC (const GLFW_BindingsMode &);
@@ -1185,9 +1218,9 @@ struct RC<Android_ActionBindings> : Android_ActionBindings
 };
 
 template <>
-struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
+struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
 {
-	RC (const GLFW_ActionBindings &);
+	RC (const WinAPI_BindingsMode &);
 };
 
 template <>
@@ -1197,26 +1230,14 @@ struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
 };
 
 template <>
-struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
-{
-	RC (const WinAPI_BindingsMode &);
-};
-
-template <>
-struct RC<Android_BindingsMode> : Android_BindingsMode
-{
-	RC (const Android_BindingsMode &);
-};
-
-template <>
-struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
-{
-	RC (const WinAPI_ActionBindings &);
-};
-
-template <>
 struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
 {
 	RC (const OpenVR_ActionBindings &);
+};
+
+template <>
+struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
+{
+	RC (const GLFW_ActionBindings &);
 };
 

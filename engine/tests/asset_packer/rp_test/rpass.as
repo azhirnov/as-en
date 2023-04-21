@@ -5,7 +5,7 @@ void SimpleRenderPass ()
 	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "Simple" );
 	
 	compat.AddFeatureSet( "MinimalFS" );
-	compat.AddFeatureSet( "part.Swapchain_RGBA8_UNorm" );
+	compat.AddFeatureSet( "part.Surface_RGBA8_sRGB_nonlinear" );
 
 	const string	pass = "Main";
 	compat.AddSubpass( pass );
@@ -64,7 +64,7 @@ void RenderPass2 ()
 	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "Multipass" );
 	
 	compat.AddFeatureSet( "MinimalFS" );
-	compat.AddFeatureSet( "part.Swapchain_RGBA8_sRGB" );
+	compat.AddFeatureSet( "part.Surface_RGBA8_sRGB_nonlinear" );
 
 	compat.AddSubpass( "DepthPrepass" );
 	compat.AddSubpass( "GBuffer" );
@@ -171,8 +171,35 @@ void RenderPass2 ()
 }
 
 
-void main ()
+void UIRenderPass ()
+{
+	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "UIRenderPass" );
+	compat.AddFeatureSet( "MinimalFS" );
+
+	const string	pass = "Main";
+	compat.AddSubpass( pass );
+
+	{
+		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
+		rt.format		= EPixelFormat::SwapchainColor;
+		rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
+	}
+
+	// specialization
+	{
+		RC<RenderPass>	rp = compat.AddSpecialization( "UIRenderPass.def" );
+
+		RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+		rt.loadOp	= EAttachmentLoadOp::Clear;
+		rt.storeOp	= EAttachmentStoreOp::Store;
+		rt.Layout( pass, EResourceState::ColorAttachment );
+	}
+}
+
+
+void ASmain ()
 {
 	SimpleRenderPass();
 	RenderPass2();
+	UIRenderPass();
 }

@@ -1,7 +1,7 @@
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'Canvas batch |0| Draw task'
 {
   BeginDebugLabel
     name:  'Canvas batch |0| Draw task'
@@ -34,7 +34,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -59,7 +59,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -77,7 +77,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'Canvas batch |1| Readback task'
 {
   BeginDebugLabel
     name:  'Canvas batch |1| Readback task'
@@ -111,7 +111,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'Canvas batch |0| Draw task'
 {
   BeginDebugLabel
     name:  'Canvas batch |0| Draw task'
@@ -144,7 +144,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -169,7 +169,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -187,7 +187,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'Canvas batch |1| Readback task'
@@ -221,7 +221,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'Canvas batch |0| Draw task'
@@ -254,7 +254,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -279,7 +279,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
@@ -297,7 +297,7 @@ name: 'command-buffer'
 
 }
 --------------------------------------------------
-name: 'command-buffer'
+name: 'Canvas batch |1| Readback task'
 {
   BeginDebugLabel
     name:  'Canvas batch |1| Readback task'
@@ -331,7 +331,7 @@ signalSemaphore = {
 ==================================================
 Batch in queue: 'Graphics', (0)
 --------------------------------------------------
-name: 'command-buffer'
+name: 'IndirectCmdBuffers'
 {
   BeginDebugLabel
     name:  'Canvas batch |0| Draw task'
@@ -364,7 +364,7 @@ name: 'command-buffer'
     dependency:
       subpass: External ---> 0
       stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
-      access:  0 ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
   BeginDebugLabel
@@ -389,7 +389,7 @@ name: 'command-buffer'
     dependency:
       subpass: 0 ---> External
       stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
-      access:  COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
   ----------
 
   PipelineBarrier2
