@@ -272,7 +272,7 @@ namespace AE::Base
 {
 	template <>	struct TMemCopyAvailable< UFloat8 >		{ static constexpr bool  value = true; };
 	template <>	struct TZeroMemAvailable< UFloat8 >		{ static constexpr bool  value = true; };
-	template <>	struct TTrivialySerializable< UFloat8 >	{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< UFloat8 >{ static constexpr bool  value = true; };
 
 	namespace _hidden_
 	{

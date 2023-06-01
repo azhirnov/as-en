@@ -9,7 +9,7 @@ namespace
 	decltype(&CompilePipelines)		compile_pipelines	= null;
 
 
-	static void  RenderPassPack_Test1 (bool isVk, StringView refName)
+	static void  MaterialPack_Test1 (bool isVk, StringView refName)
 	{
 		const PathParams	fs_folder[]		= { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::Recursive} };
 		const PathParams	rpass_dir[]		= { {isVk ? TXT("config_vk.as") : TXT("config_mac.as"), 0},
@@ -88,7 +88,7 @@ extern void Test_MaterialPack ()
 		
 		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/material_test" ));
 
-		//RenderPassPack_Test1();
+		//MaterialPack_Test1();
 	}
 	TEST_PASSED();
 #endif

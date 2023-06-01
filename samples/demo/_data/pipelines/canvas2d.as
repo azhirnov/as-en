@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler>
 
 void ASmain ()
@@ -23,14 +24,14 @@ void ASmain ()
 	
 		{
 			RC<Shader>	vs = Shader();
-			vs.file		= "canvas2d.glsl";
+			vs.file		= "canvas2d.glsl";	// file:///<path>/samples/demo/_data/shaders/canvas2d.glsl
 			vs.options	= EShaderOpt::Optimize;
 			ppln.SetVertexShader( vs );
 		}
 		{
 			RC<Shader>	fs = Shader();
-			fs.file		= "canvas2d.glsl";
-			fs.defines	= "#define MODE 1";
+			fs.Define( "MODE = 1" );
+			fs.file		= "canvas2d.glsl";	// file:///<path>/samples/demo/_data/shaders/canvas2d.glsl
 			fs.options	= EShaderOpt::Optimize;
 			ppln.SetFragmentShader( fs );
 		}
@@ -62,14 +63,14 @@ void ASmain ()
 	
 		{
 			RC<Shader>	vs = Shader();
-			vs.file		= "canvas2d.glsl";
+			vs.file		= "canvas2d.glsl";	// file:///<path>/samples/demo/_data/shaders/canvas2d.glsl
 			vs.options	= EShaderOpt::Optimize;
 			ppln.SetVertexShader( vs );
 		}
 		{
 			RC<Shader>	fs = Shader();
-			fs.file		= "canvas2d.glsl";
-			fs.defines	= "#define MODE 2";
+			fs.Define( "MODE = 2" );
+			fs.file		= "canvas2d.glsl";	// file:///<path>/samples/demo/_data/shaders/canvas2d.glsl
 			fs.options	= EShaderOpt::Optimize;
 			ppln.SetFragmentShader( fs );
 		}
@@ -117,14 +118,14 @@ void ASmain ()
 	
 		{
 			RC<Shader>	vs = Shader();
-			vs.file		= "canvas2d.glsl";
+			vs.file		= "canvas2d.glsl";	// file:///<path>/samples/demo/_data/shaders/canvas2d.glsl
 			vs.options	= EShaderOpt::Optimize;
 			ppln.SetVertexShader( vs );
 		}
 		{
 			RC<Shader>	fs = Shader();
-			fs.file		= "canvas2d.glsl";
-			fs.defines	= "#define MODE 3";
+			fs.Define( "MODE = 3" );
+			fs.file		= "canvas2d.glsl";	// file:///<path>/samples/demo/_data/shaders/canvas2d.glsl
 			fs.options	= EShaderOpt::Optimize;
 			ppln.SetFragmentShader( fs );
 		}

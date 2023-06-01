@@ -1752,6 +1752,7 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody (const TString &fnName, De
 				case TBasicType::EbtAccStruct :
 				case TBasicType::EbtRayQuery :
 				case TBasicType::EbtSpirvType :
+				case TBasicType::EbtHitObjectNV :
 					break;
 			}
 			END_ENUM_CHECKS();
@@ -2531,7 +2532,7 @@ ND_ static TIntermAggregate*  RecordVertexShaderInfo (const TSourceLoc &loc, Deb
 	}
 
 	// "dbg_AppendToTrace( gl_DrawID, location )"
-	if ( auto* draw_id = dbgInfo.GetCachedSymbolNode( "gl_DrawID" ) )
+	if ( auto* draw_id = dbgInfo.GetCachedSymbolNode( "gl_DrawID" ))
 	{
 		const uint	loc_id = dbgInfo.GetCustomSourceLocation( draw_id, loc );
 		body->getSequence().push_back( CreateAppendToTrace( draw_id, loc_id, dbgInfo ));

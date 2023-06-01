@@ -43,7 +43,7 @@ namespace
 // ds[0], name: 'PerDraw', type: 'PerDraw'
   // state: ShaderStorage_RW | PreRasterizationShaders | FragmentShader
   // static size: 32 b, array stride: 0 b
-  layout(set=0, binding=1, std430) coherent buffer storageBufType {
+  layout(set=0, binding=1, std430) coherent buffer AE_Type_ubuf {
 	layout(offset=0, align=16) uvec4  u;
 	layout(offset=16, align=16) ivec4  i;
   } storageBuf [2];

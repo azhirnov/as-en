@@ -187,9 +187,8 @@ namespace AE::Graphics::_hidden_
 		{
 			VkImage				image;
 			packed_uint3		dimension;
-			uint				levelCount;
-			uint				layerCount;
-			EImageAspect		aspect;
+			uint				rangeCount;
+			//ImageSubresourceRange	ranges[];
 		};
 		
 		struct CopyQueryPoolResultsCmd : BaseCmd
@@ -674,18 +673,17 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VBaseIndirectContext (const RenderTask &task, ECtxType ctxType)	__Th___ : VBaseIndirectContext{ task, Default, ctxType } {}
-		VBaseIndirectContext (const RenderTask &, VSoftwareCmdBufPtr, ECtxType)		__Th___;
-		~VBaseIndirectContext ()													__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
+		VBaseIndirectContext (const RenderTask &, VSoftwareCmdBufPtr, DebugLabel, ECtxType)	__Th___;
+		~VBaseIndirectContext ()															__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
-			void	_CommitBarriers ()												__Th___;
+			void	_CommitBarriers ()														__Th___;
 
-		ND_ bool	_NoPendingBarriers ()											C_NE___	{ return _mngr.NoPendingBarriers(); }
-		ND_ auto&	_GetExtensions ()												C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
-		ND_ auto&	_GetFeatures ()													C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
+		ND_ bool	_NoPendingBarriers ()													C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ auto&	_GetExtensions ()														C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
+		ND_ auto&	_GetFeatures ()															C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
 			
-		ND_ VBakedCommands		_EndCommandBuffer ()								__Th___;
+		ND_ VBakedCommands		_EndCommandBuffer ()										__Th___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -710,11 +708,14 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, ECtxType ctxType) __Th___ :
-		_VBaseIndirectContext{ DebugLabel{ task.DbgFullName(), task.DbgColor() }, RVRef(cmdbuf) },
+	inline VBaseIndirectContext::VBaseIndirectContext (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg, ECtxType ctxType) __Th___ :
+		_VBaseIndirectContext{
+			dbg ? dbg : DebugLabel{ task.DbgFullName(), task.DbgColor() },
+			RVRef(cmdbuf)
+		},
 		_mngr{ task }
 	{
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( *_cmdbuf, ctxType ); )
+		DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( *_cmdbuf, (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );)
 
 		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
 			PipelineBarrier( *bar );

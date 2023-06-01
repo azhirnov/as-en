@@ -518,6 +518,11 @@ namespace AE::Base
 	{
 		return value;
 	}
+	
+	ND_ forceinline String  ToString (const char value[]) __Th___
+	{
+		return String{value};
+	}
 
 	template <typename T>
 	ND_ EnableIf<not IsEnum<T>, String>  ToString (const T &value) __Th___

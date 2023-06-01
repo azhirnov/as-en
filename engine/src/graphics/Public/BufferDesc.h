@@ -76,9 +76,9 @@ namespace AE::Graphics
 namespace AE::Base
 {
 	template <> struct TMemCopyAvailable< AE::Graphics::BufferDesc >			{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::BufferDesc >		{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::BufferDesc >		{ static constexpr bool  value = true; };
 	
 	template <> struct TMemCopyAvailable< AE::Graphics::BufferViewDesc >		{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::BufferViewDesc >	{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::BufferViewDesc >	{ static constexpr bool  value = true; };
 
 } // AE::Base

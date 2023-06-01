@@ -363,6 +363,11 @@ namespace
 				result << src.filename << " (" << ToString(file_line) << "):\n";
 				break;
 	
+			// pattern: 'url (line)'
+			case Trace::ELogFormat::VS :
+				result << "file:///" << src.filename << " (" << ToString(file_line) << ")\n";
+				break;
+
 			// pattern: 'url#line'
 			case Trace::ELogFormat::VSCode :
 				result << "file:///" << src.filename << "#" << ToString(file_line) << "\n";

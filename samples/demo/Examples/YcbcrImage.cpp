@@ -11,16 +11,15 @@ namespace AE::Samples::Demo
 	class YcbcrImageSample::ProcessInputTask final : public Threading::IAsyncTask
 	{
 	public:
-		YcbcrImageSample&	t;
-		ActionQueueReader	reader;
+		RC<YcbcrImageSample>	t;
+		ActionQueueReader		reader;
 
-		ProcessInputTask (YcbcrImageSample* t, ActionQueueReader reader) :
-			IAsyncTask{ ETaskQueue::Worker },
-			t{ *t },
-			reader{ RVRef(reader) }
+		ProcessInputTask (YcbcrImageSample* p, ActionQueueReader reader) :
+			IAsyncTask{ ETaskQueue::PerFrame },
+			t{ p }, reader{ RVRef(reader) }
 		{}
 		
-		void  Run () override;
+		void  Run () __Th_OV;
 
 		StringView	DbgName ()	C_NE_OV	{ return "YcbcrImage::ProcessInput"; }
 	};
@@ -43,15 +42,15 @@ namespace AE::Samples::Demo
 	class YcbcrImageSample::DrawTask final : public RenderTask
 	{
 	public:
-		YcbcrImageSample&	t;
-		IOutputSurface &	surface;
+		RC<YcbcrImageSample>	t;
+		IOutputSurface &		surface;
 
-		DrawTask (YcbcrImageSample* t, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
+		DrawTask (YcbcrImageSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
 			RenderTask{ batch, {"YcbcrImage::DrawTask"} },
-			t{ *t }, surface{ surf }
+			t{ p }, surface{ surf }
 		{}
 		
-		void  Run () override;
+		void  Run () __Th_OV;
 	};
 	
 /*
@@ -69,7 +68,7 @@ namespace AE::Samples::Demo
 		DirectCtx::Transfer		tctx{ *this };
 		{
 			tctx.AccumBarriers()
-				.ImageBarrier( t.ycbcrImageId, EResourceState::Invalidate, EResourceState::CopyDst );
+				.ImageBarrier( t->ycbcrImageId, EResourceState::Invalidate, EResourceState::CopyDst );
 
 			const ubyte3	yuv		= ubyte3{ 0xFF, 0, 0 };
 			ubyte			g_pixels  [ dim[0] * dim[1] ];
@@ -89,14 +88,14 @@ namespace AE::Samples::Demo
 			upload.dataSlicePitch	= Bytes{CountOf(g_pixels)};
 			upload.aspectMask		= EImageAspect::Plane_0;
 
-			tctx.UploadImage( t.ycbcrImageId, upload, ArrayView<ubyte>{g_pixels} );
+			Unused( tctx.UploadImage( t->ycbcrImageId, upload, ArrayView<ubyte>{g_pixels} ));
 			
 			upload.imageSize		= uint3{ dim[0]/2, dim[1]/2, 1u };
 			upload.dataRowPitch		= 2_b * (dim[0]/2);
 			upload.dataSlicePitch	= Bytes{CountOf(rb_pixels)};
 			upload.aspectMask		= EImageAspect::Plane_1;
 
-			tctx.UploadImage( t.ycbcrImageId, upload, ArrayView<ubyte>{rb_pixels} );
+			Unused( tctx.UploadImage( t->ycbcrImageId, upload, ArrayView<ubyte>{rb_pixels} ));
 		}
 
 		DirectCtx::Graphics		gctx{ *this, tctx.ReleaseCommandBuffer() };
@@ -104,16 +103,16 @@ namespace AE::Samples::Demo
 		gctx.AccumBarriers()
 			.MemoryBarrier( EResourceState::Host_Write, EResourceState::VertexBuffer )
 			.MemoryBarrier( EResourceState::Host_Write, EResourceState::IndexBuffer )
-			.ImageBarrier( t.ycbcrImageId, EResourceState::ClearDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
+			.ImageBarrier( t->ycbcrImageId, EResourceState::ClearDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
 		
-		const auto	rp_desc = RenderPassDesc{ t.rtech, RenderTechPassName{"Main"}, rt.RegionSize() }
+		const auto	rp_desc = RenderPassDesc{ t->rtech, RenderTechPassName{"Main"}, rt.RegionSize() }
 								.AddViewport( rt.RegionSize() )
 								.AddTarget( AttachmentName{"Color"}, rt.viewId, RGBA32f{ 0.f, 0.f, 0.f, 1.f }, rt.initialState | EResourceState::Invalidate, rt.finalState );
 
 		auto	dctx = gctx.BeginRenderPass( rp_desc );
 		{
-			dctx.BindPipeline( t.ppln );
-			dctx.BindDescriptorSet( t.dsIndex, t.descSet );
+			dctx.BindPipeline( t->ppln );
+			dctx.BindDescriptorSet( t->dsIndex, t->descSet );
 
 			dctx.Draw( 3 );
 		}

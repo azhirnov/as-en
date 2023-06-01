@@ -15,10 +15,10 @@ enum class IOThreadCount	: uint {};
 
 struct LocalTaskScheduler
 {
-	explicit LocalTaskScheduler (WorkerQueueCount count)
+	explicit LocalTaskScheduler (WorkerQueueCount)
 	{
 		TaskScheduler::Config	cfg;
-		cfg.maxWorkerQueues = uint(count);
+		cfg.maxPerFrameQueues	= 2;
 		
 		TaskScheduler::CreateInstance();
 		TEST( Scheduler().Setup( cfg ));
@@ -27,8 +27,8 @@ struct LocalTaskScheduler
 	explicit LocalTaskScheduler (IOThreadCount count)
 	{
 		TaskScheduler::Config	cfg;
-		cfg.maxWorkerQueues	= 1;
-		cfg.maxIOThreads	= uint(count);
+		cfg.maxPerFrameQueues	= 1;
+		cfg.maxIOThreads		= ubyte(count);
 
 		TaskScheduler::CreateInstance();
 		TEST( Scheduler().Setup( cfg ));

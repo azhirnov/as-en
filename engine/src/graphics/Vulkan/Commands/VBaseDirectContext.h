@@ -51,9 +51,10 @@ namespace AE::Graphics::_hidden_
 		ND_ VkCommandBuffer	_EndCommandBuffer ();
 		ND_ VCommandBuffer  _ReleaseCommandBuffer ();
 
-		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg, bool firstInQueue)	__NE___;
-		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, const RenderTask &task)				__NE___;
-		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg)					__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg)						__NE___;
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, const RenderTask &task, DebugLabel dbg)	__NE___;
+	private:
+		ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg, bool firstInQueue)		__NE___;
 	};
 	
 
@@ -76,22 +77,21 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit VBaseDirectContext (const RenderTask &task, ECtxType ctxType)	__Th___	: VBaseDirectContext{ task, Default, ctxType } {}
-		VBaseDirectContext (const RenderTask &, VCommandBuffer, ECtxType)		__Th___;
-		~VBaseDirectContext ()													__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
+		VBaseDirectContext (const RenderTask &, VCommandBuffer, DebugLabel, ECtxType)	__Th___;
+		~VBaseDirectContext ()															__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
 		void  _CommitBarriers ();
 		
-		void  _DebugMarker (DebugLabel dbg)												{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_DebugMarker( dbg ); }
-		void  _PushDebugGroup (DebugLabel dbg)											{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( dbg ); }
-		void  _PopDebugGroup ()															{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PopDebugGroup(); }
+		void  _DebugMarker (DebugLabel dbg)														{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)													{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()																	{ ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PopDebugGroup(); }
 		
 		ND_ VkCommandBuffer	_EndCommandBuffer ();
 
-		ND_ bool	_NoPendingBarriers ()										C_NE___	{ return _mngr.NoPendingBarriers(); }
-		ND_ auto&	_GetExtensions ()											C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
-		ND_ auto&	_GetFeatures ()												C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
+		ND_ bool	_NoPendingBarriers ()												C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ auto&	_GetExtensions ()													C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
+		ND_ auto&	_GetFeatures ()														C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
 	};
 //-----------------------------------------------------------------------------
 
@@ -140,13 +140,13 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf, ECtxType ctxType) __Th___ :
-		_VBaseDirectContext{_ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf), task )},  // throw
+	inline VBaseDirectContext::VBaseDirectContext (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg, ECtxType ctxType) __Th___ :
+		_VBaseDirectContext{ _ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf), task, dbg )},  // throw
 		_mngr{ task }
 	{
 		ASSERT( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
 		
-		DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( _cmdbuf.Get(), ctxType ); )
+		DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( _cmdbuf.Get(), (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );)
 
 		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
 			PipelineBarrier( *bar );

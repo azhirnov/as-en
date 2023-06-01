@@ -43,6 +43,9 @@ namespace AE::RG::_hidden_
 		ND_ Index_t			Index ()					C_NE___	{ return id & _IndexMask; }
 		ND_ Generation_t	Generation ()				C_NE___	{ return id >> _GenOffset; }
 
+		ND_ bool			IsValid ()					C_NE___	{ return id != UMax; }	// same as 'HandleTmpl<>::IsValid()'
+		ND_ bool			IsInvalid ()				C_NE___	{ return id == UMax; }
+
 		ND_ bool			IsImage ()					C_NE___	{ return type == TypeList_t::Index<ImageID>; }
 		ND_ ImageID			AsImage ()					C_NE___	{ ASSERT(IsImage());  return UnsafeBitCast<ImageID>(id); }
 		

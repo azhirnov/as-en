@@ -23,8 +23,8 @@ namespace AE::Graphics
 	{
 		EImageAspect	aspectMask		= Default;
 		MipmapLevel		baseMipLevel;
-		uint			levelCount		= 1;
-		ImageLayer		baseArrayLayer;
+		uint			mipmapCount		= 1;
+		ImageLayer		baseLayer;
 		uint			layerCount		= 1;
 	};
 
@@ -33,7 +33,7 @@ namespace AE::Graphics
 	{
 		EImageAspect	aspectMask		= Default;
 		MipmapLevel		mipLevel;
-		ImageLayer		baseArrayLayer;
+		ImageLayer		baseLayer;
 		uint			layerCount		= 1;
 	};
 
@@ -148,7 +148,7 @@ namespace AE::Graphics
 		BufferID	indirectBuffer;
 		Bytes		indirectBufferOffset;
 		uint		drawCount				= 1;
-		Bytes		stride;
+		Bytes		stride;					// sizeof(DrawIndirectCommand)
 	};
 
 
@@ -157,7 +157,45 @@ namespace AE::Graphics
 		BufferID	indirectBuffer;
 		Bytes		indirectBufferOffset;
 		uint		drawCount				= 1;
-		Bytes		stride;
+		Bytes		stride;					// sizeof(DrawIndexedIndirectCommand)
+	};
+
+	struct DrawMeshTasksIndirectCmd
+	{
+		BufferID	indirectBuffer;
+		Bytes		indirectBufferOffset;
+		uint		drawCount;
+		Bytes		stride;					// sizeof(DrawMeshTasksIndirectCommand)
+	};
+
+	struct DrawIndirectCountCmd
+	{
+		BufferID	indirectBuffer;
+		Bytes		indirectBufferOffset;
+		BufferID	countBuffer;
+		Bytes		countBufferOffset;
+		uint		maxDrawCount;
+		Bytes		stride;					// sizeof(DrawIndirectCommand)
+	};
+
+	struct DrawIndexedIndirectCountCmd
+	{
+		BufferID	indirectBuffer;
+		Bytes		indirectBufferOffset;
+		BufferID	countBuffer;
+		Bytes		countBufferOffset;
+		uint		maxDrawCount;
+		Bytes		stride;					// sizeof(DrawIndexedIndirectCommand)
+	};
+
+	struct DrawMeshTasksIndirectCountCmd
+	{
+		BufferID	indirectBuffer;
+		Bytes		indirectBufferOffset;
+		BufferID	countBuffer;
+		Bytes		countBufferOffset;
+		uint		maxDrawCount;
+		Bytes		stride;					// sizeof(DrawMeshTasksIndirectCommand)
 	};
 //-----------------------------------------------------------------------------
 
@@ -191,11 +229,11 @@ namespace AE::Graphics
 	STATIC_ASSERT( sizeof(DrawIndexedIndirectCommand) == 20 );
 
 
-	struct MeshDrawIndirectCommand
+	struct DrawMeshTasksIndirectCommand
 	{
 		packed_uint3	taskCount;
 	};
-	STATIC_ASSERT( sizeof(MeshDrawIndirectCommand) == 12 );
+	STATIC_ASSERT( sizeof(DrawMeshTasksIndirectCommand) == 12 );
 
 
 	using TraceRayIndirectCommand = DispatchIndirectCommand;
@@ -296,8 +334,10 @@ namespace AE::Graphics
 		ND_ Bytes				Begin ()					C_NE___	{ return _offset; }
 		ND_ Bytes				End ()						C_NE___	{ return _offset + _size; }
 		ND_ Bytes				RemainSize ()				C_NE___	{ return _size - pos; }
-		ND_ bool				IsCompleted ()				C_NE___	{ return pos >= _size; }
 		ND_ EStagingHeapType	HeapType ()					C_NE___	{ return _heapType; }
+
+		ND_ bool				IsCompleted ()				C_NE___	{ return pos >= _size; }
+		ND_ bool				IsInitialized ()			C_NE___	{ return _bufferId != Default; }
 	};
 
 

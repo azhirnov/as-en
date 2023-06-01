@@ -31,9 +31,9 @@ namespace
 		uint		iter	= 0;
 		
 	public:
-		Test1_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test1_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			switch ( iter )
 			{
@@ -68,9 +68,9 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test1_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test1_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '3';
@@ -121,9 +121,9 @@ namespace
 		uint		iter	= 0;
 		
 	public:
-		Test2_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test2_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			switch ( iter )
 			{
@@ -154,9 +154,9 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test2_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test2_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '3';
@@ -195,9 +195,9 @@ namespace
 		const uint	id;
 		
 	public:
-		Test3_Task1 (ExeOrder &val, uint id) : IAsyncTask{ ETaskQueue::Worker }, value{val}, id{id} {}
+		Test3_Task1 (ExeOrder &val, uint id) : IAsyncTask{ ETaskQueue::PerFrame }, value{val}, id{id} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += char('0' + id);
@@ -214,9 +214,9 @@ namespace
 		uint		iter	= 0;
 
 	public:
-		Test3_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test3_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			switch ( iter )
 			{
@@ -257,9 +257,9 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test3_Task3 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test3_Task3 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'A';

@@ -73,7 +73,7 @@ namespace AE::Serializing
 	template <typename T>
 	inline bool  ObjectFactory::Register (const SerializedID &id, Serialize_t ser, Deserialize_t deser)
 	{
-		STATIC_ASSERT( not IsTrivialySerializable<T>, "Can not register POD type" );
+		STATIC_ASSERT( not IsTriviallySerializable<T>, "Can not register POD type" );
 		EXLOCK( _guard );
 
 		auto [iter, inserted] = _objects.emplace( id, ObjInfo{ser, deser} );
@@ -112,7 +112,7 @@ namespace AE::Serializing
 	template <typename T>
 	inline bool  ObjectFactory::Serialize (Serializer &ser, const T& obj) C_NE___
 	{
-		STATIC_ASSERT( not IsTrivialySerializable<T>, "Can not serialize POD type" );
+		STATIC_ASSERT( not IsTriviallySerializable<T>, "Can not serialize POD type" );
 		SHAREDLOCK( _guard );
 
 		auto	iter = _objectTypes.find( typeid(T) );
@@ -131,7 +131,7 @@ namespace AE::Serializing
 	template <typename T>
 	inline bool  ObjectFactory::Deserialize (Deserializer &deser, INOUT T& obj) C_NE___
 	{
-		STATIC_ASSERT( not IsTrivialySerializable<T>, "Can not deserialize POD type" );
+		STATIC_ASSERT( not IsTriviallySerializable<T>, "Can not deserialize POD type" );
 		SHAREDLOCK( _guard );
 		
 		auto	iter = _objectTypes.find( typeid(T) );

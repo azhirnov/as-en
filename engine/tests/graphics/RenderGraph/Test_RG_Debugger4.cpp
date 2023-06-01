@@ -56,7 +56,7 @@ namespace
 			t{ t }
 		{}
 		
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -113,7 +113,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -157,7 +157,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -179,7 +179,7 @@ namespace
 
 					if ( trace_str.size() == 4 )
 					{
-						const char	rg1_ref_str[] =
+						const StringView	rg1_ref_str =
 R"(//> gl_LaunchIDEXT: uint3 {612, 124, 0}
 no source
 
@@ -214,7 +214,7 @@ no source
 29. 	imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
 
 )";
-						const char	rg2_ref_str[] =
+						const StringView	rg2_ref_str =
 R"(//> gl_LaunchIDEXT: uint3 {370, 326, 0}
 no source
 
@@ -249,7 +249,7 @@ no source
 29. 	imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
 
 )";
-						const char	rm_ref_str[] =
+						const StringView	rm_ref_str =
 R"(//> gl_LaunchIDEXT: uint3 {612, 124, 0}
 no source
 
@@ -257,7 +257,7 @@ no source
 41. payload = vec4( 0.412f, 0.796f, 1.0f, 1.0f );
 
 )";
-						const char	rch_ref_str[] =
+						const StringView	rch_ref_str =
 R"(//> gl_LaunchIDEXT: uint3 {370, 326, 0}
 //> hitAttribs: float2 {0.220417, 0.411667}
 no source

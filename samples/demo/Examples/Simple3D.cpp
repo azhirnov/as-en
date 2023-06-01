@@ -14,14 +14,14 @@ namespace AE::Samples::Demo
 	class Simple3DSample::UploadTextureTask final : public RenderTask
 	{
 	public:
-		Simple3DSample&	t;
+		RC<Simple3DSample>	t;
 
-		UploadTextureTask (Simple3DSample* t, CommandBatchPtr batch, DebugLabel) :
+		UploadTextureTask (Simple3DSample* p, CommandBatchPtr batch, DebugLabel) :
 			RenderTask{ batch, {"Simple3D::UploadTexture"} },
-			t{ *t }
+			t{ p }
 		{}
 		
-		void  Run () override;
+		void  Run () __Th_OV;
 	};
 
 /*
@@ -39,21 +39,21 @@ namespace AE::Samples::Demo
 			CHECK_TE( file );
 		
 			LoadableImage::Loader	loader;
-			auto	image = loader.Load( file, ctx );
+			auto	image = loader.Load( file, ctx, t->gfxAlloc );
 			CHECK_TE( image );
 
-			t.cubeMap = image->ReleaseImageAndView();
+			t->cubeMap = image->ReleaseImageAndView();
 		
 			ctx.AccumBarriers()
-				.ImageBarrier( t.cubeMap.image, EResourceState::CopyDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
+				.ImageBarrier( t->cubeMap.image, EResourceState::CopyDst, EResourceState::ShaderSample | EResourceState::FragmentShader );
 		}
 
 		// create cube
 		{
 			auto&	res_mngr = RenderTaskScheduler().GetResourceManager();
 
-			CHECK_TE( t.cube1.Create( res_mngr, ctx ));
-			CHECK_TE( t.cube2.Create( res_mngr, ctx, t.lod, t.lod, false ));
+			CHECK_TE( t->cube1.Create( res_mngr, ctx, t->gfxAlloc ));
+			CHECK_TE( t->cube2.Create( res_mngr, ctx, t->lod, t->lod, false, t->gfxAlloc ));
 			
 			ctx.AccumBarriers()
 				.MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
@@ -63,8 +63,8 @@ namespace AE::Samples::Demo
 		// update DS
 		{
 			DescriptorUpdater	updater;
-			CHECK_TE( updater.Set( t.descSet, EDescUpdateMode::Partialy ));
-			updater.BindImage( UniformName{"un_ColorTexture"}, t.cubeMap.view );
+			CHECK_TE( updater.Set( t->descSet, EDescUpdateMode::Partialy ));
+			updater.BindImage( UniformName{"un_ColorTexture"}, t->cubeMap.view );
 			CHECK_TE( updater.Flush() );
 		}
 			
@@ -80,16 +80,15 @@ namespace AE::Samples::Demo
 	class Simple3DSample::ProcessInputTask final : public Threading::IAsyncTask
 	{
 	public:
-		Simple3DSample&		t;
+		RC<Simple3DSample>	t;
 		ActionQueueReader	reader;
 
-		ProcessInputTask (Simple3DSample* t, ActionQueueReader reader) :
-			IAsyncTask{ ETaskQueue::Worker },
-			t{ *t },
-			reader{ RVRef(reader) }
+		ProcessInputTask (Simple3DSample* p, ActionQueueReader reader) :
+			IAsyncTask{ ETaskQueue::PerFrame },
+			t{ p }, reader{ RVRef(reader) }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			packed_float3	move;
 			packed_float2	rotation;
@@ -97,15 +96,15 @@ namespace AE::Samples::Demo
 			ActionQueueReader::Header	hdr;
 			for (; reader.ReadHeader( OUT hdr );)
 			{
-				if ( hdr.name == InputActionName{"Camera.Rotate"} )
+				if_unlikely( hdr.name == InputActionName{"Camera.Rotate"} )
 					rotation += reader.Data<packed_float2>( hdr.offset );
 				
-				if ( hdr.name == InputActionName{"Camera.Move"} )
+				if_unlikely( hdr.name == InputActionName{"Camera.Move"} )
 					move += reader.Data<packed_float3>( hdr.offset );
 			}
 			
-			t.camera.Rotate( Rad{rotation.x}, Rad{rotation.y} );
-			t.camera.Move3D( move );
+			t->camera.Rotate( Rad{rotation.x}, Rad{rotation.y} );
+			t->camera.Move3D( move );
 		}
 
 		StringView	DbgName ()	C_NE_OV	{ return "Simple3D::ProcessInput"; }
@@ -120,15 +119,15 @@ namespace AE::Samples::Demo
 	class Simple3DSample::DrawTask final : public RenderTask
 	{
 	public:
-		Simple3DSample &	t;
+		RC<Simple3DSample>	t;
 		IOutputSurface &	surface;
 
-		DrawTask (Simple3DSample* t, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
+		DrawTask (Simple3DSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
 			RenderTask{ batch, {"Simple3D::Draw"} },
-			t{ *t }, surface{ surf }
+			t{ p }, surface{ surf }
 		{}
 
-		void  Run () override;
+		void  Run () __Th_OV;
 	};
 	
 /*
@@ -148,18 +147,18 @@ namespace AE::Samples::Demo
 		{
 			auto&	res_mngr = RenderTaskScheduler().GetResourceManager();
 
-			if_unlikely( not t.depthBuf.image or Any( uint2{res_mngr.GetDescription( t.depthBuf.image ).dimension} != view_size ))
+			if_unlikely( not t->depthBuf.image or Any( uint2{res_mngr.GetDescription( t->depthBuf.image ).dimension} != view_size ))
 			{
 				// delayed destruction
-				res_mngr.DelayedReleaseResources( t.depthBuf.image, t.depthBuf.view );
+				res_mngr.DelayedReleaseResources( t->depthBuf.image, t->depthBuf.view );
 
-				t.depthBuf.image = res_mngr.CreateImage( ImageDesc::CreateDepthAttachment( view_size, EPixelFormat::Depth32F ), "Sample3D depth" );
-				CHECK_TE( t.depthBuf.image );
+				t->depthBuf.image = res_mngr.CreateImage( ImageDesc::CreateDepthAttachment( view_size, EPixelFormat::Depth32F ), "Sample3D depth" );
+				CHECK_TE( t->depthBuf.image );
 
-				t.depthBuf.view = res_mngr.CreateImageView( ImageViewDesc{}, t.depthBuf.image, "Sample3D depth view" );
-				CHECK_TE( t.depthBuf.view );
+				t->depthBuf.view = res_mngr.CreateImageView( ImageViewDesc{}, t->depthBuf.image, "Sample3D depth view" );
+				CHECK_TE( t->depthBuf.view );
 
-				t.camera.SetPerspective( 90_deg, float(view_size.x) / view_size.y, 0.01f, 100.0f );
+				t->camera.SetPerspective( 90_deg, float(view_size.x) / view_size.y, 0.1f, 100.0f );
 			}
 		}
 
@@ -172,12 +171,12 @@ namespace AE::Samples::Demo
 		// update uniforms
 		{
 			ShaderTypes::simple3d_ub	ub;
-			ub.mvp = t.camera.GetCamera().ToModelViewProjMatrix();
+			ub.mvp = t->camera.GetCamera().ToModelViewProjMatrix();
 
 			// barrier is not needed because of semaphore
-			CHECK_TE( copy_ctx.UploadBuffer( t.uniformBuf, 0_b, Sizeof(ub), &ub ));
+			CHECK_TE( copy_ctx.UploadBuffer( t->uniformBuf, 0_b, Sizeof(ub), &ub ));
 
-			copy_ctx.AccumBarriers().BufferBarrier( t.uniformBuf, EResourceState::CopyDst, EResourceState::ShaderUniform | EResourceState::PreRasterizationShaders );
+			copy_ctx.AccumBarriers().BufferBarrier( t->uniformBuf, EResourceState::CopyDst, EResourceState::ShaderUniform | EResourceState::PreRasterizationShaders );
 		}
 
 
@@ -186,20 +185,20 @@ namespace AE::Samples::Demo
 		// draw
 		{
 			const auto	rp_desc =
-				RenderPassDesc{ t.rtech, RenderTechPassName{"Main"}, view_size }
+				RenderPassDesc{ t->rtech, RenderTechPassName{"Main"}, view_size }
 					.AddViewport( view_size )
 					.AddTarget( AttachmentName{"Color"}, rt.viewId,			RGBA32f{HtmlColor::Black},	rt.initialState | EResourceState::Invalidate,	rt.finalState )
-					.AddTarget( Attachment_Depth,		 t.depthBuf.view,	DepthStencil{1.0f},			EResourceState::Invalidate,						EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS );
+					.AddTarget( Attachment_Depth,		 t->depthBuf.view,	DepthStencil{1.0f},			EResourceState::Invalidate,						EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS );
 
 			auto	dctx = gctx.BeginRenderPass( rp_desc );
 			
-			dctx.BindPipeline( t.ppln );
-			dctx.BindDescriptorSet( t.dsIndex, t.descSet );
+			dctx.BindPipeline( t->ppln );
+			dctx.BindDescriptorSet( t->dsIndex, t->descSet );
 			
-			if ( t.use_cube1 )
-				t.cube1.Draw( dctx );
+			if ( t->use_cube1 )
+				t->cube1.Draw( dctx );
 			else
-				t.cube2.Draw( dctx, t.lod );
+				t->cube2.Draw( dctx, t->lod );
 
 			gctx.EndRenderPass( dctx, rp_desc );
 		}
@@ -218,6 +217,8 @@ namespace AE::Samples::Demo
 	bool  Simple3DSample::Init (PipelinePackID pack)
 	{
 		auto&	res_mngr = RenderTaskScheduler().GetResourceManager();
+		
+		gfxAlloc = MakeRC<GfxLinearMemAllocator>();
 
 		rtech = res_mngr.LoadRenderTech( pack, RenderTechName{"Scene3D.RTech"}, Default );
 		CHECK_ERR( rtech );

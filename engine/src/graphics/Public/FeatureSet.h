@@ -188,6 +188,8 @@ namespace AE::Graphics
 		/* clock */\
 		_visitor_( EFeature,	shaderSubgroupClock,			: 2 )	/* GL_ARB_shader_clock			*/\
 		_visitor_( EFeature,	shaderDeviceClock,				: 2 )	/* GL_EXT_shader_realtime_clock	*/\
+		/* nvidia */\
+		_visitor_( EFeature,	cooperativeMatrixNV,			: 2 )	/* GL_NV_cooperative_matrix, GL_NV_integer_cooperative_matrix */\
 		\
 		\
 	/*---- shader features/limits ----*/\
@@ -252,7 +254,7 @@ namespace AE::Graphics
 		_visitor_( EFeature,	subsampledLoads,						: 2 )	/*-|											*/\
 		_visitor_( uint,		minSubsampledArrayLayers,					)	/*-|	- maxSubsampledArrayLayers				*/\
 		_visitor_( uint,		minDescriptorSetSubsampledSamplers,			)	/*-|	- maxDescriptorSetSubsampledSamplers	*/\
-		/*_visitor_( PixelFormatSet_t,	fragmentDencityFormats,				)	/ * /											*/\
+		/*_visitor_( PixelFormatSet_t,	fragmentDensityFormats,				)	/ * /											*/\
 		/* inline ray tracing */\
 		_visitor_( EFeature,		rayQuery,							: 2 )	/* GL_EXT_ray_query */\
 		_visitor_( EShaderStages,	rayQueryStages,							)\
@@ -455,6 +457,8 @@ namespace AE::Graphics
 		ND_ HashVal  CalcHash ()													C_NE___;
 
 		ND_ static HashVal64  GetHashOfFieldNames ()								__NE___;
+		ND_ static HashVal64  GetHashOfDependencies ()								__NE___;
+		ND_ static HashVal64  GetHashOfFS ()										__NE___	{ return GetHashOfFieldNames() + GetHashOfDependencies(); }
 
 
 	private:
@@ -469,6 +473,6 @@ namespace AE::Graphics
 namespace AE::Base
 {
 	template <> struct TMemCopyAvailable< AE::Graphics::FeatureSet >		{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::FeatureSet >	{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::FeatureSet >	{ static constexpr bool  value = true; };
 
 } // AE::Base

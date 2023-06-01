@@ -6,9 +6,9 @@
 #include "platform/Public/IWindow.h"
 #include "platform/Public/VRDevice.h"
 
-namespace AE::App
+namespace AE::AppV1
 {
-	using namespace AE::Base;
+	using namespace AE::App;
 
 
 	//
@@ -22,10 +22,11 @@ namespace AE::App
 		using GraphicsCreateInfo	= Graphics::GraphicsCreateInfo;
 		using VRImageDesc			= IVRDevice::VRImageDesc;
 		using EThread				= Threading::EThread;
+		using VRDeviceTypes			= FixedArray< IVRDevice::EDeviceType, 4 >;
 
 		struct ThreadConfig : Threading::TaskScheduler::Config
 		{
-			EnumBitSet<EThread>		mask		{EThread::Worker, EThread::Renderer, EThread::FileIO};
+			EnumBitSet<EThread>		mask		{EThread::PerFrame, EThread::Renderer, EThread::Background, EThread::FileIO};
 			uint					maxThreads	= 2;
 		};
 
@@ -37,8 +38,9 @@ namespace AE::App
 		WindowDesc			window;
 
 		bool				enableVR	= false;
+		VRDeviceTypes		vrDevices;
 		VRImageDesc			vr;
 	};
 
 
-} // AE::App
+} // AE::AppV1

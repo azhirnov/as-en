@@ -34,8 +34,12 @@ namespace AE::Graphics
 
 		struct AttachmentIdx
 		{
-			ubyte			index		= UMax;
-			ubyte			clearIdx	= UMax;
+			ubyte	_data	= UMax;
+
+			AttachmentIdx (uint idx, bool clear) : _data{ubyte( (idx & 0xF) | (clear ? 0x10 : 0) )} {}
+
+			ND_ uint	Index ()	C_NE___	{ return _data & 0x0F; }
+			ND_ bool	IsClear ()	C_NE___	{ return !!(_data & 0x10); }
 		};
 
 	private:

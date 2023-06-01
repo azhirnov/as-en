@@ -16,17 +16,17 @@ namespace AE::Base::_hidden_
 		usize	_value;
 
 	public:
-		constexpr StaticTypeID () : _value{~usize{0}} {}
+		constexpr StaticTypeID ()									__NE___ : _value{~usize{0}} {}
 
-		ND_ constexpr bool  operator == (StaticTypeID<UID> rhs) const	{ return _value == rhs._value; }
-		ND_ constexpr bool  operator != (StaticTypeID<UID> rhs) const	{ return _value != rhs._value; }
-		ND_ constexpr bool  operator >  (StaticTypeID<UID> rhs) const	{ return _value >  rhs._value; }
-		ND_ constexpr bool  operator <  (StaticTypeID<UID> rhs) const	{ return _value <  rhs._value; }
-		ND_ constexpr bool  operator >= (StaticTypeID<UID> rhs) const	{ return _value >= rhs._value; }
-		ND_ constexpr bool  operator <= (StaticTypeID<UID> rhs) const	{ return _value <= rhs._value; }
+		ND_ constexpr bool  operator == (StaticTypeID<UID> rhs)		C_NE___	{ return _value == rhs._value; }
+		ND_ constexpr bool  operator != (StaticTypeID<UID> rhs)		C_NE___	{ return _value != rhs._value; }
+		ND_ constexpr bool  operator >  (StaticTypeID<UID> rhs)		C_NE___	{ return _value >  rhs._value; }
+		ND_ constexpr bool  operator <  (StaticTypeID<UID> rhs)		C_NE___	{ return _value <  rhs._value; }
+		ND_ constexpr bool  operator >= (StaticTypeID<UID> rhs)		C_NE___	{ return _value >= rhs._value; }
+		ND_ constexpr bool  operator <= (StaticTypeID<UID> rhs)		C_NE___	{ return _value <= rhs._value; }
 
-		ND_ constexpr usize			Get ()	const						{ return _value; }
-		ND_ constexpr const char *	Name ()	const						{ return ""; }
+		ND_ constexpr usize			Get ()							C_NE___	{ return _value; }
+		ND_ constexpr const char *	Name ()							C_NE___	{ return ""; }
 	};
 	
 	template <uint UID>
@@ -39,7 +39,7 @@ namespace AE::Base::_hidden_
 	template <typename T, uint UID>
 	struct StaticTypeIdOf : BaseStaticTypeIdOf<UID>
 	{
-		ND_ static StaticTypeID<UID>  Get ()
+		ND_ static StaticTypeID<UID>  Get () __NE___
 		{
 			static usize id = BaseStaticTypeIdOf<UID>::_counter++;
 			return BitCast< StaticTypeID<UID> >( id );
@@ -57,7 +57,7 @@ namespace std
 	template <uint32_t UID>
 	struct hash< AE::Base::_hidden_::StaticTypeID<UID> >
 	{
-		ND_ size_t  operator () (const AE::Base::_hidden_::StaticTypeID<UID> &value) const
+		ND_ size_t  operator () (const AE::Base::_hidden_::StaticTypeID<UID> &value) C_NE___
 		{
 			return value.Get();
 		}
@@ -80,25 +80,25 @@ namespace AE::Base::_hidden_
 		std::type_index		_value;
 
 	public:
-		StdTypeID () : _value{ typeid(UnknownType) } {}
-		StdTypeID (const std::type_index &value) : _value{ value } {}
+		StdTypeID ()								__NE___	: _value{ typeid(UnknownType) } {}
+		StdTypeID (const std::type_index &value)	__NE___	: _value{ value } {}
 			
-		ND_ bool  operator == (StdTypeID rhs) const		{ return _value == rhs._value; }
-		ND_ bool  operator != (StdTypeID rhs) const		{ return _value != rhs._value; }
-		ND_ bool  operator >  (StdTypeID rhs) const		{ return _value >  rhs._value; }
-		ND_ bool  operator <  (StdTypeID rhs) const		{ return _value <  rhs._value; }
-		ND_ bool  operator >= (StdTypeID rhs) const		{ return _value >= rhs._value; }
-		ND_ bool  operator <= (StdTypeID rhs) const		{ return _value <= rhs._value; }
+		ND_ bool  operator == (StdTypeID rhs)		C_NE___	{ return _value == rhs._value; }
+		ND_ bool  operator != (StdTypeID rhs)		C_NE___	{ return _value != rhs._value; }
+		ND_ bool  operator >  (StdTypeID rhs)		C_NE___	{ return _value >  rhs._value; }
+		ND_ bool  operator <  (StdTypeID rhs)		C_NE___	{ return _value <  rhs._value; }
+		ND_ bool  operator >= (StdTypeID rhs)		C_NE___	{ return _value >= rhs._value; }
+		ND_ bool  operator <= (StdTypeID rhs)		C_NE___	{ return _value <= rhs._value; }
 
-		ND_ std::type_index		Get ()	const			{ return _value; }
-		ND_ const char *		Name ()	const			{ return _value.name(); }
+		ND_ std::type_index		Get ()				C_NE___	{ return _value; }
+		ND_ const char *		Name ()				C_NE___	{ return _value.name(); }
 	};
 
 		
 	template <typename T>
 	struct StdTypeIdOf final
 	{
-		ND_ static StdTypeID  Get ()
+		ND_ static StdTypeID  Get () __NE___
 		{
 			return StdTypeID( typeid(T) );
 		}
@@ -111,7 +111,7 @@ namespace std
 	template <>
 	struct hash< AE::Base::_hidden_::StdTypeID >
 	{
-		ND_ size_t  operator () (const AE::Base::_hidden_::StdTypeID &value) const
+		ND_ size_t  operator () (const AE::Base::_hidden_::StdTypeID &value) C_NE___
 		{
 			return std::hash< std::type_index >{}( value.Get() );
 		}
@@ -131,13 +131,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ forceinline static TypeId  TypeIdOf ()
+	ND_ forceinline static TypeId  TypeIdOf () __NE___
 	{
 		return Base::_hidden_::StaticTypeIdOf<T,0>::Get();
 	}
 
 	template <typename T>
-	ND_ forceinline static TypeId  TypeIdOf (const T&)
+	ND_ forceinline static TypeId  TypeIdOf (const T&) __NE___
 	{
 		return TypeIdOf<T>();
 	}
@@ -154,13 +154,13 @@ namespace AE::Base
 =================================================
 */
 	template <typename T>
-	ND_ forceinline static TypeId  TypeIdOf ()
+	ND_ forceinline static TypeId  TypeIdOf () __NE___
 	{
 		return Base::_hidden_::StdTypeIdOf<T>::Get();
 	}
 
 	template <typename T>
-	ND_ forceinline static TypeId  TypeIdOf (const T&)
+	ND_ forceinline static TypeId  TypeIdOf (const T&) __NE___
 	{
 		return TypeIdOf<T>();
 	}

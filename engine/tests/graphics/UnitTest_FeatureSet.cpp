@@ -109,15 +109,15 @@ namespace
 
 extern void UnitTest_FeatureSet ()
 {
-	const auto	h = FeatureSet::GetHashOfFieldNames();
-	ASSERT( h == HashVal64{0x4c6463bf77cecc38} );
+	const auto	h = FeatureSet::GetHashOfFS();
+	ASSERT( h == HashVal64{0x2ab034088d195a8cull} );
 
 	ASSERT_Eq( OffsetOf( &FeatureSet::subgroupOperations ),				  8 );
 	ASSERT_Eq( OffsetOf( &FeatureSet::minSubgroupSize ),				 28 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minSubsampledArrayLayers ),		 60 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minRayRecursionDepth ),			 76 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minVertAmplification ),			220 );
-	ASSERT_Eq( OffsetOf( &FeatureSet::minRasterOrderGroups ),			312 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minSubsampledArrayLayers ),		 64 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minRayRecursionDepth ),			 80 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minVertAmplification ),			224 );
+	ASSERT_Eq( OffsetOf( &FeatureSet::minRasterOrderGroups ),			316 );
 	ASSERT_Eq( OffsetOf( &FeatureSet::minImageArrayLayers ),			476 );
 	ASSERT_Eq( OffsetOf( &FeatureSet::minSamplerLodBias ),				660 );
 	

@@ -115,7 +115,10 @@ namespace AE::Graphics
 					case EQueueType::Graphics :			return DebugLabel::ColorTable::GraphicsQueue;
 					case EQueueType::AsyncCompute :		return DebugLabel::ColorTable::AsyncComputeQueue;
 					case EQueueType::AsyncTransfer :	return DebugLabel::ColorTable::AsyncTransfersQueue;
-					case EQueueType::Unknown :			break;
+					case EQueueType::VideoEncode :		
+					case EQueueType::VideoDecode :
+					case EQueueType::Unknown :
+					case EQueueType::_Count :			break;
 				}
 				END_ENUM_CHECKS();
 			}

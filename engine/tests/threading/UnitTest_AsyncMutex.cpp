@@ -28,9 +28,9 @@ namespace
 		Test1_SharedData&	data;
 		uint				counter	= 0;
 		
-		Test1_Task (Test1_SharedData &d) : IAsyncTask{ ETaskQueue::Worker }, data{d} {}
+		Test1_Task (Test1_SharedData &d) : IAsyncTask{ ETaskQueue::PerFrame }, data{d} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			{
 				ASYNC_EXLOCK( data.mutex );

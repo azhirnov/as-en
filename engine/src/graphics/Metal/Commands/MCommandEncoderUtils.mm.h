@@ -212,10 +212,10 @@ namespace AE::Graphics::_hidden_
 			ASSERT( All( IsZero( range.dstOffset )));
 
 			[ encoder copyFromTexture : srcImage.Cast()
-						  sourceSlice : range.srcSubres.baseArrayLayer.Get()
+						  sourceSlice : range.srcSubres.baseLayer.Get()
 						  sourceLevel : range.srcSubres.mipLevel.Get()
 							toTexture : dstImage.Cast()
-					 destinationSlice : range.dstSubres.baseArrayLayer.Get()
+					 destinationSlice : range.dstSubres.baseLayer.Get()
 					 destinationLevel : range.dstSubres.mipLevel.Get()
 						   sliceCount : Min( range.srcSubres.layerCount, range.dstSubres.layerCount )
 						   levelCount : 1];
@@ -231,12 +231,12 @@ namespace AE::Graphics::_hidden_
 			for (uint layer = 0, layer_cnt = Min( range.srcSubres.layerCount, range.dstSubres.layerCount ); layer < layer_cnt; ++layer)
 			{
 				[ encoder copyFromTexture : srcImage.Cast()
-							  sourceSlice : range.srcSubres.baseArrayLayer.Get() + layer
+							  sourceSlice : range.srcSubres.baseLayer.Get() + layer
 							  sourceLevel : range.srcSubres.mipLevel.Get()
 							 sourceOrigin : MTLOriginMake( range.srcOffset.x, range.srcOffset.y, range.srcOffset.z )
 							   sourceSize : MTLSizeMake( range.extent.x, range.extent.y, range.extent.z )
 								toTexture : dstImage.Cast()
-						 destinationSlice : range.dstSubres.baseArrayLayer.Get() + layer
+						 destinationSlice : range.dstSubres.baseLayer.Get() + layer
 						 destinationLevel : range.dstSubres.mipLevel.Get()
 						destinationOrigin : MTLOriginMake( range.dstOffset.x, range.dstOffset.y, range.dstOffset.z )];
 			}
@@ -252,12 +252,12 @@ namespace AE::Graphics::_hidden_
 			for (uint layer = 0, layer_cnt = Min( range.srcSubres.layerCount, range.dstSubres.layerCount ); layer < layer_cnt; ++layer)
 			{
 				[ encoder copyFromTexture : srcImage.Cast()
-							  sourceSlice : range.srcSubres.baseArrayLayer.Get()
+							  sourceSlice : range.srcSubres.baseLayer.Get()
 							  sourceLevel : range.srcSubres.mipLevel.Get()
 							 sourceOrigin : MTLOriginMake( range.srcOffset.x, range.srcOffset.y, range.srcOffset.z + layer )
 							   sourceSize : MTLSizeMake( range.extent.x, range.extent.y, range.extent.z )
 								toTexture : dstImage.Cast()
-						 destinationSlice : range.dstSubres.baseArrayLayer.Get() + layer
+						 destinationSlice : range.dstSubres.baseLayer.Get() + layer
 						 destinationLevel : range.dstSubres.mipLevel.Get()
 						destinationOrigin : MTLOriginMake( range.dstOffset.x, range.dstOffset.y, range.dstOffset.z )];
 			}
@@ -273,12 +273,12 @@ namespace AE::Graphics::_hidden_
 			for (uint layer = 0, layer_cnt = Min( range.srcSubres.layerCount, range.dstSubres.layerCount ); layer < layer_cnt; ++layer)
 			{
 				[ encoder copyFromTexture : srcImage.Cast()
-							  sourceSlice : range.srcSubres.baseArrayLayer.Get() + layer
+							  sourceSlice : range.srcSubres.baseLayer.Get() + layer
 							  sourceLevel : range.srcSubres.mipLevel.Get()
 							 sourceOrigin : MTLOriginMake( range.srcOffset.x, range.srcOffset.y, range.srcOffset.z )
 							   sourceSize : MTLSizeMake( range.extent.x, range.extent.y, range.extent.z )
 								toTexture : dstImage.Cast()
-						 destinationSlice : range.dstSubres.baseArrayLayer.Get()
+						 destinationSlice : range.dstSubres.baseLayer.Get()
 						 destinationLevel : range.dstSubres.mipLevel.Get()
 						destinationOrigin : MTLOriginMake( range.dstOffset.x, range.dstOffset.y, range.dstOffset.z + layer )];
 			}
@@ -341,7 +341,7 @@ namespace AE::Graphics::_hidden_
 					 sourceBytesPerImage : NS::UInteger(range.slicePitch)
 							  sourceSize : MTLSizeMake( range.imageExtent.x, range.imageExtent.y, range.imageExtent.z )
 							   toTexture : dstImage.Cast()
-						destinationSlice : range.imageSubres.baseArrayLayer.Get() + layer
+						destinationSlice : range.imageSubres.baseLayer.Get() + layer
 						destinationLevel : range.imageSubres.mipLevel.Get()
 					   destinationOrigin : MTLOriginMake( range.imageOffset.x, range.imageOffset.y, range.imageOffset.z )];
 
@@ -370,7 +370,7 @@ namespace AE::Graphics::_hidden_
 			for (uint layer = 0; layer < range.imageSubres.layerCount; ++layer)
 			{
 				[ encoder copyFromTexture : srcImage.Cast()
-							  sourceSlice : range.imageSubres.baseArrayLayer.Get() + layer
+							  sourceSlice : range.imageSubres.baseLayer.Get() + layer
 							  sourceLevel : range.imageSubres.mipLevel.Get()
 							 sourceOrigin : MTLOriginMake( range.imageOffset.x, range.imageOffset.y, range.imageOffset.z )
 							   sourceSize : MTLSizeMake( range.imageExtent.x, range.imageExtent.y, range.imageExtent.z )

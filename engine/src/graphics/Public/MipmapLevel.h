@@ -47,7 +47,7 @@ namespace AE::Base
 {
 	template <> struct TMemCopyAvailable< AE::Graphics::MipmapLevel >		{ static constexpr bool  value = true; };
 	template <> struct TZeroMemAvailable< AE::Graphics::MipmapLevel >		{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::MipmapLevel >	{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::MipmapLevel >	{ static constexpr bool  value = true; };
 
 } // AE::Base
 

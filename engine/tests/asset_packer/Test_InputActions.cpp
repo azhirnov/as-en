@@ -74,29 +74,40 @@ namespace
 			{
 				SerializableInputActionsAndroid		temp;
 				TEST( temp.Deserialize( des ));
-				ser_str << temp.ToString();
+
+				#if not AE_OPTIMIZE_IDS
+					ser_str << temp.ToString();
+				#endif
 			}
 			else
 			if ( name == InputActionsGLFW_Name )
 			{
 				SerializableInputActionsGLFW	temp;
 				TEST( temp.Deserialize( des ));
-				ser_str << temp.ToString();
+				
+				#if not AE_OPTIMIZE_IDS
+					ser_str << temp.ToString();
+				#endif
 			}
 			else
 			if ( name == InputActionsWinAPI_Name )
 			{
 				SerializableInputActionsWinAPI	temp;
 				TEST( temp.Deserialize( des ));
-				ser_str << temp.ToString();
+				
+				#if not AE_OPTIMIZE_IDS
+					ser_str << temp.ToString();
+				#endif
 			}
 			else
 				TEST( false );
 			
 			TEST( des.IsEnd() );
 		}
-
-		TEST( CompareWithDump( ser_str, ref_dump_fname, force_update ));
+		
+		#if not AE_OPTIMIZE_IDS
+			TEST( CompareWithDump( ser_str, ref_dump_fname, force_update ));
+		#endif
 	}
 }
 

@@ -96,17 +96,11 @@ namespace AE::Threading
 
 	// interface
 	public:
-		virtual bool  Attach (uint uid)					__NE___ = 0;
-		virtual void  Detach ()							__NE___ = 0;
+			virtual bool  Attach (uint uid, uint coreId)	__NE___ = 0;
+			virtual void  Detach ()							__NE___ = 0;
 
-		ND_ virtual usize			DbgID ()			C_NE___ = 0;
-	//	ND_ virtual StringView		DbgName ()			C_NE___	{ return "thread"; }
-		ND_ virtual ProfilingInfo	GetProfilingInfo ()	C_NE___ = 0;
-
-	// helper functions (try to not use it)
-	protected:
-		//static void  _RunTask (AsyncTask)				__NE___;
-		//static void  _OnTaskFinish (const AsyncTask &)__NE___;
+		ND_ virtual usize			DbgID ()				C_NE___ = 0;
+		ND_ virtual ProfilingInfo	GetProfilingInfo ()		C_NE___ = 0;
 	};
 //-----------------------------------------------------------------------------
 
@@ -245,10 +239,8 @@ namespace AE::Threading
 
 	  // debugging //
 	  #ifdef AE_DEBUG
-
 			void	DbgDetectDeadlock (const Function<void (AsyncTask)> &fn)__NE___;
 		ND_ ulong	GetTotalProcessedTasks ()								C_NE___	{ return _totalProcessed.load(); }
-
 	  #endif
 
 			AE_GLOBALLY_ALLOC
@@ -272,9 +264,11 @@ namespace AE::Threading
 	public:
 		struct Config
 		{
-			uint	maxWorkerQueues	= 1;
-			uint	maxIOThreads	= 0;
-			uint	coreIdStep		= 1;	// should be 1 or 2
+			ubyte	maxPerFrameQueues	= 2;
+			ubyte	maxBackgroundQueues	= 2;
+			ubyte	maxRenderQueues		= 2;
+			ubyte	maxIOThreads		= 0;
+			ubyte	mainThreadCoreId	= UMax;
 		};
 
 	private:
@@ -305,7 +299,7 @@ namespace AE::Threading
 		class CanceledTask final : public IAsyncTask
 		{
 		public:
-			CanceledTask () : IAsyncTask{ETaskQueue::Worker} { _DbgSet( EStatus::Canceled ); }
+			CanceledTask () : IAsyncTask{ETaskQueue::PerFrame} { _DbgSet( EStatus::Canceled ); }
 			
 			void		Run ()		__Th_OV {}
 			StringView  DbgName ()	C_NE_OV	{ return "canceled"; }
@@ -334,12 +328,10 @@ namespace AE::Threading
 
 		Mutex				_threadGuard;
 		Array<ThreadPtr>	_threads;
-		Atomic<uint>		_coreId				{0};	// TODO: remove, use thread manager to bind thread to cpu core
 		ThreadPtr			_mainThread;
 
 		RC<IOService>		_fileIOService;
-
-		Config				_config;				// readonly
+		Atomic<uint>		_coreId				{0};
 
 		PROFILE_ONLY(
 			AtomicRC<ITaskProfiler>	_profiler;
@@ -355,25 +347,26 @@ namespace AE::Threading
 
 	// methods
 	public:
-		static void  CreateInstance ();
-		static void  DestroyInstance ();
+			static void  CreateInstance ();
+			static void  DestroyInstance ();
 
 		ND_ bool  Setup (const Config &cfg)											__NE___;
 			void  SetProfiler (RC<ITaskProfiler> profiler)							__NE___;
 			void  Release ()														__NE___;
 
-		template <typename T>
-		bool  RegisterDependency (TaskDependencyManagerPtr mngr)					__NE___;
+			template <typename T>
+			bool  RegisterDependency (TaskDependencyManagerPtr mngr)				__NE___;
 
-		template <typename T>
-		bool  UnregisterDependency ()												__NE___;
+			template <typename T>
+			bool  UnregisterDependency ()											__NE___;
 
 
 	// thread api //
-		bool  AddThread (ThreadPtr thread)											__NE___;
+			bool  AddThread (ThreadPtr thread)										__NE___;
+			bool  AddThread (ThreadPtr thread, uint coreId)							__NE___;
 
-		bool  ProcessTask (ETaskQueue type, uint seed)								__NE___;
-		bool  ProcessTasks (const EThreadArray &threads, uint seed)					__NE___;
+			bool  ProcessTask (ETaskQueue type, uint seed)							__NE___;
+			bool  ProcessTasks (const EThreadArray &threads, uint seed)				__NE___;
 
 		ND_ AsyncTask  PullTask (ETaskQueue type, uint seed)						__NE___;
 
@@ -383,19 +376,23 @@ namespace AE::Threading
 				  typename ...Ctor,
 				  typename ...Deps
 				 >
-		AsyncTask  Run (Tuple<Ctor...>		&& ctor = Default,
-						const Tuple<Deps...> & deps = Default)						__NE___;
+			AsyncTask     Run (Tuple<Ctor...>		&&	ctor = Default,
+							   const Tuple<Deps...> &	deps = Default)				__NE___;
+		
+		template <typename ...Deps>
+			bool		  Run (AsyncTask				task,
+							   const Tuple<Deps...> &	deps = Default)				__NE___;
 
 	  #ifdef AE_HAS_COROUTINE
 		template <typename ...Deps>
-		AsyncTask  Run (ETaskQueue				queueType,
-						CoroTask				coro,
-						const Tuple<Deps...> &	deps	= Default,
-						StringView				dbgName	= Default)					__NE___;
+			AsyncTask     Run (ETaskQueue				queueType,
+							   CoroTask					coro,
+							   const Tuple<Deps...> &	deps	= Default,
+							   StringView				dbgName	= Default)			__NE___;
 
 		template <typename ...Deps>
-		AsyncTask  Run (CoroTask				coro,
-						const Tuple<Deps...> &	deps	= Default)					__NE___;
+			AsyncTask     Run (CoroTask					coro,
+							   const Tuple<Deps...> &	deps	= Default)			__NE___;
 		
 		template <typename T,
 				  typename ...Deps
@@ -408,17 +405,13 @@ namespace AE::Threading
 		template <typename T,
 				  typename ...Deps
 				 >
-		ND_ Coroutine<T>  Run (Coroutine<T>			coro,
-							   const Tuple<Deps...>	&deps	= Default)				__NE___;
+		ND_ Coroutine<T>  Run (Coroutine<T>				coro,
+							   const Tuple<Deps...>	&	deps	= Default)			__NE___;
 	  #endif
-		
-		template <typename ...Deps>
-		bool  Run (AsyncTask				task,
-				   const Tuple<Deps...> &	deps = Default)							__NE___;
 
-		bool  Cancel (const AsyncTask &task)										__NE___;
+			bool  Cancel (const AsyncTask &task)									__NE___;
 
-		bool  Enqueue (AsyncTask task)												__NE___;
+			bool  Enqueue (AsyncTask task)											__NE___;
 
 
 	// synchronizations //
@@ -434,6 +427,8 @@ namespace AE::Threading
 		ND_ Ptr<IOService>		GetFileIOService ()									C_NE___ { return _fileIOService.get(); }
 
 		ND_ AsyncTask			GetCanceledTask ()									C_NE___	{ return _canceledTask; }
+
+		ND_ IThread const*		GetMainThread ()									C_NE___	{ return _mainThread.get(); }
 		
 		friend TaskScheduler&	AE::Scheduler ()									__NE___;
 
@@ -445,7 +440,7 @@ namespace AE::Threading
 
 
 	// debugging //
-		void  DbgDetectDeadlock ()													__NE___;
+			void  DbgDetectDeadlock ()												__NE___;
 
 
 	private:
@@ -454,7 +449,7 @@ namespace AE::Threading
 		
 		ND_ static TaskScheduler&  _Instance ()										__NE___;
 
-		ND_ bool  _InitIOServices ()												__NE___;
+		ND_ bool  _InitIOServices (const Config &cfg)								__NE___;
 
 		ND_ bool  _InsertTask (AsyncTask task, uint bitIndex)						__NE___;
 
@@ -591,7 +586,7 @@ namespace AE::Threading
 	template <typename ...Deps>
 	AsyncTask  TaskScheduler::Run (CoroTask coro, const Tuple<Deps...> &deps) __NE___
 	{
-		return Run( ETaskQueue::Worker, RVRef(coro), deps );
+		return Run( ETaskQueue::PerFrame, RVRef(coro), deps );
 	}
 	
 	template <typename T, typename ...Deps>
@@ -621,7 +616,7 @@ namespace AE::Threading
 	template <typename T, typename ...Deps>
 	Coroutine<T>  TaskScheduler::Run (Coroutine<T> coro, const Tuple<Deps...> &deps) __NE___
 	{
-		return Run( ETaskQueue::Worker, RVRef(coro), deps );
+		return Run( ETaskQueue::PerFrame, RVRef(coro), deps );
 	}
 
 #endif // AE_HAS_COROUTINE

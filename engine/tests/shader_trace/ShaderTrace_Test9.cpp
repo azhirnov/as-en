@@ -289,7 +289,7 @@ extern bool ShaderTrace_Test9 (TestDevice& vulkan)
 		VkBufferMemoryBarrier	barrier = {};
 		barrier.sType			= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 		barrier.srcAccessMask	= VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.dstAccessMask	= VK_ACCESS_SHADER_WRITE_BIT;
+		barrier.dstAccessMask	= VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
 		barrier.buffer			= vulkan.debugOutputBuf;
 		barrier.offset			= 0;
 		barrier.size			= VK_WHOLE_SIZE;
@@ -366,8 +366,6 @@ extern bool ShaderTrace_Test9 (TestDevice& vulkan)
 		VK_CHECK_ERR( vulkan.vkQueueSubmit( vulkan.GetVkQueue(), 1, &submit, Default ));
 		VK_CHECK_ERR( vulkan.vkQueueWaitIdle( vulkan.GetVkQueue() ));
 	}
-
-	//vulkan.SaveImage( image, VK_IMAGE_LAYOUT_GENERAL, width, height, R"()" );
 
 	CHECK_ERR( vulkan.TestDebugTraceOutput( {raygen_shader, miss_shader/*, hit_shader*/}, "ShaderTrace_Test9.txt" ));
 	

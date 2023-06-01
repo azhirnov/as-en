@@ -71,13 +71,12 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit MBaseDirectContext (const RenderTask &task)				__Th___	: MBaseDirectContext{ task, MCommandBuffer{} } {}
-		MBaseDirectContext (const RenderTask &task, MCommandBuffer cmdbuf)	__Th___;
-		~MBaseDirectContext ()												__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
+		MBaseDirectContext (const RenderTask &task, MCommandBuffer, DebugLabel)	__Th___;
+		~MBaseDirectContext ()													__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
-		ND_ bool	_NoPendingBarriers ()									C_NE___	{ return _mngr.NoPendingBarriers(); }
-		ND_ auto&	_GetFeatures ()											C_NE___	{ return _mngr.GetDevice().GetFeatures(); }
+		ND_ bool	_NoPendingBarriers ()										C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ auto&	_GetFeatures ()												C_NE___	{ return _mngr.GetDevice().GetFeatures(); }
 
 		ND_ MetalCommandBufferRC	_EndCommandBuffer ();
 	};
@@ -90,9 +89,10 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline MBaseDirectContext::MBaseDirectContext (const RenderTask &task, MCommandBuffer cmdbuf) __Th___ :
+	inline MBaseDirectContext::MBaseDirectContext (const RenderTask &task, MCommandBuffer cmdbuf, DebugLabel dbg) __Th___ :
 		_MBaseDirectContext{	// throw
-			_ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf), DebugLabel{ task.DbgFullName() })
+			_ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf),
+										 dbg ? dbg : DebugLabel{ task.DbgFullName(), task.DbgColor() })
 		},
 		_mngr{ task }
 	{

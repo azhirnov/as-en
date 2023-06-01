@@ -4,7 +4,6 @@
 
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/Queue.h"
-#include "graphics/Public/GraphicsCreateInfo.h"
 
 namespace AE::Graphics
 {
@@ -21,18 +20,6 @@ namespace AE::Graphics
 		ubyte			minImageCount	= 2;
 		EImageUsage		usage			= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;	// TODO: keep ColorAttachment only
 		EImageOpt		options			= EImageOpt::BlitDst;
-
-		SwapchainDesc ()								__NE___	{}
-		SwapchainDesc (const SwapchainDesc &)			__NE___	= default;
-
-		SwapchainDesc (const GraphicsCreateInfo &info)	__NE___ :
-			format{ info.swapchain.format },
-			colorSpace{ info.swapchain.colorSpace },
-			presentMode{ info.swapchain.presentMode },
-			minImageCount{ CheckCast<ubyte>( info.maxFrames )},
-			usage{ info.swapchain.usage },
-			options{ info.swapchain.options }
-		{}
 	};
 	
 

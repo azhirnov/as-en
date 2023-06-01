@@ -76,7 +76,6 @@ namespace AE::Graphics
 		ND_ uint					RenderPassSubpassIndex ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _subpassIndex; }
 		ND_ VBArray_t				GetVertexBuffers ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _vertexBuffers.GetKeyArray(); }
 
-		
 		DEBUG_ONLY(  ND_ StringView  GetDebugName ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 	};
 

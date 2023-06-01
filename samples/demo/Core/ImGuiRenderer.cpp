@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_IMGUI
-# include "demo/Utils/ImGuiRenderer.h"
+# include "demo/Core/ImGuiRenderer.h"
 
 # include "imgui.h"
 # include "imgui_internal.h"
@@ -17,7 +17,7 @@ namespace {
 	Init
 =================================================
 */
-	bool  ImGuiRenderer::Init (RC<GfxLinearMemAllocator> gfxAlloc, RenderTechPipelinesPtr rtech)
+	bool  ImGuiRenderer::Init (GfxMemAllocatorPtr gfxAlloc, RenderTechPipelinesPtr rtech)
 	{
 		CHECK_ERR( rtech );
 		_rtech = rtech;
@@ -59,18 +59,11 @@ namespace {
 			auto [ds, idx] = res_mngr.CreateDescriptorSet( _ppln, DescriptorSetName{"imgui.ds0"} );
 			CHECK_ERR( ds and idx == _dsIndex );
 			_descSet = RVRef(ds);
-		}
-
-		_ub = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::imgui_ub>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
-								     "Imgui uniforms", gfxAlloc );
-		CHECK_ERR( _ub );
-
-		{
+		}{
 			DescriptorUpdater	updater;
 			
 			CHECK( updater.Set( _descSet, EDescUpdateMode::Partialy ));
 			updater.BindImage( UniformName{"un_Texture"}, _font.view );
-			updater.BindBuffer< ShaderTypes::imgui_ub >( UniformName{"ub"}, _ub );
 			CHECK( updater.Flush() );
 		}
 		return true;
@@ -90,6 +83,42 @@ namespace {
 	{
 		_uiToPix = _scale / Max( pixToMm.x, pixToMm.y );
 		_pixToUI = 1.f / _uiToPix;
+	}
+	
+/*
+=================================================
+	Upload
+=================================================
+*/
+	bool  ImGuiRenderer::Upload (DirectCtx::Transfer &ctx)
+	{
+		if_unlikely( not _fontInitialized )
+		{
+			_fontInitialized = true;
+			return _Upload( ctx );
+		}
+		return true;
+	}
+	
+/*
+=================================================
+	Render
+=================================================
+*/
+	bool  ImGuiRenderer::Render (DirectCtx::Draw &ctx,
+								 const IOutputSurface::RenderTarget &rt,
+								 const Function<void()> &ui)
+	{
+		CHECK_ERR( _fontInitialized );
+		CHECK_ERR( _Update( rt, ui ));
+
+		// same as ImGui::GetDrawData()
+		auto*	viewport = _imguiCtx->Viewports[0];
+
+		if_likely( viewport->DrawDataP.Valid )
+			_DrawUI( ctx, viewport->DrawDataP );
+
+		return true;
 	}
 
 /*
@@ -123,25 +152,18 @@ namespace {
 
 		// same as ImGui::GetDrawData()
 		auto*	viewport = _imguiCtx->Viewports[0];
-
-		DirectCtx::Transfer		copy_ctx{ rtask, RVRef(cmdbuf) };
-			
-		if_likely( viewport->DrawDataP.Valid )
+		
+		if_unlikely( not _fontInitialized )
 		{
-			ImDrawData const&		draw_data	= viewport->DrawDataP;
-			ImVec2 const&			scale		= _imguiCtx->IO.DisplayFramebufferScale;
-			ShaderTypes::imgui_ub	ub_data;
-			
-			ub_data.scale.x		= 2.0f / (draw_data.DisplaySize.x * scale.x);
-			ub_data.scale.y		= 2.0f / (draw_data.DisplaySize.y * scale.y);
+			DirectCtx::Transfer		copy_ctx{ rtask, RVRef(cmdbuf) };
 
-			ub_data.translate.x	= -1.0f - (draw_data.DisplayPos.x * ub_data.scale.x);
-			ub_data.translate.y	= -1.0f - (draw_data.DisplayPos.y * ub_data.scale.y);
+			_fontInitialized = true;
+			Unused( _Upload( copy_ctx ));
 
-			CHECK( copy_ctx.UploadBuffer( _ub, 0_b, Sizeof(ub_data), &ub_data ));
+			cmdbuf = copy_ctx.ReleaseCommandBuffer();
 		}
-
-		DirectCtx::Graphics		gctx{ rtask, copy_ctx.ReleaseCommandBuffer() };
+		
+		DirectCtx::Graphics		gctx{ rtask, RVRef(cmdbuf) };
 			
 		gctx.AccumBarriers()
 			.MemoryBarrier( EResourceState::Host_Write, EResourceState::VertexBuffer )
@@ -156,11 +178,9 @@ namespace {
 
 		if ( draw )
 			draw( dctx );
-
+			
 		if_likely( viewport->DrawDataP.Valid )
-		{
 			_DrawUI( dctx, viewport->DrawDataP );
-		}
 
 		gctx.EndRenderPass( dctx, rp_desc );
 
@@ -271,6 +291,19 @@ namespace {
 		dctx.BindPipeline( _ppln );
 		dctx.BindDescriptorSet( _dsIndex, _descSet );
 
+		{
+			ImVec2 const&			scale	= _imguiCtx->IO.DisplayFramebufferScale;
+			ShaderTypes::imgui_ub	ub_data;
+			
+			ub_data.scale.x		= 2.0f / (drawData.DisplaySize.x * scale.x);
+			ub_data.scale.y		= 2.0f / (drawData.DisplaySize.y * scale.y);
+
+			ub_data.translate.x	= -1.0f - (drawData.DisplayPos.x * ub_data.scale.x);
+			ub_data.translate.y	= -1.0f - (drawData.DisplayPos.y * ub_data.scale.y);
+
+			dctx.PushConstant( _pcIndex, ub_data );
+		}
+
 		CHECK_ERR( _UploadVB( dctx, drawData ));
 
 		uint	idx_offset	= 0;
@@ -309,10 +342,10 @@ namespace {
 	
 /*
 =================================================
-	Upload
+	_Upload
 =================================================
 */
-	bool  ImGuiRenderer::Upload (DirectCtx::Transfer &copyCtx)
+	bool  ImGuiRenderer::_Upload (DirectCtx::Transfer &copyCtx)
 	{
 		ubyte*	pixels;
 		int		width, height;
@@ -355,7 +388,7 @@ namespace {
 	{
 		auto&	res_mngr = RenderTaskScheduler().GetResourceManager();
 		
-		res_mngr.DelayedReleaseResources( _descSet, _ub, _font.image, _font.view );
+		res_mngr.DelayedReleaseResources( _descSet, _font.image, _font.view );
 		
 		if ( _imguiCtx != null )
 			ImGui::DestroyContext( _imguiCtx );

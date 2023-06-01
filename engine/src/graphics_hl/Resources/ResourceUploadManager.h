@@ -76,26 +76,26 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		ResourceUploadManager ();
-		~ResourceUploadManager ();
+		ResourceUploadManager ()																													__NE___;
+		~ResourceUploadManager ()																													__NE___;
 
-		ND_ ImageResult  ReadImage (ImageID imageId, const uint2 &imageOffset, const uint2 &dim, RC<RStream> stream, const Range<Bytes> &fileRange);
-		//ND_ ImageResult  UploadImage ();
+		ND_ ImageResult  ReadImage (ImageID imageId, const uint2 &imageOffset, const uint2 &dim, RC<RStream> stream, const Range<Bytes> &fileRange)	__NE___;
+		//ND_ ImageResult  UploadImage ()																											__NE___;
 
-		ND_ BufferResult  ReadBuffer (BufferID bufferId, const Range<Bytes> &bufferRange, RC<RStream> stream, const Range<Bytes> &fileRange);
-		ND_ BufferResult  ReadBuffer (BufferID bufferId, RC<RStream> stream, const Range<Bytes> &fileRange);
-		//ND_ BufferResult  UploadBuffer ();
+		ND_ BufferResult  ReadBuffer (BufferID bufferId, const Range<Bytes> &bufferRange, RC<RStream> stream, const Range<Bytes> &fileRange)		__NE___;
+		ND_ BufferResult  ReadBuffer (BufferID bufferId, RC<RStream> stream, const Range<Bytes> &fileRange)											__NE___;
+		//ND_ BufferResult  UploadBuffer ()																											__NE___;
 
 
-		void  Upload (TransferContext_t &ctx, EStagingHeapType heapType)
+		void  Upload (TransferContext_t &ctx, EStagingHeapType heapType)																			__NE___
 		{
 			_UploadImages( ctx, heapType );
 			_UploadBuffers( ctx, heapType );
 		}
 
 	private:
-		void  _UploadImages (TransferContext_t &ctx, EStagingHeapType heapType);
-		void  _UploadBuffers (TransferContext_t &ctx, EStagingHeapType heapType);
+		void  _UploadImages (TransferContext_t &ctx, EStagingHeapType heapType)																		__NE___;
+		void  _UploadBuffers (TransferContext_t &ctx, EStagingHeapType heapType)																	__NE___;
 	};
 
 

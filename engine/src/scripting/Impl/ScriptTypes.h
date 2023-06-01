@@ -29,7 +29,7 @@ namespace AE::Scripting
 	struct ScriptTypeInfo <void>
 	{
 		using type = void;
-
+		
 		static constexpr bool is_object		 = false;
 		static constexpr bool is_ref_counted = false;
 
@@ -38,78 +38,78 @@ namespace AE::Scripting
 		static void  CppArg (INOUT String &s)	{ s += "void"; }
 	};
 
-#	define AE_DECL_SCRIPT_TYPE( _type_, _name_ ) \
-		template <> \
-		struct ScriptTypeInfo < _type_ > \
-		{ \
-			using type = _type_; \
-			\
-			static constexpr bool is_object		 = false; \
-			static constexpr bool is_ref_counted = false; \
-			\
-			static void  Name (INOUT String &s)		{ s += (_name_); } \
-			static void  ArgName (INOUT String &s)	{ s += (_name_); } \
-			static void  CppArg (INOUT String &s)	{ s += (_name_); } \
+#	define AE_DECL_SCRIPT_TYPE( _type_, _name_ )											\
+		template <>																			\
+		struct ScriptTypeInfo < _type_ >													\
+		{																					\
+			using type = _type_;															\
+																							\
+			static constexpr bool is_object		 = false;									\
+			static constexpr bool is_ref_counted = false;									\
+																							\
+			static void  Name (INOUT String &s)		{ s += (_name_); }						\
+			static void  ArgName (INOUT String &s)	{ s += (_name_); }						\
+			static void  CppArg (INOUT String &s)	{ s += (_name_); }						\
 		}
 	
-#	define AE_DECL_SCRIPT_OBJ( _type_, _name_ ) \
-		template <> \
-		struct ScriptTypeInfo < _type_ > \
-		{ \
-			using type = _type_; \
-			\
-			static constexpr bool is_object		 = true; \
-			static constexpr bool is_ref_counted = false; \
-			\
-			static void  Name (INOUT String &s)		{ s += (_name_); } \
-			static void  ArgName (INOUT String &s)	{ s += (_name_); } \
-			static void  CppArg (INOUT String &s)	{ s += (_name_); } \
+#	define AE_DECL_SCRIPT_OBJ( _type_, _name_ )												\
+		template <>																			\
+		struct ScriptTypeInfo < _type_ >													\
+		{																					\
+			using type = _type_;															\
+																							\
+			static constexpr bool is_object		 = true;									\
+			static constexpr bool is_ref_counted = false;									\
+																							\
+			static void  Name (INOUT String &s)		{ s += (_name_); }						\
+			static void  ArgName (INOUT String &s)	{ s += (_name_); }						\
+			static void  CppArg (INOUT String &s)	{ s += (_name_); }						\
 		}
 
-#	define AE_DECL_SCRIPT_OBJ_RC( _type_, _name_ ) \
-		template <> \
-		struct ScriptTypeInfo < _type_ > \
-		{ \
-			using type = _type_; \
-			\
-			static constexpr bool is_object		 = true; \
-			static constexpr bool is_ref_counted = false; \
-			\
-			static void  Name (INOUT String &s)		{ s += (_name_); } \
-			static void  ArgName (INOUT String &s)	{ s += (_name_); } \
-			static void  CppArg (INOUT String &s)	{ s += (_name_); } \
-		}; \
-		\
-		template <> \
-		struct ScriptTypeInfo < _type_* > \
-		{ \
-			using type   = _type_ *; \
-			using Base_t = ScriptTypeInfo< _type_ >; \
-			\
-			static constexpr bool is_object		 = true; \
-			static constexpr bool is_ref_counted = true; \
-			\
-			static void  Name (INOUT String &s)		{ s += _name_; s += '@'; } \
-			static void  ArgName (INOUT String &s)	{ s += _name_; s += '@'; } \
-			static void  CppArg (INOUT String &s)	{ s += "RC<";  s += _name_; s += ">"; } \
-		}; \
-		\
-		template <> \
-		struct ScriptTypeInfo < AngelScriptHelper::SharedPtr< _type_ > > \
-		{ \
-			using type   = AngelScriptHelper::SharedPtr< _type_ >; \
-			using Base_t = ScriptTypeInfo< _type_ >; \
-			\
-			static constexpr bool is_object		 = true; \
-			static constexpr bool is_ref_counted = true; \
-			\
-			static void  Name (INOUT String &s)		{ s += _name_; s += '@'; } \
-			static void  ArgName (INOUT String &s)	{ s += _name_; s += '@'; } \
-			static void  CppArg (INOUT String &s)	{ s += "RC<";  s += _name_; s += ">"; } \
-		}; \
-		\
-		template <> struct ScriptTypeInfo < const _type_* > {}; \
-		template <> struct ScriptTypeInfo < _type_& > {}; \
+#	define AE_DECL_SCRIPT_OBJ_RC( _type_, _name_ )											\
+		template <>																			\
+		struct ScriptTypeInfo < _type_ >													\
+		{																					\
+			using type = _type_;															\
+																							\
+			static constexpr bool is_object		 = true;									\
+			static constexpr bool is_ref_counted = true;									\
+																							\
+			static void  Name (INOUT String &s)		{ s += (_name_); }						\
+			static void  ArgName (INOUT String &s)	{ s += (_name_); }						\
+			static void  CppArg (INOUT String &s)	{ s += (_name_); }						\
+		};																					\
+																							\
+		template <>																			\
+		struct ScriptTypeInfo < _type_* >													\
+		{																					\
+			using type   = _type_ *;														\
+			using Base_t = ScriptTypeInfo< _type_ >;										\
+																							\
+			static constexpr bool is_object		 = true;									\
+			static constexpr bool is_ref_counted = true;									\
+																							\
+			static void  Name (INOUT String &s)		{ s += _name_; s += '@'; }				\
+			static void  ArgName (INOUT String &s)	{ s += _name_; s += '@'; }				\
+			static void  CppArg (INOUT String &s)	{ s += "RC<";  s += _name_; s += ">"; }	\
+		};																					\
+																							\
+		template <>																			\
+		struct ScriptTypeInfo < AngelScriptHelper::SharedPtr< _type_ > >					\
+		{																					\
+			using type   = AngelScriptHelper::SharedPtr< _type_ >;							\
+			using Base_t = ScriptTypeInfo< _type_ >;										\
+																							\
+			static constexpr bool is_object		 = true;									\
+			static constexpr bool is_ref_counted = true;									\
+																							\
+			static void  Name (INOUT String &s)		{ s += _name_; s += '@'; }				\
+			static void  ArgName (INOUT String &s)	{ s += _name_; s += '@'; }				\
+			static void  CppArg (INOUT String &s)	{ s += "RC<";  s += _name_; s += ">"; }	\
+		};																					\
+																							\
+		template <> struct ScriptTypeInfo < const _type_* > {};								\
+		template <> struct ScriptTypeInfo < _type_& > {};									\
 		template <> struct ScriptTypeInfo < const _type_& > {}
 
 
@@ -119,6 +119,8 @@ namespace AE::Scripting
 	DECL_SCRIPT_TYPE( double );
 	DECL_SCRIPT_TYPE( int );
 	DECL_SCRIPT_TYPE( uint );
+#	undef DECL_SCRIPT_TYPE
+
 	AE_DECL_SCRIPT_TYPE( sbyte,		"int8" );
 	AE_DECL_SCRIPT_TYPE( ubyte,		"uint8" );
 	AE_DECL_SCRIPT_TYPE( sshort,	"int16" );
@@ -126,23 +128,28 @@ namespace AE::Scripting
 	AE_DECL_SCRIPT_TYPE( slong,		"int64" );
 	AE_DECL_SCRIPT_TYPE( ulong,		"uint64" );
 	AE_DECL_SCRIPT_OBJ(  String,	"string" );
-#	undef DECL_SCRIPT_TYPE
 
 
 	// only 'in' and 'inout' are supported
-#	define AE_DECL_SCRIPT_WRAP( _templ_, _name_, _arg_, _cppArg_ ) \
-		template <typename T> \
-		struct ScriptTypeInfo < _templ_ > \
-		{ \
-			using type   = _templ_; \
-			using Base_t = ScriptTypeInfo<T>; \
-			\
-			static constexpr bool is_object		 = false; \
-			static constexpr bool is_ref_counted = false; \
-			\
-			static void  Name (INOUT String &s)		{ _name_; } \
-			static void  ArgName (INOUT String &s)	{ _arg_; } \
-			static void  CppArg (INOUT String &s)	{ _cppArg_; } \
+#	define AE_DECL_SCRIPT_WRAP( _templ_, _name_, _arg_, _cppArg_ )				\
+		template <typename T>													\
+		struct ScriptTypeInfo < _templ_ >										\
+		{																		\
+		public:																	\
+			using type   = _templ_;												\
+			using Base_t = ScriptTypeInfo<T>;									\
+																				\
+			static constexpr bool is_object			= false;					\
+			static constexpr bool is_ref_counted	= false;					\
+																				\
+		private:																\
+			static constexpr bool _is_object		= Base_t::is_object;		\
+			static constexpr bool _is_ref_counted	= Base_t::is_ref_counted;	\
+																				\
+		public:																	\
+			static void  Name (INOUT String &s)		{ _name_; }					\
+			static void  ArgName (INOUT String &s)	{ _arg_; }					\
+			static void  CppArg (INOUT String &s)	{ _cppArg_; }				\
 		}
 
 #	define MULTILINE_ARG( ... )  __VA_ARGS__
@@ -184,7 +191,7 @@ namespace AE::Scripting
 						 ),
 						 MULTILINE_ARG(
 							Base_t::Name( s );
-							s += " &inout";
+							s += (_is_ref_counted ? " &inout" : " &out");
 						 ),
 						 MULTILINE_ARG(
 							Base_t::CppArg( s );
@@ -215,7 +222,7 @@ namespace AE::Scripting
 						 ),
 						 MULTILINE_ARG(
 							Base_t::Name( s );
-							s += " &inout";
+							s += (_is_ref_counted ? " &inout" : " &out");
 						 ),
 						 MULTILINE_ARG(
 							Base_t::CppArg( s );
@@ -230,7 +237,7 @@ namespace AE::Scripting
 	// Angel Script Helper
 	//
 
-	struct AngelScriptHelper final
+	namespace AngelScriptHelper
 	{
 		struct SimpleRefCounter
 		{
@@ -264,6 +271,11 @@ namespace AE::Scripting
 		{
 			//STATIC_ASSERT( IsBaseOf< SimpleRefCounter, T > );
 
+		// types
+		public:
+			using Type_t = T;
+
+
 		// variables
 		private:
 			T *		_ptr = null;
@@ -276,6 +288,7 @@ namespace AE::Scripting
 
 		public:
 			SharedPtr ()										__NE___	{}
+			SharedPtr (std::nullptr_t)							__NE___ {}
 			explicit SharedPtr (T *ptr)							__NE___	: _ptr{ptr}			{ _IncRef(); }
 			SharedPtr (const SharedPtr<T> &other)				__NE___	: _ptr{other._ptr}	{ _IncRef(); }
 			SharedPtr (SharedPtr<T> &&other)					__NE___	: _ptr{other._ptr}	{ other._ptr = null; }
@@ -290,6 +303,7 @@ namespace AE::Scripting
 			SharedPtr<T>&  operator = (const SharedPtr<T> &rhs)	__NE___	{ _DecRef();  _ptr = rhs._ptr;  _IncRef();			return *this; }
 			SharedPtr<T>&  operator = (SharedPtr<T> &&rhs)		__NE___	{ _DecRef();  _ptr = rhs._ptr;  rhs._ptr = null;	return *this; }
 
+			ND_ bool  operator == (std::nullptr_t)				C_NE___	{ return _ptr == null; }
 			ND_ bool  operator == (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr == rhs._ptr; }
 			ND_ bool  operator >  (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr >  rhs._ptr; }
 			ND_ bool  operator <  (const SharedPtr<T> &rhs)		C_NE___	{ return _ptr <  rhs._ptr; }
@@ -314,6 +328,18 @@ namespace AE::Scripting
 		
 		template <typename T>
 		static constexpr bool	IsSharedPtrNoQual = IsSpecializationOf< RemoveAllQualifiers<T>, SharedPtr >;
+		
+		template <typename T, bool IsPtr>
+		struct _RemoveSharedPtr {
+			using type = typename RemoveAllQualifiers<T>::Type_t;
+		};
+		template <typename T>
+		struct _RemoveSharedPtr< T, false > {
+			using type = T;
+		};
+
+		template <typename T>
+		using RemoveSharedPtr = _RemoveSharedPtr< T, IsSharedPtrNoQual<T> >::type;
 
 
 		template <typename T>
@@ -761,7 +787,7 @@ namespace AE::Scripting
 			ND_ static T *  Get (AngelScript::asIScriptContext *ctx)
 			{
 				T* result = static_cast<T *>(ctx->GetReturnObject());
-				if ( result ) result->__AddRef();
+				if ( result != null ) result->__AddRef();
 				return result;
 			}
 
@@ -879,6 +905,90 @@ namespace AE::Scripting
 
 			static constexpr bool	value = CheckInputArgTypes1< TL1, TL2, TL1::Count >::value;
 		};
+
+
+
+		//
+		// Check Type
+		//
+		template <typename Type>
+		ND_ bool  CheckArgType (const int typeId, const AngelScript::asDWORD flags, AngelScript::asIScriptEngine* se)
+		{
+			using namespace AngelScript;
+			using T = RemoveAllQualifiers< Type >;
+
+			const bool	is_inref	= AllBits( flags, asTM_INREF );
+			const bool	is_outref	= AllBits( flags, asTM_OUTREF );
+			const bool	is_inoutref	= AllBits( flags, asTM_INOUTREF );
+			const bool	is_const	= AllBits( flags, asTM_CONST );
+
+			if constexpr( not IsAnyConst<Type> )
+			{
+				if constexpr( IsReference<Type> or IsPointer<Type> )
+				{
+					if ( not (is_inoutref or is_outref) )
+						return false;
+				}
+				else
+				if ( is_const )
+					return false;
+			}
+
+			if constexpr( IsAnyConst<Type> )
+			{
+				if constexpr( IsReference<Type> or IsPointer<Type> )
+				{
+					if ( not is_inref )
+						return false;
+				}
+				else
+				if ( not is_const )
+					return false;
+			}
+
+			if constexpr( IsSameTypes< T, bool >)	return typeId == asTYPEID_BOOL;		else
+			if constexpr( IsSameTypes< T, sbyte >)	return typeId == asTYPEID_INT8;		else
+			if constexpr( IsSameTypes< T, ubyte >)	return typeId == asTYPEID_UINT8;	else
+			if constexpr( IsSameTypes< T, sshort >)	return typeId == asTYPEID_INT16;	else
+			if constexpr( IsSameTypes< T, ushort >)	return typeId == asTYPEID_UINT16;	else
+			if constexpr( IsSameTypes< T, sint >)	return typeId == asTYPEID_INT32;	else
+			if constexpr( IsSameTypes< T, uint >)	return typeId == asTYPEID_UINT32;	else
+			if constexpr( IsSameTypes< T, slong >)	return typeId == asTYPEID_INT64;	else
+			if constexpr( IsSameTypes< T, ulong >)	return typeId == asTYPEID_UINT64;	else
+			if constexpr( IsSameTypes< T, float >)	return typeId == asTYPEID_FLOAT;	else
+			if constexpr( IsSameTypes< T, double >)	return typeId == asTYPEID_DOUBLE;	else
+			if constexpr( IsEnum< T >)				return false;						else	// TODO
+			{
+				using T2	= AngelScriptHelper::RemoveSharedPtr<T>;
+				using Info	= ScriptTypeInfo<T>;
+				
+				constexpr bool	is_obj		= Info::is_object;
+				constexpr bool	is_rc		= Info::is_ref_counted					or
+											  ScriptTypeInfo<T2*>::is_ref_counted	or
+											  AngelScriptHelper::IsSharedPtrNoQual<T>;
+				constexpr bool	is_value	= not (is_obj or is_rc) and IsClass<T>;
+				STATIC_ASSERT( is_obj or is_rc or is_value );
+
+				const asDWORD	obj_flags	= is_rc ? asOBJ_REF : asOBJ_VALUE;
+				asITypeInfo*	info		= se->GetTypeInfoById( typeId );
+
+				if ( info == null )
+					return false;
+
+				StringView	name1	= info->GetName();
+				String		name2;
+				
+				if constexpr( AngelScriptHelper::IsSharedPtrNoQual<T> )
+					ScriptTypeInfo<T2>::Name( OUT name2 );
+				else
+					Info::Name( OUT name2 );
+
+				if ( name1 != name2 )
+					return false;
+
+				return AllBits( info->GetFlags(), obj_flags );
+			}
+		}
 
 
 	} // _hidden_

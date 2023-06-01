@@ -231,24 +231,27 @@ namespace AE::Graphics
 		_visit_( Adreno_700_DC4_SC5 )	/* 730, 740											with dual channel LPDDR4 or single channel LPDDR5	*/\
 		\
 		/*---- AMD ----*/\
-		_visit_( AMD_GCN1 )				/* 520, 610									*/\
-		_visit_( AMD_GCN2 )				/* PS4										*/\
-		_visit_( AMD_GCN3 )				/* 530										*/\
-		_visit_( AMD_GCN4 )				/* PS4 Pro, 540-590, 620-640				*/\
-		_visit_( AMD_GCN5 )				/* RX Vega, Radeon VII						*/\
-		_visit_( AMD_GCN5_APU )			/* Ryzen 2xxx - 5xxx APU					*/\
-		_visit_( AMD_RDNA1 )			/* 5300 - 5700								*/\
-		_visit_( AMD_RDNA2 )			/* N6: 6400 - 6500, N7: 6600 - 6900			*/\
-		_visit_( AMD_RDNA2_APU )		/* PS5, Ryzen 6xxx - 7xxx APU, SteamDeck	*/\
+		_visit_( AMD_GCN1 )				/* 520, 610												*/\
+		_visit_( AMD_GCN2 )				/* PS4													*/\
+		_visit_( AMD_GCN3 )				/* 530													*/\
+		_visit_( AMD_GCN4 )				/* PS4 Pro, 540-590, 620-640							*/\
+		_visit_( AMD_GCN5 )				/* RX Vega, Radeon VII									*/\
+		_visit_( AMD_GCN5_APU )			/* Ryzen 2xxx - 5xxx APU, Ryzen 7x30 APU				*/\
+		_visit_( AMD_RDNA1 )			/* 5300 - 5700											*/\
+		_visit_( AMD_RDNA2 )			/* N6: 6400 - 6500, N7: 6600 - 6900						*/\
+		_visit_( AMD_RDNA2_APU )		/* PS5, SteamDeck, Ryzen 6xxx / 7x20 / 7x35 / 7x45 APU 	*/\
+		_visit_( AMD_RDNA3 )			/* N5/N6: 7900											*/\
+		_visit_( AMD_RDNA3_APU )		/* Ryzen 7x40 APU, Z1									*/\
 		\
 		/*---- Apple ----*/\
 		_visit_( Apple_A8 )				\
-		_visit_( Apple_A9_A10 )			\
-		_visit_( Apple_A11 )			\
-		_visit_( Apple_A12 )			\
-		_visit_( Apple_A13 )			\
-		_visit_( Apple_A14_M1 )			/* M1 Pro, M1 Max	*/\
-		_visit_( Apple_A15_M2 )			\
+		_visit_( Apple_A9_A10 )			/*					(Hurricane / Zephyr)	*/\
+		_visit_( Apple_A11 )			/*					(Monsoon / Mistral)		*/\
+		_visit_( Apple_A12 )			/* A12X, A12Z		(Vortex / Tempest)		*/\
+		_visit_( Apple_A13 )			/*					(Lightning / Thunder)	*/\
+		_visit_( Apple_A14_M1 )			/* M1 Pro, M1 Max	(Firestorm / Icestorm)	*/\
+		_visit_( Apple_A15_M2 )			/* M2 Pro, M2 Max	(Avalanche / Blizzard)	*/\
+		_visit_( Apple_A16 )			/*					(Everest / Sawtooth )	*/\
 		\
 		/*---- Mali ----*/\
 		_visit_( Mali_Midgard_Gen2 )	/* T622, T624, T628, T678		*/\
@@ -303,10 +306,10 @@ namespace AE::Graphics
 		_Adreno_End		= Adreno_700_DC4_SC5,
 
 		_AMD_Begin		= AMD_GCN1,
-		_AMD_End		= AMD_RDNA2_APU,
+		_AMD_End		= AMD_RDNA3_APU,
 
 		_Apple_Begin	= Apple_A8,
-		_Apple_End		= Apple_A15_M2,
+		_Apple_End		= Apple_A16,
 
 		_Mali_Begin		= Mali_Midgard_Gen2,
 		_Mali_End		= Mali_Valhall_Gen4,

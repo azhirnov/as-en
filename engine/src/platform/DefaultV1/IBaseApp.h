@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include "platform/DefaultImpl/AppConfig.h"
+#include "platform/DefaultV1/AppConfig.h"
 
-namespace AE::App
+namespace AE::AppV1
 {
 
 	//
@@ -30,4 +30,4 @@ namespace AE::App
 	};
 
 
-} // AE::App
+} // AE::AppV1

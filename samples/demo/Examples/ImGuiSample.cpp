@@ -1,10 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #ifdef AE_ENABLE_IMGUI
+# include "base/Algorithms/StringUtils.h"
 # include "demo/Examples/ImGuiSample.h"
-
 # include "imgui.h"
-# include "imgui_internal.h"
 
 namespace AE::Samples::Demo
 {
@@ -15,39 +14,56 @@ namespace AE::Samples::Demo
 	class ImGuiSample::ProcessInputTask final : public Threading::IAsyncTask
 	{
 	public:
-		ImGuiSample&		t;
+		RC<ImGuiSample>		t;
 		ActionQueueReader	reader;
 
-		ProcessInputTask (ImGuiSample* t, ActionQueueReader reader) :
-			IAsyncTask{ ETaskQueue::Worker },
-			t{ *t },
-			reader{ RVRef(reader) }
+		ProcessInputTask (ImGuiSample* p, ActionQueueReader reader) :
+			IAsyncTask{ ETaskQueue::PerFrame },
+			t{ p }, reader{ RVRef(reader) }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
-			t.imgui.mouseLBDown	= false;
-			t.imgui.mouseWheel	= {};
+			t->imgui.mouseLBDown	= false;
+			t->imgui.mouseWheel		= {};
 
 			ActionQueueReader::Header	hdr;
 			for (; reader.ReadHeader( OUT hdr );)
 			{
-				if ( hdr.name == InputActionName{"MousePos"} )
-					t.imgui.mousePos = reader.Data<packed_float2>( hdr.offset );
+				if_unlikely( hdr.name == InputActionName{"MousePos"} )
+					t->imgui.mousePos = reader.Data<packed_float2>( hdr.offset );
 				
-				if ( hdr.name == InputActionName{"MouseWheel"} )
-					t.imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset );
+				if_unlikely( hdr.name == InputActionName{"MouseWheel"} )
+					t->imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset );
 
-				if ( hdr.name == InputActionName{"MouseLBDown"} )
-					t.imgui.mouseLBDown = true;
+				if_unlikely( hdr.name == InputActionName{"MouseLBDown"} )
+					t->imgui.mouseLBDown = true;
 
-				if ( hdr.name == InputActionName{"Touch.Move"} ){
-					t.imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-					t.imgui.touchActive = hdr.state != EGestureState::End;
+				if_unlikely( hdr.name == InputActionName{"Test.Move"} ){
+					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
+					t->imgui.touchActive = hdr.state != EGestureState::End;
 				}
-				if ( hdr.name == InputActionName{"Touch.Click"} ){
-					t.imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-					t.imgui.mouseLBDown = true;
+				if_unlikely( hdr.name == InputActionName{"Touch.Click"} ){
+					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
+					t->imgui.mouseLBDown = true;
+				}
+				
+			//	if_unlikely( hdr.name == InputActionName{"Test.Move"} )			AE_LOGI( "Test.Move: "s << ToString(uint(hdr.state)) );
+				if_unlikely( hdr.name == InputActionName{"Test.Hold"} )			AE_LOGI( "Test.Hold: "s << ToString(uint(hdr.state)) );
+				if_unlikely( hdr.name == InputActionName{"Test.Down"} )			AE_LOGI( "Test.Down: "s << ToString(uint(hdr.state)) );
+				if_unlikely( hdr.name == InputActionName{"Test.Click"} )		AE_LOGI( "Test.Click: "s << ToString(uint(hdr.state)) );
+				if_unlikely( hdr.name == InputActionName{"Test.DoubleClick"} )	AE_LOGI( "Test.DoubleClick: "s << ToString(uint(hdr.state)) );
+				if_unlikely( hdr.name == InputActionName{"Test.LongPress"} )	AE_LOGI( "Test.LongPress: "s << ToString(uint(hdr.state)) );
+
+				if_unlikely( hdr.name == InputActionName{"Test.ScaleRotate2D"} )
+				{
+					float4	scale_rotate = reader.Data<packed_float4>( hdr.offset );
+
+					AE_LOGI( "Test.ScaleRotate2D: "s << ToString(uint(hdr.state)) <<
+							 ", scale delta: " << ToString( scale_rotate.x ) <<
+							 ", rotate delta: " << ToString( scale_rotate.y * Rad::RadToDeg() ) <<
+							 ", scale: " << ToString( scale_rotate.z ) <<
+							 ", rotate: " << ToString( scale_rotate.w * Rad::RadToDeg() ));
 				}
 			}
 		}
@@ -65,20 +81,20 @@ namespace AE::Samples::Demo
 	{
 	// variables
 	private:
-		ImGuiSample &		t;
+		RC<ImGuiSample>		t;
 		IOutputSurface &	surface;
 
 
 	// methods
 	public:
-		DrawTask (ImGuiSample* t, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
+		DrawTask (ImGuiSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
 			RenderTask{ batch, {"ImGui::Draw"} },
-			t{ *t }, surface{ surf }
+			t{ p }, surface{ surf }
 		{}
 		
-		void  Run () override
+		void  Run () __Th_OV
 		{
-			CHECK_TE( t.imgui.Draw( *this, surface, [this](){ _Update(); }, Default ));
+			CHECK_TE( t->imgui.Draw( *this, surface, [this](){ _Update(); }, Default ));
 		}
 
 		void  _Update ();
@@ -133,34 +149,8 @@ namespace AE::Samples::Demo
 			ImGui::End();
 		}
 
-		t.profiler.DrawImGUI();
+		t->profiler.DrawImGUI();
 	}
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Upload Task
-	//
-	class ImGuiSample::UploadTask final : public RenderTask
-	{
-	public:
-		ImGuiSample&	t;
-
-		UploadTask (ImGuiSample* t, CommandBatchPtr batch, DebugLabel) :
-			RenderTask{ batch, {"ImGui::Upload"} },
-			t{ *t }
-		{}
-		
-		void  Run () override
-		{
-			DirectCtx::Transfer	copy_ctx{ *this };
-		
-			CHECK_TE( t.imgui.Upload( copy_ctx ));
-		
-			Execute( copy_ctx );
-		}
-	};
 //-----------------------------------------------------------------------------
 
 
@@ -193,7 +183,7 @@ namespace AE::Samples::Demo
 */
 	AsyncTask  ImGuiSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps)
 	{
-		return Scheduler().Run< ProcessInputTask >( Tuple{ this, RVRef(reader) }, Tuple{deps} );
+		return Scheduler().Run< ProcessInputTask >( Tuple{ this, reader }, Tuple{deps} );
 	}
 
 /*
@@ -201,20 +191,10 @@ namespace AE::Samples::Demo
 	Draw
 =================================================
 */
-	AsyncTask  ImGuiSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> inDeps)
+	AsyncTask  ImGuiSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)
 	{
 		auto	batch = rg.Render( "ImGui pass" );
 		CHECK_ERR( batch );
-		
-		ArrayView<AsyncTask>	deps = inDeps;
-		AsyncTask				upload;
-
-		if ( not uploaded.load() )
-		{
-			uploaded.store( true );
-			upload	= batch->Run< UploadTask >( Tuple{this}, Tuple{deps} );
-			deps	= ArrayView<AsyncTask>{ upload };
-		}
 		
 		auto	surf_acquire = rg.BeginOnSurface( batch, deps );
 		CHECK_ERR( surf_acquire );

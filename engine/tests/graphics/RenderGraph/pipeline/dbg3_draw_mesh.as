@@ -9,7 +9,7 @@ void ASmain ()
 		RC<PipelineLayout>		pl = PipelineLayout( "dbg3_draw.pl" );
 		pl.AddFeatureSet( "MinMeshShader" );
 		pl.AddDebugDSLayout( EShaderOpt::Trace, EShaderStages::Mesh );
-		pl.Define( "#define DEBUG" );
+		pl.Define( "DEBUG" );
 	}
 
 	RC<MeshPipeline>	ppln = MeshPipeline( "dbg3_draw" );
@@ -17,15 +17,15 @@ void ASmain ()
 	
 	{
 		RC<Shader>	ms	= Shader();
-		ms.file		= "draw_mesh1_ms.glsl";
+		ms.file		= "draw_mesh1.glsl";
 		ms.options	= EShaderOpt::Trace;
 		ms.version	= EShaderVersion::SPIRV_1_4;
-		ms.SetMeshSpec1();
+		ms.MeshSpec1();
 		ppln.SetMeshShader( ms );
 	}
 	{
 		RC<Shader>	fs	= Shader();
-		fs.file		= "draw_mesh1_fs.glsl";
+		fs.file		= "draw_mesh1.glsl";
 		fs.version	= EShaderVersion::SPIRV_1_4;
 		ppln.SetFragmentShader( fs );
 	}

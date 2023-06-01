@@ -1,3 +1,4 @@
 
 #define LocalID		gl_LocalInvocationID
 #define GlobalID	gl_GlobalInvocationID
+#define LocalSize	gl_WorkGroupSize

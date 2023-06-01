@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler>
 
 void ASmain ()
@@ -22,10 +23,10 @@ void ASmain ()
 
 	{
 		RC<Shader>	cs = Shader();
-		cs.file		= "rquery.glsl";
+		cs.file		= "rquery.glsl";		// file:///<path>/samples/demo/_data/shaders/rquery.glsl
 		cs.version	= EShaderVersion::SPIRV_1_4;
 		cs.options	= EShaderOpt::Optimize;
-		cs.SetComputeSpecAndDefault( 8, 8 );
+		cs.ComputeSpecAndDefault( 8, 8 );
 		ppln.SetShader( cs );
 	}
 

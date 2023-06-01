@@ -62,7 +62,7 @@ namespace
 			CHECK( batch->GetQueueType() == EQueueType::Graphics );
 		}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -101,7 +101,7 @@ namespace
 			CHECK( batch->GetQueueType() == EQueueType::AsyncCompute );
 		}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -128,7 +128,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -161,11 +161,11 @@ namespace
 		AC3_TestData&		t;
 
 		AC3_FrameTask (AC3_TestData& t) :
-			IAsyncTask{ ETaskQueue::Worker },
+			IAsyncTask{ ETaskQueue::PerFrame },
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			if ( t.frameIdx.load() == 3 )
 			{

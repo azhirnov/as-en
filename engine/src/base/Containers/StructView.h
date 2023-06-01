@@ -149,7 +149,7 @@ namespace AE::Base
 
 	// methods
 	public:
-		StructView ()
+		StructView () __NE___
 		{}
 
 		StructView (ArrayView<T> arr) __NE___ :

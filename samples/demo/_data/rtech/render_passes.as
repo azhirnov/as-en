@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler>
 
 void UIPass ()
@@ -16,10 +17,18 @@ void UIPass ()
 
 	// specialization
 	{
-		RC<RenderPass>	rp = compat.AddSpecialization( "UIPass.def" );
+		RC<RenderPass>	rp = compat.AddSpecialization( "UIPass" );
 
 		RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
 		rt.loadOp	= EAttachmentLoadOp::Clear;
+		rt.storeOp	= EAttachmentStoreOp::Store;
+		rt.Layout( pass, EResourceState::ColorAttachment );
+	}
+	{
+		RC<RenderPass>	rp = compat.AddSpecialization( "UIPass.2" );
+
+		RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+		rt.loadOp	= EAttachmentLoadOp::Load;
 		rt.storeOp	= EAttachmentStoreOp::Store;
 		rt.Layout( pass, EResourceState::ColorAttachment );
 	}
@@ -46,7 +55,7 @@ void SceneRPass ()
 
 	// specialization
 	{
-		RC<RenderPass>	rp = compat.AddSpecialization( "SceneRPass.def" );
+		RC<RenderPass>	rp = compat.AddSpecialization( "SceneRPass" );
 
 		RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
 		rt.loadOp	= EAttachmentLoadOp::Clear;

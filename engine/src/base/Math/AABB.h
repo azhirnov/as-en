@@ -34,7 +34,7 @@ namespace AE::Math
 		ND_ Vec3_t	Center ()									C_NE___	{ return (max + min) * T{0.5}; }
 		ND_ Vec3_t	Extent ()									C_NE___	{ return (max - min); }
 		ND_ Vec3_t	HalfExtent ()								C_NE___	{ return Extent() * T{0.5}; }
-		ND_ bool	Empty ()									C_NE___	{ return all( max == min ); }
+		ND_ bool	Empty ()									C_NE___	{ return All( max == min ); }
 		ND_ T		Distance (const Vec3_t &point)				C_NE___;
 
 		ND_ bool  IsIntersects (const Self &other)				C_NE___;
@@ -84,7 +84,7 @@ namespace AE::Math
 	template <typename T>
 	bool  AxisAlignedBoundingBox<T>::IsIntersects (const Vec3_t &point) C_NE___
 	{
-		return all( point > min ) and all( point < max );
+		return All( point > min ) and All( point < max );
 	}
 	
 	template <typename T>

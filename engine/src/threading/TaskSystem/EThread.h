@@ -10,23 +10,38 @@ namespace AE::Threading
 
 	enum class ETaskQueue : ubyte
 	{
-		Main,		// thread with window message loop
-		Worker,
-		Renderer,	// single thread for opengl, multiple for vulkan (can be mixed with 'Worker')	// TODO: RendererHi, RendererLow
-		Network,
+		Main,			// Thread with window message loop, UI thread, OpenGL thread.
+
+		PerFrame,		// Worker thread with high priority, allows access to graphics API.
+						// You should not use tasks which is allowed for 'Background' thread.
+
+		Renderer,		// Same as 'PerFrame', used to limit number of threads which can access to graphics command pools.
+						// Allowed:
+						//		- RenderTask, RenderTaskCoro
+						// Note:
+						//		Command pool allocated per thread, so number of threads with active command pool should be small
+						//		to minimize memory usage. Software command buffers can be used in any thread.
+
+		Background,		// Worker thread with low priority.
+						// Allowed:
+						//		- Graphics: pipeline compilation, mem allocation, resource creation
+						//		- File IO
+						//		- Network
+
 		_Count
 	};
 
 
 	enum class EThread : ubyte
 	{
-		Main		= ubyte(ETaskQueue::Main),
-		Worker		= ubyte(ETaskQueue::Worker),
-		Renderer	= ubyte(ETaskQueue::Renderer),
-		Network		= ubyte(ETaskQueue::Network),
-		_Last		= ubyte(ETaskQueue::_Count),
+		Main			= ubyte(ETaskQueue::Main),
+		PerFrame		= ubyte(ETaskQueue::PerFrame),
+		Renderer		= ubyte(ETaskQueue::Renderer),
+		Background		= ubyte(ETaskQueue::Background),
+		_Last			= ubyte(ETaskQueue::_Count),
 
-		FileIO,		// thread can not process tasks
+		FileIO,			// Thread can not process tasks.
+						// Used only to check if OS complete async IO and mark task dependency as complete.
 		_Count
 	};
 	STATIC_ASSERT( sizeof(EThread) == sizeof(ETaskQueue) );

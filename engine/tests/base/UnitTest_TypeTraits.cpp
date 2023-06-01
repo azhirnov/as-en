@@ -202,6 +202,28 @@ namespace
 			STATIC_ASSERT( IsSameTypes< decltype(e2), ArrayView<int> >);
 		}*/
 	}
+
+	
+	static void  Test_IsConst ()
+	{
+		STATIC_ASSERT( not IsConst<int> );
+		STATIC_ASSERT( IsConst<const int> );
+		STATIC_ASSERT( IsConst<int const> );
+		STATIC_ASSERT( not IsConst<int const*> );
+		STATIC_ASSERT( IsConstPtr<int const*> );
+		STATIC_ASSERT( IsConstPtr<int* const*> );
+		STATIC_ASSERT( not IsConstPtr<int* const> );
+		STATIC_ASSERT( IsConst<int* const> );
+		STATIC_ASSERT( IsConstRef<int const&> );
+		STATIC_ASSERT( not IsConstRef<int &> );
+		
+		STATIC_ASSERT( IsAnyConst<const int> );
+		STATIC_ASSERT( IsAnyConst<int const> );
+		STATIC_ASSERT( IsAnyConst<int const*> );
+		STATIC_ASSERT( IsAnyConst<int* const*> );
+		STATIC_ASSERT( IsAnyConst<int* const> );
+		STATIC_ASSERT( IsAnyConst<int const&> );
+	}
 }
 
 
@@ -214,6 +236,7 @@ extern void UnitTest_TypeTraits ()
 	Test_TupleRef();
 	Test_Nothrow();
 	Test_ArrayView();
+	Test_IsConst();
 
 	TEST_PASSED();
 }

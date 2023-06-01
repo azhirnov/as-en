@@ -390,11 +390,11 @@ namespace AE::Base
 {
 	template <>	struct TMemCopyAvailable< SFloat16 >		{ static constexpr bool  value = true; };
 	template <>	struct TZeroMemAvailable< SFloat16 >		{ static constexpr bool  value = true; };
-	template <>	struct TTrivialySerializable< SFloat16 >	{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< SFloat16 >	{ static constexpr bool  value = true; };
 	
 	template <>	struct TMemCopyAvailable< UFloat16 >		{ static constexpr bool  value = true; };
 	template <>	struct TZeroMemAvailable< UFloat16 >		{ static constexpr bool  value = true; };
-	template <>	struct TTrivialySerializable< UFloat16 >	{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< UFloat16 >	{ static constexpr bool  value = true; };
 
 	namespace _hidden_
 	{

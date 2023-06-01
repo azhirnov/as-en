@@ -4,14 +4,13 @@
 
 #include "base/Algorithms/StringUtils.h"
 #include "scripting/Impl/ScriptEngine.h"
-#include "scripting/Impl/ScriptTypes.h"
 
 namespace AE::Scripting
 {
 
 	enum class EUnaryOperator
 	{
-		Inverse,
+		Inverse,	
 		Not,
 		PreInc,
 		PreDec,
@@ -45,7 +44,7 @@ namespace AE::Scripting
 			static const char *  _BinRightToStr (EBinaryOperator op);
 		};
 
-		template <typename Func>
+		template <typename Fn>
 		ND_ constexpr bool IsGlobal ();
 
 	} // _hidden_
@@ -89,15 +88,15 @@ namespace AE::Scripting
 			explicit OperatorBinder (ClassBinder<T> *ptr) : _binder(ptr) {}
 
 		public:
-			template <typename Func>	Self &	Unary (EUnaryOperator op, Func func)		__Th___;
-			template <typename Func>	Self &	BinaryAssign (EBinaryOperator op, Func func)__Th___;
-			template <typename Func>	Self &	Binary (EBinaryOperator op, Func func)		__Th___;
-			template <typename Func>	Self &	BinaryRH (EBinaryOperator op, Func func)	__Th___;
+			template <typename Fn>		Self &	Unary (EUnaryOperator op, Fn func)			__Th___;
+			template <typename Fn>		Self &	BinaryAssign (EBinaryOperator op, Fn func)	__Th___;
+			template <typename Fn>		Self &	Binary (EBinaryOperator op, Fn func)		__Th___;
+			template <typename Fn>		Self &	BinaryRH (EBinaryOperator op, Fn func)		__Th___;
 			
 
 			// index
 			template <typename OutType, typename ...InTypes>	Self &	Index ()			__Th___;	// x[...]
-			template <typename Func>							Self &	Index (Func func)	__Th___;
+			template <typename Fn>								Self &	Index (Fn func)		__Th___;
 
 
 			// call
@@ -136,8 +135,8 @@ namespace AE::Scripting
 			template <typename OutType> Self &	ImplCast (OutType const* (*) (const T *))	__Th___;
 
 			// compare
-			template <typename Func>	Self &	Equals (Func func)							__Th___;	// x == y
-			template <typename Func>	Self &	Compare (Func func)							__Th___;	// x <> y
+			template <typename Fn>		Self &	Equals (Fn func)							__Th___;	// x == y
+			template <typename Fn>		Self &	Compare (Fn func)							__Th___;	// x <> y
 		};
 
 
@@ -153,9 +152,9 @@ namespace AE::Scripting
 
 	// methods
 	public:
-		explicit ClassBinder (const ScriptEnginePtr &eng)					__NE___;
-		ClassBinder (const ScriptEnginePtr &eng, StringView name)			__Th___;
-		~ClassBinder ()														__NE___;
+		explicit ClassBinder (const ScriptEnginePtr &eng)												__NE___;
+		ClassBinder (const ScriptEnginePtr &eng, StringView name)										__Th___;
+		~ClassBinder ()																					__NE___;
 
 
 		void  CreatePodValue (int flags = 0)															__Th___;
@@ -163,45 +162,48 @@ namespace AE::Scripting
 		void  CreateRef (int flags = 0, Bool hasFactory = True{})										__Th___;
 		void  CreateRef (T* (*create)(), void (T:: *addRef)(), void (T:: *releaseRef)(), int flags = 0)	__Th___;
 		
-		ND_ bool  IsRegistred ()											C_NE___;
+		ND_ bool  IsRegistred ()																		C_NE___;
 
-		template <typename Func>
-		void  AddConstructor (Func ctorPtr)									__Th___;
+		template <typename Fn>
+		void  AddConstructor (Fn ctorPtr)																__Th___;
 		
-		template <typename Func>
-		void  AddFactoryCtor (Func ctorPtr)									__Th___;
+		template <typename Fn>
+		void  AddFactoryCtor (Fn ctorPtr)																__Th___;
 
 		template <typename B>
-		void  AddProperty (B T::* value, StringView name)					__Th___;
+		void  AddProperty (B T::* value, StringView name)												__Th___;
 		
 		template <typename A, typename B>
-		void  AddProperty (A T::* base, B A::* value, StringView name)		__Th___;
+		void  AddProperty (A T::* base, B A::* value, StringView name)									__Th___;
 
 		template <typename B>
-		void  AddProperty (const T &self, B &value, StringView name)		__Th___;
+		void  AddProperty (const T &self, B &value, StringView name)									__Th___;
 
-		template <typename Func>
-		void  AddMethod (Func methodPtr, StringView name)					__Th___;
+		template <typename Fn>
+		void  AddMethod (Fn methodPtr, StringView name)													__Th___;
+
+		template <typename Fn>
+		void  AddGenericMethod (void (*fn)(ScriptArgList), StringView name)								__Th___;
 		
-		template <typename Func>
-		void  AddMethodFromGlobal (Func funcPtr, StringView name)			__Th___;
+		template <typename Fn>
+		void  AddMethodFromGlobal (Fn funcPtr, StringView name)											__Th___;
 		
-		template <typename Func>
-		void  AddMethodFromGlobalObjFirst (Func funcPtr, StringView name)	__Th___;
+		template <typename Fn>
+		void  AddMethodFromGlobalObjFirst (Fn funcPtr, StringView name)									__Th___;
 		
-		template <typename Func>
-		void  AddMethodFromGlobalObjLast (Func funcPtr, StringView name)	__Th___;
+		template <typename Fn>
+		void  AddMethodFromGlobalObjLast (Fn funcPtr, StringView name)									__Th___;
 
-		ND_ OperatorBinder						Operators ()				__NE___	{ return OperatorBinder( this ); }
+		ND_ OperatorBinder						Operators ()											__NE___	{ return OperatorBinder( this ); }
 
-		ND_ StringView							Name ()						C_NE___	{ return _name; }
+		ND_ StringView							Name ()													C_NE___	{ return _name; }
 
-		ND_ const ScriptEnginePtr &				GetEngine ()				C_NE___	{ return _engine; }
-		ND_ Ptr< AngelScript::asIScriptEngine >	GetASEngine ()				__NE___	{ return _engine->Get(); }
+		ND_ const ScriptEnginePtr &				GetEngine ()											C_NE___	{ return _engine; }
+		ND_ Ptr< AngelScript::asIScriptEngine >	GetASEngine ()											__NE___	{ return _engine->Get(); }
 
 
 	private:
-		void  _Create (int flags)											__Th___;
+		void  _Create (int flags)																		__Th___;
 		
 		template <typename T1>
 		struct _IsSame;

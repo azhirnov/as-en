@@ -14,7 +14,7 @@ void GraphicsLayout ()
 		RC<DescriptorSetLayout>		ds = DescriptorSetLayout( "DS_PerDraw2D" );
 		ds.AddFeatureSet( "MinimalFS" );
 		ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
-		ds.Define( "#define DEF_VALUE_1" );
+		ds.Define( "DEF_VALUE_1" );
 
 		ds.UniformBuffer( EShaderStages::Vertex, "drawUB", ArraySize(1), "UBlock" );
 	}
@@ -56,8 +56,8 @@ void GraphicsLayout ()
 		pc2.Set( "float4	color;" );
 
 		RC<PipelineLayout>		pl = PipelineLayout( "Graphics_PL_3" );
-		pl.PushConst( "pc1", pc1, EShaderStages::Vertex );
-		pl.PushConst( "pc2", pc2, EShaderStages::Fragment );
+		pl.PushConst( "pc1", pc1, EShader::Vertex );
+		pl.PushConst( "pc2", pc2, EShader::Fragment );
 		pl.DSLayout( 0, "DS_Material" );
 	}
 }

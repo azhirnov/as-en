@@ -22,11 +22,12 @@ namespace AE::Graphics
 		GIF,
 		MPEG4,
 		H264,
-		H265,
+		H265,	// HEVC
 		WEBP,
 		VP8,
 		VP9,
 		AV1,
+		// VVC,
 
 		_Count,
 		Unknown		= 0xFF,

@@ -25,28 +25,28 @@ namespace AE::Base
 
 
 	public:
-		TimeProfiler (StringView name)
+		TimeProfiler (StringView name) __NE___
 		{
-			_message = name;
+			CATCH( _message = name; )
 			
 			CompilerBarrier( EMemoryOrder::Release );
 		}
 
 
-		TimeProfiler (StringView name, const char *func, const SourceLoc &loc) :
+		TimeProfiler (StringView name, const char *func, const SourceLoc &loc) __NE___ :
 			_srcLoc{ loc }
 		{
-			_message << "time profiler: " << name << (name.empty() ? "" : ", ") << "function: " << func;
+			CATCH( _message << "time profiler: " << name << (name.empty() ? "" : ", ") << "function: " << func; )
 			
 			CompilerBarrier( EMemoryOrder::Release );
 		}
 		
 
-		~TimeProfiler ()
+		~TimeProfiler () __NE___
 		{
 			CompilerBarrier( EMemoryOrder::Acquire );
 
-			_message << "; TIME: " << ToString( Clock_t::now() - _startTime, 3 );
+			CATCH( _message << "; TIME: " << ToString( Clock_t::now() - _startTime, 3 );)
 
 			if ( not _srcLoc.file.empty() ) {
 				AE_PRIVATE_LOG_I( _message, _srcLoc.file, _srcLoc.line );

@@ -24,7 +24,7 @@ namespace AE::Base
 		using Hasher_t		= std::hash< Self >;
 		
 		struct EqualTo_t {
-			ND_ bool  operator () (const Self &lhs, const Self &rhs) const {
+			ND_ bool  operator () (const Self &lhs, const Self &rhs) C_NE___ {
 				return lhs._hash == rhs._hash;
 			}
 		};
@@ -84,7 +84,7 @@ namespace AE::Base
 		using Hasher_t		= std::hash< Self >;
 
 		struct EqualTo_t {
-			ND_ bool  operator () (const Self &lhs, const Self &rhs) const {
+			ND_ bool  operator () (const Self &lhs, const Self &rhs) C_NE___ {
 				return lhs._hash == rhs._hash and lhs._name == rhs._name;
 			}
 		};
@@ -149,11 +149,11 @@ namespace AE::Base
 	
 	template <usize Size, uint UID, uint Seed>	struct TMemCopyAvailable<		NamedID< Size, UID, true, Seed >>	{ static constexpr bool  value = true;  };
 	template <usize Size, uint UID, uint Seed>	struct TZeroMemAvailable<		NamedID< Size, UID, true, Seed >>	{ static constexpr bool  value = false; };
-	template <usize Size, uint UID, uint Seed>	struct TTrivialySerializable<	NamedID< Size, UID, true, Seed >>	{ static constexpr bool  value = true;  };
+	template <usize Size, uint UID, uint Seed>	struct TTriviallySerializable<	NamedID< Size, UID, true, Seed >>	{ static constexpr bool  value = true;  };
 
 	template <usize Size, uint UID, uint Seed>	struct TMemCopyAvailable<		NamedID< Size, UID, false, Seed >>	{ static constexpr bool  value = true;  };
 	template <usize Size, uint UID, uint Seed>	struct TZeroMemAvailable<		NamedID< Size, UID, false, Seed >>	{ static constexpr bool  value = false; };
-	template <usize Size, uint UID, uint Seed>	struct TTrivialySerializable<	NamedID< Size, UID, false, Seed >>	{ static constexpr bool  value = false; };
+	template <usize Size, uint UID, uint Seed>	struct TTriviallySerializable<	NamedID< Size, UID, false, Seed >>	{ static constexpr bool  value = false; };
 	
 } // AE::Base
 

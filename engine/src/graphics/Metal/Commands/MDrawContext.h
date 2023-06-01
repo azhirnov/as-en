@@ -26,6 +26,9 @@ namespace AE::Graphics::_hidden_
 	class _MDirectDrawCtx : public _MBaseDirectContext
 	{
 	// types
+	private:
+		using Validator_t	= DrawContextValidation;
+
 	public:
 		struct VertexAmplificationViewMapping
 		{
@@ -219,6 +222,9 @@ namespace AE::Graphics::_hidden_
 	class _MIndirectDrawCtx : public _MBaseIndirectContext
 	{
 	// types
+	private:
+		using Validator_t		= DrawContextValidation;
+
 	public:
 		using VertexAmplificationViewMapping	= _MDirectDrawCtx::VertexAmplificationViewMapping;
 		using PplnStates						= _MDirectDrawCtx::PplnStates;
@@ -368,6 +374,7 @@ namespace AE::Graphics::_hidden_
 		using RawCtx		= CtxImpl;
 		using AccumBar		= MAccumDrawBarriers< _MDrawContextImpl< CtxImpl >>;
 		using Viewports_t	= ArrayView< RenderPassDesc::Viewport >;
+		using Validator_t	= DrawContextValidation;
 		
 
 	// variables
@@ -377,105 +384,107 @@ namespace AE::Graphics::_hidden_
 		
 	// methods
 	public:
-		_MDrawContextImpl (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, Viewports_t)								__Th___;
-		explicit _MDrawContextImpl (const DrawTask &task)																__Th___;
-		explicit _MDrawContextImpl (_MDrawContextImpl && other)															__Th___;
+		_MDrawContextImpl (const MPrimaryCmdBufState &state, CmdBuf_t cmdbuf, Viewports_t)									__Th___;
+		explicit _MDrawContextImpl (const DrawTask &task)																	__Th___;
+		explicit _MDrawContextImpl (_MDrawContextImpl && other)																__Th___;
 		
-		_MDrawContextImpl ()																							= delete;
-		_MDrawContextImpl (const _MDrawContextImpl &)																	= delete;
+		_MDrawContextImpl ()																								= delete;
+		_MDrawContextImpl (const _MDrawContextImpl &)																		= delete;
 
 		// pipeline and shader resources
-		void  BindPipeline (GraphicsPipelineID ppln)																	__Th_OV;
-		void  BindPipeline (MeshPipelineID ppln)																		__Th_OV;
-		void  BindPipeline (TilePipelineID ppln)																		__Th_OV;
+		void  BindPipeline (GraphicsPipelineID ppln)																		__Th_OV;
+		void  BindPipeline (MeshPipelineID ppln)																			__Th_OV;
+		void  BindPipeline (TilePipelineID ppln)																			__Th_OV;
 
-		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)	__Th_OV	{ _boundDS.Bind( *this, index, ds, dynamicOffsets ); }
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)							__Th_OV;
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th_OV	{ _boundDS.Bind( *this, index, ds, dynamicOffsets ); }
+		void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)	__Th_OV;
+		using IDrawContext::PushConstant;
 		
 		// dynamic states
-		void  SetViewport (const Viewport_t &viewport)																	__Th_OV	{ RawCtx::_SetViewport( viewport ); }
-		void  SetViewports (ArrayView<Viewport_t> viewports)															__Th_OV	{ RawCtx::_SetViewports( viewports ); }
-		void  SetScissor (const RectI &scissor)																			__Th_OV	{ RawCtx::_SetScissor( scissor ); }
-		void  SetScissors (ArrayView<RectI> scissors)																	__Th_OV	{ RawCtx::_SetScissors( scissors ); }
-		void  SetBlendConstants (const RGBA32f &color)																	__Th_OV	{ RawCtx::_SetBlendConstants( color ); }
-		void  SetStencilReference (uint reference)																		__Th_OV	{ RawCtx::_SetStencilReference( reference ); }
-		void  SetStencilReference (uint frontRef, uint backRef)															__Th_OV	{ RawCtx::_SetStencilReference( frontRef, backRef ); }
-		void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)			__Th_OV;
+		void  SetViewport (const Viewport_t &viewport)																		__Th_OV	{ RawCtx::_SetViewport( viewport ); }
+		void  SetViewports (ArrayView<Viewport_t> viewports)																__Th_OV	{ RawCtx::_SetViewports( viewports ); }
+		void  SetScissor (const RectI &scissor)																				__Th_OV	{ RawCtx::_SetScissor( scissor ); }
+		void  SetScissors (ArrayView<RectI> scissors)																		__Th_OV	{ RawCtx::_SetScissors( scissors ); }
+		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV	{ RawCtx::_SetBlendConstants( color ); }
+		void  SetStencilReference (uint reference)																			__Th_OV	{ RawCtx::_SetStencilReference( reference ); }
+		void  SetStencilReference (uint frontRef, uint backRef)																__Th_OV	{ RawCtx::_SetStencilReference( frontRef, backRef ); }
+		void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)				__Th_OV;
 		
 		// draw commands
 		using RawCtx::BindIndexBuffer;
 		using RawCtx::BindVertexBuffers;
 
-		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)											__Th_OV;
-		void  BindVertexBuffer (uint index, BufferID buffer, Bytes offset)												__Th_OV;
-		void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)				__Th_OV;
-		bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)	__Th_OV;
+		void  BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)												__Th_OV;
+		void  BindVertexBuffer (uint index, BufferID buffer, Bytes offset)													__Th_OV;
+		void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)					__Th_OV;
+		bool  BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)		__Th_OV;
 
 		using IDrawContext::Draw;
 		using IDrawContext::DrawIndexed;
 		using IDrawContext::DrawIndirect;
 		using IDrawContext::DrawIndexedIndirect;
+		using IDrawContext::DrawMeshTasksIndirect;
 
 		void  Draw (uint vertexCount,
 					uint instanceCount	= 1,
 					uint firstVertex	= 0,
-					uint firstInstance	= 0)																			__Th_OV;
+					uint firstInstance	= 0)																				__Th_OV;
 
 		void  DrawIndexed (uint indexCount,
 						   uint instanceCount	= 1,
 						   uint firstIndex		= 0,
 						   int  vertexOffset	= 0,
-						   uint firstInstance	= 0)																	__Th_OV;
+						   uint firstInstance	= 0)																		__Th_OV;
 
 		void  DrawIndirect (BufferID	indirectBuffer,
 							Bytes		indirectBufferOffset,
 							uint		drawCount,
-							Bytes		stride)																			__Th_OV;
+							Bytes		stride)																				__Th_OV;
 
 		void  DrawIndexedIndirect (BufferID		indirectBuffer,
 								   Bytes		indirectBufferOffset,
 								   uint			drawCount,
-								   Bytes		stride)																	__Th_OV;
+								   Bytes		stride)																		__Th_OV;
 		
 		// tile shader
-		void  DispatchTile ()																							__Th_OV;
+		void  DispatchTile ()																								__Th_OV;
 		
 		// mesh shader
-		void  DrawMeshTasks (const uint3 &taskCount)																	__Th_OV;
+		void  DrawMeshTasks (const uint3 &taskCount)																		__Th_OV;
 
 		void  DrawMeshTasksIndirect (BufferID	indirectBuffer,
 									 Bytes		indirectBufferOffset,
 									 uint		drawCount,
-									 Bytes		stride)																	__Th_OV;
+									 Bytes		stride)																		__Th_OV;
 
-		void  CommitBarriers ()																							__Th_OV	{ RawCtx::_CommitBarriers(); }
+		void  CommitBarriers ()																								__Th_OV	{ RawCtx::_CommitBarriers(); }
 
 		// clear //
-		bool  ClearAttachment (AttachmentName, const RGBA32f &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
-		bool  ClearAttachment (AttachmentName, const RGBA32u &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
-		bool  ClearAttachment (AttachmentName, const RGBA32i &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
-		bool  ClearAttachment (AttachmentName, const RGBA8u  &,      const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
-		bool  ClearAttachment (AttachmentName, const DepthStencil &, const RectI &, ImageLayer baseLayer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA32f &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA32u &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA32i &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const RGBA8u  &,      const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
+		bool  ClearAttachment (AttachmentName, const DepthStencil &, const RectI &, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV;
 		
-		void  DebugMarker (DebugLabel dbg)																				__Th_OV	{ RawCtx::_DebugMarker( dbg ); }
-		void  PushDebugGroup (DebugLabel dbg)																			__Th_OV	{ RawCtx::_PushDebugGroup( dbg ); }
-		void  PopDebugGroup ()																							__Th_OV	{ RawCtx::_PopDebugGroup(); }
+		void  DebugMarker (DebugLabel dbg)																					__Th_OV	{ RawCtx::_DebugMarker( dbg ); }
+		void  PushDebugGroup (DebugLabel dbg)																				__Th_OV	{ RawCtx::_PushDebugGroup( dbg ); }
+		void  PopDebugGroup ()																								__Th_OV	{ RawCtx::_PopDebugGroup(); }
 		
-		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)					__Th_OV	{ RawCtx::_AttachmentBarrier( name, srcState, dstState ); }
+		void  AttachmentBarrier (AttachmentName name, EResourceState srcState, EResourceState dstState)						__Th_OV	{ RawCtx::_AttachmentBarrier( name, srcState, dstState ); }
 		
-		ND_ AccumBar  AccumBarriers ()																							{ return AccumBar{ *this }; }
+		ND_ AccumBar  AccumBarriers ()																								{ return AccumBar{ *this }; }
 		
 		// vertex stream
-		ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result)													__Th_OV;
+		ND_ bool  AllocVStream (Bytes size, OUT VertexStream &result)														__Th_OV;
 		
-		ND_ MPrimaryCmdBufState const&	GetPrimaryCtxState ()															C_NE___	{ return this->_mngr.GetPrimaryCtxState(); }
-		ND_ FrameUID					GetFrameId ()																	C_NE_OF	{ return this->_mngr.GetFrameId(); }
+		ND_ MPrimaryCmdBufState const&	GetPrimaryCtxState ()																C_NE___	{ return this->_mngr.GetPrimaryCtxState(); }
+		ND_ FrameUID					GetFrameId ()																		C_NE_OF	{ return this->_mngr.GetFrameId(); }
 		
-		ND_ bool  _IsValid ()																							C_NE___	{ return RawCtx::_IsValid(); }
+		ND_ bool  _IsValid ()																								C_NE___	{ return RawCtx::_IsValid(); }
 
 	private:
 		friend class MBoundDescriptorSets;
-		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)								__Th___	{ return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); }
+		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)									__Th___	{ return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); }
 	};
 
 } // AE::Graphics::_hidden_
@@ -558,13 +567,18 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _MDrawContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+	void  _MDrawContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
 	{
-		ASSERT( IsAligned( size, sizeof(uint) ));
-		Unused( offset, size, values, stages );
-
-		// TODO
-		//RawCtx::_PushGraphicsConstant( offset, size, values, stages );
+		Validator_t::PushConstant( idx, size, typeName );
+	
+		switch ( idx.stage )
+		{
+			case EShader::Vertex :		RawCtx::VertexArguments()	.SetBytes( values, size, MBufferIndex(idx.bufferId) );
+			case EShader::Fragment :	RawCtx::FragmentArguments()	.SetBytes( values, size, MBufferIndex(idx.bufferId) );
+			case EShader::Tile :		RawCtx::TileArguments()		.SetBytes( values, size, MBufferIndex(idx.bufferId) );
+			case EShader::MeshTask :	RawCtx::MeshArguments()		.SetBytes( values, size, MBufferIndex(idx.bufferId) );
+			case EShader::Mesh :		RawCtx::MeshTaskArguments()	.SetBytes( values, size, MBufferIndex(idx.bufferId) );
+		}
 	}
 	
 /*
@@ -673,7 +687,8 @@ namespace AE::Graphics::_hidden_
 											  uint		drawCount,
 											  Bytes		stride)
 	{
-		auto&	buf = _GetResourcesOrThrow( indirectBuffer ); 
+		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
+		Validator_t::DrawIndirect( buf, indirectBufferOffset, drawCount, stride );
 		
 		_boundDS.UseHeapsAndResources( *this );
 		RawCtx::_DrawPrimitivesIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
@@ -691,6 +706,7 @@ namespace AE::Graphics::_hidden_
 													 Bytes		stride)
 	{
 		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
+		Validator_t::DrawIndexedIndirect( buf, indirectBufferOffset, drawCount, stride );
 		
 		_boundDS.UseHeapsAndResources( *this );
 		RawCtx::_DrawIndexedPrimitivesIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
@@ -731,7 +747,8 @@ namespace AE::Graphics::_hidden_
 													   uint		drawCount,
 													   Bytes	stride)
 	{
-		auto&	buf = _GetResourcesOrThrow( indirectBuffer ); 
+		auto&	buf = _GetResourcesOrThrow( indirectBuffer );
+		Validator_t::DrawMeshTasksIndirect( buf, indirectBufferOffset, drawCount, stride );
 		
 		_boundDS.UseHeapsAndResources( *this );
 		RawCtx::_DrawMeshTasksIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );

@@ -46,6 +46,8 @@ namespace AE::Scripting
 	template <typename Fn>
 	using ScriptFnPtr = RC< ScriptFn<Fn> >;
 	
+	class ScriptArgList;
+
 
 
 	//
@@ -93,7 +95,9 @@ namespace AE::Scripting
 		ScriptModule (AngelScript::asIScriptModule* mod, ArrayView<ModuleSource> dbgSrc);
 
 	public:
-		~ScriptModule () override;
+		~ScriptModule ()			__NE_OV;
+
+		ND_ StringView	GetName ()	C_NE___	{ return _module != null ? _module->GetName() : Default; }
 		
 		#if AE_DBG_SCRIPTS
 			ND_ bool  LogError (StringView fnEntry, StringView section, int line, int column, StringView exceptionMsg) const;
@@ -164,11 +168,17 @@ namespace AE::Scripting
 		template <typename T>
 		void  AddFunction (T func, StringView name)											__Th___;
 
+		template <typename Fn>
+		void  AddGenericFn (void (*fn)(ScriptArgList), StringView name)						__Th___;
+
 		template <typename T>
 		void  AddProperty (INOUT T &var, StringView name)									__Th___;
 		
 		template <typename T>
 		void  AddConstProperty (const T &var, StringView name)								__Th___;
+
+		void  Typedef (NtStringView newType, NtStringView existType)						__Th___;
+
 
 		bool  SetNamespace (NtStringView name)												__NE___;
 		bool  SetDefaultNamespace ()														__NE___;

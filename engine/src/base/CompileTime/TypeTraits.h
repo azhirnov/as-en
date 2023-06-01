@@ -88,6 +88,15 @@ namespace _hidden_
 	static constexpr bool	IsConst					= std::is_const_v<T>;
 	
 	template <typename T>
+	static constexpr bool	IsConstRef				= std::is_const_v< std::remove_reference_t<T> >;
+
+	template <typename T>
+	static constexpr bool	IsConstPtr				= std::is_const_v< std::remove_pointer_t<T> >;
+	
+	template <typename T>
+	static constexpr bool	IsAnyConst				= IsConst<T> or IsConstRef<T> or IsConstPtr<T>;
+
+	template <typename T>
 	static constexpr bool	IsVolatile				= std::is_volatile_v<T>;
 
 	template <typename T1, typename T2>
@@ -110,6 +119,18 @@ namespace _hidden_
 	
 	template <typename T>
 	static constexpr bool	IsAbstract				= std::is_abstract_v<T>;
+	
+	template <typename T>
+	static constexpr bool	IsDefaultConstructible	= std::is_default_constructible_v<T>;
+
+	template <typename T>
+	static constexpr bool	IsCopyConstructible		= std::is_copy_constructible_v<T>;
+
+	template <typename T>
+	static constexpr bool	IsCopyAssignable		= std::is_copy_assignable_v<T>;
+	
+	template <typename T>
+	static constexpr bool	IsMoveAssignable		= std::is_move_assignable_v<T>;
 
 
 	template <typename T>
@@ -422,14 +443,14 @@ namespace _hidden_
 	
 /*
 =================================================
-	IsTrivialySerializable
+	IsTriviallySerializable
 ----
 	Allow to use MemCopy to/from file when serializing / deserializing.
 	Objects must not have pointers and non-trivial fields.
 =================================================
 */
 	template <typename T>
-	struct TTrivialySerializable
+	struct TTriviallySerializable
 	{
 		using A = RemoveCV<T>;
 		static constexpr bool	value =	IsTrivial<A>		and
@@ -438,18 +459,18 @@ namespace _hidden_
 	};
 	
 	template <typename T, usize I>
-	struct TTrivialySerializable< T[I] > {
-		static constexpr bool	value = TTrivialySerializable< RemoveCV<T> >::value;
+	struct TTriviallySerializable< T[I] > {
+		static constexpr bool	value = TTriviallySerializable< RemoveCV<T> >::value;
 	};
 	
 	template <typename T, usize I>
-	struct TTrivialySerializable< const T[I] > {
-		static constexpr bool	value = TTrivialySerializable< RemoveCV<T> >::value;
+	struct TTriviallySerializable< const T[I] > {
+		static constexpr bool	value = TTriviallySerializable< RemoveCV<T> >::value;
 	};
 	
 
 	template <typename T>
-	static constexpr bool	IsTrivialySerializable = TTrivialySerializable< RemoveCV<T> >::value;
+	static constexpr bool	IsTriviallySerializable = TTriviallySerializable< RemoveCV<T> >::value;
 
 
 } // AE::Base

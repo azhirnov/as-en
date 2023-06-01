@@ -47,43 +47,49 @@ namespace AE::Math
 		{
 			Vec3_t		norm;
 			Value_t		dist;
+
+			ND_ explicit operator float4 ()		C_NE___	{ return float4{ norm, dist }; }
 		};
+
+		using Planes_t	= StaticArray< Plane, uint(EPlane::_Count) >;
 
 
 	// variables
 	private:
-		StaticArray< Plane, uint(EPlane::_Count) >		_planes	= {};
+		Planes_t			_planes	= {};
 
-		DEBUG_ONLY( bool								_initialized; )
+		DEBUG_ONLY( bool	_initialized;)
 
-		static constexpr T								_err	= Epsilon<T>();
+		static constexpr T	_err	= Epsilon<T>();
 
 
 	// methods
 	public:
-		FrustumTempl () {}
+		FrustumTempl ()														__NE___ {}
 		
 			void  Setup (const Matrix<T,4,4> &mvp)							__NE___;
 			void  Setup (const CameraTempl<T> &camera)						__NE___;
 			void  Setup (const CameraTempl<T> &camera, const Vec2_t &range)	__NE___;
 		
-		ND_ bool IsVisible (const BoundingSphere<T> &)						C_NE___;
-		ND_ bool IsVisible (const AxisAlignedBoundingBox<T> &)				C_NE___;
-		ND_ bool IsVisible (const Vec3_t &point)							C_NE___;
-		ND_ bool IsVisible (const FrustumTempl<T> &)						C_NE___;
+		ND_ bool  IsVisible (const BoundingSphere<T> &)						C_NE___;
+		ND_ bool  IsVisible (const AxisAlignedBoundingBox<T> &)				C_NE___;
+		ND_ bool  IsVisible (const Vec3_t &point)							C_NE___;
+		ND_ bool  IsVisible (const FrustumTempl<T> &)						C_NE___;
 
 		// experimental
-			void Test (const AxisAlignedBoundingBox<T> &, OUT bool &isVisible, OUT float &detailLevel) C_NE___;
+			void  Test (const AxisAlignedBoundingBox<T> &,
+						OUT bool &isVisible, OUT float &detailLevel)		C_NE___;
 
 		ND_ Plane const&				GetPlane (EPlane type)				C_NE___	{ return _planes[ uint(type) ]; }
+		ND_ Plane const&				GetPlane (uint idx)					C_NE___	{ return _planes[ idx ]; }
 		
 		ND_ AxisAlignedBoundingBox<T>	ToAABB ()							C_NE___;
 
 		ND_ Vec3_t						GetRay (const Vec2_t &unormCoord)	C_NE___;
 
 
-		bool GetRays (OUT Vec3_t &leftTop, OUT Vec3_t &leftBottom, OUT Vec3_t &rightTop, OUT Vec3_t &rightBottom) C_NE___;
-
+		bool  GetRays (OUT Vec3_t &leftTop, OUT Vec3_t &leftBottom,
+					   OUT Vec3_t &rightTop, OUT Vec3_t &rightBottom)		C_NE___;
 
 
 	private:
@@ -91,7 +97,7 @@ namespace AE::Math
 		bool  _GetIntersection (EPlane lhs, EPlane rhs, OUT Vec3_t &result)	C_NE___;
 		void  _GetCorners (OUT StaticArray<Vec3_t, 8> &)					C_NE___;
 
-		Vec3_t _IntersectPlanes (EPlane p0, EPlane p1, EPlane p2)			C_NE___;
+		ND_ Vec3_t  _IntersectPlanes (EPlane p0, EPlane p1, EPlane p2)		C_NE___;
 	};
 	
 	

@@ -38,7 +38,7 @@ namespace AE::Graphics::_hidden_
 		void  BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions)								__Th___;
 		void  ResolveImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageResolve> regions)											__Th___;
 
-		void  GenerateMipmaps (VkImage image, const uint3 &dimension, uint levelCount, uint layerCount, EImageAspect aspect)				__Th___;
+		void  GenerateMipmaps (VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges)								__Th___;
 		
 		ND_ VkCommandBuffer	EndCommandBuffer ()																								__Th___;
 		ND_ VCommandBuffer  ReleaseCommandBuffer ()																							__Th___;
@@ -46,8 +46,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectTransferCtx (const RenderTask &task)																				__Th___ : VBaseDirectContext{ task, ECtxType::Transfer } {}
-		_VDirectTransferCtx (const RenderTask &task, VCommandBuffer cmdbuf)																	__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), ECtxType::Transfer } {}
+		_VDirectTransferCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)													__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Transfer } {}
 	};
 
 
@@ -75,7 +74,7 @@ namespace AE::Graphics::_hidden_
 		void  BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions)								__Th___;
 		void  ResolveImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageResolve> regions)											__Th___;
 		
-		void  GenerateMipmaps (VkImage image, const uint3 &dimension, uint levelCount, uint layerCount, EImageAspect aspect)				__Th___;
+		void  GenerateMipmaps (VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges)								__Th___;
 		
 		ND_ VBakedCommands		EndCommandBuffer ()																							__Th___;
 		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()																						__Th___;
@@ -83,8 +82,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectTransferCtx (const RenderTask &task)																				__Th___ : VBaseIndirectContext{ task, ECtxType::Transfer } {}
-		_VIndirectTransferCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)															__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), ECtxType::Transfer } {}
+		_VIndirectTransferCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)											__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Transfer } {}
 	};
 
 
@@ -114,8 +112,7 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VTransferContextImpl (const RenderTask &task)																							__Th___;
-		_VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)																					__Th___;
+		explicit _VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)									__Th___;
 
 		_VTransferContextImpl ()																														= delete;
 		_VTransferContextImpl (const _VTransferContextImpl &)																							= delete;
@@ -175,6 +172,7 @@ namespace AE::Graphics::_hidden_
 		using RawCtx::GenerateMipmaps;
 
 		void  GenerateMipmaps (ImageID image)																											__Th_OV;
+		void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges)																	__Th_OV;
 
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;
@@ -216,13 +214,8 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VTransferContextImpl<C>::_VTransferContextImpl (const RenderTask &task) :
-		_VTransferContextImpl{ task, Default }
-	{}
-		
-	template <typename C>
-	_VTransferContextImpl<C>::_VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
-		RawCtx{ task, RVRef(cmdbuf) }
+	_VTransferContextImpl<C>::_VTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
 	}
@@ -538,7 +531,7 @@ namespace AE::Graphics::_hidden_
 		return Threading::MakePromiseFromValue(	mem_view,
 												Tuple{ this->_mngr.GetBatchRC() },
 												"VTransferContext::ReadbackBuffer",
-												ETaskQueue::Renderer
+												ETaskQueue::PerFrame
 											   );
 	}
 	
@@ -564,7 +557,7 @@ namespace AE::Graphics::_hidden_
 		return Threading::MakePromiseFromValue(	mem_view,
 												Tuple{ this->_mngr.GetBatchRC() },
 												"VTransferContext::ReadHostBuffer",
-												ETaskQueue::Renderer
+												ETaskQueue::PerFrame
 											   );
 	}
 	
@@ -619,7 +612,7 @@ namespace AE::Graphics::_hidden_
 					ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask },
 					Tuple{ this->_mngr.GetBatchRC() },
 					"VTransferContext::ReadbackImage",
-					ETaskQueue::Renderer
+					ETaskQueue::PerFrame
 				);
 	}
 	
@@ -972,13 +965,27 @@ namespace AE::Graphics::_hidden_
 	template <typename C>
 	void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image)
 	{
+		auto&					img = _GetResourcesOrThrow( image );
+		ImageDesc const&		desc = img.Description();
+		ImageSubresourceRange	range;
+
+		range.aspectMask		= EPixelFormat_ToImageAspect( desc.format );
+		range.baseMipLevel		= 0_mipmap;
+		range.mipmapCount		= desc.maxLevel.Get();
+		range.baseLayer			= 0_layer;
+		range.layerCount		= desc.arrayLayers.Get();
+
+		Validator_t::GenerateMipmaps( img, {range} );
+		RawCtx::GenerateMipmaps( img.Handle(), desc.dimension, {range} );
+	}
+
+	template <typename C>
+	void  _VTransferContextImpl<C>::GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges)
+	{
 		auto&				img = _GetResourcesOrThrow( image );
 		ImageDesc const&	desc = img.Description();
-		Validator_t::GenerateMipmaps( img );
-
-		RawCtx::GenerateMipmaps( img.Handle(), desc.dimension,
-								 desc.maxLevel.Get(), desc.arrayLayers.Get(),
-								 EPixelFormat_ToImageAspect( desc.format ));
+		Validator_t::GenerateMipmaps( img, ranges );
+		RawCtx::GenerateMipmaps( img.Handle(), desc.dimension, ranges );
 	}
 
 /*
@@ -1001,13 +1008,13 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::_ConvertImageSubresourceRange (OUT VkImageSubresourceRange& dst, const ImageSubresourceRange& src, const ImageDesc &desc)
 	{
 		ASSERT( src.baseMipLevel < desc.maxLevel );
-		ASSERT( src.baseArrayLayer < desc.arrayLayers );
+		ASSERT( src.baseLayer < desc.arrayLayers );
 
 		dst.aspectMask		= VEnumCast( src.aspectMask );
 		dst.baseMipLevel	= Min( src.baseMipLevel.Get(), desc.maxLevel.Get()-1 );
-		dst.levelCount		= Min( src.levelCount, desc.maxLevel.Get() - src.baseMipLevel.Get() );
-		dst.baseArrayLayer	= Min( src.baseArrayLayer.Get(), desc.arrayLayers.Get()-1 );
-		dst.layerCount		= Min( src.layerCount, desc.arrayLayers.Get() - src.baseArrayLayer.Get() );
+		dst.levelCount		= Min( src.mipmapCount, desc.maxLevel.Get() - src.baseMipLevel.Get() );
+		dst.baseArrayLayer	= Min( src.baseLayer.Get(), desc.arrayLayers.Get()-1 );
+		dst.layerCount		= Min( src.layerCount, desc.arrayLayers.Get() - src.baseLayer.Get() );
 	}
 	
 /*
@@ -1066,13 +1073,13 @@ namespace AE::Graphics::_hidden_
 	void  _VTransferContextImpl<C>::_ConvertImageSubresourceLayer (OUT VkImageSubresourceLayers &dst, const ImageSubresourceLayers &src, const ImageDesc &desc)
 	{
 		ASSERT( src.mipLevel < desc.maxLevel );
-		ASSERT( src.baseArrayLayer < desc.arrayLayers );
+		ASSERT( src.baseLayer < desc.arrayLayers );
 		ASSERT( src.aspectMask != Default );
 
 		dst.aspectMask		= VEnumCast( src.aspectMask );
 		dst.mipLevel		= Min( src.mipLevel.Get(), desc.maxLevel.Get()-1 );
-		dst.baseArrayLayer	= Min( src.baseArrayLayer.Get(), desc.arrayLayers.Get()-1 );
-		dst.layerCount		= Min( src.layerCount, desc.arrayLayers.Get() - src.baseArrayLayer.Get() );
+		dst.baseArrayLayer	= Min( src.baseLayer.Get(), desc.arrayLayers.Get()-1 );
+		dst.layerCount		= Min( src.layerCount, desc.arrayLayers.Get() - src.baseLayer.Get() );
 	}
 //-----------------------------------------------------------------------------
 	

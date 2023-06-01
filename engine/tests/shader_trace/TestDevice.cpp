@@ -20,7 +20,6 @@
 #include "glslang/SPIRV/disassemble.h"
 #include "glslang/SPIRV/GlslangToSpv.h"
 #include "glslang/SPIRV/GLSL.std.450.h"
-#include "StandAlone/ResourceLimits.cpp"
 
 // spirv cross
 #ifdef AE_ENABLE_SPIRV_CROSS
@@ -36,6 +35,9 @@
 #ifdef AE_COMPILER_MSVC
 #	pragma warning (pop)
 #endif
+
+// resources are removed in new version of glslang, so define it locally.
+#include "ResourceLimits.h"
 
 namespace AE::PipelineCompiler
 {
@@ -369,7 +371,7 @@ bool  TestDevice::_Compile (OUT Array<uint>&			spirvData,
 		
 	program.addShader( &shader );
 
-	if ( not program.link( messages ) )
+	if ( not program.link( messages ))
 	{
 		AE_LOGI( program.getInfoLog() );
 		return false;

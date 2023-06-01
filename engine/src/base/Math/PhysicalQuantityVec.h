@@ -25,14 +25,26 @@ namespace AE::Math
 			  typename		 ValueScale,
 			  glm::qualifier Q
 			 >
-	using TPhysicalQuantityVec = PhysicalQuantityVec< PhysicalQuantity<ValueType, Dimension, ValueScale>, VecLength, Q >;
+	using TPhysicalQuantityVec			= PhysicalQuantityVec< PhysicalQuantity<ValueType, Dimension, ValueScale>, VecLength, Q >;
 	
 
 	template <typename Quantity, int VecLength>
-	using PhysicalQuantitySIMDVec = PhysicalQuantityVec< Quantity, VecLength, GLMQuialifier >;
+	using PhysicalQuantitySIMDVec		= PhysicalQuantityVec< Quantity, VecLength, GLMQuialifier >;
 	
 	template <typename Quantity, int VecLength>
-	using PhysicalQuantityPackedVec = PhysicalQuantityVec< Quantity, VecLength, glm::qualifier::packed_highp >;
+	using PhysicalQuantityPackedVec		= PhysicalQuantityVec< Quantity, VecLength, glm::qualifier::packed_highp >;
+	
+	template <typename Quantity>
+	using PhysicalQuantitySIMDVec2		= PhysicalQuantitySIMDVec< Quantity, 2 >;
+	
+	template <typename Quantity>
+	using PhysicalQuantitySIMDVec3		= PhysicalQuantitySIMDVec< Quantity, 3 >;
+
+	template <typename Quantity>
+	using PhysicalQuantityPackedVec2	= PhysicalQuantityPackedVec< Quantity, 2 >;
+	
+	template <typename Quantity>
+	using PhysicalQuantityPackedVec3	= PhysicalQuantityPackedVec< Quantity, 3 >;
 
 
 
@@ -655,6 +667,6 @@ namespace AE::Base
 	struct TZeroMemAvailable< PhysicalQuantityVec<Qt,I,Ql> > { static constexpr bool  value = IsZeroMemAvailable<Qt>; };
 	
 	template <typename Qt, int I, glm::qualifier Ql>
-	struct TTrivialySerializable< PhysicalQuantityVec<Qt,I,Ql> > { static constexpr bool  value = IsTrivialySerializable<Qt>; };
+	struct TTriviallySerializable< PhysicalQuantityVec<Qt,I,Ql> > { static constexpr bool  value = IsTriviallySerializable<Qt>; };
 
 } // AE::Base

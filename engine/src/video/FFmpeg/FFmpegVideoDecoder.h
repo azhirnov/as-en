@@ -55,7 +55,7 @@ namespace AE::Video
 		bool  Begin (const Config &cfg, const Path &filename)		__NE_OV;
 		bool  Begin (const Config &cfg, RC<RStream> stream)			__NE_OV;
 		bool  SeekTo (ulong frameIdx)								__NE_OV;
-		bool  SeekTo (Seconds_t timestamp)							__NE_OV;
+		bool  SeekTo (Second_t timestamp)							__NE_OV;
 
 		bool  GetFrame (OUT ImageMemView &	view,
 						OUT FrameInfo &		info)					__NE_OV;
@@ -82,7 +82,7 @@ namespace AE::Video
 
 		ND_ ulong  _PTStoFrameIdx (slong pts)		const;
 		ND_ slong  _FrameIdxToPTS (ulong frameIdx)	const;
-		ND_ slong  _TimestampToPTS (Seconds_t time)	const;
+		ND_ slong  _TimestampToPTS (Second_t time)	const;
 
 		static Properties  _ReadProperties (AVFormatContext* formatCtx);
 

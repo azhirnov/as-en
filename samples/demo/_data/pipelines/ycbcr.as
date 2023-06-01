@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler>
 
 void ASmain ()
@@ -12,18 +13,17 @@ void ASmain ()
 
 	{
 		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "ycbcr.draw1" );
-		ppln.AddFeatureSet( "MinimalFS" );
 		ppln.SetLayout( "ycbcr.pl" );
 	
 		{
 			RC<Shader>	vs = Shader();
-			vs.file		= "ycbcr_image.glsl";
+			vs.file		= "ycbcr_image.glsl";		// file:///<path>/samples/demo/_data/shaders/ycbcr_image.glsl
 			vs.options	= EShaderOpt::Optimize;
 			ppln.SetVertexShader( vs );
 		}
 		{
 			RC<Shader>	fs = Shader();
-			fs.file		= "ycbcr_image.glsl";
+			fs.file		= "ycbcr_image.glsl";		// file:///<path>/samples/demo/_data/shaders/ycbcr_image.glsl
 			fs.options	= EShaderOpt::Optimize;
 			ppln.SetFragmentShader( fs );
 		}

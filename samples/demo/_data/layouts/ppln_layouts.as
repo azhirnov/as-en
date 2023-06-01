@@ -1,3 +1,5 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 // pipeline descriptor set layouts
 #include <pipeline_compiler>
 
@@ -11,7 +13,7 @@ void VertexBuffers ()
 		st2.Set( "packed_float3		Normal;" +
 				 "packed_float2		Texcoord;" );
 
-		RC<VertexBufferInput>	vb = VertexBufferInput( "VB_Position_f3, VB_UVf2_Normf3" );
+		RC<VertexBufferInput>	vb = VertexBufferInput( "VB{Position_f3, UVf2_Normf3}" );
 		vb.Add( "Position", "VB_Position_f3" );
 		vb.Add( "Attribs",  st2 );
 	}

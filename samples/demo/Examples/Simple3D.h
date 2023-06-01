@@ -12,7 +12,7 @@ namespace AE::Samples::Demo
 	class Simple3DSample final : public ISample
 	{
 	// types
-	public:
+	private:
 		class DrawTask;
 		class ProcessInputTask;
 		class UploadTextureTask;
@@ -25,6 +25,7 @@ namespace AE::Samples::Demo
 	// variables
 	public:
 		RenderTechPipelinesPtr		rtech;
+		GfxMemAllocatorPtr			gfxAlloc;
 
 		GraphicsPipelineID			ppln;
 		Strong<DescriptorSetID>		descSet;
@@ -51,10 +52,10 @@ namespace AE::Samples::Demo
 		~Simple3DSample () override;
 
 		// ISample //
-		bool			Init (PipelinePackID pack) override;
-		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) override;
-		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps) override;
-		InputModeName	GetInputMode () const override { return InputModeName{"Simple3D"}; }
+		bool			Init (PipelinePackID pack)											override;
+		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps)	override;
+		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)					override;
+		InputModeName	GetInputMode ()														const override { return InputModeName{"Simple3D"}; }
 	};
 
 

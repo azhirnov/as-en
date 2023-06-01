@@ -31,7 +31,8 @@ namespace AE::Graphics
 			Unknown,
 			Text,			// as plane text with part of source code 
 			VS_Console,		// compatible with VS outpit, allow navigation to code by click
-			VSCode,			// click to file path will open shader source file
+			VS,				// click to file path will open shader source file
+			VSCode,			// click to file path will open shader source file in specified line
 			_Count
 		};
 

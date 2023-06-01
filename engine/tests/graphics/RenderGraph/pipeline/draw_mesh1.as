@@ -10,15 +10,15 @@ void ASmain ()
 	
 	{
 		RC<Shader>	ms	= Shader();
-		ms.file		= "draw_mesh1_ms.glsl";
+		ms.file		= "draw_mesh1.glsl";
 		ms.options	= EShaderOpt::Optimize;
 		ms.version	= EShaderVersion::SPIRV_1_4;
-		ms.SetMeshSpec1();
+		ms.MeshSpec1();
 		ppln.SetMeshShader( ms );
 	}
 	{
 		RC<Shader>	fs	= Shader();
-		fs.file		= "draw_mesh1_fs.glsl";
+		fs.file		= "draw_mesh1.glsl";
 		fs.options	= EShaderOpt::Optimize;
 		fs.version	= EShaderVersion::SPIRV_1_4;
 		ppln.SetFragmentShader( fs );

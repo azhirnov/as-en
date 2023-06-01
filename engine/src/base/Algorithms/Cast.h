@@ -126,13 +126,37 @@ namespace AE::Base
 	{
 		return static_cast<T*>(null);
 	}
-	
+
+	template <typename R, typename T>
+	ND_ forceinline constexpr R const volatile&  Cast (T const volatile &value) __NE___
+	{
+		return *Cast<R>( &value );
+	}
+
+	template <typename R, typename T>
+	ND_ forceinline constexpr R const&  Cast (T const &value) __NE___
+	{
+		return *Cast<R>( &value );
+	}
+
+	template <typename R, typename T>
+	ND_ forceinline constexpr R volatile&  Cast (T volatile &value) __NE___
+	{
+		return *Cast<R>( &value );
+	}
+
+	template <typename R, typename T>
+	ND_ forceinline constexpr R&  Cast (T &value) __NE___
+	{
+		return *Cast<R>( &value );
+	}
+
 /*
 =================================================
 	Cast (chrono)
 =================================================
 */
-    template <typename To, typename Rep, typename Period, EnableIf<IsDuration<To>, int> = 0>
+	template <typename To, typename Rep, typename Period, EnableIf<IsDuration<To>, int> = 0>
 	ND_ constexpr To  Cast (const std::chrono::duration<Rep, Period> &value) __NE___
 	{
 		return std::chrono::duration_cast<To>( value );

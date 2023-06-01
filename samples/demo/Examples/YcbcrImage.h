@@ -26,7 +26,7 @@ namespace AE::Samples::Demo
 		Strong<VideoImageID>		ycbcrImg;
 		ImageID						ycbcrImageId;
 
-		RC<GfxLinearMemAllocator>	gfxAlloc;
+		GfxMemAllocatorPtr			gfxAlloc;
 
 		static constexpr uint		dim [2]		= {64, 64};
 		const DescSetBinding		dsIndex		{0};
@@ -38,10 +38,10 @@ namespace AE::Samples::Demo
 		~YcbcrImageSample () override;
 
 		// ISample //
-		bool			Init (PipelinePackID pack) override;
-		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) override;
-		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps) override;
-		InputModeName	GetInputMode () const override { return InputModeName{"YcbcrImage"}; }
+		bool			Init (PipelinePackID pack)											override;
+		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps)	override;
+		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)					override;
+		InputModeName	GetInputMode ()														const override { return InputModeName{"YcbcrImage"}; }
 	};
 
 } // AE::Samples::Demo

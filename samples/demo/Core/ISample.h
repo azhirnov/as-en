@@ -26,7 +26,7 @@ namespace AE::Samples::Demo
 	// Sample Base interface
 	//
 
-	class ISample
+	class ISample : public EnableRC<ISample>
 	{
 	// types
 	public:
@@ -37,16 +37,15 @@ namespace AE::Samples::Demo
 	public:
 		virtual ~ISample () {}
 
-		ND_ virtual bool		Init (PipelinePackID pack) = 0;
+		ND_ virtual bool			Init (PipelinePackID pack)										= 0;
 
-		ND_ virtual AsyncTask	Update (const ActionQueueReader &, ArrayView<AsyncTask> deps)		{ Unused( deps );  return null; }
+		ND_ virtual AsyncTask		Update (const ActionQueueReader &, ArrayView<AsyncTask> deps)	{ Unused( deps );  return null; }
 
-		// deps			- must contains task which returned by 'Update()' or task which depends on it.
-		// endCmdBatch	- UI rendering batch, must be added as 'endCmdBatch' to the 'IOutputSurface::Begin()'
+		// deps - must contains task which returned by 'Update()' or task which depends on it.
 		//
-		ND_ virtual AsyncTask	Draw (RenderGraph &rg, ArrayView<AsyncTask> deps) = 0;
+		ND_ virtual AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)				= 0;
 
-		ND_ virtual InputModeName  GetInputMode () const = 0;
+		ND_ virtual InputModeName	GetInputMode ()													const = 0;
 	};
 
 

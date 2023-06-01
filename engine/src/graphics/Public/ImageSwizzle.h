@@ -126,7 +126,7 @@ namespace AE::Graphics
 namespace AE::Base
 {
 	template <> struct TMemCopyAvailable< AE::Graphics::ImageSwizzle >		{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::ImageSwizzle >	{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::ImageSwizzle >	{ static constexpr bool  value = true; };
 
 } // AE::Base
 

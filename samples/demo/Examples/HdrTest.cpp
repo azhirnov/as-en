@@ -15,36 +15,35 @@ namespace AE::Samples::Demo
 	class HdrTestSample::ProcessInputTask final : public Threading::IAsyncTask
 	{
 	public:
-		HdrTestSample&		t;
+		RC<HdrTestSample>	t;
 		ActionQueueReader	reader;
 
-		ProcessInputTask (HdrTestSample* t, ActionQueueReader reader) :
-			IAsyncTask{ ETaskQueue::Worker },
-			t{ *t },
-			reader{ RVRef(reader) }
+		ProcessInputTask (HdrTestSample* p, ActionQueueReader reader) :
+			IAsyncTask{ ETaskQueue::PerFrame },
+			t{ p }, reader{ RVRef(reader) }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
-			t.imgui.mouseLBDown	= false;
-			t.imgui.mouseWheel	= {};
+			t->imgui.mouseLBDown	= false;
+			t->imgui.mouseWheel	= {};
 
 			ActionQueueReader::Header	hdr;
 			for (; reader.ReadHeader( OUT hdr );)
 			{
-				if ( hdr.name == InputActionName{"MousePos"} )
-					t.imgui.mousePos = reader.Data<packed_float2>( hdr.offset );
+				if_unlikely( hdr.name == InputActionName{"MousePos"} )
+					t->imgui.mousePos = reader.Data<packed_float2>( hdr.offset );
 
-				if ( hdr.name == InputActionName{"MouseLBDown"} )
-					t.imgui.mouseLBDown = true;
+				if_unlikely( hdr.name == InputActionName{"MouseLBDown"} )
+					t->imgui.mouseLBDown = true;
 
-				if ( hdr.name == InputActionName{"Touch"} ){
-					t.imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-					t.imgui.touchActive = hdr.state != EGestureState::End;
+				if_unlikely( hdr.name == InputActionName{"Touch"} ){
+					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
+					t->imgui.touchActive = hdr.state != EGestureState::End;
 				}
-				if ( hdr.name == InputActionName{"Test.Click"} ){
-					t.imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-					t.imgui.mouseLBDown = true;
+				if_unlikely( hdr.name == InputActionName{"Touch.Click"} ){
+					t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
+					t->imgui.mouseLBDown = true;
 				}
 			}
 		}
@@ -62,54 +61,28 @@ namespace AE::Samples::Demo
 	{
 	// variables
 	private:
-		HdrTestSample &		t;
+		RC<HdrTestSample>	t;
 		IOutputSurface &	surface;
 
 
 	// methods
 	public:
-		DrawTask (HdrTestSample* t, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
+		DrawTask (HdrTestSample* p, IOutputSurface &surf, CommandBatchPtr batch, DebugLabel) :
 			RenderTask{ batch, {"HDR::Draw"} },
-			t{ *t }, surface{ surf }
+			t{ p }, surface{ surf }
 		{}
 		
-		void  Run () override
+		void  Run () __Th_OV
 		{
-			CHECK_TE( t.imgui.Draw( *this, surface,
+			CHECK_TE( t->imgui.Draw( *this, surface,
 									[] () {
 										// draw profiler
 									},
 									[this] (DirectCtx::Draw &dctx)
 									{
-										dctx.BindPipeline( t.hdrPpln );
+										dctx.BindPipeline( t->hdrPpln );
 										dctx.Draw( 3 );
 									}));
-		}
-	};
-//-----------------------------------------------------------------------------
-
-
-
-	//
-	// Upload Task
-	//
-	class HdrTestSample::UploadTask final : public RenderTask
-	{
-	public:
-		HdrTestSample&	t;
-
-		UploadTask (HdrTestSample* t, CommandBatchPtr batch, DebugLabel) :
-			RenderTask{ batch, {"HDR::Upload"} },
-			t{ *t }
-		{}
-		
-		void  Run () override
-		{
-			DirectCtx::Transfer	copy_ctx{ *this };
-		
-			CHECK_TE( t.imgui.Upload( copy_ctx ));
-		
-			Execute( copy_ctx );
 		}
 	};
 //-----------------------------------------------------------------------------
@@ -150,20 +123,10 @@ namespace AE::Samples::Demo
 	Draw
 =================================================
 */
-	AsyncTask  HdrTestSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> inDeps)
+	AsyncTask  HdrTestSample::Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)
 	{
 		auto	batch = rg.Render( "HDR pass" );
 		CHECK_ERR( batch );
-		
-		ArrayView<AsyncTask>	deps = inDeps;
-		AsyncTask				upload;
-
-		if ( not uploaded.load() )
-		{
-			uploaded.store( true );
-			upload	= batch->Run< UploadTask >( Tuple{this}, Tuple{deps} );
-			deps	= ArrayView<AsyncTask>{ upload };
-		}
 		
 		auto	surf_acquire = rg.BeginOnSurface( batch, deps );
 		CHECK_ERR( surf_acquire );

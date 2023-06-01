@@ -18,8 +18,8 @@ namespace AE::Video
 	{
 	// types
 	public:
-		using Bitrate_t		= DefaultPhysicalQuantity<ulong>::BitsPerSecond;
-		using Seconds_t		= DefaultPhysicalQuantity<double>::Seconds;
+		using Bitrate_t		= DefaultPhysicalQuantity<ulong>::BitPerSecond;
+		using Second_t		= DefaultPhysicalQuantity<double>::Second;
 		using FrameRate_t	= FractionalI;
 
 		struct Config
@@ -43,7 +43,7 @@ namespace AE::Video
 			EVideoFormat		format			= Default;
 			EColorPreset		colorPreset		= Default;
 			ulong				frameCount		= 0;		// may be undefined
-			Seconds_t			duration;
+			Second_t			duration;
 			FrameRate_t			avgFrameRate;				// average
 			FrameRate_t			minFrameRate;				// minimal
 			Bitrate_t			bitrate;
@@ -61,8 +61,8 @@ namespace AE::Video
 
 		struct FrameInfo
 		{
-			Seconds_t		timestamp;
-			Seconds_t		duration;			// next frame will be presented in 'timestamp + duration'
+			Second_t		timestamp;
+			Second_t		duration;			// next frame will be presented in 'timestamp + duration'
 			ulong			frameIdx	= 0;
 		};
 
@@ -74,7 +74,7 @@ namespace AE::Video
 		ND_ virtual bool  Begin (const Config &cfg, const Path &filename)		__NE___	= 0;
 		ND_ virtual bool  Begin (const Config &cfg, RC<RStream> stream)			__NE___	= 0;
 		ND_ virtual bool  SeekTo (ulong frameIdx)								__NE___ = 0;
-		ND_ virtual bool  SeekTo (Seconds_t timestamp)							__NE___ = 0;
+		ND_ virtual bool  SeekTo (Second_t timestamp)							__NE___ = 0;
 
 		ND_ virtual bool  GetFrame (OUT ImageMemView &	view,
 									OUT FrameInfo &		info)					__NE___ = 0;

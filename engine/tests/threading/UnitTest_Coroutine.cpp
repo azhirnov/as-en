@@ -34,7 +34,7 @@ namespace
 							{
 								TEST( not co_await Coro_IsCanceled );
 								TEST( (co_await Coro_Status) == EStatus::InProgress );
-								TEST( (co_await Coro_TaskQueue) == ETaskQueue::Worker );
+								TEST( (co_await Coro_TaskQueue) == ETaskQueue::PerFrame );
 
 								TEST( value.guard.try_lock() );
 								value.str += '1';
@@ -154,9 +154,13 @@ namespace
 		auto		p3 = scheduler->Run(
 							[] (ExeOrder &value, auto p0, auto p1, auto p2) -> Coroutine<String>
 							{
-								TEST( not co_await Coro_IsCanceled );
-								TEST( (co_await Coro_Status) == EStatus::InProgress );
-								TEST( (co_await Coro_TaskQueue) == ETaskQueue::Worker );
+								const bool	is_canceled = co_await Coro_IsCanceled;
+								const auto	status		= co_await Coro_Status;
+								const auto	queue		= co_await Coro_TaskQueue;
+
+								TEST( not is_canceled );
+								TEST( status == EStatus::InProgress );
+								TEST( queue == ETaskQueue::PerFrame );
 
 								String	s0		 = co_await p0;
 								auto	[s1, s2] = co_await Tuple{ p1, p2 };

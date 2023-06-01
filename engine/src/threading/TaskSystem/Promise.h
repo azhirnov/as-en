@@ -141,12 +141,12 @@ namespace _hidden_
 		template <typename Fn>
 		auto  Then (Fn &&fn,
 					StringView dbgName		= Default,
-					ETaskQueue queueType	= ETaskQueue::Worker)					__Th___;
+					ETaskQueue queueType	= ETaskQueue::PerFrame)					__Th___;
 
 		template <typename Fn>
 		auto  Except (Fn &&fn,
 					  StringView dbgName	= Default,
-					  ETaskQueue queueType	= ETaskQueue::Worker)					__Th___;
+					  ETaskQueue queueType	= ETaskQueue::PerFrame)					__Th___;
 
 		bool  Cancel ()																__NE___;
 
@@ -810,7 +810,7 @@ namespace _hidden_
 	template <typename T>
 	ND_ auto  MakeDelayedPromiseFromValue (T &&			value,
 										   StringView	dbgName		= Default,
-										   ETaskQueue	queueType	= ETaskQueue::Worker) __Th___
+										   ETaskQueue	queueType	= ETaskQueue::PerFrame) __Th___
 	{
 		STATIC_ASSERT( not std::is_invocable_v<T> );
 		
@@ -837,7 +837,7 @@ namespace _hidden_
 	ND_ auto  MakePromiseFromValue (T &&					value,
 									const Tuple<Deps...> &	dependsOn	= Default,
 									StringView				dbgName		= Default,
-									ETaskQueue				queueType	= ETaskQueue::Worker) __Th___
+									ETaskQueue				queueType	= ETaskQueue::PerFrame) __Th___
 	{
 		STATIC_ASSERT( not std::is_invocable_v<T> );
 		
@@ -878,7 +878,7 @@ namespace _hidden_
 	template <typename Fn>
 	ND_ auto  MakeDelayedPromise (Fn &&			fn,
 								  StringView	dbgName		= Default,
-								  ETaskQueue	queueType	= ETaskQueue::Worker) __Th___
+								  ETaskQueue	queueType	= ETaskQueue::PerFrame) __Th___
 	{
 		STATIC_ASSERT( std::is_invocable_v<Fn> );
 		
@@ -911,7 +911,7 @@ namespace _hidden_
 	ND_ auto  MakePromise (Fn &&					fn,
 						   const Tuple<Deps...> &	dependsOn	= Default,
 						   StringView				dbgName		= Default,
-						   ETaskQueue				queueType	= ETaskQueue::Worker) __Th___
+						   ETaskQueue				queueType	= ETaskQueue::PerFrame) __Th___
 	{
 		auto	result = MakeDelayedPromise( FwdArg<Fn>(fn), dbgName, queueType );
 		
@@ -946,7 +946,7 @@ namespace _hidden_
 	template <typename T>
 	ND_ auto  MakePromiseFromArray (Array<Promise<T>>	args,
 									StringView			dbgName		= Default,
-									ETaskQueue			queueType	= ETaskQueue::Worker) __Th___
+									ETaskQueue			queueType	= ETaskQueue::PerFrame) __Th___
 	{
 		Array<AsyncTask>	deps;		// TODO: optimize
 		deps.reserve( args.size() );
@@ -974,7 +974,7 @@ namespace _hidden_
 	template <typename T>
 	ND_ auto  MakePromiseFromArray (Array< Promise< Array<T> >> args,
 									StringView					dbgName		= Default,
-									ETaskQueue					queueType	= ETaskQueue::Worker) __Th___
+									ETaskQueue					queueType	= ETaskQueue::PerFrame) __Th___
 	{
 		Array<AsyncTask>	deps;		// TODO: optimize
 		deps.reserve( args.size() );

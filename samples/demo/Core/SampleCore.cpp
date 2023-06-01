@@ -46,13 +46,14 @@ namespace AE::Samples::Demo
 	GetAppConfig
 =================================================
 */
-	static AppConfig  GetAppConfig ()
+	static AppV1::AppConfig  GetAppConfig ()
 	{
-		AppConfig	cfg;
+		AppV1::AppConfig	cfg;
 
 		// threading
 		{
-			cfg.threading.maxThreads = 0;
+			cfg.threading.maxThreads	= 0;
+			cfg.threading.mask			= {EThread::PerFrame, EThread::Renderer, EThread::Background};
 		}
 		
 		// graphics
@@ -68,9 +69,9 @@ namespace AE::Samples::Demo
 
 			cfg.graphics.device.appName			= "Demo";
 			cfg.graphics.device.requiredQueues	= EQueueMask::Graphics;
-			cfg.graphics.device.optionalQueues	= Default;
+			cfg.graphics.device.optionalQueues	= Default; //EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer;
 			cfg.graphics.device.validation		= EDeviceValidation::Enabled;
-			cfg.graphics.device.devFlags		= EDeviceFlags::SetStableClock;
+		//	cfg.graphics.device.devFlags		= EDeviceFlags::SetStableClock;
 			
 		  #if 0
 			cfg.graphics.swapchain.format		= EPixelFormat::RGBA16F;
@@ -82,6 +83,7 @@ namespace AE::Samples::Demo
 			cfg.graphics.swapchain.options		= EImageOpt::BlitDst;
 		//	cfg.graphics.swapchain.presentMode	= EPresentMode::Mailbox;	// faster vsync
 			cfg.graphics.swapchain.presentMode	= EPresentMode::FIFO;		// vsync
+			cfg.graphics.swapchain.minImageCount= 3;
 		}
 
 		// window
@@ -169,7 +171,7 @@ namespace AE::Samples::Demo
 	SampleCore::~SampleCore ()
 	{
 		_mainLoop.Write( Default );
-		_sample.reset();
+		_sample = null;
 
 		RenderTaskScheduler().GetResourceManager().ReleaseResource( _pplnPack );
 	}
@@ -433,6 +435,7 @@ void  AE_OnAppDestroyed ()
 {
 	StaticLogger::Deinitialize( true );
 }
+//-----------------------------------------------------------------------------
 
 
 #ifdef AE_PLATFORM_ANDROID

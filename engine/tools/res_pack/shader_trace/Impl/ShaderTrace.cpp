@@ -75,6 +75,8 @@ namespace AE::PipelineCompiler
 		SourceInfo	info;
 		usize		pos = 0;
 
+		FindAndReplace( INOUT filename, '\\', '/' );
+
 		info.filename	= RVRef(filename);
 		info.code		= RVRef(source);
 		info.firstLine	= firstLine;

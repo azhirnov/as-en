@@ -144,7 +144,7 @@ namespace AE::Threading
 
 	// variables
 	private:
-		ETaskQueue					_queueType			= ETaskQueue::Worker;	// packed with atomic counter in 'EnableRC<>'
+		ETaskQueue					_queueType			= ETaskQueue::PerFrame;	// packed with atomic counter in 'EnableRC<>'
 		Atomic< EStatus >			_status				{EStatus::Initial};
 		Atomic< uint >				_canceledDepsCount	{0};					// > 0 if canceled		// TODO: pack with '_status'
 		Atomic< WaitBits_t >		_waitBits			{~WaitBits_t{0}};		// 0 - all complete, otherwise - has uncomplete dependencies
@@ -161,62 +161,62 @@ namespace AE::Threading
 
 	// methods
 	public:
-		virtual ~IAsyncTask ()						__NE___;
+		virtual ~IAsyncTask ()							__NE___;
 
-		ND_ ETaskQueue	QueueType ()				C_NE___	{ return _queueType; }
+		ND_ ETaskQueue	QueueType ()					C_NE___	{ return _queueType; }
 
-		ND_ EStatus		Status ()					C_NE___	{ return _status.load(); }
+		ND_ EStatus		Status ()						C_NE___	{ return _status.load(); }
 
-		ND_ bool		IsInQueue ()				C_NE___	{ return Status() <  EStatus::_Finished; }
-		ND_ bool		IsFinished ()				C_NE___	{ return Status() >  EStatus::_Finished; }		// status: Completed / Failed / Canceled
-		ND_ bool		IsInterropted ()			C_NE___	{ return Status() >  EStatus::_Interropted; }	// status: Failed / Canceled
-		ND_ bool		IsCompleted ()				C_NE___	{ return Status() == EStatus::Completed; }		// status: Completed
+		ND_ bool		IsInQueue ()					C_NE___	{ return Status() <  EStatus::_Finished; }
+		ND_ bool		IsFinished ()					C_NE___	{ return Status() >  EStatus::_Finished; }		// status: Completed / Failed / Canceled
+		ND_ bool		IsInterropted ()				C_NE___	{ return Status() >  EStatus::_Interropted; }	// status: Failed / Canceled
+		ND_ bool		IsCompleted ()					C_NE___	{ return Status() == EStatus::Completed; }		// status: Completed
 
-		ND_ virtual StringView	DbgName ()			C_NE___ = 0;
+		ND_ virtual StringView	DbgName ()				C_NE___ = 0;
 		
-		DEBUG_ONLY( ND_ bool  DbgIsRunning ()		C_NE___	{ return _isRunning.load(); })
+		DEBUG_ONLY( ND_ bool  DbgIsRunning ()			C_NE___	{ return _isRunning.load(); })
 
 
 	protected:
-		explicit IAsyncTask (ETaskQueue type)		__NE___;
+		explicit IAsyncTask (ETaskQueue type)			__NE___;
 
 			// can throw exception
-			virtual void  Run ()					__Th___ = 0;
+			virtual void  Run ()						__Th___ = 0;
 			
-			virtual void  OnCancel ()				__NE___	{ ASSERT( not _isRunning.load() ); }
+			virtual void  OnCancel ()					__NE___	{ ASSERT( not _isRunning.load() ); }
 
 			// call this only inside 'Run()' method.
-		ND_ bool  IsCanceled () const				__NE___	{ ASSERT( _isRunning.load() );  return Status() == EStatus::Cancellation; }
+		ND_ bool  IsCanceled () const					__NE___	{ ASSERT( _isRunning.load() );  return Status() == EStatus::Cancellation; }
 
 			// call this only inside 'Run()' method
-			void  OnFailure ()						__NE___;
+			void  OnFailure ()							__NE___;
 
 			// call this only inside 'Run()' method.
 			// doesn't restart if have been canceled in another thread.
 			// throw exception if failed to add dependencies.
 			template <typename ...Deps>
-			void  Continue (const Tuple<Deps...> &) __NE___;
-			void  Continue ()						__NE___	{ return Continue( Tuple{} ); }
+			void  Continue (const Tuple<Deps...> &)		__NE___;
+			void  Continue ()							__NE___	{ return Continue( Tuple{} ); }
 
 			// call this before reusing task
-		ND_	bool  _ResetState ()					__NE___;
+		ND_	bool  _ResetState ()						__NE___;
 			
 			// Only for debugging!
-			void  _DbgSet (EStatus status)			__NE___;
+			void  _DbgSet (EStatus status)				__NE___;
 
 			// Only during initialization
-			void  _SetQueueType (ETaskQueue type)	__NE___;
+			void  _SetQueueType (ETaskQueue type)		__NE___;
 
 			// Only in constructor!
-			void  _MakeCompleted ()					__NE___;
+			void  _MakeCompleted ()						__NE___;
 
-			bool  _SetCancellationState ()			__NE___;
+			bool  _SetCancellationState ()				__NE___;
 
 	private:
 		// call this methods only after 'Run()' method
-		void  _OnFinish (OUT bool& rerun)			__NE___;
-		void  _Cancel ()							__NE___;
-		void  _FreeOutputChunks (bool isCanceled)	__NE___;
+		void  _OnFinish (OUT bool& rerun)				__NE___;
+		void  _Cancel ()								__NE___;
+		void  _FreeOutputChunks (bool isCanceled)		__NE___;
 
 		DEBUG_ONLY( ND_ static slong  _AsyncTaskTotalCount () __NE___;)
 	};
@@ -247,7 +247,7 @@ namespace AE::Threading
 	// methods
 	public:
 		template <typename Fn>
-		explicit AsyncTaskFn (Fn && fn, StringView dbgName = Default, ETaskQueue type = ETaskQueue::Worker) :
+		explicit AsyncTaskFn (Fn && fn, StringView dbgName = Default, ETaskQueue type = ETaskQueue::PerFrame) :
 			IAsyncTask{ type },
 			_fn{ FwdArg<Fn>(fn) }
 			#ifdef AE_DEBUG
@@ -259,15 +259,15 @@ namespace AE::Threading
 
 
 	private:
-		void Run () __Th_OV
+		void  Run ()			__Th_OV
 		{
 			return _fn();
 		}
 
 	#ifdef AE_DEBUG
-		StringView  DbgName () C_NE_OV	{ return _dbgName; }
+		StringView  DbgName ()	C_NE_OV	{ return _dbgName; }
 	#else
-		StringView  DbgName () C_NE_OV	{ return "AsyncTaskFn"; }
+		StringView  DbgName ()	C_NE_OV	{ return "AsyncTaskFn"; }
 	#endif
 	};
 //-----------------------------------------------------------------------------
@@ -306,7 +306,7 @@ namespace AE::Threading
 
 		// methods
 		public:
-			promise_type ()									__NE___	: IAsyncTask{ ETaskQueue::Worker } {}
+			promise_type ()									__NE___	: IAsyncTask{ ETaskQueue::PerFrame } {}
 			
 			ND_ AsyncTaskCoro		get_return_object ()	__NE___	{ return AsyncTaskCoro{ *this }; }
 
@@ -475,15 +475,15 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit AsyncTaskCoro_Awaiter (const AsyncTask &dep) __NE___ : _dep{dep} {}
+		explicit AsyncTaskCoro_Awaiter (const AsyncTask &dep)			__NE___ : _dep{dep} {}
 
-		ND_ bool	await_ready ()		C_NE___	{ return false; }
+		ND_ bool	await_ready ()										C_NE___	{ return false; }
 
-			void	await_resume ()		__NE___	{}
+			void	await_resume ()										__NE___	{}
 		
 		// return task to scheduler with new dependencies
 		template <typename P>
-		ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
+		ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)	__NE___
 		{
 			return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl( curCoro, _dep );
 		}
@@ -500,15 +500,15 @@ namespace AE::Threading
 
 	// methods
 	public:
-		explicit AsyncTaskCoro_Awaiter (const Tuple<Deps...> &deps) __NE___ : _deps{deps} {}
+		explicit AsyncTaskCoro_Awaiter (const Tuple<Deps...> &deps)		__NE___ : _deps{deps} {}
 
-		ND_ bool	await_ready ()		C_NE___	{ return false; }
+		ND_ bool	await_ready ()										C_NE___	{ return false; }
 
-			void	await_resume ()		__NE___	{}
+			void	await_resume ()										__NE___	{}
 		
 		// return task to scheduler with new dependencies
 		template <typename P>
-		ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
+		ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)	__NE___
 		{
 			return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl2( curCoro, _deps );
 		}
@@ -523,11 +523,11 @@ namespace AE::Threading
 	private:
 		struct Awaiter
 		{
-			ND_ bool	await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-				void	await_resume ()		__NE___	{}
+			ND_ bool	await_ready ()									C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
+				void	await_resume ()									__NE___	{}
 				
 			template <typename P>
-			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
+			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)__NE___
 			{
 				// compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
 				STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
@@ -538,9 +538,9 @@ namespace AE::Threading
 		};
 
 	public:
-		explicit AsyncTaskCoro_Error ()		__NE___ {}
+		explicit AsyncTaskCoro_Error ()									__NE___ {}
 
-		ND_ auto  operator co_await ()		C_NE___	{ return Awaiter{}; }
+		ND_ auto  operator co_await ()									C_NE___	{ return Awaiter{}; }
 	};
 	
 
@@ -556,11 +556,11 @@ namespace AE::Threading
 			bool	_isCanceled = false;
 
 		public:
-			ND_ bool	await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-			ND_ bool	await_resume ()		__NE___	{ return _isCanceled; }
+			ND_ bool	await_ready ()									C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
+			ND_ bool	await_resume ()									__NE___	{ return _isCanceled; }
 				
 			template <typename P>
-			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
+			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)__NE___
 			{
 				// compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
 				STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
@@ -571,9 +571,9 @@ namespace AE::Threading
 		};
 
 	public:
-		constexpr Coroutine_IsCanceled ()	__NE___ {}
+		constexpr Coroutine_IsCanceled ()								__NE___ {}
 
-		ND_ auto  operator co_await ()		C_NE___	{ return Awaiter{}; }
+		ND_ auto  operator co_await ()									C_NE___	{ return Awaiter{}; }
 	};
 
 
@@ -589,11 +589,11 @@ namespace AE::Threading
 			IAsyncTask::EStatus		_status = IAsyncTask::EStatus::Initial;
 
 		public:
-			ND_ bool	await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-			ND_ auto	await_resume ()		__NE___	{ return _status; }
+			ND_ bool	await_ready ()									C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
+			ND_ auto	await_resume ()									__NE___	{ return _status; }
 				
 			template <typename P>
-			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
+			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)__NE___
 			{
 				// compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
 				STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
@@ -604,9 +604,9 @@ namespace AE::Threading
 		};
 
 	public:
-		constexpr Coroutine_Status ()		__NE___ {}
+		constexpr Coroutine_Status ()									__NE___ {}
 
-		ND_ auto  operator co_await ()		C_NE___	{ return Awaiter{}; }
+		ND_ auto  operator co_await ()									C_NE___	{ return Awaiter{}; }
 	};
 
 
@@ -622,11 +622,11 @@ namespace AE::Threading
 			ETaskQueue		_queue	= ETaskQueue::_Count;
 
 		public:
-			ND_ bool	await_ready ()		C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
-			ND_ auto	await_resume ()		__NE___	{ return _queue; }
+			ND_ bool	await_ready ()									C_NE___	{ return false; }	// call 'await_suspend()' to get coroutine handle
+			ND_ auto	await_resume ()									__NE___	{ return _queue; }
 				
 			template <typename P>
-			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro) __NE___
+			ND_ bool	await_suspend (std::coroutine_handle<P> curCoro)__NE___
 			{
 				// compatible with all 'promise_type' which is inhertited from 'IAsyncTask'
 				STATIC_ASSERT( IsBaseOf< IAsyncTask, P >);
@@ -637,9 +637,9 @@ namespace AE::Threading
 		};
 
 	public:
-		constexpr Coroutine_Queue ()		__NE___ {}
+		constexpr Coroutine_Queue ()									__NE___ {}
 
-		ND_ auto  operator co_await ()		C_NE___	{ return Awaiter{}; }
+		ND_ auto  operator co_await ()									C_NE___	{ return Awaiter{}; }
 	};
 
   } // _hidden_

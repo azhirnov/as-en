@@ -15,7 +15,8 @@ void ASmain ()
 		ms.file		= "mesh_2.glsl";
 		ms.options	= EShaderOpt::Optimize;
 		ms.version	= EShaderVersion::SPIRV_1_4;
-		ms.SetMeshSpec1();
+		ms.MeshSpec1();
+		ms.MeshOutput( 32, 64, EPrimitive::TriangleList );
 		ppln.SetMeshShader( ms );
 	}
 	{

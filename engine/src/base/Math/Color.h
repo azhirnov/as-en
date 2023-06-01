@@ -106,7 +106,7 @@ namespace AE::Math
 		float	depth;
 		uint	stencil;
 
-	// mathods
+	// methods
 		constexpr DepthStencil ()											__NE___ : depth{0.0f}, stencil{0} {}
 		constexpr explicit DepthStencil (float depth, uint stencil = 0)		__NE___ : depth{depth}, stencil{stencil} {}
 
@@ -494,17 +494,17 @@ namespace AE::Math
 
 namespace AE::Base
 {
-	template <typename T>	struct TMemCopyAvailable< RGBAColor<T> >	{ static constexpr bool  value = IsMemCopyAvailable<T>; };
-	template <>				struct TMemCopyAvailable< DepthStencil >	{ static constexpr bool  value = true; };
-	template <>				struct TMemCopyAvailable< HSVColor >		{ static constexpr bool  value = true; };
+	template <typename T>	struct TMemCopyAvailable< RGBAColor<T> >		{ static constexpr bool  value = IsMemCopyAvailable<T>; };
+	template <>				struct TMemCopyAvailable< DepthStencil >		{ static constexpr bool  value = true; };
+	template <>				struct TMemCopyAvailable< HSVColor >			{ static constexpr bool  value = true; };
 	
-	template <typename T>	struct TZeroMemAvailable< RGBAColor<T> >	{ static constexpr bool  value = IsZeroMemAvailable<T>; };
-	template <>				struct TZeroMemAvailable< DepthStencil >	{ static constexpr bool  value = true; };
-	template <>				struct TZeroMemAvailable< HSVColor >		{ static constexpr bool  value = true; };
+	template <typename T>	struct TZeroMemAvailable< RGBAColor<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
+	template <>				struct TZeroMemAvailable< DepthStencil >		{ static constexpr bool  value = true; };
+	template <>				struct TZeroMemAvailable< HSVColor >			{ static constexpr bool  value = true; };
 	
-	template <typename T>	struct TTrivialySerializable< RGBAColor<T> > { static constexpr bool  value = IsTrivialySerializable<T>; };
-	template <>				struct TTrivialySerializable< DepthStencil > { static constexpr bool  value = true; };
-	template <>				struct TTrivialySerializable< HSVColor >	 { static constexpr bool  value = true; };
+	template <typename T>	struct TTriviallySerializable< RGBAColor<T> >	{ static constexpr bool  value = IsTriviallySerializable<T>; };
+	template <>				struct TTriviallySerializable< DepthStencil >	{ static constexpr bool  value = true; };
+	template <>				struct TTriviallySerializable< HSVColor >		{ static constexpr bool  value = true; };
 	
 } // AE::Base
 

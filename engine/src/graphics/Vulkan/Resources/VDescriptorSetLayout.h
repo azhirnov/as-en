@@ -4,6 +4,7 @@
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Public/DescriptorSet.h"
+# include "graphics/Private/EnumUtils.h"
 # include "graphics/Vulkan/VCommon.h"
 # include "PipelineCompilerImpl.h"
 

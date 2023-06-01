@@ -34,12 +34,12 @@ namespace AE::Graphics
 			bool	underline	: 1;
 			bool	strikeout	: 1;
 
-			FontParams () :
+			FontParams ()					__NE___ :
 				heightInPx{10.0f}, spacing{1.1f},
 				bold{0}, italic{false}, underline{false}, strikeout{false}
 			{}
 
-			FontParams&		Bold (bool value)	{ bold = value ? FloatToUNormShort(0.5f) : FloatToUNormShort(0.2f);  return *this; }
+			FontParams&  Bold (bool value)	__NE___ { bold = value ? FloatToUNormShort(0.5f) : FloatToUNormShort(0.2f);  return *this; }
 		};
 
 
@@ -54,7 +54,7 @@ namespace AE::Graphics
 			uint	instanceCount	: 28;
 			uint	rangeIdx		: 4;
 
-			ND_ bool  Equal (uint instCnt, uint range) const {
+			ND_ bool  Equal (uint instCnt, uint range) C_NE___ {
 				return (instanceCount == instCnt) | (rangeIdx == range);
 			}
 		};
@@ -77,24 +77,24 @@ namespace AE::Graphics
 			
 
 		// methods
-			ND_ Bytes32u	_PositionOffset ()	const	{ return 0_b; }
-			ND_ Bytes32u	_AttribsOffset ()	const	{ return posCapacity; }
-			ND_ Bytes32u	_IndicesOffset ()	const	{ return posCapacity + attribsCapacity; }
+			ND_ Bytes32u	_PositionOffset ()						C_NE___	{ return 0_b; }
+			ND_ Bytes32u	_AttribsOffset ()						C_NE___	{ return posCapacity; }
+			ND_ Bytes32u	_IndicesOffset ()						C_NE___	{ return posCapacity + attribsCapacity; }
 
-			ND_ Bytes		PositionOffset ()	const	{ return offset + _PositionOffset(); }
-			ND_ Bytes		AttribsOffset ()	const	{ return offset + _AttribsOffset(); }
-			ND_ Bytes		IndicesOffset ()	const	{ return offset + _IndicesOffset(); }
-			ND_ Bytes		BufferSize ()		const	{ return posCapacity + attribsCapacity + indexCapacity; }
+			ND_ Bytes		PositionOffset ()						C_NE___	{ return offset + _PositionOffset(); }
+			ND_ Bytes		AttribsOffset ()						C_NE___	{ return offset + _AttribsOffset(); }
+			ND_ Bytes		IndicesOffset ()						C_NE___	{ return offset + _IndicesOffset(); }
+			ND_ Bytes		BufferSize ()							C_NE___	{ return posCapacity + attribsCapacity + indexCapacity; }
 			
-			ND_ void*		Positions ()				{ return ptr + _PositionOffset(); }
-			ND_ void*		Attribs ()					{ return ptr + _AttribsOffset(); }
-			ND_ auto*		Indices ()					{ return Cast<BatchIndex_t>( ptr + _IndicesOffset() ); }
+			ND_ void*		Positions ()							__NE___	{ return ptr + _PositionOffset(); }
+			ND_ void*		Attribs ()								__NE___	{ return ptr + _AttribsOffset(); }
+			ND_ auto*		Indices ()								__NE___	{ return Cast<BatchIndex_t>( ptr + _IndicesOffset() ); }
 			
-			ND_ void*		CurrPositions ()			{ return Positions() + posSize; }
-			ND_ void*		CurrAttribs ()				{ return Attribs() + attribsSize; }
-			ND_ auto*		CurrIndices ()				{ return Indices() + indexSize; }
+			ND_ void*		CurrPositions ()						__NE___	{ return Positions() + posSize; }
+			ND_ void*		CurrAttribs ()							__NE___	{ return Attribs() + attribsSize; }
+			ND_ auto*		CurrIndices ()							__NE___	{ return Indices() + indexSize; }
 
-			ND_ bool  HasSpace (Bytes pos, Bytes attr, Bytes idx) const
+			ND_ bool  HasSpace (Bytes pos, Bytes attr, Bytes idx)	C_NE___
 			{
 				return	(posSize     + pos  <= posCapacity)		|
 						(attribsSize + attr <= attribsCapacity)	|
@@ -132,36 +132,36 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		Canvas () {}
-		~Canvas () {}
+		Canvas ()																										__NE___	{}
+		~Canvas ()																										__NE___	{}
 
-		void  SetDimensions (const SurfaceDimensions &dim)								{ _surfDim = dim; }
-		void  SetDimensions (const uint2 &surfaceSizeInPix, const float2 &mmPerPixel)	{ _surfDim.SetDimensions( surfaceSizeInPix, mmPerPixel ); }
-		void  SetDimensions (const App::IOutputSurface::RenderTarget &rt)				{ _surfDim.SetDimensions( rt ); }
+		void  SetDimensions (const SurfaceDimensions &dim)																__NE___	{ _surfDim = dim; }
+		void  SetDimensions (const uint2 &surfaceSizeInPix, const float2 &mmPerPixel)									__NE___	{ _surfDim.SetDimensions( surfaceSizeInPix, mmPerPixel ); }
+		void  SetDimensions (const App::IOutputSurface::RenderTarget &rt)												__NE___	{ _surfDim.SetDimensions( rt ); }
 
-		ND_ SurfaceDimensions const&  Dimensions ()	const	{ return _surfDim; }
+		ND_ SurfaceDimensions const&  Dimensions ()																		C_NE___	{ return _surfDim; }
 
 
-		void  NextFrame (FrameUID frameId);
+		void  NextFrame (FrameUID frameId)																				__NE___;
 
 		template <typename Ctx>
-		void  Flush (Ctx &ctx, EPrimitive topology = Default);
+		void  Flush (Ctx &ctx, EPrimitive topology = Default)															__NE___;
 
 
 
 	// High level //
-		void  DrawText (StringView text, const RasterFont &font, const FontParams &params, const RectF &regionInVP);
-		void  DrawText (U8StringView text, const RasterFont &font, const FontParams &params, const RectF &regionInVP);
+		void  DrawText (StringView text, const RasterFont &font, const FontParams &params, const RectF &regionInVP)		__NE___;
+		void  DrawText (U8StringView text, const RasterFont &font, const FontParams &params, const RectF &regionInVP)	__NE___;
 
-		void  DrawText (const PrecalculatedFormattedText &text, const RasterFont &font, const RectF &regionInVP);
+		void  DrawText (const PrecalculatedFormattedText &text, const RasterFont &font, const RectF &regionInVP)		__NE___;
 
 
 	// Low level //
 		template <typename PrimitiveType>
-		void  Draw (const PrimitiveType &primitive);
+		void  Draw (const PrimitiveType &primitive)																		__NE___;
 		
 		template <typename PrimitiveType>
-		void  DrawInstanced (const PrimitiveType &primitive, uint instanceCount);
+		void  DrawInstanced (const PrimitiveType &primitive, uint instanceCount)										__NE___;
 
 
 	private:
@@ -180,7 +180,7 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename Ctx>
-	void  Canvas::Flush (Ctx &ctx, EPrimitive topology)
+	void  Canvas::Flush (Ctx &ctx, EPrimitive topology) __NE___
 	{
 		if_unlikely( _drawCalls.empty() )
 			return;
@@ -230,13 +230,13 @@ namespace AE::Graphics
 =================================================
 */
 	template <typename PrimitiveType>
-	void  Canvas::Draw (const PrimitiveType &primitive)
+	void  Canvas::Draw (const PrimitiveType &primitive) __NE___
 	{
 		DrawInstanced( primitive, 1 );
 	}
 	
 	template <typename PrimitiveType>
-	void  Canvas::DrawInstanced (const PrimitiveType &primitive, uint instanceCount)
+	void  Canvas::DrawInstanced (const PrimitiveType &primitive, uint instanceCount) __NE___
 	{
 		DEBUG_ONLY(
 			if ( _topology != Default )

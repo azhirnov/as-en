@@ -26,11 +26,13 @@ namespace AE::GeometryTools
 		};
 		STATIC_ASSERT( sizeof(Vertex) == 36 );
 
+		using Index = ushort;
+
 
 	// variables
 	private:
-		Array<Vertex>	_vertices;
-		Array<uint>		_indices;
+		Array<Vertex>		_vertices;
+		Array<Index>		_indices;
 
 
 	// methods
@@ -38,7 +40,7 @@ namespace AE::GeometryTools
 		ND_	bool  Create ()						__NE___;
 
 		ND_ ArrayView<Vertex>	GetVertices ()	C_NE___	{ return _vertices; }
-		ND_ ArrayView<uint>		GetIndices ()	C_NE___	{ return _indices; }
+		ND_ ArrayView<Index>	GetIndices ()	C_NE___	{ return _indices; }
 	};
 
 

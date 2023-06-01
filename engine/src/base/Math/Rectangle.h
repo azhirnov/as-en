@@ -437,7 +437,7 @@ namespace AE::Base
 {
 	template <typename T>	struct TMemCopyAvailable< Rectangle<T> >		{ static constexpr bool  value = IsMemCopyAvailable<T>; };
 	template <typename T>	struct TZeroMemAvailable< Rectangle<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
-	template <typename T>	struct TTrivialySerializable< Rectangle<T> >	{ static constexpr bool  value = IsTrivialySerializable<T>; };
+	template <typename T>	struct TTriviallySerializable< Rectangle<T> >	{ static constexpr bool  value = IsTriviallySerializable<T>; };
 	
 } // AE::Base
 

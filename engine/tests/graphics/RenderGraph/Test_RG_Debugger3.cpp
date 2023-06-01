@@ -38,7 +38,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -86,7 +86,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -107,26 +107,26 @@ namespace
 
 					if ( trace_str.size() == 1 )
 					{
-						const char	ms_ref_str[] =
+						const StringView	ms_ref_str =
 R"(//> gl_GlobalInvocationID: uint3 {0, 0, 0}
 //> gl_LocalInvocationID: uint3 {0, 0, 0}
 //> gl_WorkGroupID: uint3 {0, 0, 0}
 no source
 
 //> (out): float4 {0.000000, -0.500000, 0.000000, 1.000000}
-29. gl_MeshVerticesEXT[I].gl_Position	= vec4( g_Positions[I], 0.0, 1.0 );
+36. gl_MeshVerticesEXT[I].gl_Position	= vec4( g_Positions[I], 0.0, 1.0 );
 
 //> (out): float4 {1.000000, 0.000000, 0.000000, 1.000000}
-30. Output[I].color						= vec4( g_Colors[I], 1.0 );
+37. Output[I].color						= vec4( g_Colors[I], 1.0 );
 
 //> (out): bool {true}
-32. if ( I == 0 )
+39. if ( I == 0 )
 
 //> gl_PrimitiveTriangleIndicesEXT: uint3 {0, 1, 2}
-34. gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
+41. gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
 
 //> SetMeshOutputs(): void
-35. 		SetMeshOutputsEXT( 3, 1 );
+42. 			SetMeshOutputsEXT( 3, 1 );
 
 )";
 						ok &= (trace_str[0] == ms_ref_str);

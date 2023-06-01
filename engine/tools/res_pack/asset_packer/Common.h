@@ -8,12 +8,15 @@
 
 namespace AE::AssetPacker
 {
-	using AE::Scripting::AngelScriptHelper;
 	using AE::Scripting::ScriptEnginePtr;
 	
 	using ECubeFace = AE::GeometryTools::ECubeFace;
 
 	using EArchivePackerFileType = VFS::ArchivePacker::EFileType;
+	
+	template <typename T>
+	using ScriptRC			= Scripting::AngelScriptHelper::SharedPtr<T>;
+	using EnableScriptRC	= Scripting::AngelScriptHelper::SimpleRefCounter;
 
 } // AE::AssetPacker
 

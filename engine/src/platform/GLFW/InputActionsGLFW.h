@@ -6,6 +6,7 @@
 
 #ifdef AE_ENABLE_GLFW
 # include "platform/Private/InputActionsBase.h"
+# include "platform/Private/GestureRecognizer.h"
 # include "platform/GLFW/SerializableInputActionsGLFW.h"
 
 namespace AE::App

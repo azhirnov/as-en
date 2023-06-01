@@ -59,7 +59,7 @@ namespace
 			CHECK( batch->GetQueueType() == EQueueType::Graphics );
 		}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -98,7 +98,7 @@ namespace
 			CHECK( batch->GetQueueType() == EQueueType::AsyncCompute );
 		}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -125,7 +125,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -159,11 +159,11 @@ namespace
 		CommandBatchPtr		lastBatch;
 
 		AC2_FrameTask (AC2_TestData& t) :
-			IAsyncTask{ ETaskQueue::Worker },
+			IAsyncTask{ ETaskQueue::PerFrame },
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			constexpr auto	img_gfx_state	= EResourceState::ShaderSample | EResourceState::FragmentShader;
 			constexpr auto	img_comp_state	= EResourceState::ShaderStorage_RW | EResourceState::ComputeShader;

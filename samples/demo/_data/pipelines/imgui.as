@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler>
 
 void ASmain ()
@@ -13,9 +14,9 @@ void ASmain ()
 	
 		RC<DescriptorSetLayout>	ds = DescriptorSetLayout( "imgui.ds0" );
 		ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::FImage2D, "LinearRepeat" );
-		ds.UniformBuffer( EShaderStages::Vertex, "ub", ArraySize(1), "imgui.ub" );
 	}{
 		RC<PipelineLayout>		pl = PipelineLayout( "imgui.pl" );
+		pl.PushConst( "ub", "imgui.ub", EShader::Vertex );
 		pl.DSLayout( 0, "imgui.ds0" );
 	}
 	{
@@ -37,13 +38,13 @@ void ASmain ()
 	
 	{
 		RC<Shader>	vs = Shader();
-		vs.file		= "imgui.glsl";
+		vs.file		= "imgui.glsl";		// file:///<path>/samples/demo/_data/shaders/imgui.glsl
 		vs.options	= EShaderOpt::Optimize;
 		ppln.SetVertexShader( vs );
 	}
 	{
 		RC<Shader>	fs = Shader();
-		fs.file		= "imgui.glsl";
+		fs.file		= "imgui.glsl";		// file:///<path>/samples/demo/_data/shaders/imgui.glsl
 		fs.options	= EShaderOpt::Optimize;
 		ppln.SetFragmentShader( fs );
 	}

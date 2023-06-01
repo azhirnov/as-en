@@ -163,6 +163,43 @@ namespace AE::Graphics
 
 
 	//
+	// Push Constant Index
+	//
+	struct PushConstantIndex
+	{
+	// variables
+		union {
+			Bytes16u	offset;
+			ushort		bufferId;
+		};
+		EShader			stage	= Default;
+
+		DEBUG_ONLY(
+			Bytes16u			dataSize;
+			ShaderStructName	typeName;
+		)
+
+	// methods
+		explicit constexpr PushConstantIndex ()													__NE___	{}
+		explicit constexpr PushConstantIndex (Bytes16u vulkanOffset, EShader stage)				__NE___	: offset{vulkanOffset}, stage{stage} {}
+		explicit constexpr PushConstantIndex (uint metalBufferId, EShader stage)				__NE___	: bufferId{ushort(metalBufferId)}, stage{stage} {}
+		
+		explicit constexpr PushConstantIndex (Bytes16u vulkanOffset, EShader stage,
+											  const ShaderStructName &typeName, Bytes dataSize)	__NE___	:
+			offset{vulkanOffset}, stage{stage}  DEBUG_ONLY(, dataSize{dataSize}, typeName{typeName} )
+		{ Unused( typeName, dataSize ); }
+
+		explicit constexpr PushConstantIndex (uint metalBufferId, EShader stage,
+											  const ShaderStructName &typeName, Bytes dataSize)	__NE___	:
+			bufferId{ushort(metalBufferId)}, stage{stage}  DEBUG_ONLY(, dataSize{dataSize}, typeName{typeName} )
+		{ Unused( typeName, dataSize ); }
+
+		ND_ constexpr explicit operator bool ()													C_NE___	{ return stage != Default; }
+	};
+
+
+
+	//
 	// Descriptor Updater
 	//
 

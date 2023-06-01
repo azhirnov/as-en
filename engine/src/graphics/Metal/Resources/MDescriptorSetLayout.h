@@ -18,8 +18,9 @@ namespace AE::Graphics
 	{
 	// types
 	public:
-		using Uniform_t		= PipelineCompiler::DescriptorSetLayoutDesc::Uniform;
-		using Uniforms_t	= Tuple< uint, UniformName::Optimized_t const*, Uniform_t const*, Bytes16u* >;
+		using UniformOffsets_t	= PipelineCompiler::DescriptorSetLayoutDesc::UniformOffsets_t;
+		using Uniform_t			= PipelineCompiler::DescriptorSetLayoutDesc::Uniform;
+		using Uniforms_t		= Tuple< uint, UniformName::Optimized_t const*, Uniform_t const*, Bytes16u* >;
 
 		struct CreateInfo
 		{
@@ -60,9 +61,7 @@ namespace AE::Graphics
 	private:
 		ND_ bool  _AddUniform (const Uniform_t &un, OUT Bytes16u* offset) __NE___;
 	};
-	
-	
-	#include "graphics/Private/DescriptorSetLayout.inl.h"
+
 
 } // AE::Graphics
 

@@ -25,18 +25,17 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  Copy (const VkCopyAccelerationStructureInfoKHR &info)							__Th___;
-		void  SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info)	__Th___;
-		void  DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info)__Th___;
+		void  Copy (const VkCopyAccelerationStructureInfoKHR &info)									__Th___;
+		void  SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info)			__Th___;
+		void  DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info)		__Th___;
 		
-		ND_ VkCommandBuffer	EndCommandBuffer ()												__Th___;
-		ND_ VCommandBuffer  ReleaseCommandBuffer ()											__Th___;
+		ND_ VkCommandBuffer	EndCommandBuffer ()														__Th___;
+		ND_ VCommandBuffer  ReleaseCommandBuffer ()													__Th___;
 		
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectASBuildCtx (const RenderTask &task)								__Th___ : VBaseDirectContext{ task, ECtxType::ASBuild } {}
-		_VDirectASBuildCtx (const RenderTask &task, VCommandBuffer cmdbuf)					__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), ECtxType::ASBuild } {}
+		_VDirectASBuildCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)			__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::ASBuild } {}
 		
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -56,18 +55,17 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  Copy (const VkCopyAccelerationStructureInfoKHR &info)							__Th___;
-		void  SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info)	__Th___;
-		void  DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info)__Th___;
+		void  Copy (const VkCopyAccelerationStructureInfoKHR &info)									__Th___;
+		void  SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info)			__Th___;
+		void  DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info)		__Th___;
 		
-		ND_ VBakedCommands		EndCommandBuffer ()											__Th___;
-		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()										__Th___;
+		ND_ VBakedCommands		EndCommandBuffer ()													__Th___;
+		ND_ VSoftwareCmdBufPtr  ReleaseCommandBuffer ()												__Th___;
 
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectASBuildCtx (const RenderTask &task)								__Th___ : VBaseIndirectContext{ task, ECtxType::ASBuild } {}
-		_VIndirectASBuildCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)			__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), ECtxType::ASBuild } {}
+		_VIndirectASBuildCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)	__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::ASBuild } {}
 
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -101,8 +99,7 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VASBuildContextImpl (const RenderTask &task)														__Th___;
-		_VASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)												__Th___;
+		explicit _VASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___;
 
 		_VASBuildContextImpl ()																						= delete;
 		_VASBuildContextImpl (const _VASBuildContextImpl &)															= delete;
@@ -220,14 +217,8 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VASBuildContextImpl<C>::_VASBuildContextImpl (const RenderTask &task) : RawCtx{ task }
-	{
-		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
-	}
-		
-	template <typename C>
-	_VASBuildContextImpl<C>::_VASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
-		RawCtx{ task, RVRef(cmdbuf) }
+	_VASBuildContextImpl<C>::_VASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
 	}
@@ -402,7 +393,7 @@ namespace AE::Graphics::_hidden_
 										},
 										Tuple{ this->_mngr.GetBatchRC() },
 										"VASBuildContext::ReadProperty",
-										ETaskQueue::Renderer
+										ETaskQueue::PerFrame
 									 );
 	}
 	

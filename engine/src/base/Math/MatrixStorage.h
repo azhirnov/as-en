@@ -398,6 +398,6 @@ namespace AE::Base
 	struct TZeroMemAvailable< MatrixStorage< T, Columns, Rows, Order, Align >> { static constexpr bool  value = IsZeroMemAvailable<T>; };
 	
 	template <typename T, uint Columns, uint Rows, EMatrixOrder Order, usize Align>
-	struct TTrivialySerializable< MatrixStorage< T, Columns, Rows, Order, Align >> { static constexpr bool  value = IsTrivialySerializable<T>; };
+	struct TTriviallySerializable< MatrixStorage< T, Columns, Rows, Order, Align >> { static constexpr bool  value = IsTriviallySerializable<T>; };
 
 } // AE::Base

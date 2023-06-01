@@ -25,11 +25,11 @@ namespace AE::Graphics
 		using ImageRects_t	= AssetPacker::ImageAtlasPacker::ImageRects_t;
 
 		struct AsyncLoader {
-		///	ND_ Promise<RC<StaticImageAtlas>>  Load (RC<AsyncRStream> stream);
+		///	ND_ Promise<RC<StaticImageAtlas>>  Load (RC<AsyncRStream> stream) __NE___;
 		};
 		
 		struct Loader {
-			ND_ RC<StaticImageAtlas>  Load (RC<RStream> stream, ITransferContext &ctx, GfxMemAllocatorPtr alloc = Default);
+			ND_ RC<StaticImageAtlas>  Load (RC<RStream> stream, ITransferContext &ctx, GfxMemAllocatorPtr alloc) __NE___;
 		};
 
 
@@ -43,15 +43,15 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		StaticImageAtlas () {}
-		~StaticImageAtlas ();
+		StaticImageAtlas ()											__NE___	{}
+		~StaticImageAtlas ()										__NE___;
 
-		bool  Get (const ImageInAtlasName &name, OUT RectI &region) const;
-		bool  Get (const ImageInAtlasName &name, OUT RectF &region) const;
+		bool  Get (const ImageInAtlasName &name, OUT RectI &region) C_NE___;
+		bool  Get (const ImageInAtlasName &name, OUT RectF &region) C_NE___;
 
-		ND_ ImageID			GetImageID ()		const	{ return _imageAndView.image; }
-		ND_ ImageViewID		GetViewID ()		const	{ return _imageAndView.view; }
-		ND_ ImageAndViewID	GetImageAndView ()	const	{ return _imageAndView; }
+		ND_ ImageID			GetImageID ()							C_NE___	{ return _imageAndView.image; }
+		ND_ ImageViewID		GetViewID ()							C_NE___	{ return _imageAndView.view; }
+		ND_ ImageAndViewID	GetImageAndView ()						C_NE___	{ return _imageAndView; }
 	};
 
 

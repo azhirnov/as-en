@@ -33,8 +33,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectVideoEncodeCtx (const VkVideoBeginCodingInfoKHR &, const RenderTask &task)					__Th___;
-		_VDirectVideoEncodeCtx (const VkVideoBeginCodingInfoKHR &, const RenderTask &task, VCommandBuffer cmdbuf)	__Th___;
+		_VDirectVideoEncodeCtx (const VkVideoBeginCodingInfoKHR &, const RenderTask &task,
+								VCommandBuffer cmdbuf, DebugLabel dbg)	__Th___;
 	};
 
 
@@ -55,8 +55,8 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectVideoEncodeCtx (const VkVideoBeginCodingInfoKHR &, const RenderTask &task)					__Th___;
-		_VIndirectVideoEncodeCtx (const VkVideoBeginCodingInfoKHR &, const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)	__Th___;
+		_VIndirectVideoEncodeCtx (const VkVideoBeginCodingInfoKHR &, const RenderTask &task,
+								  VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)	__Th___;
 	};
 
 
@@ -83,13 +83,13 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VVideoEncodeContextImpl (VideoSessionID, const RenderTask &task)			__Th___;
-		_VVideoEncodeContextImpl (VideoSessionID, const RenderTask &task, CmdBuf_t cmdbuf)	__Th___;
+		_VVideoEncodeContextImpl (VideoSessionID, const RenderTask &task,
+								  CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___;
 
-		_VVideoEncodeContextImpl ()															= delete;
-		_VVideoEncodeContextImpl (const _VVideoEncodeContextImpl &)							= delete;
+		_VVideoEncodeContextImpl ()														= delete;
+		_VVideoEncodeContextImpl (const _VVideoEncodeContextImpl &)						= delete;
 		
-		void  Encode (const VideoEncodeCmd &)												__Th___;
+		void  Encode (const VideoEncodeCmd &)											__Th___;
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -115,13 +115,8 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VVideoEncodeContextImpl<C>::_VVideoEncodeContextImpl (VideoSessionID sessionId, const RenderTask &task) __Th___ :
-		_VVideoEncodeContextImpl{ task, Default }
-	{}
-	
-	template <typename C>
-	_VVideoEncodeContextImpl<C>::_VVideoEncodeContextImpl (VideoSessionID sessionId, const RenderTask &task, CmdBuf_t cmdbuf) __Th___ :
-		RawCtx{ task, RVRef(cmdbuf) }
+	_VVideoEncodeContextImpl<C>::_VVideoEncodeContextImpl (VideoSessionID sessionId, const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
+		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::VideoEncode, task.GetQueueMask() ));
 

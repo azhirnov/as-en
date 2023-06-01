@@ -24,19 +24,18 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  Copy (MetalAccelStruct src, MetalAccelStruct dst)				__Th___;
-		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst)	__Th___;
+		void  Copy (MetalAccelStruct src, MetalAccelStruct dst)								__Th___;
+		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst)					__Th___;
 		
-		ND_ MetalCommandBufferRC	EndCommandBuffer ()						__Th___;
-		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()					__Th___;
+		ND_ MetalCommandBufferRC	EndCommandBuffer ()										__Th___;
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()									__Th___;
 
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MDirectASBuildCtx (const RenderTask &task)				__Th___ : _MDirectASBuildCtx{ task, MCommandBuffer{} } {}
-		_MDirectASBuildCtx (const RenderTask &task, MCommandBuffer cmdbuf)	__Th___;
+		_MDirectASBuildCtx (const RenderTask &task, MCommandBuffer cmdbuf, DebugLabel dbg)	__Th___;
 		
-		ND_ auto  _Encoder ()												__NE___;
+		ND_ auto  _Encoder ()																__NE___;
 		
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -61,17 +60,16 @@ namespace AE::Graphics::_hidden_
 	{
 	// methods
 	public:
-		void  Copy (MetalAccelStruct src, MetalAccelStruct dst)					__Th___;
-		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst)		__Th___;
+		void  Copy (MetalAccelStruct src, MetalAccelStruct dst)									__Th___;
+		void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst)						__Th___;
 		
-		ND_ MBakedCommands		EndCommandBuffer ()								__Th___;
-		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()							__Th___;
+		ND_ MBakedCommands		EndCommandBuffer ()												__Th___;
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()											__Th___;
 
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MIndirectASBuildCtx (const RenderTask &task)					__Th___ : _MIndirectASBuildCtx{ task, Default } {}
-		_MIndirectASBuildCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)__Th___;
+		_MIndirectASBuildCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)__Th___;
 
 		void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
 		void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
@@ -105,8 +103,7 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _MASBuildContextImpl (const RenderTask &task)																__Th___;
-		_MASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)														__Th___;
+		explicit _MASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___;
 
 		_MASBuildContextImpl ()																								= delete;
 		_MASBuildContextImpl (const _MASBuildContextImpl &)																	= delete;
@@ -155,14 +152,8 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_MASBuildContextImpl<C>::_MASBuildContextImpl (const RenderTask &task) : RawCtx{ task }
-	{
-		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
-	}
-		
-	template <typename C>
-	_MASBuildContextImpl<C>::_MASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
-		RawCtx{ task, RVRef(cmdbuf) }
+	_MASBuildContextImpl<C>::_MASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
 	}

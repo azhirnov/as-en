@@ -24,16 +24,15 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		ND_ MetalCommandBufferRC	EndCommandBuffer ()						__Th___;
-		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()					__Th___;
+		ND_ MetalCommandBufferRC	EndCommandBuffer ()										__Th___;
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()									__Th___;
 
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MDirectGraphicsCtx (const RenderTask &task)						__Th___	: MBaseDirectContext{ task }				{ CHECK_THROW( _IsValid() ); }
-		_MDirectGraphicsCtx (const RenderTask &task, MCommandBuffer cmdbuf)	__Th___	: MBaseDirectContext{ task, RVRef(cmdbuf) }	{ CHECK_THROW( _IsValid() ); }
+		_MDirectGraphicsCtx (const RenderTask &task, MCommandBuffer cmdbuf, DebugLabel dbg)	__Th___	: MBaseDirectContext{ task, RVRef(cmdbuf), dbg }	{ CHECK_THROW( _IsValid() ); }
 		
-		ND_ bool	_IsValid ()												C_NE___	{ return this->_cmdbuf.HasCmdBuf() and this->_cmdbuf.IsRecording(); }
+		ND_ bool	_IsValid ()																C_NE___	{ return this->_cmdbuf.HasCmdBuf() and this->_cmdbuf.IsRecording(); }
 		
 		ND_ RC<MDrawCommandBatch>  _BeginFirstAsyncPass (const MPrimaryCmdBufState &, const RenderPassDesc &, DebugLabel dbg);
 		ND_ RC<MDrawCommandBatch>  _BeginNextAsyncPass (const MDrawCommandBatch &prevPassBatch, DebugLabel dbg);
@@ -42,9 +41,9 @@ namespace AE::Graphics::_hidden_
 		void  _NextMtSubpass () const;
 		void  _EndMtRenderPass ();
 		
-		void  _DebugMarker (DebugLabel dbg)											{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
-		void  _PushDebugGroup (DebugLabel dbg)										{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
-		void  _PopDebugGroup ()														{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
+		void  _DebugMarker (DebugLabel dbg)															{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)														{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()																		{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
 	};
 
 
@@ -61,14 +60,13 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		ND_ MBakedCommands		EndCommandBuffer ()								__Th___;
-		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()							__Th___;
+		ND_ MBakedCommands		EndCommandBuffer ()													__Th___;
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()												__Th___;
 
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		_MIndirectGraphicsCtx (const RenderTask &task)							 __Th___ : MBaseIndirectContext{ task } {}
-		_MIndirectGraphicsCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)__Th___ : MBaseIndirectContext{ task, RVRef(cmdbuf) } {}
+		_MIndirectGraphicsCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)	__Th___ : MBaseIndirectContext{ task, RVRef(cmdbuf), dbg } {}
 		
 		ND_ RC<MDrawCommandBatch>  _BeginFirstAsyncPass (const MPrimaryCmdBufState &, const RenderPassDesc &, DebugLabel dbg);
 		ND_ RC<MDrawCommandBatch>  _BeginNextAsyncPass (const MDrawCommandBatch &prevPassBatch, DebugLabel dbg);
@@ -107,8 +105,7 @@ namespace AE::Graphics::_hidden_
 		
 	// methods
 	public:
-		explicit _MGraphicsContextImpl (const RenderTask &task)																__Th___;
-		_MGraphicsContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)														__Th___;
+		explicit _MGraphicsContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)		__Th___;
 		_MGraphicsContextImpl (const RenderTask &, const MDrawCommandBatch &, CmdBuf_t)										__Th___;
 
 		_MGraphicsContextImpl ()																							= delete;
@@ -158,22 +155,15 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_MGraphicsContextImpl<C>::_MGraphicsContextImpl (const RenderTask &task) :
-		RawCtx{ task }  // throw
-	{
-		CHECK_THROW( AnyBits( EQueueMask::Graphics, task.GetQueueMask() ));
-	}
-	
-	template <typename C>
-	_MGraphicsContextImpl<C>::_MGraphicsContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
-		RawCtx{ task, RVRef(cmdbuf) }  // throw
+	_MGraphicsContextImpl<C>::_MGraphicsContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+		RawCtx{ task, RVRef(cmdbuf), dbg }  // throw
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics, task.GetQueueMask() ));
 	}
 	
 	template <typename C>
 	_MGraphicsContextImpl<C>::_MGraphicsContextImpl (const RenderTask &task, const MDrawCommandBatch &batch, CmdBuf_t cmdbuf) :
-		RawCtx{ task, RVRef(cmdbuf) },  // throw
+		RawCtx{ task, RVRef(cmdbuf), Default },  // throw
 		_primaryState{ batch.GetPrimaryCtxState() }
 	{
 		ASSERT( IsInsideRenderPass() );

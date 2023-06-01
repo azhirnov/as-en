@@ -32,7 +32,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			Ctx		ctx{ *this };
 

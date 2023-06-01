@@ -1,6 +1,5 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
-#	define SH_VERT
-#	define SH_FRAG
 #	include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------
@@ -17,7 +16,6 @@
 
 		#ifdef SPHERICAL_CUBE
 		Out.texcoord	= in_Texcoord.xyz;
-		Out.texcoord.y	= -Out.texcoord.y;
 		Out.normal		= in_Position.xyz;
 		#endif
 	}

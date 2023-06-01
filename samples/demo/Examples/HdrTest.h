@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "demo/Utils/ImGuiRenderer.h"
+#include "demo/Core/ImGuiRenderer.h"
 
 namespace AE::Samples::Demo
 {
@@ -13,14 +13,12 @@ namespace AE::Samples::Demo
 	{
 	// types
 	public:
-		class UploadTask;
 		class DrawTask;
 		class ProcessInputTask;
 
 
 	// variables
 	public:
-		Atomic<bool>			uploaded		{false};
 		ImGuiRenderer			imgui;
 		GraphicsPipelineID		hdrPpln;
 
@@ -31,10 +29,10 @@ namespace AE::Samples::Demo
 		explicit HdrTestSample (ImGuiContext* ctx) : imgui{ctx} {}
 
 		// ISample //
-		bool			Init (PipelinePackID pack) override;
-		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) override;
-		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps) override;
-		InputModeName	GetInputMode () const override { return InputModeName{"imGUI"}; }
+		bool			Init (PipelinePackID pack)											override;
+		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps)	override;
+		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)					override;
+		InputModeName	GetInputMode ()														const override { return InputModeName{"imGUI"}; }
 	};
 
 

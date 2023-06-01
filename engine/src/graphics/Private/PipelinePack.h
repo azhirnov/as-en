@@ -1,4 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	All containers inside PipelinePack are initialized in '_Create()' and destroyed in '_Destroy()', in other methods they are immutable.
+
+	Thread-safe:
+		- safe to use after creation.
+		- safe to use before destruction.
+		- unsafe when creating and loading in progress.
+*/
 
 #if defined(AE_ENABLE_VULKAN)
 #	define SUFFIX			V
@@ -52,6 +60,8 @@ namespace AE::Graphics
 			Bytes32u													offset;
 			Bytes32u													dataSize;
 			ubyte														shaderTypeIdx	= UMax;
+
+			// initialized in '_GetShader()':
 			mutable VkShaderModule										module			= Default;
 			mutable Unique< PipelineCompiler::ShaderTrace >				dbgTrace;
 			mutable PipelineCompiler::ShaderBytecode::OptSpecConst_t	constants;
@@ -213,8 +223,9 @@ namespace AE::Graphics
 				ND_ ID  Cast ()		C_NE___	{ return ID{ pplnId.Index(), pplnId.Generation() }; }
 			};
 
-			using Passes_t		= Tuple< uint, PipelineCompiler::SerializableRenderTechnique::Pass * >;
-			using PplnSpecMap_t	= THashMap< PipelineName::Optimized_t, PipelineInfo >;
+			using Passes_t			= Tuple< uint, PipelineCompiler::SerializableRenderTechnique::Pass * >;
+			using PplnSpecMap_t		= THashMap< PipelineName::Optimized_t, PipelineInfo >;
+			using PplnSpecIter_t	= PplnSpecMap_t::iterator;
 
 			struct SBTInfo
 			{
@@ -229,7 +240,7 @@ namespace AE::Graphics
 			PPLNPACK &						_pack;
 			RenderTechName::Optimized_t		_name;
 			bool							_isSupported		: 1;
-			bool							_isLoaded			: 1;
+			bool							_isLoaded			: 1;	// TODO: states
 			bool							_wasAttampToLoad	: 1;
 			Passes_t						_passes;
 			PplnSpecMap_t					_pipelines;
@@ -243,8 +254,9 @@ namespace AE::Graphics
 			explicit RenderTech (PPLNPACK& pack)																	__Th___;
 			~RenderTech ()																							__NE_OV;
 			
-				bool  Deserialize (ResMngr_t &, Serializing::Deserializer &)										__Th___;
-			ND_ bool  Load (ResMngr_t &, PipelineCacheID cache)														__NE___;
+			ND_	bool  Deserialize (ResMngr_t &, Serializing::Deserializer &)										__Th___;
+			ND_ auto  LoadAsync (ResMngr_t &, PipelineCacheID)														__NE___ -> Promise<RenderTechPipelinesPtr>;
+			ND_ bool  Load (ResMngr_t &, PipelineCacheID)															__NE___;
 				void  Destroy (ResMngr_t &)																			__NE___;
 			
 			ND_ RenderTechName::Optimized_t	Name ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _name; }
@@ -263,9 +275,12 @@ namespace AE::Graphics
 
 		private:
 			ND_ bool  _PreloadShaders (const ResMngr_t &)															__NE___;
+			ND_ bool  _CompilePipelines (ResMngr_t &, PipelineCacheID, PplnSpecIter_t begin, PplnSpecIter_t end)	__NE___;
+			ND_ bool  _CreateSBTs (ResMngr_t &resMngr)																__NE___;
 
 			void  _PrintPipelines (const PipelineName &name,
 								   PipelineCompiler::PipelineSpecUID mask)											C_NE___;
+			void  _PrintSBTs (const RTShaderBindingName &reqName)													C_NE___;
 		
 			template <PipelineCompiler::PipelineSpecUID  SpecMask,
 					  PipelineCompiler::PipelineTemplUID TemplMask,

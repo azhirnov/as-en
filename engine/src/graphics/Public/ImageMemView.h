@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base/Math/Color.h"
+#include "base/Math/VecSwizzle.h"
 #include "graphics/Public/BufferMemView.h"
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/ImageUtils.h"

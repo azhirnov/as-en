@@ -30,6 +30,9 @@ namespace _hidden_
 			Bytes			offset;					// 'offset' argument from 'ReadBlock()' or 'WriteBlock()'
 			Bytes			dataSize;				// actually readn / written
 			void const*		data		= null;		// read-only non-null memory if successfully completed, null otherwise.
+
+			template <typename T>
+			ND_ ArrayView<T>	AsArray ()	C_NE___	{ return ArrayView<T>{ Cast<T>(data), usize(dataSize)/sizeof(T) }; }
 		};
 		
 		struct ResultWithRC : Result
@@ -59,7 +62,7 @@ namespace _hidden_
 
 		ND_ virtual Result		GetResult ()									C_NE___ = 0;
 
-		ND_ virtual Promise_t	AsPromise (ETaskQueue q = ETaskQueue::Worker)	__NE___ = 0;
+		ND_ virtual Promise_t	AsPromise (ETaskQueue q = ETaskQueue::PerFrame)	__NE___ = 0;
 	};
 
 } // _hidden_

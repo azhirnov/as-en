@@ -99,6 +99,6 @@ namespace AE::PipelineCompiler
 namespace AE::Base
 {
 	template <> struct TMemCopyAvailable< AE::PipelineCompiler::PipelinePackOffsets >		{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::PipelineCompiler::PipelinePackOffsets >	{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::PipelineCompiler::PipelinePackOffsets >	{ static constexpr bool  value = true; };
 
 } // AE::Base

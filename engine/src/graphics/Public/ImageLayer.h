@@ -49,7 +49,7 @@ namespace AE::Base
 {
 	template <> struct TMemCopyAvailable< AE::Graphics::ImageLayer >		{ static constexpr bool  value = true; };
 	template <> struct TZeroMemAvailable< AE::Graphics::ImageLayer >		{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::ImageLayer >	{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::ImageLayer >	{ static constexpr bool  value = true; };
 
 } // AE::Base
 

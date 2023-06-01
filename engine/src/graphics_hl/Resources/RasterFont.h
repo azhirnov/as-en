@@ -28,11 +28,11 @@ namespace AE::Graphics
 		using SizeArr_t		= AssetPacker::RasterFontPacker::SizeArr_t;
 
 		struct AsyncLoader {
-		//	ND_ Promise<RC<RasterFont>>  Load (RC<AsyncRStream> stream);
+		//	ND_ Promise<RC<RasterFont>>  Load (RC<AsyncRStream> stream) __NE___;
 		};
 		
 		struct Loader {
-			ND_ RC<RasterFont>  Load (RC<RStream> stream, ITransferContext &ctx, GfxMemAllocatorPtr alloc = Default);
+			ND_ RC<RasterFont>  Load (RC<RStream> stream, ITransferContext &ctx, const GfxMemAllocatorPtr &alloc) __NE___;
 		};
 
 
@@ -46,24 +46,24 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		RasterFont () {}
-		~RasterFont ();
+		RasterFont ()																				__NE___	{}
+		~RasterFont ()																				__NE___;
 		
-		RasterFont&  operator = (RasterFont &&);
+		RasterFont&  operator = (RasterFont &&)														__NE___;
 
-		ND_ uint  ValidateHeight (float heightInPx) const;
+		ND_ uint  ValidateHeight (float heightInPx)													C_NE___;
 
-		ND_ Glyph const*  GetGlyph (CharUtf32 symbol, uint height) const;
+		ND_ Glyph const*  GetGlyph (CharUtf32 symbol, uint height)									C_NE___;
 		
-		void  CalculateDimensions (const float2 &areaSizeInPix, INOUT PrecalculatedFormattedText &) const;
+		void  CalculateDimensions (const float2 &areaSizeInPix, INOUT PrecalculatedFormattedText &) C_NE___;
 
-		ND_ float  ScreenPixRange (float heightInPx) const;	// 2D SDF only
+		ND_ float  ScreenPixRange (float heightInPx)												C_NE___;	// 2D SDF only
 
-		ND_ bool				IsSDF ()			const	{ return _sdfConfig.scale != 0.f; }
-		ND_ ImageID				GetImageID ()		const	{ return _imageAndView.image; }
-		ND_ ImageViewID			GetViewID ()		const	{ return _imageAndView.view; }
-		ND_ ImageAndViewID		GetImageAndView ()	const	{ return _imageAndView; }
-		ND_ SDFConfig const&	GetSDFConfig ()		const	{ return _sdfConfig; }
+		ND_ bool				IsSDF ()															C_NE___	{ return _sdfConfig.scale != 0.f; }
+		ND_ ImageID				GetImageID ()														C_NE___	{ return _imageAndView.image; }
+		ND_ ImageViewID			GetViewID ()														C_NE___	{ return _imageAndView.view; }
+		ND_ ImageAndViewID		GetImageAndView ()													C_NE___	{ return _imageAndView; }
+		ND_ SDFConfig const&	GetSDFConfig ()														C_NE___	{ return _sdfConfig; }
 	};
 
 

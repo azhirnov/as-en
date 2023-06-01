@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler>
 
 void ASmain ()
@@ -20,7 +21,7 @@ void ASmain ()
 	// general
 	{
 		RC<Shader>	rg = Shader();
-		rg.file		= "rtrace.glsl";
+		rg.file		= "rtrace.glsl";		// file:///<path>/samples/demo/_data/shaders/rtrace.glsl
 		rg.type		= EShader::RayGen;
 		rg.options	= EShaderOpt::Optimize;
 		rg.version	= EShaderVersion::SPIRV_1_4;
@@ -31,7 +32,7 @@ void ASmain ()
 	}
 	{
 		RC<Shader>	rm = Shader();
-		rm.file		= "rtrace.glsl";
+		rm.file		= "rtrace.glsl";		// file:///<path>/samples/demo/_data/shaders/rtrace.glsl
 		rm.type		= EShader::RayMiss;
 		rm.options	= EShaderOpt::Optimize;
 		rm.version	= EShaderVersion::SPIRV_1_4;
@@ -42,7 +43,7 @@ void ASmain ()
 	// triangle hit groups
 	{
 		RC<Shader>	rch = Shader();
-		rch.file	= "rtrace.glsl";
+		rch.file	= "rtrace.glsl";		// file:///<path>/samples/demo/_data/shaders/rtrace.glsl
 		rch.type	= EShader::RayClosestHit;
 		rch.options	= EShaderOpt::Optimize;
 		rch.version	= EShaderVersion::SPIRV_1_4;

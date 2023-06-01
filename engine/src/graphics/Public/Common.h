@@ -122,6 +122,8 @@ namespace AE::Graphics
 		constexpr DebugLabel (Base::_hidden_::DefaultType)		__NE___								{}
 		constexpr DebugLabel (StringView label)					__NE___	: label{label}				{}
 		constexpr DebugLabel (StringView label, RGBA8u color)	__NE___	: label{label}, color{color}{}
+
+		ND_ explicit operator bool ()							C_NE___	{ return not label.empty(); }
 	};
 
 

@@ -38,6 +38,37 @@ namespace AE::Math
 	using double4x2	= Matrix< double, 4, 2 >;
 	using double4x3	= Matrix< double, 4, 3 >;
 	using double4x4	= Matrix< double, 4, 4 >;
+	
+
+	using packed_half2x2	= PackedMatrix< half, 2, 2 >;
+	using packed_half2x3	= PackedMatrix< half, 2, 3 >;
+	using packed_half2x4	= PackedMatrix< half, 2, 4 >;
+	using packed_half3x2	= PackedMatrix< half, 3, 2 >;
+	using packed_half3x3	= PackedMatrix< half, 3, 3 >;
+	using packed_half3x4	= PackedMatrix< half, 3, 4 >;
+	using packed_half4x2	= PackedMatrix< half, 4, 2 >;
+	using packed_half4x3	= PackedMatrix< half, 4, 3 >;
+	using packed_half4x4	= PackedMatrix< half, 4, 4 >;
+
+	using packed_float2x2	= PackedMatrix< float, 2, 2 >;
+	using packed_float2x3	= PackedMatrix< float, 2, 3 >;
+	using packed_float2x4	= PackedMatrix< float, 2, 4 >;
+	using packed_float3x2	= PackedMatrix< float, 3, 2 >;
+	using packed_float3x3	= PackedMatrix< float, 3, 3 >;
+	using packed_float3x4	= PackedMatrix< float, 3, 4 >;
+	using packed_float4x2	= PackedMatrix< float, 4, 2 >;
+	using packed_float4x3	= PackedMatrix< float, 4, 3 >;
+	using packed_float4x4	= PackedMatrix< float, 4, 4 >;
+	
+	using packed_double2x2	= PackedMatrix< double, 2, 2 >;
+	using packed_double2x3	= PackedMatrix< double, 2, 3 >;
+	using packed_double2x4	= PackedMatrix< double, 2, 4 >;
+	using packed_double3x2	= PackedMatrix< double, 3, 2 >;
+	using packed_double3x3	= PackedMatrix< double, 3, 3 >;
+	using packed_double3x4	= PackedMatrix< double, 3, 4 >;
+	using packed_double4x2	= PackedMatrix< double, 4, 2 >;
+	using packed_double4x3	= PackedMatrix< double, 4, 3 >;
+	using packed_double4x4	= PackedMatrix< double, 4, 4 >;
 
 namespace _hidden_
 {

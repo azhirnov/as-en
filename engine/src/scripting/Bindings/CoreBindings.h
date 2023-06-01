@@ -2,20 +2,18 @@
 
 #pragma once
 
-#include "scripting/Impl/ScriptEngine.inl.h"
-#include "scriptarray.h"
+#include "scripting/Bindings/Array.h"
+//#include "scripting/Bindings/Map.h"
 
 #include "base/Math/Vec.h"
+#include "base/Math/Matrix.h"
 #include "base/Math/Color.h"
 #include "base/Math/Rectangle.h"
 #include "base/Math/VecSwizzle.h"
+#include "base/Math/PhysicalQuantity.h"
+#include "base/Math/PhysicalQuantityVec.h"
 #include "base/Utils/Helpers.h"
 #include "base/Containers/StructView.h"
-
-namespace AngelScript
-{
-	class CScriptArray;
-}
 
 namespace AE::Scripting
 {
@@ -26,15 +24,19 @@ namespace AE::Scripting
 
 	struct CoreBindings final : Noninstancable
 	{
+		static void  BindStdTypes (const ScriptEnginePtr &se)		__Th___;
 		static void  BindScalarMath (const ScriptEnginePtr &se)		__Th___;
 		static void  BindVectorMath (const ScriptEnginePtr &se)		__Th___;
+		static void  BindMatrixMath (const ScriptEnginePtr &se)		__Th___;
 		static void  BindVectorSwizzle (const ScriptEnginePtr &se)	__Th___;	// requires 'String'
 		static void  BindRect (const ScriptEnginePtr &se)			__Th___;
 		static void  BindColor (const ScriptEnginePtr &se)			__Th___;
 		static void  BindString (const ScriptEnginePtr &se)			__Th___;
 		static void  BindArray (const ScriptEnginePtr &se)			__Th___;
+		static void  BindMap (const ScriptEnginePtr &se)			__Th___;
 		static void  BindLog (const ScriptEnginePtr &se)			__Th___;	// requires 'String'
-		// TODO: physical types
+		static void  BindPhysicalTypes (const ScriptEnginePtr &se)	__Th___;
+		static void  BindRandom (const ScriptEnginePtr &se)			__Th___;
 
 		static void  BindToString (const ScriptEnginePtr &se,					// requires 'String'
 								   bool scalar,
@@ -48,215 +50,120 @@ namespace AE::Scripting
 	// Math
 	//
 
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_bool2,		"bool2"		);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_sbyte2,		"sbyte2"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_ubyte2,		"ubyte2"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_short2,		"short2"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_ushort2,		"ushort2"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_int2,			"int2"		);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_uint2,		"uint2"		);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_slong2,		"slong2"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_ulong2,		"ulong2"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_float2,		"float2"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_double2,		"double2"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_bool2,			"bool2"		);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_sbyte2,		"sbyte2"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_ubyte2,		"ubyte2"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_short2,		"short2"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_ushort2,		"ushort2"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_int2,			"int2"		);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_uint2,			"uint2"		);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_slong2,		"slong2"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_ulong2,		"ulong2"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float2,		"float2"	);
 	
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_bool3,		"bool3"		);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_sbyte3,		"sbyte3"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_ubyte3,		"ubyte3"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_short3,		"short3"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_ushort3,		"ushort3"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_int3,			"int3"		);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_uint3,		"uint3"		);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_slong3,		"slong3"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_ulong3,		"ulong3"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_float3,		"float3"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_double3,		"double3"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_bool3,			"bool3"		);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_sbyte3,		"sbyte3"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_ubyte3,		"ubyte3"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_short3,		"short3"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_ushort3,		"ushort3"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_int3,			"int3"		);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_uint3,			"uint3"		);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_slong3,		"slong3"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_ulong3,		"ulong3"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float3,		"float3"	);
 	
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_bool4,		"bool4"		);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_sbyte4,		"sbyte4"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_ubyte4,		"ubyte4"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_short4,		"short4"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_ushort4,		"ushort4"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_int4,			"int4"		);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_uint4,		"uint4"		);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_slong4,		"slong4"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_ulong4,		"ulong4"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_float4,		"float4"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::packed_double4,		"double4"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_bool4,			"bool4"		);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_sbyte4,		"sbyte4"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_ubyte4,		"ubyte4"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_short4,		"short4"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_ushort4,		"ushort4"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_int4,			"int4"		);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_uint4,			"uint4"		);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_slong4,		"slong4"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_ulong4,		"ulong4"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4,		"float4"	);
 	
-	AE_DECL_SCRIPT_TYPE( AE::Math::VecSwizzle,			"VecSwizzle");
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float2x2,		"float2x2"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float2x3,		"float2x3"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float2x4,		"float2x4"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float3x2,		"float3x2"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float3x3,		"float3x3"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float3x4,		"float3x4"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4x2,		"float4x2"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4x3,		"float4x3"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::packed_float4x4,		"float4x4"	);
 
-	AE_DECL_SCRIPT_TYPE( AE::Math::RGBA32f,				"RGBA32f"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::RGBA32u,				"RGBA32u"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::RGBA32i,				"RGBA32i"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::RGBA8u,				"RGBA8u"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::DepthStencil,		"DepthStencil" );
-	AE_DECL_SCRIPT_TYPE( AE::Math::HSVColor,			"HSVColor"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::VecSwizzle,			"VecSwizzle");
+
+	AE_DECL_SCRIPT_OBJ( AE::Math::RGBA32f,				"RGBA32f"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::RGBA32u,				"RGBA32u"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::RGBA32i,				"RGBA32i"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::RGBA8u,				"RGBA8u"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::DepthStencil,			"DepthStencil" );
+	AE_DECL_SCRIPT_OBJ( AE::Math::HSVColor,				"HSVColor"	);
 	
-	AE_DECL_SCRIPT_TYPE( AE::Math::RectI,				"RectI"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::RectU,				"RectU"	);
-	AE_DECL_SCRIPT_TYPE( AE::Math::RectF,				"RectF"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::RectI,				"RectI"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::RectU,				"RectU"	);
+	AE_DECL_SCRIPT_OBJ( AE::Math::RectF,				"RectF"	);
 
 
 
 	//
-	// Array
+	// Physical Types
 	//
-	template <typename T>
-	class ScriptArray final : protected AngelScript::CScriptArray
-	{
-	// types
-	private:
-		static constexpr bool	is_pod	= not (ScriptTypeInfo<T>::is_object or ScriptTypeInfo<T>::is_ref_counted);
 
-		using Self				= ScriptArray< T >;
-		using View_t			= StructView< T >;
-	public:
-		using iterator			= typename View_t::large_iterator;
-		using const_iterator	= iterator;
+#	define AE_PHYSICAL_TYPES( _visitor_ )\
+		_visitor_( NonDimensional			)\
+		_visitor_( Second					)\
+		_visitor_( Kilogram					)\
+		_visitor_( Meter					)\
+		_visitor_( Ampere					)\
+		_visitor_( Kelvin					)\
+		_visitor_( Mole						)\
+		_visitor_( Candela					)\
+		_visitor_( Currency					)\
+		_visitor_( Bit						)\
+		\
+		/*_visitor_( Frequency				)*/\
+		_visitor_( SquareMeter				)\
+		_visitor_( CubicMeter				)\
+		_visitor_( MeterPerSecond			)\
+		_visitor_( MeterPerSquareSecond		)\
+		_visitor_( KilogramPerSecond		)\
+		_visitor_( KilogramMeterPerSecond	)\
+		_visitor_( KilogramPerCubicMeter	)\
+		_visitor_( Newton					)\
+		/*_visitor_( NewtonMeter			)*/\
+		_visitor_( Joule					)\
+		_visitor_( Pascal					)\
+		_visitor_( Hertz					)\
+		_visitor_( Watt						)\
+		_visitor_( Coulomb					)\
+		_visitor_( Volt						)\
+		_visitor_( Ohm						)\
+		_visitor_( Farad					)\
+		_visitor_( Weber					)\
+		_visitor_( Henry					)\
+		_visitor_( Tesla					)\
+		_visitor_( Siemens					)\
+		/*_visitor_( Lumen					)*/\
+		_visitor_( Lux						)\
+		_visitor_( AmperPerMeter			)\
+		_visitor_( KilogramPerMole			)\
+		_visitor_( BitPerSecond				)\
+		_visitor_( BytePerSecond			)\
+		_visitor_( Byte						)\
+		_visitor_( Litre					)\
+		_visitor_( Bar						)\
+		_visitor_( Atmosphere				)\
 
+	#define AE_PHYSICAL_TYPES_VIS( _name_ )\
+		AE_DECL_SCRIPT_TYPE( Math::DefaultPhysicalQuantity<float>::_name_, AE_TOSTRING(_name_) );											\
+		AE_DECL_SCRIPT_OBJ( Math::PhysicalQuantityPackedVec2< Math::DefaultPhysicalQuantity<float>::_name_>, AE_TOSTRING(_name_ ## 2) );	\
+		AE_DECL_SCRIPT_OBJ( Math::PhysicalQuantityPackedVec3< Math::DefaultPhysicalQuantity<float>::_name_>, AE_TOSTRING(_name_ ## 3) );	\
 
-	// methods
-	public:
-		ScriptArray () = delete;
-		ScriptArray (ScriptArray &&) = delete;
-		ScriptArray (const ScriptArray &) = delete;
-		
-		ScriptArray&  operator = (ScriptArray &&) = delete;
-		ScriptArray&  operator = (const ScriptArray &) = delete;
-
-		ND_ EnableIf<is_pod, iterator>	begin ()	const	{ return _Arr().begin(); }
-		ND_ EnableIf<is_pod, iterator>	end ()		const	{ return _Arr().end(); }
-
-		ND_ usize	size ()		const	{ return this->GetSize(); }
-		ND_ bool	empty ()	const	{ return this->IsEmpty(); }
-
-		ND_ operator View_t ()	const	{ return _Arr(); }
-
-		ND_ EnableIf<is_pod, T &>		operator [] (usize i)			{ ASSERT( i < size() );  return *Cast<T>( this->At( uint(i) )); }
-		ND_ EnableIf<is_pod, T const &>	operator [] (usize i)	const	{ ASSERT( i < size() );  return *Cast<T>( this->At( uint(i) )); }
-
-		// TODO: object types
-
-		void  push_back (T value)		{ this->InsertLast( &value ); }
-
-		void  clear ()					{ this->Resize( 0 ); }
-		void  resize (usize newSize)	{ this->Resize( uint(newSize) ); }
-		void  reserve (usize newSize)	{ this->Reserve( uint(newSize) ); }
-
-	private:
-		ND_ EnableIf<is_pod, View_t>  _Arr () const
-		{
-			return	StructView<T>{
-						Cast<T>( const_cast< Self *>(this)->GetBuffer() ),
-						size(),
-						uint(this->GetElementSize())
-					};
-		}
-	};
-	
-
-	//
-	// Array of String
-	//
-	template <>
-	class ScriptArray< String > final : protected AngelScript::CScriptArray
-	{
-	// types
-	public:
-		struct iterator
-		{
-			friend class ScriptArray<String>;
-
-		private:
-			ScriptArray<String> *	_arr	= null;
-			usize					_index	= UMax;
-
-			iterator (ScriptArray<String> &arr, usize i) : _arr{&arr}, _index{i} {}
-			
-		public:
-			iterator () {}
-			iterator (const iterator &) = default;
-
-			ND_ String&			operator * ()					{ ASSERT( _arr ); return (*_arr)[_index]; }
-			ND_ String const&	operator * ()			  const	{ ASSERT( _arr ); return (*_arr)[_index]; }
-
-			ND_ bool	operator == (const iterator &rhs) const { return (_arr == rhs._arr) and (_index == rhs._index); }
-			ND_ bool	operator != (const iterator &rhs) const { return not (*this == rhs); }
-
-			iterator&			operator ++ ()					{ ++_index;  return *this; }
-			iterator			operator ++ (int)				{ iterator res{*this};  ++_index;  return res; }
-		};
-		
-
-		struct const_iterator
-		{
-			friend class ScriptArray<String>;
-
-		private:
-			ScriptArray<String> const*	_arr	= null;
-			usize						_index	= UMax;
-
-			const_iterator (const ScriptArray<String> &arr, usize i) : _arr{&arr}, _index{i} {}
-			
-		public:
-			const_iterator () {}
-			const_iterator (const const_iterator &) = default;
-			
-			ND_ String const&	operator * ()			{ ASSERT( _arr ); return (*_arr)[_index]; }
-			ND_ String const&	operator * ()	const	{ ASSERT( _arr ); return (*_arr)[_index]; }
-			
-			ND_ bool	operator == (const const_iterator &rhs) const { return (_arr == rhs._arr) and (_index == rhs._index); }
-			ND_ bool	operator != (const const_iterator &rhs) const { return not (*this == rhs); }
-
-			const_iterator&		operator ++ ()			{ ++_index;  return *this; }
-			const_iterator		operator ++ (int)		{ const_iterator res{*this};  ++_index;  return res; }
-		};
-
-
-	// methods
-	public:
-		ScriptArray () = delete;
-		ScriptArray (ScriptArray &&) = delete;
-		ScriptArray (const ScriptArray &) = delete;
-		
-		ScriptArray&  operator = (ScriptArray &&) = delete;
-		ScriptArray&  operator = (const ScriptArray &) = delete;
-		
-		ND_ usize			size ()					const	{ return this->GetSize(); }
-		ND_ bool			empty ()				const	{ return this->IsEmpty(); }
-
-		ND_ iterator		begin ()						{ return iterator{ *this, 0 }; }
-		ND_ const_iterator	begin ()				const	{ return const_iterator{ *this, 0 }; }
-		ND_ iterator		end ()							{ return iterator{ *this, size() }; }
-		ND_ const_iterator	end ()					const	{ return const_iterator{ *this, size() }; }
-
-		ND_ String &		operator [] (usize i)			{ ASSERT( i < size() );  return *static_cast<String *>( this->At( uint(i) )); }
-		ND_ String const &	operator [] (usize i)	const	{ ASSERT( i < size() );  return *static_cast<String const *>( this->At( uint(i) )); }
-		
-		void  push_back (const String &value)				{ this->InsertLast( const_cast<String *>( &value )); }
-		
-		void  clear ()										{ this->Resize( 0 ); }
-		void  resize (usize newSize)						{ this->Resize( uint(newSize) ); }
-		void  reserve (usize newSize)						{ this->Reserve( uint(newSize) ); }
-	};
-
-
-	//
-	// Script Type Info
-	//
-	template <typename T>
-	struct ScriptTypeInfo< ScriptArray<T> >
-	{
-		using type = T;
-
-		static constexpr bool is_object = true;
-		static constexpr bool is_ref_counted = false;
-
-		static void  Name (INOUT String &s)		{ s+= "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s += ">"; }
-		static void  ArgName (INOUT String &s)	{ s+= "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s += ">"; }
-		static void  CppArg (INOUT String &s)	{ s+= "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s += ">"; }
-	};
+	AE_PHYSICAL_TYPES( AE_PHYSICAL_TYPES_VIS );
+	#undef AE_PHYSICAL_TYPES_VIS
 
 
 } // AE::Scripting

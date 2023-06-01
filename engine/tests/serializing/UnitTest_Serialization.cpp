@@ -14,7 +14,7 @@ namespace
 		SerObj ()	{}
 		~SerObj ()	{}
 	};
-	STATIC_ASSERT( not IsTrivialySerializable< SerObj >);
+	STATIC_ASSERT( not IsTriviallySerializable< SerObj >);
 
 
 	static bool  SerObj_Serialize (Serializer &ser, const void *ptr) __NE___
@@ -92,11 +92,11 @@ namespace
 
 	static void  SerializationTraits ()
 	{
-		STATIC_ASSERT( IsTrivialySerializable< int >);
-		STATIC_ASSERT( IsTrivialySerializable< float >);
-		//STATIC_ASSERT( IsTrivialySerializable< QuatF >);
+		STATIC_ASSERT( IsTriviallySerializable< int >);
+		STATIC_ASSERT( IsTriviallySerializable< float >);
+		//STATIC_ASSERT( IsTriviallySerializable< QuatF >);
 		
-		STATIC_ASSERT( not IsTrivialySerializable< String >);
+		STATIC_ASSERT( not IsTriviallySerializable< String >);
 	}
 }
 

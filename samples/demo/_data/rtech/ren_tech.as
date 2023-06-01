@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler>
 
 void  DeclUIRenderTech ()
@@ -18,7 +19,7 @@ void  DeclUIRenderTech ()
 	}
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
-		pass.SetRenderPass( "UIPass.def", /*subpass*/"Main" );
+		pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
 		pass.SetDSLayout( "ui.ds0" );
 	}
 }
@@ -29,7 +30,7 @@ void  DeclCanvasRenderTech ()
 	RC<RenderTechnique> rtech = RenderTechnique( "Canvas.RTech" );
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
-		pass.SetRenderPass( "UIPass.def", /*subpass*/"Main" );
+		pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
 	}
 }
 
@@ -39,7 +40,7 @@ void  DeclImGuiRenderTech ()
 	RC<RenderTechnique> rtech = RenderTechnique( "ImGui.RTech" );
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
-		pass.SetRenderPass( "UIPass.def", /*subpass*/"Main" );
+		pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
 	}
 }
 
@@ -49,7 +50,7 @@ void  DeclScene3DRenderTech ()
 	RC<RenderTechnique> rtech = RenderTechnique( "Scene3D.RTech" );
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
-		pass.SetRenderPass( "SceneRPass.def", /*subpass*/"Main" );
+		pass.SetRenderPass( "SceneRPass", /*subpass*/"Main" );
 	}
 }
 
@@ -58,7 +59,7 @@ void  DeclYcbcrRenderTech ()
 	RC<RenderTechnique> rtech = RenderTechnique( "Ycbcr.RTech" );
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
-		pass.SetRenderPass( "UIPass.def", /*subpass*/"Main" );
+		pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
 	}
 }
 
@@ -88,7 +89,7 @@ void  DeclHdrRenderTech ()
 	RC<RenderTechnique> rtech = RenderTechnique( "HDR.RTech" );
 	{
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Main" );
-		pass.SetRenderPass( "UIPass.def", /*subpass*/"Main" );
+		pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
 	}
 }
 

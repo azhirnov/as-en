@@ -450,6 +450,8 @@ namespace AE::Math
 /*
 =================================================
 	Sign / SignOrZero
+----
+	extract sign and return same type as input
 =================================================
 */
 	template <typename T>
@@ -468,6 +470,20 @@ namespace AE::Math
 			return value < T{0} ? T{-1} : value > T{0} ? T{1} : T{0};
 		else
 			return value > T{0} ? T{1} : T{0};
+	}
+	
+/*
+=================================================
+	HasSign
+=================================================
+*/
+	template <typename T>
+	ND_ constexpr EnableIf<IsScalar<T>, bool>  HasSign (const T &value) __NE___
+	{
+		if constexpr( IsSigned<T> )
+			return value < T{0};
+		else
+			return false;
 	}
 	
 /*

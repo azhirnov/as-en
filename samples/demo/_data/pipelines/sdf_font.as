@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler>
 
 void ASmain ()
@@ -30,13 +31,13 @@ void ASmain ()
 	
 	{
 		RC<Shader>	vs = Shader();
-		vs.file		= "sdf_font.glsl";
+		vs.file		= "sdf_font.glsl";		// file:///<path>/samples/demo/_data/shaders/sdf_font.glsl
 		vs.options	= EShaderOpt::Optimize;
 		ppln.SetVertexShader( vs );
 	}
 	{
 		RC<Shader>	fs = Shader();
-		fs.file		= "sdf_font.glsl";
+		fs.file		= "sdf_font.glsl";		// file:///<path>/samples/demo/_data/shaders/sdf_font.glsl
 		fs.options	= EShaderOpt::Optimize;
 		ppln.SetFragmentShader( fs );
 	}

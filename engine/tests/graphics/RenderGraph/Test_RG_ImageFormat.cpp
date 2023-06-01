@@ -16,7 +16,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.dimension	= uint3{ 128, 128, 1 };
-			desc.imageType	= EImageDim_2D;
+			desc.imageDim	= EImageDim_2D;
 			desc.format		= EPixelFormat::RGBA8_UNorm;
 			desc.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage;
 			desc.AddViewFormat( EPixelFormat::sRGB8_A8 );
@@ -49,7 +49,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.dimension	= uint3{ 128, 128, 1 };
-			desc.imageType	= EImageDim_2D;
+			desc.imageDim	= EImageDim_2D;
 			desc.format		= EPixelFormat::RGBA8_UNorm;
 			desc.usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage;
 			desc.options	= EImageOpt::MutableFormat;

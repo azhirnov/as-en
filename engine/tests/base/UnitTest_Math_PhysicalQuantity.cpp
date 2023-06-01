@@ -27,82 +27,84 @@ namespace
 
 	static void  PhysicalQuantity_Test1 ()
 	{
-		using Meters			= DefaultPhysicalQuantity<float>::Meters;
-		using SquareMeters		= DefaultPhysicalQuantity<float>::SquareMeters;
-		using MetersPerSeconds	= DefaultPhysicalQuantity<float>::MetersPerSeconds;
-		using Seconds			= DefaultPhysicalQuantity<float>::Seconds;
-		using Milliseconds		= DefaultPhysicalQuantity<float>::Milliseconds;
-		using Accel				= DefaultPhysicalQuantity<float>::MetersPerSquareSeconds;
+		using Meter				= DefaultPhysicalQuantity<float>::Meter;
+		using SquareMeter		= DefaultPhysicalQuantity<float>::SquareMeter;
+		using MeterPerSecond	= DefaultPhysicalQuantity<float>::MeterPerSecond;
+		using Second			= DefaultPhysicalQuantity<float>::Second;
+		using Millisecond		= DefaultPhysicalQuantity<float>::Millisecond;
+		using Accel				= DefaultPhysicalQuantity<float>::MeterPerSquareSecond;
 
-		Meters				a1 = Meters{1.0f} + Meters{2.0f};						TEST(Equals( a1.GetNonScaled(), 3.0f ));
-		MetersPerSeconds	a2 = Meters{10.0f} / Seconds{2.0f};						TEST(Equals( a2.GetNonScaled(), 5.0f ));
-		MetersPerSeconds	a3 = Meters{14.0f} / Milliseconds{7.0f};				TEST(Equals( a3.GetNonScaled(), 2000.0f, 0.001f ));
-		Accel				a4 = Meters{100.0f} / Seconds{2.0f} / Seconds{5.0f};	TEST(Equals( a4.GetNonScaled(), 10.0f ));
-		SquareMeters		a5 = Meters{22.0f} * Meters{33.0f};						TEST(Equals( a5.GetNonScaled(), 726.0f ));
-		SquareMeters		a6 = Meters{22.0f}.Pow<2>();							TEST(Equals( a6.GetNonScaled(), 484.0f ));
+		Meter			a1 = Meter{1.0f} + Meter{2.0f};						TEST(Equals( a1.GetNonScaled(), 3.0f ));
+		auto			a2 = Meter{10.0f} / Second{2.0f};					TEST(Equals( a2.GetNonScaled(), 5.0f ));
+		MeterPerSecond	a3 = Meter{14.0f} / Millisecond{7.0f};				TEST(Equals( a3.GetNonScaled(), 2000.0f, 0.001f ));
+		Accel			a4 = Meter{100.0f} / Second{2.0f} / Second{5.0f};	TEST(Equals( a4.GetNonScaled(), 10.0f ));
+		SquareMeter		a5 = Meter{22.0f} * Meter{33.0f};					TEST(Equals( a5.GetNonScaled(), 726.0f ));
+		SquareMeter		a6 = Meter{22.0f}.Pow<2>();							TEST(Equals( a6.GetNonScaled(), 484.0f ));
+
+		TEST_Eq( ToString( a2, 2, False{} ), "5.00[m / s^-1]" );
+		TEST_Eq( ToString( a3, 2, False{} ), "2000.00[m / s^-1]" );
 	}
 
 
 	static void  PhysicalQuantity_Test2 ()
 	{
 		using SolarMass		= DefaultPhysicalQuantity<double>::SolarMass;
-		using LightYears	= DefaultPhysicalQuantity<double>::LightYears;
+		using LightYear		= DefaultPhysicalQuantity<double>::LightYear;
 		using GConstant		= DefaultPhysicalQuantity<double>::GConstant;
-		using Kilograms		= DefaultPhysicalQuantity<double>::Kilograms;
-		using Accel			= DefaultPhysicalQuantity<double>::MetersPerSquareSeconds;
+		using Kilogram		= DefaultPhysicalQuantity<double>::Kilogram;
+		using Accel			= DefaultPhysicalQuantity<double>::MeterPerSquareSecond;
 		
-		Kilograms	a1 = SolarMass{3.0e+6};						TEST(Equals( a1.GetNonScaled(), 1.98847e+30 * 3.0e+6 ));
+		Kilogram	a1 = SolarMass{3.0e+6};						TEST(Equals( a1.GetNonScaled(), 1.98847e+30 * 3.0e+6 ));
 		auto		a2 = GConstant{1.0} * SolarMass{3.0e+6};	TEST(Equals( a2.GetScaled(), 6.6740831e-11 * 1.98847e+30 * 3.0e+6 ));
-		Accel		a3 = a2 / LightYears{26000.0}.Pow<2>();		TEST(Equals( a3.GetScaled(), 6.58e-15 ));
+		Accel		a3 = a2 / LightYear{26000.0}.Pow<2>();		TEST(Equals( a3.GetScaled(), 6.58e-15 ));
 
-		TEST( ToString( GConstant{1.0}, 2, True{"exponent"} )	== "6.67e-11[m^3 / (s^-2 * kg^-1)]" );
-		TEST( ToString( a2,				2, True{"exponent"} )	== "3.98e+26[m^3 / s^-2]" );
-		TEST( ToString( a3,				2, True{"exponent"} )	== "6.58e-15[m / s^-2]" );
+		TEST_Eq( ToString( GConstant{1.0},	2, True{"exponent"} ), "6.67e-11[m^3 / (s^-2 * kg^-1)]" );
+		TEST_Eq( ToString( a2,				2, True{"exponent"} ), "3.98e+26[m^3 / s^-2]" );
+		TEST_Eq( ToString( a3,				2, True{"exponent"} ), "6.58e-15[m / s^-2]" );
 	}
 
 
 	static void  PhysicalQuantityVec_Test1 ()
 	{
-		using Meters			= DefaultPhysicalQuantity<float>::Meters;
-		using Seconds			= DefaultPhysicalQuantity<float>::Seconds;
-		using MetersPerSeconds	= DefaultPhysicalQuantity<float>::MetersPerSeconds;
-		using LightYears		= DefaultPhysicalQuantity<float>::LightYears;
-		using Meters3			= PhysicalQuantitySIMDVec< Meters, 3 >;
-		using Seconds3			= PhysicalQuantity_FromVec< float3, DefaultPhysicalDimensions::Second >;
-		using MetersPerSeconds3	= PhysicalQuantitySIMDVec< MetersPerSeconds, 3 >;
-		using LightYears3		= PhysicalQuantitySIMDVec< LightYears, 3 >;
+		using Meter				= DefaultPhysicalQuantity<float>::Meter;
+		using Second			= DefaultPhysicalQuantity<float>::Second;
+		using MeterPerSecond	= DefaultPhysicalQuantity<float>::MeterPerSecond;
+		using LightYear			= DefaultPhysicalQuantity<float>::LightYear;
+		using Meter3			= PhysicalQuantitySIMDVec< Meter, 3 >;
+		using Second3			= PhysicalQuantity_FromVec< float3, DefaultPhysicalDimensions::Second >;
+		using MeterPerSecond3	= PhysicalQuantitySIMDVec< MeterPerSecond, 3 >;
+		using LightYear3		= PhysicalQuantitySIMDVec< LightYear, 3 >;
 
-		MetersPerSeconds3	a1 = Meters3{ 1.0f, 2.0f, 3.0f } / Seconds3{Seconds{4.0f}};
+		MeterPerSecond3		a1 = Meter3{ 1.0f, 2.0f, 3.0f } / Second3{Second{4.0f}};
 		Unused( a1 );
 
 		float				b2 = Distance( float3{2.0f, 3.0f, 8.0f}, float3{-4.0f, 1.0f, 5.0f} );
-		LightYears			a2 = Distance( LightYears3{2.0f, 3.0f, 8.0f}, LightYears3{-4.0f, 1.0f, 5.0f} );
+		LightYear			a2 = Distance( LightYear3{2.0f, 3.0f, 8.0f}, LightYear3{-4.0f, 1.0f, 5.0f} );
 		TEST(Equals( a2.GetNonScaled(), b2 ));
 	
 		float				b3 = DistanceSqr( float3{2.0f, 3.0f, 8.0f}, float3{-4.0f, 1.0f, 5.0f} );
-		auto				a3 = DistanceSqr( LightYears3{2.0f, 3.0f, 8.0f}, LightYears3{-4.0f, 1.0f, 5.0f} );
+		auto				a3 = DistanceSqr( LightYear3{2.0f, 3.0f, 8.0f}, LightYear3{-4.0f, 1.0f, 5.0f} );
 		TEST(Equals( a3.GetNonScaled(), b3 ));
 
-		LightYears			a4 = Min( a2, LightYears{1.0f} + LightYears{2.0f} );
+		LightYear			a4 = Min( a2, LightYear{1.0f} + LightYear{2.0f} );
 		TEST(Equals( a4.GetNonScaled(), 3.0f ));
 	}
 
 	
 	static void  PhysicalQuantityMatrix_Test1 ()
 	{
-		using Meters				= DefaultPhysicalQuantity<float>::Meters;
-		using Seconds				= DefaultPhysicalQuantity<float>::Seconds;
-		using MetersPerSeconds		= DefaultPhysicalQuantity<float>::MetersPerSeconds;
-		using Meters3				= PhysicalQuantitySIMDVec< Meters, 3 >;
-		using Seconds3				= PhysicalQuantitySIMDVec< Seconds, 3 >;
-		using MetersPerSeconds3		= PhysicalQuantitySIMDVec< MetersPerSeconds, 3 >;
-		using Meters3x3				= PhysicalQuantitySIMDMatrix< Meters, 3, 3 >;
-		using Seconds3x3			= PhysicalQuantitySIMDMatrix< Seconds, 3, 3 >;
-		using MetersPerSeconds3x3	= PhysicalQuantitySIMDMatrix< MetersPerSeconds, 3, 3 >;
+		using Meter				= DefaultPhysicalQuantity<float>::Meter;
+		using Second			= DefaultPhysicalQuantity<float>::Second;
+		using MeterPerSecond	= DefaultPhysicalQuantity<float>::MeterPerSecond;
+		using Meter3			= PhysicalQuantitySIMDVec< Meter, 3 >;
+		using Second3			= PhysicalQuantitySIMDVec< Second, 3 >;
+		using MeterPerSecond3	= PhysicalQuantitySIMDVec< MeterPerSecond, 3 >;
+		using Meter3x3			= PhysicalQuantitySIMDMatrix< Meter, 3, 3 >;
+		using Second3x3			= PhysicalQuantitySIMDMatrix< Second, 3, 3 >;
+		using MeterPerSecond3x3	= PhysicalQuantitySIMDMatrix< MeterPerSecond, 3, 3 >;
 
-		Meters3x3	m = Meters3x3::FromScalar( Meters{1.0f} );
-
-
+		Meter3x3	m = Meter3x3::FromScalar( Meter{1.0f} );
+		Unused( m );
 	}
 }
 

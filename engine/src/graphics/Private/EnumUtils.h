@@ -249,10 +249,25 @@ namespace AE::Graphics
 	{
 		return (format >= EPixelFormat::EAC_R11_SNorm) & (format <= EPixelFormat::EAC_RG11_UNorm);
 	}
-
+	
 	ND_ inline constexpr bool  EPixelFormat_IsASTC (EPixelFormat format)__NE___
 	{
 		return (format >= EPixelFormat::ASTC_RGBA_4x4) & (format <= EPixelFormat::ASTC_RGBA16F_12x12);
+	}
+	
+	ND_ inline constexpr bool  EPixelFormat_IsASTC_LDR (EPixelFormat format)__NE___
+	{
+		return (format >= EPixelFormat::ASTC_RGBA_4x4) & (format <= EPixelFormat::ASTC_sRGB8_A8_12x12);
+	}
+
+	ND_ inline constexpr bool  EPixelFormat_IsASTC_HDR (EPixelFormat format)__NE___
+	{
+		return (format >= EPixelFormat::ASTC_RGBA16F_4x4) & (format <= EPixelFormat::ASTC_RGBA16F_12x12);
+	}
+
+	ND_ inline constexpr bool  EPixelFormat_IsYcbcr (EPixelFormat format)__NE___
+	{
+		return (format >= EPixelFormat::G8B8G8R8_422_UNorm) & (format <= EPixelFormat::G16_B16_R16_444_UNorm);
 	}
 
 /*

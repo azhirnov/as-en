@@ -6,9 +6,6 @@
 
 namespace AE::Base
 {
-	
-
-
 
 	//
 	// Raw pointer to Path
@@ -57,9 +54,9 @@ namespace AE::Base
 
 	// methods
 	public:
-		PtrToPathArray (const T* const* arr, usize count) __NE___ : _arr{arr}, _count{count} {}
+		PtrToPathArray (const T* const* arr, usize count)	__NE___ : _arr{arr}, _count{count} {}
 
-		ND_ operator Array<Path> () C_NE___
+		ND_ operator Array<Path> ()							C_NE___
 		{
 			Array<Path>  result {_count};
 			for (usize i = 0; i < _count; ++i) { if ( _arr[i] != null ) result[i] = Path{_arr[i]}; }
@@ -88,7 +85,7 @@ namespace AE::Base
 	public:
 		PtrToStringArray (const T* const* arr, usize count) __NE___ : _arr{arr}, _count{count} {}
 
-		ND_ operator Array<BasicString<T>> () C_NE___
+		ND_ operator Array<BasicString<T>> ()				C_NE___
 		{
 			Array<BasicString<T>>  result {_count};
 			for (usize i = 0; i < _count; ++i) { if ( _arr[i] != null ) result[i] = BasicString<T>{_arr[i]}; }

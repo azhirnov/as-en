@@ -117,6 +117,7 @@
 		bool  videoEncodeH265             : 1;   // VK_EXT_video_encode_h265 
 		bool  imageFootprintNV            : 1;   // VK_NV_shader_image_footprint 
 		bool  deviceGeneratedCmdsNV       : 1;   // VK_NV_device_generated_commands 
+		bool  cooperativeMatrixNV         : 1;   // VK_NV_cooperative_matrix 
 		bool  shaderSMBuiltinsNV          : 1;   // VK_NV_shader_sm_builtins 
 		bool  shaderCorePropsAMD          : 1;   // VK_AMD_shader_core_properties 
 		bool  rasterizationOrderGroup     : 1;   // VK_ARM_rasterization_order_attachment_access 
@@ -320,6 +321,10 @@
 		VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV  deviceGeneratedCmdsNVFeats;
 		VkPhysicalDeviceDeviceGeneratedCommandsPropertiesNV  deviceGeneratedCmdsNVProps;
 
+		// VK_NV_cooperative_matrix
+		VkPhysicalDeviceCooperativeMatrixFeaturesNV  cooperativeMatrixNVFeats;
+		VkPhysicalDeviceCooperativeMatrixPropertiesNV  cooperativeMatrixNVProps;
+
 		// VK_NV_shader_sm_builtins
 		VkPhysicalDeviceShaderSMBuiltinsFeaturesNV  shaderSMBuiltinsNVFeats;
 		VkPhysicalDeviceShaderSMBuiltinsPropertiesNV  shaderSMBuiltinsNVProps;
@@ -489,6 +494,7 @@
 			VK_EXT_IMAGE_COMPRESSION_CONTROL_EXTENSION_NAME,
 			VK_EXT_IMAGE_COMPRESSION_CONTROL_SWAPCHAIN_EXTENSION_NAME,
 			VK_NV_SHADER_IMAGE_FOOTPRINT_EXTENSION_NAME,
+			VK_NV_COOPERATIVE_MATRIX_EXTENSION_NAME,
 			VK_AMD_SHADER_CORE_PROPERTIES_EXTENSION_NAME,
 			VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME,
 			VK_ARM_SHADER_CORE_BUILTINS_EXTENSION_NAME,
@@ -650,6 +656,7 @@
 		_extensions.videoEncodeH265             = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_EXT_VIDEO_ENCODE_H265_EXTENSION_NAME ));
 		_extensions.imageFootprintNV            = (HasDeviceExtension( VK_NV_SHADER_IMAGE_FOOTPRINT_EXTENSION_NAME ));
 		_extensions.deviceGeneratedCmdsNV       = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_NV_DEVICE_GENERATED_COMMANDS_EXTENSION_NAME ));
+		_extensions.cooperativeMatrixNV         = (HasDeviceExtension( VK_NV_COOPERATIVE_MATRIX_EXTENSION_NAME ));
 		_extensions.shaderSMBuiltinsNV          = (GetDeviceVersion() >= DeviceVersion{1,1} and HasDeviceExtension( VK_NV_SHADER_SM_BUILTINS_EXTENSION_NAME ));
 		_extensions.shaderCorePropsAMD          = (HasDeviceExtension( VK_AMD_SHADER_CORE_PROPERTIES_EXTENSION_NAME ));
 		_extensions.rasterizationOrderGroup     = (HasDeviceExtension( VK_ARM_RASTERIZATION_ORDER_ATTACHMENT_ACCESS_EXTENSION_NAME ));
@@ -1070,6 +1077,15 @@
 				next_props  = &_properties.deviceGeneratedCmdsNVProps.pNext;
 				_properties.deviceGeneratedCmdsNVProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEVICE_GENERATED_COMMANDS_PROPERTIES_NV;
 			}
+			if ( _extensions.cooperativeMatrixNV )
+			{
+				*next_feat = &_properties.cooperativeMatrixNVFeats;
+				next_feat  = &_properties.cooperativeMatrixNVFeats.pNext;
+				_properties.cooperativeMatrixNVFeats.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_FEATURES_NV;
+				*next_props = &_properties.cooperativeMatrixNVProps;
+				next_props  = &_properties.cooperativeMatrixNVProps.pNext;
+				_properties.cooperativeMatrixNVProps.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_COOPERATIVE_MATRIX_PROPERTIES_NV;
+			}
 			if ( _extensions.shaderSMBuiltinsNV )
 			{
 				*next_feat = &_properties.shaderSMBuiltinsNVFeats;
@@ -1248,14 +1264,15 @@
 			<< "\n  videoEncodeH265:. . . . . . " << ToString( _extensions.videoEncodeH265 )
 			<< "\n  imageFootprintNV:           " << ToString( _extensions.imageFootprintNV )
 			<< "\n  deviceGeneratedCmdsNV:. . . " << ToString( _extensions.deviceGeneratedCmdsNV )
-			<< "\n  shaderSMBuiltinsNV:         " << ToString( _extensions.shaderSMBuiltinsNV )
-			<< "\n  shaderCorePropsAMD: . . . . " << ToString( _extensions.shaderCorePropsAMD )
-			<< "\n  rasterizationOrderGroup:    " << ToString( _extensions.rasterizationOrderGroup )
-			<< "\n  shaderCoreBuiltinsARM:. . . " << ToString( _extensions.shaderCoreBuiltinsARM )
-			<< "\n  subpassShadingHW:           " << ToString( _extensions.subpassShadingHW )
-			<< "\n  incrementalPresent: . . . . " << ToString( _extensions.incrementalPresent )
-			<< "\n  presentId:                  " << ToString( _extensions.presentId )
-			<< "\n  presentWait:. . . . . . . . " << ToString( _extensions.presentWait );
+			<< "\n  cooperativeMatrixNV:        " << ToString( _extensions.cooperativeMatrixNV )
+			<< "\n  shaderSMBuiltinsNV: . . . . " << ToString( _extensions.shaderSMBuiltinsNV )
+			<< "\n  shaderCorePropsAMD:         " << ToString( _extensions.shaderCorePropsAMD )
+			<< "\n  rasterizationOrderGroup:. . " << ToString( _extensions.rasterizationOrderGroup )
+			<< "\n  shaderCoreBuiltinsARM:      " << ToString( _extensions.shaderCoreBuiltinsARM )
+			<< "\n  subpassShadingHW: . . . . . " << ToString( _extensions.subpassShadingHW )
+			<< "\n  incrementalPresent:         " << ToString( _extensions.incrementalPresent )
+			<< "\n  presentId:. . . . . . . . . " << ToString( _extensions.presentId )
+			<< "\n  presentWait:                " << ToString( _extensions.presentWait );
 		return src;
 	}
 #endif // VKFEATS_FN_IMPL

@@ -216,7 +216,7 @@ namespace AE::Graphics
 */
 	ND_ inline VkShaderStageFlagBits  VEnumCast (EShaderStages values) __NE___
 	{
-		if ( values == EShaderStages::AllGraphics )
+		if ( values == EShaderStages::GraphicsStages )
 			return VK_SHADER_STAGE_ALL_GRAPHICS;
 
 		if ( values == EShaderStages::All )
@@ -508,7 +508,8 @@ namespace AE::Graphics
 			case EImage_Cube :			return VK_IMAGE_VIEW_TYPE_CUBE;
 			case EImage_CubeArray :		return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
 			case EImage_3D :			return VK_IMAGE_VIEW_TYPE_3D;
-			case EImage::Unknown :		break;	// not supported
+			case EImage::Unknown :
+			case EImage::_Count :		break;	// not supported
 		}
 		END_ENUM_CHECKS();
 		RETURN_ERR( "unsupported image view type", VK_IMAGE_VIEW_TYPE_MAX_ENUM );

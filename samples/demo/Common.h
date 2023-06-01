@@ -8,7 +8,8 @@
 #include "platform/Public/InputSurface.h"
 #include "platform/Public/OutputSurface.h"
 
-#include "platform/DefaultImpl/AppConfig.h"
+#include "platform/DefaultV1/AppConfig.h"
+#include "platform/DefaultV1/DefaultAppV1.h"
 
 #include "graphics/Public/GraphicsImpl.h"
 

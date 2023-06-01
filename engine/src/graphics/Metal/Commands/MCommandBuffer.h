@@ -78,6 +78,7 @@ namespace AE::Graphics
 
 	public:
 		MCommandBuffer ()												__NE___	{}
+		MCommandBuffer (Base::_hidden_::DefaultType)					__NE___ {}
 		MCommandBuffer (MCommandBuffer &&)								__NE___;
 		template <typename T> MCommandBuffer (T enc)					__NE___	{ SetEncoder( enc ); }
 		~MCommandBuffer ()												__NE___;

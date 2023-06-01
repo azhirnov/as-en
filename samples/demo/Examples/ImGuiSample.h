@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "demo/Utils/ImGuiRenderer.h"
+#include "demo/Core/ImGuiRenderer.h"
 
 namespace AE::Samples::Demo
 {
@@ -12,7 +12,7 @@ namespace AE::Samples::Demo
 	class ImGuiSample final : public ISample
 	{
 	// types
-	public:
+	private:
 		class UploadTask;
 		class DrawTask;
 		class ProcessInputTask;
@@ -20,7 +20,6 @@ namespace AE::Samples::Demo
 
 	// variables
 	public:
-		Atomic<bool>			uploaded		{false};
 		ImGuiRenderer			imgui;
 		Profiler::ProfilerUI	profiler;
 
@@ -31,10 +30,10 @@ namespace AE::Samples::Demo
 		explicit ImGuiSample (ImGuiContext* ctx) : imgui{ctx} {}
 
 		// ISample //
-		bool			Init (PipelinePackID pack) override;
-		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) override;
-		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps) override;
-		InputModeName	GetInputMode () const override { return InputModeName{"imGUI"}; }
+		bool			Init (PipelinePackID pack)											override;
+		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps)	override;
+		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)					override;
+		InputModeName	GetInputMode ()														const override { return InputModeName{"imGUI"}; }
 	};
 
 

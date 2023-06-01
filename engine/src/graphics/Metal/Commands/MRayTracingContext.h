@@ -37,25 +37,24 @@ namespace AE::Graphics::_hidden_
 		
 	// methods
 	public:
-		ND_ ArgSet_t				Arguments ()								__NE___	{ return ArgSet_t{ _Encoder2() }; }
+		ND_ ArgSet_t				Arguments ()												__NE___	{ return ArgSet_t{ _Encoder2() }; }
 		
-		ND_ MetalCommandBufferRC	EndCommandBuffer ()							__Th___;
-		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()						__Th___;
+		ND_ MetalCommandBufferRC	EndCommandBuffer ()											__Th___;
+		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()										__Th___;
 
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MDirectRayTracingCtx (const RenderTask &task)					__Th___ : _MDirectRayTracingCtx{ task, MCommandBuffer{} } {}
-		_MDirectRayTracingCtx (const RenderTask &task, MCommandBuffer cmdbuf)	__Th___;
+		_MDirectRayTracingCtx (const RenderTask &task, MCommandBuffer cmdbuf, DebugLabel dbg)	__Th___;
 		
-		ND_ auto  						_Encoder ()								__NE___;
-		ND_ MetalComputeCommandEncoder	_Encoder2 ()							__NE___	{ return MetalComputeCommandEncoder{ _cmdbuf.GetEncoder().Ptr() }; }
+		ND_ auto  						_Encoder ()												__NE___;
+		ND_ MetalComputeCommandEncoder	_Encoder2 ()											__NE___	{ return MetalComputeCommandEncoder{ _cmdbuf.GetEncoder().Ptr() }; }
 
 		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
 
-		void  _DebugMarker (DebugLabel dbg)												{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
-		void  _PushDebugGroup (DebugLabel dbg)											{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
-		void  _PopDebugGroup ()															{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
+		void  _DebugMarker (DebugLabel dbg)																{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_DebugMarker( dbg ); }
+		void  _PushDebugGroup (DebugLabel dbg)															{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PushDebugGroup( dbg ); }
+		void  _PopDebugGroup ()																			{ ASSERT( _NoPendingBarriers() );  _MBaseDirectContext::_PopDebugGroup(); }
 	};
 	
 
@@ -80,16 +79,15 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		ND_ ArgSet_t			Arguments ()										__NE___	{ return ArgSet_t{ this->_cmdbuf.get() }; }
+		ND_ ArgSet_t			Arguments ()														__NE___	{ return ArgSet_t{ this->_cmdbuf.get() }; }
 		
-		ND_ MBakedCommands		EndCommandBuffer ()									__Th___;
-		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()								__Th___;
+		ND_ MBakedCommands		EndCommandBuffer ()													__Th___;
+		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()												__Th___;
 
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MIndirectRayTracingCtx (const RenderTask &task)					__Th___ : _MIndirectRayTracingCtx{ task, Default } {}
-		_MIndirectRayTracingCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)	__Th___;
+		_MIndirectRayTracingCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)	__Th___;
 
 		void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
 	};
@@ -113,6 +111,7 @@ namespace AE::Graphics::_hidden_
 		using RawCtx		= CtxImpl;
 		using AccumBar		= MAccumBarriers< _MRayTracingContextImpl< CtxImpl >>;
 		using DeferredBar	= MAccumDeferredBarriersForCtx< _MRayTracingContextImpl< CtxImpl >>;
+		using Validator_t	= RayTracingContextValidation;
 
 		
 	// variables
@@ -122,28 +121,29 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _MRayTracingContextImpl (const RenderTask &task)													__Th___;
-		_MRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)											__Th___;
+		explicit _MRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)		__Th___;
 
-		_MRayTracingContextImpl ()																					= delete;
-		_MRayTracingContextImpl (const _MRayTracingContextImpl &)													= delete;
+		_MRayTracingContextImpl ()																							= delete;
+		_MRayTracingContextImpl (const _MRayTracingContextImpl &)															= delete;
 
-		void  BindPipeline (RayTracingPipelineID ppln)																__Th_OV;
-		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th_OV	{ _boundDS.Bind( *this, index, ds, dynamicOffsets ); }
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th_OV;
+		void  BindPipeline (RayTracingPipelineID ppln)																		__Th_OV;
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th_OV	{ _boundDS.Bind( *this, index, ds, dynamicOffsets ); }
 
-		void  SetStackSize (Bytes size)																				__Th_OV;
+		void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)	__Th_OV;
+		using IRayTracingContext::PushConstant;
 
-		void  TraceRays (const uint2 dim, RTShaderBindingID sbt)													__Th_OV;
-		void  TraceRays (const uint3 dim, RTShaderBindingID sbt)													__Th_OV;
+		void  SetStackSize (Bytes size)																						__Th_OV;
+
+		void  TraceRays (const uint2 dim, RTShaderBindingID sbt)															__Th_OV;
+		void  TraceRays (const uint3 dim, RTShaderBindingID sbt)															__Th_OV;
 		
-		void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)											__Th_OV;
-		void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)											__Th_OV;
+		void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)													__Th_OV;
+		void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)													__Th_OV;
 		
-		void  TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)		__Th_OV;
-		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)__Th_OV;	// _DispatchIndirect
+		void  TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)				__Th_OV;
+		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)		__Th_OV;	// _DispatchIndirect
 		
-		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)								__Th_OV;	// _DispatchIndirect
+		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th_OV;	// _DispatchIndirect
 
 		MBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -168,14 +168,8 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_MRayTracingContextImpl<C>::_MRayTracingContextImpl (const RenderTask &task) : RawCtx{ task }
-	{
-		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
-	}
-		
-	template <typename C>
-	_MRayTracingContextImpl<C>::_MRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
-		RawCtx{ task, RVRef(cmdbuf) }
+	_MRayTracingContextImpl<C>::_MRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
 	}
@@ -199,11 +193,11 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _MRayTracingContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+	void  _MRayTracingContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
 	{
-		Unused( offset, size, values, stages );
-		// TODO
-		//RawCtx::_PushComputeConstant( offset, size, values, stages );
+		Validator_t::PushConstant( idx, size, typeName );
+		
+		RawCtx::Arguments().SetBytes( values, size, MBufferIndex(idx.bufferId) );
 	}
 	
 /*

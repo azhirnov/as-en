@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <pipeline_compiler>
 
 void ASmain ()
@@ -23,14 +24,14 @@ void ASmain ()
 			    "packed_float3		Normal;" +
 				"packed_float3		Texcoord;" );
 
-		RC<VertexBufferInput>	vb = VertexBufferInput( "VB_CubeVertex" );
+		RC<VertexBufferInput>	vb = VertexBufferInput( "VB{CubeVertex}" );
 		vb.Add( "Position", st );
 	}{
 		RC<ShaderStructType>	st = ShaderStructType( "SphericalCubeVertex" );
 		st.Set( "packed_float4		Position;" +
 				"packed_float4		Texcoord;" );
 
-		RC<VertexBufferInput>	vb = VertexBufferInput( "VB_SphericalCubeVertex" );
+		RC<VertexBufferInput>	vb = VertexBufferInput( "VB{SphericalCubeVertex}" );
 		vb.Add( "Position", st );
 	}
 
@@ -38,20 +39,20 @@ void ASmain ()
 		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "simple3d.draw1" );
 		ppln.AddFeatureSet( "MinimalFS" );
 		ppln.SetLayout( "simple3d.pl" );
-		ppln.SetVertexInput( "VB_CubeVertex" );
+		ppln.SetVertexInput( "VB{CubeVertex}" );
 		ppln.SetFragmentOutputFromRenderTech( "Scene3D.RTech", "Main" );
 		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "simple3d.io" );
 	
 		{
 			RC<Shader>	vs = Shader();
-			vs.Define( "#define CUBE" );
-			vs.file		= "simple3d.glsl";
+			vs.Define( "CUBE" );
+			vs.file		= "simple3d.glsl";		// file:///<path>/samples/demo/_data/shaders/simple3d.glsl
 			vs.options	= EShaderOpt::Optimize;
 			ppln.SetVertexShader( vs );
 		}
 		{
 			RC<Shader>	fs = Shader();
-			fs.file		= "simple3d.glsl";
+			fs.file		= "simple3d.glsl";		// file:///<path>/samples/demo/_data/shaders/simple3d.glsl
 			fs.options	= EShaderOpt::Optimize;
 			ppln.SetFragmentShader( fs );
 		}
@@ -78,20 +79,20 @@ void ASmain ()
 		RC<GraphicsPipeline>	ppln = GraphicsPipeline( "simple3d.draw2" );
 		ppln.AddFeatureSet( "MinimalFS" );
 		ppln.SetLayout( "simple3d.pl" );
-		ppln.SetVertexInput( "VB_SphericalCubeVertex" );
+		ppln.SetVertexInput( "VB{SphericalCubeVertex}" );
 		ppln.SetFragmentOutputFromRenderTech( "Scene3D.RTech", "Main" );
 		ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "simple3d.io" );
 	
 		{
 			RC<Shader>	vs = Shader();
-			vs.Define( "#define SPHERICAL_CUBE" );
-			vs.file		= "simple3d.glsl";
+			vs.Define( "SPHERICAL_CUBE" );
+			vs.file		= "simple3d.glsl";		// file:///<path>/samples/demo/_data/shaders/simple3d.glsl
 			vs.options	= EShaderOpt::Optimize;
 			ppln.SetVertexShader( vs );
 		}
 		{
 			RC<Shader>	fs = Shader();
-			fs.file		= "simple3d.glsl";
+			fs.file		= "simple3d.glsl";		// file:///<path>/samples/demo/_data/shaders/simple3d.glsl
 			fs.options	= EShaderOpt::Optimize;
 			ppln.SetFragmentShader( fs );
 		}

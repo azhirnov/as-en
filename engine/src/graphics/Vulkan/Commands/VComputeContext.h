@@ -41,8 +41,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectComputeCtx (const RenderTask &task)														__Th___ : VBaseDirectContext{ task, ECtxType::Compute } {}
-		_VDirectComputeCtx (const RenderTask &task, VCommandBuffer cmdbuf)											__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), ECtxType::Compute } {}
+		_VDirectComputeCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)							__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Compute } {}
 
 		void  _Dispatch (const uint3 &groupCount);
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
@@ -78,8 +77,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectComputeCtx (const RenderTask &task)														__Th___ : VBaseIndirectContext{ task, ECtxType::Compute } {}
-		_VIndirectComputeCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)									__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), ECtxType::Compute } {}
+		_VIndirectComputeCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)					__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Compute } {}
 
 		void  _Dispatch (const uint3 &groupCount);
 		void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
@@ -113,27 +111,28 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VComputeContextImpl (const RenderTask &task)														__Th___;
-		_VComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)												__Th___;
+		explicit _VComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___;
 
-		_VComputeContextImpl ()																						= delete;
-		_VComputeContextImpl (const _VComputeContextImpl &)															= delete;
+		_VComputeContextImpl ()																								= delete;
+		_VComputeContextImpl (const _VComputeContextImpl &)																	= delete;
 		
 		using RawCtx::BindDescriptorSet;
 
-		void  BindPipeline (ComputePipelineID ppln)																	__Th_OV;
-		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th_OV;
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th_OV;
+		void  BindPipeline (ComputePipelineID ppln)																			__Th_OV;
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th_OV;
+
+		void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)	__Th_OV;
+		using IComputeContext::PushConstant;
 		
 		using IComputeContext::Dispatch;
-		void  Dispatch (const uint3 &groupCount)																	__Th_OV	{ RawCtx::_Dispatch( groupCount ); }
+		void  Dispatch (const uint3 &groupCount)																			__Th_OV	{ RawCtx::_Dispatch( groupCount ); }
 		
-		void  DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)										__Th___	{ RawCtx::_DispatchBase( baseGroup, groupCount ); }
-		void  DispatchBase (const uint2 &baseGroup, const uint2 &groupCount)										__Th___	{ return DispatchBase( uint3{ baseGroup, 0u }, uint3{ groupCount, 1u }); }
+		void  DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)												__Th___	{ RawCtx::_DispatchBase( baseGroup, groupCount ); }
+		void  DispatchBase (const uint2 &baseGroup, const uint2 &groupCount)												__Th___	{ return DispatchBase( uint3{ baseGroup, 0u }, uint3{ groupCount, 1u }); }
 		
 		using RawCtx::DispatchIndirect;
 
-		void  DispatchIndirect (BufferID buffer, Bytes offset)														__Th_OV;
+		void  DispatchIndirect (BufferID buffer, Bytes offset)																__Th_OV;
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -158,14 +157,8 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VComputeContextImpl<C>::_VComputeContextImpl (const RenderTask &task) : RawCtx{ task }
-	{
-		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
-	}
-		
-	template <typename C>
-	_VComputeContextImpl<C>::_VComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
-		RawCtx{ task, RVRef(cmdbuf) }
+	_VComputeContextImpl<C>::_VComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
 	}
@@ -202,11 +195,11 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VComputeContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+	void  _VComputeContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
 	{
-		Validator_t::PushConstant( size );
+		Validator_t::PushConstant( idx, size, typeName );
 
-		RawCtx::_PushComputeConstant( offset, size, values, stages );
+		RawCtx::_PushComputeConstant( idx.offset, size, values, EShaderStages(0) | idx.stage );
 	}
 	
 /*

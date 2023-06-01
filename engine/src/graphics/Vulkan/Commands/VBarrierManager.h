@@ -65,9 +65,6 @@ namespace AE::Graphics::_hidden_
 		ND_ bool					IsFirstInQueue ()					C_NE___	{ return GetBatch().GetSubmitIndex() == 0 and GetRenderTask().IsFirstInBatch(); }
 		
 		DBG_GRAPHICS_ONLY(
-			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
-			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)									C_NE___;
-			
 			void  ProfilerBeginContext (VkCommandBuffer cmdbuf, DebugLabel dbg, IGraphicsProfiler::EContextType type)					C_NE___;
 			void  ProfilerBeginContext (VSoftwareCmdBuf &cmdbuf, DebugLabel dbg, IGraphicsProfiler::EContextType type)					C_NE___;
 
@@ -154,7 +151,8 @@ namespace AE::Graphics::_hidden_
 		void  AcquireImageOwnership (VkImage image, VkImageAspectFlags aspectMask, EQueueType srcQueue, EResourceState srcState, EResourceState dstState)	__Th___	{ if_unlikely( _mngr._IsImageOverflow() ) {this->_CommitBarriers();}  _mngr.AcquireImageOwnership( image, aspectMask, srcQueue, srcState, dstState ); } \
 		void  ReleaseImageOwnership (VkImage image, VkImageAspectFlags aspectMask, EResourceState srcState, EResourceState dstState, EQueueType dstQueue)	__Th___	{ if_unlikely( _mngr._IsImageOverflow() ) {this->_CommitBarriers();}  _mngr.ReleaseImageOwnership( image, aspectMask, srcState, dstState, dstQueue ); } \
 		\
-		ND_ auto&  _GetBarrierMngr ()																														__NE___	{ return _mngr; } \
+		ND_ auto&		 _GetBarrierMngr ()																													__NE___	{ return _mngr; } \
+		ND_ const auto&  _GetBarrierMngr ()																													C_NE___	{ return _mngr; } \
 		\
 	private: \
 		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)																	__Th___ { return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \
@@ -179,6 +177,8 @@ namespace AE::Graphics::_hidden_
 		ND_ FrameUID				GetFrameId ()																				 C_NE_OF { return this->_mngr.GetFrameId(); } \
 		ND_ VCommandBatch const&	GetCommandBatch ()																			 C_NE___ { return this->_mngr.GetBatch(); } \
 		ND_ RC<VCommandBatch>		GetCommandBatchRC ()																		 C_NE___ { return this->_mngr.GetBatchRC(); } \
+		\
+		ND_	VResourceManager &		GetResourceManager ()																		 C_NE___ { return this->_mngr.GetResourceManager(); } \
 		\
 		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)									 __Th_OV { if_unlikely( this->_mngr._IsBufferOverflow() ) {this->CommitBarriers();}  return this->_mngr.BufferBarrier( buffer, srcState, dstState ); } \
 		\

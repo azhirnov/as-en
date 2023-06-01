@@ -39,8 +39,7 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MDirectTransferCtx (const RenderTask &task)														__Th___ : _MDirectTransferCtx{ task, MCommandBuffer{} } {}
-		_MDirectTransferCtx (const RenderTask &task, MCommandBuffer cmdbuf)											__Th___;
+		_MDirectTransferCtx (const RenderTask &task, MCommandBuffer cmdbuf, DebugLabel dbg)							__Th___;
 		
 		ND_ auto  _Encoder ()																						__NE___;
 		
@@ -52,7 +51,7 @@ namespace AE::Graphics::_hidden_
 		void  _BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions);
 		void  _ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions);
 
-		void  _GenerateMipmaps (MetalImage image);
+		void  _GenerateMipmaps (MetalImage image, ArrayView<ImageSubresourceRange> ranges);
 
 		void  _SynchronizeResource (MetalResource);
 		void  _SynchronizeResource (MetalBuffer buf)				{ _SynchronizeResource( MetalResource{ buf.Ptr() }); }
@@ -94,10 +93,9 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MIndirectTransferCtx (const RenderTask &task)														__Th___ : _MIndirectTransferCtx{ task, Default } {}
-		_MIndirectTransferCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)									__Th___;
+		_MIndirectTransferCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)					__Th___;
 		
-		void  _GenerateMipmaps (MetalImage image);
+		void  _GenerateMipmaps (MetalImage image, ArrayView<ImageSubresourceRange> ranges);
 		
 		void  _SynchronizeResource (MetalResource);
 		void  _SynchronizeResource (MetalBuffer buf)				{ _SynchronizeResource( MetalResource{ buf.Ptr() }); }
@@ -131,8 +129,7 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _MTransferContextImpl (const RenderTask &task)																							__Th___;
-		_MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)																					__Th___;
+		explicit _MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)									__Th___;
 
 		_MTransferContextImpl ()																														= delete;
 		_MTransferContextImpl (const _MTransferContextImpl &)																							= delete;
@@ -173,6 +170,7 @@ namespace AE::Graphics::_hidden_
 		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)											__Th_OV;
 
 		void  GenerateMipmaps (ImageID srcImage)																										__Th_OV;
+		void  GenerateMipmaps (ImageID srcImage, ArrayView<ImageSubresourceRange> ranges)																__Th_OV;
 
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;
@@ -203,14 +201,8 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_MTransferContextImpl<C>::_MTransferContextImpl (const RenderTask &task) : RawCtx{ task }
-	{
-		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
-	}
-		
-	template <typename C>
-	_MTransferContextImpl<C>::_MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
-		RawCtx{ task, RVRef(cmdbuf) }
+	_MTransferContextImpl<C>::_MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
 	}
@@ -323,7 +315,7 @@ namespace AE::Graphics::_hidden_
 		ImageSubresourceLayers&	subres = copy.imageSubres;
 		subres.aspectMask		= uploadDesc.aspectMask;
 		subres.mipLevel			= uploadDesc.mipLevel;
-		subres.baseArrayLayer	= uploadDesc.arrayLayer;
+		subres.baseLayer		= uploadDesc.arrayLayer;
 		subres.layerCount		= 1;
 		copy.rowPitch			= res.dataRowPitch;
 
@@ -381,7 +373,7 @@ namespace AE::Graphics::_hidden_
 		ImageSubresourceLayers&	subres = copy.imageSubres;
 		subres.aspectMask		= upload_desc.aspectMask;
 		subres.mipLevel			= upload_desc.mipLevel;
-		subres.baseArrayLayer	= upload_desc.arrayLayer;
+		subres.baseLayer		= upload_desc.arrayLayer;
 		subres.layerCount		= 1;
 		copy.rowPitch			= res.dataRowPitch;
 
@@ -451,7 +443,7 @@ namespace AE::Graphics::_hidden_
 		return Threading::MakePromiseFromValue( mem_view,
 												Tuple{ this->_mngr.GetBatchRC() },
 												"MTransferContext::ReadbackBuffer",
-												ETaskQueue::Renderer
+												ETaskQueue::PerFrame
 											   );
 	}
 	
@@ -479,7 +471,7 @@ namespace AE::Graphics::_hidden_
 		return Threading::MakePromiseFromValue( mem_view,
 												Tuple{ this->_mngr.GetBatchRC() },
 												"MTransferContext::ReadHostBuffer",
-												ETaskQueue::Renderer
+												ETaskQueue::PerFrame
 											   );
 	}
 	
@@ -507,7 +499,7 @@ namespace AE::Graphics::_hidden_
 		ImageSubresourceLayers&	subres = copy.imageSubres;
 		subres.aspectMask		= readDesc.aspectMask;
 		subres.mipLevel			= readDesc.mipLevel;
-		subres.baseArrayLayer	= readDesc.arrayLayer;
+		subres.baseLayer		= readDesc.arrayLayer;
 		subres.layerCount		= 1;
 		copy.rowPitch			= res.dataRowPitch;
 
@@ -534,7 +526,7 @@ namespace AE::Graphics::_hidden_
 					ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask },
 					Tuple{ this->_mngr.GetBatchRC() },
 					"MTransferContext::ReadbackImage",
-					ETaskQueue::Renderer
+					ETaskQueue::PerFrame
 				);
 	}
 
@@ -641,12 +633,12 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _MTransferContextImpl<C>::GenerateMipmaps (ImageID srcImage)
+	void  _MTransferContextImpl<C>::GenerateMipmaps (ImageID srcImage, ArrayView<ImageSubresourceRange> ranges)
 	{
 		auto&	src_img = _GetResourcesOrThrow( srcImage );
-		Validator_t::GenerateMipmaps( src_img );
+		Validator_t::GenerateMipmaps( src_img, ranges );
 
-		RawCtx::_GenerateMipmaps( src_img.Handle() );
+		RawCtx::_GenerateMipmaps( src_img.Handle(), ranges );
 	}
 
 

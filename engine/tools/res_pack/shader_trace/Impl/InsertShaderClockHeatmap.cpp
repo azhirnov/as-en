@@ -335,8 +335,6 @@ static void  CreateShaderBuiltinSymbols (TIntermNode*, DebugInfo &dbgInfo)
 {
 	const auto	shader				= dbgInfo.GetShaderType();
 	const bool	is_compute			= (shader == EShLangCompute or shader == EShLangTask or shader == EShLangMesh);
-	const bool	need_invocation_id	= (shader == EShLangGeometry or shader == EShLangTessControl);
-	const bool	need_primitive_id	= (shader == EShLangFragment or shader == EShLangTessControl or shader == EShLangTessEvaluation);
 	const bool	need_launch_id		= (shader == EShLangRayGen or shader == EShLangIntersect or shader == EShLangAnyHit or
 									   shader == EShLangClosestHit or shader == EShLangMiss or shader == EShLangCallable);
 	TSourceLoc	loc	{};

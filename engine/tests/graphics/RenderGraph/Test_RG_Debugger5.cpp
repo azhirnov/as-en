@@ -55,7 +55,7 @@ namespace
 			t{ t }
 		{}
 		
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -112,7 +112,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -155,7 +155,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -176,7 +176,7 @@ namespace
 
 					if ( trace_str.size() == 1 )
 					{
-						const char	ref_str[] =
+						const StringView	ref_str =
 R"(//> gl_GlobalInvocationID: uint3 {400, 300, 0}
 //> gl_LocalInvocationID: uint3 {0, 4, 0}
 //> gl_WorkGroupID: uint3 {50, 37, 0}

@@ -17,11 +17,11 @@ namespace AE::Graphics
 	// types
 	public:
 		struct AsyncLoader {
-		//	ND_ Promise<RC<LoadableImage>>  Load (RC<AsyncRStream> stream);
+		//	ND_ Promise<RC<LoadableImage>>  Load (RC<AsyncRStream> stream) __NE___;
 		};
 		
 		struct Loader {
-			ND_ RC<LoadableImage>  Load (RC<RStream> stream, ITransferContext &ctx, GfxMemAllocatorPtr alloc = Default);
+			ND_ RC<LoadableImage>  Load (RC<RStream> stream, ITransferContext &ctx, GfxMemAllocatorPtr alloc) __NE___;
 		};
 
 
@@ -33,14 +33,14 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		LoadableImage () {}
-		~LoadableImage ();
+		LoadableImage ()							__NE___	{}
+		~LoadableImage ()							__NE___;
 
-		ND_ ImageID		GetImageID ()	const	{ return _imageId; }
-		ND_ EImage		ViewType ()		const	{ return _viewType; }
+		ND_ ImageID		GetImageID ()				C_NE___	{ return _imageId; }
+		ND_ EImage		ViewType ()					C_NE___	{ return _viewType; }
 
-		ND_ auto		ReleaseImage ()			{ return Strong<ImageID>{ _imageId.Release() }; }
-		ND_ auto		ReleaseImageAndView () -> StrongImageAndViewID;
+		ND_ auto		ReleaseImage ()				__NE___	{ return Strong<ImageID>{ _imageId.Release() }; }
+		ND_ auto		ReleaseImageAndView ()		__NE___ -> StrongImageAndViewID;
 	};
 
 

@@ -50,9 +50,6 @@ namespace AE::Graphics::_hidden_
 		ND_ RenderTask const&		GetRenderTask ()					C_NE___	{ ASSERT( _task != null );  return *_task; }
 		
 		DBG_GRAPHICS_ONLY(
-			void  ProfilerBeginContext (OUT MetalSampleBufferAttachments &, MetalCommandBuffer, IGraphicsProfiler::EContextType)	C_NE___;
-			void  ProfilerBeginContext (MSoftwareCmdBuf &cmdbuf, IGraphicsProfiler::EContextType type)								C_NE___;
-			
 			void  ProfilerBeginContext (OUT MetalSampleBufferAttachments &, MetalCommandBuffer, DebugLabel, IGraphicsProfiler::EContextType)C_NE___;
 			void  ProfilerBeginContext (MSoftwareCmdBuf &cmdbuf, DebugLabel, IGraphicsProfiler::EContextType)						C_NE___;
 
@@ -100,7 +97,8 @@ namespace AE::Graphics::_hidden_
 
 #define MBARRIERMNGR_INHERIT_MBARRIERS \
 	public: \
-		ND_ auto&  _GetBarrierMngr ()																								__NE___	{ return _mngr; } \
+		ND_ auto&		 _GetBarrierMngr ()																							__NE___	{ return _mngr; } \
+		ND_ const auto&  _GetBarrierMngr ()																							C_NE___	{ return _mngr; } \
 	private: \
 		template <typename ...IDs>	ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)											__Th___ { return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \
 	
@@ -126,6 +124,8 @@ namespace AE::Graphics::_hidden_
 		ND_ FrameUID				GetFrameId ()																					C_NE_OF { return this->_mngr.GetFrameId(); } \
 		ND_ MCommandBatch const&	GetCommandBatch ()																				C_NE___ { return this->_mngr.GetBatch(); } \
 		ND_ RC<MCommandBatch>		GetCommandBatchRC ()																			C_NE___ { return this->_mngr.GetBatchRC(); } \
+		\
+		ND_	MResourceManager &		GetResourceManager ()																			C_NE___ { return this->_mngr.GetResourceManager(); } \
 		\
 		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)										__Th_OV	{ this->_mngr.BufferBarrier( buffer, srcState, dstState ); } \
 		\

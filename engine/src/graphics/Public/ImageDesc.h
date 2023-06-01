@@ -27,7 +27,7 @@ namespace AE::Graphics
 		uint3				dimension;				// width, height, depth
 		ImageLayer			arrayLayers		= 1_layer;
 		MipmapLevel			maxLevel		= 1_mipmap;
-		EImageDim			imageType		= Default;
+		EImageDim			imageDim		= Default;
 		EImageOpt			options			= Default;
 		EImageUsage			usage			= Default;
 		EPixelFormat		format			= Default;
@@ -47,7 +47,7 @@ namespace AE::Graphics
 		ND_ bool  IsExclusiveSharing ()						C_NE___	{ return queues == Default; }
 		
 		ImageDesc&  SetType (EImage value)					__NE___;
-		ImageDesc&  SetType (EImageDim value)				__NE___	{ imageType		= value;				return *this; }
+		ImageDesc&  SetType (EImageDim value)				__NE___	{ imageDim		= value;				return *this; }
 		ImageDesc&  SetOptions (EImageOpt value)			__NE___	{ options		= value;				return *this; }
 		ImageDesc&  SetDimension (const uint value)			__NE___;
 		ImageDesc&  SetDimension (const uint2 &value)		__NE___;
@@ -84,8 +84,8 @@ namespace AE::Graphics
 		EPixelFormat		format			= Default;	// optional
 		EImageAspect		aspectMask		= Default;
 		EImageUsage			extUsage		= Default;
-		MipmapLevel			baseLevel;
-		ushort				levelCount		= UMax;
+		MipmapLevel			baseMipmap;
+		ushort				mipmapCount		= UMax;
 		ImageLayer			baseLayer;
 		ushort				layerCount		= UMax;
 		ImageSwizzle		swizzle;
@@ -96,8 +96,8 @@ namespace AE::Graphics
 
 		explicit ImageViewDesc (EImage			viewType,
 								EPixelFormat	format		= Default,
-								MipmapLevel		baseLevel	= Default,
-								uint			levelCount	= UMax,
+								MipmapLevel		baseMipmap	= Default,
+								uint			mipmapCount	= UMax,
 								ImageLayer		baseLayer	= Default,
 								uint			layerCount	= UMax,
 								ImageSwizzle	swizzle		= Default,
@@ -111,8 +111,8 @@ namespace AE::Graphics
 		
 		ImageViewDesc&  SetType (EImage value)					__NE___	{ viewType	= value;				return *this; }
 		ImageViewDesc&  SetFormat (EPixelFormat value)			__NE___	{ format	= value;				return *this; }
-		ImageViewDesc&  SetBaseMipmap (uint value)				__NE___	{ baseLevel	= MipmapLevel{value};	return *this; }
-		ImageViewDesc&  SetLevels (uint base, uint count)		__NE___	{ baseLevel	= MipmapLevel{base};	levelCount = CheckCast<ushort>(count);  return *this; }
+		ImageViewDesc&  SetBaseMipmap (uint value)				__NE___	{ baseMipmap= MipmapLevel{value};	return *this; }
+		ImageViewDesc&  SetLevels (uint base, uint count)		__NE___	{ baseMipmap= MipmapLevel{base};	mipmapCount = CheckCast<ushort>(count);  return *this; }
 		ImageViewDesc&  SetBaseLayer (uint value)				__NE___	{ baseLayer	= ImageLayer{value};	return *this; }
 		ImageViewDesc&  SetArrayLayers (uint base, uint count)	__NE___	{ baseLayer	= ImageLayer{base};		layerCount = CheckCast<ushort>(count);  return *this; }
 		ImageViewDesc&  SetSwizzle (ImageSwizzle value)			__NE___	{ swizzle	= value;				return *this; }
@@ -126,9 +126,9 @@ namespace AE::Graphics
 namespace AE::Base
 {
 	template <> struct TMemCopyAvailable< AE::Graphics::ImageDesc >			{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::ImageDesc >		{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::ImageDesc >	{ static constexpr bool  value = true; };
 	
 	template <> struct TMemCopyAvailable< AE::Graphics::ImageViewDesc >		{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::ImageViewDesc >	{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::ImageViewDesc >{ static constexpr bool  value = true; };
 
 } // AE::Base

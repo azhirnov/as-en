@@ -29,17 +29,17 @@ namespace AE::GeometryTools
 		};
 		STATIC_ASSERT( sizeof(Vertex) == 32 );
 
-		using Index_t	= uint;
+		using Index = uint;		// TODO: ushort ?
 
 
 	// variables
 	protected:
 		Array<Vertex>	_vertices;
-		Array<Index_t>	_indices;
+		Array<Index>	_indices;
 
 		uint			_minLod			= 0;
 		uint			_maxLod			= 0;
-		bool			_quads			= false;
+		bool			_quads			= false;	// quads for tessellation
 
 
 	// methods
@@ -47,7 +47,7 @@ namespace AE::GeometryTools
 		ND_	bool  Create (uint minLod, uint maxLod, bool quads)								__NE___;
 
 			bool  GetVertices (uint lod, uint face, OUT ArrayView<Vertex> &result)			C_NE___;
-			bool  GetIndices (uint lod, uint face, OUT ArrayView<Index_t> &result)			C_NE___;
+			bool  GetIndices (uint lod, uint face, OUT ArrayView<Index> &result)			C_NE___;
 
 		ND_ static uint  CalcFaceVertCount (uint lod)										__NE___;
 		ND_ static uint  CalcVertCount (uint lod)											__NE___;
@@ -59,7 +59,9 @@ namespace AE::GeometryTools
 								  const float3 &end, OUT float3 &outIntersection)			__NE___;
 
 		ND_ ArrayView<Vertex>	GetVertices ()												C_NE___	{ return _vertices; }
-		ND_ ArrayView<Index_t>	GetIndices ()												C_NE___	{ return _indices; }
+		ND_ ArrayView<Index>	GetIndices ()												C_NE___	{ return _indices; }
+		ND_ uint2				LODRange ()													C_NE___	{ return uint2{ _minLod, _maxLod }; }
+		ND_ bool				IsQuads ()													C_NE___	{ return _quads; }
 	};
 
 

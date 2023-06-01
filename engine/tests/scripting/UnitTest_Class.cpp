@@ -168,6 +168,20 @@ namespace
 			return arr.emplace_back( new Test9_1_CL{ int(s.length()) }).Retain();
 		}
 	};
+	
+	struct Test10_CL : AngelScriptHelper::SimpleRefCounter
+	{
+		static void  Gen1 (ScriptArgList args)
+		{
+			if ( args.Is< uint (Test10_CL::*)(int) >())
+			{
+				TEST( args.Arg<int>(0) == 1 );
+				args.Return( 111u );
+			}
+			else
+				throw AE::Exception{""};
+		}
+	};
 
 } // namespace
 
@@ -182,15 +196,15 @@ AE_DECL_SCRIPT_OBJ(		Test7_Value,	"Test7_Value"	);
 AE_DECL_SCRIPT_OBJ_RC(	Test8_CL,		"Test8_CL"		);
 AE_DECL_SCRIPT_OBJ_RC(	Test9_1_CL,		"Test9_1_CL"	);
 AE_DECL_SCRIPT_OBJ_RC(	Test9_2_CL,		"Test9_2_CL"	);
+AE_DECL_SCRIPT_OBJ_RC(	Test10_CL,		"Test10_CL"		);
 
 
 namespace
 {
 	static void  ScriptClass_Test1 (const ScriptEnginePtr &se)
 	{
-		ClassBinder<Test1_CL> binder( se );
-
 		TEST_NOTHROW(
+			ClassBinder<Test1_CL>	binder( se );
 			binder.CreateRef();
 			binder.AddMethod( &Test1_CL::F, "F" );
 		)
@@ -211,9 +225,8 @@ namespace
 
 	static void  ScriptClass_Test2 (const ScriptEnginePtr &se)
 	{
-		ClassBinder<Test2_Value>	binder{ se };
-
 		TEST_NOTHROW(
+			ClassBinder<Test2_Value>	binder{ se };
 			binder.CreateClassValue();
 			binder.AddConstructor( &Test2_Value::Ctor );
 			binder.AddMethod( &Test2_Value::F, "F" );
@@ -242,9 +255,8 @@ namespace
 
 	static void  ScriptClass_Test3 (const ScriptEnginePtr &se)
 	{
-		EnumBinder<EEnum>	binder{ se };
-
 		TEST_NOTHROW(
+			EnumBinder<EEnum>	binder{ se };
 			binder.Create();
 			binder.AddValue( "Value1", EEnum::Value1 );
 			binder.AddValue( "Value2", EEnum::Value2 );
@@ -302,9 +314,8 @@ namespace
 
 		ScriptCl::engine = se;
 
-		ClassBinder<ScriptCl>		binder{ se, "Script" };
-
 		TEST_NOTHROW(
+			ClassBinder<ScriptCl>	binder{ se, "Script" };
 			binder.CreateClassValue();
 			binder.AddMethod( &ScriptCl::Run, "Run" );
 		)
@@ -319,9 +330,8 @@ namespace
 
 	static void  ScriptClass_Test5 (const ScriptEnginePtr &se)
 	{
-		ClassBinder<Test5_CL> binder( se );
-
 		TEST_NOTHROW(
+			ClassBinder<Test5_CL> binder( se );
 			binder.CreateRef();
 			binder.AddMethod( &Test5_CL::F, "F" );
 		)
@@ -344,9 +354,8 @@ namespace
 
 	static void  ScriptClass_Test6 (const ScriptEnginePtr &se)
 	{
-		ClassBinder<Test6_CL> binder( se );
-
 		TEST_NOTHROW(
+			ClassBinder<Test6_CL> binder( se );
 			binder.CreateRef();
 			binder.AddMethod( &Test6_CL::Set, "Set" );
 		)
@@ -371,9 +380,8 @@ namespace
 
 	static void  ScriptClass_Test7 (const ScriptEnginePtr &se)
 	{
-		ClassBinder<Test7_Value>	binder{ se };
-
 		TEST_NOTHROW(
+			ClassBinder<Test7_Value>	binder{ se };
 			binder.CreateRef( &AngelScriptHelper::FactoryCreate<Test7_Value>, null, null, 0 );
 			binder.AddMethod( &Test7_Value::F, "F" );
 			binder.AddMethodFromGlobal( &Test7_Value::Append, "Append" );
@@ -397,9 +405,9 @@ namespace
 	static void  ScriptClass_Test8 (const ScriptEnginePtr &se)
 	{
 		using Test8_Ptr = ScriptRC<Test8_CL>;
-		ClassBinder<Test8_CL> binder( se );
 
 		TEST_NOTHROW(
+			ClassBinder<Test8_CL> binder( se );
 			binder.CreateRef();
 			binder.AddMethod( &Test8_CL::Set, "Set" );
 		)
@@ -429,20 +437,17 @@ namespace
 	static void  ScriptClass_Test9 (const ScriptEnginePtr &se)
 	{
 		using Test9_2_Ptr = ScriptRC<Test9_2_CL>;
-		{
+		TEST_NOTHROW(
 			ClassBinder<Test9_1_CL> binder( se );
-			TEST_NOTHROW(
-				binder.CreateRef();
-				binder.AddFactoryCtor( &Test9_1_CL::Ctor );
-			)
-		}{
+			binder.CreateRef();
+			binder.AddFactoryCtor( &Test9_1_CL::Ctor );
+		)
+		TEST_NOTHROW(
 			ClassBinder<Test9_2_CL> binder( se );
-			TEST_NOTHROW(
-				binder.CreateRef();
-				binder.AddMethod( &Test9_2_CL::Add,  "Add"  );
-				binder.AddMethod( &Test9_2_CL::Add2, "Add2" );
-			)
-		}
+			binder.CreateRef();
+			binder.AddMethod( &Test9_2_CL::Add,  "Add"  );
+			binder.AddMethod( &Test9_2_CL::Add2, "Add2" );
+		)
 		static const int  line		= __LINE__ + 1;
 		static const char script[]	= R"#(
 			Test9_2_CL@ ASmain () {
@@ -480,9 +485,8 @@ namespace
 
 	static void  ScriptClass_Test10 (const ScriptEnginePtr &se)
 	{
-		EnumBinder<EEnumBit>	binder{ se };
-
 		TEST_NOTHROW(
+			EnumBinder<EEnumBit>	binder{ se };
 			binder.Create();
 			binder.AddValue( "Value1", EEnumBit::Value1 );
 			binder.AddValue( "Value2", EEnumBit::Value2 );
@@ -501,6 +505,31 @@ namespace
 		uint	res = 0;
 		TEST( Run< uint () >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
 		TEST( res == uint(EEnumBit::Value1 | EEnumBit::Value3) );
+	}
+
+
+	static void  ScriptClass_Test11 (const ScriptEnginePtr &se)
+	{
+		TEST_NOTHROW(
+			ClassBinder<Test10_CL>	binder{ se };
+			binder.CreateRef();
+			binder.AddGenericMethod< uint(int) >( &Test10_CL::Gen1, "gen" );
+		)
+			
+		STATIC_ASSERT( ScriptTypeInfo<Test10_CL>::is_object );
+		STATIC_ASSERT( ScriptTypeInfo<Test10_CL>::is_ref_counted );
+
+		static const int  line		= __LINE__ + 1;
+		static const char script[]	= R"#(
+			uint ASmain () {
+				Test10_CL@ a = Test10_CL();
+				return a.gen( 1 );
+			}
+		)#";
+	
+		uint	res = 0;
+		TEST( Run< uint () >( se, script, "ASmain", SourceLoc{__FILE__, line}, OUT res ));
+		TEST( res == 111u );
 	}
 }
 
@@ -523,6 +552,7 @@ extern void UnitTest_Class ()
 		ScriptClass_Test8( se );
 		ScriptClass_Test9( se );
 		ScriptClass_Test10( se );
+		ScriptClass_Test11( se );
 	
 		TEST_PASSED();
 	)

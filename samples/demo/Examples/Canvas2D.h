@@ -25,6 +25,8 @@ namespace AE::Samples::Demo
 	public:
 		Unique<Canvas>				canvasPtr;
 		RenderTechPipelinesPtr		rtech;
+		GfxMemAllocatorPtr			gfxAlloc;
+
 		GraphicsPipelineID			ppln1;			// UV only
 		GraphicsPipelineID			ppln2_wire;		// color only, wireframe
 		GraphicsPipelineID			ppln2;			// color only
@@ -59,10 +61,10 @@ namespace AE::Samples::Demo
 		~Canvas2DSample () override;
 
 		// ISample //
-		bool			Init (PipelinePackID pack) override;
-		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) override;
-		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps) override;
-		InputModeName	GetInputMode () const override { return InputModeName{"Canvas2D"}; }
+		bool			Init (PipelinePackID pack)											override;
+		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps)	override;
+		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)					override;
+		InputModeName	GetInputMode ()														const override { return InputModeName{"Canvas2D"}; }
 	};
 
 } // AE::Samples::Demo

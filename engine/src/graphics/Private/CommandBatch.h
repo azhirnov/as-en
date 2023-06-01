@@ -156,6 +156,7 @@ namespace AE::Graphics
 
 			void  Run () __Th_OV
 			{
+				// used command pool for indirect command buffers, prefer to use 'Renderer' queue
 				CHECK_TE( _batch->_Submit() );
 			}
 

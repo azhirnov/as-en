@@ -63,6 +63,7 @@ namespace AE::Graphics
 		explicit FormattedText (U8StringView str)				__Th___	: FormattedText()	{ Append( str ); }
 		FormattedText (const FormattedText &other)				__Th___	: FormattedText()	{ Append( other ); }
 		FormattedText (FormattedText &&other)					__NE___	: _first{other._first}, _alloc{RVRef(other._alloc)} { other._first = null; }
+		~FormattedText ()										__NE___	{}
 
 		Self&  Append (const FormattedText &)					__Th___;
 		Self&  Append (U8StringView str)						__Th___;
@@ -111,9 +112,11 @@ namespace AE::Graphics
 		float			_spacing	= 1.0f;	// in normalized coords
 		bool			_wordWrap	= false;
 
+
 	// methods
 	public:
 		PrecalculatedFormattedText ()							__NE___	{}
+		~PrecalculatedFormattedText ()							__NE___	{}
 
 		Self&  SetText (FormattedText value)					__NE___	{ _text = RVRef(value);	return *this; }
 		Self&  SetSpacing (float value)							__NE___	{ _spacing  = value;	return *this; }

@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Abseil docs: https://abseil.io/docs/cpp/guides/container
+*/
 
 #pragma once
 

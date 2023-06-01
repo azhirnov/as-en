@@ -20,24 +20,26 @@ namespace AE::Samples::Demo
 	public:
 		float2						mousePos;
 		float2						mouseWheel;
-		bool						mouseLBDown		= false;
-		bool						touchActive		= false;
+		bool						mouseLBDown			= false;
+		bool						touchActive			= false;
 
 
 	private:
 		// imgui
-		ImGuiContext*				_imguiCtx		= null;
+		ImGuiContext*				_imguiCtx			= null;
+		bool						_fontInitialized	= false;
 
-		float						_pixToUI		= 1.f;		// surface coords to UI coords
-		float						_uiToPix		= 1.f;		// UI coords to surface coords
+		float						_pixToUI			= 1.f;		// surface coords to UI coords
+		float						_uiToPix			= 1.f;		// UI coords to surface coords
 		float						_scale;
 
 		RenderTechPipelinesPtr		_rtech;
 		GraphicsPipelineID			_ppln;
 		Strong<DescriptorSetID>		_descSet;
-		const DescSetBinding		_dsIndex			{0};
 
-		Strong<BufferID>			_ub;
+		const DescSetBinding		_dsIndex			{0};
+		const PushConstantIndex		_pcIndex			{ 0_b, EShader::Vertex };
+
 		StrongImageAndViewID		_font;
 
 
@@ -46,9 +48,10 @@ namespace AE::Samples::Demo
 		explicit ImGuiRenderer (ImGuiContext* ctx);
 		~ImGuiRenderer ();
 
-		ND_ bool  Init (RC<GfxLinearMemAllocator> gfxAlloc, RenderTechPipelinesPtr rtech);
+		ND_ bool  Init (GfxMemAllocatorPtr gfxAlloc, RenderTechPipelinesPtr rtech);
 			void  SetScale (float scale);
 			
+		// v1
 		ND_ bool  Draw (RenderTask &rtask,
 						IOutputSurface &surface,
 						const Function< void () > &ui,
@@ -69,12 +72,18 @@ namespace AE::Samples::Demo
 						const Function< void () > &ui,
 						const Function< void (DirectCtx::Draw &) > &draw);
 
-		ND_ bool  Upload (DirectCtx::Transfer &copyCtx);
+		// v2
+		ND_ bool  Upload (DirectCtx::Transfer &ctx);
+		ND_ bool  Render (DirectCtx::Draw &ctx,
+						  const IOutputSurface::RenderTarget &rt,
+						  const Function<void()> &ui);
+
 
 	private:
 		ND_ bool  _Update (const IOutputSurface::RenderTarget &rt, const Function<void()> &ui);
 			bool  _DrawUI (DirectCtx::Draw &dctx, const ImDrawData &drawData);
 		ND_ bool  _UploadVB (DirectCtx::Draw &dctx, const ImDrawData &drawData);
+		ND_ bool  _Upload (DirectCtx::Transfer &copyCtx);
 
 			void  _UpdateScale (float2 pixToMm);
 	};

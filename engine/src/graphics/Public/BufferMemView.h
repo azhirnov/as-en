@@ -137,6 +137,7 @@ namespace AE::Graphics
 		// returns how much bytes are different
 		ND_ Bytes  Compare (const BufferMemView &rhs)	C_NE___;
 
+
 		// returns number of copied bytes
 		ND_ Bytes  Copy (const BufferMemView &from)		__NE___;
 
@@ -146,6 +147,14 @@ namespace AE::Graphics
 			BufferMemView	src{ const_cast<T*>(from.data()), ArraySizeOf(from) };
 			return Copy( src );
 		}
+		
+		
+		// returns number of copied bytes
+		ND_ Bytes  CopyTo (OUT void* dst, Bytes size)	C_NE___;
+
+		template <typename T>
+		ND_ Bytes  CopyTo (OUT T &dst)					C_NE___	{ return CopyTo( OUT &dst, SizeOf<T> ); }
+
 
 	private:
 		ND_ Array<char>  _ToArray () C_NE___;

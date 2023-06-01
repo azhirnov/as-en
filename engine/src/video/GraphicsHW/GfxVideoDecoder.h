@@ -30,7 +30,7 @@ namespace AE::Video
 		bool  Begin (const Config &cfg, const Path &filename)		__NE_OV;
 		bool  Begin (const Config &cfg, RC<RStream> stream)			__NE_OV;
 		bool  SeekTo (ulong frameIdx)								__NE_OV;
-		bool  SeekTo (Seconds_t timestamp)							__NE_OV;
+		bool  SeekTo (Second_t timestamp)							__NE_OV;
 
 		bool  GetFrame (OUT ImageMemView &view, OUT FrameInfo &info)__NE_OV;
 		bool  GetFrame (OUT VideoImageID &id, OUT FrameInfo &info)	__NE_OV;

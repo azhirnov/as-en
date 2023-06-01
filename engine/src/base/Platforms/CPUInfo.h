@@ -73,19 +73,19 @@ namespace AE::Base
 		struct Features
 		{
 		// x86-x64 features
-			bool	AVX			: 1;	// AE_SIMD_AVX 1
-			bool	AVX256		: 1;	// AE_SIMD_AVX 2
-			bool	AVX512		: 1;	// AE_SIMD_AVX 3
+			bool	AVX			: 1;	// AE_SIMD_AVX	1
+			bool	AVX256		: 1;	// AE_SIMD_AVX	2
+			bool	AVX512		: 1;	// AE_SIMD_AVX	3
 
-			bool	SSE2		: 1;	// AE_SIMD_SSE 20
-			bool	SSE3		: 1;	// AE_SIMD_SSE 30
-			bool	SSSE3		: 1;	// AE_SIMD_SSE 31
-			bool	SSE41		: 1;	// AE_SIMD_SSE 41
-			bool	SSE42		: 1;	// AE_SIMD_SSE 42
+			bool	SSE2		: 1;	// AE_SIMD_SSE	20
+			bool	SSE3		: 1;	// AE_SIMD_SSE	30
+			bool	SSSE3		: 1;	// AE_SIMD_SSE	31
+			bool	SSE41		: 1;	// AE_SIMD_SSE	41
+			bool	SSE42		: 1;	// AE_SIMD_SSE	42
 
 			bool	POPCNT		: 1;
 
-			bool	AES			: 1;	// AE_SIMD_AES 1
+			bool	AES			: 1;	// AE_SIMD_AES	1
 
 			bool	CRC32		: 1;
 			bool	SHA128		: 1;
@@ -96,7 +96,7 @@ namespace AE::Base
 		// ARM features
 			bool	NEON		: 1;	// AE_SIMD_NEON
 			bool	NEON_fp16	: 1;
-			bool	NEON_hpfp	: 1;	// half precission
+			bool	NEON_hpfp	: 1;	// half precision
 			bool	SVE			: 1;
 			bool	SVE2		: 1;
 			bool	SVEAES		: 1;
@@ -133,8 +133,8 @@ namespace AE::Base
 			ECoreType		type			= Default;
 			MHz_t			baseClock		= 0;
 			MHz_t			maxClock		= 0;
-			CoreBits_t		logicalBits		= {};
-			CoreBits_t		physicalBits	= {};
+			CoreBits_t		logicalBits		= {};	//  |- in global space, must not intersects with other cores
+			CoreBits_t		physicalBits	= {};	// / 
 
 			Core ()							__NE___ = default;
 
@@ -176,7 +176,11 @@ namespace AE::Base
 		ND_ String		Print ()					C_NE___;
 		ND_ bool		IsGLMSupported ()			C_NE___;
 
-		ND_ Core const*	GetCore (uint idx)			C_NE___;
+		ND_ Core const*	GetCore (uint threadIdx)	C_NE___;
+		ND_ Core const*	GetCore (ECoreType type)	C_NE___;
+
+		ND_ CoreBits_t	LogicalCoreMask ()			C_NE___;
+		ND_ CoreBits_t	PhysicalCoreMask ()			C_NE___;
 
 		ND_ static CpuArchInfo const&  Get ()		__NE___;
 	};

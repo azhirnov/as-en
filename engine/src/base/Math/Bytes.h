@@ -187,6 +187,7 @@ namespace AE::Math
 	using Bytes64u		= TBytes< ulong >;
 	using Bytes32u		= TBytes< uint >;
 	using Bytes16u		= TBytes< ushort >;
+	using Bytes8u		= TBytes< ubyte >;
 	using BytesUSize	= TBytes< usize >;
 
 	using Bytes64s		= TBytes< slong >;
@@ -290,7 +291,7 @@ namespace AE::Base
 {
 	template <typename T>	struct TMemCopyAvailable< TBytes<T> >		{ static constexpr bool  value = IsMemCopyAvailable<T>; };
 	template <typename T>	struct TZeroMemAvailable< TBytes<T> >		{ static constexpr bool  value = IsZeroMemAvailable<T>; };
-	template <typename T>	struct TTrivialySerializable< TBytes<T> >	{ static constexpr bool  value = IsTrivialySerializable<T>; };
+	template <typename T>	struct TTriviallySerializable< TBytes<T> >	{ static constexpr bool  value = IsTriviallySerializable<T>; };
 
 } // AE::Base
 

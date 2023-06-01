@@ -1,0 +1,400 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'DrawMesh1 |0| Draw task'
+{
+  BeginDebugLabel
+    name:  'DrawMesh1 |0| Draw task'
+    depth: 1
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'DrawMesh1 |0| Draw task - RP'
+    depth: 2
+  ----------
+
+  DrawMeshTasks
+
+  EndDebugLabel
+    depth: 2
+  ----------
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+name: 'DrawMesh1 |1| Readback task'
+{
+  BeginDebugLabel
+    name:  'DrawMesh1 |1| Readback task'
+    depth: 1
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'DrawMesh1 |0| Draw task'
+{
+  BeginDebugLabel
+    name:  'DrawMesh1 |0| Draw task'
+    depth: 1
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'DrawMesh1 |0| Draw task - RP'
+    depth: 2
+  ----------
+
+  DrawMeshTasks
+
+  EndDebugLabel
+    depth: 2
+  ----------
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+  BeginDebugLabel
+    name:  'DrawMesh1 |1| Readback task'
+    depth: 1
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+  BeginDebugLabel
+    name:  'DrawMesh1 |0| Draw task'
+    depth: 1
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'DrawMesh1 |0| Draw task - RP'
+    depth: 2
+  ----------
+
+  DrawMeshTasks
+
+  EndDebugLabel
+    depth: 2
+  ----------
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+name: 'DrawMesh1 |1| Readback task'
+{
+  BeginDebugLabel
+    name:  'DrawMesh1 |1| Readback task'
+    depth: 1
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-2',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+  BeginDebugLabel
+    name:  'DrawMesh1 |0| Draw task'
+    depth: 1
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> FRAGMENT_SHADER
+      access:  0 ---> SHADER_SAMPLED_READ
+      layout:  UNDEFINED ---> SHADER_READ_ONLY_OPTIMAL
+  ----------
+
+  BeginRenderPass2
+    renderPass:  'render-pass-1'
+    color attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> COLOR_ATTACHMENT_OPTIMAL
+      loadOp:  CLEAR
+    dependency:
+      subpass: External ---> 0
+      stage:   FRAGMENT_SHADER ---> COLOR_ATTACHMENT_OUTPUT
+      access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
+  ----------
+
+  BeginDebugLabel
+    name:  'DrawMesh1 |0| Draw task - RP'
+    depth: 2
+  ----------
+
+  DrawMeshTasks
+
+  EndDebugLabel
+    depth: 2
+  ----------
+
+  EndRenderPass2
+    attachment:
+      view:    'ImageView'
+      image:   'Image'
+      layout:  COLOR_ATTACHMENT_OPTIMAL ---> SHADER_READ_ONLY_OPTIMAL
+      storeOp: STORE
+    dependency:
+      subpass: 0 ---> External
+      stage:   COLOR_ATTACHMENT_OUTPUT ---> FRAGMENT_SHADER
+      access:  COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE ---> SHADER_SAMPLED_READ
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   FRAGMENT_SHADER ---> COPY
+      access:  SHADER_SAMPLED_READ ---> TRANSFER_READ
+      layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+  BeginDebugLabel
+    name:  'DrawMesh1 |1| Readback task'
+    depth: 1
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  EndDebugLabel
+    depth: 1
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-3',  stage: ALL_COMMANDS
+}
+==================================================

@@ -17,7 +17,7 @@ if (TARGET "Graphics")
 	target_link_libraries( "Tests.Graphics" PUBLIC "Graphics" "Platform" "GraphicsTestUtils" )
 
 	target_include_directories( "Tests.Graphics" PUBLIC "." )
-	target_include_directories( "Tests.Graphics" PUBLIC "${DATA_FOLDER}/scripts" )
+	target_include_directories( "Tests.Graphics" PUBLIC "${DATA_FOLDER}/scripts" "${DATA_FOLDER}/shaders" )
 
 	target_compile_definitions( "Tests.Graphics" PUBLIC AE_TEST_GRAPHICS )
 		

@@ -124,7 +124,7 @@ namespace AE::Math
 		const Mat4_t	view_mat	= _camera.ToViewMatrix();	// TODO: optimize?
 		const Vec3_t	up_dir		= _camera.UpDir();
 		const Vec3_t	axis_x		{ view_mat[0][0], view_mat[1][0], view_mat[2][0] };
-		const Vec3_t	forwards	= Normalize( Cross( up_dir, axis_x ));
+		const Vec3_t	forwards	= -Normalize( Cross( up_dir, axis_x ));
 		Vec3_t			pos;
 
 		pos  = forwards * delta.x;
@@ -159,9 +159,9 @@ namespace AE::Math
 		const Vec3_t	axis_z		{ view_mat[0][2], view_mat[1][2], view_mat[2][2] };
 		Vec3_t			pos;
 		
-		pos  = axis_z * -delta.x;
-		pos += axis_x *  delta.y;
-		pos += up_dir *  delta.z;
+		pos  = axis_z * delta.x;
+		pos += axis_x * delta.y;
+		pos += up_dir * delta.z;
 		return pos;
 	}
 

@@ -290,15 +290,15 @@ namespace AE::Math
 			struct Zebi						{ static constexpr T  Value = T(1ull<<60) * T(1ull<<10); };	// zetta / zebi
 			struct Yobi						{ static constexpr T  Value = T(1ull<<60) * T(1ull<<20); };	// yotta / yobi
 
-			struct Bytes					{ static constexpr T  Value = T(8.0); };
-			struct KibiBytes				{ static constexpr T  Value = T(8ull<<10); };				// kilo  / kibi
-			struct MebiBytes				{ static constexpr T  Value = T(8ull<<20); };				// mega  / mebi
-			struct GibiBytes				{ static constexpr T  Value = T(8ull<<30); };				// giga  / gibi
-			struct TebiBytes				{ static constexpr T  Value = T(8ull<<40); };				// tera  / tebi
-			struct PebiBytes				{ static constexpr T  Value = T(8ull<<50); };				// peta  / pebi
-			struct ExbiBytes				{ static constexpr T  Value = T(8ull<<50) * T(1ull<<10); };	// exa   / exbi
-			struct ZebiBytes				{ static constexpr T  Value = T(8ull<<50) * T(1ull<<20); };	// zetta / zebi
-			struct YobiBytes				{ static constexpr T  Value = T(8ull<<50) * T(1ull<<30); };	// yotta / yobi
+			struct Byte						{ static constexpr T  Value = T(8.0); };
+			struct KibiByte					{ static constexpr T  Value = T(8ull<<10); };				// kilo  / kibi
+			struct MebiByte					{ static constexpr T  Value = T(8ull<<20); };				// mega  / mebi
+			struct GibiByte					{ static constexpr T  Value = T(8ull<<30); };				// giga  / gibi
+			struct TebiByte					{ static constexpr T  Value = T(8ull<<40); };				// tera  / tebi
+			struct PebiByte					{ static constexpr T  Value = T(8ull<<50); };				// peta  / pebi
+			struct ExbiByte					{ static constexpr T  Value = T(8ull<<50) * T(1ull<<10); };	// exa   / exbi
+			struct ZebiByte					{ static constexpr T  Value = T(8ull<<50) * T(1ull<<20); };	// zetta / zebi
+			struct YobiByte					{ static constexpr T  Value = T(8ull<<50) * T(1ull<<30); };	// yotta / yobi
 
 			struct Deci						{ static constexpr T  Value = T(1.0e-1); };
 			struct Centi					{ static constexpr T  Value = T(1.0e-2); };
@@ -312,6 +312,8 @@ namespace AE::Math
 			struct Yocto					{ static constexpr T  Value = T(1.0e-24); };
 
 			struct Litre					{ static constexpr T  Value = T(1.0e-3); };					// m^3	L
+
+			struct Pound					{ static constexpr T  Value = T(0.453592); };				// lbs to kg
 
 			struct ElectronVolt				{ static constexpr T  Value = T(1.602176620898e-19); };		// J	eV
 			struct Dalton					{ static constexpr T  Value = T(1.66053904020e-27); };		// kg	Da	amu
@@ -347,105 +349,106 @@ namespace AE::Math
 		using Dim						= DefaultPhysicalDimensions;
 
 		using NonDimensional			= PhysicalQuantity< T, Dim::NonDimensional >;
-		using Seconds					= PhysicalQuantity< T, Dim::Second >;					// s
-		using Kilograms					= PhysicalQuantity< T, Dim::Kilogram >;					// kg
-		using Meters					= PhysicalQuantity< T, Dim::Meter >;					// m
-		using Ampers					= PhysicalQuantity< T, Dim::Ampere >;					// A
-		using Kelvins					= PhysicalQuantity< T, Dim::Kelvin >;					// K
-		using Moles						= PhysicalQuantity< T, Dim::Mole >;						// mol
-		using Candelas					= PhysicalQuantity< T, Dim::Candela >;					// cd
-		using Currencies				= PhysicalQuantity< T, Dim::Currency >;					// $
-		using Bits						= PhysicalQuantity< T, Dim::Bit >;						// bit
+		using Second					= PhysicalQuantity< T, Dim::Second >;					// s
+		using Kilogram					= PhysicalQuantity< T, Dim::Kilogram >;					// kg
+		using Meter						= PhysicalQuantity< T, Dim::Meter >;					// m
+		using Ampere					= PhysicalQuantity< T, Dim::Ampere >;					// A
+		using Kelvin					= PhysicalQuantity< T, Dim::Kelvin >;					// K
+		using Mole						= PhysicalQuantity< T, Dim::Mole >;						// mol
+		using Candela					= PhysicalQuantity< T, Dim::Candela >;					// cd
+		using Currency					= PhysicalQuantity< T, Dim::Currency >;					// $
+		using Bit						= PhysicalQuantity< T, Dim::Bit >;						// bit
 		
 		using Frequency					= PhysicalQuantity< T, Dim::Frequency >;				// 1 / s
-		using SquareMeters				= PhysicalQuantity< T, Dim::SquareMeter >;				// m^2
-		using CubicMeters				= PhysicalQuantity< T, Dim::CubicMeter >;				// m^3
-		using MetersPerSeconds			= PhysicalQuantity< T, Dim::MeterPerSecond >;			// m / s
-		using MetersPerSquareSeconds	= PhysicalQuantity< T, Dim::MeterPerSquareSecond >;		// m / s^2
-		using KilogramsPerSeconds		= PhysicalQuantity< T, Dim::KilogramPerSecond >;		// kg / s
-		using KilogramMetersPerSeconds	= PhysicalQuantity< T, Dim::KilogramMeterPerSecond >;	// kg * m / s
-		using KilogramsPerCubicMeters	= PhysicalQuantity< T, Dim::KilogramPerCubicMeter >;	// p = kg / m^3
-		using Newtons					= PhysicalQuantity< T, Dim::Newton >;					// N
-		using NewtonMeters				= PhysicalQuantity< T, Dim::Joule >;					// N * m
-		using Joules					= PhysicalQuantity< T, Dim::Joule >;					// J
-		using Pascals					= PhysicalQuantity< T, Dim::Pascal >;					// Pa
+		using SquareMeter				= PhysicalQuantity< T, Dim::SquareMeter >;				// m^2
+		using CubicMeter				= PhysicalQuantity< T, Dim::CubicMeter >;				// m^3
+		using MeterPerSecond			= PhysicalQuantity< T, Dim::MeterPerSecond >;			// m / s
+		using MeterPerSquareSecond		= PhysicalQuantity< T, Dim::MeterPerSquareSecond >;		// m / s^2
+		using KilogramPerSecond			= PhysicalQuantity< T, Dim::KilogramPerSecond >;		// kg / s
+		using KilogramMeterPerSecond	= PhysicalQuantity< T, Dim::KilogramMeterPerSecond >;	// kg * m / s
+		using KilogramPerCubicMeter		= PhysicalQuantity< T, Dim::KilogramPerCubicMeter >;	// p = kg / m^3
+		using Newton					= PhysicalQuantity< T, Dim::Newton >;					// N
+		using NewtonMeter				= PhysicalQuantity< T, Dim::Joule >;					// N * m
+		using Joule						= PhysicalQuantity< T, Dim::Joule >;					// J
+		using Pascal					= PhysicalQuantity< T, Dim::Pascal >;					// Pa
 		using Hertz						= PhysicalQuantity< T, Dim::Hertz >;					// Hz
-		using Watts						= PhysicalQuantity< T, Dim::Watt >;						// W
-		using Coulombs					= PhysicalQuantity< T, Dim::Coulomb >;					// C
-		using Volts						= PhysicalQuantity< T, Dim::Volt >;						// V
-		using Ohms						= PhysicalQuantity< T, Dim::Ohm >;						// Ohm
-		using Farads					= PhysicalQuantity< T, Dim::Farad >;					// F
-		using Webers					= PhysicalQuantity< T, Dim::Weber >;					// Wb
-		using Henries					= PhysicalQuantity< T, Dim::Henry >;					// H
-		using Teslas					= PhysicalQuantity< T, Dim::Tesla >;					// T
+		using Watt						= PhysicalQuantity< T, Dim::Watt >;						// W
+		using Coulomb					= PhysicalQuantity< T, Dim::Coulomb >;					// C
+		using Volt						= PhysicalQuantity< T, Dim::Volt >;						// V
+		using Ohm						= PhysicalQuantity< T, Dim::Ohm >;						// Ohm
+		using Farad						= PhysicalQuantity< T, Dim::Farad >;					// F
+		using Weber						= PhysicalQuantity< T, Dim::Weber >;					// Wb
+		using Henry						= PhysicalQuantity< T, Dim::Henry >;					// H
+		using Tesla						= PhysicalQuantity< T, Dim::Tesla >;					// T
 		using Siemens					= PhysicalQuantity< T, Dim::Siemens >;					// S
-		using Lumens					= PhysicalQuantity< T, Dim::Lumen >;					// lm
+		using Lumen						= PhysicalQuantity< T, Dim::Lumen >;					// lm
 		using Lux						= PhysicalQuantity< T, Dim::Lux >;						// lx
-		using AmpersPerMeters			= PhysicalQuantity< T, Dim::AmperPerMeter >;			// A / m
-		using KilogramsPerMoles			= PhysicalQuantity< T, Dim::KilogramPerMole >;			// kg / mol
-		using BitsPerSecond				= PhysicalQuantity< T, Dim::BitPerSecond >;				// bit / s
+		using AmperPerMeter				= PhysicalQuantity< T, Dim::AmperPerMeter >;			// A / m
+		using KilogramPerMole			= PhysicalQuantity< T, Dim::KilogramPerMole >;			// kg / mol
+		using BitPerSecond				= PhysicalQuantity< T, Dim::BitPerSecond >;				// bit / s
 
 
-		using Nanometers				= PhysicalQuantity< T, Dim::Meter, typename Scale::Nano >;				// nm
-		using Micrometers				= PhysicalQuantity< T, Dim::Meter, typename Scale::Micro >;				// um
-		using Millimeters				= PhysicalQuantity< T, Dim::Meter, typename Scale::Milli >;				// mm
-		using Centimeters				= PhysicalQuantity< T, Dim::Meter, typename Scale::Centi >;				// cm
-		using Kilometers				= PhysicalQuantity< T, Dim::Meter, typename Scale::Kilo >;				// km
-		using Megameters				= PhysicalQuantity< T, Dim::Meter, typename Scale::Mega >;				// Mm
-		using Gigameters				= PhysicalQuantity< T, Dim::Meter, typename Scale::Giga >;				// Gm
-		using Angstroms					= PhysicalQuantity< T, Dim::Meter, typename Scale::Angstrom >;			// A
-		using LightSeconds				= PhysicalQuantity< T, Dim::Meter, typename Scale::SpeedOfLight >;		// c*s
-		using LightMinutes				= PhysicalQuantity< T, Dim::Meter, typename Scale::LightMinute >;		// c*min
-		using LightHours				= PhysicalQuantity< T, Dim::Meter, typename Scale::LightHour >;			// c*h
-		using LightDays					= PhysicalQuantity< T, Dim::Meter, typename Scale::LightDay >;			// c*d
-		using LightYears				= PhysicalQuantity< T, Dim::Meter, typename Scale::LightYear >;			// c*y
-		using Parsecs					= PhysicalQuantity< T, Dim::Meter, typename Scale::Parsec >;			// pc
-		using AstronomicalUnits			= PhysicalQuantity< T, Dim::Meter, typename Scale::AstronomicalUnit >;	// au
+		using Nanometer					= PhysicalQuantity< T, Dim::Meter, typename Scale::Nano >;				// nm
+		using Micrometer				= PhysicalQuantity< T, Dim::Meter, typename Scale::Micro >;				// um
+		using Millimeter				= PhysicalQuantity< T, Dim::Meter, typename Scale::Milli >;				// mm
+		using Centimeter				= PhysicalQuantity< T, Dim::Meter, typename Scale::Centi >;				// cm
+		using Kilometer					= PhysicalQuantity< T, Dim::Meter, typename Scale::Kilo >;				// km
+		using Megameter					= PhysicalQuantity< T, Dim::Meter, typename Scale::Mega >;				// Mm
+		using Gigameter					= PhysicalQuantity< T, Dim::Meter, typename Scale::Giga >;				// Gm
+		using Angstrom					= PhysicalQuantity< T, Dim::Meter, typename Scale::Angstrom >;			// A
+		using LightSecond				= PhysicalQuantity< T, Dim::Meter, typename Scale::SpeedOfLight >;		// c*s
+		using LightMinute				= PhysicalQuantity< T, Dim::Meter, typename Scale::LightMinute >;		// c*min
+		using LightHour					= PhysicalQuantity< T, Dim::Meter, typename Scale::LightHour >;			// c*h
+		using LightDay					= PhysicalQuantity< T, Dim::Meter, typename Scale::LightDay >;			// c*d
+		using LightYear					= PhysicalQuantity< T, Dim::Meter, typename Scale::LightYear >;			// c*y
+		using Parsec					= PhysicalQuantity< T, Dim::Meter, typename Scale::Parsec >;			// pc
+		using AstronomicalUnit			= PhysicalQuantity< T, Dim::Meter, typename Scale::AstronomicalUnit >;	// au
 		using SolarRadius				= PhysicalQuantity< T, Dim::Meter, typename Scale::SolarRadius >;		// m
 
-		using Liters					= PhysicalQuantity< T, Dim::CubicMeter, typename Scale::Litre >;		// L
+		using Litre						= PhysicalQuantity< T, Dim::CubicMeter, typename Scale::Litre >;		// L
+		using Pound						= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Pound >;			// kg
 		
-		using LightSpeeds				= PhysicalQuantity< T, Dim::MeterPerSecond, typename Scale::SpeedOfLight >;			// c
-		using GravitySpeeds				= PhysicalQuantity< T, Dim::MeterPerSecond, typename Scale::SpeedOfGravity >;		// ?
-		using AstronomicalUnitsPerSeconds= PhysicalQuantity< T, Dim::MeterPerSecond, typename Scale::AstronomicalUnit >;	// AU / s
+		using LightVelocity				= PhysicalQuantity< T, Dim::MeterPerSecond, typename Scale::SpeedOfLight >;			// c
+		using GravityVelocity			= PhysicalQuantity< T, Dim::MeterPerSecond, typename Scale::SpeedOfGravity >;		// ?
+		using AstronomicalUnitPerSecond	= PhysicalQuantity< T, Dim::MeterPerSecond, typename Scale::AstronomicalUnit >;		// AU / s
 
-		using Nanograms					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Pico >;		// ng
-		using Micrograms				= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Nano >;		// ug
-		using Milligrams				= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Micro >;		// mg
-		using Grams						= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Milli >;		// g
-		using Tones						= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Kilo >;		// t
-		using Kilotones					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Mega >;		// kt
-		using Megatones					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Giga >;		// Mt
-		using EarthMass					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::EarthMass >;	// EM
-		using SolarMass					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::SolarMass >;	// SM
+		using Nanogram					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Pico >;			// ng
+		using Microgram					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Nano >;			// ug
+		using Milligram					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Micro >;			// mg
+		using Gram						= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Milli >;			// g
+		using Tone						= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Kilo >;			// t
+		using Kilotone					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Mega >;			// kt
+		using Megatone					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Giga >;			// Mt
+		using EarthMass					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::EarthMass >;		// EM
+		using SolarMass					= PhysicalQuantity< T, Dim::Kilogram, typename Scale::SolarMass >;		// SM
 		
-		using Nanoseconds				= PhysicalQuantity< T, Dim::Second, typename Scale::Nano >;			// ns
-		using Microseconds				= PhysicalQuantity< T, Dim::Second, typename Scale::Micro >;		// us
-		using Milliseconds				= PhysicalQuantity< T, Dim::Second, typename Scale::Milli >;		// ms
-		using Minutes					= PhysicalQuantity< T, Dim::Second, typename Scale::Minute >;		// min
-		using Hours						= PhysicalQuantity< T, Dim::Second, typename Scale::Hour >;			// h
-		using Days						= PhysicalQuantity< T, Dim::Second, typename Scale::Day >;			// d
-		using Years						= PhysicalQuantity< T, Dim::Second, typename Scale::Year >;			// y
+		using Nanosecond				= PhysicalQuantity< T, Dim::Second, typename Scale::Nano >;				// ns
+		using Microsecond				= PhysicalQuantity< T, Dim::Second, typename Scale::Micro >;			// us
+		using Millisecond				= PhysicalQuantity< T, Dim::Second, typename Scale::Milli >;			// ms
+		using Minute					= PhysicalQuantity< T, Dim::Second, typename Scale::Minute >;			// min
+		using Hour						= PhysicalQuantity< T, Dim::Second, typename Scale::Hour >;				// h
+		using Day						= PhysicalQuantity< T, Dim::Second, typename Scale::Day >;				// d
+		using Year						= PhysicalQuantity< T, Dim::Second, typename Scale::Year >;				// y
 		using ThousandYears				= PhysicalQuantity< T, Dim::Second, ValueScaleTempl::Mul< typename Scale::Year, ValueScaleTempl::Integer<T, 1000>> >;
-		using MillionYears				= PhysicalQuantity< T, Dim::Second, ValueScaleTempl::Mul< typename Scale::Year, ValueScaleTempl::Integer<T, 1000000>> >;
+		using MillionYears				= PhysicalQuantity< T, Dim::Second, ValueScaleTempl::Mul< typename Scale::Year, ValueScaleTempl::Integer<T, 1000'000>> >;
 		
-		using ElectronVolts				= PhysicalQuantity< T, Dim::Joule, typename Scale::ElectronVolt >;	// eV
-		using Nanojoules				= PhysicalQuantity< T, Dim::Joule, typename Scale::Nano >;			// nJ
-		using Microjoules				= PhysicalQuantity< T, Dim::Joule, typename Scale::Micro >;			// uJ
-		using Millijoules				= PhysicalQuantity< T, Dim::Joule, typename Scale::Milli >;			// mJ
-		using Kilojoules				= PhysicalQuantity< T, Dim::Joule, typename Scale::Kilo >;			// KJ
-		using Megajoules				= PhysicalQuantity< T, Dim::Joule, typename Scale::Mega >;			// MJ
-		using Gigajoules				= PhysicalQuantity< T, Dim::Joule, typename Scale::Giga >;			// GJ
+		using ElectronVolt				= PhysicalQuantity< T, Dim::Joule, typename Scale::ElectronVolt >;		// eV
+		using Nanojoule					= PhysicalQuantity< T, Dim::Joule, typename Scale::Nano >;				// nJ
+		using Microjoule				= PhysicalQuantity< T, Dim::Joule, typename Scale::Micro >;				// uJ
+		using Millijoule				= PhysicalQuantity< T, Dim::Joule, typename Scale::Milli >;				// mJ
+		using Kilojoule					= PhysicalQuantity< T, Dim::Joule, typename Scale::Kilo >;				// KJ
+		using Megajoule					= PhysicalQuantity< T, Dim::Joule, typename Scale::Mega >;				// MJ
+		using Gigajoule					= PhysicalQuantity< T, Dim::Joule, typename Scale::Giga >;				// GJ
 		
-		using Nanowatts					= PhysicalQuantity< T, Dim::Watt, typename Scale::Nano >;			// nW
-		using Microwatts				= PhysicalQuantity< T, Dim::Watt, typename Scale::Micro >;			// uW
-		using Milliwatts				= PhysicalQuantity< T, Dim::Watt, typename Scale::Milli >;			// mW
-		using Kilowatts					= PhysicalQuantity< T, Dim::Watt, typename Scale::Kilo >;			// KW
-		using Megawatts					= PhysicalQuantity< T, Dim::Watt, typename Scale::Mega >;			// MW
-		using Gigawatts					= PhysicalQuantity< T, Dim::Watt, typename Scale::Giga >;			// GW
+		using Nanowatt					= PhysicalQuantity< T, Dim::Watt, typename Scale::Nano >;				// nW
+		using Microwatt					= PhysicalQuantity< T, Dim::Watt, typename Scale::Micro >;				// uW
+		using Milliwatt					= PhysicalQuantity< T, Dim::Watt, typename Scale::Milli >;				// mW
+		using Kilowatt					= PhysicalQuantity< T, Dim::Watt, typename Scale::Kilo >;				// KW
+		using Megawatt					= PhysicalQuantity< T, Dim::Watt, typename Scale::Mega >;				// MW
+		using Gigawatt					= PhysicalQuantity< T, Dim::Watt, typename Scale::Giga >;				// GW
 
-		using Bars						= PhysicalQuantity< T, Dim::Pascal, typename Scale::Bar >;			// bar
-		using Atmospheres				= PhysicalQuantity< T, Dim::Pascal, typename Scale::Atmosphere >;	// atm
+		using Bar						= PhysicalQuantity< T, Dim::Pascal, typename Scale::Bar >;				// bar
+		using Atmosphere				= PhysicalQuantity< T, Dim::Pascal, typename Scale::Atmosphere >;		// atm
 
 		using _GConstDim				= Dim::Meter::template Pow<3>::template Div< Dim::Kilogram::template Mul< Dim::Second::template Pow<2> >>;
 
@@ -453,21 +456,21 @@ namespace AE::Math
 		using GConstant					= PhysicalQuantity< T, _GConstDim, typename Scale::GravitationalConstant >;	// G
 		using SolarLuminosity			= PhysicalQuantity< T, Dim::Watt, typename Scale::SolarLuminosity >;		// SL
 		
-		using KibiBits					= PhysicalQuantity< T, Dim::Bit, typename Scale::Kibi >;
-		using MebiBits					= PhysicalQuantity< T, Dim::Bit, typename Scale::Mebi >;
-		using GibiBits					= PhysicalQuantity< T, Dim::Bit, typename Scale::Gibi >;
-		using KibiBitsPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Kibi >;
-		using MebiBitsPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Mebi >;
-		using GibiBitsPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Gibi >;
+		using KibiBit					= PhysicalQuantity< T, Dim::Bit, typename Scale::Kibi >;
+		using MebiBit					= PhysicalQuantity< T, Dim::Bit, typename Scale::Mebi >;
+		using GibiBit					= PhysicalQuantity< T, Dim::Bit, typename Scale::Gibi >;
+		using KibiBitPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Kibi >;
+		using MebiBitPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Mebi >;
+		using GibiBitPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Gibi >;
 
-		using Bytes						= PhysicalQuantity< T, Dim::Bit, typename Scale::Bytes >;
-		using KibiBytes					= PhysicalQuantity< T, Dim::Bit, typename Scale::KibiBytes >;
-		using MebiBytes					= PhysicalQuantity< T, Dim::Bit, typename Scale::MebiBytes >;
-		using GibiBytes					= PhysicalQuantity< T, Dim::Bit, typename Scale::GibiBytes >;
-		using BytesPerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Bytes >;
-		using KibiBytesPerSecond		= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::KibiBytes >;
-		using MebiBytesPerSecond		= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::MebiBytes >;
-		using GibiBytesPerSecond		= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::GibiBytes >;
+		using Byte						= PhysicalQuantity< T, Dim::Bit, typename Scale::Byte >;
+		using KibiByte					= PhysicalQuantity< T, Dim::Bit, typename Scale::KibiByte >;
+		using MebiByte					= PhysicalQuantity< T, Dim::Bit, typename Scale::MebiByte >;
+		using GibiByte					= PhysicalQuantity< T, Dim::Bit, typename Scale::GibiByte >;
+		using BytePerSecond				= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::Byte >;
+		using KibiBytePerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::KibiByte >;
+		using MebiBytePerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::MebiByte >;
+		using GibiBytePerSecond			= PhysicalQuantity< T, Dim::BitPerSecond, typename Scale::GibiByte >;
 	};
 
 
@@ -483,6 +486,6 @@ namespace AE::Base
 	struct TZeroMemAvailable< PhysicalQuantity< V, D, S >> { static constexpr bool  value = IsZeroMemAvailable<V>; };
 	
 	template <typename V, typename D, typename S>
-	struct TTrivialySerializable< PhysicalQuantity< V, D, S >> { static constexpr bool  value = IsTrivialySerializable<V>; };
+	struct TTriviallySerializable< PhysicalQuantity< V, D, S >> { static constexpr bool  value = IsTriviallySerializable<V>; };
 
 } // AE::Base

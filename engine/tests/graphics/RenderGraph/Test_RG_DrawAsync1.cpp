@@ -58,7 +58,7 @@ namespace
 			firstVertex{ first }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferSharedLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -92,7 +92,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -210,7 +210,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );

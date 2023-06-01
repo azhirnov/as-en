@@ -1,5 +1,13 @@
 
-## 23.04.xxx
+## 23.05.162
+
+ - Graphics: unified context methods validation
+ - Graphics: buffer uniform type validation
+ - Graphics: image uniform type validation
+ - Threading: queue/thread type refactoring (Worker -> PerFrame, ...).
+ 
+
+## 23.04.153
 
  - Graphics: NVPerf integration
  - Math: FPVCamera, FlightCamera

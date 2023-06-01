@@ -213,7 +213,7 @@ bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
 	_canvas.reset( new Canvas{} );
 
 	Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
-			EThreadArray{ EThread::Worker, EThread::Renderer },
+			EThreadArray{ EThread::PerFrame, EThread::Renderer },
 			nanoseconds{1},
 			milliseconds{4},
 			"render thread"
@@ -350,7 +350,7 @@ bool  DrawTestCore::_Create (IApplication &, IWindow &wnd)
 	CHECK_ERR( _swapchain.Create( wnd.GetSurfaceSize(), swapchain_ci ));
 	
 	Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
-			EThreadArray{ EThread::Worker, EThread::Renderer },
+			EThreadArray{ EThread::PerFrame, EThread::Renderer },
 			nanoseconds{1},
 			milliseconds{4},
 			"render thread"

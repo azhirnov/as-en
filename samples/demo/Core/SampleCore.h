@@ -4,8 +4,8 @@
 
 #include "demo/Common.h"
 #include "base/DataSource/MemStream.h"
-#include "platform/DefaultImpl/DefaultApp.h"
-#include "ISample.h"
+#include "demo/Core/ISample.h"
+#include "demo/Core/ImGuiRenderer.h"
 
 namespace AE::Samples::Demo
 {
@@ -14,7 +14,7 @@ namespace AE::Samples::Demo
 	// Sample Application
 	//
 
-	class SampleApplication final : public App::DefaultAppListener
+	class SampleApplication final : public AppV1::DefaultAppListener
 	{
 	// methods
 	public:
@@ -32,12 +32,14 @@ namespace AE::Samples::Demo
 	// Sample Core
 	//
 
-	class SampleCore final : public App::IBaseApp
+	class SampleCore final : public AppV1::IBaseApp
 	{
 		friend class SampleVRListener;
 
 	// types
 	private:
+		class UIDrawTask;
+
 		struct MainLoopData
 		{
 			Ptr<IInputActions>		input;		// lifetime is same as Window/VRDevice lifetime
@@ -51,7 +53,7 @@ namespace AE::Samples::Demo
 	private:
 		Strong<PipelinePackID>		_pplnPack;
 		MainLoopSync_t				_mainLoop;
-		Unique<ISample>				_sample;
+		RC<ISample>					_sample;
 
 		RC<MemRStream>				_inputActionsData;
 
@@ -68,6 +70,8 @@ namespace AE::Samples::Demo
 	private:
 		ND_ bool  _CompileBaseResources (IOutputSurface &);
 		ND_ bool  _CompileResources (IOutputSurface &);
+
+			bool  _InitUI ();
 			
 		ND_ AsyncTask  _DrawFrame ();
 

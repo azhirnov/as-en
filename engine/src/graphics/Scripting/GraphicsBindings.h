@@ -29,6 +29,7 @@ namespace AE::Scripting
 
 	
 	// BindEnums
+	AE_DECL_SCRIPT_TYPE( Graphics::EImage,						"EImage"				);
 	AE_DECL_SCRIPT_TYPE( Graphics::EPixelFormat,				"EPixelFormat"			);
 	AE_DECL_SCRIPT_TYPE( Graphics::EAttachmentLoadOp,			"EAttachmentLoadOp"		);
 	AE_DECL_SCRIPT_TYPE( Graphics::EAttachmentStoreOp,			"EAttachmentStoreOp"	);

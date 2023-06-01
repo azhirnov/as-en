@@ -57,13 +57,13 @@ namespace
 	
 	static void  MirroredWrap_Test1 ()
 	{
-		float e0 = MirroredWrap( 2.0f, 1.0f, 5.0f );				TEST( Equals( e0, 2.0f ) );
-		float e1 = MirroredWrap( 6.0f, 1.0f, 5.0f );				TEST( Equals( e1, 4.0f ) );
-		float e2 = MirroredWrap( -1.0f, 1.0f, 5.0f );				TEST( Equals( e2, 3.0f ) );
-		float e3 = MirroredWrap( 5.0f, 1.0f, 5.0f );				TEST( Equals( e3, 5.0f ) );
-		float e4 = MirroredWrap( 0.0f, 1.0f, 5.0f );				TEST( Equals( e4, 2.0f ) );
-	//	float e5 = MirroredWrap( Infinity<float>(), 1.0f, 5.0f );	TEST( Equals( e5, 1.0f ) );
-		float e6 = MirroredWrap( NaN<float>(), 1.0f, 5.0f );		TEST( IsNaN( e6 ) );
+		float e0 = MirroredWrap( 2.0f, 1.0f, 5.0f );				TEST( Equals( e0, 2.0f ));
+		float e1 = MirroredWrap( 6.0f, 1.0f, 5.0f );				TEST( Equals( e1, 4.0f ));
+		float e2 = MirroredWrap( -1.0f, 1.0f, 5.0f );				TEST( Equals( e2, 3.0f ));
+		float e3 = MirroredWrap( 5.0f, 1.0f, 5.0f );				TEST( Equals( e3, 5.0f ));
+		float e4 = MirroredWrap( 0.0f, 1.0f, 5.0f );				TEST( Equals( e4, 2.0f ));
+	//	float e5 = MirroredWrap( Infinity<float>(), 1.0f, 5.0f );	TEST( Equals( e5, 1.0f ));
+		float e6 = MirroredWrap( NaN<float>(), 1.0f, 5.0f );		TEST( IsNaN( e6 ));
 	}
 	
 

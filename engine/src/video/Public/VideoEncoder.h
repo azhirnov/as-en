@@ -18,9 +18,9 @@ namespace AE::Video
 	{
 	// types
 	public:
-		using Bitrate_t		= DefaultPhysicalQuantity<ulong>::BitsPerSecond;
-		using BitrateKb_t	= DefaultPhysicalQuantity<ulong>::KibiBitsPerSecond;
-		using BitrateMb_t	= DefaultPhysicalQuantity<ulong>::MebiBitsPerSecond;
+		using Bitrate_t		= DefaultPhysicalQuantity<ulong>::BitPerSecond;
+		using BitrateKb_t	= DefaultPhysicalQuantity<ulong>::KibiBitPerSecond;
+		using BitrateMb_t	= DefaultPhysicalQuantity<ulong>::MebiBitPerSecond;
 		using FrameRate_t	= FractionalI;
 
 		struct Config

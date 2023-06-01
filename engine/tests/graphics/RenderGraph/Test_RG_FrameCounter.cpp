@@ -25,7 +25,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DirectCtx::Transfer	ctx{ *this };
 			
@@ -42,11 +42,11 @@ namespace
 		FC_TestData&	t;
 
 		FC_FrameTask (FC_TestData& t) :
-			IAsyncTask{ ETaskQueue::Worker },
+			IAsyncTask{ ETaskQueue::PerFrame },
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			if ( t.counter.load() >= t.maxCount )
 				return;

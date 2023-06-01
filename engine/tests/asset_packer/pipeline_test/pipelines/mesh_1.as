@@ -14,6 +14,8 @@ void ASmain ()
 			ms.file		= "mesh_1.glsl";
 			ms.options	= EShaderOpt::Optimize;
 			ms.version	= EShaderVersion::SPIRV_1_4;
+			ms.MeshLocalSize( 3 );
+			ms.MeshOutput( 3, 1, EPrimitive::TriangleList );
 			ppln.SetMeshShader( ms );
 		}{
 			RC<Shader>	fs = Shader();
@@ -32,6 +34,8 @@ void ASmain ()
 			ms.file		= "mesh_1.msl";
 			ms.options	= EShaderOpt::Optimize;
 			ms.version	= EShaderVersion::Metal_3_0;
+			ms.MeshLocalSize( 3 );
+			ms.MeshOutput( 3, 1, EPrimitive::TriangleList );
 			ppln.SetMeshShader( ms );
 		}{
 			RC<Shader>	fs = Shader();

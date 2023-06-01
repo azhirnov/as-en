@@ -19,7 +19,6 @@ struct mesh_1_io {
 	float2	texcoord;					// GLSL: Out[].texcoord		(user-defined output block)
 	float4	color;						// GLSL: Out[].color
 };
-*/
 
 using MeshType = metal::mesh<	mesh_1_io,						// vertex type
 								void,							// primitive type
@@ -28,22 +27,24 @@ using MeshType = metal::mesh<	mesh_1_io,						// vertex type
 								metal::topology::triangle		// topology of the mesh,			GLSL: layout(triangles) out;
 							>;
 
-[[mesh, max_total_threads_per_threadgroup(3)]]					// GLSL: local_size_x
-void Main (MeshType	output,
-		   uint		I		[[thread_index_in_threadgroup]]		// GLSL: gl_LocalInvocationID
-		  )
+[[max_total_threads_per_threadgroup(3)]]					// GLSL: local_size_x
+*/
+
+AE_ENTRY()
 {
+	const uint	I = gl_LocalInvocationID.x;
+
 	// GLSL: SetMeshOutputsEXT( x, 1 )
-	output.set_primitive_count( 1 );
+	Out.set_primitive_count( 1 );
 
 	// add vertex
 	{
-		mesh_1_io	v;
+		AE_STAGE_OUT	v;
 		v.position	= float4( g_Positions[I], 0.0, 1.0 );
 		v.texcoord	= g_Positions[I];
 		v.color		= float4( g_Colors[I], 1.0 );
 
-		output.set_vertex( I, v );
+		Out.set_vertex( I, v );
 
 		// GLSL:
 		//	gl_MeshVerticesEXT[I].gl_Position =
@@ -52,14 +53,14 @@ void Main (MeshType	output,
 	}
 
 	// if non-void primitive type
-	//output.set_primitive( index, primitive );
+	//Out.set_primitive( index, primitive );
 
 	// add indices
 	if ( I == 0 )
 	{
 		// GLSL: gl_PrimitiveTriangleIndicesEXT[0] = uvec3(0,1,2);
-		output.set_index( 0, 0 );
-		output.set_index( 1, 1 );
-		output.set_index( 2, 2 );
+		Out.set_index( 0, 0 );
+		Out.set_index( 1, 1 );
+		Out.set_index( 2, 2 );
 	}
 }

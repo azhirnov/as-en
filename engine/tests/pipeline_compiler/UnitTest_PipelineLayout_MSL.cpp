@@ -38,7 +38,9 @@ namespace
 
 		PipelineLayout::UniqueTypes_t	unique_types;
 
-		const String	src = "\n" + ppln_layout->ToMSL( EShaderStages::Fragment, INOUT unique_types );
+		String	src = "\n";
+		ppln_layout->ToMSL( EShaderStages::Fragment, INOUT unique_types, INOUT src, INOUT src );
+
 		const String	ref = R"#(
 struct ubuf
 {
@@ -59,21 +61,19 @@ constexpr sampler imtblSampler (
   lod_clamp(-1000.000000, 1000.000000),
   max_anisotropy(8)
 );
-#define AE_SHADER_RESOURCES \
-  /* state: ShaderStorage_RW | PreRasterizationShaders | FragmentShader */\
-  /* static size: 32 b, array stride: 0 b */\
-  device ubuf storageBuf [[buffer(3)]] [2],\
-  /* state: ShaderSample | FragmentShader */\
-  texture_buffer< uint, access::read > texBuffer [[texture(0)]],\
-  /* state: ShaderStorage_Write | FragmentShader */\
-  texture2d< float, access::write > storageImage [[texture(1)]],\
-  /* state: ShaderSample | FragmentShader */\
-  texture2d< float, access::sample > colorTex [[texture(2)]],\
-  /* state: ShaderSample | FragmentShader */\
-  texture2d_array< float, access::sample > diffuseTex [[texture(3)]],\
-  /* state: ShaderSample | FragmentShader */\
-  texture3d< float, access::sample > noiseTex [[texture(4)]]
-
+  /* state: ShaderStorage_RW | PreRasterizationShaders | FragmentShader */
+  /* static size: 32 b, array stride: 0 b */
+  device ubuf storageBuf [[buffer(3)]] [2],
+  /* state: ShaderSample | FragmentShader */
+  texture_buffer< uint, access::read > texBuffer [[texture(0)]],
+  /* state: ShaderStorage_Write | FragmentShader */
+  texture2d< float, access::write > storageImage [[texture(1)]],
+  /* state: ShaderSample | FragmentShader */
+  texture2d< float, access::sample > colorTex [[texture(2)]],
+  /* state: ShaderSample | FragmentShader */
+  texture2d_array< float, access::sample > diffuseTex [[texture(3)]],
+  /* state: ShaderSample | FragmentShader */
+  texture3d< float, access::sample > noiseTex [[texture(4)]],
 )#";
 		TEST( src  == ref );
 	}

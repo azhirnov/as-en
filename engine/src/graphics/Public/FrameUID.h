@@ -101,17 +101,23 @@ namespace AE::Graphics
 			ASSERT( (_bits.counter % _bits.maxFrames) == _bits.index );
 			return *this;
 		}
-
-		ND_ Optional<FrameUID>  PrevCycle ()			C_NE___
+		
+		ND_ Optional<FrameUID>  Sub (uint delta)		C_NE___
 		{
-			if_likely( _bits.maxFrames <= _bits.counter )
+			if_likely( _bits.counter >= delta )
 			{
-				FrameUID	id{ _bits.counter - _bits.maxFrames, 0, MaxFrames() };
+				FrameUID	id{ _bits.counter - delta, 0, MaxFrames() };
 				ASSERT( id.Unique() < Unique() );
 				return {id};
 			}
 			return NullOptional;
 		}
+
+		ND_ Optional<FrameUID>  PrevCycle ()			C_NE___
+		{
+			return Sub( _bits.maxFrames );
+		}
+
 
 		ND_ static FrameUID  FromIndex (uint idx, uint maxFrames) __NE___
 		{

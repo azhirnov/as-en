@@ -22,7 +22,7 @@ namespace AE::GeometryTools
 	// types
 	public:
 		using Vertex	= SphericalCubeGen::Vertex;
-		using Index_t	= SphericalCubeGen::Index_t;
+		using Index		= SphericalCubeGen::Index;
 	private:
 		using Base_t	= SphericalCubeGen;
 
@@ -42,11 +42,18 @@ namespace AE::GeometryTools
 		SphericalCubeRenderer ()																							__NE___	{}
 		~SphericalCubeRenderer ()																							__NE___;
 
-		ND_ bool  Create (IResourceManager &, ITransferContext &ctx, uint minLod, uint maxLod, bool quads)					__NE___;
+		ND_ bool  Create (IResourceManager &, ITransferContext &ctx, uint minLod, uint maxLod,
+						  bool quads, GfxMemAllocatorPtr gfxAlloc)															__NE___;
 			void  Destroy (IResourceManager &)																				__NE___;
 		
-		ND_ bool  IsCreated ()																								C_NE___	{ return _vertexBuffer and _indexBuffer; }
+		ND_ bool		IsCreated ()																						C_NE___	{ return _vertexBuffer and _indexBuffer; }
 		
+		ND_ uint2		LODRange ()																							C_NE___	{ return uint2{ _minLod, _maxLod }; }
+		ND_ bool		IsQuads ()																							C_NE___	{ return _quads; }
+
+		ND_ BufferID	VertexBufferId ()																					C_NE___	{ return _vertexBuffer; }
+		ND_ BufferID	IndexBufferId ()																					C_NE___	{ return _indexBuffer; }
+
 			template <typename DrawCtx>
 			bool  Draw (DrawCtx &ctx, uint lod)																				C_NE___;
 
@@ -97,6 +104,7 @@ namespace AE::GeometryTools
 		ctx.DrawIndexed( cmd );
 		return true;
 	}
+
 
 } // AE::GeometryTools
 

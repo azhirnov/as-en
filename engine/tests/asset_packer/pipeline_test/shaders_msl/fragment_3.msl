@@ -1,17 +1,7 @@
-/*
-struct FragmentIn
-{
-	float4	position	[[position]];
-	float2	texCoord;
-};
-*/
 
-// [[fragment]] - Metal 2.3
-fragment
-AE_STAGE_OUT  Main (AE_STAGE_IN( in ),
-					AE_SHADER_RESOURCES)
+AE_ENTRY()
 {
-	AE_STAGE_OUT	out;
-	out.out_Color = descSet0.un_ColorTexture.sample( un_ColorTexture_sampler, in.texCoord );
-	return out;
+	AE_STAGE_OUT	Out;
+	Out.out_Color = descSet0.un_ColorTexture.sample( un_ColorTexture_sampler, In.texCoord );
+	return Out;
 }

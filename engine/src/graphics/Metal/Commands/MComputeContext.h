@@ -51,8 +51,7 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MDirectComputeCtx (const RenderTask &task)																__Th___ : _MDirectComputeCtx{ task, MCommandBuffer{} } {}
-		_MDirectComputeCtx (const RenderTask &task, MCommandBuffer cmdbuf)													__Th___;
+		_MDirectComputeCtx (const RenderTask &task, MCommandBuffer cmdbuf, DebugLabel dbg)									__Th___;
 		
 		ND_ auto  						_Encoder ()						__NE___;
 		ND_ MetalComputeCommandEncoder	_Encoder2 ()					__NE___	{ return MetalComputeCommandEncoder{ _cmdbuf.GetEncoder().Ptr() }; }
@@ -103,8 +102,7 @@ namespace AE::Graphics::_hidden_
 		MBARRIERMNGR_INHERIT_MBARRIERS
 
 	protected:
-		explicit _MIndirectComputeCtx (const RenderTask &task)																__Th___ : _MIndirectComputeCtx{ task, Default } {}
-		_MIndirectComputeCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)											__Th___;
+		_MIndirectComputeCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)							__Th___;
 
 		void  _Dispatch (const uint3 &groupCount)								{ DispatchThreadgroups( uint3{_states.localSize}, groupCount ); }
 		void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)				{ DispatchThreadgroupsIndirect( buffer, offset, uint3{_states.localSize} ); }
@@ -131,6 +129,7 @@ namespace AE::Graphics::_hidden_
 		using RawCtx		= CtxImpl;
 		using AccumBar		= MAccumBarriers< _MComputeContextImpl< CtxImpl >>;
 		using DeferredBar	= MAccumDeferredBarriersForCtx< _MComputeContextImpl< CtxImpl >>;
+		using Validator_t	= ComputeContextValidation;
 		
 
 	// variables
@@ -140,21 +139,22 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _MComputeContextImpl (const RenderTask &task)														__Th___;
-		_MComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)												__Th___;
+		explicit _MComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___;
 
-		_MComputeContextImpl ()																						= delete;
-		_MComputeContextImpl (const _MComputeContextImpl &)															= delete;
+		_MComputeContextImpl ()																								= delete;
+		_MComputeContextImpl (const _MComputeContextImpl &)																	= delete;
 
-		void  BindPipeline (ComputePipelineID ppln)																	__Th_OV;
-		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th_OV	{ _boundDS.Bind( *this, index, ds, dynamicOffsets ); }
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th_OV;
+		void  BindPipeline (ComputePipelineID ppln)																			__Th_OV;
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th_OV	{ _boundDS.Bind( *this, index, ds, dynamicOffsets ); }
+
+		void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)	__Th_OV;
+		using IComputeContext::PushConstant;
 		
 		using IComputeContext::Dispatch;
-		void  Dispatch (const uint3 &groupCount)																	__Th_OV;
+		void  Dispatch (const uint3 &groupCount)																			__Th_OV;
 
-		void  DispatchIndirect (MetalBuffer buffer, Bytes offset)													__Th___;
-		void  DispatchIndirect (BufferID buffer, Bytes offset)														__Th_OV;
+		void  DispatchIndirect (MetalBuffer buffer, Bytes offset)															__Th___;
+		void  DispatchIndirect (BufferID buffer, Bytes offset)																__Th_OV;
 
 		MBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -179,14 +179,8 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_MComputeContextImpl<C>::_MComputeContextImpl (const RenderTask &task) : RawCtx{ task }
-	{
-		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
-	}
-		
-	template <typename C>
-	_MComputeContextImpl<C>::_MComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
-		RawCtx{ task, RVRef(cmdbuf) }
+	_MComputeContextImpl<C>::_MComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
 	}
@@ -210,11 +204,11 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _MComputeContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+	void  _MComputeContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
 	{
-		Unused( offset, size, values, stages );
-		// TODO
-		//RawCtx::_PushComputeConstant( offset, size, values, stages );
+		Validator_t::PushConstant( idx, size, typeName );
+		
+		RawCtx::Arguments().SetBytes( values, size, MBufferIndex(idx.bufferId) );
 	}
 
 /*

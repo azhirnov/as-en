@@ -64,6 +64,7 @@ namespace AE::Math
 	{
 		STATIC_ASSERT( IsScalarOrEnum< T1 > );
 		STATIC_ASSERT( IsScalarOrEnum< T2 > );
+		STATIC_ASSERT( not (IsEnum<T1> and IsEnum<T2>) or IsSameTypes<T1, T2> );
 		//ASSERT( rhs != T2(0) );
 
 		return ( ToNearUInt(lhs) & ToNearUInt(rhs) ) == ToNearUInt(rhs);
@@ -80,6 +81,8 @@ namespace AE::Math
 		STATIC_ASSERT( IsScalarOrEnum< T1 > );
 		STATIC_ASSERT( IsScalarOrEnum< T2 > );
 		STATIC_ASSERT( IsScalarOrEnum< T3 > );
+		STATIC_ASSERT( not (IsEnum<T1> and IsEnum<T2>) or IsSameTypes<T1, T2> );
+		STATIC_ASSERT( not (IsEnum<T1> and IsEnum<T3>) or IsSameTypes<T1, T3> );
 		ASSERT( mask != T2(0) );
 
 		return ( ToNearUInt(lhs) & ToNearUInt(mask) ) == ( ToNearUInt(rhs) & ToNearUInt(mask) );
@@ -97,6 +100,7 @@ namespace AE::Math
 	{
 		STATIC_ASSERT( IsScalarOrEnum< T1 > );
 		STATIC_ASSERT( IsScalarOrEnum< T2 > );
+		STATIC_ASSERT( not (IsEnum<T1> and IsEnum<T2>) or IsSameTypes<T1, T2> );
 		//ASSERT( rhs != T2(0) );
 
 		return !!( ToNearUInt(lhs) & ToNearUInt(rhs) );

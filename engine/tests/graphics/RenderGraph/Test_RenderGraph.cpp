@@ -66,6 +66,7 @@ RGTest::RGTest () :
 	_tests.emplace_back( &RGTest::Test_Draw2 );
 	_tests.emplace_back( &RGTest::Test_DrawAsync1 );
 	_tests.emplace_back( &RGTest::Test_DrawMesh1 );
+	_tests.emplace_back( &RGTest::Test_DrawMesh2 );
 	_tests.emplace_back( &RGTest::Test_RayQuery1 );
 	_tests.emplace_back( &RGTest::Test_RayTracing1 );
 	_tests.emplace_back( &RGTest::Test_Debugger1 );
@@ -219,10 +220,7 @@ GraphicsCreateInfo  RGTest::_GetGraphicsCreateInfo ()
 */
 bool  RGTest::_Create (IApplication &app, IWindow &wnd)
 {
-	{	
-		const VkValidationFeatureEnableEXT	sync_enable_feats  [] = { VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT };
-		const VkValidationFeatureDisableEXT	sync_disable_feats [] = { VK_VALIDATION_FEATURE_DISABLE_CORE_CHECKS_EXT };
-
+	{
 		VDeviceInitializer::InstanceCreateInfo	inst_ci;
 		inst_ci.appName				= "TestApp";
 		inst_ci.instanceLayers		= _vulkan.GetRecomendedInstanceLayers();
@@ -230,6 +228,9 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
 		inst_ci.version				= {1,3};
 
 		#if 0
+		const VkValidationFeatureEnableEXT	sync_enable_feats  [] = { VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT };
+		const VkValidationFeatureDisableEXT	sync_disable_feats [] = { VK_VALIDATION_FEATURE_DISABLE_CORE_CHECKS_EXT };
+
 		inst_ci.enableValidations	= sync_enable_feats;
 		inst_ci.disableValidations	= sync_disable_feats;
 		#endif
@@ -274,7 +275,7 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
 
 	for (uint i = 0; i < 2; ++i) {
 		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
-				EThreadArray{ EThread::Worker, EThread::Renderer },
+				EThreadArray{ EThread::PerFrame, EThread::Renderer },
 				nanoseconds{1},
 				milliseconds{4},
 				"render thread"s << ToString(i)
@@ -430,7 +431,7 @@ bool  RGTest::_Create (IApplication &, IWindow &wnd)
 	
 	for (uint i = 0; i < 2; ++i) {
 		Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
-				EThreadArray{ EThread::Worker, EThread::Renderer },
+				EThreadArray{ EThread::PerFrame, EThread::Renderer },
 				nanoseconds{1},
 				milliseconds{4},
 				"render thread"s << ToString(i)

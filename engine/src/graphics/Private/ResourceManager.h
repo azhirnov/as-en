@@ -135,7 +135,8 @@ namespace AE::Graphics
 			FrameUID					frameId;
 			Array< VExpiredResource >	resources;	// TODO: lock-free ?
 		};
-		using VExpiredResources_t	= StaticArray< VExpiredResArray, GraphicsConfig::MaxFrames*2 >;
+		static constexpr uint		ExpiredResFrameOffset = 2;
+		using VExpiredResources_t	= StaticArray< VExpiredResArray, GraphicsConfig::MaxFrames + ExpiredResFrameOffset >;
 
 		struct VExpiredResources
 		{
@@ -296,7 +297,14 @@ namespace AE::Graphics
 														  PipelinePackID packId, const DSLayoutName &dslName,
 														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
 		ND_ bool					CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, DescriptorSetLayoutID layoutId,
-														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					 __NE_OV;
+														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
+		
+		ND_ PushConstantIndex		GetPushConstantIndex (GraphicsPipelineID   ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE_OV;
+		ND_ PushConstantIndex		GetPushConstantIndex (MeshPipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE_OV;
+		ND_ PushConstantIndex		GetPushConstantIndex (ComputePipelineID    ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE_OV;
+		ND_ PushConstantIndex		GetPushConstantIndex (RayTracingPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE_OV;
+		ND_ PushConstantIndex		GetPushConstantIndex (TilePipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE_OV;
+		using IResourceManager::GetPushConstantIndex;
 
 		ND_ NativeBuffer_t			GetBufferHandle (BufferID id)																					C_NE_OV;
 		ND_ NativeImage_t			GetImageHandle (ImageID id)																						C_NE_OV;
@@ -350,10 +358,10 @@ namespace AE::Graphics
 			void	ReleaseResourceArray (INOUT ArrayType &arr)											__NE___	{ for (auto& id : arr) {DelayedRelease( INOUT id );} }
 		
 			template <usize IS, usize GS, uint UID>
-			bool	ReleaseResource (INOUT Strong< HandleTmpl< IS, GS, UID >> &id, uint refCount = 1)	__NE___	{ return DelayedRelease( id, refCount ) == 0; }
+			bool	ReleaseResource (INOUT Strong< HandleTmpl< IS, GS, UID >> &id, uint refCount = 1)	__NE___	{ return DelayedRelease( INOUT id, refCount ) == 0; }
 			
 			template <typename Arg0, typename ...Args>
-			void	ReleaseResources (Arg0 &arg0, Args& ...args)										__NE___	{ DelayedReleaseResources( arg0, args... ); }
+			void	ReleaseResources (Arg0 &arg0, Args& ...args)										__NE___	{ DelayedReleaseResources( FwdArg<Arg0&>(arg0), FwdArg<Args&>(args)... ); }
 
 			template <usize IS, usize GS, uint UID>
 			int		DelayedRelease (INOUT Strong< HandleTmpl< IS, GS, UID >> &id, uint refCount = 1)	__NE___	{ return _DelayedReleaseResource( id.Release(), refCount ); }
@@ -459,6 +467,10 @@ namespace AE::Graphics
 		ND_ bool  _CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
 										 const PplnID &pplnId, const DescriptorSetName &dsName,
 										 DescriptorAllocatorPtr allocator, StringView dbgName) __NE___;
+		
+		template <typename PplnID>
+		ND_ PushConstantIndex  _GetPushConstantIndex (PplnID ppln, const PushConstantName &pcName,
+													  const ShaderStructName &typeName, Bytes dataSize) __NE___;
 
 	// resource pool
 		ND_ auto&		_GetResourcePool (const BufferID &)						__NE___	{ return _resPool.buffers; }
@@ -561,7 +573,7 @@ namespace AE::Graphics
 		ND_ VkSampler				GetVkSampler (const SamplerName &name)													C_NE___;
 		
 		ND_ Strong<RenderPassID>	CreateRenderPass (const SerializableRenderPassInfo &, const SerializableVkRenderPass &,
-													  RenderPassID compatId, StringView dbgName)							__NE___;
+													  RenderPassID compatId, StringView dbgName = Default)					__NE___;
 		ND_ VFramebufferID			CreateFramebuffer (const RenderPassDesc &desc)											__NE___;
 			void					RemoveFramebufferCache (VFramebuffer::CachePtr_t iter)									__NE___;	// call from VFramebuffer
 
@@ -591,7 +603,7 @@ namespace AE::Graphics
 		ND_ Strong<SamplerID>		CreateSampler (const SamplerDesc &desc, StringView dbgName)								__NE___;
 		
 		ND_ Strong<RenderPassID>	CreateRenderPass (const SerializableRenderPassInfo &, const SerializableMtlRenderPass &,
-													  StringView dbgName)													__NE___;
+													  StringView dbgName = Default)											__NE___;
 		
 
 	//-----------------------------------------------------
@@ -652,6 +664,7 @@ namespace AE::Graphics
 
 		auto&	dst = _expiredResources.GetCurrent();
 		EXLOCK( dst.guard );
+		ASSERT( dst.frameId == _expiredResources.GetFrameId() );
 
 		dst.resources.push_back( expired );
 	}
@@ -682,9 +695,8 @@ namespace AE::Graphics
 			IAsyncTask{ETaskQueue::Renderer}, _frameId{frameId}
 		{}
 			
-		void  Run () override;
-
-		StringView  DbgName () C_NE_OV { return "ReleaseExpiredResources"; }
+		void		Run ()		__Th_OV;
+		StringView	DbgName ()	C_NE_OV { return "ReleaseExpiredResources"; }
 	};
 
 #endif // AE_ENABLE_VULKAN
@@ -926,7 +938,7 @@ namespace AE::Graphics
 	template <typename Arg0, typename ...Args>
 	void  RESMNGR::DelayedReleaseResources (Arg0 &arg0, Args& ...args) __NE___
 	{
-		DelayedRelease( INOUT arg0 );
+		DelayedRelease( INOUT FwdArg<Arg0&>( arg0 ));
 		
 		if constexpr( CountOf<Args...>() > 0 )
 			return DelayedReleaseResources( FwdArg<Args&>( args )... );

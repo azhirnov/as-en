@@ -31,6 +31,12 @@ namespace AE::Base
 	{
 		return I;
 	}
+
+	template <typename T, usize I, typename Class>
+	ND_ forceinline constexpr usize  CountOf (StaticArray<T,I> Class::*) __NE___
+	{
+		return I;
+	}
 	
 	template <usize I>
 	ND_ forceinline constexpr usize  CountOf (const BitSet<I> &) __NE___

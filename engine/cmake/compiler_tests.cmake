@@ -2,69 +2,17 @@
 
 include( CheckCXXSourceCompiles )
 
-if (${COMPILER_MSVC})
-	set( AE_DEFAULT_CPPFLAGS "/std:c++latest" )
+list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_20" HAS_CPP20 )
+if ( ${HAS_CPP20} LESS 0 )
+	set( AE_DEFAULT_CPPFLAGS "-std=c++17" )
 else()
-	list( FIND CMAKE_CXX_COMPILE_FEATURES "cxx_std_20" HAS_CPP20 )
-	if ( ${HAS_CPP20} LESS 0 )
-		set( AE_DEFAULT_CPPFLAGS "-std=c++17" )
-	else()
-		set( AE_DEFAULT_CPPFLAGS "-std=c++20" )
-	endif()
+	set( AE_DEFAULT_CPPFLAGS "-std=c++20" )
 endif()
 
 set( CMAKE_REQUIRED_FLAGS "${AE_DEFAULT_CPPFLAGS}" )
 message( STATUS "Run compiler tests with flags: ${CMAKE_REQUIRED_FLAGS}" )
 
 set( AE_COMPILER_DEFINITIONS "" )
-
-#------------------------------------------------------------------------------
-check_cxx_source_compiles(
-	"#include <string_view>
-	int main () {
-		std::string_view str{\"1234\"};
-		(void)(str);
-		return 0;
-	}"
-	STD_STRINGVIEW_SUPPORTED )
-
-if (STD_STRINGVIEW_SUPPORTED)
-	set( STD_STRINGVIEW_SUPPORTED ON CACHE INTERNAL "" FORCE )
-else()
-	set( STD_STRINGVIEW_SUPPORTED OFF CACHE INTERNAL "" FORCE )
-endif()
-
-#------------------------------------------------------------------------------
-check_cxx_source_compiles(
-	"#include <optional>
-	int main () {
-		std::optional<int> opt = 1;
-		return opt.has_value() ? 0 : 1;
-	}"
-	STD_OPTIONAL_SUPPORTED )
-
-if (STD_OPTIONAL_SUPPORTED)
-	set( STD_OPTIONAL_SUPPORTED ON CACHE INTERNAL "" FORCE )
-else()
-	set( STD_OPTIONAL_SUPPORTED OFF CACHE INTERNAL "" FORCE )
-endif()
-
-#------------------------------------------------------------------------------
-check_cxx_source_compiles(
-	"#include <variant>
-	int main () {
-		std::variant<int, float> var;
-		var = 1.0f;
-		(void)(var);
-		return 0;
-	}"
-	STD_VARIANT_SUPPORTED )
-
-if (STD_VARIANT_SUPPORTED)
-	set( STD_VARIANT_SUPPORTED ON CACHE INTERNAL "" FORCE )
-else()
-	set( STD_VARIANT_SUPPORTED OFF CACHE INTERNAL "" FORCE )
-endif()
 
 #------------------------------------------------------------------------------
 check_cxx_source_compiles(

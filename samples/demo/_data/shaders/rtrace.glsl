@@ -1,7 +1,5 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __cplusplus
-#	define SH_RAY_GEN
-#	define SH_RAY_MISS
-#	define SH_RAY_CHIT
 #	include <aestyle.glsl.h>
 	gl::AccelerationStructure	un_RtScene;
 	gl::Image2D<float>			un_OutImage;

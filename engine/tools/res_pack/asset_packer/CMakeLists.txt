@@ -14,7 +14,7 @@ add_library( "AssetPacker" STATIC ${SOURCES} ${GRAPHICS_SRC} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( "external/graphics" FILES ${GRAPHICS_SRC} )
 
-target_link_libraries( "AssetPacker" PUBLIC "Serializing" "Scripting" "ResourceLoaders" "AtlasTools" "VFS" )
+target_link_libraries( "AssetPacker" PUBLIC "Serializing" "Scripting" "ResourceLoaders" "AtlasTools" "VFS" "Graphics" )
 target_compile_definitions( "AssetPacker" PRIVATE "AE_BUILD_ASSET_PACKER" )
 target_include_directories( "AssetPacker" PUBLIC "." )
 

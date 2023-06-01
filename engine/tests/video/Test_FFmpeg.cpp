@@ -69,7 +69,7 @@ namespace
 			TEST( info.codec == EVideoCodec::H264 );
 			TEST( info.format == EVideoFormat::YUV420P );
 			TEST( info.frameCount == frame_count );
-			TEST( info.duration == IVideoDecoder::Seconds_t{10.0} );
+			TEST( info.duration == IVideoDecoder::Second_t{10.0} );
 			TEST( info.avgFrameRate == IVideoDecoder::FrameRate_t{fps} );
 			TEST( info.minFrameRate == IVideoDecoder::FrameRate_t{fps} );
 			//TEST( info.bitrate > 0 );

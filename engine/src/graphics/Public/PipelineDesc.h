@@ -46,6 +46,7 @@ namespace AE::Graphics
 		Samplers		= 1 << 1,
 		RenderPasses	= 1 << 2,
 		Pipelines		= 1 << 3,	// layouts, pipelines, shaders, render techniques
+		// TODO: override pipeline optimization flags
 		_Last,
 		All				= ((_Last - 1) << 1) - 1,
 	};
@@ -180,23 +181,23 @@ namespace AE::Graphics
 
 namespace AE::Base
 {
-	template <> struct TMemCopyAvailable< AE::Graphics::GraphicsPipelineDesc >		{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::GraphicsPipelineDesc >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::GraphicsPipelineDesc >			{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::GraphicsPipelineDesc >		{ static constexpr bool  value = true; };
 	
-	template <> struct TMemCopyAvailable< AE::Graphics::MeshPipelineDesc >			{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::MeshPipelineDesc >		{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::MeshPipelineDesc >				{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::MeshPipelineDesc >			{ static constexpr bool  value = true; };
 	
-	template <> struct TMemCopyAvailable< AE::Graphics::ComputePipelineDesc >		{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::ComputePipelineDesc >	{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::ComputePipelineDesc >			{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::ComputePipelineDesc >		{ static constexpr bool  value = true; };
 	
-	template <> struct TMemCopyAvailable< AE::Graphics::RayTracingPipelineDesc >	{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::RayTracingPipelineDesc >{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::RayTracingPipelineDesc >		{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::RayTracingPipelineDesc >	{ static constexpr bool  value = true; };
 	
-	template <> struct TMemCopyAvailable< AE::Graphics::TilePipelineDesc >			{ static constexpr bool  value = true; };
-	template <> struct TTrivialySerializable< AE::Graphics::TilePipelineDesc >		{ static constexpr bool  value = true; };
+	template <> struct TMemCopyAvailable< AE::Graphics::TilePipelineDesc >				{ static constexpr bool  value = true; };
+	template <> struct TTriviallySerializable< AE::Graphics::TilePipelineDesc >			{ static constexpr bool  value = true; };
 
-	template <>	struct TTrivialySerializable< AE::Graphics::GraphicsPipelineDesc::VertexInput >		{ static constexpr bool  value = true; };
-	template <>	struct TTrivialySerializable< AE::Graphics::GraphicsPipelineDesc::VertexBuffer >	{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< AE::Graphics::GraphicsPipelineDesc::VertexInput >	{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< AE::Graphics::GraphicsPipelineDesc::VertexBuffer >	{ static constexpr bool  value = true; };
 
 } // AE::Base
 

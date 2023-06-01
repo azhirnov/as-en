@@ -81,7 +81,7 @@ namespace
 				TEST( req->IsCompleted() );
 				req = null;
 
-				TEST( scheduler->Wait( {task}, EThreadArray{ EThread::Worker } ));
+				TEST( scheduler->Wait( {task}, EThreadArray{ EThread::PerFrame } ));
 				TEST( task->Status() == EStatus::Completed );
 
 				pos += buf_size;
@@ -97,7 +97,7 @@ namespace
 		TEST( scheduler->GetFileIOService() );
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep(
-				EThreadArray{ EThread::Worker, EThread::FileIO }
+				EThreadArray{ EThread::PerFrame, EThread::FileIO }
 			)));
 
 		const ulong	file_size	= 32ull << 20;	// Mb
@@ -138,9 +138,9 @@ namespace
 				ulong		pos		= 0;
 
 			public:
-				ReadFileTask (RC<RFile> rfile) : IAsyncTask{ETaskQueue::Worker}, rfile{rfile} {}
+				ReadFileTask (RC<RFile> rfile) : IAsyncTask{ETaskQueue::PerFrame}, rfile{rfile} {}
 
-				void  Run () override
+				void  Run () __Th_OV
 				{
 					if ( pos < file_size + buf_size )
 					{
@@ -250,7 +250,7 @@ namespace
 		TEST( scheduler->GetFileIOService() );
 
 		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep(
-				EThreadArray{ EThread::Worker, EThread::FileIO }
+				EThreadArray{ EThread::PerFrame, EThread::FileIO }
 			)));
 
 		auto	task = scheduler->Run( AsyncReadDS_Test3_Coro< RFile, WFile >() );
@@ -312,7 +312,7 @@ namespace
 				TEST( req->IsCompleted() );
 				req = null;
 
-				TEST( scheduler->Wait( {task}, EThreadArray{ EThread::Worker } ));
+				TEST( scheduler->Wait( {task}, EThreadArray{ EThread::PerFrame } ));
 				TEST( task->Status() == EStatus::Completed );
 
 				pos += buf_size;

@@ -26,46 +26,46 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		SurfaceDimensions ();
+		SurfaceDimensions ()															__NE___;
 
-		void  SetDimensions (const uint2 &surfaceSizeInPix, const float2 &mmPerPixel);
-		void  SetDimensions (const App::IOutputSurface::RenderTarget &rt);
-		void  CopyDimensions (const SurfaceDimensions &);
+		void  SetDimensions (const uint2 &surfaceSizeInPix, const float2 &mmPerPixel)	__NE___;
+		void  SetDimensions (const App::IOutputSurface::RenderTarget &rt)				__NE___;
+		void  CopyDimensions (const SurfaceDimensions &)								__NE___;
 
 		// mm -> viewport
-		ND_ float2	MmToViewport (const float2 &mm) const;
-		ND_ RectF	MmToViewport (const RectF &mm) const;
-		ND_ float2	MmSizeToViewport (const float2 &mm) const;
-		ND_ RectF	MmSizeToViewport (const RectF &mm) const;
+		ND_ float2	MmToViewport (const float2 &mm)										C_NE___;
+		ND_ RectF	MmToViewport (const RectF &mm)										C_NE___;
+		ND_ float2	MmSizeToViewport (const float2 &mm)									C_NE___;
+		ND_ RectF	MmSizeToViewport (const RectF &mm)									C_NE___;
 
-		ND_ float2	AlignMmToPixel (const float2 &mm) const;
-		ND_ RectF	AlignMmToPixel (const RectF &mm) const;
+		ND_ float2	AlignMmToPixel (const float2 &mm)									C_NE___;
+		ND_ RectF	AlignMmToPixel (const RectF &mm)									C_NE___;
 
 		// norm/viewport -> mm
-	//	ND_ float2	UNormToMm (const float2 &unorm) const;
-	//	ND_ float2	UNormToMm (const float2 &unorm) const;
+	//	ND_ float2	UNormToMm (const float2 &unorm)										C_NE___;
+	//	ND_ float2	UNormToMm (const float2 &unorm)										C_NE___;
 
 		// mm -> pixels
-		ND_ float2	MmToPixels (const float2 &mm) const;
-		ND_ RectF	MmToPixels (const RectF &mm) const;
+		ND_ float2	MmToPixels (const float2 &mm)										C_NE___;
+		ND_ RectF	MmToPixels (const RectF &mm)										C_NE___;
 
 		// pixels -> viewport
-		ND_ float2	PixelsToViewport (const float2 &pix) const;
-		ND_ RectF	PixelsToViewport (const RectF &pix) const;
+		ND_ float2	PixelsToViewport (const float2 &pix)								C_NE___;
+		ND_ RectF	PixelsToViewport (const RectF &pix)									C_NE___;
 
 		// viewport -> pixels
-		ND_ RectF	ViewportToPixels (const RectF &vp) const;		// slow
+		ND_ RectF	ViewportToPixels (const RectF &vp)									C_NE___;		// slow
 
-		ND_ float2	PixelsToMm (const float2 &pix) const;
-		ND_ float2	PixelsToUNorm (const float2 &pix) const;
-		ND_ float2	UNormPixelsToMm (const float2 &unorm) const;
+		ND_ float2	PixelsToMm (const float2 &pix)										C_NE___;
+		ND_ float2	PixelsToUNorm (const float2 &pix)									C_NE___;
+		ND_ float2	UNormPixelsToMm (const float2 &unorm)								C_NE___;
 
-		ND_ float2	GetMmToPixels ()			const	{ return _mmToPixels; }
-		ND_ float2	GetPixelsToMm ()			const	{ return 1.f / _mmToPixels; }			// TODO: optimize
-		ND_ float2	GetMmToViewport ()			const	{ return _mmToViewport; }
-		ND_ float2	GetPixelsToViewport ()		const	{ return _pixelsToMm * _mmToViewport; }
-		ND_ float2  GetInvSurfaceSize ()		const	{ return _invSurfaceSize; }
-		ND_ float2  GetSurfaceSize ()			const	{ return 1.f / _invSurfaceSize; }		// TODO: optimize
+		ND_ float2	GetMmToPixels ()													C_NE___	{ return _mmToPixels; }
+		ND_ float2	GetPixelsToMm ()													C_NE___	{ return 1.f / _mmToPixels; }			// TODO: optimize
+		ND_ float2	GetMmToViewport ()													C_NE___	{ return _mmToViewport; }
+		ND_ float2	GetPixelsToViewport ()												C_NE___	{ return _pixelsToMm * _mmToViewport; }
+		ND_ float2  GetInvSurfaceSize ()												C_NE___	{ return _invSurfaceSize; }
+		ND_ float2  GetSurfaceSize ()													C_NE___	{ return 1.f / _invSurfaceSize; }		// TODO: optimize
 	};
 
 	
@@ -74,7 +74,7 @@ namespace AE::Graphics
 	constructor
 =================================================
 */
-	inline SurfaceDimensions::SurfaceDimensions () :
+	inline SurfaceDimensions::SurfaceDimensions () __NE___ :
 		_mmToPixels{1.0f},		_pixelsToMm{1.0f}
 	{}
 
@@ -83,7 +83,7 @@ namespace AE::Graphics
 	SetDimensions
 =================================================
 */
-	inline void  SurfaceDimensions::SetDimensions (const uint2 &surfaceSizeInPix, const float2 &mmPerPixel)
+	inline void  SurfaceDimensions::SetDimensions (const uint2 &surfaceSizeInPix, const float2 &mmPerPixel) __NE___
 	{
 		_invSurfaceSize		= 1.0f / float2(surfaceSizeInPix);
 		_mmToPixels			= mmPerPixel;
@@ -92,7 +92,7 @@ namespace AE::Graphics
 		_unormPxToMm		= _invSurfaceSize * _pixelsToMm;
 	}
 	
-	inline void  SurfaceDimensions::SetDimensions (const App::IOutputSurface::RenderTarget &rt)
+	inline void  SurfaceDimensions::SetDimensions (const App::IOutputSurface::RenderTarget &rt) __NE___
 	{
 		return SetDimensions( rt.RegionSize(), rt.pixToMm );
 	}
@@ -102,7 +102,7 @@ namespace AE::Graphics
 	CopyDimensions
 =================================================
 */
-	inline void  SurfaceDimensions::CopyDimensions (const SurfaceDimensions &other)
+	inline void  SurfaceDimensions::CopyDimensions (const SurfaceDimensions &other) __NE___
 	{
 		this->_mmToViewport		= other._mmToViewport;
 		this->_mmToPixels		= other._mmToPixels;
@@ -116,13 +116,13 @@ namespace AE::Graphics
 	MmToViewport
 =================================================
 */
-	forceinline float2  SurfaceDimensions::MmToViewport (const float2 &mm) const
+	forceinline float2  SurfaceDimensions::MmToViewport (const float2 &mm) C_NE___
 	{
 		return float2{ mm.x * _mmToViewport.x - 1.0f,
 					   mm.y * _mmToViewport.y - 1.0f };
 	}
 
-	forceinline RectF  SurfaceDimensions::MmToViewport (const RectF &mm) const
+	forceinline RectF  SurfaceDimensions::MmToViewport (const RectF &mm) C_NE___
 	{
 		return RectF{ mm.left   * _mmToViewport.x - 1.0f,
 					  mm.top    * _mmToViewport.y - 1.0f,
@@ -135,13 +135,13 @@ namespace AE::Graphics
 	MmSizeToViewport
 =================================================
 */
-	forceinline float2  SurfaceDimensions::MmSizeToViewport (const float2 &mm) const
+	forceinline float2  SurfaceDimensions::MmSizeToViewport (const float2 &mm) C_NE___
 	{
 		return float2{ mm.x * _mmToViewport.x,
 					   mm.y * _mmToViewport.y };
 	}
 
-	forceinline RectF  SurfaceDimensions::MmSizeToViewport (const RectF &mm) const
+	forceinline RectF  SurfaceDimensions::MmSizeToViewport (const RectF &mm) C_NE___
 	{
 		return RectF{ mm.left   * _mmToViewport.x,
 					  mm.top    * _mmToViewport.y,
@@ -154,13 +154,13 @@ namespace AE::Graphics
 	AlignMmToPixel
 =================================================
 */
-	forceinline float2  SurfaceDimensions::AlignMmToPixel (const float2 &mm) const
+	forceinline float2  SurfaceDimensions::AlignMmToPixel (const float2 &mm) C_NE___
 	{
 		return float2{ Round( mm.x * _mmToPixels.x ) * _mmToPixels.x,
 					   Round( mm.y * _mmToPixels.y ) * _mmToPixels.y };
 	}
 	
-	forceinline RectF  SurfaceDimensions::AlignMmToPixel (const RectF &mm) const
+	forceinline RectF  SurfaceDimensions::AlignMmToPixel (const RectF &mm) C_NE___
 	{
 		return RectF{ Round( mm.left   * _mmToPixels.x ) * _mmToPixels.x,
 					  Round( mm.top    * _mmToPixels.y ) * _mmToPixels.y,
@@ -173,7 +173,7 @@ namespace AE::Graphics
 	PixelsToUNorm
 =================================================
 */
-	forceinline float2  SurfaceDimensions::PixelsToUNorm (const float2 &value) const
+	forceinline float2  SurfaceDimensions::PixelsToUNorm (const float2 &value) C_NE___
 	{
 		return value * _invSurfaceSize;
 	}
@@ -183,7 +183,7 @@ namespace AE::Graphics
 	PixelsToMm
 =================================================
 */
-	forceinline float2  SurfaceDimensions::PixelsToMm (const float2 &value) const
+	forceinline float2  SurfaceDimensions::PixelsToMm (const float2 &value) C_NE___
 	{
 		return value * _pixelsToMm;
 	}
@@ -193,7 +193,7 @@ namespace AE::Graphics
 	UNormPixelsToMm
 =================================================
 */
-	forceinline float2  SurfaceDimensions::UNormPixelsToMm (const float2 &value) const
+	forceinline float2  SurfaceDimensions::UNormPixelsToMm (const float2 &value) C_NE___
 	{
 		return value * _unormPxToMm;
 	}
@@ -203,12 +203,12 @@ namespace AE::Graphics
 	MmToPixels
 =================================================
 */
-	forceinline float2  SurfaceDimensions::MmToPixels (const float2 &value) const
+	forceinline float2  SurfaceDimensions::MmToPixels (const float2 &value) C_NE___
 	{
 		return value * _mmToPixels;
 	}
 	
-	forceinline RectF  SurfaceDimensions::MmToPixels (const RectF &value) const
+	forceinline RectF  SurfaceDimensions::MmToPixels (const RectF &value) C_NE___
 	{
 		return value * _mmToPixels;
 	}
@@ -218,12 +218,12 @@ namespace AE::Graphics
 	PixelsToViewport
 =================================================
 */
-	forceinline float2  SurfaceDimensions::PixelsToViewport (const float2 &pix) const
+	forceinline float2  SurfaceDimensions::PixelsToViewport (const float2 &pix) C_NE___
 	{
 		return GetPixelsToViewport() * pix;
 	}
 
-	forceinline RectF  SurfaceDimensions::PixelsToViewport (const RectF &pix) const
+	forceinline RectF  SurfaceDimensions::PixelsToViewport (const RectF &pix) C_NE___
 	{
 		return pix * GetPixelsToViewport();
 	}
@@ -233,7 +233,7 @@ namespace AE::Graphics
 	ViewportToPixels
 =================================================
 */
-	forceinline RectF  SurfaceDimensions::ViewportToPixels (const RectF &vp) const
+	forceinline RectF  SurfaceDimensions::ViewportToPixels (const RectF &vp) C_NE___
 	{
 		const float2	size = 0.5f / _invSurfaceSize;
 		return RectF{ (vp.left   + 1.0f) * size.x,

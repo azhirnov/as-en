@@ -19,7 +19,6 @@ namespace
   // All
   rgba8unorm<half4>  a  [[attribute(0)]];
 };
-#define AE_STAGE_IN( _name_ ) VertexInput _name_ [[stage_in]]
 
 )#";
 		TEST( src == ref );

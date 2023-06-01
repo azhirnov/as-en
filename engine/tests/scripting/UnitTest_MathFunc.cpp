@@ -31,6 +31,21 @@ namespace
 		TEST( res );
 		TEST( script_res == 1 );
 	}
+
+
+	static void  ScriptPhisicalMath_Test1 (const ScriptEnginePtr &se)
+	{
+		float script_res;
+		bool res = Run< float() >( se, R"#(
+			float ASmain () {
+				Second	s = 1.1;
+				Meter	m = 2.0;
+				MeterPerSecond	ms = m / s;
+				return ms.GetScaled();
+			})#", "ASmain", OUT script_res );
+		TEST( res );
+		TEST( Equals( script_res, (2.f / 1.1f) ));
+	}
 }
 
 
@@ -46,6 +61,11 @@ extern void UnitTest_MathFunc ()
 
 		ScriptMath_Test1( se );
 		ScriptMath_Test2( se );
+
+
+		CoreBindings::BindPhysicalTypes( se );
+
+		ScriptPhisicalMath_Test1( se );
 
 		TEST_PASSED();
 	)

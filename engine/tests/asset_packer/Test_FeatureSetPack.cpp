@@ -56,9 +56,9 @@ namespace
 			TEST_Eq( version, FeatureSetPack_Version );
 		}
 
-		uint	fs_size = 0;
-		TEST( des( OUT fs_size ));
-		TEST_Eq( fs_size, sizeof(FeatureSet) );
+		ulong	fs_hash = 0;
+		TEST( des( OUT fs_hash ));
+		TEST_Eq( fs_hash, 0x2ab034088d195a8cull );
 
 		uint	count = 0;
 		TEST( des( OUT count ));

@@ -43,7 +43,7 @@ namespace AE::Base
 	
 /*
 =================================================
-	UnionGet
+	HoldsAlternative
 =================================================
 */
 	template <typename T, typename ...Types>
@@ -52,6 +52,17 @@ namespace AE::Base
 		return std::holds_alternative<T>( un );
 	}
 
+	template <typename ...Types>
+	ND_ forceinline constexpr bool  IsNullUnion (const Union<Types...> &un) __NE___
+	{
+		return std::holds_alternative< NullUnion >( un );
+	}
+	
+/*
+=================================================
+	UnionGet
+=================================================
+*/
 	template <typename T, typename ...Types>
 	ND_ forceinline constexpr T*  UnionGet (Union<Types...> &un) __NE___
 	{

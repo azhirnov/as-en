@@ -62,7 +62,7 @@ namespace
 			CHECK( batch->GetQueueType() == EQueueType::Graphics );
 		}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -107,7 +107,7 @@ namespace
 			CHECK( batch->GetQueueType() == EQueueType::AsyncCompute );
 		}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -134,7 +134,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -174,11 +174,11 @@ namespace
 		CommandBatchPtr		lastBatch;
 
 		AC1_FrameTask (AC1_TestData& t) :
-			IAsyncTask{ ETaskQueue::Worker },
+			IAsyncTask{ ETaskQueue::PerFrame },
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			auto&	rts = RenderTaskScheduler();
 			

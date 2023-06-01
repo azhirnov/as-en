@@ -20,7 +20,7 @@ void ASmain ()
 		cs.file		= "compute_2.glsl";
 		cs.version	= EShaderVersion::SPIRV_1_0;
 		cs.options	= EShaderOpt::Optimize;
-		cs.SetComputeLocalSize( 4, 4 );
+		cs.ComputeLocalSize( 4, 4 );
 		ppln.SetShader( cs );
 	}
 	

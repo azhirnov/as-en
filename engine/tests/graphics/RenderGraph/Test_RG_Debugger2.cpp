@@ -38,7 +38,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -86,7 +86,7 @@ namespace
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DeferExLock	lock {t.guard};
 			CHECK_TE( lock.try_lock() );
@@ -108,7 +108,7 @@ namespace
 
 					if ( trace_str.size() == 3 )
 					{
-						const char	vs1_ref_str[] =
+						const StringView	vs1_ref_str =
 R"(//> gl_VertexIndex: int {1}
 //> gl_InstanceIndex: int {0}
 no source
@@ -122,7 +122,7 @@ no source
 23. v_Color		= g_Colors[gl_VertexIndex];
 
 )";
-						const char	vs2_ref_str[] = 
+						const StringView	vs2_ref_str = 
 R"(//> gl_VertexIndex: int {2}
 //> gl_InstanceIndex: int {0}
 no source
@@ -136,7 +136,7 @@ no source
 23. v_Color		= g_Colors[gl_VertexIndex];
 
 )";
-						const char	fs_ref_str[] =
+						const StringView	fs_ref_str =
 R"(//> gl_FragCoord: float4 {400.500000, 300.500000, 0.000000, 1.000000}
 //> gl_PrimitiveID: int {0}
 //> v_Color: float3 {0.498333, 0.252083, 0.249583}

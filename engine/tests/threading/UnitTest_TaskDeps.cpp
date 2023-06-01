@@ -30,9 +30,9 @@ namespace
 	public:
 		ExeOrder&	value;
 
-		Test1_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test1_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '1';
@@ -47,9 +47,9 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test1_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test1_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '2';
@@ -86,9 +86,9 @@ namespace
 	public:
 		ExeOrder&	value;
 
-		Test2_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test2_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'A';
@@ -110,9 +110,9 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test2_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test2_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'B';
@@ -159,9 +159,9 @@ namespace
 	public:
 		ExeOrder&	value;
 
-		Test3_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test3_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += 'A';
@@ -183,9 +183,9 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test3_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test3_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '2';
@@ -249,10 +249,10 @@ namespace
 		public:
 			RC<Test4_TaskDepManager>	_mngr;
 
-			UpdateTask (const RC<Test4_TaskDepManager> &mngr) : IAsyncTask{ ETaskQueue::Worker }, _mngr{mngr}
+			UpdateTask (const RC<Test4_TaskDepManager> &mngr) : IAsyncTask{ ETaskQueue::PerFrame }, _mngr{mngr}
 			{}
 
-			void  Run () override
+			void  Run () __Th_OV
 			{
 				_mngr->Update();
 			}
@@ -305,9 +305,9 @@ namespace
 	public:
 		ExeOrder&	value;
 
-		Test4_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test4_Task1 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '1';
@@ -329,9 +329,9 @@ namespace
 	public:
 		ExeOrder&	value;
 		
-		Test4_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::Worker }, value{val} {}
+		Test4_Task2 (ExeOrder &val) : IAsyncTask{ ETaskQueue::PerFrame }, value{val} {}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			TEST( value.guard.try_lock() );
 			value.str += '2';

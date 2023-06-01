@@ -43,14 +43,14 @@ namespace
 					for (auto options_it = opt_range.begin(); options_it != opt_range.end(); ++options_it)
 					{
 						ImageDesc	desc;
-						desc.imageType	= *dim_it;
+						desc.imageDim	= *dim_it;
 						desc.format		= EPixelFormat(fmt);
 						desc.usage		= *usage_it;
 						desc.options	= *options_it;
 						desc.memType	= EMemoryType::DeviceLocal;
 
 						BEGIN_ENUM_CHECKS();
-						switch ( desc.imageType )
+						switch ( desc.imageDim )
 						{
 							case EImageDim_1D :			desc.dimension = uint3{128,   0,   0};	break;
 							case EImageDim_2D :			desc.dimension = uint3{128, 128,   0};	break;

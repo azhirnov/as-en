@@ -28,16 +28,16 @@ namespace AE::Graphics
 		RGBA8u		color;
 
 	// methods
-		constexpr RectangleBatch () {}
-		constexpr RectangleBatch (const RectF &pos, RGBA8u color) : RectangleBatch{pos, RectF{0.f, 0.f, 1.f, 1.f}, color} {}
-		constexpr RectangleBatch (const RectF &pos, const RectF &texc, RGBA8u color = HtmlColor::White) :	position{pos}, texcoord{texc}, color{color} {}
+		constexpr RectangleBatch () __NE___ {}
+		constexpr RectangleBatch (const RectF &pos, RGBA8u color) __NE___ : RectangleBatch{pos, RectF{0.f, 0.f, 1.f, 1.f}, color} {}
+		constexpr RectangleBatch (const RectF &pos, const RectF &texc, RGBA8u color = HtmlColor::White) __NE___ : position{pos}, texcoord{texc}, color{color} {}
 		
-		ND_ static constexpr EPrimitive	Topology ()				{ return Strip ? EPrimitive::TriangleStrip : EPrimitive::TriangleList; }
-		ND_ constexpr uint				IndexCount ()	const	{ return Strip ? 4 : 6; }
-		ND_ constexpr uint				VertexCount ()	const	{ return 4; }
+		ND_ static constexpr EPrimitive	Topology ()							__NE___	{ return Strip ? EPrimitive::TriangleStrip : EPrimitive::TriangleList; }
+		ND_ constexpr uint				IndexCount ()						C_NE___	{ return Strip ? 4 : 6; }
+		ND_ constexpr uint				VertexCount ()						C_NE___	{ return 4; }
 
 		constexpr void  Get (OUT BatchIndex_t *idx, BatchIndex_t firstIdx,
-							 OUT void *positionPtr, OUT void *attributePtr) const
+							 OUT void *positionPtr, OUT void *attributePtr)	C_NE___
 		{
 			// front face CCW
 			if constexpr( Strip ){
@@ -88,8 +88,8 @@ namespace AE::Graphics
 		RGBA8u		color;
 
 	// methods
-		constexpr NinePatchBatch () {}
-		constexpr NinePatchBatch (const RectF &pos, const RectF &posOffset, const RectF &texc, const RectF &texcOffset, RGBA8u color = HtmlColor::White) :
+		constexpr NinePatchBatch () __NE___ {}
+		constexpr NinePatchBatch (const RectF &pos, const RectF &posOffset, const RectF &texc, const RectF &texcOffset, RGBA8u color = HtmlColor::White) __NE___ :
 			position{pos}, posOffsets{posOffset}, texcoord{texc}, texcOffsets{texcOffset}, color{color}
 		{
 			ASSERT( posOffsets.left		>= 0.0f and
@@ -102,12 +102,12 @@ namespace AE::Graphics
 					texcOffsets.bottom	>= 0.0f );
 		}
 		
-		ND_ static constexpr EPrimitive	Topology ()				{ return EPrimitive::TriangleList; }
-		ND_ constexpr uint				IndexCount ()	const	{ return 54; }
-		ND_ constexpr uint				VertexCount ()	const	{ return 16; }
+		ND_ static constexpr EPrimitive	Topology ()							__NE___	{ return EPrimitive::TriangleList; }
+		ND_ constexpr uint				IndexCount ()						C_NE___	{ return 54; }
+		ND_ constexpr uint				VertexCount ()						C_NE___	{ return 16; }
 		
 		constexpr void  Get (OUT BatchIndex_t *idx, BatchIndex_t firstIdx,
-							 OUT void *positionPtr, OUT void *attributePtr) const
+							 OUT void *positionPtr, OUT void *attributePtr)	C_NE___
 		{
 			// indices (front face CCW)
 			{
@@ -233,15 +233,15 @@ namespace AE::Graphics
 		uint		segments	= 0;
 
 	// methods
-		constexpr CircleBatch () {}
-		constexpr CircleBatch (uint segments, const RectF &pos, RGBA8u color) : position{pos}, color{color}, segments{segments} {}
+		constexpr CircleBatch () __NE___ {}
+		constexpr CircleBatch (uint segments, const RectF &pos, RGBA8u color) __NE___ : position{pos}, color{color}, segments{segments} {}
 
-		ND_ static constexpr EPrimitive	Topology ()				{ return EPrimitive::LineList; }
-		ND_ constexpr uint				IndexCount ()	const	{ return segments * 2; }
-		ND_ constexpr uint				VertexCount ()	const	{ return segments; }
+		ND_ static constexpr EPrimitive	Topology ()					__NE___	{ return EPrimitive::LineList; }
+		ND_ constexpr uint				IndexCount ()				C_NE___	{ return segments * 2; }
+		ND_ constexpr uint				VertexCount ()				C_NE___	{ return segments; }
 		
 		void  Get (OUT BatchIndex_t *idx, BatchIndex_t firstIdx,
-			 	   OUT void *positionPtr, OUT void *attributePtr) const
+			 	   OUT void *positionPtr, OUT void *attributePtr)	C_NE___
 		{
 			// indices (front face CCW)
 			{
@@ -292,21 +292,21 @@ namespace AE::Graphics
 		uint		segments	= 0;
 
 	// methods
-		constexpr CircleBatch () {}
-		constexpr CircleBatch (uint segments, const RectF &pos, RGBA8u color) : CircleBatch{segments, pos, RectF{}, color} {}
+		constexpr CircleBatch () __NE___ {}
+		constexpr CircleBatch (uint segments, const RectF &pos, RGBA8u color) __NE___ : CircleBatch{segments, pos, RectF{}, color} {}
 
-		constexpr CircleBatch (uint segments, const RectF &pos, const RectF &texc, RGBA8u color) :
+		constexpr CircleBatch (uint segments, const RectF &pos, const RectF &texc, RGBA8u color) __NE___ :
 			position{pos}, texcoord{texc}, color{color}, segments{segments}
 		{
 			ASSERT( segments >= 4 );
 		}
 
-		ND_ static constexpr EPrimitive	Topology ()				{ return EPrimitive::TriangleList; }
-		ND_ constexpr uint				IndexCount ()	const	{ return segments * 3; }
-		ND_ constexpr uint				VertexCount ()	const	{ return segments + 1; }
+		ND_ static constexpr EPrimitive	Topology ()					__NE___	{ return EPrimitive::TriangleList; }
+		ND_ constexpr uint				IndexCount ()				C_NE___	{ return segments * 3; }
+		ND_ constexpr uint				VertexCount ()				C_NE___	{ return segments + 1; }
 		
 		void  Get (OUT BatchIndex_t *idx, BatchIndex_t firstIdx,
-			 	   OUT void *positionPtr, OUT void *attributePtr) const
+			 	   OUT void *positionPtr, OUT void *attributePtr)	C_NE___
 		{
 			// indices (front face CCW)
 			{

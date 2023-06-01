@@ -305,9 +305,18 @@ namespace AE::Graphics
 		ND_ DescSetAndBinding_t					CreateDescriptorSet (MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
 		ND_ DescSetAndBinding_t					CreateDescriptorSet (ComputePipelineID    ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
 		ND_ DescSetAndBinding_t					CreateDescriptorSet (RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
-		ND_ DescSetAndBinding_t					CreateDescriptorSet (TilePipelineID		  ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+		ND_ DescSetAndBinding_t					CreateDescriptorSet (TilePipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
 		ND_ Strong<DescriptorSetID>				CreateDescriptorSet (PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)			__NE___;
 		ND_ Strong<DescriptorSetID>				CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)								__NE___;
+		
+		template <typename T, typename PplnID>
+		ND_			PushConstantIndex			GetPushConstantIndex (PplnID               ppln, const PushConstantName &pcName)													__NE___;
+		ND_ virtual PushConstantIndex			GetPushConstantIndex (GraphicsPipelineID   ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE___ = 0;
+		ND_ virtual PushConstantIndex			GetPushConstantIndex (MeshPipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE___ = 0;
+		ND_ virtual PushConstantIndex			GetPushConstantIndex (ComputePipelineID    ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE___ = 0;
+		ND_ virtual PushConstantIndex			GetPushConstantIndex (RayTracingPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE___ = 0;
+		ND_ virtual PushConstantIndex			GetPushConstantIndex (TilePipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE___ = 0;
+
 
 		// warning: pipeline compilation and shader loading may be slow
 		ND_ virtual Strong<GraphicsPipelineID>	CreateGraphicsPipeline	(PipelinePackID packId, const PipelineTmplName &name, const GraphicsPipelineDesc	&desc, PipelineCacheID cache = Default)		__NE___	= 0;
@@ -440,6 +449,17 @@ namespace AE::Graphics
 	{
 		Strong<DescriptorSetID>	result;
 		return CreateDescriptorSets( OUT &result, 1, layoutId, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+	}
+	
+/*
+=================================================
+	GetPushConstantIndex
+=================================================
+*/
+	template <typename T, typename PplnID>
+	PushConstantIndex  IResourceManager::GetPushConstantIndex (PplnID ppln, const PushConstantName &pcName) __NE___
+	{
+		return GetPushConstantIndex( ppln, pcName, T::TypeName, SizeOf<T> );
 	}
 
 

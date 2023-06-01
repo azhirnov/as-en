@@ -206,7 +206,7 @@
 #endif
 
 
-// CHECK_ERR for using inside task
+// CHECK_ERR for using inside promise
 #if 1
 #	define CHECK_PE( /* expr, return_if_false */... ) \
 		AE_PRIVATE_CHECK_ERR(	AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
@@ -246,12 +246,6 @@
 #	define STATIC_ASSERT_64( /* expr, msg */... )		STATIC_ASSERT( __VA_ARGS__ )
 # else
 #	define STATIC_ASSERT_64( /* expr, msg */... )
-# endif
-
-# ifdef AE_COMPILER_MSVC
-#	define STATIC_ASSERT_MSVC( /* expr, msg */... )		STATIC_ASSERT( __VA_ARGS__ )
-# else
-#	define STATIC_ASSERT_MSVC( /* expr, msg */... )
 # endif
 #endif
 
@@ -299,6 +293,7 @@
 #	define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ )	\
 		{if_likely(( _expr_ )) {}							\
 		 else_unlikely {									\
+			DEBUG_ONLY( AE_LOGE( AE_TOSTRING( _expr_ ));)	\
 			throw (_exception_);							\
 		}}
 

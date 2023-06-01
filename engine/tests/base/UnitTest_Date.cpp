@@ -27,8 +27,8 @@ extern void UnitTest_Date ()
 	const char format1[] = "yyyy/mm.dm - hh:mi:ss ms";
 	const char format2[] = "yy//mm/dm (dee), dww|mmm  dwww -> mmmm";
 
-	AE_LOGI( "Date with format \""s << format1 << "\":\n" << d.ToString( format1 ) );
-	AE_LOGI( "Date with format \""s << format2 << "\":\n" << d.ToString( format2 ) );
+	AE_LOGI( "Date with format \""s << format1 << "\":\n" << d.ToString( format1 ));
+	AE_LOGI( "Date with format \""s << format2 << "\":\n" << d.ToString( format2 ));
 
 	TEST_PASSED();
 }

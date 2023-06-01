@@ -593,15 +593,14 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit MBaseIndirectContext (const RenderTask &task)					__Th___ : MBaseIndirectContext{ task, Default } {}
-		MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf)__Th___;
-		~MBaseIndirectContext ()												__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
+		MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr, DebugLabel)	__Th___;
+		~MBaseIndirectContext ()														__NE_OV	{ ASSERT( _NoPendingBarriers() ); }
 
 	protected:
-		ND_ bool	_NoPendingBarriers ()										C_NE___	{ return _mngr.NoPendingBarriers(); }
-		ND_ auto&	_GetFeatures ()												C_NE___	{ return _mngr.GetDevice().GetFeatures(); }
+		ND_ bool	_NoPendingBarriers ()												C_NE___	{ return _mngr.NoPendingBarriers(); }
+		ND_ auto&	_GetFeatures ()														C_NE___	{ return _mngr.GetDevice().GetFeatures(); }
 
-		ND_ MBakedCommands		_EndCommandBuffer ()							__Th___;
+		ND_ MBakedCommands		_EndCommandBuffer ()									__Th___;
 	};
 //-----------------------------------------------------------------------------
 
@@ -626,8 +625,11 @@ namespace AE::Graphics::_hidden_
 	constructor
 =================================================
 */
-	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf) __Th___ :
-		_MBaseIndirectContext{ DebugLabel{ task.DbgFullName(), task.DbgColor() }, RVRef(cmdbuf) },
+	inline MBaseIndirectContext::MBaseIndirectContext (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg) __Th___ :
+		_MBaseIndirectContext{
+			dbg ? dbg : DebugLabel{ task.DbgFullName(), task.DbgColor() },
+			RVRef(cmdbuf)
+		},
 		_mngr{ task }
 	{
 		if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))

@@ -84,13 +84,13 @@ namespace AE::PipelineCompiler
 
 	enum class PipelineSpecUID : uint
 	{
-		Graphics		= 1u << 28,
-		Mesh			= 2u << 28,
-		Compute			= 3u << 28,
-		RayTracing		= 4u << 28,
-		Tile			= 5u << 28,
-		_Mask			= 0xFu << 28,
-		Unknown			= ~0u
+		Graphics		= uint(PipelineTemplUID::Graphics),
+		Mesh			= uint(PipelineTemplUID::Mesh),
+		Compute			= uint(PipelineTemplUID::Compute),
+		RayTracing		= uint(PipelineTemplUID::RayTracing),
+		Tile			= uint(PipelineTemplUID::Tile),
+		_Mask			= uint(PipelineTemplUID::_Mask),
+		Unknown			= uint(PipelineTemplUID::Unknown),
 	};
 	AE_BIT_OPERATORS( PipelineSpecUID );
 
@@ -137,7 +137,9 @@ namespace AE::PipelineCompiler
 	
 	ND_ bool		EImageType_IsCompatible (EImageType lhs, EImageType rhs)	__NE___;
 	ND_ EImageType	EImageType_FromPixelFormat (EPixelFormat fmt)				__NE___;
+	ND_ EImageType	EImageType_FromPixelFormatRelaxed (EPixelFormat fmt)		__NE___;
 	ND_ EImageType	EImageType_FromImage (EImage type, bool ms)					__NE___;
+	ND_ String		EImageType_ToString (EImageType type)						__Th___;
 
 
 
@@ -290,12 +292,14 @@ namespace AE::PipelineCompiler
 		struct PushConst
 		{
 			ShaderStructName	typeName;
-			EShaderStages		stageFlags		= Default;
-			Bytes16u			offset;
+			EShader				stage			= Default;
+			ubyte				metalBufferId	= UMax;
+			Bytes16u			vulkanOffset;
 			Bytes16u			size;
 
 			PushConst () {}
-			PushConst (EShaderStages stages, Bytes32u offset, Bytes32u size) : stageFlags{stages}, offset{offset}, size{size} {}
+			PushConst (EShader stage, uint bufferId, Bytes32u offset, Bytes32u size, const ShaderStructName &typeName) :
+				typeName{typeName}, stage{stage}, metalBufferId{ubyte(bufferId)}, vulkanOffset{offset}, size{size} {}
 
 			ND_ bool	operator == (const PushConst &rhs) const;
 			ND_ HashVal	CalcHash () const;
@@ -1232,11 +1236,11 @@ namespace AE::PipelineCompiler
 
 namespace AE::Base
 {
-	template <>	struct TTrivialySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::GeneralShader >			{ static constexpr bool  value = true; };
-	template <>	struct TTrivialySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::TriangleHitGroup >		{ static constexpr bool  value = true; };
-	template <>	struct TTrivialySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::ProceduralHitGroup >	{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::GeneralShader >		{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::TriangleHitGroup >		{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< AE::PipelineCompiler::SerializableRayTracingPipeline::ProceduralHitGroup >	{ static constexpr bool  value = true; };
 	
-	template <>	struct TTrivialySerializable< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib >			{ static constexpr bool  value = true; };
+	template <>	struct TTriviallySerializable< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib >			{ static constexpr bool  value = true; };
 
 } // AE::Base
 

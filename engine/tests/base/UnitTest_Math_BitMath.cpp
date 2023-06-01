@@ -68,6 +68,29 @@ namespace
 		uint	a3 = ToBitMask<uint>( -1 );					TEST( a3 == 0 );				//STATIC_ASSERT( CT_ToBitMask<uint, -1 >				== 0		 );
 		uint	a4 = ToBitMask<uint>( MinValue<int>() );	TEST( a4 == 0 );				//STATIC_ASSERT( CT_ToBitMask<uint, MinValue<int>() >	== 0		 );
 	}
+
+	
+	static void  AllBits_Test1 ()
+	{
+		enum class E1 {};
+		enum class E2 {};
+
+		Unused( AllBits( E1(1), E1(1) ));
+		Unused( AllBits( E1(1), E1(1), E1(1) ));
+		Unused( AllBits( E1(1), 1u ));
+		//Unused( AllBits( E1(1), E2(1) ));			// error
+	}
+
+
+	static void  AnyBits_Test1 ()
+	{
+		enum class E1 {};
+		enum class E2 {};
+
+		Unused( AnyBits( E1(1), E1(1) ));
+		Unused( AnyBits( E1(1), 1u ));
+		//Unused( AnyBits( E1(1), E2(1) ));			// error
+	}
 }
 
 
@@ -78,6 +101,8 @@ extern void UnitTest_Math_BitMath ()
 	SafeBitShift_Test1();
 	BitRotate_Test1();
 	ToBitMask_Test1();
-	
+	AllBits_Test1();
+	AnyBits_Test1();
+
 	TEST_PASSED();
 }

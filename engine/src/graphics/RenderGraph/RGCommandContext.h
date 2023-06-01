@@ -27,7 +27,7 @@ namespace AE::RG::_hidden_
 		ND_ CommandBatch &					_Batch ()																			 __NE___ { return _ctx._GetBarrierMngr().GetBatch(); } \
 		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																			 __NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _Batch().GetUserData() ); } \
 		ND_ uint							_ExeIdx ()																			 __NE___ { return _ctx._GetBarrierMngr().GetRenderTask().GetExecutionIndex(); } \
-		ND_ auto&							_ResMngr ()																			 __NE___ { return _ctx._GetBarrierMngr().GetResourceManager(); } \
+		ND_ auto&							_ResMngr ()																			 C_NE___ { return _ctx._GetBarrierMngr().GetResourceManager(); } \
 		ND_ RenderTask const&				_RTask ()																			 __NE___ { return _ctx._GetBarrierMngr().GetRenderTask(); } \
 		\
 	public: \
@@ -49,6 +49,7 @@ namespace AE::RG::_hidden_
 		ND_ CommandBatch const&						GetCommandBatch ()															 C_NE___ { return _ctx.GetCommandBatch(); } \
 		ND_ CommandBatchPtr							GetCommandBatchRC ()														 C_NE___ { return _ctx.GetCommandBatchRC(); } \
 		ND_ RGCommandBatchPtr::RGBatchData const&	GetRGBatchData ()															 C_NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _ctx._GetBarrierMngr().GetBatch().GetUserData() ); } \
+		ND_ auto&									GetResourceManager ()														 C_NE___ { return _ResMngr(); } \
 		\
 		void  ResourceState (BufferID     id, EResourceState state)																 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
 		void  ResourceState (ImageID      id, EResourceState state)																 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
@@ -94,8 +95,7 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit TransferContext (const RenderTask &task)														__Th___ : _ctx{ task } {}
-		TransferContext (const RenderTask &task, CmdBuf_t cmdbuf)												__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+		explicit TransferContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
 		TransferContext ()																						= delete;
 		TransferContext (const TransferContext &)																= delete;
@@ -129,8 +129,9 @@ namespace AE::RG::_hidden_
 		uint3  MinImageTransferGranularity ()																	C_NE_OV	{ return _ctx.MinImageTransferGranularity(); }
 		
 		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)	__Th_OV;
-
+		
 		void  GenerateMipmaps (ImageID image)																	__Th_OV;
+		void  GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges)							__Th_OV;
 		
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;
@@ -165,22 +166,23 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit ComputeContext (const RenderTask &task)															__Th___ : _ctx{ task } {}
-		ComputeContext (const RenderTask &task, CmdBuf_t cmdbuf)													__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+		explicit ComputeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)				__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
-		ComputeContext ()																							= delete;
-		ComputeContext (const ComputeContext &)																		= delete;
+		ComputeContext ()																									= delete;
+		ComputeContext (const ComputeContext &)																				= delete;
 		
-		ND_ BaseCtx&  GetBaseContext ()																				__NE___	{ return _ctx; }
+		ND_ BaseCtx&  GetBaseContext ()																						__NE___	{ return _ctx; }
 
-		void  BindPipeline (ComputePipelineID ppln)																	__Th_OV	{ return _ctx.BindPipeline( ppln ); }
-		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th_OV	{ return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th_OV	{ return _ctx.PushConstant( offset, size, values, stages ); }
+		void  BindPipeline (ComputePipelineID ppln)																			__Th_OV	{ return _ctx.BindPipeline( ppln ); }
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th_OV	{ return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
 		
+		void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)	__Th_OV	{ return _ctx.PushConstant( idx, size, values, typeName ); }
+		using IComputeContext::PushConstant;
+
 		using IComputeContext::Dispatch;
 
-		void  Dispatch (const uint3 &groupCount)																	__Th_OV	{ return _ctx.Dispatch( groupCount ); }
-		void  DispatchIndirect (BufferID buffer, Bytes offset)														__Th_OV;
+		void  Dispatch (const uint3 &groupCount)																			__Th_OV	{ return _ctx.Dispatch( groupCount ); }
+		void  DispatchIndirect (BufferID buffer, Bytes offset)																__Th_OV;
 
 		RG_INHERIT_BARRIERS
 	};
@@ -224,8 +226,10 @@ namespace AE::RG::_hidden_
 		void  BindPipeline (MeshPipelineID ppln)																			__Th_OV	{ return _ctx.BindPipeline( ppln ); }
 		void  BindPipeline (TilePipelineID ppln)																			__Th_OV	{ return _ctx.BindPipeline( ppln ); }
 		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th_OV	{ return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages = EShaderStages::AllGraphics)__Th_OV	{ return _ctx.PushConstant( offset, size, values, stages ); }
 		
+		void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)	__Th_OV	{ return _ctx.PushConstant( idx, size, values, typeName ); }
+		using IDrawContext::PushConstant;
+
 	// dynamic states //
 		void  SetViewport (const Viewport_t &viewport)																		__Th_OV	{ return _ctx.SetViewport( viewport ); }
 		void  SetViewports (ArrayView<Viewport_t> viewports)																__Th_OV	{ return _ctx.SetViewports( viewports ); }
@@ -247,6 +251,7 @@ namespace AE::RG::_hidden_
 		using IDrawContext::DrawIndexed;
 		using IDrawContext::DrawIndirect;
 		using IDrawContext::DrawIndexedIndirect;
+		using IDrawContext::DrawMeshTasksIndirect;
 
 		void  Draw (uint vertexCount,
 					uint instanceCount	= 1,
@@ -279,6 +284,33 @@ namespace AE::RG::_hidden_
 									 Bytes		indirectBufferOffset,
 									 uint		drawCount,
 									 Bytes		stride)																		__Th_OV;
+		
+		// extension
+	  #ifdef AE_ENABLE_VULKAN
+		void  DrawIndirectCount (const DrawIndirectCountCmd &cmd)															__Th___	{ DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+		void  DrawIndirectCount (BufferID	indirectBuffer,
+								 Bytes		indirectBufferOffset,
+								 BufferID	countBuffer,
+								 Bytes		countBufferOffset,
+								 uint		maxDrawCount,
+								 Bytes		stride)																			__Th___;
+		
+		void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)												__Th___	{ DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+		void  DrawIndexedIndirectCount (BufferID	indirectBuffer,
+										Bytes		indirectBufferOffset,
+										BufferID	countBuffer,
+										Bytes		countBufferOffset,
+										uint		maxDrawCount,
+										Bytes		stride)																	__Th___;
+		
+		void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)											__Th___	{ DrawIndirectCount( cmd.indirectBuffer, cmd.indirectBufferOffset, cmd.countBuffer, cmd.countBufferOffset, cmd.maxDrawCount, cmd.stride ); }
+		void  DrawMeshTasksIndirectCount (BufferID	indirectBuffer,
+										  Bytes		indirectBufferOffset,
+										  BufferID	countBuffer,
+										  Bytes		countBufferOffset,
+										  uint		maxDrawCount,
+										  Bytes		stride)																	__Th___;
+	  #endif
 
 		// for debugging //
 		void  DebugMarker (DebugLabel dbg)																					__Th_OV	{ return _ctx.DebugMarker( dbg ); }
@@ -293,11 +325,11 @@ namespace AE::RG::_hidden_
 		bool  AllocVStream (Bytes size, OUT VertexStream &result)															__Th_OV;
 		
 		// clear //
-		bool  ClearAttachment (AttachmentName name, const RGBA32f &color,   const RectI &rect, ImageLayer baseLayer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
-		bool  ClearAttachment (AttachmentName name, const RGBA32u &color,   const RectI &rect, ImageLayer baseLayer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
-		bool  ClearAttachment (AttachmentName name, const RGBA32i &color,   const RectI &rect, ImageLayer baseLayer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
-		bool  ClearAttachment (AttachmentName name, const RGBA8u  &color,   const RectI &rect, ImageLayer baseLayer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
-		bool  ClearAttachment (AttachmentName name, const DepthStencil &ds, const RectI &rect, ImageLayer baseLayer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, ds, rect, baseLayer, layerCount ); }
+		bool  ClearAttachment (AttachmentName name, const RGBA32f &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+		bool  ClearAttachment (AttachmentName name, const RGBA32u &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+		bool  ClearAttachment (AttachmentName name, const RGBA32i &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+		bool  ClearAttachment (AttachmentName name, const RGBA8u  &color,   const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, color, rect, baseLayer, layerCount ); }
+		bool  ClearAttachment (AttachmentName name, const DepthStencil &ds, const RectI &rect, ImageLayer baseLayer = 0_layer, uint layerCount = 1) __Th_OV { return _ctx.ClearAttachment( name, ds, rect, baseLayer, layerCount ); }
 
 		// check state //
 		ND_ bool  CheckResourceState (ImageID      id, EResourceState state)												__NE___	{ return _RGBatch().CheckResourceState( _ExeIdx(), id, state ); }
@@ -343,30 +375,29 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit GraphicsContext (const RenderTask &task)											__Th___ : _ctx{ task } {}
-		GraphicsContext (const RenderTask &task, CmdBuf_t cmdbuf)									__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+		explicit GraphicsContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)	__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 		
 		// continue render pass
-		GraphicsContext (const RenderTask &task, const DrawCommandBatch &batch, CmdBuf_t cmdbuf)	__Th___ : _ctx{ task, batch, RVRef(cmdbuf) } {}
+		GraphicsContext (const RenderTask &task, const DrawCommandBatch &batch, CmdBuf_t cmdbuf)				__Th___ : _ctx{ task, batch, RVRef(cmdbuf) } {}
 
-		GraphicsContext ()																			= delete;
-		GraphicsContext (const GraphicsContext &)													= delete;
+		GraphicsContext ()																						= delete;
+		GraphicsContext (const GraphicsContext &)																= delete;
 		
-		ND_ BaseCtx&	GetBaseContext ()															__NE___	{ return _ctx; }
+		ND_ BaseCtx&	GetBaseContext ()																		__NE___	{ return _ctx; }
 
-		ND_ auto const&	GetState ()																	C_NE___	{ return _ctx.GetState(); }
-		ND_ bool		IsInsideRenderPass ()														C_NE___	{ return _ctx.IsInsideRenderPass(); }
-		ND_ bool		IsSecondaryCmdbuf ()														C_NE___	{ return _ctx.IsSecondaryCmdbuf(); }
+		ND_ auto const&	GetState ()																				C_NE___	{ return _ctx.GetState(); }
+		ND_ bool		IsInsideRenderPass ()																	C_NE___	{ return _ctx.IsInsideRenderPass(); }
+		ND_ bool		IsSecondaryCmdbuf ()																	C_NE___	{ return _ctx.IsSecondaryCmdbuf(); }
 
-		ND_ DrawCtx	BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)			__Th___;
-		ND_ DrawCtx	NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg = Default)					__Th___;
-			void	EndRenderPass (DrawCtx& ctx)													__Th___;
+		ND_ DrawCtx	BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)						__Th___;
+		ND_ DrawCtx	NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg = Default)								__Th___;
+			void	EndRenderPass (DrawCtx& ctx)																__Th___;
 			
 		// returns 'DrawCommandBatch'
-		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)		__Th___;
-		ND_ auto	NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg = Default)	__Th___;
-			void	EndMtRenderPass ()																__Th___;
-			void	ExecuteSecondary (DrawCommandBatch &batch)										__Th___	{ return _ctx.ExecuteSecondary( batch ); }
+		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default)					__Th___;
+		ND_ auto	NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg = Default)				__Th___;
+			void	EndMtRenderPass ()																			__Th___;
+			void	ExecuteSecondary (DrawCommandBatch &batch)													__Th___	{ return _ctx.ExecuteSecondary( batch ); }
 
 		RG_INHERIT_BARRIERS
 	};
@@ -397,30 +428,31 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit RayTracingContext (const RenderTask &task)																__Th___	: _ctx{ task } {}
-		RayTracingContext (const RenderTask &task, CmdBuf_t cmdbuf)														__Th___	: _ctx{ task, cmdbuf } {}
+		explicit RayTracingContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___	: _ctx{ task, RVRef(cmdbuf), dbg } {}
 
-		RayTracingContext ()																							= delete;
-		RayTracingContext (const RayTracingContext &)																	= delete;
+		RayTracingContext ()																								= delete;
+		RayTracingContext (const RayTracingContext &)																		= delete;
 		
-		ND_ BaseCtx&  GetBaseContext ()																					__NE___	{ return _ctx; }
+		ND_ BaseCtx&  GetBaseContext ()																						__NE___	{ return _ctx; }
 
-		void  BindPipeline (RayTracingPipelineID ppln)																	__Th_OV	{ return _ctx.BindPipeline( ppln ); }
-		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)	__Th_OV	{ return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)							__Th_OV	{ return _ctx.PushConstant( offset, size, values, stages ); }
-
-		void  SetStackSize (Bytes size)																					__Th_OV	{ return _ctx.SetStackSize( size ); }
+		void  BindPipeline (RayTracingPipelineID ppln)																		__Th_OV	{ return _ctx.BindPipeline( ppln ); }
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th_OV	{ return _ctx.BindDescriptorSet( index, ds, dynamicOffsets ); }
 		
-		void  TraceRays (const uint2 dim, RTShaderBindingID sbt)														__Th_OV;
-		void  TraceRays (const uint3 dim, RTShaderBindingID sbt)														__Th_OV;
+		void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)	__Th_OV	{ return _ctx.PushConstant( idx, size, values, typeName ); }
+		using IRayTracingContext::PushConstant;
 
-		void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)												__Th_OV;
-		void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)												__Th_OV;
+		void  SetStackSize (Bytes size)																						__Th_OV	{ return _ctx.SetStackSize( size ); }
+		
+		void  TraceRays (const uint2 dim, RTShaderBindingID sbt)															__Th_OV;
+		void  TraceRays (const uint3 dim, RTShaderBindingID sbt)															__Th_OV;
 
-		void  TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)			__Th_OV;
-		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)	__Th_OV;
+		void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)													__Th_OV;
+		void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)													__Th_OV;
 
-		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)									__Th_OV;
+		void  TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)				__Th_OV;
+		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)		__Th_OV;
+
+		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th_OV;
 
 		RG_INHERIT_BARRIERS
 	};
@@ -451,8 +483,7 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit ASBuildContext (const RenderTask &task)																	__Th___	: _ctx{ task } {}
-		ASBuildContext (const RenderTask &task, CmdBuf_t cmdbuf)															__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+		explicit ASBuildContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)				__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
 		ASBuildContext ()																									= delete;
 		ASBuildContext (const ASBuildContext &)																				= delete;
@@ -503,8 +534,7 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit VideoDecodeContext (const RenderTask &task)																__Th___	: _ctx{ task } {}
-		VideoDecodeContext (const RenderTask &task, CmdBuf_t cmdbuf)														__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+		explicit VideoDecodeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
 		VideoDecodeContext ()																								= delete;
 		VideoDecodeContext (const VideoDecodeContext &)																		= delete;
@@ -540,8 +570,7 @@ namespace AE::RG::_hidden_
 
 	// methods
 	public:
-		explicit VideoEncodeContext (const RenderTask &task)																__Th___	: _ctx{ task } {}
-		VideoEncodeContext (const RenderTask &task, CmdBuf_t cmdbuf)														__Th___ : _ctx{ task, RVRef(cmdbuf) } {}
+		explicit VideoEncodeContext (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)			__Th___ : _ctx{ task, RVRef(cmdbuf), dbg } {}
 
 		VideoEncodeContext ()																								= delete;
 		VideoEncodeContext (const VideoEncodeContext &)																		= delete;
@@ -706,6 +735,14 @@ namespace AE::RG::_hidden_
 		_ctx.CommitBarriers();
 		_ctx.GenerateMipmaps( image );
 	}
+
+	template <typename C>
+	void  TransferContext<C>::GenerateMipmaps (ImageID image, ArrayView<ImageSubresourceRange> ranges) __Th___
+	{
+		ResourceState( image, EResourceState::BlitSrc );
+		_ctx.CommitBarriers();
+		_ctx.GenerateMipmaps( image, ranges );
+	}
 	
 	template <typename C>
 	void  TransferContext<C>::BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions) __Th___
@@ -790,6 +827,47 @@ namespace AE::RG::_hidden_
 		return _ctx.DrawMeshTasksIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
 	}
 	
+#ifdef AE_ENABLE_VULKAN
+	template <typename C>
+	void  DrawContext<C>::DrawIndirectCount (BufferID	indirectBuffer,
+											 Bytes		indirectBufferOffset,
+											 BufferID	countBuffer,
+											 Bytes		countBufferOffset,
+											 uint		maxDrawCount,
+											 Bytes		stride) __Th___
+	{
+		CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
+		CHECK( CheckResourceState( countBuffer, EResourceState::IndirectBuffer ));
+		return _ctx.DrawIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride );
+	}
+		
+	template <typename C>
+	void  DrawContext<C>::DrawIndexedIndirectCount (BufferID	indirectBuffer,
+													Bytes		indirectBufferOffset,
+													BufferID	countBuffer,
+													Bytes		countBufferOffset,
+													uint		maxDrawCount,
+													Bytes		stride) __Th___
+	{
+		CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
+		CHECK( CheckResourceState( countBuffer, EResourceState::IndirectBuffer ));
+		return _ctx.DrawIndexedIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride );
+	}
+	
+	template <typename C>
+	void  DrawContext<C>::DrawMeshTasksIndirectCount (BufferID	indirectBuffer,
+													  Bytes		indirectBufferOffset,
+													  BufferID	countBuffer,
+													  Bytes		countBufferOffset,
+													  uint		maxDrawCount,
+													  Bytes		stride) __Th___
+	{
+		CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
+		CHECK( CheckResourceState( countBuffer, EResourceState::IndirectBuffer ));
+		return _ctx.DrawMeshTasksIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride );
+	}
+#endif
+
 	template <typename C>
 	bool  DrawContext<C>::AllocVStream (Bytes size, OUT VertexStream &result) __Th___
 	{

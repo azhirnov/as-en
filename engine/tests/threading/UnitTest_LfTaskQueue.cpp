@@ -9,13 +9,13 @@ namespace
 	class DummyTask final : public IAsyncTask
 	{
 	public:
-		DummyTask (uint id) : IAsyncTask{ETaskQueue::Worker}
+		DummyTask (uint id) : IAsyncTask{ETaskQueue::PerFrame}
 		{
 			Unused( id );
 			_DbgSet( EStatus::Pending );
 		}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{}
 
 		StringView  DbgName () C_NE_OV { return "DummyTask"; }

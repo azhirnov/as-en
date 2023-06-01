@@ -3,6 +3,9 @@
 #pragma once
 
 #include "graphics/Public/CommandBuffer.h"
+#ifdef AE_DEBUG
+# include "graphics/Private/EnumUtils.h"
+#endif
 
 # ifdef AE_COMPILER_MSVC
 #	pragma warning (push)
@@ -229,10 +232,24 @@ namespace AE::Graphics::_hidden_
 		}
 		
 		template <typename ImgType>
-		static void  GenerateMipmaps (ImgType &img)
+		static void  GenerateMipmaps (ImgType &img, ArrayView<ImageSubresourceRange> ranges)
 		{
+		#ifdef AE_DEBUG
 			ASSERT( _IsDeviceMemory( img ));
 			ASSERT( AllBits( img.Description().usage, EImageUsage::Transfer ));
+			ASSERT( not ranges.empty() );
+
+			const ImageDesc &	desc = img.Description();
+			for (auto& range : ranges)
+			{
+				ASSERT( AllBits( desc.options, EImageOpt::BlitSrc | EImageOpt::BlitDst ));
+				ASSERT( range.aspectMask == EPixelFormat_ToImageAspect( desc.format ));
+				ASSERT( range.baseLayer.Get() < desc.arrayLayers.Get() );
+				ASSERT( range.layerCount <= (desc.arrayLayers.Get() - range.baseLayer.Get()) );
+				ASSERT( range.baseMipLevel.Get() < desc.maxLevel.Get() );
+				ASSERT( range.mipmapCount <= (desc.maxLevel.Get() - range.baseMipLevel.Get()) );
+			}
+		#endif
 		}
 
 
@@ -275,9 +292,12 @@ namespace AE::Graphics::_hidden_
 	class ComputeContextValidation final : Noninstancable
 	{
 	public:
-		static void  PushConstant (Bytes size)
+		static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)
 		{
 			ASSERT( IsAligned( size, sizeof(uint) ));
+			ASSERT( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
+			ASSERT( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
+			ASSERT( idx.stage == EShader::Compute );
 		}
 
 		template <typename BufType>
@@ -298,9 +318,13 @@ namespace AE::Graphics::_hidden_
 		using Viewport_t = RenderPassDesc::Viewport;
 
 	public:
-		static void  PushConstant (Bytes size)
+		static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)
 		{
 			ASSERT( IsAligned( size, sizeof(uint) ));
+			ASSERT( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
+			ASSERT( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
+			ASSERT( (idx.stage >= EShader::Vertex and idx.stage <= EShader::Fragment) or
+					(idx.stage >= EShader::MeshTask and idx.stage <= EShader::Mesh) );
 		}
 
 		static void  SetViewports (ArrayView<Viewport_t> viewports)
@@ -324,6 +348,114 @@ namespace AE::Graphics::_hidden_
 		{
 			ASSERT( rect.IsValid() );
 		}
+		
+		template <typename BufType>
+		static void  DrawIndirect (BufType&	indirectBuffer,
+								   Bytes	indirectBufferOffset,
+								   uint		drawCount,
+								   Bytes	stride)
+		{
+			ASSERT( indirectBufferOffset < indirectBuffer.Size() );
+			ASSERT( (indirectBufferOffset + drawCount * stride) <= indirectBuffer.Size() );
+			DrawIndirect( stride );
+		}
+		static void  DrawIndirect (Bytes stride)
+		{
+			ASSERT( stride >= SizeOf<DrawIndirectCommand> );
+			ASSERT( stride % 4 == 0 );
+		}
+		
+		template <typename BufType>
+		static void  DrawIndexedIndirect (BufType&	indirectBuffer,
+										  Bytes		indirectBufferOffset,
+										  uint		drawCount,
+										  Bytes		stride)
+		{
+			ASSERT( indirectBufferOffset < indirectBuffer.Size() );
+			ASSERT( (indirectBufferOffset + drawCount * stride) <= indirectBuffer.Size() );
+			DrawIndexedIndirect( stride );
+		}
+		static void  DrawIndexedIndirect (Bytes stride)
+		{
+			ASSERT( stride >= SizeOf<DrawIndexedIndirectCommand> );
+			ASSERT( stride % 4 == 0 );
+		}
+		
+		template <typename BufType>
+		static void  DrawIndirectCount (BufType&	indirectBuffer,
+										Bytes		indirectBufferOffset,
+										BufType&	countBuffer,
+										Bytes		countBufferOffset,
+										uint		maxDrawCount,
+										Bytes		stride)
+		{
+			ASSERT( indirectBufferOffset < indirectBuffer.Size() );
+			ASSERT( (indirectBufferOffset + maxDrawCount * stride) <= indirectBuffer.Size() );
+			ASSERT( countBufferOffset < countBuffer.Size() );
+			ASSERT( (countBufferOffset + SizeOf<uint>) <= countBuffer.Size() );
+			DrawIndirectCount( stride );
+		}
+		static void  DrawIndirectCount (Bytes stride)
+		{
+			ASSERT( stride >= SizeOf<DrawIndirectCommand> );
+			ASSERT( stride % 4 == 0 );
+		}
+		
+		template <typename BufType>
+		static void  DrawIndexedIndirectCount (BufType&	indirectBuffer,
+										Bytes		indirectBufferOffset,
+										BufType&	countBuffer,
+										Bytes		countBufferOffset,
+										uint		maxDrawCount,
+										Bytes		stride)
+		{
+			ASSERT( indirectBufferOffset < indirectBuffer.Size() );
+			ASSERT( (indirectBufferOffset + maxDrawCount * stride) <= indirectBuffer.Size() );
+			ASSERT( countBufferOffset < countBuffer.Size() );
+			ASSERT( (countBufferOffset + SizeOf<uint>) <= countBuffer.Size() );
+			DrawIndexedIndirectCount( stride );
+		}
+		static void  DrawIndexedIndirectCount (Bytes stride)
+		{
+			ASSERT( stride >= SizeOf<DrawIndexedIndirectCommand> );
+			ASSERT( stride % 4 == 0 );
+		}
+		
+		template <typename BufType>
+		static void  DrawMeshTasksIndirect (BufType&	indirectBuffer,
+											Bytes		indirectBufferOffset,
+											uint		drawCount,
+											Bytes		stride)
+		{
+			ASSERT( indirectBufferOffset < indirectBuffer.Size() );
+			ASSERT( (indirectBufferOffset + drawCount * stride) <= indirectBuffer.Size() );
+			DrawMeshTasksIndirect( stride );
+		}
+		static void  DrawMeshTasksIndirect (Bytes stride)
+		{
+			ASSERT( stride >= SizeOf<DrawMeshTasksIndirectCommand> );
+			ASSERT( stride % 4 == 0 );
+		}
+		
+		template <typename BufType>
+		static void  DrawMeshTasksIndirectCount (BufType&	indirectBuffer,
+												 Bytes		indirectBufferOffset,
+												 BufType&	countBuffer,
+												 Bytes		countBufferOffset,
+												 uint		maxDrawCount,
+												 Bytes		stride)
+		{
+			ASSERT( indirectBufferOffset < indirectBuffer.Size() );
+			ASSERT( (indirectBufferOffset + maxDrawCount * stride) <= indirectBuffer.Size() );
+			ASSERT( countBufferOffset < countBuffer.Size() );
+			ASSERT( (countBufferOffset + SizeOf<uint>) <= countBuffer.Size() );
+			DrawMeshTasksIndirectCount( stride );
+		}
+		static void  DrawMeshTasksIndirectCount (Bytes stride)
+		{
+			ASSERT( stride >= SizeOf<DrawMeshTasksIndirectCommand> );
+			ASSERT( stride % 4 == 0 );
+		}
 	};
 
 
@@ -344,9 +476,12 @@ namespace AE::Graphics::_hidden_
 	class RayTracingContextValidation final : Noninstancable
 	{
 	public:
-		static void  PushConstant (Bytes size)
+		static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)
 		{
 			ASSERT( IsAligned( size, sizeof(uint) ));
+			ASSERT( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
+			ASSERT( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
+			ASSERT( idx.stage >= EShader::RayGen and idx.stage <= EShader::RayCallable );
 		}
 
 		static void  TraceRays (const uint3 dim)

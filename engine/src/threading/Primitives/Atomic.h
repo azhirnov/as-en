@@ -145,7 +145,7 @@ namespace AE::Threading
 		template <typename From>
 		ND_ static forceinline InternalType&  _Ref (From &src) __NE___
 		{
-			if constexpr( IsSameTypes<InternalType, From> )
+			if constexpr( Base::IsSameTypes< InternalType, From >)
 				return src;
 			else
 				return reinterpret_cast< InternalType &>( src );

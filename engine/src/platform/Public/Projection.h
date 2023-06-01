@@ -28,11 +28,7 @@ namespace AE::App
 	// methods
 	public:
 		RaysGrid ()											__NE___	{}
-		
-		RaysGrid (float4* rays, const uint2 &dim)			__NE___	: _rays{rays}, _dim{dim}
-		{
-			ASSERT( _rays != null );
-		}
+		RaysGrid (float4* rays, const uint2 &dim)			__NE___	: _rays{rays}, _dim{dim} { ASSERT( _rays != null ); }
 
 		ND_ uint2 const&  Dimension ()						C_NE___	{ return _dim; }
 

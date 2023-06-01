@@ -272,18 +272,20 @@ PipelineLayouts {
       mtlIndex = f: 0 idx: 0
     }
     [0] PushConst {
-      name       = 'pc1'
-      typename   = 'PushConst1'
-      stageFlags = Vertex
-      offset     = 0 b
-      size       = 16 b
+      name     = 'pc1'
+      typename = 'PushConst1'
+      stage    = Vertex
+      bufferId = 0
+      offset   = 0 b
+      size     = 16 b
     }
     [1] PushConst {
-      name       = 'pc2'
-      typename   = 'PushConst2'
-      stageFlags = Fragment
-      offset     = 16 b
-      size       = 16 b
+      name     = 'pc2'
+      typename = 'PushConst2'
+      stage    = Fragment
+      bufferId = 1
+      offset   = 16 b
+      size     = 16 b
     }
   ----------------------
   [7]
@@ -370,7 +372,7 @@ MeshPipelineTempl {
     maxVertices          = 0
     maxIndices           = 0
     earlyFragmentTests   = true
-    featureSets = { 'MinimalFS', 'MinMeshShader' }
+    featureSets          = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
 }
 
@@ -539,7 +541,7 @@ MetalMacShaders {
   [5]  offset = 17 Kb
   [6]  offset = 22 Kb
   [7]  offset = 87 Kb
-  [8]  offset = 90 Kb
+  [8]  offset = 91 Kb
   [9]  offset = 94 Kb
   [10]  offset = 97 Kb
 }
@@ -560,7 +562,7 @@ MetalMacShaderData {
   [6]
     codeSize = 65 Kb
   [7]
-    codeSize = 3294 b
+    codeSize = 3310 b
   [8]
     codeSize = 3680 b
   [9]

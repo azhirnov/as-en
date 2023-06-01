@@ -51,7 +51,7 @@ namespace _hidden_
 			
 		// methods
 		public:
-			promise_type ()											__NE___	: IAsyncTask{ ETaskQueue::Worker } {}
+			promise_type ()											__NE___	: IAsyncTask{ ETaskQueue::PerFrame } {}
 
 			ND_ Coroutine_t			get_return_object ()			__NE___	{ return Coroutine_t{ *this }; }
 
@@ -135,9 +135,8 @@ namespace _hidden_
 		void  _InitCoro (ETaskQueue type, StringView name)	__NE___
 		{
 			_coro->_SetQueueType( type );
-		  #ifdef AE_DEBUG
-			_coro->_dbgName = String{name};
-		  #endif
+			Unused( name );
+			DEBUG_ONLY( _coro->_dbgName = String{name}; )
 		}
 	};
 

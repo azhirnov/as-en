@@ -3,8 +3,8 @@
 #pragma once
 
 #include "platform/Public/IApplication.h"
-#include "platform/DefaultImpl/AppConfig.h"
-#include "platform/DefaultImpl/IBaseApp.h"
+#include "platform/DefaultV1/AppConfig.h"
+#include "platform/DefaultV1/IBaseApp.h"
 
 #if defined(AE_ENABLE_VULKAN)
 #	include "graphics/Vulkan/VDevice.h"
@@ -21,7 +21,7 @@
 #endif
 
 
-namespace AE::App
+namespace AE::AppV1
 {
 
 	//
@@ -149,4 +149,4 @@ namespace AE::App
 	};
 
 
-} // AE::App
+} // AE::AppV1

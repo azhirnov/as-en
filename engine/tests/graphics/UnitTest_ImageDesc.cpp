@@ -12,12 +12,12 @@ namespace
 			desc.format = EPixelFormat::RGBA8_UNorm;
 			desc.SetDimension( 2 );
 
-			TEST( desc.imageType == EImageDim_1D );
+			TEST( desc.imageDim == EImageDim_1D );
 			TEST( All( desc.dimension == uint3{2, 1, 1} ));
 	
 			desc.Validate();
 
-			TEST( desc.imageType == EImageDim_1D );
+			TEST( desc.imageDim == EImageDim_1D );
 			TEST( All( desc.dimension == uint3{2, 1, 1} ));
 		}
 		{
@@ -25,12 +25,12 @@ namespace
 			desc.format = EPixelFormat::RGBA8_UNorm;
 			desc.SetDimension({ 2, 3 });
 
-			TEST( desc.imageType == EImageDim_2D );
+			TEST( desc.imageDim == EImageDim_2D );
 			TEST( All( desc.dimension == uint3{2, 3, 1} ));
 	
 			desc.Validate();
 
-			TEST( desc.imageType == EImageDim_2D );
+			TEST( desc.imageDim == EImageDim_2D );
 			TEST( All( desc.dimension == uint3{2, 3, 1} ));
 		}
 		{
@@ -38,12 +38,12 @@ namespace
 			desc.format = EPixelFormat::RGBA8_UNorm;
 			desc.SetDimension({ 2, 3, 4 });
 
-			TEST( desc.imageType == EImageDim_3D );
+			TEST( desc.imageDim == EImageDim_3D );
 			TEST( All( desc.dimension == uint3{2, 3, 4} ));
 	
 			desc.Validate();
 
-			TEST( desc.imageType == EImageDim_3D );
+			TEST( desc.imageDim == EImageDim_3D );
 			TEST( All( desc.dimension == uint3{2, 3, 4} ));
 		}
 	}
@@ -57,13 +57,13 @@ namespace
 			desc.SetDimension( 8 );
 			desc.SetArrayLayers( 4 );
 
-			TEST( desc.imageType == EImageDim_1D );
+			TEST( desc.imageDim == EImageDim_1D );
 			TEST( desc.maxLevel == 1_mipmap );
 			TEST( not desc.samples.IsEnabled() );
 	
 			desc.Validate();
 		
-			TEST( desc.imageType == EImageDim_1D );
+			TEST( desc.imageDim == EImageDim_1D );
 			TEST( desc.maxLevel == 1_mipmap );
 			TEST( not desc.samples.IsEnabled() );
 		}
@@ -73,14 +73,14 @@ namespace
 			desc.SetDimension({ 8, 8 });
 			desc.SetArrayLayers( 4 );
 
-			TEST( desc.imageType == EImageDim_2D );
+			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
 			TEST( desc.maxLevel == 1_mipmap );
 			TEST( not desc.samples.IsEnabled() );
 	
 			desc.Validate();
 		
-			TEST( desc.imageType == EImageDim_2D );
+			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
 			TEST( desc.maxLevel == 1_mipmap );
 			TEST( not desc.samples.IsEnabled() );
@@ -92,14 +92,14 @@ namespace
 			desc.SetArrayLayers( 4 );
 			desc.SetMaxMipmaps( 16 );
 
-			TEST( desc.imageType == EImageDim_2D );
+			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
 			TEST( desc.maxLevel == 16_mipmap );
 			TEST( not desc.samples.IsEnabled() );
 	
 			desc.Validate();
 		
-			TEST( desc.imageType == EImageDim_2D );
+			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
 			TEST( desc.maxLevel == 4_mipmap );
 			TEST( not desc.samples.IsEnabled() );
@@ -111,14 +111,14 @@ namespace
 			desc.SetArrayLayers( 4 );
 			desc.SetSamples( 8 );
 
-			TEST( desc.imageType == EImageDim_2D );
+			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
 			TEST( desc.maxLevel == 1_mipmap );
 			TEST( desc.samples == 8_samples );
 	
 			desc.Validate();
 		
-			TEST( desc.imageType == EImageDim_2D );
+			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
 			TEST( desc.maxLevel == 1_mipmap );
 			TEST( desc.samples == 8_samples );
@@ -134,7 +134,7 @@ namespace
 			desc.SetSamples( 4 );
 
 			TEST( desc.viewType == Default );
-			TEST( desc.imageType == EImageDim_2D );
+			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
 			TEST( desc.maxLevel == 16_mipmap );
 			TEST( desc.samples == 4_samples );
@@ -142,7 +142,7 @@ namespace
 			desc.Validate();
 		
 			TEST( desc.viewType == EImage_2DArray );
-			TEST( desc.imageType == EImageDim_2D );
+			TEST( desc.imageDim == EImageDim_2D );
 			TEST( desc.arrayLayers == 4_layer );
 			TEST( desc.maxLevel == 1_mipmap );
 			TEST( desc.samples == 4_samples );
@@ -269,7 +269,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format		= EPixelFormat::RGBA8_UNorm;
-			desc.imageType	= EImageDim_2D;
+			desc.imageDim	= EImageDim_2D;
 			desc.Validate();
 		
 			ImageViewDesc	view;
@@ -280,7 +280,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format		= EPixelFormat::Depth32F;
-			desc.imageType	= EImageDim_2D;
+			desc.imageDim	= EImageDim_2D;
 			desc.Validate();
 		
 			ImageViewDesc	view;
@@ -291,7 +291,7 @@ namespace
 		{
 			ImageDesc	desc;
 			desc.format		= EPixelFormat::Depth24_Stencil8;
-			desc.imageType	= EImageDim_2D;
+			desc.imageDim	= EImageDim_2D;
 			desc.Validate();
 		
 			ImageViewDesc	view;

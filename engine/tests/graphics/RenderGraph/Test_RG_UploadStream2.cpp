@@ -27,7 +27,7 @@ namespace
 			RenderTask{ RVRef(batch), dbg }, t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			DirectCtx::Transfer	ctx{ *this };
 
@@ -60,11 +60,11 @@ namespace
 		US2_TestData&	t;
 
 		US2_FrameTask (US2_TestData& t) :
-			IAsyncTask{ ETaskQueue::Worker },
+			IAsyncTask{ ETaskQueue::PerFrame },
 			t{ t }
 		{}
 
-		void  Run () override
+		void  Run () __Th_OV
 		{
 			if ( t.stream.IsCompleted() )
 				return;

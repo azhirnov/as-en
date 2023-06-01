@@ -117,7 +117,7 @@ namespace AE::App
 	// methods
 	public:
 		FileSystemAndroid ()																		__NE___ {}
-		~FileSystemAndroid ()																		__NE_OV {}
+		~FileSystemAndroid ()																		__NE_OV;
 
 		ND_ bool  Create (AAssetManager* mngr, StringView folder);
 

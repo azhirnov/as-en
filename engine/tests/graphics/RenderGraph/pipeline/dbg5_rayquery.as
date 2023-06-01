@@ -26,7 +26,7 @@ void ASmain ()
 		cs.file		= "rquery1.glsl";
 		cs.version	= EShaderVersion::SPIRV_1_4;
 		cs.options	= EShaderOpt::Trace;
-		cs.SetComputeSpecAndDefault( 8, 8 );
+		cs.ComputeSpecAndDefault( 8, 8 );
 		ppln.SetShader( cs );
 	}
 

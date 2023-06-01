@@ -1410,11 +1410,11 @@ namespace
 			{
 				auto	fence_it = logger.fenceMap.find( fence );
 				if ( fence_it != logger.fenceMap.end() )
-					log << "fence: '" << fence_it->second << "'\n";
+					log << "  fence: '" << fence_it->second << "'\n";
 			}
 
 			if ( semaphore != Default )
-				log << "signalSemaphore:  " << logger.GetSyncName( semaphore, 0 ) << '\n';
+				log << "  signalSemaphore:  " << logger.GetSyncName( semaphore, 0 ) << '\n';
 
 			logger.log << log
 				<< "==================================================\n";
@@ -1441,14 +1441,14 @@ namespace
 			
 			if ( pPresentInfo->waitSemaphoreCount > 0 )
 			{
-				log << "waitSemaphore = {";
+				log << "  waitSemaphore = {";
 				for (uint j = 0; j < pPresentInfo->waitSemaphoreCount; ++j)
 				{
-					log << "\n  '"
+					log << "\n    '"
 						<< logger.GetSyncName( pPresentInfo->pWaitSemaphores[j], 0 )
 						<< "'";
 				}
-				log << "\n}\n";
+				log << "\n  }\n";
 			}
 
 			logger.log << log
@@ -3923,6 +3923,26 @@ namespace
 		log << "    dstAS:  '" << as_it->second.name << "'\n";
 		log << "  ----------\n\n";
 	}
+	
+/*
+=================================================
+	Wrap_vkGetSemaphoreCounterValueKHR
+=================================================
+*/
+	VKAPI_ATTR VkResult VKAPI_CALL Wrap_vkGetSemaphoreCounterValueKHR (VkDevice device, VkSemaphore semaphore, OUT ulong* pValue)
+	{
+		auto&		logger	= VulkanLogger::Get();
+		VkResult	result	= logger.vkGetSemaphoreCounterValueKHR( device, semaphore, OUT pValue );
+		
+		EXLOCK( logger.guard );
+		if ( not logger.enableLog )
+			return result;
+
+		logger.log
+			<< "GetSemaphoreCounterValue: " << logger.GetSyncName( semaphore, *pValue ) << "\n\n";
+		
+		return result;
+	}
 
 } // namespace
 //-----------------------------------------------------------------------------
@@ -3951,8 +3971,10 @@ namespace
 */
 	void  VulkanLogger::_PrintResourceUsage (CommandBufferData &cmdbuf, VkPipelineBindPoint pipelineBindPoint)
 	{
-		DescrSetArray_t *	ds_array	= null;
+	  #if PRINT_ALL_DS == 0
 		const uint			family_idx	= cmdbuf.queueFamilyIndex;
+	  #endif
+		DescrSetArray_t *	ds_array	= null;
 
 		BEGIN_ENUM_CHECKS();
 		switch ( pipelineBindPoint )
@@ -4207,6 +4229,8 @@ namespace
 		table._var_vkCmdTraceRaysKHR				= &Wrap_vkCmdTraceRaysKHR;
 		table._var_vkCmdTraceRaysIndirectKHR		= &Wrap_vkCmdTraceRaysIndirectKHR;
 		table._var_vkCmdCopyQueryPoolResults		= &Wrap_vkCmdCopyQueryPoolResults;
+
+	//	table._var_vkGetSemaphoreCounterValueKHR	= &Wrap_vkGetSemaphoreCounterValueKHR;
 
 		table._var_vkCmdBuildAccelerationStructuresKHR			 = &Wrap_vkCmdBuildAccelerationStructuresKHR;
 		table._var_vkCmdWriteAccelerationStructuresPropertiesKHR = &Wrap_vkCmdWriteAccelerationStructuresPropertiesKHR;

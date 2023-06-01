@@ -8,7 +8,7 @@ void ASmain ()
 	{
 		RC<PipelineLayout>		pl = PipelineLayout( "dbg2_draw.pl" );
 		pl.AddDebugDSLayout( EShaderOpt::Trace, EShaderStages::Fragment | EShaderStages::Vertex );
-		pl.Define( "#define DEBUG" );
+		pl.Define( "DEBUG" );
 	}
 
 	RC<GraphicsPipeline>	ppln = GraphicsPipeline( "dbg2_draw" );

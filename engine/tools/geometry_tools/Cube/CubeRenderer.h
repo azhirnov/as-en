@@ -22,6 +22,7 @@ namespace AE::GeometryTools
 	// types
 	public:
 		using Vertex	= CubeGen::Vertex;
+		using Index		= CubeGen::Index;
 
 
 	// variables
@@ -34,16 +35,16 @@ namespace AE::GeometryTools
 
 	// methods
 	public:
-		CubeRenderer ()																	__NE___	{}
-		~CubeRenderer ()																__NE___;
+		CubeRenderer ()																		__NE___	{}
+		~CubeRenderer ()																	__NE___;
 
-		ND_ bool  Create (IResourceManager &, ITransferContext &ctx)					__NE___;
-			void  Destroy (IResourceManager &)											__NE___;
+		ND_ bool  Create (IResourceManager &, ITransferContext &ctx, GfxMemAllocatorPtr)	__NE___;
+			void  Destroy (IResourceManager &)												__NE___;
 
-		ND_ bool  IsCreated ()															C_NE___	{ return _vertexBuffer and _indexBuffer; }
+		ND_ bool  IsCreated ()																C_NE___	{ return _vertexBuffer and _indexBuffer; }
 
 			template <typename DrawCtx>
-			void  Draw (DrawCtx &ctx, uint instanceCount = 1, uint firstInstance = 0)	C_NE___;
+			void  Draw (DrawCtx &ctx, uint instanceCount = 1, uint firstInstance = 0)		C_NE___;
 	};
 
 	
@@ -56,7 +57,7 @@ namespace AE::GeometryTools
 	void  CubeRenderer::Draw (DrawCtx &ctx, uint instanceCount, uint firstInstance) C_NE___
 	{
 		ctx.BindVertexBuffer( 0, _vertexBuffer, 0_b );
-		ctx.BindIndexBuffer( _indexBuffer, 0_b, EIndex::UInt );
+		ctx.BindIndexBuffer( _indexBuffer, 0_b, EIndex::UShort );
 
 		DrawIndexedCmd	cmd;
 		cmd.indexCount		= _indexCount;

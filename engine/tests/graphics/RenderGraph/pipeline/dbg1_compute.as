@@ -24,7 +24,7 @@ void ASmain ()
 		cs.file		= "compute_1.glsl";
 		cs.version	= EShaderVersion::SPIRV_1_0;
 		cs.options	= EShaderOpt::Trace;
-		cs.SetComputeSpecAndDefault( 8, 8 );
+		cs.ComputeSpecAndDefault( 8, 8 );
 		ppln.SetShader( cs );
 	}
 }

@@ -29,7 +29,7 @@ namespace AE::Base
 	struct RingBuffer
 	{
 		STATIC_ASSERT( IsNothrowDtor< T >);
-		STATIC_ASSERT( IsNothrowMoveCtor< T >);
+		//STATIC_ASSERT( IsNothrowMoveCtor< T >);
 		//STATIC_ASSERT( IsNothrowDefaultCtor< T >);
 
 	// types
@@ -169,10 +169,10 @@ namespace AE::Base
 			void		pop_back ()							__NE___;
 
 			template <typename ...Types>
-			void		emplace_front (Types&& ...args)		__Th___;
+			T &			emplace_front (Types&& ...args)		__Th___;
 			
 			template <typename ...Types>
-			void		emplace_back (Types&& ...args)		__Th___;
+			T &			emplace_back (Types&& ...args)		__Th___;
 
 		ND_ T			ExtractFront ()						__NE___;
 		ND_ T			ExtractBack ()						__NE___;
@@ -559,16 +559,17 @@ namespace AE::Base
 */
 	template <typename T, typename S>
 	template <typename ...Types>
-	void  RingBuffer<T,S>::emplace_front (Types&& ...args) __Th___
+	T&  RingBuffer<T,S>::emplace_front (Types&& ...args) __Th___
 	{
 		if_unlikely( size() + 1 > capacity() )
 			_Reallocate( capacity() + 1, true );	// throw
 		
 		_packed	&= ~_EmptyBit;
 		_first	= _WrapIndex( ssize(_first) - 1 );
-		PlacementNew<T>( _array + _first, FwdArg<Types>(args)... );	// throw
+		T*	res = PlacementNew<T>( _array + _first, FwdArg<Types>(args)... );	// throw
 		
 		_UpdateDbgView();
+		return *res;
 	}
 	
 /*
@@ -578,16 +579,18 @@ namespace AE::Base
 */
 	template <typename T, typename S>
 	template <typename ...Types>
-	void  RingBuffer<T,S>::emplace_back (Types&& ...args) __Th___
+	T&  RingBuffer<T,S>::emplace_back (Types&& ...args) __Th___
 	{
 		if_unlikely( size() + 1 > capacity() )
 			_Reallocate( capacity() + 1, true );	// throw
 		
-		PlacementNew<T>( _array + _end, FwdArg<Types>(args)... );	// throw
+		T*	res = PlacementNew<T>( _array + _end, FwdArg<Types>(args)... );	// throw
+
 		_packed	&= ~_EmptyBit;
 		_end	= _WrapIndex( _end + 1 );
 		
 		_UpdateDbgView();
+		return *res;
 	}
 
 /*

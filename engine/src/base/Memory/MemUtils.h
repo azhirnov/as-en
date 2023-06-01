@@ -12,32 +12,6 @@ namespace AE::Base
 	static constexpr Bytes	LargeAllocationSize		{4 << 20};		// 4 Mb - large page size in WIndows
 	static constexpr Bytes	DefaultAllocationSize	= SmallAllocationSize;
 
-
-	//
-	// UniquePtr Placement Delete
-	//
-	template <typename T>
-	struct UniquePtr_PlacementDelete
-	{
-		constexpr UniquePtr_PlacementDelete () = default;
-
-		void  operator () (T* ptr) const
-		{
-			STATIC_ASSERT( 0 < sizeof(T), "can't delete an incomplete type" );
-			ptr->~T();
-			// without releasing memory
-		}
-	};
-
-	template <typename T>
-	using UniqueNoDel = std::unique_ptr< T, UniquePtr_PlacementDelete<T> >;
-	
-	template <typename T, typename ...Types>
-	ND_ forceinline UniqueNoDel<T>  MakeUniqueNoDel (Types&&... args) __Th___
-	{
-		return UniqueNoDel<T>{ new T{ FwdArg<Types>( args )... }};
-	}
-
 /*
 =================================================
 	AddressOf

@@ -297,18 +297,20 @@ PipelineLayouts {
       vkIndex  = 0
     }
     [0] PushConst {
-      name       = 'pc1'
-      typename   = 'PushConst1'
-      stageFlags = Vertex
-      offset     = 0 b
-      size       = 16 b
+      name     = 'pc1'
+      typename = 'PushConst1'
+      stage    = Vertex
+      bufferId = 0
+      offset   = 0 b
+      size     = 16 b
     }
     [1] PushConst {
-      name       = 'pc2'
-      typename   = 'PushConst2'
-      stageFlags = Fragment
-      offset     = 16 b
-      size       = 16 b
+      name     = 'pc2'
+      typename = 'PushConst2'
+      stage    = Fragment
+      bufferId = 0
+      offset   = 16 b
+      size     = 16 b
     }
   ----------------------
   [7]
@@ -401,7 +403,7 @@ MeshPipelineTempl {
     maxIndices           = 3
     earlyFragmentTests   = true
     meshDefaultLocalSize = { 3, 1, 1 }
-    featureSets = { 'MinimalFS', 'MinMeshShader' }
+    featureSets          = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
   [1]
     layout  = 3
@@ -415,7 +417,7 @@ MeshPipelineTempl {
     earlyFragmentTests   = true
     meshDefaultLocalSize = { 1, 1, 1 }
     meshLocalSizeSpec    = { 0, Undefined, Undefined }
-    featureSets = { 'MinimalFS', 'MinMeshShader' }
+    featureSets          = { 'MinimalFS', 'MinMeshShader' }
   ----------------------
 }
 
@@ -656,21 +658,21 @@ RTShaderBindingTable {
 SpirvShaders {
   [0]  offset = 0 b
   [1]  offset = 11 Kb
-  [2]  offset = 13 Kb
+  [2]  offset = 14 Kb
   [3]  offset = 16 Kb
   [4]  offset = 19 Kb
   [5]  offset = 21 Kb
-  [6]  offset = 25 Kb
+  [6]  offset = 26 Kb
   [7]  offset = 30 Kb
-  [8]  offset = 34 Kb
+  [8]  offset = 35 Kb
   [9]  offset = 37 Kb
-  [10]  offset = 40 Kb
-  [11]  offset = 42 Kb
-  [12]  offset = 45 Kb
-  [13]  offset = 48 Kb
-  [14]  offset = 51 Kb
-  [15]  offset = 54 Kb
-  [16]  offset = 56 Kb
+  [10]  offset = 41 Kb
+  [11]  offset = 43 Kb
+  [12]  offset = 46 Kb
+  [13]  offset = 49 Kb
+  [14]  offset = 52 Kb
+  [15]  offset = 55 Kb
+  [16]  offset = 58 Kb
 }
 
 SpirvShaderData {
@@ -678,54 +680,54 @@ SpirvShaderData {
     codeSize = 6 Kb
     withTrace
   [1]
-    codeSize = 2596 b
-    codeHash = 7676ce3e6b14f052
+    codeSize = 2668 b
+    codeHash = 428a2eaa478c8a83
   [2]
-    codeSize = 2440 b
-    codeHash = 2afd57653318b3fa
+    codeSize = 2516 b
+    codeHash = b53432a38786c4fa
   [3]
-    codeSize = 2852 b
-    codeHash = a53e96cf26f02be4
+    codeSize = 2924 b
+    codeHash = 5e9ea0dee0090da0
   [4]
-    codeSize = 2264 b
-    codeHash = 65fde486c68ef3c
+    codeSize = 2336 b
+    codeHash = c86b255e532546b9
   [5]
     codeSize = 4 Kb
-    codeHash = 178a37f45ee67c0e
+    codeHash = 591cd2253412494e
   [6]
     codeSize = 4 Kb
-    codeHash = 2fb0c2fd8fe5c4d3
+    codeHash = b5ee504cb1f8de32
   [7]
     codeSize = 4 Kb
-    codeHash = 5c3d4ff53a787138
+    codeHash = b5b885abf6b57db8
   [8]
-    codeSize = 2820 b
-    codeHash = 3aa28d77bc77fd55
+    codeSize = 2892 b
+    codeHash = 1dae6d1797efa7b4
   [9]
-    codeSize = 3644 b
-    codeHash = fd8db0d6e15c33cb
+    codeSize = 3716 b
+    codeHash = 6ea8e3bae7b580aa
     spec     = {
       [0] 'sbtRecordStride', 0
     }
   [10]
-    codeSize = 2232 b
-    codeHash = ce32b8731b9d49a6
+    codeSize = 2304 b
+    codeHash = 4633525ab06033
   [11]
-    codeSize = 2720 b
-    codeHash = 8308a1d6b573bbb5
+    codeSize = 2792 b
+    codeHash = deb04493ef0c540c
   [12]
-    codeSize = 3000 b
-    codeHash = 8df3962ec3d5de77
+    codeSize = 3072 b
+    codeHash = 807e1c84bdbc8259
   [13]
-    codeSize = 3424 b
-    codeHash = 45d62ab1e87d4d8e
+    codeSize = 3496 b
+    codeHash = 26b9313df7b12af3
   [14]
-    codeSize = 2840 b
-    codeHash = 766e0024d22c045e
+    codeSize = 2924 b
+    codeHash = 9c760f4024199c57
   [15]
-    codeSize = 2388 b
-    codeHash = 69b3feb86306c3d9
+    codeSize = 2472 b
+    codeHash = 794549c739a0d3ea
   [16]
-    codeSize = 2756 b
-    codeHash = bf2080ea3078aa6d
+    codeSize = 2828 b
+    codeHash = b77294ae3f57ec39
 }

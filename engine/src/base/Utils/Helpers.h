@@ -106,13 +106,13 @@ namespace AE::Base
 		T			_finalValue;
 
 	public:
-		ScopedSet (T& ref, T initial, T final) :
+		ScopedSet (T& ref, T initial, T final) __NE___ :
 			_ref{ref}, _finalValue{RVRef(final)}
 		{
 			_ref = RVRef(initial);
 		}
 
-		~ScopedSet ()
+		~ScopedSet () __NE___
 		{
 			_ref = RVRef(_finalValue);
 		}

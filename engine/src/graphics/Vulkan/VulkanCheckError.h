@@ -44,7 +44,7 @@
 	}
 
 # define VK_CHECK_THROW( _expr_ )																											\
-		AE_PRIVATE_VK_THROW( (_expr_), AE_TOSTRING( _expr_ ) )
+		AE_PRIVATE_VK_THROW( (_expr_), AE_TOSTRING( _expr_ ))
 
 
 

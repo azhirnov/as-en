@@ -46,8 +46,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VDirectRayTracingCtx (const RenderTask &task)														__Th___ : VBaseDirectContext{ task, ECtxType::RayTracing } {}
-		_VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf)										__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), ECtxType::RayTracing } {}
+		_VDirectRayTracingCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)						__Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
 		
 		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
 		void  _PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
@@ -94,8 +93,7 @@ namespace AE::Graphics::_hidden_
 		VBARRIERMNGR_INHERIT_VKBARRIERS
 
 	protected:
-		explicit _VIndirectRayTracingCtx (const RenderTask &task)													__Th___ : VBaseIndirectContext{ task, ECtxType::RayTracing } {}
-		_VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf)									__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), ECtxType::RayTracing } {}
+		_VIndirectRayTracingCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)					__Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::RayTracing } {}
 		
 		void  _BindPipeline (VkPipeline ppln, VkPipelineLayout layout);
 		void  _PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
@@ -133,31 +131,33 @@ namespace AE::Graphics::_hidden_
 
 	// methods
 	public:
-		explicit _VRayTracingContextImpl (const RenderTask &task)													__Th___;
-		_VRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf)											__Th___;
+		explicit _VRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)		__Th___;
 
-		_VRayTracingContextImpl ()																					= delete;
-		_VRayTracingContextImpl (const _VRayTracingContextImpl &)													= delete;
+		_VRayTracingContextImpl ()																							= delete;
+		_VRayTracingContextImpl (const _VRayTracingContextImpl &)															= delete;
 		
 		using RawCtx::BindDescriptorSet;
 
-		void  BindPipeline (RayTracingPipelineID ppln)																__Th_OV;
-		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)__Th_OV;
-		void  PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)						__Th_OV;
-		void  SetStackSize (Bytes size)																				__Th_OV	{ RawCtx::_SetStackSize( size ); }
-		
-		void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)											__Th_OV;
-		void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)											__Th_OV;
-		
-		void  TraceRays (const uint2 dim, RTShaderBindingID sbt)													__Th_OV;
-		void  TraceRays (const uint3 dim, RTShaderBindingID sbt)													__Th_OV;
+		void  BindPipeline (RayTracingPipelineID ppln)																		__Th_OV;
+		void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)		__Th_OV;
 
-		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, VDeviceAddress address)							__Th___;
-		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes)					__Th_OV;
-		void  TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes)								__Th_OV;
+		void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)	__Th_OV;
+		using IRayTracingContext::PushConstant;
 
-		void  TraceRaysIndirect2 (VDeviceAddress address)															__Th___;
-		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)								__Th_OV;
+		void  SetStackSize (Bytes size)																						__Th_OV	{ RawCtx::_SetStackSize( size ); }
+		
+		void  TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)													__Th_OV;
+		void  TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)													__Th_OV;
+		
+		void  TraceRays (const uint2 dim, RTShaderBindingID sbt)															__Th_OV;
+		void  TraceRays (const uint3 dim, RTShaderBindingID sbt)															__Th_OV;
+
+		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, VDeviceAddress address)									__Th___;
+		void  TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes)							__Th_OV;
+		void  TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes)										__Th_OV;
+
+		void  TraceRaysIndirect2 (VDeviceAddress address)																	__Th___;
+		void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th_OV;
 
 		VBARRIERMNGR_INHERIT_BARRIERS
 	};
@@ -182,14 +182,8 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	_VRayTracingContextImpl<C>::_VRayTracingContextImpl (const RenderTask &task) : RawCtx{ task }
-	{
-		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
-	}
-		
-	template <typename C>
-	_VRayTracingContextImpl<C>::_VRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf) :
-		RawCtx{ task, RVRef(cmdbuf) }
+	_VRayTracingContextImpl<C>::_VRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+		RawCtx{ task, RVRef(cmdbuf), dbg }
 	{
 		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
 	}
@@ -226,11 +220,11 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VRayTracingContextImpl<C>::PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+	void  _VRayTracingContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
 	{
-		Validator_t::PushConstant( size );
+		Validator_t::PushConstant( idx, size, typeName );
 
-		RawCtx::_PushConstant( offset, size, values, stages );
+		RawCtx::_PushConstant( idx.offset, size, values, EShaderStages(0) | idx.stage );
 	}
 
 /*
@@ -453,7 +447,6 @@ namespace AE::Graphics::_hidden_
 	inline void  _VIndirectRayTracingCtx::_PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
 	{
 		CHECK_ERRV( _states.pplnLayout != Default );
-		ASSERT( IsAligned( size, sizeof(uint) ));
 
 		_cmdbuf->PushConstant( _states.pplnLayout, offset, size, values, stages );
 	}

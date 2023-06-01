@@ -944,6 +944,48 @@ namespace AE::Math
 	
 /*
 =================================================
+	Sign / SignOrZero
+----
+	extract sign and return same type as input
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ EnableIf<IsScalar<T>, TVec<T,I,Q>>  Sign (const TVec<T,I,Q> &value) __NE___
+	{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = Sign( value[i] );
+		}
+		return res;
+	}
+	
+	template <typename T, int I, glm::qualifier Q>
+	ND_ EnableIf<IsScalar<T>, TVec<T,I,Q>>  SignOrZero (const TVec<T,I,Q> &value) __NE___
+	{
+		TVec<T,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = SignOrZero( value[i] );
+		}
+		return res;
+	}
+	
+/*
+=================================================
+	HasSign
+=================================================
+*/
+	template <typename T, int I, glm::qualifier Q>
+	ND_ EnableIf<IsScalar<T>, TVec<bool,I,Q>>  HasSign (const TVec<T,I,Q> &value) __NE___
+	{
+		TVec<bool,I,Q>	res;
+		for (int i = 0; i < I; ++i) {
+			res[i] = HasSign( value[i] );
+		}
+		return res;
+	}
+
+/*
+=================================================
 	SafeDiv
 =================================================
 */

@@ -39,7 +39,7 @@ namespace AE::Samples::Demo
 		Strong<DescriptorSetID>		descSet;
 		const DescSetBinding		dsIndex		{0};
 		
-		RC<GfxLinearMemAllocator>	gfxAlloc;
+		GfxMemAllocatorPtr			gfxAlloc;
 
 
 	// methods
@@ -48,9 +48,9 @@ namespace AE::Samples::Demo
 		~RayQuerySample () override;
 		
 		// ISample //
-		bool			Init (PipelinePackID pack) override;
-		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps) override;
-		InputModeName	GetInputMode () const override { return Default; } //InputModeName{"RayQuery"}; }
+		bool			Init (PipelinePackID pack)							override;
+		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)	override;
+		InputModeName	GetInputMode ()										const override { return Default; } //InputModeName{"RayQuery"}; }
 	};
 
 

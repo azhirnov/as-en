@@ -80,10 +80,10 @@ namespace AE::Math
 			Self&	operator = (const Self &rhs)										__NE___ = default;
 			Self&	operator = (Self && rhs)											__NE___ = default;
 
-			Self&	operator += (T rhs)													C_NE___	{ _value += rhs;  return *this; }
-			Self&	operator -= (T rhs)													C_NE___	{ _value -= rhs;  return *this; }
-			Self&	operator *= (T rhs)													C_NE___	{ _value *= rhs;  return *this; }
-			Self&	operator /= (T rhs)													C_NE___	{ _value /= rhs;  return *this; }
+		//	Self&	operator += (T rhs)													C_NE___	{ _value += rhs;  return *this; }
+		//	Self&	operator -= (T rhs)													C_NE___	{ _value -= rhs;  return *this; }
+		//	Self&	operator *= (T rhs)													C_NE___	{ _value *= rhs;  return *this; }
+		//	Self&	operator /= (T rhs)													C_NE___	{ _value /= rhs;  return *this; }
 
 		ND_ Self	operator +  (T rhs)													C_NE___	{ return Self{ _value + rhs }; }
 		ND_ Self	operator -  (T rhs)													C_NE___	{ return Self{ _value - rhs }; }

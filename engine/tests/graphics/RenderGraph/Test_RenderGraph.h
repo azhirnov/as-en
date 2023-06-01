@@ -124,6 +124,7 @@ private:
 	bool  Test_Draw2 ();		// virtex buffer
 	bool  Test_Draw3 ();		// push constants
 	bool  Test_DrawMesh1 ();
+	bool  Test_DrawMesh2 ();
 	//bool  Test_DrawMultipass1 ();
 	bool  Test_DrawAsync1 ();
 	

@@ -38,6 +38,6 @@ namespace AE::Serializing
 	struct Deserializer;
 	class ObjectFactory;
 
-	// IsTrivialySerializable<> defined in 'base/CompileTime/TypeTraits.h'
+	// IsTriviallySerializable<> defined in 'base/CompileTime/TypeTraits.h'
 
 } // AE::Serializing

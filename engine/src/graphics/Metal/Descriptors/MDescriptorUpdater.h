@@ -59,6 +59,9 @@ namespace AE::Graphics
 		uint  SamplerCount (const UniformName &name)																									C_NE_OV;
 
 
+		using IDescriptorUpdater::BindBuffer;
+		using IDescriptorUpdater::BindBuffers;
+
 		bool  BindBuffer  (const UniformName &name, const ShaderStructName &typeName, BufferID buffer, uint elementIndex = 0)							__NE_OV;
 		bool  BindBuffer  (const UniformName &name, const ShaderStructName &typeName, BufferID buffer, Bytes offset, Bytes size, uint elementIndex = 0)	__NE_OV;
 		bool  BindBuffers (const UniformName &name, const ShaderStructName &typeName, ArrayView<BufferID> buffers, uint firstIndex = 0)					__NE_OV;

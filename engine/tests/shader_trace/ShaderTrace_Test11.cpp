@@ -183,7 +183,7 @@ extern bool ShaderTrace_Test11 (TestDevice& vulkan)
 		VkBufferMemoryBarrier	barrier = {};
 		barrier.sType			= VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
 		barrier.srcAccessMask	= VK_ACCESS_TRANSFER_WRITE_BIT;
-		barrier.dstAccessMask	= VK_ACCESS_SHADER_WRITE_BIT;
+		barrier.dstAccessMask	= VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
 		barrier.buffer			= vulkan.debugOutputBuf;
 		barrier.offset			= 0;
 		barrier.size			= VK_WHOLE_SIZE;

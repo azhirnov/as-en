@@ -12,11 +12,6 @@ namespace _hidden_
 {
 	using namespace AE::Graphics;
 	
-	#if AE_ENABLE_DATA_RACE_CHECK
-	using AE::Threading::SingleThreadCheck;
-	#endif
-	
-
 	#if defined(AE_ENABLE_VULKAN)
 	using PrimaryCmdBufState_t	= VPrimaryCmdBufState;
 

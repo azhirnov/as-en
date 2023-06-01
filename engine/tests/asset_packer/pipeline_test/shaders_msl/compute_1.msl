@@ -1,16 +1,9 @@
 #include "common.msl"
 
-constant uint3 gl_WorkGroupSize = uint3(localSizeX, localSizeY, localSizeZ);
-
-// [[kernel]] - Metal 2.3
-kernel
-void  Main (AE_SHADER_RESOURCES,
-			uint3 gl_LocalInvocationID  [[thread_position_in_threadgroup]],
-			uint3 gl_GlobalInvocationID [[thread_position_in_grid]]
-		   )
+AE_ENTRY()
 {
-	float4 fragColor = float4(float(LocalID.x) / float(gl_WorkGroupSize.x),
-							  float(LocalID.y) / float(gl_WorkGroupSize.y),
+	float4 fragColor = float4(float(LocalID.x) / float(LocalSize.x),
+							  float(LocalID.y) / float(LocalSize.y),
 							  1.0, 0.0);
 	un_OutImage.write( fragColor, GlobalID.xy );
 }

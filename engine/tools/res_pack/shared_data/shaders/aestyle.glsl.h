@@ -1111,6 +1111,64 @@ public:
 
 	} rayQuery {};
   #endif
+
+
+	// GL_NV_cooperative_matrix, GL_NV_integer_cooperative_matrix
+  #ifdef SH_COMPUTE
+	template <uint CompBits, Scope ScopeType, uint Rows, uint Columns>
+	struct FCoopMatNV
+	{
+		using type	= ;
+		using Self	= FCoopMatNV< CompBits, ScopeType, Rows, Columns >;
+
+		ND_ constexpr uint	length()						{ return Rows * Columns; }
+		ND_ type&			operator [] (uint i);
+		ND_ Self			operator + (Self rhs)	const;
+		ND_ Self			operator - (Self rhs)	const;
+		ND_ Self			operator * (Self rhs)	const;
+		ND_ Self			operator / (Self rhs)	const;
+	};
+	
+	template <uint CompBits, Scope ScopeType, uint Rows, uint Columns>
+	struct ICoopMatNV
+	{
+		using type	= ;
+		using Self	= ICoopMatNV< CompBits, ScopeType, Rows, Columns >;
+		
+		ND_ constexpr uint	length()						{ return Rows * Columns; }
+		ND_ type&			operator [] (uint i);
+		ND_ Self			operator + (Self rhs)	const;
+		ND_ Self			operator - (Self rhs)	const;
+		ND_ Self			operator * (Self rhs)	const;
+		ND_ Self			operator / (Self rhs)	const;
+	};
+	
+	template <uint CompBits, Scope ScopeType, uint Rows, uint Columns>
+	struct UCoopMatNV
+	{
+		using type	= ;
+		using Self	= UCoopMatNV< CompBits, ScopeType, Rows, Columns >;
+		
+		ND_ constexpr uint	length()						{ return Rows * Columns; }
+		ND_ type&			operator [] (uint i);
+		ND_ Self			operator + (Self rhs)	const;
+		ND_ Self			operator - (Self rhs)	const;
+		ND_ Self			operator * (Self rhs)	const;
+		ND_ Self			operator / (Self rhs)	const;
+	};
+	
+	template <uint B, Scope S, uint R, uint C, typename T>	void  CoopMatLoadNV (OUT FCoopMatNV<B,S,R,C> &m, T* buf, uint element, uint stride, bool colMajor);
+	template <uint B, Scope S, uint R, uint C, typename T>	void  CoopMatLoadNV (OUT ICoopMatNV<B,S,R,C> &m, T* buf, uint element, uint stride, bool colMajor);
+	template <uint B, Scope S, uint R, uint C, typename T>	void  CoopMatLoadNV (OUT UCoopMatNV<B,S,R,C> &m, T* buf, uint element, uint stride, bool colMajor);
+	
+	template <uint B, Scope S, uint R, uint C, typename T>	void  CoopMatStoreNV (FCoopMatNV<B,S,R,C> m, OUT T* buf, uint element, uint stride, bool colMajor);
+	template <uint B, Scope S, uint R, uint C, typename T>	void  CoopMatStoreNV (ICoopMatNV<B,S,R,C> m, OUT T* buf, uint element, uint stride, bool colMajor);
+	template <uint B, Scope S, uint R, uint C, typename T>	void  CoopMatStoreNV (UCoopMatNV<B,S,R,C> m, OUT T* buf, uint element, uint stride, bool colMajor);
+	
+	template <uint B, Scope S, uint R, uint C, typename T>	ND_ FCoopMatNV<B,S,R,C>  CoopMatMulAddNV (FCoopMatNV<B,S,R,C> a, FCoopMatNV<B,S,R,C> b, FCoopMatNV<B,S,R,C> c);
+	template <uint B, Scope S, uint R, uint C, typename T>	ND_ ICoopMatNV<B,S,R,C>  CoopMatMulAddNV (ICoopMatNV<B,S,R,C> a, ICoopMatNV<B,S,R,C> b, ICoopMatNV<B,S,R,C> c);
+	template <uint B, Scope S, uint R, uint C, typename T>	ND_ UCoopMatNV<B,S,R,C>  CoopMatMulAddNV (UCoopMatNV<B,S,R,C> a, UCoopMatNV<B,S,R,C> b, UCoopMatNV<B,S,R,C> c);
+  #endif
 	
 } gl;
 

@@ -60,53 +60,53 @@ namespace AE::Base
 
 	// methods
 	public:
-		Date ();
+		Date ()											__NE___;
 		
-		ND_ static Date  Now ();
+		ND_ static Date		Now ()						__NE___;
 
-		ND_ uint			Year ()				const	{ return _year; }
-		ND_ EMonth			Month ()			const	{ return EMonth( _month ); }
-		ND_ uint			WeekOfYear ()		const	{ return (_dayOfYear / 7) + 1; }
-		ND_ uint			DayOfYear ()		const	{ return _dayOfYear + 1; }
-		ND_ uint			DayOfMonth ()		const	{ return _dayOfMonth + 1; }
-		ND_ EWeekDay		DayOfWeek ()		const	{ return EWeekDay( _dayOfWeek ); }
-		ND_ uint			Hour ()				const	{ return _hour; }
-		ND_ uint			Minute ()			const	{ return _minute; }
-		ND_ uint			Second ()			const	{ return _second; }
-		ND_ uint			Milliseconds ()		const	{ return _millis; }
+		ND_ uint			Year ()						C_NE___	{ return _year; }
+		ND_ EMonth			Month ()					C_NE___	{ return EMonth( _month ); }
+		ND_ uint			WeekOfYear ()				C_NE___	{ return (_dayOfYear / 7) + 1; }
+		ND_ uint			DayOfYear ()				C_NE___	{ return _dayOfYear + 1; }
+		ND_ uint			DayOfMonth ()				C_NE___	{ return _dayOfMonth + 1; }
+		ND_ EWeekDay		DayOfWeek ()				C_NE___	{ return EWeekDay( _dayOfWeek ); }
+		ND_ uint			Hour ()						C_NE___	{ return _hour; }
+		ND_ uint			Minute ()					C_NE___	{ return _minute; }
+		ND_ uint			Second ()					C_NE___	{ return _second; }
+		ND_ uint			Milliseconds ()				C_NE___	{ return _millis; }
 
-		ND_ StringView		MonthName ()		const;
-		ND_ StringView		DayOfWeekName ()	const;
+		ND_ StringView		MonthName ()				C_NE___;
+		ND_ StringView		DayOfWeekName ()			C_NE___;
 
-		ND_ static ulong	MillisInDay ()				{ return 24 * MillisInHour(); }
-		ND_ static ulong	MillisInHour ()				{ return 60 * MillisInMinute(); }
-		ND_ static ulong	MillisInMinute ()			{ return 60 * MillisInSecond(); }
-		ND_ static ulong	MillisInSecond ()			{ return 1000; }
+		ND_ static ulong	MillisInDay ()				__NE___	{ return 24 * MillisInHour(); }
+		ND_ static ulong	MillisInHour ()				__NE___	{ return 60 * MillisInMinute(); }
+		ND_ static ulong	MillisInMinute ()			__NE___	{ return 60 * MillisInSecond(); }
+		ND_ static ulong	MillisInSecond ()			__NE___	{ return 1000; }
 		
 
-		ND_ bool			IsLeapYear ()		const	{ return _IsLeapYear( _year ); }
-		ND_ uint			DaysInYear ()		const	{ return _MaxDaysOfYear( _year ); }
-		ND_ uint			DaysInMonth ()		const	{ return _DaysInMonth( _year, _month ); }
+		ND_ bool			IsLeapYear ()				C_NE___	{ return _IsLeapYear( _year ); }
+		ND_ uint			DaysInYear ()				C_NE___	{ return _MaxDaysOfYear( _year ); }
+		ND_ uint			DaysInMonth ()				C_NE___	{ return _DaysInMonth( _year, _month ); }
 
 
-		ND_ ulong	ToMillisecondsSince1970 () const		{ return _ToMilliseconds( 1970 ); }
-			Date&	SetMillisecondsSince1970 (ulong ms)		{ return _SetMilliseconds( 1970, ms ); }
+		ND_ ulong	ToMillisecondsSince1970 ()			C_NE___	{ return _ToMilliseconds( 1970 ); }
+			Date&	SetMillisecondsSince1970 (ulong ms)	__NE___	{ return _SetMilliseconds( 1970, ms ); }
 
-		ND_ ulong	ToMillisecondsSinceEpoch () const		{ return _ToMilliseconds( 0 ); }
-			Date&	SetMillisecondsSinceEpoch (ulong ms)	{ return _SetMilliseconds( 0, ms ); }
+		ND_ ulong	ToMillisecondsSinceEpoch ()			C_NE___	{ return _ToMilliseconds( 0 ); }
+			Date&	SetMillisecondsSinceEpoch (ulong ms)__NE___	{ return _SetMilliseconds( 0, ms ); }
 
-			Date&	SetYear (uint value)					{ _year = value; return *this; }
-			Date&	SetMonth (uint value)					{ _month = value; return *this; }
+			Date&	SetYear (uint value)				__NE___	{ _year = value; return *this; }
+			Date&	SetMonth (uint value)				__NE___	{ _month = value; return *this; }
 
 
-		ND_ String  ToString (StringView fmt) const;
+		ND_ String  ToString (StringView fmt)			C_NE___;
 		
-		ND_ bool  operator == (const Date &other) const;
-		ND_ bool  operator >  (const Date &other) const;
-		ND_ bool  operator <  (const Date &other) const;
-		ND_ bool  operator != (const Date &other) const		{ return not (*this == other); }
-		ND_ bool  operator >= (const Date &other) const		{ return not (*this < other); }
-		ND_ bool  operator <= (const Date &other) const		{ return not (*this > other); }
+		ND_ bool  operator == (const Date &other)		C_NE___;
+		ND_ bool  operator >  (const Date &other)		C_NE___;
+		ND_ bool  operator <  (const Date &other)		C_NE___;
+		ND_ bool  operator != (const Date &other)		C_NE___	{ return not (*this == other); }
+		ND_ bool  operator >= (const Date &other)		C_NE___	{ return not (*this < other); }
+		ND_ bool  operator <= (const Date &other)		C_NE___	{ return not (*this > other); }
 
 
 	private:

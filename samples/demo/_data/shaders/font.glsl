@@ -1,6 +1,5 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
-#	define SH_VERT
-#	define SH_FRAG
 #	include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------

@@ -539,6 +539,9 @@ namespace
 */
 	ND_ static bool  RunScript (const Path &respackScript, const Path &outputDir)
 	{
+		AE_LOGI( "OfflinePacker args: \n"
+				 "\""s << ToString(respackScript) << "\" \"" << ToString(outputDir) << "\"\n" );
+
 		CHECK_ERR( FileSystem::IsFile( respackScript ));
 
 		FileSystem::SetCurrentPath( respackScript.parent_path() );

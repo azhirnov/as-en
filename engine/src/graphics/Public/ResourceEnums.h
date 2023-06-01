@@ -98,6 +98,7 @@ namespace AE::Graphics
 		_2DArray,
 		Cube,
 		CubeArray,
+		_Count,
 		OneDim			= _1D,
 		TwoDim			= _2D,
 		ThreeDim		= _3D,

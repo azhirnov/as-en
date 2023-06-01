@@ -1,4 +1,4 @@
-//2EEEA280
+//9A731481
 #include <vector>
 #include <string>
 
@@ -18,78 +18,89 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct ImageAtlas;
+struct EPipelineDynamicState;
+struct EPixelFormat;
+struct EPrimitive;
+struct sbyte3;
+struct UIColorStyle;
+struct DepthStencil;
+struct RGBA8u;
+struct Texture;
+struct sbyte4;
+struct EMipmapFilter;
+struct short2;
+struct ESamplerYcbcrModelConversion;
 struct Material;
+struct short3;
 struct Mesh;
+struct RGBA32u;
+struct ImageAtlas;
+struct ESubgroupTypes;
+struct RectF;
+struct ESubgroupOperation;
+struct EGraphicsDeviceID;
+struct ubyte3;
+struct ubyte2;
+struct EShaderStages;
+struct EReductionMode;
+struct ESamplerUsage;
+struct EShader;
+struct ESamplerYcbcrRange;
+struct uint2;
+struct MipmapLevel;
+struct ubyte4;
+struct RectI;
+struct uint3;
+struct RectU;
+struct UIImageStyle;
+struct uint4;
+struct ESurfaceFormat;
+struct ECompareOp;
+struct float4;
+struct EResourceState;
+struct RasterFont;
+struct float2;
+struct Model;
+struct UIStyleCollection;
+struct EBlendFactor;
+struct EShaderIO;
+struct EPipelineOpt;
+struct EImageAspect;
+struct EVendorID;
+struct float3;
+struct EStencilOp;
+struct EAttachmentLoadOp;
+struct EBorderColor;
+struct EPolygonMode;
+struct EAttachmentStoreOp;
+struct EDescSetUsage;
+struct EAddressMode;
+struct EVertexInputRate;
+struct ERasterFontMode;
+struct UIFontStyle;
+struct EVertexType;
+struct ECubeFace;
+struct bool4;
+struct RGBA32i;
+struct bool2;
+struct ESamplerChromaLocation;
+struct bool3;
+struct ImageLayer;
+struct int4;
+struct int3;
+struct EImage;
+struct HSVColor;
+struct int2;
 struct MultiSamples;
+struct RGBA32f;
+struct ELogicOp;
 struct EQueueMask;
+struct EBlendOp;
 struct EFeature;
 struct EFilter;
 struct sbyte2;
-struct EPipelineDynamicState;
 struct ECullMode;
-struct ECubeFace;
-struct EPixelFormat;
-struct ELogicOp;
 struct short4;
-struct EBlendOp;
-struct bool4;
-struct int3;
-struct EVertexType;
-struct ImageLayer;
-struct bool2;
-struct int2;
-struct bool3;
-struct ESamplerChromaLocation;
-struct int4;
-struct EBorderColor;
-struct EPolygonMode;
-struct ERasterFontMode;
-struct EAttachmentLoadOp;
-struct EDescSetUsage;
-struct EVertexInputRate;
-struct EAttachmentStoreOp;
-struct EAddressMode;
-struct EStencilOp;
-struct float3;
-struct float2;
-struct RasterFont;
-struct EResourceState;
-struct EImageAspect;
-struct EVendorID;
-struct EPipelineOpt;
-struct Model;
-struct RectU;
-struct EShaderIO;
-struct EBlendFactor;
-struct MipmapLevel;
-struct float4;
-struct ECompareOp;
-struct uint4;
-struct EShader;
-struct ESurfaceFormat;
-struct EShaderStages;
-struct uint3;
-struct uint2;
-struct RectI;
-struct ubyte4;
-struct EReductionMode;
-struct ESamplerYcbcrRange;
-struct ESamplerUsage;
-struct ubyte2;
-struct EGraphicsDeviceID;
-struct RectF;
-struct ESubgroupOperation;
-struct ubyte3;
-struct short2;
-struct ESubgroupTypes;
-struct sbyte3;
-struct EMipmapFilter;
-struct short3;
-struct ESamplerYcbcrModelConversion;
-struct Texture;
-struct EPrimitive;
-struct sbyte4;
 
 int  Abs (int);
 int  Square (int);
@@ -509,6 +520,109 @@ struct RectF
 	RectF (const float2 &, const float2 &);
 	RectF (float, float);
 	RectF (float, float, float, float);
+};
+
+struct RGBA32f
+{
+	RGBA32f ();
+	RGBA32f (const RGBA32f&);
+	RGBA32f&  operator = (const RGBA32f&);
+	RGBA32f (float);
+	RGBA32f (float, float, float, float);
+	float r;
+	float g;
+	float b;
+	float a;
+	RGBA32f (const HSVColor &, float);
+	RGBA32f (const RGBA8u &);
+	RGBA32f (const RGBA32u &);
+};
+
+struct RGBA32i
+{
+	RGBA32i ();
+	RGBA32i (const RGBA32i&);
+	RGBA32i&  operator = (const RGBA32i&);
+	RGBA32i (int);
+	RGBA32i (int, int, int, int);
+	int r;
+	int g;
+	int b;
+	int a;
+	RGBA32i (const RGBA8u &);
+	RGBA32i (const RGBA32u &);
+};
+
+struct RGBA32u
+{
+	RGBA32u ();
+	RGBA32u (const RGBA32u&);
+	RGBA32u&  operator = (const RGBA32u&);
+	RGBA32u (uint);
+	RGBA32u (uint, uint, uint, uint);
+	uint r;
+	uint g;
+	uint b;
+	uint a;
+	RGBA32u (const RGBA8u &);
+	RGBA32u (const RGBA32i &);
+};
+
+struct RGBA8u
+{
+	RGBA8u ();
+	RGBA8u (const RGBA8u&);
+	RGBA8u&  operator = (const RGBA8u&);
+	RGBA8u (uint8);
+	RGBA8u (uint8, uint8, uint8, uint8);
+	uint8 r;
+	uint8 g;
+	uint8 b;
+	uint8 a;
+	RGBA8u (const RGBA32i &);
+	RGBA8u (const RGBA32u &);
+	RGBA8u (const RGBA32f &);
+	RGBA8u  Lerp (const RGBA8u &, float);
+};
+
+struct HSVColor
+{
+	HSVColor ();
+	HSVColor (const HSVColor&);
+	HSVColor&  operator = (const HSVColor&);
+	float h;
+	float s;
+	float v;
+	HSVColor (float);
+	HSVColor (float, float);
+	HSVColor (float, float, float);
+	HSVColor (const RGBA32f &);
+};
+
+struct DepthStencil
+{
+	DepthStencil ();
+	DepthStencil (const DepthStencil&);
+	DepthStencil&  operator = (const DepthStencil&);
+	float depth;
+	uint stencil;
+	DepthStencil (float, int);
+};
+
+RGBA8u  asARGB (uint);
+RGBA8u  asRGBA (uint);
+struct EImage
+{
+	EImage () {}
+	EImage (uint) {}
+	operator uint () const;
+	static constexpr uint 1D = 0;
+	static constexpr uint 2D = 1;
+	static constexpr uint 3D = 2;
+	static constexpr uint 1DArray = 3;
+	static constexpr uint 2DArray = 4;
+	static constexpr uint Cube = 5;
+	static constexpr uint CubeArray = 6;
 };
 
 struct EPixelFormat
@@ -1223,45 +1337,48 @@ struct EGraphicsDeviceID
 	static constexpr uint AMD_RDNA1 = 13;
 	static constexpr uint AMD_RDNA2 = 14;
 	static constexpr uint AMD_RDNA2_APU = 15;
-	static constexpr uint Apple_A8 = 16;
-	static constexpr uint Apple_A9_A10 = 17;
-	static constexpr uint Apple_A11 = 18;
-	static constexpr uint Apple_A12 = 19;
-	static constexpr uint Apple_A13 = 20;
-	static constexpr uint Apple_A14_M1 = 21;
-	static constexpr uint Apple_A15_M2 = 22;
-	static constexpr uint Mali_Midgard_Gen2 = 23;
-	static constexpr uint Mali_Midgard_Gen3 = 24;
-	static constexpr uint Mali_Midgard_Gen4 = 25;
-	static constexpr uint Mali_Bifrost_Gen1 = 26;
-	static constexpr uint Mali_Bifrost_Gen2 = 27;
-	static constexpr uint Mali_Bifrost_Gen3 = 28;
-	static constexpr uint Mali_Valhall_Gen1 = 29;
-	static constexpr uint Mali_Valhall_Gen2 = 30;
-	static constexpr uint Mali_Valhall_Gen3 = 31;
-	static constexpr uint Mali_Valhall_Gen4 = 32;
-	static constexpr uint NV_Maxwell = 33;
-	static constexpr uint NV_Maxwell_Tegra = 34;
-	static constexpr uint NV_Pascal = 35;
-	static constexpr uint NV_Pascal_MX = 36;
-	static constexpr uint NV_Pascal_Tegra = 37;
-	static constexpr uint NV_Volta = 38;
-	static constexpr uint NV_Turing_16 = 39;
-	static constexpr uint NV_Turing = 40;
-	static constexpr uint NV_Turing_MX = 41;
-	static constexpr uint NV_Ampere = 42;
-	static constexpr uint NV_Ampere_Orin = 43;
-	static constexpr uint NV_Ada = 44;
-	static constexpr uint Intel_Gen9 = 45;
-	static constexpr uint Intel_Gen11 = 46;
-	static constexpr uint Intel_Gen12 = 47;
-	static constexpr uint PowerVR_Series8XE = 48;
-	static constexpr uint PowerVR_Series8XEP = 49;
-	static constexpr uint PowerVR_Series8XT = 50;
-	static constexpr uint PowerVR_Series9XE = 51;
-	static constexpr uint VeriSilicon = 52;
-	static constexpr uint V3D_4 = 53;
-	static constexpr uint SwiftShader = 54;
+	static constexpr uint AMD_RDNA3 = 16;
+	static constexpr uint AMD_RDNA3_APU = 17;
+	static constexpr uint Apple_A8 = 18;
+	static constexpr uint Apple_A9_A10 = 19;
+	static constexpr uint Apple_A11 = 20;
+	static constexpr uint Apple_A12 = 21;
+	static constexpr uint Apple_A13 = 22;
+	static constexpr uint Apple_A14_M1 = 23;
+	static constexpr uint Apple_A15_M2 = 24;
+	static constexpr uint Apple_A16 = 25;
+	static constexpr uint Mali_Midgard_Gen2 = 26;
+	static constexpr uint Mali_Midgard_Gen3 = 27;
+	static constexpr uint Mali_Midgard_Gen4 = 28;
+	static constexpr uint Mali_Bifrost_Gen1 = 29;
+	static constexpr uint Mali_Bifrost_Gen2 = 30;
+	static constexpr uint Mali_Bifrost_Gen3 = 31;
+	static constexpr uint Mali_Valhall_Gen1 = 32;
+	static constexpr uint Mali_Valhall_Gen2 = 33;
+	static constexpr uint Mali_Valhall_Gen3 = 34;
+	static constexpr uint Mali_Valhall_Gen4 = 35;
+	static constexpr uint NV_Maxwell = 36;
+	static constexpr uint NV_Maxwell_Tegra = 37;
+	static constexpr uint NV_Pascal = 38;
+	static constexpr uint NV_Pascal_MX = 39;
+	static constexpr uint NV_Pascal_Tegra = 40;
+	static constexpr uint NV_Volta = 41;
+	static constexpr uint NV_Turing_16 = 42;
+	static constexpr uint NV_Turing = 43;
+	static constexpr uint NV_Turing_MX = 44;
+	static constexpr uint NV_Ampere = 45;
+	static constexpr uint NV_Ampere_Orin = 46;
+	static constexpr uint NV_Ada = 47;
+	static constexpr uint Intel_Gen9 = 48;
+	static constexpr uint Intel_Gen11 = 49;
+	static constexpr uint Intel_Gen12 = 50;
+	static constexpr uint PowerVR_Series8XE = 51;
+	static constexpr uint PowerVR_Series8XEP = 52;
+	static constexpr uint PowerVR_Series8XT = 53;
+	static constexpr uint PowerVR_Series9XE = 54;
+	static constexpr uint VeriSilicon = 55;
+	static constexpr uint V3D_4 = 56;
+	static constexpr uint SwiftShader = 57;
 };
 
 struct EFilter
@@ -1534,10 +1651,57 @@ struct Material
 	Material ();
 };
 
-template <>
-struct RC<ImageAtlas> : ImageAtlas
+struct UIColorStyle
 {
-	RC (const ImageAtlas &);
+	void  Disabled (const RGBA8u &);
+	void  Enabled (const RGBA8u &);
+	void  MouseOver (const RGBA8u &);
+	void  TouchDown (const RGBA8u &);
+	void  Selected (const RGBA8u &);
+	void  Pipeline (const string &);
+};
+
+struct UIImageStyle
+{
+	void  Disabled (const RGBA8u &, const string &);
+	void  Enabled (const RGBA8u &, const string &);
+	void  MouseOver (const RGBA8u &, const string &);
+	void  TouchDown (const RGBA8u &, const string &);
+	void  Selected (const RGBA8u &, const string &);
+	void  Pipeline (const string &);
+};
+
+struct UIFontStyle
+{
+	void  Disabled (const RGBA8u &);
+	void  Enabled (const RGBA8u &);
+	void  MouseOver (const RGBA8u &);
+	void  TouchDown (const RGBA8u &);
+	void  Selected (const RGBA8u &);
+	void  Font (const string &);
+	void  Pipeline (const string &);
+};
+
+struct UIStyleCollection
+{
+	UIStyleCollection ();
+	void  Atlas (const string &);
+	RC<UIColorStyle>  AddColorStyle (const string &);
+	RC<UIImageStyle>  AddImageStyle (const string &);
+	RC<UIFontStyle>  AddFontStyle (const string &);
+	void  Store (const string &);
+};
+
+template <>
+struct RC<UIColorStyle> : UIColorStyle
+{
+	RC (const UIColorStyle &);
+};
+
+template <>
+struct RC<Texture> : Texture
+{
+	RC (const Texture &);
 };
 
 template <>
@@ -1553,6 +1717,18 @@ struct RC<Mesh> : Mesh
 };
 
 template <>
+struct RC<ImageAtlas> : ImageAtlas
+{
+	RC (const ImageAtlas &);
+};
+
+template <>
+struct RC<UIImageStyle> : UIImageStyle
+{
+	RC (const UIImageStyle &);
+};
+
+template <>
 struct RC<RasterFont> : RasterFont
 {
 	RC (const RasterFont &);
@@ -1565,8 +1741,14 @@ struct RC<Model> : Model
 };
 
 template <>
-struct RC<Texture> : Texture
+struct RC<UIStyleCollection> : UIStyleCollection
 {
-	RC (const Texture &);
+	RC (const UIStyleCollection &);
+};
+
+template <>
+struct RC<UIFontStyle> : UIFontStyle
+{
+	RC (const UIFontStyle &);
 };
 
