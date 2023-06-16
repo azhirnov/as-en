@@ -47,82 +47,68 @@ namespace AE::Base
 	public:
 		static constexpr Elem_t	_LastElemMask = ~((~Elem_t{0}) << (_BitCount % _ElemSize));
 
-		constexpr EnumBitSet ()								__NE___ {}
-		constexpr EnumBitSet (const Self &)					__NE___ = default;
+		constexpr EnumBitSet ()											__NE___ {}
+		constexpr EnumBitSet (const Self &)								__NE___ = default;
+		constexpr EnumBitSet (Base::_hidden_::DefaultType)				__NE___ {}
+		constexpr EnumBitSet (std::initializer_list<E> list)			__NE___	{ for (auto arg : list) { insert( arg ); }}
 
-		template <typename Arg0, typename ...Args>
-		explicit constexpr EnumBitSet (Arg0, Args ...)		__NE___;
-
-			constexpr Self&  operator = (const Self &)		__NE___ = default;
-
+			constexpr Self&  operator = (const Self &)					__NE___ = default;
 			constexpr Self&  operator = (Base::_hidden_::DefaultType)	__NE___	{ clear();  return *this; }
 			
-			constexpr Self&  set (E value, bool bit)		__NE___;
-			constexpr Self&  insert (E value)				__NE___;
-			constexpr Self&  InsertRange (E first, E last)	__NE___;
+			constexpr Self&  set (E value, bool bit)					__NE___;
+			constexpr Self&  insert (E value)							__NE___;
+			constexpr Self&  InsertRange (E first, E last)				__NE___;
 
-			constexpr Self&  erase (E value)				__NE___;
-			constexpr Self&  EraseRange (E first, E last)	__NE___;
+			constexpr Self&  erase (E value)							__NE___;
+			constexpr Self&  EraseRange (E first, E last)				__NE___;
 
-			constexpr Self&  clear ()						__NE___	{ _bits.fill(0);  return *this; }
-			constexpr Self&  SetAll ()						__NE___	{ _bits.fill(UMax);  return *this; }
+			constexpr Self&  clear ()									__NE___	{ _bits.fill(0);  return *this; }
+			constexpr Self&  SetAll ()									__NE___	{ _bits.fill(UMax);  return *this; }
 
-		ND_ constexpr bool  contains (E value)				C_NE___;
+		ND_ constexpr bool  contains (E value)							C_NE___;
 
-		ND_ constexpr bool  All ()							C_NE___	{ return BitCount() == _BitCount; }
-		ND_ constexpr bool  Any ()							C_NE___;
+		ND_ constexpr bool  All ()										C_NE___	{ return BitCount() == _BitCount; }
+		ND_ constexpr bool  Any ()										C_NE___;
 		
-		ND_ constexpr bool  Any (const Self &rhs)			C_NE___;
-		ND_ constexpr bool  All (const Self &rhs)			C_NE___;
+		ND_ constexpr bool  Any (const Self &rhs)						C_NE___;
+		ND_ constexpr bool  All (const Self &rhs)						C_NE___;
 
-		ND_ constexpr bool  None ()							C_NE___	{ return not Any(); }
-		ND_ constexpr usize size ()							C_NE___	{ return _BitCount; }
+		ND_ constexpr bool  None ()										C_NE___	{ return not Any(); }
+		ND_ constexpr usize size ()										C_NE___	{ return _BitCount; }
 
-		ND_ constexpr bool  AnyInRange (E first, E last)	C_NE___;
-		ND_ constexpr bool  AllInRange (E first, E last)	C_NE___;
+		ND_ constexpr bool  AnyInRange (E first, E last)				C_NE___;
+		ND_ constexpr bool  AllInRange (E first, E last)				C_NE___;
 		
-			constexpr Self&  operator |= (E rhs)			__NE___	{ return insert( rhs ); }
-			constexpr Self&  operator &= (E rhs)			__NE___	{ return erase( rhs ); }
+			constexpr Self&  operator |= (E rhs)						__NE___	{ return insert( rhs ); }
+			constexpr Self&  operator &= (E rhs)						__NE___	{ return erase( rhs ); }
 
-			constexpr Self&  operator |= (const Self &rhs)	__NE___;
-			constexpr Self&  operator &= (const Self &rhs)	__NE___;
+			constexpr Self&  operator |= (const Self &rhs)				__NE___;
+			constexpr Self&  operator &= (const Self &rhs)				__NE___;
 
-		ND_ constexpr Self  operator ~  ()					C_NE___;
+		ND_ constexpr Self  operator ~  ()								C_NE___;
 
-		ND_ constexpr Self  operator |  (const Self &rhs)	C_NE___	{ return Self{*this} |= rhs; }
-		ND_ constexpr Self  operator &  (const Self &rhs)	C_NE___	{ return Self{*this} &= rhs; }
+		ND_ constexpr Self  operator |  (const Self &rhs)				C_NE___	{ return Self{*this} |= rhs; }
+		ND_ constexpr Self  operator &  (const Self &rhs)				C_NE___	{ return Self{*this} &= rhs; }
 
-		ND_ constexpr bool  operator == (const Self &rhs)	C_NE___;
-		ND_ constexpr bool  operator != (const Self &rhs)	C_NE___	{ return not (*this == rhs); }
-		ND_ constexpr bool  operator >  (const Self &rhs)	C_NE___;
-		ND_ constexpr bool  operator <  (const Self &rhs)	C_NE___;
-		ND_ constexpr bool  operator >= (const Self &rhs)	C_NE___	{ return not (*this < rhs); }
-		ND_ constexpr bool  operator <= (const Self &rhs)	C_NE___	{ return not (*this > rhs); }
+		ND_ constexpr bool  operator == (const Self &rhs)				C_NE___;
+		ND_ constexpr bool  operator != (const Self &rhs)				C_NE___	{ return not (*this == rhs); }
+		ND_ constexpr bool  operator >  (const Self &rhs)				C_NE___;
+		ND_ constexpr bool  operator <  (const Self &rhs)				C_NE___;
+		ND_ constexpr bool  operator >= (const Self &rhs)				C_NE___	{ return not (*this < rhs); }
+		ND_ constexpr bool  operator <= (const Self &rhs)				C_NE___	{ return not (*this > rhs); }
 
-		ND_ constexpr BitArr_t const&  ToArray ()			C_NE___	{ return _bits; }
+		ND_ constexpr BitArr_t const&  ToArray ()						C_NE___	{ return _bits; }
 
-		ND_ constexpr usize		BitCount ()					C_NE___;
-		ND_ constexpr usize		ZeroCount ()				C_NE___	{ return size() - BitCount(); }
+		ND_ constexpr usize		BitCount ()								C_NE___;
+		ND_ constexpr usize		ZeroCount ()							C_NE___	{ return size() - BitCount(); }
 
-		ND_ constexpr E			ExtractFirst ()				__NE___;
-		ND_ constexpr E			First ()					C_NE___;	// first non-zero bit
-		ND_ constexpr E			Last ()						C_NE___;	// last non-zero bit
+		ND_ constexpr E			ExtractFirst ()							__NE___;
+		ND_ constexpr E			First ()								C_NE___;	// first non-zero bit
+		ND_ constexpr E			Last ()									C_NE___;	// last non-zero bit
 
-		ND_ HashVal  CalcHash ()							C_NE___;
+		ND_ HashVal  CalcHash ()										C_NE___;
 	};
-	
-	
-/*
-=================================================
-	constructor
-=================================================
-*/
-	template <typename E>
-	template <typename Arg0, typename ...Args>
-	constexpr EnumBitSet<E>::EnumBitSet (Arg0 arg0, Args ...args) __NE___
-	{
-		Unused( insert( arg0 ), insert( args )... );
-	}
+
 
 /*
 =================================================

@@ -7,6 +7,7 @@
 #include "base/Containers/ArrayView.h"
 #include "base/Math/Math.h"
 #include "base/Math/POTValue.h"
+#include "base/Utils/Threading.h"
 
 namespace AE::Base
 {
@@ -172,7 +173,7 @@ namespace _hidden_
 	template <typename E>
 	void  TSharedMem<E>::_ReleaseObject () __NE___
 	{
-		std::atomic_thread_fence( std::memory_order_acquire );
+		MemoryBarrier( EMemoryOrder::Acquire );
 		CHECK( _allocator );
 
 		auto	alloc	= RVRef(_allocator);

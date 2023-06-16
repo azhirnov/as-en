@@ -123,14 +123,14 @@ namespace AE::Graphics::_hidden_
 		ND_ bool						IsSecondaryCmdbuf ()																C_NE___	{ return _primaryState.useSecondaryCmdbuf; }
 
 
-		// synchronious rendering api
+		// synchronous rendering api
 		ND_ DrawCtx	BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default, void* userData = null)			__Th___;
 		ND_ DrawCtx	NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg = Default, void* userData = null)						__Th___;
 			void	EndRenderPass (DrawCtx& ctx)																			__Th___;
 			void	EndRenderPass (DrawCtx& ctx, const RenderPassDesc &desc)												__Th___;
 
 			
-		// asynchronious rendering api
+		// asynchronous rendering api
 		ND_ auto	BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg = Default, void* userData = null)			__Th___ -> RC<VDrawCommandBatch>;
 		ND_ auto	NextMtSubpass (const VDrawCommandBatch &prevPassBatch, DebugLabel dbg = Default, void* userData = null)	__Th___ -> RC<VDrawCommandBatch>;
 			void	EndMtRenderPass ()																						__Th___;

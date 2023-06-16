@@ -208,9 +208,9 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
 	template <typename C>
-	void  _VComputeContextImpl<C>::DispatchIndirect (BufferID bufferid, Bytes offset)
+	void  _VComputeContextImpl<C>::DispatchIndirect (BufferID bufferId, Bytes offset)
 	{
-		auto&	buf = _GetResourcesOrThrow( bufferid );
+		auto&	buf = _GetResourcesOrThrow( bufferId );
 		Validator_t::DispatchIndirect( buf, offset );
 
 		RawCtx::DispatchIndirect( buf.Handle(), offset );

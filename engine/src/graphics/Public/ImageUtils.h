@@ -8,7 +8,7 @@
 
 namespace AE::Graphics
 {
-struct ImageUtils final : Noninstancable
+struct ImageUtils final : Noninstanceable
 {
 	using Pixels	= uint;
 	using Pixels2	= uint2;

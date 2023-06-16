@@ -64,19 +64,18 @@ RGTest::RGTest () :
 	_tests.emplace_back( &RGTest::Test_AsyncCompute3 );
 	_tests.emplace_back( &RGTest::Test_Draw1 );
 	_tests.emplace_back( &RGTest::Test_Draw2 );
+	_tests.emplace_back( &RGTest::Test_Draw3 );
 	_tests.emplace_back( &RGTest::Test_DrawAsync1 );
 	_tests.emplace_back( &RGTest::Test_DrawMesh1 );
 	_tests.emplace_back( &RGTest::Test_DrawMesh2 );
 	_tests.emplace_back( &RGTest::Test_RayQuery1 );
 	_tests.emplace_back( &RGTest::Test_RayTracing1 );
+	_tests.emplace_back( &RGTest::Test_ShadingRate1 );
 	_tests.emplace_back( &RGTest::Test_Debugger1 );
 	_tests.emplace_back( &RGTest::Test_Debugger2 );
 	_tests.emplace_back( &RGTest::Test_Debugger3 );
 	_tests.emplace_back( &RGTest::Test_Debugger4 );
 	_tests.emplace_back( &RGTest::Test_Debugger5 );
-
-	// TODO:
-	//_tests.emplace_back( &RGTest::Test_Draw3 );
 }
 
 /*
@@ -182,11 +181,11 @@ bool  RGTest::_CompilePipelines ()
 	_pipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"DrawTestRT"}, Default );
 	CHECK_ERR( _pipelines );
 	
-	_acPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"AsyncCompTestRT"},		Default );
-	_msPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"DrawMeshesTestRT"},	Default );
-	_rtPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"RayTracingTestRT"},	Default );
-	_rqPipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"RayQueryTestRT"},		Default );
-
+	_acPipelines	= res_mngr.LoadRenderTech( Default, RenderTechName{"AsyncCompTestRT"},	Default );
+	_msPipelines	= res_mngr.LoadRenderTech( Default, RenderTechName{"DrawMeshesTestRT"},	Default );
+	_rtPipelines	= res_mngr.LoadRenderTech( Default, RenderTechName{"RayTracingTestRT"},	Default );
+	_rqPipelines	= res_mngr.LoadRenderTech( Default, RenderTechName{"RayQueryTestRT"},	Default );
+	_vrsPipelines	= res_mngr.LoadRenderTech( Default, RenderTechName{"VRSTestRT"},		Default );
 
 	return true;
 }
@@ -334,6 +333,7 @@ void  RGTest::_Destroy ()
 	_msPipelines	= null;
 	_rtPipelines	= null;
 	_rqPipelines	= null;
+	_vrsPipelines	= null;
 
 	_swapchain.Destroy();
 	_swapchain.DestroySurface();
@@ -484,6 +484,7 @@ void  RGTest::_Destroy ()
 	_msPipelines	= null;
 	_rtPipelines	= null;
 	_rqPipelines	= null;
+	_vrsPipelines	= null;
 
 	_swapchain.Destroy();
 	_swapchain.DestroySurface();

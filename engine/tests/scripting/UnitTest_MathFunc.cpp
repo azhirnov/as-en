@@ -23,13 +23,14 @@ namespace
 		int script_res;
 		bool res = Run< int() >( se, R"#(
 			int ASmain () {
-				uint2 a( 1, 2 );
-				uint2 b = a + 4;
-				uint2 c = b & 1;
-				return c.x == 1 ? 1 : c.y == 1 ? 2 : 0;
+				const uint2 a( 1, 2 );
+				const uint2 b = a + 4;
+				const uint2 c = b & 1;
+				const uint2 d = c + a;
+				return d.x != 2 ? 1 : d.y != 2 ? 2 : 0;
 			})#", "ASmain", OUT script_res );
 		TEST( res );
-		TEST( script_res == 1 );
+		TEST( script_res == 0 );
 	}
 
 

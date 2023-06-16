@@ -20,7 +20,7 @@ source_group( "external/platform" FILES ${PLATFORM_SRC} )
 
 target_link_libraries( "InputActionsBinding" PUBLIC "Serializing" "Scripting" )
 target_compile_definitions( "InputActionsBinding" PRIVATE "AE_BUILD_INPUT_ACTIONS_BINDING" )
-target_include_directories( "InputActionsBinding" PUBLIC "." "${PLATFORM_SRC}/.." )
+target_include_directories( "InputActionsBinding" PUBLIC "." )
 
 add_library( "InputActionsBinding-shared" SHARED
 	"InputActionsBinding.h"

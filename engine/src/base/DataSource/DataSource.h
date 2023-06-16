@@ -230,7 +230,7 @@ namespace AE::Base
 	// Data Source Utils
 	//
 
-	class DataSourceUtils final : public Noninstancable
+	class DataSourceUtils final : public Noninstanceable
 	{
 	// types
 	public:

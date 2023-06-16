@@ -49,7 +49,7 @@ namespace glm
 	
 /*
 =================================================
-	operator *, oeprator /
+	operator *, operator /
 =================================================
 */
 	template <typename T, int I, typename S, glm::qualifier Q>

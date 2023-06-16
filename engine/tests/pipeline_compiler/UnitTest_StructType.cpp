@@ -513,6 +513,119 @@ static_assert( sizeof(StType5) == 36, "size mismatch" );
 		TEST( msl == ref_msl );
 		TEST( cpp == ref_cpp );
 	}
+
+	
+	static void  StructType_Test7 ()
+	{
+		ShaderStructTypePtr	st{ new ShaderStructType{ "StType6" }};
+		st->Set( EStructLayout::Compatible_Std430,
+				 "uint				Count;"
+				 "packed_float2		Positions [3];"
+				 "uint				Indices [3];"
+				 "packed_float3x3	Mat [2];"
+				 "float2			Positions2 [3];"
+				 "uint				Indices2 [3];"
+				 "float3x3			Mat2 [2];" );
+		
+		TEST( not st->HasDynamicArray() );
+		TEST_Eq( st->ArrayStride(), 0_b );
+		
+		const String	glsl = ToGLSL( st );
+		const String	msl  = ToMSL( st );
+		const String	cpp  = ToCPP( st );
+
+		const String	ref_msl = R"#(
+// size: 72 b, align: 4 b
+struct packed_float3x3
+{
+	packed_float3  c0;
+	packed_float3  c1;
+	packed_float3  c2;
+
+	float3x3 cast () const { return float3x3( float3(c0), float3(c1), float3(c2) ); }
+};
+struct StType6
+{
+	uint  Count;  // offset: 0
+	packed_float2  Positions [3];  // offset: 4
+	uint  Indices [3];  // offset: 28
+	packed_float3x3  Mat [2];  // offset: 40
+	float2  Positions2 [3];  // offset: 112
+	uint  Indices2 [3];  // offset: 136
+	float3x3  Mat2 [2];  // offset: 160
+};
+static_assert( sizeof(StType6) == 256, "size mismatch" );
+
+)#";
+		const String	ref_glsl = R"#(
+// size: 24 b, align: 4 b
+struct float_packed2
+{
+	float  x;
+	float  y;
+};
+#define float_packed2_cast( _src_ )  vec2( (_src_.x), (_src_.y) )
+
+// size: 24 b, align: 4 b
+struct float_packed3
+{
+	float  x;
+	float  y;
+	float  z;
+};
+#define float_packed3_cast( _src_ )  vec3( (_src_.x), (_src_.y), (_src_.z) )
+
+// size: 72 b, align: 4 b
+struct float_packed3x3
+{
+	float_packed3  c0;
+	float_packed3  c1;
+	float_packed3  c2;
+};
+#define float_packed3x3_cast( _src_ )  mat3x3( float_packed3_cast(_src_.c0), float_packed3_cast(_src_.c1), float_packed3_cast(_src_.c2) )
+
+Buffer {
+	layout(offset=0, align=4) uint  Count;
+	layout(offset=4, align=4) float_packed2  Positions [3];
+	layout(offset=28, align=4) uint  Indices [3];
+	layout(offset=40, align=4) float_packed3x3  Mat [2];
+	layout(offset=112, align=8) vec2  Positions2 [3];
+	layout(offset=136, align=4) uint  Indices2 [3];
+	layout(offset=160, align=16) mat3x3  Mat2 [2];
+}
+)#";
+		const String	ref_cpp = R"#(
+#ifndef StType6_DEFINED
+#	define StType6_DEFINED
+	// size: 256, align: 16
+	struct StType6
+	{
+		static constexpr auto  TypeName = ShaderStructName{"StType6"};
+
+		uint  Count;
+		StaticArray< packed_float2, 3 >    Positions;
+		StaticArray< uint, 3 >    Indices;
+		StaticArray< packed_float3x3_storage, 2 >    Mat;
+		StaticArray< float2, 3 >    Positions2;
+		StaticArray< uint, 3 >    Indices2;
+		StaticArray< float3x3_storage, 2 >    Mat2;
+	};
+	STATIC_ASSERT( offsetof(StType6, Count) == 0 );
+	STATIC_ASSERT( offsetof(StType6, Positions) == 4 );
+	STATIC_ASSERT( offsetof(StType6, Indices) == 28 );
+	STATIC_ASSERT( offsetof(StType6, Mat) == 40 );
+	STATIC_ASSERT( offsetof(StType6, Positions2) == 112 );
+	STATIC_ASSERT( offsetof(StType6, Indices2) == 136 );
+	STATIC_ASSERT( offsetof(StType6, Mat2) == 160 );
+	STATIC_ASSERT( sizeof(StType6) == 256 );
+#endif
+
+)#";
+		
+		TEST( glsl == ref_glsl );
+		TEST( msl == ref_msl );
+		TEST( cpp == ref_cpp );
+	}
 }
 
 
@@ -521,7 +634,7 @@ extern void  UnitTest_StructType ()
 	ObjectStorage	obj;
 	PipelineStorage	ppln;
 	obj.pplnStorage		= &ppln;
-	//obj.metalCompiler	= MakeUnique<MetalCompiler>( ArrayView<Path>{} );
+	obj.metalCompiler	= MakeUnique<MetalCompiler>( ArrayView<Path>{} );
 	obj.spirvCompiler	= MakeUnique<SpirvCompiler>( Array<Path>{} );
 	obj.spirvCompiler->SetDefaultResourceLimits();
 	ObjectStorage::SetInstance( &obj );
@@ -533,6 +646,7 @@ extern void  UnitTest_StructType ()
 		StructType_Test4();
 		StructType_Test5();
 		StructType_Test6();
+		StructType_Test7();
 	} catch(...) {
 		TEST( false );
 	}

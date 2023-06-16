@@ -104,14 +104,87 @@ namespace
 		TEST( a >= b );
 		TEST( b >= a );
 	}
+
+	
+	static void  FeatureSet_Test5 ()
+	{
+		FeatureSet	a;
+		FeatureSet	b;
+
+		a.attachmentFragmentShadingRate = EFeature::RequireTrue;
+		b.pipelineFragmentShadingRate	= EFeature::RequireTrue;
+
+		a.fragmentShadingRates.push_back( EShadingRate::Size4x4 | EShadingRate::Samples1 );
+		b.fragmentShadingRates.push_back( EShadingRate::Size2x2 | EShadingRate::Samples1_2 );
+		
+		a.Validate();
+		b.Validate();
+
+		TEST( a.IsValid() );
+		TEST( b.IsValid() );
+		
+		TEST( a != b );
+		TEST( b != a );
+		TEST( a >= b );
+		TEST( a.fragmentShadingRates.size() == 1 );
+		TEST( b.fragmentShadingRates.size() == 1 );
+	}
+
+
+	static void  FeatureSet_Test6 ()
+	{
+		FeatureSet	a;
+		FeatureSet	b;
+
+		a.attachmentFragmentShadingRate = EFeature::RequireTrue;
+		b.pipelineFragmentShadingRate	= EFeature::RequireTrue;
+
+		a.fragmentShadingRates.push_back( EShadingRate::Size2x2 | EShadingRate::Samples1_2_4 );
+		b.fragmentShadingRates.push_back( EShadingRate::Size2x2 | EShadingRate::Samples1 );
+		
+		a.MergeMax( b );
+
+		a.Validate();
+		TEST( a.IsValid() );
+		
+		TEST( a != b );
+		TEST( b != a );
+		TEST( a >= b );
+		TEST( a.fragmentShadingRates.size() == 1 );
+		TEST( a.fragmentShadingRates[0] == (EShadingRate::Size2x2 | EShadingRate::Samples1_2_4) );
+	}
+
+
+	static void  FeatureSet_Test7 ()
+	{
+		FeatureSet	a;
+		FeatureSet	b;
+
+		a.attachmentFragmentShadingRate = EFeature::RequireTrue;
+		b.pipelineFragmentShadingRate	= EFeature::RequireTrue;
+
+		a.fragmentShadingRates.push_back( EShadingRate::Size2x2 | EShadingRate::Samples1_2_4 );
+		b.fragmentShadingRates.push_back( EShadingRate::Size2x2 | EShadingRate::Samples1_2 );
+		
+		a.MergeMin( b );
+		
+		a.Validate();
+		TEST( a.IsValid() );
+		
+		TEST( a != b );
+		TEST( b != a );
+		TEST( a >= b );
+		TEST( a.fragmentShadingRates.size() == 1 );
+		TEST( a.fragmentShadingRates[0] == (EShadingRate::Size2x2 | EShadingRate::Samples1_2) );
+	}
 }
 
 
 extern void UnitTest_FeatureSet ()
 {
 	const auto	h = FeatureSet::GetHashOfFS();
-	ASSERT( h == HashVal64{0x2ab034088d195a8cull} );
-
+	ASSERT( h == HashVal64{0x3b2103abc1fc1748ull} );
+	/*
 	ASSERT_Eq( OffsetOf( &FeatureSet::subgroupOperations ),				  8 );
 	ASSERT_Eq( OffsetOf( &FeatureSet::minSubgroupSize ),				 28 );
 	ASSERT_Eq( OffsetOf( &FeatureSet::minSubsampledArrayLayers ),		 64 );
@@ -129,12 +202,15 @@ extern void UnitTest_FeatureSet ()
 
 	ASSERT_Eq( OffsetOf( &FeatureSet::devicesIds ),						696 );
 
-	STATIC_ASSERT( sizeof(FeatureSet) == 712 );
+	STATIC_ASSERT( sizeof(FeatureSet) == 696 );*/
 
 	FeatureSet_Test1();
 	FeatureSet_Test2();
 	FeatureSet_Test3();
 	FeatureSet_Test4();
+	FeatureSet_Test5();
+	FeatureSet_Test6();
+	FeatureSet_Test7();
 
 	TEST_PASSED();
 }

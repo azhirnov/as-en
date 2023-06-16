@@ -111,7 +111,7 @@ namespace AE::Base
 
 	// variables
 	private:
-		T * RST			_array		= null;
+		T *				_array		= null;
 		Offset_t		_first		= 0;
 		Offset_t		_end		= 0;
 		Offset_t		_packed		= _EmptyBit;	// 31 bits for capacity, 1 bit for empty flag

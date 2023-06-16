@@ -107,6 +107,9 @@ namespace AE::Graphics::_hidden_
 		void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor);
 		void  _SetDepthBounds (float minDepthBounds, float maxDepthBounds);
 		void  _SetBlendConstants (const RGBA32f &color);
+
+		void  _SetFragmentShadingRate (const VkExtent2D &fragSize, VkFragmentShadingRateCombinerOpKHR primitiveOp,
+									   VkFragmentShadingRateCombinerOpKHR textureOp);
 		
 		void  _BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<VkDeviceSize> offsets);
 
@@ -133,6 +136,7 @@ namespace AE::Graphics::_hidden_
 		ND_ auto&	_GetExtensions ()		C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
 		ND_ auto&	_GetFeatures ()			C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
 		ND_ auto&	_GetDeviceProperties ()	C_NE___	{ return _mngr.GetDevice().GetDeviceProperties(); }
+		ND_ auto	_GetDynamicStates ()	C_NE___	{ return _states.flags; }
 
 	private:
 		template <typename C> friend class _VGraphicsContextImpl;
@@ -227,6 +231,9 @@ namespace AE::Graphics::_hidden_
 		void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor);
 		void  _SetDepthBounds (float minDepthBounds, float maxDepthBounds);
 		void  _SetBlendConstants (const RGBA32f &color);
+
+		void  _SetFragmentShadingRate (const VkExtent2D &fragSize, VkFragmentShadingRateCombinerOpKHR primitiveOp,
+									   VkFragmentShadingRateCombinerOpKHR textureOp);
 		
 		void  _BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<VkDeviceSize> offsets);
 
@@ -253,6 +260,7 @@ namespace AE::Graphics::_hidden_
 		ND_ auto&	_GetExtensions ()		C_NE___	{ return _mngr.GetDevice().GetExtensions(); }
 		ND_ auto&	_GetFeatures ()			C_NE___	{ return _mngr.GetDevice().GetProperties().features; }
 		ND_ auto&	_GetDeviceProperties ()	C_NE___	{ return _mngr.GetDevice().GetDeviceProperties(); }
+		ND_ auto	_GetDynamicStates ()	C_NE___	{ return _states.flags; }
 		
 	private:
 		template <typename C> friend class _VGraphicsContextImpl;
@@ -314,7 +322,8 @@ namespace AE::Graphics::_hidden_
 		void  SetStencilReference (uint frontReference, uint backReference)													__Th_OV;
 		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV	{ RawCtx::_SetBlendConstants( color ); }
 		void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th___;
-		
+		void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)	__Th___;
+
 		using RawCtx::SetViewport;
 		using RawCtx::SetScissor;
 		using RawCtx::SetStencilWriteMask;
@@ -619,6 +628,21 @@ namespace AE::Graphics::_hidden_
 	
 /*
 =================================================
+	SetFragmentShadingRate
+=================================================
+*/
+	template <typename C>
+	void  _VDrawContextImpl<C>::SetFragmentShadingRate (EShadingRate rate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp) __Th___
+	{
+		Validator_t::SetFragmentShadingRate( this->_GetDynamicStates(), rate, primitiveOp, textureOp );
+
+		uint2	size = EShadingRate_Size( rate );
+
+		RawCtx::_SetFragmentShadingRate( VkExtent2D{size.x, size.y}, VEnumCast(primitiveOp), VEnumCast(textureOp) );
+	}
+
+/*
+=================================================
 	SetStencilCompareMask
 =================================================
 */
@@ -725,7 +749,7 @@ namespace AE::Graphics::_hidden_
 	void  _VDrawContextImpl<C>::BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)
 	{
 		STATIC_ASSERT( sizeof(Bytes) == sizeof(VkDeviceSize) );
-		Validator_t::BindVertexBuffers( firstBinding, buffers, offsets );
+		Validator_t::BindVertexBuffers( firstBinding, buffers, offsets, this->_GetDeviceProperties().res.minVertexBufferOffsetAlign );
 
 		StaticArray< VkBuffer, GraphicsConfig::MaxVertexBuffers >	dst_buffers;
 
@@ -1045,7 +1069,7 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  _VDirectDrawCtx::_SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)
 	{
-		ASSERT( AllBits( _states.flags, EPipelineDynamicState::DepthBias ));
+		Validator_t::SetDepthBias( _GetDynamicStates() );
 		ASSERT( _GetFeatures().depthBiasClamp or IsZero( depthBiasClamp ));
 
 		vkCmdSetDepthBias( _cmdbuf.Get(), depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor );
@@ -1059,11 +1083,27 @@ namespace AE::Graphics::_hidden_
 	inline void  _VDirectDrawCtx::_SetDepthBounds (float minDepthBounds, float maxDepthBounds)
 	{
 		ASSERT( _GetFeatures().depthBounds );
-		//ASSERT( AllBits( _states.flags, EPipelineDynamicState::DepthBounds ));
-
+		Validator_t::SetDepthBounds( _GetDynamicStates() );
 		vkCmdSetDepthBounds( _cmdbuf.Get(), minDepthBounds, maxDepthBounds );
 	}
 	
+/*
+=================================================
+	_SetFragmentShadingRate
+=================================================
+*/
+	inline void  _VDirectDrawCtx::_SetFragmentShadingRate (const VkExtent2D &fragSize, VkFragmentShadingRateCombinerOpKHR primitiveOp,
+														   VkFragmentShadingRateCombinerOpKHR textureOp)
+	{
+		ASSERT( _GetExtensions().fragShadingRate );
+		ASSERT( AllBits( _states.flags, EPipelineDynamicState::FragmentShadingRate ));
+		ASSERT( fragSize.width <= 4 and fragSize.height <= 4 );
+		
+		VkFragmentShadingRateCombinerOpKHR	combiner_ops[2] = { primitiveOp, textureOp };
+
+		vkCmdSetFragmentShadingRateKHR( _cmdbuf.Get(), &fragSize, combiner_ops );
+	}
+
 /*
 =================================================
 	SetStencilCompareMask
@@ -1071,7 +1111,7 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  _VDirectDrawCtx::SetStencilCompareMask (VkStencilFaceFlagBits faceMask, uint compareMask)
 	{
-		ASSERT( AllBits( _states.flags, EPipelineDynamicState::StencilCompareMask ));
+		Validator_t::SetStencilCompareMask( _GetDynamicStates() );
 		vkCmdSetStencilCompareMask( _cmdbuf.Get(), faceMask, compareMask );
 	}
 	
@@ -1082,7 +1122,7 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  _VDirectDrawCtx::SetStencilWriteMask (VkStencilFaceFlagBits faceMask, uint writeMask)
 	{
-		ASSERT( AllBits( _states.flags, EPipelineDynamicState::StencilWriteMask ));
+		Validator_t::SetStencilWriteMask( _GetDynamicStates() );
 		vkCmdSetStencilWriteMask( _cmdbuf.Get(), faceMask, writeMask );
 	}
 	
@@ -1093,7 +1133,7 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  _VDirectDrawCtx::SetStencilReference (VkStencilFaceFlagBits faceMask, uint reference)
 	{
-		ASSERT( AllBits( _states.flags, EPipelineDynamicState::StencilReference ));
+		Validator_t::SetStencilReference( _GetDynamicStates() );
 		vkCmdSetStencilReference( _cmdbuf.Get(), faceMask, reference );
 	}
 	
@@ -1104,7 +1144,7 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  _VDirectDrawCtx::_SetBlendConstants (const RGBA32f &color)
 	{
-		ASSERT( AllBits( _states.flags, EPipelineDynamicState::BlendConstants ));
+		Validator_t::SetBlendConstants( _GetDynamicStates() );
 		vkCmdSetBlendConstants( _cmdbuf.Get(), color.data() );
 	}
 
@@ -1125,15 +1165,6 @@ namespace AE::Graphics::_hidden_
 */
 	inline void  _VDirectDrawCtx::_BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<VkDeviceSize> offsets)
 	{
-		ASSERT( buffers.size() );
-		ASSERT( buffers.size() == offsets.size() );
-
-		DEBUG_ONLY(
-			const auto	align = VkDeviceSize(_GetDeviceProperties().res.minVertexBufferOffsetAlign);
-			for (auto off : offsets) {
-				ASSERT( off % align == 0 );
-			})
-
 		vkCmdBindVertexBuffers( _cmdbuf.Get(), firstBinding, uint(buffers.size()), buffers.data(), offsets.data() );
 	}
 	

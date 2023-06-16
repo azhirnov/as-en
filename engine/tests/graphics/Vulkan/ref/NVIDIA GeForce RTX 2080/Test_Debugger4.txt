@@ -16,19 +16,19 @@ name: 'Debugger4 |0| Upload RTAS task'
   ----------
 
   CopyBuffer
-    src: 'SSWB {f:0} {q:Graphics}'
+    src: 'SSWB {f:1} {q:Graphics}'
     dst: 'RTAS vertex buffer'
       copy [0, 48) ---> [0, 48)
   ----------
 
   CopyBuffer
-    src: 'SSWB {f:0} {q:Graphics}'
+    src: 'SSWB {f:1} {q:Graphics}'
     dst: 'RTAS index buffer'
       copy [48, 60) ---> [0, 12)
   ----------
 
   CopyBuffer
-    src: 'SSWB {f:0} {q:Graphics}'
+    src: 'SSWB {f:1} {q:Graphics}'
     dst: 'RTAS instance buffer'
       copy [60, 124) ---> [0, 64)
   ----------

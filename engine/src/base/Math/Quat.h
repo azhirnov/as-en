@@ -121,7 +121,7 @@ namespace AE::Math
 		ND_ static Self  FromDirection (const Vec3_t &dir, const Vec3_t &up) __NE___;
 	};
 
-	using QuatF			= Quat< float, GLMQuialifier >;
+	using QuatF			= Quat< float, GLMQualifier >;
 	using PackedQuatF	= Quat< float, glm::qualifier::packed_highp >;
 
 	

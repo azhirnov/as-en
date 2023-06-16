@@ -114,7 +114,7 @@ namespace AE::Math
 		ND_ Self  FNMSub (const Self &b, const Self &c)		C_NE___ { return Self{ _mm_fnmsub_ps(   _value, b._value, c._value )}; }	// -a * b - c
 
 		ND_ Self  Sqrt ()									C_NE___	{ return Self{ _mm_sqrt_ps( _value )}; }
-		ND_ Self  Reciporal ()								C_NE___	{ return Self{ _mm_rcp_ps( _value )}; }							// 1 / x
+		ND_ Self  Reciprocal ()								C_NE___	{ return Self{ _mm_rcp_ps( _value )}; }							// 1 / x
 		ND_ Self  RSqrt ()									C_NE___	{ return Self{ _mm_rsqrt_ps( _value )}; }						// 1 / sqrt(x)
 		ND_ Self  FastSqrt ()								C_NE___	{ return Self{ _mm_mul_ps( _value, _mm_rsqrt_ps( _value ))}; }	// x / sqrt(x)
 		ND_ Self  Scale (const Self &rhs)					C_NE___	{ return Self{ _mm_scalef_ps( _value, rhs._value )}; }			// a * 2^b
@@ -131,7 +131,7 @@ namespace AE::Math
 		ND_ Self  DivScalar (const Self &rhs)				C_NE___	{ return Self{ _mm_div_ss( _value, rhs._value )}; }			// { a0 / b0, a1, a2, a3 }
 		ND_ Self  SqrtScalar ()								C_NE___	{ return Self{ _mm_sqrt_ss( _value )}; }					// { sqrt(a0), a1, a2, a3 }
 		ND_ Self  RSqrtScalar ()							C_NE___	{ return Self{ _mm_rsqrt_ss( _value )}; }					// { 1 / sqrt(a0), a1, a2, a3 }
-		ND_ Self  ReciporalScalar ()						C_NE___	{ return Self{ _mm_rcp_ps( _value )}; }						// { 1 / a0, a1, a2, a3 }
+		ND_ Self  ReciprocalScalar ()						C_NE___	{ return Self{ _mm_rcp_ps( _value )}; }						// { 1 / a0, a1, a2, a3 }
 
 		ND_ Bool4  Equal    (const Self &rhs)				C_NE___	{ return Bool4{ _mm_cmpeq_ps(  _value, rhs._value )}; }
 		ND_ Bool4  NotEqual (const Self &rhs)				C_NE___	{ return Bool4{ _mm_cmpneq_ps( _value, rhs._value )}; }
@@ -330,7 +330,7 @@ namespace AE::Math
 			return Self{ _mm_andnot_pd( signmask, _value )};
 		}
 		
-		ND_ Self  Reciporal ()								C_NE___	{ return Self{ _mm_rcp14_pd( _value )}; }							// 1 / x
+		ND_ Self  Reciprocal ()								C_NE___	{ return Self{ _mm_rcp14_pd( _value )}; }							// 1 / x
 		ND_ Self  Sqrt ()									C_NE___	{ return Self{ _mm_sqrt_pd( _value )}; }
 	//	ND_ Self  RSqrt ()									C_NE___	{ return Self{ _mm_rsqrt14_pd( _value )}; }							// 1 / sqrt(x)
 	//	ND_ Self  FastSqrt ()								C_NE___	{ return Self{ _mm_mul_pd( _value, _mm_rsqrt14_pd( _value ))}; }	// x / sqrt(x)
@@ -396,9 +396,10 @@ namespace AE::Math
 		ND_ auto	ToArray ()							C_NE___
 		{
 			STATIC_ASSERT( IsInteger<T> );
-			StaticArray< T, sizeof(__m128i) / sizeof(T) >	arr;
-			if constexpr( sizeof(T) == 1 )	_mm_storeu_epi8(  OUT static_cast<void*>(arr.data()), _value );
-			if constexpr( sizeof(T) == 2 )	_mm_storeu_epi16( OUT static_cast<void*>(arr.data()), _value );
+			struct m128i_no_attr { __m128i a; };
+			StaticArray< T, sizeof(m128i_no_attr) / sizeof(T) >	arr;
+			//if constexpr( sizeof(T) == 1 )_mm_storeu_epi8(  OUT static_cast<void*>(arr.data()), _value );		// avx512
+			//if constexpr( sizeof(T) == 2 )_mm_storeu_epi16( OUT static_cast<void*>(arr.data()), _value );
 			if constexpr( sizeof(T) == 4 )	_mm_storeu_epi32( OUT static_cast<void*>(arr.data()), _value );
 			if constexpr( sizeof(T) == 8 )	_mm_storeu_epi64( OUT static_cast<void*>(arr.data()), _value );
 			return arr;
@@ -667,8 +668,8 @@ namespace AE::Math
 		
 		void		ToArray (OUT IntType* dst)			C_NE___
 		{
-			if constexpr( is8 )		_mm_storeu_epi8(  OUT static_cast<void*>(dst), _value );
-			if constexpr( is16 )	_mm_storeu_epi16( OUT static_cast<void*>(dst), _value );
+			//if constexpr( is8 )	_mm_storeu_epi8(  OUT static_cast<void*>(dst), _value );	// avx512
+			//if constexpr( is16 )	_mm_storeu_epi16( OUT static_cast<void*>(dst), _value );
 			if constexpr( is32 )	_mm_storeu_epi32( OUT static_cast<void*>(dst), _value );
 			if constexpr( is64 )	_mm_storeu_epi64( OUT static_cast<void*>(dst), _value );
 		}

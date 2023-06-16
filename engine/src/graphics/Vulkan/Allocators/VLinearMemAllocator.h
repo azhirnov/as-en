@@ -2,7 +2,7 @@
 /*
 	Allocation on the GPU memory may be slow.
 	Internal data is protected by the mutex for thread safety,
-	so parallel usege is not recomended because may be too slow.
+	so parallel usage is not recommended because may be too slow.
 */
 
 #pragma once

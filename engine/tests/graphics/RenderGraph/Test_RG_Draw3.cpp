@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#if 0
 #include "Test_RenderGraph.h"
 
 namespace
@@ -15,6 +14,7 @@ namespace
 		GAutorelease<ImageViewID>	view;
 		
 		GraphicsPipelineID			ppln;
+		PushConstantIndex			pcIdx;
 
 		AsyncTask					result;
 
@@ -26,9 +26,9 @@ namespace
 	};
 	
 	static const float4		vertices[] = {
-		float4{ 0.0f, -0.5f, 0.f, 1.f},
-		float4{ 0.5f,  0.5f, 0.f, 1.f},
-		float4{-0.5f,  0.5f, 0.f, 1.f},
+		float4{ 0.0f, -0.5f, BitCast<float>(HtmlColor::Red),	1.f},
+		float4{ 0.5f,  0.5f, BitCast<float>(HtmlColor::Green),	1.f},
+		float4{-0.5f,  0.5f, BitCast<float>(HtmlColor::Blue),	1.f},
 	};
 
 
@@ -62,7 +62,7 @@ namespace
 									.AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::Black} ));
 				
 				dctx.BindPipeline( t.ppln );
-				dctx.PushConstant( 0_b, Sizeof(vertices), vertices, EShaderStages::Vertex );
+				dctx.PushConstant( t.pcIdx, Sizeof(vertices), vertices, ShaderStructName{"PC_draw3"} );
 				dctx.Draw( 3 );
 				
 				ctx.EndRenderPass( dctx );
@@ -129,6 +129,8 @@ namespace
 		t.ppln = renderTech->GetGraphicsPipeline( PipelineName{"draw3"} );
 		CHECK_ERR( t.ppln );
 
+		t.pcIdx = res_mngr.GetPushConstantIndex<PC_draw3>( t.ppln, PushConstantName{"pc"} );
+
 		AsyncTask	begin	= rts.BeginFrame();
 
 		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Draw3"} );
@@ -170,5 +172,3 @@ bool RGTest::Test_Draw3 ()
 	AE_LOGI( TEST_NAME << " - passed" );
 	return result;
 }
-
-#endif

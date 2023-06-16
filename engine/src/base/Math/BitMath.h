@@ -1,25 +1,13 @@
 #pragma once
 
 #include "base/Defines/StdInclude.h"
-#include <cstdlib>
-
-#ifdef __has_include
-# if __has_include(<bit>)
-#	include <bit>
-# endif
-#endif
-
-#ifdef AE_COMPILER_MSVC
-# include <intrin.h>
-# pragma intrinsic( _BitScanForward, _BitScanReverse )
-# pragma intrinsic( __popcnt16, __popcnt )
-# if AE_PLATFORM_BITS == 64
-#	pragma intrinsic( _BitScanForward64, _BitScanReverse64 )
-#	pragma intrinsic( __popcnt64 )
-# endif
-#endif
-
 #include "base/Algorithms/Cast.h"
+
+#ifdef __cpp_lib_int_pow2
+# if __cpp_lib_int_pow2 == 202002L
+#	define AE_cpp_lib_int_pow2
+# endif
+#endif
 	
 namespace AE::Math
 {
@@ -143,7 +131,7 @@ namespace AE::Math
 		
 		using U = ToUnsignedInteger<T>;
 
-	#ifdef __cpp_lib_int_pow2
+	#ifdef AE_cpp_lib_int_pow2
 		return std::has_single_bit( U(x) );
 	#else
 		U	val = U( x );
@@ -171,7 +159,7 @@ namespace AE::Math
 
 		constexpr int	INVALID_INDEX = MinValue<int>();
 
-	#ifdef __cpp_lib_int_pow2
+	#ifdef AE_cpp_lib_int_pow2
 		auto	c = std::bit_width( ToNearUInt( x ));
 		return c > 0 ? int(c) - 1 : INVALID_INDEX;
 

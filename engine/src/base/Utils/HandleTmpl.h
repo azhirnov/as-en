@@ -3,6 +3,7 @@
 #pragma once
 
 #include "base//Math/BitMath.h"
+#include "base/Utils/Threading.h"
 
 namespace AE::Base
 {
@@ -132,9 +133,9 @@ namespace AE::Base
 		constexpr Strong (Self &&other)								__NE___ : _id{other._id}	{ other._id = Default; }
 		constexpr explicit Strong (const ID_t &id)					__NE___ : _id{id}			{}
 		constexpr Strong (Value_t index, Value_t gen)				__NE___ : _id{index, gen}	{}
-		constexpr ~Strong ()										__NE___	{ ASSERT(not IsValid()); } // handle must be released
+		constexpr ~Strong ()										__NE___	{ DEV_CHECK_MSG( not IsValid(), "handle must be released" ); }
 		
-		constexpr Self&				Attach (ID_t id)				__NE___	{ ASSERT(not IsValid());  _id = id;  return *this; }
+		constexpr Self				Attach (ID_t id)				__NE___	{ ID_t  temp{_id};  _id = id;  return Self{temp}; }
 
 		constexpr Self&				operator = (Self &&rhs)			__NE___	{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
 		constexpr Self&				operator = (const Self &rhs)	__NE___	{ ASSERT(not IsValid());  _id = rhs._id;  rhs._id = Default;  return *this; }
@@ -193,12 +194,12 @@ namespace AE::Base
 		Self&  operator = (Self &&)						= delete;
 		Self&  operator = (const Self &)				= delete;
 
-		ND_ StrongID_t	Attach (ID_t id)				__NE___	{ return StrongID_t{ ID_t::FromData( _id.exchange( id.Data(), std::memory_order_relaxed ))}; }
+		ND_ StrongID_t	Attach (ID_t id)				__NE___	{ return StrongID_t{ ID_t::FromData( _id.exchange( id.Data(), EMemoryOrder::Relaxed ))}; }
 		ND_ StrongID_t	Attach (StrongID_t id)			__NE___	{ return Attach( id.Release() ); }
 
-		ND_ StrongID_t	Release ()						__NE___	{ return StrongID_t{ ID_t::FromData( _id.exchange( ID_t{}.Data(), std::memory_order_relaxed ))}; }
+		ND_ StrongID_t	Release ()						__NE___	{ return StrongID_t{ ID_t::FromData( _id.exchange( ID_t{}.Data(), EMemoryOrder::Relaxed ))}; }
 
-		ND_ ID_t		Get ()							C_NE___	{ return ID_t::FromData( _id.load( std::memory_order_relaxed )); }
+		ND_ ID_t		Get ()							C_NE___	{ return ID_t::FromData( _id.load( EMemoryOrder::Relaxed )); }
 		ND_ bool		IsValid ()						C_NE___	{ return bool(Get()); }
 
 		ND_ explicit	operator bool ()				C_NE___	{ return IsValid(); }

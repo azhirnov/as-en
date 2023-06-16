@@ -40,8 +40,8 @@ namespace AE::Graphics
 
 	enum class EBlendOp : ubyte
 	{
-		// src - from shader
-		// dst - from render target
+		// S - from shader
+		// D - from render target
 		// result = srcColor * srcBlend [blendOp] dstColor * dstBlend;
 		Add,			// S+D
 		Sub,			// S-D
@@ -55,6 +55,9 @@ namespace AE::Graphics
 
 	enum class ELogicOp : ubyte
 	{
+		// S - from shader
+		// D - from render target
+		// result = S [logicOp] D
 		None,				// disabled
 		Clear,				// 0
 		Set,				// 1
@@ -164,20 +167,16 @@ namespace AE::Graphics
 		BlendConstants			= 1 << 4,
 		//DepthBounds			= 1 << 5,	// Vulkan only
 
-		// extensions
-		//CullMode				= 1 << 6,
-		//FrontFace				= 1 << 7,
-		//PrimitiveTopology		= 1 << 8,
-		//ViewportWithCount		= 1 << 9,
-		//ScissorWithCount		= 1 << 10,
-
 		// ray tracing
 		RTStackSize				= 1 << 6,
+
+		// shading rate
+		FragmentShadingRate		= 1 << 7,
 
 		_Last,
 		All						= ((_Last-1) << 1) - 1,
 
-		GraphicsPipelineMask	= StencilCompareMask | StencilWriteMask | StencilReference | DepthBias | BlendConstants,
+		GraphicsPipelineMask	= StencilCompareMask | StencilWriteMask | StencilReference | DepthBias | BlendConstants | FragmentShadingRate,
 		MeshPipelineMask		= GraphicsPipelineMask,
 		ComputePipelineMask		= 0,
 		TilePipelineMask		= 0,

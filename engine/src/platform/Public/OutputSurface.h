@@ -81,6 +81,7 @@ namespace AE::App
 
 			ETargetType				type			= Default;
 			EColorSpace				colorSpace		= Default;
+			EPixelFormat			format			= Default;
 
 			Ptr<const IProjection>	projection;
 			
@@ -169,7 +170,7 @@ namespace AE::App
 		ND_ virtual AsyncTask  Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)	__NE___	= 0;
 		
 
-		// Get render taqrgets.
+		// Get render targets.
 		// Must be used between 'Begin()' / 'End()'.
 		//   Thread safe: yes
 		//
@@ -178,7 +179,7 @@ namespace AE::App
 
 		// End rendering and present frame.
 		// Returns present/blit task, returns 'null' on error.
-		// 'deps'		- list of tasks which must be executed before, 'CmdBatchOnSubmit{endCmdBatch}' is imlicitlly added.
+		// 'deps'		- list of tasks which must be executed before, 'CmdBatchOnSubmit{endCmdBatch}' is implicitly added.
 		//   Thread safe: yes
 		//
 		ND_ virtual AsyncTask  End (ArrayView<AsyncTask> deps)																	__NE___	= 0;
@@ -186,22 +187,22 @@ namespace AE::App
 
 		// Returns all images which is created by surface.
 		// Can be used outside of 'Begin()/End()' scope.
-		// Images can be deleted at any moument, so result may be deprecated.
-		// If not changed then result is equal to 'RenderTarget::imageId' which returs by 'GetTargets()'.
+		// Images can be deleted at any moment, so result may be deprecated.
+		// If not changed then result is equal to 'RenderTarget::imageId' which returns by 'GetTargets()'.
 		//   Thread safe: yes
 		//
 		ND_ virtual AllImages_t  GetAllImages ()																				C_NE___ = 0;
 		
 
 		// Returns current surface sizes.
-		// Size can be changed at any moument, so result may be deprecated.
-		// If not changed then result is equal to 'RenderTarget::RegionSize()' which returs by 'GetTargets()'.
+		// Size can be changed at any moment, so result may be deprecated.
+		// If not changed then result is equal to 'RenderTarget::RegionSize()' which returns by 'GetTargets()'.
 		//   Thread safe: yes
 		//
 		ND_ virtual TargetSizes_t  GetTargetSizes ()																			C_NE___ = 0;
 
 		
-		// Returns all supprted color formats and color spaces.
+		// Returns all supported color formats and color spaces.
 		//   Thread safe: yes
 		//
 		ND_ virtual SurfaceFormats_t  GetSurfaceFormats ()																		C_NE___ = 0;

@@ -14,6 +14,7 @@
 #	include <filesystem>
 	namespace _ae_fs_ = std::filesystem;
 #endif
+#include "base/Defines/Undef.h"
 
 #include "base/Math/Bytes.h"
 #include "base/Utils/SourceLoc.h"
@@ -222,7 +223,7 @@ namespace AE::Base
 
 		operator const Path & ()							C_NE___	{ return _entry.path(); }
 
-		ND_ Path const&		Path ()							C_NE___	{ return _entry.path(); }
+		ND_ Path const&		Get ()							C_NE___	{ return _entry.path(); }
 		ND_ bool			Exist ()						C_NE___	{ std::error_code ec;  return _entry.exists( OUT ec ); }
 		ND_ bool			IsDirectory ()					C_NE___	{ std::error_code ec;  return _entry.is_directory( OUT ec ); }
 		ND_ Bytes			FileSyze ()						C_NE___	{ std::error_code ec;  return Bytes{_entry.file_size( OUT ec )}; }

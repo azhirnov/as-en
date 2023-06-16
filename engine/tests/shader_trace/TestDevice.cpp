@@ -12,6 +12,15 @@
 #	pragma warning (disable: 4005)
 #	pragma warning (disable: 4668)
 #endif
+#ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wdouble-promotion"
+#endif
+#ifdef AE_COMPILER_GCC
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wundef"
+#	pragma GCC diagnostic ignored "-Wdouble-promotion"
+#endif
 
 // glslang includes
 #include "glslang/MachineIndependent/localintermediate.h"
@@ -34,6 +43,12 @@
 
 #ifdef AE_COMPILER_MSVC
 #	pragma warning (pop)
+#endif
+#ifdef AE_COMPILER_CLANG
+#	pragma clang diagnostic pop
+#endif
+#ifdef AE_COMPILER_GCC
+#	pragma GCC diagnostic pop
 #endif
 
 // resources are removed in new version of glslang, so define it locally.
@@ -1731,7 +1746,7 @@ bool  TestDevice::CheckTimeMap (Array<VkShaderModule> modules, float emptyPxFact
 		min_time   = Min( min_time, dt );
 		max_time   = Max( max_time, dt );
 		mean_time += dt;
-		count     += (dt > 0.0f);
+		count     += (dt > 0.0);
 	}
 
 	mean_time /= double(width * height);

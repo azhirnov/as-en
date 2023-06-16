@@ -27,29 +27,29 @@ namespace AE::Graphics
 	// types
 		struct BufferWithOffset
 		{
-			BufferID	id;
-			Bytes		offset;
+			BufferID		id;
+			Bytes			offset;
 		};
 
 		struct BufferWithOffsetAndStride : BufferWithOffset
 		{
-			Bytes		stride;
+			Bytes			stride;
 		};
 
 		struct TrianglesInfo
 		{
-			ERTGeometryOpt	options			= Default;
-			uint			maxPrimitives	= 0;
-			uint			maxVertex		= 0;			// vulkan only
-			EVertexType		vertexFormat	= Default;
-			EIndex			indexType		= Default;		// optional
-			bool			allowTransforms	= false;
+			ERTGeometryOpt	options				= Default;
+			uint			maxPrimitives		= 0;
+			uint			maxVertex			= 0;			// vulkan only
+			EVertexType		vertexFormat		= Default;
+			EIndex			indexType			= Default;		// optional
+			bool			allowTransforms		= false;
 		};
 
 		struct TrianglesData
 		{
-			BufferID		vertexData;			// requires EBufferUsage::ASBuild_ReadOnly
-			BufferID		indexData;			// requires EBufferUsage::ASBuild_ReadOnly
+			BufferID		vertexData;			// requires EBufferUsage::ASBuild_ReadOnly, content: 'vertexFormat'
+			BufferID		indexData;			// requires EBufferUsage::ASBuild_ReadOnly, content: 'indexType'
 			BufferID		transformData;		// requires EBufferUsage::ASBuild_ReadOnly,	content: RTMatrixStorage
 			Bytes32u		vertexStride;
 			Bytes			vertexDataOffset;
@@ -59,20 +59,19 @@ namespace AE::Graphics
 
 		struct AABBsInfo
 		{
-			ERTGeometryOpt	options			= Default;
-			uint			maxAABBs		= 0;
+			ERTGeometryOpt	options				= Default;
+			uint			maxAABBs			= 0;
 		};
 
 		struct AABBsData
 		{
-			BufferID		data;			// requires EBufferUsage::ASBuild_ReadOnly
+			BufferID		data;				// requires EBufferUsage::ASBuild_ReadOnly
 			Bytes			dataOffset;
 			Bytes			stride;
 		};
 
-		using Triangles	= TupleArrayView< TrianglesInfo,	TrianglesData	>;
-		using AABBs		= TupleArrayView< AABBsInfo,		AABBsData		>;
-
+		using Triangles		= TupleArrayView< TrianglesInfo,	TrianglesData	>;
+		using AABBs			= TupleArrayView< AABBsInfo,		AABBsData		>;
 		using ScratchBuffer	= BufferWithOffset;
 
 
@@ -100,6 +99,7 @@ namespace AE::Graphics
 		
 		RTGeometryBuild&  SetScratchBuffer (BufferID id, Bytes offset = 0_b) __NE___
 		{
+			ASSERT( id );
 			scratch.id		= id;
 			scratch.offset	= offset;
 			return *this;
@@ -139,16 +139,16 @@ namespace AE::Graphics
 				uint				instanceCustomIndex	: 24;
 				uint				mask				:  8;
 				uint				instanceSBTOffset	: 24;
-				uint				flags				:  8;	// ERTInstanceOpt
+				uint				flags				:  8;	// ERTInstanceOpt | VkGeometryInstanceFlags
 				VDeviceAddress		rtas;
 
-				Instance ()												__NE___ {}
-				void	   Init ()										__NE___;
+				Instance ()												__NE___;
 				Instance&  SetIdentity ()								__NE___	{ transform			= RTMatrixStorage::Identity();	return *this; }
 				Instance&  SetTransform (const RTMatrixStorage &value)	__NE___	{ transform			= value;		return *this; }
-				Instance&  SetFlags (ERTInstanceOpt value)				__NE___	{ flags				= uint(value);	return *this; }
+				Instance&  SetTransform (const float3x4 &value)			__NE___	{ transform			= value;		return *this; }
 				Instance&  SetMask (uint value)							__NE___	{ mask				= value;		return *this; }
 				Instance&  SetInstanceOffset (uint value)				__NE___	{ instanceSBTOffset	= value;		return *this; }
+				Instance&  SetFlags (ERTInstanceOpt value)				__NE___;
 			};
 
 		#elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
@@ -156,18 +156,18 @@ namespace AE::Graphics
 			struct Instance
 			{
 				RTMatrixStorage		transform;
-				uint				options;			// ERTInstanceOpt
+				uint				options;					// ERTInstanceOpt | MTLAccelerationStructureInstanceOptions
 				uint				mask;
 				uint				instanceSBTOffset;
 				uint				rtasIndex;
 				
-				Instance ()												__NE___ {}
-				void	   Init ()										__NE___;
+				Instance ()												__NE___;
 				Instance&  SetIdentity ()								__NE___	{ transform			= RTMatrixStorage::Identity();	return *this; }
 				Instance&  SetTransform (const RTMatrixStorage &value)	__NE___	{ transform			= value;		return *this; }
-				Instance&  SetFlags (ERTInstanceOpt value)				__NE___	{ options			= uint(value);	return *this; }
+				Instance&  SetTransform (const float3x4 &value)			__NE___	{ transform			= value;		return *this; }
 				Instance&  SetMask (uint value)							__NE___	{ mask				= value;		return *this; }
 				Instance&  SetInstanceOffset (uint value)				__NE___	{ instanceSBTOffset	= value;		return *this; }
+				Instance&  SetFlags (ERTInstanceOpt value)				__NE___;
 			};
 			
 		#else
@@ -196,8 +196,8 @@ namespace AE::Graphics
 
 
 	// methods
-		RTSceneBuild () __NE___	{}
-		RTSceneBuild (uint count, ERTASOptions opt) __NE___ : maxInstanceCount{count}, options{opt} {}
+		RTSceneBuild ()								__NE___	{}
+		RTSceneBuild (uint count, ERTASOptions opt)	__NE___ : maxInstanceCount{count}, options{opt} {}
 
 		RTSceneBuild&  SetScratchBuffer (BufferID id, Bytes offset = 0_b) __NE___
 		{
@@ -214,7 +214,7 @@ namespace AE::Graphics
 			return *this;
 		}
 
-		void  SetGeometry (RTGeometryID id, INOUT Instance &inst) __Th___;
+		ND_ bool  SetGeometry (RTGeometryID id, INOUT Instance &inst) __NE___;
 	};
 
 	
@@ -224,9 +224,12 @@ namespace AE::Graphics
 	//
 	struct RTSceneDesc
 	{
+	// variables
 		Bytes			size;		// same as RTASBuildSizes::size
 		ERTASOptions	options		= Default;
 		
+
+	// methods
 		RTSceneDesc ()									__NE___	{}
 		RTSceneDesc (Bytes size, ERTASOptions opt)		__NE___	: size{size}, options{opt} {}
 		
@@ -262,35 +265,5 @@ namespace AE::Graphics
 			maxMissShaders{0xFFFF}, hitGroupStride{0xFFFF}, maxInstances{UMax} {}
 	};
 	
-	
-/*
-=================================================
-	RTSceneBuild::Instance::Init
-=================================================
-*/
-#ifdef AE_ENABLE_VULKAN
-	inline void  RTSceneBuild::Instance::Init () __NE___
-	{
-		transform			= RTMatrixStorage::Identity();
-		instanceCustomIndex	= 0;
-		mask				= 0xFF;
-		instanceSBTOffset	= 0;
-		flags				= 0;
-		rtas				= Default;
-	}
-	
-#elif defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
-	inline void  RTSceneBuild::Instance::Init () __NE___
-	{
-		transform			= RTMatrixStorage::Identity();
-		options				= 0;
-		mask				= UMax;
-		instanceSBTOffset	= 0;
-		rtasIndex			= 0;
-	}
-	
-#else
-#	error not implemented
-#endif
 
 } // AE::Graphics

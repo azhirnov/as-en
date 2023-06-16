@@ -76,10 +76,10 @@ template <typename T>			ND_ T				exp2 (const T);
 template <typename T>			ND_ T				faceforward (const T n, const T i, const T Nref);
 template <typename T>			ND_ T				findLSB (const T);
 template <typename T>			ND_ T				findMSB (const T);
-								ND_ int				floatBitsToInt (const float);
-								ND_ uint			floatBitsToUint (const float);
-template <int I>				ND_ _Vec<int,I>		floatBitsToInt (const _Vec<float,I>);
-template <int I>				ND_ _Vec<uint,I>	floatBitsToUint (const _Vec<float,I>);
+								ND_ int				floatBitsToInt (const float);			// intBitsToFloat
+template <int I>				ND_ _Vec<int,I>		floatBitsToInt (const _Vec<float,I>);	// intBitsToFloat
+								ND_ uint			floatBitsToUint (const float);			// uintBitsToFloat
+template <int I>				ND_ _Vec<uint,I>	floatBitsToUint (const _Vec<float,I>);	// uintBitsToFloat
 template <typename T>			ND_ T				floor (const T);
 template <typename T>			ND_ T				fma (const T a, const T b, const T c);
 template <typename T>			ND_ T				fract (const T);
@@ -88,10 +88,10 @@ template <typename T, int I>	ND_ _Vec<bool,I>	greaterThan (const _Vec<T,I> x, co
 template <typename T, int I>	ND_ _Vec<bool,I>	greaterThanEqual (const _Vec<T,I> x, const _Vec<T,I> y);
 template <typename T>			ND_ void			umulExtended (const T x, const T y, OUT T &msb, OUT T &lsb);
 template <typename T>			ND_ void			imulExtended (const T x, const T y, OUT T &msb, OUT T &lsb);
-								ND_ float			intBitsToFloat (const int);
-								ND_ float			uintBitsToFloat (const uint);
-template <int I>				ND_ _Vec<float,I>	intBitsToFloat (const _Vec<int,I>);
-template <int I>				ND_ _Vec<float,I>	uintBitsToFloat (const _Vec<uint,I>);
+								ND_ float			intBitsToFloat (const int);				// floatBitsToInt
+template <int I>				ND_ _Vec<float,I>	intBitsToFloat (const _Vec<int,I>);		// floatBitsToInt
+								ND_ float			uintBitsToFloat (const uint);			// floatBitsToUint
+template <int I>				ND_ _Vec<float,I>	uintBitsToFloat (const _Vec<uint,I>);	// floatBitsToUint
 template <typename T>			ND_ T				inversesqrt (const T);
 template <typename T>			ND_ bool			isinf (const T);
 template <typename T, int I>	ND_ _Vec<bool,I>	isinf (const _Vec<T,I>);
@@ -167,7 +167,6 @@ template <typename T, int C, int R>	ND_ _Matrix<T,R,C>	transpose (const _Matrix<
 struct gl
 {
 private:
-	//enum class _AccessScope {};
 	template <typename T> struct _SubpassBase		{};
 	template <typename T> struct _TextureBase		{};
 	template <typename T> struct _CombinedTexBase	{};
@@ -186,6 +185,8 @@ private:
 
 
 public:
+	enum class DeviceAddress : uint64_t {};
+
 	template <typename T> struct SubpassInput 			: _SubpassBase<T> { SubpassInput ();		};
 	template <typename T> struct SubpassInputMS 		: _SubpassBase<T> { SubpassInputMS ();		};
 
@@ -233,7 +234,7 @@ public:
 	ND_ T	Subgroupuniform (const T &);// GL_EXT_subgroupuniform_qualifier
 
 
-	// TODO: use AE_MEM_SCOPE
+  #ifdef AE_MEM_SCOPE
 	enum class Scope
 	{
 		Device,				// gl_ScopeDevice
@@ -262,117 +263,161 @@ public:
 		Image,				// gl_StorageSemanticsImage
 		Output,				// gl_StorageSemanticsOutput
 	};
+  #endif
 	
-	// TODO: use AE_HAS_ATOMICS
+  #ifdef AE_HAS_ATOMICS
 	uint   AtomicAdd (INOUT uint  &mem, uint  data);
 	sint   AtomicAdd (INOUT sint  &mem, sint  data);
 	ulong  AtomicAdd (INOUT ulong &mem, ulong data);
 	slong  AtomicAdd (INOUT slong &mem, slong data);
+
+	#ifdef AE_MEM_SCOPE
 	uint   AtomicAdd (INOUT uint  &mem, uint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	sint   AtomicAdd (INOUT sint  &mem, sint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	ulong  AtomicAdd (INOUT ulong &mem, ulong data, Scope scope, StorageSemantics storage, Semantics sem);
 	slong  AtomicAdd (INOUT slong &mem, slong data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 	
 	float  AtomicAdd (INOUT float  &mem, float  data);
 	double AtomicAdd (INOUT double &mem, double data);
+
+	#ifdef AE_MEM_SCOPE
 	float  AtomicAdd (INOUT float  &mem, float  data, Scope scope, StorageSemantics storage, Semantics sem);
 	double AtomicAdd (INOUT double &mem, double data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 
 	uint   AtomicMin (INOUT uint  &mem, uint  data);
 	sint   AtomicMin (INOUT sint  &mem, sint  data);
 	ulong  AtomicMin (INOUT ulong &mem, ulong data);
 	slong  AtomicMin (INOUT slong &mem, slong data);
+
+	#ifdef AE_MEM_SCOPE
 	uint   AtomicMin (INOUT uint  &mem, uint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	sint   AtomicMin (INOUT sint  &mem, sint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	ulong  AtomicMin (INOUT ulong &mem, ulong data, Scope scope, StorageSemantics storage, Semantics sem);
 	slong  AtomicMin (INOUT slong &mem, slong data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 	
 	uint   AtomicMax (INOUT uint  &mem, uint  data);
 	sint   AtomicMax (INOUT sint  &mem, sint  data);
 	ulong  AtomicMax (INOUT ulong &mem, ulong data);
 	slong  AtomicMax (INOUT slong &mem, slong data);
+
+	#ifdef AE_MEM_SCOPE
 	uint   AtomicMax (INOUT uint  &mem, uint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	sint   AtomicMax (INOUT sint  &mem, sint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	ulong  AtomicMax (INOUT ulong &mem, ulong data, Scope scope, StorageSemantics storage, Semantics sem);
 	slong  AtomicMax (INOUT slong &mem, slong data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 	
 	uint   AtomicAnd (INOUT uint  &mem, uint  data);
 	sint   AtomicAnd (INOUT sint  &mem, sint  data);
 	ulong  AtomicAnd (INOUT ulong &mem, ulong data);
 	slong  AtomicAnd (INOUT slong &mem, slong data);
+
+	#ifdef AE_MEM_SCOPE
 	uint   AtomicAnd (INOUT uint  &mem, uint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	sint   AtomicAnd (INOUT sint  &mem, sint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	ulong  AtomicAnd (INOUT ulong &mem, ulong data, Scope scope, StorageSemantics storage, Semantics sem);
 	slong  AtomicAnd (INOUT slong &mem, slong data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 	
 	uint   AtomicOr (INOUT uint  &mem, uint  data);
 	sint   AtomicOr (INOUT sint  &mem, sint  data);
 	ulong  AtomicOr (INOUT ulong &mem, ulong data);
 	slong  AtomicOr (INOUT slong &mem, slong data);
+
+	#ifdef AE_MEM_SCOPE
 	uint   AtomicOr (INOUT uint  &mem, uint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	sint   AtomicOr (INOUT sint  &mem, sint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	ulong  AtomicOr (INOUT ulong &mem, ulong data, Scope scope, StorageSemantics storage, Semantics sem);
 	slong  AtomicOr (INOUT slong &mem, slong data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 	
 	uint   AtomicXor (INOUT uint  &mem, uint  data);
 	sint   AtomicXor (INOUT sint  &mem, sint  data);
 	ulong  AtomicXor (INOUT ulong &mem, ulong data);
 	slong  AtomicXor (INOUT slong &mem, slong data);
+
+	#ifdef AE_MEM_SCOPE
 	uint   AtomicXor (INOUT uint  &mem, uint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	sint   AtomicXor (INOUT sint  &mem, sint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	ulong  AtomicXor (INOUT ulong &mem, ulong data, Scope scope, StorageSemantics storage, Semantics sem);
 	slong  AtomicXor (INOUT slong &mem, slong data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 	
 	uint   AtomicExchange (INOUT uint  &mem, uint  data);
 	sint   AtomicExchange (INOUT sint  &mem, sint  data);
 	ulong  AtomicExchange (INOUT ulong &mem, ulong data);
 	slong  AtomicExchange (INOUT slong &mem, slong data);
+
+	#ifdef AE_MEM_SCOPE
 	uint   AtomicExchange (INOUT uint  &mem, uint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	sint   AtomicExchange (INOUT sint  &mem, sint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	ulong  AtomicExchange (INOUT ulong &mem, ulong data, Scope scope, StorageSemantics storage, Semantics sem);
 	slong  AtomicExchange (INOUT slong &mem, slong data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 	
 	float  AtomicExchange (INOUT float  &mem, float  data);
 	double AtomicExchange (INOUT double &mem, double data);
+
+	#ifdef AE_MEM_SCOPE
 	float  AtomicExchange (INOUT float  &mem, float  data, Scope scope, StorageSemantics storage, Semantics sem);
 	double AtomicExchange (INOUT double &mem, double data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 
 	uint   AtomicCompSwap (INOUT uint  &mem, uint  compare, uint  data);
 	sint   AtomicCompSwap (INOUT sint  &mem, sint  compare, sint  data);
 	ulong  AtomicCompSwap (INOUT ulong &mem, ulong compare, ulong data);
 	slong  AtomicCompSwap (INOUT slong &mem, slong compare, slong data);
+
+	#ifdef AE_MEM_SCOPE
 	uint   AtomicCompSwap (INOUT uint  &mem, uint  compare, uint  data, Scope scope, StorageSemantics storageEqual, Semantics semEqual, StorageSemantics storageUnequal, Semantics semUnequal);
 	sint   AtomicCompSwap (INOUT sint  &mem, sint  compare, sint  data, Scope scope, StorageSemantics storageEqual, Semantics semEqual, StorageSemantics storageUnequal, Semantics semUnequal);
 	ulong  AtomicCompSwap (INOUT ulong &mem, ulong compare, ulong data, Scope scope, StorageSemantics storageEqual, Semantics semEqual, StorageSemantics storageUnequal, Semantics semUnequal);
 	slong  AtomicCompSwap (INOUT slong &mem, slong compare, slong data, Scope scope, StorageSemantics storageEqual, Semantics semEqual, StorageSemantics storageUnequal, Semantics semUnequal);
+	#endif
 	
 	ND_ uint   AtomicLoad (uint  &mem);
 	ND_ sint   AtomicLoad (sint  &mem);
 	ND_ ulong  AtomicLoad (ulong &mem);
 	ND_ slong  AtomicLoad (slong &mem);
+
+	#ifdef AE_MEM_SCOPE
 	ND_ uint   AtomicLoad (uint  &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	ND_ sint   AtomicLoad (sint  &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	ND_ ulong  AtomicLoad (ulong &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	ND_ slong  AtomicLoad (slong &mem, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 	
 	ND_ float  AtomicLoad (float  &mem);
 	ND_ double AtomicLoad (double &mem);
+
+	#ifdef AE_MEM_SCOPE
 	ND_ float  AtomicLoad (float  &mem, Scope scope, StorageSemantics storage, Semantics sem);
 	ND_ double AtomicLoad (double &mem, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 
 	void  AtomicStore (INOUT uint  &mem, uint  data);
 	void  AtomicStore (INOUT sint  &mem, sint  data);
 	void  AtomicStore (INOUT ulong &mem, ulong data);
 	void  AtomicStore (INOUT slong &mem, slong data);
+
+	#ifdef AE_MEM_SCOPE
 	void  AtomicStore (INOUT uint  &mem, uint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT sint  &mem, sint  data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT ulong &mem, ulong data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT slong &mem, slong data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
 	
 	void  AtomicStore (INOUT float  &mem, float  data);
 	void  AtomicStore (INOUT double &mem, double data);
+
+	#ifdef AE_MEM_SCOPE
 	void  AtomicStore (INOUT float  &mem, float  data, Scope scope, StorageSemantics storage, Semantics sem);
 	void  AtomicStore (INOUT double &mem, double data, Scope scope, StorageSemantics storage, Semantics sem);
+	#endif
+  #endif // AE_HAS_ATOMICS
 
 
 	const struct {
@@ -470,9 +515,11 @@ public:
 			_GEN_IMAGE( _type4_, Image2DMS<_type_>      img, typename Image2DMS<_type_>::Coord      p, int sample )\
 			_GEN_IMAGE( _type4_, Image2DMSArray<_type_> img, typename Image2DMSArray<_type_>::Coord p, int sample )\
 
+	  #ifdef AE_HAS_ATOMICS
 		GEN_IMAGE_ATOMIC(  uint )
 		GEN_IMAGE_ATOMIC(  sint )
 		GEN_IMAGE_ATOMICF( float )
+	  #endif
 		GEN_IMAGE( uint4,  uint )
 		GEN_IMAGE( int4,   sint )
 		GEN_IMAGE( float4, float )
@@ -820,8 +867,32 @@ public:
 			float	PointSize;
 			int		PrimitiveID;
   #endif
+	
+			
+	// GL_EXT_fragment_shading_rate
+  #if defined(SH_VERT) or defined(SH_GEOM) or defined(SH_FRAG) or defined(SH_MESH)
+	enum class ShadingRateFlag : uint
+	{
+		Y1,
+		Y2,
+		Y4,
+
+		X1,
+		X2,
+		X4,
+	};
+  #endif
+  #ifdef SH_FRAG
+	// in
+	const	ShadingRateFlag		ShadingRate		= ShadingRateFlag(0);
+  #endif
+  #if defined(SH_VERT) or defined(SH_GEOM)
+	// out
+			ShadingRateFlag		PrimitiveShadingRate;
+  #endif
 
 
+	// GLSL_EXT_mesh_shader
   #ifdef SH_MESH_TASK
 	void  EmitMeshTasks (uint groupCountX, uint groupCountY, uint groupCountZ);
 
@@ -830,6 +901,7 @@ public:
   #endif
 
 
+	// GLSL_EXT_mesh_shader
   #ifdef SH_MESH
 	void  SetMeshOutputs (uint vertexCount, uint primitiveCount);
 
@@ -853,11 +925,11 @@ public:
 
 	struct MeshPerPrimitive
 	{
-		int		PrimitiveID;
-		int		Layer;
-		int		ViewportIndex;
-		bool	CullPrimitive;				// GL_EXT_multiview
-		int		PrimitiveShadingRate;		// GL_EXT_fragment_shading_rate
+		int				PrimitiveID;
+		int				Layer;
+		int				ViewportIndex;
+		bool			CullPrimitive;				// GL_EXT_multiview
+		ShadingRateFlag	PrimitiveShadingRate;		// GL_EXT_fragment_shading_rate
 	};
 	MeshPerPrimitive MeshPrimitives [_MaxMeshPrimitives];
   #endif
@@ -890,7 +962,7 @@ public:
 	ND_ float3  InterpolateAtSample (float3);
 	ND_ float4  InterpolateAtSample (float4);
 
-	const _Uns_	 Discard = {};
+	const	_Uns_	Discard							= {};
 
 	// in
 	const	float4	Position						= {};
@@ -922,9 +994,11 @@ public:
 
 	// sync
 	void  WorkgroupBarrier ();
-
+	
+	#ifdef AE_MEM_SCOPE
 	void  ExecutionBarrier (gl::Scope execution, gl::Scope memory, gl::StorageSemantics storage, gl::Semantics sem);
 	void  MemoryBarrier (gl::Scope execution, gl::Scope memory, gl::StorageSemantics storage, gl::Semantics sem);
+	#endif
 
 	const struct {
 		void  All ()		const;	// all memory accesses, scope: shader invocation
@@ -946,7 +1020,9 @@ public:
   #else
 		
 	// sync	
+	#ifdef AE_MEM_SCOPE
 	void  MemoryBarrier (gl::Scope execution, gl::Scope memory, gl::StorageSemantics storage, gl::Semantics sem);
+	#endif
 
 	const struct {
 		void  All ()		const;	// all memory accesses, scope: shader invocation
@@ -977,11 +1053,35 @@ public:
 		BackFacingTriangle,
 	};
 
-	// TODO
-
 	// in
 	const	uint3		LaunchID;
 	const	uint3		LaunchSize;
+  #endif
+	
+	// shared RayTracing/RayQuery types
+  #ifdef AE_RAY_QUERY
+	struct AccelerationStructure
+	{
+		AccelerationStructure ();
+		explicit AccelerationStructure (DeviceAddress);
+	};
+
+	enum class RayFlags
+	{
+		None,
+		Opaque,
+		NoOpaque,
+		TerminateOnFirstHit,
+		SkipClosestHitShader,
+		CullBackFacingTriangles,
+		CullFrontFacingTriangles,
+		CullOpaque,
+		CullNoOpaque,
+
+		// GL_EXT_ray_flags_primitive_culling
+		SkipTriangles,
+		SkipAABB,
+	};
   #endif
 
   #if defined(SH_RAY_GEN) or defined(SH_RAY_CHIT) or defined(SH_RAY_MISS)
@@ -1038,8 +1138,8 @@ public:
   #endif
 
   #ifdef SH_RAY_AHIT
-	const _Uns_	 IgnoreIntersection;
-	const _Uns_	 TerminateRay;
+	const	_Uns_		IgnoreIntersection;
+	const	_Uns_		TerminateRay;
   #endif
 
   #if defined(SH_RAY_MISS) or defined(SH_RAY_AHIT) or defined(SH_RAY_CHIT) or defined(SH_RAY_INT)
@@ -1047,26 +1147,13 @@ public:
 	const	uint		CullMask;	// GL_EXT_ray_cull_mask
   #endif
 
+  #if defined(SH_RAY_AHIT) or defined(SH_RAY_CHIT)
+	// in
+	const	float3		HitTriangleVertexPositions [3];	// GL_EXT_ray_tracing_position_fetch
+  #endif
+
   #ifdef AE_RAY_QUERY
-	struct AccelerationStructure	{ AccelerationStructure (); };
-	struct RayQuery					{ RayQuery(); };
-
-	enum class RayFlags
-	{
-		None,
-		Opaque,
-		NoOpaque,
-		TerminateOnFirstHit,
-		SkipClosestHitShader,
-		CullBackFacingTriangles,
-		CullFrontFacingTriangles,
-		CullOpaque,
-		CullNoOpaque,
-
-		// GL_EXT_ray_flags_primitive_culling
-		SkipTriangles,
-		SkipAABB,
-	};
+	struct RayQuery		{ RayQuery(); };
 
 	enum class RayQueryCommittedIntersection
 	{
@@ -1108,13 +1195,26 @@ public:
 		ND_ float3		GetIntersectionObjectRayOrigin (RayQuery &rq, bool committed) const;
 		ND_ float4x3	GetIntersectionObjectToWorld (RayQuery &rq, bool committed) const;
 		ND_ float4x3	GetIntersectionWorldToObject (RayQuery &rq, bool committed) const;
+			void		GetIntersectionTriangleVertexPositions (RayQuery &rq, bool committed, OUT float3 (&positions)[3]) const;	// GL_EXT_ray_tracing_position_fetch
 
 	} rayQuery {};
   #endif
 
 
+	// build ray tracing acceleration structure
+  #ifdef AE_RTAS_BUILD
+	enum class GeometryInstanceFlags : uint32_t
+	{
+		TriangleCullDisable,
+		TriangleFrontCCW,
+		ForceOpaque,
+		ForceNonOpaque,
+	};
+  #endif
+
+
 	// GL_NV_cooperative_matrix, GL_NV_integer_cooperative_matrix
-  #ifdef SH_COMPUTE
+  #if defined(SH_COMPUTE) or defined(AE_MEM_SCOPE)
 	template <uint CompBits, Scope ScopeType, uint Rows, uint Columns>
 	struct FCoopMatNV
 	{
@@ -1168,9 +1268,32 @@ public:
 	template <uint B, Scope S, uint R, uint C, typename T>	ND_ FCoopMatNV<B,S,R,C>  CoopMatMulAddNV (FCoopMatNV<B,S,R,C> a, FCoopMatNV<B,S,R,C> b, FCoopMatNV<B,S,R,C> c);
 	template <uint B, Scope S, uint R, uint C, typename T>	ND_ ICoopMatNV<B,S,R,C>  CoopMatMulAddNV (ICoopMatNV<B,S,R,C> a, ICoopMatNV<B,S,R,C> b, ICoopMatNV<B,S,R,C> c);
 	template <uint B, Scope S, uint R, uint C, typename T>	ND_ UCoopMatNV<B,S,R,C>  CoopMatMulAddNV (UCoopMatNV<B,S,R,C> a, UCoopMatNV<B,S,R,C> b, UCoopMatNV<B,S,R,C> c);
-  #endif
-	
+
+  #endif // SH_COMPUTE or AE_MEM_SCOPE
+
 } gl;
+
+
+// GL_EXT_fragment_shading_rate
+#if defined(SH_VERT) or defined(SH_GEOM) or defined(SH_FRAG) or defined(SH_MESH)
+	ND_ gl::ShadingRateFlag  operator | (gl::ShadingRateFlag lhs, gl::ShadingRateFlag rhs);
+	ND_ gl::ShadingRateFlag  operator & (gl::ShadingRateFlag lhs, gl::ShadingRateFlag rhs);
+#endif
+
+#ifdef AE_RTAS_BUILD
+	ND_ gl::GeometryInstanceFlags  operator | (gl::GeometryInstanceFlags lhs, gl::GeometryInstanceFlags rhs);
+#endif
+
+#ifdef AE_RAY_QUERY
+	ND_ gl::RayFlags  operator | (gl::RayFlags lhs, gl::RayFlags rhs);
+#endif
+
+#ifdef AE_MEM_SCOPE
+	ND_ gl::Scope				operator | (gl::Scope lhs, gl::Scope rhs);
+	ND_ gl::Semantics			operator | (gl::Semantics lhs, gl::Semantics rhs);
+	ND_ gl::StorageSemantics	operator | (gl::StorageSemantics lhs, gl::StorageSemantics rhs);
+#endif
+
 
 #ifdef __INTELLISENSE__
 #	define SH_VERT

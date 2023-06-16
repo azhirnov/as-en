@@ -340,7 +340,7 @@ namespace AE::Graphics::_hidden_
 		VStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
 		VStagingBufferManager::BufferRanges_t	buffers;
 
-		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
+		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"upload"} );
 
 		for (auto& src_buf : buffers)
 		{
@@ -367,7 +367,7 @@ namespace AE::Graphics::_hidden_
 		VStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
 		VStagingBufferManager::BufferRanges_t	buffers;
 
-		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), True{"uload"} );
+		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), True{"upload"} );
 		
 		for (auto& src_buf : buffers)
 		{
@@ -636,7 +636,7 @@ namespace AE::Graphics::_hidden_
 		auto&	buf = _GetResourcesOrThrow( bufferId );
 		Validator_t::MapHostBuffer( buf, offset, size );
 
-		auto&	mem = _GetResourcesOrThrow( buf.MemoryID() );
+		auto&	mem = _GetResourcesOrThrow( buf.MemoryId() );
 		CHECK_ERR( mem.GetMemoryInfo( OUT memInfo ));
 		CHECK_ERR( memInfo.mappedPtr != null );
 		

@@ -154,8 +154,8 @@ namespace
 
 
 ND_ static bool  RecursiveProcessNode (TIntermNode* node, DebugInfo &dbgInfo);
-ND_ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OUT ulong &posOffset, OUT ulong &dataOffset);
-ND_ static void  CreateShaderBuiltinSymbols (TIntermNode* root, DebugInfo &dbgInfo);
+	static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OUT ulong &posOffset, OUT ulong &dataOffset);
+	static void  CreateShaderBuiltinSymbols (TIntermNode* root, DebugInfo &dbgInfo);
 ND_ static bool  CreateDebugTraceFunctions (TIntermNode* root, uint initialPosition, DebugInfo &dbgInfo);
 ND_ static TIntermAggregate*  RecordShaderInfo (const TSourceLoc &loc, DebugInfo &dbgInfo);
 

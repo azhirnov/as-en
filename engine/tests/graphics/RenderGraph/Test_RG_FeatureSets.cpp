@@ -54,15 +54,36 @@ bool RGTest::Test_FeatureSets ()
 	#if defined(AE_ENABLE_VULKAN)
 		const EVendorID			vendor	= GetVendorTypeByID( _vulkan.GetProperties().properties.vendorID );
 		const EGraphicsDeviceID	dev		= GetEGraphicsDeviceByName( _vulkan.GetProperties().properties.deviceName );
+		const bool				sra		= _vulkan.GetProperties().fragShadingRateFeats.attachmentFragmentShadingRate;
+		
+		if ( sra )
+			TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.compat"} ));
 
 		switch ( vendor )
 		{
-			case EVendorID::AMD :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopAMD"} ));		break;
-			case EVendorID::NVidia :	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopNV"} ));		break;
-			case EVendorID::Intel :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopIntel"} ));	break;
-			case EVendorID::ARM :		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileMali"} ));		break;
-			case EVendorID::Qualcomm :	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileAdreno"} ));	break;
-			case EVendorID::ImgTech :	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobilePowerVR"} ));	break;
+			case EVendorID::AMD :
+				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopAMD"} ));
+				if ( sra )	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.AMD"} ));
+				break;
+			case EVendorID::NVidia :
+				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopNV"} ));
+				if ( sra )	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.NV"} ));
+				break;
+			case EVendorID::Intel :
+				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinDesktopIntel"} ));
+				if ( sra )	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.IntelArc"} ))
+				else		TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.IntelXe"} ));
+				break;
+			case EVendorID::ARM :
+				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileMali"} ));
+				break;
+			case EVendorID::Qualcomm :
+				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobileAdreno"} ));
+				if ( sra )	TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.Adreno7xx"} ));
+				break;
+			case EVendorID::ImgTech :
+				TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMobilePowerVR"} ));
+				break;
 		}
 
 		if ( (dev >= EGraphicsDeviceID::Adreno_500			and dev <= EGraphicsDeviceID::_Adreno_End)	or

@@ -110,7 +110,7 @@ namespace AE::Math
 			return Self{ _mm256_andnot_ps( signmask, _value )};
 		}
 
-		ND_ Self  Reciporal ()								C_NE___	{ return Self{ _mm256_rcp_ps( _value )}; }								// 1 / x
+		ND_ Self  Reciprocal ()								C_NE___	{ return Self{ _mm256_rcp_ps( _value )}; }								// 1 / x
 		ND_ Self  Sqrt ()									C_NE___	{ return Self{ _mm256_sqrt_ps( _value )}; }
 		ND_ Self  RSqrt ()									C_NE___	{ return Self{ _mm256_rsqrt_ps( _value )}; }							// 1 / sqrt(x)
 		ND_ Self  FastSqrt ()								C_NE___	{ return Self{ _mm256_mul_ps( _value, _mm256_rsqrt_ps( _value ))}; }	// x / sqrt(x)

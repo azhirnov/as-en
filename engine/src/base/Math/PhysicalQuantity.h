@@ -255,7 +255,7 @@ namespace AE::Math
 	
 
 	//
-	// Default Physical Quantitiy
+	// Default Physical Quantity
 	//
 
 	template <typename T>
@@ -311,7 +311,7 @@ namespace AE::Math
 			struct Zepto					{ static constexpr T  Value = T(1.0e-21); };
 			struct Yocto					{ static constexpr T  Value = T(1.0e-24); };
 
-			struct Litre					{ static constexpr T  Value = T(1.0e-3); };					// m^3	L
+			struct Liter					{ static constexpr T  Value = T(1.0e-3); };					// m^3	L
 
 			struct Pound					{ static constexpr T  Value = T(0.453592); };				// lbs to kg
 
@@ -405,7 +405,7 @@ namespace AE::Math
 		using AstronomicalUnit			= PhysicalQuantity< T, Dim::Meter, typename Scale::AstronomicalUnit >;	// au
 		using SolarRadius				= PhysicalQuantity< T, Dim::Meter, typename Scale::SolarRadius >;		// m
 
-		using Litre						= PhysicalQuantity< T, Dim::CubicMeter, typename Scale::Litre >;		// L
+		using Liter						= PhysicalQuantity< T, Dim::CubicMeter, typename Scale::Liter >;		// L
 		using Pound						= PhysicalQuantity< T, Dim::Kilogram, typename Scale::Pound >;			// kg
 		
 		using LightVelocity				= PhysicalQuantity< T, Dim::MeterPerSecond, typename Scale::SpeedOfLight >;			// c

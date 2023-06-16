@@ -12,7 +12,7 @@ namespace AE::Base
 	// String Parser
 	//
 
-	class StringParser final : Noninstancable
+	class StringParser final : Noninstanceable
 	{
 	public:
 			static void  ToEndOfLine	(StringView str, INOUT usize &pos)											__NE___;

@@ -13,7 +13,7 @@ namespace LFAS::CPP
 	{
 		static constexpr std::memory_order	Acquire					= std::memory_order_acquire;
 		static constexpr std::memory_order	Release					= std::memory_order_release;
-		static constexpr std::memory_order	AcquireRelase			= std::memory_order_acq_rel;
+		static constexpr std::memory_order	AcquireRelease			= std::memory_order_acq_rel;
 		static constexpr std::memory_order	Relaxed					= std::memory_order_relaxed;
 		static constexpr std::memory_order	SequentiallyConsistent	= std::memory_order_seq_cst;
 	};
@@ -102,7 +102,7 @@ namespace LFAS::CPP
 			case EMemoryOrder::Acquire :				vm.ThreadFenceAcquire();			break;
 			case EMemoryOrder::Release :				vm.ThreadFenceRelease();			break;
 			case EMemoryOrder::SequentiallyConsistent :
-			case EMemoryOrder::AcquireRelase :			vm.ThreadFenceAcquireRelease();		break;
+			case EMemoryOrder::AcquireRelease :			vm.ThreadFenceAcquireRelease();		break;
 			case EMemoryOrder::Relaxed :				vm.ThreadFenceRelaxed();			break;
 			case std::memory_order::consume :
 			default :									CHECK( !"unknown memory order" );	break;
@@ -436,7 +436,7 @@ namespace LFAS::CPP
 			case EMemoryOrder::Acquire :				vm.ThreadFenceAcquire();			break;
 			case EMemoryOrder::Release :				vm.ThreadFenceRelease();			break;
 			case EMemoryOrder::SequentiallyConsistent :
-			case EMemoryOrder::AcquireRelase :			vm.ThreadFenceAcquireRelease();		break;
+			case EMemoryOrder::AcquireRelease :			vm.ThreadFenceAcquireRelease();		break;
 			case EMemoryOrder::Relaxed :				vm.ThreadFenceRelaxed();			break;
 			default :									CHECK( !"unknown memory order" );	break;
 		}

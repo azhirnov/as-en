@@ -91,6 +91,7 @@ namespace AE::Graphics
 									//	|	void subgroupMemoryBarrierBuffer()					|	void simdgroup_barrier(mem_device)			| - wait for the completion of accesses to buffer memory
 									//	|	void subgroupMemoryBarrierShared()					|	void simdgroup_barrier(???)					| - wait for the completion of accesses to shared memory
 									//	|	void subgroupMemoryBarrierImage()					|	void simdgroup_barrier(mem_texture)			| - wait for the completion of accesses to image memory
+									//	'-------------------------------------------------------'-----------------------------------------------'
 		_Basic_Begin				= IndexAndSize,
 		_Basic_End					= Barrier,
 		
@@ -99,6 +100,7 @@ namespace AE::Graphics
 		Any,						//	|	bool subgroupAny(bool value)						|	bool simd_any(bool value)					| - returns true if all active invocation have 'value == true'
 		All,						//	|	bool subgroupAll(bool value)						|	bool simd_all(bool value)					| - returns true if all active invocation have a 'value' that is equal
 		AllEqual,					//	|	bool subgroupAllEqual(T value)						|	-											|
+									//	'-------------------------------------------------------'-----------------------------------------------'
 		_Vote_Begin					= Any,
 		_Vote_End					= AllEqual,
 
@@ -125,21 +127,23 @@ namespace AE::Graphics
 		ExclusiveAnd,				//	|	T subgroupExclusiveAnd(T value)						|	-											| - returns an exclusive scan operation that is the bitwise AND of all active invocation-provided 'value's.
 		ExclusiveOr,				//	|	T subgroupExclusiveOr(T value)						|	-											| - returns an exclusive scan operation that is the bitwise OR of all active invocation-provided 'value's.
 		ExclusiveXor,				//	|	T subgroupExclusiveXor(T value)						|	-											| - returns an exclusive scan operation that is the bitwise XOR of all active invocation-provided 'value's.
+									//	'-------------------------------------------------------'-----------------------------------------------'
 		_Arithmetic_Begin			= Add,
 		_Arithmetic_End				= ExclusiveXor,
 
 		//								|-------------------------------------------------------|-----------------------------------------------|
 		// ---- Ballot ----				|						GL_KHR_shader_subgroup_ballot	|												|
-		Ballot,						//	|	uvec4 subgroupBallot(bool value)					|	simd_vote simd_ballot(bool value)			|
+		Ballot,						//	|	uint4 subgroupBallot(bool value)					|	simd_vote simd_ballot(bool value)			|
 		Broadcast,					//	|	T subgroupBroadcast(T value, uint id)				|	T simd_broadcast(T value, ushort id)		|
 		BroadcastFirst,				//	|	T subgroupBroadcastFirst(T value)					|	T simd_broadcast_first(T value)				|
-		InverseBallot,				//	|	bool subgroupInverseBallot(uvec4 value)				|	-											|
-		BallotBitExtract,			//	| bool subgroupBallotBitExtract(uvec4 value, uint index)|	-											|
-		BallotBitCount,				//	|	uint subgroupBallotBitCount(uvec4 value)			|	-											|
-		BallotInclusiveBitCount,	//	|	uint subgroupBallotInclusiveBitCount(uvec4 value)	|	-											|
-		BallotExclusiveBitCount,	//	|	uint subgroupBallotExclusiveBitCount(uvec4 value)	|	-											|
-		BallotFindLSB,				//	|	uint subgroupBallotFindLSB(uvec4 value)				|	-											|
-		BallotFindMSB,				//	|	uint subgroupBallotFindMSB(uvec4 value)				|	-											|
+		InverseBallot,				//	|	bool subgroupInverseBallot(uint4 value)				|	-											|
+		BallotBitExtract,			//	| bool subgroupBallotBitExtract(uint4 value, uint index)|	-											|
+		BallotBitCount,				//	|	uint subgroupBallotBitCount(uint4 value)			|	-											|
+		BallotInclusiveBitCount,	//	|	uint subgroupBallotInclusiveBitCount(uint4 value)	|	-											|
+		BallotExclusiveBitCount,	//	|	uint subgroupBallotExclusiveBitCount(uint4 value)	|	-											|
+		BallotFindLSB,				//	|	uint subgroupBallotFindLSB(uint4 value)				|	-											|
+		BallotFindMSB,				//	|	uint subgroupBallotFindMSB(uint4 value)				|	-											|
+									//	'-------------------------------------------------------'-----------------------------------------------'
 		_Ballot_Begin				= Ballot,
 		_Ballot_End					= BallotFindMSB,
 
@@ -147,6 +151,7 @@ namespace AE::Graphics
 		// ---- Shuffle ----			|						GL_KHR_shader_subgroup_shuffle	|												|
 		Shuffle,					//	|	T subgroupShuffle(T value, uint index)				|	T simd_shuffle(T value, ushort index)		|
 		ShuffleXor,					//	|	T subgroupShuffleXor(T value, uint mask)			|	T simd_shuffle_xor(T value, ushort mask)	|
+									//	'-------------------------------------------------------'-----------------------------------------------'
 		_Shuffle_Begin				= Shuffle,
 		_Shuffle_End				= ShuffleXor,
 
@@ -154,6 +159,7 @@ namespace AE::Graphics
 		// ---- Shuffle Relative ----	|				GL_KHR_shader_subgroup_shuffle_relative	|												|
 		ShuffleUp,					//	|	T subgroupShuffleUp(T value, uint delta)			|	T simd_shuffle_up(T value, ushort delta)	|
 		ShuffleDown,				//	|	T subgroupShuffleDown(T value, uint delta)			|	T simd_shuffle_down(T value, ushort delta)	|
+									//	'-------------------------------------------------------'-----------------------------------------------'
 		_ShuffleRelative_Begin		= ShuffleUp,
 		_ShuffleRelative_End		= ShuffleDown,
 
@@ -166,6 +172,7 @@ namespace AE::Graphics
 		ClusteredAnd,				//	|	T subgroupClusteredAnd(T value, uint clusterSize)	|	-											|
 		ClusteredOr,				//	|	T subgroupClusteredOr(T value, uint clusterSize)	|	-											|
 		ClusteredXor,				//	|	T subgroupClusteredXor(T value, uint clusterSize)	|	-											|
+									//	'-------------------------------------------------------'-----------------------------------------------'
 		_Clustered_Begin			= ClusteredAdd,
 		_Clustered_End				= ClusteredXor,
 
@@ -175,17 +182,19 @@ namespace AE::Graphics
 		QuadSwapHorizontal,			//	|	T subgroupQuadSwapHorizontal(T value)				|	-											|
 		QuadSwapVertical,			//	|	T subgroupQuadSwapVertical(T value)					|	-											|
 		QuadSwapDiagonal,			//	|	T subgroupQuadSwapDiagonal(T value)					|	-											|
+									//	'-------------------------------------------------------'-----------------------------------------------'
 		_Quad_Begin					= QuadBroadcast,
 		_Quad_End					= QuadSwapDiagonal,
 
 		//								|-------------------------------------------------------|-----------------------------------------------|
-		// ---- Partitioned NV ----		|				GL_NV_shader_subgroup_partitioned		|												|
-		//PartitionedAdd_NV,		//	|	T subgroupPartitionedAddNV(T value, uvec4 ballot)	|												|
-		//PartitionedMin_NV,		//	|	T subgroupPartitionedMinNV(T value, uvec4 ballot)	|												|
-		//PartitionedMax_NV,		//	|	T subgroupPartitionedMaxNV(T value, uvec4 ballot)	|												|
-		//PartitionedAnd_NV,		//	|	T subgroupPartitionedAndNV(T value, uvec4 ballot)	|												|
-		//PartitionedOr_NV,			//	|	T subgroupPartitionedOrNV(T value, uvec4 ballot)	|												|
-		//PartitionedXor_NV,		//	|	T subgroupPartitionedXorNV(T value, uvec4 ballot)	|												|
+		// ---- Partitioned NV ----		|				GL_NV_shader_subgroup_partitioned		|	-											|
+		//PartitionedAdd_NV,		//	|	T subgroupPartitionedAddNV(T value, uint4 ballot)	|	-											|
+		//PartitionedMin_NV,		//	|	T subgroupPartitionedMinNV(T value, uint4 ballot)	|	-											|
+		//PartitionedMax_NV,		//	|	T subgroupPartitionedMaxNV(T value, uint4 ballot)	|	-											|
+		//PartitionedAnd_NV,		//	|	T subgroupPartitionedAndNV(T value, uint4 ballot)	|	-											|
+		//PartitionedOr_NV,			//	|	T subgroupPartitionedOrNV(T value, uint4 ballot)	|	-											|
+		//PartitionedXor_NV,		//	|	T subgroupPartitionedXorNV(T value, uint4 ballot)	|	-											|
+									//	'-------------------------------------------------------'-----------------------------------------------'
 		// TODO
 		
 		_Count

@@ -23,14 +23,14 @@ namespace AE::RG::_hidden_
 
 		struct PerQueue
 		{
-			uint	submitIdx	= 0;
+			uint				submitIdx	= 0;
 		};
 		using Queues_t = StaticArray< PerQueue, uint(EQueueType::_Count) >;
 		
 
 		struct PerFrame
 		{
-			Queues_t	queues;
+			Queues_t			queues;
 		};
 		using Frames_t	= StaticArray< PerFrame, GraphicsConfig::MaxFrames >;
 
@@ -48,8 +48,8 @@ namespace AE::RG::_hidden_
 		{
 		// variables
 		private:
-			RenderGraph &			_rg;
-			RGCommandBatchPtr		_batch;
+			RenderGraph &		_rg;
+			RGCommandBatchPtr	_batch;
 
 		// methods
 		private:
@@ -106,7 +106,7 @@ namespace AE::RG::_hidden_
 		FrameUID					_prevFrameId;
 		Frames_t					_frames;
 
-		// data for cyrrent frame
+		// data for current frame
 		AsyncTask					_beginFrame;
 		SemToBatch_t				_semToBatch;
 		RGBatchDataPool_t			_rgDataPool;

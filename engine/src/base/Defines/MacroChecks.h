@@ -52,6 +52,12 @@
 #	endif
 #endif
 
+#ifdef AE_PLATFORM_LINUX
+#	if not (defined(__linux__) or defined(__gnu_linux__))
+#		error platform is not Linux
+#	endif
+#endif
+
 #ifdef AE_PLATFORM_APPLE
 #	if not (defined(AE_PLATFORM_MACOS) or defined(AE_PLATFORM_IOS))
 #		error platform is not Apple-based
@@ -62,6 +68,9 @@
 #	if not defined(AE_PLATFORM_TARGET_VERSION_MINOR)
 #		error AE_PLATFORM_TARGET_VERSION_MINOR must be defined!
 #	endif
+#	if not (defined(__APPLE__) or defined(MACOSX))
+#		error platform is not Apple
+#	endif
 #endif
 
 #ifdef AE_PLATFORM_MACOS
@@ -69,6 +78,7 @@
 #		error AE_PLATFORM_TARGET_VERSION_MAJOR must be in range [10..13]
 #	 endif
 #endif
+
 #ifdef AE_PLATFORM_IOS
 #	 if not ((AE_PLATFORM_TARGET_VERSION_MAJOR >= 11) and (AE_PLATFORM_TARGET_VERSION_MAJOR <= 16))
 #		error AE_PLATFORM_TARGET_VERSION_MAJOR must be in range [11..16]
@@ -83,6 +93,9 @@
 #		error AE_PLATFORM_TARGET_VERSION_MAJOR must be in range [6..11]
 #	 endif
 #	endif
+#	if not (defined(_WIN32) or defined(_WIN64) or defined(__CYGWIN__) or defined(__MINGW32__))
+#		error platform is not WIndows
+#	endif
 #endif
 
 #if defined(AE_COMPILER_MSVC)	or \
@@ -90,6 +103,24 @@
 	defined(AE_COMPILER_CLANG)
 #else
 #	error unknown compiler!
+#endif
+
+#ifdef AE_COMPILER_MSVC
+# ifndef _MSC_VER
+#	error not a MSVC compiler!
+# endif
+#endif
+
+#ifdef AE_COMPILER_GCC
+# ifndef __GNUC__
+#	error not a GNU C compiler!
+# endif
+#endif
+
+#ifdef AE_COMPILER_CLANG
+# ifndef __clang__
+#	error not a Clang compiler!
+# endif
 #endif
 
 #if defined(AE_CPU_ARCH_ARM64)	or \

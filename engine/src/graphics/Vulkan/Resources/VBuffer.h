@@ -42,7 +42,7 @@ namespace AE::Graphics
 
 		ND_ VkBuffer			Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _buffer; }
 		ND_ VDeviceAddress		GetDeviceAddress ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  ASSERT( HasDeviceAddress() );  return _address; }
-		ND_ MemoryID			MemoryID ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ MemoryID			MemoryId ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 
 		ND_ BufferDesc const&	Description ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 		ND_ Bytes				Size ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc.size; }

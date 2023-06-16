@@ -99,8 +99,7 @@ namespace AE::Samples::Demo
 		scene_build.SetInstanceData( t->instances );
 
 		RTSceneBuild::Instance	inst;
-		inst.Init();
-		scene_build.SetGeometry( t->rtGeom, INOUT inst );
+		CHECK_TE( scene_build.SetGeometry( t->rtGeom, INOUT inst ));
 
 		CHECK_TE( copy_ctx.UploadBuffer( t->vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
 		CHECK_TE( copy_ctx.UploadBuffer( t->ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
@@ -252,7 +251,7 @@ namespace AE::Samples::Demo
 		auto	surf_acquire = rg.BeginOnSurface( batch, deps );
 		CHECK_ERR( surf_acquire );
 
-		return batch->Run< RayTracingTask >( Tuple{ this, rg.GetSurfaceArg() }, Tuple{surf_acquire}, True{"Last"} );
+		return batch->Run< RayTracingTask >( Tuple{ this, rg.GetSurfaceArg() }, Tuple{surf_acquire}, True{"Last"}, Default );
 	}
 	
 /*

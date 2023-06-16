@@ -80,11 +80,6 @@ namespace AE::Math
 			Self&	operator = (const Self &rhs)										__NE___ = default;
 			Self&	operator = (Self && rhs)											__NE___ = default;
 
-		//	Self&	operator += (T rhs)													C_NE___	{ _value += rhs;  return *this; }
-		//	Self&	operator -= (T rhs)													C_NE___	{ _value -= rhs;  return *this; }
-		//	Self&	operator *= (T rhs)													C_NE___	{ _value *= rhs;  return *this; }
-		//	Self&	operator /= (T rhs)													C_NE___	{ _value /= rhs;  return *this; }
-
 		ND_ Self	operator +  (T rhs)													C_NE___	{ return Self{ _value + rhs }; }
 		ND_ Self	operator -  (T rhs)													C_NE___	{ return Self{ _value - rhs }; }
 		ND_ Self	operator *  (T rhs)													C_NE___	{ return Self{ _value * rhs }; }
@@ -98,13 +93,22 @@ namespace AE::Math
 		ND_ friend Self					operator * (T lhs, const Self &rhs)				__NE___	{ return Self{ lhs * rhs._value }; }
 		ND_ friend Self					operator / (T lhs, const Self &rhs)				__NE___	{ return Self{ lhs / rhs._value }; }
 		
+
 		// return column
 		ND_ Col_t const&				operator [] (usize c)							C_NE___	{ ASSERT( c < Columns );  return _value[ glm::length_t(c) ]; }
 		ND_ Col_t&						operator [] (usize c)							__NE___	{ ASSERT( c < Columns );  return _value[ glm::length_t(c) ]; }
+		
+		template <uint C> ND_ Col_t const&	get ()										C_NE___	{ STATIC_ASSERT( C < Columns );  return _value[C]; }
+		template <uint C> ND_ Col_t &		get ()										__NE___	{ STATIC_ASSERT( C < Columns );  return _value[C]; }
+
 
 		// return scalar
 		ND_ const T						operator () (usize c, usize r)					C_NE___	{ ASSERT( c < Columns and r < Rows );  return _value[c][r]; }
 		ND_ T &							operator () (usize c, usize r)					__NE___	{ ASSERT( c < Columns and r < Rows );  return _value[c][r]; }
+
+		template <uint C, uint R> ND_ const T	get ()									C_NE___	{ STATIC_ASSERT( C < Columns and R < Rows );  return _value[C][R]; }
+		template <uint C, uint R> ND_ T &		get ()									__NE___	{ STATIC_ASSERT( C < Columns and R < Rows );  return _value[C][R]; }
+
 
 		// access to array
 		ND_ const T						operator () (usize i)							C_NE___	{ ASSERT( i < ElementCount() );  return _value[ glm::length_t(i) / Rows ][ glm::length_t(i) % Rows ]; }

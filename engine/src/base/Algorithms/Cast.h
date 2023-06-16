@@ -218,7 +218,13 @@ namespace AE::Base
 		//STATIC_ASSERT( not IsSameTypes< To, From >);	// to find unnecessary cast
 
 	#ifdef __cpp_lib_bit_cast
-		return std::bit_cast<To>( src );
+		if constexpr( std::is_trivially_copyable_v<From> and std::is_trivially_copyable_v<To> ){
+			return std::bit_cast<To>( src );
+		}else{
+			To	dst;
+			std::memcpy( OUT &dst, &src, sizeof(To) );
+			return dst;
+		}
 	#else
 		To	dst;
 		std::memcpy( OUT &dst, &src, sizeof(To) );

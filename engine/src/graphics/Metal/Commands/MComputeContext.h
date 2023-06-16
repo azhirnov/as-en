@@ -236,9 +236,9 @@ namespace AE::Graphics::_hidden_
 	}
 
 	template <typename C>
-	void  _MComputeContextImpl<C>::DispatchIndirect (BufferID bufferid, Bytes offset)
+	void  _MComputeContextImpl<C>::DispatchIndirect (BufferID bufferId, Bytes offset)
 	{
-		auto&	buf = _GetResourcesOrThrow( bufferid );
+		auto&	buf = _GetResourcesOrThrow( bufferId );
 		ASSERT( buf.Size() >= offset + sizeof(DispatchIndirectCommand) );
 		
 		_boundDS.UseHeapsAndResources( *this );

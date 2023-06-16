@@ -27,8 +27,8 @@ namespace
 		InputActionsInfo	info = {};
 		info.inFiles			= files;
 		info.inFileCount		= CountOf( files );
-		info.outputPackName		= output.c_str();
-		info.outputScriptFile	= output_script.c_str();
+		info.outputPackName		= Cast<CharType>(output.c_str());
+		info.outputScriptFile	= Cast<CharType>(output_script.c_str());
 
 		TEST( convert_input_actions( &info ));
 		
@@ -116,7 +116,12 @@ extern void Test_InputActions ()
 {
 	{
 		Path	dll_path{ AE_INPUT_ACTIONS_BINDING_LIBRARY };
-		dll_path.append( CMAKE_INTDIR "/InputActionsBinding-shared.dll" );
+		
+		#ifdef AE_COMPILER_MSVC
+			dll_path.append( CMAKE_INTDIR "/InputActionsBinding-shared.dll" );
+		#else
+			dll_path.append( "InputActionsBinding-shared.so" );
+		#endif
 
 		Library		lib;
 		TEST( lib.Load( dll_path ));

@@ -34,7 +34,7 @@ name: 'Draw2 |0| Draw task'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView'
       image:   'Image'
@@ -151,7 +151,7 @@ name: 'Draw2 |0| Draw task'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView'
       image:   'Image'
@@ -268,7 +268,7 @@ name: 'IndirectCmdBuffers'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView'
       image:   'Image'
@@ -385,7 +385,7 @@ name: 'IndirectCmdBuffers'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView'
       image:   'Image'

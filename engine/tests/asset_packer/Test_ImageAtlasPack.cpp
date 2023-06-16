@@ -22,9 +22,9 @@ namespace
 		AssetInfo		info	= {};
 		info.inFiles			= files;
 		info.inFileCount		= CountOf(files);
-		info.outputArchive		= output.c_str();
-		info.tempFile			= temp_file.c_str();
-		info.outputScriptFile	= output_script.c_str();
+		info.outputArchive		= Cast<CharType>(output.c_str());
+		info.tempFile			= Cast<CharType>(temp_file.c_str());
+		info.outputScriptFile	= Cast<CharType>(output_script.c_str());
 
 		TEST( pack_assets( &info ));
 		
@@ -40,7 +40,12 @@ extern void Test_ImageAtlasPack ()
 #ifdef AE_ASSET_PACKER_LIBRARY
 	{
 		Path	dll_path{ AE_ASSET_PACKER_LIBRARY };
-		dll_path.append( CMAKE_INTDIR "/AssetPacker-shared.dll" );
+
+		#ifdef AE_COMPILER_MSVC
+			dll_path.append( CMAKE_INTDIR "/AssetPacker-shared.dll" );
+		#else
+			dll_path.append( "AssetPacker-shared.so" );
+		#endif
 
 		Library		lib;
 		TEST( lib.Load( dll_path ));

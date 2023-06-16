@@ -14,7 +14,7 @@ namespace AE::Base
 	// Windows Page Allocator
 	//
 
-	class WindowsPageAllocator : Noninstancable
+	class WindowsPageAllocator : Noninstanceable
 	{
 	// types
 	public:

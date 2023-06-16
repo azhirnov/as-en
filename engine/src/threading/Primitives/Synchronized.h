@@ -230,6 +230,10 @@ namespace _hidden_
 		Synchronized (Self &&other)			__NE___ :
 			_values{ RVRef(other).Extract() }
 		{}
+		
+		explicit Synchronized (T0 &&arg0, T1 &&arg1, Types&&... args) noexcept(Types_t::AllNothrowDefaultCtor) :
+			_values{ FwdArg<T0>(arg0), FwdArg<T1>(arg1), FwdArg<Types>(args)... }
+		{}
 
 		Synchronized (const Self &other)	noexcept(Types_t::AllNothrowCopyCtor) :
 			_values{ other.ReadAll() }	// throw
@@ -283,25 +287,19 @@ namespace _hidden_
 			return _values;
 		}
 
-
-		template <typename T>
-		void  Write (const T &value)		noexcept(IsNothrowCopyCtor<T>)
-		{
-			STATIC_ASSERT( Types_t::template HasSingle<T> );
-			EXLOCK( _sync );
-			_values.template Get<T>() = value;
-		}
 		
-		template <typename T>
-		void  Write (T &&value)				__NE___
+		template <typename T,
+				  typename RawT				= RemoveCVRef<T>
+				 >
+		void  Write (T &&value)				noexcept(IsNothrowCopyCtor<RawT>)
 		{
-			STATIC_ASSERT( Types_t::template HasSingle<T> );
+			STATIC_ASSERT( Types_t::template HasSingle<RawT> );
 			EXLOCK( _sync );
-			_values.template Get<T>() = RVRef(value);
+			_values.template Get<RawT>() = FwdArg<T>(value);
 		}
 
 		template <typename ...Args>
-		void  WriteAll (Args&& ...args)		__Th___
+		void  WriteAll (Args&& ...args)		noexcept(Types_t::AllNothrowCopyCtor)
 		{
 			EXLOCK( _sync );
 			_values.Set( FwdArg<Args>(args)... );
@@ -445,18 +443,26 @@ namespace _hidden_
 
 	// methods
 	public:
-		Synchronized ()						noexcept(IsNothrowDefaultCtor<T>)
+		Synchronized ()							noexcept(IsNothrowDefaultCtor<T>)
 		{}
 
-		Synchronized (Self &&other)			__NE___ :
+		Synchronized (Self &&other)				__NE___ :
 			_value{ RVRef(other).Extract() }
 		{}
-
-		Synchronized (const Self &other)	noexcept(IsNothrowCopyCtor<T>) :
-			_value{ other.Read() }	// throw
+		
+		explicit Synchronized (T &&value)		__NE___ :
+			_value{ RVRef(value) }
 		{}
 
-		~Synchronized ()					__NE___
+		Synchronized (const Self &other)		noexcept(IsNothrowCopyCtor<T>) :
+			_value{ other.Read() }  // throw
+		{}
+
+		explicit Synchronized (const T &value)	noexcept(IsNothrowCopyCtor<T>) :
+			_value{ value }  // throw
+		{}
+
+		~Synchronized ()						__NE___
 		{
 		  DEBUG_ONLY(
 			ASSERT( _sync.try_lock() );
@@ -464,14 +470,14 @@ namespace _hidden_
 		)}
 
 
-		Self&  operator = (Self && rhs)		__NE___
+		Self&  operator = (Self && rhs)			__NE___
 		{
 			EXLOCK( this->_sync, rhs._sync );
 			this->_value = RVRef(rhs._value);
 			return *this;
 		}
 
-		Self&  operator = (const Self &rhs)	noexcept(IsNothrowCopyAssignable<T>)
+		Self&  operator = (const Self &rhs)		noexcept(IsNothrowCopyAssignable<T>)
 		{
 			EXLOCK( this->_sync, rhs._sync );
 			this->_value = rhs._value;	// throw
@@ -479,50 +485,50 @@ namespace _hidden_
 		}
 
 
-		ND_ T  Read ()						const noexcept(IsNothrowCopyCtor<T>)
+		ND_ T  Read ()							const noexcept(IsNothrowCopyCtor<T>)
 		{
 			SHAREDLOCK( _sync );
 			return _value;
 		}
 
 
-		void  Write (const T &value)		noexcept(IsNothrowCopyCtor<T>)
+		void  Write (const T &value)			noexcept(IsNothrowCopyCtor<T>)
 		{
 			EXLOCK( _sync );
 			_value = value;
 		}
 		
-		void  Write (T &&value)				__NE___
+		void  Write (T &&value)					__NE___
 		{
 			EXLOCK( _sync );
 			_value = RVRef(value);
 		}
 
 
-		void  Reset ()						noexcept(IsNothrowCopyCtor<T>)
+		void  Reset ()							noexcept(IsNothrowCopyCtor<T>)
 		{
 			EXLOCK( _sync );
 			_value = T{};
 		}
 
-		ND_ T  Extract ()					rvNE___
+		ND_ T  Extract ()						rvNE___
 		{
 			EXLOCK( _sync );
 			return RVRef(_value);
 		}
 
 
-		ND_ auto  ConstPtr ()				C_NE___	{ return Threading::_hidden_::Synchronized_ConstPtr{ _sync, _value }; }
-		ND_ auto  Ptr ()					C_NE___	{ return ConstPtr(); }
-		ND_ auto  operator -> ()			C_NE___	{ return ConstPtr(); }
+		ND_ auto  ConstPtr ()					C_NE___	{ return Threading::_hidden_::Synchronized_ConstPtr{ _sync, _value }; }
+		ND_ auto  Ptr ()						C_NE___	{ return ConstPtr(); }
+		ND_ auto  operator -> ()				C_NE___	{ return ConstPtr(); }
 
-		ND_ auto  MutablePtr ()				__NE___	{ return Threading::_hidden_::Synchronized_MutablePtr{ _sync, _value }; }
-		ND_ auto  Ptr ()					__NE___	{ return MutablePtr(); }
-		ND_ auto  operator -> ()			__NE___	{ return MutablePtr(); }
+		ND_ auto  MutablePtr ()					__NE___	{ return Threading::_hidden_::Synchronized_MutablePtr{ _sync, _value }; }
+		ND_ auto  Ptr ()						__NE___	{ return MutablePtr(); }
+		ND_ auto  operator -> ()				__NE___	{ return MutablePtr(); }
 
 		
-		ND_ auto  ReadNoLock ()				C_NE___	{ return ReadNoLock_t{ *this }; }
-		ND_ auto  WriteNoLock ()			__NE___	{ return WriteNoLock_t{ *this }; }
+		ND_ auto  ReadNoLock ()					C_NE___	{ return ReadNoLock_t{ *this }; }
+		ND_ auto  WriteNoLock ()				__NE___	{ return WriteNoLock_t{ *this }; }
 	};
 	
 

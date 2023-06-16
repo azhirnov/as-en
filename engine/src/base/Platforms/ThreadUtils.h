@@ -14,7 +14,7 @@ namespace AE::Base
 	// Thread Utils
 	//
 
-	struct ThreadUtils : Noninstancable
+	struct ThreadUtils : Noninstanceable
 	{
 			static void		SetName (NtStringView name)										__NE___;
 		ND_ static String	GetName ()														__Th___;

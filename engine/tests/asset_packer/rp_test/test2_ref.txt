@@ -18,7 +18,7 @@ colorAttachments  = {
   [0].storeActionOpt = MTLStoreActionOptionsNone
 }
 depthAttachment = {
-  format         = MTLPixelFormatDepth32Float
+  format         = MTLPixelFormatDepth16Unorm
   loadAction     = MTLLoadActionDontCare
   storeAction    = MTLStoreActionDontCare
   storeActionOpt = MTLStoreActionOptionsNone
@@ -35,7 +35,7 @@ colorAttachments  = {
   [0].storeActionOpt = MTLStoreActionOptionsNone
 }
 depthAttachment = {
-  format         = MTLPixelFormatDepth32Float
+  format         = MTLPixelFormatDepth16Unorm
   loadAction     = MTLLoadActionClear
   storeAction    = MTLStoreActionDontCare
   storeActionOpt = MTLStoreActionOptionsNone
@@ -52,7 +52,7 @@ colorAttachments  = {
   [0].storeActionOpt = MTLStoreActionOptionsNone
 }
 depthAttachment = {
-  format         = MTLPixelFormatDepth32Float
+  format         = MTLPixelFormatDepth16Unorm
   loadAction     = MTLLoadActionClear
   storeAction    = MTLStoreActionStore
   storeActionOpt = MTLStoreActionOptionsNone
@@ -145,7 +145,7 @@ colorAttachments  = {
   [2].storeActionOpt = MTLStoreActionOptionsNone
 }
 depthAttachment = {
-  format         = MTLPixelFormatDepth32Float
+  format         = MTLPixelFormatDepth16Unorm
   loadAction     = MTLLoadActionDontCare
   storeAction    = MTLStoreActionDontCare
   storeActionOpt = MTLStoreActionOptionsNone
@@ -157,7 +157,7 @@ depthAttachment = {
 name              = 'Multipass.Default'
 colorAttachments  = {
   [0].format         = MTLPixelFormatRGBA8Unorm
-  [0].loadAction     = MTLLoadActionClear
+  [0].loadAction     = MTLLoadActionDontCare
   [0].storeAction    = MTLStoreActionStore
   [0].storeActionOpt = MTLStoreActionOptionsNone
   --------
@@ -167,13 +167,13 @@ colorAttachments  = {
   [1].storeActionOpt = MTLStoreActionOptionsNone
   --------
   [2].format         = SwapchainColor
-  [2].loadAction     = MTLLoadActionClear
+  [2].loadAction     = MTLLoadActionDontCare
   [2].storeAction    = MTLStoreActionStore
   [2].storeActionOpt = MTLStoreActionOptionsNone
 }
 depthAttachment = {
-  format         = MTLPixelFormatDepth32Float
-  loadAction     = MTLLoadActionLoad
+  format         = MTLPixelFormatDepth16Unorm
+  loadAction     = MTLLoadActionClear
   storeAction    = MTLStoreActionDontCare
   storeActionOpt = MTLStoreActionOptionsNone
   resolveFilter  = MTLMultisampleDepthResolveFilterSample0
@@ -184,7 +184,7 @@ depthAttachment = {
 name              = 'Multipass.V2'
 colorAttachments  = {
   [0].format         = MTLPixelFormatRGBA8Unorm
-  [0].loadAction     = MTLLoadActionClear
+  [0].loadAction     = MTLLoadActionDontCare
   [0].storeAction    = MTLStoreActionStore
   [0].storeActionOpt = MTLStoreActionOptionsNone
   --------
@@ -194,12 +194,12 @@ colorAttachments  = {
   [1].storeActionOpt = MTLStoreActionOptionsNone
   --------
   [2].format         = SwapchainColor
-  [2].loadAction     = MTLLoadActionClear
+  [2].loadAction     = MTLLoadActionDontCare
   [2].storeAction    = MTLStoreActionStore
   [2].storeActionOpt = MTLStoreActionOptionsNone
 }
 depthAttachment = {
-  format         = MTLPixelFormatDepth32Float
+  format         = MTLPixelFormatDepth16Unorm
   loadAction     = MTLLoadActionClear
   storeAction    = MTLStoreActionDontCare
   storeActionOpt = MTLStoreActionOptionsNone

@@ -22,7 +22,7 @@
 
 
 // enable simd
-//	WIndows, Linux, Mac with Intel, Android x64
+//	Windows, Linux, Mac with Intel, Android x64
 #if AE_SIMD_AVX | AE_SIMD_SSE
 # if AE_SIMD_AVX >= 2
 #	define GLM_FORCE_AVX2	// float/double/int64
@@ -200,24 +200,24 @@ namespace AE::Math
 	STATIC_ASSERT( bool(AE_HAS_SIMD != 0) == ((GLM_ARCH & GLM_ARCH_SIMD_BIT) != 0) );
 
 # if AE_HAS_SIMD
-	static constexpr auto	GLMQuialifier	= glm::qualifier::aligned_highp;
+	static constexpr auto	GLMQualifier	= glm::qualifier::aligned_highp;
 # else
-	static constexpr auto	GLMQuialifier	= glm::qualifier::highp;
+	static constexpr auto	GLMQualifier	= glm::qualifier::highp;
 # endif
 	
 	template <typename T, int I, glm::qualifier Q>
 	using TVec = glm::vec< I, T, Q >;
 
-	template <typename T, glm::qualifier Q = GLMQuialifier>
+	template <typename T, glm::qualifier Q = GLMQualifier>
 	struct Quat;
 
 	template <typename T, uint Columns, uint Rows, glm::qualifier Q>
 	struct TMatrix;
 
-	template <typename T, int I>	using Vec		= TVec< T, I, GLMQuialifier >;
+	template <typename T, int I>	using Vec		= TVec< T, I, GLMQualifier >;
 	template <typename T, int I>	using PackedVec	= TVec< T, I, glm::qualifier::packed_highp >;
 	
-	template <typename T, uint Columns, uint Rows>	using Matrix		= TMatrix< T, Columns, Rows, GLMQuialifier >;
+	template <typename T, uint Columns, uint Rows>	using Matrix		= TMatrix< T, Columns, Rows, GLMQualifier >;
 	template <typename T, uint Columns, uint Rows>	using PackedMatrix	= TMatrix< T, Columns, Rows, glm::qualifier::packed_highp >;
 
 } // AE::Math
@@ -225,13 +225,13 @@ namespace AE::Math
 
 namespace AE::Base
 {
-	template <typename T, uint I, glm::qualifier Q>
+	template <typename T, int I, glm::qualifier Q>
 	struct TMemCopyAvailable< TVec<T,I,Q> > { static constexpr bool  value = IsMemCopyAvailable<T>; };
 	
-	template <typename T, uint I, glm::qualifier Q>
+	template <typename T, int I, glm::qualifier Q>
 	struct TZeroMemAvailable< TVec<T,I,Q> > { static constexpr bool  value = IsZeroMemAvailable<T>; };
 	
-	//template <typename T, uint I, glm::qualifier Q>
+	//template <typename T, int I, glm::qualifier Q>
 	//struct TTriviallySerializable< TVec<T,I,Q> > { static constexpr bool  value = IsTriviallySerializable<T>; };
 
 	template <typename T, glm::qualifier Q>

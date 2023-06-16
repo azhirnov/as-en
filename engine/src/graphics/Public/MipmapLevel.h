@@ -20,7 +20,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		constexpr MipmapLevel () {}
+		constexpr MipmapLevel ()									__NE___	{}
 
 		template <typename T, typename = EnableIf<IsUnsignedInteger<T>> >
 		explicit constexpr MipmapLevel (T value)					__NE___	: _value( CheckCast<ushort>(value)) {}

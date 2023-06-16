@@ -273,10 +273,7 @@ namespace AE::App
 
 
 #ifdef AE_ENABLE_SCRIPTING
-namespace AE::Scripting
-{
 	AE_DECL_SCRIPT_OBJ_RC(	AE::App::SerializableInputActionsWinAPI::ScriptBindingsMode,	"WinAPI_BindingsMode"	);
 	AE_DECL_SCRIPT_OBJ(		AE::App::SerializableInputActionsWinAPI::ScriptActionBindings,	"WinAPI_ActionBindings"	);
 	AE_DECL_SCRIPT_TYPE(	AE::App::SerializableInputActionsWinAPI::EInputType,			"WinAPI_Input"			);
-}
 #endif

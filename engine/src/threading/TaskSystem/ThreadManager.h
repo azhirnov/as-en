@@ -13,7 +13,7 @@ namespace AE::Threading
 	// Thread Manager
 	//
 
-	class ThreadMngr final : public Noninstancable
+	class ThreadMngr final : public Noninstanceable
 	{
 	// types
 	public:

@@ -191,9 +191,9 @@ namespace AE::ECS
 			//STATIC_ASSERT( not IsSameTypes< Tag, MsgTag_RemovedComponent >);
 			CATCH_ERR(
 				msg.listeners.push_back(
-					[fn = FwdArg<Fn>(fn)] (const MessageData &msg)
+					[fn = FwdArg<Fn>(fn)] (const MessageData &data)
 					{
-						fn( ArrayView<EntityID>{ msg.entities });
+						fn( ArrayView<EntityID>{ data.entities });
 					}));
 			return true;
 		}
@@ -204,11 +204,11 @@ namespace AE::ECS
 			STATIC_ASSERT( IsSameTypes<typename FI::args::template Get<1>, ArrayView<Comp>> );
 			CATCH_ERR(
 				msg.listeners.push_back(
-					[fn = FwdArg<Fn>(fn)] (const MessageData &msg)
+					[fn = FwdArg<Fn>(fn)] (const MessageData &data)
 					{
-						ASSERT( msg.components.size() );
-						fn( ArrayView<EntityID>{ msg.entities },
-							ArrayView<Comp>{ Cast<Comp>(msg.components.data()), msg.entities.size() });
+						ASSERT( data.components.size() );
+						fn( ArrayView<EntityID>{ data.entities },
+							ArrayView<Comp>{ Cast<Comp>(data.components.data()), data.entities.size() });
 					}));
 			return true;
 		}

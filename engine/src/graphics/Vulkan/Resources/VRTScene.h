@@ -41,7 +41,7 @@ namespace AE::Graphics
 		ND_ VkAccelerationStructureKHR	Handle ()																		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _accelStruct; }
 		ND_ VDeviceAddress				GetDeviceAddress ()																C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _address; }
 		ND_ RTSceneDesc const&			Description ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ MemoryID					MemoryID ()																		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ MemoryID					MemoryId ()																		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 		ND_ bool						IsExclusiveSharing ()															C_NE___	{ return false; }
 		
 		DEBUG_ONLY(  ND_ StringView		GetDebugName ()																	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })

@@ -136,7 +136,7 @@ namespace AE::Base
 					(off >= _MAX_OFFSET) ?
 						_ON_ERROR( "overflow" ) :
 
-					// try map to laters
+					// try map to letters
 					(_Hash1( str[i], off ) != type(UMax)) ?
 						(_Hash1( str[i], off ) | _RecursiveHash( str, i+1, off + _SYMBOL_SIZE, size )) :
 

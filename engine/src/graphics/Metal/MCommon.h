@@ -107,7 +107,7 @@ namespace AE::Graphics
 	//
 	// Metal Config
 	//
-	struct MConfig final : Noninstancable
+	struct MConfig final : Noninstanceable
 	{
 		static constexpr uint	MaxQueues			= 4;
 		static constexpr uint	VertexBufferOffset	= 31 - GraphicsConfig::MaxVertexBuffers;

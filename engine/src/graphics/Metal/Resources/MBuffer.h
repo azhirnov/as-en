@@ -37,7 +37,7 @@ namespace AE::Graphics
 			void  Destroy (MResourceManager &)																			__NE___;
 		
 		ND_ MetalBuffer			Handle ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _buffer; }
-		ND_ MemoryID			MemoryID ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ MemoryID			MemoryId ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 		ND_ bool				IsExclusiveSharing ()		C_NE___	{ return false; }
 
 		ND_ BufferDesc const&	Description ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }

@@ -1,3 +1,4 @@
+// Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #include <input_actions>
 
 void ASmain (Android_ActionBindings& bindings)
@@ -15,11 +16,12 @@ void ASmain (Android_ActionBindings& bindings)
 		//		  ActionInfo( "Touch", EValueType::Float2, EGestureType::Move ));
 		
 		bind.Add( Android_Input::TouchPos,
+				  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
+
+		bind.Add( Android_Input::TouchPos,
 				  ActionInfo( "Test.Move", EValueType::Float2, EGestureType::Move ));
 		bind.Add( Android_Input::TouchPos,
 				  ActionInfo( "Test.Down", EValueType::Float2, EGestureType::Down ));
-		bind.Add( Android_Input::TouchPos,
-				  ActionInfo( "Test.Click", EValueType::Float2, EGestureType::Click ));
 		bind.Add( Android_Input::TouchPos,
 				  ActionInfo( "Test.DoubleClick", EValueType::Float2, EGestureType::DoubleClick ));
 		bind.Add( Android_Input::TouchPos,

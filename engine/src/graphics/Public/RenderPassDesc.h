@@ -206,7 +206,9 @@ namespace AE::Graphics
 	{
 		ASSERT( imageView );
 
-		attachments.try_insert_or_assign( id, Attachment{ imageView, NullUnion{}, initial, final });
+		bool inserted = attachments.try_insert_or_assign( id, Attachment{ imageView, NullUnion{}, initial, final }).second;
+		ASSERT( inserted );	Unused( inserted );
+
 		return *this;
 	}
 	
@@ -221,7 +223,9 @@ namespace AE::Graphics
 	{
 		ASSERT( imageView );
 
-		attachments.try_insert_or_assign( id, Attachment{ imageView, clearValue, initial, final });
+		bool inserted = attachments.try_insert_or_assign( id, Attachment{ imageView, clearValue, initial, final }).second;
+		ASSERT( inserted );	Unused( inserted );
+
 		return *this;
 	}
 	

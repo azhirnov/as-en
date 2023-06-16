@@ -29,7 +29,7 @@ namespace AE::Math
 	
 
 	template <typename Quantity, int VecLength>
-	using PhysicalQuantitySIMDVec		= PhysicalQuantityVec< Quantity, VecLength, GLMQuialifier >;
+	using PhysicalQuantitySIMDVec		= PhysicalQuantityVec< Quantity, VecLength, GLMQualifier >;
 	
 	template <typename Quantity, int VecLength>
 	using PhysicalQuantityPackedVec		= PhysicalQuantityVec< Quantity, VecLength, glm::qualifier::packed_highp >;
@@ -191,7 +191,7 @@ namespace AE::Math
 	template <typename		 VecType,
 			  typename		 Dimension,
 			  typename		 ValueScale	= ValueScaleTempl::Integer< typename VecType::value_type, 1 >,
-			  glm::qualifier Q			= GLMQuialifier
+			  glm::qualifier Q			= GLMQualifier
 			 >
 	using PhysicalQuantity_FromVec = typename Math::_hidden_::_PhysicalQuantity_FromVec< VecType, Dimension, ValueScale, Q >::type;
 

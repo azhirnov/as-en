@@ -284,7 +284,7 @@ namespace AE::Graphics
 
 	// methods
 	public:
-		~CMDBATCH ()												__NE___;
+		~CMDBATCH ()															__NE___;
 
 
 	// user api (thread safe)
@@ -297,25 +297,25 @@ namespace AE::Graphics
 						 const TaskBarriers_t*	initialBarriers,
 						 const TaskBarriers_t*	finalBarriers,
 						 Bool					isLastTaskInBatch,
-						 DebugLabel				dbg		= Default) __NE___;
+						 DebugLabel				dbg		= Default)				__NE___;
 		
 		template <typename TaskType, typename ...Ctor, typename ...Deps>
 		AsyncTask	Run (Tuple<Ctor...>&&		ctor,
 						 const Tuple<Deps...>&	deps,
 						 Bool					isLastTaskInBatch,
-						 DebugLabel				dbg		= Default) __NE___;
+						 DebugLabel				dbg)							__NE___;
 
 		template <typename TaskType, typename ...Ctor, typename ...Deps>
-		AsyncTask	Run (Tuple<Ctor...>&&		ctor	= Default,
+		AsyncTask	Run (Tuple<Ctor...>&&		ctor,
 						 const Tuple<Deps...>&	deps	= Default,
-						 DebugLabel				dbg		= Default) __NE___;
+						 DebugLabel				dbg		= Default)				__NE___;
 			
 		template <typename TaskType, typename ...Deps>
 		AsyncTask	RunTask (TaskType				task,
 							 const Tuple<Deps...>&	deps,
 							 const TaskBarriers_t*	initialBarriers,
 							 const TaskBarriers_t*	finalBarriers,
-							 Bool					isLastTaskInBatch) __NE___;
+							 Bool					isLastTaskInBatch)			__NE___;
 
 
 	  #ifdef AE_HAS_COROUTINE
@@ -325,18 +325,18 @@ namespace AE::Graphics
 						 const TaskBarriers_t*	initialBarriers,
 						 const TaskBarriers_t*	finalBarriers,
 						 Bool					isLastTaskInBatch,
-						 DebugLabel				dbg		= Default)	__NE___;
+						 DebugLabel				dbg		= Default)				__NE___;
 		
 		template <typename ...Deps>
 		AsyncTask	Run (RenderTaskCoro_t		coro,
 						 const Tuple<Deps...>&	deps,
 						 Bool					isLastTaskInBatch,
-						 DebugLabel				dbg		= Default)	__NE___;
+						 DebugLabel				dbg		= Default)				__NE___;
 
 		template <typename ...Deps>
 		AsyncTask	Run (RenderTaskCoro_t		coro,
 						 const Tuple<Deps...>&	deps	= Default,
-						 DebugLabel				dbg		= Default)	__NE___;
+						 DebugLabel				dbg		= Default)				__NE___;
 	  #endif
 
 		template <typename ...Deps>

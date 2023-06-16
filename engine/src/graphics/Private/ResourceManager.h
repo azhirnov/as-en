@@ -277,6 +277,9 @@ namespace AE::Graphics
 		ND_ RTASBuildSizes			GetRTGeometrySizes (const RTGeometryBuild &desc)																__NE_OV;
 		ND_ RTASBuildSizes			GetRTSceneSizes (const RTSceneBuild &desc)																		__NE_OV;
 		
+		ND_ DeviceAddress_t			GetDeviceAddress (BufferID		id)																				C_NE_OV;
+		ND_ DeviceAddress_t			GetDeviceAddress (RTGeometryID	id)																				C_NE_OV;
+
 		ND_ bool					CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
 														  GraphicsPipelineID ppln, const DescriptorSetName &dsName,
 														  DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)					__NE_OV;
@@ -382,6 +385,8 @@ namespace AE::Graphics
 		ND_ BufferViewDesc const&		GetDescription (BufferViewID id)								C_NE_OV;
 		ND_ ImageViewDesc const&		GetDescription (ImageViewID id)									C_NE_OV;
 		ND_ RTShaderBindingDesc const&	GetDescription (RTShaderBindingID id)							C_NE_OV;
+		ND_ RTGeometryDesc const&		GetDescription (RTGeometryID id)								C_NE_OV;
+		ND_ RTSceneDesc const&			GetDescription (RTSceneID id)									C_NE_OV;
 		ND_ VideoImageDesc const&		GetDescription (VideoImageID id)								C_NE_OV;
 		ND_ VideoBufferDesc const&		GetDescription (VideoBufferID id)								C_NE_OV;
 		ND_ VideoSessionDesc const&		GetDescription (VideoSessionID id)								C_NE_OV;
@@ -406,8 +411,16 @@ namespace AE::Graphics
 		ND_ bool			IsResourceAlive (VideoBufferID		id)										C_NE_OV	{ return IsAlive( id ); }
 		ND_ bool			IsResourceAlive (VideoImageID		id)										C_NE_OV	{ return IsAlive( id ); }
 		
+		ND_ Strong<ImageID>			AcquireResource (ImageID			id)								__NE_OV	{ return _AcquireResource( id ); }
+		ND_ Strong<BufferID>		AcquireResource (BufferID			id)								__NE_OV	{ return _AcquireResource( id ); }
+		ND_ Strong<ImageViewID>		AcquireResource (ImageViewID		id)								__NE_OV	{ return _AcquireResource( id ); }
+		ND_ Strong<BufferViewID>	AcquireResource (BufferViewID		id)								__NE_OV	{ return _AcquireResource( id ); }
+		ND_ Strong<DescriptorSetID>	AcquireResource (DescriptorSetID	id)								__NE_OV	{ return _AcquireResource( id ); }
+		ND_ Strong<RTGeometryID>	AcquireResource (RTGeometryID		id)								__NE_OV	{ return _AcquireResource( id ); }
+		ND_ Strong<RTSceneID>		AcquireResource (RTSceneID			id)								__NE_OV	{ return _AcquireResource( id ); }
+
 		template <usize IS, usize GS, uint UID>
-		ND_ auto			AcquireResource (HandleTmpl<IS, GS, UID> id)								__NE___;
+		ND_ auto			AcquireResource (HandleTmpl<IS, GS, UID> id)								__NE___	{ return _AcquireResource( id ); }
 
 		template <typename ID>
 		ND_ auto const*		GetResource (ID id, Bool incRef = False{}, Bool quiet = False{})			C_NE___;
@@ -459,6 +472,9 @@ namespace AE::Graphics
 
 			template <typename ID>
 		ND_ int  _ImmediatelyReleaseResource (ID id, uint refCount = 1)			__NE___;
+		
+		template <usize IS, usize GS, uint UID>
+		ND_ auto  _AcquireResource (HandleTmpl<IS, GS, UID> id)					__NE___ -> Strong< HandleTmpl<IS, GS, UID>>;
 
 		template <typename ID, typename ...Args>
 		ND_ Strong<ID>  _CreateResource (const char* msg, Args&& ...args)		__NE___;
@@ -776,37 +792,16 @@ namespace AE::Graphics
 		return res ? res->Description() : defaultDesc;
 	}
 	
-	inline BufferDesc const&  RESMNGR::GetDescription (BufferID id) C_NE___ {
-		return _GetDescription( id );
-	}
-
-	inline ImageDesc const&  RESMNGR::GetDescription (ImageID id) C_NE___ {
-		return _GetDescription( id );
-	}
-
-	inline BufferViewDesc const&  RESMNGR::GetDescription (BufferViewID id) C_NE___ {
-		return _GetDescription( id );
-	}
-
-	inline ImageViewDesc const&  RESMNGR::GetDescription (ImageViewID id) C_NE___ {
-		return _GetDescription( id );
-	}
-
-	inline RTShaderBindingDesc const&  RESMNGR::GetDescription (RTShaderBindingID id) C_NE___ {
-		return _GetDescription( id );
-	}
-	
-	inline VideoImageDesc const&  RESMNGR::GetDescription (VideoImageID id) C_NE___ {
-		return _GetDescription( id );
-	}
-	
-	inline VideoBufferDesc const&  RESMNGR::GetDescription (VideoBufferID id) C_NE___ {
-		return _GetDescription( id );
-	}
-	
-	inline VideoSessionDesc const&  RESMNGR::GetDescription (VideoSessionID id) C_NE___ {
-		return _GetDescription( id );
-	}
+	inline BufferDesc const&			RESMNGR::GetDescription (BufferID			id) C_NE___ { return _GetDescription( id ); }
+	inline ImageDesc const&				RESMNGR::GetDescription (ImageID			id)	C_NE___ { return _GetDescription( id ); }
+	inline BufferViewDesc const&		RESMNGR::GetDescription (BufferViewID		id)	C_NE___ { return _GetDescription( id ); }
+	inline ImageViewDesc const&			RESMNGR::GetDescription (ImageViewID		id)	C_NE___ { return _GetDescription( id ); }
+	inline RTShaderBindingDesc const&	RESMNGR::GetDescription (RTShaderBindingID	id) C_NE___ { return _GetDescription( id ); }
+	inline RTGeometryDesc const&		RESMNGR::GetDescription (RTGeometryID		id) C_NE___ { return _GetDescription( id ); }
+	inline RTSceneDesc const&			RESMNGR::GetDescription (RTSceneID			id) C_NE___ { return _GetDescription( id ); }
+	inline VideoImageDesc const&		RESMNGR::GetDescription (VideoImageID		id) C_NE___ { return _GetDescription( id ); }
+	inline VideoBufferDesc const&		RESMNGR::GetDescription (VideoBufferID		id) C_NE___ { return _GetDescription( id ); }
+	inline VideoSessionDesc const&		RESMNGR::GetDescription (VideoSessionID		id) C_NE___ { return _GetDescription( id ); }
 
 /*
 =================================================
@@ -826,11 +821,11 @@ namespace AE::Graphics
 
 /*
 =================================================
-	AcquireResource
+	_AcquireResource
 =================================================
 */
 	template <usize IS, usize GS, uint UID>
-	auto  RESMNGR::AcquireResource (HandleTmpl<IS, GS, UID> id) __NE___
+	auto  RESMNGR::_AcquireResource (HandleTmpl<IS, GS, UID> id) __NE___ -> Strong< HandleTmpl<IS, GS, UID>>
 	{
 		using Unique_t = Strong< HandleTmpl< IS, GS, UID >>;
 

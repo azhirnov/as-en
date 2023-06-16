@@ -266,7 +266,19 @@ namespace AE::Graphics
 		#	error not implemented
 		#endif
 	};
-	//STATIC_ASSERT( sizeof(TraceRayIndirectCommand2) == 104 );
+	#ifdef AE_ENABLE_VULKAN
+	  STATIC_ASSERT( sizeof(TraceRayIndirectCommand2) == 104 );
+	#endif
+
+	struct ASBuildIndirectCommand
+	{
+		uint		primitiveCount;
+		uint		primitiveOffset;
+		uint		firstVertex;
+		uint		transformOffset;
+	};
+	STATIC_ASSERT( sizeof(ASBuildIndirectCommand) == 16 );
+		
 
 //-----------------------------------------------------------------------------
 
@@ -430,7 +442,7 @@ namespace AE::Graphics
 		// Submit batch immediately when all render tasks has been complete.
 		Immediately,
 
-		// Block untill batch is not submitted
+		// Block until batch is not submitted
 		Force,
 
 		Unknown	= Auto,

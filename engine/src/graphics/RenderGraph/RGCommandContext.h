@@ -28,7 +28,6 @@ namespace AE::RG::_hidden_
 		ND_ RGCommandBatchPtr::RGBatchData&	_RGBatch ()																			 __NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _Batch().GetUserData() ); } \
 		ND_ uint							_ExeIdx ()																			 __NE___ { return _ctx._GetBarrierMngr().GetRenderTask().GetExecutionIndex(); } \
 		ND_ auto&							_ResMngr ()																			 C_NE___ { return _ctx._GetBarrierMngr().GetResourceManager(); } \
-		ND_ RenderTask const&				_RTask ()																			 __NE___ { return _ctx._GetBarrierMngr().GetRenderTask(); } \
 		\
 	public: \
 		void  CommitBarriers ()																									 __Th_OV { return _ctx.CommitBarriers(); } \
@@ -50,6 +49,7 @@ namespace AE::RG::_hidden_
 		ND_ CommandBatchPtr							GetCommandBatchRC ()														 C_NE___ { return _ctx.GetCommandBatchRC(); } \
 		ND_ RGCommandBatchPtr::RGBatchData const&	GetRGBatchData ()															 C_NE___ { return *Cast<RGCommandBatchPtr::RGBatchData>( _ctx._GetBarrierMngr().GetBatch().GetUserData() ); } \
 		ND_ auto&									GetResourceManager ()														 C_NE___ { return _ResMngr(); } \
+		ND_ RenderTask const&						GetRenderTask ()															 C_NE___ { return _ctx.GetRenderTask(); } \
 		\
 		void  ResourceState (BufferID     id, EResourceState state)																 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
 		void  ResourceState (ImageID      id, EResourceState state)																 __Th___ { _RGBatch().ResourceState( _ExeIdx(), _ctx, id, state ); } \
@@ -136,6 +136,15 @@ namespace AE::RG::_hidden_
 		using ITransferContext::UpdateHostBuffer;
 		using ITransferContext::UploadBuffer;
 		using ITransferContext::UploadImage;
+		
+	  #ifdef AE_ENABLE_VULKAN
+		void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)					__Th___;
+		void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)					__Th___;
+		void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)					__Th___;
+
+		void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges)	__Th___;
+		void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)								__Th___;
+	  #endif
 
 		RG_INHERIT_BARRIERS
 	};
@@ -239,6 +248,14 @@ namespace AE::RG::_hidden_
 		void  SetStencilReference (uint reference)																			__Th_OV	{ return _ctx.SetStencilReference( reference ); }
 		void  SetStencilReference (uint frontReference, uint backReference)													__Th_OV	{ return _ctx.SetStencilReference( frontReference, backReference ); }
 		void  SetBlendConstants (const RGBA32f &color)																		__Th_OV	{ return _ctx.SetBlendConstants( color ); }
+		
+	  #ifdef AE_ENABLE_VULKAN
+		void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)													__Th___	{ return _ctx.SetDepthBounds( minDepthBounds, maxDepthBounds ); }
+		void  SetStencilCompareMask (uint compareMask)																		__Th___	{ return _ctx.SetStencilCompareMask( compareMask ); }
+		void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)											__Th___	{ return _ctx.SetStencilCompareMask( frontCompareMask, backCompareMask ); }
+		void  SetStencilWriteMask (uint writeMask)																			__Th___	{ return _ctx.SetStencilWriteMask( writeMask ); }
+		void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th___	{ return _ctx.SetStencilWriteMask( frontWriteMask, backWriteMask ); }
+	  #endif
 
 	// draw commands //
 		
@@ -504,6 +521,16 @@ namespace AE::RG::_hidden_
 		
 		Promise<Bytes>  ReadProperty (ERTASProperty property, RTGeometryID as)												__Th_OV;
 		Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as)													__Th_OV;
+		
+	  #ifdef AE_ENABLE_VULKAN
+		//void  BuildIndirect (BufferID indirectBuffer, Bytes indirectBufferOffset)											__Th___;
+
+		void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)											__Th___;
+		void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)												__Th___;
+
+		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)										__Th___;
+		void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)											__Th___;
+	  #endif
 
 		RG_INHERIT_BARRIERS
 	};
@@ -752,6 +779,49 @@ namespace AE::RG::_hidden_
 		_ctx.CommitBarriers();
 		_ctx.BlitImage( srcImage, dstImage, filter, regions );
 	}
+
+#ifdef AE_ENABLE_VULKAN
+	template <typename C>
+	void  TransferContext<C>::ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges) __Th___
+	{
+		ResourceState( image, EResourceState::ClearDst );
+		_ctx.CommitBarriers();
+		_ctx.ClearColorImage( image, color, ranges );
+	}
+
+	template <typename C>
+	void  TransferContext<C>::ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges) __Th___
+	{
+		ResourceState( image, EResourceState::ClearDst );
+		_ctx.CommitBarriers();
+		_ctx.ClearColorImage( image, color, ranges );
+	}
+
+	template <typename C>
+	void  TransferContext<C>::ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges) __Th___
+	{
+		ResourceState( image, EResourceState::ClearDst );
+		_ctx.CommitBarriers();
+		_ctx.ClearColorImage( image, color, ranges );
+	}
+	
+	template <typename C>
+	void  TransferContext<C>::ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges) __Th___
+	{
+		ResourceState( image, EResourceState::ClearDst );
+		_ctx.CommitBarriers();
+		_ctx.ClearDepthStencilImage( image, depthStencil, ranges );
+	}
+	
+	template <typename C>
+	void  TransferContext<C>::ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions) __Th___
+	{
+		ResourceState( srcImage, EResourceState::BlitSrc );
+		ResourceState( dstImage, EResourceState::BlitDst );
+		_ctx.CommitBarriers();
+		_ctx.ResolveImage( srcImage, dstImage, regions );
+	}
+#endif
 //-----------------------------------------------------------------------------
 
 
@@ -883,13 +953,13 @@ namespace AE::RG::_hidden_
 	{
 		RenderPassDesc	desc = inDesc;
 		_RGBatch().SetRenderPassInitialStates( _ExeIdx(), INOUT desc );
-		return DrawCtx{ _ctx.BeginRenderPass( desc, dbg, BitCast< void *>(&_RTask()) )};
+		return DrawCtx{ _ctx.BeginRenderPass( desc, dbg, BitCast< void *>(&GetRenderTask()) )};
 	}
 	
 	template <typename C>
 	typename GraphicsContext<C>::DrawCtx  GraphicsContext<C>::NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg) __Th___
 	{
-		return DrawCtx{ _ctx.NextSubpass( prevPassCtx, dbg, BitCast< void *>(&_RTask()) )};
+		return DrawCtx{ _ctx.NextSubpass( prevPassCtx, dbg, BitCast< void *>(&GetRenderTask()) )};
 	}
 
 	template <typename C>
@@ -904,13 +974,13 @@ namespace AE::RG::_hidden_
 	{
 		RenderPassDesc	desc = inDesc;
 		_RGBatch().SetRenderPassInitialStates( _ExeIdx(), INOUT desc );
-		return _ctx.BeginMtRenderPass( desc, dbg, BitCast< void *>(&_RTask()) );
+		return _ctx.BeginMtRenderPass( desc, dbg, BitCast< void *>(&GetRenderTask()) );
 	}
 	
 	template <typename C>
 	auto  GraphicsContext<C>::NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg) __Th___
 	{
-		return _ctx.NextMtSubpass( prevPassBatch, dbg, BitCast< void *>(&_RTask()) );
+		return _ctx.NextMtSubpass( prevPassBatch, dbg, BitCast< void *>(&GetRenderTask()) );
 	}
 
 	template <typename C>
@@ -981,7 +1051,21 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  ASBuildContext<C>::Build (const RTGeometryBuild &cmd, RTGeometryID dst) __Th___
 	{
+		auto	triangles = cmd.triangles.get< RTGeometryBuild::TrianglesData >();
+		for (auto& item : triangles) {
+			ResourceState( item.vertexData,		EResourceState::BuildRTAS_Read );
+			ResourceState( item.indexData,		EResourceState::BuildRTAS_Read );
+			ResourceState( item.transformData,	EResourceState::BuildRTAS_Read );
+		}
+		
+		auto	aabbs = cmd.aabbs.get< RTGeometryBuild::AABBsData >();
+		for (auto& item : aabbs) {
+			ResourceState( item.data, EResourceState::BuildRTAS_Read );
+		}
+
+		ResourceState( cmd.scratch.id, EResourceState::BuildRTAS_ScratchBuffer );
 		ResourceState( dst, EResourceState::CopyRTAS_Write );
+
 		_ctx.CommitBarriers();
 		_ctx.Build( cmd, dst );
 	}
@@ -989,7 +1073,10 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  ASBuildContext<C>::Build (const RTSceneBuild &cmd, RTSceneID dst) __Th___
 	{
+		ResourceState( cmd.instanceData.id, EResourceState::BuildRTAS_Read );
+		ResourceState( cmd.scratch.id, EResourceState::BuildRTAS_ScratchBuffer );
 		ResourceState( dst, EResourceState::CopyRTAS_Write );
+
 		_ctx.CommitBarriers();
 		_ctx.Build( cmd, dst );
 	}
@@ -997,8 +1084,22 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  ASBuildContext<C>::Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst) __Th___
 	{
+		auto	triangles = cmd.triangles.get< RTGeometryBuild::TrianglesData >();
+		for (auto& item : triangles) {
+			ResourceState( item.vertexData,		EResourceState::BuildRTAS_Read );
+			ResourceState( item.indexData,		EResourceState::BuildRTAS_Read );
+			ResourceState( item.transformData,	EResourceState::BuildRTAS_Read );
+		}
+		
+		auto	aabbs = cmd.aabbs.get< RTGeometryBuild::AABBsData >();
+		for (auto& item : aabbs) {
+			ResourceState( item.data, EResourceState::BuildRTAS_Read );
+		}
+
+		ResourceState( cmd.scratch.id, EResourceState::BuildRTAS_ScratchBuffer );
 		ResourceState( src, EResourceState::CopyRTAS_Read );
 		ResourceState( dst, EResourceState::BuildRTAS_ReadWrite );
+
 		_ctx.CommitBarriers();
 		_ctx.Update( cmd, src, dst );
 	}
@@ -1006,8 +1107,11 @@ namespace AE::RG::_hidden_
 	template <typename C>
 	void  ASBuildContext<C>::Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst) __Th___
 	{
+		ResourceState( cmd.instanceData.id, EResourceState::BuildRTAS_Read );
+		ResourceState( cmd.scratch.id, EResourceState::BuildRTAS_ScratchBuffer );
 		ResourceState( src, EResourceState::CopyRTAS_Read );
 		ResourceState( dst, EResourceState::BuildRTAS_ReadWrite );
+
 		_ctx.CommitBarriers();
 		_ctx.Update( cmd, src, dst );
 	}
@@ -1063,6 +1167,52 @@ namespace AE::RG::_hidden_
 		_ctx.CommitBarriers();
 		return _ctx.ReadProperty( property, as );
 	}
+
+#ifdef AE_ENABLE_VULKAN
+	/*template <typename C>
+	void  ASBuildContext<C>::BuildIndirect (BufferID indirectBuffer, Bytes indirectBufferOffset) __Th___
+	{
+		ResourceState( indirectBuffer, EResourceState::IndirectBuffer );
+		_ctx.CommitBarriers();
+		return _ctx.BuildIndirect( indirectBuffer, indirectBufferOffset );
+	}*/
+		
+	template <typename C>
+	void  ASBuildContext<C>::SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset) __Th___
+	{
+		ResourceState( src, EResourceState::CopyRTAS_Read );
+		ResourceState( dst, EResourceState::CopyRTAS_Write );
+		_ctx.CommitBarriers();
+		return _ctx.SerializeToMemory( src, dst, dstOffset );
+	}
+		
+	template <typename C>
+	void  ASBuildContext<C>::SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset) __Th___
+	{
+		ResourceState( src, EResourceState::CopyRTAS_Read );
+		ResourceState( dst, EResourceState::CopyRTAS_Write );
+		_ctx.CommitBarriers();
+		return _ctx.SerializeToMemory( src, dst, dstOffset );
+	}
+	
+	template <typename C>
+	void  ASBuildContext<C>::DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst) __Th___
+	{
+		ResourceState( src, EResourceState::CopyRTAS_Read );
+		ResourceState( dst, EResourceState::CopyRTAS_Write );
+		_ctx.CommitBarriers();
+		return _ctx.DeserializeFromMemory( src, srcOffset, dst );
+	}
+		
+	template <typename C>
+	void  ASBuildContext<C>::DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst) __Th___
+	{
+		ResourceState( src, EResourceState::CopyRTAS_Read );
+		ResourceState( dst, EResourceState::CopyRTAS_Write );
+		_ctx.CommitBarriers();
+		return _ctx.DeserializeFromMemory( src, srcOffset, dst );
+	}
+#endif
 //-----------------------------------------------------------------------------
 
 

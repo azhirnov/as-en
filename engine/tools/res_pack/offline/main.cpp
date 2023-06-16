@@ -284,13 +284,13 @@ namespace
 				{
 					if ( path.IsDirectory() )
 					{
-						stack.push_back( path.Path() );
+						stack.push_back( path.Get() );
 					}
 					else
 					{
-						const auto	ext = path.Path().extension().string();
+						const auto	ext = path.Get().extension().string();
 						if ( ext == ".as" )
-							_files.push_back( path.Path().native() );
+							_files.push_back( path.Get().native() );
 					}
 				}
 			}
@@ -403,16 +403,12 @@ namespace
 } // namespace
 
 
-namespace AE::Scripting
-{
-	AE_DECL_SCRIPT_OBJ_RC(	ScriptPipelineCompiler,	"PipelineCompiler"	);
-	AE_DECL_SCRIPT_OBJ_RC(	ScriptInputActions,		"InputActions"		);
-	AE_DECL_SCRIPT_OBJ_RC(	ScriptAssetPacker,		"AssetPacker"		);
-	AE_DECL_SCRIPT_OBJ_RC(	ScriptArchive,			"Archive"			);
-	AE_DECL_SCRIPT_TYPE(	EPathParamsFlags,		"EPathParamsFlags"	);
-	AE_DECL_SCRIPT_TYPE(	EFileType,				"EFileType"	);
-
-} // AE::Scripting
+AE_DECL_SCRIPT_OBJ_RC(	ScriptPipelineCompiler,	"PipelineCompiler"	);
+AE_DECL_SCRIPT_OBJ_RC(	ScriptInputActions,		"InputActions"		);
+AE_DECL_SCRIPT_OBJ_RC(	ScriptAssetPacker,		"AssetPacker"		);
+AE_DECL_SCRIPT_OBJ_RC(	ScriptArchive,			"Archive"			);
+AE_DECL_SCRIPT_TYPE(	EPathParamsFlags,		"EPathParamsFlags"	);
+AE_DECL_SCRIPT_TYPE(	EFileType,				"EFileType"			);
 
 
 namespace

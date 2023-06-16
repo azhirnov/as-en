@@ -5,8 +5,14 @@ void ASmain ()
 	if ( !IsVulkan() )
 		return;
 
+	{
+		RC<ShaderStructType>	st = ShaderStructType( "meshtofrag1.io" );
+		st.Set( "float4	color;" );
+	}
+
 	RC<MeshPipeline>	ppln = MeshPipeline( "draw_mesh1" );
 	ppln.AddFeatureSet( "MinMeshShader" );
+	ppln.SetShaderIO( EShader::Mesh, EShader::Fragment,	"meshtofrag1.io" );
 	
 	{
 		RC<Shader>	ms	= Shader();
@@ -14,6 +20,7 @@ void ASmain ()
 		ms.options	= EShaderOpt::Optimize;
 		ms.version	= EShaderVersion::SPIRV_1_4;
 		ms.MeshSpec1();
+		ms.MeshOutput( 3, 1, EPrimitive::TriangleList );
 		ppln.SetMeshShader( ms );
 	}
 	{

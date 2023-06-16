@@ -77,6 +77,9 @@ namespace AE::Graphics
 		//		requires: EPipelineDynamicState::StencilWriteMask
 				void  SetStencilWriteMask (uint writeMask)																			__Th___;
 				void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)													__Th___;
+				
+		//		requires: EPipelineDynamicState::FragmentShadingRate
+				void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)__Th___;
 		)
 
 	// draw commands //
@@ -231,6 +234,7 @@ namespace AE::Graphics
 			AccumBar				AccumBarriers ()																						__NE___;
 			DeferredBar				DeferredBarriers ()																						__NE___;
 			IResourceManager &		GetResourceManager ()																					C_NE___;
+			RenderTask const&		GetRenderTask ()																						C_NE___;
 		)
 	};
 
@@ -245,61 +249,65 @@ namespace AE::Graphics
 	// interface
 	public:
 		//		buffer: EResourceState::CopyDst
-		virtual void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)								__Th___	= 0;
-		virtual void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)					__Th___	= 0; // Vulkan - native, Metal - used UploadBuffer()
+		virtual void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)									__Th___	= 0;
+		virtual void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)						__Th___	= 0; // Vulkan - native, Metal - used UploadBuffer()
 		
 		//		srcBuffer, srcImage: EResourceState::CopySrc
 		//		dstBuffer, dstImage: EResourceState::CopyDst
-		virtual void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)				__Th___	= 0;
-		virtual void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)					__Th___	= 0;
-		virtual void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)	__Th___	= 0;
-		virtual void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)	__Th___	= 0;
-		virtual void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)	__Th___	= 0;
-		virtual void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)	__Th___	= 0;
+		virtual void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)					__Th___	= 0;
+		virtual void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)						__Th___	= 0;
+		virtual void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)		__Th___	= 0;
+		virtual void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)		__Th___	= 0;
+		virtual void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)		__Th___	= 0;
+		virtual void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)		__Th___	= 0;
 		
 	// write to device local memory using staging buffer //
 		//		buffer: EResourceState::CopyDst
-		ND_			bool  UploadBuffer (BufferID buffer, Bytes offset, Bytes dataSize, const void* data, EStagingHeapType heapType = EStagingHeapType::Static)				__Th___;
-			virtual void  UploadBuffer (BufferID buffer, Bytes offset, Bytes requiredSize, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)__Th___	= 0;
+		ND_			bool  UploadBuffer (BufferID buffer, Bytes offset, Bytes dataSize, const void* data,
+										EStagingHeapType heapType = EStagingHeapType::Static)							__Th___;
+			virtual void  UploadBuffer (BufferID buffer, Bytes offset, Bytes requiredSize, OUT BufferMemView &memView,
+										EStagingHeapType heapType = EStagingHeapType::Static)							__Th___	= 0;
 			
 		//		image: EResourceState::CopyDst
-		ND_			Bytes UploadImage (ImageID image, const UploadImageDesc &desc, const void* data, Bytes size)	__Th___;
-			virtual void  UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)		__Th___	= 0;
+		ND_			Bytes UploadImage (ImageID image, const UploadImageDesc &desc, const void* data, Bytes size)		__Th___;
+			virtual void  UploadImage (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)			__Th___	= 0;
 
 	// read from device local memory using staging buffer //
 		//		buffer, image: EResourceState::CopySrc
-		ND_ virtual Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)__Th___ = 0;
-		ND_ virtual Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)													__Th___	= 0;
+		ND_ virtual Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size,
+															EStagingHeapType heapType = EStagingHeapType::Static)		__Th___ = 0;
+		ND_ virtual Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)				__Th___	= 0;
 
 	// partially upload //
 		//		stream.buffer, stream.image: EResourceState::CopyDst
-			virtual void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView)						__Th___ = 0;
-			virtual void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView)						__Th___ = 0;
+			virtual void  UploadBuffer (INOUT BufferStream &stream, OUT BufferMemView &memView)							__Th___ = 0;
+			virtual void  UploadImage (INOUT ImageStream &stream, OUT ImageMemView &memView)							__Th___ = 0;
 
 	// partially read //
 		//		stream.buffer, stream.image: EResourceState::CopySrc
-		//ND_ Promise<BufferMemView>  ReadbackBuffer (BufferStream &stream)											__Th___;
-		//ND_ Promise<ImageMemView>   ReadbackImage (ImageStream &stream)											__Th___;
+		//ND_ Promise<BufferMemView>  ReadbackBuffer (BufferStream &stream)												__Th___;
+		//ND_ Promise<ImageMemView>   ReadbackImage (ImageStream &stream)												__Th___;
 
 	// only for host-visible memory //
 		//		buffer: EResourceState::Host_Write
-		ND_	virtual bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)			__Th___ = 0;
+		ND_	virtual bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)				__Th___ = 0;
 		VULKAN_ONLY(
-					bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped);
+					bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)			__Th___;
 		)
 		
 		//		buffer: EResourceState::Host_Read
-		ND_ virtual Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)			__Th___ = 0;
+		ND_ virtual Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)				__Th___ = 0;
 		
-		ND_ virtual uint3  MinImageTransferGranularity ()															C_NE___ = 0;
+		ND_ virtual uint3  MinImageTransferGranularity ()																C_NE___ = 0;
 
 
 	// only in compute queue //
 	
 		VULKAN_ONLY(
-				void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges);
-				void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges);
-				void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges);
+		//		image: EResourceState::ClearDst
+				void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)	__Th___;
+				void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)	__Th___;
+				void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)	__Th___;
 		)
 		
 
@@ -310,8 +318,13 @@ namespace AE::Graphics
 		virtual void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)	__Th___ = 0;
 			
 		VULKAN_ONLY(
-				void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges);
-				void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions);
+		//		image: EResourceState::ClearDst
+				void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil,
+											  ArrayView<ImageSubresourceRange> ranges)									__Th___;
+		
+		//		srcImage: EResourceState::BlitSrc
+		//		dstImage: EResourceState::BlitDst
+				void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)				__Th___;
 		)
 
 		//		image:
@@ -323,16 +336,18 @@ namespace AE::Graphics
 
 	public:
 		// only for host-visible memory
-		template <typename T>	ND_ bool  UpdateHostBuffer (BufferID buffer, Bytes offset, ArrayView<T> data)		__Th___	{ return UpdateHostBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
-		template <typename T>	ND_ bool  UpdateHostBuffer (BufferID buffer, Bytes offset, const Array<T> &data)	__Th___	{ return UpdateHostBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
+		template <typename T>	ND_ bool  UpdateHostBuffer (BufferID buffer, Bytes offset, ArrayView<T> data)			__Th___	{ return UpdateHostBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
+		template <typename T>	ND_ bool  UpdateHostBuffer (BufferID buffer, Bytes offset, const Array<T> &data)		__Th___	{ return UpdateHostBuffer( buffer, offset, ArraySizeOf(data), data.data() ); }
 		
 		// copy to device local memory using staging buffer
-		template <typename T>	ND_ Bytes  UploadImage (ImageID image, const UploadImageDesc &desc, ArrayView<T> data)		__Th___	{ return UploadImage( image, desc, data.data(), ArraySizeOf(data) ); }
-		template <typename T>	ND_ Bytes  UploadImage (ImageID image, const UploadImageDesc &desc, const Array<T> &data)	__Th___	{ return UploadImage( image, desc, data.data(), ArraySizeOf(data) ); }
+		template <typename T>	ND_ Bytes  UploadImage (ImageID image, const UploadImageDesc &desc, ArrayView<T> data)	__Th___	{ return UploadImage( image, desc, data.data(), ArraySizeOf(data) ); }
+		template <typename T>	ND_ Bytes  UploadImage (ImageID image, const UploadImageDesc &desc, const Array<T> &data)__Th___{ return UploadImage( image, desc, data.data(), ArraySizeOf(data) ); }
 		
 		// copy to device local memory using staging buffer
-		template <typename T>	ND_ bool  UploadBuffer (BufferID buffer, Bytes offset, ArrayView<T> data, EStagingHeapType heapType = EStagingHeapType::Static)		__Th___	{ return UploadBuffer( buffer, offset, ArraySizeOf(data), data.data(), heapType ); }
-		template <typename T>	ND_ bool  UploadBuffer (BufferID buffer, Bytes offset, const Array<T> &data, EStagingHeapType heapType = EStagingHeapType::Static)	__Th___	{ return UploadBuffer( buffer, offset, ArraySizeOf(data), data.data(), heapType ); }
+		template <typename T>	ND_ bool  UploadBuffer (BufferID buffer, Bytes offset, ArrayView<T> data,
+														EStagingHeapType heapType = EStagingHeapType::Static)			__Th___	{ return UploadBuffer( buffer, offset, ArraySizeOf(data), data.data(), heapType ); }
+		template <typename T>	ND_ bool  UploadBuffer (BufferID buffer, Bytes offset, const Array<T> &data,
+														EStagingHeapType heapType = EStagingHeapType::Static)			__Th___	{ return UploadBuffer( buffer, offset, ArraySizeOf(data), data.data(), heapType ); }
 	};
 
 
@@ -413,12 +428,15 @@ namespace AE::Graphics
 										 BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th___	= 0;
 		virtual void  TraceRaysIndirect (const RTShaderBindingTable &sbt,
 										 BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th___	= 0;
-
+		
+		//		requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
 		virtual void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)										__Th___	= 0;
 		
 		VULKAN_ONLY(
-				void  TraceRaysIndirect (const RTShaderBindingTable &sbt, VDeviceAddress address);
-				void  TraceRaysIndirect2 (VDeviceAddress address);
+				void  TraceRaysIndirect (const RTShaderBindingTable &sbt, VDeviceAddress address)									__Th___;
+		
+		//		requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
+				void  TraceRaysIndirect2 (VDeviceAddress address)																	__Th___;
 		)
 	};
 
@@ -433,7 +451,7 @@ namespace AE::Graphics
 	// interface
 	public:
 
-	// Vulkan: AS build stage //
+	// Vulkan: AS build stage - batch commands for parallel execution
 
 		//		dst: EResourceState::BuildRTAS_Write
 		virtual void  Build (const RTGeometryBuild &cmd, RTGeometryID dst)															__Th___	= 0;
@@ -444,8 +462,15 @@ namespace AE::Graphics
 		virtual void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)										__Th___	= 0;
 		virtual void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)												__Th___	= 0;
 		
+		VULKAN_ONLY(
+		//		indirectBuffer: EResourceState::IndirectBuffer
+		//		dst: EResourceState::BuildRTAS_Read
+				void  BuildIndirect (VDeviceAddress indirectMem)																	__Th___;
+				void  BuildIndirect (BufferID indirectBuffer, Bytes indirectBufferOffset)											__Th___;
+		)
 		
-	// Vulkan: AS copy stage //
+
+	// Vulkan: AS copy stage - batch commands for parallel execution
 	
 		// If used ERTASCopyMode::Compaction 'dst' must have at least 'size = ReadCompactedSize( dst )'.
 		//		src: EResourceState::CopyRTAS_Read
@@ -463,24 +488,19 @@ namespace AE::Graphics
 		ND_ virtual Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as)												__Th___	= 0;
 		
 		VULKAN_ONLY(
-				//		src: EResourceState::CopyRTAS_Read
-				//		dst: EResourceState::CopyRTAS_Write
-				void  SerializeToMemory (RTGeometryID src, VDeviceAddress dst);
-				void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset);
+		//		src: EResourceState::CopyRTAS_Read
+		//		dst: EResourceState::CopyRTAS_Write
+				void  SerializeToMemory (RTGeometryID src, VDeviceAddress dst)														__Th___;
+				void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)											__Th___;
 		
-				void  SerializeToMemory (RTSceneID src, VDeviceAddress dst);
-				void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset);
+				void  SerializeToMemory (RTSceneID src, VDeviceAddress dst)															__Th___;
+				void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)												__Th___;
 
-				void  DeserializeFromMemory (VDeviceAddress src, RTGeometryID dst);
-				void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst);
+				void  DeserializeFromMemory (VDeviceAddress src, RTGeometryID dst)													__Th___;
+				void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)										__Th___;
 		
-				void  DeserializeFromMemory (VDeviceAddress src, RTSceneID dst);
-				void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst);
-				
-				//		dst: EResourceState::BuildRTAS_Write
-				//		requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
-			//	void  BuildIndirect (VDeviceAddress indirectMem);
-			//	void  BuildIndirect (Bytes indirectBuffer, Bytes indirectBufferOffset);
+				void  DeserializeFromMemory (VDeviceAddress src, RTSceneID dst)														__Th___;
+				void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)											__Th___;
 		)
 	};
 

@@ -1,4 +1,4 @@
-//9A731481
+//8BEFB1F6
 #include <vector>
 #include <string>
 
@@ -18,89 +18,90 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct EPipelineDynamicState;
-struct EPixelFormat;
-struct EPrimitive;
-struct sbyte3;
-struct UIColorStyle;
-struct DepthStencil;
-struct RGBA8u;
-struct Texture;
-struct sbyte4;
-struct EMipmapFilter;
-struct short2;
-struct ESamplerYcbcrModelConversion;
-struct Material;
-struct short3;
-struct Mesh;
-struct RGBA32u;
-struct ImageAtlas;
-struct ESubgroupTypes;
 struct RectF;
-struct ESubgroupOperation;
-struct EGraphicsDeviceID;
+struct ECubeFace;
 struct ubyte3;
+struct UIFontStyle;
+struct ESubgroupOperation;
+struct ESubgroupTypes;
 struct ubyte2;
-struct EShaderStages;
-struct EReductionMode;
-struct ESamplerUsage;
-struct EShader;
-struct ESamplerYcbcrRange;
-struct uint2;
+struct EGraphicsDeviceID;
+struct RGBA32u;
+struct Mesh;
+struct Material;
+struct ESamplerYcbcrModelConversion;
+struct sbyte4;
+struct short3;
+struct sbyte3;
+struct DepthStencil;
+struct EPrimitive;
+struct EMipmapFilter;
+struct RGBA8u;
+struct ECompareOp;
+struct ImageAtlas;
+struct short2;
+struct ESurfaceFormat;
+struct Texture;
 struct MipmapLevel;
-struct ubyte4;
-struct RectI;
-struct uint3;
+struct float4;
 struct RectU;
 struct UIImageStyle;
+struct ubyte4;
 struct uint4;
-struct ESurfaceFormat;
-struct ECompareOp;
-struct float4;
-struct EResourceState;
-struct RasterFont;
-struct float2;
-struct Model;
-struct UIStyleCollection;
-struct EBlendFactor;
-struct EShaderIO;
-struct EPipelineOpt;
-struct EImageAspect;
-struct EVendorID;
-struct float3;
-struct EStencilOp;
-struct EAttachmentLoadOp;
-struct EBorderColor;
-struct EPolygonMode;
-struct EAttachmentStoreOp;
-struct EDescSetUsage;
+struct ESamplerYcbcrRange;
+struct ESamplerUsage;
+struct EReductionMode;
+struct uint3;
+struct RectI;
+struct uint2;
+struct EIndex;
+struct EShaderStages;
 struct EAddressMode;
-struct EVertexInputRate;
+struct EShader;
+struct EPolygonMode;
+struct EAttachmentLoadOp;
+struct EDescSetUsage;
 struct ERasterFontMode;
-struct UIFontStyle;
-struct EVertexType;
-struct ECubeFace;
-struct bool4;
-struct RGBA32i;
-struct bool2;
-struct ESamplerChromaLocation;
-struct bool3;
-struct ImageLayer;
-struct int4;
-struct int3;
-struct EImage;
-struct HSVColor;
-struct int2;
-struct MultiSamples;
-struct RGBA32f;
+struct EBorderColor;
+struct EShaderIO;
+struct EVertexInputRate;
+struct EAttachmentStoreOp;
+struct UIStyleCollection;
+struct EPipelineOpt;
+struct Model;
+struct EBlendFactor;
+struct EVendorID;
+struct EImageAspect;
+struct float3;
+struct float2;
+struct RasterFont;
+struct EResourceState;
 struct ELogicOp;
-struct EQueueMask;
+struct short4;
+struct EStencilOp;
+struct UIColorStyle;
+struct EPipelineDynamicState;
 struct EBlendOp;
-struct EFeature;
+struct EPixelFormat;
+struct RGBA32f;
+struct ECullMode;
+struct EQueueMask;
+struct MultiSamples;
 struct EFilter;
 struct sbyte2;
-struct ECullMode;
-struct short4;
+struct int4;
+struct HSVColor;
+struct ImageLayer;
+struct EFeature;
+struct bool3;
+struct int3;
+struct EImage;
+struct ESamplerChromaLocation;
+struct EVertexType;
+struct int2;
+struct bool4;
+struct bool2;
+struct RGBA32i;
 
 int  Abs (int);
 int  Square (int);
@@ -582,7 +583,7 @@ struct RGBA8u
 	RGBA8u (const RGBA32i &);
 	RGBA8u (const RGBA32u &);
 	RGBA8u (const RGBA32f &);
-	RGBA8u  Lerp (const RGBA8u &, float);
+	RGBA8u  Lerp (const RGBA8u &, float) const;
 };
 
 struct HSVColor
@@ -611,6 +612,48 @@ struct DepthStencil
 
 RGBA8u  asARGB (uint);
 RGBA8u  asRGBA (uint);
+string  ToString (int);
+string  ToString (uint);
+string  ToString (int64);
+string  ToString (uint64);
+string  ToString (float);
+string  ToString (double);
+string  ToString (float, uint);
+string  ToString (double, uint);
+string  ToString (const bool2 &);
+string  ToString (const bool3 &);
+string  ToString (const bool4 &);
+string  ToString (const sbyte2 &);
+string  ToString (const sbyte3 &);
+string  ToString (const sbyte4 &);
+string  ToString (const ubyte2 &);
+string  ToString (const ubyte3 &);
+string  ToString (const ubyte4 &);
+string  ToString (const short2 &);
+string  ToString (const short3 &);
+string  ToString (const short4 &);
+string  ToString (const int2 &);
+string  ToString (const int3 &);
+string  ToString (const int4 &);
+string  ToString (const uint2 &);
+string  ToString (const uint3 &);
+string  ToString (const uint4 &);
+string  ToString (const float2 &);
+string  ToString (const float3 &);
+string  ToString (const float4 &);
+string  ToString (const RectU &);
+string  ToString (const RectI &);
+string  ToString (const RectF &);
+string  ToString (const RGBA32f &);
+string  ToString (const RGBA32i &);
+string  ToString (const RGBA32u &);
+string  ToString (const RGBA8u &);
+void  LogError (const string &);
+void  LogInfo (const string &);
+void  LogDebug (const string &);
+void  LogFatal (const string &);
+void  Assert (bool);
+void  Assert (bool, const string &);
 struct EImage
 {
 	EImage () {}
@@ -623,6 +666,15 @@ struct EImage
 	static constexpr uint 2DArray = 4;
 	static constexpr uint Cube = 5;
 	static constexpr uint CubeArray = 6;
+};
+
+struct EIndex
+{
+	EIndex () {}
+	EIndex (uint) {}
+	operator uint () const;
+	static constexpr uint UShort = 0;
+	static constexpr uint UInt = 1;
 };
 
 struct EPixelFormat
@@ -968,6 +1020,7 @@ struct EPipelineDynamicState
 	static constexpr uint DepthBias = 8;
 	static constexpr uint BlendConstants = 16;
 	static constexpr uint RTStackSize = 64;
+	static constexpr uint FragmentShadingRate = 128;
 };
 
 struct EResourceState
@@ -1693,21 +1746,9 @@ struct UIStyleCollection
 };
 
 template <>
-struct RC<UIColorStyle> : UIColorStyle
+struct RC<UIFontStyle> : UIFontStyle
 {
-	RC (const UIColorStyle &);
-};
-
-template <>
-struct RC<Texture> : Texture
-{
-	RC (const Texture &);
-};
-
-template <>
-struct RC<Material> : Material
-{
-	RC (const Material &);
+	RC (const UIFontStyle &);
 };
 
 template <>
@@ -1717,9 +1758,21 @@ struct RC<Mesh> : Mesh
 };
 
 template <>
+struct RC<Material> : Material
+{
+	RC (const Material &);
+};
+
+template <>
 struct RC<ImageAtlas> : ImageAtlas
 {
 	RC (const ImageAtlas &);
+};
+
+template <>
+struct RC<Texture> : Texture
+{
+	RC (const Texture &);
 };
 
 template <>
@@ -1729,9 +1782,9 @@ struct RC<UIImageStyle> : UIImageStyle
 };
 
 template <>
-struct RC<RasterFont> : RasterFont
+struct RC<UIStyleCollection> : UIStyleCollection
 {
-	RC (const RasterFont &);
+	RC (const UIStyleCollection &);
 };
 
 template <>
@@ -1741,14 +1794,14 @@ struct RC<Model> : Model
 };
 
 template <>
-struct RC<UIStyleCollection> : UIStyleCollection
+struct RC<RasterFont> : RasterFont
 {
-	RC (const UIStyleCollection &);
+	RC (const RasterFont &);
 };
 
 template <>
-struct RC<UIFontStyle> : UIFontStyle
+struct RC<UIColorStyle> : UIColorStyle
 {
-	RC (const UIFontStyle &);
+	RC (const UIColorStyle &);
 };
 

@@ -111,7 +111,7 @@ namespace AE::VFS
 	//
 	// Virtual File Storage Factory
 	//
-	class VirtualFileStorageFactory : public Noninstancable
+	class VirtualFileStorageFactory : public Noninstanceable
 	{
 	public:
 		ND_ static RC<IVirtualFileStorage>  CreateStaticArchive (RC<RDataSource> archive)							__NE___;

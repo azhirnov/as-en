@@ -23,9 +23,9 @@ namespace AE::Graphics
 
 	// types
 	private:
-		// ulong - 58 bits enought for 360 Ghz * 9.3e+9 days
-		//       - 28 bits enought for 360 Ghz * 8.6 hours
-		// uint  - 26 bits enought for 360 Ghz * 2.1 hours
+		// ulong - 58 bits enough for 360 Ghz * 9.3e+9 days
+		//       - 28 bits enough for 360 Ghz * 8.6 hours
+		// uint  - 26 bits enough for 360 Ghz * 2.1 hours
 
 		using Value_t	= ulong;
 		using SValue_t	= ToSignedInteger<Value_t>;

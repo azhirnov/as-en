@@ -35,6 +35,7 @@ elseif (${AE_ENABLE_GLFW})
 		target_compile_definitions( "Platform" PRIVATE GLFW_EXPOSE_NATIVE_WIN32 )
 
 	elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+		target_link_libraries( "Platform" PUBLIC "dl" "X11" )
 		target_compile_definitions( "Platform" PRIVATE GLFW_EXPOSE_NATIVE_X11 )	# GLFW_EXPOSE_NATIVE_WAYLAND
 	endif()
 

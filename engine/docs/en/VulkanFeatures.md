@@ -1,0 +1,64 @@
+
+Supported extensions:
+ - [x] VK_EXT_swapchain_colorspace
+ - [x] VK_EXT_validation_features
+ - [x] VK_KHR_descriptor_update_template
+ - [x] VK_KHR_sampler_ycbcr_conversion
+ - [x] VK_KHR_draw_indirect_count
+ - [x] VK_EXT_descriptor_indexing
+ - [x] VK_KHR_timeline_semaphore
+ - [x] VK_KHR_buffer_device_address
+ - [x] VK_EXT_sampler_filter_minmax
+ - [x] VK_EXT_host_query_reset
+ - [x] VK_KHR_image_format_list
+ - [x] VK_KHR_synchronization2
+ - [x] VK_EXT_load_store_op_none
+ - [x] VK_EXT_mesh_shader
+ - [x] VK_KHR_global_priority
+ - [x] VK_EXT_calibrated_timestamps
+ - [x] VK_KHR_acceleration_structure
+ - [x] VK_KHR_ray_tracing_pipeline
+ - [x] VK_KHR_ray_query
+ - [x] VK_EXT_vertex_attribute_divisor
+ - [x] VK_EXT_memory_budget
+ - [x] VK_KHR_fragment_shading_rate
+
+Supported shader extensions:
+ - [x] VK_NV_cooperative_matrix, GL_NV_cooperative_matrix, GL_NV_integer_cooperative_matrix
+ - [x] VK_KHR_shader_clock, GL_EXT_shader_realtime_clock, GL_ARB_shader_clock
+ - [x] GL_EXT_control_flow_attributes
+ - [x] GL_EXT_debug_printf
+ - [x] GL_EXT_samplerless_texture_functions
+ - [x] GL_KHR_shader_subgroup_*
+ - [x] GL_EXT_shader_subgroup_extended_types_*
+ - [x] GL_EXT_shader_8bit_storage
+ - [x] GL_EXT_shader_explicit_arithmetic_types_*
+ - [x] GL_EXT_shader_16bit_storage
+ - [x] GL_ARB_gpu_shader_int64
+ - [x] GL_ARB_gpu_shader_fp64
+ - [x] GL_EXT_scalar_block_layout
+ - [x] GL_EXT_buffer_reference, GL_EXT_buffer_reference2, GL_EXT_buffer_reference_uvec2
+ - [x] GL_EXT_shader_atomic_int64
+ - [x] GL_EXT_shader_image_int64
+ - [x] GL_EXT_shader_atomic_float, GL_EXT_shader_atomic_float2
+ - [x] GL_EXT_mesh_shader
+ - [x] GL_EXT_ray_tracing, GL_EXT_ray_flags_primitive_culling
+ - [x] GL_EXT_ray_query
+ - [ ] GL_HUAWEI_subpass_shading ???
+ - [x] GL_ARB_shader_viewport_layer_array
+ - [x] GL_ARB_sparse_texture_clamp
+ - [x] GL_NV_shader_sm_builtins
+ - [x] GL_ARM_shader_core_builtins
+ - [x] GL_EXT_nonuniform_qualifier
+ - [x] GL_KHR_memory_scope_semantics
+ - [x] GL_EXT_demote_to_helper_invocation
+ - [x] GL_EXT_fragment_shading_rate
+ - [ ] GL_EXT_fragment_invocation_density
+ - [ ] GL_EXT_multiview
+
+Features:
+ - [x] Async compute and transfer queues
+ - [x] Push constants (compatible with Metal)
+ - [x] Custom allocator for GPU memory
+ - [x] Shader subgroup
+

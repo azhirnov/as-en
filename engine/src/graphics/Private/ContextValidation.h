@@ -19,7 +19,7 @@ namespace AE::Graphics::_hidden_
 	//
 	// Transfer Context Validation
 	//
-	class TransferContextValidation final : Noninstancable
+	class TransferContextValidation final : Noninstanceable
 	{
 	public:
 		template <typename ImgType>
@@ -109,8 +109,8 @@ namespace AE::Graphics::_hidden_
 			ASSERT( AllBits( src_buf.Description().usage, EBufferUsage::TransferSrc ));
 			ASSERT( AllBits( dst_buf.Description().usage, EBufferUsage::TransferDst ));
 			
-			const Bytes		src_size	= src_buf.Size();
-			const Bytes		dst_size	= dst_buf.Size();
+			const Bytes		src_size = src_buf.Size();
+			const Bytes		dst_size = dst_buf.Size();
 
 			for (auto& range : ranges)
 			{
@@ -264,32 +264,9 @@ namespace AE::Graphics::_hidden_
 
 
 	//
-	// Acceleration Structure Build Context Validation
-	//
-	class ASBuildContextValidation final : Noninstancable
-	{
-	public:
-		template <typename BufType>
-		static void  SerializeToMemory (BufType &dst_buf, Bytes dstOffset)
-		{
-			ASSERT( dst_buf.Size() > dstOffset );
-			ASSERT( dst_buf.HasDeviceAddress() );	// TODO: throw?
-		}
-		
-		template <typename BufType>
-		static void  DeserializeFromMemory (BufType &src_buf, Bytes srcOffset)
-		{
-			ASSERT( src_buf.Size() > srcOffset );
-			ASSERT( src_buf.HasDeviceAddress() );	// TODO: throw?
-		}
-	};
-
-
-
-	//
 	// Compute Context Validation
 	//
-	class ComputeContextValidation final : Noninstancable
+	class ComputeContextValidation final : Noninstanceable
 	{
 	public:
 		static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)
@@ -312,7 +289,7 @@ namespace AE::Graphics::_hidden_
 	//
 	// Draw Context Validation
 	//
-	class DrawContextValidation final : Noninstancable
+	class DrawContextValidation final : Noninstanceable
 	{
 	public:
 		using Viewport_t = RenderPassDesc::Viewport;
@@ -337,11 +314,15 @@ namespace AE::Graphics::_hidden_
 			ASSERT( not scissors.empty() );
 		}
 		
-		static void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)
+		static void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets, Bytes align)
 		{
 			ASSERT( buffers.size() == offsets.size() );
 			ASSERT( buffers.size() <= GraphicsConfig::MaxVertexBuffers );
 			Unused( firstBinding );
+			DEBUG_ONLY(
+				for (auto off : offsets) {
+					ASSERT( off % align == 0 );
+				})
 		}
 
 		static void  ClearAttachment (const RectI &rect)
@@ -456,6 +437,42 @@ namespace AE::Graphics::_hidden_
 			ASSERT( stride >= SizeOf<DrawMeshTasksIndirectCommand> );
 			ASSERT( stride % 4 == 0 );
 		}
+		
+		static void  SetDepthBias (EPipelineDynamicState dynState)
+		{
+			ASSERT( AllBits( dynState, EPipelineDynamicState::DepthBias ));
+		}
+
+		static void  SetDepthBounds (EPipelineDynamicState dynState)
+		{
+			//ASSERT( AllBits( dynState, EPipelineDynamicState::DepthBounds ));
+		}
+
+		static void  SetStencilCompareMask (EPipelineDynamicState dynState)
+		{
+			ASSERT( AllBits( dynState, EPipelineDynamicState::StencilCompareMask ));
+		}
+
+		static void  SetStencilWriteMask (EPipelineDynamicState dynState)
+		{
+			ASSERT( AllBits( dynState, EPipelineDynamicState::StencilWriteMask ));
+		}
+		
+		static void  SetStencilReference (EPipelineDynamicState dynState)
+		{
+			ASSERT( AllBits( dynState, EPipelineDynamicState::StencilReference ));
+		}
+
+		static void  SetBlendConstants (EPipelineDynamicState dynState)
+		{
+			ASSERT( AllBits( dynState, EPipelineDynamicState::BlendConstants ));
+		}
+
+		static void  SetFragmentShadingRate (EPipelineDynamicState dynState, EShadingRate rate, EShadingRateCombinerOp, EShadingRateCombinerOp)
+		{
+			ASSERT( AllBits( dynState, EPipelineDynamicState::FragmentShadingRate ));
+			ASSERT( not AnyBits( rate, EShadingRate::_SamplesMask ));
+		}
 	};
 
 
@@ -463,7 +480,7 @@ namespace AE::Graphics::_hidden_
 	//
 	// Graphics Context Validation
 	//
-	class GraphicsContextValidation final : Noninstancable
+	class GraphicsContextValidation final : Noninstanceable
 	{
 	public:
 	};
@@ -471,9 +488,37 @@ namespace AE::Graphics::_hidden_
 
 
 	//
+	// Acceleration Structure Build Context Validation
+	//
+	class ASBuildContextValidation final : Noninstanceable
+	{
+	public:
+		template <typename BufType>
+		static void  SerializeToMemory (BufType &dst_buf, Bytes dstOffset)
+		{
+			ASSERT( dst_buf.Size() > dstOffset );
+		}
+		
+		template <typename BufType>
+		static void  DeserializeFromMemory (BufType &src_buf, Bytes srcOffset)
+		{
+			ASSERT( src_buf.Size() > srcOffset );
+		}
+		
+		template <typename BufType>
+		static void  BuildIndirect (BufType &buf, Bytes indirectBufferOffset)
+		{
+			ASSERT( buf.Size() > indirectBufferOffset );
+			ASSERT( buf.Size() >= indirectBufferOffset + sizeof(ASBuildIndirectCommand) );
+		}
+	};
+
+
+
+	//
 	// Ray Tracing Context Validation
 	//
-	class RayTracingContextValidation final : Noninstancable
+	class RayTracingContextValidation final : Noninstanceable
 	{
 	public:
 		static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)
@@ -492,13 +537,13 @@ namespace AE::Graphics::_hidden_
 		template <typename BufType>
 		static void  TraceRaysIndirect (BufType &buf, Bytes indirectBufferOffset)
 		{
-			ASSERT( buf.Size() <= indirectBufferOffset + sizeof(TraceRayIndirectCommand) );
+			ASSERT( buf.Size() >= indirectBufferOffset + sizeof(TraceRayIndirectCommand) );
 		}
 
 		template <typename BufType>
 		static void  TraceRaysIndirect2 (BufType &buf, Bytes indirectBufferOffset)
 		{
-			ASSERT( buf.Size() <= indirectBufferOffset + sizeof(TraceRayIndirectCommand2) );
+			ASSERT( buf.Size() >= indirectBufferOffset + sizeof(TraceRayIndirectCommand2) );
 		}
 	};
 
@@ -507,7 +552,7 @@ namespace AE::Graphics::_hidden_
 	//
 	// Video Decode Context Validation
 	//
-	class VideoDecodeContextValidation final : Noninstancable
+	class VideoDecodeContextValidation final : Noninstanceable
 	{
 	public:
 	};
@@ -517,7 +562,7 @@ namespace AE::Graphics::_hidden_
 	//
 	// Video Encode Context Validation
 	//
-	class VideoEncodeContextValidation final : Noninstancable
+	class VideoEncodeContextValidation final : Noninstanceable
 	{
 	public:
 	};

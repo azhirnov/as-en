@@ -9,6 +9,7 @@
 # include "base/Math/POTValue.h"
 # include "base/Memory/UntypedAllocator.h"
 # include "base/Utils/SourceLoc.h"
+# include "base/Utils/RestrictPtr.h"
 # include "base/Algorithms/StringUtils.h"
 # include "threading/Primitives/Atomic.h"
 # include "threading/Primitives/SpinLock.h"
@@ -48,6 +49,7 @@ namespace AE::Threading
 		using Self				= LfFixedBlockAllocator< ChunkSize_v, MaxChunks_v, BlockAllocatorType, GeneralAllocatorType >;
 		using BlockAllocator_t	= BlockAllocatorType;
 		using GenAllocator_t	= GeneralAllocatorType;
+		using Ptr_t				= RstPtr<void>;
 
 		static constexpr bool	IsThreadSafe = true;
 
@@ -107,11 +109,11 @@ namespace AE::Threading
 
 		~LfFixedBlockAllocator ()					__NE___	{ Release( true ); }
 		
-		NDRST( void *)	Alloc ()					__NE___	{ return Alloc( Default ); }
-		NDRST( void *)	Alloc (const SourceLoc &loc)__NE___;
-				bool	Dealloc (void *)			__NE___;
+		ND_ Ptr_t		Alloc ()					__NE___	{ return Alloc( Default ); }
+		ND_ Ptr_t		Alloc (const SourceLoc &loc)__NE___;
+			bool		Dealloc (void *)			__NE___;
 	
-				void	Release (bool checkMemLeak)	__NE___;
+			void		Release (bool checkMemLeak)	__NE___;
 
 		ND_ Bytes		BlockSize ()				C_NE___	{ return Bytes{ _blockSize }; }
 		ND_ Bytes		BlockAlign ()				C_NE___	{ return Bytes{ _blockAlign }; }
@@ -124,7 +126,7 @@ namespace AE::Threading
 		ND_ Bytes		AllocatedSize ()			C_NE___;
 
 	private:
-		NDRST( void *)	_Alloc (uint chunkIndex, const SourceLoc &loc, INOUT ulong& dbgCounter, INOUT ulong& lockCounter) __NE___;
+		ND_ Ptr_t		_Alloc (uint chunkIndex, const SourceLoc &loc, INOUT ulong& dbgCounter, INOUT ulong& lockCounter) __NE___;
 
 		ND_ static constexpr Bytes	_DbgInfoSize ()	__NE___	{ return SizeOf<SourceLoc> * ChunkSize; }
 		ND_ static constexpr Bytes	_DbgInfoAlign ()__NE___	{ return AlignOf<SourceLoc>; }

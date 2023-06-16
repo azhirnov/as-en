@@ -5,6 +5,7 @@
 #include "base/Defines/StdInclude.h"
 #include <sstream>
 #include <charconv>
+#include "base/Defines/Undef.h"
 
 #include "base/Math/Math.h"
 #include "base/Math/Vec.h"
@@ -232,7 +233,7 @@ namespace AE::Base
 	HasSubString
 ----
 	returns 'true' if 'str' has substring 'substr',
-	comparison is case sansitive.
+	comparison is case sensitive.
 =================================================
 */
 	ND_ inline bool  HasSubString (StringView str, StringView substr) __NE___
@@ -245,7 +246,7 @@ namespace AE::Base
 	HasSubStringIC
 ----
 	returns 'true' if 'str' has substring 'substr',
-	comparison is case insansitive.
+	comparison is case insensitive.
 =================================================
 */
 	ND_ inline bool  HasSubStringIC (StringView str, StringView substr) __NE___
@@ -273,7 +274,7 @@ namespace AE::Base
 	StartsWith
 ----
 	returns 'true' if 'str' starts with substring 'substr',
-	comparison is case sansitive.
+	comparison is case sensitive.
 =================================================
 */
 	ND_ inline bool  StartsWith (StringView str, StringView substr) __NE___
@@ -294,7 +295,7 @@ namespace AE::Base
 	StartsWithIC
 ----
 	returns 'true' if 'str' starts with substring 'substr',
-	comparison is case insansitive.
+	comparison is case insensitive.
 =================================================
 */
 	ND_ inline bool  StartsWithIC (StringView str, StringView substr) __NE___
@@ -315,7 +316,7 @@ namespace AE::Base
 	EndsWith
 ----
 	returns 'true' if 'str' ends with substring 'substr',
-	comparison is case sansitive.
+	comparison is case sensitive.
 =================================================
 */
 	ND_ inline bool  EndsWith (StringView str, StringView substr) __NE___
@@ -336,7 +337,7 @@ namespace AE::Base
 	EndsWithIC
 ----
 	returns 'true' if 'str' ends with substring 'substr',
-	comparison is case insansitive.
+	comparison is case insensitive.
 =================================================
 */
 	ND_ inline bool  EndsWithIC (StringView str, StringView substr) __NE___

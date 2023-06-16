@@ -36,7 +36,7 @@ namespace AE::Graphics
 			void  Destroy (MResourceManager &)				__NE___;
 		
 		ND_ MetalAccelStruct		Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
-		ND_ MemoryID				MemoryID ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ MemoryID				MemoryId ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 		ND_ RTSceneDesc const&		Description ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 		ND_ bool					IsExclusiveSharing ()	C_NE___	{ return false; }
 		

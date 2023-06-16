@@ -3,14 +3,14 @@ if (TARGET "GLSLang-lib")
 	set( GRAPHICS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/graphics" )
 	set( GRAPHICS_SRC
 		"${GRAPHICS_DIR}/Scripting/GraphicsBindings.h"
-		"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp"
+		#"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp"
 		"${GRAPHICS_DIR}/Public/FeatureSet.h"
-		"${GRAPHICS_DIR}/Private/FeatureSet.cpp"
+		#"${GRAPHICS_DIR}/Private/FeatureSet.cpp"
 		"${GRAPHICS_DIR}/Public/RenderState.h"
-		"${GRAPHICS_DIR}/Private/RenderState.cpp"
+		#"${GRAPHICS_DIR}/Private/RenderState.cpp"
 		"${GRAPHICS_DIR}/Public/PipelineDesc.h"
 		"${GRAPHICS_DIR}/Public/SamplerDesc.h"
-		"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
+		#"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
 		"${GRAPHICS_DIR}/Private/EnumUtils.h"
 		"${GRAPHICS_DIR}/Private/EnumToString.h"
 		"${GRAPHICS_DIR}/Public/IDs.h" )

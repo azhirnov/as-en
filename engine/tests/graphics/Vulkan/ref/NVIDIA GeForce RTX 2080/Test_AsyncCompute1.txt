@@ -18,7 +18,7 @@ name: 'graphics batch |0| graphics task'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-0'
       image:   'Image-0'
@@ -125,7 +125,7 @@ name: 'graphics batch |0| graphics task'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-1'
       image:   'Image-1'
@@ -232,7 +232,7 @@ name: 'graphics batch |0| graphics task'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-0'
       image:   'Image-0'
@@ -394,7 +394,7 @@ name: 'IndirectCmdBuffers'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-0'
       image:   'Image-0'
@@ -501,7 +501,7 @@ name: 'IndirectCmdBuffers'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-1'
       image:   'Image-1'
@@ -608,7 +608,7 @@ name: 'IndirectCmdBuffers'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-0'
       image:   'Image-0'

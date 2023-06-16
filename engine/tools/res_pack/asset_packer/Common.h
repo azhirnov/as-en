@@ -21,7 +21,4 @@ namespace AE::AssetPacker
 } // AE::AssetPacker
 
 
-namespace AE::Scripting
-{
-	AE_DECL_SCRIPT_TYPE( AssetPacker::ECubeFace,	"ECubeFace"	);
-}
+AE_DECL_SCRIPT_TYPE( AE::AssetPacker::ECubeFace,	"ECubeFace"	);

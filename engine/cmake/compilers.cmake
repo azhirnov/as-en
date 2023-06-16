@@ -5,6 +5,9 @@
 #	- Develop  -- enable some optimization but keep most debug checks, exclude long-time checks
 #	- Profile  -- enable some optimizations but keep debug info for profiling
 #	- Release  -- enable all optimizations
+#
+# feature support:
+#	https://en.cppreference.com/w/cpp/compiler_support
 
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
@@ -415,7 +418,7 @@ if ( COMPILER_CLANG )
 	set( CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
 	#--------------------------------------------
 
-	set( CLANG_SHARED_OPTS       ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST} )
+	set( CLANG_SHARED_OPTS       -stdlib=libc++ ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST} )
 	set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_CLANG" )
 	
 	if (${AE_USE_SANITIZER})

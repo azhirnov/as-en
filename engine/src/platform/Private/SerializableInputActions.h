@@ -227,11 +227,8 @@ namespace AE::App
 
 
 #ifdef AE_ENABLE_SCRIPTING
-namespace AE::Scripting
-{
 	AE_DECL_SCRIPT_OBJ(		AE::App::SerializableInputActions::ScriptActionInfo,	"ActionInfo"	);
 	AE_DECL_SCRIPT_TYPE(	AE::App::EGestureState,									"EGestureState"	);
 	AE_DECL_SCRIPT_TYPE(	AE::App::EGestureType,									"EGestureType"	);
 	AE_DECL_SCRIPT_TYPE(	AE::App::SerializableInputActions::EValueType,			"EValueType"	);
-}
 #endif

@@ -12,7 +12,7 @@ namespace AE::Graphics
 	// Vulkan Graphics Memory Allocator Utils
 	//
 
-	struct VGfxMemAllocatorUtils : Noninstancable
+	struct VGfxMemAllocatorUtils : Noninstanceable
 	{
 		struct Key
 		{

@@ -14,8 +14,8 @@ namespace AE::Graphics
 		Transient			= 1 << 1,		// for render target only: allocate in on-chip memory, available only inside render pass
 
 		// host memory
-		HostCocherent		= 1 << 2,		// for small host writa only memory and for host read only memory
-		HostCached			= 1 << 3,		// cached non-coherent memory type, for large host writa only memory
+		HostCocherent		= 1 << 2,		// for small host write only memory and for host read only memory
+		HostCached			= 1 << 3,		// cached non-coherent memory type, for large host write only memory
 
 		// options
 		Dedicated			= 1 << 4,		// force to use dedicated allocation

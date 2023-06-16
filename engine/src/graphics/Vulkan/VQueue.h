@@ -76,7 +76,7 @@ namespace AE::Graphics
 	// Vulkan Pipeline Scope Helper
 	//
 
-	struct VPipelineScope final : Noninstancable
+	struct VPipelineScope final : Noninstanceable
 	{
 	private:
 		//	synchronization scope :						first	second

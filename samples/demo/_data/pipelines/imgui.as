@@ -54,6 +54,29 @@ void ASmain ()
 		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "imgui" );
 		spec.AddToRenderTech( "ImGui.RTech", "Main" );
 		spec.AddToRenderTech( "HDR.RTech", "Main" );
+		spec.AddToRenderTech( "Mesh.RTech", "UI" );
+		spec.SetViewportCount( 1 );
+
+		RenderState	rs;
+
+		RenderState_ColorBuffer	cb;
+		cb.srcBlendFactor	.set( EBlendFactor::SrcAlpha );
+		cb.dstBlendFactor	.set( EBlendFactor::OneMinusSrcAlpha );
+		cb.blendOp			.set( EBlendOp::Add );
+		cb.blend			= true;
+		rs.color.SetColorBuffer( 0, cb );
+
+		rs.depth.test = false;
+
+		rs.inputAssembly.topology = EPrimitive::TriangleList;
+
+		rs.rasterization.cullMode = ECullMode::None;
+
+		spec.SetRenderState( rs );
+	}
+	{
+		RC<GraphicsPipelineSpec>	spec = ppln.AddSpecialization( "imgui" );
+		spec.AddToRenderTech( "Bloom.RTech", "UI" );
 		spec.SetViewportCount( 1 );
 
 		RenderState	rs;

@@ -15,15 +15,17 @@ namespace AE::Graphics
 	{
 	// variables
 	private:
-		ubyte	_value	= 0;
+		ubyte	_value	= 0;	// power of 2
 
 
 	// methods
 	public:
 		constexpr MultiSamples ()									__NE___ {}
 
+		explicit constexpr MultiSamples (PowerOfTwo pot)			__NE___ : _value{ubyte(pot)} {}
+
 		template <typename T, typename = EnableIf<IsUnsignedInteger<T>> >
-		explicit MultiSamples (T samples)							__NE___ : _value( CheckCast<ubyte>(IntLog2( samples )))
+		explicit MultiSamples (T samples)							__NE___ : _value{ CheckCast<ubyte>(IntLog2( samples ))}
 		{
 			ASSERT( IsPowerOfTwo( samples ));
 		}

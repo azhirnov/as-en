@@ -2,6 +2,7 @@
 #define PAYLOAD_LOC	0
 
 void dbg_EnableTraceRecording (bool b) {}
+//-----------------------------------------------------------------------------
 
 #ifdef SH_RAY_GEN
 layout(location=PAYLOAD_LOC) rayPayloadEXT vec4  payload;
@@ -29,7 +30,7 @@ void Main ()
 	imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
 }
 #endif
-
+//-----------------------------------------------------------------------------
 
 #ifdef SH_RAY_MISS
 layout(location=PAYLOAD_LOC) rayPayloadInEXT vec4  payload;
@@ -41,7 +42,7 @@ void Main ()
 	payload = vec4( 0.412f, 0.796f, 1.0f, 1.0f );
 }
 #endif
-
+//-----------------------------------------------------------------------------
 
 #ifdef SH_RAY_CHIT
 layout(location=PAYLOAD_LOC) rayPayloadInEXT vec4  payload;
@@ -56,3 +57,4 @@ void Main ()
 	payload = vec4(barycentrics, 1.0);
 }
 #endif
+//-----------------------------------------------------------------------------

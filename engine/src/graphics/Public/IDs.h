@@ -46,7 +46,6 @@ namespace AE::Graphics
 	using RenderPassID			= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 19 >;
 	using MemoryID				= HandleTmpl< 32, 32, Graphics::_hidden_::GraphicsIDs_Start + 20 >;
 
-	//using MaterialID			= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 20 >;
 	using ImageInAtlasID		= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 30 >;
 	
 	using VideoSessionID		= HandleTmpl< 16, 16, Graphics::_hidden_::GraphicsIDs_Start + 40 >;
@@ -65,8 +64,6 @@ namespace AE::Graphics
 	using RenderTechPassName	= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 9,  AE_OPTIMIZE_IDS >;
 	using VertexBufferName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 11, AE_OPTIMIZE_IDS >;
 	using RayTracingGroupName	= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 12, AE_OPTIMIZE_IDS >;
-	//using RTGeometryName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 13, AE_OPTIMIZE_IDS >;
-	//using RTInstanceName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 14, AE_OPTIMIZE_IDS >;
 	using RTShaderBindingName	= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 15, AE_OPTIMIZE_IDS >;
 	using SamplerName			= NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 20, AE_OPTIMIZE_IDS >;
 	using AttachmentName		= NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 21, AE_OPTIMIZE_IDS >;
@@ -85,6 +82,7 @@ namespace AE::Graphics
 
 	static constexpr AttachmentName		Attachment_Depth		{"Depth"};
 	static constexpr AttachmentName		Attachment_DepthStencil	{"DepthStencil"};
+	static constexpr AttachmentName		Attachment_ShadingRate	{"ShadingRate"};
 
 	static constexpr SubpassName		Subpass_ExternalIn		{"ExternalIn"};
 	static constexpr SubpassName		Subpass_ExternalOut		{"ExternalOut"};

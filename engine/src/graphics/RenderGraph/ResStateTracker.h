@@ -47,16 +47,16 @@ namespace AE::RG::_hidden_
 		ND_ bool			IsInvalid ()				C_NE___	{ return id == UMax; }
 
 		ND_ bool			IsImage ()					C_NE___	{ return type == TypeList_t::Index<ImageID>; }
-		ND_ ImageID			AsImage ()					C_NE___	{ ASSERT(IsImage());  return UnsafeBitCast<ImageID>(id); }
+		ND_ ImageID			AsImage ()					C_NE___	{ ASSERT(IsImage());  return BitCast<ImageID>(id); }
 		
 		ND_ bool			IsBuffer ()					C_NE___	{ return type == TypeList_t::Index<BufferID>; }
-		ND_ BufferID		AsBuffer ()					C_NE___	{ ASSERT(IsBuffer());  return UnsafeBitCast<BufferID>(id); }
+		ND_ BufferID		AsBuffer ()					C_NE___	{ ASSERT(IsBuffer());  return BitCast<BufferID>(id); }
 		
 		ND_ bool			IsRTGeometry ()				C_NE___	{ return type == TypeList_t::Index<RTGeometryID>; }
-		ND_ RTGeometryID	AsRTGeometry ()				C_NE___	{ ASSERT(IsRTGeometry());  return UnsafeBitCast<RTGeometryID>(id); }
+		ND_ RTGeometryID	AsRTGeometry ()				C_NE___	{ ASSERT(IsRTGeometry());  return BitCast<RTGeometryID>(id); }
 
 		ND_ bool			IsRTScene ()				C_NE___	{ return type == TypeList_t::Index<RTSceneID>; }
-		ND_ RTSceneID		AsRTScene ()				C_NE___	{ ASSERT(IsRTScene());  return UnsafeBitCast<RTSceneID>(id); }
+		ND_ RTSceneID		AsRTScene ()				C_NE___	{ ASSERT(IsRTScene());  return BitCast<RTSceneID>(id); }
 	};
 
 
@@ -211,6 +211,8 @@ namespace AE::RG::_hidden_
 
 		template <typename ID, typename ...Args> bool  AddResourceIfNotTracked (const Strong<ID> &id, const Args& ...args)									__NE___	{ return AddResourceIfNotTracked( id.Get(), args... ); }
 		
+		template <usize IS, usize GS, uint UID>	ND_ auto  AcquireResource (HandleTmpl<IS, GS, UID> id)														__NE___	{ return _ResMngr().AcquireResource( id ); }
+
 		template <typename ID>	ND_ bool  IsTracked (ID id)																									C_NE___	{ return IsTracked( ResourceKey{id} ); }
 		template <typename ID>	ND_ bool  IsTracked (const Strong<ID> &id)																					C_NE___	{ return IsTracked( ResourceKey{id.Get()} ); }
 								ND_ bool  IsTracked (ResourceKey key)																						C_NE___;
@@ -255,6 +257,16 @@ namespace AE::RG::_hidden_
 			
 			template <typename ArrayType>
 			void					ReleaseResourceArray (INOUT ArrayType &arr)																				__NE___;
+			
+		ND_ RTASBuildSizes			GetRTGeometrySizes (const RTGeometryBuild &desc)																		C_NE___	{ return _ResMngr().GetRTGeometrySizes( desc ); }
+		ND_ RTASBuildSizes			GetRTSceneSizes (const RTSceneBuild &desc)																				C_NE___	{ return _ResMngr().GetRTSceneSizes( desc ); }
+		
+		template <typename ID> ND_ auto			GetDeviceAddress (ID id)																					C_NE___ { return _ResMngr().GetDeviceAddress( id ); }
+
+		template <typename ID> ND_ auto const&	GetDescription (ID id)																						C_NE___	{ return _ResMngr().GetDescription( id ); }
+		template <typename ID> ND_ bool			IsResourceAlive (ID id)																						C_NE___	{ return _ResMngr().IsResourceAlive( id ); }
+
+		ND_ IResourceManager&		GetResourceManager ()																									C_NE___	{ return _ResMngr(); }
 
 	protected:
 		ND_ bool  _AddResource2 (ResourceKey key, const ResGlobalState &info)																				__NE___;
@@ -264,6 +276,8 @@ namespace AE::RG::_hidden_
 		ND_ bool  _AddResource (RTSceneID    id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)		__NE___;
 		
 		template <typename ID>	ND_ bool  _ReleaseResource (INOUT ID &id)																					__NE___;
+
+		ND_ IResourceManager&  _ResMngr ()																													C_NE___;
 	};
 
 	

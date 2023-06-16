@@ -21,7 +21,7 @@ namespace AE::Base
 	// Unix Utils
 	//
 
-	struct UnixUtils : Noninstancable
+	struct UnixUtils : Noninstanceable
 	{
 	// types
 		struct MemoryPageInfo

@@ -13,7 +13,7 @@ namespace AE::Graphics
 	// Metal Graphics Memory Allocator Utils
 	//
 
-	struct MGfxMemAllocatorUtils : Noninstancable
+	struct MGfxMemAllocatorUtils : Noninstanceable
 	{
 		struct Key
 		{

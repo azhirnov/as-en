@@ -148,6 +148,13 @@ namespace AE::Graphics
 			return Copy( src );
 		}
 		
+		template <typename T>
+		ND_ Bytes  Copy (Array<T> &from)				__NE___
+		{
+			BufferMemView	src{ from.data(), ArraySizeOf(from) };
+			return Copy( src );
+		}
+
 		
 		// returns number of copied bytes
 		ND_ Bytes  CopyTo (OUT void* dst, Bytes size)	C_NE___;

@@ -60,7 +60,7 @@ namespace AE::ECS
 	{
 		static constexpr uint	MaxComponents				= 4 * 64;
 		static constexpr uint	MaxComponentsPerArchetype	= 64;
-		static constexpr uint	InitialtStorageSize			= 16;
+		static constexpr uint	InitialStorageSize			= 16;
 	};
 
 	class Registry;

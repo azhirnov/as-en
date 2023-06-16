@@ -10,10 +10,14 @@ void ASmain ()
 		pl.AddFeatureSet( "MinMeshShader" );
 		pl.AddDebugDSLayout( EShaderOpt::Trace, EShaderStages::Mesh );
 		pl.Define( "DEBUG" );
+	}{
+		RC<ShaderStructType>	st = ShaderStructType( "meshtofrag3.io" );
+		st.Set( "float4	color;" );
 	}
 
 	RC<MeshPipeline>	ppln = MeshPipeline( "dbg3_draw" );
 	ppln.SetLayout( "dbg3_draw.pl" );
+	ppln.SetShaderIO( EShader::Mesh, EShader::Fragment,	"meshtofrag3.io" );
 	
 	{
 		RC<Shader>	ms	= Shader();
@@ -21,6 +25,7 @@ void ASmain ()
 		ms.options	= EShaderOpt::Trace;
 		ms.version	= EShaderVersion::SPIRV_1_4;
 		ms.MeshSpec1();
+		ms.MeshOutput( 3, 1, EPrimitive::TriangleList );
 		ppln.SetMeshShader( ms );
 	}
 	{

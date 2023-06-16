@@ -1,5 +1,15 @@
 #include <pipeline_compiler>
 
+/*
+	TODO:
+		AFBC RGBA8		- All
+		AFBC RGBA16		- Mali_Valhall_Gen3+
+		AFRC			- Mali_Valhall_Gen3+	- lossy compression
+
+		FP16 blending	- Mali_Valhall_Gen1+
+		VRS				- Mali_Valhall_Gen4+
+*/
+
 void ASmain ()
 {
 	// include:
@@ -138,7 +148,8 @@ void ASmain ()
 		EPixelFormat::RGBA8U, EPixelFormat::R16U, EPixelFormat::RG16U, EPixelFormat::RGBA16U, 
 		EPixelFormat::R32U, EPixelFormat::RG32U, EPixelFormat::RGBA32U, EPixelFormat::RGB10_A2U, 
 		EPixelFormat::R16F, EPixelFormat::RG16F, EPixelFormat::RGBA16F, EPixelFormat::R32F, 
-		EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F
+		EPixelFormat::RG32F, EPixelFormat::RGBA32F, EPixelFormat::RGB_11_11_10F, EPixelFormat::Depth16, 
+		EPixelFormat::Depth24, EPixelFormat::Depth24_Stencil8
 	});
 	fset.AddTexelFormats( EFormatFeature::LinearSampled, {
 		EPixelFormat::RGBA8_SNorm, EPixelFormat::RGB8_SNorm, EPixelFormat::RG8_SNorm, EPixelFormat::R8_SNorm, 
@@ -158,6 +169,9 @@ void ASmain ()
 		EPixelFormat::ASTC_sRGB8_A8_5x5, EPixelFormat::ASTC_sRGB8_A8_6x5, EPixelFormat::ASTC_sRGB8_A8_6x6, EPixelFormat::ASTC_sRGB8_A8_8x5, 
 		EPixelFormat::ASTC_sRGB8_A8_8x6, EPixelFormat::ASTC_sRGB8_A8_8x8, EPixelFormat::ASTC_sRGB8_A8_10x5, EPixelFormat::ASTC_sRGB8_A8_10x6, 
 		EPixelFormat::ASTC_sRGB8_A8_10x8, EPixelFormat::ASTC_sRGB8_A8_10x10, EPixelFormat::ASTC_sRGB8_A8_12x10, EPixelFormat::ASTC_sRGB8_A8_12x12
+	});
+	fset.AddTexelFormats( EFormatFeature::HWCompressedAttachment, {
+		EPixelFormat::RGBA8_UNorm
 	});
 	fset.samplerMipLodBias (True);
 	fset.minSamplerAnisotropy (1.00);

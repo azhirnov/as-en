@@ -26,12 +26,13 @@ namespace AE::Graphics
 	//
 	enum class ERTInstanceOpt : ubyte
 	{
-		TriangleCullDisable		= 1 << 0,
-		TriangleFrontCCW		= 1 << 1,
-		ForceOpaque				= 1 << 2,	// enable  ERTGeometryOpt::Opaque flag
-		ForceNonOpaque			= 1 << 3,	// disable ERTGeometryOpt::Opaque flag
+		TriangleCullDisable			= 1 << 0,
+		TriangleFrontCCW			= 1 << 1,
+		ForceOpaque					= 1 << 2,	// enable  ERTGeometryOpt::Opaque flag
+		ForceNonOpaque				= 1 << 3,	// disable ERTGeometryOpt::Opaque flag
 		_Last,
-		Unknown					= 0,
+		All							= ((_Last - 1) << 1) - 1,
+		Unknown						= 0,
 	};
 	AE_BIT_OPERATORS( ERTInstanceOpt );
 
@@ -42,14 +43,14 @@ namespace AE::Graphics
 	//
 	enum class ERTASOptions : uint
 	{
-		AllowUpdate				= 1 << 0,
-		AllowCompaction			= 1 << 1,
-		PreferFastTrace			= 1 << 2,
-		PreferFastBuild			= 1 << 3,
-		LowMemory				= 1 << 4,
+		AllowUpdate					= 1 << 0,
+		AllowCompaction				= 1 << 1,
+		PreferFastTrace				= 1 << 2,
+		PreferFastBuild				= 1 << 3,
+		LowMemory					= 1 << 4,
 		//MotionNV
 		_Last,
-		Unknown					= 0,
+		Unknown						= 0,
 	};
 	AE_BIT_OPERATORS( ERTASOptions );
 

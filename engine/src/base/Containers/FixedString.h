@@ -113,7 +113,7 @@ namespace AE::Base
 
 		void  push_back (CharT value)						__NE___
 		{
-			ASSERT( _length + 1 < capacity() );
+			ASSERT( _length + 1u < capacity() );
 
 			_array[_length]		= value;
 			_array[_length + 1]	= CharT{0};

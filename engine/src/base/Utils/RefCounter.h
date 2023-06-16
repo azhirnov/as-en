@@ -36,7 +36,7 @@ namespace AE::Base
 		virtual ~EnableRCBase ()		__NE___ { ASSERT( _counter.load( EMemoryOrder::Relaxed ) == 0 ); }
 
 	protected:
-		// this methods allows to catch object destruction and change bechavior,
+		// this methods allows to catch object destruction and change behavior,
 		// for example - add back to object pool.
 		virtual void  _ReleaseObject () __NE___
 		{
@@ -54,7 +54,7 @@ namespace AE::Base
 	//
 	// Ref Counter Utils
 	//
-	struct RefCounterUtils final : Noninstancable
+	struct RefCounterUtils final : Noninstanceable
 	{
 		// returns previous value of ref counter
 			forceinline static int   IncRef (EnableRCBase &obj)			__NE___	{ return obj._counter.fetch_add( 1, EMemoryOrder::Relaxed ); }
@@ -236,7 +236,7 @@ namespace AE::Base
 	// Static Reference Counter
 	//
 
-	struct StaticRC final : Noninstancable
+	struct StaticRC final : Noninstanceable
 	{
 		template <typename T, typename ...Args>
 		static void  New (INOUT T& obj, Args&& ...args)	__Th___
@@ -736,3 +736,17 @@ namespace AE::Base
 #endif
 
 } // AE::Base
+
+
+namespace std
+{
+
+	template <typename T>
+	struct hash< AE::Base::RC<T> >
+	{
+		ND_ size_t  operator () (const AE::Base::RC<T> &x) C_NE___ {
+			return std::hash< T* >{}( x.get() );
+		}
+	};
+
+} // std

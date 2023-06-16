@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "scripting/Impl/ScriptEngine.inl.h"
 #include "scriptarray.h"
 
 #include "base/Containers/StructView.h"

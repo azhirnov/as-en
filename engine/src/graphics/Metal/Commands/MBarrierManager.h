@@ -126,6 +126,7 @@ namespace AE::Graphics::_hidden_
 		ND_ RC<MCommandBatch>		GetCommandBatchRC ()																			C_NE___ { return this->_mngr.GetBatchRC(); } \
 		\
 		ND_	MResourceManager &		GetResourceManager ()																			C_NE___ { return this->_mngr.GetResourceManager(); } \
+		ND_	RenderTask const&		GetRenderTask ()																				C_NE___ { return this->_mngr.GetRenderTask(); } \
 		\
 		void  BufferBarrier (BufferID buffer, EResourceState srcState, EResourceState dstState)										__Th_OV	{ this->_mngr.BufferBarrier( buffer, srcState, dstState ); } \
 		\

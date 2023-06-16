@@ -222,6 +222,7 @@ namespace AE::Graphics
 		using NativeImageViewDesc_t	= VulkanImageViewDesc;
 		using NativeBufferViewDesc_t= VulkanBufferViewDesc;
 		using NativeMemObjInfo_t	= VulkanMemoryObjInfo;
+		using DeviceAddress_t		= VDeviceAddress;
 		
 		#elif defined(AE_ENABLE_METAL)
 		using NativeBuffer_t		= MetalBuffer;
@@ -233,17 +234,19 @@ namespace AE::Graphics
 		using NativeImageViewDesc_t	= MetalImageViewDesc;
 		using NativeBufferViewDesc_t= MetalBufferViewDesc;
 		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
+		using DeviceAddress_t		= MDeviceAddress;
 
 		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
 		using NativeBuffer_t		= R_BufferID;
 		using NativeImage_t			= R_ImageID;
 		using NativeBufferView_t	= R_BufferViewID;
 		using NativeImageView_t		= R_ImageViewID;
-		using NativeImageDesc_t		= Noninstancable;
-		using NativeBufferDesc_t	= Noninstancable;
-		using NativeImageViewDesc_t	= Noninstancable;
-		using NativeBufferViewDesc_t= Noninstancable;
+		using NativeImageDesc_t		= Noninstanceable;
+		using NativeBufferDesc_t	= Noninstanceable;
+		using NativeImageViewDesc_t	= Noninstanceable;
+		using NativeBufferViewDesc_t= Noninstanceable;
 		using NativeMemObjInfo_t	= RemoteMemoryObjInfo;
+		using DeviceAddress_t		= void*;
 		
 		#else
 		#	error not implemented
@@ -292,6 +295,9 @@ namespace AE::Graphics
 
 		ND_ virtual RTASBuildSizes				GetRTGeometrySizes (const RTGeometryBuild &desc)																__NE___	= 0;
 		ND_ virtual RTASBuildSizes				GetRTSceneSizes (const RTSceneBuild &desc)																		__NE___	= 0;
+
+		ND_ virtual DeviceAddress_t				GetDeviceAddress (BufferID		id)																				C_NE___ = 0;
+		ND_ virtual DeviceAddress_t				GetDeviceAddress (RTGeometryID	id)																				C_NE___ = 0;
 
 		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, GraphicsPipelineID   ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
 		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
@@ -350,6 +356,15 @@ namespace AE::Graphics
 		ND_ virtual bool						IsResourceAlive (VideoSessionID		id)						C_NE___ = 0;
 		ND_ virtual bool						IsResourceAlive (VideoBufferID		id)						C_NE___ = 0;
 		ND_ virtual bool						IsResourceAlive (VideoImageID		id)						C_NE___ = 0;
+		
+		// Increment ref counter and returns ID if resource is alive, returns empty ID otherwise.
+		ND_ virtual Strong<ImageID>				AcquireResource (ImageID			id)						__NE___ = 0;
+		ND_ virtual Strong<BufferID>			AcquireResource (BufferID			id)						__NE___ = 0;
+		ND_ virtual Strong<ImageViewID>			AcquireResource (ImageViewID		id)						__NE___ = 0;
+		ND_ virtual Strong<BufferViewID>		AcquireResource (BufferViewID		id)						__NE___ = 0;
+		ND_ virtual Strong<DescriptorSetID>		AcquireResource (DescriptorSetID	id)						__NE___ = 0;
+		ND_ virtual Strong<RTGeometryID>		AcquireResource (RTGeometryID		id)						__NE___ = 0;
+		ND_ virtual Strong<RTSceneID>			AcquireResource (RTSceneID			id)						__NE___ = 0;
 
 		// Decrease ref counter and delay destruction until current frame complete execution on GPU.
 		// Returns 'true' if resource has been destroyed (when ref counter is zero).
@@ -377,6 +392,8 @@ namespace AE::Graphics
 		ND_ virtual BufferViewDesc const&		GetDescription (BufferViewID id)							C_NE___ = 0;
 		ND_ virtual ImageViewDesc const&		GetDescription (ImageViewID id)								C_NE___ = 0;
 		ND_ virtual RTShaderBindingDesc const&	GetDescription (RTShaderBindingID id)						C_NE___	= 0;
+		ND_ virtual RTGeometryDesc const&		GetDescription (RTGeometryID id)							C_NE___ = 0;
+		ND_ virtual RTSceneDesc const&			GetDescription (RTSceneID id)								C_NE___ = 0;
 		ND_ virtual VideoImageDesc const&		GetDescription (VideoImageID id)							C_NE___	= 0;
 		ND_ virtual VideoBufferDesc const&		GetDescription (VideoBufferID id)							C_NE___	= 0;
 		ND_ virtual VideoSessionDesc const&		GetDescription (VideoSessionID id)							C_NE___	= 0;

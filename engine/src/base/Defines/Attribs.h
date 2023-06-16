@@ -66,7 +66,7 @@
 #ifndef ND_
 # ifdef AE_COMPILER_MSVC
 #  if _MSC_VER >= 1917
-#	define ND_				[[nodiscard]]
+#	define ND_					[[nodiscard]]
 #  else
 #	define ND_
 #  endif
@@ -74,7 +74,7 @@
 
 # ifdef AE_COMPILER_CLANG
 #  if __has_feature( cxx_attributes )
-#	define ND_				[[nodiscard]]
+#	define ND_					[[nodiscard]]
 #  else
 #	define ND_
 #  endif
@@ -82,7 +82,7 @@
 
 # ifdef AE_COMPILER_GCC
 #  if __has_cpp_attribute( nodiscard )
-#	define ND_				[[nodiscard]]
+#	define ND_					[[nodiscard]]
 #  else
 #	define ND_
 #  endif
@@ -93,24 +93,24 @@
 
 // null pointer
 #ifndef null
-#	define null				nullptr
+#	define null					nullptr
 #endif
 
 
 // force inline
 #ifndef forceinline
 # if defined(AE_DEBUG)
-#	define forceinline		inline
+#	define forceinline			inline
 
 # elif defined(AE_COMPILER_MSVC)
-#	define forceinline		__forceinline
+#	define forceinline			__forceinline
 
 # elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define forceinline		__inline__ __attribute__((always_inline))
+#	define forceinline			__inline__ __attribute__((always_inline))
 
 # else
 #	pragma warning ("'forceinline' is not supported")
-#	define forceinline		inline
+#	define forceinline			inline
 # endif
 #endif
 
@@ -118,40 +118,12 @@
 // no inline (for debugging)
 #ifndef AE_NOINLINE
 # if defined(AE_COMPILER_MSVC)
-#	define AE_NOINLINE		__declspec(noinline)
+#	define AE_NOINLINE			__declspec(noinline)
 # elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define AE_NOINLINE		__attribute__((noinline))
+#	define AE_NOINLINE			__attribute__((noinline))
 # else
 #	pragma warning ("'noinline' is not supported")
 #	define AE_NOINLINE
-# endif
-#endif
-
-
-// restrict (for variable)
-// TODO: create RstPtr<>
-#ifndef RST
-# if defined(AE_COMPILER_MSVC)
-#	define RST				__restrict
-
-# elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define RST				__restrict__
-# else
-#	define RST
-# endif
-#endif
-
-
-// restrict & nodiscard (for fn result)
-// TODO: create RstPtr<>
-#ifndef NDRST
-# if defined(AE_COMPILER_MSVC)
-#	define NDRST( _type_ )		ND_ __declspec(restrict)  _type_
-
-# elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define NDRST( _type_ )		ND_ _type_ __restrict__
-# else
-#	define NDRST( _type_ )		_type_
 # endif
 #endif
 
@@ -220,18 +192,12 @@
 
 // thiscall, cdecl
 #ifdef AE_COMPILER_MSVC
-#	define AE_CDECL			__cdecl
-#	define AE_THISCALL		__thiscall
+#	define AE_CDECL				__cdecl
+#	define AE_THISCALL			__thiscall
 
 #elif defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
-#	define AE_CDECL			//__attribute__((cdecl))
-#	define AE_THISCALL		//__attribute__((thiscall))
-#endif
-
-
-// to fix compiler error C2338
-#ifdef AE_COMPILER_MSVC
-#	define _ENABLE_EXTENDED_ALIGNED_STORAGE
+#	define AE_CDECL				//__attribute__((cdecl))
+#	define AE_THISCALL			//__attribute__((thiscall))
 #endif
 
 
@@ -249,16 +215,16 @@
 // DLL import/export
 #if not defined(AE_DLL_EXPORT) or not defined(AE_DLL_IMPORT)
 # if defined(AE_COMPILER_MSVC)
-#	define AE_DLL_EXPORT			__declspec( dllexport )
-#	define AE_DLL_IMPORT			__declspec( dllimport )
+#	define AE_DLL_EXPORT		__declspec( dllexport )
+#	define AE_DLL_IMPORT		__declspec( dllimport )
 
 # elif defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG)
 #  ifdef AE_PLATFORM_WINDOWS
-#	define AE_DLL_EXPORT			__attribute__( dllexport )
-#	define AE_DLL_IMPORT			__attribute__( dllimport )
+#	define AE_DLL_EXPORT		__attribute__( dllexport )
+#	define AE_DLL_IMPORT		__attribute__( dllimport )
 #  else
-#	define AE_DLL_EXPORT			__attribute__((visibility("default")))
-#	define AE_DLL_IMPORT			__attribute__((visibility("default")))
+#	define AE_DLL_EXPORT		__attribute__((visibility("default")))
+#	define AE_DLL_IMPORT		__attribute__((visibility("default")))
 #  endif
 
 # else
@@ -342,7 +308,7 @@
 #endif
 
 
-// allow to use 'offsetof(0' in 'static_assert()'
+// allow to use 'offsetof()' in 'static_assert()'
 #ifndef AE_PLATFORM_EMSCRIPTEN
 #	define AE_COMPILETIME_OFFSETOF
 #endif

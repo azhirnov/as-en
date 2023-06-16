@@ -29,7 +29,7 @@ namespace AE::Graphics
 {
 
 	//
-	// Render Task Sheduler
+	// Render Task Scheduler
 	//
 
 	class RTSCHEDULER final
@@ -46,21 +46,21 @@ namespace AE::Graphics
 
 
 	public:
-		class CommandBatchApi : Noninstancable
+		class CommandBatchApi : Noninstanceable
 		{
 			friend class AE_PRIVATE_UNITE_RAW( SUFFIX, CommandBatch );
 			static void  Recycle (uint indexInPool)					__NE___;
 			static void  Submit (CommandBatch_t&, ESubmitMode mode)	__NE___;
 		};
 
-		class DrawCommandBatchApi : Noninstancable
+		class DrawCommandBatchApi : Noninstanceable
 		{
 			friend class AE_PRIVATE_UNITE_RAW( SUFFIX, DrawCommandBatch );
 			static void  Recycle (uint indexInPool) __NE___;
 		};
 		
 		#ifdef ENABLE_VK_TIMELINE_SEMAPHORE
-		class VirtualFenceApi : Noninstancable
+		class VirtualFenceApi : Noninstanceable
 		{
 			friend class CommandBatch_t::VirtualFence;
 			static void  Recycle (uint indexInPool) __NE___;
@@ -206,8 +206,13 @@ namespace AE::Graphics
 			void		AddFrameDeps (FrameUID, ArrayView<AsyncTask> deps)		__NE___;
 			void		AddFrameDeps (FrameUID, AsyncTask dep)					__NE___;
 
+			// frame+1
 			void		AddNextFrameDeps (ArrayView<AsyncTask> deps)			__NE___	{ AddFrameDeps( GetFrameId().Inc(), deps ); }
 			void		AddNextFrameDeps (AsyncTask dep)						__NE___	{ AddFrameDeps( GetFrameId().Inc(), RVRef(dep) ); }
+
+			// frame + max_frames
+			void		AddNextCycleDeps (ArrayView<AsyncTask> deps)			__NE___	{ AddFrameDeps( GetFrameId().NextCycle(), deps ); }
+			void		AddNextCycleDeps (AsyncTask dep)						__NE___	{ AddFrameDeps( GetFrameId().NextCycle(), RVRef(dep) ); }
 
 	
 			// valid bits: [0..GraphicsConfig::MaxPendingCmdBatches)
@@ -328,7 +333,7 @@ namespace AE::Graphics
 		class _VIndirectGraphicsCtx;
 	}
 
-	class VRenderTaskScheduler::GraphicsContextApi : Noninstancable
+	class VRenderTaskScheduler::GraphicsContextApi : Noninstanceable
 	{
 		friend class _hidden_::_VDirectGraphicsCtx;
 		friend class _hidden_::_VIndirectGraphicsCtx;
@@ -349,7 +354,7 @@ namespace AE::Graphics
 		class _MIndirectGraphicsCtx;
 	}
 
-	class MRenderTaskScheduler::DirectGraphicsContextApi : Noninstancable
+	class MRenderTaskScheduler::DirectGraphicsContextApi : Noninstanceable
 	{
 		friend class _hidden_::_MDirectGraphicsCtx;
 
@@ -362,7 +367,7 @@ namespace AE::Graphics
 																ArrayView<RenderPassDesc::Viewport> viewports, DebugLabel dbg)						__NE___;
 	};
 
-	class MRenderTaskScheduler::IndirectGraphicsContextApi : Noninstancable
+	class MRenderTaskScheduler::IndirectGraphicsContextApi : Noninstanceable
 	{
 		friend class _hidden_::_MIndirectGraphicsCtx;
 

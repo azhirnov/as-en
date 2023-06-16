@@ -247,10 +247,7 @@ namespace AE::App
 
 
 #ifdef AE_ENABLE_SCRIPTING
-namespace AE::Scripting
-{
 	AE_DECL_SCRIPT_OBJ_RC(	AE::App::SerializableInputActionsGLFW::ScriptBindingsMode,		"GLFW_BindingsMode"		);
 	AE_DECL_SCRIPT_OBJ(		AE::App::SerializableInputActionsGLFW::ScriptActionBindings,	"GLFW_ActionBindings"	);
 	AE_DECL_SCRIPT_TYPE(	AE::App::SerializableInputActionsGLFW::EInputType,				"GLFW_Input"			);
-}
 #endif

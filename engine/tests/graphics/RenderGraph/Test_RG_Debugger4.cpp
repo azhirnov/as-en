@@ -71,8 +71,7 @@ namespace
 			scene_build.SetInstanceData( t.instances );
 
 			RTSceneBuild::Instance	inst;
-			inst.Init();
-			scene_build.SetGeometry( t.rtGeom, INOUT inst );
+			CHECK_TE( scene_build.SetGeometry( t.rtGeom, INOUT inst ));
 
 			CHECK_TE( copy_ctx.UploadBuffer( t.vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
 			CHECK_TE( copy_ctx.UploadBuffer( t.ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
@@ -185,33 +184,33 @@ no source
 
 //> uv: float2 {0.765625, 0.207500}
 //  gl_LaunchIDEXT: uint3 {612, 124, 0}
-14. uv			= vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
+15. uv			= vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
 
 //> origin: float3 {0.765625, 0.792500, -1.000000}
 //  uv: float2 {0.765625, 0.207500}
-15. origin		= vec3(uv.x, 1.0f - uv.y, -1.0f);
+16. origin		= vec3(uv.x, 1.0f - uv.y, -1.0f);
 
 //> payload: float4 {0.000000, 0.000000, 0.000000, 0.000000}
-19. payload = vec4(0.0);
+20. payload = vec4(0.0);
 
 //> traceRays(): void
 //  origin: float3 {0.765625, 0.792500, -1.000000}
-23. 	traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
-24. 				 /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/HitGroupStride, /*missIndex*/1,
-25. 				 /*origin*/origin, /*Tmin*/0.0f, /*direction*/direction, /*Tmax*/10.0f,
-26. 				 /*payload*/0 );
+24. 	traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
+25. 				 /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/HitGroupStride, /*missIndex*/1,
+26. 				 /*origin*/origin, /*Tmin*/0.0f, /*direction*/direction, /*Tmax*/10.0f,
+27. 				 /*payload*/0 );
 
 //> payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
-26. 0 );
+27. 0 );
 
 //> color: float4 {0.412000, 0.796000, 1.000000, 1.000000}
 //  payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
-28. color = payload;
+29. color = payload;
 
 //> imageStore(): void
 //  gl_LaunchIDEXT: uint3 {612, 124, 0}
 //  color: float4 {0.412000, 0.796000, 1.000000, 1.000000}
-29. 	imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
+30. 	imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
 
 )";
 						const StringView	rg2_ref_str =
@@ -220,33 +219,33 @@ no source
 
 //> uv: float2 {0.463125, 0.544167}
 //  gl_LaunchIDEXT: uint3 {370, 326, 0}
-14. uv			= vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
+15. uv			= vec2(gl_LaunchIDEXT.xy + 0.5) / vec2(gl_LaunchSizeEXT.xy);
 
 //> origin: float3 {0.463125, 0.455833, -1.000000}
 //  uv: float2 {0.463125, 0.544167}
-15. origin		= vec3(uv.x, 1.0f - uv.y, -1.0f);
+16. origin		= vec3(uv.x, 1.0f - uv.y, -1.0f);
 
 //> payload: float4 {0.000000, 0.000000, 0.000000, 0.000000}
-19. payload = vec4(0.0);
+20. payload = vec4(0.0);
 
 //> traceRays(): void
 //  origin: float3 {0.463125, 0.455833, -1.000000}
-23. 	traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
-24. 				 /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/HitGroupStride, /*missIndex*/1,
-25. 				 /*origin*/origin, /*Tmin*/0.0f, /*direction*/direction, /*Tmax*/10.0f,
-26. 				 /*payload*/0 );
+24. 	traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
+25. 				 /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/HitGroupStride, /*missIndex*/1,
+26. 				 /*origin*/origin, /*Tmin*/0.0f, /*direction*/direction, /*Tmax*/10.0f,
+27. 				 /*payload*/0 );
 
 //> payload: float4 {0.367917, 0.220417, 0.411667, 1.000000}
-26. 0 );
+27. 0 );
 
 //> color: float4 {0.367917, 0.220417, 0.411667, 1.000000}
 //  payload: float4 {0.367917, 0.220417, 0.411667, 1.000000}
-28. color = payload;
+29. color = payload;
 
 //> imageStore(): void
 //  gl_LaunchIDEXT: uint3 {370, 326, 0}
 //  color: float4 {0.367917, 0.220417, 0.411667, 1.000000}
-29. 	imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
+30. 	imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
 
 )";
 						const StringView	rm_ref_str =
@@ -254,7 +253,7 @@ R"(//> gl_LaunchIDEXT: uint3 {612, 124, 0}
 no source
 
 //> payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
-41. payload = vec4( 0.412f, 0.796f, 1.0f, 1.0f );
+42. payload = vec4( 0.412f, 0.796f, 1.0f, 1.0f );
 
 )";
 						const StringView	rch_ref_str =
@@ -264,11 +263,11 @@ no source
 
 //> barycentrics: float3 {0.367917, 0.220417, 0.411667}
 //  hitAttribs: float2 {0.220417, 0.411667}
-55. barycentrics = vec3( 1.0f - hitAttribs.x - hitAttribs.y, hitAttribs.x, hitAttribs.y );
+56. barycentrics = vec3( 1.0f - hitAttribs.x - hitAttribs.y, hitAttribs.x, hitAttribs.y );
 
 //> payload: float4 {0.367917, 0.220417, 0.411667, 1.000000}
 //  barycentrics: float3 {0.367917, 0.220417, 0.411667}
-56. payload = vec4(barycentrics, 1.0);
+57. payload = vec4(barycentrics, 1.0);
 
 )";
 						ok &= (trace_str[0] == rm_ref_str);

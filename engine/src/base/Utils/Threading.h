@@ -30,7 +30,7 @@ namespace AE::Base
 	{
 		static constexpr std::memory_order	Acquire			= std::memory_order_acquire;
 		static constexpr std::memory_order	Release			= std::memory_order_release;
-		static constexpr std::memory_order	AcquireRelase	= std::memory_order_acq_rel;
+		static constexpr std::memory_order	AcquireRelease	= std::memory_order_acq_rel;
 		static constexpr std::memory_order	Relaxed			= std::memory_order_relaxed;
 	};
 #	else
@@ -38,7 +38,7 @@ namespace AE::Base
 	{
 		static constexpr std::memory_order	Acquire			= std::memory_order_seq_cst;
 		static constexpr std::memory_order	Release			= std::memory_order_seq_cst;
-		static constexpr std::memory_order	AcquireRelase	= std::memory_order_seq_cst;
+		static constexpr std::memory_order	AcquireRelease	= std::memory_order_seq_cst;
 		static constexpr std::memory_order	Relaxed			= std::memory_order_seq_cst;
 	};
 #	endif // AE_OPTIMAL_MEMORY_ORDER

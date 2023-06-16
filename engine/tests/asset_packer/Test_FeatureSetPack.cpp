@@ -25,7 +25,7 @@ namespace
 		info.inPipelineCount	= CountOf( features );
 		info.pipelineFolders	= fs_folder;
 		info.pipelineFolderCount= CountOf( fs_folder );
-		info.outputPackName		= output.c_str();
+		info.outputPackName		= Cast<CharType>(output.c_str());
 
 		TEST( compile_pipelines( &info ));
 		
@@ -58,11 +58,11 @@ namespace
 
 		ulong	fs_hash = 0;
 		TEST( des( OUT fs_hash ));
-		TEST_Eq( fs_hash, 0x2ab034088d195a8cull );
+		TEST_Eq( fs_hash, 0x3b2103abc1fc1748ull );
 
 		uint	count = 0;
 		TEST( des( OUT count ));
-		TEST_Eq( count, 36 );
+		TEST_Eq( count, 42 );
 		
 		for (uint i = 0; i < count; ++i)
 		{
@@ -85,7 +85,12 @@ extern void Test_FeatureSetPack ()
 #ifdef AE_PIPELINE_COMPILER_LIBRARY
 	{
 		Path	dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
-		dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
+
+		#ifdef AE_COMPILER_MSVC
+			dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
+		#else
+			dll_path.append( "PipelineCompiler-shared.so" );
+		#endif
 
 		Library		lib;
 		TEST( lib.Load( dll_path ));

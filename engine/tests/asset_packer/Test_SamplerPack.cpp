@@ -25,7 +25,7 @@ namespace
 		info.pipelineFolderCount= CountOf( fs_folder );
 		info.inPipelines		= sampler_files;
 		info.inPipelineCount	= CountOf( sampler_files );
-		info.outputPackName		= output.c_str();
+		info.outputPackName		= Cast<CharType>(output.c_str());
 		info.addNameMapping		= true;
 
 		TEST( compile_pipelines( &info ));
@@ -100,7 +100,12 @@ extern void Test_SamplerPack ()
 #ifdef AE_PIPELINE_COMPILER_LIBRARY
 	{
 		Path	dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
-		dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
+
+		#ifdef AE_COMPILER_MSVC
+			dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
+		#else
+			dll_path.append( "PipelineCompiler-shared.so" );
+		#endif
 
 		Library		lib;
 		TEST( lib.Load( dll_path ));

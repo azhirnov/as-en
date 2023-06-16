@@ -2,6 +2,11 @@
 
 #include "graphics/Public/IDs.h"
 
+#ifdef AE_COMPILER_MSVC
+#	pragma warning (push)
+#	pragma warning (disable: 4200)
+#endif
+
 namespace AE::ShaderTypes
 {
 	using namespace AE::Graphics;
@@ -17,3 +22,7 @@ namespace AE::ShaderTypes
 #endif
 
 } // AE::ShaderTypes
+
+#ifdef AE_COMPILER_MSVC
+#	pragma warning (pop)
+#endif

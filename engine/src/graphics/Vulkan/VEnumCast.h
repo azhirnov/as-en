@@ -14,6 +14,7 @@
 # include "graphics/Public/QueryManager.h"
 # include "graphics/Public/VideoEnums.h"
 # include "graphics/Public/SamplerDesc.h"
+# include "graphics/Public/CommandBufferTypes.h"
 # include "graphics/Private/EnumUtils.h"
 # include "graphics/Private/PixelFormatDefines.h"
 # include "graphics/Vulkan/VCommon.h"
@@ -270,23 +271,23 @@ namespace AE::Graphics
 		BEGIN_ENUM_CHECKS();
 		switch ( value )
 		{
-			case EPipelineDynamicState::StencilCompareMask:	return VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK;
-			case EPipelineDynamicState::StencilWriteMask :	return VK_DYNAMIC_STATE_STENCIL_WRITE_MASK;
-			case EPipelineDynamicState::StencilReference :	return VK_DYNAMIC_STATE_STENCIL_REFERENCE;
-			case EPipelineDynamicState::DepthBias:			return VK_DYNAMIC_STATE_DEPTH_BIAS;
-			case EPipelineDynamicState::BlendConstants:		return VK_DYNAMIC_STATE_BLEND_CONSTANTS;
-			//case EPipelineDynamicState::DepthBounds:		return VK_DYNAMIC_STATE_DEPTH_BOUNDS;
+			case EPipelineDynamicState::StencilCompareMask:		return VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK;
+			case EPipelineDynamicState::StencilWriteMask :		return VK_DYNAMIC_STATE_STENCIL_WRITE_MASK;
+			case EPipelineDynamicState::StencilReference :		return VK_DYNAMIC_STATE_STENCIL_REFERENCE;
+			case EPipelineDynamicState::DepthBias:				return VK_DYNAMIC_STATE_DEPTH_BIAS;
+			case EPipelineDynamicState::BlendConstants:			return VK_DYNAMIC_STATE_BLEND_CONSTANTS;
+			//case EPipelineDynamicState::DepthBounds:			return VK_DYNAMIC_STATE_DEPTH_BOUNDS;
 
-			case EPipelineDynamicState::RTStackSize :		return VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR;
+			case EPipelineDynamicState::RTStackSize :			return VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR;
+			case EPipelineDynamicState::FragmentShadingRate:	return VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR;
 
 			// TODO:
 			//	VK_DYNAMIC_STATE_SAMPLE_LOCATIONS_EXT
-			//	VK_DYNAMIC_STATE_FRAGMENT_SHADING_RATE_KHR
 
 			case EPipelineDynamicState::GraphicsPipelineMask :
 			case EPipelineDynamicState::Unknown :
 			case EPipelineDynamicState::All :
-			case EPipelineDynamicState::_Last :				break;	// to shutup warnings
+			case EPipelineDynamicState::_Last :					break;	// to shutup warnings
 		}
 		END_ENUM_CHECKS();
 		RETURN_ERR( "unknown dynamic state type!", VK_DYNAMIC_STATE_MAX_ENUM );
@@ -1404,6 +1405,7 @@ namespace AE::Graphics
 				case ERTInstanceOpt::ForceOpaque :			result |= VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;					break;
 				case ERTInstanceOpt::ForceNonOpaque :		result |= VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR;					break;
 				case ERTInstanceOpt::_Last :
+				case ERTInstanceOpt::All :
 				case ERTInstanceOpt::Unknown :
 				default :									RETURN_ERR( "unknown RT instance options", Zero );						break;
 			}
@@ -1982,6 +1984,30 @@ namespace AE::Graphics
 		const uint4			swizzle	= Min( uint4(uint(CountOf(components)-1)), value.ToVec() );
 		VkComponentMapping	result	= { components[swizzle.x], components[swizzle.y], components[swizzle.z], components[swizzle.w] };
 		return result;
+	}
+	
+/*
+=================================================
+	VEnumCast (EShadingRateCombinerOp)
+=================================================
+*/
+	ND_ inline  VkFragmentShadingRateCombinerOpKHR  VEnumCast (EShadingRateCombinerOp value) __NE___
+	{
+		BEGIN_ENUM_CHECKS();
+		switch ( value )
+		{
+			case EShadingRateCombinerOp::Keep :		return VK_FRAGMENT_SHADING_RATE_COMBINER_OP_KEEP_KHR;
+			case EShadingRateCombinerOp::Replace :	return VK_FRAGMENT_SHADING_RATE_COMBINER_OP_REPLACE_KHR;
+			case EShadingRateCombinerOp::Min :		return VK_FRAGMENT_SHADING_RATE_COMBINER_OP_MIN_KHR;
+			case EShadingRateCombinerOp::Max :		return VK_FRAGMENT_SHADING_RATE_COMBINER_OP_MAX_KHR;
+			case EShadingRateCombinerOp::Sum :		return VK_FRAGMENT_SHADING_RATE_COMBINER_OP_MUL_KHR;
+			case EShadingRateCombinerOp::Mul :		return VK_FRAGMENT_SHADING_RATE_COMBINER_OP_MUL_KHR;
+
+			case EShadingRateCombinerOp::_Count :
+			case EShadingRateCombinerOp::Unknown :	break;
+		}
+		END_ENUM_CHECKS();
+		RETURN_ERR( "unknown shading rate combiner op", VkFragmentShadingRateCombinerOpKHR(~0u) );
 	}
 
 

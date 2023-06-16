@@ -8,7 +8,7 @@ namespace AE::RG::_hidden_
 {
 
 	//
-	// Render Grapg Command Batch pointer
+	// Render Graph Command Batch pointer
 	//
 	class RGCommandBatchPtr
 	{

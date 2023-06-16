@@ -19,7 +19,7 @@ namespace AE::Math
 			  uint			 Columns,
 			  uint			 Rows
 			 >
-	using PhysicalQuantitySIMDMatrix = PhysicalQuantityMatrix< Quantity, Columns, Rows, GLMQuialifier >;
+	using PhysicalQuantitySIMDMatrix = PhysicalQuantityMatrix< Quantity, Columns, Rows, GLMQualifier >;
 
 	template <typename		 Quantity,
 			  uint			 Columns,
@@ -125,7 +125,7 @@ namespace AE::Math
 	template <typename		 MatType,
 			  typename		 Dimension,
 			  typename		 ValueScale	= ValueScaleTempl::Integer< typename MatType::Value_t, 1 >,
-			  glm::qualifier Q			= GLMQuialifier
+			  glm::qualifier Q			= GLMQualifier
 			 >
 	using PhysicalQuantity_FromMat = typename Math::_hidden_::_PhysicalQuantity_FromMat< MatType, Dimension, ValueScale, Q >::type;
 

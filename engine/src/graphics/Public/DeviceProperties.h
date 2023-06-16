@@ -3,6 +3,8 @@
 	Use 'FeatureSet'		to validate pipelines at compile time.
 	Use 'DeviceProperties'	for runtime limits like a alignment.
 	Use 'DeviceLimits'		for compile time limits like a alignment.
+
+	docs: file:///<path>/engine/docs/en/DeviceProperties.md
 */
 
 #pragma once
@@ -62,6 +64,7 @@ namespace AE::Graphics
 			POTBytes	minUniformTexelBufferOffsetAlign;
 			POTBytes	minStorageTexelBufferOffsetAlign;
 			
+			POTValue	maxVerticesPerRenderPass;				// for Mali GPU
 			POTBytes	minVertexBufferOffsetAlign;
 			uint		minVertexBufferElementsAlign	{1};
 
@@ -146,7 +149,7 @@ namespace AE::Graphics
 
 
 	//
-	// Compiletime Device Properties
+	// Compile time Device Properties
 	//
 	namespace _hidden_
 	{
@@ -160,11 +163,12 @@ namespace AE::Graphics
 				{
 					res.minUniformBufferOffsetAlign			= POTBytes_From< 256 >;		// nvidia - 64/256,  amd -  16,   intel -  64,   mali -  16,   adreno -  64,   apple - 16/32/256
 					res.minStorageBufferOffsetAlign			= POTBytes_From< 256 >;		// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16
-					res.minThreadgroupMemoryLengthAlign		= POTBytes_From<  16 >;		//																		       apple - 16
+					res.minThreadgroupMemoryLengthAlign		= POTBytes_From<  16 >;		//                                                                             apple - 16
 					res.minUniformTexelBufferOffsetAlign	= POTBytes_From< 256 >;		// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16/32/256
 					res.minStorageTexelBufferOffsetAlign	= POTBytes_From< 256 >;		// nvidia - 16,      amd -   4,   intel -  64,   mali - 256,   adreno -  64,   apple - 16/32/256
-					res.minVertexBufferOffsetAlign			= POTBytes_From< 16 >;		// vulkan -  1 (not specified),											       apple - 16
+					res.minVertexBufferOffsetAlign			= POTBytes_From< 16 >;		// vulkan -  1 (not specified),                                                apple - 16
 					res.minVertexBufferElementsAlign		= 4;						// nvidia -  1,      amd -   1,   intel -   1,   mali -  4,    adreno - ?,     apple - ?
+					res.maxVerticesPerRenderPass			= POTValue_From< 2ull<<30 >;//                                               mali - 2M+
 					res.maxUniformBufferRange				= 16_Kb;					// nvidia - 64k,     amd - inf,   intel - inf,   mali - 64k,   adreno - 64k,   apple - inf         other - 16k
 					res.maxBoundDescriptorSets				= 4;						// nvidia - 32,      amd -  32,   intel -   8,   mali -   4,   adreno -   4,   apple - 31
 					res.minMemoryMapAlign					= POTBytes_From< 4<<10 >;	// nvidia - 64,      amd -  64,   intel -  4k,   mali -  64,   adreno -  64,   apple - ?

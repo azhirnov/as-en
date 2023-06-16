@@ -313,7 +313,7 @@
 #	define AE_PRIVATE_CATCH_ERR( _src_, _return_on_exc_ )									\
 		try { _src_; }																		\
 		catch(...) {																		\
-			AE_LOGE( AE::Base::String{"catched exception from: "} + AE_TOSTRING(_src_) );	\
+			AE_LOGE( AE::Base::String{"caught exception from: "} + AE_TOSTRING(_src_) );	\
 			return _return_on_exc_;															\
 		}
 

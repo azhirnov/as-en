@@ -9,24 +9,38 @@ else()
 	set( AE_DEFAULT_CPPFLAGS "-std=c++20" )
 endif()
 
+string( FIND "${CMAKE_CXX_COMPILER_ID}" "Clang" outPos )
+if ( outPos GREATER -1 )
+	set( AE_DEFAULT_CPPFLAGS "${AE_DEFAULT_CPPFLAGS} -stdlib=libc++" )
+endif()
+
 set( CMAKE_REQUIRED_FLAGS "${AE_DEFAULT_CPPFLAGS}" )
 message( STATUS "Run compiler tests with flags: ${CMAKE_REQUIRED_FLAGS}" )
 
 set( AE_COMPILER_DEFINITIONS "" )
 
 #------------------------------------------------------------------------------
-check_cxx_source_compiles(
-	"#include <filesystem>
-	int main () {
-		(void)(std::filesystem::current_path());
-		return 0;
-	}"
-	STD_FILESYSTEM_SUPPORTED )
-
-if (STD_FILESYSTEM_SUPPORTED)
-	set( STD_FILESYSTEM_SUPPORTED ON CACHE INTERNAL "" FORCE )
-else()
-	set( STD_FILESYSTEM_SUPPORTED OFF CACHE INTERNAL "" FORCE )
+if (NOT DEFINED AE_STD_FILESYSTEM_SUPPORTED)
+	message( STATUS "Performing Test STD_FILESYSTEM_SUPPORTED" )
+	set( STD_FILESYSTEM_SUPPORTED_SRC 
+		"#include <filesystem>
+		int main () {
+			(void)(std::filesystem::current_path());
+			return 0;
+		}"
+	)
+	try_compile(
+		STD_FILESYSTEM_SUPPORTED
+		SOURCE_FROM_VAR 		"main.cpp" STD_FILESYSTEM_SUPPORTED_SRC
+		CXX_STANDARD  			17
+		CXX_STANDARD_REQUIRED 	YES
+	)
+	set( AE_STD_FILESYSTEM_SUPPORTED ${STD_FILESYSTEM_SUPPORTED} CACHE INTERNAL "" FORCE )
+	if (STD_FILESYSTEM_SUPPORTED)
+		message( STATUS "Performing Test STD_FILESYSTEM_SUPPORTED - Success" )
+	else()
+		message( STATUS "Performing Test STD_FILESYSTEM_SUPPORTED - Failed" )
+	endif()
 endif()
 
 #------------------------------------------------------------------------------
@@ -49,7 +63,7 @@ elseif (APPLE)
 		set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=128" )
 	endif()
 else ()
-	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=64" ) # TODO
+	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=64" ) # TODO: check
 endif()
 
 #------------------------------------------------------------------------------
@@ -58,7 +72,7 @@ if (NOT ${COMPILER_MSVC})
 endif()
 
 check_cxx_source_compiles(
-	"#pragma detect_mismatch( \"AE_CFG_DEBUG\", \"1\" )
+	"#pragma detect_mismatch( \"TEST_MACRO\", \"1\" )
 	int main () {
 		return 0;
 	}"
@@ -109,6 +123,35 @@ check_cxx_source_compiles(
 
 if (HAS_HASHFN_HashBytes)
 	set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_HAS_HASHFN_HashBytes" )
+endif()
+
+#------------------------------------------------------------------------------
+if (NOT DEFINED AE_HAS_CXX_COROUTINE)
+	message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED" )
+	set( CPP_COROUTINE_SUPPORTED_SRC 
+		"#include <coroutine>
+		#ifndef __cpp_impl_coroutine
+		#   error coroutines are not supported by compiler
+		#endif
+		#ifndef __cpp_lib_coroutine
+		#   error coroutines are not implemented in std
+		#endif
+		int main () {
+			return 0;
+		}"
+	)
+	try_compile(
+		CPP_COROUTINE_SUPPORTED
+		SOURCE_FROM_VAR 		"main.cpp" CPP_COROUTINE_SUPPORTED_SRC
+		CXX_STANDARD  			20
+		CXX_STANDARD_REQUIRED 	YES
+	)
+	set( AE_HAS_CXX_COROUTINE ${CPP_COROUTINE_SUPPORTED} CACHE INTERNAL "" FORCE )
+	if (CPP_COROUTINE_SUPPORTED)
+		message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED - Success" )
+	else()
+		message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED - Failed" )
+	endif()
 endif()
 
 #------------------------------------------------------------------------------

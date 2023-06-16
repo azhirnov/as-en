@@ -7,6 +7,7 @@
 #undef Success
 #undef Status
 #undef Always
+#undef None
 
 
 // for Windows

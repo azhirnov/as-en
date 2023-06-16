@@ -18,7 +18,7 @@ name: 'graphics batch |0| graphics task'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-0'
       image:   'Image-0'
@@ -132,7 +132,7 @@ name: 'graphics batch |0| graphics task'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-1'
       image:   'Image-1'
@@ -250,7 +250,7 @@ name: 'graphics batch |0| graphics task'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-0'
       image:   'Image-0'
@@ -389,12 +389,12 @@ name: 'copy task |0| Readback task'
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
-      name:    'Image-1'
+      name:    'Image-0'
       stage:   COPY ---> ALL_COMMANDS
       access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
     ImageBarrier:
-      name:    'Image-0'
+      name:    'Image-1'
       stage:   COPY ---> ALL_COMMANDS
       access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
@@ -437,7 +437,7 @@ name: 'IndirectCmdBuffers'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-0'
       image:   'Image-0'
@@ -551,7 +551,7 @@ name: 'IndirectCmdBuffers'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-1'
       image:   'Image-1'
@@ -669,7 +669,7 @@ name: 'IndirectCmdBuffers'
   ----------
 
   BeginRenderPass2
-    renderPass:  'render-pass-1'
+    renderPass:  'render-pass-3'
     color attachment:
       view:    'ImageView-0'
       image:   'Image-0'

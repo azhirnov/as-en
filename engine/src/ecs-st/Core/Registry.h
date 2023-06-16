@@ -160,10 +160,10 @@ namespace AE::ECS
 		ND_ Ptr<AddConst<T>>  GetComponent (EntityID entId)								C_NE___;
 
 			template <typename ...Types>
-		ND_ Tuple<Ptr<Types>...>  GetComponenets (EntityID entId)						__NE___;
+		ND_ Tuple<Ptr<Types>...>  GetComponents (EntityID entId)						__NE___;
 		
 			template <typename ...Types>
-		ND_ Tuple<Ptr<AddConst<Types>>...>  GetComponenets (EntityID entId)				C_NE___;
+		ND_ Tuple<Ptr<AddConst<Types>>...>  GetComponents (EntityID entId)				C_NE___;
 
 			template <typename ...Types>
 			void  RemoveComponents (QueryID query)										__NE___;
@@ -257,4 +257,4 @@ namespace AE::ECS
 
 } // AE::ECS
 
-//#include "ecs-st/Core/Registry.inl.h"
+#include "ecs-st/Core/Registry.inl.h"

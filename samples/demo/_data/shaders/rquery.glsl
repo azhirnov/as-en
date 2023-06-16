@@ -1,5 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __cplusplus
+#	define AE_RAY_QUERY
 #	include <aestyle.glsl.h>
 	gl::AccelerationStructure	un_RtScene;
 	gl::Image2D<float>			un_OutImage;

@@ -16,8 +16,8 @@ namespace AE::Base
 		Function<void ()>	_fn;
 
 	public:
-		explicit OnDestroy (Function<void ()> &&fn)	__NE___ : _fn{ RVRef(fn) } {}
-		~OnDestroy ()								__NE___	{ _fn(); }
+		explicit OnDestroy (Function<void ()> &&fn)		__NE___ : _fn{ RVRef(fn) } {}
+		~OnDestroy ()									__NE___	{ _fn(); }
 	};
 	
 
@@ -27,13 +27,13 @@ namespace AE::Base
 	class Noncopyable
 	{
 	public:
-		Noncopyable ()							__NE___ = default;
+		Noncopyable ()									__NE___ = default;
 
-		Noncopyable (const Noncopyable &)				= delete;
-		Noncopyable (Noncopyable &&)					= delete;
+		Noncopyable (const Noncopyable &)						= delete;
+		Noncopyable (Noncopyable &&)							= delete;
 
-		Noncopyable& operator = (const Noncopyable &)	= delete;
-		Noncopyable& operator = (Noncopyable &&)		= delete;
+		Noncopyable& operator = (const Noncopyable &)			= delete;
+		Noncopyable& operator = (Noncopyable &&)				= delete;
 	};
 
 
@@ -44,34 +44,34 @@ namespace AE::Base
 	class MovableOnly
 	{
 	public:
-		MovableOnly ()								__NE___ = default;
+		MovableOnly ()									__NE___ = default;
 
-		MovableOnly (MovableOnly &&)				__NE___ = default;
-		MovableOnly& operator = (MovableOnly &&)	__NE___ = default;
+		MovableOnly (MovableOnly &&)					__NE___ = default;
+		MovableOnly& operator = (MovableOnly &&)		__NE___ = default;
 
-		MovableOnly (const MovableOnly &)					= delete;
-		MovableOnly& operator = (const MovableOnly &)		= delete;
+		MovableOnly (const MovableOnly &)						= delete;
+		MovableOnly& operator = (const MovableOnly &)			= delete;
 	};
 
 
 	
 	//
-	// Non-instancable base class
+	// Non-instanceable base class
 	//
-	class Noninstancable
+	class Noninstanceable
 	{
 	protected:
-		Noninstancable ()									= delete;
+		Noninstanceable ()										= delete;
 
-		//~Noninstancable () = delete;
+		//~Noninstanceable () = delete;
 
-		Noninstancable (const Noninstancable &)				= delete;
+		Noninstanceable (const Noninstanceable &)				= delete;
 
-		Noninstancable (Noninstancable &&)					= delete;
+		Noninstanceable (Noninstanceable &&)					= delete;
 
-		Noninstancable& operator = (const Noninstancable &)	= delete;
+		Noninstanceable& operator = (const Noninstanceable &)	= delete;
 
-		Noninstancable& operator = (Noninstancable &&)		= delete;
+		Noninstanceable& operator = (Noninstanceable &&)		= delete;
 	};
 
 
@@ -106,13 +106,13 @@ namespace AE::Base
 		T			_finalValue;
 
 	public:
-		ScopedSet (T& ref, T initial, T final) __NE___ :
+		ScopedSet (T& ref, T initial, T final)					__NE___ :
 			_ref{ref}, _finalValue{RVRef(final)}
 		{
 			_ref = RVRef(initial);
 		}
 
-		~ScopedSet () __NE___
+		~ScopedSet ()											__NE___
 		{
 			_ref = RVRef(_finalValue);
 		}
@@ -134,19 +134,19 @@ namespace AE::Base
 
 	public:
 		template <typename B>
-		explicit AsPointer (B && val)						__NE___	: _value{ FwdArg<B>(val) } {}
+		explicit AsPointer (B && val)							__NE___	: _value{ FwdArg<B>(val) } {}
 
-		AsPointer ()												= delete;
-		AsPointer (AsPointer<T> &&)							__NE___	= default;
-		AsPointer (const AsPointer<T> &)					__NE___	= default;
+		AsPointer ()													= delete;
+		AsPointer (AsPointer<T> &&)								__NE___	= default;
+		AsPointer (const AsPointer<T> &)						__NE___	= default;
 
-		AsPointer<T>&  operator = (AsPointer<T> &&)			__NE___	= default;
-		AsPointer<T>&  operator = (const AsPointer<T> &)	__NE___	= default;
+		AsPointer<T>&  operator = (AsPointer<T> &&)				__NE___	= default;
+		AsPointer<T>&  operator = (const AsPointer<T> &)		__NE___	= default;
 
-		ND_ explicit constexpr operator bool ()				C_NE___	{ return true; }
+		ND_ explicit constexpr operator bool ()					C_NE___	{ return true; }
 
-		ND_ T*			operator -> ()						__NE___	{ return &_value; }
-		ND_ T const*	operator -> ()						C_NE___	{ return &_value; }
+		ND_ T*			operator -> ()							__NE___	{ return &_value; }
+		ND_ T const*	operator -> ()							C_NE___	{ return &_value; }
 	};
 
 	namespace _hidden_
@@ -184,23 +184,23 @@ namespace AE::Base
 		private:
 			EnumType	_value;
 
-			explicit Iterator (EnumType val)			__NE___ : _value{val} {}
+			explicit Iterator (EnumType val)					__NE___ : _value{val} {}
 
 		public:
-			Iterator (const Iterator &)					__NE___ = default;
+			Iterator (const Iterator &)							__NE___ = default;
 
-				Iterator&	operator ++ ()				__NE___	{ _value = EnumType( ulong(_value) + 1 );  return *this; }
-				Iterator	operator ++ (int)			__NE___	{ auto tmp = _value;  ++(*this);  return Iterator{ tmp }; }
-			ND_ EnumType	operator * ()				C_NE___	{ return _value; }
+				Iterator&	operator ++ ()						__NE___	{ _value = EnumType( ulong(_value) + 1 );  return *this; }
+				Iterator	operator ++ (int)					__NE___	{ auto tmp = _value;  ++(*this);  return Iterator{ tmp }; }
+			ND_ EnumType	operator * ()						C_NE___	{ return _value; }
 
-			ND_ bool		operator == (Iterator rhs)	C_NE___	{ return _value == rhs._value; }
-			ND_ bool		operator != (Iterator rhs)	C_NE___	{ return _value != rhs._value; }
+			ND_ bool		operator == (Iterator rhs)			C_NE___	{ return _value == rhs._value; }
+			ND_ bool		operator != (Iterator rhs)			C_NE___	{ return _value != rhs._value; }
 		};
 
 
 	public:
-		ND_ Iterator	begin ()	__NE___	{ return Iterator{ FirstValue }; }
-		ND_ Iterator	end ()		__NE___	{ return Iterator{ AllBits }; }
+		ND_ Iterator	begin ()								__NE___	{ return Iterator{ FirstValue }; }
+		ND_ Iterator	end ()									__NE___	{ return Iterator{ AllBits }; }
 	};
 	
 	template <auto AllBits>

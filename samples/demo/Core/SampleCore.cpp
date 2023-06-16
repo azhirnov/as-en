@@ -52,8 +52,8 @@ namespace AE::Samples::Demo
 
 		// threading
 		{
-			cfg.threading.maxThreads	= 0;
-			cfg.threading.mask			= {EThread::PerFrame, EThread::Renderer, EThread::Background};
+			cfg.threading.maxThreads	= 1;
+			cfg.threading.mask			= { EThread::PerFrame, EThread::Renderer, EThread::Background };
 		}
 		
 		// graphics

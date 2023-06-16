@@ -13,13 +13,11 @@ void SimpleRenderPass ()
 	{
 		RC<Attachment>	rt	= compat.AddAttachment( "Color1" );
 		rt.format		= EPixelFormat::SwapchainColor;
-		//rt.samples	= 1;
 		rt.Usage( pass, EAttachment::Color,		ShaderIO("out_Color") );
 	}
 	{
 		RC<Attachment>	ds	= compat.AddAttachment( Attachment_Depth );
-		ds.format		= EPixelFormat::Depth32F;
-		//ds.samples	= 1;
+		ds.format		= EPixelFormat::Depth16;
 		ds.Usage( pass, EAttachment::Depth );
 	}
 
@@ -96,7 +94,7 @@ void RenderPass2 ()
 	}
 	{
 		RC<Attachment>	ds	= compat.AddAttachment( Attachment_Depth );
-		ds.format		= EPixelFormat::Depth32F;
+		ds.format		= EPixelFormat::Depth16;
 		ds.Usage( "DepthPrepass",	EAttachment::Depth );
 		ds.Usage( "GBuffer",		EAttachment::Depth );
 		ds.Usage( "Translucent",	EAttachment::Depth );
@@ -120,7 +118,7 @@ void RenderPass2 ()
 			rt.GenOptimalLayouts( EResourceState::Invalidate, EResourceState::Invalidate );
 		}{
 			RC<AttachmentSpec>	rt = rp.AddAttachment( "SwapchainImage" );
-			rt.GenOptimalLayouts( EResourceState::PresentImage, EResourceState::PresentImage );
+			rt.GenOptimalLayouts( EResourceState::PresentImage | EResourceState::Invalidate, EResourceState::PresentImage );
 		}
 	}
 
@@ -129,7 +127,7 @@ void RenderPass2 ()
 		RC<RenderPass>	rp = compat.AddSpecialization( "Multipass.V2" );
 		{
 			RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
-			rt.loadOp	= EAttachmentLoadOp::Clear;
+			rt.loadOp	= EAttachmentLoadOp::Invalidate;
 			rt.storeOp	= EAttachmentStoreOp::Store;
 			rt.Layout( InitialLayout,	EResourceState::ColorAttachment | EResourceState::Invalidate );
 			rt.Layout( "GBuffer",		EResourceState::ColorAttachment );
@@ -161,9 +159,9 @@ void RenderPass2 ()
 			rt.Layout( FinalLayout,		EResourceState::Invalidate );
 		}{
 			RC<AttachmentSpec>	rt = rp.AddAttachment( "SwapchainImage" );
-			rt.loadOp	= EAttachmentLoadOp::Clear;
+			rt.loadOp	= EAttachmentLoadOp::Invalidate;
 			rt.storeOp	= EAttachmentStoreOp::Store;
-			rt.Layout( InitialLayout,	EResourceState::PresentImage );
+			rt.Layout( InitialLayout,	EResourceState::PresentImage | EResourceState::Invalidate );
 			rt.Layout( "PostProcess",	EResourceState::ColorAttachment );
 			rt.Layout( FinalLayout,		EResourceState::PresentImage );
 		}
@@ -197,9 +195,51 @@ void UIRenderPass ()
 }
 
 
+void VRSRenderPass ()
+{
+	if ( ! IsVulkan() )
+		return;
+
+	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "VRSRenderPass" );
+	compat.AddFeatureSet( "MinimalFS" );
+	compat.AddFeatureSet( "part.ShadingRate.NV" );
+
+	const string	pass = "Main";
+	compat.AddSubpass( pass );
+	
+	{
+		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
+		rt.format		= EPixelFormat::SwapchainColor;
+		rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
+	}{
+		RC<Attachment>	rt	= compat.AddAttachment( "ShadingRate" );
+		rt.format		= EPixelFormat::R8U;
+		rt.Usage( pass, EAttachment::ShadingRate, uint2(16,16) );
+	}
+
+	// specialization
+	{
+		RC<RenderPass>	rp = compat.AddSpecialization( "VRSRenderPass.def" );
+
+		{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+			rt.loadOp	= EAttachmentLoadOp::Clear;
+			rt.storeOp	= EAttachmentStoreOp::Store;
+			rt.Layout( pass, EResourceState::ColorAttachment );
+		}{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "ShadingRate" );
+			rt.loadOp	= EAttachmentLoadOp::Load;
+			rt.storeOp	= EAttachmentStoreOp::None;
+			rt.Layout( pass, EResourceState::ShadingRateImage );
+		}
+	}
+}
+
+
 void ASmain ()
 {
 	SimpleRenderPass();
 	RenderPass2();
 	UIRenderPass();
+	VRSRenderPass();
 }

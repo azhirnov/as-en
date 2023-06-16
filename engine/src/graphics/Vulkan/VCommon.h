@@ -28,13 +28,6 @@
 # include "graphics/Vulkan/VulkanLoader.h"
 # include "graphics/Vulkan/VulkanCheckError.h"
 
-
-#if defined(AE_PLATFORM_WINDOWS) or defined(AE_PLATFORM_LINUX)
-#	define AE_VK_TIMELINE_SEMAPHORE	1
-#else
-#	define AE_VK_TIMELINE_SEMAPHORE	0
-#endif
-
 namespace AE::Graphics
 {
 	using AE::Threading::SpinLock;
@@ -71,7 +64,7 @@ namespace AE::Graphics
 	//
 	// Vulkan Config
 	//
-	struct VConfig final : Noninstancable
+	struct VConfig final : Noninstanceable
 	{
 		static constexpr uint	MaxQueues		= uint(EQueueType::_Count) + 1;
 

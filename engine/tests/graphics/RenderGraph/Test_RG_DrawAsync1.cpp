@@ -161,19 +161,19 @@ namespace
 						co_await DrawTask_Execute( dctx );
 						co_return;
 					}};
-					StaticArray< AsyncTask, 4 >	draw_tasks = {
+					StaticArray< AsyncTask, 4 >	draw_tasks = {{
 						drawBatch->Run( CreateDrawTask( t, 0 ), Tuple{}, {"draw cmd 1"} ),
 						drawBatch->Run( CreateDrawTask( t, 3 ), Tuple{}, {"draw cmd 2"} ),
 						drawBatch->Run( CreateDrawTask( t, 6 ), Tuple{}, {"draw cmd 3"} ),
 						drawBatch->Run( CreateDrawTask( t, 9 ), Tuple{}, {"draw cmd 4"} )
-					};
+					}};
 				#else
-					StaticArray< AsyncTask, 4 >	draw_tasks = {
+					StaticArray< AsyncTask, 4 >	draw_tasks = {{
 						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 0u }, Tuple{}, {"draw cmd 1"} ),
 						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 3u }, Tuple{}, {"draw cmd 2"} ),
 						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 6u }, Tuple{}, {"draw cmd 3"} ),
 						drawBatch->Run< DA1_DrawTask<CtxTypes> >( Tuple{ &t, 9u }, Tuple{}, {"draw cmd 4"} )
-					};
+					}};
 				#endif
 				drawBatch->EndRecording();	// optional
 

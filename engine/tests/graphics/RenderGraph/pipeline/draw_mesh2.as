@@ -6,17 +6,17 @@ void ASmain ()
 		return;
 	
 	{
-		RC<ShaderStructType>	st = ShaderStructType( "tasktomesh.io" );
+		RC<ShaderStructType>	st = ShaderStructType( "tasktomesh2.io" );
 		st.Set( "float	scale;" );
 	}{
-		RC<ShaderStructType>	st = ShaderStructType( "meshtofrag.io" );
+		RC<ShaderStructType>	st = ShaderStructType( "meshtofrag2.io" );
 		st.Set( "float4	color;" );
 	}
 
 	RC<MeshPipeline>	ppln = MeshPipeline( "draw_mesh2" );
 	ppln.AddFeatureSet( "MinMeshShader" );
-	ppln.SetShaderIO( EShader::MeshTask, EShader::Mesh,		"tasktomesh.io" );
-	ppln.SetShaderIO( EShader::Mesh,	 EShader::Fragment,	"meshtofrag.io" );
+	ppln.SetShaderIO( EShader::MeshTask, EShader::Mesh,		"tasktomesh2.io" );
+	ppln.SetShaderIO( EShader::Mesh,	 EShader::Fragment,	"meshtofrag2.io" );
 	
 	{
 		RC<Shader>	ts	= Shader();
@@ -31,6 +31,7 @@ void ASmain ()
 		ms.options	= EShaderOpt::Optimize;
 		ms.version	= EShaderVersion::SPIRV_1_4;
 		ms.MeshSpec1();
+		ms.MeshOutput( 3, 1, EPrimitive::TriangleList );
 		ppln.SetMeshShader( ms );
 	}{
 		RC<Shader>	fs	= Shader();

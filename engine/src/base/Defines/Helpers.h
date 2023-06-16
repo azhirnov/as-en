@@ -24,7 +24,7 @@
 # endif
 #endif
 
-// profile onle scope
+// profile only scope
 #ifndef PROFILE_ONLY
 # if defined(AE_CFG_DEBUG) or defined(AE_CFG_DEVELOP) or defined(AE_CFG_PROFILE)
 #	define PROFILE_ONLY( /* code */... )	__VA_ARGS__
@@ -74,7 +74,7 @@
 
 // compile time messages
 #ifndef AE_COMPILATION_MESSAGE
-#	if defined(AE_COMPILER_CLANG)
+#	if defined(AE_COMPILER_CLANG) or defined(AE_COMPILER_GCC)
 #		define AE_PRIVATE_MESSAGE_TOSTR(x)	#x
 #		define AE_COMPILATION_MESSAGE( _message_ )	_Pragma(AE_PRIVATE_MESSAGE_TOSTR( GCC warning ("" _message_) ))
 

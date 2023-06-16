@@ -116,7 +116,7 @@ namespace AE::Math
 	template <typename T>
 	inline void  FrustumTempl<T>::Setup (const CameraTempl<T> &camera) __NE___
 	{
-		return Setup( camera.projection * camera.transform.ToMatrix() );
+		return Setup( camera.ToViewProjMatrix() );
 	}
 	
 	template <typename T>
@@ -196,7 +196,7 @@ namespace AE::Math
 		ASSERT( _initialized );
 
 		auto	center		= aabb.Center();
-		auto	halfextent	= aabb.HalfExtent();
+		auto	half_extent	= aabb.HalfExtent();
 		bool	inside		= true;
 
 		for (auto& plane : _planes)
@@ -208,7 +208,7 @@ namespace AE::Math
 			inside &= (d > -_err);
 			/*
 			const T	d	= Dot( plane.norm, center ) + plane.dist;
-			const T	m	= Abs( plane.norm.x * halfextent.x ) + Abs( plane.norm.y * halfextent.y ) + Abs( plane.norm.z * halfextent.z );
+			const T	m	= Abs( plane.norm.x * half_extent.x ) + Abs( plane.norm.y * half_extent.y ) + Abs( plane.norm.z * half_extent.z );
 
 			inside &= (d > -(m + _err));*/
 		}
@@ -226,7 +226,7 @@ namespace AE::Math
 		ASSERT( _initialized );
 		
 		auto	center		= aabb.Center();
-		auto	halfextent	= aabb.HalfExtent();
+		auto	half_extent	= aabb.HalfExtent();
 		T		distances [uint(EPlane::_Count)] = {};
 		
 		isVisible = true;
@@ -234,7 +234,7 @@ namespace AE::Math
 		{
 			auto&	plane	= _planes[i];
 			const T	d		= Dot( plane.norm, center ) + plane.dist;
-			const T	m		= Abs( plane.norm.x * halfextent.x ) + Abs( plane.norm.y * halfextent.y ) + Abs( plane.norm.z * halfextent.z );
+			const T	m		= Abs( plane.norm.x * half_extent.x ) + Abs( plane.norm.y * half_extent.y ) + Abs( plane.norm.z * half_extent.z );
 			distances[i]	= m;
 			isVisible		&= (d > -(m + _err));
 		}

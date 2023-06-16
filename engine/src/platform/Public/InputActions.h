@@ -189,12 +189,13 @@ namespace AE::App
 		// Begin user input recording.
 		//   Thread safe: no
 		//
-		virtual bool  BeginBindAction (const InputModeName &mode, const InputActionName &action, EValueType type, EGestureType gesture)	__NE___ = 0;
+			virtual bool  BeginBindAction (const InputModeName &mode, const InputActionName &action,
+										   EValueType type, EGestureType gesture)														__NE___ = 0;
 		
 		// Stop recording and create key/gesture to action mapping.
 		//   Thread safe: no
 		//
-		virtual bool  EndBindAction ()																									__NE___	= 0;
+			virtual bool  EndBindAction ()																								__NE___	= 0;
 		
 		// Returns 'true' if used between 'BeginBindAction()' and 'EndBindAction()',
 		// but can returns 'false' when first key/gesture are recorded.

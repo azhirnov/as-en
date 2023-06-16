@@ -11,7 +11,7 @@ namespace
 
 		TEST( lf_alloc.MaxMemorySize() == 64_Mb );
 
-		Array< void *>		ptrs;
+		Array< RstPtr<void> >		ptrs;
 
 		for (uint i = 0; i < 10'000; ++i) {
 			ptrs.push_back( lf_alloc.Alloc() );
@@ -23,7 +23,7 @@ namespace
 			ptrs.pop_back();
 		}
 
-		for (auto* ptr : ptrs) {
+		for (auto ptr : ptrs) {
 			TEST( lf_alloc.Dealloc( ptr ));
 		}
 		ptrs.clear();

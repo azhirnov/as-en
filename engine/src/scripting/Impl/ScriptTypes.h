@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "base/Utils/Threading.h"
 #include "scripting/Impl/ScriptEngine.h"
 
 namespace AE::Scripting
@@ -40,7 +41,7 @@ namespace AE::Scripting
 
 #	define AE_DECL_SCRIPT_TYPE( _type_, _name_ )											\
 		template <>																			\
-		struct ScriptTypeInfo < _type_ >													\
+		struct AE::Scripting::ScriptTypeInfo < _type_ >										\
 		{																					\
 			using type = _type_;															\
 																							\
@@ -54,7 +55,7 @@ namespace AE::Scripting
 	
 #	define AE_DECL_SCRIPT_OBJ( _type_, _name_ )												\
 		template <>																			\
-		struct ScriptTypeInfo < _type_ >													\
+		struct AE::Scripting::ScriptTypeInfo < _type_ >										\
 		{																					\
 			using type = _type_;															\
 																							\
@@ -68,7 +69,7 @@ namespace AE::Scripting
 
 #	define AE_DECL_SCRIPT_OBJ_RC( _type_, _name_ )											\
 		template <>																			\
-		struct ScriptTypeInfo < _type_ >													\
+		struct AE::Scripting::ScriptTypeInfo < _type_ >										\
 		{																					\
 			using type = _type_;															\
 																							\
@@ -81,7 +82,7 @@ namespace AE::Scripting
 		};																					\
 																							\
 		template <>																			\
-		struct ScriptTypeInfo < _type_* >													\
+		struct AE::Scripting::ScriptTypeInfo < _type_* >									\
 		{																					\
 			using type   = _type_ *;														\
 			using Base_t = ScriptTypeInfo< _type_ >;										\
@@ -95,7 +96,8 @@ namespace AE::Scripting
 		};																					\
 																							\
 		template <>																			\
-		struct ScriptTypeInfo < AngelScriptHelper::SharedPtr< _type_ > >					\
+		struct AE::Scripting::ScriptTypeInfo < \
+								AE::Scripting::AngelScriptHelper::SharedPtr< _type_ > >		\
 		{																					\
 			using type   = AngelScriptHelper::SharedPtr< _type_ >;							\
 			using Base_t = ScriptTypeInfo< _type_ >;										\
@@ -108,27 +110,32 @@ namespace AE::Scripting
 			static void  CppArg (INOUT String &s)	{ s += "RC<";  s += _name_; s += ">"; }	\
 		};																					\
 																							\
-		template <> struct ScriptTypeInfo < const _type_* > {};								\
-		template <> struct ScriptTypeInfo < _type_& > {};									\
-		template <> struct ScriptTypeInfo < const _type_& > {}
+		template <> struct AE::Scripting::ScriptTypeInfo < const _type_* > {};				\
+		template <> struct AE::Scripting::ScriptTypeInfo < _type_& > {};					\
+		template <> struct AE::Scripting::ScriptTypeInfo < const _type_& > {}
+	
+} // AE::Scripting
 
 
-#	define DECL_SCRIPT_TYPE( _type_ )	AE_DECL_SCRIPT_TYPE( _type_, AE_TOSTRING( _type_ ))
-	DECL_SCRIPT_TYPE( bool );
-	DECL_SCRIPT_TYPE( float );
-	DECL_SCRIPT_TYPE( double );
-	DECL_SCRIPT_TYPE( int );
-	DECL_SCRIPT_TYPE( uint );
-#	undef DECL_SCRIPT_TYPE
+#define DECL_SCRIPT_TYPE( _type_ )	AE_DECL_SCRIPT_TYPE( _type_, AE_TOSTRING( _type_ ))
+DECL_SCRIPT_TYPE( bool	 );
+DECL_SCRIPT_TYPE( float	 );
+DECL_SCRIPT_TYPE( double );
+DECL_SCRIPT_TYPE( int	 );
+#undef DECL_SCRIPT_TYPE
 
-	AE_DECL_SCRIPT_TYPE( sbyte,		"int8" );
-	AE_DECL_SCRIPT_TYPE( ubyte,		"uint8" );
-	AE_DECL_SCRIPT_TYPE( sshort,	"int16" );
-	AE_DECL_SCRIPT_TYPE( ushort,	"uint16" );
-	AE_DECL_SCRIPT_TYPE( slong,		"int64" );
-	AE_DECL_SCRIPT_TYPE( ulong,		"uint64" );
-	AE_DECL_SCRIPT_OBJ(  String,	"string" );
+AE_DECL_SCRIPT_TYPE( AE::uint,			"uint"		);
+AE_DECL_SCRIPT_TYPE( AE::sbyte,			"int8"		);
+AE_DECL_SCRIPT_TYPE( AE::ubyte,			"uint8"		);
+AE_DECL_SCRIPT_TYPE( AE::sshort,		"int16"		);
+AE_DECL_SCRIPT_TYPE( AE::ushort,		"uint16"	);
+AE_DECL_SCRIPT_TYPE( AE::slong,			"int64"		);
+AE_DECL_SCRIPT_TYPE( AE::ulong,			"uint64"	);
+AE_DECL_SCRIPT_OBJ(  AE::Base::String,	"string"	);
 
+
+namespace AE::Scripting
+{
 
 	// only 'in' and 'inout' are supported
 #	define AE_DECL_SCRIPT_WRAP( _templ_, _name_, _arg_, _cppArg_ )				\
@@ -229,6 +236,7 @@ namespace AE::Scripting
 							s += " &";
 						 ));
 #	undef MULTILINE_ARG
+#	undef AE_DECL_SCRIPT_WRAP
 
 
 
@@ -257,8 +265,8 @@ namespace AE::Scripting
 			void operator = (const SimpleRefCounter &) = delete;
 
 		public:
-			SimpleRefCounter ()			{ DEBUG_ONLY( _dbgTotalCount.fetch_add( 1, std::memory_order_relaxed ); )}
-			virtual ~SimpleRefCounter (){ ASSERT( _counter == 0 );  DEBUG_ONLY( _dbgTotalCount.fetch_sub( 1, std::memory_order_relaxed ); )}
+			SimpleRefCounter ()			{ DEBUG_ONLY( _dbgTotalCount.fetch_add( 1, EMemoryOrder::Relaxed ); )}
+			virtual ~SimpleRefCounter (){ ASSERT( _counter == 0 );  DEBUG_ONLY( _dbgTotalCount.fetch_sub( 1, EMemoryOrder::Relaxed ); )}
 
 			void  __AddRef ()			{ ASSERT( _counter >= 0 );  ++_counter; }
 			void  __Release ()			{ ASSERT( _counter >= 0 );  if_unlikely( (--_counter) == 0 ) { delete this; }}

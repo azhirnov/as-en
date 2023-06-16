@@ -1130,7 +1130,6 @@ namespace AE::PipelineCompiler
 		RayTracingPipelineSpecMap_t	 _rtpipelineSpecMap;
 
 		PipelineTemplMap_t			_pipelineTemplMap;
-		PipelineSpecMap_t			_pipelineSpecMap;
 
 		RTShaderBindingTables_t		_shaderBindingTables;
 

@@ -28,7 +28,7 @@ namespace AE::Graphics
 			case VK_COLOR_SPACE_BT709_NONLINEAR_EXT :			return "BT709 Nonlinear";
 			case VK_COLOR_SPACE_BT2020_LINEAR_EXT :				return "BT2020 Linear";
 			case VK_COLOR_SPACE_HDR10_ST2084_EXT :				return "HDR10 ST2084";
-			case VK_COLOR_SPACE_DOLBYVISION_EXT :				return "Dolbyvision";
+			case VK_COLOR_SPACE_DOLBYVISION_EXT :				return "DolbyVision";
 			case VK_COLOR_SPACE_HDR10_HLG_EXT :					return "HDR10 HLG";
 			case VK_COLOR_SPACE_ADOBERGB_LINEAR_EXT :			return "AdobeRGB Linear";
 			case VK_COLOR_SPACE_ADOBERGB_NONLINEAR_EXT :		return "AdobeRGB Nonlinear";
@@ -55,8 +55,8 @@ namespace AE::Graphics
 			case VK_PRESENT_MODE_MAILBOX_KHR :						return "Mailbox";
 			case VK_PRESENT_MODE_FIFO_KHR :							return "FIFO";
 			case VK_PRESENT_MODE_FIFO_RELAXED_KHR :					return "FIFO Relaxed";
-			case VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR :		return "Shared Dmand Refresh";
-			case VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR :	return "Shared Continoous Refresh";
+			case VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR :		return "Shared Demand Refresh";
+			case VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR :	return "Shared Continuous Refresh";
 			case VK_PRESENT_MODE_MAX_ENUM_KHR :						break;
 		}
 		END_ENUM_CHECKS();

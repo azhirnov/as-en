@@ -99,7 +99,7 @@ namespace AE::Graphics
 	//
 	// Vulkan Loader
 	//
-	struct VulkanLoader final : Noninstancable
+	struct VulkanLoader final : Noninstanceable
 	{
 		ND_ static bool  Initialize (NtStringView libName = {})															__NE___;
 		ND_ static bool  LoadInstance (VkInstance instance)																__NE___;

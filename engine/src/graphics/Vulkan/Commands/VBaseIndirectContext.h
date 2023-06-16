@@ -308,6 +308,13 @@ namespace AE::Graphics::_hidden_
 			RGBA32f			color;
 		};
 
+		struct SetFragmentShadingRateCmd : BaseCmd
+		{
+			ubyte2								fragSize;
+			VkFragmentShadingRateCombinerOpKHR	primitiveOp;
+			VkFragmentShadingRateCombinerOpKHR	textureOp;
+		};
+
 		struct BindIndexBufferCmd : BaseCmd
 		{
 			VkBuffer		buffer;
@@ -521,6 +528,7 @@ namespace AE::Graphics::_hidden_
 			_visitor_( SetStencilWriteMaskCmd )\
 			_visitor_( SetStencilReferenceCmd )\
 			_visitor_( SetBlendConstantsCmd )\
+			_visitor_( SetFragmentShadingRateCmd )\
 			_visitor_( BindIndexBufferCmd )\
 			_visitor_( BindVertexBuffersCmd )\
 			_visitor_( DrawCmd )\

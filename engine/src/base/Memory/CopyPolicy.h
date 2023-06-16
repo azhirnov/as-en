@@ -9,7 +9,7 @@
 namespace AE::Base
 {
 
-struct CopyPolicy final : public Noninstancable
+struct CopyPolicy final : public Noninstanceable
 {
 	// interface:
 	//	Create		- create default elements
@@ -32,7 +32,7 @@ private:
 	};
 
 	template <typename T, uint Flags>
-	struct _DefaultImpl : public Noninstancable
+	struct _DefaultImpl : public Noninstanceable
 	{
 		static void  Create (OUT T *ptr, const usize count) __NE___
 		{

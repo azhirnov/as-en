@@ -54,6 +54,7 @@ protected:
 	RenderTechPipelinesPtr		_msPipelines;		// mesh shader
 	RenderTechPipelinesPtr		_rtPipelines;		// ray tracing
 	RenderTechPipelinesPtr		_rqPipelines;		// ray query
+	RenderTechPipelinesPtr		_vrsPipelines;		// fragment shading rate
 
 	TestQueue_t					_tests;
 	uint						_testsPassed		= 0;
@@ -131,6 +132,8 @@ private:
 	bool  Test_RayQuery1 ();
 
 	bool  Test_RayTracing1 ();
+
+	bool  Test_ShadingRate1 ();
 
 	bool  Test_Debugger1 ();	// compute
 	bool  Test_Debugger2 ();	// graphics

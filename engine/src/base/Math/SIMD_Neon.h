@@ -118,7 +118,7 @@ namespace AE::Math
 		
 		ND_ Self  Abs ()									C_NE___	{ return Self{ vabs_f16( _value )}; }							// abs(x)
 		ND_ Self  Negative ()								C_NE___	{ return Self{ vneg_f16( _value )}; }							// -x
-		ND_ Self  Reciporal ()								C_NE___	{ return Self{ vrecpe_f16( _value )}; }							// 1 / x
+		ND_ Self  Reciprocal ()								C_NE___	{ return Self{ vrecpe_f16( _value )}; }							// 1 / x
 		ND_ Self  RSqrt ()									C_NE___	{ return Self{ vrsqrte_f16( _value )}; }						// 1 / sqrt(x)
 		ND_ Self  FastSqrt ()								C_NE___	{ return Self{ vmul_f16( _value, vrsqrte_f16( _value ))}; }		// x / sqrt(x)
 
@@ -787,7 +787,7 @@ namespace AE::Math
 		
 		ND_ Self  Abs ()									C_NE___	{ return Self{ vabsq_f16( _value )}; }							// abs(x)
 		ND_ Self  Negative ()								C_NE___	{ return Self{ vnegq_f16( _value )}; }							// -x
-		ND_ Self  Reciporal ()								C_NE___	{ return Self{ vrecpeq_f16( _value )}; }						// 1 / x
+		ND_ Self  Reciprocal ()								C_NE___	{ return Self{ vrecpeq_f16( _value )}; }						// 1 / x
 		ND_ Self  RSqrt ()									C_NE___	{ return Self{ vrsqrteq_f16( _value )}; }						// 1 / sqrt(x)
 		ND_ Self  FastSqrt ()								C_NE___	{ return Self{ vmulq_f16( _value, vrsqrteq_f16( _value ))}; }	// x / sqrt(x)
 
@@ -883,7 +883,7 @@ namespace AE::Math
 
 		ND_ Self  Abs ()								C_NE___	{ return Self{ vabsq_f32( _value )}; }							// abs(x)
 		ND_ Self  Negative ()							C_NE___	{ return Self{ vnegq_f32( _value )}; }							// -x
-		ND_ Self  Reciporal ()							C_NE___	{ return Self{ vrecpeq_f32( _value )}; }						// 1 / x
+		ND_ Self  Reciprocal ()							C_NE___	{ return Self{ vrecpeq_f32( _value )}; }						// 1 / x
 		ND_ Self  RSqrt ()								C_NE___	{ return Self{ vrsqrteq_f32( _value )}; }						// 1 / sqrt(x)
 		ND_ Self  FastSqrt ()							C_NE___	{ return Self{ vmulq_f32( _value, vrsqrteq_f32( _value ))}; }	// x / sqrt(x)
 

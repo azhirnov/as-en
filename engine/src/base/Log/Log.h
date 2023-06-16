@@ -76,7 +76,7 @@ namespace AE::Base
 		ND_ static ScopeBits	GetDialogScopeBits () __NE___;
 
 		ND_ static LoggerPtr	CreateIDEOutput ();												// VS only
-		ND_ static LoggerPtr	CreateConsoleOutput (std::string_view tag = AE_ENGINE_NAME);	// cross platfrom
+		ND_ static LoggerPtr	CreateConsoleOutput (std::string_view tag = AE_ENGINE_NAME);	// cross platform
 		ND_ static LoggerPtr	CreateFileOutput (std::string_view fileName);
 		ND_ static LoggerPtr	CreateHtmlOutput (std::string_view fileName);
 		ND_ static LoggerPtr	CreateDialogOutput (LevelBits levelBits = GetDialogLevelBits(), ScopeBits scopeBits = GetDialogScopeBits());

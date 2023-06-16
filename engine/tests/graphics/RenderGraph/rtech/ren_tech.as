@@ -1,6 +1,6 @@
 #include <pipeline_compiler>
 
-void DeclRenderPasses ()
+void DeclRenderPass ()
 {
 	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "DrawTest" );
 	
@@ -12,15 +12,8 @@ void DeclRenderPasses ()
 	{
 		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
 		rt.format		= EPixelFormat::RGBA8_UNorm;
-		//rt.samples	= 1;
 		rt.Usage( pass, EAttachment::Color,		ShaderIO("out_Color") );
 	}
-	/*{
-		RC<Attachment>	ds	= compat.AddAttachment( Attachment_Depth );
-		ds.format		= EPixelFormat::Depth32F;
-		//ds.samples	= 1;
-		ds.Usage( pass, EAttachment::Depth );
-	}*/
 
 	// specialization
 	{
@@ -32,14 +25,49 @@ void DeclRenderPasses ()
 		rt.Layout( InitialLayout,	EResourceState::ShaderSample | EResourceState::FragmentShader );
 		rt.Layout( pass,			EResourceState::ColorAttachment );
 		rt.Layout( FinalLayout,		EResourceState::ShaderSample | EResourceState::FragmentShader );
-
-		/*
-		RC<AttachmentSpec>	ds = rp.AddAttachment( Attachment_Depth );
-		ds.loadOp	= EAttachmentLoadOp::Clear;
-		ds.storeOp	= EAttachmentStoreOp::Invalidate;
-		ds.Layout( pass, EResourceState::DepthStencilAttachment );*/
 	}
 }
+
+
+void DeclVRSRenderPass ()
+{
+	RC<CompatibleRenderPass>	compat = CompatibleRenderPass( "VRSTest" );
+	
+	compat.AddFeatureSet( "MinimalFS" );
+	compat.AddFeatureSet( "part.ShadingRate.NV" );
+
+	const string	pass = "Main";
+	compat.AddSubpass( pass );
+
+	{
+		RC<Attachment>	rt	= compat.AddAttachment( "Color" );
+		rt.format		= EPixelFormat::RGBA8_UNorm;
+		rt.Usage( pass, EAttachment::Color,		ShaderIO("out_Color") );
+	}{
+		RC<Attachment>	rt	= compat.AddAttachment( "ShadingRate" );
+		rt.format		= EPixelFormat::R8U;
+		rt.Usage( pass, EAttachment::ShadingRate, uint2(16,16) );
+	}
+
+	// specialization
+	{
+		RC<RenderPass>		rp = compat.AddSpecialization( "VRSTest.Draw" );
+		{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "Color" );
+			rt.loadOp	= EAttachmentLoadOp::Clear;
+			rt.storeOp	= EAttachmentStoreOp::Store;
+			rt.Layout( InitialLayout,	EResourceState::ShaderSample | EResourceState::FragmentShader );
+			rt.Layout( pass,			EResourceState::ColorAttachment );
+			rt.Layout( FinalLayout,		EResourceState::ShaderSample | EResourceState::FragmentShader );
+		}{
+			RC<AttachmentSpec>	rt = rp.AddAttachment( "ShadingRate" );
+			rt.loadOp	= EAttachmentLoadOp::Load;
+			rt.storeOp	= EAttachmentStoreOp::None;
+			rt.Layout( pass, EResourceState::ShadingRateImage );
+		}
+	}
+}
+//-----------------------------------------------------------------------------
 
 
 void DeclRenderTech ()
@@ -50,9 +78,6 @@ void DeclRenderTech ()
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Draw_1" );
 
 		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
-		//pass.SetDSLayout( "" );
-		//pass.SetRenderState();
-		//pass.SetMutableStates();
 	}
 }
 
@@ -65,9 +90,6 @@ void DeclAsyncCompRenderTech ()
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "Draw_1" );
 
 		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
-		//pass.SetDSLayout( "" );
-		//pass.SetRenderState();
-		//pass.SetMutableStates();
 	}
 	{
 		RC<ComputePass>		pass = rtech.AddComputePass( "Compute_1" );
@@ -83,9 +105,6 @@ void DeclMeshShaderRenderTech ()
 		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "DrawMeshes_1" );
 		
 		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
-		//pass.SetDSLayout( "" );
-		//pass.SetRenderState();
-		//pass.SetMutableStates();
 	}
 }
 
@@ -110,12 +129,32 @@ void DeclRayQueryRenderTech ()
 }
 
 
+void DeclVRSRenderTech ()
+{
+	RC<RenderTechnique>	rtech = RenderTechnique( "VRSTestRT" );
+
+	{
+		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "nonVRS" );
+
+		pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
+	}{
+		RC<GraphicsPass>	pass = rtech.AddGraphicsPass( "VRS" );
+
+		pass.SetRenderPass( "VRSTest.Draw", /*subpass*/"Main" );
+	}
+}
+//-----------------------------------------------------------------------------
+
+
 void ASmain ()
 {
-	DeclRenderPasses();
+	DeclRenderPass();
+	DeclVRSRenderPass();
+
 	DeclRenderTech();
 	DeclAsyncCompRenderTech();
 	DeclMeshShaderRenderTech();
 	DeclRayTracingRenderTech();
 	DeclRayQueryRenderTech();
+	DeclVRSRenderTech();
 }

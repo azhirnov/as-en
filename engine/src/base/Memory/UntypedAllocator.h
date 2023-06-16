@@ -3,11 +3,6 @@
 #pragma once
 
 #include "base/Defines/StdInclude.h"
-
-#ifdef AE_COMPILER_MSVC
-# include <excpt.h>
-#endif
-
 #include "base/Memory/MemUtils.h"
 #include "base/Memory/AllocatorFwdDecl.h"
 #include "base/Memory/AllocatorHelper.h"
@@ -53,11 +48,7 @@ namespace AE::Base
 		static void  Deallocate (void *ptr, Bytes size)			__NE___
 		{
 			Helper_t::OnDeallocate( ptr, size );
-			//#if defined(AE_PLATFORM_LINUX) and defined(AE_COMPILER_GCC)
-			//	::operator delete ( ptr );
-			//#else
-				::operator delete ( ptr, usize(size) );
-			//#endif
+			::operator delete ( ptr, usize(size) );
 		}
 
 
@@ -69,20 +60,11 @@ namespace AE::Base
 			return ptr;
 		}
 		
-		//static void  Deallocate (void *ptr, Bytes align) __NE___
-		//{
-		//	::operator delete ( ptr, std::align_val_t(usize(align)), std::nothrow_t() );
-		//}
-		
 		// deallocation with explicit size may be faster
 		static void  Deallocate (void *ptr, const SizeAndAlign sizeAndAlign) __NE___
 		{
 			Helper_t::OnDeallocate( ptr, sizeAndAlign );
-			//#if defined(AE_PLATFORM_LINUX) and defined(AE_COMPILER_GCC)
-			//	::operator delete ( ptr, std::align_val_t(usize(sizeAndAlign.align)) );
-			//#else
-				::operator delete ( ptr, usize(sizeAndAlign.size), std::align_val_t(usize(sizeAndAlign.align)) );
-			//#endif
+			::operator delete ( ptr, usize(sizeAndAlign.size), std::align_val_t(usize(sizeAndAlign.align)) );
 		}
 
 		ND_ bool  operator == (const UntypedAllocator &)		C_NE___
@@ -133,11 +115,7 @@ namespace AE::Base
 		static void  Deallocate (void *ptr, Bytes size)			__NE___
 		{
 			Helper_t::OnDeallocate( ptr, size );
-			#if defined(AE_PLATFORM_LINUX) and defined(AE_COMPILER_GCC)
-				::operator delete ( ptr, std::align_val_t(BaseAlign) );
-			#else
-				::operator delete ( ptr, usize(size), std::align_val_t(BaseAlign) );
-			#endif
+			::operator delete ( ptr, usize(size), std::align_val_t(BaseAlign) );
 		}
 
 		ND_ bool  operator == (const UntypedAllocatorBaseAlign<BaseAlign> &) C_NE___

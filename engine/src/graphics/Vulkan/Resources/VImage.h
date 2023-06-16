@@ -43,7 +43,7 @@ namespace AE::Graphics
 		ND_ VulkanImageDesc		GetNativeDescription ()		C_NE___;
 
 		ND_ VkImage				Handle ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _image; }
-		ND_ MemoryID			MemoryID ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+		ND_ MemoryID			MemoryId ()					C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 		ND_ ImageDesc const&	Description ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
 		ND_ VkImageAspectFlags	AspectMask ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _aspectMask; }
 

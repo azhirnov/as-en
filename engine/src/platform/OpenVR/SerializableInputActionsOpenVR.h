@@ -94,10 +94,7 @@ namespace AE::App
 
 
 #ifdef AE_ENABLE_SCRIPTING
-namespace AE::Scripting
-{
 	AE_DECL_SCRIPT_OBJ_RC(	AE::App::SerializableInputActionsOpenVR::ScriptBindingsMode,	"OpenVR_BindingsMode"	);
 	AE_DECL_SCRIPT_OBJ(		AE::App::SerializableInputActionsOpenVR::ScriptActionBindings,	"OpenVR_ActionBindings"	);
 	AE_DECL_SCRIPT_TYPE(	AE::App::SerializableInputActionsOpenVR::EInputType,			"OpenVR_Input"			);
-}
 #endif

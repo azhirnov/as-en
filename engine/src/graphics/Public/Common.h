@@ -55,7 +55,7 @@ namespace AE::Graphics
 	//
 	// Graphics Config
 	//
-	struct GraphicsConfig final : Noninstancable
+	struct GraphicsConfig final : Noninstanceable
 	{
 		// Values may be greater than current limit, used only to reserve memory.
 

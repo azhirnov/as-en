@@ -37,40 +37,42 @@ namespace AE::Math
 
 	// methods
 	public:
-		constexpr TPowerOf2Value ()							__NE___	{}
-		constexpr TPowerOf2Value (const Self &other)		__NE___	: _pot{other._pot} {}
+		constexpr TPowerOf2Value ()									__NE___	{}
+		constexpr TPowerOf2Value (const Self &other)				__NE___	: _pot{other._pot} {}
+
+		explicit constexpr TPowerOf2Value (Base::_hidden_::_UMax)	__NE___ : _pot{sizeof(T)*8-1} {}
 
 		template <typename IT>
-		explicit TPowerOf2Value (IT val)					__NE___	: _pot{POT_t( Math::Max( IntLog2( static_cast<Int_t>(val) ), 0 ))} { ASSERT( val == Cast<IT>() ); }
-		explicit constexpr TPowerOf2Value (PowerOfTwo pot)	__NE___	: _pot{POT_t(pot)} {}
+		explicit TPowerOf2Value (IT val)							__NE___	: _pot{POT_t( Math::Max( IntLog2( static_cast<Int_t>(val) ), 0 ))} { ASSERT( val == Cast<IT>() ); }
+		explicit constexpr TPowerOf2Value (PowerOfTwo pot)			__NE___	: _pot{POT_t(pot)} {}
 		
-		ND_ constexpr operator T ()							C_NE___	{ return Cast<T>(); }
+		ND_ constexpr operator T ()									C_NE___	{ return Cast<T>(); }
 
 		template <typename IT>
-		ND_ explicit constexpr operator IT ()				C_NE___	{ return Cast<IT>(); }
+		ND_ explicit constexpr operator IT ()						C_NE___	{ return Cast<IT>(); }
 
-		ND_ constexpr Self		operator *  (Self rhs)		C_NE___	{ return Self{ _pot + rhs._pot }; }
-		ND_ constexpr Self		operator /  (Self rhs)		C_NE___	{ ASSERT( _pot >= rhs._pot );  return Self{ _pot - rhs._pot }; }
-		ND_ constexpr ulong		operator +  (Self rhs)		C_NE___	{ return ulong{*this} + ulong{rhs}; }
-		ND_ constexpr Self		operator << (uint rhs)		C_NE___	{ return Self{PowerOfTwo( _pot + rhs )}; }
+		ND_ constexpr Self		operator *  (Self rhs)				C_NE___	{ return Self{ _pot + rhs._pot }; }
+		ND_ constexpr Self		operator /  (Self rhs)				C_NE___	{ ASSERT( _pot >= rhs._pot );  return Self{ _pot - rhs._pot }; }
+		ND_ constexpr T			operator +  (Self rhs)				C_NE___	{ return T{*this} + T{rhs}; }
+		ND_ constexpr Self		operator << (uint rhs)				C_NE___	{ return Self{PowerOfTwo( _pot + rhs )}; }
 
-		ND_ constexpr bool		operator == (Self rhs)		C_NE___	{ return _pot == rhs._pot; }
-		ND_ constexpr bool		operator != (Self rhs)		C_NE___	{ return _pot != rhs._pot; }
-		ND_ constexpr bool		operator >  (Self rhs)		C_NE___	{ return _pot >  rhs._pot; }
-		ND_ constexpr bool		operator <  (Self rhs)		C_NE___	{ return _pot <  rhs._pot; }
-		ND_ constexpr bool		operator >= (Self rhs)		C_NE___	{ return _pot >= rhs._pot; }
-		ND_ constexpr bool		operator <= (Self rhs)		C_NE___	{ return _pot <= rhs._pot; }
+		ND_ constexpr bool		operator == (Self rhs)				C_NE___	{ return _pot == rhs._pot; }
+		ND_ constexpr bool		operator != (Self rhs)				C_NE___	{ return _pot != rhs._pot; }
+		ND_ constexpr bool		operator >  (Self rhs)				C_NE___	{ return _pot >  rhs._pot; }
+		ND_ constexpr bool		operator <  (Self rhs)				C_NE___	{ return _pot <  rhs._pot; }
+		ND_ constexpr bool		operator >= (Self rhs)				C_NE___	{ return _pot >= rhs._pot; }
+		ND_ constexpr bool		operator <= (Self rhs)				C_NE___	{ return _pot <= rhs._pot; }
 
-		ND_ constexpr Self		Max (Self rhs)				C_NE___	{ return Self{ Math::Max( _pot, rhs._pot )}; }
-		ND_ constexpr Self		Min (Self rhs)				C_NE___	{ return Self{ Math::Min( _pot, rhs._pot )}; }
+		ND_ constexpr Self		Max (Self rhs)						C_NE___	{ return Self{ Math::Max( _pot, rhs._pot )}; }
+		ND_ constexpr Self		Min (Self rhs)						C_NE___	{ return Self{ Math::Min( _pot, rhs._pot )}; }
 
-		ND_ constexpr uint		GetPOT ()					C_NE___	{ return _pot; }
+		ND_ constexpr uint		GetPOT ()							C_NE___	{ return _pot; }
 
 		template <typename IT>
-		ND_ constexpr IT		BitMask ()					C_NE___	{ STATIC_ASSERT( IsUnsignedInteger<IT> );  return _pot < CT_SizeOfInBits<IT> ? (IT{1} << _pot) - 1 : ~IT{0}; }
+		ND_ constexpr IT		BitMask ()							C_NE___	{ STATIC_ASSERT( IsUnsignedInteger<IT> );  return _pot < CT_SizeOfInBits<IT> ? (IT{1} << _pot) - 1 : ~IT{0}; }
 		
 		template <typename IT>
-		ND_ constexpr IT		InvBitMask ()				C_NE___	{ return ~BitMask(); }
+		ND_ constexpr IT		InvBitMask ()						C_NE___	{ return ~BitMask(); }
 
 		template <typename IT>
 		ND_ friend constexpr IT  operator * (const Self lhs, const IT rhs) __NE___

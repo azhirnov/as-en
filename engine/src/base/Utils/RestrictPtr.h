@@ -37,6 +37,7 @@ namespace AE::Base
 	public:
 		RstPtr ()										__NE___	{}
 		explicit RstPtr (T* ptr)						__NE___ : _ptr{ptr} {}
+		RstPtr (std::nullptr_t)							__NE___ {}
 		
 		RstPtr (Self &&)								__NE___	= default;
 		Self&  operator = (Self &&)						__NE___	= default;
