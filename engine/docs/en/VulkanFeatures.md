@@ -19,6 +19,13 @@ Supported extensions:
  - [x] VK_KHR_acceleration_structure
  - [x] VK_KHR_ray_tracing_pipeline
  - [x] VK_KHR_ray_query
+ - [x] VK_KHR_video_queue
+ - [x] VK_KHR_video_encode_queue
+ - [x] VK_KHR_video_decode_queue
+ - [ ] VK_KHR_video_decode_h264
+ - [ ] VK_KHR_video_decode_h265
+ - [ ] VK_EXT_video_encode_h264
+ - [ ] VK_EXT_video_encode_h265
  - [x] VK_EXT_vertex_attribute_divisor
  - [x] VK_EXT_memory_budget
  - [x] VK_KHR_fragment_shading_rate
@@ -53,8 +60,8 @@ Supported shader extensions:
  - [x] GL_KHR_memory_scope_semantics
  - [x] GL_EXT_demote_to_helper_invocation
  - [x] GL_EXT_fragment_shading_rate
- - [ ] GL_EXT_fragment_invocation_density
  - [ ] GL_EXT_multiview
+ - [ ] GL_EXT_null_initializer    
 
 Features:
  - [x] Async compute and transfer queues

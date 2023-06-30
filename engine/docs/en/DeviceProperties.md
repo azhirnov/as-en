@@ -1,4 +1,4 @@
-source: [DeviceProperties.h](file:///<path>/engine/src/graphics/Public/DeviceProperties.h)
+source: [DeviceProperties.h](../../src/graphics/Public/DeviceProperties.h)
  
 ## ResourceAlignment
 
@@ -72,6 +72,71 @@ __Metal__:  from [Feature Set Tables](https://developer.apple.com/metal/Metal-Fe
 This constants is used to calculate data alignment for acceleration structure input data: vertices, indices, transformations, AABBs, instances.
 Constants used in C++ code to store data for GPU usage.
 
+* `vertexDataAlign`<br/>
+__Vulkan__: from specs: "*vertexData.deviceAddress must be aligned to the size in bytes of the smallest component of the format in vertexFormat*", max 4 bytes.<br/>
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructuretrianglegeometrydescriptor/3553877-vertexbufferoffset?language=objc): "*The vertex must be a multiple of the vertex stride and must be a multiple of 4 bytes*".
+
+* `vertexStrideAlign`<br/>
+__Vulkan__: from specs: "*must be a multiple of the size in bytes of the smallest component of vertexFormat*", max 4 bytes.<br/>
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructuretrianglegeometrydescriptor/3553878-vertexstride?language=objc): "*must be a multiple of 4 bytes*".
+
+* `indexDataAlign`<br/>
+__Vulkan__: from specs: "*indexData.deviceAddress must be aligned to the size in bytes of the type in indexType*", max 4 bytes.<br/>
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructuretrianglegeometrydescriptor/3553871-indexbufferoffset?language=objc): "*multiple of the index data type size and a multiple of the platform’s buffer offset alignment*".
+
+* `aabbDataAlign`<br/>
+__Vulkan__: from specs: "*must be aligned to 8 bytes*".<br/>
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureboundingboxgeometrydescriptor/3553861-boundingboxbufferoffset?language=objc): "*The offset must be a multiple of boundingBoxStride, and must be aligned to the platform’s buffer offset alignment*", min stride: 8 bytes.
+
+* `aabbStrideAlign`<br/>
+__Vulkan__: from specs: "*must be a multiple of 8*".<br/>
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureboundingboxgeometrydescriptor/3553863-boundingboxstride?language=objc): "*The stride must be at least 24 bytes, and must be a multiple of 4 bytes*".
+
+* `transformDataAlign`<br/>
+__Vulkan__: from specs: "*must be aligned to 16 bytes*"<br/>
+__Metal__:  in [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructuretrianglegeometrydescriptor/3929834-transformationmatrixbufferoffset?language=objc): *not defined*.<br/>
+
+* `instanceDataAlign`<br/>
+__Vulkan__: from specs: "**".<br/>
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlinstanceaccelerationstructuredescriptor/3553887-instancedescriptorbufferoffset?language=objc): "*Specify an offset that is a multiple of 4 bytes and a multiple of the platform’s buffer offset alignment*".
+
+* `instanceStrideAlign`<br/>
+__Vulkan__: custom stride is not supported, stride must be 64.<br/>
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlinstanceaccelerationstructuredescriptor/3553888-instancedescriptorstride?language=objc): "*The stride must be at least 64 bytes and must be a multiple of 4 bytes*".
+
+* `minScratchBufferOffsetAlign`<br/>
+__Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::minAccelerationStructureScratchOffsetAlignment.<br/>
+__Metal__:  *not defined*.<br/>
+
+* `maxGeometries`<br/>
+__Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::maxGeometryCount.<br/>
+__Metal__:  *not defined*.<br/>
+
+* `maxInstances`<br/>
+__Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::maxInstanceCount.<br/>
+__Metal__:  *not defined*.<br/>
+
+* `maxPrimitives`<br/>
+__Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::maxPrimitiveCount.<br/>
+__Metal__:  *not defined*.<br/>
+
+* `maxRecursion`<br/>
+__Vulkan__: defined in VkPhysicalDeviceRayTracingPipelinePropertiesKHR::maxRayRecursionDepth.<br/>
+__Metal__:  *not defined*.<br/>
+
+* `maxDispatchInvocations`<br/>
+__Vulkan__: defined in VkPhysicalDeviceRayTracingPipelinePropertiesKHR::maxRayDispatchInvocationCount.<br/>
+__Metal__:  *not defined*.<br/>
+
 
 ## ShaderHWProperties
+
+* `cores`<br/>
+StreamingMultiprocessor/Core count per GPU.
+
+* `warpsPerCore`<br/>
+Maximum number of simultaneously executing warps on an StreamingMultiprocessor/Core.
+
+* `threadsPerWarp`<br/>
+Number of thread in warp, same as maximum size of subgroup.
 

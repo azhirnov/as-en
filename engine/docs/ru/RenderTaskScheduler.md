@@ -4,9 +4,9 @@
 
 `RenderTask`, `RenderTaskCoro` - используется для ассинхронной записи командного буфера. Внутри метода `Run()` создается командный буфер, заполняется и добавляется в `CommandBatch` с помощью метода `Execute(cmdbuf)`.
 
-`CommmandBatch` - хранит масив командных буферов и семафоров для синхронизации с другими батчами и с ЦП. Аналогичен одному вызову vkQueueSubmit.
+`CommandBatch` - хранит масив командных буферов и семафоров для синхронизации с другими батчами и с ЦП. Аналогичен одному вызову vkQueueSubmit.
 
-Исходник: [RenderTask.h](file:///<path>/engine/src/graphics/Private/RenderTask.h), [CommmandBatch.h](file:///<path>/engine/src/graphics/Private/CommmandBatch.h)
+Исходник: [RenderTask.h](../../src/graphics/Private/RenderTask.h), [CommandBatch.h](../../src/graphics/Private/CommandBatch.h)
 
 
 ## Вторичный коммандный буфер
@@ -15,7 +15,7 @@
 
 `DrawCommandBatch` - хранит массив вторичных командных буферов, которые затем выполняются в `IGraphicsContext::ExecuteSecondary()`.
 
-Исходник: [DrawTask.h](file:///<path>/engine/src/graphics/Private/DrawTask.h), [DrawCommandBatch.h](file:///<path>/engine/src/graphics/Private/DrawCommandBatch.h)
+Исходник: [DrawTask.h](../../src/graphics/Private/DrawTask.h), [DrawCommandBatch.h](../../src/graphics/Private/DrawCommandBatch.h)
 
 
 ## Планировщик графических задач (RenderTaskScheduler)
@@ -36,7 +36,7 @@
 
 
 #### Синхронизация на стороне ГП
-Зависимости между батчами указываются вручную через методы CommmandBatch: `AddInputDependency()`, `AddInputSemaphore()`, `AddOutputSemaphore()`, либо автоматически, через рендер граф ([RG](file:///<path>/engine/docs/ru/RenderGraph.md)).
+Зависимости между батчами указываются вручную через методы CommandBatch: `AddInputDependency()`, `AddInputSemaphore()`, `AddOutputSemaphore()`, либо автоматически, через рендер граф ([RG](RenderGraph.md)).
 
 ![](img/RenderTaskScheduler-1.png)
 
@@ -47,7 +47,7 @@
 
 ![](img/RenderTaskScheduler-2.png)
 
-Исходник: [RenderTaskScheduler.h](file:///<path>/engine/src/graphics/Private/RenderTaskScheduler.h)
+Исходник: [RenderTaskScheduler.h](../../src/graphics/Private/RenderTaskScheduler.h)
 
 
 ## Контекст для записи команд
@@ -79,7 +79,7 @@
 Ассинхронный рендер пасс `BeginMtRenderPass()` создает `DrawCommandBatch`, который создает задачи `DrawTask`.
 Текущая задача должна дождаться заполнения вторичных командных буферов, затем записать их в первичный командный буфер через `ExecuteSecondary( drawBatch )` и завершить рендер пасс `EndMtRenderPass()`.
 
-Пример [Test_RG_DrawAsync1.cpp](file:///<path>/engine/tests/graphics/RenderGraph/Test_RG_DrawAsync1.cpp)
+Пример [Test_RG_DrawAsync1.cpp](../../tests/graphics/RenderGraph/Test_RG_DrawAsync1.cpp)
 
 #### IDrawContext
 
@@ -88,16 +88,16 @@
 #### IRayTracingContext
 
 Только трассировка лучей.<br/>
-На Vulkan трассировка может запускаться в любой момент, даже внутри рендер пасса, выполняется на этапе `VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR`.<br/>
+На Vulkan трассировка может запускаться в любой момент, даже внутри рендер пасса, выполняется на этапе `VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT`.<br/>
 На Metal эмулируется через вычислительный энкодер.
 
 #### IASBuildContext
 
 Все команды построения ускоряющих структур для трассировки лучей, а также их обновление, копирование, сериализация в/из памяти, чтение свойств.
-На Vulkan выполняется на этапах `VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` и `VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR`.
+На Vulkan выполняется на этапах `VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT` и `VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT`.
 На Metal это отдельный энкодер.
 
-Исходник: [CommandBuffer.h](file:///<path>/engine/src/graphics/Public/CommandBuffer.h)
+Исходник: [CommandBuffer.h](../../src/graphics/Public/CommandBuffer.h)
 
 ## Програмная эмуляция командного буфера
 
@@ -112,6 +112,6 @@
 
 Был выбран вариант с привязкой к кадрам, таким образом:
  * Ресурсы не удаляются сразу, а с задержкой в 2 кадра.
- * Используется общий staging buffer, выделенная память гарантированно валидна в пределах кадра, это упростило работу с память. Например в при чтении из видеопамяти в `ITransferContext::ReadbackImage ()`.
+ * Используется общий staging buffer, выделенная память гарантированно валидна в пределах кадра, это упростило работу с памятью. Например в при чтении из видеопамяти в `ITransferContext::ReadbackImage()`.
  * Ограничен максимальный размер staging buffer на кадр, так чтобы все данные успели передаться по шине PCI-E за время кадра. Таким образом ГП не простаивает в ожидании данных с ЦП и время кадра более стабильное.
 

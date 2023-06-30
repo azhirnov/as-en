@@ -13,7 +13,7 @@
  * метод `OnFailure()` - ошибка при выполнении задачи, меняет статус и вызывает метод `OnCancel()` после завершения `Run()`.
  * метод `Continue()` - возвращает задачу в очередь, чтобы повторно вызвать метод `Run()`. Может нринимаеть список зависимых задач.
 
-Исходник: [AsyncTask.h](file:///<path>/engine/src/threading/TaskSystem/AsyncTask.h#88)
+Исходник: [AsyncTask.h](../../src/threading/TaskSystem/AsyncTask.h#L88)
 
 
 ### Корутины (CoroTask)
@@ -26,14 +26,14 @@ EStatus     co_await Coro_Status
 ETaskQueue  co_await Coro_TaskQueue
 ```
 
-Исходник: [AsyncTask.h](file:///<path>/engine/src/threading/TaskSystem/AsyncTask.h#287)
+Исходник: [AsyncTask.h](../../src/threading/TaskSystem/AsyncTask.h#L287)
 
 
 ### Корутины (Coroutine<>)
 
 Корутины из C++20 сделанные поверх AsyncTask, могут хранить значение внутри и возвращать через `co_await` после выполнения задачи.
 
-Исходник: [Coroutine.h](file:///<path>/engine/src/threading/TaskSystem/Coroutine.h)
+Исходник: [Coroutine.h](../../src/threading/TaskSystem/Coroutine.h)
 
 
 ### Промис (Promise<>)
@@ -43,7 +43,7 @@ ETaskQueue  co_await Coro_TaskQueue
 `MakePromiseFromValue()` - если аргумент dependsOn пустой, то задача не добавляется в очередь.<br/>
 `MakePromiseFrom() и MakePromiseFromArray()` - объединяют результаты промисов в один.
 
-Исходник: [Promise.h](file:///<path>/engine/src/threading/TaskSystem/Promise.h)
+Исходник: [Promise.h](../../src/threading/TaskSystem/Promise.h)
 
 
 ### Типы очередей (ETaskQueue / EThread)
@@ -57,7 +57,7 @@ ETaskQueue  co_await Coro_TaskQueue
 	- Работа с сетью.
  * __FileIO__ - не является очередью, нужен для передачи управления в ОС, чтобы обработать завершенные ассинхроные команды чтения/записи в файл.
  
-Исходник: [EThread.h](file:///<path>/engine/src/threading/TaskSystem/EThread.h)
+Исходник: [EThread.h](../../src/threading/TaskSystem/EThread.h)
 
 
 ### Зависимости между задачами
@@ -77,7 +77,7 @@ ETaskQueue  co_await Coro_TaskQueue
 
 Метод `ProcessTask()` вызывается потоком, чтобы найти задачу в указаных очередях и выполнить ее - вызывается `AsyncTask::Run()`, либо если задача отменена, то вызывается `AsyncTask::OnCancel()` и продолжается поиск задачи.
 
-Исходник: [TaskScheduler.h](file:///<path>/engine/src/threading/TaskSystem/TaskScheduler.h#260)
+Исходник: [TaskScheduler.h](../../src/threading/TaskSystem/TaskScheduler.h#L260)
 
 
 ## Кастомизация зависимостей для ассинхронных задач (ITaskDependencyManager)
@@ -87,7 +87,7 @@ ETaskQueue  co_await Coro_TaskQueue
 
 Менеджер зависимостей хранит указатель на задачу и номер бита, к которому привязана зависимость.
 
-Исходник: [TaskScheduler.h](file:///<path>/engine/src/threading/TaskSystem/TaskScheduler.h#114)
+Исходник: [TaskScheduler.h](../../src/threading/TaskSystem/TaskScheduler.h#L114)
 
 
 ## Управление потоками (ThreadManager)
@@ -96,5 +96,5 @@ ETaskQueue  co_await Coro_TaskQueue
 
 Если ЦП содержит энергоэффективные ядра, то потоки с `Background и FileIO` будут привязаны к этим ядрам, а потоки с `Main, PerFrame, Renderer` будут привязаны к производительным ядрам ЦП.
 
-Исходник: [ThreadManager.h](file:///<path>/engine/src/threading/TaskSystem/ThreadManager.h)
+Исходник: [ThreadManager.h](../../src/threading/TaskSystem/ThreadManager.h)
 
