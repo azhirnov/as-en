@@ -8,58 +8,58 @@
 namespace AE::ResEditor
 {
 
-	//
-	// Spherical Cube Geometry Source
-	//
+    //
+    // Spherical Cube Geometry Source
+    //
 
-	class SphericalCube final : public IGeomSource
-	{
-		friend class ScriptSphericalCube;
+    class SphericalCube final : public IGeomSource
+    {
+        friend class ScriptSphericalCube;
 
-	// types
-	private:
-		class Material final : public IGSMaterials
-		{
-		// variables
-		public:
-			RenderTechPipelinesPtr		rtech;
+    // types
+    private:
+        class Material final : public IGSMaterials
+        {
+        // variables
+        public:
+            RenderTechPipelinesPtr      rtech;
 
-			GraphicsPipelineID			ppln;
-			PerFrameDescSet_t			descSets;
-			
-			DescSetBinding				passDSIndex;
-			DescSetBinding				mtrDSIndex;
-		
-			Textures_t					textures;
-			Strong<BufferID>			ubuffer;
+            GraphicsPipelineID          ppln;
+            PerFrameDescSet_t           descSets;
 
+            DescSetBinding              passDSIndex;
+            DescSetBinding              mtrDSIndex;
 
-		// methods
-		public:
-			Material () {}
-			~Material ();
-		};
+            Textures_t                  textures;
+            Strong<BufferID>            ubuffer;
 
 
-	// variables
-	private:
-		GeometryTools::SphericalCubeRenderer	_cube;
-		
-		const uint								_minLod		= 0;
-		const uint								_maxLod		= 0;
+        // methods
+        public:
+            Material () {}
+            ~Material ();
+        };
 
 
-	// methods
-	public:
-		SphericalCube (Renderer &r, uint minLod, uint maxLod)		__Th___;
-		~SphericalCube ();
+    // variables
+    private:
+        GeometryTools::SphericalCubeRenderer    _cube;
+
+        const uint                              _minLod     = 0;
+        const uint                              _maxLod     = 0;
 
 
-	// IGeomSource //
-		void  StateTransition (IGSMaterials &, GraphicsCtx_t &)		__NE_OV;
-		bool  Draw (const DrawData &)								__NE_OV;
-		bool  Update (const UpdateData &)							__NE_OV;
-	};
+    // methods
+    public:
+        SphericalCube (Renderer &r, uint minLod, uint maxLod)       __Th___;
+        ~SphericalCube ();
+
+
+    // IGeomSource //
+        void  StateTransition (IGSMaterials &, GraphicsCtx_t &)     __NE_OV;
+        bool  Draw (const DrawData &)                               __NE_OV;
+        bool  Update (const UpdateData &)                           __NE_OV;
+    };
 
 
 } // AE::ResEditor

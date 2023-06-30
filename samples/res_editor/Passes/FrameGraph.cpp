@@ -4,32 +4,32 @@
 
 namespace AE::ResEditor
 {
-	
-	FrameGraphImpl*		FrameGraphImpl::_instance = null;
+
+    FrameGraphImpl*     FrameGraphImpl::_instance = null;
 
 /*
 =================================================
-	constructor
+    constructor
 =================================================
 */
-	FrameGraphImpl::FrameGraphImpl () __Th___
-	{
-		CHECK_THROW( _instance == null );
-		_instance = this;
-	}
-	
+    FrameGraphImpl::FrameGraphImpl () __Th___
+    {
+        CHECK_THROW( _instance == null );
+        _instance = this;
+    }
+
 /*
 =================================================
-	destructor
+    destructor
 =================================================
 */
-	FrameGraphImpl::~FrameGraphImpl ()
-	{
-		CHECK( _rg.WaitAll() );
+    FrameGraphImpl::~FrameGraphImpl ()
+    {
+        CHECK( _rg.WaitAll() );
 
-		CHECK( _instance == this );
-		_instance = null;
-	}
+        CHECK( _instance == this );
+        _instance = null;
+    }
 
 
 } // AE::ResEditor

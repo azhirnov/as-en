@@ -16,11 +16,11 @@ extern int Test_AtlasTools ()
 int main ()
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+    AE::Base::StaticLogger::LoggerDbgScope log{};
 
-	//UnitTest_RectPacker();
-	UnitTest_RectPackerSTB();
-	
-	AE_LOGI( "Tests.AtlasTools finished" );
-	return 0;
+    //UnitTest_RectPacker();
+    UnitTest_RectPackerSTB();
+
+    AE_LOGI( "Tests.AtlasTools finished" );
+    return 0;
 }

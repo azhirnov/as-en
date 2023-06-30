@@ -20,13 +20,13 @@
 
 namespace AE::Graphics
 {
-	class MComputePipeline;
-	class MGraphicsPipeline;
-	class MMeshPipeline;
-	class MTilePipeline;
-	class MRayTracingPipeline;
-	class MPipelineLayout;
-	class MRTShaderBindingTable;
+    class MComputePipeline;
+    class MGraphicsPipeline;
+    class MMeshPipeline;
+    class MTilePipeline;
+    class MRayTracingPipeline;
+    class MPipelineLayout;
+    class MRTShaderBindingTable;
 
 } // AE::Graphics
 

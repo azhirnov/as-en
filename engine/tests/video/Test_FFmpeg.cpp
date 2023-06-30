@@ -13,218 +13,218 @@ using namespace AE::Video;
 
 namespace
 {
-	static void  FFmpeg_Test1 ()
-	{
-		const Path	path {"ffmpeg_video_1.mp4"};
-		const uint	fps			= 30;
-		const uint	frame_count	= fps * 10;
+    static void  FFmpeg_Test1 ()
+    {
+        const Path  path {"ffmpeg_video_1.mp4"};
+        const uint  fps         = 30;
+        const uint  frame_count = fps * 10;
 
-		// encode
-		{
-			auto	enc = IVideoEncoder::CreateFFmpegEncoder();
-			TEST( enc );
+        // encode
+        {
+            auto    enc = IVideoEncoder::CreateFFmpegEncoder();
+            TEST( enc );
 
-			IVideoEncoder::Config	cfg;
-			cfg.srcFormat		= EPixelFormat::RGBA8_UNorm;
-			cfg.dstFormat		= EVideoFormat::YUV420P;
-			cfg.colorPreset		= EColorPreset::JPEG_BT709;
-			cfg.srcSize			= uint2{320, 320};
-			cfg.dstSize			= cfg.srcSize;
-			cfg.codec			= EVideoCodec::H264;
-			cfg.filter			= Video::EFilter::Bilinear;
-			cfg.quality			= 0.5f;
-			cfg.framerate		= IVideoEncoder::FrameRate_t{ fps };
-			cfg.bitrate			= IVideoEncoder::BitrateKb_t{ 10 };
-			cfg.hwAccelerated	= false;
+            IVideoEncoder::Config   cfg;
+            cfg.srcFormat       = EPixelFormat::RGBA8_UNorm;
+            cfg.dstFormat       = EVideoFormat::YUV420P;
+            cfg.colorPreset     = EColorPreset::JPEG_BT709;
+            cfg.srcSize         = uint2{320, 320};
+            cfg.dstSize         = cfg.srcSize;
+            cfg.codec           = EVideoCodec::H264;
+            cfg.filter          = Video::EFilter::Bilinear;
+            cfg.quality         = 0.5f;
+            cfg.framerate       = IVideoEncoder::FrameRate_t{ fps };
+            cfg.bitrate         = IVideoEncoder::BitrateKb_t{ 10 };
+            cfg.hwAccelerated   = false;
 
-			TEST( enc->Begin( cfg, path ));
+            TEST( enc->Begin( cfg, path ));
 
-			RGBA8u			pixels [320 * 320] = {};
-			ImageMemView	view{ pixels, Sizeof(pixels), uint3{}, uint3{320, 320, 1}, 0_b, 0_b, cfg.srcFormat, EImageAspect::Color };
-		
-			for (uint i = 0; i < frame_count; ++i)
-			{
-				const float		h	= Wrap( i * 0.2f, 0.f, 0.75f );
-				const RGBA8u	col	{ RGBA32f{ HSVColor{ h }}};
-				for (auto& c : pixels) { c = col; }
+            RGBA8u          pixels [320 * 320] = {};
+            ImageMemView    view{ pixels, Sizeof(pixels), uint3{}, uint3{320, 320, 1}, 0_b, 0_b, cfg.srcFormat, EImageAspect::Color };
 
-				TEST( enc->AddFrame( view, True{} ));
-			}
+            for (uint i = 0; i < frame_count; ++i)
+            {
+                const float     h   = Wrap( i * 0.2f, 0.f, 0.75f );
+                const RGBA8u    col { RGBA32f{ HSVColor{ h }}};
+                for (auto& c : pixels) { c = col; }
 
-			TEST( enc->End() );
-		}
+                TEST( enc->AddFrame( view, True{} ));
+            }
 
-		// get info
-		{
-			auto	dec = IVideoDecoder::CreateFFmpegDecoder();
-			TEST( dec );
+            TEST( enc->End() );
+        }
 
-			const auto	params = dec->GetFileProperties( path );
-			TEST( params.streams.size() == 1 );
+        // get info
+        {
+            auto    dec = IVideoDecoder::CreateFFmpegDecoder();
+            TEST( dec );
 
-			const auto&	info = params.streams[0];
-			TEST( info.codecName == "h264" );
-			TEST( info.index == 0 );
-			TEST( info.type == EMediaType::Video );
-			TEST( info.codec == EVideoCodec::H264 );
-			TEST( info.format == EVideoFormat::YUV420P );
-			TEST( info.frameCount == frame_count );
-			TEST( info.duration == IVideoDecoder::Second_t{10.0} );
-			TEST( info.avgFrameRate == IVideoDecoder::FrameRate_t{fps} );
-			TEST( info.minFrameRate == IVideoDecoder::FrameRate_t{fps} );
-			//TEST( info.bitrate > 0 );
-			TEST( All( info.size == uint2{320, 320} ));
-			
-			AE_LOGI( dec->PrintFileProperties( path ));
-		}
+            const auto  params = dec->GetFileProperties( path );
+            TEST( params.streams.size() == 1 );
 
-		// decode
-		{
-			auto	dec = IVideoDecoder::CreateFFmpegDecoder();
-			TEST( dec );
+            const auto& info = params.streams[0];
+            TEST( info.codecName == "h264" );
+            TEST( info.index == 0 );
+            TEST( info.type == EMediaType::Video );
+            TEST( info.codec == EVideoCodec::H264 );
+            TEST( info.format == EVideoFormat::YUV420P );
+            TEST( info.frameCount == frame_count );
+            TEST( info.duration == IVideoDecoder::Second_t{10.0} );
+            TEST( info.avgFrameRate == IVideoDecoder::FrameRate_t{fps} );
+            TEST( info.minFrameRate == IVideoDecoder::FrameRate_t{fps} );
+            //TEST( info.bitrate > 0 );
+            TEST( All( info.size == uint2{320, 320} ));
 
-			IVideoDecoder::Config	cfg;
-			cfg.dstFormat	= EPixelFormat::RGBA8_UNorm;
+            AE_LOGI( dec->PrintFileProperties( path ));
+        }
 
-			TEST( dec->Begin( cfg, path ));
-		
-			RGBA8u			pixels [320 * 320] = {};
-			ImageMemView	ref_view{ pixels, Sizeof(pixels), uint3{}, uint3{320, 320, 1}, 0_b, 0_b, cfg.dstFormat, EImageAspect::Color };
-			ImageMemView	view;
-		
-			IVideoDecoder::FrameInfo	fi;
+        // decode
+        {
+            auto    dec = IVideoDecoder::CreateFFmpegDecoder();
+            TEST( dec );
 
-			for (uint i = 0; i < frame_count; ++i)
-			{
-				const float		h	= Wrap( i * 0.2f, 0.f, 0.75f );
-				const RGBA8u	col	{ RGBA32f{ HSVColor{ h }}};
-				for (auto& c : pixels) { c = col; }
+            IVideoDecoder::Config   cfg;
+            cfg.dstFormat   = EPixelFormat::RGBA8_UNorm;
 
-				TEST( dec->GetFrame( OUT view, OUT fi ));
+            TEST( dec->Begin( cfg, path ));
 
-				//TEST( view == ref_view );
-				TEST( view.Format() == cfg.dstFormat );
-				TEST( fi.frameIdx == i );
-			}
+            RGBA8u          pixels [320 * 320] = {};
+            ImageMemView    ref_view{ pixels, Sizeof(pixels), uint3{}, uint3{320, 320, 1}, 0_b, 0_b, cfg.dstFormat, EImageAspect::Color };
+            ImageMemView    view;
 
-			TEST( dec->End() );
-		}
-	}
-	
-	
-	static void  FFmpeg_Test2 ()
-	{
-		const Path	path {"ffmpeg_video_2.mp4"};
-		const uint	fps			= 30;
-		const uint	frame_count	= fps * 10;
+            IVideoDecoder::FrameInfo    fi;
 
-		// encode
-		{
-			auto	enc = IVideoEncoder::CreateFFmpegEncoder();
-			TEST( enc );
+            for (uint i = 0; i < frame_count; ++i)
+            {
+                const float     h   = Wrap( i * 0.2f, 0.f, 0.75f );
+                const RGBA8u    col { RGBA32f{ HSVColor{ h }}};
+                for (auto& c : pixels) { c = col; }
 
-			IVideoEncoder::Config	cfg;
-			cfg.srcFormat		= EPixelFormat::RGBA8_UNorm;
-			cfg.dstFormat		= EVideoFormat::YUV420P;
-			cfg.colorPreset		= EColorPreset::MPEG_BT709;
-			cfg.srcSize			= uint2{320, 320};
-			cfg.dstSize			= cfg.srcSize;
-			cfg.codec			= EVideoCodec::H264;
-			cfg.filter			= Video::EFilter::Bilinear;
-			cfg.quality			= 0.5f;
-			cfg.framerate		= IVideoEncoder::FrameRate_t{ fps };
-			cfg.bitrate			= IVideoEncoder::BitrateKb_t{ 10 };
-			cfg.hwAccelerated	= false;
+                TEST( dec->GetFrame( OUT view, OUT fi ));
 
-			TEST( enc->Begin( cfg, path ));
+                //TEST( view == ref_view );
+                TEST( view.Format() == cfg.dstFormat );
+                TEST( fi.frameIdx == i );
+            }
 
-			RGBA8u			pixels [320 * 320] = {};
-			ImageMemView	view{ pixels, Sizeof(pixels), uint3{}, uint3{320, 320, 1}, 0_b, 0_b, cfg.srcFormat, EImageAspect::Color };
-		
-			for (uint i = 0; i < frame_count; ++i)
-			{
-				const float		h	= Wrap( i * 0.2f, 0.f, 0.75f );
-				const RGBA8u	col	{ RGBA32f{ HSVColor{ h }}};
-				for (auto& c : pixels) { c = col; }
-
-				TEST( enc->AddFrame( view, True{} ));
-			}
-
-			TEST( enc->End() );
-		}
-
-		// decode
-		{
-			auto	dec = IVideoDecoder::CreateFFmpegDecoder();
-			TEST( dec );
-
-			IVideoDecoder::Config	cfg;
-			cfg.dstFormat	= EPixelFormat::RGBA8_UNorm;
-
-			auto	file = MakeRC<FileRStream>( path );
-			TEST( file->IsOpen() );
-
-			TEST( dec->Begin( cfg, file ));
-		
-			RGBA8u			pixels [320 * 320] = {};
-			ImageMemView	ref_view{ pixels, Sizeof(pixels), uint3{}, uint3{320, 320, 1}, 0_b, 0_b, cfg.dstFormat, EImageAspect::Color };
-			ImageMemView	view;
-		
-			IVideoDecoder::FrameInfo	fi;
-
-			for (uint i = 0; i < frame_count; ++i)
-			{
-				const float		h	= Wrap( i * 0.2f, 0.f, 0.75f );
-				const RGBA8u	col	{ RGBA32f{ HSVColor{ h }}};
-				for (auto& c : pixels) { c = col; }
-
-				TEST( dec->GetFrame( OUT view, OUT fi ));
-
-				//TEST( view == ref_view );
-				TEST( view.Format() == cfg.dstFormat );
-				TEST( fi.frameIdx == i );
-			}
-
-			TEST( dec->End() );
-		}
-	}
+            TEST( dec->End() );
+        }
+    }
 
 
-	static void  FFmpeg_Test3 ()
-	{
-		auto	dec = IVideoDecoder::CreateFFmpegDecoder();
-		TEST( dec );
-		
-		Array< Path >	stack;
-		//stack.push_back( R"()" );
+    static void  FFmpeg_Test2 ()
+    {
+        const Path  path {"ffmpeg_video_2.mp4"};
+        const uint  fps         = 30;
+        const uint  frame_count = fps * 10;
 
-		for (; not stack.empty();)
-		{
-			Path	dir = stack.back();
-			stack.pop_back();
+        // encode
+        {
+            auto    enc = IVideoEncoder::CreateFFmpegEncoder();
+            TEST( enc );
 
-			for (auto& path : FileSystem::Enum( dir ))
-			{
-				if ( path.IsDirectory() )
-				{
-					stack.push_back( path );
-					continue;
-				}
+            IVideoEncoder::Config   cfg;
+            cfg.srcFormat       = EPixelFormat::RGBA8_UNorm;
+            cfg.dstFormat       = EVideoFormat::YUV420P;
+            cfg.colorPreset     = EColorPreset::MPEG_BT709;
+            cfg.srcSize         = uint2{320, 320};
+            cfg.dstSize         = cfg.srcSize;
+            cfg.codec           = EVideoCodec::H264;
+            cfg.filter          = Video::EFilter::Bilinear;
+            cfg.quality         = 0.5f;
+            cfg.framerate       = IVideoEncoder::FrameRate_t{ fps };
+            cfg.bitrate         = IVideoEncoder::BitrateKb_t{ 10 };
+            cfg.hwAccelerated   = false;
 
-				AE_LOGI( dec->PrintFileProperties( path ));
-			}
-		}
-	}
+            TEST( enc->Begin( cfg, path ));
+
+            RGBA8u          pixels [320 * 320] = {};
+            ImageMemView    view{ pixels, Sizeof(pixels), uint3{}, uint3{320, 320, 1}, 0_b, 0_b, cfg.srcFormat, EImageAspect::Color };
+
+            for (uint i = 0; i < frame_count; ++i)
+            {
+                const float     h   = Wrap( i * 0.2f, 0.f, 0.75f );
+                const RGBA8u    col { RGBA32f{ HSVColor{ h }}};
+                for (auto& c : pixels) { c = col; }
+
+                TEST( enc->AddFrame( view, True{} ));
+            }
+
+            TEST( enc->End() );
+        }
+
+        // decode
+        {
+            auto    dec = IVideoDecoder::CreateFFmpegDecoder();
+            TEST( dec );
+
+            IVideoDecoder::Config   cfg;
+            cfg.dstFormat   = EPixelFormat::RGBA8_UNorm;
+
+            auto    file = MakeRC<FileRStream>( path );
+            TEST( file->IsOpen() );
+
+            TEST( dec->Begin( cfg, file ));
+
+            RGBA8u          pixels [320 * 320] = {};
+            ImageMemView    ref_view{ pixels, Sizeof(pixels), uint3{}, uint3{320, 320, 1}, 0_b, 0_b, cfg.dstFormat, EImageAspect::Color };
+            ImageMemView    view;
+
+            IVideoDecoder::FrameInfo    fi;
+
+            for (uint i = 0; i < frame_count; ++i)
+            {
+                const float     h   = Wrap( i * 0.2f, 0.f, 0.75f );
+                const RGBA8u    col { RGBA32f{ HSVColor{ h }}};
+                for (auto& c : pixels) { c = col; }
+
+                TEST( dec->GetFrame( OUT view, OUT fi ));
+
+                //TEST( view == ref_view );
+                TEST( view.Format() == cfg.dstFormat );
+                TEST( fi.frameIdx == i );
+            }
+
+            TEST( dec->End() );
+        }
+    }
+
+
+    static void  FFmpeg_Test3 ()
+    {
+        auto    dec = IVideoDecoder::CreateFFmpegDecoder();
+        TEST( dec );
+
+        Array< Path >   stack;
+        //stack.push_back( R"()" );
+
+        for (; not stack.empty();)
+        {
+            Path    dir = stack.back();
+            stack.pop_back();
+
+            for (auto& path : FileSystem::Enum( dir ))
+            {
+                if ( path.IsDirectory() )
+                {
+                    stack.push_back( path );
+                    continue;
+                }
+
+                AE_LOGI( dec->PrintFileProperties( path ));
+            }
+        }
+    }
 }
 
 
 extern void  Test_FFmpeg ()
 {
-	FFmpeg_Test1();
-	FFmpeg_Test2();
-	FFmpeg_Test3();
+    FFmpeg_Test1();
+    FFmpeg_Test2();
+    FFmpeg_Test3();
 
-	TEST_PASSED();
+    TEST_PASSED();
 }
 
 #else

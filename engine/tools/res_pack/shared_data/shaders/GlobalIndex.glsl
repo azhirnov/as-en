@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Helper functions for compute shader
+    Helper functions for compute shader
 */
 
 #ifdef __cplusplus
@@ -12,43 +12,43 @@
 
 // global linear index
 ND_ int    GetGlobalIndexSize ();
-ND_ int    GetGlobalIndex ();		// 0..size-1
-ND_ float  GetGlobalIndexUNorm ();	//  0..1
-ND_ float  GetGlobalIndexSNorm ();	// -1..1
+ND_ int    GetGlobalIndex ();       // 0..size-1
+ND_ float  GetGlobalIndexUNorm ();  //  0..1
+ND_ float  GetGlobalIndexSNorm ();  // -1..1
 
 // local linear index
 ND_ int    GetLocalIndexSize ();
-ND_ int    GetLocalIndex ();		// 0..size-1
-ND_ float  GetLocalIndexUNorm ();	//  0..1
-ND_ float  GetLocalIndexSNorm ();	// -1..1
+ND_ int    GetLocalIndex ();        // 0..size-1
+ND_ float  GetLocalIndexUNorm ();   //  0..1
+ND_ float  GetLocalIndexSNorm ();   // -1..1
 
 // group linear index
 ND_ int    GetGroupIndexSize ();
-ND_ int    GetGroupIndex ();		// 0..size-1
-ND_ float  GetGroupIndexUNorm ();	//  0..1
-ND_ float  GetGroupIndexSNorm ();	// -1..1
+ND_ int    GetGroupIndex ();        // 0..size-1
+ND_ float  GetGroupIndexUNorm ();   //  0..1
+ND_ float  GetGroupIndexSNorm ();   // -1..1
 
 // global coordinate in 3D
 ND_ int3    GetGlobalSize ();
-ND_ int3    GetGlobalCoord ();		// 0..size-1
-ND_ float3  GetGlobalCoordUNorm ();	//  0..1
-ND_ float3  GetGlobalCoordSNorm ();	// -1..1
+ND_ int3    GetGlobalCoord ();      // 0..size-1
+ND_ float3  GetGlobalCoordUNorm (); //  0..1
+ND_ float3  GetGlobalCoordSNorm (); // -1..1
 
 // local coordinate in 3D
 ND_ int3    GetLocalSize ();
-ND_ int3    GetLocalCoord ();		// 0..size-1
-ND_ float3  GetLocalCoordUNorm ();	//  0..1
-ND_ float3  GetLocalCoordSNorm ();	// -1..1
+ND_ int3    GetLocalCoord ();       // 0..size-1
+ND_ float3  GetLocalCoordUNorm ();  //  0..1
+ND_ float3  GetLocalCoordSNorm ();  // -1..1
 
 // group coordinate in 3D
 ND_ int3    GetGroupSize ();
-ND_ int3    GetGroupCoord ();		// 0..size-1
-ND_ float3  GetGroupCoordUNorm ();	//  0..1
-ND_ float3  GetGroupCoordSNorm ();	// -1..1
+ND_ int3    GetGroupCoord ();       // 0..size-1
+ND_ float3  GetGroupCoordUNorm ();  //  0..1
+ND_ float3  GetGroupCoordSNorm ();  // -1..1
 
 // global normalized coordinate in 2D with same aspect ratio
-ND_ float2  GetGlobalCoordUNormCorrected ();	//  0..1
-ND_ float2  GetGlobalCoordSNormCorrected ();	// -1..1
+ND_ float2  GetGlobalCoordUNormCorrected ();    //  0..1
+ND_ float2  GetGlobalCoordSNormCorrected ();    // -1..1
 //-----------------------------------------------------------------------------
 
 
@@ -58,7 +58,7 @@ ND_ float2  GetGlobalCoordSNormCorrected ();	// -1..1
 // global coordinate in 3D
 int3  GetGlobalCoord ()
 {
-	return int3( gl.FragCoord.xy, gl.Layer );
+    return int3( gl.FragCoord.xy, gl.Layer );
 }
 
 // implement GetGlobalSize() with 'ub.screenSize'
@@ -73,43 +73,43 @@ int3  GetGlobalCoord ()
 // local linear index
 int  GetLocalIndex ()
 {
-	return int( gl.LocalInvocationIndex );
+    return int( gl.LocalInvocationIndex );
 }
 
 
 // global coordinate in 3D
 int3  GetGlobalCoord ()
 {
-	return int3( gl.GlobalInvocationID );
+    return int3( gl.GlobalInvocationID );
 }
 
 int3  GetGlobalSize ()
 {
-	return GetGroupSize() * GetLocalSize();
+    return GetGroupSize() * GetLocalSize();
 }
 
 
 // local coordinate in 3D
 int3  GetLocalCoord ()
 {
-	return int3( gl.LocalInvocationID );
+    return int3( gl.LocalInvocationID );
 }
 
 int3  GetLocalSize ()
 {
-	return int3( gl.WorkGroupSize );
+    return int3( gl.WorkGroupSize );
 }
 
 
 // group coordinate in 3D
 int3  GetGroupCoord ()
 {
-	return int3( gl.WorkGroupID );
+    return int3( gl.WorkGroupID );
 }
 
 int3  GetGroupSize ()
 {
-	return int3( gl.NumWorkGroups );
+    return int3( gl.NumWorkGroups );
 }
 
 #endif // SH_COMPUTE or SH_MESH_TASK or SH_MESH
@@ -122,42 +122,42 @@ int3  GetGroupSize ()
 // local linear index
 int  GetLocalIndex ()
 {
-	return int( gl.LaunchID.x +
-			    (gl.LaunchID.y * gl.LaunchSize.x) +
-			    (gl.LaunchID.z * gl.LaunchSize.x * gl.LaunchSize.y) );
+    return int( gl.LaunchID.x +
+                (gl.LaunchID.y * gl.LaunchSize.x) +
+                (gl.LaunchID.z * gl.LaunchSize.x * gl.LaunchSize.y) );
 }
 
 // global coordinate in 3D
 int3  GetGlobalCoord ()
 {
-	return int3( gl.LaunchID );
+    return int3( gl.LaunchID );
 }
 
 int3  GetGlobalSize ()
 {
-	return int3( gl.LaunchSize );
+    return int3( gl.LaunchSize );
 }
 
 // local coordinate in 3D
 int3  GetLocalCoord ()
 {
-	return int3( gl.LaunchID );
+    return int3( gl.LaunchID );
 }
 
 int3  GetLocalSize ()
 {
-	return int3( gl.LaunchSize );
+    return int3( gl.LaunchSize );
 }
 
 // group coordinate in 3D
 int3  GetGroupCoord ()
 {
-	return int3(0);
+    return int3(0);
 }
 
 int3  GetGroupSize ()
 {
-	return int3(1);
+    return int3(1);
 }
 
 #endif
@@ -168,117 +168,117 @@ int3  GetGroupSize ()
 // global linear index
 int  GetGlobalIndex ()
 {
-	int3 coord = GetGlobalCoord();
-	int3 size  = GetGlobalSize();
-	return coord.x + (coord.y * size.x) + (coord.z * size.x * size.y);
+    int3 coord = GetGlobalCoord();
+    int3 size  = GetGlobalSize();
+    return coord.x + (coord.y * size.x) + (coord.z * size.x * size.y);
 }
 
 int  GetGlobalIndexSize ()
 {
-	int3 size  = GetGlobalSize();
-	return size.x * size.y * size.z;
+    int3 size  = GetGlobalSize();
+    return size.x * size.y * size.z;
 }
 
 float  GetGlobalIndexUNorm ()
 {
-	return (float(GetGlobalIndex())+0.5f) / float(GetGlobalIndexSize());
+    return (float(GetGlobalIndex())+0.5f) / float(GetGlobalIndexSize());
 }
 
 float  GetGlobalIndexSNorm ()
 {
-	return ToSNorm( GetGlobalIndexUNorm() );
+    return ToSNorm( GetGlobalIndexUNorm() );
 }
 
 
 // local linear index
 int  GetLocalIndexSize ()
 {
-	int3 size  = GetLocalSize();
-	return size.x * size.y * size.z;
+    int3 size  = GetLocalSize();
+    return size.x * size.y * size.z;
 }
 
 float  GetLocalIndexUNorm ()
 {
-	return (float(GetLocalIndex())+0.5f) / float(GetLocalIndexSize());
+    return (float(GetLocalIndex())+0.5f) / float(GetLocalIndexSize());
 }
 
 float  GetLocalIndexSNorm ()
 {
-	return ToSNorm( GetLocalIndexUNorm() );
+    return ToSNorm( GetLocalIndexUNorm() );
 }
 
 
 // group linear index
 int  GetGroupIndex ()
 {
-	int3 coord = GetGroupCoord();
-	int3 size  = GetGroupSize();
-	return coord.x + (coord.y * size.x) + (coord.z * size.x * size.y);
+    int3 coord = GetGroupCoord();
+    int3 size  = GetGroupSize();
+    return coord.x + (coord.y * size.x) + (coord.z * size.x * size.y);
 }
 
 int  GetGroupIndexSize ()
 {
-	int3 size  = GetGroupSize();
-	return size.x * size.y * size.z;
+    int3 size  = GetGroupSize();
+    return size.x * size.y * size.z;
 }
 
 float  GetGroupIndexUNorm ()
 {
-	return (float(GetGroupIndex())+0.5f) / float(GetGroupIndexSize());
+    return (float(GetGroupIndex())+0.5f) / float(GetGroupIndexSize());
 }
 
 float  GetGroupIndexSNorm ()
 {
-	return ToSNorm( GetGroupIndexUNorm() );
+    return ToSNorm( GetGroupIndexUNorm() );
 }
 
 
 // global coordinate in 3D
 float3  GetGlobalCoordUNorm ()
 {
-	return (float3(GetGlobalCoord())+0.5f) / float3(GetGlobalSize());
+    return (float3(GetGlobalCoord())+0.5f) / float3(GetGlobalSize());
 }
 
 float3  GetGlobalCoordSNorm ()
 {
-	return ToSNorm( GetGlobalCoordUNorm() );
+    return ToSNorm( GetGlobalCoordUNorm() );
 }
 
 
 // local coordinate in 3D
 float3  GetLocalCoordUNorm ()
 {
-	return (float3(GetLocalCoord())+0.5f) / float3(GetLocalSize());
+    return (float3(GetLocalCoord())+0.5f) / float3(GetLocalSize());
 }
 
 float3  GetLocalCoordSNorm ()
 {
-	return ToSNorm( GetLocalCoordUNorm() );
+    return ToSNorm( GetLocalCoordUNorm() );
 }
 
 
 // group coordinate in 3D
 float3  GetGroupCoordUNorm ()
 {
-	return (float3(GetGroupCoord())+0.5f) / float3(GetGroupSize());
+    return (float3(GetGroupCoord())+0.5f) / float3(GetGroupSize());
 }
 
 float3  GetGroupCoordSNorm ()
 {
-	return ToSNorm( GetGroupCoordUNorm() );
+    return ToSNorm( GetGroupCoordUNorm() );
 }
 
 
 // global normalized coordinate in 2D with same aspect ratio
 float2  GetGlobalCoordUNormCorrected ()
 {
-	float2	size = float2(GetGlobalSize().xy);
-	return (float2(GetGlobalCoord().xy)+0.5f) / Max( size.x, size.y );
+    float2  size = float2(GetGlobalSize().xy);
+    return (float2(GetGlobalCoord().xy)+0.5f) / Max( size.x, size.y );
 }
 
 float2  GetGlobalCoordSNormCorrected ()
 {
-	float2	hsize	= float2(GetGlobalSize().xy) * 0.5f;
-	float	msize	= Max( hsize.x, hsize.y );
-	return (float2(GetGlobalCoord().xy) - hsize) / msize;
+    float2  hsize   = float2(GetGlobalSize().xy) * 0.5f;
+    float   msize   = Max( hsize.x, hsize.y );
+    return (float2(GetGlobalCoord().xy) - hsize) / msize;
 }

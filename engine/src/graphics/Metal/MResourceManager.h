@@ -42,7 +42,7 @@
 
 # include "graphics/Metal/Descriptors/MDefaultDescriptorAllocator.h"
 
-// implementation	
+// implementation   
 # include "graphics/Private/ResourceManager.h"
 
 #endif // AE_ENABLE_METAL

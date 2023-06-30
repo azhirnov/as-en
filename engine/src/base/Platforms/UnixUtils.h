@@ -17,48 +17,48 @@
 namespace AE::Base
 {
 
-	//
-	// Unix Utils
-	//
+    //
+    // Unix Utils
+    //
 
-	struct UnixUtils : Noninstanceable
-	{
-	// types
-		struct MemoryPageInfo
-		{
-			Bytes	pageSize;
-		};
-
-
-	// functions
-	
-		// Errors //
-		ND_ static int   GetErrorCode ()			__NE___;
-		ND_ static int   GetNetworkErrorCode ()		__NE___;
-
-			static bool  CheckError (StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)					__NE___;
-			static bool  CheckError (int err, StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)			__NE___;
-			
-			static bool  CheckNetworkError (StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)			__NE___;
-			static bool  CheckNetworkError (int err, StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)	__NE___;
-		
-
-		// Memory //
-		ND_ static MemoryPageInfo  GetMemoryPageInfo () __NE___;
+    struct UnixUtils : Noninstanceable
+    {
+    // types
+        struct MemoryPageInfo
+        {
+            Bytes   pageSize;
+        };
 
 
-		// Thread //
-			// interval > 4000ns
-			static bool		NanoSleep (nanoseconds relativeTime)	__NE___;
+    // functions
 
-			static bool		WaitIO (milliseconds relativeTime)		__NE___;
-			
-			static bool		ThreadYield ()							__NE___;
+        // Errors //
+        ND_ static int   GetErrorCode ()            __NE___;
+        ND_ static int   GetNetworkErrorCode ()     __NE___;
+
+            static bool  CheckError (StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)                  __NE___;
+            static bool  CheckError (int err, StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)         __NE___;
+
+            static bool  CheckNetworkError (StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)           __NE___;
+            static bool  CheckNetworkError (int err, StringView msg, const SourceLoc &loc, ELogLevel level = ELogLevel::Error)  __NE___;
 
 
-	private:
-		ND_ static bool  _CheckError (int err, StringView msg, const SourceLoc &loc, ELogLevel level, ELogScope scope) __NE___;
-	};
+        // Memory //
+        ND_ static MemoryPageInfo  GetMemoryPageInfo () __NE___;
+
+
+        // Thread //
+            // interval > 4000ns
+            static bool     NanoSleep (nanoseconds relativeTime)    __NE___;
+
+            static bool     WaitIO (milliseconds relativeTime)      __NE___;
+
+            static bool     ThreadYield ()                          __NE___;
+
+
+    private:
+        ND_ static bool  _CheckError (int err, StringView msg, const SourceLoc &loc, ELogLevel level, ELogScope scope) __NE___;
+    };
 
 } // AE::Base
 

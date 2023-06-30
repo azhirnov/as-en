@@ -9,77 +9,77 @@
 namespace AE::ResEditor
 {
 
-	//
-	// Geometry Source Materials interface
-	//
-	class IGSMaterials : public EnableRC<IGSMaterials>
-	{
-	// types
-	protected:
-		using PerFrameDescSet_t	= StaticArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
-		using Textures_t		= Array<Pair< UniformName, RC<IImageResource> >>;
+    //
+    // Geometry Source Materials interface
+    //
+    class IGSMaterials : public EnableRC<IGSMaterials>
+    {
+    // types
+    protected:
+        using PerFrameDescSet_t = StaticArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
+        using Textures_t        = Array<Pair< UniformName, RC<IImageResource> >>;
 
-	// methods
-	public:
-	};
-
-
-
-	//
-	// Geometry Source interface
-	//
-	class IGeomSource : public EnableRC<IGeomSource>
-	{
-	// types
-	public:
-		using GraphicsCtx_t		= DirectCtx::Graphics;
-		using UpdatePassData	= IPass::UpdatePassData;
-
-		struct UpdateData
-		{
-			IGSMaterials &			mtr;
-			DirectCtx::Transfer &	ctx;
-			float3					position;
-			IController const&		controller;
-			UpdatePassData const&	pd;
-		};
-
-		struct UpdateRTData
-		{
-			IGSMaterials &			mtr;
-			DirectCtx::ASBuild &	ctx;
-		};
-
-		struct DrawData
-		{
-			IGSMaterials &			mtr;
-			DirectCtx::Draw &		ctx;
-			DescriptorSetID			passDS;
-		};
-		
-		using Textures_t	= Array<Pair< UniformName, RC<IImageResource> >>;
-		using Buffers_t		= Array<Pair< UniformName, RC<Buffer> >>;
+    // methods
+    public:
+    };
 
 
-	// variables
-	private:
-		Renderer &		_renderer;
+
+    //
+    // Geometry Source interface
+    //
+    class IGeomSource : public EnableRC<IGeomSource>
+    {
+    // types
+    public:
+        using GraphicsCtx_t     = DirectCtx::Graphics;
+        using UpdatePassData    = IPass::UpdatePassData;
+
+        struct UpdateData
+        {
+            IGSMaterials &          mtr;
+            DirectCtx::Transfer &   ctx;
+            float3                  position;
+            IController const&      controller;
+            UpdatePassData const&   pd;
+        };
+
+        struct UpdateRTData
+        {
+            IGSMaterials &          mtr;
+            DirectCtx::ASBuild &    ctx;
+        };
+
+        struct DrawData
+        {
+            IGSMaterials &          mtr;
+            DirectCtx::Draw &       ctx;
+            DescriptorSetID         passDS;
+        };
+
+        using Textures_t    = Array<Pair< UniformName, RC<IImageResource> >>;
+        using Buffers_t     = Array<Pair< UniformName, RC<Buffer> >>;
 
 
-	// methods
-	protected:
-		explicit IGeomSource (Renderer &r) : _renderer{r} {}
+    // variables
+    private:
+        Renderer &      _renderer;
 
-	public:
-		virtual void  StateTransition (IGSMaterials &, GraphicsCtx_t &)		__NE___	= 0;
-		virtual bool  Draw (const DrawData &)								__NE___ = 0;
-		virtual bool  Update (const UpdateData &)							__NE___ = 0;
-		virtual bool  RTUpdate (const UpdateRTData &)						__NE___ { return false; }
 
-		ND_ Renderer&			_Renderer ()								const	{ return _renderer; }
-		ND_ ResourceQueue&		_ResQueue ()								const;
-		ND_ GfxMemAllocatorPtr	_GfxAllocator ()							const;
-	};
+    // methods
+    protected:
+        explicit IGeomSource (Renderer &r) : _renderer{r} {}
+
+    public:
+        virtual void  StateTransition (IGSMaterials &, GraphicsCtx_t &)     __NE___ = 0;
+        virtual bool  Draw (const DrawData &)                               __NE___ = 0;
+        virtual bool  Update (const UpdateData &)                           __NE___ = 0;
+        virtual bool  RTUpdate (const UpdateRTData &)                       __NE___ { return false; }
+
+        ND_ Renderer&           _Renderer ()                                const   { return _renderer; }
+        ND_ ResourceQueue&      _ResQueue ()                                const;
+        ND_ GfxMemAllocatorPtr  _GfxAllocator ()                            const;
+    };
 
 
 } // AE::ResEditor

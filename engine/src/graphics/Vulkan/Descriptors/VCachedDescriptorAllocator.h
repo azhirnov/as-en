@@ -10,40 +10,40 @@
 namespace AE::Graphics
 {
 
-	//
-	// Vulkan Cached Descriptor Allocator
-	//
+    //
+    // Vulkan Cached Descriptor Allocator
+    //
 
-	class VCachedDescriptorAllocator final : public IDescriptorAllocator
-	{
-	// types
-	private:
-		struct DSLayoutCache
-		{
-			Array< VkDescriptorSet >	available;
-		};
+    class VCachedDescriptorAllocator final : public IDescriptorAllocator
+    {
+    // types
+    private:
+        struct DSLayoutCache
+        {
+            Array< VkDescriptorSet >    available;
+        };
 
-		using DSLayoutMap_t	= FlatHashMap< DescriptorSetLayoutID, DSLayoutCache >;
-
-
-	// variables
-	private:
-		// TODO
+        using DSLayoutMap_t = FlatHashMap< DescriptorSetLayoutID, DSLayoutCache >;
 
 
-	// methods
-	public:
-		VCachedDescriptorAllocator ()											__NE___	{}
-		~VCachedDescriptorAllocator ()											__NE_OV;
+    // variables
+    private:
+        // TODO
 
-		bool  Preallocate (ArrayView<Pair< DescriptorSetLayoutID, uint >> info)	__NE___;
 
-		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)		__NE_OV;
-		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)	__NE_OV;
+    // methods
+    public:
+        VCachedDescriptorAllocator ()                                           __NE___ {}
+        ~VCachedDescriptorAllocator ()                                          __NE_OV;
 
-	private:
-		static bool  _CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool);
-	};
+        bool  Preallocate (ArrayView<Pair< DescriptorSetLayoutID, uint >> info) __NE___;
+
+        bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)        __NE_OV;
+        void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)    __NE_OV;
+
+    private:
+        static bool  _CreateDSPool (const VDevice &dev, uint descCount, uint maxDS, OUT VkDescriptorPool &dsPool);
+    };
 
 
 } // AE::Graphics

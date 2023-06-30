@@ -12,11 +12,11 @@ extern int Test_Networking ()
 int main ()
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+    AE::Base::StaticLogger::LoggerDbgScope log{};
 
-	UnitTest_UDP();
-	UnitTest_TCP();
+    UnitTest_UDP();
+    UnitTest_TCP();
 
-	AE_LOGI( "Tests.Network finished" );
-	return 0;
+    AE_LOGI( "Tests.Network finished" );
+    return 0;
 }

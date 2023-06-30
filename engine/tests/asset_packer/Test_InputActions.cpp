@@ -9,127 +9,127 @@
 
 namespace
 {
-	using namespace AE::App;
+    using namespace AE::App;
 
-	const bool						force_update			= true;
-	decltype(&ConvertInputActions)	convert_input_actions	= null;
+    const bool                      force_update            = true;
+    decltype(&ConvertInputActions)  convert_input_actions   = null;
 
 
-	static void  InputActions_Test1 ()
-	{
-		const CharType*		files[]			= { TXT("glfw.as"), TXT("android.as"), TXT("winapi.as") };
-		const Path			output			= TXT("input_actions.bin");
-		const Path			output_script	= TXT( AE_SHARED_DATA "/scripts/input_actions" );
-		const Path			ref_dump_fname	= FileSystem::ToAbsolute( "input_actions_ref.txt" );
-		
-		FileSystem::Remove( output );
+    static void  InputActions_Test1 ()
+    {
+        const CharType*     files[]         = { TXT("glfw.as"), TXT("android.as"), TXT("winapi.as") };
+        const Path          output          = TXT("input_actions.bin");
+        const Path          output_script   = TXT( AE_SHARED_DATA "/scripts/input_actions" );
+        const Path          ref_dump_fname  = FileSystem::ToAbsolute( "input_actions_ref.txt" );
 
-		InputActionsInfo	info = {};
-		info.inFiles			= files;
-		info.inFileCount		= CountOf( files );
-		info.outputPackName		= Cast<CharType>(output.c_str());
-		info.outputScriptFile	= Cast<CharType>(output_script.c_str());
+        FileSystem::Remove( output );
 
-		TEST( convert_input_actions( &info ));
-		
+        InputActionsInfo    info = {};
+        info.inFiles            = files;
+        info.inFileCount        = CountOf( files );
+        info.outputPackName     = Cast<CharType>(output.c_str());
+        info.outputScriptFile   = Cast<CharType>(output_script.c_str());
 
-		auto	file = MakeRC<FileRStream>( output );
-		TEST( file->IsOpen() );
-		
-		auto	mem_stream = MakeRC<MemRStream>();
-		{
-			TEST( mem_stream->LoadRemaining( *file ));
+        TEST( convert_input_actions( &info ));
 
-			uint	name;
-			TEST( mem_stream->Read( OUT name ));
-			TEST_Eq( name, InputActions_Name );
-		}
 
-		Array<uint>	hashes;
-		Array<uint>	offsets;
+        auto    file = MakeRC<FileRStream>( output );
+        TEST( file->IsOpen() );
 
-		{
-			uint	count;
-			TEST( mem_stream->Read( OUT count ));
+        auto    mem_stream = MakeRC<MemRStream>();
+        {
+            TEST( mem_stream->LoadRemaining( *file ));
 
-			TEST( mem_stream->Read( count, hashes ));
-			TEST( mem_stream->Read( count, offsets ));
+            uint    name;
+            TEST( mem_stream->Read( OUT name ));
+            TEST_Eq( name, InputActions_Name );
+        }
 
-			offsets.push_back( uint(mem_stream->Size()) );
-		}
+        Array<uint> hashes;
+        Array<uint> offsets;
 
-		TEST_Eq( hashes.size(), 3 );
+        {
+            uint    count;
+            TEST( mem_stream->Read( OUT count ));
 
-		String	ser_str;
+            TEST( mem_stream->Read( count, hashes ));
+            TEST( mem_stream->Read( count, offsets ));
 
-		for (usize i = 0; i < hashes.size(); ++i)
-		{
-			TEST_Lt( offsets[i], offsets[i+1] );
-			
-			const uint	name = hashes[i];
+            offsets.push_back( uint(mem_stream->Size()) );
+        }
 
-			AE::Serializing::Deserializer	des{ mem_stream->ToSubStream( Bytes{offsets[i]}, Bytes{offsets[i+1] - offsets[i]} )};
-			
-			if ( name == InputActionsAndroid_Name )
-			{
-				SerializableInputActionsAndroid		temp;
-				TEST( temp.Deserialize( des ));
+        TEST_Eq( hashes.size(), 3 );
 
-				#if not AE_OPTIMIZE_IDS
-					ser_str << temp.ToString();
-				#endif
-			}
-			else
-			if ( name == InputActionsGLFW_Name )
-			{
-				SerializableInputActionsGLFW	temp;
-				TEST( temp.Deserialize( des ));
-				
-				#if not AE_OPTIMIZE_IDS
-					ser_str << temp.ToString();
-				#endif
-			}
-			else
-			if ( name == InputActionsWinAPI_Name )
-			{
-				SerializableInputActionsWinAPI	temp;
-				TEST( temp.Deserialize( des ));
-				
-				#if not AE_OPTIMIZE_IDS
-					ser_str << temp.ToString();
-				#endif
-			}
-			else
-				TEST( false );
-			
-			TEST( des.IsEnd() );
-		}
-		
-		#if not AE_OPTIMIZE_IDS
-			TEST( CompareWithDump( ser_str, ref_dump_fname, force_update ));
-		#endif
-	}
+        String  ser_str;
+
+        for (usize i = 0; i < hashes.size(); ++i)
+        {
+            TEST_Lt( offsets[i], offsets[i+1] );
+
+            const uint  name = hashes[i];
+
+            AE::Serializing::Deserializer   des{ mem_stream->ToSubStream( Bytes{offsets[i]}, Bytes{offsets[i+1] - offsets[i]} )};
+
+            if ( name == InputActionsAndroid_Name )
+            {
+                SerializableInputActionsAndroid     temp;
+                TEST( temp.Deserialize( des ));
+
+                #if not AE_OPTIMIZE_IDS
+                    ser_str << temp.ToString();
+                #endif
+            }
+            else
+            if ( name == InputActionsGLFW_Name )
+            {
+                SerializableInputActionsGLFW    temp;
+                TEST( temp.Deserialize( des ));
+
+                #if not AE_OPTIMIZE_IDS
+                    ser_str << temp.ToString();
+                #endif
+            }
+            else
+            if ( name == InputActionsWinAPI_Name )
+            {
+                SerializableInputActionsWinAPI  temp;
+                TEST( temp.Deserialize( des ));
+
+                #if not AE_OPTIMIZE_IDS
+                    ser_str << temp.ToString();
+                #endif
+            }
+            else
+                TEST( false );
+
+            TEST( des.IsEnd() );
+        }
+
+        #if not AE_OPTIMIZE_IDS
+            TEST( CompareWithDump( ser_str, ref_dump_fname, force_update ));
+        #endif
+    }
 }
 
 
 extern void Test_InputActions ()
 {
-	{
-		Path	dll_path{ AE_INPUT_ACTIONS_BINDING_LIBRARY };
-		
-		#ifdef AE_COMPILER_MSVC
-			dll_path.append( CMAKE_INTDIR "/InputActionsBinding-shared.dll" );
-		#else
-			dll_path.append( "InputActionsBinding-shared.so" );
-		#endif
+    {
+        Path    dll_path{ AE_INPUT_ACTIONS_BINDING_LIBRARY };
 
-		Library		lib;
-		TEST( lib.Load( dll_path ));
-		TEST( lib.GetProcAddr( "ConvertInputActions", OUT convert_input_actions ));
-		
-		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/input_actions_test" ));
+        #ifdef AE_COMPILER_MSVC
+            dll_path.append( CMAKE_INTDIR "/InputActionsBinding-shared.dll" );
+        #else
+            dll_path.append( "InputActionsBinding-shared.so" );
+        #endif
 
-		InputActions_Test1();
-	}
-	TEST_PASSED();
+        Library     lib;
+        TEST( lib.Load( dll_path ));
+        TEST( lib.GetProcAddr( "ConvertInputActions", OUT convert_input_actions ));
+
+        TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/input_actions_test" ));
+
+        InputActions_Test1();
+    }
+    TEST_PASSED();
 }

@@ -6,29 +6,29 @@
 
 namespace AE::AppV2
 {
-	using namespace AE::Base;
+    using namespace AE::Base;
 
 
-	//
-	// View Mode interface
-	//
+    //
+    // View Mode interface
+    //
 
-	class IViewMode : public EnableRC<IViewMode>
-	{
-	// types
-	public:
-		using InputModeName		= App::InputModeName;
-		using ActionQueueReader = App::IInputActions::ActionQueueReader;
-		using IOutputSurface	= App::IOutputSurface;
-		using AsyncTask			= Threading::AsyncTask;
+    class IViewMode : public EnableRC<IViewMode>
+    {
+    // types
+    public:
+        using InputModeName     = App::InputModeName;
+        using ActionQueueReader = App::IInputActions::ActionQueueReader;
+        using IOutputSurface    = App::IOutputSurface;
+        using AsyncTask         = Threading::AsyncTask;
 
 
-	// interface
-	public:
-		ND_ virtual AsyncTask		Update (const ActionQueueReader &, ArrayView<AsyncTask> deps)	__NE___ = 0;
-		ND_ virtual AsyncTask		Draw (Ptr<IOutputSurface>, ArrayView<AsyncTask> deps)			__NE___ = 0;
-		ND_ virtual InputModeName	GetInputMode ()													C_NE___ = 0;
-	};
+    // interface
+    public:
+        ND_ virtual AsyncTask       Update (const ActionQueueReader &, ArrayView<AsyncTask> deps)   __NE___ = 0;
+        ND_ virtual AsyncTask       Draw (Ptr<IOutputSurface>, ArrayView<AsyncTask> deps)           __NE___ = 0;
+        ND_ virtual InputModeName   GetInputMode ()                                                 C_NE___ = 0;
+    };
 
 
 } // AE::AppV2

@@ -6,57 +6,57 @@ using namespace AE::Threading;
 
 namespace
 {
-	static void  LfIndexedPool3_Test1 ()
-	{
-		using T = DebugInstanceCounter< usize, 1 >;
-	
-		T::ClearStatistic();
-		{
-			constexpr uint							count = 1u << 10;
-			LfIndexedPool3< T, uint, count/16, 16 >	pool;
-			Array<uint>								indices;
-	
-			indices.reserve( count );
+    static void  LfIndexedPool3_Test1 ()
+    {
+        using T = DebugInstanceCounter< usize, 1 >;
 
-			for (usize i = 0; i < count+100; ++i)
-			{
-				uint	idx = UMax;
+        T::ClearStatistic();
+        {
+            constexpr uint                          count = 1u << 10;
+            LfIndexedPool3< T, uint, count/16, 16 > pool;
+            Array<uint>                             indices;
 
-				if ( pool.Assign( OUT idx ))
-				{
-					TEST( i < count );
-					TEST( pool.IsAssigned( idx ));
+            indices.reserve( count );
 
-					pool[idx] = T{i};
+            for (usize i = 0; i < count+100; ++i)
+            {
+                uint    idx = UMax;
 
-					indices.push_back( idx );
-				}
-				else
-				{
-					TEST( i >= count );
-					TEST( not pool.IsAssigned( idx ));
-				}
-			}
+                if ( pool.Assign( OUT idx ))
+                {
+                    TEST( i < count );
+                    TEST( pool.IsAssigned( idx ));
 
-			//TEST( pool.size() == count );
-			TEST( indices.size() == count );
-	
-			for (uint idx : indices)
-			{
-				pool.Unassign( idx );
-				TEST( not pool.IsAssigned( idx ));
-			}
+                    pool[idx] = T{i};
 
-			//TEST( pool.empty() );
-		}
-		TEST( T::CheckStatistic() );
-	}
+                    indices.push_back( idx );
+                }
+                else
+                {
+                    TEST( i >= count );
+                    TEST( not pool.IsAssigned( idx ));
+                }
+            }
+
+            //TEST( pool.size() == count );
+            TEST( indices.size() == count );
+
+            for (uint idx : indices)
+            {
+                pool.Unassign( idx );
+                TEST( not pool.IsAssigned( idx ));
+            }
+
+            //TEST( pool.empty() );
+        }
+        TEST( T::CheckStatistic() );
+    }
 }
 
 
 extern void UnitTest_LfIndexedPool3 ()
 {
-	LfIndexedPool3_Test1();
+    LfIndexedPool3_Test1();
 
-	TEST_PASSED();
+    TEST_PASSED();
 }

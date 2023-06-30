@@ -10,20 +10,20 @@
 namespace AE::Graphics
 {
 
-	//
-	// Metal Linear Descriptor Allocator
-	//
+    //
+    // Metal Linear Descriptor Allocator
+    //
 
-	class MLinearDescriptorAllocator final : public IDescriptorAllocator
-	{
-	// methods
-	public:
-		MLinearDescriptorAllocator ()										__NE___ {}
-		~MLinearDescriptorAllocator ()										__NE_OV {}
+    class MLinearDescriptorAllocator final : public IDescriptorAllocator
+    {
+    // methods
+    public:
+        MLinearDescriptorAllocator ()                                       __NE___ {}
+        ~MLinearDescriptorAllocator ()                                      __NE_OV {}
 
-		bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)	__NE_OV;
-		void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)__NE_OV;
-	};
+        bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)    __NE_OV;
+        void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)__NE_OV;
+    };
 
 
 } // AE::Graphics

@@ -7,9 +7,9 @@
 #include "base/Utils/Helpers.h"
 
 #ifdef AE_PLATFORM_WINDOWS
-#	define AE_SYNC_EVENT_MODE	1
+#   define AE_SYNC_EVENT_MODE   1
 #else
-#	define AE_SYNC_EVENT_MODE	1
+#   define AE_SYNC_EVENT_MODE   1
 #endif
 
 
@@ -18,51 +18,51 @@
 namespace AE::Threading
 {
 
-	//
-	// Synchronization Event (WinAPI)
-	//
+    //
+    // Synchronization Event (WinAPI)
+    //
 
-	struct SyncEvent : public Noncopyable
-	{
-	//types
-	public:
-		enum class EFlags
-		{
-			ManualReset			= 0,
-			AutoReset			= 1 << 0,
-			InitStateSignaled	= 1 << 2,
-		};
+    struct SyncEvent : public Noncopyable
+    {
+    //types
+    public:
+        enum class EFlags
+        {
+            ManualReset         = 0,
+            AutoReset           = 1 << 0,
+            InitStateSignaled   = 1 << 2,
+        };
 
 
-	// variables
-	private:
-		void*	_event	= null;
-		
+    // variables
+    private:
+        void*   _event  = null;
 
-	// methods
-	public:
-		explicit SyncEvent (EFlags flags = EFlags::AutoReset) __NE___;
-		~SyncEvent ()		__NE___;
 
-		void  Signal ()		__NE___;
-		void  Reset ()		__NE___;
-		
-		void  Wait ()		__NE___	{ return void( _Wait( UMax )); }
+    // methods
+    public:
+        explicit SyncEvent (EFlags flags = EFlags::AutoReset) __NE___;
+        ~SyncEvent ()       __NE___;
 
-		ND_ bool  Test ()	__NE___	{ return _Wait(0); }
-		
-		template <typename Rep, typename Period>
-		ND_ bool  Wait (const std::chrono::duration<Rep, Period>& timeout) __NE___
-		{
-			constexpr uint	MaxTimeout	= UMax;
-			const auto		dt			= Cast<milliseconds>( timeout ).count();
+        void  Signal ()     __NE___;
+        void  Reset ()      __NE___;
 
-			return _Wait( dt > MaxTimeout ? MaxTimeout : uint(dt) );
-		}
+        void  Wait ()       __NE___ { return void( _Wait( UMax )); }
 
-	private:
-		ND_ bool  _Wait (uint timeout) __NE___;
-	};
+        ND_ bool  Test ()   __NE___ { return _Wait(0); }
+
+        template <typename Rep, typename Period>
+        ND_ bool  Wait (const std::chrono::duration<Rep, Period>& timeout) __NE___
+        {
+            constexpr uint  MaxTimeout  = UMax;
+            const auto      dt          = Cast<milliseconds>( timeout ).count();
+
+            return _Wait( dt > MaxTimeout ? MaxTimeout : uint(dt) );
+        }
+
+    private:
+        ND_ bool  _Wait (uint timeout) __NE___;
+    };
 
 } // AE::Threading
 //-----------------------------------------------------------------------------
@@ -73,89 +73,89 @@ namespace AE::Threading
 namespace AE::Threading
 {
 
-	//
-	// Synchronization Event
-	//
+    //
+    // Synchronization Event
+    //
 
-	struct SyncEvent : public Noncopyable
-	{
-	//types
-	public:
-		enum class EFlags
-		{
-			ManualReset			= 0,
-			AutoReset			= 1 << 0,
-			InitStateSignaled	= 1 << 2,
-		};
-
-
-	// variables
-	private:
-		ConditionVariable	_cv;
-		Mutex				_mutex;
-		bool				_autoReset : 1;
-		bool				_triggered : 1;
+    struct SyncEvent : public Noncopyable
+    {
+    //types
+    public:
+        enum class EFlags
+        {
+            ManualReset         = 0,
+            AutoReset           = 1 << 0,
+            InitStateSignaled   = 1 << 2,
+        };
 
 
-	// methods
-	public:
-		explicit SyncEvent (EFlags flags = EFlags::AutoReset) __NE___ :
-			_autoReset{ AllBits( flags, EFlags::AutoReset )},
-			_triggered{ AllBits( flags, EFlags::InitStateSignaled )}
-		{}
+    // variables
+    private:
+        ConditionVariable   _cv;
+        Mutex               _mutex;
+        bool                _autoReset : 1;
+        bool                _triggered : 1;
 
-		void  Signal ()		__NE___
-		{
-			EXLOCK( _mutex );
-			_triggered = true;
-			_autoReset ? _cv.notify_one() : _cv.notify_all();
-		}
 
-		void  Reset ()		__NE___
-		{
-			EXLOCK( _mutex );
-			_triggered = false;
-		}
+    // methods
+    public:
+        explicit SyncEvent (EFlags flags = EFlags::AutoReset) __NE___ :
+            _autoReset{ AllBits( flags, EFlags::AutoReset )},
+            _triggered{ AllBits( flags, EFlags::InitStateSignaled )}
+        {}
 
-		void  Wait ()		__NE___
-		{
-			std::unique_lock lock{ _mutex };
+        void  Signal ()     __NE___
+        {
+            EXLOCK( _mutex );
+            _triggered = true;
+            _autoReset ? _cv.notify_one() : _cv.notify_all();
+        }
 
-			while ( not _triggered ) {
-				_cv.wait( lock );
-			}
+        void  Reset ()      __NE___
+        {
+            EXLOCK( _mutex );
+            _triggered = false;
+        }
 
-			if ( _autoReset )
-				_triggered = false;
-		}
+        void  Wait ()       __NE___
+        {
+            std::unique_lock lock{ _mutex };
 
-		ND_ bool  Test ()	__NE___
-		{
-			EXLOCK( _mutex );
-			return _triggered;
-		}
+            while ( not _triggered ) {
+                _cv.wait( lock );
+            }
 
-		template <typename Rep, typename Period>
-		ND_ bool  Wait (const std::chrono::duration<Rep, Period>& timeout) __NE___
-		{
-			bool	res = false;
-			
-			std::unique_lock lock{ _mutex };
+            if ( _autoReset )
+                _triggered = false;
+        }
 
-			if ( not _triggered )
-			{
-				res = _cv.wait_for( lock, timeout );
+        ND_ bool  Test ()   __NE___
+        {
+            EXLOCK( _mutex );
+            return _triggered;
+        }
 
-				if ( not _triggered )
-					res = false;
-			}
-			
-			if ( res and _autoReset )
-				_triggered = false;
-			
-			return res;
-		}
-	};
+        template <typename Rep, typename Period>
+        ND_ bool  Wait (const std::chrono::duration<Rep, Period>& timeout) __NE___
+        {
+            bool    res = false;
+
+            std::unique_lock lock{ _mutex };
+
+            if ( not _triggered )
+            {
+                res = _cv.wait_for( lock, timeout );
+
+                if ( not _triggered )
+                    res = false;
+            }
+
+            if ( res and _autoReset )
+                _triggered = false;
+
+            return res;
+        }
+    };
 
 } // AE::Threading
 

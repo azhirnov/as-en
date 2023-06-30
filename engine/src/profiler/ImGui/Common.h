@@ -15,11 +15,11 @@
 
 namespace AE::Profiler
 {
-	using namespace AE::Base;
-	
-	#if AE_ENABLE_DATA_RACE_CHECK
-	using AE::Threading::DataRaceCheck;
-	#endif
+    using namespace AE::Base;
+
+    #if AE_ENABLE_DATA_RACE_CHECK
+    using AE::Threading::DataRaceCheck;
+    #endif
 
 } // AE::Profiler
 

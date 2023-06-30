@@ -4,19 +4,19 @@
 
 namespace
 {
-	static void  Test_LimitCast ()
-	{
-		TEST( LimitCast<ushort>( uint(~0u) ) == 0xFFFF );
-		TEST( LimitCast<ushort>( int(-1) ) == 0 );
-		
-		TEST( LimitCast<uint>( 1_Gb ) == (1u << 30) );
-	}
+    static void  Test_LimitCast ()
+    {
+        TEST( LimitCast<ushort>( uint(~0u) ) == 0xFFFF );
+        TEST( LimitCast<ushort>( int(-1) ) == 0 );
+
+        TEST( LimitCast<uint>( 1_Gb ) == (1u << 30) );
+    }
 }
 
 
 extern void UnitTest_Cast ()
 {
-	Test_LimitCast();
+    Test_LimitCast();
 
-	TEST_PASSED();
+    TEST_PASSED();
 }

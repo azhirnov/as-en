@@ -8,109 +8,109 @@
 namespace AE::App
 {
 
-	//
-	// VR Device interface
-	//
+    //
+    // VR Device interface
+    //
 
-	class IVRDevice
-	{
-	// types
-	public:
-		// states:
-		//   Started		- HMD is turned ON
-		//   InBackground	- HMD is active but not mounted
-		//   InForeground	- HMD is mounted
+    class IVRDevice
+    {
+    // types
+    public:
+        // states:
+        //   Started        - HMD is turned ON
+        //   InBackground   - HMD is active but not mounted
+        //   InForeground   - HMD is mounted
 
-		using EState = IWindow::EState;
+        using EState = IWindow::EState;
 
-		class IVRDeviceEventListener
-		{
-		// types
-		public:
-			using EState = IWindow::EState;
+        class IVRDeviceEventListener
+        {
+        // types
+        public:
+            using EState = IWindow::EState;
 
-		// interface
-		public:
-			virtual ~IVRDeviceEventListener ()							__NE___	{}
+        // interface
+        public:
+            virtual ~IVRDeviceEventListener ()                          __NE___ {}
 
-			virtual void  OnUpdate (IVRDevice &vr)						__NE___	= 0;
-			virtual void  OnStateChanged (IVRDevice &vr, EState state)	__NE___	= 0;
-		};
-
-
-		struct Settings
-		{
-			// TODO: stand/seat position
-			packed_float2	cameraClipPlanes;
-		};
+            virtual void  OnUpdate (IVRDevice &vr)                      __NE___ = 0;
+            virtual void  OnStateChanged (IVRDevice &vr, EState state)  __NE___ = 0;
+        };
 
 
-		struct VRImageDesc
-		{
-			uint2			dimension;
-			EPixelFormat	format		= Default;
-			EImageUsage		usage		= EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;
-			MultiSamples	samples;
-		};
-
-		enum class EDeviceType : ubyte
-		{
-			Unknown,
-			Emulator,
-			OpenVR,
-			OpenXR,
-		};
+        struct Settings
+        {
+            // TODO: stand/seat position
+            packed_float2   cameraClipPlanes;
+        };
 
 
-	// interface
-	public:
+        struct VRImageDesc
+        {
+            uint2           dimension;
+            EPixelFormat    format      = Default;
+            EImageUsage     usage       = EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;
+            MultiSamples    samples;
+        };
 
-		// Terminate VR device.
-		//   Thread safe: yes
-		//
-			virtual void  Terminate ()									__NE___	= 0;
-		
-			
-		// Change VR device settings.
-		//   Thread safe: yes ???
-		//
-		ND_	virtual bool  Setup (const Settings &)						__NE___	= 0;
-		
-
-		// Returns current state.
-		//   Thread safe: no
-		//
-		ND_ virtual EState  GetState ()									C_NE___ = 0;
+        enum class EDeviceType : ubyte
+        {
+            Unknown,
+            Emulator,
+            OpenVR,
+            OpenXR,
+        };
 
 
-		// Returns input actions class.
-		//   Thread safe: yes
-		//
-		ND_ virtual IInputActions&  InputActions ()						__NE___	= 0;
-		
+    // interface
+    public:
 
-		// Returns VR API name.
-		//   Thread safe: yes
-		//
-		ND_ virtual StringView  GetApiName ()							C_NE___ = 0;
-
-		// TODO: load controller model
+        // Terminate VR device.
+        //   Thread safe: yes
+        //
+            virtual void  Terminate ()                                  __NE___ = 0;
 
 
-	// surface api
-		
-		// Create or recreate rendering surface (swapchain).
-		//   Thread safe: main thread only, must be synchronized with 'GetSurface()'
-		//
-		ND_ virtual bool  CreateRenderSurface (const VRImageDesc &desc)	__NE___	= 0;
-		
-		
-		// Returns render surface reference.
-		// Surface must be successfully created using 'CreateRenderSurface()'.
-		//   Thread safe: must be synchronized with 'CreateRenderSurface()'
-		//
-		ND_ virtual IOutputSurface&  GetSurface ()						__NE___	= 0;
-	};
+        // Change VR device settings.
+        //   Thread safe: yes ???
+        //
+        ND_ virtual bool  Setup (const Settings &)                      __NE___ = 0;
+
+
+        // Returns current state.
+        //   Thread safe: no
+        //
+        ND_ virtual EState  GetState ()                                 C_NE___ = 0;
+
+
+        // Returns input actions class.
+        //   Thread safe: yes
+        //
+        ND_ virtual IInputActions&  InputActions ()                     __NE___ = 0;
+
+
+        // Returns VR API name.
+        //   Thread safe: yes
+        //
+        ND_ virtual StringView  GetApiName ()                           C_NE___ = 0;
+
+        // TODO: load controller model
+
+
+    // surface api
+
+        // Create or recreate rendering surface (swapchain).
+        //   Thread safe: main thread only, must be synchronized with 'GetSurface()'
+        //
+        ND_ virtual bool  CreateRenderSurface (const VRImageDesc &desc) __NE___ = 0;
+
+
+        // Returns render surface reference.
+        // Surface must be successfully created using 'CreateRenderSurface()'.
+        //   Thread safe: must be synchronized with 'CreateRenderSurface()'
+        //
+        ND_ virtual IOutputSurface&  GetSurface ()                      __NE___ = 0;
+    };
 
 
 } // AE::App

@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Input surface can be:
-		- camera
-		- video stream
+    Input surface can be:
+        - camera
+        - video stream
 */
 
 #pragma once
@@ -12,17 +12,17 @@
 namespace AE::App
 {
 
-	//
-	// Input Surface
-	//
+    //
+    // Input Surface
+    //
 
-	class IInputSurface
-	{
-	// interface
-	public:
-		virtual ~IInputSurface () {}
+    class IInputSurface
+    {
+    // interface
+    public:
+        virtual ~IInputSurface () {}
 
-	};
+    };
 
 
 } // AE::App

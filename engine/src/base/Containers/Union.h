@@ -6,73 +6,73 @@
 
 namespace AE::Base
 {
-	namespace _hidden_
-	{
-		template <typename... Types>	struct overloaded final : Types... { using Types::operator()...; };
+    namespace _hidden_
+    {
+        template <typename... Types>    struct overloaded final : Types... { using Types::operator()...; };
 
-		template <typename... Types>	overloaded (Types...) -> overloaded<Types...>;
-	}
+        template <typename... Types>    overloaded (Types...) -> overloaded<Types...>;
+    }
 
-	template <typename ...Types>	using Union			= std::variant< Types... >;
-									using NullUnion		= std::monostate;
+    template <typename ...Types>    using Union         = std::variant< Types... >;
+                                    using NullUnion     = std::monostate;
 
 
-	// Union -> TypeList
-	template <typename... Types>
-	struct TypeList< std::variant<Types...> > final : TypeList< Types... >
-	{};
+    // Union -> TypeList
+    template <typename... Types>
+    struct TypeList< std::variant<Types...> > final : TypeList< Types... >
+    {};
 
 /*
 =================================================
-	Visit
+    Visit
 =================================================
 */
-	template <typename ...Types, typename ...Funcs>
-	forceinline constexpr decltype(auto)  Visit (Union<Types...> &un, Funcs&&... fn) noexcept(AllNothrowInvocable< Funcs... >)
-	{
-		using namespace Base::_hidden_;
-		return std::visit( overloaded{ FwdArg<Funcs &&>(fn)... }, un );
-	}
+    template <typename ...Types, typename ...Funcs>
+    forceinline constexpr decltype(auto)  Visit (Union<Types...> &un, Funcs&&... fn) noexcept(AllNothrowInvocable< Funcs... >)
+    {
+        using namespace Base::_hidden_;
+        return std::visit( overloaded{ FwdArg<Funcs &&>(fn)... }, un );
+    }
 
-	template <typename ...Types, typename ...Funcs>
-	forceinline constexpr decltype(auto)  Visit (const Union<Types...> &un, Funcs&&... fn) noexcept(AllNothrowInvocable< Funcs... >)
-	{
-		using namespace Base::_hidden_;
-		return std::visit( overloaded{ FwdArg<Funcs &&>(fn)... }, un );
-	}
-	
+    template <typename ...Types, typename ...Funcs>
+    forceinline constexpr decltype(auto)  Visit (const Union<Types...> &un, Funcs&&... fn) noexcept(AllNothrowInvocable< Funcs... >)
+    {
+        using namespace Base::_hidden_;
+        return std::visit( overloaded{ FwdArg<Funcs &&>(fn)... }, un );
+    }
+
 /*
 =================================================
-	HoldsAlternative
+    HoldsAlternative
 =================================================
 */
-	template <typename T, typename ...Types>
-	ND_ forceinline constexpr bool  HoldsAlternative (const Union<Types...> &un) __NE___
-	{
-		return std::holds_alternative<T>( un );
-	}
+    template <typename T, typename ...Types>
+    ND_ forceinline constexpr bool  HoldsAlternative (const Union<Types...> &un) __NE___
+    {
+        return std::holds_alternative<T>( un );
+    }
 
-	template <typename ...Types>
-	ND_ forceinline constexpr bool  IsNullUnion (const Union<Types...> &un) __NE___
-	{
-		return std::holds_alternative< NullUnion >( un );
-	}
-	
+    template <typename ...Types>
+    ND_ forceinline constexpr bool  IsNullUnion (const Union<Types...> &un) __NE___
+    {
+        return std::holds_alternative< NullUnion >( un );
+    }
+
 /*
 =================================================
-	UnionGet
+    UnionGet
 =================================================
 */
-	template <typename T, typename ...Types>
-	ND_ forceinline constexpr T*  UnionGet (Union<Types...> &un) __NE___
-	{
-		return std::get_if<T>( &un );
-	}
-	
-	template <typename T, typename ...Types>
-	ND_ forceinline constexpr T const*  UnionGet (const Union<Types...> &un) __NE___
-	{
-		return std::get_if<T>( &un );
-	}
+    template <typename T, typename ...Types>
+    ND_ forceinline constexpr T*  UnionGet (Union<Types...> &un) __NE___
+    {
+        return std::get_if<T>( &un );
+    }
+
+    template <typename T, typename ...Types>
+    ND_ forceinline constexpr T const*  UnionGet (const Union<Types...> &un) __NE___
+    {
+        return std::get_if<T>( &un );
+    }
 
 } // AE::Base

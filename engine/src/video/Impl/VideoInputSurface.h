@@ -7,13 +7,13 @@
 namespace AE::Video
 {
 
-	//
-	// Video Input Surface
-	//
+    //
+    // Video Input Surface
+    //
 
-	class VideoInputSurface final : public IInputSurface
-	{
-	};
+    class VideoInputSurface final : public IInputSurface
+    {
+    };
 
 
 } // AE::Video

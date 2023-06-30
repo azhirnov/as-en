@@ -17,7 +17,7 @@
 #include <vector>
 #include <string>
 #include <array>
-#include <memory>		// shared_ptr, weak_ptr, unique_ptr
+#include <memory>       // shared_ptr, weak_ptr, unique_ptr
 #include <deque>
 #include <unordered_set>
 #include <unordered_map>
@@ -49,7 +49,7 @@
 
 #ifdef __has_include
 # if __has_include(<bit>)
-#	include <bit>
+#   include <bit>
 # endif
 #endif
 
@@ -58,8 +58,8 @@
 # pragma intrinsic( _BitScanForward, _BitScanReverse )
 # pragma intrinsic( __popcnt16, __popcnt )
 # if AE_PLATFORM_BITS == 64
-#	pragma intrinsic( _BitScanForward64, _BitScanReverse64 )
-#	pragma intrinsic( __popcnt64 )
+#   pragma intrinsic( _BitScanForward64, _BitScanReverse64 )
+#   pragma intrinsic( __popcnt64 )
 # endif
 #endif
 

@@ -6,7 +6,7 @@ set_property( TARGET "Video" PROPERTY FOLDER "Engine" )
 target_link_libraries( "Video" PUBLIC "Platform" )
 
 if (${AE_ENABLE_FFMPEG})
-	target_link_libraries( "Video" PUBLIC "FFmpeg-lib" )
+    target_link_libraries( "Video" PUBLIC "FFmpeg-lib" )
 endif()
 
 install( TARGETS "Video" ARCHIVE DESTINATION "lib" )

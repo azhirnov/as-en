@@ -8,56 +8,56 @@
 namespace AE::App
 {
 
-	//
-	// VR Render Surface
-	//
+    //
+    // VR Render Surface
+    //
 
-	class VRSurface : public IOutputSurface
-	{
-	// types
-	private:
-		using Images_t		= StaticArray< Strong< ImageID >, 2 >;
-		using ImageViews_t	= StaticArray< Strong< ImageViewID >, 2 >;
-		using VRImageDesc	= IVRDevice::VRImageDesc;
-
-
-
-	// variables
-	protected:
-		mutable RecursiveMutex	_guard;
-
-		Images_t				_images;
-		ImageViews_t			_views;
-		
-		VRImageDesc				_desc;
-
-		bool					_submitted		= true;
-
-		static constexpr auto	_targetType		= ETargetType::Final3D;
+    class VRSurface : public IOutputSurface
+    {
+    // types
+    private:
+        using Images_t      = StaticArray< Strong< ImageID >, 2 >;
+        using ImageViews_t  = StaticArray< Strong< ImageViewID >, 2 >;
+        using VRImageDesc   = IVRDevice::VRImageDesc;
 
 
-	// methods
-	public:
-		VRSurface ()											__NE___;
-		~VRSurface ()											__NE___;
 
-		ND_ bool  Create (const VRImageDesc &desc)				__NE___;
-			void  Destroy ()									__NE___;
+    // variables
+    protected:
+        mutable RecursiveMutex  _guard;
+
+        Images_t                _images;
+        ImageViews_t            _views;
+
+        VRImageDesc             _desc;
+
+        bool                    _submitted      = true;
+
+        static constexpr auto   _targetType     = ETargetType::Final3D;
 
 
-	// IOutputSurface //
-		bool			IsInitialized ()						C_NE_OV;
-		RenderPassInfo	GetRenderPassInfo ()					C_NE_OV;
-		bool			SetSurfaceMode (const SurfaceInfo &)	__NE_OV	{ return false; }
+    // methods
+    public:
+        VRSurface ()                                            __NE___;
+        ~VRSurface ()                                           __NE___;
 
-		bool			GetTargets (OUT RenderTargets_t &)		C_NE_OV;
+        ND_ bool  Create (const VRImageDesc &desc)              __NE___;
+            void  Destroy ()                                    __NE___;
 
-		AllImages_t			GetAllImages ()						C_NE_OV;
-		TargetSizes_t		GetTargetSizes ()					C_NE_OV	{ return Default; }
-		SurfaceFormats_t	GetSurfaceFormats ()				C_NE_OV	{ return Default; }
-		PresentModes_t		GetPresentModes ()					C_NE_OV	{ return Default; }
-		SurfaceInfo			GetSurfaceInfo ()					C_NE_OV	{ return Default; }
-	};
+
+    // IOutputSurface //
+        bool            IsInitialized ()                        C_NE_OV;
+        RenderPassInfo  GetRenderPassInfo ()                    C_NE_OV;
+        bool            SetSurfaceMode (const SurfaceInfo &)    __NE_OV { return false; }
+
+        bool            GetTargets (OUT RenderTargets_t &)      C_NE_OV;
+
+        AllImages_t         GetAllImages ()                     C_NE_OV;
+        TargetSizes_t       GetTargetSizes ()                   C_NE_OV { return Default; }
+        SurfaceFormats_t    GetSurfaceFormats ()                C_NE_OV { return Default; }
+        PresentModes_t      GetPresentModes ()                  C_NE_OV { return Default; }
+        SurfaceInfo         GetSurfaceInfo ()                   C_NE_OV { return Default; }
+    };
 
 
 } // AE::App

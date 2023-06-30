@@ -4,187 +4,187 @@
 
 namespace
 {
-	struct US2_TestData
-	{
-		GAutorelease<ImageID>		image;
-		ImageMemView				imageData;
-		const uint2					dimension	{1u << 12};
-		CommandBatchPtr				batch;
-		RC<GfxLinearMemAllocator>	gfxAlloc;
-		ImageStream					stream;
-		Atomic<uint>				counter		{0};
-	};
+    struct US2_TestData
+    {
+        GAutorelease<ImageID>       image;
+        ImageMemView                imageData;
+        const uint2                 dimension   {1u << 12};
+        CommandBatchPtr             batch;
+        RC<GfxLinearMemAllocator>   gfxAlloc;
+        ImageStream                 stream;
+        Atomic<uint>                counter     {0};
+    };
 
-	static constexpr Bytes	upload_limit = 1_Mb;
+    static constexpr Bytes  upload_limit = 1_Mb;
 
 
-	class US2_UploadStreamTask final : public RenderTask
-	{
-	public:
-		US2_TestData&	t;
+    class US2_UploadStreamTask final : public RenderTask
+    {
+    public:
+        US2_TestData&   t;
 
-		US2_UploadStreamTask (US2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
-			RenderTask{ RVRef(batch), dbg }, t{ t }
-		{}
+        US2_UploadStreamTask (US2_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+            RenderTask{ RVRef(batch), dbg }, t{ t }
+        {}
 
-		void  Run () __Th_OV
-		{
-			DirectCtx::Transfer	ctx{ *this };
+        void  Run () __Th_OV
+        {
+            DirectCtx::Transfer ctx{ *this };
 
-			const uint3	pos = uint3{ 0u, t.stream.posYZ };
-			
-			if ( t.counter.fetch_add(1) == 0 )
-			{
-				ctx.AccumBarriers()
-					.ImageBarrier( t.stream.Image(), EResourceState::Invalidate, EResourceState::CopyDst );
-			}
+            const uint3 pos = uint3{ 0u, t.stream.posYZ };
 
-			ImageMemView	mem_view;
-			ctx.UploadImage( INOUT t.stream, OUT mem_view );
+            if ( t.counter.fetch_add(1) == 0 )
+            {
+                ctx.AccumBarriers()
+                    .ImageBarrier( t.stream.Image(), EResourceState::Invalidate, EResourceState::CopyDst );
+            }
 
-			Bytes	copied;
-			CHECK_TE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
-					  copied == mem_view.Image2DSize() );
+            ImageMemView    mem_view;
+            ctx.UploadImage( INOUT t.stream, OUT mem_view );
 
-			Execute( ctx );
-			
-			const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
-			ASSERT( stat.dynamicWrite <= upload_limit );
-		}
-	};
-	
+            Bytes   copied;
+            CHECK_TE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
+                      copied == mem_view.Image2DSize() );
 
-	class US2_FrameTask final : public Threading::IAsyncTask
-	{
-	public:
-		US2_TestData&	t;
+            Execute( ctx );
 
-		US2_FrameTask (US2_TestData& t) :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			t{ t }
-		{}
+            const auto  stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
+            ASSERT( stat.dynamicWrite <= upload_limit );
+        }
+    };
 
-		void  Run () __Th_OV
-		{
-			if ( t.stream.IsCompleted() )
-				return;
 
-			auto&	rts = RenderTaskScheduler();
-			
-			BeginFrameConfig	cfg;
-			cfg.stagingBufferPerFrameLimits.write = upload_limit;
+    class US2_FrameTask final : public Threading::IAsyncTask
+    {
+    public:
+        US2_TestData&   t;
 
-			AsyncTask	begin = rts.BeginFrame( cfg );
+        US2_FrameTask (US2_TestData& t) :
+            IAsyncTask{ ETaskQueue::PerFrame },
+            t{ t }
+        {}
 
-			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream2"} );
-			CHECK_TE( t.batch );
-			
-		#ifdef AE_HAS_COROUTINE
-			AsyncTask	test = t.batch->Run(
-				[] (US2_TestData &t) -> RenderTaskCoro
-				{
-					CHECK( not co_await Coro_IsCanceled );
-					CHECK( (co_await Coro_Status) == EStatus::InProgress );
-					CHECK( (co_await Coro_TaskQueue) == ETaskQueue::Renderer );
+        void  Run () __Th_OV
+        {
+            if ( t.stream.IsCompleted() )
+                return;
 
-					// same as 'US2_UploadStreamTask'
-					RenderTask&		self = co_await RenderTask_GetRef;
+            auto&   rts = RenderTaskScheduler();
 
-					DirectCtx::Transfer	ctx{ self };
+            BeginFrameConfig    cfg;
+            cfg.stagingBufferPerFrameLimits.write = upload_limit;
 
-					const uint3	pos = uint3{ 0u, t.stream.posYZ };
-			
-					if ( t.counter.fetch_add(1) == 0 )
-					{
-						ctx.AccumBarriers()
-							.ImageBarrier( t.stream.Image(), EResourceState::Invalidate, EResourceState::CopyDst );
-					}
+            AsyncTask   begin = rts.BeginFrame( cfg );
 
-					ImageMemView	mem_view;
-					ctx.UploadImage( INOUT t.stream, OUT mem_view );
+            t.batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream2"} );
+            CHECK_TE( t.batch );
 
-					Bytes	copied;
-					CHECK_CE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
-							  copied == mem_view.Image2DSize() );
+        #ifdef AE_HAS_COROUTINE
+            AsyncTask   test = t.batch->Run(
+                [] (US2_TestData &t) -> RenderTaskCoro
+                {
+                    CHECK( not co_await Coro_IsCanceled );
+                    CHECK( (co_await Coro_Status) == EStatus::InProgress );
+                    CHECK( (co_await Coro_TaskQueue) == ETaskQueue::Renderer );
 
-					co_await RenderTask_Execute( ctx );
-			
-					const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( self.GetFrameId() );
-					ASSERT( stat.dynamicWrite <= upload_limit );
-					
-					co_return;
-				}( t ),
-				Tuple{begin}, True{"Last"}, {"test task"} );
-		#else
-			AsyncTask	test = t.batch->Run< US2_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
-		#endif
+                    // same as 'US2_UploadStreamTask'
+                    RenderTask&     self = co_await RenderTask_GetRef;
 
-			AsyncTask	end = rts.EndFrame( Tuple{test} );
+                    DirectCtx::Transfer ctx{ self };
 
-			return Continue( Tuple{end} );
-		}
+                    const uint3 pos = uint3{ 0u, t.stream.posYZ };
 
-		StringView  DbgName ()	C_NE_OV	{ return "US2_FrameTask"; }
-	};
+                    if ( t.counter.fetch_add(1) == 0 )
+                    {
+                        ctx.AccumBarriers()
+                            .ImageBarrier( t.stream.Image(), EResourceState::Invalidate, EResourceState::CopyDst );
+                    }
 
-	
-	static bool  UploadStream2Test ()
-	{
-		auto&			rts			= RenderTaskScheduler();
-		auto&			res_mngr	= rts.GetResourceManager();
-		Array<ubyte>	img_data;
-		US2_TestData	t;
-		const Bytes		bpp				= 4_b;
-		const Bytes		src_row_pitch	= t.dimension.x * bpp;
-		const auto		format			= EPixelFormat::RGBA8_UNorm;
-		
-		t.gfxAlloc	= MakeRC<GfxLinearMemAllocator>();
-		t.image		= res_mngr.CreateImage( ImageDesc{}.SetDimension( t.dimension ).SetFormat( format ).SetUsage( EImageUsage::Transfer ), "image", t.gfxAlloc );
-		CHECK_ERR( t.image );
-	
-		img_data.resize( usize(src_row_pitch * t.dimension.y) );
-		for (uint y = 0; y < t.dimension.y; ++y)
-		{
-			for (uint x = 0; x < t.dimension.x; ++x)
-			{
-				ubyte*	ptr = &img_data[ usize(x * bpp + y * src_row_pitch) ];
+                    ImageMemView    mem_view;
+                    ctx.UploadImage( INOUT t.stream, OUT mem_view );
 
-				ptr[0] = ubyte(x);
-				ptr[1] = ubyte(y);
-				ptr[2] = ubyte(Max( x, y ));
-				ptr[3] = 0;
-			}
-		}
-		
-		t.imageData = ImageMemView{ img_data, uint3{}, uint3{t.dimension, 0}, 0_b, 0_b, format, EImageAspect::Color };
+                    Bytes   copied;
+                    CHECK_CE( mem_view.Copy( uint3{0}, pos, t.imageData, mem_view.Dimension(), OUT copied ) and
+                              copied == mem_view.Image2DSize() );
 
-		UploadImageDesc	upload_desc;
-		upload_desc.imageSize	= uint3{t.dimension, 1u};
-		upload_desc.heapType	= EStagingHeapType::Dynamic;
-		t.stream = ImageStream{ t.image, upload_desc };
-		
-		auto	task = Scheduler().Run<US2_FrameTask>( Tuple{ArgRef(t)} );
+                    co_await RenderTask_Execute( ctx );
 
-		CHECK_ERR( Scheduler().Wait( {task} ));
-		CHECK_ERR( rts.WaitAll() );
+                    const auto  stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( self.GetFrameId() );
+                    ASSERT( stat.dynamicWrite <= upload_limit );
 
-		CHECK_ERR( t.stream.IsCompleted() );
-		CHECK_ERR( t.counter.load() >= uint(t.imageData.Image2DSize() / upload_limit) );
+                    co_return;
+                }( t ),
+                Tuple{begin}, True{"Last"}, {"test task"} );
+        #else
+            AsyncTask   test = t.batch->Run< US2_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
+        #endif
 
-		return true;
-	}
+            AsyncTask   end = rts.EndFrame( Tuple{test} );
+
+            return Continue( Tuple{end} );
+        }
+
+        StringView  DbgName ()  C_NE_OV { return "US2_FrameTask"; }
+    };
+
+
+    static bool  UploadStream2Test ()
+    {
+        auto&           rts         = RenderTaskScheduler();
+        auto&           res_mngr    = rts.GetResourceManager();
+        Array<ubyte>    img_data;
+        US2_TestData    t;
+        const Bytes     bpp             = 4_b;
+        const Bytes     src_row_pitch   = t.dimension.x * bpp;
+        const auto      format          = EPixelFormat::RGBA8_UNorm;
+
+        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.image     = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.dimension ).SetFormat( format ).SetUsage( EImageUsage::Transfer ), "image", t.gfxAlloc );
+        CHECK_ERR( t.image );
+
+        img_data.resize( usize(src_row_pitch * t.dimension.y) );
+        for (uint y = 0; y < t.dimension.y; ++y)
+        {
+            for (uint x = 0; x < t.dimension.x; ++x)
+            {
+                ubyte*  ptr = &img_data[ usize(x * bpp + y * src_row_pitch) ];
+
+                ptr[0] = ubyte(x);
+                ptr[1] = ubyte(y);
+                ptr[2] = ubyte(Max( x, y ));
+                ptr[3] = 0;
+            }
+        }
+
+        t.imageData = ImageMemView{ img_data, uint3{}, uint3{t.dimension, 0}, 0_b, 0_b, format, EImageAspect::Color };
+
+        UploadImageDesc upload_desc;
+        upload_desc.imageSize   = uint3{t.dimension, 1u};
+        upload_desc.heapType    = EStagingHeapType::Dynamic;
+        t.stream = ImageStream{ t.image, upload_desc };
+
+        auto    task = Scheduler().Run<US2_FrameTask>( Tuple{ArgRef(t)} );
+
+        CHECK_ERR( Scheduler().Wait( {task} ));
+        CHECK_ERR( rts.WaitAll() );
+
+        CHECK_ERR( t.stream.IsCompleted() );
+        CHECK_ERR( t.counter.load() >= uint(t.imageData.Image2DSize() / upload_limit) );
+
+        return true;
+    }
 
 } // namespace
 
 
 bool RGTest::Test_UploadStream2 ()
 {
-	bool	result = true;
+    bool    result = true;
 
-	RG_CHECK( UploadStream2Test() );
-	
-	RG_CHECK( _CompareDumps( TEST_NAME ));
+    RG_CHECK( UploadStream2Test() );
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+    RG_CHECK( _CompareDumps( TEST_NAME ));
+
+    AE_LOGI( TEST_NAME << " - passed" );
+    return result;
 }

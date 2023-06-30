@@ -1,11 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Helper class to emulate:
-		- image blit
-		- image resolve
-		- clear color attachment
-		- clear color image
-		- clear depth/stencil image
+    Helper class to emulate:
+        - image blit
+        - image resolve
+        - clear color attachment
+        - clear color image
+        - clear depth/stencil image
 */
 
 #pragma once
@@ -16,13 +16,13 @@
 namespace AE::Graphics::_hidden_
 {
 
-	//
-	// Metal Image Operations Helper
-	//
+    //
+    // Metal Image Operations Helper
+    //
 
-	class MImageOpHelper
-	{
-	};
+    class MImageOpHelper
+    {
+    };
 
 
 } // AE::Graphics::_hidden_

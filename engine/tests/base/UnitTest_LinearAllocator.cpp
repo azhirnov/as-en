@@ -7,54 +7,54 @@
 
 namespace
 {
-	static void  LinearAllocator_Test1 ()
-	{
-		using T		= DebugInstanceCounter<uint, 1>;
-		using LA	= LinearAllocator<>;
-		using StdLA	= StdAllocatorRef< T, LA* >;
-	
-		LA	allocator;
-		allocator.SetBlockSize( 4_Mb );
+    static void  LinearAllocator_Test1 ()
+    {
+        using T     = DebugInstanceCounter<uint, 1>;
+        using LA    = LinearAllocator<>;
+        using StdLA = StdAllocatorRef< T, LA* >;
 
-		T::ClearStatistic();
-		{
-			Array< T, StdLA >	vec{ StdLA{&allocator} };
+        LA  allocator;
+        allocator.SetBlockSize( 4_Mb );
 
-			vec.resize( 100 );
-			vec.push_back( T(101) );
-		}
-		TEST( T::CheckStatistic() );
-	}
-	
+        T::ClearStatistic();
+        {
+            Array< T, StdLA >   vec{ StdLA{&allocator} };
 
-	static void  LinearAllocator_Test2 ()
-	{
-		using T		= DebugInstanceCounter<uint, 2>;
-		using LA	= LinearAllocator<>;
-		using StdLA	= StdAllocatorRef< T, LA* >;
-	
-		LA	allocator;
-		allocator.SetBlockSize( 4_Mb );
+            vec.resize( 100 );
+            vec.push_back( T(101) );
+        }
+        TEST( T::CheckStatistic() );
+    }
 
-		T::ClearStatistic();
-		{
-			std::unordered_set< T, std::hash<T>, std::equal_to<T>, StdLA >		set{ StdLA{&allocator} };
 
-			set.reserve( 100 );
-			set.insert( T(101) );
-			set.insert( T(2) );
-			set.insert( T(101) );
-			set.clear();
-		}
-		TEST( T::CheckStatistic() );
-	}
+    static void  LinearAllocator_Test2 ()
+    {
+        using T     = DebugInstanceCounter<uint, 2>;
+        using LA    = LinearAllocator<>;
+        using StdLA = StdAllocatorRef< T, LA* >;
+
+        LA  allocator;
+        allocator.SetBlockSize( 4_Mb );
+
+        T::ClearStatistic();
+        {
+            std::unordered_set< T, std::hash<T>, std::equal_to<T>, StdLA >      set{ StdLA{&allocator} };
+
+            set.reserve( 100 );
+            set.insert( T(101) );
+            set.insert( T(2) );
+            set.insert( T(101) );
+            set.clear();
+        }
+        TEST( T::CheckStatistic() );
+    }
 }
 
 
 extern void UnitTest_LinearAllocator ()
 {
-	LinearAllocator_Test1();
-	LinearAllocator_Test2();
+    LinearAllocator_Test1();
+    LinearAllocator_Test2();
 
-	TEST_PASSED();
+    TEST_PASSED();
 }

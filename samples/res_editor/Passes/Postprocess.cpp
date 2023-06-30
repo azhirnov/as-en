@@ -7,143 +7,143 @@
 
 namespace AE::ResEditor
 {
-	
+
 /*
 =================================================
-	Execute
+    Execute
 =================================================
 */
-	bool  Postprocess::Execute (SyncPassData &pd) __NE___
-	{
-		CHECK_ERR( not _renderTargets.empty() );
+    bool  Postprocess::Execute (SyncPassData &pd) __NE___
+    {
+        CHECK_ERR( not _renderTargets.empty() );
 
-		ShaderDebugger::Result		dbg;
-		GraphicsPipelineID			ppln;
-		const uint2					dim	{_renderTargets[0].image->GetImageDesc().dimension};
+        ShaderDebugger::Result      dbg;
+        GraphicsPipelineID          ppln;
+        const uint2                 dim {_renderTargets[0].image->GetImageDesc().dimension};
 
-		if ( pd.dbg.IsEnabled( this ))
-		{
-			auto	it = _pipelines.find( pd.dbg.mode );
+        if ( pd.dbg.IsEnabled( this ))
+        {
+            auto    it = _pipelines.find( pd.dbg.mode );
 
-			if ( it != _pipelines.end()							and
-				 AnyBits( pd.dbg.stage, EShaderStages::Fragment ))
-			{
-				ppln = it->second;
+            if ( it != _pipelines.end()                         and
+                 AnyBits( pd.dbg.stage, EShaderStages::Fragment ))
+            {
+                ppln = it->second;
 
-				RG::DirectCtx::Transfer		tctx{ pd.rtask, RVRef(pd.cmdbuf) };
-				CHECK( pd.dbg.debugger->AllocForGraphics( OUT dbg, tctx, ppln, uint2{pd.dbg.coord * float2{dim} + 0.5f} ));
-				pd.cmdbuf = tctx.ReleaseCommandBuffer();
-			}
-		}
-		
-		if ( not dbg )
-			ppln = _pipelines.find( IPass::EDebugMode::Unknown )->second;
+                RG::DirectCtx::Transfer     tctx{ pd.rtask, RVRef(pd.cmdbuf) };
+                CHECK( pd.dbg.debugger->AllocForGraphics( OUT dbg, tctx, ppln, uint2{pd.dbg.coord * float2{dim} + 0.5f} ));
+                pd.cmdbuf = tctx.ReleaseCommandBuffer();
+            }
+        }
 
-		DirectCtx::Graphics		ctx{ pd.rtask, RVRef(pd.cmdbuf) };
-		
-		_SetResStates( ctx.GetFrameId(), ctx, _resources );
-		ctx.CommitBarriers();
+        if ( not dbg )
+            ppln = _pipelines.find( IPass::EDebugMode::Unknown )->second;
 
-		// render pass
-		{
-			DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
-			RenderPassDesc		rp_desc = _rpDesc;
+        DirectCtx::Graphics     ctx{ pd.rtask, RVRef(pd.cmdbuf) };
 
-			for (auto& rt : _renderTargets) {
-				rp_desc.AddTarget( rt.name, rt.image->GetViewId(), rt.clear );
-			}
+        _SetResStates( ctx.GetFrameId(), ctx, _resources );
+        ctx.CommitBarriers();
 
-			rp_desc.area = RectI{ int2{dim} };
-			rp_desc.DefaultViewport();
+        // render pass
+        {
+            DescriptorSetID     ds      = _descSets[ ctx.GetFrameId().Index() ];
+            RenderPassDesc      rp_desc = _rpDesc;
 
-			auto	dctx = ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
+            for (auto& rt : _renderTargets) {
+                rp_desc.AddTarget( rt.name, rt.image->GetViewId(), rt.clear );
+            }
 
-			dctx.BindPipeline( ppln );
-			dctx.BindDescriptorSet( _dsIndex, ds );
-			if ( dbg ) dctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
+            rp_desc.area = RectI{ int2{dim} };
+            rp_desc.DefaultViewport();
 
-			dctx.Draw( 3 );
-				
-			ctx.EndRenderPass( dctx );
-		}
+            auto    dctx = ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
 
-		pd.cmdbuf = ctx.ReleaseCommandBuffer();
-		return true;
-	}
-	
+            dctx.BindPipeline( ppln );
+            dctx.BindDescriptorSet( _dsIndex, ds );
+            if ( dbg ) dctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
+
+            dctx.Draw( 3 );
+
+            ctx.EndRenderPass( dctx );
+        }
+
+        pd.cmdbuf = ctx.ReleaseCommandBuffer();
+        return true;
+    }
+
 /*
 =================================================
-	Update
+    Update
 =================================================
 */
-	bool  Postprocess::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
-	{
-		CHECK_ERR( not _renderTargets.empty() );
+    bool  Postprocess::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    {
+        CHECK_ERR( not _renderTargets.empty() );
 
-		for (auto& rt : _renderTargets) {
-			rt.image->Resize( ctx );
-		}
-		_ResizeRes( ctx, _resources );
+        for (auto& rt : _renderTargets) {
+            rt.image->Resize( ctx );
+        }
+        _ResizeRes( ctx, _resources );
 
-		// validate dimensions
-		{
-			const uint2		cur_dim = uint2{ _renderTargets.front().image->GetImageDesc().dimension };
-			
-			for (auto& rt : _renderTargets)
-			{
-				const uint2		dim = uint2{ rt.image->GetImageDesc().dimension };
-				CHECK_ERR( All( cur_dim == dim ));
-			}
-		}
+        // validate dimensions
+        {
+            const uint2     cur_dim = uint2{ _renderTargets.front().image->GetImageDesc().dimension };
 
-		// update uniform buffer
-		if ( _ubuffer )
-		{
-			const auto&		rt		= *_renderTargets[0].image;
-			const auto		desc	= rt.GetImageDesc();
+            for (auto& rt : _renderTargets)
+            {
+                const uint2     dim = uint2{ rt.image->GetImageDesc().dimension };
+                CHECK_ERR( All( cur_dim == dim ));
+            }
+        }
 
-			ShaderTypes::ShadertoyUB	ub_data;
-			ub_data.resolution	= float3{desc.dimension};
-			ub_data.time		= pd.totalTime.count();
-			ub_data.timeDelta	= pd.frameTime.count();
-			ub_data.frame		= _dynData.frame;
-			ub_data.mouse		= pd.pressed ? float4{ pd.cursorPos.x, pd.cursorPos.y, 0.f, 0.f } : float4{-1.0e+20f};
-			
-			if ( _controller )
-				_controller->CopyTo( OUT ub_data.camera );
-			
-			_CopySliders( OUT ub_data.floatSliders, OUT ub_data.intSliders, OUT ub_data.colors );
-			_CopyConstants( _shConst, OUT ub_data.floatConst, OUT ub_data.intConst );
+        // update uniform buffer
+        if ( _ubuffer )
+        {
+            const auto&     rt      = *_renderTargets[0].image;
+            const auto      desc    = rt.GetImageDesc();
 
-			++_dynData.frame;
-			CHECK_ERR( ctx.UploadBuffer( _ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
-		}
+            ShaderTypes::ShadertoyUB    ub_data;
+            ub_data.resolution  = float3{desc.dimension};
+            ub_data.time        = pd.totalTime.count();
+            ub_data.timeDelta   = pd.frameTime.count();
+            ub_data.frame       = _dynData.frame;
+            ub_data.mouse       = pd.pressed ? float4{ pd.cursorPos.x, pd.cursorPos.y, 0.f, 0.f } : float4{-1.0e+20f};
 
-		// update descriptors
-		{
-			DescriptorUpdater	updater;
-			DescriptorSetID		ds		= _descSets[ ctx.GetFrameId().Index() ];
+            if ( _controller )
+                _controller->CopyTo( OUT ub_data.camera );
 
-			CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
-			CHECK_ERR( updater.BindBuffer< ShaderTypes::ShadertoyUB >( UniformName{"ub"}, _ubuffer ));
-			CHECK_ERR( _BindRes( ctx.GetFrameId(), updater, _resources ));
-			CHECK_ERR( updater.Flush() );
-		}
+            _CopySliders( OUT ub_data.floatSliders, OUT ub_data.intSliders, OUT ub_data.colors );
+            _CopyConstants( _shConst, OUT ub_data.floatConst, OUT ub_data.intConst );
 
-		return true;
-	}
-	
+            ++_dynData.frame;
+            CHECK_ERR( ctx.UploadBuffer( _ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
+        }
+
+        // update descriptors
+        {
+            DescriptorUpdater   updater;
+            DescriptorSetID     ds      = _descSets[ ctx.GetFrameId().Index() ];
+
+            CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
+            CHECK_ERR( updater.BindBuffer< ShaderTypes::ShadertoyUB >( UniformName{"ub"}, _ubuffer ));
+            CHECK_ERR( _BindRes( ctx.GetFrameId(), updater, _resources ));
+            CHECK_ERR( updater.Flush() );
+        }
+
+        return true;
+    }
+
 /*
 =================================================
-	destructor
+    destructor
 =================================================
 */
-	Postprocess::~Postprocess ()
-	{
-		auto&	res_mngr = RenderTaskScheduler().GetResourceManager();
-		res_mngr.ReleaseResourceArray( INOUT _descSets );
-		res_mngr.ReleaseResource( _ubuffer );
-	}
+    Postprocess::~Postprocess ()
+    {
+        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        res_mngr.ReleaseResourceArray( INOUT _descSets );
+        res_mngr.ReleaseResource( _ubuffer );
+    }
 
 
 } // AE::ResEditor

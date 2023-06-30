@@ -12,105 +12,105 @@ using namespace LFAS::CPP;
 
 namespace
 {
-	using AE::Threading::LfStaticPool;
-	
-	enum class EAction
-	{
-		Put,
-		Extract,
-	};
+    using AE::Threading::LfStaticPool;
+
+    enum class EAction
+    {
+        Put,
+        Extract,
+    };
 
 
-	void LfStaticPool_Test1 ()
-	{
-		using T = DebugInstanceCounter< int, 1 >;
-		using TS = Storage<T>;
-		
-		VirtualMachine::CreateInstance();
-		T::ClearStatistic();
+    void LfStaticPool_Test1 ()
+    {
+        using T = DebugInstanceCounter< int, 1 >;
+        using TS = Storage<T>;
 
-		{
-			struct PerThread
-			{
-				EAction		act		= EAction::Put;
-				usize		count	= 32;
-			};
+        VirtualMachine::CreateInstance();
+        T::ClearStatistic();
 
-			struct
-			{
-				LfStaticPool< Storage<T>, 1024 >			pool;
+        {
+            struct PerThread
+            {
+                EAction     act     = EAction::Put;
+                usize       count   = 32;
+            };
 
-				std::mutex									guard;
-				HashMap< std::thread::id, PerThread >		perThread;
+            struct
+            {
+                LfStaticPool< Storage<T>, 1024 >            pool;
 
-			}	global;
-		
-			auto&	vm = VirtualMachine::Instance();
-			vm.ThreadFenceRelease();
+                std::mutex                                  guard;
+                HashMap< std::thread::id, PerThread >       perThread;
 
-			auto	sc1 = vm.CreateScript( [g = &global, &vm] ()
-			{
-				PerThread*	pt = null;
-				{
-					EXLOCK( g->guard );
-					pt = &g->perThread[ std::this_thread::get_id() ];
-				}
+            }   global;
 
-				BEGIN_ENUM_CHECKS();
-				switch ( pt->act )
-				{
-					case EAction::Put :
-					{
-						for (usize i = 0; i < pt->count; ++i)
-						{
-							if ( not g->pool.Put( TS{T{int(i)}} ))
-								break;
-						}
-						vm.CheckForUncommitedChanges();
+            auto&   vm = VirtualMachine::Instance();
+            vm.ThreadFenceRelease();
 
-						pt->act = EAction::Extract;
-						break;
-					}
+            auto    sc1 = vm.CreateScript( [g = &global, &vm] ()
+            {
+                PerThread*  pt = null;
+                {
+                    EXLOCK( g->guard );
+                    pt = &g->perThread[ std::this_thread::get_id() ];
+                }
 
-					case EAction::Extract :
-					{
-						for (usize i = 0; i < pt->count; ++i)
-						{
-							TS	val;
-							if ( g->pool.Extract( OUT val ))
-							{
-								Unused( val.Read() );
-							}
-						}
-						vm.CheckForUncommitedChanges();
+                BEGIN_ENUM_CHECKS();
+                switch ( pt->act )
+                {
+                    case EAction::Put :
+                    {
+                        for (usize i = 0; i < pt->count; ++i)
+                        {
+                            if ( not g->pool.Put( TS{T{int(i)}} ))
+                                break;
+                        }
+                        vm.CheckForUncommitedChanges();
 
-						pt->act = EAction::Put;
-						break;
-					}
-				}
-				END_ENUM_CHECKS();
-				std::atomic_thread_fence( std::memory_order_release );
-			});
-	
-			vm.RunParallel({ sc1 }, secondsf{30.0f} );
-		
+                        pt->act = EAction::Extract;
+                        break;
+                    }
 
-			// unassign all
-			vm.ThreadFenceAcquire();
+                    case EAction::Extract :
+                    {
+                        for (usize i = 0; i < pt->count; ++i)
+                        {
+                            TS  val;
+                            if ( g->pool.Extract( OUT val ))
+                            {
+                                Unused( val.Read() );
+                            }
+                        }
+                        vm.CheckForUncommitedChanges();
 
-			global.perThread.clear();
-			global.pool.Release();
-		}
-		
-		VirtualMachine::DestroyInstance();
-		TEST( T::CheckStatistic() );
-	}
+                        pt->act = EAction::Put;
+                        break;
+                    }
+                }
+                END_ENUM_CHECKS();
+                std::atomic_thread_fence( std::memory_order_release );
+            });
+
+            vm.RunParallel({ sc1 }, secondsf{30.0f} );
+
+
+            // unassign all
+            vm.ThreadFenceAcquire();
+
+            global.perThread.clear();
+            global.pool.Release();
+        }
+
+        VirtualMachine::DestroyInstance();
+        TEST( T::CheckStatistic() );
+    }
 }
 
 
 extern void Test_LfStaticPool ()
 {
-	LfStaticPool_Test1();
+    LfStaticPool_Test1();
 
-	TEST_PASSED();
+    TEST_PASSED();
 }

@@ -20,63 +20,63 @@
 
 namespace AE::ResEditor
 {
-	using namespace AE::Base;
+    using namespace AE::Base;
 
 /*
 =================================================
-	GetDescriptorImageType
+    GetDescriptorImageType
 =================================================
 */
-	ND_ inline PipelineCompiler::EImageType  GetDescriptorImageType (const Graphics::EPixelFormat fmt, const Graphics::EImage type, bool multisampling)
-	{
-		return	PipelineCompiler::EImageType_FromPixelFormat( fmt ) |
-				PipelineCompiler::EImageType_FromImage( type, multisampling );
-	}
+    ND_ inline PipelineCompiler::EImageType  GetDescriptorImageType (const Graphics::EPixelFormat fmt, const Graphics::EImage type, bool multisampling)
+    {
+        return  PipelineCompiler::EImageType_FromPixelFormat( fmt ) |
+                PipelineCompiler::EImageType_FromImage( type, multisampling );
+    }
 
-	ND_ inline PipelineCompiler::EImageType  GetDescriptorImageType (const Graphics::ImageDesc &desc)
-	{
-		CHECK_ERR( desc.imageDim != Default );
-		CHECK_ERR( desc.format != Default );
+    ND_ inline PipelineCompiler::EImageType  GetDescriptorImageType (const Graphics::ImageDesc &desc)
+    {
+        CHECK_ERR( desc.imageDim != Default );
+        CHECK_ERR( desc.format != Default );
 
-		Graphics::ImageViewDesc	view{desc};
-		view.Validate( desc );
+        Graphics::ImageViewDesc view{desc};
+        view.Validate( desc );
 
-		return GetDescriptorImageType( desc.format, view.viewType, desc.samples.IsEnabled() );
-	}
+        return GetDescriptorImageType( desc.format, view.viewType, desc.samples.IsEnabled() );
+    }
 
 /*
 =================================================
-	GetDescriptorImageTypeRelaxed
+    GetDescriptorImageTypeRelaxed
 =================================================
 */
-	ND_ inline PipelineCompiler::EImageType  GetDescriptorImageTypeRelaxed (const Graphics::EPixelFormat fmt, const Graphics::EImage type, bool multisampling)
-	{
-		return	PipelineCompiler::EImageType_FromPixelFormatRelaxed( fmt ) |
-				PipelineCompiler::EImageType_FromImage( type, multisampling );
-	}
+    ND_ inline PipelineCompiler::EImageType  GetDescriptorImageTypeRelaxed (const Graphics::EPixelFormat fmt, const Graphics::EImage type, bool multisampling)
+    {
+        return  PipelineCompiler::EImageType_FromPixelFormatRelaxed( fmt ) |
+                PipelineCompiler::EImageType_FromImage( type, multisampling );
+    }
 
-	ND_ inline PipelineCompiler::EImageType  GetDescriptorImageTypeRelaxed (const Graphics::ImageDesc &desc)
-	{
-		CHECK_ERR( desc.imageDim != Default );
-		CHECK_ERR( desc.format != Default );
+    ND_ inline PipelineCompiler::EImageType  GetDescriptorImageTypeRelaxed (const Graphics::ImageDesc &desc)
+    {
+        CHECK_ERR( desc.imageDim != Default );
+        CHECK_ERR( desc.format != Default );
 
-		Graphics::ImageViewDesc	view{desc};
-		view.Validate( desc );
+        Graphics::ImageViewDesc view{desc};
+        view.Validate( desc );
 
-		return GetDescriptorImageTypeRelaxed( desc.format, view.viewType, desc.samples.IsEnabled() );
-	}
-	
+        return GetDescriptorImageTypeRelaxed( desc.format, view.viewType, desc.samples.IsEnabled() );
+    }
+
 /*
 =================================================
-	CompareImageTypes
+    CompareImageTypes
 =================================================
 */
-	ND_ inline bool  CompareImageTypes (const Graphics::ImageDesc &lhs, const ResLoader::IntermImage &rhs)
-	{
-		const auto	t0 = GetDescriptorImageTypeRelaxed( lhs );
-		const auto	t1 = GetDescriptorImageTypeRelaxed( rhs.PixelFormat(), rhs.GetType(), false );
-		return t0 == t1;
-	}
+    ND_ inline bool  CompareImageTypes (const Graphics::ImageDesc &lhs, const ResLoader::IntermImage &rhs)
+    {
+        const auto  t0 = GetDescriptorImageTypeRelaxed( lhs );
+        const auto  t1 = GetDescriptorImageTypeRelaxed( rhs.PixelFormat(), rhs.GetType(), false );
+        return t0 == t1;
+    }
 
 
 } // AE::ResEditor

@@ -8,100 +8,100 @@
 namespace AE::App
 {
 
-	//
-	// Gesture Recognizer
-	//
+    //
+    // Gesture Recognizer
+    //
 
-	class GestureRecognizer
-	{
-	// types
-	private:
-		using Duration_t	= IApplication::Duration_t;
-		using InputKey		= InputActionsBase::InputKey;
-		using GestureBits_t	= EnumBitSet< EGestureType >;
+    class GestureRecognizer
+    {
+    // types
+    private:
+        using Duration_t    = IApplication::Duration_t;
+        using InputKey      = InputActionsBase::InputKey;
+        using GestureBits_t = EnumBitSet< EGestureType >;
 
-		struct Touch
-		{
-			float2		delta;		// pix
-			float2		pos;		// pix
+        struct Touch
+        {
+            float2      delta;      // pix
+            float2      pos;        // pix
 
-			Duration_t	startTime	{};
-			float2		startPos;	// pix
-			
-			Touch () {}
-		};
+            Duration_t  startTime   {};
+            float2      startPos;   // pix
 
-		static constexpr uint	MaxTouches	= 8;
+            Touch () {}
+        };
 
-		enum class TouchID : ushort { Unknown = 0xFFFF };
+        static constexpr uint   MaxTouches  = 8;
 
-		using TouchIDs_t	= StaticArray< TouchID,			MaxTouches >;
-		using TouchData_t	= StaticArray< Touch,			MaxTouches >;
-		using TouchStates_t	= StaticArray< EGestureState,	MaxTouches >;
-		
-		static constexpr auto	_LongPressDuration		= InputActionsBase::_LongPressDuration;
-		static constexpr auto	_DoubleTapMaxDuration	= InputActionsBase::_DoubleTapMaxDuration;
-		static constexpr auto	_SingleTapMaxDuration	= InputActionsBase::_ClickMaxDuration;
+        enum class TouchID : ushort { Unknown = 0xFFFF };
 
+        using TouchIDs_t    = StaticArray< TouchID,         MaxTouches >;
+        using TouchData_t   = StaticArray< Touch,           MaxTouches >;
+        using TouchStates_t = StaticArray< EGestureState,   MaxTouches >;
 
-	// variables
-	private:
-		uint				_activeTouches	= 0;
-		TouchIDs_t			_touchIDs;			// map touch id to touch data
-		TouchData_t			_touchData;
-		TouchStates_t		_touchStates;
-
-		struct {
-			bool				isActive		= false;
-			bool				doubleTap		= false;
-			ubyte				touchIdx		= UMax;
-			Duration_t			lastTapTime		{};
-		}					_tapRecognizer;
-
-		struct {
-			EGestureState		state			= Default;
-			ubyte				touchIdx		= UMax;
-
-			ND_ bool			IsActive ()		{ return state < EGestureState::End; }
-		}					_dragRecognizer;
-
-		struct {
-			bool				isActive		= false;
-			TouchID				touchID0		= Default;
-			TouchID				touchID1		= Default;
-			float				scale			= 0.f;
-			float				rotate			= 0.f;
-		}					_twoTouchRecognizer;
-
-		const ushort		_keyTouchPosPx;
-		const ushort		_keyTouchPosMm;
-		const ushort		_keyTouchDeltaPx;
-		const ushort		_keyTouchDeltaNorm;
-		const ushort		_keyMultiTouch;
-
-		static const auto	_id					= ControllerID::Touchscreen;
+        static constexpr auto   _LongPressDuration      = InputActionsBase::_LongPressDuration;
+        static constexpr auto   _DoubleTapMaxDuration   = InputActionsBase::_DoubleTapMaxDuration;
+        static constexpr auto   _SingleTapMaxDuration   = InputActionsBase::_ClickMaxDuration;
 
 
-	// methods
-	public:
-		GestureRecognizer (ushort keyTouchPosPx, ushort keyTouchPosMm,
-						   ushort keyTouchDeltaPx, ushort keyTouchDeltaNorm,
-						   ushort keyMultiTouch)													__NE___;
-		
-		void  Update (Duration_t timestamp, InputActionsBase &ia)									__NE___;
-		void  SetTouch (uint id, const float2 posInPx, EGestureState state, Duration_t timestamp)	__NE___;
+    // variables
+    private:
+        uint                _activeTouches  = 0;
+        TouchIDs_t          _touchIDs;          // map touch id to touch data
+        TouchData_t         _touchData;
+        TouchStates_t       _touchStates;
+
+        struct {
+            bool                isActive        = false;
+            bool                doubleTap       = false;
+            ubyte               touchIdx        = UMax;
+            Duration_t          lastTapTime     {};
+        }                   _tapRecognizer;
+
+        struct {
+            EGestureState       state           = Default;
+            ubyte               touchIdx        = UMax;
+
+            ND_ bool            IsActive ()     { return state < EGestureState::End; }
+        }                   _dragRecognizer;
+
+        struct {
+            bool                isActive        = false;
+            TouchID             touchID0        = Default;
+            TouchID             touchID1        = Default;
+            float               scale           = 0.f;
+            float               rotate          = 0.f;
+        }                   _twoTouchRecognizer;
+
+        const ushort        _keyTouchPosPx;
+        const ushort        _keyTouchPosMm;
+        const ushort        _keyTouchDeltaPx;
+        const ushort        _keyTouchDeltaNorm;
+        const ushort        _keyMultiTouch;
+
+        static const auto   _id                 = ControllerID::Touchscreen;
 
 
-	private:
-		void  _RecognizeTaps (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
-		void  _RecognizeDragging (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
-		void  _Recognize2Touch (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
-		
-		template <typename T>
-		ND_ static constexpr InputKey	_Pack (T key,
-											   EGestureType gesture,
-											   EGestureState state = EGestureState::Update)	__NE___ { return InputActionsBase::_Pack( key, gesture, state ); }
-	};
+    // methods
+    public:
+        GestureRecognizer (ushort keyTouchPosPx, ushort keyTouchPosMm,
+                           ushort keyTouchDeltaPx, ushort keyTouchDeltaNorm,
+                           ushort keyMultiTouch)                                                    __NE___;
+
+        void  Update (Duration_t timestamp, InputActionsBase &ia)                                   __NE___;
+        void  SetTouch (uint id, const float2 posInPx, EGestureState state, Duration_t timestamp)   __NE___;
+
+
+    private:
+        void  _RecognizeTaps (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
+        void  _RecognizeDragging (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
+        void  _Recognize2Touch (uint activeCount, Duration_t timestamp, InputActionsBase &ia);
+
+        template <typename T>
+        ND_ static constexpr InputKey   _Pack (T key,
+                                               EGestureType gesture,
+                                               EGestureState state = EGestureState::Update) __NE___ { return InputActionsBase::_Pack( key, gesture, state ); }
+    };
 
 
 } // AE::App

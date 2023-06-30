@@ -11,40 +11,40 @@
 namespace AE::Graphics
 {
 
-	//
-	// Metal Ray Tracing Geometry
-	//
+    //
+    // Metal Ray Tracing Geometry
+    //
 
-	class MRTGeometry final
-	{
-	// variables
-	private:
-		MetalAccelStructRC			_handle;
-		RTGeometryDesc				_desc;
-		Strong<MemoryID>			_memoryId;
-		
-		DEBUG_ONLY(	DebugName_t		_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck	_drCheck;	)
+    class MRTGeometry final
+    {
+    // variables
+    private:
+        MetalAccelStructRC          _handle;
+        RTGeometryDesc              _desc;
+        Strong<MemoryID>            _memoryId;
+
+        DEBUG_ONLY( DebugName_t     _debugName; )
+        DRC_ONLY(   RWDataRaceCheck _drCheck;   )
 
 
-	// methods
-	public:
-		MRTGeometry ()										__NE___	{}
-		~MRTGeometry ()										__NE___;
+    // methods
+    public:
+        MRTGeometry ()                                      __NE___ {}
+        ~MRTGeometry ()                                     __NE___;
 
-		ND_ bool  Create (MResourceManager &, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___;
-			void  Destroy (MResourceManager &)				__NE___;
-		
-		ND_ MetalAccelStruct		Handle ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _handle; }
-		ND_ MemoryID				MemoryId ()				C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
-		ND_ RTGeometryDesc const&	Description ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		ND_ bool					IsExclusiveSharing ()	C_NE___	{ return false; }
-		
-		DEBUG_ONLY( ND_ StringView	GetDebugName ()			C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+        ND_ bool  Create (MResourceManager &, const RTGeometryDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName) __NE___;
+            void  Destroy (MResourceManager &)              __NE___;
 
-		ND_ static RTASBuildSizes	GetBuildSizes (const MResourceManager &, const RTGeometryBuild &desc) __NE___;
-	};
-	
+        ND_ MetalAccelStruct        Handle ()               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _handle; }
+        ND_ MemoryID                MemoryId ()             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
+        ND_ RTGeometryDesc const&   Description ()          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }
+        ND_ bool                    IsExclusiveSharing ()   C_NE___ { return false; }
+
+        DEBUG_ONLY( ND_ StringView  GetDebugName ()         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+
+        ND_ static RTASBuildSizes   GetBuildSizes (const MResourceManager &, const RTGeometryBuild &desc) __NE___;
+    };
+
 
 } // AE::Graphics
 

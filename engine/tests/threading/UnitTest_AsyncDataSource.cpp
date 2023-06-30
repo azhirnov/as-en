@@ -8,362 +8,362 @@
 #ifndef AE_DISABLE_THREADS
 namespace
 {
-	using EStatus		= IAsyncTask::EStatus;
-	using ESourceType	= IDataSource::ESourceType;
+    using EStatus       = IAsyncTask::EStatus;
+    using ESourceType   = IDataSource::ESourceType;
 
 
-	template <typename RFile, typename WFile>
-	static void  AsyncReadDS_Test1 ()
-	{
-		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
-		TEST( scheduler->GetFileIOService() );
+    template <typename RFile, typename WFile>
+    static void  AsyncReadDS_Test1 ()
+    {
+        LocalTaskScheduler  scheduler   {IOThreadCount(1)};
+        TEST( scheduler->GetFileIOService() );
 
-		const ulong	file_size	= 128ull << 20;	// Mb
-		const uint	buf_size	= 4u << 10;		// Kb
-		STATIC_ASSERT( file_size % buf_size == 0 );
+        const ulong file_size   = 128ull << 20; // Mb
+        const uint  buf_size    = 4u << 10;     // Kb
+        STATIC_ASSERT( file_size % buf_size == 0 );
 
-		const Path		fname {"ds11_data.txt"};
-		{
-			WFile	wfile {fname};
-			TEST( wfile.IsOpen() );
-			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
-			
-			ulong	buf [buf_size / sizeof(ulong)];
-			ulong	pos = 0;
-			
-			while ( pos < file_size )
-			{
-				for (uint i = 0; i < CountOf(buf); ++i) {
-					buf[i] = pos + i;
-				}
+        const Path      fname {"ds11_data.txt"};
+        {
+            WFile   wfile {fname};
+            TEST( wfile.IsOpen() );
+            TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
 
-				TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
-				pos += buf_size;
-			}
+            ulong   buf [buf_size / sizeof(ulong)];
+            ulong   pos = 0;
 
-			TEST( wfile.Capacity() == file_size );
-		}
-		{
-			RC<RFile>	rfile = MakeRC<RFile>( fname );
-			TEST( rfile->IsOpen() );
-			TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
-			TEST( rfile->Size() == file_size );
-			
-			ulong	pos = 0;
-			while ( pos < file_size + buf_size )
-			{
-				auto	req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
-				TEST( req );
-				TEST( req.use_count() == 2 );
+            while ( pos < file_size )
+            {
+                for (uint i = 0; i < CountOf(buf); ++i) {
+                    buf[i] = pos + i;
+                }
 
-				auto	task = AsyncTask{req->AsPromise().Then( [pos] (const AsyncRDataSource::Result_t &res)
-								{
-									TEST( res.data != null );
-									TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
-									TEST( res.offset == pos );
-									TEST( res.request.use_count() == 1 );		// because executed sequentially and synchroniously
+                TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
+                pos += buf_size;
+            }
 
-									ulong	ref_buf [buf_size / sizeof(ulong)];
+            TEST( wfile.Capacity() == file_size );
+        }
+        {
+            RC<RFile>   rfile = MakeRC<RFile>( fname );
+            TEST( rfile->IsOpen() );
+            TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
+            TEST( rfile->Size() == file_size );
 
-									for (uint i = 0; i < CountOf(ref_buf); ++i) {
-										ref_buf[i] = pos + i;
-									}
-									TEST( MemEqual( res.data, ref_buf, res.dataSize ));
-								})};
-				TEST( task );
+            ulong   pos = 0;
+            while ( pos < file_size + buf_size )
+            {
+                auto    req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
+                TEST( req );
+                TEST( req.use_count() == 2 );
 
-				for (;;)
-				{
-					if ( scheduler->GetFileIOService()->ProcessEvents() )
-						break;
-				}
+                auto    task = AsyncTask{req->AsPromise().Then( [pos] (const AsyncRDataSource::Result_t &res)
+                                {
+                                    TEST( res.data != null );
+                                    TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
+                                    TEST( res.offset == pos );
+                                    TEST( res.request.use_count() == 1 );       // because executed sequentially and synchroniously
 
-				TEST( req->IsCompleted() );
-				req = null;
+                                    ulong   ref_buf [buf_size / sizeof(ulong)];
 
-				TEST( scheduler->Wait( {task}, EThreadArray{ EThread::PerFrame } ));
-				TEST( task->Status() == EStatus::Completed );
+                                    for (uint i = 0; i < CountOf(ref_buf); ++i) {
+                                        ref_buf[i] = pos + i;
+                                    }
+                                    TEST( MemEqual( res.data, ref_buf, res.dataSize ));
+                                })};
+                TEST( task );
 
-				pos += buf_size;
-			}
-		}
-	}
-		
+                for (;;)
+                {
+                    if ( scheduler->GetFileIOService()->ProcessEvents() )
+                        break;
+                }
 
-	template <typename RFile, typename WFile>
-	static void  AsyncReadDS_Test2 ()
-	{
-		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
-		TEST( scheduler->GetFileIOService() );
+                TEST( req->IsCompleted() );
+                req = null;
 
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep(
-				EThreadArray{ EThread::PerFrame, EThread::FileIO }
-			)));
+                TEST( scheduler->Wait( {task}, EThreadArray{ EThread::PerFrame } ));
+                TEST( task->Status() == EStatus::Completed );
 
-		const ulong	file_size	= 32ull << 20;	// Mb
-		const uint	buf_size	= 4u << 10;		// Kb
-		STATIC_ASSERT( file_size % buf_size == 0 );
+                pos += buf_size;
+            }
+        }
+    }
 
-		const Path		fname {"ds12_data.txt"};
-		{
-			WFile	wfile {fname};
-			TEST( wfile.IsOpen() );
-			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
-			
-			ulong	buf [buf_size / sizeof(ulong)];
-			ulong	pos = 0;
-			
-			while ( pos < file_size )
-			{
-				for (uint i = 0; i < CountOf(buf); ++i) {
-					buf[i] = pos + i;
-				}
 
-				TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
-				pos += buf_size;
-			}
+    template <typename RFile, typename WFile>
+    static void  AsyncReadDS_Test2 ()
+    {
+        LocalTaskScheduler  scheduler   {IOThreadCount(1)};
+        TEST( scheduler->GetFileIOService() );
 
-			TEST( wfile.Capacity() == file_size );
-		}
-		{
-			RC<RFile>	rfile = MakeRC<RFile>( fname );
-			TEST( rfile->IsOpen() );
-			TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
-			TEST( rfile->Size() == file_size );
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep(
+                EThreadArray{ EThread::PerFrame, EThread::FileIO }
+            )));
 
-			class ReadFileTask final : public IAsyncTask
-			{
-			private:
-				RC<RFile>	rfile;
-				ulong		pos		= 0;
+        const ulong file_size   = 32ull << 20;  // Mb
+        const uint  buf_size    = 4u << 10;     // Kb
+        STATIC_ASSERT( file_size % buf_size == 0 );
 
-			public:
-				ReadFileTask (RC<RFile> rfile) : IAsyncTask{ETaskQueue::PerFrame}, rfile{rfile} {}
+        const Path      fname {"ds12_data.txt"};
+        {
+            WFile   wfile {fname};
+            TEST( wfile.IsOpen() );
+            TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
 
-				void  Run () __Th_OV
-				{
-					if ( pos < file_size + buf_size )
-					{
-						auto	req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
-						TEST( req );
+            ulong   buf [buf_size / sizeof(ulong)];
+            ulong   pos = 0;
 
-						auto	task = AsyncTask{req->AsPromise().Then( [cur_pos = pos] (const AsyncRDataSource::Result_t &res)
-										{
-											TEST( res.data != null );
-											TEST( res.dataSize == (cur_pos < file_size ? buf_size : 0) );
-											TEST( res.offset == cur_pos );
-											TEST( res.request.use_count() > 0 );	// is alive
+            while ( pos < file_size )
+            {
+                for (uint i = 0; i < CountOf(buf); ++i) {
+                    buf[i] = pos + i;
+                }
 
-											ulong	ref_buf [buf_size / sizeof(ulong)];
+                TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
+                pos += buf_size;
+            }
 
-											for (uint i = 0; i < CountOf(ref_buf); ++i) {
-												ref_buf[i] = cur_pos + i;
-											}
-											TEST( MemEqual( res.data, ref_buf, res.dataSize ));
-										})};
-						TEST( task );
+            TEST( wfile.Capacity() == file_size );
+        }
+        {
+            RC<RFile>   rfile = MakeRC<RFile>( fname );
+            TEST( rfile->IsOpen() );
+            TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
+            TEST( rfile->Size() == file_size );
 
-						req = null;
+            class ReadFileTask final : public IAsyncTask
+            {
+            private:
+                RC<RFile>   rfile;
+                ulong       pos     = 0;
 
-						pos += buf_size;
+            public:
+                ReadFileTask (RC<RFile> rfile) : IAsyncTask{ETaskQueue::PerFrame}, rfile{rfile} {}
 
-						return Continue( Tuple{ task });
-					}
-					// complete
-				}
+                void  Run () __Th_OV
+                {
+                    if ( pos < file_size + buf_size )
+                    {
+                        auto    req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
+                        TEST( req );
 
-				StringView	DbgName ()	C_NE_OV	{ return "ReadFileTask"; }
-			};
-			
-			auto	task = scheduler->Run<ReadFileTask>( Tuple{rfile} );
-			TEST( scheduler->Wait( {task} ));
-			TEST( task->Status() == EStatus::Completed );
-		}
-	}
-	
+                        auto    task = AsyncTask{req->AsPromise().Then( [cur_pos = pos] (const AsyncRDataSource::Result_t &res)
+                                        {
+                                            TEST( res.data != null );
+                                            TEST( res.dataSize == (cur_pos < file_size ? buf_size : 0) );
+                                            TEST( res.offset == cur_pos );
+                                            TEST( res.request.use_count() > 0 );    // is alive
+
+                                            ulong   ref_buf [buf_size / sizeof(ulong)];
+
+                                            for (uint i = 0; i < CountOf(ref_buf); ++i) {
+                                                ref_buf[i] = cur_pos + i;
+                                            }
+                                            TEST( MemEqual( res.data, ref_buf, res.dataSize ));
+                                        })};
+                        TEST( task );
+
+                        req = null;
+
+                        pos += buf_size;
+
+                        return Continue( Tuple{ task });
+                    }
+                    // complete
+                }
+
+                StringView  DbgName ()  C_NE_OV { return "ReadFileTask"; }
+            };
+
+            auto    task = scheduler->Run<ReadFileTask>( Tuple{rfile} );
+            TEST( scheduler->Wait( {task} ));
+            TEST( task->Status() == EStatus::Completed );
+        }
+    }
+
 
 #ifdef AE_HAS_COROUTINE
-	template <typename RFile, typename WFile>
-	static CoroTask  AsyncReadDS_Test3_Coro ()
-	{
-		const ulong	file_size	= 32ull << 20;	// Mb
-		const uint	buf_size	= 4u << 10;		// Kb
-		STATIC_ASSERT( file_size % buf_size == 0 );
+    template <typename RFile, typename WFile>
+    static CoroTask  AsyncReadDS_Test3_Coro ()
+    {
+        const ulong file_size   = 32ull << 20;  // Mb
+        const uint  buf_size    = 4u << 10;     // Kb
+        STATIC_ASSERT( file_size % buf_size == 0 );
 
-		const Path		fname {"ds13_data.txt"};
-		{
-			WFile	wfile {fname};
-			TEST( wfile.IsOpen() );
-			TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
-			
-			ulong	buf [buf_size / sizeof(ulong)];
-			ulong	pos = 0;
-			
-			while ( pos < file_size )
-			{
-				for (uint i = 0; i < CountOf(buf); ++i) {
-					buf[i] = pos + i;
-				}
+        const Path      fname {"ds13_data.txt"};
+        {
+            WFile   wfile {fname};
+            TEST( wfile.IsOpen() );
+            TEST( AllBits( wfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess ));
 
-				TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
-				pos += buf_size;
-			}
+            ulong   buf [buf_size / sizeof(ulong)];
+            ulong   pos = 0;
 
-			TEST( wfile.Capacity() == file_size );
-		}
-		{
-			RC<RFile>	rfile = MakeRC<RFile>( fname );
-			TEST( rfile->IsOpen() );
-			TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
-			TEST( rfile->Size() == file_size );
-			
-			ulong	pos = 0;
-			while ( pos < file_size + buf_size )
-			{
-				auto	req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
-				TEST( req );
+            while ( pos < file_size )
+            {
+                for (uint i = 0; i < CountOf(buf); ++i) {
+                    buf[i] = pos + i;
+                }
 
-				auto	res = co_await req->AsPromise();
-				req = null;
+                TEST( wfile.WriteBlock( Bytes{pos}, buf, Sizeof(buf) ) == buf_size );
+                pos += buf_size;
+            }
 
-				TEST( res.data != null );
-				TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
-				TEST( res.offset == pos );
-				TEST( res.request.use_count() > 0 );	// is alive
+            TEST( wfile.Capacity() == file_size );
+        }
+        {
+            RC<RFile>   rfile = MakeRC<RFile>( fname );
+            TEST( rfile->IsOpen() );
+            TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
+            TEST( rfile->Size() == file_size );
 
-				ulong	ref_buf [buf_size / sizeof(ulong)];
+            ulong   pos = 0;
+            while ( pos < file_size + buf_size )
+            {
+                auto    req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
+                TEST( req );
 
-				for (uint i = 0; i < CountOf(ref_buf); ++i) {
-					ref_buf[i] = pos + i;
-				}
-				TEST( MemEqual( res.data, ref_buf, res.dataSize ));
+                auto    res = co_await req->AsPromise();
+                req = null;
 
-				pos += buf_size;
-			}
-		}
-	}
+                TEST( res.data != null );
+                TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
+                TEST( res.offset == pos );
+                TEST( res.request.use_count() > 0 );    // is alive
 
-	template <typename RFile, typename WFile>
-	static void  AsyncReadDS_Test3 ()
-	{
-		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
-		TEST( scheduler->GetFileIOService() );
+                ulong   ref_buf [buf_size / sizeof(ulong)];
 
-		scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep(
-				EThreadArray{ EThread::PerFrame, EThread::FileIO }
-			)));
+                for (uint i = 0; i < CountOf(ref_buf); ++i) {
+                    ref_buf[i] = pos + i;
+                }
+                TEST( MemEqual( res.data, ref_buf, res.dataSize ));
 
-		auto	task = scheduler->Run( AsyncReadDS_Test3_Coro< RFile, WFile >() );
-		TEST( scheduler->Wait({ AsyncTask{task} }));
-		TEST( AsyncTask{task}->Status() == EStatus::Completed );
-	}
+                pos += buf_size;
+            }
+        }
+    }
+
+    template <typename RFile, typename WFile>
+    static void  AsyncReadDS_Test3 ()
+    {
+        LocalTaskScheduler  scheduler   {IOThreadCount(1)};
+        TEST( scheduler->GetFileIOService() );
+
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep(
+                EThreadArray{ EThread::PerFrame, EThread::FileIO }
+            )));
+
+        auto    task = scheduler->Run( AsyncReadDS_Test3_Coro< RFile, WFile >() );
+        TEST( scheduler->Wait({ AsyncTask{task} }));
+        TEST( AsyncTask{task}->Status() == EStatus::Completed );
+    }
 #endif
 
 
-	template <typename RFile, typename WFile>
-	static void  AsyncWriteDS_Test1 ()
-	{
-		LocalTaskScheduler	scheduler	{IOThreadCount(1)};
-		TEST( scheduler->GetFileIOService() );
+    template <typename RFile, typename WFile>
+    static void  AsyncWriteDS_Test1 ()
+    {
+        LocalTaskScheduler  scheduler   {IOThreadCount(1)};
+        TEST( scheduler->GetFileIOService() );
 
-		const ulong	file_size	= 128ull << 20;	// Mb
-		const uint	buf_size	= 4u << 10;		// Kb
-		STATIC_ASSERT( file_size % buf_size == 0 );
+        const ulong file_size   = 128ull << 20; // Mb
+        const uint  buf_size    = 4u << 10;     // Kb
+        STATIC_ASSERT( file_size % buf_size == 0 );
 
-		const Path		fname {"ds21_data.txt"};
-		{
-			RC<WFile>	wfile = MakeRC<WFile>( fname );
-			TEST( wfile->IsOpen() );
-			TEST( AllBits( wfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::Async ));
-			
-			ulong	pos = 0;
+        const Path      fname {"ds21_data.txt"};
+        {
+            RC<WFile>   wfile = MakeRC<WFile>( fname );
+            TEST( wfile->IsOpen() );
+            TEST( AllBits( wfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::Async ));
 
-			while ( pos < file_size )
-			{
-				auto	src_buf = wfile->Alloc( Bytes{buf_size} );
-				TEST( src_buf );
-				
-				ulong*	buf		= Cast<ulong>(src_buf->Data());
-				usize	count	= usize(src_buf->Size() / SizeOf<ulong>);
+            ulong   pos = 0;
 
-				for (uint i = 0; i < count; ++i) {
-					buf[i] = pos + i;
-				}
+            while ( pos < file_size )
+            {
+                auto    src_buf = wfile->Alloc( Bytes{buf_size} );
+                TEST( src_buf );
 
-				auto	req = wfile->WriteBlock( Bytes{pos}, Bytes{buf_size}, src_buf );
-				TEST( req );
-				TEST( req.use_count() == 2 );
-				
-				auto	task = AsyncTask{req->AsPromise().Then( [pos] (const AsyncWDataSource::Result_t &res)
-																{
-																	TEST( pos == res.offset );
-																	TEST( buf_size == res.dataSize );
-																	TEST( res.data == null );
-																	TEST( res.request == null );
-																})};
-				TEST( task );
-				
-				for (;;)
-				{
-					if ( scheduler->GetFileIOService()->ProcessEvents() )
-						break;
-				}
-				
-				TEST( req->IsCompleted() );
-				req = null;
+                ulong*  buf     = Cast<ulong>(src_buf->Data());
+                usize   count   = usize(src_buf->Size() / SizeOf<ulong>);
 
-				TEST( scheduler->Wait( {task}, EThreadArray{ EThread::PerFrame } ));
-				TEST( task->Status() == EStatus::Completed );
+                for (uint i = 0; i < count; ++i) {
+                    buf[i] = pos + i;
+                }
 
-				pos += buf_size;
-			}
-		}
-		{
-			RFile	rfile {fname};
-			TEST( rfile.IsOpen() );
-			TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess ));
-			TEST( rfile.Size() == file_size );
-			
-			ulong	dst_buf [buf_size / sizeof(ulong)];
-			ulong	ref_buf [buf_size / sizeof(ulong)];
-			ulong	pos = 0;
+                auto    req = wfile->WriteBlock( Bytes{pos}, Bytes{buf_size}, src_buf );
+                TEST( req );
+                TEST( req.use_count() == 2 );
 
-			while ( pos < file_size )
-			{
-				for (uint i = 0; i < CountOf(ref_buf); ++i) {
-					ref_buf[i] = pos + i;
-				}
+                auto    task = AsyncTask{req->AsPromise().Then( [pos] (const AsyncWDataSource::Result_t &res)
+                                                                {
+                                                                    TEST( pos == res.offset );
+                                                                    TEST( buf_size == res.dataSize );
+                                                                    TEST( res.data == null );
+                                                                    TEST( res.request == null );
+                                                                })};
+                TEST( task );
 
-				TEST( rfile.ReadBlock( Bytes{pos}, OUT dst_buf, Sizeof(dst_buf) ) == buf_size );
-				TEST( MemEqual( dst_buf, ref_buf ));
+                for (;;)
+                {
+                    if ( scheduler->GetFileIOService()->ProcessEvents() )
+                        break;
+                }
 
-				pos += buf_size;
-			}
-		}
-	}
+                TEST( req->IsCompleted() );
+                req = null;
+
+                TEST( scheduler->Wait( {task}, EThreadArray{ EThread::PerFrame } ));
+                TEST( task->Status() == EStatus::Completed );
+
+                pos += buf_size;
+            }
+        }
+        {
+            RFile   rfile {fname};
+            TEST( rfile.IsOpen() );
+            TEST( AllBits( rfile.GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess ));
+            TEST( rfile.Size() == file_size );
+
+            ulong   dst_buf [buf_size / sizeof(ulong)];
+            ulong   ref_buf [buf_size / sizeof(ulong)];
+            ulong   pos = 0;
+
+            while ( pos < file_size )
+            {
+                for (uint i = 0; i < CountOf(ref_buf); ++i) {
+                    ref_buf[i] = pos + i;
+                }
+
+                TEST( rfile.ReadBlock( Bytes{pos}, OUT dst_buf, Sizeof(dst_buf) ) == buf_size );
+                TEST( MemEqual( dst_buf, ref_buf ));
+
+                pos += buf_size;
+            }
+        }
+    }
 }
 
 
 extern void UnitTest_AsyncDataSource ()
 {
-	const Path	curr	= FileSystem::CurrentPath();
-	const Path	folder	{AE_CURRENT_DIR "/ds_test"};
-	
-	FileSystem::RemoveAll( folder );
-	FileSystem::CreateDirectories( folder );
-	TEST( FileSystem::SetCurrentPath( folder ));
+    const Path  curr    = FileSystem::CurrentPath();
+    const Path  folder  {AE_CURRENT_DIR "/ds_test"};
 
-	#ifdef AE_PLATFORM_WINDOWS
-		AsyncReadDS_Test1< WinAsyncRDataSource, FileWDataSource >();
-		AsyncReadDS_Test2< WinAsyncRDataSource, FileWDataSource >();
-	#  ifdef AE_HAS_COROUTINE
-			AsyncReadDS_Test3< WinAsyncRDataSource, FileWDataSource >();
-	#  endif
-		AsyncWriteDS_Test1< FileRDataSource, WinAsyncWDataSource >();
-	#endif
-		
-	FileSystem::SetCurrentPath( curr );
-	TEST_PASSED();
+    FileSystem::RemoveAll( folder );
+    FileSystem::CreateDirectories( folder );
+    TEST( FileSystem::SetCurrentPath( folder ));
+
+    #ifdef AE_PLATFORM_WINDOWS
+        AsyncReadDS_Test1< WinAsyncRDataSource, FileWDataSource >();
+        AsyncReadDS_Test2< WinAsyncRDataSource, FileWDataSource >();
+    #  ifdef AE_HAS_COROUTINE
+            AsyncReadDS_Test3< WinAsyncRDataSource, FileWDataSource >();
+    #  endif
+        AsyncWriteDS_Test1< FileRDataSource, WinAsyncWDataSource >();
+    #endif
+
+    FileSystem::SetCurrentPath( curr );
+    TEST_PASSED();
 }
 
 #else

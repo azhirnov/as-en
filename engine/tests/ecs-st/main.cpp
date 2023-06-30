@@ -13,12 +13,12 @@ extern int Test_ECSst ()
 int main ()
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+    AE::Base::StaticLogger::LoggerDbgScope log{};
 
-	UnitTest_Archetype();
-	UnitTest_EntityPool();
-	UnitTest_Registry();
+    UnitTest_Archetype();
+    UnitTest_EntityPool();
+    UnitTest_Registry();
 
-	AE_LOGI( "Tests.ECS finished" );
-	return 0;
+    AE_LOGI( "Tests.ECS finished" );
+    return 0;
 }

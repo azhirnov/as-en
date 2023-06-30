@@ -22,53 +22,53 @@
 
 namespace AE::ResEditor::_hidden_
 {
-	// tag: NamedID UID
-	static constexpr uint	NamedIDs_Start	= 5 << 24;
+    // tag: NamedID UID
+    static constexpr uint   NamedIDs_Start  = 5 << 24;
 
 } // AE::ResEditor::_hidden_
 
 
 namespace AE::ResEditor
 {
-	using namespace AE::App;
-	using namespace AE::Graphics;
+    using namespace AE::App;
+    using namespace AE::Graphics;
 
-	using AE::Threading::AsyncTask;
-	using AE::Threading::CoroTask;
+    using AE::Threading::AsyncTask;
+    using AE::Threading::CoroTask;
 
-	using AE::Threading::AsyncDSRequestResult;
-	using AE::Threading::AsyncRDataSource;
-	using AE::Threading::AsyncDSRequest;
-	using AE::Threading::Synchronized;
+    using AE::Threading::AsyncDSRequestResult;
+    using AE::Threading::AsyncRDataSource;
+    using AE::Threading::AsyncDSRequest;
+    using AE::Threading::Synchronized;
 
-	using AE::ResLoader::EImageFormat;
+    using AE::ResLoader::EImageFormat;
 
-	using AE::Video::IVideoEncoder;
-	using AE::Video::EVideoFormat;
-	using AE::Video::EVideoCodec;
-	using EVideoColorPreset = AE::Video::EColorPreset;
+    using AE::Video::IVideoEncoder;
+    using AE::Video::EVideoFormat;
+    using AE::Video::EVideoCodec;
+    using EVideoColorPreset = AE::Video::EColorPreset;
 
-	using AE::RG::DirectCtx;	// override Graphics::DirectCtx
-	using AE::RG::IndirectCtx;	// override Graphics::IndirectCtx
+    using AE::RG::DirectCtx;    // override Graphics::DirectCtx
+    using AE::RG::IndirectCtx;  // override Graphics::IndirectCtx
 
-	using ActionQueueReader = IInputActions::ActionQueueReader;
+    using ActionQueueReader = IInputActions::ActionQueueReader;
 
 
-	class ScriptExe;
-	class IPass;
-	class Image;
-	class VideoImage;
-	class PassGroup;
+    class ScriptExe;
+    class IPass;
+    class Image;
+    class VideoImage;
+    class PassGroup;
 
-	
-	struct RTechInfo
-	{
-		GAutorelease<PipelinePackID>	packId;
-		RenderTechPipelinesPtr			rtech;
 
-		ND_ explicit operator bool () const		{ return packId and rtech; }
-	};
+    struct RTechInfo
+    {
+        GAutorelease<PipelinePackID>    packId;
+        RenderTechPipelinesPtr          rtech;
 
-	static constexpr uint	ResNameMaxLen = 63;
+        ND_ explicit operator bool () const     { return packId and rtech; }
+    };
+
+    static constexpr uint   ResNameMaxLen = 63;
 
 } // AE::ResEditor

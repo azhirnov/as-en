@@ -7,146 +7,146 @@
 #include "platform/DefaultV1/IBaseApp.h"
 
 #if defined(AE_ENABLE_VULKAN)
-#	include "graphics/Vulkan/VDevice.h"
-#	include "VulkanSyncLog.h"
+#   include "graphics/Vulkan/VDevice.h"
+#   include "VulkanSyncLog.h"
 
 #elif defined(AE_ENABLE_METAL)
-#	include "graphics/Metal/MDevice.h"
+#   include "graphics/Metal/MDevice.h"
 
 #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-#	include "graphics/Remote/RDevice.h"
+#   include "graphics/Remote/RDevice.h"
 
 #else
-#	error not implemented
+#   error not implemented
 #endif
 
 
 namespace AE::AppV1
 {
 
-	//
-	// Application Event Listener
-	//
+    //
+    // Application Event Listener
+    //
 
-	class DefaultAppListener : public IApplication::IAppListener
-	{
-	// variables
-	protected:
-	  #if defined(AE_ENABLE_VULKAN)
-		Graphics::VDeviceInitializer	_vulkan;
+    class DefaultAppListener : public IApplication::IAppListener
+    {
+    // variables
+    protected:
+      #if defined(AE_ENABLE_VULKAN)
+        Graphics::VDeviceInitializer    _vulkan;
 
-	  #elif defined(AE_ENABLE_METAL)
-		Graphics::MDeviceInitializer	_metal;
+      #elif defined(AE_ENABLE_METAL)
+        Graphics::MDeviceInitializer    _metal;
 
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		Graphics::RDeviceInitializer	_remote;
-		
-	  #else
-	  #	error not implemented
-	  #endif
-			
-		Array<WindowPtr>			_windows;
-		VRDevicePtr					_vrDevice;
-		RC<IBaseApp>				_impl;
+      #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+        Graphics::RDeviceInitializer    _remote;
 
-		const AppConfig				_config;
-		Threading::EThreadArray		_allowProcessInMain;
+      #else
+      # error not implemented
+      #endif
 
+        Array<WindowPtr>            _windows;
+        VRDevicePtr                 _vrDevice;
+        RC<IBaseApp>                _impl;
 
-	// methods
-	protected:
-		explicit DefaultAppListener (const AppConfig &, RC<IBaseApp>)	__NE___;
-	public:
-		~DefaultAppListener ()							__NE_OV;
-
-		ND_ AppConfig const&	Config ()				C_NE___	{ return _config; }
-		ND_ IBaseApp &			GetBaseApp ()			__NE___	{ return *_impl; }
+        const AppConfig             _config;
+        Threading::EThreadArray     _allowProcessInMain;
 
 
-	// IAppListener //
-		void  OnStart (IApplication &)					__NE_OV;
-		void  OnStop  (IApplication &)					__NE_OV;
-		
-		void  BeforeWndUpdate (IApplication &)			__NE_OV;
-		void  AfterWndUpdate (IApplication &)			__NE_OV;
+    // methods
+    protected:
+        explicit DefaultAppListener (const AppConfig &, RC<IBaseApp>)   __NE___;
+    public:
+        ~DefaultAppListener ()                          __NE_OV;
+
+        ND_ AppConfig const&    Config ()               C_NE___ { return _config; }
+        ND_ IBaseApp &          GetBaseApp ()           __NE___ { return *_impl; }
 
 
-	protected:
-		ND_ bool  _OnStartImpl (IApplication &app)		__NE___;
+    // IAppListener //
+        void  OnStart (IApplication &)                  __NE_OV;
+        void  OnStop  (IApplication &)                  __NE_OV;
 
-	private:
-	  #if defined(AE_ENABLE_VULKAN)
-		bool  _CreateVulkan (IApplication &app);
-		bool  _DestroyVulkan ();
-
-	  #elif defined(AE_ENABLE_METAL)
-		bool  _CreateMetal (IApplication &app);
-		bool  _DestroyMetal ();
-
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		bool  _CreateRemoteGraphics (IApplication &app);
-		bool  _DestroyRemoteGraphics ();
-		
-	  #else
-	  #	error not implemented
-	  #endif
-	};
+        void  BeforeWndUpdate (IApplication &)          __NE_OV;
+        void  AfterWndUpdate (IApplication &)           __NE_OV;
 
 
-	
-	//
-	// Window Event Listener
-	//
+    protected:
+        ND_ bool  _OnStartImpl (IApplication &app)      __NE___;
 
-	class DefaultIWndListener : public IWindow::IWndListener
-	{
-	// variables
-	private:
-		RC<IBaseApp>			_impl;
-		DefaultAppListener &	_app;
+    private:
+      #if defined(AE_ENABLE_VULKAN)
+        bool  _CreateVulkan (IApplication &app);
+        bool  _DestroyVulkan ();
 
+      #elif defined(AE_ENABLE_METAL)
+        bool  _CreateMetal (IApplication &app);
+        bool  _DestroyMetal ();
 
-	// methods
-	public:
-		DefaultIWndListener (RC<IBaseApp> impl, DefaultAppListener &app) __NE___ :
-			_impl{RVRef(impl)}, _app{app}
-		{}
+      #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+        bool  _CreateRemoteGraphics (IApplication &app);
+        bool  _DestroyRemoteGraphics ();
 
-
-	// IWndListener //
-		void  OnStateChanged (IWindow &, EState)	__NE_OV;
-		void  OnUpdate (IWindow &)					__NE_OV {}
-		
-		void  OnResize (IWindow &, const uint2 &)	__NE_OV {}
-		void  OnSurfaceCreated (IWindow &)			__NE_OV;
-		void  OnSurfaceDestroyed (IWindow &)		__NE_OV;
-	};
+      #else
+      # error not implemented
+      #endif
+    };
 
 
 
-	//
-	// VR Device Listener
-	//
+    //
+    // Window Event Listener
+    //
 
-	class DefaultVRDeviceListener : public IVRDevice::IVRDeviceEventListener
-	{
-	// variables
-	private:
-		RC<IBaseApp>			_impl;
-		DefaultAppListener &	_app;
-
-
-	// methods
-	public:
-		DefaultVRDeviceListener (RC<IBaseApp> impl, DefaultAppListener &app) :
-			_impl{RVRef(impl)}, _app{app}
-		{}
+    class DefaultIWndListener : public IWindow::IWndListener
+    {
+    // variables
+    private:
+        RC<IBaseApp>            _impl;
+        DefaultAppListener &    _app;
 
 
-	// IVRDeviceEventListener //
-		void  OnUpdate (IVRDevice &)						__NE_OV	{}
-		void  OnStateChanged (IVRDevice &, EState state)	__NE_OV;
-	};
+    // methods
+    public:
+        DefaultIWndListener (RC<IBaseApp> impl, DefaultAppListener &app) __NE___ :
+            _impl{RVRef(impl)}, _app{app}
+        {}
+
+
+    // IWndListener //
+        void  OnStateChanged (IWindow &, EState)    __NE_OV;
+        void  OnUpdate (IWindow &)                  __NE_OV {}
+
+        void  OnResize (IWindow &, const uint2 &)   __NE_OV {}
+        void  OnSurfaceCreated (IWindow &)          __NE_OV;
+        void  OnSurfaceDestroyed (IWindow &)        __NE_OV;
+    };
+
+
+
+    //
+    // VR Device Listener
+    //
+
+    class DefaultVRDeviceListener : public IVRDevice::IVRDeviceEventListener
+    {
+    // variables
+    private:
+        RC<IBaseApp>            _impl;
+        DefaultAppListener &    _app;
+
+
+    // methods
+    public:
+        DefaultVRDeviceListener (RC<IBaseApp> impl, DefaultAppListener &app) :
+            _impl{RVRef(impl)}, _app{app}
+        {}
+
+
+    // IVRDeviceEventListener //
+        void  OnUpdate (IVRDevice &)                        __NE_OV {}
+        void  OnStateChanged (IVRDevice &, EState state)    __NE_OV;
+    };
 
 
 } // AE::AppV1

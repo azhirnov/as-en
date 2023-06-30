@@ -11,16 +11,16 @@ extern void Test_LfStaticPool ();
 
 int main ()
 {
-	AE::Base::StaticLogger::LoggerDbgScope	log{};
+    AE::Base::StaticLogger::LoggerDbgScope  log{};
 
-	UnitTest_Ranges();
-	Test_SpinLock();
-	Test_LfIndexedPool2();
-	Test_LfIndexedPool3();
-	Test_LfStaticPool();
+    UnitTest_Ranges();
+    Test_SpinLock();
+    Test_LfIndexedPool2();
+    Test_LfIndexedPool3();
+    Test_LfStaticPool();
 
-	// TODO:
-	//	LfFixedBlockAllocator, LfFixedBlockAllocator3
-	//	LfStaticQueue
-	//	LfStaticIndexedPool
+    // TODO:
+    //  LfFixedBlockAllocator, LfFixedBlockAllocator3
+    //  LfStaticQueue
+    //  LfStaticIndexedPool
 }

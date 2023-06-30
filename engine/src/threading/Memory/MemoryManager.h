@@ -16,75 +16,75 @@ namespace AE { Threading::MemoryManagerImpl&  MemoryManager () __NE___; }
 namespace AE::Threading
 {
 
-	//
-	// Memory Manager
-	//
+    //
+    // Memory Manager
+    //
 
-	class MemoryManagerImpl final : public Noncopyable
-	{
-		friend struct InPlace<MemoryManagerImpl>;
+    class MemoryManagerImpl final : public Noncopyable
+    {
+        friend struct InPlace<MemoryManagerImpl>;
 
-	// types
-	public:
-		using GlobalLinearAllocator_t	= LfLinearAllocator< 16u<<20, AE_CACHE_LINE, 32 >;
-		using FrameAllocator_t			= StackAllocator< UntypedAllocator, 16, true >;
-		
-		struct FrameAlloc
-		{
-		private:
-			uint				_idx	: 2;	// TODO: atomic ?
-			FrameAllocator_t	_alloc	[4];
+    // types
+    public:
+        using GlobalLinearAllocator_t   = LfLinearAllocator< 16u<<20, AE_CACHE_LINE, 32 >;
+        using FrameAllocator_t          = StackAllocator< UntypedAllocator, 16, true >;
 
-		public:
-			FrameAlloc ()					__NE___	: _idx{0} {}
+        struct FrameAlloc
+        {
+        private:
+            uint                _idx    : 2;    // TODO: atomic ?
+            FrameAllocator_t    _alloc  [4];
 
-			void  NextFrame ()				__NE___	{ ++_idx;  _alloc[_idx].Discard(); }
+        public:
+            FrameAlloc ()                   __NE___ : _idx{0} {}
 
-			ND_ FrameAllocator_t&  Get ()	__NE___	{ return _alloc[_idx]; }
-		};
+            void  NextFrame ()              __NE___ { ++_idx;  _alloc[_idx].Discard(); }
 
-		using DefaultAlloc_t		= AllocatorImpl< UntypedAllocator >;
+            ND_ FrameAllocator_t&  Get ()   __NE___ { return _alloc[_idx]; }
+        };
 
-		class TaskSchedulerApi {
-			friend class TaskScheduler;
-			static void  CreateInstance ()	__NE___;
-			static void  DestroyInstance ()	__NE___;
-		};
+        using DefaultAlloc_t        = AllocatorImpl< UntypedAllocator >;
 
-
-	// variables
-	private:
-		GlobalLinearAllocator_t			_globalLinear;
-
-		FrameAlloc						_graphicsFrameAlloc;
-		FrameAlloc						_simulationFrameAlloc;
-
-		InPlace<DefaultAlloc_t>			_defaultAlloc;
-		
-		PROFILE_ONLY(
-			AtomicRC<IMemoryProfiler>	_profiler;
-		)
+        class TaskSchedulerApi {
+            friend class TaskScheduler;
+            static void  CreateInstance ()  __NE___;
+            static void  DestroyInstance () __NE___;
+        };
 
 
-	// methods
-	public:
-		void  SetProfiler (RC<IMemoryProfiler> profiler)				__NE___;
+    // variables
+    private:
+        GlobalLinearAllocator_t         _globalLinear;
 
-		ND_ GlobalLinearAllocator_t&	GetGlobalLinearAllocator ()		__NE___	{ return _globalLinear; }
+        FrameAlloc                      _graphicsFrameAlloc;
+        FrameAlloc                      _simulationFrameAlloc;
 
-		ND_ FrameAlloc&					GetGraphicsFrameAllocator ()	__NE___	{ return _graphicsFrameAlloc; }
-		ND_ FrameAlloc&					GetSimulationFrameAllocator ()	__NE___	{ return _simulationFrameAlloc; }
+        InPlace<DefaultAlloc_t>         _defaultAlloc;
 
-		ND_ RC<IAllocator>				GetDefaultAllocator ()			__NE___	{ return _defaultAlloc->GetRC(); }
+        PROFILE_ONLY(
+            AtomicRC<IMemoryProfiler>   _profiler;
+        )
 
 
-	private:
-		MemoryManagerImpl ()											__NE___;
-		~MemoryManagerImpl ()											__NE___;
-		
-		friend MemoryManagerImpl&		AE::MemoryManager ()			__NE___;
-		ND_ static MemoryManagerImpl&	_Instance ()					__NE___;
-	};
+    // methods
+    public:
+        void  SetProfiler (RC<IMemoryProfiler> profiler)                __NE___;
+
+        ND_ GlobalLinearAllocator_t&    GetGlobalLinearAllocator ()     __NE___ { return _globalLinear; }
+
+        ND_ FrameAlloc&                 GetGraphicsFrameAllocator ()    __NE___ { return _graphicsFrameAlloc; }
+        ND_ FrameAlloc&                 GetSimulationFrameAllocator ()  __NE___ { return _simulationFrameAlloc; }
+
+        ND_ RC<IAllocator>              GetDefaultAllocator ()          __NE___ { return _defaultAlloc->GetRC(); }
+
+
+    private:
+        MemoryManagerImpl ()                                            __NE___;
+        ~MemoryManagerImpl ()                                           __NE___;
+
+        friend MemoryManagerImpl&       AE::MemoryManager ()            __NE___;
+        ND_ static MemoryManagerImpl&   _Instance ()                    __NE___;
+    };
 
 } // AE::Threading
 
@@ -93,12 +93,12 @@ namespace AE
 {
 /*
 =================================================
-	MemoryManager
+    MemoryManager
 =================================================
 */
-	ND_ forceinline Threading::MemoryManagerImpl&  MemoryManager () __NE___
-	{
-		return Threading::MemoryManagerImpl::_Instance();
-	}
+    ND_ forceinline Threading::MemoryManagerImpl&  MemoryManager () __NE___
+    {
+        return Threading::MemoryManagerImpl::_Instance();
+    }
 
 } // AE

@@ -7,18 +7,18 @@
 
 namespace AE::ResLoader
 {
-	
-	//
-	// STB image Loader
-	//
 
-	class STBImageLoader final : public IImageLoader
-	{
-	// methods
-	public:
-		bool  LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE_OV;
-		using IImageLoader::LoadImage;
-	};
+    //
+    // STB image Loader
+    //
+
+    class STBImageLoader final : public IImageLoader
+    {
+    // methods
+    public:
+        bool  LoadImage (INOUT IntermImage &image, RStream &stream, Bool flipY, Allocator_t allocator, EImageFormat fileFormat) __NE_OV;
+        using IImageLoader::LoadImage;
+    };
 
 
 } // AE::ResLoader

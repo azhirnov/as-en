@@ -5,69 +5,69 @@
 
 namespace
 {
-	enum class ETest : uint
-	{
-		Bit0,
-		Bit1,
-		Bit2,
-		Bit3,
-		Bit4,
-		Bit5,
+    enum class ETest : uint
+    {
+        Bit0,
+        Bit1,
+        Bit2,
+        Bit3,
+        Bit4,
+        Bit5,
 
-		Bit_100 = 100,
-		Bit_110 = 110,
-		_Count
-	};
-	using TestBits = EnumBitSet< ETest >;
+        Bit_100 = 100,
+        Bit_110 = 110,
+        _Count
+    };
+    using TestBits = EnumBitSet< ETest >;
 
-	
-	static void  EnumBitSet_Test1 ()
-	{
-		TestBits	bits;
 
-		TEST( bits.None() );
+    static void  EnumBitSet_Test1 ()
+    {
+        TestBits    bits;
 
-		bits.InsertRange( ETest::Bit2, ETest::Bit4 );
-		
-		TEST( not bits.None() );
-		TEST( not bits.All() );
-		TEST( bits.Any() );
+        TEST( bits.None() );
 
-		TEST( not bits.contains( ETest::Bit0 ));
-		TEST( not bits.contains( ETest::Bit1 ));
-		TEST( bits.contains( ETest::Bit2 ));
-		TEST( bits.contains( ETest::Bit3 ));
-		TEST( bits.contains( ETest::Bit4 ));
-		TEST( not bits.contains( ETest::Bit5 ));
-		
-		TEST( bits.AnyInRange( ETest::Bit0, ETest::Bit2 ));
-		TEST( not bits.AnyInRange( ETest::Bit0, ETest::Bit1 ));
-		TEST( bits.AnyInRange( ETest::Bit2, ETest::Bit4 ));
-		TEST( bits.AllInRange( ETest::Bit2, ETest::Bit4 ));
-		TEST( not bits.AllInRange( ETest::Bit1, ETest::Bit4 ));
-		TEST( not bits.AllInRange( ETest::Bit2, ETest::Bit5 ));
-	}
+        bits.InsertRange( ETest::Bit2, ETest::Bit4 );
 
-	
-	static void  EnumBitSet_Test2 ()
-	{
-		TestBits	bits;
-		
-		bits.InsertRange( ETest::Bit_100, ETest::Bit_110 );
-		TEST( bits.AllInRange( ETest::Bit_100, ETest::Bit_110 ));
-		TEST( bits.AnyInRange( ETest::Bit2, ETest::Bit_100 ));
+        TEST( not bits.None() );
+        TEST( not bits.All() );
+        TEST( bits.Any() );
 
-		ETest	a0 = bits.ExtractFirst();
-		TEST( a0 == ETest::Bit_100 );
-		TEST( not bits.AllInRange( ETest::Bit_100, ETest::Bit_110 ));
-	}
+        TEST( not bits.contains( ETest::Bit0 ));
+        TEST( not bits.contains( ETest::Bit1 ));
+        TEST( bits.contains( ETest::Bit2 ));
+        TEST( bits.contains( ETest::Bit3 ));
+        TEST( bits.contains( ETest::Bit4 ));
+        TEST( not bits.contains( ETest::Bit5 ));
+
+        TEST( bits.AnyInRange( ETest::Bit0, ETest::Bit2 ));
+        TEST( not bits.AnyInRange( ETest::Bit0, ETest::Bit1 ));
+        TEST( bits.AnyInRange( ETest::Bit2, ETest::Bit4 ));
+        TEST( bits.AllInRange( ETest::Bit2, ETest::Bit4 ));
+        TEST( not bits.AllInRange( ETest::Bit1, ETest::Bit4 ));
+        TEST( not bits.AllInRange( ETest::Bit2, ETest::Bit5 ));
+    }
+
+
+    static void  EnumBitSet_Test2 ()
+    {
+        TestBits    bits;
+
+        bits.InsertRange( ETest::Bit_100, ETest::Bit_110 );
+        TEST( bits.AllInRange( ETest::Bit_100, ETest::Bit_110 ));
+        TEST( bits.AnyInRange( ETest::Bit2, ETest::Bit_100 ));
+
+        ETest   a0 = bits.ExtractFirst();
+        TEST( a0 == ETest::Bit_100 );
+        TEST( not bits.AllInRange( ETest::Bit_100, ETest::Bit_110 ));
+    }
 }
 
 
 extern void UnitTest_EnumBitSet ()
 {
-	EnumBitSet_Test1();
-	EnumBitSet_Test2();
+    EnumBitSet_Test1();
+    EnumBitSet_Test2();
 
-	TEST_PASSED();
+    TEST_PASSED();
 }

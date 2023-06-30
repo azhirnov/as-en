@@ -11,10 +11,10 @@ extern int Test_HuLang ()
 int main ()
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+    AE::Base::StaticLogger::LoggerDbgScope log{};
 
-	UnitTest_Console();
-	
-	AE_LOGI( "Tests.HuLang finished" );
-	return 0;
+    UnitTest_Console();
+
+    AE_LOGI( "Tests.HuLang finished" );
+    return 0;
 }

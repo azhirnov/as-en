@@ -10,23 +10,23 @@ namespace AE::RG
 {
 namespace _hidden_
 {
-	using namespace AE::Graphics;
-	
-	#if defined(AE_ENABLE_VULKAN)
-	using PrimaryCmdBufState_t	= VPrimaryCmdBufState;
+    using namespace AE::Graphics;
 
-	#elif defined(AE_ENABLE_METAL)
-	using PrimaryCmdBufState_t	= MPrimaryCmdBufState;
-	
-	#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-	using PrimaryCmdBufState_t	= RPrimaryCmdBufState;
+    #if defined(AE_ENABLE_VULKAN)
+    using PrimaryCmdBufState_t  = VPrimaryCmdBufState;
 
-	#else
-	#	error not implemented
-	#endif
+    #elif defined(AE_ENABLE_METAL)
+    using PrimaryCmdBufState_t  = MPrimaryCmdBufState;
+
+    #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+    using PrimaryCmdBufState_t  = RPrimaryCmdBufState;
+
+    #else
+    #   error not implemented
+    #endif
 
 } // _hidden_
 
-	using namespace AE::Base;
+    using namespace AE::Base;
 
 } // AE::RG

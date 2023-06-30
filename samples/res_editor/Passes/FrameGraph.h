@@ -7,152 +7,152 @@
 namespace AE::ResEditor
 {
 
-	//
-	// Frame Graph
-	//
+    //
+    // Frame Graph
+    //
 
-	class FrameGraphImpl
-	{
-	// variables
-	private:
-		RG::RenderGraph				_rg;
-		Ptr<IOutputSurface>			_surface;
-		RG::CommandBatchPtr			_uiBatch;
-		
-		DRC_ONLY( RWDataRaceCheck	_drCheck;)
+    class FrameGraphImpl
+    {
+    // variables
+    private:
+        RG::RenderGraph             _rg;
+        Ptr<IOutputSurface>         _surface;
+        RG::CommandBatchPtr         _uiBatch;
 
-		static FrameGraphImpl *		_instance;
+        DRC_ONLY( RWDataRaceCheck   _drCheck;)
 
-
-	// methods
-	public:
-		FrameGraphImpl ()	__Th___;
-		~FrameGraphImpl ();
-		
-		// single threaded
-		template <typename ...Deps>
-		ND_ AsyncTask	BeginFrame (Ptr<IOutputSurface>		surface,
-									const BeginFrameConfig	&cfg	= Default,
-									const Tuple<Deps...>	&deps	= Default);
-
-		template <typename ...Deps>
-		ND_ AsyncTask	EndFrame (const Tuple<Deps...>	&deps);
-
-		ND_ AsyncTask	BeginOnSurface (const RG::CommandBatchPtr &batch);
+        static FrameGraphImpl *     _instance;
 
 
-		ND_ FrameUID	GetPrevFrameId ()	const	{ return _rg.GetPrevFrameId(); }
-		ND_ FrameUID	GetNextFrameId ()	const	{ return _rg.GetNextFrameId(); }
-		ND_ auto		GetSurface ()		const	{ DRC_SHAREDLOCK( _drCheck );  return _surface; }
-		ND_ auto		GetSurfaceArg ()	const	{ DRC_SHAREDLOCK( _drCheck );  return ArgRef( *_surface ); }
+    // methods
+    public:
+        FrameGraphImpl ()   __Th___;
+        ~FrameGraphImpl ();
+
+        // single threaded
+        template <typename ...Deps>
+        ND_ AsyncTask   BeginFrame (Ptr<IOutputSurface>     surface,
+                                    const BeginFrameConfig  &cfg    = Default,
+                                    const Tuple<Deps...>    &deps   = Default);
+
+        template <typename ...Deps>
+        ND_ AsyncTask   EndFrame (const Tuple<Deps...>  &deps);
+
+        ND_ AsyncTask   BeginOnSurface (const RG::CommandBatchPtr &batch);
 
 
-		// thread safe
-		ND_ RG::CommandBatchPtr		Upload (EQueueType queue = EQueueType::Graphics);
-		ND_ RG::CommandBatchPtr		Readback (EQueueType queue = EQueueType::Graphics);
-		ND_ RG::CommandBatchPtr		Render (StringView name);
-		ND_ RG::CommandBatchPtr		UI ();
-
-		ND_ RG::ResStateTracker&	GetStateTracker ()	{ return _rg; }
+        ND_ FrameUID    GetPrevFrameId ()   const   { return _rg.GetPrevFrameId(); }
+        ND_ FrameUID    GetNextFrameId ()   const   { return _rg.GetNextFrameId(); }
+        ND_ auto        GetSurface ()       const   { DRC_SHAREDLOCK( _drCheck );  return _surface; }
+        ND_ auto        GetSurfaceArg ()    const   { DRC_SHAREDLOCK( _drCheck );  return ArgRef( *_surface ); }
 
 
-		friend FrameGraphImpl&  FrameGraph ();
-	};
+        // thread safe
+        ND_ RG::CommandBatchPtr     Upload (EQueueType queue = EQueueType::Graphics);
+        ND_ RG::CommandBatchPtr     Readback (EQueueType queue = EQueueType::Graphics);
+        ND_ RG::CommandBatchPtr     Render (StringView name);
+        ND_ RG::CommandBatchPtr     UI ();
 
-	
+        ND_ RG::ResStateTracker&    GetStateTracker ()  { return _rg; }
+
+
+        friend FrameGraphImpl&  FrameGraph ();
+    };
+
+
 /*
 =================================================
-	FrameGraph
+    FrameGraph
 =================================================
 */
-	ND_ inline FrameGraphImpl&  FrameGraph ()
-	{
-		ASSERT( FrameGraphImpl::_instance != null );
-		return *FrameGraphImpl::_instance;
-	}
-	
+    ND_ inline FrameGraphImpl&  FrameGraph ()
+    {
+        ASSERT( FrameGraphImpl::_instance != null );
+        return *FrameGraphImpl::_instance;
+    }
+
 /*
 =================================================
-	BeginFrame
+    BeginFrame
 =================================================
 */
-	template <typename ...Deps>
-	AsyncTask  FrameGraphImpl::BeginFrame (Ptr<IOutputSurface> surface, const BeginFrameConfig &cfg, const Tuple<Deps...> &deps)
-	{
-		DRC_EXLOCK( _drCheck );
-		
-		_surface = surface;
+    template <typename ...Deps>
+    AsyncTask  FrameGraphImpl::BeginFrame (Ptr<IOutputSurface> surface, const BeginFrameConfig &cfg, const Tuple<Deps...> &deps)
+    {
+        DRC_EXLOCK( _drCheck );
 
-		return _rg.BeginFrame( cfg, deps );
-	}
-	
+        _surface = surface;
+
+        return _rg.BeginFrame( cfg, deps );
+    }
+
 /*
 =================================================
-	EndFrame
+    EndFrame
 =================================================
 */
-	template <typename ...Deps>
-	AsyncTask  FrameGraphImpl::EndFrame (const Tuple<Deps...> &deps)
-	{
-		DRC_EXLOCK( _drCheck );
+    template <typename ...Deps>
+    AsyncTask  FrameGraphImpl::EndFrame (const Tuple<Deps...> &deps)
+    {
+        DRC_EXLOCK( _drCheck );
 
-		AsyncTask	ui_task;
-		if ( _uiBatch )
-			ui_task = _uiBatch.SubmitAsTask();
+        AsyncTask   ui_task;
+        if ( _uiBatch )
+            ui_task = _uiBatch.SubmitAsTask();
 
-		AsyncTask	end_frame = _rg.EndFrame( TupleConcat( deps, Tuple{ui_task} ));
+        AsyncTask   end_frame = _rg.EndFrame( TupleConcat( deps, Tuple{ui_task} ));
 
-		_surface	= null;
-		_uiBatch	= null;
+        _surface    = null;
+        _uiBatch    = null;
 
-		return end_frame;
-	}
-	
+        return end_frame;
+    }
+
 /*
 =================================================
-	BeginOnSurface
+    BeginOnSurface
 =================================================
 */
-	inline AsyncTask  FrameGraphImpl::BeginOnSurface (const RG::CommandBatchPtr &batch)
-	{
-		DRC_EXLOCK( _drCheck );
-		
-		if ( not _surface ) return null;
+    inline AsyncTask  FrameGraphImpl::BeginOnSurface (const RG::CommandBatchPtr &batch)
+    {
+        DRC_EXLOCK( _drCheck );
 
-		return _rg.BeginOnSurface( _surface, batch );
-	}
-	
+        if ( not _surface ) return null;
+
+        return _rg.BeginOnSurface( _surface, batch );
+    }
+
 /*
 =================================================
-	Render
+    Render
 =================================================
 */
-	inline RG::CommandBatchPtr  FrameGraphImpl::Render (StringView name)
-	{
-		DRC_SHAREDLOCK( _drCheck );
-		auto	batch = _rg.CmdBatch( EQueueType::Graphics, {name} )
-								.UploadMemory()
-								.Begin();
-		batch.AsBatch()->SetSubmissionMode( ESubmitMode::Immediately );	// TODO: optimize
-		return batch;
-	}
-	
+    inline RG::CommandBatchPtr  FrameGraphImpl::Render (StringView name)
+    {
+        DRC_SHAREDLOCK( _drCheck );
+        auto    batch = _rg.CmdBatch( EQueueType::Graphics, {name} )
+                                .UploadMemory()
+                                .Begin();
+        batch.AsBatch()->SetSubmissionMode( ESubmitMode::Immediately ); // TODO: optimize
+        return batch;
+    }
+
 /*
 =================================================
-	UI
+    UI
 =================================================
 */
-	inline RG::CommandBatchPtr  FrameGraphImpl::UI ()
-	{
-		DRC_SHAREDLOCK( _drCheck );
-		if ( not _uiBatch )
-		{
-			_uiBatch = _rg.CmdBatch( EQueueType::Graphics, {"UI"} )
-								.UploadMemory()
-								.Begin();
-		}
-		return _uiBatch;
-	}
+    inline RG::CommandBatchPtr  FrameGraphImpl::UI ()
+    {
+        DRC_SHAREDLOCK( _drCheck );
+        if ( not _uiBatch )
+        {
+            _uiBatch = _rg.CmdBatch( EQueueType::Graphics, {"UI"} )
+                                .UploadMemory()
+                                .Begin();
+        }
+        return _uiBatch;
+    }
 
 
 } // AE::ResEditor

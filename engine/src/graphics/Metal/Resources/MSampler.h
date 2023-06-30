@@ -9,29 +9,29 @@
 namespace AE::Graphics
 {
 
-	//
-	// Metal Sampler immutable data
-	//
+    //
+    // Metal Sampler immutable data
+    //
 
-	class MSampler
-	{
-	// variables
-	private:
-		MetalSamplerRC				_sampler;
-		
-		DRC_ONLY( RWDataRaceCheck	_drCheck; )
+    class MSampler
+    {
+    // variables
+    private:
+        MetalSamplerRC              _sampler;
+
+        DRC_ONLY( RWDataRaceCheck   _drCheck; )
 
 
-	// methods
-	public:
-		MSampler ()																			__NE___	{}
-		~MSampler ()																		__NE___;
+    // methods
+    public:
+        MSampler ()                                                                         __NE___ {}
+        ~MSampler ()                                                                        __NE___;
 
-		ND_ bool  Create (const MDevice &dev, const SamplerDesc &desc, StringView dbgName)	__NE___;
-			void  Destroy (MResourceManager &)												__NE___;
+        ND_ bool  Create (const MDevice &dev, const SamplerDesc &desc, StringView dbgName)  __NE___;
+            void  Destroy (MResourceManager &)                                              __NE___;
 
-		ND_ MetalSampler	Handle ()														C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _sampler; }
-	};
+        ND_ MetalSampler    Handle ()                                                       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _sampler; }
+    };
 
 
 } // AE::Graphics

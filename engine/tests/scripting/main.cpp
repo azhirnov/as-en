@@ -17,18 +17,18 @@ extern int Test_Scripting ()
 int main ()
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+    AE::Base::StaticLogger::LoggerDbgScope log{};
 
-	UnitTest_Array();
-	UnitTest_Class();
-	UnitTest_MathFunc();
-	UnitTest_String();
-	UnitTest_Exceptions();
-	UnitTest_Preprocessor();
-	UnitTest_Fn();
+    UnitTest_Array();
+    UnitTest_Class();
+    UnitTest_MathFunc();
+    UnitTest_String();
+    UnitTest_Exceptions();
+    UnitTest_Preprocessor();
+    UnitTest_Fn();
 
-	// TODO: multithreading test
+    // TODO: multithreading test
 
-	AE_LOGI( "Tests.ScriptBinding finished" );
-	return 0;
+    AE_LOGI( "Tests.ScriptBinding finished" );
+    return 0;
 }

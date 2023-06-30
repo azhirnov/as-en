@@ -6,87 +6,87 @@
 
 namespace AE::ResEditor
 {
-	
-/*
-=================================================
-	constructor
-=================================================
-*/
-	BuildRTGeometry::BuildRTGeometry (RC<RTGeometry>	dstGeometry,
-									  RC<Buffer>		indirectBuffer,
-									  StringView		dbgName) :
-		_dstGeometry{ RVRef(dstGeometry) },
-		_indirectBuffer{ indirectBuffer },
-		_dbgName{ dbgName }
-	{}
 
 /*
 =================================================
-	Execute
+    constructor
 =================================================
 */
-	bool  BuildRTGeometry::Execute (SyncPassData &pd) __NE___
-	{
-		DirectCtx::ASBuild	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
-		
-		//ctx.BuildIndirect( _indirectBuffer->GetBufferId(), 0_b );
-		
+    BuildRTGeometry::BuildRTGeometry (RC<RTGeometry>    dstGeometry,
+                                      RC<Buffer>        indirectBuffer,
+                                      StringView        dbgName) :
+        _dstGeometry{ RVRef(dstGeometry) },
+        _indirectBuffer{ indirectBuffer },
+        _dbgName{ dbgName }
+    {}
 
-		pd.cmdbuf = ctx.ReleaseCommandBuffer();
-		return true;
-	}
-	
 /*
 =================================================
-	Update
+    Execute
 =================================================
 */
-	bool  BuildRTGeometry::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
-	{
-		return true;
-	}
+    bool  BuildRTGeometry::Execute (SyncPassData &pd) __NE___
+    {
+        DirectCtx::ASBuild  ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
+
+        //ctx.BuildIndirect( _indirectBuffer->GetBufferId(), 0_b );
+
+
+        pd.cmdbuf = ctx.ReleaseCommandBuffer();
+        return true;
+    }
+
+/*
+=================================================
+    Update
+=================================================
+*/
+    bool  BuildRTGeometry::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    {
+        return true;
+    }
 //-----------------------------------------------------------------------------
 
 
-	
-/*
-=================================================
-	constructor
-=================================================
-*/
-	BuildRTScene::BuildRTScene (RC<RTScene>	dstScene,
-								RC<Buffer>	indirectBuffer,
-								StringView	dbgName) :
-		_dstScene{ RVRef(dstScene) },
-		_indirectBuffer{ indirectBuffer },
-		_dbgName{ dbgName }
-	{}
 
 /*
 =================================================
-	Execute
+    constructor
 =================================================
 */
-	bool  BuildRTScene::Execute (SyncPassData &pd) __NE___
-	{
-		DirectCtx::ASBuild	ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
-		
-		//ctx.BuildIndirect( _indirectBuffer->GetBufferId(), 0_b );
-		
+    BuildRTScene::BuildRTScene (RC<RTScene> dstScene,
+                                RC<Buffer>  indirectBuffer,
+                                StringView  dbgName) :
+        _dstScene{ RVRef(dstScene) },
+        _indirectBuffer{ indirectBuffer },
+        _dbgName{ dbgName }
+    {}
 
-		pd.cmdbuf = ctx.ReleaseCommandBuffer();
-		return true;
-	}
-	
 /*
 =================================================
-	Update
+    Execute
 =================================================
 */
-	bool  BuildRTScene::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
-	{
-		return true;
-	}
+    bool  BuildRTScene::Execute (SyncPassData &pd) __NE___
+    {
+        DirectCtx::ASBuild  ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
+
+        //ctx.BuildIndirect( _indirectBuffer->GetBufferId(), 0_b );
+
+
+        pd.cmdbuf = ctx.ReleaseCommandBuffer();
+        return true;
+    }
+
+/*
+=================================================
+    Update
+=================================================
+*/
+    bool  BuildRTScene::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    {
+        return true;
+    }
 
 
 } // AE::ResEditor

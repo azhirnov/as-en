@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Quaternion functions
+    Quaternion functions
 */
 
 #ifdef __cplusplus
@@ -12,257 +12,257 @@
 
 struct quat
 {
-	float4	data;
+    float4  data;
 };
 
 
-ND_ quat	QIdentity ();
-ND_ quat	QCreate (const float4 vec);
-ND_ quat	QCreate (const float3 axis, const float angle);
-ND_ quat	QCreate (float x, float y, float z, float w);
+ND_ quat    QIdentity ();
+ND_ quat    QCreate (const float4 vec);
+ND_ quat    QCreate (const float3 axis, const float angle);
+ND_ quat    QCreate (float x, float y, float z, float w);
 
-ND_ quat	QNormalize (const quat q);
-ND_ quat	QInverse (const quat q);
+ND_ quat    QNormalize (const quat q);
+ND_ quat    QInverse (const quat q);
 
-ND_ quat	QMul (const quat left, const quat right);
-ND_ float3	QMul (const quat left, const float3 right);
+ND_ quat    QMul (const quat left, const quat right);
+ND_ float3  QMul (const quat left, const float3 right);
 
-ND_ float	QDot (const quat left, const quat right);
-ND_ quat	QSlerp (const quat qx, const quat qy, const float factor);
+ND_ float   QDot (const quat left, const quat right);
+ND_ quat    QSlerp (const quat qx, const quat qy, const float factor);
 
-ND_ float3	QDirection (const quat q);
-ND_ quat	QLookAt (const float3 from, const float3 to);
-ND_ quat	QLookAt (const float3 dir);
+ND_ float3  QDirection (const quat q);
+ND_ quat    QLookAt (const float3 from, const float3 to);
+ND_ quat    QLookAt (const float3 dir);
 
-ND_ quat	QRotationX (const float angleRad);
-ND_ quat	QRotationY (const float angleRad);
-ND_ quat	QRotationZ (const float angleRad);
-ND_ quat	QRotation (const float3 anglesRad);
+ND_ quat    QRotationX (const float angleRad);
+ND_ quat    QRotationY (const float angleRad);
+ND_ quat    QRotationZ (const float angleRad);
+ND_ quat    QRotation (const float3 anglesRad);
 
 //-----------------------------------------------------------------------------
 
 
 /*
 =================================================
-	QIdentity
+    QIdentity
 =================================================
 */
 quat  QIdentity ()
 {
-	quat	ret;
-	ret.data = float4( 0.0, 0.0, 0.0, 1.0 );
-	return ret;
+    quat    ret;
+    ret.data = float4( 0.0, 0.0, 0.0, 1.0 );
+    return ret;
 }
 
 /*
 =================================================
-	QCreate
+    QCreate
 =================================================
 */
 quat  QCreate (const float4 vec)
 {
-	quat	ret;
-	ret.data = vec;
-	return ret;
+    quat    ret;
+    ret.data = vec;
+    return ret;
 }
 
 quat  QCreate (const float3 axis, const float angle)
 {
-	quat	ret;
-	ret.data = float4( axis, angle );
-	return ret;
+    quat    ret;
+    ret.data = float4( axis, angle );
+    return ret;
 }
 
 quat  QCreate (float x, float y, float z, float w)
 {
-	quat	ret;
-	ret.data = float4( x, y, z, w );
-	return ret;
+    quat    ret;
+    ret.data = float4( x, y, z, w );
+    return ret;
 }
 
 /*
 =================================================
-	QNormalize
+    QNormalize
 =================================================
 */
 quat  QNormalize (const quat q)
 {
-	quat	ret = q;
-	float	n	= Dot( q.data, q.data );
-	
-	if ( n == 1.0 )
-		return ret;
-	
-	ret.data /= Sqrt( n );
-	return ret;
+    quat    ret = q;
+    float   n   = Dot( q.data, q.data );
+
+    if ( n == 1.0 )
+        return ret;
+
+    ret.data /= Sqrt( n );
+    return ret;
 }
 
 /*
 =================================================
-	QInverse
+    QInverse
 =================================================
 */
 quat  QInverse (const quat q)
 {
-	quat	ret;
-	ret.data.xyz = -q.data.xyz;
-	ret.data.w   = q.data.w;
-	return ret;
+    quat    ret;
+    ret.data.xyz = -q.data.xyz;
+    ret.data.w   = q.data.w;
+    return ret;
 }
 
 /*
 =================================================
-	QMul
+    QMul
 =================================================
 */
 quat  QMul (const quat left, const quat right)
 {
-	quat	ret;
+    quat    ret;
 
-	ret.data.xyz	= left.data.w * right.data.xyz + 
-					  left.data.xyz * right.data.w +
-					  Cross( left.data.xyz, right.data.xyz );
+    ret.data.xyz    = left.data.w * right.data.xyz + 
+                      left.data.xyz * right.data.w +
+                      Cross( left.data.xyz, right.data.xyz );
 
-	float4	dt		= left.data.xyzw * right.data.xyzw;
-	ret.data.w		= Dot( dt, float4( -1.0, -1.0, -1.0, 1.0 ));
+    float4  dt      = left.data.xyzw * right.data.xyzw;
+    ret.data.w      = Dot( dt, float4( -1.0, -1.0, -1.0, 1.0 ));
 
-	return ret;
+    return ret;
 }
 
 /*
 =================================================
-	QMul
+    QMul
 =================================================
 */
 float3  QMul (const quat left, const float3 right)
 {
-	float3	q	= left.data.xyz;
-	float3	uv	= Cross( q, right );
-	float3	uuv	= Cross( q, uv );
+    float3  q   = left.data.xyz;
+    float3  uv  = Cross( q, right );
+    float3  uuv = Cross( q, uv );
 
-	return right + ((uv * left.data.w) + uuv) * 2.0;
+    return right + ((uv * left.data.w) + uuv) * 2.0;
 }
 
 /*
 =================================================
-	QDot
+    QDot
 =================================================
 */
 float  QDot (const quat left, const quat right)
 {
-	return Dot( left.data, right.data );
+    return Dot( left.data, right.data );
 }
 
 /*
 =================================================
-	QSlerp
+    QSlerp
 =================================================
 */
 quat  QSlerp (const quat qx, const quat qy, const float factor)
 {
-	quat	ret;
-	float4	qz			= qy.data;
-	float	cos_theta	= Dot( qx.data, qy.data );
+    quat    ret;
+    float4  qz          = qy.data;
+    float   cos_theta   = Dot( qx.data, qy.data );
 
-	if ( cos_theta < 0.0 )
-	{
-		qz			= -qy.data;
-		cos_theta	= -cos_theta;
-	}
+    if ( cos_theta < 0.0 )
+    {
+        qz          = -qy.data;
+        cos_theta   = -cos_theta;
+    }
 
-	if ( cos_theta > 1.0 - Epsilon() )
-	{
-		ret.data = Lerp( qx.data, qy.data, factor );
-	}
-	else
-	{
-		float	angle = ACos( cos_theta );
+    if ( cos_theta > 1.0 - Epsilon() )
+    {
+        ret.data = Lerp( qx.data, qy.data, factor );
+    }
+    else
+    {
+        float   angle = ACos( cos_theta );
 
-		ret.data =	( Sin( (1.0 - factor) * angle ) * qx.data +
-					  Sin( factor * angle ) * qz ) / Sin( angle );
-	}
-	return ret;
+        ret.data =  ( Sin( (1.0 - factor) * angle ) * qx.data +
+                      Sin( factor * angle ) * qz ) / Sin( angle );
+    }
+    return ret;
 }
 
 /*
 =================================================
-	QDirection
+    QDirection
 =================================================
 */
 float3  QDirection (const quat q)
 {
-	return float3( 2.0 * q.data.x * q.data.z + 2.0 * q.data.y * q.data.w,
-				   2.0 * q.data.z * q.data.y - 2.0 * q.data.x * q.data.w,
-				   1.0 - 2.0 - q.data.x * q.data.x - 2.0 * q.data.y * q.data.y );
+    return float3( 2.0 * q.data.x * q.data.z + 2.0 * q.data.y * q.data.w,
+                   2.0 * q.data.z * q.data.y - 2.0 * q.data.x * q.data.w,
+                   1.0 - 2.0 - q.data.x * q.data.x - 2.0 * q.data.y * q.data.y );
 }
 
 /*
 =================================================
-	QRotationX
+    QRotationX
 =================================================
 */
 quat  QRotationX (const float angleRad)
 {
-	quat	q;
-	float	a = angleRad * 0.5;
+    quat    q;
+    float   a = angleRad * 0.5;
 
-	q.data = float4( Sin(a), 0.0, 0.0, Cos(a) );
-	return q;
+    q.data = float4( Sin(a), 0.0, 0.0, Cos(a) );
+    return q;
 }
 
 /*
 =================================================
-	QRotationY
+    QRotationY
 =================================================
 */
 quat  QRotationY (const float angleRad)
 {
-	quat	q;
-	float	a = angleRad * 0.5;
+    quat    q;
+    float   a = angleRad * 0.5;
 
-	q.data = float4( 0.0, Sin(a), 0.0, Cos(a) );
-	return q;
+    q.data = float4( 0.0, Sin(a), 0.0, Cos(a) );
+    return q;
 }
 
 /*
 =================================================
-	QRotationZ
+    QRotationZ
 =================================================
 */
 quat  QRotationZ (const float angleRad)
 {
-	quat	q;
-	float	a = angleRad * 0.5;
+    quat    q;
+    float   a = angleRad * 0.5;
 
-	q.data = float4( 0.0, 0.0, Sin(a), Cos(a) );
-	return q;
+    q.data = float4( 0.0, 0.0, Sin(a), Cos(a) );
+    return q;
 }
 
 /*
 =================================================
-	QRotation
+    QRotation
 =================================================
 */
 quat  QRotation (const float3 anglesRad)
 {
-	return QMul( QMul( QRotationX( anglesRad.x ), QRotationY( anglesRad.y )), QRotationZ( anglesRad.z ));
+    return QMul( QMul( QRotationX( anglesRad.x ), QRotationY( anglesRad.y )), QRotationZ( anglesRad.z ));
 }
 
 /*
 =================================================
-	QLookAt
+    QLookAt
 =================================================
 */
 quat  QLookAt (const float3 from, const float3 to)
 {
-	return QLookAt( to - from );
+    return QLookAt( to - from );
 }
 
 quat  QLookAt (const float3 dir)
 {
-	float3	fwd		= float3(0.0, 0.0, 1.0);
-	float3	axis	= Cross( fwd, dir );
-	float	angle	= Dot( fwd, dir );
+    float3  fwd     = float3(0.0, 0.0, 1.0);
+    float3  axis    = Cross( fwd, dir );
+    float   angle   = Dot( fwd, dir );
 
-	return QNormalize( QCreate( axis, angle + 1.0 ));
+    return QNormalize( QCreate( axis, angle + 1.0 ));
 }

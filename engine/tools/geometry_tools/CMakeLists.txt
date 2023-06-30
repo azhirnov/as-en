@@ -8,6 +8,6 @@ target_include_directories( "GeometryTools" PUBLIC ".." )
 set_property( TARGET "GeometryTools" PROPERTY FOLDER "Engine/Tools" )
 
 if (TARGET "Graphics")
-	target_link_libraries( "GeometryTools" PUBLIC "Graphics" )
-	target_compile_definitions( "GeometryTools" PUBLIC "AE_GEOMTOOLS_HAS_GRAPHICS" )
+    target_link_libraries( "GeometryTools" PUBLIC "Graphics" )
+    target_compile_definitions( "GeometryTools" PUBLIC "AE_GEOMTOOLS_HAS_GRAPHICS" )
 endif()

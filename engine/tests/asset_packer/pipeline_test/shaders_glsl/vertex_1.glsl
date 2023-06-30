@@ -9,6 +9,6 @@
 
 void Main ()
 {
-	gl_Position  = drawUB.mvp * float4(in_Position, 1.0);
-	Out.Texcoord = in_Texcoord;
+    gl_Position  = drawUB.mvp * float4(in_Position, 1.0);
+    Out.Texcoord = in_Texcoord;
 }

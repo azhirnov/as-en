@@ -7,17 +7,17 @@
 namespace AE::ResLoader
 {
 
-	//
-	// DDS Image Saver
-	//
+    //
+    // DDS Image Saver
+    //
 
-	class DDSSaver final : public IImageSaver
-	{
-	// methods
-	public:
-		bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat = Default, Bool flipY = False{}) __NE_OV;
-		using IImageSaver::SaveImage;
-	};
+    class DDSSaver final : public IImageSaver
+    {
+    // methods
+    public:
+        bool  SaveImage (WStream &stream, const IntermImage &image, EImageFormat fileFormat = Default, Bool flipY = False{}) __NE_OV;
+        using IImageSaver::SaveImage;
+    };
 
 
 } // AE::ResLoader

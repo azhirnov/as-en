@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Thread-safe: no
+    Thread-safe: no
 */
 
 #pragma once
@@ -16,120 +16,120 @@
 namespace AE::HuLang
 {
 
-	//
-	// Console
-	//
+    //
+    // Console
+    //
 
-	class Console
-	{
-	// types
-	public:
-		struct ShortSuggestionItem
-		{
-			uint	depth	: 4;
-			uint	index	: 28;
+    class Console
+    {
+    // types
+    public:
+        struct ShortSuggestionItem
+        {
+            uint    depth   : 4;
+            uint    index   : 28;
 
-			ShortSuggestionItem () : depth{0}, index{0} {}
-			ShortSuggestionItem (uint depth, uint index) : depth{depth}, index{index} {}
-		};
-		using ShortSuggestion_t	= Array< ShortSuggestionItem >;
-		
-
-		struct SuggestionItem
-		{
-			StringView						name;
-			ConsoleCmdName::Optimized_t		command;
-			uint							depth		: 4;
-			uint							index		: 28;
-			float							probability;		// 0..1
-
-			SuggestionItem () : depth{0}, index{0}, probability{0.f} {}
-		};
-		using Suggestion_t	= Array< SuggestionItem >;
+            ShortSuggestionItem () : depth{0}, index{0} {}
+            ShortSuggestionItem (uint depth, uint index) : depth{depth}, index{index} {}
+        };
+        using ShortSuggestion_t = Array< ShortSuggestionItem >;
 
 
-		using CommandName_t = FixedArray< StringView, 8 >;
-		
-		enum class EIndex : uint
-		{
-			NSBit		= 0u << 30,				// in '_nsArr'
-			ActionBit	= 1u << 30,				// in '_actions'
-			Synonym		= 1u << 31,
-			_Mask		= ActionBit | Synonym,
-		};
+        struct SuggestionItem
+        {
+            StringView                      name;
+            ConsoleCmdName::Optimized_t     command;
+            uint                            depth       : 4;
+            uint                            index       : 28;
+            float                           probability;        // 0..1
 
-	private:
-		using SynonymsArr_t	= FixedArray< EIndex, 16 >;
-		using NameMap_t		= HashMap< StringView, SynonymsArr_t >;
-
-		struct NameSpace
-		{
-			const usize		index;
-			NameMap_t		map;	// registred names with synonyms
-
-			explicit NameSpace (usize idx) : index{idx} {}
-		};
-		using NameSpaceMap_t	= HashMap< StringView, Ptr<NameSpace> >;
-
-		struct CommandInfo
-		{
-			ConsoleCmdName::Optimized_t		command;
-			uint							depth	= 0;
-			StringView						name;			// stored in '_allocator'
-
-			CommandInfo (ConsoleCmdName::Optimized_t	command,
-						 usize							depth,
-						 StringView						name) :
-				command{command}, depth{uint(depth)}, name{name}
-			{}
-		};
-		using CommandArr_t		= Array< CommandInfo >;
-		using NameSpaceArr_t	= Array< Unique<NameSpace> >;
-
-		using Allocator_t		= LinearAllocator< UntypedAllocator, 8, false >;
+            SuggestionItem () : depth{0}, index{0}, probability{0.f} {}
+        };
+        using Suggestion_t  = Array< SuggestionItem >;
 
 
-	// variables
-	private:
-		NameSpaceMap_t		_nsMap;
+        using CommandName_t = FixedArray< StringView, 8 >;
 
-		NameSpaceArr_t		_nsArr;
-		CommandArr_t		_commands;
+        enum class EIndex : uint
+        {
+            NSBit       = 0u << 30,             // in '_nsArr'
+            ActionBit   = 1u << 30,             // in '_actions'
+            Synonym     = 1u << 31,
+            _Mask       = ActionBit | Synonym,
+        };
 
-		Allocator_t			_allocator;
+    private:
+        using SynonymsArr_t = FixedArray< EIndex, 16 >;
+        using NameMap_t     = HashMap< StringView, SynonymsArr_t >;
 
-		DRC_ONLY(
-			Threading::RWDataRaceCheck	_drCheck;
-		)
+        struct NameSpace
+        {
+            const usize     index;
+            NameMap_t       map;    // registred names with synonyms
+
+            explicit NameSpace (usize idx) : index{idx} {}
+        };
+        using NameSpaceMap_t    = HashMap< StringView, Ptr<NameSpace> >;
+
+        struct CommandInfo
+        {
+            ConsoleCmdName::Optimized_t     command;
+            uint                            depth   = 0;
+            StringView                      name;           // stored in '_allocator'
+
+            CommandInfo (ConsoleCmdName::Optimized_t    command,
+                         usize                          depth,
+                         StringView                     name) :
+                command{command}, depth{uint(depth)}, name{name}
+            {}
+        };
+        using CommandArr_t      = Array< CommandInfo >;
+        using NameSpaceArr_t    = Array< Unique<NameSpace> >;
+
+        using Allocator_t       = LinearAllocator< UntypedAllocator, 8, false >;
 
 
-	// methods
-	public:
-		Console ();
+    // variables
+    private:
+        NameSpaceMap_t      _nsMap;
 
-			bool  Register (StringView name, const ConsoleCmdName &command);
-		ND_ bool  IsRegistred (StringView name) const;
-			void  Clear ();
+        NameSpaceArr_t      _nsArr;
+        CommandArr_t        _commands;
 
-		ND_ bool  GetSuggestion (StringView userInput, OUT ShortSuggestion_t &result) const;
-		ND_ bool  GetSuggestion (StringView userInput, OUT Suggestion_t &result) const;
+        Allocator_t         _allocator;
 
-		ND_ static bool  ProcessUserInput (StringView userInput, OUT CommandName_t &result);
+        DRC_ONLY(
+            Threading::RWDataRaceCheck  _drCheck;
+        )
 
-	private:
-		ND_ bool  _GetSuggestion (const CommandName_t &userInput, const CommandName_t &userInputLC, OUT ShortSuggestion_t &result) const;
-		ND_ bool  _FindSynonyms (const NameMap_t &map, StringView name, usize depth, OUT ShortSuggestion_t &result) const;
 
-			static bool  _InsertSynonym (SynonymsArr_t &arr, EIndex idx);
-			static bool  _AddSynonyms (Allocator_t &alloc, NameMap_t &map, StringView name, StringView nameLC, EIndex idx);
-		ND_ static bool  _CopyString (Allocator_t &alloc, INOUT StringView &name);
-		ND_ static bool  _CopyStringLowerCase (Allocator_t &alloc, INOUT StringView &name);
-		ND_ static bool  _ProcessUserInput (StringView userInput, StringView userInputLC, OUT CommandName_t &result, OUT CommandName_t &resultLC);
+    // methods
+    public:
+        Console ();
 
-		ND_ static bool  _IsLowerCase (StringView str);
+            bool  Register (StringView name, const ConsoleCmdName &command);
+        ND_ bool  IsRegistred (StringView name) const;
+            void  Clear ();
 
-		ND_ static StringView  _CutName (StringView fullName, usize depth);
-	};
+        ND_ bool  GetSuggestion (StringView userInput, OUT ShortSuggestion_t &result) const;
+        ND_ bool  GetSuggestion (StringView userInput, OUT Suggestion_t &result) const;
+
+        ND_ static bool  ProcessUserInput (StringView userInput, OUT CommandName_t &result);
+
+    private:
+        ND_ bool  _GetSuggestion (const CommandName_t &userInput, const CommandName_t &userInputLC, OUT ShortSuggestion_t &result) const;
+        ND_ bool  _FindSynonyms (const NameMap_t &map, StringView name, usize depth, OUT ShortSuggestion_t &result) const;
+
+            static bool  _InsertSynonym (SynonymsArr_t &arr, EIndex idx);
+            static bool  _AddSynonyms (Allocator_t &alloc, NameMap_t &map, StringView name, StringView nameLC, EIndex idx);
+        ND_ static bool  _CopyString (Allocator_t &alloc, INOUT StringView &name);
+        ND_ static bool  _CopyStringLowerCase (Allocator_t &alloc, INOUT StringView &name);
+        ND_ static bool  _ProcessUserInput (StringView userInput, StringView userInputLC, OUT CommandName_t &result, OUT CommandName_t &resultLC);
+
+        ND_ static bool  _IsLowerCase (StringView str);
+
+        ND_ static StringView  _CutName (StringView fullName, usize depth);
+    };
 
 
 } // AE::HuLang

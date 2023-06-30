@@ -5,35 +5,35 @@
 namespace AE::Samples::Demo
 {
 
-	//
-	// Hdr Test
-	//
+    //
+    // Hdr Test
+    //
 
-	class HdrTestSample final : public ISample
-	{
-	// types
-	public:
-		class DrawTask;
-		class ProcessInputTask;
-
-
-	// variables
-	public:
-		ImGuiRenderer			imgui;
-		GraphicsPipelineID		hdrPpln;
+    class HdrTestSample final : public ISample
+    {
+    // types
+    public:
+        class DrawTask;
+        class ProcessInputTask;
 
 
-	// methods
-	public:
-		HdrTestSample () : imgui{null} {}
-		explicit HdrTestSample (ImGuiContext* ctx) : imgui{ctx} {}
+    // variables
+    public:
+        ImGuiRenderer           imgui;
+        GraphicsPipelineID      hdrPpln;
 
-		// ISample //
-		bool			Init (PipelinePackID pack)											override;
-		AsyncTask		Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps)	override;
-		AsyncTask		Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)					override;
-		InputModeName	GetInputMode ()														const override { return InputModeName{"imGUI"}; }
-	};
+
+    // methods
+    public:
+        HdrTestSample () : imgui{null} {}
+        explicit HdrTestSample (ImGuiContext* ctx) : imgui{ctx} {}
+
+        // ISample //
+        bool            Init (PipelinePackID pack)                                          override;
+        AsyncTask       Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) override;
+        AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)                   override;
+        InputModeName   GetInputMode ()                                                     const override { return InputModeName{"imGUI"}; }
+    };
 
 
 } // AE::Samples::Demo

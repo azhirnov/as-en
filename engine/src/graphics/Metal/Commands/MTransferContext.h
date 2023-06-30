@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	TransferCtx --> DirectTransferCtx   --> BarrierMngr --> Metal device 
-				\-> IndirectTransferCtx --> BarrierMngr --> Backed commands
+    TransferCtx --> DirectTransferCtx   --> BarrierMngr --> Metal device 
+                \-> IndirectTransferCtx --> BarrierMngr --> Backed commands
 */
 
 #pragma once
@@ -14,172 +14,172 @@
 namespace AE::Graphics::_hidden_
 {
 
-	//
-	// Metal Direct Transfer Context implementation
-	//
-	
-	class _MDirectTransferCtx : public MBaseDirectContext
-	{
-	// methods
-	public:
-		void  FillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)									__Th___;
+    //
+    // Metal Direct Transfer Context implementation
+    //
 
-		void  CopyBuffer (MetalBuffer srcBuffer, MetalBuffer dstBuffer, ArrayView<BufferCopy> ranges)				__Th___;
-		void  CopyImage (MetalImage srcImage, MetalImage dstImage, ArrayView<ImageCopy> ranges)						__Th___;
-		
-		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy> ranges)		__Th___;
-		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy2> ranges)	__Th___;
+    class _MDirectTransferCtx : public MBaseDirectContext
+    {
+    // methods
+    public:
+        void  FillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)                                  __Th___;
 
-		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges)		__Th___;
-		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges)	__Th___;
+        void  CopyBuffer (MetalBuffer srcBuffer, MetalBuffer dstBuffer, ArrayView<BufferCopy> ranges)               __Th___;
+        void  CopyImage (MetalImage srcImage, MetalImage dstImage, ArrayView<ImageCopy> ranges)                     __Th___;
 
-		ND_ MetalCommandBufferRC	EndCommandBuffer ()																__Th___;
-		ND_ MCommandBuffer		 	ReleaseCommandBuffer ()															__Th___;
+        void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy> ranges)     __Th___;
+        void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy2> ranges)    __Th___;
 
-		MBARRIERMNGR_INHERIT_MBARRIERS
+        void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges)     __Th___;
+        void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges)    __Th___;
 
-	protected:
-		_MDirectTransferCtx (const RenderTask &task, MCommandBuffer cmdbuf, DebugLabel dbg)							__Th___;
-		
-		ND_ auto  _Encoder ()																						__NE___;
-		
-		void  _ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges);
-		void  _ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges);
-		void  _ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges);
-		void  _ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges);
+        ND_ MetalCommandBufferRC    EndCommandBuffer ()                                                             __Th___;
+        ND_ MCommandBuffer          ReleaseCommandBuffer ()                                                         __Th___;
 
-		void  _BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions);
-		void  _ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions);
+        MBARRIERMNGR_INHERIT_MBARRIERS
 
-		void  _GenerateMipmaps (MetalImage image, ArrayView<ImageSubresourceRange> ranges);
+    protected:
+        _MDirectTransferCtx (const RenderTask &task, MCommandBuffer cmdbuf, DebugLabel dbg)                         __Th___;
 
-		void  _SynchronizeResource (MetalResource);
-		void  _SynchronizeResource (MetalBuffer buf)				{ _SynchronizeResource( MetalResource{ buf.Ptr() }); }
-		void  _SynchronizeResource (MetalImage img)					{ _SynchronizeResource( MetalResource{ img.Ptr() }); }
-		
-		void  _DebugMarker (DebugLabel dbg)							{ ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_DebugMarker( dbg ); }
-		void  _PushDebugGroup (DebugLabel dbg)						{ ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_PushDebugGroup( dbg ); }
-		void  _PopDebugGroup ()										{ ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_PopDebugGroup(); }
+        ND_ auto  _Encoder ()                                                                                       __NE___;
 
-	private:
-		void  _CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, const MPixFormatInfo &, ArrayView<BufferImageCopy> ranges);
-		void  _CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, const MPixFormatInfo &, ArrayView<BufferImageCopy> ranges);
-	};
-	
-	
-	
-	//
-	// Metal Indirect Transfer Context implementation
-	//
-	
-	class _MIndirectTransferCtx : public MBaseIndirectContext
-	{
-	// methods
-	public:
-		void  FillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)									__Th___;
+        void  _ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges);
+        void  _ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges);
+        void  _ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges);
+        void  _ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil, ArrayView<ImageSubresourceRange> ranges);
 
-		void  CopyBuffer (MetalBuffer srcBuffer, MetalBuffer dstBuffer, ArrayView<BufferCopy> ranges)				__Th___;
-		void  CopyImage (MetalImage srcImage, MetalImage dstImage, ArrayView<ImageCopy> ranges)						__Th___;
-		
-		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy> ranges)		__Th___;
-		void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy2> ranges)	__Th___;
+        void  _BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions);
+        void  _ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions);
 
-		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges)		__Th___;
-		void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges)	__Th___;
-		
-		ND_ MBakedCommands		EndCommandBuffer ()																	__Th___;
-		ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()																__Th___;
+        void  _GenerateMipmaps (MetalImage image, ArrayView<ImageSubresourceRange> ranges);
 
-		MBARRIERMNGR_INHERIT_MBARRIERS
+        void  _SynchronizeResource (MetalResource);
+        void  _SynchronizeResource (MetalBuffer buf)                { _SynchronizeResource( MetalResource{ buf.Ptr() }); }
+        void  _SynchronizeResource (MetalImage img)                 { _SynchronizeResource( MetalResource{ img.Ptr() }); }
 
-	protected:
-		_MIndirectTransferCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)					__Th___;
-		
-		void  _GenerateMipmaps (MetalImage image, ArrayView<ImageSubresourceRange> ranges);
-		
-		void  _SynchronizeResource (MetalResource);
-		void  _SynchronizeResource (MetalBuffer buf)				{ _SynchronizeResource( MetalResource{ buf.Ptr() }); }
-		void  _SynchronizeResource (MetalImage img)					{ _SynchronizeResource( MetalResource{ img.Ptr() }); }
-	};
+        void  _DebugMarker (DebugLabel dbg)                         { ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_DebugMarker( dbg ); }
+        void  _PushDebugGroup (DebugLabel dbg)                      { ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_PushDebugGroup( dbg ); }
+        void  _PopDebugGroup ()                                     { ASSERT( _NoPendingBarriers() );  MBaseDirectContext::_PopDebugGroup(); }
+
+    private:
+        void  _CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, const MPixFormatInfo &, ArrayView<BufferImageCopy> ranges);
+        void  _CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, const MPixFormatInfo &, ArrayView<BufferImageCopy> ranges);
+    };
 
 
-	
-	//
-	// Metal Transfer Context implementation
-	//
 
-	template <typename CtxImpl>
-	class _MTransferContextImpl : public CtxImpl, public ITransferContext
-	{
-	// types
-	public:
-		static constexpr bool	IsTransferContext		= true;
-		static constexpr bool	IsMetalTransferContext	= true;
+    //
+    // Metal Indirect Transfer Context implementation
+    //
 
-		using CmdBuf_t			= typename CtxImpl::CmdBuf_t;
-	private:
-		static constexpr uint	_LocalArraySize			= 16;
-		static constexpr Bytes	_StagingBufOffsetAlign	= 4_b;
+    class _MIndirectTransferCtx : public MBaseIndirectContext
+    {
+    // methods
+    public:
+        void  FillBuffer (MetalBuffer buffer, Bytes offset, Bytes size, uint data)                                  __Th___;
 
-		using RawCtx			= CtxImpl;
-		using AccumBar			= MAccumBarriers< _MTransferContextImpl< CtxImpl >>;
-		using DeferredBar		= MAccumDeferredBarriersForCtx< _MTransferContextImpl< CtxImpl >>;
-		using Validator_t		= TransferContextValidation;
+        void  CopyBuffer (MetalBuffer srcBuffer, MetalBuffer dstBuffer, ArrayView<BufferCopy> ranges)               __Th___;
+        void  CopyImage (MetalImage srcImage, MetalImage dstImage, ArrayView<ImageCopy> ranges)                     __Th___;
+
+        void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy> ranges)     __Th___;
+        void  CopyBufferToImage (MetalBuffer srcBuffer, MetalImage dstImage, ArrayView<BufferImageCopy2> ranges)    __Th___;
+
+        void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy> ranges)     __Th___;
+        void  CopyImageToBuffer (MetalImage srcImage, MetalBuffer dstBuffer, ArrayView<BufferImageCopy2> ranges)    __Th___;
+
+        ND_ MBakedCommands      EndCommandBuffer ()                                                                 __Th___;
+        ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()                                                             __Th___;
+
+        MBARRIERMNGR_INHERIT_MBARRIERS
+
+    protected:
+        _MIndirectTransferCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)                   __Th___;
+
+        void  _GenerateMipmaps (MetalImage image, ArrayView<ImageSubresourceRange> ranges);
+
+        void  _SynchronizeResource (MetalResource);
+        void  _SynchronizeResource (MetalBuffer buf)                { _SynchronizeResource( MetalResource{ buf.Ptr() }); }
+        void  _SynchronizeResource (MetalImage img)                 { _SynchronizeResource( MetalResource{ img.Ptr() }); }
+    };
 
 
-	// methods
-	public:
-		explicit _MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)									__Th___;
 
-		_MTransferContextImpl ()																														= delete;
-		_MTransferContextImpl (const _MTransferContextImpl &)																							= delete;
+    //
+    // Metal Transfer Context implementation
+    //
 
-		using RawCtx::FillBuffer;
-		void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)																			__Th_OV;
-		
-		void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)																__Th_OV;
+    template <typename CtxImpl>
+    class _MTransferContextImpl : public CtxImpl, public ITransferContext
+    {
+    // types
+    public:
+        static constexpr bool   IsTransferContext       = true;
+        static constexpr bool   IsMetalTransferContext  = true;
 
-		using RawCtx::CopyBuffer;
-		using RawCtx::CopyImage;
+        using CmdBuf_t          = typename CtxImpl::CmdBuf_t;
+    private:
+        static constexpr uint   _LocalArraySize         = 16;
+        static constexpr Bytes  _StagingBufOffsetAlign  = 4_b;
 
-		void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)															__Th_OV;
-		void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)																__Th_OV;
+        using RawCtx            = CtxImpl;
+        using AccumBar          = MAccumBarriers< _MTransferContextImpl< CtxImpl >>;
+        using DeferredBar       = MAccumDeferredBarriersForCtx< _MTransferContextImpl< CtxImpl >>;
+        using Validator_t       = TransferContextValidation;
 
-		using RawCtx::CopyBufferToImage;
-		using RawCtx::CopyImageToBuffer;
 
-		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)												__Th_OV;
-		void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)												__Th_OV;
+    // methods
+    public:
+        explicit _MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf = Default, DebugLabel dbg = Default)                                    __Th___;
 
-		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)												__Th_OV;
-		void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)												__Th_OV;
+        _MTransferContextImpl ()                                                                                                                        = delete;
+        _MTransferContextImpl (const _MTransferContextImpl &)                                                                                           = delete;
 
-		void  UploadBuffer (BufferID buffer, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)__Th_OV;
-		void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)														__Th_OV;
+        using RawCtx::FillBuffer;
+        void  FillBuffer (BufferID buffer, Bytes offset, Bytes size, uint data)                                                                         __Th_OV;
 
-		void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView)																			__Th_OV;
-		void  UploadImage (ImageStream &stream, OUT ImageMemView &memView)																				__Th_OV;
+        void  UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)                                                                __Th_OV;
 
-		ND_ Promise<BufferMemView>	ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)	__Th_OV;
-		ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)														__Th_OV;
-		
-		ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)														__Th_OV;
+        using RawCtx::CopyBuffer;
+        using RawCtx::CopyImage;
 
-		ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)														__Th_OV;
-		
-		void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)											__Th_OV;
+        void  CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)                                                         __Th_OV;
+        void  CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)                                                               __Th_OV;
 
-		void  GenerateMipmaps (ImageID srcImage)																										__Th_OV;
-		void  GenerateMipmaps (ImageID srcImage, ArrayView<ImageSubresourceRange> ranges)																__Th_OV;
+        using RawCtx::CopyBufferToImage;
+        using RawCtx::CopyImageToBuffer;
 
-		using ITransferContext::UpdateHostBuffer;
-		using ITransferContext::UploadBuffer;
-		using ITransferContext::UploadImage;
-		
-		uint3  MinImageTransferGranularity ()																											C_NE_OF	{ return uint3{1}; }
+        void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)                                               __Th_OV;
+        void  CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)                                              __Th_OV;
 
-		MBARRIERMNGR_INHERIT_BARRIERS
-	};
+        void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)                                               __Th_OV;
+        void  CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)                                              __Th_OV;
+
+        void  UploadBuffer (BufferID buffer, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType = EStagingHeapType::Static)__Th_OV;
+        void  UploadImage  (ImageID image, const UploadImageDesc &desc, OUT ImageMemView &memView)                                                      __Th_OV;
+
+        void  UploadBuffer (BufferStream &stream, OUT BufferMemView &memView)                                                                           __Th_OV;
+        void  UploadImage (ImageStream &stream, OUT ImageMemView &memView)                                                                              __Th_OV;
+
+        ND_ Promise<BufferMemView>  ReadbackBuffer (BufferID buffer, Bytes offset, Bytes size, EStagingHeapType heapType = EStagingHeapType::Static)    __Th_OV;
+        ND_ Promise<ImageMemView>   ReadbackImage (ImageID image, const ReadbackImageDesc &desc)                                                        __Th_OV;
+
+        ND_ bool  UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)                                                      __Th_OV;
+
+        ND_ Promise<ArrayView<ubyte>>  ReadHostBuffer (BufferID buffer, Bytes offset, Bytes size)                                                       __Th_OV;
+
+        void  BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter filter, ArrayView<ImageBlit> regions)                                          __Th_OV;
+
+        void  GenerateMipmaps (ImageID srcImage)                                                                                                        __Th_OV;
+        void  GenerateMipmaps (ImageID srcImage, ArrayView<ImageSubresourceRange> ranges)                                                               __Th_OV;
+
+        using ITransferContext::UpdateHostBuffer;
+        using ITransferContext::UploadBuffer;
+        using ITransferContext::UploadImage;
+
+        uint3  MinImageTransferGranularity ()                                                                                                           C_NE_OF { return uint3{1}; }
+
+        MBARRIERMNGR_INHERIT_BARRIERS
+    };
 
 } // AE::Graphics::_hidden_
 //-----------------------------------------------------------------------------
@@ -187,459 +187,459 @@ namespace AE::Graphics::_hidden_
 
 namespace AE::Graphics
 {
-	using MDirectTransferContext	= Graphics::_hidden_::_MTransferContextImpl< Graphics::_hidden_::_MDirectTransferCtx >;
-	using MIndirectTransferContext	= Graphics::_hidden_::_MTransferContextImpl< Graphics::_hidden_::_MIndirectTransferCtx >;
+    using MDirectTransferContext    = Graphics::_hidden_::_MTransferContextImpl< Graphics::_hidden_::_MDirectTransferCtx >;
+    using MIndirectTransferContext  = Graphics::_hidden_::_MTransferContextImpl< Graphics::_hidden_::_MIndirectTransferCtx >;
 
 } // AE::Graphics
-	
+
 
 namespace AE::Graphics::_hidden_
 {
 /*
 =================================================
-	constructor
+    constructor
 =================================================
 */
-	template <typename C>
-	_MTransferContextImpl<C>::_MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
-		RawCtx{ task, RVRef(cmdbuf), dbg }
-	{
-		CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
-	}
+    template <typename C>
+    _MTransferContextImpl<C>::_MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+        RawCtx{ task, RVRef(cmdbuf), dbg }
+    {
+        CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
+    }
 
 /*
 =================================================
-	FillBuffer
+    FillBuffer
 =================================================
 */
-	template <typename C>
-	void  _MTransferContextImpl<C>::FillBuffer (BufferID bufferId, Bytes offset, Bytes size, uint data)
-	{
-		auto&	buf = _GetResourcesOrThrow( bufferId );
-		Validator_t::FillBuffer( buf, offset, size );
+    template <typename C>
+    void  _MTransferContextImpl<C>::FillBuffer (BufferID bufferId, Bytes offset, Bytes size, uint data)
+    {
+        auto&   buf = _GetResourcesOrThrow( bufferId );
+        Validator_t::FillBuffer( buf, offset, size );
 
-		offset	= Min( offset, buf.Size()-1 );
-		size	= Min( size, buf.Size() - offset );
+        offset  = Min( offset, buf.Size()-1 );
+        size    = Min( size, buf.Size() - offset );
 
-		RawCtx::FillBuffer( buf.Handle(), offset, size, data );
-	}
-	
-/*
-=================================================
-	UpdateBuffer
-=================================================
-*/
-	template <typename C>
-	void  _MTransferContextImpl<C>::UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)
-	{
-		CHECK( UploadBuffer( buffer, offset, size, data, EStagingHeapType::Static ) == size );
-	}
+        RawCtx::FillBuffer( buf.Handle(), offset, size, data );
+    }
 
 /*
 =================================================
-	UploadBuffer
+    UpdateBuffer
 =================================================
 */
-	template <typename C>
-	void  _MTransferContextImpl<C>::UploadBuffer (BufferID bufferId, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType)
-	{
-		auto&	dst_buf = _GetResourcesOrThrow( bufferId );
-		Validator_t::UploadBuffer( dst_buf, offset, size, memView );
-		
-		offset	= Min( offset, dst_buf.Size() );
-		size	= Min( size, dst_buf.Size() - offset );
-
-		MStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
-		MStagingBufferManager::BufferRanges_t	buffers;
-		
-		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
-		
-		for (auto& src_buf : buffers)
-		{
-			memView.PushBack( src_buf.mapped, src_buf.size );
-			CopyBuffer( src_buf.buffer, dst_buf.Handle(), {BufferCopy{ src_buf.bufferOffset, offset, src_buf.size }});
-			offset += src_buf.size;
-		}
-		ASSERT( buffers.size() == memView.Parts().size() );
-	}
-	
-/*
-=================================================
-	UploadBuffer
-=================================================
-*/
-	template <typename C>
-	void  _MTransferContextImpl<C>::UploadBuffer (BufferStream &stream, OUT BufferMemView &memView)
-	{
-		ASSERT( not stream.IsCompleted() );
-
-		auto&	dst_buf = _GetResourcesOrThrow( stream.Buffer() );
-		Validator_t::UploadBuffer( dst_buf, stream.pos, stream.RemainSize(), memView );
-		
-		MStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
-		MStagingBufferManager::BufferRanges_t	buffers;
-
-		sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), True{"uload"} );
-		
-		for (auto& src_buf : buffers)
-		{
-			memView.PushBack( src_buf.mapped, src_buf.size );
-			CopyBuffer( src_buf.buffer, dst_buf.Handle(), {BufferCopy{ src_buf.bufferOffset, stream.OffsetAndPos(), src_buf.size }});
-			stream.pos += src_buf.size;
-			ASSERT( stream.pos <= stream.DataSize() );
-		}
-		ASSERT( buffers.size() == memView.Parts().size() );
-	}
+    template <typename C>
+    void  _MTransferContextImpl<C>::UpdateBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)
+    {
+        CHECK( UploadBuffer( buffer, offset, size, data, EStagingHeapType::Static ) == size );
+    }
 
 /*
 =================================================
-	UploadImage
+    UploadBuffer
 =================================================
 */
-	template <typename C>
-	void  _MTransferContextImpl<C>::UploadImage (ImageID imageId, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView)
-	{
-		auto&	dst_img = _GetResourcesOrThrow( imageId );
-		Validator_t::UploadImage( dst_img );
+    template <typename C>
+    void  _MTransferContextImpl<C>::UploadBuffer (BufferID bufferId, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType)
+    {
+        auto&   dst_buf = _GetResourcesOrThrow( bufferId );
+        Validator_t::UploadBuffer( dst_buf, offset, size, memView );
 
-		const ImageDesc&		img_desc	= dst_img.Description();
-		MStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
+        offset  = Min( offset, dst_buf.Size() );
+        size    = Min( size, dst_buf.Size() - offset );
 
-		MStagingBufferManager::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, uploadDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
-		
-		if_unlikely( res.buffers.empty() )
-			return;
+        MStagingBufferManager&                  sbm = this->_mngr.GetStagingManager();
+        MStagingBufferManager::BufferRanges_t   buffers;
 
-		BufferImageCopy2		copy;
-		ImageSubresourceLayers&	subres = copy.imageSubres;
-		subres.aspectMask		= uploadDesc.aspectMask;
-		subres.mipLevel			= uploadDesc.mipLevel;
-		subres.baseLayer		= uploadDesc.arrayLayer;
-		subres.layerCount		= 1;
-		copy.rowPitch			= res.dataRowPitch;
+        sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), True{"uload"} );
 
-		BufferMemView	mem_view;
-		uint3			min {~0u};
-		uint3			max {0};
-
-		for (auto& src_buf : res.buffers)
-		{
-			mem_view.PushBack( src_buf.mapped, src_buf.size );
-			copy.bufferOffset	= src_buf.bufferOffset;
-			copy.slicePitch		= src_buf.bufferSlicePitch;
-			copy.imageOffset	= src_buf.imageOffset;
-			copy.imageExtent	= src_buf.imageSize;
-
-			min = Min( min, src_buf.imageOffset );
-			max = Max( max, src_buf.imageOffset + src_buf.imageSize );
-
-			CopyBufferToImage( src_buf.buffer, dst_img.Handle(), {copy} );
-		}
-		ASSERT( res.buffers.size() == mem_view.Parts().size() );
-		
-		memView = ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, uploadDesc.aspectMask };
-	}
-	
-/*
-=================================================
-	UploadImage
-=================================================
-*/
-	template <typename C>
-	void  _MTransferContextImpl<C>::UploadImage (ImageStream &stream, OUT ImageMemView &memView)
-	{
-		ASSERT( not stream.IsCompleted() );
-
-		auto&	dst_img = _GetResourcesOrThrow( stream.Image() );
-		Validator_t::UploadImage( dst_img );
-
-		const ImageDesc&		img_desc	= dst_img.Description();
-		MStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
-
-		ASSERT( All( stream.End() <= img_desc.dimension ));
-		
-		UploadImageDesc	upload_desc = stream.ToUploadDesc();
-		upload_desc.imageOffset	+= uint3{ 0, stream.posYZ };
-		upload_desc.imageSize	-= uint3{ 0, stream.posYZ };
-
-		MStagingBufferManager::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, upload_desc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
-		
-		if_unlikely( res.buffers.empty() )
-			return;
-
-		BufferImageCopy2		copy;
-		ImageSubresourceLayers&	subres = copy.imageSubres;
-		subres.aspectMask		= upload_desc.aspectMask;
-		subres.mipLevel			= upload_desc.mipLevel;
-		subres.baseLayer		= upload_desc.arrayLayer;
-		subres.layerCount		= 1;
-		copy.rowPitch			= res.dataRowPitch;
-
-		BufferMemView	mem_view;
-		uint3			min {~0u};
-		uint3			max {0};
-
-		for (auto& src_buf : res.buffers)
-		{
-			mem_view.PushBack( src_buf.mapped, src_buf.size );
-			copy.bufferOffset	= src_buf.bufferOffset;
-			copy.slicePitch		= src_buf.bufferSlicePitch;
-			copy.imageOffset	= src_buf.imageOffset;
-			copy.imageExtent	= src_buf.imageSize;
-
-			min = Min( min, src_buf.imageOffset );
-			max = Max( max, src_buf.imageOffset + src_buf.imageSize );
-
-			ASSERT( All( min >= stream.Begin() ));
-			ASSERT( All( max <= stream.End() ));
-
-			CopyBufferToImage( src_buf.buffer, dst_img.Handle(), {copy} );
-		}
-		ASSERT( res.buffers.size() == mem_view.Parts().size() );
-		
-		stream.posYZ[0] = max.y - stream.Begin().y;
-		stream.posYZ[1] = max.z - stream.Begin().z - 1;
-
-		if_unlikely( stream.posYZ[0] >= stream.RegionSize().y )
-		{
-			stream.posYZ[0] = 0;
-			stream.posYZ[1] ++;
-		}
-
-		memView = ImageMemView{ mem_view, min, max - min, res.dataRowPitch,
-								((max.z - min.z > 1) ? res.dataSlicePitch : 0_b),
-								img_desc.format, upload_desc.aspectMask };
-	}
+        for (auto& src_buf : buffers)
+        {
+            memView.PushBack( src_buf.mapped, src_buf.size );
+            CopyBuffer( src_buf.buffer, dst_buf.Handle(), {BufferCopy{ src_buf.bufferOffset, offset, src_buf.size }});
+            offset += src_buf.size;
+        }
+        ASSERT( buffers.size() == memView.Parts().size() );
+    }
 
 /*
 =================================================
-	ReadbackBuffer
+    UploadBuffer
 =================================================
 */
-	template <typename C>
-	Promise<BufferMemView>  _MTransferContextImpl<C>::ReadbackBuffer (BufferID bufferId, Bytes offset, Bytes size, EStagingHeapType heapType)
-	{
-		auto&	src_buf = _GetResourcesOrThrow( bufferId );
-		Validator_t::ReadbackBuffer( src_buf, offset, size );
-		
-		offset	= Min( offset, src_buf.Size() );
-		size	= Min( size, src_buf.Size() - offset );
-		
-		MStagingBufferManager&					sbm	= this->_mngr.GetStagingManager();
-		MStagingBufferManager::BufferRanges_t	buffers;
-		sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), False{"readback"} );
-		
-		BufferMemView	mem_view;
-		for (auto& dst_buf : buffers)
-		{
-			mem_view.PushBack( dst_buf.mapped, dst_buf.size );
-			CopyBuffer( src_buf.Handle(), dst_buf.buffer, {BufferCopy{ offset, dst_buf.bufferOffset, dst_buf.size }});
-			offset += dst_buf.size;
-		}
-		ASSERT( buffers.size() == mem_view.Parts().size() );
+    template <typename C>
+    void  _MTransferContextImpl<C>::UploadBuffer (BufferStream &stream, OUT BufferMemView &memView)
+    {
+        ASSERT( not stream.IsCompleted() );
 
-		return Threading::MakePromiseFromValue( mem_view,
-												Tuple{ this->_mngr.GetBatchRC() },
-												"MTransferContext::ReadbackBuffer",
-												ETaskQueue::PerFrame
-											   );
-	}
-	
-/*
-=================================================
-	ReadHostBuffer
-=================================================
-*/
-	template <typename C>
-	Promise<ArrayView<ubyte>>  _MTransferContextImpl<C>::ReadHostBuffer (BufferID bufferId, Bytes offset, Bytes size)
-	{
-		auto&	src_buf = _GetResourcesOrThrow( bufferId );
-		Validator_t::MapHostBuffer( src_buf, offset, size );
-		
-		offset	= Min( offset, src_buf.Size() );
-		size	= Min( size, src_buf.Size() - offset );
-		
-		ArrayView<ubyte>	mem_view = ArrayView<ubyte>{ Cast<ubyte>(src_buf.MappedPtr() + offset), usize(size) };
+        auto&   dst_buf = _GetResourcesOrThrow( stream.Buffer() );
+        Validator_t::UploadBuffer( dst_buf, stream.pos, stream.RemainSize(), memView );
 
-		if_unlikely( not AllBits( src_buf.Description().memType, EMemoryType::HostCocherent ))
-		{
-			RawCtx::_SynchronizeResource( src_buf.Handle() );
-		}
+        MStagingBufferManager&                  sbm = this->_mngr.GetStagingManager();
+        MStagingBufferManager::BufferRanges_t   buffers;
 
-		return Threading::MakePromiseFromValue( mem_view,
-												Tuple{ this->_mngr.GetBatchRC() },
-												"MTransferContext::ReadHostBuffer",
-												ETaskQueue::PerFrame
-											   );
-	}
-	
-/*
-=================================================
-	ReadbackImage
-=================================================
-*/
-	template <typename C>
-	Promise<ImageMemView>   _MTransferContextImpl<C>::ReadbackImage (ImageID imageId, const ReadbackImageDesc &readDesc)
-	{
-		auto&	src_img = _GetResourcesOrThrow( imageId );
-		Validator_t::ReadbackImage( src_img );
-		
-		const ImageDesc&		img_desc	= src_img.Description();
-		MStagingBufferManager&	sbm			= this->_mngr.GetStagingManager();
+        sbm.GetBufferRanges( OUT buffers, stream.RemainSize(), 0_b, _StagingBufOffsetAlign, GetFrameId(), stream.HeapType(), this->_mngr.GetQueueType(), True{"uload"} );
 
-		MStagingBufferManager::StagingImageResultRanges	res;
-		sbm.GetImageRanges( OUT res, readDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
-		
-		if_unlikely( res.buffers.empty() )
-			return Default;
-
-		BufferImageCopy2		copy;
-		ImageSubresourceLayers&	subres = copy.imageSubres;
-		subres.aspectMask		= readDesc.aspectMask;
-		subres.mipLevel			= readDesc.mipLevel;
-		subres.baseLayer		= readDesc.arrayLayer;
-		subres.layerCount		= 1;
-		copy.rowPitch			= res.dataRowPitch;
-
-		BufferMemView	mem_view;
-		uint3			min {~0u};
-		uint3			max {0};
-
-		for (auto& dst_buf : res.buffers)
-		{
-			mem_view.PushBack( dst_buf.mapped, dst_buf.size );
-			copy.bufferOffset	= dst_buf.bufferOffset;
-			copy.slicePitch		= dst_buf.bufferSlicePitch;
-			copy.imageOffset	= dst_buf.imageOffset;
-			copy.imageExtent	= dst_buf.imageSize;
-
-			min = Min( min, dst_buf.imageOffset );
-			max = Max( max, dst_buf.imageOffset + dst_buf.imageSize );
-
-			CopyImageToBuffer( src_img.Handle(), dst_buf.buffer, {copy} );
-		}
-		ASSERT( res.buffers.size() == mem_view.Parts().size() );
-		
-		return	Threading::MakePromiseFromValue(
-					ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask },
-					Tuple{ this->_mngr.GetBatchRC() },
-					"MTransferContext::ReadbackImage",
-					ETaskQueue::PerFrame
-				);
-	}
+        for (auto& src_buf : buffers)
+        {
+            memView.PushBack( src_buf.mapped, src_buf.size );
+            CopyBuffer( src_buf.buffer, dst_buf.Handle(), {BufferCopy{ src_buf.bufferOffset, stream.OffsetAndPos(), src_buf.size }});
+            stream.pos += src_buf.size;
+            ASSERT( stream.pos <= stream.DataSize() );
+        }
+        ASSERT( buffers.size() == memView.Parts().size() );
+    }
 
 /*
 =================================================
-	UpdateHostBuffer
+    UploadImage
 =================================================
 */
-	template <typename C>
-	bool  _MTransferContextImpl<C>::UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)
-	{
-		auto&	buf = _GetResourcesOrThrow( bufferId );
-		Validator_t::MapHostBuffer( buf, offset, size );
+    template <typename C>
+    void  _MTransferContextImpl<C>::UploadImage (ImageID imageId, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView)
+    {
+        auto&   dst_img = _GetResourcesOrThrow( imageId );
+        Validator_t::UploadImage( dst_img );
 
-		offset	= Min( offset, buf.Size()-1 );
-		size	= Min( size, buf.Size() - offset );
+        const ImageDesc&        img_desc    = dst_img.Description();
+        MStagingBufferManager&  sbm         = this->_mngr.GetStagingManager();
 
-		void*	ptr = buf.MappedPtr();
-		CHECK_THROW( ptr != null );
+        MStagingBufferManager::StagingImageResultRanges res;
+        sbm.GetImageRanges( OUT res, uploadDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
 
-		MemCopy( OUT ptr + offset, data, size );
+        if_unlikely( res.buffers.empty() )
+            return;
 
-		buf.DidModifyRange( offset, size );
-		return true;
-	}
+        BufferImageCopy2        copy;
+        ImageSubresourceLayers& subres = copy.imageSubres;
+        subres.aspectMask       = uploadDesc.aspectMask;
+        subres.mipLevel         = uploadDesc.mipLevel;
+        subres.baseLayer        = uploadDesc.arrayLayer;
+        subres.layerCount       = 1;
+        copy.rowPitch           = res.dataRowPitch;
+
+        BufferMemView   mem_view;
+        uint3           min {~0u};
+        uint3           max {0};
+
+        for (auto& src_buf : res.buffers)
+        {
+            mem_view.PushBack( src_buf.mapped, src_buf.size );
+            copy.bufferOffset   = src_buf.bufferOffset;
+            copy.slicePitch     = src_buf.bufferSlicePitch;
+            copy.imageOffset    = src_buf.imageOffset;
+            copy.imageExtent    = src_buf.imageSize;
+
+            min = Min( min, src_buf.imageOffset );
+            max = Max( max, src_buf.imageOffset + src_buf.imageSize );
+
+            CopyBufferToImage( src_buf.buffer, dst_img.Handle(), {copy} );
+        }
+        ASSERT( res.buffers.size() == mem_view.Parts().size() );
+
+        memView = ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, uploadDesc.aspectMask };
+    }
 
 /*
 =================================================
-	CopyBuffer
+    UploadImage
 =================================================
 */
-	template <typename C>
-	void  _MTransferContextImpl<C>::CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)
-	{
-		auto  [src_buf, dst_buf] = _GetResourcesOrThrow( srcBuffer, dstBuffer );
-		Validator_t::CopyBuffer( src_buf, dst_buf, ranges );
+    template <typename C>
+    void  _MTransferContextImpl<C>::UploadImage (ImageStream &stream, OUT ImageMemView &memView)
+    {
+        ASSERT( not stream.IsCompleted() );
 
-		RawCtx::CopyBuffer( src_buf.Handle(), dst_buf.Handle(), ranges );
-	}
+        auto&   dst_img = _GetResourcesOrThrow( stream.Image() );
+        Validator_t::UploadImage( dst_img );
+
+        const ImageDesc&        img_desc    = dst_img.Description();
+        MStagingBufferManager&  sbm         = this->_mngr.GetStagingManager();
+
+        ASSERT( All( stream.End() <= img_desc.dimension ));
+
+        UploadImageDesc upload_desc = stream.ToUploadDesc();
+        upload_desc.imageOffset += uint3{ 0, stream.posYZ };
+        upload_desc.imageSize   -= uint3{ 0, stream.posYZ };
+
+        MStagingBufferManager::StagingImageResultRanges res;
+        sbm.GetImageRanges( OUT res, upload_desc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+
+        if_unlikely( res.buffers.empty() )
+            return;
+
+        BufferImageCopy2        copy;
+        ImageSubresourceLayers& subres = copy.imageSubres;
+        subres.aspectMask       = upload_desc.aspectMask;
+        subres.mipLevel         = upload_desc.mipLevel;
+        subres.baseLayer        = upload_desc.arrayLayer;
+        subres.layerCount       = 1;
+        copy.rowPitch           = res.dataRowPitch;
+
+        BufferMemView   mem_view;
+        uint3           min {~0u};
+        uint3           max {0};
+
+        for (auto& src_buf : res.buffers)
+        {
+            mem_view.PushBack( src_buf.mapped, src_buf.size );
+            copy.bufferOffset   = src_buf.bufferOffset;
+            copy.slicePitch     = src_buf.bufferSlicePitch;
+            copy.imageOffset    = src_buf.imageOffset;
+            copy.imageExtent    = src_buf.imageSize;
+
+            min = Min( min, src_buf.imageOffset );
+            max = Max( max, src_buf.imageOffset + src_buf.imageSize );
+
+            ASSERT( All( min >= stream.Begin() ));
+            ASSERT( All( max <= stream.End() ));
+
+            CopyBufferToImage( src_buf.buffer, dst_img.Handle(), {copy} );
+        }
+        ASSERT( res.buffers.size() == mem_view.Parts().size() );
+
+        stream.posYZ[0] = max.y - stream.Begin().y;
+        stream.posYZ[1] = max.z - stream.Begin().z - 1;
+
+        if_unlikely( stream.posYZ[0] >= stream.RegionSize().y )
+        {
+            stream.posYZ[0] = 0;
+            stream.posYZ[1] ++;
+        }
+
+        memView = ImageMemView{ mem_view, min, max - min, res.dataRowPitch,
+                                ((max.z - min.z > 1) ? res.dataSlicePitch : 0_b),
+                                img_desc.format, upload_desc.aspectMask };
+    }
 
 /*
 =================================================
-	CopyImage
+    ReadbackBuffer
 =================================================
 */
-	template <typename C>
-	void  _MTransferContextImpl<C>::CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)
-	{
-		auto  [src_img, dst_img] = _GetResourcesOrThrow( srcImage, dstImage );
-		Validator_t::CopyImage( src_img, dst_img, ranges );
+    template <typename C>
+    Promise<BufferMemView>  _MTransferContextImpl<C>::ReadbackBuffer (BufferID bufferId, Bytes offset, Bytes size, EStagingHeapType heapType)
+    {
+        auto&   src_buf = _GetResourcesOrThrow( bufferId );
+        Validator_t::ReadbackBuffer( src_buf, offset, size );
 
-		RawCtx::CopyImage( src_img.Handle(), dst_img.Handle(), ranges );
-	}
+        offset  = Min( offset, src_buf.Size() );
+        size    = Min( size, src_buf.Size() - offset );
+
+        MStagingBufferManager&                  sbm = this->_mngr.GetStagingManager();
+        MStagingBufferManager::BufferRanges_t   buffers;
+        sbm.GetBufferRanges( OUT buffers, size, 0_b, _StagingBufOffsetAlign, GetFrameId(), heapType, this->_mngr.GetQueueType(), False{"readback"} );
+
+        BufferMemView   mem_view;
+        for (auto& dst_buf : buffers)
+        {
+            mem_view.PushBack( dst_buf.mapped, dst_buf.size );
+            CopyBuffer( src_buf.Handle(), dst_buf.buffer, {BufferCopy{ offset, dst_buf.bufferOffset, dst_buf.size }});
+            offset += dst_buf.size;
+        }
+        ASSERT( buffers.size() == mem_view.Parts().size() );
+
+        return Threading::MakePromiseFromValue( mem_view,
+                                                Tuple{ this->_mngr.GetBatchRC() },
+                                                "MTransferContext::ReadbackBuffer",
+                                                ETaskQueue::PerFrame
+                                               );
+    }
 
 /*
 =================================================
-	CopyBufferToImage
+    ReadHostBuffer
 =================================================
 */
-	template <typename C>
-	void  _MTransferContextImpl<C>::CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)
-	{
-		auto  [src_buf, dst_img] = _GetResourcesOrThrow( srcBuffer, dstImage );
-		Validator_t::CopyBufferToImage( src_buf, dst_img, ranges );
+    template <typename C>
+    Promise<ArrayView<ubyte>>  _MTransferContextImpl<C>::ReadHostBuffer (BufferID bufferId, Bytes offset, Bytes size)
+    {
+        auto&   src_buf = _GetResourcesOrThrow( bufferId );
+        Validator_t::MapHostBuffer( src_buf, offset, size );
 
-		RawCtx::CopyBufferToImage( src_buf.Handle(), dst_img.Handle(), ranges );
-	}
+        offset  = Min( offset, src_buf.Size() );
+        size    = Min( size, src_buf.Size() - offset );
 
-	template <typename C>
-	void  _MTransferContextImpl<C>::CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)
-	{
-		auto  [src_buf, dst_img] = _GetResourcesOrThrow( srcBuffer, dstImage );
-		Validator_t::CopyBufferToImage( src_buf, dst_img, ranges );
+        ArrayView<ubyte>    mem_view = ArrayView<ubyte>{ Cast<ubyte>(src_buf.MappedPtr() + offset), usize(size) };
 
-		RawCtx::CopyBufferToImage( src_buf.Handle(), dst_img.Handle(), ranges );
-	}
+        if_unlikely( not AllBits( src_buf.Description().memType, EMemoryType::HostCocherent ))
+        {
+            RawCtx::_SynchronizeResource( src_buf.Handle() );
+        }
+
+        return Threading::MakePromiseFromValue( mem_view,
+                                                Tuple{ this->_mngr.GetBatchRC() },
+                                                "MTransferContext::ReadHostBuffer",
+                                                ETaskQueue::PerFrame
+                                               );
+    }
 
 /*
 =================================================
-	CopyImageToBuffer
+    ReadbackImage
 =================================================
 */
-	template <typename C>
-	void  _MTransferContextImpl<C>::CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)
-	{
-		auto  [src_img, dst_buf] = _GetResourcesOrThrow( srcImage, dstBuffer );
-		Validator_t::CopyImageToBuffer( src_img, dst_buf, ranges );
+    template <typename C>
+    Promise<ImageMemView>   _MTransferContextImpl<C>::ReadbackImage (ImageID imageId, const ReadbackImageDesc &readDesc)
+    {
+        auto&   src_img = _GetResourcesOrThrow( imageId );
+        Validator_t::ReadbackImage( src_img );
 
-		RawCtx::CopyImageToBuffer( src_img.Handle(), dst_buf.Handle(), ranges );
-	}
+        const ImageDesc&        img_desc    = src_img.Description();
+        MStagingBufferManager&  sbm         = this->_mngr.GetStagingManager();
 
-	template <typename C>
-	void  _MTransferContextImpl<C>::CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)
-	{
-		auto  [src_img, dst_buf] = _GetResourcesOrThrow( srcImage, dstBuffer );
-		Validator_t::CopyImageToBuffer( src_img, dst_buf, ranges );
+        MStagingBufferManager::StagingImageResultRanges res;
+        sbm.GetImageRanges( OUT res, readDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
 
-		RawCtx::CopyImageToBuffer( src_img.Handle(), dst_buf.Handle(), ranges );
-	}
+        if_unlikely( res.buffers.empty() )
+            return Default;
+
+        BufferImageCopy2        copy;
+        ImageSubresourceLayers& subres = copy.imageSubres;
+        subres.aspectMask       = readDesc.aspectMask;
+        subres.mipLevel         = readDesc.mipLevel;
+        subres.baseLayer        = readDesc.arrayLayer;
+        subres.layerCount       = 1;
+        copy.rowPitch           = res.dataRowPitch;
+
+        BufferMemView   mem_view;
+        uint3           min {~0u};
+        uint3           max {0};
+
+        for (auto& dst_buf : res.buffers)
+        {
+            mem_view.PushBack( dst_buf.mapped, dst_buf.size );
+            copy.bufferOffset   = dst_buf.bufferOffset;
+            copy.slicePitch     = dst_buf.bufferSlicePitch;
+            copy.imageOffset    = dst_buf.imageOffset;
+            copy.imageExtent    = dst_buf.imageSize;
+
+            min = Min( min, dst_buf.imageOffset );
+            max = Max( max, dst_buf.imageOffset + dst_buf.imageSize );
+
+            CopyImageToBuffer( src_img.Handle(), dst_buf.buffer, {copy} );
+        }
+        ASSERT( res.buffers.size() == mem_view.Parts().size() );
+
+        return  Threading::MakePromiseFromValue(
+                    ImageMemView{ mem_view, min, max - min, res.dataRowPitch, res.dataSlicePitch, img_desc.format, readDesc.aspectMask },
+                    Tuple{ this->_mngr.GetBatchRC() },
+                    "MTransferContext::ReadbackImage",
+                    ETaskQueue::PerFrame
+                );
+    }
 
 /*
 =================================================
-	GenerateMipmaps
+    UpdateHostBuffer
 =================================================
 */
-	template <typename C>
-	void  _MTransferContextImpl<C>::GenerateMipmaps (ImageID srcImage, ArrayView<ImageSubresourceRange> ranges)
-	{
-		auto&	src_img = _GetResourcesOrThrow( srcImage );
-		Validator_t::GenerateMipmaps( src_img, ranges );
+    template <typename C>
+    bool  _MTransferContextImpl<C>::UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)
+    {
+        auto&   buf = _GetResourcesOrThrow( bufferId );
+        Validator_t::MapHostBuffer( buf, offset, size );
 
-		RawCtx::_GenerateMipmaps( src_img.Handle(), ranges );
-	}
+        offset  = Min( offset, buf.Size()-1 );
+        size    = Min( size, buf.Size() - offset );
+
+        void*   ptr = buf.MappedPtr();
+        CHECK_THROW( ptr != null );
+
+        MemCopy( OUT ptr + offset, data, size );
+
+        buf.DidModifyRange( offset, size );
+        return true;
+    }
+
+/*
+=================================================
+    CopyBuffer
+=================================================
+*/
+    template <typename C>
+    void  _MTransferContextImpl<C>::CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)
+    {
+        auto  [src_buf, dst_buf] = _GetResourcesOrThrow( srcBuffer, dstBuffer );
+        Validator_t::CopyBuffer( src_buf, dst_buf, ranges );
+
+        RawCtx::CopyBuffer( src_buf.Handle(), dst_buf.Handle(), ranges );
+    }
+
+/*
+=================================================
+    CopyImage
+=================================================
+*/
+    template <typename C>
+    void  _MTransferContextImpl<C>::CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)
+    {
+        auto  [src_img, dst_img] = _GetResourcesOrThrow( srcImage, dstImage );
+        Validator_t::CopyImage( src_img, dst_img, ranges );
+
+        RawCtx::CopyImage( src_img.Handle(), dst_img.Handle(), ranges );
+    }
+
+/*
+=================================================
+    CopyBufferToImage
+=================================================
+*/
+    template <typename C>
+    void  _MTransferContextImpl<C>::CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)
+    {
+        auto  [src_buf, dst_img] = _GetResourcesOrThrow( srcBuffer, dstImage );
+        Validator_t::CopyBufferToImage( src_buf, dst_img, ranges );
+
+        RawCtx::CopyBufferToImage( src_buf.Handle(), dst_img.Handle(), ranges );
+    }
+
+    template <typename C>
+    void  _MTransferContextImpl<C>::CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)
+    {
+        auto  [src_buf, dst_img] = _GetResourcesOrThrow( srcBuffer, dstImage );
+        Validator_t::CopyBufferToImage( src_buf, dst_img, ranges );
+
+        RawCtx::CopyBufferToImage( src_buf.Handle(), dst_img.Handle(), ranges );
+    }
+
+/*
+=================================================
+    CopyImageToBuffer
+=================================================
+*/
+    template <typename C>
+    void  _MTransferContextImpl<C>::CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)
+    {
+        auto  [src_img, dst_buf] = _GetResourcesOrThrow( srcImage, dstBuffer );
+        Validator_t::CopyImageToBuffer( src_img, dst_buf, ranges );
+
+        RawCtx::CopyImageToBuffer( src_img.Handle(), dst_buf.Handle(), ranges );
+    }
+
+    template <typename C>
+    void  _MTransferContextImpl<C>::CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)
+    {
+        auto  [src_img, dst_buf] = _GetResourcesOrThrow( srcImage, dstBuffer );
+        Validator_t::CopyImageToBuffer( src_img, dst_buf, ranges );
+
+        RawCtx::CopyImageToBuffer( src_img.Handle(), dst_buf.Handle(), ranges );
+    }
+
+/*
+=================================================
+    GenerateMipmaps
+=================================================
+*/
+    template <typename C>
+    void  _MTransferContextImpl<C>::GenerateMipmaps (ImageID srcImage, ArrayView<ImageSubresourceRange> ranges)
+    {
+        auto&   src_img = _GetResourcesOrThrow( srcImage );
+        Validator_t::GenerateMipmaps( src_img, ranges );
+
+        RawCtx::_GenerateMipmaps( src_img.Handle(), ranges );
+    }
 
 
 } // AE::Graphics::_hidden_

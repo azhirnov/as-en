@@ -29,38 +29,38 @@ extern void  TestRT ();
 
 int main ()
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
-	
-	TestDevice	vulkan;
-	CHECK_ERR( vulkan.Create(), 1 );
-	
-	// run tests
-	bool	passed = true;
-	{
-		passed &= ShaderTrace_Test1( vulkan );		// graphics
-		passed &= ShaderTrace_Test2( vulkan );		// compute
-		//passed &= ShaderTrace_Test3( vulkan );	// graphics
-		passed &= ShaderTrace_Test4( vulkan );		// graphics
-		passed &= ShaderTrace_Test5( vulkan );		// graphics
-		passed &= ShaderTrace_Test6( vulkan );		// geometry
-		passed &= ShaderTrace_Test7( vulkan );		// tessellation
-		passed &= ShaderTrace_Test8( vulkan );		// tessellation
-		passed &= ShaderTrace_Test9( vulkan );		// ray tracing
-		passed &= ShaderTrace_Test10( vulkan );		// mesh
-		passed &= ShaderTrace_Test11( vulkan );		// compute
-		passed &= ShaderTrace_Test12( vulkan );		// compute
-		passed &= ShaderTrace_Test13( vulkan );		// graphics
-		passed &= ShaderTrace_Test14( vulkan );		// ray tracing
-	}
-	
-	if ( vulkan.GetShaderClockFeats().shaderDeviceClock )
-	{
-		passed &= ShaderPerf_Test1( vulkan );		// graphics
-		passed &= ClockMap_Test1( vulkan );			// graphics
-		passed &= ClockMap_Test2( vulkan );			// ray tracing
-	}
+    AE::Base::StaticLogger::LoggerDbgScope log{};
 
-	vulkan.Destroy();
+    TestDevice  vulkan;
+    CHECK_ERR( vulkan.Create(), 1 );
 
-	return 0;
+    // run tests
+    bool    passed = true;
+    {
+        passed &= ShaderTrace_Test1( vulkan );      // graphics
+        passed &= ShaderTrace_Test2( vulkan );      // compute
+        //passed &= ShaderTrace_Test3( vulkan );    // graphics
+        passed &= ShaderTrace_Test4( vulkan );      // graphics
+        passed &= ShaderTrace_Test5( vulkan );      // graphics
+        passed &= ShaderTrace_Test6( vulkan );      // geometry
+        passed &= ShaderTrace_Test7( vulkan );      // tessellation
+        passed &= ShaderTrace_Test8( vulkan );      // tessellation
+        passed &= ShaderTrace_Test9( vulkan );      // ray tracing
+        passed &= ShaderTrace_Test10( vulkan );     // mesh
+        passed &= ShaderTrace_Test11( vulkan );     // compute
+        passed &= ShaderTrace_Test12( vulkan );     // compute
+        passed &= ShaderTrace_Test13( vulkan );     // graphics
+        passed &= ShaderTrace_Test14( vulkan );     // ray tracing
+    }
+
+    if ( vulkan.GetShaderClockFeats().shaderDeviceClock )
+    {
+        passed &= ShaderPerf_Test1( vulkan );       // graphics
+        passed &= ClockMap_Test1( vulkan );         // graphics
+        passed &= ClockMap_Test2( vulkan );         // ray tracing
+    }
+
+    vulkan.Destroy();
+
+    return 0;
 }

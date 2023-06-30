@@ -14,47 +14,47 @@
 
 namespace AE::Profiler
 {
-	using namespace AE::Base;
+    using namespace AE::Base;
 
-	using AE::Graphics::GraphicsPipelineID;
-	using AE::Graphics::DescriptorSetID;
-	using AE::Graphics::Canvas;
-	using AE::Graphics::RasterFont;
-	using AE::Graphics::IDrawContext;
+    using AE::Graphics::GraphicsPipelineID;
+    using AE::Graphics::DescriptorSetID;
+    using AE::Graphics::Canvas;
+    using AE::Graphics::RasterFont;
+    using AE::Graphics::IDrawContext;
 
-	using AE::Threading::Atomic;
-	using AE::Threading::FAtomic;
-
-
-
-	//
-	// Profiler Utils
-	//
-
-	class ProfilerUtils
-	{
-	// types
-	public:
-		using TimePoint_t	= std::chrono::high_resolution_clock::time_point;
+    using AE::Threading::Atomic;
+    using AE::Threading::FAtomic;
 
 
-	// variables
-	private:
-		const TimePoint_t	_startTime;
+
+    //
+    // Profiler Utils
+    //
+
+    class ProfilerUtils
+    {
+    // types
+    public:
+        using TimePoint_t   = std::chrono::high_resolution_clock::time_point;
 
 
-	// methods
-	public:
-		explicit ProfilerUtils (TimePoint_t startTime) :
-			_startTime{ startTime }
-		{}
+    // variables
+    private:
+        const TimePoint_t   _startTime;
 
-		ND_ usize			CurrentThreadID ()	const	{ return ThreadUtils::GetIntID(); }
-		ND_ uint			CoreIndex ()		const	{ return ThreadUtils::GetCoreIndex(); }
 
-		ND_ secondsf		CurrentTime ()		const	{ return Cast<secondsf>( TimePoint_t::clock::now() - _startTime ); }
-		ND_ nanosecondsd	CurrentTimeNano ()	const	{ return Cast<nanosecondsd>( TimePoint_t::clock::now() - _startTime ); }
-	};
+    // methods
+    public:
+        explicit ProfilerUtils (TimePoint_t startTime) :
+            _startTime{ startTime }
+        {}
+
+        ND_ usize           CurrentThreadID ()  const   { return ThreadUtils::GetIntID(); }
+        ND_ uint            CoreIndex ()        const   { return ThreadUtils::GetCoreIndex(); }
+
+        ND_ secondsf        CurrentTime ()      const   { return Cast<secondsf>( TimePoint_t::clock::now() - _startTime ); }
+        ND_ nanosecondsd    CurrentTimeNano ()  const   { return Cast<nanosecondsd>( TimePoint_t::clock::now() - _startTime ); }
+    };
 
 
 } // AE::Profiler

@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	API for Adreno / Mali hardware performance counters.
+    API for Adreno / Mali hardware performance counters.
 */
 
 #pragma once
@@ -9,42 +9,42 @@
 
 namespace AE::Profiler
 {
-	using namespace AE::Base;
+    using namespace AE::Base;
 
 
-	//
-	// Android GPU Profiler (Adreno / Mali)
-	//
+    //
+    // Android GPU Profiler (Adreno / Mali)
+    //
 
-	class AndroidGpuProfiler
-	{
-	// types
-	public:
-		enum class ECounter : ubyte
-		{
-			_Count,
-			Unknown			= 0xFF,
-		};
-		using ECounterSet	= EnumBitSet< ECounter >;
+    class AndroidGpuProfiler
+    {
+    // types
+    public:
+        enum class ECounter : ubyte
+        {
+            _Count,
+            Unknown         = 0xFF,
+        };
+        using ECounterSet   = EnumBitSet< ECounter >;
 
-	private:
-		struct Impl;
-
-
-	// variables
-	private:
-		Unique<Impl>	_impl;
+    private:
+        struct Impl;
 
 
-	// methods
-	public:
-		AndroidGpuProfiler ()											__NE___;
-		~AndroidGpuProfiler ()											__NE___;
+    // variables
+    private:
+        Unique<Impl>    _impl;
 
-		ND_ bool  Initialize (const ECounterSet &counterSet)			__NE___;
-			void  Deinitialize ()										__NE___;
-		ND_ bool  IsInitialized ()										C_NE___;
-	};
+
+    // methods
+    public:
+        AndroidGpuProfiler ()                                           __NE___;
+        ~AndroidGpuProfiler ()                                          __NE___;
+
+        ND_ bool  Initialize (const ECounterSet &counterSet)            __NE___;
+            void  Deinitialize ()                                       __NE___;
+        ND_ bool  IsInitialized ()                                      C_NE___;
+    };
 
 
 } // AE::Profiler

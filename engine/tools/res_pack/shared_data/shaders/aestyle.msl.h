@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	used only for auto-complete in shader code
+    used only for auto-complete in shader code
 */
 
 #pragma once

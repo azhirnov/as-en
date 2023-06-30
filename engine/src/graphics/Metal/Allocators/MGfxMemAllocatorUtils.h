@@ -8,42 +8,42 @@
 
 namespace AE::Graphics
 {
-	
-	//
-	// Metal Graphics Memory Allocator Utils
-	//
 
-	struct MGfxMemAllocatorUtils : Noninstanceable
-	{
-		struct Key
-		{
-		// types
-			enum class EResType
-			{
-				Buffer,
-				Image,
-				AccelStruct,
-			};
+    //
+    // Metal Graphics Memory Allocator Utils
+    //
 
-		// variables
-			uint	value	= 0;
+    struct MGfxMemAllocatorUtils : Noninstanceable
+    {
+        struct Key
+        {
+        // types
+            enum class EResType
+            {
+                Buffer,
+                Image,
+                AccelStruct,
+            };
 
-		// methods
-			Key () __NE___	{}
-			
-			Key (/*MTLHeapType*/uint type, /*MTLResourceOptions*/uint opts, EResType resType) __NE___ :
-				value{ (opts & 0xFF'FFFF) | ((type & 0xF) << 24) | ((uint(resType) & 3) << 30) }
-			{}
+        // variables
+            uint    value   = 0;
 
-			ND_ bool  operator == (const Key &rhs)		C_NE___ { return value == rhs.value; }
-			ND_ bool  operator <  (const Key &rhs)		C_NE___ { return value <  rhs.value; }
-			ND_ bool  operator >  (const Key &rhs)		C_NE___ { return value >  rhs.value; }
+        // methods
+            Key () __NE___  {}
 
-			ND_ uint		HeapType ()					C_NE___	{ return (value >> 24) & 0xF; }		// MTLHeapType
-			ND_ uint		ResourceOptions ()			C_NE___	{ return value & 0xFF'FFFF; }		// MTLResourceOptions
-			ND_ EResType	ResourceType ()				C_NE___	{ return EResType(value >> 30); }
-		};
-	};
+            Key (/*MTLHeapType*/uint type, /*MTLResourceOptions*/uint opts, EResType resType) __NE___ :
+                value{ (opts & 0xFF'FFFF) | ((type & 0xF) << 24) | ((uint(resType) & 3) << 30) }
+            {}
+
+            ND_ bool  operator == (const Key &rhs)      C_NE___ { return value == rhs.value; }
+            ND_ bool  operator <  (const Key &rhs)      C_NE___ { return value <  rhs.value; }
+            ND_ bool  operator >  (const Key &rhs)      C_NE___ { return value >  rhs.value; }
+
+            ND_ uint        HeapType ()                 C_NE___ { return (value >> 24) & 0xF; }     // MTLHeapType
+            ND_ uint        ResourceOptions ()          C_NE___ { return value & 0xFF'FFFF; }       // MTLResourceOptions
+            ND_ EResType    ResourceType ()             C_NE___ { return EResType(value >> 30); }
+        };
+    };
 
 
 } // AE::Graphics

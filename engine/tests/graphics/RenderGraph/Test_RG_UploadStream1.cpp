@@ -4,125 +4,125 @@
 
 namespace
 {
-	struct US1_TestData
-	{
-		GAutorelease<BufferID>		buf;
-		const Bytes					buf_size	= 32_Mb;
-		Array<ubyte>				buffer_data;
-		CommandBatchPtr				batch;
-		RC<GfxLinearMemAllocator>	gfxAlloc;
-		BufferStream				stream;
-		Atomic<uint>				counter		{0};
-	};
+    struct US1_TestData
+    {
+        GAutorelease<BufferID>      buf;
+        const Bytes                 buf_size    = 32_Mb;
+        Array<ubyte>                buffer_data;
+        CommandBatchPtr             batch;
+        RC<GfxLinearMemAllocator>   gfxAlloc;
+        BufferStream                stream;
+        Atomic<uint>                counter     {0};
+    };
 
-	static constexpr Bytes	upload_limit = 1_Mb;
+    static constexpr Bytes  upload_limit = 1_Mb;
 
 
-	class US1_UploadStreamTask final : public RenderTask
-	{
-	public:
-		US1_TestData&	t;
+    class US1_UploadStreamTask final : public RenderTask
+    {
+    public:
+        US1_TestData&   t;
 
-		US1_UploadStreamTask (US1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
-			RenderTask{ RVRef(batch), dbg }, t{ t }
-		{}
+        US1_UploadStreamTask (US1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+            RenderTask{ RVRef(batch), dbg }, t{ t }
+        {}
 
-		void  Run () __Th_OV
-		{
-			DirectCtx::Transfer	ctx{ *this };
+        void  Run () __Th_OV
+        {
+            DirectCtx::Transfer ctx{ *this };
 
-			const Bytes	pos = t.stream.pos;
+            const Bytes pos = t.stream.pos;
 
-			BufferMemView	mem_view;
-			ctx.UploadBuffer( INOUT t.stream, OUT mem_view );
+            BufferMemView   mem_view;
+            ctx.UploadBuffer( INOUT t.stream, OUT mem_view );
 
-			auto	arr = ArrayView<ubyte>{t.buffer_data}.section( usize(pos), UMax );
-			CHECK_TE( mem_view.Copy( arr ) == mem_view.DataSize() );
-			
-			Execute( ctx );
-			
-			const auto	stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
-			ASSERT( stat.dynamicWrite <= upload_limit );
-		}
-	};
-	
+            auto    arr = ArrayView<ubyte>{t.buffer_data}.section( usize(pos), UMax );
+            CHECK_TE( mem_view.Copy( arr ) == mem_view.DataSize() );
 
-	class US1_FrameTask final : public Threading::IAsyncTask
-	{
-	public:
-		US1_TestData&	t;
+            Execute( ctx );
 
-		US1_FrameTask (US1_TestData& t) :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			t{ t }
-		{}
+            const auto  stat = RenderTaskScheduler().GetResourceManager().GetStagingBufferFrameStat( GetFrameId() );
+            ASSERT( stat.dynamicWrite <= upload_limit );
+        }
+    };
 
-		void  Run () __Th_OV
-		{
-			if ( t.stream.IsCompleted() )
-				return;
 
-			++t.counter;
+    class US1_FrameTask final : public Threading::IAsyncTask
+    {
+    public:
+        US1_TestData&   t;
 
-			auto&	rts = RenderTaskScheduler();
+        US1_FrameTask (US1_TestData& t) :
+            IAsyncTask{ ETaskQueue::PerFrame },
+            t{ t }
+        {}
 
-			BeginFrameConfig	cfg;
-			cfg.stagingBufferPerFrameLimits.write = upload_limit;
+        void  Run () __Th_OV
+        {
+            if ( t.stream.IsCompleted() )
+                return;
 
-			AsyncTask	begin = rts.BeginFrame( cfg );
+            ++t.counter;
 
-			t.batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream1"} );
-			CHECK_TE( t.batch );
-			
-			AsyncTask	test	= t.batch->Run< US1_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
-			AsyncTask	end		= rts.EndFrame( Tuple{test} );
+            auto&   rts = RenderTaskScheduler();
 
-			return Continue( Tuple{end} );
-		}
+            BeginFrameConfig    cfg;
+            cfg.stagingBufferPerFrameLimits.write = upload_limit;
 
-		StringView  DbgName ()	C_NE_OV	{ return "US1_FrameTask"; }
-	};
+            AsyncTask   begin = rts.BeginFrame( cfg );
 
-	
-	static bool  UploadStream1Test ()
-	{
-		auto&			rts			= RenderTaskScheduler();
-		auto&			res_mngr	= rts.GetResourceManager();
-		US1_TestData	t;
-		
-		t.gfxAlloc	= MakeRC<GfxLinearMemAllocator>();
-		t.buf		= res_mngr.CreateBuffer( BufferDesc{ t.buf_size, EBufferUsage::Transfer }.SetMemory( EMemoryType::DeviceLocal ), "dst_buf", t.gfxAlloc );
-		CHECK_ERR( t.buf );
-	
-		t.buffer_data.resize( uint(t.buf_size) );
-		for (usize i = 0; i < t.buffer_data.size(); ++i) {
-			t.buffer_data[i] = ubyte(i);
-		}
+            t.batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"UploadStream1"} );
+            CHECK_TE( t.batch );
 
-		t.stream = BufferStream{ t.buf, 0_b, t.buf_size, 0_b, EStagingHeapType::Dynamic };
-		
-		auto	task = Scheduler().Run<US1_FrameTask>( Tuple{ArgRef(t)} );
+            AsyncTask   test    = t.batch->Run< US1_UploadStreamTask >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"test task"} );
+            AsyncTask   end     = rts.EndFrame( Tuple{test} );
 
-		CHECK_ERR( Scheduler().Wait( {task} ));
-		CHECK_ERR( rts.WaitAll() );
+            return Continue( Tuple{end} );
+        }
 
-		CHECK_ERR( t.stream.IsCompleted() );
-		CHECK_ERR( t.counter.load() >= uint(t.buf_size / upload_limit) );
-	
-		return true;
-	}
+        StringView  DbgName ()  C_NE_OV { return "US1_FrameTask"; }
+    };
+
+
+    static bool  UploadStream1Test ()
+    {
+        auto&           rts         = RenderTaskScheduler();
+        auto&           res_mngr    = rts.GetResourceManager();
+        US1_TestData    t;
+
+        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.buf       = res_mngr.CreateBuffer( BufferDesc{ t.buf_size, EBufferUsage::Transfer }.SetMemory( EMemoryType::DeviceLocal ), "dst_buf", t.gfxAlloc );
+        CHECK_ERR( t.buf );
+
+        t.buffer_data.resize( uint(t.buf_size) );
+        for (usize i = 0; i < t.buffer_data.size(); ++i) {
+            t.buffer_data[i] = ubyte(i);
+        }
+
+        t.stream = BufferStream{ t.buf, 0_b, t.buf_size, 0_b, EStagingHeapType::Dynamic };
+
+        auto    task = Scheduler().Run<US1_FrameTask>( Tuple{ArgRef(t)} );
+
+        CHECK_ERR( Scheduler().Wait( {task} ));
+        CHECK_ERR( rts.WaitAll() );
+
+        CHECK_ERR( t.stream.IsCompleted() );
+        CHECK_ERR( t.counter.load() >= uint(t.buf_size / upload_limit) );
+
+        return true;
+    }
 
 } // namespace
 
 
 bool RGTest::Test_UploadStream1 ()
 {
-	bool	result = true;
+    bool    result = true;
 
-	RG_CHECK( UploadStream1Test() );
-	
-	RG_CHECK( _CompareDumps( TEST_NAME ));
+    RG_CHECK( UploadStream1Test() );
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+    RG_CHECK( _CompareDumps( TEST_NAME ));
+
+    AE_LOGI( TEST_NAME << " - passed" );
+    return result;
 }

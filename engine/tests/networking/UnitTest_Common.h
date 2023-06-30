@@ -11,27 +11,27 @@ using namespace AE::Networking;
 
 struct LocalSocketMngr
 {
-	LocalSocketMngr ()
-	{
-		TaskScheduler::CreateInstance();
+    LocalSocketMngr ()
+    {
+        TaskScheduler::CreateInstance();
 
-		TaskScheduler::Config	cfg;
-		TEST( Scheduler().Setup( cfg ));
+        TaskScheduler::Config   cfg;
+        TEST( Scheduler().Setup( cfg ));
 
-		TEST( SocketService::Instance().Initialize() );
-	}
+        TEST( SocketService::Instance().Initialize() );
+    }
 
-	~LocalSocketMngr ()
-	{
-		Scheduler().Release();
-		TaskScheduler::DestroyInstance();
+    ~LocalSocketMngr ()
+    {
+        Scheduler().Release();
+        TaskScheduler::DestroyInstance();
 
-		SocketService::Instance().Deinitialize();
-	}
+        SocketService::Instance().Deinitialize();
+    }
 
-	SocketService* operator -> ()
-	{
-		return &SocketService::Instance();
-	}
+    SocketService* operator -> ()
+    {
+        return &SocketService::Instance();
+    }
 };
 

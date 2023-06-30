@@ -15,104 +15,104 @@
 namespace AE::Base
 {
 
-	//
-	// Unix Dynamic Library
-	//
+    //
+    // Unix Dynamic Library
+    //
 
-	class UnixLibrary final : public Noncopyable
-	{
-	// variables
-	private:
-		void *		_handle	= null;
+    class UnixLibrary final : public Noncopyable
+    {
+    // variables
+    private:
+        void *      _handle = null;
 
 
-	// methods
-	public:
-		UnixLibrary ()						__NE___		{}
-		~UnixLibrary ()						__NE___	{ Unload(); }
+    // methods
+    public:
+        UnixLibrary ()                      __NE___     {}
+        ~UnixLibrary ()                     __NE___ { Unload(); }
 
-		bool  Load (NtStringView libName)	__NE___;
-		bool  Load (const char *libName)	__NE___	{ return Load( NtStringView{libName} ); }
-		bool  Load (const String &libName)	__NE___	{ return Load( NtStringView{libName} ); }
-		bool  Load (const Path &libName)	__NE___;
-		void  Unload ()						__NE___;
+        bool  Load (NtStringView libName)   __NE___;
+        bool  Load (const char *libName)    __NE___ { return Load( NtStringView{libName} ); }
+        bool  Load (const String &libName)  __NE___ { return Load( NtStringView{libName} ); }
+        bool  Load (const Path &libName)    __NE___;
+        void  Unload ()                     __NE___;
 
-		template <typename T>
-		bool  GetProcAddr (NtStringView name, OUT T &result) C_NE___;
-		
-		ND_ Path  GetPath ()				C_NE___;
+        template <typename T>
+        bool  GetProcAddr (NtStringView name, OUT T &result) C_NE___;
 
-		ND_ explicit operator bool ()		C_NE___		{ return _handle != null; }
-	};
+        ND_ Path  GetPath ()                C_NE___;
 
-	
-	
+        ND_ explicit operator bool ()       C_NE___     { return _handle != null; }
+    };
+
+
+
 /*
 =================================================
-	Load
+    Load
 =================================================
 */
-	inline bool  UnixLibrary::Load (NtStringView libName) __NE___
-	{
-		CHECK_ERR( _handle == null );
-		_handle = ::dlopen( libName.c_str(), RTLD_LAZY | RTLD_LOCAL );
-		return _handle != null;
-	}
+    inline bool  UnixLibrary::Load (NtStringView libName) __NE___
+    {
+        CHECK_ERR( _handle == null );
+        _handle = ::dlopen( libName.c_str(), RTLD_LAZY | RTLD_LOCAL );
+        return _handle != null;
+    }
 
-	inline bool  UnixLibrary::Load (const Path &libName) __NE___
-	{
-		CHECK_ERR( _handle == null );
-		_handle = ::dlopen( libName.c_str(), RTLD_LAZY | RTLD_LOCAL );
-		return _handle != null;
-	}
-	
+    inline bool  UnixLibrary::Load (const Path &libName) __NE___
+    {
+        CHECK_ERR( _handle == null );
+        _handle = ::dlopen( libName.c_str(), RTLD_LAZY | RTLD_LOCAL );
+        return _handle != null;
+    }
+
 /*
 =================================================
-	Unload
+    Unload
 =================================================
 */
-	inline void  UnixLibrary::Unload () __NE___
-	{
-		if ( _handle ) {
-			::dlclose( _handle );
-			_handle = null;
-		}
-	}
-	
+    inline void  UnixLibrary::Unload () __NE___
+    {
+        if ( _handle ) {
+            ::dlclose( _handle );
+            _handle = null;
+        }
+    }
+
 /*
 =================================================
-	GetProcAddr
+    GetProcAddr
 =================================================
 */
-	template <typename T>
-	inline bool  UnixLibrary::GetProcAddr (NtStringView name, OUT T &result) C_NE___
-	{
-		result = BitCast<T>( ::dlsym( _handle, name.c_str() ));
-		return result != null;
-	}
-	
+    template <typename T>
+    inline bool  UnixLibrary::GetProcAddr (NtStringView name, OUT T &result) C_NE___
+    {
+        result = BitCast<T>( ::dlsym( _handle, name.c_str() ));
+        return result != null;
+    }
+
 /*
 =================================================
-	GetPath
+    GetPath
 =================================================
 */
-	inline Path  UnixLibrary::GetPath () C_NE___
-	{
-	#ifdef AE_PLATFORM_ANDROID
-		// not supported
-		return Default;
-	#elif defined(AE_PLATFORM_APPLE)
-		RETURN_ERR( "not supported" );
-	#else
+    inline Path  UnixLibrary::GetPath () C_NE___
+    {
+    #ifdef AE_PLATFORM_ANDROID
+        // not supported
+        return Default;
+    #elif defined(AE_PLATFORM_APPLE)
+        RETURN_ERR( "not supported" );
+    #else
 
-		CHECK_ERR( _handle );
+        CHECK_ERR( _handle );
 
-		char	buf [PATH_MAX] = {};
-		CHECK_ERR( ::dlinfo( _handle, RTLD_DI_ORIGIN, buf ) == 0 );
+        char    buf [PATH_MAX] = {};
+        CHECK_ERR( ::dlinfo( _handle, RTLD_DI_ORIGIN, buf ) == 0 );
 
-		CATCH_ERR( return Path{ buf };)
-	#endif
-	}
+        CATCH_ERR( return Path{ buf };)
+    #endif
+    }
 
 
 } // AE::Base

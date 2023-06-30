@@ -1,12 +1,12 @@
 
 set( GRAPHICS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/graphics" )
 set( GRAPHICS_SRC
-	"${GRAPHICS_DIR}/Public/ImageMemView.h"
-	#"${GRAPHICS_DIR}/Private/ImageMemView.cpp"
-	"${GRAPHICS_DIR}/Private/EnumUtils.h"
-	#"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
-	"${GRAPHICS_DIR}/Scripting/GraphicsBindings.h"
-	#"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp"
+    "${GRAPHICS_DIR}/Public/ImageMemView.h"
+    #"${GRAPHICS_DIR}/Private/ImageMemView.cpp"
+    "${GRAPHICS_DIR}/Private/EnumUtils.h"
+    #"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
+    "${GRAPHICS_DIR}/Scripting/GraphicsBindings.h"
+    #"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp"
 )
 
 file( GLOB_RECURSE SOURCES "*.*" )
@@ -19,17 +19,17 @@ target_compile_definitions( "AssetPacker" PRIVATE "AE_BUILD_ASSET_PACKER" )
 target_include_directories( "AssetPacker" PUBLIC "." )
 
 if (TARGET "FreeType-lib")
-	target_link_libraries( "AssetPacker" PUBLIC "FreeType-lib" )
+    target_link_libraries( "AssetPacker" PUBLIC "FreeType-lib" )
 endif()
 
 if (TARGET "msdfgen-lib")
-	target_link_libraries( "AssetPacker" PUBLIC "msdfgen-lib" )
+    target_link_libraries( "AssetPacker" PUBLIC "msdfgen-lib" )
 endif()
 
 add_library( "AssetPacker-shared" SHARED
-	"AssetPacker.h"
-	#"Lib/main.cpp"
-	#"Lib/AssetPacker.def"
+    "AssetPacker.h"
+    #"Lib/main.cpp"
+    #"Lib/AssetPacker.def"
 )
 target_link_libraries( "AssetPacker-shared" PUBLIC "AssetPacker" )
 

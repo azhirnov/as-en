@@ -1,16 +1,16 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	IGfxMemAllocator
-		thread-safe:	yes
+    IGfxMemAllocator
+        thread-safe:    yes
 
-	IDescriptorAllocator
-		thread-safe:	yes
-		
-	IRenderTechPipelines
-		thread-safe:	yes
+    IDescriptorAllocator
+        thread-safe:    yes
 
-	IResourceManager
-		thread-safe:	yes
+    IRenderTechPipelines
+        thread-safe:    yes
+
+    IResourceManager
+        thread-safe:    yes
 */
 
 #pragma once
@@ -36,448 +36,448 @@
 # include "graphics/Public/RemoteGraphicsTypes.h"
 
 #else
-#	error not implemented
+#   error not implemented
 #endif
 
 namespace AE::Graphics
 {
 
-	//
-	// Graphics Memory Allocator interface
-	//
+    //
+    // Graphics Memory Allocator interface
+    //
 
-	class IGfxMemAllocator : public EnableRC<IGfxMemAllocator>
-	{
-	// types
-	public:
-		using Storage_t = UntypedStorage< sizeof(ulong) * 4, alignof(ulong) >;
+    class IGfxMemAllocator : public EnableRC<IGfxMemAllocator>
+    {
+    // types
+    public:
+        using Storage_t = UntypedStorage< sizeof(ulong) * 4, alignof(ulong) >;
 
-	  #if defined(AE_ENABLE_VULKAN)
-		using NativeMemObjInfo_t	= VulkanMemoryObjInfo;
-		using VideoStorageArr_t		= FixedArray< Storage_t, 8 >;
+      #if defined(AE_ENABLE_VULKAN)
+        using NativeMemObjInfo_t    = VulkanMemoryObjInfo;
+        using VideoStorageArr_t     = FixedArray< Storage_t, 8 >;
 
-	  #elif defined(AE_ENABLE_METAL)
-		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
+      #elif defined(AE_ENABLE_METAL)
+        using NativeMemObjInfo_t    = MetalMemoryObjInfo;
 
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		using NativeMemObjInfo_t	= RemoteMemoryObjInfo;
-		
-	  #else
-	  #	error not implemented
-	  #endif
+      #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+        using NativeMemObjInfo_t    = RemoteMemoryObjInfo;
 
-
-	// interface
-	public:
-	  #if defined(AE_ENABLE_VULKAN)
-		// 'desc.memType' and 'desc.usage' are required
-		ND_ virtual bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)				__NE___	= 0;
-
-		// 'desc.memType' and 'desc.usage' are required
-		ND_ virtual bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)			__NE___	= 0;
-		
-		ND_ virtual bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &)		__NE___	{ return false; }
-		ND_ virtual bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &)			__NE___	{ return false; }
-
-	  #elif defined(AE_ENABLE_METAL)
-		ND_ virtual MetalImageRC	AllocForImage (const ImageDesc &desc, OUT Storage_t &data)					__NE___	= 0;
-		ND_ virtual MetalBufferRC	AllocForBuffer (const BufferDesc &desc, OUT Storage_t &data)				__NE___	= 0;
-
-		ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTGeometryDesc &desc, OUT Storage_t &data)	__NE___	= 0;
-		ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTSceneDesc &desc, OUT Storage_t &data)		__NE___	= 0;
-		
-	  #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		// not implemented
-
-	  #else
-	  #	error not implemented
-	  #endif
-
-		// returns 'true' if deallocated
-			virtual bool  Dealloc (INOUT Storage_t &data)														__NE___	= 0;
-
-		ND_ virtual bool  GetInfo (const Storage_t &data, OUT NativeMemObjInfo_t &info)							C_NE___	= 0;
-
-		// Memory granularity for each allocation.
-		// Small align for linear/pool/etc allocator, large align for block allocator.
-		ND_ virtual Bytes  MinAlignment ()																		C_NE___	= 0;
-		ND_ virtual Bytes  MaxAllocationSize ()																	C_NE___	= 0;
-	};
-	
+      #else
+      # error not implemented
+      #endif
 
 
-	//
-	// Descriptor Allocator
-	//
+    // interface
+    public:
+      #if defined(AE_ENABLE_VULKAN)
+        // 'desc.memType' and 'desc.usage' are required
+        ND_ virtual bool  AllocForImage (VkImage image, const ImageDesc &desc, OUT Storage_t &data)             __NE___ = 0;
 
-	class IDescriptorAllocator : public EnableRC<IDescriptorAllocator>
-	{
-	// types
-	public:
-		using StorageData_t = UntypedStorage< sizeof(ulong), alignof(ulong) >;
+        // 'desc.memType' and 'desc.usage' are required
+        ND_ virtual bool  AllocForBuffer (VkBuffer buffer, const BufferDesc &desc, OUT Storage_t &data)         __NE___ = 0;
 
-		#if defined(AE_ENABLE_VULKAN)
-		struct Storage
-		{
-			VkDescriptorSet		handle	= Default;
-			StorageData_t		data;	// allocator specific data
-		};
+        ND_ virtual bool  AllocForVideoSession (VkVideoSessionKHR, EMemoryType, OUT VideoStorageArr_t &)        __NE___ { return false; }
+        ND_ virtual bool  AllocForVideoImage (VkImage, const VideoImageDesc &, OUT VideoStorageArr_t &)         __NE___ { return false; }
 
-		#elif defined(AE_ENABLE_METAL)
-		struct Storage
-		{
-			union {
-				MetalBuffer		handle;			// argument buffer
-				void *			args	= null;	// array of buffers, textures, samplers
-			};
-			StorageData_t		data;			// allocator specific data
-			
-			Storage () {}
-		};
+      #elif defined(AE_ENABLE_METAL)
+        ND_ virtual MetalImageRC    AllocForImage (const ImageDesc &desc, OUT Storage_t &data)                  __NE___ = 0;
+        ND_ virtual MetalBufferRC   AllocForBuffer (const BufferDesc &desc, OUT Storage_t &data)                __NE___ = 0;
 
-		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		struct Storage
-		{
-			// TODO
-		};
-		
-		#else
-		#	error not implemented
-		#endif
+        ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTGeometryDesc &desc, OUT Storage_t &data)   __NE___ = 0;
+        ND_ virtual MetalAccelStructRC  AllocForAccelStruct (const RTSceneDesc &desc, OUT Storage_t &data)      __NE___ = 0;
 
+      #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+        // not implemented
 
-	// interface
-	public:
-		ND_ virtual bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)		__NE___	= 0;
-			virtual void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)	__NE___	= 0;
-	};
+      #else
+      # error not implemented
+      #endif
+
+        // returns 'true' if deallocated
+            virtual bool  Dealloc (INOUT Storage_t &data)                                                       __NE___ = 0;
+
+        ND_ virtual bool  GetInfo (const Storage_t &data, OUT NativeMemObjInfo_t &info)                         C_NE___ = 0;
+
+        // Memory granularity for each allocation.
+        // Small align for linear/pool/etc allocator, large align for block allocator.
+        ND_ virtual Bytes  MinAlignment ()                                                                      C_NE___ = 0;
+        ND_ virtual Bytes  MaxAllocationSize ()                                                                 C_NE___ = 0;
+    };
 
 
 
-	//
-	// Render Technique Pipelines interface
-	//
+    //
+    // Descriptor Allocator
+    //
 
-	class IRenderTechPipelines : public EnableRC<IRenderTechPipelines>
-	{
-	// types
-	public:
-		enum class EPassType : ubyte
-		{
-			Unknown		= 0,
-			Graphics,
-			Compute,
-			Transfer,
-		};
+    class IDescriptorAllocator : public EnableRC<IDescriptorAllocator>
+    {
+    // types
+    public:
+        using StorageData_t = UntypedStorage< sizeof(ulong), alignof(ulong) >;
 
-		struct PassInfo
-		{
-			//RenderTechPassName::Optimized_t	name;
-			DescSetBinding						dsIndex;
-			EPassType							type		= Default;
-			ubyte								submitIdx	= UMax;
-			DescriptorSetLayoutID				dsLayoutId;
+        #if defined(AE_ENABLE_VULKAN)
+        struct Storage
+        {
+            VkDescriptorSet     handle  = Default;
+            StorageData_t       data;   // allocator specific data
+        };
 
-			// graphics
-			RenderPassName::Optimized_t			renderPass;
-			SubpassName::Optimized_t			subpass;
-			PipelinePackID						packId;
+        #elif defined(AE_ENABLE_METAL)
+        struct Storage
+        {
+            union {
+                MetalBuffer     handle;         // argument buffer
+                void *          args    = null; // array of buffers, textures, samplers
+            };
+            StorageData_t       data;           // allocator specific data
 
-			ND_ bool  IsDefined ()	C_NE___	{ return type != Default; }
-		};
+            Storage () {}
+        };
+
+        #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+        struct Storage
+        {
+            // TODO
+        };
+
+        #else
+        #   error not implemented
+        #endif
 
 
-	// interface
-	public:
-		ND_ virtual GraphicsPipelineID		GetGraphicsPipeline (const PipelineName &name)									C_NE___ = 0;
-		ND_ virtual MeshPipelineID			GetMeshPipeline (const PipelineName &name)										C_NE___ = 0;
-		ND_ virtual TilePipelineID			GetTilePipeline (const PipelineName &name)										C_NE___ = 0;
-		ND_ virtual ComputePipelineID		GetComputePipeline (const PipelineName &name)									C_NE___ = 0;
-		ND_ virtual RayTracingPipelineID	GetRayTracingPipeline (const PipelineName &name)								C_NE___ = 0;
-		ND_ virtual RTShaderBindingID		GetRTShaderBinding (const RTShaderBindingName &name)							C_NE___ = 0;
-		ND_ virtual PassInfo				GetPass (const RenderTechPassName &pass)										C_NE___ = 0;
-
-		ND_ virtual EPixelFormat			GetAttachmentFormat (const RenderTechPassName &pass, const AttachmentName &)	C_NE___ = 0;
-		ND_ virtual bool					FeatureSetSupported (const FeatureSetName &name)								C_NE___ = 0;	// for debugging
-	};
-	using RenderTechPipelinesPtr = RC< IRenderTechPipelines >;
+    // interface
+    public:
+        ND_ virtual bool  Allocate (DescriptorSetLayoutID layoutId, OUT Storage &ds)        __NE___ = 0;
+            virtual void  Deallocate (DescriptorSetLayoutID layoutId, INOUT Storage &ds)    __NE___ = 0;
+    };
 
 
 
-	//
-	// Resource Manager interface
-	//
+    //
+    // Render Technique Pipelines interface
+    //
 
-	class IResourceManager
-	{
-	// types
-	public:
-		#if defined(AE_ENABLE_VULKAN)
-		using NativeBuffer_t		= VkBuffer;
-		using NativeImage_t			= VkImage;
-		using NativeBufferView_t	= VkBufferView;
-		using NativeImageView_t		= VkImageView;
-		using NativeImageDesc_t		= VulkanImageDesc;
-		using NativeBufferDesc_t	= VulkanBufferDesc;
-		using NativeImageViewDesc_t	= VulkanImageViewDesc;
-		using NativeBufferViewDesc_t= VulkanBufferViewDesc;
-		using NativeMemObjInfo_t	= VulkanMemoryObjInfo;
-		using DeviceAddress_t		= VDeviceAddress;
-		
-		#elif defined(AE_ENABLE_METAL)
-		using NativeBuffer_t		= MetalBuffer;
-		using NativeImage_t			= MetalImage;
-		using NativeBufferView_t	= MetalImage;
-		using NativeImageView_t		= MetalImage;
-		using NativeImageDesc_t		= MetalImageDesc;
-		using NativeBufferDesc_t	= MetalBufferDesc;
-		using NativeImageViewDesc_t	= MetalImageViewDesc;
-		using NativeBufferViewDesc_t= MetalBufferViewDesc;
-		using NativeMemObjInfo_t	= MetalMemoryObjInfo;
-		using DeviceAddress_t		= MDeviceAddress;
+    class IRenderTechPipelines : public EnableRC<IRenderTechPipelines>
+    {
+    // types
+    public:
+        enum class EPassType : ubyte
+        {
+            Unknown     = 0,
+            Graphics,
+            Compute,
+            Transfer,
+        };
 
-		#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-		using NativeBuffer_t		= R_BufferID;
-		using NativeImage_t			= R_ImageID;
-		using NativeBufferView_t	= R_BufferViewID;
-		using NativeImageView_t		= R_ImageViewID;
-		using NativeImageDesc_t		= Noninstanceable;
-		using NativeBufferDesc_t	= Noninstanceable;
-		using NativeImageViewDesc_t	= Noninstanceable;
-		using NativeBufferViewDesc_t= Noninstanceable;
-		using NativeMemObjInfo_t	= RemoteMemoryObjInfo;
-		using DeviceAddress_t		= void*;
-		
-		#else
-		#	error not implemented
-		#endif
+        struct PassInfo
+        {
+            //RenderTechPassName::Optimized_t   name;
+            DescSetBinding                      dsIndex;
+            EPassType                           type        = Default;
+            ubyte                               submitIdx   = UMax;
+            DescriptorSetLayoutID               dsLayoutId;
 
-		using DescSetAndBinding_t	= Tuple< Strong<DescriptorSetID>, DescSetBinding >;
-		using AsyncRTechPipelines	= Promise< RenderTechPipelinesPtr >;
-		
-		struct StagingBufferStat
-		{
-			Bytes	dynamicWrite;	// host to device
-			Bytes	dynamicRead;	// device to host
-			
-			Bytes	staticWrite;
-			Bytes	staticRead;
-		};
+            // graphics
+            RenderPassName::Optimized_t         renderPass;
+            SubpassName::Optimized_t            subpass;
+            PipelinePackID                      packId;
+
+            ND_ bool  IsDefined ()  C_NE___ { return type != Default; }
+        };
 
 
-	// interface
-	public:
-		virtual ~IResourceManager ()																															__NE___ {}
-		
-		ND_ virtual bool						IsSupported (EMemoryType memType)																				C_NE___ = 0;
-		ND_ virtual bool						IsSupported (const BufferDesc &desc)																			C_NE___ = 0;
-		ND_ virtual bool						IsSupported (const ImageDesc &desc)																				C_NE___ = 0;
-		ND_ virtual bool						IsSupported (const VideoImageDesc &desc)																		C_NE___ = 0;
-		ND_ virtual bool						IsSupported (const VideoBufferDesc &desc)																		C_NE___ = 0;
-		ND_ virtual bool						IsSupported (const VideoSessionDesc &desc)																		C_NE___ = 0;
-		ND_ virtual bool						IsSupported (BufferID buffer, const BufferViewDesc &desc)														C_NE___ = 0;
-		ND_ virtual bool						IsSupported (ImageID image, const ImageViewDesc &desc)															C_NE___ = 0;
+    // interface
+    public:
+        ND_ virtual GraphicsPipelineID      GetGraphicsPipeline (const PipelineName &name)                                  C_NE___ = 0;
+        ND_ virtual MeshPipelineID          GetMeshPipeline (const PipelineName &name)                                      C_NE___ = 0;
+        ND_ virtual TilePipelineID          GetTilePipeline (const PipelineName &name)                                      C_NE___ = 0;
+        ND_ virtual ComputePipelineID       GetComputePipeline (const PipelineName &name)                                   C_NE___ = 0;
+        ND_ virtual RayTracingPipelineID    GetRayTracingPipeline (const PipelineName &name)                                C_NE___ = 0;
+        ND_ virtual RTShaderBindingID       GetRTShaderBinding (const RTShaderBindingName &name)                            C_NE___ = 0;
+        ND_ virtual PassInfo                GetPass (const RenderTechPassName &pass)                                        C_NE___ = 0;
 
-		ND_ virtual Strong<ImageID>				CreateImage (const ImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)			__NE___ = 0;
-		ND_ virtual Strong<BufferID>			CreateBuffer (const BufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE___ = 0;
-		
-		ND_ virtual Strong<ImageID>				CreateImage (const NativeImageDesc_t &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE___	= 0;
-		ND_ virtual Strong<BufferID>			CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE___	= 0;
-
-		ND_ virtual Strong<ImageViewID>			CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName = Default)						__NE___	= 0;
-		ND_ virtual Strong<BufferViewID>		CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName = Default)					__NE___	= 0;
-		
-		ND_ virtual Strong<ImageViewID>			CreateImageView (const NativeImageViewDesc_t &desc, ImageID image, StringView dbgName = Default)				__NE___ = 0;
-		ND_ virtual Strong<BufferViewID>		CreateBufferView (const NativeBufferViewDesc_t &desc, BufferID buffer, StringView dbgName = Default)			__NE___ = 0;
-
-		ND_ virtual Strong<RTGeometryID>		CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE___	= 0;
-		ND_ virtual Strong<RTSceneID>			CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE___	= 0;
-
-		ND_ virtual RTASBuildSizes				GetRTGeometrySizes (const RTGeometryBuild &desc)																__NE___	= 0;
-		ND_ virtual RTASBuildSizes				GetRTSceneSizes (const RTSceneBuild &desc)																		__NE___	= 0;
-
-		ND_ virtual DeviceAddress_t				GetDeviceAddress (BufferID		id)																				C_NE___ = 0;
-		ND_ virtual DeviceAddress_t				GetDeviceAddress (RTGeometryID	id)																				C_NE___ = 0;
-
-		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, GraphicsPipelineID   ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, ComputePipelineID    ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, TilePipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)										 __NE___ = 0;
-		ND_ virtual bool						CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)															 __NE___ = 0;
-
-		ND_ DescSetAndBinding_t					CreateDescriptorSet (GraphicsPipelineID   ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
-		ND_ DescSetAndBinding_t					CreateDescriptorSet (MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
-		ND_ DescSetAndBinding_t					CreateDescriptorSet (ComputePipelineID    ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
-		ND_ DescSetAndBinding_t					CreateDescriptorSet (RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
-		ND_ DescSetAndBinding_t					CreateDescriptorSet (TilePipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
-		ND_ Strong<DescriptorSetID>				CreateDescriptorSet (PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)			__NE___;
-		ND_ Strong<DescriptorSetID>				CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)								__NE___;
-		
-		template <typename T, typename PplnID>
-		ND_			PushConstantIndex			GetPushConstantIndex (PplnID               ppln, const PushConstantName &pcName)													__NE___;
-		ND_ virtual PushConstantIndex			GetPushConstantIndex (GraphicsPipelineID   ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE___ = 0;
-		ND_ virtual PushConstantIndex			GetPushConstantIndex (MeshPipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE___ = 0;
-		ND_ virtual PushConstantIndex			GetPushConstantIndex (ComputePipelineID    ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE___ = 0;
-		ND_ virtual PushConstantIndex			GetPushConstantIndex (RayTracingPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE___ = 0;
-		ND_ virtual PushConstantIndex			GetPushConstantIndex (TilePipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)	__NE___ = 0;
+        ND_ virtual EPixelFormat            GetAttachmentFormat (const RenderTechPassName &pass, const AttachmentName &)    C_NE___ = 0;
+        ND_ virtual bool                    FeatureSetSupported (const FeatureSetName &name)                                C_NE___ = 0;    // for debugging
+    };
+    using RenderTechPipelinesPtr = RC< IRenderTechPipelines >;
 
 
-		// warning: pipeline compilation and shader loading may be slow
-		ND_ virtual Strong<GraphicsPipelineID>	CreateGraphicsPipeline	(PipelinePackID packId, const PipelineTmplName &name, const GraphicsPipelineDesc	&desc, PipelineCacheID cache = Default)		__NE___	= 0;
-		ND_ virtual Strong<MeshPipelineID>		CreateMeshPipeline		(PipelinePackID packId, const PipelineTmplName &name, const MeshPipelineDesc		&desc, PipelineCacheID cache = Default)		__NE___	= 0;
-		ND_ virtual Strong<ComputePipelineID>	CreateComputePipeline	(PipelinePackID packId, const PipelineTmplName &name, const ComputePipelineDesc		&desc, PipelineCacheID cache = Default)		__NE___	= 0;
-		ND_ virtual Strong<RayTracingPipelineID>CreateRayTracingPipeline(PipelinePackID packId, const PipelineTmplName &name, const RayTracingPipelineDesc	&desc, PipelineCacheID cache = Default)		__NE___	= 0;
-		ND_ virtual Strong<TilePipelineID>		CreateTilePipeline		(PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc		&desc, PipelineCacheID cache = Default)		__NE___	= 0;
 
-		// video
-		ND_ virtual Strong<VideoSessionID>		CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)	__NE___	= 0;
-		ND_ virtual Strong<VideoBufferID>		CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE___	= 0;
-		ND_ virtual Strong<VideoImageID>		CreateVideoImage (const VideoImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)		__NE___	= 0;
-		
-		ND_ virtual Strong<PipelineCacheID>		CreatePipelineCache ()										__NE___ = 0;
+    //
+    // Resource Manager interface
+    //
 
-		// load default pack
-			virtual bool						InitializeResources (const PipelinePackDesc &desc)			__NE___	= 0;
-		ND_ virtual Strong<PipelinePackID>		LoadPipelinePack (const PipelinePackDesc &desc)				__NE___	= 0;
-		ND_ virtual Array<RenderTechName>		GetSupportedRenderTechs (PipelinePackID id)					C_NE___	= 0;
+    class IResourceManager
+    {
+    // types
+    public:
+        #if defined(AE_ENABLE_VULKAN)
+        using NativeBuffer_t        = VkBuffer;
+        using NativeImage_t         = VkImage;
+        using NativeBufferView_t    = VkBufferView;
+        using NativeImageView_t     = VkImageView;
+        using NativeImageDesc_t     = VulkanImageDesc;
+        using NativeBufferDesc_t    = VulkanBufferDesc;
+        using NativeImageViewDesc_t = VulkanImageViewDesc;
+        using NativeBufferViewDesc_t= VulkanBufferViewDesc;
+        using NativeMemObjInfo_t    = VulkanMemoryObjInfo;
+        using DeviceAddress_t       = VDeviceAddress;
 
-		// Returns 'true' if resource is alive.
-		ND_ virtual bool						IsResourceAlive (ImageID			id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (BufferID			id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (ImageViewID		id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (BufferViewID		id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (DescriptorSetID	id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (PipelineCacheID	id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (PipelinePackID		id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (RTGeometryID		id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (RTSceneID			id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (VideoSessionID		id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (VideoBufferID		id)						C_NE___ = 0;
-		ND_ virtual bool						IsResourceAlive (VideoImageID		id)						C_NE___ = 0;
-		
-		// Increment ref counter and returns ID if resource is alive, returns empty ID otherwise.
-		ND_ virtual Strong<ImageID>				AcquireResource (ImageID			id)						__NE___ = 0;
-		ND_ virtual Strong<BufferID>			AcquireResource (BufferID			id)						__NE___ = 0;
-		ND_ virtual Strong<ImageViewID>			AcquireResource (ImageViewID		id)						__NE___ = 0;
-		ND_ virtual Strong<BufferViewID>		AcquireResource (BufferViewID		id)						__NE___ = 0;
-		ND_ virtual Strong<DescriptorSetID>		AcquireResource (DescriptorSetID	id)						__NE___ = 0;
-		ND_ virtual Strong<RTGeometryID>		AcquireResource (RTGeometryID		id)						__NE___ = 0;
-		ND_ virtual Strong<RTSceneID>			AcquireResource (RTSceneID			id)						__NE___ = 0;
+        #elif defined(AE_ENABLE_METAL)
+        using NativeBuffer_t        = MetalBuffer;
+        using NativeImage_t         = MetalImage;
+        using NativeBufferView_t    = MetalImage;
+        using NativeImageView_t     = MetalImage;
+        using NativeImageDesc_t     = MetalImageDesc;
+        using NativeBufferDesc_t    = MetalBufferDesc;
+        using NativeImageViewDesc_t = MetalImageViewDesc;
+        using NativeBufferViewDesc_t= MetalBufferViewDesc;
+        using NativeMemObjInfo_t    = MetalMemoryObjInfo;
+        using DeviceAddress_t       = MDeviceAddress;
 
-		// Decrease ref counter and delay destruction until current frame complete execution on GPU.
-		// Returns 'true' if resource has been destroyed (when ref counter is zero).
-			virtual bool						ReleaseResource (INOUT Strong<ImageID>				&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<BufferID>				&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<ImageViewID>			&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<BufferViewID>			&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<DescriptorSetID>		&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<PipelineCacheID>		&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<PipelinePackID>		&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<GraphicsPipelineID>	&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<MeshPipelineID>		&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<ComputePipelineID>	&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<RayTracingPipelineID>	&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<TilePipelineID>		&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<RTGeometryID>			&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<RTSceneID>			&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<VideoSessionID>		&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<VideoBufferID>		&id)	__NE___	= 0;
-			virtual bool						ReleaseResource (INOUT Strong<VideoImageID>			&id)	__NE___	= 0;
+        #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+        using NativeBuffer_t        = R_BufferID;
+        using NativeImage_t         = R_ImageID;
+        using NativeBufferView_t    = R_BufferViewID;
+        using NativeImageView_t     = R_ImageViewID;
+        using NativeImageDesc_t     = Noninstanceable;
+        using NativeBufferDesc_t    = Noninstanceable;
+        using NativeImageViewDesc_t = Noninstanceable;
+        using NativeBufferViewDesc_t= Noninstanceable;
+        using NativeMemObjInfo_t    = RemoteMemoryObjInfo;
+        using DeviceAddress_t       = void*;
 
-		// Returned reference is valid until resource is alive
-		ND_ virtual BufferDesc const&			GetDescription (BufferID id)								C_NE___ = 0;
-		ND_ virtual ImageDesc const&			GetDescription (ImageID id)									C_NE___ = 0;
-		ND_ virtual BufferViewDesc const&		GetDescription (BufferViewID id)							C_NE___ = 0;
-		ND_ virtual ImageViewDesc const&		GetDescription (ImageViewID id)								C_NE___ = 0;
-		ND_ virtual RTShaderBindingDesc const&	GetDescription (RTShaderBindingID id)						C_NE___	= 0;
-		ND_ virtual RTGeometryDesc const&		GetDescription (RTGeometryID id)							C_NE___ = 0;
-		ND_ virtual RTSceneDesc const&			GetDescription (RTSceneID id)								C_NE___ = 0;
-		ND_ virtual VideoImageDesc const&		GetDescription (VideoImageID id)							C_NE___	= 0;
-		ND_ virtual VideoBufferDesc const&		GetDescription (VideoBufferID id)							C_NE___	= 0;
-		ND_ virtual VideoSessionDesc const&		GetDescription (VideoSessionID id)							C_NE___	= 0;
+        #else
+        #   error not implemented
+        #endif
 
-		// By default all resources destroyed when all pending command buffers are complete execution.
-		// Returns 'true' if wasn't empty.
-			virtual bool						ForceReleaseResources ()									__NE___	= 0;
-		
-		// Returns native handle.
-		ND_ virtual NativeBuffer_t				GetBufferHandle (BufferID id)								C_NE___ = 0;
-		ND_ virtual NativeImage_t				GetImageHandle (ImageID id)									C_NE___ = 0;
-		ND_ virtual NativeBufferView_t			GetBufferViewHandle (BufferViewID id)						C_NE___ = 0;
-		ND_ virtual NativeImageView_t			GetImageViewHandle (ImageViewID id)							C_NE___ = 0;
+        using DescSetAndBinding_t   = Tuple< Strong<DescriptorSetID>, DescSetBinding >;
+        using AsyncRTechPipelines   = Promise< RenderTechPipelinesPtr >;
 
-			virtual bool						GetMemoryInfo (ImageID id, OUT NativeMemObjInfo_t &info)	C_NE___ = 0;
-			virtual bool						GetMemoryInfo (BufferID id, OUT NativeMemObjInfo_t &info)	C_NE___ = 0;
+        struct StagingBufferStat
+        {
+            Bytes   dynamicWrite;   // host to device
+            Bytes   dynamicRead;    // device to host
 
-		// async loading
-		//	Pipeline compilation may be distributed to multiple threads.
-		ND_ virtual AsyncRTechPipelines			LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache = Default)__NE___	= 0;
-		ND_ virtual RenderTechPipelinesPtr		LoadRenderTech (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache = Default)		__NE___	= 0;
+            Bytes   staticWrite;
+            Bytes   staticRead;
+        };
 
-		// statistics
-		ND_ virtual StagingBufferStat			GetStagingBufferFrameStat (FrameUID frameId)				C_NE___ = 0;
-	};
 
-	
+    // interface
+    public:
+        virtual ~IResourceManager ()                                                                                                                            __NE___ {}
+
+        ND_ virtual bool                        IsSupported (EMemoryType memType)                                                                               C_NE___ = 0;
+        ND_ virtual bool                        IsSupported (const BufferDesc &desc)                                                                            C_NE___ = 0;
+        ND_ virtual bool                        IsSupported (const ImageDesc &desc)                                                                             C_NE___ = 0;
+        ND_ virtual bool                        IsSupported (const VideoImageDesc &desc)                                                                        C_NE___ = 0;
+        ND_ virtual bool                        IsSupported (const VideoBufferDesc &desc)                                                                       C_NE___ = 0;
+        ND_ virtual bool                        IsSupported (const VideoSessionDesc &desc)                                                                      C_NE___ = 0;
+        ND_ virtual bool                        IsSupported (BufferID buffer, const BufferViewDesc &desc)                                                       C_NE___ = 0;
+        ND_ virtual bool                        IsSupported (ImageID image, const ImageViewDesc &desc)                                                          C_NE___ = 0;
+
+        ND_ virtual Strong<ImageID>             CreateImage (const ImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)          __NE___ = 0;
+        ND_ virtual Strong<BufferID>            CreateBuffer (const BufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)        __NE___ = 0;
+
+        ND_ virtual Strong<ImageID>             CreateImage (const NativeImageDesc_t &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)  __NE___ = 0;
+        ND_ virtual Strong<BufferID>            CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE___ = 0;
+
+        ND_ virtual Strong<ImageViewID>         CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName = Default)                        __NE___ = 0;
+        ND_ virtual Strong<BufferViewID>        CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName = Default)                    __NE___ = 0;
+
+        ND_ virtual Strong<ImageViewID>         CreateImageView (const NativeImageViewDesc_t &desc, ImageID image, StringView dbgName = Default)                __NE___ = 0;
+        ND_ virtual Strong<BufferViewID>        CreateBufferView (const NativeBufferViewDesc_t &desc, BufferID buffer, StringView dbgName = Default)            __NE___ = 0;
+
+        ND_ virtual Strong<RTGeometryID>        CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)__NE___ = 0;
+        ND_ virtual Strong<RTSceneID>           CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)      __NE___ = 0;
+
+        ND_ virtual RTASBuildSizes              GetRTGeometrySizes (const RTGeometryBuild &desc)                                                                __NE___ = 0;
+        ND_ virtual RTASBuildSizes              GetRTSceneSizes (const RTSceneBuild &desc)                                                                      __NE___ = 0;
+
+        ND_ virtual DeviceAddress_t             GetDeviceAddress (BufferID      id)                                                                             C_NE___ = 0;
+        ND_ virtual DeviceAddress_t             GetDeviceAddress (RTGeometryID  id)                                                                             C_NE___ = 0;
+
+        ND_ virtual bool                        CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, GraphicsPipelineID   ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
+        ND_ virtual bool                        CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
+        ND_ virtual bool                        CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, ComputePipelineID    ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
+        ND_ virtual bool                        CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
+        ND_ virtual bool                        CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, TilePipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
+        ND_ virtual bool                        CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                                      __NE___ = 0;
+        ND_ virtual bool                        CreateDescriptorSets (OUT Strong<DescriptorSetID> *dst, usize count, DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                                                          __NE___ = 0;
+
+        ND_ DescSetAndBinding_t                 CreateDescriptorSet (GraphicsPipelineID   ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+        ND_ DescSetAndBinding_t                 CreateDescriptorSet (MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+        ND_ DescSetAndBinding_t                 CreateDescriptorSet (ComputePipelineID    ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+        ND_ DescSetAndBinding_t                 CreateDescriptorSet (RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+        ND_ DescSetAndBinding_t                 CreateDescriptorSet (TilePipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___;
+        ND_ Strong<DescriptorSetID>             CreateDescriptorSet (PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)         __NE___;
+        ND_ Strong<DescriptorSetID>             CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                             __NE___;
+
+        template <typename T, typename PplnID>
+        ND_         PushConstantIndex           GetPushConstantIndex (PplnID               ppln, const PushConstantName &pcName)                                                    __NE___;
+        ND_ virtual PushConstantIndex           GetPushConstantIndex (GraphicsPipelineID   ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE___ = 0;
+        ND_ virtual PushConstantIndex           GetPushConstantIndex (MeshPipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE___ = 0;
+        ND_ virtual PushConstantIndex           GetPushConstantIndex (ComputePipelineID    ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE___ = 0;
+        ND_ virtual PushConstantIndex           GetPushConstantIndex (RayTracingPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE___ = 0;
+        ND_ virtual PushConstantIndex           GetPushConstantIndex (TilePipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE___ = 0;
+
+
+        // warning: pipeline compilation and shader loading may be slow
+        ND_ virtual Strong<GraphicsPipelineID>  CreateGraphicsPipeline  (PipelinePackID packId, const PipelineTmplName &name, const GraphicsPipelineDesc    &desc, PipelineCacheID cache = Default)     __NE___ = 0;
+        ND_ virtual Strong<MeshPipelineID>      CreateMeshPipeline      (PipelinePackID packId, const PipelineTmplName &name, const MeshPipelineDesc        &desc, PipelineCacheID cache = Default)     __NE___ = 0;
+        ND_ virtual Strong<ComputePipelineID>   CreateComputePipeline   (PipelinePackID packId, const PipelineTmplName &name, const ComputePipelineDesc     &desc, PipelineCacheID cache = Default)     __NE___ = 0;
+        ND_ virtual Strong<RayTracingPipelineID>CreateRayTracingPipeline(PipelinePackID packId, const PipelineTmplName &name, const RayTracingPipelineDesc  &desc, PipelineCacheID cache = Default)     __NE___ = 0;
+        ND_ virtual Strong<TilePipelineID>      CreateTilePipeline      (PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc        &desc, PipelineCacheID cache = Default)     __NE___ = 0;
+
+        // video
+        ND_ virtual Strong<VideoSessionID>      CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)    __NE___ = 0;
+        ND_ virtual Strong<VideoBufferID>       CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)      __NE___ = 0;
+        ND_ virtual Strong<VideoImageID>        CreateVideoImage (const VideoImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)        __NE___ = 0;
+
+        ND_ virtual Strong<PipelineCacheID>     CreatePipelineCache ()                                      __NE___ = 0;
+
+        // load default pack
+            virtual bool                        InitializeResources (const PipelinePackDesc &desc)          __NE___ = 0;
+        ND_ virtual Strong<PipelinePackID>      LoadPipelinePack (const PipelinePackDesc &desc)             __NE___ = 0;
+        ND_ virtual Array<RenderTechName>       GetSupportedRenderTechs (PipelinePackID id)                 C_NE___ = 0;
+
+        // Returns 'true' if resource is alive.
+        ND_ virtual bool                        IsResourceAlive (ImageID            id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (BufferID           id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (ImageViewID        id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (BufferViewID       id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (DescriptorSetID    id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (PipelineCacheID    id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (PipelinePackID     id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (RTGeometryID       id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (RTSceneID          id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (VideoSessionID     id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (VideoBufferID      id)                     C_NE___ = 0;
+        ND_ virtual bool                        IsResourceAlive (VideoImageID       id)                     C_NE___ = 0;
+
+        // Increment ref counter and returns ID if resource is alive, returns empty ID otherwise.
+        ND_ virtual Strong<ImageID>             AcquireResource (ImageID            id)                     __NE___ = 0;
+        ND_ virtual Strong<BufferID>            AcquireResource (BufferID           id)                     __NE___ = 0;
+        ND_ virtual Strong<ImageViewID>         AcquireResource (ImageViewID        id)                     __NE___ = 0;
+        ND_ virtual Strong<BufferViewID>        AcquireResource (BufferViewID       id)                     __NE___ = 0;
+        ND_ virtual Strong<DescriptorSetID>     AcquireResource (DescriptorSetID    id)                     __NE___ = 0;
+        ND_ virtual Strong<RTGeometryID>        AcquireResource (RTGeometryID       id)                     __NE___ = 0;
+        ND_ virtual Strong<RTSceneID>           AcquireResource (RTSceneID          id)                     __NE___ = 0;
+
+        // Decrease ref counter and delay destruction until current frame complete execution on GPU.
+        // Returns 'true' if resource has been destroyed (when ref counter is zero).
+            virtual bool                        ReleaseResource (INOUT Strong<ImageID>              &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<BufferID>             &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<ImageViewID>          &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<BufferViewID>         &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<DescriptorSetID>      &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<PipelineCacheID>      &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<PipelinePackID>       &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<GraphicsPipelineID>   &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<MeshPipelineID>       &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<ComputePipelineID>    &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<RayTracingPipelineID> &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<TilePipelineID>       &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<RTGeometryID>         &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<RTSceneID>            &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<VideoSessionID>       &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<VideoBufferID>        &id)    __NE___ = 0;
+            virtual bool                        ReleaseResource (INOUT Strong<VideoImageID>         &id)    __NE___ = 0;
+
+        // Returned reference is valid until resource is alive
+        ND_ virtual BufferDesc const&           GetDescription (BufferID id)                                C_NE___ = 0;
+        ND_ virtual ImageDesc const&            GetDescription (ImageID id)                                 C_NE___ = 0;
+        ND_ virtual BufferViewDesc const&       GetDescription (BufferViewID id)                            C_NE___ = 0;
+        ND_ virtual ImageViewDesc const&        GetDescription (ImageViewID id)                             C_NE___ = 0;
+        ND_ virtual RTShaderBindingDesc const&  GetDescription (RTShaderBindingID id)                       C_NE___ = 0;
+        ND_ virtual RTGeometryDesc const&       GetDescription (RTGeometryID id)                            C_NE___ = 0;
+        ND_ virtual RTSceneDesc const&          GetDescription (RTSceneID id)                               C_NE___ = 0;
+        ND_ virtual VideoImageDesc const&       GetDescription (VideoImageID id)                            C_NE___ = 0;
+        ND_ virtual VideoBufferDesc const&      GetDescription (VideoBufferID id)                           C_NE___ = 0;
+        ND_ virtual VideoSessionDesc const&     GetDescription (VideoSessionID id)                          C_NE___ = 0;
+
+        // By default all resources destroyed when all pending command buffers are complete execution.
+        // Returns 'true' if wasn't empty.
+            virtual bool                        ForceReleaseResources ()                                    __NE___ = 0;
+
+        // Returns native handle.
+        ND_ virtual NativeBuffer_t              GetBufferHandle (BufferID id)                               C_NE___ = 0;
+        ND_ virtual NativeImage_t               GetImageHandle (ImageID id)                                 C_NE___ = 0;
+        ND_ virtual NativeBufferView_t          GetBufferViewHandle (BufferViewID id)                       C_NE___ = 0;
+        ND_ virtual NativeImageView_t           GetImageViewHandle (ImageViewID id)                         C_NE___ = 0;
+
+            virtual bool                        GetMemoryInfo (ImageID id, OUT NativeMemObjInfo_t &info)    C_NE___ = 0;
+            virtual bool                        GetMemoryInfo (BufferID id, OUT NativeMemObjInfo_t &info)   C_NE___ = 0;
+
+        // async loading
+        //  Pipeline compilation may be distributed to multiple threads.
+        ND_ virtual AsyncRTechPipelines         LoadRenderTechAsync (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache = Default)__NE___ = 0;
+        ND_ virtual RenderTechPipelinesPtr      LoadRenderTech (PipelinePackID packId, const RenderTechName &name, PipelineCacheID cache = Default)     __NE___ = 0;
+
+        // statistics
+        ND_ virtual StagingBufferStat           GetStagingBufferFrameStat (FrameUID frameId)                C_NE___ = 0;
+    };
+
+
 /*
 =================================================
-	CreateDescriptorSet
+    CreateDescriptorSet
 =================================================
 */
-	inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (GraphicsPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		DescSetAndBinding_t	result;
-		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
-	}
+    inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (GraphicsPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+    {
+        DescSetAndBinding_t result;
+        return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+    }
 
-	inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (MeshPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		DescSetAndBinding_t	result;
-		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
-	}
+    inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (MeshPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+    {
+        DescSetAndBinding_t result;
+        return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+    }
 
-	inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (ComputePipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		DescSetAndBinding_t	result;
-		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
-	}
+    inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (ComputePipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+    {
+        DescSetAndBinding_t result;
+        return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+    }
 
-	inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		DescSetAndBinding_t	result;
-		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
-	}
+    inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (RayTracingPipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+    {
+        DescSetAndBinding_t result;
+        return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+    }
 
-	inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (TilePipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		DescSetAndBinding_t	result;
-		return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
-	}
+    inline IResourceManager::DescSetAndBinding_t  IResourceManager::CreateDescriptorSet (TilePipelineID ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+    {
+        DescSetAndBinding_t result;
+        return CreateDescriptorSets( OUT result.Get<1>(), OUT &result.Get<0>(), 1, ppln, dsName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+    }
 
-	inline Strong<DescriptorSetID>  IResourceManager::CreateDescriptorSet (PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		Strong<DescriptorSetID>	result;
-		return CreateDescriptorSets( OUT &result, 1, packId, dslName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
-	}
+    inline Strong<DescriptorSetID>  IResourceManager::CreateDescriptorSet (PipelinePackID packId, const DSLayoutName &dslName, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+    {
+        Strong<DescriptorSetID> result;
+        return CreateDescriptorSets( OUT &result, 1, packId, dslName, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+    }
 
-	inline Strong<DescriptorSetID>  IResourceManager::CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
-	{
-		Strong<DescriptorSetID>	result;
-		return CreateDescriptorSets( OUT &result, 1, layoutId, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
-	}
-	
+    inline Strong<DescriptorSetID>  IResourceManager::CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator, StringView dbgName) __NE___
+    {
+        Strong<DescriptorSetID> result;
+        return CreateDescriptorSets( OUT &result, 1, layoutId, RVRef(allocator), dbgName ) ? RVRef(result) : Default;
+    }
+
 /*
 =================================================
-	GetPushConstantIndex
+    GetPushConstantIndex
 =================================================
 */
-	template <typename T, typename PplnID>
-	PushConstantIndex  IResourceManager::GetPushConstantIndex (PplnID ppln, const PushConstantName &pcName) __NE___
-	{
-		return GetPushConstantIndex( ppln, pcName, T::TypeName, SizeOf<T> );
-	}
+    template <typename T, typename PplnID>
+    PushConstantIndex  IResourceManager::GetPushConstantIndex (PplnID ppln, const PushConstantName &pcName) __NE___
+    {
+        return GetPushConstantIndex( ppln, pcName, T::TypeName, SizeOf<T> );
+    }
 
 
 } // AE::Graphics

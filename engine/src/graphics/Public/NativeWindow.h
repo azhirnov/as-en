@@ -8,30 +8,30 @@
 namespace AE::Graphics
 {
 
-	//
-	// Native Window
-	//
+    //
+    // Native Window
+    //
 
-	struct NativeWindow
-	{
-		#if defined(AE_PLATFORM_WINDOWS)
-			void*			hinstance		= null;		// HINSTANCE
-			void*			hwnd			= null;		// HWND
-		
-		#elif defined(AE_PLATFORM_ANDROID)
-			void*			nativeWindow	= null;		// ANativeWindow
-			
-		#elif defined(AE_PLATFORM_LINUX)
-			void*			window			= null;		// X11 Window
-			void*			display			= null;		// X11 Display*
-			
-		#elif defined(AE_PLATFORM_APPLE)
-			MetalCALayerRC	layer;						// CAMetalLayer*
+    struct NativeWindow
+    {
+        #if defined(AE_PLATFORM_WINDOWS)
+            void*           hinstance       = null;     // HINSTANCE
+            void*           hwnd            = null;     // HWND
 
-		#else
-		#	error Unsupported platform!
-		#endif
-	};
+        #elif defined(AE_PLATFORM_ANDROID)
+            void*           nativeWindow    = null;     // ANativeWindow
+
+        #elif defined(AE_PLATFORM_LINUX)
+            void*           window          = null;     // X11 Window
+            void*           display         = null;     // X11 Display*
+
+        #elif defined(AE_PLATFORM_APPLE)
+            MetalCALayerRC  layer;                      // CAMetalLayer*
+
+        #else
+        #   error Unsupported platform!
+        #endif
+    };
 
 
 } // AE::Graphics

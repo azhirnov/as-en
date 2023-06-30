@@ -7,206 +7,206 @@
 
 namespace AE::ResEditor
 {
-	
+
 /*
 =================================================
-	destructor
+    destructor
 =================================================
 */
-	UnifiedGeometry::Material::~Material ()
-	{
-		auto&	res_mngr = RenderTaskScheduler().GetResourceManager();
-		res_mngr.ReleaseResourceArray( INOUT descSets );
-		res_mngr.ReleaseResource( INOUT ubuffer );
-	}
+    UnifiedGeometry::Material::~Material ()
+    {
+        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+        res_mngr.ReleaseResourceArray( INOUT descSets );
+        res_mngr.ReleaseResource( INOUT ubuffer );
+    }
 //-----------------------------------------------------------------------------
 
 
 
 /*
 =================================================
-	constructor
+    constructor
 =================================================
 */
-	UnifiedGeometry::UnifiedGeometry (Renderer &r) __Th___ :
-		IGeomSource{ r }
-	{
-	}
-	
-	UnifiedGeometry::~UnifiedGeometry ()
-	{}
-	
+    UnifiedGeometry::UnifiedGeometry (Renderer &r) __Th___ :
+        IGeomSource{ r }
+    {
+    }
+
+    UnifiedGeometry::~UnifiedGeometry ()
+    {}
+
 /*
 =================================================
-	StateTransition
+    StateTransition
 =================================================
 */
-	void  UnifiedGeometry::StateTransition (IGSMaterials &, GraphicsCtx_t &ctx) __NE___
-	{
-		const auto	buf_state	= EResourceState::ShaderStorage_RW | EResourceState::AllShaders;
-		const auto	tex_state	= EResourceState::ShaderSample | EResourceState::AllShaders;
+    void  UnifiedGeometry::StateTransition (IGSMaterials &, GraphicsCtx_t &ctx) __NE___
+    {
+        const auto  buf_state   = EResourceState::ShaderStorage_RW | EResourceState::AllShaders;
+        const auto  tex_state   = EResourceState::ShaderSample | EResourceState::AllShaders;
 
-		for (auto& [name, buf] : _meshes) {
-			ctx.ResourceState( buf->GetBufferId(), buf_state );
-		}
-		for (auto& [name, tex] : _textures) {
-			ctx.ResourceState( tex->GetViewId(), tex_state );
-		}
-	}
-	
+        for (auto& [name, buf] : _meshes) {
+            ctx.ResourceState( buf->GetBufferId(), buf_state );
+        }
+        for (auto& [name, tex] : _textures) {
+            ctx.ResourceState( tex->GetViewId(), tex_state );
+        }
+    }
+
 /*
 =================================================
-	Draw
+    Draw
 =================================================
 */
-	bool  UnifiedGeometry::Draw (const DrawData &in) __NE___
-	{
-		auto&			ctx		= in.ctx;
-		auto&			mtr		= Cast<Material>(in.mtr);
-		DescriptorSetID	mtr_ds	= mtr.descSets[ ctx.GetFrameId().Index() ];
-	
-		CHECK( _drawCommands.size() == mtr.pplns.size() );
+    bool  UnifiedGeometry::Draw (const DrawData &in) __NE___
+    {
+        auto&           ctx     = in.ctx;
+        auto&           mtr     = Cast<Material>(in.mtr);
+        DescriptorSetID mtr_ds  = mtr.descSets[ ctx.GetFrameId().Index() ];
 
-		const auto		BindPipeline = [&ctx] (const Material::PplnID_t &pplnId)
-		{{
-			Visit( pplnId,
-				[&ctx] (GraphicsPipelineID ppln)	{ ctx.BindPipeline( ppln ); },
-				[&ctx] (MeshPipelineID ppln)		{ ctx.BindPipeline( ppln ); },
-				[] (NullUnion)						{ CHECK_MSG( false, "pipeline is not defined" ); }
-			);
-		}};
+        CHECK( _drawCommands.size() == mtr.pplns.size() );
 
-		BindPipeline( mtr.pplns.front() );
-		ctx.BindDescriptorSet( mtr.passDSIndex, in.passDS );
-		ctx.BindDescriptorSet( mtr.mtrDSIndex,  mtr_ds );
+        const auto      BindPipeline = [&ctx] (const Material::PplnID_t &pplnId)
+        {{
+            Visit( pplnId,
+                [&ctx] (GraphicsPipelineID ppln)    { ctx.BindPipeline( ppln ); },
+                [&ctx] (MeshPipelineID ppln)        { ctx.BindPipeline( ppln ); },
+                [] (NullUnion)                      { CHECK_MSG( false, "pipeline is not defined" ); }
+            );
+        }};
 
-		for (usize i = 0; i < _drawCommands.size(); ++i)
-		{
-			BindPipeline( mtr.pplns[i] );
+        BindPipeline( mtr.pplns.front() );
+        ctx.BindDescriptorSet( mtr.passDSIndex, in.passDS );
+        ctx.BindDescriptorSet( mtr.mtrDSIndex,  mtr_ds );
 
-			Visit( _drawCommands[i],
+        for (usize i = 0; i < _drawCommands.size(); ++i)
+        {
+            BindPipeline( mtr.pplns[i] );
 
-				[&ctx] (const DrawCmd2 &src)
-				{
-					Graphics::DrawCmd	cmd = src;
-					cmd.vertexCount		= src.dynVertexCount ? src.dynVertexCount->Get() : src.vertexCount;
-					cmd.instanceCount	= src.dynInstanceCount ? src.dynInstanceCount->Get() : src.instanceCount;
-					ctx.Draw( cmd );
-				},
+            Visit( _drawCommands[i],
 
-				[&ctx] (const DrawIndexedCmd2 &src)
-				{
-					ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId(), src.indexBufferOffset, src.indexType );
+                [&ctx] (const DrawCmd2 &src)
+                {
+                    Graphics::DrawCmd   cmd = src;
+                    cmd.vertexCount     = src.dynVertexCount ? src.dynVertexCount->Get() : src.vertexCount;
+                    cmd.instanceCount   = src.dynInstanceCount ? src.dynInstanceCount->Get() : src.instanceCount;
+                    ctx.Draw( cmd );
+                },
 
-					Graphics::DrawIndexedCmd	cmd = src;
-					cmd.indexCount		= src.dynIndexCount ? src.dynIndexCount->Get() : src.indexCount;
-					cmd.instanceCount	= src.dynInstanceCount ? src.dynInstanceCount->Get() : src.instanceCount;
-					ctx.DrawIndexed( cmd );
-				},
+                [&ctx] (const DrawIndexedCmd2 &src)
+                {
+                    ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId(), src.indexBufferOffset, src.indexType );
 
-				[&ctx] (const DrawMeshTasksCmd2 &src)
-				{
-					uint3	task_count = src.dynTaskCount ? src.dynTaskCount->Get() : src.taskCount;
-					ctx.DrawMeshTasks( task_count );
-				},
+                    Graphics::DrawIndexedCmd    cmd = src;
+                    cmd.indexCount      = src.dynIndexCount ? src.dynIndexCount->Get() : src.indexCount;
+                    cmd.instanceCount   = src.dynInstanceCount ? src.dynInstanceCount->Get() : src.instanceCount;
+                    ctx.DrawIndexed( cmd );
+                },
 
-				[&ctx] (const DrawIndirectCmd2 &src)
-				{
-					Graphics::DrawIndirectCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId();
-					cmd.drawCount		= src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
-					ctx.DrawIndirect( cmd );
-				},
+                [&ctx] (const DrawMeshTasksCmd2 &src)
+                {
+                    uint3   task_count = src.dynTaskCount ? src.dynTaskCount->Get() : src.taskCount;
+                    ctx.DrawMeshTasks( task_count );
+                },
 
-				[&ctx] (const DrawIndexedIndirectCmd2 &src)
-				{
-					ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId(), src.indexBufferOffset, src.indexType );
+                [&ctx] (const DrawIndirectCmd2 &src)
+                {
+                    Graphics::DrawIndirectCmd   cmd = src;
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
+                    cmd.drawCount       = src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
+                    ctx.DrawIndirect( cmd );
+                },
 
-					Graphics::DrawIndexedIndirectCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId();
-					cmd.drawCount		= src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
-					ctx.DrawIndexedIndirect( cmd );
-				},
+                [&ctx] (const DrawIndexedIndirectCmd2 &src)
+                {
+                    ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId(), src.indexBufferOffset, src.indexType );
 
-				[&ctx] (const DrawMeshTasksIndirectCmd2 &src)
-				{
-					Graphics::DrawMeshTasksIndirectCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId();
-					cmd.drawCount		= src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
-					ctx.DrawMeshTasksIndirect( cmd );
-				},
+                    Graphics::DrawIndexedIndirectCmd    cmd = src;
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
+                    cmd.drawCount       = src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
+                    ctx.DrawIndexedIndirect( cmd );
+                },
 
-				[&ctx] (const DrawIndirectCountCmd2 &src)
-				{
-					Graphics::DrawIndirectCountCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId();
-					cmd.countBuffer		= src.countBufferPtr->GetBufferId();
-					cmd.maxDrawCount	= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
-					ctx.DrawIndirectCount( cmd );
-				},
+                [&ctx] (const DrawMeshTasksIndirectCmd2 &src)
+                {
+                    Graphics::DrawMeshTasksIndirectCmd  cmd = src;
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
+                    cmd.drawCount       = src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
+                    ctx.DrawMeshTasksIndirect( cmd );
+                },
 
-				[&ctx] (const DrawIndexedIndirectCountCmd2 &src)
-				{
-					ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId(), src.indexBufferOffset, src.indexType );
+                [&ctx] (const DrawIndirectCountCmd2 &src)
+                {
+                    Graphics::DrawIndirectCountCmd  cmd = src;
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
+                    cmd.countBuffer     = src.countBufferPtr->GetBufferId();
+                    cmd.maxDrawCount    = src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
+                    ctx.DrawIndirectCount( cmd );
+                },
 
-					Graphics::DrawIndexedIndirectCountCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId();
-					cmd.countBuffer		= src.countBufferPtr->GetBufferId();
-					cmd.maxDrawCount	= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
-					ctx.DrawIndexedIndirectCount( cmd );
-				},
+                [&ctx] (const DrawIndexedIndirectCountCmd2 &src)
+                {
+                    ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId(), src.indexBufferOffset, src.indexType );
 
-				[&ctx] (const DrawMeshTasksIndirectCountCmd2 &src)
-				{
-					Graphics::DrawMeshTasksIndirectCountCmd	cmd = src;
-					cmd.indirectBuffer	= src.indirectBufferPtr->GetBufferId();
-					cmd.countBuffer		= src.countBufferPtr->GetBufferId();
-					cmd.maxDrawCount	= src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
-					ctx.DrawMeshTasksIndirectCount( cmd );
-				});
-		}
+                    Graphics::DrawIndexedIndirectCountCmd   cmd = src;
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
+                    cmd.countBuffer     = src.countBufferPtr->GetBufferId();
+                    cmd.maxDrawCount    = src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
+                    ctx.DrawIndexedIndirectCount( cmd );
+                },
 
-		return true;
-	}
-	
+                [&ctx] (const DrawMeshTasksIndirectCountCmd2 &src)
+                {
+                    Graphics::DrawMeshTasksIndirectCountCmd cmd = src;
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
+                    cmd.countBuffer     = src.countBufferPtr->GetBufferId();
+                    cmd.maxDrawCount    = src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
+                    ctx.DrawMeshTasksIndirectCount( cmd );
+                });
+        }
+
+        return true;
+    }
+
 /*
 =================================================
-	Update
+    Update
 =================================================
 */
-	bool  UnifiedGeometry::Update (const UpdateData &in) __NE___
-	{
-		auto&	ctx	= in.ctx;
-		auto&	mtr = Cast<Material>(in.mtr);
-		
-		// update uniform buffer
-		{
-			ShaderTypes::UnifiedGeometryMaterialUB	ub_data;
-			ub_data.transform	= float4x4::Translate( in.position );
-			
-			CHECK_ERR( ctx.UploadBuffer( mtr.ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
-		}
+    bool  UnifiedGeometry::Update (const UpdateData &in) __NE___
+    {
+        auto&   ctx = in.ctx;
+        auto&   mtr = Cast<Material>(in.mtr);
 
-		// update descriptors
-		{
-			DescriptorUpdater	updater;
-			DescriptorSetID		mtr_ds	= mtr.descSets[ ctx.GetFrameId().Index() ];
+        // update uniform buffer
+        {
+            ShaderTypes::UnifiedGeometryMaterialUB  ub_data;
+            ub_data.transform   = float4x4::Translate( in.position );
 
-			CHECK_ERR( updater.Set( mtr_ds, EDescUpdateMode::Partialy ));
-			
-			for (auto& [name, buf] : _meshes) {
-				updater.BindBuffer( name, buf->GetBufferId() );
-			}
-			for (auto& [name, tex] : _textures) {
-				updater.BindImage( name, tex->GetViewId() );
-			}
-			
-			CHECK_ERR( updater.BindBuffer< ShaderTypes::UnifiedGeometryMaterialUB >( UniformName{"mtrUB"}, mtr.ubuffer ));
+            CHECK_ERR( ctx.UploadBuffer( mtr.ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
+        }
 
-			CHECK_ERR( updater.Flush() );
-		}
-		return true;
-	}
+        // update descriptors
+        {
+            DescriptorUpdater   updater;
+            DescriptorSetID     mtr_ds  = mtr.descSets[ ctx.GetFrameId().Index() ];
+
+            CHECK_ERR( updater.Set( mtr_ds, EDescUpdateMode::Partialy ));
+
+            for (auto& [name, buf] : _meshes) {
+                updater.BindBuffer( name, buf->GetBufferId() );
+            }
+            for (auto& [name, tex] : _textures) {
+                updater.BindImage( name, tex->GetViewId() );
+            }
+
+            CHECK_ERR( updater.BindBuffer< ShaderTypes::UnifiedGeometryMaterialUB >( UniformName{"mtrUB"}, mtr.ubuffer ));
+
+            CHECK_ERR( updater.Flush() );
+        }
+        return true;
+    }
 
 
 } // AE::ResEditor

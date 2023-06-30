@@ -10,7 +10,7 @@
 
 namespace AE::Graphics::_hidden_
 {
-	class MAccumBarriersForTask;
+    class MAccumBarriersForTask;
 }
 
 // implementation

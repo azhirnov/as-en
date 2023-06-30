@@ -11,50 +11,50 @@
 namespace AE::Graphics
 {
 
-	//
-	// Vulkan Video Session immutable data
-	//
+    //
+    // Vulkan Video Session immutable data
+    //
 
-	class VVideoSession final
-	{
-	// types
-	private:
-		using VideoStorageArr_t	= IGfxMemAllocator::VideoStorageArr_t;
-
-
-	// variables
-	private:
-		VkVideoSessionKHR				_session	= Default;
-		VkVideoSessionParametersKHR		_params		= Default;
-
-		VideoSessionDesc				_desc;
-		
-		GfxMemAllocatorPtr				_memAllocator;
-		VideoStorageArr_t				_memStorages;
-		
-		DEBUG_ONLY(	DebugName_t			_debugName;	)
-		DRC_ONLY(	RWDataRaceCheck		_drCheck;	)
+    class VVideoSession final
+    {
+    // types
+    private:
+        using VideoStorageArr_t = IGfxMemAllocator::VideoStorageArr_t;
 
 
-	// methods
-	public:
-		VVideoSession ()								__NE___	{}
-		~VVideoSession ()								__NE___;
+    // variables
+    private:
+        VkVideoSessionKHR               _session    = Default;
+        VkVideoSessionParametersKHR     _params     = Default;
 
-		ND_ bool  Create (VResourceManager &, const VideoSessionDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)	__NE___;
-			void  Destroy (VResourceManager &)																					__NE___;
+        VideoSessionDesc                _desc;
 
-		ND_ VkVideoSessionKHR			Session ()		C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _session; }
-		ND_ VkVideoSessionParametersKHR	Parameters ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _params; }
-		ND_ VideoSessionDesc const&		Description ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _desc; }
-		
-		DEBUG_ONLY(  ND_ StringView  GetDebugName ()	C_NE___	{ DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+        GfxMemAllocatorPtr              _memAllocator;
+        VideoStorageArr_t               _memStorages;
+
+        DEBUG_ONLY( DebugName_t         _debugName; )
+        DRC_ONLY(   RWDataRaceCheck     _drCheck;   )
 
 
-		ND_ static bool  Validate (const VDevice &dev, INOUT VideoSessionDesc &desc)			__NE___;
-		ND_ static bool  IsSupported (const VResourceManager &, const VideoSessionDesc &desc)	__NE___;
-	};
-	
+    // methods
+    public:
+        VVideoSession ()                                __NE___ {}
+        ~VVideoSession ()                               __NE___;
+
+        ND_ bool  Create (VResourceManager &, const VideoSessionDesc &desc, GfxMemAllocatorPtr allocator, StringView dbgName)   __NE___;
+            void  Destroy (VResourceManager &)                                                                                  __NE___;
+
+        ND_ VkVideoSessionKHR           Session ()      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _session; }
+        ND_ VkVideoSessionParametersKHR Parameters ()   C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _params; }
+        ND_ VideoSessionDesc const&     Description ()  C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }
+
+        DEBUG_ONLY(  ND_ StringView  GetDebugName ()    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+
+
+        ND_ static bool  Validate (const VDevice &dev, INOUT VideoSessionDesc &desc)            __NE___;
+        ND_ static bool  IsSupported (const VResourceManager &, const VideoSessionDesc &desc)   __NE___;
+    };
+
 
 } // AE::Graphics
 

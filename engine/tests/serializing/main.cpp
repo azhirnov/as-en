@@ -11,10 +11,10 @@ extern int Test_Serializing ()
 int main ()
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+    AE::Base::StaticLogger::LoggerDbgScope log{};
 
-	UnitTest_Serialization();
+    UnitTest_Serialization();
 
-	AE_LOGI( "Tests.Serializing finished" );
-	return 0;
+    AE_LOGI( "Tests.Serializing finished" );
+    return 0;
 }

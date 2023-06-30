@@ -8,5 +8,5 @@ target_include_directories( "AtlasTools" PUBLIC ".." )
 set_property( TARGET "AtlasTools" PROPERTY FOLDER "Engine/Tools" )
 
 if (TARGET "STB-lib")
-	target_link_libraries( "AtlasTools" PUBLIC "STB-lib" )
+    target_link_libraries( "AtlasTools" PUBLIC "STB-lib" )
 endif()

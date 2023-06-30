@@ -4,171 +4,171 @@
 
 namespace
 {
-	struct D3_TestData
-	{
-		Mutex						guard;
+    struct D3_TestData
+    {
+        Mutex                       guard;
 
-		uint2						viewSize;
+        uint2                       viewSize;
 
-		GAutorelease<ImageID>		img;
-		GAutorelease<ImageViewID>	view;
-		
-		GraphicsPipelineID			ppln;
-		PushConstantIndex			pcIdx;
+        GAutorelease<ImageID>       img;
+        GAutorelease<ImageViewID>   view;
 
-		AsyncTask					result;
+        GraphicsPipelineID          ppln;
+        PushConstantIndex           pcIdx;
 
-		CommandBatchPtr				batch;
-		bool						isOK	= false;
+        AsyncTask                   result;
 
-		ImageComparator *			imgCmp	= null;
-		RC<GfxLinearMemAllocator>	gfxAlloc;
-	};
-	
-	static const float4		vertices[] = {
-		float4{ 0.0f, -0.5f, BitCast<float>(HtmlColor::Red),	1.f},
-		float4{ 0.5f,  0.5f, BitCast<float>(HtmlColor::Green),	1.f},
-		float4{-0.5f,  0.5f, BitCast<float>(HtmlColor::Blue),	1.f},
-	};
+        CommandBatchPtr             batch;
+        bool                        isOK    = false;
+
+        ImageComparator *           imgCmp  = null;
+        RC<GfxLinearMemAllocator>   gfxAlloc;
+    };
+
+    static const float4     vertices[] = {
+        float4{ 0.0f, -0.5f, BitCast<float>(HtmlColor::Red),    1.f},
+        float4{ 0.5f,  0.5f, BitCast<float>(HtmlColor::Green),  1.f},
+        float4{-0.5f,  0.5f, BitCast<float>(HtmlColor::Blue),   1.f},
+    };
 
 
-	template <typename CtxType>
-	class D3_DrawTask final : public RenderTask
-	{
-	public:
-		D3_TestData&	t;
+    template <typename CtxType>
+    class D3_DrawTask final : public RenderTask
+    {
+    public:
+        D3_TestData&    t;
 
-		D3_DrawTask (D3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+        D3_DrawTask (D3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+            RenderTask{ RVRef(batch), dbg },
+            t{ t }
+        {}
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-			
-			const auto	img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
+        void  Run () __Th_OV
+        {
+            DeferExLock lock {t.guard};
+            CHECK_TE( lock.try_lock() );
 
-			typename CtxType::Graphics	ctx{ *this };
-			
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img, EResourceState::Invalidate, img_state );
+            const auto  img_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
 
-			// draw
-			{
-				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.viewSize }
-									.AddViewport( t.viewSize )
-									.AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::Black} ));
-				
-				dctx.BindPipeline( t.ppln );
-				dctx.PushConstant( t.pcIdx, Sizeof(vertices), vertices, ShaderStructName{"PC_draw3"} );
-				dctx.Draw( 3 );
-				
-				ctx.EndRenderPass( dctx );
-			}
+            typename CtxType::Graphics  ctx{ *this };
 
-			ctx.AccumBarriers()
-				.ImageBarrier( t.img, img_state, EResourceState::CopySrc );
-				
-			Execute( ctx );
-		}
-	};
-	
-	template <typename Ctx>
-	class D3_CopyTask final : public RenderTask
-	{
-	public:
-		D3_TestData&	t;
+            ctx.AccumBarriers()
+                .ImageBarrier( t.img, EResourceState::Invalidate, img_state );
 
-		D3_CopyTask (D3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+            // draw
+            {
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.viewSize }
+                                    .AddViewport( t.viewSize )
+                                    .AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::Black} ));
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-			
-			Ctx		ctx{ *this };
+                dctx.BindPipeline( t.ppln );
+                dctx.PushConstant( t.pcIdx, Sizeof(vertices), vertices, ShaderStructName{"PC_draw3"} );
+                dctx.Draw( 3 );
 
-			t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
-						.Then( [p = &t] (const ImageMemView &view)
-								{
-									p->isOK = p->imgCmp->Compare( view );
-								})};
-			
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-			
-			Execute( ctx );
-		}
-	};
+                ctx.EndRenderPass( dctx );
+            }
 
-	
-	template <typename CtxType, typename CopyCtx>
-	static bool  Draw3Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
-	{
-		auto&			rts			= RenderTaskScheduler();
-		auto&			res_mngr	= rts.GetResourceManager();
-		const auto		format		= EPixelFormat::RGBA8_UNorm;
-		D3_TestData		t;
-		
-		t.gfxAlloc	= MakeRC<GfxLinearMemAllocator>();
-		t.imgCmp	= imageCmp;
-		t.viewSize	= uint2{800, 600};
+            ctx.AccumBarriers()
+                .ImageBarrier( t.img, img_state, EResourceState::CopySrc );
 
-		t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
-										.SetUsage( EImageUsage::Sampled | EImageUsage::ColorAttachment | EImageUsage::TransferSrc ),
-									  "Image", t.gfxAlloc );
-		CHECK_ERR( t.img );
-	
-		t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
-		CHECK_ERR( t.view );
+            Execute( ctx );
+        }
+    };
 
-		t.ppln = renderTech->GetGraphicsPipeline( PipelineName{"draw3"} );
-		CHECK_ERR( t.ppln );
+    template <typename Ctx>
+    class D3_CopyTask final : public RenderTask
+    {
+    public:
+        D3_TestData&    t;
 
-		t.pcIdx = res_mngr.GetPushConstantIndex<PC_draw3>( t.ppln, PushConstantName{"pc"} );
+        D3_CopyTask (D3_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+            RenderTask{ RVRef(batch), dbg },
+            t{ t }
+        {}
 
-		AsyncTask	begin	= rts.BeginFrame();
+        void  Run () __Th_OV
+        {
+            DeferExLock lock {t.guard};
+            CHECK_TE( lock.try_lock() );
 
-		auto		batch	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Draw3"} );
-		CHECK_ERR( batch );
+            Ctx     ctx{ *this };
 
-		AsyncTask	task1	= batch->Run< D3_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},				{"Draw task"} );
-		AsyncTask	task2	= batch->Run< D3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+            t.result = AsyncTask{ ctx.ReadbackImage( t.img, Default )
+                        .Then( [p = &t] (const ImageMemView &view)
+                                {
+                                    p->isOK = p->imgCmp->Compare( view );
+                                })};
 
-		AsyncTask	end		= rts.EndFrame( Tuple{task2} );
+            ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-		CHECK_ERR( Scheduler().Wait({ end }));
-		CHECK_ERR( end->Status() == EStatus::Completed );
+            Execute( ctx );
+        }
+    };
 
-		CHECK_ERR( rts.WaitAll() );
-		
-		CHECK_ERR( Scheduler().Wait({ t.result }));
-		CHECK_ERR( t.result->Status() == EStatus::Completed );
 
-		CHECK_ERR( t.isOK );
-		return true;
-	}
+    template <typename CtxType, typename CopyCtx>
+    static bool  Draw3Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    {
+        auto&           rts         = RenderTaskScheduler();
+        auto&           res_mngr    = rts.GetResourceManager();
+        const auto      format      = EPixelFormat::RGBA8_UNorm;
+        D3_TestData     t;
+
+        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.imgCmp    = imageCmp;
+        t.viewSize  = uint2{800, 600};
+
+        t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
+                                        .SetUsage( EImageUsage::Sampled | EImageUsage::ColorAttachment | EImageUsage::TransferSrc ),
+                                      "Image", t.gfxAlloc );
+        CHECK_ERR( t.img );
+
+        t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
+        CHECK_ERR( t.view );
+
+        t.ppln = renderTech->GetGraphicsPipeline( PipelineName{"draw3"} );
+        CHECK_ERR( t.ppln );
+
+        t.pcIdx = res_mngr.GetPushConstantIndex<PC_draw3>( t.ppln, PushConstantName{"pc"} );
+
+        AsyncTask   begin   = rts.BeginFrame();
+
+        auto        batch   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"Draw3"} );
+        CHECK_ERR( batch );
+
+        AsyncTask   task1   = batch->Run< D3_DrawTask<CtxType> >( Tuple{ArgRef(t)}, Tuple{begin},               {"Draw task"} );
+        AsyncTask   task2   = batch->Run< D3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{task1}, True{"Last"}, {"Readback task"} );
+
+        AsyncTask   end     = rts.EndFrame( Tuple{task2} );
+
+        CHECK_ERR( Scheduler().Wait({ end }));
+        CHECK_ERR( end->Status() == EStatus::Completed );
+
+        CHECK_ERR( rts.WaitAll() );
+
+        CHECK_ERR( Scheduler().Wait({ t.result }));
+        CHECK_ERR( t.result->Status() == EStatus::Completed );
+
+        CHECK_ERR( t.isOK );
+        return true;
+    }
 
 } // namespace
 
 
 bool RGTest::Test_Draw3 ()
 {
-	auto	img_cmp = _LoadReference( TEST_NAME );
-	bool	result	= true;
+    auto    img_cmp = _LoadReference( TEST_NAME );
+    bool    result  = true;
 
-	RG_CHECK( Draw3Test< DirectCtx,   DirectCtx::Transfer   >( _pipelines, img_cmp.get() ));
-	RG_CHECK( Draw3Test< DirectCtx,   IndirectCtx::Transfer >( _pipelines, img_cmp.get() ));
+    RG_CHECK( Draw3Test< DirectCtx,   DirectCtx::Transfer   >( _pipelines, img_cmp.get() ));
+    RG_CHECK( Draw3Test< DirectCtx,   IndirectCtx::Transfer >( _pipelines, img_cmp.get() ));
 
-	RG_CHECK( Draw3Test< IndirectCtx, DirectCtx::Transfer   >( _pipelines, img_cmp.get() ));
-	RG_CHECK( Draw3Test< IndirectCtx, IndirectCtx::Transfer >( _pipelines, img_cmp.get() ));
-	
-	RG_CHECK( _CompareDumps( TEST_NAME ));
+    RG_CHECK( Draw3Test< IndirectCtx, DirectCtx::Transfer   >( _pipelines, img_cmp.get() ));
+    RG_CHECK( Draw3Test< IndirectCtx, IndirectCtx::Transfer >( _pipelines, img_cmp.get() ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+    RG_CHECK( _CompareDumps( TEST_NAME ));
+
+    AE_LOGI( TEST_NAME << " - passed" );
+    return result;
 }

@@ -57,52 +57,52 @@ extern int Test_Base ()
 int main ()
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+    AE::Base::StaticLogger::LoggerDbgScope log{};
 
-	AE_LOGI( "\nPlatform name: "s << AE_PLATFORM_NAME <<
-			 "\nCPU arch: " << AE_CPU_ARCH_NAME );
+    AE_LOGI( "\nPlatform name: "s << AE_PLATFORM_NAME <<
+             "\nCPU arch: " << AE_CPU_ARCH_NAME );
 
-	UnitTest_Array();
-	UnitTest_Color();
-	UnitTest_Cast();
-	UnitTest_Crypto();
-	UnitTest_Date();
-	UnitTest_DataSource();
-	UnitTest_EnumBitSet();
-	UnitTest_FileSystem();
-	UnitTest_FixedArray();
-	UnitTest_FixedMap();
-	UnitTest_FixedSet();
-	UnitTest_FixedString();
-	UnitTest_FixedTupleArray();
-	UnitTest_FlatHashMap();
-	UnitTest_HashMap();
-	UnitTest_FlatHashSet();
-	UnitTest_HashSet();
-	UnitTest_FunctionInfo();
-	UnitTest_LinearAllocator();
-	UnitTest_Math();
-	UnitTest_Math_BitMath();
-	UnitTest_Math_Fractional();
-	UnitTest_Math_Frustum();
-	UnitTest_Math_Matrix();
-	UnitTest_Math_PhysicalQuantity();
-	UnitTest_Math_Rectangle();
-	UnitTest_Math_SIMD();
-	UnitTest_Math_Transformation();
-	UnitTest_Math_Vec();
-	UnitTest_NamedID();
-	UnitTest_NtStringView();
-	UnitTest_RingBuffer();
-	UnitTest_RC();
-	UnitTest_StackAllocator();
-	UnitTest_StringParser();
-	UnitTest_StructView();
-	UnitTest_StringToID();
-	UnitTest_ToString();
-	UnitTest_TypeList();
-	UnitTest_TypeTraits();
-	
-	AE_LOGI( "Tests.Base finished" );
-	return 0;
+    UnitTest_Array();
+    UnitTest_Color();
+    UnitTest_Cast();
+    UnitTest_Crypto();
+    UnitTest_Date();
+    UnitTest_DataSource();
+    UnitTest_EnumBitSet();
+    UnitTest_FileSystem();
+    UnitTest_FixedArray();
+    UnitTest_FixedMap();
+    UnitTest_FixedSet();
+    UnitTest_FixedString();
+    UnitTest_FixedTupleArray();
+    UnitTest_FlatHashMap();
+    UnitTest_HashMap();
+    UnitTest_FlatHashSet();
+    UnitTest_HashSet();
+    UnitTest_FunctionInfo();
+    UnitTest_LinearAllocator();
+    UnitTest_Math();
+    UnitTest_Math_BitMath();
+    UnitTest_Math_Fractional();
+    UnitTest_Math_Frustum();
+    UnitTest_Math_Matrix();
+    UnitTest_Math_PhysicalQuantity();
+    UnitTest_Math_Rectangle();
+    UnitTest_Math_SIMD();
+    UnitTest_Math_Transformation();
+    UnitTest_Math_Vec();
+    UnitTest_NamedID();
+    UnitTest_NtStringView();
+    UnitTest_RingBuffer();
+    UnitTest_RC();
+    UnitTest_StackAllocator();
+    UnitTest_StringParser();
+    UnitTest_StructView();
+    UnitTest_StringToID();
+    UnitTest_ToString();
+    UnitTest_TypeList();
+    UnitTest_TypeTraits();
+
+    AE_LOGI( "Tests.Base finished" );
+    return 0;
 }

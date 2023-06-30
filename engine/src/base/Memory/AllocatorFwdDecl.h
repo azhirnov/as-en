@@ -8,31 +8,31 @@
 
 namespace AE::Base
 {
-	class UntypedAllocator;
-	
-	template <usize BaseAlign>
-	class UntypedAllocatorBaseAlign;
+    class UntypedAllocator;
 
-	template <typename T>
-	class StdAllocator;
+    template <usize BaseAlign>
+    class UntypedAllocatorBaseAlign;
 
-	template <typename AllocatorType = UntypedAllocator, uint MaxBlocks = 16, bool ThreadSafe = false>
-	class LinearAllocator;
+    template <typename T>
+    class StdAllocator;
 
-	template <typename AllocatorType = UntypedAllocator, uint MaxBlocks = 16, bool ThreadSafe = false>
-	class StackAllocator;
+    template <typename AllocatorType = UntypedAllocator, uint MaxBlocks = 16, bool ThreadSafe = false>
+    class LinearAllocator;
 
-	class MtAllocator;
-	
-	template <typename AllocatorType>
-	class AllocatorRef;
+    template <typename AllocatorType = UntypedAllocator, uint MaxBlocks = 16, bool ThreadSafe = false>
+    class StackAllocator;
 
-	template <typename T, typename AllocatorType>
-	class StdAllocatorRef;
+    class MtAllocator;
+
+    template <typename AllocatorType>
+    class AllocatorRef;
+
+    template <typename T, typename AllocatorType>
+    class StdAllocatorRef;
 
 
-	class IAllocator;
-	using IAllocatorRef		= AllocatorRef< IAllocator >;
+    class IAllocator;
+    using IAllocatorRef     = AllocatorRef< IAllocator >;
 
 
 } // AE::Base

@@ -9,11 +9,11 @@ target_link_libraries( "OfflinePacker" PUBLIC "PipelineCompiler" "InputActionsBi
 target_include_directories( "OfflinePacker" PUBLIC ".." )
 
 target_compile_definitions( "OfflinePacker" PRIVATE
-	AE_SHARED_DATA="${CMAKE_CURRENT_SOURCE_DIR}/../shared_data"
-	AE_CANVAS_VERTS="${CMAKE_CURRENT_SOURCE_DIR}/../../../src/graphics_hl/Canvas/VertexTypes.as"
-	AE_BUILD_ASSET_PACKER
-	AE_BUILD_INPUT_ACTIONS_BINDING
-	AE_BUILD_PIPELINE_COMPILER
+    AE_SHARED_DATA="${CMAKE_CURRENT_SOURCE_DIR}/../shared_data"
+    AE_CANVAS_VERTS="${CMAKE_CURRENT_SOURCE_DIR}/../../../src/graphics_hl/Canvas/VertexTypes.as"
+    AE_BUILD_ASSET_PACKER
+    AE_BUILD_INPUT_ACTIONS_BINDING
+    AE_BUILD_PIPELINE_COMPILER
 )
 
 add_executable( "PACK_RES" EXCLUDE_FROM_ALL "empty.cpp" )

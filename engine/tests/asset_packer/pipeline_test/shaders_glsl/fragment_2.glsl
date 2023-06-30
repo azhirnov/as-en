@@ -7,5 +7,5 @@ layout(location=0) out float4  out_Color;
 
 void Main ()
 {
-	out_Color = texture( sampler2D(un_ColorTexture, un_ColorTexture_sampler), In.Texcoord );
+    out_Color = texture( sampler2D(un_ColorTexture, un_ColorTexture_sampler), In.Texcoord );
 }

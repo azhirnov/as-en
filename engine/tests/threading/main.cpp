@@ -29,28 +29,28 @@ extern int Test_Threading ()
 int main ()
 #endif
 {
-	AE::Base::StaticLogger::LoggerDbgScope log{};
+    AE::Base::StaticLogger::LoggerDbgScope log{};
 
-	//UnitTest_AsyncDataSource();	// minimize disk usage
-	
-	UnitTest_LfIndexedPool2();
-	UnitTest_LfIndexedPool3();
-	UnitTest_LfStaticPool();
-	UnitTest_LfStaticIndexedPool();
-	UnitTest_LfTaskQueue();
-	UnitTest_LfStaticQueue();
-	
-	//UnitTest_LfFixedBlockAllocator();
-	UnitTest_LfLinearAllocator();
+    //UnitTest_AsyncDataSource();   // minimize disk usage
 
-	UnitTest_SpinLock();
-	
-	UnitTest_TaskDeps();
-	UnitTest_TaskUsage();
-	UnitTest_AsyncMutex ();
-	UnitTest_Promise();
-	UnitTest_Coroutine();
-	
-	AE_LOGI( "Tests.Threading finished" );
-	return 0;
+    UnitTest_LfIndexedPool2();
+    UnitTest_LfIndexedPool3();
+    UnitTest_LfStaticPool();
+    UnitTest_LfStaticIndexedPool();
+    UnitTest_LfTaskQueue();
+    UnitTest_LfStaticQueue();
+
+    //UnitTest_LfFixedBlockAllocator();
+    UnitTest_LfLinearAllocator();
+
+    UnitTest_SpinLock();
+
+    UnitTest_TaskDeps();
+    UnitTest_TaskUsage();
+    UnitTest_AsyncMutex ();
+    UnitTest_Promise();
+    UnitTest_Coroutine();
+
+    AE_LOGI( "Tests.Threading finished" );
+    return 0;
 }

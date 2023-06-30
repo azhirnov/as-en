@@ -14,100 +14,100 @@ extern void Test_DrawTests (IApplication &, IWindow &);
 
 static void  UnitTests ()
 {
-	UnitTest_FormattedText();
-	UnitTest_UI_Layouts();
+    UnitTest_FormattedText();
+    UnitTest_UI_Layouts();
 }
 
 static void  GraphicsTests (IApplication &app, IWindow &wnd)
 {
-	Test_DrawTests( app, wnd );
+    Test_DrawTests( app, wnd );
 }
 
 
 #ifdef AE_PLATFORM_ANDROID
 extern int Test_GraphicsHL (IApplication &app, IWindow &wnd)
 {
-	UnitTests();
-	GraphicsTests( app, wnd );
+    UnitTests();
+    GraphicsTests( app, wnd );
 
-	AE_LOGI( "Tests.GraphicsHL finished" );
-	return 0;
+    AE_LOGI( "Tests.GraphicsHL finished" );
+    return 0;
 }
 #else
 
-	class WndListener final : public IWindow::IWndListener
-	{
-	private:
-		IApplication&	_app;
+    class WndListener final : public IWindow::IWndListener
+    {
+    private:
+        IApplication&   _app;
 
-	public:
-		WndListener (IApplication &app) : _app{app} {}
-		~WndListener () override {}
-		
-		void OnStateChanged (IWindow &, EState)		__NE_OV {}
-		void OnResize (IWindow &, const uint2 &)	__NE_OV {}
-		void OnUpdate (IWindow &)					__NE_OV {}
-		void OnSurfaceDestroyed (IWindow &)			__NE_OV {}
+    public:
+        WndListener (IApplication &app) : _app{app} {}
+        ~WndListener () override {}
 
-		void OnSurfaceCreated (IWindow &wnd)		__NE_OV
-		{
-			GraphicsTests( _app, wnd );
+        void OnStateChanged (IWindow &, EState)     __NE_OV {}
+        void OnResize (IWindow &, const uint2 &)    __NE_OV {}
+        void OnUpdate (IWindow &)                   __NE_OV {}
+        void OnSurfaceDestroyed (IWindow &)         __NE_OV {}
 
-			wnd.Close();
-			AE_LOGI( "Tests.GraphicsHL finished" );
-		}
-	};
+        void OnSurfaceCreated (IWindow &wnd)        __NE_OV
+        {
+            GraphicsTests( _app, wnd );
 
-	class AppListener final : public IApplication::IAppListener
-	{
-	private:
-		WindowPtr	_window;
-		
-	public:
-		AppListener ()
-		{
-			TaskScheduler::CreateInstance();
-			
-			TaskScheduler::Config	cfg;
-			CHECK_FATAL( Scheduler().Setup( cfg ));
-		}
+            wnd.Close();
+            AE_LOGI( "Tests.GraphicsHL finished" );
+        }
+    };
 
-		~AppListener () __NE_OV
-		{
-			Scheduler().Release();
-			TaskScheduler::DestroyInstance();
-		}
+    class AppListener final : public IApplication::IAppListener
+    {
+    private:
+        WindowPtr   _window;
 
-		void  OnStart (IApplication &app) __NE_OV
-		{
-			UnitTests();
-			
-			_window = app.CreateWindow( MakeUnique<WndListener>( app ), Default );
-			CHECK_FATAL( _window );
-		}
-		
-		void  BeforeWndUpdate (IApplication &) __NE_OV {}
+    public:
+        AppListener ()
+        {
+            TaskScheduler::CreateInstance();
 
-		void  AfterWndUpdate (IApplication &app) __NE_OV
-		{
-			if ( _window and _window->GetState() == IWindow::EState::Destroyed )
-				app.Terminate();
-		}
+            TaskScheduler::Config   cfg;
+            CHECK_FATAL( Scheduler().Setup( cfg ));
+        }
 
-		void  OnStop (IApplication &) __NE_OV {}
-	};
+        ~AppListener () __NE_OV
+        {
+            Scheduler().Release();
+            TaskScheduler::DestroyInstance();
+        }
+
+        void  OnStart (IApplication &app) __NE_OV
+        {
+            UnitTests();
+
+            _window = app.CreateWindow( MakeUnique<WndListener>( app ), Default );
+            CHECK_FATAL( _window );
+        }
+
+        void  BeforeWndUpdate (IApplication &) __NE_OV {}
+
+        void  AfterWndUpdate (IApplication &app) __NE_OV
+        {
+            if ( _window and _window->GetState() == IWindow::EState::Destroyed )
+                app.Terminate();
+        }
+
+        void  OnStop (IApplication &) __NE_OV {}
+    };
 
 
-	Unique<IApplication::IAppListener>  AE_OnAppCreated ()
-	{
-		AE::Base::StaticLogger::InitDefault();
+    Unique<IApplication::IAppListener>  AE_OnAppCreated ()
+    {
+        AE::Base::StaticLogger::InitDefault();
 
-		return MakeUnique<AppListener>();
-	}
+        return MakeUnique<AppListener>();
+    }
 
-	void  AE_OnAppDestroyed ()
-	{
-		AE::Base::StaticLogger::Deinitialize(true);
-	}
+    void  AE_OnAppDestroyed ()
+    {
+        AE::Base::StaticLogger::Deinitialize(true);
+    }
 
 #endif // AE_PLATFORM_ANDROID

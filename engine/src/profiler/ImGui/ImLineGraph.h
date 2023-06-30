@@ -8,77 +8,77 @@
 namespace AE::Profiler
 {
 
-	//
-	// ImGui Line Graph
-	//
+    //
+    // ImGui Line Graph
+    //
 
-	class ImLineGraph
-	{
-	// types
-	public:
-		static constexpr uint	MaxGraphs = 4;
+    class ImLineGraph
+    {
+    // types
+    public:
+        static constexpr uint   MaxGraphs = 4;
 
-		enum class EMode
-		{
-			Line,
-			Column,
-			
-			Line_Adaptive,
-			//Column_Adaptive,
-		};
+        enum class EMode
+        {
+            Line,
+            Column,
 
-		struct ColorStyle
-		{
-			RGBA8u		lines		[MaxGraphs];
-			RGBA8u		background;
-			RGBA8u		border;
-			RGBA8u		text;
-			EMode		mode		= EMode::Line;
-		};
+            Line_Adaptive,
+            //Column_Adaptive,
+        };
 
-	private:
-		struct LineData
-		{
-			RingBuffer<float>	points;
-			String				label;
-		};
-		using LineArr_t = FixedArray< LineData, MaxGraphs >;
+        struct ColorStyle
+        {
+            RGBA8u      lines       [MaxGraphs];
+            RGBA8u      background;
+            RGBA8u      border;
+            RGBA8u      text;
+            EMode       mode        = EMode::Line;
+        };
 
-
-	// variables
-	private:
-		mutable SharedMutex		_guard;
-
-		LineArr_t				_lines;
-		mutable float2			_range;
-
-		ColorStyle				_style;
-		uint					_capacity	= 100;
-		String					_name;
+    private:
+        struct LineData
+        {
+            RingBuffer<float>   points;
+            String              label;
+        };
+        using LineArr_t = FixedArray< LineData, MaxGraphs >;
 
 
-	// methods
-	public:
-		ImLineGraph ()											{}
-		ImLineGraph (ImLineGraph &&)							{}
+    // variables
+    private:
+        mutable SharedMutex     _guard;
 
-		ND_ bool	Empty (uint dim = 0)				const;
-		ND_ float	LastPoint (uint dim = 0)			const;
+        LineArr_t               _lines;
+        mutable float2          _range;
 
-		void  Draw (const RectF &region)				const;
+        ColorStyle              _style;
+        uint                    _capacity   = 100;
+        String                  _name;
 
-		void  SetName (StringView value);
-		void  SetLabel (StringView label, uint dim);
 
-		void  SetColor (const ColorStyle &style)				{ EXLOCK( _guard );  _style = style; }
-		void  SetCapacity (uint value, uint dim = 1);
+    // methods
+    public:
+        ImLineGraph ()                                          {}
+        ImLineGraph (ImLineGraph &&)                            {}
 
-		void  SetRange (float min, float max);
+        ND_ bool    Empty (uint dim = 0)                const;
+        ND_ float   LastPoint (uint dim = 0)            const;
 
-		void  Add (std::initializer_list<float> values);
-		void  AddOpt (std::initializer_list<float> values);
-		void  AddAndUpdateRange (std::initializer_list<float> values);
-	};
+        void  Draw (const RectF &region)                const;
+
+        void  SetName (StringView value);
+        void  SetLabel (StringView label, uint dim);
+
+        void  SetColor (const ColorStyle &style)                { EXLOCK( _guard );  _style = style; }
+        void  SetCapacity (uint value, uint dim = 1);
+
+        void  SetRange (float min, float max);
+
+        void  Add (std::initializer_list<float> values);
+        void  AddOpt (std::initializer_list<float> values);
+        void  AddAndUpdateRange (std::initializer_list<float> values);
+    };
 
 
 } // AE::Profiler

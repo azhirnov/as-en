@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Async compute without synchronizations between frames,
-	used double buffering for render targets to avoid race condition.
+    Async compute without synchronizations between frames,
+    used double buffering for render targets to avoid race condition.
 
   .------------------------.
   |      frame 1           |
@@ -18,303 +18,303 @@
 
 namespace
 {
-	struct AC1_TestData
-	{
-		Mutex							guard;
+    struct AC1_TestData
+    {
+        Mutex                           guard;
 
-		// shared
-		GAutorelease<ImageID>			image [2];
-		GAutorelease<ImageViewID>		view  [2];
-		const uint2						imageSize	{800, 600};
-		Atomic<uint>					frameIdx	{0};
+        // shared
+        GAutorelease<ImageID>           image [2];
+        GAutorelease<ImageViewID>       view  [2];
+        const uint2                     imageSize   {800, 600};
+        Atomic<uint>                    frameIdx    {0};
 
-		// graphics
-		GraphicsPipelineID				gppln;
+        // graphics
+        GraphicsPipelineID              gppln;
 
-		// async compute
-		ComputePipelineID				cppln;
-		GAutorelease<DescriptorSetID>	cpplnDS [2];
-		DescSetBinding					cpplnDSIndex;
-		
-		AsyncTask						result [2];
-		bool							isOK   [2] = {false, false};
-		
-		ImageComparator *				imgCmp	= null;
-		RC<GfxLinearMemAllocator>		gfxAlloc;
-	};
-	
-	constexpr auto	img_gfx_state	= EResourceState::ShaderSample | EResourceState::FragmentShader;
-	constexpr auto	img_comp_state	= EResourceState::ShaderStorage_RW | EResourceState::ComputeShader;
+        // async compute
+        ComputePipelineID               cppln;
+        GAutorelease<DescriptorSetID>   cpplnDS [2];
+        DescSetBinding                  cpplnDSIndex;
 
+        AsyncTask                       result [2];
+        bool                            isOK   [2] = {false, false};
 
-	template <typename CtxTypes>
-	class AC1_GraphicsTask final : public RenderTask
-	{
-	public:
-		AC1_TestData&	t;
-		const uint		fi;
+        ImageComparator *               imgCmp  = null;
+        RC<GfxLinearMemAllocator>       gfxAlloc;
+    };
 
-		AC1_GraphicsTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
-			RenderTask{ batch, dbg },
-			t{ t },
-			fi{ frameIdx & 1 }
-		{
-			CHECK( batch->GetQueueType() == EQueueType::Graphics );
-		}
-
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-
-			typename CtxTypes::Graphics		ctx{ *this };
-
-			ctx.AccumBarriers()
-				.ImageBarrier( t.image[fi], EResourceState::Invalidate, img_gfx_state );
-			
-			// draw
-			{
-				auto	dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.imageSize }
-									.AddViewport( t.imageSize )
-									.AddTarget( AttachmentName{"Color"}, t.view[fi], RGBA32f{1.0f} ));
-
-				dctx.BindPipeline( t.gppln );
-				dctx.Draw( 3 );
-				
-				ctx.EndRenderPass( dctx );
-			}
-			
-			ctx.AccumBarriers()
-				.ImageBarrier( t.image[fi], img_gfx_state, img_comp_state );
-			
-			Execute( ctx );
-		}
-	};
+    constexpr auto  img_gfx_state   = EResourceState::ShaderSample | EResourceState::FragmentShader;
+    constexpr auto  img_comp_state  = EResourceState::ShaderStorage_RW | EResourceState::ComputeShader;
 
 
-	template <typename CtxTypes>
-	class AC1_ComputeTask final : public RenderTask
-	{
-	public:
-		AC1_TestData&	t;
-		const uint		fi;
+    template <typename CtxTypes>
+    class AC1_GraphicsTask final : public RenderTask
+    {
+    public:
+        AC1_TestData&   t;
+        const uint      fi;
 
-		AC1_ComputeTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
-			RenderTask{ batch, dbg },
-			t{ t },
-			fi{ frameIdx & 1 }
-		{
-			CHECK( batch->GetQueueType() == EQueueType::AsyncCompute );
-		}
+        AC1_GraphicsTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
+            RenderTask{ batch, dbg },
+            t{ t },
+            fi{ frameIdx & 1 }
+        {
+            CHECK( batch->GetQueueType() == EQueueType::Graphics );
+        }
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
+        void  Run () __Th_OV
+        {
+            DeferExLock lock {t.guard};
+            CHECK_TE( lock.try_lock() );
 
-			typename CtxTypes::Compute	ctx{ *this };
-			
-			ctx.BindPipeline( t.cppln );
-			ctx.BindDescriptorSet( t.cpplnDSIndex, t.cpplnDS[fi] );
-			ctx.Dispatch( DivCeil( t.imageSize, 4u ));
-			
-			Execute( ctx );
-		}
-	};
-	
+            typename CtxTypes::Graphics     ctx{ *this };
 
-	template <typename Ctx>
-	class AC1_CopyTask final : public RenderTask
-	{
-	public:
-		AC1_TestData&	t;
+            ctx.AccumBarriers()
+                .ImageBarrier( t.image[fi], EResourceState::Invalidate, img_gfx_state );
 
-		AC1_CopyTask (AC1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
-			RenderTask{ RVRef(batch), dbg },
-			t{ t }
-		{}
+            // draw
+            {
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.imageSize }
+                                    .AddViewport( t.imageSize )
+                                    .AddTarget( AttachmentName{"Color"}, t.view[fi], RGBA32f{1.0f} ));
 
-		void  Run () __Th_OV
-		{
-			DeferExLock	lock {t.guard};
-			CHECK_TE( lock.try_lock() );
-			
-			Ctx		ctx{ *this };
-			
-			ctx.AccumBarriers()
-				.ImageBarrier( t.image[0], img_comp_state, EResourceState::CopySrc )
-				.ImageBarrier( t.image[1], img_comp_state, EResourceState::CopySrc );
+                dctx.BindPipeline( t.gppln );
+                dctx.Draw( 3 );
 
-			ReadbackImageDesc	readback;
-			readback.heapType = EStagingHeapType::Dynamic;
+                ctx.EndRenderPass( dctx );
+            }
 
-			t.result[0] = AsyncTask{ ctx.ReadbackImage( t.image[0], readback )
-							.Then( [p = &t] (const ImageMemView &view)
-									{
-										p->isOK[0] = p->imgCmp->Compare( view );
-									})};
-			t.result[1] = AsyncTask{ ctx.ReadbackImage( t.image[1], readback )
-							.Then( [p = &t] (const ImageMemView &view)
-									{
-										p->isOK[1] = p->imgCmp->Compare( view );
-									})};
-			
-			ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
-			
-			Execute( ctx );
-		}
-	};
-	
-	
-	template <typename CtxTypes, typename CopyCtx>
-	class AC1_FrameTask final : public Threading::IAsyncTask
-	{
-	public:
-		AC1_TestData&		t;
-		CommandBatchPtr		lastBatch;
+            ctx.AccumBarriers()
+                .ImageBarrier( t.image[fi], img_gfx_state, img_comp_state );
 
-		AC1_FrameTask (AC1_TestData& t) :
-			IAsyncTask{ ETaskQueue::PerFrame },
-			t{ t }
-		{}
+            Execute( ctx );
+        }
+    };
 
-		void  Run () __Th_OV
-		{
-			auto&	rts = RenderTaskScheduler();
-			
-			if ( t.frameIdx.load() == 3 )
-			{
-				AsyncTask	begin = rts.BeginFrame();
 
-				auto		batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"copy task"} );
-				CHECK_TE( batch );
+    template <typename CtxTypes>
+    class AC1_ComputeTask final : public RenderTask
+    {
+    public:
+        AC1_TestData&   t;
+        const uint      fi;
 
-				CHECK_TE( batch->AddInputDependency( lastBatch ));
-				
-				AsyncTask	read_task	= batch->Run< AC1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Readback task"} );
-				AsyncTask	end			= rts.EndFrame( Tuple{read_task} );
-				
-				++t.frameIdx;
-				return Continue( Tuple{end} );
-			}
+        AC1_ComputeTask (AC1_TestData& t, uint frameIdx, CommandBatchPtr batch, DebugLabel dbg) :
+            RenderTask{ batch, dbg },
+            t{ t },
+            fi{ frameIdx & 1 }
+        {
+            CHECK( batch->GetQueueType() == EQueueType::AsyncCompute );
+        }
 
-			if ( t.frameIdx.load() > 3 )
-				return;
+        void  Run () __Th_OV
+        {
+            DeferExLock lock {t.guard};
+            CHECK_TE( lock.try_lock() );
 
-			AsyncTask	begin		= rts.BeginFrame();
-			
-			auto		batch_gfx	= rts.BeginCmdBatch( EQueueType::Graphics, 0, {"graphics batch"} );
-			CHECK_TE( batch_gfx );
-			
-			// sync with previous frame
-			CHECK_TE( batch_gfx->AddInputDependency( lastBatch ));
+            typename CtxTypes::Compute  ctx{ *this };
 
-			auto		batch_ac	= rts.BeginCmdBatch( EQueueType::AsyncCompute, 0, {"compute batch"} );
-			CHECK_TE( batch_ac );
+            ctx.BindPipeline( t.cppln );
+            ctx.BindDescriptorSet( t.cpplnDSIndex, t.cpplnDS[fi] );
+            ctx.Dispatch( DivCeil( t.imageSize, 4u ));
 
-			// graphics to compute sync
-			CHECK_TE( batch_ac->AddInputDependency( batch_gfx ));
-			
-			AsyncTask	gfx_task	= batch_gfx->Run< AC1_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{begin},	 True{"Last"}, {"graphics task"} );
-			AsyncTask	comp_task	= batch_ac ->Run< AC1_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() },	Tuple{gfx_task}, True{"Last"}, {"async compute task"} );
-			AsyncTask	end			= rts.EndFrame( Tuple{ gfx_task, comp_task });
+            Execute( ctx );
+        }
+    };
 
-			lastBatch = batch_ac;
 
-			++t.frameIdx;
-			return Continue( Tuple{end} );
-		}
+    template <typename Ctx>
+    class AC1_CopyTask final : public RenderTask
+    {
+    public:
+        AC1_TestData&   t;
 
-		StringView  DbgName ()	C_NE_OV	{ return "AC1_FrameTask"; }
-	};
+        AC1_CopyTask (AC1_TestData& t, CommandBatchPtr batch, DebugLabel dbg) :
+            RenderTask{ RVRef(batch), dbg },
+            t{ t }
+        {}
 
-	
-	template <typename CtxTypes, typename CopyCtx>
-	static bool  AsyncCompute1Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
-	{
-		auto&			rts			= RenderTaskScheduler();
-		auto&			res_mngr	= rts.GetResourceManager();
-		AC1_TestData	t;
-		const auto		format		= EPixelFormat::RGBA8_UNorm;
-		
-		t.gfxAlloc	= MakeRC<GfxLinearMemAllocator>();
-		t.imgCmp	= imageCmp;
+        void  Run () __Th_OV
+        {
+            DeferExLock lock {t.guard};
+            CHECK_TE( lock.try_lock() );
 
-		t.image[0] = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
-												.SetFormat( format )
-												.SetQueues( EQueueMask::Graphics | EQueueMask::AsyncCompute )
-												.SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
-										   "Image-0", t.gfxAlloc );
-		t.image[1] = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
-												.SetFormat( format )
-												.SetQueues( EQueueMask::Graphics | EQueueMask::AsyncCompute )
-												.SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
-										   "Image-1", t.gfxAlloc );
-		CHECK_ERR( t.image[0] and t.image[1] );
-	
-		t.view[0] = res_mngr.CreateImageView( ImageViewDesc{}, t.image[0], "ImageView-0" );
-		t.view[1] = res_mngr.CreateImageView( ImageViewDesc{}, t.image[1], "ImageView-1" );
-		CHECK_ERR( t.view[0] and t.view[1] );
-		
-		t.gppln = renderTech->GetGraphicsPipeline( PipelineName{"async_comp1.graphics"} );
-		CHECK_ERR( t.gppln );
-		
-		t.cppln = renderTech->GetComputePipeline( PipelineName{"async_comp1.compute"} );
-		CHECK_ERR( t.cppln );
-		
-		{
-			auto [ds0, idx0] = res_mngr.CreateDescriptorSet( t.cppln, DescriptorSetName{"compute2.ds1"} );
-			auto [ds1, idx1] = res_mngr.CreateDescriptorSet( t.cppln, DescriptorSetName{"compute2.ds1"} );
+            Ctx     ctx{ *this };
 
-			t.cpplnDSIndex	= idx0;
-			t.cpplnDS[0]	= RVRef(ds0);
-			t.cpplnDS[1]	= RVRef(ds1);
-			CHECK_ERR( t.cpplnDS[0] and t.cpplnDS[1] );
+            ctx.AccumBarriers()
+                .ImageBarrier( t.image[0], img_comp_state, EResourceState::CopySrc )
+                .ImageBarrier( t.image[1], img_comp_state, EResourceState::CopySrc );
 
-			DescriptorUpdater	updater;
+            ReadbackImageDesc   readback;
+            readback.heapType = EStagingHeapType::Dynamic;
 
-			CHECK_ERR( updater.Set( t.cpplnDS[0], EDescUpdateMode::Partialy ));
-			updater.BindImage( UniformName{"un_Image"}, t.view[0] );
-			
-			CHECK_ERR( updater.Set( t.cpplnDS[1], EDescUpdateMode::Partialy ));
-			updater.BindImage( UniformName{"un_Image"}, t.view[1] );
+            t.result[0] = AsyncTask{ ctx.ReadbackImage( t.image[0], readback )
+                            .Then( [p = &t] (const ImageMemView &view)
+                                    {
+                                        p->isOK[0] = p->imgCmp->Compare( view );
+                                    })};
+            t.result[1] = AsyncTask{ ctx.ReadbackImage( t.image[1], readback )
+                            .Then( [p = &t] (const ImageMemView &view)
+                                    {
+                                        p->isOK[1] = p->imgCmp->Compare( view );
+                                    })};
 
-			updater.Flush();
-		}
-		
-		// draw 3 frames
-		auto	task = Scheduler().Run< AC1_FrameTask<CtxTypes, CopyCtx> >( Tuple{ArgRef(t)} );
-		
-		CHECK_ERR( Scheduler().Wait( {task} ));
-		CHECK_ERR( rts.WaitAll() );
+            ctx.AccumBarriers().MemoryBarrier( EResourceState::CopyDst, EResourceState::Host_Read );
 
-		CHECK_ERR( t.frameIdx.load() == 4 );
-		
-		CHECK_ERR( Scheduler().Wait({ t.result[0], t.result[1] }));
-		CHECK_ERR( t.result[0]->Status() == EStatus::Completed );
-		CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
-		CHECK_ERR( t.isOK[0] );
-		CHECK_ERR( t.isOK[1] );
+            Execute( ctx );
+        }
+    };
 
-		return true;
-	}
+
+    template <typename CtxTypes, typename CopyCtx>
+    class AC1_FrameTask final : public Threading::IAsyncTask
+    {
+    public:
+        AC1_TestData&       t;
+        CommandBatchPtr     lastBatch;
+
+        AC1_FrameTask (AC1_TestData& t) :
+            IAsyncTask{ ETaskQueue::PerFrame },
+            t{ t }
+        {}
+
+        void  Run () __Th_OV
+        {
+            auto&   rts = RenderTaskScheduler();
+
+            if ( t.frameIdx.load() == 3 )
+            {
+                AsyncTask   begin = rts.BeginFrame();
+
+                auto        batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"copy task"} );
+                CHECK_TE( batch );
+
+                CHECK_TE( batch->AddInputDependency( lastBatch ));
+
+                AsyncTask   read_task   = batch->Run< AC1_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, Tuple{begin}, True{"Last"}, {"Readback task"} );
+                AsyncTask   end         = rts.EndFrame( Tuple{read_task} );
+
+                ++t.frameIdx;
+                return Continue( Tuple{end} );
+            }
+
+            if ( t.frameIdx.load() > 3 )
+                return;
+
+            AsyncTask   begin       = rts.BeginFrame();
+
+            auto        batch_gfx   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"graphics batch"} );
+            CHECK_TE( batch_gfx );
+
+            // sync with previous frame
+            CHECK_TE( batch_gfx->AddInputDependency( lastBatch ));
+
+            auto        batch_ac    = rts.BeginCmdBatch( EQueueType::AsyncCompute, 0, {"compute batch"} );
+            CHECK_TE( batch_ac );
+
+            // graphics to compute sync
+            CHECK_TE( batch_ac->AddInputDependency( batch_gfx ));
+
+            AsyncTask   gfx_task    = batch_gfx->Run< AC1_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() },  Tuple{begin},    True{"Last"}, {"graphics task"} );
+            AsyncTask   comp_task   = batch_ac ->Run< AC1_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() },  Tuple{gfx_task}, True{"Last"}, {"async compute task"} );
+            AsyncTask   end         = rts.EndFrame( Tuple{ gfx_task, comp_task });
+
+            lastBatch = batch_ac;
+
+            ++t.frameIdx;
+            return Continue( Tuple{end} );
+        }
+
+        StringView  DbgName ()  C_NE_OV { return "AC1_FrameTask"; }
+    };
+
+
+    template <typename CtxTypes, typename CopyCtx>
+    static bool  AsyncCompute1Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
+    {
+        auto&           rts         = RenderTaskScheduler();
+        auto&           res_mngr    = rts.GetResourceManager();
+        AC1_TestData    t;
+        const auto      format      = EPixelFormat::RGBA8_UNorm;
+
+        t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
+        t.imgCmp    = imageCmp;
+
+        t.image[0] = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
+                                                .SetFormat( format )
+                                                .SetQueues( EQueueMask::Graphics | EQueueMask::AsyncCompute )
+                                                .SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
+                                           "Image-0", t.gfxAlloc );
+        t.image[1] = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
+                                                .SetFormat( format )
+                                                .SetQueues( EQueueMask::Graphics | EQueueMask::AsyncCompute )
+                                                .SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
+                                           "Image-1", t.gfxAlloc );
+        CHECK_ERR( t.image[0] and t.image[1] );
+
+        t.view[0] = res_mngr.CreateImageView( ImageViewDesc{}, t.image[0], "ImageView-0" );
+        t.view[1] = res_mngr.CreateImageView( ImageViewDesc{}, t.image[1], "ImageView-1" );
+        CHECK_ERR( t.view[0] and t.view[1] );
+
+        t.gppln = renderTech->GetGraphicsPipeline( PipelineName{"async_comp1.graphics"} );
+        CHECK_ERR( t.gppln );
+
+        t.cppln = renderTech->GetComputePipeline( PipelineName{"async_comp1.compute"} );
+        CHECK_ERR( t.cppln );
+
+        {
+            auto [ds0, idx0] = res_mngr.CreateDescriptorSet( t.cppln, DescriptorSetName{"compute2.ds1"} );
+            auto [ds1, idx1] = res_mngr.CreateDescriptorSet( t.cppln, DescriptorSetName{"compute2.ds1"} );
+
+            t.cpplnDSIndex  = idx0;
+            t.cpplnDS[0]    = RVRef(ds0);
+            t.cpplnDS[1]    = RVRef(ds1);
+            CHECK_ERR( t.cpplnDS[0] and t.cpplnDS[1] );
+
+            DescriptorUpdater   updater;
+
+            CHECK_ERR( updater.Set( t.cpplnDS[0], EDescUpdateMode::Partialy ));
+            updater.BindImage( UniformName{"un_Image"}, t.view[0] );
+
+            CHECK_ERR( updater.Set( t.cpplnDS[1], EDescUpdateMode::Partialy ));
+            updater.BindImage( UniformName{"un_Image"}, t.view[1] );
+
+            updater.Flush();
+        }
+
+        // draw 3 frames
+        auto    task = Scheduler().Run< AC1_FrameTask<CtxTypes, CopyCtx> >( Tuple{ArgRef(t)} );
+
+        CHECK_ERR( Scheduler().Wait( {task} ));
+        CHECK_ERR( rts.WaitAll() );
+
+        CHECK_ERR( t.frameIdx.load() == 4 );
+
+        CHECK_ERR( Scheduler().Wait({ t.result[0], t.result[1] }));
+        CHECK_ERR( t.result[0]->Status() == EStatus::Completed );
+        CHECK_ERR( t.result[1]->Status() == EStatus::Completed );
+        CHECK_ERR( t.isOK[0] );
+        CHECK_ERR( t.isOK[1] );
+
+        return true;
+    }
 
 } // namespace
 
 
 bool RGTest::Test_AsyncCompute1 ()
 {
-	if ( not AllBits( RenderTaskScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
-		return true; // skip
+    if ( not AllBits( RenderTaskScheduler().GetDevice().GetAvailableQueues(), EQueueMask::Graphics | EQueueMask::AsyncCompute ))
+        return true; // skip
 
-	auto	img_cmp = _LoadReference( TEST_NAME );
-	bool	result	= true;
+    auto    img_cmp = _LoadReference( TEST_NAME );
+    bool    result  = true;
 
-	RG_CHECK( AsyncCompute1Test< DirectCtx,   DirectCtx::Transfer   >( _acPipelines, img_cmp.get() ));
-	RG_CHECK( AsyncCompute1Test< IndirectCtx, IndirectCtx::Transfer >( _acPipelines, img_cmp.get() ));
-	
-	RG_CHECK( _CompareDumps( TEST_NAME ));
+    RG_CHECK( AsyncCompute1Test< DirectCtx,   DirectCtx::Transfer   >( _acPipelines, img_cmp.get() ));
+    RG_CHECK( AsyncCompute1Test< IndirectCtx, IndirectCtx::Transfer >( _acPipelines, img_cmp.get() ));
 
-	AE_LOGI( TEST_NAME << " - passed" );
-	return result;
+    RG_CHECK( _CompareDumps( TEST_NAME ));
+
+    AE_LOGI( TEST_NAME << " - passed" );
+    return result;
 }

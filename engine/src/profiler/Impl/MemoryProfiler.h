@@ -7,22 +7,22 @@
 
 namespace AE::Profiler
 {
-	
-	//
-	// Memory Profiler
-	//
 
-	class MemoryProfiler final : public Threading::IMemoryProfiler, public ProfilerUtils
-	{
-	// methods
-	public:
-		explicit MemoryProfiler (TimePoint_t startTime);
-		~MemoryProfiler () {}
-		
-		void  DrawImGUI () {}
-		void  Draw (Canvas &) {}
-		void  Update (secondsf) {}
-	};
+    //
+    // Memory Profiler
+    //
+
+    class MemoryProfiler final : public Threading::IMemoryProfiler, public ProfilerUtils
+    {
+    // methods
+    public:
+        explicit MemoryProfiler (TimePoint_t startTime);
+        ~MemoryProfiler () {}
+
+        void  DrawImGUI () {}
+        void  Draw (Canvas &) {}
+        void  Update (secondsf) {}
+    };
 
 
 } // AE::Profiler

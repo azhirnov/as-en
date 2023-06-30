@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	thread-safe: yes
+    thread-safe: yes
 */
 
 #pragma once
@@ -10,13 +10,13 @@
 namespace AE::Threading
 {
 
-	//
-	// Memory Profiler interface
-	//
+    //
+    // Memory Profiler interface
+    //
 
-	class IMemoryProfiler : public EnableRC<IMemoryProfiler>
-	{
-	};
+    class IMemoryProfiler : public EnableRC<IMemoryProfiler>
+    {
+    };
 
 
 } // AE::Threading

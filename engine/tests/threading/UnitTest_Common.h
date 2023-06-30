@@ -9,39 +9,39 @@
 
 using namespace AE::Threading;
 
-enum class WorkerQueueCount	: uint {};
-enum class IOThreadCount	: uint {};
+enum class WorkerQueueCount : uint {};
+enum class IOThreadCount    : uint {};
 
 
 struct LocalTaskScheduler
 {
-	explicit LocalTaskScheduler (WorkerQueueCount)
-	{
-		TaskScheduler::Config	cfg;
-		cfg.maxPerFrameQueues	= 2;
-		
-		TaskScheduler::CreateInstance();
-		TEST( Scheduler().Setup( cfg ));
-	}
-	
-	explicit LocalTaskScheduler (IOThreadCount count)
-	{
-		TaskScheduler::Config	cfg;
-		cfg.maxPerFrameQueues	= 1;
-		cfg.maxIOThreads		= ubyte(count);
+    explicit LocalTaskScheduler (WorkerQueueCount)
+    {
+        TaskScheduler::Config   cfg;
+        cfg.maxPerFrameQueues   = 2;
 
-		TaskScheduler::CreateInstance();
-		TEST( Scheduler().Setup( cfg ));
-	}
+        TaskScheduler::CreateInstance();
+        TEST( Scheduler().Setup( cfg ));
+    }
 
-	~LocalTaskScheduler ()
-	{
-		Scheduler().Release();
-		TaskScheduler::DestroyInstance();
-	}
+    explicit LocalTaskScheduler (IOThreadCount count)
+    {
+        TaskScheduler::Config   cfg;
+        cfg.maxPerFrameQueues   = 1;
+        cfg.maxIOThreads        = ubyte(count);
 
-	TaskScheduler* operator -> ()
-	{
-		return &Scheduler();
-	}
+        TaskScheduler::CreateInstance();
+        TEST( Scheduler().Setup( cfg ));
+    }
+
+    ~LocalTaskScheduler ()
+    {
+        Scheduler().Release();
+        TaskScheduler::DestroyInstance();
+    }
+
+    TaskScheduler* operator -> ()
+    {
+        return &Scheduler();
+    }
 };

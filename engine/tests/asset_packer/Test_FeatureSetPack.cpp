@@ -5,101 +5,101 @@
 
 namespace
 {
-	const bool						force_update		= true;
-	decltype(&CompilePipelines)		compile_pipelines	= null;
+    const bool                      force_update        = true;
+    decltype(&CompilePipelines)     compile_pipelines   = null;
 
 
-	static void  FeatureSetPack_Test1 ()
-	{
-		const PathParams	features[]	= { {TXT("config_vk.as"), 0} };
-		const PathParams	fs_folder[]	= { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::Recursive} };
-		Path				output		= TXT("_output");
-		
-		FileSystem::RemoveAll( output );
-		TEST( FileSystem::CreateDirectories( output ));
+    static void  FeatureSetPack_Test1 ()
+    {
+        const PathParams    features[]  = { {TXT("config_vk.as"), 0} };
+        const PathParams    fs_folder[] = { {TXT( AE_SHARED_DATA "/feature_set" ), 1, EPathParamsFlags::Recursive} };
+        Path                output      = TXT("_output");
 
-		output.append( "features.bin" );
+        FileSystem::RemoveAll( output );
+        TEST( FileSystem::CreateDirectories( output ));
 
-		PipelinesInfo	info = {};
-		info.inPipelines		= features;
-		info.inPipelineCount	= CountOf( features );
-		info.pipelineFolders	= fs_folder;
-		info.pipelineFolderCount= CountOf( fs_folder );
-		info.outputPackName		= Cast<CharType>(output.c_str());
+        output.append( "features.bin" );
 
-		TEST( compile_pipelines( &info ));
-		
+        PipelinesInfo   info = {};
+        info.inPipelines        = features;
+        info.inPipelineCount    = CountOf( features );
+        info.pipelineFolders    = fs_folder;
+        info.pipelineFolderCount= CountOf( fs_folder );
+        info.outputPackName     = Cast<CharType>(output.c_str());
 
-		auto	file = MakeRC<FileRStream>( output );
-		TEST( file->IsOpen() );
-		
-		auto	mem_stream = MakeRC<MemRStream>();
-		{
-			uint	name;
-			TEST( file->Read( OUT name ));
-			TEST_Eq( name, PackOffsets_Name );
+        TEST( compile_pipelines( &info ));
 
-			PipelinePackOffsets		offsets;
-			TEST( file->Read( OUT offsets ));
-			TEST_Lt( offsets.featureSetOffset, ulong(file->Size()) );
 
-			TEST( file->SeekSet( Bytes{offsets.featureSetOffset} ));
-			TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.featureSetDataSize} ));
-		}
+        auto    file = MakeRC<FileRStream>( output );
+        TEST( file->IsOpen() );
 
-		AE::Serializing::Deserializer	des{ mem_stream };
-		{
-			uint	version = 0;
-			uint	name	= 0;
-			TEST( des( OUT name, OUT version ));
-			TEST_Eq( name, FeatureSetPack_Name );
-			TEST_Eq( version, FeatureSetPack_Version );
-		}
+        auto    mem_stream = MakeRC<MemRStream>();
+        {
+            uint    name;
+            TEST( file->Read( OUT name ));
+            TEST_Eq( name, PackOffsets_Name );
 
-		ulong	fs_hash = 0;
-		TEST( des( OUT fs_hash ));
-		TEST_Eq( fs_hash, 0x3b2103abc1fc1748ull );
+            PipelinePackOffsets     offsets;
+            TEST( file->Read( OUT offsets ));
+            TEST_Lt( offsets.featureSetOffset, ulong(file->Size()) );
 
-		uint	count = 0;
-		TEST( des( OUT count ));
-		TEST_Eq( count, 42 );
-		
-		for (uint i = 0; i < count; ++i)
-		{
-			FeatureSetName::Optimized_t	name;
-			FeatureSetSerializer		fs;
+            TEST( file->SeekSet( Bytes{offsets.featureSetOffset} ));
+            TEST( mem_stream->LoadRemaining( *file, Bytes{offsets.featureSetDataSize} ));
+        }
 
-			TEST( des( OUT name, OUT fs ));
-			TEST( name.IsDefined() );
-			TEST( fs.Get().IsValid() );
-		}
+        AE::Serializing::Deserializer   des{ mem_stream };
+        {
+            uint    version = 0;
+            uint    name    = 0;
+            TEST( des( OUT name, OUT version ));
+            TEST_Eq( name, FeatureSetPack_Name );
+            TEST_Eq( version, FeatureSetPack_Version );
+        }
 
-		//TEST( des.IsEnd() );
-		//TEST( CompareWithDump( ser_str, "test1_ref.txt", force_update ));
-	}
+        ulong   fs_hash = 0;
+        TEST( des( OUT fs_hash ));
+        TEST_Eq( fs_hash, 0x3b2103abc1fc1748ull );
+
+        uint    count = 0;
+        TEST( des( OUT count ));
+        TEST_Eq( count, 42 );
+
+        for (uint i = 0; i < count; ++i)
+        {
+            FeatureSetName::Optimized_t name;
+            FeatureSetSerializer        fs;
+
+            TEST( des( OUT name, OUT fs ));
+            TEST( name.IsDefined() );
+            TEST( fs.Get().IsValid() );
+        }
+
+        //TEST( des.IsEnd() );
+        //TEST( CompareWithDump( ser_str, "test1_ref.txt", force_update ));
+    }
 }
 
 
 extern void Test_FeatureSetPack ()
 {
 #ifdef AE_PIPELINE_COMPILER_LIBRARY
-	{
-		Path	dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
+    {
+        Path    dll_path{ AE_PIPELINE_COMPILER_LIBRARY };
 
-		#ifdef AE_COMPILER_MSVC
-			dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
-		#else
-			dll_path.append( "PipelineCompiler-shared.so" );
-		#endif
+        #ifdef AE_COMPILER_MSVC
+            dll_path.append( CMAKE_INTDIR "/PipelineCompiler-shared.dll" );
+        #else
+            dll_path.append( "PipelineCompiler-shared.so" );
+        #endif
 
-		Library		lib;
-		TEST( lib.Load( dll_path ));
-		TEST( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
-		
-		TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/featset_test" ));
+        Library     lib;
+        TEST( lib.Load( dll_path ));
+        TEST( lib.GetProcAddr( "CompilePipelines", OUT compile_pipelines ));
 
-		FeatureSetPack_Test1();
-	}
-	TEST_PASSED();
+        TEST( FileSystem::SetCurrentPath( AE_CURRENT_DIR "/featset_test" ));
+
+        FeatureSetPack_Test1();
+    }
+    TEST_PASSED();
 #endif
 }

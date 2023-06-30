@@ -8,58 +8,58 @@
 namespace AE::ResEditor
 {
 
-	//
-	// First person view  Camera
-	//
+    //
+    // First person view  Camera
+    //
 
-	class FPVCamera final : public IController
-	{
-	// variables
-	private:
-		mutable RWSpinLock			_guard;
+    class FPVCamera final : public IController
+    {
+    // variables
+    private:
+        mutable RWSpinLock          _guard;
 
-		RC<DynamicDim>				_dynDim;
-		
-		float4x4					_view;			// cached
-		float4x4					_viewProj;		// cached
-		float4x4					_invViewProj;	// cached
+        RC<DynamicDim>              _dynDim;
 
-		FPVCameraTempl<float>		_camera;
-		const float2				_clipPlanes;
-		const Rad					_fovY;
-		const float2				_rotationScale;		// x, y
-		const MovingScale			_movingScale;
-		const float3				_initialPos;
+        float4x4                    _view;          // cached
+        float4x4                    _viewProj;      // cached
+        float4x4                    _invViewProj;   // cached
 
-		float						_zoom			= 1.0f;
-		float						_dimAspect		= 1.f;
+        FPVCameraTempl<float>       _camera;
+        const float2                _clipPlanes;
+        const Rad                   _fovY;
+        const float2                _rotationScale;     // x, y
+        const MovingScale           _movingScale;
+        const float3                _initialPos;
+
+        float                       _zoom           = 1.0f;
+        float                       _dimAspect      = 1.f;
 
 
-	// methods
-	public:
-		FPVCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY,
-					   const MovingScale &, float2 rotationScale,
-					   float3 initialPos)								__Th___;
-		
-		void  Reset ()													__NE___;
+    // methods
+    public:
+        FPVCamera (RC<DynamicDim> dim, float2 clipPlanes, Rad fovY,
+                       const MovingScale &, float2 rotationScale,
+                       float3 initialPos)                               __Th___;
 
-		// IController //
-		void  ProcessInput (ActionQueueReader, secondsf)				__NE_OV;
-		
-		InputModeName	GetInputMode ()									C_NE_OV { return InputModeName{"Controller.FPVCamera"}; }
+        void  Reset ()                                                  __NE___;
 
-		float3			GetPosition ()									C_NE_OV	{ SHAREDLOCK( _guard );  return _camera.GetCamera().transform.position; }
-		float4x4		GetViewProj ()									C_NE_OV { SHAREDLOCK( _guard );  return _viewProj; }
-		float4x4		GetInvViewProj ()								C_NE_OV { SHAREDLOCK( _guard );  return _invViewProj; }
-		float4x4		GetProj ()										C_NE_OV { SHAREDLOCK( _guard );  return _camera.GetCamera().projection; }
-		float4x4		GetView ()										C_NE_OV { SHAREDLOCK( _guard );  return _view; }
-	//	RaysGrid_t		GetRaysGrid ()									C_NE_OV;
-		
-		void			CopyTo (OUT AE::ShaderTypes::CameraData &)		C_NE_OV;
+        // IController //
+        void  ProcessInput (ActionQueueReader, secondsf)                __NE_OV;
 
-	private:
-		void  _UpdateMatrix ();
-	};
+        InputModeName   GetInputMode ()                                 C_NE_OV { return InputModeName{"Controller.FPVCamera"}; }
+
+        float3          GetPosition ()                                  C_NE_OV { SHAREDLOCK( _guard );  return _camera.GetCamera().transform.position; }
+        float4x4        GetViewProj ()                                  C_NE_OV { SHAREDLOCK( _guard );  return _viewProj; }
+        float4x4        GetInvViewProj ()                               C_NE_OV { SHAREDLOCK( _guard );  return _invViewProj; }
+        float4x4        GetProj ()                                      C_NE_OV { SHAREDLOCK( _guard );  return _camera.GetCamera().projection; }
+        float4x4        GetView ()                                      C_NE_OV { SHAREDLOCK( _guard );  return _view; }
+    //  RaysGrid_t      GetRaysGrid ()                                  C_NE_OV;
+
+        void            CopyTo (OUT AE::ShaderTypes::CameraData &)      C_NE_OV;
+
+    private:
+        void  _UpdateMatrix ();
+    };
 
 
 } // AE::ResEditor

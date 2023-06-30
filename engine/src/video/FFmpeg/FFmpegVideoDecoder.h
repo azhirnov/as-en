@@ -9,86 +9,86 @@
 namespace AE::Video
 {
 
-	//
-	// FFmpeg Video Decoder
-	//
+    //
+    // FFmpeg Video Decoder
+    //
 
-	class FFmpegVideoDecoder final : public IVideoDecoder
-	{
-	// types
-	private:
-		using Allocator_t = UntypedAllocator;
-
-
-	// variables
-	private:
-		mutable SharedMutex		_guard;
-		
-		AVFormatContext *		_formatCtx			= null;
-
-		AVFrame *				_videoFrame			= null;
-		AVPacket *				_videoPacket		= null;
-
-		AVCodec const*			_codec				= null;
-		AVCodecContext *		_codecCtx			= null;
-		
-		SwsContext *			_swsCtx				= null;
-		
-		AVIOContext *			_ioCtx				= null;		// wrapper for file stream
-		RC<RStream>				_rstream;
-
-		Bytes32u				_frameDataSize;
-		Bytes32u				_frameRowPitch;
-		ubyte *					_frameData			= null;		// allocated by Allocator_t
-		
-		bool					_decodingStarted	= false;
-		const bool				_ffmpegLoaded		= false;
-
-		Config					_config;
+    class FFmpegVideoDecoder final : public IVideoDecoder
+    {
+    // types
+    private:
+        using Allocator_t = UntypedAllocator;
 
 
-	// methods
-	public:
-		FFmpegVideoDecoder ()										__NE___;
-		~FFmpegVideoDecoder ()										__NE_OV;
-		
-		bool  Begin (const Config &cfg, const Path &filename)		__NE_OV;
-		bool  Begin (const Config &cfg, RC<RStream> stream)			__NE_OV;
-		bool  SeekTo (ulong frameIdx)								__NE_OV;
-		bool  SeekTo (Second_t timestamp)							__NE_OV;
+    // variables
+    private:
+        mutable SharedMutex     _guard;
 
-		bool  GetFrame (OUT ImageMemView &	view,
-						OUT FrameInfo &		info)					__NE_OV;
-		
-		bool  GetFrame (OUT VideoImageID &	id,
-						OUT FrameInfo &		info)					__NE_OV;
+        AVFormatContext *       _formatCtx          = null;
 
-		bool  End ()												__NE_OV;
+        AVFrame *               _videoFrame         = null;
+        AVPacket *              _videoPacket        = null;
 
-		Properties	GetFileProperties (const Path &filename)		C_NE_OV;
-		Properties	GetFileProperties (RC<RStream> stream)			C_NE_OV;
-		String		PrintFileProperties (const Path &filename)		C_NE_OV;
-		String		PrintFileProperties (RC<RStream> stream)		C_NE_OV;
-		
-		Config		GetConfig ()									C_NE_OV	{ SHAREDLOCK( _guard );  return _config; }
-		Properties	GetProperties ()								C_NE_OV;
+        AVCodec const*          _codec              = null;
+        AVCodecContext *        _codecCtx           = null;
 
-	private:
-		ND_ bool  _Begin ();
-		ND_ bool  _End ();
-			void  _Destroy ();
+        SwsContext *            _swsCtx             = null;
 
-		ND_ bool  _SeekTo (slong targetPTS);
+        AVIOContext *           _ioCtx              = null;     // wrapper for file stream
+        RC<RStream>             _rstream;
 
-		ND_ ulong  _PTStoFrameIdx (slong pts)		const;
-		ND_ slong  _FrameIdxToPTS (ulong frameIdx)	const;
-		ND_ slong  _TimestampToPTS (Second_t time)	const;
+        Bytes32u                _frameDataSize;
+        Bytes32u                _frameRowPitch;
+        ubyte *                 _frameData          = null;     // allocated by Allocator_t
 
-		static Properties  _ReadProperties (AVFormatContext* formatCtx);
+        bool                    _decodingStarted    = false;
+        const bool              _ffmpegLoaded       = false;
 
-		static int		_IOReadPacket (void *opaque, ubyte *buf, int buf_size);
-		static slong	_IOSeek (void *opaque, slong offset, int whence);
-	};
+        Config                  _config;
+
+
+    // methods
+    public:
+        FFmpegVideoDecoder ()                                       __NE___;
+        ~FFmpegVideoDecoder ()                                      __NE_OV;
+
+        bool  Begin (const Config &cfg, const Path &filename)       __NE_OV;
+        bool  Begin (const Config &cfg, RC<RStream> stream)         __NE_OV;
+        bool  SeekTo (ulong frameIdx)                               __NE_OV;
+        bool  SeekTo (Second_t timestamp)                           __NE_OV;
+
+        bool  GetFrame (OUT ImageMemView &  view,
+                        OUT FrameInfo &     info)                   __NE_OV;
+
+        bool  GetFrame (OUT VideoImageID &  id,
+                        OUT FrameInfo &     info)                   __NE_OV;
+
+        bool  End ()                                                __NE_OV;
+
+        Properties  GetFileProperties (const Path &filename)        C_NE_OV;
+        Properties  GetFileProperties (RC<RStream> stream)          C_NE_OV;
+        String      PrintFileProperties (const Path &filename)      C_NE_OV;
+        String      PrintFileProperties (RC<RStream> stream)        C_NE_OV;
+
+        Config      GetConfig ()                                    C_NE_OV { SHAREDLOCK( _guard );  return _config; }
+        Properties  GetProperties ()                                C_NE_OV;
+
+    private:
+        ND_ bool  _Begin ();
+        ND_ bool  _End ();
+            void  _Destroy ();
+
+        ND_ bool  _SeekTo (slong targetPTS);
+
+        ND_ ulong  _PTStoFrameIdx (slong pts)       const;
+        ND_ slong  _FrameIdxToPTS (ulong frameIdx)  const;
+        ND_ slong  _TimestampToPTS (Second_t time)  const;
+
+        static Properties  _ReadProperties (AVFormatContext* formatCtx);
+
+        static int      _IOReadPacket (void *opaque, ubyte *buf, int buf_size);
+        static slong    _IOSeek (void *opaque, slong offset, int whence);
+    };
 
 
 } // AE::Video

@@ -7,20 +7,20 @@
 namespace AE::Graphics
 {
 
-	//
-	// Vulkan Synchronization Logger
-	//
+    //
+    // Vulkan Synchronization Logger
+    //
 
-	class VulkanSyncLog //: Noninstanceable
-	{
-	public:
-		static void  Initialize (INOUT VulkanDeviceFnTable &, FlatHashMap<VkQueue, String> queueNames);
-		static void  Deinitialize (INOUT VulkanDeviceFnTable &);
+    class VulkanSyncLog //: Noninstanceable
+    {
+    public:
+        static void  Initialize (INOUT VulkanDeviceFnTable &, FlatHashMap<VkQueue, String> queueNames);
+        static void  Deinitialize (INOUT VulkanDeviceFnTable &);
 
-		static void  Enable ();
-		static void  Disable ();
+        static void  Enable ();
+        static void  Disable ();
 
-		static void  GetLog (OUT String &);
-	};
+        static void  GetLog (OUT String &);
+    };
 
 } // AE::Graphics

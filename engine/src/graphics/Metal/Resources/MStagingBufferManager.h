@@ -1,12 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	hint:
-		upload		- write	(on host)	- from host to device
-		readback	- read  (on host)	- from device to host
+    hint:
+        upload      - write (on host)   - from host to device
+        readback    - read  (on host)   - from device to host
 
-	Upload staging buffer must use unified (managed?) memory.
-	Readback staging buffer can use unified (managed?) memory.
-	Vertex buffer must use unified (managed?) memory.
+    Upload staging buffer must use unified (managed?) memory.
+    Readback staging buffer can use unified (managed?) memory.
+    Vertex buffer must use unified (managed?) memory.
 */
 
 #pragma once

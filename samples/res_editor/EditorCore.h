@@ -13,143 +13,143 @@
 namespace AE::ResEditor
 {
 
-	struct ResEditorAppConfig
-	{
-		// VFS
-		Array<Path>		vfsPathes;
-		Array<String>	vfsPathPrefixes;
-		
-		// UI
-		Path			uiDataFolder;
-		
-		// pipelines
-		Array<Path>		pipelineSearchDirs;
+    struct ResEditorAppConfig
+    {
+        // VFS
+        Array<Path>     vfsPathes;
+        Array<String>   vfsPathPrefixes;
 
-		// shaders
-		Array<Path>		shaderSearchDirs;
-		Array<Path>		shaderIncludeDirs;
-		
-		// script config
-		Path			scriptFolder;
-		Path			scriptSecondaryFolder;
-		Path			cppTypesFolder;
-		Path			scriptHeaderOutFolder;
+        // UI
+        Path            uiDataFolder;
 
-		// output
-		Path			shaderTraceFolder;
-		Path			screenshotFolder;
-		Path			videoFolder;
+        // pipelines
+        Array<Path>     pipelineSearchDirs;
 
+        // shaders
+        Array<Path>     shaderSearchDirs;
+        Array<Path>     shaderIncludeDirs;
 
-		ResEditorAppConfig ()									= default;
-		ResEditorAppConfig (ResEditorAppConfig &&)				= default;
-		ResEditorAppConfig (const ResEditorAppConfig &)			= default;
-		ResEditorAppConfig&  operator = (ResEditorAppConfig &&)	= default;
+        // script config
+        Path            scriptFolder;
+        Path            scriptSecondaryFolder;
+        Path            cppTypesFolder;
+        Path            scriptHeaderOutFolder;
 
-		ND_ static ResEditorAppConfig const&  Get ();
-	};
+        // output
+        Path            shaderTraceFolder;
+        Path            screenshotFolder;
+        Path            videoFolder;
 
 
+        ResEditorAppConfig ()                                   = default;
+        ResEditorAppConfig (ResEditorAppConfig &&)              = default;
+        ResEditorAppConfig (const ResEditorAppConfig &)         = default;
+        ResEditorAppConfig&  operator = (ResEditorAppConfig &&) = default;
 
-	//
-	// Resource Editor Application
-	//
-
-	class ResEditorApplication final : public AppV1::DefaultAppListener
-	{
-	// variables
-	private:
-		Ptr<IApplication>	_app;
-
-
-	// methods
-	public:
-		ResEditorApplication ()									__NE___;
-		~ResEditorApplication ()								__NE_OV;
-
-		void  OnStart (IApplication &)							__NE_OV;
-		void  OnStop  (IApplication &)							__NE_OV;
-
-		ND_ auto  GetApp ()										C_NE___	{ return _app; }
-
-	private:
-		bool  _InitVFS ();
-
-		ND_ ResEditorCore&	_Core ()							__NE___	{ return *Cast<ResEditorCore>( _impl.get() ); }
-	};
+        ND_ static ResEditorAppConfig const&  Get ();
+    };
 
 
 
-	//
-	// Resource Editor Core
-	//
+    //
+    // Resource Editor Application
+    //
 
-	class ResEditorCore final : public AppV1::IBaseApp
-	{
-		friend class ResEditorApplication;
-
-	// types
-	private:
-		class ProcessInputTask;
-
-		struct MainLoopData
-		{
-			Ptr<IInputActions>		input;		// lifetime is same as Window/VRDevice lifetime
-			Ptr<IOutputSurface>		output;		// lifetime is same as Window/VRDevice lifetime
-			RC<Renderer>			renderer;
-			AsyncTask				endFrame;
-		};
-		using MainLoopDataSync = Synchronized< SharedMutex, MainLoopData >;
+    class ResEditorApplication final : public AppV1::DefaultAppListener
+    {
+    // variables
+    private:
+        Ptr<IApplication>   _app;
 
 
-	// variables
-	private:
-		MainLoopDataSync			_mainLoop;
-		
-		EditorUI					_ui;
-		Unique<ScriptExe>			_script;
+    // methods
+    public:
+        ResEditorApplication ()                                 __NE___;
+        ~ResEditorApplication ()                                __NE_OV;
 
-		RC<MemRStream>				_inputActionsData;
+        void  OnStart (IApplication &)                          __NE_OV;
+        void  OnStop  (IApplication &)                          __NE_OV;
 
-		FrameGraphImpl				_fg;
+        ND_ auto  GetApp ()                                     C_NE___ { return _app; }
 
-		//App::RenderDocApi			_rdc;
-		//bool						_enableCapture	= false;
+    private:
+        bool  _InitVFS ();
 
-
-	// methods
-	public:
-		ResEditorCore ();
-		~ResEditorCore ();
+        ND_ ResEditorCore&  _Core ()                            __NE___ { return *Cast<ResEditorCore>( _impl.get() ); }
+    };
 
 
-	// API for EditorUI
-	public:
-		ND_ bool  RunRenderScriptAsync (const Path &);
+
+    //
+    // Resource Editor Core
+    //
+
+    class ResEditorCore final : public AppV1::IBaseApp
+    {
+        friend class ResEditorApplication;
+
+    // types
+    private:
+        class ProcessInputTask;
+
+        struct MainLoopData
+        {
+            Ptr<IInputActions>      input;      // lifetime is same as Window/VRDevice lifetime
+            Ptr<IOutputSurface>     output;     // lifetime is same as Window/VRDevice lifetime
+            RC<Renderer>            renderer;
+            AsyncTask               endFrame;
+        };
+        using MainLoopDataSync = Synchronized< SharedMutex, MainLoopData >;
 
 
-	// API for ResEditorWindow
-	private:
-			bool  _LoadInputActions ();
+    // variables
+    private:
+        MainLoopDataSync            _mainLoop;
+
+        EditorUI                    _ui;
+        Unique<ScriptExe>           _script;
+
+        RC<MemRStream>              _inputActionsData;
+
+        FrameGraphImpl              _fg;
+
+        //App::RenderDocApi         _rdc;
+        //bool                      _enableCapture  = false;
 
 
-	// main loop
-	private:
-		ND_ static CoroTask		_ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader);
-		ND_ static CoroTask		_SetInputMode (Ptr<IInputActions> input, InputModeName mode);
-		ND_ AsyncTask			_DrawFrame ();
+    // methods
+    public:
+        ResEditorCore ();
+        ~ResEditorCore ();
 
 
-	// IBaseApp //
-	private:
-		bool  OnSurfaceCreated (IOutputSurface &)						__NE_OV;
-		void  InitInputActions (IInputActions &)						__NE_OV;
-		void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>)	__NE_OV;
-		void  StopRendering ()											__NE_OV;
-		void  SurfaceDestroyed ()										__NE_OV;
-		void  WaitFrame (const Threading::EThreadArray &)				__NE_OV;
-		void  RenderFrame ()											__NE_OV;
-	};
+    // API for EditorUI
+    public:
+        ND_ bool  RunRenderScriptAsync (const Path &);
+
+
+    // API for ResEditorWindow
+    private:
+            bool  _LoadInputActions ();
+
+
+    // main loop
+    private:
+        ND_ static CoroTask     _ProcessInput (TsInputActions input, RC<Renderer> renderer, Ptr<EditorUI> ui, ActionQueueReader reader);
+        ND_ static CoroTask     _SetInputMode (Ptr<IInputActions> input, InputModeName mode);
+        ND_ AsyncTask           _DrawFrame ();
+
+
+    // IBaseApp //
+    private:
+        bool  OnSurfaceCreated (IOutputSurface &)                       __NE_OV;
+        void  InitInputActions (IInputActions &)                        __NE_OV;
+        void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>)  __NE_OV;
+        void  StopRendering ()                                          __NE_OV;
+        void  SurfaceDestroyed ()                                       __NE_OV;
+        void  WaitFrame (const Threading::EThreadArray &)               __NE_OV;
+        void  RenderFrame ()                                            __NE_OV;
+    };
 
 
 } // AE::ResEditor

@@ -10,50 +10,50 @@
 namespace AE::Profiler
 {
 
-	//
-	// Profiler UI
-	//
+    //
+    // Profiler UI
+    //
 
-	class ProfilerUI final
-	{
-	// types
-	private:
-		using TimePoint_t	= std::chrono::steady_clock::time_point;
-
-
-	// variables
-	private:
-	#ifndef AE_CFG_RELEASE
-		Atomic<bool>			_enabled	{true};
-		secondsf				_updateRate	{1.f};
-		TimePoint_t				_lastUpdate;
-
-		RC<TaskProfiler>		_task;
-		RC<GraphicsProfiler>	_graphics;
-		RC<MemoryProfiler>		_memory;
-		Unique<HwpcProfiler>	_hwpcProf;
-	#endif
+    class ProfilerUI final
+    {
+    // types
+    private:
+        using TimePoint_t   = std::chrono::steady_clock::time_point;
 
 
-	// methpds
-	public:
-		ProfilerUI () {}
-		~ProfilerUI ();
+    // variables
+    private:
+    #ifndef AE_CFG_RELEASE
+        Atomic<bool>            _enabled    {true};
+        secondsf                _updateRate {1.f};
+        TimePoint_t             _lastUpdate;
 
-		ND_ bool  Initialize ();
-			void  Deinitialize ();
+        RC<TaskProfiler>        _task;
+        RC<GraphicsProfiler>    _graphics;
+        RC<MemoryProfiler>      _memory;
+        Unique<HwpcProfiler>    _hwpcProf;
+    #endif
 
-			void  Enable (bool enabled);
 
-		#ifdef AE_ENABLE_IMGUI
-			void  DrawImGUI ();
-		#endif
+    // methpds
+    public:
+        ProfilerUI () {}
+        ~ProfilerUI ();
 
-			void  Draw (Graphics::Canvas &canvas);
+        ND_ bool  Initialize ();
+            void  Deinitialize ();
 
-	private:
-		void  _Update ();
-	};
+            void  Enable (bool enabled);
+
+        #ifdef AE_ENABLE_IMGUI
+            void  DrawImGUI ();
+        #endif
+
+            void  Draw (Graphics::Canvas &canvas);
+
+    private:
+        void  _Update ();
+    };
 
 
 } // AE::Profiler

@@ -20,14 +20,14 @@ no source
 //> traceRays(): void
 //  origin: float3 {0.472441, 0.685039, -1.000000}
 14. un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
-15. 				 /*sbtRecordOffset*/0, /*sbtRecordStride*/0, /*missIndex*/0,
-16. 				 /*origin*/origin, /*Tmin*/0.0f,
-17. 				 /*direction*/direction, /*Tmax*/10.0f,
-18. 				 /*payload*/PAYLOAD_LOC );
+15.                  /*sbtRecordOffset*/0, /*sbtRecordStride*/0, /*missIndex*/0,
+16.                  /*origin*/origin, /*Tmin*/0.0f,
+17.                  /*direction*/direction, /*Tmax*/10.0f,
+18.                  /*payload*/PAYLOAD_LOC );
 
 //> imageStore(): void
 //  gl_LaunchIDEXT: uint3 {60, 40, 0}
-20. 	imageStore( un_Output, ivec2(gl_LaunchIDEXT), payload );
+20.     imageStore( un_Output, ivec2(gl_LaunchIDEXT), payload );
 
 //---------------------------
 

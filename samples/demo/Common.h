@@ -20,9 +20,9 @@
 
 namespace AE::Samples::Demo
 {
-	using namespace AE::Graphics;
-	using namespace AE::App;
+    using namespace AE::Graphics;
+    using namespace AE::App;
 
-	using AE::Threading::AsyncTask;
-	
+    using AE::Threading::AsyncTask;
+
 } // AE::Samples::Demo

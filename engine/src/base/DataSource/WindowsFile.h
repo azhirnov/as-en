@@ -13,243 +13,243 @@
 namespace AE::Base
 {
 
-	//
-	// Windows Read-only File
-	//
-	class WinRFileStream final : public RStream
-	{
-	// types
-	public:
-		enum class EFlags : uint
-		{
-			Unknown			= 0,
-			RandomAccess	= 1 << 0,	// access is intended to be random
-			SequentialScan	= 1 << 1,	// access is intended to be sequential from beginning to end
-			NoBuffering		= 1 << 2,	// file or device is being opened with no system caching for data reads and writes
-		};
+    //
+    // Windows Read-only File
+    //
+    class WinRFileStream final : public RStream
+    {
+    // types
+    public:
+        enum class EFlags : uint
+        {
+            Unknown         = 0,
+            RandomAccess    = 1 << 0,   // access is intended to be random
+            SequentialScan  = 1 << 1,   // access is intended to be sequential from beginning to end
+            NoBuffering     = 1 << 2,   // file or device is being opened with no system caching for data reads and writes
+        };
 
-	private:
-		using Handle_t	= UntypedStorage< sizeof(void*), alignof(void*) >;
+    private:
+        using Handle_t  = UntypedStorage< sizeof(void*), alignof(void*) >;
 
-		static constexpr EFlags	DefaultFlags	= EFlags::SequentialScan;
-
-
-	// variables
-	private:
-		Handle_t		_file;
-		const Bytes		_fileSize;
-		const EFlags	_flags;
-		
-		DEBUG_ONLY( const Path  _filename;)
+        static constexpr EFlags DefaultFlags    = EFlags::SequentialScan;
 
 
-	// methods
-	private:
-		WinRFileStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename))	__NE___;
+    // variables
+    private:
+        Handle_t        _file;
+        const Bytes     _fileSize;
+        const EFlags    _flags;
 
-	public:
-		explicit WinRFileStream (const char* filename, EFlags flags = DefaultFlags)		__NE___;
-		explicit WinRFileStream (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinRFileStream (const String &filename, EFlags flags = DefaultFlags)	__NE___;
-		
-		explicit WinRFileStream (NtWStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinRFileStream (const wchar_t* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinRFileStream (const WString &filename, EFlags flags = DefaultFlags)	__NE___;
-
-		explicit WinRFileStream (const Path &path, EFlags flags = DefaultFlags)			__NE___;
-
-		~WinRFileStream ()						__NE_OV;
+        DEBUG_ONLY( const Path  _filename;)
 
 
-		// RStream //
-		bool		IsOpen ()					C_NE_OV;
-		ESourceType	GetSourceType ()			C_NE_OV;
-		PosAndSize	PositionAndSize ()			C_NE_OV	{ return { _Position(), _fileSize }; }
-		
-		bool		SeekFwd (Bytes offset)		__NE_OV;
-		bool		SeekSet (Bytes newPos)		__NE_OV;
+    // methods
+    private:
+        WinRFileStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
 
-		Bytes		ReadSeq (OUT void*, Bytes)	__NE_OV;
+    public:
+        explicit WinRFileStream (const char* filename, EFlags flags = DefaultFlags)     __NE___;
+        explicit WinRFileStream (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinRFileStream (const String &filename, EFlags flags = DefaultFlags)   __NE___;
 
-	private:
-		ND_ Bytes  _Position ()					C_NE___;
-	};
+        explicit WinRFileStream (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinRFileStream (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinRFileStream (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
 
-	AE_BIT_OPERATORS( WinRFileStream::EFlags );
+        explicit WinRFileStream (const Path &path, EFlags flags = DefaultFlags)         __NE___;
 
-	
-
-	//
-	// Windows Write-only File
-	//
-	class WinWFileStream final : public WStream
-	{
-	// types
-	public:
-		enum class EFlags : uint
-		{
-			Unknown			= 0,
-			NoBuffering		= 1 << 0,	// file or device is being opened with no system caching for data reads and writes
-			NoCaching		= 1 << 1,	// write operations will not go through any intermediate cache, they will go directly to disk.
-			
-			//OpenRewrite	= 1 << 2,	// create new or discard previous file	// default
-			OpenUpdate		= 1 << 3,	// keep previous content and update some parts in the file
-		};
-
-	private:
-		using Handle_t	= UntypedStorage< sizeof(void*), alignof(void*) >;
-		
-		static constexpr EFlags	DefaultFlags	= EFlags::Unknown;
+        ~WinRFileStream ()                      __NE_OV;
 
 
-	// variables
-	private:
-		Handle_t		_file;
-		const EFlags	_flags;
-		
-		DEBUG_ONLY( const Path  _filename;)
+        // RStream //
+        bool        IsOpen ()                   C_NE_OV;
+        ESourceType GetSourceType ()            C_NE_OV;
+        PosAndSize  PositionAndSize ()          C_NE_OV { return { _Position(), _fileSize }; }
+
+        bool        SeekFwd (Bytes offset)      __NE_OV;
+        bool        SeekSet (Bytes newPos)      __NE_OV;
+
+        Bytes       ReadSeq (OUT void*, Bytes)  __NE_OV;
+
+    private:
+        ND_ Bytes  _Position ()                 C_NE___;
+    };
+
+    AE_BIT_OPERATORS( WinRFileStream::EFlags );
 
 
-	// methods
-	private:
-		WinWFileStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename))	__NE___;
 
-	public:
-		explicit WinWFileStream (const char*  filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinWFileStream (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinWFileStream (const String &filename, EFlags flags = DefaultFlags)	__NE___;
+    //
+    // Windows Write-only File
+    //
+    class WinWFileStream final : public WStream
+    {
+    // types
+    public:
+        enum class EFlags : uint
+        {
+            Unknown         = 0,
+            NoBuffering     = 1 << 0,   // file or device is being opened with no system caching for data reads and writes
+            NoCaching       = 1 << 1,   // write operations will not go through any intermediate cache, they will go directly to disk.
 
-		explicit WinWFileStream (NtWStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinWFileStream (const wchar_t* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinWFileStream (const WString &filename, EFlags flags = DefaultFlags)	__NE___;
+            //OpenRewrite   = 1 << 2,   // create new or discard previous file  // default
+            OpenUpdate      = 1 << 3,   // keep previous content and update some parts in the file
+        };
 
-		explicit WinWFileStream (const Path &path, EFlags flags = DefaultFlags)			__NE___;
+    private:
+        using Handle_t  = UntypedStorage< sizeof(void*), alignof(void*) >;
 
-		~WinWFileStream ()							__NE_OV;
+        static constexpr EFlags DefaultFlags    = EFlags::Unknown;
 
 
-		// WStream //
-		bool		IsOpen ()						C_NE_OV;
-		Bytes		Position ()						C_NE_OV;
-		ESourceType	GetSourceType ()				C_NE_OV;
-		
-		bool		SeekFwd (Bytes offset)			__NE_OV;
-		Bytes		Reserve (Bytes additionalSize)	__NE_OV;
+    // variables
+    private:
+        Handle_t        _file;
+        const EFlags    _flags;
 
-		Bytes		WriteSeq (const void *, Bytes)	__NE_OV;
-		void		Flush ()						__NE_OV;
-	};
+        DEBUG_ONLY( const Path  _filename;)
 
-	AE_BIT_OPERATORS( WinWFileStream::EFlags );
+
+    // methods
+    private:
+        WinWFileStream (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
+
+    public:
+        explicit WinWFileStream (const char*  filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinWFileStream (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinWFileStream (const String &filename, EFlags flags = DefaultFlags)   __NE___;
+
+        explicit WinWFileStream (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinWFileStream (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinWFileStream (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
+
+        explicit WinWFileStream (const Path &path, EFlags flags = DefaultFlags)         __NE___;
+
+        ~WinWFileStream ()                          __NE_OV;
+
+
+        // WStream //
+        bool        IsOpen ()                       C_NE_OV;
+        Bytes       Position ()                     C_NE_OV;
+        ESourceType GetSourceType ()                C_NE_OV;
+
+        bool        SeekFwd (Bytes offset)          __NE_OV;
+        Bytes       Reserve (Bytes additionalSize)  __NE_OV;
+
+        Bytes       WriteSeq (const void *, Bytes)  __NE_OV;
+        void        Flush ()                        __NE_OV;
+    };
+
+    AE_BIT_OPERATORS( WinWFileStream::EFlags );
 //-----------------------------------------------------------------------------
 
 
-	
-	//
-	// Read-only File Data Source
-	//
 
-	class WinRFileDataSource final : public RDataSource
-	{
-	// types
-	public:
-		using EFlags = WinRFileStream::EFlags;
+    //
+    // Read-only File Data Source
+    //
 
-	private:
-		using Handle_t	= UntypedStorage< sizeof(void*), alignof(void*) >;
+    class WinRFileDataSource final : public RDataSource
+    {
+    // types
+    public:
+        using EFlags = WinRFileStream::EFlags;
 
-		static constexpr EFlags	DefaultFlags	= EFlags::RandomAccess;
+    private:
+        using Handle_t  = UntypedStorage< sizeof(void*), alignof(void*) >;
 
-
-	// variables
-	private:
-		Handle_t		_file;
-		Bytes const		_fileSize;
-		const EFlags	_flags;
-
-		DEBUG_ONLY( const Path  _filename;)
+        static constexpr EFlags DefaultFlags    = EFlags::RandomAccess;
 
 
-	// methods
-	private:
-		WinRFileDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename))	__NE___;
+    // variables
+    private:
+        Handle_t        _file;
+        Bytes const     _fileSize;
+        const EFlags    _flags;
 
-	public:
-		explicit WinRFileDataSource (const char* filename, EFlags flags = DefaultFlags)		__NE___;
-		explicit WinRFileDataSource (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinRFileDataSource (const String &filename, EFlags flags = DefaultFlags)	__NE___;
-
-		explicit WinRFileDataSource (NtWStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinRFileDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinRFileDataSource (const WString &filename, EFlags flags = DefaultFlags)	__NE___;
-
-		explicit WinRFileDataSource (const Path &path, EFlags flags = DefaultFlags)			__NE___;
-		
-		~WinRFileDataSource ()							__NE_OV;
+        DEBUG_ONLY( const Path  _filename;)
 
 
-		// RDataSource //
-		bool		IsOpen ()							C_NE_OV;
-		ESourceType	GetSourceType ()					C_NE_OV;
-		Bytes		Size ()								C_NE_OV	{ return _fileSize; }
+    // methods
+    private:
+        WinRFileDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
 
-		Bytes		ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
-	};
+    public:
+        explicit WinRFileDataSource (const char* filename, EFlags flags = DefaultFlags)     __NE___;
+        explicit WinRFileDataSource (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinRFileDataSource (const String &filename, EFlags flags = DefaultFlags)   __NE___;
 
+        explicit WinRFileDataSource (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinRFileDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinRFileDataSource (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
 
+        explicit WinRFileDataSource (const Path &path, EFlags flags = DefaultFlags)         __NE___;
 
-	//
-	// Write-only File Data Source
-	//
-
-	class WinWFileDataSource final : public WDataSource
-	{
-	// types
-	public:
-		using EFlags = WinWFileStream::EFlags;
-
-	private:
-		using Handle_t	= UntypedStorage< sizeof(void*), alignof(void*) >;
-		
-		static constexpr EFlags	DefaultFlags	= EFlags::Unknown;
+        ~WinRFileDataSource ()                          __NE_OV;
 
 
-	// variables
-	private:
-		Handle_t		_file;
-		const EFlags	_flags;
-		
-		DEBUG_ONLY( const Path  _filename;)
+        // RDataSource //
+        bool        IsOpen ()                           C_NE_OV;
+        ESourceType GetSourceType ()                    C_NE_OV;
+        Bytes       Size ()                             C_NE_OV { return _fileSize; }
+
+        Bytes       ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
+    };
 
 
-	// methods
-	private:
-		WinWFileDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename))	__NE___;
 
-	public:
-		explicit WinWFileDataSource (const char* filename, EFlags flags = DefaultFlags)		__NE___;
-		explicit WinWFileDataSource (NtStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinWFileDataSource (const String &filename, EFlags flags = DefaultFlags)	__NE___;
+    //
+    // Write-only File Data Source
+    //
 
-		explicit WinWFileDataSource (NtWStringView filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinWFileDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)	__NE___;
-		explicit WinWFileDataSource (const WString &filename, EFlags flags = DefaultFlags)	__NE___;
+    class WinWFileDataSource final : public WDataSource
+    {
+    // types
+    public:
+        using EFlags = WinWFileStream::EFlags;
 
-		explicit WinWFileDataSource (const Path &path, EFlags flags = DefaultFlags)			__NE___;
+    private:
+        using Handle_t  = UntypedStorage< sizeof(void*), alignof(void*) >;
 
-		~WinWFileDataSource ()								__NE_OV;
-		
+        static constexpr EFlags DefaultFlags    = EFlags::Unknown;
 
-		// WStream //
-		bool		IsOpen ()								C_NE_OV;
-		ESourceType	GetSourceType ()						C_NE_OV;
-		Bytes		Capacity ()								C_NE_OV;
 
-		Bytes		Reserve (Bytes)							__NE_OV;
+    // variables
+    private:
+        Handle_t        _file;
+        const EFlags    _flags;
 
-		Bytes		WriteBlock (Bytes, const void *, Bytes) __NE_OV;
-		void		Flush ()								__NE_OV;
-	};
+        DEBUG_ONLY( const Path  _filename;)
+
+
+    // methods
+    private:
+        WinWFileDataSource (const Handle_t &file, EFlags flags DEBUG_ONLY(, Path filename)) __NE___;
+
+    public:
+        explicit WinWFileDataSource (const char* filename, EFlags flags = DefaultFlags)     __NE___;
+        explicit WinWFileDataSource (NtStringView filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinWFileDataSource (const String &filename, EFlags flags = DefaultFlags)   __NE___;
+
+        explicit WinWFileDataSource (NtWStringView filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinWFileDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinWFileDataSource (const WString &filename, EFlags flags = DefaultFlags)  __NE___;
+
+        explicit WinWFileDataSource (const Path &path, EFlags flags = DefaultFlags)         __NE___;
+
+        ~WinWFileDataSource ()                              __NE_OV;
+
+
+        // WStream //
+        bool        IsOpen ()                               C_NE_OV;
+        ESourceType GetSourceType ()                        C_NE_OV;
+        Bytes       Capacity ()                             C_NE_OV;
+
+        Bytes       Reserve (Bytes)                         __NE_OV;
+
+        Bytes       WriteBlock (Bytes, const void *, Bytes) __NE_OV;
+        void        Flush ()                                __NE_OV;
+    };
 
 
 } // AE::Base

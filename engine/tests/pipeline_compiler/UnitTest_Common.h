@@ -12,25 +12,25 @@ using namespace AE::PipelineCompiler;
 template <typename T>
 ND_ String  ToGLSL (T &ptr)
 {
-	String	hdr		= "\n";
-	String	fields	= "Buffer {\n";
+    String  hdr     = "\n";
+    String  fields  = "Buffer {\n";
 
-	CHECK_ERR( ptr->ToGLSL( true, INOUT hdr, INOUT fields ));
-	return hdr << fields << "}\n";
+    CHECK_ERR( ptr->ToGLSL( true, INOUT hdr, INOUT fields ));
+    return hdr << fields << "}\n";
 }
 
 template <typename T>
 ND_ String  ToMSL (T &ptr)
 {
-	String	hdr	= "\n";
-	CHECK_ERR( ptr->ToMSL( INOUT hdr ));
-	return hdr;
+    String  hdr = "\n";
+    CHECK_ERR( ptr->ToMSL( INOUT hdr ));
+    return hdr;
 }
 
 template <typename T>
 ND_ String  ToCPP (T &ptr)
 {
-	String	src = "\n";
-	CHECK_ERR( ptr->ToCPP( INOUT src ));
-	return src;
+    String  src = "\n";
+    CHECK_ERR( ptr->ToCPP( INOUT src ));
+    return src;
 }

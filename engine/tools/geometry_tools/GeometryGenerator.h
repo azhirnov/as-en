@@ -6,16 +6,16 @@
 
 namespace AE::GeometryTools
 {
-	using namespace AE::Base;
+    using namespace AE::Base;
 
 
-	//
-	// Geometry Generator
-	//
+    //
+    // Geometry Generator
+    //
 
-	struct GeometryGenerator
-	{
-		static bool  CreateGrid (OUT Array<float2> &vertices, OUT Array<uint> &indices, uint numVertInSide, uint patchSize = 3, float scale = 1.0f);
-	};
+    struct GeometryGenerator
+    {
+        static bool  CreateGrid (OUT Array<float2> &vertices, OUT Array<uint> &indices, uint numVertInSide, uint patchSize = 3, float scale = 1.0f);
+    };
 
 } // AE::GeometryTools

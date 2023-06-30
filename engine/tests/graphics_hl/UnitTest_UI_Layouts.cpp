@@ -9,5 +9,5 @@ namespace
 
 extern void UnitTest_UI_Layouts ()
 {
-	TEST_PASSED();
+    TEST_PASSED();
 }
