@@ -2,11 +2,6 @@
 
 #pragma once
 
-#include "base/Math/Packing.h"
-
-#include "graphics/Public/ResourceManager.h"
-#include "graphics/Public/CommandBuffer.h"
-
 #include "graphics_hl/Canvas/SurfaceDimensions.h"
 #include "graphics_hl/Canvas/Primitives.h"
 

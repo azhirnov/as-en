@@ -4,7 +4,6 @@ void SimpleRenderPass ()
 {
     RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "Simple" );
 
-    compat.AddFeatureSet( "MinimalFS" );
     compat.AddFeatureSet( "part.Surface_RGBA8_sRGB_nonlinear" );
 
     const string    pass = "Main";
@@ -61,7 +60,6 @@ void RenderPass2 ()
 {
     RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "Multipass" );
 
-    compat.AddFeatureSet( "MinimalFS" );
     compat.AddFeatureSet( "part.Surface_RGBA8_sRGB_nonlinear" );
 
     compat.AddSubpass( "DepthPrepass" );
@@ -172,7 +170,6 @@ void RenderPass2 ()
 void UIRenderPass ()
 {
     RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "UIRenderPass" );
-    compat.AddFeatureSet( "MinimalFS" );
 
     const string    pass = "Main";
     compat.AddSubpass( pass );
@@ -201,7 +198,6 @@ void VRSRenderPass ()
         return;
 
     RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "VRSRenderPass" );
-    compat.AddFeatureSet( "MinimalFS" );
     compat.AddFeatureSet( "part.ShadingRate.NV" );
 
     const string    pass = "Main";

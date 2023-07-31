@@ -1,8 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/FileStream.h"
-#include "threading/DataSource/WinAsyncDataSource.h"
-#include "threading/TaskSystem/ThreadManager.h"
 #include "UnitTest_Common.h"
 
 #ifndef AE_DISABLE_THREADS
@@ -22,7 +19,7 @@ namespace
         const uint  buf_size    = 4u << 10;     // Kb
         STATIC_ASSERT( file_size % buf_size == 0 );
 
-        const Path      fname {"ds11_data.txt"};
+        const Path      fname {"ds11_data.bin"};
         {
             WFile   wfile {fname};
             TEST( wfile.IsOpen() );
@@ -44,7 +41,7 @@ namespace
             TEST( wfile.Capacity() == file_size );
         }
         {
-            RC<RFile>   rfile = MakeRC<RFile>( fname );
+            RC<AsyncRDataSource>    rfile = MakeRC<RFile>( fname );
             TEST( rfile->IsOpen() );
             TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
             TEST( rfile->Size() == file_size );
@@ -53,23 +50,24 @@ namespace
             while ( pos < file_size + buf_size )
             {
                 auto    req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
-                TEST( req );
+                TEST( req );    // always non-null
                 TEST( req.use_count() == 2 );
 
-                auto    task = AsyncTask{req->AsPromise().Then( [pos] (const AsyncRDataSource::Result_t &res)
-                                {
-                                    TEST( res.data != null );
-                                    TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
-                                    TEST( res.offset == pos );
-                                    TEST( res.request.use_count() == 1 );       // because executed sequentially and synchroniously
+                auto    task = AsyncTask{req->AsPromise( ETaskQueue::PerFrame )
+                                .Then(  [pos] (const AsyncRDataSource::Result_t &res)
+                                        {
+                                            TEST( res.data != null );
+                                            TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
+                                            TEST( res.pos == pos );
+                                            TEST( res.rc.use_count() == 1 );        // because executed sequentially and synchronously
 
-                                    ulong   ref_buf [buf_size / sizeof(ulong)];
+                                            ulong   ref_buf [buf_size / sizeof(ulong)];
 
-                                    for (uint i = 0; i < CountOf(ref_buf); ++i) {
-                                        ref_buf[i] = pos + i;
-                                    }
-                                    TEST( MemEqual( res.data, ref_buf, res.dataSize ));
-                                })};
+                                            for (uint i = 0; i < CountOf(ref_buf); ++i) {
+                                                ref_buf[i] = pos + i;
+                                            }
+                                            TEST( MemEqual( res.data, ref_buf, res.dataSize ));
+                                        })};
                 TEST( task );
 
                 for (;;)
@@ -86,6 +84,7 @@ namespace
 
                 pos += buf_size;
             }
+            TEST( rfile.use_count() == 1 );
         }
     }
 
@@ -96,15 +95,15 @@ namespace
         LocalTaskScheduler  scheduler   {IOThreadCount(1)};
         TEST( scheduler->GetFileIOService() );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep(
-                EThreadArray{ EThread::PerFrame, EThread::FileIO }
-            )));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
+                EThreadArray{ EThread::PerFrame, EThread::FileIO }, "worker"
+            }));
 
         const ulong file_size   = 32ull << 20;  // Mb
         const uint  buf_size    = 4u << 10;     // Kb
         STATIC_ASSERT( file_size % buf_size == 0 );
 
-        const Path      fname {"ds12_data.txt"};
+        const Path      fname {"ds12_data.bin"};
         {
             WFile   wfile {fname};
             TEST( wfile.IsOpen() );
@@ -126,7 +125,7 @@ namespace
             TEST( wfile.Capacity() == file_size );
         }
         {
-            RC<RFile>   rfile = MakeRC<RFile>( fname );
+            RC<AsyncRDataSource>    rfile = MakeRC<RFile>( fname );
             TEST( rfile->IsOpen() );
             TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
             TEST( rfile->Size() == file_size );
@@ -145,22 +144,23 @@ namespace
                     if ( pos < file_size + buf_size )
                     {
                         auto    req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
-                        TEST( req );
+                        TEST( req );    // always non-null
 
-                        auto    task = AsyncTask{req->AsPromise().Then( [cur_pos = pos] (const AsyncRDataSource::Result_t &res)
-                                        {
-                                            TEST( res.data != null );
-                                            TEST( res.dataSize == (cur_pos < file_size ? buf_size : 0) );
-                                            TEST( res.offset == cur_pos );
-                                            TEST( res.request.use_count() > 0 );    // is alive
+                        auto    task = AsyncTask{req->AsPromise( ETaskQueue::PerFrame )
+                                        .Then(  [cur_pos = pos] (const AsyncRDataSource::Result_t &res)
+                                                {
+                                                    TEST( res.data != null );
+                                                    TEST( res.dataSize == (cur_pos < file_size ? buf_size : 0) );
+                                                    TEST( res.pos == cur_pos );
+                                                    TEST( res.rc.use_count() > 0 ); // is alive
 
-                                            ulong   ref_buf [buf_size / sizeof(ulong)];
+                                                    ulong   ref_buf [buf_size / sizeof(ulong)];
 
-                                            for (uint i = 0; i < CountOf(ref_buf); ++i) {
-                                                ref_buf[i] = cur_pos + i;
-                                            }
-                                            TEST( MemEqual( res.data, ref_buf, res.dataSize ));
-                                        })};
+                                                    for (uint i = 0; i < CountOf(ref_buf); ++i) {
+                                                        ref_buf[i] = cur_pos + i;
+                                                    }
+                                                    TEST( MemEqual( res.data, ref_buf, res.dataSize ));
+                                                })};
                         TEST( task );
 
                         req = null;
@@ -178,6 +178,9 @@ namespace
             auto    task = scheduler->Run<ReadFileTask>( Tuple{rfile} );
             TEST( scheduler->Wait( {task} ));
             TEST( task->Status() == EStatus::Completed );
+
+            task = null;
+            TEST( rfile.use_count() == 1 );
         }
     }
 
@@ -190,7 +193,7 @@ namespace
         const uint  buf_size    = 4u << 10;     // Kb
         STATIC_ASSERT( file_size % buf_size == 0 );
 
-        const Path      fname {"ds13_data.txt"};
+        const Path      fname {"ds13_data.bin"};
         {
             WFile   wfile {fname};
             TEST( wfile.IsOpen() );
@@ -212,7 +215,7 @@ namespace
             TEST( wfile.Capacity() == file_size );
         }
         {
-            RC<RFile>   rfile = MakeRC<RFile>( fname );
+            RC<AsyncRDataSource>    rfile = MakeRC<RFile>( fname );
             TEST( rfile->IsOpen() );
             TEST( AllBits( rfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::ReadAccess | ESourceType::Async ));
             TEST( rfile->Size() == file_size );
@@ -221,15 +224,15 @@ namespace
             while ( pos < file_size + buf_size )
             {
                 auto    req = rfile->ReadBlock( Bytes{pos}, Bytes{buf_size} );
-                TEST( req );
+                TEST( req );    // always non-null
 
-                auto    res = co_await req->AsPromise();
+                auto    res = co_await req->AsPromise( ETaskQueue::PerFrame );
                 req = null;
 
                 TEST( res.data != null );
                 TEST( res.dataSize == (pos < file_size ? buf_size : 0) );
-                TEST( res.offset == pos );
-                TEST( res.request.use_count() > 0 );    // is alive
+                TEST( res.pos == pos );
+                TEST( res.rc.use_count() > 0 ); // is alive
 
                 ulong   ref_buf [buf_size / sizeof(ulong)];
 
@@ -240,6 +243,7 @@ namespace
 
                 pos += buf_size;
             }
+            TEST( rfile.use_count() == 1 );
         }
     }
 
@@ -249,9 +253,9 @@ namespace
         LocalTaskScheduler  scheduler   {IOThreadCount(1)};
         TEST( scheduler->GetFileIOService() );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep(
-                EThreadArray{ EThread::PerFrame, EThread::FileIO }
-            )));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
+                EThreadArray{ EThread::PerFrame, EThread::FileIO }, "worker"
+            }));
 
         auto    task = scheduler->Run( AsyncReadDS_Test3_Coro< RFile, WFile >() );
         TEST( scheduler->Wait({ AsyncTask{task} }));
@@ -270,9 +274,9 @@ namespace
         const uint  buf_size    = 4u << 10;     // Kb
         STATIC_ASSERT( file_size % buf_size == 0 );
 
-        const Path      fname {"ds21_data.txt"};
+        const Path      fname {"ds21_data.bin"};
         {
-            RC<WFile>   wfile = MakeRC<WFile>( fname );
+            RC<AsyncWDataSource>    wfile = MakeRC<WFile>( fname );
             TEST( wfile->IsOpen() );
             TEST( AllBits( wfile->GetSourceType(), ESourceType::RandomAccess | ESourceType::WriteAccess | ESourceType::Async ));
 
@@ -291,16 +295,17 @@ namespace
                 }
 
                 auto    req = wfile->WriteBlock( Bytes{pos}, Bytes{buf_size}, src_buf );
-                TEST( req );
+                TEST( req );    // always non-null
                 TEST( req.use_count() == 2 );
 
-                auto    task = AsyncTask{req->AsPromise().Then( [pos] (const AsyncWDataSource::Result_t &res)
-                                                                {
-                                                                    TEST( pos == res.offset );
-                                                                    TEST( buf_size == res.dataSize );
-                                                                    TEST( res.data == null );
-                                                                    TEST( res.request == null );
-                                                                })};
+                auto    task = AsyncTask{req->AsPromise( ETaskQueue::PerFrame )
+                                .Then(  [pos] (const AsyncWDataSource::Result_t &res)
+                                        {
+                                            TEST( pos == res.pos );
+                                            TEST( buf_size == res.dataSize );
+                                            TEST( res.data == null );
+                                            TEST( res.rc == null );
+                                        })};
                 TEST( task );
 
                 for (;;)
@@ -317,6 +322,7 @@ namespace
 
                 pos += buf_size;
             }
+            TEST( wfile.use_count() == 1 );
         }
         {
             RFile   rfile {fname};
@@ -357,10 +363,12 @@ extern void UnitTest_AsyncDataSource ()
         AsyncReadDS_Test1< WinAsyncRDataSource, FileWDataSource >();
         AsyncReadDS_Test2< WinAsyncRDataSource, FileWDataSource >();
     #  ifdef AE_HAS_COROUTINE
-            AsyncReadDS_Test3< WinAsyncRDataSource, FileWDataSource >();
+        AsyncReadDS_Test3< WinAsyncRDataSource, FileWDataSource >();
     #  endif
         AsyncWriteDS_Test1< FileRDataSource, WinAsyncWDataSource >();
     #endif
+
+    // TODO: async stream
 
     FileSystem::SetCurrentPath( curr );
     TEST_PASSED();

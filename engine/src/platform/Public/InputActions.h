@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "base/Utils/SourceLoc.h"
-#include "serializing/ISerializable.h"
 #include "platform/Public/AppEnums.h"
 
 namespace AE::Base

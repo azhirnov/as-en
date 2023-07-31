@@ -2,13 +2,10 @@
 
 #pragma once
 
-#include "base/Math/MatrixStorage.h"
-#include "base/Containers/TupleArrayView.h"
-
 #include "graphics/Public/IDs.h"
 #include "graphics/Public/RayTracingEnums.h"
 #include "graphics/Public/VertexDesc.h"
-#include "graphics/Public/VulkanTypes.h"
+#include "graphics/Public/BufferDesc.h"
 
 namespace AE::Graphics
 {
@@ -48,9 +45,9 @@ namespace AE::Graphics
 
         struct TrianglesData
         {
-            BufferID        vertexData;         // requires EBufferUsage::ASBuild_ReadOnly, content: 'vertexFormat'
-            BufferID        indexData;          // requires EBufferUsage::ASBuild_ReadOnly, content: 'indexType'
-            BufferID        transformData;      // requires EBufferUsage::ASBuild_ReadOnly, content: RTMatrixStorage
+            BufferID        vertexData;         // requires EBufferUsage::ASBuild_ReadOnly, content: 'vertexFormat',    access: EResourceState::BuildRTAS_Read
+            BufferID        indexData;          // requires EBufferUsage::ASBuild_ReadOnly, content: 'indexType',       access: EResourceState::BuildRTAS_Read
+            BufferID        transformData;      // requires EBufferUsage::ASBuild_ReadOnly, content: RTMatrixStorage,   access: EResourceState::BuildRTAS_Read
             Bytes32u        vertexStride;
             Bytes           vertexDataOffset;
             Bytes           indexDataOffset;
@@ -65,7 +62,7 @@ namespace AE::Graphics
 
         struct AABBsData
         {
-            BufferID        data;               // requires EBufferUsage::ASBuild_ReadOnly
+            BufferID        data;               // requires EBufferUsage::ASBuild_ReadOnly, content: float[6],  access: EResourceState::BuildRTAS_Read
             Bytes           dataOffset;
             Bytes           stride;
         };
@@ -79,7 +76,7 @@ namespace AE::Graphics
         Triangles       triangles;
         AABBs           aabbs;
         ERTASOptions    options     = Default;
-        ScratchBuffer   scratch;
+        ScratchBuffer   scratch;                // requires EBufferUsage::ASBuild_Scratch,  access: EResourceState::BuildRTAS_ScratchBuffer
 
 
     // methods
@@ -104,6 +101,8 @@ namespace AE::Graphics
             scratch.offset  = offset;
             return *this;
         }
+
+        ND_ usize  GeometryCount ()     C_NE___ { return triangles.size() + aabbs.size(); }
     };
 
 
@@ -140,7 +139,7 @@ namespace AE::Graphics
                 uint                mask                :  8;
                 uint                instanceSBTOffset   : 24;
                 uint                flags               :  8;   // ERTInstanceOpt | VkGeometryInstanceFlags
-                VDeviceAddress      rtas;
+                DeviceAddress       rtas;
 
                 Instance ()                                             __NE___;
                 Instance&  SetIdentity ()                               __NE___ { transform         = RTMatrixStorage::Identity();  return *this; }
@@ -179,8 +178,7 @@ namespace AE::Graphics
 
         using ScratchBuffer     = RTGeometryBuild::BufferWithOffset;
         using InstanceBuffer    = RTGeometryBuild::BufferWithOffsetAndStride;
-        using GeomArray_t       = Array< RTGeometryID >;
-        using GeomMap_t         = FlatHashMap< RTGeometryID, uint >;
+        using GeometrySet_t     = FixedSet< RTGeometryID, 64 >;
 
 
     // variables
@@ -188,11 +186,7 @@ namespace AE::Graphics
         ERTASOptions        options             = Default;
         ScratchBuffer       scratch;
         InstanceBuffer      instanceData;
-
-      #if defined(AE_ENABLE_METAL) or defined(AE_ENABLE_REMOTE_GRAPHICS)
-        GeomArray_t         geomArray;
-        GeomMap_t           geomMap;
-      #endif
+        GeometrySet_t       uniqueGeoms;
 
 
     // methods
@@ -214,6 +208,7 @@ namespace AE::Graphics
             return *this;
         }
 
+        // access: EResourceState::BuildRTAS_Read
         ND_ bool  SetGeometry (RTGeometryID id, INOUT Instance &inst) __NE___;
     };
 

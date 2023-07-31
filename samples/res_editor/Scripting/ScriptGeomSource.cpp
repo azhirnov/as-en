@@ -4,18 +4,37 @@
 
 #include "res_editor/GeomSource/SphericalCube.h"
 #include "res_editor/GeomSource/UnifiedGeometry.h"
+#include "res_editor/GeomSource/ModelGeomSource.h"
 
 #include "res_editor/_data/cpp/types.h"
 #include "res_editor/_ui_data/cpp/types.h"
 
-#include "scripting/Impl/ClassBinder.h"
-#include "scripting/Impl/EnumBinder.h"
-
 #include "res_editor/Scripting/PassCommon.inl.h"
+
+#include "res_loaders/Intermediate/IntermScene.h"
+#include "res_loaders/Assimp/AssimpLoader.h"
 
 namespace AE::ResEditor
 {
     using namespace AE::PipelineCompiler;
+
+namespace
+{
+    static ScriptTiledTerrain*  ScriptTiledTerrain_Ctor1 (ScriptTiledTerrain::EMode mode) {
+        return ScriptRC<ScriptTiledTerrain>{ new ScriptTiledTerrain{ mode, ScriptDynamicFloat4Ptr{new ScriptDynamicFloat4{MakeRC<DynamicFloat4>()}} }}.Detach();
+    }
+
+    static ScriptTiledTerrain*  ScriptTiledTerrain_Ctor2 (ScriptTiledTerrain::EMode mode, const ScriptDynamicFloat4Ptr &dynRegion) {
+        return ScriptRC<ScriptTiledTerrain>{ new ScriptTiledTerrain{ mode, dynRegion }}.Detach();
+    }
+
+    static ScriptSceneGeometry*  ScriptSceneGeometry_Ctor1 (const String &filename) {
+        return ScriptRC<ScriptSceneGeometry>{ new ScriptSceneGeometry{ filename }}.Detach();
+    }
+
+} // namespace
+//-----------------------------------------------------------------------------
+
 
 namespace
 {
@@ -117,15 +136,15 @@ namespace
 
 /*
 =================================================
-    _FindPipelinesByUB
+    _FindPipelinesByBuf
 =================================================
 */
     template <typename PplnSpec>
-    static void  _FindPipelinesByUB (StringView dsName, StringView ubTypeName, INOUT Array<PplnSpec> &inPipelines) __Th___
+    static void  _FindPipelinesByBuf (StringView dsName, StringView bufTypeName, EDescriptorType descType, INOUT Array<PplnSpec> &inPipelines) __Th___
     {
         Array<PplnSpec>             out_pplns;
-        const DescriptorSetName     req_ds_name {dsName};
-        const ShaderStructName      req_ub_name {ubTypeName};
+        const DescriptorSetName     req_ds_name     {dsName};
+        const ShaderStructName      req_buf_name    {bufTypeName};
 
         for (auto& ppln : inPipelines)
         {
@@ -140,11 +159,54 @@ namespace
 
                 for (auto& [un_name, un] : dsl->GetUniforms())
                 {
-                    if ( un.type != EDescriptorType::UniformBuffer )
+                    if ( un.type != descType )
                         continue;
 
-                    if ( un.buffer.typeName == req_ub_name )
+                    if ( un.buffer.typeName == req_buf_name ) {
                         out_pplns.push_back( ppln );
+                        break;
+                    }
+                }
+            }
+        }
+
+        inPipelines = RVRef(out_pplns);
+        CHECK_THROW( not inPipelines.empty() );
+    }
+
+    template <typename PplnSpec>
+    static void  _FindPipelinesByUB (StringView dsName, StringView ubTypeName, INOUT Array<PplnSpec> &pipelines) __Th___
+    {
+        _FindPipelinesByBuf( dsName, ubTypeName, EDescriptorType::UniformBuffer, INOUT pipelines );
+    }
+
+    template <typename PplnSpec>
+    static void  _FindPipelinesBySB (StringView dsName, StringView sbTypeName, INOUT Array<PplnSpec> &pipelines) __Th___
+    {
+        _FindPipelinesByBuf( dsName, sbTypeName, EDescriptorType::StorageBuffer, INOUT pipelines );
+    }
+
+/*
+=================================================
+    _FindPipelinesByPC
+=================================================
+*/
+    template <typename PplnSpec>
+    static void  _FindPipelinesByPC (StringView pcTypeName, INOUT Array<PplnSpec> &inPipelines) __Th___
+    {
+        Array<PplnSpec> out_pplns;
+
+        for (auto& ppln : inPipelines)
+        {
+            auto    ppln_layout = ppln->GetBase()->GetLayout();
+            if ( not ppln_layout )
+                continue;
+
+            for (auto& [name, type, shader] : ppln_layout->PushConstants())
+            {
+                if ( type->Name() == pcTypeName ) {
+                    out_pplns.push_back( ppln );
+                    break;
                 }
             }
         }
@@ -192,8 +254,67 @@ namespace
                     counter += usize(tex_names.contains( un_name ));
                 }
 
-                if ( counter == tex_names.size() )
+                if ( counter == tex_names.size() ) {
                     out_pplns.push_back( ppln );
+                    break;
+                }
+            }
+        }
+
+        inPipelines = RVRef(out_pplns);
+        CHECK_THROW( not inPipelines.empty() );
+    }
+
+/*
+=================================================
+    _FindPipelinesByMaterial
+=================================================
+*/
+    template <typename PplnSpec>
+    static void  _FindPipelinesByMaterial (StringView dsName, const ResLoader::IntermMaterial &mtr, INOUT Array<PplnSpec> &inPipelines) __Th___
+    {
+        using MtrTexture = ResLoader::IntermMaterial::MtrTexture;
+
+        Array<PplnSpec>                         out_pplns;
+        const DescriptorSetName                 req_ds_name {dsName};
+        FlatHashSet<UniformName::Optimized_t>   tex_names;
+
+        auto*   begin   = &mtr.GetSettings().albedo;
+        auto*   end     = &mtr.GetSettings().opticalDepth;
+
+        for (; begin < end; ++begin)
+        {
+            if ( auto* tex = UnionGet<MtrTexture>( *begin ))
+                tex_names.emplace( UniformName::Optimized_t{tex->name} );
+        }
+
+        for (auto& ppln : inPipelines)
+        {
+            auto    ppln_layout = ppln->GetBase()->GetLayout();
+            if ( not ppln_layout )
+                continue;
+
+            for (auto& [dsl, ds_name] : ppln_layout->Layouts())
+            {
+                if ( ds_name != req_ds_name )
+                    continue;
+
+                usize   counter = 0;
+                for (auto& [un_name, un] : dsl->GetUniforms())
+                {
+                    if ( un.type != EDescriptorType::CombinedImage_ImmutableSampler and
+                         un.type != EDescriptorType::SampledImage )
+                    {
+                        CHECK( not tex_names.contains( un_name ));
+                        continue;
+                    }
+                    counter += usize(tex_names.contains( un_name ));
+                }
+
+                if ( counter == tex_names.size() ) {
+                    out_pplns.push_back( ppln );
+                    break;
+                }
             }
         }
 
@@ -239,8 +360,10 @@ namespace
                     counter += usize(buf_names.contains( un_name ));
                 }
 
-                if ( counter == buf_names.size() )
+                if ( counter == buf_names.size() ) {
                     out_pplns.push_back( ppln );
+                    break;
+                }
             }
         }
 
@@ -301,6 +424,226 @@ namespace
 
 /*
 =================================================
+    constructor
+=================================================
+*/
+    ScriptTiledTerrain::ScriptTiledTerrain (EMode mode, const ScriptDynamicFloat4Ptr &dynRegion) __Th___ :
+        _mode{mode},
+        _dynRegion{ dynRegion }
+    {
+        CHECK_THROW_MSG( _dynRegion and _dynRegion->Get(), "Dynamic region must not be null" );
+    }
+
+/*
+=================================================
+    SetGenerator
+=================================================
+*/
+    void  ScriptTiledTerrain::SetGenerator (const ScriptBasePassPtr &passGroup) __Th___
+    {
+        CHECK_THROW_MSG( not _generator,
+            "Tile generator is already defined" );
+        CHECK_THROW_MSG( passGroup );
+        CHECK_THROW_MSG( ScriptExe::ScriptResourceApi::IsPassGroup( passGroup ));
+
+        _generator = passGroup;
+    }
+
+/*
+=================================================
+    AddLayer
+=================================================
+*/
+    void  ScriptTiledTerrain::AddLayer (const String &name, const ScriptImagePtr &image) __Th___
+    {
+        CHECK_THROW_MSG( not _layers.contains( name ),
+            "Layer '"s << name << "' is already defined" );
+        CHECK_THROW_MSG( image );
+        CHECK_THROW_MSG( not image->IsMutableDimension() );
+
+        _layers.emplace( name, image );
+    }
+
+/*
+=================================================
+    SetGridSize
+=================================================
+*/
+    void  ScriptTiledTerrain::SetGridSize (uint value) __Th___
+    {
+        CHECK_THROW_MSG( _mode == EMode::Chunk3D,
+            "Grid size can be specified only for 'Chunk3D' mode" );
+        CHECK_THROW_MSG( value >= 2 );
+
+        _vertsPerEdge = value;
+    }
+
+/*
+=================================================
+    DynamicRegion
+=================================================
+*/
+    ScriptDynamicFloat4*  ScriptTiledTerrain::DynamicRegion () __Th___
+    {
+        return ScriptDynamicFloat4Ptr{_dynRegion}.Detach();
+    }
+
+/*
+=================================================
+    Bind
+=================================================
+*/
+    void  ScriptTiledTerrain::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        using namespace Scripting;
+        {
+            EnumBinder<EMode>   binder{ se };
+            binder.Create();
+            binder.AddValue( "Tile2D",  EMode::Tile2D );
+            binder.AddValue( "Chunk3D", EMode::Chunk3D );
+            STATIC_ASSERT( uint(EMode::_Count) == 2 );
+        }{
+            ClassBinder<ScriptTiledTerrain> binder{ se };
+            binder.CreateRef();
+            ScriptGeomSource::_BindBase( binder );
+            binder.AddFactoryCtor( &ScriptTiledTerrain_Ctor1 );
+            binder.AddFactoryCtor( &ScriptTiledTerrain_Ctor2 );
+            binder.AddMethod( &ScriptTiledTerrain::SetGenerator,    "Generator"     );
+            binder.AddMethod( &ScriptTiledTerrain::AddLayer,        "Layer"         );
+            binder.AddMethod( &ScriptTiledTerrain::SetGridSize,     "GridSize"      );
+            binder.AddMethod( &ScriptTiledTerrain::DynamicRegion,   "DynamicRegion" );
+        }
+    }
+
+/*
+=================================================
+    ToGeomSource
+=================================================
+*/
+    RC<IGeomSource>  ScriptTiledTerrain::ToGeomSource () __Th___
+    {
+        if ( _geomSrc )
+            return _geomSrc;
+
+        CHECK_THROW_MSG( _dynRegion );
+        CHECK_THROW_MSG( _generator );
+        CHECK_THROW_MSG( not _layers.empty() );
+
+        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
+        auto        result      = MakeRC<TiledTerrain>( renderer, DynCast<PassGroup>(_generator->ToPass()), _mode, _vertsPerEdge, _dynRegion->Get() );
+
+        for (auto& [name, image] : _layers)
+        {
+            auto&   dst = result->_layers.emplace_back();
+            dst.Get<0>() = UniformName{name};
+            {
+                ImageDesc   desc = image->Description();
+                desc.SetArrayLayers( TiledTerrain::LayerCount );
+                desc.SetAllMipmaps();
+
+                CHECK_THROW_MSG( desc.imageDim == EImageDim_2D );
+                CHECK_THROW_MSG( res_mngr.IsSupported( desc ),
+                    "TerrainImage '"s << name << "' description is not supported by GPU device" );
+
+                dst.Get<1>().image = res_mngr.CreateImage( desc, "Layer: "s << name, renderer.GetAllocator() );
+                CHECK_THROW_MSG( dst.Get<1>().image );
+            }{
+                ImageViewDesc   desc{ image->Description() };
+                desc.viewType = EImage_2DArray;
+
+                dst.Get<1>().view = res_mngr.CreateImageView( desc, dst.Get<1>().image, "Layer: "s << name );
+                CHECK_THROW_MSG( dst.Get<1>().view );
+            }
+            dst.Get<2>() = image->ToResource();
+        }
+
+        _geomSrc = result;
+        return _geomSrc;
+    }
+
+/*
+=================================================
+    FindMaterialPipeline
+=================================================
+*/
+    ScriptGeomSource::PipelineNames_t  ScriptTiledTerrain::FindMaterialPipeline () C_Th___
+    {
+        Array<GraphicsPipelineSpecPtr>  pipelines;
+        _FindPipelinesByVB( "VB{2DGridVertex}", OUT pipelines );                        // throw
+        _FindPipelinesByUB( "material", "TiledTerrainMaterialUB", INOUT pipelines );    // throw
+        _FindPipelinesByTextures( "material", _layers, INOUT pipelines );               // throw
+        return _GetSuitablePipeline( pipelines );
+    }
+
+/*
+=================================================
+    ToMaterial
+=================================================
+*/
+    RC<IGSMaterials>  ScriptTiledTerrain::ToMaterial (RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
+    {
+        CHECK_THROW( _geomSrc );
+        CHECK_THROW( rtech );
+        CHECK_THROW( names.size() == 1 );
+
+        auto        result      = MakeRC<TiledTerrain::Material>();
+        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+
+        result->rtech   = rtech;
+        result->ppln    = rtech->GetGraphicsPipeline( names[0] );
+        CHECK_THROW( result->ppln );
+
+        StructSet( result->descSet, result->mtrDSIndex ) = res_mngr.CreateDescriptorSet( result->ppln, DescriptorSetName{"material"} );
+        CHECK_THROW( result->descSet );
+
+        result->passDSIndex = GetDescSetBinding( res_mngr, result->ppln, DescriptorSetName{"pass"} );
+
+    //  result->ubuffer = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::TiledTerrainMaterialUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
+    //                                           "TiledTerrainMaterialUB", renderer.GetAllocator() );
+    //  CHECK_THROW( result->ubuffer );
+
+        return result;
+    }
+
+/*
+=================================================
+    _CreateUBType
+=================================================
+*/
+    auto  ScriptTiledTerrain::_CreateUBType () __Th___
+    {
+        auto&   obj_storage = *ObjectStorage::Instance();
+        auto    it          = obj_storage.structTypes.find( "TiledTerrainMaterialUB" );
+
+        if ( it != obj_storage.structTypes.end() )
+            return it->second;
+
+        ShaderStructTypePtr st{ new ShaderStructType{"TiledTerrainMaterialUB"}};
+        st->Set( EStructLayout::Std140, R"#(
+                float4x4    transform;
+            )#");
+
+        return st;
+    }
+
+/*
+=================================================
+    GetShaderTypes
+=================================================
+*/
+    void  ScriptTiledTerrain::GetShaderTypes (INOUT CppStructsFromShaders &data) __Th___
+    {
+        auto    st = _CreateUBType();   // throw
+
+        CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
     AddTexture*
 =================================================
 */
@@ -335,9 +678,29 @@ namespace
     void  ScriptSphericalCube::SetDetailLevel2 (uint minLod, uint maxLod) __Th___
     {
         CHECK_THROW_MSG( not _geomSrc );
+        CHECK_THROW_MSG( _minLod == 0 and _maxLod == 0, "already specified" );
 
         _minLod = minLod;
         _maxLod = maxLod;
+    }
+
+/*
+=================================================
+    SetTessLevel*
+=================================================
+*/
+    void  ScriptSphericalCube::SetTessLevel1 (float level) __Th___
+    {
+        return SetTessLevel2( ScriptDynamicFloatPtr{ new ScriptDynamicFloat{ new DynamicFloat{level} }});
+    }
+
+    void  ScriptSphericalCube::SetTessLevel2 (const ScriptDynamicFloatPtr &level) __Th___
+    {
+        CHECK_THROW_MSG( not _geomSrc );
+        CHECK_THROW_MSG( level and level->Get() );
+        CHECK_THROW_MSG( not _tessLevel, "already specified" );
+
+        _tessLevel = level->Get();
     }
 
 /*
@@ -357,6 +720,8 @@ namespace
         binder.AddMethod( &ScriptSphericalCube::AddTexture2,        "AddTexture"    );
         binder.AddMethod( &ScriptSphericalCube::SetDetailLevel1,    "DetailLevel"   );
         binder.AddMethod( &ScriptSphericalCube::SetDetailLevel2,    "DetailLevel"   );
+        binder.AddMethod( &ScriptSphericalCube::SetTessLevel1,      "TessLevel"     );
+        binder.AddMethod( &ScriptSphericalCube::SetTessLevel2,      "TessLevel"     );
     }
 
 /*
@@ -370,7 +735,7 @@ namespace
             return _geomSrc;
 
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
-        auto        result      = MakeRC<SphericalCube>( renderer, _minLod, _maxLod );
+        auto        result      = MakeRC<SphericalCube>( renderer, _minLod, _maxLod, _tessLevel );
 
         _geomSrc = result;
         return _geomSrc;
@@ -405,14 +770,16 @@ namespace
         auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer();  // throw
 
+        auto    ppln = rtech->GetGraphicsPipeline( names[0] );
+        CHECK_THROW( ppln );
+
         result->rtech   = rtech;
-        result->ppln    = rtech->GetGraphicsPipeline( names[0] );
-        CHECK_THROW( result->ppln );
+        result->ppln    = ppln;
 
         CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
-                                                    result->ppln, DescriptorSetName{"material"} ));
+                                                    ppln, DescriptorSetName{"material"} ));
 
-        result->passDSIndex = GetDescSetBinding( res_mngr, result->ppln, DescriptorSetName{"pass"} );
+        result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{"pass"} );
 
         result->ubuffer = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::SphericalCubeMaterialUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
                                                  "SphericalCubeMaterialUB", renderer.GetAllocator() );
@@ -445,6 +812,7 @@ namespace
         ShaderStructTypePtr st{ new ShaderStructType{"SphericalCubeMaterialUB"}};
         st->Set( EStructLayout::Std140, R"#(
                 float4x4    transform;
+                float       tessLevel;
             )#");
 
         return st;
@@ -897,6 +1265,7 @@ namespace
 
     void  ScriptUniGeometry::Draw3 (const DrawIndirectCmd3 &cmd)
     {
+        // TODO: check feature
         CHECK_THROW_MSG( cmd.indirectBuffer );
         CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
         CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawIndirectCommand)) );
@@ -907,6 +1276,7 @@ namespace
 
     void  ScriptUniGeometry::Draw4 (const DrawIndexedIndirectCmd3 &cmd)
     {
+        // TODO: check feature
         CHECK_THROW_MSG( cmd.indexBuffer );
         CHECK_THROW_MSG( cmd.indirectBuffer );
         CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
@@ -918,6 +1288,9 @@ namespace
 
     void  ScriptUniGeometry::Draw5 (const DrawMeshTasksCmd3 &cmd)
     {
+        auto&   ext = RenderTaskScheduler().GetDevice().GetExtensions();
+        CHECK_THROW_MSG( ext.meshShader );
+
         CHECK_THROW_MSG( All( uint3{cmd.taskCount} > uint3{0} ));
 
         _drawCommands.push_back( cmd );
@@ -925,6 +1298,9 @@ namespace
 
     void  ScriptUniGeometry::Draw6 (const DrawMeshTasksIndirectCmd3 &cmd)
     {
+        auto&   ext = RenderTaskScheduler().GetDevice().GetExtensions();
+        CHECK_THROW_MSG( ext.meshShader );
+
         CHECK_THROW_MSG( cmd.indirectBuffer );
         CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
         CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawMeshTasksIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawMeshTasksIndirectCommand)) );
@@ -935,6 +1311,9 @@ namespace
 
     void  ScriptUniGeometry::Draw7 (const DrawIndirectCountCmd3 &cmd)
     {
+        auto&   ext = RenderTaskScheduler().GetDevice().GetExtensions();
+        CHECK_THROW_MSG( ext.drawIndirectCount );
+
         CHECK_THROW_MSG( cmd.indirectBuffer );
         CHECK_THROW_MSG( cmd.countBuffer );
         CHECK_THROW_MSG( cmd.maxDrawCount > 0 or cmd.dynMaxDrawCount );
@@ -946,6 +1325,9 @@ namespace
 
     void  ScriptUniGeometry::Draw8 (const DrawIndexedIndirectCountCmd3 &cmd)
     {
+        auto&   ext = RenderTaskScheduler().GetDevice().GetExtensions();
+        CHECK_THROW_MSG( ext.drawIndirectCount );
+
         CHECK_THROW_MSG( cmd.indexBuffer );
         CHECK_THROW_MSG( cmd.indirectBuffer );
         CHECK_THROW_MSG( cmd.countBuffer );
@@ -958,6 +1340,9 @@ namespace
 
     void  ScriptUniGeometry::Draw9 (const DrawMeshTasksIndirectCountCmd3 &cmd)
     {
+        auto&   ext = RenderTaskScheduler().GetDevice().GetExtensions();
+        CHECK_THROW_MSG( ext.drawIndirectCount and ext.meshShader );
+
         CHECK_THROW_MSG( cmd.indirectBuffer );
         CHECK_THROW_MSG( cmd.countBuffer );
         CHECK_THROW_MSG( cmd.maxDrawCount > 0 or cmd.dynMaxDrawCount );
@@ -1432,6 +1817,270 @@ namespace
         CHECK_THROW( result->ubuffer );
 
         return result;
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    constructor
+=================================================
+*/
+    ScriptSceneGeometry::ScriptSceneGeometry () __Th___
+    {}
+
+    ScriptSceneGeometry::ScriptSceneGeometry (const String &filename) __Th___
+    {
+        _dbgName = Path{filename}.filename().replace_extension("").string().substr( 0, ResNameMaxLen );
+
+        _scenePath = FileSystem::ToAbsolute( filename );
+
+        CHECK_THROW_MSG( FileSystem::IsFile( _scenePath ),
+            "File '"s << ToString(_scenePath) << "' is not exists" );
+    }
+
+/*
+=================================================
+    destructor
+=================================================
+*/
+    ScriptSceneGeometry::~ScriptSceneGeometry ()
+    {}
+
+/*
+=================================================
+    Name
+=================================================
+*/
+    void  ScriptSceneGeometry::Name (const String &name) __Th___
+    {
+        CHECK_THROW_MSG( not _geomSrc,
+            "resource is already created, can not change debug name" );
+
+        _dbgName = name;
+
+        if ( _opaqueRTGeom )
+            _opaqueRTGeom->Name( name + "-Opaque" );
+
+        if ( _translucentRTGeom )
+            _translucentRTGeom->Name( _dbgName + "-Translucent" );
+    }
+
+/*
+=================================================
+    SetTexturePrefix
+=================================================
+*/
+    void  ScriptSceneGeometry::SetTexturePrefix (const String &value) __Th___
+    {
+        CHECK_THROW_MSG( not _geomSrc,
+            "resource is already created, can not change texture prefix" );
+        CHECK_THROW_MSG( _texPrefix.empty(), "already specified" );
+
+        _texPrefix = value;
+    }
+
+/*
+=================================================
+    GetOpaqueRTGeometry
+=================================================
+*/
+    ScriptRTGeometry*  ScriptSceneGeometry::GetOpaqueRTGeometry () __Th___
+    {
+        CHECK_THROW_MSG( not _geomSrc,
+            "resource is already created, can not create RTScene" );
+
+        if ( not _opaqueRTGeom )
+        {
+            _opaqueRTGeom.Attach( new ScriptRTGeometry{} );
+            _opaqueRTGeom->Name( _dbgName + "-Opaque" );
+
+            // TODO
+
+            _opaqueRTGeom->MakeImmutable();
+        }
+
+        return ScriptRTGeometryPtr{_opaqueRTGeom}.Detach();
+    }
+
+/*
+=================================================
+    GetTranslucentRTGeometry
+=================================================
+*/
+    ScriptRTGeometry*  ScriptSceneGeometry::GetTranslucentRTGeometry () __Th___
+    {
+        CHECK_THROW_MSG( not _geomSrc,
+            "resource is already created, can not create RTGeometry" );
+
+        if ( not _translucentRTGeom )
+        {
+            _translucentRTGeom.Attach( new ScriptRTGeometry{} );
+            _translucentRTGeom->Name( _dbgName + "-Translucent" );
+
+            // TODO
+
+            _translucentRTGeom->MakeImmutable();
+        }
+
+        return ScriptRTGeometryPtr{_translucentRTGeom}.Detach();
+    }
+
+/*
+=================================================
+    SetTransform
+=================================================
+*/
+    void  ScriptSceneGeometry::SetTransform (const packed_float4x4 &value) __Th___
+    {
+        CHECK_THROW_MSG( not _geomSrc,
+            "resource is already created, can not set initial transform" );
+
+        _initialTransform = float4x4{value};
+    }
+
+/*
+=================================================
+    Bind
+=================================================
+*/
+    void  ScriptSceneGeometry::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        Scripting::ClassBinder<ScriptSceneGeometry> binder{ se };
+        binder.CreateRef( 0, False{"no ctor"} );
+        ScriptGeomSource::_BindBase( binder );
+        binder.AddFactoryCtor( &ScriptSceneGeometry_Ctor1 );
+
+        binder.AddMethod( &ScriptSceneGeometry::Name,                       "Name"                  );
+        binder.AddMethod( &ScriptSceneGeometry::SetTexturePrefix,           "TexturePrefix"         );
+        binder.AddMethod( &ScriptSceneGeometry::SetTransform,               "InitialTransform"      );
+        binder.AddMethod( &ScriptSceneGeometry::GetOpaqueRTGeometry,        "OpaqueRTGeometry"      );
+        binder.AddMethod( &ScriptSceneGeometry::GetTranslucentRTGeometry,   "TranslucentRTGeometry" );
+    }
+
+/*
+=================================================
+    GetShaderTypes
+=================================================
+*/
+    void  ScriptSceneGeometry::GetShaderTypes (INOUT CppStructsFromShaders &) __Th___
+    {
+    }
+
+/*
+=================================================
+    ToGeomSource
+=================================================
+*/
+    RC<IGeomSource>  ScriptSceneGeometry::ToGeomSource () __Th___
+    {
+        using namespace ResLoader;
+
+        if ( _geomSrc )
+            return _geomSrc;
+
+        IModelLoader::Config    cfg;
+
+        _intermScene.reset( new IntermScene{} );
+        
+        #ifdef AE_ENABLE_ASSIMP
+            AssimpLoader    loader;
+            CHECK_THROW_MSG( loader.LoadModel( *_intermScene, _scenePath, cfg ),
+                "failed to load model from '"s << ToString(_scenePath) << "'" );
+        #endif
+
+        Renderer&   renderer = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
+
+        _geomSrc = MakeRC<ModelGeomSource>( renderer, _intermScene, _initialTransform );
+        return _geomSrc;
+    }
+
+/*
+=================================================
+    FindMaterialPipeline
+=================================================
+*/
+    ScriptGeomSource::PipelineNames_t  ScriptSceneGeometry::FindMaterialPipeline () C_Th___
+    {
+        CHECK_THROW_MSG( _intermScene );
+
+    #if 0
+        ScriptGeomSource::PipelineNames_t   ppln_per_mtr;
+
+        _intermScene->ForEachModel(
+            [&ppln_per_mtr] (const ResLoader::IntermScene::ModelData &model)
+            {
+                auto    mesh    = model.levels[ uint(ResLoader::EDetailLevel::High) ].mesh;
+                auto    mtr     = model.levels[ uint(ResLoader::EDetailLevel::High) ].mtr;
+
+                CHECK_THROW_MSG( mesh and mtr );
+                CHECK_THROW_MSG( mesh->Attribs() != null );
+                CHECK_THROW_MSG( mesh->Topology() == EPrimitive::TriangleList );
+
+                Array<GraphicsPipelineSpecPtr>  pipelines;
+                _FindPipelinesByVB( _AttribsToVBName( *mesh->Attribs() ), OUT pipelines );  // throw
+                _FindPipelinesBySB( "material", "ModelNodeArray", INOUT pipelines );        // throw
+                _FindPipelinesBySB( "material", "ModelMeshArray", INOUT pipelines );        // throw
+                _FindPipelinesBySB( "material", "ModelMaterialArray", INOUT pipelines );    // throw
+                _FindPipelinesByPC( "draw_model.pc", INOUT pipelines );                     // throw
+                _FindPipelinesByMaterial( "material", *mtr, INOUT pipelines );              // throw
+
+                auto    tmp = _GetSuitablePipeline( pipelines );
+                CHECK_THROW_MSG( tmp.size() == 1 );
+                ppln_per_mtr.push_back( tmp[0] );
+            });
+
+        return ppln_per_mtr;
+    #else
+
+        Array<GraphicsPipelineSpecPtr>  pipelines;
+        _FindPipelinesByVB( "VB{Posf3, Normf3, UVf2}", OUT pipelines );             // throw
+    //  _FindPipelinesWithoutVB( OUT pipelines );
+    //  _FindPipelinesBySB( "material", "ModelNodeArray", INOUT pipelines );        // throw
+    //  _FindPipelinesBySB( "material", "ModelMeshArray", INOUT pipelines );        // throw
+    //  _FindPipelinesBySB( "material", "ModelMaterialArray", INOUT pipelines );    // throw
+        _FindPipelinesByPC( "ModelNode", INOUT pipelines );                         // throw
+    //  _FindPipelinesByMaterial( "material", *mtr, INOUT pipelines );              // throw
+        return _GetSuitablePipeline( pipelines );
+    #endif
+    }
+
+/*
+=================================================
+    ToMaterial
+=================================================
+*/
+    RC<IGSMaterials>  ScriptSceneGeometry::ToMaterial (RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
+    {
+        CHECK_THROW( _geomSrc );
+        CHECK_THROW( rtech );
+        CHECK_THROW( names.size() == 1 );
+
+        auto    result      = MakeRC<ModelGeomSource::Material>();
+        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+
+        result->rtech   = rtech;
+        result->ppln    = rtech->GetGraphicsPipeline( names[0] );
+        CHECK_THROW( result->ppln );
+
+        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
+                                                    result->ppln, DescriptorSetName{"material"} ));
+
+        result->passDSIndex = GetDescSetBinding( res_mngr, result->ppln, DescriptorSetName{"pass"} );
+
+        return result;
+    }
+
+/*
+=================================================
+    _AttribsToVBName
+=================================================
+*/
+    String  ScriptSceneGeometry::_AttribsToVBName (const ResLoader::IntermVertexAttribs &) __Th___
+    {
+        // TODO
+        return "VB{Pos3_Norm3_UV2}";
     }
 
 

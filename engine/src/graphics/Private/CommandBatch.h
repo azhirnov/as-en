@@ -296,13 +296,13 @@ namespace AE::Graphics
                          const Tuple<Deps...>&  deps,
                          const TaskBarriers_t*  initialBarriers,
                          const TaskBarriers_t*  finalBarriers,
-                         Bool                   isLastTaskInBatch,
+                         Bool                   submitBatchAtTheEnd,
                          DebugLabel             dbg     = Default)              __NE___;
 
         template <typename TaskType, typename ...Ctor, typename ...Deps>
         AsyncTask   Run (Tuple<Ctor...>&&       ctor,
                          const Tuple<Deps...>&  deps,
-                         Bool                   isLastTaskInBatch,
+                         Bool                   submitBatchAtTheEnd,
                          DebugLabel             dbg)                            __NE___;
 
         template <typename TaskType, typename ...Ctor, typename ...Deps>
@@ -315,7 +315,7 @@ namespace AE::Graphics
                              const Tuple<Deps...>&  deps,
                              const TaskBarriers_t*  initialBarriers,
                              const TaskBarriers_t*  finalBarriers,
-                             Bool                   isLastTaskInBatch)          __NE___;
+                             Bool                   submitBatchAtTheEnd)        __NE___;
 
 
       #ifdef AE_HAS_COROUTINE
@@ -324,13 +324,13 @@ namespace AE::Graphics
                          const Tuple<Deps...>&  deps,
                          const TaskBarriers_t*  initialBarriers,
                          const TaskBarriers_t*  finalBarriers,
-                         Bool                   isLastTaskInBatch,
+                         Bool                   submitBatchAtTheEnd,
                          DebugLabel             dbg     = Default)              __NE___;
 
         template <typename ...Deps>
         AsyncTask   Run (RenderTaskCoro_t       coro,
                          const Tuple<Deps...>&  deps,
-                         Bool                   isLastTaskInBatch,
+                         Bool                   submitBatchAtTheEnd,
                          DebugLabel             dbg     = Default)              __NE___;
 
         template <typename ...Deps>
@@ -475,12 +475,12 @@ namespace AE::Graphics
                                   const Tuple<Deps...>& deps,
                                   const TaskBarriers_t* initialBarriers,
                                   const TaskBarriers_t* finalBarriers,
-                                  Bool                  isLastTaskInBatch) __NE___
+                                  Bool                  submitBatchAtTheEnd) __NE___
     {
         STATIC_ASSERT( IsBaseOf< RenderTask, RemoveRC<TaskType> >);
         CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
 
-        if_unlikely( isLastTaskInBatch )
+        if_unlikely( submitBatchAtTheEnd )
         {
             task->_submit = true;
             _EndRecording();
@@ -505,7 +505,7 @@ namespace AE::Graphics
                               const Tuple<Deps...>& deps,
                               const TaskBarriers_t* initialBarriers,
                               const TaskBarriers_t* finalBarriers,
-                              Bool                  isLastTaskInBatch,
+                              Bool                  submitBatchAtTheEnd,
                               DebugLabel            dbg) __NE___
     {
         STATIC_ASSERT( IsBaseOf< RenderTask, TaskType >);
@@ -522,7 +522,7 @@ namespace AE::Graphics
             auto    task = ctorArgs.Apply([this, dbg] (auto&& ...args)
                                           { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });   // throw
 
-            if_unlikely( isLastTaskInBatch )
+            if_unlikely( submitBatchAtTheEnd )
             {
                 task->_submit = true;
                 _EndRecording();
@@ -542,10 +542,10 @@ namespace AE::Graphics
     template <typename TaskType, typename ...Ctor, typename ...Deps>
     AsyncTask  CMDBATCH::Run (Tuple<Ctor...> &&     ctorArgs,
                               const Tuple<Deps...>& deps,
-                              Bool                  isLastTaskInBatch,
+                              Bool                  submitBatchAtTheEnd,
                               DebugLabel            dbg) __NE___
     {
-        return Run<TaskType>( RVRef(ctorArgs), deps, null, null, isLastTaskInBatch, dbg );
+        return Run<TaskType>( RVRef(ctorArgs), deps, null, null, submitBatchAtTheEnd, dbg );
     }
 
     template <typename TaskType, typename ...Ctor, typename ...Deps>
@@ -567,7 +567,7 @@ namespace AE::Graphics
                               const Tuple<Deps...>& deps,
                               const TaskBarriers_t* initialBarriers,
                               const TaskBarriers_t* finalBarriers,
-                              Bool                  isLastTaskInBatch,
+                              Bool                  submitBatchAtTheEnd,
                               DebugLabel            dbg) __NE___
     {
         CHECK_ERR( IsRecording(),   Scheduler().GetCanceledTask() );
@@ -584,7 +584,7 @@ namespace AE::Graphics
         auto&   rtask = coro.AsRenderTask();
         CHECK_ERR( rtask._Init( GetRC<CMDBATCH>(), dbg ),  Scheduler().GetCanceledTask() );
 
-        if_unlikely( isLastTaskInBatch )
+        if_unlikely( submitBatchAtTheEnd )
         {
             rtask._submit = true;
             _EndRecording();
@@ -602,10 +602,10 @@ namespace AE::Graphics
     template <typename ...Deps>
     AsyncTask  CMDBATCH::Run (RenderTaskCoro        coro,
                               const Tuple<Deps...>& deps,
-                              Bool                  isLastTaskInBatch,
+                              Bool                  submitBatchAtTheEnd,
                               DebugLabel            dbg) __NE___
     {
-        return Run( RVRef(coro), deps, null, null, isLastTaskInBatch, dbg );
+        return Run( RVRef(coro), deps, null, null, submitBatchAtTheEnd, dbg );
     }
 
     template <typename ...Deps>

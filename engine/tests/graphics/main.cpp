@@ -141,14 +141,15 @@ extern int Test_Graphics (IApplication &app, IWindow &wnd)
 
     Unique<IApplication::IAppListener>  AE_OnAppCreated ()
     {
-        AE::Base::StaticLogger::InitDefault();
+        StaticLogger::InitDefault();
+        StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
 
         return MakeUnique<AppListener>();
     }
 
     void  AE_OnAppDestroyed ()
     {
-        AE::Base::StaticLogger::Deinitialize(true);
+        StaticLogger::Deinitialize(true);
     }
 
 #endif // AE_PLATFORM_ANDROID

@@ -53,7 +53,7 @@ namespace AE::Samples::Demo
             auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
 
             CHECK_TE( t->cube1.Create( res_mngr, ctx, t->gfxAlloc ));
-            CHECK_TE( t->cube2.Create( res_mngr, ctx, t->lod, t->lod, false, t->gfxAlloc ));
+            CHECK_TE( t->cube2.Create( res_mngr, ctx, t->lod, t->lod, False{"no quads"}, Default, t->gfxAlloc ));
 
             ctx.AccumBarriers()
                 .MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
@@ -140,8 +140,7 @@ namespace AE::Samples::Demo
         IOutputSurface::RenderTargets_t     targets;
         CHECK_TE( surface.GetTargets( OUT targets ));
 
-        auto&           rt          = targets[0];
-        const uint2     view_size   = rt.RegionSize();
+        const uint2     view_size   = targets[0].RegionSize();
 
         // resize depth buffer
         {
@@ -152,7 +151,7 @@ namespace AE::Samples::Demo
                 // delayed destruction
                 res_mngr.DelayedReleaseResources( t->depthBuf.image, t->depthBuf.view );
 
-                t->depthBuf.image = res_mngr.CreateImage( ImageDesc::CreateDepthAttachment( view_size, EPixelFormat::Depth32F ), "Sample3D depth" );
+                t->depthBuf.image = res_mngr.CreateImage( ImageDesc::CreateDepthAttachment( view_size, EPixelFormat::Depth16 ), "Sample3D depth" );
                 CHECK_TE( t->depthBuf.image );
 
                 t->depthBuf.view = res_mngr.CreateImageView( ImageViewDesc{}, t->depthBuf.image, "Sample3D depth view" );
@@ -166,25 +165,39 @@ namespace AE::Samples::Demo
         DirectCtx::Transfer     copy_ctx{ *this };
 
         // for staging buffers
-        copy_ctx.AccumBarriers().MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc );
+        copy_ctx.AccumBarriers()
+            .MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc );
 
         // update uniforms
+        for (usize i = 0; i < targets.size(); ++i)
         {
+            const auto&     rt  = targets[i];
+            const Bytes     off = AlignUp( SizeOf<ShaderTypes::simple3d_ub>, DeviceLimits.res.minUniformBufferOffsetAlign ) * i;
+
             ShaderTypes::simple3d_ub    ub;
-            ub.mvp = t->camera.GetCamera().ToModelViewProjMatrix();
+
+            if ( rt.projection )
+                ub.mvp = rt.projection->ViewProj() * t->camera.ToModelViewMatrix();
+            else
+                ub.mvp = t->camera.ToModelViewProjMatrix();
 
             // barrier is not needed because of semaphore
-            CHECK_TE( copy_ctx.UploadBuffer( t->uniformBuf, 0_b, Sizeof(ub), &ub ));
+            CHECK_TE( copy_ctx.UploadBuffer( t->uniformBuf, off, Sizeof(ub), &ub ));
 
-            copy_ctx.AccumBarriers().BufferBarrier( t->uniformBuf, EResourceState::CopyDst, EResourceState::ShaderUniform | EResourceState::PreRasterizationShaders );
+            copy_ctx.AccumBarriers()
+                .BufferBarrier( t->uniformBuf, EResourceState::CopyDst, EResourceState::ShaderUniform | EResourceState::PreRasterizationShaders );
         }
 
 
         DirectCtx::Graphics     gctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 
         // draw
+        for (usize i = 0; i < targets.size(); ++i)
         {
-            const auto  rp_desc =
+            const auto&     rt  = targets[i];
+            const uint      off = uint(AlignUp( SizeOf<ShaderTypes::simple3d_ub>, DeviceLimits.res.minUniformBufferOffsetAlign ) * i);
+
+            const auto      rp_desc =
                 RenderPassDesc{ t->rtech, RenderTechPassName{"Main"}, view_size }
                     .AddViewport( view_size )
                     .AddTarget( AttachmentName{"Color"}, rt.viewId,         RGBA32f{HtmlColor::Black},  rt.initialState | EResourceState::Invalidate,   rt.finalState )
@@ -193,7 +206,7 @@ namespace AE::Samples::Demo
             auto    dctx = gctx.BeginRenderPass( rp_desc );
 
             dctx.BindPipeline( t->ppln );
-            dctx.BindDescriptorSet( t->dsIndex, t->descSet );
+            dctx.BindDescriptorSet( t->dsIndex, t->descSet, {off} );
 
             if ( t->use_cube1 )
                 t->cube1.Draw( dctx );
@@ -226,7 +239,9 @@ namespace AE::Samples::Demo
         ppln = rtech->GetGraphicsPipeline( use_cube1 ? PipelineName{"simple3d.draw1"} : PipelineName{"simple3d.draw2"} );
         CHECK_ERR( ppln );
 
-        uniformBuf = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::simple3d_ub>, EBufferUsage::Uniform | EBufferUsage::TransferDst }, "Sample3D uniforms" );
+        uniformBuf = res_mngr.CreateBuffer( BufferDesc{ AlignUp( SizeOf<ShaderTypes::simple3d_ub>, DeviceLimits.res.minUniformBufferOffsetAlign ) * 2,
+                                                        EBufferUsage::Uniform | EBufferUsage::TransferDst },
+                                            "Sample3D uniforms" );
         CHECK_ERR( uniformBuf );
 
         // update descriptors
@@ -238,7 +253,7 @@ namespace AE::Samples::Demo
             DescriptorUpdater   updater;
 
             CHECK_ERR( updater.Set( descSet, EDescUpdateMode::Partialy ));
-            updater.BindBuffer< ShaderTypes::simple3d_ub >( UniformName{"drawUB"}, uniformBuf );
+            updater.BindBuffer( UniformName{"drawUB"}, uniformBuf, 0_b, SizeOf<ShaderTypes::simple3d_ub> );
 
             CHECK_ERR( updater.Flush() );
         }
@@ -272,8 +287,8 @@ namespace AE::Samples::Demo
         if ( not uploaded.load() )
         {
             uploaded.store( true );
-
-            upload[0] = batch->Run< UploadTextureTask >( Tuple{this}, Tuple{deps} );
+            upload[0]   = batch->Run< UploadTextureTask >( Tuple{this}, Tuple{deps} );
+            deps        = ArrayView<AsyncTask>{ upload };
         }
 
         auto    surf_acquire = rg.BeginOnSurface( batch, deps );

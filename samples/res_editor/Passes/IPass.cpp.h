@@ -16,20 +16,21 @@ namespace AE::ResEditor
     template <typename CtxType>
     void  IPass::_SetResStates (FrameUID fid, CtxType &ctx, const Resources_t &resources)
     {
-        for (auto& [un, res, state] : resources)
+        for (auto& [un, res, in_state] : resources)
         {
+            auto&   state   = in_state;
             Visit( res,
-                [&ctx, state] (const RC<Buffer> &buf) {
-                    ctx.ResourceState( buf->GetBufferId(), state );
+                [&] (const RC<Buffer> &buf) {
+                    ctx.ResourceState( buf->GetBufferId( fid ), state );
                 },
-                [&ctx, state, fid] (const RC<RTScene> &scene) {
-                    scene->Validate();
+                [&] (const RC<RTScene> &scene) {
+                    scene->Validate( fid );
                     ctx.ResourceState( scene->GetSceneId( fid ), state );
                 },
-                [&ctx, state] (const RC<Image> &img) {
+                [&] (const RC<Image> &img) {
                     ctx.ResourceState( img->GetImageId(), state );
                 },
-                [&ctx, state] (const RC<VideoImage> &video) {
+                [&] (const RC<VideoImage> &video) {
                     ctx.ResourceState( video->GetImageId(), state );
                 },
                 [](NullUnion) {}
@@ -64,20 +65,20 @@ namespace AE::ResEditor
 */
     inline bool  IPass::_BindRes (FrameUID fid, DescriptorUpdater &updater, Resources_t &resources)
     {
-        for (auto& [un, res, state] : resources)
+        for (auto& [in_un, res, state] : resources)
         {
+            auto&   un  = in_un;
             CHECK_ERR( Visit( res,
-                            [&un, &updater] (const RC<Buffer> &buf) {
-                                buf->UpdateVersion();
-                                return updater.BindBuffer( un, buf->GetBufferId() );
+                            [&] (const RC<Buffer> &buf) {
+                                return updater.BindBuffer( un, buf->GetBufferId( fid ));
                             },
-                            [&un, &updater, fid] (const RC<RTScene> &scene) {
+                            [&] (const RC<RTScene> &scene) {
                                 return updater.BindRayTracingScene( un, scene->GetSceneId( fid ));
                             },
-                            [&un, &updater] (const RC<Image> &img) {
+                            [&] (const RC<Image> &img) {
                                 return updater.BindImage( un, img->GetViewId() );
                             },
-                            [&un, &updater] (const RC<VideoImage> &video) {
+                            [&] (const RC<VideoImage> &video) {
                                 return updater.BindImage( un, video->GetViewId() );
                             },
                             [](NullUnion) {

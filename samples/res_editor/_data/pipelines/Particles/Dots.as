@@ -18,7 +18,7 @@
                     "float4     color;" );
         }{
             RC<DescriptorSetLayout> ds = DescriptorSetLayout( "particles.mtr.ds" );
-            ds.UniformBuffer( EShaderStages::Vertex, "mtrUB", ArraySize(1), "UnifiedGeometryMaterialUB" );
+            ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", ArraySize(1), "UnifiedGeometryMaterialUB" );
             ds.StorageBuffer( EShaderStages::Vertex, "un_Particles", ArraySize(1), "ParticleArray", EAccessType::Coherent, EResourceState::ShaderStorage_Read );
         }{
             RC<PipelineLayout>      pl = PipelineLayout( "particles.pl" );
@@ -28,7 +28,6 @@
 
         {
             RC<GraphicsPipeline>    ppln = GraphicsPipeline( "particles.draw1" );
-            ppln.AddFeatureSet( "Default" );
             ppln.SetLayout( "particles.pl" );
             ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
             ppln.SetShaderIO( EShader::Vertex,   EShader::Geometry, "particles.io.vs_gs" );
@@ -51,8 +50,7 @@
             // specialization
             {
                 RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "particles.draw1" );
-                spec.AddToRenderTech( "rtech", "main" );
-                spec.SetViewportCount( 1 );
+                spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
                 RenderState rs;
 
@@ -82,11 +80,9 @@
     void Main ()
     {
         Particle    p   = un_Particles.elements[gl.VertexIndex];
-        float4x4    mv  = passUB.camera.view * mtrUB.transform;
-
-        gl.Position     = mv * float4(p.position_size.xyz, 1.0);
+        gl.Position     = un_PerPass.camera.view * (un_PerObject.transform * float4(p.position_size.xyz, 1.0));
         Out.color       = unpackUnorm4x8( floatBitsToUint( p.velocity_color.w ));
-        Out.size        = p.position_size.w * 4.0 / Max( passUB.resolution.x, passUB.resolution.y );
+        Out.size        = p.position_size.w * 4.0 / Max( un_PerPass.resolution.x, un_PerPass.resolution.y );
     }
 
 #endif
@@ -105,28 +101,28 @@
 
         // a: left-bottom
         float2  va  = pos.xy + float2(-0.5, -0.5) * size;
-        gl.Position = passUB.camera.proj * float4(va, pos.zw);
+        gl.Position = un_PerPass.camera.proj * float4(va, pos.zw);
         Out.uv      = float2(0.0, 0.0);
         Out.color   = color;
         gl.EmitVertex();
 
         // b: left-top
         float2  vb  = pos.xy + float2(-0.5, 0.5) * size;
-        gl.Position = passUB.camera.proj * float4(vb, pos.zw);
+        gl.Position = un_PerPass.camera.proj * float4(vb, pos.zw);
         Out.uv      = float2(0.0, 1.0);
         Out.color   = color;
         gl.EmitVertex();
 
         // d: right-bottom
         float2  vd  = pos.xy + float2(0.5, -0.5) * size;
-        gl.Position = passUB.camera.proj * float4(vd, pos.zw);
+        gl.Position = un_PerPass.camera.proj * float4(vd, pos.zw);
         Out.uv      = float2(1.0, 0.0);
         Out.color   = color;
         gl.EmitVertex();
 
         // c: right-top
         float2  vc  = pos.xy + float2(0.5, 0.5) * size;
-        gl.Position = passUB.camera.proj * float4(vc, pos.zw);
+        gl.Position = un_PerPass.camera.proj * float4(vc, pos.zw);
         Out.uv      = float2(1.0, 1.0);
         Out.color   = color;
         gl.EmitVertex();

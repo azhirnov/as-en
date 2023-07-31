@@ -246,7 +246,6 @@ namespace AE::Graphics
                 case EShaderStages::RayIntersection :   flags |= VK_SHADER_STAGE_INTERSECTION_BIT_KHR;          break;
                 case EShaderStages::RayCallable :       flags |= VK_SHADER_STAGE_CALLABLE_BIT_KHR;              break;
                 case EShaderStages::Tile :              flags |= VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI;    break;
-                case EShaderStages::_Last :
                 case EShaderStages::Unknown :
                 case EShaderStages::GraphicsStages :
                 case EShaderStages::MeshStages :
@@ -449,7 +448,6 @@ namespace AE::Graphics
                 case EImageOpt::SparseAliased :                 flags |= VK_IMAGE_CREATE_SPARSE_BINDING_BIT | VK_IMAGE_CREATE_SPARSE_ALIASED_BIT;   break;
                 case EImageOpt::Alias :                         flags |= VK_IMAGE_CREATE_ALIAS_BIT;                                                 break;
                 case EImageOpt::SampleLocationsCompatible :     flags |= VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT;                 break;
-                case EImageOpt::Subsampled :                    flags |= VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT;                                        break;
 
                 case EImageOpt::BlitSrc :
                 case EImageOpt::BlitDst :
@@ -563,7 +561,6 @@ namespace AE::Graphics
                 case EImageUsage::DepthStencilAttachment :  flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;   break;
                 case EImageUsage::InputAttachment :         flags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;           break;
                 case EImageUsage::ShadingRate :             flags |= VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;   break;
-                case EImageUsage::FragmentDensityMap :      flags |= VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT;   break;
                 case EImageUsage::_Last :
                 case EImageUsage::Unknown :
                 case EImageUsage::Transfer :
@@ -749,12 +746,11 @@ namespace AE::Graphics
     {
         ASSERT( AnyBits( value, EResourceState::AllShaders ));
 
-        constexpr auto PreRasterizationShaders =
+        constexpr auto VertexProcessingShaders =
             VK_SHADER_STAGE_VERTEX_BIT |
             VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT |
             VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT |
             VK_SHADER_STAGE_GEOMETRY_BIT |
-            VK_SHADER_STAGE_TASK_BIT_EXT |
             VK_SHADER_STAGE_MESH_BIT_EXT;
 
         constexpr auto RayTracingShaders =
@@ -766,7 +762,8 @@ namespace AE::Graphics
             VK_SHADER_STAGE_CALLABLE_BIT_KHR;
 
         VkShaderStageFlags  result = Zero;
-        if ( AllBits( value, EResourceState::PreRasterizationShaders )) result |= PreRasterizationShaders;
+        if ( AllBits( value, EResourceState::MeshTaskShader ))          result |= VK_SHADER_STAGE_TASK_BIT_EXT;
+        if ( AllBits( value, EResourceState::VertexProcessingShaders )) result |= VertexProcessingShaders;
         if ( AllBits( value, EResourceState::TileShader ))              result |= VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI;
         if ( AllBits( value, EResourceState::FragmentShader ))          result |= VK_SHADER_STAGE_FRAGMENT_BIT;
         if ( AllBits( value, EResourceState::ComputeShader ))           result |= VK_SHADER_STAGE_COMPUTE_BIT;
@@ -783,21 +780,22 @@ namespace AE::Graphics
     {
         outLayout = VK_IMAGE_LAYOUT_MAX_ENUM;
 
-        constexpr auto PreRasterizationShaders =
+        constexpr auto VertexProcessingShaders =
             VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT |
             VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT |
             VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT |
             VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT |
-            VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT |
             VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT;
 
         DBG_CHECK_MSG( EResourceState_RequireShaderStage( value ) == AnyBits( value, EResourceState::AllShaders ),
-                    "shader stage is not compatible with access mask" );
+                       "shader stage is not compatible with access mask" );
 
         VkPipelineStageFlagBits2    sh_stages   = Zero;
         VkPipelineStageFlagBits2    ds_stages   = Zero;
 
-        sh_stages |= AnyBits( value, EResourceState::PreRasterizationShaders )  ? PreRasterizationShaders                       : 0;
+        // PreRasterizationShaders
+        sh_stages |= AnyBits( value, EResourceState::MeshTaskShader )           ? VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT       : 0;
+        sh_stages |= AnyBits( value, EResourceState::VertexProcessingShaders )  ? VertexProcessingShaders                       : 0;
         sh_stages |= AnyBits( value, EResourceState::TileShader )               ? VK_PIPELINE_STAGE_2_SUBPASS_SHADING_BIT_HUAWEI: 0;
         sh_stages |= AnyBits( value, EResourceState::FragmentShader )           ? VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT       : 0;
         // ignore PostRasterizationShaders
@@ -854,17 +852,16 @@ namespace AE::Graphics
             case EResourceState::IndexBuffer :                      outStage = VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT;                         outAccess = VK_ACCESS_2_INDEX_READ_BIT;                                                                                                                                                                                                             break;
             case EResourceState::VertexBuffer :                     outStage = VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT;              outAccess = VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT;                                                                                                                                                                                                  break;
             case EResourceState::ShadingRateImage :                 outStage = VK_PIPELINE_STAGE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;outAccess = VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;                                                                              outLayout = VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;                       break;
-            case EResourceState::FragmentDensityMap :               outStage = VK_PIPELINE_STAGE_2_FRAGMENT_DENSITY_PROCESS_BIT_EXT;        outAccess = VK_ACCESS_2_FRAGMENT_DENSITY_MAP_READ_BIT_EXT;                                                                                          outLayout = VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT;                                   break;
 
             case EResourceState::CopyRTAS_Read :                    outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;     outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_2_TRANSFER_READ_BIT;                                                                                                                                                        break;
             case EResourceState::CopyRTAS_Write :                   outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;     outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR | VK_ACCESS_2_TRANSFER_WRITE_BIT;                                                                                                                                                      break;
-            case EResourceState::BuildRTAS_Read :                   outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;    outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;                                                                                                                                                                                        break;
+            case EResourceState::BuildRTAS_Read :                   outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;    outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_SHADER_READ_BIT;                                                                                                                                                            break;
             case EResourceState::BuildRTAS_Write :                  outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;    outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;                                                                                                                                                                                       break;
             case EResourceState::BuildRTAS_RW :                     outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;    outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;                                                                                                                                     break;
-            case EResourceState::BuildRTAS_ScratchBuffer :          outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;    outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;                                                                                                                                                                                        break;
+            case EResourceState::BuildRTAS_IndirectBuffer :         outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;    outAccess = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;                                                                                                                                                                                                  break;
 
             case EResourceState::ShaderRTAS_Read :                  outStage = sh_stages;                                                   outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;                                                                                                                                                                ASSERT( sh_stages );    break;
-            case EResourceState::RTShaderBindingTable :             outStage = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;              outAccess = VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR;                                                                                                                                                                                          break;
+            case EResourceState::RTShaderBindingTable :             outStage = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;              outAccess = VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR | VK_ACCESS_2_SHADER_STORAGE_READ_BIT;                                                                                                                                                    break;
 
             case EResourceState::General :                          outStage = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;                        outAccess = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT;                                                                             outLayout = VK_IMAGE_LAYOUT_GENERAL;                                                            break;
 
@@ -875,9 +872,11 @@ namespace AE::Graphics
             case EResourceState::DSTestAfterFS :
             case EResourceState::Invalidate :
             case EResourceState::_FlagsMask :
-            case EResourceState::PreRasterizationShaders :
+            case EResourceState::MeshTaskShader :
+            case EResourceState::VertexProcessingShaders :
             case EResourceState::TileShader :
             case EResourceState::FragmentShader :
+            case EResourceState::PreRasterizationShaders :
             case EResourceState::PostRasterizationShaders :
             case EResourceState::ComputeShader :
             case EResourceState::RayTracingShaders :
@@ -1018,7 +1017,7 @@ namespace AE::Graphics
         outVideoUsage   = Default;
         outMemType      = Default;
 
-        STATIC_ASSERT( uint(EImageUsage::All) == 0x1FF );
+        STATIC_ASSERT( uint(EImageUsage::All) == 0xFF );
         while ( usage != Zero )
         {
             auto    t = VkImageUsageFlagBits( ExtractBit( INOUT usage ));
@@ -1033,7 +1032,6 @@ namespace AE::Graphics
                 case VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT :          outUsage |= EImageUsage::ColorAttachment;           outMemType |= EMemoryType::DeviceLocal; break;
                 case VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT :  outUsage |= EImageUsage::DepthStencilAttachment;    outMemType |= EMemoryType::DeviceLocal; break;
                 case VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT :          outUsage |= EImageUsage::InputAttachment;           outMemType |= EMemoryType::DeviceLocal; break;
-                case VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT :  outUsage |= EImageUsage::FragmentDensityMap;        break;
                 case VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR: outUsage |= EImageUsage::ShadingRate;     outMemType |= EMemoryType::DeviceLocal; break;
                 case VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT :
                     outUsage    |= EImageUsage::ColorAttachment | EImageUsage::DepthStencilAttachment | EImageUsage::InputAttachment;
@@ -1047,6 +1045,7 @@ namespace AE::Graphics
                 case VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR :      outVideoUsage |= EVideoImageUsage::EncodeDst;       break;
                 case VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR :      outVideoUsage |= EVideoImageUsage::EncodeSrc;       break;
 
+                case VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT :
                 case VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI:
                 case VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT :
                 case VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM :
@@ -1087,7 +1086,7 @@ namespace AE::Graphics
     {
         EImageOpt   result = Zero;
 
-        STATIC_ASSERT( uint(EImageOpt::All) == 0x3FFFF );
+        STATIC_ASSERT( uint(EImageOpt::All) == 0x1FFFF );
         while ( values != Zero )
         {
             VkImageCreateFlagBits   t = ExtractBit( INOUT values );
@@ -1101,12 +1100,12 @@ namespace AE::Graphics
                 case VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT :                         result |= EImageOpt::SparseResidency;           break;
                 case VK_IMAGE_CREATE_SPARSE_ALIASED_BIT :                           result |= EImageOpt::SparseAliased;             break;
                 case VK_IMAGE_CREATE_ALIAS_BIT :                                    result |= EImageOpt::Alias;                     break;
-                case VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT :                           result |= EImageOpt::Subsampled;                break;
                 case VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT :              result |= EImageOpt::BlockTexelViewCompatible;  break;
                 case VK_IMAGE_CREATE_SAMPLE_LOCATIONS_COMPATIBLE_DEPTH_BIT_EXT :    result |= EImageOpt::SampleLocationsCompatible; break;
 
                 case VK_IMAGE_CREATE_DISJOINT_BIT :                                 break;  // skip
 
+                case VK_IMAGE_CREATE_SUBSAMPLED_BIT_EXT :
                 case VK_IMAGE_CREATE_SPARSE_BINDING_BIT :
                 case VK_IMAGE_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT :
                 case VK_IMAGE_CREATE_EXTENDED_USAGE_BIT :
@@ -1972,16 +1971,17 @@ namespace AE::Graphics
 */
     ND_ inline VkComponentMapping  VEnumCast (const ImageSwizzle &value) __NE___
     {
-        constexpr VkComponentSwizzle    components[] = {
+        constexpr StaticArray< VkComponentSwizzle, 8 >  components = {{
             VK_COMPONENT_SWIZZLE_IDENTITY,  // unknown
             VK_COMPONENT_SWIZZLE_R,
             VK_COMPONENT_SWIZZLE_G,
             VK_COMPONENT_SWIZZLE_B,
             VK_COMPONENT_SWIZZLE_A,
             VK_COMPONENT_SWIZZLE_ZERO,
-            VK_COMPONENT_SWIZZLE_ONE
-        };
-        const uint4         swizzle = Min( uint4(uint(CountOf(components)-1)), value.ToVec() );
+            VK_COMPONENT_SWIZZLE_ONE,
+            VK_COMPONENT_SWIZZLE_IDENTITY,  // unknown
+        }};
+        const uint4         swizzle = value.ToVec();
         VkComponentMapping  result  = { components[swizzle.x], components[swizzle.y], components[swizzle.z], components[swizzle.w] };
         return result;
     }

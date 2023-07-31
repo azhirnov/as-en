@@ -2,8 +2,6 @@
 
 #include <span>
 #include "UnitTest_Common.h"
-#include "base/Math/Vec.h"
-#include "base/Math/Matrix.h"
 
 namespace
 {

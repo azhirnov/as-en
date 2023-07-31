@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Containers/ArrayView.h"
-#include "SphericalCubeMath.h"
+#include "geometry_tools/SphericalCube/SphericalCubeMath.h"
 
 namespace AE::GeometryTools
 {
@@ -18,28 +17,36 @@ namespace AE::GeometryTools
     public:
         struct Vertex
         {
-            packed_float3   position;   // in normalized coords
-            float           _padding1;
-            packed_float3   texcoord;
-            float           _padding2;
-            //packed_float3 tangent;    // TODO: use it for distortion correction and for tessellation (instead of linear interpolation)
-
-            Vertex () {}
-            Vertex (const packed_float3 &pos, const packed_float3 &texc) : position{pos}, texcoord{texc} {}
+            packed_short4   position;
+            packed_short4   texcoord;
+            packed_short4   tangent;
+            packed_short4   bitangent;
         };
         STATIC_ASSERT( sizeof(Vertex) == 32 );
+
+        struct UnpackedVertex
+        {
+            float3      position;   // in normalized coords
+            float3      texcoord;
+            //float3    projection; // TODO: use it for distortion correction and for tessellation (instead of linear interpolation)
+            float3      tangent;
+            float3      bitangent;
+
+            UnpackedVertex () = default;
+            UnpackedVertex (const Vertex &v);
+        };
 
         using Index = uint;     // TODO: ushort ?
 
 
     // variables
     protected:
-        Array<Vertex>   _vertices;
-        Array<Index>    _indices;
+        Array<Vertex>       _vertices;
+        Array<Index>        _indices;
 
-        uint            _minLod         = 0;
-        uint            _maxLod         = 0;
-        bool            _quads          = false;    // quads for tessellation
+        uint                _minLod         = 0;
+        uint                _maxLod         = 0;
+        bool                _quads          = false;    // quads for tessellation
 
 
     // methods

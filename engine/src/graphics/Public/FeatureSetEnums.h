@@ -89,17 +89,17 @@ namespace AE::Graphics
         Barrier,                    //  |   void subgroupBarrier()                              |   void simdgroup_barrier(mem_none)            | - execution barrier
                                     //  |   void subgroupMemoryBarrier()                        |   void simdgroup_barrier(all)                 | - wait for the completion of accesses to all memory types
                                     //  |   void subgroupMemoryBarrierBuffer()                  |   void simdgroup_barrier(mem_device)          | - wait for the completion of accesses to buffer memory
-                                    //  |   void subgroupMemoryBarrierShared()                  |   void simdgroup_barrier(???)                 | - wait for the completion of accesses to shared memory
+                                    //  |   void subgroupMemoryBarrierShared()                  |   void simdgroup_barrier(mem_threadgroup)     | - wait for the completion of accesses to shared memory
                                     //  |   void subgroupMemoryBarrierImage()                   |   void simdgroup_barrier(mem_texture)         | - wait for the completion of accesses to image memory
                                     //  '-------------------------------------------------------'-----------------------------------------------'
         _Basic_Begin                = IndexAndSize,
         _Basic_End                  = Barrier,
 
         //                              |-------------------------------------------------------|-----------------------------------------------|
-        // ---- Vote ----               |                       GL_KHR_shader_subgroup_vote     |                                               | - returns true if any active invocation has 'value == true'
-        Any,                        //  |   bool subgroupAny(bool value)                        |   bool simd_any(bool value)                   | - returns true if all active invocation have 'value == true'
-        All,                        //  |   bool subgroupAll(bool value)                        |   bool simd_all(bool value)                   | - returns true if all active invocation have a 'value' that is equal
-        AllEqual,                   //  |   bool subgroupAllEqual(T value)                      |   -                                           |
+        // ---- Vote ----               |                       GL_KHR_shader_subgroup_vote     |                                               |
+        Any,                        //  |   bool subgroupAny(bool value)                        |   bool simd_any(bool value)                   | - returns true if any active invocation has 'value == true'
+        All,                        //  |   bool subgroupAll(bool value)                        |   bool simd_all(bool value)                   | - returns true if all active invocation have 'value == true'
+        AllEqual,                   //  |   bool subgroupAllEqual(T value)                      |   -                                           | - returns true if all active invocation have a 'value' that is equal
                                     //  '-------------------------------------------------------'-----------------------------------------------'
         _Vote_Begin                 = Any,
         _Vote_End                   = AllEqual,
@@ -121,7 +121,7 @@ namespace AE::Graphics
         InclusiveOr,                //  |   T subgroupInclusiveOr(T value)                      |   -                                           | - returns an inclusive scan operation that is the bitwise OR of all active invocation-provided 'value's.
         InclusiveXor,               //  |   T subgroupInclusiveXor(T value)                     |   -                                           | - returns an inclusive scan operation that is the bitwise XOR of all active invocation-provided 'value's.
         ExclusiveAdd,               //  |   T subgroupExclusiveAdd(T value)                     |   T simd_prefix_exclusive_sum(T value)        | - returns an exclusive scan operation that is the summation of all active invocation-provided 'value's.
-        ExclusiveMul,               //  |   T subgroupExclusiveMul(T value)                     |   T simd_prefix_exclusive_product (T value)   | - returns an exclusive scan operation that is the multiplication of all active invocation-provided 'value's.
+        ExclusiveMul,               //  |   T subgroupExclusiveMul(T value)                     |   T simd_prefix_exclusive_product(T value)    | - returns an exclusive scan operation that is the multiplication of all active invocation-provided 'value's.
         ExclusiveMin,               //  |   T subgroupExclusiveMin(T value)                     |   -                                           | - returns an exclusive scan operation that is the minimum <value> of all active invocation-provided 'value's.
         ExclusiveMax,               //  |   T subgroupExclusiveMax(T value)                     |   -                                           | - returns an exclusive scan operation that is the maximum <value> of all active invocation-provided 'value's.
         ExclusiveAnd,               //  |   T subgroupExclusiveAnd(T value)                     |   -                                           | - returns an exclusive scan operation that is the bitwise AND of all active invocation-provided 'value's.

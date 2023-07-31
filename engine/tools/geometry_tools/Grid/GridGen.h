@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Containers/ArrayView.h"
-#include "base/Math/Vec.h"
+#include "geometry_tools/GeometryTools.pch.h"
 
 namespace AE::GeometryTools
 {

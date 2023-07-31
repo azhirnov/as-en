@@ -70,6 +70,7 @@ void ASmain ()
     fset.uniformAndStorageBuffer8BitAccess (True);
     fset.uniformBufferStandardLayout (True);
     fset.scalarBlockLayout (True);
+    fset.bufferDeviceAddress (True);
     fset.fragmentStoresAndAtomics (True);
     fset.vertexPipelineStoresAndAtomics (True);
     fset.shaderClipDistance (True);

@@ -1,19 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     Purpose:
-    * lock-free multiple producers
-    * blocked for extracting multiple elements (single consumer)
-    * lock-free for extracting single element
+        * lock-free multiple producers
+        * non-lock-free for extracting multiple elements (single consumer)
+        * lock-free for extracting single element
 */
 
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "base/Math/BitMath.h"
-# include "base/Math/Bytes.h"
-# include "base/Math/Math.h"
-# include "base/Memory/UntypedAllocator.h"
-# include "base/Memory/CopyPolicy.h"
 # include "threading/Primitives/Atomic.h"
 # include "threading/Primitives/SpinLock.h"
 # include "threading/Primitives/DataRaceCheck.h"
@@ -47,10 +42,10 @@ namespace AE::Threading
             uint    last    : 15;
             uint    locked  : 1;
 
-            Bits () : first{0}, last{0}, locked{0} {}
+            Bits ()                 __NE___ : first{0}, last{0}, locked{0} {}
 
-            ND_ bool  Empty ()  const   { return first >= last; }
-            ND_ uint  Count ()  const   { return first < last ? last - first : 0; }
+            ND_ bool  Empty ()      C_NE___ { return first >= last; }
+            ND_ uint  Count ()      C_NE___ { return first < last ? last - first : 0; }
         };
 
 

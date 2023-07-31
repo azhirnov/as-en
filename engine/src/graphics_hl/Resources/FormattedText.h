@@ -12,9 +12,7 @@
 
 #pragma once
 
-#include "base/Memory/LinearAllocator.h"
-#include "serializing/ISerializable.h"
-#include "graphics/Public/Common.h"
+#include "graphics_hl/GraphicsHL.pch.h"
 
 namespace AE::Graphics
 {

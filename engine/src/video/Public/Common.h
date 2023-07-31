@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "graphics/Public/ResourceEnums.h"
-#include "graphics/Public/VideoEnums.h"
 #include "platform/Public/InputSurface.h"
 #include "platform/Public/OutputSurface.h"
 

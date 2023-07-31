@@ -411,46 +411,42 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
-namespace std
+template <>
+class std::numeric_limits< AE::Math::SFloat16 > final
 {
-    template <>
-    class numeric_limits< AE::Math::SFloat16 > final
-    {
-    public:
-        static constexpr bool   is_signed       = true;
-        static constexpr bool   is_specialized  = true;
-        static constexpr int    radix           = 2;
-        static constexpr int    digits          = 11;
-        static constexpr int    digits10        = 3;    // TODO: check
-        static constexpr int    max_digits10    = 1;    // TODO: check
-        static constexpr int    max_exponent    = 16;
-        static constexpr int    max_exponent10  = 1;    // TODO: check
-        static constexpr int    min_exponent    = -15;
-        static constexpr int    min_exponent10  = -1;   // TODO: check
+public:
+    static constexpr bool   is_signed       = true;
+    static constexpr bool   is_specialized  = true;
+    static constexpr int    radix           = 2;
+    static constexpr int    digits          = 11;
+    static constexpr int    digits10        = 3;    // TODO: check
+    static constexpr int    max_digits10    = 1;    // TODO: check
+    static constexpr int    max_exponent    = 16;
+    static constexpr int    max_exponent10  = 1;    // TODO: check
+    static constexpr int    min_exponent    = -15;
+    static constexpr int    min_exponent10  = -1;   // TODO: check
 
-        ND_ static constexpr AE::Math::SFloat16  min () __NE___ { return AE::Math::SFloat16::Min(); }
+    ND_ static constexpr AE::Math::SFloat16  min () __NE___ { return AE::Math::SFloat16::Min(); }
 
-        ND_ static constexpr AE::Math::SFloat16  max () __NE___ { return AE::Math::SFloat16::Max(); }
-    };
+    ND_ static constexpr AE::Math::SFloat16  max () __NE___ { return AE::Math::SFloat16::Max(); }
+};
 
-    template <>
-    class numeric_limits< AE::Math::UFloat16 > final
-    {
-    public:
-        static constexpr bool   is_signed       = false;
-        static constexpr bool   is_specialized  = true;
-        static constexpr int    radix           = 2;
-        static constexpr int    digits          = 11;
-        static constexpr int    digits10        = 3;    // TODO: check
-        static constexpr int    max_digits10    = 1;    // TODO: check
-        static constexpr int    max_exponent    = 16;
-        static constexpr int    max_exponent10  = 1;    // TODO: check
-        static constexpr int    min_exponent    = -15;
-        static constexpr int    min_exponent10  = -1;   // TODO: check
+template <>
+class std::numeric_limits< AE::Math::UFloat16 > final
+{
+public:
+    static constexpr bool   is_signed       = false;
+    static constexpr bool   is_specialized  = true;
+    static constexpr int    radix           = 2;
+    static constexpr int    digits          = 11;
+    static constexpr int    digits10        = 3;    // TODO: check
+    static constexpr int    max_digits10    = 1;    // TODO: check
+    static constexpr int    max_exponent    = 16;
+    static constexpr int    max_exponent10  = 1;    // TODO: check
+    static constexpr int    min_exponent    = -15;
+    static constexpr int    min_exponent10  = -1;   // TODO: check
 
-        ND_ static constexpr AE::Math::UFloat16  min () __NE___ { return AE::Math::UFloat16::Min(); }
+    ND_ static constexpr AE::Math::UFloat16  min () __NE___ { return AE::Math::UFloat16::Min(); }
 
-        ND_ static constexpr AE::Math::UFloat16  max () __NE___ { return AE::Math::UFloat16::Max(); }
-    };
-
-} // std
+    ND_ static constexpr AE::Math::UFloat16  max () __NE___ { return AE::Math::UFloat16::Max(); }
+};

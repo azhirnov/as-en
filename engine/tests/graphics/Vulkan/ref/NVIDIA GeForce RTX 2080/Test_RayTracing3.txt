@@ -1,0 +1,617 @@
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'RayTracing1 |0| Upload RTAS task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   ALL_COMMANDS ---> ALL_COMMANDS
+      access:  0 ---> MEMORY_READ | MEMORY_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY | INDEX_INPUT | VERTEX_ATTRIBUTE_INPUT
+      access: HOST_WRITE | MEMORY_READ | MEMORY_WRITE ---> INDEX_READ | VERTEX_ATTRIBUTE_READ | TRANSFER_READ | TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:1} {q:Graphics}'
+    dst: 'RTAS vertex buffer'
+      copy [0, 48) ---> [0, 48)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY
+      access: MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:1} {q:Graphics}'
+    dst: 'RTAS index buffer'
+      copy [48, 60) ---> [0, 12)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY
+      access: MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:1} {q:Graphics}'
+    dst: 'RTAS instance buffer'
+      copy [60, 124) ---> [0, 64)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> ACCELERATION_STRUCTURE_BUILD
+      access: TRANSFER_WRITE | MEMORY_READ | MEMORY_WRITE ---> SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT geometry'
+    scratch: 'RTAS scratch buffer'
+    type: BottomLevel
+    mode: Build
+    [0] Triangles
+      vertexData:    'RTAS vertex buffer'
+      indexData:     'RTAS index buffer'
+      transformData: null
+    ----
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> ACCELERATION_STRUCTURE_BUILD
+      access: TRANSFER_WRITE | MEMORY_READ | MEMORY_WRITE | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE ---> SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT scene'
+    scratch: 'RTAS scratch buffer'
+    type: TopLevel
+    mode: Build
+    [0] Instances
+      data: 'RTAS instance buffer'
+    ----
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ACCELERATION_STRUCTURE_BUILD ---> ALL_COMMANDS
+      access: SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE ---> MEMORY_READ | MEMORY_WRITE
+  ----------
+
+}
+--------------------------------------------------
+name: 'RayTracing1 |1| Ray tracing task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> RAY_TRACING_SHADER
+      access: MEMORY_READ | MEMORY_WRITE ---> SHADER_STORAGE_WRITE
+  ----------
+
+  TraceRays
+    descriptors:
+      image: 'Image', layout: GENERAL
+      accel struct: 'RT scene'
+  ----------
+
+}
+--------------------------------------------------
+name: 'RayTracing1 |2| Readback task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   RAY_TRACING_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-0',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'RayTracing1 |0| Upload RTAS task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   ALL_COMMANDS ---> ALL_COMMANDS
+      access:  0 ---> MEMORY_READ | MEMORY_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY | INDEX_INPUT | VERTEX_ATTRIBUTE_INPUT
+      access: HOST_WRITE | MEMORY_READ | MEMORY_WRITE ---> INDEX_READ | VERTEX_ATTRIBUTE_READ | TRANSFER_READ | TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:0} {q:Graphics}'
+    dst: 'RTAS vertex buffer'
+      copy [0, 48) ---> [0, 48)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY
+      access: MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:0} {q:Graphics}'
+    dst: 'RTAS index buffer'
+      copy [48, 60) ---> [0, 12)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY
+      access: MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:0} {q:Graphics}'
+    dst: 'RTAS instance buffer'
+      copy [60, 124) ---> [0, 64)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> ACCELERATION_STRUCTURE_BUILD
+      access: TRANSFER_WRITE | MEMORY_READ | MEMORY_WRITE ---> SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT geometry'
+    scratch: 'RTAS scratch buffer'
+    type: BottomLevel
+    mode: Build
+    [0] Triangles
+      vertexData:    'RTAS vertex buffer'
+      indexData:     'RTAS index buffer'
+      transformData: null
+    ----
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> ACCELERATION_STRUCTURE_BUILD
+      access: TRANSFER_WRITE | MEMORY_READ | MEMORY_WRITE | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE ---> SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT scene'
+    scratch: 'RTAS scratch buffer'
+    type: TopLevel
+    mode: Build
+    [0] Instances
+      data: 'RTAS instance buffer'
+    ----
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ACCELERATION_STRUCTURE_BUILD ---> ALL_COMMANDS
+      access: SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE ---> MEMORY_READ | MEMORY_WRITE
+  ----------
+
+}
+--------------------------------------------------
+name: 'RayTracing1 |1| Ray tracing task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> RAY_TRACING_SHADER
+      access: MEMORY_READ | MEMORY_WRITE ---> SHADER_STORAGE_WRITE
+  ----------
+
+  TraceRays
+    descriptors:
+      image: 'Image', layout: GENERAL
+      accel struct: 'RT scene'
+  ----------
+
+}
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   RAY_TRACING_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-1',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   ALL_COMMANDS ---> ALL_COMMANDS
+      access:  0 ---> MEMORY_READ | MEMORY_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY | INDEX_INPUT | VERTEX_ATTRIBUTE_INPUT
+      access: HOST_WRITE | MEMORY_READ | MEMORY_WRITE ---> INDEX_READ | VERTEX_ATTRIBUTE_READ | TRANSFER_READ | TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:1} {q:Graphics}'
+    dst: 'RTAS vertex buffer'
+      copy [0, 48) ---> [0, 48)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY
+      access: MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:1} {q:Graphics}'
+    dst: 'RTAS index buffer'
+      copy [48, 60) ---> [0, 12)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY
+      access: MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:1} {q:Graphics}'
+    dst: 'RTAS instance buffer'
+      copy [60, 124) ---> [0, 64)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> ACCELERATION_STRUCTURE_BUILD
+      access: TRANSFER_WRITE | MEMORY_READ | MEMORY_WRITE ---> SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT geometry'
+    scratch: 'RTAS scratch buffer'
+    type: BottomLevel
+    mode: Build
+    [0] Triangles
+      vertexData:    'RTAS vertex buffer'
+      indexData:     'RTAS index buffer'
+      transformData: null
+    ----
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> ACCELERATION_STRUCTURE_BUILD
+      access: TRANSFER_WRITE | MEMORY_READ | MEMORY_WRITE | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE ---> SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT scene'
+    scratch: 'RTAS scratch buffer'
+    type: TopLevel
+    mode: Build
+    [0] Instances
+      data: 'RTAS instance buffer'
+    ----
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ACCELERATION_STRUCTURE_BUILD ---> ALL_COMMANDS
+      access: SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE ---> MEMORY_READ | MEMORY_WRITE
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> RAY_TRACING_SHADER
+      access: MEMORY_READ | MEMORY_WRITE ---> SHADER_STORAGE_WRITE
+  ----------
+
+  TraceRays
+    descriptors:
+      image: 'Image', layout: GENERAL
+      accel struct: 'RT scene'
+  ----------
+
+}
+--------------------------------------------------
+name: 'RayTracing1 |2| Readback task'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   RAY_TRACING_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-2',  stage: ALL_COMMANDS
+}
+==================================================
+==================================================
+Batch in queue: 'Graphics', (0)
+--------------------------------------------------
+name: 'IndirectCmdBuffers'
+{
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   ALL_COMMANDS ---> ALL_COMMANDS
+      access:  0 ---> MEMORY_READ | MEMORY_WRITE
+      layout:  UNDEFINED ---> GENERAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY | INDEX_INPUT | VERTEX_ATTRIBUTE_INPUT
+      access: HOST_WRITE | MEMORY_READ | MEMORY_WRITE ---> INDEX_READ | VERTEX_ATTRIBUTE_READ | TRANSFER_READ | TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:0} {q:Graphics}'
+    dst: 'RTAS vertex buffer'
+      copy [0, 48) ---> [0, 48)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY
+      access: MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:0} {q:Graphics}'
+    dst: 'RTAS index buffer'
+      copy [48, 60) ---> [0, 12)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> COPY
+      access: MEMORY_READ | MEMORY_WRITE ---> TRANSFER_WRITE
+  ----------
+
+  CopyBuffer
+    src: 'SSWB {f:0} {q:Graphics}'
+    dst: 'RTAS instance buffer'
+      copy [60, 124) ---> [0, 64)
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> ACCELERATION_STRUCTURE_BUILD
+      access: TRANSFER_WRITE | MEMORY_READ | MEMORY_WRITE ---> SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT geometry'
+    scratch: 'RTAS scratch buffer'
+    type: BottomLevel
+    mode: Build
+    [0] Triangles
+      vertexData:    'RTAS vertex buffer'
+      indexData:     'RTAS index buffer'
+      transformData: null
+    ----
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> ACCELERATION_STRUCTURE_BUILD
+      access: TRANSFER_WRITE | MEMORY_READ | MEMORY_WRITE | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE ---> SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE
+  ----------
+
+  BuildAccelerationStructures
+    dstAS: 'RT scene'
+    scratch: 'RTAS scratch buffer'
+    type: TopLevel
+    mode: Build
+    [0] Instances
+      data: 'RTAS instance buffer'
+    ----
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ACCELERATION_STRUCTURE_BUILD ---> ALL_COMMANDS
+      access: SHADER_READ | ACCELERATION_STRUCTURE_READ | ACCELERATION_STRUCTURE_WRITE ---> MEMORY_READ | MEMORY_WRITE
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  ALL_COMMANDS ---> RAY_TRACING_SHADER
+      access: MEMORY_READ | MEMORY_WRITE ---> SHADER_STORAGE_WRITE
+  ----------
+
+  TraceRays
+    descriptors:
+      image: 'Image', layout: GENERAL
+      accel struct: 'RT scene'
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   RAY_TRACING_SHADER ---> COPY
+      access:  SHADER_STORAGE_WRITE ---> TRANSFER_READ
+      layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    MemoryBarrier:
+      stage:  COPY ---> HOST
+      access: TRANSFER_WRITE ---> HOST_READ
+  ----------
+
+  CopyImageToBuffer
+    src:       'Image'
+    srcLayout: TRANSFER_SRC_OPTIMAL
+    dst:       'dynamic staging buffer'
+      copy { off:(0, 0, 0), ext:(800, 600, 1), mip:0, layers:[0, 1), COLOR } ---> { [0, 1920000) }
+  ----------
+
+  PipelineBarrier2
+    dependencyFlags: 0
+    ImageBarrier:
+      name:    'Image'
+      stage:   COPY ---> ALL_COMMANDS
+      access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
+      layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
+  ----------
+
+}
+--------------------------------------------------
+signalSemaphore = {
+  'sync-3',  stage: ALL_COMMANDS
+}
+==================================================

@@ -12,6 +12,8 @@ namespace AE::PipelineCompiler
 {
 namespace
 {
+    using namespace glslang;
+
 #ifndef AE_ENABLE_GLSLANG
     enum TBasicType : ubyte {
         EbtVoid,
@@ -568,7 +570,7 @@ namespace
     GetTypeSizeOf
 =================================================
 */
-    ND_ inline uint  GetTypeSizeOf (TBasicType type)
+    ND_ inline uint  GetTypeSizeOf (uint type)
     {
         switch ( type )
         {
@@ -624,13 +626,13 @@ namespace
             uint        prev_pos    = *(data_ptr++);
             uint        expr_id     = *(data_ptr++);
             uint        type        = *(data_ptr++);
-            TBasicType  t_basic     = TBasicType(type & 0xFF);
+            uint        t_basic     = (type & 0xFF);
             uint        row_size    = (type >> 8) & 0xF;                    // for scalar, vector and matrix
             uint        col_size    = Max(1u, (type >> 12) & 0xF );         // only for matrix
             uint const* data        = data_ptr;
             Trace*      trace       = null;
 
-            CHECK_ERR( (t_basic == TBasicType::EbtVoid and row_size == 0) or (row_size > 0 and row_size <= 4) );
+            CHECK_ERR( (t_basic == uint(TBasicType::EbtVoid) and row_size == 0) or (row_size > 0 and row_size <= 4) );
             CHECK_ERR( col_size > 0 and col_size <= 4 );
 
             data_ptr += (row_size * col_size) * GetTypeSizeOf( t_basic );
@@ -666,7 +668,7 @@ namespace
             if ( t_basic == ShaderTrace::TBasicType_Clock )
                 CHECK_ERR( trace->AddTime( expr, row_size, col_size, data ))
             else
-                CHECK_ERR( trace->AddState( expr, t_basic, row_size, col_size, data, _varNames, _sources, format, INOUT str ));
+                CHECK_ERR( trace->AddState( expr, TBasicType(t_basic), row_size, col_size, data, _varNames, _sources, format, INOUT str ));
 
             trace->lastPosition = pos;
         }

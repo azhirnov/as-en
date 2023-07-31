@@ -43,11 +43,31 @@ namespace AE::ResEditor
 */
     void  UnifiedGeometry::StateTransition (IGSMaterials &, GraphicsCtx_t &ctx) __NE___
     {
-        const auto  buf_state   = EResourceState::ShaderStorage_RW | EResourceState::AllShaders;
-        const auto  tex_state   = EResourceState::ShaderSample | EResourceState::AllShaders;
+        const auto  buf_state   = EResourceState::ShaderStorage_RW  | EResourceState::AllGraphicsShaders;
+        const auto  tex_state   = EResourceState::ShaderSample      | EResourceState::AllGraphicsShaders;
+        const auto  fid         = ctx.GetFrameId().Index();
 
         for (auto& [name, buf] : _meshes) {
-            ctx.ResourceState( buf->GetBufferId(), buf_state );
+            ctx.ResourceState( buf->GetBufferId( fid ), buf_state );
+        }
+        for (auto& [name, tex] : _textures) {
+            ctx.ResourceState( tex->GetViewId(), tex_state );
+        }
+    }
+
+/*
+=================================================
+    StateTransition
+=================================================
+*/
+    void  UnifiedGeometry::StateTransition (IGSMaterials &, RayTracingCtx_t &ctx) __NE___
+    {
+        const auto  buf_state   = EResourceState::ShaderStorage_RW  | EResourceState::RayTracingShaders;
+        const auto  tex_state   = EResourceState::ShaderSample      | EResourceState::RayTracingShaders;
+        const auto  fid         = ctx.GetFrameId().Index();
+
+        for (auto& [name, buf] : _meshes) {
+            ctx.ResourceState( buf->GetBufferId( fid ), buf_state );
         }
         for (auto& [name, tex] : _textures) {
             ctx.ResourceState( tex->GetViewId(), tex_state );
@@ -62,12 +82,12 @@ namespace AE::ResEditor
     bool  UnifiedGeometry::Draw (const DrawData &in) __NE___
     {
         auto&           ctx     = in.ctx;
-        auto&           mtr     = Cast<Material>(in.mtr);
+        auto&           mtr     = RefCast<Material>(in.mtr);
         DescriptorSetID mtr_ds  = mtr.descSets[ ctx.GetFrameId().Index() ];
 
         CHECK( _drawCommands.size() == mtr.pplns.size() );
 
-        const auto      BindPipeline = [&ctx] (const Material::PplnID_t &pplnId)
+        const auto      BindPipeline = [&ctx] (const auto &pplnId)
         {{
             Visit( pplnId,
                 [&ctx] (GraphicsPipelineID ppln)    { ctx.BindPipeline( ppln ); },
@@ -96,7 +116,7 @@ namespace AE::ResEditor
 
                 [&ctx] (const DrawIndexedCmd2 &src)
                 {
-                    ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId(), src.indexBufferOffset, src.indexType );
+                    ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), src.indexBufferOffset, src.indexType );
 
                     Graphics::DrawIndexedCmd    cmd = src;
                     cmd.indexCount      = src.dynIndexCount ? src.dynIndexCount->Get() : src.indexCount;
@@ -113,17 +133,17 @@ namespace AE::ResEditor
                 [&ctx] (const DrawIndirectCmd2 &src)
                 {
                     Graphics::DrawIndirectCmd   cmd = src;
-                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
                     cmd.drawCount       = src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
                     ctx.DrawIndirect( cmd );
                 },
 
                 [&ctx] (const DrawIndexedIndirectCmd2 &src)
                 {
-                    ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId(), src.indexBufferOffset, src.indexType );
+                    ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), src.indexBufferOffset, src.indexType );
 
                     Graphics::DrawIndexedIndirectCmd    cmd = src;
-                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
                     cmd.drawCount       = src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
                     ctx.DrawIndexedIndirect( cmd );
                 },
@@ -131,7 +151,7 @@ namespace AE::ResEditor
                 [&ctx] (const DrawMeshTasksIndirectCmd2 &src)
                 {
                     Graphics::DrawMeshTasksIndirectCmd  cmd = src;
-                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
                     cmd.drawCount       = src.dynDrawCount ? src.dynDrawCount->Get() : src.drawCount;
                     ctx.DrawMeshTasksIndirect( cmd );
                 },
@@ -139,19 +159,19 @@ namespace AE::ResEditor
                 [&ctx] (const DrawIndirectCountCmd2 &src)
                 {
                     Graphics::DrawIndirectCountCmd  cmd = src;
-                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
-                    cmd.countBuffer     = src.countBufferPtr->GetBufferId();
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
+                    cmd.countBuffer     = src.countBufferPtr->GetBufferId( ctx.GetFrameId() );
                     cmd.maxDrawCount    = src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
                     ctx.DrawIndirectCount( cmd );
                 },
 
                 [&ctx] (const DrawIndexedIndirectCountCmd2 &src)
                 {
-                    ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId(), src.indexBufferOffset, src.indexType );
+                    ctx.BindIndexBuffer( src.indexBufferPtr->GetBufferId( ctx.GetFrameId() ), src.indexBufferOffset, src.indexType );
 
                     Graphics::DrawIndexedIndirectCountCmd   cmd = src;
-                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
-                    cmd.countBuffer     = src.countBufferPtr->GetBufferId();
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
+                    cmd.countBuffer     = src.countBufferPtr->GetBufferId( ctx.GetFrameId() );
                     cmd.maxDrawCount    = src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
                     ctx.DrawIndexedIndirectCount( cmd );
                 },
@@ -159,8 +179,8 @@ namespace AE::ResEditor
                 [&ctx] (const DrawMeshTasksIndirectCountCmd2 &src)
                 {
                     Graphics::DrawMeshTasksIndirectCountCmd cmd = src;
-                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId();
-                    cmd.countBuffer     = src.countBufferPtr->GetBufferId();
+                    cmd.indirectBuffer  = src.indirectBufferPtr->GetBufferId( ctx.GetFrameId() );
+                    cmd.countBuffer     = src.countBufferPtr->GetBufferId( ctx.GetFrameId() );
                     cmd.maxDrawCount    = src.dynMaxDrawCount ? src.dynMaxDrawCount->Get() : src.maxDrawCount;
                     ctx.DrawMeshTasksIndirectCount( cmd );
                 });
@@ -176,13 +196,14 @@ namespace AE::ResEditor
 */
     bool  UnifiedGeometry::Update (const UpdateData &in) __NE___
     {
-        auto&   ctx = in.ctx;
-        auto&   mtr = Cast<Material>(in.mtr);
+        auto&       ctx = in.ctx;
+        auto&       mtr = RefCast<Material>(in.mtr);
+        const auto  fid = ctx.GetFrameId().Index();
 
         // update uniform buffer
         {
             ShaderTypes::UnifiedGeometryMaterialUB  ub_data;
-            ub_data.transform   = float4x4::Translate( in.position );
+            ub_data.transform   = float4x4::Translated( in.position );
 
             CHECK_ERR( ctx.UploadBuffer( mtr.ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
         }
@@ -195,13 +216,13 @@ namespace AE::ResEditor
             CHECK_ERR( updater.Set( mtr_ds, EDescUpdateMode::Partialy ));
 
             for (auto& [name, buf] : _meshes) {
-                updater.BindBuffer( name, buf->GetBufferId() );
+                updater.BindBuffer( name, buf->GetBufferId( fid ));
             }
             for (auto& [name, tex] : _textures) {
                 updater.BindImage( name, tex->GetViewId() );
             }
 
-            CHECK_ERR( updater.BindBuffer< ShaderTypes::UnifiedGeometryMaterialUB >( UniformName{"mtrUB"}, mtr.ubuffer ));
+            CHECK_ERR( updater.BindBuffer< ShaderTypes::UnifiedGeometryMaterialUB >( UniformName{"un_PerObject"}, mtr.ubuffer ));
 
             CHECK_ERR( updater.Flush() );
         }

@@ -9,17 +9,19 @@
 
 #pragma once
 
-#include "graphics/Public/Common.h"
-
 namespace AE::Graphics
 {
+    using namespace AE::Base;
+
+    using AE::Threading::Atomic;
+
 
     //
     // Frame Unique ID
     //
-    struct FrameUID
+    class FrameUID
     {
-        friend struct AtomicFrameUID;
+        friend class AtomicFrameUID;
 
     // types
     private:
@@ -30,12 +32,13 @@ namespace AE::Graphics
         using Value_t   = ulong;
         using SValue_t  = ToSignedInteger<Value_t>;
 
-        static constexpr uint   _FrameBits      = CT_IntLog2< GraphicsConfig::MaxFrames >;
+        static constexpr uint   _MaxFrames      = 4;    // GraphicsConfig::MaxFrames
+        static constexpr uint   _FrameBits      = CT_IntLog2< _MaxFrames >;
         static constexpr uint   _MaxFrameBits   = _FrameBits + 1;
         static constexpr uint   _CounterBits    = CT_SizeOfInBits<Value_t> - _FrameBits - _MaxFrameBits;
 
-        STATIC_ASSERT( ToBit<uint>( _FrameBits ) == GraphicsConfig::MaxFrames );
-        STATIC_ASSERT( ToBitMask<uint>( _MaxFrameBits ) >= GraphicsConfig::MaxFrames );
+        STATIC_ASSERT( ToBit<uint>( _FrameBits ) == _MaxFrames );
+        STATIC_ASSERT( ToBitMask<uint>( _MaxFrameBits ) >= _MaxFrames );
 
         enum class _EFrameUID : Value_t {};
 
@@ -60,40 +63,45 @@ namespace AE::Graphics
 
     // methods
     private:
-        explicit FrameUID (Value_t uid, Value_t idx, Value_t maxFrames) : _bits{ uid, idx, maxFrames } {}
+        explicit FrameUID (Value_t uid, Value_t idx, Value_t maxFrames) __NE___ : _bits{ uid, idx, maxFrames } {}
 
     public:
-        FrameUID ()                                     __NE___ {}
+        FrameUID ()                                             __NE___ {}
 
-        FrameUID (const FrameUID &)                     __NE___ = default;
-        FrameUID (FrameUID &&)                          __NE___ = default;
+        FrameUID (const FrameUID &)                             __NE___ = default;
+        FrameUID (FrameUID &&)                                  __NE___ = default;
 
-        FrameUID&  operator = (const FrameUID &)        __NE___ = default;
-        FrameUID&  operator = (FrameUID &&)             __NE___ = default;
+        FrameUID&  operator = (const FrameUID &)                __NE___ = default;
+        FrameUID&  operator = (FrameUID &&)                     __NE___ = default;
 
-        ND_ bool  operator == (const FrameUID &rhs)     C_NE___ { return _value == rhs._value; }
-        ND_ bool  operator != (const FrameUID &rhs)     C_NE___ { return _value != rhs._value; }
+        ND_ bool  operator == (const FrameUID &rhs)             C_NE___ { return _value == rhs._value; }
+        ND_ bool  operator != (const FrameUID &rhs)             C_NE___ { return _value != rhs._value; }
 
-        ND_ bool  operator >  (const FrameUID &rhs)     C_NE___ { ASSERT( _bits.maxFrames == rhs._bits.maxFrames );  return _bits.counter > rhs._bits.counter; }
-        ND_ bool  operator <  (const FrameUID &rhs)     C_NE___ { ASSERT( _bits.maxFrames == rhs._bits.maxFrames );  return _bits.counter < rhs._bits.counter; }
+        ND_ bool  operator >  (const FrameUID &rhs)             C_NE___ { ASSERT( _bits.maxFrames == rhs._bits.maxFrames );  return _bits.counter > rhs._bits.counter; }
+        ND_ bool  operator <  (const FrameUID &rhs)             C_NE___ { ASSERT( _bits.maxFrames == rhs._bits.maxFrames );  return _bits.counter < rhs._bits.counter; }
 
-        ND_ bool  operator <=  (const FrameUID &rhs)    C_NE___ { return not (*this > rhs); }
-        ND_ bool  operator >=  (const FrameUID &rhs)    C_NE___ { return not (*this < rhs); }
-
-
-        ND_ _EFrameUID  Unique ()                       C_NE___ { return _EFrameUID(_bits.counter); }   // use 'ulong(f.Unique())' or other cast
-        ND_ uint        Index ()                        C_NE___ { return uint(_bits.index); }
-        ND_ uint        PrevIndex ()                    C_NE___ { return uint((_bits.index - 1) % _bits.maxFrames); }
-        ND_ uint        NextIndex ()                    C_NE___ { return uint((_bits.index + 1) % _bits.maxFrames); }
-        ND_ uint        MaxFrames ()                    C_NE___ { return uint(_bits.maxFrames); }
-        ND_ bool        IsValid ()                      C_NE___ { return _bits.maxFrames > 0; }
-
-        ND_ FrameUID    Next ()                         C_NE___ { return FrameUID{*this}.Inc(); }
-        ND_ FrameUID    NextCycle ()                    C_NE___ { return FrameUID{ _bits.counter + _bits.maxFrames, 0, MaxFrames() }; }
-        ND_ SValue_t    Diff (FrameUID rhs)             C_NE___ { return SValue_t(_bits.counter) - SValue_t(rhs._bits.counter); }
+        ND_ bool  operator <=  (const FrameUID &rhs)            C_NE___ { return not (*this > rhs); }
+        ND_ bool  operator >=  (const FrameUID &rhs)            C_NE___ { return not (*this < rhs); }
 
 
-        FrameUID&  Inc ()                               __NE___
+        ND_ _EFrameUID  Unique ()                               C_NE___ { return _EFrameUID(_bits.counter); }   // use 'ulong(f.Unique())' or other cast
+        ND_ uint        Index ()                                C_NE___ { return uint(_bits.index); }
+        ND_ uint        PrevIndex ()                            C_NE___ { return uint((_bits.index - 1) % _bits.maxFrames); }
+        ND_ uint        NextIndex ()                            C_NE___ { return uint((_bits.index + 1) % _bits.maxFrames); }
+        ND_ uint        MaxFrames ()                            C_NE___ { return uint(_bits.maxFrames); }
+        ND_ bool        IsValid ()                              C_NE___ { return _bits.maxFrames > 0; }
+
+        ND_ FrameUID    Next ()                                 C_NE___ { return FrameUID{*this}.Inc(); }
+        ND_ FrameUID    NextCycle ()                            C_NE___ { return FrameUID{ _bits.counter + _bits.maxFrames, 0, MaxFrames() }; }
+        ND_ SValue_t    Diff (FrameUID rhs)                     C_NE___ { return SValue_t(_bits.counter) - SValue_t(rhs._bits.counter); }
+
+        template <typename T> ND_ T  Remap (T maxValue)         C_NE___ { return T(_bits.counter % maxValue); }
+        template <typename T> ND_ T  Remap (T bias, T maxValue) C_NE___ { return T((_bits.counter + bias) % maxValue); }
+
+        // for double buffering, returns 0 or 1
+        ND_ uint        Remap2 (uint bias = 0)                  C_NE___ { return uint((_bits.counter + bias) & 1); }
+
+        FrameUID&       Inc ()                                  __NE___
         {
             ASSERT( _bits.maxFrames > 0 );
             _bits.index = (_bits.index + 1) % _bits.maxFrames;
@@ -102,7 +110,7 @@ namespace AE::Graphics
             return *this;
         }
 
-        ND_ Optional<FrameUID>  Sub (uint delta)        C_NE___
+        ND_ Optional<FrameUID>  Sub (uint delta)                C_NE___
         {
             if_likely( _bits.counter >= delta )
             {
@@ -113,25 +121,27 @@ namespace AE::Graphics
             return NullOptional;
         }
 
-        ND_ Optional<FrameUID>  PrevCycle ()            C_NE___
+        ND_ Optional<FrameUID>  PrevCycle ()                    C_NE___
         {
             return Sub( _bits.maxFrames );
         }
 
 
-        ND_ static FrameUID  FromIndex (uint idx, uint maxFrames) __NE___
+        ND_ static FrameUID  FromIndex (uint idx, uint maxFrames)__NE___
         {
-            ASSERT( maxFrames <= GraphicsConfig::MaxFrames );
+            ASSERT( maxFrames <= _MaxFrames );
             ASSERT( idx < maxFrames );
             return FrameUID{ 0, idx, maxFrames };
         }
 
-        ND_ static FrameUID  Init (uint maxFrames)      __NE___
+        ND_ static FrameUID  Init (uint maxFrames)              __NE___
         {
             CHECK( maxFrames > 0 );
-            CHECK( maxFrames <= GraphicsConfig::MaxFrames );
+            CHECK( maxFrames <= _MaxFrames );
             return FrameUID{ 0, 0, maxFrames };
         }
+
+        ND_ static constexpr uint  MaxFramesLimit ()            __NE___ { return _MaxFrames; }
     };
 
 
@@ -139,11 +149,12 @@ namespace AE::Graphics
     //
     // Atomic Frame Unique ID
     //
-    struct AtomicFrameUID
+    class AtomicFrameUID final : public Noncopyable
     {
     // types
     private:
-        using Value_t = FrameUID::Value_t;
+        using Value_t   = FrameUID::Value_t;
+        using Self      = AtomicFrameUID;
 
 
     // variables
@@ -153,14 +164,14 @@ namespace AE::Graphics
 
     // methods
     public:
-        AtomicFrameUID ()               __NE___ {}
+        AtomicFrameUID ()                                       __NE___ {}
 
-        ND_ FrameUID  load ()           C_NE___
+        ND_ FrameUID  load ()                                   C_NE___
         {
             return BitCast<FrameUID>( _value.load() );
         }
 
-        void  store (FrameUID value)    __NE___
+        void  store (FrameUID value)                            __NE___
         {
         #ifdef AE_DEBUG
             FrameUID    old = BitCast<FrameUID>( _value.exchange( BitCast<Value_t>( value )));
@@ -170,7 +181,7 @@ namespace AE::Graphics
         #endif
         }
 
-        FrameUID  Inc ()                __NE___
+        FrameUID  Inc ()                                        __NE___
         {
             Value_t new_val;
             for (Value_t exp = _value.load();;)

@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "AssetPacker.h"
-#include "scripting/Impl/ScriptTypes.h"
+#include "AssetPacker.pch.h"
 #include "geometry_tools/SphericalCube/SphericalCubeMath.h"
 
 namespace AE::AssetPacker

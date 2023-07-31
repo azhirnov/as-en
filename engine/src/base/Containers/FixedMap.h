@@ -173,6 +173,7 @@ namespace AE::Base
         ND_ bool    operator == (const Self &rhs)                       C_NE___;
         ND_ bool    operator != (const Self &rhs)                       C_NE___ { return not (*this == rhs); }
 
+        // on overflow 'iterator' will be 'null'
             template <typename K, typename V>
             Pair<iterator,bool>  emplace (K&& key, V&& value)           noexcept(_IsNothrowCopy);
 
@@ -181,14 +182,6 @@ namespace AE::Base
 
             template <typename K, typename V>
             Pair<iterator,bool>  insert_or_assign (K&& key, V&& value) noexcept(_IsNothrowCopy);
-
-
-        // on overflow 'iterator' will be 'null'
-            template <typename K, typename V>
-            Pair<iterator,bool>  try_emplace (K&& key, V&& value)       noexcept(_IsNothrowCopy);
-
-            template <typename K, typename V>
-            Pair<iterator,bool>  try_insert_or_assign (K&& key, V&& value) noexcept(_IsNothrowCopy);
 
 
         // same as operator [] in std
@@ -222,8 +215,8 @@ namespace AE::Base
 
         // cache friendly access to unsorted data
 
-        ND_ PairRef_t   operator [] (usize i)                           __NE___;
-        ND_ PairCRef_t  operator [] (usize i)                           C_NE___;
+        ND_ PairRef_t       operator [] (usize i)                       __NE___;
+        ND_ PairCRef_t      operator [] (usize i)                       C_NE___;
 
         ND_ ArrayView<Key>      GetKeyArray ()                          C_NE___ { return { &_keyArray[0], _count }; }
         ND_ ArrayView<Value>    GetValueArray ()                        C_NE___ { return { &_valArray[0], _count }; }
@@ -267,9 +260,9 @@ namespace AE::Base
     {
         ASSERT( not _IsMemoryAliased( &other ));
 
-        KPolicy_t::Copy( _keyArray, other._keyArray, _count );  // throw
-        VPolicy_t::Copy( _valArray, other._valArray, _count );  // throw
-        MemCopy( _indices, other._indices, SizeOf<Index_t> * _count );
+        KPolicy_t::Copy( OUT _keyArray, other._keyArray, _count );  // throw
+        VPolicy_t::Copy( OUT _valArray, other._valArray, _count );  // throw
+        MemCopy( OUT _indices, other._indices, SizeOf<Index_t> * _count );
     }
 
 /*
@@ -282,9 +275,9 @@ namespace AE::Base
     {
         ASSERT( not _IsMemoryAliased( &other ));
 
-        KPolicy_t::Replace( _keyArray, other._keyArray, _count );
-        VPolicy_t::Replace( _valArray, other._valArray, _count );
-        MemCopy( _indices, other._indices, SizeOf<Index_t> * _count );
+        KPolicy_t::Replace( OUT _keyArray, INOUT other._keyArray, _count );
+        VPolicy_t::Replace( OUT _valArray, INOUT other._valArray, _count );
+        MemCopy( OUT _indices, other._indices, SizeOf<Index_t> * _count );
 
         other._count = 0;
         DEBUG_ONLY( DbgInitMem( other._indices ));
@@ -300,14 +293,14 @@ namespace AE::Base
     {
         ASSERT( not _IsMemoryAliased( &rhs ));
 
-        KPolicy_t::Destroy( _keyArray, _count );
-        VPolicy_t::Destroy( _valArray, _count );
+        KPolicy_t::Destroy( INOUT _keyArray, _count );
+        VPolicy_t::Destroy( INOUT _valArray, _count );
 
         _count = rhs._count;
 
-        KPolicy_t::Replace( _keyArray, rhs._keyArray, _count );
-        VPolicy_t::Replace( _valArray, rhs._valArray, _count );
-        MemCopy( _indices, rhs._indices, SizeOf<Index_t> * _count );
+        KPolicy_t::Replace( OUT _keyArray, INOUT rhs._keyArray, _count );
+        VPolicy_t::Replace( OUT _valArray, INOUT rhs._valArray, _count );
+        MemCopy( OUT _indices, rhs._indices, SizeOf<Index_t> * _count );
 
         rhs._count = 0;
         DEBUG_ONLY( DbgInitMem( rhs._indices ));
@@ -325,14 +318,14 @@ namespace AE::Base
     {
         ASSERT( not _IsMemoryAliased( &rhs ));
 
-        KPolicy_t::Destroy( _keyArray, _count );
-        VPolicy_t::Destroy( _valArray, _count );
+        KPolicy_t::Destroy( INOUT _keyArray, _count );
+        VPolicy_t::Destroy( INOUT _valArray, _count );
 
         _count = rhs._count;
 
-        KPolicy_t::Copy( _keyArray, rhs._keyArray, _count );    // throw
-        VPolicy_t::Copy( _valArray, rhs._valArray, _count );    // throw
-        MemCopy( _indices, rhs._indices, SizeOf<Index_t> * _count );
+        KPolicy_t::Copy( OUT _keyArray, rhs._keyArray, _count );    // throw
+        VPolicy_t::Copy( OUT _valArray, rhs._valArray, _count );    // throw
+        MemCopy( OUT _indices, rhs._indices, SizeOf<Index_t> * _count );
 
         return *this;
     }
@@ -427,22 +420,6 @@ namespace _hidden_
 
 /*
 =================================================
-    try_emplace
-=================================================
-*/
-    template <typename K, typename V, usize S, typename KS, typename VS>
-    template <typename KeyType, typename ValueType>
-    Pair< typename FixedMap<K,V,S,KS,VS>::iterator, bool >
-        FixedMap<K,V,S,KS,VS>::try_emplace (KeyType&& key, ValueType&& value) noexcept(_IsNothrowCopy)
-    {
-        if_unlikely( _count >= capacity() )
-            return {};
-
-        return emplace( FwdArg<KeyType>(key), FwdArg<ValueType>(value) );   // throw
-    }
-
-/*
-=================================================
     emplace
 =================================================
 */
@@ -459,21 +436,27 @@ namespace _hidden_
             return { iterator{ this, _indices[i] }, false };
 
         // insert
-        ASSERT( _count < capacity() );
+        if_likely( _count < capacity() )
+        {
+            const usize j = _count++;
+            PlacementNew<key_type  >( OUT &_keyArray[j], FwdArg<KeyType  >(key)   );    // throw
+            PlacementNew<value_type>( OUT &_valArray[j], FwdArg<ValueType>(value) );    // throw
 
-        const usize j = _count++;
-        PlacementNew<key_type  >( &_keyArray[j], FwdArg<KeyType  >(key)   );    // throw
-        PlacementNew<value_type>( &_valArray[j], FwdArg<ValueType>(value) );    // throw
+            if ( i < _count )
+                for (usize k = _count-1; k > i; --k) {
+                    _indices[k] = _indices[k-1];
+                }
+            else
+                i = j;
 
-        if ( i < _count )
-            for (usize k = _count-1; k > i; --k) {
-                _indices[k] = _indices[k-1];
-            }
+            _indices[i] = Index_t(j);
+            return { iterator{ this, j }, true };
+        }
         else
-            i = j;
-
-        _indices[i] = Index_t(j);
-        return { iterator{ this, j }, true };
+        {
+            DBG_WARNING( "overflow!" );
+            return {};
+        }
     }
 
 /*
@@ -493,45 +476,35 @@ namespace _hidden_
         if_likely( i < _count and key == _keyArray[_indices[i]] )
         {
             const Index_t   idx = _indices[i];
-            KPolicy_t::Destroy( &_keyArray[idx], 1 );
-            VPolicy_t::Destroy( &_valArray[idx], 1 );
-            PlacementNew<key_type  >( &_keyArray[idx], FwdArg<KeyType  >(key)   );  // throw
-            PlacementNew<value_type>( &_valArray[idx], FwdArg<ValueType>(value) );  // throw
+            KPolicy_t::Destroy( INOUT &_keyArray[idx], 1 );
+            VPolicy_t::Destroy( INOUT &_valArray[idx], 1 );
+            PlacementNew<key_type  >( OUT &_keyArray[idx], FwdArg<KeyType  >(key)   );  // throw
+            PlacementNew<value_type>( OUT &_valArray[idx], FwdArg<ValueType>(value) );  // throw
             return { iterator{ this, idx }, false };
         }
 
         // insert
-        ASSERT( _count < capacity() );
+        if_likely( _count < capacity() )
+        {
+            const usize j = _count++;
+            PlacementNew<key_type  >( OUT &_keyArray[j], FwdArg<KeyType  >(key)   );    // throw
+            PlacementNew<value_type>( OUT &_valArray[j], FwdArg<ValueType>(value) );    // throw
 
-        const usize j = _count++;
-        PlacementNew<key_type  >( &_keyArray[j], FwdArg<KeyType  >(key)   );    // throw
-        PlacementNew<value_type>( &_valArray[j], FwdArg<ValueType>(value) );    // throw
+            if ( i < _count )
+                for (usize k = _count-1; k > i; --k) {
+                    _indices[k] = _indices[k-1];
+                }
+            else
+                i = j;
 
-        if ( i < _count )
-            for (usize k = _count-1; k > i; --k) {
-                _indices[k] = _indices[k-1];
-            }
+            _indices[i] = Index_t(j);
+            return { iterator{ this, j }, true };
+        }
         else
-            i = j;
-
-        _indices[i] = Index_t(j);
-        return { iterator{ this, j }, true };
-    }
-
-/*
-=================================================
-    try_insert_or_assign
-=================================================
-*/
-    template <typename K, typename V, usize S, typename KS, typename VS>
-    template <typename KeyType, typename ValueType>
-    Pair< typename FixedMap<K,V,S,KS,VS>::iterator, bool >
-        FixedMap<K,V,S,KS,VS>::try_insert_or_assign (KeyType&& key, ValueType&& value) noexcept(_IsNothrowCopy)
-    {
-        if_unlikely( _count >= capacity() )
+        {
+            DBG_WARNING( "overflow!" );
             return {};
-
-        return insert_or_assign( FwdArg<KeyType>(key), FwdArg<ValueType>(value) );  // throw
+        }
     }
 
 /*
@@ -670,8 +643,8 @@ namespace _hidden_
 
         if ( idx != _count )
         {
-            KPolicy_t::Replace( &_keyArray[idx], &_keyArray[_count], 1, true );
-            VPolicy_t::Replace( &_valArray[idx], &_valArray[_count], 1, true );
+            KPolicy_t::Replace( OUT &_keyArray[idx], INOUT &_keyArray[_count], 1, true );
+            VPolicy_t::Replace( OUT &_valArray[idx], INOUT &_valArray[_count], 1, true );
         }
         DEBUG_ONLY(
             DbgInitMem( _indices[_count] );
@@ -686,8 +659,8 @@ namespace _hidden_
     template <typename K, typename V, usize S, typename KS, typename VS>
     void  FixedMap<K,V,S,KS,VS>::clear () __NE___
     {
-        KPolicy_t::Destroy( _keyArray, _count );
-        VPolicy_t::Destroy( _valArray, _count );
+        KPolicy_t::Destroy( INOUT _keyArray, _count );
+        VPolicy_t::Destroy( INOUT _valArray, _count );
 
         _count = 0;
 
@@ -731,15 +704,11 @@ namespace _hidden_
 } // AE::Base
 
 
-namespace std
+template <typename Key, typename Value, size_t ArraySize, typename KS, typename VS>
+struct std::hash< AE::Base::FixedMap<Key, Value, ArraySize, KS, VS> >
 {
-    template <typename Key, typename Value, size_t ArraySize, typename KS, typename VS>
-    struct hash< AE::Base::FixedMap<Key, Value, ArraySize, KS, VS> >
+    ND_ size_t  operator () (const AE::Base::FixedMap<Key, Value, ArraySize, KS, VS> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Base::FixedMap<Key, Value, ArraySize, KS, VS> &value) C_NE___
-        {
-            return size_t(value.CalcHash());
-        }
-    };
-
-} // std
+        return size_t(value.CalcHash());
+    }
+};

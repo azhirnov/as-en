@@ -371,9 +371,9 @@ namespace
                 for (auto& chunk : chunks)
                 {
                     chunk.Apply(
-                        [&cnt1] (usize count, WriteAccess<Comp1> comp1, ReadAccess<Comp2> comp2)
+                        [&cnt1] (const usize cnt, WriteAccess<Comp1> comp1, ReadAccess<Comp2> comp2)
                         {
-                            for (usize i = 0; i < count; ++i) {
+                            for (usize i = 0; i < cnt; ++i) {
                                 comp1[i].value = int(comp2[i].value);
                                 ++cnt1;
                             }
@@ -532,10 +532,10 @@ namespace
                 arr.push_back( 1 );
             });
         reg.AddEventListener<Event1>(
-            [&arr] (Registry &reg)
+            [&arr] (Registry &registry)
             {
                 arr.push_back( 2 );
-                reg.EnqueEvent<Event2>();
+                registry.EnqueEvent<Event2>();
             });
         reg.AddEventListener<AfterEvent<Event1>>(
             [&arr] (Registry &)
@@ -543,10 +543,10 @@ namespace
                 arr.push_back( 3 );
             });
         reg.AddEventListener<BeforeEvent<Event2>>(
-            [&arr] (Registry &reg)
+            [&arr] (Registry &registry)
             {
                 arr.push_back( 4 );
-                reg.EnqueEvent<Event3>();
+                registry.EnqueEvent<Event3>();
             });
         reg.AddEventListener<Event2>(
             [&arr] (Registry &)
@@ -630,9 +630,9 @@ namespace
                 for (auto& chunk : chunks)
                 {
                     chunk.Apply(
-                        [&reg] (usize count, ReadAccess<Comp1>, ReadAccess<EntityID> entities)
+                        [&reg] (const usize cnt, ReadAccess<Comp1>, ReadAccess<EntityID> entities)
                         {
-                            for (usize i = 0; i < count; ++i)
+                            for (usize i = 0; i < cnt; ++i)
                             {
                                 reg.AddMessage<MsgTag_ComponentChanged>( entities[i], ComponentTypeInfo<Comp1>::id );
                             }

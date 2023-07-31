@@ -27,6 +27,8 @@ void VertexBuffers ()
                 "packed_ushort_norm2    Texcoord;" );
 
         RC<VertexBufferInput>   vb = VertexBufferInput( "vb_input1" );
+        vb.AddFeatureSet( "MinDesktopAMD" );
+        vb.AddFeatureSet( "MinDesktopNV" );
         vb.Add( "vb", st, VertexDivisor(1) );
         SameAttribs( "vb_layout1", "vb_input1" ); // throw
     }

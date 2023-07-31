@@ -1,4 +1,4 @@
-//1C9CE416
+//3A9B7AC4
 #include <vector>
 #include <string>
 
@@ -18,143 +18,151 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct DynamicDim;
-struct float3x4;
-struct EStencilOp;
-struct float4;
-struct ECompareOp;
-struct FPSCamera;
-struct ImageLoadOpFlags;
-struct RTGeometry;
-struct DynamicFloat4;
-struct EPostprocess;
-struct DynamicUInt3;
-struct RectU;
-struct EIndex;
+struct EAttachmentLoadOp;
+struct EPolygonMode;
 struct DynamicInt4;
-struct uint4;
-struct RectI;
 struct GeomSource;
-struct uint3;
-struct uint2;
-struct EShader;
-struct DynamicFloat;
-struct EShaderStages;
+struct EIndex;
 struct UnifiedGeometry_DrawIndirect;
-struct RTInstanceMask;
-struct RectF;
-struct ESubgroupTypes;
-struct RGBA32u;
-struct SphericalCube;
-struct Image;
-struct ESamplerYcbcrModelConversion;
-struct ScriptFlags;
-struct UnifiedGeometry_DrawIndexedIndirectCount;
-struct UnifiedGeometry_DrawMeshTasks;
-struct UnifiedGeometry_DrawIndexed;
+struct RTGeometry;
+struct float4;
+struct ImageLoadOpFlags;
+struct DynamicFloat4;
+struct DynamicUInt3;
+struct EPostprocess;
 struct short3;
-struct UnifiedGeometry_DrawMeshTasksIndirectCount;
-struct short2;
-struct sbyte3;
-struct EMipmapFilter;
 struct Random;
-struct RGBA8u;
+struct UnifiedGeometry_DrawIndexed;
+struct ESamplerYcbcrModelConversion;
+struct short2;
+struct ushort4;
 struct sbyte4;
-struct EFilter;
-struct EFeature;
-struct Random_Binomial4;
-struct Random_Binomial3;
-struct EPipelineDynamicState;
-struct Buffer;
-struct Random_Binomial2;
-struct Random_Binomial1;
+struct sbyte3;
+struct ScriptFlags;
+struct ESubgroupTypes;
+struct RTInstanceRotation;
 struct ESamplerChromaLocation;
+struct UnifiedGeometry_DrawIndexedIndirectCount;
+struct Image;
 struct UnifiedGeometry_DrawIndexedIndirect;
-struct MultiSamples;
-struct IPass;
-struct UnifiedGeometry_DrawIndirectCount;
-struct float2x3;
-struct float2x2;
 struct float2x4;
-struct EVertexInputRate;
-struct EImageType;
-struct UnifiedGeometry;
-struct EBorderColor;
+struct float2x2;
+struct Random_Binomial4;
+struct float2x3;
+struct EPipelineDynamicState;
+struct Random_Binomial3;
+struct EFilter;
+struct Random_Binomial1;
+struct IPass;
+struct Random_Binomial2;
+struct MultiSamples;
 struct EImageAspect;
-struct Postprocess;
-struct EAttachmentStoreOp;
-struct EDescSetUsage;
-struct Controller2D;
-struct EVendorID;
-struct float3;
-struct EResourceState;
-struct ComputePass;
 struct EShaderIO;
+struct float3;
 struct float2;
-struct FlightCamera;
-struct UnifiedGeometry_DrawMeshTasksIndirect;
 struct EPipelineOpt;
-struct ESurfaceFormat;
-struct MipmapLevel;
-struct RTInstanceSBTOffset;
-struct BaseController;
+struct EDescSetUsage;
+struct EVertexInputRate;
+struct ESamplerUsage;
 struct ESamplerYcbcrRange;
 struct RTInstanceCustomIndex;
-struct EReductionMode;
-struct ESamplerUsage;
 struct ubyte4;
+struct RTInstanceSBTOffset;
+struct Random_Normal1;
+struct UnifiedGeometry_Draw;
+struct Random_Normal2;
+struct Random_Normal3;
+struct IsometricCamera;
 struct ubyte2;
 struct FPVCamera;
-struct ESubgroupOperation;
-struct ubyte3;
-struct EGraphicsDeviceID;
-struct VideoImage;
-struct Random_Normal4;
-struct Random_Normal3;
-struct UnifiedGeometry_Draw;
-struct TiledTerrainMode;
-struct Random_Normal1;
-struct Random_Normal2;
-struct TiledTerrain;
-struct DepthStencil;
-struct ECullMode;
 struct EPrimitive;
-struct short4;
-struct EBlendOp;
-struct sbyte2;
-struct ELogicOp;
-struct Scene;
-struct EQueueMask;
-struct EPixelFormat;
-struct RGBA32f;
-struct HSVColor;
-struct EImage;
-struct bool2;
-struct int3;
-struct int2;
-struct bool4;
+struct EGraphicsDeviceID;
+struct ubyte3;
+struct ESubgroupOperation;
+struct Random_Normal4;
+struct VideoImage;
 struct bool3;
-struct ImageLayer;
-struct DynamicULong;
 struct SceneGraphicsPass;
-struct int4;
+struct bool2;
+struct EImage;
 struct EVertexType;
+struct DynamicULong;
+struct bool4;
+struct ECullMode;
 struct RGBA32i;
-struct DynamicUInt;
-struct EAddressMode;
-struct float4x4;
-struct float4x2;
-struct EAttachmentLoadOp;
-struct float4x3;
+struct ELogicOp;
+struct EBlendOp;
+struct HSVColor;
+struct RGBA32f;
 struct ERTInstanceOpt;
-struct EPolygonMode;
-struct float3x3;
-struct Collection;
-struct EPassFlags;
-struct RTScene;
-struct DbgViewFlags;
-struct float3x2;
+struct EQueueMask;
 struct EBlendFactor;
+struct DbgViewFlags;
+struct EStencilOp;
+struct EAddressMode;
+struct RTScene;
+struct EPassFlags;
+struct Collection;
+struct uint3;
+struct uint2;
+struct RectI;
+struct EShader;
+struct EShaderStages;
+struct DynamicFloat;
+struct DynamicDim;
+struct RTInstanceMask;
+struct ECompareOp;
+struct FPSCamera;
+struct RectU;
+struct uint4;
+struct RGBA8u;
+struct EMipmapFilter;
+struct UnifiedGeometry_DrawMeshTasksIndirectCount;
+struct SphericalCube;
+struct RectF;
+struct RGBA32u;
+struct UnifiedGeometry_DrawMeshTasks;
+struct UnifiedGeometry_DrawIndirectCount;
+struct Buffer;
+struct EFeature;
+struct EVendorID;
+struct Postprocess;
+struct SceneRayTracingPass;
+struct EResourceState;
+struct UnifiedGeometry_DrawMeshTasksIndirect;
+struct ComputePass;
+struct UnifiedGeometry;
+struct EBorderColor;
+struct EImageType;
+struct EAttachmentStoreOp;
+struct ScaleBiasCamera;
+struct EReductionMode;
+struct FlightCamera;
+struct TopDownCamera;
+struct ESurfaceFormat;
+struct BaseController;
+struct MipmapLevel;
+struct TiledTerrain;
+struct TiledTerrainMode;
+struct DepthStencil;
+struct int3;
+struct int4;
+struct int2;
+struct ImageLayer;
+struct ushort2;
+struct ushort3;
+struct sbyte2;
+struct EPixelFormat;
+struct short4;
+struct Scene;
+struct float3x3;
+struct float3x4;
+struct float3x2;
+struct DynamicUInt;
+struct float4x2;
+struct Model;
+struct float4x3;
+struct float4x4;
 
 struct EImageType
 {
@@ -247,36 +255,69 @@ const string Sampler_Anisotropy16Repeat;
 const string Sampler_Anisotropy16MirrorRepeat;
 const string Sampler_Anisotropy16Clamp;
 int  Abs (int);
+int  MirroredWrap (int, int, int);
 int  Square (int);
 int  Min (int, int);
 int  Max (int, int);
 int  Clamp (int, int, int);
+int  Wrap (int, int, int);
+int  CalcAverage (int, int);
 int  IntLog2 (int);
+int  CeilIntLog2 (int);
 int  BitScanReverse (int);
 int  BitScanForward (int);
 uint  BitCount (int);
 bool  IsPowerOfTwo (int);
+bool  IsSingleBitSet (int);
+bool  AllBits (int, int);
+bool  AnyBits (int, int);
+int  ExtractBit (int &);
+int  ExtractBitLog2 (int &);
+int  BitRotateLeft (int, uint);
+int  BitRotateRight (int, uint);
+int  FloorPOT (int);
+int  CeilPOT (int);
+int  AlignDown (int, int);
+int  AlignUp (int, int);
+bool  IsAligned (int, int);
 uint  Square (uint);
 uint  Min (uint, uint);
 uint  Max (uint, uint);
 uint  Clamp (uint, uint, uint);
+uint  Wrap (uint, uint, uint);
+uint  CalcAverage (uint, uint);
 int  IntLog2 (uint);
+int  CeilIntLog2 (uint);
 int  BitScanReverse (uint);
 int  BitScanForward (uint);
 uint  BitCount (uint);
 bool  IsPowerOfTwo (uint);
+bool  IsSingleBitSet (uint);
+bool  AllBits (uint, uint);
+bool  AnyBits (uint, uint);
+uint  ExtractBit (uint &);
+uint  ExtractBitLog2 (uint &);
+uint  BitRotateLeft (uint, uint);
+uint  BitRotateRight (uint, uint);
+uint  FloorPOT (uint);
+uint  CeilPOT (uint);
+uint  AlignDown (uint, uint);
+uint  AlignUp (uint, uint);
+bool  IsAligned (uint, uint);
 float  Abs (float);
+float  MirroredWrap (float, float, float);
 float  Square (float);
 float  Min (float, float);
 float  Max (float, float);
 float  Clamp (float, float, float);
+float  Wrap (float, float, float);
+float  CalcAverage (float, float);
 float  Floor (float);
 float  Ceil (float);
 float  Trunc (float);
 float  Fract (float);
 float  Round (float);
 float  Mod (float, float);
-float  Wrap (float, float, float);
 float  Sqrt (float);
 float  Pow (float, float);
 float  Ln (float);
@@ -286,6 +327,7 @@ float  Log10 (float);
 float  Exp (float);
 float  Exp2 (float);
 float  Exp10 (float);
+float  ExpMinus1 (float);
 float  Sin (float);
 float  SinH (float);
 float  ASin (float);
@@ -295,7 +337,18 @@ float  ACos (float);
 float  Tan (float);
 float  TanH (float);
 float  ATan (float, float);
+float  ToRad (float);
+float  ToDeg (float);
 float  Lerp (float, float, float);
+float  ToSNorm (float);
+float  ToUNorm (float);
+float  Remap (float, float, float, float, float);
+float  RemapClamped (float, float, float, float, float);
+int  RoundToInt (float);
+uint  RoundToUint (float);
+float  IsInfinity (float);
+float  IsNaN (float);
+float  IsFinite (float);
 struct bool2
 {
 	bool2 ();
@@ -307,6 +360,21 @@ struct bool2
 	bool2 (const bool3 &);
 	bool2 (const bool4 &);
 	bool2 (bool, bool);
+	bool2 (const short2 &);
+	bool2 (const short3 &);
+	bool2 (const short4 &);
+	bool2 (const ushort2 &);
+	bool2 (const ushort3 &);
+	bool2 (const ushort4 &);
+	bool2 (const int2 &);
+	bool2 (const int3 &);
+	bool2 (const int4 &);
+	bool2 (const uint2 &);
+	bool2 (const uint3 &);
+	bool2 (const uint4 &);
+	bool2 (const float2 &);
+	bool2 (const float3 &);
+	bool2 (const float4 &);
 };
 
 struct bool3
@@ -322,6 +390,21 @@ struct bool3
 	bool3 (const bool4 &);
 	bool3 (const bool2 &, bool);
 	bool3 (bool, bool, bool);
+	bool3 (const short2 &);
+	bool3 (const short3 &);
+	bool3 (const short4 &);
+	bool3 (const ushort2 &);
+	bool3 (const ushort3 &);
+	bool3 (const ushort4 &);
+	bool3 (const int2 &);
+	bool3 (const int3 &);
+	bool3 (const int4 &);
+	bool3 (const uint2 &);
+	bool3 (const uint3 &);
+	bool3 (const uint4 &);
+	bool3 (const float2 &);
+	bool3 (const float3 &);
+	bool3 (const float4 &);
 };
 
 struct bool4
@@ -339,6 +422,21 @@ struct bool4
 	bool4 (const bool2 &, const bool2 &);
 	bool4 (const bool3 &, bool);
 	bool4 (bool, bool, bool, bool);
+	bool4 (const short2 &);
+	bool4 (const short3 &);
+	bool4 (const short4 &);
+	bool4 (const ushort2 &);
+	bool4 (const ushort3 &);
+	bool4 (const ushort4 &);
+	bool4 (const int2 &);
+	bool4 (const int3 &);
+	bool4 (const int4 &);
+	bool4 (const uint2 &);
+	bool4 (const uint3 &);
+	bool4 (const uint4 &);
+	bool4 (const float2 &);
+	bool4 (const float3 &);
+	bool4 (const float4 &);
 };
 
 struct sbyte2
@@ -352,6 +450,21 @@ struct sbyte2
 	sbyte2 (const sbyte3 &);
 	sbyte2 (const sbyte4 &);
 	sbyte2 (int8, int8);
+	sbyte2 (const short2 &);
+	sbyte2 (const short3 &);
+	sbyte2 (const short4 &);
+	sbyte2 (const ushort2 &);
+	sbyte2 (const ushort3 &);
+	sbyte2 (const ushort4 &);
+	sbyte2 (const int2 &);
+	sbyte2 (const int3 &);
+	sbyte2 (const int4 &);
+	sbyte2 (const uint2 &);
+	sbyte2 (const uint3 &);
+	sbyte2 (const uint4 &);
+	sbyte2 (const float2 &);
+	sbyte2 (const float3 &);
+	sbyte2 (const float4 &);
 };
 
 struct sbyte3
@@ -367,6 +480,21 @@ struct sbyte3
 	sbyte3 (const sbyte4 &);
 	sbyte3 (const sbyte2 &, int8);
 	sbyte3 (int8, int8, int8);
+	sbyte3 (const short2 &);
+	sbyte3 (const short3 &);
+	sbyte3 (const short4 &);
+	sbyte3 (const ushort2 &);
+	sbyte3 (const ushort3 &);
+	sbyte3 (const ushort4 &);
+	sbyte3 (const int2 &);
+	sbyte3 (const int3 &);
+	sbyte3 (const int4 &);
+	sbyte3 (const uint2 &);
+	sbyte3 (const uint3 &);
+	sbyte3 (const uint4 &);
+	sbyte3 (const float2 &);
+	sbyte3 (const float3 &);
+	sbyte3 (const float4 &);
 };
 
 struct sbyte4
@@ -384,6 +512,21 @@ struct sbyte4
 	sbyte4 (const sbyte2 &, const sbyte2 &);
 	sbyte4 (const sbyte3 &, int8);
 	sbyte4 (int8, int8, int8, int8);
+	sbyte4 (const short2 &);
+	sbyte4 (const short3 &);
+	sbyte4 (const short4 &);
+	sbyte4 (const ushort2 &);
+	sbyte4 (const ushort3 &);
+	sbyte4 (const ushort4 &);
+	sbyte4 (const int2 &);
+	sbyte4 (const int3 &);
+	sbyte4 (const int4 &);
+	sbyte4 (const uint2 &);
+	sbyte4 (const uint3 &);
+	sbyte4 (const uint4 &);
+	sbyte4 (const float2 &);
+	sbyte4 (const float3 &);
+	sbyte4 (const float4 &);
 };
 
 struct ubyte2
@@ -397,6 +540,21 @@ struct ubyte2
 	ubyte2 (const ubyte3 &);
 	ubyte2 (const ubyte4 &);
 	ubyte2 (uint8, uint8);
+	ubyte2 (const short2 &);
+	ubyte2 (const short3 &);
+	ubyte2 (const short4 &);
+	ubyte2 (const ushort2 &);
+	ubyte2 (const ushort3 &);
+	ubyte2 (const ushort4 &);
+	ubyte2 (const int2 &);
+	ubyte2 (const int3 &);
+	ubyte2 (const int4 &);
+	ubyte2 (const uint2 &);
+	ubyte2 (const uint3 &);
+	ubyte2 (const uint4 &);
+	ubyte2 (const float2 &);
+	ubyte2 (const float3 &);
+	ubyte2 (const float4 &);
 };
 
 struct ubyte3
@@ -412,6 +570,21 @@ struct ubyte3
 	ubyte3 (const ubyte4 &);
 	ubyte3 (const ubyte2 &, uint8);
 	ubyte3 (uint8, uint8, uint8);
+	ubyte3 (const short2 &);
+	ubyte3 (const short3 &);
+	ubyte3 (const short4 &);
+	ubyte3 (const ushort2 &);
+	ubyte3 (const ushort3 &);
+	ubyte3 (const ushort4 &);
+	ubyte3 (const int2 &);
+	ubyte3 (const int3 &);
+	ubyte3 (const int4 &);
+	ubyte3 (const uint2 &);
+	ubyte3 (const uint3 &);
+	ubyte3 (const uint4 &);
+	ubyte3 (const float2 &);
+	ubyte3 (const float3 &);
+	ubyte3 (const float4 &);
 };
 
 struct ubyte4
@@ -429,6 +602,21 @@ struct ubyte4
 	ubyte4 (const ubyte2 &, const ubyte2 &);
 	ubyte4 (const ubyte3 &, uint8);
 	ubyte4 (uint8, uint8, uint8, uint8);
+	ubyte4 (const short2 &);
+	ubyte4 (const short3 &);
+	ubyte4 (const short4 &);
+	ubyte4 (const ushort2 &);
+	ubyte4 (const ushort3 &);
+	ubyte4 (const ushort4 &);
+	ubyte4 (const int2 &);
+	ubyte4 (const int3 &);
+	ubyte4 (const int4 &);
+	ubyte4 (const uint2 &);
+	ubyte4 (const uint3 &);
+	ubyte4 (const uint4 &);
+	ubyte4 (const float2 &);
+	ubyte4 (const float3 &);
+	ubyte4 (const float4 &);
 };
 
 struct short2
@@ -442,6 +630,18 @@ struct short2
 	short2 (const short3 &);
 	short2 (const short4 &);
 	short2 (int16, int16);
+	short2 (const ushort2 &);
+	short2 (const ushort3 &);
+	short2 (const ushort4 &);
+	short2 (const int2 &);
+	short2 (const int3 &);
+	short2 (const int4 &);
+	short2 (const uint2 &);
+	short2 (const uint3 &);
+	short2 (const uint4 &);
+	short2 (const float2 &);
+	short2 (const float3 &);
+	short2 (const float4 &);
 };
 
 struct short3
@@ -457,6 +657,18 @@ struct short3
 	short3 (const short4 &);
 	short3 (const short2 &, int16);
 	short3 (int16, int16, int16);
+	short3 (const ushort2 &);
+	short3 (const ushort3 &);
+	short3 (const ushort4 &);
+	short3 (const int2 &);
+	short3 (const int3 &);
+	short3 (const int4 &);
+	short3 (const uint2 &);
+	short3 (const uint3 &);
+	short3 (const uint4 &);
+	short3 (const float2 &);
+	short3 (const float3 &);
+	short3 (const float4 &);
 };
 
 struct short4
@@ -474,6 +686,99 @@ struct short4
 	short4 (const short2 &, const short2 &);
 	short4 (const short3 &, int16);
 	short4 (int16, int16, int16, int16);
+	short4 (const ushort2 &);
+	short4 (const ushort3 &);
+	short4 (const ushort4 &);
+	short4 (const int2 &);
+	short4 (const int3 &);
+	short4 (const int4 &);
+	short4 (const uint2 &);
+	short4 (const uint3 &);
+	short4 (const uint4 &);
+	short4 (const float2 &);
+	short4 (const float3 &);
+	short4 (const float4 &);
+};
+
+struct ushort2
+{
+	ushort2 ();
+	ushort2 (const ushort2&);
+	ushort2&  operator = (const ushort2&);
+	uint16 x;
+	uint16 y;
+	ushort2 (uint16);
+	ushort2 (const ushort3 &);
+	ushort2 (const ushort4 &);
+	ushort2 (uint16, uint16);
+	ushort2 (const short2 &);
+	ushort2 (const short3 &);
+	ushort2 (const short4 &);
+	ushort2 (const int2 &);
+	ushort2 (const int3 &);
+	ushort2 (const int4 &);
+	ushort2 (const uint2 &);
+	ushort2 (const uint3 &);
+	ushort2 (const uint4 &);
+	ushort2 (const float2 &);
+	ushort2 (const float3 &);
+	ushort2 (const float4 &);
+};
+
+struct ushort3
+{
+	ushort3 ();
+	ushort3 (const ushort3&);
+	ushort3&  operator = (const ushort3&);
+	uint16 x;
+	uint16 y;
+	uint16 z;
+	ushort3 (uint16);
+	ushort3 (const ushort2 &);
+	ushort3 (const ushort4 &);
+	ushort3 (const ushort2 &, uint16);
+	ushort3 (uint16, uint16, uint16);
+	ushort3 (const short2 &);
+	ushort3 (const short3 &);
+	ushort3 (const short4 &);
+	ushort3 (const int2 &);
+	ushort3 (const int3 &);
+	ushort3 (const int4 &);
+	ushort3 (const uint2 &);
+	ushort3 (const uint3 &);
+	ushort3 (const uint4 &);
+	ushort3 (const float2 &);
+	ushort3 (const float3 &);
+	ushort3 (const float4 &);
+};
+
+struct ushort4
+{
+	ushort4 ();
+	ushort4 (const ushort4&);
+	ushort4&  operator = (const ushort4&);
+	uint16 x;
+	uint16 y;
+	uint16 z;
+	uint16 w;
+	ushort4 (uint16);
+	ushort4 (const ushort2 &);
+	ushort4 (const ushort3 &);
+	ushort4 (const ushort2 &, const ushort2 &);
+	ushort4 (const ushort3 &, uint16);
+	ushort4 (uint16, uint16, uint16, uint16);
+	ushort4 (const short2 &);
+	ushort4 (const short3 &);
+	ushort4 (const short4 &);
+	ushort4 (const int2 &);
+	ushort4 (const int3 &);
+	ushort4 (const int4 &);
+	ushort4 (const uint2 &);
+	ushort4 (const uint3 &);
+	ushort4 (const uint4 &);
+	ushort4 (const float2 &);
+	ushort4 (const float3 &);
+	ushort4 (const float4 &);
 };
 
 struct int2
@@ -487,6 +792,18 @@ struct int2
 	int2 (const int3 &);
 	int2 (const int4 &);
 	int2 (int, int);
+	int2 (const short2 &);
+	int2 (const short3 &);
+	int2 (const short4 &);
+	int2 (const ushort2 &);
+	int2 (const ushort3 &);
+	int2 (const ushort4 &);
+	int2 (const uint2 &);
+	int2 (const uint3 &);
+	int2 (const uint4 &);
+	int2 (const float2 &);
+	int2 (const float3 &);
+	int2 (const float4 &);
 };
 
 struct int3
@@ -502,6 +819,18 @@ struct int3
 	int3 (const int4 &);
 	int3 (const int2 &, int);
 	int3 (int, int, int);
+	int3 (const short2 &);
+	int3 (const short3 &);
+	int3 (const short4 &);
+	int3 (const ushort2 &);
+	int3 (const ushort3 &);
+	int3 (const ushort4 &);
+	int3 (const uint2 &);
+	int3 (const uint3 &);
+	int3 (const uint4 &);
+	int3 (const float2 &);
+	int3 (const float3 &);
+	int3 (const float4 &);
 };
 
 struct int4
@@ -519,6 +848,18 @@ struct int4
 	int4 (const int2 &, const int2 &);
 	int4 (const int3 &, int);
 	int4 (int, int, int, int);
+	int4 (const short2 &);
+	int4 (const short3 &);
+	int4 (const short4 &);
+	int4 (const ushort2 &);
+	int4 (const ushort3 &);
+	int4 (const ushort4 &);
+	int4 (const uint2 &);
+	int4 (const uint3 &);
+	int4 (const uint4 &);
+	int4 (const float2 &);
+	int4 (const float3 &);
+	int4 (const float4 &);
 };
 
 struct uint2
@@ -532,6 +873,18 @@ struct uint2
 	uint2 (const uint3 &);
 	uint2 (const uint4 &);
 	uint2 (uint, uint);
+	uint2 (const short2 &);
+	uint2 (const short3 &);
+	uint2 (const short4 &);
+	uint2 (const ushort2 &);
+	uint2 (const ushort3 &);
+	uint2 (const ushort4 &);
+	uint2 (const int2 &);
+	uint2 (const int3 &);
+	uint2 (const int4 &);
+	uint2 (const float2 &);
+	uint2 (const float3 &);
+	uint2 (const float4 &);
 };
 
 struct uint3
@@ -547,6 +900,18 @@ struct uint3
 	uint3 (const uint4 &);
 	uint3 (const uint2 &, uint);
 	uint3 (uint, uint, uint);
+	uint3 (const short2 &);
+	uint3 (const short3 &);
+	uint3 (const short4 &);
+	uint3 (const ushort2 &);
+	uint3 (const ushort3 &);
+	uint3 (const ushort4 &);
+	uint3 (const int2 &);
+	uint3 (const int3 &);
+	uint3 (const int4 &);
+	uint3 (const float2 &);
+	uint3 (const float3 &);
+	uint3 (const float4 &);
 };
 
 struct uint4
@@ -564,6 +929,18 @@ struct uint4
 	uint4 (const uint2 &, const uint2 &);
 	uint4 (const uint3 &, uint);
 	uint4 (uint, uint, uint, uint);
+	uint4 (const short2 &);
+	uint4 (const short3 &);
+	uint4 (const short4 &);
+	uint4 (const ushort2 &);
+	uint4 (const ushort3 &);
+	uint4 (const ushort4 &);
+	uint4 (const int2 &);
+	uint4 (const int3 &);
+	uint4 (const int4 &);
+	uint4 (const float2 &);
+	uint4 (const float3 &);
+	uint4 (const float4 &);
 };
 
 struct float2
@@ -577,6 +954,18 @@ struct float2
 	float2 (const float3 &);
 	float2 (const float4 &);
 	float2 (float, float);
+	float2 (const short2 &);
+	float2 (const short3 &);
+	float2 (const short4 &);
+	float2 (const ushort2 &);
+	float2 (const ushort3 &);
+	float2 (const ushort4 &);
+	float2 (const int2 &);
+	float2 (const int3 &);
+	float2 (const int4 &);
+	float2 (const uint2 &);
+	float2 (const uint3 &);
+	float2 (const uint4 &);
 };
 
 struct float3
@@ -592,6 +981,18 @@ struct float3
 	float3 (const float4 &);
 	float3 (const float2 &, float);
 	float3 (float, float, float);
+	float3 (const short2 &);
+	float3 (const short3 &);
+	float3 (const short4 &);
+	float3 (const ushort2 &);
+	float3 (const ushort3 &);
+	float3 (const ushort4 &);
+	float3 (const int2 &);
+	float3 (const int3 &);
+	float3 (const int4 &);
+	float3 (const uint2 &);
+	float3 (const uint3 &);
+	float3 (const uint4 &);
 };
 
 struct float4
@@ -609,6 +1010,18 @@ struct float4
 	float4 (const float2 &, const float2 &);
 	float4 (const float3 &, float);
 	float4 (float, float, float, float);
+	float4 (const short2 &);
+	float4 (const short3 &);
+	float4 (const short4 &);
+	float4 (const ushort2 &);
+	float4 (const ushort3 &);
+	float4 (const ushort4 &);
+	float4 (const int2 &);
+	float4 (const int3 &);
+	float4 (const int4 &);
+	float4 (const uint2 &);
+	float4 (const uint3 &);
+	float4 (const uint4 &);
 };
 
 bool  All (const bool2 &);
@@ -617,97 +1030,166 @@ bool  All (const bool3 &);
 bool  Any (const bool3 &);
 bool  All (const bool4 &);
 bool  Any (const bool4 &);
+int2  Abs (const int2 &);
+int2  MirroredWrap (const int2 &, const int2 &, const int2 &);
+int2  MirroredWrap (const int2 &, int, int);
+int  Sum (const int2 &);
+int  Area (const int2 &);
+int2  Min (const int2 &, const int2 &);
+int2  Max (const int2 &, const int2 &);
+int2  Clamp (const int2 &, const int2 &, const int2 &);
+int2  Clamp (const int2 &, int, int);
+int2  Wrap (const int2 &, const int2 &, const int2 &);
+int2  Wrap (const int2 &, int, int);
+int3  Abs (const int3 &);
+int3  MirroredWrap (const int3 &, const int3 &, const int3 &);
+int3  MirroredWrap (const int3 &, int, int);
+int  Sum (const int3 &);
+int  Area (const int3 &);
+int3  Min (const int3 &, const int3 &);
+int3  Max (const int3 &, const int3 &);
+int3  Clamp (const int3 &, const int3 &, const int3 &);
+int3  Clamp (const int3 &, int, int);
+int3  Wrap (const int3 &, const int3 &, const int3 &);
+int3  Wrap (const int3 &, int, int);
+int4  Abs (const int4 &);
+int4  MirroredWrap (const int4 &, const int4 &, const int4 &);
+int4  MirroredWrap (const int4 &, int, int);
+int  Sum (const int4 &);
+int  Area (const int4 &);
+int4  Min (const int4 &, const int4 &);
+int4  Max (const int4 &, const int4 &);
+int4  Clamp (const int4 &, const int4 &, const int4 &);
+int4  Clamp (const int4 &, int, int);
+int4  Wrap (const int4 &, const int4 &, const int4 &);
+int4  Wrap (const int4 &, int, int);
+uint  Sum (const uint2 &);
+uint  Area (const uint2 &);
+uint2  Min (const uint2 &, const uint2 &);
+uint2  Max (const uint2 &, const uint2 &);
+uint2  Clamp (const uint2 &, const uint2 &, const uint2 &);
+uint2  Clamp (const uint2 &, uint, uint);
+uint2  Wrap (const uint2 &, const uint2 &, const uint2 &);
+uint2  Wrap (const uint2 &, uint, uint);
+uint  Sum (const uint3 &);
+uint  Area (const uint3 &);
+uint3  Min (const uint3 &, const uint3 &);
+uint3  Max (const uint3 &, const uint3 &);
+uint3  Clamp (const uint3 &, const uint3 &, const uint3 &);
+uint3  Clamp (const uint3 &, uint, uint);
+uint3  Wrap (const uint3 &, const uint3 &, const uint3 &);
+uint3  Wrap (const uint3 &, uint, uint);
+uint  Sum (const uint4 &);
+uint  Area (const uint4 &);
+uint4  Min (const uint4 &, const uint4 &);
+uint4  Max (const uint4 &, const uint4 &);
+uint4  Clamp (const uint4 &, const uint4 &, const uint4 &);
+uint4  Clamp (const uint4 &, uint, uint);
+uint4  Wrap (const uint4 &, const uint4 &, const uint4 &);
+uint4  Wrap (const uint4 &, uint, uint);
+float2  Abs (const float2 &);
+float2  MirroredWrap (const float2 &, const float2 &, const float2 &);
+float2  MirroredWrap (const float2 &, float, float);
+float  Sum (const float2 &);
+float  Area (const float2 &);
+float2  Min (const float2 &, const float2 &);
+float2  Max (const float2 &, const float2 &);
+float2  Clamp (const float2 &, const float2 &, const float2 &);
+float2  Clamp (const float2 &, float, float);
+float2  Wrap (const float2 &, const float2 &, const float2 &);
+float2  Wrap (const float2 &, float, float);
+float2  ToSNorm (const float2 &);
+float2  ToUNorm (const float2 &);
+float  Dot (const float2 &, const float2 &);
+float2  Lerp (const float2 &, const float2 &, float);
+float2  Normalize (const float2 &);
+float2  Floor (const float2 &);
+float2  Ceil (const float2 &);
+float2  Round (const float2 &);
+float2  Fract (const float2 &);
+float2  Sqrt (const float2 &);
+float2  Ln (const float2 &);
+float2  Log2 (const float2 &);
+float2  Log (const float2 &, const float2 &);
+float2  Log (const float2 &, float);
+float2  Pow (const float2 &, const float2 &);
+float2  Pow (const float2 &, float);
+float2  Exp (const float2 &);
+float2  Exp2 (const float2 &);
+float2  Exp10 (const float2 &);
+float  Length (const float2 &);
+float  LengthSqr (const float2 &);
+float  Distance (const float2 &, const float2 &);
+float  DistanceSqr (const float2 &, const float2 &);
+float3  Abs (const float3 &);
+float3  MirroredWrap (const float3 &, const float3 &, const float3 &);
+float3  MirroredWrap (const float3 &, float, float);
+float  Sum (const float3 &);
+float  Area (const float3 &);
+float3  Min (const float3 &, const float3 &);
+float3  Max (const float3 &, const float3 &);
+float3  Clamp (const float3 &, const float3 &, const float3 &);
+float3  Clamp (const float3 &, float, float);
+float3  Wrap (const float3 &, const float3 &, const float3 &);
+float3  Wrap (const float3 &, float, float);
 float3  Cross (const float3 &, const float3 &);
-struct float2x2
-{
-	float2x2 ();
-	float2x2 (const float2x2&);
-	float2x2&  operator = (const float2x2&);
-	float2x2 ();
-	float2x2 (const float2x2 &);
-	float2x2 (const float2 &, const float2 &);
-};
-
-struct float2x3
-{
-	float2x3 ();
-	float2x3 (const float2x3&);
-	float2x3&  operator = (const float2x3&);
-	float2x3 ();
-	float2x3 (const float2x3 &);
-	float2x3 (const float3 &, const float3 &);
-};
-
-struct float2x4
-{
-	float2x4 ();
-	float2x4 (const float2x4&);
-	float2x4&  operator = (const float2x4&);
-	float2x4 ();
-	float2x4 (const float2x4 &);
-	float2x4 (const float4 &, const float4 &);
-};
-
-struct float3x2
-{
-	float3x2 ();
-	float3x2 (const float3x2&);
-	float3x2&  operator = (const float3x2&);
-	float3x2 ();
-	float3x2 (const float3x2 &);
-	float3x2 (const float2 &, const float2 &, const float2 &);
-};
-
-struct float3x3
-{
-	float3x3 ();
-	float3x3 (const float3x3&);
-	float3x3&  operator = (const float3x3&);
-	float3x3 ();
-	float3x3 (const float3x3 &);
-	float3x3 (const float3 &, const float3 &, const float3 &);
-};
-
-struct float3x4
-{
-	float3x4 ();
-	float3x4 (const float3x4&);
-	float3x4&  operator = (const float3x4&);
-	float3x4 ();
-	float3x4 (const float3x4 &);
-	float3x4 (const float4 &, const float4 &, const float4 &);
-};
-
-struct float4x2
-{
-	float4x2 ();
-	float4x2 (const float4x2&);
-	float4x2&  operator = (const float4x2&);
-	float4x2 ();
-	float4x2 (const float4x2 &);
-	float4x2 (const float2 &, const float2 &, const float2 &, const float2 &);
-};
-
-struct float4x3
-{
-	float4x3 ();
-	float4x3 (const float4x3&);
-	float4x3&  operator = (const float4x3&);
-	float4x3 ();
-	float4x3 (const float4x3 &);
-	float4x3 (const float3 &, const float3 &, const float3 &, const float3 &);
-};
-
-struct float4x4
-{
-	float4x4 ();
-	float4x4 (const float4x4&);
-	float4x4&  operator = (const float4x4&);
-	float4x4 ();
-	float4x4 (const float4x4 &);
-	float4x4 (const float4 &, const float4 &, const float4 &, const float4 &);
-};
-
+float3  ToSNorm (const float3 &);
+float3  ToUNorm (const float3 &);
+float  Dot (const float3 &, const float3 &);
+float3  Lerp (const float3 &, const float3 &, float);
+float3  Normalize (const float3 &);
+float3  Floor (const float3 &);
+float3  Ceil (const float3 &);
+float3  Round (const float3 &);
+float3  Fract (const float3 &);
+float3  Sqrt (const float3 &);
+float3  Ln (const float3 &);
+float3  Log2 (const float3 &);
+float3  Log (const float3 &, const float3 &);
+float3  Log (const float3 &, float);
+float3  Pow (const float3 &, const float3 &);
+float3  Pow (const float3 &, float);
+float3  Exp (const float3 &);
+float3  Exp2 (const float3 &);
+float3  Exp10 (const float3 &);
+float  Length (const float3 &);
+float  LengthSqr (const float3 &);
+float  Distance (const float3 &, const float3 &);
+float  DistanceSqr (const float3 &, const float3 &);
+float4  Abs (const float4 &);
+float4  MirroredWrap (const float4 &, const float4 &, const float4 &);
+float4  MirroredWrap (const float4 &, float, float);
+float  Sum (const float4 &);
+float  Area (const float4 &);
+float4  Min (const float4 &, const float4 &);
+float4  Max (const float4 &, const float4 &);
+float4  Clamp (const float4 &, const float4 &, const float4 &);
+float4  Clamp (const float4 &, float, float);
+float4  Wrap (const float4 &, const float4 &, const float4 &);
+float4  Wrap (const float4 &, float, float);
+float4  ToSNorm (const float4 &);
+float4  ToUNorm (const float4 &);
+float  Dot (const float4 &, const float4 &);
+float4  Lerp (const float4 &, const float4 &, float);
+float4  Normalize (const float4 &);
+float4  Floor (const float4 &);
+float4  Ceil (const float4 &);
+float4  Round (const float4 &);
+float4  Fract (const float4 &);
+float4  Sqrt (const float4 &);
+float4  Ln (const float4 &);
+float4  Log2 (const float4 &);
+float4  Log (const float4 &, const float4 &);
+float4  Log (const float4 &, float);
+float4  Pow (const float4 &, const float4 &);
+float4  Pow (const float4 &, float);
+float4  Exp (const float4 &);
+float4  Exp2 (const float4 &);
+float4  Exp10 (const float4 &);
+float  Length (const float4 &);
+float  LengthSqr (const float4 &);
+float  Distance (const float4 &, const float4 &);
+float  DistanceSqr (const float4 &, const float4 &);
 struct RectI
 {
 	RectI ();
@@ -756,6 +1238,113 @@ struct RectF
 	RectF (float, float, float, float);
 };
 
+struct float2x2
+{
+	float2x2 ();
+	float2x2 (const float2x2&);
+	float2x2&  operator = (const float2x2&);
+	float2x2 (const float2x2 &);
+	float2x2 (const float2 &, const float2 &);
+};
+
+struct float2x3
+{
+	float2x3 ();
+	float2x3 (const float2x3&);
+	float2x3&  operator = (const float2x3&);
+	float2x3 (const float2x3 &);
+	float2x3 (const float3 &, const float3 &);
+};
+
+struct float2x4
+{
+	float2x4 ();
+	float2x4 (const float2x4&);
+	float2x4&  operator = (const float2x4&);
+	float2x4 (const float2x4 &);
+	float2x4 (const float4 &, const float4 &);
+};
+
+struct float3x2
+{
+	float3x2 ();
+	float3x2 (const float3x2&);
+	float3x2&  operator = (const float3x2&);
+	float3x2 (const float3x2 &);
+	float3x2 (const float2 &, const float2 &, const float2 &);
+};
+
+struct float3x3
+{
+	float3x3 ();
+	float3x3 (const float3x3&);
+	float3x3&  operator = (const float3x3&);
+	float3x3 (const float3x3 &);
+	float3x3 (const float3 &, const float3 &, const float3 &);
+	float3x3  RotateX (float) const;
+	float3x3  RotateY (float) const;
+	float3x3  RotateZ (float) const;
+};
+
+struct float3x4
+{
+	float3x4 ();
+	float3x4 (const float3x4&);
+	float3x4&  operator = (const float3x4&);
+	float3x4 (const float3x4 &);
+	float3x4 (const float4 &, const float4 &, const float4 &);
+	float3x4  RotateX (float) const;
+	float3x4  RotateY (float) const;
+	float3x4  RotateZ (float) const;
+};
+
+struct float4x2
+{
+	float4x2 ();
+	float4x2 (const float4x2&);
+	float4x2&  operator = (const float4x2&);
+	float4x2 (const float4x2 &);
+	float4x2 (const float2 &, const float2 &, const float2 &, const float2 &);
+};
+
+struct float4x3
+{
+	float4x3 ();
+	float4x3 (const float4x3&);
+	float4x3&  operator = (const float4x3&);
+	float4x3 (const float4x3 &);
+	float4x3 (const float3 &, const float3 &, const float3 &, const float3 &);
+	float4x3  RotateX (float) const;
+	float4x3  RotateY (float) const;
+	float4x3  RotateZ (float) const;
+};
+
+struct float4x4
+{
+	float4x4 ();
+	float4x4 (const float4x4&);
+	float4x4&  operator = (const float4x4&);
+	float4x4 (const float4x4 &);
+	float4x4 (const float4 &, const float4 &, const float4 &, const float4 &);
+	float4x4  RotateX (float) const;
+	float4x4  RotateY (float) const;
+	float4x4  RotateZ (float) const;
+	float4x4  Rotate (float, const float3 &) const;
+	float4x4  Ortho (const RectF &, const float2 &) const;
+	float4x4  InfinitePerspective (float, float, float) const;
+	float4x4  Perspective (float, float, const float2 &) const;
+	float4x4  Perspective (float, const float2 &, const float2 &) const;
+	float4x4  Frustum (const RectF &, const float2 &) const;
+	float4x4  InfiniteFrustum (const RectF &, float) const;
+	float4x4  Translate (const float3 &) const;
+	float4x4  Scaled (const float3 &) const;
+	float4x4  Scaled (float) const;
+	float3  Project (const float3 &, const RectF &) const;
+	float3  UnProject (const float3 &, const RectF &) const;
+};
+
+RGBA32f  WavelengthToRGB (float);
+RGBA32f  Lerp (const RGBA32f &, const RGBA32f &, float);
 struct RGBA32f
 {
 	RGBA32f ();
@@ -802,6 +1391,10 @@ struct RGBA32u
 	RGBA32u (const RGBA32i &);
 };
 
+RGBA8u  AdjustContrast (const RGBA8u &, float);
+float  Luminance (const RGBA8u &);
+RGBA8u  AdjustSaturation (const RGBA8u &, float);
+RGBA8u  Lerp (const RGBA8u &, const RGBA8u &, float);
 struct RGBA8u
 {
 	RGBA8u ();
@@ -1366,30 +1959,32 @@ struct EResourceState
 	static constexpr uint IndexBuffer = 30;
 	static constexpr uint VertexBuffer = 31;
 	static constexpr uint ShadingRateImage = 40;
-	static constexpr uint FragmentDensityMap = 41;
 	static constexpr uint CopyRTAS_Read = 32;
 	static constexpr uint CopyRTAS_Write = 33;
 	static constexpr uint BuildRTAS_Read = 34;
 	static constexpr uint BuildRTAS_Write = 35;
 	static constexpr uint BuildRTAS_RW = 36;
-	static constexpr uint BuildRTAS_ScratchBuffer = 37;
+	static constexpr uint BuildRTAS_IndirectBuffer = 37;
 	static constexpr uint ShaderRTAS_Read = 38;
 	static constexpr uint RTShaderBindingTable = 39;
-	static constexpr uint DSTestBeforeFS = 256;
-	static constexpr uint DSTestAfterFS = 512;
-	static constexpr uint Invalidate = 1024;
-	static constexpr uint General = 42;
-	static constexpr uint PreRasterizationShaders = 2048;
+	static constexpr uint DSTestBeforeFS = 128;
+	static constexpr uint DSTestAfterFS = 256;
+	static constexpr uint Invalidate = 512;
+	static constexpr uint General = 41;
+	static constexpr uint MeshTaskShader = 1024;
+	static constexpr uint VertexProcessingShaders = 2048;
 	static constexpr uint TileShader = 4096;
 	static constexpr uint FragmentShader = 8192;
+	static constexpr uint PreRasterizationShaders = 3072;
 	static constexpr uint PostRasterizationShaders = 12288;
 	static constexpr uint ComputeShader = 16384;
 	static constexpr uint RayTracingShaders = 32768;
-	static constexpr uint AllGraphicsShaders = 14336;
-	static constexpr uint AllShaders = 63488;
+	static constexpr uint AllGraphicsShaders = 15360;
+	static constexpr uint AllShaders = 64512;
+	static constexpr uint BuildRTAS_ScratchBuffer = 36;
 	static constexpr uint ColorAttachment = 15;
 	static constexpr uint InputDepthAttachment = 21;
-	static constexpr uint DepthStencilAttachment = 786;
+	static constexpr uint DepthStencilAttachment = 402;
 };
 
 struct EImageAspect
@@ -1951,6 +2546,7 @@ struct ScriptFlags
 	operator uint () const;
 	static constexpr uint RunOnce = 1;
 	static constexpr uint OnRequest = 2;
+	static constexpr uint RunOnce_AfterLoading = 3;
 };
 
 struct DynamicDim
@@ -2067,57 +2663,60 @@ struct Buffer
 	void  LayoutAndCount (const string &, const RC<DynamicUInt> &);
 	void  LayoutAndCount (const string &, const string &, uint);
 	void  LayoutAndCount (const string &, const string &, const RC<DynamicUInt> &);
+	uint64  DeviceAddress ();
+	void  EnableHistory ();
 	void  Float (const string &, float);
-	void  Float2 (const string &, float, float);
-	void  Float3 (const string &, float, float, float);
-	void  Float4 (const string &, float, float, float, float);
-	void  Float2 (const string &, const float2 &);
-	void  Float3 (const string &, const float3 &);
-	void  Float4 (const string &, const float4 &);
-	void  Float2x2 (const string &, const float2x2 &);
-	void  Float2x3 (const string &, const float2x3 &);
-	void  Float2x4 (const string &, const float2x4 &);
-	void  Float3x2 (const string &, const float3x2 &);
-	void  Float3x3 (const string &, const float3x3 &);
-	void  Float3x4 (const string &, const float3x4 &);
-	void  Float4x2 (const string &, const float4x2 &);
-	void  Float4x3 (const string &, const float4x3 &);
-	void  Float4x4 (const string &, const float4x4 &);
+	void  Float (const string &, float, float);
+	void  Float (const string &, float, float, float);
+	void  Float (const string &, float, float, float, float);
+	void  Float (const string &, const float2 &);
+	void  Float (const string &, const float3 &);
+	void  Float (const string &, const float4 &);
+	void  Float (const string &, const float2x2 &);
+	void  Float (const string &, const float2x3 &);
+	void  Float (const string &, const float2x4 &);
+	void  Float (const string &, const float3x2 &);
+	void  Float (const string &, const float3x3 &);
+	void  Float (const string &, const float3x4 &);
+	void  Float (const string &, const float4x2 &);
+	void  Float (const string &, const float4x3 &);
+	void  Float (const string &, const float4x4 &);
 	void  Int (const string &, int);
-	void  Int2 (const string &, int, int);
-	void  Int3 (const string &, int, int, int);
-	void  Int4 (const string &, int, int, int, int);
-	void  Int2 (const string &, const int2 &);
-	void  Int3 (const string &, const int3 &);
-	void  Int4 (const string &, const int4 &);
+	void  Int (const string &, int, int);
+	void  Int (const string &, int, int, int);
+	void  Int (const string &, int, int, int, int);
+	void  Int (const string &, const int2 &);
+	void  Int (const string &, const int3 &);
+	void  Int (const string &, const int4 &);
 	void  Uint (const string &, uint);
-	void  Uint2 (const string &, uint, uint);
-	void  Uint3 (const string &, uint, uint, uint);
-	void  Uint4 (const string &, uint, uint, uint, uint);
-	void  Uint2 (const string &, const uint2 &);
-	void  Uint3 (const string &, const uint3 &);
-	void  Uint4 (const string &, const uint4 &);
-	void  Float1Array (const string &, const array<float> &);
-	void  Float2Array (const string &, const array<float2> &);
-	void  Float3Array (const string &, const array<float3> &);
-	void  Float4Array (const string &, const array<float4> &);
-	void  Float2x2Array (const string &, const array<float2x2> &);
-	void  Float2x3Array (const string &, const array<float2x3> &);
-	void  Float2x4Array (const string &, const array<float2x4> &);
-	void  Float3x2Array (const string &, const array<float3x2> &);
-	void  Float3x3Array (const string &, const array<float3x3> &);
-	void  Float3x4Array (const string &, const array<float3x4> &);
-	void  Float4x2Array (const string &, const array<float4x2> &);
-	void  Float4x3Array (const string &, const array<float4x3> &);
-	void  Float4x4Array (const string &, const array<float4x4> &);
-	void  Int1Array (const string &, const array<int> &);
-	void  Int2Array (const string &, const array<int2> &);
-	void  Int3Array (const string &, const array<int3> &);
-	void  Int4Array (const string &, const array<int4> &);
-	void  UInt1Array (const string &, const array<uint> &);
-	void  UInt2Array (const string &, const array<uint2> &);
-	void  UInt3Array (const string &, const array<uint3> &);
-	void  UInt4Array (const string &, const array<uint4> &);
+	void  Uint (const string &, uint, uint);
+	void  Uint (const string &, uint, uint, uint);
+	void  Uint (const string &, uint, uint, uint, uint);
+	void  Uint (const string &, const uint2 &);
+	void  Uint (const string &, const uint3 &);
+	void  Uint (const string &, const uint4 &);
+	void  ULong (const string &, uint64);
+	void  FloatArray (const string &, const array<float> &);
+	void  FloatArray (const string &, const array<float2> &);
+	void  FloatArray (const string &, const array<float3> &);
+	void  FloatArray (const string &, const array<float4> &);
+	void  FloatArray (const string &, const array<float2x2> &);
+	void  FloatArray (const string &, const array<float2x3> &);
+	void  FloatArray (const string &, const array<float2x4> &);
+	void  FloatArray (const string &, const array<float3x2> &);
+	void  FloatArray (const string &, const array<float3x3> &);
+	void  FloatArray (const string &, const array<float3x4> &);
+	void  FloatArray (const string &, const array<float4x2> &);
+	void  FloatArray (const string &, const array<float4x3> &);
+	void  FloatArray (const string &, const array<float4x4> &);
+	void  IntArray (const string &, const array<int> &);
+	void  IntArray (const string &, const array<int2> &);
+	void  IntArray (const string &, const array<int3> &);
+	void  IntArray (const string &, const array<int4> &);
+	void  UIntArray (const string &, const array<uint> &);
+	void  UIntArray (const string &, const array<uint2> &);
+	void  UIntArray (const string &, const array<uint3> &);
+	void  UIntArray (const string &, const array<uint4> &);
 };
 
 struct RTGeometry
@@ -2128,6 +2727,8 @@ struct RTGeometry
 	void  AddTriangles (const RC<Buffer> &, uint, uint);
 	void  AddIndexedTriangles (const RC<Buffer> &, const RC<Buffer> &);
 	void  AddIndexedTriangles (const RC<Buffer> &, uint, uint, const RC<Buffer> &, EIndex);
+	RC<Buffer>  IndirectBuffer ();
+	uint  GeometryCount ();
 };
 
 struct RTInstanceCustomIndex
@@ -2154,11 +2755,26 @@ struct RTInstanceSBTOffset
 	RTInstanceSBTOffset (uint);
 };
 
+struct RTInstanceRotation
+{
+	RTInstanceRotation ();
+	RTInstanceRotation (const RTInstanceRotation&);
+	RTInstanceRotation&  operator = (const RTInstanceRotation&);
+	RTInstanceRotation (const float3 &);
+	RTInstanceRotation (float, float, float);
+};
+
 struct RTScene
 {
 	RTScene ();
 	void  Name (const string &);
 	void  AddInstance (const RC<RTGeometry> &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceMask &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceSBTOffset &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &, const RTInstanceMask &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &);
 	void  AddInstance (const RC<RTGeometry> &, const float3 &);
 	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceCustomIndex &);
 	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceMask &);
@@ -2166,15 +2782,53 @@ struct RTScene
 	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &);
 	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &);
 	void  AddInstance (const RC<RTGeometry> &, const float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceRotation &, const float3 &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceRotation &, const float3 &, const RTInstanceCustomIndex &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceRotation &, const float3 &, const RTInstanceMask &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceRotation &, const float3 &, const RTInstanceSBTOffset &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceRotation &, const float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceRotation &, const float3 &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &);
+	void  AddInstance (const RC<RTGeometry> &, const RTInstanceRotation &, const float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &);
+	RC<Buffer>  InstanceBuffer ();
+	uint  InstanceCount ();
+	RC<Buffer>  IndirectBuffer ();
 };
 
 struct BaseController
 {
 };
 
-struct Controller2D
+struct ScaleBiasCamera
 {
-	Controller2D ();
+	ScaleBiasCamera ();
+	RC<DynamicDim>  Dimension ();
+	void  Dimension (const RC<DynamicDim> &);
+};
+
+struct TopDownCamera
+{
+	TopDownCamera ();
+	void  ForwardBackwardScale (float);
+	void  ForwardBackwardScale (float, float);
+	void  SideMovementScale (float);
+	void  RotationScale (float);
+	void  Position (const float2 &);
+	RC<DynamicDim>  Dimension ();
+	void  Dimension (const RC<DynamicDim> &);
+};
+
+struct IsometricCamera
+{
+	IsometricCamera ();
+	RC<DynamicDim>  Dimension ();
+	void  Dimension (const RC<DynamicDim> &);
+	void  FovY (float);
+	void  ClipPlanes (float, float);
+	void  RotationScale (float);
+	void  RotationScale (float, float);
+	void  OffsetScale (float);
+	void  Position (const float3 &);
+	void  Offset (float);
 };
 
 struct FlightCamera
@@ -2186,6 +2840,8 @@ struct FlightCamera
 	void  RotationScale (float, float, float);
 	void  Position (const float3 &);
 	void  EngineThrust (float, float);
+	RC<DynamicDim>  Dimension ();
+	void  Dimension (const RC<DynamicDim> &);
 };
 
 struct FPSCamera
@@ -2201,6 +2857,8 @@ struct FPSCamera
 	void  RotationScale (float);
 	void  RotationScale (float, float);
 	void  Position (const float3 &);
+	RC<DynamicDim>  Dimension ();
+	void  Dimension (const RC<DynamicDim> &);
 };
 
 struct FPVCamera
@@ -2216,6 +2874,8 @@ struct FPVCamera
 	void  RotationScale (float);
 	void  RotationScale (float, float);
 	void  Position (const float3 &);
+	RC<DynamicDim>  Dimension ();
+	void  Dimension (const RC<DynamicDim> &);
 };
 
 struct IPass
@@ -2253,6 +2913,8 @@ struct SphericalCube
 	void  AddTexture (const string &, const RC<Image> &, const string &);
 	void  DetailLevel (uint);
 	void  DetailLevel (uint, uint);
+	void  TessLevel (float);
+	void  TessLevel (const RC<DynamicFloat> &);
 };
 
 struct UnifiedGeometry_Draw
@@ -2391,6 +3053,16 @@ struct UnifiedGeometry
 	void  Draw (const UnifiedGeometry_DrawMeshTasksIndirectCount &);
 };
 
+struct Model
+{
+	Model (const string &);
+	void  Name (const string &);
+	void  TexturePrefix (const string &);
+	void  InitialTransform (const float4x4 &);
+	RC<RTGeometry>  OpaqueRTGeometry ();
+	RC<RTGeometry>  TranslucentRTGeometry ();
+};
+
 struct Collection
 {
 	Collection ();
@@ -2455,6 +3127,7 @@ struct Postprocess
 	void  ColorSelector (const string &);
 	void  Constant (const string &, const RC<DynamicFloat4> &);
 	void  Constant (const string &, const RC<DynamicInt4> &);
+	RC<DynamicDim>  Dimension ();
 	void  Output (const RC<Image> &);
 	void  Output (const RC<Image> &, const MipmapLevel &);
 	void  Output (const RC<Image> &, const ImageLayer &);
@@ -2542,6 +3215,7 @@ struct ComputePass
 	void  ColorSelector (const string &);
 	void  Constant (const string &, const RC<DynamicFloat4> &);
 	void  Constant (const string &, const RC<DynamicInt4> &);
+	RC<DynamicDim>  Dimension ();
 	ComputePass  ();
 	ComputePass (const string &);
 	ComputePass (const string &, const string &);
@@ -2596,6 +3270,7 @@ struct SceneGraphicsPass
 	void  ColorSelector (const string &);
 	void  Constant (const string &, const RC<DynamicFloat4> &);
 	void  Constant (const string &, const RC<DynamicInt4> &);
+	RC<DynamicDim>  Dimension ();
 	void  Output (const RC<Image> &);
 	void  Output (const RC<Image> &, const MipmapLevel &);
 	void  Output (const RC<Image> &, const ImageLayer &);
@@ -2641,6 +3316,29 @@ struct SceneGraphicsPass
 	void  AddPipelines (const string &);
 };
 
+struct SceneRayTracingPass
+{
+	SceneRayTracingPass ();
+	void  SetDebugLabel (const string &);
+	void  SetDebugLabel (const string &, const RGBA8u &);
+	void  SliderI (const string &);
+	void  Slider (const string &, int, int);
+	void  Slider (const string &, const int2 &, const int2 &);
+	void  Slider (const string &, const int3 &, const int3 &);
+	void  Slider (const string &, const int4 &, const int4 &);
+	void  Slider (const string &);
+	void  Slider (const string &, float, float);
+	void  Slider (const string &, const float2 &, const float2 &);
+	void  Slider (const string &, const float3 &, const float3 &);
+	void  Slider (const string &, const float4 &, const float4 &);
+	void  ColorSelector (const string &);
+	void  Constant (const string &, const RC<DynamicFloat4> &);
+	void  Constant (const string &, const RC<DynamicInt4> &);
+	RC<DynamicDim>  Dimension ();
+	void  Input (const RC<BaseController> &);
+	void  SetPipeline (const string &);
+};
+
 struct Scene
 {
 	Scene ();
@@ -2660,10 +3358,18 @@ void  DbgView (const RC<Image> &, const MipmapLevel &, DbgViewFlags);
 void  DbgView (const RC<Image> &, const ImageLayer &, DbgViewFlags);
 void  DbgView (const RC<Image> &, const ImageLayer &, const MipmapLevel &, DbgViewFlags);
 void  GenMipmaps (const RC<Image> &);
-void  BuildRTGeometry ();
-void  BuildRTScene ();
+void  BuildRTGeometry (const RC<RTGeometry> &);
+void  BuildRTGeometryIndirect (const RC<RTGeometry> &);
+void  BuildRTScene (const RC<RTScene> &);
+void  BuildRTSceneIndirect (const RC<RTScene> &);
+void  GetCube (array<float3> &, array<float3> &, array<uint3> &);
+void  GetCube (array<float3> &, array<float3> &, array<uint> &);
+void  GetCube (array<float3> &, array<float3> &, array<float3> &, array<float3> &, array<uint> &);
+void  GenGrid (uint, array<float2> &, array<uint> &);
+void  GenGrid (uint, array<float3> &, array<uint> &);
+void  GenCylinder (uint, const float3 &, array<float3> &, array<float3> &, array<uint> &);
 RC<IPass>  RunScript (const string &, const RC<Collection> &);
-RC<IPass>  RunScript (const string &, uint, const RC<Collection> &);
+RC<IPass>  RunScript (const string &, ScriptFlags, const RC<Collection> &);
 void  Slider (const RC<DynamicInt4> &, const string &, const int4 &, const int4 &);
 void  Slider (const RC<DynamicUInt> &, const string &);
 void  Slider (const RC<DynamicUInt> &, const string &, uint, uint);
@@ -2674,15 +3380,15 @@ void  Slider (const RC<DynamicFloat4> &, const string &, const float4 &, const f
 #define SCRIPT
 
 template <>
-struct RC<DynamicDim> : DynamicDim
+struct RC<DynamicInt4> : DynamicInt4
 {
-	RC (const DynamicDim &);
+	RC (const DynamicInt4 &);
 };
 
 template <>
-struct RC<FPSCamera> : FPSCamera
+struct RC<GeomSource> : GeomSource
 {
-	RC (const FPSCamera &);
+	RC (const GeomSource &);
 };
 
 template <>
@@ -2704,39 +3410,9 @@ struct RC<DynamicUInt3> : DynamicUInt3
 };
 
 template <>
-struct RC<DynamicInt4> : DynamicInt4
-{
-	RC (const DynamicInt4 &);
-};
-
-template <>
-struct RC<GeomSource> : GeomSource
-{
-	RC (const GeomSource &);
-};
-
-template <>
-struct RC<DynamicFloat> : DynamicFloat
-{
-	RC (const DynamicFloat &);
-};
-
-template <>
-struct RC<SphericalCube> : SphericalCube
-{
-	RC (const SphericalCube &);
-};
-
-template <>
 struct RC<Image> : Image
 {
 	RC (const Image &);
-};
-
-template <>
-struct RC<Buffer> : Buffer
-{
-	RC (const Buffer &);
 };
 
 template <>
@@ -2746,39 +3422,9 @@ struct RC<IPass> : IPass
 };
 
 template <>
-struct RC<UnifiedGeometry> : UnifiedGeometry
+struct RC<IsometricCamera> : IsometricCamera
 {
-	RC (const UnifiedGeometry &);
-};
-
-template <>
-struct RC<Postprocess> : Postprocess
-{
-	RC (const Postprocess &);
-};
-
-template <>
-struct RC<Controller2D> : Controller2D
-{
-	RC (const Controller2D &);
-};
-
-template <>
-struct RC<ComputePass> : ComputePass
-{
-	RC (const ComputePass &);
-};
-
-template <>
-struct RC<FlightCamera> : FlightCamera
-{
-	RC (const FlightCamera &);
-};
-
-template <>
-struct RC<BaseController> : BaseController
-{
-	RC (const BaseController &);
+	RC (const IsometricCamera &);
 };
 
 template <>
@@ -2794,6 +3440,108 @@ struct RC<VideoImage> : VideoImage
 };
 
 template <>
+struct RC<SceneGraphicsPass> : SceneGraphicsPass
+{
+	RC (const SceneGraphicsPass &);
+};
+
+template <>
+struct RC<DynamicULong> : DynamicULong
+{
+	RC (const DynamicULong &);
+};
+
+template <>
+struct RC<RTScene> : RTScene
+{
+	RC (const RTScene &);
+};
+
+template <>
+struct RC<Collection> : Collection
+{
+	RC (const Collection &);
+};
+
+template <>
+struct RC<DynamicFloat> : DynamicFloat
+{
+	RC (const DynamicFloat &);
+};
+
+template <>
+struct RC<DynamicDim> : DynamicDim
+{
+	RC (const DynamicDim &);
+};
+
+template <>
+struct RC<FPSCamera> : FPSCamera
+{
+	RC (const FPSCamera &);
+};
+
+template <>
+struct RC<SphericalCube> : SphericalCube
+{
+	RC (const SphericalCube &);
+};
+
+template <>
+struct RC<Buffer> : Buffer
+{
+	RC (const Buffer &);
+};
+
+template <>
+struct RC<Postprocess> : Postprocess
+{
+	RC (const Postprocess &);
+};
+
+template <>
+struct RC<SceneRayTracingPass> : SceneRayTracingPass
+{
+	RC (const SceneRayTracingPass &);
+};
+
+template <>
+struct RC<ComputePass> : ComputePass
+{
+	RC (const ComputePass &);
+};
+
+template <>
+struct RC<UnifiedGeometry> : UnifiedGeometry
+{
+	RC (const UnifiedGeometry &);
+};
+
+template <>
+struct RC<ScaleBiasCamera> : ScaleBiasCamera
+{
+	RC (const ScaleBiasCamera &);
+};
+
+template <>
+struct RC<FlightCamera> : FlightCamera
+{
+	RC (const FlightCamera &);
+};
+
+template <>
+struct RC<TopDownCamera> : TopDownCamera
+{
+	RC (const TopDownCamera &);
+};
+
+template <>
+struct RC<BaseController> : BaseController
+{
+	RC (const BaseController &);
+};
+
+template <>
 struct RC<TiledTerrain> : TiledTerrain
 {
 	RC (const TiledTerrain &);
@@ -2806,32 +3554,14 @@ struct RC<Scene> : Scene
 };
 
 template <>
-struct RC<DynamicULong> : DynamicULong
-{
-	RC (const DynamicULong &);
-};
-
-template <>
-struct RC<SceneGraphicsPass> : SceneGraphicsPass
-{
-	RC (const SceneGraphicsPass &);
-};
-
-template <>
 struct RC<DynamicUInt> : DynamicUInt
 {
 	RC (const DynamicUInt &);
 };
 
 template <>
-struct RC<Collection> : Collection
+struct RC<Model> : Model
 {
-	RC (const Collection &);
-};
-
-template <>
-struct RC<RTScene> : RTScene
-{
-	RC (const RTScene &);
+	RC (const Model &);
 };
 

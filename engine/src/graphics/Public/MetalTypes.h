@@ -241,13 +241,6 @@ namespace AE::Graphics
     };
 
 
-    enum class MDeviceAddress : ulong { Unknown = 0 };
-
-    ND_ inline MDeviceAddress  operator + (MDeviceAddress addr, Bytes offset) __NE___ {
-        return MDeviceAddress(ulong(addr) + ulong(offset));
-    }
-
-
     //
     // Metal Sample BUffer Attachments
     //

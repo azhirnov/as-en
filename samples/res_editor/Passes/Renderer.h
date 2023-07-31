@@ -27,6 +27,7 @@ namespace AE::ResEditor
     private:
         using PassArr_t     = Array< RC<IPass> >;
         using TimePoint_t   = std::chrono::high_resolution_clock::time_point;
+        using CustomKeys_t  = StaticArray< float, 1 >;
 
         struct ScriptFile
         {
@@ -40,8 +41,10 @@ namespace AE::ResEditor
 
         struct InputData
         {
-            float2      cursorPos;              // in pixels
-            bool        pressed     = false;    // mouse down or touch pressed
+            float2          cursorPos;                  // unorm
+            bool            pressed         = false;    // mouse down or touch pressed
+            bool            pauseRendering  = false;
+            CustomKeys_t    customKeys      = {};
         };
         using InputDataSync = Synchronized< RWSpinLock, InputData >;
 
@@ -63,6 +66,7 @@ namespace AE::ResEditor
 
         InputDataSync           _input;
         Sliders_t               _sliders;
+        const uint              _seed;
 
         struct {
             RWSpinLock              guard;
@@ -82,10 +86,8 @@ namespace AE::ResEditor
 
     // methods
     public:
-        Renderer ();
+        explicit Renderer (uint seed);
         ~Renderer ();
-
-        ND_ bool            IsCompleted () const;
 
             void            ProcessInput (ActionQueueReader reader, OUT bool &switchMode);
         ND_ InputModeName   GetInputMode () const;

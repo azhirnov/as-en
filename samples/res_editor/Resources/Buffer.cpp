@@ -6,6 +6,11 @@
 
 namespace AE::ResEditor
 {
+namespace
+{
+    static constexpr auto   c_DevAddrUsage =    EBufferUsage::ShaderAddress | EBufferUsage::ShaderBindingTable |
+                                                EBufferUsage::ASBuild_ReadOnly  | EBufferUsage::ASBuild_Scratch;
+}
 
 /*
 =================================================
@@ -16,36 +21,51 @@ namespace AE::ResEditor
     {
         return filename.IsDefined() or (not data.empty()) or clear;
     }
+//-----------------------------------------------------------------------------
+
 
 /*
 =================================================
     constructor
 =================================================
 */
-    Buffer::Buffer (Strong<BufferID>    id,
+    Buffer::Buffer (IDs_t               ids,
                     const BufferDesc &  desc,
                     Bytes               elemSize,
                     LoadOp              loadOp,
                     ShaderStructName    typeName,
                     Renderer &          renderer,
                     RC<DynamicUInt>     dynCount,
-                    StringView          dbgName) __Th___ :
+                    StringView          dbgName,
+                    EBufferFlags        flags) __Th___ :
         IResource{ renderer },
-        _id{ RVRef(id) },
         _typeName{ typeName },
         _elemSize{ elemSize },
         _bufDesc{ desc },
         _dynCount{ RVRef(dynCount) },
         _loadOp{ RVRef(loadOp) },
+        _flags{ flags },
         _dbgName{ dbgName }
     {
         ASSERT( (_elemSize > 0_b) == (_dynCount != null) );
+
+        for (usize i = 0; i < ids.size(); ++i) {
+            Unused( _ids[i].Attach( RVRef(ids[i]) ));
+        }
+
+        if ( HasHistory() )
+        {
+            CHECK_THROW( not _dynCount );
+        }
 
         if ( not _loadOp.IsDefined() )
         {
             _uploadStatus.store( EUploadStatus::Complete );
 
-            FrameGraph().GetStateTracker().AddResource( _id.Get() );
+            auto&   res_mngr = FrameGraph().GetStateTracker();
+            for (auto& id : _ids) {
+                res_mngr.AddResourceIfNotTracked( id.Get() );
+            }
         }
         else
         {
@@ -55,11 +75,19 @@ namespace AE::ResEditor
             {
                 CHECK_THROW( GetVFS().Open( OUT _loadOp.file, _loadOp.filename ));
 
-                _loadOp.request = _loadOp.file->ReadRemaining();
+                _loadOp.request = _loadOp.file->ReadRemaining( 0_b );   // TODO: optimize?
                 CHECK_THROW( _loadOp.request );
             }
 
             _ResQueue().EnqueueForUpload( GetRC() );
+        }
+
+        if ( AnyBits( desc.usage, c_DevAddrUsage ))
+        {
+            auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+            for (usize i = 0; i < _ids.size(); ++i) {
+                _address[i] = BitCast<ulong>(res_mngr.GetResource( _ids[i].Get() )->GetDeviceAddress());
+            }
         }
     }
 
@@ -75,8 +103,12 @@ namespace AE::ResEditor
         _loadOp = Default;
 
         {
-            auto    id = _id.Release();
-            FrameGraph().GetStateTracker().ReleaseResource( id );
+            auto&   res_mngr = FrameGraph().GetStateTracker();
+            for (auto& a_id : _ids)
+            {
+                auto    id = a_id.Release();
+                res_mngr.ReleaseResource( id );
+            }
         }
     }
 
@@ -90,6 +122,8 @@ namespace AE::ResEditor
         if ( not _dynCount )
             return true;
 
+        ASSERT( not HasHistory() );
+
         uint    count   = uint(ArraySize());
 
         if_likely( not _dynCount->IsChanged( INOUT count ) or count == 0 )
@@ -98,26 +132,36 @@ namespace AE::ResEditor
         BufferDesc  desc = _bufDesc.Read();
         desc.size = Max( count, 1u ) * _elemSize;
 
+        auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
+        auto&   rs_track    = FrameGraph().GetStateTracker();
+
+        auto    buf = res_mngr.CreateBuffer( desc, _dbgName, _GfxDynamicAllocator() );
+        CHECK_ERR( buf );
+
+        _bufDesc.Write( desc );
+
+        rs_track.AddResource( buf.Get(),
+                              EResourceState::_InvalidState,    // current is not used
+                              EResourceState::General,          // default
+                              ctx.GetCommandBatchRC() );
+
+        for (auto& id : _ids)
         {
-            auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
-
-            auto    buf = res_mngr.CreateBuffer( desc, _dbgName, _GfxDynamicAllocator() );
-            CHECK_ERR( buf );
-
-            _bufDesc.Write( desc );
-
-            FrameGraph().GetStateTracker().AddResource( buf.Get(),
-                                                        EResourceState::_InvalidState,  // current is not used
-                                                        EResourceState::General,        // default
-                                                        ctx.GetCommandBatchRC() );
-
-            auto    old_buf = _id.Attach( RVRef(buf) );
+            auto    old_buf = id.Attach( res_mngr.AcquireResource( buf ));
             res_mngr.ReleaseResource( old_buf );    // release dummy resource
         }
 
-        if ( _loadOp.clear )
-            ctx.FillBuffer( _id.Get(), 0_b, desc.size, 0 ); 
+        if ( AnyBits( desc.usage, c_DevAddrUsage ))
+        {
+            for (usize i = 0; i < _ids.size(); ++i) {
+                _address[i] = BitCast<ulong>(res_mngr.GetResource( _ids[i].Get() )->GetDeviceAddress());
+            }
+        }
 
+        if ( _loadOp.clear )
+            ctx.FillBuffer( buf, 0_b, desc.size, 0 );
+
+        res_mngr.ReleaseResource( buf );
         return true;
     }
 
@@ -131,30 +175,53 @@ namespace AE::ResEditor
         if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
             return stat;
 
-        EXLOCK( _loadOpGuard );
+        const auto  CopyHistroy = [this, &ctx] (Bytes size)
+        {{
+            if ( this->HasHistory() )
+            {
+                for (usize i = 1; i < _ids.size(); ++i)
+                {
+                    BufferCopy  copy;
+                    copy.srcOffset  = 0_b;
+                    copy.dstOffset  = 0_b;
+                    copy.size       = size;
+
+                    ctx.CopyBuffer( _ids[0].Get(), _ids[i].Get(), {copy} );
+                }
+            }
+        }};
+
         ASSERT( _loadOp.IsDefined() );
 
         if ( _loadOp.clear )
         {
-            ctx.FillBuffer( _id.Get(), 0_b, _bufDesc->size, 0 );
+            if ( HasHistory() )
+            {
+                for (auto& id : _ids) {
+                    ctx.FillBuffer( id.Get(), 0_b, _bufDesc->size, 0 );
+                }
+            }
+            else
+                ctx.FillBuffer( _ids[0].Get(), 0_b, _bufDesc->size, 0 );
 
-            _uploadStatus.store( EUploadStatus::Complete );
-            return EUploadStatus::Complete;
+            _SetUploadStatus( EUploadStatus::Complete );
+            return _uploadStatus.load();
         }
 
         if ( not _loadOp.data.empty() )
         {
-            CHECK_ERR( ctx.UploadBuffer( _id.Get(), 0_b, _loadOp.data, EStagingHeapType::Dynamic ), EUploadStatus::InProgress );
-            _loadOp.data = {};
+            CHECK_ERR( ctx.UploadBuffer( _ids[0].Get(), 0_b, _loadOp.data, EStagingHeapType::Dynamic ), EUploadStatus::InProgress );
+            CopyHistroy( ArraySizeOf(_loadOp.data) );
 
-            _uploadStatus.store( EUploadStatus::Complete );
-            return EUploadStatus::Complete;
+            _loadOp.data = {};
+            _SetUploadStatus( EUploadStatus::Complete );
+            return _uploadStatus.load();
         }
 
         if_unlikely( not _loadOp.request or _loadOp.request->IsCancelled() )
         {
-            _uploadStatus.store( EUploadStatus::Canceled );
-            return EUploadStatus::Canceled;
+            _SetUploadStatus( EUploadStatus::Canceled );
+            return _uploadStatus.load();
         }
 
         if ( not _loadOp.request->IsCompleted() )
@@ -162,22 +229,24 @@ namespace AE::ResEditor
 
         if_unlikely( not _loadOp.stream.IsInitialized() )
         {
-            _loadOp.stream = BufferStream{ _id.Get(), 0_b, _bufDesc->size, 0_b, EStagingHeapType::Dynamic };
+            _loadOp.stream = BufferStream{ _ids[0].Get(), 0_b, _bufDesc->size, 0_b, EStagingHeapType::Dynamic };
         }
-        ASSERT( _loadOp.stream.Buffer() == _id );
+        ASSERT( _loadOp.stream.Buffer() == _ids[0] );
 
         BufferMemView   dst_mem;
         ctx.UploadBuffer( _loadOp.stream, OUT dst_mem );
 
         if ( not dst_mem.Empty() )
         {
-            Unused( dst_mem.Copy( _loadOp.request->GetResult().AsArray<ubyte>().section( usize(_loadOp.stream.pos), UMax )));
+            Unused( dst_mem.CopyFrom( _loadOp.request->GetResult().AsArray<ubyte>().section( usize(_loadOp.stream.pos), UMax )));
+
+            CopyHistroy( _loadOp.stream.End() );
         }
 
         if ( _loadOp.stream.IsCompleted() )
         {
             _loadOp = Default;
-            _uploadStatus.store( EUploadStatus::Complete );
+            _SetUploadStatus( EUploadStatus::Complete );
         }
 
         return _uploadStatus.load();
@@ -190,19 +259,7 @@ namespace AE::ResEditor
 */
     IResource::EUploadStatus  Buffer::Readback (TransferCtx_t &)
     {
-        EXLOCK( _loadOpGuard );
-
         return EUploadStatus::Canceled;
-    }
-
-/*
-=================================================
-    Cancel
-=================================================
-*/
-    void  Buffer::Cancel ()
-    {
-        EXLOCK( _loadOpGuard );
     }
 
 

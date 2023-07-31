@@ -806,6 +806,9 @@ public:
     const   int     InstanceIndex       = {};
     const   int     VertexIndex         = {};
     const   int     PrimitiveID         = {};
+    const   int     BaseInstance        = {};
+    const   int     BaseVertex          = {};
+    const   int     DrawIndex           = {};
 
     // out
             float4  Position;
@@ -1270,6 +1273,22 @@ public:
     template <uint B, Scope S, uint R, uint C, typename T>  ND_ UCoopMatNV<B,S,R,C>  CoopMatMulAddNV (UCoopMatNV<B,S,R,C> a, UCoopMatNV<B,S,R,C> b, UCoopMatNV<B,S,R,C> c);
 
   #endif // SH_COMPUTE or AE_MEM_SCOPE
+
+
+    // GL_ARB_fragment_shader_interlock
+  #ifdef SH_FRAG
+    void  BeginInvocationInterlock ();
+    void  EndInvocationInterlock ();
+  #endif
+
+    // GL_EXT_fragment_shader_barycentric
+  #ifdef SH_FRAG
+    // in
+    const   float3  BaryCoord ();
+    const   float3  BaryCoordNoPersp ();
+
+    // PerVertex<>
+  #endif
 
 } gl;
 

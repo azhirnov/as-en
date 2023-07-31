@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "base/Utils/EnumBitSet.h"
-#include "serializing/ISerializable.h"
 #include "graphics/Public/IDs.h"
 #include "graphics/Public/EResourceState.h"
 #include "graphics/Public/ShaderEnums.h"
@@ -267,7 +265,9 @@ namespace AE::PipelineCompiler
         ND_ bool    Merge (const DescriptorSetLayoutDesc &other);
             void    SortUniforms ();
 
-        ND_ bool    IsCompatible (const DescriptorSetLayoutDesc &rhs) const;
+        ND_ static bool IsCompatible (const DescriptorSetLayoutDesc &fromReflection,
+                                      const DescriptorSetLayoutDesc &fromScript);
+
         ND_ bool    operator == (const DescriptorSetLayoutDesc &rhs) const;
         ND_ HashVal CalcHash () const;
 
@@ -1244,40 +1244,36 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
-{
-    template <>
-    struct hash< AE::PipelineCompiler::PushConstants::PushConst > final :
-        AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::PushConstants::PushConst >
-    {};
+template <>
+struct std::hash< AE::PipelineCompiler::PushConstants::PushConst > final :
+    AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::PushConstants::PushConst >
+{};
 
-    template <>
-    struct hash< AE::PipelineCompiler::PushConstants > final :
-        AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::PushConstants >
-    {};
+template <>
+struct std::hash< AE::PipelineCompiler::PushConstants > final :
+    AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::PushConstants >
+{};
 
-    template <>
-    struct hash< AE::PipelineCompiler::DescriptorSetLayoutDesc > final :
-        AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::DescriptorSetLayoutDesc >
-    {};
+template <>
+struct std::hash< AE::PipelineCompiler::DescriptorSetLayoutDesc > final :
+    AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::DescriptorSetLayoutDesc >
+{};
 
-    template <>
-    struct hash< AE::PipelineCompiler::PipelineLayoutDesc::DescSetLayout > final :
-        AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::PipelineLayoutDesc::DescSetLayout >
-    {};
+template <>
+struct std::hash< AE::PipelineCompiler::PipelineLayoutDesc::DescSetLayout > final :
+    AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::PipelineLayoutDesc::DescSetLayout >
+{};
 
-    template <>
-    struct hash< AE::PipelineCompiler::SpirvWithTrace > {
-        ND_ size_t  operator () (const AE::PipelineCompiler::SpirvWithTrace &x) const {
-            return size_t(AE::Base::HashOf( x.bytecode ));
-        }
-    };
+template <>
+struct std::hash< AE::PipelineCompiler::SpirvWithTrace > {
+    ND_ size_t  operator () (const AE::PipelineCompiler::SpirvWithTrace &x) const {
+        return size_t(AE::Base::HashOf( x.bytecode ));
+    }
+};
 
-    template <>
-    struct hash< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib > {
-        size_t  operator () (const AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib &x) const {
-            return size_t(AE::Base::HashOf(x.type) + AE::Base::HashOf(x.index));
-        }
-    };
-
-} // std
+template <>
+struct std::hash< AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib > {
+    size_t  operator () (const AE::PipelineCompiler::SerializableGraphicsPipeline::VertexAttrib &x) const {
+        return size_t(AE::Base::HashOf(x.type) + AE::Base::HashOf(x.index));
+    }
+};

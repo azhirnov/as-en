@@ -206,12 +206,12 @@ namespace LFAS::CPP
 
 /*
 =================================================
-    CheckForUncommitedChanges
+    CheckForUncommittedChanges
 ----
     find uncommited changes in current thread
 =================================================
 */
-    void  VirtualMachine::CheckForUncommitedChanges () const
+    void  VirtualMachine::CheckForUncommittedChanges () const
     {
         EXLOCK( _storageMapGuard );
 

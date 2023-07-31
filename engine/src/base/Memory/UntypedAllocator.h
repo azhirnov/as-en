@@ -169,14 +169,14 @@ namespace AE::Base
         {                                                                                           \
             AllocateOnStack2( _outPtr_, (SizeOf<RemovePointer<decltype(_outPtr_)>> * _count_) );    \
             for (usize i = 0, cnt = _count_; i < cnt; ++i) {                                        \
-                PlacementNew< RemovePointer<decltype(_outPtr_)> >( _outPtr_ + i );                  \
+                PlacementNew< RemovePointer<decltype(_outPtr_)> >( OUT _outPtr_ + i );              \
             }                                                                                       \
         }                                                                                           \
 
 #   define AllocateOnStack_ZeroMem( _outPtr_, _count_ )                                             \
         {                                                                                           \
             AllocateOnStack2( _outPtr_, (SizeOf<RemovePointer<decltype(_outPtr_)>> * _count_) );    \
-            ZeroMem( _outPtr_, _count_ );                                                           \
+            ZeroMem( OUT _outPtr_, _count_ );                                                       \
         }                                                                                           \
 
 

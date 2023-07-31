@@ -263,6 +263,19 @@ namespace AE::Base
 //-----------------------------------------------------------------------------
 
 
+    //
+    // Path Hasher
+    //
+    struct PathHasher
+    {
+        ND_ usize  operator () (const Path &p) C_NE___
+        {
+            return usize(FileSystem::Hash( p ));
+        }
+    };
+//-----------------------------------------------------------------------------
+
+
 
     inline FileSystem::DirectoryEntry const&  FileSystem::DirectoryIter::operator *  ()         C_NE___ { return reinterpret_cast<DirectoryEntry const&>( _it.operator* () ); }
     inline FileSystem::DirectoryEntry const*  FileSystem::DirectoryIter::operator -> ()         C_NE___ { return reinterpret_cast<DirectoryEntry const*>( _it.operator->() ); }
@@ -437,30 +450,3 @@ namespace AE::Base
     }
 
 } // AE::Base
-
-
-namespace std
-{
-#ifdef AE_COMPILER_MSVC
-# if _MSC_VER >= 1933
-#   define AE_HAS_PATH_HASH
-# endif
-#endif
-
-#ifdef AE_COMPILER_CLANG
-    // TODO: check version
-#   define AE_HAS_PATH_HASH
-#endif
-
-#ifndef AE_HAS_PATH_HASH
-    template <>
-    struct hash< AE::Base::Path >
-    {
-        ND_ size_t  operator () (const AE::Base::Path &value) C_NE___
-        {
-            return size_t(AE::Base::FileSystem::Hash( value ));
-        }
-    };
-#endif
-
-} // std

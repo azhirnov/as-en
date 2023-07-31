@@ -9,5 +9,9 @@ if (TARGET "PipelineCompiler")
     target_link_libraries( "Tests.PipelineCompiler" PUBLIC "PipelineCompiler" )
     target_compile_definitions( "Tests.PipelineCompiler" PRIVATE "AE_TEST_PIPELINE_COMPILER" )
 
+    if (${AE_USE_PCH})
+        target_precompile_headers( "Tests.PipelineCompiler" PRIVATE "../../tools/res_pack/pipeline_compiler/PipelineCompiler.pch.h" )
+    endif()
+
     add_test( NAME "Tests.PipelineCompiler" COMMAND "Tests.PipelineCompiler" )
 endif()

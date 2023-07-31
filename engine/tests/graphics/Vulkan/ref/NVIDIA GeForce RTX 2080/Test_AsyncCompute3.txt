@@ -3,10 +3,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'graphics batch |0| graphics task'
 {
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -30,16 +26,7 @@ name: 'graphics batch |0| graphics task'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task - RP'
-    depth: 2
-  ----------
-
   Draw
-
-  EndDebugLabel
-    depth: 2
-  ----------
 
   EndRenderPass2
     attachment:
@@ -63,10 +50,6 @@ name: 'graphics batch |0| graphics task'
       queue:   0 ---> 2  (release)
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -82,10 +65,6 @@ waitSemaphore = {
 --------------------------------------------------
 name: 'compute batch |0| async compute task'
 {
-  BeginDebugLabel
-    name:  'compute batch |0| async compute task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -102,10 +81,6 @@ name: 'compute batch |0| async compute task'
       image: 'Image-0', layout: GENERAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -117,10 +92,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'graphics batch |0| graphics task'
 {
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -144,16 +115,7 @@ name: 'graphics batch |0| graphics task'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task - RP'
-    depth: 2
-  ----------
-
   Draw
-
-  EndDebugLabel
-    depth: 2
-  ----------
 
   EndRenderPass2
     attachment:
@@ -177,10 +139,6 @@ name: 'graphics batch |0| graphics task'
       queue:   0 ---> 2  (release)
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -196,10 +154,6 @@ waitSemaphore = {
 --------------------------------------------------
 name: 'compute batch |0| async compute task'
 {
-  BeginDebugLabel
-    name:  'compute batch |0| async compute task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -214,10 +168,6 @@ name: 'compute batch |0| async compute task'
   Dispatch
     descriptors:
       image: 'Image-1', layout: GENERAL
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -235,10 +185,6 @@ waitSemaphore = {
 --------------------------------------------------
 name: 'graphics batch |0| graphics task'
 {
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -262,16 +208,7 @@ name: 'graphics batch |0| graphics task'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task - RP'
-    depth: 2
-  ----------
-
   Draw
-
-  EndDebugLabel
-    depth: 2
-  ----------
 
   EndRenderPass2
     attachment:
@@ -293,10 +230,6 @@ name: 'graphics batch |0| graphics task'
       access:  SHADER_SAMPLED_READ ---> SHADER_STORAGE_READ | SHADER_STORAGE_WRITE
       layout:  SHADER_READ_ONLY_OPTIMAL ---> GENERAL
       queue:   0 ---> 2  (release)
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -314,10 +247,6 @@ waitSemaphore = {
 --------------------------------------------------
 name: 'compute batch |0| async compute task'
 {
-  BeginDebugLabel
-    name:  'compute batch |0| async compute task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -334,10 +263,6 @@ name: 'compute batch |0| async compute task'
       image: 'Image-0', layout: GENERAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -349,10 +274,6 @@ Batch in queue: 'AsyncCompute', (2)
 --------------------------------------------------
 name: 'copy task |0| Readback task'
 {
-  BeginDebugLabel
-    name:  'copy task |0| Readback task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -407,10 +328,6 @@ name: 'copy task |0| Readback task'
       access: TRANSFER_WRITE | SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> HOST_READ | MEMORY_READ | MEMORY_WRITE
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -422,10 +339,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -449,16 +362,7 @@ name: 'IndirectCmdBuffers'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task - RP'
-    depth: 2
-  ----------
-
   Draw
-
-  EndDebugLabel
-    depth: 2
-  ----------
 
   EndRenderPass2
     attachment:
@@ -482,10 +386,6 @@ name: 'IndirectCmdBuffers'
       queue:   0 ---> 2  (release)
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -501,10 +401,6 @@ waitSemaphore = {
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'compute batch |0| async compute task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -521,10 +417,6 @@ name: 'IndirectCmdBuffers'
       image: 'Image-0', layout: GENERAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -536,10 +428,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -563,16 +451,7 @@ name: 'IndirectCmdBuffers'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task - RP'
-    depth: 2
-  ----------
-
   Draw
-
-  EndDebugLabel
-    depth: 2
-  ----------
 
   EndRenderPass2
     attachment:
@@ -596,10 +475,6 @@ name: 'IndirectCmdBuffers'
       queue:   0 ---> 2  (release)
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -615,10 +490,6 @@ waitSemaphore = {
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'compute batch |0| async compute task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -633,10 +504,6 @@ name: 'IndirectCmdBuffers'
   Dispatch
     descriptors:
       image: 'Image-1', layout: GENERAL
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -654,10 +521,6 @@ waitSemaphore = {
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -681,16 +544,7 @@ name: 'IndirectCmdBuffers'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'graphics batch |0| graphics task - RP'
-    depth: 2
-  ----------
-
   Draw
-
-  EndDebugLabel
-    depth: 2
-  ----------
 
   EndRenderPass2
     attachment:
@@ -714,10 +568,6 @@ name: 'IndirectCmdBuffers'
       queue:   0 ---> 2  (release)
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -733,10 +583,6 @@ waitSemaphore = {
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'compute batch |0| async compute task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -753,10 +599,6 @@ name: 'IndirectCmdBuffers'
       image: 'Image-0', layout: GENERAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -768,10 +610,6 @@ Batch in queue: 'AsyncCompute', (2)
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'copy task |0| Readback task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -808,12 +646,12 @@ name: 'IndirectCmdBuffers'
   PipelineBarrier2
     dependencyFlags: 0
     ImageBarrier:
-      name:    'Image-0'
+      name:    'Image-1'
       stage:   COPY ---> ALL_COMMANDS
       access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
     ImageBarrier:
-      name:    'Image-1'
+      name:    'Image-0'
       stage:   COPY ---> ALL_COMMANDS
       access:  TRANSFER_READ ---> MEMORY_READ | MEMORY_WRITE
       layout:  TRANSFER_SRC_OPTIMAL ---> GENERAL
@@ -824,10 +662,6 @@ name: 'IndirectCmdBuffers'
     MemoryBarrier:
       stage:  COMPUTE_SHADER | COPY ---> ALL_COMMANDS
       access: TRANSFER_WRITE | SHADER_STORAGE_READ | SHADER_STORAGE_WRITE ---> HOST_READ | MEMORY_READ | MEMORY_WRITE
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }

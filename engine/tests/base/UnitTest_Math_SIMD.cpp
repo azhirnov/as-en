@@ -1,9 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Math/SIMD_SSE.h"
-#include "base/Math/SIMD_Neon.h"
 #include "UnitTest_Common.h"
-
 
 namespace
 {

@@ -2,9 +2,6 @@
 
 #pragma once
 
-#include "profiler/ProfilerUI.h"
-#include "graphics_hl/Canvas/Canvas.h"
-
 #include "res_editor/Passes/IPass.h"
 #include "res_editor/Passes/FrameGraph.h"
 #include "res_editor/Dynamic/DynamicDimension.h"
@@ -218,6 +215,7 @@ namespace AE::ResEditor
         Atomic<bool>                _initialized        {false};
         Atomic<bool>                _uploaded           {false};
         Atomic<bool>                _compiling          {false};
+        Atomic<bool>                _pauseRendering     {false};
         Atomic<bool>                _requestCapture     {false};
 
         struct {

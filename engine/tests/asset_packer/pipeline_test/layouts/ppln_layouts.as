@@ -12,7 +12,6 @@ void GraphicsLayout ()
     }
     {
         RC<DescriptorSetLayout>     ds = DescriptorSetLayout( "DS_PerDraw2D" );
-        ds.AddFeatureSet( "MinimalFS" );
         ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
         ds.Define( "DEF_VALUE_1" );
 
@@ -20,7 +19,6 @@ void GraphicsLayout ()
     }
     {
         RC<DescriptorSetLayout>     ds = DescriptorSetLayout( "DS_Material" );
-        ds.AddFeatureSet( "MinimalFS" );
         ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
 
         ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", ArraySize(1), EImageType::FImage2D );
@@ -37,7 +35,6 @@ void GraphicsLayout ()
     }
     {
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "DS_PerDraw3D" );
-        ds.AddFeatureSet( "MinimalFS" );
         ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
 
         ds.UniformBuffer( EShaderStages::Vertex, "drawUB", ArraySize(1), "UBlock" );
@@ -67,8 +64,6 @@ void ComputeLayout ()
 {
     {
         RC<DescriptorSetLayout>     ds = DescriptorSetLayout( "DS_Compute" );
-        ds.AddFeatureSet( "MinimalFS" );
-
         ds.StorageImage( EShaderStages::Compute, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
     }{
         RC<PipelineLayout>          pl = PipelineLayout( "Compute_PL_1" );

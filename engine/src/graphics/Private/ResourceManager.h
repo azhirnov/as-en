@@ -145,7 +145,7 @@ namespace AE::Graphics
 
             VExpiredResources ()                            __Th___;
 
-            ND_ VExpiredResArray&       Get (FrameUID id)   __NE___ { return _list[ uint(id.Unique()) % _list.size() ]; }
+            ND_ VExpiredResArray&       Get (FrameUID id)   __NE___ { return _list[ id.Remap( _list.size() )]; }
             ND_ VExpiredResArray&       GetCurrent ()       __NE___ { return Get( GetFrameId() ); }
             ND_ FrameUID                GetFrameId ()       C_NE___ { return _currentFrameId.load(); }
             ND_ VExpiredResources_t&    All ()              __NE___ { return _list; }
@@ -245,6 +245,8 @@ namespace AE::Graphics
         ND_ bool                    IsSupported (const VideoSessionDesc &desc)                                                                      C_NE_OV;
         ND_ bool                    IsSupported (BufferID buffer, const BufferViewDesc &desc)                                                       C_NE_OV;
         ND_ bool                    IsSupported (ImageID image, const ImageViewDesc &desc)                                                          C_NE_OV;
+        ND_ bool                    IsSupported (const RTGeometryDesc &desc)                                                                        C_NE_OV;
+        ND_ bool                    IsSupported (const RTSceneDesc &desc)                                                                           C_NE_OV;
 
         ND_ Strong<ComputePipelineID>   CreatePipeline (const ComputePipeline_t::CreateInfo    &ci)                                                 __NE___;
         ND_ Strong<GraphicsPipelineID>  CreatePipeline (const GraphicsPipeline_t::CreateInfo   &ci)                                                 __NE___;
@@ -277,8 +279,8 @@ namespace AE::Graphics
         ND_ RTASBuildSizes          GetRTGeometrySizes (const RTGeometryBuild &desc)                                                                __NE_OV;
         ND_ RTASBuildSizes          GetRTSceneSizes (const RTSceneBuild &desc)                                                                      __NE_OV;
 
-        ND_ DeviceAddress_t         GetDeviceAddress (BufferID      id)                                                                             C_NE_OV;
-        ND_ DeviceAddress_t         GetDeviceAddress (RTGeometryID  id)                                                                             C_NE_OV;
+        ND_ DeviceAddress           GetDeviceAddress (BufferID      id)                                                                             C_NE_OV;
+        ND_ DeviceAddress           GetDeviceAddress (RTGeometryID  id)                                                                             C_NE_OV;
 
         ND_ bool                    CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count,
                                                           GraphicsPipelineID ppln, const DescriptorSetName &dsName,
@@ -391,25 +393,25 @@ namespace AE::Graphics
         ND_ VideoBufferDesc const&      GetDescription (VideoBufferID id)                               C_NE_OV;
         ND_ VideoSessionDesc const&     GetDescription (VideoSessionID id)                              C_NE_OV;
 
-        ND_ FeatureSet const&       GetFeatureSet ()                                                    C_NE___ { return _featureSet; }
+        ND_ FeatureSet const&       GetFeatureSet ()                                                    C_NE_OV { return _featureSet; }
         ND_ PipelinePackID          GetDefaultPack ()                                                   C_NE___ { return _defaultPack; }
 
         template <usize IS, usize GS, uint UID>
-        ND_ bool            IsAlive (HandleTmpl<IS,GS,UID> id)                                          C_NE___;
-        ND_ bool            IsAlive (const SamplerName &name)                                           C_NE___;
+        ND_ bool                    IsAlive (HandleTmpl<IS,GS,UID> id)                                  C_NE___;
+        ND_ bool                    IsAlive (const SamplerName &name)                                   C_NE___;
 
-        ND_ bool            IsResourceAlive (BufferID           id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (ImageID            id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (BufferViewID       id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (ImageViewID        id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (DescriptorSetID    id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (PipelineCacheID    id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (PipelinePackID     id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (RTGeometryID       id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (RTSceneID          id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (VideoSessionID     id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (VideoBufferID      id)                                     C_NE_OV { return IsAlive( id ); }
-        ND_ bool            IsResourceAlive (VideoImageID       id)                                     C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (BufferID           id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (ImageID            id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (BufferViewID       id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (ImageViewID        id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (DescriptorSetID    id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (PipelineCacheID    id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (PipelinePackID     id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (RTGeometryID       id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (RTSceneID          id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (VideoSessionID     id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (VideoBufferID      id)                             C_NE_OV { return IsAlive( id ); }
+        ND_ bool                    IsResourceAlive (VideoImageID       id)                             C_NE_OV { return IsAlive( id ); }
 
         ND_ Strong<ImageID>         AcquireResource (ImageID            id)                             __NE_OV { return _AcquireResource( id ); }
         ND_ Strong<BufferID>        AcquireResource (BufferID           id)                             __NE_OV { return _AcquireResource( id ); }

@@ -31,7 +31,6 @@ void ASmain ()
 
 
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "imgui.draw1" );
-    ppln.AddFeatureSet( "MinimalFS" );
     ppln.SetLayout( "imgui.pl" );
     ppln.SetVertexInput( "VB.imgui.vertex" );
     ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "imgui.io" );

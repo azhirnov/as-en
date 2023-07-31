@@ -169,7 +169,7 @@ namespace AE::Math
                                     Conditional< IsSameTypes< IntType, ushort >, uint16x4_t,
                                         Conditional< IsSameTypes< IntType, sint >, int32x2_t,
                                             Conditional< IsSameTypes< IntType, uint >, uint32x2_t, void >>>>>>;
-        STATIC_ASSERT( sizeof(Native_t)*8 == 64 );
+        STATIC_ASSERT( CT_SizeOfInBits<Native_t> == 64 );
 
 
     // variables
@@ -413,7 +413,7 @@ namespace AE::Math
                                             Conditional< IsSameTypes< IntType, uint >, uint32x4_t,
                                                 Conditional< IsSameTypes< IntType, slong >, int64x2_t,
                                                     Conditional< IsSameTypes< IntType, ulong >, uint64x2_t, void >>>>>>>>;
-        STATIC_ASSERT( sizeof(Native_t)*8 == 128 );
+        STATIC_ASSERT( CT_SizeOfInBits<Native_t> == 128 );
 
 
     // variables

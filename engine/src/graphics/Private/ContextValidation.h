@@ -43,8 +43,10 @@ namespace AE::Graphics::_hidden_
         {
             ASSERT( _IsDeviceMemory( buf ));
             ASSERT( AllBits( buf.Description().usage, EBufferUsage::TransferDst ));
+            ASSERT( IsAligned( offset, 4 ));
             ASSERT( offset < buf.Size() );
             ASSERT( size == UMax or (offset + size <= buf.Size()) );
+            ASSERT( size == UMax or IsAligned( size, 4 ));
         }
 
         template <typename BufType>
@@ -54,8 +56,10 @@ namespace AE::Graphics::_hidden_
             ASSERT( AllBits( buf.Description().usage, EBufferUsage::TransferDst ));
             ASSERT( size > 0_b );
             ASSERT( data != null );
+            ASSERT( IsAligned( offset, 4 ));
             ASSERT( offset < buf.Size() );
             ASSERT( size == UMax or (offset + size <= buf.Size()) );
+            ASSERT( size == UMax or IsAligned( size, 4 ));
         }
 
         template <typename BufType>
@@ -177,7 +181,7 @@ namespace AE::Graphics::_hidden_
         }
 
         template <typename ImgType>
-        static void  BlitImage (ImgType &src_img, ImgType &dst_img, ArrayView<ImageBlit> ranges)
+        static void  BlitImage (ImgType &src_img, ImgType &dst_img, EBlitFilter blitFilter, ArrayView<ImageBlit> ranges)
         {
         #ifdef AE_DEBUG
             ASSERT( ranges.size() );
@@ -186,6 +190,8 @@ namespace AE::Graphics::_hidden_
 
             const ImageDesc &   src_desc    = src_img.Description();
             const ImageDesc &   dst_desc    = dst_img.Description();
+            const auto &        src_fmt     = EPixelFormat_GetInfo( src_desc.format );
+            const auto &        dst_fmt     = EPixelFormat_GetInfo( dst_desc.format );
 
             ASSERT( AllBits( src_desc.usage, EImageUsage::TransferSrc ));
             ASSERT( AllBits( dst_desc.usage, EImageUsage::TransferDst ));
@@ -193,6 +199,23 @@ namespace AE::Graphics::_hidden_
             ASSERT( AllBits( dst_desc.options, EImageOpt::BlitDst ));
             ASSERT( not src_desc.samples.IsEnabled() );
             ASSERT( not dst_desc.samples.IsEnabled() );
+
+            using EType = PixelFormatInfo::EType;
+            const auto  float_flags = EType::SFloat | EType::UFloat | EType::UNorm | EType::SNorm;
+
+            ASSERT( AnyBits( src_fmt.valueType, float_flags )           == AnyBits( dst_fmt.valueType, float_flags ));
+            ASSERT( AllBits( src_fmt.valueType, EType::Int  )           == AllBits( dst_fmt.valueType, EType::Int  ));
+            ASSERT( AllBits( src_fmt.valueType, EType::UInt )           == AllBits( dst_fmt.valueType, EType::UInt ));
+            ASSERT( AnyBits( src_fmt.valueType, EType::DepthStencil )   == AnyBits( dst_fmt.valueType, EType::DepthStencil ));
+
+            if ( AnyBits( src_fmt.valueType, EType::DepthStencil ))
+            {
+                ASSERT( src_desc.format == dst_desc.format );
+                ASSERT( blitFilter == EBlitFilter::Nearest );
+            }
+
+            //if ( blitFilter == EBlitFilter::Linear )
+            //  ASSERT( AllBits( src_desc.options, EImageOpt::SampledLinear ));
 
             for (auto& range : ranges)
             {
@@ -336,6 +359,7 @@ namespace AE::Graphics::_hidden_
                                    uint     drawCount,
                                    Bytes    stride)
         {
+            ASSERT( IsAligned( indirectBufferOffset, 4 ));
             ASSERT( indirectBufferOffset < indirectBuffer.Size() );
             ASSERT( (indirectBufferOffset + drawCount * stride) <= indirectBuffer.Size() );
             DrawIndirect( stride );
@@ -343,7 +367,7 @@ namespace AE::Graphics::_hidden_
         static void  DrawIndirect (Bytes stride)
         {
             ASSERT( stride >= SizeOf<DrawIndirectCommand> );
-            ASSERT( stride % 4 == 0 );
+            ASSERT( IsAligned( stride, 4 ));
         }
 
         template <typename BufType>
@@ -352,6 +376,7 @@ namespace AE::Graphics::_hidden_
                                           uint      drawCount,
                                           Bytes     stride)
         {
+            ASSERT( IsAligned( indirectBufferOffset, 4 ));
             ASSERT( indirectBufferOffset < indirectBuffer.Size() );
             ASSERT( (indirectBufferOffset + drawCount * stride) <= indirectBuffer.Size() );
             DrawIndexedIndirect( stride );
@@ -359,7 +384,7 @@ namespace AE::Graphics::_hidden_
         static void  DrawIndexedIndirect (Bytes stride)
         {
             ASSERT( stride >= SizeOf<DrawIndexedIndirectCommand> );
-            ASSERT( stride % 4 == 0 );
+            ASSERT( IsAligned( stride, 4 ));
         }
 
         template <typename BufType>
@@ -370,8 +395,10 @@ namespace AE::Graphics::_hidden_
                                         uint        maxDrawCount,
                                         Bytes       stride)
         {
+            ASSERT( IsAligned( indirectBufferOffset, 4 ));
             ASSERT( indirectBufferOffset < indirectBuffer.Size() );
             ASSERT( (indirectBufferOffset + maxDrawCount * stride) <= indirectBuffer.Size() );
+            ASSERT( IsAligned( countBufferOffset, 4 ));
             ASSERT( countBufferOffset < countBuffer.Size() );
             ASSERT( (countBufferOffset + SizeOf<uint>) <= countBuffer.Size() );
             DrawIndirectCount( stride );
@@ -379,7 +406,7 @@ namespace AE::Graphics::_hidden_
         static void  DrawIndirectCount (Bytes stride)
         {
             ASSERT( stride >= SizeOf<DrawIndirectCommand> );
-            ASSERT( stride % 4 == 0 );
+            ASSERT( IsAligned( stride, 4 ));
         }
 
         template <typename BufType>
@@ -390,8 +417,10 @@ namespace AE::Graphics::_hidden_
                                         uint        maxDrawCount,
                                         Bytes       stride)
         {
+            ASSERT( IsAligned( indirectBufferOffset, 4 ));
             ASSERT( indirectBufferOffset < indirectBuffer.Size() );
             ASSERT( (indirectBufferOffset + maxDrawCount * stride) <= indirectBuffer.Size() );
+            ASSERT( IsAligned( countBufferOffset, 4 ));
             ASSERT( countBufferOffset < countBuffer.Size() );
             ASSERT( (countBufferOffset + SizeOf<uint>) <= countBuffer.Size() );
             DrawIndexedIndirectCount( stride );
@@ -399,7 +428,7 @@ namespace AE::Graphics::_hidden_
         static void  DrawIndexedIndirectCount (Bytes stride)
         {
             ASSERT( stride >= SizeOf<DrawIndexedIndirectCommand> );
-            ASSERT( stride % 4 == 0 );
+            ASSERT( IsAligned( stride, 4 ));
         }
 
         template <typename BufType>
@@ -408,6 +437,7 @@ namespace AE::Graphics::_hidden_
                                             uint        drawCount,
                                             Bytes       stride)
         {
+            ASSERT( IsAligned( indirectBufferOffset, 4 ));
             ASSERT( indirectBufferOffset < indirectBuffer.Size() );
             ASSERT( (indirectBufferOffset + drawCount * stride) <= indirectBuffer.Size() );
             DrawMeshTasksIndirect( stride );
@@ -415,7 +445,7 @@ namespace AE::Graphics::_hidden_
         static void  DrawMeshTasksIndirect (Bytes stride)
         {
             ASSERT( stride >= SizeOf<DrawMeshTasksIndirectCommand> );
-            ASSERT( stride % 4 == 0 );
+            ASSERT( IsAligned( stride, 4 ));
         }
 
         template <typename BufType>
@@ -426,8 +456,10 @@ namespace AE::Graphics::_hidden_
                                                  uint       maxDrawCount,
                                                  Bytes      stride)
         {
+            ASSERT( IsAligned( indirectBufferOffset, 4 ));
             ASSERT( indirectBufferOffset < indirectBuffer.Size() );
             ASSERT( (indirectBufferOffset + maxDrawCount * stride) <= indirectBuffer.Size() );
+            ASSERT( IsAligned( countBufferOffset, 4 ));
             ASSERT( countBufferOffset < countBuffer.Size() );
             ASSERT( (countBufferOffset + SizeOf<uint>) <= countBuffer.Size() );
             DrawMeshTasksIndirectCount( stride );
@@ -435,7 +467,7 @@ namespace AE::Graphics::_hidden_
         static void  DrawMeshTasksIndirectCount (Bytes stride)
         {
             ASSERT( stride >= SizeOf<DrawMeshTasksIndirectCommand> );
-            ASSERT( stride % 4 == 0 );
+            ASSERT( IsAligned( stride, 4 ));
         }
 
         static void  SetDepthBias (EPipelineDynamicState dynState)
@@ -506,10 +538,22 @@ namespace AE::Graphics::_hidden_
         }
 
         template <typename BufType>
-        static void  BuildIndirect (BufType &buf, Bytes indirectBufferOffset)
+        static void  BuildIndirect (const RTGeometryBuild &cmd, BufType &indirectBuffer, Bytes indirectBufferOffset, Bytes indirectStride)
         {
-            ASSERT( buf.Size() > indirectBufferOffset );
-            ASSERT( buf.Size() >= indirectBufferOffset + sizeof(ASBuildIndirectCommand) );
+            ASSERT( IsAligned( indirectStride, 4 ));
+            ASSERT( indirectStride >= SizeOf<ASBuildIndirectCommand> );
+
+            ASSERT( IsAligned( indirectBufferOffset, 4 ));
+            ASSERT( indirectBuffer.Size() > indirectBufferOffset );
+            ASSERT( indirectBuffer.Size() >= indirectBufferOffset + indirectStride * cmd.GeometryCount() );
+        }
+
+        template <typename BufType>
+        static void  BuildIndirect (const RTSceneBuild &cmd, BufType &indirectBuffer, Bytes indirectBufferOffset)
+        {
+            ASSERT( IsAligned( indirectBufferOffset, 4 ));
+            ASSERT( indirectBuffer.Size() > indirectBufferOffset );
+            ASSERT( indirectBuffer.Size() >= indirectBufferOffset + sizeof(ASBuildIndirectCommand) );
         }
     };
 
@@ -523,7 +567,7 @@ namespace AE::Graphics::_hidden_
     public:
         static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)
         {
-            ASSERT( IsAligned( size, sizeof(uint) ));
+            ASSERT( IsAligned( size, 4 ));
             ASSERT( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
             ASSERT( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
             ASSERT( idx.stage >= EShader::RayGen and idx.stage <= EShader::RayCallable );
@@ -537,12 +581,14 @@ namespace AE::Graphics::_hidden_
         template <typename BufType>
         static void  TraceRaysIndirect (BufType &buf, Bytes indirectBufferOffset)
         {
+            ASSERT( IsAligned( indirectBufferOffset, 4 ));
             ASSERT( buf.Size() >= indirectBufferOffset + sizeof(TraceRayIndirectCommand) );
         }
 
         template <typename BufType>
         static void  TraceRaysIndirect2 (BufType &buf, Bytes indirectBufferOffset)
         {
+            ASSERT( IsAligned( indirectBufferOffset, 4 ));
             ASSERT( buf.Size() >= indirectBufferOffset + sizeof(TraceRayIndirectCommand2) );
         }
     };

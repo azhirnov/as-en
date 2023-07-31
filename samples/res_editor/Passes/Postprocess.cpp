@@ -107,7 +107,9 @@ namespace AE::ResEditor
             ub_data.time        = pd.totalTime.count();
             ub_data.timeDelta   = pd.frameTime.count();
             ub_data.frame       = _dynData.frame;
-            ub_data.mouse       = pd.pressed ? float4{ pd.cursorPos.x, pd.cursorPos.y, 0.f, 0.f } : float4{-1.0e+20f};
+            ub_data.seed        = pd.seed;
+            ub_data.mouse       = pd.pressed ? float4{ pd.cursorPos.x, pd.cursorPos.y, 1.f, 0.f } : float4{-1.0e+20f};
+            ub_data.customKeys  = pd.customKeys[0];
 
             if ( _controller )
                 _controller->CopyTo( OUT ub_data.camera );
@@ -125,7 +127,7 @@ namespace AE::ResEditor
             DescriptorSetID     ds      = _descSets[ ctx.GetFrameId().Index() ];
 
             CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
-            CHECK_ERR( updater.BindBuffer< ShaderTypes::ShadertoyUB >( UniformName{"ub"}, _ubuffer ));
+            CHECK_ERR( updater.BindBuffer< ShaderTypes::ShadertoyUB >( UniformName{"un_PerPass"}, _ubuffer ));
             CHECK_ERR( _BindRes( ctx.GetFrameId(), updater, _resources ));
             CHECK_ERR( updater.Flush() );
         }

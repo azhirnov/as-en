@@ -236,7 +236,12 @@ namespace AE::Graphics
     STATIC_ASSERT( sizeof(DrawMeshTasksIndirectCommand) == 12 );
 
 
-    using TraceRayIndirectCommand = DispatchIndirectCommand;
+    struct TraceRayIndirectCommand
+    {
+        packed_uint3    dim;
+    };
+    STATIC_ASSERT( sizeof(TraceRayIndirectCommand) == 12 );
+
 
     struct TraceRayIndirectCommand2
     {
@@ -270,9 +275,12 @@ namespace AE::Graphics
       STATIC_ASSERT( sizeof(TraceRayIndirectCommand2) == 104 );
     #endif
 
+
     struct ASBuildIndirectCommand
     {
+        // Triangles count, AABBs count, Instances count
         uint        primitiveCount;
+
         uint        primitiveOffset;
         uint        firstVertex;
         uint        transformOffset;
@@ -327,7 +335,7 @@ namespace AE::Graphics
         Bytes               _size;
         Bytes               _offset;
         Bytes               _blockSize;
-        BufferID            _bufferId;  // TODO: Strong ?
+        BufferID            _bufferId;      // TODO: Strong ?
         EStagingHeapType    _heapType       = EStagingHeapType::Static;
 
     // methods
@@ -339,6 +347,7 @@ namespace AE::Graphics
         BufferStream&  operator = (const BufferStream &)    __NE___ = default;
 
         BufferStream&  SetHeapType (EStagingHeapType type)  __NE___ { _heapType = type;  return *this; }
+        BufferStream&  SetBlockSize (Bytes value)           __NE___ { _blockSize = value;  return *this; }
 
         ND_ BufferID            Buffer ()                   C_NE___ { return _bufferId; }
         ND_ Bytes               DataSize ()                 C_NE___ { return _size; }
@@ -426,7 +435,6 @@ namespace AE::Graphics
     {
         Primary_OneTimeSubmit       = 0,
         Secondary_RenderCommands    = 1,
-        //Secondary_OneTimeSubmit   = 3,    // not supported in Metal
         _Count,
         Unknown                     = 0xFF,
     };

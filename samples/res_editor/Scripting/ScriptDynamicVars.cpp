@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "scripting/Impl/ClassBinder.h"
 #include "res_editor/Scripting/ScriptDynamicVars.h"
 #include "res_editor/Scripting/ScriptExe.h"
 

@@ -20,6 +20,7 @@ namespace AE::ResEditor
     // types
     public:
         using TransferCtx_t = RG::DirectCtx::Transfer;
+        using CustomKeys_t  = StaticArray< float, 1 >;
 
         enum class EPassType : uint
         {
@@ -82,9 +83,11 @@ namespace AE::ResEditor
             secondsf        totalTime;
             secondsf        frameTime;
             uint            frameId     = 0;
+            uint            seed        = 0;
 
-            float2          cursorPos;              // in pixels
+            float2          cursorPos;              // unorm
             bool            pressed     = false;    // mouse down or touch pressed
+            CustomKeys_t    customKeys  = {};
         };
 
 

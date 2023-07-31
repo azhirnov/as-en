@@ -8,24 +8,24 @@
     StrongDep
     WeakDepArray
     StrongDepArray
-    <custom>                - use Scheduler().RegisterDependency< custom >(...)
+    <custom>            - use Scheduler().RegisterDependency< custom >(...)
+
+    Weak dependency     - if task in weak dependency is canceled then dependent task will be executed.
+                          Call chain:  task depends on weak,  weak.Cancel(),  weak.OnCancel(),  task.Run().
+
+    Strong dependency   - if task in strong dependency is canceled then dependent task will be canceled.
+                          Call chain:  task depends on strong,  strong.Cancel(),  strong.OnCancel(),  task.OnCancel().
+
 
         Coroutines
 
+    CoroTask
     bool        co_await Coro_IsCanceled
     EStatus     co_await Coro_Status
     ETaskQueue  co_await Coro_TaskQueue
 */
 
 #pragma once
-
-#include "base/Algorithms/ArrayUtils.h"
-#include "base/Containers/ArrayView.h"
-#include "base/Containers/FixedArray.h"
-#include "base/Containers/NtStringView.h"
-#include "base/Algorithms/Cast.h"
-#include "base/Utils/Helpers.h"
-#include "base/Utils/RefCounter.h"
 
 #include "threading/Primitives/Atomic.h"
 #include "threading/Primitives/SpinLock.h"
@@ -105,7 +105,7 @@ namespace AE::Threading
             _Finished,
             Completed,      // successfully completed
 
-            _Interropted,
+            _Interrupted,
             Canceled,       // task was externally canceled
             Failed,         // task has internal error and has been failed
         };
@@ -169,7 +169,7 @@ namespace AE::Threading
 
         ND_ bool        IsInQueue ()                    C_NE___ { return Status() <  EStatus::_Finished; }
         ND_ bool        IsFinished ()                   C_NE___ { return Status() >  EStatus::_Finished; }      // status: Completed / Failed / Canceled
-        ND_ bool        IsInterropted ()                C_NE___ { return Status() >  EStatus::_Interropted; }   // status: Failed / Canceled
+        ND_ bool        IsInterrupted ()                C_NE___ { return Status() >  EStatus::_Interrupted; }   // status: Failed / Canceled
         ND_ bool        IsCompleted ()                  C_NE___ { return Status() == EStatus::Completed; }      // status: Completed
 
         ND_ virtual StringView  DbgName ()              C_NE___ = 0;
@@ -417,7 +417,7 @@ namespace AE::Threading
             if ( stat == EStatus::Completed )
                 return false;   // resume
 
-            if ( stat > EStatus::_Interropted )
+            if ( stat > EStatus::_Interrupted )
             {
                 curCoro.promise().Cancel();
                 return true;    // suspend & cancel
@@ -448,7 +448,7 @@ namespace AE::Threading
                 return false;   // resume
 
             if ( stats.AllGreater( EStatus::_Finished ) and
-                 stats.AllGreater( EStatus::_Interropted ))
+                 stats.AllGreater( EStatus::_Interrupted ))
             {
                 curCoro.promise().Cancel();
                 return true;    // suspend & cancel

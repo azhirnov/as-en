@@ -125,4 +125,5 @@ Sampler{
   ycbcr.yChromaOffset: CositedEven
   ycbcr.chromaFilter:  Nearest
   ycbcr.forceExplicitReconstruction: false
+  features:      { 'MinimalFS', 'MinDesktopAMD', 'MinDesktopNV' }
 --------------

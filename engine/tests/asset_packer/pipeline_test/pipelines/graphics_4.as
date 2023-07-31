@@ -3,7 +3,6 @@
 void ASmain ()
 {
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "graphics_4" );
-    ppln.AddFeatureSet( "MinimalFS" );
     ppln.SetLayout( "Graphics_PL_4" );
     ppln.SetVertexInput( "vb_layout1" );
 

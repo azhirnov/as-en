@@ -40,7 +40,7 @@ void ASmain ()
         RC<MeshPipelineSpec>    spec = ppln.AddSpecialization( "dbg3_draw" );
         spec.AddToRenderTech( "DrawTestRT", "Draw_1" );
         spec.SetViewportCount( 1 );
-        spec.SetMeshGroupSize( 3 );
+        spec.SetMeshLocalSize( 3 );
 
         RenderState rs;
         spec.SetRenderState( rs );

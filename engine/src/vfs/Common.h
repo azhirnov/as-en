@@ -2,14 +2,7 @@
 
 #pragma once
 
-#include "base/Utils/RefCounter.h"
-#include "base/DataSource/Stream.h"
-#include "base/DataSource/DataSource.h"
-#include "base/Utils/NamedID.h"
-
-#include "threading/TaskSystem/Promise.h"
-#include "threading/Primitives/DataRaceCheck.h"
-#include "threading/DataSource/AsyncDataSource.h"
+#include "vfs/VFS.pch.h"
 
 namespace AE::VFS::_hidden_
 {
@@ -32,8 +25,8 @@ namespace AE::VFS
 #   endif
 
 
-    using FileName      = NamedID< 64, VFS::_hidden_::NamedIDs_Start + 1, AE_OPTIMIZE_IDS >;
-    using FileGroupName = NamedID< 64, VFS::_hidden_::NamedIDs_Start + 2, AE_OPTIMIZE_IDS >;
+    using FileName      = NamedID< 128, VFS::_hidden_::NamedIDs_Start + 1, AE_OPTIMIZE_IDS >;
+    using FileGroupName = NamedID<  64, VFS::_hidden_::NamedIDs_Start + 2, AE_OPTIMIZE_IDS >;
 
 
     class IVirtualFileStorage;

@@ -239,10 +239,8 @@ namespace AE::Samples::Demo
         if ( not uploaded.load() )
         {
             uploaded.store( true );
-
-            upload = batch->Run< UploadTask >( Tuple{this}, Tuple{deps} );
-
-            deps = ArrayView<AsyncTask>{ upload };
+            upload  = batch->Run< UploadTask >( Tuple{this}, Tuple{deps} );
+            deps    = ArrayView<AsyncTask>{ upload };
         }
 
         auto    surf_acquire = rg.BeginOnSurface( batch, deps );

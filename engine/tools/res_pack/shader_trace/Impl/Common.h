@@ -16,12 +16,27 @@
 #   pragma warning (disable: 4005)
 #   pragma warning (disable: 4668)
 # endif
+#ifdef AE_COMPILER_CLANG
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wdouble-promotion"
+#endif
+#ifdef AE_COMPILER_GCC
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wundef"
+#   pragma GCC diagnostic ignored "-Wdouble-promotion"
+#endif
 
 # include "glslang/MachineIndependent/localintermediate.h"
 # include "glslang/Include/intermediate.h"
 
 # ifdef AE_COMPILER_MSVC
 #   pragma warning (pop)
+# endif
+# ifdef AE_COMPILER_CLANG
+#   pragma clang diagnostic pop
+# endif
+# ifdef AE_COMPILER_GCC
+#   pragma GCC diagnostic pop
 # endif
 #endif // AE_ENABLE_GLSLANG
 
@@ -33,9 +48,6 @@ namespace AE::PipelineCompiler
 
 # ifdef AE_ENABLE_GLSLANG
 
-    using namespace glslang;
-
-
     ND_ String  GetFunctionName (glslang::TIntermOperator *op);
 
     ND_ bool  ValidateInterm (glslang::TIntermediate &intermediate);
@@ -46,7 +58,7 @@ namespace AE::PipelineCompiler
     TSourceLoc::operator ==
 =================================================
 */
-    ND_ inline bool  operator == (const TSourceLoc &lhs, const TSourceLoc &rhs)
+    ND_ inline bool  operator == (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
     {
         if ( lhs.name != rhs.name )
         {
@@ -61,12 +73,12 @@ namespace AE::PipelineCompiler
                 lhs.column  == rhs.column;
     }
 
-    ND_ inline bool  operator != (const TSourceLoc &lhs, const TSourceLoc &rhs)
+    ND_ inline bool  operator != (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
     {
         return not (lhs == rhs);
     }
 
-    ND_ inline bool  operator < (const TSourceLoc &lhs, const TSourceLoc &rhs)
+    ND_ inline bool  operator < (const glslang::TSourceLoc &lhs, const glslang::TSourceLoc &rhs)
     {
         if ( lhs.name != rhs.name )
         {
@@ -88,7 +100,7 @@ namespace AE::PipelineCompiler
     SourcePoint
 =================================================
 */
-    inline ShaderTrace::SourcePoint::SourcePoint (const TSourceLoc &loc) :
+    inline ShaderTrace::SourcePoint::SourcePoint (const glslang::TSourceLoc &loc) :
         SourcePoint{ uint(loc.line), uint(loc.column) }
     {}
 

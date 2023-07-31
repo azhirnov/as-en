@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "scripting/Bindings/CoreBindings.h"
+#include "UnitTest_Common.h"
 
 extern void UnitTest_Array ();
 extern void UnitTest_Class ();

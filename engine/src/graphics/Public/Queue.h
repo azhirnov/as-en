@@ -61,13 +61,13 @@ namespace AE::Graphics
 
     ND_ forceinline constexpr EQueueMask   operator |  (EQueueMask lhs, EQueueType rhs)
     {
-        ASSERT( uint(rhs) < CT_SizeOfInBits<EQueueMask>  );
+        ASSERT( uint(rhs) < CT_SizeOfInBits<EQueueMask> );
         return EQueueMask( uint(lhs) | (1u << uint(rhs)) );
     }
 
     ND_ forceinline constexpr EQueueMask   operator &  (EQueueMask lhs, EQueueType rhs)
     {
-        ASSERT( uint(rhs) < CT_SizeOfInBits<EQueueMask>  );
+        ASSERT( uint(rhs) < CT_SizeOfInBits<EQueueMask> );
         return EQueueMask( uint(lhs) & (1u << uint(rhs)) );
     }
 

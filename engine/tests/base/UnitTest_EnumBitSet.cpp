@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Utils/EnumBitSet.h"
 #include "UnitTest_Common.h"
 
 namespace
@@ -61,6 +60,77 @@ namespace
         TEST( a0 == ETest::Bit_100 );
         TEST( not bits.AllInRange( ETest::Bit_100, ETest::Bit_110 ));
     }
+
+
+    static void  EnumBitSet_Test3 ()
+    {
+        TestBits    bits;
+
+        {
+            uint    count = 0;
+            for (ETest e : bits) { Unused(e); ++count; }
+
+            TEST( count == 0 );
+
+            auto    it = bits.begin();
+            TEST( *it == ETest::_Count );
+            TEST( it == bits.end() );
+
+            ++it;
+            TEST( *it == ETest::_Count );
+            TEST( it == bits.end() );
+        }
+        {
+            bits.insert( ETest::Bit0 );
+            bits.insert( ETest::Bit1 );
+
+            uint    count = 0;
+            for (ETest e : bits) { Unused(e); ++count; }
+
+            TEST( count == 2 );
+
+            auto    it = bits.begin();
+            TEST( it != bits.end() );
+            TEST( *it == ETest::Bit0 );
+
+            ++it;
+            TEST( it != bits.begin() );
+            TEST( it != bits.end() );
+            TEST( *it == ETest::Bit1 );
+
+            ++it;
+            TEST( *it == ETest::_Count );
+            TEST( it == bits.end() );
+        }
+        {
+            bits.insert( ETest::Bit0 );
+            bits.insert( ETest::Bit1 );
+            bits.insert( ETest::Bit_100 );
+
+            uint    count = 0;
+            for (ETest e : bits) { Unused(e); ++count; }
+
+            TEST( count == 3 );
+
+            auto    it = bits.begin();
+            TEST( it != bits.end() );
+            TEST( *it == ETest::Bit0 );
+
+            ++it;
+            TEST( it != bits.begin() );
+            TEST( it != bits.end() );
+            TEST( *it == ETest::Bit1 );
+
+            ++it;
+            TEST( it != bits.begin() );
+            TEST( it != bits.end() );
+            TEST( *it == ETest::Bit_100 );
+
+            ++it;
+            TEST( *it == ETest::_Count );
+            TEST( it == bits.end() );
+        }
+    }
 }
 
 
@@ -68,6 +138,7 @@ extern void UnitTest_EnumBitSet ()
 {
     EnumBitSet_Test1();
     EnumBitSet_Test2();
+    EnumBitSet_Test3();
 
     TEST_PASSED();
 }

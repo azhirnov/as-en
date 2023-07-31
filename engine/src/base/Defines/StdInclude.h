@@ -37,11 +37,18 @@
 #include <exception>
 #include <cstdlib>
 
+#include <stdio.h>
+#include <streambuf>
+#include <sstream>
+
 #include <atomic>
 #include <mutex>
 #include <shared_mutex>
 #include <thread>
 #include <condition_variable>
+
+#include <sstream>
+#include <charconv>
 
 #ifdef __cpp_lib_barrier
 #  include <barrier>

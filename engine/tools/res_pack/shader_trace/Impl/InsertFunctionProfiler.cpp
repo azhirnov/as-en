@@ -12,6 +12,8 @@ namespace AE::PipelineCompiler
 {
 namespace
 {
+    using namespace glslang;
+
 
     //
     // Debug Info
@@ -325,7 +327,7 @@ uint  DebugInfo::GetCustomSourceLocation (TIntermNode* node, const TSourceLoc &c
     SrcLoc  range{ 0, uint(curr.line), uint(curr.column) };
     range.sourceId = _GetSourceId( curr );
 
-    _exprLocations.emplace_back( id, swizzle, range, range.begin, Default );
+    _exprLocations.emplace_back( id, swizzle, range, range.begin );
     return uint(_exprLocations.size()-1);
 }
 
@@ -350,7 +352,7 @@ uint  DebugInfo::GetCustomSourceLocation2 (TIntermNode* node, const TSourceLoc &
     range.begin.SetMin( range2.begin );
     range.end  .SetMax( range2.end );
 
-    _exprLocations.emplace_back( id, swizzle, range, range.begin, Default );
+    _exprLocations.emplace_back( id, swizzle, range, range.begin );
     return uint(_exprLocations.size()-1);
 }
 
@@ -524,7 +526,7 @@ inline bool  DebugInfo::FieldInfo::operator == (const FieldInfo &rhs) const
 inline usize  DebugInfo::FieldInfoHash::operator () (const FieldInfo &value) const
 {
     return  usize(value.baseId) ^
-            (usize(value.fieldIndex) << (sizeof(usize)*8-16));
+            (usize(value.fieldIndex) << (CT_SizeOfInBits<usize>-16));
 }
 
 /*
@@ -973,9 +975,9 @@ static void  CreateGraphicsShaderDebugStorage (TTypeList* typeList, INOUT TPubli
     TType*  padding = new TType{type};          padding->setFieldName( "padding1" );
     type.qualifier.layoutOffset += sizeof(int);
 
-    typeList->emplace_back( fragcoord_x,    TSourceLoc{} );
-    typeList->emplace_back( fragcoord_y,    TSourceLoc{} );
-    typeList->emplace_back( padding,        TSourceLoc{} );
+    typeList->push_back( TTypeLoc{ fragcoord_x, TSourceLoc{} });
+    typeList->push_back( TTypeLoc{ fragcoord_y, TSourceLoc{} });
+    typeList->push_back( TTypeLoc{ padding,     TSourceLoc{} });
 }
 
 /*
@@ -996,9 +998,9 @@ static void  CreateComputeShaderDebugStorage (TTypeList* typeList, INOUT TPublic
     TType*  thread_id_z = new TType{type};      thread_id_z->setFieldName( "globalInvocationZ" );
     type.qualifier.layoutOffset += sizeof(uint);
 
-    typeList->emplace_back( thread_id_x,    TSourceLoc{} );
-    typeList->emplace_back( thread_id_y,    TSourceLoc{} );
-    typeList->emplace_back( thread_id_z,    TSourceLoc{} );
+    typeList->push_back( TTypeLoc{ thread_id_x, TSourceLoc{} });
+    typeList->push_back( TTypeLoc{ thread_id_y, TSourceLoc{} });
+    typeList->push_back( TTypeLoc{ thread_id_z, TSourceLoc{} });
 }
 
 /*
@@ -1019,9 +1021,9 @@ static void  CreateRayTracingShaderDebugStorage (TTypeList* typeList, INOUT TPub
     TType*  thread_id_z = new TType{type};      thread_id_z->setFieldName( "launchID_z" );
     type.qualifier.layoutOffset += sizeof(uint);
 
-    typeList->emplace_back( thread_id_x,    TSourceLoc{} );
-    typeList->emplace_back( thread_id_y,    TSourceLoc{} );
-    typeList->emplace_back( thread_id_z,    TSourceLoc{} );
+    typeList->push_back( TTypeLoc{ thread_id_x, TSourceLoc{} });
+    typeList->push_back( TTypeLoc{ thread_id_y, TSourceLoc{} });
+    typeList->push_back( TTypeLoc{ thread_id_z, TSourceLoc{} });
 }
 
 /*
@@ -1106,8 +1108,8 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
 
     TType*          data_arr    = new TType{uint_type};     data_arr->setFieldName( "outData" );
 
-    type_list->emplace_back( position,  TSourceLoc{} );
-    type_list->emplace_back( data_arr,  TSourceLoc{} );
+    type_list->push_back( TTypeLoc{ position,   TSourceLoc{} });
+    type_list->push_back( TTypeLoc{ data_arr,   TSourceLoc{} });
 
     TQualifier      block_qual; block_qual.clear();
     block_qual.storage          = TStorageQualifier::EvqBuffer;
@@ -1796,7 +1798,7 @@ ND_ static TIntermAggregate*  CreateAppendToTraceBody (const TString &fnName, De
 
                 for (int r = 0; r < value_type.matrixRows * scale; ++r)
                 {
-                    TConstUnionArray        row_index(1);   col_index[0].setIConst( r / scale );
+                    TConstUnionArray        row_index(1);   row_index[0].setIConst( r / scale );
                     TIntermConstantUnion*   row_field       = new TIntermConstantUnion{ row_index, TType{index_type} };
                     TIntermBinary*          row_access      = new TIntermBinary{ TOperator::EOpIndexDirect };
                     TIntermBinary*          assign_data3    = new TIntermBinary{ TOperator::EOpAssign };

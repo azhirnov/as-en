@@ -9,29 +9,28 @@
     void ASmain ()
     {
         {
-            RC<ShaderStructType>    st = ShaderStructType( "planet.io" );
+            RC<ShaderStructType>    st = ShaderStructType( "planet1.io.vs-fs" );
             st.Set( "float3     normal;" +
                     "float3     texcoord;" );
         }{
-            RC<DescriptorSetLayout> ds = DescriptorSetLayout( "planet.mtr.ds" );
+            RC<DescriptorSetLayout> ds = DescriptorSetLayout( "planet1.mtr.ds" );
             ds.CombinedImage( EShaderStages::Fragment,  "un_HeightMap",     EImageType::FImageCube,  Sampler_LinearRepeat );
             ds.CombinedImage( EShaderStages::Fragment,  "un_NormalMap",     EImageType::FImageCube,  Sampler_LinearRepeat );
             ds.CombinedImage( EShaderStages::Fragment,  "un_AlbedoMap",     EImageType::FImageCube,  Sampler_LinearRepeat );
             ds.CombinedImage( EShaderStages::Fragment,  "un_EmissionMap",   EImageType::FImageCube,  Sampler_LinearRepeat );
-            ds.UniformBuffer( EShaderStages::Vertex,    "mtrUB",            ArraySize(1),            "SphericalCubeMaterialUB" );
+            ds.UniformBuffer( EShaderStages::Vertex,    "un_PerObject",     ArraySize(1),            "SphericalCubeMaterialUB" );
         }{
-            RC<PipelineLayout>      pl = PipelineLayout( "planet.pl" );
+            RC<PipelineLayout>      pl = PipelineLayout( "planet1.pl" );
             pl.DSLayout( "pass",     0, "pass.ds" );
-            pl.DSLayout( "material", 1, "planet.mtr.ds" );
+            pl.DSLayout( "material", 1, "planet1.mtr.ds" );
         }
 
         {
-            RC<GraphicsPipeline>    ppln = GraphicsPipeline( "planet.draw1" );
-            ppln.AddFeatureSet( "Default" );
-            ppln.SetLayout( "planet.pl" );
+            RC<GraphicsPipeline>    ppln = GraphicsPipeline( "planet1.draw" );
+            ppln.SetLayout( "planet1.pl" );
             ppln.SetVertexInput( "VB{SphericalCubeVertex}" );
             ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
-            ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "planet.io" );
+            ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "planet1.io.vs-fs" );
 
             {
                 RC<Shader>  vs = Shader();
@@ -46,9 +45,8 @@
 
             // specialization
             {
-                RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "planet.draw1" );
-                spec.AddToRenderTech( "rtech", "main" );
-                spec.SetViewportCount( 1 );
+                RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "planet1.draw" );
+                spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
                 RenderState rs;
 
@@ -57,8 +55,8 @@
 
                 rs.inputAssembly.topology       = EPrimitive::TriangleList;
 
-                rs.rasterization.frontFaceCCW   = false;
-                rs.rasterization.cullMode       = ECullMode::Front;
+                rs.rasterization.frontFaceCCW   = true;
+                rs.rasterization.cullMode       = ECullMode::Back;
 
                 spec.SetRenderState( rs );
             }
@@ -71,7 +69,7 @@
 
     void Main ()
     {
-        gl.Position     = passUB.camera.viewProj * mtrUB.transform * float4(in_Position.xyz, 1.0);
+        gl.Position     = un_PerPass.camera.viewProj * (un_PerObject.transform * float4(in_Position.xyz, 1.0));
         Out.texcoord    = in_Texcoord.xyz;
         Out.normal      = in_Position.xyz;
     }
@@ -83,7 +81,7 @@
 
     void Main ()
     {
-        const float3    light_dir   = float3( 0.f, 0.f, 1.f );
+        const float3    light_dir   = float3( 0.f, 0.f, -1.f );
         const float3    norm        = gl.texture.Sample( un_NormalMap, In.texcoord ).xyz;
         const float3    color       = gl.texture.Sample( un_AlbedoMap, In.texcoord ).xyz;
         const float     light       = Dot( norm, light_dir );

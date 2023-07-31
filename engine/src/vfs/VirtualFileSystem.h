@@ -5,9 +5,19 @@
     FileGroup - list of file which can be preloaded or preload file headers.
 
     Storage - collection of files and file groups.
+----
 
-TODO:
-    - block allocator for RStream
+    RStream, RDataSource, AsyncRDataSource
+        Thread-safe:    depends on implementation
+
+    IVirtualFileStorage
+        Thread-safe:    yes (interface methods only)
+
+    VirtualFileSystem
+        Thread-safe:    yes
+----
+
+    docs: file:///<path>/engine/docs/ru/VirtualFileSystem.md
 */
 
 #pragma once
@@ -39,12 +49,12 @@ namespace AE::VFS
 
     // interface
     public:
-        ND_ virtual bool    Open (OUT RC<RStream> &stream, const FileName &name)                            C_NE___ = 0;
-        ND_ virtual bool    Open (OUT RC<RDataSource> &ds, const FileName &name)                            C_NE___ = 0;
-        ND_ virtual bool    Open (OUT RC<AsyncRDataSource> &ds, const FileName &name)                       C_NE___ = 0;
+        ND_ virtual bool  Open (OUT RC<RStream> &stream, const FileName &name)                              C_NE___ = 0;
+        ND_ virtual bool  Open (OUT RC<RDataSource> &ds, const FileName &name)                              C_NE___ = 0;
+        ND_ virtual bool  Open (OUT RC<AsyncRDataSource> &ds, const FileName &name)                         C_NE___ = 0;
 
-        ND_ virtual bool    Exists (const FileName &name)                                                   C_NE___ = 0;
-        ND_ virtual bool    Exists (const FileGroupName &name)                                              C_NE___ = 0;
+        ND_ virtual bool  Exists (const FileName &name)                                                     C_NE___ = 0;
+        ND_ virtual bool  Exists (const FileGroupName &name)                                                C_NE___ = 0;
 
     protected:
             virtual void  _Append (INOUT GlobalFileMap_t &)                                                 C_Th___ = 0;
@@ -78,9 +88,8 @@ namespace AE::VFS
 
     // methods
     public:
-        static void  CreateInstance ();
-        static void  DestroyInstance ();
-
+            static void  CreateInstance ()                                  __NE___;
+            static void  DestroyInstance ()                                 __NE___;
 
         ND_ bool  AddStorage (RC<IVirtualFileStorage> storage)              __NE___;
 
@@ -119,6 +128,8 @@ namespace AE::VFS
 
         ND_ static RC<IVirtualFileStorage>  CreateStaticFolder (const Path &folder, StringView prefix = Default)    __NE___;
         ND_ static RC<IVirtualFileStorage>  CreateDynamicFolder (const Path &folder, StringView prefix = Default)   __NE___;
+
+        ND_ static RC<IVirtualFileStorage>  CreateNetworkStorage (StringView url)                                   __NE___;
     };
 
 

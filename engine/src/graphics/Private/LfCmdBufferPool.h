@@ -140,7 +140,7 @@ namespace AE::Graphics
         {
             DRC_SHAREDLOCK( _drCheck );
 
-            PlacementNew<BakedCommands_t>( &_pool[idx].baked, RVRef(ctx) );     // nothrow
+            PlacementNew<BakedCommands_t>( OUT &_pool[idx].baked, RVRef(ctx) );     // nothrow
             _cmdTypes.fetch_or( 1u << idx );
 
             uint    old_bits = _ready.fetch_or( 1u << idx, EMemoryOrder::Release );

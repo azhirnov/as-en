@@ -152,11 +152,11 @@ namespace AE::Graphics::_hidden_
         void  TraceRays (const uint2 dim, RTShaderBindingID sbt)                                                            __Th_OV;
         void  TraceRays (const uint3 dim, RTShaderBindingID sbt)                                                            __Th_OV;
 
-        void  TraceRaysIndirect (const RTShaderBindingTable &sbt, VDeviceAddress address)                                   __Th___;
+        void  TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address)                                    __Th___;
         void  TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes)                           __Th_OV;
         void  TraceRaysIndirect (RTShaderBindingID sbt, BufferID indirectBuffer, Bytes)                                     __Th_OV;
 
-        void  TraceRaysIndirect2 (VDeviceAddress address)                                                                   __Th___;
+        void  TraceRaysIndirect2 (DeviceAddress address)                                                                    __Th___;
         void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)                                      __Th_OV;
 
         VBARRIERMNGR_INHERIT_BARRIERS
@@ -264,7 +264,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, VDeviceAddress address)
+    void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address)
     {
         RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, address );
     }
@@ -275,7 +275,8 @@ namespace AE::Graphics::_hidden_
         auto&   buf = _GetResourcesOrThrow( indirectBuffer );
         Validator_t::TraceRaysIndirect( buf, indirectBufferOffset );
 
-        RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, buf.GetDeviceAddress() + indirectBufferOffset );
+        RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable,
+                                    BitCast<VkDeviceAddress>( buf.GetDeviceAddress() + indirectBufferOffset ));
     }
 
     template <typename C>
@@ -285,7 +286,8 @@ namespace AE::Graphics::_hidden_
         auto&   sbt             = sbt_obj.GetSBT();
         Validator_t::TraceRaysIndirect( buf, indirectBufferOffset );
 
-        RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, buf.GetDeviceAddress() + indirectBufferOffset );
+        RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable,
+                                    BitCast<VkDeviceAddress>( buf.GetDeviceAddress() + indirectBufferOffset ));
     }
 
 /*
@@ -294,7 +296,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRaysIndirect2 (VDeviceAddress address)
+    void  _VRayTracingContextImpl<C>::TraceRaysIndirect2 (DeviceAddress address)
     {
         RawCtx::_TraceRaysIndirect2( address );
     }
@@ -305,7 +307,7 @@ namespace AE::Graphics::_hidden_
         auto&   buf = _GetResourcesOrThrow( indirectBuffer );
         Validator_t::TraceRaysIndirect2( buf, indirectBufferOffset );
 
-        RawCtx::_TraceRaysIndirect2( buf.GetDeviceAddress() + indirectBufferOffset );
+        RawCtx::_TraceRaysIndirect2( BitCast<VkDeviceAddress>( buf.GetDeviceAddress() + indirectBufferOffset ));
     }
 //-----------------------------------------------------------------------------
 

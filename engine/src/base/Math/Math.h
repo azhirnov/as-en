@@ -7,6 +7,9 @@
 namespace AE::Math
 {
 
+    template <typename T>
+    static constexpr T EulerNumber = T( 2.71828182845904523536 );
+
 /*
 =================================================
     helpers

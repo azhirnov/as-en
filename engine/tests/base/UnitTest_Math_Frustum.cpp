@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Math/Frustum.h"
 #include "UnitTest_Common.h"
 
 namespace
@@ -56,8 +55,8 @@ namespace
 
         frustum.Setup( camera );
 
-        TEST( frustum.IsVisible( camera.transform.position + float3{0.0f, 0.0f, -10.0f} ));
-        TEST( not frustum.IsVisible( camera.transform.position + float3{0.0f, 0.0f, 10.0f} ));
+        TEST( frustum.IsVisible( float3{0.0f, 0.0f, -10.0f} ));
+        TEST( not frustum.IsVisible( float3{0.0f, 0.0f, 10.0f} ));
     }
 
 

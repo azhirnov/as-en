@@ -1,13 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/Controllers/Controller2D.h"
+#include "res_editor/Controllers/ScaleBiasCamera.h"
+#include "res_editor/Controllers/TopDownCamera.h"
+#include "res_editor/Controllers/IsometricCamera.h"
 #include "res_editor/Controllers/FlightCamera.h"
 #include "res_editor/Controllers/FPSCamera.h"
 #include "res_editor/Controllers/FPVCamera.h"
-
-#include "scripting/Impl/ClassBinder.h"
-#include "scripting/Impl/EnumBinder.h"
 
 namespace AE::ResEditor
 {
@@ -49,6 +48,32 @@ namespace
         using T = typename B::Class_t;
 
         binder.Operators().ImplCast( &ScriptBaseController_ToBase<T> );
+
+        binder.AddMethod( &ScriptBaseController::_Dimension,    "Dimension" );
+        binder.AddMethod( &ScriptBaseController::_SetDimension, "Dimension" );
+    }
+
+/*
+=================================================
+    _SetDimension
+=================================================
+*/
+    void  ScriptBaseController::_SetDimension (const ScriptDynamicDimPtr &dynDim) __Th___
+    {
+        CHECK_THROW_MSG( dynDim and dynDim->Get() );
+        CHECK_THROW_MSG( not _dynamicDim, "Dimension is already set" );
+
+        _dynamicDim = dynDim;
+    }
+
+    void  ScriptBaseController::SetDimensionIfNotSet (const ScriptDynamicDimPtr &dynDim) __Th___
+    {
+        if ( not _dynamicDim )
+        {
+            CHECK_THROW_MSG( dynDim and dynDim->Get() );
+
+            _dynamicDim = dynDim;
+        }
     }
 //-----------------------------------------------------------------------------
 
@@ -59,9 +84,9 @@ namespace
     Bind
 =================================================
 */
-    void  ScriptController2D::Bind (const ScriptEnginePtr &se) __Th___
+    void  ScriptControllerScaleBias::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptController2D>  binder{ se };
+        ClassBinder<ScriptControllerScaleBias>  binder{ se };
         binder.CreateRef();
         _BindBase( binder );
     }
@@ -71,9 +96,154 @@ namespace
     ToController
 =================================================
 */
-    RC<IController>  ScriptController2D::ToController (RC<DynamicDim> dim) __Th___
+    RC<IController>  ScriptControllerScaleBias::ToController () __Th___
     {
-        return MakeRC<Controller2D>( RVRef(dim) );
+        CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
+
+        if ( _controller )
+            return _controller;
+
+        _controller = MakeRC<ScaleBiasCamera>( _dynamicDim->Get() );
+        return _controller;
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    Bind
+=================================================
+*/
+    void  ScriptControllerTopDown::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptControllerTopDown>  binder{ se };
+        binder.CreateRef();
+        binder.AddMethod( &ScriptControllerTopDown::ForwardBackwardScale1,      "ForwardBackwardScale" );
+        binder.AddMethod( &ScriptControllerTopDown::ForwardBackwardScale2,      "ForwardBackwardScale" );
+        binder.AddMethod( &ScriptControllerTopDown::SideMovementScale,          "SideMovementScale" );
+        binder.AddMethod( &ScriptControllerTopDown::SetRotationScale,           "RotationScale" );
+        binder.AddMethod( &ScriptControllerTopDown::SetPosition,                "Position" );
+        _BindBase( binder );
+    }
+
+/*
+=================================================
+    SetRotationScale
+=================================================
+*/
+    void  ScriptControllerTopDown::SetRotationScale (float value) __Th___
+    {
+        _rotationScale = value;
+    }
+
+/*
+=================================================
+    ForwardBackwardScale*
+=================================================
+*/
+    void  ScriptControllerTopDown::ForwardBackwardScale1 (float value) __Th___
+    {
+        _movingScale.forward  = value;
+        _movingScale.backward = value;
+    }
+
+    void  ScriptControllerTopDown::ForwardBackwardScale2 (float forward, float backward) __Th___
+    {
+        _movingScale.forward  = forward;
+        _movingScale.backward = backward;
+    }
+
+/*
+=================================================
+    SideMovementScale
+=================================================
+*/
+    void  ScriptControllerTopDown::SideMovementScale (float value) __Th___
+    {
+        _movingScale.side = value;
+    }
+
+/*
+=================================================
+    ToController
+=================================================
+*/
+    RC<IController>  ScriptControllerTopDown::ToController () __Th___
+    {
+        CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
+
+        if ( _controller )
+            return _controller;
+
+        _controller = MakeRC<TopDownCamera>( _dynamicDim->Get(), _movingScale, _rotationScale, _initialPos );
+        return _controller;
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    SetFovY
+=================================================
+*/
+    void  ScriptControllerIsometricCamera::SetFovY (float value) __Th___
+    {
+        CHECK_THROW_MSG( value >= 1.0f );
+        CHECK_THROW_MSG( value <= 90.0f );
+
+        _fovY = value;
+    }
+
+/*
+=================================================
+    SetClipPlanes
+=================================================
+*/
+    void  ScriptControllerIsometricCamera::SetClipPlanes (float near, float far) __Th___
+    {
+        CHECK_THROW_MSG( near > 0.0f );
+        CHECK_THROW_MSG( near < far );
+        CHECK_THROW_MSG( (far - near) > 1.0f );
+
+        _clipPlanes = float2{ near, far };
+    }
+
+/*
+=================================================
+    Bind
+=================================================
+*/
+    void  ScriptControllerIsometricCamera::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptControllerIsometricCamera>  binder{ se };
+        binder.CreateRef();
+        _BindBase( binder );
+        binder.AddMethod( &ScriptControllerIsometricCamera::SetFovY,                "FovY" );
+        binder.AddMethod( &ScriptControllerIsometricCamera::SetClipPlanes,          "ClipPlanes" );
+        binder.AddMethod( &ScriptControllerIsometricCamera::SetRotationScale1,      "RotationScale" );
+        binder.AddMethod( &ScriptControllerIsometricCamera::SetRotationScale2,      "RotationScale" );
+        binder.AddMethod( &ScriptControllerIsometricCamera::SetOffsetScale,         "OffsetScale" );
+        binder.AddMethod( &ScriptControllerIsometricCamera::SetPosition,            "Position" );
+        binder.AddMethod( &ScriptControllerIsometricCamera::SetOffset,              "Offset" );
+    }
+
+/*
+=================================================
+    ToController
+=================================================
+*/
+    RC<IController>  ScriptControllerIsometricCamera::ToController () __Th___
+    {
+        CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
+
+        if ( _controller )
+            return _controller;
+
+        _controller = MakeRC<IsometricCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
+                                                _rotationScale, _offsetScale, _initialPos, _initialOffset );
+        return _controller;
     }
 //-----------------------------------------------------------------------------
 
@@ -104,26 +274,6 @@ namespace
         CHECK_THROW_MSG( (far - near) > 1.0f );
 
         _clipPlanes = float2{ near, far };
-    }
-
-/*
-=================================================
-    SetRotationScale*
-=================================================
-*/
-    void  ScriptControllerCamera3D::SetRotationScale1 (float value) __Th___
-    {
-        _rotationScale = float3{value};
-    }
-
-    void  ScriptControllerCamera3D::SetRotationScale2 (float x, float y) __Th___
-    {
-        _rotationScale = float3{x,y,0.f};
-    }
-
-    void  ScriptControllerCamera3D::SetRotationScale3 (float x, float y, float z) __Th___
-    {
-        _rotationScale = float3{x,y,z};
     }
 
 /*
@@ -169,16 +319,6 @@ namespace
     {
         _movingScale.side = value;
     }
-
-/*
-=================================================
-    SetPosition
-=================================================
-*/
-    void  ScriptControllerCamera3D::SetPosition (const packed_float3 &pos) __Th___
-    {
-        _initialPos = pos;
-    }
 //-----------------------------------------------------------------------------
 
 
@@ -221,10 +361,16 @@ namespace
     ToController
 =================================================
 */
-    RC<IController>  ScriptControllerFlightCamera::ToController (RC<DynamicDim> dim) __Th___
+    RC<IController>  ScriptControllerFlightCamera::ToController () __Th___
     {
-        return MakeRC<FlightCamera>( RVRef(dim), _clipPlanes, Rad::FromDeg( _fovY ),
-                                     _engineThrustRange, _rotationScale, _initialPos );
+        CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
+
+        if ( _controller )
+            return _controller;
+
+        _controller = MakeRC<FlightCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
+                                            _engineThrustRange, _rotationScale, _initialPos );
+        return _controller;
     }
 //-----------------------------------------------------------------------------
 
@@ -257,10 +403,16 @@ namespace
     ToController
 =================================================
 */
-    RC<IController>  ScriptControllerFPVCamera::ToController (RC<DynamicDim> dim) __Th___
+    RC<IController>  ScriptControllerFPVCamera::ToController () __Th___
     {
-        return MakeRC<FPSCamera>( RVRef(dim), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
-                                  float2{_rotationScale}, _initialPos );
+        CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
+
+        if ( _controller )
+            return _controller;
+
+        _controller = MakeRC<FPSCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
+                                         float2{_rotationScale}, _initialPos );
+        return _controller;
     }
 //-----------------------------------------------------------------------------
 
@@ -293,10 +445,16 @@ namespace
     ToController
 =================================================
 */
-    RC<IController>  ScriptControllerFreeCamera::ToController (RC<DynamicDim> dim) __Th___
+    RC<IController>  ScriptControllerFreeCamera::ToController () __Th___
     {
-        return MakeRC<FPVCamera>( RVRef(dim), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
-                                      float2{_rotationScale}, _initialPos );
+        CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
+
+        if ( _controller )
+            return _controller;
+
+        _controller = MakeRC<FPVCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ), _movingScale,
+                                         float2{_rotationScale}, _initialPos );
+        return _controller;
     }
 
 

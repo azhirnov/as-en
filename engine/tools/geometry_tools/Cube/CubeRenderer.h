@@ -3,10 +3,7 @@
 #pragma once
 
 #ifdef AE_GEOMTOOLS_HAS_GRAPHICS
-
-#include "CubeGen.h"
-#include "graphics/Public/CommandBuffer.h"
-#include "graphics/Public/ResourceManager.h"
+# include "geometry_tools/Cube/CubeGen.h"
 
 namespace AE::GeometryTools
 {

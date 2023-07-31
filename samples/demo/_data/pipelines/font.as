@@ -16,7 +16,6 @@ void ASmain ()
     }
 
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "font.draw" );
-    ppln.AddFeatureSet( "MinimalFS" );
     ppln.SetVertexInput( "VB_Position_f2, VB_UVs2_SCs1_Col8" );
     ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "font.io" );
     ppln.SetLayout( "font.pl" );

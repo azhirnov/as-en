@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "base/Utils/Version.h"
-#include "base/CompileTime/StringToID.h"
 #include "graphics/Public/DeviceProperties.h"
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/FeatureSet.h"
@@ -138,7 +136,7 @@ namespace AE::Graphics
             ubyte   argbufTier;
             ubyte   readWriteTextureTier;
 
-            Features ()                         __NE___ { ZeroMem( this, Sizeof(*this) ); }
+            Features ()                         __NE___ { ZeroMem( OUT this, Sizeof(*this) ); }
 
             ND_ bool  depthBounds ()            C_NE___ { return false; }
             ND_ bool  rayTracing ()             C_NE___ { return rayTracingFromCompute or raytracingFromRender; }
@@ -205,7 +203,7 @@ namespace AE::Graphics
             uint        maxNumberOfFences;
             uint        maxVertexCountForVertexAmplification;
 
-            Properties () { ZeroMem( this, Sizeof(*this) ); }
+            Properties () { ZeroMem( OUT this, Sizeof(*this) ); }
         };
 
 

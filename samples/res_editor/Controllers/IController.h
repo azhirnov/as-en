@@ -28,6 +28,7 @@ namespace AE::ResEditor
 
             MovingScale () {}
 
+            ND_ float2  Apply (const float2 &) C_NE___;
             ND_ float3  Apply (const float3 &) C_NE___;
         };
 
@@ -74,6 +75,22 @@ namespace AE::ResEditor
     MovingScale::Apply
 =================================================
 */
+    inline float2  IController::MovingScale::Apply (const float2 &v) C_NE___
+    {
+        if ( All( IsZero( v )))
+            return float2{ 0.f };
+
+        float2  res = Normalize( v );
+        res.x *= (v.x < 0.f ? backward : forward);
+        res.y *= side;
+        return res;
+    }
+
+/*
+=================================================
+    MovingScale::Apply
+=================================================
+*/
     inline float3  IController::MovingScale::Apply (const float3 &v) C_NE___
     {
         if ( All( IsZero( v )))
@@ -82,7 +99,7 @@ namespace AE::ResEditor
         float3  res = Normalize( v );
         res.x *= (v.x < 0.f ? backward : forward);
         res.y *= side;
-        res.z *= (v.z < 0.f ? down : up);
+        res.z *= (v.z < 0.f ? up : down);
         return res;
     }
 

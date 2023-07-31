@@ -54,7 +54,7 @@
 
 #ifndef BufferRef_DEFINED
 #   define BufferRef_DEFINED
-    // size: 24, align: 16
+    // size: 24 (32), align: 16
     struct BufferRef
     {
         static constexpr auto  TypeName = ShaderStructName{"BufferRef"};

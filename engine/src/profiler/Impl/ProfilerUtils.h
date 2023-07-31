@@ -2,9 +2,7 @@
 
 #pragma once
 
-#include "base/Platforms/ThreadUtils.h"
-#include "graphics_hl/Canvas/Canvas.h"
-#include "graphics_hl/Resources/RasterFont.h"
+#include "profiler/Profiler.pch.h"
 
 #ifdef AE_ENABLE_IMGUI
 # include "profiler/ImGui/ImColumnHistoryDiagram.h"
@@ -52,8 +50,8 @@ namespace AE::Profiler
         ND_ usize           CurrentThreadID ()  const   { return ThreadUtils::GetIntID(); }
         ND_ uint            CoreIndex ()        const   { return ThreadUtils::GetCoreIndex(); }
 
-        ND_ secondsf        CurrentTime ()      const   { return Cast<secondsf>( TimePoint_t::clock::now() - _startTime ); }
-        ND_ nanosecondsd    CurrentTimeNano ()  const   { return Cast<nanosecondsd>( TimePoint_t::clock::now() - _startTime ); }
+        ND_ secondsf        CurrentTime ()      const   { return TimeCast<secondsf>( TimePoint_t::clock::now() - _startTime ); }
+        ND_ nanosecondsd    CurrentTimeNano ()  const   { return TimeCast<nanosecondsd>( TimePoint_t::clock::now() - _startTime ); }
     };
 
 

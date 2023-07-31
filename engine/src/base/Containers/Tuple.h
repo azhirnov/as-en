@@ -317,40 +317,37 @@ namespace _hidden_
 } // AE::Base
 
 
-namespace std
-{
+template <typename ...Types>
+struct std::tuple_size< AE::Base::Tuple<Types...> > :
+    public std::integral_constant< std::size_t, sizeof...(Types) >
+{};
+
+template <typename ...Types>
+struct std::tuple_size< AE::Base::TupleRef<Types...> > :
+    public std::integral_constant< std::size_t, sizeof...(Types) >
+{};
+
+template< size_t I, typename ...Types >
+struct std::tuple_element< I, AE::Base::Tuple<Types...> > {
+    using type = typename tuple_element< I, std::tuple<Types...> >::type;
+};
+
+template< size_t I, typename ...Types >
+struct std::tuple_element< I, AE::Base::TupleRef<Types...> > {
+    using type = typename tuple_element< I, std::tuple<Types...> >::type;
+};
+
+template <typename ...Types>
+struct std::hash< AE::Base::Tuple<Types...> > {
+    ND_ size_t  operator () (const AE::Base::Tuple<Types...> &x) C_NE___ {
+        return size_t(x.CalcHash());
+    }
+};
+
+namespace std {
     template <typename ...Types>
-    struct tuple_size< AE::Base::Tuple<Types...> > :
-        public std::integral_constant< std::size_t, sizeof...(Types) >
-    {};
-
-    template <typename ...Types>
-    struct tuple_size< AE::Base::TupleRef<Types...> > :
-        public std::integral_constant< std::size_t, sizeof...(Types) >
-    {};
-
-    template< size_t I, typename ...Types >
-    struct tuple_element< I, AE::Base::Tuple<Types...> > {
-        using type = typename tuple_element< I, std::tuple<Types...> >::type;
-    };
-
-    template< size_t I, typename ...Types >
-    struct tuple_element< I, AE::Base::TupleRef<Types...> > {
-        using type = typename tuple_element< I, std::tuple<Types...> >::type;
-    };
-
-    template <typename ...Types>
-    void  swap (AE::Base::Tuple<Types...> &lhs, AE::Base::Tuple<Types...> &rhs)     __NE___
+    void  swap (AE::Base::Tuple<Types...> &lhs, AE::Base::Tuple<Types...> &rhs) __NE___
     {
         return swap( static_cast<tuple< Types... > &>(lhs), static_cast<tuple< Types... > &>(rhs) );
     }
-
-    template <typename ...Types>
-    struct hash< AE::Base::Tuple<Types...> >
-    {
-        ND_ size_t  operator () (const AE::Base::Tuple<Types...> &x)                C_NE___ {
-            return size_t(x.CalcHash());
-        }
-    };
-
-} // std
+}

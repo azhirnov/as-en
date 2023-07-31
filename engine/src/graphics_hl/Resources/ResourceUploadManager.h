@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/ResourceManager.h"
-#include "graphics/Public/CommandBuffer.h"
+#include "graphics_hl/GraphicsHL.pch.h"
 
 namespace AE::Graphics
 {

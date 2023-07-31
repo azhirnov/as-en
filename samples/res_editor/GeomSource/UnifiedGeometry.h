@@ -136,6 +136,8 @@ namespace AE::ResEditor
 
     // IGeomSource //
         void  StateTransition (IGSMaterials &, GraphicsCtx_t &)             __NE_OV;
+        void  StateTransition (IGSMaterials &, RayTracingCtx_t &)           __NE_OV;
+
         bool  Draw (const DrawData &)                                       __NE_OV;
         bool  Update (const UpdateData &)                                   __NE_OV;
     };

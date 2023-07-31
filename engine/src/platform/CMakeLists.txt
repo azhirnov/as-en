@@ -1,10 +1,13 @@
-file( GLOB_RECURSE CPP_SOURCES "*.h" "*.cpp" )
+file( GLOB_RECURSE HPP_SOURCES "*.h" )
+if (NOT (DEFINED ENGINE_LIBS_PATH))
+    file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
+endif()
 if (MSVC OR APPLE)
     file( GLOB_RECURSE OBJC_SOURCES "*.mm" )
 endif()
-set( SOURCES ${CPP_SOURCES} ${OBJC_SOURCES} )
+set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} ${OBJC_SOURCES} )
 
-add_library( "Platform" STATIC ${SOURCES} )
+add_library( "Platform" STATIC ${SOURCES} ${DUMMY_CPP_FILE} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 
 set_property( TARGET "Platform" PROPERTY FOLDER "Engine" )
@@ -35,13 +38,12 @@ elseif (${AE_ENABLE_GLFW})
         target_compile_definitions( "Platform" PRIVATE GLFW_EXPOSE_NATIVE_WIN32 )
 
     elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-        target_link_libraries( "Platform" PUBLIC "dl" "X11" )
         target_compile_definitions( "Platform" PRIVATE GLFW_EXPOSE_NATIVE_X11 ) # GLFW_EXPOSE_NATIVE_WAYLAND
     endif()
 
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     # Raw WinAPI is supported
-    target_link_libraries( "Platform" PUBLIC "Shcore.lib" "Dxva2.lib" )
+    target_link_libraries( "Platform" PUBLIC "Dxva2.lib" )
     target_compile_definitions( "Platform" PUBLIC AE_WINAPI_WINDOW )
 
 else()
@@ -62,5 +64,8 @@ endif()
 if ( TARGET "RenderDoc-lib" )
     target_link_libraries( "Platform" PRIVATE "RenderDoc-lib" )
 endif()
+
+EnablePCH( "Platform" )
+EnablePrebuild( "Platform" )
 
 install( TARGETS "Platform" ARCHIVE DESTINATION "lib" )

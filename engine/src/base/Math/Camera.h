@@ -36,16 +36,19 @@ namespace AE::Math
     // methods
         CameraTempl ()                                                                      __NE___ {}
 
+        ND_ Quat_t const&   Orientation ()                                                  C_NE___ { return transform.orientation; }
+
         ND_ Mat4_t  ToModelViewProjMatrix ()                                                C_NE___ { return projection * ToModelViewMatrix(); }
-        ND_ Mat4_t  ToViewProjMatrix ()                                                     C_NE___ { return projection * transform.ToRotationMatrix(); }
+        ND_ Mat4_t  ToViewProjMatrix ()                                                     C_NE___ { return projection * ToViewMatrix(); }
         ND_ Mat4_t  ToViewMatrix ()                                                         C_NE___ { return transform.ToRotationMatrix(); }
+        ND_ Mat4_t  ToModelMatrix ()                                                        C_NE___ { return Mat4_t::Translated( transform.position ); }
 
         ND_ Mat4_t  ToModelViewMatrix ()                                                    C_NE___
         {
             Mat4_t  orient_mat      { transform.orientation };
-            Mat4_t  translate_mat   = Mat4_t::Translate( transform.position );
-            Mat4_t  scale_mat       = Mat4_t::Scale( Vec3_t{ transform.scale });
-            return orient_mat * scale_mat * translate_mat;
+            Mat4_t  translate_mat   = Mat4_t::Translated( transform.position );
+            //Mat4_t scale_mat      = Mat4_t::Scaled( Vec3_t{ transform.scale });
+            return orient_mat * translate_mat;
         }
 
 

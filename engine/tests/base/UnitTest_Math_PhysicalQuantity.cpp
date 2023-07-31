@@ -1,8 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Math/PhysicalQuantity.h"
-#include "base/Math/PhysicalQuantityVec.h"
-#include "base/Math/PhysicalQuantityMatrix.h"
 #include "UnitTest_Common.h"
 
 namespace

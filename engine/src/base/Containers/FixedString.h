@@ -85,6 +85,8 @@ namespace AE::Base
         ND_ constexpr bool  operator >  (const View_t &rhs) C_NE___ { return View_t(*this) > rhs; }
         ND_ constexpr bool  operator <  (const View_t &rhs) C_NE___ { return View_t(*this) < rhs; }
 
+            Self&           operator << (CharT value)       __NE___ { push_back( value );  return *this; }
+
         ND_ iterator        begin ()                        __NE___ { return &_array[0]; }
         ND_ const_iterator  begin ()                        C_NE___ { return &_array[0]; }
         ND_ iterator        end ()                          __NE___ { return &_array[_length]; }
@@ -113,7 +115,7 @@ namespace AE::Base
 
         void  push_back (CharT value)                       __NE___
         {
-            ASSERT( _length + 1u < capacity() );
+            ASSERT( usize{_length} + 1u < capacity() );
 
             _array[_length]     = value;
             _array[_length + 1] = CharT{0};
@@ -128,16 +130,11 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <typename CharT, size_t StringSize>
+struct std::hash< AE::Base::TFixedString< CharT, StringSize > >
 {
-
-    template <typename CharT, size_t StringSize>
-    struct hash< AE::Base::TFixedString< CharT, StringSize > >
+    ND_ size_t  operator () (const AE::Base::TFixedString<CharT, StringSize> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Base::TFixedString<CharT, StringSize> &value) C_NE___
-        {
-            return hash< AE::Base::BasicStringView<CharT> >()( value );
-        }
-    };
-
-} // std
+        return hash< AE::Base::BasicStringView<CharT> >()( value );
+    }
+};

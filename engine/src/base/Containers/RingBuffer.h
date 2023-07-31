@@ -345,12 +345,12 @@ namespace AE::Base
         if ( _first >= _end )
         {
             usize   off = old_size - _first;
-            CPolicy_t::Replace( _array, old_ptr + _first, off );
-            CPolicy_t::Replace( _array + off, old_ptr, _end );
+            CPolicy_t::Replace( OUT _array,         INOUT old_ptr + _first, off );
+            CPolicy_t::Replace( OUT _array + off,   INOUT old_ptr, _end );
         }
         else
         {
-            CPolicy_t::Replace( _array, old_ptr + _first, _end - _first );
+            CPolicy_t::Replace( OUT _array, INOUT old_ptr + _first, _end - _first );
         }
 
         if ( old_ptr != null )
@@ -461,7 +461,7 @@ namespace AE::Base
         if_unlikely( size() + 1 > capacity() )
             _Reallocate( capacity() + 1, true );    // throw
 
-        CPolicy_t::Copy( _array + _end, AddressOf(value), 1 );  // throw
+        CPolicy_t::Copy( OUT _array + _end, AddressOf(value), 1 );  // throw
         _packed &= ~_EmptyBit;
         _end    = _WrapIndex( _end + 1 );
 
@@ -474,7 +474,7 @@ namespace AE::Base
         if_unlikely( size() + 1 > capacity() )
             _Reallocate( capacity() + 1, true );    // throw
 
-        CPolicy_t::Move( _array + _end, AddressOf(value), 1 );
+        CPolicy_t::Move( OUT _array + _end, INOUT AddressOf(value), 1 );
         _packed &= ~_EmptyBit;
         _end    = _WrapIndex( _end + 1 );
 
@@ -494,7 +494,7 @@ namespace AE::Base
 
         _packed &= ~_EmptyBit;
         _first  = _WrapIndex( ssize(_first) - 1 );
-        CPolicy_t::Copy( _array + _first, AddressOf(value), 1 );    // throw
+        CPolicy_t::Copy( OUT _array + _first, AddressOf(value), 1 );    // throw
 
         _UpdateDbgView();
     }
@@ -507,7 +507,7 @@ namespace AE::Base
 
         _packed &= ~_EmptyBit;
         _first  = _WrapIndex( ssize(_first) - 1 );
-        CPolicy_t::Move( _array + _first, AddressOf(value), 1 );
+        CPolicy_t::Move( OUT _array + _first, INOUT AddressOf(value), 1 );
 
         _UpdateDbgView();
     }
@@ -523,7 +523,7 @@ namespace AE::Base
         if_likely( not empty() )
         {
             _end = _WrapIndex( ssize(_end) - 1 );
-            CPolicy_t::Destroy( _array + _end, 1 );
+            CPolicy_t::Destroy( INOUT _array + _end, 1 );
 
             if_unlikely( _first == _end )
                 _packed |= _EmptyBit;
@@ -542,7 +542,7 @@ namespace AE::Base
     {
         if_likely( not empty() )
         {
-            CPolicy_t::Destroy( _array + _first, 1 );
+            CPolicy_t::Destroy( INOUT _array + _first, 1 );
             _first = _WrapIndex( _first + 1 );
 
             if_unlikely( _first == _end )
@@ -566,7 +566,7 @@ namespace AE::Base
 
         _packed &= ~_EmptyBit;
         _first  = _WrapIndex( ssize(_first) - 1 );
-        T*  res = PlacementNew<T>( _array + _first, FwdArg<Types>(args)... );   // throw
+        T*  res = PlacementNew<T>( OUT _array + _first, FwdArg<Types>(args)... );   // throw
 
         _UpdateDbgView();
         return *res;
@@ -584,7 +584,7 @@ namespace AE::Base
         if_unlikely( size() + 1 > capacity() )
             _Reallocate( capacity() + 1, true );    // throw
 
-        T*  res = PlacementNew<T>( _array + _end, FwdArg<Types>(args)... ); // throw
+        T*  res = PlacementNew<T>( OUT _array + _end, FwdArg<Types>(args)... ); // throw
 
         _packed &= ~_EmptyBit;
         _end    = _WrapIndex( _end + 1 );
@@ -690,12 +690,12 @@ namespace AE::Base
             else
             if ( _first > _end )
             {
-                CPolicy_t::Destroy( _array + _first, capacity() - _first );
-                CPolicy_t::Destroy( _array, _end );
+                CPolicy_t::Destroy( INOUT _array + _first, capacity() - _first );
+                CPolicy_t::Destroy( INOUT _array, _end );
             }
             else
             {
-                CPolicy_t::Destroy( _array + _first, size() );
+                CPolicy_t::Destroy( INOUT _array + _first, size() );
             }
         }
         _first = _end = 0;
@@ -769,8 +769,8 @@ namespace AE::Base
 
         if_unlikely( empty() )
         {
-            if constexpr( IsConst<B> )  CPolicy_t::Copy( _array, src, count );  // throw
-            else                        CPolicy_t::Move( _array, src, count );
+            if constexpr( IsConst<B> )  CPolicy_t::Copy( OUT _array, src, count );  // throw
+            else                        CPolicy_t::Move( OUT _array, INOUT src, count );
 
             _first = 0;
             _end   = Offset_t(count);
@@ -781,8 +781,8 @@ namespace AE::Base
         {
             const usize cnt = Min( count, _first );
 
-            if constexpr( IsConst<B> )  CPolicy_t::Copy( _array + _first - cnt, src + count - cnt, cnt );   // throw
-            else                        CPolicy_t::Move( _array + _first - cnt, src + count - cnt, cnt );
+            if constexpr( IsConst<B> )  CPolicy_t::Copy( OUT _array + _first - cnt, src + count - cnt, cnt );   // throw
+            else                        CPolicy_t::Move( OUT _array + _first - cnt, INOUT src + count - cnt, cnt );
 
             _first = Offset_t(_first - cnt);
 
@@ -790,14 +790,14 @@ namespace AE::Base
             {
                 _first = Offset_t( capacity() - (count - cnt) );
 
-                if constexpr( IsConst<B> )  CPolicy_t::Copy( _array + _first, src, count - cnt );   // throw
-                else                        CPolicy_t::Move( _array + _first, src, count - cnt );
+                if constexpr( IsConst<B> )  CPolicy_t::Copy( OUT _array + _first, src, count - cnt );   // throw
+                else                        CPolicy_t::Move( OUT _array + _first, INOUT src, count - cnt );
             }
         }
         else
         {
-            if constexpr( IsConst<B> )  CPolicy_t::Copy( _array + _first - count, src, count ); // throw
-            else                        CPolicy_t::Move( _array + _first - count, src, count );
+            if constexpr( IsConst<B> )  CPolicy_t::Copy( OUT _array + _first - count, src, count ); // throw
+            else                        CPolicy_t::Move( OUT _array + _first - count, INOUT src, count );
 
             _first = Offset_t(_first - count);
         }
@@ -831,8 +831,8 @@ namespace AE::Base
 
         if_unlikely( empty() )
         {
-            if constexpr( IsConst<B> )  CPolicy_t::Copy( _array, src, count );  // throw
-            else                        CPolicy_t::Move( _array, const_cast<T*>(src), count );
+            if constexpr( IsConst<B> )  CPolicy_t::Copy( OUT _array,                       src, count );    // throw
+            else                        CPolicy_t::Move( OUT _array, INOUT const_cast<T*>(src), count );
 
             _first = 0;
             _end   = Offset_t(count);
@@ -843,8 +843,8 @@ namespace AE::Base
         {
             const usize cnt = Min( count, capacity() - _end );
 
-            if constexpr( IsConst<B> )  CPolicy_t::Copy( _array + _end, src, cnt ); // throw
-            else                        CPolicy_t::Move( _array + _end, src, cnt );
+            if constexpr( IsConst<B> )  CPolicy_t::Copy( OUT _array + _end,       src, cnt );   // throw
+            else                        CPolicy_t::Move( OUT _array + _end, INOUT src, cnt );
 
             _end = Offset_t(_end + cnt);
 
@@ -852,14 +852,14 @@ namespace AE::Base
             {
                 _end = Offset_t(count - cnt);
 
-                if constexpr( IsConst<B> )  CPolicy_t::Copy( _array, src + cnt, count - cnt );  // throw
-                else                        CPolicy_t::Move( _array, src + cnt, count - cnt );
+                if constexpr( IsConst<B> )  CPolicy_t::Copy( OUT _array,       src + cnt, count - cnt );    // throw
+                else                        CPolicy_t::Move( OUT _array, INOUT src + cnt, count - cnt );
             }
         }
         else
         {
-            if constexpr( IsConst<B> )  CPolicy_t::Copy( _array + _end, src, count );   // throw
-            else                        CPolicy_t::Move( _array + _end, src, count );
+            if constexpr( IsConst<B> )  CPolicy_t::Copy( OUT _array + _end,       src, count ); // throw
+            else                        CPolicy_t::Move( OUT _array + _end, INOUT src, count );
 
             _end = Offset_t(_end + count);
         }
@@ -902,7 +902,7 @@ namespace AE::Base
 
         for (usize i = 0; i < count; ++i)
         {
-            CPolicy_t::Destroy( _array + _first, 1 );
+            CPolicy_t::Destroy( INOUT _array + _first, 1 );
             _first = _WrapIndex( _first + 1 );
         }
 
@@ -925,7 +925,7 @@ namespace AE::Base
         for (usize i = 0; i < count; ++i)
         {
             _end = _WrapIndex( ssize(_end) - 1 );
-            CPolicy_t::Destroy( _array + _end, 1 );
+            CPolicy_t::Destroy( INOUT _array + _end, 1 );
         }
 
         if ( _first == _end )
@@ -955,16 +955,11 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <typename T, typename S>
+struct std::hash< AE::Base::RingBuffer<T,S> >
 {
-    template <typename T, typename S>
-    struct hash< AE::Base::RingBuffer<T,S> >
+    ND_ size_t  operator () (const AE::Base::RingBuffer<T,S> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Base::RingBuffer<T,S> &value) C_NE___
-        {
-            return size_t(value.CalcHash());
-        }
-    };
-
-} // std
-
+        return size_t(value.CalcHash());
+    }
+};

@@ -15,7 +15,7 @@ namespace AE::ResEditor
     {
     // variables
     private:
-        RG::RenderGraph             _rg;
+        RG::RenderGraph &           _rg;
         Ptr<IOutputSurface>         _surface;
         RG::CommandBatchPtr         _uiBatch;
 

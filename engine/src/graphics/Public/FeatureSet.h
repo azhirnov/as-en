@@ -18,11 +18,12 @@
 
             max buffers per desc set limit      = Min( minStorageBuffers, minUniformBuffers, minAccelStructures )
             max buffers per desc set            = minStorageBuffers + minUniformBuffers + minAccelStructures
+
+    docs: file:///<path>/engine/docs/en/FeatureSet.md
 */
 
 #pragma once
 
-#include "base/Utils/EnumBitSet.h"
 #include "graphics/Public/ShaderEnums.h"
 #include "graphics/Public/RenderState.h"
 #include "graphics/Public/FeatureSetEnums.h"
@@ -250,9 +251,11 @@ namespace AE::Graphics
         _visitor_( EFeature,            shaderZeroInitializeWorkgroupMemory,    : 2 )\
         _visitor_( EFeature,            shaderIntegerDotProduct,                : 2 )\
         /* fragment shader interlock */\
-        _visitor_( EFeature,            fragmentShaderSampleInterlock,          : 2 )\
-        _visitor_( EFeature,            fragmentShaderPixelInterlock,           : 2 )\
-        _visitor_( EFeature,            fragmentShaderShadingRateInterlock,     : 2 )\
+        _visitor_( EFeature,            fragmentShaderSampleInterlock,          : 2 )   /*\                                                                                 */\
+        _visitor_( EFeature,            fragmentShaderPixelInterlock,           : 2 )   /*-|-- GL_ARB_fragment_shader_interlock                                             */\
+        _visitor_( EFeature,            fragmentShaderShadingRateInterlock,     : 2 )   /*/                                                                                 */\
+        /* fragment shader barycentric */\
+        _visitor_( EFeature,            fragmentShaderBarycentric,              : 2)    /*  VK_KHR_fragment_shader_barycentric, GL_EXT_fragment_shader_barycentric          */\
         /* fragment shading rate */\
         _visitor_( EFeature,            pipelineFragmentShadingRate,                        : 2 )   /*\                                                                     */\
         _visitor_( EFeature,            primitiveFragmentShadingRate,                       : 2 )   /*-|                                                                    */\
@@ -266,14 +269,8 @@ namespace AE::Graphics
         _visitor_( EFeature,            fragmentShadingRateWithCustomSampleLocations,       : 2 )   /*-|                                                                    */\
         _visitor_( VRSTexelSize,        fragmentShadingRateTexelSize,                           )   /*-|                                                                    */\
         _visitor_( ShadingRateSet_t,    fragmentShadingRates,                                   )   /*-/                                                                    */\
-        /* fragment density map */\
-        _visitor_( EFeature,            fragmentDensityMap,                     : 2 )   /*\                                                                                 */\
-        _visitor_( EFeature,            fragmentDensityMapDynamic,              : 2 )   /*-|                                                                                */\
-        _visitor_( EFeature,            fragmentDensityMapNonSubsampledImages,  : 2 )   /*-|--GL_EXT_fragment_invocation_density                                            */\
-        _visitor_( EFeature,            fragmentDensityInvocations,             : 2 )   /*-|                                                                                */\
-        _visitor_( EFeature,            subsampledLoads,                        : 2 )   /*-|                                                                                */\
-        _visitor_( uint,                minSubsampledArrayLayers,                   )   /*-|    - maxSubsampledArrayLayers                                                  */\
-        _visitor_( uint,                minDescriptorSetSubsampledSamplers,         )   /*/     - maxDescriptorSetSubsampledSamplers                                        */\
+        /* acceleration structure */\
+        _visitor_( EFeature,            accelerationStructureIndirectBuild,     : 2 )\
         /* inline ray tracing */\
         _visitor_( EFeature,            rayQuery,                               : 2 )   /* GL_EXT_ray_query                                                                 */\
         _visitor_( EShaderStages,       rayQueryStages,                             )\
@@ -340,7 +337,7 @@ namespace AE::Graphics
         _visitor_( uint,                minMeshPayloadAndOutputMemorySize,          )   /*-|    - maxMeshPayloadAndOutputMemorySize                                         */\
         _visitor_( uint,                minMeshMultiviewViewCount,                  )   /*-|    - maxMeshMultiviewViewCount                                                 */\
         _visitor_( uint,                minPreferredTaskWorkGroupInvocations,       )   /*-|    - maxPreferredTaskWorkGroupInvocations                                      */\
-        _visitor_( uint,                minPreferredMeshWorkGroupInvocations,       )   /*-|    - maxPreferredMeshWorkGroupInvocations                                      */\
+        _visitor_( uint,                minPreferredMeshWorkGroupInvocations,       )   /*/     - maxPreferredMeshWorkGroupInvocations                                      */\
         /* raster order group */\
         _visitor_( ushort,              minRasterOrderGroups,                       )   /* only for Metal                                                                   */\
         /* shaders */\
@@ -417,7 +414,7 @@ namespace AE::Graphics
         _visitor_( ubyte,               metalArgBufferTier,                         )\
         \
         \
-    /* other */\
+    /* HW info */\
         _visitor_( Queues,              queues,                                     )\
         _visitor_( VendorIDs_t,         vendorIds,                                  )\
         _visitor_( GraphicsDevices_t,   devicesIds,                                 )\
@@ -478,13 +475,14 @@ namespace AE::Graphics
         ND_ static HashVal64  GetHashOfFieldNames ()                                __NE___;
         ND_ static HashVal64  GetHashOfDependencies ()                              __NE___;
         ND_ static HashVal64  GetHashOfFS ()                                        __NE___ { return GetHashOfFieldNames() + GetHashOfDependencies(); }
+        ND_ static HashVal64  GetHashOfFS_Precalculated ()                          __NE___;
 
 
     private:
         template <bool Mutable>
         bool  _Validate ()                                                          __NE___;
     };
-    STATIC_ASSERT( sizeof(FeatureSet) == 696 );
+    STATIC_ASSERT( sizeof(FeatureSet) == 680 );
 
 } // AE::Graphics
 

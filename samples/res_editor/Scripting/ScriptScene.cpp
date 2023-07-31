@@ -1,23 +1,15 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/FileStream.h"
-
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/EditorUI.h"
-
-#include "scripting/Impl/ClassBinder.h"
-#include "scripting/Impl/EnumBinder.h"
 
 #include "res_editor/Scripting/ScriptBasePass.cpp.h"
 #include "res_editor/_data/cpp/types.h"
 
+#include "res_editor/Scripting/PassCommon.inl.h"
+
 namespace AE::ResEditor
 {   
-namespace
-{
-} // namespace
-
-
 /*
 =================================================
     InputController
@@ -39,7 +31,7 @@ namespace
     {
         CHECK_THROW_MSG( geom );
 
-        _geomInstances.emplace_back( geom, pos );
+        _geomInstances.push_back( GeometryInstance{ geom, pos });
     }
 
     void  ScriptScene::InputGeometry2 (const ScriptGeomSourcePtr &geom) __Th___
@@ -57,7 +49,7 @@ namespace
         CHECK_THROW_MSG( not _geomInstances.empty() );
 
         ++_passCount;
-        return ScriptRC{ new ScriptSceneGraphicsPass{ ScriptScenePtr{this}, name }}.Detach();
+        return ScriptSceneGraphicsPassPtr{ new ScriptSceneGraphicsPass{ ScriptScenePtr{this}, name }}.Detach();
     }
 
 /*
@@ -115,8 +107,12 @@ namespace
     constructor
 =================================================
 */
+    ScriptSceneGraphicsPass::ScriptSceneGraphicsPass () :
+        ScriptBaseRenderPass{ EFlags::Unknown }
+    {}
+
     ScriptSceneGraphicsPass::ScriptSceneGraphicsPass (ScriptScenePtr scene, const String &passName) __Th___ :
-        ScriptBaseRenderPass{Default},
+        ScriptBaseRenderPass{ EFlags::Unknown },
         _scene{scene}, _controller{_scene->GetController()}, _passName{passName}
     {
         _dbgName = passName;
@@ -197,8 +193,8 @@ namespace
         result->_rpDesc.packId          = result->_rtech.packId;
         result->_rpDesc.layerCount      = 1_layer;
 
-        result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::ScenePassUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
-                                                  "ScenePassUB", renderer.GetAllocator() );
+        result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::SceneGraphicsPassUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
+                                                  "SceneGraphicsPassUB", renderer.GetAllocator() );
         CHECK_ERR( result->_ubuffer );
 
         CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_descSets.data(), result->_descSets.size(), result->_rtech.packId, DSLayoutName{"pass.ds"} ));
@@ -231,18 +227,8 @@ namespace
 
         if ( this->_controller )
         {
-            RC<DynamicDim>  dyn_dim;
-
-            for (auto& img : _output) {
-                if ( img.rt->IsMutableDimension() ) {
-                    dyn_dim = img.rt->DynamicDimension();
-                    break;
-                }
-            }
-            if ( not dyn_dim )
-                dyn_dim = MakeRC<DynamicDim>( _output.front().rt->Dimension2() );
-
-            result->_controller = this->_controller->ToController( dyn_dim );  // throw
+            this->_controller->SetDimensionIfNotSet( _dynamicDim );
+            result->_controller = this->_controller->ToController();  // throw
             CHECK_ERR( result->_controller );
         }
 
@@ -276,15 +262,6 @@ namespace
         binder.AddMethod( &ScriptSceneGraphicsPass::AddPipelines,       "AddPipelines"  );
     }
 
-} // AE::ResEditor
-
-
-#include "res_editor/Scripting/PassCommon.inl.h"
-
-namespace AE::ResEditor
-{
-    using namespace AE::PipelineCompiler;
-
 /*
 =================================================
     _CreateUBType
@@ -292,17 +269,22 @@ namespace AE::ResEditor
 */
     auto  ScriptSceneGraphicsPass::_CreateUBType () __Th___
     {
+        using namespace AE::PipelineCompiler;
+
         auto&   obj_storage = *ObjectStorage::Instance();
-        auto    it          = obj_storage.structTypes.find( "ScenePassUB" );
+        auto    it          = obj_storage.structTypes.find( "SceneGraphicsPassUB" );
 
         if ( it != obj_storage.structTypes.end() )
             return it->second;
 
-        ShaderStructTypePtr st{ new ShaderStructType{"ScenePassUB"}};
+        ShaderStructTypePtr st{ new ShaderStructType{"SceneGraphicsPassUB"}};
         st->Set( EStructLayout::Std140, R"#(
                 // view //
-                float2      resolution;
-                float       time;
+                float2      resolution;             // viewport resolution (in pixels)
+                float       time;                   // shader playback time (in seconds)
+                float       timeDelta;              // render time (in seconds)
+                uint        frame;                  // shader playback frame
+                uint        seed;                   // unique value, updated on each shader reloading
 
                 // controller //
                 CameraData  camera;
@@ -341,11 +323,12 @@ namespace AE::ResEditor
 */
     void  ScriptSceneGraphicsPass::_CompilePipelines2 (ScriptEnginePtr se, OUT PipelineNames_t &pplnNames) C_Th___
     {
+        using namespace AE::PipelineCompiler;
+
         auto&           storage = *ObjectStorage::Instance();
         const String    subpass = "main";
 
         CompatibleRenderPassDescPtr compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
-        compat_rp->AddFeatureSet( "Default" );
         compat_rp->AddSubpass( subpass );
         {
             for (usize i = 0; i < _output.size(); ++i)
@@ -392,9 +375,8 @@ namespace AE::ResEditor
             Unused( _CreateUBType() );  // throw
 
             DescriptorSetLayoutPtr  ds_layout{ new DescriptorSetLayout{ "pass.ds" }};
-            ds_layout->AddFeatureSet( "Default" );
 
-            ds_layout->AddUniformBuffer( uint(EShaderStages::AllGraphics), "passUB", ArraySize{1}, "ScenePassUB", EResourceState::ShaderUniform );
+            ds_layout->AddUniformBuffer( uint(EShaderStages::AllGraphics), "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform );
         }
 
         for (auto& inst : _scene->_geomInstances) {
@@ -428,6 +410,136 @@ namespace AE::ResEditor
     {
         return ScriptExe::ScriptPassApi::ConvertAndLoad(
                     [this, &pplnNames] (ScriptEnginePtr se){ _CompilePipelines2( se, OUT pplnNames ); });
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    constructor
+=================================================
+*/
+    ScriptSceneRayTracingPass::ScriptSceneRayTracingPass () :
+        ScriptBasePass{ EFlags::Unknown }
+    {}
+
+    ScriptSceneRayTracingPass::ScriptSceneRayTracingPass (ScriptScenePtr scene, const String &passName) __Th___ :
+        ScriptBasePass{ EFlags::Unknown },
+        _scene{scene}, _controller{_scene->GetController()}, _passName{passName}
+    {
+        _dbgName = passName;
+
+        auto&   ext = RenderTaskScheduler().GetDevice().GetExtensions();
+        CHECK_THROW_MSG( ext.rayTracingPipeline );
+
+        ScriptExe::ScriptPassApi::AddPass( ScriptBasePassPtr{this} );
+    }
+
+/*
+=================================================
+    SetPipeline
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::SetPipeline (const String &pplnFile) __Th___
+    {
+        _pplnName = ScriptExe::ScriptPassApi::ToPipelinePath( Path{pplnFile} );  // throw
+    }
+
+/*
+=================================================
+    InputController
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::InputController (const ScriptBaseControllerPtr &value) __Th___
+    {
+        CHECK_THROW_MSG( value );
+
+        _controller = value;
+    }
+
+/*
+=================================================
+    Bind
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        using namespace Scripting;
+
+        ClassBinder<ScriptSceneRayTracingPass>  binder{ se };
+        binder.CreateRef();
+        _BindBase( binder );
+
+        binder.AddMethod( &ScriptSceneRayTracingPass::InputController,  "Input"         );
+        binder.AddMethod( &ScriptSceneRayTracingPass::SetPipeline,      "SetPipeline"   );
+    }
+
+/*
+=================================================
+    ToPass
+=================================================
+*/
+    RC<IPass>  ScriptSceneRayTracingPass::ToPass () C_Th___
+    {
+        // TODO
+
+        AE_LOGI( "Compiled: "s << _dbgName );
+        return null;
+    }
+
+/*
+=================================================
+    _CreateUBType
+=================================================
+*/
+    auto  ScriptSceneRayTracingPass::_CreateUBType () __Th___
+    {
+        using namespace AE::PipelineCompiler;
+
+        auto&   obj_storage = *ObjectStorage::Instance();
+        auto    it          = obj_storage.structTypes.find( "SceneRayTracingPassUB" );
+
+        if ( it != obj_storage.structTypes.end() )
+            return it->second;
+
+        ShaderStructTypePtr st{ new ShaderStructType{"SceneRayTracingPassUB"}};
+        st->Set( EStructLayout::Std140, R"#(
+                // view //
+                float2      resolution;             // viewport resolution (in pixels)
+                float       time;                   // shader playback time (in seconds)
+                float       timeDelta;              // render time (in seconds)
+                uint        frame;                  // shader playback frame
+                uint        seed;                   // unique value, updated on each shader reloading
+
+                // controller //
+                CameraData  camera;
+
+                // sliders //
+                float4      floatSliders [4];
+                int4        intSliders [4];
+                float4      colors [4];
+
+                // constants //
+                float4      floatConst [4];
+                int4        intConst [4];
+            )#");
+
+        STATIC_ASSERT( UIInteraction::MaxSlidersPerType == 4 );
+        STATIC_ASSERT( IPass::Constants::MaxCount == 4 );
+        return st;
+    }
+
+/*
+=================================================
+    GetShaderTypes
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::GetShaderTypes (INOUT CppStructsFromShaders &data) __Th___
+    {
+        auto    st = _CreateUBType();   // throw
+
+        CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
     }
 
 

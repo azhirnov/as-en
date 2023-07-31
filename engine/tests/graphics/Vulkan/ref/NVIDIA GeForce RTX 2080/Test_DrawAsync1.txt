@@ -3,10 +3,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'DrawAsync1 |0| Draw task'
 {
-  BeginDebugLabel
-    name:  'DrawAsync1 |0| Draw task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -67,19 +63,10 @@ name: 'DrawAsync1 |0| Draw task'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'DrawAsync1 |1| Readback task'
 {
-  BeginDebugLabel
-    name:  'DrawAsync1 |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -92,10 +79,6 @@ name: 'DrawAsync1 |1| Readback task'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -109,10 +92,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'DrawAsync1 |0| Draw task'
 {
-  BeginDebugLabel
-    name:  'DrawAsync1 |0| Draw task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -173,19 +152,10 @@ name: 'DrawAsync1 |0| Draw task'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'DrawAsync1 |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -200,10 +170,6 @@ name: 'IndirectCmdBuffers'
       access: TRANSFER_WRITE ---> HOST_READ
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -215,10 +181,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'DrawAsync1 |0| Draw task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -279,19 +241,10 @@ name: 'IndirectCmdBuffers'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'DrawAsync1 |1| Readback task'
 {
-  BeginDebugLabel
-    name:  'DrawAsync1 |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -306,10 +259,6 @@ name: 'DrawAsync1 |1| Readback task'
       access: TRANSFER_WRITE ---> HOST_READ
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -321,10 +270,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'DrawAsync1 |0| Draw task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -385,15 +330,6 @@ name: 'IndirectCmdBuffers'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
-  BeginDebugLabel
-    name:  'DrawAsync1 |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -406,10 +342,6 @@ name: 'IndirectCmdBuffers'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }

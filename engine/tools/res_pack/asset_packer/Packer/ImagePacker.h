@@ -13,13 +13,6 @@
 
 #pragma once
 
-#include "base/Math/PackedInt.h"
-#include "base/Memory/IAllocator.h"
-#include "base/CompileTime/StringToID.h"
-#include "base/Memory/SharedMem.h"
-
-#include "serializing/ISerializable.h"
-
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/ImageMemView.h"
 

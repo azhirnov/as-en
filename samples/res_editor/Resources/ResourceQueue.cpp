@@ -15,9 +15,11 @@ namespace AE::ResEditor
     {
         if ( res and res->GetStatus() == EUploadStatus::InProgress )
         {
-            EXLOCK( _upload.guard );
-            _upload.queue.push_back( res );
-            _upload.counter.fetch_add( 1 );
+            auto&   q = _upload;
+            EXLOCK( q.guard );
+            q.queue.push_back( res );
+            q.counter.fetch_add( 1 );
+            q.framesWithoutWork.store( 0 );
         }
     }
 
@@ -30,9 +32,11 @@ namespace AE::ResEditor
     {
         if ( res and res->GetStatus() == EUploadStatus::InProgress )
         {
-            EXLOCK( _readback.guard );
-            _readback.queue.push_back( res );
-            _readback.counter.fetch_add( 1 );
+            auto&   q = _readback;
+            EXLOCK( q.guard );
+            q.queue.push_back( res );
+            q.counter.fetch_add( 1 );
+            q.framesWithoutWork.store( 0 );
         }
     }
 
@@ -59,25 +63,26 @@ namespace AE::ResEditor
     {
         CHECK_ERR( batch );
 
+        auto&           q       = _upload;
         Array<ImageID>  img_arr;
         {
             EXLOCK( _transitions.guard );
             std::swap( img_arr, _transitions.arr );
         }
 
-        if ( img_arr.empty() and _upload.counter.load() == 0 )
+        if ( img_arr.empty() and q.counter.load() == 0 )
         {
             DEBUG_ONLY(
-                EXLOCK( _upload.guard );
-                ASSERT( _upload.queue.empty() );
+                EXLOCK( q.guard );
+                ASSERT( q.queue.empty() );
             )
             return null;
         }
 
         {
-            EXLOCK( _upload.guard );
-            _upload.queue.AppendBack( _upload.nextFrameQueue );
-            _upload.nextFrameQueue.clear();
+            EXLOCK( q.guard );
+            q.queue.AppendBack( q.nextFrameQueue );
+            q.nextFrameQueue.clear();
         }
 
         return batch.Task(  [] (ResourceQueue *rq) -> RenderTaskCoro
@@ -103,6 +108,7 @@ namespace AE::ResEditor
         const uint  max_uploads     = 100;
         const uint  max_low_mem     = 4;
         uint        low_mem         = 0;
+        auto&       q               = _upload;
 
         for (uint i = 0; i < max_uploads and low_mem < max_low_mem; ++i)
         {
@@ -110,12 +116,14 @@ namespace AE::ResEditor
 
             // extract
             {
-                EXLOCK( _upload.guard );
+                EXLOCK( q.guard );
 
-                if ( _upload.queue.empty() )
+                if ( q.queue.empty() )
+                {
+                    q.framesWithoutWork.fetch_add( 1 );
                     return;
-
-                res = _upload.queue.ExtractFront();
+                }
+                res = q.queue.ExtractFront();
             }
 
             // upload
@@ -127,20 +135,23 @@ namespace AE::ResEditor
                 {
                     case EUploadStatus::Complete :
                     case EUploadStatus::Canceled :
-                        _upload.counter.fetch_sub( 1 );
+                    {
+                        int     cnt = q.counter.Sub( 1 );
+                        ASSERT( cnt >= 0 );
+                        Unused( cnt );
                         break;
-
+                    }
                     case EUploadStatus::NoMemory :
                     {
                         ++low_mem;
-                        EXLOCK( _upload.guard );
-                        _upload.nextFrameQueue.push_back( RVRef(res) );
+                        EXLOCK( q.guard );
+                        q.nextFrameQueue.push_back( RVRef(res) );
                         break;
                     }
                     case EUploadStatus::InProgress :
                     {
-                        EXLOCK( _upload.guard );
-                        _upload.queue.push_back( RVRef(res) );
+                        EXLOCK( q.guard );
+                        q.queue.push_back( RVRef(res) );
                         break;
                     }
                 }
@@ -158,19 +169,21 @@ namespace AE::ResEditor
     {
         CHECK_ERR( batch );
 
-        if ( _readback.counter.load() == 0 )
+        auto&   q = _readback;
+
+        if ( q.counter.load() == 0 )
         {
             DEBUG_ONLY(
-                EXLOCK( _readback.guard );
-                ASSERT( _readback.queue.empty() );
+                EXLOCK( q.guard );
+                ASSERT( q.queue.empty() );
             )
             return null;
         }
 
         {
-            EXLOCK( _readback.guard );
-            _readback.queue.AppendBack( _readback.nextFrameQueue );
-            _readback.nextFrameQueue.clear();
+            EXLOCK( q.guard );
+            q.queue.AppendBack( q.nextFrameQueue );
+            q.nextFrameQueue.clear();
         }
 
         return batch.Task(  [] (ResourceQueue *rq) -> RenderTaskCoro
@@ -196,6 +209,7 @@ namespace AE::ResEditor
         const uint  max_readbacks   = 10;
         const uint  max_low_mem     = 4;
         uint        low_mem         = 0;
+        auto&       q               = _readback;
 
         for (uint i = 0; i < max_readbacks and low_mem < max_low_mem; ++i)
         {
@@ -203,12 +217,14 @@ namespace AE::ResEditor
 
             // extract
             {
-                EXLOCK( _readback.guard );
+                EXLOCK( q.guard );
 
-                if ( _readback.queue.empty() )
+                if ( q.queue.empty() )
+                {
+                    q.framesWithoutWork.fetch_add( 1 );
                     return;
-
-                res = _readback.queue.ExtractFront();
+                }
+                res = q.queue.ExtractFront();
             }
 
             // upload
@@ -220,20 +236,23 @@ namespace AE::ResEditor
                 {
                     case EUploadStatus::Complete :
                     case EUploadStatus::Canceled :
-                        _readback.counter.fetch_sub( 1 );
+                    {
+                        int     cnt = q.counter.Sub( 1 );
+                        ASSERT( cnt >= 0 );
+                        Unused( cnt );
                         break;
-
+                    }           
                     case EUploadStatus::NoMemory :
                     {
                         ++low_mem;
-                        EXLOCK( _readback.guard );
-                        _readback.nextFrameQueue.push_back( RVRef(res) );
+                        EXLOCK( q.guard );
+                        q.nextFrameQueue.push_back( RVRef(res) );
                         break;
                     }
                     case EUploadStatus::InProgress :
                     {
-                        EXLOCK( _readback.guard );
-                        _readback.queue.push_back( RVRef(res) );
+                        EXLOCK( q.guard );
+                        q.queue.push_back( RVRef(res) );
                         break;
                     }
                 }
@@ -268,7 +287,10 @@ namespace AE::ResEditor
 
                 res->Cancel();
             }
-            q.counter.fetch_sub( count );
+
+            int     cnt = q.counter.Sub( count );
+            ASSERT( cnt >= 0 );
+            Unused( cnt );
         }};
 
         CancelQueue( _upload );

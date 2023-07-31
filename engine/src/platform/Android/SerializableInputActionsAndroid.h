@@ -347,7 +347,6 @@ namespace AE::App
             Gyroscope,                              // float3 (rad/s)
             LinearAcceleration,                     // float3 (m/s2)
             MagneticField,                          // float3 (micro tesla)
-            Orientation,                            // float3
             RotationVector,                         // float3 (rad ?)
             Sensors3fEnd        = RotationVector,
 

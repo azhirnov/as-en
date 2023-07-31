@@ -6,6 +6,7 @@
 /vfs/vfs_test
 
 /base/UnitTest_Crypto.cpp
+/base/UnitTest_SparseArray.cpp
 /base/ds_test/*.txt
 /threading/ds_test/*.txt
 /video/video_test

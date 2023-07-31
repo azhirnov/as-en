@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "base/Algorithms/Cast.h"
+#include "networking/Networking.pch.h"
 
 namespace AE::Networking
 {

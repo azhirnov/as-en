@@ -4,7 +4,6 @@
 
 #ifdef AE_ENABLE_VULKAN
 # include "video/Public/VideoDecoder.h"
-# include "graphics/Public/GraphicsImpl.h"
 
 namespace AE::Video
 {

@@ -2,27 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Vec.h"
-#include "base/Math/Rectangle.h"
-#include "base/Math/Color.h"
-#include "base/Math/PhysicalQuantityVec.h"
-
-#include "base/Containers/FixedString.h"
-#include "base/Containers/FixedMap.h"
-#include "base/Containers/FixedSet.h"
-#include "base/Containers/FixedTupleArray.h"
-#include "base/Containers/Union.h"
-#include "base/Containers/StructView.h"
-#include "base/Containers/AnyTypeRef.h"
-
-#include "base/DataSource/Stream.h"
-#include "base/DataSource/FastStream.h"
-#include "base/Utils/NamedID.h"
-#include "base/Utils/NamedID_HashCollisionCheck.h"
-#include "base/Utils/Helpers.h"
-
-#include "base/Algorithms/ArrayUtils.h"
-#include "base/Memory/IAllocator.h"
+#include "serializing/Serializing.pch.h"
 
 // for NamedID
 #define AE_SERIALIZE_HASH_ONLY  1

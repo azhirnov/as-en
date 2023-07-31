@@ -34,51 +34,48 @@ namespace AE::Math
 
     // methods
     public:
-        constexpr Transformation ()                         __NE___ = default;
-        constexpr Transformation (const Self &)             __NE___ = default;
-        constexpr Transformation (Self &&)                  __NE___ = default;
+        Transformation ()                                                               __NE___ = default;
+        Transformation (const Self &)                                                   __NE___ = default;
+        Transformation (Self &&)                                                        __NE___ = default;
 
-        constexpr Transformation (const Vec3_t &pos, const Quat_t &orient, const T &scale = T{1}) __NE___ :
-            orientation{orient}, position{pos}, scale{scale} {}
+        Transformation (const Vec3_t &pos, const Quat_t &orient, const T &scale = T{1}) __NE___ : orientation{orient}, position{pos}, scale{scale} {}
 
-        explicit Transformation (const Mat4_t &mat)         __NE___;
+        explicit Transformation (const Mat4_t &mat)                                     __NE___;
 
-            constexpr Self& operator =  (const Self &)      __NE___ = default;
-            constexpr Self& operator =  (Self &&)           __NE___ = default;
+            constexpr Self&  operator =  (const Self &)                                 __NE___ = default;
+            constexpr Self&  operator =  (Self &&)                                      __NE___ = default;
 
-            Self&   operator += (const Self &rhs)           __NE___;
-        ND_ Self    operator +  (const Self &rhs)           C_NE___ { return Self{*this} += rhs; }
+            Self&   operator += (const Self &rhs)                                       __NE___;
+        ND_ Self    operator +  (const Self &rhs)                                       C_NE___ { return Self{*this} += rhs; }
 
-            Self&   operator -= (const Self &rhs)           __NE___ { return Self{*this} += rhs.Inversed(); }
-        ND_ Self    operator -  (const Self &rhs)           C_NE___ { return Self{*this} -= rhs; }
+            Self&   operator -= (const Self &rhs)                                       __NE___ { return Self{*this} += rhs.Inversed(); }
+        ND_ Self    operator -  (const Self &rhs)                                       C_NE___ { return Self{*this} -= rhs; }
 
-        ND_ bool    operator == (const Self &rhs)           C_NE___;
-        ND_ bool    operator != (const Self &rhs)           C_NE___ { return not (*this == rhs); }
+        ND_ bool    operator == (const Self &rhs)                                       C_NE___;
+        ND_ bool    operator != (const Self &rhs)                                       C_NE___ { return not (*this == rhs); }
 
-            Self&   Move (const Vec3_t &delta)              __NE___;
-            Self&   Rotate (const Quat_t &delta)            __NE___;
-            Self&   Scale (float scale)                     __NE___;
+            Self&   Move (const Vec3_t &delta)                                          __NE___;
+            Self&   Rotate (const Quat_t &delta)                                        __NE___;
+            Self&   Scale (float scale)                                                 __NE___;
 
-            Self&   Inverse ()                              __NE___;
-        ND_ Self    Inversed ()                             C_NE___ { return Self{*this}.Inverse(); }
+            Self&   Inverse ()                                                          __NE___;
+        ND_ Self    Inversed ()                                                         C_NE___ { return Self{*this}.Inverse(); }
 
-        ND_ Mat4_t  ToMatrix ()                             C_NE___;
-        ND_ Mat4_t  ToRotationMatrix ()                     C_NE___;
+        ND_ Mat4_t  ToMatrix ()                                                         C_NE___;
+        ND_ Mat4_t  ToRotationMatrix ()                                                 C_NE___ { return Mat4_t{ orientation } * Mat4_t::Scaled( scale ); }
+        ND_ Mat4_t  ToModelMatrix ()                                                    C_NE___ { return Mat4_t::Translated( position ); }
 
-        ND_ bool    IsIdentity ()                           C_NE___;
+        ND_ bool    IsIdentity ()                                                       C_NE___ { return Equals( *this, Self{} ); }
 
 
         // local space to global
-        ND_ Vec3_t  ToGlobalVector (const Vec3_t &local)    C_NE___;
-        ND_ Vec3_t  ToGlobalPosition (const Vec3_t &local)  C_NE___ { return ToGlobalVector( local ) + position; }
+        ND_ Vec3_t  ToGlobalVector (const Vec3_t &local)                                C_NE___ { return orientation * (local * scale); }
+        ND_ Vec3_t  ToGlobalPosition (const Vec3_t &local)                              C_NE___ { return ToGlobalVector( local ) + position; }
 
         // global space to local
-        ND_ Vec3_t  ToLocalVector (const Vec3_t &global)    C_NE___;
-        ND_ Vec3_t  ToLocalPosition (const Vec3_t &global)  C_NE___ { return ToLocalVector( global - position ); }
+        ND_ Vec3_t  ToLocalVector (const Vec3_t &global)                                C_NE___ { return (orientation.Inversed() * global) / scale; }
+        ND_ Vec3_t  ToLocalPosition (const Vec3_t &global)                              C_NE___ { return ToLocalVector( global - position ); }
     };
-
-
-    using Transform = Transformation<float>;
 
 
 /*
@@ -87,7 +84,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline Transformation<T>::Transformation (const Mat4_t &mat) __NE___
+    Transformation<T>::Transformation (const Mat4_t &mat) __NE___
     {
         Vec3_t      scale3;
         Vec3_t      skew;
@@ -104,7 +101,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline Transformation<T>&  Transformation<T>::operator += (const Self &rhs) __NE___
+    Transformation<T>&  Transformation<T>::operator += (const Self &rhs) __NE___
     {
         position    += orientation * (rhs.position * scale);
         orientation *= rhs.orientation;
@@ -118,7 +115,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline bool Transformation<T>::operator == (const Self &rhs) C_NE___
+    bool Transformation<T>::operator == (const Self &rhs) C_NE___
     {
         return  All( orientation == rhs.orientation )   &
                 All( position    == rhs.position )      &
@@ -131,7 +128,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline bool  Equals (const Transformation<T> &lhs, const Transformation<T> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ bool  Equals (const Transformation<T> &lhs, const Transformation<T> &rhs, const T &err = Epsilon<T>()) __NE___
     {
         return  All( Math::Equals( lhs.orientation, rhs.orientation, err )) &
                 All( Math::Equals( lhs.position, rhs.position, err ))       &
@@ -144,7 +141,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline Transformation<T>&  Transformation<T>::Move (const Vec3_t &delta) __NE___
+    Transformation<T>&  Transformation<T>::Move (const Vec3_t &delta) __NE___
     {
         position += orientation * (delta * scale);
         return *this;
@@ -156,7 +153,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline Transformation<T>&  Transformation<T>::Rotate (const Quat_t &delta) __NE___
+    Transformation<T>&  Transformation<T>::Rotate (const Quat_t &delta) __NE___
     {
         orientation *= delta;
         return *this;
@@ -168,7 +165,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline Transformation<T>&  Transformation<T>::Scale (float value) __NE___
+    Transformation<T>&  Transformation<T>::Scale (float value) __NE___
     {
         this->scale *= value;
         return *this;
@@ -180,7 +177,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline Transformation<T>&  Transformation<T>::Inverse () __NE___
+    Transformation<T>&  Transformation<T>::Inverse () __NE___
     {
         ASSERT( Math::IsNotZero( scale ));
 
@@ -192,63 +189,17 @@ namespace AE::Math
 
 /*
 =================================================
-    ToGlobalVector
-=================================================
-*/
-    template <typename T>
-    inline typename Transformation<T>::Vec3_t
-        Transformation<T>::ToGlobalVector (const Vec3_t &local) C_NE___
-    {
-        return orientation * (local * scale);
-    }
-
-/*
-=================================================
-    ToLocalVector
-=================================================
-*/
-    template <typename T>
-    inline typename Transformation<T>::Vec3_t
-        Transformation<T>::ToLocalVector (const Vec3_t &global) C_NE___
-    {
-        return (orientation.Inversed() * global) / scale;
-    }
-
-/*
-=================================================
     ToMatrix
 =================================================
 */
     template <typename T>
-    inline typename Transformation<T>::Mat4_t  Transformation<T>::ToMatrix () C_NE___
+    typename Transformation<T>::Mat4_t  Transformation<T>::ToMatrix () C_NE___
     {
         Mat4_t  result{ orientation };
 
         result[3] = Vec<T,4>{ position, T{1} };
 
-        return result * Mat4_t::Scale( scale );
-    }
-
-/*
-=================================================
-    ToRotationMatrix
-=================================================
-*/
-    template <typename T>
-    inline typename Transformation<T>::Mat4_t  Transformation<T>::ToRotationMatrix () C_NE___
-    {
-        return Mat4_t{ orientation } * Mat4_t::Scale( scale );
-    }
-
-/*
-=================================================
-    IsIdentity
-=================================================
-*/
-    template <typename T>
-    bool  Transformation<T>::IsIdentity () C_NE___
-    {
-        return Equals( *this, Self{} );
+        return result * Mat4_t::Scaled( scale );
     }
 
 

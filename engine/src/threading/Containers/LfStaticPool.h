@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    This class uses lock-free algorithm to put and exteract values without any order (but not really in random order).
+    This class uses lock-free algorithm to put and extract values without any order (but not really in random order).
     You can use 'Put', 'Extract' methods without any syncs.
     'Release' method must be synchronized with 'Put' and 'Extract' methods.
 */
@@ -8,11 +8,8 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "base/CompileTime/Math.h"
-# include "base/Memory/UntypedAllocator.h"
 # include "threading/Primitives/Atomic.h"
 #endif
-#include "base/Platforms/ThreadUtils.h"
 
 namespace AE::Threading
 {
@@ -53,10 +50,8 @@ namespace AE::Threading
                 ubyte           arrData [ ChunkSize * sizeof(Value_t) ];    // to avoid ctor for 'Value_t'
             };
 
-            Chunk () {
-                DEBUG_ONLY( DbgInitMem( values, Sizeof(values) ));
-            }
-            ~Chunk () {}
+            Chunk ()    __NE___ { DEBUG_ONLY( DbgInitMem( values, Sizeof(values) )); }
+            ~Chunk ()   __NE___ {}
         };
         using ChunkArray_t  = StaticArray< Chunk, ChunksCount >;
 

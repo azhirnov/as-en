@@ -520,7 +520,7 @@ namespace AE::Base
     {
         using T = typename Types_t::template Get<I>;
 
-        PlacementNew<T>( _Data<I>() + _count, FwdArg<Arg0>(arg0) ); // throw
+        PlacementNew<T>( OUT _Data<I>() + _count, FwdArg<Arg0>(arg0) ); // throw
 
         if constexpr( I+1 < Types_t::Count )
             _PushBack<I+1>( FwdArg<Args>(args)... );    // throw
@@ -537,7 +537,7 @@ namespace AE::Base
     {
         using T = typename Types_t::template Get<I>;
 
-        PlacementNew<T>( _Data<I>() + pos, FwdArg<Arg0>(arg0) );    // throw
+        PlacementNew<T>( OUT _Data<I>() + pos, FwdArg<Arg0>(arg0) );    // throw
 
         if constexpr( I+1 < Types_t::Count )
             _Insert<I+1>( pos, FwdArg<Args>(args)... ); // throw
@@ -555,7 +555,7 @@ namespace AE::Base
         using T          = typename TypeList< Types... >::template Get<I>;
         using CPolicy_t = CopyPolicy::template AutoDetect<T>;
 
-        CPolicy_t::Destroy( _Data<I>() + index, count );
+        CPolicy_t::Destroy( INOUT _Data<I>() + index, count );
 
         if constexpr( I+1 < Types_t::Count )
             _Destroy<I+1>( index, count );
@@ -574,7 +574,7 @@ namespace AE::Base
         using CPolicy_t = CopyPolicy::template AutoDetect<T>;
 
         T* data = _Data<I>();
-        CPolicy_t::Replace( OUT data + dstIdx, data + srcIdx, count );
+        CPolicy_t::Replace( OUT data + dstIdx, INOUT data + srcIdx, count );
 
         if constexpr( I+1 < Types_t::Count )
             _Replace<I+1>( srcIdx, dstIdx, count );
@@ -592,7 +592,7 @@ namespace AE::Base
         using T         = typename Types_t::template Get<I>;
         using CPolicy_t = CopyPolicy::template AutoDetect<T>;
 
-        CPolicy_t::Create( _Data<I>() + index, count );
+        CPolicy_t::Create( OUT _Data<I>() + index, count );
 
         if constexpr( I+1 < Types_t::Count )
             _Create<I+1>( index, count );
@@ -660,15 +660,11 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <size_t ArraySize, typename ...Types>
+struct std::hash< AE::Base::FixedTupleArray<ArraySize, Types...> >
 {
-    template <size_t ArraySize, typename ...Types>
-    struct hash< AE::Base::FixedTupleArray<ArraySize, Types...> >
+    ND_ size_t  operator () (const AE::Base::FixedTupleArray<ArraySize, Types...> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Base::FixedTupleArray<ArraySize, Types...> &value) C_NE___
-        {
-            return size_t(value.CalcHash());
-        }
-    };
-
-} // std
+        return size_t(value.CalcHash());
+    }
+};

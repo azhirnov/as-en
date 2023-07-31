@@ -61,6 +61,7 @@ namespace AE::Base
 
         ND_ constexpr bool                  operator == (const Self &rhs)   C_NE___ { return _value == rhs._value; }
         ND_ constexpr bool                  operator != (const Self &rhs)   C_NE___ { return not (*this == rhs); }
+        ND_ constexpr bool                  operator <  (const Self &rhs)   C_NE___ { return _value < rhs._value; }
 
         ND_ explicit constexpr              operator bool ()                C_NE___ { return IsValid(); }
 
@@ -149,6 +150,7 @@ namespace AE::Base
 
         ND_ constexpr bool          operator == (const Self &rhs)   C_NE___ { return _id == rhs._id; }
         ND_ constexpr bool          operator != (const Self &rhs)   C_NE___ { return _id != rhs._id; }
+        ND_ constexpr bool          operator <  (const Self &rhs)   C_NE___ { return _id <  rhs._id; }
 
         ND_ constexpr explicit      operator bool ()                C_NE___ { return IsValid(); }
 
@@ -226,15 +228,12 @@ namespace AE::Base
 
 } // AE::Base
 
-namespace std
-{
-    template <size_t IndexSize, size_t GenerationSize, uint32_t UID>
-    struct hash< AE::Base::HandleTmpl<IndexSize, GenerationSize, UID> >
-    {
-        ND_ size_t  operator () (const AE::Base::HandleTmpl<IndexSize, GenerationSize, UID> &value) C_NE___
-        {
-            return size_t(value.GetHash());
-        }
-    };
 
-} // std
+template <size_t IndexSize, size_t GenerationSize, uint32_t UID>
+struct std::hash< AE::Base::HandleTmpl<IndexSize, GenerationSize, UID> >
+{
+    ND_ size_t  operator () (const AE::Base::HandleTmpl<IndexSize, GenerationSize, UID> &value) C_NE___
+    {
+        return size_t(value.GetHash());
+    }
+};

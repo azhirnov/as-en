@@ -420,8 +420,16 @@ namespace AE::Graphics::_hidden_
 
         struct BuildASCmd : BaseCmd
         {
-            VkAccelerationStructureBuildGeometryInfoKHR         info;           // ppGeometries - used frame allocator
-            VkAccelerationStructureBuildRangeInfoKHR const*     pRangeInfos;    // used frame allocator
+            VkAccelerationStructureBuildGeometryInfoKHR         info;           // ppGeometries - uses frame allocator
+            VkAccelerationStructureBuildRangeInfoKHR const*     pRangeInfos;    // uses frame allocator
+        };
+
+        struct BuildASIndirectCmd : BaseCmd
+        {
+            VkAccelerationStructureBuildGeometryInfoKHR         info;           // ppGeometries - uses frame allocator
+            VkDeviceAddress                                     indirectMem;
+            uint const*                                         maxPrimCount;   // uses frame allocator
+            uint                                                indirectStride;
         };
 
         struct CopyASCmd : BaseCmd
@@ -544,6 +552,7 @@ namespace AE::Graphics::_hidden_
             _visitor_( ClearAttachmentsCmd )\
             /* acceleration structure build commands */\
             _visitor_( BuildASCmd )\
+            _visitor_( BuildASIndirectCmd )\
             _visitor_( CopyASCmd )\
             _visitor_( CopyASToMemoryCmd )\
             _visitor_( CopyMemoryToASCmd )\
@@ -582,31 +591,38 @@ namespace AE::Graphics::_hidden_
 
     // methods
     public:
-        VSoftwareCmdBuf ()                                      __NE___ {}
+        VSoftwareCmdBuf ()                                                              __NE___ {}
 
-        ND_ VBakedCommands  Bake ()                             __NE___;
+        ND_ VBakedCommands  Bake ()                                                     __NE___;
 
         template <typename CmdType, typename ...DynamicTypes>
-        ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)    __Th___ { return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
+        ND_ CmdType&  CreateCmd (usize dynamicArraySize = 0)                            __Th___ { return SoftwareCmdBufBase::_CreateCmd< Commands_t, CmdType, DynamicTypes... >( dynamicArraySize ); }
 
-        void  DebugMarker (DebugLabel dbg)                      __Th___;
-        void  PushDebugGroup (DebugLabel dbg)                   __Th___;
-        void  PopDebugGroup ()                                  __Th___;
-        void  PipelineBarrier (const VkDependencyInfo &)        __Th___;
+        void  DebugMarker (DebugLabel dbg)                                              __Th___;
+        void  PushDebugGroup (DebugLabel dbg)                                           __Th___;
+        void  PopDebugGroup ()                                                          __Th___;
+        void  PipelineBarrier (const VkDependencyInfo &)                                __Th___;
 
-        void  BindDescriptorSet (VkPipelineBindPoint bindPoint, VkPipelineLayout layout, uint index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets = Default)  __Th___;
-        void  BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout)                                                                __Th___;
-        void  PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size, const void *values, EShaderStages stages)                                            __Th___;
+        void  BindDescriptorSet (VkPipelineBindPoint bindPoint, VkPipelineLayout layout,
+                                 uint index, VkDescriptorSet ds,
+                                 ArrayView<uint> dynamicOffsets = Default)              __Th___;
+        void  BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln,
+                            VkPipelineLayout layout)                                    __Th___;
+        void  PushConstant (VkPipelineLayout layout, Bytes offset, Bytes size,
+                            const void *values, EShaderStages stages)                   __Th___;
 
-        void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch, StringView taskName, RGBA8u color, IGraphicsProfiler::EContextType type)            __Th___;
-        void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch, IGraphicsProfiler::EContextType type)                                                 __Th___;
+        void  ProfilerBeginContext (IGraphicsProfiler* prof, const void* batch,
+                                    StringView taskName, RGBA8u color,
+                                    IGraphicsProfiler::EContextType type)               __Th___;
+        void  ProfilerEndContext (IGraphicsProfiler* prof, const void* batch,
+                                  IGraphicsProfiler::EContextType type)                 __Th___;
 
-        void  DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)                                                                                  __Th___;
+        void  DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)      __Th___;
 
-        ND_ static bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, void* root)                                                                            __NE___;
+        ND_ static bool  Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf, void* root)__NE___;
 
     private:
-        ND_ bool  _Validate (const void* root)                  C_NE___ { return SoftwareCmdBufBase::_Validate( root, Commands_t::Count ); }
+        ND_ bool  _Validate (const void* root)                                          C_NE___ { return SoftwareCmdBufBase::_Validate( root, Commands_t::Count ); }
     };
 
     using VSoftwareCmdBufPtr = Unique< VSoftwareCmdBuf >;
@@ -655,8 +671,8 @@ namespace AE::Graphics::_hidden_
 
         void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)     __Th___ { _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
 
-        ND_ VBakedCommands      _EndCommandBuffer ()                                    __Th___;
-        ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()                                __Th___;
+        ND_ VBakedCommands      _EndCommandBuffer ()                                    __NE___;
+        ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()                                __NE___;
 
         ND_ static VSoftwareCmdBufPtr  _ReuseOrCreateCommandBuffer (VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg) __Th___;
     };
@@ -726,7 +742,7 @@ namespace AE::Graphics::_hidden_
         DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( *_cmdbuf, (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );)
 
         if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
-            PipelineBarrier( *bar );
+            PipelineBarrier( *bar );  // throw
     }
 
 /*
@@ -739,7 +755,7 @@ namespace AE::Graphics::_hidden_
         auto* bar = _mngr.GetBarriers();
         if_unlikely( bar != null )
         {
-            _cmdbuf->PipelineBarrier( *bar );   // throw
+            _cmdbuf->PipelineBarrier( *bar );  // throw
             _mngr.ClearBarriers();
         }
     }
@@ -752,7 +768,7 @@ namespace AE::Graphics::_hidden_
     inline VBakedCommands  VBaseIndirectContext::_EndCommandBuffer () __Th___
     {
         if ( auto* bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
-            PipelineBarrier( *bar );
+            PipelineBarrier( *bar );  // throw
 
         return _VBaseIndirectContext::_EndCommandBuffer();
     }

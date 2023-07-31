@@ -34,6 +34,6 @@ void ASmain ()
         RC<MeshPipelineSpec>    spec = ppln.AddSpecialization( "mesh_2 rp:Simple" );
         spec.AddToRenderTech( "MeshForward", "Graphics1" );
         spec.SetViewportCount( 1 );
-        spec.SetMeshGroupSize( 3 );
+        spec.SetMeshLocalSize( 3 );
     }
 }

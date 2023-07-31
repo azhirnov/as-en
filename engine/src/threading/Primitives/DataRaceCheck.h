@@ -2,21 +2,20 @@
 
 #pragma once
 
-#include "base/Platforms/ThreadUtils.h"
 #include "threading/Primitives/Atomic.h"
+#include "threading/Primitives/Synchronized.h"
 
 #if AE_ENABLE_DATA_RACE_CHECK
 
 # if defined(AE_PLATFORM_ANDROID) or defined(AE_CI_BUILD)
-#   define DRC_CHECK( /* expr */... )   CHECK_FATAL( __VA_ARGS__ )
+#   define DRC_CHECK( /* expr */... )           CHECK_FATAL( __VA_ARGS__ )
 # else
-#   define DRC_CHECK( /* expr */... )   CHECK_ERR( __VA_ARGS__ )
+#   define DRC_CHECK( /* expr */... )           CHECK_ERR( __VA_ARGS__ )
 # endif
 
 # define DRC_EXLOCK( /* sync_obj */... )        EXLOCK( __VA_ARGS__ )
 # define DRC_SHAREDLOCK( /* sync_obj */... )    SHAREDLOCK( __VA_ARGS__ )
 # define DRC_ONLY( /* code */... )              __VA_ARGS__
-# define DRC_WRAP( _value_, _syncObj_ )         decltype(_syncObj_)::Wrapper<decltype(_value_)>{ _value_, _syncObj_ }
 
 
 namespace AE::Threading
@@ -28,18 +27,6 @@ namespace AE::Threading
 
     struct DataRaceCheck
     {
-    // types
-    public:
-        template <typename T>
-        struct Wrapper
-        {
-            T &                 ref;
-            DataRaceCheck &     drCheck;
-
-            T&  operator -> () const    { CHECK( drCheck.IsLocked() );  return &ref; }
-        };
-
-
     // variables
     private:
         mutable Atomic<usize>   _tid  {0};
@@ -47,9 +34,9 @@ namespace AE::Threading
 
     // methods
     public:
-        DataRaceCheck () {}
+        DataRaceCheck ()        __NE___ {}
 
-        ND_ bool  Lock () const
+        ND_ bool  Lock ()       C_NE___
         {
             const usize id      = ThreadUtils::GetIntID();
             usize       curr    = _tid.load();
@@ -68,14 +55,14 @@ namespace AE::Threading
             }
         }
 
-        void  Unlock () const
+        void  Unlock ()         C_NE___
         {
             usize   prev = _tid.exchange( 0 );
             Unused( prev );
             ASSERT( prev == ThreadUtils::GetIntID() );  // must be unlocked in the same thread
         }
 
-        ND_ bool  IsLocked () const
+        ND_ bool  IsLocked ()   C_NE___
         {
             return _tid.load() == ThreadUtils::GetIntID();
         }
@@ -89,19 +76,6 @@ namespace AE::Threading
 
     struct RWDataRaceCheck
     {
-    // types
-    public:
-        template <typename T>
-        struct Wrapper
-        {
-            T &                 ref;
-            RWDataRaceCheck &   drCheck;
-
-            T&          operator -> ()          { CHECK( drCheck.IsExclusiveLocked() ); return &ref; }
-            T const&    operator -> () const    { CHECK( drCheck.IsSharedLocked() );    return &ref; }
-        };
-
-
     // variables
     private:
         mutable Atomic<usize>   _lockWrite      {0};
@@ -110,10 +84,11 @@ namespace AE::Threading
 
     // methods
     public:
-        RWDataRaceCheck () {}
+        RWDataRaceCheck ()              __NE___
+        {}
 
 
-        ND_ bool  LockExclusive ()
+        ND_ bool  LockExclusive ()      __NE___
         {
             // lock for writing
             {
@@ -147,7 +122,7 @@ namespace AE::Threading
             return true;
         }
 
-        void  UnlockExclusive ()
+        void  UnlockExclusive ()        __NE___
         {
             auto    prev_read = _readCounter.fetch_add( 1 );    // -1 -> 0
             ASSERT( prev_read <= 0 );
@@ -161,13 +136,13 @@ namespace AE::Threading
             }
         }
 
-        ND_ bool  IsExclusiveLocked () const
+        ND_ bool  IsExclusiveLocked ()  C_NE___
         {
             return _readCounter.load() < 0 and _lockWrite.load() == ThreadUtils::GetIntID();
         }
 
 
-        ND_ bool  LockShared () const
+        ND_ bool  LockShared ()         C_NE___
         {
             const usize id = ThreadUtils::GetIntID();
 
@@ -187,14 +162,14 @@ namespace AE::Threading
             return true;
         }
 
-        void  UnlockShared () const
+        void  UnlockShared ()           C_NE___
         {
             auto    prev_read = _readCounter.fetch_sub( 1 );    // 1 -> 0
             Unused( prev_read );
             ASSERT( prev_read > 0 );
         }
 
-        ND_ bool  IsSharedLocked () const
+        ND_ bool  IsSharedLocked ()     C_NE___
         {
             return _readCounter.load() > 0;
         }
@@ -215,14 +190,14 @@ namespace AE::Threading
 
     // methods
     public:
-        SingleThreadCheck () {}
+        SingleThreadCheck ()    __NE___ {}
 
-        void  Reset ()
+        void  Reset ()          __NE___
         {
             _tid.store( ThreadUtils::GetIntID() );
         }
 
-        ND_ bool  Lock () const
+        ND_ bool  Lock ()       C_NE___
         {
             const usize id      = ThreadUtils::GetIntID();
             usize       exp     = _tid.load();
@@ -231,166 +206,203 @@ namespace AE::Threading
             return true;
         }
 
-        void  Unlock () const {}
+        void  Unlock ()         C_NE___
+        {}
     };
+
+
+namespace _hidden_
+{
+
+    //
+    // Read/Write Data Race Check
+    //
+
+    struct RWDataRaceCheck_as_SharedMutex
+    {
+    private:
+        RWDataRaceCheck     _drCheck;
+
+    public:
+            void  lock ()               __NE___ { Unused( _drCheck.LockExclusive() ); }
+            void  unlock ()             __NE___ { _drCheck.UnlockExclusive(); }
+        ND_ bool  try_lock ()           __NE___ { return _drCheck.LockExclusive(); }
+
+            void  lock_shared ()        __NE___ { Unused( _drCheck.LockShared() ); }
+            void  unlock_shared ()      __NE___ { _drCheck.UnlockShared(); }
+        ND_ bool  try_lock_shared ()    __NE___ { return _drCheck.LockShared(); }
+    };
+
+} // _hidden_
+
+    template <typename ...Types>
+    using DRCSynchronized = Synchronized< Threading::_hidden_::RWDataRaceCheck_as_SharedMutex, Types... >;
 
 
 } // AE::Threading
 
 #undef DRC_CHECK
 
-namespace std
+
+template <>
+struct std::scoped_lock< AE::Threading::DataRaceCheck >
 {
-    template <>
-    struct scoped_lock< AE::Threading::DataRaceCheck >
+private:
+    AE::Threading::DataRaceCheck &  _lock;
+    bool                            _locked = false;
+
+public:
+    explicit scoped_lock (AE::Threading::DataRaceCheck &ref) __NE___ : _lock{ref}
     {
-    private:
-        AE::Threading::DataRaceCheck &  _lock;
-        bool                            _locked = false;
+        _locked = _lock.Lock();
+    }
 
-    public:
-        explicit scoped_lock (AE::Threading::DataRaceCheck &ref) : _lock{ref}
-        {
-            _locked = _lock.Lock();
-        }
+    scoped_lock (const scoped_lock &)   = delete;
+    scoped_lock (scoped_lock &&)        = delete;
 
-        scoped_lock (const scoped_lock &) = delete;
-        scoped_lock (scoped_lock &&) = delete;
-
-        ~scoped_lock ()
-        {
-            if ( _locked )
-                _lock.Unlock();
-        }
-    };
-
-    template <>
-    struct scoped_lock< const AE::Threading::DataRaceCheck > :
-        scoped_lock< AE::Threading::DataRaceCheck >
+    ~scoped_lock ()                     __NE___
     {
-        explicit scoped_lock (const AE::Threading::DataRaceCheck &ref) :
-            scoped_lock< AE::Threading::DataRaceCheck >{ const_cast<AE::Threading::DataRaceCheck &>(ref) }
-        {}
-    };
+        if ( _locked )
+            _lock.Unlock();
+    }
+};
+
+template <>
+struct std::scoped_lock< const AE::Threading::DataRaceCheck > :
+    scoped_lock< AE::Threading::DataRaceCheck >
+{
+    explicit scoped_lock (const AE::Threading::DataRaceCheck &ref) __NE___ :
+        scoped_lock< AE::Threading::DataRaceCheck >{ const_cast<AE::Threading::DataRaceCheck &>(ref) }
+    {}
+};
 
 
-    template <>
-    struct scoped_lock< AE::Threading::RWDataRaceCheck >
+template <>
+struct std::scoped_lock< AE::Threading::RWDataRaceCheck >
+{
+private:
+    AE::Threading::RWDataRaceCheck &    _lock;
+    bool                                _locked = false;
+
+public:
+    explicit scoped_lock (AE::Threading::RWDataRaceCheck &ref) __NE___ : _lock{ref}
     {
-    private:
-        AE::Threading::RWDataRaceCheck &    _lock;
-        bool                                _locked = false;
+        _locked = _lock.LockExclusive();
+    }
 
-    public:
-        explicit scoped_lock (AE::Threading::RWDataRaceCheck &ref) : _lock{ref}
-        {
-            _locked = _lock.LockExclusive();
-        }
+    scoped_lock (const scoped_lock &)   = delete;
+    scoped_lock (scoped_lock &&)        = delete;
 
-        scoped_lock (const scoped_lock &) = delete;
-        scoped_lock (scoped_lock &&) = delete;
-
-        ~scoped_lock ()
-        {
-            if ( _locked )
-                _lock.UnlockExclusive();
-        }
-    };
-
-    template <>
-    struct scoped_lock< const AE::Threading::RWDataRaceCheck > :
-        scoped_lock< AE::Threading::RWDataRaceCheck >
+    ~scoped_lock ()                     __NE___
     {
-        explicit scoped_lock (const AE::Threading::RWDataRaceCheck &ref) :
-            scoped_lock< AE::Threading::RWDataRaceCheck >{ const_cast<AE::Threading::RWDataRaceCheck &>(ref) }
-        {}
-    };
+        if ( _locked )
+            _lock.UnlockExclusive();
+    }
+};
+
+template <>
+struct std::scoped_lock< const AE::Threading::RWDataRaceCheck > :
+    scoped_lock< AE::Threading::RWDataRaceCheck >
+{
+    explicit scoped_lock (const AE::Threading::RWDataRaceCheck &ref) __NE___ :
+        scoped_lock< AE::Threading::RWDataRaceCheck >{ const_cast<AE::Threading::RWDataRaceCheck &>(ref) }
+    {}
+};
 
 
-    template <>
-    struct shared_lock< AE::Threading::RWDataRaceCheck >
+template <>
+struct std::shared_lock< AE::Threading::RWDataRaceCheck >
+{
+private:
+    AE::Threading::RWDataRaceCheck &    _lock;
+    bool                                _locked = false;
+
+public:
+    explicit shared_lock (AE::Threading::RWDataRaceCheck &ref) __NE___ : _lock{ref}
     {
-    private:
-        AE::Threading::RWDataRaceCheck &    _lock;
-        bool                                _locked = false;
+        _locked = _lock.LockShared();
+    }
 
-    public:
-        explicit shared_lock (AE::Threading::RWDataRaceCheck &ref) : _lock{ref}
-        {
-            _locked = _lock.LockShared();
-        }
+    shared_lock (const shared_lock &)   = delete;
+    shared_lock (shared_lock &&)        = delete;
 
-        shared_lock (const shared_lock &) = delete;
-        shared_lock (shared_lock &&) = delete;
-
-        ~shared_lock ()
-        {
-            if ( _locked )
-                _lock.UnlockShared();
-        }
-    };
-
-    template <>
-    struct shared_lock< const AE::Threading::RWDataRaceCheck > :
-        shared_lock< AE::Threading::RWDataRaceCheck >
+    ~shared_lock ()                     __NE___
     {
-        explicit shared_lock (const AE::Threading::RWDataRaceCheck &ref) :
-            shared_lock< AE::Threading::RWDataRaceCheck >{ const_cast<AE::Threading::RWDataRaceCheck &>(ref) }
-        {}
-    };
+        if ( _locked )
+            _lock.UnlockShared();
+    }
+};
+
+template <>
+struct std::shared_lock< const AE::Threading::RWDataRaceCheck > :
+    shared_lock< AE::Threading::RWDataRaceCheck >
+{
+    explicit shared_lock (const AE::Threading::RWDataRaceCheck &ref) __NE___ :
+        shared_lock< AE::Threading::RWDataRaceCheck >{ const_cast<AE::Threading::RWDataRaceCheck &>(ref) }
+    {}
+};
 
 
-    template <>
-    struct scoped_lock< AE::Threading::SingleThreadCheck >
+template <>
+struct std::scoped_lock< AE::Threading::SingleThreadCheck >
+{
+private:
+    AE::Threading::SingleThreadCheck &  _lock;
+    bool                                _locked = false;
+
+public:
+    explicit scoped_lock (AE::Threading::SingleThreadCheck &ref) __NE___ : _lock{ref}
     {
-    private:
-        AE::Threading::SingleThreadCheck &  _lock;
-        bool                                _locked = false;
+        _locked = _lock.Lock();
+    }
 
-    public:
-        explicit scoped_lock (AE::Threading::SingleThreadCheck &ref) : _lock{ref}
-        {
-            _locked = _lock.Lock();
-        }
+    scoped_lock (const scoped_lock &)   = delete;
+    scoped_lock (scoped_lock &&)        = delete;
 
-        scoped_lock (const scoped_lock &) = delete;
-        scoped_lock (scoped_lock &&) = delete;
-
-        ~scoped_lock ()
-        {
-            if ( _locked )
-                _lock.Unlock();
-        }
-    };
-
-    template <>
-    struct scoped_lock< const AE::Threading::SingleThreadCheck > :
-        scoped_lock< AE::Threading::SingleThreadCheck >
+    ~scoped_lock ()                     __NE___
     {
-        explicit scoped_lock (const AE::Threading::SingleThreadCheck &ref) :
-            scoped_lock< AE::Threading::SingleThreadCheck >{ const_cast<AE::Threading::SingleThreadCheck &>(ref) }
-        {}
-    };
+        if ( _locked )
+            _lock.Unlock();
+    }
+};
 
-} // std
+template <>
+struct std::scoped_lock< const AE::Threading::SingleThreadCheck > :
+    scoped_lock< AE::Threading::SingleThreadCheck >
+{
+    explicit scoped_lock (const AE::Threading::SingleThreadCheck &ref) __NE___ :
+        scoped_lock< AE::Threading::SingleThreadCheck >{ const_cast<AE::Threading::SingleThreadCheck &>(ref) }
+    {}
+};
+
 
 #else // AE_ENABLE_DATA_RACE_CHECK
 
 # define DRC_EXLOCK( ... )
 # define DRC_SHAREDLOCK( ... )
 # define DRC_ONLY( ... )
-# define DRC_WRAP( _value_, _syncObj_ )     AE::Threading::DRC_Dummy_Wrap<decltype(_value_)>{ _value_ }
 
 namespace AE::Threading
 {
-
-    template <typename T>
-    struct DRC_Dummy_Wrap
+namespace _hidden_
+{
+    struct DummySharedMutex
     {
-        T &     ref;
+    public:
+            void  lock ()               __NE___ {}
+            void  unlock ()             __NE___ {}
+        ND_ bool  try_lock ()           __NE___ { return true; }
 
-        T&  operator -> () const    { return &ref; }
+            void  lock_shared ()        __NE___ {}
+            void  unlock_shared ()      __NE___ {}
+        ND_ bool  try_lock_shared ()    __NE___ { return true; }
     };
+
+} // _hidden_
+
+    template <typename ...Types>
+    using DRCSynchronized = Synchronized< Threading::_hidden_::DummySharedMutex, Types... >;
+
 
 } // AE::Threading
 

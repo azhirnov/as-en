@@ -306,7 +306,7 @@ namespace AE::Graphics::_hidden_
         MStagingBufferManager&  sbm         = this->_mngr.GetStagingManager();
 
         MStagingBufferManager::StagingImageResultRanges res;
-        sbm.GetImageRanges( OUT res, uploadDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+        sbm.GetImageRanges( OUT res, uploadDesc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
 
         if_unlikely( res.buffers.empty() )
             return;
@@ -364,7 +364,7 @@ namespace AE::Graphics::_hidden_
         upload_desc.imageSize   -= uint3{ 0, stream.posYZ };
 
         MStagingBufferManager::StagingImageResultRanges res;
-        sbm.GetImageRanges( OUT res, upload_desc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+        sbm.GetImageRanges( OUT res, upload_desc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
 
         if_unlikely( res.buffers.empty() )
             return;
@@ -490,7 +490,7 @@ namespace AE::Graphics::_hidden_
         MStagingBufferManager&  sbm         = this->_mngr.GetStagingManager();
 
         MStagingBufferManager::StagingImageResultRanges res;
-        sbm.GetImageRanges( OUT res, readDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
+        sbm.GetImageRanges( OUT res, readDesc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
 
         if_unlikely( res.buffers.empty() )
             return Default;

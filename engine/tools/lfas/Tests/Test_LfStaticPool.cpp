@@ -66,7 +66,7 @@ namespace
                             if ( not g->pool.Put( TS{T{int(i)}} ))
                                 break;
                         }
-                        vm.CheckForUncommitedChanges();
+                        vm.CheckForUncommittedChanges();
 
                         pt->act = EAction::Extract;
                         break;
@@ -82,7 +82,7 @@ namespace
                                 Unused( val.Read() );
                             }
                         }
-                        vm.CheckForUncommitedChanges();
+                        vm.CheckForUncommittedChanges();
 
                         pt->act = EAction::Put;
                         break;

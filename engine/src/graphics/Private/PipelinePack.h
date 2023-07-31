@@ -360,6 +360,7 @@ namespace AE::Graphics
         GfxMemAllocatorPtr          _sbtAllocator;
         #endif
 
+
     // methods
     public:
         PPLNPACK ()                                                                                                                                                 __NE___ {}
@@ -368,11 +369,11 @@ namespace AE::Graphics
         ND_ bool  Create (ResMngr_t &, const PipelinePackDesc &desc)                                                                                                __NE___;
             void  Destroy (ResMngr_t &)                                                                                                                             __NE___;
 
-        ND_ RenderPassID            GetRenderPass (const ResMngr_t &, const RenderPassName &name)                                                                   C_NE___;
-        ND_ RenderPassID            GetRenderPass (const ResMngr_t &, const CompatRenderPassName &name)                                                             C_NE___;
+        ND_ RenderPassID                    GetRenderPass (const ResMngr_t &, const RenderPassName &name)                                                           C_NE___;
+        ND_ RenderPassID                    GetRenderPass (const ResMngr_t &, const CompatRenderPassName &name)                                                     C_NE___;
 
-        ND_ SamplerID               GetSampler (const SamplerName &name)                                                                                            C_NE___;
-        ND_ Array<RenderTechName>   GetSupportedRenderTechs ()                                                                                                      C_NE___;
+        ND_ SamplerID                       GetSampler (const SamplerName &name)                                                                                    C_NE___;
+        ND_ Array<RenderTechName>           GetSupportedRenderTechs ()                                                                                              C_NE___;
 
         ND_ Strong<GraphicsPipelineID>      CreatePipeline (ResMngr_t &, const PipelineTmplName &name, const GraphicsPipelineDesc   &desc, PipelineCacheID cache)   C_NE___;
         ND_ Strong<ComputePipelineID>       CreatePipeline (ResMngr_t &, const PipelineTmplName &name, const ComputePipelineDesc    &desc, PipelineCacheID cache)   C_NE___;
@@ -385,8 +386,8 @@ namespace AE::Graphics
         ND_ Promise<RenderTechPipelinesPtr> LoadRenderTechAsync (ResMngr_t &, const RenderTechName &name, PipelineCacheID cache)                                    C_NE___;
         ND_ RenderTechPipelinesPtr          LoadRenderTech (ResMngr_t &, const RenderTechName &name, PipelineCacheID cache)                                         C_NE___;
 
-        ND_ EPixelFormat                        GetSurfaceFormat ()                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _surfaceFormat; }
-        DEBUG_ONLY( ND_ StringView              GetDebugName ()                     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
+        ND_ EPixelFormat                    GetSurfaceFormat ()                     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _surfaceFormat; }
+        DEBUG_ONLY( ND_ StringView          GetDebugName ()                         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _debugName; })
 
         ND_ FeatureNames_t const&               GetUnsupportedFS ()                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return *_unsupportedFS; }
         DEBUG_ONLY( ND_ FeatureNames_t const&   GetAllFS ()                         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return *_allFeatureSets; })
@@ -430,13 +431,13 @@ namespace AE::Graphics
         template <typename T>
         ND_ bool  _LoadPipelineArray (Serializing::Deserializer &des, OUT Tuple<uint, const T*> &arr)                       __NE___;
 
-        ND_ PipelineLayoutID    _GetPipelineLayout (PipelineCompiler::PipelineLayoutUID uid) const;
+        ND_ PipelineLayoutID    _GetPipelineLayout (PipelineCompiler::PipelineLayoutUID uid)                                C_NE___;
 
         template <PipelineCompiler::PipelineTemplUID TemplMask, typename TemplType>
         ND_ const typename TypeList<TemplType>::template Get<1>
-            _Extract (ResMngr_t &, const PipelineTmplName &name, const TemplType &templArr) const;
+            _Extract (ResMngr_t &, const PipelineTmplName &name, const TemplType &templArr)                                 C_NE___;
 
-        ND_ RenderState const*  _GetRenderState (PipelineCompiler::RenderStateUID uid) const;
+        ND_ RenderState const*  _GetRenderState (PipelineCompiler::RenderStateUID uid)                                      C_NE___;
     };
 
 

@@ -2,11 +2,6 @@
 
 #pragma once
 
-#ifdef AE_DEBUG
-# include "base/Defines/StdInclude.h"
-# include <sstream>
-#endif
-
 #include "base/Common.h"
 #include "base/Containers/Ptr.h"
 
@@ -127,43 +122,48 @@ namespace AE::Base
         return static_cast<T*>(null);
     }
 
+/*
+=================================================
+    Cast (reference)
+=================================================
+*/
     template <typename R, typename T>
-    ND_ forceinline constexpr R const volatile&  Cast (T const volatile &value) __NE___
+    ND_ forceinline constexpr R const volatile&  RefCast (T const volatile &value) __NE___
     {
         return *Cast<R>( &value );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R const&  Cast (T const &value) __NE___
+    ND_ forceinline constexpr R const&  RefCast (T const &value) __NE___
     {
         return *Cast<R>( &value );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R volatile&  Cast (T volatile &value) __NE___
+    ND_ forceinline constexpr R volatile&  RefCast (T volatile &value) __NE___
     {
         return *Cast<R>( &value );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R&  Cast (T &value) __NE___
+    ND_ forceinline constexpr R&  RefCast (T &value) __NE___
     {
         return *Cast<R>( &value );
     }
 
 /*
 =================================================
-    Cast (chrono)
+    TimeCast (chrono)
 =================================================
 */
     template <typename To, typename Rep, typename Period, EnableIf<IsDuration<To>, int> = 0>
-    ND_ constexpr To  Cast (const std::chrono::duration<Rep, Period> &value) __NE___
+    ND_ constexpr To  TimeCast (const std::chrono::duration<Rep, Period> &value) __NE___
     {
         return std::chrono::duration_cast<To>( value );
     }
 
     template <typename ToDuration, typename Clock, typename Duration, EnableIf<IsDuration<ToDuration>, int> = 0>
-    ND_ constexpr std::chrono::time_point<Clock, ToDuration>  Cast (const std::chrono::time_point<Clock, Duration> &value) __NE___
+    ND_ constexpr std::chrono::time_point<Clock, ToDuration>  TimeCast (const std::chrono::time_point<Clock, Duration> &value) __NE___
     {
         return std::chrono::time_point_cast<ToDuration>( value );
     }
@@ -313,6 +313,23 @@ namespace AE::Base
                     src < static_cast<From>(MinValue<To>()) ? MinValue<To>() :
                                                               static_cast<To>(src);
         }
+    }
+
+/*
+=================================================
+    ConstCast
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr T*  ConstCast (const T* ptr) __NE___
+    {
+        return const_cast<T*>( ptr );
+    }
+
+    template <typename T>
+    ND_ constexpr T&  ConstCast (const T& ref) __NE___
+    {
+        return const_cast<T &>( ref );
     }
 
 

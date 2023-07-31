@@ -3,10 +3,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'Debugger5 |0| Upload RTAS task'
 {
-  BeginDebugLabel
-    name:  'Debugger5 |0| Upload RTAS task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -37,7 +33,7 @@ name: 'Debugger5 |0| Upload RTAS task'
     dependencyFlags: 0
     MemoryBarrier:
       stage:  COPY ---> ACCELERATION_STRUCTURE_BUILD
-      access: TRANSFER_WRITE ---> ACCELERATION_STRUCTURE_READ
+      access: TRANSFER_WRITE ---> SHADER_READ | ACCELERATION_STRUCTURE_READ
   ----------
 
   BuildAccelerationStructures
@@ -56,7 +52,7 @@ name: 'Debugger5 |0| Upload RTAS task'
     dependencyFlags: 0
     MemoryBarrier:
       stage:  ACCELERATION_STRUCTURE_BUILD ---> ACCELERATION_STRUCTURE_BUILD
-      access: ACCELERATION_STRUCTURE_WRITE ---> ACCELERATION_STRUCTURE_READ
+      access: ACCELERATION_STRUCTURE_WRITE ---> SHADER_READ | ACCELERATION_STRUCTURE_READ
   ----------
 
   BuildAccelerationStructures
@@ -69,19 +65,10 @@ name: 'Debugger5 |0| Upload RTAS task'
     ----
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'Debugger5 |1| Ray tracing task'
 {
-  BeginDebugLabel
-    name:  'Debugger5 |1| Ray tracing task'
-    depth: 1
-  ----------
-
   FillBuffer
     dst:     'debug storage buffer'
     offset:  16
@@ -129,19 +116,10 @@ name: 'Debugger5 |1| Ray tracing task'
       layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'Debugger5 |2| Readback task'
 {
-  BeginDebugLabel
-    name:  'Debugger5 |2| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -174,10 +152,6 @@ name: 'Debugger5 |2| Readback task'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }

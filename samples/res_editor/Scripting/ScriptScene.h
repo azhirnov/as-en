@@ -65,7 +65,7 @@ namespace AE::ResEditor
     // types
     private:
         using PipelinePathes_t      = Array< Path >;
-        using UniquePipelines_t     = FlatHashSet< Path >;
+        using UniquePipelines_t     = FlatHashSet< Path, PathHasher >;
         using PipelineNames_t       = Array< Array< PipelineName >>;
 
 
@@ -84,7 +84,7 @@ namespace AE::ResEditor
         ScriptSceneGraphicsPass (ScriptScenePtr scene, const String &passName)              __Th___;
 
     public:
-        ScriptSceneGraphicsPass () : ScriptBaseRenderPass{Default} {}
+        ScriptSceneGraphicsPass ()                                                          __Th___;
 
         void  AddPipeline (const String &pplnFile)                                          __Th___;
         void  AddPipelines (const String &pplnsFolder)                                      __Th___;
@@ -108,9 +108,9 @@ namespace AE::ResEditor
 
 
     //
-    // Scene Graphics Pass
+    // Scene Ray Tracing Pass
     //
-    class ScriptSceneRayTracingPass final : public ScriptBaseRenderPass
+    class ScriptSceneRayTracingPass final : public ScriptBasePass
     {
         friend class ScriptScene;
 
@@ -127,7 +127,7 @@ namespace AE::ResEditor
         ScriptSceneRayTracingPass (ScriptScenePtr scene, const String &passName)            __Th___;
 
     public:
-        ScriptSceneRayTracingPass () : ScriptBaseRenderPass{Default} {}
+        ScriptSceneRayTracingPass ()                                                        __Th___;
 
         void  SetPipeline (const String &pplnFile)                                          __Th___;
 

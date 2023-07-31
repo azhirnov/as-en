@@ -1,6 +1,6 @@
 
 Supported features:
- - [x] argument buffer
- - [x] ray query
- - [x] push constant emulation
+ - [x] Argument buffer
+ - [x] Ray query
+ - [x] Push constant emulation
  - [x] GPU address

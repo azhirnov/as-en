@@ -11,7 +11,7 @@
 
 Внутри реализации метода `Run()` можно вызвать:
  * метод `OnFailure()` - ошибка при выполнении задачи, меняет статус и вызывает метод `OnCancel()` после завершения `Run()`.
- * метод `Continue()` - возвращает задачу в очередь, чтобы повторно вызвать метод `Run()`. Может нринимаеть список зависимых задач.
+ * метод `Continue()` - возвращает задачу в очередь, чтобы повторно вызвать метод `Run()`. Может принимать список зависимых задач.
 
 Исходник: [AsyncTask.h](../../src/threading/TaskSystem/AsyncTask.h#L88)
 
@@ -31,9 +31,9 @@ ETaskQueue  co_await Coro_TaskQueue
 
 ### Корутины (Coroutine<>)
 
-Корутины из C++20 сделанные поверх AsyncTask, могут хранить значение внутри и возвращать через `co_await` после выполнения задачи.
+Корутины из C++20 сделанные поверх AsyncTask, могут хранить значение внутри и возвращать его через `co_await` после выполнения задачи.
 
-Исходник: [Coroutine.h](../../src/threading/TaskSystem/Coroutine.h)
+Исходник: [Coroutine.h](../../src/threading/TaskSystem/Coroutine.h), [Тесты](../../tests/threading/UnitTest_Coroutine.cpp)
 
 
 ### Промис (Promise<>)
@@ -43,7 +43,7 @@ ETaskQueue  co_await Coro_TaskQueue
 `MakePromiseFromValue()` - если аргумент dependsOn пустой, то задача не добавляется в очередь.<br/>
 `MakePromiseFrom() и MakePromiseFromArray()` - объединяют результаты промисов в один.
 
-Исходник: [Promise.h](../../src/threading/TaskSystem/Promise.h)
+Исходник: [Promise.h](../../src/threading/TaskSystem/Promise.h), [Тесты](../../tests/threading/UnitTest_Promise.cpp)
 
 
 ### Типы очередей (ETaskQueue / EThread)
@@ -94,7 +94,7 @@ ETaskQueue  co_await Coro_TaskQueue
 
 Создает потоки, привязывает их к ядрам ЦП и к очередям в планировщике задач.
 
-Если ЦП содержит энергоэффективные ядра, то потоки с `Background и FileIO` будут привязаны к этим ядрам, а потоки с `Main, PerFrame, Renderer` будут привязаны к производительным ядрам ЦП.
+Если ЦП содержит энергоэффективные ядра, то потоки с `Background, FileIO` будут привязаны к этим ядрам, а потоки с `Main, PerFrame, Renderer` будут привязаны к производительным ядрам ЦП.
 
 Исходник: [ThreadManager.h](../../src/threading/TaskSystem/ThreadManager.h)
 

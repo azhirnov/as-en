@@ -3,7 +3,6 @@
 void ASmain ()
 {
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "graphics_1" );
-    ppln.AddFeatureSet( "MinimalFS" );
     ppln.SetLayout( "Graphics_PL_1" );
     ppln.SetVertexInput( "vb_input1" );
     ppln.SetFragmentOutputFromRenderPass( "Simple", /*subpass*/"Main" );

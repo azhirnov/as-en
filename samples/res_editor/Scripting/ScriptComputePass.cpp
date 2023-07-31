@@ -2,9 +2,6 @@
 
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/EditorUI.h"
-
-#include "scripting/Impl/ClassBinder.h"
-#include "scripting/Impl/EnumBinder.h"
 #include "res_editor/Scripting/ScriptBasePass.cpp.h"
 
 namespace AE::ResEditor
@@ -88,11 +85,15 @@ namespace
     void  ScriptComputePass::DispatchGroupsDS  (const ScriptDynamicDimPtr &ds) __Th___
     {
         CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-        CHECK_THROW_MSG( ds );
+        CHECK_THROW_MSG( ds and ds->Get() );
 
         auto&   it = _iterations.emplace_back();
         it.count    = ds->Get();
         it.isGroups = true;
+
+        ScriptDynamicDimPtr ds2;
+        ds2.Attach( ds->Mul3( packed_int3{_localSize} ));
+        _SetDynamicDimension( ds2 );
     }
 
     void  ScriptComputePass::DispatchGroups1D (const ScriptDynamicUIntPtr &dyn) __Th___
@@ -123,11 +124,13 @@ namespace
     void  ScriptComputePass::DispatchThreadsDS (const ScriptDynamicDimPtr &ds) __Th___
     {
         CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
-        CHECK_THROW_MSG( ds );
+        CHECK_THROW_MSG( ds and ds->Get() );
 
         auto&   it = _iterations.emplace_back();
         it.count    = ds->Get();
         it.isGroups = false;
+
+        _SetDynamicDimension( ds );
     }
 
     void  ScriptComputePass::DispatchThreads1D (const ScriptDynamicUIntPtr &dyn) __Th___
@@ -361,20 +364,24 @@ namespace
 
         EnumBitSet<IPass::EDebugMode>   dbg_modes;
 
-        const auto  AddPpln = [cp = result.get(), &dbg_modes] (IPass::EDebugMode mode, ComputePipelineID id)
+        const auto  AddPpln = [this, cp = result.get(), &dbg_modes] (IPass::EDebugMode mode, EFlags flag, const PipelineName &name)
         {{
-            if ( id ) {
-                cp->_pipelines.insert_or_assign( mode, id );
-                dbg_modes.insert( mode );
+            if ( AllBits( _baseFlags, flag ))
+            {
+                auto    id = cp->_rtech.rtech->GetComputePipeline( name );
+                if ( id ) {
+                    cp->_pipelines.insert_or_assign( mode, id );
+                    dbg_modes.insert( mode );
+                }
             }
         }};
 
-        auto    ppln = result->_rtech.rtech->GetComputePipeline( PipelineName{"compute"} );
-        CHECK_THROW( ppln );
-        AddPpln( IPass::EDebugMode::Unknown,        ppln );
-        AddPpln( IPass::EDebugMode::Trace,          result->_rtech.rtech->GetComputePipeline( PipelineName{"compute.Trace"} ));
-        AddPpln( IPass::EDebugMode::FnProfiling,    result->_rtech.rtech->GetComputePipeline( PipelineName{"compute.FnProf"} ));
-        AddPpln( IPass::EDebugMode::TimeHeatMap,    result->_rtech.rtech->GetComputePipeline( PipelineName{"compute.TmProf"} ));
+        AddPpln( IPass::EDebugMode::Unknown,        EFlags::Unknown,                PipelineName{"compute"} );
+        AddPpln( IPass::EDebugMode::Trace,          EFlags::Enable_ShaderTrace,     PipelineName{"compute.Trace"} );
+        AddPpln( IPass::EDebugMode::FnProfiling,    EFlags::Enable_ShaderFnProf,    PipelineName{"compute.FnProf"} );
+        AddPpln( IPass::EDebugMode::TimeHeatMap,    EFlags::Enable_ShaderTmProf,    PipelineName{"compute.TmProf"} );
+
+        auto    ppln = result->_pipelines.find( IPass::EDebugMode::Unknown )->second;
 
         result->_dbgName    = this->_dbgName;
         result->_dbgColor   = this->_dbgColor;
@@ -383,11 +390,8 @@ namespace
 
         if ( this->_controller )
         {
-            RC<DynamicDim>  dyn_dim = Iteration::FindDynamicThreadCount( this->_iterations );
-            if ( not dyn_dim )
-                dyn_dim = MakeRC<DynamicDim>( Iteration::FindMaxConstThreadCount( this->_iterations, this->_localSize ));
-
-            result->_controller = this->_controller->ToController( dyn_dim );  // throw
+            this->_controller->SetDimensionIfNotSet( _dynamicDim );
+            result->_controller = this->_controller->ToController();  // throw
             CHECK_THROW( result->_controller );
         }
 
@@ -471,10 +475,12 @@ namespace AE::ResEditor
 
         ShaderStructTypePtr st{ new ShaderStructType{"ComputePassUB"}};
         st->Set( EStructLayout::Std140, R"#(
-                float       time;                   // shader playback time (in seconds)
-                float       timeDelta;              // render time (in seconds)
-                int         frame;                  // shader playback frame
-                float4      mouse;                  // mouse pixel coords. xy: current (if MRB down), zw: click
+                float       time;           // shader playback time (in seconds)
+                float       timeDelta;      // render time (in seconds)
+                uint        frame;          // shader playback frame
+                uint        seed;           // unique value, updated on each shader reloading
+                float4      mouse;          // mouse unorm coords. xy: current (if MRB down), zw: click
+                float       customKeys;
 
                 // controller //
                 CameraData  camera;
@@ -491,6 +497,7 @@ namespace AE::ResEditor
 
         STATIC_ASSERT( UIInteraction::MaxSlidersPerType == 4 );
         STATIC_ASSERT( IPass::Constants::MaxCount == 4 );
+        STATIC_ASSERT( IPass::CustomKeys_t{}.max_size() == 1 );
         return st;
     }
 
@@ -533,12 +540,11 @@ namespace AE::ResEditor
 
         const uint              stage   = uint(EShaderStages::Compute);
         DescriptorSetLayoutPtr  ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
-        ds_layout->AddFeatureSet( "Default" );
         {
             ShaderStructTypePtr st = _CreateUBType();   // throw
             ubSize = st->StaticSize();
 
-            ds_layout->AddUniformBuffer( stage, "ub", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform );
+            ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform );
         }
 
         for (auto& arg : _args)
@@ -594,7 +600,7 @@ namespace AE::ResEditor
 
                 for (auto& slider : _sliders)
                 {
-                    header << "#define " << slider.name << " ub.";
+                    header << "#define " << slider.name << " un_PerPass.";
                     BEGIN_ENUM_CHECKS();
                     switch ( slider.type )
                     {
@@ -623,7 +629,7 @@ namespace AE::ResEditor
             {
                 for (auto& c : _constants)
                 {
-                    header << "#define " << c.name << " ub.";
+                    header << "#define " << c.name << " un_PerPass.";
                     BEGIN_ENUM_CHECKS();
                     switch ( c.type )
                     {

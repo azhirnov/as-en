@@ -184,6 +184,7 @@ namespace
 
             if ( t.frameIdx.load() == 3 )
             {
+                // frame 3
                 AsyncTask   begin = rts.BeginFrame();
 
                 auto        batch = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"copy task"} );
@@ -199,8 +200,9 @@ namespace
             }
 
             if ( t.frameIdx.load() > 3 )
-                return;
+                return; // frame 4+
 
+            // frames [0..2]:
             AsyncTask   begin       = rts.BeginFrame();
 
             auto        batch_gfx   = rts.BeginCmdBatch( EQueueType::Graphics, 0, {"graphics batch"} );

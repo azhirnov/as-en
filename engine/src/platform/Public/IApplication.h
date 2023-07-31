@@ -127,3 +127,32 @@ namespace AE::App
 
 extern std::unique_ptr<AE::App::IApplication::IAppListener>  AE_OnAppCreated ();
 extern void                                                  AE_OnAppDestroyed ();
+
+
+#ifdef AE_CPP_DETECT_MISMATCH
+
+# ifdef AE_PLATFORM_ANDROID
+#   pragma detect_mismatch( "AE_PLATFORM_ANDROID", "1" )
+# else
+#   pragma detect_mismatch( "AE_PLATFORM_ANDROID", "0" )
+# endif
+
+# ifdef AE_ENABLE_GLFW
+#   pragma detect_mismatch( "AE_ENABLE_GLFW", "1" )
+# else
+#   pragma detect_mismatch( "AE_ENABLE_GLFW", "0" )
+# endif
+
+# ifdef AE_ENABLE_OPENVR
+#   pragma detect_mismatch( "AE_ENABLE_OPENVR", "1" )
+# else
+#   pragma detect_mismatch( "AE_ENABLE_OPENVR", "0" )
+# endif
+
+# ifdef AE_WINAPI_WINDOW
+#   pragma detect_mismatch( "AE_WINAPI_WINDOW", "1" )
+# else
+#   pragma detect_mismatch( "AE_WINAPI_WINDOW", "0" )
+# endif
+
+#endif // AE_CPP_DETECT_MISMATCH

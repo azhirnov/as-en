@@ -157,12 +157,11 @@ namespace AE::Math
     template <typename T, uint C, uint R, glm::qualifier Q>
     ND_ forceinline bool  Equals (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const T &err = Epsilon<T>()) __NE___
     {
-        bool    res = true;
+        uint    eq = 0;
         for (uint i = 0; i < C; ++i) {
-            if ( not All( Equals( lhs[i], rhs[i] )) )
-                res = false;
+            eq += All( Equals( lhs[i], rhs[i], err ));
         }
-        return res;
+        return eq == C;
     }
 
 

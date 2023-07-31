@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "threading/TaskSystem/TaskProfiler.h"
 #include "profiler/Impl/ProfilerUtils.h"
 
 namespace AE::Profiler

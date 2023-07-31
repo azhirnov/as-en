@@ -183,7 +183,7 @@ namespace
 extern void UnitTest_FeatureSet ()
 {
     const auto  h = FeatureSet::GetHashOfFS();
-    ASSERT( h == HashVal64{0x3b2103abc1fc1748ull} );
+    ASSERT( h == FeatureSet::GetHashOfFS_Precalculated() );
     /*
     ASSERT_Eq( OffsetOf( &FeatureSet::subgroupOperations ),               8 );
     ASSERT_Eq( OffsetOf( &FeatureSet::minSubgroupSize ),                 28 );

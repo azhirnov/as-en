@@ -54,12 +54,14 @@
         float3  resolution;
         float  time;
         float  timeDelta;
-        int  frame;
+        uint  frame;
+        uint  seed;
         float4  channelTime;
         StaticArray< float4, 4 >    channelResolution;
         float4  mouse;
         float4  date;
         float  sampleRate;
+        float  customKeys;
         CameraData  camera;
         StaticArray< float4, 4 >    floatSliders;
         StaticArray< int4, 4 >    intSliders;
@@ -71,11 +73,13 @@
     STATIC_ASSERT( offsetof(ShadertoyUB, time) == 16 );
     STATIC_ASSERT( offsetof(ShadertoyUB, timeDelta) == 20 );
     STATIC_ASSERT( offsetof(ShadertoyUB, frame) == 24 );
+    STATIC_ASSERT( offsetof(ShadertoyUB, seed) == 28 );
     STATIC_ASSERT( offsetof(ShadertoyUB, channelTime) == 32 );
     STATIC_ASSERT( offsetof(ShadertoyUB, channelResolution) == 48 );
     STATIC_ASSERT( offsetof(ShadertoyUB, mouse) == 112 );
     STATIC_ASSERT( offsetof(ShadertoyUB, date) == 128 );
     STATIC_ASSERT( offsetof(ShadertoyUB, sampleRate) == 144 );
+    STATIC_ASSERT( offsetof(ShadertoyUB, customKeys) == 148 );
     STATIC_ASSERT( offsetof(ShadertoyUB, camera) == 160 );
     STATIC_ASSERT( offsetof(ShadertoyUB, floatSliders) == 528 );
     STATIC_ASSERT( offsetof(ShadertoyUB, intSliders) == 592 );
@@ -87,15 +91,17 @@
 
 #ifndef ComputePassUB_DEFINED
 #   define ComputePassUB_DEFINED
-    // size: 720, align: 16
+    // size: 736, align: 16
     struct ComputePassUB
     {
         static constexpr auto  TypeName = ShaderStructName{"ComputePassUB"};
 
         float  time;
         float  timeDelta;
-        int  frame;
+        uint  frame;
+        uint  seed;
         float4  mouse;
+        float  customKeys;
         CameraData  camera;
         StaticArray< float4, 4 >    floatSliders;
         StaticArray< int4, 4 >    intSliders;
@@ -106,25 +112,30 @@
     STATIC_ASSERT( offsetof(ComputePassUB, time) == 0 );
     STATIC_ASSERT( offsetof(ComputePassUB, timeDelta) == 4 );
     STATIC_ASSERT( offsetof(ComputePassUB, frame) == 8 );
+    STATIC_ASSERT( offsetof(ComputePassUB, seed) == 12 );
     STATIC_ASSERT( offsetof(ComputePassUB, mouse) == 16 );
-    STATIC_ASSERT( offsetof(ComputePassUB, camera) == 32 );
-    STATIC_ASSERT( offsetof(ComputePassUB, floatSliders) == 400 );
-    STATIC_ASSERT( offsetof(ComputePassUB, intSliders) == 464 );
-    STATIC_ASSERT( offsetof(ComputePassUB, colors) == 528 );
-    STATIC_ASSERT( offsetof(ComputePassUB, floatConst) == 592 );
-    STATIC_ASSERT( offsetof(ComputePassUB, intConst) == 656 );
-    STATIC_ASSERT( sizeof(ComputePassUB) == 720 );
+    STATIC_ASSERT( offsetof(ComputePassUB, customKeys) == 32 );
+    STATIC_ASSERT( offsetof(ComputePassUB, camera) == 48 );
+    STATIC_ASSERT( offsetof(ComputePassUB, floatSliders) == 416 );
+    STATIC_ASSERT( offsetof(ComputePassUB, intSliders) == 480 );
+    STATIC_ASSERT( offsetof(ComputePassUB, colors) == 544 );
+    STATIC_ASSERT( offsetof(ComputePassUB, floatConst) == 608 );
+    STATIC_ASSERT( offsetof(ComputePassUB, intConst) == 672 );
+    STATIC_ASSERT( sizeof(ComputePassUB) == 736 );
 #endif
 
-#ifndef ScenePassUB_DEFINED
-#   define ScenePassUB_DEFINED
-    // size: 704, align: 16
-    struct ScenePassUB
+#ifndef SceneGraphicsPassUB_DEFINED
+#   define SceneGraphicsPassUB_DEFINED
+    // size: 720, align: 16
+    struct SceneGraphicsPassUB
     {
-        static constexpr auto  TypeName = ShaderStructName{"ScenePassUB"};
+        static constexpr auto  TypeName = ShaderStructName{"SceneGraphicsPassUB"};
 
         float2  resolution;
         float  time;
+        float  timeDelta;
+        uint  frame;
+        uint  seed;
         CameraData  camera;
         StaticArray< float4, 4 >    floatSliders;
         StaticArray< int4, 4 >    intSliders;
@@ -132,28 +143,66 @@
         StaticArray< float4, 4 >    floatConst;
         StaticArray< int4, 4 >    intConst;
     };
-    STATIC_ASSERT( offsetof(ScenePassUB, resolution) == 0 );
-    STATIC_ASSERT( offsetof(ScenePassUB, time) == 8 );
-    STATIC_ASSERT( offsetof(ScenePassUB, camera) == 16 );
-    STATIC_ASSERT( offsetof(ScenePassUB, floatSliders) == 384 );
-    STATIC_ASSERT( offsetof(ScenePassUB, intSliders) == 448 );
-    STATIC_ASSERT( offsetof(ScenePassUB, colors) == 512 );
-    STATIC_ASSERT( offsetof(ScenePassUB, floatConst) == 576 );
-    STATIC_ASSERT( offsetof(ScenePassUB, intConst) == 640 );
-    STATIC_ASSERT( sizeof(ScenePassUB) == 704 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, resolution) == 0 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, time) == 8 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, timeDelta) == 12 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, frame) == 16 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, seed) == 20 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, camera) == 32 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, floatSliders) == 400 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, intSliders) == 464 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, colors) == 528 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, floatConst) == 592 );
+    STATIC_ASSERT( offsetof(SceneGraphicsPassUB, intConst) == 656 );
+    STATIC_ASSERT( sizeof(SceneGraphicsPassUB) == 720 );
+#endif
+
+#ifndef SceneRayTracingPassUB_DEFINED
+#   define SceneRayTracingPassUB_DEFINED
+    // size: 720, align: 16
+    struct SceneRayTracingPassUB
+    {
+        static constexpr auto  TypeName = ShaderStructName{"SceneRayTracingPassUB"};
+
+        float2  resolution;
+        float  time;
+        float  timeDelta;
+        uint  frame;
+        uint  seed;
+        CameraData  camera;
+        StaticArray< float4, 4 >    floatSliders;
+        StaticArray< int4, 4 >    intSliders;
+        StaticArray< float4, 4 >    colors;
+        StaticArray< float4, 4 >    floatConst;
+        StaticArray< int4, 4 >    intConst;
+    };
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, resolution) == 0 );
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, time) == 8 );
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, timeDelta) == 12 );
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, frame) == 16 );
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, seed) == 20 );
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, camera) == 32 );
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, floatSliders) == 400 );
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, intSliders) == 464 );
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, colors) == 528 );
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, floatConst) == 592 );
+    STATIC_ASSERT( offsetof(SceneRayTracingPassUB, intConst) == 656 );
+    STATIC_ASSERT( sizeof(SceneRayTracingPassUB) == 720 );
 #endif
 
 #ifndef SphericalCubeMaterialUB_DEFINED
 #   define SphericalCubeMaterialUB_DEFINED
-    // size: 64, align: 16
+    // size: 68 (80), align: 16
     struct SphericalCubeMaterialUB
     {
         static constexpr auto  TypeName = ShaderStructName{"SphericalCubeMaterialUB"};
 
         float4x4_storage  transform;
+        float  tessLevel;
     };
     STATIC_ASSERT( offsetof(SphericalCubeMaterialUB, transform) == 0 );
-    STATIC_ASSERT( sizeof(SphericalCubeMaterialUB) == 64 );
+    STATIC_ASSERT( offsetof(SphericalCubeMaterialUB, tessLevel) == 64 );
+    STATIC_ASSERT( sizeof(SphericalCubeMaterialUB) == 80 );
 #endif
 
 #ifndef UnifiedGeometryMaterialUB_DEFINED

@@ -155,7 +155,7 @@ DescrSetLayouts {
       name         = 'drawUB'
       vkIndex      = 0
       mtlIndex     = 0
-      state        = ShaderUniform | PreRasterizationShaders
+      state        = ShaderUniform | VertexProcessingShaders
       staticSize   = 64 b
       arrayStride  = 0 b
       typeName     = UBlock
@@ -196,7 +196,7 @@ DescrSetLayouts {
       vkIndex      = 0
       mtlIndex     = Compute: 0
       state        = ShaderUniform | ComputeShader
-      staticSize   = 24 b
+      staticSize   = 32 b
       arrayStride  = 0 b
       typeName     = BufferRef
     }
@@ -382,14 +382,14 @@ ComputePipelineTempl {
     shader  = 30000000
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
-    featureSets = { 'MinDesktop' }
+    featureSets = { 'MinimalFS', 'MinDesktop' }
   ----------------------
   [1]
     layout  = 5
     shader  = 30000001
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
-    featureSets = { 'MinRecursiveRayTracing' }
+    featureSets = { 'MinimalFS', 'MinRecursiveRayTracing' }
   ----------------------
   [2]
     layout  = 0

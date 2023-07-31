@@ -44,6 +44,9 @@ namespace AE::Math
 
         explicit RGBAColor (struct HSVColor const& hsv, T alpha = MaxValue())   __NE___;
 
+        template <typename B, glm::qualifier Q>
+        explicit RGBAColor (const TVec<B,4,Q> &v)                               __NE___ : r{v.x}, g{v.y}, b{v.z}, a{v.w} {}
+
 
         ND_ constexpr bool  operator == (const RGBAColor<T> &rhs)               C_NE___
         {
@@ -173,6 +176,9 @@ namespace AE::Math
     };
 
 
+    // in range 400 .. 700
+    ND_ RGBA32f  WavelengthToRGB (float wavelengthInNanometers) __NE___;
+
 /*
 =================================================
     RGBA32f
@@ -184,9 +190,9 @@ namespace AE::Math
         // from http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl
         float4 K = float4(1.0f, 2.0f / 3.0f, 1.0f / 3.0f, 3.0f);
         float3 p = Abs(Fract(c.h + float3(K.x, K.y, K.z)) * 6.0f - K.w);
-        r = c.v * Lerp(K.x, Clamp(p.x - K.x, 0.0f, 1.0f), c.s);
-        g = c.v * Lerp(K.x, Clamp(p.y - K.x, 0.0f, 1.0f), c.s);
-        b = c.v * Lerp(K.x, Clamp(p.z - K.x, 0.0f, 1.0f), c.s);
+        r = c.v * Lerp(K.x, Saturate(p.x - K.x), c.s);
+        g = c.v * Lerp(K.x, Saturate(p.y - K.x), c.s);
+        b = c.v * Lerp(K.x, Saturate(p.z - K.x), c.s);
         a = alpha;
     }
 
@@ -202,15 +208,35 @@ namespace AE::Math
         b{ float(other.b) / 0xFFFFFFFFu }, a{ float(other.a) / 0xFFFFFFFFu }
     {}
 
-    ND_ inline constexpr RGBAColor<float>  operator * (const RGBAColor<float> &lhs, const RGBAColor<float> &rhs) __NE___
+/*
+=================================================
+    RGBA32f::operator *
+=================================================
+*/
+    ND_ inline constexpr RGBA32f  operator * (const RGBA32f &lhs, const RGBA32f &rhs) __NE___
     {
-        RGBAColor<float>    res;
+        RGBA32f res;
         res.r = lhs.r * rhs.r;
         res.g = lhs.g * rhs.g;
         res.b = lhs.b * rhs.b;
         res.a = lhs.a * rhs.a;
         return res;
     }
+
+/*
+=================================================
+    RGBA32f::Lerp
+=================================================
+*/
+    ND_ inline RGBA32f  Lerp (const RGBA32f &x, const RGBA32f &y, float factor) __NE___
+    {
+        float4 v = Lerp( float4{float(x.r), float(x.g), float(x.b), float(x.a)},
+                         float4{float(y.r), float(y.g), float(y.b), float(y.a)}, factor );
+        return RGBA32f{ v };
+    }
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -226,6 +252,9 @@ namespace AE::Math
     inline constexpr RGBAColor<int>::RGBAColor (const RGBAColor<ubyte> &other) __NE___ :
         r{int(other.r)}, g{int(other.g)}, b{int(other.b)}, a{int(other.a)}
     {}
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -241,6 +270,9 @@ namespace AE::Math
     inline constexpr RGBAColor<uint>::RGBAColor (const RGBAColor<ubyte> &other) __NE___ :
         r{uint(other.r)}, g{uint(other.g)}, b{uint(other.b)}, a{uint(other.a)}
     {}
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -509,26 +541,22 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <typename T>
+struct std::hash< AE::Math::RGBAColor<T> >
 {
-    template <typename T>
-    struct hash< AE::Math::RGBAColor<T> >
+    ND_ size_t  operator () (const AE::Math::RGBAColor<T> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Math::RGBAColor<T> &value) C_NE___
-        {
-            return  size_t( AE::Base::HashOf( value.r ) + AE::Base::HashOf( value.g ) +
-                            AE::Base::HashOf( value.b ) + AE::Base::HashOf( value.a ));
-        }
-    };
+        return  size_t( AE::Base::HashOf( value.r ) + AE::Base::HashOf( value.g ) +
+                        AE::Base::HashOf( value.b ) + AE::Base::HashOf( value.a ));
+    }
+};
 
 
-    template <>
-    struct hash< AE::Math::DepthStencil >
+template <>
+struct std::hash< AE::Math::DepthStencil >
+{
+    ND_ size_t  operator () (const AE::Math::DepthStencil &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Math::DepthStencil &value) C_NE___
-        {
-            return size_t(AE::Base::HashOf( value.depth ) + AE::Base::HashOf( value.stencil ));
-        }
-    };
-
-} // std
+        return size_t(AE::Base::HashOf( value.depth ) + AE::Base::HashOf( value.stencil ));
+    }
+};

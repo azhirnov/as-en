@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "base/Utils/EnumBitSet.h"
 #include "threading/Common.h"
 
 namespace AE::Threading
@@ -46,6 +45,11 @@ namespace AE::Threading
     };
     STATIC_ASSERT( sizeof(EThread) == sizeof(ETaskQueue) );
     STATIC_ASSERT( uint(ETaskQueue::_Count) == 4 );
+    STATIC_ASSERT( uint(EThread::_Count) == 6 );
+
+
+    using ETaskQueueBits    = EnumBitSet< ETaskQueue >;
+    using EThreadBits       = EnumBitSet< EThread >;
 
 
 
@@ -80,9 +84,9 @@ namespace AE::Threading
         ND_ constexpr auto      end ()                              C_NE___ { return _arr.end(); }
 
 
-        ND_ constexpr EnumBitSet<ETaskQueue>  ToQueueMask ()        C_NE___
+        ND_ constexpr ETaskQueueBits  ToQueueMask ()                C_NE___
         {
-            EnumBitSet<ETaskQueue>      result;
+            ETaskQueueBits  result;
             for (auto tt : *this)
             {
                 if_likely( tt < EThread::_Last )
@@ -92,9 +96,9 @@ namespace AE::Threading
         }
 
 
-        ND_ constexpr EnumBitSet<EThread>  ToThreadMask ()          C_NE___
+        ND_ constexpr EThreadBits  ToThreadMask ()                  C_NE___
         {
-            EnumBitSet<EThread> result;
+            EThreadBits     result;
             for (auto tt : *this) {
                 result.insert( tt );
             }

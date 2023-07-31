@@ -52,18 +52,15 @@ namespace AE::Base::_hidden_
 
 } // AE::Base::_hidden_
 
-namespace std
-{
-    template <uint32_t UID>
-    struct hash< AE::Base::_hidden_::StaticTypeID<UID> >
-    {
-        ND_ size_t  operator () (const AE::Base::_hidden_::StaticTypeID<UID> &value) C_NE___
-        {
-            return value.Get();
-        }
-    };
 
-} // std
+template <uint32_t UID>
+struct std::hash< AE::Base::_hidden_::StaticTypeID<UID> >
+{
+    ND_ size_t  operator () (const AE::Base::_hidden_::StaticTypeID<UID> &value) C_NE___
+    {
+        return value.Get();
+    }
+};
 //-----------------------------------------------------------------------------
 
 
@@ -106,18 +103,15 @@ namespace AE::Base::_hidden_
 
 } // AE::Base::_hidden_
 
-namespace std
-{
-    template <>
-    struct hash< AE::Base::_hidden_::StdTypeID >
-    {
-        ND_ size_t  operator () (const AE::Base::_hidden_::StdTypeID &value) C_NE___
-        {
-            return std::hash< std::type_index >{}( value.Get() );
-        }
-    };
 
-} // std
+template <>
+struct std::hash< AE::Base::_hidden_::StdTypeID >
+{
+    ND_ size_t  operator () (const AE::Base::_hidden_::StdTypeID &value) C_NE___
+    {
+        return std::hash< std::type_index >{}( value.Get() );
+    }
+};
 
 
 #if 0

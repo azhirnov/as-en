@@ -44,10 +44,6 @@ namespace AE::Math
             ND_ bool  All ()                                C_NE___ { return _mm256_movemask_epi8( _value ) == 0xFFFF'FFFF; }
             ND_ bool  Any ()                                C_NE___ { return _mm256_movemask_epi8( _value ) != 0; }
             ND_ bool  None ()                               C_NE___ { return _mm256_movemask_epi8( _value ) == 0; }
-
-        //  ND_ bool  All ()                                C_NE___ { alignas(__m256i) uint u[8];  _mm256_store_si256( OUT reinterpret_cast<__m256i *>(u), _value );  return (u[0] & u[1] & u[2] & u[3] & u[4] & u[5] & u[6] & u[7]) == UMax; }
-        //  ND_ bool  Any ()                                C_NE___ { alignas(__m256i) uint u[8];  _mm256_store_si256( OUT reinterpret_cast<__m256i *>(u), _value );  return (u[0] | u[1] | u[2] | u[3] | u[4] | u[5] | u[6] | u[7]) == UMax; }
-        //  ND_ bool  None ()                               C_NE___ { alignas(__m256i) uint u[8];  _mm256_store_si256( OUT reinterpret_cast<__m256i *>(u), _value );  return (u[0] | u[1] | u[2] | u[3] | u[4] | u[5] | u[6] | u[7]) == 0; }
         };
 
 
@@ -184,10 +180,6 @@ namespace AE::Math
             ND_ bool  All ()                                C_NE___ { return _mm256_movemask_epi8( _value ) == 0xFFFF'FFFF; }
             ND_ bool  Any ()                                C_NE___ { return _mm256_movemask_epi8( _value ) != 0; }
             ND_ bool  None ()                               C_NE___ { return _mm256_movemask_epi8( _value ) == 0; }
-
-        //  ND_ bool  All ()                                C_NE___ { alignas(__m256i) ulong u[4];  _mm256_store_si256( OUT reinterpret_cast<__m256i *>(u), _value );  return (u[0] & u[1] & u[2] & u[3]) == UMax; }
-        //  ND_ bool  Any ()                                C_NE___ { alignas(__m256i) ulong u[4];  _mm256_store_si256( OUT reinterpret_cast<__m256i *>(u), _value );  return (u[0] | u[1] | u[2] | u[3]) == UMax; }
-        //  ND_ bool  None ()                               C_NE___ { alignas(__m256i) ulong u[4];  _mm256_store_si256( OUT reinterpret_cast<__m256i *>(u), _value );  return (u[0] | u[1] | u[2] | u[3]) == 0; }
         };
 
 
@@ -681,43 +673,6 @@ namespace AE::Math
         ND_ bool  All ()                                C_NE___ { return _mm256_movemask_epi8( _value ) == 0xFFFF'FFFF; }
         ND_ bool  Any ()                                C_NE___ { return _mm256_movemask_epi8( _value ) != 0; }
         ND_ bool  None ()                               C_NE___ { return _mm256_movemask_epi8( _value ) == 0; }
-
-        /*// non SIMD
-        ND_ bool  All ()                                C_NE___
-        {
-            alignas(__m256i) Array_t    arr;
-            _mm256_store_si256( OUT reinterpret_cast<__m256i *>(arr.data()), _value );
-
-            IntType     accum = UMax;
-            for (uint i = 0; i < count; ++i) {
-                accum &= arr[i];
-            }
-            return accum == UMax;
-        }
-
-        ND_ bool  Any ()                                C_NE___
-        {
-            alignas(__m256i) Array_t    arr;
-            _mm256_store_si256( OUT reinterpret_cast<__m256i *>(arr.data()), _value );
-
-            IntType     accum = UMax;
-            for (uint i = 0; i < count; ++i) {
-                accum |= arr[i];
-            }
-            return accum == UMax;
-        }
-
-        ND_ bool  None ()                               C_NE___
-        {
-            alignas(__m256i) Array_t    arr;
-            _mm256_store_si256( OUT reinterpret_cast<__m256i *>(arr.data()), _value );
-
-            IntType     accum = UMax;
-            for (uint i = 0; i < count; ++i) {
-                accum |= arr[i];
-            }
-            return accum == 0;
-        }*/
 
         // TODO: AES
 

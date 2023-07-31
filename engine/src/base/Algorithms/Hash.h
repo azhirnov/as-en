@@ -34,7 +34,7 @@ namespace AE::Base
 
         constexpr void  Append (const THashVal &rhs)            __NE___
         {
-            const T mask    = (sizeof(_value)*8 - 1);
+            const T mask    = T(CT_SizeofInBits(_value) - 1);
             T       val     = rhs._value;
             T       shift   = 8;
 
@@ -57,7 +57,7 @@ namespace AE::Base
             else
             if constexpr( sizeof(R)*2 >= sizeof(T) )
             {
-                constexpr usize bits    = sizeof(T)*8 / 2;
+                constexpr usize bits    = CT_SizeOfInBits<T> / 2;
                 constexpr T     mask    = (T{1} << bits) - 1;
 
                 return R( ((_value >> bits) ^ _value) & mask );
@@ -65,7 +65,7 @@ namespace AE::Base
             else
             if constexpr( sizeof(R)*4 >= sizeof(T) )
             {
-                constexpr usize bits    = sizeof(T)*8 / 4;
+                constexpr usize bits    = CT_SizeOfInBits<T> / 4;
                 constexpr T     mask    = (T{1} << bits) - 1;
 
                 return R( ((_value >> bits*3) ^ (_value >> bits*2) ^ (_value >> bits) ^ _value) & mask );
@@ -161,7 +161,6 @@ namespace AE::Base
             return HashVal{std::_Hash_bytes( ptr, sizeInBytes, 0 )};
 
         #else
-            AE_COMPILATION_MESSAGE( "used fallback hash function" )
             const ubyte*    buf     = static_cast<const ubyte*>(ptr);
             HashVal         result;
             for (usize i = 0; i < sizeInBytes; ++i) {
@@ -174,24 +173,20 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <>
+struct std::hash< AE::Base::HashVal >
 {
-    template <>
-    struct hash< AE::Base::HashVal >
+    ND_ size_t  operator () (const AE::Base::HashVal &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Base::HashVal &value) C_NE___
-        {
-            return size_t(value);
-        }
-    };
+        return size_t(value);
+    }
+};
 
-    template <typename First, typename Second>
-    struct hash< std::pair<First, Second> >
+template <typename First, typename Second>
+struct std::hash< std::pair<First, Second> >
+{
+    ND_ size_t  operator () (const std::pair<First, Second> &value) C_NE___
     {
-        ND_ size_t  operator () (const std::pair<First, Second> &value) C_NE___
-        {
-            return size_t(AE::Base::HashOf( value.first ) + AE::Base::HashOf( value.second ));
-        }
-    };
-
-} // std
+        return size_t(AE::Base::HashOf( value.first ) + AE::Base::HashOf( value.second ));
+    }
+};

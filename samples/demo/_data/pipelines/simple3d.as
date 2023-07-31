@@ -14,22 +14,26 @@ void ASmain ()
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "simple3d.ds0" );
         ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", ArraySize(1), EImageType::FImageCube );
         ds.ImtblSampler( EShaderStages::Fragment, "un_ColorTexture_sampler", "LinearRepeat"  );
-        ds.UniformBuffer( EShaderStages::Vertex, "drawUB", ArraySize(1), "simple3d.ub" );   // TODO: dynamic
+        ds.UniformBufferDynamic( EShaderStages::Vertex, "drawUB", ArraySize(1), "simple3d.ub" );
     }{
         RC<PipelineLayout>      pl = PipelineLayout( "simple3d.pl" );
         pl.DSLayout( 0, "simple3d.ds0" );
     }{
         RC<ShaderStructType>    st = ShaderStructType( "CubeVertex" );
-        st.Set( "packed_float3      Position;" +
-                "packed_float3      Normal;" +
-                "packed_float3      Texcoord;" );
+        st.Set( "packed_short_norm4     Position;" +
+                "packed_short_norm4     Texcoord;" +
+                "packed_short_norm4     Normal;" +
+                "packed_short_norm4     Tangent;" +
+                "packed_short_norm4     BiTangent;" );
 
         RC<VertexBufferInput>   vb = VertexBufferInput( "VB{CubeVertex}" );
         vb.Add( "Position", st );
     }{
         RC<ShaderStructType>    st = ShaderStructType( "SphericalCubeVertex" );
-        st.Set( "packed_float4      Position;" +
-                "packed_float4      Texcoord;" );
+        st.Set( "packed_short_norm4     Position;" +
+                "packed_short_norm4     Texcoord;" +
+                "packed_short_norm4     Tangent;" +
+                "packed_short_norm4     BiTangent;" );
 
         RC<VertexBufferInput>   vb = VertexBufferInput( "VB{SphericalCubeVertex}" );
         vb.Add( "Position", st );
@@ -37,7 +41,6 @@ void ASmain ()
 
     {
         RC<GraphicsPipeline>    ppln = GraphicsPipeline( "simple3d.draw1" );
-        ppln.AddFeatureSet( "MinimalFS" );
         ppln.SetLayout( "simple3d.pl" );
         ppln.SetVertexInput( "VB{CubeVertex}" );
         ppln.SetFragmentOutputFromRenderTech( "Scene3D.RTech", "Main" );
@@ -77,7 +80,6 @@ void ASmain ()
         }
     }{
         RC<GraphicsPipeline>    ppln = GraphicsPipeline( "simple3d.draw2" );
-        ppln.AddFeatureSet( "MinimalFS" );
         ppln.SetLayout( "simple3d.pl" );
         ppln.SetVertexInput( "VB{SphericalCubeVertex}" );
         ppln.SetFragmentOutputFromRenderTech( "Scene3D.RTech", "Main" );

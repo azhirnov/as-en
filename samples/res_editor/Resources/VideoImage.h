@@ -5,8 +5,6 @@
 #include "res_editor/Resources/IResource.h"
 #include "res_editor/Resources/ResourceQueue.h"
 
-#include "res_loaders/Intermediate/IntermImage.h"
-
 namespace AE::ResEditor
 {
     using ResLoader::EImageFormat;
@@ -39,9 +37,6 @@ namespace AE::ResEditor
         RC<Video::IVideoDecoder>    _decoder;
         uint2                       _dimension;
 
-        Mutex                       _loadOpGuard;
-        Atomic<EUploadStatus>       _uploadStatus   {EUploadStatus::Canceled};
-
         Synchronized< RWSpinLock,
             ImageDesc,
             ImageViewDesc >         _imageDesc;
@@ -57,26 +52,24 @@ namespace AE::ResEditor
                     const ImageDesc &   desc,
                     const Path &        path,
                     RC<DynamicDim>      outDynSize,
-                    StringView          dbgName)        __Th___;
+                    StringView          dbgName)            __Th___;
 
         ~VideoImage () override;
 
-            bool  Resize (TransferCtx_t &)              __Th_OV { return true; }
+            bool  Resize (TransferCtx_t &)                  __Th_OV { return true; }
 
-        ND_ ImageID         GetImageId ()               C_NE_OV { return _ids[ _CurrentIdx() ]; }
-        ND_ ImageViewID     GetViewId ()                C_NE_OV { return _views[ _CurrentIdx() ]; }
-        ND_ StringView      GetName ()                  C_NE___ { return _dbgName; }
+        ND_ ImageID         GetImageId ()                   C_NE_OV { return _ids[ _CurrentIdx() ]; }
+        ND_ ImageViewID     GetViewId ()                    C_NE_OV { return _views[ _CurrentIdx() ]; }
+        ND_ StringView      GetName ()                      C_NE___ { return _dbgName; }
 
 
     // IResource //
-        EUploadStatus   GetStatus ()                    C_NE_OV { return _uploadStatus.load(); }
-        EUploadStatus   Upload (TransferCtx_t &)        __Th_OV;
-        EUploadStatus   Readback (TransferCtx_t &)      __Th_OV { return EUploadStatus::Canceled; }
-        void            Cancel ()                       __Th_OV;
+        EUploadStatus       Upload (TransferCtx_t &)        __Th_OV;
+        EUploadStatus       Readback (TransferCtx_t &)      __Th_OV { return EUploadStatus::Canceled; }
 
     private:
-        ND_ uint        _CurrentIdx ()                  C_NE___ { return _imageIdx.load() % _MaxImages; }
-        ND_ uint        _NextIdx ()                     C_NE___ { return (_imageIdx.load()+1) % _MaxImages; }
+        ND_ uint            _CurrentIdx ()                  C_NE___ { return _imageIdx.load() % _MaxImages; }
+        ND_ uint            _NextIdx ()                     C_NE___ { return (_imageIdx.load()+1) % _MaxImages; }
     };
 
 

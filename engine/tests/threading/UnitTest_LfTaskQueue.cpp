@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/TaskSystem/TaskScheduler.h"
 #include "UnitTest_Common.h"
+#include "threading/TaskSystem/LfTaskQueue.h"
 
 #ifndef AE_DISABLE_THREADS
 namespace

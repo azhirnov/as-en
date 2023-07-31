@@ -18,11 +18,10 @@ namespace AE::ResEditor
         enum class EFlags : uint
         {
             Unknown     = 0,
-            RunOnce     = 1 << 0,
-            OnRequest   = 1 << 1,
-
-            _Last,
-            All         = ((_Last - 1) << 1) - 1,
+            RunOnce,
+            OnRequest,
+            RunOnce_AfterLoading,
+            _Count,
         };
 
     private:
@@ -35,13 +34,14 @@ namespace AE::ResEditor
         const EFlags    _flags          = Default;
         Atomic<uint>    _count          {0};
         Atomic<bool>    _requestUpdate  {false};
+        ResourceQueue&  _resQueue;
         String          _dbgName;
 
 
     // methods
     public:
-        explicit PassGroup (EFlags flags) : _flags{flags} {}
-        ~PassGroup () {}
+        PassGroup (EFlags flags, ResourceQueue &rq)                         : _flags{flags}, _resQueue{rq} {}
+        ~PassGroup ()                                                       {}
 
         void  AddPass (RC<IPass> pass)                                      __Th___;
         void  RequestUpdate ()                                              __NE___ { _requestUpdate.store( true ); }
@@ -53,8 +53,6 @@ namespace AE::ResEditor
         bool            Execute (SyncPassData &)                            __NE_OV;
         bool            Update (TransferCtx_t &, const UpdatePassData &)    __NE_OV;
     };
-
-    AE_BIT_OPERATORS( PassGroup::EFlags );
 
 
 } // AE::ResEditor

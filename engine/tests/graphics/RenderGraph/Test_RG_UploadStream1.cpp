@@ -37,7 +37,7 @@ namespace
             ctx.UploadBuffer( INOUT t.stream, OUT mem_view );
 
             auto    arr = ArrayView<ubyte>{t.buffer_data}.section( usize(pos), UMax );
-            CHECK_TE( mem_view.Copy( arr ) == mem_view.DataSize() );
+            CHECK_TE( mem_view.CopyFrom( arr ) == mem_view.DataSize() );
 
             Execute( ctx );
 

@@ -3,10 +3,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'Canvas batch |0| Draw task'
 {
-  BeginDebugLabel
-    name:  'Canvas batch |0| Draw task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -37,18 +33,9 @@ name: 'Canvas batch |0| Draw task'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'Canvas batch |0| Draw task - RP'
-    depth: 2
-  ----------
-
   DrawIndexed
   DrawIndexed
   DrawIndexed
-
-  EndDebugLabel
-    depth: 2
-  ----------
 
   EndRenderPass2
     attachment:
@@ -71,19 +58,10 @@ name: 'Canvas batch |0| Draw task'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'Canvas batch |1| Readback task'
 {
-  BeginDebugLabel
-    name:  'Canvas batch |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -96,10 +74,6 @@ name: 'Canvas batch |1| Readback task'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -113,10 +87,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'Canvas batch |0| Draw task'
 {
-  BeginDebugLabel
-    name:  'Canvas batch |0| Draw task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -147,18 +117,9 @@ name: 'Canvas batch |0| Draw task'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'Canvas batch |0| Draw task - RP'
-    depth: 2
-  ----------
-
   DrawIndexed
   DrawIndexed
   DrawIndexed
-
-  EndDebugLabel
-    depth: 2
-  ----------
 
   EndRenderPass2
     attachment:
@@ -181,19 +142,10 @@ name: 'Canvas batch |0| Draw task'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'Canvas batch |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -206,10 +158,6 @@ name: 'IndirectCmdBuffers'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -223,10 +171,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'Canvas batch |0| Draw task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -257,18 +201,9 @@ name: 'IndirectCmdBuffers'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'Canvas batch |0| Draw task - RP'
-    depth: 2
-  ----------
-
   DrawIndexed
   DrawIndexed
   DrawIndexed
-
-  EndDebugLabel
-    depth: 2
-  ----------
 
   EndRenderPass2
     attachment:
@@ -291,19 +226,10 @@ name: 'IndirectCmdBuffers'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'Canvas batch |1| Readback task'
 {
-  BeginDebugLabel
-    name:  'Canvas batch |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -316,10 +242,6 @@ name: 'Canvas batch |1| Readback task'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -333,10 +255,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'Canvas batch |0| Draw task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -367,18 +285,9 @@ name: 'IndirectCmdBuffers'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'Canvas batch |0| Draw task - RP'
-    depth: 2
-  ----------
-
   DrawIndexed
   DrawIndexed
   DrawIndexed
-
-  EndDebugLabel
-    depth: 2
-  ----------
 
   EndRenderPass2
     attachment:
@@ -401,15 +310,6 @@ name: 'IndirectCmdBuffers'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
-  BeginDebugLabel
-    name:  'Canvas batch |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -422,10 +322,6 @@ name: 'IndirectCmdBuffers'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }

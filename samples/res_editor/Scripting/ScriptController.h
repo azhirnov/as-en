@@ -13,29 +13,105 @@ namespace AE::ResEditor
     //
     class ScriptBaseController : public EnableScriptRC
     {
+    // variables
+    protected:
+        RC<IController>         _controller;
+        ScriptDynamicDimPtr     _dynamicDim;
+
+
     // methods
     public:
         static void  Bind (const ScriptEnginePtr &se)                   __Th___;
 
-        ND_ virtual RC<IController>  ToController (RC<DynamicDim> dim)  __Th___ = 0;
+        ND_ virtual RC<IController>  ToController ()                    __Th___ = 0;
+
+        void  SetDimensionIfNotSet (const ScriptDynamicDimPtr &)        __Th___;
 
     protected:
         template <typename B>
         static void  _BindBase (B &binder)                              __Th___;
+
+        ScriptDynamicDim*   _Dimension ()                               __Th___ { return ScriptDynamicDimPtr{_dynamicDim}.Detach(); }
+
+        void  _SetDimension (const ScriptDynamicDimPtr &)               __Th___;
     };
 
 
 
     //
-    // Controller 2D
+    // Controller Scale Bias
     //
-    class ScriptController2D final : public ScriptBaseController
+    class ScriptControllerScaleBias final : public ScriptBaseController
     {
     // methods
     public:
         static void  Bind (const ScriptEnginePtr &se)                   __Th___;
 
-        RC<IController>  ToController (RC<DynamicDim> dim)              __Th_OV;
+        RC<IController>  ToController ()                                __Th_OV;
+    };
+
+
+
+    //
+    // Controller Top Down
+    //
+    class ScriptControllerTopDown final : public ScriptBaseController
+    {
+    // types
+    private:
+        using MovingScale   = IController::MovingScale;
+
+    // variables
+    private:
+        MovingScale     _movingScale;
+        float           _rotationScale  {1.f};
+        float2          _initialPos     {0.f};
+
+    // methods
+    public:
+        static void  Bind (const ScriptEnginePtr &se)                   __Th___;
+
+        void  SetRotationScale (float value)                            __Th___;
+        void  ForwardBackwardScale1 (float value)                       __Th___;
+        void  ForwardBackwardScale2 (float forward, float backward)     __Th___;
+        void  SideMovementScale (float value)                           __Th___;
+
+        void  SetPosition (const packed_float2 &pos)                    __Th___ { _initialPos = pos; }
+
+        RC<IController>  ToController ()                                __Th_OV;
+    };
+
+
+
+    //
+    // Controller Isometric Camera
+    //
+    class ScriptControllerIsometricCamera final : public ScriptBaseController
+    {
+    // variables
+    protected:
+        float           _fovY           = 60.f;
+        float2          _clipPlanes     {0.1f, 100.f};
+        float2          _rotationScale  {1.f};
+        float3          _initialPos     {0.f};
+        float           _initialOffset  {0.f};
+        float           _offsetScale    {1.f};
+
+    // methods
+    public:
+        void  SetFovY (float value)                                     __Th___;
+        void  SetClipPlanes (float near, float far)                     __Th___;
+
+        void  SetRotationScale1 (float value)                           __Th___ { _rotationScale = float2{value}; }
+        void  SetRotationScale2 (float x, float y)                      __Th___ { _rotationScale = float2{x,y}; }
+        void  SetOffsetScale (float value)                              __Th___ { _offsetScale = value; }
+
+        void  SetPosition (const packed_float3 &pos)                    __Th___ { _initialPos = pos; }
+        void  SetOffset (float value)                                   __Th___ { _initialOffset = value; }
+
+        static void  Bind (const ScriptEnginePtr &se)                   __Th___;
+
+        RC<IController>  ToController ()                                __Th_OV;
     };
 
 
@@ -62,9 +138,9 @@ namespace AE::ResEditor
         void  SetFovY (float value)                                     __Th___;
         void  SetClipPlanes (float near, float far)                     __Th___;
 
-        void  SetRotationScale1 (float value)                           __Th___;
-        void  SetRotationScale2 (float x, float y)                      __Th___;
-        void  SetRotationScale3 (float x, float y, float z)             __Th___;
+        void  SetRotationScale1 (float value)                           __Th___ { _rotationScale = float3{value}; }
+        void  SetRotationScale2 (float x, float y)                      __Th___ { _rotationScale = float3{x,y,0.f}; }
+        void  SetRotationScale3 (float x, float y, float z)             __Th___ { _rotationScale = float3{x,y,z}; }
 
         void  ForwardBackwardScale1 (float value)                       __Th___;
         void  ForwardBackwardScale2 (float forward, float backward)     __Th___;
@@ -72,7 +148,7 @@ namespace AE::ResEditor
         void  UpDownScale2 (float up, float down)                       __Th___;
         void  SideMovementScale (float value)                           __Th___;
 
-        void  SetPosition (const packed_float3 &pos)                    __Th___;
+        void  SetPosition (const packed_float3 &pos)                    __Th___ { _initialPos = pos; }
     };
 
 
@@ -92,7 +168,7 @@ namespace AE::ResEditor
 
         static void  Bind (const ScriptEnginePtr &se)                   __Th___;
 
-        RC<IController>  ToController (RC<DynamicDim> dim)              __Th_OV;
+        RC<IController>  ToController ()                                __Th_OV;
     };
 
 
@@ -106,7 +182,7 @@ namespace AE::ResEditor
     public:
         static void  Bind (const ScriptEnginePtr &se)                   __Th___;
 
-        RC<IController>  ToController (RC<DynamicDim> dim)              __Th_OV;
+        RC<IController>  ToController ()                                __Th_OV;
     };
 
 
@@ -120,7 +196,7 @@ namespace AE::ResEditor
     public:
         static void  Bind (const ScriptEnginePtr &se)                   __Th___;
 
-        RC<IController>  ToController (RC<DynamicDim> dim)              __Th_OV;
+        RC<IController>  ToController ()                                __Th_OV;
     };
 
 

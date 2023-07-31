@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "base/Containers/RingBuffer.h"
 #include "res_editor/Resources/IResource.h"
 
 namespace AE::ResEditor
@@ -21,7 +20,8 @@ namespace AE::ResEditor
 
         struct alignas(AE_CACHE_LINE) Queue
         {
-            Atomic<int>                     counter {0};
+            Atomic<int>                     counter             {0};
+            Atomic<ulong>                   framesWithoutWork   {0};
             SpinLock                        guard;
             RingBuffer< RC<IResource> >     queue;
             Array< RC<IResource> >          nextFrameQueue;
@@ -50,8 +50,11 @@ namespace AE::ResEditor
 
         void  CancelAll ();
 
-        AsyncTask  Upload (RG::CommandBatchPtr batch, ArrayView<AsyncTask> deps);
-        AsyncTask  Readback (RG::CommandBatchPtr batch, ArrayView<AsyncTask> deps);
+        ND_ AsyncTask   Upload (RG::CommandBatchPtr batch, ArrayView<AsyncTask> deps);
+        ND_ AsyncTask   Readback (RG::CommandBatchPtr batch, ArrayView<AsyncTask> deps);
+
+        ND_ ulong       UploadFramesWithoutWork ()              { return _upload.framesWithoutWork.load(); }
+        ND_ ulong       ReadbackFramesWithoutWork ()            { return _readback.framesWithoutWork.load(); }
 
     private:
         void  _Upload (TransferCtx_t &);

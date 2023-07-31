@@ -1,11 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Common.h"
-#include "base/Algorithms/StringUtils.h"
-#include "base/Platforms/Platform.h"
-
-using namespace AE;
-using namespace AE::Base;
+#include "UnitTest_Common.h"
 
 
 extern void UnitTest_Array ();
@@ -57,10 +52,15 @@ extern int Test_Base ()
 int main ()
 #endif
 {
-    AE::Base::StaticLogger::LoggerDbgScope log{};
+    StaticLogger::LoggerDbgScope log{};
+    StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
 
     AE_LOGI( "\nPlatform name: "s << AE_PLATFORM_NAME <<
-             "\nCPU arch: " << AE_CPU_ARCH_NAME );
+             "\nCPU arch: " << AE_CPU_ARCH_NAME <<
+             "\nCompiler: " << AE_COMPILER_NAME <<
+             "\nCompiler ver: " << ToString(AE_COMPILER_VERSION) <<
+             "\nOS name: " << PlatformUtils::GetOSName() <<
+             "\nOS ver: " << ToString(PlatformUtils::GetOSVersion()) );
 
     UnitTest_Array();
     UnitTest_Color();

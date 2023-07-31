@@ -238,7 +238,8 @@ namespace AE::RG::_hidden_
         template <typename ID>
         ND_ RenderTaskBuilder &&    UseResources (ArrayView<ID> ids)                                            rvNE___;
 
-        ND_ RenderTaskBuilder &&    Last ()                                                                     rvNE___ { _last = true;  return RVRef(*this); }
+        // last render task may submit command batch to the GPU
+        ND_ RenderTaskBuilder &&    SubmitBatch ()                                                              rvNE___ { _last = true;  return RVRef(*this); }
 
         template <typename ...Deps>
         ND_ AsyncTask               Run (const Tuple<Deps...>& deps = Default)                                  rvNE___;

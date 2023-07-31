@@ -1,8 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/TaskSystem/Promise.h"
-#include "threading/TaskSystem/ThreadManager.h"
-#include "base/Algorithms/StringUtils.h"
 #include "UnitTest_Common.h"
 
 #ifndef AE_DISABLE_THREADS
@@ -24,7 +21,7 @@ namespace
     static void  Promise_Test1 ()
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         auto p = MakePromise( [] () { return "a"s; })
             .Then([] (const String &in) { return in + "b"; });
@@ -45,7 +42,7 @@ namespace
         TEST( AsyncTask{p0}->Status() == EStatus::Pending );
         TEST( AsyncTask{p1}->Status() == EStatus::Completed );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         auto p4 = p3.Then( [] (const Tuple<String, String, uint> &in) {
                 return in.Get<0>() + in.Get<1>() + ToString( in.Get<2>() );
@@ -58,7 +55,7 @@ namespace
     static void  Promise_Test3 ()
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         auto p0 = MakePromise( [] () { return PromiseResult<String>{ "a"s }; });
         auto p1 = MakePromise( [] () -> PromiseResult<String> { return CancelPromise; });   // canceled promise
@@ -86,7 +83,7 @@ namespace
     static void  Promise_Test4 ()
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         Promise<int> pe;
 
@@ -106,7 +103,7 @@ namespace
     static void  Promise_Test5 ()
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         auto p0 = MakePromise( [] () { return PromiseResult<String>{ "a"s }; });
         auto p1 = MakePromise( [] () -> PromiseResult<String> { return CancelPromise; });   // canceled promise

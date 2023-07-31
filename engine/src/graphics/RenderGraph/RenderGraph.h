@@ -137,7 +137,8 @@ namespace AE::RG::_hidden_
 
 
     // surface //
-        ND_ AsyncTask   BeginOnSurface (Ptr<App::IOutputSurface> surface, RGCommandBatchPtr batch) __NE___;
+        ND_ AsyncTask   BeginOnSurface (Ptr<App::IOutputSurface>    surface,
+                                        RGCommandBatchPtr           batch)      __NE___;
 
 
     // graph //

@@ -1,24 +1,27 @@
 
 if (TARGET "GLSLang-lib")
     set( GRAPHICS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/graphics" )
-    set( GRAPHICS_SRC
+    set( GRAPHICS_HPP_SRC
         "${GRAPHICS_DIR}/Scripting/GraphicsBindings.h"
-        #"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp"
         "${GRAPHICS_DIR}/Public/FeatureSet.h"
-        #"${GRAPHICS_DIR}/Private/FeatureSet.cpp"
         "${GRAPHICS_DIR}/Public/RenderState.h"
-        #"${GRAPHICS_DIR}/Private/RenderState.cpp"
         "${GRAPHICS_DIR}/Public/PipelineDesc.h"
         "${GRAPHICS_DIR}/Public/SamplerDesc.h"
-        #"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
         "${GRAPHICS_DIR}/Private/EnumUtils.h"
         "${GRAPHICS_DIR}/Private/EnumToString.h"
         "${GRAPHICS_DIR}/Public/IDs.h" )
+    if (NOT (DEFINED ENGINE_LIBS_PATH))
+        set( GRAPHICS_CPP_SRC
+            "${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp"
+            "${GRAPHICS_DIR}/Private/FeatureSet.cpp"
+            "${GRAPHICS_DIR}/Private/RenderState.cpp"
+            "${GRAPHICS_DIR}/Private/EnumUtils.cpp" )
+    endif()
     file( GLOB_RECURSE SOURCES "*.*" )
 
-    add_library( "PipelineCompiler" STATIC ${SOURCES} ${GRAPHICS_SRC} )
+    add_library( "PipelineCompiler" STATIC ${SOURCES} ${GRAPHICS_HPP_SRC} ${GRAPHICS_CPP_SRC} ${DUMMY_CPP_FILE} )
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
-    source_group( "external/graphics" FILES ${GRAPHICS_SRC} )
+    source_group( "external/graphics" FILES ${GRAPHICS_HPP_SRC} ${GRAPHICS_CPP_SRC} )
 
     target_link_libraries( "PipelineCompiler" PUBLIC "Serializing" "Scripting" )
     target_compile_definitions( "PipelineCompiler" PRIVATE "AE_BUILD_PIPELINE_COMPILER" "AE_TEST_PIPELINE_COMPILER" )
@@ -37,15 +40,18 @@ if (TARGET "GLSLang-lib")
         target_link_libraries( "PipelineCompiler" PUBLIC "Vulkan-lib" )
     endif()
 
+    target_link_libraries( "PipelineCompiler" PUBLIC "GLSLang-lib" )
+
     if (TARGET "ShaderTrace")
         target_link_libraries( "PipelineCompiler" PUBLIC "ShaderTrace" )
     endif()
 
-    target_link_libraries( "PipelineCompiler" PUBLIC "GLSLang-lib" )
-
     if (TARGET "SPIRV-Cross-lib")
         target_link_libraries( "PipelineCompiler" PUBLIC "SPIRV-Cross-lib" )
     endif()
+
+    EnablePCH( "PipelineCompiler" )
+    EnablePrebuild( "PipelineCompiler" )
 
     add_library( "PipelineCompiler-shared" SHARED
         "PipelineCompiler.h"

@@ -79,7 +79,7 @@ namespace AE::App
             bool  Insert (const InputActionName &name, ControllerID id, EGestureState state, const void* data, Bytes dataSize)  __NE___ { return CurrentQueue().Insert( name, id, state, data, dataSize ); }
             bool  Insert (const InputActionName &name, ControllerID id, EGestureState state)                                    __NE___ { return CurrentQueue().Insert( name, id, state ); }
 
-            ND_ ActionQueue&  CurrentQueue ()                                                                                   __NE___ { return _actionQueues[ ulong(_curFrameId.load().Unique()) & 1 ]; }
+            ND_ ActionQueue&  CurrentQueue ()                                                                                   __NE___ { return _actionQueues[ _curFrameId.load().Remap2() ]; }
 
             void  _NextFrame (FrameUID frameId)                                                                                 __NE___;
 

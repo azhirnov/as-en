@@ -9,7 +9,8 @@ using namespace AE;
 using namespace AE::Graphics;
 using namespace AE::Threading;
 
-#define PRINT_ALL_DS    1
+#define PRINT_ALL_DS        1
+#define ENABLE_DBG_LABEL    0
 
 namespace
 {
@@ -3123,7 +3124,7 @@ namespace
     VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdDispatchBase (VkCommandBuffer commandBuffer, uint baseGroupX, uint baseGroupY, uint baseGroupZ, uint groupCountX, uint groupCountY, uint groupCountZ)
     {
         auto&   logger = VulkanLogger::Get();
-        logger.vkCmdDispatchBase( commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ );
+        logger.vkCmdDispatchBaseKHR( commandBuffer, baseGroupX, baseGroupY, baseGroupZ, groupCountX, groupCountY, groupCountZ );
 
         EXLOCK( logger.guard );
         if ( not logger.enableLog )
@@ -3579,6 +3580,7 @@ namespace
         auto&       logger  = VulkanLogger::Get();
         logger.vkCmdInsertDebugUtilsLabelEXT( commandBuffer, pLabelInfo );
 
+      #if ENABLE_DBG_LABEL
         EXLOCK( logger.guard );
         if ( not logger.enableLog )
             return;
@@ -3594,6 +3596,7 @@ namespace
         log << "  InsertDebugLabel\n";
         log << "    name: " << pLabelInfo->pLabelName;
         log << "\n  ----------\n\n";
+      #endif
     }
 
 /*
@@ -3606,6 +3609,7 @@ namespace
         auto&       logger  = VulkanLogger::Get();
         logger.vkCmdBeginDebugUtilsLabelEXT( commandBuffer, pLabelInfo );
 
+      #if ENABLE_DBG_LABEL
         EXLOCK( logger.guard );
 
         auto    iter = logger.commandBuffers.find( commandBuffer );
@@ -3625,6 +3629,7 @@ namespace
         log << "    name:  '" << pLabelInfo->pLabelName << "'\n";
         log << "    depth: " << ToString( depth ) << "\n";
         log << "  ----------\n\n";
+      #endif
     }
 
 /*
@@ -3637,6 +3642,7 @@ namespace
         auto&       logger  = VulkanLogger::Get();
         logger.vkCmdEndDebugUtilsLabelEXT( commandBuffer );
 
+      #if ENABLE_DBG_LABEL
         EXLOCK( logger.guard );
 
         auto    iter = logger.commandBuffers.find( commandBuffer );
@@ -3660,6 +3666,7 @@ namespace
         log << "  EndDebugLabel\n";
         log << "    depth: " << ToString( depth ) << "\n";
         log << "  ----------\n\n";
+      #endif
     }
 
 /*
@@ -4162,7 +4169,7 @@ namespace
         table._var_vkAllocateCommandBuffers         = &Wrap_vkAllocateCommandBuffers;
         table._var_vkBeginCommandBuffer             = &Wrap_vkBeginCommandBuffer;
         table._var_vkEndCommandBuffer               = &Wrap_vkEndCommandBuffer;
-        table._var_vkCreateRenderPass2              = &Wrap_vkCreateRenderPass2;
+    //  table._var_vkCreateRenderPass2              = &Wrap_vkCreateRenderPass2;
         table._var_vkCreateRenderPass2KHR           = &Wrap_vkCreateRenderPass2;
         table._var_vkCreateDescriptorSetLayout      = &Wrap_vkCreateDescriptorSetLayout;
         table._var_vkDestroyDescriptorSetLayout     = &Wrap_vkDestroyDescriptorSetLayout;
@@ -4194,9 +4201,9 @@ namespace
         table._var_vkCmdBeginRenderPass             = &Wrap_vkCmdBeginRenderPass;
         table._var_vkCmdNextSubpass                 = &Wrap_vkCmdNextSubpass;
         table._var_vkCmdEndRenderPass               = &Wrap_vkCmdEndRenderPass;
-        table._var_vkCmdBeginRenderPass2            = &Wrap_vkCmdBeginRenderPass2;
-        table._var_vkCmdNextSubpass2                = &Wrap_vkCmdNextSubpass2;
-        table._var_vkCmdEndRenderPass2              = &Wrap_vkCmdEndRenderPass2;
+    //  table._var_vkCmdBeginRenderPass2            = &Wrap_vkCmdBeginRenderPass2;
+    //  table._var_vkCmdNextSubpass2                = &Wrap_vkCmdNextSubpass2;
+    //  table._var_vkCmdEndRenderPass2              = &Wrap_vkCmdEndRenderPass2;
         table._var_vkCmdBeginRenderPass2KHR         = &Wrap_vkCmdBeginRenderPass2;
         table._var_vkCmdNextSubpass2KHR             = &Wrap_vkCmdNextSubpass2;
         table._var_vkCmdEndRenderPass2KHR           = &Wrap_vkCmdEndRenderPass2;
@@ -4212,15 +4219,15 @@ namespace
         table._var_vkCmdClearAttachments            = &Wrap_vkCmdClearAttachments;
         table._var_vkCmdResolveImage                = &Wrap_vkCmdResolveImage;
         table._var_vkCmdDispatch                    = &Wrap_vkCmdDispatch;
-        table._var_vkCmdDispatchBase                = &Wrap_vkCmdDispatchBase;
+    //  table._var_vkCmdDispatchBase                = &Wrap_vkCmdDispatchBase;
         table._var_vkCmdDispatchIndirect            = &Wrap_vkCmdDispatchIndirect;
         table._var_vkCmdDispatchBaseKHR             = &Wrap_vkCmdDispatchBase;
         table._var_vkCmdDraw                        = &Wrap_vkCmdDraw;
         table._var_vkCmdDrawIndexed                 = &Wrap_vkCmdDrawIndexed;
         table._var_vkCmdDrawIndirect                = &Wrap_vkCmdDrawIndirect;
         table._var_vkCmdDrawIndexedIndirect         = &Wrap_vkCmdDrawIndexedIndirect;
-        table._var_vkCmdDrawIndirectCount           = &Wrap_vkCmdDrawIndirectCount;
-        table._var_vkCmdDrawIndexedIndirectCount    = &Wrap_vkCmdDrawIndexedIndirectCount;
+    //  table._var_vkCmdDrawIndirectCount           = &Wrap_vkCmdDrawIndirectCount;
+    //  table._var_vkCmdDrawIndexedIndirectCount    = &Wrap_vkCmdDrawIndexedIndirectCount;
         table._var_vkCmdDrawIndirectCountKHR        = &Wrap_vkCmdDrawIndirectCount;
         table._var_vkCmdDrawIndexedIndirectCountKHR = &Wrap_vkCmdDrawIndexedIndirectCount;
         table._var_vkCmdDrawMeshTasksEXT            = &Wrap_vkCmdDrawMeshTasks;

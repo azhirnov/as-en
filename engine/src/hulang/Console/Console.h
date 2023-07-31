@@ -7,12 +7,6 @@
 
 #include "hulang/Common.h"
 
-#include "base/Containers/FixedArray.h"
-#include "base/Memory/LinearAllocator.h"
-
-#include "threading/Primitives/SpinLock.h"
-#include "threading/Primitives/DataRaceCheck.h"
-
 namespace AE::HuLang
 {
 

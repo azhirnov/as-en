@@ -1,4 +1,4 @@
-//85596001
+//19C6D8E9
 #include <vector>
 #include <string>
 
@@ -18,76 +18,112 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct sbyte2;
-struct ActionInfo;
-struct WinAPI_ActionBindings;
-struct float4;
-struct short4;
-struct short3;
-struct float3;
-struct Android_BindingsMode;
-struct short2;
 struct float2;
-struct sbyte3;
+struct float3;
+struct OpenVR_ActionBindings;
+struct GLFW_ActionBindings;
+struct WinAPI_BindingsMode;
+struct short3;
 struct sbyte4;
-struct WinAPI_Input;
-struct VecSwizzle;
-struct EValueType;
-struct GLFW_BindingsMode;
-struct ubyte2;
-struct EGestureType;
-struct ubyte3;
-struct Android_ActionBindings;
-struct GLFW_Input;
-struct bool4;
-struct uint3;
-struct int4;
-struct bool2;
-struct ubyte4;
+struct short2;
+struct ushort4;
+struct sbyte3;
 struct uint2;
+struct GLFW_BindingsMode;
+struct uint3;
+struct Android_Input;
+struct float4;
+struct uint4;
+struct EValueType;
+struct WinAPI_Input;
+struct Android_ActionBindings;
+struct VecSwizzle;
 struct int2;
 struct bool3;
 struct int3;
-struct WinAPI_BindingsMode;
-struct EGestureState;
-struct uint4;
-struct Android_Input;
+struct bool4;
+struct bool2;
+struct GLFW_Input;
+struct int4;
+struct ushort2;
+struct ushort3;
+struct sbyte2;
+struct short4;
 struct OpenVR_BindingsMode;
-struct OpenVR_ActionBindings;
+struct Android_BindingsMode;
+struct ActionInfo;
+struct ubyte2;
+struct ubyte3;
+struct EGestureType;
+struct ubyte4;
 struct OpenVR_Input;
-struct GLFW_ActionBindings;
+struct WinAPI_ActionBindings;
+struct EGestureState;
 
 int  Abs (int);
+int  MirroredWrap (int, int, int);
 int  Square (int);
 int  Min (int, int);
 int  Max (int, int);
 int  Clamp (int, int, int);
+int  Wrap (int, int, int);
+int  CalcAverage (int, int);
 int  IntLog2 (int);
+int  CeilIntLog2 (int);
 int  BitScanReverse (int);
 int  BitScanForward (int);
 uint  BitCount (int);
 bool  IsPowerOfTwo (int);
+bool  IsSingleBitSet (int);
+bool  AllBits (int, int);
+bool  AnyBits (int, int);
+int  ExtractBit (int &);
+int  ExtractBitLog2 (int &);
+int  BitRotateLeft (int, uint);
+int  BitRotateRight (int, uint);
+int  FloorPOT (int);
+int  CeilPOT (int);
+int  AlignDown (int, int);
+int  AlignUp (int, int);
+bool  IsAligned (int, int);
 uint  Square (uint);
 uint  Min (uint, uint);
 uint  Max (uint, uint);
 uint  Clamp (uint, uint, uint);
+uint  Wrap (uint, uint, uint);
+uint  CalcAverage (uint, uint);
 int  IntLog2 (uint);
+int  CeilIntLog2 (uint);
 int  BitScanReverse (uint);
 int  BitScanForward (uint);
 uint  BitCount (uint);
 bool  IsPowerOfTwo (uint);
+bool  IsSingleBitSet (uint);
+bool  AllBits (uint, uint);
+bool  AnyBits (uint, uint);
+uint  ExtractBit (uint &);
+uint  ExtractBitLog2 (uint &);
+uint  BitRotateLeft (uint, uint);
+uint  BitRotateRight (uint, uint);
+uint  FloorPOT (uint);
+uint  CeilPOT (uint);
+uint  AlignDown (uint, uint);
+uint  AlignUp (uint, uint);
+bool  IsAligned (uint, uint);
 float  Abs (float);
+float  MirroredWrap (float, float, float);
 float  Square (float);
 float  Min (float, float);
 float  Max (float, float);
 float  Clamp (float, float, float);
+float  Wrap (float, float, float);
+float  CalcAverage (float, float);
 float  Floor (float);
 float  Ceil (float);
 float  Trunc (float);
 float  Fract (float);
 float  Round (float);
 float  Mod (float, float);
-float  Wrap (float, float, float);
 float  Sqrt (float);
 float  Pow (float, float);
 float  Ln (float);
@@ -97,6 +133,7 @@ float  Log10 (float);
 float  Exp (float);
 float  Exp2 (float);
 float  Exp10 (float);
+float  ExpMinus1 (float);
 float  Sin (float);
 float  SinH (float);
 float  ASin (float);
@@ -106,7 +143,18 @@ float  ACos (float);
 float  Tan (float);
 float  TanH (float);
 float  ATan (float, float);
+float  ToRad (float);
+float  ToDeg (float);
 float  Lerp (float, float, float);
+float  ToSNorm (float);
+float  ToUNorm (float);
+float  Remap (float, float, float, float, float);
+float  RemapClamped (float, float, float, float, float);
+int  RoundToInt (float);
+uint  RoundToUint (float);
+float  IsInfinity (float);
+float  IsNaN (float);
+float  IsFinite (float);
 struct bool2
 {
 	bool2 ();
@@ -118,6 +166,21 @@ struct bool2
 	bool2 (const bool3 &);
 	bool2 (const bool4 &);
 	bool2 (bool, bool);
+	bool2 (const short2 &);
+	bool2 (const short3 &);
+	bool2 (const short4 &);
+	bool2 (const ushort2 &);
+	bool2 (const ushort3 &);
+	bool2 (const ushort4 &);
+	bool2 (const int2 &);
+	bool2 (const int3 &);
+	bool2 (const int4 &);
+	bool2 (const uint2 &);
+	bool2 (const uint3 &);
+	bool2 (const uint4 &);
+	bool2 (const float2 &);
+	bool2 (const float3 &);
+	bool2 (const float4 &);
 };
 
 struct bool3
@@ -133,6 +196,21 @@ struct bool3
 	bool3 (const bool4 &);
 	bool3 (const bool2 &, bool);
 	bool3 (bool, bool, bool);
+	bool3 (const short2 &);
+	bool3 (const short3 &);
+	bool3 (const short4 &);
+	bool3 (const ushort2 &);
+	bool3 (const ushort3 &);
+	bool3 (const ushort4 &);
+	bool3 (const int2 &);
+	bool3 (const int3 &);
+	bool3 (const int4 &);
+	bool3 (const uint2 &);
+	bool3 (const uint3 &);
+	bool3 (const uint4 &);
+	bool3 (const float2 &);
+	bool3 (const float3 &);
+	bool3 (const float4 &);
 };
 
 struct bool4
@@ -150,6 +228,21 @@ struct bool4
 	bool4 (const bool2 &, const bool2 &);
 	bool4 (const bool3 &, bool);
 	bool4 (bool, bool, bool, bool);
+	bool4 (const short2 &);
+	bool4 (const short3 &);
+	bool4 (const short4 &);
+	bool4 (const ushort2 &);
+	bool4 (const ushort3 &);
+	bool4 (const ushort4 &);
+	bool4 (const int2 &);
+	bool4 (const int3 &);
+	bool4 (const int4 &);
+	bool4 (const uint2 &);
+	bool4 (const uint3 &);
+	bool4 (const uint4 &);
+	bool4 (const float2 &);
+	bool4 (const float3 &);
+	bool4 (const float4 &);
 };
 
 struct sbyte2
@@ -163,6 +256,21 @@ struct sbyte2
 	sbyte2 (const sbyte3 &);
 	sbyte2 (const sbyte4 &);
 	sbyte2 (int8, int8);
+	sbyte2 (const short2 &);
+	sbyte2 (const short3 &);
+	sbyte2 (const short4 &);
+	sbyte2 (const ushort2 &);
+	sbyte2 (const ushort3 &);
+	sbyte2 (const ushort4 &);
+	sbyte2 (const int2 &);
+	sbyte2 (const int3 &);
+	sbyte2 (const int4 &);
+	sbyte2 (const uint2 &);
+	sbyte2 (const uint3 &);
+	sbyte2 (const uint4 &);
+	sbyte2 (const float2 &);
+	sbyte2 (const float3 &);
+	sbyte2 (const float4 &);
 };
 
 struct sbyte3
@@ -178,6 +286,21 @@ struct sbyte3
 	sbyte3 (const sbyte4 &);
 	sbyte3 (const sbyte2 &, int8);
 	sbyte3 (int8, int8, int8);
+	sbyte3 (const short2 &);
+	sbyte3 (const short3 &);
+	sbyte3 (const short4 &);
+	sbyte3 (const ushort2 &);
+	sbyte3 (const ushort3 &);
+	sbyte3 (const ushort4 &);
+	sbyte3 (const int2 &);
+	sbyte3 (const int3 &);
+	sbyte3 (const int4 &);
+	sbyte3 (const uint2 &);
+	sbyte3 (const uint3 &);
+	sbyte3 (const uint4 &);
+	sbyte3 (const float2 &);
+	sbyte3 (const float3 &);
+	sbyte3 (const float4 &);
 };
 
 struct sbyte4
@@ -195,6 +318,21 @@ struct sbyte4
 	sbyte4 (const sbyte2 &, const sbyte2 &);
 	sbyte4 (const sbyte3 &, int8);
 	sbyte4 (int8, int8, int8, int8);
+	sbyte4 (const short2 &);
+	sbyte4 (const short3 &);
+	sbyte4 (const short4 &);
+	sbyte4 (const ushort2 &);
+	sbyte4 (const ushort3 &);
+	sbyte4 (const ushort4 &);
+	sbyte4 (const int2 &);
+	sbyte4 (const int3 &);
+	sbyte4 (const int4 &);
+	sbyte4 (const uint2 &);
+	sbyte4 (const uint3 &);
+	sbyte4 (const uint4 &);
+	sbyte4 (const float2 &);
+	sbyte4 (const float3 &);
+	sbyte4 (const float4 &);
 };
 
 struct ubyte2
@@ -208,6 +346,21 @@ struct ubyte2
 	ubyte2 (const ubyte3 &);
 	ubyte2 (const ubyte4 &);
 	ubyte2 (uint8, uint8);
+	ubyte2 (const short2 &);
+	ubyte2 (const short3 &);
+	ubyte2 (const short4 &);
+	ubyte2 (const ushort2 &);
+	ubyte2 (const ushort3 &);
+	ubyte2 (const ushort4 &);
+	ubyte2 (const int2 &);
+	ubyte2 (const int3 &);
+	ubyte2 (const int4 &);
+	ubyte2 (const uint2 &);
+	ubyte2 (const uint3 &);
+	ubyte2 (const uint4 &);
+	ubyte2 (const float2 &);
+	ubyte2 (const float3 &);
+	ubyte2 (const float4 &);
 };
 
 struct ubyte3
@@ -223,6 +376,21 @@ struct ubyte3
 	ubyte3 (const ubyte4 &);
 	ubyte3 (const ubyte2 &, uint8);
 	ubyte3 (uint8, uint8, uint8);
+	ubyte3 (const short2 &);
+	ubyte3 (const short3 &);
+	ubyte3 (const short4 &);
+	ubyte3 (const ushort2 &);
+	ubyte3 (const ushort3 &);
+	ubyte3 (const ushort4 &);
+	ubyte3 (const int2 &);
+	ubyte3 (const int3 &);
+	ubyte3 (const int4 &);
+	ubyte3 (const uint2 &);
+	ubyte3 (const uint3 &);
+	ubyte3 (const uint4 &);
+	ubyte3 (const float2 &);
+	ubyte3 (const float3 &);
+	ubyte3 (const float4 &);
 };
 
 struct ubyte4
@@ -240,6 +408,21 @@ struct ubyte4
 	ubyte4 (const ubyte2 &, const ubyte2 &);
 	ubyte4 (const ubyte3 &, uint8);
 	ubyte4 (uint8, uint8, uint8, uint8);
+	ubyte4 (const short2 &);
+	ubyte4 (const short3 &);
+	ubyte4 (const short4 &);
+	ubyte4 (const ushort2 &);
+	ubyte4 (const ushort3 &);
+	ubyte4 (const ushort4 &);
+	ubyte4 (const int2 &);
+	ubyte4 (const int3 &);
+	ubyte4 (const int4 &);
+	ubyte4 (const uint2 &);
+	ubyte4 (const uint3 &);
+	ubyte4 (const uint4 &);
+	ubyte4 (const float2 &);
+	ubyte4 (const float3 &);
+	ubyte4 (const float4 &);
 };
 
 struct short2
@@ -253,6 +436,18 @@ struct short2
 	short2 (const short3 &);
 	short2 (const short4 &);
 	short2 (int16, int16);
+	short2 (const ushort2 &);
+	short2 (const ushort3 &);
+	short2 (const ushort4 &);
+	short2 (const int2 &);
+	short2 (const int3 &);
+	short2 (const int4 &);
+	short2 (const uint2 &);
+	short2 (const uint3 &);
+	short2 (const uint4 &);
+	short2 (const float2 &);
+	short2 (const float3 &);
+	short2 (const float4 &);
 };
 
 struct short3
@@ -268,6 +463,18 @@ struct short3
 	short3 (const short4 &);
 	short3 (const short2 &, int16);
 	short3 (int16, int16, int16);
+	short3 (const ushort2 &);
+	short3 (const ushort3 &);
+	short3 (const ushort4 &);
+	short3 (const int2 &);
+	short3 (const int3 &);
+	short3 (const int4 &);
+	short3 (const uint2 &);
+	short3 (const uint3 &);
+	short3 (const uint4 &);
+	short3 (const float2 &);
+	short3 (const float3 &);
+	short3 (const float4 &);
 };
 
 struct short4
@@ -285,6 +492,99 @@ struct short4
 	short4 (const short2 &, const short2 &);
 	short4 (const short3 &, int16);
 	short4 (int16, int16, int16, int16);
+	short4 (const ushort2 &);
+	short4 (const ushort3 &);
+	short4 (const ushort4 &);
+	short4 (const int2 &);
+	short4 (const int3 &);
+	short4 (const int4 &);
+	short4 (const uint2 &);
+	short4 (const uint3 &);
+	short4 (const uint4 &);
+	short4 (const float2 &);
+	short4 (const float3 &);
+	short4 (const float4 &);
+};
+
+struct ushort2
+{
+	ushort2 ();
+	ushort2 (const ushort2&);
+	ushort2&  operator = (const ushort2&);
+	uint16 x;
+	uint16 y;
+	ushort2 (uint16);
+	ushort2 (const ushort3 &);
+	ushort2 (const ushort4 &);
+	ushort2 (uint16, uint16);
+	ushort2 (const short2 &);
+	ushort2 (const short3 &);
+	ushort2 (const short4 &);
+	ushort2 (const int2 &);
+	ushort2 (const int3 &);
+	ushort2 (const int4 &);
+	ushort2 (const uint2 &);
+	ushort2 (const uint3 &);
+	ushort2 (const uint4 &);
+	ushort2 (const float2 &);
+	ushort2 (const float3 &);
+	ushort2 (const float4 &);
+};
+
+struct ushort3
+{
+	ushort3 ();
+	ushort3 (const ushort3&);
+	ushort3&  operator = (const ushort3&);
+	uint16 x;
+	uint16 y;
+	uint16 z;
+	ushort3 (uint16);
+	ushort3 (const ushort2 &);
+	ushort3 (const ushort4 &);
+	ushort3 (const ushort2 &, uint16);
+	ushort3 (uint16, uint16, uint16);
+	ushort3 (const short2 &);
+	ushort3 (const short3 &);
+	ushort3 (const short4 &);
+	ushort3 (const int2 &);
+	ushort3 (const int3 &);
+	ushort3 (const int4 &);
+	ushort3 (const uint2 &);
+	ushort3 (const uint3 &);
+	ushort3 (const uint4 &);
+	ushort3 (const float2 &);
+	ushort3 (const float3 &);
+	ushort3 (const float4 &);
+};
+
+struct ushort4
+{
+	ushort4 ();
+	ushort4 (const ushort4&);
+	ushort4&  operator = (const ushort4&);
+	uint16 x;
+	uint16 y;
+	uint16 z;
+	uint16 w;
+	ushort4 (uint16);
+	ushort4 (const ushort2 &);
+	ushort4 (const ushort3 &);
+	ushort4 (const ushort2 &, const ushort2 &);
+	ushort4 (const ushort3 &, uint16);
+	ushort4 (uint16, uint16, uint16, uint16);
+	ushort4 (const short2 &);
+	ushort4 (const short3 &);
+	ushort4 (const short4 &);
+	ushort4 (const int2 &);
+	ushort4 (const int3 &);
+	ushort4 (const int4 &);
+	ushort4 (const uint2 &);
+	ushort4 (const uint3 &);
+	ushort4 (const uint4 &);
+	ushort4 (const float2 &);
+	ushort4 (const float3 &);
+	ushort4 (const float4 &);
 };
 
 struct int2
@@ -298,6 +598,18 @@ struct int2
 	int2 (const int3 &);
 	int2 (const int4 &);
 	int2 (int, int);
+	int2 (const short2 &);
+	int2 (const short3 &);
+	int2 (const short4 &);
+	int2 (const ushort2 &);
+	int2 (const ushort3 &);
+	int2 (const ushort4 &);
+	int2 (const uint2 &);
+	int2 (const uint3 &);
+	int2 (const uint4 &);
+	int2 (const float2 &);
+	int2 (const float3 &);
+	int2 (const float4 &);
 };
 
 struct int3
@@ -313,6 +625,18 @@ struct int3
 	int3 (const int4 &);
 	int3 (const int2 &, int);
 	int3 (int, int, int);
+	int3 (const short2 &);
+	int3 (const short3 &);
+	int3 (const short4 &);
+	int3 (const ushort2 &);
+	int3 (const ushort3 &);
+	int3 (const ushort4 &);
+	int3 (const uint2 &);
+	int3 (const uint3 &);
+	int3 (const uint4 &);
+	int3 (const float2 &);
+	int3 (const float3 &);
+	int3 (const float4 &);
 };
 
 struct int4
@@ -330,6 +654,18 @@ struct int4
 	int4 (const int2 &, const int2 &);
 	int4 (const int3 &, int);
 	int4 (int, int, int, int);
+	int4 (const short2 &);
+	int4 (const short3 &);
+	int4 (const short4 &);
+	int4 (const ushort2 &);
+	int4 (const ushort3 &);
+	int4 (const ushort4 &);
+	int4 (const uint2 &);
+	int4 (const uint3 &);
+	int4 (const uint4 &);
+	int4 (const float2 &);
+	int4 (const float3 &);
+	int4 (const float4 &);
 };
 
 struct uint2
@@ -343,6 +679,18 @@ struct uint2
 	uint2 (const uint3 &);
 	uint2 (const uint4 &);
 	uint2 (uint, uint);
+	uint2 (const short2 &);
+	uint2 (const short3 &);
+	uint2 (const short4 &);
+	uint2 (const ushort2 &);
+	uint2 (const ushort3 &);
+	uint2 (const ushort4 &);
+	uint2 (const int2 &);
+	uint2 (const int3 &);
+	uint2 (const int4 &);
+	uint2 (const float2 &);
+	uint2 (const float3 &);
+	uint2 (const float4 &);
 };
 
 struct uint3
@@ -358,6 +706,18 @@ struct uint3
 	uint3 (const uint4 &);
 	uint3 (const uint2 &, uint);
 	uint3 (uint, uint, uint);
+	uint3 (const short2 &);
+	uint3 (const short3 &);
+	uint3 (const short4 &);
+	uint3 (const ushort2 &);
+	uint3 (const ushort3 &);
+	uint3 (const ushort4 &);
+	uint3 (const int2 &);
+	uint3 (const int3 &);
+	uint3 (const int4 &);
+	uint3 (const float2 &);
+	uint3 (const float3 &);
+	uint3 (const float4 &);
 };
 
 struct uint4
@@ -375,6 +735,18 @@ struct uint4
 	uint4 (const uint2 &, const uint2 &);
 	uint4 (const uint3 &, uint);
 	uint4 (uint, uint, uint, uint);
+	uint4 (const short2 &);
+	uint4 (const short3 &);
+	uint4 (const short4 &);
+	uint4 (const ushort2 &);
+	uint4 (const ushort3 &);
+	uint4 (const ushort4 &);
+	uint4 (const int2 &);
+	uint4 (const int3 &);
+	uint4 (const int4 &);
+	uint4 (const float2 &);
+	uint4 (const float3 &);
+	uint4 (const float4 &);
 };
 
 struct float2
@@ -388,6 +760,18 @@ struct float2
 	float2 (const float3 &);
 	float2 (const float4 &);
 	float2 (float, float);
+	float2 (const short2 &);
+	float2 (const short3 &);
+	float2 (const short4 &);
+	float2 (const ushort2 &);
+	float2 (const ushort3 &);
+	float2 (const ushort4 &);
+	float2 (const int2 &);
+	float2 (const int3 &);
+	float2 (const int4 &);
+	float2 (const uint2 &);
+	float2 (const uint3 &);
+	float2 (const uint4 &);
 };
 
 struct float3
@@ -403,6 +787,18 @@ struct float3
 	float3 (const float4 &);
 	float3 (const float2 &, float);
 	float3 (float, float, float);
+	float3 (const short2 &);
+	float3 (const short3 &);
+	float3 (const short4 &);
+	float3 (const ushort2 &);
+	float3 (const ushort3 &);
+	float3 (const ushort4 &);
+	float3 (const int2 &);
+	float3 (const int3 &);
+	float3 (const int4 &);
+	float3 (const uint2 &);
+	float3 (const uint3 &);
+	float3 (const uint4 &);
 };
 
 struct float4
@@ -420,6 +816,18 @@ struct float4
 	float4 (const float2 &, const float2 &);
 	float4 (const float3 &, float);
 	float4 (float, float, float, float);
+	float4 (const short2 &);
+	float4 (const short3 &);
+	float4 (const short4 &);
+	float4 (const ushort2 &);
+	float4 (const ushort3 &);
+	float4 (const ushort4 &);
+	float4 (const int2 &);
+	float4 (const int3 &);
+	float4 (const int4 &);
+	float4 (const uint2 &);
+	float4 (const uint3 &);
+	float4 (const uint4 &);
 };
 
 bool  All (const bool2 &);
@@ -428,7 +836,166 @@ bool  All (const bool3 &);
 bool  Any (const bool3 &);
 bool  All (const bool4 &);
 bool  Any (const bool4 &);
+int2  Abs (const int2 &);
+int2  MirroredWrap (const int2 &, const int2 &, const int2 &);
+int2  MirroredWrap (const int2 &, int, int);
+int  Sum (const int2 &);
+int  Area (const int2 &);
+int2  Min (const int2 &, const int2 &);
+int2  Max (const int2 &, const int2 &);
+int2  Clamp (const int2 &, const int2 &, const int2 &);
+int2  Clamp (const int2 &, int, int);
+int2  Wrap (const int2 &, const int2 &, const int2 &);
+int2  Wrap (const int2 &, int, int);
+int3  Abs (const int3 &);
+int3  MirroredWrap (const int3 &, const int3 &, const int3 &);
+int3  MirroredWrap (const int3 &, int, int);
+int  Sum (const int3 &);
+int  Area (const int3 &);
+int3  Min (const int3 &, const int3 &);
+int3  Max (const int3 &, const int3 &);
+int3  Clamp (const int3 &, const int3 &, const int3 &);
+int3  Clamp (const int3 &, int, int);
+int3  Wrap (const int3 &, const int3 &, const int3 &);
+int3  Wrap (const int3 &, int, int);
+int4  Abs (const int4 &);
+int4  MirroredWrap (const int4 &, const int4 &, const int4 &);
+int4  MirroredWrap (const int4 &, int, int);
+int  Sum (const int4 &);
+int  Area (const int4 &);
+int4  Min (const int4 &, const int4 &);
+int4  Max (const int4 &, const int4 &);
+int4  Clamp (const int4 &, const int4 &, const int4 &);
+int4  Clamp (const int4 &, int, int);
+int4  Wrap (const int4 &, const int4 &, const int4 &);
+int4  Wrap (const int4 &, int, int);
+uint  Sum (const uint2 &);
+uint  Area (const uint2 &);
+uint2  Min (const uint2 &, const uint2 &);
+uint2  Max (const uint2 &, const uint2 &);
+uint2  Clamp (const uint2 &, const uint2 &, const uint2 &);
+uint2  Clamp (const uint2 &, uint, uint);
+uint2  Wrap (const uint2 &, const uint2 &, const uint2 &);
+uint2  Wrap (const uint2 &, uint, uint);
+uint  Sum (const uint3 &);
+uint  Area (const uint3 &);
+uint3  Min (const uint3 &, const uint3 &);
+uint3  Max (const uint3 &, const uint3 &);
+uint3  Clamp (const uint3 &, const uint3 &, const uint3 &);
+uint3  Clamp (const uint3 &, uint, uint);
+uint3  Wrap (const uint3 &, const uint3 &, const uint3 &);
+uint3  Wrap (const uint3 &, uint, uint);
+uint  Sum (const uint4 &);
+uint  Area (const uint4 &);
+uint4  Min (const uint4 &, const uint4 &);
+uint4  Max (const uint4 &, const uint4 &);
+uint4  Clamp (const uint4 &, const uint4 &, const uint4 &);
+uint4  Clamp (const uint4 &, uint, uint);
+uint4  Wrap (const uint4 &, const uint4 &, const uint4 &);
+uint4  Wrap (const uint4 &, uint, uint);
+float2  Abs (const float2 &);
+float2  MirroredWrap (const float2 &, const float2 &, const float2 &);
+float2  MirroredWrap (const float2 &, float, float);
+float  Sum (const float2 &);
+float  Area (const float2 &);
+float2  Min (const float2 &, const float2 &);
+float2  Max (const float2 &, const float2 &);
+float2  Clamp (const float2 &, const float2 &, const float2 &);
+float2  Clamp (const float2 &, float, float);
+float2  Wrap (const float2 &, const float2 &, const float2 &);
+float2  Wrap (const float2 &, float, float);
+float2  ToSNorm (const float2 &);
+float2  ToUNorm (const float2 &);
+float  Dot (const float2 &, const float2 &);
+float2  Lerp (const float2 &, const float2 &, float);
+float2  Normalize (const float2 &);
+float2  Floor (const float2 &);
+float2  Ceil (const float2 &);
+float2  Round (const float2 &);
+float2  Fract (const float2 &);
+float2  Sqrt (const float2 &);
+float2  Ln (const float2 &);
+float2  Log2 (const float2 &);
+float2  Log (const float2 &, const float2 &);
+float2  Log (const float2 &, float);
+float2  Pow (const float2 &, const float2 &);
+float2  Pow (const float2 &, float);
+float2  Exp (const float2 &);
+float2  Exp2 (const float2 &);
+float2  Exp10 (const float2 &);
+float  Length (const float2 &);
+float  LengthSqr (const float2 &);
+float  Distance (const float2 &, const float2 &);
+float  DistanceSqr (const float2 &, const float2 &);
+float3  Abs (const float3 &);
+float3  MirroredWrap (const float3 &, const float3 &, const float3 &);
+float3  MirroredWrap (const float3 &, float, float);
+float  Sum (const float3 &);
+float  Area (const float3 &);
+float3  Min (const float3 &, const float3 &);
+float3  Max (const float3 &, const float3 &);
+float3  Clamp (const float3 &, const float3 &, const float3 &);
+float3  Clamp (const float3 &, float, float);
+float3  Wrap (const float3 &, const float3 &, const float3 &);
+float3  Wrap (const float3 &, float, float);
 float3  Cross (const float3 &, const float3 &);
+float3  ToSNorm (const float3 &);
+float3  ToUNorm (const float3 &);
+float  Dot (const float3 &, const float3 &);
+float3  Lerp (const float3 &, const float3 &, float);
+float3  Normalize (const float3 &);
+float3  Floor (const float3 &);
+float3  Ceil (const float3 &);
+float3  Round (const float3 &);
+float3  Fract (const float3 &);
+float3  Sqrt (const float3 &);
+float3  Ln (const float3 &);
+float3  Log2 (const float3 &);
+float3  Log (const float3 &, const float3 &);
+float3  Log (const float3 &, float);
+float3  Pow (const float3 &, const float3 &);
+float3  Pow (const float3 &, float);
+float3  Exp (const float3 &);
+float3  Exp2 (const float3 &);
+float3  Exp10 (const float3 &);
+float  Length (const float3 &);
+float  LengthSqr (const float3 &);
+float  Distance (const float3 &, const float3 &);
+float  DistanceSqr (const float3 &, const float3 &);
+float4  Abs (const float4 &);
+float4  MirroredWrap (const float4 &, const float4 &, const float4 &);
+float4  MirroredWrap (const float4 &, float, float);
+float  Sum (const float4 &);
+float  Area (const float4 &);
+float4  Min (const float4 &, const float4 &);
+float4  Max (const float4 &, const float4 &);
+float4  Clamp (const float4 &, const float4 &, const float4 &);
+float4  Clamp (const float4 &, float, float);
+float4  Wrap (const float4 &, const float4 &, const float4 &);
+float4  Wrap (const float4 &, float, float);
+float4  ToSNorm (const float4 &);
+float4  ToUNorm (const float4 &);
+float  Dot (const float4 &, const float4 &);
+float4  Lerp (const float4 &, const float4 &, float);
+float4  Normalize (const float4 &);
+float4  Floor (const float4 &);
+float4  Ceil (const float4 &);
+float4  Round (const float4 &);
+float4  Fract (const float4 &);
+float4  Sqrt (const float4 &);
+float4  Ln (const float4 &);
+float4  Log2 (const float4 &);
+float4  Log (const float4 &, const float4 &);
+float4  Log (const float4 &, float);
+float4  Pow (const float4 &, const float4 &);
+float4  Pow (const float4 &, float);
+float4  Exp (const float4 &);
+float4  Exp2 (const float4 &);
+float4  Exp10 (const float4 &);
+float  Length (const float4 &);
+float  LengthSqr (const float4 &);
+float  Distance (const float4 &, const float4 &);
+float  DistanceSqr (const float4 &, const float4 &);
 struct VecSwizzle
 {
 	VecSwizzle ();
@@ -1154,9 +1721,8 @@ struct Android_Input
 	static constexpr uint Gyroscope = 537;
 	static constexpr uint LinearAcceleration = 538;
 	static constexpr uint MagneticField = 539;
-	static constexpr uint Orientation = 540;
-	static constexpr uint RotationVector = 541;
-	static constexpr uint Pose6DOF = 542;
+	static constexpr uint RotationVector = 540;
+	static constexpr uint Pose6DOF = 541;
 };
 
 struct Android_BindingsMode
@@ -1194,15 +1760,21 @@ struct OpenVR_ActionBindings
 };
 
 template <>
-struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
+struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
 {
-	RC (const WinAPI_ActionBindings &);
+	RC (const OpenVR_ActionBindings &);
 };
 
 template <>
-struct RC<Android_BindingsMode> : Android_BindingsMode
+struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
 {
-	RC (const Android_BindingsMode &);
+	RC (const GLFW_ActionBindings &);
+};
+
+template <>
+struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
+{
+	RC (const WinAPI_BindingsMode &);
 };
 
 template <>
@@ -1218,26 +1790,20 @@ struct RC<Android_ActionBindings> : Android_ActionBindings
 };
 
 template <>
-struct RC<WinAPI_BindingsMode> : WinAPI_BindingsMode
-{
-	RC (const WinAPI_BindingsMode &);
-};
-
-template <>
 struct RC<OpenVR_BindingsMode> : OpenVR_BindingsMode
 {
 	RC (const OpenVR_BindingsMode &);
 };
 
 template <>
-struct RC<OpenVR_ActionBindings> : OpenVR_ActionBindings
+struct RC<Android_BindingsMode> : Android_BindingsMode
 {
-	RC (const OpenVR_ActionBindings &);
+	RC (const Android_BindingsMode &);
 };
 
 template <>
-struct RC<GLFW_ActionBindings> : GLFW_ActionBindings
+struct RC<WinAPI_ActionBindings> : WinAPI_ActionBindings
 {
-	RC (const GLFW_ActionBindings &);
+	RC (const WinAPI_ActionBindings &);
 };
 

@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Wrapper for mesh pipeline (VK_EXT_mesh_shader).
+*/
 
 #pragma once
 

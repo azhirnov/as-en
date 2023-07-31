@@ -2,9 +2,6 @@
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
-#include <streambuf>
-
 #include "base/Math/BitMath.h"
 #include "base/DataSource/Stream.h"
 

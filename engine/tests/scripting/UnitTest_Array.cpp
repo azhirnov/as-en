@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "scripting/Bindings/CoreBindings.h"
 #include "UnitTest_Common.h"
 
 namespace
@@ -198,6 +197,7 @@ extern void UnitTest_Array ()
         CoreBindings::BindArray( se );
         CoreBindings::BindString( se );
         CoreBindings::BindVectorMath( se );
+        CoreBindings::BindRect( se );
         CoreBindings::BindMatrixMath( se );
 
         ScriptArray_Test1( se );

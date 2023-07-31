@@ -18,6 +18,9 @@
 # ifdef AE_COMPILER_CLANG
 #   pragma clang diagnostic push
 #   pragma clang diagnostic ignored "-Wdouble-promotion"
+#  if __clang_major__ >= 15
+#   pragma clang diagnostic ignored "-Wdeprecated-builtins"
+#  endif
 # endif
 
 # include "absl/container/flat_hash_map.h"
@@ -136,48 +139,45 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
-{
-
 #ifdef AE_ENABLE_ABSEIL
-    template <typename Key,
-              typename Value,
-              typename Hasher,
-              typename KeyEq,
-              typename Alloc
-             >
-    struct hash< AE::Base::FlatHashMap< Key, Value, Hasher, KeyEq, Alloc >> {
-        size_t  operator () (const AE::Base::FlatHashMap< Key, Value, Hasher, KeyEq, Alloc > &map) C_NE___
-        {
-            using namespace AE::Base;
-            HashVal h = HashOf( map.size() );
-            for (auto& [key, val] : map) {
-                h << HashOf( key ) << HashOf( val );
-            }
-            return size_t(h);
+template <typename Key,
+          typename Value,
+          typename Hasher,
+          typename KeyEq,
+          typename Alloc
+         >
+struct std::hash< AE::Base::FlatHashMap< Key, Value, Hasher, KeyEq, Alloc >>
+{
+    size_t  operator () (const AE::Base::FlatHashMap< Key, Value, Hasher, KeyEq, Alloc > &map) C_NE___
+    {
+        using namespace AE::Base;
+        HashVal h = HashOf( map.size() );
+        for (auto& [key, val] : map) {
+            h << HashOf( key ) << HashOf( val );
         }
-    };
+        return size_t(h);
+    }
+};
 
 
-    template <typename Key,
-              typename Hasher,
-              typename KeyEq,
-              typename Alloc
-             >
-    struct hash< AE::Base::FlatHashSet< Key, Hasher, KeyEq, Alloc >> {
-        size_t  operator () (const AE::Base::FlatHashSet< Key, Hasher, KeyEq, Alloc > &set) C_NE___
-        {
-            using namespace AE::Base;
-            HashVal h = HashOf( set.size() );
-            for (auto& item : set) {
-                h << HashOf( item );
-            }
-            return size_t(h);
+template <typename Key,
+          typename Hasher,
+          typename KeyEq,
+          typename Alloc
+         >
+struct std::hash< AE::Base::FlatHashSet< Key, Hasher, KeyEq, Alloc >>
+{
+    size_t  operator () (const AE::Base::FlatHashSet< Key, Hasher, KeyEq, Alloc > &set) C_NE___
+    {
+        using namespace AE::Base;
+        HashVal h = HashOf( set.size() );
+        for (auto& item : set) {
+            h << HashOf( item );
         }
-    };
+        return size_t(h);
+    }
+};
 #endif
-
-} // std
 
 
 // check definitions

@@ -19,6 +19,10 @@ namespace AE::Math
         using Row_t         = typename _GLM_Mat_t::row_type;    // [Columns]
         using Dim_t         = Math::_hidden_::_MatrixDim;
         using Rect_t        = Rectangle<T>;
+        using Vec2_t        = TVec< T, 2, Q >;
+        using Vec3_t        = TVec< T, 3, Q >;
+        using Vec4_t        = TVec< T, 4, Q >;
+        using Rad_t         = RadiansTempl<T>;
 
 
     // variables
@@ -34,11 +38,8 @@ namespace AE::Math
         TMatrix (const Self &other)                                                     __NE___ = default;
         TMatrix (Self &&other)                                                          __NE___ = default;
 
-        template <uint Columns2, uint Rows2, glm::qualifier Q2>
-        explicit TMatrix (const TMatrix<T, Columns2, Rows2, Q2> &other)                 __NE___ : _value{other._value} {}
-
-        template <typename B, glm::qualifier Q2>
-        explicit TMatrix (const TMatrix<B, Columns, Rows, Q2> &other)                   __NE___ : _value{other._value} {}
+        template <typename B, uint Columns2, uint Rows2, glm::qualifier Q2>
+        explicit TMatrix (const TMatrix<B, Columns2, Rows2, Q2> &other)                 __NE___ : _value{other._value} {}
 
     #if Columns == 2
         TMatrix (const Col_t &col0,
@@ -87,27 +88,35 @@ namespace AE::Math
 
         ND_ Col_t   operator *  (const Row_t &vec)                                      C_NE___ { return _value * vec; }
 
+        ND_ bool    operator == (const Self &rhs)                                       C_NE___;
 
-        ND_ friend Row_t                operator * (const Col_t &lhs, const Self &rhs)  __NE___ { return lhs * rhs._value; }
+        ND_ bool    IsIdentity ()                                                       C_NE___ { return *this == Identity(); }
 
-        ND_ friend Self                 operator * (T lhs, const Self &rhs)             __NE___ { return Self{ lhs * rhs._value }; }
-        ND_ friend Self                 operator / (T lhs, const Self &rhs)             __NE___ { return Self{ lhs / rhs._value }; }
+        ND_ friend Row_t            operator * (const Col_t &lhs, const Self &rhs)      __NE___ { return lhs * rhs._value; }
 
+        ND_ friend Self             operator * (T lhs, const Self &rhs)                 __NE___ { return Self{ lhs * rhs._value }; }
+        ND_ friend Self             operator / (T lhs, const Self &rhs)                 __NE___ { return Self{ lhs / rhs._value }; }
+
+        template <uint K>
+        ND_ Self &                  operator *= (const TMatrix<T,K,Columns,Q> &rhs)     __NE___ { _value *= rhs._value;  return *this; }
+
+        template <uint K>
+        ND_ TMatrix<T,K,Rows,Q>     operator *  (const TMatrix<T,K,Columns,Q> &rhs)     C_NE___ { return TMatrix<T,K,Rows,Q>{ _value * rhs._value }; }
 
         // return column
-        ND_ Col_t const&                operator [] (usize c)                           C_NE___ { ASSERT( c < Columns );  return _value[ glm::length_t(c) ]; }
-        ND_ Col_t&                      operator [] (usize c)                           __NE___ { ASSERT( c < Columns );  return _value[ glm::length_t(c) ]; }
+        ND_ Col_t const&            operator [] (usize c)                               C_NE___ { ASSERT( c < Columns );  return _value[ glm::length_t(c) ]; }
+        ND_ Col_t&                  operator [] (usize c)                               __NE___ { ASSERT( c < Columns );  return _value[ glm::length_t(c) ]; }
 
-        template <uint C> ND_ Col_t const&  get ()                                      C_NE___ { STATIC_ASSERT( C < Columns );  return _value[C]; }
-        template <uint C> ND_ Col_t &       get ()                                      __NE___ { STATIC_ASSERT( C < Columns );  return _value[C]; }
+        template <uint C>           ND_ Col_t const&    get ()                          C_NE___ { STATIC_ASSERT( C < Columns );  return _value[C]; }
+        template <uint C>           ND_ Col_t &         get ()                          __NE___ { STATIC_ASSERT( C < Columns );  return _value[C]; }
 
 
         // return scalar
-        ND_ const T                     operator () (usize c, usize r)                  C_NE___ { ASSERT( c < Columns and r < Rows );  return _value[c][r]; }
-        ND_ T &                         operator () (usize c, usize r)                  __NE___ { ASSERT( c < Columns and r < Rows );  return _value[c][r]; }
+        ND_ const T                 operator () (usize c, usize r)                      C_NE___ { ASSERT( c < Columns and r < Rows );  return _value[glm::length_t(c)][glm::length_t(r)]; }
+        ND_ T &                     operator () (usize c, usize r)                      __NE___ { ASSERT( c < Columns and r < Rows );  return _value[glm::length_t(c)][glm::length_t(r)]; }
 
-        template <uint C, uint R> ND_ const T   get ()                                  C_NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _value[C][R]; }
-        template <uint C, uint R> ND_ T &       get ()                                  __NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _value[C][R]; }
+        template <uint C, uint R>   ND_ const T get ()                                  C_NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _value[C][R]; }
+        template <uint C, uint R>   ND_ T &     get ()                                  __NE___ { STATIC_ASSERT( C < Columns and R < Rows );  return _value[C][R]; }
 
 
         // access to array
@@ -123,33 +132,42 @@ namespace AE::Math
         ND_ static constexpr Dim_t      Dimension ()                                    __NE___ { return Dim_t{ Columns, Rows }; }
 
     #if Columns == 2 and Rows == 2
-        ND_ static Self  Rotate (RadiansTempl<T> angle)                                 __NE___;
+        ND_ static Self  Rotate (Rad_t angle)                                           __NE___;
     #endif
 
     #if Columns == 3 and Rows == 3
         ND_ static Self  ToCubeFace (ubyte face)                                        __NE___;
-        ND_ static Self  FromDirection (const Vec<T,3> &dir, const Vec<T,3> &up)        __NE___;
+        ND_ static Self  FromDirection (const Vec3_t &dir, const Vec3_t &up)            __NE___;
     #endif
 
     #if Columns == 4 and Rows == 4
-        ND_ static Self  Ortho (const Rectangle<T> &viewport, const Vec<T,2> &range)                        __NE___ { return Self{ glm::ortho( viewport.left, viewport.right, viewport.bottom, viewport.top, range[0], range[1] )}; }
-        ND_ static Self  InfinitePerspective (RadiansTempl<T> fovY, T aspect, T zNear)                      __NE___ { return Self{ glm::infinitePerspective( T(fovY), aspect, zNear )}; }
-        ND_ static Self  Perspective (RadiansTempl<T> fovY, T aspect, const Vec<T,2> &range)                __NE___ { return Self{ glm::perspective( T(fovY), aspect, range[0], range[1] )}; }
-        ND_ static Self  Perspective (RadiansTempl<T> fovY, const Vec<T,2> &viewport, const Vec<T,2> &range)__NE___ { return Self{ glm::perspectiveFov( T(fovY), viewport.x, viewport.y, range[0], range[1] )}; }
-        ND_ static Self  Frustum (const Rectangle<T> &viewport, const Vec<T,2> &range)                      __NE___ { return Self{ glm::frustum( viewport.left, viewport.right, viewport.bottom, viewport.top, range[0], range[1] )}; }
-        ND_ static Self  InfiniteFrustum (const Rectangle<T> &viewport, T zNear)                            __NE___;
-        ND_ static Self  Translate (const Vec<T,3> &translation)                                            __NE___ { return Self{ glm::translate( Self::Identity()._value, translation )}; }
-        ND_ static Self  Scale (const Vec<T,3> &scale)                                                      __NE___ { return Self{ glm::scale( Self::Identity()._value, scale )}; }
-        ND_ static Self  Scale (const T scale)                                                              __NE___ { return Scale( Vec<T,3>{ scale }); }
+        ND_ static Self  Ortho (const Rect_t &viewport, const Vec2_t &range)            __NE___ { return Self{ glm::ortho( viewport.left, viewport.right, viewport.bottom, viewport.top, range[0], range[1] )}; }
+        ND_ static Self  InfinitePerspective (Rad_t fovY, T aspect, T zNear)            __NE___ { return Self{ glm::infinitePerspective( T(fovY), aspect, zNear )}; }
+        ND_ static Self  Perspective (Rad_t fovY, T aspect, const Vec2_t &range)        __NE___ { return Self{ glm::perspective( T(fovY), aspect, range[0], range[1] )}; }
+        ND_ static Self  Perspective (Rad_t fovY, const Vec2_t &viewport, const Vec2_t &range)  __NE___ { return Self{ glm::perspectiveFov( T(fovY), viewport.x, viewport.y, range[0], range[1] )}; }
+        ND_ static Self  Frustum (const Rect_t &viewport, const Vec2_t &range)          __NE___ { return Self{ glm::frustum( viewport.left, viewport.right, viewport.bottom, viewport.top, range[0], range[1] )}; }
+        ND_ static Self  InfiniteFrustum (const Rect_t &viewport, T zNear)              __NE___;
 
-        ND_ Vec<T,3>     Project (const Vec<T,3> &pos, const Rect_t &viewport)                              C_NE___;
-        ND_ Vec<T,3>     UnProject (const Vec<T,3> &pos, const Rect_t &viewport)                            C_NE___;
+        ND_ static Self  Translated (const Vec3_t &translation)                         __NE___ { return Self{ glm::translate( Self::Identity()._value, translation )}; }
+        ND_ static Self  Scaled (const Vec3_t &scale)                                   __NE___ { return Self{ glm::scale( Self::Identity()._value, scale )}; }
+        ND_ static Self  Scaled (const T scale)                                         __NE___ { return Scaled( Vec3_t{ scale }); }
+
+        ND_ Vec3_t       Project (const Vec3_t &pos, const Rect_t &viewport)            C_NE___;
+        ND_ Vec3_t       UnProject (const Vec3_t &pos, const Rect_t &viewport)          C_NE___;
+
+        ND_ Self         Translate (const Vec3_t &translation)                          C_NE___ { return Self{ glm::translate( _value, translation )}; }
+
+        ND_ Vec3_t       AxisX ()                                                       C_NE___ { return Vec3_t{ _value[0][0], _value[1][0], _value[2][0] }; }
+        ND_ Vec3_t       AxisY ()                                                       C_NE___ { return Vec3_t{ _value[0][1], _value[1][1], _value[2][1] }; }
+        ND_ Vec3_t       AxisZ ()                                                       C_NE___ { return Vec3_t{ _value[0][2], _value[1][2], _value[2][2] }; }
+
+        ND_ static Self  Rotate  (Rad_t angle, const Vec3_t &axis)                      __NE___;
     #endif
 
     #if Columns >= 3 and Rows >= 3
-        ND_ static Self  RotateX (RadiansTempl<T> angle)                                __NE___;
-        ND_ static Self  RotateY (RadiansTempl<T> angle)                                __NE___;
-        ND_ static Self  RotateZ (RadiansTempl<T> angle)                                __NE___;
+        ND_ static Self  RotateX (Rad_t angle)                                          __NE___;    // pitch
+        ND_ static Self  RotateY (Rad_t angle)                                          __NE___;    // yaw
+        ND_ static Self  RotateZ (Rad_t angle)                                          __NE___;    // roll
     #endif
 
     private:
@@ -171,7 +189,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Rotate (RadiansTempl<T> angle) __NE___
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Rotate (Rad_t angle) __NE___
     {
         const T s = Sin( angle );
         const T c = Cos( angle );
@@ -208,10 +226,10 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::FromDirection (const Vec<T,3> &dir, const Vec<T,3> &up) __NE___
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::FromDirection (const Vec3_t &dir, const Vec3_t &up) __NE___
     {
-        Vec<T,3>    hor = Normalize( Cross( up,  dir ));
-        Vec<T,3>    ver = Normalize( Cross( dir, hor ));
+        Vec3_t  hor = Normalize( Cross( up,  dir ));
+        Vec3_t  ver = Normalize( Cross( dir, hor ));
         return Self{ hor, ver, dir };
     }
 #endif
@@ -223,7 +241,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::RotateX (RadiansTempl<T> angle) __NE___
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::RotateX (Rad_t angle) __NE___
     {
         const T s = Sin( angle );
         const T c = Cos( angle );
@@ -239,7 +257,7 @@ namespace AE::Math
     }
 
     template <typename T, glm::qualifier Q>
-    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::RotateY (RadiansTempl<T> angle) __NE___
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::RotateY (Rad_t angle) __NE___
     {
         const T s = Sin( angle );
         const T c = Cos( angle );
@@ -255,13 +273,13 @@ namespace AE::Math
     }
 
     template <typename T, glm::qualifier Q>
-    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::RotateZ (RadiansTempl<T> angle) __NE___
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::RotateZ (Rad_t angle) __NE___
     {
         const T s = Sin( angle );
         const T c = Cos( angle );
 
         return Self{
-                _CreateCol0(  c,    T(0),   s   ),
+                _CreateCol0(  c,     s,    T(0) ),
                 _CreateCol0( -s,     c,    T(0) ),
                 _CreateCol0( T(0),  T(0),  T(1) )
             #if Columns == 4
@@ -274,11 +292,22 @@ namespace AE::Math
 #if Columns == 4 and Rows == 4
 /*
 =================================================
+    Rotate
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Rotate (Rad_t angle, const Vec3_t &axis) __NE___
+    {
+        return Self{ glm::rotate( _GLM_Mat_t{ T{1} }, T{angle}, axis )};
+    }
+
+/*
+=================================================
     InfiniteFrustum
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::InfiniteFrustum (const Rectangle<T> &viewport, T zNear) __NE___
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::InfiniteFrustum (const Rect_t &viewport, T zNear) __NE___
     {
         Self    proj;
         proj[0][0] = T(2) / (viewport.right - viewport.left);
@@ -297,17 +326,18 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    Vec<T,3>  TMatrix<T, Columns, Rows, Q>::Project (const Vec<T,3> &pos, const Rect_t &viewport) C_NE___
+    typename TMatrix<T, Columns, Rows, Q>::Vec3_t
+        TMatrix<T, Columns, Rows, Q>::Project (const Vec3_t &pos, const Rect_t &viewport) C_NE___
     {
-        Vec<T,4>        temp    = (*this) * Vec<T,4>( pos, T(1) );
-        Vec<T,2> const  size    = viewport.Size();
+        Vec4_t          temp    = (*this) * Vec4_t( pos, T(1) );
+        Vec2_t const    size    = viewport.Size();
 
         temp  /= temp.w;
         temp   = temp * T(0.5) + T(0.5);
         temp.x = temp.x * size.x + viewport.left;
         temp.y = temp.y * size.y + viewport.bottom;
 
-        return Vec<T,3>{ temp };
+        return Vec3_t{ temp };
     }
 
 /*
@@ -316,10 +346,11 @@ namespace AE::Math
 =================================================
 */
     template <typename T, glm::qualifier Q>
-    Vec<T,3>  TMatrix<T, Columns, Rows, Q>::UnProject (const Vec<T,3> &pos, const Rect_t &viewport) C_NE___
+    typename TMatrix<T, Columns, Rows, Q>::Vec3_t
+        TMatrix<T, Columns, Rows, Q>::UnProject (const Vec3_t &pos, const Rect_t &viewport) C_NE___
     {
-        Vec<T,4>        temp    = Vec<T,4>{ pos, T(1) };
-        Vec<T,2> const  size    = viewport.Size();
+        Vec4_t          temp    = Vec4_t{ pos, T(1) };
+        Vec2_t const    size    = viewport.Size();
 
         temp.x  = (temp.x - viewport.left) / size.x;
         temp.y  = (temp.y - viewport.bottom) / size.y;
@@ -328,9 +359,35 @@ namespace AE::Math
         temp     = (*this) * temp;
         temp    /= temp.w;
 
-        return Vec<T,3>{ temp };
+        return Vec3_t{ temp };
     }
 
 #endif
+
+/*
+=================================================
+    operator ==
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    bool  TMatrix<T, Columns, Rows, Q>::operator == (const Self &rhs) C_NE___
+    {
+    #if Columns == 2
+        return  All( get<0>() == rhs.get<0>() ) &
+                All( get<1>() == rhs.get<1>() );
+
+    #elif Columns == 3
+        return  All( get<0>() == rhs.get<0>() ) &
+                All( get<1>() == rhs.get<1>() ) &
+                All( get<2>() == rhs.get<2>() );
+
+    #elif Columns == 4
+        return  All( get<0>() == rhs.get<0>() ) &
+                All( get<1>() == rhs.get<1>() ) &
+                All( get<2>() == rhs.get<2>() ) &
+                All( get<3>() == rhs.get<3>() );
+    #endif
+    }
+
 
 } // AE::Math

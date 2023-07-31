@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Common.h"
+#include "UnitTest_Common.h"
 
 extern void UnitTest_Serialization ();
 

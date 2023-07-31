@@ -157,14 +157,11 @@ namespace AE::Base
 
 } // AE::Base
 
-namespace std
-{
-    template <size_t Size, uint32_t UID, bool Optimize, uint32_t Seed>
-    struct hash< AE::Base::NamedID<Size, UID, Optimize, Seed> >
-    {
-        ND_ size_t  operator () (const AE::Base::NamedID<Size, UID, Optimize, Seed> &value) C_NE___ {
-            return size_t(value.GetHash());
-        }
-    };
 
-} // std
+template <size_t Size, uint32_t UID, bool Optimize, uint32_t Seed>
+struct std::hash< AE::Base::NamedID<Size, UID, Optimize, Seed> >
+{
+    ND_ size_t  operator () (const AE::Base::NamedID<Size, UID, Optimize, Seed> &value) C_NE___ {
+        return size_t(value.GetHash());
+    }
+};

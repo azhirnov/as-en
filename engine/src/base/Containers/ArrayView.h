@@ -164,47 +164,41 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <typename T>
+struct std::hash< AE::Base::ArrayView<T> >
 {
-    template <typename T>
-    struct hash< AE::Base::ArrayView<T> >
+    ND_ size_t  operator () (const AE::Base::ArrayView<T> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Base::ArrayView<T> &value) C_NE___
+        if constexpr( AE_FAST_HASH and AE::Base::IsTrivial<T> )
         {
-            if constexpr( AE_FAST_HASH and AE::Base::IsTrivial<T> )
-            {
-                return size_t(AE::Base::HashOf( value.data(), value.size() * sizeof(T) ));
+            return size_t(AE::Base::HashOf( value.data(), value.size() * sizeof(T) ));
+        }
+        else
+        {
+            AE::Base::HashVal   result = AE::Base::HashOf( value.size() );
+
+            for (auto& item : value) {
+                result << AE::Base::HashOf( item );
             }
-            else
-            {
-                AE::Base::HashVal   result = AE::Base::HashOf( value.size() );
-
-                for (auto& item : value) {
-                    result << AE::Base::HashOf( item );
-                }
-                return size_t(result);
-            }
+            return size_t(result);
         }
-    };
+    }
+};
 
-
-    template <typename T>
-    struct hash< vector<T> >
+template <typename T>
+struct std::hash< std::vector<T> >
+{
+    ND_ size_t  operator () (const vector<T> &value) C_NE___
     {
-        ND_ size_t  operator () (const vector<T> &value) C_NE___
-        {
-            return size_t(AE::Base::HashOf( AE::Base::ArrayView<T>{ value }));
-        }
-    };
+        return size_t(AE::Base::HashOf( AE::Base::ArrayView<T>{ value }));
+    }
+};
 
-
-    template <typename T, size_t S>
-    struct hash< array<T,S> >
+template <typename T, size_t S>
+struct std::hash< std::array<T,S> >
+{
+    ND_ size_t  operator () (const array<T,S> &value) C_NE___
     {
-        ND_ size_t  operator () (const array<T,S> &value) C_NE___
-        {
-            return size_t(AE::Base::HashOf( AE::Base::ArrayView<T>{ value }));
-        }
-    };
-
-} // std
+        return size_t(AE::Base::HashOf( AE::Base::ArrayView<T>{ value }));
+    }
+};

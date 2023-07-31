@@ -7,9 +7,6 @@
 
 #pragma once
 
-#include "threading/Primitives/SpinLock.h"
-#include "threading/Primitives/Synchronized.h"
-
 #include "graphics/Public/CommandBuffer.h"
 
 namespace AE::Graphics

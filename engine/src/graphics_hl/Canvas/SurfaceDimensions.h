@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/Common.h"
-#include "platform/Public/OutputSurface.h"
+#include "graphics_hl/GraphicsHL.pch.h"
 
 namespace AE::Graphics
 {

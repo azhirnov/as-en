@@ -16,7 +16,7 @@ namespace AE::Graphics
         PipelineStatistic,
         Performance,
         AccelStructCompactedSize,
-        AccelStructSize,                // require 'VK_KHR_ray_tracing_maintenance1'
+        AccelStructSize,                // require 'VK_KHR_ray_tracing_maintenance1'    // TODO: add to FeatureSet ?
         AccelStructSerializationSize,
         _Count,
         Unknown = 0xFF,

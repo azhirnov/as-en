@@ -8,7 +8,6 @@
 
 #if defined(AE_ENABLE_VULKAN)
 #   include "graphics/Vulkan/VDevice.h"
-#   include "VulkanSyncLog.h"
 
 #elif defined(AE_ENABLE_METAL)
 #   include "graphics/Metal/MDevice.h"

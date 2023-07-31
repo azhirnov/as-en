@@ -3,21 +3,9 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "base/Math/BitMath.h"
-# include "base/Math/Bytes.h"
-# include "base/Math/Math.h"
-# include "base/Memory/UntypedAllocator.h"
-
 # include "threading/Primitives/Atomic.h"
 # include "threading/Primitives/SyncEvent.h"
 #endif
-
-#ifdef AE_DEBUG
-# include "base/Algorithms/StringUtils.h"
-#endif
-
-#include "base/Platforms/Platform.h"
-
 
 namespace AE::Threading
 {

@@ -58,6 +58,7 @@ void ASmain ()
     fset.uniformAndStorageBuffer8BitAccess (True);
     fset.uniformBufferStandardLayout (True);
     fset.scalarBlockLayout (True);
+    fset.bufferDeviceAddress (True);
     fset.storagePushConstant8 (True);
     fset.fragmentStoresAndAtomics (True);
     fset.vertexPipelineStoresAndAtomics (True);

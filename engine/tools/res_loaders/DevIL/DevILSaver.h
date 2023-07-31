@@ -3,7 +3,7 @@
 #pragma once
 
 #ifdef AE_ENABLE_DEVIL
-# include "res_loaders/ImageSaver.h"
+# include "res_loaders/Public/ImageSaver.h"
 
 namespace AE::ResLoader
 {

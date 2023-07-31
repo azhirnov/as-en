@@ -1,9 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Math/Vec.h"
-#include "base/Math/VecSwizzle.h"
 #include "UnitTest_Common.h"
-
 
 namespace
 {
@@ -52,13 +49,13 @@ namespace
         TestVecAlign<slong>();
         TestVecAlign<ushort>();
 
-      #if AE_HAS_SIMD
         STATIC_ASSERT( alignof(ushort3) == sizeof(ushort)*4 );
         STATIC_ASSERT( alignof(uint3)   == sizeof(uint)*4 );
         STATIC_ASSERT( alignof(uint4)   == sizeof(uint)*4);
-      #endif
 
         STATIC_ASSERT( alignof(packed_uint3) == sizeof(uint) );
+        STATIC_ASSERT( alignof(uint3) == 16 );
+        STATIC_ASSERT( alignof(float4) == 16 );
     }
 
 
@@ -75,6 +72,15 @@ namespace
         bool3   a2 = int3(1, 2, 3) > int3(2, 1, 4);
         bool3   a3 = a2 == bool3(false, true, false);   TEST( All( a3 ));
         bool3   a4 = uint3(1) < uint3(2);               TEST( All( a4 ));
+    }
+
+
+    static void  Vec_Test4 ()
+    {
+        // TODO: glm with SSE2 crashed here
+
+        uint4   a0 = Min( uint4(1), uint4(2) );         TEST( All( a0 == uint4(1) ));
+        uint4   a1 = Max( uint4(1), uint4(2) );         TEST( All( a1 == uint4(2) ));
     }
 
 
@@ -106,6 +112,7 @@ extern void UnitTest_Math_Vec ()
     Vec_Test1();
     Vec_Test2();
     Vec_Test3();
+    Vec_Test4();
 
     VecSwizzle_Test1();
 

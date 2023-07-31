@@ -1,18 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Algorithms/StringUtils.h"
-#include "base/DataSource/FileStream.h"
-
 #include "res_editor/Passes/Renderer.h"
 #include "res_editor/Passes/Present.h"
 #include "res_editor/EditorUI.h"
 #include "res_editor/EditorCore.h"
 
-#include "res_loaders/All/AllImageSavers.h"
+#include "res_loaders/AllImages/AllImageSavers.h"
 
 #include "res_editor/_ui_data/cpp/types.h"
-
-#include "video/FFmpeg/FFmpegVideoEncoder.h"
 
 namespace AE::ResEditor
 {
@@ -197,7 +192,7 @@ namespace AE::ResEditor
         cfg.targetCPU       = CpuArchInfo::Get().cpu.vendor;
 
 
-        auto        result       = IVideoEncoder::CreateFFmpegEncoder();
+        auto        result       = VideoFactory::CreateFFmpegEncoder();
         const auto& video_folder = ResEditorAppConfig::Get().videoFolder;
         StringView  ext          = result->GetFileExtension( cfg.codec );
 

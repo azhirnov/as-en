@@ -17,6 +17,8 @@ namespace AE::Graphics
     private:
         ushort  _value  = 0x1234;   // 0 - unknown, 1 - R, 2 - G, 3 - B, 4 - A, 5 - O, 6 - 1, example: RGB0 - 0x1235
 
+        static constexpr uint   _Mask = 0x7;
+
 
     // methods
     public:
@@ -65,10 +67,10 @@ namespace AE::Graphics
     {
         ASSERT(All( comp < 7u ));
 
-        _value |= (comp.x & 0xF) << 12;
-        _value |= (comp.y & 0xF) << 8;
-        _value |= (comp.z & 0xF) << 4;
-        _value |= (comp.w & 0xF);
+        _value |= (comp.x & _Mask) << 12;
+        _value |= (comp.y & _Mask) << 8;
+        _value |= (comp.z & _Mask) << 4;
+        _value |= (comp.w & _Mask);
     }
 
 /*
@@ -93,7 +95,7 @@ namespace AE::Graphics
 */
     inline uint4  ImageSwizzle::ToVec () C_NE___
     {
-        return uint4( (_value >> 12) & 0xF, (_value >> 8) & 0xF, (_value >> 4) & 0xF, _value & 0xF );
+        return uint4( (_value >> 12) & _Mask, (_value >> 8) & _Mask, (_value >> 4) & _Mask, _value & _Mask );
     }
 
 /*
@@ -131,15 +133,11 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <>
+struct std::hash< AE::Graphics::ImageSwizzle >
 {
-    template <>
-    struct hash< AE::Graphics::ImageSwizzle >
+    ND_ size_t  operator () (const AE::Graphics::ImageSwizzle &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Graphics::ImageSwizzle &value) C_NE___
-        {
-            return size_t( value.Get() );
-        }
-    };
-
-} // std
+        return size_t( value.Get() );
+    }
+};

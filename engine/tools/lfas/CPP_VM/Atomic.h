@@ -446,4 +446,5 @@ namespace LFAS::CPP
 
 } // LFAS::CPP
 
+#include "base/Platforms/ThreadUtils.h"
 #include "threading/Primitives/Atomic.h"

@@ -1,14 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/MemStream.h"
-#include "threading/DataSource/WinAsyncDataSource.h"
-
 #include "res_editor/Resources/Image.h"
 #include "res_editor/Passes/FrameGraph.h"
 #include "res_editor/Passes/Renderer.h"
-
-#include "res_loaders/All/AllImageLoaders.h"
-#include "res_loaders/All/AllImageSavers.h"
 
 namespace AE::ResEditor
 {
@@ -67,7 +61,7 @@ namespace AE::ResEditor
             {
                 CHECK_THROW( GetVFS().Open( OUT op.file, op.filename ));
 
-                auto    req = op.file->ReadRemaining();
+                auto    req = op.file->ReadRemaining( 0_b );    // TODO: optimize?
                 CHECK_THROW( req );
 
                 op.loaded = req->AsPromise().Then( [fmt = op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); });
@@ -84,8 +78,6 @@ namespace AE::ResEditor
 */
     Image::~Image ()
     {
-        EXLOCK( _loadOpGuard );
-
         for (auto& op : _loadOps)
         {
             if ( op.file )      op.file->CancelAllRequests();
@@ -134,6 +126,9 @@ namespace AE::ResEditor
         auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
 
         {
+            CHECK_ERR_MSG( res_mngr.IsSupported( imageDesc ),
+                "Image '"s << _dbgName << "' description is not supported by GPU device" );
+
             auto    image = res_mngr.CreateImage( imageDesc, _dbgName, _GfxDynamicAllocator() );
             CHECK_ERR( image );
 
@@ -183,7 +178,6 @@ namespace AE::ResEditor
         if ( auto stat = _uploadStatus.load(); stat != EUploadStatus::InProgress )
             return stat;
 
-        EXLOCK( _loadOpGuard );
         ASSERT( not _loadOps.empty() );
 
         bool    all_complete    = true;
@@ -244,7 +238,7 @@ namespace AE::ResEditor
         if ( failed )
         {
             _loadOps.clear();
-            _uploadStatus.store( EUploadStatus::Canceled );
+            _SetUploadStatus( EUploadStatus::Canceled );
         }
 
         if ( all_complete )
@@ -252,7 +246,7 @@ namespace AE::ResEditor
             _GenMipmaps( ctx );
 
             _loadOps.clear();
-            _uploadStatus.store( EUploadStatus::Complete );
+            _SetUploadStatus( EUploadStatus::Complete );
         }
 
         return _uploadStatus.load();
@@ -293,24 +287,9 @@ namespace AE::ResEditor
 */
     IResource::EUploadStatus  Image::Readback (TransferCtx_t &) __Th___
     {
-        EXLOCK( _loadOpGuard );
-
         // TODO
 
         return EUploadStatus::Canceled;
-    }
-
-/*
-=================================================
-    Cancel
-=================================================
-*/
-    void  Image::Cancel ()
-    {
-        EXLOCK( _loadOpGuard );
-
-        if ( _uploadStatus.load() != EUploadStatus::Complete )
-            _uploadStatus.store( EUploadStatus::Canceled );
     }
 
 /*
@@ -399,6 +378,9 @@ namespace AE::ResEditor
             // keep: desc.samples
 
             {
+                CHECK_ERR_MSG( res_mngr.IsSupported( desc ),
+                    "Image '"s << _dbgName << "' description is not supported by GPU device" );
+
                 auto    image   = res_mngr.CreateImage( desc, _dbgName, _GfxAllocator() );
                 CHECK_ERR( image );
 

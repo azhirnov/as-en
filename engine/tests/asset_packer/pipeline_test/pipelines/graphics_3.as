@@ -3,7 +3,6 @@
 void ASmain ()
 {
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "graphics_3" );
-    ppln.AddFeatureSet( "MinimalFS" );
     ppln.SetLayout( "Graphics_PL_3" );
     ppln.SetVertexInput( "vb_input2" );
     ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "graphics_1.io" );

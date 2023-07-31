@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "base/Utils/Threading.h"
 #include "scripting/Impl/ScriptEngine.h"
 
 namespace AE::Scripting
@@ -14,17 +13,17 @@ namespace AE::Scripting
 
     template <typename T>
     struct ScriptTypeInfo;
-    /*{
-        using type = T;
-
-        static constexpr bool is_object      = false;
-        static constexpr bool is_ref_counted = false;
-
-        static void  Name (INOUT String &);
-        static void  ArgName (INOUT String &s);
-        static void  CppArg (INOUT String &s);
-        static uint  SizeOf ();
-    };*/
+    //{
+    //  using type = T;
+    //
+    //  static constexpr bool is_object      = false;
+    //  static constexpr bool is_ref_counted = false;
+    //
+    //  static void  Name (INOUT String &);
+    //  static void  ArgName (INOUT String &s);
+    //  static void  CppArg (INOUT String &s);
+    //  static uint  SizeOf ();
+    //};
 
     template <>
     struct ScriptTypeInfo <void>
@@ -347,7 +346,7 @@ namespace AE::Scripting
         };
 
         template <typename T>
-        using RemoveSharedPtr = _RemoveSharedPtr< T, IsSharedPtrNoQual<T> >::type;
+        using RemoveSharedPtr = typename _RemoveSharedPtr< T, IsSharedPtrNoQual<T> >::type;
 
 
         template <typename T>
@@ -823,7 +822,7 @@ namespace AE::Scripting
         template <typename T>
         inline void  ValidateRC (const T &arg)
         {
-            if constexpr( IsBaseOf< AngelScriptHelper::SimpleRefCounter, RemoveAllQualifiers<T> >)
+            if constexpr( IsBaseOfNoQual< AngelScriptHelper::SimpleRefCounter, T >)
             {
                 if constexpr( IsPointer<T> ) {
                     CHECK( arg != null and arg->__Counter() > 0 );
@@ -1004,13 +1003,9 @@ namespace AE::Scripting
 } // AE::Scripting
 
 
-namespace std
-{
-    template <typename T>
-    struct hash< AE::Scripting::AngelScriptHelper::SharedPtr<T> > {
-        ND_ size_t  operator () (const AE::Scripting::AngelScriptHelper::SharedPtr<T> &key) const {
-            return size_t(key.Get());
-        }
-    };
-
-} // std
+template <typename T>
+struct std::hash< AE::Scripting::AngelScriptHelper::SharedPtr<T> > {
+    ND_ size_t  operator () (const AE::Scripting::AngelScriptHelper::SharedPtr<T> &key) const {
+        return size_t(key.Get());
+    }
+};

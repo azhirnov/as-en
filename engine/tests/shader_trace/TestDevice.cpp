@@ -5,6 +5,8 @@
 #include "base/DataSource/MemStream.h"
 #include "base/DataSource/FileStream.h"
 #include "serializing/ObjectFactory.h"
+
+#include "res_loaders/Intermediate/IntermImage.h"
 #include "res_loaders/DDS/DDSSaver.h"
 
 #ifdef AE_COMPILER_MSVC
@@ -79,7 +81,7 @@ bool  TestDevice::Create ()
 
     VDeviceInitializer::InstanceCreateInfo  inst_ci;
     inst_ci.appName         = "GLSLTrace";
-    inst_ci.instanceLayers  = _vulkan.GetRecomendedInstanceLayers();
+    inst_ci.instanceLayers  = _vulkan.GetRecommendedInstanceLayers();
 
     CHECK_ERR( _vulkan.CreateInstance( inst_ci ));
 
@@ -307,9 +309,9 @@ bool  TestDevice::Compile  (OUT VkShaderModule &        shaderModule,
 
     source.insert( source.begin(), header.data() );
 
-    EShTargetLanguageVersion    spv_version = EShTargetSpv_1_3;
+    auto    spv_version = glslang::EShTargetSpv_1_3;
     if ( shaderType >= EShLangRayGen )
-        spv_version = EShTargetSpv_1_4;
+        spv_version = glslang::EShTargetSpv_1_4;
 
     if ( not _Compile( OUT _tempBuf, OUT debug_info.get(), dbgBufferSetIndex, source, shaderType, mode, spv_version ))
         return false;
@@ -364,8 +366,10 @@ bool  TestDevice::_Compile (OUT Array<uint>&            spirvData,
                             Array<const char *>         source,
                             EShLanguage                 shaderType,
                             ETraceMode                  mode,
-                            EShTargetLanguageVersion    spvVersion)
+                            glslang::EShTargetLanguageVersion   spvVersion)
 {
+    using namespace glslang;
+
     EShMessages             messages        = EShMsgDefault;
     TProgram                program;
     TShader                 shader          { shaderType };
@@ -1137,7 +1141,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
         mem_info.sType  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2;
         mem_info.buffer = vertex_buffer;
 
-        vkGetBufferMemoryRequirements2( GetVkDevice(), &mem_info, OUT &mem_req );
+        vkGetBufferMemoryRequirements2KHR( GetVkDevice(), &mem_info, OUT &mem_req );
 
         VkDeviceSize    offset   = AlignUp( res.dev.totalSize, mem_req.memoryRequirements.alignment );
         res.dev.totalSize        = offset + mem_req.memoryRequirements.size;
@@ -1180,7 +1184,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
         mem_info.sType  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2;
         mem_info.buffer = index_buffer;
 
-        vkGetBufferMemoryRequirements2( GetVkDevice(), &mem_info, OUT &mem_req );
+        vkGetBufferMemoryRequirements2KHR( GetVkDevice(), &mem_info, OUT &mem_req );
 
         VkDeviceSize    offset   = AlignUp( res.dev.totalSize, mem_req.memoryRequirements.alignment );
         res.dev.totalSize        = offset + mem_req.memoryRequirements.size;
@@ -1253,7 +1257,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
             mem_info.sType  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2;
             mem_info.buffer = blas_buffer;
 
-            vkGetBufferMemoryRequirements2( GetVkDevice(), &mem_info, OUT &mem_req );
+            vkGetBufferMemoryRequirements2KHR( GetVkDevice(), &mem_info, OUT &mem_req );
 
             VkDeviceSize    offset   = AlignUp( res.dev.totalSize, mem_req.memoryRequirements.alignment );
             res.dev.totalSize        = offset + mem_req.memoryRequirements.size;
@@ -1334,7 +1338,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
         mem_info.sType  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2;
         mem_info.buffer = instance_buffer;
 
-        vkGetBufferMemoryRequirements2( GetVkDevice(), &mem_info, OUT &mem_req );
+        vkGetBufferMemoryRequirements2KHR( GetVkDevice(), &mem_info, OUT &mem_req );
 
         VkDeviceSize    offset   = AlignUp( res.dev.totalSize, mem_req.memoryRequirements.alignment );
         res.dev.totalSize        = offset + mem_req.memoryRequirements.size;
@@ -1411,7 +1415,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
             mem_info.sType  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2;
             mem_info.buffer = tlas_buffer;
 
-            vkGetBufferMemoryRequirements2( GetVkDevice(), &mem_info, OUT &mem_req );
+            vkGetBufferMemoryRequirements2KHR( GetVkDevice(), &mem_info, OUT &mem_req );
 
             VkDeviceSize    offset   = AlignUp( res.dev.totalSize, mem_req.memoryRequirements.alignment );
             res.dev.totalSize        = offset + mem_req.memoryRequirements.size;
@@ -1496,7 +1500,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
         mem_info.sType  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2;
         mem_info.buffer = scratch_buffer;
 
-        vkGetBufferMemoryRequirements2( GetVkDevice(), &mem_info, OUT &mem_req );
+        vkGetBufferMemoryRequirements2KHR( GetVkDevice(), &mem_info, OUT &mem_req );
 
         VkDeviceSize    offset   = AlignUp( res.dev.totalSize, mem_req.memoryRequirements.alignment );
         res.dev.totalSize        = offset + mem_req.memoryRequirements.size;
@@ -1540,7 +1544,7 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
         mem_info.sType  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2;
         mem_info.buffer = outRTData.shaderBindingTable;
 
-        vkGetBufferMemoryRequirements2( GetVkDevice(), &mem_info, OUT &mem_req );
+        vkGetBufferMemoryRequirements2KHR( GetVkDevice(), &mem_info, OUT &mem_req );
 
         VkDeviceSize    offset   = AlignUp( res.dev.totalSize, mem_req.memoryRequirements.alignment );
         res.dev.totalSize        = offset + mem_req.memoryRequirements.size;

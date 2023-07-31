@@ -67,6 +67,8 @@
 #define ToUNorm( x )    ((x) * 0.5f + 0.5f)
 #define ToSNorm( x )    ((x) * 2.0f - 1.0f)
 #define BitCount        bitCount
+#define ToDeg           degrees
+#define ToRad           radians
 
 
 // to mark 'out' and 'inout' argument in function call
@@ -372,77 +374,57 @@ ND_ float4  RemapClamped (const float2 src, const float2 dst, const float4 v)  {
 ND_ float2  RemapClamped (const float2 src0, const float2 src1, const float2 dst0, const float2 dst1, const float2 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
 ND_ float3  RemapClamped (const float3 src0, const float3 src1, const float3 dst0, const float3 dst1, const float3 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
 ND_ float4  RemapClamped (const float4 src0, const float4 src1, const float4 dst0, const float4 dst1, const float4 v)  { return Clamp( Remap( src0, src1, dst0, dst1, v ), dst0, dst1 ); }
-
-
 //-----------------------------------------------------------------------------
 
-// map pixels to unorm coords with correct aspect ratio.
-ND_ float2  MapPixCoordsToUNorm (const float2 posPx, const float2 sizePx)   { return (posPx+0.5f) / Max( sizePx.x, sizePx.y ); }
-ND_ float3  MapPixCoordsToUNorm (const float3 posPx, const float3 sizePx)   { return (posPx+0.5f) / Max( sizePx.x, sizePx.y ); }
 
+ND_ bool  IsInsideRect (const int2   pos, const int2   minBound, const int2   maxBound)     { return All(bool4( GreaterEqual( pos, minBound ), Less( pos, maxBound ))); }
+ND_ bool  IsInsideRect (const float2 pos, const float2 minBound, const float2 maxBound)     { return All(bool4( GreaterEqual( pos, minBound ), Less( pos, maxBound ))); }
 
-// map pixels to snorm coords with correct aspect ratio.
-ND_ float2  MapPixCoordsToSNorm (const float2 posPx, const float2 sizePx)
-{
-    float2  hsize = sizePx * 0.5f;
-    return (Floor(posPx) - hsize) / Max( hsize.x, hsize.y );
-}
+ND_ bool  IsInsideRect (const int2   pos, const int4   rect)                                { return IsInsideRect( pos, rect.xy, rect.zw ); }
+ND_ bool  IsInsideRect (const float2 pos, const float4 rect)                                { return IsInsideRect( pos, rect.xy, rect.zw ); }
 
-ND_ float3  MapPixCoordsToSNorm (const float3 posPx, const float3 sizePx)
-{
-    float3  hsize = sizePx * 0.5f;
-    return (Floor(posPx) - hsize) / Max( hsize.x, hsize.y );
-}
+ND_ bool  IsOutsideRect (const float2 pos, const float2 minBound, const float2 maxBound)    { return Any(bool4( Less( pos, minBound ), Greater( pos, maxBound ))); }
+ND_ bool  IsOutsideRect (const float2 pos, const float4 rect)                               { return IsOutsideRect( pos, rect.xy, rect.zw ); }
 
+ND_ bool  IsInsideCircle (const float2 pos, const float2 center, const float radius)        { return Distance( pos, center ) < radius; }
+ND_ bool  IsInsideCircle (const float2 pos, const float3 center_radius)                     { return IsInsideCircle( pos, center_radius.xy, center_radius.z ); }
 
-// map pixels to unorm coords with correct aspect ratio.
-ND_ float2  MapPixCoordsToUNorm2 (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx)
-{
-    const float2    snorm       = ToSNorm( srcPosPx / srcSizePx );
-    const float     src_aspect  = srcSizePx.x / srcSizePx.y;
-    const float     dst_aspect  = dstSizePx.x / dstSizePx.y;
-    const float     scale1      = Max( src_aspect, dst_aspect ) / dst_aspect;
-    const float     scale2      = Min( src_aspect, dst_aspect ) / dst_aspect;
-    const float2    scale       = src_aspect >= dst_aspect ? float2(scale1, 1.0f) : float2(1.0f, 1.0f/scale2);
-    return ToUNorm( snorm * scale );
-}
-
-
+ND_ float2  Rect_Center (const float4 rect)                                                 { return (rect.xy * 0.5f) + (rect.zw * 0.5f); }
+ND_ float2  Rect_Size (const float4 rect)                                                   { return rect.zw - rect.xy; }
 //-----------------------------------------------------------------------------
 
-ND_ bool  IsInsideRect (const int2 pos, const int2 minBound, const int2 maxBound)
-{
-    return All(bool4( GreaterEqual( pos, minBound ), Less( pos, maxBound )));
-}
 
-ND_ bool  IsInsideRect (const float2 pos, const float2 minBound, const float2 maxBound)
-{
-    return All(bool4( GreaterEqual( pos, minBound ), Less( pos, maxBound )));
-}
-
-ND_ bool  IsOutsideRect (const float2 pos, const float2 minBound, const float2 maxBound)
-{
-    return Any(bool4( Less( pos, minBound ), Greater( pos, maxBound )));
-}
-
-ND_ bool  IsInsideCircle (const float2 pos, const float2 center, const float radius)
-{
-    return Distance( pos, center ) < radius;
-}
-
-//-----------------------------------------------------------------------------
-
-ND_ float2 SampleArray_Helper (int len, float f)
+ND_ float2  SampleArray_Helper (const int len, const float f)
 {
     float a = Clamp( f * (len - 1), 0.0, float(len-1) );
     float b = Floor( a );
     return float2( b, a - b );
 }
-
-#define SampleArray( _array_, _factor_ ) \
-    Lerp(   _array_[int(SampleArray_Helper( _array_.length(), _factor_ ).x)], \
-            _array_[int(SampleArray_Helper( _array_.length(), _factor_ ).x) + 1], \
+#define SampleArray( _array_, _factor_ )                                            \
+    Lerp(   _array_[int(SampleArray_Helper( _array_.length(), _factor_ ).x)],       \
+            _array_[int(SampleArray_Helper( _array_.length(), _factor_ ).x) + 1],   \
             SampleArray_Helper( _array_.length(), _factor_ ).y )
-
 //-----------------------------------------------------------------------------
 
+
+#define InterpolateQuad( _arr_, _field_, _factor2_ )                \
+    (Lerp( Lerp( _arr_[0] _field_, _arr_[1] _field_, _factor2_.x ), \
+           Lerp( _arr_[3] _field_, _arr_[2] _field_, _factor2_.x ), \
+           _factor2_.y ))
+
+#define InterpolateTriangle( _arr_, _field_, _factor3_ )            \
+    ( _factor3_.x * _arr_[0] _field_ +                              \
+      _factor3_.y * _arr_[1] _field_ +                              \
+      _factor3_.z * _arr_[2] _field_ )
+//-----------------------------------------------------------------------------
+
+
+ND_ int2    LeftVector  (const int2   v)        { return int2  ( -v.y,  v.x ); }
+ND_ float2  LeftVector  (const float2 v)        { return float2( -v.y,  v.x ); }
+
+ND_ int2    RightVector (const int2   v)        { return int2  (  v.y, -v.x ); }
+ND_ float2  RightVector (const float2 v)        { return float2(  v.y, -v.x ); }
+
+ND_ float3  LeftVectorXZ  (const float3 v)      { return float3( -v.z, v.y,  v.x ); }
+ND_ float3  RightVectorXZ (const float3 v)      { return float3(  v.z, v.y, -v.x ); }
+//-----------------------------------------------------------------------------

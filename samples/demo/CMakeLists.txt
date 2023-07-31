@@ -27,11 +27,13 @@ target_compile_definitions( ${APP_NAME} PUBLIC AE_RES_FOLDER="${AE_TEMP_FOLDER}/
 if (TARGET "GraphicsHL")
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
     set_property( TARGET ${APP_NAME} PROPERTY FOLDER "Samples" )
-    target_link_libraries( ${APP_NAME} PUBLIC "GraphicsHL" "Platform" "Profiler" "Video" "GeometryTools" )
+    target_link_libraries( ${APP_NAME} PUBLIC "Platform" "GraphicsHL" "Profiler" "Video" "GeometryTools" )
     target_include_directories( ${APP_NAME} PUBLIC ".." )
     target_include_directories( ${APP_NAME} PUBLIC "${DATA_FOLDER}/scripts" "${DATA_FOLDER}/shaders" )
 
     if (TARGET "ImGUI-lib")
         target_link_libraries( ${APP_NAME} PUBLIC "ImGUI-lib" )
     endif()
+
+    EnablePCH2( ${APP_NAME} "Demo" )
 endif()

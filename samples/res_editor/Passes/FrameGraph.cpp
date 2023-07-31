@@ -12,7 +12,8 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    FrameGraphImpl::FrameGraphImpl () __Th___
+    FrameGraphImpl::FrameGraphImpl () __Th___ :
+        _rg{ RenderTaskScheduler().GetRenderGraph() }
     {
         CHECK_THROW( _instance == null );
         _instance = this;

@@ -7,21 +7,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-# include "base/Algorithms/Cast.h"
-# include "base/Containers/Ptr.h"
-# include "base/Containers/FixedArray.h"
-# include "base/Containers/FixedString.h"
-# include "base/Containers/FixedTupleArray.h"
-# include "base/Containers/StructView.h"
-# include "base/Utils/Helpers.h"
-
-# include "threading/Primitives/DataRaceCheck.h"
-# include "threading/Primitives/Atomic.h"
-# include "threading/TaskSystem/TaskScheduler.h"
-# include "threading/TaskSystem/Promise.h"
-# include "threading/Memory/GlobalLinearAllocator.h"
-# include "threading/Memory/FrameAllocator.h"
-
 # include "graphics/Public/Common.h"
 # include "graphics/Public/IDs.h"
 # include "graphics/Public/FrameUID.h"
@@ -29,7 +14,6 @@
 
 // Xcode frame debugger doesn't support sample counters
 # define AE_METAL_NATIVE_DEBUGGER   0
-
 
 namespace AE::Graphics
 {
@@ -97,8 +81,8 @@ namespace AE::Graphics
         Mesh                = 1 << 4,
         _Last,
         All                 = ((_Last - 1) << 1) - 1,
-        PreRasterization    = Vertex | MeshTask | Mesh,
-        PostRasterization   = Fragment | Tile,
+        //PreRasterization  = Vertex | MeshTask | Mesh,
+        //PostRasterization = Fragment | Tile,
         Unknown             = 0,
     };
     AE_BIT_OPERATORS( MtlRenderStages );
@@ -177,14 +161,3 @@ namespace AE::Graphics
 } // AE::Graphics
 
 #endif // AE_ENABLE_METAL
-
-
-# ifdef AE_CPP_DETECT_MISMATCH
-
-#  ifdef AE_ENABLE_METAL
-#   pragma detect_mismatch( "AE_ENABLE_METAL", "1" )
-#  else
-#   pragma detect_mismatch( "AE_ENABLE_METAL", "0" )
-#  endif
-
-#endif // AE_CPP_DETECT_MISMATCH

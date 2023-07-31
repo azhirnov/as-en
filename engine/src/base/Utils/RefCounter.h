@@ -41,11 +41,11 @@ namespace AE::Base
         virtual void  _ReleaseObject () __NE___
         {
             // update cache before calling destructor
-            std::atomic_thread_fence( EMemoryOrder::Acquire );
+            MemoryBarrier( EMemoryOrder::Acquire );
             delete this;
 
             // TODO: flush cache depends on allocator - default allocator flush cache because of internal sync, lock-free allocator may not flush cache
-            //std::atomic_thread_fence( EMemoryOrder::Release );
+            //MemoryBarrier( EMemoryOrder::Release );
         }
     };
 
@@ -79,7 +79,7 @@ namespace AE::Base
     // Reference Counter Pointer
     //
 
-    template <typename T>
+    template <typename T = EnableRCBase>
     struct RC
     {
     // types
@@ -178,9 +178,9 @@ namespace AE::Base
 
 
     //
-    // Pointer which depends on RC
+    // Pointer which depends on RC (unused)
     //
-
+    /*
     template <typename T>
     class WithRC
     {
@@ -205,21 +205,21 @@ namespace AE::Base
         WithRC (const Self &)                               __NE___ = default;
         template <typename B>   WithRC (T* ptr, RC<B> rc)   __NE___ : _ptr{ptr}, _rc{RVRef(rc)} { ASSERT( (_ptr != null) == bool{_rc} ); }
 
-        Self&  operator = (const Self &)                    __NE___ = default;
-        Self&  operator = (Self &&)                         __NE___ = default;
+            Self&   operator = (const Self &)               __NE___ = default;
+            Self&   operator = (Self &&)                    __NE___ = default;
 
-        ND_ bool  operator == (const T* rhs)                C_NE___ { return _ptr == rhs; }
-        ND_ bool  operator == (Ptr<T> rhs)                  C_NE___ { return _ptr == rhs; }
-        ND_ bool  operator == (const Self &rhs)             C_NE___ { return _ptr == rhs._ptr; }
-        ND_ bool  operator == (std::nullptr_t)              C_NE___ { return _ptr == null; }
+        ND_ bool    operator == (const T* rhs)              C_NE___ { return _ptr == rhs; }
+        ND_ bool    operator == (Ptr<T> rhs)                C_NE___ { return _ptr == rhs; }
+        ND_ bool    operator == (const Self &rhs)           C_NE___ { return _ptr == rhs._ptr; }
+        ND_ bool    operator == (std::nullptr_t)            C_NE___ { return _ptr == null; }
 
         template <typename B>
-        ND_ bool  operator != (const B& rhs)                C_NE___ { return not (*this == rhs); }
+        ND_ bool    operator != (const B& rhs)              C_NE___ { return not (*this == rhs); }
 
-        ND_ bool  operator <  (const Self &rhs)             C_NE___ { return _ptr <  rhs._ptr; }
-        ND_ bool  operator >  (const Self &rhs)             C_NE___ { return _ptr >  rhs._ptr; }
-        ND_ bool  operator <= (const Self &rhs)             C_NE___ { return _ptr <= rhs._ptr; }
-        ND_ bool  operator >= (const Self &rhs)             C_NE___ { return _ptr >= rhs._ptr; }
+        ND_ bool    operator <  (const Self &rhs)           C_NE___ { return _ptr <  rhs._ptr; }
+        ND_ bool    operator >  (const Self &rhs)           C_NE___ { return _ptr >  rhs._ptr; }
+        ND_ bool    operator <= (const Self &rhs)           C_NE___ { return _ptr <= rhs._ptr; }
+        ND_ bool    operator >= (const Self &rhs)           C_NE___ { return _ptr >= rhs._ptr; }
 
         ND_ T *     operator -> ()                          C_NE___ { ASSERT( _ptr != null );  return _ptr; }
         ND_ T &     operator *  ()                          C_NE___ { ASSERT( _ptr != null );  return *_ptr; }
@@ -228,7 +228,7 @@ namespace AE::Base
         ND_ explicit operator bool ()                       C_NE___ { return _ptr != null; }
 
         ND_ int     use_count ()                            C_NE___ { return _rc.use_count(); }
-    };
+    };*/
 
 
 
@@ -242,7 +242,7 @@ namespace AE::Base
         static void  New (INOUT T& obj, Args&& ...args) __Th___
         {
             // warning: don't use 'GetRC()' inside ctor!
-            PlacementNew<T>( &obj, FwdArg<Args>( args )... );   // throw
+            PlacementNew<T>( OUT &obj, FwdArg<Args>( args )... );   // throw
 
             const int   cnt = RefCounterUtils::IncRef( obj );
             Unused( cnt );
@@ -257,7 +257,7 @@ namespace AE::Base
             ASSERT( cnt == 1 );
 
             // update cache before calling destructor
-            std::atomic_thread_fence( EMemoryOrder::Acquire );
+            MemoryBarrier( EMemoryOrder::Acquire );
 
             PlacementDelete( INOUT obj );
         }
@@ -738,15 +738,10 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <typename T>
+struct std::hash< AE::Base::RC<T> >
 {
-
-    template <typename T>
-    struct hash< AE::Base::RC<T> >
-    {
-        ND_ size_t  operator () (const AE::Base::RC<T> &x) C_NE___ {
-            return std::hash< T* >{}( x.get() );
-        }
-    };
-
-} // std
+    ND_ size_t  operator () (const AE::Base::RC<T> &x) C_NE___ {
+        return std::hash< T* >{}( x.get() );
+    }
+};

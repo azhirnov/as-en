@@ -126,7 +126,6 @@ namespace AE::Graphics
         DepthStencilAttachment      = 1 << 5,       // depth/stencil attachment
         InputAttachment             = 1 << 6,       // input attachment in shader
         ShadingRate                 = 1 << 7,
-        FragmentDensityMap          = 1 << 8,
         _Last,
 
         All                         = ((_Last-1) << 1) - 1,
@@ -151,16 +150,15 @@ namespace AE::Graphics
 
         Alias                       = 1 << 8,       // two images can share same memory object
         SampleLocationsCompatible   = 1 << 9,       // only for depth/stencil
-        Subsampled                  = 1 << 10,      // intermediate attachments to use with fragment density map
 
-        StorageAtomic               = 1 << 11,      // atomic operations on image
-        ColorAttachmentBlend        = 1 << 12,      // blend operations on color attachment
-        SampledLinear               = 1 << 13,      // linear filtering for sampled image
-        SampledMinMax               = 1 << 14,      // minmax filtering for sampled image
-        VertexPplnStore             = 1 << 15,      // storage image store and atomic operations in vertex, geometry, tessellation shaders
-        FragmentPplnStore           = 1 << 16,      // storage image store and atomic operations in fragment shader
+        StorageAtomic               = 1 << 10,      // atomic operations on image
+        ColorAttachmentBlend        = 1 << 11,      // blend operations on color attachment
+        SampledLinear               = 1 << 12,      // linear filtering for sampled image
+        SampledMinMax               = 1 << 13,      // minmax filtering for sampled image
+        VertexPplnStore             = 1 << 14,      // storage image store and atomic operations in vertex, geometry, tessellation shaders
+        FragmentPplnStore           = 1 << 15,      // storage image store and atomic operations in fragment shader
 
-        LossyRTCompression          = 1 << 17,      // Metal only, allow to use hardware lossy compression for the color attachments
+        LossyRTCompression          = 1 << 16,      // Metal only, allow to use hardware lossy compression for the color attachments
 
         //DepthComparison   // TODO
 

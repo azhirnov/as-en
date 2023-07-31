@@ -14,7 +14,7 @@
         RC<Image>           rt1     = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt1.Name( "RT-1" );
         RC<Image>           rt2     = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );    rt2.Name( "RT-2" );
         RC<Image>           tex1    = Image( EImageType::FImage2D, "shadertoy/Abstract_1.jpg" );
-        RC<Controller2D>    cam     = Controller2D();
+        RC<ScaleBiasCamera> camera  = ScaleBiasCamera();
 
         // render loop
         {
@@ -26,7 +26,7 @@
 
             RC<Postprocess>     pass2 = Postprocess( EPostprocess::Shadertoy, "PASS2" );
             pass2.Input( "iTexture2",   rt1,    Sampler_LinearClamp );
-            pass2.Input( cam );
+            pass2.Input( camera );
             pass2.Output( rt2 );
         }
         Present( rt2 );
@@ -46,13 +46,12 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef PASS2
-
     #include "Matrix.glsl"
 
     void mainImage (out float4 fragColor, in float2 fragCoord)
     {
         float2 uv = fragCoord / iResolution.xy;
-        uv = Transform2D( ub.camera.viewProj, uv );
+        uv = Transform2D( un_PerPass.camera.viewProj, uv );
 
         fragColor = 1.0 - gl.texture.Sample( iTexture2, 1.0 - uv );
     }

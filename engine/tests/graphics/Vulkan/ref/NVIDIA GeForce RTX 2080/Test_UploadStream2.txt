@@ -3,10 +3,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -24,10 +20,6 @@ name: 'UploadStream2 |0| test task'
       copy { [0, 1048576) } ---> { off:(0, 0, 0), ext:(4096, 64, 1), mip:0, layers:[0, 1), COLOR }
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -39,20 +31,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 64, 0), ext:(4096, 128, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -66,20 +49,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 128, 0), ext:(4096, 192, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -93,20 +67,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 192, 0), ext:(4096, 256, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -120,20 +85,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 256, 0), ext:(4096, 320, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -147,20 +103,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 320, 0), ext:(4096, 384, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -174,20 +121,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 384, 0), ext:(4096, 448, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -201,20 +139,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 448, 0), ext:(4096, 512, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -228,20 +157,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 512, 0), ext:(4096, 576, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -255,20 +175,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 576, 0), ext:(4096, 640, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -282,20 +193,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 640, 0), ext:(4096, 704, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -309,20 +211,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 704, 0), ext:(4096, 768, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -336,20 +229,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 768, 0), ext:(4096, 832, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -363,20 +247,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 832, 0), ext:(4096, 896, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -390,20 +265,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 896, 0), ext:(4096, 960, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -417,20 +283,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 960, 0), ext:(4096, 1024, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -444,20 +301,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1024, 0), ext:(4096, 1088, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -471,20 +319,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1088, 0), ext:(4096, 1152, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -498,20 +337,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1152, 0), ext:(4096, 1216, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -525,20 +355,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1216, 0), ext:(4096, 1280, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -552,20 +373,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1280, 0), ext:(4096, 1344, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -579,20 +391,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1344, 0), ext:(4096, 1408, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -606,20 +409,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1408, 0), ext:(4096, 1472, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -633,20 +427,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1472, 0), ext:(4096, 1536, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -660,20 +445,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1536, 0), ext:(4096, 1600, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -687,20 +463,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1600, 0), ext:(4096, 1664, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -714,20 +481,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1664, 0), ext:(4096, 1728, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -741,20 +499,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1728, 0), ext:(4096, 1792, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -768,20 +517,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1792, 0), ext:(4096, 1856, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -795,20 +535,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1856, 0), ext:(4096, 1920, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -822,20 +553,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1920, 0), ext:(4096, 1984, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -849,20 +571,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 1984, 0), ext:(4096, 2048, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -876,20 +589,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2048, 0), ext:(4096, 2112, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -903,20 +607,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2112, 0), ext:(4096, 2176, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -930,20 +625,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2176, 0), ext:(4096, 2240, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -957,20 +643,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2240, 0), ext:(4096, 2304, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -984,20 +661,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2304, 0), ext:(4096, 2368, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1011,20 +679,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2368, 0), ext:(4096, 2432, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1038,20 +697,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2432, 0), ext:(4096, 2496, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1065,20 +715,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2496, 0), ext:(4096, 2560, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1092,20 +733,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2560, 0), ext:(4096, 2624, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1119,20 +751,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2624, 0), ext:(4096, 2688, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1146,20 +769,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2688, 0), ext:(4096, 2752, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1173,20 +787,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2752, 0), ext:(4096, 2816, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1200,20 +805,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2816, 0), ext:(4096, 2880, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1227,20 +823,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2880, 0), ext:(4096, 2944, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1254,20 +841,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 2944, 0), ext:(4096, 3008, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1281,20 +859,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3008, 0), ext:(4096, 3072, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1308,20 +877,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3072, 0), ext:(4096, 3136, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1335,20 +895,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3136, 0), ext:(4096, 3200, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1362,20 +913,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3200, 0), ext:(4096, 3264, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1389,20 +931,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3264, 0), ext:(4096, 3328, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1416,20 +949,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3328, 0), ext:(4096, 3392, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1443,20 +967,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3392, 0), ext:(4096, 3456, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1470,20 +985,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3456, 0), ext:(4096, 3520, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1497,20 +1003,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3520, 0), ext:(4096, 3584, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1524,20 +1021,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3584, 0), ext:(4096, 3648, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1551,20 +1039,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3648, 0), ext:(4096, 3712, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1578,20 +1057,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3712, 0), ext:(4096, 3776, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1605,20 +1075,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3776, 0), ext:(4096, 3840, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1632,20 +1093,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3840, 0), ext:(4096, 3904, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1659,20 +1111,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3904, 0), ext:(4096, 3968, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1686,20 +1129,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 3968, 0), ext:(4096, 4032, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -1713,20 +1147,11 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'UploadStream2 |0| test task'
 {
-  BeginDebugLabel
-    name:  'UploadStream2 |0| test task'
-    depth: 1
-  ----------
-
   CopyBufferToImage
     src:       'dynamic staging buffer'
     dst:       'image'
     dstLayout: TRANSFER_DST_OPTIMAL
       copy { [0, 1048576) } ---> { off:(0, 4032, 0), ext:(4096, 4096, 1), mip:0, layers:[0, 1), COLOR }
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }

@@ -3,14 +3,13 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-# include "base/Utils/Version.h"
-# include "base/CompileTime/StringToID.h"
 # include "graphics/Public/DeviceProperties.h"
 # include "graphics/Public/ResourceEnums.h"
 # include "graphics/Public/FeatureSet.h"
 # include "graphics/Public/DescriptorSet.h"
 # include "graphics/Vulkan/VQueue.h"
 # include "graphics/Vulkan/Utils/VNvPerf.h"
+# include "VulkanExtEmulation.h"
 
 namespace AE::Graphics
 {
@@ -72,6 +71,8 @@ namespace AE::Graphics
         ExtensionSet_t          _instanceExtensions;
         ExtensionSet_t          _deviceExtensions;
 
+        VulkanExtEmulation      _extEmulation;
+
         VNvPerf                 _nvPerf;
 
         DRC_ONLY(
@@ -81,53 +82,58 @@ namespace AE::Graphics
 
     // methods
     public:
-        VDevice ()                                              __NE___;
-        ~VDevice ()                                             __NE___;
+        VDevice ()                                                                  __NE___;
+        ~VDevice ()                                                                 __NE___;
 
-        ND_ VExtensions const&      GetExtensions ()            C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _extensions; }
-        ND_ VProperties const&      GetProperties ()            C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _properties; }
-        ND_ ResourceFlags const&    GetResourceFlags ()         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
-        ND_ DeviceProperties const& GetDeviceProperties ()      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _devProps; }
+        ND_ VExtensions const&      GetExtensions ()                                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _extensions; }
+        ND_ VProperties const&      GetProperties ()                                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _properties; }
+        ND_ ResourceFlags const&    GetResourceFlags ()                             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
+        ND_ DeviceProperties const& GetDeviceProperties ()                          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _devProps; }
 
-        ND_ VkDevice                GetVkDevice ()              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkLogicalDevice; }
-        ND_ VkPhysicalDevice        GetVkPhysicalDevice ()      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkPhysicalDevice; }
-        ND_ VkInstance              GetVkInstance ()            C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkInstance; }
-        ND_ InstanceVersion         GetInstanceVersion ()       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkInstanceVersion; }
-        ND_ DeviceVersion           GetDeviceVersion ()         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkDeviceVersion; }
-        ND_ SpirvVersion            GetSpirvVersion ()          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _spirvVersion; }
-        ND_ Version2                GetVkVersion ()             C_NE___ { return GetDeviceVersion().Cast<0>(); }
-        ND_ ArrayView<VQueue>       GetQueues ()                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _queues; }
-        ND_ VQueuePtr               GetQueue (EQueueType type)  C_NE___ { DRC_SHAREDLOCK( _drCheck );  return uint(type) < _queueTypes.size() ? _queueTypes[uint(type)] : null; }
-        ND_ EQueueMask              GetAvailableQueues ()       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
+        ND_ VkDevice                GetVkDevice ()                                  C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkLogicalDevice; }
+        ND_ VkPhysicalDevice        GetVkPhysicalDevice ()                          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkPhysicalDevice; }
+        ND_ VkInstance              GetVkInstance ()                                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkInstance; }
+        ND_ InstanceVersion         GetInstanceVersion ()                           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkInstanceVersion; }
+        ND_ DeviceVersion           GetDeviceVersion ()                             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _vkDeviceVersion; }
+        ND_ SpirvVersion            GetSpirvVersion ()                              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _spirvVersion; }
+        ND_ Version2                GetVkVersion ()                                 C_NE___ { return GetDeviceVersion().Cast<0>(); }
+        ND_ ArrayView<VQueue>       GetQueues ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _queues; }
+        ND_ VQueuePtr               GetQueue (EQueueType type)                      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return uint(type) < _queueTypes.size() ? _queueTypes[uint(type)] : null; }
+        ND_ EQueueMask              GetAvailableQueues ()                           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
 
-        ND_ bool                    IsInitialized ()            C_NE___ { return GetVkDevice() != Default; }
+        ND_ bool                    IsInitialized ()                                C_NE___ { return GetVkDevice() != Default; }
 
-        ND_ VNvPerf const&          GetNvPerf ()                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _nvPerf; }
-        ND_ bool                    HasNvPerf ()                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _nvPerf.IsInitialized(); }
+        ND_ VNvPerf const&          GetNvPerf ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _nvPerf; }
+        ND_ bool                    HasNvPerf ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _nvPerf.IsInitialized(); }
 
-        ND_ DevMemoryInfoOpt        GetMemoryUsage ()           C_NE___;
+        ND_ DevMemoryInfoOpt        GetMemoryUsage ()                               C_NE___;
+
+        ND_ bool                    IsUnderDebugger ()                              C_NE___;
 
 
         // check extensions
-        ND_ bool  HasInstanceExtension (StringView name)        C_NE___;
-        ND_ bool  HasDeviceExtension (StringView name)          C_NE___;
+        ND_ bool  HasInstanceExtension (StringView name)                            C_NE___;
+        ND_ bool  HasDeviceExtension (StringView name)                              C_NE___;
 
         template <typename T>
-            bool  SetObjectName (T id, NtStringView name, VkObjectType type)                                C_NE___;
-            bool  SetObjectName (ulong id, NtStringView name, VkObjectType type)                            C_NE___;
+            bool  SetObjectName (T id, NtStringView name, VkObjectType type)        C_NE___;
+            bool  SetObjectName (ulong id, NtStringView name, VkObjectType type)    C_NE___;
 
-            void  GetQueueFamilies (EQueueMask mask, OUT VQueueFamilyIndices_t &)                           C_NE___;
+            void  GetQueueFamilies (EQueueMask mask, OUT VQueueFamilyIndices_t &)   C_NE___;
 
         ND_ bool  GetMemoryTypeIndex (uint memoryTypeBits,
-                                      VkMemoryPropertyFlagBits includeFlags, VkMemoryPropertyFlagBits optIncludeFlags,
-                                      VkMemoryPropertyFlagBits excludeFlags, VkMemoryPropertyFlagBits optExcludeFlags,
-                                      OUT uint &memoryTypeIndex)                                            C_NE___;
-        ND_ bool  GetMemoryTypeIndex (uint memoryTypeBits, EMemoryType memType, OUT uint &memoryTypeIndex)  C_NE___;
+                                      VkMemoryPropertyFlagBits includeFlags,
+                                      VkMemoryPropertyFlagBits optIncludeFlags,
+                                      VkMemoryPropertyFlagBits excludeFlags,
+                                      VkMemoryPropertyFlagBits optExcludeFlags,
+                                      OUT uint &memoryTypeIndex)                    C_NE___;
+        ND_ bool  GetMemoryTypeIndex (uint memoryTypeBits, EMemoryType memType,
+                                      OUT uint &memoryTypeIndex)                    C_NE___;
 
-        ND_ bool  CheckConstantLimits ()                        C_NE___;
-        ND_ bool  CheckExtensions ()                            C_NE___;
+        ND_ bool  CheckConstantLimits ()                                            C_NE___;
+        ND_ bool  CheckExtensions ()                                                C_NE___;
 
-            void  InitFeatureSet (OUT FeatureSet &)             C_NE___;
+            void  InitFeatureSet (OUT FeatureSet &)                                 C_NE___;
     };
 
 
@@ -249,7 +255,7 @@ namespace AE::Graphics
         ND_ bool  Init (const VDeviceInitializer &otherDev)                                         __NE___;
         ND_ bool  Init (const GraphicsCreateInfo &ci, ArrayView<const char*> instanceExtensions)    __NE___;
 
-        ND_ static ArrayView<const char*>   GetRecomendedInstanceLayers ()                          __NE___;
+        ND_ static ArrayView<const char*>   GetRecommendedInstanceLayers ()                         __NE___;
 
         ND_ VulkanDeviceFnTable &           EditDeviceFnTable ()                                    __NE___ { DRC_EXLOCK( _drCheck ); return _deviceFnTable; }
 
@@ -278,6 +284,7 @@ namespace AE::Graphics
         void  _LogPhysicalDevices ()                                                                                    C_NE___;
         void  _LogLogicalDevice ()                                                                                      C_Th___;
         void  _LogResourceFlags ()                                                                                      C_Th___;
+        void  _LogExternalTools ()                                                                                      C_Th___;
 
         void  _InitQueues (ArrayView<VkQueueFamilyProperties> props, INOUT Queues_t &queues, INOUT QueueTypes_t &qtypes)C_NE___;
         void  _ValidateQueueStages (INOUT Queues_t &queues)                                                             C_NE___;

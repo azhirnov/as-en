@@ -3,7 +3,8 @@
 #pragma once
 
 #ifdef AE_ENABLE_SCRIPTING
-# include "scripting/Bindings/CoreBindings.h"
+# include "pch/Scripting.h"
+
 # include "graphics/Public/ResourceEnums.h"
 # include "graphics/Public/EResourceState.h"
 # include "graphics/Public/RenderState.h"

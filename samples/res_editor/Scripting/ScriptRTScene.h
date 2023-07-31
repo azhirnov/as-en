@@ -56,6 +56,22 @@ namespace AE::ResEditor
     };
 
 
+    //
+    // RayTracing Instance Rotation
+    //
+    struct RTInstanceRotation
+    {
+    // variables
+        packed_float3   angles;
+
+    // methods
+        RTInstanceRotation () {}
+        explicit RTInstanceRotation (const packed_float3 &v) : angles{v} {}
+
+        static void  Bind (const ScriptEnginePtr &se) __Th___;
+    };
+
+
 
     //
     // RayTracing Geometry
@@ -81,7 +97,9 @@ namespace AE::ResEditor
     public:
         TriangleMeshes_t        _triangleMeshes;
         String                  _dbgName;
+        ScriptBufferPtr         _indirectBuffer;
 
+        bool                    _immutableGeom      = false;
         RC<RTGeometry>          _resource;
 
 
@@ -90,6 +108,7 @@ namespace AE::ResEditor
         ScriptRTGeometry ()                                                                             __Th___;
 
         void  Name (const String &name)                                                                 __Th___;
+        void  EnableHistory ()                                                                          __Th___;
 
         void  AddTriangles1 (const ScriptBufferPtr &vbuf)                                               __Th___;
         void  AddTriangles2 (const ScriptBufferPtr &vbuf, uint maxVertex, uint maxPrimitives)           __Th___;
@@ -98,14 +117,24 @@ namespace AE::ResEditor
         void  AddIndexedTriangles2 (const ScriptBufferPtr &vbuf, uint maxVertex, uint maxPrimitives,
                                     const ScriptBufferPtr &ibuf, EIndex indexType)                      __Th___;
 
+        void  MakeImmutable ()                                                                          __Th___;
+
+        ND_ bool            HasIndirectBuffer ()                                                        const   { return bool{_indirectBuffer}; }
+        ND_ ScriptBufferPtr GetIndirectBuffer ()                                                        __Th___;
+
         static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
 
         ND_ RC<RTGeometry>  ToResource ()                                                               __Th___;
 
     private:
                void  _Validate ()                                                                       __Th___;
+               void  _Validate2 ()                                                                      __Th___;
+
                void  _MutableResource ()                                                                C_Th___;
         static void  _CheckBuffer (const ScriptBufferPtr &buf)                                          __Th___;
+
+        ND_ ScriptBuffer*   _GetIndirectBuffer ()                                                       __Th___;
+        ND_ uint            _GetGeometryCount ()                                                        __Th___;
     };
 
 
@@ -132,8 +161,11 @@ namespace AE::ResEditor
     // variables
     public:
         Array<Instance>         _instances;
+        ScriptBufferPtr         _instanceBuffer;
+        ScriptBufferPtr         _indirectBuffer;
         String                  _dbgName;
 
+        bool                    _immutableInstances = false;
         RC<RTScene>             _resource;
 
 
@@ -142,6 +174,11 @@ namespace AE::ResEditor
         ScriptRTScene ()                                                                                __Th___;
 
         void  Name (const String &name)                                                                 __Th___;
+        void  EnableHistory ()                                                                          __Th___;
+
+        ND_ bool            HasIndirectBuffer ()                                                        const   { return bool{_indirectBuffer}; }
+        ND_ ScriptBufferPtr GetInstanceBuffer ()                                                        __Th___;
+        ND_ ScriptBufferPtr GetIndirectBuffer ()                                                        __Th___;
 
         static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
 
@@ -150,6 +187,13 @@ namespace AE::ResEditor
     private:
                 void  _AddInstance2 (Scripting::ScriptArgList args)                                     __Th___;
         static  void  _AddInstance (Scripting::ScriptArgList args)                                      __Th___;
+
+        ND_ ScriptBuffer*   _GetInstanceBuffer ()                                                       __Th___;
+        ND_ uint            _GetInstanceCount ()                                                        __Th___;
+
+        ND_ ScriptBuffer*   _GetIndirectBuffer ()                                                       __Th___;
+
+            void    _MakeInstancesImmutable ();
     };
 
 

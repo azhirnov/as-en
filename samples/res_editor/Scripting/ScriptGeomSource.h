@@ -6,6 +6,12 @@
 #include "res_editor/Scripting/ScriptDynamicVars.h"
 
 #include "res_editor/GeomSource/IGeomSource.h"
+#include "res_editor/GeomSource/TiledTerrain.h"
+
+namespace AE::ResLoader {
+    class IntermScene;
+    class IntermVertexAttribs;
+}
 
 namespace AE::ResEditor
 {
@@ -29,12 +35,60 @@ namespace AE::ResEditor
 
         ND_ virtual RC<IGeomSource>     ToGeomSource ()                                                 __Th___ = 0;
         ND_ virtual PipelineNames_t     FindMaterialPipeline ()                                         C_Th___ = 0;
-        ND_ virtual void                AddLayoutReflection ()                                          C_Th___ = 0;
+            virtual void                AddLayoutReflection ()                                          C_Th___ = 0;
         ND_ virtual RC<IGSMaterials>    ToMaterial (RenderTechPipelinesPtr, const PipelineNames_t &)    C_Th___ = 0;
 
     protected:
         template <typename B>
         static void  _BindBase (B &binder)                                                              __Th___;
+    };
+
+
+
+    //
+    // Tiled/Chunked Terrain Geometry Source
+    //
+    class ScriptTiledTerrain final : public ScriptGeomSource
+    {
+    // types
+    public:
+        using Layers_t  = FlatHashMap< String, ScriptImagePtr >;
+        using EMode     = TiledTerrain::EMode;
+
+
+    // variables
+    private:
+        ScriptBasePassPtr       _generator;
+        Layers_t                _layers;
+        const EMode             _mode           = EMode::_Count;
+        uint                    _vertsPerEdge   = 2;
+        ScriptDynamicFloat4Ptr  _dynRegion;     // min/max coord of tile
+
+        RC<IGeomSource>         _geomSrc;
+
+
+    // methods
+    public:
+        ScriptTiledTerrain () {}
+        ScriptTiledTerrain (EMode mode, const ScriptDynamicFloat4Ptr &dynRegion)                        __Th___;
+
+        void  SetGenerator (const ScriptBasePassPtr &passGroup)                                         __Th___;
+        void  AddLayer (const String &name, const ScriptImagePtr &image)                                __Th___;
+        void  SetGridSize (uint value)                                                                  __Th___;
+
+        ScriptDynamicFloat4*  DynamicRegion ()                                                          __Th___;
+
+        static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
+        static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                     __Th___;
+
+    // ScriptGeomSource //
+        ND_ RC<IGeomSource>     ToGeomSource ()                                                         __Th_OV;
+        ND_ PipelineNames_t     FindMaterialPipeline ()                                                 C_Th_OV;
+            void                AddLayoutReflection ()                                                  C_Th_OV {}
+        ND_ RC<IGSMaterials>    ToMaterial (RenderTechPipelinesPtr, const PipelineNames_t &)            C_Th_OV;
+
+    private:
+        ND_ static auto  _CreateUBType ()                                                               __Th___;
     };
 
 
@@ -59,6 +113,7 @@ namespace AE::ResEditor
         TextureMap_t        _textures;
         uint                _minLod     = 0;
         uint                _maxLod     = 0;
+        RC<DynamicFloat>    _tessLevel;
 
         RC<IGeomSource>     _geomSrc;
 
@@ -73,13 +128,16 @@ namespace AE::ResEditor
         void  SetDetailLevel1 (uint maxLod)                                                             __Th___;
         void  SetDetailLevel2 (uint minLod, uint maxLod)                                                __Th___;
 
+        void  SetTessLevel1 (float level)                                                               __Th___;
+        void  SetTessLevel2 (const ScriptDynamicFloatPtr &level)                                        __Th___;
+
         static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
         static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                     __Th___;
 
     // ScriptGeomSource //
         ND_ RC<IGeomSource>     ToGeomSource ()                                                         __Th_OV;
         ND_ PipelineNames_t     FindMaterialPipeline ()                                                 C_Th_OV;
-        ND_ void                AddLayoutReflection ()                                                  C_Th_OV {}
+            void                AddLayoutReflection ()                                                  C_Th_OV {}
         ND_ RC<IGSMaterials>    ToMaterial (RenderTechPipelinesPtr, const PipelineNames_t &)            C_Th_OV;
 
     private:
@@ -301,11 +359,63 @@ namespace AE::ResEditor
     // ScriptGeomSource //
         ND_ RC<IGeomSource>     ToGeomSource ()                                                         __Th_OV;
         ND_ PipelineNames_t     FindMaterialPipeline ()                                                 C_Th_OV;
-        ND_ void                AddLayoutReflection ()                                                  C_Th_OV;
+            void                AddLayoutReflection ()                                                  C_Th_OV;
         ND_ RC<IGSMaterials>    ToMaterial (RenderTechPipelinesPtr, const PipelineNames_t &)            C_Th_OV;
 
     private:
         ND_ static auto  _CreateUBType ()                                                               __Th___;
+    };
+
+
+
+    //
+    // Scene/Model Geometry Source
+    //
+    class ScriptSceneGeometry final : public ScriptGeomSource
+    {
+    // types
+    private:
+
+
+    // variables
+    private:
+        Path                            _scenePath;
+        String                          _dbgName;
+        String                          _texPrefix;
+
+        ScriptRTGeometryPtr             _opaqueRTGeom;
+        ScriptRTGeometryPtr             _translucentRTGeom;
+
+        RC< ResLoader::IntermScene >    _intermScene;
+        float4x4                        _initialTransform;
+
+        RC<IGeomSource>                 _geomSrc;
+
+
+    // methods
+    public:
+        ScriptSceneGeometry ()                                                                          __Th___;
+        ScriptSceneGeometry (const String &filename)                                                    __Th___;
+        ~ScriptSceneGeometry ();
+
+            void  Name (const String &name)                                                             __Th___;
+            void  SetTexturePrefix (const String &value)                                                __Th___;
+            void  SetTransform (const packed_float4x4 &value)                                           __Th___;
+
+        ND_ ScriptRTGeometry*  GetOpaqueRTGeometry ()                                                   __Th___;
+        ND_ ScriptRTGeometry*  GetTranslucentRTGeometry ()                                              __Th___;
+
+        static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
+        static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                     __Th___;
+
+    // ScriptGeomSource //
+        ND_ RC<IGeomSource>     ToGeomSource ()                                                         __Th_OV;
+        ND_ PipelineNames_t     FindMaterialPipeline ()                                                 C_Th_OV;
+            void                AddLayoutReflection ()                                                  C_Th_OV {}
+        ND_ RC<IGSMaterials>    ToMaterial (RenderTechPipelinesPtr, const PipelineNames_t &)            C_Th_OV;
+
+    private:
+        ND_ static String  _AttribsToVBName (const ResLoader::IntermVertexAttribs &)                    __Th___;
     };
 
 

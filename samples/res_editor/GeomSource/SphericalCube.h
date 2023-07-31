@@ -18,13 +18,15 @@ namespace AE::ResEditor
 
     // types
     private:
+        using PplnID_t  = Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
+
         class Material final : public IGSMaterials
         {
         // variables
         public:
             RenderTechPipelinesPtr      rtech;
 
-            GraphicsPipelineID          ppln;
+            PplnID_t                    ppln;
             PerFrameDescSet_t           descSets;
 
             DescSetBinding              passDSIndex;
@@ -45,18 +47,22 @@ namespace AE::ResEditor
     private:
         GeometryTools::SphericalCubeRenderer    _cube;
 
+        RC<DynamicFloat>                        _tessLevel;
+
         const uint                              _minLod     = 0;
         const uint                              _maxLod     = 0;
 
 
     // methods
     public:
-        SphericalCube (Renderer &r, uint minLod, uint maxLod)       __Th___;
+        SphericalCube (Renderer &r, uint minLod, uint maxLod, RC<DynamicFloat> tessLevel) __Th___;
         ~SphericalCube ();
 
 
     // IGeomSource //
         void  StateTransition (IGSMaterials &, GraphicsCtx_t &)     __NE_OV;
+        void  StateTransition (IGSMaterials &, RayTracingCtx_t &)   __NE_OV;
+
         bool  Draw (const DrawData &)                               __NE_OV;
         bool  Update (const UpdateData &)                           __NE_OV;
     };

@@ -20,7 +20,7 @@ namespace AE::App
             Unknown = Default,
         };
 
-        enum class EOrientation
+        enum class EOrientation : short
         {
             Default             = -1,
             Sensor              = -2,
@@ -51,6 +51,7 @@ namespace AE::App
         float2              ppi;                    // pixels per inch
         uint                freq        = 0;        // update frequency in Hz
         EOrientation        orient      = Default;
+        bool                isExternal  = false;
 
         Name_t              name;
         NativeMonitor_t     native      = null;
@@ -117,6 +118,9 @@ namespace AE::App
         ND_ static constexpr float  _MetersInInch ()            __NE___ { return 0.0254f; }
         ND_ static constexpr float  _InchsInMillimeter ()       __NE___ { return 0.0393700787f; }
         ND_ static constexpr float  _DipToPixel ()              __NE___ { return 160.0f; }
+
+
+            void  Print ()                                      C_NE___;
     };
 
 

@@ -1,13 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/FileStream.h"
-
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Passes/Postprocess.h"
 #include "res_editor/EditorUI.h"
-
-#include "scripting/Impl/ClassBinder.h"
-#include "scripting/Impl/EnumBinder.h"
 #include "res_editor/Scripting/ScriptBasePass.cpp.h"
 
 namespace AE::ResEditor
@@ -56,6 +51,10 @@ namespace
     constructor
 =================================================
 */
+    ScriptPostprocess::ScriptPostprocess () :
+        ScriptBaseRenderPass{ EFlags::Unknown }, _ppFlags{ Default }
+    {}
+
     ScriptPostprocess::ScriptPostprocess (const String &name, EPostprocess ppFlags, const String &defines, EFlags baseFlags) __Th___ :
         ScriptBaseRenderPass{ baseFlags },
         _pplnPath{ ScriptExe::ScriptPassApi::ToShaderPath( name )},
@@ -87,7 +86,7 @@ namespace
         buf->AddUsage( EResourceUsage::ComputeRead );
 
         auto&   dst = _input.emplace_back();
-        dst.tex         = buf;
+        dst.res         = buf;
         dst.uniformName = name;
     }
 
@@ -104,7 +103,7 @@ namespace
         tex->AddUsage( EResourceUsage::Sampled );
 
         auto&   dst = _input.emplace_back();
-        dst.tex         = tex;
+        dst.res         = tex;
         dst.uniformName = name;
         dst.samplerName = samplerName;
     }
@@ -122,7 +121,7 @@ namespace
         video->AddUsage( EResourceUsage::Sampled );
 
         auto&   dst = _input.emplace_back();
-        dst.tex         = video;
+        dst.res         = video;
         dst.uniformName = name;
         dst.samplerName = samplerName;
     }
@@ -215,20 +214,24 @@ namespace
 
         EnumBitSet<IPass::EDebugMode>   dbg_modes;
 
-        const auto  AddPpln = [pp = result.get(), &dbg_modes] (IPass::EDebugMode mode, GraphicsPipelineID id)
+        const auto  AddPpln = [this, pp = result.get(), &dbg_modes] (IPass::EDebugMode mode, EFlags flag, const PipelineName &name)
         {{
-            if ( id ) {
-                pp->_pipelines.insert_or_assign( mode, id );
-                dbg_modes.insert( mode );
+            if ( AllBits( _baseFlags, flag ))
+            {
+                auto    id = pp->_rtech.rtech->GetGraphicsPipeline( name );
+                if ( id ) {
+                    pp->_pipelines.insert_or_assign( mode, id );
+                    dbg_modes.insert( mode );
+                }
             }
         }};
 
-        auto    ppln = result->_rtech.rtech->GetGraphicsPipeline( PipelineName{"postprocess"} );
-        CHECK_ERR( ppln );
-        AddPpln( IPass::EDebugMode::Unknown,        ppln );
-        AddPpln( IPass::EDebugMode::Trace,          result->_rtech.rtech->GetGraphicsPipeline( PipelineName{"postprocess.Trace"} ));
-        AddPpln( IPass::EDebugMode::FnProfiling,    result->_rtech.rtech->GetGraphicsPipeline( PipelineName{"postprocess.FnProf"} ));
-        AddPpln( IPass::EDebugMode::TimeHeatMap,    result->_rtech.rtech->GetGraphicsPipeline( PipelineName{"postprocess.TmProf"} ));
+        AddPpln( IPass::EDebugMode::Unknown,        EFlags::Unknown,                PipelineName{"postprocess"} );
+        AddPpln( IPass::EDebugMode::Trace,          EFlags::Enable_ShaderTrace,     PipelineName{"postprocess.Trace"} );
+        AddPpln( IPass::EDebugMode::FnProfiling,    EFlags::Enable_ShaderFnProf,    PipelineName{"postprocess.FnProf"} );
+        AddPpln( IPass::EDebugMode::TimeHeatMap,    EFlags::Enable_ShaderTmProf,    PipelineName{"postprocess.TmProf"} );
+
+        auto    ppln = result->_pipelines.find( IPass::EDebugMode::Unknown )->second;
 
         result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ ub_size, EBufferUsage::Uniform | EBufferUsage::TransferDst },
                                                   "ShadertoyUB", renderer.GetAllocator() );
@@ -242,28 +245,31 @@ namespace
 
             for (auto& in : _input)
             {
-                if ( auto tex = UnionGet<ScriptImagePtr>( in.tex ))
-                {
-                    auto    res = (*tex)->ToResource();
-                    CHECK_ERR( res );
-                    result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderSample | EResourceState::FragmentShader );
-                }
-                else
-                if ( auto video = UnionGet<ScriptVideoImagePtr>( in.tex ))
-                {
-                    auto    res = (*video)->ToResource();
-                    CHECK_ERR( res );
-                    result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderSample | EResourceState::FragmentShader );
-                }
-                else
-                if ( auto buf = UnionGet<ScriptBufferPtr>( in.tex ))
-                {
-                    auto    res = (*buf)->ToResource();
-                    CHECK_ERR( res );
-                    result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderStorage_RW | EResourceState::FragmentShader ); // TODO: readonly
-                }
-                else
-                    RETURN_ERR( "unsupported input type" );
+                Visit( in.res,
+                    [&] (ScriptBufferPtr buf) {
+                        auto    res = buf->ToResource();
+                        CHECK_THROW( res );
+                        result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderStorage_RW | EResourceState::FragmentShader );
+                    },
+                    [&] (ScriptImagePtr tex) {
+                        auto    res = tex->ToResource();
+                        CHECK_THROW( res );
+                        result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderSample | EResourceState::FragmentShader );
+                    },
+                    [&] (ScriptVideoImagePtr video) {
+                        auto    res = video->ToResource();
+                        CHECK_THROW( res );
+                        result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderSample | EResourceState::FragmentShader );
+                    },
+                    [&] (ScriptRTScenePtr scene) {
+                        auto    res = scene->ToResource();
+                        CHECK_THROW( res );
+                        result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderRTAS_Read | EResourceState::FragmentShader );
+                    },
+                    [] (NullUnion) {
+                        CHECK_THROW_MSG( false, "unsupported argument type" );
+                    }
+                );
             }
         }
 
@@ -302,18 +308,8 @@ namespace
 
         if ( this->_controller )
         {
-            RC<DynamicDim>  dyn_dim;
-
-            for (auto& img : _output) {
-                if ( img.rt->IsMutableDimension() ) {
-                    dyn_dim = img.rt->DynamicDimension();
-                    break;
-                }
-            }
-            if ( not dyn_dim )
-                dyn_dim = MakeRC<DynamicDim>( _output.front().rt->Dimension2() );
-
-            result->_controller = this->_controller->ToController( dyn_dim );  // throw
+            this->_controller->SetDimensionIfNotSet( _dynamicDim );
+            result->_controller = this->_controller->ToController();  // throw
             CHECK_ERR( result->_controller );
         }
 
@@ -361,12 +357,14 @@ namespace AE::ResEditor
                 float3      resolution;             // viewport resolution (in pixels)
                 float       time;                   // shader playback time (in seconds)
                 float       timeDelta;              // render time (in seconds)
-                int         frame;                  // shader playback frame
+                uint        frame;                  // shader playback frame
+                uint        seed;                   // unique value, updated on each shader reloading
                 float4      channelTime;            // channel playback time (in seconds)
                 float4      channelResolution [4];  // channel resolution (in pixels)
-                float4      mouse;                  // mouse pixel coords. xy: current (if MRB down), zw: click
+                float4      mouse;                  // mouse unorm coords. xy: current (if MRB down), zw: click
                 float4      date;                   // (year, month, day, time in seconds)
                 float       sampleRate;             // sound sample rate (i.e., 44100)
+                float       customKeys;
 
                 // controller //
                 CameraData  camera;
@@ -383,6 +381,7 @@ namespace AE::ResEditor
 
         STATIC_ASSERT( UIInteraction::MaxSlidersPerType == 4 );
         STATIC_ASSERT( IPass::Constants::MaxCount == 4 );
+        STATIC_ASSERT( IPass::CustomKeys_t{}.max_size() == 1 );
         return st;
     }
 
@@ -410,16 +409,13 @@ namespace AE::ResEditor
         // validate
         for (auto& in : _input)
         {
-            if ( auto tex = UnionGet<ScriptImagePtr>( in.tex )) {
-                CHECK_THROW_MSG( (*tex)->ToResource() );
-            }else
-            if ( auto video = UnionGet<ScriptVideoImagePtr>( in.tex )) {
-                CHECK_THROW_MSG( (*video)->ToResource() );
-            }else
-            if ( auto buf = UnionGet<ScriptBufferPtr>( in.tex )) {
-                CHECK_THROW_MSG( (*buf)->ToResource() );
-            }else
-                CHECK_THROW_MSG( false, "unsupported input resource" );
+            Visit( in.res,
+                [] (ScriptBufferPtr buf)        { buf->AddLayoutReflection();  CHECK_THROW_MSG( buf->ToResource() ); },
+                [] (ScriptImagePtr tex)         { CHECK_THROW_MSG( tex->ToResource() ); },
+                [] (ScriptVideoImagePtr video)  { CHECK_THROW_MSG( video->ToResource() ); },
+                [] (ScriptRTScenePtr scene)     { CHECK_THROW_MSG( scene->ToResource() ); },
+                [] (NullUnion)                  { CHECK_THROW_MSG( false, "unsupported argument type" ); }
+            );
         }
 
         CHECK_THROW( not _output.empty() );
@@ -431,7 +427,6 @@ namespace AE::ResEditor
 
 
         CompatibleRenderPassDescPtr compat_rp{ new CompatibleRenderPassDesc{ "compat.rp" }};
-        compat_rp->AddFeatureSet( "Default" );
         compat_rp->AddSubpass( subpass );
         {
             for (usize i = 0; i < _output.size(); ++i)
@@ -471,12 +466,11 @@ namespace AE::ResEditor
 
 
         DescriptorSetLayoutPtr  ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
-        ds_layout->AddFeatureSet( "Default" );
         {
             ShaderStructTypePtr st = _CreateUBType();   // throw
             ubSize = st->StaticSize();
 
-            ds_layout->AddUniformBuffer( uint(EShaderStages::Fragment), "ub", ArraySize{1}, "ShadertoyUB", EResourceState::ShaderUniform );
+            ds_layout->AddUniformBuffer( uint(EShaderStages::Fragment), "un_PerPass", ArraySize{1}, "ShadertoyUB", EResourceState::ShaderUniform );
         }
 
         for (auto& in : _input)
@@ -484,20 +478,19 @@ namespace AE::ResEditor
             const auto  stage       = uint(EShaderStages::Fragment);
             uint        img_type    = 0;
 
-            if ( auto buf = UnionGet<ScriptBufferPtr>( in.tex ))
+            if ( auto buf = UnionGet<ScriptBufferPtr>( in.res ))
             {
-                if ( (*buf)->HasLayout() ) {
-                    (*buf)->AddLayoutReflection();
+                if ( (*buf)->HasLayout() )
                     ds_layout->AddStorageBuffer( stage, in.uniformName, ArraySize{1}, (*buf)->GetTypeName(), EAccessType::Coherent, EResourceState::ShaderStorage_Read );
-                }else
+                else
                     ds_layout->AddStorageTexelBuffer( stage, in.uniformName, ArraySize{1}, PipelineCompiler::EImageType((*buf)->TexelBufferType()), EResourceState::ShaderStorage_Read );
                 continue;
             }
 
-            if ( auto tex = UnionGet<ScriptImagePtr>( in.tex ))
+            if ( auto tex = UnionGet<ScriptImagePtr>( in.res ))
                 img_type = (*tex)->ImageType();
             else
-            if ( auto video = UnionGet<ScriptVideoImagePtr>( in.tex ))
+            if ( auto video = UnionGet<ScriptVideoImagePtr>( in.res ))
                 img_type = (*video)->ImageType();
 
             CHECK_THROW_MSG( img_type != 0, "unsupported input resource type" );
@@ -536,19 +529,19 @@ namespace AE::ResEditor
                 header
                     << "#define ColorOutput0 " << _output.front().name << "\n"
                     << R"#(
-#define iResolution         ub.resolution
-#define iTime               ub.time
-#define iTimeDelta          ub.timeDelta
-#define iFrame              ub.frame
-#define iChannelTime        ub.channelTime
-#define iChannelResolution  ub.channelResolution
-#define iMouse              ub.mouse
-#define iDate               ub.date
-#define iSampleRate         ub.sampleRate
+#define iResolution         un_PerPass.resolution
+#define iTime               un_PerPass.time
+#define iTimeDelta          un_PerPass.timeDelta
+#define iFrame              int(un_PerPass.frame)
+#define iChannelTime        un_PerPass.channelTime
+#define iChannelResolution  un_PerPass.channelResolution
+#define iMouse              float4( un_PerPass.mouse.xy * un_PerPass.resolution.xy, un_PerPass.mouse.zw )
+#define iDate               un_PerPass.date
+#define iSampleRate         un_PerPass.sampleRate
 
 // for "GlobalIndex.glsl"
 ND_ int3  GetGlobalSize() {
-    return int3(ub.resolution);
+    return int3(un_PerPass.resolution);
 }
 
 #if defined(VIEW_MODE_VR)
@@ -558,11 +551,11 @@ ND_ int3  GetGlobalSize() {
     {
         float2 coord = gl.FragCoord.xy;     // + gl.SamplePosition;
         float2 uv    = coord / iResolution.xy;
-        float3 dir   = mix( mix( ub.cameraFrustumLB, ub.cameraFrustumRB, uv.x ),
-                            mix( ub.cameraFrustumLT, ub.cameraFrustumRT, uv.x ),
+        float3 dir   = mix( mix( un_PerPass.cameraFrustumLB, un_PerPass.cameraFrustumRB, uv.x ),
+                            mix( un_PerPass.cameraFrustumLT, un_PerPass.cameraFrustumRT, uv.x ),
                             uv.y );
         coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
-        mainVR( ColorOutput0, coord, ub.cameraPos, dir );
+        mainVR( ColorOutput0, coord, un_PerPass.cameraPos, dir );
     }
 
 #elif defined(VIEW_MODE_VR180) || defined(VIEW_MODE_VR360) || defined(VIEW_MODE_360)
@@ -576,10 +569,10 @@ ND_ int3  GetGlobalSize() {
         float   pi      = 3.14159265358979323846f;
 
     #if defined(VIEW_MODE_VR360)
-        float   scale   = ub.cameraIPD * 0.5 * (uv.y < 0.5 ? -1.0 : 1.0);                   // vr360 top-bottom
+        float   scale   = un_PerPass.cameraIPD * 0.5 * (uv.y < 0.5 ? -1.0 : 1.0);           // vr360 top-bottom
                 uv      = float2( uv.x, (uv.y < 0.5 ? uv.y : uv.y - 0.5) * 2.0 );
     #elif defined(VIEW_MODE_VR180)
-        float   scale   = ub.cameraIPD * 0.5 * (uv.x < 0.5 ? -1.0 : 1.0);                   // vr180 left-right
+        float   scale   = un_PerPass.cameraIPD * 0.5 * (uv.x < 0.5 ? -1.0 : 1.0);           // vr180 left-right
                 uv      = float2( (uv.x < 0.5 ? uv.x : uv.x - 0.5) * 0.5 + 0.25, uv.y );    // map [0, 1] to [0.25, 0.75]
     #elif defined(VIEW_MODE_360)
         float   scale   = 1.0;
@@ -592,7 +585,7 @@ ND_ int3  GetGlobalSize() {
         float3  dir     = float3(sin(theta) * cos(phi), sin(phi), -cos(theta) * cos(phi));
 
         coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
-        mainVR( ColorOutput0, coord, ub.cameraPos + origin, dir );
+        mainVR( ColorOutput0, coord, un_PerPass.cameraPos + origin, dir );
     }
 
 #else
@@ -619,7 +612,7 @@ ND_ int3  GetGlobalSize() {
 
                 for (auto& slider : _sliders)
                 {
-                    header << "#define " << slider.name << " ub.";
+                    header << "#define " << slider.name << " un_PerPass.";
                     BEGIN_ENUM_CHECKS();
                     switch ( slider.type )
                     {
@@ -648,7 +641,7 @@ ND_ int3  GetGlobalSize() {
             {
                 for (auto& c : _constants)
                 {
-                    header << "#define " << c.name << " ub.";
+                    header << "#define " << c.name << " un_PerPass.";
                     BEGIN_ENUM_CHECKS();
                     switch ( c.type )
                     {

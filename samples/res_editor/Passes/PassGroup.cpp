@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Passes/PassGroup.h"
+#include "res_editor/Resources/ResourceQueue.h"
 
 namespace AE::ResEditor
 {
@@ -25,17 +26,35 @@ namespace AE::ResEditor
 */
     bool  PassGroup::Execute (SyncPassData &pd) __NE___
     {
-        if ( AllBits( _flags, EFlags::RunOnce ))
+        BEGIN_ENUM_CHECKS();
+        switch ( _flags )
         {
-            if ( _count.Inc() > 1 )
-                return true;
-        }
+            case EFlags::RunOnce :
+            {
+                if ( _count.Inc() > 1 ) return true;
+                break;
+            }
+            case EFlags::OnRequest :
+            {
+                if ( not _requestUpdate.exchange( false )) return true;
+                break;
+            }
+            case EFlags::RunOnce_AfterLoading :
+            {
+                if ( _resQueue.UploadFramesWithoutWork() > 10 ) {
+                    if ( _count.Inc() < 1 ) return true;
+                }
+                break;
+            }
 
-        if ( AllBits( _flags, EFlags::OnRequest ))
-        {
-            if ( not _requestUpdate.exchange( false ))
-                return true;
+            case EFlags::Unknown :
+            case EFlags::_Count :
+            default :
+                DBG_WARNING( "unsupported flags" );
+                break;
         }
+        END_ENUM_CHECKS();
+
 
         for (auto& pass : _passes)
         {
@@ -52,15 +71,33 @@ namespace AE::ResEditor
 */
     bool  PassGroup::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
     {
-        const uint  idx = _count.load();
-        if ( idx > 1 and AllBits( _flags, EFlags::RunOnce ))
-            return true;
-
-        if ( AllBits( _flags, EFlags::OnRequest ))
+        BEGIN_ENUM_CHECKS();
+        switch ( _flags )
         {
-            if ( not _requestUpdate.load() )
-                return true;
+            case EFlags::RunOnce :
+            {
+                if ( _count.load() > 1 ) return true;
+                break;
+            }
+            case EFlags::OnRequest :
+            {
+                if ( not _requestUpdate.load() ) return true;
+                break;
+            }
+            case EFlags::RunOnce_AfterLoading :
+            {
+                if ( _count.load() > 1 ) return true;
+                break;
+            }
+
+            case EFlags::Unknown :
+            case EFlags::_Count :
+            default :
+                DBG_WARNING( "unsupported flags" );
+                break;
         }
+        END_ENUM_CHECKS();
+
 
         for (auto& pass : _passes)
         {

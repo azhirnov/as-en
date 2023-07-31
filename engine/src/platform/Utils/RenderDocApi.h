@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "base/Platforms/Platform.h"
 #include "platform/Public/Common.h"
 
 namespace AE::App
@@ -17,7 +16,10 @@ namespace AE::App
     // variables
     private:
         Library     _lib;
-        void*       _api    = null;     // RENDERDOC_API_x_x_x
+        void*       _api        = null;     // RENDERDOC_API_x_x_x
+
+        void*       _vkDevice   = null;
+        void*       _wndHandle  = null;
 
         DRC_ONLY(
             RWDataRaceCheck     _drCheck;

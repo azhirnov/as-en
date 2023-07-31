@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     AE_BARRIER_MODE:
-        0 - WinAPI native barrier implementation, requires Windows 8 desctop.
+        0 - WinAPI native barrier implementation, requires Windows 8 desktop.
         1 - implementation based only on atomics.
         2 - implementation based on boost::fibers::barrier, shows same performance as native WinAPI barrier.
         3 - wrapper around std::barrier, requires C++20.
@@ -38,7 +38,7 @@ namespace AE::Threading
     // Barrier (requires Windows 8)
     //
 
-    struct Barrier
+    class Barrier : public Noncopyable
     {
     // variables
     private:
@@ -47,18 +47,18 @@ namespace AE::Threading
 
     // methods
     public:
-        explicit Barrier (usize numThreads);
-        ~Barrier ();
+        explicit Barrier (usize numThreads)     __NE___;
+        ~Barrier ()                             __NE___;
 
-        Barrier (Barrier &&) = delete;
-        Barrier (const Barrier &) = delete;
+        Barrier (Barrier &&)                    = delete;
+        Barrier (const Barrier &)               = delete;
 
-        Barrier&  operator = (const Barrier &) = delete;
-        Barrier&  operator = (Barrier &&) = delete;
+        Barrier&  operator = (const Barrier &)  = delete;
+        Barrier&  operator = (Barrier &&)       = delete;
 
         void  wait ();
 
-        ND_ static constexpr usize  max ()  { return uint{UMax}; }
+        ND_ static constexpr usize  max ()      __NE___ { return uint{UMax}; }
     };
 
 } // AE::Threading
@@ -73,7 +73,7 @@ namespace AE::Threading
     // Barrier
     //
 
-    struct alignas(AE_CACHE_LINE) Barrier
+    class alignas(AE_CACHE_LINE) Barrier : public Noncopyable
     {
     // types
     private:
@@ -92,19 +92,19 @@ namespace AE::Threading
 
     // methods
     public:
-        explicit Barrier (usize numThreads) :
+        explicit Barrier (usize numThreads)     __NE___ :
             _counter{Bitfield{ 0, 0, 0 }}, _numThreads{CheckCast<uint>(numThreads)}
         {
             ASSERT( numThreads > 0 );
         }
 
-        Barrier (Barrier &&) = delete;
-        Barrier (const Barrier &) = delete;
+        Barrier (Barrier &&)                    = delete;
+        Barrier (const Barrier &)               = delete;
 
-        Barrier&  operator = (const Barrier &) = delete;
-        Barrier&  operator = (Barrier &&) = delete;
+        Barrier&  operator = (const Barrier &)  = delete;
+        Barrier&  operator = (Barrier &&)       = delete;
 
-        void  wait ()
+        void  wait ()                           __NE___
         {
             // flush cache
             MemoryBarrier( EMemoryOrder::Release );
@@ -159,7 +159,7 @@ namespace AE::Threading
             MemoryBarrier( EMemoryOrder::Acquire );
         }
 
-        ND_ static constexpr usize  max ()  { return uint{UMax}; }
+        ND_ static constexpr usize  max ()      __NE___ { return uint{UMax}; }
     };
 
 } // AE::Threading
@@ -174,7 +174,7 @@ namespace AE::Threading
     // Barrier (based on boost::fibers::barrier)
     //
 
-    struct Barrier
+    class Barrier : public Noncopyable
     {
     // variables
     private:
@@ -187,22 +187,19 @@ namespace AE::Threading
 
     // methods
     public:
-        explicit Barrier (usize numThreads) :
+        explicit Barrier (usize numThreads)     __NE___:
             _value{numThreads}, _cycle{0}, _numThreads{numThreads}
         {
             ASSERT( numThreads > 0 );
         }
 
-        ~Barrier ()
-        {}
+        Barrier (Barrier &&)                    = delete;
+        Barrier (const Barrier &)               = delete;
 
-        Barrier (Barrier &&) = delete;
-        Barrier (const Barrier &) = delete;
+        Barrier&  operator = (const Barrier &)  = delete;
+        Barrier&  operator = (Barrier &&)       = delete;
 
-        Barrier&  operator = (const Barrier &) = delete;
-        Barrier&  operator = (Barrier &&) = delete;
-
-        void  wait ()
+        void  wait ()                           __NE___
         {
             std::unique_lock    lock{ _mutex };
 
@@ -219,7 +216,7 @@ namespace AE::Threading
             _cv.wait( lock, [this, cycle = _cycle] () { return cycle != _cycle; });
         }
 
-        ND_ static constexpr usize  max ()  { return UMax; }
+        ND_ static constexpr usize  max ()      __NE___ { return UMax; }
     };
 
 } // AE::Threading
@@ -234,7 +231,7 @@ namespace AE::Threading
     // Barrier (wraps std::barrier from C++20)
     //
 
-    struct Barrier
+    class Barrier : public Noncopyable
     {
     // variables
     private:
@@ -243,21 +240,23 @@ namespace AE::Threading
 
     // methods
     public:
-        explicit Barrier (ssize numThreads) : _barrier{ptrdiff_t(numThreads)}
-        {}
+        explicit Barrier (ssize numThreads)     __NE___ : _barrier{ptrdiff_t(numThreads)}
+        {
+            ASSERT( numThreads > 0 );
+        }
 
-        Barrier (Barrier &&) = delete;
-        Barrier (const Barrier &) = delete;
+        Barrier (Barrier &&)                    = delete;
+        Barrier (const Barrier &)               = delete;
 
-        Barrier&  operator = (const Barrier &) = delete;
-        Barrier&  operator = (Barrier &&) = delete;
+        Barrier&  operator = (const Barrier &)  = delete;
+        Barrier&  operator = (Barrier &&)       = delete;
 
-        void  wait ()
+        void  wait ()                           __NE___
         {
             _barrier.arrive_and_wait();
         }
 
-        ND_ static constexpr ssize  max ()  { return std::barrier<>::max(); }
+        ND_ static constexpr ssize  max ()      __NE___ { return std::barrier<>::max(); }
     };
 
 } // AE::Threading

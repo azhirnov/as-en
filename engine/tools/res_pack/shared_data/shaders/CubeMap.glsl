@@ -10,7 +10,7 @@
 #include "Math.glsl"
 
 ND_ float3  CM_RotateVec (const float3 c, const int face);
-ND_ float4  CM_InverseRotation (const float3 c);
+ND_ float4  CM_InverseRotation (const float3 c);        // returns {xyz, face}
 
 ND_ float3  CM_IdentitySC_Forward (const float2 snormCoord, const int face);
 ND_ float3  CM_IdentitySC_Inverse (const float3 coord);
@@ -23,6 +23,7 @@ ND_ float3  CM_TangentialSC_Inverse (const float3 coord);
 
 float3  CM_RotateVec (const float3 c, const int face)
 {
+    // TODO: optimize?
     switch ( face )
     {
         case 0 : return float3( c.z,  c.y, -c.x);   // X+

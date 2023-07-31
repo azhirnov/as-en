@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "video/Public/Common.h"
+#include "video/Public/Factory.h"
 
 namespace AE::Video
 {
@@ -96,12 +96,6 @@ namespace AE::Video
         ND_ virtual String      PrintFileProperties (const Path &filename)      C_NE___ = 0;
         ND_ virtual String      PrintFileProperties (RC<RStream> stream)        C_NE___ = 0;
         // TODO: get codecs
-
-
-    // factory
-    public:
-        ND_ static RC<IVideoDecoder>  CreateFFmpegDecoder ()                    __NE___;
-        ND_ static RC<IVideoDecoder>  CreateGraphicsHWDecoder ()                __NE___;
     };
 
 

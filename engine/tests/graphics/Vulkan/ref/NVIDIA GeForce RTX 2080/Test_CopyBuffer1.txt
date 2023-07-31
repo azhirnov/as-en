@@ -3,10 +3,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'CopyBuffer1 |0| Copy buffer task'
 {
-  BeginDebugLabel
-    name:  'CopyBuffer1 |0| Copy buffer task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -41,10 +37,6 @@ name: 'CopyBuffer1 |0| Copy buffer task'
       access: TRANSFER_WRITE ---> HOST_READ
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 signalSemaphore = {
@@ -56,10 +48,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'CopyBuffer1 |0| Copy buffer task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -92,10 +80,6 @@ name: 'IndirectCmdBuffers'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }

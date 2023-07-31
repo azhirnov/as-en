@@ -5,10 +5,11 @@ void ASmain ()
 {
     {
         RC<Sampler>     samp = Sampler( "NearestClamp|ycbcr|G8_B8R8_420_UNorm" );
-        samp.Filter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
-        samp.AddressMode( EAddressMode::Clamp, EAddressMode::Clamp, EAddressMode::Clamp );
         //samp.AddFeatureSet( "MinDesktopAMD" );
         samp.AddFeatureSet( "MinDesktopNV" );
+
+        samp.Filter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
+        samp.AddressMode( EAddressMode::Clamp, EAddressMode::Clamp, EAddressMode::Clamp );
 
         samp.Ycbcr_Format( EPixelFormat::G8_B8R8_420_UNorm );
         samp.Ycbcr_Model( ESamplerYcbcrModelConversion::Ycbcr_709 );

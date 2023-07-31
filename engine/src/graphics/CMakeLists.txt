@@ -1,11 +1,20 @@
 if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
 
-    file( GLOB_RECURSE PRIVATE_SOURCES "Private/*.*" )
-    file( GLOB_RECURSE PUBLIC_SOURCES "Public/*.*" )
-    file( GLOB_RECURSE RG_SOURCES "RenderGraph/*.*" )
+    file( GLOB_RECURSE PRIVATE_HPP_SOURCES "Private/*.h" )
+    file( GLOB_RECURSE PUBLIC_HPP_SOURCES "Public/*.h" )
+    file( GLOB_RECURSE RG_HPP_SOURCES "RenderGraph/*.h" )
+
+    if (NOT (DEFINED ENGINE_LIBS_PATH))
+        file( GLOB_RECURSE PRIVATE_CPP_SOURCES "Private/*.cpp" )
+        file( GLOB_RECURSE PUBLIC_CPP_SOURCES "Public/*.cpp" )
+        file( GLOB_RECURSE RG_CPP_SOURCES "RenderGraph/*.cpp" )
+    endif()
 
     if (TARGET "Scripting")
-        file( GLOB_RECURSE SCRIPTING_SOURCES "Scripting/*.*" )
+        file( GLOB_RECURSE SCRIPTING_HPP_SOURCES "Scripting/*.h" )
+        if (NOT (DEFINED ENGINE_LIBS_PATH))
+            file( GLOB_RECURSE SCRIPTING_CPP_SOURCES "Scripting/*.cpp" )
+        endif()
     endif()
 
     if (APPLE AND NOT ${AE_ENABLE_METAL})
@@ -13,46 +22,67 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
     endif()
 
     if (${AE_ENABLE_METAL} OR (MSVC AND NOT ${AE_ENABLE_REMOTE_GRAPHICS}))
-        file( GLOB_RECURSE METAL_CPP_SOURCES "Metal/*.h" "Metal/*.cpp" )
+        file( GLOB_RECURSE METAL_HPP_SOURCES "Metal/*.h" )
+        if (NOT (DEFINED ENGINE_LIBS_PATH))
+            file( GLOB_RECURSE METAL_CPP_SOURCES "Metal/*.cpp" )
+        endif()
         file( GLOB_RECURSE METAL_OBJC_SOURCES "Metal/*.mm" )
     endif()
+
     if (MSVC OR ${AE_ENABLE_REMOTE_GRAPHICS})
-        file( GLOB_RECURSE REMOTE_SOURCES "Remote/*.h" "Remote/*.cpp" )
+        file( GLOB_RECURSE REMOTE_HPP_SOURCES "Remote/*.h" )
+        if (NOT (DEFINED ENGINE_LIBS_PATH))
+            file( GLOB_RECURSE REMOTE_CPP_SOURCES "Remote/*.cpp" )
+        endif()
     endif()
 
     set( PIPELINE_COMPILER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/pipeline_compiler" )
-    set( PIPELINE_COMPILER_SRC
+    set( PIPELINE_COMPILER_HPP_SRC
         "${PIPELINE_COMPILER_DIR}/Packer/PipelinePack.h"
-        #"${PIPELINE_COMPILER_DIR}/Packer/PipelinePackDeserializer.cpp"
         "${PIPELINE_COMPILER_DIR}/Packer/RenderPassPack.h"
-        #"${PIPELINE_COMPILER_DIR}/Packer/RenderPassPack.cpp"
         "${PIPELINE_COMPILER_DIR}/Packer/SamplerPack.h"
-        #"${PIPELINE_COMPILER_DIR}/Packer/SamplerPack.cpp"
-        "${PIPELINE_COMPILER_DIR}/Packer/FeatureSetPack.h"
-        #"${PIPELINE_COMPILER_DIR}/Packer/FeatureSetPack.cpp"
-    )
+        "${PIPELINE_COMPILER_DIR}/Packer/FeatureSetPack.h" )
+    if (NOT (DEFINED ENGINE_LIBS_PATH))
+        set( PIPELINE_COMPILER_CPP_SRC
+            "${PIPELINE_COMPILER_DIR}/Packer/PipelinePackDeserializer.cpp"
+            "${PIPELINE_COMPILER_DIR}/Packer/RenderPassPack.cpp"
+            "${PIPELINE_COMPILER_DIR}/Packer/SamplerPack.cpp"
+            "${PIPELINE_COMPILER_DIR}/Packer/FeatureSetPack.cpp" )
+    endif()
 
     if (${AE_ENABLE_VULKAN})
-        file( GLOB_RECURSE VULKAN_SOURCES "Vulkan/*.*" )
+        file( GLOB_RECURSE VULKAN_HPP_SOURCES "Vulkan/*.h" )
+        if (NOT (DEFINED ENGINE_LIBS_PATH))
+            file( GLOB_RECURSE VULKAN_CPP_SOURCES "Vulkan/*.cpp" )
+        endif()
         set( SHADER_TRACE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/shader_trace" )
-        set( SHADER_TRACE_SRC
-            "${SHADER_TRACE_DIR}/Public/ShaderTrace.h"
-            "${SHADER_TRACE_DIR}/Impl/ShaderTrace.cpp"
-            "${SHADER_TRACE_DIR}/Impl/ParseShaderTrace.cpp" )
-    else()
-        set( SHADER_TRACE_SRC "" )
+        set( SHADER_TRACE_HPP_SRC
+            "${SHADER_TRACE_DIR}/Public/ShaderTrace.h" )
+        if (NOT (DEFINED ENGINE_LIBS_PATH))
+            set( SHADER_TRACE_CPP_SRC
+                "${SHADER_TRACE_DIR}/Impl/ShaderTrace.cpp"
+                "${SHADER_TRACE_DIR}/Impl/ParseShaderTrace.cpp" )
+        endif()
     endif()
 
     set( SOURCES
-        ${PRIVATE_SOURCES} ${PUBLIC_SOURCES} ${RG_SOURCES} ${SCRIPTING_SOURCES}
-        ${VULKAN_SOURCES}
-        ${METAL_CPP_SOURCES} ${METAL_OBJC_SOURCES}
-        ${REMOTE_SOURCES}
+        ${PRIVATE_HPP_SOURCES} ${PRIVATE_CPP_SOURCES}
+        ${PUBLIC_HPP_SOURCES} ${PUBLIC_CPP_SOURCES}
+        ${RG_HPP_SOURCES} ${RG_CPP_SOURCES}
+        ${SCRIPTING_HPP_SOURCES} ${SCRIPTING_CPP_SOURCES}
+        ${VULKAN_HPP_SOURCES} ${VULKAN_CPP_SOURCES}
+        ${METAL_HPP_SOURCES} ${METAL_CPP_SOURCES} ${METAL_OBJC_SOURCES}
+        ${REMOTE_HPP_SOURCES} ${REMOTE_CPP_SOURCES}
     )
 
-    add_library( "Graphics" STATIC ${SOURCES} ${PIPELINE_COMPILER_SRC} ${SHADER_TRACE_SRC} )
+    add_library( "Graphics" STATIC
+        ${SOURCES}
+        ${PIPELINE_COMPILER_HPP_SRC} ${PIPELINE_COMPILER_CPP_SRC}
+        ${SHADER_TRACE_HPP_SRC} ${SHADER_TRACE_CPP_SRC}
+        ${DUMMY_CPP_FILE} )
+
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
-    source_group( "external/pipeline_compiler" FILES ${PIPELINE_COMPILER_SRC} )
+    source_group( "external/pipeline_compiler" FILES ${PIPELINE_COMPILER_HPP_SRC} ${PIPELINE_COMPILER_CPP_SRC} )
 
     set_property( TARGET "Graphics" PROPERTY FOLDER "Engine" )
     target_link_libraries( "Graphics" PUBLIC "Threading" "Serializing" )
@@ -60,10 +90,10 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
     target_include_directories( "Graphics" PUBLIC "${PIPELINE_COMPILER_DIR}" )
 
     if (${AE_ENABLE_VULKAN})
-        source_group( "external/shader_trace" FILES ${SHADER_TRACE_SRC} )
+        source_group( "external/shader_trace" FILES ${SHADER_TRACE_HPP_SRC} ${SHADER_TRACE_CPP_SRC} )
         target_link_libraries( "Graphics" PUBLIC "Vulkan-lib" "VulkanExtEmulation" )
         target_include_directories( "Graphics" PUBLIC "${SHADER_TRACE_DIR}/Public" )
-        target_compile_definitions( "Graphics" PRIVATE AE_ENABLE_GLSL_TRACE )
+        target_compile_definitions( "Graphics" PUBLIC AE_ENABLE_GLSL_TRACE )
 
         if (${AE_ENABLE_VMA})
             target_link_libraries( "Graphics" PUBLIC "VMA-lib" )
@@ -101,6 +131,8 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
         target_link_libraries( "Graphics" PUBLIC "NVPerf-lib" )
     endif()
 
-    install( TARGETS "Graphics" ARCHIVE DESTINATION "lib" )
+    EnablePCH( "Graphics" )
+    EnablePrebuild( "Graphics" )
 
+    install( TARGETS "Graphics" ARCHIVE DESTINATION "lib" )
 endif()

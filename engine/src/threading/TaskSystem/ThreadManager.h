@@ -2,55 +2,84 @@
 
 #pragma once
 
-#include "base/Utils/EnumBitSet.h"
-#include "base/Containers/FixedString.h"
 #include "threading/TaskSystem/TaskScheduler.h"
 
 namespace AE::Threading
 {
 
     //
+    // Thread Wakeup
+    //
+    struct ThreadWakeup
+    {
+    // types
+    public:
+        using LoopingFlag_t     = Atomic<uint>;
+
+
+    // variables
+    private:
+        ConditionVariable   _cv;
+        Mutex               _mutex;
+        EThreadBits         _activeThreads;
+
+
+    // methods
+    public:
+        ThreadWakeup ()                                             __NE___ {}
+
+        void  Wakeup (ETaskQueueBits)                               __NE___;
+        void  Wakeup (EThreadBits)                                  __NE___;
+
+        void  Wakeup (ETaskQueue type)                              __NE___ { Wakeup( ETaskQueueBits{ type }); }
+        void  Wakeup (EThread type)                                 __NE___ { Wakeup( EThreadBits{ type }); }
+
+        void  WakeupAndDetach (LoopingFlag_t &)                     __NE___;
+
+        void  Suspend (ETaskQueueBits, LoopingFlag_t &)             __NE___;
+        void  Suspend (EThreadBits, LoopingFlag_t &)                __NE___;
+        void  Suspend (const EThreadArray &, LoopingFlag_t &)       __NE___;
+    };
+
+
+
+    //
     // Thread Manager
     //
-
     class ThreadMngr final : public Noninstanceable
     {
     // types
     public:
 
         //
-        // Worker Thread Config
+        // Thread Config
         //
-        struct WorkerConfig
+        struct ThreadConfig
         {
         // variables
-            EThreadArray        threads;
-            nanoseconds         sleepStep       {0};
-            nanoseconds         maxSleepOnIdle  {0};
-            FixedString<64>     name;
+            EThreadArray            threads;
+            Ptr<ThreadWakeup>       wakeup; 
+            FixedString<64>         name;
 
         // methods
-            WorkerConfig ()                     __NE___ {}
-            WorkerConfig (WorkerConfig &&)      __NE___ = default;
-            WorkerConfig (const WorkerConfig &) __NE___ = default;
+            ThreadConfig ()                                                                         __NE___ {}
+            ThreadConfig (ThreadConfig &&)                                                          __NE___ = default;
+            ThreadConfig (const ThreadConfig &)                                                     __NE___ = default;
 
-            WorkerConfig (const EThreadArray &threads, nanoseconds sleepStep, nanoseconds maxSleepOnIdle, StringView name) __NE___ :
-                threads{threads}, sleepStep{sleepStep}, maxSleepOnIdle{maxSleepOnIdle}, name{name} {}
+            ThreadConfig (const EThreadArray &threads, StringView name)                             __NE___ : threads{threads},  name{name} {}
+            ThreadConfig (const EThreadArray &threads, Ptr<ThreadWakeup> wakeup, StringView name)   __NE___ : threads{threads},  wakeup{wakeup},  name{name} {}
 
-            ND_ static WorkerConfig  CreateNonSleep (StringView name = "worker")                                __NE___ { return CreateNonSleep( EThreadArray{ ETaskQueue::PerFrame }, name ); }
-            ND_ static WorkerConfig  CreateNonSleep (const EThreadArray &threads, StringView name = "worker")   __NE___;
-
-            ND_ static WorkerConfig  CreateDefault (StringView name = "worker")                                 __NE___ { return CreateDefault( EThreadArray{ ETaskQueue::PerFrame }, name ); }
-            ND_ static WorkerConfig  CreateDefault (const EThreadArray &threads, StringView name = "worker")    __NE___;
+            ND_ static ThreadConfig  CreateNonSleep ()                                              __NE___ { return ThreadConfig( EThreadArray{ ETaskQueue::PerFrame }, "worker" ); }
         };
 
 
     // methods
     public:
-        ND_ static RC<IThread>  CreateThread (const WorkerConfig &cfg)                          __NE___;
+        ND_ static RC<IThread>  CreateThread (const ThreadConfig &cfg)                          __NE___;
 
         ND_ static bool  SetupThreads (const TaskScheduler::Config  &cfg,
                                        EnumBitSet<EThread>           mask,
+                                       Ptr<ThreadWakeup>             wakeup,            
                                        uint                          maxThreads,
                                        OUT EThreadArray             &allowProcessInMain)        __NE___;
 
@@ -65,6 +94,7 @@ namespace AE::Threading
         ND_ static bool  _SetupThreads_v2 (TaskScheduler                &scheduler,
                                            const CpuArchInfo            &cpuInfo,
                                            const EnumBitSet<EThread>     mask,
+                                           Ptr<ThreadWakeup>             wakeup,
                                            const uint                    maxThreads,
                                            OUT EThreadArray             &allowProcessInMain)    __NE___;
     };

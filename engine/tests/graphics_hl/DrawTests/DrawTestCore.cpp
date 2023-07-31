@@ -154,6 +154,8 @@ GraphicsCreateInfo  DrawTestCore::_GetGraphicsCreateInfo ()
     info.staging.dynamicBlockSize       = 4_Mb;
     info.staging.vstreamSize            = 4_Mb;
 
+    info.useRenderGraph = true;
+
     return info;
 }
 //-----------------------------------------------------------------------------
@@ -169,7 +171,7 @@ bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
 {
     VDeviceInitializer::InstanceCreateInfo  inst_ci;
     inst_ci.appName             = "TestApp";
-    inst_ci.instanceLayers      = _vulkan.GetRecomendedInstanceLayers();
+    inst_ci.instanceLayers      = _vulkan.GetRecommendedInstanceLayers();
     inst_ci.instanceExtensions  = app.GetVulkanInstanceExtensions();
     inst_ci.version             = {1,2};
 
@@ -212,10 +214,8 @@ bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
 
     _canvas.reset( new Canvas{} );
 
-    Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
+    Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
             EThreadArray{ EThread::PerFrame, EThread::Renderer },
-            nanoseconds{1},
-            milliseconds{4},
             "render thread"
         }));
 

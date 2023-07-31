@@ -45,7 +45,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ScriptComputePass () : ScriptBasePass{Default} {}
+        ScriptComputePass () : ScriptBasePass{EFlags::Unknown} {}
         ScriptComputePass (const String &name, const String &defines, EFlags baseFlags)                 __Th___;
 
         void  LocalSize1  (uint x)                                                                      __Th___ { return LocalSize3v({ x, 1u, 1u }); }

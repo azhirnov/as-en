@@ -1,15 +1,17 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    thread-safe: yes
+*/
 
 #pragma once
 
-#include "base/Memory/SharedMem.h"
 #include "threading/Primitives/SpinLock.h"
 
 namespace AE::Threading
 {
 
     //
-    // Thread-safe Shared Memory
+    // Shared Memory
     //
 
     class alignas(AE_CACHE_LINE) TsSharedMem final :

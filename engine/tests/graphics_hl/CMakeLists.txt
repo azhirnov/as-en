@@ -48,5 +48,7 @@ if (TARGET "GraphicsHL")
             AE_RES_PACK="${AE_TEMP_FOLDER}/engine/graphics_hl/mac/pipelines.bin" )
     endif()
 
-    add_test( NAME "Tests.GraphicsHL" COMMAND "Tests.GraphicsHL" )
+    if (NOT ${AE_CI_BUILD_NO_GRAPHICS})
+        add_test( NAME "Tests.GraphicsHL" COMMAND "Tests.GraphicsHL" )
+    endif()
 endif()

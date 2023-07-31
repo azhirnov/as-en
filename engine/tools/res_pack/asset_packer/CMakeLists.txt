@@ -1,18 +1,25 @@
 
 set( GRAPHICS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/graphics" )
-set( GRAPHICS_SRC
+set( GRAPHICS_HPP_SRC
     "${GRAPHICS_DIR}/Public/ImageMemView.h"
-    #"${GRAPHICS_DIR}/Private/ImageMemView.cpp"
     "${GRAPHICS_DIR}/Private/EnumUtils.h"
-    #"${GRAPHICS_DIR}/Private/EnumUtils.cpp"
-    "${GRAPHICS_DIR}/Scripting/GraphicsBindings.h"
-    #"${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp"
-)
+    "${GRAPHICS_DIR}/Scripting/GraphicsBindings.h" )
+if (NOT (DEFINED ENGINE_LIBS_PATH))
+    set( GRAPHICS_CPP_SRC
+        "${GRAPHICS_DIR}/Private/ImageMemView.cpp"
+        "${GRAPHICS_DIR}/Private/EnumUtils.cpp"
+        "${GRAPHICS_DIR}/Scripting/GraphicsBindings.cpp" )
+endif()
 
-file( GLOB_RECURSE SOURCES "*.*" )
-add_library( "AssetPacker" STATIC ${SOURCES} ${GRAPHICS_SRC} )
+file( GLOB_RECURSE HPP_SOURCES "*.h" )
+if (NOT (DEFINED ENGINE_LIBS_PATH))
+    file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
+endif()
+set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
+
+add_library( "AssetPacker" STATIC ${SOURCES} ${GRAPHICS_HPP_SRC} ${GRAPHICS_CPP_SRC} ${DUMMY_CPP_FILE} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
-source_group( "external/graphics" FILES ${GRAPHICS_SRC} )
+source_group( "external/graphics" FILES ${GRAPHICS_HPP_SRC} ${GRAPHICS_CPP_SRC} )
 
 target_link_libraries( "AssetPacker" PUBLIC "Serializing" "Scripting" "ResourceLoaders" "AtlasTools" "VFS" "Graphics" )
 target_compile_definitions( "AssetPacker" PRIVATE "AE_BUILD_ASSET_PACKER" )
@@ -26,10 +33,13 @@ if (TARGET "msdfgen-lib")
     target_link_libraries( "AssetPacker" PUBLIC "msdfgen-lib" )
 endif()
 
+EnablePCH( "AssetPacker" )
+EnablePrebuild( "AssetPacker" )
+
 add_library( "AssetPacker-shared" SHARED
     "AssetPacker.h"
     #"Lib/main.cpp"
-    #"Lib/AssetPacker.def"
+    "Lib/AssetPacker.def"
 )
 target_link_libraries( "AssetPacker-shared" PUBLIC "AssetPacker" )
 

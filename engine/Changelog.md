@@ -1,11 +1,29 @@
 
+## 23.07.178
+
+ - cmake: Precompiled headers
+ - cmake: Prebuild libraries
+ - AsyncDataSource refactoring
+ - Graphics: VK_KHR_fragment_shader_barycentric
+ - Graphics: VK_EXT_fragment_shader_interlock
+ - Base: OrbitalCamera
+ - Base: FPV/FPS camera: limit rotation on Y axis
+
+
+## 23.06.175
+
+ - Graphics: VK_KHR_fragment_shading_rate
+ - Graphics: buffer reference (GLSL/MSL)
+ - Platform: fixed VR emulator
+ 
+
 ## 23.05.162
 
  - Graphics: unified context methods validation
  - Graphics: buffer uniform type validation
  - Graphics: image uniform type validation
  - Threading: queue/thread type refactoring (Worker -> PerFrame, ...).
- 
+
 
 ## 23.04.153
 

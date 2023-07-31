@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "base/Math/Bytes.h"
-#include "base/Math/Vec.h"
 #include "graphics/Public/Common.h"
 
 namespace AE::Graphics

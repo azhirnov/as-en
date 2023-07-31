@@ -15,7 +15,7 @@
         }{
             RC<DescriptorSetLayout> ds = DescriptorSetLayout( "cubemap.mtr.ds" );
             ds.CombinedImage( EShaderStages::Fragment,  "un_CubeMap",   EImageType::FImageCube,  Sampler_LinearMipmapRepeat );
-            ds.UniformBuffer( EShaderStages::Vertex,    "mtrUB",        ArraySize(1),            "SphericalCubeMaterialUB" );
+            ds.UniformBuffer( EShaderStages::Vertex,    "un_PerObject", ArraySize(1),            "SphericalCubeMaterialUB" );
         }{
             RC<PipelineLayout>      pl = PipelineLayout( "cubemap.pl" );
             pl.DSLayout( "pass",     0, "pass.ds" );
@@ -24,7 +24,6 @@
 
         {
             RC<GraphicsPipeline>    ppln = GraphicsPipeline( "cubemap.draw1" );
-            ppln.AddFeatureSet( "Default" );
             ppln.SetLayout( "cubemap.pl" );
             ppln.SetVertexInput( "VB{SphericalCubeVertex}" );
             ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
@@ -44,7 +43,7 @@
             // specialization
             {
                 RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "cubemap.draw1" );
-                spec.AddToRenderTech( "rtech", "main" );
+                spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
                 RenderState rs;
 
@@ -67,7 +66,7 @@
 
     void Main ()
     {
-        gl.Position     = passUB.camera.viewProj * mtrUB.transform * float4(in_Position.xyz, 1.0);
+        gl.Position     = un_PerPass.camera.viewProj * (un_PerObject.transform * float4(in_Position.xyz, 1.0));
         Out.texcoord    = in_Texcoord.xyz;
         Out.normal      = in_Position.xyz;
     }

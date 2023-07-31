@@ -74,6 +74,8 @@ namespace AE::Base
             static bool     ThreadYield ()                                                  __NE___;
             static void     ThreadPause ()                                                  __NE___;
 
+        ND_ static bool     IsUnderDebugger ()                                              __NE___;
+
 
         // OS //
         ND_ static Version3     GetOSVersion ()                                             __NE___;
@@ -102,7 +104,14 @@ namespace AE::Base
         template <typename DataType, uint Format>
         ND_ static bool  _ClipboardExtract (OUT DataType &result, void* wnd)                        __NE___;
         ND_ static bool  _ClipboardPut (const void* data, Bytes dataSize, uint format, void* wnd)   __NE___;
+
+
+    public:
+        ND_ static void*  _GetSystemCpuSetInformationFn ()                                  __NE___;
+        ND_ static void*  _GetDpiForMonitorFn ()                                            __NE___;
+        ND_ static void*  _SetProcessDpiAwarenessFn ()                                      __NE___;
     };
+
 
 } // AE::Base
 

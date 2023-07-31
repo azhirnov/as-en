@@ -296,32 +296,28 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <typename T>
+struct std::hash< AE::Math::TBytes<T> >
 {
-    template <typename T>
-    struct hash< AE::Math::TBytes<T> >
+    ND_ size_t  operator () (const AE::Math::TBytes<T> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Math::TBytes<T> &value) C_NE___
-        {
-            return size_t(AE::Base::HashOf( T(value) ));
-        }
-    };
+        return size_t(AE::Base::HashOf( T(value) ));
+    }
+};
 
-    template <typename T>
-    class numeric_limits< AE::Math::TBytes<T> >
-    {
-    private:
-        using Bytes = AE::Math::TBytes<T>;
-        using Base  = std::numeric_limits<T>;
+template <typename T>
+class std::numeric_limits< AE::Math::TBytes<T> >
+{
+private:
+    using Bytes = AE::Math::TBytes<T>;
+    using Base  = std::numeric_limits<T>;
 
-    public:
-        ND_ static constexpr Bytes  min () __NE___ {
-            return Bytes{Base::min()};
-        }
+public:
+    ND_ static constexpr Bytes  min () __NE___ {
+        return Bytes{Base::min()};
+    }
 
-        ND_ static constexpr Bytes  max () __NE___ {
-            return Bytes{Base::max()};
-        }
-    };
-
-} // std
+    ND_ static constexpr Bytes  max () __NE___ {
+        return Bytes{Base::max()};
+    }
+};

@@ -35,8 +35,7 @@ namespace AE::ResEditor
             ND_ uint3  ThreadCount (const uint3 &localSize) const;
             ND_ uint3  GroupCount (const uint3 &localSize) const;
 
-            ND_ static RC<DynamicDim>   FindDynamicThreadCount (ArrayView<Iteration>);
-            ND_ static uint3            FindMaxConstThreadCount (ArrayView<Iteration>, const uint3 &localSize);
+            ND_ static uint3  FindMaxConstThreadCount (ArrayView<Iteration>, const uint3 &localSize);
         };
         using Iterations_t  = Array< Iteration >;
 

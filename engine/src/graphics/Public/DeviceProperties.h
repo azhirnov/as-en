@@ -41,7 +41,7 @@ namespace AE::Graphics
             POTBytes    instanceDataAlign;
             POTBytes    instanceStrideAlign;
 
-            POTBytes    minScratchBufferOffsetAlign;
+            POTBytes    scratchBufferAlign;
 
             // acceleration structure limits
             ulong       maxGeometries               = 0;
@@ -178,9 +178,9 @@ namespace AE::Graphics
                 }
                 STATIC_ASSERT( sizeof(rayTracing) == 48 );
                 {
-                    rayTracing.vertexDataAlign              = POTBytes_From< 16 >;
-                    rayTracing.vertexStrideAlign            = POTBytes_From< 16 >;
-                    rayTracing.indexDataAlign               = POTBytes_From< 32 >;
+                    rayTracing.vertexDataAlign              = POTBytes_From< 4 >;       // vulkan - 4,  metal - 4
+                    rayTracing.vertexStrideAlign            = POTBytes_From< 4 >;       // vulkan - 4,  metal - 4
+                    rayTracing.indexDataAlign               = POTBytes_From< 4 >;
 
                     rayTracing.aabbStrideAlign              = POTBytes_From< 4 >;
                     rayTracing.aabbDataAlign                = Max( POTBytes_From< 8 >, rayTracing.aabbStrideAlign, res.minStorageBufferOffsetAlign );
@@ -190,7 +190,7 @@ namespace AE::Graphics
                     rayTracing.instanceDataAlign            = Max( POTBytes_From< 64 >, res.minStorageBufferOffsetAlign );
                     rayTracing.instanceStrideAlign          = POTBytes_From< 64 >;
 
-                    rayTracing.minScratchBufferOffsetAlign  = POTBytes_From< 256 >;
+                    rayTracing.scratchBufferAlign           = POTBytes_From< 256 >;
 
                     rayTracing.maxGeometries                = 16777215;
                     rayTracing.maxInstances                 = 16777215;

@@ -2,19 +2,12 @@
 
 #pragma once
 
-#include "base/Platforms/Platform.h"
-#include "base/DataSource/FileStream.h"
-#include "base/DataSource/MemStream.h"
-#include "base/Algorithms/StringUtils.h"
-#include "base/Algorithms/StringParser.h"
-
-#include "base/Memory/IAllocator.h"
-#include "base/Memory/LinearAllocator.h"
-
-#include "serializing/ObjectFactory.h"
-
+#include "pipeline_compiler/PipelineCompiler.pch.h"
 #include "pipeline_compiler/PipelineCompilerImpl.h"
+
 #include "input_actions/InputActionsBinding.h"
+
+#include "asset_packer/AssetPacker.pch.h"
 #include "asset_packer/AssetPackerImpl.h"
 
 #include "../shared/UnitTest_Shared.h"

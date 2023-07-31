@@ -1,9 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Math/Math.h"
-#include "base/CompileTime/Math.h"
-#include "base/Math/GLM.h"
-#include "base/Platforms/CPUInfo.h"
 #include "UnitTest_Common.h"
 
 namespace

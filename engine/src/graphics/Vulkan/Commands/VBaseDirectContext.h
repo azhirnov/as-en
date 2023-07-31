@@ -48,7 +48,7 @@ namespace AE::Graphics::_hidden_
 
         void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data);
 
-        ND_ VkCommandBuffer _EndCommandBuffer ();
+        ND_ VkCommandBuffer _EndCommandBuffer ()                                        __Th___;
         ND_ VCommandBuffer  _ReleaseCommandBuffer ();
 
         ND_ static VCommandBuffer  _ReuseOrCreateCommandBuffer (const VDrawCommandBatch &batch, VCommandBuffer cmdbuf, DebugLabel dbg)                      __NE___;
@@ -87,7 +87,7 @@ namespace AE::Graphics::_hidden_
         void  _PushDebugGroup (DebugLabel dbg)                                                  { ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PushDebugGroup( dbg ); }
         void  _PopDebugGroup ()                                                                 { ASSERT( _NoPendingBarriers() );  _VBaseDirectContext::_PopDebugGroup(); }
 
-        ND_ VkCommandBuffer _EndCommandBuffer ();
+        ND_ VkCommandBuffer _EndCommandBuffer ()                                        __Th___;
 
         ND_ bool    _NoPendingBarriers ()                                               C_NE___ { return _mngr.NoPendingBarriers(); }
         ND_ auto&   _GetExtensions ()                                                   C_NE___ { return _mngr.GetDevice().GetExtensions(); }
@@ -177,7 +177,7 @@ namespace AE::Graphics::_hidden_
         if ( auto* bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
             PipelineBarrier( *bar );
 
-        return _VBaseDirectContext::_EndCommandBuffer();
+        return _VBaseDirectContext::_EndCommandBuffer();  // throw
     }
 
 

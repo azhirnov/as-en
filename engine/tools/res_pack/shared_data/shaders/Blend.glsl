@@ -15,36 +15,68 @@
 // src - from shader
 // dst - from render target
 // result = srcColor * srcBlend [blendOp] dstColor * dstBlend;
-const int   EBlendFactor_Zero               = 0;    // 0
-const int   EBlendFactor_One                = 1;    // 1
-const int   EBlendFactor_SrcColor           = 2;    // src
-const int   EBlendFactor_OneMinusSrcColor   = 3     // 1 - src
-const int   EBlendFactor_DstColor           = 4;    // dst
-const int   EBlendFactor_OneMinusDstColor   = 5;    // 1 - dst
-const int   EBlendFactor_SrcAlpha           = 6;    // src.a
-const int   EBlendFactor_OneMinusSrcAlpha   = 7;    // 1 - src.a
-const int   EBlendFactor_DstAlpha           = 8;    // dst.a
-const int   EBlendFactor_OneMinusDstAlpha   = 9;    // 1 - dst.a
-const int   EBlendFactor_ConstColor         = 10;   // cc
-const int   EBlendFactor_OneMinusConstColor = 11;   // 1 - cc
-const int   EBlendFactor_ConstAlpha         = 12;   // cc.a
-const int   EBlendFactor_OneMinusConstAlpha = 13;   // 1 - cc.a
-const int   EBlendFactor_SrcAlphaSaturate   = 14;   // (min( src.a, 1 - dst.a ).xxx, 1)
-const int   EBlendFactor_Src1Color          = 15;   // src1
-const int   EBlendFactor_OneMinusSrc1Color  = 16;   // 1 - src1
-const int   EBlendFactor_Src1Alpha          = 17;   // src1.a
-const int   EBlendFactor_OneMinusSrc1Alpha  = 18;   // 1 - src1.a
-const int   EBlendFactor__Count             = 19;
+#define EBlendFactor_Zero               0   // 0
+#define EBlendFactor_One                1   // 1
+#define EBlendFactor_SrcColor           2   // src
+#define EBlendFactor_OneMinusSrcColor   3   // 1 - src
+#define EBlendFactor_DstColor           4   // dst
+#define EBlendFactor_OneMinusDstColor   5   // 1 - dst
+#define EBlendFactor_SrcAlpha           6   // src.a
+#define EBlendFactor_OneMinusSrcAlpha   7   // 1 - src.a
+#define EBlendFactor_DstAlpha           8   // dst.a
+#define EBlendFactor_OneMinusDstAlpha   9   // 1 - dst.a
+#define EBlendFactor_ConstColor         10  // cc
+#define EBlendFactor_OneMinusConstColor 11  // 1 - cc
+#define EBlendFactor_ConstAlpha         12  // cc.a
+#define EBlendFactor_OneMinusConstAlpha 13  // 1 - cc.a
+#define EBlendFactor_SrcAlphaSaturate   14  // (min( src.a, 1 - dst.a ).xxx, 1)
+#define EBlendFactor_Src1Color          15  // src1
+#define EBlendFactor_OneMinusSrc1Color  16  // 1 - src1
+#define EBlendFactor_Src1Alpha          17  // src1.a
+#define EBlendFactor_OneMinusSrc1Alpha  18  // 1 - src1.a
+#define EBlendFactor__Count             19
 
 
 // src - from shader
 // dst - from render target
 // result = srcColor * srcBlend [blendOp] dstColor * dstBlend;
-const int   EBlendOp_Add        = 1;    // S+D
-const int   EBlendOp_Sub        = 2;    // S-D
-const int   EBlendOp_RevSub     = 3;    // D-S
-const int   EBlendOp_Min        = 4;    // min(S,D)
-const int   EBlendOp_Max        = 5;    // max(S,D)
+#define EBlendOp_Add                    1   // S+D
+#define EBlendOp_Sub                    2   // S-D
+#define EBlendOp_RevSub                 3   // D-S
+#define EBlendOp_Min                    4   // min(S,D)
+#define EBlendOp_Max                    5   // max(S,D)
+
+
+struct BlendParams
+{
+    float4          srcColor;
+    float4          src1Color;
+    float4          dstColor;
+    float4          constColor;
+    EBlendFactor    srcBlend;
+    EBlendFactor    dstBlend;
+    EBlendOp        blendOp;
+};
+ND_ float4  BlendFn (const BlendParams p);
+
+
+struct SeparateBlendParams
+{
+    float4          srcColor;
+    float4          src1Color;
+    float4          dstColor;
+    float4          constColor;
+    EBlendFactor    srcBlendRGB;
+    EBlendFactor    srcBlendA;
+    EBlendFactor    dstBlendRGB;
+    EBlendFactor    dstBlendA;
+    EBlendOp        blendOpRGB;
+    EBlendOp        blendOpA;
+};
+ND_ float4  SeparateBlendFn (const SeparateBlendParams p);
+
+//-----------------------------------------------------------------------------
+
 
 
 ND_ float  _BlendFnA (float srcColor, float src1Color, float dstColor, float constColor, EBlendFactor factor)
@@ -128,16 +160,6 @@ ND_ float  _BlendOpA (float src, float dst, EBlendOp blendOp)
 }
 
 
-struct BlendParams
-{
-    float4          srcColor;
-    float4          src1Color;
-    float4          dstColor;
-    float4          constColor;
-    EBlendFactor    srcBlend;
-    EBlendFactor    dstBlend;
-    EBlendOp        blendOp;
-};
 
 ND_ float4  BlendFn (const BlendParams p)
 {
@@ -146,20 +168,6 @@ ND_ float4  BlendFn (const BlendParams p)
     return _BlendOpRGBA( src, dst, p.blendOp );
 }
 
-
-struct SeparateBlendParams
-{
-    float4          srcColor;
-    float4          src1Color;
-    float4          dstColor;
-    float4          constColor;
-    EBlendFactor    srcBlendRGB;
-    EBlendFactor    srcBlendA;
-    EBlendFactor    dstBlendRGB;
-    EBlendFactor    dstBlendA;
-    EBlendOp        blendOpRGB;
-    EBlendOp        blendOpA;
-};
 
 ND_ float4  SeparateBlendFn (const SeparateBlendParams p)
 {

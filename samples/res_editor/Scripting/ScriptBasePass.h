@@ -99,6 +99,8 @@ namespace AE::ResEditor
         String                  _dbgName;
         RGBA8u                  _dbgColor   = HtmlColor::Red;
 
+        ScriptDynamicDimPtr     _dynamicDim;
+
         ScriptBaseControllerPtr _controller;
 
     private:
@@ -140,10 +142,14 @@ namespace AE::ResEditor
         void  _Slider (const String &name, const T &min, const T &max, ESlider type)            __Th___;
 
     protected:
-        explicit ScriptBasePass (EFlags flags)                                                  __Th___ : _baseFlags{flags} {}
+        explicit ScriptBasePass (EFlags flags)                                                  __Th___;
 
         void  _AddSlidersToUIInteraction (IPass* pass)                                          const;
         void  _CopyConstants (OUT IPass::Constants &)                                           const;
+
+        ND_ ScriptDynamicDim*   _Dimension ()                                                   __Th___ { return ScriptDynamicDimPtr{_dynamicDim}.Detach(); }
+        void  _SetDynamicDimension (const ScriptDynamicDimPtr &)                                __Th___;
+        void  _SetConstDimension (const uint3 &dim)                                             __Th___;
 
         template <typename B>
         static void  _BindBase (B &binder)                                                      __Th___;

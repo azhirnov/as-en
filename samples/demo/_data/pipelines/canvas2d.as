@@ -18,7 +18,6 @@ void ASmain ()
     // pipeline 1 (UV as color)
     {
         RC<GraphicsPipeline>    ppln = GraphicsPipeline( "canvas2d.draw1" );
-        ppln.AddFeatureSet( "MinimalFS" );
         ppln.SetVertexInput( "VB_Position_f2, VB_UVf2_Col8" );
         ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "canvas2d.io" );
 
@@ -57,7 +56,6 @@ void ASmain ()
     // pipeline 2 (color only)
     {
         RC<GraphicsPipeline>    ppln = GraphicsPipeline( "canvas2d.draw2" );
-        ppln.AddFeatureSet( "MinimalFS" );
         ppln.SetVertexInput( "VB_Position_f2, VB_UVf2_Col8" );
         ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "canvas2d.io" );
 
@@ -111,7 +109,6 @@ void ASmain ()
     // pipeline 3 (textured)
     {
         RC<GraphicsPipeline>    ppln = GraphicsPipeline( "canvas2d.draw3" );
-        ppln.AddFeatureSet( "MinimalFS" );
         ppln.SetVertexInput( "VB_Position_f2, VB_UVf2_Col8" );
         ppln.SetShaderIO( EShader::Vertex, EShader::Fragment, "canvas2d.io" );
         ppln.SetLayout( "canvas2d.pl" );

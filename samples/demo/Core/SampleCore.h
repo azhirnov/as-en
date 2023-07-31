@@ -46,7 +46,7 @@ namespace AE::Samples::Demo
             Ptr<IOutputSurface>     output;     // lifetime is same as Window/VRDevice lifetime
             AsyncTask               endFrame;
         };
-        using MainLoopSync_t    = Synchronized< RWSpinLock, MainLoopData >;
+        using MainLoopSync_t    = Threading::DRCSynchronized< MainLoopData >;
 
 
     // variables
@@ -73,18 +73,16 @@ namespace AE::Samples::Demo
 
             bool  _InitUI ();
 
-        ND_ AsyncTask  _DrawFrame ();
 
-
-    // IBaseApp //
+    // IBaseApp (main thread) //
     private:
-        bool  OnSurfaceCreated (IOutputSurface &)                       __NE_OV;
-        void  InitInputActions (IInputActions &)                        __NE_OV;
-        void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>)  __NE_OV;
-        void  StopRendering ()                                          __NE_OV;
-        void  SurfaceDestroyed ()                                       __NE_OV;
-        void  WaitFrame (const Threading::EThreadArray &)               __NE_OV;
-        void  RenderFrame ()                                            __NE_OV;
+        bool  OnSurfaceCreated (IOutputSurface &)                                   __NE_OV;
+        void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>, EWndState)   __NE_OV;
+        void  StopRendering (Ptr<IOutputSurface>)                                   __NE_OV;
+        void  WaitFrame (const Threading::EThreadArray &)                           __NE_OV;
+        void  RenderFrame ()                                                        __NE_OV;
+
+        void  _InitInputActions (IInputActions &);
     };
 
 

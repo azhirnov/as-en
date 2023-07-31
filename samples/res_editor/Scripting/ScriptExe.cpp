@@ -1,12 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/FileStream.h"
-#include "base/DataSource/MemStream.h"
-#include "base/DataSource/MemDataSource.h"
-#include "base/Algorithms/StringParser.h"
-
-#include "scripting/Impl/ScriptFn.h"
-#include "scripting/Impl/EnumBinder.h"
+#include "geometry_tools/Cube/CubeGen.h"
+#include "geometry_tools/Grid/GridGen.h"
 
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Passes/Present.h"
@@ -18,7 +13,7 @@
 namespace AE::ResEditor
 {       
 namespace {
-    ScriptExe*  s_scriptExe = null;
+    static ScriptExe*  s_scriptExe = null;
 }
 
     using namespace AE::Scripting;
@@ -38,7 +33,7 @@ namespace {
 
     public:
         ScriptPresent (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, RC<DynamicDim> dynSize) :
-            ScriptBasePass{ Default }, rt{rt}, layer{layer}, mipmap{mipmap}, dynSize{dynSize} {}
+            ScriptBasePass{EFlags::Unknown}, rt{rt}, layer{layer}, mipmap{mipmap}, dynSize{dynSize} {}
 
         RC<IPass>  ToPass () C_Th_OV;
     };
@@ -84,7 +79,7 @@ namespace {
 
     public:
         ScriptDbgView (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, DebugView::EFlags flags, uint idx) :
-            ScriptBasePass{Default}, rt{rt}, layer{layer}, mipmap{mipmap}, flags{flags}, index{idx} {}
+            ScriptBasePass{EFlags::Unknown}, rt{rt}, layer{layer}, mipmap{mipmap}, flags{flags}, index{idx} {}
 
         RC<IPass>  ToPass () C_Th_OV;
     };
@@ -112,7 +107,7 @@ namespace {
         ScriptImagePtr      rt;
 
     public:
-        ScriptGenMipmaps (const ScriptImagePtr &rt) : ScriptBasePass{Default}, rt{rt} {}
+        ScriptGenMipmaps (const ScriptImagePtr &rt) : ScriptBasePass{EFlags::Unknown}, rt{rt} {}
 
         RC<IPass>  ToPass () C_Th_OV;
     };
@@ -136,12 +131,17 @@ namespace {
     class ScriptExe::ScriptBuildRTGeometry final : public ScriptBasePass
     {
     private:
-        ScriptRTGeometryPtr dstGeometry;
-        ScriptBufferPtr     indirectBuffer;
+        ScriptRTGeometryPtr _dstGeometry;
+        const bool          _indirect;
 
 
     public:
-        ScriptBuildRTGeometry () : ScriptBasePass{Default} {}
+        ScriptBuildRTGeometry (ScriptRTGeometryPtr  dstGeometry,
+                               bool                 indirect) :
+            ScriptBasePass{EFlags::Unknown},
+            _dstGeometry{ dstGeometry },
+            _indirect{ indirect }
+        {}
 
         RC<IPass>  ToPass () C_Th_OV;
     };
@@ -153,9 +153,16 @@ namespace {
 */
     RC<IPass>  ScriptExe::ScriptBuildRTGeometry::ToPass () C_Th___
     {
+        CHECK_THROW( s_scriptExe != null );
+
+        RC<RTGeometry>  dst_geom;
+        s_scriptExe->_RunWithPipelineCompiler(
+            [&] () {
+                dst_geom = _dstGeometry->ToResource();
+            });
+
         return MakeRC<ResEditor::BuildRTGeometry>(
-                    dstGeometry->ToResource(),
-                    indirectBuffer->ToResource(),
+                    dst_geom, _indirect,
                     "BuildRTGeometry" );
     }
 //-----------------------------------------------------------------------------
@@ -168,12 +175,17 @@ namespace {
     class ScriptExe::ScriptBuildRTScene final : public ScriptBasePass
     {
     private:
-        ScriptRTScenePtr    dstScene;
-        ScriptBufferPtr     indirectBuffer;
+        ScriptRTScenePtr    _dstScene;
+        const bool          _indirect;
 
 
     public:
-        ScriptBuildRTScene () : ScriptBasePass{Default} {}
+        ScriptBuildRTScene (ScriptRTScenePtr    dstScene,
+                            bool                indirect) :
+            ScriptBasePass{EFlags::Unknown},
+            _dstScene{ dstScene },
+            _indirect{ indirect }
+        {}
 
         RC<IPass>  ToPass () C_Th_OV;
     };
@@ -185,9 +197,16 @@ namespace {
 */
     RC<IPass>  ScriptExe::ScriptBuildRTScene::ToPass () C_Th___
     {
+        CHECK_THROW( s_scriptExe != null );
+
+        RC<RTScene>     dst_scene;
+        s_scriptExe->_RunWithPipelineCompiler(
+            [&] () {
+                dst_scene = _dstScene->ToResource();
+            });
+
         return MakeRC<ResEditor::BuildRTScene>(
-                    dstScene->ToResource(),
-                    indirectBuffer->ToResource(),
+                    dst_scene, _indirect,
                     "BuildRTScene" );
     }
 //-----------------------------------------------------------------------------
@@ -202,14 +221,17 @@ namespace {
     private:
         Array< ScriptBasePassPtr >  _passes;
         const PassGroup::EFlags     _flags;
+        RC<Renderer>                _renderer;
         mutable RC<IPass>           _result;
 
     public:
-        ScriptPassGroup (uint flags) : ScriptBasePass{Default}, _flags{flags}   {}
+        ScriptPassGroup (PassGroup::EFlags flags, RC<Renderer> renderer) :
+            ScriptBasePass{EFlags::Unknown}, _flags{flags}, _renderer{RVRef(renderer)}
+        {}
 
-        void  Add (ScriptBasePassPtr pass)                                      { _passes.push_back( RVRef(pass) ); }
+        void  Add (ScriptBasePassPtr pass)                      { _passes.push_back( RVRef(pass) ); }
 
-        ND_ ArrayView<ScriptBasePassPtr>  GetPasses () const                    { return _passes; }
+        ND_ ArrayView<ScriptBasePassPtr>  GetPasses () const    { return _passes; }
 
         RC<IPass>  ToPass () C_Th_OV;
     };
@@ -226,7 +248,7 @@ namespace {
 
         CHECK_THROW( not _passes.empty() );
 
-        RC<PassGroup>   pg = MakeRC<PassGroup>( _flags );
+        RC<PassGroup>   pg = MakeRC<PassGroup>( _flags, _renderer->GetResourceQueue() );
 
         for (auto& script_pass : _passes) {
             pg->AddPass( script_pass->ToPass() );  // throw
@@ -278,13 +300,17 @@ namespace {
             // init pipeline compiler
             ObjectStorage   obj_storage;
             {
-                obj_storage.target          = ECompilationTarget::Vulkan;
-                obj_storage.shaderVersion   = EShaderVersion::SPIRV_1_5;
+                obj_storage.target              = ECompilationTarget::Vulkan;
+                obj_storage.shaderVersion       = EShaderVersion::SPIRV_1_5;
+                obj_storage.defaultFeatureSet   = "DefaultFS";
 
-                obj_storage.spirvCompiler   = MakeUnique<SpirvCompiler>( Array<Path>{} );
+                obj_storage.spirvCompiler       = MakeUnique<SpirvCompiler>( Array<Path>{} );
                 obj_storage.spirvCompiler->SetDefaultResourceLimits();
 
                 ObjectStorage::SetInstance( &obj_storage );
+
+                ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
+                fs->fs = RenderTaskScheduler().GetResourceManager().GetFeatureSet();
             }
 
             // bind pipeline compiler scripts
@@ -300,6 +326,9 @@ namespace {
                 FileSystem::CreateDirectory( _config.cppTypesFolder );
                 _SaveCppStructs( _config.cppTypesFolder / "vk_types.h" );   // TODO: metal?
             }
+
+            if ( FileSystem::IsDirectory( _config.scriptHeaderOutFolder ))
+                CHECK( _engine2->SaveCppHeader( _config.scriptHeaderOutFolder / "pipeline_compiler" ));
 
             ObjectStorage::SetInstance( null );
 
@@ -341,7 +370,7 @@ namespace {
         CHECK_ERR( not _tempData );
 
         _tempData.reset( new TempData{} );
-        _tempData->renderer = MakeRC<Renderer>();
+        _tempData->renderer = MakeRC<Renderer>( _rand.Uniform( 0u, 0xFFFF'FFFFu ));
         _tempData->currPath.push_back( FileSystem::ToAbsolute( filePath ));
         _tempData->dependencies.push_back( _tempData->currPath.front() );
         _tempData->cfg = cfg;
@@ -420,10 +449,10 @@ namespace {
 */
     ScriptBasePass*  ScriptExe::_RunScript1 (const String &filePath, const ScriptCollectionPtr &collection) __Th___
     {
-        return _RunScript2( filePath, 0, collection );
+        return _RunScript2( filePath, Default, collection );
     }
 
-    ScriptBasePass*  ScriptExe::_RunScript2 (const String &filePath, uint flags, const ScriptCollectionPtr &collection) __Th___
+    ScriptBasePass*  ScriptExe::_RunScript2 (const String &filePath, PassGroup::EFlags flags, const ScriptCollectionPtr &collection) __Th___
     {
         CHECK_THROW_MSG( collection );
 
@@ -434,13 +463,14 @@ namespace {
         CHECK_THROW_MSG( FileSystem::IsFile( path ),
             "script '"s << filePath << "' is not exists" );
 
-        ScriptPassGroupPtr  pg {new ScriptPassGroup{ flags }};
+        ScriptPassGroupPtr  pg {new ScriptPassGroup{ flags, data.renderer }};
         ScriptPassGroupPtr  prev = data.passGroup;
         data.passGroup = pg;
 
         data.currPath.push_back( FileSystem::ToAbsolute( path ));
 
-        CHECK_THROW( s_scriptExe->_Run( path, collection ));
+        CHECK_THROW_MSG( s_scriptExe->_Run( path, collection ),
+            "Failed to run script '"s << filePath << "'" );
 
         data.currPath.pop_back();
         data.passGroup = prev;
@@ -460,10 +490,11 @@ namespace {
         {
             CHECK_ERR( _tempData->passGroup == null );
 
-            ScriptPassGroupPtr  pg {new ScriptPassGroup{ 0 }};
+            ScriptPassGroupPtr  pg {new ScriptPassGroup{ PassGroup::EFlags::Unknown, _tempData->renderer }};
             _tempData->passGroup = pg;
 
-            CHECK_ERR( _Run( filePath ));
+            if ( not _Run( filePath ))
+                return false;
 
             for (auto& script_pass : pg->GetPasses())
             {
@@ -495,17 +526,19 @@ namespace {
 
         _tempData->passGroupDepth++;
 
-        const String    ansi_path   = ToString( filePath );
-        FileRStream     file        { filePath };
-
-        if ( not file.IsOpen() )
-            RETURN_ERR( "Failed to open script file: '"s << ansi_path << "'" );
-
+        const String                ansi_path = ToString( filePath );
         ScriptEngine::ModuleSource  src;
-        src.name = ToString( filePath.filename().replace_extension("") );
+        {
+            FileRStream     file {filePath};
 
-        if ( not file.Read( file.RemainingSize(), OUT src.script ))
-            RETURN_ERR( "Failed to read script file: '"s << ansi_path << "'" );
+            if ( not file.IsOpen() )
+                RETURN_ERR( "Failed to open script file: '"s << ansi_path << "'" );
+
+            src.name = ToString( filePath.filename().replace_extension("") );
+
+            if ( not file.Read( file.RemainingSize(), OUT src.script ))
+                RETURN_ERR( "Failed to read script file: '"s << ansi_path << "'" );
+        }
 
         src.dbgLocation     = SourceLoc{ ansi_path, 0 };
         src.usePreprocessor = true;
@@ -624,22 +657,204 @@ namespace {
 
 /*
 =================================================
-    _BuildRTGeometry
+    _BuildRTGeometry*
 =================================================
 */
-    void  ScriptExe::_BuildRTGeometry () __Th___
+    void  ScriptExe::_BuildRTGeometry (const ScriptRTGeometryPtr &geom) __Th___
     {
-        // TODO
+        CHECK_THROW_MSG( geom );
+
+        auto&   data = _GetTempData();
+        CHECK_THROW_MSG( data.passGroup );
+
+        data.passGroup->Add( ScriptBasePassPtr{ new ScriptBuildRTGeometry{ geom, false }});
+    }
+
+    void  ScriptExe::_BuildRTGeometryIndirect (const ScriptRTGeometryPtr &geom) __Th___
+    {
+        CHECK_THROW_MSG( geom );
+        CHECK_THROW_MSG( geom->HasIndirectBuffer() );
+
+        if ( RenderTaskScheduler().GetResourceManager().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+        {
+            geom->EnableHistory();
+        }
+
+        auto&   data = _GetTempData();
+        CHECK_THROW_MSG( data.passGroup );
+
+        data.passGroup->Add( ScriptBasePassPtr{ new ScriptBuildRTGeometry{ geom, true }});
     }
 
 /*
 =================================================
-    _BuildRTScene
+    _BuildRTScene*
 =================================================
 */
-    void  ScriptExe::_BuildRTScene () __Th___
+    void  ScriptExe::_BuildRTScene (const ScriptRTScenePtr &scene) __Th___
     {
-        // TODO
+        CHECK_THROW_MSG( scene );
+
+        auto&   data = _GetTempData();
+        CHECK_THROW_MSG( data.passGroup );
+
+        data.passGroup->Add( ScriptBasePassPtr{ new ScriptBuildRTScene{ scene, false }});
+    }
+
+    void  ScriptExe::_BuildRTSceneIndirect (const ScriptRTScenePtr &scene) __Th___
+    {
+        CHECK_THROW_MSG( scene );
+        CHECK_THROW_MSG( scene->HasIndirectBuffer() );
+
+        if ( RenderTaskScheduler().GetResourceManager().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+        {
+            scene->EnableHistory();
+        }
+
+        auto&   data = _GetTempData();
+        CHECK_THROW_MSG( data.passGroup );
+
+        data.passGroup->Add( ScriptBasePassPtr{ new ScriptBuildRTScene{ scene, true }});
+    }
+
+/*
+=================================================
+    _GetCube*
+=================================================
+*/
+    void  ScriptExe::_GetCube1 (OUT ScriptArray<packed_float3> &positions, OUT ScriptArray<packed_float3> &normals, OUT ScriptArray<packed_uint3> &indices) __Th___
+    {
+        GeometryTools::CubeGen  cube;
+        CHECK_THROW( cube.Create() );
+
+        for (auto& vert : cube.GetVertices())
+        {
+            positions.push_back( float3{SNormShortToFloat( vert.position )});
+            normals.push_back( float3{SNormShortToFloat( vert.normal )});
+        }
+
+        for (usize i = 0; i < cube.GetIndices().size(); i += 3)
+        {
+            packed_uint3    idx{ cube.GetIndices()[i+0], cube.GetIndices()[i+1], cube.GetIndices()[i+2] };
+            indices.push_back( idx );
+        }
+    }
+
+    void  ScriptExe::_GetCube2 (OUT ScriptArray<packed_float3> &positions, OUT ScriptArray<packed_float3> &normals, OUT ScriptArray<uint> &indices) __Th___
+    {
+        GeometryTools::CubeGen  cube;
+        CHECK_THROW( cube.Create() );
+
+        for (auto& vert : cube.GetVertices())
+        {
+            positions.push_back( float3{SNormShortToFloat( vert.position )});
+            normals.push_back( float3{SNormShortToFloat( vert.normal )});
+        }
+
+        for (auto idx : cube.GetIndices()) {
+            indices.push_back( idx );
+        }
+    }
+
+    void  ScriptExe::_GetCube3 (OUT ScriptArray<packed_float3>  &positions,
+                                OUT ScriptArray<packed_float3>  &normals,
+                                OUT ScriptArray<packed_float3>  &tangents,
+                                OUT ScriptArray<packed_float3>  &bitangents,
+                                OUT ScriptArray<uint>           &indices) __Th___
+    {
+        GeometryTools::CubeGen  cube;
+        CHECK_THROW( cube.Create() );
+
+        for (auto& vert : cube.GetVertices())
+        {
+            positions.push_back( float3{SNormShortToFloat( vert.position )});
+            normals.push_back( float3{SNormShortToFloat( vert.normal )});
+            tangents.push_back( float3{SNormShortToFloat( vert.tangent )});
+            bitangents.push_back( float3{SNormShortToFloat( vert.bitangent )});
+        }
+
+        for (auto idx : cube.GetIndices()) {
+            indices.push_back( idx );
+        }
+    }
+
+/*
+=================================================
+    _GenGrid*
+=================================================
+*/
+    void  ScriptExe::_GenGrid1 (uint size, OUT ScriptArray<packed_float2> &positions, OUT ScriptArray<uint> &indices) __Th___
+    {
+        GeometryTools::GridGen  grid;
+        CHECK_THROW( grid.Create( size, 3u ));
+
+        for (auto& vert : grid.GetVertices()) {
+            positions.push_back( vert.uv );
+        }
+
+        for (auto idx : grid.GetIndices()) {
+            indices.push_back( idx );
+        }
+    }
+
+    void  ScriptExe::_GenGrid2 (uint size, OUT ScriptArray<packed_float3> &positions, OUT ScriptArray<uint> &indices) __Th___
+    {
+        GeometryTools::GridGen  grid;
+        CHECK_THROW( grid.Create( size, 3u ));
+
+        for (auto& vert : grid.GetVertices()) {
+            positions.push_back(packed_float3{ vert.uv.x, vert.uv.y, 0.f });
+        }
+
+        for (auto idx : grid.GetIndices()) {
+            indices.push_back( idx );
+        }
+    }
+
+/*
+=================================================
+    _GenCylinder
+=================================================
+*/
+    void  ScriptExe::_GenCylinder (uint segments, const packed_float3 &scale, OUT ScriptArray<packed_float3> &positions,
+                                   OUT ScriptArray<packed_float3> &normals, OUT ScriptArray<uint> &indices) __Th___
+    {
+        positions.resize( segments * 2 );
+
+        const Rad   angle_scale = 2.0f * Pi / float(segments);
+
+        for (uint i = 0; i < segments; ++i)
+        {
+            float2  sc = SinCos( float(i) * angle_scale );
+
+            positions[ i ]              = packed_float3{ sc, -1.f } * scale;
+            positions[ segments + i ]   = packed_float3{ sc,  1.f } * scale;
+        }
+
+        normals.resize( segments * 2 );
+
+        for (uint i = 0; i < segments; ++i)
+        {
+            const uint  i0  = i;
+            const uint  i1  = (i == segments ? 0 : i+1);
+
+            normals[ i ] = normals[ segments + i ] = Normalize( Cross( positions[i0], positions[i1] ));
+        }
+
+        indices.resize( segments * 6 );
+
+        for (uint i = 0; i < segments; ++i)
+        {
+            const uint  j = i*6;
+
+            indices[j+0] = i;
+            indices[j+1] = (i == segments ? 0 : i+1);
+            indices[j+2] = segments + (i == segments ? 0 : i+1);
+
+            indices[j+3] = i;
+            indices[j+4] = segments + (i == segments ? 0 : i+1);
+            indices[j+5] = segments + i;
+        }
     }
 
 /*
@@ -790,8 +1005,8 @@ namespace {
 
         CoreBindings::BindScalarMath( se );
         CoreBindings::BindVectorMath( se );
-        CoreBindings::BindMatrixMath( se );
         CoreBindings::BindRect( se );
+        CoreBindings::BindMatrixMath( se );
         CoreBindings::BindColor( se );
         CoreBindings::BindArray( se );
         CoreBindings::BindLog( se );
@@ -817,15 +1032,19 @@ namespace {
         ScriptRTScene::Bind( se );
 
         ScriptBaseController::Bind( se );
-        ScriptController2D::Bind( se );
+        ScriptControllerScaleBias::Bind( se );
+        ScriptControllerTopDown::Bind( se );
+        ScriptControllerIsometricCamera::Bind( se );
         ScriptControllerFlightCamera::Bind( se );
         ScriptControllerFPVCamera::Bind( se );
         ScriptControllerFreeCamera::Bind( se );
 
         ScriptBasePass::Bind( se );
         ScriptGeomSource::Bind( se );
+        ScriptTiledTerrain::Bind( se );
         ScriptSphericalCube::Bind( se );
         ScriptUniGeometry::Bind( se );
+        ScriptSceneGeometry::Bind( se );
 
         ScriptCollection::Bind( se );
 
@@ -833,7 +1052,7 @@ namespace {
         ScriptPostprocess::Bind( se );
         ScriptComputePass::Bind( se );
         ScriptSceneGraphicsPass::Bind( se );
-    //  ScriptSceneRayTracingPass::Bind( se );
+        ScriptSceneRayTracingPass::Bind( se );
         ScriptScene::Bind( se );
 
         se->AddFunction( &ScriptExe::_SurfaceSize,      "SurfaceSize"   );
@@ -849,8 +1068,20 @@ namespace {
         se->AddFunction( &ScriptExe::_DbgView4,         "DbgView"       );
 
         se->AddFunction( &ScriptExe::_GenMipmaps,       "GenMipmaps"    );
-        se->AddFunction( &ScriptExe::_BuildRTGeometry,  "BuildRTGeometry" );
-        se->AddFunction( &ScriptExe::_BuildRTScene,     "BuildRTScene"  );
+
+        se->AddFunction( &ScriptExe::_BuildRTGeometry,          "BuildRTGeometry" );
+        se->AddFunction( &ScriptExe::_BuildRTGeometryIndirect,  "BuildRTGeometryIndirect" );
+
+        se->AddFunction( &ScriptExe::_BuildRTScene,             "BuildRTScene"  );
+        se->AddFunction( &ScriptExe::_BuildRTSceneIndirect,     "BuildRTSceneIndirect"  );
+
+        se->AddFunction( &ScriptExe::_GetCube1,         "GetCube"       );
+        se->AddFunction( &ScriptExe::_GetCube2,         "GetCube"       );
+        se->AddFunction( &ScriptExe::_GetCube3,         "GetCube"       );
+        se->AddFunction( &ScriptExe::_GenGrid1,         "GenGrid"       );
+        se->AddFunction( &ScriptExe::_GenGrid2,         "GenGrid"       );
+        se->AddFunction( &ScriptExe::_GenCylinder,      "GenCylinder"   );
+
         se->AddFunction( &ScriptExe::_RunScript1,       "RunScript"     );
         se->AddFunction( &ScriptExe::_RunScript2,       "RunScript"     );
 
@@ -880,7 +1111,7 @@ namespace {
         {
             se->AddCppHeader( "", "#define SCRIPT\n\n", 0 );
 
-            CHECK_THROW( se->SaveCppHeader( cfg.scriptHeaderOutFolder / "res_editor" ));
+            CHECK( se->SaveCppHeader( cfg.scriptHeaderOutFolder / "res_editor" ));
         }
     }
 
@@ -908,9 +1139,10 @@ namespace {
     {
         EnumBinder<PassGroup::EFlags>   binder {se};
         binder.Create();
-        binder.AddValue( "RunOnce",     PassGroup::EFlags::RunOnce );
-        binder.AddValue( "OnRequest",   PassGroup::EFlags::OnRequest );
-        STATIC_ASSERT( uint(PassGroup::EFlags::All) == 3 );
+        binder.AddValue( "RunOnce",                 PassGroup::EFlags::RunOnce );
+        binder.AddValue( "OnRequest",               PassGroup::EFlags::OnRequest );
+        binder.AddValue( "RunOnce_AfterLoading",    PassGroup::EFlags::RunOnce_AfterLoading );
+        STATIC_ASSERT( uint(PassGroup::EFlags::_Count) == 4 );
     }
 
 /*
@@ -954,10 +1186,12 @@ namespace {
         ScriptPostprocess::GetShaderTypes( INOUT data );
         ScriptComputePass::GetShaderTypes( INOUT data );
         ScriptSceneGraphicsPass::GetShaderTypes( INOUT data );
-    //  ScriptSceneRayTracingPass::GetShaderTypes( INOUT data );
+        ScriptSceneRayTracingPass::GetShaderTypes( INOUT data );
 
+    //  ScriptTiledTerrain::GetShaderTypes( INOUT data );
         ScriptSphericalCube::GetShaderTypes( INOUT data );
         ScriptUniGeometry::GetShaderTypes( INOUT data );
+        ScriptSceneGeometry::GetShaderTypes( INOUT data );
 
         if ( data.cpp.empty() )
             return;
@@ -995,8 +1229,10 @@ namespace {
             [&] ()
             {
                 ScriptBasePass::CppStructsFromShaders   data;
+            //  ScriptTiledTerrain::GetShaderTypes( INOUT data );
                 ScriptSphericalCube::GetShaderTypes( INOUT data );
                 ScriptUniGeometry::GetShaderTypes( INOUT data );
+                ScriptSceneGeometry::GetShaderTypes( INOUT data );
 
                 fn( s_scriptExe->_engine2 );
                 result = s_scriptExe->_ConvertAndLoad();
@@ -1180,36 +1416,45 @@ namespace AE::ResEditor
 */
     void  ScriptExe::_RunWithPipelineCompiler (Function<void ()> fn) __Th___
     {
-        // init pipeline compiler
-        ObjectStorage   obj_storage;
-        PipelineStorage ppln_storage;
+        try
         {
-            obj_storage.pplnStorage     = &ppln_storage;
-            obj_storage.shaderFolders   = _GetTempData().cfg.shaderDirs;
+            // init pipeline compiler
+            ObjectStorage   obj_storage;
+            PipelineStorage ppln_storage;
+            {
+                obj_storage.pplnStorage         = &ppln_storage;
+                obj_storage.shaderFolders       = _GetTempData().cfg.shaderDirs;
+                obj_storage.defaultFeatureSet   = "DefaultFS";
 
-            obj_storage.spirvCompiler   = MakeUnique<SpirvCompiler>( _GetTempData().cfg.includeDirs );
-            obj_storage.spirvCompiler->SetDefaultResourceLimits();
+                obj_storage.spirvCompiler       = MakeUnique<SpirvCompiler>( _GetTempData().cfg.includeDirs );
+                obj_storage.spirvCompiler->SetDefaultResourceLimits();
 
-            ObjectStorage::SetInstance( &obj_storage );
+                ObjectStorage::SetInstance( &obj_storage );
 
-            PipelineCompiler::ScriptConfig  cfg;
-            cfg.SetTarget( ECompilationTarget::Vulkan );
-            cfg.SetShaderVersion( EShaderVersion::SPIRV_1_5 );
-            cfg.SetShaderOptions( EShaderOpt::Optimize );
-            cfg.SetDefaultLayout( EStructLayout::Std140 );
-            cfg.SetPipelineOptions( EPipelineOpt::Unknown );
-            cfg.SetPreprocessor( EShaderProprocessor::AEStyle );
+                PipelineCompiler::ScriptConfig  cfg;
+                cfg.SetTarget( ECompilationTarget::Vulkan );
+                cfg.SetShaderVersion( EShaderVersion::SPIRV_1_5 );
+                cfg.SetShaderOptions( EShaderOpt::Optimize );
+                cfg.SetDefaultLayout( EStructLayout::Std140 );
+                cfg.SetPipelineOptions( EPipelineOpt::Unknown );
+                cfg.SetPreprocessor( EShaderProprocessor::AEStyle );
 
-            ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "Default" }};
-            fs->fs = RenderTaskScheduler().GetResourceManager().GetFeatureSet();
+                ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
+                fs->fs = RenderTaskScheduler().GetResourceManager().GetFeatureSet();
+            }
+
+            _LoadSamplers();                // throw
+            _RegisterSharedShaderTypes();   // throw
+
+            fn();
+
+            ObjectStorage::SetInstance( null );
         }
-
-        _LoadSamplers();                // throw
-        _RegisterSharedShaderTypes();   // throw
-
-        fn();
-
-        ObjectStorage::SetInstance( null );
+        catch (...)
+        {
+            ObjectStorage::SetInstance( null );
+            throw;
+        }
     }
 
 /*
@@ -1374,6 +1619,30 @@ namespace AE::ResEditor
                     float3      pos;
                     float4      frustum [6];
                 )#");
+        }
+
+        if ( not obj_storage.structTypes.contains( "AccelStructInstance" ))
+        {
+            ShaderStructTypePtr st{ new ShaderStructType{"AccelStructInstance"}};
+            st->Set( EStructLayout::Std430, R"#(
+                    float3x4    transform;
+                    uint        instanceCustomIndex24_mask8;
+                    uint        instanceSBTOffset24_flags8;         // flags: gl::GeometryInstanceFlags
+                    ulong       accelerationStructureReference;     // gl::DeviceAddress
+                )#");
+            CHECK( st->StaticSize() == 64_b );
+        }
+
+        if ( not obj_storage.structTypes.contains( "ASBuildIndirectCommand" ))
+        {
+            ShaderStructTypePtr st{ new ShaderStructType{"ASBuildIndirectCommand"}};
+            st->Set( EStructLayout::Std430, R"#(
+                    uint        primitiveCount;
+                    uint        primitiveOffset;
+                    uint        firstVertex;
+                    uint        transformOffset;
+                )#");
+            CHECK( st->StaticSize() == 16_b );
         }
     }
 

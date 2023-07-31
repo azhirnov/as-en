@@ -41,12 +41,12 @@ private:
             if constexpr( !!(Flags & NonTrivialCtor) )
             {
                 for (usize i = 0; i < count; ++i)
-                    PlacementNew<T>( ptr + i );     // nothrow
+                    PlacementNew<T>( OUT ptr + i );     // nothrow
             }
             else
             {
                 STATIC_ASSERT( IsZeroMemAvailable<T> );
-                ZeroMem( ptr, SizeOf<T> * count );
+                ZeroMem( OUT ptr, SizeOf<T> * count );
             }
         }
 
@@ -75,7 +75,7 @@ private:
             if constexpr( !!(Flags & NonTrivialCopyCtor) )
             {
                 for (usize i = 0; i < count; ++i)
-                    PlacementNew<T>( dst+i, src[i] );   // throw
+                    PlacementNew<T>( OUT dst+i, src[i] );   // throw
             }
             else
             {
@@ -92,7 +92,7 @@ private:
             if constexpr( !!(Flags & NonTrivialMoveCtor) )
             {
                 for (usize i = 0; i < count; ++i)
-                    PlacementNew<T>( dst+i, RVRef( src[i] ));   // nothrow
+                    PlacementNew<T>( OUT dst+i, RVRef( src[i] ));   // nothrow
             }
             else
             {
@@ -112,7 +112,7 @@ private:
             {
                 for (usize i = 0; i < count; ++i)
                 {
-                    PlacementNew<T>( dst+i, RVRef( src[i] ));   // nothrow
+                    PlacementNew<T>( OUT dst+i, RVRef( src[i] ));   // nothrow
 
                     if constexpr( !!(Flags & NonTrivialDtor) )
                     {
@@ -149,7 +149,7 @@ private:
             {
                 for (usize i = count-1; i < count; --i)
                 {
-                    PlacementNew<T>( dst+i, RVRef( src[i] ));   // nothrow
+                    PlacementNew<T>( OUT dst+i, RVRef( src[i] ));   // nothrow
 
                     if constexpr( !!(Flags & NonTrivialDtor) )
                     {

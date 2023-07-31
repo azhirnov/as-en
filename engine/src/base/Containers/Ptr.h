@@ -68,14 +68,9 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
-{
-
-    template <typename T>
-    struct hash< AE::Base::Ptr<T> > {
-        ND_ size_t  operator () (const AE::Base::Ptr<T> &value) C_NE___ {
-            return hash<T *>()( value.operator->() );
-        }
-    };
-
-} // std
+template <typename T>
+struct std::hash< AE::Base::Ptr<T> > {
+    ND_ size_t  operator () (const AE::Base::Ptr<T> &value) C_NE___ {
+        return hash<T *>()( value.operator->() );
+    }
+};

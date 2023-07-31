@@ -84,34 +84,36 @@ namespace AE::Graphics
         CopyRTAS_Write                          = 0x21,             // AS & dst buffer
         BuildRTAS_Read                          = 0x22,
         BuildRTAS_Write                         = 0x23,
-        BuildRTAS_ReadWrite                     = 0x24,             // for updating
+        BuildRTAS_ReadWrite                     = 0x24,
         BuildRTAS_RW                            = BuildRTAS_ReadWrite,
-        BuildRTAS_ScratchBuffer                 = 0x25,
+        BuildRTAS_ScratchBuffer                 = BuildRTAS_ReadWrite,
+        BuildRTAS_IndirectBuffer                = 0x25,
 
         ShaderRTAS_Read                         = 0x26,             // use RTScene in shader, for RT pipeline and ray query
         RTShaderBindingTable                    = 0x27,
 
         ShadingRateImage                        = 0x28,
-        FragmentDensityMap                      = 0x29,
 
-        General                                 = 0x2A,             // all stages & all access types
+        General                                 = 0x29,             // all stages & all access types
 
         _AccessCount,
         _AccessMask                             = 0x3F,
 
         // flags
-        DSTestBeforeFS                          = 0x0100,
-        DSTestAfterFS                           = 0x0200,
-        Invalidate                              = 0x0400,       // only for image
+        DSTestBeforeFS                          = 0x0080,
+        DSTestAfterFS                           = 0x0100,
+        Invalidate                              = 0x0200,       // only for image
         _FlagsMask                              = DSTestBeforeFS | DSTestAfterFS | Invalidate,
 
         // shader bits
-        PreRasterizationShaders                 = 0x0800,
+        MeshTaskShader                          = 0x0400,       // AMD: executed in compute queue
+        VertexProcessingShaders                 = 0x0800,       // executed only in graphics queue (VS, TCS, TES, GS, Mesh)
         TileShader                              = 0x1000,
         FragmentShader                          = 0x2000,
-        PostRasterizationShaders                = TileShader | FragmentShader,
         ComputeShader                           = 0x4000,
         RayTracingShaders                       = 0x8000,
+        PreRasterizationShaders                 = MeshTaskShader | VertexProcessingShaders,
+        PostRasterizationShaders                = TileShader | FragmentShader,
         AllGraphicsShaders                      = PreRasterizationShaders | PostRasterizationShaders,
         AllShaders                              = PreRasterizationShaders | PostRasterizationShaders | ComputeShader | RayTracingShaders,
 

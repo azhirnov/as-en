@@ -2,5 +2,7 @@
 
 #pragma once
 
+#include "pch/Base.h"
+
 #include "../shared/UnitTest_Shared.h"
 #include "../shared/DebugInstanceCounter.h"

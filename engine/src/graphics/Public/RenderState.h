@@ -349,10 +349,6 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
-{
-    template <> struct hash< AE::Graphics::RenderState >            : AE::Base::DefaultHasher_CalcHash< AE::Graphics::RenderState >         {};
-    template <> struct hash< AE::Graphics::MDepthStencilState >     : AE::Base::DefaultHasher_CalcHash< AE::Graphics::MDepthStencilState >  {};
-    template <> struct hash< AE::Graphics::MDynamicRenderState >    : AE::Base::DefaultHasher_CalcHash< AE::Graphics::MDynamicRenderState > {};
-
-} // std
+template <> struct std::hash< AE::Graphics::RenderState >           : AE::Base::DefaultHasher_CalcHash< AE::Graphics::RenderState >         {};
+template <> struct std::hash< AE::Graphics::MDepthStencilState >    : AE::Base::DefaultHasher_CalcHash< AE::Graphics::MDepthStencilState >  {};
+template <> struct std::hash< AE::Graphics::MDynamicRenderState >   : AE::Base::DefaultHasher_CalcHash< AE::Graphics::MDynamicRenderState > {};

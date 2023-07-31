@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "base/Containers/FixedTupleArray.h"
-#include "base/DataSource/WindowsFile.h"
 #include "threading/DataSource/AsyncDataSource.h"
 #include "threading/Containers/LfIndexedPool3.h"
 
@@ -22,18 +20,34 @@ namespace AE::Threading
     {
     // types
     public:
-        using IOPort_t      = UntypedStorage< sizeof(void*), alignof(void*) >;
-        using File_t        = UntypedStorage< sizeof(void*), alignof(void*) >;
-        using Overlapped_t  = UntypedStorage< sizeof(ulong)*4, alignof(ulong) >;
+        using IOPort_t      = UntypedStorage< sizeof(void*), alignof(void*) >;      // HANDLE
+        using File_t        = UntypedStorage< sizeof(void*), alignof(void*) >;      // HANDLE
+        using Overlapped_t  = UntypedStorage< sizeof(ulong)*4, alignof(ulong) >;    // OVERLAPPED
         using Index_t       = uint;
 
         class AsyncRDataSourceApi;
         class AsyncWDataSourceApi;
 
     private:
-        static constexpr uint   OverlappedOffset = sizeof(void*)*4;
+        static constexpr uint   OverlappedOffset = sizeof(void*)*3;
 
         using AsyncRequestPtr = RC<Threading::_hidden_::IAsyncDataSourceRequest>;
+
+
+        //
+        // Dummy Request
+        //
+        class _DummyRequest final : public Threading::_hidden_::IAsyncDataSourceRequest
+        {
+        // methods
+        public:
+            _DummyRequest ()                    __NE___ { _status.store( EStatus::Cancelled ); }
+
+            // IAsyncDataSourceRequest //
+            Result      GetResult ()            C_NE_OV { return Default; }
+            bool        Cancel ()               __NE_OV { return false; }
+            Promise_t   AsPromise (ETaskQueue)  __NE_OV { return Default; }
+        };
 
 
         //
@@ -49,41 +63,30 @@ namespace AE::Threading
 
         // variables
         protected:
-            Atomic<void*>       _file;
-
             Overlapped_t        _overlapped;
 
             SpinLock            _depsGuard;
             Dependencies_t      _deps;
 
-            // read-only data: accessed only in '_Init()' and '_Cleanup()' which are externally synchronized
-            RC<SharedMem>       _data;
-            RC<IDataSource>     _dataSource;
-
             const Index_t       _indexInPool;   // can be used in 'ReadRequestApi' or 'WriteRequestApi'
+
+            // read-only data: accessed only in '_Init()' and '_Cleanup()' which are externally synchronized
+            RC<>                _memRC;         // keep memory alive
 
 
         // methods
-        public:
-
-            // IAsyncDataSourceRequest //
-            bool        Cancel ()                                                                   __NE_OF;
-            Result      GetResult ()                                                                C_NE_OF;
-
         protected:
             explicit _RequestBase (Index_t idx)                                                     __NE___;
 
-            void  _Init (Bytes offset, RC<SharedMem> data, RC<IDataSource> ds, const File_t &file)  __NE___;
-            void  _Cleanup ()                                                                       __NE___;
-
-            ND_ ResultWithRC  _GetResult1 ()                                                        __NE___;
-            ND_ ResultWithRC  _GetResult2 ()                                                        __NE___;
+                void  _Init (Bytes pos, RC<> mem)                                                   __NE___;
+                void  _Cleanup ()                                                                   __NE___;
+            ND_ bool  _Cancel (const File_t &file)                                                  __NE___;
 
         private:
             friend class WindowsIOService;
                 void  _Complete (Bytes size, long err, const void* ov)                              __NE___;
 
-            ND_ bool  _AddOnCompleteDependency (AsyncTask task, INOUT uint &index, bool isStrong)   __NE___;
+            ND_ bool  _AddOnCompleteDependency (AsyncTask task, INOUT uint &index, Bool isStrong)   __NE___;
         };
 
 
@@ -93,16 +96,27 @@ namespace AE::Threading
         class ReadRequestApi;
         class ReadRequest final : public _RequestBase
         {
+        // variables
+        private:
+            // read-only data: accessed only in '_Init()' and '_Cleanup()' which are externally synchronized
+            void*                       _data       = null;
+            RC<WinAsyncRDataSource>     _dataSource;    // keep alive
+
+
         // methods
         public:
             explicit ReadRequest (Index_t idx)  __NE___ : _RequestBase{idx} {}
 
             // IAsyncDataSourceRequest //
-            Promise_t   AsPromise (ETaskQueue)  __NE_OF;
+            Result      GetResult ()            C_NE_OV;
+            bool        Cancel ()               __NE_OV;
+            Promise_t   AsPromise (ETaskQueue)  __NE_OV;
 
         private:
             friend class AsyncRDataSourceApi;
-            ND_ bool  _Create (RC<WinAsyncRDataSource> file, Bytes offset, Bytes size, RC<SharedMem> dst) __NE___;
+            ND_ bool  _Create (RC<WinAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<SharedMem> mem) __NE___;
+
+            ND_ ResultWithRC  _GetResult ()     __NE___;
 
                 void  _ReleaseObject ()         __NE_OV;
         };
@@ -114,16 +128,26 @@ namespace AE::Threading
         class WriteRequestApi;
         class WriteRequest final : public _RequestBase
         {
+        // variables
+        private:
+            // read-only data: accessed only in '_Init()' and '_Cleanup()' which are externally synchronized
+            RC<WinAsyncWDataSource>     _dataSource;    // keep alive
+
+
         // methods
         public:
             explicit WriteRequest (Index_t idx) __NE___ : _RequestBase{idx} {}
 
             // IAsyncDataSourceRequest //
-            Promise_t   AsPromise (ETaskQueue)  __NE_OF;
+            Result      GetResult ()            C_NE_OV;
+            bool        Cancel ()               __NE_OV;
+            Promise_t   AsPromise (ETaskQueue)  __NE_OV;
 
         private:
             friend class AsyncWDataSourceApi;
-            ND_ bool  _Create (RC<WinAsyncWDataSource> file, Bytes offset, Bytes size, RC<SharedMem> src) __NE___;
+            ND_ bool  _Create (RC<WinAsyncWDataSource> file, Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___;
+
+            ND_ ResultWithRC  _GetResult ()     __NE___;
 
                 void  _ReleaseObject ()         __NE_OV;
         };
@@ -141,29 +165,32 @@ namespace AE::Threading
     private:
         IOPort_t            _ioCompletionPort;
 
+        AsyncDSRequest      _cancelledRequest;
+
         ReadRequestPool_t   _readResultPool;
         WriteRequestPool_t  _writeResultPool;
 
 
     // methods
     public:
-        ~WindowsIOService ()                        __NE___;
+        ~WindowsIOService ()                                                    __NE___;
 
-        ND_ bool            IsInitialized ()        C_NE___;
+        ND_ bool            IsInitialized ()                                    C_NE___;
 
-        ND_ IOPort_t const& GetIOCompletionPort ()  C_NE___ { return _ioCompletionPort; }
+        ND_ IOPort_t const& GetIOCompletionPort ()                              C_NE___ { return _ioCompletionPort; }
+        ND_ AsyncDSRequest  GetCancelledRequest ()                              C_NE___ { return _cancelledRequest; }
 
 
         // IOService //
-        usize           ProcessEvents ()            __NE_OV;
-        EIOServiceType  GetIOServiceType ()         C_NE_OV { return EIOServiceType::File; }
+        usize           ProcessEvents ()                                        __NE_OV;
+        EIOServiceType  GetIOServiceType ()                                     C_NE_OV { return EIOServiceType::File; }
 
 
     private:
         friend class TaskScheduler;
-        explicit WindowsIOService (uint maxThreads) __NE___;
+        explicit WindowsIOService (uint maxThreads)                             __NE___;
 
-        bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex) __NE_OV;
+        bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)   __NE_OV;
     };
 
 
@@ -176,7 +203,7 @@ namespace AE::Threading
     class WindowsIOService::AsyncRDataSourceApi
     {
         friend class WinAsyncRDataSource;
-        ND_ static AsyncDSRequest  CreateResult (RC<WinAsyncRDataSource> file, Bytes offset, Bytes size, RC<SharedMem> block) __NE___;
+        ND_ static bool  CreateResult (OUT AsyncDSRequest &, RC<WinAsyncRDataSource> file, Bytes pos, void* data, Bytes dataSize, RC<> mem) __NE___;
     };
 
     class WindowsIOService::WriteRequestApi
@@ -188,7 +215,7 @@ namespace AE::Threading
     class WindowsIOService::AsyncWDataSourceApi
     {
         friend class WinAsyncWDataSource;
-        ND_ static AsyncDSRequest  CreateResult (RC<WinAsyncWDataSource> file, Bytes offset, Bytes size, RC<SharedMem> block) __NE___;
+        ND_ static bool  CreateResult (OUT AsyncDSRequest &, RC<WinAsyncWDataSource> file, Bytes pos, const void* data, Bytes dataSize, RC<> mem) __NE___;
     };
 //-----------------------------------------------------------------------------
 
@@ -232,21 +259,23 @@ namespace AE::Threading
 
         WinAsyncRDataSource (const Path &path, EFlags flags = DefaultFlags)                 __NE___;
 
-        ~WinAsyncRDataSource ()                                 __NE_OV;
+        ~WinAsyncRDataSource ()                                                             __NE_OV;
 
-        ND_ File_t const&   Handle ()                           __NE___ { return _file; }
+        ND_ File_t const&   Handle ()                                                       __NE___ { return _file; }
 
 
         // AsyncRDataSource //
-        bool            IsOpen ()                               C_NE_OV;
-        ESourceType     GetSourceType ()                        C_NE_OV;
+        bool            IsOpen ()                                                           C_NE_OV;
+        ESourceType     GetSourceType ()                                                    C_NE_OV;
 
-        Bytes           Size ()                                 C_NE_OV { return _fileSize; }
+        Bytes           Size ()                                                             C_NE_OV { return _fileSize; }
 
-        AsyncDSRequest  ReadBlock (Bytes, Bytes)                __NE_OV;
-        AsyncDSRequest  ReadBlock (Bytes, Bytes, RC<SharedMem>) __NE_OV;
+        AsyncDSRequest  ReadBlock (Bytes pos, Bytes size)                                   __NE_OV;
+        AsyncDSRequest  ReadBlock (Bytes pos, void* data, Bytes dataSize, RC<> mem)         __NE_OV;
 
-        bool            CancelAllRequests ()                    __NE_OV;
+        bool            CancelAllRequests ()                                                __NE_OV;
+
+        using AsyncRDataSource::ReadBlock;
     };
 //-----------------------------------------------------------------------------
 
@@ -289,20 +318,20 @@ namespace AE::Threading
 
         WinAsyncWDataSource (const Path &path, EFlags flags = DefaultFlags)                 __NE___;
 
-        ~WinAsyncWDataSource ()                                 __NE_OV;
+        ~WinAsyncWDataSource ()                                                             __NE_OV;
 
-        ND_ File_t const&   Handle ()                           __NE___ { return _file; }
+        ND_ File_t const&   Handle ()                                                       __NE___ { return _file; }
 
 
         // AsyncWDataSource //
-        bool            IsOpen ()                               C_NE_OV;
-        ESourceType     GetSourceType ()                        C_NE_OV;
+        bool            IsOpen ()                                                           C_NE_OV;
+        ESourceType     GetSourceType ()                                                    C_NE_OV;
 
-        //Bytes         Size ()                                 C_NE_OV;
+        AsyncDSRequest  WriteBlock (Bytes pos, const void* data, Bytes dataSize, RC<> mem)  __NE_OV;
+        bool            CancelAllRequests ()                                                __NE_OV;
+        RC<SharedMem>   Alloc (Bytes size)                                                  __NE_OV;
 
-        AsyncDSRequest  WriteBlock (Bytes, Bytes, RC<SharedMem>)__NE_OV;
-        bool            CancelAllRequests ()                    __NE_OV;
-        RC<SharedMem>   Alloc (Bytes size)                      __NE_OV;
+        using AsyncWDataSource::WriteBlock;
     };
 
 

@@ -87,9 +87,6 @@ namespace AE::Base
             template <typename ValueType>
             Pair<iterator,bool>  insert_or_assign (ValueType&& value) noexcept(_IsNothrowCopy);
 
-            template <typename ValueType>
-            bool        try_insert (ValueType&& value)              noexcept(_IsNothrowCopy);
-
             template <typename KeyType>
             bool        erase (const KeyType &key)                  __NE___;
 
@@ -107,11 +104,14 @@ namespace AE::Base
             void        clear ()                                    __NE___;
             void        reserve (usize)                             __NE___ {}
 
+        ND_ usize       IndexOf (iterator it)                       C_NE___;
+
         // cache friendly access to unsorted data
 
         ND_ explicit operator ArrayView<Value> ()                   C_NE___ { return { &_array[0], size() }; }
 
         ND_ Value const&    operator [] (usize i)                   C_NE___;
+
 
     private:
         ND_ forceinline bool _IsMemoryAliased (const Self* other)   C_NE___
@@ -144,8 +144,8 @@ namespace AE::Base
     {
         ASSERT( not _IsMemoryAliased( &other ));
 
-        CPolicy_t::Copy( _array, other._array, _count );    // throw
-        MemCopy( _indices, other._indices, SizeOf<Index_t> * _count );
+        CPolicy_t::Copy( OUT _array, other._array, _count );    // throw
+        MemCopy( OUT _indices, other._indices, SizeOf<Index_t> * _count );
     }
 
 /*
@@ -158,8 +158,8 @@ namespace AE::Base
     {
         ASSERT( not _IsMemoryAliased( &other ));
 
-        CPolicy_t::Replace( _array, other._array, _count );
-        MemCopy( _indices, other._indices, SizeOf<Index_t> * _count );
+        CPolicy_t::Replace( OUT _array, INOUT other._array, _count );
+        MemCopy( OUT _indices, other._indices, SizeOf<Index_t> * _count );
 
         other._count = 0;
         DEBUG_ONLY( DbgInitMem( other._indices ));
@@ -175,12 +175,12 @@ namespace AE::Base
     {
         ASSERT( not _IsMemoryAliased( &rhs ));
 
-        CPolicy_t::Destroy( _array, _count );
+        CPolicy_t::Destroy( INOUT _array, _count );
 
         _count = rhs._count;
 
-        CPolicy_t::Replace( _array, rhs._array, _count );
-        MemCopy( _indices, rhs._indices, SizeOf<Index_t> * _count );
+        CPolicy_t::Replace( OUT _array, INOUT rhs._array, _count );
+        MemCopy( OUT _indices, rhs._indices, SizeOf<Index_t> * _count );
 
         rhs._count = 0;
         DEBUG_ONLY( DbgInitMem( rhs._indices ));
@@ -198,12 +198,12 @@ namespace AE::Base
     {
         ASSERT( not _IsMemoryAliased( &rhs ));
 
-        CPolicy_t::Destroy( _array, _count );
+        CPolicy_t::Destroy( INOUT _array, _count );
 
         _count = rhs._count;
 
-        CPolicy_t::Copy( _array, rhs._array, _count );  // throw
-        MemCopy( _indices, rhs._indices, SizeOf<Index_t> * _count );
+        CPolicy_t::Copy( OUT _array, rhs._array, _count );  // throw
+        MemCopy( OUT _indices, rhs._indices, SizeOf<Index_t> * _count );
 
         return *this;
     }
@@ -244,23 +244,6 @@ namespace AE::Base
 
 /*
 =================================================
-    try_insert
-=================================================
-*/
-    template <typename V, usize S, typename CS>
-    template <typename ValueType>
-    bool  FixedSet<V,S,CS>::try_insert (ValueType&& value) noexcept(_IsNothrowCopy)
-    {
-        if_likely( _count < capacity() )
-        {
-            emplace( FwdArg<ValueType>(value) );    // throw
-            return true;
-        }
-        return false;
-    }
-
-/*
-=================================================
     emplace
 =================================================
 */
@@ -277,20 +260,26 @@ namespace AE::Base
             return { iterator{ &_array[_indices[i]] }, false };
 
         // insert
-        ASSERT( _count < capacity() );
+        if_likely( _count < capacity() )
+        {
+            const usize j = _count++;
+            PlacementNew<value_type>( OUT &_array[j], FwdArg<ValueType>(value) );   // throw
 
-        const usize j = _count++;
-        PlacementNew<value_type>( &_array[j], FwdArg<ValueType>(value) );   // throw
+            if ( i < _count )
+                for (usize k = _count-1; k > i; --k) {
+                    _indices[k] = _indices[k-1];
+                }
+            else
+                i = j;
 
-        if ( i < _count )
-            for (usize k = _count-1; k > i; --k) {
-                _indices[k] = _indices[k-1];
-            }
+            _indices[i] = Index_t(j);
+            return { iterator{ &_array[j] }, true };
+        }
         else
-            i = j;
-
-        _indices[i] = Index_t(j);
-        return { iterator{ &_array[j] }, true };
+        {
+            DBG_WARNING( "overflow" );
+            return { null, false };
+        }
     }
 
 /*
@@ -314,20 +303,26 @@ namespace AE::Base
         }
 
         // insert
-        ASSERT( _count < capacity() );
+        if_likely( _count < capacity() )
+        {
+            const usize j = _count++;
+            PlacementNew<value_type>( OUT &_array[j], FwdArg<ValueType>(value) );   // throw
 
-        const usize j = _count++;
-        PlacementNew<value_type>( &_array[j], FwdArg<ValueType>(value) );   // throw
+            if ( i < _count )
+                for (usize k = _count-1; k > i; --k) {
+                    _indices[k] = _indices[k-1];
+                }
+            else
+                i = j;
 
-        if ( i < _count )
-            for (usize k = _count-1; k > i; --k) {
-                _indices[k] = _indices[k-1];
-            }
+            _indices[i] = Index_t(j);
+            return { iterator{ &_array[j] }, true };
+        }
         else
-            i = j;
-
-        _indices[i] = Index_t(j);
-        return { iterator{ &_array[j] }, true };
+        {
+            DBG_WARNING( "overflow" );
+            return { null, false };
+        }
     }
 
 /*
@@ -395,7 +390,7 @@ namespace AE::Base
             }
 
             if ( idx != _count )
-                CPolicy_t::Replace( &_array[idx], &_array[_count], 1, true );
+                CPolicy_t::Replace( OUT &_array[idx], INOUT &_array[_count], 1, true );
 
             DEBUG_ONLY(
                 DbgInitMem( _indices[_count] );
@@ -413,7 +408,7 @@ namespace AE::Base
     template <typename V, usize S, typename CS>
     void  FixedSet<V,S,CS>::clear () __NE___
     {
-        CPolicy_t::Destroy( _array, _count );
+        CPolicy_t::Destroy( INOUT _array, _count );
         DEBUG_ONLY( DbgInitMem( _indices ));
 
         _count = 0;
@@ -436,18 +431,27 @@ namespace AE::Base
         return result;
     }
 
+/*
+=================================================
+    IndexOf
+=================================================
+*/
+    template <typename V, usize S, typename CS>
+    usize  FixedSet<V,S,CS>::IndexOf (iterator it) C_NE___
+    {
+        ASSERT( it >= begin() and it < end() );
+        return usize(it) - usize(begin());
+    }
+
+
 } // AE::Base
 
 
-namespace std
+template <typename Value, size_t ArraySize, typename CS>
+struct std::hash< AE::Base::FixedSet<Value, ArraySize, CS> >
 {
-    template <typename Value, size_t ArraySize, typename CS>
-    struct hash< AE::Base::FixedSet<Value, ArraySize, CS> >
+    ND_ size_t  operator () (const AE::Base::FixedSet<Value, ArraySize, CS> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Base::FixedSet<Value, ArraySize, CS> &value) C_NE___
-        {
-            return size_t(value.CalcHash());
-        }
-    };
-
-} // std
+        return size_t(value.CalcHash());
+    }
+};

@@ -35,7 +35,7 @@ namespace AE::Base
             }
         };
     }
-    static constexpr Base::_hidden_::_UMax      UMax {};
+    static constexpr inline Base::_hidden_::_UMax       UMax {};
 
 
 
@@ -90,7 +90,7 @@ namespace AE::Base
             }
         };
     }
-    static constexpr Base::_hidden_::_Zero      Zero {};
+    static constexpr inline Base::_hidden_::_Zero       Zero {};
 
 
 
@@ -134,16 +134,16 @@ namespace AE::Base
             bool    _value;
 
         public:
-            constexpr           BoolType (const BoolType &other)                __NE___ : _value{ other._value } {}
+            constexpr           BoolType (const BoolType &other)                __NE___ = default;
             constexpr explicit  BoolType (bool value)                           __NE___ : _value{ value } {}
 
             constexpr explicit  BoolType (bool value, const char* description)  __NE___ : _value{ value } { (void)(description); }
 
-            constexpr BoolType& operator = (const BoolType &rhs)                __NE___ { _value = rhs._value;  return *this; }
+            constexpr BoolType& operator = (const BoolType &rhs)                __NE___ = default;
             constexpr BoolType& operator = (bool rhs)                           __NE___ { _value = rhs;  return *this; }
 
-            ND_ bool*       operator & ()                                       __NE___ { return &_value; }
-            ND_ bool const* operator & ()                                       C_NE___ { return &_value; }
+            ND_ bool*           operator & ()                                   __NE___ { return &_value; }
+            ND_ bool const*     operator & ()                                   C_NE___ { return &_value; }
 
             ND_ constexpr operator bool ()                                      C_NE___ { return _value; }
         };

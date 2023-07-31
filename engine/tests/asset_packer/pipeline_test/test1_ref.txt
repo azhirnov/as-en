@@ -62,7 +62,7 @@ RenderTechniques {
   [3]
     name     = 'RayTracing'
     features = {
-      'MinRecursiveRayTracing'
+      'MinimalFS', 'MinRecursiveRayTracing'
     }
     passes = {
       [0] Pass {
@@ -173,7 +173,7 @@ DescrSetLayouts {
       name         = 'drawUB'
       vkIndex      = 0
       mtlIndex     = 0
-      state        = ShaderUniform | PreRasterizationShaders
+      state        = ShaderUniform | VertexProcessingShaders
       staticSize   = 64 b
       arrayStride  = 0 b
       typeName     = UBlock
@@ -230,7 +230,7 @@ DescrSetLayouts {
       vkIndex      = 0
       mtlIndex     = Compute: 0
       state        = ShaderUniform | ComputeShader
-      staticSize   = 24 b
+      staticSize   = 32 b
       arrayStride  = 0 b
       typeName     = BufferRef
     }
@@ -427,14 +427,14 @@ ComputePipelineTempl {
     shader  = 10000000
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
-    featureSets = { 'MinDesktop' }
+    featureSets = { 'MinimalFS', 'MinDesktop' }
   ----------------------
   [1]
     layout  = 5
     shader  = 10000001
     defaultLocalSize = { 8, 8, 1 }
     localSizeSpec = { 0, 1, Undefined }
-    featureSets = { 'MinRecursiveRayTracing' }
+    featureSets = { 'MinimalFS', 'MinRecursiveRayTracing' }
   ----------------------
   [2]
     layout  = 7
@@ -448,7 +448,7 @@ ComputePipelineTempl {
 RayTracingPipelineTempl {
   [0]
     layout  = 8
-    featureSets = { 'MinRecursiveRayTracing' }
+    featureSets = { 'MinimalFS', 'MinRecursiveRayTracing' }
     generalShaders = {
       [0] {
         name   = 'Main'
@@ -678,56 +678,56 @@ SpirvShaders {
 SpirvShaderData {
   [0]
     codeSize = 2668 b
-    codeHash = 428a2eaa478c8a83
+    codeHash = fcc82079f13e38a6
   [1]
     codeSize = 2516 b
-    codeHash = b53432a38786c4fa
+    codeHash = b763c70313476df
   [2]
     codeSize = 2924 b
-    codeHash = 5e9ea0dee0090da0
+    codeHash = e0dcae0d56bbbf85
   [3]
     codeSize = 2336 b
-    codeHash = c86b255e532546b9
+    codeHash = 76292b8de597f49c
   [4]
     codeSize = 4 Kb
-    codeHash = b5b885abf6b57db8
+    codeHash = bfa8b784007cf9d
   [5]
     codeSize = 2892 b
-    codeHash = 1dae6d1797efa7b4
+    codeHash = a3ec63c4215d1591
   [6]
     codeSize = 3716 b
-    codeHash = 6ea8e3bae7b580aa
+    codeHash = d0eaed695107328f
     spec     = {
       [0] 'sbtRecordStride', 0
     }
   [7]
     codeSize = 2304 b
-    codeHash = 4633525ab06033
+    codeHash = be043d81ec02d216
   [8]
     codeSize = 2792 b
-    codeHash = deb04493ef0c540c
+    codeHash = 60f24a4059bee629
   [9]
     codeSize = 3072 b
-    codeHash = 807e1c84bdbc8259
+    codeHash = 3e3c12570b0e307c
   [10]
     codeSize = 3496 b
-    codeHash = 26b9313df7b12af3
+    codeHash = 98fb3fee410398d6
   [11]
     codeSize = 2924 b
-    codeHash = 9c760f4024199c57
+    codeHash = 2234019392ab2e72
   [12]
     codeSize = 2472 b
-    codeHash = 794549c739a0d3ea
+    codeHash = c70747148f1261cf
   [13]
     codeSize = 6 Kb
     withTrace
   [14]
     codeSize = 2828 b
-    codeHash = b77294ae3f57ec39
+    codeHash = 9309a7d89e55e1c
   [15]
     codeSize = 4 Kb
-    codeHash = 591cd2253412494e
+    codeHash = e75edcf682a0fb6b
   [16]
     codeSize = 4 Kb
-    codeHash = b5ee504cb1f8de32
+    codeHash = 2bb4889ac9beca57
 }

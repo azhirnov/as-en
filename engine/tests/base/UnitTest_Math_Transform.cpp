@@ -1,20 +1,20 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Math/Transformation.h"
 #include "UnitTest_Common.h"
-
 
 namespace
 {
+    using Transform_t = Transformation<float>;
+
     constexpr float eps = 1.0e-4f;
 
     static void  Transformation_Test1 ()
     {
         QuatF       q = QuatF::RotateX( 45.0_deg );
         float3      p = float3{10.0f, -3.0f, 2.5f};
-        float4x4    m = float4x4::Translate( p ) * float4x4{q};
+        float4x4    m = float4x4::Translated( p ) * float4x4{q};
 
-        Transform   t{ m };
+        Transform_t t{ m };
 
         TEST( Equals( q.x, t.orientation.x, eps ));
         TEST( Equals( q.y, t.orientation.y, eps ));
@@ -31,9 +31,9 @@ namespace
 
     static void  Transformation_Test2 ()
     {
-        const Transform tr{ float3{1.0f, 2.0f, 3.0f},
-                            QuatF::Rotate({ 45.0_deg, 0.0_deg, 10.0_deg }),
-                            2.0f };
+        const Transform_t   tr{ float3{1.0f, 2.0f, 3.0f},
+                                QuatF::Rotate({ 45.0_deg, 0.0_deg, 10.0_deg }),
+                                2.0f };
 
         const float4x4  mat = tr.ToMatrix();
 
@@ -58,11 +58,11 @@ namespace
 
     static void  Transformation_Test3 ()
     {
-        const Transform tr1{ float3{1.0f, 2.0f, -3.0f},
-                             QuatF::Rotate({ 45.0_deg, 0.0_deg, 10.0_deg }),
-                             2.0f };
-        const Transform tr2 = tr1.Inversed();
-        const Transform tr3 = tr2.Inversed();
+        const Transform_t   tr1{ float3{1.0f, 2.0f, -3.0f},
+                                 QuatF::Rotate({ 45.0_deg, 0.0_deg, 10.0_deg }),
+                                 2.0f };
+        const Transform_t tr2 = tr1.Inversed();
+        const Transform_t tr3 = tr2.Inversed();
 
         TEST( All( Equals( tr1.position, tr3.position, eps )));
         TEST( All( Equals( tr1.orientation, tr3.orientation, eps )));

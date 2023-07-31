@@ -2,23 +2,7 @@
 
 #pragma once
 
-#include "platform/Public/InputActions.h"
-#include "platform/Public/InputSurface.h"
-#include "platform/Public/OutputSurface.h"
-
-#include "platform/DefaultV1/AppConfig.h"
-
-#include "threading/DataSource/AsyncDataSource.h"
-#include "threading/Primitives/Synchronized.h"
-
-#include "graphics/Public/GraphicsImpl.h"
-#include "graphics/RenderGraph/RenderGraphImpl.h"
-
-#include "video/Public/VideoEncoder.h"
-#include "video/Public/VideoDecoder.h"
-
-#include "res_loaders/Common.h"
-
+#include "res_editor/ResourceEditor.pch.h"
 
 namespace AE::ResEditor::_hidden_
 {
@@ -69,6 +53,6 @@ namespace AE::ResEditor
         ND_ explicit operator bool () const     { return packId and rtech; }
     };
 
-    static constexpr uint   ResNameMaxLen = 63;
+    static constexpr uint   ResNameMaxLen = 60;
 
 } // AE::ResEditor

@@ -122,10 +122,10 @@ namespace AE::Graphics
 
 
     // Vector types
-    template <typename T, uint I>
-    struct VertexDesc < Vec<T,I> >
+    template <typename T, uint I, glm::qualifier Q>
+    struct VertexDesc < TVec<T,I,Q> >
     {
-        using                           type    = Vec<T,I>;
+        using                           type    = TVec<T,I,Q>;
         static constexpr EVertexType    value   = EVertexType( 
                                                     (VertexDesc< T >::value & EVertexType::_TypeMask) |
                                                     EVertexType((I-1) << uint(EVertexType::_VecOffset)) );

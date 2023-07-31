@@ -8,7 +8,6 @@
 #include "graphics/Public/ImageSwizzle.h"
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/Queue.h"
-#include "base/Math/Fractional.h"
 
 namespace AE::Graphics
 {
@@ -16,7 +15,6 @@ namespace AE::Graphics
     //
     // Image Description
     //
-
     struct ImageDesc
     {
     // types
@@ -67,7 +65,6 @@ namespace AE::Graphics
         ND_ static ImageDesc  CreateColorAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)   __NE___;
         ND_ static ImageDesc  CreateDepthAttachment (const uint2 &dim, EPixelFormat fmt, ImageLayer layers = 1_layer)   __NE___;
         ND_ static ImageDesc  CreateShadingRate (const uint2 &dim)                                                      __NE___;
-        ND_ static ImageDesc  CreateFragmentDensityMap (const uint2 &dim)                                               __NE___;
         ND_ static ImageDesc  CreateStaging (const uint2 &dim, EPixelFormat fmt)                                        __NE___;
     };
 
@@ -76,7 +73,6 @@ namespace AE::Graphics
     //
     // Image View Description
     //
-
     struct ImageViewDesc
     {
     // variables

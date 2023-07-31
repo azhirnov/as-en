@@ -3,13 +3,24 @@
 cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
 
 project( "AsEn"
-         VERSION 23.6.168   # year, month, version
+         VERSION 23.7.178   # year, month, version
          LANGUAGES C CXX )
 if (APPLE)
     enable_language(OBJC)
 endif()
 
 set_property( GLOBAL PROPERTY USE_FOLDERS ON )
+
+#----------------------------------------------------------
+
+if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.16.0")
+	set( AE_USE_PCH ON  CACHE BOOL "use precompiled headers" )
+else()
+	set( AE_USE_PCH OFF CACHE INTERNAL "" FORCE )
+endif()
+message( STATUS "Precompiled headers: ${AE_USE_PCH}" )
+
+#----------------------------------------------------------
 
 set( CMAKE_DEBUG_POSTFIX    "" CACHE INTERNAL "" FORCE )
 set( CMAKE_PROFILE_POSTFIX  "" CACHE INTERNAL "" FORCE )

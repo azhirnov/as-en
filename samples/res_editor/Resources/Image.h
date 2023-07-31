@@ -5,8 +5,6 @@
 #include "res_editor/Resources/IResource.h"
 #include "res_editor/Resources/ResourceQueue.h"
 
-#include "res_loaders/Intermediate/IntermImage.h"
-
 namespace AE::ResEditor
 {
     using ResLoader::EImageFormat;
@@ -65,8 +63,6 @@ namespace AE::ResEditor
         Synchronized< RWSpinLock,
             FlatHashSet<Image*> >   _derived;
 
-        Mutex                       _loadOpGuard;
-        Atomic<EUploadStatus>       _uploadStatus   {EUploadStatus::Canceled};
         Array<LoadOp2>              _loadOps;
 
         Synchronized< RWSpinLock,
@@ -108,10 +104,8 @@ namespace AE::ResEditor
 
 
     // IResource //
-        EUploadStatus   GetStatus ()                                                C_NE_OV { return _uploadStatus.load(); }
         EUploadStatus   Upload (TransferCtx_t &)                                    __Th_OV;
         EUploadStatus   Readback (TransferCtx_t &)                                  __Th_OV;
-        void            Cancel ()                                                   __Th_OV;
 
 
     private:

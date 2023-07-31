@@ -2,26 +2,7 @@
 
 #pragma once
 
-#include "base/CompileTime/FunctionInfo.h"
-
-#include "base/Math/Bytes.h"
-#include "base/Math/BitMath.h"
-#include "base/Math/Vec.h"
-
-#include "base/Utils/HandleTmpl.h"
-#include "base/Utils/TypeId.h"
-#include "base/Utils/Helpers.h"
-#include "base/Utils/RefCounter.h"
-
-#include "base/Containers/FixedArray.h"
-#include "base/Containers/ArrayView.h"
-
-#include "base/CompileTime/Math.h"
-
-#include "base/Memory/UntypedAllocator.h"
-#include "base/Algorithms/ArrayUtils.h"
-
-#include "threading/Primitives/DataRaceCheck.h"
+#include "ecs-st/ECS-st.pch.h"
 
 #define AE_ECS_VALIDATE_SYSTEM_FN
 

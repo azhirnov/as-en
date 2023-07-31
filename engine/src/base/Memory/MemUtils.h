@@ -7,10 +7,10 @@
 
 namespace AE::Base
 {
-    static constexpr Bytes  DefaultAllocatorAlign   {__STDCPP_DEFAULT_NEW_ALIGNMENT__};
-    static constexpr Bytes  SmallAllocationSize     {4 << 10};      // 4 Kb
-    static constexpr Bytes  LargeAllocationSize     {4 << 20};      // 4 Mb - large page size in WIndows
-    static constexpr Bytes  DefaultAllocationSize   = SmallAllocationSize;
+    static constexpr inline Bytes   DefaultAllocatorAlign   {__STDCPP_DEFAULT_NEW_ALIGNMENT__};
+    static constexpr inline Bytes   SmallAllocationSize     {4 << 10};      // 4 Kb
+    static constexpr inline Bytes   LargeAllocationSize     {4 << 20};      // 4 Mb - large page size in WIndows
+    static constexpr inline Bytes   DefaultAllocationSize   = SmallAllocationSize;
 
 /*
 =================================================
@@ -97,7 +97,6 @@ namespace AE::Base
 /*
 =================================================
     PlacementNewNE
-    PlacementNew
 =================================================
 *
     template <typename T, typename ...Args>
@@ -231,7 +230,6 @@ namespace AE::Base
     forceinline void  ZeroMem (OUT void* ptr, Bytes size) __NE___
     {
         ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );
-
         std::memset( OUT ptr, 0, usize{size} );
     }
 

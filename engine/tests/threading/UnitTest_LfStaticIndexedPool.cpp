@@ -1,9 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/Containers/LfStaticIndexedPool.h"
-#include "../base/UnitTest_Common.h"
-using namespace AE::Threading;
-
+#include "UnitTest_Common.h"
 
 namespace
 {

@@ -66,7 +66,8 @@ namespace AE::App
 
 
     private:
-        void  _Init (Unique<IWndListener> listener, IInputActions* dstActions)  __NE___;
+        void  _Init (Unique<IWndListener>   listener,
+                     IInputActions*         dstActions) __NE___;
 
         ND_ ApplicationAndroid&  _App ()                __NE___;
 
@@ -86,6 +87,7 @@ namespace AE::App
         static void  JNICALL  native_OnTouch (JNIEnv*, jclass, WinID wndId, jint action, jint changedIndex,
                                               jint touchCount, jfloatArray touchData)                                   __NE___;
         static void  JNICALL  native_OnOrientationChanged (JNIEnv*, jclass, WinID wndId, jint newOrientation)           __NE___;
+        static void  JNICALL  native_UpdateSensor (JNIEnv*, jclass, WinID wndId, int sensor, jfloatArray values)        __NE___;
     };
 
 

@@ -2,11 +2,6 @@
 
 #pragma once
 
-#include "base/Math/Vec.h"
-#include "base/Math/Matrix.h"
-#include "base/Math/Frustum.h"
-#include "base/Math/Transformation.h"
-#include "base/Containers/ArrayView.h"
 #include "platform/Public/Common.h"
 
 namespace AE::App
@@ -20,9 +15,8 @@ namespace AE::App
     {
     // variables
     private:
-        float4 *    _rays   = null;
+        float4 *    _rays   = null;     // xyz - normal, w - density
         uint2       _dim    {0};
-        // TODO: rays dencity ?
 
 
     // methods
@@ -53,50 +47,26 @@ namespace AE::App
 
     class IProjection
     {
-    // types
+    // variables
     public:
-        template <typename T>
-        struct TViewProj
-        {
-            Matrix< T, 4, 4 >   proj;
-            Matrix< T, 4, 4 >   view;
-        };
-
-        enum class EPrecision : ubyte
-        {
-            Fp16,
-            Fp32,
-            Fp64,
-        };
+        float4x4    proj;
+        float4x4    view;
+    //  float4x4    invProj;
+    //  float4x4    invView;
 
 
     // interface
     public:
+        IProjection ()                                                  __NE___ {}
 
-        // Some devices (VR) requires you to use view/proj matrices which returned by API.
-            virtual void  GetViewProj (OUT TViewProj<float> &)          C_NE___ = 0;
-            virtual void  GetViewProj (OUT TViewProj<double> &)         C_NE___ = 0;
+        ND_ float4x4  ViewProj ()                                       C_NE___ { return proj * view; }
 
-            virtual void  GetInvViewProj (OUT TViewProj<float> &)       C_NE___ = 0;
-            virtual void  GetInvViewProj (OUT TViewProj<double> &)      C_NE___ = 0;
-
-        // Same as view matrix.
-            virtual void  GetTransform (OUT Transformation<float> &)    C_NE___ = 0;
-            virtual void  GetTransform (OUT Transformation<double> &)   C_NE___ = 0;
-
-        // Frustum calculated form view/proj matrix.
-        //  virtual void  GetFrustum (OUT FrustumTempl<float> &)        C_NE___ = 0;
-        //  virtual void  GetFrustum (OUT FrustumTempl<double> &)       C_NE___ = 0;
 
         // Generate low resolution ray grid to support specific screen types.
         // Should be used for VR, curved screens and other.
-            virtual void  GenetateRays (RaysGrid &grid)                 C_NE___ = 0;
-
-        // Some devices may use low or high precission for matrices.
-        ND_ virtual EPrecision  NativePrecision ()                      C_NE___ = 0;
-
-        // for shader builder
-        //ND_ virtual String  GetSource ()                              C_NE___ = 0;
+        // 
+        // 'grid' - must contains preallocated memory for rays and non-zero dimension.
+            virtual void  GenerateRays (RaysGrid &grid)                 C_NE___ = 0;
     };
 
 

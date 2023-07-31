@@ -91,6 +91,8 @@ namespace AE::Graphics
             EDeviceFlags            devFlags        = Default;
         }                       device;
 
+        bool                    useRenderGraph  = false;
+
         SwapchainDesc           swapchain;
     };
 

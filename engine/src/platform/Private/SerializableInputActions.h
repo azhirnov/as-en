@@ -2,14 +2,7 @@
 
 #pragma once
 
-#include "base/Common.h"
-#include "base/CompileTime/StringToID.h"
-#include "base/Math/VecSwizzle.h"
-#include "base/Utils/NamedID_HashCollisionCheck.h"
-
-#ifdef AE_ENABLE_SCRIPTING
-#   include "scripting/Impl/ScriptTypes.h"
-#endif
+#include "pch/Scripting.h"
 #include "platform/Public/InputActions.h"
 
 namespace AE::App

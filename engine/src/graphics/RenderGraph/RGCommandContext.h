@@ -523,7 +523,11 @@ namespace AE::RG::_hidden_
         Promise<Bytes>  ReadProperty (ERTASProperty property, RTSceneID as)                                                 __Th_OV;
 
       #ifdef AE_ENABLE_VULKAN
-        //void  BuildIndirect (BufferID indirectBuffer, Bytes indirectBufferOffset)                                         __Th___;
+        void  BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst,
+                             BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b,
+                             Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)                                         __Th___;
+        void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst,
+                             BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b)                                     __Th___;
 
         void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)                                           __Th___;
         void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)                                              __Th___;
@@ -533,6 +537,10 @@ namespace AE::RG::_hidden_
       #endif
 
         RG_INHERIT_BARRIERS
+
+    private:
+        void  _RTGeometryBuildBarriers (const RTGeometryBuild &cmd);
+        void  _RTSceneBuildBarriers (const RTSceneBuild &cmd);
     };
 
 
@@ -831,7 +839,7 @@ namespace AE::RG::_hidden_
     {
         ResourceState( buffer, EResourceState::IndirectBuffer );
         _ctx.CommitBarriers();
-        return _ctx.DispatchIndirect( buffer, offset );
+        _ctx.DispatchIndirect( buffer, offset );
     }
 //-----------------------------------------------------------------------------
 
@@ -841,14 +849,14 @@ namespace AE::RG::_hidden_
     void  DrawContext<C>::BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType) __Th___
     {
         CHECK( CheckResourceState( buffer, EResourceState::IndexBuffer ));
-        return _ctx.BindIndexBuffer( buffer, offset, indexType );
+        _ctx.BindIndexBuffer( buffer, offset, indexType );
     }
 
     template <typename C>
     void  DrawContext<C>::BindVertexBuffer (uint index, BufferID buffer, Bytes offset) __Th___
     {
         CHECK( CheckResourceState( buffer, EResourceState::VertexBuffer ));
-        return _ctx.BindVertexBuffer( index, buffer, offset );
+        _ctx.BindVertexBuffer( index, buffer, offset );
     }
 
     template <typename C>
@@ -857,7 +865,7 @@ namespace AE::RG::_hidden_
         for (auto id : buffers) {
             CHECK( CheckResourceState( id, EResourceState::VertexBuffer ));
         }
-        return _ctx.BindVertexBuffers( firstBinding, buffers, offsets );
+        _ctx.BindVertexBuffers( firstBinding, buffers, offsets );
     }
 
     template <typename C>
@@ -874,7 +882,7 @@ namespace AE::RG::_hidden_
                                         Bytes       stride) __Th___
     {
         CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
-        return _ctx.DrawIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
+        _ctx.DrawIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
     }
 
     template <typename C>
@@ -884,7 +892,7 @@ namespace AE::RG::_hidden_
                                                Bytes        stride) __Th___
     {
         CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
-        return _ctx.DrawIndexedIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
+        _ctx.DrawIndexedIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
     }
 
     template <typename C>
@@ -894,7 +902,7 @@ namespace AE::RG::_hidden_
                                                  Bytes      stride) __Th___
     {
         CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
-        return _ctx.DrawMeshTasksIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
+        _ctx.DrawMeshTasksIndirect( indirectBuffer, indirectBufferOffset, drawCount, stride );
     }
 
 #ifdef AE_ENABLE_VULKAN
@@ -908,7 +916,7 @@ namespace AE::RG::_hidden_
     {
         CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
         CHECK( CheckResourceState( countBuffer, EResourceState::IndirectBuffer ));
-        return _ctx.DrawIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride );
+        _ctx.DrawIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride );
     }
 
     template <typename C>
@@ -921,7 +929,7 @@ namespace AE::RG::_hidden_
     {
         CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
         CHECK( CheckResourceState( countBuffer, EResourceState::IndirectBuffer ));
-        return _ctx.DrawIndexedIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride );
+        _ctx.DrawIndexedIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride );
     }
 
     template <typename C>
@@ -934,7 +942,7 @@ namespace AE::RG::_hidden_
     {
         CHECK( CheckResourceState( indirectBuffer, EResourceState::IndirectBuffer ));
         CHECK( CheckResourceState( countBuffer, EResourceState::IndirectBuffer ));
-        return _ctx.DrawMeshTasksIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride );
+        _ctx.DrawMeshTasksIndirectCount( indirectBuffer, indirectBufferOffset, countBuffer, countBufferOffset, maxDrawCount, stride );
     }
 #endif
 
@@ -987,7 +995,7 @@ namespace AE::RG::_hidden_
     void  GraphicsContext<C>::EndMtRenderPass () __Th___
     {
         _RGBatch().SetRenderPassFinalStates( _ExeIdx(), _ctx.GetPrimaryCtxState() );
-        return _ctx.EndMtRenderPass();
+        _ctx.EndMtRenderPass();
     }
 //-----------------------------------------------------------------------------
 
@@ -1049,7 +1057,7 @@ namespace AE::RG::_hidden_
 
 
     template <typename C>
-    void  ASBuildContext<C>::Build (const RTGeometryBuild &cmd, RTGeometryID dst) __Th___
+    void  ASBuildContext<C>::_RTGeometryBuildBarriers (const RTGeometryBuild &cmd)
     {
         auto    triangles = cmd.triangles.get< RTGeometryBuild::TrianglesData >();
         for (auto& item : triangles) {
@@ -1064,8 +1072,23 @@ namespace AE::RG::_hidden_
         }
 
         ResourceState( cmd.scratch.id, EResourceState::BuildRTAS_ScratchBuffer );
-        ResourceState( dst, EResourceState::CopyRTAS_Write );
+    }
 
+    template <typename C>
+    void  ASBuildContext<C>::_RTSceneBuildBarriers (const RTSceneBuild &cmd)
+    {
+        for (auto& id : cmd.uniqueGeoms) {
+            ResourceState( id, EResourceState::BuildRTAS_Read );
+        }
+        ResourceState( cmd.instanceData.id, EResourceState::BuildRTAS_Read );
+        ResourceState( cmd.scratch.id, EResourceState::BuildRTAS_ScratchBuffer );
+    }
+
+    template <typename C>
+    void  ASBuildContext<C>::Build (const RTGeometryBuild &cmd, RTGeometryID dst) __Th___
+    {
+        _RTGeometryBuildBarriers( cmd );
+        ResourceState( dst, EResourceState::BuildRTAS_ReadWrite );
         _ctx.CommitBarriers();
         _ctx.Build( cmd, dst );
     }
@@ -1073,9 +1096,8 @@ namespace AE::RG::_hidden_
     template <typename C>
     void  ASBuildContext<C>::Build (const RTSceneBuild &cmd, RTSceneID dst) __Th___
     {
-        ResourceState( cmd.instanceData.id, EResourceState::BuildRTAS_Read );
-        ResourceState( cmd.scratch.id, EResourceState::BuildRTAS_ScratchBuffer );
-        ResourceState( dst, EResourceState::CopyRTAS_Write );
+        _RTSceneBuildBarriers( cmd );
+        ResourceState( dst, EResourceState::BuildRTAS_ReadWrite );
 
         _ctx.CommitBarriers();
         _ctx.Build( cmd, dst );
@@ -1084,20 +1106,8 @@ namespace AE::RG::_hidden_
     template <typename C>
     void  ASBuildContext<C>::Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst) __Th___
     {
-        auto    triangles = cmd.triangles.get< RTGeometryBuild::TrianglesData >();
-        for (auto& item : triangles) {
-            ResourceState( item.vertexData,     EResourceState::BuildRTAS_Read );
-            ResourceState( item.indexData,      EResourceState::BuildRTAS_Read );
-            ResourceState( item.transformData,  EResourceState::BuildRTAS_Read );
-        }
-
-        auto    aabbs = cmd.aabbs.get< RTGeometryBuild::AABBsData >();
-        for (auto& item : aabbs) {
-            ResourceState( item.data, EResourceState::BuildRTAS_Read );
-        }
-
-        ResourceState( cmd.scratch.id, EResourceState::BuildRTAS_ScratchBuffer );
-        ResourceState( src, EResourceState::CopyRTAS_Read );
+        _RTGeometryBuildBarriers( cmd );
+        ResourceState( src, EResourceState::BuildRTAS_Read );
         ResourceState( dst, EResourceState::BuildRTAS_ReadWrite );
 
         _ctx.CommitBarriers();
@@ -1107,9 +1117,8 @@ namespace AE::RG::_hidden_
     template <typename C>
     void  ASBuildContext<C>::Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst) __Th___
     {
-        ResourceState( cmd.instanceData.id, EResourceState::BuildRTAS_Read );
-        ResourceState( cmd.scratch.id, EResourceState::BuildRTAS_ScratchBuffer );
-        ResourceState( src, EResourceState::CopyRTAS_Read );
+        _RTSceneBuildBarriers( cmd );
+        ResourceState( src, EResourceState::BuildRTAS_Read );
         ResourceState( dst, EResourceState::BuildRTAS_ReadWrite );
 
         _ctx.CommitBarriers();
@@ -1169,13 +1178,26 @@ namespace AE::RG::_hidden_
     }
 
 #ifdef AE_ENABLE_VULKAN
-    /*template <typename C>
-    void  ASBuildContext<C>::BuildIndirect (BufferID indirectBuffer, Bytes indirectBufferOffset) __Th___
+    template <typename C>
+    void  ASBuildContext<C>::BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst, BufferID indirectBuffer,
+                                            Bytes indirectBufferOffset, Bytes indirectStride) __Th___
     {
+        _RTGeometryBuildBarriers( cmd );
+        ResourceState( dst, EResourceState::BuildRTAS_ReadWrite );
         ResourceState( indirectBuffer, EResourceState::IndirectBuffer );
         _ctx.CommitBarriers();
-        return _ctx.BuildIndirect( indirectBuffer, indirectBufferOffset );
-    }*/
+        _ctx.BuildIndirect( cmd, dst, indirectBuffer, indirectBufferOffset, indirectStride );
+    }
+
+    template <typename C>
+    void  ASBuildContext<C>::BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, BufferID indirectBuffer, Bytes indirectBufferOffset) __Th___
+    {
+        _RTSceneBuildBarriers( cmd );
+        ResourceState( dst, EResourceState::BuildRTAS_ReadWrite );
+        ResourceState( indirectBuffer, EResourceState::IndirectBuffer );
+        _ctx.CommitBarriers();
+        _ctx.BuildIndirect( cmd, dst, indirectBuffer, indirectBufferOffset );
+    }
 
     template <typename C>
     void  ASBuildContext<C>::SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset) __Th___
@@ -1183,7 +1205,7 @@ namespace AE::RG::_hidden_
         ResourceState( src, EResourceState::CopyRTAS_Read );
         ResourceState( dst, EResourceState::CopyRTAS_Write );
         _ctx.CommitBarriers();
-        return _ctx.SerializeToMemory( src, dst, dstOffset );
+        _ctx.SerializeToMemory( src, dst, dstOffset );
     }
 
     template <typename C>
@@ -1192,7 +1214,7 @@ namespace AE::RG::_hidden_
         ResourceState( src, EResourceState::CopyRTAS_Read );
         ResourceState( dst, EResourceState::CopyRTAS_Write );
         _ctx.CommitBarriers();
-        return _ctx.SerializeToMemory( src, dst, dstOffset );
+        _ctx.SerializeToMemory( src, dst, dstOffset );
     }
 
     template <typename C>
@@ -1201,7 +1223,7 @@ namespace AE::RG::_hidden_
         ResourceState( src, EResourceState::CopyRTAS_Read );
         ResourceState( dst, EResourceState::CopyRTAS_Write );
         _ctx.CommitBarriers();
-        return _ctx.DeserializeFromMemory( src, srcOffset, dst );
+        _ctx.DeserializeFromMemory( src, srcOffset, dst );
     }
 
     template <typename C>
@@ -1210,7 +1232,7 @@ namespace AE::RG::_hidden_
         ResourceState( src, EResourceState::CopyRTAS_Read );
         ResourceState( dst, EResourceState::CopyRTAS_Write );
         _ctx.CommitBarriers();
-        return _ctx.DeserializeFromMemory( src, srcOffset, dst );
+        _ctx.DeserializeFromMemory( src, srcOffset, dst );
     }
 #endif
 //-----------------------------------------------------------------------------

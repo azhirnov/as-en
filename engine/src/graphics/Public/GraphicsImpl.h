@@ -225,3 +225,44 @@ namespace AE::Graphics
 } // AE::Graphics
 
 #endif // AE_ENABLE_REMOTE_GRAPHICS
+//-----------------------------------------------------------------------------
+
+
+
+#ifdef AE_CPP_DETECT_MISMATCH
+
+# ifdef AE_ENABLE_METAL
+#   pragma detect_mismatch( "AE_ENABLE_METAL", "1" )
+# else
+#   pragma detect_mismatch( "AE_ENABLE_METAL", "0" )
+# endif
+
+# ifdef AE_ENABLE_METAL
+#  if AE_METAL_NATIVE_DEBUGGER
+#   pragma detect_mismatch( "AE_METAL_NATIVE_DEBUGGER", "1" )
+#  else
+#   pragma detect_mismatch( "AE_METAL_NATIVE_DEBUGGER", "0" )
+#  endif
+# else
+#   pragma detect_mismatch( "AE_METAL_NATIVE_DEBUGGER", "0" )
+# endif
+
+# ifdef AE_ENABLE_VULKAN
+#   pragma detect_mismatch( "AE_ENABLE_VULKAN", "1" )
+# else
+#   pragma detect_mismatch( "AE_ENABLE_VULKAN", "0" )
+# endif
+
+# ifdef AE_VK_TIMELINE_SEMAPHORE
+#   pragma detect_mismatch( "AE_VK_TIMELINE_SEMAPHORE", "1" )
+# else
+#   pragma detect_mismatch( "AE_VK_TIMELINE_SEMAPHORE", "0" )
+# endif
+
+# ifdef AE_ENABLE_GLSL_TRACE
+#   pragma detect_mismatch( "AE_ENABLE_GLSL_TRACE", "1" )
+# else
+#   pragma detect_mismatch( "AE_ENABLE_GLSL_TRACE", "0" )
+# endif
+
+#endif // AE_CPP_DETECT_MISMATCH

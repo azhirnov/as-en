@@ -1156,6 +1156,8 @@ namespace AE::Graphics::_hidden_
     inline void  _VDirectDrawCtx::BindIndexBuffer (VkBuffer buffer, Bytes offset, EIndex indexType)
     {
         vkCmdBindIndexBuffer( _cmdbuf.Get(), buffer, VkDeviceSize(offset), VEnumCast(indexType) );
+
+        // TODO: vkCmdBindIndexBuffer2KHR (VK_KHR_maintenance5)
     }
 
 /*
@@ -1166,6 +1168,8 @@ namespace AE::Graphics::_hidden_
     inline void  _VDirectDrawCtx::_BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<VkDeviceSize> offsets)
     {
         vkCmdBindVertexBuffers( _cmdbuf.Get(), firstBinding, uint(buffers.size()), buffers.data(), offsets.data() );
+
+        // TODO: vkCmdBindVertexBuffers2
     }
 
 /*

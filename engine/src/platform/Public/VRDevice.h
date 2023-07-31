@@ -20,6 +20,8 @@ namespace AE::App
         //   Started        - HMD is turned ON
         //   InBackground   - HMD is active but not mounted
         //   InForeground   - HMD is mounted
+        //   Focused        - same as InForeground
+        //   Stopped        - HMD is turned OFF
 
         using EState = IWindow::EState;
 
@@ -50,6 +52,7 @@ namespace AE::App
             uint2           dimension;
             EPixelFormat    format      = Default;
             EImageUsage     usage       = EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;
+            EImageOpt       options     = EImageOpt::BlitDst;
             MultiSamples    samples;
         };
 

@@ -7,6 +7,8 @@
 #endif
 //-----------------------------------------------------------------------------
 
+#include "HWRayTracing.glsl"
+
 void Main ()
 {
     const float2 uv         = (float2(gl.GlobalInvocationID.xy) + 0.5f) / float2(gl.WorkGroupSize.xy * gl.NumWorkGroups.xy);
@@ -19,13 +21,13 @@ void Main ()
 
     while ( gl.rayQuery.Proceed( ray_query ))
     {
-        if ( gl::RayQueryCandidateIntersection(gl.rayQuery.GetIntersectionType( ray_query, false )) == gl::RayQueryCandidateIntersection::Triangle )
+        if ( gl::RayQueryCandidateIntersection(GetCandidateIntersectionType( ray_query )) == gl::RayQueryCandidateIntersection::Triangle )
             gl.rayQuery.ConfirmIntersection( ray_query );
     }
 
     float4  color;
 
-    if ( gl::RayQueryCommittedIntersection(gl.rayQuery.GetIntersectionType( ray_query, true )) == gl::RayQueryCommittedIntersection::None )
+    if ( gl::RayQueryCommittedIntersection(GetCommittedIntersectionType( ray_query )) == gl::RayQueryCommittedIntersection::None )
     {
         // miss shader
         color = float4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -33,7 +35,7 @@ void Main ()
     else
     {
         // hit shader
-        float2  attribs      = gl.rayQuery.GetIntersectionBarycentrics( ray_query, true );
+        float2  attribs      = GetCommittedIntersectionBarycentrics( ray_query );
         float3  barycentrics = float3( 1.0f - attribs.x - attribs.y, attribs.x, attribs.y );
         color = float4(barycentrics, 1.0f);
     }

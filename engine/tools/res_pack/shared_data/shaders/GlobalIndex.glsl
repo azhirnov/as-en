@@ -9,12 +9,8 @@
 
 #include "Math.glsl"
 
-
-// global linear index
-ND_ int    GetGlobalIndexSize ();
-ND_ int    GetGlobalIndex ();       // 0..size-1
-ND_ float  GetGlobalIndexUNorm ();  //  0..1
-ND_ float  GetGlobalIndexSNorm ();  // -1..1
+//-----------------------------------------------------------------------------
+// local (inside workgroup)
 
 // local linear index
 ND_ int    GetLocalIndexSize ();
@@ -22,23 +18,21 @@ ND_ int    GetLocalIndex ();        // 0..size-1
 ND_ float  GetLocalIndexUNorm ();   //  0..1
 ND_ float  GetLocalIndexSNorm ();   // -1..1
 
-// group linear index
-ND_ int    GetGroupIndexSize ();
-ND_ int    GetGroupIndex ();        // 0..size-1
-ND_ float  GetGroupIndexUNorm ();   //  0..1
-ND_ float  GetGroupIndexSNorm ();   // -1..1
-
-// global coordinate in 3D
-ND_ int3    GetGlobalSize ();
-ND_ int3    GetGlobalCoord ();      // 0..size-1
-ND_ float3  GetGlobalCoordUNorm (); //  0..1
-ND_ float3  GetGlobalCoordSNorm (); // -1..1
-
 // local coordinate in 3D
 ND_ int3    GetLocalSize ();
 ND_ int3    GetLocalCoord ();       // 0..size-1
 ND_ float3  GetLocalCoordUNorm ();  //  0..1
 ND_ float3  GetLocalCoordSNorm ();  // -1..1
+
+
+//-----------------------------------------------------------------------------
+// group
+
+// group linear index
+ND_ int    GetGroupIndexSize ();
+ND_ int    GetGroupIndex ();        // 0..size-1
+ND_ float  GetGroupIndexUNorm ();   //  0..1
+ND_ float  GetGroupIndexSNorm ();   // -1..1
 
 // group coordinate in 3D
 ND_ int3    GetGroupSize ();
@@ -46,9 +40,85 @@ ND_ int3    GetGroupCoord ();       // 0..size-1
 ND_ float3  GetGroupCoordUNorm ();  //  0..1
 ND_ float3  GetGroupCoordSNorm ();  // -1..1
 
+
+//-----------------------------------------------------------------------------
+// global (local + group)
+
+// global linear index
+ND_ int    GetGlobalIndexSize ();
+ND_ int    GetGlobalIndex ();       // 0..size-1
+ND_ float  GetGlobalIndexUNorm ();  //  0..1
+ND_ float  GetGlobalIndexSNorm ();  // -1..1
+
+// global coordinate in 3D
+ND_ int3    GetGlobalSize ();
+ND_ int3    GetGlobalCoord ();      // 0..size-1
+ND_ float3  GetGlobalCoordUNorm (); //  0..1
+ND_ float3  GetGlobalCoordSNorm (); // -1..1
+
 // global normalized coordinate in 2D with same aspect ratio
-ND_ float2  GetGlobalCoordUNormCorrected ();    //  0..1
-ND_ float2  GetGlobalCoordSNormCorrected ();    // -1..1
+ND_ float2  GetGlobalCoordUNormCorrected ();        //  0..1
+ND_ float2  GetGlobalCoordSNormCorrected ();        // -1..1
+ND_ float2  GetGlobalCoordSNormCorrected2 ();       // -X..X,   X may be > 1
+
+//-----------------------------------------------------------------------------
+
+
+// map pixels to unorm coords with correct aspect ratio.
+ND_ float2  MapPixCoordToUNormCorrected (const float2 posPx, const float2 sizePx);
+ND_ float3  MapPixCoordToUNormCorrected (const float3 posPx, const float3 sizePx);
+
+// map pixels to snorm coords with correct aspect ratio.
+ND_ float2  MapPixCoordToSNormCorrected (const float2 posPx, const float2 sizePx);
+ND_ float3  MapPixCoordToSNormCorrected (const float3 posPx, const float3 sizePx);
+ND_ float2  MapPixCoordToSNormCorrected2 (const float2 posPx, const float2 sizePx);
+
+// map pixels to unorm coords with correct aspect ratio.
+ND_ float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx);
+//-----------------------------------------------------------------------------
+
+
+
+float2  MapPixCoordToUNormCorrected (const float2 posPx, const float2 sizePx)
+{
+    return (posPx+0.5f) / Max( sizePx.x, sizePx.y );
+}
+
+float3  MapPixCoordToUNormCorrected (const float3 posPx, const float3 sizePx)
+{
+    return (posPx+0.5f) / Max( sizePx.x, sizePx.y );
+}
+
+
+float2  MapPixCoordToSNormCorrected (const float2 posPx, const float2 sizePx)
+{
+    const float2    hsize = sizePx * 0.5f;
+    return (posPx - hsize) / Max( hsize.x, hsize.y );
+}
+
+float3  MapPixCoordToSNormCorrected (const float3 posPx, const float3 sizePx)
+{
+    const float3    hsize = sizePx * 0.5f;
+    return (posPx - hsize) / Max( hsize.x, hsize.y );
+}
+
+float2  MapPixCoordToSNormCorrected2 (const float2 posPx, const float2 sizePx)
+{
+    const float2    hsize = sizePx * 0.5f;
+    return (posPx - hsize) / Min( hsize.x, hsize.y );
+}
+
+
+float2  MapPixCoordToUNormCorrected (const float2 srcPosPx, const float2 srcSizePx, const float2 dstSizePx)
+{
+    const float2    snorm       = ToSNorm( srcPosPx / srcSizePx );
+    const float     src_aspect  = srcSizePx.x / srcSizePx.y;
+    const float     dst_aspect  = dstSizePx.x / dstSizePx.y;
+    const float     scale1      = Max( src_aspect, dst_aspect ) / dst_aspect;
+    const float     scale2      = Min( src_aspect, dst_aspect ) / dst_aspect;
+    const float2    scale       = src_aspect >= dst_aspect ? float2(scale1, 1.0f) : float2(1.0f, 1.0f/scale2);
+    return ToUNorm( snorm * scale );
+}
 //-----------------------------------------------------------------------------
 
 
@@ -61,7 +131,7 @@ int3  GetGlobalCoord ()
     return int3( gl.FragCoord.xy, gl.Layer );
 }
 
-// implement GetGlobalSize() with 'ub.screenSize'
+// implement GetGlobalSize() with 'un_PerPass.screenSize'
 
 #endif // SH_FRAG
 //-----------------------------------------------------------------------------
@@ -272,13 +342,15 @@ float3  GetGroupCoordSNorm ()
 // global normalized coordinate in 2D with same aspect ratio
 float2  GetGlobalCoordUNormCorrected ()
 {
-    float2  size = float2(GetGlobalSize().xy);
-    return (float2(GetGlobalCoord().xy)+0.5f) / Max( size.x, size.y );
+    return MapPixCoordToUNormCorrected( float2(GetGlobalCoord().xy), float2(GetGlobalSize().xy) );
 }
 
 float2  GetGlobalCoordSNormCorrected ()
 {
-    float2  hsize   = float2(GetGlobalSize().xy) * 0.5f;
-    float   msize   = Max( hsize.x, hsize.y );
-    return (float2(GetGlobalCoord().xy) - hsize) / msize;
+    return MapPixCoordToSNormCorrected( float2(GetGlobalCoord().xy), float2(GetGlobalSize().xy) );
+}
+
+float2  GetGlobalCoordSNormCorrected2 ()
+{
+    return MapPixCoordToSNormCorrected2( float2(GetGlobalCoord().xy), float2(GetGlobalSize().xy) );
 }

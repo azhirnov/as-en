@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "scripting/Impl/ClassBinder.h"
+#include "scripting/Impl/ScriptEngine.h"
 
 namespace AE::Scripting
 {
@@ -57,7 +57,7 @@ namespace AE::Scripting
     }
 
     template <typename T>
-    InterfaceBinder<T>::InterfaceBinder (const ScriptEnginePtr &eng, StringView name) __NE___
+    InterfaceBinder<T>::InterfaceBinder (const ScriptEnginePtr &eng, StringView name) __NE___ :
         _engine{ eng }, _name{ name }, _genHeader{ eng->IsUsingCppHeader() }
     {
         CHECK_THROW( not _name.empty() );
@@ -67,7 +67,7 @@ namespace AE::Scripting
     InterfaceBinder<T>::~InterfaceBinder () __NE___
     {
         if_unlikely( _genHeader )
-            _engine->AddCppHeader( _name, RVRef(_header), _flags );
+            _engine->AddCppHeader( _name, RVRef(_header), 0 );
     }
 
 /*

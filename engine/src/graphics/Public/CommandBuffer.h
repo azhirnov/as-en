@@ -5,8 +5,10 @@
     IDrawContext, ITransferContext, IComputeContext, IGraphicsContext, IRayTracingContext, IASBuildContext
         thread-safe:    no
 
-        exceptions:     yes         - for indirect command buffer
-                        optional    - for non-portable: 'EndCommandBuffer()'
+        exceptions:
+            - for direct/indirect command buffers, if resource is not alive.
+            - for indirect command buffer, if mem allocation failed.
+            - for non-portable: 'EndCommandBuffer()', if failed to end command buffer recording.
 
         Resource state tracking:
             - only manual state transition.
@@ -27,7 +29,7 @@
 
 #define VULKAN_ONLY( ... )
 #define METAL_ONLY( ... )
-#define UNIMPLEMENTED( ... )
+#define GAPI_DEPENDENT( ... )
 
 namespace AE::Graphics
 {
@@ -50,6 +52,7 @@ namespace AE::Graphics
         virtual void  BindPipeline (GraphicsPipelineID ppln)                                                                        __Th___ = 0;
         virtual void  BindPipeline (MeshPipelineID ppln)                                                                            __Th___ = 0;
         virtual void  BindPipeline (TilePipelineID ppln)                                                                            __Th___ = 0;
+
         virtual void  BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets = Default)        __Th___ = 0;
 
         virtual void  PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___ = 0;
@@ -60,26 +63,26 @@ namespace AE::Graphics
         virtual void  SetViewports (ArrayView<Viewport_t> viewports)                                                                __Th___ = 0;
         virtual void  SetScissor (const RectI &scissor)                                                                             __Th___ = 0;
         virtual void  SetScissors (ArrayView<RectI> scissors)                                                                       __Th___ = 0;
-        //      requires: EPipelineDynamicState::DepthBias
+        //  requires: EPipelineDynamicState::DepthBias
         virtual void  SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)                __Th___ = 0;
-        //      requires: EPipelineDynamicState::StencilReference
+        //  requires: EPipelineDynamicState::StencilReference
         virtual void  SetStencilReference (uint reference)                                                                          __Th___ = 0;
         virtual void  SetStencilReference (uint frontReference, uint backReference)                                                 __Th___ = 0;
-        //      requires: EPipelineDynamicState::BlendConstants
+        //  requires: EPipelineDynamicState::BlendConstants
         virtual void  SetBlendConstants (const RGBA32f &color)                                                                      __Th___ = 0;
 
         VULKAN_ONLY(
-        //      requires: EPipelineDynamicState::DepthBounds
-                void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)                                                   __Th___;
-        //      requires: EPipelineDynamicState::StencilCompareMask
-                void  SetStencilCompareMask (uint compareMask)                                                                      __Th___;
-                void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)                                           __Th___;
-        //      requires: EPipelineDynamicState::StencilWriteMask
-                void  SetStencilWriteMask (uint writeMask)                                                                          __Th___;
-                void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)                                                 __Th___;
+        //  requires: EPipelineDynamicState::DepthBounds
+                void  SetDepthBounds (float minDepthBounds, float maxDepthBounds)                                                   __Th___ = 0;
+        //  requires: EPipelineDynamicState::StencilCompareMask
+                void  SetStencilCompareMask (uint compareMask)                                                                      __Th___ = 0;
+                void  SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)                                           __Th___ = 0;
+        //  requires: EPipelineDynamicState::StencilWriteMask
+                void  SetStencilWriteMask (uint writeMask)                                                                          __Th___ = 0;
+                void  SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)                                                 __Th___ = 0;
 
-        //      requires: EPipelineDynamicState::FragmentShadingRate
-                void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)__Th___;
+        //  requires: EPipelineDynamicState::FragmentShadingRate
+                void  SetFragmentShadingRate (EShadingRate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp)   __Th___ = 0;
         )
 
     // draw commands //
@@ -131,31 +134,33 @@ namespace AE::Graphics
                                              uint       drawCount,
                                              Bytes      stride)                                                                     __Th___ = 0;
 
-        // extension
+        // extension //
         VULKAN_ONLY(
-                void  DrawIndirectCount (const DrawIndirectCountCmd &cmd)                                                           __Th___;
+        //      indirectBuffer: EResourceState::IndirectBuffer
+        //      countBuffer:    EResourceState::IndirectBuffer
+                void  DrawIndirectCount (const DrawIndirectCountCmd &cmd)                                                           __Th___ = 0;
                 void  DrawIndirectCount (BufferID   indirectBuffer,
                                          Bytes      indirectBufferOffset,
                                          BufferID   countBuffer,
                                          Bytes      countBufferOffset,
                                          uint       maxDrawCount,
-                                         Bytes      stride)                                                                         __Th___;
+                                         Bytes      stride)                                                                         __Th___ = 0;
 
-                void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)                                             __Th___;
+                void  DrawIndexedIndirectCount (const DrawIndexedIndirectCountCmd &cmd)                                             __Th___ = 0;
                 void  DrawIndexedIndirectCount (BufferID    indirectBuffer,
                                                 Bytes       indirectBufferOffset,
                                                 BufferID    countBuffer,
                                                 Bytes       countBufferOffset,
                                                 uint        maxDrawCount,
-                                                Bytes       stride)                                                                 __Th___;
+                                                Bytes       stride)                                                                 __Th___ = 0;
 
-                void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)                                         __Th___;
+                void  DrawMeshTasksIndirectCount (const DrawMeshTasksIndirectCountCmd &cmd)                                         __Th___ = 0;
                 void  DrawMeshTasksIndirectCount (BufferID  indirectBuffer,
                                                   Bytes     indirectBufferOffset,
                                                   BufferID  countBuffer,
                                                   Bytes     countBufferOffset,
                                                   uint      maxDrawCount,
-                                                  Bytes     stride)                                                                 __Th___;
+                                                  Bytes     stride)                                                                 __Th___ = 0;
         )
 
         // for debugging //
@@ -179,7 +184,7 @@ namespace AE::Graphics
 
         ND_ virtual FrameUID  GetFrameId ()                                                                                         C_NE___ = 0;
 
-        UNIMPLEMENTED(
+        GAPI_DEPENDENT(
             PrimaryCmdBufState const&   GetPrimaryCtxState ()                                                                       C_NE___;
             DrawCommandBatch const*     GetCommandBatch ()                                                                          C_NE___;    // can be null
         )
@@ -228,7 +233,7 @@ namespace AE::Graphics
 
         ND_ virtual FrameUID  GetFrameId ()                                                                                                 C_NE___ = 0;
 
-        UNIMPLEMENTED(
+        GAPI_DEPENDENT(
             CommandBatch const&     GetCommandBatch ()                                                                                      C_NE___;
             CommandBatchPtr         GetCommandBatchRC ()                                                                                    C_NE___;
             AccumBar                AccumBarriers ()                                                                                        __NE___;
@@ -265,6 +270,7 @@ namespace AE::Graphics
         //      buffer: EResourceState::CopyDst
         ND_         bool  UploadBuffer (BufferID buffer, Bytes offset, Bytes dataSize, const void* data,
                                         EStagingHeapType heapType = EStagingHeapType::Static)                           __Th___;
+        // 'memView' data size may be <= 'requiredSize'
             virtual void  UploadBuffer (BufferID buffer, Bytes offset, Bytes requiredSize, OUT BufferMemView &memView,
                                         EStagingHeapType heapType = EStagingHeapType::Static)                           __Th___ = 0;
 
@@ -285,14 +291,14 @@ namespace AE::Graphics
 
     // partially read //
         //      stream.buffer, stream.image: EResourceState::CopySrc
-        //ND_ Promise<BufferMemView>  ReadbackBuffer (BufferStream &stream)                                             __Th___;
-        //ND_ Promise<ImageMemView>   ReadbackImage (ImageStream &stream)                                               __Th___;
+        //ND_ virtual Promise<BufferMemView>  ReadbackBuffer (BufferStream &stream)                                     __Th___;
+        //ND_ virtual Promise<ImageMemView>   ReadbackImage (ImageStream &stream)                                       __Th___;
 
     // only for host-visible memory //
         //      buffer: EResourceState::Host_Write
         ND_ virtual bool  UpdateHostBuffer (BufferID buffer, Bytes offset, Bytes size, const void* data)                __Th___ = 0;
         VULKAN_ONLY(
-                    bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)           __Th___;
+                    bool  MapHostBuffer (BufferID buffer, Bytes offset, INOUT Bytes &size, OUT void* &mapped)           __Th___ = 0;
         )
 
         //      buffer: EResourceState::Host_Read
@@ -305,9 +311,9 @@ namespace AE::Graphics
 
         VULKAN_ONLY(
         //      image: EResourceState::ClearDst
-                void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)    __Th___;
-                void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)    __Th___;
-                void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)    __Th___;
+                void  ClearColorImage (ImageID image, const RGBA32f &color, ArrayView<ImageSubresourceRange> ranges)    __Th___ = 0;
+                void  ClearColorImage (ImageID image, const RGBA32i &color, ArrayView<ImageSubresourceRange> ranges)    __Th___ = 0;
+                void  ClearColorImage (ImageID image, const RGBA32u &color, ArrayView<ImageSubresourceRange> ranges)    __Th___ = 0;
         )
 
 
@@ -320,11 +326,11 @@ namespace AE::Graphics
         VULKAN_ONLY(
         //      image: EResourceState::ClearDst
                 void  ClearDepthStencilImage (ImageID image, const DepthStencil &depthStencil,
-                                              ArrayView<ImageSubresourceRange> ranges)                                  __Th___;
+                                              ArrayView<ImageSubresourceRange> ranges)                                  __Th___ = 0;
 
         //      srcImage: EResourceState::BlitSrc
         //      dstImage: EResourceState::BlitDst
-                void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)                __Th___;
+                void  ResolveImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageResolve> regions)                __Th___ = 0;
         )
 
         //      image:
@@ -412,7 +418,7 @@ namespace AE::Graphics
         template <typename T> void  PushConstant (const PushConstantIndex &idx, const T &data)                                      __Th___ { return PushConstant( idx, Sizeof(data), &data, T::TypeName ); }
 
 
-        //      requires: EPipelineDynamicState::RTStackSize
+        //  requires: EPipelineDynamicState::RTStackSize
         virtual void  SetStackSize (Bytes size)                                                                                     __Th___ = 0;
 
         //      sbt: EResourceState::RTShaderBindingTable
@@ -429,14 +435,16 @@ namespace AE::Graphics
         virtual void  TraceRaysIndirect (const RTShaderBindingTable &sbt,
                                          BufferID indirectBuffer, Bytes indirectBufferOffset)                                       __Th___ = 0;
 
-        //      requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
+        //  requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
         virtual void  TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)                                      __Th___ = 0;
 
         VULKAN_ONLY(
-                void  TraceRaysIndirect (const RTShaderBindingTable &sbt, VDeviceAddress address)                                   __Th___;
+        //      address: EResourceState::BuildRTAS_IndirectBuffer  (TraceRayIndirectCommand)
+                void  TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address)                                    __Th___ = 0;
 
-        //      requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
-                void  TraceRaysIndirect2 (VDeviceAddress address)                                                                   __Th___;
+        //  requires 'rayTracingPipelineTraceRaysIndirect2' feature flag
+        //      address: EResourceState::BuildRTAS_IndirectBuffer  (TraceRayIndirectCommand2)
+                void  TraceRaysIndirect2 (DeviceAddress address)                                                                    __Th___ = 0;
         )
     };
 
@@ -454,19 +462,34 @@ namespace AE::Graphics
     // Vulkan: AS build stage - batch commands for parallel execution
 
         //      dst: EResourceState::BuildRTAS_Write
+        //      all buffers in cmd: EResourceState::BuildRTAS_Read
         virtual void  Build (const RTGeometryBuild &cmd, RTGeometryID dst)                                                          __Th___ = 0;
         virtual void  Build (const RTSceneBuild &cmd, RTSceneID dst)                                                                __Th___ = 0;
 
-        //      src: EResourceState::BuildRTAS_Read
-        //      dst: EResourceState::BuildRTAS_ReadWrite
+        //      src:                EResourceState::BuildRTAS_Read
+        //      dst:                EResourceState::BuildRTAS_Write
+        //      all buffers in cmd: EResourceState::BuildRTAS_Read
         virtual void  Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)                                       __Th___ = 0;
         virtual void  Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)                                                __Th___ = 0;
 
         VULKAN_ONLY(
-        //      indirectBuffer: EResourceState::IndirectBuffer
-        //      dst: EResourceState::BuildRTAS_Read
-                void  BuildIndirect (VDeviceAddress indirectMem)                                                                    __Th___;
-                void  BuildIndirect (BufferID indirectBuffer, Bytes indirectBufferOffset)                                           __Th___;
+        //  requires 'accelerationStructureIndirectBuild' feature flag
+
+        //      indirectBuffer:     EResourceState::BuildRTAS_IndirectBuffer
+        //      dst:                EResourceState::BuildRTAS_Read
+        //      all buffers in cmd: EResourceState::BuildRTAS_Read
+
+        //      'indirectBuffer' for geometry build: array of 'ASBuildIndirectCommand [TriangleCount + AABBsCount]'
+                void  BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst, DeviceAddress indirectBuffer,
+                                     Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)                                         __Th___ = 0;
+                void  BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst,
+                                     BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b,
+                                     Bytes indirectStride = SizeOf<ASBuildIndirectCommand>)                                         __Th___ = 0;
+
+        //      'indirectBuffer' for scene build: single 'ASBuildIndirectCommand'
+                void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, DeviceAddress indirectBuffer)                          __Th___ = 0;
+                void  BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst,
+                                     BufferID indirectBuffer, Bytes indirectBufferOffset = 0_b)                                     __Th___ = 0;
         )
 
 
@@ -490,17 +513,17 @@ namespace AE::Graphics
         VULKAN_ONLY(
         //      src: EResourceState::CopyRTAS_Read
         //      dst: EResourceState::CopyRTAS_Write
-                void  SerializeToMemory (RTGeometryID src, VDeviceAddress dst)                                                      __Th___;
-                void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)                                           __Th___;
+                void  SerializeToMemory (RTGeometryID src, DeviceAddress dst)                                                       __Th___ = 0;
+                void  SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)                                           __Th___ = 0;
 
-                void  SerializeToMemory (RTSceneID src, VDeviceAddress dst)                                                         __Th___;
-                void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)                                              __Th___;
+                void  SerializeToMemory (RTSceneID src, DeviceAddress dst)                                                          __Th___ = 0;
+                void  SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)                                              __Th___ = 0;
 
-                void  DeserializeFromMemory (VDeviceAddress src, RTGeometryID dst)                                                  __Th___;
-                void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)                                       __Th___;
+                void  DeserializeFromMemory (DeviceAddress src, RTGeometryID dst)                                                   __Th___ = 0;
+                void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)                                       __Th___ = 0;
 
-                void  DeserializeFromMemory (VDeviceAddress src, RTSceneID dst)                                                     __Th___;
-                void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)                                          __Th___;
+                void  DeserializeFromMemory (DeviceAddress src, RTSceneID dst)                                                      __Th___ = 0;
+                void  DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)                                          __Th___ = 0;
         )
     };
 
@@ -581,4 +604,4 @@ namespace AE::Graphics
 
 #undef VULKAN_ONLY
 #undef METAL_ONLY
-#undef UNIMPLEMENTED
+#undef GAPI_DEPENDENT

@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "base/Algorithms/StringUtils.h"
 #include "graphics/Public/EResourceState.h"
 #include "graphics/Public/ResourceEnums.h"
 #include "graphics/Public/ShaderEnums.h"
@@ -1013,11 +1012,11 @@ namespace AE::Base
             case EResourceState::BuildRTAS_Read :                   str += "BuildRTAS_Read";                        break;
             case EResourceState::BuildRTAS_Write :                  str += "BuildRTAS_Write";                       break;
             case EResourceState::BuildRTAS_RW :                     str += "BuildRTAS_RW";                          break;
-            case EResourceState::BuildRTAS_ScratchBuffer :          str += "BuildRTAS_ScratchBuffer";               break;
+        //  case EResourceState::BuildRTAS_ScratchBuffer :          str += "BuildRTAS_ScratchBuffer";               break;
+            case EResourceState::BuildRTAS_IndirectBuffer :         str += "BuildRTAS_IndirectBuffer";              break;
             case EResourceState::ShaderRTAS_Read :                  str += "ShaderRTAS_Read";                       break;
             case EResourceState::RTShaderBindingTable :             str += "RTShaderBindingTable";                  break;
             case EResourceState::ShadingRateImage :                 str += "ShadingRateImage";                      break;
-            case EResourceState::FragmentDensityMap :               str += "FragmentDensityMap";                    break;
             case EResourceState::Unknown :                          str += "Unknown";                               break;
             case EResourceState::Preserve :                         str += "Preserve";                              break;
             case EResourceState::General :                          str += "General";                               break;
@@ -1028,9 +1027,11 @@ namespace AE::Base
             case EResourceState::_FlagsMask :
             case EResourceState::_AccessCount :
             case EResourceState::_AccessMask :
-            case EResourceState::PreRasterizationShaders :
+            case EResourceState::MeshTaskShader :
+            case EResourceState::VertexProcessingShaders :
             case EResourceState::TileShader :
             case EResourceState::FragmentShader :
+            case EResourceState::PreRasterizationShaders :
             case EResourceState::PostRasterizationShaders :
             case EResourceState::ComputeShader :
             case EResourceState::RayTracingShaders :
@@ -1060,11 +1061,20 @@ namespace AE::Base
                 stages &= ~EResourceState::AllShaders;
                 str += " | AllShaders";
             }
-
             if ( AllBits( stages, EResourceState::AllGraphicsShaders ))
             {
                 stages &= ~EResourceState::AllGraphicsShaders;
                 str += " | AllGraphicsShaders";
+            }
+            if ( AllBits( stages, EResourceState::PreRasterizationShaders ))
+            {
+                stages &= ~EResourceState::PreRasterizationShaders;
+                str += " | PreRasterizationShaders";
+            }
+            if ( AllBits( stages, EResourceState::PostRasterizationShaders ))
+            {
+                stages &= ~EResourceState::PostRasterizationShaders;
+                str += " | PostRasterizationShaders";
             }
 
             for (; stages != Default;)
@@ -1073,14 +1083,15 @@ namespace AE::Base
                 EResourceState  stage = ExtractBit( INOUT stages );
                 switch ( stage )
                 {
-                    case EResourceState::PreRasterizationShaders :  str += "PreRasterizationShaders";   break;
+                    case EResourceState::MeshTaskShader :           str += "MeshTaskShader";            break;
+                    case EResourceState::VertexProcessingShaders :  str += "VertexProcessingShaders";   break;
                     case EResourceState::TileShader :               str += "TileShader";                break;
                     case EResourceState::FragmentShader :           str += "FragmentShader";            break;
-                    case EResourceState::PostRasterizationShaders : str += "PostRasterizationShaders";  break;
                     case EResourceState::ComputeShader :            str += "ComputeShader";             break;
                     case EResourceState::RayTracingShaders :        str += "RayTracingShaders";         break;
                     default :                                       DBG_WARNING( "unknown resource state stage" );  break;
                 }
+                STATIC_ASSERT( uint(EResourceState::AllShaders) == 0xFC00 );
             }
         }
 

@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include "base/Containers/UntypedStorage.h"
 #include "graphics/Public/ImageDesc.h"
 #include "graphics/Public/BufferDesc.h"
 #include "graphics/Public/EResourceState.h"
@@ -25,6 +24,7 @@
 #include "graphics/Public/FrameUID.h"
 #include "graphics/Public/GraphicsCreateInfo.h"
 #include "graphics/Public/Video.h"
+#include "graphics/Public/FeatureSet.h"
 
 #if defined(AE_ENABLE_VULKAN)
 # include "graphics/Public/VulkanTypes.h"
@@ -222,7 +222,6 @@ namespace AE::Graphics
         using NativeImageViewDesc_t = VulkanImageViewDesc;
         using NativeBufferViewDesc_t= VulkanBufferViewDesc;
         using NativeMemObjInfo_t    = VulkanMemoryObjInfo;
-        using DeviceAddress_t       = VDeviceAddress;
 
         #elif defined(AE_ENABLE_METAL)
         using NativeBuffer_t        = MetalBuffer;
@@ -234,7 +233,6 @@ namespace AE::Graphics
         using NativeImageViewDesc_t = MetalImageViewDesc;
         using NativeBufferViewDesc_t= MetalBufferViewDesc;
         using NativeMemObjInfo_t    = MetalMemoryObjInfo;
-        using DeviceAddress_t       = MDeviceAddress;
 
         #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
         using NativeBuffer_t        = R_BufferID;
@@ -246,7 +244,6 @@ namespace AE::Graphics
         using NativeImageViewDesc_t = Noninstanceable;
         using NativeBufferViewDesc_t= Noninstanceable;
         using NativeMemObjInfo_t    = RemoteMemoryObjInfo;
-        using DeviceAddress_t       = void*;
 
         #else
         #   error not implemented
@@ -277,6 +274,8 @@ namespace AE::Graphics
         ND_ virtual bool                        IsSupported (const VideoSessionDesc &desc)                                                                      C_NE___ = 0;
         ND_ virtual bool                        IsSupported (BufferID buffer, const BufferViewDesc &desc)                                                       C_NE___ = 0;
         ND_ virtual bool                        IsSupported (ImageID image, const ImageViewDesc &desc)                                                          C_NE___ = 0;
+        ND_ virtual bool                        IsSupported (const RTGeometryDesc &desc)                                                                        C_NE___ = 0;
+        ND_ virtual bool                        IsSupported (const RTSceneDesc &desc)                                                                           C_NE___ = 0;
 
         ND_ virtual Strong<ImageID>             CreateImage (const ImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)          __NE___ = 0;
         ND_ virtual Strong<BufferID>            CreateBuffer (const BufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)        __NE___ = 0;
@@ -296,8 +295,8 @@ namespace AE::Graphics
         ND_ virtual RTASBuildSizes              GetRTGeometrySizes (const RTGeometryBuild &desc)                                                                __NE___ = 0;
         ND_ virtual RTASBuildSizes              GetRTSceneSizes (const RTSceneBuild &desc)                                                                      __NE___ = 0;
 
-        ND_ virtual DeviceAddress_t             GetDeviceAddress (BufferID      id)                                                                             C_NE___ = 0;
-        ND_ virtual DeviceAddress_t             GetDeviceAddress (RTGeometryID  id)                                                                             C_NE___ = 0;
+        ND_ virtual DeviceAddress               GetDeviceAddress (BufferID      id)                                                                             C_NE___ = 0;
+        ND_ virtual DeviceAddress               GetDeviceAddress (RTGeometryID  id)                                                                             C_NE___ = 0;
 
         ND_ virtual bool                        CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, GraphicsPipelineID   ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
         ND_ virtual bool                        CreateDescriptorSets (OUT DescSetBinding &binding, OUT Strong<DescriptorSetID> *dst, usize count, MeshPipelineID       ppln, const DescriptorSetName &dsName, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default) __NE___ = 0;
@@ -316,12 +315,12 @@ namespace AE::Graphics
         ND_ Strong<DescriptorSetID>             CreateDescriptorSet (DescriptorSetLayoutID layoutId, DescriptorAllocatorPtr allocator = null, StringView dbgName = Default)                             __NE___;
 
         template <typename T, typename PplnID>
-        ND_         PushConstantIndex           GetPushConstantIndex (PplnID               ppln, const PushConstantName &pcName)                                                    __NE___;
-        ND_ virtual PushConstantIndex           GetPushConstantIndex (GraphicsPipelineID   ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE___ = 0;
-        ND_ virtual PushConstantIndex           GetPushConstantIndex (MeshPipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE___ = 0;
-        ND_ virtual PushConstantIndex           GetPushConstantIndex (ComputePipelineID    ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE___ = 0;
-        ND_ virtual PushConstantIndex           GetPushConstantIndex (RayTracingPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE___ = 0;
-        ND_ virtual PushConstantIndex           GetPushConstantIndex (TilePipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)  __NE___ = 0;
+        ND_         PushConstantIndex           GetPushConstantIndex (PplnID               ppln, const PushConstantName &pcName)                                                                        __NE___;
+        ND_ virtual PushConstantIndex           GetPushConstantIndex (GraphicsPipelineID   ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)                      __NE___ = 0;
+        ND_ virtual PushConstantIndex           GetPushConstantIndex (MeshPipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)                      __NE___ = 0;
+        ND_ virtual PushConstantIndex           GetPushConstantIndex (ComputePipelineID    ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)                      __NE___ = 0;
+        ND_ virtual PushConstantIndex           GetPushConstantIndex (RayTracingPipelineID ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)                      __NE___ = 0;
+        ND_ virtual PushConstantIndex           GetPushConstantIndex (TilePipelineID       ppln, const PushConstantName &pcName, const ShaderStructName &typeName, Bytes dataSize)                      __NE___ = 0;
 
 
         // warning: pipeline compilation and shader loading may be slow
@@ -332,9 +331,9 @@ namespace AE::Graphics
         ND_ virtual Strong<TilePipelineID>      CreateTilePipeline      (PipelinePackID packId, const PipelineTmplName &name, const TilePipelineDesc        &desc, PipelineCacheID cache = Default)     __NE___ = 0;
 
         // video
-        ND_ virtual Strong<VideoSessionID>      CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)    __NE___ = 0;
-        ND_ virtual Strong<VideoBufferID>       CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)      __NE___ = 0;
-        ND_ virtual Strong<VideoImageID>        CreateVideoImage (const VideoImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)        __NE___ = 0;
+        ND_ virtual Strong<VideoSessionID>      CreateVideoSession (const VideoSessionDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)                                    __NE___ = 0;
+        ND_ virtual Strong<VideoBufferID>       CreateVideoBuffer (const VideoBufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)                                      __NE___ = 0;
+        ND_ virtual Strong<VideoImageID>        CreateVideoImage (const VideoImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)                                        __NE___ = 0;
 
         ND_ virtual Strong<PipelineCacheID>     CreatePipelineCache ()                                      __NE___ = 0;
 
@@ -418,6 +417,9 @@ namespace AE::Graphics
 
         // statistics
         ND_ virtual StagingBufferStat           GetStagingBufferFrameStat (FrameUID frameId)                C_NE___ = 0;
+
+
+        ND_ virtual FeatureSet const&           GetFeatureSet ()                                            C_NE___ = 0;
     };
 
 

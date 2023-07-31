@@ -132,6 +132,8 @@ private:
     bool  Test_RayQuery1 ();
 
     bool  Test_RayTracing1 ();
+    bool  Test_RayTracing2 ();  // indirect build
+    bool  Test_RayTracing3 ();
 
     bool  Test_ShadingRate1 ();
 

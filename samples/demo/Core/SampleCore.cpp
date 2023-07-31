@@ -81,17 +81,15 @@ namespace AE::Samples::Demo
           #endif
             cfg.graphics.swapchain.usage        = EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;
             cfg.graphics.swapchain.options      = EImageOpt::BlitDst;
-        //  cfg.graphics.swapchain.presentMode  = EPresentMode::Mailbox;    // faster vsync
-            cfg.graphics.swapchain.presentMode  = EPresentMode::FIFO;       // vsync
+            cfg.graphics.swapchain.presentMode  = EPresentMode::FIFO;
             cfg.graphics.swapchain.minImageCount= 3;
         }
 
         // window
         {
-            cfg.window.title        = "Demo";
-            cfg.window.size         = {1024, 768};
-            cfg.window.resizable    = true;
-            cfg.window.fullscreen   = false;
+            cfg.window.title    = "Demo";
+            cfg.window.size     = {1024, 768};
+            cfg.window.mode     = EWindowMode::Resizable;
         }
 
         // VR
@@ -100,6 +98,10 @@ namespace AE::Samples::Demo
             cfg.vr.dimension    = {1024, 1024};
             cfg.vr.format       = EPixelFormat::BGRA8_UNorm;
             cfg.vr.usage        = EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;  // default
+
+        //  cfg.vrDevices.push_back( IVRDevice::EDeviceType::OpenXR );
+        //  cfg.vrDevices.push_back( IVRDevice::EDeviceType::OpenVR );
+            cfg.vrDevices.push_back( IVRDevice::EDeviceType::Emulator );
         }
 
         return cfg;
@@ -195,10 +197,10 @@ namespace AE::Samples::Demo
 
 /*
 =================================================
-    InitInputActions
+    _InitInputActions
 =================================================
 */
-    void  SampleCore::InitInputActions (IInputActions &ia) __NE___
+    void  SampleCore::_InitInputActions (IInputActions &ia)
     {
         MemRefRStream   stream{ _inputActionsData->GetData() };
 
@@ -305,18 +307,28 @@ namespace AE::Samples::Demo
     StartRendering
 =================================================
 */
-    void  SampleCore::StartRendering (Ptr<IInputActions> input, Ptr<IOutputSurface> output) __NE___
+    void  SampleCore::StartRendering (Ptr<IInputActions> input, Ptr<IOutputSurface> output, EWndState state) __NE___
     {
         ASSERT( bool{input} == bool{output} );
 
-        if ( output != null and not output->IsInitialized() )
-            return;
+        const bool  focused = (state == EWndState::Focused);
+        bool        ia_changed;
 
-        auto    main_loop = _mainLoop.WriteNoLock();
-        EXLOCK( main_loop );
+        {
+            auto    main_loop = _mainLoop.WriteNoLock();
+            EXLOCK( main_loop );
 
-        main_loop->input  = input;
-        main_loop->output = output;
+            if ( not focused and main_loop->output != null )
+                return;
+
+            ia_changed = (main_loop->input != input) and (input != null);
+
+            main_loop->input  = input;
+            main_loop->output = output;
+        }
+
+        if ( ia_changed )
+            _InitInputActions( *input );
     }
 
 /*
@@ -324,23 +336,13 @@ namespace AE::Samples::Demo
     StopRendering
 =================================================
 */
-    void  SampleCore::StopRendering () __NE___
+    void  SampleCore::StopRendering (Ptr<IOutputSurface> output) __NE___
     {
         auto    main_loop = _mainLoop.WriteNoLock();
         EXLOCK( main_loop );
 
-        main_loop->input  = null;
-        main_loop->output = null;
-    }
-
-/*
-=================================================
-    SurfaceDestroyed
-=================================================
-*/
-    void  SampleCore::SurfaceDestroyed () __NE___
-    {
-        _mainLoop.Write( Default );
+        if ( output == null or main_loop->output == output )
+            main_loop->output = null;
     }
 
 /*
@@ -371,16 +373,8 @@ namespace AE::Samples::Demo
 */
     void  SampleCore::RenderFrame () __NE___
     {
-        _mainLoop->endFrame = _DrawFrame();
-    }
+        _mainLoop->endFrame = null;
 
-/*
-=================================================
-    _DrawFrame
-=================================================
-*/
-    AsyncTask  SampleCore::_DrawFrame ()
-    {
         Ptr<IInputActions>      input;
         Ptr<IOutputSurface>     output;
         RenderGraph             rg;
@@ -389,8 +383,10 @@ namespace AE::Samples::Demo
             auto    main_loop = _mainLoop.ReadNoLock();
             SHAREDLOCK( main_loop );
 
-            if ( main_loop->input == null or main_loop->output == null )
-                return null;
+            if ( main_loop->input == null               or
+                 main_loop->output == null              or
+                 not main_loop->output->IsInitialized() )
+                return;
 
             input   = main_loop->input;
             output  = main_loop->output;
@@ -400,18 +396,21 @@ namespace AE::Samples::Demo
         AsyncTask   proc_input  = _sample->Update( input->ReadInput( rg.GetPrevFrameId() ), Default );
         // 'proc_input' can be null
 
+
         AsyncTask   begin_frame = rg.BeginFrame( output );
-        if ( begin_frame->IsInterropted() )
-            return null;
+        if ( begin_frame->IsInterrupted() )
+            return;
+
 
         AsyncTask   draw_task   = _sample->Draw( rg, { begin_frame, proc_input });
-        CHECK_ERR( draw_task );
+        CHECK_ERRV( draw_task );
+
 
         AsyncTask   end_frame   = rg.EndFrame( Default, Tuple{ draw_task });
 
         input->NextFrame( rg.GetNextFrameId() );
 
-        return end_frame;
+        _mainLoop->endFrame = end_frame;
     }
 
 } // AE::Samples::Demo

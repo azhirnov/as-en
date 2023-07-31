@@ -73,6 +73,23 @@
 #endif
 
 
+#ifdef AE_COMPILER_MSVC
+#   define AE_COMPILER_NAME         "MS Visual Studio"
+#   define AE_COMPILER_VERSION      AE::Base::Version3{ _MSC_FULL_VER / 10000000, (_MSC_FULL_VER % 10000000) / 100000, _MSC_FULL_VER % 100000 } // (4) _MSC_BUILD 
+                                    // 2017: 19.10 - 19.16
+                                    // 2019: 19.20 - 19.29
+                                    // 2022: 19.30 - ...
+#endif
+#ifdef AE_COMPILER_GCC
+#   define AE_COMPILER_NAME         "GCC"
+#   define AE_COMPILER_VERSION      AE::Base::Version3{ __GNUC_MINOR__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__ }
+#endif
+#ifdef AE_COMPILER_CLANG
+#   define AE_COMPILER_NAME         "Clang"
+#   define AE_COMPILER_VERSION      AE::Base::Version3{ __clang_major__, __clang_minor__, __clang_patchlevel__ }
+#endif
+
+
 #ifdef __INTELLISENSE__
 #  define AE_PLATFORM_ANDROID
 #endif

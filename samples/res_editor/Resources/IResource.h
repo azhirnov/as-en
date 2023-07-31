@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "base/DataSource/Stream.h"
 #include "res_editor/Common.h"
 #include "res_editor/Dynamic/DynamicDimension.h"
 #include "res_editor/Dynamic/DynamicVec.h"
@@ -22,7 +21,6 @@ namespace AE::ResEditor
     //
     // Resource interface
     //
-
     class IResource : public EnableRC< IResource >
     {
     // types
@@ -40,7 +38,9 @@ namespace AE::ResEditor
 
     // variables
     private:
-        Renderer &      _renderer;
+        Renderer &                  _renderer;
+    protected:
+        Atomic<EUploadStatus>       _uploadStatus   {EUploadStatus::Canceled};
 
 
     // interface
@@ -48,13 +48,13 @@ namespace AE::ResEditor
             virtual bool            Resize (TransferCtx_t &ctx) __Th___ = 0;
 
         // GPU <-> CPU
-        ND_ virtual EUploadStatus   GetStatus ()                C_NE___ = 0;
+        ND_ virtual EUploadStatus   GetStatus ()                C_NE___ { return _uploadStatus.load(); }
         ND_ virtual EUploadStatus   Upload (TransferCtx_t &)    __Th___ = 0;
         ND_ virtual EUploadStatus   Readback (TransferCtx_t &)  __Th___ = 0;
-        ND_ virtual void            Cancel ()                           = 0;
+            virtual void            Cancel ()                   __Th___;
 
 
-    // 
+    // methods
     protected:
         explicit IResource (Renderer &r) : _renderer{r} {}
 
@@ -62,13 +62,15 @@ namespace AE::ResEditor
         ND_ ResourceQueue&      _ResQueue ()            const;
         ND_ GfxMemAllocatorPtr  _GfxAllocator ()        const;
         ND_ GfxMemAllocatorPtr  _GfxDynamicAllocator () const;
+
+        void  _SetUploadStatus (EUploadStatus);
     };
+
 
 
     //
     // Image Resource interface
     //
-
     class IImageResource : public IResource
     {
     // interface
@@ -80,6 +82,43 @@ namespace AE::ResEditor
     protected:
         explicit IImageResource (Renderer &r) : IResource{r} {}
     };
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    Cancel
+=================================================
+*/
+    inline void  IResource::Cancel () __Th___
+    {
+        for (auto status = _uploadStatus.load();;)
+        {
+            if ( AnyEqual( status, EUploadStatus::Complete, EUploadStatus::Canceled ))
+                break;
+
+            if ( _uploadStatus.CAS( INOUT status, EUploadStatus::Canceled ))
+                break;
+        }
+    }
+
+/*
+=================================================
+    _SetUploadStatus
+=================================================
+*/
+    inline void  IResource::_SetUploadStatus (EUploadStatus newStatus)
+    {
+        for (auto status = _uploadStatus.load();;)
+        {
+            if ( AnyEqual( status, EUploadStatus::Complete, EUploadStatus::Canceled, newStatus ))
+                break;
+
+            if ( _uploadStatus.CAS( INOUT status, newStatus ))
+                break;
+        }
+    }
 
 
 } // AE::ResEditor

@@ -140,7 +140,7 @@ namespace AE::Base
     private:
         void const *    _array      = null;
         uint            _count      = 0;
-        uint            _stride     = 0;
+        Bytes32u        _stride;
 
         DEBUG_ONLY(
             Unique<_IViewer>    _dbgView;   
@@ -149,22 +149,22 @@ namespace AE::Base
 
     // methods
     public:
-        StructView () __NE___
+        StructView ()                               __NE___
         {}
 
-        StructView (ArrayView<T> arr) __NE___ :
-            _array{ arr.data() }, _count{ CheckCast<uint>( arr.size() )}, _stride{ sizeof(T) }
+        StructView (ArrayView<T> arr)               __NE___ :
+            _array{ arr.data() }, _count{ CheckCast<uint>( arr.size() )}, _stride{ SizeOf<T> }
         {
             DEBUG_ONLY( _dbgView = _CreateView<T, sizeof(T)>( _array ));
         }
 
-        StructView (const Self &other) __NE___ :
+        StructView (const Self &other)              __NE___ :
             _array{other._array}, _count{other._count}, _stride{other._stride}
         {
             DEBUG_ONLY( if ( other._dbgView ) _dbgView = other._dbgView->Clone() );
         }
 
-        StructView (Self &&other) __NE___ :
+        StructView (Self &&other)                   __NE___ :
             _array{other._array}, _count{other._count}, _stride{other._stride}
         {
             DEBUG_ONLY( std::swap( _dbgView, other._dbgView ));
@@ -172,26 +172,26 @@ namespace AE::Base
 
         template <typename Class>
         StructView (ArrayView<Class> arr, T (Class::*member)) __NE___ :
-            _array{ arr.data() + OffsetOf(member) }, _count{ CheckCast<uint>( arr.size() )}, _stride{ sizeof(Class) }
+            _array{ arr.data() + OffsetOf(member) }, _count{ CheckCast<uint>( arr.size() )}, _stride{ SizeOf<Class> }
         {
             DEBUG_ONLY( _dbgView = _CreateView<Class, sizeof(Class)>( _array ));
         }
 
-        StructView (const T* ptr, usize count) __NE___ :
-            _array{ ptr }, _count{ CheckCast<uint>( count )}, _stride{ sizeof(T) }
+        StructView (const T* ptr, usize count)      __NE___ :
+            _array{ ptr }, _count{ CheckCast<uint>( count )}, _stride{ SizeOf<T> }
         {
             DEBUG_ONLY( _dbgView = _CreateView<T, sizeof(T)>( _array ));
         }
 
-        StructView (const void *ptr, usize count, uint stride) __NE___ :
-            _array{ptr}, _count{ CheckCast<uint>( count )}, _stride{stride}
+        StructView (const void *ptr, usize count, Bytes stride) __NE___ :
+            _array{ptr}, _count{ CheckCast<uint>( count )}, _stride{Bytes32u(stride)}
         {}
 
-        ~StructView () __NE___
+        ~StructView ()                              __NE___
         {}
 
 
-        Self&  operator = (const Self &rhs) __NE___
+        Self&  operator = (const Self &rhs)         __NE___
         {
             _array  = rhs._array;
             _count  = rhs._count;
@@ -200,7 +200,7 @@ namespace AE::Base
             return *this;
         }
 
-        Self&  operator = (Self && rhs) __NE___
+        Self&  operator = (Self && rhs)             __NE___
         {
             _array  = rhs._array;
             _count  = rhs._count;
@@ -210,24 +210,27 @@ namespace AE::Base
         }
 
 
-        ND_ usize       size ()                 C_NE___ { return _count; }
-        ND_ bool        empty ()                C_NE___ { return _count == 0; }
-        ND_ T const &   operator [] (usize i)   C_NE___ { ASSERT( i < size() );  return *static_cast<T const *>(_array + Bytes(i * _stride)); }
+        ND_ usize           size ()                 C_NE___ { return _count; }
+        ND_ bool            empty ()                C_NE___ { return _count == 0; }
+        ND_ T const &       operator [] (usize i)   C_NE___ { ASSERT( i < size() );  return *static_cast<T const *>( _array + (i * Stride()) ); }
 
-        ND_ T const&    front ()                C_NE___ { return operator[] (0); }
-        ND_ T const&    back ()                 C_NE___ { return operator[] (_count-1); }
+        ND_ T const&        front ()                C_NE___ { return operator[] (0); }
+        ND_ T const&        back ()                 C_NE___ { return operator[] (_count-1); }
 
-        ND_ const_iterator  begin ()            CrNE___ { return const_iterator{ *this, 0 }; }
-        ND_ const_iterator  end ()              CrNE___ { return const_iterator{ *this, size() }; }
+        ND_ const_iterator  begin ()                CrNE___ { return const_iterator{ *this, 0 }; }
+        ND_ const_iterator  end ()                  CrNE___ { return const_iterator{ *this, size() }; }
 
-        ND_ large_iterator  begin ()            rvNE___ { return large_iterator{ *this, 0 }; }
-        ND_ large_iterator  end ()              rvNE___ { return large_iterator{ *this, size() }; }
+        ND_ large_iterator  begin ()                rvNE___ { return large_iterator{ *this, 0 }; }
+        ND_ large_iterator  end ()                  rvNE___ { return large_iterator{ *this, size() }; }
 
-        ND_ const_iterator  begin ()            r_NE___ { return const_iterator{ *this, 0 }; }
-        ND_ const_iterator  end ()              r_NE___ { return const_iterator{ *this, size() }; }
+        ND_ const_iterator  begin ()                r_NE___ { return const_iterator{ *this, 0 }; }
+        ND_ const_iterator  end ()                  r_NE___ { return const_iterator{ *this, size() }; }
+
+        ND_ Bytes           Stride ()               C_NE___ { return Bytes{_stride}; }
+        ND_ Bytes           DataSize ()             C_NE___ { return SizeOf<T> * size(); }
 
 
-        ND_ bool  operator == (Self rhs)        C_NE___
+        ND_ bool  operator == (Self rhs)            C_NE___
         {
             if ( (_array == rhs._array) & (_count == rhs._count) & (_stride == rhs._stride) )
                 return true;
@@ -247,11 +250,11 @@ namespace AE::Base
         ND_ Self  section (usize first, usize count) C_NE___
         {
             return first < size() ?
-                    Self{ _array + Bytes(first * _stride), Min(size() - first, count) } :
+                    Self{ _array + (first * Stride()), Min(size() - first, count) } :
                     Self{};
         }
 
-        ND_ explicit operator Array<T> () C_NE___
+        ND_ explicit operator Array<T> ()           C_NE___
         {
             Array<T>    result;
             result.resize( size() );
@@ -389,6 +392,9 @@ namespace AE::Base
 
         ND_ const_iterator  begin ()                r_NE___ { return const_iterator{ *this, 0 }; }
         ND_ const_iterator  end ()                  r_NE___ { return const_iterator{ *this, size() }; }
+
+        ND_ Bytes           SrcDataSize ()          C_NE___ { return SizeOf<SrcType> * size(); }
+        ND_ Bytes           DstDataSize ()          C_NE___ { return SizeOf<DstType> * size(); }
 
 
         ND_ Self  section (usize first, usize count) C_NE___

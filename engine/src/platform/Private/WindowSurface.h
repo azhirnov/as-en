@@ -57,9 +57,6 @@ namespace AE::App
         Swapchain_t             _swapchain;                 // pretected by '_guard'
 
 
-        static constexpr auto   _targetType     = ETargetType::Final2D;
-
-
     // methods
     public:
         WindowSurface ()                                                                                            __NE___;

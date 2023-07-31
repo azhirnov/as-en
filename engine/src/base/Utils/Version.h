@@ -177,34 +177,29 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <AE::ulong UID>
+struct std::hash< AE::Base::TVersion2<UID> >
 {
-
-    template <AE::ulong UID>
-    struct hash< AE::Base::TVersion2<UID> >
+    ND_ size_t  operator () (const AE::Base::TVersion2<UID> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Base::TVersion2<UID> &value) C_NE___
-        {
-            using namespace AE::Base;
-            HashVal h;
-            h << HashOf( value.major );
-            h << HashOf( value.minor );
-            return size_t{h};
-        }
-    };
+        using namespace AE::Base;
+        HashVal h;
+        h << HashOf( value.major );
+        h << HashOf( value.minor );
+        return size_t{h};
+    }
+};
 
-    template <AE::ulong UID>
-    struct hash< AE::Base::TVersion3<UID> >
+template <AE::ulong UID>
+struct std::hash< AE::Base::TVersion3<UID> >
+{
+    ND_ size_t  operator () (const AE::Base::TVersion3<UID> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Base::TVersion3<UID> &value) C_NE___
-        {
-            using namespace AE::Base;
-            HashVal h;
-            h << HashOf( value.major );
-            h << HashOf( value.minor );
-            h << HashOf( value.patch );
-            return size_t{h};
-        }
-    };
-
-} // std
+        using namespace AE::Base;
+        HashVal h;
+        h << HashOf( value.major );
+        h << HashOf( value.minor );
+        h << HashOf( value.patch );
+        return size_t{h};
+    }
+};

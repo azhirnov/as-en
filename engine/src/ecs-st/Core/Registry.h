@@ -257,4 +257,4 @@ namespace AE::ECS
 
 } // AE::ECS
 
-#include "ecs-st/Core/Registry.inl.h"
+//#include "ecs-st/Core/Registry.inl.h"

@@ -55,6 +55,11 @@ namespace AE::Samples::Demo
                                                     "RTAS instance buffer", t->gfxAlloc );
             CHECK_TE( t->instances );
 
+            t->indirect = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ASBuildIndirectCommand>,
+                                                             EBufferUsage::Indirect | EBufferUsage::TransferDst | EBufferUsage::ShaderAddress },
+                                                 "indirect build", t->gfxAlloc );
+            CHECK_TE( t->indirect );
+
             auto    geom_sizes = res_mngr.GetRTGeometrySizes( RTGeometryBuild{ ArrayView<RTGeometryBuild::TrianglesInfo>{ &triangle_info, 1 }, Default, Default, Default, Default });
             t->rtGeom = res_mngr.CreateRTGeometry( RTGeometryDesc{ geom_sizes.rtasSize, Default }, "RT geometry", t->gfxAlloc );
             CHECK_TE( t->rtGeom );
@@ -94,21 +99,19 @@ namespace AE::Samples::Demo
         copy_ctx.AccumBarriers()
             .MemoryBarrier( EResourceState::Host_Write, EResourceState::CopySrc );
 
-        RTSceneBuild    scene_build{ 1u, Default };
-        scene_build.SetScratchBuffer( t->scratch );
-        scene_build.SetInstanceData( t->instances );
-
+        RTSceneBuild            scene_build{ 1u, Default };
         RTSceneBuild::Instance  inst;
         CHECK_TE( scene_build.SetGeometry( t->rtGeom, INOUT inst ));
 
-        CHECK_TE( copy_ctx.UploadBuffer( t->vb, 0_b, Sizeof(buffer_vertices), buffer_vertices, EStagingHeapType::Static ));
-        CHECK_TE( copy_ctx.UploadBuffer( t->ib, 0_b, Sizeof(buffer_indices),  buffer_indices,  EStagingHeapType::Static ));
-        CHECK_TE( copy_ctx.UploadBuffer( t->instances, 0_b, Sizeof(inst), &inst, EStagingHeapType::Static ));
+        CHECK_TE( copy_ctx.UploadBuffer( t->vb,         0_b, Sizeof(buffer_vertices),   buffer_vertices, EStagingHeapType::Static ));
+        CHECK_TE( copy_ctx.UploadBuffer( t->ib,         0_b, Sizeof(buffer_indices),    buffer_indices,  EStagingHeapType::Static ));
+        CHECK_TE( copy_ctx.UploadBuffer( t->instances,  0_b, Sizeof(inst),              &inst,           EStagingHeapType::Static ));
 
         DirectCtx::ASBuild  as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 
         as_ctx.AccumBarriers()
-            .MemoryBarrier( EResourceState::CopyDst, EResourceState::BuildRTAS_Read );
+            .MemoryBarrier( EResourceState::CopyDst, EResourceState::BuildRTAS_Read )
+            .MemoryBarrier( EResourceState::CopyDst, EResourceState::IndexBuffer );
 
         as_ctx.Build(
             RTGeometryBuild{
@@ -118,11 +121,6 @@ namespace AE::Samples::Demo
                 Default
             }.SetScratchBuffer( t->scratch ),
             t->rtGeom );
-
-        as_ctx.AccumBarriers()
-            .MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::BuildRTAS_Read );
-
-        as_ctx.Build( scene_build, t->rtScene );
 
         Execute( as_ctx );
     }
@@ -160,7 +158,36 @@ namespace AE::Samples::Demo
         auto&       rt          = targets[0];
         const auto  img_state   = EResourceState::ShaderStorage_Write | EResourceState::RayTracingShaders;
 
-        DirectCtx::RayTracing   ctx{ *this };
+        DirectCtx::Transfer     copy_ctx{ *this };
+
+        ASBuildIndirectCommand  ind_cmd = {};
+        ind_cmd.primitiveCount = 1; // instances
+
+        CHECK_TE( copy_ctx.UploadBuffer( t->indirect, 0_b, Sizeof(ind_cmd), &ind_cmd, EStagingHeapType::Static ));
+
+
+        DirectCtx::ASBuild      as_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
+
+        as_ctx.AccumBarriers()
+            .MemoryBarrier( EResourceState::CopyDst, EResourceState::BuildRTAS_IndirectBuffer );
+
+        RTSceneBuild    scene_build{ 1u, Default };
+        scene_build.SetScratchBuffer( t->scratch );
+        scene_build.SetInstanceData( t->instances );
+
+    #if 1
+        as_ctx.Build(
+            scene_build,
+            t->rtScene );
+    #else
+        as_ctx.BuildIndirect(
+            scene_build,
+            t->rtScene,
+            t->indirect );
+    #endif
+
+
+        DirectCtx::RayTracing   ctx{ *this, as_ctx.ReleaseCommandBuffer() };
 
         ctx.AccumBarriers()
             .MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS_Read | EResourceState::RayTracingShaders )
@@ -207,7 +234,8 @@ namespace AE::Samples::Demo
         gfxAlloc = MakeRC<GfxLinearMemAllocator>();
 
         rtImage = res_mngr.CreateImage( ImageDesc{}.SetDimension( rtSize ).SetFormat( EPixelFormat::RGBA8_UNorm )
-                                            .SetUsage( EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::Transfer ),
+                                            .SetUsage( EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::Transfer )
+                                            .SetOptions( EImageOpt::BlitSrc ),
                                         "RenderTarget", gfxAlloc );
         CHECK_ERR( rtImage );
 
@@ -242,10 +270,8 @@ namespace AE::Samples::Demo
         if ( not uploaded.load() )
         {
             uploaded.store( true );
-
-            upload = batch->Run< UploadTask >( Tuple{this}, Tuple{deps} );
-
-            deps = ArrayView<AsyncTask>{ upload };
+            upload  = batch->Run< UploadTask >( Tuple{this}, Tuple{deps} );
+            deps    = ArrayView<AsyncTask>{ upload };
         }
 
         auto    surf_acquire = rg.BeginOnSurface( batch, deps );
@@ -263,7 +289,7 @@ namespace AE::Samples::Demo
     {
         auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
 
-        res_mngr.DelayedReleaseResources( rtImage, rtView, vb, ib, instances, scratch, rtGeom, rtScene, descSet );
+        res_mngr.DelayedReleaseResources( rtImage, rtView, vb, ib, instances, scratch, indirect, rtGeom, rtScene, descSet );
     }
 
 

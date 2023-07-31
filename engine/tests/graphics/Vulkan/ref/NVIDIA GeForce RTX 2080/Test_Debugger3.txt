@@ -3,11 +3,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'Debugger3 |0| Draw mesh task'
 {
-  BeginDebugLabel
-    name:  'Debugger3 |0| Draw mesh task'
-    depth: 1
-  ----------
-
   FillBuffer
     dst:     'debug storage buffer'
     offset:  16
@@ -49,18 +44,9 @@ name: 'Debugger3 |0| Draw mesh task'
       access:  SHADER_SAMPLED_READ ---> COLOR_ATTACHMENT_READ | COLOR_ATTACHMENT_WRITE
   ----------
 
-  BeginDebugLabel
-    name:  'Debugger3 |0| Draw mesh task - RP'
-    depth: 2
-  ----------
-
   DrawMeshTasks
     descriptors:
       buffer: 'debug storage buffer'
-  ----------
-
-  EndDebugLabel
-    depth: 2
   ----------
 
   EndRenderPass2
@@ -84,19 +70,10 @@ name: 'Debugger3 |0| Draw mesh task'
       layout:  SHADER_READ_ONLY_OPTIMAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'Debugger3 |1| Readback task'
 {
-  BeginDebugLabel
-    name:  'Debugger3 |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -129,10 +106,6 @@ name: 'Debugger3 |1| Readback task'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }

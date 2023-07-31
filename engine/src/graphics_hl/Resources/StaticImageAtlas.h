@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "graphics/Public/IDs.h"
-#include "graphics/Public/GraphicsCreateInfo.h"
+#include "graphics_hl/GraphicsHL.pch.h"
 
 #include "AssetPackerImpl.h"
 

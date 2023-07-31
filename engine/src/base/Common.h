@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
+#include "base/Base.pch.h"
 #include "base/Defines/Undef.h"
 
 namespace AE
@@ -97,7 +97,7 @@ namespace AE::Base
 
     template <typename T>   using Optional      = std::optional< T >;
 
-    constexpr std::nullopt_t    NullOptional    = std::nullopt;
+    static constexpr inline std::nullopt_t  NullOptional = std::nullopt;
 
     template <typename T>   using Function      = std::function< T >;
 

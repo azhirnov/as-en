@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/MemStream.h"
 #include "UnitTest_Common.h"
 
 namespace
@@ -26,7 +25,7 @@ namespace
 
     static bool  SerObj_Deserialize (Deserializer &deser, OUT void *ptr, bool create) __NE___
     {
-        auto*   self = create ? PlacementNew<SerObj>(ptr) : Cast<SerObj>(ptr);
+        auto*   self = create ? PlacementNew<SerObj>( OUT ptr ) : Cast<SerObj>( ptr );
 
         return deser( self->i, self->f, self->v );
     }

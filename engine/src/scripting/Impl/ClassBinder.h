@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "base/Algorithms/StringUtils.h"
 #include "scripting/Impl/ScriptEngine.h"
 
 namespace AE::Scripting

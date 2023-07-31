@@ -21,7 +21,7 @@ namespace AE::ResEditor
         _outDynSize{ RVRef(outDynSize) },
         _dbgName{ dbgName }
     {
-        _decoder = Video::IVideoDecoder::CreateFFmpegDecoder();
+        _decoder = Video::VideoFactory::CreateFFmpegDecoder();
         // TODO: other decoders
         CHECK_THROW( _decoder );
 
@@ -43,21 +43,25 @@ namespace AE::ResEditor
         auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
         auto&   rstate      = FrameGraph().GetStateTracker();
 
+        CHECK_THROW_MSG( res_mngr.IsSupported( desc ),
+            "VideoImage '"s << _dbgName << "' description is not supported by GPU device" );
+
         for (uint i = 0; i < _MaxImages; ++i)
         {
-            _ids[i] = res_mngr.CreateImage( desc, _dbgName, _GfxAllocator() );
+            _ids[i] = res_mngr.CreateImage( desc, _dbgName + ToString(i), _GfxAllocator() );
             CHECK_THROW( _ids[i] );
 
-            _views[i] = res_mngr.CreateImageView( ImageViewDesc{desc}, _ids[i], _dbgName );
+            _views[i] = res_mngr.CreateImageView( ImageViewDesc{desc}, _ids[i], _dbgName + ToString(i) );
             CHECK_THROW( _views[i] );
 
             rstate.AddResource( _ids[i].Get(),
-                                EResourceState::_InvalidState,                              // current is not used
+                                EResourceState::Invalidate,                                 // current is not used
                                 EResourceState::ShaderSample | EResourceState::AllShaders,  // default
                                 EQueueType::Graphics );
         }
-
         _uploadStatus.store( EUploadStatus::InProgress );
+
+        _ResQueue().EnqueueImageTransition( _ids[0] );
         _ResQueue().EnqueueForUpload( GetRC() );
     }
 
@@ -85,8 +89,6 @@ namespace AE::ResEditor
     {
         if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
             return stat;
-
-        EXLOCK( _loadOpGuard );
 
         ImageMemView                    src_mem;
         Video::IVideoDecoder::FrameInfo info;
@@ -124,23 +126,10 @@ namespace AE::ResEditor
         else
         {
             if ( not _decoder->SeekTo( 0 ))
-                _uploadStatus.store( EUploadStatus::Canceled );
+                _SetUploadStatus( EUploadStatus::Canceled );
 
             return _uploadStatus.load();
         }
-    }
-
-/*
-=================================================
-    Cancel
-=================================================
-*/
-    void  VideoImage::Cancel ()
-    {
-        EXLOCK( _loadOpGuard );
-
-        if ( _uploadStatus.load() != EUploadStatus::Complete )
-            _uploadStatus.store( EUploadStatus::Canceled );
     }
 
 

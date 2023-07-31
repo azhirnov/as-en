@@ -70,6 +70,8 @@ RGTest::RGTest () :
     _tests.emplace_back( &RGTest::Test_DrawMesh2 );
     _tests.emplace_back( &RGTest::Test_RayQuery1 );
     _tests.emplace_back( &RGTest::Test_RayTracing1 );
+    _tests.emplace_back( &RGTest::Test_RayTracing2 );
+    _tests.emplace_back( &RGTest::Test_RayTracing3 );
     _tests.emplace_back( &RGTest::Test_ShadingRate1 );
     _tests.emplace_back( &RGTest::Test_Debugger1 );
     _tests.emplace_back( &RGTest::Test_Debugger2 );
@@ -81,8 +83,6 @@ RGTest::RGTest () :
 /*
 =================================================
     Test_Image/BUffer
-----
-    too slow
 =================================================
 */
 bool  RGTest::Test_Image ()
@@ -205,6 +205,8 @@ GraphicsCreateInfo  RGTest::_GetGraphicsCreateInfo ()
     info.staging.maxWriteDynamicSize    = 16_Mb;
     info.staging.dynamicBlockSize       = 4_Mb;
 
+    info.useRenderGraph = true;
+
     return info;
 }
 //-----------------------------------------------------------------------------
@@ -222,7 +224,7 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
     {
         VDeviceInitializer::InstanceCreateInfo  inst_ci;
         inst_ci.appName             = "TestApp";
-        inst_ci.instanceLayers      = _vulkan.GetRecomendedInstanceLayers();
+        inst_ci.instanceLayers      = _vulkan.GetRecommendedInstanceLayers();
         inst_ci.instanceExtensions  = app.GetVulkanInstanceExtensions();
         inst_ci.version             = {1,3};
 
@@ -273,10 +275,8 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
     CHECK_ERR( _swapchain.Create( swapchain_ci ));
 
     for (uint i = 0; i < 2; ++i) {
-        Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
+        Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
                 EThreadArray{ EThread::PerFrame, EThread::Renderer },
-                nanoseconds{1},
-                milliseconds{4},
                 "render thread"s << ToString(i)
             }));
     }

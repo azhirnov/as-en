@@ -1,11 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    TODO: moke noexcept + return calnceled task?
+    TODO: make noexcept + return cancelled task?
 */
 
 #pragma once
 
-#include "base/CompileTime/FunctionInfo.h"
 #include "threading/TaskSystem/TaskScheduler.h"
 #include "threading/Primitives/CoroutineHandle.h"
 
@@ -23,7 +22,7 @@ namespace _hidden_
 } // _hidden_
 
 
-    static constexpr Threading::_hidden_::PromiseNullResult  CancelPromise = {};
+    static constexpr inline Threading::_hidden_::PromiseNullResult  CancelPromise = {};
 
 
 
@@ -176,6 +175,9 @@ namespace _hidden_
 
         ND_ T  _Result ()                                                           C_NE___;
 
+
+    // friend functions
+    private:
         template <typename Fn, typename ...Deps>
         friend auto  MakePromise (Fn &&, const Tuple<Deps...> &, StringView, ETaskQueue)        __Th___;
 
@@ -243,7 +245,7 @@ namespace _hidden_
         template <typename A>
         _InternalImpl (A && value, bool except, StringView, ETaskQueue, Promise<T>::CompleteValueArg)   __NE___;
 
-        ND_ decltype(auto)  Result ()                   C_NE___
+        ND_ decltype(auto)  Result ()                                                                   C_NE___
         {
             ASSERT( Status() == EStatus::Completed );
             MemoryBarrier( EMemoryOrder::Acquire );
@@ -252,18 +254,18 @@ namespace _hidden_
                 return _result.Value();
         }
 
-        ND_ bool  IsExcept ()                           C_NE___ { return _isExept; }
+        ND_ bool  IsExcept ()                                                                           C_NE___ { return _isExept; }
 
       #ifdef AE_DEBUG
-        StringView  DbgName ()                          C_NE_OV { return _dbgName; }
+        StringView  DbgName ()                                                                          C_NE_OV { return _dbgName; }
       #else
-        StringView  DbgName ()                          C_NE_OV { return "Promise"; }
+        StringView  DbgName ()                                                                          C_NE_OV { return "Promise"; }
       #endif
 
 
     private:
-        void  Run ()                                    __Th_OV;
-        void  OnCancel ()                               __NE_OV;
+        void  Run ()                                                                                    __Th_OV;
+        void  OnCancel ()                                                                               __NE_OV;
     };
 //-----------------------------------------------------------------------------
 
@@ -285,17 +287,17 @@ namespace _hidden_
 
     // methods
     public:
-        explicit PromiseAwaiter (const Promise<T> &promise) __NE___ : _promise{promise} {}
+        explicit PromiseAwaiter (const Promise<T> &promise)             __NE___ : _promise{promise} {}
 
         // pause coroutine execution if dependency is not complete
-        ND_ bool    await_ready ()                          C_NE___ { return _promise._impl ? _promise._impl->IsFinished() : true; }
+        ND_ bool    await_ready ()                                      C_NE___ { return _promise._impl ? _promise._impl->IsFinished() : true; }
 
         // return promise result
-        ND_ T       await_resume ()                         __NE___ { return _promise._Result(); }
+        ND_ T       await_resume ()                                     __NE___ { return _promise._Result(); }
 
         // return task to scheduler with new dependencies
         template <typename P>
-        ND_ bool    await_suspend (std::coroutine_handle<P> curCoro) __NE___
+        ND_ bool    await_suspend (std::coroutine_handle<P> curCoro)    __NE___
         {
             return AsyncTaskCoro_AwaiterImpl::AwaitSuspendImpl( curCoro, _promise._impl );
         }
@@ -364,7 +366,7 @@ namespace _hidden_
         _hasValue{ other._hasValue }
     {
         if ( _hasValue )
-            PlacementNew<T>( &_value, other._value );   // throw
+            PlacementNew<T>( OUT &_value, other._value );   // throw
     }
 
     template <typename T>
@@ -373,7 +375,7 @@ namespace _hidden_
     {
         STATIC_ASSERT( IsNothrowMoveCtor<T> );
         if ( _hasValue )
-            PlacementNew<T>( &_value, RVRef(other._value) );
+            PlacementNew<T>( OUT &_value, RVRef(other._value) );
     }
 
 /*
@@ -390,7 +392,7 @@ namespace _hidden_
         _hasValue = rhs._hasValue;
 
         if ( _hasValue )
-            PlacementNew<T>( &_value, rhs._value );     // throw
+            PlacementNew<T>( OUT &_value, rhs._value );     // throw
 
         return *this;
     }
@@ -407,7 +409,7 @@ namespace _hidden_
 
         if ( _hasValue )
         {
-            PlacementNew<T>( &_value, RVRef(rhs._value) );
+            PlacementNew<T>( OUT &_value, RVRef(rhs._value) );
             rhs._value.~T();
             rhs._hasValue = false;
         }
@@ -421,7 +423,7 @@ namespace _hidden_
             _value.~T();
 
         _hasValue = true;
-        PlacementNew<T>( &_value, rhs );    // throw
+        PlacementNew<T>( OUT &_value, rhs );    // throw
 
         return *this;
     }
@@ -435,7 +437,7 @@ namespace _hidden_
             _value.~T();
 
         _hasValue = true;
-        PlacementNew<T>( &_value, RVRef(rhs) );
+        PlacementNew<T>( OUT &_value, RVRef(rhs) );
 
         return *this;
     }

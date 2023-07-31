@@ -21,7 +21,7 @@ namespace
 
         // encode
         {
-            auto    enc = IVideoEncoder::CreateFFmpegEncoder();
+            auto    enc = VideoFactory::CreateFFmpegEncoder();
             TEST( enc );
 
             IVideoEncoder::Config   cfg;
@@ -56,7 +56,7 @@ namespace
 
         // get info
         {
-            auto    dec = IVideoDecoder::CreateFFmpegDecoder();
+            auto    dec = VideoFactory::CreateFFmpegDecoder();
             TEST( dec );
 
             const auto  params = dec->GetFileProperties( path );
@@ -80,7 +80,7 @@ namespace
 
         // decode
         {
-            auto    dec = IVideoDecoder::CreateFFmpegDecoder();
+            auto    dec = VideoFactory::CreateFFmpegDecoder();
             TEST( dec );
 
             IVideoDecoder::Config   cfg;
@@ -120,7 +120,7 @@ namespace
 
         // encode
         {
-            auto    enc = IVideoEncoder::CreateFFmpegEncoder();
+            auto    enc = VideoFactory::CreateFFmpegEncoder();
             TEST( enc );
 
             IVideoEncoder::Config   cfg;
@@ -155,7 +155,7 @@ namespace
 
         // decode
         {
-            auto    dec = IVideoDecoder::CreateFFmpegDecoder();
+            auto    dec = VideoFactory::CreateFFmpegDecoder();
             TEST( dec );
 
             IVideoDecoder::Config   cfg;
@@ -192,7 +192,7 @@ namespace
 
     static void  FFmpeg_Test3 ()
     {
-        auto    dec = IVideoDecoder::CreateFFmpegDecoder();
+        auto    dec = VideoFactory::CreateFFmpegDecoder();
         TEST( dec );
 
         Array< Path >   stack;

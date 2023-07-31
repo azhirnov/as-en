@@ -1,7 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 #ifdef __INTELLISENSE__
-#   define PASS1
-#   define PASS2
 #   include <res_editor>
 #   include <aestyle.glsl.h>
 #endif
@@ -16,7 +14,7 @@
 
         // render loop
         {
-            RC<Postprocess>     pass1 = Postprocess( EPostprocess::Shadertoy, "PASS1" );
+            RC<Postprocess>     pass1 = Postprocess( EPostprocess::Shadertoy );
             pass1.Input( "iTexture1",   vtex,   Sampler_LinearClamp );
             pass1.Output( rt );
         }
@@ -25,7 +23,7 @@
 
 #endif
 //-----------------------------------------------------------------------------
-#ifdef PASS1
+#ifdef SH_FRAG
 
     void mainImage (out float4 fragColor, in float2 fragCoord)
     {

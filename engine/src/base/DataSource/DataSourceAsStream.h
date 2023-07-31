@@ -45,15 +45,15 @@ namespace AE::Base
         }
 
 
-        // RStream //
-        bool        IsOpen ()           C_NE_OV     { return _dataSource and _dataSource->IsOpen(); }
-        PosAndSize  PositionAndSize ()  C_NE_OV     { return { _pos, _size }; }
-        ESourceType GetSourceType ()    C_NE_OV;
+    // RStream //
+        bool        IsOpen ()                               C_NE_OV { return _dataSource and _dataSource->IsOpen(); }
+        PosAndSize  PositionAndSize ()                      C_NE_OV { return { _pos, _size }; }
+        ESourceType GetSourceType ()                        C_NE_OV;
 
-        bool    SeekSet (Bytes pos)     __NE_OV;
-        bool    SeekFwd (Bytes offset)  __NE_OV;
+        bool        SeekSet (Bytes pos)                     __NE_OV;
+        bool        SeekFwd (Bytes offset)                  __NE_OV;
 
-        Bytes   ReadSeq (OUT void *buffer, Bytes size) __NE_OV;
+        Bytes       ReadSeq (OUT void *buffer, Bytes size) __NE_OV;
     };
 //-----------------------------------------------------------------------------
 

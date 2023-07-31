@@ -3,7 +3,6 @@
 #pragma once
 
 #include "graphics/Public/FeatureSet.h"
-#include "serializing/ISerializable.h"
 #include "Packer/PackCommon.h"
 
 #ifdef AE_BUILD_PIPELINE_COMPILER

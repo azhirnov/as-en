@@ -22,13 +22,13 @@ namespace AE::Base
 
         // constants
         private:
-            static const uint   _MAX_OFFSET     = CT_SizeOfInBits<type>;
-            static const uint   _SYMBOL_SIZE    = CT_IntLog2< uint('Z' - 'A') > + 1;
-            static const uint   _COUNT          = CT_SizeOfInBits<type> / _SYMBOL_SIZE;
-            static const uint   _OFFSET         = CT_SizeOfInBits<type> % _SYMBOL_SIZE;
-            static const type   _NUMERIC        = (1u << _SYMBOL_SIZE) - 1;
-            static const uint   _STR_SIZE       = _COUNT + 1;
-            static const type   _SYMBOL_MASK    = _NUMERIC;
+            static constexpr uint   _MAX_OFFSET     = CT_SizeOfInBits<type>;
+            static constexpr uint   _SYMBOL_SIZE    = CT_IntLog2< uint('Z' - 'A') > + 1;
+            static constexpr uint   _COUNT          = CT_SizeOfInBits<type> / _SYMBOL_SIZE;
+            static constexpr uint   _OFFSET         = CT_SizeOfInBits<type> % _SYMBOL_SIZE;
+            static constexpr type   _NUMERIC        = (1u << _SYMBOL_SIZE) - 1;
+            static constexpr uint   _STR_SIZE       = _COUNT + 1;
+            static constexpr type   _SYMBOL_MASK    = _NUMERIC;
 
 
         // methods

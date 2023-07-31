@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Wrapper for ray tracing pipeline (VK_KHR_ray_tracing_pipeline).
+*/
 
 #pragma once
 

@@ -74,7 +74,7 @@ namespace
 
         TEST( data_a != data_b );
 
-        Bytes   c = view_a.Copy( view_b );
+        Bytes   c = view_a.CopyFrom( view_b );
         TEST( c == view_a.DataSize() );
 
         TEST( data_a == data_b );

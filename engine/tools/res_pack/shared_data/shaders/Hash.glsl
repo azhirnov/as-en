@@ -270,6 +270,7 @@ ND_ float  Hash_MoarGaussianish (const float2 n, const float seed)
 //-----------------------------------------------------------------------------
 
 // from https://www.shadertoy.com/view/ttc3zr
+// license CC BY-NC-SA 3.0
 
 ND_ uint  MHash11 (uint src) {
     const uint M = 0x5bd1e995u;

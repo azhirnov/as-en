@@ -178,8 +178,9 @@ namespace AE::Graphics
             _ShaderAccessMask;
 
         static constexpr auto   _RTAccelStructBuildAccessMask =
-            VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR |               // acceleration structure, vertex, index, transform, AABB, instance buffers
-            VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;               // acceleration structure and scratch buffer
+            VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR     |           // acceleration structure
+            VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR    |           // acceleration structure and scratch buffer
+            VK_ACCESS_2_SHADER_READ_BIT;                                    // vertex, index, transform, AABB, instance buffers
 
         static constexpr auto   _GraphicsAccessMask =
             VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT |

@@ -40,7 +40,7 @@
                 "   uint2   iParams;",
                 max_particle_count );
 
-            Slider( particle_count, "Particle count", 1000, max_particle_count );
+            Slider( particle_count, "Particle count", max_particle_count/100, max_particle_count );
         }
 
         // how to draw geometry
@@ -60,8 +60,8 @@
             sim_pass.ArgInOut( "un_Particles", particles );
             sim_pass.LocalSize( 64 );
             sim_pass.DispatchThreads( particle_count );
-            sim_pass.Slider( "iSteps", 1, 100 );
-            sim_pass.Slider( "iTimeScale", 0.1f, 10.f );
+            sim_pass.Slider( "iSteps", 1, 10 );
+            sim_pass.Slider( "iTimeScale", 1.f, 4.f );
 
             RC<SceneGraphicsPass>   draw_pass = scene.AddGraphicsPass( "draw" );
             draw_pass.AddPipeline( use_rays ? "Particles/Rays.as" :     // file:///<path>/samples/res_editor/_data/pipelines/Particles/Rays.as
@@ -140,7 +140,7 @@
 
     void Main ()
     {
-        UpdateParticle( un_Particles.elements[GetGlobalIndex()], 0.001 * iTimeScale, iSteps, ub.time );
+        UpdateParticle( un_Particles.elements[GetGlobalIndex()], 0.004 * iTimeScale, iSteps, un_PerPass.time );
     }
 
 #endif

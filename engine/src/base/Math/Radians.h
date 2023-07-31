@@ -112,7 +112,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline RadiansTempl<T>  Abs (const RadiansTempl<T>& x) __NE___
+    ND_ RadiansTempl<T>  Abs (const RadiansTempl<T>& x) __NE___
     {
         return RadiansTempl<T>{ std::abs( T(x) )};
     }
@@ -123,7 +123,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline T  Sin (const RadiansTempl<T>& x) __NE___
+    ND_ T  Sin (const RadiansTempl<T>& x) __NE___
     {
         return std::sin( T(x) );
     }
@@ -134,7 +134,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline T  Cos (const RadiansTempl<T>& x) __NE___
+    ND_ T  Cos (const RadiansTempl<T>& x) __NE___
     {
         return std::cos( T(x) );
     }
@@ -145,7 +145,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline Vec<T,2>  SinCos (const RadiansTempl<T>& x) __NE___
+    ND_ Vec<T,2>  SinCos (const RadiansTempl<T>& x) __NE___
     {
         return Vec<T,2>{ std::sin( T(x) ), std::cos( T(x) )};
     }
@@ -156,7 +156,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline RadiansTempl<T>  ASin (const T& x) __NE___
+    ND_ RadiansTempl<T>  ASin (const T& x) __NE___
     {
         ASSERT( x >= T{-1} and x <= T{1} );
 
@@ -169,7 +169,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline RadiansTempl<T>  ACos (const T& x) __NE___
+    ND_ RadiansTempl<T>  ACos (const T& x) __NE___
     {
         ASSERT( x >= T{-1} and x <= T{1} );
 
@@ -182,7 +182,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline T  SinH (const RadiansTempl<T>& x) __NE___
+    ND_ T  SinH (const RadiansTempl<T>& x) __NE___
     {
         return std::sinh( T(x) );
     }
@@ -193,7 +193,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline T  CosH (const RadiansTempl<T>& x) __NE___
+    ND_ T  CosH (const RadiansTempl<T>& x) __NE___
     {
         return std::cosh( T(x) );
     }
@@ -204,7 +204,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline RadiansTempl<T>  ASinH (const T& x) __NE___
+    ND_ RadiansTempl<T>  ASinH (const T& x) __NE___
     {
         return RadiansTempl<T>( SignOrZero( x ) * Ln( x + Sqrt( (x*x) + T{1} )));
     }
@@ -215,7 +215,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline RadiansTempl<T>  ACosH (const T& x) __NE___
+    ND_ RadiansTempl<T>  ACosH (const T& x) __NE___
     {
         ASSERT( x >= T{1} );
         return RadiansTempl<T>{ Ln( x + Sqrt( (x*x) - T{1} ))};
@@ -227,7 +227,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline T  Tan (const RadiansTempl<T>& x) __NE___
+    ND_ T  Tan (const RadiansTempl<T>& x) __NE___
     {
         return std::tan( T(x) );
     }
@@ -238,7 +238,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline T  CoTan (const RadiansTempl<T>& x) __NE___
+    ND_ T  CoTan (const RadiansTempl<T>& x) __NE___
     {
         return SafeDiv( T{1}, Tan( x ), T{0} );
     }
@@ -249,7 +249,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline T  TanH (const RadiansTempl<T>& x) __NE___
+    ND_ T  TanH (const RadiansTempl<T>& x) __NE___
     {
         return std::tanh( T(x) );
     }
@@ -260,7 +260,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline T  CoTanH (const RadiansTempl<T>& x) __NE___
+    ND_ T  CoTanH (const RadiansTempl<T>& x) __NE___
     {
         return SafeDiv( T{1}, TanH( x ), T{0} );
     }
@@ -271,7 +271,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline RadiansTempl<T>  ATan (const T& y_over_x) __NE___
+    ND_ RadiansTempl<T>  ATan (const T& y_over_x) __NE___
     {
         return RadiansTempl<T>{ std::atan( y_over_x )};
     }
@@ -282,7 +282,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline RadiansTempl<T>  ATan (const T& y, const T& x) __NE___
+    ND_ RadiansTempl<T>  ATan (const T& y, const T& x) __NE___
     {
         return RadiansTempl<T>{ std::atan2( y, x )};
     }
@@ -293,7 +293,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline RadiansTempl<T>  ACoTan (const T& x) __NE___
+    ND_ RadiansTempl<T>  ACoTan (const T& x) __NE___
     {
         return RadiansTempl<T>{ SafeDiv( T{1}, ATan( x ), T{0} )};
     }
@@ -304,7 +304,7 @@ namespace AE::Math
 =================================================
 *
     template <typename T>
-    ND_ inline Radians<T>  ATanH (const T& x) __NE___
+    ND_ Radians<T>  ATanH (const T& x) __NE___
     {
         ASSERT( x > T{-1} and x < T{1} );
 
@@ -319,7 +319,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ inline RadiansTempl<T>  ACoTanH (const T& x) __NE___
+    ND_ RadiansTempl<T>  ACoTanH (const T& x) __NE___
     {
         return RadiansTempl<T>{ SafeDiv( T{1}, ATanH( x ), T{0} )};
     }
@@ -330,9 +330,26 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr bool  Equals (const RadiansTempl<T> &lhs, const RadiansTempl<T> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ constexpr bool  Equals (const RadiansTempl<T> &lhs, const RadiansTempl<T> &rhs, const T &err = Epsilon<T>()) __NE___
     {
         return Equals( T{lhs}, T{rhs}, err );
+    }
+
+/*
+=================================================
+    IsZero / IsNotZero
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, bool>  IsZero (const RadiansTempl<T> &x) __NE___
+    {
+        return IsZero( T{x} );
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, bool>  IsNotZero (const RadiansTempl<T> &x) __NE___
+    {
+        return IsNotZero( T{x} );
     }
 
 

@@ -4,10 +4,6 @@
 
 #pragma once
 
-#include "base/Math/Bytes.h"
-#include "base/Utils/Threading.h"
-#include "base/Platforms/ThreadUtils.h"
-
 #ifndef AE_LFAS_ENABLED
 # include "threading/Common.h"
 #endif
@@ -51,7 +47,7 @@ namespace AE::Threading
         static constexpr MO_t   OnFailure   = Failure;
 
         STATIC_ASSERT( StdAtomic<IT>::is_always_lock_free );
-        STATIC_ASSERT( IsInteger<IT> or IsEnum<IT> );
+        STATIC_ASSERT( Base::IsInteger<IT> or Base::IsEnum<IT> );
         STATIC_ASSERT( sizeof(PublicType) == sizeof(InternalType) );
 
 
@@ -91,50 +87,50 @@ namespace AE::Threading
         ND_ bool    CAS_Loop (INOUT T& expected, T desired)                             __NE___ { return _value.compare_exchange_strong( INOUT _Ref(expected), IT{desired}, OnSuccess, OnFailure ); }
         ND_ bool    CAS_Loop (INOUT T& expected, T desired, MO_t success, MO_t failure) __NE___ { return _value.compare_exchange_strong( INOUT _Ref(expected), IT{desired}, success, failure ); }
 
-        T   fetch_add (T arg)                   __NE___ { return T{_value.fetch_add( IT{arg}, OnSuccess )}; }
-        T   fetch_sub (T arg)                   __NE___ { return T{_value.fetch_sub( IT{arg}, OnSuccess )}; }
-        T   fetch_and (T arg)                   __NE___ { return T{_value.fetch_and( IT{arg}, OnSuccess )}; }
-        T   fetch_or (T arg)                    __NE___ { return T{_value.fetch_or(  IT{arg}, OnSuccess )}; }
-        T   fetch_xor (T arg)                   __NE___ { return T{_value.fetch_xor( IT{arg}, OnSuccess )}; }
+        T   fetch_add (T arg)                           __NE___ { return T{_value.fetch_add( IT{arg}, OnSuccess )}; }
+        T   fetch_sub (T arg)                           __NE___ { return T{_value.fetch_sub( IT{arg}, OnSuccess )}; }
+        T   fetch_and (T arg)                           __NE___ { return T{_value.fetch_and( IT{arg}, OnSuccess )}; }
+        T   fetch_or (T arg)                            __NE___ { return T{_value.fetch_or(  IT{arg}, OnSuccess )}; }
+        T   fetch_xor (T arg)                           __NE___ { return T{_value.fetch_xor( IT{arg}, OnSuccess )}; }
 
-        T   Add (T arg)                         __NE___ { return Add( arg, OnSuccess ); }
-        T   Sub (T arg)                         __NE___ { return Sub( arg, OnSuccess ); }
-        T   And (T arg)                         __NE___ { return And( arg, OnSuccess ); }
-        T   Or  (T arg)                         __NE___ { return Or(  arg, OnSuccess ); }
-        T   Xor (T arg)                         __NE___ { return Xor( arg, OnSuccess ); }
-        T   Inc ()                              __NE___ { return Add( T{1}, OnSuccess ); }
-        T   Dec ()                              __NE___ { return Sub( T{1}, OnSuccess ); }
+        T   Add (T arg)                                 __NE___ { return Add( arg, OnSuccess ); }
+        T   Sub (T arg)                                 __NE___ { return Sub( arg, OnSuccess ); }
+        T   And (T arg)                                 __NE___ { return And( arg, OnSuccess ); }
+        T   Or  (T arg)                                 __NE___ { return Or(  arg, OnSuccess ); }
+        T   Xor (T arg)                                 __NE___ { return Xor( arg, OnSuccess ); }
+        T   Inc ()                                      __NE___ { return Add( T{1}, OnSuccess ); }
+        T   Dec ()                                      __NE___ { return Sub( T{1}, OnSuccess ); }
 
-        T   fetch_add (T arg, MO_t memOrder)    __NE___ { return T{_value.fetch_add( IT{arg}, memOrder )}; }
-        T   fetch_sub (T arg, MO_t memOrder)    __NE___ { return T{_value.fetch_sub( IT{arg}, memOrder )}; }
-        T   fetch_and (T arg, MO_t memOrder)    __NE___ { return T{_value.fetch_and( IT{arg}, memOrder )}; }
-        T   fetch_or  (T arg, MO_t memOrder)    __NE___ { return T{_value.fetch_or(  IT{arg}, memOrder )}; }
-        T   fetch_xor (T arg, MO_t memOrder)    __NE___ { return T{_value.fetch_xor( IT{arg}, memOrder )}; }
+        T   fetch_add (T arg, MO_t memOrder)            __NE___ { return T{_value.fetch_add( IT{arg}, memOrder )}; }
+        T   fetch_sub (T arg, MO_t memOrder)            __NE___ { return T{_value.fetch_sub( IT{arg}, memOrder )}; }
+        T   fetch_and (T arg, MO_t memOrder)            __NE___ { return T{_value.fetch_and( IT{arg}, memOrder )}; }
+        T   fetch_or  (T arg, MO_t memOrder)            __NE___ { return T{_value.fetch_or(  IT{arg}, memOrder )}; }
+        T   fetch_xor (T arg, MO_t memOrder)            __NE___ { return T{_value.fetch_xor( IT{arg}, memOrder )}; }
 
-        T   Add (T arg, MO_t memOrder)          __NE___ { return fetch_add( arg, memOrder ) + arg; }
-        T   Sub (T arg, MO_t memOrder)          __NE___ { return fetch_sub( arg, memOrder ) - arg; }
-        T   And (T arg, MO_t memOrder)          __NE___ { return fetch_and( arg, memOrder ) & arg; }
-        T   Or  (T arg, MO_t memOrder)          __NE___ { return fetch_or(  arg, memOrder ) | arg; }
-        T   Xor (T arg, MO_t memOrder)          __NE___ { return fetch_xor( arg, memOrder ) ^ arg; }
-        T   Inc (MO_t memOrder)                 __NE___ { return Add( T{1}, memOrder ); }
-        T   Dec (MO_t memOrder)                 __NE___ { return Sub( T{1}, memOrder ); }
+        T   Add (T arg, MO_t memOrder)                  __NE___ { return fetch_add( arg, memOrder ) + arg; }
+        T   Sub (T arg, MO_t memOrder)                  __NE___ { return fetch_sub( arg, memOrder ) - arg; }
+        T   And (T arg, MO_t memOrder)                  __NE___ { return fetch_and( arg, memOrder ) & arg; }
+        T   Or  (T arg, MO_t memOrder)                  __NE___ { return fetch_or(  arg, memOrder ) | arg; }
+        T   Xor (T arg, MO_t memOrder)                  __NE___ { return fetch_xor( arg, memOrder ) ^ arg; }
+        T   Inc (MO_t memOrder)                         __NE___ { return Add( T{1}, memOrder ); }
+        T   Dec (MO_t memOrder)                         __NE___ { return Sub( T{1}, memOrder ); }
 
-        Self&  operator += (T arg)              __NE___ { fetch_add( arg );  return *this; }
-        Self&  operator -= (T arg)              __NE___ { fetch_sub( arg );  return *this; }
-        Self&  operator &= (T arg)              __NE___ { fetch_and( arg );  return *this; }
-        Self&  operator |= (T arg)              __NE___ { fetch_or(  arg );  return *this; }
-        Self&  operator ^= (T arg)              __NE___ { fetch_xor( arg );  return *this; }
-        Self&  operator ++ ()                   __NE___ { fetch_add( T{1} ); return *this; }
-        Self&  operator -- ()                   __NE___ { fetch_sub( T{1} ); return *this; }
+        Self&  operator += (T arg)                      __NE___ { fetch_add( arg );  return *this; }
+        Self&  operator -= (T arg)                      __NE___ { fetch_sub( arg );  return *this; }
+        Self&  operator &= (T arg)                      __NE___ { fetch_and( arg );  return *this; }
+        Self&  operator |= (T arg)                      __NE___ { fetch_or(  arg );  return *this; }
+        Self&  operator ^= (T arg)                      __NE___ { fetch_xor( arg );  return *this; }
+        Self&  operator ++ ()                           __NE___ { fetch_add( T{1} ); return *this; }
+        Self&  operator -- ()                           __NE___ { fetch_sub( T{1} ); return *this; }
 
-        T  Max (T arg)                          __NE___
+        T  Max (T arg)                                  __NE___
         {
             T   exp = load();
             for (; (exp <= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
 
-        T  Min (T arg)                          __NE___
+        T  Min (T arg)                                  __NE___
         {
             T   exp = load();
             for (; (exp >= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
@@ -175,7 +171,7 @@ namespace AE::Threading
         static constexpr MO_t   OnFailure   = Failure;
 
         STATIC_ASSERT( StdAtomic<IT>::is_always_lock_free );
-        STATIC_ASSERT( IsUnion<T> or IsClass<T> );
+        STATIC_ASSERT( Base::IsUnion<T> or Base::IsClass<T> );
 
 
     // variables
@@ -214,36 +210,36 @@ namespace AE::Threading
         ND_ bool    CAS_Loop (INOUT T& expected, T desired)                             __NE___ { return _value.compare_exchange_strong( INOUT _Ref(expected), _Cast(desired), OnSuccess, OnFailure ); }
         ND_ bool    CAS_Loop (INOUT T& expected, T desired, MO_t success, MO_t failure) __NE___ { return _value.compare_exchange_strong( INOUT _Ref(expected), _Cast(desired), success, failure ); }
 
-        T   fetch_and (IT arg)                      __NE___ { return _Cast( _value.fetch_and( arg, OnSuccess )); }
-        T   fetch_or  (IT arg)                      __NE___ { return _Cast( _value.fetch_or(  arg, OnSuccess )); }
-        T   fetch_xor (IT arg)                      __NE___ { return _Cast( _value.fetch_xor( arg, OnSuccess )); }
+        T   fetch_and (IT arg)                          __NE___ { return _Cast( _value.fetch_and( arg, OnSuccess )); }
+        T   fetch_or  (IT arg)                          __NE___ { return _Cast( _value.fetch_or(  arg, OnSuccess )); }
+        T   fetch_xor (IT arg)                          __NE___ { return _Cast( _value.fetch_xor( arg, OnSuccess )); }
 
-        T   And (IT arg)                            __NE___ { return And( arg, OnSuccess ); }
-        T   Or  (IT arg)                            __NE___ { return Or(  arg, OnSuccess ); }
-        T   Xor (IT arg)                            __NE___ { return Xor( arg, OnSuccess ); }
+        T   And (IT arg)                                __NE___ { return And( arg, OnSuccess ); }
+        T   Or  (IT arg)                                __NE___ { return Or(  arg, OnSuccess ); }
+        T   Xor (IT arg)                                __NE___ { return Xor( arg, OnSuccess ); }
 
-        T   fetch_and (IT arg, MO_t memOrder)       __NE___ { return _Cast( _value.fetch_and( arg, memOrder )); }
-        T   fetch_or  (IT arg, MO_t memOrder)       __NE___ { return _Cast( _value.fetch_or(  arg, memOrder )); }
-        T   fetch_xor (IT arg, MO_t memOrder)       __NE___ { return _Cast( _value.fetch_xor( arg, memOrder )); }
+        T   fetch_and (IT arg, MO_t memOrder)           __NE___ { return _Cast( _value.fetch_and( arg, memOrder )); }
+        T   fetch_or  (IT arg, MO_t memOrder)           __NE___ { return _Cast( _value.fetch_or(  arg, memOrder )); }
+        T   fetch_xor (IT arg, MO_t memOrder)           __NE___ { return _Cast( _value.fetch_xor( arg, memOrder )); }
 
-        T   And (IT arg, MO_t memOrder)             __NE___ { return fetch_and( arg, memOrder ) & arg; }
-        T   Or  (IT arg, MO_t memOrder)             __NE___ { return fetch_or(  arg, memOrder ) | arg; }
-        T   Xor (IT arg, MO_t memOrder)             __NE___ { return fetch_xor( arg, memOrder ) ^ arg; }
+        T   And (IT arg, MO_t memOrder)                 __NE___ { return fetch_and( arg, memOrder ) & arg; }
+        T   Or  (IT arg, MO_t memOrder)                 __NE___ { return fetch_or(  arg, memOrder ) | arg; }
+        T   Xor (IT arg, MO_t memOrder)                 __NE___ { return fetch_xor( arg, memOrder ) ^ arg; }
 
-        T   SetBit (usize bit)                      __NE___ { return fetch_or( IT{1} << bit ); }
-        T   ResetBit (usize bit)                    __NE___ { return fetch_and( ~(IT{1} << bit) ); }
+        T   SetBit (usize bit)                          __NE___ { return fetch_or( IT{1} << bit ); }
+        T   ResetBit (usize bit)                        __NE___ { return fetch_and( ~(IT{1} << bit) ); }
 
-        T   SetBit (usize bit, MO_t memOrder)       __NE___ { return fetch_or( IT{1} << bit, memOrder ); }
-        T   ResetBit (usize bit, MO_t memOrder)     __NE___ { return fetch_and( ~(IT{1} << bit), memOrder ); }
+        T   SetBit (usize bit, MO_t memOrder)           __NE___ { return fetch_or( IT{1} << bit, memOrder ); }
+        T   ResetBit (usize bit, MO_t memOrder)         __NE___ { return fetch_and( ~(IT{1} << bit), memOrder ); }
 
-        T  Max (T arg)                              __NE___
+        T  Max (T arg)                                  __NE___
         {
             T   exp = load();
             for (; (exp <= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
 
-        T  Min (T arg)                              __NE___
+        T  Min (T arg)                                  __NE___
         {
             T   exp = load();
             for (; (exp >= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
@@ -280,7 +276,7 @@ namespace AE::Threading
         static constexpr MO_t   OnFailure   = Failure;
 
         STATIC_ASSERT( StdAtomic<T>::is_always_lock_free );
-        STATIC_ASSERT( IsFloatPoint<T> );
+        STATIC_ASSERT( Base::IsFloatPoint<T> );
         STATIC_ASSERT( sizeof(IT) == sizeof(T) );
 
 
@@ -320,46 +316,46 @@ namespace AE::Threading
         ND_ bool    CAS_Loop (INOUT T& expected, T desired)                             __NE___ { return _value.compare_exchange_strong( INOUT _Ref(expected), _Cast(desired), OnSuccess, OnFailure ); }
         ND_ bool    CAS_Loop (INOUT T& expected, T desired, MO_t success, MO_t failure) __NE___ { return _value.compare_exchange_strong( INOUT _Ref(expected), _Cast(desired), success, failure ); }
 
-        T   fetch_add (T arg)                   __NE___ { return fetch_add( arg, OnSuccess ); }
-        T   fetch_sub (T arg)                   __NE___ { return fetch_sub( arg, OnSuccess ); }
+        T   fetch_add (T arg)                           __NE___ { return fetch_add( arg, OnSuccess ); }
+        T   fetch_sub (T arg)                           __NE___ { return fetch_sub( arg, OnSuccess ); }
 
-        T   Add (T arg)                         __NE___ { return Add( arg, OnSuccess ); }
-        T   Sub (T arg)                         __NE___ { return Sub( arg, OnSuccess ); }
-        T   Inc ()                              __NE___ { return Add( T{1}, OnSuccess ); }
-        T   Dec ()                              __NE___ { return Sub( T{1}, OnSuccess ); }
+        T   Add (T arg)                                 __NE___ { return Add( arg, OnSuccess ); }
+        T   Sub (T arg)                                 __NE___ { return Sub( arg, OnSuccess ); }
+        T   Inc ()                                      __NE___ { return Add( T{1}, OnSuccess ); }
+        T   Dec ()                                      __NE___ { return Sub( T{1}, OnSuccess ); }
 
-        T   fetch_add (T arg, MO_t memOrder)    __NE___
+        T   fetch_add (T arg, MO_t memOrder)            __NE___
         {
             T   exp = load();
             for (; not CAS( INOUT exp, exp + arg, memOrder, OnFailure );) { ThreadUtils::Pause(); }
             return exp;
         }
 
-        T   fetch_sub (T arg, MO_t memOrder)    __NE___
+        T   fetch_sub (T arg, MO_t memOrder)            __NE___
         {
             T   exp = load();
             for (; not CAS( INOUT exp, exp - arg, memOrder, OnFailure );) { ThreadUtils::Pause(); }
             return exp;
         }
 
-        T   Add (T arg, MO_t memOrder)          __NE___ { return fetch_add( arg, memOrder ) + arg; }
-        T   Sub (T arg, MO_t memOrder)          __NE___ { return fetch_sub( arg, memOrder ) - arg; }
-        T   Inc (MO_t memOrder)                 __NE___ { return Add( T{1}, memOrder ); }
-        T   Dec (MO_t memOrder)                 __NE___ { return Sub( T{1}, memOrder ); }
+        T   Add (T arg, MO_t memOrder)                  __NE___ { return fetch_add( arg, memOrder ) + arg; }
+        T   Sub (T arg, MO_t memOrder)                  __NE___ { return fetch_sub( arg, memOrder ) - arg; }
+        T   Inc (MO_t memOrder)                         __NE___ { return Add( T{1}, memOrder ); }
+        T   Dec (MO_t memOrder)                         __NE___ { return Sub( T{1}, memOrder ); }
 
-        Self&  operator += (T arg)              __NE___ { fetch_add( arg );  return *this; }
-        Self&  operator -= (T arg)              __NE___ { fetch_sub( arg );  return *this; }
-        Self&  operator ++ ()                   __NE___ { fetch_add( T{1} ); return *this; }
-        Self&  operator -- ()                   __NE___ { fetch_sub( T{1} ); return *this; }
+        Self&  operator += (T arg)                      __NE___ { fetch_add( arg );  return *this; }
+        Self&  operator -= (T arg)                      __NE___ { fetch_sub( arg );  return *this; }
+        Self&  operator ++ ()                           __NE___ { fetch_add( T{1} ); return *this; }
+        Self&  operator -- ()                           __NE___ { fetch_sub( T{1} ); return *this; }
 
-        T  Max (T arg)                          __NE___
+        T  Max (T arg)                                  __NE___
         {
             T   exp = load();
             for (; (exp <= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
             return exp;
         }
 
-        T  Min (T arg)                          __NE___
+        T  Min (T arg)                                  __NE___
         {
             T   exp = load();
             for (; (exp >= arg) and not CAS( INOUT exp, arg );) { ThreadUtils::Pause(); }
@@ -402,18 +398,18 @@ namespace AE::Threading
 
     // methods
     public:
-        TAtomic ()                                      __NE___ {}
-        explicit TAtomic (value_type value)             __NE___ : _value{ value } {}
+        TAtomic ()                                          __NE___ {}
+        explicit TAtomic (value_type value)                 __NE___ : _value{ value } {}
 
-        TAtomic (const Self &)                          = delete;
-        TAtomic (Self &&)                               = delete;
+        TAtomic (const Self &)                              = delete;
+        TAtomic (Self &&)                                   = delete;
 
-        Self&  operator = (const Self &)                = delete;
-        Self&  operator = (Self &&)                     = delete;
+        Self&  operator = (const Self &)                    = delete;
+        Self&  operator = (Self &&)                         = delete;
 
-            void        store (value_type desired)      __NE___ { _value.store( desired, OnSuccess ); }
-        ND_ value_type  load ()                         C_NE___ { return _value.load( OnSuccess ); }
-        ND_ value_type  exchange (value_type desired)   __NE___ { return _value.exchange( desired, OnSuccess ); }
+            void        store (value_type desired)          __NE___ { _value.store( desired, OnSuccess ); }
+        ND_ value_type  load ()                             C_NE___ { return _value.load( OnSuccess ); }
+        ND_ value_type  exchange (value_type desired)       __NE___ { return _value.exchange( desired, OnSuccess ); }
 
             void        store (value_type desired, MO_t memOrder)       __NE___ { _value.store( desired, memOrder ); }
         ND_ value_type  load (MO_t memOrder)                            C_NE___ { return _value.load( memOrder ); }

@@ -6,5 +6,5 @@ if (TARGET "GLSLang-lib")
 
     target_include_directories( "ShaderTrace" PUBLIC "Public" )
     target_compile_definitions( "ShaderTrace" PUBLIC "AE_ENABLE_GLSL_TRACE" )
-    target_link_libraries( "ShaderTrace" PUBLIC "Base" "Serializing" "GLSLang-lib" )
+    target_link_libraries( "ShaderTrace" PUBLIC "Serializing" "GLSLang-lib" )
 endif()

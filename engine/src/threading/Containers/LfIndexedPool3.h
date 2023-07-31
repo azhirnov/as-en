@@ -3,9 +3,6 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "base/CompileTime/Math.h"
-# include "base/Math/BitMath.h"
-# include "base/Memory/UntypedAllocator.h"
 # include "threading/Primitives/Atomic.h"
 # include "threading/Primitives/SpinLock.h"
 #endif

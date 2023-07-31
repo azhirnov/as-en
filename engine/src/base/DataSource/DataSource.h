@@ -107,10 +107,10 @@ namespace AE::Base
         {
             CATCH_ERR( str.resize( length ));
 
-            Bytes   expected_size   { sizeof(str[0]) * str.length() };
-            Bytes   current_size    = ReadBlock( offset, str.data(), expected_size );
+            Bytes   expected_size   { sizeof(T) * length };
+            Bytes   current_size    = ReadBlock( offset, OUT str.data(), expected_size );
 
-            str.resize( usize(current_size / sizeof(str[0])) ); // nothrow
+            CATCH_ERR( str.resize( usize(current_size / sizeof(T)) ));
 
             return str.length() == length;
         }
@@ -130,9 +130,9 @@ namespace AE::Base
             CATCH_ERR( arr.resize( count ));
 
             Bytes   expected_size   { sizeof(arr[0]) * arr.size() };
-            Bytes   current_size    = ReadBlock( offset, arr.data(), expected_size );
+            Bytes   current_size    = ReadBlock( offset, OUT arr.data(), expected_size );
 
-            arr.resize( usize(current_size / sizeof(arr[0])) ); // nothrow
+            CATCH_ERR( arr.resize( usize(current_size / sizeof(arr[0])) ));
 
             return arr.size() == count;
         }
@@ -149,7 +149,7 @@ namespace AE::Base
         template <typename T>
         EnableIf<IsTrivial<T>, bool>  Read (Bytes offset, OUT T &data) __NE___
         {
-            return ReadBlock( offset, AddressOf(data), Sizeof(data) ) == Sizeof(data);
+            return ReadBlock( offset, OUT AddressOf(data), Sizeof(data) ) == Sizeof(data);
         }
     };
 
@@ -254,7 +254,7 @@ namespace AE::Base
         };
 
     private:
-        static constexpr uint   _BufferSize = 1 << 13;
+        static constexpr uint   _BufferSize = 1 << 12;
 
 
     // methods

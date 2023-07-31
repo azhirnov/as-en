@@ -52,7 +52,7 @@ namespace AE::ECS
 
         static void  Ctor (OUT void *comp) __NE___
         {
-            PlacementNew<Comp>( comp );
+            PlacementNew<Comp>( OUT comp );
         }
     };
 
@@ -76,15 +76,12 @@ namespace AE::ECS
 
 } // AE::ECS
 
-namespace std
-{
-    template <uint32_t UID>
-    struct hash< AE::ECS::_hidden_::_ComponentID<UID> >
-    {
-        ND_ size_t  operator () (const AE::ECS::_hidden_::_ComponentID<UID> &id) C_NE___
-        {
-            return AE::Math::BitRotateLeft( size_t(id.value), UID*8 );
-        }
-    };
 
-} // std
+template <uint32_t UID>
+struct std::hash< AE::ECS::_hidden_::_ComponentID<UID> >
+{
+    ND_ size_t  operator () (const AE::ECS::_hidden_::_ComponentID<UID> &id) C_NE___
+    {
+        return AE::Math::BitRotateLeft( size_t(id.value), UID*8 );
+    }
+};

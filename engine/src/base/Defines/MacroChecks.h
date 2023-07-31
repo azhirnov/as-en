@@ -2,6 +2,12 @@
 
 #pragma once
 
+#ifndef __cplusplus
+#   error Requires C++ compiler!
+#endif
+#if (__cplusplus != 199711L) and (__cplusplus < 201703L)
+#   error Requires at least C++17 support
+#endif
 
 #if defined(AE_CFG_DEBUG)
 #  if defined(AE_CFG_DEVELOP) or defined(AE_CFG_PROFILE) or defined(AE_CFG_RELEASE)
@@ -112,13 +118,13 @@
 #endif
 
 #ifdef AE_COMPILER_GCC
-# ifndef __GNUC__
+# if not (defined(__GNUC__) or defined(__MINGW32__))
 #   error not a GNU C compiler!
 # endif
 #endif
 
 #ifdef AE_COMPILER_CLANG
-# ifndef __clang__
+# if not (defined(__clang__) or defined(__llvm__ ))
 #   error not a Clang compiler!
 # endif
 #endif
@@ -397,6 +403,8 @@
 #     pragma detect_mismatch( "AE_SIMD_SSE", "31" )
 #   elif AE_SIMD_SSE == 30
 #     pragma detect_mismatch( "AE_SIMD_SSE", "30" )
+#   elif AE_SIMD_SSE == 20
+#     pragma detect_mismatch( "AE_SIMD_SSE", "20" )
 #   else
 #     error unsupported value in 'AE_SIMD_SSE'
 #   endif
@@ -426,6 +434,24 @@
 #   pragma detect_mismatch( "AE_OPTIMIZE_IDS", "1" )
 #  else
 #   pragma detect_mismatch( "AE_OPTIMIZE_IDS", "0" )
+#  endif
+
+#  ifdef AE_ENABLE_ABSEIL
+#   pragma detect_mismatch( "AE_ENABLE_ABSEIL", "1" )
+#  else
+#   pragma detect_mismatch( "AE_ENABLE_ABSEIL", "0" )
+#  endif
+
+#  ifdef AE_ENABLE_BROTLI
+#   pragma detect_mismatch( "AE_ENABLE_BROTLI", "1" )
+#  else
+#   pragma detect_mismatch( "AE_ENABLE_BROTLI", "0" )
+#  endif
+
+#  ifdef AE_ENABLE_UTF8PROC
+#   pragma detect_mismatch( "AE_ENABLE_UTF8PROC", "1" )
+#  else
+#   pragma detect_mismatch( "AE_ENABLE_UTF8PROC", "0" )
 #  endif
 
 #endif // AE_CPP_DETECT_MISMATCH

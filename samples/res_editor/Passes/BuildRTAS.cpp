@@ -13,12 +13,25 @@ namespace AE::ResEditor
 =================================================
 */
     BuildRTGeometry::BuildRTGeometry (RC<RTGeometry>    dstGeometry,
-                                      RC<Buffer>        indirectBuffer,
-                                      StringView        dbgName) :
+                                      bool              indirect,
+                                      StringView        dbgName) __Th___ :
         _dstGeometry{ RVRef(dstGeometry) },
-        _indirectBuffer{ indirectBuffer },
         _dbgName{ dbgName }
-    {}
+    {
+        auto&   feats = RenderTaskScheduler().GetDevice().GetProperties().accelerationStructureFeats;
+        CHECK_THROW_MSG( feats.accelerationStructure,
+            "AS build is not supported" );
+
+        if ( indirect )
+        {
+            if ( feats.accelerationStructureIndirectBuild )
+                _mode = RTGeometry::EBuildMode::Indirect;
+            else
+                _mode = RTGeometry::EBuildMode::IndirectEmulated;
+        }
+        else
+            _mode = RTGeometry::EBuildMode::Direct;
+    }
 
 /*
 =================================================
@@ -28,12 +41,12 @@ namespace AE::ResEditor
     bool  BuildRTGeometry::Execute (SyncPassData &pd) __NE___
     {
         DirectCtx::ASBuild  ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
+        bool                result;
 
-        //ctx.BuildIndirect( _indirectBuffer->GetBufferId(), 0_b );
-
+        result = _dstGeometry->Build( ctx, _mode );
 
         pd.cmdbuf = ctx.ReleaseCommandBuffer();
-        return true;
+        return result;
     }
 
 /*
@@ -41,7 +54,7 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  BuildRTGeometry::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    bool  BuildRTGeometry::Update (TransferCtx_t &, const UpdatePassData &) __NE___
     {
         return true;
     }
@@ -55,12 +68,25 @@ namespace AE::ResEditor
 =================================================
 */
     BuildRTScene::BuildRTScene (RC<RTScene> dstScene,
-                                RC<Buffer>  indirectBuffer,
-                                StringView  dbgName) :
+                                bool        indirect,
+                                StringView  dbgName) __Th___ :
         _dstScene{ RVRef(dstScene) },
-        _indirectBuffer{ indirectBuffer },
         _dbgName{ dbgName }
-    {}
+    {
+        auto&   feats = RenderTaskScheduler().GetDevice().GetProperties().accelerationStructureFeats;
+        CHECK_THROW_MSG( feats.accelerationStructure,
+            "AS build is not supported" );
+
+        if ( indirect )
+        {
+            if ( feats.accelerationStructureIndirectBuild )
+                _mode = RTGeometry::EBuildMode::Indirect;
+            else
+                _mode = RTGeometry::EBuildMode::IndirectEmulated;
+        }
+        else
+            _mode = RTGeometry::EBuildMode::Direct;
+    }
 
 /*
 =================================================
@@ -70,12 +96,12 @@ namespace AE::ResEditor
     bool  BuildRTScene::Execute (SyncPassData &pd) __NE___
     {
         DirectCtx::ASBuild  ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName} };
+        bool                result;
 
-        //ctx.BuildIndirect( _indirectBuffer->GetBufferId(), 0_b );
-
+        result = _dstScene->Build( ctx, _mode );
 
         pd.cmdbuf = ctx.ReleaseCommandBuffer();
-        return true;
+        return result;
     }
 
 /*
@@ -83,7 +109,7 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  BuildRTScene::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    bool  BuildRTScene::Update (TransferCtx_t &, const UpdatePassData &) __NE___
     {
         return true;
     }

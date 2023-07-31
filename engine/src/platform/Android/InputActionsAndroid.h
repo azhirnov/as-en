@@ -39,6 +39,7 @@ namespace AE::App
         void  SetKey (int key, EGestureState state, Duration_t timestamp, uint count)               __NE___;
         void  SetTouch (uint touchId, float x, float y, EGestureState state, Duration_t timestamp)  __NE___;
         void  SetMonitor (const uint2 &surfaceSize, const Monitor &)                                __NE___;
+        void  SetSensor (int sensorId, ArrayView<float> values)                                     __NE___;
 
         void  SetQueue (DubleBufferedQueue *)                                                       __NE___;
 

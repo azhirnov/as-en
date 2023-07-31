@@ -4,7 +4,6 @@
 
 #include "scripting/Impl/ScriptEngine.h"
 #include "scripting/Impl/ScriptTypes.h"
-#include "base/Algorithms/StringUtils.h"
 
 namespace AE::Scripting
 {

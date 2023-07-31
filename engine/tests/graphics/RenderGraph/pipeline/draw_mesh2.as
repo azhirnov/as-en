@@ -46,8 +46,8 @@ void ASmain ()
         RC<MeshPipelineSpec>    spec = ppln.AddSpecialization( "draw_mesh2" );
         spec.AddToRenderTech( "DrawMeshesTestRT", "DrawMeshes_1" );
         spec.SetViewportCount( 1 );
-        spec.SetTaskGroupSize( 1 );
-        spec.SetMeshGroupSize( 3 );
+        spec.SetTaskLocalSize( 1 );
+        spec.SetMeshLocalSize( 3 );
 
         RenderState rs;
         spec.SetRenderState( rs );

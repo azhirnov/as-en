@@ -105,14 +105,6 @@ namespace AE::Graphics
     };
 
 
-
-    enum class VDeviceAddress : VkDeviceAddress { Unknown = 0 };
-
-    ND_ inline VkDeviceAddress  operator + (VDeviceAddress addr, Bytes offset) {
-        return VkDeviceAddress(addr) + VkDeviceAddress(offset);
-    }
-
-
 } // AE::Graphics
 
 #endif // AE_ENABLE_VULKAN

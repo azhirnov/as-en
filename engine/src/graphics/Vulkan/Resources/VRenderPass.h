@@ -3,7 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-# include "base/Containers/FixedTupleArray.h"
 # include "graphics/Public/RenderPassDesc.h"
 # include "graphics/Vulkan/VCommon.h"
 # include "Packer/RenderPassPack.h"

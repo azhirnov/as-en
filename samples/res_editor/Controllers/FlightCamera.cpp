@@ -18,7 +18,7 @@ namespace AE::ResEditor
         _initialPos{initialPos}
     {
         CHECK_THROW( _dynDim );
-        Reset();
+        _Reset();
     }
 
 /*
@@ -44,7 +44,7 @@ namespace AE::ResEditor
                 thrust += reader.Data<float>( hdr.offset );
 
             if_unlikely( hdr.name == InputActionName{"FlightCamera.Zoom"} )
-                zoom += reader.Data<packed_float2>( hdr.offset ).x;
+                zoom += reader.Data<packed_float2>( hdr.offset ).y;
 
             if_unlikely( hdr.name == InputActionName{"FlightCamera.Reset"} )
                 reset = true;
@@ -54,12 +54,10 @@ namespace AE::ResEditor
         EXLOCK( _guard );
 
         if_unlikely( reset )
-            return Reset();
-
-        const float dt = Min( timeDelta.count(), 1.f/30.f );
+            return _Reset();
 
         _engineThrust = Clamp( _engineThrust + thrust, _minThrust, _maxThrust );
-        move.x -= _engineThrust * dt;
+        move.x -= _engineThrust * timeDelta.count();
 
         _camera.Rotate( Rad{yaw_pitch_roll.x * _rotationScale.x},
                         Rad{yaw_pitch_roll.y * _rotationScale.y},
@@ -68,7 +66,7 @@ namespace AE::ResEditor
 
         if ( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimAspect ))
         {
-            _zoom = Clamp( _zoom + zoom, _minZoom, _maxZoom );
+            _zoom = Clamp( _zoom - zoom * _zoomStep, _minZoom, _maxZoom );
             _camera.SetPerspective( _fovY * _zoom, _dimAspect, _clipPlanes.x, _clipPlanes.y );
         }
 
@@ -77,10 +75,10 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    Reset
+    _Reset
 =================================================
 */
-    void  FlightCamera::Reset () __NE___
+    void  FlightCamera::_Reset ()
     {
         _camera.SetPosition( _initialPos );
         _camera.SetRotation( QuatF::Identity() );
@@ -100,8 +98,8 @@ namespace AE::ResEditor
 */
     void  FlightCamera::_UpdateMatrix ()
     {
-        _view           = _camera.GetCamera().ToViewMatrix();
-        _viewProj       = _camera.GetCamera().ToViewProjMatrix();
+        _view           = _camera.ToViewMatrix();
+        _viewProj       = _camera.ToViewProjMatrix();
         _invViewProj    = _viewProj.Inversed();
     }
 
@@ -112,7 +110,7 @@ namespace AE::ResEditor
 */
     void  FlightCamera::CopyTo (OUT AE::ShaderTypes::CameraData &camera) C_NE___
     {
-        _CopyToCameraData( OUT camera, _camera.GetFrustum() );
+        _CopyToCameraData( OUT camera, _camera.Frustum() );
     }
 
 

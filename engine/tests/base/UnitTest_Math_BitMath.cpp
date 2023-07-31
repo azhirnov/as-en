@@ -1,7 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Math/BitMath.h"
-#include "base/CompileTime/Math.h"
 #include "UnitTest_Common.h"
 
 namespace

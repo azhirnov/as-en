@@ -211,9 +211,7 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
-{
-
+namespace std {
     template <typename T, typename A>
     void  swap (AE::Base::StdAllocatorRef<T,A> &lhs, AE::Base::StdAllocatorRef<T,A> &rhs) __NE___
     {
@@ -221,5 +219,4 @@ namespace std
         lhs = AE::Base::RVRef(rhs);
         rhs = AE::Base::RVRef(tmp);
     }
-
-} // std
+}

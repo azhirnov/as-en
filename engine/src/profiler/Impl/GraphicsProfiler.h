@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "threading/Primitives/Atomic.h"
-#include "graphics/Public/GraphicsImpl.h"
 #include "profiler/Impl/ProfilerUtils.h"
 
 namespace AE::Profiler

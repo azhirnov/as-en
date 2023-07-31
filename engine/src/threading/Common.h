@@ -1,15 +1,16 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
+    All classes in 'Threading' module must be thread-safe.
+
     Prefixes:
-        Lf  - lock-free / wait-free
-        Ts  - thread-safe (with locks)
+        Lf      - lock-free / wait-free
+        Ts      - thread-safe (with locks)
+        Async   - thread-safe (with task system)
 */
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
-#include "base/Utils/Threading.h"
-#include "base/Utils/RefCounter.h"
+#include "threading/Threading.pch.h"
 
 #if not defined(AE_ENABLE_DATA_RACE_CHECK) and (defined(AE_DEBUG) or defined(AE_CI_BUILD))
 #   define AE_ENABLE_DATA_RACE_CHECK    1

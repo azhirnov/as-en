@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/TaskSystem/ThreadManager.h"
 #include "UnitTest_Common.h"
 
 #ifndef AE_DISABLE_THREADS
@@ -87,7 +86,7 @@ namespace
         ExeOrder    value;  // access to value protected by internal synchronizations
         auto        task1 = Cast<Test1_Task1>( scheduler->Run<Test1_Task1>( Tuple{ArgRef(value)} ));
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ task1 }));
         TEST( task1->Status() == EStatus::Completed );
@@ -174,7 +173,7 @@ namespace
         AsyncTask   task1   = scheduler->Run<Test2_Task1>( Tuple{ArgRef(value)} );
         AsyncTask   task2   = scheduler->Run<Test2_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ task1, task2 }));
         TEST( task1->Status() == EStatus::Completed );
@@ -277,8 +276,8 @@ namespace
         AsyncTask   task1   = scheduler->Run<Test3_Task2>( Tuple{ArgRef(value)} );
         AsyncTask   task2   = scheduler->Run<Test3_Task3>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ task1, task2 }));
         TEST( task1->Status() == EStatus::Completed );

@@ -11,19 +11,7 @@
 #   error AngelScript is not available
 #endif
 
-// AngelScript + Addons //
-#include "base/Defines/StdInclude.h"
-#include "angelscript.h"
-
-#include "base/Containers/Ptr.h"
-#include "base/Containers/ArrayView.h"
-#include "base/Containers/NtStringView.h"
-#include "base/CompileTime/TypeList.h"
-#include "base/CompileTime/FunctionInfo.h"
-#include "base/Math/BitMath.h"
-#include "base/Utils/RefCounter.h"
-#include "base/Utils/SourceLoc.h"
-#include "base/Utils/FileSystem.h"
+#include "scripting/Scripting.pch.h"
 
 #ifndef AE_DBG_SCRIPTS
 # ifdef AE_DEBUG
@@ -154,8 +142,8 @@ namespace AE::Scripting
         ND_ bool  Create (Bool genCppHeader = False{})                                      __NE___;
         ND_ bool  Create (AngelScript::asIScriptEngine *se, Bool genCppHeader = False{})    __NE___;
 
-        ND_ ScriptModulePtr  CreateModule (ArrayView<ModuleSource> src,
-                                           ArrayView<StringView> defines = Default)         __NE___;
+        ND_ ScriptModulePtr  CreateModule (ArrayView<ModuleSource>  src,
+                                           ArrayView<StringView>    defines = Default)      __NE___;
 
         template <typename Fn>
         ND_ ScriptFnPtr<Fn>  CreateScript (StringView entry, const ScriptModulePtr &module) __NE___;

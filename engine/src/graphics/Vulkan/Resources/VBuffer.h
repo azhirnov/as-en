@@ -20,7 +20,7 @@ namespace AE::Graphics
     // variables
     private:
         VkBuffer            _buffer         = Default;
-        VDeviceAddress      _address        = Default;
+        DeviceAddress       _address        = Default;
         BufferDesc          _desc;
 
         Strong<MemoryID>    _memoryId;
@@ -41,7 +41,7 @@ namespace AE::Graphics
         ND_ VulkanBufferDesc    GetNativeDescription () C_NE___;
 
         ND_ VkBuffer            Handle ()               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _buffer; }
-        ND_ VDeviceAddress      GetDeviceAddress ()     C_NE___ { DRC_SHAREDLOCK( _drCheck );  ASSERT( HasDeviceAddress() );  return _address; }
+        ND_ DeviceAddress       GetDeviceAddress ()     C_NE___ { DRC_SHAREDLOCK( _drCheck );  ASSERT( HasDeviceAddress() );  return _address; }
         ND_ MemoryID            MemoryId ()             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
 
         ND_ BufferDesc const&   Description ()          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }

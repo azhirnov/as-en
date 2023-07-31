@@ -1,19 +1,12 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#ifdef AE_ENABLE_SCRIPTING
-# include "base/DataSource/FileStream.h"
-# include "base/Algorithms/StringUtils.h"
+#include "pch/Scripting.h"
+#include "pch/VFS.h"
+#include "vfs/Archive/ArchivePacker.h"
 
-# include "scripting/Bindings/CoreBindings.h"
-# include "scripting/Impl/ClassBinder.h"
-# include "scripting/Impl/EnumBinder.h"
-# include "scripting/Impl/ScriptFn.h"
-
-# include "vfs/Archive/ArchivePacker.h"
-
-# include "pipeline_compiler/PipelineCompilerImpl.h"
-# include "input_actions/InputActionsBinding.h"
-# include "asset_packer/AssetPacker.h"
+#include "pipeline_compiler/PipelineCompilerImpl.h"
+#include "input_actions/InputActionsBinding.h"
+#include "asset_packer/AssetPacker.h"
 
 using namespace AE;
 using namespace AE::Base;
@@ -64,7 +57,9 @@ namespace
 
     ND_ static BasicString<CharType>  ConvertString (const WString &src)
     {
-        return src;
+        BasicString<CharType>   dst;
+        dst.assign( src.begin(), src.end() );
+        return dst;
     }
 
     ND_ static BasicString<CharType>  ConvertString (const Path &src)
@@ -290,7 +285,7 @@ namespace
                     {
                         const auto  ext = path.Get().extension().string();
                         if ( ext == ".as" )
-                            _files.push_back( path.Get().native() );
+                            _files.push_back( ConvertString( path.Get() ));
                     }
                 }
             }
@@ -551,12 +546,17 @@ namespace
         _s_OutputDir << '/';
 
         const auto  ansi_path = ToString( respackScript );
-
-        FileRStream     file {respackScript};
-        CHECK_ERR( file.IsOpen() );
-
         String      script;
-        CHECK_ERR( file.Read( file.RemainingSize(), OUT script ));
+
+        {
+            FileRStream     file {respackScript};
+
+            CHECK_ERR_MSG( file.IsOpen(),
+                "Failed to open script '"s << ansi_path << "'" );
+
+            CHECK_ERR_MSG( file.Read( file.RemainingSize(), OUT script ),
+                "Failed to read script '"s << ansi_path << "'" );
+        }
 
         ScriptEnginePtr se = MakeRC<ScriptEngine>();
         CHECK_ERR( se->Create( True{"gen cpp header"} ));
@@ -598,5 +598,3 @@ int main (int argc, char* argv[])
                           FileSystem::ToAbsolute(output_dir) ), -2 );
     return 0;
 }
-
-#endif // AE_ENABLE_SCRIPTING

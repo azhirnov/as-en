@@ -53,15 +53,12 @@ namespace AE::Base
 
 } // AE::Base
 
-namespace std
-{
-    template <>
-    struct hash< AE::Graphics::ImageLayer >
-    {
-        ND_ size_t  operator () (const AE::Graphics::ImageLayer &value) C_NE___
-        {
-            return size_t(AE::Base::HashOf( value.Get() ));
-        }
-    };
 
-} // std
+template <>
+struct std::hash< AE::Graphics::ImageLayer >
+{
+    ND_ size_t  operator () (const AE::Graphics::ImageLayer &value) C_NE___
+    {
+        return size_t(AE::Base::HashOf( value.Get() ));
+    }
+};

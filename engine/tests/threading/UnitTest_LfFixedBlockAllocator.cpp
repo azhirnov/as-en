@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/Memory/LfFixedBlockAllocator.h"
 #include "UnitTest_Common.h"
 
 namespace

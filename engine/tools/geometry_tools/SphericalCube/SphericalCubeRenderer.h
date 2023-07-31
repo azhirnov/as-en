@@ -3,10 +3,7 @@
 #pragma once
 
 #ifdef AE_GEOMTOOLS_HAS_GRAPHICS
-
-#include "SphericalCubeGen.h"
-#include "graphics/Public/CommandBuffer.h"
-#include "graphics/Public/ResourceManager.h"
+# include "geometry_tools/SphericalCube/SphericalCubeGen.h"
 
 namespace AE::GeometryTools
 {
@@ -42,8 +39,8 @@ namespace AE::GeometryTools
         SphericalCubeRenderer ()                                                                                            __NE___ {}
         ~SphericalCubeRenderer ()                                                                                           __NE___;
 
-        ND_ bool  Create (IResourceManager &, ITransferContext &ctx, uint minLod, uint maxLod,
-                          bool quads, GfxMemAllocatorPtr gfxAlloc)                                                          __NE___;
+        ND_ bool  Create (IResourceManager &, ITransferContext &ctx, uint minLod, uint maxLod, Bool quads,
+                          EBufferUsage usage, GfxMemAllocatorPtr gfxAlloc)                                                  __NE___;
             void  Destroy (IResourceManager &)                                                                              __NE___;
 
         ND_ bool        IsCreated ()                                                                                        C_NE___ { return _vertexBuffer and _indexBuffer; }
@@ -56,6 +53,9 @@ namespace AE::GeometryTools
 
             template <typename DrawCtx>
             bool  Draw (DrawCtx &ctx, uint lod)                                                                             C_NE___;
+
+            template <typename DrawCtx>
+            bool  DrawMeshes (DrawCtx &ctx, uint lod)                                                                       C_NE___;
 
         ND_ bool  GetVertexBuffer (uint lod, uint face, OUT BufferID &id, OUT Range<Bytes> &range, OUT uint2 &vertCount)    C_NE___;
         ND_ bool  GetIndexBuffer (uint lod, uint face, OUT BufferID &id, OUT Range<Bytes> &range, OUT uint &indexCount)     C_NE___;
@@ -80,7 +80,6 @@ namespace AE::GeometryTools
     bool  SphericalCubeRenderer::Draw (DrawCtx &ctx, uint lod) C_NE___
     {
         CHECK_ERR( lod >= _minLod and lod <= _maxLod );
-        lod = Clamp( lod, _minLod, _maxLod );
 
         BufferID        vb, ib;
         Range<Bytes>    vb_range, ib_range;
@@ -103,6 +102,18 @@ namespace AE::GeometryTools
 
         ctx.DrawIndexed( cmd );
         return true;
+    }
+
+/*
+=================================================
+    DrawMeshes
+=================================================
+*/
+    template <typename DrawCtx>
+    bool  SphericalCubeRenderer::DrawMeshes (DrawCtx &ctx, uint lod) C_NE___
+    {
+        CHECK_ERR( lod >= _minLod and lod <= _maxLod );
+
     }
 
 

@@ -460,6 +460,8 @@ namespace AE::Graphics::_hidden_
 
             [geom_arr addObject : dst];
 
+            ASSERT( Bytes{data.vertexStride} >= 12_b );
+            ASSERT( Bytes{data.vertexStride} % 4_b == 0 );
             ASSERT( Bytes{data.vertexStride} >= EVertexType_SizeOf( info.vertexFormat ));
             ASSERT( (info.indexType == Default) or (data.indexDataOffset % EIndex_SizeOf( info.indexType ) == 0) );
             ASSERT( vb->Size() >= (data.vertexDataOffset + Bytes{data.vertexStride} * info.maxVertex) );

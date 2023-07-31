@@ -2,14 +2,13 @@
 
 #pragma once
 
-#include "base/DataSource/Stream.h"
 #include "threading/Common.h"
 
 namespace AE::Threading
 {
 
     //
-    // Thread safe Read-only Data Source
+    // Thread-safe Read-only Data Source
     //
 
     template <typename T>
@@ -44,7 +43,7 @@ namespace AE::Threading
 
 
     //
-    // Thread safe Write-only Data Source
+    // Thread-safe Write-only Data Source
     //
 
     template <typename T>

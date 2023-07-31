@@ -17,7 +17,6 @@ namespace
         CommandBatchPtr             batch;
         bool                        isOK        = false;
         RC<GfxLinearMemAllocator>   gfxAlloc;
-        RG::RenderGraph             rg;
     };
 
 
@@ -82,11 +81,12 @@ namespace
         const Bytes     bpp             = 4_b;
         const Bytes     src_row_pitch   = src_dim.x * bpp;
         const auto      format          = EPixelFormat::RGBA8_UNorm;
+        auto&           rg              = RenderTaskScheduler().GetRenderGraph();
 
         t.gfxAlloc = MakeRC<GfxLinearMemAllocator>();
 
-        t.img_1 = t.rg.CreateImage( ImageDesc{}.SetDimension( src_dim ).SetFormat( format ).SetUsage( EImageUsage::Transfer ), "SrcImage", t.gfxAlloc );
-        t.img_2 = t.rg.CreateImage( ImageDesc{}.SetDimension( dst_dim ).SetFormat( format ).SetUsage( EImageUsage::Transfer ), "DstImage", t.gfxAlloc );
+        t.img_1 = rg.CreateImage( ImageDesc{}.SetDimension( src_dim ).SetFormat( format ).SetUsage( EImageUsage::Transfer ), "SrcImage", t.gfxAlloc );
+        t.img_2 = rg.CreateImage( ImageDesc{}.SetDimension( dst_dim ).SetFormat( format ).SetUsage( EImageUsage::Transfer ), "DstImage", t.gfxAlloc );
         CHECK_ERR( t.img_1 and t.img_2 );
 
         img_data.resize( usize(src_row_pitch * src_dim.y) );
@@ -107,9 +107,9 @@ namespace
         t.copy_dim      = src_dim;
         t.img_view      = ImageMemView{ img_data, uint3{}, uint3{src_dim, 0}, 0_b, 0_b, format, EImageAspect::Color };
 
-        AsyncTask   begin   = t.rg.BeginFrame();
+        AsyncTask   begin   = rg.BeginFrame();
 
-        auto        batch   = t.rg.CmdBatch( EQueueType::Graphics, {"CopyImage2"} )
+        auto        batch   = rg.CmdBatch( EQueueType::Graphics, {"CopyImage2"} )
                                 .UseResource( t.img_1 )
                                 .UploadMemory()
                                 .ReadbackMemory()
@@ -118,13 +118,13 @@ namespace
 
         AsyncTask   task1   = batch.Task< CI2_CopyImageTask<Ctx> >( Tuple{ArgRef(t)}, {"Copy image task"} )
                                 .UseResource( t.img_2 )
-                                .Last().Run( Tuple{begin} );
-        AsyncTask   end     = t.rg.EndFrame( Tuple{task1} );
+                                .SubmitBatch().Run( Tuple{begin} );
+        AsyncTask   end     = rg.EndFrame( Tuple{task1} );
 
         CHECK_ERR( Scheduler().Wait({ end }));
         CHECK_ERR( end->Status() == EStatus::Completed );
 
-        CHECK_ERR( t.rg.WaitAll() );
+        CHECK_ERR( rg.WaitAll() );
 
         CHECK_ERR( Scheduler().Wait({ t.result }));
         CHECK_ERR( t.result->Status() == EStatus::Completed );

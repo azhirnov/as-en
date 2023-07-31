@@ -60,6 +60,8 @@ int main ()
         passed &= ClockMap_Test2( vulkan );         // ray tracing
     }
 
+    CHECK_ERR( passed );
+
     vulkan.Destroy();
 
     return 0;

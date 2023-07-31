@@ -7,6 +7,7 @@ void ASmain ()
 
     {
         RC<DescriptorSetLayout>     ds = DescriptorSetLayout( "rquery1.ds0" );
+        ds.AddFeatureSet( "MinInlineRayTracing" );
         ds.StorageImage( EShaderStages::Compute, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
         ds.RayTracingScene( EShaderStages::Compute, "un_RtScene", ArraySize(1) );
     }
@@ -18,7 +19,6 @@ void ASmain ()
 
     RC<ComputePipeline>     ppln = ComputePipeline( "rquery1" );
     ppln.SetLayout( "rquery1.pl" );
-    ppln.AddFeatureSet( "MinInlineRayTracing" );
 
     {
         RC<Shader>  cs  = Shader();

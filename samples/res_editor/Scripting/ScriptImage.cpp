@@ -3,9 +3,6 @@
 #include "res_editor/Scripting/PassCommon.inl.h"
 #include "res_editor/Scripting/ScriptExe.h"
 
-#include "scripting/Impl/ClassBinder.h"
-#include "scripting/Impl/EnumBinder.h"
-
 namespace AE::ResEditor
 {
 namespace
@@ -219,6 +216,11 @@ namespace
             CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::ComputeWrite ));
         }
 
+        if ( AllBits( usage, EResourceUsage::WithHistroy ))
+        {
+            CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::UploadedData ));
+        }
+
         // TODO
     }
 
@@ -273,15 +275,20 @@ namespace
 */
     ScriptDynamicDim*  ScriptImage::Dimension () __Th___
     {
+        return DimensionRC().Detach();
+    }
+
+    ScriptDynamicDimPtr  ScriptImage::DimensionRC () __Th___
+    {
         if ( _base )
-            return _base->Dimension();
+            return _base->DimensionRC();
 
         CHECK_THROW_MSG( IsMutableDimension() );
 
         ScriptDynamicDimPtr result;
         if ( _outDynSize )  result = _outDynSize;
         if ( _inDynSize )   result = _inDynSize;
-        return result.Detach();
+        return result;
     }
 
     RC<DynamicDim>  ScriptImage::DynamicDimension () __Th___
@@ -499,10 +506,12 @@ namespace
                 case EResourceUsage::Present :          _desc.usage |= EImageUsage::TransferSrc;    _desc.options |= EImageOpt::BlitSrc;                        break;
 
                 case EResourceUsage::Unknown :
+                case EResourceUsage::ShaderAddress :
                 case EResourceUsage::ComputeRW :
                 case EResourceUsage::VertexInput :
                 case EResourceUsage::IndirectBuffer :
                 case EResourceUsage::ASBuild :
+                case EResourceUsage::WithHistroy :
                 default :                               RETURN_ERR( "unsupported usage" );
             }
             END_ENUM_CHECKS();
@@ -534,6 +543,9 @@ namespace
             }else{
                 CHECK_ERR_MSG( All( _desc.dimension > uint3{0} ), "failed to create image '"s << _dbgName << "'" );
             }
+
+            CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),
+                "Image '"s << _dbgName << "' description is not supported by GPU device" );
 
             id.image = res_mngr.CreateImage( _desc, _dbgName, gfx_alloc );
             CHECK_ERR_MSG( id.image, "failed to create image '"s << _dbgName << "'" );

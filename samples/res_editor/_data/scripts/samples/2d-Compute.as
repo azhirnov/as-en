@@ -14,7 +14,6 @@
         // render loop
         {
             RC<ComputePass>     pass = ComputePass();
-
             pass.ArgOut( "un_OutImage", rt );
             pass.LocalSize( 8, 8 );
             pass.DispatchThreads( rt.Dimension() );
@@ -25,18 +24,15 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
-
     #include "GlobalIndex.glsl"
-    #include "Matrix.glsl"
 
     void  Main ()
     {
-        float2  uv = GetGlobalCoordUNorm().xy;
-        uv = Transform2D( ub.camera.viewProj, uv );
+        float2  uv = GetGlobalCoordUNormCorrected();
 
-        float4  col = float4(uv, 0.0, 1.0);
+        float3  col = 0.5 + 0.5 * Cos( un_PerPass.time + uv.xyx + float3(0,2,4) );
 
-        gl.image.Store( un_OutImage, GetGlobalCoord().xy, col );
+        gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(col, 1.0) );
     }
 
 #endif

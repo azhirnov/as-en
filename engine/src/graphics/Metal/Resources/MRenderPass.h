@@ -8,7 +8,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-# include "base/Containers/FixedTupleArray.h"
 # include "graphics/Public/RenderPassDesc.h"
 # include "graphics/Metal/MCommon.h"
 # include "Packer/RenderPassPack.h"

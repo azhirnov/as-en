@@ -1,15 +1,17 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    thread-safe: yes
+*/
 
 #pragma once
 
-#include "base/Memory/StackAllocator.h"
 #include "threading/Common.h"
 
 namespace AE::Base
 {
 
     //
-    // Thread-Safe Stack Allocator
+    // Stack Allocator
     //
 
     template <typename AllocatorType, uint MaxBlocks>

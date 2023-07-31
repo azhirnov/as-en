@@ -5,12 +5,6 @@
 #include "platform/Android/AndroidCommon.h"
 
 #ifdef AE_PLATFORM_ANDROID
-# include "base/Utils/FileSystem.h"
-# include "base/Utils/NamedID_HashCollisionCheck.h"
-# include "base/Memory/LinearAllocator.h"
-# include "base/DataSource/Stream.h"
-
-# include "vfs/VirtualFileSystem.h"
 # include "platform/Public/Common.h"
 
 namespace AE::App

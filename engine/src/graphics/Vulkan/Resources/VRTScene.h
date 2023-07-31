@@ -22,7 +22,7 @@ namespace AE::Graphics
         VkAccelerationStructureKHR  _accelStruct    = Default;
         VkBuffer                    _buffer         = Default;
         RTSceneDesc                 _desc;
-        VDeviceAddress              _address        = Default;
+        DeviceAddress               _address        = Default;
 
         Strong<MemoryID>            _memoryId;
 
@@ -39,7 +39,7 @@ namespace AE::Graphics
             void  Destroy (VResourceManager &)                                                                          __NE___;
 
         ND_ VkAccelerationStructureKHR  Handle ()                                                                       C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _accelStruct; }
-        ND_ VDeviceAddress              GetDeviceAddress ()                                                             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _address; }
+        ND_ DeviceAddress               GetDeviceAddress ()                                                             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _address; }
         ND_ RTSceneDesc const&          Description ()                                                                  C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }
         ND_ MemoryID                    MemoryId ()                                                                     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
         ND_ bool                        IsExclusiveSharing ()                                                           C_NE___ { return false; }
@@ -55,6 +55,9 @@ namespace AE::Graphics
                                                       OUT VkAccelerationStructureGeometryKHR &geom,
                                                       OUT VkAccelerationStructureBuildRangeInfoKHR &range,
                                                       OUT VkAccelerationStructureBuildGeometryInfoKHR &buildInfo)       __NE___;
+
+        ND_ static bool             IsSupported (const VResourceManager &, const RTSceneDesc &desc)                     __NE___;
+        ND_ static bool             IsSupported (const VResourceManager &, const RTSceneBuild &build)                   __NE___;
     };
 
 

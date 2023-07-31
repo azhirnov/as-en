@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Algorithms/StringUtils.h"
 #include "res_editor/Scripting/ScriptBaseRenderPass.h"
 #include "res_editor/Scripting/ScriptExe.h"
 
@@ -36,6 +35,9 @@ namespace AE::ResEditor
 
             if ( dst.rt->IsDepthStencil() )
                 dst.name = "DepthStencil";
+
+            if ( dst.rt->IsMutableDimension() )
+                _SetDynamicDimension( dst.rt->DimensionRC() );
         }
         else
             CHECK_THROW_MSG( false, "image is not defined" );
@@ -106,6 +108,9 @@ namespace AE::ResEditor
             CHECK_THROW_MSG( dst.rt );
             CHECK_THROW_MSG( dst.rt->IsColor() );
             dst.rt->AddUsage( EResourceUsage::ColorAttachment );
+
+            if ( dst.rt->IsMutableDimension() )
+                _SetDynamicDimension( dst.rt->DimensionRC() );
         }
         else
             CHECK_THROW_MSG( false, "image is not defined" );

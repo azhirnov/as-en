@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Containers/ArrayView.h"
-#include "base/Math/Vec.h"
+#include "geometry_tools/GeometryTools.pch.h"
 
 namespace AE::GeometryTools
 {
@@ -20,11 +19,25 @@ namespace AE::GeometryTools
     public:
         struct Vertex
         {
+            packed_short4   position;
+            packed_short4   texcoord;   // for CubeMap, use xy for 2D
+            packed_short4   normal;
+            packed_short4   tangent;
+            packed_short4   bitangent;
+        };
+        STATIC_ASSERT( sizeof(Vertex) == 40 );
+
+        struct UnpackedVertex
+        {
             packed_float3   position;
             packed_float3   normal;
             packed_float3   texcoord;   // for CubeMap, use xy for 2D
+            packed_float3   tangent;
+            packed_float3   bitangent;
+
+            UnpackedVertex () = default;
+            UnpackedVertex (const Vertex &);
         };
-        STATIC_ASSERT( sizeof(Vertex) == 36 );
 
         using Index = ushort;
 

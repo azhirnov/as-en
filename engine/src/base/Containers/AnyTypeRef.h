@@ -27,8 +27,8 @@ namespace AE::Base
 
     // variables
     private:
-        std::type_index     _typeId = typeid(void);
-        void *              _ref    = null;
+        std::type_index     _typeId     = typeid(void);
+        void *              _ref        = null;
 
 
     // methods
@@ -36,6 +36,8 @@ namespace AE::Base
         AnyTypeRef ()                                       __NE___ {}
         AnyTypeRef (AnyTypeRef &&)                          __NE___ = default;
         AnyTypeRef (const AnyTypeRef &)                     __NE___ = default;
+
+        AnyTypeRef&  operator = (const AnyTypeRef &rhs)     __NE___ = default;
 
         template <typename T>   AnyTypeRef (T &value, NonAnyTypeRef<T> = 0) __NE___ : _typeId{ typeid(T) }, _ref{ std::addressof(value) } {}
 
@@ -72,8 +74,8 @@ namespace AE::Base
 
     // variables
     private:
-        std::type_index     _typeId = typeid(void);
-        void const *        _ref    = null;
+        std::type_index     _typeId     = typeid(void);
+        void const *        _ref        = null;
 
 
     // methods
@@ -81,6 +83,8 @@ namespace AE::Base
         AnyTypeCRef ()                                          __NE___ {}
         AnyTypeCRef (AnyTypeCRef &&)                            __NE___ = default;
         AnyTypeCRef (const AnyTypeCRef &)                       __NE___ = default;
+
+        AnyTypeCRef&  operator = (const AnyTypeCRef &rhs)       __NE___ = default;
 
         template <typename T>   AnyTypeCRef (T &value, NonAnyTypeRef<T> = 0)                 __NE___ : _typeId{ typeid(T) }, _ref{ std::addressof(value) } {}
         template <typename T>   explicit AnyTypeCRef (const T &value, NonAnyTypeCRef<T> = 0) __NE___ : _typeId{ typeid(T) }, _ref{ std::addressof(value) } {}

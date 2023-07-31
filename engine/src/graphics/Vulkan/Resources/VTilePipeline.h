@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Wrapper for tile pipeline (VK_HUAWEI_subpass_shading).
+*/
 
 #pragma once
 

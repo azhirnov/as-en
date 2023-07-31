@@ -20,41 +20,70 @@ message( STATUS "Run compiler tests with flags: ${CMAKE_REQUIRED_FLAGS}" )
 set( AE_COMPILER_DEFINITIONS "" )
 
 #------------------------------------------------------------------------------
-if (NOT DEFINED AE_STD_FILESYSTEM_SUPPORTED)
-    message( STATUS "Performing Test STD_FILESYSTEM_SUPPORTED" )
-    set( STD_FILESYSTEM_SUPPORTED_SRC 
-        "#include <filesystem>
-        int main () {
-            (void)(std::filesystem::current_path());
-            return 0;
-        }"
-    )
-    try_compile(
-        STD_FILESYSTEM_SUPPORTED
-        SOURCE_FROM_VAR         "main.cpp" STD_FILESYSTEM_SUPPORTED_SRC
-        CXX_STANDARD            17
-        CXX_STANDARD_REQUIRED   YES
-    )
+set( STD_FILESYSTEM_SUPPORTED_SRC 
+    "#include <filesystem>
+    int main () {
+        (void)(std::filesystem::current_path());
+        return 0;
+    }"
+)
+if (${CMAKE_VERSION} VERSION_LESS "3.25.0")
+    check_cxx_source_compiles(
+        "${STD_FILESYSTEM_SUPPORTED_SRC}"
+        STD_FILESYSTEM_SUPPORTED )
     set( AE_STD_FILESYSTEM_SUPPORTED ${STD_FILESYSTEM_SUPPORTED} CACHE INTERNAL "" FORCE )
-    if (STD_FILESYSTEM_SUPPORTED)
-        message( STATUS "Performing Test STD_FILESYSTEM_SUPPORTED - Success" )
-    else()
-        message( STATUS "Performing Test STD_FILESYSTEM_SUPPORTED - Failed" )
+else()
+    # use CXX_STANDARD instead of flags
+    if (NOT DEFINED AE_STD_FILESYSTEM_SUPPORTED)
+        message( STATUS "Performing Test STD_FILESYSTEM_SUPPORTED" )
+        try_compile(
+            STD_FILESYSTEM_SUPPORTED
+            SOURCE_FROM_VAR         "main.cpp" STD_FILESYSTEM_SUPPORTED_SRC
+            CXX_STANDARD            17
+            CXX_STANDARD_REQUIRED   YES
+        )
+        set( AE_STD_FILESYSTEM_SUPPORTED ${STD_FILESYSTEM_SUPPORTED} CACHE INTERNAL "" FORCE )
+        if (STD_FILESYSTEM_SUPPORTED)
+            message( STATUS "Performing Test STD_FILESYSTEM_SUPPORTED - Success" )
+        else()
+            message( STATUS "Performing Test STD_FILESYSTEM_SUPPORTED - Failed" )
+        endif()
     endif()
 endif()
 
 #------------------------------------------------------------------------------
-check_cxx_source_compiles(
+set( STD_CACHELINESIZE_SUPPORTED_SRC 
     "#include <new>
     static constexpr size_t Align = std::hardware_destructive_interference_size;
     int main () {
         return 0;
     }"
-    STD_CACHELINESIZE_SUPPORTED )
+)
+if(${CMAKE_VERSION} VERSION_LESS "3.25.0")
+    check_cxx_source_compiles(
+        "${STD_CACHELINESIZE_SUPPORTED_SRC}"
+        STD_CACHELINESIZE_SUPPORTED )
+else()
+    # use CXX_STANDARD instead of flags
+    if (NOT DEFINED STD_CACHELINESIZE_SUPPORTED)
+        message( STATUS "Performing Test STD_CACHELINESIZE_SUPPORTED" )
+        try_compile(
+            STD_CACHELINESIZE_SUPPORTED
+            SOURCE_FROM_VAR         "main.cpp" STD_CACHELINESIZE_SUPPORTED_SRC
+            CXX_STANDARD            17
+            CXX_STANDARD_REQUIRED   YES
+        )
+        set( STD_CACHELINESIZE_SUPPORTED ${STD_CACHELINESIZE_SUPPORTED} CACHE INTERNAL "" FORCE )
+        if (STD_CACHELINESIZE_SUPPORTED)
+            message( STATUS "Performing Test STD_CACHELINESIZE_SUPPORTED - Success" )
+        else()
+            message( STATUS "Performing Test STD_CACHELINESIZE_SUPPORTED - Failed" )
+        endif()
+    endif()
+endif()
 
 if (STD_CACHELINESIZE_SUPPORTED)
     set( AE_COMPILER_DEFINITIONS "${AE_COMPILER_DEFINITIONS}" "AE_CACHE_LINE=std::hardware_destructive_interference_size" )
-
 elseif (APPLE)
     string( TOUPPER ${CMAKE_SYSTEM_PROCESSOR} PLATFORM_NAME )
     if (${PLATFORM_NAME} STREQUAL "X86_64")
@@ -83,7 +112,7 @@ if (CPP_DETECT_MISMATCH_SUPPORTED)
 endif()
 set( CMAKE_REQUIRED_FLAGS "${AE_DEFAULT_CPPFLAGS}" )
 
-#------------------------------------------------------------------------------
+#==============================================================================
 check_cxx_source_compiles(
     "#include <functional>
     int main () {
@@ -126,31 +155,44 @@ if (HAS_HASHFN_HashBytes)
 endif()
 
 #------------------------------------------------------------------------------
-if (NOT DEFINED AE_HAS_CXX_COROUTINE)
-    message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED" )
-    set( CPP_COROUTINE_SUPPORTED_SRC 
-        "#include <coroutine>
-        #ifndef __cpp_impl_coroutine
-        #   error coroutines are not supported by compiler
-        #endif
-        #ifndef __cpp_lib_coroutine
-        #   error coroutines are not implemented in std
-        #endif
-        int main () {
-            return 0;
-        }"
-    )
-    try_compile(
-        CPP_COROUTINE_SUPPORTED
-        SOURCE_FROM_VAR         "main.cpp" CPP_COROUTINE_SUPPORTED_SRC
-        CXX_STANDARD            20
-        CXX_STANDARD_REQUIRED   YES
-    )
+if (NOT (HAS_HASHFN_HashArrayRepresentation OR HAS_HASHFN_Murmur2OrCityhash OR HAS_HASHFN_HashBytes))
+    message( STATUS "Warning: used fallback hash function" )
+endif()
+
+#==============================================================================
+set( CPP_COROUTINE_SUPPORTED_SRC 
+    "#include <coroutine>
+    #ifndef __cpp_impl_coroutine
+    #   error coroutines are not supported by compiler
+    #endif
+    #ifndef __cpp_lib_coroutine
+    #   error coroutines are not implemented in std
+    #endif
+    int main () {
+        return 0;
+    }"
+)
+if (${CMAKE_VERSION} VERSION_LESS "3.25.0")
+    check_cxx_source_compiles(
+        "${CPP_COROUTINE_SUPPORTED_SRC}"
+        CPP_COROUTINE_SUPPORTED )
     set( AE_HAS_CXX_COROUTINE ${CPP_COROUTINE_SUPPORTED} CACHE INTERNAL "" FORCE )
-    if (CPP_COROUTINE_SUPPORTED)
-        message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED - Success" )
-    else()
-        message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED - Failed" )
+else()
+    # use CXX_STANDARD instead of flags
+    if (NOT DEFINED AE_HAS_CXX_COROUTINE)
+        message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED" )
+        try_compile(
+            CPP_COROUTINE_SUPPORTED
+            SOURCE_FROM_VAR         "main.cpp" CPP_COROUTINE_SUPPORTED_SRC
+            CXX_STANDARD            20
+            CXX_STANDARD_REQUIRED   YES
+        )
+        set( AE_HAS_CXX_COROUTINE ${CPP_COROUTINE_SUPPORTED} CACHE INTERNAL "" FORCE )
+        if (CPP_COROUTINE_SUPPORTED)
+            message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED - Success" )
+        else()
+            message( STATUS "Performing Test CPP_COROUTINE_SUPPORTED - Failed" )
+        endif()
     endif()
 endif()
 

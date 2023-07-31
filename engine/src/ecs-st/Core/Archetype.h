@@ -30,7 +30,7 @@ namespace AE::ECS
 
     // methods
     public:
-        ArchetypeDesc ()                                        __NE___ { ZeroMem( _bits.data(), ArraySizeOf(_bits) ); }
+        ArchetypeDesc ()                                        __NE___ { ZeroMem( OUT _bits.data(), ArraySizeOf(_bits) ); }
 
         template <typename Comp>    ArchetypeDesc&  Add ()      __NE___ { return Add( ComponentTypeInfo<Comp>::id ); }
         template <typename Comp>    ArchetypeDesc&  Remove ()   __NE___ { return Remove( ComponentTypeInfo<Comp>::id ); }
@@ -349,15 +349,11 @@ namespace AE::ECS
 } // AE::ECS
 
 
-namespace std
+template <>
+struct std::hash< AE::ECS::Archetype >
 {
-    template <>
-    struct hash< AE::ECS::Archetype >
+    ND_ size_t  operator () (const AE::ECS::Archetype &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::ECS::Archetype &value) C_NE___
-        {
-            return size_t(value.Hash());
-        }
-    };
-
-} // std
+        return size_t(value.Hash());
+    }
+};

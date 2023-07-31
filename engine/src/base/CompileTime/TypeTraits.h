@@ -218,18 +218,22 @@ namespace _hidden_
     using Conditional   = std::conditional_t< Test, IfTrue, IfFalse >;
 
 
+    template <typename T>   ND_ constexpr usize     CT_SizeofInBits (const T&)  __NE___ { return sizeof(T) << 3; }
+    template <typename T>   static constexpr usize  CT_SizeOfInBits             =       sizeof(T) << 3;
+
+
     template <usize Bits>
-    using BitSizeToUInt     = Conditional< Bits <= sizeof(ubyte)*8, ubyte,
-                                Conditional< Bits <= sizeof(ushort)*8, ushort,
-                                    Conditional< Bits <= sizeof(uint)*8, uint,
-                                        Conditional< Bits <= sizeof(ulong)*8, ulong,
+    using BitSizeToUInt     = Conditional< Bits <= CT_SizeOfInBits<ubyte>, ubyte,
+                                Conditional< Bits <= CT_SizeOfInBits<ushort>, ushort,
+                                    Conditional< Bits <= CT_SizeOfInBits<uint>, uint,
+                                        Conditional< Bits <= CT_SizeOfInBits<ulong>, ulong,
                                             void >>>>;
 
     template <usize Bits>
-    using BitSizeToInt      = Conditional< Bits <= sizeof(sbyte)*8, sbyte,
-                                Conditional< Bits <= sizeof(sshort)*8, sshort,
-                                    Conditional< Bits <= sizeof(sint)*8, sint,
-                                        Conditional< Bits <= sizeof(slong)*8, slong,
+    using BitSizeToInt      = Conditional< Bits <= CT_SizeOfInBits<sbyte>, sbyte,
+                                Conditional< Bits <= CT_SizeOfInBits<sshort>, sshort,
+                                    Conditional< Bits <= CT_SizeOfInBits<sint>, sint,
+                                        Conditional< Bits <= CT_SizeOfInBits<slong>, slong,
                                             void >>>>;
 
 
@@ -241,10 +245,10 @@ namespace _hidden_
 
 
     template <typename T>
-    using ToUnsignedInteger = BitSizeToUInt< sizeof(T)*8 >;
+    using ToUnsignedInteger = BitSizeToUInt< CT_SizeOfInBits<T> >;
 
     template <typename T>
-    using ToSignedInteger   = BitSizeToInt< sizeof(T)*8 >;
+    using ToSignedInteger   = BitSizeToInt< CT_SizeOfInBits<T> >;
 
 
     namespace _hidden_
@@ -284,6 +288,13 @@ namespace _hidden_
     }
     template <typename T>
     using RemoveAllQualifiers   = typename Base::_hidden_::RemoveAllQual<T>::type;
+
+
+    template <typename Base, typename Derived>
+    static constexpr bool   IsBaseOfNoQual      = std::is_base_of_v< Base, RemoveAllQualifiers<Derived> >;
+
+    template <typename T1, typename T2>
+    static constexpr bool   IsSameTypesNoQual   = std::is_same_v< RemoveAllQualifiers<T1>, RemoveAllQualifiers<T2> >;
 
 
     namespace _hidden_

@@ -168,7 +168,7 @@ namespace AE::Base
     {
         ASSERT( not _IsMemoryAliased( other.begin(), other.end() ));
 
-        CPolicy_t::Replace( _array, other._array, _count );
+        CPolicy_t::Replace( OUT _array, INOUT other._array, _count );
         other._count = 0;
     }
 
@@ -197,8 +197,8 @@ namespace AE::Base
     {
         ASSERT( not _IsMemoryAliased( rhs.begin(), rhs.end() ));
 
-        CPolicy_t::Destroy( _array, _count );
-        CPolicy_t::Replace( _array, rhs._array, rhs._count );
+        CPolicy_t::Destroy( INOUT _array, _count );
+        CPolicy_t::Replace( OUT _array, INOUT rhs._array, rhs._count );
 
         _count      = rhs._count;
         rhs._count  = 0;
@@ -221,7 +221,7 @@ namespace AE::Base
 
         for (auto iter = beginIter; _count < capacity() and iter != endIter; ++iter, ++_count)
         {
-            PlacementNew<T>( data() + _count, *iter );  // throw
+            PlacementNew<T>( OUT data() + _count, *iter );  // throw
         }
     }
 
@@ -247,7 +247,7 @@ namespace AE::Base
     constexpr void  FixedArray<T,S,CS>::push_back (const T &value) noexcept(_IsNothrowCopy)
     {
         ASSERT( _count < capacity() );
-        PlacementNew<T>( data() + _count, value );  // throw
+        PlacementNew<T>( OUT data() + _count, value );  // throw
         ++_count;
     }
 
@@ -255,7 +255,7 @@ namespace AE::Base
     constexpr void  FixedArray<T,S,CS>::push_back (T &&value) __NE___
     {
         ASSERT( _count < capacity() );
-        PlacementNew<T>( data() + _count, RVRef(value) );   // nothrow
+        PlacementNew<T>( OUT data() + _count, RVRef(value) );   // nothrow
         ++_count;
     }
 
@@ -270,7 +270,7 @@ namespace AE::Base
     {
         ASSERT( _count < capacity() );
         T* ptr = data() + _count;
-        PlacementNew<T>( ptr, FwdArg<Args &&>( args )... );     // throw
+        PlacementNew<T>( OUT ptr, FwdArg<Args &&>( args )... );     // throw
         ++_count;
         return *ptr;
     }
@@ -286,7 +286,7 @@ namespace AE::Base
         ASSERT( _count > 0 );
         --_count;
 
-        CPolicy_t::Destroy( &_array[_count], 1 );
+        CPolicy_t::Destroy( INOUT &_array[_count], 1 );
     }
 
 /*
@@ -299,7 +299,7 @@ namespace AE::Base
     {
         if_likely( _count < capacity() )
         {
-            PlacementNew<T>( data() + _count, value );  // throw
+            PlacementNew<T>( OUT data() + _count, value );  // throw
             ++_count;
             return true;
         }
@@ -311,7 +311,7 @@ namespace AE::Base
     {
         if_likely( _count < capacity() )
         {
-            PlacementNew<T>( data() + _count, RVRef(value) );   // nothrow
+            PlacementNew<T>( OUT data() + _count, RVRef(value) );   // nothrow
             ++_count;
             return true;
         }
@@ -329,7 +329,7 @@ namespace AE::Base
     {
         if_likely( _count < capacity() )
         {
-            PlacementNew<T>( data() + _count, FwdArg<Args &&>( args )... );     // throw
+            PlacementNew<T>( OUT data() + _count, FwdArg<Args &&>( args )... );     // throw
             ++_count;
             return true;
         }
@@ -347,10 +347,10 @@ namespace AE::Base
         ASSERT( _count < capacity() );
 
         pos = Min( pos, _count );
-        CPolicy_t::Replace( &_array[pos+1], &_array[pos], _count - pos );
+        CPolicy_t::Replace( OUT &_array[pos+1], INOUT &_array[pos], _count - pos );
 
         ++_count;
-        PlacementNew<T>( &_array[pos], RVRef(value) );  // nothrow
+        PlacementNew<T>( OUT &_array[pos], RVRef(value) );  // nothrow
     }
 
 /*
@@ -365,12 +365,12 @@ namespace AE::Base
 
         if ( newSize < _count )
         {
-            CPolicy_t::Destroy( &_array[newSize], _count - newSize );
+            CPolicy_t::Destroy( INOUT &_array[newSize], _count - newSize );
         }
         else
         if ( newSize > _count )
         {
-            CPolicy_t::Create( &_array[_count], newSize - _count );
+            CPolicy_t::Create( OUT &_array[_count], newSize - _count );
         }
 
         _count = Count_t(newSize);
@@ -383,12 +383,12 @@ namespace AE::Base
 
         if ( newSize < _count )
         {
-            CPolicy_t::Destroy( &_array[newSize], _count - newSize );
+            CPolicy_t::Destroy( INOUT &_array[newSize], _count - newSize );
         }
         else
         if ( newSize > _count )
         {
-            CPolicy_t::Create( &_array[_count], newSize - _count, defaultValue );
+            CPolicy_t::Create( OUT &_array[_count], newSize - _count, defaultValue );
         }
 
         _count = Count_t(newSize);
@@ -402,7 +402,7 @@ namespace AE::Base
     template <typename T, usize S, typename CS>
     constexpr void  FixedArray<T,S,CS>::clear () __NE___
     {
-        CPolicy_t::Destroy( _array, _count );
+        CPolicy_t::Destroy( INOUT _array, _count );
 
         _count = 0;
     }
@@ -418,12 +418,12 @@ namespace AE::Base
         ASSERT( index < _count );
 
         --_count;
-        CPolicy_t::Destroy( &_array[index], 1 );
+        CPolicy_t::Destroy( INOUT &_array[index], 1 );
 
         if ( index != _count )
         {
             // move element from back to 'index'
-            CPolicy_t::Replace( &_array[index], &_array[_count], 1 );
+            CPolicy_t::Replace( OUT &_array[index], INOUT &_array[_count], 1 );
         }
         else
         {
@@ -441,10 +441,10 @@ namespace AE::Base
     {
         ASSERT( index < _count );
 
-        CPolicy_t::Destroy( &_array[index], 1 );
+        CPolicy_t::Destroy( INOUT &_array[index], 1 );
 
         if ( index+1 < _count )
-            CPolicy_t::Replace( &_array[index], &_array[index + 1], _count - index - 1 );
+            CPolicy_t::Replace( OUT &_array[index], INOUT &_array[index + 1], _count - index - 1 );
 
         --_count;
     }
@@ -453,15 +453,11 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <typename T, size_t ArraySize, typename CS>
+struct std::hash< AE::Base::FixedArray<T, ArraySize, CS> >
 {
-    template <typename T, size_t ArraySize, typename CS>
-    struct hash< AE::Base::FixedArray<T, ArraySize, CS> >
+    ND_ size_t  operator () (const AE::Base::FixedArray<T, ArraySize, CS> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Base::FixedArray<T, ArraySize, CS> &value) C_NE___
-        {
-            return size_t(AE::Base::HashOf( AE::Base::ArrayView<T>{ value }));
-        }
-    };
-
-} // std
+        return size_t(AE::Base::HashOf( AE::Base::ArrayView<T>{ value }));
+    }
+};

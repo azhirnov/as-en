@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Spherical.h"
+#include "geometry_tools/GeometryTools.pch.h"
 
 namespace AE::GeometryTools
 {
@@ -130,11 +130,18 @@ namespace AE::GeometryTools
 */
     struct IdentitySphericalCube
     {
+        // 2D regular grid on cube face --> 2D regular grid on cube face
+        ND_ static double2  Forward (const double2 &ncoord) __NE___ { return ncoord; }
+        ND_ static double2  Inverse (const double2 &ncoord) __NE___ { return ncoord; }
+
+
+        // 2D regular grid on cube face + face --> 3D on sphere
         ND_ static double3  Forward (const double2 &ncoord, ECubeFace face) __NE___
         {
             return Normalize( RotateVec( double3{ ncoord, 1.0 }, face ));
         }
 
+        // 3D on sphere --> 2D regular grid on cube face + face
         ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord) __NE___
         {
             auto[c, z, face] = InverseRotation( coord );
@@ -153,23 +160,40 @@ namespace AE::GeometryTools
         static constexpr double  warp_theta     = 0.868734829276;
         static constexpr double  tan_warp_theta = 1.182286685546; //tan( warp_theta );
 
-        ND_ static double3  Forward (const double2 &ncoord, ECubeFace face) __NE___
+        // 2D regular grid on cube face --> 2D irregular grid on cube face
+        ND_ static double2  Forward (const double2 &ncoord) __NE___
         {
-            double  x = tan( warp_theta * ncoord.x ) / tan_warp_theta;
-            double  y = tan( warp_theta * ncoord.y ) / tan_warp_theta;
-
-            return Normalize( RotateVec( double3{x, y, 1.0}, face ));
+            return double2{ tan( warp_theta * ncoord.x ) / tan_warp_theta,
+                            tan( warp_theta * ncoord.y ) / tan_warp_theta };
         }
 
+        // 2D irregular grid on cube face --> 2D regular grid on cube face
+        ND_ static double2  Inverse (const double2 &ncoord) __NE___
+        {
+            return double2{ atan( ncoord.x * tan_warp_theta ) / warp_theta,
+                            atan( ncoord.y * tan_warp_theta ) / warp_theta };
+        }
+
+
+        // 2D regular grid on cube face + face --> 3D on sphere
+        ND_ static double3  Forward (const double2 &ncoord, ECubeFace face) __NE___
+        {
+            return Forward2( double3{Forward( ncoord ), 1.0}, face );
+        }
+
+        // 3D on cube face --> 3D on sphere
+        ND_ static double3  Forward2 (const double3 &projected, ECubeFace face) __NE___
+        {
+            return Normalize( RotateVec( projected, face ));
+        }
+
+
+        // 3D on sphere --> 2D regular grid on cube face + face
         ND_ static Pair<double2, ECubeFace>  Inverse (const double3 &coord) __NE___
         {
             auto[c, z, face] = InverseRotation( coord );
             c /= z;
-
-            double  x = atan( c.x * tan_warp_theta ) / warp_theta;
-            double  y = atan( c.y * tan_warp_theta ) / warp_theta;
-
-            return { double2(x,y), face };
+            return { Inverse(c), face };
         }
     };
 

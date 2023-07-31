@@ -2,10 +2,7 @@
 
 #pragma once
 
-#include "base/Algorithms/Cast.h"
-#include "base/CompileTime/FunctionInfo.h"
-#include "scripting/Impl/ScriptFn.h"
-#include "scripting/Impl/ScriptEngine.inl.h"
+#include "pch/Scripting.h"
 #include "../shared/UnitTest_Shared.h"
 
 using namespace AE::Scripting;

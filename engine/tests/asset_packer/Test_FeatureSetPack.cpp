@@ -58,7 +58,7 @@ namespace
 
         ulong   fs_hash = 0;
         TEST( des( OUT fs_hash ));
-        TEST_Eq( fs_hash, 0x3b2103abc1fc1748ull );
+        TEST_Eq( fs_hash, ulong(FeatureSet::GetHashOfFS_Precalculated()) );
 
         uint    count = 0;
         TEST( des( OUT count ));

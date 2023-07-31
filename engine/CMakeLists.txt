@@ -12,6 +12,7 @@ set( AE_EXTERNAL_REP_PATH   "${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Data" CACHE IN
 set( AE_TEMP_FOLDER         "${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Temp" CACHE INTERNAL "" FORCE )
 
 include( "cmake/config.cmake" )
+include( "cmake/utils.cmake" )
 add_subdirectory( "cmake/project_template" )
 
 #----------------------------------------------------------
@@ -29,6 +30,10 @@ if (${AE_ENABLE_REMOTE_GRAPHICS})
     target_compile_definitions( "ProjectTemplate" PUBLIC "AE_ENABLE_REMOTE_GRAPHICS" )
 endif()
 #----------------------------------------------------------
+
+if (DEFINED ENGINE_LIBS_PATH)
+	set( DUMMY_CPP_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/project_template/main.cpp" )
+endif()
 
 add_subdirectory( "src" )
 add_subdirectory( "tools" )

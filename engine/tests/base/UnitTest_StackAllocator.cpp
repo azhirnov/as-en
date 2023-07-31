@@ -1,8 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Memory/StackAllocator.h"
 #include "UnitTest_Common.h"
-
 
 namespace
 {

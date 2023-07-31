@@ -6,7 +6,7 @@
             if one of dependencies are cancelled
                 set 'cancellation' state
             if failed to enqueue
-                Oncancel() ???
+                OnCancel()
                 return
         }
         TaskScheduler::ProcessTask() {
@@ -24,7 +24,7 @@
                     if need to restart task
                         call Continue() and return.
                 }
-                if seccessfully completed
+                if successfully completed
                     set 'completed' state and return.
                 if 'cancellation' state
                     OnCancel()
@@ -47,14 +47,11 @@
         - If can't create task or add to queue                      -> return default cancelled task
         - If null task used as dependency                           -> ignore
         - If null coroutine used as dependency (co_await noop_coro) -> cancel coroutine
+
+    docs: file:///<path>/engine/docs/ru/TaskScheduler.md
 */
 
 #pragma once
-
-#include "base/Containers/AnyTypeRef.h"
-#include "base/Utils/EnumBitSet.h"
-#include "base/CompileTime/TypeList.h"
-#include "base/Math/POTValue.h"
 
 #include "threading/TaskSystem/AsyncTask.h"
 #include "threading/TaskSystem/Coroutine.h"
@@ -135,7 +132,7 @@ namespace AE::Threading
 
     enum class EIOServiceType : uint
     {
-        File,
+        File,   // async file IO
     };
 
 
@@ -151,102 +148,6 @@ namespace AE::Threading
         ND_ virtual usize           ProcessEvents ()    __NE___ = 0;
 
         ND_ virtual EIOServiceType  GetIOServiceType () C_NE___ = 0;
-    };
-//-----------------------------------------------------------------------------
-
-
-
-    //
-    // Lock-free Task Queue
-    //
-    class LfTaskQueue
-    {
-    // types
-    private:
-        static constexpr uint   TasksPerChunk       = (1u << 7) - 2;    // 2 pointers are reserved
-        static constexpr uint   MaxChunks           = 2;
-        static constexpr uint   MaxDepth            = 128*4;
-        static constexpr uint   SpinlockWaitCount   = 3;
-
-        using TimePoint_t   = std::chrono::high_resolution_clock::time_point;
-        using TaskArr_t     = StaticArray< AsyncTask, TasksPerChunk >;
-        using EStatus       = IAsyncTask::EStatus;
-
-        union PackedBits
-        {
-            struct {
-                usize   locked  : 1;    // 1 - spin-lock is locked
-                usize   pos     : 8;    // last iterator position in 'Chunk::array'
-                usize   count   : 8;    // elements count in 'Chunk::array'
-            }       pack;
-            usize   bits;
-
-            PackedBits ()                                   __NE___ : bits{0} {}
-
-            ND_ bool        IsLocked ()                     C_NE___ { return pack.locked == 1; }
-            ND_ PackedBits  Lock ()                         C_NE___ { PackedBits tmp{*this};  tmp.pack.locked = 1;  return tmp; }
-            ND_ bool        operator == (PackedBits rhs)    C_NE___ { return bits == rhs.bits; }
-        };
-
-        struct alignas(AE_CACHE_LINE) Chunk
-        {
-            BitAtomic< PackedBits >     packed  {PackedBits{}};
-            Atomic< Chunk *>            next    {null};
-            TaskArr_t                   array   {};
-
-            Chunk () __NE___ {}
-        };
-
-        STATIC_ASSERT_64( sizeof(Chunk) == 1_Kb );
-        STATIC_ASSERT( TasksPerChunk * MaxChunks * MaxDepth < 1'000'000 );
-
-        using ChunkArray_t  = StaticArray< Chunk *, MaxChunks >;
-
-
-    // variables
-    private:
-        ChunkArray_t    _chunks     {};
-
-        //POTValue      _seedMask;
-
-        AE_SCHEDULER_PROFILING(
-            String          _name;
-            Atomic<ulong>   _searchTime     {0};    // Nanoseconds  // task search time
-            Atomic<ulong>   _workTime       {0};    // Nanoseconds
-            Atomic<ulong>   _insertionTime  {0};    // Nanoseconds
-            Atomic<ulong>   _maxTasks       {0};
-            Atomic<slong>   _taskCount      {0};
-            Atomic<ulong>   _totalProcessed {0};
-        )
-
-
-    // methods
-    public:
-        LfTaskQueue (POTValue seedMask, StringView name)                __Th___;
-        ~LfTaskQueue ()                                                 __NE___ { Release(); }
-
-        ND_ AsyncTask   Pull (usize seed)                               __NE___;
-            bool        Process (usize seed)                            __NE___;
-            void        Add (AsyncTask task, usize seed)                __NE___;
-
-            void        WriteProfilerStat ()                            __NE___;
-
-        ND_ Bytes       MaxAllocationSize ()                            C_NE___;
-        ND_ Bytes       AllocatedSize ()                                C_NE___;
-
-            void        Release ()                                      __NE___;
-
-
-      // debugging //
-      #ifdef AE_DEBUG
-            void    DbgDetectDeadlock (const Function<void (AsyncTask)> &fn)__NE___;
-        ND_ ulong   GetTotalProcessedTasks ()                               C_NE___ { return _totalProcessed.load(); }
-      #endif
-
-            AE_GLOBALLY_ALLOC
-
-    private:
-        ND_ static bool  _RemoveTask (TaskArr_t& arr, INOUT usize& pos, INOUT usize& count, OUT AsyncTask& task) __NE___;
     };
 //-----------------------------------------------------------------------------
 
@@ -650,15 +551,12 @@ namespace AE::Threading
             }else
             if constexpr( IsSameTypes< T, StrongDepArray > or IsSameTypes< T, ArrayView<AsyncTask> >)
                 for (auto& dep : args.template Get<I>()) {
-                    if_unlikely( not _AddTaskDependencies( task, dep, False{"strong"}, INOUT bitIndex )) return false;
+                    if_unlikely( not _AddTaskDependencies( task, dep, False{"weak"}, INOUT bitIndex )) return false;
                 }
             else
-            // implicitlly it is strong dependency
+            // implicitly it is strong dependency
             if constexpr( IsSpecializationOf< T, RC > and IsBaseOf< IAsyncTask, RemoveRC<T> >) {
                 if_unlikely( not _AddTaskDependencies( task, args.template Get<I>(), True{"strong"}, INOUT bitIndex )) return false;
-            //}else
-            //if constexpr( std::is_convertible_v< T, AsyncTask >) {
-            //  if_unlikely( not _AddTaskDependencies( task, AsyncTask{args.template Get<I>()}, True{"strong"}, INOUT bitIndex )) return false;
             }else{
                 if_unlikely( not _AddCustomDependency( task, args.template Get<I>(), INOUT bitIndex )) return false;
             }

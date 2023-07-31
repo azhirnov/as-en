@@ -30,12 +30,16 @@ extern void  UnitTest_VertexBufferInput_MSL ()
 {
     ObjectStorage   obj;
     PipelineStorage ppln;
-    obj.target          = ECompilationTarget::Vulkan;
-    obj.pplnStorage     = &ppln;
-    obj.metalCompiler   = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
-    obj.spirvCompiler   = MakeUnique<SpirvCompiler>( Array<Path>{} );
+    obj.defaultFeatureSet   = "DefaultFS";
+    obj.target              = ECompilationTarget::Vulkan;
+    obj.pplnStorage         = &ppln;
+    obj.metalCompiler       = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
+    obj.spirvCompiler       = MakeUnique<SpirvCompiler>( Array<Path>{} );
     obj.spirvCompiler->SetDefaultResourceLimits();
     ObjectStorage::SetInstance( &obj );
+
+    ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
+    fs->fs.SetAll( EFeature::RequireTrue );
 
     try {
         VertexBufferInput_Test1();

@@ -3,10 +3,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'Compute1 |0| Compute task'
 {
-  BeginDebugLabel
-    name:  'Compute1 |0| Compute task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -61,19 +57,10 @@ name: 'Compute1 |0| Compute task'
       layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'Compute1 |1| Readback task'
 {
-  BeginDebugLabel
-    name:  'Compute1 |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -100,10 +87,6 @@ name: 'Compute1 |1| Readback task'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -117,10 +100,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'Compute1 |0| Compute task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -175,15 +154,6 @@ name: 'IndirectCmdBuffers'
       layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
-  BeginDebugLabel
-    name:  'Compute1 |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -210,10 +180,6 @@ name: 'IndirectCmdBuffers'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }
@@ -227,10 +193,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'Compute1 |0| Compute task'
 {
-  BeginDebugLabel
-    name:  'Compute1 |0| Compute task'
-    depth: 1
-  ----------
 
   PipelineBarrier2
     dependencyFlags: 0
@@ -285,19 +247,10 @@ name: 'Compute1 |0| Compute task'
       layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'IndirectCmdBuffers'
 {
-  BeginDebugLabel
-    name:  'Compute1 |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image-0'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -324,10 +277,6 @@ name: 'IndirectCmdBuffers'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }

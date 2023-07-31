@@ -15,13 +15,16 @@ namespace AE::ResEditor
 =================================================
 */
     RTGeometry::RTGeometry (TriangleMeshes_t    triangleMeshes,
+                            RC<Buffer>          indirectBuffer,
                             Renderer &          renderer,
                             StringView          dbgName) __Th___ :
         IResource{ renderer },
+        _indirectBuffer{ RVRef(indirectBuffer) },
         _triangleMeshes{ RVRef(triangleMeshes) },
-        _uploadStatus{ EUploadStatus::InProgress },
         _dbgName{ dbgName }
     {
+        _uploadStatus.store( EUploadStatus::InProgress );
+
         _ResQueue().EnqueueForUpload( GetRC() );
 
         for (auto& tri_mesh : _triangleMeshes) {
@@ -48,20 +51,40 @@ namespace AE::ResEditor
         }};
 
         _scratchBuffer = res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch },
-                                                _dbgName + "-Scrach", _GfxAllocator() );
-        _geomIds[0] = CreateGeometry();
-
-        if ( _isMutable ) {
-            _geomIds[1] = CreateGeometry();
-        }else{
-            _geomIds[1] = res_mngr.AcquireResource( _geomIds[0].Get() );
-        }
+                                                _dbgName + "-Scratch", _GfxAllocator() );
+        _geomId = CreateGeometry();
 
         CHECK_THROW( _scratchBuffer );
-        CHECK_THROW( _geomIds[0] and _geomIds[1] );
+        CHECK_THROW( _geomId );
 
-        _address[0] = res_mngr.GetDeviceAddress( _geomIds[0].Get() );
-        _address[1] = res_mngr.GetDeviceAddress( _geomIds[1].Get() );
+        _address = res_mngr.GetDeviceAddress( _geomId.Get() );
+
+        if ( _indirectBuffer and
+             res_mngr.GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+        {
+            CHECK_THROW( _indirectBuffer->HasHistory() );
+
+            for (auto& tri_mesh : _triangleMeshes)
+            {
+                CHECK_THROW( tri_mesh.vbuffer->HasHistory() );
+                CHECK_THROW( tri_mesh.ibuffer == null or tri_mesh.ibuffer->HasHistory() );
+            }
+
+            // host-visible copy of indirect buffer
+            const usize count = _triangleMeshes.size() * GraphicsConfig::MaxFrames;
+
+            _indirectBufferHostVis = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ASBuildIndirectCommand> * count,
+                                                                        EBufferUsage::TransferDst }
+                                                                .SetMemory( EMemoryType::HostCached ),
+                                                            _dbgName + "-InstHost", renderer.GetAllocator() );
+            CHECK_THROW( _indirectBufferHostVis );
+
+            IResourceManager::NativeMemObjInfo_t    mem_obj;
+            CHECK_THROW( res_mngr.GetMemoryInfo( _indirectBufferHostVis, OUT mem_obj ));
+
+            _indirectBufferMem = Cast<ASBuildIndirectCommand>( mem_obj.mappedPtr );
+            CHECK_THROW( _indirectBufferMem != null );
+        }
     }
 
 /*
@@ -72,8 +95,7 @@ namespace AE::ResEditor
     RTGeometry::~RTGeometry ()
     {
         auto&   res_mngr = FrameGraph().GetStateTracker();
-        res_mngr.ReleaseResourceArray( _geomIds );
-        res_mngr.ReleaseResource( _scratchBuffer );
+        res_mngr.ReleaseResources( _scratchBuffer, _indirectBufferHostVis, _geomId );
     }
 
 /*
@@ -85,8 +107,6 @@ namespace AE::ResEditor
     {
         if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
             return stat;
-
-        EXLOCK( _loadOpGuard );
 
         bool    complete    = true;
         bool    failed      = false;
@@ -101,17 +121,19 @@ namespace AE::ResEditor
         }
 
         if ( failed )
-            _uploadStatus.store( EUploadStatus::Canceled );
+        {
+            _SetUploadStatus( EUploadStatus::Canceled );
+        }
         else
         if ( complete )
         {
             DirectCtx::ASBuild  as_ctx{ ctx.GetRenderTask(), ctx.ReleaseCommandBuffer() };
 
-            if ( not _Build( as_ctx ))
-                _uploadStatus.store( EUploadStatus::Canceled );
+            if ( not Build( as_ctx, EBuildMode::Direct ))
+                _SetUploadStatus( EUploadStatus::Canceled );
 
             Reconstruct( INOUT ctx, as_ctx.GetRenderTask(), as_ctx.ReleaseCommandBuffer() );
-            _uploadStatus.store( EUploadStatus::Complete );
+            _SetUploadStatus( EUploadStatus::Complete );
         }
 
         return _uploadStatus.load();
@@ -119,43 +141,116 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    _Build
+    Build
 =================================================
 */
-    bool  RTGeometry::_Build (DirectCtx::ASBuild &ctx)
+    bool  RTGeometry::Build (DirectCtx::ASBuild &ctx, EBuildMode mode) __Th___
     {
-        const uint          fid     = (ulong(ctx.GetFrameId().Unique()) + 1) & 1;
-        Allocator_t         alloc;
-        RTGeometryBuild     tris_geom;
+        Allocator_t     alloc;
 
-        CHECK_ERR( _GetTriangles( OUT tris_geom, alloc ));
-
-        tris_geom.SetScratchBuffer( _scratchBuffer );
-
-        ctx.Build( tris_geom, _geomIds[fid] );
-
-        // update version
-        for (auto& item : _triangleMeshes)
+        BEGIN_ENUM_CHECKS();
+        switch ( mode )
         {
-            item.vbufferVer = item.vbuffer->GetVersion();
+            case EBuildMode::Direct :
+            {
+                RTGeometryBuild     tris_geom;
+                CHECK_ERR( _GetTriangles( OUT tris_geom, ctx.GetFrameId(), alloc ));
+                tris_geom.SetScratchBuffer( _scratchBuffer );
 
-            if ( item.ibuffer )
-                item.ibufferVer = item.ibuffer->GetVersion();
+                ctx.Build( tris_geom, _geomId );
+                break;
+            }
+            case EBuildMode::Indirect :
+            {
+                CHECK_ERR( _indirectBuffer );
+
+                RTGeometryBuild     tris_geom;
+                CHECK_ERR( _GetTriangles( OUT tris_geom, ctx.GetFrameId(), alloc ));
+                tris_geom.SetScratchBuffer( _scratchBuffer );
+
+                ctx.BuildIndirect( tris_geom, _geomId, _indirectBuffer->GetBufferId( ctx.GetFrameId() ));
+                break;
+            }
+            case EBuildMode::IndirectEmulated :
+                CHECK_ERR( _BuildIndirectEmulated( ctx, _geomId, alloc ));
+                break;
+
+            default :
+                return false;
         }
-        _version.fetch_add(1);
+        END_ENUM_CHECKS();
 
+        _version.Update( ctx.GetFrameId() );
         return true;
     }
 
 /*
 =================================================
-    BuildIndirect
+    _BuildIndirectEmulated
 =================================================
 */
-    bool  RTGeometry::BuildIndirect (DirectCtx::ASBuild &) __Th___
+    bool  RTGeometry::_BuildIndirectEmulated (DirectCtx::ASBuild &ctx, RTGeometryID geomId, Allocator_t &alloc) const
     {
-        // TODO
-        return false;
+        CHECK_ERR( _indirectBufferMem != null );
+
+        const uint      fid                 = ctx.GetFrameId().Index();
+        const usize     geom_count          = _triangleMeshes.size();
+        const auto*     indirect            = _indirectBufferMem + geom_count * fid;
+
+        auto*           triangle_info_arr   = alloc.Allocate<RTGeometryBuild::TrianglesInfo>( _triangleMeshes.size() );
+        auto*           triangle_data_arr   = alloc.Allocate<RTGeometryBuild::TrianglesData>( _triangleMeshes.size() );
+        CHECK_ERR( triangle_info_arr != null and triangle_data_arr != null );
+
+        for (usize i = 0; i < _triangleMeshes.size(); ++i)
+        {
+            auto&   tri_mesh        = _triangleMeshes[i];
+            auto&   info            = triangle_info_arr[i];
+            auto&   data            = triangle_data_arr[i];
+
+            ASSERT( indirect->primitiveCount <= info.maxPrimitives );
+            // not supported yet
+            ASSERT( indirect->primitiveOffset == 0 );
+            ASSERT( indirect->firstVertex == 0 );
+            ASSERT( indirect->transformOffset == 0 );
+
+            info                    = tri_mesh;
+            info.maxPrimitives      = Min( info.maxPrimitives, indirect->primitiveCount );
+
+            data.vertexData         = tri_mesh.vbuffer->GetBufferId( fid );
+            data.vertexDataOffset   = tri_mesh.vertexDataOffset;
+            data.indexData          = tri_mesh.ibuffer ? tri_mesh.ibuffer->GetBufferId( fid ) : Default;
+            data.indexDataOffset    = tri_mesh.indexDataOffset;
+            data.vertexStride       = tri_mesh.vertexStride;
+            data.transformData      = Default;
+            data.transformDataOffset= 0_b;
+
+            ASSERT( info.maxVertex > 0 );
+
+            ++indirect;
+        }
+
+        RTGeometryBuild     tris_geom{
+                                ArrayView<RTGeometryBuild::TrianglesInfo>{ triangle_info_arr, _triangleMeshes.size() },
+                                ArrayView<RTGeometryBuild::TrianglesData>{ triangle_data_arr, _triangleMeshes.size() },
+                                Default, Default,
+                                _options };
+        tris_geom.SetScratchBuffer( _scratchBuffer );
+
+        ctx.Build( tris_geom, geomId );
+
+
+        // copy indirect commands
+        DirectCtx::Transfer     tctx{ ctx.GetRenderTask(), ctx.ReleaseCommandBuffer() };
+
+        BufferCopy  copy;
+        copy.srcOffset  = 0_b;
+        copy.dstOffset  = SizeOf<ASBuildIndirectCommand> * geom_count * fid;
+        copy.size       = SizeOf<ASBuildIndirectCommand> * geom_count;
+
+        tctx.CopyBuffer( _indirectBuffer->GetBufferId( fid ), _indirectBufferHostVis, {copy} );
+
+        Reconstruct( INOUT ctx, tctx.GetRenderTask(), tctx.ReleaseCommandBuffer() );
+        return true;
     }
 
 /*
@@ -163,7 +258,7 @@ namespace AE::ResEditor
     _GetTriangles
 =================================================
 */
-    bool  RTGeometry::_GetTriangles (OUT RTGeometryBuild &buildInfo, Allocator_t &alloc) const
+    bool  RTGeometry::_GetTriangles (OUT RTGeometryBuild &buildInfo, FrameUID fid, Allocator_t &alloc) const
     {
         auto*   triangle_info_arr   = alloc.Allocate<RTGeometryBuild::TrianglesInfo>( _triangleMeshes.size() );
         auto*   triangle_data_arr   = alloc.Allocate<RTGeometryBuild::TrianglesData>( _triangleMeshes.size() );
@@ -176,9 +271,9 @@ namespace AE::ResEditor
             auto&   data            = triangle_data_arr[i];
 
             info                    = tri_mesh;
-            data.vertexData         = tri_mesh.vbuffer->GetBufferId();
+            data.vertexData         = tri_mesh.vbuffer->GetBufferId( fid );
             data.vertexDataOffset   = tri_mesh.vertexDataOffset;
-            data.indexData          = tri_mesh.ibuffer ? tri_mesh.ibuffer->GetBufferId() : Default;
+            data.indexData          = tri_mesh.ibuffer ? tri_mesh.ibuffer->GetBufferId( fid ) : Default;
             data.indexDataOffset    = tri_mesh.indexDataOffset;
             data.vertexStride       = tri_mesh.vertexStride;
             data.transformData      = Default;
@@ -195,22 +290,6 @@ namespace AE::ResEditor
                         _options };
         return true;
     }
-
-/*
-=================================================
-    Validate
-=================================================
-*/
-    void  RTGeometry::Validate () const
-    {
-        for (auto& item : _triangleMeshes)
-        {
-            CHECK( item.vbuffer->GetVersion() == item.vbufferVer );
-
-            if ( item.ibuffer )
-                CHECK( item.ibuffer->GetVersion() == item.ibufferVer );
-        }
-    }
 //-----------------------------------------------------------------------------
 
 
@@ -221,13 +300,18 @@ namespace AE::ResEditor
 =================================================
 */
     RTScene::RTScene (Instances_t   instances,
+                      RC<Buffer>    instanceBuffer,
+                      RC<Buffer>    indirectBuffer,
                       Renderer &    renderer,
                       StringView    dbgName) __Th___ :
         IResource{ renderer },
+        _instanceBuffer{ RVRef(instanceBuffer) },
+        _indirectBuffer{ RVRef(indirectBuffer) },
         _instances{ RVRef(instances) },
-        _uploadStatus{ EUploadStatus::InProgress },
         _dbgName{ dbgName }
     {
+        _uploadStatus.store( EUploadStatus::InProgress );
+
         _ResQueue().EnqueueForUpload( GetRC() );
 
         bool    is_mutable = false;
@@ -239,36 +323,39 @@ namespace AE::ResEditor
             _uniqueGeometries.emplace( inst.geometry, 0 );
         }
 
-        auto&           res_mngr        = FrameGraph().GetStateTracker();
-        const auto      sizes           = res_mngr.GetRTSceneSizes( RTSceneBuild{ uint(_instances.size()), _options });
+        auto&           res_mngr    = FrameGraph().GetStateTracker();
+        const auto      sizes       = res_mngr.GetRTSceneSizes( RTSceneBuild{ uint(_instances.size()), _options });
 
-        const auto  CreateInstanceBuf   = [&res_mngr, this] ()
-        {{
-            return res_mngr.CreateBuffer( BufferDesc{ SizeOf<RTSceneBuild::Instance> * _instances.size(),
-                                                      EBufferUsage::ASBuild_ReadOnly | EBufferUsage::TransferDst },
-                                          _dbgName + "-Instances", _GfxAllocator() );
-        }};
-        const auto  CreateRTScene       = [&res_mngr, &sizes, this] ()
+        const auto  CreateRTScene   = [&res_mngr, &sizes, this] ()
         {{
             return res_mngr.CreateRTScene( RTSceneDesc{ sizes.rtasSize, _options }, _dbgName, _GfxAllocator() );
         }};
 
-        _sceneIds[0]        = CreateRTScene();
-        _instanceBuffers[0] = CreateInstanceBuf();
-        _scratchBuffer      = res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch },
-                                                     _dbgName + "-Sratch", _GfxAllocator() );
-
-        if ( is_mutable ) {
-            _instanceBuffers[1] = CreateInstanceBuf();
-            _sceneIds[1]        = CreateRTScene();
-        }else{
-            _sceneIds[1]        = res_mngr.AcquireResource( _sceneIds[0].Get() );
-            _instanceBuffers[1] = res_mngr.AcquireResource( _instanceBuffers[0].Get() );
-        }
+        _sceneId        = CreateRTScene();
+        _scratchBuffer  = res_mngr.CreateBuffer( BufferDesc{ sizes.buildScratchSize, EBufferUsage::ASBuild_Scratch },
+                                                 _dbgName + "-Scratch", _GfxAllocator() );
 
         CHECK_THROW( _scratchBuffer );
-        CHECK_THROW( _sceneIds[0] and _sceneIds[1] );
-        CHECK_THROW( _instanceBuffers[0] and _instanceBuffers[1] );
+        CHECK_THROW( _sceneId );
+
+        if ( _indirectBuffer and
+             res_mngr.GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+        {
+            CHECK_THROW( _indirectBuffer->HasHistory() );
+            CHECK_THROW( _instanceBuffer->HasHistory() );
+
+            _indirectBufferHostVis = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ASBuildIndirectCommand> * GraphicsConfig::MaxFrames,
+                                                                        EBufferUsage::TransferDst }
+                                                                .SetMemory( EMemoryType::HostCached ),
+                                                            _dbgName + "-InstHost", renderer.GetAllocator() );
+            CHECK_THROW( _indirectBufferHostVis );
+
+            IResourceManager::NativeMemObjInfo_t    mem_obj;
+            CHECK_THROW( res_mngr.GetMemoryInfo( _indirectBufferHostVis, OUT mem_obj ));
+
+            _indirectBufferMem = Cast<ASBuildIndirectCommand>( mem_obj.mappedPtr );
+            CHECK_THROW( _indirectBufferMem != null );
+        }
     }
 
 /*
@@ -279,9 +366,7 @@ namespace AE::ResEditor
     RTScene::~RTScene ()
     {
         auto&   res_mngr = FrameGraph().GetStateTracker();
-        res_mngr.ReleaseResource( _scratchBuffer );
-        res_mngr.ReleaseResourceArray( _sceneIds );
-        res_mngr.ReleaseResourceArray( _instanceBuffers );
+        res_mngr.ReleaseResources( _scratchBuffer, _indirectBufferHostVis, _sceneId );
     }
 
 /*
@@ -293,8 +378,6 @@ namespace AE::ResEditor
     {
         if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
             return stat;
-
-        EXLOCK( _loadOpGuard );
 
         bool    complete    = true;
         bool    failed      = false;
@@ -308,7 +391,7 @@ namespace AE::ResEditor
         }
 
         if ( failed )
-            _uploadStatus.store( EUploadStatus::Canceled );
+            _SetUploadStatus( EUploadStatus::Canceled );
         else
         if ( complete )
         {
@@ -317,11 +400,11 @@ namespace AE::ResEditor
 
             DirectCtx::ASBuild  as_ctx{ ctx.GetRenderTask(), ctx.ReleaseCommandBuffer() };
 
-            if ( not _Build( as_ctx ))
-                _uploadStatus.store( EUploadStatus::Canceled );
+            if ( not Build( as_ctx, EBuildMode::Direct ))
+                _SetUploadStatus( EUploadStatus::Canceled );
 
             Reconstruct( INOUT ctx, as_ctx.GetRenderTask(), as_ctx.ReleaseCommandBuffer() );
-            _uploadStatus.store( EUploadStatus::Complete );
+            _SetUploadStatus( EUploadStatus::Complete );
         }
 
         return _uploadStatus.load();
@@ -335,13 +418,13 @@ namespace AE::ResEditor
     bool  RTScene::_UploadInstances (TransferCtx_t &ctx)
     {
         const Bytes     size    = SizeOf<RTSceneBuild::Instance> * _instances.size();
-        const uint      fid     = (ulong(ctx.GetFrameId().Unique()) + 1) & 1;
 
         BufferMemView   mem_view;
-        ctx.UploadBuffer( _instanceBuffers[fid], 0_b, size, OUT mem_view, EStagingHeapType::Dynamic );
+        ctx.UploadBuffer( _instanceBuffer->GetBufferId(0), 0_b, size, OUT mem_view, EStagingHeapType::Dynamic );
 
         if ( mem_view.DataSize() < size )
             return false;
+
 
         Array<RTSceneBuild::Instance>   instances;
 
@@ -353,32 +436,64 @@ namespace AE::ResEditor
             dst.mask                = src.mask;
             dst.instanceSBTOffset   = src.instanceSBTOffset;
             dst.flags               = VEnumCast( src.flags );
-            dst.rtas                = src.geometry->GetDeviceAddress( ctx.GetFrameId().Inc() );
+            dst.rtas                = src.geometry->GetDeviceAddress( ctx.GetFrameId() );
 
             ASSERT( dst.rtas != Default );
         }
 
-        CHECK_ERR( mem_view.Copy( instances ) == size );
+        CHECK_ERR( mem_view.CopyFrom( instances ) == size );
+
+        if ( _instanceBuffer->HasHistory() )
+        {
+            for (uint i = 1; i < ctx.GetFrameId().MaxFrames(); ++i)
+            {
+                BufferCopy  copy;
+                copy.srcOffset  = 0_b;
+                copy.dstOffset  = 0_b;
+                copy.size       = size;
+
+                ctx.CopyBuffer( _instanceBuffer->GetBufferId(0), _instanceBuffer->GetBufferId(i), {copy} );
+            }
+        }
         return true;
     }
 
 /*
 =================================================
-    _Build
+    Build
 =================================================
 */
-    bool  RTScene::_Build (DirectCtx::ASBuild &ctx)
+    bool  RTScene::Build (DirectCtx::ASBuild &ctx, EBuildMode mode) __Th___
     {
-        const uint      fid = (ulong(ctx.GetFrameId().Unique()) + 1) & 1;
+        const uint      fid = ctx.GetFrameId().Index();
 
         RTSceneBuild    scene_build{ uint(_instances.size()), _options };
-        scene_build.SetInstanceData( _instanceBuffers[fid] );
+        scene_build.SetInstanceData( _instanceBuffer->GetBufferId( fid ));
         scene_build.SetScratchBuffer( _scratchBuffer );
 
-        ctx.Build( scene_build, _sceneIds[fid] );
+        BEGIN_ENUM_CHECKS();
+        switch ( mode )
+        {
+            case EBuildMode::Direct :
+                ctx.Build( scene_build, _sceneId );
+                break;
+
+            case EBuildMode::Indirect :
+                CHECK_ERR( _indirectBuffer );
+                ctx.BuildIndirect( scene_build, _sceneId, _indirectBuffer->GetBufferId( fid ));
+                break;
+
+            case EBuildMode::IndirectEmulated :
+                CHECK_ERR( _BuildIndirectEmulated( ctx, scene_build, _sceneId ));
+                break;
+
+            default :
+                return false;
+        }
+        END_ENUM_CHECKS();
 
         for (auto& [geom, ver] : _uniqueGeometries) {
-            ver = geom->GetVersion();
+            ver = geom->GetVersion( fid );
         }
 
         return true;
@@ -386,13 +501,33 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    BuildIndirect
+    _BuildIndirectEmulated
 =================================================
 */
-    bool  RTScene::BuildIndirect (DirectCtx::ASBuild &) __Th___
+    bool  RTScene::_BuildIndirectEmulated (DirectCtx::ASBuild &ctx, RTSceneBuild &build, RTSceneID sceneId) const
     {
-        // TODO
-        return false;
+        CHECK_ERR( _indirectBufferMem != null );
+
+        const uint  fid         = ctx.GetFrameId().Index();
+        const uint  inst_count  = _indirectBufferMem[ fid ].primitiveCount;
+
+        build.maxInstanceCount = Min( build.maxInstanceCount, inst_count );
+
+        ctx.Build( build, sceneId );
+
+
+        // copy indirect command
+        DirectCtx::Transfer     tctx{ ctx.GetRenderTask(), ctx.ReleaseCommandBuffer() };
+
+        BufferCopy  copy;
+        copy.srcOffset  = 0_b;
+        copy.dstOffset  = SizeOf<ASBuildIndirectCommand> * fid;
+        copy.size       = SizeOf<ASBuildIndirectCommand>;
+
+        tctx.CopyBuffer( _indirectBuffer->GetBufferId( fid ), _indirectBufferHostVis, {copy} );
+
+        Reconstruct( INOUT ctx, tctx.GetRenderTask(), tctx.ReleaseCommandBuffer() );
+        return true;
     }
 
 /*
@@ -400,13 +535,12 @@ namespace AE::ResEditor
     Validate
 =================================================
 */
-    void  RTScene::Validate () const
+    void  RTScene::Validate (FrameUID fid) const
     {
-        for (auto& [geom, ver] : _uniqueGeometries)
+    /*  for (auto& [geom, ver] : _uniqueGeometries)
         {
-            CHECK( geom->GetVersion() == ver );
-            geom->Validate();
-        }
+            CHECK_Eq( geom->GetVersion(fid), ver );
+        }*/
     }
 
 

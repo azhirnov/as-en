@@ -1,8 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    thread-safe: yes
+*/
 
 #pragma once
 
-#include "base/Memory/LinearAllocator.h"
 #include "threading/Common.h"
 
 namespace AE::Base
@@ -72,7 +74,7 @@ namespace AE::Base
         ND_ T*  Allocate (usize count = 1)                      __NE___
         {
             EXLOCK( _guard );
-            return _base.Allocate<T>( count );
+            return _base.template Allocate<T>( count );
         }
 
         void  Deallocate (void *, Bytes)                        __NE___ {}

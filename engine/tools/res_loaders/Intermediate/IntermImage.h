@@ -2,21 +2,17 @@
 
 #pragma once
 
-#include "base/Utils/RefCounter.h"
-#include "base/Memory/SharedMem.h"
-
-//#include "threading/Memory/TsSharedMem.h" // TODO
-
-#include "graphics/Public/ImageMemView.h"
-#include "graphics/Public/ResourceEnums.h"
-#include "graphics/Public/MipmapLevel.h"
-#include "graphics/Public/ImageLayer.h"
-#include "graphics/Public/ImageDesc.h"
-
-#include "res_loaders/Common.h"
+#include "res_loaders/Public/Common.h"
 
 namespace AE::ResLoader
 {
+    using Graphics::EImage;
+    using Graphics::EImageDim;
+    using Graphics::EPixelFormat;
+    using Graphics::ImageLayer;
+    using Graphics::MipmapLevel;
+    using Graphics::ImageMemView;
+
 
     //
     // Intermediate Image
@@ -31,8 +27,8 @@ namespace AE::ResLoader
         public:
             uint3               dimension;
             EPixelFormat        format      = Default;
-            ImageLayer          layer       = 0_layer;
-            MipmapLevel         mipmap      = 0_mipmap;
+            ImageLayer          layer       {0u};
+            MipmapLevel         mipmap      {0u};
             Bytes               rowPitch;
             Bytes               slicePitch;
         private:
@@ -75,8 +71,8 @@ namespace AE::ResLoader
     public:
         IntermImage ()                                                                                              __NE___ {}
         IntermImage (IntermImage &&)                                                                                __NE___;
-        explicit IntermImage (Path path)                                                                            : _srcPath{RVRef(path)} {}
-        IntermImage (Mipmaps_t data, EImage type, StringView path = Default)                                        : _srcPath{path}, _data{RVRef(data)}, _imageType{type} {}
+        explicit IntermImage (Path path)                                                                            __NE___ : _srcPath{RVRef(path)} {}
+        IntermImage (Mipmaps_t data, EImage type, StringView path = Default)                                        __NE___ : _srcPath{path}, _data{RVRef(data)}, _imageType{type} {}
 
         IntermImage&  operator = (IntermImage &&)                                                                   __NE___;
 

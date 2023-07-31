@@ -1,9 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Algorithms/StringUtils.h"
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/EditorUI.h"
-#include "scripting/Impl/ClassBinder.h"
 
 namespace AE::ResEditor
 {
@@ -75,6 +73,17 @@ namespace AE::ResEditor
     }
 //-----------------------------------------------------------------------------
 
+
+
+/*
+=================================================
+    constructor
+=================================================
+*/
+    ScriptBasePass::ScriptBasePass (EFlags flags) __Th___ :
+        _baseFlags{flags},
+        _dynamicDim{ new ScriptDynamicDim{ MakeRC<DynamicDim>( uint2{1} )}}
+    {}
 
 /*
 =================================================
@@ -277,6 +286,34 @@ namespace AE::ResEditor
                     break;
             }
         }
+    }
+
+/*
+=================================================
+    _SetDynamicDimension
+=================================================
+*/
+    void  ScriptBasePass::_SetDynamicDimension (const ScriptDynamicDimPtr &dynDim) __Th___
+    {
+        CHECK_THROW_MSG( dynDim and dynDim->Get() );
+
+        if ( _dynamicDim == dynDim or _dynamicDim->Get() == dynDim->Get() )
+            return;
+
+        CHECK_THROW_MSG( _dynamicDim.UseCount() == 1 and _dynamicDim->Get().use_count() == 2,
+            "Previous dynamic dimension is already used" );
+
+        _dynamicDim = dynDim;
+    }
+
+/*
+=================================================
+    _SetConstDimension
+=================================================
+*/
+    void  ScriptBasePass::_SetConstDimension (const uint3 &) __Th___
+    {
+        // TODO
     }
 
 /*

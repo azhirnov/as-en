@@ -22,10 +22,7 @@
 #   include <vulkan/vulkan.h>
 # endif
 
-# include "base/Common.h"
-# include "base/Containers/NtStringView.h"
-# include "base/Math/BitMath.h"
-# include "base/Utils/Version.h"
+# include "graphics/Graphics.pch.h"
 
 namespace AE::Graphics
 {
@@ -107,9 +104,6 @@ namespace AE::Graphics
 
         ND_ static bool  LoadDevice (VkDevice device, OUT VulkanDeviceFnTable &table)                                   __NE___;
             static void  ResetDevice (OUT VulkanDeviceFnTable &table)                                                   __NE___;
-
-            static void  SetupInstanceBackwardCompatibility (Version2 instanceVersion)                                  __NE___;
-            static void  SetupDeviceBackwardCompatibility (Version2 deviceVersion, INOUT VulkanDeviceFnTable &table)    __NE___;
     };
 
 } // AE::Graphics

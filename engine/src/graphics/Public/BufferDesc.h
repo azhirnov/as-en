@@ -11,7 +11,6 @@ namespace AE::Graphics
     //
     // Buffer description
     //
-
     struct BufferDesc
     {
     // variables
@@ -49,7 +48,6 @@ namespace AE::Graphics
     //
     // Buffer View description
     //
-
     struct BufferViewDesc
     {
     // variables
@@ -68,6 +66,29 @@ namespace AE::Graphics
         void  Validate (const BufferDesc &desc)             __NE___;
 
         ND_ bool  operator == (const BufferViewDesc &rhs)   C_NE___;
+    };
+
+
+
+    //
+    // Buffer Device Address (helper)
+    //
+
+    enum class DeviceAddress : ulong { Unknown = 0 };
+
+    ND_ inline DeviceAddress  operator + (DeviceAddress addr, Bytes offset) __NE___ {
+        return DeviceAddress( ulong(addr) + ulong(offset) );
+    }
+
+    template <typename T>
+    struct TDeviceAddress
+    {
+    private:
+        DeviceAddress       _addr   = Default;
+
+    public:
+        TDeviceAddress ()                   __NE___ = default; 
+        TDeviceAddress (DeviceAddress addr) __NE___ : _addr{addr} {}
     };
 
 

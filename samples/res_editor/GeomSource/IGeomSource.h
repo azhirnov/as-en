@@ -33,6 +33,7 @@ namespace AE::ResEditor
     // types
     public:
         using GraphicsCtx_t     = DirectCtx::Graphics;
+        using RayTracingCtx_t   = DirectCtx::RayTracing;
         using UpdatePassData    = IPass::UpdatePassData;
 
         struct UpdateData
@@ -55,6 +56,7 @@ namespace AE::ResEditor
             IGSMaterials &          mtr;
             DirectCtx::Draw &       ctx;
             DescriptorSetID         passDS;
+            float3                  position;
         };
 
         using Textures_t    = Array<Pair< UniformName, RC<IImageResource> >>;
@@ -72,6 +74,8 @@ namespace AE::ResEditor
 
     public:
         virtual void  StateTransition (IGSMaterials &, GraphicsCtx_t &)     __NE___ = 0;
+        virtual void  StateTransition (IGSMaterials &, RayTracingCtx_t &)   __NE___ = 0;
+
         virtual bool  Draw (const DrawData &)                               __NE___ = 0;
         virtual bool  Update (const UpdateData &)                           __NE___ = 0;
         virtual bool  RTUpdate (const UpdateRTData &)                       __NE___ { return false; }

@@ -22,7 +22,7 @@ namespace AE::Base
 
 
     //
-    // Noncopyable
+    // Non-copyable
     //
     class Noncopyable
     {

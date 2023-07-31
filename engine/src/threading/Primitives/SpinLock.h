@@ -3,12 +3,8 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "base/CompileTime/Math.h"
-# include "base/Platforms/Platform.h"
-# include "base/Utils/Helpers.h"
 # include "threading/Primitives/Atomic.h"
 #endif
-
 
 namespace AE::Threading
 {

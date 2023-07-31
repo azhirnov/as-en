@@ -19,7 +19,7 @@ namespace AE::Graphics
     {
     // variables
     private:
-        VDeviceAddress              _address        = Default;
+        DeviceAddress               _address        = Default;
         VkAccelerationStructureKHR  _accelStruct    = Default;
         VkBuffer                    _buffer         = Default;
         RTGeometryDesc              _desc;
@@ -39,7 +39,7 @@ namespace AE::Graphics
             void  Destroy (VResourceManager &)                                                                              __NE___;
 
         ND_ VkAccelerationStructureKHR  Handle ()                                                                           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _accelStruct; }
-        ND_ VDeviceAddress              GetDeviceAddress ()                                                                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _address; }
+        ND_ DeviceAddress               GetDeviceAddress ()                                                                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _address; }
         ND_ RTGeometryDesc const&       Description ()                                                                      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }
         ND_ MemoryID                    MemoryId ()                                                                         C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _memoryId; }
         ND_ bool                        IsExclusiveSharing ()                                                               C_NE___ { return false; }
@@ -50,9 +50,16 @@ namespace AE::Graphics
 
         ND_ static RTASBuildSizes   GetBuildSizes (const VResourceManager &, const RTGeometryBuild &desc)                   __NE___;
 
-        ND_ static bool             ConvertBuildInfo (const VResourceManager &, IAllocatorRef allocator, const RTGeometryBuild &desc,
+        ND_ static bool             ConvertBuildInfo (const VResourceManager &, IAllocatorRef allocator, const RTGeometryBuild &,
                                                       OUT VkAccelerationStructureBuildRangeInfoKHR* &ranges,
                                                       OUT VkAccelerationStructureBuildGeometryInfoKHR &buildInfo)           __NE___;
+
+        ND_ static bool             ConvertBuildInfo (const VResourceManager &, IAllocatorRef allocator,
+                                                      const RTGeometryBuild &, OUT uint* &maxPrimitiveCounts,
+                                                      OUT VkAccelerationStructureBuildGeometryInfoKHR &buildInfo)           __NE___;
+
+        ND_ static bool             IsSupported (const VResourceManager &, const RTGeometryDesc &desc)                      __NE___;
+        ND_ static bool             IsSupported (const VResourceManager &, const RTGeometryBuild &build)                    __NE___;
 
     private:
         template <bool IsForBuilding>

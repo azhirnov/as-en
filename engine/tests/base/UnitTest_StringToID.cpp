@@ -1,6 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/CompileTime/StringToID.h"
 #include "UnitTest_Common.h"
 
 DECL_STRING_TO_ID( MyID, 1 );

@@ -3,14 +3,6 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "base/Math/BitMath.h"
-# include "base/Math/Bytes.h"
-# include "base/Math/Math.h"
-# include "base/Math/POTValue.h"
-# include "base/Memory/UntypedAllocator.h"
-# include "base/Utils/SourceLoc.h"
-# include "base/Utils/RestrictPtr.h"
-# include "base/Algorithms/StringUtils.h"
 # include "threading/Primitives/Atomic.h"
 # include "threading/Primitives/SpinLock.h"
 # include "threading/Primitives/SyncEvent.h"

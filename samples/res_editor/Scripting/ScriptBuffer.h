@@ -70,6 +70,8 @@ namespace AE::ResEditor
         void  Name (const String &name)                                                         __Th___;
 
         void  AddUsage (EResourceUsage usage)                                                   __Th___;
+        void  EnableHistory ()                                                                  __Th___ { AddUsage( EResourceUsage::WithHistroy ); }
+
         void  SetSize (Bytes size, const String &typeName = Default)                            __Th___;
         void  SetLayoutAndSize (const String &typeName, ulong dataSize)                         __Th___;
         void  SetLayout2 (const String &typeName)                                               __Th___;
@@ -84,6 +86,7 @@ namespace AE::ResEditor
         ND_ String  GetTypeName ()                                                              C_NE___;
         ND_ uint    TexelBufferType ()                                                          C_NE___ { ASSERT( not HasLayout() );  return _texbufType; }
         ND_ bool    IsDynamicSize ()                                                            C_NE___ { return _dynCount != null; }
+        ND_ ulong   GetDeviceAddress ()                                                         __Th___;
 
 
       // build const data layout //
@@ -121,6 +124,8 @@ namespace AE::ResEditor
         void  UInt2v (const String &name, const packed_uint2 &v)                                __Th___;
         void  UInt3v (const String &name, const packed_uint3 &v)                                __Th___;
         void  UInt4v (const String &name, const packed_uint4 &v)                                __Th___;
+
+        void  ULong1  (const String &name, ulong x)                                             __Th___;
 
         void  Float1Array (const String &name, const ScriptArray<float> &arr)                   __Th___;
         void  Float2Array (const String &name, const ScriptArray<packed_float2> &arr)           __Th___;

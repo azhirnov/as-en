@@ -68,6 +68,7 @@ namespace AE::App
             void  _MainLoop ()                                                          __NE___;
 
             void  _UpdateMinitors (OUT Monitors_t &)                                    C_NE___;
+            void  _SetMinitorNames (INOUT Monitors_t &)                                 C_NE___;
             void  _GetLocales (OUT Locales_t &)                                         C_NE___;
     };
 

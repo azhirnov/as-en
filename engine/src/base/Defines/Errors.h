@@ -191,13 +191,13 @@
 
 // CHECK_ERR for using inside task
 #if 1
-#   define AE_PRIVATE_CHECK_TASK( _expr_, _text_ )                                                                          \
-        {if_likely(( _expr_ )) {}                                                                                           \
-         else_unlikely {                                                                                                    \
-            AE_LOGE( AE_TOSTRING( _text_ ));                                                                                \
-            STATIC_ASSERT( AE::Base::IsBaseOf< AE::Threading::IAsyncTask, AE::Base::RemoveAllQualifiers<decltype(*this)> >);\
-            ASSERT( AE::Base::StringView{"Run"} == AE_FUNCTION_NAME );                                                      \
-            return this->OnFailure(); /* call 'IAsyncTask::OnFailure()' */                                                  \
+#   define AE_PRIVATE_CHECK_TASK( _expr_, _text_ )                                                  \
+        {if_likely(( _expr_ )) {}                                                                   \
+         else_unlikely {                                                                            \
+            AE_LOGE( AE_TOSTRING( _text_ ));                                                        \
+            STATIC_ASSERT( AE::Base::IsBaseOfNoQual< AE::Threading::IAsyncTask, decltype(*this) >); \
+            ASSERT( AE::Base::StringView{"Run"} == AE_FUNCTION_NAME );                              \
+            return this->OnFailure(); /* call 'IAsyncTask::OnFailure()' */                          \
         }}
 
 #   define CHECK_TE( /* expr, message */... ) \
@@ -281,7 +281,7 @@
 #   define AE_PRIVATE_CHECK_THROW_MSG( _expr_, _text_ )     \
         {if_likely(( _expr_ )) {}                           \
          else_unlikely {                                    \
-            AE_LOGE( _text_ );                              \
+            AE_LOG_SE( _text_ );                            \
             throw AE::Exception{ _text_ };                  \
         }}
 
@@ -293,7 +293,7 @@
 #   define AE_PRIVATE_CHECK_THROW( _expr_, _exception_ )    \
         {if_likely(( _expr_ )) {}                           \
          else_unlikely {                                    \
-            DEBUG_ONLY( AE_LOGE( AE_TOSTRING( _expr_ ));)   \
+            AE_LOG_SE( AE_TOSTRING( _expr_ ));              \
             throw (_exception_);                            \
         }}
 

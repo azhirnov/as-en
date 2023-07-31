@@ -3,11 +3,6 @@ Batch in queue: 'Graphics', (0)
 --------------------------------------------------
 name: 'Debugger1 |0| Compute task'
 {
-  BeginDebugLabel
-    name:  'Debugger1 |0| Compute task'
-    depth: 1
-  ----------
-
   FillBuffer
     dst:     'debug storage buffer'
     offset:  16
@@ -51,19 +46,10 @@ name: 'Debugger1 |0| Compute task'
       layout:  GENERAL ---> TRANSFER_SRC_OPTIMAL
   ----------
 
-  EndDebugLabel
-    depth: 1
-  ----------
-
 }
 --------------------------------------------------
 name: 'Debugger1 |1| Readback task'
 {
-  BeginDebugLabel
-    name:  'Debugger1 |1| Readback task'
-    depth: 1
-  ----------
-
   CopyImageToBuffer
     src:       'Image'
     srcLayout: TRANSFER_SRC_OPTIMAL
@@ -96,10 +82,6 @@ name: 'Debugger1 |1| Readback task'
     MemoryBarrier:
       stage:  COPY ---> HOST
       access: TRANSFER_WRITE ---> HOST_READ
-  ----------
-
-  EndDebugLabel
-    depth: 1
   ----------
 
 }

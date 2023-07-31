@@ -38,6 +38,7 @@ namespace AE::App
         bool                _requestQuit        = false;
         bool                _lockAndHideCursor  = false;
         void*               _cursorHandle       = null;     // HCURSOR
+        EWindowMode         _wndMode            = Default;
 
         InputActionsWinAPI  _input;
 

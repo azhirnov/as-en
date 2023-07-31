@@ -11,7 +11,6 @@ void ASmain ()
     }
 
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "draw3" );
-    ppln.AddFeatureSet( "MinimalFS" );
     ppln.SetLayout( "draw3.pl" );
 
     {

@@ -1,9 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Algorithms/StringUtils.h"
-#include "base/DataSource/FileStream.h"
-
-#include "graphics/Private/EnumToString.h"
 #include "video/Impl/EnumToString.cpp.h"
 
 #include "res_editor/EditorUI.h"
@@ -468,8 +464,8 @@ namespace
 
             io.MouseDown[0] = imgui->mouseLBDown;
             io.MousePos     = { imgui->mousePos.x, imgui->mousePos.y };
-            io.MouseWheel   = imgui->mouseWheel.y;
-            io.MouseWheelH  = imgui->mouseWheel.x;
+            io.MouseWheel   = Clamp( imgui->mouseWheel.y, -1.f, 1.f );
+            io.MouseWheelH  = Clamp( imgui->mouseWheel.x, -1.f, 1.f );
 
             s_UIInteraction.selectedPixel.MutablePtr()->pendingPos = uint2{imgui->mousePos + 0.5f};
         }
@@ -1017,7 +1013,10 @@ namespace
 */
     void  EditorUI::DrawTask::_UpdatePopups ()
     {
-        if ( not t._compiling.load() )
+        const bool  compiling       = t._compiling.load();
+        const bool  pause_rendering = t._pauseRendering.load();
+
+        if ( not (compiling or pause_rendering) )
             return;
 
         // setup style
@@ -1026,18 +1025,21 @@ namespace
             ImGui::PushStyleColor( ImGuiCol_WindowBg,   RGBA8u{ 30, 0, 20, 255} );
         }
 
+        const char  text1 [] = "Compiling...";
+        const char  text2 [] = "Paused";
+        const auto  text     = StringView(compiling ? text1 : text2);
+
         const auto  wnd_flags = ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
                                 ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse |
                                 ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize;
         ImGuiIO &   io      = ImGui::GetIO();
-        const char  text[]  = "Compiling...";
         const float h       = ImGui::GetTextLineHeight();
-        const float w       = h * CountOf(text);
+        const float w       = h * text.length();
 
         ImGui::SetNextWindowPos( ImVec2{(io.DisplaySize.x-w)/2, io.DisplaySize.y/2-h}, ImGuiCond_Always );
 
         ImGui::Begin( "CompilingPopup", null, wnd_flags );
-        ImGui::Text( text );
+        ImGui::Text( text.data() );
         ImGui::End();
     }
 
@@ -1111,14 +1113,15 @@ namespace
 
         Scheduler().Run(
             ETaskQueue::Background,
-            [] (RC<ResEditorCore> core, Path path, Atomic<bool> &compiling) -> CoroTask
+            [] (RC<ResEditorCore> core, Path path, Atomic<bool> &compiling, Atomic<bool> &pauseRendering) -> CoroTask
             {
                 ASSERT( compiling.load() );
                 Unused( core->RunRenderScriptAsync( path ));
                 compiling.store( false );
+                pauseRendering.store( false );
                 co_return;
             }
-            ( t._core.GetRC(), path, t._compiling ),
+            ( t._core.GetRC(), path, t._compiling, t._pauseRendering ),
             Tuple{},
             "UI::LoadScript"
         );
@@ -1609,6 +1612,9 @@ namespace
 
             if_unlikely( hdr.name == InputActionName{"UI.FrameCapture"} )
                 _requestCapture.store( true );
+
+            if_unlikely( hdr.name == InputActionName{"PauseRendering"} )
+                _pauseRendering.store( not _pauseRendering.load() );
         }
     }
 

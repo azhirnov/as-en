@@ -4,7 +4,6 @@
 void UIPass ()
 {
     RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "UIPass" );
-    compat.AddFeatureSet( "MinimalFS" );
 
     const string    pass = "Main";
     compat.AddSubpass( pass );
@@ -38,7 +37,6 @@ void UIPass ()
 void SceneRPass ()
 {
     RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "SceneRPass" );
-    compat.AddFeatureSet( "MinimalFS" );
 
     const string    pass = "Main";
     compat.AddSubpass( pass );
@@ -49,7 +47,7 @@ void SceneRPass ()
         rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
     }{
         RC<Attachment>  ds  = compat.AddAttachment( Attachment_Depth );
-        ds.format       = EPixelFormat::Depth32F;
+        ds.format       = EPixelFormat::Depth16;
         ds.Usage( pass, EAttachment::Depth );
     }
 

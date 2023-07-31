@@ -25,7 +25,7 @@ namespace AE::Base
 
     // methods
     public:
-        ~NamedID_HashCollisionCheckTS ()                                            __Th___ { EXLOCK( _guard ); }
+        ~NamedID_HashCollisionCheckTS ()                                            __NE___ { CheckAndClear(); }
 
 
         template <usize Size, uint UID, uint Seed>
@@ -46,6 +46,8 @@ namespace AE::Base
         ND_ bool  HasCollisions ()                                                  C_NE___ { SHAREDLOCK( _guard );  return _hcc.HasCollisions(); }
 
             void  Clear ()                                                          __NE___ { SHAREDLOCK( _guard );  _hcc.Clear(); }
+
+            void  CheckAndClear ()                                                  __NE___ { EXLOCK( _guard );  _hcc.CheckAndClear(); }
     };
 
 

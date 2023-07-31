@@ -14,6 +14,7 @@ namespace AE::ResEditor
     class SceneData final : public EnableRC< SceneData >
     {
         friend class SceneGraphicsPass;
+        friend class SceneRayTracingPass;
         friend class ScriptScene;
 
     // types
@@ -95,7 +96,8 @@ namespace AE::ResEditor
 
     // types
     private:
-        using Materials_t   = Array< RC<IGSMaterials> >;
+        using Materials_t       = Array< RC<IGSMaterials> >;
+        using PipelineMap_t     = FixedMap< EDebugMode, RayTracingPipelineID, uint(EDebugMode::_Count) >;
 
 
     // variables
@@ -106,13 +108,16 @@ namespace AE::ResEditor
         Materials_t             _materials;
 
         Resources_t             _resources;         // per pass
-        RenderTargets_t         _renderTargets;
+
+        PipelineMap_t           _pipelines;
+        RTShaderBindingID       _sbt;
 
         Strong<BufferID>        _ubuffer;
         PerFrameDescSet_t       _descSets;
         DescSetBinding          _dsIndex;
 
         RC<IController>         _controller;
+        Constants               _shConst;
 
         String                  _dbgName;
         RGBA8u                  _dbgColor;

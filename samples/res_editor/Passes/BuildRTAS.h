@@ -3,7 +3,7 @@
 #pragma once
 
 #include "res_editor/Passes/IPass.h"
-#include "res_editor/Resources/IResource.h"
+#include "res_editor/Resources/RTScene.h"
 
 namespace AE::ResEditor
 {
@@ -16,18 +16,16 @@ namespace AE::ResEditor
     {
     // variables
     private:
-        RC<RTGeometry>      _dstGeometry;
-        RC<Buffer>          _indirectBuffer;
-        Strong<BufferID>    _scratchBuffer;     // mutable
-
-        const String        _dbgName;
+        RC<RTGeometry>          _dstGeometry;
+        RTGeometry::EBuildMode  _mode;
+        const String            _dbgName;
 
 
     // methods
     public:
         BuildRTGeometry (RC<RTGeometry> dstGeometry,
-                         RC<Buffer>     indirectBuffer,
-                         StringView     dbgName);
+                         bool           indirect,
+                         StringView     dbgName)                            __Th___;
         ~BuildRTGeometry ()                                                 {}
 
     // IPass //
@@ -48,18 +46,16 @@ namespace AE::ResEditor
     {
     // variables
     private:
-        RC<RTScene>         _dstScene;
-        RC<Buffer>          _indirectBuffer;
-        Strong<BufferID>    _scratchBuffer;     // mutable
-
-        const String        _dbgName;
+        RC<RTScene>             _dstScene;
+        RTScene::EBuildMode     _mode;
+        const String            _dbgName;
 
 
     // methods
     public:
         BuildRTScene (RC<RTScene>   dstScene,
-                      RC<Buffer>    indirectBuffer,
-                      StringView    dbgName);
+                      bool          indirect,
+                      StringView    dbgName)                                __Th___;
         ~BuildRTScene ()                                                    {}
 
     // IPass //

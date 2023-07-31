@@ -2,8 +2,7 @@
 
 #pragma once
 
-#include "base/Math/Radians.h"
-#include "graphics/Public/RenderStateEnums.h"
+#include "graphics_hl/GraphicsHL.pch.h"
 
 namespace AE::Graphics
 {
@@ -255,16 +254,18 @@ namespace AE::Graphics
                 *(idx++) = firstIdx;
             }
 
-            const float2    center  = position.Center();
-            const float2    scale   = position.Size() * 0.5f;
+            const float2    center      = position.Center();
+            const float2    scale       = position.Size() * 0.5f;
 
-            auto*           pos     = Cast<PosType>( positionPtr );
-            auto*           attr    = Cast<AttribType>( attributePtr );
+            auto*           pos         = Cast<PosType>( positionPtr );
+            auto*           attr        = Cast<AttribType>( attributePtr );
+            const Rad       angle_scale = 2.0f * Pi / float(segments);
+
+            // TODO: optimization: calc SinCos only for 1/4 of circle
 
             for (uint i = 0; i < segments; ++i)
             {
-                float   a  = 2.0f * float(Pi) * float(i) / segments;
-                float2  sc = SinCos( Rad{a} );
+                float2  sc = SinCos( angle_scale * float(i) );
                 float2  p  = center + scale * float2{sc[1], sc[0]};
 
                 pos[i]  = PosType{ p };
@@ -329,14 +330,16 @@ namespace AE::Graphics
 
             auto*           pos         = Cast<PosType>( positionPtr );
             auto*           attr        = Cast<AttribType>( attributePtr );
+            const Rad       angle_scale = 2.0f * Pi / float(segments);
 
             pos[0]  = PosType{ center };
             attr[0] = AttribType{ tc_bias, color };
 
+            // TODO: optimization: calc SinCos only for 1/4 of circle
+
             for (uint i = 0; i < segments;)
             {
-                float   angle   = 2.0f * float(Pi) * float(i) / segments;
-                float2  sc      = SinCos( Rad{angle} );
+                float2  sc      = SinCos( angle_scale * float(i) );
                 float2  factor  = float2{sc[1], sc[0]};
                 float2  p       = center + scale * factor;
                 float2  texc    = tc_bias + tc_scale * factor;

@@ -2,25 +2,7 @@
 
 #pragma once
 
-#include "base/CompileTime/Math.h"
-#include "base/Algorithms/ArrayUtils.h"
-#include "base/Math/BitMath.h"
-#include "base/Math/Math.h"
-#include "base/Math/Vec.h"
-#include "base/Math/Color.h"
-#include "base/Math/Rectangle.h"
-#include "base/Math/POTValue.h"
-#include "base/Utils/RefCounter.h"
-#include "base/Containers/Union.h"
-#include "base/Containers/FixedMap.h"
-#include "base/Containers/FixedSet.h"
-#include "base/DataSource/Stream.h"
-
-#include "threading/Primitives/DataRaceCheck.h"
-#include "threading/TaskSystem/TaskScheduler.h"
-#include "threading/TaskSystem/Promise.h"
-#include "threading/Memory/MemoryManager.h"
-#include "threading/Primitives/Synchronized.h"
+#include "graphics/Graphics.pch.h"
 
 #ifdef AE_CFG_RELEASE
 #   define AE_DBG_GRAPHICS              0

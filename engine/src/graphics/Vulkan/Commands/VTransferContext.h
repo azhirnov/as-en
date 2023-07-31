@@ -236,7 +236,7 @@ namespace AE::Graphics::_hidden_
         FixedArray<VkImageSubresourceRange, _LocalArraySize>    vk_ranges;
         const ImageDesc &                                       desc    = img.Description();
 
-        MemCopy( clear_value, color );
+        MemCopy( OUT clear_value, color );
 
         for (usize i = 0; i < ranges.size(); ++i)
         {
@@ -394,7 +394,7 @@ namespace AE::Graphics::_hidden_
         VStagingBufferManager&  sbm         = this->_mngr.GetStagingManager();
 
         VStagingBufferManager::StagingImageResultRanges res;
-        sbm.GetImageRanges( OUT res, uploadDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+        sbm.GetImageRanges( OUT res, uploadDesc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
 
         if_unlikely( res.buffers.empty() )
             return;
@@ -452,7 +452,7 @@ namespace AE::Graphics::_hidden_
         upload_desc.imageSize   -= uint3{ 0, stream.posYZ };
 
         VStagingBufferManager::StagingImageResultRanges res;
-        sbm.GetImageRanges( OUT res, upload_desc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
+        sbm.GetImageRanges( OUT res, upload_desc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), True{"upload"} );
 
         if_unlikely( res.buffers.empty() )
             return;
@@ -576,7 +576,7 @@ namespace AE::Graphics::_hidden_
         VStagingBufferManager&  sbm         = this->_mngr.GetStagingManager();
 
         VStagingBufferManager::StagingImageResultRanges res;
-        sbm.GetImageRanges( OUT res, readDesc, img_desc, GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
+        sbm.GetImageRanges( OUT res, readDesc, img_desc, MinImageTransferGranularity(), GetFrameId(), this->_mngr.GetQueueType(), False{"readback"} );
 
         if_unlikely( res.buffers.empty() )
             return Default;
@@ -889,7 +889,7 @@ namespace AE::Graphics::_hidden_
     void  _VTransferContextImpl<C>::BlitImage (ImageID srcImage, ImageID dstImage, EBlitFilter blitFilter, ArrayView<ImageBlit> regions)
     {
         auto  [src_img, dst_img] = _GetResourcesOrThrow( srcImage, dstImage );
-        Validator_t::BlitImage( src_img, dst_img, regions );
+        Validator_t::BlitImage( src_img, dst_img, blitFilter, regions );
 
         FixedArray<VkImageBlit, _LocalArraySize>    vk_regions;
         const ImageDesc &                           src_desc    = src_img.Description();

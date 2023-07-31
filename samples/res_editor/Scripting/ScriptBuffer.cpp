@@ -2,9 +2,6 @@
 
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Resources/Buffer.h"
-
-#include "scripting/Impl/ClassBinder.h"
-
 #include "res_editor/Scripting/PassCommon.inl.h"
 
 namespace AE::ResEditor
@@ -30,7 +27,7 @@ namespace
     void  ScriptBuffer::BufferLayout::Put (const void* data, const Bytes dataSize, const Bytes align)
     {
         Bytes   offset      = AlignUp( Bytes{_data.size()}, align );
-        Bytes   new_size    = offset + dataSize;
+        Bytes   new_size    = AlignUp( offset + dataSize, align );
 
         _data.resize( usize(new_size) );
 
@@ -45,7 +42,7 @@ namespace
     void  ScriptBuffer::BufferLayout::Put (const Bytes dataSize, const Bytes align)
     {
         Bytes   offset      = AlignUp( Bytes{_data.size()}, align );
-        Bytes   new_size    = offset + dataSize;
+        Bytes   new_size    = AlignUp( offset + dataSize, align );
 
         _data.resize( usize(new_size) );
     }
@@ -90,6 +87,27 @@ namespace
 
 /*
 =================================================
+    GetDeviceAddress
+=================================================
+*/
+    ulong  ScriptBuffer::GetDeviceAddress () __Th___
+    {
+        CHECK_THROW_MSG( not IsDynamicSize() );
+
+        AddUsage( EResourceUsage::ShaderAddress );
+
+        auto    buf = ToResource();
+        CHECK_THROW( buf );
+        CHECK_THROW( not buf->HasHistory() );   // TODO: return dynamic value?
+
+        ulong   addr = buf->GetDeviceAddress( 0 );
+        CHECK_THROW( addr != 0 );
+
+        return addr;
+    }
+
+/*
+=================================================
     _SetType
 =================================================
 */
@@ -126,8 +144,11 @@ namespace
 */
     void  ScriptBuffer::AddUsage (EResourceUsage usage) __Th___
     {
-        CHECK_THROW_MSG( not _resource,
-            "resource is already created, can not change usage or content" );
+        if ( not AllBits( _resUsage, usage ))
+        {
+            CHECK_THROW_MSG( not _resource,
+                "resource is already created, can not change usage or content" );
+        }
 
         _resUsage |= usage;
 
@@ -149,6 +170,18 @@ namespace
         if ( AllBits( usage, EResourceUsage::UploadedData ))
         {
             CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::ComputeWrite ));
+            CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::ShaderAddress ));
+        }
+
+        if ( AnyBits( usage, EResourceUsage::ASBuild ))
+        {
+            CHECK_THROW_MSG( RenderTaskScheduler().GetDevice().GetProperties().accelerationStructureFeats.accelerationStructure,
+                "AccelerationStructures are not supported" );
+        }
+        if ( AnyBits( usage, EResourceUsage::ShaderAddress ))
+        {
+            CHECK_THROW_MSG( RenderTaskScheduler().GetDevice().GetProperties().bufferDeviceAddressFeats.bufferDeviceAddress,
+                "ShaderAddress is not supported" );
         }
     }
 
@@ -362,7 +395,7 @@ namespace
     Int*
 =================================================
 */
-    void  ScriptBuffer::Int1  (const String &name, int x) __Th___
+    void  ScriptBuffer::Int1 (const String &name, int x) __Th___
     {
         _InitConstDataFromScriptLayout();
         _layout.Put( &x, Sizeof(x), 4_b );
@@ -395,7 +428,7 @@ namespace
     UInt*
 =================================================
 */
-    void  ScriptBuffer::UInt1  (const String &name, uint x) __Th___
+    void  ScriptBuffer::UInt1 (const String &name, uint x) __Th___
     {
         _InitConstDataFromScriptLayout();
         _layout.Put( &x, Sizeof(x), 4_b );
@@ -421,6 +454,18 @@ namespace
         _InitConstDataFromScriptLayout();
         _layout.Put( &v, Sizeof(v), 16_b );
         _layout.source << "  uint4  " << name << ";\n";
+    }
+
+/*
+=================================================
+    ULong*
+=================================================
+*/  
+    void  ScriptBuffer::ULong1 (const String &name, ulong x) __Th___
+    {
+        _InitConstDataFromScriptLayout();
+        _layout.Put( &x, Sizeof(x), 8_b );
+        _layout.source << "  ulong  " << name << ";\n";
     }
 
 /*
@@ -687,6 +732,7 @@ namespace
         binder.AddFactoryCtor( &ScriptBuffer_Ctor2 );
 
         binder.AddMethod( &ScriptBuffer::Name,              "Name"          );
+
         binder.AddMethod( &ScriptBuffer::SetLayoutAndSize,  "LayoutAndSize" );
         binder.AddMethod( &ScriptBuffer::SetLayout2,        "Layout"        );
         binder.AddMethod( &ScriptBuffer::SetLayout3,        "Layout"        );
@@ -695,66 +741,71 @@ namespace
         binder.AddMethod( &ScriptBuffer::SetLayoutAndCount3,"LayoutAndCount");
         binder.AddMethod( &ScriptBuffer::SetLayoutAndCount4,"LayoutAndCount");
 
+        binder.AddMethod( &ScriptBuffer::GetDeviceAddress,  "DeviceAddress");
+        binder.AddMethod( &ScriptBuffer::EnableHistory,     "EnableHistory" );
+
       // build const data layout //
 
         binder.AddMethod( &ScriptBuffer::Float1,        "Float"         );
-        binder.AddMethod( &ScriptBuffer::Float2,        "Float2"        );
-        binder.AddMethod( &ScriptBuffer::Float3,        "Float3"        );
-        binder.AddMethod( &ScriptBuffer::Float4,        "Float4"        );
-        binder.AddMethod( &ScriptBuffer::Float2v,       "Float2"        );
-        binder.AddMethod( &ScriptBuffer::Float3v,       "Float3"        );
-        binder.AddMethod( &ScriptBuffer::Float4v,       "Float4"        );
+        binder.AddMethod( &ScriptBuffer::Float2,        "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float3,        "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float4,        "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float2v,       "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float3v,       "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float4v,       "Float"         );
 
-        binder.AddMethod( &ScriptBuffer::Float2x2,      "Float2x2"      );
-        binder.AddMethod( &ScriptBuffer::Float2x3,      "Float2x3"      );
-        binder.AddMethod( &ScriptBuffer::Float2x4,      "Float2x4"      );
-        binder.AddMethod( &ScriptBuffer::Float3x2,      "Float3x2"      );
-        binder.AddMethod( &ScriptBuffer::Float3x3,      "Float3x3"      );
-        binder.AddMethod( &ScriptBuffer::Float3x4,      "Float3x4"      );
-        binder.AddMethod( &ScriptBuffer::Float4x2,      "Float4x2"      );
-        binder.AddMethod( &ScriptBuffer::Float4x3,      "Float4x3"      );
-        binder.AddMethod( &ScriptBuffer::Float4x4,      "Float4x4"      );
+        binder.AddMethod( &ScriptBuffer::Float2x2,      "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float2x3,      "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float2x4,      "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float3x2,      "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float3x3,      "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float3x4,      "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float4x2,      "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float4x3,      "Float"         );
+        binder.AddMethod( &ScriptBuffer::Float4x4,      "Float"         );
 
         binder.AddMethod( &ScriptBuffer::Int1,          "Int"           );
-        binder.AddMethod( &ScriptBuffer::Int2,          "Int2"          );
-        binder.AddMethod( &ScriptBuffer::Int3,          "Int3"          );
-        binder.AddMethod( &ScriptBuffer::Int4,          "Int4"          );
-        binder.AddMethod( &ScriptBuffer::Int2v,         "Int2"          );
-        binder.AddMethod( &ScriptBuffer::Int3v,         "Int3"          );
-        binder.AddMethod( &ScriptBuffer::Int4v,         "Int4"          );
+        binder.AddMethod( &ScriptBuffer::Int2,          "Int"           );
+        binder.AddMethod( &ScriptBuffer::Int3,          "Int"           );
+        binder.AddMethod( &ScriptBuffer::Int4,          "Int"           );
+        binder.AddMethod( &ScriptBuffer::Int2v,         "Int"           );
+        binder.AddMethod( &ScriptBuffer::Int3v,         "Int"           );
+        binder.AddMethod( &ScriptBuffer::Int4v,         "Int"           );
 
         binder.AddMethod( &ScriptBuffer::UInt1,         "Uint"          );
-        binder.AddMethod( &ScriptBuffer::UInt2,         "Uint2"         );
-        binder.AddMethod( &ScriptBuffer::UInt3,         "Uint3"         );
-        binder.AddMethod( &ScriptBuffer::UInt4,         "Uint4"         );
-        binder.AddMethod( &ScriptBuffer::UInt2v,        "Uint2"         );
-        binder.AddMethod( &ScriptBuffer::UInt3v,        "Uint3"         );
-        binder.AddMethod( &ScriptBuffer::UInt4v,        "Uint4"         );
+        binder.AddMethod( &ScriptBuffer::UInt2,         "Uint"          );
+        binder.AddMethod( &ScriptBuffer::UInt3,         "Uint"          );
+        binder.AddMethod( &ScriptBuffer::UInt4,         "Uint"          );
+        binder.AddMethod( &ScriptBuffer::UInt2v,        "Uint"          );
+        binder.AddMethod( &ScriptBuffer::UInt3v,        "Uint"          );
+        binder.AddMethod( &ScriptBuffer::UInt4v,        "Uint"          );
 
-        binder.AddMethod( &ScriptBuffer::Float1Array,   "Float1Array"   );
-        binder.AddMethod( &ScriptBuffer::Float2Array,   "Float2Array"   );
-        binder.AddMethod( &ScriptBuffer::Float3Array,   "Float3Array"   );
-        binder.AddMethod( &ScriptBuffer::Float4Array,   "Float4Array"   );
+        binder.AddMethod( &ScriptBuffer::ULong1,        "ULong"         );
 
-        binder.AddMethod( &ScriptBuffer::Float2x2Array, "Float2x2Array" );
-        binder.AddMethod( &ScriptBuffer::Float2x3Array, "Float2x3Array" );
-        binder.AddMethod( &ScriptBuffer::Float2x4Array, "Float2x4Array" );
-        binder.AddMethod( &ScriptBuffer::Float3x2Array, "Float3x2Array" );
-        binder.AddMethod( &ScriptBuffer::Float3x3Array, "Float3x3Array" );
-        binder.AddMethod( &ScriptBuffer::Float3x4Array, "Float3x4Array" );
-        binder.AddMethod( &ScriptBuffer::Float4x2Array, "Float4x2Array" );
-        binder.AddMethod( &ScriptBuffer::Float4x3Array, "Float4x3Array" );
-        binder.AddMethod( &ScriptBuffer::Float4x4Array, "Float4x4Array" );
+        binder.AddMethod( &ScriptBuffer::Float1Array,   "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float2Array,   "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float3Array,   "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float4Array,   "FloatArray"    );
 
-        binder.AddMethod( &ScriptBuffer::Int1Array,     "Int1Array"     );
-        binder.AddMethod( &ScriptBuffer::Int2Array,     "Int2Array"     );
-        binder.AddMethod( &ScriptBuffer::Int3Array,     "Int3Array"     );
-        binder.AddMethod( &ScriptBuffer::Int4Array,     "Int4Array"     );
+        binder.AddMethod( &ScriptBuffer::Float2x2Array, "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float2x3Array, "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float2x4Array, "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float3x2Array, "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float3x3Array, "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float3x4Array, "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float4x2Array, "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float4x3Array, "FloatArray"    );
+        binder.AddMethod( &ScriptBuffer::Float4x4Array, "FloatArray"    );
 
-        binder.AddMethod( &ScriptBuffer::UInt1Array,    "UInt1Array"    );
-        binder.AddMethod( &ScriptBuffer::UInt2Array,    "UInt2Array"    );
-        binder.AddMethod( &ScriptBuffer::UInt3Array,    "UInt3Array"    );
-        binder.AddMethod( &ScriptBuffer::UInt4Array,    "UInt4Array"    );
+        binder.AddMethod( &ScriptBuffer::Int1Array,     "IntArray"      );
+        binder.AddMethod( &ScriptBuffer::Int2Array,     "IntArray"      );
+        binder.AddMethod( &ScriptBuffer::Int3Array,     "IntArray"      );
+        binder.AddMethod( &ScriptBuffer::Int4Array,     "IntArray"      );
+
+        binder.AddMethod( &ScriptBuffer::UInt1Array,    "UIntArray"     );
+        binder.AddMethod( &ScriptBuffer::UInt2Array,    "UIntArray"     );
+        binder.AddMethod( &ScriptBuffer::UInt3Array,    "UIntArray"     );
+        binder.AddMethod( &ScriptBuffer::UInt4Array,    "UIntArray"     );
     }
 
 /*
@@ -793,6 +844,8 @@ namespace
         if ( _resource )
             return _resource;
 
+        Buffer::EBufferFlags    flags = Default;
+
         CHECK_ERR_MSG( _resUsage != Default, "failed to create buffer '"s << _dbgName << "'" );
         for (auto usage = _resUsage; usage != Default;)
         {
@@ -809,6 +862,9 @@ namespace
 
                 case EResourceUsage::IndirectBuffer :   _desc.usage |= EBufferUsage::Indirect;                                  break;
                 case EResourceUsage::ASBuild :          _desc.usage |= EBufferUsage::ASBuild_ReadOnly;                          break;
+                case EResourceUsage::ShaderAddress :    _desc.usage |= EBufferUsage::ShaderAddress;                             break;
+
+                case EResourceUsage::WithHistroy :      flags |= Buffer::EBufferFlags::WithHistroy;                             break;
 
                 case EResourceUsage::Unknown :
                 case EResourceUsage::Sampled :
@@ -883,14 +939,31 @@ namespace
         }
 
         CHECK_THROW_MSG( _desc.size > 0 );
+        CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),
+            "Buffer '"s << _dbgName << "' description is not supported by GPU device" );
 
         const ShaderStructName  struct_type {_IsArray() ? _layout.typeName + "Array" : _layout.typeName};
+        Buffer::IDs_t           buf_ids;
 
-        auto    buf_id = res_mngr.CreateBuffer( _desc, _dbgName, gfx_alloc );
-        CHECK_ERR( buf_id );
+        if ( AllBits( flags, Buffer::EBufferFlags::WithHistroy ))
+        {
+            for (auto& id : buf_ids) {
+                id = res_mngr.CreateBuffer( _desc, _dbgName, gfx_alloc );
+                CHECK_ERR( id );
+            }
+        }
+        else
+        {
+            buf_ids[0] = res_mngr.CreateBuffer( _desc, _dbgName, gfx_alloc );
+            CHECK_ERR( buf_ids[0] );
 
-        _resource = MakeRC<Buffer>( RVRef(buf_id), _desc, elem_size, RVRef(load_op), struct_type,
-                                    renderer, (_dynCount ? _dynCount->Get() : null), _dbgName );  // throw
+            for (usize i = 1; i < buf_ids.size(); ++i) {
+                buf_ids[i] = res_mngr.AcquireResource( buf_ids[0] );
+            }
+        }
+
+        _resource = MakeRC<Buffer>( RVRef(buf_ids), _desc, elem_size, RVRef(load_op), struct_type,
+                                    renderer, (_dynCount ? _dynCount->Get() : null), _dbgName, flags );  // throw
         return _resource;
     }
 
@@ -908,19 +981,21 @@ namespace
 
         const auto  AddStructType = [] (const String &typeName, const String &source)
         {{
-            CHECK_THROW_MSG( not source.empty() );
-
             auto&   st_types    = ObjectStorage::Instance()->structTypes;
             auto    it          = st_types.find( typeName );
 
             if ( it != st_types.end() )
             {
-                ShaderStructTypePtr     tmp{ new ShaderStructType{ "_Temp_"s + typeName }};
-                tmp->Set( EStructLayout::Std430, source );
+                // compare 'source' with existing structure
+                if ( not source.empty() )
+                {
+                    ShaderStructTypePtr     tmp{ new ShaderStructType{ "_Temp_"s + typeName }};
+                    tmp->Set( EStructLayout::Std430, source );
 
-                CHECK( it->second->Compare( *tmp ));
+                    CHECK( it->second->Compare( *tmp ));
 
-                st_types.erase( String{tmp->Typename()} );
+                    st_types.erase( String{tmp->Typename()} );
+                }
                 return;
             }
 

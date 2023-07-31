@@ -2,10 +2,7 @@
 
 #pragma once
 
-#include "scripting/Impl/ScriptEngine.inl.h"
-#include "scriptarray.h"
-
-#include "base/Containers/StructView.h"
+#include "scripting/Impl/ScriptTypes.h"
 
 namespace AE::Scripting::_hidden_
 {
@@ -59,7 +56,7 @@ namespace AE::Scripting::_hidden_
             return  StructView<T>{
                         Cast<T>( const_cast< Self *>(this)->GetBuffer() ),
                         size(),
-                        uint(this->GetElementSize())
+                        Bytes{uint(this->GetElementSize())}
                     };
         }
     };

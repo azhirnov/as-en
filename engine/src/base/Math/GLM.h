@@ -14,11 +14,11 @@
 #define GLM_FORCE_VEC_EQUAL_OP  // special for AE
 #define GLM_FORCE_EXPLICIT_CTOR
 //#define GLM_FORCE_XYZW_ONLY   // will disable SIMD
-//#define GLM_FORCE_SWIZZLE
 #define GLM_FORCE_CTOR_INIT
 #define GLM_FORCE_INLINE
 #define GLM_FORCE_ALIGNED_GENTYPES
 #define GLM_FORCE_INTRINSICS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 
 
 // enable simd
@@ -41,18 +41,17 @@
 # elif AE_SIMD_SSE >= 10
 #   define GLM_FORCE_SSE    // float
 # else
-#   define GLM_FORCE_XYZW_ONLY
-#   undef  GLM_FORCE_INTRINSICS
+// disable intrinsics
+#   define GLM_FORCE_ARCH_UNKNOWN
 # endif
 
-//  Android, iOS or Mac M1, M2 ...
+//  Android ARM, iOS or Mac M1, M2 ...
 #elif AE_SIMD_NEON
 #   define GLM_FORCE_NEON
 
 // disable intrinsics
 #else
-#   define GLM_FORCE_XYZW_ONLY
-#   undef  GLM_FORCE_INTRINSICS
+#   define GLM_FORCE_ARCH_UNKNOWN
 #endif
 
 
@@ -194,31 +193,31 @@
 #   pragma warning (pop)
 #endif
 
+#if GLM_CONFIG_ALIGNED_GENTYPES != GLM_ENABLE
+#   error required GLM_CONFIG_ALIGNED_GENTYPES = GLM_ENABLE
+#endif
 
 namespace AE::Math
 {
-    STATIC_ASSERT( bool(AE_HAS_SIMD != 0) == ((GLM_ARCH & GLM_ARCH_SIMD_BIT) != 0) );
+    //STATIC_ASSERT( bool(AE_HAS_SIMD != 0) == ((GLM_ARCH & GLM_ARCH_SIMD_BIT) != 0) );
 
-# if AE_HAS_SIMD
-    static constexpr auto   GLMQualifier    = glm::qualifier::aligned_highp;
-# else
-    static constexpr auto   GLMQualifier    = glm::qualifier::highp;
-# endif
+    static constexpr inline auto    GLMSimdQualifier    = glm::qualifier::aligned_highp;
+    static constexpr inline auto    GLMPackedQualifier  = glm::qualifier::packed_highp;
 
     template <typename T, int I, glm::qualifier Q>
     using TVec = glm::vec< I, T, Q >;
 
-    template <typename T, glm::qualifier Q = GLMQualifier>
+    template <typename T, glm::qualifier Q = GLMSimdQualifier>
     struct Quat;
 
     template <typename T, uint Columns, uint Rows, glm::qualifier Q>
     struct TMatrix;
 
-    template <typename T, int I>    using Vec       = TVec< T, I, GLMQualifier >;
-    template <typename T, int I>    using PackedVec = TVec< T, I, glm::qualifier::packed_highp >;
+    template <typename T, int I>    using Vec       = TVec< T, I, GLMSimdQualifier >;
+    template <typename T, int I>    using PackedVec = TVec< T, I, GLMPackedQualifier >;
 
-    template <typename T, uint Columns, uint Rows>  using Matrix        = TMatrix< T, Columns, Rows, GLMQualifier >;
-    template <typename T, uint Columns, uint Rows>  using PackedMatrix  = TMatrix< T, Columns, Rows, glm::qualifier::packed_highp >;
+    template <typename T, uint Columns, uint Rows>  using Matrix        = TMatrix< T, Columns, Rows, GLMSimdQualifier >;
+    template <typename T, uint Columns, uint Rows>  using PackedMatrix  = TMatrix< T, Columns, Rows, GLMPackedQualifier >;
 
 } // AE::Math
 

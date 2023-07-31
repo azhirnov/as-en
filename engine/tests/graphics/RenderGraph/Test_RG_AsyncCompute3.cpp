@@ -42,8 +42,6 @@ namespace
 
         ImageComparator *               imgCmp  = null;
         RC<GfxLinearMemAllocator>       gfxAlloc;
-
-        RG::RenderGraph                 rg;
     };
 
 
@@ -167,10 +165,13 @@ namespace
 
         void  Run () __Th_OV
         {
+            auto&   rg = RenderTaskScheduler().GetRenderGraph();
+
             if ( t.frameIdx.load() == 3 )
             {
-                AsyncTask   begin       = t.rg.BeginFrame();
-                auto        batch       = t.rg.CmdBatch( EQueueType::AsyncCompute, {"copy task"} )
+                // frame 3
+                AsyncTask   begin       = rg.BeginFrame();
+                auto        batch       = rg.CmdBatch( EQueueType::AsyncCompute, {"copy task"} )
                                                 .UseResource( t.image[0] )
                                                 .UseResource( t.image[1] )
                                                 .ReadbackMemory()
@@ -178,37 +179,38 @@ namespace
                 CHECK_TE( batch );
 
                 AsyncTask   read_task   = batch.template Task< AC3_CopyTask<CopyCtx> >( Tuple{ArgRef(t)}, {"Readback task"} )
-                                                .Last().Run( Tuple{begin} );
-                AsyncTask   end         = t.rg.EndFrame( Tuple{read_task} );
+                                                .SubmitBatch().Run( Tuple{begin} );
+                AsyncTask   end         = rg.EndFrame( Tuple{read_task} );
 
                 ++t.frameIdx;
                 return Continue( Tuple{end} );
             }
 
             if ( t.frameIdx.load() > 3 )
-                return;
+                return; // frame 4+
 
+            // frames [0..2]:
             const uint  fi      = t.frameIdx.load() & 1;
-            AsyncTask   begin   = t.rg.BeginFrame();
+            AsyncTask   begin   = rg.BeginFrame();
 
 
             // batch graph
-            auto        batch_gfx = t.rg.CmdBatch( EQueueType::Graphics, {"graphics batch"} )
+            auto        batch_gfx = rg.CmdBatch( EQueueType::Graphics, {"graphics batch"} )
                                         .UseResource( t.image[fi], EResourceState::ShaderSample | EResourceState::FragmentShader )
                                         .Begin();
             CHECK_TE( batch_gfx );
 
-            auto        batch_ac = t.rg.CmdBatch( EQueueType::AsyncCompute, {"compute batch"} )
+            auto        batch_ac = rg.CmdBatch( EQueueType::AsyncCompute, {"compute batch"} )
                                         .UseResource( t.image[fi], EResourceState::ShaderStorage_RW | EResourceState::ComputeShader )
                                         .Begin();
             CHECK_TE( batch_ac );
 
 
             // add tasks to cmd batches
-            AsyncTask   gfx_task    = batch_gfx.template Task< AC3_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"graphics task"}      ).Last().Run( Tuple{begin} );
-            AsyncTask   comp_task   = batch_ac .template Task< AC3_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"async compute task"} ).Last().Run( Tuple{gfx_task} );
+            AsyncTask   gfx_task    = batch_gfx.template Task< AC3_GraphicsTask<CtxTypes> >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"graphics task"}      ).SubmitBatch().Run( Tuple{begin} );
+            AsyncTask   comp_task   = batch_ac .template Task< AC3_ComputeTask<CtxTypes>  >( Tuple{ ArgRef(t), t.frameIdx.load() }, {"async compute task"} ).SubmitBatch().Run( Tuple{gfx_task} );
 
-            AsyncTask   end         = t.rg.EndFrame( Tuple{ gfx_task, comp_task });
+            AsyncTask   end         = rg.EndFrame( Tuple{ gfx_task, comp_task });
 
             ++t.frameIdx;
             return Continue( Tuple{end} );
@@ -225,15 +227,16 @@ namespace
         auto&           res_mngr    = rts.GetResourceManager();
         AC3_TestData    t;
         const auto      format      = EPixelFormat::RGBA8_UNorm;
+        auto&           rg          = RenderTaskScheduler().GetRenderGraph();
 
         t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
         t.imgCmp    = imageCmp;
 
-        t.image[0] = t.rg.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
+        t.image[0] = rg.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
                                             .SetFormat( format )
                                             .SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
                                         "Image-0", t.gfxAlloc );
-        t.image[1] = t.rg.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
+        t.image[1] = rg.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
                                             .SetFormat( format )
                                             .SetUsage( EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
                                         "Image-1", t.gfxAlloc );

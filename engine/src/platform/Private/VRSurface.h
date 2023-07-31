@@ -31,9 +31,7 @@ namespace AE::App
 
         VRImageDesc             _desc;
 
-        bool                    _submitted      = true;
-
-        static constexpr auto   _targetType     = ETargetType::Final3D;
+        static constexpr auto   _colorSpace     = EColorSpace::Unknown;
 
 
     // methods
@@ -48,15 +46,11 @@ namespace AE::App
     // IOutputSurface //
         bool            IsInitialized ()                        C_NE_OV;
         RenderPassInfo  GetRenderPassInfo ()                    C_NE_OV;
-        bool            SetSurfaceMode (const SurfaceInfo &)    __NE_OV { return false; }
 
         bool            GetTargets (OUT RenderTargets_t &)      C_NE_OV;
 
-        AllImages_t         GetAllImages ()                     C_NE_OV;
-        TargetSizes_t       GetTargetSizes ()                   C_NE_OV { return Default; }
-        SurfaceFormats_t    GetSurfaceFormats ()                C_NE_OV { return Default; }
-        PresentModes_t      GetPresentModes ()                  C_NE_OV { return Default; }
-        SurfaceInfo         GetSurfaceInfo ()                   C_NE_OV { return Default; }
+        AllImages_t     GetAllImages ()                         C_NE_OV;
+        TargetSizes_t   GetTargetSizes ()                       C_NE_OV;
     };
 
 

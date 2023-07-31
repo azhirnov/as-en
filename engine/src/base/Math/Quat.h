@@ -45,84 +45,88 @@ namespace AE::Math
 
     // methods
     public:
-        Quat ()                                             __NE___ : _value{} {}
-        Quat (const Self &other)                            __NE___ : _value{other._value} {}
+        Quat ()                                                     __NE___ : _value{} {}
+        Quat (const Self &other)                                    __NE___ : _value{other._value} {}
 
-        explicit Quat (const _GLM_Quat_t &val)              __NE___ : _value{val} {}
+        explicit Quat (const _GLM_Quat_t &val)                      __NE___ : _value{val} {}
 
         template <typename B>
-        explicit Quat (const Quat<B,Q> &other)              __NE___ : _value{other._value} {}
+        explicit Quat (const Quat<B,Q> &other)                      __NE___ : _value{other._value} {}
 
-        Quat (Self &&other)                                 __NE___ : _value{other._value} {} 
+        Quat (Self &&other)                                         __NE___ : _value{other._value} {} 
 
-        Quat (T w, T x, T y, T z)                           __NE___ : _value{ w, x, y, z } {}
+        Quat (T w, T x, T y, T z)                                   __NE___ : _value{ w, x, y, z } {}
 
-        explicit Quat (const Rad3_t &eulerAngles)           __NE___ : _value{ Vec3_t{ T(eulerAngles.x), T(eulerAngles.y), T(eulerAngles.z) }} {}
+        explicit Quat (const Rad3_t &eulerAngles)                   __NE___ : _value{ Vec3_t{ T(eulerAngles.x), T(eulerAngles.y), T(eulerAngles.z) }} {}
 
-        explicit Quat (const Mat3_t &m)                     __NE___;
-        explicit Quat (const Mat4_t &m)                     __NE___;
+        explicit Quat (const Mat3_t &m)                             __NE___;
+        explicit Quat (const Mat4_t &m)                             __NE___;
 
-            Self&   Inverse ()                              __NE___ { _value = glm::inverse( _value );  return *this; }
-        ND_ Self    Inversed ()                             C_NE___ { return Self{ glm::inverse( _value )}; }
+            Self&   Inverse ()                                      __NE___ { _value = glm::inverse( _value );  return *this; }
+        ND_ Self    Inversed ()                                     C_NE___ { return Self{ glm::inverse( _value )}; }
 
-            Self&   Normalize ()                            __NE___ { _value = glm::normalize( _value );  return *this; }
-        ND_ Self    Normalized ()                           C_NE___ { return Self{ glm::normalize( _value )}; }
+            Self&   Normalize ()                                    __NE___ { _value = glm::normalize( _value );  return *this; }
+        ND_ Self    Normalized ()                                   C_NE___ { return Self{ glm::normalize( _value )}; }
 
-            Self&   operator = (const Self &rhs)            __NE___ { _value = rhs._value;  return *this; }
+            Self&   operator = (const Self &rhs)                    __NE___ { _value = rhs._value;  return *this; }
 
-        ND_ Value_t& operator [] (usize index)              __NE___ { return _value[index]; }
-        ND_ Value_t  operator [] (usize index)              C_NE___ { return _value[index]; }
+        ND_ Value_t& operator [] (usize index)                      __NE___ { return _value[index]; }
+        ND_ Value_t  operator [] (usize index)                      C_NE___ { return _value[index]; }
 
-            Self&   operator += (const Self &rhs)           __NE___ { _value += rhs._value;  return *this; }
-            Self&   operator -= (const Self &rhs)           __NE___ { _value -= rhs._value;  return *this; }
-            Self&   operator *= (const Self &rhs)           __NE___ { _value *= rhs._value;  return *this; }
+            Self&   operator += (const Self &rhs)                   __NE___ { _value += rhs._value;  return *this; }
+            Self&   operator -= (const Self &rhs)                   __NE___ { _value -= rhs._value;  return *this; }
+            Self&   operator *= (const Self &rhs)                   __NE___ { _value *= rhs._value;  return *this; }
 
-            Self&   operator *= (T rhs)                     __NE___ { _value *= rhs;  return *this; }
-            Self&   operator /= (T rhs)                     __NE___ { _value /= rhs;  return *this; }
+            Self&   operator *= (T rhs)                             __NE___ { _value *= rhs;  return *this; }
+            Self&   operator /= (T rhs)                             __NE___ { _value /= rhs;  return *this; }
 
-        ND_ Self    operator + ()                           C_NE___ { return *this; }
-        ND_ Self    operator - ()                           C_NE___ { return Self{ -_value }; }
+        ND_ Self    operator + ()                                   C_NE___ { return *this; }
+        ND_ Self    operator - ()                                   C_NE___ { return Self{ -_value }; }
 
-        ND_ Self    operator + (const Self &rhs)            C_NE___ { return Self{ _value + rhs._value }; }
-        ND_ Self    operator - (const Self &rhs)            C_NE___ { return Self{ _value - rhs._value }; }
-        ND_ Self    operator * (const Self &rhs)            C_NE___ { return Self{ _value * rhs._value }; }
+        ND_ Self    operator + (const Self &rhs)                    C_NE___ { return Self{ _value + rhs._value }; }
+        ND_ Self    operator - (const Self &rhs)                    C_NE___ { return Self{ _value - rhs._value }; }
+        ND_ Self    operator * (const Self &rhs)                    C_NE___ { return Self{ _value * rhs._value }; }
 
-        ND_ Vec3_t  operator * (const Vec3_t &rhs)          C_NE___ { return _value * rhs; }
-        ND_ Vec4_t  operator * (const Vec4_t &rhs)          C_NE___ { return _value * rhs; }
+        ND_ Vec3_t  operator * (const Vec3_t &rhs)                  C_NE___ { return _value * rhs; }
+        ND_ Vec4_t  operator * (const Vec4_t &rhs)                  C_NE___ { return _value * rhs; }
 
-        ND_ Self    operator * (T rhs)                      C_NE___ { return Self{ _value * rhs }; }
-        ND_ Self    operator / (T rhs)                      C_NE___ { return Self{ _value / rhs }; }
+        ND_ Self    operator * (T rhs)                              C_NE___ { return Self{ _value * rhs }; }
+        ND_ Self    operator / (T rhs)                              C_NE___ { return Self{ _value / rhs }; }
 
-        ND_ bool4   operator == (const Self &rhs)           C_NE___;
-        ND_ bool4   operator != (const Self &rhs)           C_NE___ { return not (*this == rhs); }
+        ND_ bool4   operator == (const Self &rhs)                   C_NE___;
+        ND_ bool4   operator != (const Self &rhs)                   C_NE___ { return not (*this == rhs); }
 
-        ND_ friend Self operator * (T lhs, const Self &rhs) __NE___ { return Self{ lhs * rhs._value }; }
+        ND_ friend Self operator * (T lhs, const Self &rhs)         __NE___ { return Self{ lhs * rhs._value }; }
 
-        ND_ Self&   Rotate (Rad_t angle, const Vec3_t &axis)__NE___ { _value = glm::rotate( _value, T(angle), axis );  return *this; }
+        ND_ Rad3_t  ToEuler ()                                      C_NE___ { return Rad3_t{glm::eulerAngles( _value )}; }
+        ND_ Rad_t   ToEulerX ()                                     C_NE___ { return Rad_t{glm::pitch( _value )}; }
+        ND_ Rad_t   ToEulerY ()                                     C_NE___ { return Rad_t{glm::yaw( _value )}; }
+        ND_ Rad_t   ToEulerZ ()                                     C_NE___ { return Rad_t{glm::roll( _value )}; }
 
-        ND_ Self    Conjugate ()                            C_NE___ { return Self{ glm::conjugate( _value )}; }
-        ND_ T       Length ()                               C_NE___ { return glm::length( _value ); }
+        ND_ Self    Conjugate ()                                    C_NE___ { return Self{glm::conjugate( _value )}; }
+        ND_ T       Length ()                                       C_NE___ { return glm::length( _value ); }
 
-        ND_ Vec3_t  ToDirection ()                          C_NE___;
-        ND_ Vec3_t  AxisX ()                                C_NE___;
-        ND_ Vec3_t  AxisY ()                                C_NE___;
-        ND_ Vec3_t  AxisZ ()                                C_NE___;
+        ND_ Vec3_t  ToDirection ()                                  C_NE___;
+        ND_ Vec3_t  AxisX ()                                        C_NE___;
+        ND_ Vec3_t  AxisY ()                                        C_NE___;
+        ND_ Vec3_t  AxisZ ()                                        C_NE___;
 
-        ND_ Self    Slerp (const Self &q, T a)              C_NE___ { return Self{ glm::mix( _value, q._value, a )}; }
+        ND_ Self    Slerp (const Self &q, T a)                      C_NE___ { return Self{glm::mix( _value, q._value, a )}; }
 
-        ND_  static Self  Identity ()                       __NE___ { return Self{ _GLM_Quat_t( T{1}, T{0}, T{0}, T{0} )}; }
+        ND_ static Self  Identity ()                                __NE___ { return Self{_GLM_Quat_t( T{1}, T{0}, T{0}, T{0} )}; }
 
-        ND_ static Self  RotateX (Rad_t angle)              __NE___ { return Self{ glm::rotate( Identity()._value, T(angle), Vec3_t{T{1}, T{0}, T{0}} )}; }
-        ND_ static Self  RotateY (Rad_t angle)              __NE___ { return Self{ glm::rotate( Identity()._value, T(angle), Vec3_t{T{0}, T{1}, T{0}} )}; }
-        ND_ static Self  RotateZ (Rad_t angle)              __NE___ { return Self{ glm::rotate( Identity()._value, T(angle), Vec3_t{T{0}, T{0}, T{1}} )}; }
-        ND_ static Self  Rotate (const Rad3_t &angle)       __NE___ { return RotateX( angle.x ) * RotateY( angle.y ) * RotateZ( angle.z ); }
-        ND_ static Self  Rotate2 (const Rad3_t &angle)      __NE___;
+        ND_ static Self  Rotate (Rad_t angle, const Vec3_t &axis)   __NE___ { return Self{glm::rotate( Identity()._value, T(angle), axis )}; }
+        ND_ static Self  RotateX (Rad_t angle)                      __NE___ { return Rotate( angle, Vec3_t{T{1}, T{0}, T{0}} ); }
+        ND_ static Self  RotateY (Rad_t angle)                      __NE___ { return Rotate( angle, Vec3_t{T{0}, T{1}, T{0}} ); }
+        ND_ static Self  RotateZ (Rad_t angle)                      __NE___ { return Rotate( angle, Vec3_t{T{0}, T{0}, T{1}} ); }
+        ND_ static Self  Rotate (const Rad3_t &angle)               __NE___ { return RotateX( angle.x ) * RotateY( angle.y ) * RotateZ( angle.z ); }
+        ND_ static Self  Rotate2 (const Rad3_t &angle)              __NE___;
 
         ND_ static Self  FromDirection (const Vec3_t &dir, const Vec3_t &up) __NE___;
     };
 
-    using QuatF         = Quat< float, GLMQualifier >;
-    using PackedQuatF   = Quat< float, glm::qualifier::packed_highp >;
+    using QuatF         = Quat< float, GLMSimdQualifier >;
+    using PackedQuatF   = Quat< float, GLMPackedQualifier >;
 
 
 /*
@@ -181,9 +185,9 @@ namespace AE::Math
     template <typename T, glm::qualifier Q>
     typename Quat<T,Q>::Vec3_t  Quat<T,Q>::ToDirection () C_NE___
     {
-        return Vec3_t(  T{2} * x * z + T{2} * y * w,
+        return Vec3_t{  T{2} * x * z + T{2} * y * w,
                         T{2} * z * y - T{2} * x * w,
-                        T{1} - T{2} * x * x - T{2} * y * y );
+                        T{1} - T{2} * x * x - T{2} * y * y };
     }
 
 /*
@@ -197,7 +201,7 @@ namespace AE::Math
         Vec3_t  hor = Math::Normalize( Cross( up, dir ));
         Vec3_t  ver = Math::Normalize( Cross( dir, hor ));
 
-        return Self{glm::quat_cast( glm::tmat3x3<T>{ hor, ver, dir })};
+        return Self{glm::quat_cast( glm::tmat3x3<T>{ hor, ver, dir })}; // TODO: optimize
     }
 
 /*
@@ -208,16 +212,17 @@ namespace AE::Math
     template <typename T, glm::qualifier Q>
     Quat<T,Q>  Quat<T,Q>::Rotate2 (const Rad3_t &angle) __NE___
     {
-        const Vec2_t    scr = SinCos( angle.x * T(0.5) );
-        const Vec2_t    scp = SinCos( angle.y * T(0.5) );
-        const Vec2_t    scy = SinCos( angle.z * T(0.5) );
+        const Vec2_t    scr  = SinCos( angle.x * T(0.5) );
+        const Vec2_t    scp  = SinCos( angle.y * T(0.5) );
+        const Vec2_t    scy  = SinCos( angle.z * T(0.5) );
 
-        const T cpcy = scp[1] * scy[1];
-        const T spcy = scp[0] * scy[1];
-        const T cpsy = scp[1] * scy[0];
-        const T spsy = scp[0] * scy[0];
+        const T         cpcy = scp[1] * scy[1];
+        const T         spcy = scp[0] * scy[1];
+        const T         cpsy = scp[1] * scy[0];
+        const T         spsy = scp[0] * scy[0];
 
-        Self    result;
+        Self            result;
+
         result.x = scr[0] * cpcy - scr[1] * spsy;
         result.y = scr[1] * spcy + scr[0] * cpsy;
         result.z = scr[1] * cpsy - scr[0] * spcy;

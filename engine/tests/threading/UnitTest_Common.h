@@ -2,10 +2,9 @@
 
 #pragma once
 
-#include "threading/TaskSystem/TaskScheduler.h"
-#include "base/Platforms/Platform.h"
-#include "base/Algorithms/StringUtils.h"
+#include "pch/Threading.h"
 #include "../shared/UnitTest_Shared.h"
+#include "../shared/DebugInstanceCounter.h"
 
 using namespace AE::Threading;
 

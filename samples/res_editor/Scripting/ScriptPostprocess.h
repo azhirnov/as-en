@@ -27,13 +27,13 @@ namespace AE::ResEditor
         };
 
     private:
-        using TextureUnion_t = Union< NullUnion, ScriptImagePtr, ScriptVideoImagePtr, ScriptBufferPtr >;
+        using ResourceUnion_t = Union< NullUnion, ScriptBufferPtr, ScriptImagePtr, ScriptVideoImagePtr, ScriptRTScenePtr >;
 
         struct Input
         {
-            TextureUnion_t  tex;
-            String          samplerName;
-            String          uniformName;
+            ResourceUnion_t     res;
+            String              samplerName;
+            String              uniformName;
         };
 
 
@@ -48,7 +48,7 @@ namespace AE::ResEditor
 
     // methods
     public:
-        ScriptPostprocess () : ScriptBaseRenderPass{Default}, _ppFlags{Default} {}
+        ScriptPostprocess ();
         ScriptPostprocess (const String &pipelineName, EPostprocess ppFlags,
                            const String &defines, EFlags baseFlags)                                     __Th___;
 

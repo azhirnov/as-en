@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "video/Public/Common.h"
+#include "video/Public/Factory.h"
 
 namespace AE::Video
 {
@@ -62,12 +62,6 @@ namespace AE::Video
         // stateless
         ND_ virtual StringView  GetFileExtension (EVideoCodec codec)                    C_NE___ = 0;
         // TODO: get codecs
-
-
-    // factory
-    public:
-        ND_ static RC<IVideoEncoder>  CreateFFmpegEncoder ()                            __NE___;
-        ND_ static RC<IVideoEncoder>  CreateGraphicsHWEncoder ()                        __NE___;
     };
 
 

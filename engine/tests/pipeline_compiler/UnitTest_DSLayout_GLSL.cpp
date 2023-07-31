@@ -63,53 +63,6 @@ namespace
         TEST( src == ref );
     }
 
-    /*
-    static void  DSLayout_Test2 ()
-    {
-        DescriptorSetLayoutPtr  dsl{ new DescriptorSetLayout{ "PerMaterial" }};
-        dsl->SetUsage( uint(EDescSetUsage::UpdateTemplate) );
-        ds1->Parse( R"(
-ImtblSampler    DefSampler;
-DefSampler.SetFilter( Linear, Linear, Nearest );
-DefSampler.SetAddressMode( ClampToEdge, Repeat, MirrorRepeat );
-DefSampler.SetAnisotropy( 8.f );
-
-[[compatible std140]]
-    struct ubuf
-    {
-        uvec4 u;
-        ivec4 i;
-    };
-
-[[vertex]]
-    UniformBuffer< ubuf >       constBuf;
-
-[[vertex, fragment]]
-    StorageBuffer< ubuf >       storageBuf [2];
-
-[[fragment]]
-    UniformTexBuffer< uint >    texBuffer;
-    StorageImage2D< RGBA8 >     storageImage;
-    //StorageImage< uint >      storageImage;
-
-    CombinedImage2D< float, DefSampler >    colorTex;
-    CombinedImage3D< float >                noiseTex;
-
-    SampledImage2D< float >     tex;
-    Sampler                     samp;
-
-)" );
-        TEST( dsl->Build() );
-
-        PipelineLayout::UniqueTypes_t   unique_types;
-
-        String  hdr = "\n", src;
-        dsl->ToGLSL( EShaderStages::Vertex | EShaderStages::Fragment, 2, INOUT hdr, INOUT src, INOUT unique_types );
-        src = hdr + src;
-
-        const String    ref = R"()";
-        TEST( src == ref );
-    }*/
 }
 
 
@@ -117,16 +70,32 @@ extern void  UnitTest_DSLayout_GLSL ()
 {
     ObjectStorage   obj;
     PipelineStorage ppln;
-    obj.target          = ECompilationTarget::Vulkan;
-    obj.pplnStorage     = &ppln;
-    obj.metalCompiler   = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
-    obj.spirvCompiler   = MakeUnique<SpirvCompiler>( Array<Path>{} );
+    obj.defaultFeatureSet   = "DefaultFS";
+    obj.target              = ECompilationTarget::Vulkan;
+    obj.pplnStorage         = &ppln;
+    obj.metalCompiler       = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
+    obj.spirvCompiler       = MakeUnique<SpirvCompiler>( Array<Path>{} );
     obj.spirvCompiler->SetDefaultResourceLimits();
     ObjectStorage::SetInstance( &obj );
 
+    ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
+    fs->fs.SetAll( EFeature::RequireTrue );
+    fs->fs.storageImageFormats.insert( EPixelFormat::RGBA8_UNorm );
+    fs->fs.perDescrSet.minUniformBuffers = 8;
+    fs->fs.perDescrSet.minStorageBuffers = 8;
+    fs->fs.perDescrSet.minStorageImages = 8;
+    fs->fs.perDescrSet.minSampledImages = 8;
+    fs->fs.perDescrSet.minSamplers = 8;
+    fs->fs.perDescrSet.minTotalResources = 1024;
+    fs->fs.perStage.minUniformBuffers = 8;
+    fs->fs.perStage.minStorageBuffers = 8;
+    fs->fs.perStage.minStorageImages = 8;
+    fs->fs.perStage.minSampledImages = 8;
+    fs->fs.perStage.minSamplers = 8;
+    fs->fs.perStage.minTotalResources = 1024;
+
     try {
         DSLayout_Test1();
-        //DSLayout_Test2();     // TODO
     } catch(...) {
         TEST( false );
     }

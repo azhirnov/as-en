@@ -58,15 +58,11 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <>
+struct std::hash< AE::Graphics::MultiSamples >
 {
-    template <>
-    struct hash< AE::Graphics::MultiSamples >
+    ND_ size_t  operator () (const AE::Graphics::MultiSamples &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Graphics::MultiSamples &value) const
-        {
-            return size_t(AE::Base::HashOf( value.Get() ));
-        }
-    };
-
-} // std
+        return size_t(AE::Base::HashOf( value.Get() ));
+    }
+};

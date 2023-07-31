@@ -5,12 +5,10 @@
 #include "platform/OpenVR/OpenVRCommon.h"
 
 #ifdef AE_ENABLE_OPENVR
-# include "base/Platforms/Platform.h"
-
 # include "platform/Private/VRDeviceBase.h"
 # include "platform/Private/VRSurface.h"
+# include "platform/Private/ProjectionImpl.h"
 # include "platform/OpenVR/InputActionsOpenVR.h"
-
 
 namespace AE::App
 {
@@ -73,12 +71,19 @@ namespace AE::App
 
         // methods
         public:
-            explicit VRRenderSurface (OpenVRDevice &vr)                                                                 __NE___: _vrDev{vr} {}
+            explicit VRRenderSurface (OpenVRDevice &vr)                                                                         __NE___: _vrDev{vr} {}
 
             // IOutputSurface //
-            AsyncTask   Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)   __NE_OV;
-            bool        GetTargets (OUT RenderTargets_t &targets)                                                       C_NE_OV;
-            AsyncTask   End (ArrayView<AsyncTask> deps)                                                                 __NE_OV;
+            AsyncTask           Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)   __NE_OV;
+            bool                GetTargets (OUT RenderTargets_t &targets)                                                       C_NE_OV;
+            AsyncTask           End (ArrayView<AsyncTask> deps)                                                                 __NE_OV;
+
+            bool                SetSurfaceMode (const SurfaceInfo &)                                                            __NE_OV { return false; }
+
+            AllImages_t         GetAllImages ()                                                                                 C_NE_OV;
+            SurfaceFormats_t    GetSurfaceFormats ()                                                                            C_NE_OV { return Default; }
+            PresentModes_t      GetPresentModes ()                                                                              C_NE_OV { return Default; }
+            SurfaceInfo         GetSurfaceInfo ()                                                                               C_NE_OV { return Default; }
         };
 
 
@@ -101,6 +106,8 @@ namespace AE::App
         };
         using Controllers_t = FixedMap< /*tracked device index*/uint, Controller, 8 >;
 
+        using Projections_t = StaticArray< ProjectionImpl, 4 >; // 2 eyes with double buffering
+
 
     // variables
     private:
@@ -114,6 +121,7 @@ namespace AE::App
 
         InputActionsOpenVR      _input;
         VRRenderSurface         _surface;
+        Projections_t           _projections;
 
         OpenVRLoader            _ovr;
         Library                 _openVRLib;
@@ -150,6 +158,7 @@ namespace AE::App
         void  _ProcessControllerEvents (INOUT Controller&, const VREvent_t &);
         void  _UpdateHMDMatrixPose ();
         void  _InitControllers ();
+        void  _SetupCamera ();
 
         ND_ ControllerID  _GetControllerID (uint tdi) const;
 

@@ -69,14 +69,14 @@ namespace AE::Graphics
         Atomic< uint >                  _surfaceSize;
         BitAtomic< MutableIdxBits >     _indices;
 
-        Images_t                        _vkImages           {};     // protected by '_guard'
-        ImageIDs_t                      _imageIDs           {};
-        ImageViewIDs_t                  _imageViewIDs       {};
+        Images_t                        _vkImages           {};         // protected by '_guard'
+        ImageIDs_t                      _imageIDs           {};         // protected by '_guard'
+        ImageViewIDs_t                  _imageViewIDs       {};         // protected by '_guard'
 
         Semaphores_t                    _imageAvailableSem  {};
         Semaphores_t                    _renderFinishedSem  {};
 
-        SwapchainDesc                   _desc;              // protected by '_guard'
+        SwapchainDesc                   _desc;                          // protected by '_guard'
 
 
     // methods
@@ -97,8 +97,8 @@ namespace AE::Graphics
 
         ND_ bool                        IsInitialized ()                    C_NE___ { return GetVkSwapchain() != Default; }
 
-        ND_ VkSurfaceKHR                GetVkSurface ()                     C_NE___ { return _vkSurface; }
-        ND_ VkSwapchainKHR              GetVkSwapchain ()                   C_NE___ { return _vkSwapchain; }
+        ND_ VkSurfaceKHR                GetVkSurface ()                     C_NE___ { SHAREDLOCK( _guard );  return _vkSurface; }
+        ND_ VkSwapchainKHR              GetVkSwapchain ()                   C_NE___ { SHAREDLOCK( _guard );  return _vkSwapchain; }
 
         ND_ VSwapchainDesc              GetVDescription ()                  C_NE___;
         ND_ SwapchainDesc               GetDescription ()                   C_NE___ { SHAREDLOCK( _guard );  return _desc; }

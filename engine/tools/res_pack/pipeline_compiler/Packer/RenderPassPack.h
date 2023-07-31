@@ -2,10 +2,7 @@
 
 #pragma once
 
-#include "base/Memory/LinearAllocator.h"
-#include "base/Containers/FixedTupleArray.h"
 #include "graphics/Public/RenderPassDesc.h"
-#include "serializing/ISerializable.h"
 #include "Packer/PackCommon.h"
 
 #ifdef AE_BUILD_PIPELINE_COMPILER
@@ -291,11 +288,7 @@ namespace AE::PipelineCompiler
 } // AE::PipelineCompiler
 
 
-namespace std
-{
-    template <>
-    struct hash< AE::PipelineCompiler::SubpassShaderIO > final :
-        AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::SubpassShaderIO >
-    {};
-
-} // std
+template <>
+struct std::hash< AE::PipelineCompiler::SubpassShaderIO > final :
+    AE::Base::DefaultHasher_CalcHash< AE::PipelineCompiler::SubpassShaderIO >
+{};

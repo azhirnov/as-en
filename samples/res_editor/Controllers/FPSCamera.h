@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "base/Math/FPVCamera.h"
 #include "res_editor/Controllers/IController.h"
 
 namespace AE::ResEditor
@@ -30,6 +29,7 @@ namespace AE::ResEditor
         const float2                _rotationScale;     // x, y
         const MovingScale           _movingScale;
         const float3                _initialPos;
+        const float                 _zoomStep       = 0.1f;
 
         float                       _zoom           = 1.0f;
         float                       _dimAspect      = 1.f;
@@ -41,23 +41,22 @@ namespace AE::ResEditor
                    const MovingScale &, float2 rotationScale,
                    float3 initialPos)                                   __Th___;
 
-        void  Reset ()                                                  __NE___;
-
         // IController //
         void  ProcessInput (ActionQueueReader, secondsf)                __NE_OV;
 
         InputModeName   GetInputMode ()                                 C_NE_OV { return InputModeName{"Controller.FPSCamera"}; }
 
-        float3          GetPosition ()                                  C_NE_OV { SHAREDLOCK( _guard );  return _camera.GetCamera().transform.position; }
+        float3          GetPosition ()                                  C_NE_OV { SHAREDLOCK( _guard );  return _camera.Position(); }
         float4x4        GetViewProj ()                                  C_NE_OV { SHAREDLOCK( _guard );  return _viewProj; }
         float4x4        GetInvViewProj ()                               C_NE_OV { SHAREDLOCK( _guard );  return _invViewProj; }
-        float4x4        GetProj ()                                      C_NE_OV { SHAREDLOCK( _guard );  return _camera.GetCamera().projection; }
+        float4x4        GetProj ()                                      C_NE_OV { SHAREDLOCK( _guard );  return _camera.Projection(); }
         float4x4        GetView ()                                      C_NE_OV { SHAREDLOCK( _guard );  return _view; }
     //  RaysGrid_t      GetRaysGrid ()                                  C_NE_OV;
 
         void            CopyTo (OUT AE::ShaderTypes::CameraData &)      C_NE_OV;
 
     private:
+        void  _Reset ();
         void  _UpdateMatrix ();
     };
 

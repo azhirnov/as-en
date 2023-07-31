@@ -4,16 +4,6 @@
 
 #include "scripting/Bindings/Array.h"
 
-#include "base/Math/Vec.h"
-#include "base/Math/Matrix.h"
-#include "base/Math/Color.h"
-#include "base/Math/Rectangle.h"
-#include "base/Math/VecSwizzle.h"
-#include "base/Math/PhysicalQuantity.h"
-#include "base/Math/PhysicalQuantityVec.h"
-#include "base/Utils/Helpers.h"
-#include "base/Containers/StructView.h"
-
 namespace AE::Scripting
 {
 
@@ -26,7 +16,7 @@ namespace AE::Scripting
         static void  BindStdTypes (const ScriptEnginePtr &se)       __Th___;
         static void  BindScalarMath (const ScriptEnginePtr &se)     __Th___;
         static void  BindVectorMath (const ScriptEnginePtr &se)     __Th___;
-        static void  BindMatrixMath (const ScriptEnginePtr &se)     __Th___;
+        static void  BindMatrixMath (const ScriptEnginePtr &se)     __Th___;    // requires 'Vec', 'Rect'
         static void  BindVectorSwizzle (const ScriptEnginePtr &se)  __Th___;    // requires 'String'
         static void  BindRect (const ScriptEnginePtr &se)           __Th___;
         static void  BindColor (const ScriptEnginePtr &se)          __Th___;

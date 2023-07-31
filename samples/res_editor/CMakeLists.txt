@@ -8,20 +8,32 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
     file( GLOB_RECURSE SHARED_SHADERS "${DATA_FOLDER}/shaders/*.glsl" )
 
     add_executable( "ResourceEditor" ${LIB_SOURCES} ${DATA_FILES} ${SHARED_SHADERS} )
+
     source_group( TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${LIB_SOURCES} ${DATA_FILES} )
     source_group( "_data/shaders/shared" FILES ${SHARED_SHADERS} )
-    target_link_libraries( "ResourceEditor" PUBLIC "GraphicsHL" "Platform" "Profiler" )
     set_property( TARGET "ResourceEditor" PROPERTY FOLDER "Samples" )
     target_include_directories( "ResourceEditor" PUBLIC ".." )
     target_include_directories( "ResourceEditor" PUBLIC "${DATA_FOLDER}/scripts" "${DATA_FOLDER}/shaders" )
-    target_link_libraries( "ResourceEditor" PRIVATE "Scripting" "PipelineCompiler" "ResourceLoaders" "ImGUI-lib" "GeometryTools" )
-    target_compile_definitions( "ResourceEditor" PRIVATE
+
+    EnablePCH( "ResourceEditor" )
+
+    target_link_libraries( "ResourceEditor" PUBLIC
+        # tools
+        "PipelineCompiler" "ResourceLoaders" "GeometryTools"
+        # engine
+        "GraphicsHL" "Profiler" "Video"
+    )
+    target_link_libraries( "ResourceEditor" PUBLIC "ImGUI-lib" )
+
+    target_compile_definitions( "ResourceEditor" PUBLIC
         AE_SHARED_DATA="${DATA_FOLDER}"
         AE_LOCAL_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/_data"
     )
 
-    if ( TARGET "Video" )
-        target_link_libraries( "ResourceEditor" PRIVATE "Video" )
+    if (DEFINED AE_RESPACK_RELEASE)
+        target_compile_definitions( "ResourceEditor" PUBLIC "AE_PUBLIC_VERSION=true" )
+    else()
+        target_compile_definitions( "ResourceEditor" PUBLIC "AE_PUBLIC_VERSION=false" )
     endif()
     #----------------------------------------------------------
 

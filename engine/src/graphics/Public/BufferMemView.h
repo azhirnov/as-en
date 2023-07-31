@@ -63,109 +63,133 @@ namespace AE::Graphics
 
     // methods
     private:
-        explicit BufferMemView (ArrayView<Data> parts) __NE___ : _parts{parts} {}
+        explicit BufferMemView (ArrayView<Data> parts)          __NE___ : _parts{parts} {}
     public:
-        BufferMemView ()                        __NE___ {}
-        BufferMemView (const BufferMemView &)   = default;
-        BufferMemView (BufferMemView &&)        = default;
+        BufferMemView ()                                        __NE___ {}
+        BufferMemView (const BufferMemView &)                   __NE___ = default;
+        BufferMemView (BufferMemView &&)                        __NE___ = default;
 
-        BufferMemView (void *ptr, Bytes size)   __NE___ { PushBack( ptr, size ); }
+        BufferMemView (void *ptr, Bytes size)                   __NE___ { PushBack( ptr, size ); }
 
         template <typename T>
-        explicit BufferMemView (Array<T> &arr)  __NE___ : BufferMemView{ arr.data(), ArraySizeOf(arr) } {}
+        explicit BufferMemView (Array<T> &arr)                  __NE___ : BufferMemView{ arr.data(), ArraySizeOf(arr) } {}
 
-        BufferMemView&  operator = (const BufferMemView &)  = default;
-        BufferMemView&  operator = (BufferMemView &&)       = default;
+        BufferMemView&  operator = (const BufferMemView &)      __NE___ = default;
+        BufferMemView&  operator = (BufferMemView &&)           __NE___ = default;
 
-        ND_ explicit operator Array<char> ()    C_NE___ { return _ToArray(); }
+        ND_ explicit operator Array<char> ()                    C_NE___ { return _ToArray(); }
 
-        ND_ auto    Parts ()                    C_NE___ { return ArrayView<ConstData>{ Cast<ConstData>(_parts.data()), _parts.size() }; }
-        ND_ auto    Parts ()                    __NE___ { return ArrayView<Data>{ _parts }; }
+        ND_ auto    Parts ()                                    C_NE___ { return ArrayView<ConstData>{ Cast<ConstData>(_parts.data()), _parts.size() }; }
+        ND_ auto    Parts ()                                    __NE___ { return ArrayView<Data>{ _parts }; }
 
-        ND_ auto    begin ()                    __NE___ { return Parts().begin(); }
-        ND_ auto    end ()                      __NE___ { return Parts().end(); }
+        ND_ auto    begin ()                                    __NE___ { return Parts().begin(); }
+        ND_ auto    end ()                                      __NE___ { return Parts().end(); }
 
-        ND_ auto    begin ()                    C_NE___ { return Parts().begin(); }
-        ND_ auto    end ()                      C_NE___ { return Parts().end(); }
+        ND_ auto    begin ()                                    C_NE___ { return Parts().begin(); }
+        ND_ auto    end ()                                      C_NE___ { return Parts().end(); }
 
-        ND_ bool    Empty ()                    C_NE___ { return _parts.empty(); }
+        ND_ bool    Empty ()                                    C_NE___ { return _parts.empty(); }
 
-            void    Clear ()                    __NE___     { _parts.clear(); }
-
-
-        bool  PushBack (void *ptr, Bytes size)  __NE___
-        {
-            return _parts.try_push_back( Data{ ptr, size });
-        }
+            void    Clear ()                                    __NE___ { _parts.clear(); }
 
 
-        ND_ Bytes  DataSize ()                  C_NE___
-        {
-            Bytes   result;
-            for (auto& part : _parts) {
-                result += part.size;
-            }
-            return result;
-        }
+            bool    PushBack (void *ptr, Bytes size)            __NE___ { return _parts.try_push_back( Data{ ptr, size }); }
+
+
+        ND_ Bytes  DataSize ()                                  C_NE___;
 
         ND_ BufferMemView  Section (Bytes offset, Bytes size)   __NE___;
 
         template <typename T>
-        ND_ bool  operator == (ArrayView<T> rhs) C_NE___
-        {
-            usize   lhs_i   = 0;
-            usize   rhs_i   = 0;
+        ND_ bool  operator == (ArrayView<T> rhs)                C_NE___;
 
-            for (auto& part : _parts)
-            {
-                ASSERT( usize(part.size) % sizeof(T) == 0 );
-                const usize cnt = usize(part.size / SizeOf<T>);
-
-                if_unlikely( rhs_i + cnt <= rhs.size()  and
-                             rhs.section( rhs_i, cnt ) != ArrayView<T>{ Cast<T>(part.ptr), cnt })
-                    return false;
-
-                lhs_i += cnt;
-                rhs_i += cnt;
-            }
-            return lhs_i == rhs_i;
-        }
-
-        ND_ bool  operator == (const BufferMemView &rhs) C_NE___ { return Compare( rhs ) == 0_b; }
+        ND_ bool  operator == (const BufferMemView &rhs)        C_NE___ { return Compare( rhs ) == 0_b; }
 
 
         // returns how much bytes are different
-        ND_ Bytes  Compare (const BufferMemView &rhs)   C_NE___;
+        ND_ Bytes  Compare (const BufferMemView &rhs)           C_NE___;
 
 
         // returns number of copied bytes
-        ND_ Bytes  Copy (const BufferMemView &from)     __NE___;
+        ND_ Bytes  CopyFrom (const BufferMemView &from)         __NE___;
 
         template <typename T>
-        ND_ Bytes  Copy (ArrayView<T> from)             __NE___
-        {
-            BufferMemView   src{ const_cast<T*>(from.data()), ArraySizeOf(from) };
-            return Copy( src );
-        }
+        ND_ Bytes  CopyFrom (ArrayView<T> from)                 __NE___;
 
         template <typename T>
-        ND_ Bytes  Copy (Array<T> &from)                __NE___
-        {
-            BufferMemView   src{ from.data(), ArraySizeOf(from) };
-            return Copy( src );
-        }
+        ND_ Bytes  CopyFrom (Array<T> &from)                    __NE___;
 
 
         // returns number of copied bytes
-        ND_ Bytes  CopyTo (OUT void* dst, Bytes size)   C_NE___;
+        ND_ Bytes  CopyTo (OUT void* dst, Bytes size)           C_NE___;
 
         template <typename T>
-        ND_ Bytes  CopyTo (OUT T &dst)                  C_NE___ { return CopyTo( OUT &dst, SizeOf<T> ); }
-
+        ND_ Bytes  CopyTo (OUT T &dst)                          C_NE___ { return CopyTo( OUT &dst, SizeOf<T> ); }
 
     private:
-        ND_ Array<char>  _ToArray () C_NE___;
+        ND_ Array<char>  _ToArray ()                            C_NE___;
     };
+
+
+
+/*
+=================================================
+    DataSize
+=================================================
+*/
+    inline Bytes  BufferMemView::DataSize () C_NE___
+    {
+        Bytes   result;
+        for (auto& part : _parts) {
+            result += part.size;
+        }
+        return result;
+    }
+
+/*
+=================================================
+    operator ==
+=================================================
+*/
+    template <typename T>
+    bool  BufferMemView::operator == (ArrayView<T> rhs) C_NE___
+    {
+        usize   lhs_i   = 0;
+        usize   rhs_i   = 0;
+
+        for (auto& part : _parts)
+        {
+            ASSERT( usize(part.size) % sizeof(T) == 0 );
+            const usize cnt = usize(part.size / SizeOf<T>);
+
+            if_unlikely( rhs_i + cnt <= rhs.size()  and
+                            rhs.section( rhs_i, cnt ) != ArrayView<T>{ Cast<T>(part.ptr), cnt })
+                return false;
+
+            lhs_i += cnt;
+            rhs_i += cnt;
+        }
+        return lhs_i == rhs_i;
+    }
+
+/*
+=================================================
+    CopyFrom
+=================================================
+*/
+    template <typename T>
+    Bytes  BufferMemView::CopyFrom (ArrayView<T> from) __NE___
+    {
+        BufferMemView   src{ const_cast<T*>(from.data()), ArraySizeOf(from) };
+        return CopyFrom( src );
+    }
+
+    template <typename T>
+    Bytes  BufferMemView::CopyFrom (Array<T> &from) __NE___
+    {
+        BufferMemView   src{ from.data(), ArraySizeOf(from) };
+        return CopyFrom( src );
+    }
 
 
 } // AE::Graphics

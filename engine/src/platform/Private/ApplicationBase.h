@@ -23,7 +23,7 @@ namespace AE::App
 
     // variables
     protected:
-        Atomic< uint >          _timeSinceStart {0};
+        Atomic< int >           _timeSinceStart {0};
         Atomic< bool >          _isRunning      {true};
 
         Unique< IAppListener >  _listener;

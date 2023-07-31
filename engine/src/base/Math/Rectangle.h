@@ -442,21 +442,16 @@ namespace AE::Base
 } // AE::Base
 
 
-
-namespace std
+template <typename T>
+struct std::hash< AE::Math::Rectangle<T> >
 {
-    template <typename T>
-    struct hash< AE::Math::Rectangle<T> >
+    ND_ size_t  operator () (const AE::Math::Rectangle<T> &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Math::Rectangle<T> &value) C_NE___
-        {
-        #if AE_FAST_HASH
-            return  size_t( AE::Base::HashOf( this, sizeof(*this) ));
-        #else
-            return  size_t( AE::Base::HashOf( value.left )  + AE::Base::HashOf( value.bottom ) +
-                            AE::Base::HashOf( value.right ) + AE::Base::HashOf( value.top ));
-        #endif
-        }
-    };
-
-} // std
+    #if AE_FAST_HASH
+        return  size_t( AE::Base::HashOf( this, sizeof(*this) ));
+    #else
+        return  size_t( AE::Base::HashOf( value.left )  + AE::Base::HashOf( value.bottom ) +
+                        AE::Base::HashOf( value.right ) + AE::Base::HashOf( value.top ));
+    #endif
+    }
+};

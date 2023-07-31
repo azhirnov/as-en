@@ -1,7 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/TaskSystem/ThreadManager.h"
-#include "threading/TaskSystem/AsyncMutex.h"
 #include "UnitTest_Common.h"
 
 #ifndef AE_DISABLE_THREADS
@@ -14,7 +12,7 @@ namespace
     struct Test1_SharedData
     {
         AsyncMutex      mutex;
-        Mutex           mutex2;
+        Mutex           mutexCheck;
         ulong           counter = 0;
 
         static constexpr uint   repeat_count    = 100;
@@ -34,11 +32,11 @@ namespace
         {
             {
                 ASYNC_EXLOCK( data.mutex );
-                CHECK_TE( data.mutex2.try_lock() );
+                CHECK_TE( data.mutexCheck.try_lock() );
 
                 ++data.counter;
 
-                data.mutex2.unlock();
+                data.mutexCheck.unlock();
             }
 
             if ( ++counter < Test1_SharedData::repeat_count )
@@ -53,8 +51,8 @@ namespace
     {
         LocalTaskScheduler  scheduler {WorkerQueueCount(1)};
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         Test1_SharedData    data;
         Array<AsyncTask>    tasks;

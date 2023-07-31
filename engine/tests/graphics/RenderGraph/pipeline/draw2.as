@@ -10,7 +10,6 @@ void ASmain ()
     vb.Add( "vb", st );
 
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "draw2" );
-    ppln.AddFeatureSet( "MinimalFS" );
     ppln.SetVertexInput( vb );
 
     {

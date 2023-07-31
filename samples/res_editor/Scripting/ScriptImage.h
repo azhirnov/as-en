@@ -71,6 +71,7 @@ namespace AE::ResEditor
 
         ND_ bool                IsMutableDimension ()                               __Th___;
         ND_ ScriptDynamicDim*   Dimension ()                                        __Th___;
+        ND_ ScriptDynamicDimPtr DimensionRC ()                                      __Th___;
         ND_ RC<DynamicDim>      DynamicDimension ()                                 __Th___;
 
         ND_ uint                ArrayLayers ()                                      __Th___;

@@ -104,7 +104,7 @@ __Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlinst
 __Vulkan__: custom stride is not supported, stride must be 64.<br/>
 __Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlinstanceaccelerationstructuredescriptor/3553888-instancedescriptorstride?language=objc): "*The stride must be at least 64 bytes and must be a multiple of 4 bytes*".
 
-* `minScratchBufferOffsetAlign`<br/>
+* `scratchBufferAlign`<br/>
 __Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::minAccelerationStructureScratchOffsetAlignment.<br/>
 __Metal__:  *not defined*.<br/>
 

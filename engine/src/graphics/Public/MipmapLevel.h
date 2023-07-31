@@ -52,15 +52,11 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <>
+struct std::hash< AE::Graphics::MipmapLevel >
 {
-    template <>
-    struct hash< AE::Graphics::MipmapLevel >
+    ND_ size_t  operator () (const AE::Graphics::MipmapLevel &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Graphics::MipmapLevel &value) C_NE___
-        {
-            return size_t(AE::Base::HashOf( value.Get() ));
-        }
-    };
-
-} // std
+        return size_t(AE::Base::HashOf( value.Get() ));
+    }
+};

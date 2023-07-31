@@ -2,9 +2,6 @@
 
 #pragma once
 
-#include "base/Common.h"
-#include "res_loaders/Intermediate/IntermImage.h"
-
 #define AE_TEST_PIPELINE_COMPILER
 
 #include "res_pack/pipeline_compiler/ScriptObjects/DescriptorSetLayout.h"

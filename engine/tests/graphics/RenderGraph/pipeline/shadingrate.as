@@ -3,7 +3,6 @@
 void PerDrawSRPipeline ()
 {
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "per_draw" );
-    ppln.AddFeatureSet( "MinimalFS" );
     ppln.AddFeatureSet( "part.ShadingRate.compat" );
 
     {
@@ -45,7 +44,6 @@ void PerPrimitiveSRPipeline ()
     vb.Add( "vb", st );
 
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "per_primitive" );
-    ppln.AddFeatureSet( "MinimalFS" );
     ppln.AddFeatureSet( "part.ShadingRate.compat" );
     ppln.SetVertexInput( vb );
 
@@ -81,7 +79,6 @@ void PerPrimitiveSRPipeline ()
 void AttachmentSRPipeline ()
 {
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "vrs_attachment" );
-    ppln.AddFeatureSet( "MinimalFS" );
     ppln.AddFeatureSet( "part.ShadingRate.NV" );
 
     {

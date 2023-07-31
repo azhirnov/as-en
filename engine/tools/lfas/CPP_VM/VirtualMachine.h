@@ -79,6 +79,8 @@ namespace LFAS::CPP
             Bytes       size;
             MemRanges   ranges;
             bool        isDestroyed = true;
+
+            explicit StorageInfo (Bytes size) : size{size} {}
         };
         using StorageMap_t  = HashMap< const void*, StorageInfo >;
 
@@ -122,7 +124,7 @@ namespace LFAS::CPP
 
         void  Yield ();
 
-        void  CheckForUncommitedChanges () const;
+        void  CheckForUncommittedChanges () const;
 
 
     // atomics

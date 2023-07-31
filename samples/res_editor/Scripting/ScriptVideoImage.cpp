@@ -4,8 +4,6 @@
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Scripting/ScriptBuffer.h"
 
-#include "scripting/Impl/ClassBinder.h"
-
 namespace AE::ResEditor
 {
 namespace
@@ -29,7 +27,7 @@ namespace
     ScriptVideoImage::ScriptVideoImage (EPixelFormat format, const String &filename) __Th___ :
         _format{ format },
         _imageType{uint( PipelineCompiler::EImageType::Img2D | PipelineCompiler::EImageType::Float )},
-        _videoFile{ FileSystem::ToAbsolute( filename )}
+        _videoFile{ FileSystem::ToAbsolute( filename )}     // TODO: use VFS
     {
         if ( _dbgName.empty() )
             _dbgName = Path{filename}.filename().replace_extension("").string().substr( 0, ResNameMaxLen );
@@ -124,10 +122,12 @@ namespace
                 case EResourceUsage::WillReadback :
                 case EResourceUsage::ColorAttachment :
                 case EResourceUsage::DepthStencil :
+                case EResourceUsage::ShaderAddress :
                 case EResourceUsage::ComputeRW :
                 case EResourceUsage::VertexInput :
                 case EResourceUsage::IndirectBuffer :
                 case EResourceUsage::ASBuild :
+                case EResourceUsage::WithHistroy :
                 default :                               RETURN_ERR( "unsupported usage" );
             }
             END_ENUM_CHECKS();

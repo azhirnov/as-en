@@ -87,6 +87,6 @@ namespace AE::Base::_hidden_
 
 namespace AE::Base
 {
-    static constexpr Base::_hidden_::DefaultType        Default = {};
+    static constexpr inline Base::_hidden_::DefaultType     Default = {};
 
 } // AE::Base

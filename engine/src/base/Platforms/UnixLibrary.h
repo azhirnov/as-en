@@ -28,24 +28,38 @@ namespace AE::Base
 
     // methods
     public:
-        UnixLibrary ()                      __NE___     {}
-        ~UnixLibrary ()                     __NE___ { Unload(); }
+        UnixLibrary ()                                              __NE___ {}
+        ~UnixLibrary ()                                             __NE___ { Unload(); }
 
-        bool  Load (NtStringView libName)   __NE___;
-        bool  Load (const char *libName)    __NE___ { return Load( NtStringView{libName} ); }
-        bool  Load (const String &libName)  __NE___ { return Load( NtStringView{libName} ); }
-        bool  Load (const Path &libName)    __NE___;
-        void  Unload ()                     __NE___;
+        ND_ bool  Open (void* lib)                                  __NE___;
+
+        ND_ bool  Load (NtStringView libName)                       __NE___;
+        ND_ bool  Load (StringView libName)                         __NE___ { return Load( NtStringView{libName} ); }
+        ND_ bool  Load (const char* libName)                        __NE___ { return Load( NtStringView{libName} ); }
+        ND_ bool  Load (const Path &libName)                        __NE___;
+            void  Unload ()                                         __NE___;
 
         template <typename T>
-        bool  GetProcAddr (NtStringView name, OUT T &result) C_NE___;
+        ND_ bool  GetProcAddr (NtStringView name, OUT T &result)    C_NE___;
 
-        ND_ Path  GetPath ()                C_NE___;
+        ND_ Path  GetPath ()                                        C_NE___;
 
-        ND_ explicit operator bool ()       C_NE___     { return _handle != null; }
+        ND_ explicit operator bool ()                               C_NE___ { return _handle != null; }
     };
 
 
+
+/*
+=================================================
+    Open
+=================================================
+*/
+    inline bool  UnixLibrary::Open (void* lib) __NE___
+    {
+        CHECK_ERR( _handle == null and lib != null );
+        _handle = lib;
+        return _handle != null;
+    }
 
 /*
 =================================================
@@ -73,7 +87,8 @@ namespace AE::Base
 */
     inline void  UnixLibrary::Unload () __NE___
     {
-        if ( _handle ) {
+        if ( _handle != null )
+        {
             ::dlclose( _handle );
             _handle = null;
         }
@@ -87,6 +102,9 @@ namespace AE::Base
     template <typename T>
     inline bool  UnixLibrary::GetProcAddr (NtStringView name, OUT T &result) C_NE___
     {
+        ASSERT( _handle != null );
+        ASSERT( not name.empty() );
+
         result = BitCast<T>( ::dlsym( _handle, name.c_str() ));
         return result != null;
     }
@@ -105,7 +123,7 @@ namespace AE::Base
         RETURN_ERR( "not supported" );
     #else
 
-        CHECK_ERR( _handle );
+        CHECK_ERR( _handle != null );
 
         char    buf [PATH_MAX] = {};
         CHECK_ERR( ::dlinfo( _handle, RTLD_DI_ORIGIN, buf ) == 0 );

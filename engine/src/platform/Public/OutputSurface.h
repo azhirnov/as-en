@@ -27,6 +27,7 @@ namespace AE::App
     using Graphics::MultiSamples;
     using Graphics::EPixelFormat;
     using Graphics::EImageUsage;
+    using Graphics::EImageOpt;
     using Graphics::EPresentMode;
     using Graphics::EColorSpace;
     using Graphics::CommandBatchPtr;
@@ -50,16 +51,6 @@ namespace AE::App
             VR,
         };
 
-        enum class ETargetType : ubyte
-        {
-            Albedo,
-            Normal,
-            Depth,
-            Final2D,    // to swapchain
-            Final3D,    // to VR device
-            Unknown,
-        };
-
         static constexpr uint   MaxOutputTargets    = 8;
 
 
@@ -79,10 +70,11 @@ namespace AE::App
             EResourceState          initialState    = Default;
             EResourceState          finalState      = Default;
 
-            ETargetType             type            = Default;
             EColorSpace             colorSpace      = Default;
             EPixelFormat            format          = Default;
 
+            // Projection can be null.
+            // Access is thread-safe only between 'Begin()' / 'End()'.
             Ptr<const IProjection>  projection;
 
             ND_ uint2   RegionSize ()           C_NE___ { return RegionSizePxu(); }
@@ -115,7 +107,6 @@ namespace AE::App
             {
                 EPixelFormat    format      = Default;
                 MultiSamples    samples;
-                ETargetType     type        = Default;
             };
             using Attachments_t = FixedArray< Attachment, MaxOutputTargets >;
 
@@ -133,14 +124,9 @@ namespace AE::App
         //
         struct SurfaceInfo
         {
-            // current states
-        //  TargetSizes_t       targetSizes;
+            ESurfaceType        type            = Default;
             SurfaceFormat       format;
             EPresentMode        presentMode     = Default;
-
-            // available modes
-        //  SurfaceFormats_t    surfaceFormats;
-        //  PresentModes_t      presentModes;
         };
 
 

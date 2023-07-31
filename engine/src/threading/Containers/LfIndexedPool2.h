@@ -13,10 +13,6 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "base/Containers/FixedArray.h"
-# include "base/CompileTime/Math.h"
-# include "base/Math/BitMath.h"
-# include "base/Memory/UntypedAllocator.h"
 # include "threading/Primitives/SpinLock.h"
 # include "threading/Primitives/Atomic.h"
 #endif
@@ -107,11 +103,11 @@ namespace AE::Threading
 
         template <typename FN>
         ND_ bool  Assign (OUT Index_t &outIndex, FN &&ctor)         __NE___;
-        ND_ bool  Assign (OUT Index_t &outIndex)                    __NE___ { return Assign( OUT outIndex, [](Value_t* ptr, Index_t) { PlacementNew<Value_t>( ptr ); }); }
+        ND_ bool  Assign (OUT Index_t &outIndex)                    __NE___ { return Assign( OUT outIndex, [](Value_t* ptr, Index_t) { PlacementNew<Value_t>( OUT ptr ); }); }
 
         template <typename FN>
         ND_ bool  AssignAt (Index_t index, OUT Value_t* &outValue, FN &&ctor) __NE___;
-        ND_ bool  AssignAt (Index_t index, OUT Value_t* &outValue)  __NE___ { return AssignAt( index, OUT outValue, [](Value_t* ptr, Index_t) { PlacementNew<Value_t>( ptr ); }); }
+        ND_ bool  AssignAt (Index_t index, OUT Value_t* &outValue)  __NE___ { return AssignAt( index, OUT outValue, [](Value_t* ptr, Index_t) { PlacementNew<Value_t>( OUT ptr ); }); }
 
             bool  Unassign (Index_t index)                          __NE___;
 

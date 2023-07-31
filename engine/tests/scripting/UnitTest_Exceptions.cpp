@@ -1,8 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "scripting/Bindings/CoreBindings.h"
 #include "UnitTest_Common.h"
-
 
 namespace
 {

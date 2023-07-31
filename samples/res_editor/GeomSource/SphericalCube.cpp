@@ -30,8 +30,9 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    SphericalCube::SphericalCube (Renderer &r, uint minLod, uint maxLod) __Th___ :
+    SphericalCube::SphericalCube (Renderer &r, uint minLod, uint maxLod, RC<DynamicFloat> tessLevel) __Th___ :
         IGeomSource{ r },
+        _tessLevel{ RVRef(tessLevel) },
         _minLod{minLod}, _maxLod{maxLod}
     {}
 
@@ -53,11 +54,25 @@ namespace AE::ResEditor
 */
     void  SphericalCube::StateTransition (IGSMaterials &inMtr, GraphicsCtx_t &ctx) __NE___
     {
-        auto&   mtr = Cast<Material>(inMtr);
+        const auto  new_state   = EResourceState::ShaderSample | EResourceState::FragmentShader;
+        auto&       mtr         = RefCast<Material>(inMtr);
 
-        for (auto& [un, tex] : mtr.textures)
-        {
-            const auto  new_state = EResourceState::ShaderSample | EResourceState::FragmentShader;
+        for (auto& [un, tex] : mtr.textures) {
+            ctx.ResourceState( tex->GetImageId(), new_state );
+        }
+    }
+
+/*
+=================================================
+    StateTransition
+=================================================
+*/
+    void  SphericalCube::StateTransition (IGSMaterials &inMtr, RayTracingCtx_t &ctx) __NE___
+    {
+        const auto  new_state   = EResourceState::ShaderSample | EResourceState::FragmentShader;
+        auto&       mtr         = RefCast<Material>(inMtr);
+
+        for (auto& [un, tex] : mtr.textures) {
             ctx.ResourceState( tex->GetImageId(), new_state );
         }
     }
@@ -70,10 +85,19 @@ namespace AE::ResEditor
     bool  SphericalCube::Draw (const DrawData &in) __NE___
     {
         auto&           ctx     = in.ctx;
-        auto&           mtr     = Cast<Material>(in.mtr);
+        auto&           mtr     = RefCast<Material>(in.mtr);
         DescriptorSetID mtr_ds  = mtr.descSets[ ctx.GetFrameId().Index() ];
 
-        ctx.BindPipeline( mtr.ppln );
+        const auto      BindPipeline = [&ctx] (const auto &pplnId)
+        {{
+            Visit( pplnId,
+                [&ctx] (GraphicsPipelineID ppln)    { ctx.BindPipeline( ppln ); },
+                [&ctx] (MeshPipelineID ppln)        { ctx.BindPipeline( ppln ); },
+                [] (NullUnion)                      { CHECK_MSG( false, "pipeline is not defined" ); }
+            );
+        }};
+
+        BindPipeline( mtr.ppln );
         ctx.BindDescriptorSet( mtr.passDSIndex, in.passDS );
         ctx.BindDescriptorSet( mtr.mtrDSIndex,  mtr_ds );
 
@@ -89,11 +113,11 @@ namespace AE::ResEditor
     bool  SphericalCube::Update (const UpdateData &in) __NE___
     {
         auto&   ctx = in.ctx;
-        auto&   mtr = Cast<Material>(in.mtr);
+        auto&   mtr = RefCast<Material>(in.mtr);
 
         if_unlikely( not _cube.IsCreated() )
         {
-            CHECK_ERR( _cube.Create( ctx.GetResourceManager(), ctx, _minLod, _maxLod, false, _GfxAllocator() ));
+            CHECK_ERR( _cube.Create( ctx.GetResourceManager(), ctx, _minLod, _maxLod, False{}, Default, _GfxAllocator() ));
 
             auto&   rstate = FrameGraph().GetStateTracker();
             rstate.SetDefaultState( _cube.VertexBufferId(), EResourceState::VertexBuffer );
@@ -106,7 +130,8 @@ namespace AE::ResEditor
         // update uniform buffer
         {
             ShaderTypes::SphericalCubeMaterialUB    ub_data;
-            ub_data.transform   = float4x4::Translate( in.position );
+            ub_data.transform   = float4x4::Translated( in.position );
+            ub_data.tessLevel   = _tessLevel ? _tessLevel->Get() : 1.f;
 
             CHECK_ERR( ctx.UploadBuffer( mtr.ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
         }
@@ -121,7 +146,7 @@ namespace AE::ResEditor
             for (auto& [un, tex] : mtr.textures) {
                 CHECK_ERR( updater.BindImage( un, tex->GetViewId() ));
             }
-            CHECK_ERR( updater.BindBuffer< ShaderTypes::SphericalCubeMaterialUB >( UniformName{"mtrUB"}, mtr.ubuffer ));
+            CHECK_ERR( updater.BindBuffer< ShaderTypes::SphericalCubeMaterialUB >( UniformName{"un_PerObject"}, mtr.ubuffer ));
 
             CHECK_ERR( updater.Flush() );
         }

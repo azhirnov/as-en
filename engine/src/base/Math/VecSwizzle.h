@@ -202,15 +202,11 @@ namespace AE::Base
 } // AE::Base
 
 
-namespace std
+template <>
+struct std::hash< AE::Math::VecSwizzle >
 {
-    template <>
-    struct hash< AE::Math::VecSwizzle >
+    ND_ size_t  operator () (const AE::Math::VecSwizzle &value) C_NE___
     {
-        ND_ size_t  operator () (const AE::Math::VecSwizzle &value) C_NE___
-        {
-            return size_t( value.Get() );
-        }
-    };
-
-} // std
+        return size_t( value.Get() );
+    }
+};

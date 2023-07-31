@@ -2,10 +2,6 @@
 
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Resources/RTScene.h"
-
-#include "scripting/Impl/ClassBinder.h"
-#include "scripting/Impl/EnumBinder.h"
-
 #include "res_editor/Scripting/PassCommon.inl.h"
 
 namespace AE::ResEditor
@@ -22,6 +18,14 @@ namespace
 
     static void  RTInstanceSBTOffset_Ctor (OUT void* mem, uint value) {
         PlacementNew<RTInstanceSBTOffset>( OUT mem, value );
+    }
+
+    static void  RTInstanceRotation_Ctor1 (OUT void* mem, const packed_float3 &value) {
+        PlacementNew<RTInstanceRotation>( OUT mem, value );
+    }
+
+    static void  RTInstanceRotation_Ctor2 (OUT void* mem, float x, float y, float z) {
+        PlacementNew<RTInstanceRotation>( OUT mem, packed_float3{x,y,z} );
     }
 
 } // namespace
@@ -71,6 +75,21 @@ namespace
 //-----------------------------------------------------------------------------
 
 
+/*
+=================================================
+    RTInstanceRotation::Bind
+=================================================
+*/
+    void  RTInstanceRotation::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        Scripting::ClassBinder<RTInstanceRotation>  binder{ se };
+        binder.CreateClassValue();
+        binder.AddConstructor( &RTInstanceRotation_Ctor1 );
+        binder.AddConstructor( &RTInstanceRotation_Ctor2 );
+    }
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -79,7 +98,10 @@ namespace
 */
     ScriptRTGeometry::ScriptRTGeometry () __Th___ :
         _dbgName{ "RTGeometry" }
-    {}
+    {
+        CHECK_THROW_MSG( RenderTaskScheduler().GetDevice().GetProperties().accelerationStructureFeats.accelerationStructure,
+            "RTGeometry is not supported" );
+    }
 
 /*
 =================================================
@@ -91,6 +113,23 @@ namespace
         _MutableResource();
 
         _dbgName = name;
+    }
+
+/*
+=================================================
+    EnableHistory
+=================================================
+*/
+    void  ScriptRTGeometry::EnableHistory () __Th___
+    {
+        GetIndirectBuffer()->EnableHistory();
+
+        for (auto& tri_mesh : _triangleMeshes)
+        {
+            tri_mesh.vbuffer->EnableHistory();
+            if ( tri_mesh.ibuffer )
+                tri_mesh.ibuffer->EnableHistory();
+        }
     }
 
 /*
@@ -166,6 +205,8 @@ namespace
     {
         CHECK_THROW_MSG( not _resource,
             "resource is already created, can not change content" );
+        CHECK_THROW_MSG( not _immutableGeom,
+            "RTGeometry is immutable" );
     }
 
 /*
@@ -185,6 +226,52 @@ namespace
 
 /*
 =================================================
+    MakeImmutable
+=================================================
+*/
+    void  ScriptRTGeometry::MakeImmutable () __Th___
+    {
+        _immutableGeom = true;
+    }
+
+/*
+=================================================
+    _GetIndirectBuffer
+=================================================
+*/
+    ScriptBufferPtr  ScriptRTGeometry::GetIndirectBuffer () __Th___
+    {
+        MakeImmutable();
+
+        if ( not _indirectBuffer )
+        {
+            _indirectBuffer.Set( new ScriptBuffer{} );
+            _indirectBuffer->Name( "RTGeometry-Indirect" );
+            _indirectBuffer->AddUsage( EResourceUsage::IndirectBuffer );
+            _indirectBuffer->SetLayoutAndCount1( "ASBuildIndirectCommand", uint(_triangleMeshes.size()) );
+        }
+
+        return _indirectBuffer;
+    }
+
+    ScriptBuffer*  ScriptRTGeometry::_GetIndirectBuffer () __Th___
+    {
+        return ScriptBufferPtr{GetIndirectBuffer()}.Detach();
+    }
+
+/*
+=================================================
+    _GetGeometryCount
+=================================================
+*/
+    uint  ScriptRTGeometry::_GetGeometryCount () __Th___
+    {
+        MakeImmutable();
+        return uint(_triangleMeshes.size());
+    }
+
+/*
+=================================================
     Bind
 =================================================
 */
@@ -197,6 +284,8 @@ namespace
         binder.AddMethod( &ScriptRTGeometry::AddTriangles2,         "AddTriangles"          );
         binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles1,  "AddIndexedTriangles"   );
         binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles2,  "AddIndexedTriangles"   );
+        binder.AddMethod( &ScriptRTGeometry::_GetIndirectBuffer,    "IndirectBuffer"        );
+        binder.AddMethod( &ScriptRTGeometry::_GetGeometryCount,     "GeometryCount"         );
     }
 
 /*
@@ -211,6 +300,13 @@ namespace
 
         CHECK_THROW_MSG( not _triangleMeshes.empty() );
         _Validate();
+
+        RC<Buffer>  ind_buf;
+        if ( _indirectBuffer )
+        {
+            ind_buf = _indirectBuffer->ToResource();
+            CHECK_THROW( ind_buf );
+        }
 
         RTGeometry::TriangleMeshes_t    tri_meshes;
         tri_meshes.reserve( _triangleMeshes.size() );
@@ -227,10 +323,33 @@ namespace
         }
 
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
-        auto        result      = MakeRC<RTGeometry>( RVRef(tri_meshes), renderer, _dbgName );
+        auto        result      = MakeRC<RTGeometry>( RVRef(tri_meshes), ind_buf, renderer, _dbgName );
 
         _resource = result;
         return _resource;
+    }
+
+/*
+=================================================
+    _Validate2
+=================================================
+*/
+    void  ScriptRTGeometry::_Validate2 () __Th___
+    {
+        for (auto& tri_mesh : _triangleMeshes)
+        {
+            CHECK_THROW_MSG( not tri_mesh.vbuffer->HasLayout() );
+
+            CHECK_THROW_MSG( tri_mesh.maxVertex > 0 );
+            CHECK_THROW_MSG( tri_mesh.vertexFormat != Default );
+            CHECK_THROW_MSG( tri_mesh.maxPrimitives > 0 );
+
+            if ( tri_mesh.ibuffer )
+            {
+                CHECK_THROW_MSG( tri_mesh.indexType != Default );
+                CHECK_THROW_MSG( not tri_mesh.ibuffer->HasLayout() );
+            }
+        }
     }
 
 /*
@@ -244,7 +363,11 @@ namespace
 
         auto    storage = ObjectStorage::Instance();
         if ( not storage )
-            return; // can't get buffer layout
+        {
+            // can't get buffer layout
+            _Validate2();
+            return;
+        }
 
         for (auto& tri_mesh : _triangleMeshes)
         {
@@ -403,8 +526,15 @@ namespace
 =================================================
 */
     ScriptRTScene::ScriptRTScene () __Th___ :
+        _instanceBuffer{ new ScriptBuffer{} },
         _dbgName{ "RTScene" }
-    {}
+    {
+        CHECK_THROW_MSG( RenderTaskScheduler().GetDevice().GetProperties().accelerationStructureFeats.accelerationStructure,
+            "RTScene is not supported" );
+
+        _instanceBuffer->Name( "RTScene-Instances" );
+        _instanceBuffer->AddUsage( EResourceUsage::ASBuild );
+    }
 
 /*
 =================================================
@@ -413,33 +543,90 @@ namespace
 */
     void  ScriptRTScene::Name (const String &name) __Th___
     {
+        CHECK_THROW_MSG( not _resource,
+            "resource is already created, can not change content" );
+
         _dbgName = name;
     }
 
 /*
 =================================================
-    _MutableResource
+    EnableHistory
 =================================================
-*
-    void  ScriptRTScene::_MutableResource () C_Th___
+*/
+    void  ScriptRTScene::EnableHistory () __Th___
     {
-        CHECK_THROW_MSG( not _resource,
-            "resource is already created, can not change content" );
+        GetInstanceBuffer()->EnableHistory();
+        GetIndirectBuffer()->EnableHistory();
     }
 
 /*
 =================================================
-    _CheckBuffer
+    _GetInstanceBuffer
 =================================================
-*
-    void  ScriptRTScene::_CheckBuffer (const ScriptBufferPtr &buf) __Th___
+*/
+    ScriptBufferPtr  ScriptRTScene::GetInstanceBuffer () __Th___
     {
-        CHECK_THROW_MSG( buf );
-        CHECK_THROW_MSG( buf->HasLayout() );
-        CHECK_THROW_MSG( not buf->IsDynamicSize() );
+        CHECK_THROW_MSG( not _resource,
+            "resource is already created, can not change buffer usage" );
 
-        buf->AddUsage( EResourceUsage::ASBuild );
-        buf->AddUsage( EResourceUsage::ComputeRead );
+        _MakeInstancesImmutable();
+        return _instanceBuffer;
+    }
+
+    ScriptBuffer*  ScriptRTScene::_GetInstanceBuffer () __Th___
+    {
+        return ScriptBufferPtr{GetInstanceBuffer()}.Detach();
+    }
+
+/*
+=================================================
+    _GetInstanceCount
+=================================================
+*/
+    uint  ScriptRTScene::_GetInstanceCount () __Th___
+    {
+        _MakeInstancesImmutable();
+        return uint(_instances.size());
+    }
+
+/*
+=================================================
+    _MakeInstancesImmutable
+=================================================
+*/
+    void  ScriptRTScene::_MakeInstancesImmutable ()
+    {
+        if ( not _immutableInstances )
+        {
+            _immutableInstances = true;
+            _instanceBuffer->SetLayoutAndCount1( "AccelStructInstance", uint(_instances.size()) );
+        }
+    }
+
+/*
+=================================================
+    _GetIndirectBuffer
+=================================================
+*/
+    ScriptBufferPtr  ScriptRTScene::GetIndirectBuffer () __Th___
+    {
+        _MakeInstancesImmutable();
+
+        if ( not _indirectBuffer )
+        {
+            _indirectBuffer.Set( new ScriptBuffer{} );
+            _indirectBuffer->Name( "RTScene-Indirect" );
+            _indirectBuffer->AddUsage( EResourceUsage::IndirectBuffer );
+            _indirectBuffer->SetLayoutAndCount1( "ASBuildIndirectCommand", 1u );
+        }
+
+        return _indirectBuffer;
+    }
+
+    ScriptBuffer*  ScriptRTScene::_GetIndirectBuffer () __Th___
+    {
+        return ScriptBufferPtr{GetIndirectBuffer()}.Detach();
     }
 
 /*
@@ -454,6 +641,9 @@ namespace
 
     void  ScriptRTScene::_AddInstance2 (Scripting::ScriptArgList args) __Th___
     {
+        CHECK_THROW_MSG( not _immutableInstances,
+            "can not add instance when 'InstanceCount()' was used" );
+
         auto&   dst = _instances.emplace_back();
         uint    idx = 0;
 
@@ -461,6 +651,17 @@ namespace
         {
             dst.geometry = args.Arg< ScriptRTGeometryPtr const& >(idx++);
             CHECK_THROW_MSG( dst.geometry );
+        }
+
+        if ( args.IsArg< RTInstanceRotation const& >(idx) )
+        {
+            auto&   pos = args.Arg< RTInstanceRotation const& >(idx++);
+
+            float3x3    mat = float3x3::RotateX( Rad{pos.angles.x} );
+            mat = mat * float3x3::RotateY( Rad{pos.angles.y} );
+            mat = mat * float3x3::RotateZ( Rad{pos.angles.z} );
+
+            dst.transform = float3x4{mat};
         }
 
         if ( args.IsArg< packed_float3 const& >(idx) )
@@ -473,12 +674,18 @@ namespace
 
         if ( args.IsArg< RTInstanceCustomIndex const& >(idx) )
             dst.instanceCustomIndex = args.Arg< RTInstanceCustomIndex const& >(idx++).value;
+        else
+            dst.instanceCustomIndex = uint(_instances.size()-1);
 
         if ( args.IsArg< RTInstanceMask const& >(idx) )
             dst.mask = args.Arg< RTInstanceMask const& >(idx++).value;
+        else
+            dst.mask = UMax;
 
         if ( args.IsArg< RTInstanceSBTOffset const& >(idx) )
-            dst.mask = args.Arg< RTInstanceSBTOffset const& >(idx++).value;
+            dst.instanceSBTOffset = args.Arg< RTInstanceSBTOffset const& >(idx++).value;
+        else
+            dst.instanceSBTOffset = uint(_instances.size()-1);
 
         CHECK_THROW_MSG( idx == args.ArgCount() );
     }
@@ -493,12 +700,20 @@ namespace
         RTInstanceCustomIndex::Bind( se );
         RTInstanceMask::Bind( se );
         RTInstanceSBTOffset::Bind( se );
+        RTInstanceRotation::Bind( se );
 
         Scripting::ClassBinder<ScriptRTScene>   binder{ se };
         binder.CreateRef();
         binder.AddMethod( &ScriptRTScene::Name,     "Name"  );
 
         binder.AddGenericMethod< void (const ScriptRTGeometryPtr &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+
         binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
         binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
         binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
@@ -506,6 +721,18 @@ namespace
         binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
         binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
         binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceRotation &, const packed_float3 &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceRotation &, const packed_float3 &, const RTInstanceCustomIndex &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceRotation &, const packed_float3 &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceRotation &, const packed_float3 &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceRotation &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceRotation &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceRotation &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+
+        binder.AddMethod( &ScriptRTScene::_GetInstanceBuffer,   "InstanceBuffer"    );
+        binder.AddMethod( &ScriptRTScene::_GetInstanceCount,    "InstanceCount"     );
+        binder.AddMethod( &ScriptRTScene::_GetIndirectBuffer,   "IndirectBuffer"    );
     }
 
 /*
@@ -519,6 +746,19 @@ namespace
             return _resource;
 
         CHECK_THROW_MSG( not _instances.empty() );
+        CHECK_THROW_MSG( _instanceBuffer );
+
+        _MakeInstancesImmutable();
+
+        auto    inst_buf = _instanceBuffer->ToResource();
+        CHECK_THROW( inst_buf );
+
+        RC<Buffer>  ind_buf;
+        if ( _indirectBuffer )
+        {
+            ind_buf = _indirectBuffer->ToResource();
+            CHECK_THROW( ind_buf );
+        }
 
         RTScene::Instances_t    instances;
         instances.reserve( _instances.size() );
@@ -536,7 +776,7 @@ namespace
         }
 
         Renderer&   renderer    = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
-        auto        result      = MakeRC<RTScene>( RVRef(instances), renderer, _dbgName );
+        auto        result      = MakeRC<RTScene>( RVRef(instances), inst_buf, ind_buf, renderer, _dbgName );
 
         _resource = result;
         return _resource;

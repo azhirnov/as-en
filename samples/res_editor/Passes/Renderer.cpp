@@ -1,8 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Algorithms/StringUtils.h"
-#include "base/DataSource/FileStream.h"
-
 #include "res_editor/Passes/Renderer.h"
 #include "res_editor/EditorUI.h"
 #include "res_editor/EditorCore.h"
@@ -15,9 +12,10 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    Renderer::Renderer () :
+    Renderer::Renderer (uint seed) :
         _lastUpdateTime{ TimePoint_t::clock::now() },
-        _gfxAlloc{ MakeRC<GfxLinearMemAllocator>() }
+        _gfxAlloc{ MakeRC<GfxLinearMemAllocator>() },
+        _seed{ seed }
     {
         const auto& shader_trace_folder = ResEditorAppConfig::Get().shaderTraceFolder;
 
@@ -196,17 +194,6 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    IsCompleted
-=================================================
-*/
-    bool  Renderer::IsCompleted () const
-    {
-        // TODO
-        return false;
-    }
-
-/*
-=================================================
     GetInputMode
 =================================================
 */
@@ -223,13 +210,19 @@ namespace AE::ResEditor
     void  Renderer::ProcessInput (ActionQueueReader reader, OUT bool &switchMode)
     {
         if ( _controller )
-            _controller->ProcessInput( reader, RenderTaskScheduler().GetFrameTimeDelta() );
+        {
+            // validate time
+            const secondsf  dt = Min( RenderTaskScheduler().GetFrameTimeDelta(), secondsf{1.f/30.f} );
+
+            _controller->ProcessInput( reader, dt );
+        }
 
         auto    input = _input.WriteNoLock();
         EXLOCK( input );
 
-        switchMode      = false;
-        input->pressed  = false;
+        switchMode              = false;
+        input->pressed          = false;
+        input->customKeys[0]    = 0.f;
 
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
@@ -245,18 +238,27 @@ namespace AE::ResEditor
 
             if_unlikely( hdr.name == InputActionName{"SwitchInputMode"} )
                 switchMode = true;
+
+            if_unlikely( hdr.name == InputActionName{"PauseRendering"} )
+                input->pauseRendering = not input->pauseRendering;
+
+            if_unlikely( hdr.name == InputActionName{"CustomKey1"} )
+                input->customKeys[0] = reader.Data<float>( hdr.offset );
         }
     }
 
 /*
 =================================================
     Execute
-----
-    'deps' - must contains 
 =================================================
 */
     AsyncTask  Renderer::Execute (ArrayView<AsyncTask> inDeps)
     {
+        if_unlikely( _input.ConstPtr()->pauseRendering )
+        {
+            return Scheduler().WaitAsync( ETaskQueue::Renderer, Tuple{inDeps} );
+        }
+
         using EPass = IPass::EPassType;
 
         _UpdateDynSliders();
@@ -286,16 +288,22 @@ namespace AE::ResEditor
             update_pd.frameTime = secondsf{dt};
             update_pd.totalTime = secondsf{_totalTime};
             update_pd.frameId   = _frameCounter;
+            update_pd.seed      = _seed;
 
-            _totalTime      += Cast<microseconds>( dt );
+            _totalTime      += TimeCast<microseconds>( dt );
             _lastUpdateTime  = time;
             _frameCounter    ++;
+
+            float2  surf_size {1.f};
+            if ( auto surf = rg.GetSurface() )
+                surf_size = surf->GetTargetSizes()[0];
 
             auto    input = _input.ReadNoLock();
             SHAREDLOCK( input );
 
-            update_pd.cursorPos = input->cursorPos;
-            update_pd.pressed   = input->pressed;
+            update_pd.cursorPos     = input->cursorPos / surf_size;
+            update_pd.pressed       = input->pressed;
+            update_pd.customKeys    = input->customKeys;
         }
 
         // setup shader debugger
@@ -384,12 +392,8 @@ namespace AE::ResEditor
                     }*/
 
                     case EPass::Update :
-                    {
-                        update_passes.push_back( pass );
-                        break;
-                    }
-
                     case EPass::Present :   break;  // already processed
+
                     case EPass::Async :
                     case EPass::Unknown :
                     default :
@@ -470,7 +474,7 @@ namespace AE::ResEditor
     void  Renderer::SetController (RC<IController> cont) __Th___
     {
         CHECK_THROW( cont );
-        CHECK_THROW( not _controller );
+        CHECK_THROW( (not _controller) or (_controller == cont) );
 
         _controller = RVRef(cont);
     }
@@ -553,7 +557,7 @@ namespace AE::ResEditor
 
         const auto& shader_trace_folder = ResEditorAppConfig::Get().shaderTraceFolder;
 
-        const auto  BuildName = [this, &shader_trace_folder] (OUT Path &fname, usize index)
+        const auto  BuildName = [&shader_trace_folder] (OUT Path &fname, usize index)
         {{
             fname = shader_trace_folder / ("trace_"s << ToString(index) << ".glsl_dbg");
         }};

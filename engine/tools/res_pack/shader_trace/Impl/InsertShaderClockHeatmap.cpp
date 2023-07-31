@@ -10,6 +10,8 @@ namespace AE::PipelineCompiler
 {
 namespace
 {
+    using namespace glslang;
+
 
     //
     // Debug Info
@@ -308,9 +310,9 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
     TType*          pixels      = new TType{type};      pixels->setFieldName( "outPixels" );
 
     TTypeList*      type_list   = new TTypeList{};
-    type_list->emplace_back( scale,     TSourceLoc{} );
-    type_list->emplace_back( dimension, TSourceLoc{} );
-    type_list->emplace_back( pixels,    TSourceLoc{} );
+    type_list->push_back( TTypeLoc{ scale,      TSourceLoc{} });
+    type_list->push_back( TTypeLoc{ dimension,  TSourceLoc{} });
+    type_list->push_back( TTypeLoc{ pixels,     TSourceLoc{} });
 
     TQualifier      block_qual; block_qual.clear();
     block_qual.storage          = TStorageQualifier::EvqBuffer;

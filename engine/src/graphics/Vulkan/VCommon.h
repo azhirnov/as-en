@@ -3,22 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
-# include "base/Algorithms/Cast.h"
-# include "base/Containers/Ptr.h"
-# include "base/Containers/FixedArray.h"
-# include "base/Containers/FixedString.h"
-# include "base/Containers/FixedTupleArray.h"
-# include "base/Containers/StructView.h"
-# include "base/Utils/Helpers.h"
-# include "base/Memory/LinearAllocator.h"
-# include "base/Memory/StackAllocator.h"
-
-# include "threading/Primitives/Atomic.h"
-# include "threading/TaskSystem/TaskScheduler.h"
-# include "threading/TaskSystem/Promise.h"
-# include "threading/Memory/GlobalLinearAllocator.h"
-# include "threading/Memory/FrameAllocator.h"
-
 # include "graphics/Public/Common.h"
 # include "graphics/Public/IDs.h"
 # include "graphics/Public/FrameUID.h"
@@ -109,14 +93,3 @@ namespace AE::Graphics
 } // AE::Graphics
 
 #endif // AE_ENABLE_VULKAN
-
-
-# ifdef AE_CPP_DETECT_MISMATCH
-
-#  ifdef AE_ENABLE_VULKAN
-#   pragma detect_mismatch( "AE_ENABLE_VULKAN", "1" )
-#  else
-#   pragma detect_mismatch( "AE_ENABLE_VULKAN", "0" )
-#  endif
-
-#endif // AE_CPP_DETECT_MISMATCH

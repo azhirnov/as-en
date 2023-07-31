@@ -43,7 +43,7 @@ namespace AE::Graphics
         ND_ BufferDesc const&   Description ()              C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc; }
         ND_ Bytes               Size ()                     C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _desc.size; }
         ND_ void*               MappedPtr ()                C_NE___;
-        ND_ MDeviceAddress      GetDeviceAddress ()         C_NE___;
+        ND_ DeviceAddress       GetDeviceAddress ()         C_NE___;
 
             void  DidModifyRange (Bytes offset, Bytes size) C_NE___;
 

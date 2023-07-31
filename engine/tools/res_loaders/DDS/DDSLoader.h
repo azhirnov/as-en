@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_loaders/IImageLoader.h"
+#include "res_loaders/Public/ImageLoader.h"
 
 namespace AE::ResLoader
 {

@@ -31,6 +31,7 @@ namespace AE::Samples::Demo
         Strong<BufferID>            ib;
         Strong<BufferID>            instances;
         Strong<BufferID>            scratch;
+        Strong<BufferID>            indirect;
 
         Strong<RTGeometryID>        rtGeom;
         Strong<RTSceneID>           rtScene;

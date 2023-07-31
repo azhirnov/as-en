@@ -3,9 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-# include "threading/Containers/LfIndexedPool3.h"
-# include "threading/Containers/LfStaticIndexedPool.h"
-
 # include "graphics/Public/ResourceManager.h"
 # include "graphics/Public/CommandBufferTypes.h"
 # include "graphics/Private/ResourceBase.h"

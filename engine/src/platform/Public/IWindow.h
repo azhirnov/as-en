@@ -20,6 +20,18 @@ namespace AE::App
     using Graphics::NativeWindow;
 
 
+    enum class EWindowMode : ubyte
+    {
+        Resizable,
+        NonResizable,
+        Borderless,
+        FullscreenWindow,       // borderless, always on top
+
+        Fullscreen,
+        _Count,
+        Unknown         = Resizable,
+    };
+
 
     //
     // Window Description
@@ -30,14 +42,9 @@ namespace AE::App
         String          title;
         uint2           size        = {640, 480};
         Monitor::ID     monitorId   = Default;
+        EWindowMode     mode        = Default;
 
-        bool            resizable   : 1;
-        bool            fullscreen  : 1;
-        bool            borderless  : 1;
-
-        WindowDesc () __NE___ :
-            resizable{false}, fullscreen{false}, borderless{false}
-        {}
+        WindowDesc () __NE___ {}
     };
 
 

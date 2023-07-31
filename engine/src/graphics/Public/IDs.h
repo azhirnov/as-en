@@ -3,8 +3,6 @@
 #pragma once
 
 #include "graphics/Public/Common.h"
-#include "base/Utils/HandleTmpl.h"
-#include "base/Utils/NamedID.h"
 
 namespace AE::Graphics::_hidden_
 {
@@ -72,7 +70,7 @@ namespace AE::Graphics
     using SubpassName           = NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 24, AE_OPTIMIZE_IDS >;
     using ShaderIOName          = NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 25, AE_OPTIMIZE_IDS >;  // input attachment / render target name for Fragment / Tile shader
     using FeatureSetName        = NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 26, AE_OPTIMIZE_IDS >;
-    using ShaderStructName      = NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 27, true >;
+    using ShaderStructName      = NamedID< 64, Graphics::_hidden_::NamedIDs_Start + 27, true >;
     using DSLayoutName          = NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 28, AE_OPTIMIZE_IDS >;
 
     using RenderTargetName      = NamedID< 32, Graphics::_hidden_::NamedIDs_Start + 39, AE_OPTIMIZE_IDS >;

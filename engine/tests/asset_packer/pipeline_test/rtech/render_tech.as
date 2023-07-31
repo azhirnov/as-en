@@ -3,7 +3,6 @@
 void MinimalRTech ()
 {
     RC<RenderTechnique> rtech = RenderTechnique( "MinForward" );
-    rtech.AddFeatureSet( "MinimalFS" );
 
     {
         RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Graphics1" );
@@ -17,7 +16,6 @@ void MinimalRTech ()
 void DeferredRTech ()
 {
     RC<RenderTechnique> rtech = RenderTechnique( "MinDeferred" );
-    rtech.AddFeatureSet( "MinimalFS" );
 
     {
         RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Graphics1" );

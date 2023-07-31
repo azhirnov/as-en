@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "base/DataSource/Stream.h"
-
 // resources
 #include "res_editor/Scripting/ScriptImage.h"
 #include "res_editor/Scripting/ScriptVideoImage.h"
@@ -21,6 +19,7 @@
 
 // geometry source
 #include "res_editor/Scripting/ScriptGeomSource.h"
+#include "res_editor/GeomSource/TiledTerrain.h"
 
 // controller
 #include "res_editor/Scripting/ScriptController.h"
@@ -117,6 +116,8 @@ namespace AE::ResEditor
 
         const Config            _config;
 
+        Random                  _rand;
+
 
     // methods
     public:
@@ -161,8 +162,37 @@ namespace AE::ResEditor
         static void  _Present4 (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap)   __Th___;
 
         static void  _GenMipmaps (const ScriptImagePtr &rt)                                                     __Th___;
-        static void  _BuildRTGeometry ()                                                                        __Th___;
-        static void  _BuildRTScene ()                                                                           __Th___;
+
+        static void  _BuildRTGeometry (const ScriptRTGeometryPtr &)                                             __Th___;
+        static void  _BuildRTGeometryIndirect (const ScriptRTGeometryPtr &)                                     __Th___;
+
+        static void  _BuildRTScene (const ScriptRTScenePtr &)                                                   __Th___;
+        static void  _BuildRTSceneIndirect (const ScriptRTScenePtr &)                                           __Th___;
+
+        static void  _GetCube1 (OUT ScriptArray<packed_float3>  &positions,
+                                OUT ScriptArray<packed_float3>  &normals,
+                                OUT ScriptArray<packed_uint3>   &indices)                                       __Th___;
+        static void  _GetCube2 (OUT ScriptArray<packed_float3>  &positions,
+                                OUT ScriptArray<packed_float3>  &normals,
+                                OUT ScriptArray<uint>           &indices)                                       __Th___;
+        static void  _GetCube3 (OUT ScriptArray<packed_float3>  &positions,
+                                OUT ScriptArray<packed_float3>  &normals,
+                                OUT ScriptArray<packed_float3>  &tangents,
+                                OUT ScriptArray<packed_float3>  &bitangents,
+                                OUT ScriptArray<uint>           &indices)                                       __Th___;
+
+        static void  _GenGrid1 (uint                            size,
+                                OUT ScriptArray<packed_float2>  &positions,
+                                OUT ScriptArray<uint>           &indices)                                       __Th___;
+        static void  _GenGrid2 (uint                            size,
+                                OUT ScriptArray<packed_float3>  &positions,
+                                OUT ScriptArray<uint>           &indices)                                       __Th___;
+
+        static void  _GenCylinder (uint                             segments,
+                                   const packed_float3              &scale,
+                                   OUT ScriptArray<packed_float3>   &positions,
+                                   OUT ScriptArray<packed_float3>   &normals,
+                                   OUT ScriptArray<uint>            &indices)                                   __Th___;
 
         static void  _DbgView1 (const ScriptImagePtr &rt, DebugView::EFlags flags)                                                          __Th___;
         static void  _DbgView2 (const ScriptImagePtr &rt, const MipmapLevel &mipmap, DebugView::EFlags flags)                               __Th___;
@@ -192,8 +222,8 @@ namespace AE::ResEditor
 
         static void  _AddSlidersToUIInteraction (TempData &, Renderer* renderer);
 
-        ND_ static ScriptBasePass*  _RunScript1 (const String &filePath, const ScriptCollectionPtr &)               __Th___;
-        ND_ static ScriptBasePass*  _RunScript2 (const String &filePath, uint flags, const ScriptCollectionPtr &)   __Th___;
+        ND_ static ScriptBasePass*  _RunScript1 (const String &filePath, const ScriptCollectionPtr &)                                       __Th___;
+        ND_ static ScriptBasePass*  _RunScript2 (const String &filePath, PassGroup::EFlags flags, const ScriptCollectionPtr &)              __Th___;
     };
 
 
@@ -205,9 +235,10 @@ namespace AE::ResEditor
         friend class ScriptPostprocess;
         friend class ScriptComputePass;
         friend class ScriptSceneGraphicsPass;
-    //  friend class ScriptSceneRayTracingPass;
+        friend class ScriptSceneRayTracingPass;
 
             static RTechInfo    ConvertAndLoad (Function<void (ScriptEnginePtr)> fn)    __Th___;
+            static void         WithPipelineCompiler (Function<void()> fn)              __Th___;
             static void         AddPass (ScriptBasePassPtr)                             __Th___;
 
         ND_ static Path         GetCurrentFile ()                                       __Th___;
@@ -229,10 +260,12 @@ namespace AE::ResEditor
         friend class ScriptBuffer;
         friend class ScriptImage;
         friend class ScriptVideoImage;
+        friend class ScriptTiledTerrain;
         friend class ScriptSphericalCube;
         friend class ScriptUniGeometry;
         friend class ScriptRTGeometry;
         friend class ScriptRTScene;
+        friend class ScriptSceneGeometry;
 
         ND_ static Renderer&    GetRenderer ()                                          __Th___;
         ND_ static bool         IsPassGroup (const ScriptBasePassPtr &pass)             __NE___;
@@ -263,6 +296,7 @@ AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptCollection,                "Collect
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceCustomIndex,           "RTInstanceCustomIndex" );
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceMask,                  "RTInstanceMask"    );
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceSBTOffset,             "RTInstanceSBTOffset" );
+AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceRotation,              "RTInstanceRotation" );
 
 // pass/view
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptBasePass,                  "IPass"             );
@@ -274,15 +308,19 @@ AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptSceneRayTracingPass,       "SceneRa
 
 // controller
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptBaseController,            "BaseController"    );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptController2D,              "Controller2D"      );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptControllerScaleBias,       "ScaleBiasCamera"   );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptControllerTopDown,         "TopDownCamera"     );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptControllerIsometricCamera, "IsometricCamera"   );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptControllerFlightCamera,    "FlightCamera"      );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptControllerFPVCamera,       "FPSCamera"         );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptControllerFreeCamera,      "FPVCamera"         );
 
 // geometry
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptGeomSource,                "GeomSource"        );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptTiledTerrain,              "TiledTerrain"      );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptSphericalCube,             "SphericalCube"     );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptUniGeometry,               "UnifiedGeometry"   );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptSceneGeometry,             "Model"             );
 
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::ScriptUniGeometry::DrawCmd3,                         "UnifiedGeometry_Draw" );
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::ScriptUniGeometry::DrawIndexedCmd3,                  "UnifiedGeometry_DrawIndexed" );
@@ -299,3 +337,4 @@ AE_DECL_SCRIPT_TYPE(    AE::ResEditor::ScriptPostprocess::EPostprocess, "EPostpr
 AE_DECL_SCRIPT_TYPE(    AE::ResEditor::DebugView::EFlags,               "DbgViewFlags"      );
 AE_DECL_SCRIPT_TYPE(    AE::ResEditor::PassGroup::EFlags,               "ScriptFlags"       );
 AE_DECL_SCRIPT_TYPE(    AE::ResEditor::ScriptImage::ELoadOpFlags,       "ImageLoadOpFlags"  );
+AE_DECL_SCRIPT_TYPE(    AE::ResEditor::TiledTerrain::EMode,             "TiledTerrainMode"  );

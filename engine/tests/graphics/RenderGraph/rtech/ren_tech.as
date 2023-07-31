@@ -4,8 +4,6 @@ void DeclRenderPass ()
 {
     RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "DrawTest" );
 
-    compat.AddFeatureSet( "MinimalFS" );
-
     const string    pass = "Main";
     compat.AddSubpass( pass );
 
@@ -33,7 +31,6 @@ void DeclVRSRenderPass ()
 {
     RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "VRSTest" );
 
-    compat.AddFeatureSet( "MinimalFS" );
     compat.AddFeatureSet( "part.ShadingRate.NV" );
 
     const string    pass = "Main";

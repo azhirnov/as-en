@@ -8,7 +8,6 @@
 
 #if defined(AE_ENABLE_VULKAN)
 #   include "graphics/Vulkan/VDevice.h"
-#   include "VulkanSyncLog.h"
 
 #elif defined(AE_ENABLE_METAL)
 #   include "graphics/Metal/MDevice.h"
@@ -43,7 +42,7 @@ namespace AE::AppV2
             RC<IViewMode>           mode;
             AsyncTask               endFrame;
         };
-        using MainLoopDataSync  = Threading::Synchronized< SharedMutex, MainLoopData >;
+        using MainLoopDataSync  = Threading::DRCSynchronized< MainLoopData >;
 
         using ViewModePtr       = RC<IViewMode>;
         using ViewModeName      = App::ViewModeName;
@@ -59,41 +58,43 @@ namespace AE::AppV2
 
     // methods
     public:
-        AppCore ()                                                                  __NE___;
-        ~AppCore ()                                                                 __NE_OV;
+        AppCore ()                                                                                  __NE___;
+        ~AppCore ()                                                                                 __NE_OV;
 
-        // user api
-            void  OpenView (const ViewModeName &)                                   __NE___;
+    // user api
 
-        ND_ Ptr<IInputActions>  GetInputActions ()                                  C_NE___ { return _mainLoop->input; }
-        ND_ Ptr<IOutputSurface> GetOutputSurface ()                                 C_NE___ { return _mainLoop->output; }
+        // Open view by name.
+        //  Thread-safe: main thread only
+        //
+            void  OpenView (const ViewModeName &)                                                   __NE___;
+
+        ND_ Ptr<IInputActions>  GetInputActions ()                                                  C_NE___ { return _mainLoop->input; }
+        ND_ Ptr<IOutputSurface> GetOutputSurface ()                                                 C_NE___ { return _mainLoop->output; }
 
 
-        // for DefaultAppListener
-        ND_ virtual bool  OnStart (IApplication &)                                  __NE___;
+    // for DefaultAppListener
+        ND_ virtual bool  OnStart (IApplication &)                                                  __NE___;
 
 
-        // for DefaultIWndListener & DefaultVRDeviceListener
-        ND_ bool  OnSurfaceCreated (IOutputSurface &)                               __NE___;
-            void  SurfaceDestroyed ()                                               __NE___;
+    // for DefaultIWndListener & DefaultVRDeviceListener
+        ND_         bool  OnSurfaceCreated (IOutputSurface &)                                       __NE___;
 
-            void  InitInputActions (IInputActions &)                                __NE___;
+                    void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>, IWindow::EState) __NE___;
+                    void  StopRendering (Ptr<IOutputSurface>)                                       __NE___;
 
-            void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>)          __NE___;
-            void  StopRendering ()                                                  __NE___;
-
-            void  WaitFrame (const Threading::EThreadArray &)                       __NE___;
-            void  RenderFrame ()                                                    __NE___;
+                    void  WaitFrame (const Threading::EThreadArray &)                               __NE___;
+            virtual void  RenderFrame ()                                                            __NE___;
 
 
     protected:
-        ND_ bool  _InitVFS (IApplication &)                                         __NE___;
-        ND_ bool  _LoadInputActions ()                                              __NE___;
+        ND_ bool  _InitVFS (IApplication &)                                                         __NE___;
+        ND_ bool  _LoadInputActions ()                                                              __NE___;
 
-        ND_ virtual AsyncTask   _DrawFrame ()                                       __NE___;
-            static  AsyncTask   _SetInputMode (Ptr<IInputActions>, InputModeName)   __NE___;
+            void  _InitInputActions (IInputActions &)                                               __NE___;
 
-        ND_ virtual ViewModePtr _CreateViewMode (const ViewModeName &)              __NE___ = 0;
+            static  AsyncTask   _SetInputMode (Ptr<IInputActions>, InputModeName)                   __NE___;
+
+        ND_ virtual ViewModePtr _CreateViewMode (const ViewModeName &)                              __NE___ = 0;
     };
 
 

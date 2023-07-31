@@ -18,7 +18,7 @@ namespace AE::Base
     {
     // types
     private:
-        using StString_t    = FixedString<64>;
+        using StString_t    = FixedString<128>;
         using UniqueIDs_t   = HashMultiMap< /*hash*/usize, StString_t >;
 
         struct Info
@@ -62,6 +62,7 @@ namespace AE::Base
         ND_ bool  HasCollisions ()                                                  C_NE___;
 
             void  Clear ()                                                          __NE___;
+            void  CheckAndClear ()                                                  __NE___;
 
     private:
         ND_ uint  _RecalculateSeed (Info &) const                                   __Th___;

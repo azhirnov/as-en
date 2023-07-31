@@ -1,12 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
+    Some kind of std::synchronized_value<>
+
     Supported types for 'SyncObj':
         RWSpinLock, SharedMutex
 */
 
 #pragma once
 
-#include "base/CompileTime/TypeList.h"
 #include "threading/Common.h"
 
 namespace AE::Threading
@@ -100,7 +101,7 @@ namespace _hidden_
         using Tuple_t       = typename Types_t::AsTuple::type;
 
         template <typename T>
-        ND_ static constexpr usize  _IndexOf ()
+        ND_ static constexpr usize  _IndexOf () __NE___
         {
             if constexpr( Types_t::template HasType<T> )
             {
@@ -179,25 +180,25 @@ namespace _hidden_
 
         // methods
         public:
-            WriteNoLock_t (Self &ref)                       __NE___ : _ref{ref} {}
-            WriteNoLock_t (const WriteNoLock_t &)           = delete;
-            WriteNoLock_t (WriteNoLock_t && other)          __NE___ : _ref{other._ref}, _locked{other._locked} { other._locked = false; }
-            ~WriteNoLock_t ()                               __NE___ { if ( _locked ) unlock(); }
+            WriteNoLock_t (Self &ref)                           __NE___ : _ref{ref} {}
+            WriteNoLock_t (const WriteNoLock_t &)               = delete;
+            WriteNoLock_t (WriteNoLock_t && other)              __NE___ : _ref{other._ref}, _locked{other._locked} { other._locked = false; }
+            ~WriteNoLock_t ()                                   __NE___ { if ( _locked ) unlock(); }
 
-            WriteNoLock_t&  operator = (const WriteNoLock_t &)= delete;
-            WriteNoLock_t&  operator = (WriteNoLock_t &&)   = delete;
+            WriteNoLock_t&  operator = (const WriteNoLock_t &)  = delete;
+            WriteNoLock_t&  operator = (WriteNoLock_t &&)       = delete;
 
-            ND_ bool    try_lock ()                         __NE___ { ASSERT( not _locked );  return (_locked = _ref._sync.try_lock()); }
-                void    lock ()                             __NE___ { ASSERT( not _locked );  _ref._sync.lock();    _locked = true;  }
-                void    unlock ()                           __NE___ { ASSERT( _locked );      _ref._sync.unlock();  _locked = false; }
+            ND_ bool    try_lock ()                             __NE___ { ASSERT( not _locked );  return (_locked = _ref._sync.try_lock()); }
+                void    lock ()                                 __NE___ { ASSERT( not _locked );  _ref._sync.lock();    _locked = true;  }
+                void    unlock ()                               __NE___ { ASSERT( _locked );      _ref._sync.unlock();  _locked = false; }
 
-            ND_ auto&   operator * ()                       __NE___ { ASSERT( _locked );  return _ref._values; }
+            ND_ auto&   operator * ()                           __NE___ { ASSERT( _locked );  return _ref._values; }
 
             template <typename  T,
                       usize     Index   = _IndexOf<T>(),
                       typename  RawT    = typename Types_t::template Get<Index>
                      >
-            ND_ RawT&   Get ()                              __NE___
+            ND_ RawT&   Get ()                                  __NE___
             {
                 ASSERT( _locked );
                 return _ref._values.template Get<Index>();
@@ -206,13 +207,12 @@ namespace _hidden_
             template <usize     Index,
                       typename  RawT    = typename Types_t::template Get<Index>
                      >
-            ND_ RawT&   Get ()                              __NE___
+            ND_ RawT&   Get ()                                  __NE___
             {
                 ASSERT( _locked );
                 return _ref._values.template Get<Index>();
             }
         };
-
 
 
 
@@ -242,21 +242,21 @@ namespace _hidden_
         ~Synchronized ()                    __NE___
         {
           DEBUG_ONLY(
-            ASSERT( _sync.try_lock() );
+            CHECK( _sync.try_lock() );  // must be unlocked
             _sync.unlock();
         )}
 
 
         Self&  operator = (Self &&rhs)      __NE___
         {
-            EXLOCK( this->_sync, rhs._sync );
+            EXLOCK( this->_sync, rhs._sync );   // TODO: sharedlock for 'rhs'
             this->_values = RVRef(rhs._values);
             return *this;
         }
 
         Self&  operator = (const Self &rhs) noexcept(Types_t::AllNothrowCopyAssignable)
         {
-            EXLOCK( this->_sync, rhs._sync );
+            EXLOCK( this->_sync, rhs._sync );   // TODO: sharedlock for 'rhs'
             this->_values = rhs._values;    // throw
             return *this;
         }
@@ -392,20 +392,20 @@ namespace _hidden_
 
         // methods
         public:
-            ReadNoLock_t (const Self &ref)                  __NE___ : _ref{ref} {}
-            ReadNoLock_t (const ReadNoLock_t &)             = delete;
-            ReadNoLock_t (ReadNoLock_t && other)            __NE___ : _ref{other._ref}, _locked{other._locked} { other._locked = false; }
-            ~ReadNoLock_t ()                                __NE___ { if ( _locked ) unlock_shared(); }
+            ReadNoLock_t (const Self &ref)                      __NE___ : _ref{ref} {}
+            ReadNoLock_t (const ReadNoLock_t &)                 = delete;
+            ReadNoLock_t (ReadNoLock_t && other)                __NE___ : _ref{other._ref}, _locked{other._locked} { other._locked = false; }
+            ~ReadNoLock_t ()                                    __NE___ { if ( _locked ) unlock_shared(); }
 
-            ReadNoLock_t&  operator = (const ReadNoLock_t &)= delete;
-            ReadNoLock_t&  operator = (ReadNoLock_t &&)     = delete;
+            ReadNoLock_t&  operator = (const ReadNoLock_t &)    = delete;
+            ReadNoLock_t&  operator = (ReadNoLock_t &&)         = delete;
 
-            ND_ bool        try_lock_shared ()              __NE___ { ASSERT( not _locked );  return (_locked = _ref._sync.try_lock_shared()); }
-                void        lock_shared ()                  __NE___ { ASSERT( not _locked );  _ref._sync.lock_shared();    _locked = true;  }
-                void        unlock_shared ()                __NE___ { ASSERT( _locked );      _ref._sync.unlock_shared();  _locked = false; }
+            ND_ bool        try_lock_shared ()                  __NE___ { ASSERT( not _locked );  return (_locked = _ref._sync.try_lock_shared()); }
+                void        lock_shared ()                      __NE___ { ASSERT( not _locked );  _ref._sync.lock_shared();    _locked = true;  }
+                void        unlock_shared ()                    __NE___ { ASSERT( _locked );      _ref._sync.unlock_shared();  _locked = false; }
 
-            ND_ T const&    operator *  ()                  __NE___ { ASSERT( _locked );  return _ref._value; }
-            ND_ T const*    operator -> ()                  __NE___ { ASSERT( _locked );  return &_ref._value; }
+            ND_ T const&    operator *  ()                      __NE___ { ASSERT( _locked );  return _ref._value; }
+            ND_ T const*    operator -> ()                      __NE___ { ASSERT( _locked );  return &_ref._value; }
         };
 
 
@@ -418,20 +418,20 @@ namespace _hidden_
 
         // methods
         public:
-            WriteNoLock_t (Self &ref)                       __NE___ : _ref{ref} {}
-            WriteNoLock_t (const WriteNoLock_t &)           = delete;
-            WriteNoLock_t (WriteNoLock_t && other)          __NE___ : _ref{other._ref}, _locked{other._locked} { other._locked = false; }
-            ~WriteNoLock_t ()                               __NE___ { if ( _locked ) unlock(); }
+            WriteNoLock_t (Self &ref)                           __NE___ : _ref{ref} {}
+            WriteNoLock_t (const WriteNoLock_t &)               = delete;
+            WriteNoLock_t (WriteNoLock_t && other)              __NE___ : _ref{other._ref}, _locked{other._locked} { other._locked = false; }
+            ~WriteNoLock_t ()                                   __NE___ { if ( _locked ) unlock(); }
 
-            WriteNoLock_t&  operator = (const WriteNoLock_t &)= delete;
-            WriteNoLock_t&  operator = (WriteNoLock_t &&)   = delete;
+            WriteNoLock_t&  operator = (const WriteNoLock_t &)  = delete;
+            WriteNoLock_t&  operator = (WriteNoLock_t &&)       = delete;
 
-            ND_ bool    try_lock ()                         __NE___ { ASSERT( not _locked );  return (_locked = _ref._sync.try_lock()); }
-                void    lock ()                             __NE___ { ASSERT( not _locked );  _ref._sync.lock();    _locked = true;  }
-                void    unlock ()                           __NE___ { ASSERT( _locked );      _ref._sync.unlock();  _locked = false; }
+            ND_ bool    try_lock ()                             __NE___ { ASSERT( not _locked );  return (_locked = _ref._sync.try_lock()); }
+                void    lock ()                                 __NE___ { ASSERT( not _locked );  _ref._sync.lock();    _locked = true;  }
+                void    unlock ()                               __NE___ { ASSERT( _locked );      _ref._sync.unlock();  _locked = false; }
 
-            ND_ T &     operator *  ()                      __NE___ { ASSERT( _locked );  return _ref._value; }
-            ND_ T *     operator -> ()                      __NE___ { ASSERT( _locked );  return &_ref._value; }
+            ND_ T &     operator *  ()                          __NE___ { ASSERT( _locked );  return _ref._value; }
+            ND_ T *     operator -> ()                          __NE___ { ASSERT( _locked );  return &_ref._value; }
         };
 
 
@@ -462,24 +462,29 @@ namespace _hidden_
             _value{ value }  // throw
         {}
 
+        template <typename ...Args>
+        explicit Synchronized (Args&& ...args)  __Th___ :
+            _value{ FwdArg<Args>(args)... }
+        {}
+
         ~Synchronized ()                        __NE___
         {
           DEBUG_ONLY(
-            ASSERT( _sync.try_lock() );
+            CHECK( _sync.try_lock() );  // must be unlocked
             _sync.unlock();
         )}
 
 
         Self&  operator = (Self && rhs)         __NE___
         {
-            EXLOCK( this->_sync, rhs._sync );
+            EXLOCK( this->_sync, rhs._sync );   // TODO: sharedlock for 'rhs'
             this->_value = RVRef(rhs._value);
             return *this;
         }
 
         Self&  operator = (const Self &rhs)     noexcept(IsNothrowCopyAssignable<T>)
         {
-            EXLOCK( this->_sync, rhs._sync );
+            EXLOCK( this->_sync, rhs._sync );   // TODO: sharedlock for 'rhs'
             this->_value = rhs._value;  // throw
             return *this;
         }

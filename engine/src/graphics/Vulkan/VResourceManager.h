@@ -37,9 +37,6 @@
 # include "graphics/Vulkan/Video/VVideoImage.h"
 # include "graphics/Vulkan/Video/VVideoSession.h"
 
-# include "threading/Containers/LfIndexedPool3.h"
-# include "threading/Containers/LfStaticIndexedPool.h"
-
 // implementation
 # include "graphics/Private/ResourceManager.h"
 

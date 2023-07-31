@@ -1,6 +1,5 @@
 #pragma once
 
-#include "base/Defines/StdInclude.h"
 #include "base/Algorithms/Cast.h"
 
 #ifdef __cpp_lib_int_pow2
@@ -344,7 +343,7 @@ namespace AE::Math
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
         ASSERT( x >= T(0) );
 
-        return T( ToNearUInt(x) << (shift & (sizeof(x)*8 - 1)) );
+        return T( ToNearUInt(x) << (shift & (CT_SizeofInBits(x) - 1)) );
     }
 
     template <typename T>
@@ -353,7 +352,7 @@ namespace AE::Math
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
         ASSERT( x >= T(0) );
 
-        return T( ToNearUInt(x) >> (shift & (sizeof(x)*8 - 1)) );
+        return T( ToNearUInt(x) >> (shift & (CT_SizeofInBits(x) - 1)) );
     }
 
 /*
@@ -368,7 +367,7 @@ namespace AE::Math
         template <typename T>
         forceinline constexpr T _BitRotateLeft (T value, usize shift) __NE___
         {
-            const usize mask = (sizeof(value)*8 - 1);
+            constexpr usize mask = (CT_SizeofInBits(value) - 1);
 
             shift &= mask;
             return (value << shift) | (value >> ( ~(shift-1) & mask ));
@@ -406,7 +405,7 @@ namespace AE::Math
         template <typename T>
         forceinline constexpr T _BitRotateRight (T value, usize shift) __NE___
         {
-            const usize mask = (sizeof(value)*8 - 1);
+            constexpr usize mask = (CT_SizeofInBits(value) - 1);
 
             shift &= mask;
             return (value >> shift) | (value << ( ~(shift-1) & mask ));
@@ -442,21 +441,21 @@ namespace AE::Math
     {
         if constexpr( IsUnsignedInteger<T> )
         {
-            return  count >= T(sizeof(R)*8) ? ~R{0} :
-                                              (R{1} << count) - 1;
+            return  count >= T(CT_SizeOfInBits<R>)  ? ~R{0}
+                                                    : (R{1} << count) - 1;
         }
         else
         {
-            return  count >= T(sizeof(R)*8)     ? ~R{0} :
-                    count <  T{0}               ?  R{0} :
-                                                  (R{1} << count) - 1;
+            return  count >= T(CT_SizeOfInBits<R>)  ? ~R{0} :
+                    count <  T{0}                   ?  R{0} :
+                                                      (R{1} << count) - 1;
         }
     }
 
     template <typename T>
     ND_ forceinline constexpr EnableIf<IsUnsignedInteger<T>, T >  ToBitMask (usize firstBit, usize count) __NE___
     {
-        ASSERT( firstBit < sizeof(T)*8 );
+        ASSERT( firstBit < CT_SizeOfInBits<T> );
         return SafeLeftBitShift( ToBitMask<T>( count ), firstBit );
     }
 

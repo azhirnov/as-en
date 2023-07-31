@@ -1,8 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "scripting/Bindings/CoreBindings.h"
 #include "UnitTest_Common.h"
-
 
 namespace
 {
@@ -34,6 +32,20 @@ namespace
     }
 
 
+    static void  ScriptMath_Test3 (const ScriptEnginePtr &se)
+    {
+        int script_res;
+        bool res = Run< int() >( se, R"#(
+            int ASmain () {
+                const uint2  a( 1, 2 );
+                const float2 b = float2(a);
+                return (b.x == 1.0f && b.y == 2.0f) ? 1 : 0;
+            })#", "ASmain", OUT script_res );
+        TEST( res );
+        TEST( script_res == 1 );
+    }
+
+
     static void  ScriptPhisicalMath_Test1 (const ScriptEnginePtr &se)
     {
         float script_res;
@@ -62,6 +74,7 @@ extern void UnitTest_MathFunc ()
 
         ScriptMath_Test1( se );
         ScriptMath_Test2( se );
+        ScriptMath_Test3( se );
 
 
         CoreBindings::BindPhysicalTypes( se );

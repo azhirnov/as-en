@@ -13,7 +13,7 @@ extern void Test_VulkanDevice ()
 
         VDeviceInitializer::InstanceCreateInfo  inst_ci;
         inst_ci.appName         = "TestApp";
-        inst_ci.instanceLayers  = dev.GetRecomendedInstanceLayers();
+        inst_ci.instanceLayers  = dev.GetRecommendedInstanceLayers();
         CHECK_FATAL( dev.CreateInstance( inst_ci ));
 
         CHECK_FATAL( dev.ChooseHighPerformanceDevice() );
@@ -21,7 +21,6 @@ extern void Test_VulkanDevice ()
         CHECK_FATAL( dev.CreateLogicalDevice() );
         CHECK_FATAL( dev.CheckConstantLimits() );
         CHECK_FATAL( dev.CheckExtensions() );
-
         CHECK_FATAL( dev.DestroyLogicalDevice() );
         CHECK_FATAL( dev.DestroyInstance() );
     }

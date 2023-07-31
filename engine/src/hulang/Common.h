@@ -5,9 +5,7 @@
 
 #pragma once
 
-#include "base/Common.h"
-#include "base/Utils/NamedID.h"
-
+#include "hulang/HuLang.pch.h"
 
 namespace AE::HuLang::_hidden_
 {

@@ -2,8 +2,12 @@
 /*
     GLSL Trace project.
 
-    old project: https://github.com/azhirnov/glsl_trace
-    new project: https://gitflic.ru/project/azhirnov/as-en/file?file=engine%2Ftools%2Fres_pack%2Fshader_trace
+    old project:
+        https://github.com/azhirnov/glsl_trace
+    new project:
+        https://gitflic.ru/project/azhirnov/as-en/file?file=engine%2Ftools%2Fres_pack%2Fshader_trace
+        https://github.com/azhirnov/as-en/tree/preview/engine/tools/res_pack/shader_trace
+        https://github.com/azhirnov/glsl_trace/tree/v2023
 */
 
 #pragma once
@@ -85,6 +89,9 @@ namespace AE::PipelineCompiler
             SourcePoint         point;              // location of operator
             Array<VariableID>   vars;               // all variables IDs in this expression
 
+            ExprInfo () = default;
+            ExprInfo (VariableID id, uint sw, const SourceLocation &range, const SourcePoint &pt) : varID{id}, swizzle{sw}, range{range}, point{pt} {} 
+
             ND_ bool  operator == (const ExprInfo &rhs) const;
         };
 
@@ -105,7 +112,7 @@ namespace AE::PipelineCompiler
         using Sources_t     = Array< SourceInfo >;
         using FileMap_t     = HashMap< String, uint >;  // index in '_sources'
 
-        static constexpr int    TBasicType_Clock    = 0xcc; // 4x uint64
+        static constexpr uint   TBasicType_Clock    = 0xcc; // 4x uint64
 
     private:
         static constexpr uint   InitialPositionMask = 0x80000000u;

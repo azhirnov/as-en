@@ -4,7 +4,6 @@
 void ASmain ()
 {
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "hdr_test.draw1" );
-    ppln.AddFeatureSet( "MinimalFS" );
 
     {
         RC<Shader>  vs  = Shader();

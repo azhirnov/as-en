@@ -36,7 +36,7 @@ extern "C"
 #   pragma warning (pop)
 # endif
 
-#include "base/Common.h"
+#include "video/Video.pch.h"
 
 namespace AE::Video
 {

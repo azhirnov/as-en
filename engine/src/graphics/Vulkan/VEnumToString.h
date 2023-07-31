@@ -128,7 +128,7 @@ namespace AE::Graphics
             switch ( VkImageUsageFlagBits(i) )
             {
                 case VK_IMAGE_USAGE_TRANSFER_SRC_BIT :              result << "TransferSrc";                break;
-                case VK_IMAGE_USAGE_TRANSFER_DST_BIT :              result << "TranferDst";                 break;
+                case VK_IMAGE_USAGE_TRANSFER_DST_BIT :              result << "TransferDst";                break;
                 case VK_IMAGE_USAGE_SAMPLED_BIT :                   result << "Sampled";                    break;
                 case VK_IMAGE_USAGE_STORAGE_BIT :                   result << "Storage";                    break;
                 case VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT :          result << "ColorAttachment";            break;
@@ -136,14 +136,14 @@ namespace AE::Graphics
                 case VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT :      result << "TransientAttachment";        break;
                 case VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT :          result << "InputAttachment";            break;
                 case VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR: result << "ShadingRate";      break;
-                case VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT :  result << "FragmentDensityMap";         break;
+                case VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR :      result << "VideoDecodeDPB";             break;
+                case VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR :      result << "VideoDecodeDst";             break;
+                case VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR :      result << "VideoDecodeSrc";             break;
+                case VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR :      result << "VideoEncodeDPB";             break;
+                case VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR :      result << "VideoEncodeDst";             break;
+                case VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR :      result << "VideoEncodeSrc";             break;
 
-                case VK_IMAGE_USAGE_VIDEO_DECODE_DPB_BIT_KHR :
-                case VK_IMAGE_USAGE_VIDEO_DECODE_DST_BIT_KHR :
-                case VK_IMAGE_USAGE_VIDEO_DECODE_SRC_BIT_KHR :
-                case VK_IMAGE_USAGE_VIDEO_ENCODE_DPB_BIT_KHR :
-                case VK_IMAGE_USAGE_VIDEO_ENCODE_DST_BIT_KHR :
-                case VK_IMAGE_USAGE_VIDEO_ENCODE_SRC_BIT_KHR :
+                case VK_IMAGE_USAGE_FRAGMENT_DENSITY_MAP_BIT_EXT :
                 case VK_IMAGE_USAGE_INVOCATION_MASK_BIT_HUAWEI:
                 case VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT :
                 case VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM :

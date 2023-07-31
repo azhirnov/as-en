@@ -7,11 +7,8 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "base/CompileTime/Math.h"
-# include "base/Memory/UntypedAllocator.h"
 # include "threading/Primitives/Atomic.h"
 #endif
-#include "base/Platforms/ThreadUtils.h"
 
 namespace AE::Threading
 {

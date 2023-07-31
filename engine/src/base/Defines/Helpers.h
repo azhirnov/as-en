@@ -90,35 +90,9 @@
 // setup for build on CI
 #ifdef AE_CI_BUILD
 
+    // disable break points
 #   undef  AE_PRIVATE_BREAK_POINT
 #   define AE_PRIVATE_BREAK_POINT() {}
-
-#   undef  AE_PRIVATE_CHECK
-#   define AE_PRIVATE_CHECK( _expr_, _text_ )       \
-        {if ( not (_expr_) ) {                      \
-            AE_LOGI( _text_ );                      \
-            AE_PRIVATE_EXIT();                      \
-        }}
-
-#   undef  AE_PRIVATE_CHECK_ERR
-#   define AE_PRIVATE_CHECK_ERR( _expr_, _ret_ )    \
-        {if ( not (_expr_) ) {                      \
-            AE_LOGI( AE_TOSTRING( _expr_ ));        \
-            AE_PRIVATE_EXIT();                      \
-        }}
-
-#   undef  CHECK_FATAL
-#   define CHECK_FATAL( /* expr */... )             \
-        {if ( not (__VA_ARGS__) ) {                 \
-            AE_LOGI( AE_TOSTRING( __VA_ARGS__ ));   \
-            AE_PRIVATE_EXIT();                      \
-        }}
-
-#   undef  AE_PRIVATE_RETURN_ERR
-#   define AE_PRIVATE_RETURN_ERR( _text_, _ret_ )   \
-        {AE_LOGI( _text_ );                         \
-         AE_PRIVATE_EXIT();                         \
-        }
 
 # ifdef AE_CFG_DEBUG
 #   undef  ASSERT

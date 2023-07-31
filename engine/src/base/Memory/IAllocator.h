@@ -51,6 +51,8 @@ namespace AE::Base
 
         ~AllocatorImpl ()                                               __NE_OV {}
 
+        using IAllocator::Allocate;
+
         void*  Allocate (Bytes size)                                    __NE_OV { return _alloc.Allocate( size ); }
         void   Deallocate (void *ptr, Bytes size)                       __NE_OV { return _alloc.Deallocate( ptr, size ); }
 
@@ -77,6 +79,8 @@ namespace AE::Base
 
         ~AllocatorImpl ()                                               __NE_OV {}
 
+        using IAllocator::Allocate;
+
         void*  Allocate (Bytes size)                                    __NE_OV { return _alloc.Allocate( size ); }
         void   Deallocate (void *ptr, Bytes size)                       __NE_OV { return _alloc.Deallocate( ptr, size ); }
 
@@ -101,6 +105,8 @@ namespace AE::Base
         explicit AllocatorImpl2 (Args&& ... args)                       __Th___ : _alloc{ FwdArg<Args>(args)... } {}
 
         ~AllocatorImpl2 ()                                              __NE_OV {}
+
+        using IAllocator::Allocate;
 
         void*  Allocate (Bytes size)                                    __NE_OV { return _alloc.Allocate( SizeAndAlign{ size, DefaultAllocatorAlign }); }
         void   Deallocate (void *ptr, Bytes size)                       __NE_OV { return _alloc.Deallocate( ptr, SizeAndAlign{ size, DefaultAllocatorAlign }); }
@@ -127,6 +133,8 @@ namespace AE::Base
         explicit AllocatorImpl2 (Args&& ... args)                       __Th___ : _alloc{ FwdArg<Args>(args)... } {}
 
         ~AllocatorImpl2 ()                                              __NE_OV {}
+
+        using IAllocator::Allocate;
 
         void*  Allocate (Bytes size)                                    __NE_OV { return _alloc.Allocate( SizeAndAlign{ size, DefaultAllocatorAlign }); }
         void   Deallocate (void *ptr, Bytes size)                       __NE_OV { return _alloc.Deallocate( ptr, SizeAndAlign{ size, DefaultAllocatorAlign }); }

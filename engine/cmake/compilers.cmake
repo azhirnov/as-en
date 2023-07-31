@@ -56,6 +56,9 @@ endif()
 
 # detect cpu architecture
 if (MSVC)
+    if (NOT DEFINED CMAKE_GENERATOR_PLATFORM)
+        set( CMAKE_GENERATOR_PLATFORM "X64" )
+    endif()
     string( TOUPPER ${CMAKE_GENERATOR_PLATFORM} PLATFORM_NAME )
     if ( (DEFINED PLATFORM_NAME) AND (NOT (PLATFORM_NAME STREQUAL "")) )
         if (${PLATFORM_NAME} STREQUAL "ARM64")
@@ -74,7 +77,6 @@ if (MSVC)
     endif()
 else()
     string( TOUPPER ${CMAKE_SYSTEM_PROCESSOR} PLATFORM_NAME )
-
     if (${PLATFORM_NAME} STREQUAL "AMD64")
         set( TARGET_CPU_ARCH "X64" )
     elseif (${PLATFORM_NAME} STREQUAL "X86_64")
@@ -116,7 +118,7 @@ set( PROJECTS_SHARED_DEFINES_DEBUG   "AE_CFG_DEBUG"     "AE_DEBUG"  )
 #==================================================================================================
 if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") )
     set( AE_SIMD_AVX "0" CACHE STRING "AVX version: 0, 1, 2, 3(AVX512)" )
-    set( AE_SIMD_SSE "0" CACHE STRING "SSE version: 0, 30, 41, 42" )
+    set( AE_SIMD_SSE "0" CACHE STRING "SSE version: 0, 20, 30, 31, 41, 42" )
     set( AE_SIMD_AES "0" CACHE STRING "AES version: 0, 1" )
 
     if (${AE_SIMD_AVX} GREATER 0)
@@ -138,10 +140,10 @@ if ( (${TARGET_CPU_ARCH} STREQUAL "X64") OR (${TARGET_CPU_ARCH} STREQUAL "X86") 
             set( COMPILER_FLAGS ${COMPILER_FLAGS} "/arch:AVX" )
             set( AE_SIMD_SSE "42" )
         elseif (${AE_SIMD_AVX} EQUAL 0)
-            # SSE
-            if (${AE_SIMD_SSE} EQUAL 42)
+            if (${CMAKE_SIZEOF_VOID_P} EQUAL 8)
+                # SSE2 enabled by default for x64
             elseif (${AE_SIMD_SSE} GREATER_EQUAL 20)
-                set( COMPILER_FLAGS ${COMPILER_FLAGS} "/arch:SSE2" )
+                set( COMPILER_FLAGS ${COMPILER_FLAGS} "/arch:SSE2" )    # x86 only
             elseif (${AE_SIMD_SSE} EQUAL 0)
             else()
                 message( FATAL_ERROR "unsupported AE_SIMD_SSE flags: ${AE_SIMD_SSE}" )
@@ -225,7 +227,7 @@ if ( COMPILER_MSVC )
 
     #--------------------------------------------
     if (NOT CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
-        message( FATAL_ERROR "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is not defined" )
+        message( FATAL_ERROR "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is not defined, Windows SDK is required" )
     endif()
     string( FIND "${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}" "." outLength )
     string( SUBSTRING "${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}" 0 ${outLength}  WINDOWS_TARGET_VERSION_MAJ )
@@ -322,7 +324,7 @@ endif()
 # GCC/Clang shared settings
 #==================================================================================================
 set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "-Wno-unused -Wno-switch -Wno-undef -Wno-comment" )
-set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Werror=array-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch )
+set( GCC_CLANG_SHARED_LOCAL_WARNING_LIST  -Wdouble-promotion -Wchar-subscripts -Wformat -Wmain -Wmissing-braces -Werror=uninitialized -Wmissing-include-dirs -Wunknown-pragmas -Wpragmas -Wstrict-overflow -Wstrict-aliasing -Wendif-labels -Wpointer-arith -Wwrite-strings -Wconversion-null -Wenum-compare -Wsign-compare -Wno-unused -Wsizeof-pointer-memaccess -Wno-zero-as-null-pointer-constant -Wundef -Werror=init-self -Werror=parentheses -Werror=return-type -Werror=array-bounds -Werror=div-by-zero -Werror=missing-field-initializers -Werror=cast-qual -Werror=cast-align -Wno-switch -Werror=invalid-pch )
 
 #if (${AE_NO_EXCEPTIONS})
 #   set( GCC_CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -fno-exceptions" )
@@ -379,7 +381,7 @@ if ( COMPILER_GCC )
     set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP  ${GCC_SHARED_OPTS} -ggdb -O2 -Wno-terminate  CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP  ${GCC_SHARED_OPTS} -g -ggdb -O2 -Wno-terminate  CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " -static-libgcc -static-libstdc++" CACHE INTERNAL "" FORCE )
     # Debug
     set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>: > )
@@ -388,7 +390,7 @@ if ( COMPILER_GCC )
     set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEBUG  ${GCC_SHARED_OPTS} -ggdb -O0 -Wno-terminate  CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEBUG  ${GCC_SHARED_OPTS} -g -ggdb -O0 -Wno-terminate  CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " -static-libgcc -static-libstdc++" CACHE INTERNAL "" FORCE )
 endif()
 
@@ -397,7 +399,7 @@ endif()
 # Clang shared settings
 # https://clang.llvm.org/docs/DiagnosticsReference.html
 #==================================================================================================
-set( CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -Wnarrowing" )
+set( CLANG_SHARED_GLOBAL_WARNING_LIST "${GCC_CLANG_SHARED_GLOBAL_WARNING_LIST} -Wnarrowing -stdlib=libc++" ) # -Wno-deprecated-builtins 
 set( CLANG_SHARED_LOCAL_WARNING_LIST  ${GCC_CLANG_SHARED_LOCAL_WARNING_LIST} -Wnarrowing -Wlogical-op-parentheses -frtti -Wunused -Werror=conditional-uninitialized -Wloop-analysis -Wincrement-bool -Wno-undefined-inline -Wc++14-extensions -Wc++17-extensions -Wno-comment -Wunused-private-field -Werror=return-stack-address -Werror=address -Werror=unsupported-friend -Werror=unknown-warning-option -Werror=user-defined-literals -Werror=instantiation-after-specialization -Werror=keyword-macro -Werror=large-by-value-copy -Werror=method-signatures -Werror=self-assign -Werror=self-move -Werror=infinite-recursion -Werror=pessimizing-move -Werror=dangling-else -Werror=return-std-move -Werror=deprecated-increment-bool -Werror=abstract-final-class -Wno-ambiguous-reversed-operator -Wno-unneeded-internal-declaration -Wno-unused-function -Wno-unused-const-variable -Wno-unused-local-typedef -Wdelete-non-virtual-dtor -Wrange-loop-analysis -Wundefined-bool-conversion -Winconsistent-missing-override -Wincrement-bool -Wunused-lambda-capture -fno-short-enums -Werror=implicit-exception-spec-mismatch )
 
 
@@ -418,7 +420,7 @@ if ( COMPILER_CLANG )
     set( CONFIGURATION_DEPENDENT_PATH OFF CACHE INTERNAL "" FORCE )
     #--------------------------------------------
 
-    set( CLANG_SHARED_OPTS       -stdlib=libc++ ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST} )
+    set( CLANG_SHARED_OPTS       ${COMPILER_FLAGS} ${CLANG_SHARED_LOCAL_WARNING_LIST} )
     set( PROJECTS_SHARED_DEFINES ${PROJECTS_SHARED_DEFINES} "AE_COMPILER_CLANG" )
 
     if (${AE_USE_SANITIZER})
@@ -451,7 +453,7 @@ if ( COMPILER_CLANG )
     set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP  ${CLANG_SHARED_OPTS} -ggdb -O2 CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP  ${CLANG_SHARED_OPTS} -g -glldb -O2 CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP "" CACHE INTERNAL "" FORCE )
     # Debug
     set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>: > )
@@ -460,7 +462,7 @@ if ( COMPILER_CLANG )
     set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEBUG  ${CLANG_SHARED_OPTS} -ggdb -O0 CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEBUG  ${CLANG_SHARED_OPTS} -g -glldb -O0 CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG "" CACHE INTERNAL "" FORCE )
 endif()
 
@@ -539,7 +541,7 @@ if ( COMPILER_CLANG_EMSCRIPTEN )
     set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${CLANG_SHARED_OPTS} -ggdb -O2 CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${CLANG_SHARED_OPTS} -O2 CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP "" CACHE INTERNAL "" FORCE )
     # Debug
     set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>: > )
@@ -612,7 +614,7 @@ if ( COMPILER_CLANG_APPLE )
     set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${CLANG_SHARED_OPTS} -ggdb -O0 CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${CLANG_SHARED_OPTS} -g -glldb -O0 CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP "" CACHE INTERNAL "" FORCE )
     # Debug
     set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>: > )
@@ -621,7 +623,7 @@ if ( COMPILER_CLANG_APPLE )
     set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${CLANG_SHARED_OPTS} -ggdb -O0 CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${CLANG_SHARED_OPTS} -g -glldb -O0 CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG "" CACHE INTERNAL "" FORCE )
 endif()
 
@@ -678,7 +680,7 @@ if ( COMPILER_CLANG_ANDROID )
     set( CMAKE_EXE_LINKER_FLAGS_DEVELOP "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEVELOP "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEVELOP "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${CLANG_SHARED_OPTS} -ggdb -O2 CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEVELOP ${CLANG_SHARED_OPTS} -g -glldb -O2 CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEVELOP " -static" CACHE INTERNAL "" FORCE )
     # Debug
     set_property( DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS $<$<CONFIG:Debug>: > )
@@ -687,7 +689,7 @@ if ( COMPILER_CLANG_ANDROID )
     set( CMAKE_EXE_LINKER_FLAGS_DEBUG "${CURRENT_EXE_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_STATIC_LINKER_FLAGS_DEBUG "${CURRENT_STATIC_LINKER_FLAGS} " CACHE STRING "" FORCE )
     set( CMAKE_SHARED_LINKER_FLAGS_DEBUG "${CURRENT_SHARED_LINKER_FLAGS} " CACHE STRING "" FORCE )
-    set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${CLANG_SHARED_OPTS} -ggdb -O0 CACHE INTERNAL "" FORCE )
+    set( PROJECTS_SHARED_CXX_FLAGS_DEBUG ${CLANG_SHARED_OPTS} -g -glldb -O0 CACHE INTERNAL "" FORCE )
     set( PROJECTS_SHARED_LINKER_FLAGS_DEBUG " -static" CACHE INTERNAL "" FORCE )
 
     #message( FATAL_ERROR "PROJECTS_SHARED_CXX_FLAGS_DEBUG: ${PROJECTS_SHARED_CXX_FLAGS_DEBUG}" )

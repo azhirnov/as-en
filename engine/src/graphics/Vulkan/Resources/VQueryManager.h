@@ -35,9 +35,9 @@ namespace AE::Graphics
             ulong   beforeClipping;             // VK_QUERY_PIPELINE_STATISTIC_CLIPPING_INVOCATIONS_BIT
             ulong   afterClipping;              // VK_QUERY_PIPELINE_STATISTIC_CLIPPING_PRIMITIVES_BIT
             ulong   fragShaderInvocations;      // VK_QUERY_PIPELINE_STATISTIC_FRAGMENT_SHADER_INVOCATIONS_BIT
-            // VK_QUERY_PIPELINE_STATISTIC_TASK_SHADER_INVOCATIONS_BIT_EXT 
-            // VK_QUERY_PIPELINE_STATISTIC_MESH_SHADER_INVOCATIONS_BIT_EXT
-            // VK_QUERY_TYPE_MESH_PRIMITIVES_GENERATED_EXT
+            // VK_QUERY_PIPELINE_STATISTIC_TASK_SHADER_INVOCATIONS_BIT_EXT  - meshShaderQueries
+            // VK_QUERY_PIPELINE_STATISTIC_MESH_SHADER_INVOCATIONS_BIT_EXT  - meshShaderQueries
+            // VK_QUERY_TYPE_MESH_PRIMITIVES_GENERATED_EXT                  - meshShaderQueries
         };
 
     private:

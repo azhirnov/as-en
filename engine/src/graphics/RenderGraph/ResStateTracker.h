@@ -86,6 +86,7 @@ namespace AE::RG::_hidden_
     private:
         using NativeImageDesc_t     = IResourceManager::NativeImageDesc_t;
         using NativeBufferDesc_t    = IResourceManager::NativeBufferDesc_t;
+        using NativeMemObjInfo_t    = IResourceManager::NativeMemObjInfo_t;
 
       #if defined(AE_ENABLE_VULKAN)
         using CmdBatchDependency_t  = VulkanCmdBatchDependency;
@@ -266,6 +267,10 @@ namespace AE::RG::_hidden_
         template <typename ID> ND_ auto const&  GetDescription (ID id)                                                                                      C_NE___ { return _ResMngr().GetDescription( id ); }
         template <typename ID> ND_ bool         IsResourceAlive (ID id)                                                                                     C_NE___ { return _ResMngr().IsResourceAlive( id ); }
 
+            bool                    GetMemoryInfo (ImageID id, OUT NativeMemObjInfo_t &info)                                                                C_NE___ { return _ResMngr().GetMemoryInfo( id, OUT info ); }
+            bool                    GetMemoryInfo (BufferID id, OUT NativeMemObjInfo_t &info)                                                               C_NE___ { return _ResMngr().GetMemoryInfo( id, OUT info ); }
+
+        ND_ FeatureSet const&       GetFeatureSet ()                                                                                                        C_NE___ { return _ResMngr().GetFeatureSet(); }
         ND_ IResourceManager&       GetResourceManager ()                                                                                                   C_NE___ { return _ResMngr(); }
 
     protected:

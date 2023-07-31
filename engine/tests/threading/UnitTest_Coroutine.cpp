@@ -1,7 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/TaskSystem/Promise.h"
-#include "threading/TaskSystem/ThreadManager.h"
 #include "UnitTest_Common.h"
 
 #if defined(AE_HAS_COROUTINE) and not defined(AE_DISABLE_THREADS)
@@ -53,7 +51,7 @@ namespace
         scheduler->Run( task2, Tuple{ task1 });
         scheduler->Run( task1, Tuple{} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ task1, task2 }));
         TEST( task1->Status() == EStatus::Completed );
@@ -94,7 +92,7 @@ namespace
         scheduler->Run( task2 );
         scheduler->Run( task1 );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ task1, task2 }));
         TEST( task1->Status() == EStatus::Completed );
@@ -128,7 +126,7 @@ namespace
                             ( value, p0, p1, p2 );
         scheduler->Run( task1 );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ task1, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }));
         TEST( task1->Status() == EStatus::Completed );
@@ -173,7 +171,7 @@ namespace
                             }
                             ( value, p0, p1, p2 ));
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ AsyncTask{p3}, AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }));
         TEST( AsyncTask{p3}->Status() == EStatus::Completed );
@@ -214,7 +212,7 @@ namespace
                                 co_return "";
                             }( value, p0, p1 ));
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ AsyncTask{p0}, AsyncTask{p1}, AsyncTask{p2} }));
         TEST( AsyncTask{p0}->Status() == EStatus::Completed );

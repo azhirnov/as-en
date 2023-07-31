@@ -1,9 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Math/Matrix.h"
-#include "base/Math/MatrixStorage.h"
 #include "UnitTest_Common.h"
-
 
 namespace
 {
@@ -142,6 +139,27 @@ namespace
 
         TEST(All( v0 == float3{0.0f} ));    // TODO
     }*/
+
+
+    static void  Matrix_Test2 ()
+    {
+        for (float a = -400.f; a < 500.f; a += 10.f)
+        {
+            Rad angle = Rad::FromDeg( a );
+
+            const auto  ref0 = float4x4{glm::rotate( glm::mat4x4{1.f}, float(angle), glm::vec3{1.f, 0.f, 0.f} )};
+            const auto  ref1 = float4x4{glm::rotate( glm::mat4x4{1.f}, float(angle), glm::vec3{0.f, 1.f, 0.f} )};
+            const auto  ref2 = float4x4{glm::rotate( glm::mat4x4{1.f}, float(angle), glm::vec3{0.f, 0.f, 1.f} )};
+
+            const auto  m0 = float4x4::RotateX( angle );
+            const auto  m1 = float4x4::RotateY( angle );
+            const auto  m2 = float4x4::RotateZ( angle );
+
+            TEST( Equals( m0, ref0 ));
+            TEST( Equals( m1, ref1 ));
+            TEST( Equals( m2, ref2 ));
+        }
+    }
 }
 
 
@@ -154,6 +172,7 @@ extern void UnitTest_Math_Matrix ()
     MatrixStorage_Test5();
 
     //Matrix_Test1();   // TODO
+    Matrix_Test2();
 
     TEST_PASSED();
 }

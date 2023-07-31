@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "platform/Public/IApplication.h"
-#include "graphics/Public/ResourceManager.h"
 
 using namespace AE;
 using namespace AE::App;
@@ -72,13 +71,13 @@ extern int Test_GraphicsHL (IApplication &app, IWindow &wnd)
             CHECK_FATAL( Scheduler().Setup( cfg ));
         }
 
-        ~AppListener () __NE_OV
+        ~AppListener ()                             __NE_OV
         {
             Scheduler().Release();
             TaskScheduler::DestroyInstance();
         }
 
-        void  OnStart (IApplication &app) __NE_OV
+        void  OnStart (IApplication &app)           __NE_OV
         {
             UnitTests();
 
@@ -86,15 +85,15 @@ extern int Test_GraphicsHL (IApplication &app, IWindow &wnd)
             CHECK_FATAL( _window );
         }
 
-        void  BeforeWndUpdate (IApplication &) __NE_OV {}
+        void  BeforeWndUpdate (IApplication &)      __NE_OV {}
 
-        void  AfterWndUpdate (IApplication &app) __NE_OV
+        void  AfterWndUpdate (IApplication &app)    __NE_OV
         {
             if ( _window and _window->GetState() == IWindow::EState::Destroyed )
                 app.Terminate();
         }
 
-        void  OnStop (IApplication &) __NE_OV {}
+        void  OnStop (IApplication &)               __NE_OV {}
     };
 
 

@@ -5,7 +5,6 @@
     void ASmain ()
     {
         RC<ComputePipeline> ppln = ComputePipeline( "compute_1" );
-        ppln.AddFeatureSet( "MinimalFS" );
 
         RC<Shader>  cs = Shader();
         cs.ComputeSpecAndDefault( 8, 8 );

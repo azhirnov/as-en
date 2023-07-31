@@ -15,8 +15,8 @@ namespace AE::Serializing
     {
     // types
     public:
-        static constexpr uint   MaxStringLenght = Serializer::MaxStringLenght;
-        static constexpr uint   MaxArrayLenght  = Serializer::MaxArrayLenght;
+        static constexpr uint   MaxStringLength = Serializer::MaxStringLength;
+        static constexpr uint   MaxArrayLength  = Serializer::MaxArrayLength;
 
 
     // variables

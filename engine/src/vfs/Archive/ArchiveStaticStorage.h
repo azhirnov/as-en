@@ -2,11 +2,6 @@
 
 #pragma once
 
-#include "base/CompileTime/StringToID.h"
-#include "base/Utils/FileSystem.h"
-#include "base/Memory/LinearAllocator.h"
-#include "base/Math/PackedInt.h"
-
 #include "vfs/VirtualFileSystem.h"
 
 namespace AE::VFS
@@ -63,7 +58,7 @@ namespace AE::VFS
 
         using FileMap_t = FlatHashMap< FileName::Optimized_t, FileInfo >;
 
-        static constexpr uint   Name    = uint("VfsArh"_StringToID);
+        static constexpr uint   Name    = uint("VfsArch"_StringToID);
         static constexpr uint   Version = (1 << 12) | (sizeof(FileHeader) & 0xFFF);
 
 

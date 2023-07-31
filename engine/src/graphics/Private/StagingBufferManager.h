@@ -125,6 +125,7 @@ namespace AE::Graphics
         {
           #if defined(AE_ENABLE_VULKAN)
             VkDeviceMemory      memory  = Default;
+
           #elif defined(AE_ENABLE_METAL)
           #else
           # error not implemented
@@ -175,8 +176,10 @@ namespace AE::Graphics
 
           #if defined(AE_ENABLE_VULKAN)
             VkDeviceMemory      memory  = Default;
+
           #elif defined(AE_ENABLE_METAL)
             MetalMemoryRC       memory;
+
           #else
           # error not implemented
           #endif
@@ -232,11 +235,16 @@ namespace AE::Graphics
                                    FrameUID frameId, EStagingHeapType heap, EQueueType queue, Bool upload)                      __NE___;
 
             void  GetImageRanges (OUT StagingImageResultRanges &result, const UploadImageDesc &desc, const ImageDesc &imgDesc,
-                                   FrameUID frameId, EQueueType queue, Bool upload)                                             __NE___;
+                                  const uint3 &imageGranularity, FrameUID frameId, EQueueType queue, Bool upload)               __NE___;
 
             bool  AllocVStream (FrameUID frameId, Bytes size, OUT VertexStream &result)                                         __NE___;
 
         ND_ FrameStat_t  GetFrameStat (FrameUID frameId)                                                                        C_NE___; 
+
+      #if defined(AE_ENABLE_VULKAN)
+            void  AcquireMappedMemory (FrameUID frameId, VkDeviceMemory memory, Bytes offset, Bytes size)                       __NE___;
+      #endif
+
 
     private:
         ND_ bool  _CreateStaticBuffers (const GraphicsCreateInfo &info);
@@ -261,15 +269,6 @@ namespace AE::Graphics
         void  _AllocDynamicImage (FrameUID frameId, Bytes reqSize, Bytes rowPitch, Bytes slicePitch, Bytes memOffsetAlign, const uint2 &texelBlockSize,
                                   const uint3 &imageOffset, const uint3 &imageDataSize, bool upload,
                                   INOUT StagingImageResultRanges &result, DynamicBuffers& db) const;
-
-
-  #if defined(AE_ENABLE_VULKAN)
-
-    // methods
-    public:
-        void  AcquireMappedMemory (FrameUID frameId, VkDeviceMemory memory, Bytes offset, Bytes size) __NE___;
-
-  #endif
     };
 
 

@@ -14,7 +14,7 @@ namespace AE::Base
 */
 namespace _hidden_
 {
-    template <typename T, T X, uint Bit>
+    template <typename T, T X, usize Bit>
     struct _IntLog2 {
         static const int    value = int((X >> Bit) != 0) + _IntLog2<T, X, Bit-1 >::value;
     };
@@ -27,7 +27,7 @@ namespace _hidden_
 } // _hidden_
 
     template <auto X>
-    static constexpr int    CT_IntLog2 = (X ? Base::_hidden_::_IntLog2< decltype(X), X, sizeof(X)*8-1 >::value : -1);
+    static constexpr int    CT_IntLog2 = (X ? Base::_hidden_::_IntLog2< decltype(X), X, CT_SizeofInBits(X)-1 >::value : -1);
 
 /*
 =================================================
@@ -101,14 +101,6 @@ namespace _hidden_
 
 /*
 =================================================
-    CT_SizeOfInBits
-=================================================
-*/
-    template <typename T>
-    static constexpr usize      CT_SizeOfInBits = sizeof(T) * 8;
-
-/*
-=================================================
     CT_BitCount
 =================================================
 */
@@ -154,9 +146,9 @@ namespace _hidden_
     template <typename R, auto Count>
     struct _ToBitMask {
         STATIC_ASSERT( IsUnsignedInteger<R> );
-        static constexpr R  mask    =   Count >= sizeof(R)*8    ? ~R{0} :
-                                        Count <  0              ?  R{0} :
-                                                                  (R{1} << Count) - 1;
+        static constexpr R  mask    =   Count >= CT_SizeOfInBits<R> ? ~R{0} :
+                                        Count <  0                  ?  R{0} :
+                                                                      (R{1} << Count) - 1;
     };
 } // _hidden_
 

@@ -4,7 +4,7 @@
 */
 
 #include "Math.glsl"
-#include "RayTracing.glsl"
+#include "Ray.glsl"
 
 struct AABB
 {

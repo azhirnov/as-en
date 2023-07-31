@@ -3,13 +3,6 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
-# include "base/Containers/InPlace.h"
-# include "base/Memory/LinearAllocator.h"
-# include "serializing/Common.h"
-
-# include "threading/Primitives/DataRaceCheck.h"
-# include "threading/Memory/LfLinearAllocator.h"
-
 # include "graphics/Public/ResourceManager.h"
 
 # include "PipelineCompilerImpl.h"

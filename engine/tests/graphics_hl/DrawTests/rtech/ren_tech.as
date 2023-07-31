@@ -4,8 +4,6 @@ void DeclRenderPasses ()
 {
     RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "DrawTest" );
 
-    compat.AddFeatureSet( "MinimalFS" );
-
     const string    pass = "Main";
     compat.AddSubpass( pass );
 

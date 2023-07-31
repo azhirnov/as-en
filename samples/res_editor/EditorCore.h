@@ -2,11 +2,6 @@
 
 #pragma once
 
-#include "base/DataSource/MemStream.h"
-#include "platform/DefaultV1/DefaultAppV1.h"
-#include "platform/Utils/RenderDocApi.h"
-#include "vfs/VirtualFileSystem.h"
-
 #include "res_editor/EditorUI.h"
 #include "res_editor/Passes/Renderer.h"
 
@@ -111,7 +106,7 @@ namespace AE::ResEditor
 
         RC<MemRStream>              _inputActionsData;
 
-        FrameGraphImpl              _fg;
+        Unique<FrameGraphImpl>      _fg;
 
         //App::RenderDocApi         _rdc;
         //bool                      _enableCapture  = false;
@@ -129,8 +124,10 @@ namespace AE::ResEditor
 
 
     // API for ResEditorWindow
+    public:
+        ND_ bool  OnStart ();
     private:
-            bool  _LoadInputActions ();
+        ND_ bool  _LoadInputActions ();
 
 
     // main loop
@@ -142,13 +139,13 @@ namespace AE::ResEditor
 
     // IBaseApp //
     private:
-        bool  OnSurfaceCreated (IOutputSurface &)                       __NE_OV;
-        void  InitInputActions (IInputActions &)                        __NE_OV;
-        void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>)  __NE_OV;
-        void  StopRendering ()                                          __NE_OV;
-        void  SurfaceDestroyed ()                                       __NE_OV;
-        void  WaitFrame (const Threading::EThreadArray &)               __NE_OV;
-        void  RenderFrame ()                                            __NE_OV;
+        bool  OnSurfaceCreated (IOutputSurface &)                                   __NE_OV;
+        void  StartRendering (Ptr<IInputActions>, Ptr<IOutputSurface>, EWndState)   __NE_OV;
+        void  StopRendering (Ptr<IOutputSurface>)                                   __NE_OV;
+        void  WaitFrame (const Threading::EThreadArray &)                           __NE_OV;
+        void  RenderFrame ()                                                        __NE_OV;
+
+        void  _InitInputActions (IInputActions &)                                   __NE___;
     };
 
 

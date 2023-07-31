@@ -269,11 +269,10 @@ namespace AE::Samples::Demo
 
         auto&   canvas = *t->canvasPtr;
         canvas.SetDimensions( rt );
+        canvas.NextFrame( GetFrameId() );
 
         // draw
         {
-            canvas.NextFrame( GetFrameId() );
-
             const auto  rp_desc = RenderPassDesc{ t->rtech, RenderTechPassName{"Main"}, rt.RegionSize() }
                                     .AddViewport( rt.RegionSize() )
                                     .AddTarget( AttachmentName{"Color"}, rt.viewId, RGBA32f{HtmlColor::Black}, rt.initialState | EResourceState::Invalidate, rt.finalState );

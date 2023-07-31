@@ -2,11 +2,6 @@
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
-#include <sstream>
-#include <charconv>
-#include "base/Defines/Undef.h"
-
 #include "base/Math/Math.h"
 #include "base/Math/Vec.h"
 #include "base/Math/Rectangle.h"
@@ -226,6 +221,27 @@ namespace AE::Base
     ND_ forceinline const char  ToUpperCase (const char c) __NE___
     {
         return IsLowerCase( c ) ? (c - 'a' + 'A') : c;
+    }
+
+/*
+=================================================
+    EqualIC
+----
+    returns 'true' if strings are equal,
+    comparison is case insensitive.
+=================================================
+*/
+    ND_ inline bool  EqualIC (StringView lhs, StringView rhs) __NE___
+    {
+        if ( lhs.size() != rhs.size() )
+            return false;
+
+        for (usize i = 0; i < lhs.length(); ++i)
+        {
+            if_unlikely( ToLowerCase( lhs[i] ) != ToLowerCase( rhs[i] ))
+                return false;
+        }
+        return true;
     }
 
 /*
@@ -722,7 +738,7 @@ namespace AE::Base
         using SecondsD_t  = std::chrono::duration<double>;
         using MicroSecD_t = std::chrono::duration<double, std::micro>;
 
-        const double    time     = Cast<SecondsD_t>( value ).count();
+        const double    time     = TimeCast<SecondsD_t>( value ).count();
         const double    abs_time = Abs( time );
         String          str;
 
@@ -739,9 +755,9 @@ namespace AE::Base
             str << ToString( time * 1.0e+3, precission ) << " ms";
         else
         if ( abs_time > 1.0e-7 )
-            str << ToString( Cast<MicroSecD_t>( value ).count(), precission ) << " us";
+            str << ToString( TimeCast<MicroSecD_t>( value ).count(), precission ) << " us";
         else
-            str << ToString( Cast<nanosecondsd>( value ).count(), precission ) << " ns";
+            str << ToString( TimeCast<nanosecondsd>( value ).count(), precission ) << " ns";
 
         return str;
     }
@@ -963,7 +979,7 @@ namespace AE::Base
     {
         ASSERT( alignChar != 0 );
 
-        String  tmp = ToString<Radix>( value );
+        String  tmp     = ToString<Radix>( value );
         String  str;    str.reserve( (align > tmp.size() ? 0 : tmp.size() - align) + tmp.size() );
 
         for (usize i = tmp.size(); i < align; ++i) {

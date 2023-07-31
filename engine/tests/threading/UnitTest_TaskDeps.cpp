@@ -1,7 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "threading/TaskSystem/ThreadManager.h"
-#include "threading/Primitives/DataRaceCheck.h"
 #include "UnitTest_Common.h"
 
 #ifndef AE_DISABLE_THREADS
@@ -67,7 +65,7 @@ namespace
         AsyncTask   task1   = scheduler->Run<Test1_Task1>( Tuple{ArgRef(value)} );
         AsyncTask   task2   = scheduler->Run<Test1_Task2>( Tuple{ArgRef(value)}, Tuple{task1} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ task1, task2 }));
         TEST( task1->Status() == EStatus::Completed );
@@ -140,7 +138,7 @@ namespace
 
         AsyncTask       task2   = scheduler->Run<Test2_Task2>( Tuple{ArgRef(value)}, Tuple{StrongDep{task1}} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ task1, task2 }));
         TEST( task1->Status() == EStatus::Canceled );
@@ -213,7 +211,7 @@ namespace
 
         AsyncTask   task2   = scheduler->Run<Test3_Task2>( Tuple{ArgRef(value)}, Tuple{WeakDep{task1}} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait({ task1, task2 }));
         TEST( task1->Status() == EStatus::Canceled );
@@ -362,7 +360,7 @@ namespace
         AsyncTask   task1   = scheduler->Run<Test4_Task1>( Tuple{ArgRef(value)} );
         AsyncTask   task2   = scheduler->Run<Test4_Task2>( Tuple{ArgRef(value)}, Tuple{task1, custom_dep} );
 
-        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig::CreateNonSleep() ));
+        scheduler->AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig::CreateNonSleep() ));
 
         TEST( scheduler->Wait( {task1} ));
         TEST( task1->Status() == EStatus::Completed );

@@ -17,10 +17,11 @@ namespace AE::Graphics
         TessEvaluation,
         Geometry,
         Fragment,
-        Compute,
-        Tile,       // subpass compute
 
-        MeshTask,
+        Compute,
+        Tile,               // subpass compute
+
+        MeshTask,           // object shader in Metal
         Mesh,
 
         RayGen,
@@ -31,7 +32,9 @@ namespace AE::Graphics
         RayCallable,
 
         _Count,
-        Unknown     = 0xFF,
+
+        ClusterCulling  = MeshTask,
+        Unknown         = 0xFF,
     };
 
 
@@ -55,9 +58,9 @@ namespace AE::Graphics
         RayMiss         = 1 << uint(EShader::RayMiss),
         RayIntersection = 1 << uint(EShader::RayIntersection),
         RayCallable     = 1 << uint(EShader::RayCallable),
-        _Last,
+        ClusterCulling  = 1 << uint(EShader::ClusterCulling),
 
-        All             = ((_Last-1) << 1) - 1,
+        All             = (1 << uint(EShader::_Count)) - 1,
         GraphicsStages  = Vertex | TessControl | TessEvaluation | Geometry | Fragment,
         MeshStages      = MeshTask | Mesh | Fragment,
         AllGraphics     = GraphicsStages | MeshStages,

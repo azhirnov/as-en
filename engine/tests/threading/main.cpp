@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/Common.h"
+#include "UnitTest_Common.h"
 
 extern void UnitTest_AsyncMutex ();
 extern void UnitTest_Coroutine ();
@@ -21,6 +21,7 @@ extern void UnitTest_LfLinearAllocator ();
 extern void UnitTest_SpinLock ();
 
 extern void UnitTest_AsyncDataSource ();
+extern void UnitTest_TsSharedMem ();
 
 
 #ifdef AE_PLATFORM_ANDROID
@@ -31,7 +32,12 @@ int main ()
 {
     AE::Base::StaticLogger::LoggerDbgScope log{};
 
-    //UnitTest_AsyncDataSource();   // minimize disk usage
+    // minimize disk usage for debug build
+  #ifdef AE_RELEASE
+    UnitTest_AsyncDataSource();
+  #endif
+
+    UnitTest_TsSharedMem();
 
     UnitTest_LfIndexedPool2();
     UnitTest_LfIndexedPool3();
@@ -40,7 +46,7 @@ int main ()
     UnitTest_LfTaskQueue();
     UnitTest_LfStaticQueue();
 
-    //UnitTest_LfFixedBlockAllocator();
+    UnitTest_LfFixedBlockAllocator();
     UnitTest_LfLinearAllocator();
 
     UnitTest_SpinLock();

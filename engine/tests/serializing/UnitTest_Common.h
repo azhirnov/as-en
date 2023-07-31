@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "serializing/ObjectFactory.h"
+#include "pch/Serializing.h"
 #include "../shared/UnitTest_Shared.h"
 
 using namespace AE::Serializing;

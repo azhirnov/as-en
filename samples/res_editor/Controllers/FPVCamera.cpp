@@ -18,7 +18,7 @@ namespace AE::ResEditor
         _initialPos{initialPos}
     {
         CHECK_THROW( _dynDim );
-        Reset();
+        _Reset();
     }
 
 /*
@@ -36,16 +36,16 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            if_unlikely( hdr.name == InputActionName{"Camera3D.Rotate"} )
+            if_unlikely( hdr.name == InputActionName{"Camera.Rotate"} )
                 rotation += reader.Data<packed_float2>( hdr.offset );
 
-            if_unlikely( hdr.name == InputActionName{"Camera3D.Move"} )
+            if_unlikely( hdr.name == InputActionName{"Camera.Move"} )
                 move += reader.Data<packed_float3>( hdr.offset );
 
-            if_unlikely( hdr.name == InputActionName{"Camera3D.Zoom"} )
-                zoom += reader.Data<packed_float2>( hdr.offset ).x;
+            if_unlikely( hdr.name == InputActionName{"Camera.Zoom"} )
+                zoom += reader.Data<packed_float2>( hdr.offset ).y;
 
-            if_unlikely( hdr.name == InputActionName{"Camera3D.Reset"} )
+            if_unlikely( hdr.name == InputActionName{"Camera.Reset"} )
                 reset = true;
         }
 
@@ -53,17 +53,16 @@ namespace AE::ResEditor
         EXLOCK( _guard );
 
         if_unlikely( reset )
-            return Reset();
+            return _Reset();
 
-        const float dt = Min( timeDelta.count(), 1.f/30.f );
-        move = _movingScale.Apply( move ) * dt;
+        move = _movingScale.Apply( move ) * timeDelta.count();
 
         _camera.Rotate( Rad{rotation.x * _rotationScale.x}, Rad{rotation.y * _rotationScale.y} );
         _camera.Move3D( move );
 
         if ( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimAspect ))
         {
-            _zoom = Clamp( _zoom + zoom, _minZoom, _maxZoom );
+            _zoom = Clamp( _zoom - zoom * _zoomStep, _minZoom, _maxZoom );
             _camera.SetPerspective( _fovY * _zoom, _dimAspect, _clipPlanes.x, _clipPlanes.y );
         }
 
@@ -72,10 +71,10 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    Reset
+    _Reset
 =================================================
 */
-    void  FPVCamera::Reset () __NE___
+    void  FPVCamera::_Reset ()
     {
         _camera.SetPosition( _initialPos );
         _camera.SetRotation( QuatF::Identity() );
@@ -94,8 +93,8 @@ namespace AE::ResEditor
 */
     void  FPVCamera::_UpdateMatrix ()
     {
-        _view           = _camera.GetCamera().ToViewMatrix();
-        _viewProj       = _camera.GetCamera().ToViewProjMatrix();
+        _view           = _camera.ToViewMatrix();
+        _viewProj       = _camera.ToViewProjMatrix();
         _invViewProj    = _viewProj.Inversed();
     }
 
@@ -106,7 +105,7 @@ namespace AE::ResEditor
 */
     void  FPVCamera::CopyTo (OUT AE::ShaderTypes::CameraData &camera) C_NE___
     {
-        _CopyToCameraData( OUT camera, _camera.GetFrustum() );
+        _CopyToCameraData( OUT camera, _camera.Frustum() );
     }
 
 

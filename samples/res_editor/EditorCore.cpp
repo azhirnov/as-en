@@ -1,20 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/FileStream.h"
-#include "base/DataSource/MemStream.h"
-#include "base/Utils/Helpers.h"
-#include "base/Utils/CStyleCast.h"
-
 #include "vfs/Disk/DiskStaticStorage.h"
 #include "vfs/Disk/DiskDynamicStorage.h"
 
-#include "scripting/Impl/ClassBinder.h"
-#include "scripting/Impl/ScriptFn.h"
-
 #include "res_editor/EditorCore.h"
 #include "res_editor/Scripting/ScriptExe.h"
-
-#define AE_PUBLIC_VERSION   true
 
 AE_DECL_SCRIPT_OBJ( AE::ResEditor::ResEditorAppConfig,  "Config" );
 
@@ -59,7 +49,12 @@ namespace
             cfg.graphics.device.appName         = "ResourceEditor";
             cfg.graphics.device.requiredQueues  = EQueueMask::Graphics;
             cfg.graphics.device.optionalQueues  = Default;
+
+          #if AE_PUBLIC_VERSION and defined(AE_RELEASE)
+            cfg.graphics.device.validation      = EDeviceValidation::Disabled;
+          #else
             cfg.graphics.device.validation      = EDeviceValidation::Enabled;
+          #endif
 
             cfg.graphics.swapchain.format       = EPixelFormat::RGBA8_UNorm;
 
@@ -67,14 +62,24 @@ namespace
             cfg.graphics.swapchain.options      = EImageOpt::BlitDst;
             cfg.graphics.swapchain.presentMode  = EPresentMode::FIFO;       // vsync
             cfg.graphics.swapchain.minImageCount= 2;
+
+            cfg.graphics.useRenderGraph         = true;
         }
 
         // window
         {
-            cfg.window.title        = "ResourceEditor";
-            cfg.window.size         = {1600, 900};
-            cfg.window.resizable    = true;
-            cfg.window.fullscreen   = false;
+            cfg.window.title    = "ResourceEditor";
+            cfg.window.size     = {1600, 900};
+            cfg.window.mode     = EWindowMode::Resizable;
+        }
+
+        // VR
+        {
+            cfg.enableVR        = false;
+            cfg.vr.dimension    = {1024, 1024};
+            cfg.vr.format       = EPixelFormat::BGRA8_UNorm;
+            cfg.vr.usage        = EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::Transfer;  // default
+            cfg.vr.options      = EImageOpt::BlitDst;
         }
 
         return cfg;
@@ -87,7 +92,8 @@ namespace
 */
     static void  ResEditorAppConfig_VFSPath (ResEditorAppConfig &self, const String &path, const String &prefix)
     {
-        CHECK_THROW( FileSystem::IsDirectory( path ));
+        CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
+            "VFSPath '"s << ToString(path) << "' must be existed folder" );
 
         self.vfsPathes.push_back( FileSystem::ToAbsolute( Path{path} ));
         self.vfsPathPrefixes.push_back( prefix );
@@ -101,7 +107,10 @@ namespace
     static void  ResEditorAppConfig_UIDataDir (ResEditorAppConfig &self, const String &path)
     {
         if ( not FileSystem::IsDirectory( path ))
-            CHECK_THROW( FileSystem::CreateDirectories( path ));
+        {
+            CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
+                "Failed to create folder '"s << ToString(path) << "'" );
+        }
 
         CHECK_THROW( self.uiDataFolder.empty() );
         self.uiDataFolder = FileSystem::ToAbsolute( Path{path} );
@@ -114,7 +123,8 @@ namespace
 */
     static void  ResEditorAppConfig_PipelineSearchDir (ResEditorAppConfig &self, const String &path)
     {
-        CHECK_THROW( FileSystem::IsDirectory( path ));
+        CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
+            "PipelineSearchDir '"s << ToString(path) << "' must be existed folder" );
 
         self.pipelineSearchDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
     }
@@ -126,7 +136,8 @@ namespace
 */
     static void  ResEditorAppConfig_ShaderSearchDir (ResEditorAppConfig &self, const String &path)
     {
-        CHECK_THROW( FileSystem::IsDirectory( path ));
+        CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
+            "ShaderSearchDir '"s << ToString(path) << "' must be existed folder" );
 
         self.shaderSearchDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
     }
@@ -138,7 +149,8 @@ namespace
 */
     static void  ResEditorAppConfig_ShaderIncludeDir (ResEditorAppConfig &self, const String &path)
     {
-        CHECK_THROW( FileSystem::IsDirectory( path ));
+        CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
+            "ShaderIncludeDir '"s << ToString(path) << "' must be existed folder" );
 
         self.shaderIncludeDirs.push_back( FileSystem::ToAbsolute( Path{path} ));
     }
@@ -151,7 +163,10 @@ namespace
     static void  ResEditorAppConfig_ShaderTraceDir (ResEditorAppConfig &self, const String &path)
     {
         if ( not FileSystem::IsDirectory( path ))
-            CHECK_THROW( FileSystem::CreateDirectories( path ));
+        {
+            CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
+                "Failed to create folder '"s << ToString(path) << "'" );
+        }
 
         CHECK_THROW( self.shaderTraceFolder.empty() );
         self.shaderTraceFolder = FileSystem::ToAbsolute( Path{path} );
@@ -165,7 +180,10 @@ namespace
     static void  ResEditorAppConfig_ScreenshotDir (ResEditorAppConfig &self, const String &path)
     {
         if ( not FileSystem::IsDirectory( path ))
-            CHECK_THROW( FileSystem::CreateDirectories( path ));
+        {
+            CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
+                "Failed to create folder '"s << ToString(path) << "'" );
+        }
 
         CHECK_THROW( self.screenshotFolder.empty() );
         self.screenshotFolder = FileSystem::ToAbsolute( Path{path} );
@@ -179,7 +197,10 @@ namespace
     static void  ResEditorAppConfig_VideoDir (ResEditorAppConfig &self, const String &path)
     {
         if ( not FileSystem::IsDirectory( path ))
-            CHECK_THROW( FileSystem::CreateDirectories( path ));
+        {
+            CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
+                "Failed to create folder '"s << ToString(path) << "'" );
+        }
 
         CHECK_THROW( self.videoFolder.empty() );
         self.videoFolder = FileSystem::ToAbsolute( Path{path} );
@@ -193,7 +214,10 @@ namespace
     static void  ResEditorAppConfig_ScriptDir (ResEditorAppConfig &self, const String &path)
     {
         if ( not FileSystem::IsDirectory( path ))
-            CHECK_THROW( FileSystem::CreateDirectories( path ));
+        {
+            CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
+                "Failed to create folder '"s << ToString(path) << "'" );
+        }
 
         CHECK_THROW( self.scriptFolder.empty() );
         self.scriptFolder = FileSystem::ToAbsolute( Path{path} );
@@ -207,7 +231,10 @@ namespace
     static void  ResEditorAppConfig_SecondaryScriptDir (ResEditorAppConfig &self, const String &path)
     {
         if ( not FileSystem::IsDirectory( path ))
-            CHECK_THROW( FileSystem::CreateDirectories( path ));
+        {
+            CHECK_THROW_MSG( FileSystem::CreateDirectories( path ),
+                "Failed to create folder '"s << ToString(path) << "'" );
+        }
 
         CHECK_THROW( self.scriptSecondaryFolder.empty() );
         self.scriptSecondaryFolder = FileSystem::ToAbsolute( Path{path} );
@@ -242,23 +269,28 @@ namespace
             binder.AddMethodFromGlobal( &ResEditorAppConfig_VideoDir,           "VideoDir" );
         }
 
-        FileRStream     file {filename};
-        CHECK_ERR( file.IsOpen() );
-
         ScriptEngine::ModuleSource  src;
-        src.name            = ToString( filename.filename().replace_extension("") );
-        src.dbgLocation     = {};
-        src.usePreprocessor = false;
-        CHECK_ERR( file.Read( file.RemainingSize(), OUT src.script ));
+        {
+            FileRStream     file {filename};
+            CHECK_ERR( file.IsOpen() );
+
+            src.name            = ToString( filename.filename().replace_extension("") );
+            src.dbgLocation     = {};
+            src.usePreprocessor = false;
+            CHECK_ERR( file.Read( file.RemainingSize(), OUT src.script ));
+        }
 
         ScriptModulePtr     module = se->CreateModule( {src} );
-        CHECK_ERR( module );
+        CHECK_ERR_MSG( module,
+            "Failed to parse script '"s << ToString(filename) << "', fix errors or delete the file to allow the application to create a default script" );
 
         auto    fn = se->CreateScript< void (ResEditorAppConfig &) >( "main", module );
-        CHECK_ERR( fn );
+        CHECK_ERR_MSG( fn,
+            "Script '"s << ToString(filename) << "' entry point 'main' is not exist" );
 
         ResEditorAppConfig  tmp;
-        CHECK_ERR( fn->Run( OUT tmp ));
+        CHECK_ERR_MSG( fn->Run( OUT tmp ),
+            "Failed to run script '"s << ToString(filename) << "', fix errors or delete the file to allow the application to create a default script" );
 
         s_REConfig = RVRef(tmp);
         return true;
@@ -269,10 +301,10 @@ namespace
     _CreateDefaultResEditorAppConfig
 =================================================
 */
-    ND_ static bool  _CreateDefaultResEditorAppConfig (const Path &filename, const bool isRelease)
+    ND_ static bool  _CreateDefaultResEditorAppConfig (const Path &filename)
     {
         String  str;
-        if ( isRelease )
+        if ( AE_PUBLIC_VERSION )
         {
             str = R"(
 void main (Config &out cfg)
@@ -283,6 +315,7 @@ void main (Config &out cfg)
 
     // VFS
     cfg.VFSPath( vfs_path + "shadertoy_data",   "shadertoy/" );
+    cfg.VFSPath( vfs_path + "res_editor_data",  "res/" );
 
     // pipeline dirs
     cfg.PipelineSearchDir( local_path + "pipelines" );
@@ -294,19 +327,49 @@ void main (Config &out cfg)
 
     // config
     cfg.ScriptDir( local_path + "scripts" );
-    cfg.SecondaryScriptDir( local_path + "scripts2" );  // used in 'RunScript()'
+    cfg.SecondaryScriptDir( local_path + "callable_scr" );  // used in 'RunScript()'
 
     // output
     cfg.UIDataDir( "ui" );      // imgui
-    cfg.ShaderTraceDir( local_path + "../_shader_trace" );
-    cfg.ScreenshotDir( local_path + "../_screenshorts" );
-    cfg.VideoDir( local_path + "../_video" );
+    cfg.ShaderTraceDir( "_shader_trace" );
+    cfg.ScreenshotDir( "_screenshorts" );
+    cfg.VideoDir( "_video" );
 }
 )";
         }
         else
         {
-            str = R"()";
+            str = R"(
+void main (Config &out cfg)
+{
+    const string    base_path           = "C:/Projects/AllinOne/projects/";
+    const string    vfs_path            = base_path + "AE-Data/";
+    const string    local_path          = base_path + "AE/samples/res_editor/_data/";
+    const string    shader_data_path    = base_path + "AE/engine/tools/res_pack/shared_data/";
+
+    // VFS
+    cfg.VFSPath( vfs_path + "shadertoy_data",   "shadertoy/" );
+    cfg.VFSPath( vfs_path + "res_editor_data",  "res/" );
+
+    // pipeline dirs
+    cfg.PipelineSearchDir( local_path + "pipelines" );
+
+    // shaders
+    cfg.ShaderSearchDir( local_path + "shaders" );
+    cfg.ShaderIncludeDir( shader_data_path + "shaders" );
+    cfg.ShaderIncludeDir( local_path + "shaders" );
+
+    // config
+    cfg.ScriptDir( local_path + "scripts" );
+    cfg.SecondaryScriptDir( local_path + "callable_scr" );  // used in 'RunScript()'
+
+    // output
+    cfg.UIDataDir( base_path + "AE-Temp/samples/res_editor" );  // imgui
+    cfg.ShaderTraceDir( local_path + "../_shader_trace" );
+    cfg.ScreenshotDir( local_path + "../_screenshorts" );
+    cfg.VideoDir( local_path + "../_video" );
+}
+)";
         }
         FileWStream     file {filename};
         return  file.IsOpen()               and
@@ -320,16 +383,15 @@ void main (Config &out cfg)
 */
     static void  InitResEditorAppConfig () __NE___
     {
-        const Path  path        = FileSystem::CurrentPath() / "res_editor.as";
-        const bool  is_release  = AE_PUBLIC_VERSION;
+        const Path  path = FileSystem::CurrentPath() / "res_editor.as";
 
         if ( not FileSystem::IsFile( path ))
-            CHECK_FATAL( _CreateDefaultResEditorAppConfig( path, is_release ));
+            CHECK_FATAL( _CreateDefaultResEditorAppConfig( path ));
 
         try{
             CHECK_FATAL( _LoadResEditorAppConfigFromScript( path ));
 
-            if ( not is_release )
+            if ( not AE_PUBLIC_VERSION )
             {
                 s_REConfig.scriptHeaderOutFolder    = AE_SHARED_DATA "/scripts";
                 s_REConfig.cppTypesFolder           = AE_LOCAL_DATA_FOLDER "/cpp";
@@ -364,7 +426,7 @@ void main (Config &out cfg)
 =================================================
 */
     ResEditorApplication::ResEditorApplication () __NE___ :
-        DefaultAppListener{ GetAppConfig(), Default }
+        DefaultAppListener{ GetAppConfig(), MakeRC<ResEditorCore>() }
     {
         s_ResEditApp = this;
 
@@ -384,7 +446,7 @@ void main (Config &out cfg)
     destructor
 =================================================
 */
-    ResEditorApplication::~ResEditorApplication ()
+    ResEditorApplication::~ResEditorApplication () __NE___
     {
         s_ResEditApp = null;
     }
@@ -420,14 +482,9 @@ void main (Config &out cfg)
         _app = &app;
         DefaultAppListener::OnStart( app );
 
-        _impl = MakeRC<ResEditorCore>();
+        CHECK_FATAL( Cast<ResEditorCore>(&GetBaseApp())->OnStart() );
 
-        // create window
-        {
-            auto    wnd = app.CreateWindow( MakeUnique<AppV1::DefaultIWndListener>( _Core().GetRC(), *this ), _config.window );
-            CHECK_FATAL( wnd );
-            _windows.emplace_back( RVRef(wnd) );
-        }
+        CHECK_FATAL( _OnStartImpl( app ));
     }
 
 /*
@@ -452,14 +509,6 @@ void main (Config &out cfg)
     ResEditorCore::ResEditorCore () :
         _ui{ *this, s_REConfig.scriptFolder }
     {
-        ScriptExe::Config   cfg;
-        cfg.cppTypesFolder          = s_REConfig.cppTypesFolder;
-        cfg.scriptHeaderOutFolder   = s_REConfig.scriptHeaderOutFolder;
-
-        _script.reset( new ScriptExe{ RVRef(cfg) });    // throw
-
-        CHECK_FATAL( _LoadInputActions() );
-
         //Unused( _rdc.Initialize() );
     }
 
@@ -471,6 +520,24 @@ void main (Config &out cfg)
     ResEditorCore::~ResEditorCore ()
     {
         _mainLoop.Write( Default );
+    }
+
+/*
+=================================================
+    OnStart
+=================================================
+*/
+    bool  ResEditorCore::OnStart ()
+    {
+        CATCH_ERR(
+            _fg.reset( new FrameGraphImpl{} );
+
+            ScriptExe::Config   cfg;
+            cfg.cppTypesFolder          = s_REConfig.cppTypesFolder;
+            cfg.scriptHeaderOutFolder   = s_REConfig.scriptHeaderOutFolder;
+            _script.reset( new ScriptExe{ RVRef(cfg) });    // throw
+        )
+        return  _LoadInputActions();
     }
 
 /*
@@ -502,10 +569,10 @@ void main (Config &out cfg)
 
 /*
 =================================================
-    InitInputActions
+    _InitInputActions
 =================================================
 */
-    void  ResEditorCore::InitInputActions (IInputActions &ia) __NE___
+    void  ResEditorCore::_InitInputActions (IInputActions &ia) __NE___
     {
         MemRefRStream   stream{ _inputActionsData->GetData() };
 
@@ -519,18 +586,28 @@ void main (Config &out cfg)
     StartRendering
 =================================================
 */
-    void  ResEditorCore::StartRendering (Ptr<IInputActions> input, Ptr<IOutputSurface> output) __NE___
+    void  ResEditorCore::StartRendering (Ptr<IInputActions> input, Ptr<IOutputSurface> output, EWndState state) __NE___
     {
         ASSERT( bool{input} == bool{output} );
 
-        if ( output != null and not output->IsInitialized() )
-            return;
+        const bool  focused = (state == EWndState::Focused);
+        bool        ia_changed;
 
-        auto    main_loop   = _mainLoop.WriteNoLock();
-        EXLOCK( main_loop );
+        {
+            auto    main_loop = _mainLoop.WriteNoLock();
+            EXLOCK( main_loop );
 
-        main_loop->input    = input;
-        main_loop->output   = output;
+            if ( not focused and main_loop->output != null )
+                return;
+
+            ia_changed = (main_loop->input != input) and (input != null);
+
+            main_loop->input  = input;
+            main_loop->output = output;
+        }
+
+        if ( ia_changed )
+            _InitInputActions( *input );
     }
 
 /*
@@ -538,23 +615,13 @@ void main (Config &out cfg)
     StopRendering
 =================================================
 */
-    void  ResEditorCore::StopRendering () __NE___
+    void  ResEditorCore::StopRendering (Ptr<IOutputSurface> output) __NE___
     {
         auto    main_loop   = _mainLoop.WriteNoLock();
         EXLOCK( main_loop );
 
-        main_loop->input    = null;
-        main_loop->output   = null;
-    }
-
-/*
-=================================================
-    SurfaceDestroyed
-=================================================
-*/
-    void  ResEditorCore::SurfaceDestroyed () __NE___
-    {
-        _mainLoop.Write( Default );
+        if ( output == null or main_loop->output == output )
+            main_loop->output = null;
     }
 
 /*
@@ -573,7 +640,6 @@ void main (Config &out cfg)
         cfg.pipelineDirs    = s_REConfig.pipelineSearchDirs;
         cfg.scriptDir       = s_REConfig.scriptSecondaryFolder;
 
-        auto    input   = _mainLoop.ConstPtr()->input;
         auto    output  = _mainLoop.ConstPtr()->output;
         if ( output )
         {
@@ -583,7 +649,8 @@ void main (Config &out cfg)
         }
 
         auto    renderer = _script->Run( scriptPath, cfg );
-        CHECK_ERR( renderer );
+        if ( not renderer )
+            return false;
 
         Scheduler().Run< AsyncTaskFn >(
             Tuple{  [this, renderer] () { _mainLoop->renderer = renderer; },
@@ -655,7 +722,10 @@ void main (Config &out cfg)
 
             input       = main_loop->input;
             output      = main_loop->output;
-            renderer    = output != null ? main_loop->renderer : null;
+            renderer    = main_loop->renderer;
+
+            if ( output == null or not output->IsInitialized() )
+                renderer = null;
         }
 
         auto&           rg          = FrameGraph();
@@ -742,11 +812,6 @@ using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::ResEditor;
 
-//#define REQUIRE_APACHE_2
-#define REQUIRE_GPLv3
-#include "base/Defines/DetectLicense.inl.h"
-#include "base/Algorithms/StringUtils.h"
-
 
 /*
 =================================================
@@ -757,24 +822,16 @@ Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 {
 #if AE_PUBLIC_VERSION
     StaticLogger::Initialize();
-    StaticLogger::AddLogger( ILogger::CreateIDEOutput() );
     StaticLogger::AddLogger( ILogger::CreateConsoleOutput() );
-    {
-        ILogger::LevelBits  level_bits  {~0u};
-        level_bits[ uint(ELogLevel::Debug) ]        = false;
-        level_bits[ uint(ELogLevel::Info)  ]        = false;
-        level_bits[ uint(ELogLevel::SilentError)  ] = false;
 
-        ILogger::ScopeBits  scope_bits  {0};
-        scope_bits[ uint(ELogScope::Client)  ]      = true;
-
-        StaticLogger::AddLogger( ILogger::CreateDialogOutput( level_bits, scope_bits ));
-    }
+#  ifdef AE_DEBUG
+    StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
+#  endif
 #else
     StaticLogger::InitDefault();
 #endif
 
-    AE_LOG_DBG( "License: "s << AE_LICENSE );
+    AE_LOGI( String{AE_ENGINE_NAME} << ' ' << ToString(AE_VERSION.Get<0>()) << '.' << ToString(AE_VERSION.Get<1>()) << '.' << ToString(AE_VERSION.Get<2>()) );
 
     InitResEditorAppConfig();
 

@@ -96,7 +96,7 @@ namespace
                         pt->indexCount = 0;
                         pt->act = EAction::Assign;
 
-                        vm.CheckForUncommitedChanges();
+                        vm.CheckForUncommittedChanges();
                         break;
                     }
 
@@ -114,7 +114,7 @@ namespace
                         }
                         pt->act = EAction::Unassign;
 
-                        vm.CheckForUncommitedChanges();
+                        vm.CheckForUncommittedChanges();
                         break;
                     }
 

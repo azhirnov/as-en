@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include "base/Platforms/Platform.h"
-
 #include "platform/Public/IWindow.h"
 #include "platform/Private/InputActionsBase.h"
 #include "platform/Private/VRDeviceBase.h"
@@ -30,36 +28,54 @@ namespace AE::App
     // types
     private:
 
+        //
+        // VR Render Surface
+        //
         class VRRenderSurface final : public VRSurface
         {
+        // types
         private:
             class BlitImageTask;
 
+        // variables
         private:
-            VRDeviceEmulator &  _vrDev;
+            VRDeviceEmulator &      _vrDev;
+            CommandBatchPtr         _presentBatch;
+            AsyncTask               _acquireImg;
+            Atomic<uint>            _projIdx        {0};
 
+        // methods
         public:
-            explicit VRRenderSurface (VRDeviceEmulator &vr)                                                             __NE___ : _vrDev{vr} {}
+            explicit VRRenderSurface (VRDeviceEmulator &vr)                                                                     __NE___ : _vrDev{vr} {}
 
             // IOutputSurface //
-            AsyncTask       Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)   __NE_OV;
-            bool            GetTargets (OUT RenderTargets_t &targets)                                                       C_NE_OV;
-            AsyncTask       End (ArrayView<AsyncTask> deps)                                                                 __NE_OV;
+            AsyncTask           Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)   __NE_OV;
+            bool                GetTargets (OUT RenderTargets_t &targets)                                                       C_NE_OV;
+            AsyncTask           End (ArrayView<AsyncTask> deps)                                                                 __NE_OV;
 
-            AllImages_t         GetAllImages ()                                                                             C_NE_OV;
-            TargetSizes_t       GetTargetSizes ()                                                                           C_NE_OV { return Default; }
-            SurfaceFormats_t    GetSurfaceFormats ()                                                                        C_NE_OV { return Default; }
-            PresentModes_t      GetPresentModes ()                                                                          C_NE_OV { return Default; }
-            SurfaceInfo         GetSurfaceInfo ()                                                                           C_NE_OV { return Default; }
+            bool                SetSurfaceMode (const SurfaceInfo &)                                                            __NE_OV;
+
+            AllImages_t         GetAllImages ()                                                                                 C_NE_OV;
+            SurfaceFormats_t    GetSurfaceFormats ()                                                                            C_NE_OV;
+            PresentModes_t      GetPresentModes ()                                                                              C_NE_OV;
+            SurfaceInfo         GetSurfaceInfo ()                                                                               C_NE_OV;
+
+        private:
+            ND_ bool            _GetDstTargets (OUT RenderTargets_t &targets)                                                   C_NE___;
         };
 
 
+        //
+        // Input Actions
+        //
         class InputActions final : public InputActionsBase
         {
+        // variables
         private:
-            VRDeviceEmulator &  _vrDev;
-            DubleBufferedQueue  _dbQueue;
+            VRDeviceEmulator &      _vrDev;
+            DubleBufferedQueue      _dbQueue;
 
+        // methods
         public:
             InputActions (VRDeviceEmulator &vr, DubleBufferedQueue *q)                                                              __NE___ :
                 InputActionsBase{q ? *q : _dbQueue}, _vrDev{vr}
@@ -82,11 +98,16 @@ namespace AE::App
         };
 
 
+        //
+        // Window Event Listener
+        //
         class WindowEventListener final : public IWindow::IWndListener
         {
+        // variables
         private:
             VRDeviceEmulator &  _vrDev;
 
+        // methods
         public:
             explicit WindowEventListener (VRDeviceEmulator &vr)     __NE___ : _vrDev{vr} {}
             ~WindowEventListener ()                                 __NE_OV {}
@@ -100,25 +121,25 @@ namespace AE::App
             void  OnStateChanged (IWindow &, EState)                __NE_OV;
         };
 
+        using Projections_t = StaticArray< ProjectionImpl, 4 >; // 2 eyes with double buffering
+
 
     // variables
     private:
-        IApplication &          _app;
+        IApplication &              _app;
 
-        WindowEventListener*    _wndListener    = null;
-        WindowPtr               _window;
+        WindowEventListener*        _wndListener    = null;
+        WindowPtr                   _window;
 
-        VRRenderSurface         _surface;
-        InputActions            _input;
-        ProjectionImpl<float>   _projections [2];
+        VRRenderSurface             _surface;
+        InputActions                _input;
+        Projections_t               _projections;
 
-        float4x4                _hmdPose;
-        float3                  _hmdPosition;
-        float4x4                _view[2];       // camera view matrix (left, right)
+        StaticArray< float4x4, 2 >  _view;          // camera view matrix (left, right)
 
-        RWSpinLock              _hmdRotationGuard;
-        float2                  _hmdRotation;
-        FrameUID                _lastFrameId;
+        RWSpinLock                  _hmdRotationGuard;
+        float2                      _hmdRotation;
+        FrameUID                    _lastFrameId;
 
 
     // methods

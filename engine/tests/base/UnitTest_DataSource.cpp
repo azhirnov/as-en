@@ -1,15 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "base/DataSource/StdStream.h"
-#include "base/DataSource/MemStream.h"
-#include "base/DataSource/BrotliStream.h"
-#include "base/DataSource/BufferedStream.h"
-#include "base/DataSource/FastStream.h"
-#include "base/DataSource/FileStream.h"
-#include "base/DataSource/WindowsFile.h"
-#include "base/Math/Random.h"
 #include "UnitTest_Common.h"
-
 
 namespace
 {
@@ -357,7 +348,7 @@ namespace
         const uint  buf_size    = 4u << 10;     // Kb
         STATIC_ASSERT( file_size % buf_size == 0 );
 
-        const Path      fname {"stream1_data.txt"};
+        const Path      fname {"stream1_data.bin"};
         {
             WStream     wfile {fname};
             TEST( wfile.IsOpen() );
@@ -410,7 +401,7 @@ namespace
         const uint  buf_size    = 4u << 10;     // Kb
         STATIC_ASSERT( file_size % buf_size == 0 );
 
-        const Path      fname {"file1_data.txt"};
+        const Path      fname {"file1_data.bin"};
         {
             WFile   wfile {fname};
             TEST( wfile.IsOpen() );
@@ -486,8 +477,8 @@ extern void UnitTest_DataSource ()
     FastStream_Test3();
     FastStream_Test4();
 
-    // minimize disk usage
-#if 0
+    // minimize disk usage for debug build
+  #ifdef AE_RELEASE
     Stream_Test1< FileRStream,      FileWStream >();
     File_Test1<   FileRDataSource,  FileWDataSource >( false );
 
@@ -500,7 +491,7 @@ extern void UnitTest_DataSource ()
         File_Test1<   FileRDataSource,      WinWFileDataSource  >( false );
         File_Test1<   WinRFileDataSource,   WinWFileDataSource  >( true );
     #endif
-#endif
+  #endif
 
     FileSystem::SetCurrentPath( curr );
 
