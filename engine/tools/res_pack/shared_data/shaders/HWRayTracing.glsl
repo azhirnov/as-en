@@ -120,18 +120,21 @@
 
 
 
-#if defined(SH_RAY_GEN) || defined(SH_RAY_CHIT) || defined(SH_RAY_MISS)
+#if defined(SH_RAY_GEN) || defined(SH_RAY_CHIT) || defined(SH_RAY_MISS) || defined(AE_RAY_QUERY)
+
+    #include "Ray.glsl"
 
     struct HWRay
     {
         gl::RayFlags    rayFlags;
-        uint            cullMask;
-        uint            sbtRecordOffset;
-        uint            missIndex;
+        uint            cullMask;           // only 8 bits are used
+        uint            sbtRecordOffset;    // only 4 bits are used
+        uint            sbtRecordStride;    // only 4 bits are used
+        uint            missIndex;          // only 16 bits are used
         float3          rayOrigin;
-        float           tMin;
+        float           tMin;               // must be non-negative, must be < tMax
         float3          rayDir;
-        float           tMax;
+        float           tMax;               // must be non-negative
     };
 
 /*
@@ -145,6 +148,7 @@
         res.rayFlags        = gl::RayFlags::None;
         res.cullMask        = 0xFF;
         res.sbtRecordOffset = 0;
+        res.sbtRecordStride = 0;
         res.missIndex       = 0;
         res.rayOrigin       = float3(0.0);
         res.tMin            = 0.01;
@@ -153,47 +157,77 @@
         return res;
     }
 
-/*
-=================================================
-    TraceRay
-=================================================
-*/
-//  void   TraceRay (gl::AccelerationStructure rtas, const HWRay params, constexpr uint sbtRecordStride, constexpr uint payloadLoc);
-#   define TraceRay(/*gl::AccelerationStructure*/ rtas, /*HWRay*/ params, /*uint*/ sbtRecordStride, /*uint*/ payloadLoc) \
-        gl.TraceRay( rtas,                      \
-                     params.rayFlags,           \
-                     params.cullMask,           \
-                     params.sbtRecordOffset,    \
-                     sbtRecordStride,           \
-                     params.missIndex,          \
-                     params.rayOrigin,          \
-                     params.tMin,               \
-                     params.rayDir,             \
-                     params.tMax,               \
-                     payloadLoc )
+    ND_ HWRay  HWRay_Create (const Ray ray, const float tMax, const uint rayIndex, const uint sbtRecordStride)
+    {
+        HWRay   res;
+        res.rayFlags        = gl::RayFlags::None;
+        res.cullMask        = 0xFF;
+        res.sbtRecordOffset = rayIndex;
+        res.sbtRecordStride = sbtRecordStride;
+        res.missIndex       = rayIndex;
+        res.rayOrigin       = ray.origin;
+        res.tMin            = ray.t;
+        res.rayDir          = ray.dir;
+        res.tMax            = tMax;
+        return res;
+    }
+
+    ND_ HWRay  HWRay_Create (const Ray ray, const float tMax)
+    {
+        return HWRay_Create( ray, tMax, 0, 0 );
+    }
+
+    ND_ HWRay  HWRay_Create (const Ray ray)
+    {
+        return HWRay_Create( ray, ray.t + 10.f, 0, 0 );
+    }
 
 #endif
 //-----------------------------------------------------------------------------
 
 
 
-#if AE_RAY_QUERY
+#if defined(SH_RAY_GEN) || defined(SH_RAY_CHIT) || defined(SH_RAY_MISS)
+/*
+=================================================
+    TraceRay
+=================================================
+*/
+//  void   HWTraceRay (gl::AccelerationStructure rtas, const HWRay params, constexpr uint payloadLoc);
+#   define HWTraceRay(/*gl::AccelerationStructure*/ _rtas_, /*HWRay*/ _params_, /*compile-time uint*/ _payloadLoc_) \
+        gl.TraceRay( _rtas_,                    \
+                     _params_.rayFlags,         \
+                     _params_.cullMask,         \
+                     _params_.sbtRecordOffset,  \
+                     _params_.sbtRecordStride,  \
+                     _params_.missIndex,        \
+                     _params_.rayOrigin,        \
+                     _params_.tMin,             \
+                     _params_.rayDir,           \
+                     _params_.tMax,             \
+                     _payloadLoc_ )
+
+#endif
+//-----------------------------------------------------------------------------
+
+
+
+#ifdef AE_RAY_QUERY
 /*
 =================================================
     RayQuery_Init
 =================================================
 */
 //  void   RayQuery_Init (gl::RayQuery rquery, gl::AccelerationStructure rtas, const HWRay params);
-#   define RayQuery_Init(/*gl::RayQuery*/ rquery, /*gl::AccelerationStructure*/ rtas, /*HWRay*/ params) \
-        gl.rayQuery.Initialize( rquery,             \
-                                rtas,               \
-                                params.rayFlags,    \
-                                params.cullMask,    \
-                                params.missIndex,   \
-                                params.rayOrigin,   \
-                                params.tMin,        \
-                                params.rayDir,      \
-                                params.tMax )
+#   define RayQuery_Init(/*gl::RayQuery*/ _rquery_, /*gl::AccelerationStructure*/ _rtas_, /*HWRay*/ _params_) \
+        gl.rayQuery.Initialize( _rquery_,           \
+                                _rtas_,             \
+                                _params_.rayFlags,  \
+                                _params_.cullMask,  \
+                                _params_.rayOrigin, \
+                                _params_.tMin,      \
+                                _params_.rayDir,    \
+                                _params_.tMax )
 
 // Committed
 
@@ -230,4 +264,19 @@
 #   define /*float4x3*/ GetCandidateIntersectionWorldToObject(/*gl::RayQuery*/ rquery)          gl.rayQuery.GetIntersectionWorldToObject( rquery, false )
 
 #endif // AE_RAY_QUERY
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    TriangleHitAttribsToBaricentrics
+=================================================
+*/
+    ND_ float3  TriangleHitAttribsToBaricentrics (const float2 hitAttribs)
+    {
+        return float3(1.0f - hitAttribs.x - hitAttribs.y, hitAttribs.x, hitAttribs.y);
+    }
+
+
 //-----------------------------------------------------------------------------

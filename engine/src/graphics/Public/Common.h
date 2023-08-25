@@ -4,14 +4,6 @@
 
 #include "graphics/Graphics.pch.h"
 
-#ifdef AE_CFG_RELEASE
-#   define AE_DBG_GRAPHICS              0
-#   define DBG_GRAPHICS_ONLY( ... )     
-#else
-#   define AE_DBG_GRAPHICS              1
-#   define DBG_GRAPHICS_ONLY( ... )     __VA_ARGS__
-#endif
-
 namespace AE::Graphics
 {
     using namespace AE::Base;

@@ -9,8 +9,7 @@
 
 #include "Test_RenderGraph.h"
 
-#include "res_loaders/DDS/DDSLoader.h"
-#include "res_loaders/DDS/DDSSaver.h"
+#include "res_loaders/DDS/DDSImageSaver.h"
 
 #include "../UnitTest_Common.h"
 
@@ -59,13 +58,18 @@ RGTest::RGTest () :
     _tests.emplace_back( &RGTest::Test_CopyImage1 );
     _tests.emplace_back( &RGTest::Test_CopyImage2 );
     _tests.emplace_back( &RGTest::Test_Compute1 );
+    _tests.emplace_back( &RGTest::Test_Compute2 );
     _tests.emplace_back( &RGTest::Test_AsyncCompute1 );
     _tests.emplace_back( &RGTest::Test_AsyncCompute2 );
     _tests.emplace_back( &RGTest::Test_AsyncCompute3 );
     _tests.emplace_back( &RGTest::Test_Draw1 );
     _tests.emplace_back( &RGTest::Test_Draw2 );
     _tests.emplace_back( &RGTest::Test_Draw3 );
+    _tests.emplace_back( &RGTest::Test_Draw4 );
+    _tests.emplace_back( &RGTest::Test_Draw5 );
     _tests.emplace_back( &RGTest::Test_DrawAsync1 );
+
+  #ifndef AE_ENABLE_METAL
     _tests.emplace_back( &RGTest::Test_DrawMesh1 );
     _tests.emplace_back( &RGTest::Test_DrawMesh2 );
     _tests.emplace_back( &RGTest::Test_RayQuery1 );
@@ -78,6 +82,7 @@ RGTest::RGTest () :
     _tests.emplace_back( &RGTest::Test_Debugger3 );
     _tests.emplace_back( &RGTest::Test_Debugger4 );
     _tests.emplace_back( &RGTest::Test_Debugger5 );
+  #endif
 }
 
 /*
@@ -134,8 +139,8 @@ bool  RGTest::SaveImage (StringView name, const ImageMemView &view)
     path.append( name );
     path.replace_extension( "dds" );
 
-    DDSSaver    saver;
-    IntermImage img;    CHECK( img.SetData( view, null ));
+    DDSImageSaver   saver;
+    IntermImage     img;    CHECK( img.SetData( view, null ));
 
     CHECK_ERR( Cast<IImageSaver>(&saver)->SaveImage( path, img ));
     return true;
@@ -178,14 +183,14 @@ bool  RGTest::_CompilePipelines ()
         CHECK_ERR( res_mngr.InitializeResources( desc ));
     }
 
-    _pipelines = res_mngr.LoadRenderTech( Default, RenderTechName{"DrawTestRT"}, Default );
+    _pipelines = res_mngr.LoadRenderTech( Default, RenderTechs::DrawTestRT, Default );
     CHECK_ERR( _pipelines );
 
-    _acPipelines    = res_mngr.LoadRenderTech( Default, RenderTechName{"AsyncCompTestRT"},  Default );
-    _msPipelines    = res_mngr.LoadRenderTech( Default, RenderTechName{"DrawMeshesTestRT"}, Default );
-    _rtPipelines    = res_mngr.LoadRenderTech( Default, RenderTechName{"RayTracingTestRT"}, Default );
-    _rqPipelines    = res_mngr.LoadRenderTech( Default, RenderTechName{"RayQueryTestRT"},   Default );
-    _vrsPipelines   = res_mngr.LoadRenderTech( Default, RenderTechName{"VRSTestRT"},        Default );
+    _acPipelines    = res_mngr.LoadRenderTech( Default, RenderTechs::AsyncCompTestRT,   Default );
+    _msPipelines    = res_mngr.LoadRenderTech( Default, RenderTechs::DrawMeshesTestRT,  Default );
+    _rtPipelines    = res_mngr.LoadRenderTech( Default, RenderTechs::RayTracingTestRT,  Default );
+    _rqPipelines    = res_mngr.LoadRenderTech( Default, RenderTechs::RayQueryTestRT,    Default );
+    _vrsPipelines   = res_mngr.LoadRenderTech( Default, RenderTechs::VRSTestRT,         Default );
 
     return true;
 }
@@ -249,7 +254,7 @@ bool  RGTest::_Create (IApplication &app, IWindow &wnd)
     CHECK_ERR( _vulkan.CheckConstantLimits() );
     CHECK_ERR( _vulkan.CheckExtensions() );
 
-    _refDumpPath /= _vulkan.GetProperties().properties.deviceName;
+    _refDumpPath /= _vulkan.GetDeviceName();
     FileSystem::CreateDirectories( _refDumpPath );
 
     {
@@ -430,10 +435,8 @@ bool  RGTest::_Create (IApplication &, IWindow &wnd)
     CHECK_ERR( _swapchain.Create( wnd.GetSurfaceSize(), swapchain_ci ));
 
     for (uint i = 0; i < 2; ++i) {
-        Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
+        Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
                 EThreadArray{ EThread::PerFrame, EThread::Renderer },
-                nanoseconds{1},
-                milliseconds{4},
                 "render thread"s << ToString(i)
             }));
     }

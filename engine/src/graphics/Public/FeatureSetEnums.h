@@ -76,7 +76,7 @@ namespace AE::Graphics
 
         //                              |                       GLSL                            |                       MSL                     |
         //                              |-------------------------------------------------------|-----------------------------------------------|
-        // ---- Basic ----              |                       GL_KHR_shader_subgroup_basic    |                                               |
+        // ---- Basic ----              |                          GL_KHR_shader_subgroup_basic |                                               |
         IndexAndSize,               //  |   uint gl_SubgroupSize                                |   uint [[threads_per_simdgroup]]              | - size of the subgroup
                                     //  |   uint gl_SubgroupInvocationID                        |   uint [[thread_index_in_simdgroup]]          | - invocation index in the subgroup
                                     //  |                                                       |   uint [[thread_index_in_quadgroup]]          | - invocation index in the guadgroup
@@ -96,7 +96,7 @@ namespace AE::Graphics
         _Basic_End                  = Barrier,
 
         //                              |-------------------------------------------------------|-----------------------------------------------|
-        // ---- Vote ----               |                       GL_KHR_shader_subgroup_vote     |                                               |
+        // ---- Vote ----               |                           GL_KHR_shader_subgroup_vote |                                               |
         Any,                        //  |   bool subgroupAny(bool value)                        |   bool simd_any(bool value)                   | - returns true if any active invocation has 'value == true'
         All,                        //  |   bool subgroupAll(bool value)                        |   bool simd_all(bool value)                   | - returns true if all active invocation have 'value == true'
         AllEqual,                   //  |   bool subgroupAllEqual(T value)                      |   -                                           | - returns true if all active invocation have a 'value' that is equal
@@ -105,7 +105,7 @@ namespace AE::Graphics
         _Vote_End                   = AllEqual,
 
         //                              |-------------------------------------------------------|-----------------------------------------------|
-        // ---- Arithmetic ----         |                   GL_KHR_shader_subgroup_arithmetic   |                                               |
+        // ---- Arithmetic ----         |                     GL_KHR_shader_subgroup_arithmetic |                                               |
         Add,                        //  |   T subgroupAdd(T value)                              |   T simd_sum(T value)                         | - returns the summation of all active invocation provided 'value's
         Mul,                        //  |   T subgroupMul(T value)                              |   T simd_product(T value)                     | - returns the multiplication of all active invocation-provided 'value's.
         Min,                        //  |   T subgroupMin(T value)                              |   T simd_min(T value)                         | - returns the minimum <value> of all active invocation-provided 'value's.
@@ -132,7 +132,7 @@ namespace AE::Graphics
         _Arithmetic_End             = ExclusiveXor,
 
         //                              |-------------------------------------------------------|-----------------------------------------------|
-        // ---- Ballot ----             |                       GL_KHR_shader_subgroup_ballot   |                                               |
+        // ---- Ballot ----             |                         GL_KHR_shader_subgroup_ballot |                                               |
         Ballot,                     //  |   uint4 subgroupBallot(bool value)                    |   simd_vote simd_ballot(bool value)           |
         Broadcast,                  //  |   T subgroupBroadcast(T value, uint id)               |   T simd_broadcast(T value, ushort id)        |
         BroadcastFirst,             //  |   T subgroupBroadcastFirst(T value)                   |   T simd_broadcast_first(T value)             |
@@ -148,7 +148,7 @@ namespace AE::Graphics
         _Ballot_End                 = BallotFindMSB,
 
         //                              |-------------------------------------------------------|-----------------------------------------------|
-        // ---- Shuffle ----            |                       GL_KHR_shader_subgroup_shuffle  |                                               |
+        // ---- Shuffle ----            |                        GL_KHR_shader_subgroup_shuffle |                                               |
         Shuffle,                    //  |   T subgroupShuffle(T value, uint index)              |   T simd_shuffle(T value, ushort index)       |
         ShuffleXor,                 //  |   T subgroupShuffleXor(T value, uint mask)            |   T simd_shuffle_xor(T value, ushort mask)    |
                                     //  '-------------------------------------------------------'-----------------------------------------------'
@@ -164,7 +164,7 @@ namespace AE::Graphics
         _ShuffleRelative_End        = ShuffleDown,
 
         //                              |-------------------------------------------------------|-----------------------------------------------|
-        // ---- Clustered ----          |                   GL_KHR_shader_subgroup_clustered    |                                               |
+        // ---- Clustered ----          |                      GL_KHR_shader_subgroup_clustered |                                               |
         ClusteredAdd,               //  |   T subgroupClusteredAdd(T value, uint clusterSize)   |   -                                           |
         ClusteredMul,               //  |   T subgroupClusteredMul(T value, uint clusterSize)   |   -                                           |
         ClusteredMin,               //  |   T subgroupClusteredMin(T value, uint clusterSize)   |   -                                           |
@@ -177,7 +177,7 @@ namespace AE::Graphics
         _Clustered_End              = ClusteredXor,
 
         //                              |-------------------------------------------------------|-----------------------------------------------|
-        // ---- Quad ----               |                       GL_KHR_shader_subgroup_quad     |                                               |
+        // ---- Quad ----               |                           GL_KHR_shader_subgroup_quad |                                               |
         QuadBroadcast,              //  |   T subgroupQuadBroadcast(T value, uint id)           |   T quad_broadcast(T value, ushort id)        |
         QuadSwapHorizontal,         //  |   T subgroupQuadSwapHorizontal(T value)               |   -                                           |
         QuadSwapVertical,           //  |   T subgroupQuadSwapVertical(T value)                 |   -                                           |
@@ -187,7 +187,7 @@ namespace AE::Graphics
         _Quad_End                   = QuadSwapDiagonal,
 
         //                              |-------------------------------------------------------|-----------------------------------------------|
-        // ---- Partitioned NV ----     |               GL_NV_shader_subgroup_partitioned       |   -                                           |
+        // ---- Partitioned NV ----     |                     GL_NV_shader_subgroup_partitioned |   -                                           |
         //PartitionedAdd_NV,        //  |   T subgroupPartitionedAddNV(T value, uint4 ballot)   |   -                                           |
         //PartitionedMin_NV,        //  |   T subgroupPartitionedMinNV(T value, uint4 ballot)   |   -                                           |
         //PartitionedMax_NV,        //  |   T subgroupPartitionedMaxNV(T value, uint4 ballot)   |   -                                           |

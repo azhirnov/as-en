@@ -18,13 +18,13 @@ namespace AE::ResEditor
         _dstGeometry{ RVRef(dstGeometry) },
         _dbgName{ dbgName }
     {
-        auto&   feats = RenderTaskScheduler().GetDevice().GetProperties().accelerationStructureFeats;
-        CHECK_THROW_MSG( feats.accelerationStructure,
+        auto&   fs = RenderTaskScheduler().GetFeatureSet();
+        CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
             "AS build is not supported" );
 
         if ( indirect )
         {
-            if ( feats.accelerationStructureIndirectBuild )
+            if ( fs.accelerationStructureIndirectBuild == EFeature::RequireTrue )
                 _mode = RTGeometry::EBuildMode::Indirect;
             else
                 _mode = RTGeometry::EBuildMode::IndirectEmulated;
@@ -73,13 +73,13 @@ namespace AE::ResEditor
         _dstScene{ RVRef(dstScene) },
         _dbgName{ dbgName }
     {
-        auto&   feats = RenderTaskScheduler().GetDevice().GetProperties().accelerationStructureFeats;
-        CHECK_THROW_MSG( feats.accelerationStructure,
+        auto&   fs = RenderTaskScheduler().GetFeatureSet();
+        CHECK_THROW_MSG( fs.accelerationStructure() == EFeature::RequireTrue,
             "AS build is not supported" );
 
         if ( indirect )
         {
-            if ( feats.accelerationStructureIndirectBuild )
+            if ( fs.accelerationStructureIndirectBuild == EFeature::RequireTrue )
                 _mode = RTGeometry::EBuildMode::Indirect;
             else
                 _mode = RTGeometry::EBuildMode::IndirectEmulated;

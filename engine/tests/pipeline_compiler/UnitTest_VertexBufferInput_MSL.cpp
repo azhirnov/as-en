@@ -28,6 +28,7 @@ namespace
 
 extern void  UnitTest_VertexBufferInput_MSL ()
 {
+#ifdef AE_METAL_TOOLS
     ObjectStorage   obj;
     PipelineStorage ppln;
     obj.defaultFeatureSet   = "DefaultFS";
@@ -49,4 +50,5 @@ extern void  UnitTest_VertexBufferInput_MSL ()
 
     ObjectStorage::SetInstance( null );
     TEST_PASSED();
+#endif
 }

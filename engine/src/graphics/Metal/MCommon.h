@@ -12,6 +12,8 @@
 # include "graphics/Public/FrameUID.h"
 # include "graphics/Public/MetalTypes.h"
 
+# include "graphics/Private/Defines.h"
+
 // Xcode frame debugger doesn't support sample counters
 # define AE_METAL_NATIVE_DEBUGGER   0
 

@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 void ASmain ()
 {
@@ -15,13 +15,13 @@ void ASmain ()
 
     {
         RC<Shader>  vs  = Shader();
-        vs.file     = "draw3_vs.glsl";
+        vs.file        = "draw3_vs.glsl";            // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw3_vs.glsl
         vs.options  = EShaderOpt::Optimize;
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file     = "draw1_fs.glsl";
+        fs.file        = "draw1_fs.glsl";            // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw1_fs.glsl
         fs.options  = EShaderOpt::Optimize;
         ppln.SetFragmentShader( fs );
     }
@@ -30,7 +30,6 @@ void ASmain ()
     {
         RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "draw3" );
         spec.AddToRenderTech( "DrawTestRT", "Draw_1" );
-        spec.SetViewportCount( 1 );
 
         RenderState rs;
         rs.inputAssembly.topology = EPrimitive::TriangleList;

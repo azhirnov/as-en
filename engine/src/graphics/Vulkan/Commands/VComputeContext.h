@@ -21,6 +21,11 @@ namespace AE::Graphics::_hidden_
 
     class _VDirectComputeCtx : public VBaseDirectContext
     {
+    // types
+    private:
+        using Validator_t   = ComputeContextValidation;
+
+
     // variables
     protected:
         struct {
@@ -43,8 +48,8 @@ namespace AE::Graphics::_hidden_
     protected:
         _VDirectComputeCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)                          __Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Compute } {}
 
-        void  _Dispatch (const uint3 &groupCount);
-        void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
+        void  _Dispatch (const uint3 &groupCount)                                                                   __Th___;
+        void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)                                       __Th___;
         void  _BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout);
         void  _PushComputeConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
     };
@@ -57,6 +62,11 @@ namespace AE::Graphics::_hidden_
 
     class _VIndirectComputeCtx : public VBaseIndirectContext
     {
+    // types
+    private:
+        using Validator_t   = ComputeContextValidation;
+
+
     // variables
     private:
         struct {
@@ -79,8 +89,8 @@ namespace AE::Graphics::_hidden_
     protected:
         _VIndirectComputeCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)                    __Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::Compute } {}
 
-        void  _Dispatch (const uint3 &groupCount);
-        void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount);
+        void  _Dispatch (const uint3 &groupCount)                                                                   __Th___;
+        void  _DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)                                       __Th___;
         void  _BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout);
         void  _PushComputeConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
     };
@@ -157,10 +167,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    _VComputeContextImpl<C>::_VComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+    _VComputeContextImpl<C>::_VComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
         RawCtx{ task, RVRef(cmdbuf), dbg }
     {
-        CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
 /*
@@ -169,7 +179,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VComputeContextImpl<C>::BindPipeline (ComputePipelineID ppln)
+    void  _VComputeContextImpl<C>::BindPipeline (ComputePipelineID ppln) __Th___
     {
         auto&   cppln = _GetResourcesOrThrow( ppln );
 
@@ -182,7 +192,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VComputeContextImpl<C>::BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
+    void  _VComputeContextImpl<C>::BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets) __Th___
     {
         auto&   desc_set = _GetResourcesOrThrow( ds );
 
@@ -195,9 +205,9 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VComputeContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
+    void  _VComputeContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___
     {
-        Validator_t::PushConstant( idx, size, typeName );
+        VALIDATE_GCTX( PushConstant( idx, size, typeName ));
 
         RawCtx::_PushComputeConstant( idx.offset, size, values, EShaderStages(0) | idx.stage );
     }
@@ -208,10 +218,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VComputeContextImpl<C>::DispatchIndirect (BufferID bufferId, Bytes offset)
+    void  _VComputeContextImpl<C>::DispatchIndirect (BufferID bufferId, Bytes offset) __Th___
     {
         auto&   buf = _GetResourcesOrThrow( bufferId );
-        Validator_t::DispatchIndirect( buf, offset );
+        VALIDATE_GCTX( DispatchIndirect( buf.Description(), offset ));
 
         RawCtx::DispatchIndirect( buf.Handle(), offset );
     }
@@ -224,10 +234,9 @@ namespace AE::Graphics::_hidden_
     BindDescriptorSet
 =================================================
 */
-    inline void  _VDirectComputeCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
+    inline void  _VDirectComputeCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets) __Th___
     {
-        ASSERT( _states.pplnLayout != Default );
-        ASSERT( ds != Default );
+        VALIDATE_GCTX( BindDescriptorSet( _states.pplnLayout, index, ds ));
 
         vkCmdBindDescriptorSets( _cmdbuf.Get(), _bindPoint, _states.pplnLayout, index.vkIndex, 1, &ds, uint(dynamicOffsets.size()), dynamicOffsets.data() );
     }
@@ -248,10 +257,10 @@ namespace AE::Graphics::_hidden_
     _Dispatch
 =================================================
 */
-    inline void  _VDirectComputeCtx::_Dispatch (const uint3 &groupCount)
+    inline void  _VDirectComputeCtx::_Dispatch (const uint3 &groupCount) __Th___
     {
-        ASSERT( All( groupCount >= 1u ));
         ASSERT( _NoPendingBarriers() );
+        VALIDATE_GCTX( Dispatch( _states.pplnLayout, groupCount ));
 
         vkCmdDispatch( _cmdbuf.Get(), groupCount.x, groupCount.y, groupCount.z );
     }
@@ -261,10 +270,10 @@ namespace AE::Graphics::_hidden_
     DispatchIndirect
 =================================================
 */
-    inline void  _VDirectComputeCtx::DispatchIndirect (VkBuffer buffer, Bytes offset)
+    inline void  _VDirectComputeCtx::DispatchIndirect (VkBuffer buffer, Bytes offset) __Th___
     {
-        ASSERT( buffer != Default );
         ASSERT( _NoPendingBarriers() );
+        VALIDATE_GCTX( DispatchIndirect( _states.pplnLayout, buffer ));
 
         vkCmdDispatchIndirect( _cmdbuf.Get(), buffer, VkDeviceSize(offset) );
     }
@@ -274,11 +283,10 @@ namespace AE::Graphics::_hidden_
     _DispatchBase
 =================================================
 */
-    inline void  _VDirectComputeCtx::_DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)
+    inline void  _VDirectComputeCtx::_DispatchBase (const uint3 &baseGroup, const uint3 &groupCount) __Th___
     {
-        ASSERT( _GetExtensions().deviceGroup );
-        ASSERT( All( groupCount >= 1u ));
         ASSERT( _NoPendingBarriers() );
+        VALIDATE_GCTX( DispatchBase( _states.pplnLayout, baseGroup, groupCount ));
 
         vkCmdDispatchBaseKHR( _cmdbuf.Get(), baseGroup.x, baseGroup.y, baseGroup.z, groupCount.x, groupCount.y, groupCount.z );
     }
@@ -291,8 +299,10 @@ namespace AE::Graphics::_hidden_
     BindDescriptorSet
 =================================================
 */
-    inline void  _VIndirectComputeCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
+    inline void  _VIndirectComputeCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets) __Th___
     {
+        VALIDATE_GCTX( BindDescriptorSet( _states.pplnLayout, index, ds ));
+
         _cmdbuf->BindDescriptorSet( _bindPoint, _states.pplnLayout, index.vkIndex, ds, dynamicOffsets );
     }
 
@@ -304,7 +314,6 @@ namespace AE::Graphics::_hidden_
     inline void  _VIndirectComputeCtx::_BindComputePipeline (VkPipeline ppln, VkPipelineLayout layout)
     {
         _states.pplnLayout = layout;
-
         _cmdbuf->BindPipeline( _bindPoint, ppln, layout );
     }
 
@@ -315,7 +324,7 @@ namespace AE::Graphics::_hidden_
 */
     inline void  _VIndirectComputeCtx::_PushComputeConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
     {
-        ASSERT( _states.pplnLayout != Default );
+        VALIDATE_GCTX( PushConstant( _states.pplnLayout, offset, size, values, stages ));
 
         _cmdbuf->PushConstant( _states.pplnLayout, offset, size, values, stages );
     }
@@ -325,9 +334,10 @@ namespace AE::Graphics::_hidden_
     _Dispatch
 =================================================
 */
-    inline void  _VIndirectComputeCtx::_Dispatch (const uint3 &groupCount)
+    inline void  _VIndirectComputeCtx::_Dispatch (const uint3 &groupCount) __Th___
     {
-        ASSERT( All( groupCount >= 1u ));
+        ASSERT( _NoPendingBarriers() );
+        VALIDATE_GCTX( Dispatch( _states.pplnLayout, groupCount ));
 
         auto&   cmd = _cmdbuf->CreateCmd< DispatchCmd >();  // throw
         MemCopy( OUT cmd.groupCount, &groupCount, Sizeof( cmd.groupCount ));
@@ -338,9 +348,10 @@ namespace AE::Graphics::_hidden_
     DispatchIndirect
 =================================================
 */
-    inline void  _VIndirectComputeCtx::DispatchIndirect (VkBuffer buffer, Bytes offset)
+    inline void  _VIndirectComputeCtx::DispatchIndirect (VkBuffer buffer, Bytes offset) __Th___
     {
-        ASSERT( buffer != Default );
+        ASSERT( _NoPendingBarriers() );
+        VALIDATE_GCTX( DispatchIndirect( _states.pplnLayout, buffer ));
 
         auto&   cmd = _cmdbuf->CreateCmd< DispatchIndirectCmd >();  // throw
         cmd.buffer  = buffer;
@@ -352,10 +363,10 @@ namespace AE::Graphics::_hidden_
     _DispatchBase
 =================================================
 */
-    inline void  _VIndirectComputeCtx::_DispatchBase (const uint3 &baseGroup, const uint3 &groupCount)
+    inline void  _VIndirectComputeCtx::_DispatchBase (const uint3 &baseGroup, const uint3 &groupCount) __Th___
     {
-        ASSERT( _GetExtensions().deviceGroup );
-        ASSERT( All( groupCount >= 1u ));
+        ASSERT( _NoPendingBarriers() );
+        VALIDATE_GCTX( DispatchBase( _states.pplnLayout, baseGroup, groupCount ));
 
         auto&   cmd = _cmdbuf->CreateCmd< DispatchBaseCmd >();  // throw
         MemCopy( OUT cmd.baseGroup,  &baseGroup,  Sizeof( cmd.baseGroup ));

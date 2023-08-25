@@ -91,6 +91,17 @@ namespace AE::RG::_hidden_
             template <typename ID>
             ND_ CmdBatchBuilder &&  UseResources (ArrayView<ID> ids)                                            rvNE___;
 
+            template <typename ID0, typename ...IDs>
+            ND_ CmdBatchBuilder &&  UseResources (const ID0 &id0, const IDs& ...ids)                            rvNE___;
+
+            // CPU <-> GPU syncs
+            // Batch is submitted as single command and can be synchronized with host (CPU)
+            // only before and after batch command execution.
+            // So Upload/Readback syncs are defined for command batch instead of specific command buffer.
+            //
+            // UploadMemory     - barrier: HostRead -> VertexBuffer | IndexBuffer | CopySrc
+            // ReadbackMemory   - barrier: CopyDst -> HostRead
+
             ND_ CmdBatchBuilder &&  UploadMemory ()                                                             rvNE___;
             ND_ CmdBatchBuilder &&  ReadbackMemory ()                                                           rvNE___;
 
@@ -248,6 +259,22 @@ namespace AE::RG::_hidden_
             _UseResource( ResourceKey{id}, Default, Default );
         }
         return RVRef(*this);
+    }
+
+/*
+=================================================
+    UseResources
+=================================================
+*/
+    template <typename ID0, typename ...IDs>
+    RenderGraph::CmdBatchBuilder &&  RenderGraph::CmdBatchBuilder::UseResources (const ID0 &id0,const IDs& ...ids) rvNE___
+    {
+        _UseResource( ResourceKey{id0}, Default, Default );
+
+        if constexpr( sizeof...(IDs) > 0 )
+            return RVRef(*this).UseResources( ids... );
+        else
+            return RVRef(*this);
     }
 
 

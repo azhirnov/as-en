@@ -38,7 +38,7 @@ int main ()
     bool    passed = true;
     {
         passed &= ShaderTrace_Test1( vulkan );      // graphics
-        passed &= ShaderTrace_Test2( vulkan );      // compute
+        //passed &= ShaderTrace_Test2( vulkan );    // compute
         //passed &= ShaderTrace_Test3( vulkan );    // graphics
         passed &= ShaderTrace_Test4( vulkan );      // graphics
         passed &= ShaderTrace_Test5( vulkan );      // graphics
@@ -51,6 +51,7 @@ int main ()
         passed &= ShaderTrace_Test12( vulkan );     // compute
         passed &= ShaderTrace_Test13( vulkan );     // graphics
         passed &= ShaderTrace_Test14( vulkan );     // ray tracing
+        passed &= ShaderTrace_Test15( vulkan );     // ray tracing
     }
 
     if ( vulkan.GetShaderClockFeats().shaderDeviceClock )

@@ -79,7 +79,7 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
         ${SOURCES}
         ${PIPELINE_COMPILER_HPP_SRC} ${PIPELINE_COMPILER_CPP_SRC}
         ${SHADER_TRACE_HPP_SRC} ${SHADER_TRACE_CPP_SRC}
-        ${DUMMY_CPP_FILE} )
+        ${PREBUILD_CPP_FILE} )
 
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
     source_group( "external/pipeline_compiler" FILES ${PIPELINE_COMPILER_HPP_SRC} ${PIPELINE_COMPILER_CPP_SRC} )
@@ -88,6 +88,13 @@ if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
     target_link_libraries( "Graphics" PUBLIC "Threading" "Serializing" )
 
     target_include_directories( "Graphics" PUBLIC "${PIPELINE_COMPILER_DIR}" )
+
+    set( AE_GRAPHICS_STRONG_VALIDATION OFF CACHE BOOL "Safe mode: validate all arguments, throw exception in context..." )
+    if (${AE_GRAPHICS_STRONG_VALIDATION})
+        target_compile_definitions( "Graphics" PUBLIC AE_GRAPHICS_STRONG_VALIDATION=1 )
+    else()
+        target_compile_definitions( "Graphics" PUBLIC AE_GRAPHICS_STRONG_VALIDATION=0 )
+    endif()
 
     if (${AE_ENABLE_VULKAN})
         source_group( "external/shader_trace" FILES ${SHADER_TRACE_HPP_SRC} ${SHADER_TRACE_CPP_SRC} )

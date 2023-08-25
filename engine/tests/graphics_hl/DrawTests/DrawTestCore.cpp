@@ -7,8 +7,7 @@
 
 #include "DrawTestCore.h"
 
-#include "res_loaders/DDS/DDSLoader.h"
-#include "res_loaders/DDS/DDSSaver.h"
+#include "res_loaders/DDS/DDSImageSaver.h"
 
 #include "threading/TaskSystem/ThreadManager.h"
 
@@ -103,8 +102,8 @@ bool  DrawTestCore::SaveImage (StringView name, const ImageMemView &view)
     path.append( name );
     path.replace_extension( "dds" );
 
-    DDSSaver    saver;
-    IntermImage img;    CHECK( img.SetData( view, null ));
+    DDSImageSaver   saver;
+    IntermImage     img;    CHECK( img.SetData( view, null ));
 
     CHECK_ERR( saver.SaveImage( path, img ));
     return true;
@@ -187,7 +186,7 @@ bool  DrawTestCore::_Create (IApplication &app, IWindow &wnd)
     CHECK_ERR( _vulkan.CheckConstantLimits() );
     CHECK_ERR( _vulkan.CheckExtensions() );
 
-    _refDumpPath /= _vulkan.GetProperties().properties.deviceName;
+    _refDumpPath /= _vulkan.GetDeviceName();
     FileSystem::CreateDirectories( _refDumpPath );
 
     {
@@ -349,10 +348,8 @@ bool  DrawTestCore::_Create (IApplication &, IWindow &wnd)
     SwapchainDesc   swapchain_ci;
     CHECK_ERR( _swapchain.Create( wnd.GetSurfaceSize(), swapchain_ci ));
 
-    Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::WorkerConfig{
+    Scheduler().AddThread( ThreadMngr::CreateThread( ThreadMngr::ThreadConfig{
             EThreadArray{ EThread::PerFrame, EThread::Renderer },
-            nanoseconds{1},
-            milliseconds{4},
             "render thread"
         }));
 

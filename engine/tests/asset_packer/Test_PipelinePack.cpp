@@ -22,28 +22,31 @@ namespace
         const CharType *    shader_folder[]     = { TXT("shaders_glsl"), TXT("shaders_msl") };
         const CharType *    include_dir[]       = { TXT("shaders_glsl/include"), TXT("shaders_msl/include") };
         const Path          output_folder       = TXT("_output");
-        const Path          output_script       = TXT( AE_SHARED_DATA "/scripts/pipeline_compiler" );
+        const Path          output_script       = TXT( AE_SHARED_DATA "/scripts/pipeline_compiler.as" );
         const Path          ref_dump_fname      = FileSystem::ToAbsolute( refName );
 
         FileSystem::RemoveAll( output_folder );
         TEST( FileSystem::CreateDirectories( output_folder ));
 
-        const Path  output      = FileSystem::ToAbsolute( output_folder / "pipelines.bin" );
-        const Path  output_cpp  = FileSystem::ToAbsolute( output_folder / ".." / (isVk ? "vk_types.h" : "mtl_types.h" ));
+        const Path  output          = FileSystem::ToAbsolute( output_folder / "pipelines.bin" );
+        const Path  output_cpp      = FileSystem::ToAbsolute( output_folder / ".." / (isVk ? "vk_types.h" : "mtl_types.h" ));
+        const Path  output_names    = FileSystem::ToAbsolute( output_folder / ".." / (isVk ? "vk_names.h" : "mtl_names.h" ));
 
-        PipelinesInfo   info = {};
-        info.inPipelines        = pipelines;
-        info.inPipelineCount    = CountOf( pipelines );
-        info.pipelineFolders    = pipeline_folder;
-        info.pipelineFolderCount= CountOf( pipeline_folder );
-        info.includeDirs        = include_dir;
-        info.includeDirCount    = CountOf( include_dir );
-        info.shaderFolders      = shader_folder;
-        info.shaderFolderCount  = CountOf( shader_folder );
-        info.outputPackName     = Cast<CharType>(output.c_str());
-        info.outputCppFile      = Cast<CharType>(output_cpp.c_str());
-        info.outputScriptFile   = Cast<CharType>(output_script.c_str());
-        info.addNameMapping     = true;
+        PipelinesInfo   info        = {};
+        info.inPipelines            = pipelines;
+        info.inPipelineCount        = CountOf( pipelines );
+        info.pipelineFolders        = pipeline_folder;
+        info.pipelineFolderCount    = CountOf( pipeline_folder );
+        info.includeDirs            = include_dir;
+        info.includeDirCount        = CountOf( include_dir );
+        info.shaderFolders          = shader_folder;
+        info.shaderFolderCount      = CountOf( shader_folder );
+        info.outputPackName         = Cast<CharType>(output.c_str());
+        info.outputCppStructsFile   = Cast<CharType>(output_cpp.c_str());
+        info.outputCppNamesFile     = Cast<CharType>(output_names.c_str());
+        info.outputScriptFile       = Cast<CharType>(output_script.c_str());
+        info.cppReflectionFlags     = EReflectionFlags::All;
+        info.addNameMapping         = true;
 
         TEST( compile_pipelines( &info ));
 
@@ -371,7 +374,9 @@ namespace
 
     static void  PipelinePack_Test2 ()
     {
+    #ifdef AE_METAL_TOOLS
         PipelinePack_Test( false, "test2_ref.txt" );
+    #endif
     }
 }
 

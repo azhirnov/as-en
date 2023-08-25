@@ -218,7 +218,7 @@ namespace AE::Base
         DirectoryEntry (const DirectoryEntry &)                     = default;
         DirectoryEntry (DirectoryEntry &&)                  __NE___ = default;
 
-        DirectoryEntry&  operator = (const DirectoryEntry &)        = default;
+        DirectoryEntry&  operator = (const DirectoryEntry &)__Th___ = default;
         DirectoryEntry&  operator = (DirectoryEntry &&)     __NE___ = default;
 
         operator const Path & ()                            C_NE___ { return _entry.path(); }

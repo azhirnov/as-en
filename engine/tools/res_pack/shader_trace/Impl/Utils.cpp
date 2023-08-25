@@ -19,7 +19,7 @@ namespace AE::PipelineCompiler
             return pos != TString::npos ? aggr->getName().substr( 0, pos ).c_str() : aggr->getName().c_str();
         }
 
-    #ifdef HIGH_DETAIL_TRACE
+    #if HIGH_DETAIL_TRACE
         String  suffix;
         if ( op->getOp() >= TOperator::EOpConvInt8ToBool and op->getOp() <= TOperator::EOpConvDoubleToFloat )
         {
@@ -33,14 +33,14 @@ namespace AE::PipelineCompiler
         }
     #endif
 
-    #define ENABLE_ALL 1
+    #define ENABLE_ALL 0
 
         #if ENABLE_ALL
             BEGIN_ENUM_CHECKS();
         #endif
         switch ( op->getOp() )
         {
-        #if ENABLE_ALL //def HIGH_DETAIL_TRACE
+        #if ENABLE_ALL or HIGH_DETAIL_TRACE
             case TOperator::EOpConvInt8ToBool :
             case TOperator::EOpConvUint8ToBool :
             case TOperator::EOpConvInt16ToBool :

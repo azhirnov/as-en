@@ -25,6 +25,9 @@ namespace AE::ResEditor
 */
     void  ScaleBiasCamera::ProcessInput (ActionQueueReader reader, secondsf) __NE___
     {
+        constexpr auto& IA      = InputActions::Controller_ScaleBias;
+        constexpr auto& BaseIA  = InputActions::SwitchInputMode;
+
         const uint2 dim = _dynDim ? _dynDim->Dimension2() : uint2{1};
         float2      bias;
         float       scale   = 0.f;
@@ -33,14 +36,18 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            if_unlikely( hdr.name == InputActionName{"Camera.Bias"} )
-                bias = reader.Data<packed_float2>( hdr.offset );
+            STATIC_ASSERT( (IA.actionCount - BaseIA.actionCount) == 3 );
+            switch ( uint{hdr.name} )
+            {
+                case IA.Camera_Bias :
+                    bias = reader.Data<packed_float2>( hdr.offset );    break;
 
-            if_unlikely( hdr.name == InputActionName{"Camera.Scale"} )
-                scale = reader.Data<packed_float2>( hdr.offset ).y;
+                case IA.Camera_Scale :
+                    scale = reader.Data<packed_float2>( hdr.offset ).y; break;
 
-            if_unlikely( hdr.name == InputActionName{"Camera.Reset"} )
-                reset = true;
+                case IA.Camera_Reset :
+                    reset = true;                                       break;
+            }
         }
 
 
@@ -126,6 +133,21 @@ namespace AE::ResEditor
         frustum.Setup( _matrix );
 
         _CopyToCameraData( OUT camera, frustum );
+    }
+
+/*
+=================================================
+    GetHelpText
+=================================================
+*/
+    StringView  ScaleBiasCamera::GetHelpText () C_NE___
+    {
+        return R"(
+ScaleBiasCamera controls:
+  'Left mouse btn' - press to move camera
+  'Mouse wheel'    - zoom
+  'R'              - reset position, rotation, zoom
+)";
     }
 
 

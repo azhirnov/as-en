@@ -119,7 +119,7 @@ if (NOT ${AE_STD_FILESYSTEM_SUPPORTED})
 endif()
 
 target_compile_definitions( "ProjectTemplate" PUBLIC
-    "AE_ENGINE_NAME=\"AE\""
+    "AE_ENGINE_NAME=\"AsEn\""
     "AE_VERSION=AE::Base::Tuple{ ${PROJECT_VERSION_MAJOR}, ${PROJECT_VERSION_MINOR}, ${PROJECT_VERSION_PATCH}, \"${AE_COMMIT_HASH}\" }"
 )
 

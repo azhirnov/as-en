@@ -4,7 +4,7 @@ if (NOT (DEFINED ENGINE_LIBS_PATH))
 endif()
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
 
-add_library( "AtlasTools" STATIC ${SOURCES} ${DUMMY_CPP_FILE} )
+add_library( "AtlasTools" STATIC ${SOURCES} ${PREBUILD_CPP_FILE} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 target_link_libraries( "AtlasTools" PUBLIC "Base" )
 target_include_directories( "AtlasTools" PUBLIC ".." )

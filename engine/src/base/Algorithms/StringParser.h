@@ -46,6 +46,8 @@ namespace AE::Base
 
             static void  Preprocessor_CPP (StringView str, ArrayView<StringView> defines,
                                            OUT Array<StringView> &result)                                           __Th___;
+
+        ND_ static bool  ValidateVarName_CPP (StringView name, OUT String &result)                                  __NE___;
     };
 
 

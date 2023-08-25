@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 /*
     TODO:
@@ -38,6 +38,7 @@ void ASmain ()
     fset.shaderStorageImageArrayDynamicIndexing (True);
     fset.shaderUniformBufferArrayDynamicIndexing (True);
     fset.minSpirvVersion (100);
+    fset.drawIndirectFirstInstance (True);
     fset.minViewports (1);
     fset.tessellationIsolines (True);
     fset.tessellationPointMode (True);

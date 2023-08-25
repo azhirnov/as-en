@@ -140,7 +140,7 @@ namespace AE::Base
     {
         DEBUG_ONLY( DbgInitMem( data(), SizeOf<T> * capacity() ));
 
-        STATIC_ASSERT( alignof(Self) % alignof(T) == 0 );
+        STATIC_ASSERT( IsAligned( alignof(Self), alignof(T) ));
     }
 
     template <typename T, usize S, typename CS>

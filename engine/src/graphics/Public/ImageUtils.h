@@ -31,7 +31,7 @@ struct ImageUtils final : Noninstanceable
     ND_ static Bytes  RowSize (Pixels width, uint bitsPerBlock, const uint2 &texelBlock) __NE___
     {
         ASSERT( All( texelBlock > 0u ));
-        ASSERT( width % texelBlock.x == 0 );
+        ASSERT( IsAligned( width, texelBlock.x ));
 
         return ((Bytes{width + texelBlock.x-1} / texelBlock.x) * bitsPerBlock) / 8;
     }
@@ -64,7 +64,7 @@ struct ImageUtils final : Noninstanceable
     ND_ static Bytes  SliceSize (uint height, Bytes rowSize, const uint2 &texelBlock) __NE___
     {
         ASSERT( All( texelBlock > 0u ));
-        ASSERT( height % texelBlock.y == 0 );
+        ASSERT( IsAligned( height, texelBlock.y ));
         return (rowSize * height + texelBlock.y-1) / texelBlock.y;
     }
 

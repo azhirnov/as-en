@@ -82,6 +82,7 @@ constexpr sampler imtblSampler (
 
 extern void  UnitTest_PipelineLayout_MSL ()
 {
+#ifdef AE_METAL_TOOLS
     ObjectStorage   obj;
     PipelineStorage ppln;
     obj.defaultFeatureSet   = "DefaultFS";
@@ -116,4 +117,5 @@ extern void  UnitTest_PipelineLayout_MSL ()
 
     ObjectStorage::SetInstance( null );
     TEST_PASSED();
+#endif
 }

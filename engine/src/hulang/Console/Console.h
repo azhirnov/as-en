@@ -23,8 +23,8 @@ namespace AE::HuLang
             uint    depth   : 4;
             uint    index   : 28;
 
-            ShortSuggestionItem () : depth{0}, index{0} {}
-            ShortSuggestionItem (uint depth, uint index) : depth{depth}, index{index} {}
+            ShortSuggestionItem ()                          __NE___ : depth{0}, index{0} {}
+            ShortSuggestionItem (uint depth, uint index)    __NE___ : depth{depth}, index{index} {}
         };
         using ShortSuggestion_t = Array< ShortSuggestionItem >;
 
@@ -37,7 +37,7 @@ namespace AE::HuLang
             uint                            index       : 28;
             float                           probability;        // 0..1
 
-            SuggestionItem () : depth{0}, index{0}, probability{0.f} {}
+            SuggestionItem ()   __NE___ : depth{0}, index{0}, probability{0.f} {}
         };
         using Suggestion_t  = Array< SuggestionItem >;
 
@@ -61,7 +61,7 @@ namespace AE::HuLang
             const usize     index;
             NameMap_t       map;    // registred names with synonyms
 
-            explicit NameSpace (usize idx) : index{idx} {}
+            explicit NameSpace (usize idx)  __NE___ : index{idx} {}
         };
         using NameSpaceMap_t    = HashMap< StringView, Ptr<NameSpace> >;
 
@@ -73,7 +73,7 @@ namespace AE::HuLang
 
             CommandInfo (ConsoleCmdName::Optimized_t    command,
                          usize                          depth,
-                         StringView                     name) :
+                         StringView                     name) __NE___ :
                 command{command}, depth{uint(depth)}, name{name}
             {}
         };
@@ -108,7 +108,7 @@ namespace AE::HuLang
         ND_ bool  GetSuggestion (StringView userInput, OUT ShortSuggestion_t &result) const;
         ND_ bool  GetSuggestion (StringView userInput, OUT Suggestion_t &result) const;
 
-        ND_ static bool  ProcessUserInput (StringView userInput, OUT CommandName_t &result);
+        ND_ static bool  ProcessUserInput (StringView userInput, OUT CommandName_t &result)     __NE___;
 
     private:
         ND_ bool  _GetSuggestion (const CommandName_t &userInput, const CommandName_t &userInputLC, OUT ShortSuggestion_t &result) const;
@@ -120,7 +120,7 @@ namespace AE::HuLang
         ND_ static bool  _CopyStringLowerCase (Allocator_t &alloc, INOUT StringView &name);
         ND_ static bool  _ProcessUserInput (StringView userInput, StringView userInputLC, OUT CommandName_t &result, OUT CommandName_t &resultLC);
 
-        ND_ static bool  _IsLowerCase (StringView str);
+        ND_ static bool  _IsLowerCase (StringView str)                                          __NE___;
 
         ND_ static StringView  _CutName (StringView fullName, usize depth);
     };

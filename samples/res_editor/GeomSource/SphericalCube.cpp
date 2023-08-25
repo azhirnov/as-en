@@ -52,14 +52,9 @@ namespace AE::ResEditor
     StateTransition
 =================================================
 */
-    void  SphericalCube::StateTransition (IGSMaterials &inMtr, GraphicsCtx_t &ctx) __NE___
+    void  SphericalCube::StateTransition (IGSMaterials &, GraphicsCtx_t &ctx) __NE___
     {
-        const auto  new_state   = EResourceState::ShaderSample | EResourceState::FragmentShader;
-        auto&       mtr         = RefCast<Material>(inMtr);
-
-        for (auto& [un, tex] : mtr.textures) {
-            ctx.ResourceState( tex->GetImageId(), new_state );
-        }
+        _resources.SetStates( ctx, EResourceState::FragmentShader );
     }
 
 /*
@@ -67,14 +62,9 @@ namespace AE::ResEditor
     StateTransition
 =================================================
 */
-    void  SphericalCube::StateTransition (IGSMaterials &inMtr, RayTracingCtx_t &ctx) __NE___
+    void  SphericalCube::StateTransition (IGSMaterials &, RayTracingCtx_t &ctx) __NE___
     {
-        const auto  new_state   = EResourceState::ShaderSample | EResourceState::FragmentShader;
-        auto&       mtr         = RefCast<Material>(inMtr);
-
-        for (auto& [un, tex] : mtr.textures) {
-            ctx.ResourceState( tex->GetImageId(), new_state );
-        }
+        _resources.SetStates( ctx, EResourceState::RayTracingShaders );
     }
 
 /*
@@ -119,7 +109,7 @@ namespace AE::ResEditor
         {
             CHECK_ERR( _cube.Create( ctx.GetResourceManager(), ctx, _minLod, _maxLod, False{}, Default, _GfxAllocator() ));
 
-            auto&   rstate = FrameGraph().GetStateTracker();
+            auto&   rstate = RenderGraph().GetStateTracker();
             rstate.SetDefaultState( _cube.VertexBufferId(), EResourceState::VertexBuffer );
             rstate.SetDefaultState( _cube.IndexBufferId(),  EResourceState::IndexBuffer );
 
@@ -142,10 +132,7 @@ namespace AE::ResEditor
             DescriptorSetID     mtr_ds  = mtr.descSets[ ctx.GetFrameId().Index() ];
 
             CHECK_ERR( updater.Set( mtr_ds, EDescUpdateMode::Partialy ));
-
-            for (auto& [un, tex] : mtr.textures) {
-                CHECK_ERR( updater.BindImage( un, tex->GetViewId() ));
-            }
+            CHECK_ERR( _resources.Bind( ctx.GetFrameId(), updater ));
             CHECK_ERR( updater.BindBuffer< ShaderTypes::SphericalCubeMaterialUB >( UniformName{"un_PerObject"}, mtr.ubuffer ));
 
             CHECK_ERR( updater.Flush() );

@@ -1,4 +1,4 @@
-#include <input_actions>
+#include <input_actions.as>
 
 void ASmain (Android_ActionBindings& bindings)
 {

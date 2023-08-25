@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "graphics/Private/EnumUtils.h"
 #include "graphics/RenderGraph/ResStateTracker.h"
 
 namespace AE::RG::_hidden_
@@ -258,13 +259,16 @@ namespace AE::RG::_hidden_
     {
         EResourceState  old_state;
         if ( not _ResourceState( taskIdx, ResourceKey{id}, newState, OUT old_state ))
-            return;
+            return;  // resource state is not tracked
 
-        if ( not EResourceState_IsSameStates( old_state, newState ))
-        {
-            if constexpr( IsSameTypes< ID, ImageID >)
+        if ( AllBits( newState, EResourceState::Invalidate ))
+            return;  // skip barrier
+
+        if constexpr( IsSameTypes< ID, ImageID >){
+            if ( EResourceState_RequireImageBarrier( old_state, newState, False{"strict"} ))
                 ctx.ImageBarrier( id, old_state, newState );    // throw
-            else
+        }else{
+            if ( EResourceState_RequireMemoryBarrier( old_state, newState, False{"strict"} ))
                 ctx.MemoryBarrier( old_state, newState );       // throw
         }
     }
@@ -293,6 +297,9 @@ namespace AE::RG::_hidden_
 
         for (auto& [id, state] : rs.map)
         {
+            // skip write -> write barrier here,
+            // it will be added in batch to batch transition or
+            // in first 'ResourceState()' call in next render task.
             if_unlikely( not EResourceState_IsSameStates( state.current, state.final ))
             {
                 if ( id.IsImage() )

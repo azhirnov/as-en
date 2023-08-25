@@ -12,7 +12,7 @@ namespace
         const char  send_data[] = "12346ewiofdklijnskdn";
 
         StdThread   listener{ [&] ()
-            {
+            {{
                 UdpSocket   sock2;
                 TEST( sock2.Open( 4000 ));
                 TEST( sock2.IsOpen() );
@@ -39,7 +39,7 @@ namespace
 
                 TEST( sizeof(send_data) == recv_data.size() );
                 TEST( ArrayView<char>{send_data} == recv_data );
-            }};
+            }}};
 
         UdpSocket   sock1;
         TEST( sock1.Open( 3000 ));

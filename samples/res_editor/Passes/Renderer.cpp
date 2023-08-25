@@ -1,8 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Passes/Renderer.h"
-#include "res_editor/EditorUI.h"
-#include "res_editor/EditorCore.h"
+#include "res_editor/Core/EditorUI.h"
+#include "res_editor/Core/EditorCore.h"
+#include "res_editor/_data/cpp/types.h"
 
 namespace AE::ResEditor
 {
@@ -13,8 +14,10 @@ namespace AE::ResEditor
 =================================================
 */
     Renderer::Renderer (uint seed) :
+        _resQueue{ MakeRC<ResourceQueue>() },
         _lastUpdateTime{ TimePoint_t::clock::now() },
-        _gfxAlloc{ MakeRC<GfxLinearMemAllocator>() },
+        _gfxLinearAlloc{ MakeRC<GfxLinearMemAllocator>() },
+        _gfxDynamicAlloc{}, // TODO
         _seed{ seed }
     {
         const auto& shader_trace_folder = ResEditorAppConfig::Get().shaderTraceFolder;
@@ -25,17 +28,17 @@ namespace AE::ResEditor
             _shaderDebugger.reset( new ShaderDebugger{});
         }
 
-        _CreateDummyImage2D( OUT _dummyRes.image2D, _gfxAlloc );
-        _CreateDummyImageCube( OUT _dummyRes.imageCube, _gfxAlloc );
+        _CreateDummyImage2D( OUT _dummyRes.image2D, _gfxLinearAlloc );
+        _CreateDummyImageCube( OUT _dummyRes.imageCube, _gfxLinearAlloc );
 
-        if ( RenderTaskScheduler().GetDevice().GetExtensions().accelerationStructure )
+        if ( RenderTaskScheduler().GetFeatureSet().accelerationStructure() == EFeature::RequireTrue )
         {
-            _CreateDummyRTGeometry( OUT _dummyRes.rtGeometry, _gfxAlloc );
-            _CreateDummyRTScene( OUT _dummyRes.rtScene, _gfxAlloc );
+            _CreateDummyRTGeometry( OUT _dummyRes.rtGeometry, _gfxLinearAlloc );
+            _CreateDummyRTScene( OUT _dummyRes.rtScene, _gfxLinearAlloc );
         }
 
-        _resQueue.EnqueueImageTransition( _dummyRes.image2D  .image );
-        _resQueue.EnqueueImageTransition( _dummyRes.imageCube.image );
+        GetResourceQueue().EnqueueImageTransition( _dummyRes.image2D  .image );
+        GetResourceQueue().EnqueueImageTransition( _dummyRes.imageCube.image );
     }
 
 /*
@@ -57,143 +60,6 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    GetDummyImage
-=================================================
-*/
-    StrongImageAndViewID  Renderer::GetDummyImage (const ImageDesc &desc) C_NE___
-    {
-        ASSERT( desc.imageDim != Default );
-
-        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
-        const bool  is_cube     = (desc.imageDim == EImageDim_2D and AllBits( desc.options, EImageOpt::CubeCompatible ));
-        const bool  is_2darr    = (desc.imageDim == EImageDim_2D and desc.arrayLayers.Get() > 1);
-        const bool  is_2d       = (desc.imageDim == EImageDim_2D and desc.arrayLayers.Get() == 1);
-
-        StrongImageAndViewID    result;
-
-        if ( is_cube or is_2darr )
-        {
-            result.image = res_mngr.AcquireResource( _dummyRes.imageCube.image.Get() );
-            result.view  = res_mngr.AcquireResource( _dummyRes.imageCube.view.Get() );
-        }
-        else
-        if ( is_2d )
-        {
-            result.image = res_mngr.AcquireResource( _dummyRes.image2D.image.Get() );
-            result.view  = res_mngr.AcquireResource( _dummyRes.image2D.view.Get() );
-        }
-
-        return result;
-    }
-
-/*
-=================================================
-    GetDummyRTGeometry
-=================================================
-*/
-    Strong<RTGeometryID>  Renderer::GetDummyRTGeometry () C_NE___
-    {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
-
-        return res_mngr.AcquireResource( _dummyRes.rtGeometry.Get() );
-    }
-
-/*
-=================================================
-    GetDummyRTScene
-=================================================
-*/
-    Strong<RTSceneID>  Renderer::GetDummyRTScene () C_NE___
-    {
-        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
-
-        return res_mngr.AcquireResource( _dummyRes.rtScene.Get() );
-    }
-
-/*
-=================================================
-    _CreateDummyImage2D
-=================================================
-*/
-    void  Renderer::_CreateDummyImage2D (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc)
-    {
-        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
-        ImageDesc   desc;
-
-        desc.SetFormat( EPixelFormat::RGBA8_UNorm );
-        desc.SetDimension( uint2{ 2, 2 });
-        desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
-
-        dst.image = res_mngr.CreateImage( desc, "dummy image 2d", gfxAlloc );
-        CHECK_ERRV( dst.image );
-
-        dst.view = res_mngr.CreateImageView( ImageViewDesc{desc}, dst.image, "dummy image 2d view" );
-        CHECK_ERRV( dst.view );
-
-        FrameGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaders );
-    }
-
-/*
-=================================================
-    _CreateDummyImageCube
-=================================================
-*/
-    void  Renderer::_CreateDummyImageCube (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc)
-    {
-        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
-        ImageDesc   desc;
-
-        desc.SetFormat( EPixelFormat::RGBA8_UNorm );
-        desc.SetDimension( uint2{ 2, 2 });
-        desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
-        desc.SetArrayLayers( 6 );
-        desc.SetOptions( EImageOpt::CubeCompatible );
-
-        dst.image = res_mngr.CreateImage( desc, "dummy image cube", gfxAlloc );
-        CHECK_ERRV( dst.image );
-
-        dst.view = res_mngr.CreateImageView( ImageViewDesc{desc}, dst.image, "dummy image cube view" );
-        CHECK_ERRV( dst.view );
-
-        FrameGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaders );
-    }
-
-/*
-=================================================
-    _CreateDummyRTGeometry
-=================================================
-*/
-    void  Renderer::_CreateDummyRTGeometry (OUT Strong<RTGeometryID> &dst, GfxMemAllocatorPtr gfxAlloc)
-    {
-        auto&           res_mngr = RenderTaskScheduler().GetResourceManager();
-        RTGeometryDesc  desc;
-
-        desc.options    = Default;
-        desc.size       = 16_b;
-
-        dst = res_mngr.CreateRTGeometry( desc, "dummy RTGeometry", gfxAlloc );
-        CHECK_ERRV( dst );
-    }
-
-/*
-=================================================
-    _CreateDummyRTScene
-=================================================
-*/
-    void  Renderer::_CreateDummyRTScene (OUT Strong<RTSceneID> &dst, GfxMemAllocatorPtr gfxAlloc)
-    {
-        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
-        RTSceneDesc desc;
-
-        desc.options    = Default;
-        desc.size       = 16_b;
-
-        dst = res_mngr.CreateRTScene( desc, "dummy RTScene", gfxAlloc );
-        CHECK_ERRV( dst );
-    }
-
-/*
-=================================================
     GetInputMode
 =================================================
 */
@@ -209,6 +75,9 @@ namespace AE::ResEditor
 */
     void  Renderer::ProcessInput (ActionQueueReader reader, OUT bool &switchMode)
     {
+        constexpr auto&     IA      = InputActions::SwitchInputMode;
+        constexpr auto&     ui_IA   = InputActions::Main_UI;
+
         if ( _controller )
         {
             // validate time
@@ -227,23 +96,29 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            // for UI compatibility
+            STATIC_ASSERT( IA.actionCount == 5 );
+            switch ( uint{hdr.name} )
             {
-                if_unlikely( hdr.name == InputActionName{"UI.MousePos"} )
-                    input->cursorPos = reader.Data<packed_float2>( hdr.offset );
+                // compatible with UI
+                case ui_IA.UI_MousePos :
+                    input->cursorPos = reader.Data<packed_float2>( hdr.offset );    break;
 
-                if_unlikely( hdr.name == InputActionName{"UI.MouseRBDown"} )
-                    input->pressed = true;
+                case ui_IA.UI_MouseRBDown :
+                    input->pressed = true;                                          break;
+
+                // ui_IA.UI_ShowHide - ignore
+
+
+                // compatible with UI & controller
+                case IA.SwitchInputMode :
+                    switchMode = true;                                              break;
+
+                case IA.PauseRendering :
+                    input->pauseRendering = not input->pauseRendering;              break;
+
+                case IA.CustomKey1 :
+                    input->customKeys[0] = reader.Data<float>( hdr.offset );        break;
             }
-
-            if_unlikely( hdr.name == InputActionName{"SwitchInputMode"} )
-                switchMode = true;
-
-            if_unlikely( hdr.name == InputActionName{"PauseRendering"} )
-                input->pauseRendering = not input->pauseRendering;
-
-            if_unlikely( hdr.name == InputActionName{"CustomKey1"} )
-                input->customKeys[0] = reader.Data<float>( hdr.offset );
         }
     }
 
@@ -263,7 +138,7 @@ namespace AE::ResEditor
 
         _UpdateDynSliders();
 
-        auto&   rg      = FrameGraph();
+        auto&   rg      = RenderGraph();
 
         auto    batch   = rg.Render( "RenderPasses" );
         CHECK_ERR( batch );
@@ -279,6 +154,8 @@ namespace AE::ResEditor
         PassArr_t               present;
         IPass::UpdatePassData   update_pd;
         IPass::Debugger         pass_debugger;
+        Array<RC<IResource>>    res_to_resize;
+        Array<AsyncTask>        deps {inDeps};
 
         // update timers
         {
@@ -317,15 +194,28 @@ namespace AE::ResEditor
             pass_debugger.coord     = dbg->coord;
         }
 
+        // which passes need to update
         for (auto& pass : _passes)
         {
             if ( AllBits( pass->GetType(), EPass::Update ))
                 update_passes.push_back( pass );
+
+            pass->GetResourcesToResize( INOUT res_to_resize );
         }
+
+        // resize (recreate) resources
+        if ( not res_to_resize.empty() )
+        {
+            auto    task = batch.Task( _ResizeRes( RVRef(res_to_resize) ),
+                                       DebugLabel{ "ResizeRes", HtmlColor::BlueViolet })
+                                    .Run( Tuple{inDeps} );
+            deps.push_back( task );
+        }
+        ArrayView<AsyncTask>    deps_ref = deps;
 
         // upload resources
         {
-            Unused( _resQueue.Upload( batch, inDeps ));
+            Unused( GetResourceQueue().Upload( batch, inDeps ));
         }
 
         const auto  RunSyncPasses = [&] ()
@@ -334,7 +224,7 @@ namespace AE::ResEditor
             {
                 Unused( batch.Task( _SyncPasses( RVRef(update_passes), RVRef(sync_passes), pass_debugger, update_pd ),
                                     DebugLabel{ "SyncPasses", HtmlColor::Blue })
-                                .Run( Tuple{inDeps} ));
+                                .Run( Tuple{deps_ref} ));
             }
         }};
 
@@ -345,13 +235,13 @@ namespace AE::ResEditor
         }
         if ( not present.empty() and surf_acquire )
         {
-            Array<AsyncTask>    surf_deps {inDeps};
+            Array<AsyncTask>    surf_deps {deps_ref};
             surf_deps.push_back( surf_acquire );
 
             IPass::PresentPassData  pd;
             pd.batch    = rg.UI();
             pd.surface  = rg.GetSurface();
-            pd.deps     = surf_deps;
+            pd._deps    = RVRef(surf_deps);
 
             CHECK_ERR( pd.surface );
 
@@ -412,8 +302,9 @@ namespace AE::ResEditor
         if ( _shaderDebugger and _shaderDebugger->HasPendingRequests() )
         {
             out_deps.push_back( rg.UI().Task(
-                _ReadShaderTrace(),
-                {"Read shader debugger output"} ).Run() );
+                    _ReadShaderTrace(),
+                    {"Read shader debugger output"} )
+                .Run( Tuple{deps_ref} ) );
         }
 
         return Scheduler().WaitAsync( ETaskQueue::Renderer, Tuple{ArrayView{out_deps}} );
@@ -432,6 +323,7 @@ namespace AE::ResEditor
         pd.dbg = dbg;
 
         // begin
+        if ( not updatePasses.empty() )
         {
             DirectCtx::Transfer     ctx{ rtask };
 
@@ -450,9 +342,26 @@ namespace AE::ResEditor
 
         // end
         {
-            DirectCtx::Graphics     ctx{ rtask, RVRef(pd.cmdbuf) };
+            DirectCtx::Transfer     ctx{ rtask, RVRef(pd.cmdbuf) };
             co_await RenderTask_Execute{ ctx };
         }
+    }
+
+/*
+=================================================
+    _ResizeRes
+=================================================
+*/
+    RenderTaskCoro  Renderer::_ResizeRes (Array<RC<IResource>> resources)
+    {
+        auto&                   rtask   = co_await RenderTask_GetRef;
+        DirectCtx::Transfer     ctx{ rtask };
+
+        for (auto& res : resources) {
+            res->Resize( ctx );
+        }
+
+        co_await RenderTask_Execute{ ctx };
     }
 
 /*
@@ -483,7 +392,7 @@ namespace AE::ResEditor
 =================================================
     SetDependencies
 =================================================
-*/
+*
     void  Renderer::SetDependencies (Array<Path> dependencies) __Th___
     {
         EXLOCK( _scriptFile.guard );
@@ -504,7 +413,7 @@ namespace AE::ResEditor
 =================================================
     IsFileChanged
 =================================================
-*/
+*
     bool  Renderer::IsFileChanged ()
     {
         SHAREDLOCK( _scriptFile.guard );
@@ -603,6 +512,160 @@ namespace AE::ResEditor
                 );
             }
         }
+    }
+
+/*
+=================================================
+    GetDummyImage
+=================================================
+*/
+    StrongImageAndViewID  Renderer::GetDummyImage (const ImageDesc &desc) C_NE___
+    {
+        ASSERT( desc.imageDim != Default );
+
+        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        const bool  is_cube     = (desc.imageDim == EImageDim_2D and AllBits( desc.options, EImageOpt::CubeCompatible ));
+        const bool  is_2darr    = (desc.imageDim == EImageDim_2D and desc.arrayLayers.Get() > 1);
+        const bool  is_2d       = (desc.imageDim == EImageDim_2D and desc.arrayLayers.Get() == 1);
+
+        StrongImageAndViewID    result;
+
+        if ( is_cube or is_2darr )
+        {
+            result.image = res_mngr.AcquireResource( _dummyRes.imageCube.image.Get() );
+            result.view  = res_mngr.AcquireResource( _dummyRes.imageCube.view.Get() );
+        }
+        else
+        if ( is_2d )
+        {
+            result.image = res_mngr.AcquireResource( _dummyRes.image2D.image.Get() );
+            result.view  = res_mngr.AcquireResource( _dummyRes.image2D.view.Get() );
+        }
+
+        return result;
+    }
+
+/*
+=================================================
+    GetDummyRTGeometry
+=================================================
+*/
+    Strong<RTGeometryID>  Renderer::GetDummyRTGeometry () C_NE___
+    {
+        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+
+        return res_mngr.AcquireResource( _dummyRes.rtGeometry.Get() );
+    }
+
+/*
+=================================================
+    GetDummyRTScene
+=================================================
+*/
+    Strong<RTSceneID>  Renderer::GetDummyRTScene () C_NE___
+    {
+        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+
+        return res_mngr.AcquireResource( _dummyRes.rtScene.Get() );
+    }
+
+/*
+=================================================
+    _CreateDummyImage2D
+=================================================
+*/
+    void  Renderer::_CreateDummyImage2D (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc)
+    {
+        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
+        ImageDesc   desc;
+
+        desc.SetFormat( EPixelFormat::RGBA8_UNorm );
+        desc.SetDimension( uint2{ 2, 2 });
+        desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
+
+        dst.image = res_mngr.CreateImage( desc, "dummy image 2d", gfxAlloc );
+        CHECK_ERRV( dst.image );
+
+        dst.view = res_mngr.CreateImageView( ImageViewDesc{desc}, dst.image, "dummy image 2d view" );
+        CHECK_ERRV( dst.view );
+
+        RenderGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaders );
+    }
+
+/*
+=================================================
+    _CreateDummyImageCube
+=================================================
+*/
+    void  Renderer::_CreateDummyImageCube (OUT StrongImageAndViewID &dst, GfxMemAllocatorPtr gfxAlloc)
+    {
+        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
+        ImageDesc   desc;
+
+        desc.SetFormat( EPixelFormat::RGBA8_UNorm );
+        desc.SetDimension( uint2{ 2, 2 });
+        desc.SetUsage( EImageUsage::Sampled | EImageUsage::TransferSrc );
+        desc.SetArrayLayers( 6 );
+        desc.SetOptions( EImageOpt::CubeCompatible );
+
+        dst.image = res_mngr.CreateImage( desc, "dummy image cube", gfxAlloc );
+        CHECK_ERRV( dst.image );
+
+        dst.view = res_mngr.CreateImageView( ImageViewDesc{desc}, dst.image, "dummy image cube view" );
+        CHECK_ERRV( dst.view );
+
+        RenderGraph().GetStateTracker().AddResource( dst.image, Default, EResourceState::ShaderSample | EResourceState::AllShaders );
+    }
+
+/*
+=================================================
+    _CreateDummyRTGeometry
+=================================================
+*/
+    void  Renderer::_CreateDummyRTGeometry (OUT Strong<RTGeometryID> &dst, GfxMemAllocatorPtr gfxAlloc)
+    {
+        auto&           res_mngr = RenderTaskScheduler().GetResourceManager();
+        RTGeometryDesc  desc;
+
+        desc.options    = Default;
+        desc.size       = 16_b;
+
+        dst = res_mngr.CreateRTGeometry( desc, "dummy RTGeometry", gfxAlloc );
+        CHECK_ERRV( dst );
+    }
+
+/*
+=================================================
+    _CreateDummyRTScene
+=================================================
+*/
+    void  Renderer::_CreateDummyRTScene (OUT Strong<RTSceneID> &dst, GfxMemAllocatorPtr gfxAlloc)
+    {
+        auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
+        RTSceneDesc desc;
+
+        desc.options    = Default;
+        desc.size       = 16_b;
+
+        dst = res_mngr.CreateRTScene( desc, "dummy RTScene", gfxAlloc );
+        CHECK_ERRV( dst );
+    }
+
+/*
+=================================================
+    GetHelpText
+=================================================
+*/
+    String  Renderer::GetHelpText () const
+    {
+        String  str;
+
+        if ( _controller )
+            str << _controller->GetHelpText();
+
+        str << R"(
+  '0..9' - set value to customKey[0] which can be used in shader)";
+        return str;
     }
 
 

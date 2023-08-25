@@ -52,9 +52,9 @@ bool RGTest::Test_FeatureSets ()
     #endif
 
     #if defined(AE_ENABLE_VULKAN)
-        const EVendorID         vendor  = GetVendorTypeByID( _vulkan.GetProperties().properties.vendorID );
-        const EGraphicsDeviceID dev     = GetEGraphicsDeviceByName( _vulkan.GetProperties().properties.deviceName );
-        const bool              sra     = _vulkan.GetProperties().fragShadingRateFeats.attachmentFragmentShadingRate;
+        const EVendorID         vendor  = GetVendorTypeByID( _vulkan.GetVProperties().properties.vendorID );
+        const EGraphicsDeviceID dev     = GetEGraphicsDeviceByName( _vulkan.GetDeviceName() );
+        const bool              sra     = _vulkan.GetVProperties().fragShadingRateFeats.attachmentFragmentShadingRate;
 
         if ( sra )
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.ShadingRate.compat"} ));
@@ -104,13 +104,13 @@ bool RGTest::Test_FeatureSets ()
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"part.MinNonUniformDescriptorIndexing"} ));
         }
 
-        if ( _vulkan.GetExtensions().rayQuery )
+        if ( _vulkan.GetVExtensions().rayQuery )
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinInlineRayTracing"} ));
 
-        if ( _vulkan.GetExtensions().rayTracingPipeline )
+        if ( _vulkan.GetVExtensions().rayTracingPipeline )
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinRecursiveRayTracing"} ));
 
-        if ( _vulkan.GetExtensions().meshShader )
+        if ( _vulkan.GetVExtensions().meshShader )
             TEST( _pipelines->FeatureSetSupported( FeatureSetName{"MinMeshShader"} ));
 
     #elif defined(AE_ENABLE_METAL)

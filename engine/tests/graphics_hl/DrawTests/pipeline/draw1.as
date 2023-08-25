@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 void ASmain ()
 {
@@ -23,7 +23,6 @@ void ASmain ()
     {
         RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "rect_tristrip" );
         spec.AddToRenderTech( "CanvasDrawTest", "Draw_1" );
-        spec.SetViewportCount( 1 );
 
         RenderState rs;
         rs.rasterization.frontFaceCCW   = true;
@@ -35,7 +34,6 @@ void ASmain ()
     {
         RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "rect_trilist" );
         spec.AddToRenderTech( "CanvasDrawTest", "Draw_1" );
-        spec.SetViewportCount( 1 );
 
         RenderState rs;
         rs.rasterization.frontFaceCCW   = true;
@@ -47,7 +45,6 @@ void ASmain ()
     {
         RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "rect_trilist_lines" );
         spec.AddToRenderTech( "CanvasDrawTest", "Draw_1" );
-        spec.SetViewportCount( 1 );
 
         RenderState rs;
         rs.rasterization.frontFaceCCW   = true;

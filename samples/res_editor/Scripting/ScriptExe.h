@@ -11,15 +11,15 @@
 
 // pass/view
 #include "res_editor/Passes/IPass.h"
-#include "res_editor/Passes/Present.h"
+#include "res_editor/Passes/OtherPasses.h"
 #include "res_editor/Passes/PassGroup.h"
 #include "res_editor/Scripting/ScriptPostprocess.h"
 #include "res_editor/Scripting/ScriptComputePass.h"
+#include "res_editor/Scripting/ScriptRayTracingPass.h"
 #include "res_editor/Scripting/ScriptScene.h"
 
 // geometry source
 #include "res_editor/Scripting/ScriptGeomSource.h"
-#include "res_editor/GeomSource/TiledTerrain.h"
 
 // controller
 #include "res_editor/Scripting/ScriptController.h"
@@ -70,6 +70,9 @@ namespace AE::ResEditor
         class ScriptDbgView;
         class ScriptPassGroup;
         class ScriptGenMipmaps;
+        class ScriptCopyImage;
+        class ScriptClearImage;
+        class ScriptClearBuffer;
         class ScriptBuildRTGeometry;
         class ScriptBuildRTScene;
 
@@ -137,8 +140,7 @@ namespace AE::ResEditor
 
             void  _LoadSamplers ()                                                                              __Th___;
 
-        template <typename ...Args>
-        ND_ bool  _Run (const Path &filePath, Args ...args)                                                     __NE___;
+        ND_ bool  _Run (const Path &filePath, const ScriptCollectionPtr &collection)                            __NE___;
         ND_ bool  _Run2 (const Path &filePath)                                                                  __NE___;
 
             void  _RunWithPipelineCompiler (Function<void ()> fn)                                               __Th___;
@@ -162,6 +164,13 @@ namespace AE::ResEditor
         static void  _Present4 (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap)   __Th___;
 
         static void  _GenMipmaps (const ScriptImagePtr &rt)                                                     __Th___;
+        static void  _CopyImage (const ScriptImagePtr &src, const ScriptImagePtr &dst)                          __Th___;
+
+        static void  _ClearImage1 (const ScriptImagePtr &image, const RGBA32f &value)                           __Th___;
+        static void  _ClearImage2 (const ScriptImagePtr &image, const RGBA32u &value)                           __Th___;
+        static void  _ClearImage3 (const ScriptImagePtr &image, const RGBA32i &value)                           __Th___;
+
+        static void  _ClearBuffer (const ScriptBufferPtr &buf, uint value)                                      __Th___;
 
         static void  _BuildRTGeometry (const ScriptRTGeometryPtr &)                                             __Th___;
         static void  _BuildRTGeometryIndirect (const ScriptRTGeometryPtr &)                                     __Th___;
@@ -169,9 +178,6 @@ namespace AE::ResEditor
         static void  _BuildRTScene (const ScriptRTScenePtr &)                                                   __Th___;
         static void  _BuildRTSceneIndirect (const ScriptRTScenePtr &)                                           __Th___;
 
-        static void  _GetCube1 (OUT ScriptArray<packed_float3>  &positions,
-                                OUT ScriptArray<packed_float3>  &normals,
-                                OUT ScriptArray<packed_uint3>   &indices)                                       __Th___;
         static void  _GetCube2 (OUT ScriptArray<packed_float3>  &positions,
                                 OUT ScriptArray<packed_float3>  &normals,
                                 OUT ScriptArray<uint>           &indices)                                       __Th___;
@@ -179,20 +185,53 @@ namespace AE::ResEditor
                                 OUT ScriptArray<packed_float3>  &normals,
                                 OUT ScriptArray<packed_float3>  &tangents,
                                 OUT ScriptArray<packed_float3>  &bitangents,
+                                OUT ScriptArray<packed_float2>  &texcoords,         // 2d
+                                OUT ScriptArray<uint>           &indices)                                       __Th___;
+        static void  _GetCube4 (OUT ScriptArray<packed_float3>  &positions,
+                                OUT ScriptArray<packed_float3>  &normals,
+                                OUT ScriptArray<packed_float3>  &tangents,
+                                OUT ScriptArray<packed_float3>  &bitangents,
+                                OUT ScriptArray<packed_float3>  &texcoords,         // cubemap
                                 OUT ScriptArray<uint>           &indices)                                       __Th___;
 
-        static void  _GenGrid1 (uint                            size,
-                                OUT ScriptArray<packed_float2>  &positions,
+        static void  _GetSphere1 (uint                              lod,
+                                  OUT ScriptArray<packed_float3>    &positions,
+                                  OUT ScriptArray<uint>             &indices)                                   __Th___;
+        static void  _GetSphere2 (uint                              lod,
+                                  OUT ScriptArray<packed_float3>    &positions,
+                                  OUT ScriptArray<packed_float3>    &texcoords,     // cubemap
+                                  OUT ScriptArray<uint>             &indices)                                   __Th___;
+        static void  _GetSphere3 (uint                              lod,
+                                  OUT ScriptArray<packed_float3>    &positions,
+                                  OUT ScriptArray<packed_float3>    &normals,
+                                  OUT ScriptArray<packed_float3>    &tangents,
+                                  OUT ScriptArray<packed_float3>    &bitangents,
+                                  OUT ScriptArray<packed_float3>    &texcoords,     // cubemap
+                                  OUT ScriptArray<uint>             &indices)                                   __Th___;
+
+        static void  _GetGrid1 (uint                            size,
+                                OUT ScriptArray<packed_float2>  &positions,         // unorm
                                 OUT ScriptArray<uint>           &indices)                                       __Th___;
-        static void  _GenGrid2 (uint                            size,
-                                OUT ScriptArray<packed_float3>  &positions,
+        static void  _GetGrid2 (uint                            size,
+                                OUT ScriptArray<packed_float3>  &positions,         // unorm, XY space
                                 OUT ScriptArray<uint>           &indices)                                       __Th___;
 
-        static void  _GenCylinder (uint                             segments,
-                                   const packed_float3              &scale,
-                                   OUT ScriptArray<packed_float3>   &positions,
-                                   OUT ScriptArray<packed_float3>   &normals,
-                                   OUT ScriptArray<uint>            &indices)                                   __Th___;
+        static void  _GetCylinder1 (uint                            segments,
+                                    bool                            inner,
+                                    OUT ScriptArray<packed_float3>  &positions,
+                                    OUT ScriptArray<packed_float2>  &texcoords,
+                                    OUT ScriptArray<uint>           &indices)                                   __Th___;
+        static void  _GetCylinder2 (uint                            segments,
+                                    bool                            inner,
+                                    OUT ScriptArray<packed_float3>  &positions,
+                                    OUT ScriptArray<packed_float3>  &normals,
+                                    OUT ScriptArray<packed_float3>  &tangents,
+                                    OUT ScriptArray<packed_float3>  &bitangents,
+                                    OUT ScriptArray<packed_float2>  &texcoords,
+                                    OUT ScriptArray<uint>           &indices)                                   __Th___;
+
+        static void  _IndicesToPrimitives (const ScriptArray<uint>          &indices,
+                                           OUT ScriptArray<packed_uint3>    &primitives)                        __Th___;
 
         static void  _DbgView1 (const ScriptImagePtr &rt, DebugView::EFlags flags)                                                          __Th___;
         static void  _DbgView2 (const ScriptImagePtr &rt, const MipmapLevel &mipmap, DebugView::EFlags flags)                               __Th___;
@@ -234,6 +273,7 @@ namespace AE::ResEditor
     {
         friend class ScriptPostprocess;
         friend class ScriptComputePass;
+        friend class ScriptRayTracingPass;
         friend class ScriptSceneGraphicsPass;
         friend class ScriptSceneRayTracingPass;
 
@@ -260,7 +300,6 @@ namespace AE::ResEditor
         friend class ScriptBuffer;
         friend class ScriptImage;
         friend class ScriptVideoImage;
-        friend class ScriptTiledTerrain;
         friend class ScriptSphericalCube;
         friend class ScriptUniGeometry;
         friend class ScriptRTGeometry;
@@ -296,12 +335,13 @@ AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptCollection,                "Collect
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceCustomIndex,           "RTInstanceCustomIndex" );
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceMask,                  "RTInstanceMask"    );
 AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceSBTOffset,             "RTInstanceSBTOffset" );
-AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceRotation,              "RTInstanceRotation" );
+AE_DECL_SCRIPT_OBJ(     AE::ResEditor::RTInstanceTransform,             "RTInstanceTransform" );
 
 // pass/view
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptBasePass,                  "IPass"             );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptPostprocess,               "Postprocess"       );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptComputePass,               "ComputePass"       );
+AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptRayTracingPass,            "RayTracingPass"    );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptScene,                     "Scene"             );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptSceneGraphicsPass,         "SceneGraphicsPass" );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptSceneRayTracingPass,       "SceneRayTracingPass");
@@ -317,7 +357,6 @@ AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptControllerFreeCamera,      "FPVCame
 
 // geometry
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptGeomSource,                "GeomSource"        );
-AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptTiledTerrain,              "TiledTerrain"      );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptSphericalCube,             "SphericalCube"     );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptUniGeometry,               "UnifiedGeometry"   );
 AE_DECL_SCRIPT_OBJ_RC(  AE::ResEditor::ScriptSceneGeometry,             "Model"             );
@@ -337,4 +376,3 @@ AE_DECL_SCRIPT_TYPE(    AE::ResEditor::ScriptPostprocess::EPostprocess, "EPostpr
 AE_DECL_SCRIPT_TYPE(    AE::ResEditor::DebugView::EFlags,               "DbgViewFlags"      );
 AE_DECL_SCRIPT_TYPE(    AE::ResEditor::PassGroup::EFlags,               "ScriptFlags"       );
 AE_DECL_SCRIPT_TYPE(    AE::ResEditor::ScriptImage::ELoadOpFlags,       "ImageLoadOpFlags"  );
-AE_DECL_SCRIPT_TYPE(    AE::ResEditor::TiledTerrain::EMode,             "TiledTerrainMode"  );

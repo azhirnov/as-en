@@ -1,6 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     Wrapper for tile pipeline (VK_HUAWEI_subpass_shading).
+
+    TODO: VK_EXT_shader_tile_image
 */
 
 #pragma once

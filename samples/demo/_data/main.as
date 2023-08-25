@@ -1,5 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include <offline_packer>
+#include <offline_packer.as>
 
 void ASmain ()
 {
@@ -8,7 +8,7 @@ void ASmain ()
 
     array<string>   suffix;
     suffix.push_back( "vk" );
-    suffix.push_back( "mac" );
+    //suffix.push_back( "mac" );
 
     Archive     archive;
     archive.SetTempFile( output_temp + "archive1.tmp" );
@@ -40,7 +40,8 @@ void ASmain ()
             ppln.AddPipelineFolder( "pipelines" );
             ppln.AddShaderFolder( "shaders" );
             ppln.IncludeDir( GetSharedShadersPath() );
-            ppln.CompileWithNameMapping( output_temp + suffix[i] + "/pipelines.bin", "cpp/" + suffix[i] + "_types.h" );
+            ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
+            ppln.CompileWithNameMapping( output_temp + suffix[i] + "/pipelines.bin" );
             archive.Add( suffix[i] + "/pipelines", output_temp + suffix[i] + "/pipelines.bin" );
         }
     }
@@ -51,8 +52,9 @@ void ASmain ()
         iact.Add( "controls/android.as" );
         iact.Add( "controls/glfw.as" );
         iact.Add( "controls/winapi.as" );
-        iact.Add( "controls/openvr.as" );
+        //iact.Add( "controls/openvr.as" );
         //iact.Add( "controls/openxr.as" );
+        iact.SetOutputCPPFile( "cpp/ia_names.h" );
         iact.Convert( output_temp + "controls.bin" );
         archive.Add( "controls", output_temp + "controls.bin" );
     }
@@ -65,6 +67,7 @@ void ASmain ()
 
         apack.AddFolder( "images" );
         apack.AddFolder( "fonts" );
+        apack.AddFolder( "ui" );
 
         apack.ToArchive( output_temp + "archive3.tmp" );
         archive.AddArchive( output_temp + "archive3.tmp" );

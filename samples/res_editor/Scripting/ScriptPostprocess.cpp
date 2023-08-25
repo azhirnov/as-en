@@ -2,7 +2,7 @@
 
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Passes/Postprocess.h"
-#include "res_editor/EditorUI.h"
+#include "res_editor/Core/EditorUI.h"
 #include "res_editor/Scripting/ScriptBasePass.cpp.h"
 
 namespace AE::ResEditor
@@ -58,10 +58,10 @@ namespace
     ScriptPostprocess::ScriptPostprocess (const String &name, EPostprocess ppFlags, const String &defines, EFlags baseFlags) __Th___ :
         ScriptBaseRenderPass{ baseFlags },
         _pplnPath{ ScriptExe::ScriptPassApi::ToShaderPath( name )},
-        _ppFlags{ ppFlags },
-        _defines{ defines }
+        _ppFlags{ ppFlags }
     {
         _dbgName = ToString( _pplnPath.filename().replace_extension("") );
+        _defines = defines;
 
         if ( not _defines.empty() )
             _dbgName << "|" << _defines;
@@ -76,67 +76,12 @@ namespace
 
 /*
 =================================================
-    InputBuf
+    _OnAddArg
 =================================================
 */
-    void  ScriptPostprocess::InputBuf (const String &name, const ScriptBufferPtr &buf) __Th___
+    void  ScriptPostprocess::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) C_Th___
     {
-        CHECK_THROW_MSG( buf );
-
-        buf->AddUsage( EResourceUsage::ComputeRead );
-
-        auto&   dst = _input.emplace_back();
-        dst.res         = buf;
-        dst.uniformName = name;
-    }
-
-/*
-=================================================
-    InputImg
-=================================================
-*/
-    void  ScriptPostprocess::InputImg (const String &name, const ScriptImagePtr &tex, const String &samplerName) __Th___
-    {
-        CHECK_THROW_MSG( tex );
-        CHECK_THROW_MSG( not samplerName.empty() );
-
-        tex->AddUsage( EResourceUsage::Sampled );
-
-        auto&   dst = _input.emplace_back();
-        dst.res         = tex;
-        dst.uniformName = name;
-        dst.samplerName = samplerName;
-    }
-
-/*
-=================================================
-    InputVideo
-=================================================
-*/
-    void  ScriptPostprocess::InputVideo (const String &name, const ScriptVideoImagePtr &video, const String &samplerName) __Th___
-    {
-        CHECK_THROW_MSG( video );
-        CHECK_THROW_MSG( not samplerName.empty() );
-
-        video->AddUsage( EResourceUsage::Sampled );
-
-        auto&   dst = _input.emplace_back();
-        dst.res         = video;
-        dst.uniformName = name;
-        dst.samplerName = samplerName;
-    }
-
-/*
-=================================================
-    InputController
-=================================================
-*/
-    void  ScriptPostprocess::InputController (const ScriptBaseControllerPtr &controller) __Th___
-    {
-        CHECK_THROW_MSG( controller );
-        CHECK_THROW_MSG( not _controller, "controller is already exists" );
-
-        _controller = controller;
+        arg.state |= EResourceState::FragmentShader;
     }
 
 /*
@@ -171,11 +116,6 @@ namespace
             binder.AddFactoryCtor( &ScriptPostprocess_Ctor6 );
             binder.AddFactoryCtor( &ScriptPostprocess_Ctor7 );
             binder.AddFactoryCtor( &ScriptPostprocess_Ctor8 );
-
-            binder.AddMethod( &ScriptPostprocess::InputBuf,         "Input" );
-            binder.AddMethod( &ScriptPostprocess::InputImg,         "Input" );
-            binder.AddMethod( &ScriptPostprocess::InputVideo,       "Input" );
-            binder.AddMethod( &ScriptPostprocess::InputController,  "Input" );
         }
     }
 
@@ -242,35 +182,7 @@ namespace
         {
             CHECK_ERR( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
                                                       ppln, DescriptorSetName{"ds0"} ));
-
-            for (auto& in : _input)
-            {
-                Visit( in.res,
-                    [&] (ScriptBufferPtr buf) {
-                        auto    res = buf->ToResource();
-                        CHECK_THROW( res );
-                        result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderStorage_RW | EResourceState::FragmentShader );
-                    },
-                    [&] (ScriptImagePtr tex) {
-                        auto    res = tex->ToResource();
-                        CHECK_THROW( res );
-                        result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderSample | EResourceState::FragmentShader );
-                    },
-                    [&] (ScriptVideoImagePtr video) {
-                        auto    res = video->ToResource();
-                        CHECK_THROW( res );
-                        result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderSample | EResourceState::FragmentShader );
-                    },
-                    [&] (ScriptRTScenePtr scene) {
-                        auto    res = scene->ToResource();
-                        CHECK_THROW( res );
-                        result->_resources.emplace_back( UniformName{in.uniformName}, res, EResourceState::ShaderRTAS_Read | EResourceState::FragmentShader );
-                    },
-                    [] (NullUnion) {
-                        CHECK_THROW_MSG( false, "unsupported argument type" );
-                    }
-                );
-            }
+            _args.InitResources( OUT result->_resources );  // throw
         }
 
         for (usize i = 0; i < _output.size(); ++i)
@@ -280,7 +192,7 @@ namespace
             CHECK_ERR( rt );
 
             // validate
-            for (auto& [name, res, state] : result->_resources)
+            for (auto& [name, res, state] : result->_resources.Get())
             {
                 if ( auto* tex = UnionGet< RC<Image> >( res ))
                     CHECK_ERR_MSG( tex->get() != rt.get(), "Image '"s << rt->GetName() << "' used as input and output" );
@@ -406,17 +318,7 @@ namespace AE::ResEditor
     {
         const String    subpass = "main";
 
-        // validate
-        for (auto& in : _input)
-        {
-            Visit( in.res,
-                [] (ScriptBufferPtr buf)        { buf->AddLayoutReflection();  CHECK_THROW_MSG( buf->ToResource() ); },
-                [] (ScriptImagePtr tex)         { CHECK_THROW_MSG( tex->ToResource() ); },
-                [] (ScriptVideoImagePtr video)  { CHECK_THROW_MSG( video->ToResource() ); },
-                [] (ScriptRTScenePtr scene)     { CHECK_THROW_MSG( scene->ToResource() ); },
-                [] (NullUnion)                  { CHECK_THROW_MSG( false, "unsupported argument type" ); }
-            );
-        }
+        _args.ValidateArgs();
 
         CHECK_THROW( not _output.empty() );
         for (auto& out : _output)
@@ -453,7 +355,7 @@ namespace AE::ResEditor
                     att->AddLayout( "ExternalIn", EResourceState::Invalidate );
                 }
 
-                att->AddLayout( subpass, EResourceState::ColorAttachment_RW );
+                att->AddLayout( subpass, EResourceState::ColorAttachment );
             }
         }
 
@@ -465,39 +367,16 @@ namespace AE::ResEditor
         }
 
 
+        const auto              stage   = EShaderStages::Fragment;
         DescriptorSetLayoutPtr  ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
         {
             ShaderStructTypePtr st = _CreateUBType();   // throw
             ubSize = st->StaticSize();
 
-            ds_layout->AddUniformBuffer( uint(EShaderStages::Fragment), "un_PerPass", ArraySize{1}, "ShadertoyUB", EResourceState::ShaderUniform );
+            ds_layout->AddUniformBuffer( uint(stage), "un_PerPass", ArraySize{1}, "ShadertoyUB", EResourceState::ShaderUniform );
         }
+        _args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
 
-        for (auto& in : _input)
-        {
-            const auto  stage       = uint(EShaderStages::Fragment);
-            uint        img_type    = 0;
-
-            if ( auto buf = UnionGet<ScriptBufferPtr>( in.res ))
-            {
-                if ( (*buf)->HasLayout() )
-                    ds_layout->AddStorageBuffer( stage, in.uniformName, ArraySize{1}, (*buf)->GetTypeName(), EAccessType::Coherent, EResourceState::ShaderStorage_Read );
-                else
-                    ds_layout->AddStorageTexelBuffer( stage, in.uniformName, ArraySize{1}, PipelineCompiler::EImageType((*buf)->TexelBufferType()), EResourceState::ShaderStorage_Read );
-                continue;
-            }
-
-            if ( auto tex = UnionGet<ScriptImagePtr>( in.res ))
-                img_type = (*tex)->ImageType();
-            else
-            if ( auto video = UnionGet<ScriptVideoImagePtr>( in.res ))
-                img_type = (*video)->ImageType();
-
-            CHECK_THROW_MSG( img_type != 0, "unsupported input resource type" );
-
-            ds_layout->AddCombinedImage_ImmutableSampler( stage, in.uniformName, PipelineCompiler::EImageType(img_type),
-                                                          EResourceState::ShaderSample, in.samplerName );
-        }
 
         uint            fs_line = 0;
         String          fs;
@@ -509,17 +388,7 @@ namespace AE::ResEditor
 )#";
         {
             String  header;
-
-            // add defines
-            if ( not _defines.empty() )
-            {
-                Array<StringView>   def_tokens;
-                StringParser::Tokenize( _defines, ';', OUT def_tokens );
-
-                for (auto def : def_tokens) {
-                    header << "#define " << def << '\n';
-                }
-            }
+            _AddDefines( _defines, INOUT header );
 
             // add shader header
             if ( AnyBits( _ppFlags, EPostprocess::_ShadertoyBits ))
@@ -603,59 +472,7 @@ ND_ int3  GetGlobalSize() {
 )#";
             }
 
-            // add sliders
-            {
-                const uint  max_sliders = UIInteraction::MaxSlidersPerType;
-                for (usize i = 0; i < _sliderCounter.size(); ++i) {
-                    CHECK_THROW_MSG( _sliderCounter[i] <= max_sliders );
-                }
-
-                for (auto& slider : _sliders)
-                {
-                    header << "#define " << slider.name << " un_PerPass.";
-                    BEGIN_ENUM_CHECKS();
-                    switch ( slider.type )
-                    {
-                        case ESlider::Int :     header << "intSliders[";    break;
-                        case ESlider::Float :   header << "floatSliders[";  break;
-                        case ESlider::Color :   header << "colors[";        break;
-                        case ESlider::_Count :
-                        default :               CHECK_THROW_MSG( false, "unknown slider type" );
-                    }
-                    END_ENUM_CHECKS();
-
-                    header << ToString( slider.index ) << "]";
-                    switch ( slider.count )
-                    {
-                        case 1 :    header << ".x";     break;
-                        case 2 :    header << ".xy";    break;
-                        case 3 :    header << ".xyz";   break;
-                        case 4 :    header << ".xyzw";  break;
-                        default :   CHECK_THROW_MSG( false, "unknown slider value size" );
-                    }
-                    header << "\n";
-                }
-            }
-
-            // add constants
-            {
-                for (auto& c : _constants)
-                {
-                    header << "#define " << c.name << " un_PerPass.";
-                    BEGIN_ENUM_CHECKS();
-                    switch ( c.type )
-                    {
-                        case ESlider::Int :     header << "intConst[";      break;
-                        case ESlider::Float :   header << "floatConst[";    break;
-                        case ESlider::Color :
-                        case ESlider::_Count :
-                        default :               CHECK_THROW_MSG( false, "unknown constant type" );
-                    }
-                    END_ENUM_CHECKS();
-
-                    header << ToString( c.index ) << "]\n";
-                }
-            }
+            _AddSliders( INOUT header );
 
             // load shader source from file
             {

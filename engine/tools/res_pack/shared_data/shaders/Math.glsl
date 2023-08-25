@@ -428,3 +428,15 @@ ND_ float2  RightVector (const float2 v)        { return float2(  v.y, -v.x ); }
 ND_ float3  LeftVectorXZ  (const float3 v)      { return float3( -v.z, v.y,  v.x ); }
 ND_ float3  RightVectorXZ (const float3 v)      { return float3(  v.z, v.y, -v.x ); }
 //-----------------------------------------------------------------------------
+
+
+ND_ bool   IsZero (const float  x)      { return Abs(x) <= Epsilon(); }
+ND_ bool2  IsZero (const float2 v)      { return LessEqual( Abs(v), float2(Epsilon()) ); }
+ND_ bool3  IsZero (const float3 v)      { return LessEqual( Abs(v), float3(Epsilon()) ); }
+ND_ bool4  IsZero (const float4 v)      { return LessEqual( Abs(v), float4(Epsilon()) ); }
+
+ND_ bool   IsNotZero (const float  x)   { return Abs(x) > Epsilon(); }
+ND_ bool2  IsNotZero (const float2 v)   { return Greater( Abs(v), float2(Epsilon()) ); }
+ND_ bool3  IsNotZero (const float3 v)   { return Greater( Abs(v), float3(Epsilon()) ); }
+ND_ bool4  IsNotZero (const float4 v)   { return Greater( Abs(v), float4(Epsilon()) ); }
+//-----------------------------------------------------------------------------

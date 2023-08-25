@@ -10,8 +10,8 @@
 #include "Math.glsl"
 
     void   GetRayPerpendicular (const float3 dir, out float3 outLeft, out float3 outUp);
-ND_ float  ToLinearDepth (float nonLinearDepth, const float2 clipPlanes);
-ND_ float  ToNonlinearDepth (float linearDepth, const float2 clipPlanes);
+ND_ float  ToLinearDepth (const float nonLinearDepth, const float2 clipPlanes);
+ND_ float  ToNonlinearDepth (const float linearDepth, const float2 clipPlanes);
 //-----------------------------------------------------------------------------
 
 
@@ -28,7 +28,7 @@ void  GetRayPerpendicular (const float3 dir, out float3 outLeft, out float3 outU
 }
 
 
-float  ToLinearDepth (float nonLinearDepth, const float2 clipPlanes)
+float  ToLinearDepth (const float nonLinearDepth, const float2 clipPlanes)
 {
     //float  d = 2.0 * nonLinearDepth - 1.0;    // for OpenGL
     float d = nonLinearDepth;
@@ -36,7 +36,7 @@ float  ToLinearDepth (float nonLinearDepth, const float2 clipPlanes)
     return d;
 }
 
-float  ToNonlinearDepth (float linearDepth, const float2 clipPlanes)
+float  ToNonlinearDepth (const float linearDepth, const float2 clipPlanes)
 {
     float d = (clipPlanes.y + clipPlanes.x - 2.0 * clipPlanes.x * clipPlanes.y / linearDepth) / (clipPlanes.y - clipPlanes.x);
     //d = (d + 1.0) * 0.5;  // for OpenGL

@@ -171,6 +171,7 @@ namespace _hidden_
     public:
         constexpr TupleRef ()                           __NE___ = default;
 
+        // 'args' must be pointers
         template <typename ...UTypes>
         constexpr explicit TupleRef (UTypes&& ...args)  __NE___ : _base{ FwdArg<UTypes>(args)... } {}
 

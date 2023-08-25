@@ -35,7 +35,8 @@ namespace AE::GeometryTools
         CubeRenderer ()                                                                     __NE___ {}
         ~CubeRenderer ()                                                                    __NE___;
 
-        ND_ bool  Create (IResourceManager &, ITransferContext &ctx, GfxMemAllocatorPtr)    __NE___;
+        ND_ bool  Create (IResourceManager &, ITransferContext &ctx,
+                          Bool cubeMap, GfxMemAllocatorPtr)                                 __NE___;
             void  Destroy (IResourceManager &)                                              __NE___;
 
         ND_ bool  IsCreated ()                                                              C_NE___ { return _vertexBuffer and _indexBuffer; }

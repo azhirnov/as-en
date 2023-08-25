@@ -34,7 +34,7 @@ namespace AE::Graphics::_hidden_
         struct {
             VkPipelineBindPoint     bindPoint       = VK_PIPELINE_BIND_POINT_MAX_ENUM;
             VkPipelineLayout        pplnLayout      = Default;
-            EPipelineDynamicState   flags           = Default;
+            EPipelineDynamicState   dynStates       = Default;
         }                   _states;
 
     protected:
@@ -101,7 +101,7 @@ namespace AE::Graphics::_hidden_
         explicit _VDirectDrawCtx (const DrawTask &task)                                                             __Th___;
         _VDirectDrawCtx (const VPrimaryCmdBufState &state, VCommandBuffer cmdbuf)                                   __Th___;
 
-        void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState flags);
+        void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState dynStates);
         void  _PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
 
         void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor);
@@ -126,17 +126,14 @@ namespace AE::Graphics::_hidden_
 
         void  _DrawMeshTasks (const uint3 &taskCount);
 
-        void  _DispatchTile ();
+        void  _DispatchTile ()                                                                                      __Th___;
 
         void  _CommitBarriers ();
 
         void  _ClearAttachment (const VkClearAttachment &clear, const VkClearRect &rect);
 
         ND_ bool    _NoPendingBarriers ()   C_NE___ { return _mngr.NoPendingBarriers(); }
-        ND_ auto&   _GetExtensions ()       C_NE___ { return _mngr.GetDevice().GetExtensions(); }
-        ND_ auto&   _GetFeatures ()         C_NE___ { return _mngr.GetDevice().GetProperties().features; }
-        ND_ auto&   _GetDeviceProperties () C_NE___ { return _mngr.GetDevice().GetDeviceProperties(); }
-        ND_ auto    _GetDynamicStates ()    C_NE___ { return _states.flags; }
+        ND_ auto    _GetDynamicStates ()    C_NE___ { return _states.dynStates; }
 
     private:
         template <typename C> friend class _VGraphicsContextImpl;
@@ -161,7 +158,7 @@ namespace AE::Graphics::_hidden_
         struct {
             VkPipelineBindPoint     bindPoint       = VK_PIPELINE_BIND_POINT_MAX_ENUM;
             VkPipelineLayout        pplnLayout      = Default;
-            EPipelineDynamicState   flags           = Default;
+            EPipelineDynamicState   dynStates       = Default;
         }                   _states;
     protected:
         VDrawBarrierManager _mngr;
@@ -225,7 +222,7 @@ namespace AE::Graphics::_hidden_
         explicit _VIndirectDrawCtx (const DrawTask &task)                                                           __Th___;
         _VIndirectDrawCtx (const VPrimaryCmdBufState &state, VSoftwareCmdBufPtr cmdbuf)                             __Th___;
 
-        void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState flags);
+        void  _BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState dynStates);
         void  _PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages);
 
         void  _SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor);
@@ -250,21 +247,18 @@ namespace AE::Graphics::_hidden_
 
         void  _DrawMeshTasks (const uint3 &taskCount);
 
-        void  _DispatchTile ();
+        void  _DispatchTile ()                                                                                      __Th___;
 
         void  _CommitBarriers ();
 
         void  _ClearAttachment (const VkClearAttachment &clear, const VkClearRect &rect);
 
         ND_ bool    _NoPendingBarriers ()   C_NE___ { return _mngr.NoPendingBarriers(); }
-        ND_ auto&   _GetExtensions ()       C_NE___ { return _mngr.GetDevice().GetExtensions(); }
-        ND_ auto&   _GetFeatures ()         C_NE___ { return _mngr.GetDevice().GetProperties().features; }
-        ND_ auto&   _GetDeviceProperties () C_NE___ { return _mngr.GetDevice().GetDeviceProperties(); }
-        ND_ auto    _GetDynamicStates ()    C_NE___ { return _states.flags; }
+        ND_ auto    _GetDynamicStates ()    C_NE___ { return _states.dynStates; }
 
     private:
         template <typename C> friend class _VGraphicsContextImpl;
-        ND_ VSoftwareCmdBuf&  _RawCmdBuf ()     { return *_cmdbuf; }
+        ND_ VSoftwareCmdBuf&  _RawCmdBuf ()         { return *_cmdbuf; }
     };
 
 
@@ -461,7 +455,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    _VDrawContextImpl<C>::_VDrawContextImpl (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf) :
+    _VDrawContextImpl<C>::_VDrawContextImpl (const VPrimaryCmdBufState &state, CmdBuf_t cmdbuf) __Th___ :
         RawCtx{ state, RVRef(cmdbuf) }  // throw
     {}
 
@@ -471,7 +465,7 @@ namespace AE::Graphics::_hidden_
     {}
 
     template <typename C>
-    _VDrawContextImpl<C>::_VDrawContextImpl (const DrawTask &task) :
+    _VDrawContextImpl<C>::_VDrawContextImpl (const DrawTask &task) __Th___ :
         RawCtx{ task }  // throw
     {
         if_likely( auto* batch = task.GetDrawBatchPtr() )
@@ -490,28 +484,28 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::BindPipeline (GraphicsPipelineID ppln)
+    void  _VDrawContextImpl<C>::BindPipeline (GraphicsPipelineID ppln) __Th___
     {
         auto&   gppln = _GetResourcesOrThrow( ppln );
-        ASSERT( gppln.RenderPassSubpassIndex() == GetPrimaryCtxState().subpassIndex );
+        GCTX_CHECK( gppln.RenderPassSubpassIndex() == GetPrimaryCtxState().subpassIndex );
 
         RawCtx::_BindPipeline( gppln.BindPoint(), gppln.Handle(), gppln.Layout(), gppln.DynamicState() );
     }
 
     template <typename C>
-    void  _VDrawContextImpl<C>::BindPipeline (MeshPipelineID ppln)
+    void  _VDrawContextImpl<C>::BindPipeline (MeshPipelineID ppln) __Th___
     {
         auto&   mppln = _GetResourcesOrThrow( ppln );
-        ASSERT( mppln.RenderPassSubpassIndex() == GetPrimaryCtxState().subpassIndex );
+        GCTX_CHECK( mppln.RenderPassSubpassIndex() == GetPrimaryCtxState().subpassIndex );
 
         RawCtx::_BindPipeline( mppln.BindPoint(), mppln.Handle(), mppln.Layout(), mppln.DynamicState() );
     }
 
     template <typename C>
-    void  _VDrawContextImpl<C>::BindPipeline (TilePipelineID ppln)
+    void  _VDrawContextImpl<C>::BindPipeline (TilePipelineID ppln) __Th___
     {
         auto&   tppln = _GetResourcesOrThrow( ppln );
-        ASSERT( tppln.RenderPassSubpassIndex() == GetPrimaryCtxState().subpassIndex );
+        GCTX_CHECK( tppln.RenderPassSubpassIndex() == GetPrimaryCtxState().subpassIndex );
 
         RawCtx::_BindPipeline( tppln.BindPoint(), tppln.Handle(), tppln.Layout(), tppln.DynamicState() );
     }
@@ -522,7 +516,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
+    void  _VDrawContextImpl<C>::BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets) __Th___
     {
         auto&   desc_set = _GetResourcesOrThrow( ds );
 
@@ -535,9 +529,9 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
+    void  _VDrawContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___
     {
-        Validator_t::PushConstant( idx, size, typeName );
+        VALIDATE_GCTX( PushConstant( idx, size, typeName ));
 
         RawCtx::_PushGraphicsConstant( idx.offset, size, values, EShaderStages(0) | idx.stage );
     }
@@ -548,15 +542,15 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::SetViewport (const Viewport_t &viewport)
+    void  _VDrawContextImpl<C>::SetViewport (const Viewport_t &viewport) __Th___
     {
         return SetViewports( ArrayView<Viewport_t>{ &viewport, 1u });
     }
 
     template <typename C>
-    void  _VDrawContextImpl<C>::SetViewports (ArrayView<Viewport_t> viewports)
+    void  _VDrawContextImpl<C>::SetViewports (ArrayView<Viewport_t> viewports) __Th___
     {
-        Validator_t::SetViewports( viewports );
+        GCTX_CHECK( viewports.size() <= GraphicsConfig::MaxViewports );
 
         StaticArray< VkViewport, GraphicsConfig::MaxViewports > vk_viewports;
 
@@ -581,15 +575,15 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::SetScissor (const RectI &scissor)
+    void  _VDrawContextImpl<C>::SetScissor (const RectI &scissor) __Th___
     {
         return SetScissors( ArrayView<RectI>{ &scissor, 1u });
     }
 
     template <typename C>
-    void  _VDrawContextImpl<C>::SetScissors (ArrayView<RectI> scissors)
+    void  _VDrawContextImpl<C>::SetScissors (ArrayView<RectI> scissors) __Th___
     {
-        Validator_t::SetScissors( scissors );
+        GCTX_CHECK( scissors.size() <= GraphicsConfig::MaxViewports );
 
         StaticArray< VkRect2D, GraphicsConfig::MaxViewports >   vk_scissors;
 
@@ -610,7 +604,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)
+    void  _VDrawContextImpl<C>::SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor) __Th___
     {
         RawCtx::_SetDepthBias( depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor );
     }
@@ -621,7 +615,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::SetDepthBounds (float minDepthBounds, float maxDepthBounds)
+    void  _VDrawContextImpl<C>::SetDepthBounds (float minDepthBounds, float maxDepthBounds) __Th___
     {
         RawCtx::_SetDepthBounds( minDepthBounds, maxDepthBounds );
     }
@@ -634,7 +628,7 @@ namespace AE::Graphics::_hidden_
     template <typename C>
     void  _VDrawContextImpl<C>::SetFragmentShadingRate (EShadingRate rate, EShadingRateCombinerOp primitiveOp, EShadingRateCombinerOp textureOp) __Th___
     {
-        Validator_t::SetFragmentShadingRate( this->_GetDynamicStates(), rate, primitiveOp, textureOp );
+        VALIDATE_GCTX( SetFragmentShadingRate( this->_GetDynamicStates(), rate, primitiveOp, textureOp ));
 
         uint2   size = EShadingRate_Size( rate );
 
@@ -647,13 +641,13 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::SetStencilCompareMask (uint compareMask)
+    void  _VDrawContextImpl<C>::SetStencilCompareMask (uint compareMask) __Th___
     {
         RawCtx::SetStencilCompareMask( VK_STENCIL_FACE_FRONT_AND_BACK, compareMask );
     }
 
     template <typename C>
-    void  _VDrawContextImpl<C>::SetStencilCompareMask (uint frontCompareMask, uint backCompareMask)
+    void  _VDrawContextImpl<C>::SetStencilCompareMask (uint frontCompareMask, uint backCompareMask) __Th___
     {
         RawCtx::SetStencilCompareMask( VK_STENCIL_FACE_FRONT_BIT, frontCompareMask );
         RawCtx::SetStencilCompareMask( VK_STENCIL_FACE_BACK_BIT,  backCompareMask );
@@ -665,13 +659,13 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::SetStencilWriteMask (uint writeMask)
+    void  _VDrawContextImpl<C>::SetStencilWriteMask (uint writeMask) __Th___
     {
         RawCtx::SetStencilWriteMask( VK_STENCIL_FACE_FRONT_AND_BACK, writeMask );
     }
 
     template <typename C>
-    void  _VDrawContextImpl<C>::SetStencilWriteMask (uint frontWriteMask, uint backWriteMask)
+    void  _VDrawContextImpl<C>::SetStencilWriteMask (uint frontWriteMask, uint backWriteMask) __Th___
     {
         RawCtx::SetStencilWriteMask( VK_STENCIL_FACE_FRONT_BIT, frontWriteMask );
         RawCtx::SetStencilWriteMask( VK_STENCIL_FACE_BACK_BIT,  backWriteMask );
@@ -683,13 +677,13 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::SetStencilReference (uint reference)
+    void  _VDrawContextImpl<C>::SetStencilReference (uint reference) __Th___
     {
         RawCtx::SetStencilReference( VK_STENCIL_FACE_FRONT_AND_BACK, reference );
     }
 
     template <typename C>
-    void  _VDrawContextImpl<C>::SetStencilReference (uint frontReference, uint backReference)
+    void  _VDrawContextImpl<C>::SetStencilReference (uint frontReference, uint backReference) __Th___
     {
         RawCtx::SetStencilReference( VK_STENCIL_FACE_FRONT_BIT, frontReference );
         RawCtx::SetStencilReference( VK_STENCIL_FACE_BACK_BIT,  backReference );
@@ -701,7 +695,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType)
+    void  _VDrawContextImpl<C>::BindIndexBuffer (BufferID buffer, Bytes offset, EIndex indexType) __Th___
     {
         auto&   buf = _GetResourcesOrThrow( buffer );
 
@@ -714,7 +708,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::BindVertexBuffer (uint index, BufferID buffer, Bytes offset)
+    void  _VDrawContextImpl<C>::BindVertexBuffer (uint index, BufferID buffer, Bytes offset) __Th___
     {
         auto&   buf = _GetResourcesOrThrow( buffer );
 
@@ -722,14 +716,16 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    void  _VDrawContextImpl<C>::BindVertexBuffer (uint index, VkBuffer buffer, Bytes offset)
+    void  _VDrawContextImpl<C>::BindVertexBuffer (uint index, VkBuffer buffer, Bytes offset) __Th___
     {
+        VALIDATE_GCTX( BindVertexBuffers( index, {buffer}, {offset} ));
+
         const VkDeviceSize  off = VkDeviceSize(offset);
         RawCtx::_BindVertexBuffers( index, ArrayView<VkBuffer>{&buffer, 1}, ArrayView<VkDeviceSize>{&off, 1} );
     }
 
     template <typename C>
-    bool  _VDrawContextImpl<C>::BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset)
+    bool  _VDrawContextImpl<C>::BindVertexBuffer (GraphicsPipelineID pplnId, const VertexBufferName &name, BufferID buffer, Bytes offset) __Th___
     {
         auto  [ppln, buf] = _GetResourcesOrThrow( pplnId, buffer );
 
@@ -746,10 +742,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VDrawContextImpl<C>::BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)
+    void  _VDrawContextImpl<C>::BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets) __Th___
     {
         STATIC_ASSERT( sizeof(Bytes) == sizeof(VkDeviceSize) );
-        Validator_t::BindVertexBuffers( firstBinding, buffers, offsets, this->_GetDeviceProperties().res.minVertexBufferOffsetAlign );
+        VALIDATE_GCTX( BindVertexBuffers( firstBinding, buffers, offsets ));
 
         StaticArray< VkBuffer, GraphicsConfig::MaxVertexBuffers >   dst_buffers;
 
@@ -763,8 +759,9 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    void  _VDrawContextImpl<C>::BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<Bytes> offsets)
+    void  _VDrawContextImpl<C>::BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<Bytes> offsets) __Th___
     {
+        VALIDATE_GCTX( BindVertexBuffers( firstBinding, buffers, offsets ));
         RawCtx::_BindVertexBuffers( firstBinding, buffers, offsets.Cast<VkDeviceSize>() );
     }
 
@@ -777,7 +774,7 @@ namespace AE::Graphics::_hidden_
     void  _VDrawContextImpl<C>::Draw (uint vertexCount,
                                       uint instanceCount,
                                       uint firstVertex,
-                                      uint firstInstance)
+                                      uint firstInstance) __Th___
     {
         RawCtx::_Draw( vertexCount, instanceCount, firstVertex, firstInstance );
     }
@@ -792,7 +789,7 @@ namespace AE::Graphics::_hidden_
                                              uint instanceCount,
                                              uint firstIndex,
                                              int  vertexOffset,
-                                             uint firstInstance)
+                                             uint firstInstance) __Th___
     {
         RawCtx::_DrawIndexed( indexCount, instanceCount, firstIndex, vertexOffset, firstInstance );
     }
@@ -806,10 +803,10 @@ namespace AE::Graphics::_hidden_
     void  _VDrawContextImpl<C>::DrawIndirect (BufferID  indirectBuffer,
                                               Bytes     indirectBufferOffset,
                                               uint      drawCount,
-                                              Bytes     stride)
+                                              Bytes     stride) __Th___
     {
         auto&   buf = _GetResourcesOrThrow( indirectBuffer );
-        Validator_t::DrawIndirect( buf, indirectBufferOffset, drawCount, stride );
+        VALIDATE_GCTX( DrawIndirect( buf.Description(), indirectBufferOffset, drawCount, stride ));
 
         RawCtx::DrawIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
     }
@@ -823,10 +820,10 @@ namespace AE::Graphics::_hidden_
     void  _VDrawContextImpl<C>::DrawIndexedIndirect (BufferID   indirectBuffer,
                                                      Bytes      indirectBufferOffset,
                                                      uint       drawCount,
-                                                     Bytes      stride)
+                                                     Bytes      stride) __Th___
     {
         auto&   buf = _GetResourcesOrThrow( indirectBuffer );
-        Validator_t::DrawIndexedIndirect( buf, indirectBufferOffset, drawCount, stride );
+        VALIDATE_GCTX( DrawIndexedIndirect( buf.Description(), indirectBufferOffset, drawCount, stride ));
 
         RawCtx::DrawIndexedIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
     }
@@ -842,12 +839,12 @@ namespace AE::Graphics::_hidden_
                                                    BufferID countBuffer,
                                                    Bytes    countBufferOffset,
                                                    uint     maxDrawCount,
-                                                   Bytes    stride)
+                                                   Bytes    stride) __Th___
     {
         auto  [ibuf, cbuf] = _GetResourcesOrThrow( indirectBuffer, countBuffer );
-        Validator_t::DrawIndirectCount( ibuf, indirectBufferOffset,
-                                        cbuf, countBufferOffset,
-                                        maxDrawCount, stride );
+        VALIDATE_GCTX( DrawIndirectCount( ibuf.Description(), indirectBufferOffset,
+                                          cbuf.Description(), countBufferOffset,
+                                          maxDrawCount, stride ));
 
         RawCtx::DrawIndirectCount( ibuf.Handle(), indirectBufferOffset, cbuf.Handle(), countBufferOffset, maxDrawCount, stride );
     }
@@ -863,12 +860,12 @@ namespace AE::Graphics::_hidden_
                                                           BufferID  countBuffer,
                                                           Bytes     countBufferOffset,
                                                           uint      maxDrawCount,
-                                                          Bytes     stride)
+                                                          Bytes     stride) __Th___
     {
         auto  [ibuf, cbuf] = _GetResourcesOrThrow( indirectBuffer, countBuffer );
-        Validator_t::DrawIndexedIndirectCount( ibuf, indirectBufferOffset,
-                                               cbuf, countBufferOffset,
-                                               maxDrawCount, stride );
+        VALIDATE_GCTX( DrawIndexedIndirectCount( ibuf.Description(), indirectBufferOffset,
+                                                 cbuf.Description(), countBufferOffset,
+                                                 maxDrawCount, stride ));
 
         RawCtx::DrawIndexedIndirectCount( ibuf.Handle(), indirectBufferOffset, cbuf.Handle(), countBufferOffset, maxDrawCount, stride );
     }
@@ -882,10 +879,10 @@ namespace AE::Graphics::_hidden_
     void  _VDrawContextImpl<C>::DrawMeshTasksIndirect (BufferID indirectBuffer,
                                                        Bytes    indirectBufferOffset,
                                                        uint     drawCount,
-                                                       Bytes    stride)
+                                                       Bytes    stride) __Th___
     {
         auto&   buf = _GetResourcesOrThrow( indirectBuffer );
-        Validator_t::DrawMeshTasksIndirect( buf, indirectBufferOffset, drawCount, stride );
+        VALIDATE_GCTX( DrawMeshTasksIndirect( buf.Description(), indirectBufferOffset, drawCount, stride ));
 
         RawCtx::DrawMeshTasksIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
     }
@@ -901,12 +898,12 @@ namespace AE::Graphics::_hidden_
                                                             BufferID    countBuffer,
                                                             Bytes       countBufferOffset,
                                                             uint        maxDrawCount,
-                                                            Bytes       stride)
+                                                            Bytes       stride) __Th___
     {
         auto  [ibuf, cbuf] = _GetResourcesOrThrow( indirectBuffer, countBuffer );
-        Validator_t::DrawMeshTasksIndirectCount( ibuf, indirectBufferOffset,
-                                                 cbuf, countBufferOffset,
-                                                 maxDrawCount, stride );
+        VALIDATE_GCTX( DrawMeshTasksIndirectCount( ibuf.Description(), indirectBufferOffset,
+                                                   cbuf.Description(), countBufferOffset,
+                                                   maxDrawCount, stride ));
 
         RawCtx::DrawMeshTasksIndirectCount( ibuf.Handle(), indirectBufferOffset, cbuf.Handle(), countBufferOffset, maxDrawCount, stride );
     }
@@ -976,7 +973,7 @@ namespace AE::Graphics::_hidden_
     template <typename C>
     bool  _VDrawContextImpl<C>::_ClearAttachment (AttachmentName name, VkClearAttachment &clearAtt, const RectI &rect, ImageLayer baseLayer, uint layerCount) __Th___
     {
-        Validator_t::ClearAttachment( rect );
+        VALIDATE_GCTX( ClearAttachment( rect ));
 
         const uint  idx = this->_mngr.GetAttachmentIndex( name );
         CHECK_ERR( idx != UMax );
@@ -1001,11 +998,11 @@ namespace AE::Graphics::_hidden_
     _BindPipeline
 =================================================
 */
-    inline void  _VDirectDrawCtx::_BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState flags)
+    inline void  _VDirectDrawCtx::_BindPipeline (VkPipelineBindPoint bindPoint, VkPipeline ppln, VkPipelineLayout layout, EPipelineDynamicState dynStates)
     {
         _states.bindPoint   = bindPoint;
         _states.pplnLayout  = layout;
-        _states.flags       = flags;
+        _states.dynStates   = dynStates;
 
         vkCmdBindPipeline( _cmdbuf.Get(), bindPoint, ppln );
     }
@@ -1015,10 +1012,9 @@ namespace AE::Graphics::_hidden_
     BindDescriptorSet
 =================================================
 */
-    inline void  _VDirectDrawCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
+    inline void  _VDirectDrawCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets) __Th___
     {
-        ASSERT( _states.pplnLayout != Default );
-        ASSERT( ds != Default );
+        VALIDATE_GCTX( BindDescriptorSet( _states.pplnLayout, index, ds ));
 
         vkCmdBindDescriptorSets( _cmdbuf.Get(), _states.bindPoint, _states.pplnLayout, index.vkIndex, 1, &ds, uint(dynamicOffsets.size()), dynamicOffsets.data() );
     }
@@ -1028,10 +1024,9 @@ namespace AE::Graphics::_hidden_
     _PushGraphicsConstant
 =================================================
 */
-    inline void  _VDirectDrawCtx::_PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+    inline void  _VDirectDrawCtx::_PushGraphicsConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
     {
-        ASSERT( IsAligned( size, sizeof(uint) ));
-        ASSERT( _states.pplnLayout != Default );
+        VALIDATE_GCTX( PushConstant( _states.pplnLayout, offset, size, values, stages ));
 
         vkCmdPushConstants( _cmdbuf.Get(), _states.pplnLayout, VEnumCast(stages), uint(offset), uint(size), values );
     }
@@ -1041,10 +1036,9 @@ namespace AE::Graphics::_hidden_
     SetViewport
 =================================================
 */
-    inline void  _VDirectDrawCtx::SetViewport (uint first, ArrayView<VkViewport> viewports)
+    inline void  _VDirectDrawCtx::SetViewport (uint first, ArrayView<VkViewport> viewports) __Th___
     {
-        ASSERT( not viewports.empty() );
-        ASSERT( _GetFeatures().multiViewport or (first + viewports.size() == 1) );
+        VALIDATE_GCTX( SetViewport( first, viewports ));
 
         vkCmdSetViewport( _cmdbuf.Get(), first, uint(viewports.size()), viewports.data() );
     }
@@ -1056,8 +1050,7 @@ namespace AE::Graphics::_hidden_
 */
     inline void  _VDirectDrawCtx::SetScissor (uint first, ArrayView<VkRect2D> scissors)
     {
-        ASSERT( not scissors.empty() );
-        ASSERT( _GetFeatures().multiViewport or (first + scissors.size() == 1) );
+        VALIDATE_GCTX( SetScissor( first, scissors ));
 
         vkCmdSetScissor( _cmdbuf.Get(), first, uint(scissors.size()), scissors.data() );
     }
@@ -1067,10 +1060,9 @@ namespace AE::Graphics::_hidden_
     _SetDepthBias
 =================================================
 */
-    inline void  _VDirectDrawCtx::_SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor)
+    inline void  _VDirectDrawCtx::_SetDepthBias (float depthBiasConstantFactor, float depthBiasClamp, float depthBiasSlopeFactor) __Th___
     {
-        Validator_t::SetDepthBias( _GetDynamicStates() );
-        ASSERT( _GetFeatures().depthBiasClamp or IsZero( depthBiasClamp ));
+        VALIDATE_GCTX( SetDepthBias( _GetDynamicStates(), depthBiasClamp ));
 
         vkCmdSetDepthBias( _cmdbuf.Get(), depthBiasConstantFactor, depthBiasClamp, depthBiasSlopeFactor );
     }
@@ -1080,10 +1072,10 @@ namespace AE::Graphics::_hidden_
     _SetDepthBounds
 =================================================
 */
-    inline void  _VDirectDrawCtx::_SetDepthBounds (float minDepthBounds, float maxDepthBounds)
+    inline void  _VDirectDrawCtx::_SetDepthBounds (float minDepthBounds, float maxDepthBounds) __Th___
     {
-        ASSERT( _GetFeatures().depthBounds );
-        Validator_t::SetDepthBounds( _GetDynamicStates() );
+        VALIDATE_GCTX( SetDepthBounds( _GetDynamicStates() ));
+
         vkCmdSetDepthBounds( _cmdbuf.Get(), minDepthBounds, maxDepthBounds );
     }
 
@@ -1095,8 +1087,6 @@ namespace AE::Graphics::_hidden_
     inline void  _VDirectDrawCtx::_SetFragmentShadingRate (const VkExtent2D &fragSize, VkFragmentShadingRateCombinerOpKHR primitiveOp,
                                                            VkFragmentShadingRateCombinerOpKHR textureOp)
     {
-        ASSERT( _GetExtensions().fragShadingRate );
-        ASSERT( AllBits( _states.flags, EPipelineDynamicState::FragmentShadingRate ));
         ASSERT( fragSize.width <= 4 and fragSize.height <= 4 );
 
         VkFragmentShadingRateCombinerOpKHR  combiner_ops[2] = { primitiveOp, textureOp };
@@ -1109,9 +1099,10 @@ namespace AE::Graphics::_hidden_
     SetStencilCompareMask
 =================================================
 */
-    inline void  _VDirectDrawCtx::SetStencilCompareMask (VkStencilFaceFlagBits faceMask, uint compareMask)
+    inline void  _VDirectDrawCtx::SetStencilCompareMask (VkStencilFaceFlagBits faceMask, uint compareMask) __Th___
     {
-        Validator_t::SetStencilCompareMask( _GetDynamicStates() );
+        VALIDATE_GCTX( SetStencilCompareMask( _GetDynamicStates() ));
+
         vkCmdSetStencilCompareMask( _cmdbuf.Get(), faceMask, compareMask );
     }
 
@@ -1120,9 +1111,10 @@ namespace AE::Graphics::_hidden_
     SetStencilWriteMask
 =================================================
 */
-    inline void  _VDirectDrawCtx::SetStencilWriteMask (VkStencilFaceFlagBits faceMask, uint writeMask)
+    inline void  _VDirectDrawCtx::SetStencilWriteMask (VkStencilFaceFlagBits faceMask, uint writeMask) __Th___
     {
-        Validator_t::SetStencilWriteMask( _GetDynamicStates() );
+        VALIDATE_GCTX( SetStencilWriteMask( _GetDynamicStates() ));
+
         vkCmdSetStencilWriteMask( _cmdbuf.Get(), faceMask, writeMask );
     }
 
@@ -1131,9 +1123,10 @@ namespace AE::Graphics::_hidden_
     SetStencilReference
 =================================================
 */
-    inline void  _VDirectDrawCtx::SetStencilReference (VkStencilFaceFlagBits faceMask, uint reference)
+    inline void  _VDirectDrawCtx::SetStencilReference (VkStencilFaceFlagBits faceMask, uint reference) __Th___
     {
-        Validator_t::SetStencilReference( _GetDynamicStates() );
+        VALIDATE_GCTX( SetStencilReference( _GetDynamicStates() ));
+
         vkCmdSetStencilReference( _cmdbuf.Get(), faceMask, reference );
     }
 
@@ -1142,9 +1135,10 @@ namespace AE::Graphics::_hidden_
     _SetBlendConstants
 =================================================
 */
-    inline void  _VDirectDrawCtx::_SetBlendConstants (const RGBA32f &color)
+    inline void  _VDirectDrawCtx::_SetBlendConstants (const RGBA32f &color) __Th___
     {
-        Validator_t::SetBlendConstants( _GetDynamicStates() );
+        VALIDATE_GCTX( SetBlendConstants( _GetDynamicStates() ));
+
         vkCmdSetBlendConstants( _cmdbuf.Get(), color.data() );
     }
 
@@ -1153,8 +1147,10 @@ namespace AE::Graphics::_hidden_
     BindIndexBuffer
 =================================================
 */
-    inline void  _VDirectDrawCtx::BindIndexBuffer (VkBuffer buffer, Bytes offset, EIndex indexType)
+    inline void  _VDirectDrawCtx::BindIndexBuffer (VkBuffer buffer, Bytes offset, EIndex indexType) __Th___
     {
+        VALIDATE_GCTX( BindIndexBuffer( buffer, indexType ));
+
         vkCmdBindIndexBuffer( _cmdbuf.Get(), buffer, VkDeviceSize(offset), VEnumCast(indexType) );
 
         // TODO: vkCmdBindIndexBuffer2KHR (VK_KHR_maintenance5)
@@ -1180,8 +1176,10 @@ namespace AE::Graphics::_hidden_
     inline void  _VDirectDrawCtx::_Draw (uint vertexCount,
                                          uint instanceCount,
                                          uint firstVertex,
-                                         uint firstInstance)
+                                         uint firstInstance) __Th___
     {
+        VALIDATE_GCTX( Draw( _states.pplnLayout ));
+
         vkCmdDraw( _cmdbuf.Get(), vertexCount, instanceCount, firstVertex, firstInstance );
     }
 
@@ -1194,8 +1192,10 @@ namespace AE::Graphics::_hidden_
                                                 uint instanceCount,
                                                 uint firstIndex,
                                                 int  vertexOffset,
-                                                uint firstInstance)
+                                                uint firstInstance) __Th___
     {
+        VALIDATE_GCTX( DrawIndexed( _states.pplnLayout ));
+
         vkCmdDrawIndexed( _cmdbuf.Get(), indexCount, instanceCount, firstIndex, vertexOffset, firstInstance );
     }
 
@@ -1207,10 +1207,9 @@ namespace AE::Graphics::_hidden_
     inline void  _VDirectDrawCtx::DrawIndirect (VkBuffer indirectBuffer,
                                                 Bytes    indirectBufferOffset,
                                                 uint     drawCount,
-                                                Bytes    stride)
+                                                Bytes    stride) __Th___
     {
-        ASSERT( drawCount > 0 );
-        ASSERT( stride >= sizeof(VkDrawIndirectCommand) );
+        VALIDATE_GCTX( DrawIndirect( _states.pplnLayout, indirectBuffer, drawCount, stride ));
 
         vkCmdDrawIndirect( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), drawCount, CheckCast<uint>(stride) );
     }
@@ -1223,10 +1222,9 @@ namespace AE::Graphics::_hidden_
     inline void  _VDirectDrawCtx::DrawIndexedIndirect (VkBuffer indirectBuffer,
                                                        Bytes    indirectBufferOffset,
                                                        uint     drawCount,
-                                                       Bytes    stride)
+                                                       Bytes    stride) __Th___
     {
-        ASSERT( drawCount > 0 );
-        ASSERT( stride >= sizeof(VkDrawIndexedIndirectCommand) );
+        VALIDATE_GCTX( DrawIndexedIndirect( _states.pplnLayout, indirectBuffer, drawCount, stride ));
 
         vkCmdDrawIndexedIndirect( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), drawCount, CheckCast<uint>(stride) );
     }
@@ -1241,11 +1239,9 @@ namespace AE::Graphics::_hidden_
                                                      VkBuffer   countBuffer,
                                                      Bytes      countBufferOffset,
                                                      uint       maxDrawCount,
-                                                     Bytes      stride)
+                                                     Bytes      stride) __Th___
     {
-        ASSERT( _GetExtensions().drawIndirectCount );
-        ASSERT( maxDrawCount > 0 );
-        ASSERT( stride >= sizeof(VkDrawIndirectCommand) );
+        VALIDATE_GCTX( DrawIndirectCount( _states.pplnLayout, indirectBuffer, countBuffer, maxDrawCount, stride ));
 
         vkCmdDrawIndirectCountKHR( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), countBuffer, VkDeviceSize(countBufferOffset), maxDrawCount, CheckCast<uint>(stride) );
     }
@@ -1260,11 +1256,9 @@ namespace AE::Graphics::_hidden_
                                                             VkBuffer    countBuffer,
                                                             Bytes       countBufferOffset,
                                                             uint        maxDrawCount,
-                                                            Bytes       stride)
+                                                            Bytes       stride) __Th___
     {
-        ASSERT( _GetExtensions().drawIndirectCount );
-        ASSERT( maxDrawCount > 0 );
-        ASSERT( stride >= sizeof(VkDrawIndexedIndirectCommand) );
+        VALIDATE_GCTX( DrawIndexedIndirectCount( _states.pplnLayout, indirectBuffer, countBuffer, maxDrawCount, stride ));
 
         vkCmdDrawIndexedIndirectCountKHR( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset),
                                           countBuffer, VkDeviceSize(countBufferOffset),
@@ -1276,9 +1270,9 @@ namespace AE::Graphics::_hidden_
     _DrawMeshTasks
 =================================================
 */
-    inline void  _VDirectDrawCtx::_DrawMeshTasks (const uint3 &taskCount)
+    inline void  _VDirectDrawCtx::_DrawMeshTasks (const uint3 &taskCount) __Th___
     {
-        ASSERT( _GetExtensions().meshShader );
+        VALIDATE_GCTX( DrawMeshTasks( _states.pplnLayout, taskCount ));
 
         vkCmdDrawMeshTasksEXT( _cmdbuf.Get(), taskCount.x, taskCount.y, taskCount.z );
     }
@@ -1291,11 +1285,9 @@ namespace AE::Graphics::_hidden_
     inline void  _VDirectDrawCtx::DrawMeshTasksIndirect (VkBuffer   indirectBuffer,
                                                          Bytes      indirectBufferOffset,
                                                          uint       drawCount,
-                                                         Bytes      stride)
+                                                         Bytes      stride) __Th___
     {
-        ASSERT( _GetExtensions().meshShader );
-        ASSERT( drawCount > 0 );
-        ASSERT( stride >= sizeof(VkDrawMeshTasksIndirectCommandEXT) );
+        VALIDATE_GCTX( DrawMeshTasksIndirect( _states.pplnLayout, indirectBuffer, drawCount, stride ));
 
         vkCmdDrawMeshTasksIndirectEXT( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset), drawCount, CheckCast<uint>(stride) );
     }
@@ -1310,11 +1302,9 @@ namespace AE::Graphics::_hidden_
                                                               VkBuffer  countBuffer,
                                                               Bytes     countBufferOffset,
                                                               uint      maxDrawCount,
-                                                              Bytes     stride)
+                                                              Bytes     stride) __Th___
     {
-        ASSERT( _GetExtensions().meshShader );
-        ASSERT( maxDrawCount > 0 );
-        ASSERT( stride >= sizeof(VkDrawMeshTasksIndirectCommandEXT) );
+        VALIDATE_GCTX( DrawMeshTasksIndirectCount( _states.pplnLayout, indirectBuffer, countBuffer, maxDrawCount, stride ));
 
         vkCmdDrawMeshTasksIndirectCountEXT( _cmdbuf.Get(), indirectBuffer, VkDeviceSize(indirectBufferOffset),
                                             countBuffer, VkDeviceSize(countBufferOffset),
@@ -1326,9 +1316,10 @@ namespace AE::Graphics::_hidden_
     _DispatchTile
 =================================================
 */
-    inline void  _VDirectDrawCtx::_DispatchTile ()
+    inline void  _VDirectDrawCtx::_DispatchTile () __Th___
     {
-        ASSERT( _GetExtensions().subpassShadingHW );
+        GCTX_CHECK( _states.pplnLayout != Default );
+        //ASSERT( _GetExtensions().subpassShadingHW );  // TODO: remove
 
         vkCmdSubpassShadingHUAWEI( _cmdbuf.Get() );
     }

@@ -18,13 +18,25 @@ namespace AE::PipelineCompiler
     using AE::CharType;
 
 
-    enum class EPathParamsFlags
+    enum class EPathParamsFlags : uint
     {
-        Unknown     = 0,
-        Recursive   = 1 << 0,
+        Unknown                     = 0,
+        Recursive                   = 1 << 0,
         _Last,
-        All         = ((_Last - 1) << 1) - 1,
+        All                         = ((_Last - 1) << 1) - 1,
     };
+
+
+    enum class EReflectionFlags : uint
+    {
+        Unknown                     = 0,
+        RenderTechniques            = 1 << 0,
+        RTechPass_Pipelines         = 1 << 1,
+        RTech_ShaderBindingTable    = 1 << 2,
+        _Last,
+        All                         = ((_Last - 1) << 1) - 1,
+    };
+    AE_BIT_OPERATORS( EReflectionFlags );
 
 
     struct PathParams
@@ -46,24 +58,26 @@ namespace AE::PipelineCompiler
     struct PipelinesInfo
     {
         // input pipelines
-        const PathParams *      pipelineFolders     = null;     // [pipelineFolderCount]
-        usize                   pipelineFolderCount = 0;
-        const PathParams *      inPipelines         = null;     // [inPipelineCount]
-        usize                   inPipelineCount     = 0;
+        const PathParams *      pipelineFolders         = null;     // [pipelineFolderCount]
+        usize                   pipelineFolderCount     = 0;
+        const PathParams *      inPipelines             = null;     // [inPipelineCount]
+        usize                   inPipelineCount         = 0;
 
         // input shaders
-        const CharType * const* shaderFolders       = null;     // [shaderFolderCount]
-        usize                   shaderFolderCount   = 0;
+        const CharType * const* shaderFolders           = null;     // [shaderFolderCount]
+        usize                   shaderFolderCount       = 0;
 
         // include directories
-        const CharType * const* includeDirs         = null;     // [includeDirCount]
-        usize                   includeDirCount     = 0;
+        const CharType * const* includeDirs             = null;     // [includeDirCount]
+        usize                   includeDirCount         = 0;
 
         // output
-        const CharType *        outputPackName      = null;
-        const CharType *        outputCppFile       = null;
-        const CharType *        outputScriptFile    = null;
-        bool                    addNameMapping      = false;
+        const CharType *        outputPackName          = null;
+        EReflectionFlags        cppReflectionFlags      = EReflectionFlags::Unknown;
+        const CharType *        outputCppStructsFile    = null;     // C++ reflection
+        const CharType *        outputCppNamesFile      = null;     // C++ reflection
+        const CharType *        outputScriptFile        = null;     // script reflection
+        bool                    addNameMapping          = false;    // for debugging
     };
 
 

@@ -1,6 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Simple compute shader.
+*/
 #ifdef __INTELLISENSE__
-#   include <res_editor>
+#   include <res_editor.as>
 #   include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------

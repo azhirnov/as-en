@@ -1,5 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 void ASmain ()
 {
@@ -49,13 +49,13 @@ void ASmain ()
         {
             RC<Shader>  vs = Shader();
             vs.Define( "CUBE" );
-            vs.file     = "simple3d.glsl";      // file:///<path>/samples/demo/_data/shaders/simple3d.glsl
+            vs.file        = "simple3d.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
             vs.options  = EShaderOpt::Optimize;
             ppln.SetVertexShader( vs );
         }
         {
             RC<Shader>  fs = Shader();
-            fs.file     = "simple3d.glsl";      // file:///<path>/samples/demo/_data/shaders/simple3d.glsl
+            fs.file        = "simple3d.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
             fs.options  = EShaderOpt::Optimize;
             ppln.SetFragmentShader( fs );
         }
@@ -64,7 +64,6 @@ void ASmain ()
         {
             RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "simple3d.draw1" );
             spec.AddToRenderTech( "Scene3D.RTech", "Main" );
-            spec.SetViewportCount( 1 );
 
             RenderState rs;
 
@@ -88,13 +87,13 @@ void ASmain ()
         {
             RC<Shader>  vs = Shader();
             vs.Define( "SPHERICAL_CUBE" );
-            vs.file     = "simple3d.glsl";      // file:///<path>/samples/demo/_data/shaders/simple3d.glsl
+            vs.file        = "simple3d.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
             vs.options  = EShaderOpt::Optimize;
             ppln.SetVertexShader( vs );
         }
         {
             RC<Shader>  fs = Shader();
-            fs.file     = "simple3d.glsl";      // file:///<path>/samples/demo/_data/shaders/simple3d.glsl
+            fs.file        = "simple3d.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
             fs.options  = EShaderOpt::Optimize;
             ppln.SetFragmentShader( fs );
         }
@@ -103,7 +102,6 @@ void ASmain ()
         {
             RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "simple3d.draw2" );
             spec.AddToRenderTech( "Scene3D.RTech", "Main" );
-            spec.SetViewportCount( 1 );
 
             RenderState rs;
 

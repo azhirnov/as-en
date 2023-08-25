@@ -56,6 +56,9 @@ ND_ float2      Transform2D (const float4x4 mat, const float2 point);
 
 ND_ float3      Project (const float4x4 mat, const float3 pos, const float4 viewport);
 ND_ float3      UnProject (const float4x4 invMat, const float3 pos, const float4 viewport);
+
+ND_ float3      ViewDir (const float4x4 invMat, const float2 screenPos, const float2 screenSize);
+ND_ float3      ViewDir (const float4x4 invMat, const float2 unormPos);
 //-----------------------------------------------------------------------------
 
 
@@ -102,9 +105,7 @@ float3x4  Translate (const float3x4 m, const float3 pos)
 float4x4  Translate (const float4x4 m, const float3 pos)
 {
     float4x4    result = m;
-    result[0].w = pos.x;
-    result[1].w = pos.y;
-    result[2].w = pos.z;
+    result[3].xyz = pos;
     return result;
 }
 
@@ -233,6 +234,19 @@ float3  UnProject (const float4x4 invMat, const float3 pos, const float4 viewpor
     temp = invMat * ToSNorm( temp );
     temp *= (1.0 / temp.w);
     return temp.xyz;
+}
+//-----------------------------------------------------------------------------
+
+
+float3  ViewDir (const float4x4 invMat, const float2 unormPos)
+{
+    const float4    world_pos = invMat * float4(ToSNorm(unormPos), 1.0f, 1.0f);
+    return Normalize( world_pos.xyz / world_pos.w );
+}
+
+float3  ViewDir (const float4x4 invMat, const float2 screenPos, const float2 screenSize)
+{
+    return ViewDir( invMat, screenPos / screenSize );
 }
 //-----------------------------------------------------------------------------
 

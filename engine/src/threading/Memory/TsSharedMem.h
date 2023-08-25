@@ -66,7 +66,7 @@ namespace AE::Threading
             template <typename T>
             ND_ ArrayView<T>  ToView ()         C_NE___
             {
-                ASSERT( Size() % SizeOf<T> == 0 );
+                ASSERT( IsAligned( Size(), SizeOf<T> ));
                 ASSERT( AlignOf<T> <= Align() );
                 return ArrayView<T>{ Cast<T>(Data()), Size() / SizeOf<T> };
             }

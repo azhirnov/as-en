@@ -276,7 +276,7 @@ namespace AE::Base
             if constexpr( padding == 0 )
                 return MakeUnique< _ViewerImpl< Class >>( ptr );
             else
-            if constexpr( padding % alignof(T) == 0 )
+            if constexpr( IsAligned( padding, alignof(T) ))
                 return MakeUnique< _ViewerWithPadding< Class, padding >>( ptr );
             else
                 return MakeUnique< _ViewerWithPaddingUnaligned< Class, padding >>( ptr );

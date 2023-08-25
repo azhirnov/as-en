@@ -55,7 +55,7 @@ namespace AE::Samples::Demo
         bool            Init (PipelinePackID pack)                                          override;
         AsyncTask       Update (const ActionQueueReader &reader, ArrayView<AsyncTask> deps) override;
         AsyncTask       Draw (RenderGraph &rg, ArrayView<AsyncTask> deps)                   override;
-        InputModeName   GetInputMode ()                                                     const override { return InputModeName{"Simple3D"}; }
+        InputModeName   GetInputMode ()                                                     const override;
     };
 
 

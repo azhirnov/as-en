@@ -14,16 +14,23 @@
 
 
 // 2D Shapes
-ND_ float  SDF_Line (const float2 position, const float2 point0, const float2 point1);
-ND_ float  SDF_Rect (const float2 position, const float2 hsize);
-ND_ float  SDF_Circle (const float2 position, const float radius);
-ND_ float  SDF_Pentagon (const float2 position, const float radius);
+ND_ float  SDF2_Line (const float2 position, const float2 point0, const float2 point1);
+ND_ float  SDF2_Rect (const float2 position, const float2 hsize);
+ND_ float  SDF2_Circle (const float2 position, const float radius);
+ND_ float  SDF2_RoundedRect (const float2 position, const float2 hsize, float4 radius);
+ND_ float  SDF2_OrientedRect (const float2 position, const float2 a, const float2 b, const float angle);
+ND_ float  SDF2_EquilateralTriangle (float2 position, const float size);
+ND_ float  SDF2_Triangle (const float2 position, const float2 p0, const float2 p1, const float2 p2);
+ND_ float  SDF2_Pentagon (const float2 position, const float radius);
+ND_ float  SDF2_Hexagon (const float2 position, const float radius);
+ND_ float  SDF2_Octagon (const float2 position, const float radius);
 
 
 // 3D Shapes
 ND_ float  SDF_Sphere (const float3 position, const float radius);
 ND_ float  SDF_Ellipsoid (const float3 position, const float3 radius);
 ND_ float  SDF_Box (const float3 position, const float3 halfSize);
+ND_ float  SDF_RoundedBox (const float3 position, const float3 halfSize, const float radius);
 ND_ float  SDF_BoxFrame (const float3 position, const float3 halfSize, const float width);
 ND_ float  SDF_Torus (const float3 position, const float2 outerAndInnerRadius);
 ND_ float  SDF_Cylinder (const float3 position, const float2 radiusHeight);
@@ -67,11 +74,20 @@ ND_ float2  SDF_Rotate2D (const float2 position, const float angle);
 ND_ float3  SDF_Transform (const float3 position, const quat q, const float3 delta);
 
 #if 0 // macros
+ND_ float  SDF_Scale (const float2 position, float scale, float (*sdf)(float2));
 ND_ float  SDF_Scale (const float3 position, float scale, float (*sdf)(float3));
+
+ND_ float  SDF_OpSymX (const float2 position, float (*sdf)(float2));
 ND_ float  SDF_OpSymX (const float3 position, float (*sdf)(float3));
+
+ND_ float  SDF_OpSymXZ (const float2 position, float (*sdf)(float2));
 ND_ float  SDF_OpSymXZ (const float3 position, float (*sdf)(float3));
+
+ND_ float  SDF_InfRepetition (const float2 position, const float2 center, float (*sdf)(float2));
 ND_ float  SDF_InfRepetition (const float3 position, const float3 center, float (*sdf)(float3));
-ND_ float  SDF_Repetition (const float3 position, const float c, const float3 l, float (*sdf)(float3));
+
+ND_ float  SDF_Repetition (const float2 position, const float step, const float2 count, float (*sdf)(float2));
+ND_ float  SDF_Repetition (const float3 position, const float step, const float3 count, float (*sdf)(float3));
 #endif
 
 
@@ -79,7 +95,7 @@ ND_ float  SDF_Repetition (const float3 position, const float c, const float3 l,
 //-----------------------------------------------------------------------------
 // 2D Shapes
 
-float  SDF_Line (const float2 position, const float2 point0, const float2 point1)
+float  SDF2_Line (const float2 position, const float2 point0, const float2 point1)
 {
     const float2  pa = position - point0;
     const float2  ba = point1 - point0;
@@ -88,20 +104,20 @@ float  SDF_Line (const float2 position, const float2 point0, const float2 point1
 }
 
 
-float  SDF_Rect (const float2 position, const float2 hsize)
+float  SDF2_Rect (const float2 position, const float2 hsize)
 {
     const float2  d = Abs( position ) - hsize;
     return Length(Max( d, float2(0.0f) )) + Min(Max( d.x, d.y ), 0.0f );
 }
 
 
-float  SDF_Circle (const float2 position, const float radius)
+float  SDF2_Circle (const float2 position, const float radius)
 {
     return Length( position ) - radius;
 }
 
 
-float  SDF_Pentagon (const float2 position, const float radius)
+float  SDF2_Pentagon (const float2 position, const float radius)
 {
     const float3  k = float3( 0.809016994f, 0.587785252f, 0.726542528f );
           float2  p = position;
@@ -111,6 +127,78 @@ float  SDF_Pentagon (const float2 position, const float radius)
     p -= float2( Clamp( p.x, -radius * k.z, radius * k.z ), radius );
     return Length(p) * SignOrZero(p.y);
 }
+
+
+float  SDF2_Hexagon (const float2 position, const float radius)
+{
+    const float3    k = float3( -0.866025404, 0.5, 0.577350269 );
+          float2    p = Abs(position);
+    p -= 2.0 * Min(Dot( k.xy, p ), 0.0f ) * k.xy;
+    p -= float2(Clamp( p.x, -k.z * radius, k.z * radius ), radius );
+    return Length(p) * Sign(p.y);
+}
+
+
+float  SDF2_Octagon (const float2 position, const float radius)
+{
+    const float3    k = float3( -0.9238795325, 0.3826834323, 0.4142135623 );
+          float2    p = Abs(position);
+    p -= 2.0 * Min(Dot( float2( k.x, k.y), p ), 0.0 ) * float2( k.x,k.y);
+    p -= 2.0 * Min(Dot( float2(-k.x, k.y), p ), 0.0 ) * float2(-k.x,k.y);
+    p -= float2(Clamp( p.x, -k.z * radius, k.z * radius ), radius );
+    return length(p)*sign(p.y);
+}
+
+
+float  SDF2_RoundedRect (const float2 position, const float2 hsize, float4 radius)
+{
+            radius.xy   = (position.x > 0.0) ? radius.xy : radius.zw;
+            radius.x    = (position.y > 0.0) ? radius.x  : radius.y;
+    float2  q           = Abs(position) - hsize + radius.x;
+    return Min(Max( q.x, q.y ), 0.0f ) + Length(Max( q, 0.0f )) - radius.x;
+}
+
+
+float  SDF2_OrientedRect (const float2 position, const float2 a, const float2 b, const float angle)
+{
+    float   l = Length( b - a );
+    float2  d = (b - a) / l;
+    float2  q = (position - (a + b) * 0.5f);
+            q = float2x2( d.x, -d.y, d.y, d.x ) * q;
+            q = Abs(q) - float2( l, angle ) * 0.5f;
+    return Length(Max( q, 0.0f )) + Min(Max( q.x, q.y ), 0.0f );
+}
+
+
+float  SDF2_EquilateralTriangle (float2 p, const float size)
+{
+    const float k = Sqrt(3.0);  // TODO
+    p.x = Abs(p.x) - size;
+    p.y = p.y + size / k;
+    if ( p.x + k * p.y > 0.0 )  p = float2( p.x - k * p.y, -k * p.x - p.y ) / 2.0;
+    p.x -= Clamp( p.x, -2.0 * size, 0.0 );
+    return -Length(p) * Sign(p.y);
+}
+
+
+float  SDF2_Triangle (const float2 position, const float2 p0, const float2 p1, const float2 p2)
+{
+    float2  e0  = p1 - p0;
+    float2  e1  = p2 - p1;
+    float2  e2  = p0 - p2;
+    float2  v0  = position - p0;
+    float2  v1  = position - p1;
+    float2  v2  = position - p2;
+    float2  pq0 = v0 - e0 * Saturate( Dot( v0, e0 ) / Dot( e0, e0 ));
+    float2  pq1 = v1 - e1 * Saturate( Dot( v1, e1 ) / Dot( e1, e1 ));
+    float2  pq2 = v2 - e2 * Saturate( Dot( v2, e2 ) / Dot( e2, e2 ));
+    float   s   = Sign( e0.x * e2.y - e0.y * e2.x );
+    float2  d   = Min(  Min(float2( Dot( pq0, pq0 ), s * (v0.x * e0.y - v0.y * e0.x)),
+                        float2( Dot( pq1, pq1 ), s * (v1.x * e1.y - v1.y * e1.x) )),
+                        float2( Dot( pq2, pq2 ), s * (v2.x * e2.y - v2.y * e2.x) ));
+    return -Sqrt(d.x) * Sign(d.y);
+}
+
 
 
 //-----------------------------------------------------------------------------
@@ -133,7 +221,13 @@ float  SDF_Ellipsoid (const float3 position, const float3 radius)
 float  SDF_Box (const float3 position, const float3 halfSize)
 {
     const float3  d = Abs( position ) - halfSize;
-    return Min( Max( d.x, Max( d.y, d.z )), 0.0f ) + Length( Max( d, 0.0f ));
+    return Min( Max( d.x, Max( d.y, d.z )), 0.0f ) + Length( Max( d, 0.0001f ));
+}
+
+
+float  SDF_RoundedBox (const float3 position, const float3 halfSize, const float radius)
+{
+    return SDF_Box( position, halfSize ) - radius;
 }
 
 
@@ -370,12 +464,10 @@ float3  SDF_Move (const float3 position, const float3 delta)
     return position - delta;
 }
 
-
 float3  SDF_Rotate (const float3 position, const quat q)
 {
     return QMul( QInverse( q ), position );
 }
-
 
 float3  SDF_Transform (const float3 position, const quat q, const float3 delta)
 {
@@ -411,27 +503,57 @@ float2  SDF_Rotate2D (const float2 p, const float angle)
 // calculate normal for SDF scene
 // https://iquilezles.org/articles/normalsSDF/
 
-#define GEN_SDF_NORMAL_FN( _fnName_, _sdf_, _field_ )                           \
-    ND_ float3  _fnName_ (const float3 pos)                                     \
-    {                                                                           \
-        const float2  eps  = float2( 0.001f, 0.0f );                            \
-        const float3  norm = float3(                                            \
-            _sdf_( pos + eps.xyy ) _field_ - _sdf_( pos - eps.xyy ) _field_,    \
-            _sdf_( pos + eps.yxy ) _field_ - _sdf_( pos - eps.yxy ) _field_,    \
-            _sdf_( pos + eps.yyx ) _field_ - _sdf_( pos - eps.yyx ) _field_ );  \
-        return Normalize( norm );                                               \
+// Forward and central differences
+#define GEN_SDF_NORMAL_6sp_FN( _fnName_, _sdf_ )                \
+    ND_ float3  _fnName_ (const float3 pos, const float eps)    \
+    {                                                           \
+        const float2  h     = float2( eps, 0.0f );              \
+        const float3  norm  = float3(                           \
+            _sdf_( pos + h.xyy ) - _sdf_( pos - h.xyy ),        \
+            _sdf_( pos + h.yxy ) - _sdf_( pos - h.yxy ),        \
+            _sdf_( pos + h.yyx ) - _sdf_( pos - h.yyx ) );      \
+        return Normalize( norm );                               \
+    }                                                           \
+                                                                \
+    ND_ float3  _fnName_ (const float3 pos) {                   \
+        return _fnName_( pos, 0.0001f );                        \
     }
 
-#define GEN_SDF_NORMAL_FN2( _fnName_, _sdf_, _field_ )  \
-    ND_ float3  _fnName_ (const float3 pos)             \
-    {                                                   \
-        const float   h    = 0.001f;                    \
-        const float2  k    = float2(1.f, -1.f);         \
-        const float3  norm = float3(                    \
-            k.xyy * _sdf_( pos + k.xyy * h ) _field_ +  \
-            k.yyx * _sdf_( pos + k.yyx * h ) _field_ +  \
-            k.yxy * _sdf_( pos + k.yxy * h ) _field_ +  \
-            k.xxx * _sdf_( pos + k.xxx * h ) _field_ ); \
-        return Normalize( norm );                       \
+
+// Tetrahedron
+#define GEN_SDF_NORMAL_4sp_FN( _fnName_, _sdf_ )                \
+    ND_ float3  _fnName_ (const float3 pos, const float eps)    \
+    {                                                           \
+        const float2  k     = float2(1.f, -1.f);                \
+        const float3  norm  =                                   \
+            k.xyy * _sdf_( pos + k.xyy * eps ) +                \
+            k.yyx * _sdf_( pos + k.yyx * eps ) +                \
+            k.yxy * _sdf_( pos + k.yxy * eps ) +                \
+            k.xxx * _sdf_( pos + k.xxx * eps );                 \
+        return Normalize( norm );                               \
+    }                                                           \
+                                                                \
+    ND_ float3  _fnName_ (const float3 pos) {                   \
+        return _fnName_( pos, 0.0001f );                        \
+    }
+
+
+// Calc normal in 3x3x3 cube
+#define GEN_SDF_NORMAL_27sp_FN( _fnName_, _sdf_ )               \
+    ND_ float3  _fnName_ (const float3 pos, const float eps)    \
+    {                                                           \
+        float3  norm = float3(0.0);                             \
+        for (int z = -1; z <= 1; ++z)                           \
+        for (int y = -1; y <= 1; ++y)                           \
+        for (int x = -1; x <= 1; ++x)                           \
+        {                                                       \
+            float3  dir = float3(x, y, z);                      \
+            norm += dir * _sdf_( pos + dir * eps );             \
+        }                                                       \
+        return Normalize( norm );                               \
+    }                                                           \
+                                                                \
+    ND_ float3  _fnName_ (const float3 pos) {                   \
+        return _fnName_( pos, 0.0001f );                        \
     }
 

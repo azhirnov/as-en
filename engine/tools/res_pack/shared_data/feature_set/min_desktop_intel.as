@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 
 void ASmain ()
@@ -108,6 +108,8 @@ void ASmain ()
     fset.fragmentShaderSampleInterlock (True);
     fset.fragmentShaderPixelInterlock (True);
     fset.minSpirvVersion (150);
+    fset.drawIndirectFirstInstance (True);
+    fset.drawIndirectCount (True);
     fset.multiview (True);
     fset.multiviewGeometryShader (True);
     fset.multiviewTessellationShader (True);

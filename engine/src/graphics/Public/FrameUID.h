@@ -175,12 +175,13 @@ namespace AE::Graphics
         {
         #ifdef AE_DEBUG
             FrameUID    old = BitCast<FrameUID>( _value.exchange( BitCast<Value_t>( value )));
-            ASSERT( old.Unique() <= value.Unique() );
+            ASSERT( value == Default or old.Unique() <= value.Unique() );
         #else
             _value.store( BitCast<Value_t>( value ));
         #endif
         }
 
+        // increase counter and return new value
         FrameUID  Inc ()                                        __NE___
         {
             Value_t new_val;

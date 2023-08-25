@@ -1,5 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 void  CreateRenderPass (EPixelFormat fmt, string name)
 {
@@ -92,12 +92,12 @@ void  CreatePipeline (const array<string> &passNames)
 
     {
         RC<Shader>  vs  = Shader();
-        vs.file = "imgui.glsl";     // file:///<path>/samples/res_editor/_ui_data/shaders/imgui.glsl
+        vs.file = "imgui.glsl";        // file:///<path>/AE/samples/res_editor/_ui_data/shaders/imgui.glsl
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file = "imgui.glsl";     // file:///<path>/samples/res_editor/_ui_data/shaders/imgui.glsl
+        fs.file = "imgui.glsl";        // file:///<path>/AE/samples/res_editor/_ui_data/shaders/imgui.glsl
         ppln.SetFragmentShader( fs );
     }
 
@@ -108,14 +108,13 @@ void  CreatePipeline (const array<string> &passNames)
         spec.AddToRenderTech( "UI.RTech", "UI." + passNames[i] );
 
         RenderState rs;
-
-        RenderState_ColorBuffer cb;
-        cb.srcBlendFactor   .set( EBlendFactor::SrcAlpha );
-        cb.dstBlendFactor   .set( EBlendFactor::OneMinusSrcAlpha );
-        cb.blendOp          .set( EBlendOp::Add );
-        cb.blend            = true;
-        rs.color.SetColorBuffer( 0, cb );
-
+        {
+            RenderState_ColorBuffer     cb;
+            cb.SrcBlendFactor( EBlendFactor::SrcAlpha );
+            cb.DstBlendFactor( EBlendFactor::OneMinusSrcAlpha );
+            cb.BlendOp( EBlendOp::Add );
+            rs.color.SetColorBuffer( 0, cb );
+        }
         rs.depth.test               = false;
         rs.inputAssembly.topology   = EPrimitive::TriangleList;
         rs.rasterization.cullMode   = ECullMode::None;

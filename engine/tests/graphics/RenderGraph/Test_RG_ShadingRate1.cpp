@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Test_RenderGraph.h"
+#ifndef AE_ENABLE_METAL
+# include "Test_RenderGraph.h"
 
 namespace
 {
@@ -29,12 +30,15 @@ namespace
         RC<GfxLinearMemAllocator>   gfxAlloc;
     };
 
+    static constexpr auto&  RTech = RenderTechs::VRSTestRT;
+
+
     ND_ static int  ShadingRate (int x, int y)
     {
         return (IntLog2(x) << 2) | IntLog2(y);
     }
 
-    static const Vertex_VRS     vertices[] = {
+    static const ShaderTypes::Vertex_VRS    vertices[] = {
         {{-0.9f,  0.0f}, ShadingRate(4,4)},  {{-0.9f,  0.9f}, ShadingRate(4,4)},  {{-0.2f,  0.9f}, ShadingRate(4,4)},
         {{-1.0f, -0.3f}, ShadingRate(2,2)},  {{ 0.0f,  1.0f}, ShadingRate(2,2)},  {{ 0.0f, -0.3f}, ShadingRate(2,2)},
         {{ 0.1f, -0.1f}, ShadingRate(2,4)},  {{ 0.1f,  0.9f}, ShadingRate(2,4)},  {{ 0.9f, -0.1f}, ShadingRate(2,4)},
@@ -111,9 +115,12 @@ namespace
 
             // per draw
             {
-                auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, RenderTechPassName{"nonVRS"}, t.viewSize }
+                constexpr auto&     rtech_pass = RTech.nonVRS;
+                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+
+                auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
-                                    .AddTarget( AttachmentName{"Color"}, t.view[i], RGBA32f{HtmlColor::Black} ));
+                                    .AddTarget( rtech_pass.att_Color, t.view[i], RGBA32f{HtmlColor::Black} ));
 
                 dctx.BindPipeline( t.ppln[i] );
                 dctx.SetFragmentShadingRate( EShadingRate::Size2x2, EShadingRateCombinerOp::Keep, EShadingRateCombinerOp::Keep );
@@ -126,9 +133,12 @@ namespace
 
             // per primitive
             {
-                auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, RenderTechPassName{"nonVRS"}, t.viewSize }
+                constexpr auto&     rtech_pass = RTech.nonVRS;
+                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+
+                auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
-                                    .AddTarget( AttachmentName{"Color"}, t.view[i], RGBA32f{HtmlColor::Black} ));
+                                    .AddTarget( rtech_pass.att_Color, t.view[i], RGBA32f{HtmlColor::Black} ));
 
                 VertexStream    vstream;
                 CHECK_TE( dctx.AllocVStream( Sizeof(vertices), OUT vstream ));
@@ -147,10 +157,13 @@ namespace
 
             // VRS attachment
             {
-                auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, RenderTechPassName{"VRS"}, t.viewSize }
+                constexpr auto&     rtech_pass = RTech.VRS;
+                STATIC_ASSERT( rtech_pass.attachmentsCount == 2 );
+
+                auto    dctx = gctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
-                                    .AddTarget( AttachmentName{"Color"}, t.view[i], RGBA32f{HtmlColor::Black} )
-                                    .AddTarget( AttachmentName{"ShadingRate"}, t.vrsView ));
+                                    .AddTarget( rtech_pass.att_Color,       t.view[i], RGBA32f{HtmlColor::Black} )
+                                    .AddTarget( rtech_pass.att_ShadingRate, t.vrsView ));
 
                 dctx.BindPipeline( t.ppln[i] );
                 dctx.SetFragmentShadingRate( EShadingRate::Size1x1, EShadingRateCombinerOp::Keep, EShadingRateCombinerOp::Replace );
@@ -220,6 +233,8 @@ namespace
         t.viewSize  = uint2{512, 512};
         t.texelSize = uint2{16};
 
+        CHECK_ERR( t.rtech->Name() == RenderTechName{RTech} );
+
         // create attachments
         for (uint i = 0; i < 3; ++i)
         {
@@ -241,9 +256,9 @@ namespace
             CHECK_ERR( t.vrsView );
         }
 
-        t.ppln[0] = renderTech->GetGraphicsPipeline( PipelineName{"per_draw"} );
-        t.ppln[1] = renderTech->GetGraphicsPipeline( PipelineName{"per_primitive"} );
-        t.ppln[2] = renderTech->GetGraphicsPipeline( PipelineName{"vrs_attachment"} );
+        t.ppln[0] = renderTech->GetGraphicsPipeline( RTech.nonVRS.per_draw );
+        t.ppln[1] = renderTech->GetGraphicsPipeline( RTech.nonVRS.per_primitive );
+        t.ppln[2] = renderTech->GetGraphicsPipeline( RTech.VRS.vrs_attachment );
         CHECK_ERR( t.ppln[0] and t.ppln[1] and t.ppln[2] );
 
         AsyncTask   begin   = rts.BeginFrame();
@@ -287,3 +302,5 @@ bool RGTest::Test_ShadingRate1 ()
     AE_LOGI( TEST_NAME << " - passed" );
     return result;
 }
+
+#endif // not AE_ENABLE_METAL

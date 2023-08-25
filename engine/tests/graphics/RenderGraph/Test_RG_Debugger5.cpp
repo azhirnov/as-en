@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Test_RenderGraph.h"
+#ifndef AE_ENABLE_METAL
+# include "Test_RenderGraph.h"
 
 namespace
 {
@@ -39,6 +40,8 @@ namespace
         RTGeometryBuild::TrianglesInfo  triangleInfo;
         RTGeometryBuild::TrianglesData  triangleData;
     };
+
+    static constexpr auto&  RTech = RenderTechs::RayQueryTestRT;
 
     static const float3 buffer_vertices []  = { { 0.25f, 0.25f, 0.0f }, { 0.75f, 0.25f, 0.0f }, { 0.50f, 0.75f, 0.0f } };
     static const uint   buffer_indices []   = { 0, 1, 2 };
@@ -127,7 +130,7 @@ namespace
             typename CtxTypes::Compute      ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 
             ctx.AccumBarriers()
-                .MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS_Read | EResourceState::ComputeShader )
+                .MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS | EResourceState::ComputeShader )
                 .ImageBarrier( t.img, EResourceState::Invalidate, img_state );
 
             ctx.BindPipeline( t.ppln );
@@ -259,6 +262,8 @@ no source
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
 
+        CHECK_ERR( renderTech->Name() == RenderTechName{RTech} );
+
         t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
                                         .SetUsage( EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
                                       "Image", t.gfxAlloc );
@@ -301,7 +306,7 @@ no source
                                             "RTAS scratch buffer", t.gfxAlloc );
         CHECK_ERR( t.scratch );
 
-        t.ppln = renderTech->GetComputePipeline( PipelineName{"dbg5_rquery.def"} );
+        t.ppln = renderTech->GetComputePipeline( RTech.RayTrace_1.dbg5_rquery_def );
         CHECK_ERR( t.ppln );
 
         {
@@ -359,3 +364,5 @@ bool RGTest::Test_Debugger5 ()
     AE_LOGI( TEST_NAME << " - passed" );
     return result;
 }
+
+#endif // not AE_ENABLE_METAL

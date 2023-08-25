@@ -11,7 +11,7 @@ namespace AE::ResEditor
     // Resource Queue
     //
 
-    class ResourceQueue final
+    class ResourceQueue final : public EnableRC<ResourceQueue>
     {
     // types
     private:
@@ -36,6 +36,8 @@ namespace AE::ResEditor
 
     // variables
     private:
+        Atomic<uint>        _destroy;
+
         Queue               _upload;
         Queue               _readback;
 
@@ -44,6 +46,9 @@ namespace AE::ResEditor
 
     // methods
     public:
+        ResourceQueue ();
+        ~ResourceQueue ();
+
         void  EnqueueForUpload (RC<IResource> res);
         void  EnqueueForReadback (RC<IResource> res);
         void  EnqueueImageTransition (ImageID id);
@@ -57,8 +62,9 @@ namespace AE::ResEditor
         ND_ ulong       ReadbackFramesWithoutWork ()            { return _readback.framesWithoutWork.load(); }
 
     private:
-        void  _Upload (TransferCtx_t &);
-        void  _Readback (TransferCtx_t &);
+        static  void  _Upload (TransferCtx_t &, Queue &);
+        static  void  _Readback (TransferCtx_t &, Queue &);
+                void  _Enqueue (Queue &, RC<IResource> res) const;
     };
 
 

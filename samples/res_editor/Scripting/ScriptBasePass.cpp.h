@@ -40,9 +40,19 @@ namespace
             {
                 binder.Create();
                 binder.AddValue( "None",                EFlags::Unknown );
+
+                binder.Comment( "ShaderTrace - record all variables, function result, etc and save it to file.\n"
+                                "It is very useful to debug shaders. In UI select 'Debugging' menu, select pass,"
+                                "'Trace' and shader stage then click 'G' key to record trace for pixel under cursor.\n"
+                                "Reference to the last recorded trace will be added to console and IDE log, click on it to open file." );
                 binder.AddValue( "Enable_ShaderTrace",  EFlags::Enable_ShaderTrace );
+
+                binder.Comment( "ShaderFunctionProfiling - record time of user function calls, sort it and save to file.\n" );
                 binder.AddValue( "Enable_ShaderFnProf", EFlags::Enable_ShaderFnProf );
-                binder.AddValue( "Enable_ShaderTmProf", EFlags::Enable_ShaderTmProf );
+
+                //binder.AddValue( "Enable_ShaderTmProf",   EFlags::Enable_ShaderTmProf );  // not supported yet
+
+                binder.Comment( "Enable alll debug features." );
                 binder.AddValue( "Enable_AllShaderDbg", EFlags::Enable_AllShaderDbg );
                 STATIC_ASSERT( uint(EFlags::All) == 7 );
             }
@@ -51,27 +61,59 @@ namespace
         using T = typename B::Class_t;
         classBinder.Operators().ImplCast( &ScriptBasePass_ToBase<T> );
 
+        classBinder.Comment( "Set debug label and color. It is used in graphics profiler." );
         classBinder.AddMethod( &ScriptBasePass::SetDebugLabel1,     "SetDebugLabel" );
         classBinder.AddMethod( &ScriptBasePass::SetDebugLabel2,     "SetDebugLabel" );
 
+        classBinder.Comment( "Add slider to UI. Data passed to all shaders in the current pass." );
         classBinder.AddMethod( &ScriptBasePass::SliderI0,           "SliderI"       );
         classBinder.AddMethod( &ScriptBasePass::SliderI1,           "Slider"        );
         classBinder.AddMethod( &ScriptBasePass::SliderI2,           "Slider"        );
         classBinder.AddMethod( &ScriptBasePass::SliderI3,           "Slider"        );
         classBinder.AddMethod( &ScriptBasePass::SliderI4,           "Slider"        );
+        classBinder.AddMethod( &ScriptBasePass::SliderI1a,          "Slider"        );
+        classBinder.AddMethod( &ScriptBasePass::SliderI2a,          "Slider"        );
+        classBinder.AddMethod( &ScriptBasePass::SliderI3a,          "Slider"        );
+        classBinder.AddMethod( &ScriptBasePass::SliderI4a,          "Slider"        );
 
-        classBinder.AddMethod( &ScriptBasePass::SliderF0,           "Slider"        );
+        classBinder.AddMethod( &ScriptBasePass::SliderF0,           "SliderF"       );
         classBinder.AddMethod( &ScriptBasePass::SliderF1,           "Slider"        );
         classBinder.AddMethod( &ScriptBasePass::SliderF2,           "Slider"        );
         classBinder.AddMethod( &ScriptBasePass::SliderF3,           "Slider"        );
         classBinder.AddMethod( &ScriptBasePass::SliderF4,           "Slider"        );
+        classBinder.AddMethod( &ScriptBasePass::SliderF1a,          "Slider"        );
+        classBinder.AddMethod( &ScriptBasePass::SliderF2a,          "Slider"        );
+        classBinder.AddMethod( &ScriptBasePass::SliderF3a,          "Slider"        );
+        classBinder.AddMethod( &ScriptBasePass::SliderF4a,          "Slider"        );
 
-        classBinder.AddMethod( &ScriptBasePass::ColorSelector,      "ColorSelector" );
+        classBinder.AddMethod( &ScriptBasePass::ColorSelector1,     "ColorSelector" );
+        classBinder.AddMethod( &ScriptBasePass::ColorSelector2,     "ColorSelector" );
+        classBinder.AddMethod( &ScriptBasePass::ColorSelector3,     "ColorSelector" );
 
+        classBinder.Comment( "TODO" );
         classBinder.AddMethod( &ScriptBasePass::ConstantF4,         "Constant"      );
         classBinder.AddMethod( &ScriptBasePass::ConstantI4,         "Constant"      );
 
+        classBinder.Comment( "Returns dynamic dimension of the pass.\n"
+                             "It is auto-detected when used render targets with dynamic dimension or dynamic size for compute dispatches." );
         classBinder.AddMethod( &ScriptBasePass::_Dimension,         "Dimension"     );
+
+        classBinder.Comment( "Add resource to all shaders in the current pass.\n"
+                             "In - resource is used for read access.\n"
+                             "Out - resource is used for write access.\n" );
+        classBinder.AddMethod( &ScriptBasePass::ArgSceneIn,         "ArgIn"         );
+
+        classBinder.AddMethod( &ScriptBasePass::ArgBufferIn,        "ArgIn"         );
+        classBinder.AddMethod( &ScriptBasePass::ArgBufferOut,       "ArgOut"        );
+        classBinder.AddMethod( &ScriptBasePass::ArgBufferInOut,     "ArgInOut"      );
+
+        classBinder.AddMethod( &ScriptBasePass::ArgImageIn,         "ArgIn"         );
+        classBinder.AddMethod( &ScriptBasePass::ArgImageOut,        "ArgOut"        );
+        classBinder.AddMethod( &ScriptBasePass::ArgImageInOut,      "ArgInOut"      );
+
+        classBinder.AddMethod( &ScriptBasePass::ArgTextureIn,       "ArgIn"         );
+        classBinder.AddMethod( &ScriptBasePass::ArgVideoIn,         "ArgIn"         );
+        classBinder.AddMethod( &ScriptBasePass::ArgController,      "ArgIn"         );
     }
 //-----------------------------------------------------------------------------
 

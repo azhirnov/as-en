@@ -37,32 +37,14 @@ namespace AE::Graphics
 
     // methods
     protected:
-        RenderTask (RC<CMDBATCH> batch, DebugLabel dbg) __Th___ :
-            IAsyncTask{ ETaskQueue::Renderer },
-            _batch{ RVRef(batch) },
-            _exeIndex{ _GetPool().Acquire() }
-            DBG_GRAPHICS_ONLY(, _dbgName{ dbg.label }, _dbgColor{ _ValidateDbgColor( GetQueueType(), dbg.color )})
-        {
-            CHECK_THROW( IsValid() );   // command buffer pool overflow
-            Unused( dbg );
-        }
+        RenderTask (RC<CMDBATCH> batch, DebugLabel dbg) __Th___;
 
         enum class _DelayedInit {};
-        explicit RenderTask (_DelayedInit) __NE___ :
+        explicit RenderTask (_DelayedInit)              __NE___ :
             IAsyncTask{ ETaskQueue::Renderer }
         {}
 
-        ND_ bool  _Init (RC<CMDBATCH> batch, DebugLabel dbg) __NE___
-        {
-            _batch      = RVRef(batch);
-            _exeIndex   = _GetPool().Acquire();
-
-            DBG_GRAPHICS_ONLY(
-                _dbgName    = dbg.label;
-                _dbgColor   = _ValidateDbgColor( GetQueueType(), dbg.color );
-            )
-            return IsValid();
-        }
+        ND_ bool  _Init (RC<CMDBATCH> batch, DebugLabel dbg) __NE___;
 
     public:
         ~RenderTask ()                              __NE___ { _CancelTaskInBatch(); }
@@ -103,27 +85,13 @@ namespace AE::Graphics
     private:
         ND_ CMDBATCH::CmdBufPool&  _GetPool ()      __NE___ { return _batch->_cmdPool; }
 
-        void  _CancelTaskInBatch ()                 __NE___;
+            void  _CancelTaskInBatch ()             __NE___;
 
-        DBG_GRAPHICS_ONLY(
-        ND_ static RGBA8u  _ValidateDbgColor (EQueueType queue, RGBA8u color)
-        {
-            if ( color == DebugLabel::ColorTable::Undefined )
-            {
-                BEGIN_ENUM_CHECKS();
-                switch ( queue ) {
-                    case EQueueType::Graphics :         return DebugLabel::ColorTable::GraphicsQueue;
-                    case EQueueType::AsyncCompute :     return DebugLabel::ColorTable::AsyncComputeQueue;
-                    case EQueueType::AsyncTransfer :    return DebugLabel::ColorTable::AsyncTransfersQueue;
-                    case EQueueType::VideoEncode :      
-                    case EQueueType::VideoDecode :
-                    case EQueueType::Unknown :
-                    case EQueueType::_Count :           break;
-                }
-                END_ENUM_CHECKS();
-            }
-            return color;
-        })
+      #if AE_DBG_GRAPHICS
+            void  _DbgCheckFrameId ()               C_NE___;
+
+        ND_ static RGBA8u  _ValidateDbgColor (EQueueType queue, RGBA8u color);
+      #endif
     };
 
 
@@ -182,7 +150,7 @@ namespace AE::Graphics
         }
 
     private:
-        void Run () __Th_OV
+        void  Run () __Th_OV
         {
             return _fn( *this );
         }
@@ -190,6 +158,23 @@ namespace AE::Graphics
 //-----------------------------------------------------------------------------
 
 
+
+/*
+=================================================
+    constructor
+=================================================
+*/
+    inline RenderTask::RenderTask (RC<CMDBATCH> batch, DebugLabel dbg) __Th___ :
+        IAsyncTask{ ETaskQueue::Renderer },
+        _batch{ RVRef(batch) },
+        _exeIndex{ _GetPool().Acquire() }
+        DBG_GRAPHICS_ONLY(,
+            _dbgName{ dbg.label },
+            _dbgColor{ _ValidateDbgColor( GetQueueType(), dbg.color )})
+    {
+        CHECK_THROW( IsValid() );   // command buffer pool overflow
+        Unused( dbg );
+    }
 
 /*
 =================================================
@@ -226,6 +211,8 @@ namespace AE::Graphics
             _submit = false;
             CHECK_THROW( GetBatchPtr()->_Submit() );    // throw
         }
+
+        DBG_GRAPHICS_ONLY( _DbgCheckFrameId();)
     }
 
 /*
@@ -259,6 +246,49 @@ namespace AE::Graphics
         ASSERT( _exeIndex < count );
         return _exeIndex+1 == count;
     }
+
+/*
+=================================================
+    IsLastInBatch
+=================================================
+*/
+    inline bool  RenderTask::_Init (RC<CMDBATCH> batch, DebugLabel dbg) __NE___
+    {
+        _batch      = RVRef(batch);
+        _exeIndex   = _GetPool().Acquire();
+
+        DBG_GRAPHICS_ONLY(
+            _dbgName    = dbg.label;
+            _dbgColor   = _ValidateDbgColor( GetQueueType(), dbg.color );
+        )
+        return IsValid();
+    }
+
+/*
+=================================================
+    _ValidateDbgColor
+=================================================
+*/
+#if AE_DBG_GRAPHICS
+    inline RGBA8u  RenderTask::_ValidateDbgColor (EQueueType queue, RGBA8u color)
+    {
+        if ( color == DebugLabel::ColorTable::Undefined )
+        {
+            BEGIN_ENUM_CHECKS();
+            switch ( queue ) {
+                case EQueueType::Graphics :         return DebugLabel::ColorTable::GraphicsQueue;
+                case EQueueType::AsyncCompute :     return DebugLabel::ColorTable::AsyncComputeQueue;
+                case EQueueType::AsyncTransfer :    return DebugLabel::ColorTable::AsyncTransfersQueue;
+                case EQueueType::VideoEncode :      
+                case EQueueType::VideoDecode :
+                case EQueueType::Unknown :
+                case EQueueType::_Count :           break;
+            }
+            END_ENUM_CHECKS();
+        }
+        return color;
+    }
+#endif
 
 } // AE::Graphics
 //-----------------------------------------------------------------------------

@@ -53,19 +53,20 @@ namespace AE::Graphics
         _Count
     };
 
-    forceinline constexpr EQueueMask&  operator |= (EQueueMask &lhs, EQueueType rhs)
+
+    constexpr EQueueMask&  operator |= (EQueueMask &lhs, EQueueType rhs) __NE___
     {
         ASSERT( uint(rhs) < CT_SizeOfInBits<EQueueMask> );
         return lhs = EQueueMask( uint(lhs) | (1u << uint(rhs)) );
     }
 
-    ND_ forceinline constexpr EQueueMask   operator |  (EQueueMask lhs, EQueueType rhs)
+    ND_ constexpr EQueueMask   operator |  (EQueueMask lhs, EQueueType rhs) __NE___
     {
         ASSERT( uint(rhs) < CT_SizeOfInBits<EQueueMask> );
         return EQueueMask( uint(lhs) | (1u << uint(rhs)) );
     }
 
-    ND_ forceinline constexpr EQueueMask   operator &  (EQueueMask lhs, EQueueType rhs)
+    ND_ constexpr EQueueMask   operator &  (EQueueMask lhs, EQueueType rhs) __NE___
     {
         ASSERT( uint(rhs) < CT_SizeOfInBits<EQueueMask> );
         return EQueueMask( uint(lhs) & (1u << uint(rhs)) );

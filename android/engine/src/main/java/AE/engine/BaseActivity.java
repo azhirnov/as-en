@@ -4,7 +4,12 @@ package AE.engine;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.Configuration;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.util.Log;
 import android.view.Display;
@@ -21,6 +26,8 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import java.util.List;
+
 //
 // Base Activity
 //
@@ -28,7 +35,8 @@ public class BaseActivity
         extends     Activity
         implements  SurfaceHolder.Callback,
                     View.OnKeyListener,
-                    View.OnTouchListener
+                    View.OnTouchListener,
+                    SensorEventListener
 {
     public static final String  TAG = "AE";
 
@@ -59,12 +67,14 @@ public class BaseActivity
         _wndID = native_OnCreate( this );
         _CreateSurface();
         _SetFullscreen();
+        _sensorManager = (SensorManager)getSystemService( Context.SENSOR_SERVICE );
     }
 
     @Override protected void onDestroy ()
     {
         super.onDestroy();
         native_OnDestroy( _wndID );
+        _sensorManager = null;
     }
 
     @Override protected void onPause ()
@@ -223,12 +233,60 @@ public class BaseActivity
     }
 
 //-----------------------------------------------------------------------------
+// SensorEventListener
+
+    private SensorManager   _sensorManager      = null;
+    private int             _enabledSensorBits  = 0;
+    private int             _savedSensorBits    = 0;
+
+    private final boolean _SetSensorState (boolean enabled, int sensor, int delay)
+    {
+        try {
+            if ( enabled ) {
+                return _sensorManager.registerListener( this, _sensorManager.getDefaultSensor( sensor ), delay, null );
+            } else {
+                _sensorManager.unregisterListener( this, _sensorManager.getDefaultSensor( sensor ) );
+                return true;
+            }
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
+
+    public final void onAccuracyChanged (Sensor sensor, int arg1)
+    {
+
+    }
+
+    public final void onSensorChanged (SensorEvent ev)
+    {
+        native_UpdateSensor( _wndID, ev.sensor.getType(), ev.values );
+    }
+
+    private int _GetSupportedSensorsBits ()
+    {
+        List<Sensor>    sensors = _sensorManager.getSensorList( Sensor.TYPE_ALL );
+        int             bits    = 0;
+
+        for (int i = 0; i < sensors.size(); ++i)
+        {
+            int type = sensors.get(i).getType();
+            if ( type < 32 )
+                bits |= 1 << type;
+        }
+        return bits;
+    }
+
+//-----------------------------------------------------------------------------
 // called from native
 
     public void Close ()
     {
         this.finish();
     }
+
+    public int GetSupportedSensorsBits () { return _GetSupportedSensorsBits(); }
 
 //-----------------------------------------------------------------------------
 // native
@@ -245,4 +303,5 @@ public class BaseActivity
     private static native void  native_OnKey (int id, int keycode, int action, int repeatCount);
     private static native void  native_OnTouch (int id, int action, int index, int count, float[] data);
     private static native void  native_OnOrientationChanged (int id, int newOrientation);
+    private static native void  native_UpdateSensor (int id, int sensor, float[] values);
 }

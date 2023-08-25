@@ -32,7 +32,6 @@ namespace AE::ResEditor
             DescSetBinding              passDSIndex;
             DescSetBinding              mtrDSIndex;
 
-            Textures_t                  textures;
             Strong<BufferID>            ubuffer;
 
 
@@ -46,6 +45,7 @@ namespace AE::ResEditor
     // variables
     private:
         GeometryTools::SphericalCubeRenderer    _cube;
+        ResourceArray                           _resources;
 
         RC<DynamicFloat>                        _tessLevel;
 

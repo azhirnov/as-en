@@ -40,12 +40,12 @@ namespace
             _shLang{ intermediate.getStage() }
         {}
 
-        ND_ StringView  GetEntryPoint ()    const   { return _entryName; }
+        ND_ StringView  GetEntryPoint ()                            const   { return _entryName; }
 
             void        AddSymbol (TIntermSymbol* node, bool isUserDefined);
         ND_ slong       GetUniqueSymbolID ();
 
-        void CacheSymbolNode (TIntermSymbol* node, bool isUserDefined)
+        void  CacheSymbolNode (TIntermSymbol* node, bool isUserDefined)
         {
             _cachedSymbols.emplace( node->getName(), node );
             AddSymbol( node, isUserDefined );
@@ -285,7 +285,7 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
     type.qualifier.precision    = TPrecisionQualifier::EpqHigh;
     type.qualifier.layoutOffset = 0;
 
-#ifdef USE_STORAGE_QUALIFIERS
+#if USE_STORAGE_QUALIFIERS
     type.qualifier.readonly     = true;
 #endif
 
@@ -302,7 +302,7 @@ static void  CreateShaderDebugStorage (uint descSetIndex, DebugInfo &dbgInfo, OU
     type.arraySizes->addInnerSize();
     type.qualifier.layoutOffset += 8;
 
-#ifdef USE_STORAGE_QUALIFIERS
+#if USE_STORAGE_QUALIFIERS
     type.qualifier.coherent     = true;
     type.qualifier.readonly     = false;
 #endif
@@ -402,6 +402,8 @@ ND_ static TIntermBinary*  GetFragmentCoord (TIntermSymbol* coord, DebugInfo &db
     TIntermSymbol*          fragcoord       = dbgInfo.GetCachedSymbolNode( "gl_FragCoord" );
     TIntermAggregate*       xy_field        = new TIntermAggregate{ TOperator::EOpSequence };
     TIntermBinary*          fragcoord_xy    = new TIntermBinary{ TOperator::EOpVectorSwizzle };
+    CHECK_ERR( fragcoord );
+
     xy_field->getSequence().push_back( x_field );
     xy_field->getSequence().push_back( y_field );
     type.basicType          = TBasicType::EbtFloat;
@@ -485,6 +487,8 @@ ND_ static TIntermBinary*  GetComputeCoord (TIntermSymbol* coord, DebugInfo &dbg
     // "... vec2(gl_GlobalInvocationID) ..."
     TIntermSymbol*      workgroup   = dbgInfo.GetCachedSymbolNode( "gl_GlobalInvocationID" );
     TIntermUnary*       to_vec2     = new TIntermUnary{ TOperator::EOpConvUintToFloat };
+    CHECK_ERR( workgroup );
+
     to_vec2->setType( TType{type} );
     to_vec2->setOperand( workgroup );
 
@@ -561,6 +565,8 @@ ND_ static TIntermBinary*  GetRayTracingCoord (TIntermSymbol* coord, DebugInfo &
     // "... vec2(gl_LaunchID) ..."
     TIntermSymbol*      launch_id   = dbgInfo.GetCachedSymbolNode( "gl_LaunchIDEXT" );
     TIntermUnary*       to_vec3     = new TIntermUnary{ TOperator::EOpConvUintToFloat };
+    CHECK_ERR( launch_id );
+
     type.vectorSize = 3;
     to_vec3->setType( TType{type} );
     to_vec3->setOperand( launch_id );

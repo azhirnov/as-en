@@ -21,12 +21,16 @@ namespace AE::Graphics::_hidden_
 
     class _VDirectRayTracingCtx : public VBaseDirectContext
     {
+    // types
+    private:
+        using Validator_t   = RayTracingContextValidation;
+
+
     // variables
     protected:
         // cached states
         struct {
-            VkPipelineLayout    pplnLayout      = Default;
-            VkPipeline          pipeline        = Default;
+            VkPipelineLayout    pplnLayout  = Default;
         }                   _states;
 
 
@@ -68,12 +72,16 @@ namespace AE::Graphics::_hidden_
 
     class _VIndirectRayTracingCtx : public VBaseIndirectContext
     {
+    // types
+    private:
+        using Validator_t   = RayTracingContextValidation;
+
+
     // variables
     protected:
         // cached states
         struct {
-            VkPipelineLayout    pplnLayout      = Default;
-            VkPipeline          pipeline        = Default;
+            VkPipelineLayout    pplnLayout  = Default;
         }                   _states;
 
 
@@ -182,10 +190,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    _VRayTracingContextImpl<C>::_VRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+    _VRayTracingContextImpl<C>::_VRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
         RawCtx{ task, RVRef(cmdbuf), dbg }
     {
-        CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
 /*
@@ -194,7 +202,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VRayTracingContextImpl<C>::BindPipeline (RayTracingPipelineID ppln)
+    void  _VRayTracingContextImpl<C>::BindPipeline (RayTracingPipelineID ppln) __Th___
     {
         auto&   rt_ppln = _GetResourcesOrThrow( ppln );
 
@@ -207,7 +215,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VRayTracingContextImpl<C>::BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets)
+    void  _VRayTracingContextImpl<C>::BindDescriptorSet (DescSetBinding index, DescriptorSetID ds, ArrayView<uint> dynamicOffsets) __Th___
     {
         auto&   desc_set = _GetResourcesOrThrow( ds );
 
@@ -220,10 +228,9 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VRayTracingContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
+    void  _VRayTracingContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___
     {
-        Validator_t::PushConstant( idx, size, typeName );
-
+        VALIDATE_GCTX( PushConstant( idx, size, typeName ));
         RawCtx::_PushConstant( idx.offset, size, values, EShaderStages(0) | idx.stage );
     }
 
@@ -233,26 +240,26 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRays (const uint2 dim, const RTShaderBindingTable &sbt)
+    void  _VRayTracingContextImpl<C>::TraceRays (const uint2 dim, const RTShaderBindingTable &sbt) __Th___
     {
         return TraceRays( uint3{ dim.x, dim.y, 1u }, sbt );
     }
 
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRays (const uint3 dim, const RTShaderBindingTable &sbt)
+    void  _VRayTracingContextImpl<C>::TraceRays (const uint3 dim, const RTShaderBindingTable &sbt) __Th___
     {
         RawCtx::TraceRays( dim, sbt.raygen, sbt.miss, sbt.hit, sbt.callable );
     }
 
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRays (const uint2 dim, RTShaderBindingID sbtId)
+    void  _VRayTracingContextImpl<C>::TraceRays (const uint2 dim, RTShaderBindingID sbtId) __Th___
     {
         auto&   sbt = _GetResourcesOrThrow( sbtId ).GetSBT();
         RawCtx::TraceRays( uint3{ dim.x, dim.y, 1u }, sbt.raygen, sbt.miss, sbt.hit, sbt.callable );
     }
 
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRays (const uint3 dim, RTShaderBindingID sbtId)
+    void  _VRayTracingContextImpl<C>::TraceRays (const uint3 dim, RTShaderBindingID sbtId) __Th___
     {
         auto&   sbt = _GetResourcesOrThrow( sbtId ).GetSBT();
         RawCtx::TraceRays( dim, sbt.raygen, sbt.miss, sbt.hit, sbt.callable );
@@ -264,27 +271,27 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address)
+    void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, DeviceAddress address) __Th___
     {
         RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable, address );
     }
 
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset)
+    void  _VRayTracingContextImpl<C>::TraceRaysIndirect (const RTShaderBindingTable &sbt, BufferID indirectBuffer, Bytes indirectBufferOffset) __Th___
     {
         auto&   buf = _GetResourcesOrThrow( indirectBuffer );
-        Validator_t::TraceRaysIndirect( buf, indirectBufferOffset );
+        VALIDATE_GCTX( TraceRaysIndirect( buf.Description(), indirectBufferOffset ));
 
         RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable,
                                     BitCast<VkDeviceAddress>( buf.GetDeviceAddress() + indirectBufferOffset ));
     }
 
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRaysIndirect (RTShaderBindingID sbtId, BufferID indirectBuffer, Bytes indirectBufferOffset)
+    void  _VRayTracingContextImpl<C>::TraceRaysIndirect (RTShaderBindingID sbtId, BufferID indirectBuffer, Bytes indirectBufferOffset) __Th___
     {
         auto    [buf, sbt_obj]  = _GetResourcesOrThrow( indirectBuffer, sbtId );
         auto&   sbt             = sbt_obj.GetSBT();
-        Validator_t::TraceRaysIndirect( buf, indirectBufferOffset );
+        VALIDATE_GCTX( TraceRaysIndirect( buf.Description(), indirectBufferOffset ));
 
         RawCtx::_TraceRaysIndirect( sbt.raygen, sbt.miss, sbt.hit, sbt.callable,
                                     BitCast<VkDeviceAddress>( buf.GetDeviceAddress() + indirectBufferOffset ));
@@ -296,16 +303,16 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRaysIndirect2 (DeviceAddress address)
+    void  _VRayTracingContextImpl<C>::TraceRaysIndirect2 (DeviceAddress address) __Th___
     {
         RawCtx::_TraceRaysIndirect2( address );
     }
 
     template <typename C>
-    void  _VRayTracingContextImpl<C>::TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset)
+    void  _VRayTracingContextImpl<C>::TraceRaysIndirect2 (BufferID indirectBuffer, Bytes indirectBufferOffset) __Th___
     {
         auto&   buf = _GetResourcesOrThrow( indirectBuffer );
-        Validator_t::TraceRaysIndirect2( buf, indirectBufferOffset );
+        VALIDATE_GCTX( TraceRaysIndirect2( buf.Description(), indirectBufferOffset ));
 
         RawCtx::_TraceRaysIndirect2( BitCast<VkDeviceAddress>( buf.GetDeviceAddress() + indirectBufferOffset ));
     }
@@ -322,10 +329,9 @@ namespace AE::Graphics::_hidden_
                                                     const VkStridedDeviceAddressRegionKHR &raygen,
                                                     const VkStridedDeviceAddressRegionKHR &miss,
                                                     const VkStridedDeviceAddressRegionKHR &hit,
-                                                    const VkStridedDeviceAddressRegionKHR &callable)
+                                                    const VkStridedDeviceAddressRegionKHR &callable) __Th___
     {
-        ASSERT( _states.pipeline != Default );
-        RayTracingContextValidation::TraceRays( dim );
+        VALIDATE_GCTX( TraceRays( _states.pplnLayout, dim ));
 
         vkCmdTraceRaysKHR( _cmdbuf.Get(), &raygen, &miss, &hit, &callable, dim.x, dim.y, dim.z );
     }
@@ -339,10 +345,9 @@ namespace AE::Graphics::_hidden_
                                                             const VkStridedDeviceAddressRegionKHR&  miss,
                                                             const VkStridedDeviceAddressRegionKHR&  hit,
                                                             const VkStridedDeviceAddressRegionKHR&  callable,
-                                                            VkDeviceAddress                         indirectDeviceAddress)
+                                                            VkDeviceAddress                         indirectDeviceAddress) __Th___
     {
-        ASSERT( _states.pipeline != Default );
-        ASSERT( indirectDeviceAddress != Default );
+        VALIDATE_GCTX( TraceRaysIndirect( _states.pplnLayout, indirectDeviceAddress ));
 
         vkCmdTraceRaysIndirectKHR( _cmdbuf.Get(), &raygen, &miss, &hit, &callable, VkDeviceAddress(indirectDeviceAddress) );
     }
@@ -352,10 +357,9 @@ namespace AE::Graphics::_hidden_
     _TraceRaysIndirect2
 =================================================
 */
-    inline void  _VDirectRayTracingCtx::_TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress)
+    inline void  _VDirectRayTracingCtx::_TraceRaysIndirect2 (VkDeviceAddress indirectDeviceAddress) __Th___
     {
-        ASSERT( _states.pipeline != Default );
-        ASSERT( indirectDeviceAddress != Default );
+        VALIDATE_GCTX( TraceRaysIndirect2( _states.pplnLayout, indirectDeviceAddress ));
 
         vkCmdTraceRaysIndirect2KHR( _cmdbuf.Get(), indirectDeviceAddress );
     }
@@ -365,14 +369,10 @@ namespace AE::Graphics::_hidden_
     _BindPipeline
 =================================================
 */
-    inline void  _VDirectRayTracingCtx::_BindPipeline (VkPipeline ppln, VkPipelineLayout layout)
+    inline void  _VDirectRayTracingCtx::_BindPipeline (VkPipeline ppln, VkPipelineLayout layout) __Th___
     {
-        if_likely( _states.pipeline == ppln )
-            return;
-
-        _states.pipeline    = ppln;
-        _states.pplnLayout  = layout;
-        vkCmdBindPipeline( _cmdbuf.Get(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, _states.pipeline );
+        _states.pplnLayout = layout;
+        vkCmdBindPipeline( _cmdbuf.Get(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, ppln );
     }
 
 /*
@@ -380,10 +380,9 @@ namespace AE::Graphics::_hidden_
     BindDescriptorSet
 =================================================
 */
-    inline void  _VDirectRayTracingCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
+    inline void  _VDirectRayTracingCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets) __Th___
     {
-        ASSERT( _states.pplnLayout != Default );
-        ASSERT( ds != Default );
+        VALIDATE_GCTX( BindDescriptorSet( _states.pplnLayout, index, ds ));
 
         vkCmdBindDescriptorSets( _cmdbuf.Get(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, _states.pplnLayout, index.vkIndex, 1, &ds, uint(dynamicOffsets.size()), dynamicOffsets.data() );
     }
@@ -393,9 +392,9 @@ namespace AE::Graphics::_hidden_
     _PushConstant
 =================================================
 */
-    inline void  _VDirectRayTracingCtx::_PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+    inline void  _VDirectRayTracingCtx::_PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
     {
-        ASSERT( _states.pplnLayout != Default );
+        VALIDATE_GCTX( PushConstant( _states.pplnLayout, offset, size, values, stages ));
 
         vkCmdPushConstants( _cmdbuf.Get(), _states.pplnLayout, VEnumCast(stages), uint(offset), uint(size), values );
     }
@@ -405,9 +404,9 @@ namespace AE::Graphics::_hidden_
     _SetStackSize
 =================================================
 */
-    inline void  _VDirectRayTracingCtx::_SetStackSize (Bytes size)
+    inline void  _VDirectRayTracingCtx::_SetStackSize (Bytes size) __Th___
     {
-        ASSERT( _states.pipeline != Default );
+        GCTX_CHECK( _states.pplnLayout != Default );
 
         vkCmdSetRayTracingPipelineStackSizeKHR( _cmdbuf.Get(), uint(size) );
     }
@@ -420,14 +419,9 @@ namespace AE::Graphics::_hidden_
     _BindPipeline
 =================================================
 */
-    inline void  _VIndirectRayTracingCtx::_BindPipeline (VkPipeline ppln, VkPipelineLayout layout)
+    inline void  _VIndirectRayTracingCtx::_BindPipeline (VkPipeline ppln, VkPipelineLayout layout) __Th___
     {
-        if_likely( _states.pipeline == ppln )
-            return;
-
-        _states.pipeline    = ppln;
-        _states.pplnLayout  = layout;
-
+        _states.pplnLayout = layout;
         _cmdbuf->BindPipeline( VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, ppln, layout );
     }
 
@@ -436,8 +430,10 @@ namespace AE::Graphics::_hidden_
     BindDescriptorSet
 =================================================
 */
-    inline void  _VIndirectRayTracingCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets)
+    inline void  _VIndirectRayTracingCtx::BindDescriptorSet (DescSetBinding index, VkDescriptorSet ds, ArrayView<uint> dynamicOffsets) __Th___
     {
+        VALIDATE_GCTX( BindDescriptorSet( _states.pplnLayout, index, ds ));
+
         _cmdbuf->BindDescriptorSet( VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, _states.pplnLayout, index.vkIndex, ds, dynamicOffsets );
     }
 
@@ -446,9 +442,9 @@ namespace AE::Graphics::_hidden_
     _PushConstant
 =================================================
 */
-    inline void  _VIndirectRayTracingCtx::_PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages)
+    inline void  _VIndirectRayTracingCtx::_PushConstant (Bytes offset, Bytes size, const void *values, EShaderStages stages) __Th___
     {
-        CHECK_ERRV( _states.pplnLayout != Default );
+        VALIDATE_GCTX( PushConstant( _states.pplnLayout, offset, size, values, stages ));
 
         _cmdbuf->PushConstant( _states.pplnLayout, offset, size, values, stages );
     }

@@ -259,7 +259,7 @@ namespace AE::Graphics
             ND_ bool  Load (ResMngr_t &, PipelineCacheID)                                                           __NE___;
                 void  Destroy (ResMngr_t &)                                                                         __NE___;
 
-            ND_ RenderTechName::Optimized_t Name ()                                                                 C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _name; }
+            ND_ RenderTechName::Optimized_t Name ()                                                                 C_NE_OV { DRC_SHAREDLOCK( _drCheck );  return _name; }
             ND_ bool                        IsSupported ()                                                          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _isSupported; }
 
             GraphicsPipelineID      GetGraphicsPipeline  (const PipelineName &name)                                 C_NE_OV;

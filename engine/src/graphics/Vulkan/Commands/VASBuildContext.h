@@ -23,6 +23,11 @@ namespace AE::Graphics::_hidden_
 
     class _VDirectASBuildCtx : public VBaseDirectContext
     {
+    // types
+    private:
+        using Validator_t   = ASBuildContextValidation;
+
+
     // methods
     public:
         void  Copy (const VkCopyAccelerationStructureInfoKHR &info)                                 __Th___;
@@ -37,26 +42,24 @@ namespace AE::Graphics::_hidden_
     protected:
         _VDirectASBuildCtx (const RenderTask &task, VCommandBuffer cmdbuf, DebugLabel dbg)          __Th___ : VBaseDirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::ASBuild } {}
 
-        void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
-        void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
+        void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst)                                __Th___;
+        void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)              __Th___;
 
-        void  _Build  (const RTSceneBuild &cmd, RTSceneID dst);
-        void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst);
+        void  _Build  (const RTSceneBuild &cmd, RTSceneID dst)                                      __Th___;
+        void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)                       __Th___;
 
         void  _BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst,
-                              VkDeviceAddress indirectMem, Bytes indirectStride);
-        void  _BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, VkDeviceAddress indirectMem);
+                              VkDeviceAddress indirectMem, Bytes indirectStride)                    __Th___;
+        void  _BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, VkDeviceAddress indirectMem)  __Th___;
 
         void  _Build (const VkAccelerationStructureBuildGeometryInfoKHR &info,
                       VkAccelerationStructureBuildRangeInfoKHR const* const& ranges);
 
         void  _WriteProperty (VkAccelerationStructureKHR as, const VQueryManager::Query &query);
         void  _WriteProperty (VkAccelerationStructureKHR as, VkBuffer dstBuffer, Bytes offset,
-                              Bytes size, const VQueryManager::Query &query);
+                              const VQueryManager::Query &query);
 
         ND_ DeviceProperties::RayTracingProperties const&  _RTProps ()                              C_NE___ { return _GetBarrierMngr().GetDevice().GetDeviceProperties().rayTracing; }
-
-        ND_ auto&   _GetASFeats ()                                                                  C_NE___ { return _mngr.GetDevice().GetProperties().accelerationStructureFeats; }
     };
 
 
@@ -67,6 +70,11 @@ namespace AE::Graphics::_hidden_
 
     class _VIndirectASBuildCtx : public VBaseIndirectContext
     {
+    // types
+    private:
+        using Validator_t   = ASBuildContextValidation;
+
+
     // methods
     public:
         void  Copy (const VkCopyAccelerationStructureInfoKHR &info)                                 __Th___;
@@ -81,29 +89,27 @@ namespace AE::Graphics::_hidden_
     protected:
         _VIndirectASBuildCtx (const RenderTask &task, VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)    __Th___ : VBaseIndirectContext{ task, RVRef(cmdbuf), dbg, ECtxType::ASBuild } {}
 
-        void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
-        void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
+        void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst)                                __Th___;
+        void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)              __Th___;
 
-        void  _Build  (const RTSceneBuild &cmd, RTSceneID dst);
-        void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst);
+        void  _Build  (const RTSceneBuild &cmd, RTSceneID dst)                                      __Th___;
+        void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)                       __Th___;
 
         void  _Build (const VkAccelerationStructureBuildGeometryInfoKHR &info,
-                      VkAccelerationStructureBuildRangeInfoKHR const* const& ranges);
+                      VkAccelerationStructureBuildRangeInfoKHR const* const& ranges)                __Th___;
 
         void  _BuildIndirect (const RTGeometryBuild &cmd, RTGeometryID dst,
-                              VkDeviceAddress indirectMem, Bytes indirectStride);
-        void  _BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, VkDeviceAddress indirectMem);
+                              VkDeviceAddress indirectMem, Bytes indirectStride)                    __Th___;
+        void  _BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, VkDeviceAddress indirectMem)  __Th___;
 
         void  _BuildIndirect (const VkAccelerationStructureBuildGeometryInfoKHR &info,
-                              VkDeviceAddress indirectMem, uint const* maxPrimCount, uint indirectStride);
+                              VkDeviceAddress indirectMem, uint const* maxPrimCount, uint indirectStride)__Th___;
 
-        void  _WriteProperty (VkAccelerationStructureKHR as, const VQueryManager::Query &query);
+        void  _WriteProperty (VkAccelerationStructureKHR as, const VQueryManager::Query &query)     __Th___;
         void  _WriteProperty (VkAccelerationStructureKHR as, VkBuffer dstBuffer, Bytes offset,
-                              Bytes size, const VQueryManager::Query &query);
+                              const VQueryManager::Query &query)                                    __Th___;
 
         ND_ DeviceProperties::RayTracingProperties const&  _RTProps ()                              C_NE___ { return _GetBarrierMngr().GetDevice().GetDeviceProperties().rayTracing; }
-
-        ND_ auto&   _GetASFeats ()                                                                  C_NE___ { return _mngr.GetDevice().GetProperties().accelerationStructureFeats; }
     };
 
 
@@ -177,14 +183,12 @@ namespace AE::Graphics::_hidden_
 
     private:
         template <typename ASType>
-        void  _WriteProperty (ERTASProperty property, ASType as, BufferID dstBuffer, Bytes offset, Bytes size);
+        void  _WriteProperty (ERTASProperty property, ASType as, BufferID dstBuffer, Bytes offset, Bytes size)      __Th___;
 
         template <typename ASType>
-        ND_ Promise<Bytes>  _ReadProperty (ERTASProperty property, ASType as);
+        ND_ Promise<Bytes>  _ReadProperty (ERTASProperty property, ASType as)                                       __Th___;
 
-        ND_ VQueryManager::Query  _ASQueryOrThrow (ERTASProperty property) const;
-
-        using RawCtx::_RTProps;
+        ND_ VQueryManager::Query  _ASQueryOrThrow (ERTASProperty property)                                          C_Th___;
     };
 
 } // AE::Graphics::_hidden_
@@ -206,20 +210,24 @@ namespace AE::Graphics::_hidden_
     Copy***
 =================================================
 */
-    inline void  _VDirectASBuildCtx::Copy (const VkCopyAccelerationStructureInfoKHR &info)
+    inline void  _VDirectASBuildCtx::Copy (const VkCopyAccelerationStructureInfoKHR &info) __Th___
     {
         vkCmdCopyAccelerationStructureKHR( _cmdbuf.Get(), &info );
     }
 
-    inline void  _VDirectASBuildCtx::SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info)
+    inline void  _VDirectASBuildCtx::SerializeToMemory (const VkCopyAccelerationStructureToMemoryInfoKHR &info) __Th___
     {
-        ASSERT( info.dst.deviceAddress != Default );
+        GCTX_CHECK( info.dst.deviceAddress != Default );
+        GCTX_CHECK( IsAligned( info.dst.deviceAddress, 256 ));
+
         vkCmdCopyAccelerationStructureToMemoryKHR( _cmdbuf.Get(), &info );
     }
 
-    inline void  _VDirectASBuildCtx::DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info)
+    inline void  _VDirectASBuildCtx::DeserializeFromMemory (const VkCopyMemoryToAccelerationStructureInfoKHR &info) __Th___
     {
-        ASSERT( info.src.deviceAddress != Default );
+        GCTX_CHECK( info.src.deviceAddress != Default );
+        GCTX_CHECK( IsAligned( info.src.deviceAddress, 256 ));
+
         vkCmdCopyMemoryToAccelerationStructureKHR( _cmdbuf.Get(), &info );
     }
 //-----------------------------------------------------------------------------
@@ -232,10 +240,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    _VASBuildContextImpl<C>::_VASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+    _VASBuildContextImpl<C>::_VASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
         RawCtx{ task, RVRef(cmdbuf), dbg }
     {
-        CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
 /*
@@ -244,9 +252,11 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VASBuildContextImpl<C>::Copy (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode)
+    void  _VASBuildContextImpl<C>::Copy (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode) __Th___
     {
         auto  [src_geom, dst_geom] = _GetResourcesOrThrow( src, dst );
+
+        VALIDATE_GCTX( Copy( src_geom.Description(), dst_geom.Description(), mode ));
 
         VkCopyAccelerationStructureInfoKHR  info;
         info.sType  = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR;
@@ -264,9 +274,11 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VASBuildContextImpl<C>::Copy (RTSceneID src, RTSceneID dst, ERTASCopyMode mode)
+    void  _VASBuildContextImpl<C>::Copy (RTSceneID src, RTSceneID dst, ERTASCopyMode mode) __Th___
     {
         auto  [src_scene, dst_scene] = _GetResourcesOrThrow( src, dst );
+
+        VALIDATE_GCTX( Copy( src_scene.Description(), dst_scene.Description(), mode ));
 
         VkCopyAccelerationStructureInfoKHR  info;
         info.sType  = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR;
@@ -284,7 +296,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    VQueryManager::Query  _VASBuildContextImpl<C>::_ASQueryOrThrow (ERTASProperty property) const
+    VQueryManager::Query  _VASBuildContextImpl<C>::_ASQueryOrThrow (ERTASProperty property) C_Th___
     {
         EQueryType  q_type = Default;
 
@@ -293,8 +305,8 @@ namespace AE::Graphics::_hidden_
         {
             case ERTASProperty::CompactedSize :     q_type = EQueryType::AccelStructCompactedSize;      break;
             case ERTASProperty::SerializationSize : q_type = EQueryType::AccelStructSerializationSize;  break;
-            case ERTASProperty::Size :              CHECK_THROW( this->_GetExtensions().rayTracingMaintenance1 );  q_type = EQueryType::AccelStructSize;  break;
-            default :                               CHECK_THROW( false ); // unknown ERTASProperty
+            case ERTASProperty::Size :              q_type = EQueryType::AccelStructSize;               break;
+            default_unlikely :                      CHECK_THROW( false ); // unknown ERTASProperty
         }
         END_ENUM_CHECKS();
 
@@ -317,12 +329,14 @@ namespace AE::Graphics::_hidden_
 */
     template <typename C>
     template <typename ASType>
-    void  _VASBuildContextImpl<C>::_WriteProperty (ERTASProperty property, ASType as, BufferID dstBuffer, Bytes offset, Bytes size)
+    void  _VASBuildContextImpl<C>::_WriteProperty (ERTASProperty property, ASType as, BufferID dstBuffer, Bytes offset, Bytes size) __Th___
     {
         auto  [src_as, dst_buf] = _GetResourcesOrThrow( as, dstBuffer );
         auto  query             = _ASQueryOrThrow( property );
 
-        RawCtx::_WriteProperty( src_as.Handle(), dst_buf.Handle(), offset, size, query );
+        VALIDATE_GCTX( WriteProperty( property, dst_buf.Description(), offset, size ));
+
+        RawCtx::_WriteProperty( src_as.Handle(), dst_buf.Handle(), offset, query );
     }
 
 /*
@@ -332,8 +346,10 @@ namespace AE::Graphics::_hidden_
 */
     template <typename C>
     template <typename ASType>
-    Promise<Bytes>  _VASBuildContextImpl<C>::_ReadProperty (ERTASProperty property, ASType as)
+    Promise<Bytes>  _VASBuildContextImpl<C>::_ReadProperty (ERTASProperty property, ASType as) __Th___
     {
+        VALIDATE_GCTX( ReadProperty( property ));
+
         auto&   src_as  = _GetResourcesOrThrow( as );
         auto    query   = _ASQueryOrThrow( property );
 
@@ -358,9 +374,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VASBuildContextImpl<C>::SerializeToMemory (RTGeometryID src, DeviceAddress dst)
+    void  _VASBuildContextImpl<C>::SerializeToMemory (RTGeometryID src, DeviceAddress dst) __Th___
     {
         auto&   src_as = _GetResourcesOrThrow( src );
+        VALIDATE_GCTX( SerializeToMemory( src_as.Description(), dst ));
 
         VkCopyAccelerationStructureToMemoryInfoKHR  info;
         info.sType              = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_TO_MEMORY_INFO_KHR;
@@ -373,18 +390,19 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    void  _VASBuildContextImpl<C>::SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset)
+    void  _VASBuildContextImpl<C>::SerializeToMemory (RTGeometryID src, BufferID dst, Bytes dstOffset) __Th___
     {
         auto&   dst_buf = _GetResourcesOrThrow( dst );
-        Validator_t::SerializeToMemory( dst_buf, dstOffset );
+        VALIDATE_GCTX( SerializeToMemory( dst_buf.Description(), dstOffset ));
 
         return SerializeToMemory( src, BitCast<VkDeviceAddress>( dst_buf.GetDeviceAddress() + dstOffset ));
     }
 
     template <typename C>
-    void  _VASBuildContextImpl<C>::SerializeToMemory (RTSceneID src, DeviceAddress dst)
+    void  _VASBuildContextImpl<C>::SerializeToMemory (RTSceneID src, DeviceAddress dst) __Th___
     {
         auto&   src_as = _GetResourcesOrThrow( src );
+        VALIDATE_GCTX( SerializeToMemory( src_as.Description(), dst ));
 
         VkCopyAccelerationStructureToMemoryInfoKHR  info;
         info.sType              = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_TO_MEMORY_INFO_KHR;
@@ -397,10 +415,10 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    void  _VASBuildContextImpl<C>::SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset)
+    void  _VASBuildContextImpl<C>::SerializeToMemory (RTSceneID src, BufferID dst, Bytes dstOffset) __Th___
     {
         auto&   dst_buf = _GetResourcesOrThrow( dst );
-        Validator_t::SerializeToMemory( dst_buf, dstOffset );
+        VALIDATE_GCTX( SerializeToMemory( dst_buf.Description(), dstOffset ));
 
         return SerializeToMemory( src, BitCast<VkDeviceAddress>( dst_buf.GetDeviceAddress() + dstOffset ));
     }
@@ -411,9 +429,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _VASBuildContextImpl<C>::DeserializeFromMemory (DeviceAddress src, RTGeometryID dst)
+    void  _VASBuildContextImpl<C>::DeserializeFromMemory (DeviceAddress src, RTGeometryID dst) __Th___
     {
         auto&   dst_as = _GetResourcesOrThrow( dst );
+        VALIDATE_GCTX( DeserializeFromMemory( src, dst_as ));
 
         VkCopyMemoryToAccelerationStructureInfoKHR  info;
         info.sType              = VK_STRUCTURE_TYPE_COPY_MEMORY_TO_ACCELERATION_STRUCTURE_INFO_KHR;
@@ -426,18 +445,19 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    void  _VASBuildContextImpl<C>::DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst)
+    void  _VASBuildContextImpl<C>::DeserializeFromMemory (BufferID src, Bytes srcOffset, RTGeometryID dst) __Th___
     {
         auto&   src_buf = _GetResourcesOrThrow( src );
-        Validator_t::SerializeToMemory( src_buf, srcOffset );
+        VALIDATE_GCTX( DeserializeFromMemory( src_buf.Description(), srcOffset ));
 
-        return SerializeToMemory( BitCast<VkDeviceAddress>( src_buf.GetDeviceAddress() + srcOffset ), dst );
+        return DeserializeFromMemory( BitCast<VkDeviceAddress>( src_buf.GetDeviceAddress() + srcOffset ), dst );
     }
 
     template <typename C>
-    void  _VASBuildContextImpl<C>::DeserializeFromMemory (DeviceAddress src, RTSceneID dst)
+    void  _VASBuildContextImpl<C>::DeserializeFromMemory (DeviceAddress src, RTSceneID dst) __Th___
     {
         auto&   dst_as = _GetResourcesOrThrow( dst );
+        VALIDATE_GCTX( DeserializeFromMemory( src, dst_as.Description() ));
 
         VkCopyMemoryToAccelerationStructureInfoKHR  info;
         info.sType              = VK_STRUCTURE_TYPE_COPY_MEMORY_TO_ACCELERATION_STRUCTURE_INFO_KHR;
@@ -450,12 +470,12 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    void  _VASBuildContextImpl<C>::DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst)
+    void  _VASBuildContextImpl<C>::DeserializeFromMemory (BufferID src, Bytes srcOffset, RTSceneID dst) __Th___
     {
         auto&   src_buf = _GetResourcesOrThrow( src );
-        Validator_t::SerializeToMemory( src_buf, srcOffset );
+        VALIDATE_GCTX( DeserializeFromMemory( src_buf.Description(), srcOffset ));
 
-        return SerializeToMemory( BitCast<VkDeviceAddress>( src_buf.GetDeviceAddress() + srcOffset ), dst );
+        return DeserializeFromMemory( BitCast<VkDeviceAddress>( src_buf.GetDeviceAddress() + srcOffset ), dst );
     }
 
 /*
@@ -474,7 +494,7 @@ namespace AE::Graphics::_hidden_
                                                   Bytes indirectBufferOffset, Bytes indirectStride) __Th___
     {
         auto&   ibuf = _GetResourcesOrThrow( indirectBuffer );
-        Validator_t::BuildIndirect( cmd, ibuf, indirectBufferOffset, indirectStride );
+        VALIDATE_GCTX( BuildIndirect( cmd, ibuf.Description(), indirectBufferOffset, indirectStride ));
         return RawCtx::_BuildIndirect( cmd, dst, BitCast<VkDeviceAddress>( ibuf.GetDeviceAddress() + indirectBufferOffset ), indirectStride );
     }
 
@@ -493,7 +513,7 @@ namespace AE::Graphics::_hidden_
     void  _VASBuildContextImpl<C>::BuildIndirect (const RTSceneBuild &cmd, RTSceneID dst, BufferID indirectBuffer, Bytes indirectBufferOffset) __Th___
     {
         auto&   ibuf = _GetResourcesOrThrow( indirectBuffer );
-        Validator_t::BuildIndirect( cmd, ibuf, indirectBufferOffset );
+        VALIDATE_GCTX( BuildIndirect( cmd, ibuf.Description(), indirectBufferOffset ));
         return RawCtx::_BuildIndirect( cmd, dst, BitCast<VkDeviceAddress>( ibuf.GetDeviceAddress() + indirectBufferOffset ));
     }
 

@@ -29,7 +29,7 @@ namespace AE::Graphics
         VSampler ()                                                                             __NE___ {}
         ~VSampler ()                                                                            __NE___;
 
-        ND_ bool  Create (const VDevice &dev, const VkSamplerCreateInfo &,
+        ND_ bool  Create (const VResourceManager &resMngr, const VkSamplerCreateInfo &,
                           const VkSamplerYcbcrConversionCreateInfo *, StringView dbgName)       __NE___;
             void  Destroy (VResourceManager &)                                                  __NE___;
 

@@ -56,24 +56,25 @@ namespace AE::ResEditor
 
         Unique<ShaderDebugger>  _shaderDebugger;
 
-        ResourceQueue           _resQueue;
+        RC<ResourceQueue>       _resQueue;
 
         microseconds            _totalTime      {};
         TimePoint_t             _lastUpdateTime;
         uint                    _frameCounter   = 0;
 
-        GfxMemAllocatorPtr      _gfxAlloc;
+        GfxMemAllocatorPtr      _gfxLinearAlloc;
+        GfxMemAllocatorPtr      _gfxDynamicAlloc;
 
         InputDataSync           _input;
         Sliders_t               _sliders;
         const uint              _seed;
 
-        struct {
+        /*struct {
             RWSpinLock              guard;
             ScriptFiles_t           files;
             TimePoint_t             lastCheck;
             const secondsf          updateInterval {1.f};
-        }                       _scriptFile;        // TODO: use Synchronized
+        }                       _scriptFile;        // TODO: use Synchronized*/
 
         struct {
             StrongImageAndViewID    image2D;
@@ -94,19 +95,21 @@ namespace AE::ResEditor
 
         ND_ AsyncTask       Execute (ArrayView<AsyncTask> deps);
 
-        ND_ bool            IsFileChanged ();
+        //ND_ bool          IsFileChanged ();
+
+        ND_ String          GetHelpText ()                                      const;
 
 
     // api for ScriptExe
     public:
             void                    AddPass (RC<IPass> pass)                    __Th___;
             void                    SetController (RC<IController> cont)        __Th___;
-            void                    SetDependencies (Array<Path> deps)          __Th___;
+        //  void                    SetDependencies (Array<Path> deps)          __Th___;
             void                    SetSliders (Sliders_t value)                __Th___ { _sliders = RVRef(value); }
 
-        ND_ ResourceQueue&          GetResourceQueue ()                         __NE___ { return _resQueue; }
-        ND_ GfxMemAllocatorPtr      GetAllocator ()                             __NE___ { return _gfxAlloc; }
-        ND_ GfxMemAllocatorPtr      GetDynamicAllocator ()                      __NE___ { return null; }    // TODO
+        ND_ ResourceQueue&          GetResourceQueue ()                         __NE___ { return *_resQueue; }
+        ND_ GfxMemAllocatorPtr      GetAllocator ()                             __NE___ { return _gfxLinearAlloc; }
+        ND_ GfxMemAllocatorPtr      GetDynamicAllocator ()                      __NE___ { return _gfxDynamicAlloc; }
 
         ND_ StrongImageAndViewID    GetDummyImage (const ImageDesc &)           C_NE___;
         ND_ Strong<RTGeometryID>    GetDummyRTGeometry ()                       C_NE___;
@@ -115,6 +118,7 @@ namespace AE::ResEditor
 
     private:
         ND_ static RenderTaskCoro   _SyncPasses (PassArr_t updatePasses, PassArr_t passes, IPass::Debugger, IPass::UpdatePassData);
+        ND_ static RenderTaskCoro   _ResizeRes (Array<RC<IResource>>);
         ND_ RenderTaskCoro          _ReadShaderTrace ();
 
         void  _PrintDbgTrace (const Array<String> &) const;

@@ -1,10 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Escape from labirinth game.
+*/
 #ifdef __INTELLISENSE__
+#   include <res_editor.as>
+#   include <aestyle.glsl.h>
 #   define GAME_LOGIC
 #   define GEN_MAP
 #   define DRAW_GAME
-#   include <res_editor>
-#   include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -63,8 +66,8 @@
 
 
             RC<Postprocess>     draw = Postprocess( EPostprocess::Shadertoy, "DRAW_GAME" );
-            draw.Input( "un_SDFMap",    sdf_map,    Sampler_LinearClamp );
-            draw.Input( "un_CBuf",      cbuf );
+            draw.ArgIn( "un_SDFMap",    sdf_map,    Sampler_LinearClamp );
+            draw.ArgIn( "un_CBuf",      cbuf );
             draw.Output( rt );
         }
         Present( rt );
@@ -99,7 +102,7 @@
             float4  h       = DHash42( ipart + cur + seed );
             float2  hsize   = Lerp( float2(0.1), float2(1.1), h.xy );
             float2  pos     = h.zw + cur - fpart;
-            float   d       = SDF_Rect( pos, hsize );
+            float   d       = SDF2_Rect( pos, hsize );
 
             md = Min( md, d );
         }
@@ -121,10 +124,10 @@
 
         float   d = SDF( pos, float(seed) / 0x1FFF );
 
-        d = Max( d, -SDF_Rect( SDF_Move( pos, player_pos ), float2(safe_r) ));
-        d = Max( d, -SDF_Rect( SDF_Move( pos, teleport_pos ), float2(safe_r) ));
+        d = Max( d, -SDF2_Rect( SDF_Move( pos, player_pos ), float2(safe_r) ));
+        d = Max( d, -SDF2_Rect( SDF_Move( pos, teleport_pos ), float2(safe_r) ));
 
-        d = Min( d, -SDF_Rect( SDF_Move( pos, map_size * 0.5 ), float2(map_size * 0.5 - 0.5) ));
+        d = Min( d, -SDF2_Rect( SDF_Move( pos, map_size * 0.5 ), float2(map_size * 0.5 - 0.5) ));
 
         gl.image.Store( un_SDFMap, GetGlobalCoord().xy, float4(d) );
     }

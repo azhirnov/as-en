@@ -30,10 +30,13 @@ extern void  UnitTest_VertexBufferInput_GLSL ()
     obj.defaultFeatureSet   = "DefaultFS";
     obj.target              = ECompilationTarget::Vulkan;
     obj.pplnStorage         = &ppln;
-    obj.metalCompiler       = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
     obj.spirvCompiler       = MakeUnique<SpirvCompiler>( Array<Path>{} );
     obj.spirvCompiler->SetDefaultResourceLimits();
     ObjectStorage::SetInstance( &obj );
+
+    #ifdef AE_METAL_TOOLS
+        obj.metalCompiler = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
+    #endif
 
     ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
     fs->fs.SetAll( EFeature::RequireTrue );

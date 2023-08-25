@@ -101,7 +101,7 @@ namespace AE::Graphics::_hidden_
                     case EShader::MeshTask :    _BindDynamicBuffers( ctx.MeshTaskArguments(),   index.mtlIndex.MeshTask(),  is_bound, dynamicOffsets, desc_set );   break;
                     case EShader::Mesh :        _BindDynamicBuffers( ctx.MeshArguments(),       index.mtlIndex.Mesh(),      is_bound, dynamicOffsets, desc_set );   break;
                     case EShader::Tile :        _BindDynamicBuffers( ctx.TileArguments(),       index.mtlIndex.Tile(),      is_bound, dynamicOffsets, desc_set );   break;
-                    default :                   CHECK_THROW(false);
+                    default_unlikely :          CHECK_THROW(false);
                 }
             }
             return;

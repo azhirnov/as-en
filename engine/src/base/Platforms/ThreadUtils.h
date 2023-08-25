@@ -54,8 +54,8 @@ namespace AE::Base
             static bool     Yield ()                                                        __NE___;
 
             template <typename R, typename P>
-            static void     YieldOrSleep (const std::chrono::duration<R,P>& relativeTime)   __NE___ { if_unlikely( not Yield() ) Sleep( relativeTime ); }
-            static void     YieldOrSleep ()                                                 __NE___ { if_unlikely( not Yield() ) Sleep( milliseconds{1} ); }
+            static void     YieldOrSleep (const std::chrono::duration<R,P>& relativeTime)   __NE___;
+            static void     YieldOrSleep ()                                                 __NE___ { YieldOrSleep( milliseconds{1} ); }
 
             static void     Pause ()                                                        __NE___;
 
@@ -66,6 +66,25 @@ namespace AE::Base
             static bool     _WaitIOms (milliseconds relativeTime)                           __NE___;
             static bool     _NanoSleep (nanoseconds relativeTime)                           __NE___;
     };
+
+
+
+/*
+=================================================
+    YieldOrSleep
+----
+    should be used in spin-lock to avoid long time in spin-loop
+=================================================
+*/
+    template <typename R, typename P>
+    void  ThreadUtils::YieldOrSleep (const std::chrono::duration<R,P>& relativeTime) __NE___
+    {
+        if_unlikely( not Yield() )
+        {
+            AE_LOG_DBG( "Sleep in SpinLock, it is bad for performance" );
+            Sleep( relativeTime );
+        }
+    }
 
 
 } // AE::Base

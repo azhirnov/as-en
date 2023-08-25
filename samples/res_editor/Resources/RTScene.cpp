@@ -1,8 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Resources/Buffer.h"
+#include "res_editor/Resources/Image.h"
+#include "res_editor/Resources/VideoImage.h"
 #include "res_editor/Resources/RTScene.h"
-#include "res_editor/Passes/FrameGraph.h"
+#include "res_editor/Core/RenderGraph.h"
 #include "res_editor/Passes/Renderer.h"
 
 namespace AE::ResEditor
@@ -31,7 +33,7 @@ namespace AE::ResEditor
             _isMutable |= tri_mesh.isMutable;
         }
 
-        auto&               res_mngr    = FrameGraph().GetStateTracker();
+        auto&               res_mngr    = RenderGraph().GetStateTracker();
         RTGeometryBuild     build;
 
         Array<RTGeometryBuild::TrianglesInfo>   tri_infos;
@@ -94,7 +96,7 @@ namespace AE::ResEditor
 */
     RTGeometry::~RTGeometry ()
     {
-        auto&   res_mngr = FrameGraph().GetStateTracker();
+        auto&   res_mngr = RenderGraph().GetStateTracker();
         res_mngr.ReleaseResources( _scratchBuffer, _indirectBufferHostVis, _geomId );
     }
 
@@ -323,7 +325,7 @@ namespace AE::ResEditor
             _uniqueGeometries.emplace( inst.geometry, 0 );
         }
 
-        auto&           res_mngr    = FrameGraph().GetStateTracker();
+        auto&           res_mngr    = RenderGraph().GetStateTracker();
         const auto      sizes       = res_mngr.GetRTSceneSizes( RTSceneBuild{ uint(_instances.size()), _options });
 
         const auto  CreateRTScene   = [&res_mngr, &sizes, this] ()
@@ -365,7 +367,7 @@ namespace AE::ResEditor
 */
     RTScene::~RTScene ()
     {
-        auto&   res_mngr = FrameGraph().GetStateTracker();
+        auto&   res_mngr = RenderGraph().GetStateTracker();
         res_mngr.ReleaseResources( _scratchBuffer, _indirectBufferHostVis, _sceneId );
     }
 
@@ -425,23 +427,23 @@ namespace AE::ResEditor
         if ( mem_view.DataSize() < size )
             return false;
 
-
-        Array<RTSceneBuild::Instance>   instances;
-
-        for (const auto& src : _instances)
+        // copy instance data
         {
-            auto&   dst = instances.emplace_back();
-            dst.transform           = src.transform;
-            dst.instanceCustomIndex = src.instanceCustomIndex;
-            dst.mask                = src.mask;
-            dst.instanceSBTOffset   = src.instanceSBTOffset;
-            dst.flags               = VEnumCast( src.flags );
-            dst.rtas                = src.geometry->GetDeviceAddress( ctx.GetFrameId() );
+            Array<RTSceneBuild::Instance>   instances;
+            RTSceneBuild                    build;
 
-            ASSERT( dst.rtas != Default );
+            for (const auto& src : _instances)
+            {
+                auto&   dst = instances.emplace_back();
+                dst.transform           = src.transform;
+                dst.instanceCustomIndex = src.instanceCustomIndex;
+                dst.instanceSBTOffset   = src.instanceSBTOffset;
+                dst.SetMask( src.mask );
+                dst.SetFlags( src.flags );
+                CHECK_ERR( build.SetGeometry( src.geometry->GetGeometryId( ctx.GetFrameId() ), INOUT dst ));
+            }
+            CHECK_ERR( mem_view.CopyFrom( instances ) == size );
         }
-
-        CHECK_ERR( mem_view.CopyFrom( instances ) == size );
 
         if ( _instanceBuffer->HasHistory() )
         {

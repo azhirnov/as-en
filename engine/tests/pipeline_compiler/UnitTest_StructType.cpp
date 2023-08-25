@@ -1019,10 +1019,13 @@ extern void  UnitTest_StructType ()
     PipelineStorage ppln;
     obj.defaultFeatureSet   = "DefaultFS";
     obj.pplnStorage         = &ppln;
-    obj.metalCompiler       = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
     obj.spirvCompiler       = MakeUnique<SpirvCompiler>( Array<Path>{} );
     obj.spirvCompiler->SetDefaultResourceLimits();
     ObjectStorage::SetInstance( &obj );
+
+    #ifdef AE_METAL_TOOLS
+        obj.metalCompiler = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
+    #endif
 
     ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
     fs->fs.SetAll( EFeature::RequireTrue );

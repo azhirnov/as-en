@@ -1,7 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
+#include "res_editor/Core/RenderGraph.h"
 #include "res_editor/Resources/VideoImage.h"
-#include "res_editor/Passes/FrameGraph.h"
+#include "res_editor/Resources/Buffer.h"
+#include "res_editor/Resources/Image.h"
+#include "res_editor/Resources/RTScene.h"
 #include "res_editor/Passes/Renderer.h"
 
 namespace AE::ResEditor
@@ -17,7 +20,7 @@ namespace AE::ResEditor
                             const Path &        path,
                             RC<DynamicDim>      outDynSize,
                             StringView          dbgName) __Th___ :
-        IImageResource{ renderer },
+        IResource{ renderer },
         _outDynSize{ RVRef(outDynSize) },
         _dbgName{ dbgName }
     {
@@ -41,7 +44,7 @@ namespace AE::ResEditor
         _dimension      = vstream->size;
 
         auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
-        auto&   rstate      = FrameGraph().GetStateTracker();
+        auto&   rstate      = RenderGraph().GetStateTracker();
 
         CHECK_THROW_MSG( res_mngr.IsSupported( desc ),
             "VideoImage '"s << _dbgName << "' description is not supported by GPU device" );
@@ -75,7 +78,7 @@ namespace AE::ResEditor
         if ( _decoder )
             CHECK( _decoder->End() );
 
-        auto&   rstate = FrameGraph().GetStateTracker();
+        auto&   rstate = RenderGraph().GetStateTracker();
         rstate.ReleaseResourceArray( _ids );
         rstate.ReleaseResourceArray( _views );
     }
@@ -87,21 +90,22 @@ namespace AE::ResEditor
 */
     IResource::EUploadStatus  VideoImage::Upload (TransferCtx_t &ctx) __Th___
     {
+        using FrameInfo = Video::IVideoDecoder::FrameInfo;
+
         if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
             return stat;
 
-        ImageMemView                    src_mem;
-        Video::IVideoDecoder::FrameInfo info;
-        const uint                      idx     = _NextIdx();
-        ImageStream                     img_stream;
+        ImageMemView    src_mem;
+        FrameInfo       info;
+        const uint      idx     = (_imageIdx.load()+1) % _MaxImages;
 
         // init image stream
         {
-            UploadImageDesc upload;
+            UploadImageDesc     upload;
             upload.imageSize    = uint3{ _dimension, 1u };
             upload.heapType     = EStagingHeapType::Dynamic;
             upload.aspectMask   = EImageAspect::Color;
-            img_stream          = ImageStream{ _ids[idx], upload };
+            _stream             = ImageStream{ _ids[idx], upload };
         }
 
         // get video frame and upload it to GPU
@@ -111,25 +115,24 @@ namespace AE::ResEditor
 
             ImageMemView    dst_mem;
             ctx.ResourceState( _ids[idx], EResourceState::Invalidate );
-            ctx.UploadImage( img_stream, OUT dst_mem );
+            ctx.UploadImage( _stream, OUT dst_mem );
 
             if ( not dst_mem.Empty() )
             {
                 CHECK( dst_mem.Copy( uint3{}, dst_mem.Offset(), src_mem, dst_mem.Dimension() ));
             }
 
-            ASSERT( img_stream.IsCompleted() );
+            CHECK( _stream.IsCompleted() );
             _imageIdx.store( idx );
-
-            return EUploadStatus::NoMemory;
         }
         else
         {
+            // restart
             if ( not _decoder->SeekTo( 0 ))
                 _SetUploadStatus( EUploadStatus::Canceled );
-
-            return _uploadStatus.load();
         }
+
+        return _uploadStatus.load();
     }
 
 

@@ -24,7 +24,7 @@ void Main ()
     traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
                  /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/HitGroupStride, /*missIndex*/1,
                  /*origin*/origin, /*Tmin*/0.0f, /*direction*/direction, /*Tmax*/10.0f,
-                 /*payload*/0 );
+                 /*payload*/PAYLOAD_LOC );
 
     vec4    color = payload;
     imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );

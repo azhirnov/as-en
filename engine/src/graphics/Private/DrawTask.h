@@ -44,7 +44,7 @@ namespace AE::Graphics
 
     // methods
     protected:
-        DrawTask (RC<DRAWCMDBATCH> batch, DebugLabel dbg) __Th___ :
+        DrawTask (RC<DRAWCMDBATCH> batch, DebugLabel dbg)       __Th___ :
             IAsyncTask{ ETaskQueue::Renderer },
             _batch{ RVRef(batch) },
             _drawIndex{ _GetPool().Acquire() }
@@ -55,11 +55,11 @@ namespace AE::Graphics
         }
 
         enum class _DelayedInit {};
-        explicit DrawTask (_DelayedInit) __NE___ :
+        explicit DrawTask (_DelayedInit)                        __NE___ :
             IAsyncTask{ ETaskQueue::Renderer }
         {}
 
-        ND_ bool  _Init (RC<DRAWCMDBATCH> batch, DebugLabel dbg) __NE___
+        ND_ bool  _Init (RC<DRAWCMDBATCH> batch, DebugLabel dbg)__NE___
         {
             _batch      = RVRef(batch);
             _drawIndex  = _GetPool().Acquire();

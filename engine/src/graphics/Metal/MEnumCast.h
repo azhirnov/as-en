@@ -23,9 +23,9 @@ namespace AE::Graphics
 
         uint    result = 0;
 
-        while ( values != Zero )
+        while ( value != Zero )
         {
-            auto    t = ExtractBit( INOUT values );
+            auto    t = ExtractBit( INOUT value );
 
             BEGIN_ENUM_CHECKS();
             switch ( t )
@@ -34,9 +34,11 @@ namespace AE::Graphics
                 case ERTInstanceOpt::TriangleFrontCCW :     result |= TriangleFrontFacingWindingCounterClockwise;   break;
                 case ERTInstanceOpt::ForceOpaque :          result |= OptionOpaque;                                 break;
                 case ERTInstanceOpt::ForceNonOpaque :       result |= OptionNonOpaque;                              break;
+
+                case ERTInstanceOpt::All :
                 case ERTInstanceOpt::_Last :
                 case ERTInstanceOpt::Unknown :
-                default :                                   RETURN_ERR( "unknown RT instance options", 0 );         break;
+                default_unlikely :                          RETURN_ERR( "unknown RT instance options", 0 );
             }
             END_ENUM_CHECKS();
         }

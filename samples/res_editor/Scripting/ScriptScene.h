@@ -66,6 +66,12 @@ namespace AE::ResEditor
     private:
         using PipelinePathes_t      = Array< Path >;
         using UniquePipelines_t     = FlatHashSet< Path, PathHasher >;
+        using EDebugMode            = IPass::EDebugMode;
+
+        struct MaterialInfo
+        {
+            FixedMap< EDebugMode, PipelineName, uint(EDebugMode::_Count) >  pplns;
+        };
         using PipelineNames_t       = Array< Array< PipelineName >>;
 
 
@@ -99,10 +105,15 @@ namespace AE::ResEditor
 
 
     private:
-        ND_ RTechInfo   _CompilePipelines (OUT PipelineNames_t &)                           C_Th___;
+        ND_ RTechInfo   _CompilePipelines (OUT PipelineNames_t &, OUT RC<SceneData> &)      C_Th___;
             void        _CompilePipelines2 (ScriptEnginePtr se, OUT PipelineNames_t &)      C_Th___;
 
         ND_ static auto  _CreateUBType ()                                                   __Th___;
+
+        void  _WithPipelineCompiler ()                                                      C_Th___;
+
+    // ScriptBasePass //
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                               C_Th_OV;
     };
 
 
@@ -142,6 +153,9 @@ namespace AE::ResEditor
 
     private:
         ND_ static auto  _CreateUBType ()                                                   __Th___;
+
+    // ScriptBasePass //
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                               C_Th_OV;
     };
 
 

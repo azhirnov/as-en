@@ -107,6 +107,7 @@ namespace AE::ResLoader
         ND_ Path const&         GetPath ()                                                                          C_NE___ { return _srcPath; }
         ND_ Mipmaps_t const&    GetData ()                                                                          C_NE___ { return _data; }
         ND_ Mipmaps_t *         GetMutableData ()                                                                   __NE___ { return IsMutable() ? &_data : null; }
+        ND_ Level const*        GetLevel (MipmapLevel mipmap, ImageLayer layer)                                     C_NE___;
         ND_ EImage              GetType ()                                                                          C_NE___ { return _imageType; }
         ND_ EImageDim           GetImageDim ()                                                                      C_NE___;
 

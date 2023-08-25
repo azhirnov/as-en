@@ -51,6 +51,8 @@ namespace AE::ResEditor
         float4x4        GetInvViewProj ()                               C_NE_OV { SHAREDLOCK( _guard );  return _invViewProj; }
         float4x4        GetProj ()                                      C_NE_OV { SHAREDLOCK( _guard );  return _camera.Projection(); }
         float4x4        GetView ()                                      C_NE_OV { SHAREDLOCK( _guard );  return _view; }
+        float2          GetClipPlanes ()                                C_NE_OV { return _clipPlanes; }
+        StringView      GetHelpText ()                                  C_NE_OV;
     //  RaysGrid_t      GetRaysGrid ()                                  C_NE_OV;
 
         void            CopyTo (OUT AE::ShaderTypes::CameraData &)      C_NE_OV;

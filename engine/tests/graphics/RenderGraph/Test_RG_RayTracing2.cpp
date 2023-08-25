@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Test_RenderGraph.h"
+#ifndef AE_ENABLE_METAL
+# include "Test_RenderGraph.h"
 
 namespace
 {
@@ -39,6 +40,8 @@ namespace
         RTGeometryBuild::TrianglesInfo  triangleInfo;
         RTGeometryBuild::TrianglesData  triangleData;
     };
+
+    static constexpr auto&  RTech = RenderTechs::RayTracingTestRT;
 
     static const float3 buffer_vertices []  = { { 0.25f, 0.25f, 0.0f }, { 0.75f, 0.25f, 0.0f }, { 0.50f, 0.75f, 0.0f } };
     static const uint   buffer_indices []   = { 0, 1, 2 };
@@ -129,7 +132,7 @@ namespace
             typename CtxTypes::RayTracing   ctx{ *this };
 
             ctx.AccumBarriers()
-                .MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS_Read | EResourceState::RayTracingShaders )
+                .MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS | EResourceState::RayTracingShaders )
                 //.MemoryBarrier( EResourceState::Host_Write, EResourceState::RTShaderBindingTable )    // optional
                 .ImageBarrier( t.img, EResourceState::Invalidate, img_state );
 
@@ -190,6 +193,8 @@ namespace
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
 
+        CHECK_ERR( renderTech->Name() == RenderTechName{RTech} );
+
         t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
                                         .SetUsage( EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
                                       "Image", t.gfxAlloc );
@@ -237,10 +242,10 @@ namespace
                                             "RTAS scratch buffer", t.gfxAlloc );
         CHECK_ERR( t.scratch );
 
-        t.ppln = renderTech->GetRayTracingPipeline( PipelineName{"rtrace1.def"} );
+        t.ppln = renderTech->GetRayTracingPipeline( RTech.RayTrace_1.rtrace1_def );
         CHECK_ERR( t.ppln );
 
-        t.sbt = renderTech->GetRTShaderBinding( RTShaderBindingName{"rtrace1.sbt0"} );
+        t.sbt = renderTech->GetRTShaderBinding( RTech.sbt.rtrace1_sbt0 );
         CHECK_ERR( t.sbt );
 
         {
@@ -288,10 +293,8 @@ bool RGTest::Test_RayTracing2 ()
     if ( _rtPipelines == null )
         return true; // skip
 
-    #ifdef AE_ENABLE_VULKAN
-    if ( not _vulkan.GetProperties().accelerationStructureFeats.accelerationStructureIndirectBuild )
+    if ( RenderTaskScheduler().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
         return true; // skip
-    #endif
 
     auto    img_cmp = _LoadReference( TEST_NAME );
     bool    result  = true;
@@ -307,3 +310,5 @@ bool RGTest::Test_RayTracing2 ()
     AE_LOGI( TEST_NAME << " - passed" );
     return result;
 }
+
+#endif // not AE_ENABLE_METAL

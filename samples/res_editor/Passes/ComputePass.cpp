@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Passes/ComputePass.h"
-#include "res_editor/Passes/IPass.cpp.h"
-#include "res_editor/EditorUI.h"
+#include "res_editor/Resources/ResourceArray.cpp.h"
+#include "res_editor/Core/EditorUI.h"
 #include "res_editor/_data/cpp/types.h"
 
 namespace AE::ResEditor
@@ -72,12 +72,11 @@ namespace AE::ResEditor
 */
     bool  ComputePass::Execute (SyncPassData &pd) __NE___
     {
-        CHECK_ERR( not _resources.empty() );
+        CHECK_ERR( not _resources.Empty() );
         CHECK_ERR( not _iterations.empty() );
 
         ShaderDebugger::Result  dbg;
         ComputePipelineID       ppln;
-        const uint2             dim     = uint2{_iterations.front().ThreadCount( _localSize )};
 
         if ( pd.dbg.IsEnabled( this ))
         {
@@ -86,6 +85,9 @@ namespace AE::ResEditor
             if ( it != _pipelines.end()                         and
                  AnyBits( pd.dbg.stage, EShaderStages::Compute ))
             {
+                // TODO: dispatch indirect?
+                const uint2     dim = uint2{Iteration::FindMaxConstThreadCount( _iterations, _localSize )};
+
                 ppln = it->second;
 
                 RG::DirectCtx::Transfer     tctx{ pd.rtask, RVRef(pd.cmdbuf) };
@@ -100,21 +102,26 @@ namespace AE::ResEditor
         DirectCtx::Compute  ctx{ pd.rtask, RVRef(pd.cmdbuf), DebugLabel{_dbgName, _dbgColor} };
         DescriptorSetID     ds  = _descSets[ ctx.GetFrameId().Index() ];
 
-        _SetResStates( ctx.GetFrameId(), ctx, _resources );
+        _resources.SetStates( ctx, Default );
         ctx.CommitBarriers();
 
         ctx.BindPipeline( ppln );
         ctx.BindDescriptorSet( _dsIndex, ds );
         if ( dbg ) ctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
 
-        for (auto it : _iterations)
+        for (const auto& it : _iterations)
         {
-            const uint3     group_count = it.GroupCount( _localSize );
+            if ( it.indirect ){
+                ctx.DispatchIndirect( it.indirect->GetBufferId( ctx.GetFrameId() ), it.indirectOffset );
+            }else{
+                ctx.Dispatch( it.GroupCount( _localSize ));
+            }
 
-            ctx.Dispatch( group_count );
-
-            ctx.ExecutionBarrier( EPipelineScope::Compute, EPipelineScope::Compute );
-            ctx.CommitBarriers();
+            if ( not IsLastElement( it, _iterations ))
+            {
+                ctx.ExecutionBarrier( EPipelineScope::Compute, EPipelineScope::Compute );
+                ctx.CommitBarriers();
+            }
         }
 
         pd.cmdbuf = ctx.ReleaseCommandBuffer();
@@ -128,10 +135,8 @@ namespace AE::ResEditor
 */
     bool  ComputePass::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
     {
-        CHECK_ERR( not _resources.empty() );
+        CHECK_ERR( not _resources.Empty() );
         CHECK_ERR( not _iterations.empty() );
-
-        _ResizeRes( ctx, _resources );
 
         // update uniform buffer
         {
@@ -160,11 +165,21 @@ namespace AE::ResEditor
 
             CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
             CHECK_ERR( updater.BindBuffer< ShaderTypes::ComputePassUB >( UniformName{"un_PerPass"}, _ubuffer ));
-            CHECK_ERR( _BindRes( ctx.GetFrameId(), updater, _resources ));
+            CHECK_ERR( _resources.Bind( ctx.GetFrameId(), updater ));
             CHECK_ERR( updater.Flush() );
         }
 
         return true;
+    }
+
+/*
+=================================================
+    GetResourcesToResize
+=================================================
+*/
+    void  ComputePass::GetResourcesToResize (INOUT Array<RC<IResource>> &resources) __NE___
+    {
+        _resources.GetResourcesToResize( INOUT resources );
     }
 
 /*

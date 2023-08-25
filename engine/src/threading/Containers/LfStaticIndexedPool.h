@@ -24,7 +24,7 @@ namespace AE::Threading
              >
     class LfStaticIndexedPool final : public Noncopyable
     {
-        STATIC_ASSERT( Count > 0 and Count % 32 == 0 );
+        STATIC_ASSERT( Count > 0 and IsAligned( Count, 32 ));
         STATIC_ASSERT( MaxValue<IndexType>() >= Count );
         STATIC_ASSERT( AllocatorType::IsThreadSafe );
 
@@ -39,7 +39,7 @@ namespace AE::Threading
         static constexpr usize  ChunkSize   = Count < 32*12 ? 32 : 64;
         static constexpr usize  ChunksCount = Count / ChunkSize;
 
-        STATIC_ASSERT( Count % ChunkSize == 0 );
+        STATIC_ASSERT( IsAligned( Count, ChunkSize ));
 
         using Bitfield_t    = Conditional< (ChunkSize <= 32), uint, ulong >;
 

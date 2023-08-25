@@ -118,7 +118,8 @@ namespace AE::ResEditor
             void            StateTransition (GraphicsCtx_t &)                       C_NE___;
             void            Draw (DirectCtx::Draw &, const float4x4 &)              __Th___;
 
-            bool            Resize (TransferCtx_t &)                                __Th_OV { return false; }
+            bool            Resize (TransferCtx_t &)                                __Th_OV { return true; }
+            bool            RequireResize ()                                        C_Th_OV { return false; }
             EUploadStatus   Upload (TransferCtx_t &)                                __Th_OV;
             EUploadStatus   Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Canceled; }
 
@@ -151,7 +152,8 @@ namespace AE::ResEditor
         public:
             Textures (Renderer &r, RC<ResLoader::IntermScene> scene)                __Th___;
 
-            bool            Resize (TransferCtx_t &)                                __Th_OV { return false; }
+            bool            Resize (TransferCtx_t &)                                __Th_OV { return true; }
+            bool            RequireResize ()                                        C_Th_OV { return false; }
             EUploadStatus   Upload (TransferCtx_t &)                                __Th_OV;
             EUploadStatus   Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Canceled; }
         };

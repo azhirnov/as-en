@@ -1,5 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include <asset_packer>
+#include <asset_packer.as>
 
 void ASmain ()
 {

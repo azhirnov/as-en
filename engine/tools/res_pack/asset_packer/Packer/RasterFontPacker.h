@@ -35,15 +35,15 @@ namespace AE::AssetPacker
             RectF               offset;             // pixels
             float               advance     = 0.0f; // glyph with including empty space
 
-            Glyph () {}
+            Glyph ()                __NE___ {}
 
-            ND_ bool  HasImage () const { return true; }    // TODO
+            ND_ bool  HasImage ()   C_NE___ { return true; }    // TODO
         };
 
         struct SDFConfig
         {
             float           scale       = 0.f;  // value in texture (snorm) to distance in pixels
-            float           pixRange2D;         // screenPxRange = heightInPx * pixRange2D
+            float           pixRange2D  = 0.f;  // screenPxRange = heightInPx * pixRange2D
             packed_float2   pixRange3D;         // TODO
         };
 
@@ -60,14 +60,14 @@ namespace AE::AssetPacker
 
         // methods
         public:
-            GlyphKey () : _value{0} {}
-            GlyphKey (CharUtf32 symbol, uint height) : _packed{symbol, height} {}
+            GlyphKey ()                                         __NE___ : _value{0} {}
+            GlyphKey (CharUtf32 symbol, uint height)            __NE___ : _packed{symbol, height} {}
 
-            ND_ CharUtf32   Symbol ()                       const   { return CharUtf32(_packed.symbol); }
-            ND_ uint        HeightInPix ()                  const   { return uint(_packed.height); }
+            ND_ CharUtf32   Symbol ()                           C_NE___ { return CharUtf32(_packed.symbol); }
+            ND_ uint        HeightInPix ()                      C_NE___ { return uint(_packed.height); }
 
-            ND_ bool        operator == (const GlyphKey &rhs) const { return _value == rhs._value; }
-            ND_ HashVal     CalcHash ()                       const { return HashOf(_value); }
+            ND_ bool        operator == (const GlyphKey &rhs)   C_NE___ { return _value == rhs._value; }
+            ND_ HashVal     CalcHash ()                         C_NE___ { return HashOf(_value); }
         };
 
         using GlyphMap_t    = FlatHashMap< GlyphKey, Glyph, DefaultHasher_CalcHash<GlyphKey> >;

@@ -9,6 +9,8 @@
 # include "graphics/Public/GraphicsCreateInfo.h"
 # include "graphics/Public/GraphicsProfiler.h"
 
+# include "graphics/Private/Defines.h"
+
 # include "graphics/Vulkan/VulkanLoader.h"
 # include "graphics/Vulkan/VulkanCheckError.h"
 

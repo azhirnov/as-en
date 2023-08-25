@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 
 void ASmain ()
@@ -115,6 +115,8 @@ void ASmain ()
     fset.shaderZeroInitializeWorkgroupMemory (True);
     fset.shaderIntegerDotProduct (True);
     fset.minSpirvVersion (150);
+    fset.drawIndirectFirstInstance (True);
+    fset.drawIndirectCount (True);
     fset.multiview (True);
     fset.multiviewTessellationShader (True);
     fset.minMultiviewViewCount (6);

@@ -82,25 +82,32 @@ namespace _hidden_
 
 /*
 =================================================
+    Rainbow / RainbowWrap
+=================================================
+*/
+    ND_ inline RGBA32f  Rainbow (const float factor) __NE___
+    {
+        return RGBA32f{ HSVColor{ Saturate( factor * 0.74f )}};
+    }
+
+    ND_ inline RGBA32f  RainbowWrap (const float factor) __NE___
+    {
+        return RGBA32f{ HSVColor{ Wrap( factor * 0.74f, 0.0f, 1.0f )}};
+    }
+
+/*
+=================================================
     StringToColor
 =================================================
 */
     template <typename T>
-    void  StringToColor (OUT HSVColor &col, BasicStringView<T> str) __NE___
+    void  StringToColor (OUT RGBA32f &col, BasicStringView<T> str) __NE___
     {
         HashVal u = HashOf( str );
         //float h = (float(usize(u) & 0xFF) / float(0xFF));
         float   h = float(u.Cast<ushort>() & 0xFF) / float(0xFF);
         //float h = HEHash( u.Cast<uint>() );
-        col = HSVColor{ h * 0.74f };
-    }
-
-    template <typename T>
-    void  StringToColor (OUT RGBA32f &col, BasicStringView<T> str) __NE___
-    {
-        HSVColor    hsv;
-        StringToColor( OUT hsv, str );
-        col = RGBA32f{ hsv };
+        col = Rainbow( h );
     }
 
     template <typename T>

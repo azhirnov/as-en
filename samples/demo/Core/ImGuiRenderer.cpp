@@ -8,9 +8,8 @@
 
 namespace AE::Samples::Demo
 {
-namespace {
-    static const float  DefaultScale = 0.2f;
-}
+    INTERNAL_LINKAGE( const float       DefaultScale    = 0.2f );
+    INTERNAL_LINKAGE( constexpr auto&   RTech           = RenderTechs::ImGui_RTech );
 
 /*
 =================================================
@@ -52,7 +51,7 @@ namespace {
             CHECK_ERR( _font.view );
         }
 
-        _ppln = _rtech->GetGraphicsPipeline( PipelineName{"imgui"} );
+        _ppln = _rtech->GetGraphicsPipeline( RTech.Main.imgui );
         CHECK_ERR( _ppln );
 
         {
@@ -141,7 +140,7 @@ namespace {
         auto&   rt = targets[0];
         rt.initialState |= EResourceState::Invalidate;
 
-        return Draw( rtask, DirectCtx::CommandBuffer{}, RenderTechPassName{"Main"}, rt, RGBA32f{ 0.45f, 0.55f, 0.60f, 1.00f }, ui, draw );
+        return Draw( rtask, DirectCtx::CommandBuffer{}, RTech.Main, rt, RGBA32f{ 0.45f, 0.55f, 0.60f, 1.00f }, ui, draw );
     }
 
     bool  ImGuiRenderer::Draw (RenderTask &rtask, DirectCtx::CommandBuffer cmdbuf, const RenderTechPassName &passName,
@@ -214,6 +213,8 @@ namespace {
 
             io.MouseDown[0] = mouseLBDown or touchActive;
             io.MousePos     = ImVec2{ pos.x, pos.y };
+            io.MouseWheel   = mouseWheel.y;
+            io.MouseWheelH  = mouseWheel.x;
         }
 
         ImGui::NewFrame();

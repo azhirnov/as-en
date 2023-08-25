@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 void ASmain ()
 {
@@ -21,7 +21,7 @@ void ASmain ()
 
     {
         RC<Shader>  ms  = Shader();
-        ms.file     = "draw_mesh1.glsl";
+        ms.file        = "draw_mesh1.glsl";        // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw_mesh1.glsl
         ms.options  = EShaderOpt::Trace;
         ms.version  = EShaderVersion::SPIRV_1_4;
         ms.MeshSpec1();
@@ -30,7 +30,7 @@ void ASmain ()
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file     = "draw_mesh1.glsl";
+        fs.file        = "draw_mesh1.glsl";        // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw_mesh1.glsl
         fs.version  = EShaderVersion::SPIRV_1_4;
         ppln.SetFragmentShader( fs );
     }
@@ -39,7 +39,7 @@ void ASmain ()
     {
         RC<MeshPipelineSpec>    spec = ppln.AddSpecialization( "dbg3_draw" );
         spec.AddToRenderTech( "DrawTestRT", "Draw_1" );
-        spec.SetViewportCount( 1 );
+
         spec.SetMeshLocalSize( 3 );
 
         RenderState rs;

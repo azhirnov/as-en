@@ -25,8 +25,8 @@ namespace AE::Threading
     private:
         Atomic<uint>    _flag {0};      // 0 -- unlocked, 1 -- locked
 
-        static constexpr auto   AcquireOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
-        static constexpr auto   ReleaseOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
+        static constexpr auto   _AcquireOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
+        static constexpr auto   _ReleaseOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
 
 
     // methods
@@ -49,7 +49,7 @@ namespace AE::Threading
         ND_ bool  try_lock ()       __NE___
         {
             uint    exp = 0;
-            return _flag.compare_exchange_strong( INOUT exp, 1, AcquireOrder, EMemoryOrder::Relaxed );
+            return _flag.CAS_Loop( INOUT exp, 1, _AcquireOrder, EMemoryOrder::Relaxed );
         }
 
 
@@ -58,9 +58,11 @@ namespace AE::Threading
         {
             uint    exp = 0;
             for (uint i = 0;
-                 not _flag.compare_exchange_weak( INOUT exp, 1, AcquireOrder, EMemoryOrder::Relaxed );
+                 not _flag.CAS( INOUT exp, 1, _AcquireOrder, EMemoryOrder::Relaxed );
                  ++i)
             {
+                ASSERT( exp == 0 or exp == 1 ); // check for mem corruption
+
                 if_unlikely( i > ThreadUtils::SpinBeforeLock() )
                 {
                     i = 0;
@@ -75,9 +77,10 @@ namespace AE::Threading
         void  unlock ()             __NE___
         {
           #ifdef AE_DEBUG
-            ASSERT( _flag.exchange( 0, ReleaseOrder ) == 1 );
+            auto    old = _flag.exchange( 0, _ReleaseOrder );
+            CHECK( old == 1 );
           #else
-            _flag.store( 0, ReleaseOrder );
+            _flag.store( 0, _ReleaseOrder );
           #endif
         }
     };
@@ -99,36 +102,39 @@ namespace AE::Threading
     private:
         Atomic<int>     _flag {0};      // 0 -- unlocked, -1 -- write lock, >0 -- read lock
 
-        static constexpr auto   AcquireOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
-        static constexpr auto   ReleaseOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
+        static constexpr auto   _AcquireOrder   = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
+        static constexpr auto   _ReleaseOrder   = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
+        static constexpr auto   _MaxReadLocks   = 100;
 
 
     // methods
     public:
-        TRWSpinLock ()                  __NE___ {}
-        ~TRWSpinLock ()                 __NE___ { ASSERT( _flag.load() == 0 ); }
+        TRWSpinLock ()                          __NE___ {}
+        ~TRWSpinLock ()                         __NE___ { ASSERT( _flag.load() == 0 ); }
 
-        ND_ bool  is_unlocked ()        __NE___ { return _flag.load() == 0; }
-        ND_ bool  is_locked ()          __NE___ { return _flag.load() < 0; }
-        ND_ bool  is_shared_locked ()   __NE___ { return _flag.load() > 0; }
+        ND_ bool  is_unlocked ()                __NE___ { return _flag.load() == 0; }
+        ND_ bool  is_locked ()                  __NE___ { return _flag.load() < 0; }
+        ND_ bool  is_shared_locked ()           __NE___ { return _flag.load() > 0; }
 
 
     //-------------------------------------------------
     // exclusive (read-write)
 
-        ND_ bool  try_lock ()           __NE___
+        ND_ bool  try_lock ()                   __NE___
         {
             int exp = 0;
-            return _flag.compare_exchange_strong( INOUT exp, -1, AcquireOrder, EMemoryOrder::Relaxed );
+            return _flag.CAS_Loop( INOUT exp, -1, _AcquireOrder, EMemoryOrder::Relaxed );
         }
 
 
         // for std::lock_guard / std::unique_lock / std::scoped_lock
-        void  lock ()                   __NE___
+        void  lock ()                           __NE___
         {
             int exp = 0;
-            for (uint i = 0; not _flag.compare_exchange_weak( INOUT exp, -1, AcquireOrder, EMemoryOrder::Relaxed ); ++i)
+            for (uint i = 0; not _flag.CAS( INOUT exp, -1, _AcquireOrder, EMemoryOrder::Relaxed ); ++i)
             {
+                ASSERT( exp >= -1 and exp < _MaxReadLocks );    // check for mem corruption
+
                 if_unlikely( i > ThreadUtils::SpinBeforeLock() )
                 {
                     i = 0;
@@ -141,12 +147,13 @@ namespace AE::Threading
         }
 
         // for std::lock_guard / std::unique_lock / std::scoped_lock
-        void  unlock ()                 __NE___
+        void  unlock ()                         __NE___
         {
           #ifdef AE_DEBUG
-            ASSERT( _flag.exchange( 0, ReleaseOrder ) == -1 );
+            auto    old = _flag.exchange( 0, _ReleaseOrder );
+            CHECK( old == -1 );
           #else
-            _flag.store( 0, ReleaseOrder );
+            _flag.store( 0, _ReleaseOrder );
           #endif
         }
 
@@ -154,15 +161,15 @@ namespace AE::Threading
     //-------------------------------------------------
     // shared (read-only)
 
-        ND_ bool  try_lock_shared ()    __NE___
+        ND_ bool  try_lock_shared ()            __NE___
         {
             int exp = 0;
             for (uint i = 0;
-                 not _flag.compare_exchange_weak( INOUT exp, exp + 1, AcquireOrder, EMemoryOrder::Relaxed );
+                 not _flag.CAS( INOUT exp, exp + 1, _AcquireOrder, EMemoryOrder::Relaxed );
                  ++i)
             {
-                if_unlikely( exp < 0 or i > 100 )
-                    return false;
+                if_unlikely( exp < 0 or i > ThreadUtils::SpinBeforeLock() )
+                    return false;  // failed to lock
 
                 ThreadUtils::Pause();
             }
@@ -171,13 +178,15 @@ namespace AE::Threading
 
 
         // for std::shared_lock
-        void  lock_shared ()            __NE___
+        void  lock_shared ()                    __NE___
         {
             int exp = 0;
             for (uint i = 0;
-                 not _flag.compare_exchange_weak( INOUT exp, exp + 1, AcquireOrder, EMemoryOrder::Relaxed );
+                 not _flag.CAS( INOUT exp, exp + 1, _AcquireOrder, EMemoryOrder::Relaxed );
                  ++i)
             {
+                ASSERT( exp >= -1 and exp < _MaxReadLocks );    // check for mem corruption
+
                 if_unlikely( i > ThreadUtils::SpinBeforeLock() )
                 {
                     i = 0;
@@ -190,30 +199,31 @@ namespace AE::Threading
         }
 
         // for std::shared_lock
-        void  unlock_shared ()          __NE___
+        void  unlock_shared ()                  __NE___
         {
-            int old = _flag.fetch_sub( 1, ReleaseOrder );
-            ASSERT( old >= 0 );
-            Unused( old );
+            int old = _flag.fetch_sub( 1, _ReleaseOrder );
+            ASSERT( old >= 0 );  Unused( old );
         }
 
 
     //-------------------------------------------------
     // exclusive <-> shared
 
-        ND_ bool  try_shared_to_exclusive () __NE___
+        ND_ bool  try_shared_to_exclusive ()    __NE___
         {
             int exp = 1;
-            return _flag.compare_exchange_strong( INOUT exp, -1 );
+            return _flag.CAS_Loop( INOUT exp, -1 );
         }
 
-        void  shared_to_exclusive ()    __NE___
+        void  shared_to_exclusive ()            __NE___
         {
             int exp = 1;
             for (uint i = 0;
-                 not _flag.compare_exchange_weak( INOUT exp, -1 );
+                 not _flag.CAS( INOUT exp, -1 );
                  ++i)
             {
+                ASSERT( exp >= -1 and exp < _MaxReadLocks );    // check for mem corruption
+
                 if_unlikely( i > ThreadUtils::SpinBeforeLock() )
                 {
                     i = 0;
@@ -225,11 +235,30 @@ namespace AE::Threading
             }
         }
 
-        void  exclusive_to_shared ()    __NE___
+        ND_ bool  try_exclusive_to_shared ()    __NE___
         {
             int exp = -1;
-            Unused( _flag.compare_exchange_strong( INOUT exp, 1 ));
-            ASSERT( exp == -1 );
+            return _flag.CAS_Loop( INOUT exp, 1 );
+        }
+
+        void  exclusive_to_shared ()            __NE___
+        {
+            int exp = -1;
+            for (uint i = 0;
+                 not _flag.CAS( INOUT exp, 1 );
+                 ++i)
+            {
+                ASSERT( exp >= -1 and exp < _MaxReadLocks );    // check for mem corruption
+
+                if_unlikely( i > ThreadUtils::SpinBeforeLock() )
+                {
+                    i = 0;
+                    ThreadUtils::YieldOrSleep();
+                }
+
+                exp = 1;
+                ThreadUtils::Pause();
+            }
         }
     };
 
@@ -261,8 +290,8 @@ namespace AE::Threading
     private:
         Atomic< ValueType >     _value {};
 
-        static constexpr auto   AcquireOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
-        static constexpr auto   ReleaseOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
+        static constexpr auto   _AcquireOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Acquire;
+        static constexpr auto   _ReleaseOrder = IsRelaxedOrder ? EMemoryOrder::Relaxed : EMemoryOrder::Release;
 
 
     // methods
@@ -278,7 +307,7 @@ namespace AE::Threading
         ND_ bool  try_lock ()                       __NE___
         {
             ValueType   exp = _RemoveLockBit( _value.load() );
-            return _value.compare_exchange_strong( INOUT exp, _SetLockBit( exp ), AcquireOrder, EMemoryOrder::Relaxed );
+            return _value.CAS_Loop( INOUT exp, _SetLockBit( exp ), _AcquireOrder, EMemoryOrder::Relaxed );
         }
 
 
@@ -287,7 +316,7 @@ namespace AE::Threading
         {
             ValueType   exp = _RemoveLockBit( _value.load() );
             for (uint i = 0;
-                 not _value.CAS( INOUT exp, _SetLockBit( exp ), AcquireOrder, EMemoryOrder::Relaxed );
+                 not _value.CAS( INOUT exp, _SetLockBit( exp ), _AcquireOrder, EMemoryOrder::Relaxed );
                  ++i)
             {
                 if_unlikely( i > ThreadUtils::SpinBeforeLock() )
@@ -304,7 +333,7 @@ namespace AE::Threading
         void  unlock ()                             __NE___
         {
             ValueType   exp = _RemoveLockBit( _value.load() );
-            ValueType   prev = _value.exchange( exp, ReleaseOrder );
+            ValueType   prev = _value.exchange( exp, _ReleaseOrder );
             Unused( prev );
             ASSERT( prev == _SetLockBit( exp ));
         }

@@ -13,6 +13,6 @@ add_subdirectory( "vulkan_sync_log" )
 add_subdirectory( "vulkan_ext_emulator" )
 add_subdirectory( "graphics_test" )
 
-if (${AE_DESKTOP} AND DEFINED AE_CPU_ARCH_X64)
+if (${AE_DESKTOP} AND (DEFINED AE_CPU_ARCH_X64))
     add_subdirectory( "res_pack" )
 endif()

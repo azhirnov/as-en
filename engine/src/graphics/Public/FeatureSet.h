@@ -19,7 +19,7 @@
             max buffers per desc set limit      = Min( minStorageBuffers, minUniformBuffers, minAccelStructures )
             max buffers per desc set            = minStorageBuffers + minUniformBuffers + minAccelStructures
 
-    docs: file:///<path>/engine/docs/en/FeatureSet.md
+    docs: file:///<path>/AE/engine/docs/en/FeatureSet.md
 */
 
 #pragma once
@@ -282,7 +282,10 @@ namespace AE::Graphics
         /*_visitor_( uint,              minRayHitAttributeSize,                     )   / * maxRayHitAttributeSize                                                          */\
         /* shader version */\
         _visitor_( ShaderVersion,       minShaderVersion,                           )\
-        /* multiview */\
+        /* draw indirect */\
+        _visitor_( EFeature,            drawIndirectFirstInstance,              : 2 )   /* Vulkan feature: drawIndirectFirstInstance                                        */\
+        _visitor_( EFeature,            drawIndirectCount,                      : 2 )   /* VK_KHR_draw_indirect_count                                                       */\
+        /* multi view */\
         _visitor_( EFeature,            multiview,                              : 2 )   /*\                                                                                 */\
         _visitor_( EFeature,            multiviewGeometryShader,                : 2 )   /*-|                                                                                */\
         _visitor_( EFeature,            multiviewTessellationShader,            : 2 )   /*-|--GL_EXT_multiview                                                              */\
@@ -437,7 +440,6 @@ namespace AE::Graphics
         //pipelineStatisticsQuery;
         //variablePointersStorageBuffer;
         //variablePointers;
-        //drawIndirectCount;
         //EFeature  multiDraw   : 2;
         //quadDivergentImplicitLod
 
@@ -476,6 +478,10 @@ namespace AE::Graphics
         ND_ static HashVal64  GetHashOfDependencies ()                              __NE___;
         ND_ static HashVal64  GetHashOfFS ()                                        __NE___ { return GetHashOfFieldNames() + GetHashOfDependencies(); }
         ND_ static HashVal64  GetHashOfFS_Precalculated ()                          __NE___;
+
+
+        ND_ EFeature  accelerationStructure ()                                      C_NE___;
+        ND_ EFeature  rayShaderBindingTable ()                                      C_NE___ { return rayTracingPipeline; }
 
 
     private:

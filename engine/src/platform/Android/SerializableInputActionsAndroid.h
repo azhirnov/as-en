@@ -368,32 +368,34 @@ namespace AE::App
 
     // methods
     public:
-        SerializableInputActionsAndroid () : SerializableInputActions{_Version} {}
+        SerializableInputActionsAndroid ()              __NE___ : SerializableInputActions{_Version} {}
 
 
     // SerializableInputActions //
-        bool  IsKey (ushort type)           const override  { return _IsKey( EInputType(type) ); }
-        bool  IsKeyOrTouch (ushort type)    const override  { return _IsKeyOrTouch( EInputType(type) ); }
-        bool  IsCursor1D (ushort type)      const override  { return _IsCursor1D( EInputType(type) ); }
-        bool  IsCursor2D (ushort type)      const override  { return _IsCursor2D( EInputType(type) ); }
+        bool  IsKey (ushort type)                       C_NE_OV { return _IsKey( EInputType(type) ); }
+        bool  IsKeyOrTouch (ushort type)                C_NE_OV { return _IsKeyOrTouch( EInputType(type) ); }
+        bool  IsCursor1D (ushort type)                  C_NE_OV { return _IsCursor1D( EInputType(type) ); }
+        bool  IsCursor2D (ushort type)                  C_NE_OV { return _IsCursor2D( EInputType(type) ); }
 
-        String  ToString ()                 const override;
+        String      ToString (const Reflection &refl)   C_Th_OV;
+        StringView  GetApiName ()                       C_NE_OV { return "Android"; }
 
       #ifdef AE_ENABLE_SCRIPTING
-        bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc) override;
+        bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script,
+                              const SourceLoc &loc, Reflection &refl) override;
 
         static void  Bind (const Scripting::ScriptEnginePtr &se) __Th___;
       #endif
 
     private:
-        ND_ static constexpr bool  _IsKey (EInputType type);
-        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type);
-        ND_ static constexpr bool  _IsCursor1D (EInputType type);
-        ND_ static constexpr bool  _IsCursor2D (EInputType type);
-        ND_ static constexpr bool  _IsSensor1f (EInputType type);
-        ND_ static constexpr bool  _IsSensor2d (EInputType type);
-        ND_ static constexpr bool  _IsSensor3f (EInputType type);
-        ND_ static constexpr bool  _IsSensor4x4f (EInputType type);
+        ND_ static constexpr bool  _IsKey (EInputType type)         __NE___;
+        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)  __NE___;
+        ND_ static constexpr bool  _IsCursor1D (EInputType type)    __NE___;
+        ND_ static constexpr bool  _IsCursor2D (EInputType type)    __NE___;
+        ND_ static constexpr bool  _IsSensor1f (EInputType type)    __NE___;
+        ND_ static constexpr bool  _IsSensor2d (EInputType type)    __NE___;
+        ND_ static constexpr bool  _IsSensor3f (EInputType type)    __NE___;
+        ND_ static constexpr bool  _IsSensor4x4f (EInputType type)  __NE___;
     };
 
 
@@ -402,37 +404,37 @@ namespace AE::App
     _Is***
 =================================================
 */
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsKey (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsAndroid::_IsKey (EInputType type) __NE___ {
         return (type >= EInputType::KeyBegin) & (type <= EInputType::KeyEnd);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsKeyOrTouch (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsAndroid::_IsKeyOrTouch (EInputType type) __NE___ {
         return _IsKey( type ) | (type == EInputType::TouchPos) | (type == EInputType::TouchPos_mm);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor1D (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor1D (EInputType type) __NE___ {
         return _IsSensor1f( type );
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor2D (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor2D (EInputType type) __NE___ {
         return  ((type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd))   |
                 _IsSensor2d( type )                                                         |
                 (type == EInputType::MultiTouch);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor1f (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor1f (EInputType type) __NE___ {
         return (type >= EInputType::Sensors1fBegin) & (type <= EInputType::Sensors1fEnd);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor2d (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor2d (EInputType type) __NE___ {
         return (type >= EInputType::Sensors2dBegin) & (type <= EInputType::Sensors2dEnd);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor3f (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor3f (EInputType type) __NE___ {
         return (type >= EInputType::Sensors3fBegin) & (type <= EInputType::Sensors3fEnd);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor4x4f (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor4x4f (EInputType type) __NE___ {
         return (type >= EInputType::Sensors4x4fBegin) & (type <= EInputType::Sensors4x4fEnd);
     }
 

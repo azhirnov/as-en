@@ -1,6 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Generate cubemap in compute shader.
+    The cubemap is updated one tile per frame.
+*/
 #ifdef __INTELLISENSE__
-#   include <res_editor>
+#   include <res_editor.as>
 #   include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------
@@ -44,7 +48,7 @@
 
         // setup skybox
         {
-            skybox.AddTexture( "un_CubeMap", cubemap_view, Sampler_LinearMipmapRepeat );
+            skybox.ArgIn( "un_CubeMap", cubemap_view, Sampler_LinearMipmapRepeat );
             skybox.DetailLevel( 0, 9 );
         }
 
@@ -61,10 +65,10 @@
 
             // TODO: optimize?
             GenMipmaps( cubemap_view );
-
+        }{
             RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "main pass" );
-            draw.AddPipeline( "VertexInput.as" );           // file:///<path>/samples/res_editor/_data/pipelines/VertexInput.as
-            draw.AddPipeline( "Cubemap/Cubemap_v1.as" );    // file:///<path>/samples/res_editor/_data/pipelines/Cubemap/Cubemap_v1.as
+            draw.AddPipeline( "VertexInput.as" );                // file:///<path>/AE/samples/res_editor/_data/pipelines/VertexInput.as
+            draw.AddPipeline( "Cubemap/samples-Cubemap.as" );    // file:///<path>/AE/samples/res_editor/_data/pipelines/Cubemap/samples-Cubemap.as
             draw.Output( "out_Color", rt, RGBA32f(0.0) );
             draw.Output( ds, DepthStencil(1.f, 0) );
         }

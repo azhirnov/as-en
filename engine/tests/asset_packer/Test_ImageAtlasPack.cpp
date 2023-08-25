@@ -14,7 +14,7 @@ namespace
         const CharType*     files[]         = { TXT("atlas.as") };
         const Path          output          = TXT("atlas.bin");
         const Path          temp_file       = TXT("temp.bin");
-        const Path          output_script   = TXT( AE_SHARED_DATA "/scripts/asset_packer" );
+        const Path          output_script   = TXT( AE_SHARED_DATA "/scripts/asset_packer.as" );
 
         FileSystem::Remove( output );
         FileSystem::Remove( temp_file );

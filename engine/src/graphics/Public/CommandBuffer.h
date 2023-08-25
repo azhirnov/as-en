@@ -7,6 +7,7 @@
 
         exceptions:
             - for direct/indirect command buffers, if resource is not alive.
+            - for direct/indirect command buffers, if AE_GRAPHICS_STRONG_VALIDATION are enabled.
             - for indirect command buffer, if mem allocation failed.
             - for non-portable: 'EndCommandBuffer()', if failed to end command buffer recording.
 
@@ -16,7 +17,7 @@
             - supported states for DescriptorSetID:
                 buffers:    ShaderUniform, ShaderStorage_RW
                 image:      ShaderSample,  ShaderStorage_RW, InputColorAttachment_RW, InputDepthStencilAttachment_RW, DepthStencilTest_ShaderSample
-                as:         ShaderRTAS_Read
+                as:         ShaderRTAS
 
 */
 
@@ -391,14 +392,21 @@ namespace AE::Graphics
     {
     // interface
     public:
-    //  ND_ virtual IDrawContext        BeginRenderPass (const RenderPassDesc &desc)    __Th___ = 0;
-    //  ND_ virtual IDrawContext        NextSubpass (IDrawContext &prevPassCtx)         __Th___ = 0;
-    //      virtual void                EndRenderPass (IDrawContext &)                  __Th___ = 0;
+    GAPI_DEPENDENT(
+        // Record draw commands into the same command buffer.
+        ND_ virtual IDrawContext        BeginRenderPass (const RenderPassDesc &desc)                            __Th___ = 0;
+        ND_ virtual IDrawContext        NextSubpass (IDrawContext &prevPassCtx)                                 __Th___ = 0;
+            virtual void                EndRenderPass (IDrawContext &)                                          __Th___ = 0;
+            virtual void                EndRenderPass (IDrawContext &, const RenderPassDesc &desc)              __Th___ = 0;
 
-    //  ND_ virtual RC<DrawCommandBatch> BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg)         __Th___ = 0;
-    //  ND_ virtual RC<DrawCommandBatch> NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg)  __Th___ = 0;
-    //      virtual void                 ExecuteCommands (DrawCommandBatch &)                                   __Th___ = 0;
-    //      virtual void                 EndMtRenderPass ()
+        // Record draw commands into multiple secondary command buffers asynchroniously.
+        ND_ virtual RC<DrawCommandBatch> BeginMtRenderPass (const RenderPassDesc &desc, DebugLabel dbg)         __Th___ = 0;
+        ND_ virtual RC<DrawCommandBatch> NextMtSubpass (const DrawCommandBatch &prevPassBatch, DebugLabel dbg)  __Th___ = 0;
+            virtual void                 ExecuteCommands (DrawCommandBatch &)                                   __Th___ = 0;
+            virtual void                 ExecuteCommands (DrawCommandBatch &)                                   __Th___ = 0;
+            virtual void                 EndMtRenderPass ()                                                     __Th___ = 0;
+            virtual void                 EndMtRenderPass (const RenderPassDesc &desc)                           __Th___ = 0;
+    )
     };
 
 

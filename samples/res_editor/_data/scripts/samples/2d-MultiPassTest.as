@@ -1,9 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Multiple passes with post process.
+    Demonstrates texture loading and debug view.
+*/
 #ifdef __INTELLISENSE__
+#   include <res_editor.as>
+#   include <aestyle.glsl.h>
 #   define PASS1
 #   define PASS2
-#   include <res_editor>
-#   include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -18,16 +22,16 @@
 
         // render loop
         {
-            RC<Postprocess>     pass1 = Postprocess( EPostprocess::Shadertoy, "PASS1" );
-            pass1.Input( "iTexture1",   tex1,   Sampler_LinearClamp );
-            pass1.Output( rt1 );
-
+            RC<Postprocess>     pass = Postprocess( EPostprocess::Shadertoy, "PASS1" );
+            pass.ArgIn( "iTexture1",    tex1,   Sampler_LinearClamp );
+            pass.Output( rt1 );
+        }{
             DbgView( rt1, DbgViewFlags::NoCopy );
-
-            RC<Postprocess>     pass2 = Postprocess( EPostprocess::Shadertoy, "PASS2" );
-            pass2.Input( "iTexture2",   rt1,    Sampler_LinearClamp );
-            pass2.Input( camera );
-            pass2.Output( rt2 );
+        }{
+            RC<Postprocess>     pass = Postprocess( EPostprocess::Shadertoy, "PASS2" );
+            pass.ArgIn( "iTexture2",    rt1,    Sampler_LinearClamp );
+            pass.ArgIn( camera );
+            pass.Output( rt2 );
         }
         Present( rt2 );
     }

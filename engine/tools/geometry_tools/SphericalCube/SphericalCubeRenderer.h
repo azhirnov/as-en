@@ -23,6 +23,8 @@ namespace AE::GeometryTools
     private:
         using Base_t    = SphericalCubeGen;
 
+        static constexpr uint   FaceCount = 6;
+
 
     // variables
     private:
@@ -60,11 +62,15 @@ namespace AE::GeometryTools
         ND_ bool  GetVertexBuffer (uint lod, uint face, OUT BufferID &id, OUT Range<Bytes> &range, OUT uint2 &vertCount)    C_NE___;
         ND_ bool  GetIndexBuffer (uint lod, uint face, OUT BufferID &id, OUT Range<Bytes> &range, OUT uint &indexCount)     C_NE___;
 
+        ND_ bool  GetVertexBuffer (uint lod, OUT BufferID &id, OUT Range<Bytes> &range, OUT uint2 &vertCount)               C_NE___;
+        ND_ bool  GetIndexBuffer (uint lod, OUT BufferID &id, OUT Range<Bytes> &range, OUT uint &indexCount)                C_NE___;
+
+        ND_ static uint2 CalcFaceVertCount2 (uint lod)                                                                      __NE___ { return Base_t::CalcFaceVertCount2( lod ); }
         ND_ static uint  CalcFaceVertCount (uint lod)                                                                       __NE___ { return Base_t::CalcFaceVertCount( lod ); }
         ND_ static uint  CalcVertCount (uint lod)                                                                           __NE___ { return Base_t::CalcVertCount( lod ); }
 
-        ND_ static uint  CalcFaceIndexCount (uint lod, bool useQuads)                                                       __NE___ { return Base_t::CalcFaceIndexCount( lod, useQuads ); }
-        ND_ static uint  CalcIndexCount (uint lod, bool useQuads)                                                           __NE___ { return Base_t::CalcIndexCount( lod, useQuads ); }
+        ND_ static uint  CalcFaceIndexCount (uint lod, Bool useQuads)                                                       __NE___ { return Base_t::CalcFaceIndexCount( lod, useQuads ); }
+        ND_ static uint  CalcIndexCount (uint lod, Bool useQuads)                                                           __NE___ { return Base_t::CalcIndexCount( lod, useQuads ); }
 
         ND_ static bool  RayCast (const float3 &center, float radius, const float3 &begin,
                                   const float3 &end, OUT float3 &outIntersection)                                           __NE___ { return Base_t::RayCast( center, radius, begin, end, OUT outIntersection ); }
@@ -85,16 +91,16 @@ namespace AE::GeometryTools
         Range<Bytes>    vb_range, ib_range;
         uint2           vert_cnt;
         uint            idx_cnt;
-        const uint      face    = 0;
 
-        CHECK_ERR( GetVertexBuffer( lod, face, OUT vb, OUT vb_range, OUT vert_cnt ));
-        CHECK_ERR( GetIndexBuffer( lod, face, OUT ib, OUT ib_range, OUT idx_cnt ));
+        CHECK_ERR( GetVertexBuffer( lod, OUT vb, OUT vb_range, OUT vert_cnt ));
+        CHECK_ERR( GetIndexBuffer( lod, OUT ib, OUT ib_range, OUT idx_cnt ));
 
         ctx.BindVertexBuffer( 0, vb, vb_range.Offset() );
         ctx.BindIndexBuffer( ib, ib_range.Offset(), EIndex::UInt );
+        STATIC_ASSERT( sizeof(Index) == sizeof(uint) );
 
         DrawIndexedCmd  cmd;
-        cmd.indexCount      = idx_cnt * 6;
+        cmd.indexCount      = idx_cnt;
         cmd.instanceCount   = 1;
         cmd.firstIndex      = 0;
         cmd.vertexOffset    = 0;

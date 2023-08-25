@@ -388,16 +388,28 @@
 
 /*
 =================================================
-    IsDepthStencilFormat
+    IsDepthFormat / IsStencilFormat
 =================================================
 */
-    ND_ static bool  IsDepthStencilFormat (VkFormat fmt)
+    ND_ static bool  IsDepthFormat (VkFormat fmt)
     {
         switch ( fmt )
         {
             case VK_FORMAT_D16_UNORM :
             case VK_FORMAT_X8_D24_UNORM_PACK32 :
             case VK_FORMAT_D32_SFLOAT :
+            case VK_FORMAT_D16_UNORM_S8_UINT :
+            case VK_FORMAT_D24_UNORM_S8_UINT :
+            case VK_FORMAT_D32_SFLOAT_S8_UINT :
+                return true;
+        }
+        return false;
+    }
+
+    ND_ static bool  IsStencilFormat (VkFormat fmt)
+    {
+        switch ( fmt )
+        {
             case VK_FORMAT_S8_UINT :
             case VK_FORMAT_D16_UNORM_S8_UINT :
             case VK_FORMAT_D24_UNORM_S8_UINT :
@@ -436,9 +448,10 @@
             auto&   dst = attachments[i];
             dst = pCreateInfo->pAttachments[i];
 
-            const bool  is_ds = IsDepthStencilFormat( dst.format );
+            const bool  is_depth    = IsDepthFormat( dst.format );
+            const bool  is_stencil  = IsStencilFormat( dst.format );
 
-            if_unlikely( is_ds )
+            if_unlikely( is_stencil )
             {
                 if ( AnyEqual( dst.stencilLoadOp, VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_LOAD_OP_NONE_EXT ))
                 {
@@ -456,13 +469,13 @@
             if ( AnyEqual( dst.loadOp, VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_LOAD_OP_NONE_EXT ))
             {
                 dst.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-                (is_ds ? rp_info.loadOps.depth : rp_info.loadOps.color).set( i );
+                (is_depth ? rp_info.loadOps.depth : rp_info.loadOps.color).set( i );
             }
 
             if ( AnyEqual( dst.storeOp, VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_NONE ))
             {
                 dst.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-                (is_ds ? rp_info.storeOps.depth : rp_info.storeOps.color).set( i );
+                (is_depth ? rp_info.storeOps.depth : rp_info.storeOps.color).set( i );
             }
 
             rp_info.finalLayouts[i] = dst.finalLayout;
@@ -729,7 +742,7 @@
 */
     VKAPI_ATTR void VKAPI_CALL Wrap_vkCmdEndRenderPass2_DbgClear (VkCommandBuffer commandBuffer, const VkSubpassEndInfo* pSubpassEndInfo)
     {
-        using ClearImages_t     = FixedArray< Tuple< VkImageView, VkImageLayout, /*DS*/bool >, GraphicsConfig::MaxAttachments >;
+        using ClearImages_t     = FixedArray< Tuple< VkImageView, VkImageLayout, VkImageAspectFlagBits >, GraphicsConfig::MaxAttachments >;
         using ImageBarriers_t   = FixedArray< VkImageMemoryBarrier2, GraphicsConfig::MaxAttachments >;
 
         auto&   emulator    = VulkanEmulation::Get();
@@ -777,12 +790,17 @@
         {
             if_likely( rp_info.storeOps.color.test( i ))
             {
-                clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], False{"color"} );
+                clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], VK_IMAGE_ASPECT_COLOR_BIT );
             }
             else
-            if ( (rp_info.storeOps.depth | rp_info.storeOps.stencil).test( i ))
+            if ( rp_info.storeOps.depth.test( i ))
             {
-                clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], True{"depth stencil"} );
+                clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], VK_IMAGE_ASPECT_DEPTH_BIT );
+            }
+            else
+            if ( rp_info.storeOps.stencil.test( i ))
+            {
+                clear_imgs.emplace_back( fb_info.attachments[i], rp_info.finalLayouts[i], VK_IMAGE_ASPECT_STENCIL_BIT );
             }
         }
 
@@ -807,6 +825,9 @@
                 barrier.image               = it->second.image;
                 barrier.subresourceRange    = it->second.subres;
             }
+
+            ASSERT( AnyBits( barrier.subresourceRange.aspectMask, clear.Get<VkImageAspectFlagBits>() ));
+            barrier.subresourceRange.aspectMask &= clear.Get<VkImageAspectFlagBits>();
         }
 
         ASSERT( clear_imgs.size() == img_bars.size() );
@@ -823,15 +844,7 @@
             auto&   clear   = clear_imgs[i];
             auto&   barrier = img_bars[i];
 
-            if ( clear.Get<bool>() )
-            {
-                VkClearDepthStencilValue    ds;
-                ds.depth    = self.rnd.Uniform( 0.f, 1.f );
-                ds.stencil  = self.rnd.Uniform( 0, 255 );
-
-                emulator.origin_vkCmdClearDepthStencilImage( commandBuffer, barrier.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &ds, 1, &barrier.subresourceRange );
-            }
-            else
+            if ( AllBits( clear.Get<VkImageAspectFlagBits>(), VK_IMAGE_ASPECT_COLOR_BIT ))
             {
                 const RGBA32f       rgba = self.rnd.UniformColor();
                 VkClearColorValue   color;
@@ -840,6 +853,14 @@
                 STATIC_ASSERT( sizeof(color.float32) == sizeof(rgba) );
 
                 emulator.origin_vkCmdClearColorImage( commandBuffer, barrier.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &color, 1, &barrier.subresourceRange );
+            }
+            else
+            {
+                VkClearDepthStencilValue    ds;
+                ds.depth    = self.rnd.Uniform( 0.f, 1.f );
+                ds.stencil  = self.rnd.Uniform( 0, 255 );
+
+                emulator.origin_vkCmdClearDepthStencilImage( commandBuffer, barrier.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &ds, 1, &barrier.subresourceRange );
             }
 
             barrier.srcStageMask        = VK_PIPELINE_STAGE_2_CLEAR_BIT;

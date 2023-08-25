@@ -671,8 +671,8 @@ namespace AE::Graphics::_hidden_
 
         void  _DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)     __Th___ { _cmdbuf->DbgFillBuffer( buffer, offset, size, data ); }
 
-        ND_ VBakedCommands      _EndCommandBuffer ()                                    __NE___;
-        ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()                                __NE___;
+        ND_ VBakedCommands      _EndCommandBuffer ()                                    __Th___;
+        ND_ VSoftwareCmdBufPtr  _ReleaseCommandBuffer ()                                __Th___;
 
         ND_ static VSoftwareCmdBufPtr  _ReuseOrCreateCommandBuffer (VSoftwareCmdBufPtr cmdbuf, DebugLabel dbg) __Th___;
     };
@@ -704,8 +704,6 @@ namespace AE::Graphics::_hidden_
             void    _CommitBarriers ()                                                      __Th___;
 
         ND_ bool    _NoPendingBarriers ()                                                   C_NE___ { return _mngr.NoPendingBarriers(); }
-        ND_ auto&   _GetExtensions ()                                                       C_NE___ { return _mngr.GetDevice().GetExtensions(); }
-        ND_ auto&   _GetFeatures ()                                                         C_NE___ { return _mngr.GetDevice().GetProperties().features; }
 
         ND_ VBakedCommands      _EndCommandBuffer ()                                        __Th___;
     };
@@ -739,7 +737,11 @@ namespace AE::Graphics::_hidden_
         },
         _mngr{ task }
     {
-        DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( *_cmdbuf, (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );)
+        DBG_GRAPHICS_ONLY(
+            _mngr.ProfilerBeginContext( *_cmdbuf, (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );
+
+            RenderTaskScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );
+        )
 
         if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
             PipelineBarrier( *bar );  // throw

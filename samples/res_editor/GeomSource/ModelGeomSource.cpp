@@ -47,7 +47,7 @@ namespace AE::ResEditor
         _pcIndex{ 0_b, EShader::Vertex },
         _intermScene{ scene }, _initialTransform{ initialTransform }
     {
-        auto&           res_mngr        = FrameGraph().GetStateTracker();
+        auto&           res_mngr        = RenderGraph().GetStateTracker();
         const usize     mesh_cnt        = _intermScene->Meshes().size();
         const usize     node_cnt        = _intermScene->ModelNodeCount();
         Bytes           mesh_data_size;

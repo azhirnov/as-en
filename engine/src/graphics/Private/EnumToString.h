@@ -767,14 +767,14 @@ namespace AE::Base
             {
                 case EMemoryType::DeviceLocal :     str << "DeviceLocal";   break;
                 case EMemoryType::Transient :       str << "Transient";     break;
-                case EMemoryType::HostCocherent :   str << "HostCocherent"; break;
+                case EMemoryType::HostCoherent :    str << "HostCoherent";  break;
                 case EMemoryType::HostCached :      str << "HostCached";    break;
                 case EMemoryType::Dedicated :       str << "Dedicated";     break;
 
                 case EMemoryType::_External :       break;
                 case EMemoryType::_Last :
                 case EMemoryType::All :
-                case EMemoryType::HostCachedCocherent :
+                case EMemoryType::HostCachedCoherent :
                 case EMemoryType::Unified :
                 case EMemoryType::UnifiedCached :
                 case EMemoryType::Unknown :
@@ -972,74 +972,53 @@ namespace AE::Base
 */
     ND_ inline String  ToString (const EResourceState value) __Th___
     {
+        using _EResState = Graphics::_EResState;
+
         String  str;
 
         BEGIN_ENUM_CHECKS();
-        switch ( value & EResourceState::_AccessMask )
+        switch ( ToEResState( value ))
         {
-            case EResourceState::ShaderStorage_Read :               str += "ShaderStorage_Read";                    break;
-            case EResourceState::ShaderStorage_Write :              str += "ShaderStorage_Write";                   break;
-            case EResourceState::ShaderStorage_RW :                 str += "ShaderStorage_RW";                      break;
-            case EResourceState::ShaderUniform :                    str += "ShaderUniform";                         break;
-            case EResourceState::ShaderSample :                     str += "ShaderSample";                          break;
-            case EResourceState::CopySrc :                          str += "CopySrc";                               break;
-            case EResourceState::CopyDst :                          str += "CopyDst";                               break;
-            case EResourceState::ClearDst :                         str += "ClearDst";                              break;
-            case EResourceState::BlitSrc :                          str += "BlitSrc";                               break;
-            case EResourceState::BlitDst :                          str += "BlitDst";                               break;
-            case EResourceState::InputColorAttachment :             str += "InputColorAttachment";                  break;
-            case EResourceState::InputColorAttachment_RW :          str += "InputColorAttachment_RW";               break;
-            case EResourceState::ColorAttachment_Write :            str += "ColorAttachment_Write";                 break;
-            case EResourceState::ColorAttachment_RW :               str += "ColorAttachment_RW";                    break;
-            case EResourceState::DepthStencilAttachment_Read :      str += "DepthStencilAttachment_Read";           break;
-            case EResourceState::DepthStencilAttachment_Write :     str += "DepthStencilAttachment_Write";          break;
-            case EResourceState::DepthStencilAttachment_RW :        str += "DepthStencilAttachment_RW";             break;
-            case EResourceState::DepthTest_StencilRW :              str += "DepthTest_StencilRW";                   break;
-            case EResourceState::DepthRW_StencilTest :              str += "DepthRW_StencilTest";                   break;
-            case EResourceState::DepthStencilTest_ShaderSample :    str += "DepthStencilTest_ShaderSample";         break;
-            case EResourceState::DepthTest_DepthSample_StencilRW :  str += "DepthTest_DepthSample_StencilRW";       break;
-            case EResourceState::InputDepthStencilAttachment :      str += "InputDepthStencilAttachment";           break;
-            case EResourceState::InputDepthStencilAttachment_RW :   str += "InputDepthStencilAttachment_RW";        break;
-            case EResourceState::Host_Read :                        str += "Host_Read";                             break;
-            case EResourceState::Host_Write :                       str += "Host_Write";                            break;
-            case EResourceState::Host_RW :                          str += "Host_RW";                               break;
-            case EResourceState::PresentImage :                     str += "PresentImage";                          break;
-            case EResourceState::IndirectBuffer :                   str += "IndirectBuffer";                        break;
-            case EResourceState::IndexBuffer :                      str += "IndexBuffer";                           break;
-            case EResourceState::VertexBuffer :                     str += "VertexBuffer";                          break;
-            case EResourceState::CopyRTAS_Read :                    str += "CopyRTAS_Read";                         break;
-            case EResourceState::CopyRTAS_Write :                   str += "CopyRTAS_Write";                        break;
-            case EResourceState::BuildRTAS_Read :                   str += "BuildRTAS_Read";                        break;
-            case EResourceState::BuildRTAS_Write :                  str += "BuildRTAS_Write";                       break;
-            case EResourceState::BuildRTAS_RW :                     str += "BuildRTAS_RW";                          break;
-        //  case EResourceState::BuildRTAS_ScratchBuffer :          str += "BuildRTAS_ScratchBuffer";               break;
-            case EResourceState::BuildRTAS_IndirectBuffer :         str += "BuildRTAS_IndirectBuffer";              break;
-            case EResourceState::ShaderRTAS_Read :                  str += "ShaderRTAS_Read";                       break;
-            case EResourceState::RTShaderBindingTable :             str += "RTShaderBindingTable";                  break;
-            case EResourceState::ShadingRateImage :                 str += "ShadingRateImage";                      break;
-            case EResourceState::Unknown :                          str += "Unknown";                               break;
-            case EResourceState::Preserve :                         str += "Preserve";                              break;
-            case EResourceState::General :                          str += "General";                               break;
-
-            case EResourceState::DSTestBeforeFS :
-            case EResourceState::DSTestAfterFS :
-            case EResourceState::Invalidate :
-            case EResourceState::_FlagsMask :
-            case EResourceState::_AccessCount :
-            case EResourceState::_AccessMask :
-            case EResourceState::MeshTaskShader :
-            case EResourceState::VertexProcessingShaders :
-            case EResourceState::TileShader :
-            case EResourceState::FragmentShader :
-            case EResourceState::PreRasterizationShaders :
-            case EResourceState::PostRasterizationShaders :
-            case EResourceState::ComputeShader :
-            case EResourceState::RayTracingShaders :
-            case EResourceState::AllGraphicsShaders :
-            case EResourceState::AllShaders :           // to shutup warnings
-            case EResourceState::_InvalidState :
-                DBG_WARNING( "unknown resource state" );
-                break;
+            case _EResState::ShaderStorage_Read :               str += "ShaderStorage_Read";                    break;
+            case _EResState::ShaderStorage_Write :              str += "ShaderStorage_Write";                   break;
+            case _EResState::ShaderStorage_RW :                 str += "ShaderStorage_RW";                      break;
+            case _EResState::ShaderUniform :                    str += "ShaderUniform";                         break;
+            case _EResState::ShaderSample :                     str += "ShaderSample";                          break;
+            case _EResState::CopySrc :                          str += "CopySrc";                               break;
+            case _EResState::CopyDst :                          str += "CopyDst";                               break;
+            case _EResState::ClearDst :                         str += "ClearDst";                              break;
+            case _EResState::BlitSrc :                          str += "BlitSrc";                               break;
+            case _EResState::BlitDst :                          str += "BlitDst";                               break;
+            case _EResState::InputColorAttachment :             str += "InputColorAttachment";                  break;
+            case _EResState::InputColorAttachment_RW :          str += "InputColorAttachment_RW";               break;
+            case _EResState::ColorAttachment :                  str += "ColorAttachment";                       break;
+            case _EResState::DepthStencilTest :                 str += "DepthStencilTest";                      break;
+            case _EResState::DepthStencilAttachment_RW :        str += "DepthStencilAttachment_RW";             break;
+            case _EResState::DepthTest_StencilRW :              str += "DepthTest_StencilRW";                   break;
+            case _EResState::DepthRW_StencilTest :              str += "DepthRW_StencilTest";                   break;
+            case _EResState::DepthStencilTest_ShaderSample :    str += "DepthStencilTest_ShaderSample";         break;
+            case _EResState::DepthTest_DepthSample_StencilRW :  str += "DepthTest_DepthSample_StencilRW";       break;
+            case _EResState::InputDepthStencilAttachment :      str += "InputDepthStencilAttachment";           break;
+            case _EResState::InputDepthStencilAttachment_RW :   str += "InputDepthStencilAttachment_RW";        break;
+            case _EResState::Host_Read :                        str += "Host_Read";                             break;
+            case _EResState::Host_Write :                       str += "Host_Write";                            break;
+            case _EResState::PresentImage :                     str += "PresentImage";                          break;
+            case _EResState::IndirectBuffer :                   str += "IndirectBuffer";                        break;
+            case _EResState::IndexBuffer :                      str += "IndexBuffer";                           break;
+            case _EResState::VertexBuffer :                     str += "VertexBuffer";                          break;
+            case _EResState::CopyRTAS_Read :                    str += "CopyRTAS_Read";                         break;
+            case _EResState::CopyRTAS_Write :                   str += "CopyRTAS_Write";                        break;
+            case _EResState::BuildRTAS_Read :                   str += "BuildRTAS_Read";                        break;
+            case _EResState::BuildRTAS_RW :                     str += "BuildRTAS_RW";                          break;
+            case _EResState::BuildRTAS_IndirectBuffer :         str += "BuildRTAS_IndirectBuffer";              break;
+            case _EResState::ShaderRTAS :                       str += "ShaderRTAS";                            break;
+            case _EResState::RTShaderBindingTable :             str += "RTShaderBindingTable";                  break;
+            case _EResState::ShadingRateImage :                 str += "ShadingRateImage";                      break;
+            case _EResState::Unknown :                          str += "Unknown";                               break;
+            case _EResState::Preserve :                         str += "Preserve";                              break;
+            case _EResState::General :                          str += "General";                               break;
+            case _EResState::_AccessCount :
+            default :                                           DBG_WARNING( "unknown resource state" );        break;
         }
         END_ENUM_CHECKS();
 
@@ -1091,7 +1070,7 @@ namespace AE::Base
                     case EResourceState::RayTracingShaders :        str += "RayTracingShaders";         break;
                     default :                                       DBG_WARNING( "unknown resource state stage" );  break;
                 }
-                STATIC_ASSERT( uint(EResourceState::AllShaders) == 0xFC00 );
+                STATIC_ASSERT( uint(EResourceState::AllShaders) == 0x1F8000 );
             }
         }
 

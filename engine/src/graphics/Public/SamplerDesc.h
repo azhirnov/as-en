@@ -115,12 +115,12 @@ namespace AE::Graphics
 
     // methods
     public:
-        SamplerDesc () = default;
-        SamplerDesc (const SamplerDesc &) = default;
+        SamplerDesc ()                                  __NE___ = default;
+        SamplerDesc (const SamplerDesc &)               __NE___ = default;
 
-        SamplerDesc&  operator = (const SamplerDesc &) = default;
+        SamplerDesc&  operator = (const SamplerDesc &)  __NE___ = default;
 
-        ND_ bool  operator == (const SamplerDesc &) const;
+        ND_ bool  operator == (const SamplerDesc &)     C_NE___;
     };
 //-----------------------------------------------------------------------------
 
@@ -180,12 +180,12 @@ namespace AE::Graphics
 
     // methods
     public:
-        SamplerYcbcrConversionDesc () = default;
-        SamplerYcbcrConversionDesc (const SamplerYcbcrConversionDesc &) = default;
+        SamplerYcbcrConversionDesc ()                                               __NE___ = default;
+        SamplerYcbcrConversionDesc (const SamplerYcbcrConversionDesc &)             __NE___ = default;
 
-        SamplerYcbcrConversionDesc&  operator = (const SamplerYcbcrConversionDesc &) = default;
+        SamplerYcbcrConversionDesc&  operator = (const SamplerYcbcrConversionDesc &)__NE___ = default;
 
-        ND_ bool  operator == (const SamplerYcbcrConversionDesc &)  const;
+        ND_ bool  operator == (const SamplerYcbcrConversionDesc &)                  C_NE___;
     };
 
 

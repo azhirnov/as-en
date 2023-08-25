@@ -7,6 +7,7 @@
 #pragma once
 
 #ifdef AE_ENABLE_METAL
+# include "graphics/Private/EnumUtils.h"
 # include "graphics/Metal/Commands/MBaseIndirectContext.h"
 # include "graphics/Metal/Commands/MBaseDirectContext.h"
 # include "graphics/Metal/Commands/MAccumBarriers.h"
@@ -204,7 +205,7 @@ namespace AE::Graphics::_hidden_
     _MTransferContextImpl<C>::_MTransferContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
         RawCtx{ task, RVRef(cmdbuf), dbg }
     {
-        CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute | EQueueMask::AsyncTransfer, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
 /*
@@ -216,7 +217,7 @@ namespace AE::Graphics::_hidden_
     void  _MTransferContextImpl<C>::FillBuffer (BufferID bufferId, Bytes offset, Bytes size, uint data)
     {
         auto&   buf = _GetResourcesOrThrow( bufferId );
-        Validator_t::FillBuffer( buf, offset, size );
+        VALIDATE_GCTX( FillBuffer( buf.Description(), offset, size ));
 
         offset  = Min( offset, buf.Size()-1 );
         size    = Min( size, buf.Size() - offset );
@@ -244,7 +245,7 @@ namespace AE::Graphics::_hidden_
     void  _MTransferContextImpl<C>::UploadBuffer (BufferID bufferId, Bytes offset, Bytes size, OUT BufferMemView &memView, EStagingHeapType heapType)
     {
         auto&   dst_buf = _GetResourcesOrThrow( bufferId );
-        Validator_t::UploadBuffer( dst_buf, offset, size, memView );
+        VALIDATE_GCTX( UploadBuffer( dst_buf.Description(), offset, size, memView ));
 
         offset  = Min( offset, dst_buf.Size() );
         size    = Min( size, dst_buf.Size() - offset );
@@ -274,7 +275,7 @@ namespace AE::Graphics::_hidden_
         ASSERT( not stream.IsCompleted() );
 
         auto&   dst_buf = _GetResourcesOrThrow( stream.Buffer() );
-        Validator_t::UploadBuffer( dst_buf, stream.pos, stream.RemainSize(), memView );
+        VALIDATE_GCTX( UploadBuffer( dst_buf.Description(), stream.pos, stream.RemainSize(), memView ));
 
         MStagingBufferManager&                  sbm = this->_mngr.GetStagingManager();
         MStagingBufferManager::BufferRanges_t   buffers;
@@ -300,7 +301,7 @@ namespace AE::Graphics::_hidden_
     void  _MTransferContextImpl<C>::UploadImage (ImageID imageId, const UploadImageDesc &uploadDesc, OUT ImageMemView &memView)
     {
         auto&   dst_img = _GetResourcesOrThrow( imageId );
-        Validator_t::UploadImage( dst_img );
+        VALIDATE_GCTX( UploadImage( dst_img.Description() ));
 
         const ImageDesc&        img_desc    = dst_img.Description();
         MStagingBufferManager&  sbm         = this->_mngr.GetStagingManager();
@@ -352,7 +353,7 @@ namespace AE::Graphics::_hidden_
         ASSERT( not stream.IsCompleted() );
 
         auto&   dst_img = _GetResourcesOrThrow( stream.Image() );
-        Validator_t::UploadImage( dst_img );
+        VALIDATE_GCTX( UploadImage( dst_img.Description() ));
 
         const ImageDesc&        img_desc    = dst_img.Description();
         MStagingBufferManager&  sbm         = this->_mngr.GetStagingManager();
@@ -422,7 +423,7 @@ namespace AE::Graphics::_hidden_
     Promise<BufferMemView>  _MTransferContextImpl<C>::ReadbackBuffer (BufferID bufferId, Bytes offset, Bytes size, EStagingHeapType heapType)
     {
         auto&   src_buf = _GetResourcesOrThrow( bufferId );
-        Validator_t::ReadbackBuffer( src_buf, offset, size );
+        VALIDATE_GCTX( ReadbackBuffer( src_buf.Description(), offset, size ));
 
         offset  = Min( offset, src_buf.Size() );
         size    = Min( size, src_buf.Size() - offset );
@@ -456,14 +457,14 @@ namespace AE::Graphics::_hidden_
     Promise<ArrayView<ubyte>>  _MTransferContextImpl<C>::ReadHostBuffer (BufferID bufferId, Bytes offset, Bytes size)
     {
         auto&   src_buf = _GetResourcesOrThrow( bufferId );
-        Validator_t::MapHostBuffer( src_buf, offset, size );
+        VALIDATE_GCTX( MapHostBuffer( src_buf.Description(), offset, size ));
 
         offset  = Min( offset, src_buf.Size() );
         size    = Min( size, src_buf.Size() - offset );
 
         ArrayView<ubyte>    mem_view = ArrayView<ubyte>{ Cast<ubyte>(src_buf.MappedPtr() + offset), usize(size) };
 
-        if_unlikely( not AllBits( src_buf.Description().memType, EMemoryType::HostCocherent ))
+        if_unlikely( EMemoryType_IsNonCoherent( src_buf.Description().memType ))
         {
             RawCtx::_SynchronizeResource( src_buf.Handle() );
         }
@@ -484,7 +485,7 @@ namespace AE::Graphics::_hidden_
     Promise<ImageMemView>   _MTransferContextImpl<C>::ReadbackImage (ImageID imageId, const ReadbackImageDesc &readDesc)
     {
         auto&   src_img = _GetResourcesOrThrow( imageId );
-        Validator_t::ReadbackImage( src_img );
+        VALIDATE_GCTX( ReadbackImage( src_img.Description() ));
 
         const ImageDesc&        img_desc    = src_img.Description();
         MStagingBufferManager&  sbm         = this->_mngr.GetStagingManager();
@@ -539,7 +540,7 @@ namespace AE::Graphics::_hidden_
     bool  _MTransferContextImpl<C>::UpdateHostBuffer (BufferID bufferId, Bytes offset, Bytes size, const void* data)
     {
         auto&   buf = _GetResourcesOrThrow( bufferId );
-        Validator_t::MapHostBuffer( buf, offset, size );
+        VALIDATE_GCTX( MapHostBuffer( buf.Description(), offset, size ));
 
         offset  = Min( offset, buf.Size()-1 );
         size    = Min( size, buf.Size() - offset );
@@ -562,7 +563,7 @@ namespace AE::Graphics::_hidden_
     void  _MTransferContextImpl<C>::CopyBuffer (BufferID srcBuffer, BufferID dstBuffer, ArrayView<BufferCopy> ranges)
     {
         auto  [src_buf, dst_buf] = _GetResourcesOrThrow( srcBuffer, dstBuffer );
-        Validator_t::CopyBuffer( src_buf, dst_buf, ranges );
+        VALIDATE_GCTX( CopyBuffer( src_buf.Description(), dst_buf.Description(), ranges ));
 
         RawCtx::CopyBuffer( src_buf.Handle(), dst_buf.Handle(), ranges );
     }
@@ -576,7 +577,7 @@ namespace AE::Graphics::_hidden_
     void  _MTransferContextImpl<C>::CopyImage (ImageID srcImage, ImageID dstImage, ArrayView<ImageCopy> ranges)
     {
         auto  [src_img, dst_img] = _GetResourcesOrThrow( srcImage, dstImage );
-        Validator_t::CopyImage( src_img, dst_img, ranges );
+        VALIDATE_GCTX( CopyImage( src_img.Description(), dst_img.Description(), ranges ));
 
         RawCtx::CopyImage( src_img.Handle(), dst_img.Handle(), ranges );
     }
@@ -590,7 +591,7 @@ namespace AE::Graphics::_hidden_
     void  _MTransferContextImpl<C>::CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy> ranges)
     {
         auto  [src_buf, dst_img] = _GetResourcesOrThrow( srcBuffer, dstImage );
-        Validator_t::CopyBufferToImage( src_buf, dst_img, ranges );
+        VALIDATE_GCTX( CopyBufferToImage( src_buf.Description(), dst_img.Description(), ranges ));
 
         RawCtx::CopyBufferToImage( src_buf.Handle(), dst_img.Handle(), ranges );
     }
@@ -599,7 +600,7 @@ namespace AE::Graphics::_hidden_
     void  _MTransferContextImpl<C>::CopyBufferToImage (BufferID srcBuffer, ImageID dstImage, ArrayView<BufferImageCopy2> ranges)
     {
         auto  [src_buf, dst_img] = _GetResourcesOrThrow( srcBuffer, dstImage );
-        Validator_t::CopyBufferToImage( src_buf, dst_img, ranges );
+        VALIDATE_GCTX( CopyBufferToImage( src_buf.Description(), dst_img.Description(), ranges ));
 
         RawCtx::CopyBufferToImage( src_buf.Handle(), dst_img.Handle(), ranges );
     }
@@ -613,7 +614,7 @@ namespace AE::Graphics::_hidden_
     void  _MTransferContextImpl<C>::CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy> ranges)
     {
         auto  [src_img, dst_buf] = _GetResourcesOrThrow( srcImage, dstBuffer );
-        Validator_t::CopyImageToBuffer( src_img, dst_buf, ranges );
+        VALIDATE_GCTX( CopyImageToBuffer( src_img.Description(), dst_buf.Description(), ranges ));
 
         RawCtx::CopyImageToBuffer( src_img.Handle(), dst_buf.Handle(), ranges );
     }
@@ -622,7 +623,7 @@ namespace AE::Graphics::_hidden_
     void  _MTransferContextImpl<C>::CopyImageToBuffer (ImageID srcImage, BufferID dstBuffer, ArrayView<BufferImageCopy2> ranges)
     {
         auto  [src_img, dst_buf] = _GetResourcesOrThrow( srcImage, dstBuffer );
-        Validator_t::CopyImageToBuffer( src_img, dst_buf, ranges );
+        VALIDATE_GCTX( CopyImageToBuffer( src_img.Description(), dst_buf.Description(), ranges ));
 
         RawCtx::CopyImageToBuffer( src_img.Handle(), dst_buf.Handle(), ranges );
     }
@@ -636,7 +637,7 @@ namespace AE::Graphics::_hidden_
     void  _MTransferContextImpl<C>::GenerateMipmaps (ImageID srcImage, ArrayView<ImageSubresourceRange> ranges)
     {
         auto&   src_img = _GetResourcesOrThrow( srcImage );
-        Validator_t::GenerateMipmaps( src_img, ranges );
+        VALIDATE_GCTX( GenerateMipmaps( src_img.Description(), ranges ));
 
         RawCtx::_GenerateMipmaps( src_img.Handle(), ranges );
     }

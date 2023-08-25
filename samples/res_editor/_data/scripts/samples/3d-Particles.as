@@ -1,6 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Simulate particles in gravimagnetical field and draw them using geometry shader.
+*/
 #ifdef __INTELLISENSE__
-#   include <res_editor>
+#   include <res_editor.as>
 #   include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------
@@ -48,7 +51,7 @@
             UnifiedGeometry_Draw    cmd;
             cmd.VertexCount( particle_count );
             geometry.Draw( cmd );
-            geometry.Buffer( "un_Particles", particles );
+            geometry.ArgIn( "un_Particles", particles );
         }
 
         scene.Input( camera );
@@ -62,10 +65,10 @@
             sim_pass.DispatchThreads( particle_count );
             sim_pass.Slider( "iSteps", 1, 10 );
             sim_pass.Slider( "iTimeScale", 1.f, 4.f );
-
+        }{
             RC<SceneGraphicsPass>   draw_pass = scene.AddGraphicsPass( "draw" );
-            draw_pass.AddPipeline( use_rays ? "Particles/Rays.as" :     // file:///<path>/samples/res_editor/_data/pipelines/Particles/Rays.as
-                                              "Particles/Dots.as" );    // file:///<path>/samples/res_editor/_data/pipelines/Particles/Dots.as
+            draw_pass.AddPipeline( use_rays ? "Particles/Rays.as" :        // file:///<path>/AE/samples/res_editor/_data/pipelines/Particles/Rays.as
+                                              "Particles/Dots.as" );    // file:///<path>/AE/samples/res_editor/_data/pipelines/Particles/Dots.as
             draw_pass.Output( "out_Color", rt, RGBA32f(0.0) );
             draw_pass.Output( ds, DepthStencil(1.f, 0) );
         }

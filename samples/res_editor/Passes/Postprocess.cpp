@@ -1,8 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Passes/Postprocess.h"
-#include "res_editor/Passes/IPass.cpp.h"
-#include "res_editor/EditorUI.h"
+#include "res_editor/Resources/ResourceArray.cpp.h"
+#include "res_editor/Core/EditorUI.h"
 #include "res_editor/_data/cpp/types.h"
 
 namespace AE::ResEditor
@@ -41,7 +41,7 @@ namespace AE::ResEditor
 
         DirectCtx::Graphics     ctx{ pd.rtask, RVRef(pd.cmdbuf) };
 
-        _SetResStates( ctx.GetFrameId(), ctx, _resources );
+        _resources.SetStates( ctx, Default );
         ctx.CommitBarriers();
 
         // render pass
@@ -79,11 +79,6 @@ namespace AE::ResEditor
     bool  Postprocess::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
     {
         CHECK_ERR( not _renderTargets.empty() );
-
-        for (auto& rt : _renderTargets) {
-            rt.image->Resize( ctx );
-        }
-        _ResizeRes( ctx, _resources );
 
         // validate dimensions
         {
@@ -128,11 +123,26 @@ namespace AE::ResEditor
 
             CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
             CHECK_ERR( updater.BindBuffer< ShaderTypes::ShadertoyUB >( UniformName{"un_PerPass"}, _ubuffer ));
-            CHECK_ERR( _BindRes( ctx.GetFrameId(), updater, _resources ));
+            CHECK_ERR( _resources.Bind( ctx.GetFrameId(), updater ));
             CHECK_ERR( updater.Flush() );
         }
 
         return true;
+    }
+
+/*
+=================================================
+    GetResourcesToResize
+=================================================
+*/
+    void  Postprocess::GetResourcesToResize (INOUT Array<RC<IResource>> &resources) __NE___
+    {
+        for (auto& rt : _renderTargets) {
+            if ( rt.image->RequireResize() )
+                resources.push_back( rt.image );
+        }
+
+        _resources.GetResourcesToResize( INOUT resources );
     }
 
 /*

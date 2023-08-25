@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 void ASmain ()
 {
@@ -17,7 +17,7 @@ void ASmain ()
 
     {
         RC<Shader>  cs  = Shader();
-        cs.file     = "compute_2.glsl";
+        cs.file        = "compute_2.glsl";        // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/compute_2.glsl
         cs.version  = EShaderVersion::SPIRV_1_0;
         cs.options  = EShaderOpt::Optimize;
         cs.ComputeLocalSize( 4, 4 );

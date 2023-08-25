@@ -60,22 +60,23 @@ namespace AE::ResEditor
         void  Name (const String &name)                                             __Th___;
 
         void  AddUsage (EResourceUsage usage)                                       __Th___;
+        void  SetSwizzle (const String &value)                                      __Th___;
 
         void  LoadLayer1 (const String &filename, uint layer)                       __Th___;
         void  LoadLayer2 (const String &filename, uint layer, ELoadOpFlags flags)   __Th___;
         void  LoadLayer3 (const String &filename, uint layer, uint flags)           __Th___;
 
-        ND_ packed_uint2        Dimension2 ()                                       __Th___ { return packed_uint2(Dimension3()); }
-        ND_ packed_uint3        Dimension2_Layers ()                                __Th___ { return packed_uint3{Dimension2(), ArrayLayers()}; }
-        ND_ packed_uint3        Dimension3 ()                                       __Th___;
+        ND_ packed_uint2        Dimension2 ()                                       C_Th___ { return packed_uint2(Dimension3()); }
+        ND_ packed_uint3        Dimension2_Layers ()                                C_Th___ { return packed_uint3{Dimension2(), ArrayLayers()}; }
+        ND_ packed_uint3        Dimension3 ()                                       C_Th___;
 
-        ND_ bool                IsMutableDimension ()                               __Th___;
-        ND_ ScriptDynamicDim*   Dimension ()                                        __Th___;
-        ND_ ScriptDynamicDimPtr DimensionRC ()                                      __Th___;
-        ND_ RC<DynamicDim>      DynamicDimension ()                                 __Th___;
+        ND_ bool                IsMutableDimension ()                               C_Th___;
+        ND_ ScriptDynamicDim*   Dimension ()                                        C_Th___;
+        ND_ ScriptDynamicDimPtr DimensionRC ()                                      C_Th___;
+        ND_ RC<DynamicDim>      DynamicDimension ()                                 C_Th___;
 
-        ND_ uint                ArrayLayers ()                                      __Th___;
-        ND_ uint                MipmapCount ()                                      __Th___;
+        ND_ uint                ArrayLayers ()                                      C_Th___;
+        ND_ uint                MipmapCount ()                                      C_Th___;
 
         ND_ ImageDesc           Description ()                                      C_NE___;
         ND_ uint                ImageType ()                                        C_NE___ { return _imageType; }
@@ -104,12 +105,27 @@ namespace AE::ResEditor
 
         ND_ RC<Image>  ToResource ()                                                __Th___;
 
+
     private:
         void  _Load (const String &filename, MipmapLevel mipmap,
                      ImageLayer layer, ELoadOpFlags flags)                          __Th___;
 
         friend class ScriptVideoImage;
         static void  _ValidateResourceUsage (EResourceUsage usage)                  __Th___;
+
+        ND_ auto  _GetImageType ()                                                  C_Th___;
+
+        ND_ bool  _IsFloatFormat ()                                                 C_Th___;    // float / hald / unorm / snorm
+        ND_ bool  _IsIntFormat ()                                                   C_Th___;
+        ND_ bool  _IsUIntFormat ()                                                  C_Th___;
+
+        ND_ bool  _Is1D ()                                                          C_Th___;
+        ND_ bool  _Is2D ()                                                          C_Th___;
+        ND_ bool  _Is3D ()                                                          C_Th___;
+        ND_ bool  _IsCube ()                                                        C_Th___;
+        ND_ bool  _Is1DArray ()                                                     C_Th___;
+        ND_ bool  _Is2DArray ()                                                     C_Th___;
+        ND_ bool  _IsCubeArray ()                                                   C_Th___;
     };
 
 

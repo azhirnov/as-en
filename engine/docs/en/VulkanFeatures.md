@@ -107,10 +107,12 @@ Supported shader extensions:
 - [ ] VK_KHR_shader_terminate_invocation
 - [ ] VK_KHR_workgroup_memory_explicit_layout
 - [ ] VK_EXT_shader_image_atomic_int64
-- [ ] GL_HUAWEI_cluster_culling_shader
+- [ ] VK_HUAWEI_cluster_culling_shader, GL_HUAWEI_cluster_culling_shader
 
 Features:
 - [x] Async compute and transfer queues
+- [x] Async queues with concurrent sharing mode
+- [x] Async queues with exclusive sharing mode 
 - [x] Push constants (compatible with Metal)
 - [x] Custom allocator for GPU memory
 - [x] Shader subgroup

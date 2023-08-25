@@ -90,8 +90,6 @@ namespace AE::Graphics::_hidden_
         ND_ VkCommandBuffer _EndCommandBuffer ()                                        __Th___;
 
         ND_ bool    _NoPendingBarriers ()                                               C_NE___ { return _mngr.NoPendingBarriers(); }
-        ND_ auto&   _GetExtensions ()                                                   C_NE___ { return _mngr.GetDevice().GetExtensions(); }
-        ND_ auto&   _GetFeatures ()                                                     C_NE___ { return _mngr.GetDevice().GetProperties().features; }
     };
 //-----------------------------------------------------------------------------
 
@@ -117,7 +115,7 @@ namespace AE::Graphics::_hidden_
 */
     inline void  _VBaseDirectContext::_DbgFillBuffer (VkBuffer buffer, Bytes offset, Bytes size, uint data)
     {
-        ASSERT( buffer != Default );
+        GCTX_CHECK( buffer != Default );
 
         vkCmdFillBuffer( _cmdbuf.Get(), buffer, VkDeviceSize(offset), VkDeviceSize(size), data );
     }
@@ -144,9 +142,13 @@ namespace AE::Graphics::_hidden_
         _VBaseDirectContext{ _ReuseOrCreateCommandBuffer( *task.GetBatchPtr(), RVRef(cmdbuf), task, dbg )},  // throw
         _mngr{ task }
     {
-        ASSERT( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
+        GCTX_CHECK( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
 
-        DBG_GRAPHICS_ONLY( _mngr.ProfilerBeginContext( _cmdbuf.Get(), (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );)
+        DBG_GRAPHICS_ONLY(
+            _mngr.ProfilerBeginContext( _cmdbuf.Get(), (dbg ? dbg : DebugLabel( task.DbgFullName(), task.DbgColor() )), ctxType );
+
+            RenderTaskScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );
+        )
 
         if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
             PipelineBarrier( *bar );
@@ -172,7 +174,7 @@ namespace AE::Graphics::_hidden_
     _EndCommandBuffer
 =================================================
 */
-    inline VkCommandBuffer  VBaseDirectContext::_EndCommandBuffer ()
+    inline VkCommandBuffer  VBaseDirectContext::_EndCommandBuffer () __Th___
     {
         if ( auto* bar = _mngr.GetBatch().ExtractFinalBarriers( _mngr.GetRenderTask().GetExecutionIndex() ))
             PipelineBarrier( *bar );

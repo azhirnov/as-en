@@ -1,19 +1,27 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include <input_actions>
+#include <input_actions.as>
 
 void ASmain (GLFW_ActionBindings& bindings)
 {
+    // shared input binding
+    {
+        RC<GLFW_BindingsMode>   bind = bindings.CreateMode( "Shared" );
+
+        bind.Add( GLFW_Input::Backspace,
+                  ActionInfo( "PauseRendering", EGestureType::Down ));
+        bind.Add( GLFW_Input::F1,
+                  ActionInfo( "ShowHelp", EGestureType::Down ));
+        bind.Add( GLFW_Input::Tab,
+                  ActionInfo( "UI.ShowHide", EGestureType::Down ));
+    }
+
     // switch input mode
     {
         RC<GLFW_BindingsMode>   bind = bindings.CreateMode( "SwitchInputMode" );
+        bind.Inherit( "Shared" );
 
         bind.Add( GLFW_Input::Escape,
                   ActionInfo( "SwitchInputMode", EGestureType::Down ));
-        bind.Add( GLFW_Input::Backspace,
-                  ActionInfo( "PauseRendering", EGestureType::Down ));
-
-        bind.Add( GLFW_Input::Tab,
-                  ActionInfo( "UI.ShowHide", EGestureType::Down ));
 
         bind.Add( GLFW_Input::1,
                   ActionInfo( "CustomKey1", EValueType::Float, EGestureType::Down, float4(1.f) ));
@@ -40,11 +48,10 @@ void ASmain (GLFW_ActionBindings& bindings)
     // UI bindings
     {
         RC<GLFW_BindingsMode>   bind = bindings.CreateMode( "Main.UI" );
+        bind.Inherit( "Shared" );
 
         bind.Add( GLFW_Input::Escape,
                   ActionInfo( "UI.SwitchInputMode", EGestureType::Down ));
-        bind.Add( GLFW_Input::Backspace,
-                  ActionInfo( "PauseRendering", EGestureType::Down ));
 
         bind.Add( GLFW_Input::CursorPos,
                   ActionInfo( "UI.MousePos", EValueType::Float2, EGestureType::Move ));
@@ -55,8 +62,6 @@ void ASmain (GLFW_ActionBindings& bindings)
         bind.Add( GLFW_Input::MouseWheel,
                   ActionInfo( "UI.MouseWheel", EValueType::Float2, EGestureType::Move ));
 
-        bind.Add( GLFW_Input::Tab,
-                  ActionInfo( "UI.ShowHide", EGestureType::Down ));
         bind.Add( GLFW_Input::U,
                   ActionInfo( "UI.StartStopRecording", EGestureType::Down ));
         bind.Add( GLFW_Input::I,
@@ -233,9 +238,9 @@ void ASmain (GLFW_ActionBindings& bindings)
         bind.Add( GLFW_Input::CursorDelta_norm,
                   ActionInfo( "FlightCamera.Rotate", EValueType::Float3, EGestureType::Move, VecSwizzle("0yx"), mouse_scale ));
 
-        bind.Add( GLFW_Input::R,
-                  ActionInfo( "FlightCamera.ResetRoll", EGestureType::Down ));
         bind.Add( GLFW_Input::T,
+                  ActionInfo( "FlightCamera.ResetRoll", EGestureType::Down ));
+        bind.Add( GLFW_Input::R,
                   ActionInfo( "FlightCamera.Reset", EGestureType::Down ));
 
         bind.Add( GLFW_Input::MouseWheel,

@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 // pipeline descriptor set layouts
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 void VertexBuffers ()
 {

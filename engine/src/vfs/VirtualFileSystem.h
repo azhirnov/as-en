@@ -17,7 +17,7 @@
         Thread-safe:    yes
 ----
 
-    docs: file:///<path>/engine/docs/ru/VirtualFileSystem.md
+    docs: file:///<path>/AE/engine/docs/ru/VirtualFileSystem.md
 */
 
 #pragma once

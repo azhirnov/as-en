@@ -105,7 +105,7 @@ namespace _hidden_
     template <typename T>
     ArrayView<T>  TSharedMem<E>::ToView () C_NE___
     {
-        ASSERT( _size % SizeOf<T> == 0 );
+        ASSERT( IsAligned( _size, SizeOf<T> ));
         ASSERT( POTAlignOf<T> <= _align );
         return ArrayView<T>{ Cast<T>(Data()), _size / SizeOf<T> };
     }

@@ -1,4 +1,4 @@
-#include <asset_packer>
+#include <asset_packer.as>
 
 void ASmain ()
 {

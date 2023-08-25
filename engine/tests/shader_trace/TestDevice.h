@@ -62,6 +62,8 @@ namespace AE::PipelineCompiler
 
     // methods
     public:
+        TestDevice ();
+
         ND_ bool  Create ();
             void  Destroy ();
 
@@ -120,13 +122,13 @@ namespace AE::PipelineCompiler
         ND_ VkQueue     GetVkQueue ()       const   { return _vulkan.GetQueues()[0].handle; }
         ND_ uint        GetQueueFamily ()   const   { return uint(_vulkan.GetQueues()[0].familyIndex); }
 
-        ND_ VkPhysicalDeviceProperties const&                       GetDeviceProps ()       const   { return _vulkan.GetProperties().properties; }
-        ND_ VkPhysicalDeviceFeatures const&                         GetDeviceFeats ()       const   { return _vulkan.GetProperties().features; }
-        ND_ VkPhysicalDeviceMeshShaderFeaturesEXT const&            GetMeshShaderFeats ()   const   { return _vulkan.GetProperties().meshShaderFeats; }
-        ND_ VkPhysicalDeviceMeshShaderPropertiesEXT const&          GetMeshShaderProps ()   const   { return _vulkan.GetProperties().meshShaderProps; }
-        ND_ VkPhysicalDeviceShaderClockFeaturesKHR const&           GetShaderClockFeats ()  const   { return _vulkan.GetProperties().shaderClockFeats; }
-        ND_ VkPhysicalDeviceRayTracingPipelineFeaturesKHR const&    GetRayTracingFeats ()   const   { return _vulkan.GetProperties().rayTracingPipelineFeats; }
-        ND_ VkPhysicalDeviceRayTracingPipelinePropertiesKHR const&  GetRayTracingProps ()   const   { return _vulkan.GetProperties().rayTracingPipelineProps; }
+        ND_ VkPhysicalDeviceProperties const&                       GetDeviceProps ()       const   { return _vulkan.GetVProperties().properties; }
+        ND_ VkPhysicalDeviceFeatures const&                         GetDeviceFeats ()       const   { return _vulkan.GetVProperties().features; }
+        ND_ VkPhysicalDeviceMeshShaderFeaturesEXT const&            GetMeshShaderFeats ()   const   { return _vulkan.GetVProperties().meshShaderFeats; }
+        ND_ VkPhysicalDeviceMeshShaderPropertiesEXT const&          GetMeshShaderProps ()   const   { return _vulkan.GetVProperties().meshShaderProps; }
+        ND_ VkPhysicalDeviceShaderClockFeaturesKHR const&           GetShaderClockFeats ()  const   { return _vulkan.GetVProperties().shaderClockFeats; }
+        ND_ VkPhysicalDeviceRayTracingPipelineFeaturesKHR const&    GetRayTracingFeats ()   const   { return _vulkan.GetVProperties().rayTracingPipelineFeats; }
+        ND_ VkPhysicalDeviceRayTracingPipelinePropertiesKHR const&  GetRayTracingProps ()   const   { return _vulkan.GetVProperties().rayTracingPipelineProps; }
 
     private:
         ND_ bool  _CreateResources ();

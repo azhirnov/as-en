@@ -13,12 +13,16 @@
 
 #include "scripting/Scripting.pch.h"
 
-#ifndef AE_DBG_SCRIPTS
-# ifdef AE_DEBUG
-#   define AE_DBG_SCRIPTS   1
-# else
-#   define AE_DBG_SCRIPTS   0
-# endif
+#ifdef AE_DEBUG
+# define AE_DBG_SCRIPTS     1
+#else
+# define AE_DBG_SCRIPTS     0
+#endif
+
+#ifdef AE_RELEASE
+# define AE_SCRIPT_CPP_REFLECTION   0
+#else
+# define AE_SCRIPT_CPP_REFLECTION   1
 #endif
 
 namespace AE::Scripting
@@ -83,9 +87,12 @@ namespace AE::Scripting
         ScriptModule (AngelScript::asIScriptModule* mod, ArrayView<ModuleSource> dbgSrc);
 
     public:
-        ~ScriptModule ()            __NE_OV;
+        ~ScriptModule ()                            __NE_OV;
 
-        ND_ StringView  GetName ()  C_NE___ { return _module != null ? _module->GetName() : Default; }
+        ND_ StringView  GetName ()                  C_NE___ { return _module != null ? _module->GetName() : Default; }
+
+        template <typename Fn>
+        ND_ bool    HasFunction (StringView entry)  C_NE___;
 
         #if AE_DBG_SCRIPTS
             ND_ bool  LogError (StringView fnEntry, StringView section, int line, int column, StringView exceptionMsg) const;
@@ -114,67 +121,74 @@ namespace AE::Scripting
         std::atomic<usize>                      _moduleIndex    {0};
 
         // Generate C++ header to use autocomplete in IDE for scripts
-        Mutex                       _cppHeaderGuard;
-        CppHeaderMap_t              _cppHeaderMap;
-        Array<String>               _cppHeaders;
-        bool                        _genCppHeader   = false;
+        #if AE_SCRIPT_CPP_REFLECTION
+            Mutex                       _cppHeaderGuard;
+            CppHeaderMap_t              _cppHeaderMap;
+            Array<String>               _cppHeaders;
+            bool                        _genCppHeader   = false;
+        #endif
 
         #if AE_DBG_SCRIPTS
-            RecursiveMutex          _dbgLocationGuard;
-            DbgLocationMap_t        _dbgLocation;
+            RecursiveMutex              _dbgLocationGuard;
+            DbgLocationMap_t            _dbgLocation;
         #endif
 
 
     // methods
     public:
-        ScriptEngine ()                                                                     __NE___;
-        ~ScriptEngine ()                                                                    __NE___;
+        ScriptEngine ()                                                                             __NE___;
+        ~ScriptEngine ()                                                                            __NE___;
 
-        ND_ AngelScript::asIScriptEngine *          Get ()                                  __NE___ { return _engine.operator->(); }
-        ND_ AngelScript::asIScriptEngine const *    Get ()                                  C_NE___ { return _engine.operator->(); }
+        ND_ AngelScript::asIScriptEngine *          Get ()                                          __NE___ { return _engine.operator->(); }
+        ND_ AngelScript::asIScriptEngine const *    Get ()                                          C_NE___ { return _engine.operator->(); }
 
-        ND_ AngelScript::asIScriptEngine *          operator -> ()                          __NE___ { return _engine.operator->(); }
-        ND_ AngelScript::asIScriptEngine const *    operator -> ()                          C_NE___ { return _engine.operator->(); }
+        ND_ AngelScript::asIScriptEngine *          operator -> ()                                  __NE___ { return _engine.operator->(); }
+        ND_ AngelScript::asIScriptEngine const *    operator -> ()                                  C_NE___ { return _engine.operator->(); }
 
-        ND_ bool  IsInitialized ()                                                          C_NE___ { return bool{_engine}; }
-        ND_ bool  IsUsingCppHeader ()                                                       C_NE___ { return _genCppHeader; }
+        ND_ bool  IsInitialized ()                                                                  C_NE___ { return bool{_engine}; }
 
-        ND_ bool  Create (Bool genCppHeader = False{})                                      __NE___;
-        ND_ bool  Create (AngelScript::asIScriptEngine *se, Bool genCppHeader = False{})    __NE___;
+      #if AE_SCRIPT_CPP_REFLECTION
+        ND_ bool  IsUsingCppHeader ()                                                               C_NE___ { return _genCppHeader; }
+      #else
+        ND_ bool  IsUsingCppHeader ()                                                               C_NE___ { return false; }
+      #endif
+
+        ND_ bool  Create (Bool genCppHeader = False{})                                              __NE___;
+        ND_ bool  Create (AngelScript::asIScriptEngine *se, Bool genCppHeader = False{})            __NE___;
 
         ND_ ScriptModulePtr  CreateModule (ArrayView<ModuleSource>  src,
-                                           ArrayView<StringView>    defines = Default)      __NE___;
+                                           ArrayView<StringView>    defines = Default)              __NE___;
 
         template <typename Fn>
-        ND_ ScriptFnPtr<Fn>  CreateScript (StringView entry, const ScriptModulePtr &module) __NE___;
+        ND_ ScriptFnPtr<Fn>  CreateScript (StringView entry, const ScriptModulePtr &module)         __NE___;
 
         template <typename T>
-        ND_ bool  IsRegistred ()                                                            __NE___;
-        ND_ bool  IsRegistred (NtStringView name)                                           __NE___;
+        ND_ bool  IsRegistred ()                                                                    __NE___;
+        ND_ bool  IsRegistred (NtStringView name)                                                   __NE___;
 
 
         template <typename T>
-        void  AddFunction (T func, StringView name)                                         __Th___;
+        void  AddFunction (T func, StringView name, StringView comment = Default)                   __Th___;
 
         template <typename Fn>
-        void  AddGenericFn (void (*fn)(ScriptArgList), StringView name)                     __Th___;
+        void  AddGenericFn (void (*fn)(ScriptArgList), StringView name, StringView comment = {})    __Th___;
 
         template <typename T>
-        void  AddProperty (INOUT T &var, StringView name)                                   __Th___;
+        void  AddProperty (INOUT T &var, StringView name)                                           __Th___;
 
         template <typename T>
-        void  AddConstProperty (const T &var, StringView name)                              __Th___;
+        void  AddConstProperty (const T &var, StringView name)                                      __Th___;
 
-        void  Typedef (NtStringView newType, NtStringView existType)                        __Th___;
-
-
-        bool  SetNamespace (NtStringView name)                                              __NE___;
-        bool  SetDefaultNamespace ()                                                        __NE___;
+        void  Typedef (NtStringView newType, NtStringView existType)                                __Th___;
 
 
-            void  AddCppHeader (StringView typeName, String str, int flags)                 __Th___;
-            void  GetCppHeader (OUT String &str, OUT HashVal32 &hash)                       __Th___;
-        ND_ bool  SaveCppHeader (const Path &fname)                                         __Th___;
+        bool  SetNamespace (NtStringView name)                                                      __NE___;
+        bool  SetDefaultNamespace ()                                                                __NE___;
+
+
+            void  AddCppHeader (String typeName, String str, int flags)                             __Th___;
+            void  GetCppHeader (OUT String &str, OUT HashVal32 &hash)                               __Th___;
+        ND_ bool  SaveCppHeader (const Path &fname)                                                 __Th___;
 
 
     // utils //

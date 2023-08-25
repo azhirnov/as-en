@@ -39,24 +39,6 @@ ND_ float4  ToRGBM (const float3 rgb);
 
 
 
-float4  Rainbow (const float factor)
-{
-    float  h   = Saturate( factor / 1.35 );
-    float3 col = float3( Abs(h * 6.0 - 3.0) - 1.0,
-                         2.0 - Abs(h * 6.0 - 2.0),
-                         2.0 - Abs(h * 6.0 - 4.0) );
-    return float4( Saturate( col ), 1.0 );
-}
-
-float4  RainbowWrap (const float factor)
-{
-    float  h   = Wrap( factor, 0.0, 1.0 );
-    float3 col = float3( Abs(h * 6.0 - 3.0) - 1.0,
-                         2.0 - Abs(h * 6.0 - 2.0),
-                         2.0 - Abs(h * 6.0 - 4.0) );
-    return float4( Saturate( col ), 1.0 );
-}
-
 float3  RGBtoHSV (const float3 c)
 {
     float4 K = float4( 0.0f, -1.0f / 3.0f, 2.0f / 3.0f, -1.0f );
@@ -75,8 +57,19 @@ float3  HSVtoRGB (const float3 hsv)
     float3 col = float3( Abs( hsv.x * 6.0f - 3.0f ) - 1.0f,
                          2.0f - Abs( hsv.x * 6.0f - 2.0f ),
                          2.0f - Abs( hsv.x * 6.0f - 4.0f ));
-    return (( Clamp( col, float3(0.0f), float3(1.0f) ) - 1.0f ) * hsv.y + 1.0f ) * hsv.z;
+    return ((Saturate( col ) - 1.0f) * hsv.y + 1.0f) * hsv.z;
 }
+
+float4  Rainbow (const float factor)
+{
+    return float4( HSVtoRGB( float3( Saturate( factor * 0.74f ), 1.f, 1.f )), 1.f );
+}
+
+float4  RainbowWrap (const float factor)
+{
+    return float4( HSVtoRGB( float3( Wrap( factor * 0.74f, 0.0f, 1.0f ), 1.f, 1.f )), 1.f );
+}
+
 
 float3  HSVtoRGB_v2 (float3 hsv)
 {

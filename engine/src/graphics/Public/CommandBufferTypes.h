@@ -26,6 +26,19 @@ namespace AE::Graphics
         uint            mipmapCount     = 1;
         ImageLayer      baseLayer;
         uint            layerCount      = 1;
+
+        ImageSubresourceRange ()                                                __NE___ = default;
+
+        ImageSubresourceRange (EImageAspect aspectMask,
+                               MipmapLevel baseMipLevel, ImageLayer baseLayer)  __NE___ :
+            aspectMask{aspectMask}, baseMipLevel{baseMipLevel}, baseLayer{baseLayer} {}
+
+        ImageSubresourceRange (EImageAspect aspectMask,
+                               MipmapLevel baseMipLevel, uint mipmapCount,
+                               ImageLayer baseLayer, uint layerCount)           __NE___ :
+            aspectMask{aspectMask},
+            baseMipLevel{baseMipLevel}, mipmapCount{mipmapCount},
+            baseLayer{baseLayer}, layerCount{layerCount} {}
     };
 
 
@@ -35,6 +48,13 @@ namespace AE::Graphics
         MipmapLevel     mipLevel;
         ImageLayer      baseLayer;
         uint            layerCount      = 1;
+
+        ImageSubresourceLayers ()                                               __NE___ = default;
+
+        ImageSubresourceLayers (EImageAspect aspectMask, MipmapLevel mipLevel,
+                                ImageLayer baseLayer, uint layerCount = 1)      __NE___ :
+            aspectMask{aspectMask}, mipLevel{mipLevel},
+            baseLayer{baseLayer}, layerCount{layerCount} {}
     };
 
 
@@ -43,6 +63,11 @@ namespace AE::Graphics
         Bytes           srcOffset;
         Bytes           dstOffset;
         Bytes           size;
+
+        BufferCopy ()                                               __NE___ = default;
+
+        BufferCopy (Bytes srcOffset, Bytes dstOffset, Bytes size)   __NE___ :
+            srcOffset{srcOffset}, dstOffset{dstOffset}, size{size} {}
     };
 
     // TODO: ImageCopyRegion, ImageCopySlices
@@ -53,6 +78,8 @@ namespace AE::Graphics
         ImageSubresourceLayers  dstSubres;
         uint3                   dstOffset;
         uint3                   extent;
+
+        ImageCopy () __NE___ = default;
     };
 
 
@@ -64,6 +91,8 @@ namespace AE::Graphics
         ImageSubresourceLayers  imageSubres;
         uint3                   imageOffset;
         uint3                   imageExtent;
+
+        BufferImageCopy () __NE___ = default;
     };
 
     struct BufferImageCopy2
@@ -74,6 +103,8 @@ namespace AE::Graphics
         ImageSubresourceLayers  imageSubres;
         uint3                   imageOffset;
         uint3                   imageExtent;
+
+        BufferImageCopy2 () __NE___ = default;
     };
 
 
@@ -85,6 +116,8 @@ namespace AE::Graphics
         ImageSubresourceLayers  dstSubres;
         uint3                   dstOffset0;
         uint3                   dstOffset1;
+
+        ImageBlit () __NE___ = default;
     };
 
 
@@ -95,6 +128,8 @@ namespace AE::Graphics
         ImageSubresourceLayers  dstSubres;
         uint3                   dstOffset;
         uint3                   extent;
+
+        ImageResolve () __NE___ = default;
     };
 
 
@@ -118,7 +153,7 @@ namespace AE::Graphics
         #   error not implemented
         #endif
 
-        RTShaderBindingTable () {}
+        RTShaderBindingTable () __NE___ = default;
     };
 //-----------------------------------------------------------------------------
 
@@ -130,6 +165,8 @@ namespace AE::Graphics
         uint    instanceCount   = 1;
         uint    firstVertex     = 0;
         uint    firstInstance   = 0;
+
+        DrawCmd () __NE___ = default;
     };
 
 
@@ -140,6 +177,8 @@ namespace AE::Graphics
         uint    firstIndex      = 0;
         int     vertexOffset    = 0;
         uint    firstInstance   = 0;
+
+        DrawIndexedCmd () __NE___ = default;
     };
 
 
@@ -149,6 +188,8 @@ namespace AE::Graphics
         Bytes       indirectBufferOffset;
         uint        drawCount               = 1;
         Bytes       stride;                 // sizeof(DrawIndirectCommand)
+
+        DrawIndirectCmd () __NE___ = default;
     };
 
 
@@ -158,7 +199,10 @@ namespace AE::Graphics
         Bytes       indirectBufferOffset;
         uint        drawCount               = 1;
         Bytes       stride;                 // sizeof(DrawIndexedIndirectCommand)
+
+        DrawIndexedIndirectCmd () __NE___ = default;
     };
+
 
     struct DrawMeshTasksIndirectCmd
     {
@@ -166,7 +210,10 @@ namespace AE::Graphics
         Bytes       indirectBufferOffset;
         uint        drawCount;
         Bytes       stride;                 // sizeof(DrawMeshTasksIndirectCommand)
+
+        DrawMeshTasksIndirectCmd () __NE___ = default;
     };
+
 
     struct DrawIndirectCountCmd
     {
@@ -176,7 +223,10 @@ namespace AE::Graphics
         Bytes       countBufferOffset;
         uint        maxDrawCount;
         Bytes       stride;                 // sizeof(DrawIndirectCommand)
+
+        DrawIndirectCountCmd () __NE___ = default;
     };
+
 
     struct DrawIndexedIndirectCountCmd
     {
@@ -186,7 +236,10 @@ namespace AE::Graphics
         Bytes       countBufferOffset;
         uint        maxDrawCount;
         Bytes       stride;                 // sizeof(DrawIndexedIndirectCommand)
+
+        DrawIndexedIndirectCountCmd () __NE___ = default;
     };
+
 
     struct DrawMeshTasksIndirectCountCmd
     {
@@ -196,6 +249,8 @@ namespace AE::Graphics
         Bytes       countBufferOffset;
         uint        maxDrawCount;
         Bytes       stride;                 // sizeof(DrawMeshTasksIndirectCommand)
+
+        DrawMeshTasksIndirectCountCmd () __NE___ = default;
     };
 //-----------------------------------------------------------------------------
 
@@ -213,7 +268,7 @@ namespace AE::Graphics
         uint    vertexCount;
         uint    instanceCount;
         uint    firstVertex;
-        uint    firstInstance;
+        uint    firstInstance;              // non zero value requires 'FeatureSet::drawIndirectFirstInstance'
     };
     STATIC_ASSERT( sizeof(DrawIndirectCommand) == 16 );
 
@@ -224,7 +279,7 @@ namespace AE::Graphics
         uint    instanceCount;
         uint    firstIndex;
         int     vertexOffset;
-        uint    firstInstance;
+        uint    firstInstance;              // non zero value requires 'FeatureSet::drawIndirectFirstInstance'
     };
     STATIC_ASSERT( sizeof(DrawIndexedIndirectCommand) == 20 );
 
@@ -245,31 +300,31 @@ namespace AE::Graphics
 
     struct TraceRayIndirectCommand2
     {
-        #ifdef AE_ENABLE_VULKAN
-            VkDeviceAddress     raygenShaderRecordAddress;
-            VkDeviceSize        raygenShaderRecordSize;
-            VkDeviceAddress     missShaderBindingTableAddress;
-            VkDeviceSize        missShaderBindingTableSize;
-            VkDeviceSize        missShaderBindingTableStride;
-            VkDeviceAddress     hitShaderBindingTableAddress;
-            VkDeviceSize        hitShaderBindingTableSize;
-            VkDeviceSize        hitShaderBindingTableStride;
-            VkDeviceAddress     callableShaderBindingTableAddress;
-            VkDeviceSize        callableShaderBindingTableSize;
-            VkDeviceSize        callableShaderBindingTableStride;
-            uint                width;
-            uint                height;
-            uint                depth;
+      #ifdef AE_ENABLE_VULKAN
+        VkDeviceAddress     raygenShaderRecordAddress;
+        VkDeviceSize        raygenShaderRecordSize;
+        VkDeviceAddress     missShaderBindingTableAddress;
+        VkDeviceSize        missShaderBindingTableSize;
+        VkDeviceSize        missShaderBindingTableStride;
+        VkDeviceAddress     hitShaderBindingTableAddress;
+        VkDeviceSize        hitShaderBindingTableSize;
+        VkDeviceSize        hitShaderBindingTableStride;
+        VkDeviceAddress     callableShaderBindingTableAddress;
+        VkDeviceSize        callableShaderBindingTableSize;
+        VkDeviceSize        callableShaderBindingTableStride;
+        uint                width;
+        uint                height;
+        uint                depth;
 
-        #elif defined(AE_ENABLE_METAL)
-            // TODO
+      #elif defined(AE_ENABLE_METAL)
+        // TODO
 
-        #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-            // TODO
+      #elif defined(AE_ENABLE_REMOTE_GRAPHICS)
+        // TODO
 
-        #else
-        #   error not implemented
-        #endif
+      #else
+      # error not implemented
+      #endif
     };
     #ifdef AE_ENABLE_VULKAN
       STATIC_ASSERT( sizeof(TraceRayIndirectCommand2) == 104 );
@@ -317,6 +372,8 @@ namespace AE::Graphics
         EStagingHeapType    heapType        = EStagingHeapType::Dynamic;
 
         // TODO: setter
+
+        UploadImageDesc () __NE___ = default;
     };
     using ReadbackImageDesc = UploadImageDesc;
 //-----------------------------------------------------------------------------
@@ -408,6 +465,8 @@ namespace AE::Graphics
         BufferID    id;                     // single buffer for all, bind it once
         Bytes       offset;                 // offset in buffer
         Bytes       size;                   // same as in request
+
+        VertexStream () __NE___ = default;
     };
 //-----------------------------------------------------------------------------
 
@@ -418,6 +477,7 @@ namespace AE::Graphics
     //
     struct VideoDecodeCmd
     {
+        VideoDecodeCmd () __NE___ = default;
     };
 
 
@@ -426,6 +486,7 @@ namespace AE::Graphics
     //
     struct VideoEncodeCmd
     {
+        VideoEncodeCmd () __NE___ = default;
     };
 //-----------------------------------------------------------------------------
 
@@ -468,6 +529,8 @@ namespace AE::Graphics
             Bytes32u    write   {UMax};
             Bytes32u    read    {UMax};
         }   stagingBufferPerFrameLimits;
+
+        BeginFrameConfig () __NE___ = default;
     };
 
 

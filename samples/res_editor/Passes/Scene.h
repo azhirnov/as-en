@@ -58,7 +58,7 @@ namespace AE::ResEditor
         Materials_t             _materials;
 
         RenderPassDesc          _rpDesc;
-        Resources_t             _resources;         // per pass
+        ResourceArray           _resources;         // per pass
         RenderTargets_t         _renderTargets;
 
         Strong<BufferID>        _ubuffer;
@@ -83,6 +83,7 @@ namespace AE::ResEditor
         StringView      GetName ()                                          C_NE_OV { return _dbgName; }
         bool            Execute (SyncPassData &)                            __NE_OV;
         bool            Update (TransferCtx_t &, const UpdatePassData &)    __NE_OV;
+        void            GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV;
     };
 
 
@@ -107,7 +108,7 @@ namespace AE::ResEditor
         RC<SceneData>           _scene;
         Materials_t             _materials;
 
-        Resources_t             _resources;         // per pass
+        ResourceArray           _resources;         // per pass
 
         PipelineMap_t           _pipelines;
         RTShaderBindingID       _sbt;
@@ -134,6 +135,7 @@ namespace AE::ResEditor
         StringView      GetName ()                                          C_NE_OV { return _dbgName; }
         bool            Execute (SyncPassData &)                            __NE_OV;
         bool            Update (TransferCtx_t &, const UpdatePassData &)    __NE_OV;
+        void            GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV;
     };
 
 

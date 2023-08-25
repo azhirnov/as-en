@@ -225,7 +225,7 @@ namespace AE::Math
 
 /*
 =================================================
-    RGBA32f::Lerp
+    color utils (RGBA32f)
 =================================================
 */
     ND_ inline RGBA32f  Lerp (const RGBA32f &x, const RGBA32f &y, float factor) __NE___
@@ -233,6 +233,22 @@ namespace AE::Math
         float4 v = Lerp( float4{float(x.r), float(x.g), float(x.b), float(x.a)},
                          float4{float(y.r), float(y.g), float(y.b), float(y.a)}, factor );
         return RGBA32f{ v };
+    }
+
+    ND_ inline constexpr float  Luminance (const RGBA32f &col) __NE___
+    {
+        return col.r * 0.2126f + col.g * 0.7152f + col.b * 0.0722f;
+    }
+
+    ND_ inline constexpr RGBA32f  AdjustContrast (const RGBA32f &col, float factor) __NE___
+    {
+        constexpr float mid = 0.5f;
+        RGBA32f         result;
+        result.r = mid + factor * (col.r - mid);
+        result.g = mid + factor * (col.g - mid);
+        result.b = mid + factor * (col.b - mid);
+        result.a = col.a;
+        return result;
     }
 //-----------------------------------------------------------------------------
 
@@ -295,6 +311,11 @@ namespace AE::Math
         b{ubyte(other.b * 255.0f + 0.5f)},  a{ubyte(other.a * 255.0f + 0.5f)}
     {}
 
+/*
+=================================================
+    color utils (RGBA8u)
+=================================================
+*/
     ND_ inline constexpr RGBA8u  AdjustContrast (const RGBA8u &col, float factor) __NE___
     {
         constexpr float mid = 127.0f;
@@ -308,8 +329,7 @@ namespace AE::Math
 
     ND_ inline constexpr float  Luminance (const RGBA8u &col) __NE___
     {
-        constexpr float  scale = 1.0f / (255.0f * 255.0f * 255.0f);
-        return (float(col.r) * 0.2126f + float(col.g) * float(col.b) * 0.7152f + 0.0722f) * scale;
+        return Luminance( RGBA32f{col} );
     }
 
     ND_ inline constexpr RGBA8u  AdjustSaturation (const RGBA8u &col, float factor) __NE___
@@ -325,12 +345,11 @@ namespace AE::Math
 
     ND_ inline RGBA8u  Lerp (const RGBA8u &x, const RGBA8u &y, float factor) __NE___
     {
-        float4 v = Lerp( float4{float(x.r), float(x.g), float(x.b), float(x.a)},
-                         float4{float(y.r), float(y.g), float(y.b), float(y.a)}, factor );
-
-        return RGBA8u{ ubyte(v.x + 0.5f), ubyte(v.y + 0.5f),
-                       ubyte(v.z + 0.5f), ubyte(v.w + 0.5f) };
+        return RGBA8u{ Lerp( RGBA32f{x}, RGBA32f{y}, factor )};
     }
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================
@@ -365,6 +384,9 @@ namespace AE::Math
     {
         return bool4{ Equals( lhs.r, rhs.r, err ), Equals( lhs.g, rhs.g, err ), Equals( lhs.b, rhs.b, err ), Equals( lhs.a, rhs.a, err ) };
     }
+//-----------------------------------------------------------------------------
+
+
 
 /*
 =================================================

@@ -16,7 +16,7 @@
 
         #ifdef SPHERICAL_CUBE
         Out.texcoord    = in_Texcoord.xyz;
-        Out.normal      = in_Position.xyz;
+        Out.normal      = in_BiTangent.xyz;
         #endif
     }
 #endif
@@ -28,7 +28,7 @@
     void Main ()
     {
     #if 0
-        out_Color = float4(In.texcoord, 1.0);
+        out_Color = float4( ToUNorm(Normalize(In.texcoord)), 1.0 );
     #else
         out_Color = gl.texture.Sample( gl::CombinedTexCube<float>( un_ColorTexture, un_ColorTexture_sampler ), In.texcoord );
     #endif

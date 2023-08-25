@@ -78,7 +78,7 @@ namespace AE::Graphics
         {
         // methods
         public:
-            CmdBufPool () __NE___ {}
+            CmdBufPool ()                                                                                       __NE___ {}
 
             void  GetCommands (OUT VkCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount)              __NE___ { _GetCommands( OUT cmdbufs, OUT cmdbufCount, maxCount ); }
             void  GetCommands (VkCommandBufferSubmitInfoKHR* cmdbufs, OUT uint &cmdbufCount, uint maxCount)     __NE___;
@@ -103,7 +103,7 @@ namespace AE::Graphics
         {
         // methods
         public:
-            CmdBufPool () __NE___ {}
+            CmdBufPool ()                                                                               __NE___ {}
 
             void  GetCommands (OUT MetalCommandBuffer* cmdbufs, OUT uint &cmdbufCount, uint maxCount)   __NE___;
             bool  CommitIndirectBuffers (EQueueType queue, ECommandBufferType cmdbufType,
@@ -126,7 +126,7 @@ namespace AE::Graphics
         {
         // methods
         public:
-            CmdBufPool () __NE___ {}
+            CmdBufPool ()                                                                           __NE___ {}
 
             void  GetCommands (OUT RBakedCommands* cmdbufs, OUT uint &cmdbufCount, uint maxCount)   __NE___;
             bool  CommitIndirectBuffers (EQueueType queue, ECommandBufferType cmdbufType,
@@ -339,6 +339,7 @@ namespace AE::Graphics
                          DebugLabel             dbg     = Default)              __NE___;
       #endif
 
+
         template <typename ...Deps>
         AsyncTask   SubmitAsTask (const Tuple<Deps...>& deps)                   __NE___;
 
@@ -394,6 +395,12 @@ namespace AE::Graphics
                            DebugLabel dbg, void* userData)                      __NE___;
             void  _OnSubmit2 ()                                                 __NE___;
             void  _OnComplete ()                                                __NE___;
+
+            template <typename Task>
+            void  _InitTask (Task &task,
+                             const TaskBarriers_t*  initialBarriers,
+                             const TaskBarriers_t*  finalBarriers,
+                             Bool                   submitBatchAtTheEnd)        __NE___;
 
 
     // render task api
@@ -480,19 +487,15 @@ namespace AE::Graphics
         STATIC_ASSERT( IsBaseOf< RenderTask, RemoveRC<TaskType> >);
         CHECK_ERR( IsRecording(), Scheduler().GetCanceledTask() );
 
-        if_unlikely( submitBatchAtTheEnd )
+        if_likely( task )
         {
-            task->_submit = true;
-            _EndRecording();
+            _InitTask( *task, initialBarriers, finalBarriers, submitBatchAtTheEnd );
+
+            if_likely( Scheduler().Run( task, deps ))
+                return task;
         }
 
-        _perTaskBarriers[ task->GetExecutionIndex()*2+0 ] = initialBarriers;
-        _perTaskBarriers[ task->GetExecutionIndex()*2+1 ] = finalBarriers;
-
-        if_likely( Scheduler().Run( task, deps ))
-            return task;
-        else
-            return Scheduler().GetCanceledTask();
+        return Scheduler().GetCanceledTask();
     }
 
 /*
@@ -522,14 +525,7 @@ namespace AE::Graphics
             auto    task = ctorArgs.Apply([this, dbg] (auto&& ...args)
                                           { return MakeRC<TaskType>( FwdArg<decltype(args)>(args)..., GetRC(), dbg ); });   // throw
 
-            if_unlikely( submitBatchAtTheEnd )
-            {
-                task->_submit = true;
-                _EndRecording();
-            }
-
-            _perTaskBarriers[ task->GetExecutionIndex()*2+0 ] = initialBarriers;
-            _perTaskBarriers[ task->GetExecutionIndex()*2+1 ] = finalBarriers;
+            _InitTask( *task, initialBarriers, finalBarriers, submitBatchAtTheEnd );
 
             if_likely( Scheduler().Run( task, deps ))
                 return task;
@@ -584,14 +580,7 @@ namespace AE::Graphics
         auto&   rtask = coro.AsRenderTask();
         CHECK_ERR( rtask._Init( GetRC<CMDBATCH>(), dbg ),  Scheduler().GetCanceledTask() );
 
-        if_unlikely( submitBatchAtTheEnd )
-        {
-            rtask._submit = true;
-            _EndRecording();
-        }
-
-        _perTaskBarriers[ rtask.GetExecutionIndex()*2+0 ] = initialBarriers;
-        _perTaskBarriers[ rtask.GetExecutionIndex()*2+1 ] = finalBarriers;
+        _InitTask( rtask, initialBarriers, finalBarriers, submitBatchAtTheEnd );
 
         if_likely( Scheduler().Run( AsyncTask{coro}, deps ))
             return coro;
@@ -628,6 +617,27 @@ namespace AE::Graphics
         CHECK_ERR( _EndRecording(), Scheduler().GetCanceledTask() );
 
         return Scheduler().Run< SubmitBatchTask >( Tuple{ GetRC<CMDBATCH>() }, deps );
+    }
+
+/*
+=================================================
+    _InitTask
+=================================================
+*/
+    template <typename Task>
+    void  CMDBATCH::_InitTask (Task                     &rtask,
+                               const TaskBarriers_t*    initialBarriers,
+                               const TaskBarriers_t*    finalBarriers,
+                               Bool                     submitBatchAtTheEnd) __NE___
+    {
+        _SetTaskBarriers( initialBarriers, rtask.GetExecutionIndex()*2+0 );
+        _SetTaskBarriers( finalBarriers,   rtask.GetExecutionIndex()*2+1 );
+
+        if_unlikely( submitBatchAtTheEnd )
+        {
+            rtask._submit = true;
+            _EndRecording();
+        }
     }
 
 

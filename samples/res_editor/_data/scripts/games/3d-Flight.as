@@ -1,6 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+	Simple flight game.
+*/
 #ifdef __INTELLISENSE__
-#   include <res_editor>
+#   include <res_editor.as>
 #   include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------
@@ -15,7 +18,7 @@
 
         // setup camera
         {
-            camera.ClipPlanes( 0.1f, 10.f );
+            camera.ClipPlanes( 0.05f, 10.f );
             camera.FovY( 70.f );
             camera.RotationScale( 1.f, 1.f, 1.f );
             camera.Dimension( rt.Dimension() );
@@ -40,8 +43,8 @@
             logic.DispatchGroups( 1 );
 
             RC<Postprocess>     draw = Postprocess( EPostprocess::Shadertoy, EPassFlags::None );
-            draw.Input( "un_CBuf",  cbuf );
-            draw.Input( camera );
+            draw.ArgIn( "un_CBuf",  cbuf );
+            draw.ArgIn( camera );
             draw.Output( rt );
         }
         Present( rt );
@@ -94,7 +97,7 @@
 
     ND_ bool  HasCollision (const float3 pos, const float radius)
     {
-        const Ray   ray = Ray_From( un_PerPass.camera.invViewProj, pos, 0.05, float2(0.5) );
+        const Ray   ray = Ray_From( un_PerPass.camera.invViewProj, pos, un_PerPass.camera.clipPlanes.x, float2(0.5) );
         const float d   = RayTrace( ray, 5.0, 50 );
         return d < radius;
     }
@@ -138,7 +141,7 @@
             fragColor = float4(1.0, 0.0, 0.0, 1.0);
             return;
         }
-        Ray ray = Ray_Create( fragRayOri, fragRayDir, 0.05 );
+        Ray ray = Ray_Create( fragRayOri, fragRayDir, un_PerPass.camera.clipPlanes.x );
         fragColor = Trace( ray, fragCoord );
     }
 
@@ -148,7 +151,7 @@
             fragColor = float4(1.0, 0.0, 0.0, 1.0);
             return;
         }
-        Ray ray = Ray_From( un_PerPass.camera.invViewProj, un_CBuf.actualPos, 0.05, fragCoord / iResolution.xy );
+        Ray ray = Ray_From( un_PerPass.camera.invViewProj, un_CBuf.actualPos, un_PerPass.camera.clipPlanes.x, fragCoord / iResolution.xy );
         fragColor = Trace( ray, fragCoord );
     }
 

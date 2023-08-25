@@ -117,6 +117,7 @@ namespace
                 case EResourceUsage::Sampled :          desc.usage |= EImageUsage::Sampled;     break;
                 case EResourceUsage::GenMipmaps :       desc.usage |= EImageUsage::Transfer;    desc.options |= (EImageOpt::BlitSrc | EImageOpt::BlitDst);  break;
                 case EResourceUsage::Present :          desc.usage |= EImageUsage::TransferSrc; desc.options |= EImageOpt::BlitSrc;                         break;
+                case EResourceUsage::Transfer :         desc.usage |= EImageUsage::Transfer;    break;
 
                 case EResourceUsage::Unknown :
                 case EResourceUsage::WillReadback :
@@ -127,7 +128,7 @@ namespace
                 case EResourceUsage::VertexInput :
                 case EResourceUsage::IndirectBuffer :
                 case EResourceUsage::ASBuild :
-                case EResourceUsage::WithHistroy :
+                case EResourceUsage::WithHistory :
                 default :                               RETURN_ERR( "unsupported usage" );
             }
             END_ENUM_CHECKS();

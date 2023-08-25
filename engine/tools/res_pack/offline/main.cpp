@@ -1,7 +1,14 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "pch/Scripting.h"
-#include "pch/VFS.h"
+#include "base/DataSource/FileStream.h"
+#include "base/Algorithms/StringUtils.h"
+
+#include "scripting/Bindings/CoreBindings.h"
+#include "scripting/Impl/ClassBinder.h"
+#include "scripting/Impl/EnumBinder.h"
+#include "scripting/Impl/ScriptFn.h"
+//#include "scripting/Impl/ScriptEngine.inl.h"
+
 #include "vfs/Archive/ArchivePacker.h"
 
 #include "pipeline_compiler/PipelineCompilerImpl.h"
@@ -15,6 +22,7 @@ using namespace AE::Scripting;
 
 namespace
 {
+    using EReflectionFlags = PipelineCompiler::EReflectionFlags;
 
 /*
 =================================================
@@ -91,11 +99,15 @@ namespace
     class ScriptPipelineCompiler final : public AngelScriptHelper::SimpleRefCounter
     {
     private:
-        Array< PathParams2 >            _pipelineFolders;
-        Array< PathParams2 >            _pipelines;
+        Array< PathParams2 >                _pipelineFolders;
+        Array< PathParams2 >                _pipelines;
 
-        Array< BasicString<CharType> >  _shaderFolders;
-        Array< BasicString<CharType> >  _includeDirs;
+        Array< BasicString<CharType> >      _shaderFolders;
+        Array< BasicString<CharType> >      _includeDirs;
+        EReflectionFlags                    _reflFlags      = Default;
+
+        String                              _outputCppStructsFile;
+        String                              _outputCppNamesFile;
 
 
     public:
@@ -145,38 +157,44 @@ namespace
             _includeDirs.push_back( ConvertString( path ));
         }
 
-        void  Compile (const String &outputPackName) __Th___
+        void  SetOutputCPPFile1 (const String &structs, const String &names, uint flags) __Th___
         {
-            return Compile2( outputPackName, Default );
+            SetOutputCPPFile2( structs, names, EReflectionFlags(flags) );
         }
 
-        void  Compile2 (const String &outputPackName, const String &outputCppFile) __Th___
+        void  SetOutputCPPFile2 (const String &structs, const String &names, EReflectionFlags flags) __Th___
         {
-            return _Compile( outputPackName, outputCppFile, false );
+            CHECK_THROW_MSG( _outputCppStructsFile.empty() );
+            CHECK_THROW_MSG( _outputCppNamesFile.empty() );
+
+            _outputCppStructsFile   = structs;
+            _outputCppNamesFile     = names;
+            _reflFlags              = flags;
         }
 
-        void  Compile3 (const String &outputPackName, const String &outputCppFile) __Th___
+        void  Compile1 (const String &outputPackName) __Th___
         {
-            return _Compile( outputPackName, outputCppFile, true );
+            return _Compile( outputPackName, false );
         }
 
         void  Compile4 (const String &outputPackName) __Th___
         {
-            return _Compile( outputPackName, Default, true );
+            return _Compile( outputPackName, true );
         }
 
     private:
-        void  _Compile (const String &outputPackName, const String &outputCppFile, const bool addNameMapping) __Th___
+        void  _Compile (const String &outputPackName, const bool addNameMapping) __Th___
         {
             using namespace AE::PipelineCompiler;
 
-            const auto  output_pack_name    = ConvertString( outputPackName );
-            const auto  output_cpp_file     = ConvertString( outputCppFile );
+            const auto  output_pack_name        = ConvertString( outputPackName );
+            const auto  output_cpp_types_file   = ConvertString( _outputCppStructsFile );
+            const auto  output_cpp_names_file   = ConvertString( _outputCppNamesFile );
 
-            const auto  pipeline_folders    = ConvertArray( _pipelineFolders );
-            const auto  pipelines           = ConvertArray( _pipelines );
-            const auto  shader_folders      = ConvertArray( _shaderFolders );
-            const auto  include_dirs        = ConvertArray( _includeDirs );
+            const auto  pipeline_folders        = ConvertArray( _pipelineFolders );
+            const auto  pipelines               = ConvertArray( _pipelines );
+            const auto  shader_folders          = ConvertArray( _shaderFolders );
+            const auto  include_dirs            = ConvertArray( _includeDirs );
 
             PipelinesInfo   info = {};
 
@@ -196,7 +214,9 @@ namespace
 
             // output
             info.outputPackName         = output_pack_name.c_str();
-            info.outputCppFile          = output_cpp_file.empty() ? null : output_cpp_file.c_str();
+            info.outputCppStructsFile   = output_cpp_types_file.empty() ? null : output_cpp_types_file.c_str();
+            info.outputCppNamesFile     = output_cpp_names_file.empty() ? null : output_cpp_names_file.c_str();
+            info.cppReflectionFlags     = _reflFlags;
             info.addNameMapping         = addNameMapping;
 
             CHECK_THROW_MSG( CompilePipelines( &info ));
@@ -218,11 +238,18 @@ namespace
     {
     private:
         Array< BasicString<CharType> >  _files;
+        String                          _outputCppFile;
 
     public:
         void  Add (const String &filename) __Th___
         {
             _files.push_back( ConvertString( filename ));
+        }
+
+        void  SetOutputCPPFile (const String &value) __Th___
+        {
+            CHECK_THROW_MSG( _outputCppFile.empty() );
+            _outputCppFile = value;
         }
 
         void  Convert (const String &outputName) __Th___
@@ -231,13 +258,15 @@ namespace
 
             CHECK_THROW_MSG( not _files.empty() );
 
-            const auto  output  = ConvertString( outputName );
-            const auto  temp    = ConvertArray( _files );
+            const auto  output      = ConvertString( outputName );
+            const auto  temp        = ConvertArray( _files );
+            const auto  output_cpp  = ConvertString( _outputCppFile );
 
             InputActionsInfo    info = {};
             info.inFiles        = temp.data();
             info.inFileCount    = temp.size();
             info.outputPackName = output.c_str();
+            info.outputCppFile  = output_cpp.empty() ? null : output_cpp.c_str();
 
             CHECK_THROW_MSG( ConvertInputActions( &info ));
 
@@ -404,6 +433,7 @@ AE_DECL_SCRIPT_OBJ_RC(  ScriptAssetPacker,      "AssetPacker"       );
 AE_DECL_SCRIPT_OBJ_RC(  ScriptArchive,          "Archive"           );
 AE_DECL_SCRIPT_TYPE(    EPathParamsFlags,       "EPathParamsFlags"  );
 AE_DECL_SCRIPT_TYPE(    EFileType,              "EFileType"         );
+AE_DECL_SCRIPT_TYPE(    EReflectionFlags,       "EReflectionFlags"  );
 
 
 namespace
@@ -471,6 +501,17 @@ namespace
             STATIC_ASSERT( uint(EFileType::All) == 7 );
         }
 
+        // 
+        {
+            EnumBinder<EReflectionFlags>    binder{ se };
+            binder.Create();
+            binder.AddValue( "RenderTechniques",            EReflectionFlags::RenderTechniques  );
+            binder.AddValue( "RTechPass_Pipelines",         EReflectionFlags::RTechPass_Pipelines   );
+            binder.AddValue( "RTech_ShaderBindingTable",    EReflectionFlags::RTech_ShaderBindingTable  );
+            binder.AddValue( "All",                         EReflectionFlags::All   );
+            STATIC_ASSERT( uint(EReflectionFlags::All) == 7 );
+        }
+
         // pipeline compiler
         {
             ClassBinder<ScriptPipelineCompiler>     binder{ se };
@@ -484,9 +525,9 @@ namespace
             binder.AddMethod( &ScriptPipelineCompiler::AddShaderFolder,     "AddShaderFolder"           );
             binder.AddMethod( &ScriptPipelineCompiler::AddIncludeDir,       "IncludeDir"                );
 
-            binder.AddMethod( &ScriptPipelineCompiler::Compile,             "Compile"                   );
-            binder.AddMethod( &ScriptPipelineCompiler::Compile2,            "Compile"                   );
-            binder.AddMethod( &ScriptPipelineCompiler::Compile3,            "CompileWithNameMapping"    );
+            binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile1,   "SetOutputCPPFile"          );
+            binder.AddMethod( &ScriptPipelineCompiler::SetOutputCPPFile2,   "SetOutputCPPFile"          );
+            binder.AddMethod( &ScriptPipelineCompiler::Compile1,            "Compile"                   );
             binder.AddMethod( &ScriptPipelineCompiler::Compile4,            "CompileWithNameMapping"    );
         }
 
@@ -494,8 +535,9 @@ namespace
         {
             ClassBinder<ScriptInputActions>     binder{ se };
             binder.CreateRef();
-            binder.AddMethod( &ScriptInputActions::Add,     "Add"       );
-            binder.AddMethod( &ScriptInputActions::Convert, "Convert"   );
+            binder.AddMethod( &ScriptInputActions::Add,                 "Add"               );
+            binder.AddMethod( &ScriptInputActions::SetOutputCPPFile,    "SetOutputCPPFile"  );
+            binder.AddMethod( &ScriptInputActions::Convert,             "Convert"           );
         }
 
         // asset packer
@@ -569,7 +611,7 @@ namespace
         auto    scr = se->CreateScript< void () >( "ASmain", mod );
         CHECK_ERR( scr and scr->Run() );
 
-        CHECK_ERR( se->SaveCppHeader( Path{AE_SHARED_DATA} / "scripts/offline_packer" ));
+        CHECK_ERR( se->SaveCppHeader( Path{AE_SHARED_DATA} / "scripts/offline_packer.as" ));
 
         return true;
     }

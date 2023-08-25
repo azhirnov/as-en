@@ -43,6 +43,14 @@ namespace AE::ResEditor
         _Add( key, value );
     }
 
+    void  ScriptCollection::Add9  (const String &key, const ScriptRTGeometryPtr &value) __Th___ {
+        _Add( key, value );
+    }
+
+    void  ScriptCollection::Add10 (const String &key, const ScriptRTScenePtr &value) __Th___ {
+        _Add( key, value );
+    }
+
     template <typename T>
     void  ScriptCollection::_Add (const String &key, const T &value) __Th___
     {
@@ -90,6 +98,14 @@ namespace AE::ResEditor
         return _Get<ScriptBaseController>( key );
     }
 
+    ScriptRTGeometry*  ScriptCollection::GetRTGeometry (const String &key) C_Th___ {
+        return _Get<ScriptRTGeometry>( key );
+    }
+
+    ScriptRTScene*  ScriptCollection::GetRTScene (const String &key) C_Th___ {
+        return _Get<ScriptRTScene>( key );
+    }
+
     template <typename T>
     T*  ScriptCollection::_Get (const String &key) C_Th___
     {
@@ -122,15 +138,22 @@ namespace AE::ResEditor
         binder.AddMethod( &ScriptCollection::Add6,          "Add" );
         binder.AddMethod( &ScriptCollection::Add7,          "Add" );
         binder.AddMethod( &ScriptCollection::Add8,          "Add" );
+        binder.AddMethod( &ScriptCollection::Add9,          "Add" );
+        binder.AddMethod( &ScriptCollection::Add10,         "Add" );
 
+        binder.Comment( "Returns dynamic values." );
         binder.AddMethod( &ScriptCollection::GetDynDim,     "DynDim"    );
         binder.AddMethod( &ScriptCollection::GetDynI4,      "DynInt4"   );
         binder.AddMethod( &ScriptCollection::GetDynF4,      "DynFloat4" );
+
+        binder.Comment( "Returns resources." );
         binder.AddMethod( &ScriptCollection::GetImage,      "Image"     );
         binder.AddMethod( &ScriptCollection::GetVideoImage, "VideoImage");
         binder.AddMethod( &ScriptCollection::GetBuffer,     "Buffer"    );
         binder.AddMethod( &ScriptCollection::GetGeomSource, "Geometry"  );
         binder.AddMethod( &ScriptCollection::GetController, "Controller");
+        binder.AddMethod( &ScriptCollection::GetRTGeometry, "RTGeometry");
+        binder.AddMethod( &ScriptCollection::GetRTScene,    "RTScene"   );
     }
 
 

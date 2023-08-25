@@ -45,12 +45,18 @@ namespace AE::ResEditor
 
     // interface
     public:
+
+        // returns 'false' if failed to resuze.
+        // returns 'true' if resized or if not needed to resize.
             virtual bool            Resize (TransferCtx_t &ctx) __Th___ = 0;
+
+        // returns 'true' if need to resize.
+        ND_ virtual bool            RequireResize ()            C_Th___ = 0;
 
         // GPU <-> CPU
         ND_ virtual EUploadStatus   GetStatus ()                C_NE___ { return _uploadStatus.load(); }
-        ND_ virtual EUploadStatus   Upload (TransferCtx_t &)    __Th___ = 0;
-        ND_ virtual EUploadStatus   Readback (TransferCtx_t &)  __Th___ = 0;
+        ND_ virtual EUploadStatus   Upload (TransferCtx_t &)    __Th___ = 0;    // called once per frame
+        ND_ virtual EUploadStatus   Readback (TransferCtx_t &)  __Th___ = 0;    // called once per frame
             virtual void            Cancel ()                   __Th___;
 
 
@@ -58,29 +64,12 @@ namespace AE::ResEditor
     protected:
         explicit IResource (Renderer &r) : _renderer{r} {}
 
-        ND_ Renderer&           _Renderer ()            const   { return _renderer; }
-        ND_ ResourceQueue&      _ResQueue ()            const;
-        ND_ GfxMemAllocatorPtr  _GfxAllocator ()        const;
-        ND_ GfxMemAllocatorPtr  _GfxDynamicAllocator () const;
+        ND_ Renderer&               _Renderer ()                const   { return _renderer; }
+        ND_ ResourceQueue&          _ResQueue ()                const;
+        ND_ GfxMemAllocatorPtr      _GfxAllocator ()            const;
+        ND_ GfxMemAllocatorPtr      _GfxDynamicAllocator ()     const;
 
-        void  _SetUploadStatus (EUploadStatus);
-    };
-
-
-
-    //
-    // Image Resource interface
-    //
-    class IImageResource : public IResource
-    {
-    // interface
-    public:
-        ND_ virtual ImageID         GetImageId ()       C_NE___ = 0;
-        ND_ virtual ImageViewID     GetViewId ()        C_NE___ = 0;
-
-
-    protected:
-        explicit IImageResource (Renderer &r) : IResource{r} {}
+            void  _SetUploadStatus (EUploadStatus);
     };
 //-----------------------------------------------------------------------------
 
@@ -100,6 +89,8 @@ namespace AE::ResEditor
 
             if ( _uploadStatus.CAS( INOUT status, EUploadStatus::Canceled ))
                 break;
+
+            ThreadUtils::Pause();
         }
     }
 
@@ -117,6 +108,8 @@ namespace AE::ResEditor
 
             if ( _uploadStatus.CAS( INOUT status, newStatus ))
                 break;
+
+            ThreadUtils::Pause();
         }
     }
 

@@ -60,20 +60,21 @@ namespace AE::Graphics
         DeviceVersion           _vkDeviceVersion;
         SpirvVersion            _spirvVersion;
 
-        DeviceProperties        _devProps;      // platform independent
-        VExtensions             _extensions;
+        DeviceProperties        _devProps;              // platform independent
+        VExtensions             _extensions;            // large
 
-        VulkanDeviceFnTable     _deviceFnTable;
-
-        VProperties             _properties;
+        VulkanDeviceFnTable     _deviceFnTable;         // large
         ResourceFlags           _resFlags;
 
         ExtensionSet_t          _instanceExtensions;
         ExtensionSet_t          _deviceExtensions;
 
-        VulkanExtEmulation      _extEmulation;
+        VProperties             _properties;            // very large
 
         VNvPerf                 _nvPerf;
+
+        NO_UNIQUE_ADDRESS
+          VulkanExtEmulation    _extEmulation;
 
         DRC_ONLY(
             RWDataRaceCheck     _drCheck;
@@ -85,8 +86,8 @@ namespace AE::Graphics
         VDevice ()                                                                  __NE___;
         ~VDevice ()                                                                 __NE___;
 
-        ND_ VExtensions const&      GetExtensions ()                                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _extensions; }
-        ND_ VProperties const&      GetProperties ()                                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _properties; }
+        ND_ VExtensions const&      GetVExtensions ()                               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _extensions; }
+        ND_ VProperties const&      GetVProperties ()                               C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _properties; }
         ND_ ResourceFlags const&    GetResourceFlags ()                             C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _resFlags; }
         ND_ DeviceProperties const& GetDeviceProperties ()                          C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _devProps; }
 
@@ -100,6 +101,7 @@ namespace AE::Graphics
         ND_ ArrayView<VQueue>       GetQueues ()                                    C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _queues; }
         ND_ VQueuePtr               GetQueue (EQueueType type)                      C_NE___ { DRC_SHAREDLOCK( _drCheck );  return uint(type) < _queueTypes.size() ? _queueTypes[uint(type)] : null; }
         ND_ EQueueMask              GetAvailableQueues ()                           C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _queueMask; }
+        ND_ StringView              GetDeviceName ()                                C_NE___ { DRC_SHAREDLOCK( _drCheck );  return _properties.properties.deviceName; }
 
         ND_ bool                    IsInitialized ()                                C_NE___ { return GetVkDevice() != Default; }
 
@@ -221,7 +223,7 @@ namespace AE::Graphics
 
     // methods
     public:
-        explicit VDeviceInitializer (bool enableInfoLog = false)                                    __NE___;
+        explicit VDeviceInitializer (Bool enableInfoLog = False{})                                  __NE___;
         ~VDeviceInitializer ()                                                                      __NE___;
 
         ND_ InstanceVersion  GetMaxInstanceVersion ()                                               C_NE___;

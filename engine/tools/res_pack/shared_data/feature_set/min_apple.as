@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 
 void ASmain ()
@@ -83,6 +83,7 @@ void ASmain ()
     fset.fragmentShaderPixelInterlock (True);
     fset.minSpirvVersion (130);
     fset.minMetalVersion (220);
+    fset.drawIndirectFirstInstance (True);
     fset.multiViewport (True);
     fset.minViewports (16);
     fset.minTexelBufferElements (64 << 20);

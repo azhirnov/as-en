@@ -4,12 +4,11 @@
 
 
 extern void UnitTest_Array ();
-//extern void UnitTest_ChunkedArray ();
 extern void UnitTest_Color ();
 extern void UnitTest_Cast ();
-extern void UnitTest_Crypto ();
 extern void UnitTest_Date ();
 extern void UnitTest_EnumBitSet ();
+extern void UnitTest_Iterators ();
 extern void UnitTest_FileSystem ();
 extern void UnitTest_FixedArray ();
 extern void UnitTest_FixedMap ();
@@ -53,7 +52,7 @@ int main ()
 #endif
 {
     StaticLogger::LoggerDbgScope log{};
-    StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
+    //StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
 
     AE_LOGI( "\nPlatform name: "s << AE_PLATFORM_NAME <<
              "\nCPU arch: " << AE_CPU_ARCH_NAME <<
@@ -65,10 +64,10 @@ int main ()
     UnitTest_Array();
     UnitTest_Color();
     UnitTest_Cast();
-    UnitTest_Crypto();
     UnitTest_Date();
     UnitTest_DataSource();
     UnitTest_EnumBitSet();
+    UnitTest_Iterators();
     UnitTest_FileSystem();
     UnitTest_FixedArray();
     UnitTest_FixedMap();

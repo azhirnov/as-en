@@ -7,6 +7,9 @@ namespace AE::Samples::Demo
     STATIC_ASSERT( sizeof(ShaderTypes::CubeVertex) == sizeof(GeometryTools::CubeRenderer::Vertex) );
     STATIC_ASSERT( sizeof(ShaderTypes::SphericalCubeVertex) == sizeof(GeometryTools::SphericalCubeRenderer::Vertex) );
 
+    INTERNAL_LINKAGE( constexpr auto&   RTech   = RenderTechs::Scene3D_RTech );
+    INTERNAL_LINKAGE( constexpr auto&   IA      = InputActions::Simple3D );
+
 
     //
     // Upload Texture Task
@@ -52,8 +55,8 @@ namespace AE::Samples::Demo
         {
             auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
 
-            CHECK_TE( t->cube1.Create( res_mngr, ctx, t->gfxAlloc ));
-            CHECK_TE( t->cube2.Create( res_mngr, ctx, t->lod, t->lod, False{"no quads"}, Default, t->gfxAlloc ));
+            CHECK_TE( t->cube1.Create( res_mngr, ctx, True{"cubeMap"}, t->gfxAlloc ));
+            CHECK_TE( t->cube2.Create( res_mngr, ctx, t->lod, t->lod, False{"tris"}, Default, t->gfxAlloc ));
 
             ctx.AccumBarriers()
                 .MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )
@@ -96,11 +99,17 @@ namespace AE::Samples::Demo
             ActionQueueReader::Header   hdr;
             for (; reader.ReadHeader( OUT hdr );)
             {
-                if_unlikely( hdr.name == InputActionName{"Camera.Rotate"} )
-                    rotation += reader.Data<packed_float2>( hdr.offset );
+                STATIC_ASSERT( IA.actionCount == 1 );
+                STATIC_ASSERT( IA.Desktop.actionCount == 1 );
 
-                if_unlikely( hdr.name == InputActionName{"Camera.Move"} )
-                    move += reader.Data<packed_float3>( hdr.offset );
+                switch ( uint{hdr.name} )
+                {
+                    case IA.Camera_Rotate :
+                        rotation += reader.Data<packed_float2>( hdr.offset );   break;
+
+                    case IA.Desktop.Camera_Move :
+                        move += reader.Data<packed_float3>( hdr.offset );       break;
+                }
             }
 
             t->camera.Rotate( Rad{rotation.x}, Rad{rotation.y} );
@@ -197,11 +206,14 @@ namespace AE::Samples::Demo
             const auto&     rt  = targets[i];
             const uint      off = uint(AlignUp( SizeOf<ShaderTypes::simple3d_ub>, DeviceLimits.res.minUniformBufferOffsetAlign ) * i);
 
+            constexpr auto& rtech_pass = RTech.Main;
+            STATIC_ASSERT( rtech_pass.attachmentsCount == 2 );
+
             const auto      rp_desc =
-                RenderPassDesc{ t->rtech, RenderTechPassName{"Main"}, view_size }
+                RenderPassDesc{ t->rtech, rtech_pass, view_size }
                     .AddViewport( view_size )
-                    .AddTarget( AttachmentName{"Color"}, rt.viewId,         RGBA32f{HtmlColor::Black},  rt.initialState | EResourceState::Invalidate,   rt.finalState )
-                    .AddTarget( Attachment_Depth,        t->depthBuf.view,  DepthStencil{1.0f},         EResourceState::Invalidate,                     EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS );
+                    .AddTarget( rtech_pass.att_Color, rt.viewId,        RGBA32f{HtmlColor::Black},  rt.initialState | EResourceState::Invalidate,   rt.finalState )
+                    .AddTarget( rtech_pass.att_Depth, t->depthBuf.view, DepthStencil{1.0f},         EResourceState::Invalidate,                     EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS );
 
             auto    dctx = gctx.BeginRenderPass( rp_desc );
 
@@ -233,10 +245,10 @@ namespace AE::Samples::Demo
 
         gfxAlloc = MakeRC<GfxLinearMemAllocator>();
 
-        rtech = res_mngr.LoadRenderTech( pack, RenderTechName{"Scene3D.RTech"}, Default );
+        rtech = res_mngr.LoadRenderTech( pack, RTech, Default );
         CHECK_ERR( rtech );
 
-        ppln = rtech->GetGraphicsPipeline( use_cube1 ? PipelineName{"simple3d.draw1"} : PipelineName{"simple3d.draw2"} );
+        ppln = rtech->GetGraphicsPipeline( use_cube1 ? RTech.Main.simple3d_draw1 : RTech.Main.simple3d_draw2 );
         CHECK_ERR( ppln );
 
         uniformBuf = res_mngr.CreateBuffer( BufferDesc{ AlignUp( SizeOf<ShaderTypes::simple3d_ub>, DeviceLimits.res.minUniformBufferOffsetAlign ) * 2,
@@ -269,6 +281,16 @@ namespace AE::Samples::Demo
     AsyncTask  Simple3DSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps)
     {
         return Scheduler().Run< ProcessInputTask >( Tuple{ this, RVRef(reader) }, Tuple{deps} );
+    }
+
+/*
+=================================================
+    GetInputMode
+=================================================
+*/
+    InputModeName  Simple3DSample::GetInputMode () const
+    {
+        return IA;
     }
 
 /*

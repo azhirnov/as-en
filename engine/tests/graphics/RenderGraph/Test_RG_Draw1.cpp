@@ -8,6 +8,7 @@ namespace
     {
         Mutex                       guard;
 
+        RenderTechPipelinesPtr      rtech;
         uint2                       viewSize;
 
         GAutorelease<ImageID>       img;
@@ -23,6 +24,8 @@ namespace
         ImageComparator *           imgCmp  = null;
         RC<GfxLinearMemAllocator>   gfxAlloc;
     };
+
+    static constexpr auto&  RTech = RenderTechs::DrawTestRT;
 
 
     template <typename CtxType>
@@ -50,9 +53,12 @@ namespace
 
             // draw
             {
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.viewSize }
+                constexpr auto&     rtech_pass = RTech.Draw_1;
+                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
-                                    .AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::Black} ));
+                                    .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
 
                 dctx.BindPipeline( t.ppln );
                 dctx.Draw( 3 );
@@ -106,9 +112,12 @@ namespace
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         D1_TestData     t;
 
+        t.rtech     = renderTech;
         t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
+
+        CHECK_ERR( t.rtech->Name() == RenderTechName{RTech} );
 
         t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
                                         .SetUsage( EImageUsage::Sampled | EImageUsage::ColorAttachment | EImageUsage::TransferSrc ),
@@ -118,7 +127,7 @@ namespace
         t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
         CHECK_ERR( t.view );
 
-        t.ppln = renderTech->GetGraphicsPipeline( PipelineName{"draw1"} );
+        t.ppln = t.rtech->GetGraphicsPipeline( RTech.Draw_1.draw1 );
         CHECK_ERR( t.ppln );
 
         AsyncTask   begin   = rts.BeginFrame();

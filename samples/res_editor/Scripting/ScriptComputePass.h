@@ -16,31 +16,28 @@ namespace AE::ResEditor
     {
     // types
     private:
-        using ResourceUnion_t = Union< NullUnion, ScriptBufferPtr, ScriptImagePtr, ScriptVideoImagePtr, ScriptRTScenePtr >;
+        using IterationCount_t  = ComputePass::IterationCount_t;
 
-        struct Argument
+        struct Iteration
         {
-            String              name;
-            ResourceUnion_t     res;
-            EResourceState      state           = Default;
-            String              samplerName;
-        };
-        using Arguments_t   = Array< Argument >;
+            IterationCount_t    count;
+            bool                isGroups    = true;     // groups / threads
 
-        using Iteration     = ComputePass::Iteration;
-        using Iterations_t  = ComputePass::Iterations_t;
+            ScriptBufferPtr     indirect;
+            Bytes               indirectOffset;
+            String              indirectCmdField;
+
+            operator ComputePass::Iteration () C_Th___;
+        };
+        using Iterations_t  = Array< Iteration >;
 
 
     // variables
     public:
-        const Path              _pplnPath;
-        String                  _defines;
+        const Path      _pplnPath;
 
-        uint3                   _localSize  {0};
-
-        Iterations_t            _iterations;
-        Arguments_t             _args;
-        FlatHashSet< String >   _uniqueNames;
+        uint3           _localSize  {0};
+        Iterations_t    _iterations;
 
 
     // methods
@@ -70,19 +67,9 @@ namespace AE::ResEditor
         void  DispatchThreadsDS (const ScriptDynamicDimPtr &ds)                                         __Th___;
         void  DispatchThreads1D (const ScriptDynamicUIntPtr &dyn)                                       __Th___;
 
-        void  ArgSceneIn (const String &name, const ScriptRTScenePtr &scene)                            __Th___;
-
-        void  ArgBufferIn (const String &name, const ScriptBufferPtr &buf)                              __Th___;
-        void  ArgBufferOut (const String &name, const ScriptBufferPtr &buf)                             __Th___;
-        void  ArgBufferInOut (const String &name, const ScriptBufferPtr &buf)                           __Th___;
-
-        void  ArgImageIn (const String &name, const ScriptImagePtr &img)                                __Th___;
-        void  ArgImageOut (const String &name, const ScriptImagePtr &img)                               __Th___;
-        void  ArgImageInOut (const String &name, const ScriptImagePtr &img)                             __Th___;
-
-        void  ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName)   __Th___;
-        void  ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName)__Th___;
-        void  ArgController (const ScriptBaseControllerPtr &)                                           __Th___;
+        void  DispatchGroupsIndirect1 (const ScriptBufferPtr &ibuf)                                     __Th___;
+        void  DispatchGroupsIndirect2 (const ScriptBufferPtr &ibuf, ulong offset)                       __Th___;
+        void  DispatchGroupsIndirect3 (const ScriptBufferPtr &ibuf, const String &field)                __Th___;
 
         static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
         static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                     __Th___;
@@ -90,16 +77,17 @@ namespace AE::ResEditor
     // ScriptBasePass //
         RC<IPass>  ToPass ()                                                                            C_Th_OV;
 
-    private:
-        void  _AddArg (const String &name, const ScriptBufferPtr &buf, EResourceUsage usage)            __Th___;
-        void  _AddArg (const String &name, const ScriptImagePtr &img, EResourceUsage usage)             __Th___;
 
+    private:
         ND_ auto  _CompilePipeline (OUT Bytes &ubSize)                                                  C_Th___;
             void  _CompilePipeline2 (OUT Bytes &ubSize)                                                 C_Th___;
             void  _CompilePipeline3 (const String &cs, uint line, const String &pplnName,
                                      uint shaderOpts, EPipelineOpt pplnOpt)                             C_Th___;
 
         ND_ static auto  _CreateUBType ()                                                               __Th___;
+
+    // ScriptBasePass //
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                           C_Th_OV;
     };
 
 

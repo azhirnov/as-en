@@ -1,6 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Draw cube with wireframe with ant aliased lines using triangle barycentric extension.
+*/
 #ifdef __INTELLISENSE__
-#   include <res_editor>
+#   include <res_editor.as>
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SCRIPT
@@ -36,12 +39,12 @@
             cube.FloatArray( "positions",   positions );
             cube.FloatArray( "normals",     normals );
             cube.UIntArray(  "indices",     indices );
-            cube.Layout( "fsbarycentric.CubeUBlock" );
+            cube.Layout( "CubeSBlock" );
 
             UnifiedGeometry_Draw    cmd;
             cmd.vertexCount = indices.size();
             geometry.Draw( cmd );
-            geometry.Buffer( "un_Cube", cube );
+            geometry.ArgIn( "un_Cube",  cube );
         }
 
         scene.Input( camera );
@@ -50,7 +53,7 @@
         // render loop
         {
             RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "main pass" );
-            draw.AddPipeline( "Draw/FSBarycentric-Cube.as" );   // file:///<path>/samples/res_editor/_data/pipelines/Draw/FSBarycentric-Cube.as
+            draw.AddPipeline( "Draw/samples-FSBarycentric.as" );    // file:///<path>/AE/samples/res_editor/_data/pipelines/Draw/samples-FSBarycentric.as
             draw.Output( "out_Color", rt, RGBA32f( 0.3, 0.5, 1.0, 1.0 ));
             draw.Output( ds, DepthStencil(1.f, 0) );
         }

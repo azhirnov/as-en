@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "graphics/Public/Common.h"
+#include "graphics/Public/ShaderEnums.h"
 
 namespace AE::Graphics
 {
@@ -15,151 +15,231 @@ namespace AE::Graphics
     // Resource State
     //
 
-    enum class EResourceState : ushort
+    struct _EResState
     {
-        Unknown                                 = 0,
-        Preserve                                = 0x01,             // keep content and previous state
+        enum EState : uint
+        {
+            Unknown                     = 0,
+            Preserve,
 
-        ShaderStorage_Read                      = 0x02,
-        ShaderStorage_Write                     = 0x03,
-        ShaderStorage_ReadWrite                 = 0x04,
+            // image layout outside of shader stages
+            CopySrc,
+            CopyDst,
+            ClearDst,
+            BlitSrc,
+            BlitDst,
+            ColorAttachment,
+            DepthStencilTest,
+            DepthStencilAttachment_RW,
+            DepthTest_StencilRW,
+            DepthRW_StencilTest,
+            PresentImage,
+            ShadingRateImage,
+            General,
+
+            // image layout in shader stages
+            ShaderStorage_Read,
+            ShaderStorage_Write,
+            ShaderStorage_RW,
+            ShaderUniform,
+            ShaderSample,
+            InputColorAttachment,
+            InputColorAttachment_RW,
+            InputDepthStencilAttachment,
+            InputDepthStencilAttachment_RW,
+            DepthStencilTest_ShaderSample,
+            DepthTest_DepthSample_StencilRW,
+            Host_Read,
+            Host_Write,
+
+            // buffer state in shader stages
+            ShaderRTAS,
+            //ShaderAddress = ShaderStorage,
+
+            // buffer state outside of shader stages
+            IndirectBuffer,
+            IndexBuffer,
+            VertexBuffer,
+            CopyRTAS_Read,
+            CopyRTAS_Write,
+            BuildRTAS_Read,
+            BuildRTAS_RW,
+            BuildRTAS_IndirectBuffer,
+            RTShaderBindingTable,
+
+            _AccessCount,
+        };
+        static constexpr uint   AccessMask                  = 0xFF;
+
+        // access type to speed up barrier checks
+        static constexpr uint   Read                        = 1 << 8;           // buffer|color|depth
+        static constexpr uint   Write                       = 1 << 9;           // buffer|color|depth
+        static constexpr uint   ReadWrite                   = Read | Write;
+        static constexpr uint   DepthTest                   = Read;
+        static constexpr uint   DepthWrite                  = Write;
+        static constexpr uint   DepthRW                     = Read | Write;
+        static constexpr uint   StencilTest                 = 1 << 10;
+        static constexpr uint   StencilWrite                = 1 << 11;
+        static constexpr uint   StencilRW                   = StencilTest | StencilWrite;
+        static constexpr uint   AllReadWriteBits            = ReadWrite | StencilRW;
+        static constexpr uint   AllReadBits                 = Read | StencilTest;
+        static constexpr uint   AllWriteBits                = Write | StencilWrite;
+
+        // flags
+        static constexpr uint   DSTestBeforeFS              = 1 << 12;
+        static constexpr uint   DSTestAfterFS               = 1 << 13;
+        static constexpr uint   Invalidate                  = 1 << 14;
+
+        // shader bits
+        static constexpr uint   MeshTaskShader              = 1 << 15;
+        static constexpr uint   VertexProcessingShaders     = 1 << 16;
+        static constexpr uint   TileShader                  = 1 << 17;
+        static constexpr uint   FragmentShader              = 1 << 18;
+        static constexpr uint   ComputeShader               = 1 << 19;
+        static constexpr uint   RayTracingShaders           = 1 << 20;
+
+        STATIC_ASSERT( uint(_AccessCount) < Read );
+    };
+
+
+    enum class EResourceState : uint
+    {
+        Unknown                                 = _EResState::Unknown,
+        Preserve                                = _EResState::Preserve,                                     // keep content and previous state
+
+        ShaderStorage_Read                      = _EResState::ShaderStorage_Read | _EResState::Read,
+        ShaderStorage_Write                     = _EResState::ShaderStorage_Write | _EResState::Write,
+        ShaderStorage_ReadWrite                 = _EResState::ShaderStorage_RW | _EResState::ReadWrite,
         ShaderStorage_RW                        = ShaderStorage_ReadWrite,
 
-        // buffer device address
-        ShaderAddress_Read                      = ShaderStorage_Read,
+        ShaderAddress_Read                      = ShaderStorage_Read,                                       // buffer device address
         ShaderAddress_Write                     = ShaderStorage_Write,
         ShaderAddress_RW                        = ShaderStorage_RW,
 
-        ShaderUniform                           = 0x05,
+        ShaderUniform                           = _EResState::ShaderUniform | _EResState::Read,
         UniformRead                             = ShaderUniform,
-        ShaderSample                            = 0x06,             // sampled image or uniform texel buffer
+        ShaderSample                            = _EResState::ShaderSample | _EResState::Read,              // sampled image or uniform texel buffer
 
-        CopySrc                                 = 0x07,
-        CopyDst                                 = 0x08,
+        CopySrc                                 = _EResState::CopySrc | _EResState::Read,
+        CopyDst                                 = _EResState::CopyDst | _EResState::Write,
 
-        ClearDst                                = 0x09,
+        ClearDst                                = _EResState::ClearDst | _EResState::Write,
 
-        BlitSrc                                 = 0x0A,
-        BlitDst                                 = 0x0B,
+        BlitSrc                                 = _EResState::BlitSrc | _EResState::Read,
+        BlitDst                                 = _EResState::BlitDst | _EResState::Write,
 
-        InputColorAttachment                    = 0x0C,             // for fragment or tile shader
-        InputColorAttachment_ReadWrite          = 0x0D,
+        InputColorAttachment                    = _EResState::InputColorAttachment | _EResState::Read,      // for fragment or tile shader
+        InputColorAttachment_ReadWrite          = _EResState::InputColorAttachment_RW | _EResState::Write,  // for programmable blending
         InputColorAttachment_RW                 = InputColorAttachment_ReadWrite,
 
-        ColorAttachment_Write                   = 0x0E,
-        ColorAttachment_ReadWrite               = 0x0F,
-        ColorAttachment_RW                      = ColorAttachment_ReadWrite,
+        ColorAttachment                         = _EResState::ColorAttachment | _EResState::Write,
+        ColorAttachment_Blend                   = _EResState::ColorAttachment | _EResState::ReadWrite,      // for blending
 
-        DepthStencilAttachment_Read             = 0x10,             // only for depth test
+        DepthStencilAttachment_Read             = _EResState::DepthStencilTest | _EResState::DepthTest | _EResState::StencilTest,               // only for depth test
         DepthStencilTest                        = DepthStencilAttachment_Read,
-        DepthStencilAttachment_Write            = 0x11,
-        DepthStencilAttachment_ReadWrite        = 0x12,             // depth test and write
+        DepthStencilAttachment_Write            = _EResState::DepthStencilAttachment_RW | _EResState::DepthWrite | _EResState::StencilWrite,
+        DepthStencilAttachment_ReadWrite        = _EResState::DepthStencilAttachment_RW | _EResState::DepthRW | _EResState::StencilRW,          // depth test and write
         DepthStencilAttachment_RW               = DepthStencilAttachment_ReadWrite,
-        DepthRead_StencilReadWrite              = 0x13,
+        DepthRead_StencilReadWrite              = _EResState::DepthTest_StencilRW | _EResState::DepthTest | _EResState::StencilRW,
         DepthTest_StencilRW                     = DepthRead_StencilReadWrite,
-        DepthReadWrite_StencilRead              = 0x14,
+        DepthReadWrite_StencilRead              = _EResState::DepthRW_StencilTest | _EResState::DepthRW | _EResState::StencilTest,
         DepthRW_StencilTest                     = DepthReadWrite_StencilRead,
 
-        InputDepthStencilAttachment             = 0x15,
-        InputDepthStencilAttachment_ReadWrite   = 0x16,
+        InputDepthStencilAttachment             = _EResState::InputDepthStencilAttachment | _EResState::DepthTest | _EResState::StencilTest,
+        InputDepthStencilAttachment_ReadWrite   = _EResState::InputDepthStencilAttachment_RW | _EResState::DepthRW | _EResState::StencilRW,
         InputDepthStencilAttachment_RW          = InputDepthStencilAttachment_ReadWrite,
 
         // readonly depth stencil attachment with depth or stencil test  +  read/sample in fragment shader
-        DepthStencilTest_ShaderSample           = 0x17,
-        DepthTest_DepthSample_StencilRW         = 0x18,
+        DepthStencilTest_ShaderSample           = _EResState::DepthStencilTest_ShaderSample | _EResState::DepthTest | _EResState::StencilTest,
+        DepthTest_DepthSample_StencilRW         = _EResState::DepthTest_DepthSample_StencilRW | _EResState::DepthTest | _EResState::StencilRW,
 
-        Host_Read                               = 0x19,
-        Host_Write                              = 0x1A,
-        Host_ReadWrite                          = 0x1B,
-        Host_RW                                 = Host_ReadWrite,
+        Host_Read                               = _EResState::Host_Read | _EResState::Read,
+        Host_Write                              = _EResState::Host_Write | _EResState::Write,
 
-        PresentImage                            = 0x1C,
+        PresentImage                            = _EResState::PresentImage | _EResState::Read,
 
-        IndirectBuffer                          = 0x1D,
-        IndexBuffer                             = 0x1E,
-        VertexBuffer                            = 0x1F,
+        IndirectBuffer                          = _EResState::IndirectBuffer | _EResState::Read,
+        IndexBuffer                             = _EResState::IndexBuffer | _EResState::Read,
+        VertexBuffer                            = _EResState::VertexBuffer | _EResState::Read,
 
         // only for BuildRTASContext
-        CopyRTAS_Read                           = 0x20,             // AS & src buffer
-        CopyRTAS_Write                          = 0x21,             // AS & dst buffer
-        BuildRTAS_Read                          = 0x22,
-        BuildRTAS_Write                         = 0x23,
-        BuildRTAS_ReadWrite                     = 0x24,
+        CopyRTAS_Read                           = _EResState::CopyRTAS_Read | _EResState::Read,             // AS & src buffer
+        CopyRTAS_Write                          = _EResState::CopyRTAS_Write | _EResState::Write,           // AS & dst buffer
+        BuildRTAS_Read                          = _EResState::BuildRTAS_Read | _EResState::Read,
+        BuildRTAS_Write                         = _EResState::BuildRTAS_RW | _EResState::Write,
+        BuildRTAS_ReadWrite                     = _EResState::BuildRTAS_RW | _EResState::ReadWrite,
         BuildRTAS_RW                            = BuildRTAS_ReadWrite,
         BuildRTAS_ScratchBuffer                 = BuildRTAS_ReadWrite,
-        BuildRTAS_IndirectBuffer                = 0x25,
+        BuildRTAS_IndirectBuffer                = _EResState::BuildRTAS_IndirectBuffer | _EResState::Read,
 
-        ShaderRTAS_Read                         = 0x26,             // use RTScene in shader, for RT pipeline and ray query
-        RTShaderBindingTable                    = 0x27,
+        ShaderRTAS                              = _EResState::ShaderRTAS | _EResState::Read,                // use RTScene in shader, for RT pipeline and ray query
+        RTShaderBindingTable                    = _EResState::RTShaderBindingTable | _EResState::Read,
 
-        ShadingRateImage                        = 0x28,
+        ShadingRateImage                        = _EResState::ShadingRateImage | _EResState::Read,
 
-        General                                 = 0x29,             // all stages & all access types
+        General                                 = _EResState::General | _EResState::ReadWrite,              // all stages & all access types
 
-        _AccessCount,
-        _AccessMask                             = 0x3F,
 
         // flags
-        DSTestBeforeFS                          = 0x0080,
-        DSTestAfterFS                           = 0x0100,
-        Invalidate                              = 0x0200,       // only for image
-        _FlagsMask                              = DSTestBeforeFS | DSTestAfterFS | Invalidate,
+        DSTestBeforeFS                          = _EResState::DSTestBeforeFS,           // depth stencil test before fragment shader (best performance)
+        DSTestAfterFS                           = _EResState::DSTestAfterFS,            // depth stencil test after fragment shader (low performance)
+        Invalidate                              = _EResState::Invalidate,               // only for image
 
         // shader bits
-        MeshTaskShader                          = 0x0400,       // AMD: executed in compute queue
-        VertexProcessingShaders                 = 0x0800,       // executed only in graphics queue (VS, TCS, TES, GS, Mesh)
-        TileShader                              = 0x1000,
-        FragmentShader                          = 0x2000,
-        ComputeShader                           = 0x4000,
-        RayTracingShaders                       = 0x8000,
+        MeshTaskShader                          = _EResState::MeshTaskShader,           // AMD: executed in compute queue
+        VertexProcessingShaders                 = _EResState::VertexProcessingShaders,  // executed only in graphics queue (VS, TCS, TES, GS, Mesh)
+        TileShader                              = _EResState::TileShader,
+        FragmentShader                          = _EResState::FragmentShader,
+        ComputeShader                           = _EResState::ComputeShader,
+        RayTracingShaders                       = _EResState::RayTracingShaders,
         PreRasterizationShaders                 = MeshTaskShader | VertexProcessingShaders,
         PostRasterizationShaders                = TileShader | FragmentShader,
         AllGraphicsShaders                      = PreRasterizationShaders | PostRasterizationShaders,
         AllShaders                              = PreRasterizationShaders | PostRasterizationShaders | ComputeShader | RayTracingShaders,
 
-        _InvalidState                           = 0xFFFF,
+        _InvalidState                           = ~0u,
     };
 
-    STATIC_ASSERT( EResourceState::_AccessCount < EResourceState::_AccessMask );
+    STATIC_ASSERT( sizeof(EResourceState) == sizeof(_EResState::EState) );
 
 
-    ND_ forceinline constexpr EResourceState  operator | (EResourceState lhs, EResourceState rhs)
+/*
+=================================================
+    EResourceState operators
+=================================================
+*/
+    ND_ constexpr EResourceState  operator | (EResourceState lhs, EResourceState rhs) __NE___
     {
-        DBG_CHECK_MSG( uint(AnyBits( lhs, EResourceState::_AccessMask )) + uint(AnyBits( rhs, EResourceState::_AccessMask )) < 2,
+        DBG_CHECK_MSG( uint(AnyBits( lhs, _EResState::AccessMask )) + uint(AnyBits( rhs, _EResState::AccessMask )) < 2,
                     "only one operand must have access bits" );
 
         return EResourceState( uint(lhs) | uint(rhs) );
     }
 
-    ND_ forceinline constexpr EResourceState  operator & (EResourceState lhs, EResourceState rhs)
+    ND_ constexpr EResourceState  operator & (EResourceState lhs, EResourceState rhs) __NE___
     {
         return EResourceState( uint(lhs) & uint(rhs) );
     }
 
-    forceinline constexpr EResourceState&  operator |= (EResourceState &lhs, EResourceState rhs)
+    constexpr EResourceState&  operator |= (EResourceState &lhs, EResourceState rhs) __NE___
     {
         return (lhs = (lhs | rhs));
     }
 
-    forceinline constexpr EResourceState&  operator &= (EResourceState &lhs, EResourceState rhs)
+    constexpr EResourceState&  operator &= (EResourceState &lhs, EResourceState rhs) __NE___
     {
         return (lhs = (lhs & rhs));
     }
 
-    ND_ forceinline constexpr EResourceState  operator ~ (EResourceState x)
+    ND_ constexpr EResourceState  operator ~ (EResourceState x) __NE___
     {
         return EResourceState(~uint(x));
     }
 
-/*
-=================================================
-    EResourceState_IsSameStates
-=================================================
-*/
-    ND_ forceinline constexpr bool  EResourceState_IsSameStates (EResourceState srcState, EResourceState dstState) __NE___
+
+    ND_ constexpr _EResState::EState  ToEResState (EResourceState state) __NE___
     {
-        constexpr auto  mask = EResourceState::_AccessMask | EResourceState::Invalidate;
-        return (srcState & mask) == (dstState & mask);
+        return _EResState::EState(uint(state) & _EResState::AccessMask);
     }
 
 

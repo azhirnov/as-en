@@ -4,7 +4,7 @@
 
 namespace
 {
-    static void StringParser_ToEndOfLine ()
+    static void  StringParser_ToEndOfLine ()
     {
         usize   pos = 7;
         StringParser::ToEndOfLine( "1111\n2222\n3333333", pos );
@@ -24,7 +24,7 @@ namespace
     }
 
 
-    static void StringParser_ToBeginOfLine ()
+    static void  StringParser_ToBeginOfLine ()
     {
         usize   pos = 7;
         StringParser::ToBeginOfLine( "1111\n2222\n3333333", pos );
@@ -36,7 +36,7 @@ namespace
     }
 
 
-    static void StringParser_ToNextLine ()
+    static void  StringParser_ToNextLine ()
     {
         usize   pos = 7;
         StringParser::ToNextLine( "1111\n2222\n3333333", pos );
@@ -48,7 +48,7 @@ namespace
     }
 
 
-    static void StringParser_ToPrevLine ()
+    static void  StringParser_ToPrevLine ()
     {
         usize   pos = 7;
         StringParser::ToPrevLine( "1111\n2222\n3333333", pos );
@@ -56,7 +56,7 @@ namespace
     }
 
 
-    static void StringParser_Tokenize_1 ()
+    static void  StringParser_Tokenize_1 ()
     {
         Array< StringView > tokens;
         StringParser::Tokenize( "11,22,33,44,55", ',', tokens );
@@ -70,7 +70,7 @@ namespace
     }
 
 
-    static void StringParser_Tokenize_2 ()
+    static void  StringParser_Tokenize_2 ()
     {
         Array< StringView > tokens;
         StringParser::Tokenize( "1111,2,,4,", ',', tokens );
@@ -84,7 +84,7 @@ namespace
     }
 
 
-    static void StringParser_CStyleDivideString ()
+    static void  StringParser_CStyleDivideString ()
     {
         Array< StringView > tokens;
         StringParser::DivideString_CPP( "a=122; _bc+=5/ 7*34\",,\"--->", OUT tokens );
@@ -112,7 +112,7 @@ namespace
     }
 
 
-    static void StringParser_ReadLine ()
+    static void  StringParser_ReadLine ()
     {
         StringView  str = "01234\r\n5678";
         StringView  line;
@@ -125,7 +125,7 @@ namespace
     }
 
 
-    static void StringParser_ReadString ()
+    static void  StringParser_ReadString ()
     {
         usize       pos = 0;
         StringView  result;
@@ -136,7 +136,7 @@ namespace
     }
 
 
-    static void StringParser_CalculateNumberOfLines ()
+    static void  StringParser_CalculateNumberOfLines ()
     {
         usize   lines = StringParser::CalculateNumberOfLines( "1\n2\n3\r\n4\r\n5\n6\n7\r8\n9\n10" );
         TEST( lines == 10 );
@@ -146,10 +146,31 @@ namespace
 
         lines = StringParser::CalculateNumberOfLines( "1\n2\n" );
         TEST( lines == 3 );
+
+        const char  source[] = "// 11\r\n"
+            "#ifdef __INTELLISENSE__\r\n"
+            "#  include <res_editor.as>\r\n"
+            "#  define SH_RAY_GEN\r\n"
+            "#  include <aestyle.glsl.h>\r\n"
+            "#  define PRIMARY_MISS\r\n"
+            "#  define SHADOW_MISS\r\n"
+            "#  define PRIMARY_HIT\r\n"
+            "#  define SHADOW_HIT\r\n"
+            "#endif\r\n"
+            "//-----------------------------------------------------------------------------\r\n"
+            "#ifdef SCRIPT\r\n"
+            "\r\n"
+            "   void ASmain ()\r\n"
+            "   {\r\n"
+            "   }\r\n"
+            "\r\n"
+            "#endif";
+        lines = StringParser::CalculateNumberOfLines( source );
+        TEST( lines == 18 );
     }
 
 
-    static void StringParser_MoveToLine ()
+    static void  StringParser_MoveToLine ()
     {
         usize pos = 0;
         StringParser::MoveToLine( "1\n2\n3\r\n4\r\n5\n6\n7\r8\n9\n10", OUT pos, 0 );
@@ -165,7 +186,7 @@ namespace
     }
 
 
-    static void StringParser_Preprocessor_CPP ()
+    static void  StringParser_Preprocessor_CPP ()
     {
         const char  source[] = 
 R"(aaaj sdi kas jnd

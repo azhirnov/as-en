@@ -38,6 +38,9 @@ namespace AE::Scripting
 
             void  AddValue (StringView name, T value)           __Th___;
 
+        // can be used to write docs in code
+            void  Comment (StringView text)                     __Th___;
+
         ND_ StringView                          Name ()         C_NE___ { return _name; }
         ND_ const ScriptEnginePtr &             GetEngine ()    C_NE___ { return _engine; }
         ND_ Ptr< AngelScript::asIScriptEngine > GetASEngine ()  __NE___ { return _engine->Get(); }
@@ -66,7 +69,7 @@ namespace AE::Scripting
     EnumBinder<T>::~EnumBinder () __NE___
     {
         if_unlikely( _genHeader )
-            _engine->AddCppHeader( _name, RVRef(_header), AngelScript::asOBJ_ENUM );
+            _engine->AddCppHeader( RVRef(_name), RVRef(_header), AngelScript::asOBJ_ENUM );
     }
 
 /*
@@ -142,5 +145,26 @@ namespace AE::Scripting
             _header += ";\n";
         }
     }
+
+/*
+=================================================
+    Comment
+=================================================
+*/
+    template <typename T>
+    void  EnumBinder<T>::Comment (StringView text) __Th___
+    {
+        if_unlikely( _genHeader and not text.empty() )
+        {
+            _header << '\n';
+            for (usize pos = 0; pos < text.size();)
+            {
+                StringView  line;
+                StringParser::ReadCurrLine( text, INOUT pos, OUT line );
+                _header << "\t// " << line << '\n';
+            }
+        }
+    }
+
 
 } // AE::Scripting

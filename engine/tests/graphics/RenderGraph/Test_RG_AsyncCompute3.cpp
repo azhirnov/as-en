@@ -23,6 +23,8 @@ namespace
     {
         Mutex                           guard;
 
+        RenderTechPipelinesPtr          rtech;
+
         // shared
         GAutorelease<ImageID>           image [2];
         GAutorelease<ImageViewID>       view  [2];
@@ -43,6 +45,8 @@ namespace
         ImageComparator *               imgCmp  = null;
         RC<GfxLinearMemAllocator>       gfxAlloc;
     };
+
+    static constexpr auto&  RTech = RenderTechs::AsyncCompTestRT;
 
 
     template <typename CtxTypes>
@@ -69,9 +73,12 @@ namespace
 
             // draw
             {
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.imageSize }
+                constexpr auto&     rtech_pass = RTech.Draw_1;
+                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.imageSize }
                                     .AddViewport( t.imageSize )
-                                    .AddTarget( AttachmentName{"Color"}, t.view[fi], RGBA32f{1.0f} ));
+                                    .AddTarget( rtech_pass.att_Color, t.view[fi], RGBA32f{1.0f} ));
 
                 dctx.BindPipeline( t.gppln );
                 dctx.Draw( 3 );
@@ -223,14 +230,16 @@ namespace
     template <typename CtxTypes, typename CopyCtx>
     static bool  AsyncCompute3Test (RenderTechPipelinesPtr renderTech, ImageComparator *imageCmp)
     {
-        auto&           rts         = RenderTaskScheduler();
-        auto&           res_mngr    = rts.GetResourceManager();
+        auto&           res_mngr    = RenderTaskScheduler().GetResourceManager();
         AC3_TestData    t;
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         auto&           rg          = RenderTaskScheduler().GetRenderGraph();
 
+        t.rtech     = renderTech;
         t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
         t.imgCmp    = imageCmp;
+
+        CHECK_ERR( t.rtech->Name() == RenderTechName{RTech} );
 
         t.image[0] = rg.CreateImage( ImageDesc{}.SetDimension( t.imageSize )
                                             .SetFormat( format )
@@ -246,11 +255,9 @@ namespace
         t.view[1] = res_mngr.CreateImageView( ImageViewDesc{}, t.image[1], "ImageView-1" );
         CHECK_ERR( t.view[0] and t.view[1] );
 
-        t.gppln = renderTech->GetGraphicsPipeline( PipelineName{"async_comp1.graphics"} );
-        CHECK_ERR( t.gppln );
-
-        t.cppln = renderTech->GetComputePipeline( PipelineName{"async_comp1.compute"} );
-        CHECK_ERR( t.cppln );
+        t.gppln = t.rtech->GetGraphicsPipeline( RTech.Draw_1.async_comp1_graphics );
+        t.cppln = t.rtech->GetComputePipeline( RTech.Compute_1.async_comp1_compute );
+        CHECK_ERR( t.gppln and t.cppln );
 
         {
             auto [ds0, idx0] = res_mngr.CreateDescriptorSet( t.cppln, DescriptorSetName{"compute2.ds1"} );
@@ -276,7 +283,7 @@ namespace
         auto    task = Scheduler().Run< AC3_FrameTask<CtxTypes, CopyCtx> >( Tuple{ArgRef(t)} );
 
         CHECK_ERR( Scheduler().Wait( {task} ));
-        CHECK_ERR( rts.WaitAll() );
+        CHECK_ERR( rg.WaitAll() );
 
         CHECK_ERR( t.frameIdx.load() == 4 );
 

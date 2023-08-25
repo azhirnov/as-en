@@ -5,6 +5,7 @@
     DDS     - without locks (only for allocations)
     DevIL   = internal mutex for all instances, single threaded
     STB     - without locks (only for allocations)
+    KTX     - without locks (only for allocations)
 */
 
 #pragma once

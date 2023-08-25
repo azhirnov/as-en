@@ -1,6 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Draw particles as rays.
+    Used geometry shader to build oriented quad.
+*/
 #ifdef __INTELLISENSE__
-#   include <pipeline_compiler>
+#   include <pipeline_compiler.as>
 #   include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------
@@ -9,31 +13,33 @@
     void ASmain ()
     {
         {
-            RC<ShaderStructType>    st = ShaderStructType( "particles.io.vs_gs" );
-            st.Set( "float4     startPos;" +
+            RC<ShaderStructType>    st = ShaderStructType( "io.vs_gs" );
+            st.Set( EStructLayout::InternalIO,
+                    "float4     startPos;" +
                     "float4     endPos;" +
                     "float4     color;" +
                     "float      size;" );
         }{
-            RC<ShaderStructType>    st = ShaderStructType( "particles.io.gs_fs" );
-            st.Set( "float2     uv;" +
+            RC<ShaderStructType>    st = ShaderStructType( "io.gs_fs" );
+            st.Set( EStructLayout::InternalIO,
+                    "float2     uv;" +
                     "float4     color;" );
         }{
-            RC<DescriptorSetLayout> ds = DescriptorSetLayout( "particles.mtr.ds" );
+            RC<DescriptorSetLayout> ds = DescriptorSetLayout( "mtr.ds" );
             ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", ArraySize(1), "UnifiedGeometryMaterialUB" );
             ds.StorageBuffer( EShaderStages::Vertex, "un_Particles", ArraySize(1), "ParticleArray", EAccessType::Coherent, EResourceState::ShaderStorage_Read );
         }{
-            RC<PipelineLayout>      pl = PipelineLayout( "particles.pl" );
+            RC<PipelineLayout>      pl = PipelineLayout( "pl" );
             pl.DSLayout( "pass",     0, "pass.ds" );
-            pl.DSLayout( "material", 1, "particles.mtr.ds" );
+            pl.DSLayout( "material", 1, "mtr.ds" );
         }
 
         {
-            RC<GraphicsPipeline>    ppln = GraphicsPipeline( "particles.draw1" );
-            ppln.SetLayout( "particles.pl" );
+            RC<GraphicsPipeline>    ppln = GraphicsPipeline( "tmpl" );
+            ppln.SetLayout( "pl" );
             ppln.SetFragmentOutputFromRenderTech( "rtech", "main" );
-            ppln.SetShaderIO( EShader::Vertex,   EShader::Geometry, "particles.io.vs_gs" );
-            ppln.SetShaderIO( EShader::Geometry, EShader::Fragment, "particles.io.gs_fs" );
+            ppln.SetShaderIO( EShader::Vertex,   EShader::Geometry, "io.vs_gs" );
+            ppln.SetShaderIO( EShader::Geometry, EShader::Fragment, "io.gs_fs" );
 
             {
                 RC<Shader>  vs = Shader();
@@ -51,18 +57,17 @@
 
             // specialization
             {
-                RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "particles.draw1" );
+                RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "spec" );
                 spec.AddToRenderTech( "rtech", "main" );  // in ScriptSceneGraphicsPass
 
                 RenderState rs;
-
-                RenderState_ColorBuffer cb;
-                cb.srcBlendFactor   .set( EBlendFactor::One );
-                cb.dstBlendFactor   .set( EBlendFactor::One );
-                cb.blendOp          .set( EBlendOp::Add );
-                cb.blend            = true;
-                rs.color.SetColorBuffer( 0, cb );
-
+                {
+                    RenderState_ColorBuffer     cb;
+                    cb.SrcBlendFactor( EBlendFactor::One );
+                    cb.DstBlendFactor( EBlendFactor::One );
+                    cb.BlendOp( EBlendOp::Add );
+                    rs.color.SetColorBuffer( 0, cb );
+                }
                 rs.depth.test                   = false;
                 rs.depth.write                  = false;
 

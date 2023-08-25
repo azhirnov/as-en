@@ -20,7 +20,7 @@ namespace AE::GeometryTools
         struct Vertex
         {
             packed_short4   position;
-            packed_short4   texcoord;   // for CubeMap, use xy for 2D
+            packed_short4   texcoord;   // 2D or CubeMap
             packed_short4   normal;
             packed_short4   tangent;
             packed_short4   bitangent;
@@ -31,7 +31,7 @@ namespace AE::GeometryTools
         {
             packed_float3   position;
             packed_float3   normal;
-            packed_float3   texcoord;   // for CubeMap, use xy for 2D
+            packed_float3   texcoord;
             packed_float3   tangent;
             packed_float3   bitangent;
 
@@ -50,7 +50,10 @@ namespace AE::GeometryTools
 
     // methods
     public:
-        ND_ bool  Create ()                     __NE___;
+
+        // if 'cubeMap' is true then xyz texcoords will be generated for cubemap texture.
+        // if 'cubeMap' is false then xy texcoords will be generated for 2D texture.
+        ND_ bool  Create (Bool cubeMap)         __NE___;
 
         ND_ ArrayView<Vertex>   GetVertices ()  C_NE___ { return _vertices; }
         ND_ ArrayView<Index>    GetIndices ()   C_NE___ { return _indices; }

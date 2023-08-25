@@ -41,7 +41,7 @@ namespace AE::ResEditor
         RC<IController>         _controller;
         Constants               _shConst;
 
-        Resources_t             _resources;
+        ResourceArray           _resources;
         RenderTargets_t         _renderTargets;
 
         String                  _dbgName;
@@ -59,6 +59,7 @@ namespace AE::ResEditor
         StringView      GetName ()                                          C_NE_OV { return _dbgName; }
         bool            Execute (SyncPassData &)                            __NE_OV;
         bool            Update (TransferCtx_t &, const UpdatePassData &)    __NE_OV;
+        void            GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV;
     };
 
 

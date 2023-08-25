@@ -1,6 +1,6 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
-void DeclRenderPass ()
+void DeclRenderPass1 ()
 {
     RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "DrawTest" );
 
@@ -23,6 +23,49 @@ void DeclRenderPass ()
         rt.Layout( InitialLayout,   EResourceState::ShaderSample | EResourceState::FragmentShader );
         rt.Layout( pass,            EResourceState::ColorAttachment );
         rt.Layout( FinalLayout,     EResourceState::ShaderSample | EResourceState::FragmentShader );
+    }
+    {
+        RC<RenderPass>      rp = compat.AddSpecialization( "DrawTest.Draw_2" );
+
+        RC<AttachmentSpec>  rt = rp.AddAttachment( "Color" );
+        rt.loadOp   = EAttachmentLoadOp::Load;
+        rt.storeOp  = EAttachmentStoreOp::Store;
+        rt.Layout( InitialLayout,   EResourceState::ColorAttachment );
+        rt.Layout( pass,            EResourceState::ColorAttachment );
+        rt.Layout( FinalLayout,     EResourceState::ShaderSample | EResourceState::FragmentShader );
+    }
+}
+
+
+void DeclRenderPass2 ()
+{
+    RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "DrawTest4" );
+
+    const string    pass = "Main";
+    compat.AddSubpass( pass );
+
+    {
+        RC<Attachment>  rt  = compat.AddAttachment( "Color" );
+        rt.format       = EPixelFormat::RGBA8_UNorm;
+        rt.Usage( pass, EAttachment::Color,     ShaderIO("out_Color") );
+    }
+
+    // specialization
+    {
+        RC<RenderPass>      rp = compat.AddSpecialization( "DrawTest4.Pass1" );
+
+        RC<AttachmentSpec>  rt = rp.AddAttachment( "Color" );
+        rt.loadOp   = EAttachmentLoadOp::Clear;
+        rt.storeOp  = EAttachmentStoreOp::Store;
+        rt.Layout( pass, EResourceState::ColorAttachment );
+    }
+    {
+        RC<RenderPass>      rp = compat.AddSpecialization( "DrawTest4.Pass2" );
+
+        RC<AttachmentSpec>  rt = rp.AddAttachment( "Color" );
+        rt.loadOp   = EAttachmentLoadOp::Load;
+        rt.storeOp  = EAttachmentStoreOp::Store;
+        rt.Layout( pass, EResourceState::ColorAttachment );
     }
 }
 
@@ -75,6 +118,16 @@ void DeclRenderTech ()
         RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Draw_1" );
 
         pass.SetRenderPass( "DrawTest.Draw_1", /*subpass*/"Main" );
+    }
+    {
+        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Test4-1" );
+
+        pass.SetRenderPass( "DrawTest4.Pass1", /*subpass*/"Main" );
+    }
+    {
+        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Test4-2" );
+
+        pass.SetRenderPass( "DrawTest4.Pass2", /*subpass*/"Main" );
     }
 }
 
@@ -145,7 +198,8 @@ void DeclVRSRenderTech ()
 
 void ASmain ()
 {
-    DeclRenderPass();
+    DeclRenderPass1();
+    DeclRenderPass2();
     DeclVRSRenderPass();
 
     DeclRenderTech();

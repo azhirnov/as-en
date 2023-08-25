@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 
 void ASmain ()
@@ -64,6 +64,7 @@ void ASmain ()
     fset.vulkanMemoryModelDeviceScope (True);
     fset.vulkanMemoryModelAvailabilityVisibilityChains (True);
     fset.minSpirvVersion (130);
+    fset.drawIndirectFirstInstance (True);
     fset.minViewports (1);
     fset.tessellationIsolines (True);
     fset.tessellationPointMode (True);

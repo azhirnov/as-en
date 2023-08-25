@@ -48,7 +48,7 @@
         - If null task used as dependency                           -> ignore
         - If null coroutine used as dependency (co_await noop_coro) -> cancel coroutine
 
-    docs: file:///<path>/engine/docs/ru/TaskScheduler.md
+    docs: file:///<path>/AE/engine/docs/ru/TaskScheduler.md
 */
 
 #pragma once
@@ -180,10 +180,10 @@ namespace AE::Threading
 
         struct PerQueue
         {
-            Unique<LfTaskQueue>     ptr;
+            Unique<class LfTaskQueue>   ptr;
 
             AE_SCHEDULER_PROFILING(
-                ulong               totalProcessed  = 0;
+                ulong                   totalProcessed  = 0;
             )
         };
 
@@ -248,8 +248,8 @@ namespace AE::Threading
 
     // methods
     public:
-            static void  CreateInstance ();
-            static void  DestroyInstance ();
+            static void  CreateInstance ()                                          __NE___;
+            static void  DestroyInstance ()                                         __NE___;
 
         ND_ bool  Setup (const Config &cfg)                                         __NE___;
             void  SetProfiler (RC<ITaskProfiler> profiler)                          __NE___;
@@ -347,7 +347,7 @@ namespace AE::Threading
 
 
     private:
-        TaskScheduler ();
+        TaskScheduler ()                                                            __NE___;
         ~TaskScheduler ()                                                           __NE___;
 
         ND_ static TaskScheduler&  _Instance ()                                     __NE___;
@@ -582,7 +582,8 @@ namespace AE::Threading
         SHAREDLOCK( _taskDepsMngrsGuard );
 
         auto    iter = _taskDepsMngrs.find( typeid(T) );
-        CHECK_ERR( iter != _taskDepsMngrs.end() );
+        CHECK_ERR_MSG( iter != _taskDepsMngrs.end(),
+            "Can't find dependency manager for type: "s << typeid(T).name() );
 
         return iter->second->Resolve( AnyTypeCRef{dep}, task, INOUT bitIndex );
     }
@@ -612,7 +613,7 @@ namespace AE::Threading
         ASSERT( _isRunning.load() );
         ASSERT( _waitBits.load() == 0 );    // all input dependencies must complete
 
-        if constexpr( sizeof...(Deps) > 0 )
+        if constexpr( CountOf<Deps...>() > 0 )
         {
             // in '_AddDependencies()' current task has been added to the input dependencies
             // and they may remove bits from '_waitBits' at any time

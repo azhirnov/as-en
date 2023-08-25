@@ -82,9 +82,9 @@ RenderStates {
   [0]
     renderState = {
       depth = {
-        compareOp     = LEqual
-        write         = true
-        test          = true
+        compareOp = LEqual
+        write     = true
+        test      = true
       }
       inputAssembly = {
         topology         = TriangleList
@@ -94,9 +94,9 @@ RenderStates {
   [1]
     renderState = {
       depth = {
-        compareOp     = LEqual
-        write         = false
-        test          = false
+        compareOp = LEqual
+        write     = false
+        test      = false
       }
       inputAssembly = {
         topology         = TriangleList
@@ -106,9 +106,9 @@ RenderStates {
   [2]
     renderState = {
       depth = {
-        compareOp     = LEqual
-        write         = false
-        test          = false
+        compareOp = LEqual
+        write     = false
+        test      = false
       }
     }
 }
@@ -117,17 +117,17 @@ DepthStencilStates {
   [0]
     depthStencilState = {
       depth = {
-        compareOp     = LEqual
-        write         = true
-        test          = true
+        compareOp = LEqual
+        write     = true
+        test      = true
       }
     }
   [1]
     depthStencilState = {
       depth = {
-        compareOp     = LEqual
-        write         = false
-        test          = false
+        compareOp = LEqual
+        write     = false
+        test      = false
       }
     }
 }
@@ -657,9 +657,9 @@ RTShaderBindingTable {
 
 SpirvShaders {
   [0]  offset = 0 b
-  [1]  offset = 2672 b
+  [1]  offset = 2712 b
   [2]  offset = 5 Kb
-  [3]  offset = 7 Kb
+  [3]  offset = 8 Kb
   [4]  offset = 10 Kb
   [5]  offset = 14 Kb
   [6]  offset = 17 Kb
@@ -669,65 +669,65 @@ SpirvShaders {
   [10]  offset = 29 Kb
   [11]  offset = 32 Kb
   [12]  offset = 35 Kb
-  [13]  offset = 37 Kb
-  [14]  offset = 49 Kb
-  [15]  offset = 52 Kb
-  [16]  offset = 56 Kb
+  [13]  offset = 38 Kb
+  [14]  offset = 50 Kb
+  [15]  offset = 53 Kb
+  [16]  offset = 57 Kb
 }
 
 SpirvShaderData {
   [0]
-    codeSize = 2668 b
-    codeHash = fcc82079f13e38a6
+    codeSize = 2708 b
+    codeHash = 1de223fb8c13956e
   [1]
-    codeSize = 2516 b
-    codeHash = b763c70313476df
+    codeSize = 2556 b
+    codeHash = 914c0d3d89b2bc0b
   [2]
-    codeSize = 2924 b
-    codeHash = e0dcae0d56bbbf85
+    codeSize = 2964 b
+    codeHash = 9231702bd961cd
   [3]
-    codeSize = 2336 b
-    codeHash = 76292b8de597f49c
+    codeSize = 2376 b
+    codeHash = c8fb3973e0c672f0
   [4]
     codeSize = 4 Kb
-    codeHash = bfa8b784007cf9d
+    codeHash = 87608e931f59c71
   [5]
-    codeSize = 2892 b
-    codeHash = a3ec63c4215d1591
+    codeSize = 2932 b
+    codeHash = 295be7b40e18109
   [6]
-    codeSize = 3716 b
-    codeHash = d0eaed695107328f
+    codeSize = 3756 b
+    codeHash = 4accec62f187bd5f
     spec     = {
       [0] 'sbtRecordStride', 0
     }
   [7]
-    codeSize = 2304 b
-    codeHash = be043d81ec02d216
+    codeSize = 2344 b
+    codeHash = 3082d0788623f66a
   [8]
-    codeSize = 2792 b
-    codeHash = 60f24a4059bee629
+    codeSize = 2832 b
+    codeHash = 3de8f16d0ad1a461
   [9]
-    codeSize = 3072 b
-    codeHash = 3e3c12570b0e307c
+    codeSize = 3112 b
+    codeHash = b0b2f4a8005f7594
   [10]
-    codeSize = 3496 b
-    codeHash = 98fb3fee410398d6
+    codeSize = 3536 b
+    codeHash = c596c68dc905a50a
   [11]
-    codeSize = 2924 b
-    codeHash = 2234019392ab2e72
+    codeSize = 2964 b
+    codeHash = c27a9eeeefc9f03a
   [12]
-    codeSize = 2472 b
-    codeHash = c70747148f1261cf
+    codeSize = 2512 b
+    codeHash = 8b13be07a30c4da7
   [13]
     codeSize = 6 Kb
     withTrace
   [14]
-    codeSize = 2828 b
-    codeHash = 9309a7d89e55e1c
+    codeSize = 2868 b
+    codeHash = c9c946c3b5b20b44
   [15]
     codeSize = 4 Kb
-    codeHash = e75edcf682a0fb6b
+    codeHash = 4432bbe3e99664e7
   [16]
     codeSize = 4 Kb
-    codeHash = 2bb4889ac9beca57
+    codeHash = 9c024316011428a7
 }

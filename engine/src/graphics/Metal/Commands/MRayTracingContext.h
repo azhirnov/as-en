@@ -171,7 +171,7 @@ namespace AE::Graphics::_hidden_
     _MRayTracingContextImpl<C>::_MRayTracingContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
         RawCtx{ task, RVRef(cmdbuf), dbg }
     {
-        CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
 /*
@@ -195,7 +195,7 @@ namespace AE::Graphics::_hidden_
     template <typename C>
     void  _MRayTracingContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
     {
-        Validator_t::PushConstant( idx, size, typeName );
+        VALIDATE_GCTX( PushConstant( idx, size, typeName ));
 
         RawCtx::Arguments().SetBytes( values, size, MBufferIndex(idx.bufferId) );
     }

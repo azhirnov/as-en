@@ -159,7 +159,7 @@ namespace AE::Graphics
 
         for (auto& part : _parts)
         {
-            ASSERT( usize(part.size) % sizeof(T) == 0 );
+            ASSERT( IsAligned( usize(part.size), sizeof(T) ));
             const usize cnt = usize(part.size / SizeOf<T>);
 
             if_unlikely( rhs_i + cnt <= rhs.size()  and

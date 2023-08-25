@@ -148,7 +148,7 @@ namespace AE::Graphics
 */
     ND_ inline VkFormat  VEnumCast (EVertexType value) __NE___
     {
-    #define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
+        #define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
             case EVertexType::_engineFmt_ : return _vkFormat_;
 
         switch ( value )
@@ -156,7 +156,7 @@ namespace AE::Graphics
             AE_PRIVATE_VKVERTEXFORMATS( FMT_BUILDER )
         }
         RETURN_ERR( "unknown vertex type!", VK_FORMAT_MAX_ENUM );
-    #undef FMT_BUILDER
+        #undef FMT_BUILDER
     }
 
 /*
@@ -246,13 +246,14 @@ namespace AE::Graphics
                 case EShaderStages::RayIntersection :   flags |= VK_SHADER_STAGE_INTERSECTION_BIT_KHR;          break;
                 case EShaderStages::RayCallable :       flags |= VK_SHADER_STAGE_CALLABLE_BIT_KHR;              break;
                 case EShaderStages::Tile :              flags |= VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI;    break;
+
                 case EShaderStages::Unknown :
                 case EShaderStages::GraphicsStages :
                 case EShaderStages::MeshStages :
                 case EShaderStages::AllGraphics :
                 case EShaderStages::AllRayTracing :
-                case EShaderStages::All :               // to shutup warnings   
-                default :                               RETURN_ERR( "unknown shader type!", Zero );
+                case EShaderStages::All :
+                default_unlikely :                      RETURN_ERR( "unknown shader type!", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -286,7 +287,7 @@ namespace AE::Graphics
             case EPipelineDynamicState::GraphicsPipelineMask :
             case EPipelineDynamicState::Unknown :
             case EPipelineDynamicState::All :
-            case EPipelineDynamicState::_Last :                 break;  // to shutup warnings
+            case EPipelineDynamicState::_Last :                 break;
         }
         END_ENUM_CHECKS();
         RETURN_ERR( "unknown dynamic state type!", VK_DYNAMIC_STATE_MAX_ENUM );
@@ -464,7 +465,7 @@ namespace AE::Graphics
                 case EImageOpt::All :
                 case EImageOpt::Unknown :
                 case EImageOpt::SparseResidencyAliased :
-                default :                                       RETURN_ERR( "unknown image flag", Zero );
+                default_unlikely :                              RETURN_ERR( "unknown image flag", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -561,12 +562,13 @@ namespace AE::Graphics
                 case EImageUsage::DepthStencilAttachment :  flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;   break;
                 case EImageUsage::InputAttachment :         flags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;           break;
                 case EImageUsage::ShadingRate :             flags |= VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;   break;
+
                 case EImageUsage::_Last :
                 case EImageUsage::Unknown :
                 case EImageUsage::Transfer :
                 case EImageUsage::RWAttachment :
-                case EImageUsage::All :                     // to shutup warnings
-                default :                                   RETURN_ERR( "invalid image usage type", Zero );
+                case EImageUsage::All :
+                default_unlikely :                          RETURN_ERR( "invalid image usage type", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -601,10 +603,11 @@ namespace AE::Graphics
                 case EImageAspect::Plane_0 :    flags |= VK_IMAGE_ASPECT_PLANE_0_BIT;   break;
                 case EImageAspect::Plane_1 :    flags |= VK_IMAGE_ASPECT_PLANE_1_BIT;   break;
                 case EImageAspect::Plane_2 :    flags |= VK_IMAGE_ASPECT_PLANE_2_BIT;   break;
+
                 case EImageAspect::_Last :
                 case EImageAspect::DepthStencil :
-                case EImageAspect::Unknown :    // to shutup warnings
-                default :                       RETURN_ERR( "invalid image aspect type", Zero );
+                case EImageAspect::Unknown :
+                default_unlikely :              RETURN_ERR( "invalid image aspect type", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -642,7 +645,7 @@ namespace AE::Graphics
                 case VK_IMAGE_ASPECT_MEMORY_PLANE_2_BIT_EXT :
                 case VK_IMAGE_ASPECT_MEMORY_PLANE_3_BIT_EXT :
                 case VK_IMAGE_ASPECT_FLAG_BITS_MAX_ENUM :
-                default :                                       RETURN_ERR( "invalid image aspect type", Zero );
+                default_unlikely :                              RETURN_ERR( "invalid image aspect type", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -679,11 +682,12 @@ namespace AE::Graphics
                 case EBufferUsage::ShaderBindingTable : result |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;                         break;
                 case EBufferUsage::ASBuild_ReadOnly :   result |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR; break;
                 case EBufferUsage::ASBuild_Scratch :    result |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;                                   break;
+
                 case EBufferUsage::_Last :
                 case EBufferUsage::Transfer :
                 case EBufferUsage::Unknown :
-                case EBufferUsage::All :                // to shutup warnings
-                default :                               RETURN_ERR( "invalid buffer usage", Zero );
+                case EBufferUsage::All :
+                default_unlikely :                      RETURN_ERR( "invalid buffer usage", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -776,134 +780,18 @@ namespace AE::Graphics
     EResourceState_ToStageAccessLayout
 =================================================
 */
-    inline bool  EResourceState_ToDstStageAccessLayout (EResourceState value, OUT VkPipelineStageFlagBits2 &outStage, OUT VkAccessFlagBits2 &outAccess, OUT VkImageLayout &outLayout) __NE___
+    void  EResourceState_ToDstStageAccessLayout (const EResourceState value, OUT VkPipelineStageFlagBits2 &outStage, OUT VkAccessFlagBits2 &outAccess, OUT VkImageLayout &outLayout) __NE___;
+
+    inline void  EResourceState_ToSrcStageAccessLayout (EResourceState value, OUT VkPipelineStageFlagBits2 &outStage, OUT VkAccessFlagBits2 &outAccess, OUT VkImageLayout &outLayout) __NE___
     {
-        outLayout = VK_IMAGE_LAYOUT_MAX_ENUM;
-
-        constexpr auto VertexProcessingShaders =
-            VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT |
-            VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT |
-            VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT |
-            VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT |
-            VK_PIPELINE_STAGE_2_MESH_SHADER_BIT_EXT;
-
-        DBG_CHECK_MSG( EResourceState_RequireShaderStage( value ) == AnyBits( value, EResourceState::AllShaders ),
-                       "shader stage is not compatible with access mask" );
-
-        VkPipelineStageFlagBits2    sh_stages   = Zero;
-        VkPipelineStageFlagBits2    ds_stages   = Zero;
-
-        // PreRasterizationShaders
-        sh_stages |= AnyBits( value, EResourceState::MeshTaskShader )           ? VK_PIPELINE_STAGE_2_TASK_SHADER_BIT_EXT       : 0;
-        sh_stages |= AnyBits( value, EResourceState::VertexProcessingShaders )  ? VertexProcessingShaders                       : 0;
-        sh_stages |= AnyBits( value, EResourceState::TileShader )               ? VK_PIPELINE_STAGE_2_SUBPASS_SHADING_BIT_HUAWEI: 0;
-        sh_stages |= AnyBits( value, EResourceState::FragmentShader )           ? VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT       : 0;
-        // ignore PostRasterizationShaders
-        sh_stages |= AnyBits( value, EResourceState::ComputeShader )            ? VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT        : 0;
-        sh_stages |= AnyBits( value, EResourceState::RayTracingShaders )        ? VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR: 0;
-
-        ds_stages |= AnyBits( value, EResourceState::DSTestBeforeFS )           ? VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT  : 0;
-        ds_stages |= AnyBits( value, EResourceState::DSTestAfterFS )            ? VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT   : 0;
-
-
-        BEGIN_ENUM_CHECKS();
-        switch ( value & EResourceState::_AccessMask )
-        {
-            case EResourceState::Unknown :                          outStage = VK_PIPELINE_STAGE_2_NONE;                                    outAccess = VK_ACCESS_2_NONE;                                                                                                                       outLayout = VK_IMAGE_LAYOUT_UNDEFINED;                                                          break;
-            case EResourceState::ShaderUniform :                    outStage = sh_stages;                                                   outAccess = VK_ACCESS_2_UNIFORM_READ_BIT;                                                                                                                                                                                   ASSERT( sh_stages );    break;
-            case EResourceState::ShaderSample :                     outStage = sh_stages;                                                   outAccess = VK_ACCESS_2_SHADER_SAMPLED_READ_BIT;                                                                                                    outLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;                   ASSERT( sh_stages );    break;
-            case EResourceState::ShaderStorage_Read :               outStage = sh_stages;                                                   outAccess = VK_ACCESS_2_SHADER_STORAGE_READ_BIT;                                                                                                    outLayout = VK_IMAGE_LAYOUT_GENERAL;                                    ASSERT( sh_stages );    break;
-            case EResourceState::ShaderStorage_Write :              outStage = sh_stages;                                                   outAccess = VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT;                                                                                                   outLayout = VK_IMAGE_LAYOUT_GENERAL;                                    ASSERT( sh_stages );    break;
-            case EResourceState::ShaderStorage_RW :                 outStage = sh_stages;                                                   outAccess = VK_ACCESS_2_SHADER_STORAGE_READ_BIT | VK_ACCESS_2_SHADER_STORAGE_WRITE_BIT;                                                             outLayout = VK_IMAGE_LAYOUT_GENERAL;                                    ASSERT( sh_stages );    break;
-
-            case EResourceState::CopySrc :                          outStage = VK_PIPELINE_STAGE_2_COPY_BIT;                                outAccess = VK_ACCESS_2_TRANSFER_READ_BIT;                                                                                                          outLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;                                               break;
-            case EResourceState::CopyDst :                          outStage = VK_PIPELINE_STAGE_2_COPY_BIT;                                outAccess = VK_ACCESS_2_TRANSFER_WRITE_BIT;                                                                                                         outLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;                                               break;
-            case EResourceState::ClearDst :                         outStage = VK_PIPELINE_STAGE_2_CLEAR_BIT;                               outAccess = VK_ACCESS_2_TRANSFER_WRITE_BIT;                                                                                                         outLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;                                               break;
-
-            case EResourceState::BlitSrc :                          outStage = VK_PIPELINE_STAGE_2_BLIT_BIT;                                outAccess = VK_ACCESS_2_TRANSFER_READ_BIT;                                                                                                          outLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;                                               break;
-            case EResourceState::BlitDst :                          outStage = VK_PIPELINE_STAGE_2_BLIT_BIT;                                outAccess = VK_ACCESS_2_TRANSFER_WRITE_BIT;                                                                                                         outLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;                                               break;
-
-            case EResourceState::InputColorAttachment :             outStage = sh_stages;                                                   outAccess = VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT;                                                                                                  outLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;                   ASSERT( sh_stages );    break;
-            case EResourceState::InputColorAttachment_RW :          outStage = sh_stages | VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT; outAccess = VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;                 outLayout = VK_IMAGE_LAYOUT_GENERAL;                                    ASSERT( sh_stages );    break;
-
-            case EResourceState::ColorAttachment_Write :            outStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;             outAccess = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;                                                                                                 outLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;                                           break;
-            case EResourceState::ColorAttachment_RW :               outStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;             outAccess = VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT;                                                         outLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;                                           break;
-
-            case EResourceState::DepthStencilAttachment_Read :      outStage = ds_stages;                                                   outAccess = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT;                                                                                          outLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;            ASSERT( ds_stages );    break;
-            case EResourceState::DepthStencilAttachment_Write:      outStage = ds_stages;                                                   outAccess = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;                                                                                         outLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;           ASSERT( ds_stages );    break;
-            case EResourceState::DepthStencilAttachment_RW :        outStage = ds_stages;                                                   outAccess = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;                                         outLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;           ASSERT( ds_stages );    break;
-            case EResourceState::DepthTest_StencilRW :              outStage = ds_stages;                                                   outAccess = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;                                         outLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL; ASSERT( ds_stages );    break;
-            case EResourceState::DepthRW_StencilTest :              outStage = ds_stages;                                                   outAccess = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;                                         outLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL; ASSERT( ds_stages );    break;
-
-            case EResourceState::InputDepthStencilAttachment :      outStage = sh_stages;                                                   outAccess = VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT;                                                                                                  outLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;                   ASSERT( sh_stages );    break;
-            case EResourceState::InputDepthStencilAttachment_RW :   outStage = ds_stages | sh_stages;                                       outAccess = VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; outLayout = VK_IMAGE_LAYOUT_GENERAL;                                    ASSERT( ds_stages and sh_stages );  break;
-
-            case EResourceState::DepthStencilTest_ShaderSample :    outStage = ds_stages | sh_stages;                                       outAccess = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_SHADER_SAMPLED_READ_BIT;                                                    outLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;            ASSERT( ds_stages and sh_stages );  break;
-            case EResourceState::DepthTest_DepthSample_StencilRW :  outStage = ds_stages | sh_stages;                                       outAccess = VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_SHADER_SAMPLED_READ_BIT;   outLayout = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL; ASSERT( ds_stages and sh_stages );  break;
-
-            case EResourceState::Host_Read :                        outStage = VK_PIPELINE_STAGE_2_HOST_BIT;                                outAccess = VK_ACCESS_2_HOST_READ_BIT;                                                                                                              outLayout = VK_IMAGE_LAYOUT_GENERAL;                                                            break;
-            case EResourceState::Host_Write :                       outStage = VK_PIPELINE_STAGE_2_HOST_BIT;                                outAccess = VK_ACCESS_2_HOST_WRITE_BIT;                                                                                                             outLayout = VK_IMAGE_LAYOUT_GENERAL;                                                            break;
-            case EResourceState::Host_RW :                          outStage = VK_PIPELINE_STAGE_2_HOST_BIT;                                outAccess = VK_ACCESS_2_HOST_READ_BIT | VK_ACCESS_2_HOST_WRITE_BIT;                                                                                 outLayout = VK_IMAGE_LAYOUT_GENERAL;                                                            break;
-
-            // swapchain semaphore creates memory dependency
-            case EResourceState::PresentImage :                     outStage = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;             outAccess = VK_ACCESS_2_NONE;                                                                                                                       outLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;                                                    break;
-
-            case EResourceState::IndirectBuffer :                   outStage = VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;                       outAccess = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;                                                                                                                                                                                                  break;
-            case EResourceState::IndexBuffer :                      outStage = VK_PIPELINE_STAGE_2_INDEX_INPUT_BIT;                         outAccess = VK_ACCESS_2_INDEX_READ_BIT;                                                                                                                                                                                                             break;
-            case EResourceState::VertexBuffer :                     outStage = VK_PIPELINE_STAGE_2_VERTEX_ATTRIBUTE_INPUT_BIT;              outAccess = VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT;                                                                                                                                                                                                  break;
-            case EResourceState::ShadingRateImage :                 outStage = VK_PIPELINE_STAGE_2_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;outAccess = VK_ACCESS_2_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR;                                                                              outLayout = VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;                       break;
-
-            case EResourceState::CopyRTAS_Read :                    outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;     outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_2_TRANSFER_READ_BIT;                                                                                                                                                        break;
-            case EResourceState::CopyRTAS_Write :                   outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;     outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR | VK_ACCESS_2_TRANSFER_WRITE_BIT;                                                                                                                                                      break;
-            case EResourceState::BuildRTAS_Read :                   outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;    outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_SHADER_READ_BIT;                                                                                                                                                            break;
-            case EResourceState::BuildRTAS_Write :                  outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;    outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;                                                                                                                                                                                       break;
-            case EResourceState::BuildRTAS_RW :                     outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;    outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR | VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;                                                                                                                                     break;
-            case EResourceState::BuildRTAS_IndirectBuffer :         outStage = VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;    outAccess = VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;                                                                                                                                                                                                  break;
-
-            case EResourceState::ShaderRTAS_Read :                  outStage = sh_stages;                                                   outAccess = VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;                                                                                                                                                                ASSERT( sh_stages );    break;
-            case EResourceState::RTShaderBindingTable :             outStage = VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;              outAccess = VK_ACCESS_2_SHADER_BINDING_TABLE_READ_BIT_KHR | VK_ACCESS_2_SHADER_STORAGE_READ_BIT;                                                                                                                                                    break;
-
-            case EResourceState::General :                          outStage = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;                        outAccess = VK_ACCESS_2_MEMORY_READ_BIT | VK_ACCESS_2_MEMORY_WRITE_BIT;                                                                             outLayout = VK_IMAGE_LAYOUT_GENERAL;                                                            break;
-
-            case EResourceState::Preserve :
-            case EResourceState::_AccessCount :
-            case EResourceState::_AccessMask :
-            case EResourceState::DSTestBeforeFS :
-            case EResourceState::DSTestAfterFS :
-            case EResourceState::Invalidate :
-            case EResourceState::_FlagsMask :
-            case EResourceState::MeshTaskShader :
-            case EResourceState::VertexProcessingShaders :
-            case EResourceState::TileShader :
-            case EResourceState::FragmentShader :
-            case EResourceState::PreRasterizationShaders :
-            case EResourceState::PostRasterizationShaders :
-            case EResourceState::ComputeShader :
-            case EResourceState::RayTracingShaders :
-            case EResourceState::AllGraphicsShaders :
-            case EResourceState::AllShaders :           // to shutup warnings
-            case EResourceState::_InvalidState :
-            default :
-                outStage    = 0;
-                outAccess   = 0;
-                RETURN_ERR( "unknown resource state!" );
-        }
-        END_ENUM_CHECKS();
-
-        return true;
-    }
-
-    inline bool  EResourceState_ToSrcStageAccessLayout (EResourceState value, OUT VkPipelineStageFlagBits2 &outStage, OUT VkAccessFlagBits2 &outAccess, OUT VkImageLayout &outLayout) __NE___
-    {
-        bool    res = EResourceState_ToDstStageAccessLayout( value, outStage, outAccess, outLayout );
+        EResourceState_ToDstStageAccessLayout( value, outStage, outAccess, outLayout );
         outLayout = AnyBits( value, EResourceState::Invalidate ) ? VK_IMAGE_LAYOUT_UNDEFINED : outLayout;
-        return res;
     }
 
-    inline bool  EResourceState_ToStageAccess (EResourceState value, OUT VkPipelineStageFlagBits2 &outStage, OUT VkAccessFlagBits2 &outAccess) __NE___
+    inline void  EResourceState_ToStageAccess (EResourceState value, OUT VkPipelineStageFlagBits2 &outStage, OUT VkAccessFlagBits2 &outAccess) __NE___
     {
-        VkImageLayout               layout;
-        return EResourceState_ToDstStageAccessLayout( value, OUT outStage, OUT outAccess, OUT layout );
+        VkImageLayout   layout;
+        EResourceState_ToDstStageAccessLayout( value, OUT outStage, OUT outAccess, OUT layout );
     }
 
     ND_ inline VkPipelineStageFlagBits2  EResourceState_ToPipelineStages (EResourceState value) __NE___
@@ -949,7 +837,7 @@ namespace AE::Graphics
 */
     ND_ inline VkFormat  VEnumCast (EPixelFormat value) __NE___
     {
-#       define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
+        #define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
             case EPixelFormat::_engineFmt_ : return _vkFormat_;
 
         BEGIN_ENUM_CHECKS();
@@ -962,7 +850,7 @@ namespace AE::Graphics
         }
         END_ENUM_CHECKS();
 
-#       undef FMT_BUILDER
+        #undef FMT_BUILDER
         RETURN_ERR( "invalid pixel format", VK_FORMAT_MAX_ENUM );
     }
 
@@ -973,7 +861,7 @@ namespace AE::Graphics
 */
     ND_ inline EPixelFormat  AEEnumCast (VkFormat value) __NE___
     {
-#       define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
+        #define FMT_BUILDER( _engineFmt_, _vkFormat_ )\
             case _vkFormat_ : return EPixelFormat::_engineFmt_;
 
         switch ( value )
@@ -981,7 +869,7 @@ namespace AE::Graphics
             AE_PRIVATE_VKPIXELFORMATS( FMT_BUILDER )
         }
 
-#       undef FMT_BUILDER
+        #undef FMT_BUILDER
         //RETURN_ERR( "invalid pixel format" );
         return Default;
     }
@@ -1000,7 +888,7 @@ namespace AE::Graphics
             case VK_IMAGE_TYPE_2D :         return EImageDim_2D;
             case VK_IMAGE_TYPE_3D :         return EImageDim_3D;
             case VK_IMAGE_TYPE_MAX_ENUM :
-            default :                       break;
+            default_unlikely :              break;
         }
         END_ENUM_CHECKS();
         RETURN_ERR( "unknown vulkan image type" );
@@ -1051,7 +939,7 @@ namespace AE::Graphics
                 case VK_IMAGE_USAGE_SAMPLE_WEIGHT_BIT_QCOM :
                 case VK_IMAGE_USAGE_SAMPLE_BLOCK_MATCH_BIT_QCOM :
                 case VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM :
-                default :                                           RETURN_ERR( "not supported", void() );
+                default_unlikely :                                  RETURN_ERRV( "not supported" );
             }
             END_ENUM_CHECKS();
         }
@@ -1117,7 +1005,7 @@ namespace AE::Graphics
                 case VK_IMAGE_CREATE_MULTISAMPLED_RENDER_TO_SINGLE_SAMPLED_BIT_EXT :
                 case VK_IMAGE_CREATE_DESCRIPTOR_BUFFER_CAPTURE_REPLAY_BIT_EXT :
 
-                default :                                                           RETURN_ERR( "unsupported image create flags" );
+                default_unlikely :                                                  RETURN_ERR( "unsupported image create flags" );
             }
             END_ENUM_CHECKS();
         }
@@ -1168,7 +1056,7 @@ namespace AE::Graphics
                 case VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT :
                 case VK_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT :
                 case VK_BUFFER_USAGE_FLAG_BITS_MAX_ENUM :
-                default :                                           RETURN_ERR( "invalid buffer usage" );
+                default_unlikely :                                  RETURN_ERR( "invalid buffer usage" );
             }
             END_ENUM_CHECKS();
         }
@@ -1193,18 +1081,18 @@ namespace AE::Graphics
             {
                 case EMemoryType::DeviceLocal :     result |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;                                          break;
                 case EMemoryType::Transient :       result |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;                                      break;
-                case EMemoryType::HostCocherent :   result |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;   break;
+                case EMemoryType::HostCoherent :    result |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;   break;
                 case EMemoryType::HostCached :      result |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;     break;
 
                 case EMemoryType::Dedicated :
                 case EMemoryType::_External :       break;
                 case EMemoryType::_Last :
-                case EMemoryType::HostCachedCocherent :
+                case EMemoryType::HostCachedCoherent :
                 case EMemoryType::Unified :
                 case EMemoryType::UnifiedCached :
                 case EMemoryType::Unknown :
                 case EMemoryType::All :
-                default :                           RETURN_ERR( "unknown memory type", Zero );
+                default_unlikely :                  RETURN_ERR( "unknown memory type", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -1229,7 +1117,7 @@ namespace AE::Graphics
             {
                 case VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :      result |= EMemoryType::DeviceLocal;     break;
                 case VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT :
-                case VK_MEMORY_PROPERTY_HOST_COHERENT_BIT :     result |= EMemoryType::HostCocherent;   break;
+                case VK_MEMORY_PROPERTY_HOST_COHERENT_BIT :     result |= EMemoryType::HostCoherent;    break;
                 case VK_MEMORY_PROPERTY_HOST_CACHED_BIT :       result |= EMemoryType::HostCached;      break;
                 case VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT :  result |= EMemoryType::Transient;       break;
                 case VK_MEMORY_PROPERTY_PROTECTED_BIT :
@@ -1237,7 +1125,7 @@ namespace AE::Graphics
                 case VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD :
                 case VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV :   break;
                 case VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM :
-                default :                                       RETURN_ERR( "unknown memory property" );
+                default_unlikely :                              RETURN_ERR( "unknown memory property" );
             }
             END_ENUM_CHECKS();
         }
@@ -1282,10 +1170,11 @@ namespace AE::Graphics
                 case VK_SHADER_STAGE_TASK_BIT_EXT :                 result |= EShaderStages::MeshTask;          break;
                 case VK_SHADER_STAGE_MESH_BIT_EXT :                 result |= EShaderStages::Mesh;              break;
                 case VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI :   result |= EShaderStages::Tile;              break;
+
                 case VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI :   // TODO
                 case VK_SHADER_STAGE_ALL_GRAPHICS :
                 case VK_SHADER_STAGE_ALL :
-                default :                                           RETURN_ERR( "unknown shader stage" );       break;
+                default_unlikely :                                  RETURN_ERR( "unknown shader stage" );
             }
             END_ENUM_CHECKS();
         }
@@ -1316,10 +1205,11 @@ namespace AE::Graphics
                 case EPipelineOpt::RT_NoNullIntersectionShaders :   result |= VK_PIPELINE_CREATE_RAY_TRACING_NO_NULL_INTERSECTION_SHADERS_BIT_KHR;  break;
                 case EPipelineOpt::RT_SkipTriangles :               result |= VK_PIPELINE_CREATE_RAY_TRACING_SKIP_TRIANGLES_BIT_KHR;                break;
                 case EPipelineOpt::RT_SkipAABBs :                   result |= VK_PIPELINE_CREATE_RAY_TRACING_SKIP_AABBS_BIT_KHR;                    break;
+
                 case EPipelineOpt::_Last :
                 case EPipelineOpt::All :
                 case EPipelineOpt::Unknown :
-                default :                                           RETURN_ERR( "unknown pipeline options", Zero );                                 break;
+                default_unlikely :                                  RETURN_ERR( "unknown pipeline options", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -1347,9 +1237,10 @@ namespace AE::Graphics
                 case ERTASOptions::PreferFastTrace :    result |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;    break;
                 case ERTASOptions::PreferFastBuild :    result |= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR;    break;
                 case ERTASOptions::LowMemory :          result |= VK_BUILD_ACCELERATION_STRUCTURE_LOW_MEMORY_BIT_KHR;           break;
+
                 case ERTASOptions::_Last :
                 case ERTASOptions::Unknown :
-                default :                               RETURN_ERR( "unknown RTAS options", Zero );                             break;
+                default_unlikely :                      RETURN_ERR( "unknown RTAS options", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -1374,9 +1265,10 @@ namespace AE::Graphics
             {
                 case ERTGeometryOpt::Opaque :                       result |= VK_GEOMETRY_OPAQUE_BIT_KHR;                           break;
                 case ERTGeometryOpt::NoDuplicateAnyHitInvocation :  result |= VK_GEOMETRY_NO_DUPLICATE_ANY_HIT_INVOCATION_BIT_KHR;  break;
+
                 case ERTGeometryOpt::_Last :
                 case ERTGeometryOpt::Unknown :
-                default :                                           RETURN_ERR( "unknown RT geometry options", Zero );              break;
+                default_unlikely :                                  RETURN_ERR( "unknown RT geometry options", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -1403,10 +1295,11 @@ namespace AE::Graphics
                 case ERTInstanceOpt::TriangleFrontCCW :     result |= VK_GEOMETRY_INSTANCE_TRIANGLE_FLIP_FACING_BIT_KHR;            break;
                 case ERTInstanceOpt::ForceOpaque :          result |= VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;                    break;
                 case ERTInstanceOpt::ForceNonOpaque :       result |= VK_GEOMETRY_INSTANCE_FORCE_NO_OPAQUE_BIT_KHR;                 break;
+
                 case ERTInstanceOpt::_Last :
                 case ERTInstanceOpt::All :
                 case ERTInstanceOpt::Unknown :
-                default :                                   RETURN_ERR( "unknown RT instance options", Zero );                      break;
+                default_unlikely :                          RETURN_ERR( "unknown RT instance options", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -1425,6 +1318,7 @@ namespace AE::Graphics
         {
             case ERTASCopyMode::Clone :     return VK_COPY_ACCELERATION_STRUCTURE_MODE_CLONE_KHR;
             case ERTASCopyMode::Compaction: return VK_COPY_ACCELERATION_STRUCTURE_MODE_COMPACT_KHR;
+            case ERTASCopyMode::_Count :    break;
         }
         END_ENUM_CHECKS();
         RETURN_ERR( "unknown RT AS copy mode", VK_COPY_ACCELERATION_STRUCTURE_MODE_MAX_ENUM_KHR );
@@ -1597,7 +1491,7 @@ namespace AE::Graphics
                     case EVideoCodec::AV1 :
                     case EVideoCodec::_Count :
                     case EVideoCodec::Unknown :
-                    default :
+                    default_unlikely :
                         RETURN_ERR( "unsupported EVideoCodec for Decode mode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
                 }
                 break;
@@ -1616,14 +1510,14 @@ namespace AE::Graphics
                     case EVideoCodec::AV1 :
                     case EVideoCodec::_Count :
                     case EVideoCodec::Unknown :
-                    default :
+                    default_unlikely :
                         RETURN_ERR( "unsupported EVideoCodec for Encode mode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
                 }
                 break;
 
             case EVideoCodecMode::_Count :
             case EVideoCodecMode::Unknown :
-            default :
+            default_unlikely :
                 RETURN_ERR( "unsupported EVideoCodecMode", VK_VIDEO_CODEC_OPERATION_NONE_KHR );
         }
         END_ENUM_CHECKS();
@@ -1644,7 +1538,7 @@ namespace AE::Graphics
             case EVideoChromaSubsampling::_422 :        return VK_VIDEO_CHROMA_SUBSAMPLING_422_BIT_KHR;
             case EVideoChromaSubsampling::_444 :        return VK_VIDEO_CHROMA_SUBSAMPLING_444_BIT_KHR;
             case EVideoChromaSubsampling::Unknown :
-            default :
+            default_unlikely :
                 RETURN_ERR( "unsupported EVideoChromaSubsampling", VK_VIDEO_CHROMA_SUBSAMPLING_INVALID_KHR );
         }
         END_ENUM_CHECKS();
@@ -1757,7 +1651,7 @@ namespace AE::Graphics
                 case EVideoBufferUsage::_Last :
                 case EVideoBufferUsage::All :
                 case EVideoBufferUsage::Unknown :
-                default :                               RETURN_ERR( "unsupported EVideoBufferUsage", Zero );
+                default_unlikely :                      RETURN_ERR( "unsupported EVideoBufferUsage", Zero );
             }
             END_ENUM_CHECKS();
         }
@@ -1791,7 +1685,7 @@ namespace AE::Graphics
                 case EVideoImageUsage::_Last :
                 case EVideoImageUsage::All :
                 case EVideoImageUsage::Unknown :
-                default :                           RETURN_ERR( "unsupported EVideoImageUsage", Zero );
+                default_unlikely :                  RETURN_ERR( "unsupported EVideoImageUsage", Zero );
             }
             END_ENUM_CHECKS();
         }

@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 void ASmain ()
 {
@@ -22,7 +22,6 @@ void ASmain ()
     {
         RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "draw2" );
         spec.AddToRenderTech( "CanvasDrawTest", "Draw_1" );
-        spec.SetViewportCount( 1 );
 
         RenderState rs;
         rs.inputAssembly.topology = EPrimitive::TriangleList;

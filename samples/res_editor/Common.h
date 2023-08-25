@@ -50,7 +50,7 @@ namespace AE::ResEditor
         GAutorelease<PipelinePackID>    packId;
         RenderTechPipelinesPtr          rtech;
 
-        ND_ explicit operator bool () const     { return packId and rtech; }
+        ND_ explicit operator bool ()   C_NE___ { return packId and rtech; }
     };
 
     static constexpr uint   ResNameMaxLen = 60;

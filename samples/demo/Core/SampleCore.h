@@ -38,8 +38,6 @@ namespace AE::Samples::Demo
 
     // types
     private:
-        class UIDrawTask;
-
         struct MainLoopData
         {
             Ptr<IInputActions>      input;      // lifetime is same as Window/VRDevice lifetime
@@ -70,8 +68,6 @@ namespace AE::Samples::Demo
     private:
         ND_ bool  _CompileBaseResources (IOutputSurface &);
         ND_ bool  _CompileResources (IOutputSurface &);
-
-            bool  _InitUI ();
 
 
     // IBaseApp (main thread) //

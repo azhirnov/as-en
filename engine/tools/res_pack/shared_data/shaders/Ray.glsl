@@ -28,7 +28,7 @@ ND_ float3  Ray_CalcY (const Ray ray, const float2 pointXZ);
 ND_ float3  Ray_CalcZ (const Ray ray, const float2 pointXY);
 ND_ bool    Ray_Contains (const Ray ray, const float3 point);
     void    Ray_Rotate (inout Ray ray, const quat rotation);
-    void    Ray_Move (inout Ray ray, const float length);
+    void    Ray_Move (inout Ray ray, const float delta);
     void    Ray_SetLength (inout Ray ray, const float length);
     void    Ray_SetOrigin (inout Ray ray, const float3 origin);
 //-----------------------------------------------------------------------------
@@ -122,7 +122,9 @@ Ray  Ray_From (const float4x4 invViewProj, const float3 origin, const float near
 
 /*
 =================================================
-    Ray_CalcX
+    Ray_CalcX / Ray_CalcY / Ray_CalcZ
+----
+    may return NaN
 =================================================
 */
 float3  Ray_CalcX (const Ray ray, const float2 pointYZ)
@@ -132,11 +134,6 @@ float3  Ray_CalcX (const Ray ray, const float2 pointYZ)
     return float3( x, pointYZ[0], pointYZ[1] );
 }
 
-/*
-=================================================
-    Ray_CalcY
-=================================================
-*/
 float3  Ray_CalcY (const Ray ray, const float2 pointXZ)
 {
     const float y = ray.pos.y + ray.dir.y * (pointXZ[1] - ray.pos.z) / ray.dir.z;
@@ -144,11 +141,6 @@ float3  Ray_CalcY (const Ray ray, const float2 pointXZ)
     return float3( pointXZ[0], y, pointXZ[1] );
 }
 
-/*
-=================================================
-    Ray_CalcZ
-=================================================
-*/
 float3  Ray_CalcZ (const Ray ray, const float2 pointXY)
 {
     const float z = ray.pos.z + ray.dir.z * (pointXY[0] - ray.pos.x) / ray.dir.x;
@@ -188,9 +180,9 @@ void  Ray_Rotate (inout Ray ray, const quat rotation)
     Ray_Move
 =================================================
 */
-void  Ray_Move (inout Ray ray, const float length)
+void  Ray_Move (inout Ray ray, const float delta)
 {
-    ray.t   += length;
+    ray.t   += delta;
     ray.pos  = FusedMulAdd( ray.dir, float3(ray.t), ray.origin );
 }
 

@@ -6,6 +6,8 @@
 #include "threading/Memory/TsStackAllocator.h"
 #include "threading/Memory/MemoryProfiler.h"
 
+#include "graphics/Public/FrameUID.h"
+
 namespace AE::Threading { class MemoryManagerImpl; }
 namespace AE { Threading::MemoryManagerImpl&  MemoryManager () __NE___; }
 
@@ -23,28 +25,45 @@ namespace AE::Threading
     // types
     public:
         using GlobalLinearAllocator_t   = LfLinearAllocator< 16u<<20, AE_CACHE_LINE, 32 >;
-        using FrameAllocator_t          = StackAllocator< UntypedAllocator, 16, true >;
-
-        struct FrameAlloc
-        {
-        private:
-            uint                _idx    : 2;    // TODO: atomic ?
-            FrameAllocator_t    _alloc  [4];
-
-        public:
-            FrameAlloc ()                   __NE___ : _idx{0} {}
-
-            void  NextFrame ()              __NE___ { ++_idx;  _alloc[_idx].Discard(); }
-
-            ND_ FrameAllocator_t&  Get ()   __NE___ { return _alloc[_idx]; }
-        };
-
-        using DefaultAlloc_t        = AllocatorImpl< UntypedAllocator >;
+        using FrameAllocator_t          = StackAllocator< UntypedAllocator, 16, true >;     // TODO: LfLinearAllocator ?
 
         class TaskSchedulerApi {
             friend class TaskScheduler;
             static void  CreateInstance ()  __NE___;
             static void  DestroyInstance () __NE___;
+        };
+
+
+    private:
+        using DefaultAlloc_t    = AllocatorImpl< UntypedAllocator >;
+        using FrameUID          = Graphics::FrameUID;
+
+        static constexpr uint   _MaxFrames = FrameUID::MaxFramesLimit();
+
+
+        //
+        // Frame Alloc
+        //
+        struct FrameAlloc
+        {
+        // variables
+        private:
+            Atomic<uint>        _idx    {0};                // TODO: remove
+            FrameAllocator_t    _alloc  [_MaxFrames];
+
+            DEBUG_ONLY(
+                Graphics::AtomicFrameUID    _dbgFrameId;
+            )   
+
+        // methods
+        public:
+            FrameAlloc ()                                   __NE___ {}
+
+                void  BeginFrame (FrameUID frameId)         __NE___;
+                void  EndFrame (FrameUID frameId)           __NE___;
+
+            ND_ FrameAllocator_t&  Get ()                   __NE___ { return _alloc[ _idx.load() ]; }
+            ND_ FrameAllocator_t&  Get (FrameUID frameId)   __NE___ { ASSERT( _dbgFrameId.load() == frameId );  return _alloc[ frameId.Index() ]; }
         };
 
 

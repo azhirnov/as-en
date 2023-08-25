@@ -15,7 +15,6 @@
 #include "threading/DataSource/AsyncDataSource.h"
 #include "threading/DataSource/TsDataSource.h"
 #include "threading/DataSource/WinAsyncDataSource.h"
-//#include "threading/DataSource/UnixAsyncDataSource.h"
 #include "threading/DataSource/AsyncDataSourceAsStream.h"
 
 // Memory

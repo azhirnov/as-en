@@ -135,6 +135,7 @@ struct ArgBufMaterialType
 
 extern void  UnitTest_DSLayout_MSL ()
 {
+#ifdef AE_METAL_TOOLS
     ObjectStorage   obj;
     PipelineStorage ppln;
     obj.defaultFeatureSet   = "DefaultFS";
@@ -170,4 +171,5 @@ extern void  UnitTest_DSLayout_MSL ()
 
     ObjectStorage::SetInstance( null );
     TEST_PASSED();
+#endif
 }

@@ -18,7 +18,7 @@ namespace
         TEST( server.IsOpen() );
 
         StdThread   listener{ [&] ()
-            {
+            {{
                 Array<char> recv_data;
                 for (uint i = 0; i < 100; ++i)
                 {
@@ -54,7 +54,7 @@ namespace
                 TEST( ArraySizeOf(recv_data) >= send_data_size );
                 TEST( ArrayView<char>{send_data1} == ArrayView<char>{recv_data}.section( 0, CountOf(send_data1) ));
                 TEST( ArrayView<char>{send_data2} == ArrayView<char>{recv_data}.section( CountOf(send_data1), CountOf(send_data2) ));
-            }};
+            }}};
 
         TcpSocket   client;
         TEST( client.Connect( IpAddress::FromHostPortTCP( "localhost", 4000 ) ));

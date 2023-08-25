@@ -1,5 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 void  DeclUIRenderTech ()
 {
@@ -54,45 +54,6 @@ void  DeclScene3DRenderTech ()
     }
 }
 
-void  DeclYcbcrRenderTech ()
-{
-    RC<RenderTechnique> rtech = RenderTechnique( "Ycbcr.RTech" );
-    {
-        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Main" );
-        pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
-    }
-}
-
-
-void  DeclRayTracingRenderTech ()
-{
-    RC<RenderTechnique> rtech = RenderTechnique( "RayTracing.RTech" );
-    rtech.AddFeatureSet( "MinRecursiveRayTracing" );
-    {
-        RC<ComputePass>     pass = rtech.AddComputePass( "RayTrace" );
-    }
-}
-
-
-void  DeclRayQueryRenderTech ()
-{
-    RC<RenderTechnique> rtech = RenderTechnique( "RayQuery.RTech" );
-    rtech.AddFeatureSet( "MinInlineRayTracing" );
-    {
-        RC<ComputePass>     pass = rtech.AddComputePass( "RayTrace" );
-    }
-}
-
-
-void  DeclHdrRenderTech ()
-{
-    RC<RenderTechnique> rtech = RenderTechnique( "HDR.RTech" );
-    {
-        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Main" );
-        pass.SetRenderPass( "UIPass", /*subpass*/"Main" );
-    }
-}
-
 
 void  ASmain ()
 {
@@ -100,8 +61,4 @@ void  ASmain ()
     DeclCanvasRenderTech();
     DeclImGuiRenderTech();
     DeclScene3DRenderTech();
-    DeclYcbcrRenderTech();
-    DeclHdrRenderTech();
-    DeclRayTracingRenderTech();
-    DeclRayQueryRenderTech();
 }

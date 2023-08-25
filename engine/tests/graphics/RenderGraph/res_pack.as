@@ -1,4 +1,4 @@
-#include <offline_packer>
+#include <offline_packer.as>
 
 void ASmain ()
 {
@@ -6,7 +6,7 @@ void ASmain ()
 
     array<string>   suffix;
     suffix.push_back( "vk" );
-    suffix.push_back( "mac" );
+    //suffix.push_back( "mac" );
 
     // pipeline compiler
     for (uint i = 0; i < suffix.size(); ++i)
@@ -18,6 +18,7 @@ void ASmain ()
         ppln.AddPipelineFolder( "rtech" );
         ppln.AddPipelineFolder( "pipeline" );
         ppln.AddShaderFolder( "shaders" );
-        ppln.CompileWithNameMapping( output + suffix[i] + "/pipelines.bin", "cpp/" + suffix[i] + "_types.h" );
+        ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
+        ppln.CompileWithNameMapping( output + suffix[i] + "/pipelines.bin" );
     }
 }

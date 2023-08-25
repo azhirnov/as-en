@@ -216,7 +216,7 @@ namespace
             CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::ComputeWrite ));
         }
 
-        if ( AllBits( usage, EResourceUsage::WithHistroy ))
+        if ( AllBits( usage, EResourceUsage::WithHistory ))
         {
             CHECK_THROW_MSG( not AnyBits( usage, EResourceUsage::UploadedData ));
         }
@@ -249,7 +249,7 @@ namespace
     IsMutableDimension
 =================================================
 */
-    bool  ScriptImage::IsMutableDimension () __Th___
+    bool  ScriptImage::IsMutableDimension () C_Th___
     {
         return bool{_outDynSize} or bool{_inDynSize};
     }
@@ -259,7 +259,7 @@ namespace
     Dimension3
 =================================================
 */
-    packed_uint3  ScriptImage::Dimension3 () __Th___
+    packed_uint3  ScriptImage::Dimension3 () C_Th___
     {
         if ( _base )
             return _base->Dimension3();
@@ -273,12 +273,12 @@ namespace
     Dimension
 =================================================
 */
-    ScriptDynamicDim*  ScriptImage::Dimension () __Th___
+    ScriptDynamicDim*  ScriptImage::Dimension () C_Th___
     {
         return DimensionRC().Detach();
     }
 
-    ScriptDynamicDimPtr  ScriptImage::DimensionRC () __Th___
+    ScriptDynamicDimPtr  ScriptImage::DimensionRC () C_Th___
     {
         if ( _base )
             return _base->DimensionRC();
@@ -291,7 +291,7 @@ namespace
         return result;
     }
 
-    RC<DynamicDim>  ScriptImage::DynamicDimension () __Th___
+    RC<DynamicDim>  ScriptImage::DynamicDimension () C_Th___
     {
         if ( _base )
             return _base->DynamicDimension();
@@ -309,7 +309,7 @@ namespace
     ArrayLayers
 =================================================
 */
-    uint  ScriptImage::ArrayLayers () __Th___
+    uint  ScriptImage::ArrayLayers () C_Th___
     {
         if ( _base )
             return _base->ArrayLayers();
@@ -322,7 +322,7 @@ namespace
     MipmapCount
 =================================================
 */
-    uint  ScriptImage::MipmapCount () __Th___
+    uint  ScriptImage::MipmapCount () C_Th___
     {
         if ( _base )
             return _base->MipmapCount();
@@ -345,6 +345,19 @@ namespace
 
 /*
 =================================================
+    SetSwizzle
+=================================================
+*/
+    void  ScriptImage::SetSwizzle (const String &value) __Th___
+    {
+        CHECK_THROW_MSG( not _resource,
+            "resource is already created, can not change swizzle" );
+
+        _viewDesc.swizzle = ImageSwizzle::FromString( value );
+    }
+
+/*
+=================================================
     CreateView*
 =================================================
 */
@@ -356,6 +369,8 @@ namespace
     {
         CHECK_THROW_MSG( not _base,
             "can not create view of view" );
+        CHECK_THROW_MSG( not _resource,
+            "resource is already created, can not create view" );
 
         if ( viewType == EImage::Cube or viewType == EImage::CubeArray )
             _desc.options |= EImageOpt::CubeCompatible;
@@ -391,6 +406,36 @@ namespace
 
 /*
 =================================================
+    _GetImageType
+=================================================
+*/
+    using PCImageType = PipelineCompiler::EImageType;
+
+    auto  ScriptImage::_GetImageType ()     C_Th___ { return PCImageType(ImageType()); }
+
+    bool  ScriptImage::_IsFloatFormat ()    C_Th___ {
+        return AnyEqual( _GetImageType() & PCImageType::_ValMask,
+                         PCImageType::Float, PCImageType::Half, PCImageType::SNorm, PCImageType::UNorm );
+    }
+
+    bool  ScriptImage::_IsIntFormat ()      C_Th___ {
+        return AnyEqual( _GetImageType() & PCImageType::_ValMask, PCImageType::Int );
+    }
+
+    bool  ScriptImage::_IsUIntFormat ()     C_Th___ {
+        return AnyEqual( _GetImageType() & PCImageType::_ValMask, PCImageType::UInt );
+    }
+
+    bool  ScriptImage::_Is1D ()             C_Th___ { return (_GetImageType() & PCImageType::_TexMask) == PCImageType::Img1D; }
+    bool  ScriptImage::_Is2D ()             C_Th___ { return (_GetImageType() & PCImageType::_TexMask) == PCImageType::Img2D; }
+    bool  ScriptImage::_Is3D ()             C_Th___ { return (_GetImageType() & PCImageType::_TexMask) == PCImageType::Img3D; }
+    bool  ScriptImage::_IsCube ()           C_Th___ { return (_GetImageType() & PCImageType::_TexMask) == PCImageType::ImgCube; }
+    bool  ScriptImage::_Is1DArray ()        C_Th___ { return (_GetImageType() & PCImageType::_TexMask) == PCImageType::Img1DArray; }
+    bool  ScriptImage::_Is2DArray ()        C_Th___ { return (_GetImageType() & PCImageType::_TexMask) == PCImageType::Img2DArray; }
+    bool  ScriptImage::_IsCubeArray ()      C_Th___ { return (_GetImageType() & PCImageType::_TexMask) == PCImageType::ImgCubeArray; }
+
+/*
+=================================================
     Bind
 =================================================
 */
@@ -400,34 +445,73 @@ namespace
         {
             EnumBinder<ELoadOpFlags>    binder{ se };
             binder.Create();
+
+            binder.Comment( "Generate mipmaps after loading" );
             binder.AddValue( "GenMipmaps",  ELoadOpFlags::GenMipmaps );
+
             STATIC_ASSERT( uint(ELoadOpFlags::All) == 0x1 );
         }{
             ClassBinder<ScriptImage>    binder{ se };
             binder.CreateRef();
+
+            binder.Comment( "Create image from file.\n"
+                            "File will be searched in VFS." );
             binder.AddFactoryCtor( &ScriptImage_Ctor1 );
+
+            binder.Comment( "Create image with constant dimension" );
             binder.AddFactoryCtor( &ScriptImage_Ctor2 );
             binder.AddFactoryCtor( &ScriptImage_Ctor3 );
             binder.AddFactoryCtor( &ScriptImage_Ctor4 );
             binder.AddFactoryCtor( &ScriptImage_Ctor5 );
             binder.AddFactoryCtor( &ScriptImage_Ctor6 );
             binder.AddFactoryCtor( &ScriptImage_Ctor7 );
+
+            binder.Comment( "Create image with dynamic dimension" );
             binder.AddFactoryCtor( &ScriptImage_Ctor8 );
             binder.AddFactoryCtor( &ScriptImage_Ctor9 );
             binder.AddFactoryCtor( &ScriptImage_Ctor10 );
             binder.AddFactoryCtor( &ScriptImage_Ctor11 );
 
+            binder.Comment( "Set resource name. It is used for debugging." );
             binder.AddMethod( &ScriptImage::Name,               "Name"              );
+
+            binder.Comment( "Load specified array layer from file, can be used for 2DArray/CubeMap/CubeMapArray.\n"
+                            "File will be searched in VFS." );
             binder.AddMethod( &ScriptImage::LoadLayer1,         "LoadLayer"         );
             binder.AddMethod( &ScriptImage::LoadLayer2,         "LoadLayer"         );
             binder.AddMethod( &ScriptImage::LoadLayer3,         "LoadLayer"         );
+
+            binder.Comment( "Returns 'true' if used dynamic dimension, methods 'Dimension2()', 'Dimension2_Layers()', 'Dimension3()' can not be used for dynamic dimension, only 'Dimension()' is allowed" );
             binder.AddMethod( &ScriptImage::IsMutableDimension, "IsMutableDimension");
+
+            binder.Comment( "Returns constant dimension of the image" );
             binder.AddMethod( &ScriptImage::Dimension2,         "Dimension2"        );
             binder.AddMethod( &ScriptImage::Dimension2_Layers,  "Dimension2_Layers" );
             binder.AddMethod( &ScriptImage::Dimension3,         "Dimension3"        );
-            binder.AddMethod( &ScriptImage::Dimension,          "Dimension"         );
             binder.AddMethod( &ScriptImage::ArrayLayers,        "ArrayLayers"       );
             binder.AddMethod( &ScriptImage::MipmapCount,        "MipmapCount"       );
+
+            binder.Comment( "Returns dynamic dimension of the image" );
+            binder.AddMethod( &ScriptImage::Dimension,          "Dimension"         );
+
+            binder.Comment( "Set image swizzle like a 'RGBA', 'R000', ..." );
+            binder.AddMethod( &ScriptImage::SetSwizzle,         "SetSwizzle"        );
+
+            binder.Comment( "Returns image description" );
+            binder.AddMethod( &ScriptImage::_GetImageType,      "ImageType"         );
+            binder.AddMethod( &ScriptImage::_IsFloatFormat,     "IsFloatFormat"     );
+            binder.AddMethod( &ScriptImage::_IsIntFormat,       "IsIntFormat"       );
+            binder.AddMethod( &ScriptImage::_IsUIntFormat,      "IsUIntFormat"      );
+            binder.AddMethod( &ScriptImage::_Is1D,              "Is1D"              );
+            binder.AddMethod( &ScriptImage::_Is2D,              "Is2D"              );
+            binder.AddMethod( &ScriptImage::_Is3D,              "Is3D"              );
+            binder.AddMethod( &ScriptImage::_IsCube,            "IsCube"            );
+            binder.AddMethod( &ScriptImage::_Is1DArray,         "Is1DArray"         );
+            binder.AddMethod( &ScriptImage::_Is2DArray,         "Is2DArray"         );
+            binder.AddMethod( &ScriptImage::_IsCubeArray,       "IsCubeArray"       );
+
+            binder.Comment( "Create image as view for current image."
+                            "Can be used to create CubeMap from 2DArray or set different swizzle." );
             binder.AddMethod( &ScriptImage::CreateView1,        "CreateView"        );
             binder.AddMethod( &ScriptImage::CreateView2,        "CreateView"        );
             binder.AddMethod( &ScriptImage::CreateView3,        "CreateView"        );
@@ -504,6 +588,7 @@ namespace
                 case EResourceUsage::Sampled :          _desc.usage |= EImageUsage::Sampled;                                    break;
                 case EResourceUsage::GenMipmaps :       _desc.usage |= EImageUsage::Transfer;       _desc.options |= (EImageOpt::BlitSrc | EImageOpt::BlitDst); break;
                 case EResourceUsage::Present :          _desc.usage |= EImageUsage::TransferSrc;    _desc.options |= EImageOpt::BlitSrc;                        break;
+                case EResourceUsage::Transfer :         _desc.usage |= EImageUsage::Transfer;                                   break;
 
                 case EResourceUsage::Unknown :
                 case EResourceUsage::ShaderAddress :
@@ -511,7 +596,7 @@ namespace
                 case EResourceUsage::VertexInput :
                 case EResourceUsage::IndirectBuffer :
                 case EResourceUsage::ASBuild :
-                case EResourceUsage::WithHistroy :
+                case EResourceUsage::WithHistory :
                 default :                               RETURN_ERR( "unsupported usage" );
             }
             END_ENUM_CHECKS();
@@ -550,13 +635,13 @@ namespace
             id.image = res_mngr.CreateImage( _desc, _dbgName, gfx_alloc );
             CHECK_ERR_MSG( id.image, "failed to create image '"s << _dbgName << "'" );
 
-            id.view = res_mngr.CreateImageView( ImageViewDesc{_desc}, id.image, _dbgName );
+            id.view = res_mngr.CreateImageView( _viewDesc, id.image, _dbgName );
             CHECK_ERR_MSG( id.view, "failed to create image '"s << _dbgName << "'" );
 
             renderer.GetResourceQueue().EnqueueImageTransition( id.image );
         }
 
-        _resource = MakeRC<Image>( RVRef(id.image), RVRef(id.view), RVRef(_loadOps), renderer, is_dummy, _desc,
+        _resource = MakeRC<Image>( RVRef(id.image), RVRef(id.view), RVRef(_loadOps), renderer, is_dummy, _desc, _viewDesc,
                                    (_inDynSize ? _inDynSize->Get() : null), (_outDynSize ? _outDynSize->Get() : null),
                                    _dbgName );  // throw
         return _resource;

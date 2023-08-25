@@ -34,6 +34,7 @@ namespace AE::InputActions
         // output
         const CharType *        outputPackName      = null;
         const CharType *        outputScriptFile    = null;
+        const CharType *        outputCppFile       = null;     // reflection
     };
 
     extern "C" bool AE_IA_API ConvertInputActions (const InputActionsInfo *info);

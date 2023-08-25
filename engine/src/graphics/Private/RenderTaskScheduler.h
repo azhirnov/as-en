@@ -55,14 +55,14 @@ namespace AE::Graphics
         class DrawCommandBatchApi : Noninstanceable
         {
             friend class AE_PRIVATE_UNITE_RAW( SUFFIX, DrawCommandBatch );
-            static void  Recycle (uint indexInPool) __NE___;
+            static void  Recycle (uint indexInPool)                 __NE___;
         };
 
         #ifdef ENABLE_VK_TIMELINE_SEMAPHORE
         class VirtualFenceApi : Noninstanceable
         {
             friend class CommandBatch_t::VirtualFence;
-            static void  Recycle (uint indexInPool) __NE___;
+            static void  Recycle (uint indexInPool)                 __NE___;
         };
         #endif
 
@@ -147,7 +147,7 @@ namespace AE::Graphics
         alignas(AE_CACHE_LINE)
           Atomic<EState>                    _state          {EState::Initial};
 
-        AtomicFrameUID                      _frameId;
+        AtomicFrameUID                      _frameId;               // increased in BeginFrame()
         FrameUIDs_t                         _perFrameUID    = {};
 
         // CPU side time
@@ -179,14 +179,15 @@ namespace AE::Graphics
           BeginDepsSync_t                   _beginDeps;
 
         DBG_GRAPHICS_ONLY(
+            AtomicFrameUID                  _dbgFrameId;            // valid between 'BeginFrameTask::Run()' and 'EndFrameTask::Run()'
             AtomicRC<IGraphicsProfiler>     _profiler;
         )
 
 
     // methods
     public:
-            static void  CreateInstance (const Device_t &dev);
-            static void  DestroyInstance ();
+            static void  CreateInstance (const Device_t &dev)                           __NE___;
+            static void  DestroyInstance ()                                             __NE___;
 
         ND_ bool        Initialize (const GraphicsCreateInfo &)                         __NE___;
             void        Deinitialize ()                                                 __NE___;
@@ -236,22 +237,27 @@ namespace AE::Graphics
         ND_ RenderGraph_t&          GetRenderGraph ()                                   __NE___ { ASSERT( _rg );            return *_rg; }
         ND_ QueryManager_t&         GetQueryManager ()                                  __NE___ { return GetResourceManager().GetQueryManager(); }
         ND_ Device_t const&         GetDevice ()                                        C_NE___ { return _device; }
+        ND_ FeatureSet const&       GetFeatureSet ()                                    C_NE___ { ASSERT( _resMngr );       return _resMngr->GetFeatureSet(); }
+        ND_ DeviceProperties const& GetDeviceProperties ()                              C_NE___ { return _device.GetDeviceProperties(); }
 
       #ifdef CMDPOOLMNGR
         ND_ CMDPOOLMNGR &           GetCommandPoolManager ()                            __NE___ { ASSERT( _cmdPoolMngr );   return *_cmdPoolMngr; }
       #endif
 
-        DBG_GRAPHICS_ONLY(
-          ND_ RC<IGraphicsProfiler> GetProfiler ()                                      __NE___ { return _profiler.load(); }
-        )
+      #if AE_DBG_GRAPHICS
+        ND_ RC<IGraphicsProfiler>   GetProfiler ()                                      __NE___ { return _profiler.load(); }
+
+        ND_ FrameUID                DbgFrameId ()                                       C_NE___ { return _dbgFrameId.load(); }
+            void                    DbgCheckFrameId (FrameUID, StringView name)         C_NE___;
+      #endif
 
         AE_SCHEDULER_PROFILING(
             void  DbgForEachBatch (const Threading::ITaskDependencyManager::CheckDepFn_t &fn, Bool pendingOnly) __NE___;)
 
 
     private:
-        explicit RTSCHEDULER (const Device_t &dev);
-        ~RTSCHEDULER ();
+        explicit RTSCHEDULER (const Device_t &dev)                                      __NE___;
+        ~RTSCHEDULER ()                                                                 __NE___;
 
         ND_ static RTSCHEDULER& _Instance ()                                            __NE___;
         friend RTSCHEDULER&     AE::RenderTaskScheduler ()                              __NE___;
@@ -433,11 +439,11 @@ namespace AE::Graphics
     class RTSCHEDULER::BeginFrameTask final : public Threading::IAsyncTask
     {
     private:
-        const FrameUID          _frameId;
+        const FrameUID          _frameId;       // new frame id
         const BeginFrameConfig  _config;
 
     public:
-        BeginFrameTask (FrameUID frameId, const BeginFrameConfig &cfg) :
+        BeginFrameTask (FrameUID frameId, const BeginFrameConfig &cfg) __NE___ :
             IAsyncTask{ETaskQueue::Renderer}, _frameId{frameId}, _config{cfg}
         {}
 
@@ -460,10 +466,10 @@ namespace AE::Graphics
     class RTSCHEDULER::EndFrameTask final : public Threading::IAsyncTask
     {
     private:
-        const FrameUID  _frameId;
+        const FrameUID  _frameId;       // current frame id
 
     public:
-        explicit EndFrameTask (FrameUID frameId) :
+        explicit EndFrameTask (FrameUID frameId) __NE___ :
             IAsyncTask{ETaskQueue::Renderer}, _frameId{frameId}
         {}
 
@@ -501,6 +507,9 @@ namespace AE::Graphics
                 prof->RequestNextFrame( frame_id );
         )
 
+        // recycle per-frame memory
+        MemoryManager().GetGraphicsFrameAllocator().BeginFrame( frame_id );
+
         auto    begin_deps2 = _beginDeps.WriteNoLock();
         EXLOCK( begin_deps2 );
 
@@ -529,7 +538,7 @@ namespace AE::Graphics
         CHECK_ERR( AnyEqual( _GetState(), EState::BeginFrame, EState::RecordFrame ),
                    Scheduler().GetCanceledTask() );
 
-        AsyncTask   task = MakeRC< RTSCHEDULER::EndFrameTask >( _frameId.load() );  // throw    // TODO: catch
+        AsyncTask   task = MakeRC< RTSCHEDULER::EndFrameTask >( GetFrameId() ); // throw    // TODO: catch
 
         if_likely( Scheduler().Run( task, deps ))
         {

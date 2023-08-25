@@ -202,7 +202,7 @@ namespace AE::Math
             return BitCast<T>( (BitCast<usize>(value) >> pot) << pot );
         else
         if constexpr( IsBytes<T> )
-            return T{ (typename T::Value_t{value} >> pot) << pot };
+            return T{ (value.get() >> pot) << pot };
         else
         if constexpr( IsInteger<T> )
             return (value >> pot) << pot;
@@ -228,7 +228,7 @@ namespace AE::Math
         if constexpr( IsBytes<T> )
         {
             const auto  mask = (typename T::Value_t{1} << pot) - 1;
-            return T{ (typename T::Value_t{value} + mask) & ~mask };
+            return T{ (value.get() + mask) & ~mask };
         }else
         if constexpr( IsInteger<T> )
         {
@@ -253,7 +253,7 @@ namespace AE::Math
             return (BitCast<usize>(value) & ((usize{1} << pot) - 1)) == 0;
         else
         if constexpr( IsBytes<T> )
-            return (value & ((typename T::Value_t{1} << pot) - 1)) == 0;
+            return (value.get() & ((typename T::Value_t{1} << pot) - 1)) == 0;
         else
         if constexpr( IsInteger<T> )
             return (value & ((T{1} << pot) - 1)) == 0;

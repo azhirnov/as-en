@@ -276,8 +276,6 @@ namespace
             result &= Serialize_SourceInfo( ser, item );
         }
 
-        //result &= ser( _fileMap );
-
         result &= ser( _posOffset );
         result &= ser( _dataOffset );
         result &= ser( _initialPosition );
@@ -322,8 +320,6 @@ namespace
                 }
                 CHECK_ERR( result );
             }
-
-            //result &= des( OUT _fileMap );
 
             result &= des( OUT _posOffset );
             result &= des( OUT _dataOffset );

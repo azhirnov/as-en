@@ -22,30 +22,31 @@ namespace AE::Base
     private:
         using Helper_t = AllocatorHelper< EAllocatorType::Global >;
 
+
     // methods
     public:
         template <typename T>
-        ND_ static T*     Allocate (usize count = 1)__NE___
+        ND_ static T*     Allocate (usize count = 1)                            __NE___
         {
             return Cast<T>( Allocate( SizeAndAlign{ SizeOf<T> * count, AlignOf<T> }));
         }
 
         // with default alignment
-        ND_ static void*  Allocate (Bytes size)                 __NE___
+        ND_ static void*  Allocate (Bytes size)                                 __NE___
         {
             void*   ptr = ::operator new ( usize(size), std::nothrow_t{} );
             Helper_t::OnAllocate( ptr, size );
             return ptr;
         }
 
-        static void  Deallocate (void *ptr)                     __NE___
+        static void  Deallocate (void *ptr)                                     __NE___
         {
             Helper_t::OnDeallocate( ptr );
             ::operator delete ( ptr, std::nothrow_t() );
         }
 
         // deallocation with explicit size may be faster
-        static void  Deallocate (void *ptr, Bytes size)         __NE___
+        static void  Deallocate (void *ptr, Bytes size)                         __NE___
         {
             Helper_t::OnDeallocate( ptr, size );
             ::operator delete ( ptr, usize(size) );
@@ -53,7 +54,7 @@ namespace AE::Base
 
 
         // with custom alignment
-        ND_ static void*  Allocate (const SizeAndAlign sizeAndAlign) __NE___
+        ND_ static void*  Allocate (const SizeAndAlign sizeAndAlign)            __NE___
         {
             void*   ptr = ::operator new ( usize(sizeAndAlign.size), std::align_val_t(usize(sizeAndAlign.align)), std::nothrow_t{} );
             Helper_t::OnAllocate( ptr, sizeAndAlign );
@@ -61,13 +62,13 @@ namespace AE::Base
         }
 
         // deallocation with explicit size may be faster
-        static void  Deallocate (void *ptr, const SizeAndAlign sizeAndAlign) __NE___
+        static void  Deallocate (void *ptr, const SizeAndAlign sizeAndAlign)    __NE___
         {
             Helper_t::OnDeallocate( ptr, sizeAndAlign );
             ::operator delete ( ptr, usize(sizeAndAlign.size), std::align_val_t(usize(sizeAndAlign.align)) );
         }
 
-        ND_ bool  operator == (const UntypedAllocator &)        C_NE___
+        ND_ bool  operator == (const UntypedAllocator &)                        C_NE___
         {
             return true;
         }
@@ -89,36 +90,37 @@ namespace AE::Base
     private:
         using Helper_t = AllocatorHelper< EAllocatorType::Global >;
 
+
     // methods
     public:
         template <typename T>
-        ND_ static T*     Allocate (usize count = 1)__NE___
+        ND_ static T*     Allocate (usize count = 1)                            __NE___
         {
             STATIC_ASSERT( alignof(T) <= BaseAlign );
             return Cast<T>( Allocate( SizeOf<T> * count ));
         }
 
-        ND_ static void*  Allocate (Bytes size)                 __NE___
+        ND_ static void*  Allocate (Bytes size)                                 __NE___
         {
             void*   ptr = ::operator new ( usize(size), std::align_val_t(BaseAlign), std::nothrow_t{} );
             Helper_t::OnAllocate( ptr, size );
             return ptr;
         }
 
-        static void  Deallocate (void *ptr)                     __NE___
+        static void  Deallocate (void *ptr)                                     __NE___
         {
             Helper_t::OnDeallocate( ptr );
             ::operator delete ( ptr, std::align_val_t(BaseAlign), std::nothrow_t() );
         }
 
         // deallocation with explicit size may be faster
-        static void  Deallocate (void *ptr, Bytes size)         __NE___
+        static void  Deallocate (void *ptr, Bytes size)                         __NE___
         {
             Helper_t::OnDeallocate( ptr, size );
             ::operator delete ( ptr, usize(size), std::align_val_t(BaseAlign) );
         }
 
-        ND_ bool  operator == (const UntypedAllocatorBaseAlign<BaseAlign> &) C_NE___
+        ND_ bool  operator == (const UntypedAllocatorBaseAlign<BaseAlign> &)    C_NE___
         {
             return true;
         }

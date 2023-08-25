@@ -4,7 +4,7 @@
     Use 'DeviceProperties'  for runtime limits like a alignment.
     Use 'DeviceLimits'      for compile time limits like a alignment.
 
-    docs: file:///<path>/engine/docs/en/DeviceProperties.md
+    docs: file:///<path>/AE/engine/docs/en/DeviceProperties.md
 */
 
 #pragma once
@@ -38,10 +38,12 @@ namespace AE::Graphics
 
             POTBytes    transformDataAlign;
 
-            POTBytes    instanceDataAlign;
-            POTBytes    instanceStrideAlign;
+            POTBytes    instanceDataAlign;                  // for device address
+            POTBytes    instanceStrideAlign;                // Vulkan: not supported, Metal: supported
 
-            POTBytes    scratchBufferAlign;
+            POTBytes    scratchBufferAlign;                 // for device address
+
+            // TODO: shaderGroupBaseAlignment, shaderGroupHandleAlignment
 
             // acceleration structure limits
             ulong       maxGeometries               = 0;

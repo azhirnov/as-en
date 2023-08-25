@@ -26,24 +26,11 @@ namespace AE::ResEditor
             _ShadertoyBits      = Shadertoy | ShadertoyVR | ShadertoyVR_180 | ShadertoyVR_360 | Shadertoy_360,
         };
 
-    private:
-        using ResourceUnion_t = Union< NullUnion, ScriptBufferPtr, ScriptImagePtr, ScriptVideoImagePtr, ScriptRTScenePtr >;
-
-        struct Input
-        {
-            ResourceUnion_t     res;
-            String              samplerName;
-            String              uniformName;
-        };
-
 
     // variables
     private:
-        const Path          _pplnPath;
-        const EPostprocess  _ppFlags;
-        String              _defines;
-
-        Array<Input>        _input;
+        const Path              _pplnPath;
+        const EPostprocess      _ppFlags;
 
 
     // methods
@@ -52,16 +39,12 @@ namespace AE::ResEditor
         ScriptPostprocess (const String &pipelineName, EPostprocess ppFlags,
                            const String &defines, EFlags baseFlags)                                     __Th___;
 
-        void  InputBuf (const String &name, const ScriptBufferPtr &buf)                                 __Th___;
-        void  InputImg (const String &name, const ScriptImagePtr &tex, const String &samplerName)       __Th___;
-        void  InputVideo (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName)__Th___;
-        void  InputController (const ScriptBaseControllerPtr &)                                         __Th___;
-
         static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
         static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                     __Th___;
 
     // ScriptBasePass //
         ND_ RC<IPass>  ToPass ()                                                                        C_Th_OV;
+
 
     private:
         ND_ auto  _CompilePipeline (OUT Bytes &ubSize)                                                  C_Th___;
@@ -71,6 +54,9 @@ namespace AE::ResEditor
                                      EPipelineOpt pplnOpt)                                              C_Th___;
 
         ND_ static auto  _CreateUBType ()                                                               __Th___;
+
+    // ScriptBasePass //
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                           C_Th_OV;
     };
 
     AE_BIT_OPERATORS( ScriptPostprocess::EPostprocess );

@@ -14,7 +14,7 @@ namespace AE::ResEditor
     // Image
     //
 
-    class Image final : public IImageResource
+    class Image final : public IResource
     {
     // types
     public:
@@ -44,9 +44,16 @@ namespace AE::ResEditor
         {
             RC<AsyncRDataSource>    file;
             Promise<IntermImageRC>  loaded;
+
+            // mutable
+            MipmapLevel             curMipmap;
+            ImageLayer              curLayer;
             ImageStream             stream;
+            bool                    complete    = false;
 
             LoadOp2 (const LoadOp &other) : LoadOp{other} {}
+
+            ND_ bool  IsCompleted ()    const   { return complete; }
         };
 
 
@@ -86,6 +93,7 @@ namespace AE::ResEditor
                Renderer &           renderer,
                bool                 isDummy,
                const ImageDesc &    desc,
+               const ImageViewDesc& viewDesc,
                RC<DynamicDim>       inDynSize,
                RC<DynamicDim>       outDynSize,
                StringView           dbgName)                                        __Th___;
@@ -93,9 +101,10 @@ namespace AE::ResEditor
         ~Image () override;
 
             bool  Resize (TransferCtx_t &ctx)                                       __Th_OV;
+            bool  RequireResize ()                                                  C_Th_OV;
 
-        ND_ ImageID         GetImageId ()                                           C_NE_OV { return _id.Get(); }
-        ND_ ImageViewID     GetViewId ()                                            C_NE_OV { return _view.Get(); }
+        ND_ ImageID         GetImageId ()                                           C_NE___ { return _id.Get(); }
+        ND_ ImageViewID     GetViewId ()                                            C_NE___ { return _view.Get(); }
         ND_ ImageDesc       GetImageDesc ()                                         C_NE___ { return _imageDesc.Read<0>(); }
         ND_ ImageViewDesc   GetViewDesc ()                                          C_NE___ { return _imageDesc.Read<1>(); }
         ND_ StringView      GetName ()                                              C_NE___ { return _dbgName; }
@@ -111,7 +120,7 @@ namespace AE::ResEditor
     private:
         ND_ bool  _OnResize (const ImageViewDesc &);
 
-        ND_ bool  _CreateImage (const ResLoader::IntermImage &);
+        ND_ bool  _CreateImage (const ResLoader::IntermImage &, MipmapLevel, ImageLayer);
         ND_ bool  _ResizeImage (TransferCtx_t &ctx, const ImageDesc &, const ImageViewDesc &);
             void  _GenMipmaps (TransferCtx_t &ctx)                                  const;
 

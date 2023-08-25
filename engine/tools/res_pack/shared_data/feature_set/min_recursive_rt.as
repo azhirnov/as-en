@@ -1,4 +1,4 @@
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 
 void ASmain ()
@@ -117,6 +117,8 @@ void ASmain ()
     fset.minRayRecursionDepth (31);
     fset.minSpirvVersion (150);
     fset.minMetalVersion (240);
+    fset.drawIndirectFirstInstance (True);
+    fset.drawIndirectCount (True);
     fset.multiview (True);
     fset.multiviewGeometryShader (True);
     fset.multiviewTessellationShader (True);

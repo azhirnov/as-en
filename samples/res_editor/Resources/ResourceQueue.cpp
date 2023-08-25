@@ -8,31 +8,46 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    EnqueueForUpload
+    constructor
 =================================================
 */
-    void  ResourceQueue::EnqueueForUpload (RC<IResource> res)
+    ResourceQueue::ResourceQueue () :
+        _destroy{0}
     {
-        if ( res and res->GetStatus() == EUploadStatus::InProgress )
         {
-            auto&   q = _upload;
-            EXLOCK( q.guard );
-            q.queue.push_back( res );
-            q.counter.fetch_add( 1 );
-            q.framesWithoutWork.store( 0 );
+            EXLOCK( _upload.guard );
+            _upload.queue.reserve( 64 );
+        }{
+            EXLOCK( _readback.guard );
+            _readback.queue.reserve( 64 );
         }
     }
 
 /*
 =================================================
-    EnqueueForReadback
+    destructor
 =================================================
 */
-    void  ResourceQueue::EnqueueForReadback (RC<IResource> res)
+    ResourceQueue::~ResourceQueue ()
     {
-        if ( res and res->GetStatus() == EUploadStatus::InProgress )
+        _destroy.store( 1 );
+        CancelAll();
+    }
+
+/*
+=================================================
+    _Enqueue
+=================================================
+*/
+    void  ResourceQueue::EnqueueForUpload (RC<IResource> res)   { _Enqueue( _upload, RVRef(res) ); }
+    void  ResourceQueue::EnqueueForReadback (RC<IResource> res) { _Enqueue( _readback, RVRef(res) ); }
+
+    void  ResourceQueue::_Enqueue (Queue &q, RC<IResource> res) const
+    {
+        if ( _destroy.load() == 0                           and
+             res                                            and
+             res->GetStatus() == EUploadStatus::InProgress )
         {
-            auto&   q = _readback;
             EXLOCK( q.guard );
             q.queue.push_back( res );
             q.counter.fetch_add( 1 );
@@ -63,6 +78,9 @@ namespace AE::ResEditor
     {
         CHECK_ERR( batch );
 
+        if ( _destroy.load() != 0 )
+            return null;
+
         auto&           q       = _upload;
         Array<ImageID>  img_arr;
         {
@@ -75,6 +93,7 @@ namespace AE::ResEditor
             DEBUG_ONLY(
                 EXLOCK( q.guard );
                 ASSERT( q.queue.empty() );
+                ASSERT( q.nextFrameQueue.empty() );
             )
             return null;
         }
@@ -85,14 +104,15 @@ namespace AE::ResEditor
             q.nextFrameQueue.clear();
         }
 
-        return batch.Task(  [] (ResourceQueue *rq) -> RenderTaskCoro
+        // TODO: multiple tasks
+        return batch.Task(  [] (RC<ResourceQueue> rq) -> RenderTaskCoro
                             {
                                 auto&                   rtask   = co_await RenderTask_GetRef;
                                 DirectCtx::Transfer     ctx     {rtask};
 
-                                rq->_Upload( ctx );
+                                _Upload( ctx, rq->_upload );
                                 co_await RenderTask_Execute( ctx );
-                            }(this),
+                            }( GetRC() ),
                             DebugLabel{"Upload"} )
                         .UseResources( ArrayView{img_arr} )     // from initial to default state
                         .Run( Tuple{deps} );
@@ -103,12 +123,11 @@ namespace AE::ResEditor
     _Upload
 =================================================
 */
-    void  ResourceQueue::_Upload (TransferCtx_t &ctx)
+    void  ResourceQueue::_Upload (TransferCtx_t &ctx, Queue &q)
     {
         const uint  max_uploads     = 100;
         const uint  max_low_mem     = 4;
         uint        low_mem         = 0;
-        auto&       q               = _upload;
 
         for (uint i = 0; i < max_uploads and low_mem < max_low_mem; ++i)
         {
@@ -128,7 +147,7 @@ namespace AE::ResEditor
 
             // upload
             {
-                auto    status = res->Upload( ctx );
+                const auto  status = res->Upload( ctx );
 
                 BEGIN_ENUM_CHECKS();
                 switch ( status )
@@ -151,7 +170,7 @@ namespace AE::ResEditor
                     case EUploadStatus::InProgress :
                     {
                         EXLOCK( q.guard );
-                        q.queue.push_back( RVRef(res) );
+                        q.nextFrameQueue.push_back( RVRef(res) );
                         break;
                     }
                 }
@@ -169,6 +188,9 @@ namespace AE::ResEditor
     {
         CHECK_ERR( batch );
 
+        if ( _destroy.load() != 0 )
+            return null;
+
         auto&   q = _readback;
 
         if ( q.counter.load() == 0 )
@@ -176,6 +198,7 @@ namespace AE::ResEditor
             DEBUG_ONLY(
                 EXLOCK( q.guard );
                 ASSERT( q.queue.empty() );
+                ASSERT( q.nextFrameQueue.empty() );
             )
             return null;
         }
@@ -186,14 +209,15 @@ namespace AE::ResEditor
             q.nextFrameQueue.clear();
         }
 
-        return batch.Task(  [] (ResourceQueue *rq) -> RenderTaskCoro
+        // TODO: multiple tasks
+        return batch.Task(  [] (RC<ResourceQueue> rq) -> RenderTaskCoro
                             {
                                 auto&                   rtask   = co_await RenderTask_GetRef;
                                 DirectCtx::Transfer     ctx     {rtask};
 
-                                rq->_Readback( ctx );
+                                _Readback( ctx, rq->_readback );
                                 co_await RenderTask_Execute( ctx );
-                            }(this),
+                            }( GetRC() ),
                             DebugLabel{"Readback"} )
                         //.UseResources( ArrayView{img_arr}, EResourceState::Invalidate, Default )
                         .Run( Tuple{deps} );
@@ -204,12 +228,11 @@ namespace AE::ResEditor
     _Readback
 =================================================
 */
-    void  ResourceQueue::_Readback (TransferCtx_t &ctx)
+    void  ResourceQueue::_Readback (TransferCtx_t &ctx, Queue &q)
     {
         const uint  max_readbacks   = 10;
         const uint  max_low_mem     = 4;
         uint        low_mem         = 0;
-        auto&       q               = _readback;
 
         for (uint i = 0; i < max_readbacks and low_mem < max_low_mem; ++i)
         {
@@ -229,7 +252,7 @@ namespace AE::ResEditor
 
             // upload
             {
-                auto    status = res->Upload( ctx );
+                const auto  status = res->Upload( ctx );
 
                 BEGIN_ENUM_CHECKS();
                 switch ( status )
@@ -252,7 +275,7 @@ namespace AE::ResEditor
                     case EUploadStatus::InProgress :
                     {
                         EXLOCK( q.guard );
-                        q.queue.push_back( RVRef(res) );
+                        q.nextFrameQueue.push_back( RVRef(res) );
                         break;
                     }
                 }
@@ -271,6 +294,7 @@ namespace AE::ResEditor
         const auto  CancelQueue = [] (auto& q)
         {{
             int count = 0;
+
             for (;; ++count)
             {
                 RC<IResource>   res;
@@ -288,9 +312,35 @@ namespace AE::ResEditor
                 res->Cancel();
             }
 
+            for (;; ++count)
+            {
+                RC<IResource>   res;
+
+                // extract
+                {
+                    EXLOCK( q.guard );
+
+                    if ( q.nextFrameQueue.empty() )
+                        break;
+
+                    res = q.nextFrameQueue.back();
+                    q.nextFrameQueue.pop_back();
+                }
+
+                res->Cancel();
+            }
+
             int     cnt = q.counter.Sub( count );
             ASSERT( cnt >= 0 );
             Unused( cnt );
+
+
+            EXLOCK( q.guard );
+            ASSERT( q.queue.empty() );
+            ASSERT( q.nextFrameQueue.empty() );
+
+            q.queue.clear();
+            q.nextFrameQueue.clear();
         }};
 
         CancelQueue( _upload );

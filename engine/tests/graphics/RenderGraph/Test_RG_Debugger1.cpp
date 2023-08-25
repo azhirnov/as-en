@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Test_RenderGraph.h"
+#ifndef AE_ENABLE_METAL
+# include "Test_RenderGraph.h"
 
 namespace
 {
@@ -230,3 +231,5 @@ bool RGTest::Test_Debugger1 ()
     AE_LOGI( TEST_NAME << " - passed" );
     return result;
 }
+
+#endif // not AE_ENABLE_METAL

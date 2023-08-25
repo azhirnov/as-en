@@ -110,15 +110,15 @@ __Metal__:  *not defined*.<br/>
 
 * `maxGeometries`<br/>
 __Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::maxGeometryCount.<br/>
-__Metal__:  *not defined*.<br/>
+__Metal__:  2^24 (can be extended to 2^30) from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureusage/mtlaccelerationstructureusageextendedlimits)<br/>
 
 * `maxInstances`<br/>
 __Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::maxInstanceCount.<br/>
-__Metal__:  *not defined*.<br/>
+__Metal__:  2^24 (can be extended to 2^30) from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureusage/mtlaccelerationstructureusageextendedlimits)<br/>
 
 * `maxPrimitives`<br/>
 __Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::maxPrimitiveCount.<br/>
-__Metal__:  *not defined*.<br/>
+__Metal__:  2^28 (can be extended to 2^30) from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureusage/mtlaccelerationstructureusageextendedlimits)<br/>
 
 * `maxRecursion`<br/>
 __Vulkan__: defined in VkPhysicalDeviceRayTracingPipelinePropertiesKHR::maxRayRecursionDepth.<br/>

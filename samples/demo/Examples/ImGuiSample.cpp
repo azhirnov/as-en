@@ -7,6 +7,9 @@
 
 namespace AE::Samples::Demo
 {
+    INTERNAL_LINKAGE( constexpr auto&   RTech   = RenderTechs::ImGui_RTech );
+    INTERNAL_LINKAGE( constexpr auto&   IA      = InputActions::imGUI );
+
 
     //
     // Process Input Task
@@ -30,40 +33,46 @@ namespace AE::Samples::Demo
             ActionQueueReader::Header   hdr;
             for (; reader.ReadHeader( OUT hdr );)
             {
-                if_unlikely( hdr.name == InputActionName{"MousePos"} )
-                    t->imgui.mousePos = reader.Data<packed_float2>( hdr.offset );
+                STATIC_ASSERT( IA.actionCount == 6 );
+                STATIC_ASSERT( IA.Desktop.actionCount == 5 );
 
-                if_unlikely( hdr.name == InputActionName{"MouseWheel"} )
-                    t->imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset );
-
-                if_unlikely( hdr.name == InputActionName{"MouseLBDown"} )
-                    t->imgui.mouseLBDown = true;
-
-                if_unlikely( hdr.name == InputActionName{"Test.Move"} ){
-                    t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-                    t->imgui.touchActive = hdr.state != EGestureState::End;
-                }
-                if_unlikely( hdr.name == InputActionName{"Touch.Click"} ){
-                    t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
-                    t->imgui.mouseLBDown = true;
-                }
-
-            //  if_unlikely( hdr.name == InputActionName{"Test.Move"} )         AE_LOGI( "Test.Move: "s << ToString(uint(hdr.state)) );
-                if_unlikely( hdr.name == InputActionName{"Test.Hold"} )         AE_LOGI( "Test.Hold: "s << ToString(uint(hdr.state)) );
-                if_unlikely( hdr.name == InputActionName{"Test.Down"} )         AE_LOGI( "Test.Down: "s << ToString(uint(hdr.state)) );
-                if_unlikely( hdr.name == InputActionName{"Test.Click"} )        AE_LOGI( "Test.Click: "s << ToString(uint(hdr.state)) );
-                if_unlikely( hdr.name == InputActionName{"Test.DoubleClick"} )  AE_LOGI( "Test.DoubleClick: "s << ToString(uint(hdr.state)) );
-                if_unlikely( hdr.name == InputActionName{"Test.LongPress"} )    AE_LOGI( "Test.LongPress: "s << ToString(uint(hdr.state)) );
-
-                if_unlikely( hdr.name == InputActionName{"Test.ScaleRotate2D"} )
+                switch ( uint{hdr.name} )
                 {
-                    float4  scale_rotate = reader.Data<packed_float4>( hdr.offset );
+                    case IA.Desktop.MousePos :
+                        t->imgui.mousePos = reader.Data<packed_float2>( hdr.offset );   break;
 
-                    AE_LOGI( "Test.ScaleRotate2D: "s << ToString(uint(hdr.state)) <<
-                             ", scale delta: " << ToString( scale_rotate.x ) <<
-                             ", rotate delta: " << ToString( scale_rotate.y * Rad::RadToDeg() ) <<
-                             ", scale: " << ToString( scale_rotate.z ) <<
-                             ", rotate: " << ToString( scale_rotate.w * Rad::RadToDeg() ));
+                    case IA.Desktop.MouseWheel :
+                        t->imgui.mouseWheel = reader.Data<packed_float2>( hdr.offset ); break;
+
+                    case IA.Desktop.MouseLBDown :
+                        t->imgui.mouseLBDown = true;                                    break;
+
+                    case IA.Test_Move :
+                        t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
+                        t->imgui.touchActive = hdr.state != EGestureState::End;         break;
+
+                    case IA.Touch_Click :
+                        t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
+                        t->imgui.mouseLBDown = true;                                    break;
+
+                //  case IA.Test_Move :         AE_LOGI( "Test.Move: "s << ToString(uint(hdr.state)) );         break;
+                    case IA.Desktop.Test_Hold : AE_LOGI( "Test.Hold: "s << ToString(uint(hdr.state)) );         break;
+                    case IA.Test_Down :         AE_LOGI( "Test.Down: "s << ToString(uint(hdr.state)) );         break;
+                    case IA.Desktop.Test_Click: AE_LOGI( "Test.Click: "s << ToString(uint(hdr.state)) );        break;
+                    case IA.Test_DoubleClick :  AE_LOGI( "Test.DoubleClick: "s << ToString(uint(hdr.state)) );  break;
+                    case IA.Test_LongPress :    AE_LOGI( "Test.LongPress: "s << ToString(uint(hdr.state)) );    break;
+
+                    case IA.Test_ScaleRotate2D :
+                    {
+                        float4  scale_rotate = reader.Data<packed_float4>( hdr.offset );
+
+                        AE_LOGI( "Test.ScaleRotate2D: "s << ToString(uint(hdr.state)) <<
+                                 ", scale delta: " << ToString( scale_rotate.x ) <<
+                                 ", rotate delta: " << ToString( scale_rotate.y * Rad::RadToDeg() ) <<
+                                 ", scale: " << ToString( scale_rotate.z ) <<
+                                 ", rotate: " << ToString( scale_rotate.w * Rad::RadToDeg() ));
+                        break;
+                    }
                 }
             }
         }
@@ -166,7 +175,7 @@ namespace AE::Samples::Demo
 
         auto    gfx_alloc   = MakeRC<GfxLinearMemAllocator>();
         auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
-        auto    rtech       = res_mngr.LoadRenderTech( pack, RenderTechName{"ImGui.RTech"}, Default );
+        auto    rtech       = res_mngr.LoadRenderTech( pack, RTech, Default );
 
         CHECK_ERR( imgui.Init( gfx_alloc, rtech ));
 
@@ -184,6 +193,16 @@ namespace AE::Samples::Demo
     AsyncTask  ImGuiSample::Update (const IInputActions::ActionQueueReader &reader, ArrayView<AsyncTask> deps)
     {
         return Scheduler().Run< ProcessInputTask >( Tuple{ this, reader }, Tuple{deps} );
+    }
+
+/*
+=================================================
+    GetInputMode
+=================================================
+*/
+    InputModeName  ImGuiSample::GetInputMode () const
+    {
+        return IA;
     }
 
 /*

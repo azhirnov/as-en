@@ -98,6 +98,8 @@ namespace AE::Graphics::_hidden_
     {
         ASSERT( _mngr.GetBatch().GetQueueType() == _cmdbuf.GetQueueType() );
 
+        DBG_GRAPHICS_ONLY( RenderTaskScheduler().DbgCheckFrameId( _mngr.GetFrameId(), task.DbgFullName() );)
+
         if ( auto* bar = _mngr.GetBatch().ExtractInitialBarriers( task.GetExecutionIndex() ))
             PipelineBarrier( *bar );
     }

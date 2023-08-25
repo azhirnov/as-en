@@ -5,8 +5,8 @@
 #include "../Public/ShaderTrace.h"
 #include "base/Algorithms/StringUtils.h"
 
-#define HIGH_DETAIL_TRACE
-//#define USE_STORAGE_QUALIFIERS
+#define HIGH_DETAIL_TRACE       1
+#define USE_STORAGE_QUALIFIERS  0
 
 
 // glslang includes

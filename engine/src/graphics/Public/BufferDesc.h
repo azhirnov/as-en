@@ -73,13 +73,16 @@ namespace AE::Graphics
     //
     // Buffer Device Address (helper)
     //
-
     enum class DeviceAddress : ulong { Unknown = 0 };
 
-    ND_ inline DeviceAddress  operator + (DeviceAddress addr, Bytes offset) __NE___ {
+    ND_ inline constexpr DeviceAddress  operator + (DeviceAddress addr, Bytes offset) __NE___ {
         return DeviceAddress( ulong(addr) + ulong(offset) );
     }
 
+
+    //
+    // Buffer Device Address (helper to use declare which type is used on the GPU side)
+    //
     template <typename T>
     struct TDeviceAddress
     {
@@ -87,8 +90,8 @@ namespace AE::Graphics
         DeviceAddress       _addr   = Default;
 
     public:
-        TDeviceAddress ()                   __NE___ = default; 
-        TDeviceAddress (DeviceAddress addr) __NE___ : _addr{addr} {}
+        constexpr TDeviceAddress ()                     __NE___ = default; 
+        constexpr TDeviceAddress (DeviceAddress addr)   __NE___ : _addr{addr} {}
     };
 
 

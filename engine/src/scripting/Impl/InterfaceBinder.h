@@ -67,7 +67,7 @@ namespace AE::Scripting
     InterfaceBinder<T>::~InterfaceBinder () __NE___
     {
         if_unlikely( _genHeader )
-            _engine->AddCppHeader( _name, RVRef(_header), 0 );
+            _engine->AddCppHeader( RVRef(_name), RVRef(_header), 0 );
     }
 
 /*

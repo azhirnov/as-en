@@ -43,16 +43,7 @@ namespace AE::ResEditor
 */
     void  UnifiedGeometry::StateTransition (IGSMaterials &, GraphicsCtx_t &ctx) __NE___
     {
-        const auto  buf_state   = EResourceState::ShaderStorage_RW  | EResourceState::AllGraphicsShaders;
-        const auto  tex_state   = EResourceState::ShaderSample      | EResourceState::AllGraphicsShaders;
-        const auto  fid         = ctx.GetFrameId().Index();
-
-        for (auto& [name, buf] : _meshes) {
-            ctx.ResourceState( buf->GetBufferId( fid ), buf_state );
-        }
-        for (auto& [name, tex] : _textures) {
-            ctx.ResourceState( tex->GetViewId(), tex_state );
-        }
+        _resources.SetStates( ctx, EResourceState::AllGraphicsShaders );
     }
 
 /*
@@ -62,16 +53,7 @@ namespace AE::ResEditor
 */
     void  UnifiedGeometry::StateTransition (IGSMaterials &, RayTracingCtx_t &ctx) __NE___
     {
-        const auto  buf_state   = EResourceState::ShaderStorage_RW  | EResourceState::RayTracingShaders;
-        const auto  tex_state   = EResourceState::ShaderSample      | EResourceState::RayTracingShaders;
-        const auto  fid         = ctx.GetFrameId().Index();
-
-        for (auto& [name, buf] : _meshes) {
-            ctx.ResourceState( buf->GetBufferId( fid ), buf_state );
-        }
-        for (auto& [name, tex] : _textures) {
-            ctx.ResourceState( tex->GetViewId(), tex_state );
-        }
+        _resources.SetStates( ctx, EResourceState::RayTracingShaders );
     }
 
 /*
@@ -81,14 +63,19 @@ namespace AE::ResEditor
 */
     bool  UnifiedGeometry::Draw (const DrawData &in) __NE___
     {
-        auto&           ctx     = in.ctx;
-        auto&           mtr     = RefCast<Material>(in.mtr);
-        DescriptorSetID mtr_ds  = mtr.descSets[ ctx.GetFrameId().Index() ];
+        auto&               ctx         = in.ctx;
+        auto&               mtr         = RefCast<Material>(in.mtr);
+        DescriptorSetID     mtr_ds      = mtr.descSets[ ctx.GetFrameId().Index() ];
+        Material::PplnID_t  prev_ppln;
 
         CHECK( _drawCommands.size() == mtr.pplns.size() );
 
-        const auto      BindPipeline = [&ctx] (const auto &pplnId)
+        const auto      BindPipeline = [&ctx, &prev_ppln] (const auto &pplnId)
         {{
+            if ( prev_ppln == pplnId )
+                return;
+
+            prev_ppln = pplnId;
             Visit( pplnId,
                 [&ctx] (GraphicsPipelineID ppln)    { ctx.BindPipeline( ppln ); },
                 [&ctx] (MeshPipelineID ppln)        { ctx.BindPipeline( ppln ); },
@@ -196,9 +183,8 @@ namespace AE::ResEditor
 */
     bool  UnifiedGeometry::Update (const UpdateData &in) __NE___
     {
-        auto&       ctx = in.ctx;
-        auto&       mtr = RefCast<Material>(in.mtr);
-        const auto  fid = ctx.GetFrameId().Index();
+        auto&   ctx = in.ctx;
+        auto&   mtr = RefCast<Material>(in.mtr);
 
         // update uniform buffer
         {
@@ -214,14 +200,7 @@ namespace AE::ResEditor
             DescriptorSetID     mtr_ds  = mtr.descSets[ ctx.GetFrameId().Index() ];
 
             CHECK_ERR( updater.Set( mtr_ds, EDescUpdateMode::Partialy ));
-
-            for (auto& [name, buf] : _meshes) {
-                updater.BindBuffer( name, buf->GetBufferId( fid ));
-            }
-            for (auto& [name, tex] : _textures) {
-                updater.BindImage( name, tex->GetViewId() );
-            }
-
+            CHECK_ERR( _resources.Bind( ctx.GetFrameId(), updater ));
             CHECK_ERR( updater.BindBuffer< ShaderTypes::UnifiedGeometryMaterialUB >( UniformName{"un_PerObject"}, mtr.ubuffer ));
 
             CHECK_ERR( updater.Flush() );

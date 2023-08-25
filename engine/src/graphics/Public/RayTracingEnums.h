@@ -26,13 +26,15 @@ namespace AE::Graphics
     //
     enum class ERTInstanceOpt : ubyte
     {
-        TriangleCullDisable         = 1 << 0,
-        TriangleFrontCCW            = 1 << 1,
+        TriangleCullDisable         = 1 << 0,   // otherwise cull back
+        TriangleFrontCCW            = 1 << 1,   // otherwise CW
         ForceOpaque                 = 1 << 2,   // enable  ERTGeometryOpt::Opaque flag
         ForceNonOpaque              = 1 << 3,   // disable ERTGeometryOpt::Opaque flag
         _Last,
         All                         = ((_Last - 1) << 1) - 1,
         Unknown                     = 0,
+        TriangleCullBack            = 0,        // default
+        TriangleFrontCW             = 0,        // default
     };
     AE_BIT_OPERATORS( ERTInstanceOpt );
 
@@ -63,6 +65,7 @@ namespace AE::Graphics
     {
         Clone,
         Compaction,
+        _Count,
     };
 
 
@@ -76,6 +79,7 @@ namespace AE::Graphics
         SerializationSize,
         Size,                               // require 'VK_KHR_ray_tracing_maintenance1'
     //  SerializationBottomLevelPointers,   // require 'VK_KHR_ray_tracing_maintenance1'
+        _Count,
     };
 
 

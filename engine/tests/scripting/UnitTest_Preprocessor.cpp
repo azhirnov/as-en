@@ -99,6 +99,7 @@ lsdkfmsdlklas akdslmalksd
 
         TEST( expected == src );
     }
+    //-----------------------------------------------------
 
 
     static void  Preprocessor_Test2 ()
@@ -132,6 +133,7 @@ ewgryjkcs eDSfsehyu rdscszdfve
 )";
         TEST( expected == src );
     }
+    //-----------------------------------------------------
 
 
     static void  Preprocessor_Test3 ()
@@ -151,6 +153,7 @@ cl.Method( EType_Value );
 )";
         TEST( expected == src );
     }
+    //-----------------------------------------------------
 
 
     static void  Preprocessor_Test4 ()
@@ -190,15 +193,66 @@ dfrkdtywb
 )";
         TEST( expected == src );
     }
+    //-----------------------------------------------------
+
+
+    static void  Preprocessor_Test5 ()
+    {
+        const char  source[] = "// 11\r\n"
+"#ifdef __INTELLISENSE__\r\n"
+"#  include <res_editor.as>\r\n"
+"#  define SH_RAY_GEN\r\n"
+"#  include <aestyle.glsl.h>\r\n"
+"#  define PRIMARY_MISS\r\n"
+"#  define SHADOW_MISS\r\n"
+"#  define PRIMARY_HIT\r\n"
+"#  define SHADOW_HIT\r\n"
+"#endif\r\n"
+"//-----------------------------------------------------------------------------\r\n"
+"#ifdef SCRIPT\r\n"
+"\r\n"
+"   void ASmain ()\r\n"
+"   {\r\n"
+"   }\r\n"
+"\r\n"
+"#endif\r\n";
+        String  src;
+        TEST( ScriptEngine::_Preprocessor( source, OUT src, ArrayView<StringView>{"SCRIPT"} ));
+
+        FindAndReplace( INOUT src, "\r\n", "\n" );
+
+        const char  expected[] = R"(// 11
+
+
+
+
+
+
+
+
+
+//-----------------------------------------------------------------------------
+
+
+    void ASmain ()
+    {
+    }
+
+
+)";
+        TEST( expected == src );
+    }
+    //-----------------------------------------------------
 }
 
 
 extern void UnitTest_Preprocessor ()
 {
+    Preprocessor_Test1();
     Preprocessor_Test2();
     Preprocessor_Test3();
     Preprocessor_Test4();
-    Preprocessor_Test1();
+    Preprocessor_Test5();
 
     TEST_PASSED();
 }

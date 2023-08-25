@@ -13,6 +13,7 @@ set( AE_TEMP_FOLDER         "${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Temp" CACHE IN
 
 include( "cmake/config.cmake" )
 include( "cmake/utils.cmake" )
+add_subdirectory( "cmake/deps" )
 add_subdirectory( "cmake/project_template" )
 
 #----------------------------------------------------------
@@ -31,8 +32,9 @@ if (${AE_ENABLE_REMOTE_GRAPHICS})
 endif()
 #----------------------------------------------------------
 
+set( DUMMY_CPP_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/project_template/main.cpp" )
 if (DEFINED ENGINE_LIBS_PATH)
-	set( DUMMY_CPP_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/project_template/main.cpp" )
+    set( PREBUILD_CPP_FILE "${DUMMY_CPP_FILE}" )
 endif()
 
 add_subdirectory( "src" )

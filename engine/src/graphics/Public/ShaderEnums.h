@@ -12,28 +12,30 @@ namespace AE::Graphics
     //
     enum class EShader : ubyte
     {
-        Vertex,
-        TessControl,
-        TessEvaluation,
-        Geometry,
-        Fragment,
+                            // |  Vulkan  |  Metal  |
+        Vertex,             //      x     |    x
+        TessControl,        //      x     |    -
+        TessEvaluation,     //      x     |    -
+        Geometry,           //      x     |    -
+        Fragment,           //      x     |    x
 
-        Compute,
-        Tile,               // subpass compute
+        Compute,            //      x     |    x
+        Tile,               //     ext    |    x
 
-        MeshTask,           // object shader in Metal
-        Mesh,
+        MeshTask,           //    task    |  object
+        Mesh,               //      x     |    x
 
-        RayGen,
-        RayAnyHit,
-        RayClosestHit,
-        RayMiss,
-        RayIntersection,
-        RayCallable,
+        RayGen,             //      x     |    -
+        RayAnyHit,          //      x     |    -
+        RayClosestHit,      //      x     |    -
+        RayMiss,            //      x     |    -
+        RayIntersection,    //      x     |    -
+        RayCallable,        //      x     |    -
 
         _Count,
 
-        ClusterCulling  = MeshTask,
+        ClusterCulling  = MeshTask, // VK_HUAWEI_cluster_culling_shader
+        SubpassShading  = Tile,     // VK_HUAWEI_subpass_shading
         Unknown         = 0xFF,
     };
 
@@ -58,9 +60,11 @@ namespace AE::Graphics
         RayMiss         = 1 << uint(EShader::RayMiss),
         RayIntersection = 1 << uint(EShader::RayIntersection),
         RayCallable     = 1 << uint(EShader::RayCallable),
-        ClusterCulling  = 1 << uint(EShader::ClusterCulling),
 
+        ClusterCulling  = 1 << uint(EShader::ClusterCulling),
+        SubpassShading  = 1 << uint(EShader::SubpassShading),
         All             = (1 << uint(EShader::_Count)) - 1,
+
         GraphicsStages  = Vertex | TessControl | TessEvaluation | Geometry | Fragment,
         MeshStages      = MeshTask | Mesh | Fragment,
         AllGraphics     = GraphicsStages | MeshStages,
@@ -69,8 +73,8 @@ namespace AE::Graphics
     };
     AE_BIT_OPERATORS( EShaderStages );
 
-    ND_ forceinline EShaderStages  operator |  (EShaderStages lhs, EShader rhs)     { return lhs | EShaderStages(1 << uint(rhs)); }
-        forceinline EShaderStages  operator |= (EShaderStages &lhs, EShader rhs)    { return (lhs |= EShaderStages(1 << uint(rhs))); }
+    ND_ constexpr EShaderStages  operator |  (EShaderStages lhs, EShader rhs)   __NE___ { return lhs | EShaderStages(1 << uint(rhs)); }
+        constexpr EShaderStages  operator |= (EShaderStages &lhs, EShader rhs)  __NE___ { return (lhs |= EShaderStages(1 << uint(rhs))); }
 
 
 } // AE::Graphics

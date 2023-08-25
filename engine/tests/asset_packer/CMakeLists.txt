@@ -97,6 +97,17 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
         set_property( SOURCE "${InputActionsBinding.trigger}" PROPERTY GENERATED 1 )
     endif()
 
+    # must be same as in 'Graphics' module
+    if (DEFINED AE_GRAPHICS_STRONG_VALIDATION)
+        if (${AE_GRAPHICS_STRONG_VALIDATION})
+            target_compile_definitions( "Tests.AssetPacker" PRIVATE AE_GRAPHICS_STRONG_VALIDATION=1 )
+        else()
+            target_compile_definitions( "Tests.AssetPacker" PRIVATE AE_GRAPHICS_STRONG_VALIDATION=0 )
+        endif()
+    else()
+        message( FATAL_ERROR "AE_GRAPHICS_STRONG_VALIDATION is not defined" )
+    endif()
+
     add_test( NAME "Tests.AssetPacker" COMMAND "Tests.AssetPacker" )
 
 endif()

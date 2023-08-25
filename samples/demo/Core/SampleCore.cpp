@@ -11,16 +11,11 @@
 #include "demo/Examples/Canvas2D.h"
 #include "demo/Examples/Simple3D.h"
 #include "demo/Examples/ImGuiSample.h"
-#include "demo/Examples/RayQuery.h"
-#include "demo/Examples/RayTracing.h"
-#include "demo/Examples/YcbcrImage.h"
-#include "demo/Examples/HdrTest.h"
 
 namespace AE::Samples::Demo
 {
     using namespace AE::Threading;
     using namespace AE::Graphics;
-
 
 /*
 =================================================
@@ -29,17 +24,17 @@ namespace AE::Samples::Demo
 */
     SampleCore::SampleCore ()
     {
-        //_sample.reset( new RayQuerySample{} );
-        //_sample.reset( new RayTracingSample{} );
-        _sample.reset( new ImGuiSample{} );
-        //_sample.reset( new Canvas2DSample{} );
-        //_sample.reset( new Simple3DSample{} );
-        //_sample.reset( new YcbcrImageSample{} );
-        //_sample.reset( new HdrTestSample{} );
+        //_sample = MakeRC< ImGuiSample >();
+        //_sample = MakeRC< Canvas2DSample >();
+        _sample = MakeRC< Simple3DSample >();
     }
 //-----------------------------------------------------------------------------
 
 
+
+namespace
+{
+    static constexpr auto&  RTech = RenderTechs::UI_RTech;
 
 /*
 =================================================
@@ -106,6 +101,8 @@ namespace AE::Samples::Demo
 
         return cfg;
     }
+
+} // namespace
 //-----------------------------------------------------------------------------
 
 
@@ -396,15 +393,12 @@ namespace AE::Samples::Demo
         AsyncTask   proc_input  = _sample->Update( input->ReadInput( rg.GetPrevFrameId() ), Default );
         // 'proc_input' can be null
 
-
         AsyncTask   begin_frame = rg.BeginFrame( output );
         if ( begin_frame->IsInterrupted() )
             return;
 
-
         AsyncTask   draw_task   = _sample->Draw( rg, { begin_frame, proc_input });
         CHECK_ERRV( draw_task );
-
 
         AsyncTask   end_frame   = rg.EndFrame( Default, Tuple{ draw_task });
 
@@ -421,12 +415,16 @@ using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::Samples::Demo;
 
-#include "base/Algorithms/StringUtils.h"
+#define REQUIRE_APACHE_2
+//#include "base/Defines/DetectLicense.inl.h"
 
 
 Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 {
     StaticLogger::InitDefault();
+
+    //AE_LOG_DBG( "License: "s << AE_LICENSE );
+
     return MakeUnique<SampleApplication>();
 }
 

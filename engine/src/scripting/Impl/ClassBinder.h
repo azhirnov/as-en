@@ -161,6 +161,9 @@ namespace AE::Scripting
         void  CreateRef (int flags = 0, Bool hasFactory = True{})                                       __Th___;
         void  CreateRef (T* (*create)(), void (T:: *addRef)(), void (T:: *releaseRef)(), int flags = 0) __Th___;
 
+        // can be used to write docs in code
+        void  Comment (StringView text)                                                                 __Th___;
+
         ND_ bool  IsRegistred ()                                                                        C_NE___;
 
         template <typename Fn>

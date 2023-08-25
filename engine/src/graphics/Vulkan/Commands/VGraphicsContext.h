@@ -164,7 +164,7 @@ namespace AE::Graphics::_hidden_
     EndCommandBuffer
 =================================================
 */
-    inline VkCommandBuffer  _VDirectGraphicsCtx::EndCommandBuffer ()
+    inline VkCommandBuffer  _VDirectGraphicsCtx::EndCommandBuffer () __Th___
     {
         ASSERT( _NoPendingBarriers() );
         return VBaseDirectContext::_EndCommandBuffer();  // throw
@@ -175,7 +175,7 @@ namespace AE::Graphics::_hidden_
     ReleaseCommandBuffer
 =================================================
 */
-    inline VCommandBuffer  _VDirectGraphicsCtx::ReleaseCommandBuffer ()
+    inline VCommandBuffer  _VDirectGraphicsCtx::ReleaseCommandBuffer () __Th___
     {
         ASSERT( _NoPendingBarriers() );
         return VBaseDirectContext::_ReleaseCommandBuffer();
@@ -189,7 +189,7 @@ namespace AE::Graphics::_hidden_
     EndCommandBuffer
 =================================================
 */
-    inline VBakedCommands  _VIndirectGraphicsCtx::EndCommandBuffer ()
+    inline VBakedCommands  _VIndirectGraphicsCtx::EndCommandBuffer () __Th___
     {
         ASSERT( _NoPendingBarriers() );
         return VBaseIndirectContext::_EndCommandBuffer();  // throw
@@ -200,7 +200,7 @@ namespace AE::Graphics::_hidden_
     ReleaseCommandBuffer
 =================================================
 */
-    inline VSoftwareCmdBufPtr  _VIndirectGraphicsCtx::ReleaseCommandBuffer ()
+    inline VSoftwareCmdBufPtr  _VIndirectGraphicsCtx::ReleaseCommandBuffer () __Th___
     {
         ASSERT( _NoPendingBarriers() );
         return VBaseIndirectContext::_ReleaseCommandBuffer();
@@ -218,7 +218,7 @@ namespace AE::Graphics::_hidden_
     _VGraphicsContextImpl<C>::_VGraphicsContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
         RawCtx{ task, RVRef(cmdbuf), dbg }  // throw
     {
-        CHECK_THROW( AnyBits( EQueueMask::Graphics, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
     template <typename C>
@@ -226,8 +226,8 @@ namespace AE::Graphics::_hidden_
         RawCtx{ task, RVRef(cmdbuf), Default },  // throw
         _primaryState{ batch.GetPrimaryCtxState() }
     {
-        ASSERT( IsInsideRenderPass() );
-        CHECK_THROW( AnyBits( EQueueMask::Graphics, task.GetQueueMask() ));
+        GCTX_CHECK( IsInsideRenderPass() );
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
 /*
@@ -239,10 +239,8 @@ namespace AE::Graphics::_hidden_
     typename _VGraphicsContextImpl<C>::DrawCtx
         _VGraphicsContextImpl<C>::BeginRenderPass (const RenderPassDesc &desc, DebugLabel dbg, void* userData)
     {
-        ASSERT( this->_NoPendingBarriers() );
-
         CHECK_THROW( this->_mngr.BeforeBeginRenderPass( desc, OUT _primaryState ));
-        ASSERT( not IsSecondaryCmdbuf() );
+        GCTX_CHECK( not IsSecondaryCmdbuf() );
 
         _primaryState.userData = userData;
 
@@ -276,12 +274,12 @@ namespace AE::Graphics::_hidden_
         _VGraphicsContextImpl<C>::NextSubpass (DrawCtx& prevPassCtx, DebugLabel dbg, void* userData)
     {
         ASSERT( this->_NoPendingBarriers() );
-        ASSERT( _primaryState.IsValid() );
-        ASSERT( prevPassCtx._IsValid() );
-        ASSERT( not IsSecondaryCmdbuf() );
+        GCTX_CHECK( _primaryState.IsValid() );
+        GCTX_CHECK( prevPassCtx._IsValid() );
+        GCTX_CHECK( not IsSecondaryCmdbuf() );
 
         ++_primaryState.subpassIndex;
-        ASSERT( usize{_primaryState.subpassIndex} < _primaryState.renderPass->Subpasses().size() );
+        GCTX_CHECK( usize{_primaryState.subpassIndex} < _primaryState.renderPass->Subpasses().size() );
 
         _primaryState.userData = userData;
 
@@ -311,9 +309,9 @@ namespace AE::Graphics::_hidden_
     void  _VGraphicsContextImpl<C>::EndRenderPass (DrawCtx& ctx)
     {
         ASSERT( this->_NoPendingBarriers() );
-        ASSERT( _primaryState.IsValid() );
-        ASSERT( not IsSecondaryCmdbuf() );
-        ASSERT( ctx._IsValid() );
+        GCTX_CHECK( _primaryState.IsValid() );
+        GCTX_CHECK( not IsSecondaryCmdbuf() );
+        GCTX_CHECK( ctx._IsValid() );
 
         DBG_GRAPHICS_ONLY( ctx.PopDebugGroup();)
 
@@ -321,22 +319,22 @@ namespace AE::Graphics::_hidden_
         _primaryState = Default;
 
         this->_cmdbuf = ctx.ReleaseCommandBuffer();
-        ASSERT( this->_IsValid() );
+        GCTX_CHECK( this->_IsValid() );
     }
 
     template <typename C>
     void  _VGraphicsContextImpl<C>::EndRenderPass (DrawCtx& ctx, const RenderPassDesc &desc)
     {
-        ASSERT( _primaryState.IsValid() );
-        ASSERT( not IsSecondaryCmdbuf() );
-        ASSERT( ctx._IsValid() );
+        GCTX_CHECK( _primaryState.IsValid() );
+        GCTX_CHECK( not IsSecondaryCmdbuf() );
+        GCTX_CHECK( ctx._IsValid() );
 
         DBG_GRAPHICS_ONLY( ctx.PopDebugGroup();)
 
         RawCtx::_EndRenderPass( ctx._RawCmdBuf() );
 
         this->_cmdbuf = ctx.ReleaseCommandBuffer();
-        ASSERT( this->_IsValid() );
+        GCTX_CHECK( this->_IsValid() );
 
         this->_mngr.AfterEndRenderPass( desc, _primaryState );
         CommitBarriers();   // for RG
@@ -360,12 +358,12 @@ namespace AE::Graphics::_hidden_
         _primaryState.useSecondaryCmdbuf = true;
         _primaryState.userData           = userData;
 
-        ASSERT( IsSecondaryCmdbuf() );
+        GCTX_CHECK( IsSecondaryCmdbuf() );
 
         auto    batch = RawCtx::_BeginFirstAsyncPass( _primaryState, desc, dbg );
         CHECK_THROW( batch );
 
-        ASSERT( _primaryState == batch->GetPrimaryCtxState() );
+        GCTX_CHECK( _primaryState == batch->GetPrimaryCtxState() );
 
         CHECK_THROW( RawCtx::_BeginRenderPass( desc, _primaryState, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS, dbg ));
         return batch;
@@ -380,19 +378,19 @@ namespace AE::Graphics::_hidden_
     auto  _VGraphicsContextImpl<C>::NextMtSubpass (const VDrawCommandBatch &prevPassBatch, DebugLabel dbg, void* userData) -> RC<VDrawCommandBatch>
     {
         ASSERT( this->_NoPendingBarriers() );
-        ASSERT( _primaryState.IsValid() );
-        ASSERT( IsSecondaryCmdbuf() );
-        ASSERT( this->_IsValid() );
+        GCTX_CHECK( _primaryState.IsValid() );
+        GCTX_CHECK( IsSecondaryCmdbuf() );
+        GCTX_CHECK( this->_IsValid() );
 
         ++_primaryState.subpassIndex;
-        ASSERT( usize{_primaryState.subpassIndex} < _primaryState.renderPass->Subpasses().size() );
+        GCTX_CHECK( usize{_primaryState.subpassIndex} < _primaryState.renderPass->Subpasses().size() );
 
         _primaryState.userData = userData;
 
         auto    batch = RawCtx::_BeginNextAsyncPass( prevPassBatch, dbg );
         CHECK_THROW( batch );
 
-        ASSERT( _primaryState == batch->GetPrimaryCtxState() );
+        GCTX_CHECK( _primaryState == batch->GetPrimaryCtxState() );
 
         RawCtx::_NextSubpass( this->_RawCmdBuf(), VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS );
         return batch;
@@ -407,8 +405,8 @@ namespace AE::Graphics::_hidden_
     void  _VGraphicsContextImpl<C>::EndMtRenderPass ()
     {
         ASSERT( this->_NoPendingBarriers() );
-        ASSERT( this->_IsValid() );
-        ASSERT( IsSecondaryCmdbuf() );
+        GCTX_CHECK( this->_IsValid() );
+        GCTX_CHECK( IsSecondaryCmdbuf() );
 
         RawCtx::_EndRenderPass( this->_RawCmdBuf() );
         _primaryState = Default;
@@ -417,8 +415,8 @@ namespace AE::Graphics::_hidden_
     template <typename C>
     void  _VGraphicsContextImpl<C>::EndMtRenderPass (const RenderPassDesc &desc)
     {
-        ASSERT( this->_IsValid() );
-        ASSERT( IsSecondaryCmdbuf() );
+        GCTX_CHECK( this->_IsValid() );
+        GCTX_CHECK( IsSecondaryCmdbuf() );
 
         RawCtx::_EndRenderPass( this->_RawCmdBuf() );
 
@@ -437,9 +435,9 @@ namespace AE::Graphics::_hidden_
     void  _VGraphicsContextImpl<C>::ExecuteSecondary (VDrawCommandBatch &batch)
     {
         ASSERT( this->_NoPendingBarriers() );
-        ASSERT( IsInsideRenderPass() );
-        ASSERT( IsSecondaryCmdbuf() );
-        CHECK( _primaryState == batch.GetPrimaryCtxState() );
+        GCTX_CHECK( IsInsideRenderPass() );
+        GCTX_CHECK( IsSecondaryCmdbuf() );
+        GCTX_CHECK( _primaryState == batch.GetPrimaryCtxState() );
 
         uint                                                                count;
         StaticArray< VkCommandBuffer, GraphicsConfig::MaxCmdBufPerBatch >   cmdbufs;

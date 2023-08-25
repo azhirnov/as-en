@@ -1,6 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Use SDF to draw scene and calculate collisions.
+*/
 #ifdef __INTELLISENSE__
-#   include <res_editor>
+#   include <res_editor.as>
 #   include <aestyle.glsl.h>
 #   define CALC_COLLISION
 #   define TRACE_RAYS
@@ -38,11 +41,11 @@
             collision.ArgInOut( "un_CollisionData", cam_pos );
             collision.LocalSize( 1 );
             collision.DispatchGroups( 1 );
-
+        }{
             RC<ComputePass>     draw        = ComputePass( "", "TRACE_RAYS", EPassFlags::Enable_ShaderTrace );
-            draw.ArgIn(     camera );
-            draw.ArgOut(    "un_OutImage",      rt );
-            draw.ArgInOut(  "un_CollisionData", cam_pos );
+            draw.ArgIn(  camera );
+            draw.ArgOut( "un_OutImage",         rt );
+            draw.ArgIn(  "un_CollisionData",    cam_pos );
             draw.LocalSize( 8, 8 );
             draw.DispatchThreads( rt.Dimension() );
         }
@@ -53,7 +56,7 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_COMPUTE
     #include "SDF.glsl"
-    #include "DistAndMat.glsl"
+    #include "DistAndMtr.glsl"
 
     const float GroundY         = 1.f;
     const float CameraHeight    = 0.75f;
@@ -62,39 +65,43 @@
 
     const int   MTR_Ground      = 0;
     const int   MTR_Column      = 1;
-    const int   MTR_Sky         = 2;
+    const int   MTR_Sky         = -1;
 
-    ND_ DistAndMat  SDFGround (const float3 pos)
+    ND_ DistAndMtr  SDFGround (const float3 pos)
     {
-        DistAndMat  dm = DM_Create();
+        DistAndMtr  dm = DM_Create();
         dm.mtrIndex = MTR_Ground;
         dm.dist     = SDF_Plane( pos, float3(0.0, -GroundY, 0.0), 0.5 );
         return dm;
     }
 
-    ND_ DistAndMat  SDFColumns2 (const float3 pos)
+    ND_ DistAndMtr  SDFColumns2 (const float3 pos)
     {
-        DistAndMat  dm = DM_Create();
+        DistAndMtr  dm = DM_Create();
         dm.mtrIndex = MTR_Column;
         dm.dist     = SDF_Cylinder( pos, float2(0.2, 1.0) );
         return dm;
     }
 
-    ND_ DistAndMat  SDFColumns (float3 pos)
+    ND_ DistAndMtr  SDFColumns (float3 pos)
     {
         pos = SDF_Move( pos, float3(-0.5f, 0.f, -0.5f));
         return SDF_Repetition( pos, 2.f, float3(100.f, 1.f, 100.f), SDFColumns2 );
     }
 
-    ND_ DistAndMat  SDFScene (const float3 pos)
+    ND_ DistAndMtr  SDFScene (const float3 pos)
     {
-        DistAndMat  dm = DM_Create( 99.0, MTR_Sky );
+        DistAndMtr  dm = DM_Create( 99.0, MTR_Sky );
         dm = DM_Min( dm, SDFColumns( pos ));
         dm = DM_Min( dm, SDFGround( pos ));
         return dm;
     }
 
-    GEN_SDF_NORMAL_FN( SDFNormal, SDFScene, .dist )
+    ND_ float  SDFScene2 (const float3 pos) {
+        return SDFScene( pos ).dist;
+    }
+
+    GEN_SDF_NORMAL_6sp_FN( SDFNormal, SDFScene2 )
 
 #endif
 //-----------------------------------------------------------------------------
@@ -142,7 +149,7 @@
 
     void  Main ()
     {
-        Ray         ray         = Ray_From( un_PerPass.camera.invViewProj, un_CollisionData.actualPos, 0.1, GetGlobalCoordUNorm().xy );
+        Ray         ray         = Ray_From( un_PerPass.camera.invViewProj, un_CollisionData.actualPos, un_PerPass.camera.clipPlanes.x, GetGlobalCoordUNorm().xy );
 
         const int   max_iter    = 256;
         const float min_dist    = 0.00625;
@@ -152,7 +159,7 @@
         // ray marching
         for (int i = 0; i < max_iter; ++i)
         {
-            DistAndMat  dm = SDFScene( ray.pos );
+            DistAndMtr  dm = SDFScene( ray.pos );
 
             mtr_index = dm.mtrIndex;
 
@@ -163,7 +170,7 @@
 
             if ( ray.t > max_dist )
             {
-                mtr_index = -1;
+                mtr_index = MTR_Sky;
                 break;
             }
         }

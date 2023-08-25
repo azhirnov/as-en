@@ -8,6 +8,7 @@ namespace
     {
         Mutex                       guard;
 
+        RenderTechPipelinesPtr      rtech;
         uint2                       viewSize;
 
         GAutorelease<ImageID>       img;
@@ -24,6 +25,8 @@ namespace
         ImageComparator *           imgCmp  = null;
         RC<GfxLinearMemAllocator>   gfxAlloc;
     };
+
+    static constexpr auto&  RTech = RenderTechs::DrawTestRT;
 
     static const float4     vertices[] = {
         float4{ 0.0f, -0.5f, BitCast<float>(HtmlColor::Red),    1.f},
@@ -57,9 +60,12 @@ namespace
 
             // draw
             {
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.viewSize }
+                constexpr auto&     rtech_pass = RTech.Draw_1;
+                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
-                                    .AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::Black} ));
+                                    .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
 
                 dctx.BindPipeline( t.ppln );
                 dctx.PushConstant( t.pcIdx, Sizeof(vertices), vertices, ShaderStructName{"PC_draw3"} );
@@ -114,9 +120,12 @@ namespace
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         D3_TestData     t;
 
+        t.rtech     = renderTech;
         t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
+
+        CHECK_ERR( t.rtech->Name() == RenderTechName{RTech} );
 
         t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
                                         .SetUsage( EImageUsage::Sampled | EImageUsage::ColorAttachment | EImageUsage::TransferSrc ),
@@ -126,10 +135,10 @@ namespace
         t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
         CHECK_ERR( t.view );
 
-        t.ppln = renderTech->GetGraphicsPipeline( PipelineName{"draw3"} );
+        t.ppln = t.rtech->GetGraphicsPipeline( RTech.Draw_1.draw3 );
         CHECK_ERR( t.ppln );
 
-        t.pcIdx = res_mngr.GetPushConstantIndex<PC_draw3>( t.ppln, PushConstantName{"pc"} );
+        t.pcIdx = res_mngr.GetPushConstantIndex< ShaderTypes::PC_draw3 >( t.ppln, PushConstantName{"pc"} );
 
         AsyncTask   begin   = rts.BeginFrame();
 

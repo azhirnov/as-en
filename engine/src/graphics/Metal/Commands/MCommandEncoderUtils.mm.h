@@ -329,7 +329,7 @@ namespace AE::Graphics::_hidden_
         for (auto& range : ranges)
         {
             ASSERT( range.rowPitch > 0_b );
-            ASSERT( range.slicePitch > 0_b and (range.slicePitch % range.rowPitch == 0) );
+            ASSERT( range.slicePitch > 0_b and IsAligned( range.slicePitch, range.rowPitch ));
 
             Bytes   buf_offset = range.bufferOffset;
 
@@ -363,7 +363,7 @@ namespace AE::Graphics::_hidden_
         for (auto& range : ranges)
         {
             ASSERT( range.rowPitch != 0_b );
-            ASSERT( range.slicePitch > 0_b and (range.slicePitch % range.rowPitch == 0) );
+            ASSERT( range.slicePitch > 0_b and IsAligned( range.slicePitch, range.rowPitch ));
 
             Bytes   buf_offset = range.bufferOffset;
 
@@ -423,9 +423,9 @@ namespace AE::Graphics::_hidden_
             auto*   dst     = [[[MTLAccelerationStructureTriangleGeometryDescriptor descriptor] retain] autorelease];   // TODO: check
 
 
-            auto*   vb  = resMngr.GetResource( data.vertexData,     False{"incRef"}, True{"quiet"} );
-            auto*   ib  = resMngr.GetResource( data.indexData,      False{"incRef"}, True{"quiet"} );
-            auto*   tb  = resMngr.GetResource( data.transformData,  False{"incRef"}, True{"quiet"} );
+            auto*   vb  = resMngr.GetResource( data.vertexData,     False{"don't inc ref"}, True{"quiet"} );
+            auto*   ib  = resMngr.GetResource( data.indexData,      False{"don't inc ref"}, True{"quiet"} );
+            auto*   tb  = resMngr.GetResource( data.transformData,  False{"don't inc ref"}, True{"quiet"} );
             CHECK_ERR( vb != null );
             CHECK_ERR( (ib != null) == data.indexData.IsValid() );
             CHECK_ERR( (tb != null) == data.transformData.IsValid() );
@@ -461,9 +461,9 @@ namespace AE::Graphics::_hidden_
             [geom_arr addObject : dst];
 
             ASSERT( Bytes{data.vertexStride} >= 12_b );
-            ASSERT( Bytes{data.vertexStride} % 4_b == 0 );
+            ASSERT( IsAligned( data.vertexStride, 4 ));
             ASSERT( Bytes{data.vertexStride} >= EVertexType_SizeOf( info.vertexFormat ));
-            ASSERT( (info.indexType == Default) or (data.indexDataOffset % EIndex_SizeOf( info.indexType ) == 0) );
+            ASSERT( (info.indexType == Default) or IsAligned( data.indexDataOffset, EIndex_SizeOf( info.indexType )));
             ASSERT( vb->Size() >= (data.vertexDataOffset + Bytes{data.vertexStride} * info.maxVertex) );
             ASSERT( (info.indexType == Default) or (ib->Size() >= (data.indexDataOffset + info.maxPrimitives * EIndex_SizeOf( info.indexType ))) );
         }
@@ -474,7 +474,7 @@ namespace AE::Graphics::_hidden_
             auto&   data    = cmd.aabbs.at< RTGeometryBuild::AABBsData >(i);
             auto*   dst     = [[[MTLAccelerationStructureBoundingBoxGeometryDescriptor descriptor] retain] autorelease];    // TODO: check
 
-            auto*   buf     = resMngr.GetResource( data.data, False{"incRef"}, True{"quiet"} );
+            auto*   buf     = resMngr.GetResource( data.data, False{"don't inc ref"}, True{"quiet"} );
             CHECK_ERR( buf != null );
 
             dst.boundingBoxCount        = info.maxAABBs;
@@ -512,7 +512,7 @@ namespace AE::Graphics::_hidden_
         CHECK_ERR( not cmd.geomArray.empty() );
 
         auto*   as_arr      = [[[NSMutableArray<id<MTLAccelerationStructure>> alloc] initWithCapacity : cmd.maxInstanceCount] autorelease];
-        auto*   inst_buf    = resMngr.GetResource( cmd.instanceData.id, False{"incRef"}, True{"quiet"} );
+        auto*   inst_buf    = resMngr.GetResource( cmd.instanceData.id, False{"don't inc ref"}, True{"quiet"} );
         CHECK_ERR( inst_buf != null );
 
         auto*   desc = [MTLInstanceAccelerationStructureDescriptor descriptor]; // autorelease

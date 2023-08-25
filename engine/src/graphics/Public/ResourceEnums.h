@@ -14,7 +14,7 @@ namespace AE::Graphics
         Transient           = 1 << 1,       // for render target only: allocate in on-chip memory, available only inside render pass
 
         // host memory
-        HostCocherent       = 1 << 2,       // for small host write only memory and for host read only memory
+        HostCoherent        = 1 << 2,       // for small host write only memory and for host read only memory
         HostCached          = 1 << 3,       // cached non-coherent memory type, for large host write only memory
 
         // options
@@ -23,9 +23,9 @@ namespace AE::Graphics
         _Last,
 
         All                 = ((_Last-1) << 1) - 1,
-        HostCachedCocherent = HostCocherent | HostCached,
-        Unified             = HostCocherent | DeviceLocal,          // Metal: don't read from host!
-        UnifiedCached       = HostCachedCocherent | DeviceLocal,
+        HostCachedCoherent  = HostCoherent | HostCached,
+        Unified             = HostCoherent | DeviceLocal,           // Metal: don't read from host!
+        UnifiedCached       = HostCachedCoherent | DeviceLocal,
         Unknown             = 0,
     };
     AE_BIT_OPERATORS( EMemoryType );

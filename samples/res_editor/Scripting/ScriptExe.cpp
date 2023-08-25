@@ -1,17 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "geometry_tools/Cube/CubeGen.h"
-#include "geometry_tools/Grid/GridGen.h"
-
 #include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/Passes/Present.h"
 #include "res_editor/Passes/BuildRTAS.h"
 
-#include "res_editor/EditorUI.h"
+#include "res_editor/Core/EditorUI.h"
 #include "res_editor/Scripting/PassCommon.inl.h"
 
 namespace AE::ResEditor
-{       
+{
 namespace {
     static ScriptExe*  s_scriptExe = null;
 }
@@ -36,6 +32,8 @@ namespace {
             ScriptBasePass{EFlags::Unknown}, rt{rt}, layer{layer}, mipmap{mipmap}, dynSize{dynSize} {}
 
         RC<IPass>  ToPass () C_Th_OV;
+
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &)  C_Th_OV {}
     };
 
 /*
@@ -82,6 +80,8 @@ namespace {
             ScriptBasePass{EFlags::Unknown}, rt{rt}, layer{layer}, mipmap{mipmap}, flags{flags}, index{idx} {}
 
         RC<IPass>  ToPass () C_Th_OV;
+
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &)  C_Th_OV {}
     };
 
 /*
@@ -110,6 +110,8 @@ namespace {
         ScriptGenMipmaps (const ScriptImagePtr &rt) : ScriptBasePass{EFlags::Unknown}, rt{rt} {}
 
         RC<IPass>  ToPass () C_Th_OV;
+
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &)  C_Th_OV {}
     };
 
 /*
@@ -119,7 +121,100 @@ namespace {
 */
     RC<IPass>  ScriptExe::ScriptGenMipmaps::ToPass () C_Th___
     {
-        return MakeRC<ResEditor::GenerateMipmaps>( rt->ToResource(), "GenMipmaps" );
+        return MakeRC<ResEditor::GenerateMipmapsPass>( rt->ToResource(), "GenMipmaps" );
+    }
+//-----------------------------------------------------------------------------
+
+
+
+    //
+    // Copy Image Pass
+    //
+    class ScriptExe::ScriptCopyImage final : public ScriptBasePass
+    {
+    private:
+        ScriptImagePtr      src;
+        ScriptImagePtr      dst;
+
+    public:
+        ScriptCopyImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) :
+            ScriptBasePass{EFlags::Unknown}, src{src}, dst{dst} {}
+
+        RC<IPass>  ToPass () C_Th_OV;
+
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &)  C_Th_OV {}
+    };
+
+/*
+=================================================
+    ScriptCopyImage::ToPass
+=================================================
+*/
+    RC<IPass>  ScriptExe::ScriptCopyImage::ToPass () C_Th___
+    {
+        return MakeRC<ResEditor::CopyImagePass>( src->ToResource(), dst->ToResource(), "CopyImage" );
+    }
+//-----------------------------------------------------------------------------
+
+
+
+    //
+    // Clear Image Pass
+    //
+    class ScriptExe::ScriptClearImage final : public ScriptBasePass
+    {
+    private:
+        ScriptImagePtr                  image;
+        ClearImagePass::ClearValue_t    value;
+
+    public:
+        ScriptClearImage (const ScriptImagePtr &image, ClearImagePass::ClearValue_t value) :
+            ScriptBasePass{EFlags::Unknown}, image{image}, value{value} {}
+
+        RC<IPass>  ToPass () C_Th_OV;
+
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &)  C_Th_OV {}
+    };
+
+/*
+=================================================
+    ScriptClearImage::ToPass
+=================================================
+*/
+    RC<IPass>  ScriptExe::ScriptClearImage::ToPass () C_Th___
+    {
+        return MakeRC<ResEditor::ClearImagePass>( image->ToResource(), value, "ClearImage" );
+    }
+//-----------------------------------------------------------------------------
+
+
+
+    //
+    // Clear Buffer Pass
+    //
+    class ScriptExe::ScriptClearBuffer final : public ScriptBasePass
+    {
+    private:
+        ScriptBufferPtr     buffer;
+        uint                value;
+
+    public:
+        ScriptClearBuffer (const ScriptBufferPtr &buffer, uint value) :
+            ScriptBasePass{EFlags::Unknown}, buffer{buffer}, value{value} {}
+
+        RC<IPass>  ToPass () C_Th_OV;
+
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &)  C_Th_OV {}
+    };
+
+/*
+=================================================
+    ScriptClearBuffer::ToPass
+=================================================
+*/
+    RC<IPass>  ScriptExe::ScriptClearBuffer::ToPass () C_Th___
+    {
+        return MakeRC<ResEditor::ClearBufferPass>( buffer->ToResource(), value, "ClearBuffer" );
     }
 //-----------------------------------------------------------------------------
 
@@ -144,6 +239,8 @@ namespace {
         {}
 
         RC<IPass>  ToPass () C_Th_OV;
+
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &)  C_Th_OV {}
     };
 
 /*
@@ -188,6 +285,8 @@ namespace {
         {}
 
         RC<IPass>  ToPass () C_Th_OV;
+
+        void  _OnAddArg (INOUT ScriptPassArgs::Argument &)  C_Th_OV {}
     };
 
 /*
@@ -229,11 +328,11 @@ namespace {
             ScriptBasePass{EFlags::Unknown}, _flags{flags}, _renderer{RVRef(renderer)}
         {}
 
-        void  Add (ScriptBasePassPtr pass)                      { _passes.push_back( RVRef(pass) ); }
+            void  Add (ScriptBasePassPtr pass)                          { _passes.push_back( RVRef(pass) ); }
+            void  _OnAddArg (INOUT ScriptPassArgs::Argument &)  C_Th_OV {}
 
-        ND_ ArrayView<ScriptBasePassPtr>  GetPasses () const    { return _passes; }
-
-        RC<IPass>  ToPass () C_Th_OV;
+        ND_ ArrayView<ScriptBasePassPtr>    GetPasses ()        const   { return _passes; }
+        ND_ RC<IPass>                       ToPass ()           C_Th_OV;
     };
 
 /*
@@ -310,7 +409,7 @@ namespace {
                 ObjectStorage::SetInstance( &obj_storage );
 
                 ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
-                fs->fs = RenderTaskScheduler().GetResourceManager().GetFeatureSet();
+                fs->fs = RenderTaskScheduler().GetFeatureSet();
             }
 
             // bind pipeline compiler scripts
@@ -328,7 +427,7 @@ namespace {
             }
 
             if ( FileSystem::IsDirectory( _config.scriptHeaderOutFolder ))
-                CHECK( _engine2->SaveCppHeader( _config.scriptHeaderOutFolder / "pipeline_compiler" ));
+                CHECK( _engine2->SaveCppHeader( _config.scriptHeaderOutFolder / "pipeline_compiler.as" ));
 
             ObjectStorage::SetInstance( null );
 
@@ -384,7 +483,7 @@ namespace {
         if ( _Run2( filePath ))
         {
             result = _tempData->renderer;
-            result->SetDependencies( RVRef(_tempData->dependencies) );
+            //result->SetDependencies( RVRef(_tempData->dependencies) );
 
             _AddSlidersToUIInteraction( *_tempData, result.get() );
         }
@@ -414,18 +513,20 @@ namespace {
             switch ( slider.type )
             {
                 case ESlider::Int :
-                    info.intRange[ idx * 2 + 0 ]                        = slider.intRange[0];
-                    info.intRange[ idx * 2 + 1 ]                        = slider.intRange[1];
-                    info.intVecSize[ idx ]                              = slider.count;
-                    info.names[ UIInteraction::IntSlidersOffset + idx ] = slider.name;
+                    info.intRange [idx][0]                          = slider.intRange[0];
+                    info.intRange [idx][1]                          = slider.intRange[1];
+                    info.intRange [idx][2]                          = slider.intRange[2];
+                    info.intVecSize [idx]                           = slider.count;
+                    info.names [idx][UIInteraction::IntSliderIdx]   = slider.name;
                     dyn_sliders.push_back( slider.dyn );
                     break;
 
                 case ESlider::Float :
-                    info.floatRange[ idx * 2 + 0 ]                      = slider.floatRange[0];
-                    info.floatRange[ idx * 2 + 1 ]                      = slider.floatRange[1];
-                    info.floatVecSize[ idx ]                            = slider.count;
-                    info.names[ UIInteraction::FloatSlidersOffset+idx ] = slider.name;
+                    info.floatRange [idx][0]                        = slider.floatRange[0];
+                    info.floatRange [idx][1]                        = slider.floatRange[1];
+                    info.floatRange [idx][2]                        = slider.floatRange[2];
+                    info.floatVecSize [idx]                         = slider.count;
+                    info.names [idx][UIInteraction::FloatSliderIdx] = slider.name;
                     dyn_sliders.push_back( slider.dyn );
                     break;
 
@@ -493,7 +594,7 @@ namespace {
             ScriptPassGroupPtr  pg {new ScriptPassGroup{ PassGroup::EFlags::Unknown, _tempData->renderer }};
             _tempData->passGroup = pg;
 
-            if ( not _Run( filePath ))
+            if ( not _Run( filePath, null ))
                 return false;
 
             for (auto& script_pass : pg->GetPasses())
@@ -519,8 +620,7 @@ namespace {
     _Run
 =================================================
 */
-    template <typename ...Args>
-    bool  ScriptExe::_Run (const Path &filePath, Args ...args) __NE___
+    bool  ScriptExe::_Run (const Path &filePath, const ScriptCollectionPtr &collection) __NE___
     {
         CHECK_ERR( _engine );
 
@@ -547,12 +647,25 @@ namespace {
         if ( not module )
             RETURN_ERR( "Failed to parse script file: '"s << ansi_path << "'" );
 
-        auto    fn = _engine->CreateScript< void (Args ...) >( "ASmain", module );
-        if ( not fn )
-            RETURN_ERR( "Failed to create script context for file: '"s << ansi_path << "'" );
+        if ( collection     or
+             module->HasFunction< void (ScriptCollectionPtr) >( "ASmain" )) // callable script can be used too
+        {
+            auto    fn = _engine->CreateScript< void (ScriptCollectionPtr) >( "ASmain", module );
+            if ( not fn )
+                RETURN_ERR( "Failed to create script context for file: '"s << ansi_path << "'" );
 
-        if ( not fn->Run( FwdArg<Args>(args)... ))
-            RETURN_ERR( "Failed to run script '"s << ansi_path << "'" );
+            if ( not fn->Run( collection ))
+                RETURN_ERR( "Failed to run script '"s << ansi_path << "'" );
+        }
+        else
+        {
+            auto    fn = _engine->CreateScript< void () >( "ASmain", module );
+            if ( not fn )
+                RETURN_ERR( "Failed to create script context for file: '"s << ansi_path << "'" );
+
+            if ( not fn->Run() )
+                RETURN_ERR( "Failed to run script '"s << ansi_path << "'" );
+        }
 
         _tempData->passGroupDepth--;
         _tempData->passGroup = null;
@@ -657,6 +770,76 @@ namespace {
 
 /*
 =================================================
+    _CopyImage
+=================================================
+*/
+    void  ScriptExe::_CopyImage (const ScriptImagePtr &src, const ScriptImagePtr &dst) __Th___
+    {
+        CHECK_THROW_MSG( src and dst );
+        src->AddUsage( EResourceUsage::Transfer );
+        dst->AddUsage( EResourceUsage::Transfer );
+
+        auto&   data = _GetTempData();
+        CHECK_THROW_MSG( data.passGroup );
+
+        data.passGroup->Add( ScriptBasePassPtr{ new ScriptCopyImage{ src, dst }});
+    }
+
+/*
+=================================================
+    _ClearImage*
+=================================================
+*/
+    void  ScriptExe::_ClearImage1 (const ScriptImagePtr &image, const RGBA32f &value) __Th___
+    {
+        CHECK_THROW_MSG( image );
+        image->AddUsage( EResourceUsage::Transfer );
+
+        auto&   data = _GetTempData();
+        CHECK_THROW_MSG( data.passGroup );
+
+        data.passGroup->Add( ScriptBasePassPtr{ new ScriptClearImage{ image, value }});
+    }
+
+    void  ScriptExe::_ClearImage2 (const ScriptImagePtr &image, const RGBA32u &value) __Th___
+    {
+        CHECK_THROW_MSG( image );
+        image->AddUsage( EResourceUsage::Transfer );
+
+        auto&   data = _GetTempData();
+        CHECK_THROW_MSG( data.passGroup );
+
+        data.passGroup->Add( ScriptBasePassPtr{ new ScriptClearImage{ image, value }});
+    }
+
+    void  ScriptExe::_ClearImage3 (const ScriptImagePtr &image, const RGBA32i &value) __Th___
+    {
+        CHECK_THROW_MSG( image );
+        image->AddUsage( EResourceUsage::Transfer );
+
+        auto&   data = _GetTempData();
+        CHECK_THROW_MSG( data.passGroup );
+
+        data.passGroup->Add( ScriptBasePassPtr{ new ScriptClearImage{ image, value }});
+    }
+
+/*
+=================================================
+    _ClearBuffer
+=================================================
+*/
+    void  ScriptExe::_ClearBuffer (const ScriptBufferPtr &buf, uint value) __Th___
+    {
+        CHECK_THROW_MSG( buf );
+
+        auto&   data = _GetTempData();
+        CHECK_THROW_MSG( data.passGroup );
+
+        data.passGroup->Add( ScriptBasePassPtr{ new ScriptClearBuffer{ buf, value }});
+    }
+
+/*
+=================================================
     _BuildRTGeometry*
 =================================================
 */
@@ -675,9 +858,9 @@ namespace {
         CHECK_THROW_MSG( geom );
         CHECK_THROW_MSG( geom->HasIndirectBuffer() );
 
-        if ( RenderTaskScheduler().GetResourceManager().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+        if ( RenderTaskScheduler().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
         {
-            geom->EnableHistory();
+            CHECK_THROW_MSG( geom->WithHistory() );
         }
 
         auto&   data = _GetTempData();
@@ -706,155 +889,15 @@ namespace {
         CHECK_THROW_MSG( scene );
         CHECK_THROW_MSG( scene->HasIndirectBuffer() );
 
-        if ( RenderTaskScheduler().GetResourceManager().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
+        if ( RenderTaskScheduler().GetFeatureSet().accelerationStructureIndirectBuild != EFeature::RequireTrue )
         {
-            scene->EnableHistory();
+            CHECK_THROW_MSG( scene->WithHistory() );
         }
 
         auto&   data = _GetTempData();
         CHECK_THROW_MSG( data.passGroup );
 
         data.passGroup->Add( ScriptBasePassPtr{ new ScriptBuildRTScene{ scene, true }});
-    }
-
-/*
-=================================================
-    _GetCube*
-=================================================
-*/
-    void  ScriptExe::_GetCube1 (OUT ScriptArray<packed_float3> &positions, OUT ScriptArray<packed_float3> &normals, OUT ScriptArray<packed_uint3> &indices) __Th___
-    {
-        GeometryTools::CubeGen  cube;
-        CHECK_THROW( cube.Create() );
-
-        for (auto& vert : cube.GetVertices())
-        {
-            positions.push_back( float3{SNormShortToFloat( vert.position )});
-            normals.push_back( float3{SNormShortToFloat( vert.normal )});
-        }
-
-        for (usize i = 0; i < cube.GetIndices().size(); i += 3)
-        {
-            packed_uint3    idx{ cube.GetIndices()[i+0], cube.GetIndices()[i+1], cube.GetIndices()[i+2] };
-            indices.push_back( idx );
-        }
-    }
-
-    void  ScriptExe::_GetCube2 (OUT ScriptArray<packed_float3> &positions, OUT ScriptArray<packed_float3> &normals, OUT ScriptArray<uint> &indices) __Th___
-    {
-        GeometryTools::CubeGen  cube;
-        CHECK_THROW( cube.Create() );
-
-        for (auto& vert : cube.GetVertices())
-        {
-            positions.push_back( float3{SNormShortToFloat( vert.position )});
-            normals.push_back( float3{SNormShortToFloat( vert.normal )});
-        }
-
-        for (auto idx : cube.GetIndices()) {
-            indices.push_back( idx );
-        }
-    }
-
-    void  ScriptExe::_GetCube3 (OUT ScriptArray<packed_float3>  &positions,
-                                OUT ScriptArray<packed_float3>  &normals,
-                                OUT ScriptArray<packed_float3>  &tangents,
-                                OUT ScriptArray<packed_float3>  &bitangents,
-                                OUT ScriptArray<uint>           &indices) __Th___
-    {
-        GeometryTools::CubeGen  cube;
-        CHECK_THROW( cube.Create() );
-
-        for (auto& vert : cube.GetVertices())
-        {
-            positions.push_back( float3{SNormShortToFloat( vert.position )});
-            normals.push_back( float3{SNormShortToFloat( vert.normal )});
-            tangents.push_back( float3{SNormShortToFloat( vert.tangent )});
-            bitangents.push_back( float3{SNormShortToFloat( vert.bitangent )});
-        }
-
-        for (auto idx : cube.GetIndices()) {
-            indices.push_back( idx );
-        }
-    }
-
-/*
-=================================================
-    _GenGrid*
-=================================================
-*/
-    void  ScriptExe::_GenGrid1 (uint size, OUT ScriptArray<packed_float2> &positions, OUT ScriptArray<uint> &indices) __Th___
-    {
-        GeometryTools::GridGen  grid;
-        CHECK_THROW( grid.Create( size, 3u ));
-
-        for (auto& vert : grid.GetVertices()) {
-            positions.push_back( vert.uv );
-        }
-
-        for (auto idx : grid.GetIndices()) {
-            indices.push_back( idx );
-        }
-    }
-
-    void  ScriptExe::_GenGrid2 (uint size, OUT ScriptArray<packed_float3> &positions, OUT ScriptArray<uint> &indices) __Th___
-    {
-        GeometryTools::GridGen  grid;
-        CHECK_THROW( grid.Create( size, 3u ));
-
-        for (auto& vert : grid.GetVertices()) {
-            positions.push_back(packed_float3{ vert.uv.x, vert.uv.y, 0.f });
-        }
-
-        for (auto idx : grid.GetIndices()) {
-            indices.push_back( idx );
-        }
-    }
-
-/*
-=================================================
-    _GenCylinder
-=================================================
-*/
-    void  ScriptExe::_GenCylinder (uint segments, const packed_float3 &scale, OUT ScriptArray<packed_float3> &positions,
-                                   OUT ScriptArray<packed_float3> &normals, OUT ScriptArray<uint> &indices) __Th___
-    {
-        positions.resize( segments * 2 );
-
-        const Rad   angle_scale = 2.0f * Pi / float(segments);
-
-        for (uint i = 0; i < segments; ++i)
-        {
-            float2  sc = SinCos( float(i) * angle_scale );
-
-            positions[ i ]              = packed_float3{ sc, -1.f } * scale;
-            positions[ segments + i ]   = packed_float3{ sc,  1.f } * scale;
-        }
-
-        normals.resize( segments * 2 );
-
-        for (uint i = 0; i < segments; ++i)
-        {
-            const uint  i0  = i;
-            const uint  i1  = (i == segments ? 0 : i+1);
-
-            normals[ i ] = normals[ segments + i ] = Normalize( Cross( positions[i0], positions[i1] ));
-        }
-
-        indices.resize( segments * 6 );
-
-        for (uint i = 0; i < segments; ++i)
-        {
-            const uint  j = i*6;
-
-            indices[j+0] = i;
-            indices[j+1] = (i == segments ? 0 : i+1);
-            indices[j+2] = segments + (i == segments ? 0 : i+1);
-
-            indices[j+3] = i;
-            indices[j+4] = segments + (i == segments ? 0 : i+1);
-            indices[j+5] = segments + i;
-        }
     }
 
 /*
@@ -1003,6 +1046,7 @@ namespace {
     {
         using namespace AE::Graphics;
 
+        CoreBindings::BindStdTypes( se );
         CoreBindings::BindScalarMath( se );
         CoreBindings::BindVectorMath( se );
         CoreBindings::BindRect( se );
@@ -1041,7 +1085,6 @@ namespace {
 
         ScriptBasePass::Bind( se );
         ScriptGeomSource::Bind( se );
-        ScriptTiledTerrain::Bind( se );
         ScriptSphericalCube::Bind( se );
         ScriptUniGeometry::Bind( se );
         ScriptSceneGeometry::Bind( se );
@@ -1051,67 +1094,79 @@ namespace {
         // don't forget to update '_SaveCppStructs()'
         ScriptPostprocess::Bind( se );
         ScriptComputePass::Bind( se );
+        ScriptRayTracingPass::Bind( se );
         ScriptSceneGraphicsPass::Bind( se );
         ScriptSceneRayTracingPass::Bind( se );
         ScriptScene::Bind( se );
 
-        se->AddFunction( &ScriptExe::_SurfaceSize,      "SurfaceSize"   );
+        se->AddFunction( &ScriptExe::_SurfaceSize,          "SurfaceSize",      "Returns dynamic dimensions of the screen size."    );
 
-        se->AddFunction( &ScriptExe::_Present1,         "Present"       );
-        se->AddFunction( &ScriptExe::_Present2,         "Present"       );
-        se->AddFunction( &ScriptExe::_Present3,         "Present"       );
-        se->AddFunction( &ScriptExe::_Present4,         "Present"       );
+        se->AddFunction( &ScriptExe::_Present1,             "Present"       );
+        se->AddFunction( &ScriptExe::_Present2,             "Present"       );
+        se->AddFunction( &ScriptExe::_Present3,             "Present"       );
+        se->AddFunction( &ScriptExe::_Present4,             "Present"       );
 
-        se->AddFunction( &ScriptExe::_DbgView1,         "DbgView"       );
-        se->AddFunction( &ScriptExe::_DbgView2,         "DbgView"       );
-        se->AddFunction( &ScriptExe::_DbgView3,         "DbgView"       );
-        se->AddFunction( &ScriptExe::_DbgView4,         "DbgView"       );
+        se->AddFunction( &ScriptExe::_DbgView1,             "DbgView"       );
+        se->AddFunction( &ScriptExe::_DbgView2,             "DbgView"       );
+        se->AddFunction( &ScriptExe::_DbgView3,             "DbgView"       );
+        se->AddFunction( &ScriptExe::_DbgView4,             "DbgView"       );
 
-        se->AddFunction( &ScriptExe::_GenMipmaps,       "GenMipmaps"    );
+        se->AddFunction( &ScriptExe::_GenMipmaps,           "GenMipmaps",       "Pass which generates mipmaps for image." );
+        se->AddFunction( &ScriptExe::_CopyImage,            "CopyImage",        "Pass which copy image content to another image." );
 
-        se->AddFunction( &ScriptExe::_BuildRTGeometry,          "BuildRTGeometry" );
-        se->AddFunction( &ScriptExe::_BuildRTGeometryIndirect,  "BuildRTGeometryIndirect" );
+        se->AddFunction( &ScriptExe::_ClearImage1,          "ClearImage",       "Pass to clear float-color image." );
+        se->AddFunction( &ScriptExe::_ClearImage2,          "ClearImage",       "Pass to clear uint-color image." );
+        se->AddFunction( &ScriptExe::_ClearImage3,          "ClearImage",       "Pass to clear int-color image." );
+        se->AddFunction( &ScriptExe::_ClearBuffer,          "ClearBuffer",      "Pass to clear buffer." );
 
-        se->AddFunction( &ScriptExe::_BuildRTScene,             "BuildRTScene"  );
-        se->AddFunction( &ScriptExe::_BuildRTSceneIndirect,     "BuildRTSceneIndirect"  );
+        se->AddFunction( &ScriptExe::_BuildRTGeometry,          "BuildRTGeometry",          "Pass to build RTGeometry, executed every frame."           );
+        se->AddFunction( &ScriptExe::_BuildRTGeometryIndirect,  "BuildRTGeometryIndirect",  "Pass to indirect build RTGeometry, executed every frame."  );
 
-        se->AddFunction( &ScriptExe::_GetCube1,         "GetCube"       );
-        se->AddFunction( &ScriptExe::_GetCube2,         "GetCube"       );
-        se->AddFunction( &ScriptExe::_GetCube3,         "GetCube"       );
-        se->AddFunction( &ScriptExe::_GenGrid1,         "GenGrid"       );
-        se->AddFunction( &ScriptExe::_GenGrid2,         "GenGrid"       );
-        se->AddFunction( &ScriptExe::_GenCylinder,      "GenCylinder"   );
+        se->AddFunction( &ScriptExe::_BuildRTScene,             "BuildRTScene",             "Pass to build RTScene, executed every frame."              );
+        se->AddFunction( &ScriptExe::_BuildRTSceneIndirect,     "BuildRTSceneIndirect",     "Pass to inirect build RTScene, executed every frame."      );
 
-        se->AddFunction( &ScriptExe::_RunScript1,       "RunScript"     );
-        se->AddFunction( &ScriptExe::_RunScript2,       "RunScript"     );
+        se->AddFunction( &ScriptExe::_GetCube2,             "GetCube",          "Returns (positions, normals, indices)" );
+        se->AddFunction( &ScriptExe::_GetCube3,             "GetCube",          "Returns (positions, normals, tangents, bitangents, 2d texcoords, indices)" );
+        se->AddFunction( &ScriptExe::_GetCube4,             "GetCube",          "Returns (positions, normals, tangents, bitangents, cubemap texcoords, indices)" );
+        se->AddFunction( &ScriptExe::_GetGrid1,             "GetGrid",          "Returns size x size grid with (unorm2 positions, indices)" );
+        se->AddFunction( &ScriptExe::_GetGrid2,             "GetGrid",          "Returns size x size grid with (unorm3 positions, indices)" );
+        se->AddFunction( &ScriptExe::_GetSphere1,           "GetSphere",        "Returns spherical cube (positions, indices)" );
+        se->AddFunction( &ScriptExe::_GetSphere2,           "GetSphere",        "Returns spherical cube (positions, cubemap texcoords, indices)" );
+        se->AddFunction( &ScriptExe::_GetSphere3,           "GetSphere",        "Returns spherical cube (positions, normals, tangents, bitangents, cubemap texcoords, indices)" );
+        se->AddFunction( &ScriptExe::_GetCylinder1,         "GetCylinder",      "Returns cylinder (positions, texcoords, indices)" );
+        se->AddFunction( &ScriptExe::_GetCylinder2,         "GetCylinder",      "Returns cylinder (positions, normals, tangents, bitangents, texcoords, indices)" );
 
-        //se->AddFunction( &ScriptExe::_SliderI0,       "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderI1,       "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderI2,       "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderI3,       "Slider"        );
-        se->AddFunction( &ScriptExe::_SliderI4,         "Slider"        );
+        se->AddFunction( &ScriptExe::_IndicesToPrimitives,  "IndicesToPrimitives",  "Helper to convert array of indices to array of uint3 indices per triangle" );
 
-        se->AddFunction( &ScriptExe::_SliderU0,         "Slider"        );
-        se->AddFunction( &ScriptExe::_SliderU1,         "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderU2,       "Slider"        );
-        se->AddFunction( &ScriptExe::_SliderU3,         "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderU4,       "Slider"        );
+        se->AddFunction( &ScriptExe::_RunScript1,           "RunScript",        "Run script, path to script must be added to 'res_editor_cfg.as' as 'SecondaryScriptDir()'" );
+        se->AddFunction( &ScriptExe::_RunScript2,           "RunScript"     );
 
-        se->AddFunction( &ScriptExe::_SliderF0,         "Slider"        );
-        se->AddFunction( &ScriptExe::_SliderF1,         "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderF2,       "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderF3,       "Slider"        );
-        se->AddFunction( &ScriptExe::_SliderF4,         "Slider"        );
+        //se->AddFunction( &ScriptExe::_SliderI0,           "Slider"        );
+        //se->AddFunction( &ScriptExe::_SliderI1,           "Slider"        );
+        //se->AddFunction( &ScriptExe::_SliderI2,           "Slider"        );
+        //se->AddFunction( &ScriptExe::_SliderI3,           "Slider"        );
+        se->AddFunction( &ScriptExe::_SliderI4,             "Slider",           "Added slider to UI. " );
+
+        se->AddFunction( &ScriptExe::_SliderU0,             "Slider"        );
+        se->AddFunction( &ScriptExe::_SliderU1,             "Slider"        );
+        //se->AddFunction( &ScriptExe::_SliderU2,           "Slider"        );
+        se->AddFunction( &ScriptExe::_SliderU3,             "Slider"        );
+        //se->AddFunction( &ScriptExe::_SliderU4,           "Slider"        );
+
+        se->AddFunction( &ScriptExe::_SliderF0,             "Slider"        );
+        se->AddFunction( &ScriptExe::_SliderF1,             "Slider"        );
+        //se->AddFunction( &ScriptExe::_SliderF2,           "Slider"        );
+        //se->AddFunction( &ScriptExe::_SliderF3,           "Slider"        );
+        se->AddFunction( &ScriptExe::_SliderF4,             "Slider"        );
 
         // TODO:
         //  PresentVR( left, left_layer, left_mipmap,  right, right_layer, right_mipmap )
-        //  IsConsoleApp()  - UI or Console
 
         if ( FileSystem::IsDirectory( cfg.scriptHeaderOutFolder ))
         {
             se->AddCppHeader( "", "#define SCRIPT\n\n", 0 );
 
-            CHECK( se->SaveCppHeader( cfg.scriptHeaderOutFolder / "res_editor" ));
+            CHECK( se->SaveCppHeader( cfg.scriptHeaderOutFolder / "res_editor.as" ));
         }
     }
 
@@ -1152,21 +1207,21 @@ namespace {
 */
     void  ScriptExe::_Bind_Constants (const ScriptEnginePtr &se) __Th___
     {
-        se->AddConstProperty( _sampConsts->NearestClamp,                "Sampler_NearestClamp" );
-        se->AddConstProperty( _sampConsts->NearestRepeat,               "Sampler_NearestRepeat" );
-        se->AddConstProperty( _sampConsts->NearestMirrorRepeat,         "Sampler_NearestMirrorRepeat" );
-        se->AddConstProperty( _sampConsts->LinearClamp,                 "Sampler_LinearClamp" );
-        se->AddConstProperty( _sampConsts->LinearRepeat,                "Sampler_LinearRepeat" );
-        se->AddConstProperty( _sampConsts->LinearMirrorRepeat,          "Sampler_LinearMirrorRepeat" );
-        se->AddConstProperty( _sampConsts->LinearMipmapClamp,           "Sampler_LinearMipmapClamp" );
-        se->AddConstProperty( _sampConsts->LinearMipmapRepeat,          "Sampler_LinearMipmapRepeat" );
-        se->AddConstProperty( _sampConsts->LinearMipmapMirrorRepeat,    "Sampler_LinearMipmapMirrorRepeat" );
-        se->AddConstProperty( _sampConsts->Anisotropy8Repeat,           "Sampler_Anisotropy8Repeat" );
-        se->AddConstProperty( _sampConsts->Anisotropy8MirrorRepeat,     "Sampler_Anisotropy8MirrorRepeat" );
-        se->AddConstProperty( _sampConsts->Anisotropy8Clamp,            "Sampler_Anisotropy8Clamp" );
-        se->AddConstProperty( _sampConsts->Anisotropy16Repeat,          "Sampler_Anisotropy16Repeat" );
-        se->AddConstProperty( _sampConsts->Anisotropy16MirrorRepeat,    "Sampler_Anisotropy16MirrorRepeat" );
-        se->AddConstProperty( _sampConsts->Anisotropy16Clamp,           "Sampler_Anisotropy16Clamp" );
+        se->AddConstProperty( _sampConsts->NearestClamp,                "Sampler_" + _sampConsts->NearestClamp );
+        se->AddConstProperty( _sampConsts->NearestRepeat,               "Sampler_" + _sampConsts->NearestRepeat );
+        se->AddConstProperty( _sampConsts->NearestMirrorRepeat,         "Sampler_" + _sampConsts->NearestMirrorRepeat );
+        se->AddConstProperty( _sampConsts->LinearClamp,                 "Sampler_" + _sampConsts->LinearClamp );
+        se->AddConstProperty( _sampConsts->LinearRepeat,                "Sampler_" + _sampConsts->LinearRepeat );
+        se->AddConstProperty( _sampConsts->LinearMirrorRepeat,          "Sampler_" + _sampConsts->LinearMirrorRepeat );
+        se->AddConstProperty( _sampConsts->LinearMipmapClamp,           "Sampler_" + _sampConsts->LinearMipmapClamp );
+        se->AddConstProperty( _sampConsts->LinearMipmapRepeat,          "Sampler_" + _sampConsts->LinearMipmapRepeat );
+        se->AddConstProperty( _sampConsts->LinearMipmapMirrorRepeat,    "Sampler_" + _sampConsts->LinearMipmapMirrorRepeat );
+        se->AddConstProperty( _sampConsts->Anisotropy8Repeat,           "Sampler_" + _sampConsts->Anisotropy8Repeat );
+        se->AddConstProperty( _sampConsts->Anisotropy8MirrorRepeat,     "Sampler_" + _sampConsts->Anisotropy8MirrorRepeat );
+        se->AddConstProperty( _sampConsts->Anisotropy8Clamp,            "Sampler_" + _sampConsts->Anisotropy8Clamp );
+        se->AddConstProperty( _sampConsts->Anisotropy16Repeat,          "Sampler_" + _sampConsts->Anisotropy16Repeat );
+        se->AddConstProperty( _sampConsts->Anisotropy16MirrorRepeat,    "Sampler_" + _sampConsts->Anisotropy16MirrorRepeat );
+        se->AddConstProperty( _sampConsts->Anisotropy16Clamp,           "Sampler_" + _sampConsts->Anisotropy16Clamp );
 
         STATIC_ASSERT( (sizeof(SamplerConsts) / sizeof(String)) == 15 );
     }
@@ -1185,10 +1240,10 @@ namespace {
         // don't forget to update '_Bind()'
         ScriptPostprocess::GetShaderTypes( INOUT data );
         ScriptComputePass::GetShaderTypes( INOUT data );
+        ScriptRayTracingPass::GetShaderTypes( INOUT data );
         ScriptSceneGraphicsPass::GetShaderTypes( INOUT data );
         ScriptSceneRayTracingPass::GetShaderTypes( INOUT data );
 
-    //  ScriptTiledTerrain::GetShaderTypes( INOUT data );
         ScriptSphericalCube::GetShaderTypes( INOUT data );
         ScriptUniGeometry::GetShaderTypes( INOUT data );
         ScriptSceneGeometry::GetShaderTypes( INOUT data );
@@ -1229,7 +1284,6 @@ namespace {
             [&] ()
             {
                 ScriptBasePass::CppStructsFromShaders   data;
-            //  ScriptTiledTerrain::GetShaderTypes( INOUT data );
                 ScriptSphericalCube::GetShaderTypes( INOUT data );
                 ScriptUniGeometry::GetShaderTypes( INOUT data );
                 ScriptSceneGeometry::GetShaderTypes( INOUT data );
@@ -1440,7 +1494,7 @@ namespace AE::ResEditor
                 cfg.SetPreprocessor( EShaderProprocessor::AEStyle );
 
                 ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
-                fs->fs = RenderTaskScheduler().GetResourceManager().GetFeatureSet();
+                fs->fs = RenderTaskScheduler().GetFeatureSet();
             }
 
             _LoadSamplers();                // throw
@@ -1528,68 +1582,68 @@ namespace AE::ResEditor
         CHECK_THROW( obj_storage != null );
 
         {
-            ScriptSamplerPtr    samp{new ScriptSampler{"NearestClamp"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->NearestClamp}};
             samp->SetFilter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
             samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"NearestRepeat"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->NearestRepeat}};
             samp->SetFilter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
             samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"NearestMirrorRepeat"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->NearestMirrorRepeat}};
             samp->SetFilter( EFilter::Nearest, EFilter::Nearest, EMipmapFilter::Nearest );
             samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"LinearClamp"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->LinearClamp}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
             samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"LinearRepeat"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->LinearRepeat}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
             samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"LinearMirrorRepeat"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->LinearMirrorRepeat}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Nearest );
             samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"LinearMipmapClamp"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->LinearMipmapClamp}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
             samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"LinearMipmapRepeat"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->LinearMipmapRepeat}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
             samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"LinearMipmapMirrorRepeat"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->LinearMipmapMirrorRepeat}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
             samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"Anisotropy8Repeat"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->Anisotropy8Repeat}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
             samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
             samp->SetAnisotropy( 8.0f );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"Anisotropy8MirrorRepeat"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->Anisotropy8MirrorRepeat}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
             samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
             samp->SetAnisotropy( 8.0f );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"Anisotropy8Clamp"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->Anisotropy8Clamp}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
             samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
             samp->SetAnisotropy( 8.0f );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"Anisotropy16Repeat"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->Anisotropy16Repeat}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
             samp->SetAddressMode( EAddressMode::Repeat, EAddressMode::Repeat, EAddressMode::Repeat );
             samp->SetAnisotropy( 16.0f );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"Anisotropy16MirrorRepeat"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->Anisotropy16MirrorRepeat}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
             samp->SetAddressMode( EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat, EAddressMode::MirrorRepeat );
             samp->SetAnisotropy( 16.0f );
         }{
-            ScriptSamplerPtr    samp{new ScriptSampler{"Anisotropy16Clamp"}};
+            ScriptSamplerPtr    samp{new ScriptSampler{_sampConsts->Anisotropy16Clamp}};
             samp->SetFilter( EFilter::Linear, EFilter::Linear, EMipmapFilter::Linear );
             samp->SetAddressMode( EAddressMode::ClampToEdge, EAddressMode::ClampToEdge, EAddressMode::ClampToEdge );
             samp->SetAnisotropy( 16.0f );
@@ -1617,6 +1671,7 @@ namespace AE::ResEditor
                     float4x4    proj;
                     float4x4    view;
                     float3      pos;
+                    float2      clipPlanes;
                     float4      frustum [6];
                 )#");
         }

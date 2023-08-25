@@ -3,10 +3,10 @@
 #pragma once
 
 #include "graphics/Public/ShaderDebugger.h"
-#include "res_editor/Passes/FrameGraph.h"
+#include "res_editor/Core/RenderGraph.h"
 #include "res_editor/Controllers/IController.h"
 #include "res_editor/Dynamic/DynamicVec.h"
-#include "res_editor/Resources/IResource.h"
+#include "res_editor/Resources/ResourceArray.h"
 
 namespace AE::ResEditor
 {
@@ -67,15 +67,19 @@ namespace AE::ResEditor
         {
             RG::CommandBatchPtr         batch;
             Debugger                    dbg;
-            ArrayView<AsyncTask>        deps;
             ActionQueueReader           reader;
+            Array<AsyncTask>            _deps;
+
+            ND_ ArrayView<AsyncTask>  DepsRef ()    const { return _deps; }
         };
 
         struct PresentPassData
         {
             RG::CommandBatchPtr         batch;
             Ptr<IOutputSurface>         surface;
-            ArrayView<AsyncTask>        deps;
+            Array<AsyncTask>            _deps;
+
+            ND_ ArrayView<AsyncTask>  DepsRef ()    const { return _deps; }
         };
 
         struct UpdatePassData
@@ -92,8 +96,6 @@ namespace AE::ResEditor
 
 
     protected:
-        using AnyResource_t     = Union< NullUnion, RC<Buffer>, RC<RTScene>, RC<Image>, RC<VideoImage> >;
-        using Resources_t       = Array<Tuple< UniformName, AnyResource_t, EResourceState >>;
         using PerFrameDescSet_t = StaticArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
 
         using ClearValue_t      = RenderPassDesc::ClearValue_t;
@@ -144,18 +146,12 @@ namespace AE::ResEditor
         // EPassType::SeparateBatch
         //ND_ virtual Tuple< CommandBatchPtr, AsyncTask >  SeparateBatch (const PassData &) { DBG_WARNING("SeparateBatch");  return Default; }
 
+        ND_ virtual void        GetResourcesToResize (INOUT Array<RC<IResource>> &)         __NE___ = 0;
+
 
     protected:
         void  _CopySliders (OUT StaticArray<float4,4> &, OUT StaticArray<int4,4> &, OUT StaticArray<float4,4> &)    const;
         void  _CopyConstants (const Constants &, OUT StaticArray<float4,4> &, OUT StaticArray<int4,4> &)            const;
-
-        template <typename CtxType>
-        static void  _SetResStates (FrameUID, CtxType &ctx, const Resources_t &);
-
-        template <typename CtxType>
-        static void  _ResizeRes (CtxType &ctx, Resources_t &);
-
-        ND_ static bool  _BindRes (FrameUID, DescriptorUpdater &updater, Resources_t &);
     };
 
     AE_BIT_OPERATORS( IPass::EPassType );

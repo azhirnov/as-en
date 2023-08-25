@@ -58,7 +58,7 @@ namespace AE::Threading
         {
         // variables
             EThreadArray            threads;
-            Ptr<ThreadWakeup>       wakeup; 
+            Ptr<ThreadWakeup>       wakeup;
             FixedString<64>         name;
 
         // methods

@@ -104,8 +104,8 @@ namespace AE::Graphics::_hidden_
     protected:
         _MIndirectComputeCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)                            __Th___;
 
-        void  _Dispatch (const uint3 &groupCount)                               { DispatchThreadgroups( uint3{_states.localSize}, groupCount ); }
-        void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)              { DispatchThreadgroupsIndirect( buffer, offset, uint3{_states.localSize} ); }
+        void  _Dispatch (const uint3 &groupCount)                                                                           __Th___ { DispatchThreadgroups( uint3{_states.localSize}, groupCount ); }
+        void  _DispatchIndirect (MetalBuffer buffer, Bytes offset)                                                          __Th___ { DispatchThreadgroupsIndirect( buffer, offset, uint3{_states.localSize} ); }
 
         void  _BindPipeline (MetalComputePipeline ppln, const uint3 &localSize);
     };
@@ -179,10 +179,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    _MComputeContextImpl<C>::_MComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+    _MComputeContextImpl<C>::_MComputeContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
         RawCtx{ task, RVRef(cmdbuf), dbg }
     {
-        CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
 /*
@@ -191,7 +191,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _MComputeContextImpl<C>::BindPipeline (ComputePipelineID ppln)
+    void  _MComputeContextImpl<C>::BindPipeline (ComputePipelineID ppln) __Th___
     {
         auto&   cppln = _GetResourcesOrThrow( ppln );
 
@@ -204,9 +204,9 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _MComputeContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
+    void  _MComputeContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName) __Th___
     {
-        Validator_t::PushConstant( idx, size, typeName );
+        VALIDATE_GCTX( PushConstant( idx, size, typeName ));
 
         RawCtx::Arguments().SetBytes( values, size, MBufferIndex(idx.bufferId) );
     }
@@ -217,7 +217,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _MComputeContextImpl<C>::Dispatch (const uint3 &groupCount)
+    void  _MComputeContextImpl<C>::Dispatch (const uint3 &groupCount) __Th___
     {
         _boundDS.UseHeapsAndResources( *this );
         RawCtx::_Dispatch( groupCount );
@@ -229,17 +229,17 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _MComputeContextImpl<C>::DispatchIndirect (MetalBuffer buffer, Bytes offset)
+    void  _MComputeContextImpl<C>::DispatchIndirect (MetalBuffer buffer, Bytes offset) __Th___
     {
         _boundDS.UseHeapsAndResources( *this );
         RawCtx::_DispatchIndirect( buffer, offset );
     }
 
     template <typename C>
-    void  _MComputeContextImpl<C>::DispatchIndirect (BufferID bufferId, Bytes offset)
+    void  _MComputeContextImpl<C>::DispatchIndirect (BufferID bufferId, Bytes offset) __Th___
     {
         auto&   buf = _GetResourcesOrThrow( bufferId );
-        ASSERT( buf.Size() >= offset + sizeof(DispatchIndirectCommand) );
+        VALIDATE_GCTX( DispatchIndirect( buf.Description(), offset ));
 
         _boundDS.UseHeapsAndResources( *this );
         RawCtx::_DispatchIndirect( buf.Handle(), offset );

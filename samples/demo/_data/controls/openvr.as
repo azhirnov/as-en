@@ -1,5 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include <input_actions>
+#include <input_actions.as>
 
 void ASmain (OpenVR_ActionBindings& bindings)
 {

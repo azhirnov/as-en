@@ -441,7 +441,7 @@ namespace AE::Threading
 
             using EStatus = IAsyncTask::EStatus;
 
-            const auto  stats_arr   = deps.Apply( [] (auto&& ...args) { return StaticArray< EStatus, sizeof...(Deps) >{ _GetStatus( args ) ... }; });
+            const auto  stats_arr   = deps.Apply( [] (auto&& ...args) { return StaticArray< EStatus, CountOf<Deps...>() >{ _GetStatus( args ) ... }; });
             const auto  stats       = ArrayView<EStatus>{ stats_arr };
 
             if ( stats.AllEqual( EStatus::Completed ))

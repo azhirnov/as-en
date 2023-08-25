@@ -19,7 +19,6 @@ namespace AE::ResEditor
     // types
     private:
         using PipelineMap_t     = FixedMap< EDebugMode, ComputePipelineID, uint(EDebugMode::_Count) >;
-        using IterationCount_t  = Union< uint3, RC<DynamicDim>, RC<DynamicUInt>, RC<DynamicUInt3> >;
 
         struct DynamicData
         {
@@ -27,10 +26,14 @@ namespace AE::ResEditor
         };
 
     public:
+        using IterationCount_t  = Union< uint3, RC<DynamicDim>, RC<DynamicUInt>, RC<DynamicUInt3> >;
+
         struct Iteration
         {
             IterationCount_t    count;
             bool                isGroups    = true;     // groups / threads
+            RC<Buffer>          indirect;
+            Bytes               indirectOffset;
 
             ND_ uint3  ThreadCount (const uint3 &localSize) const;
             ND_ uint3  GroupCount (const uint3 &localSize) const;
@@ -53,7 +56,7 @@ namespace AE::ResEditor
         RC<IController>         _controller;
         Constants               _shConst;
 
-        Resources_t             _resources;
+        ResourceArray           _resources;
         Iterations_t            _iterations;
         uint3                   _localSize;
 
@@ -72,6 +75,7 @@ namespace AE::ResEditor
         StringView      GetName ()                                          C_NE_OV { return _dbgName; }
         bool            Execute (SyncPassData &)                            __NE_OV;
         bool            Update (TransferCtx_t &, const UpdatePassData &)    __NE_OV;
+        void            GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV;
     };
 
 

@@ -7,7 +7,7 @@
 #include "serializing/ObjectFactory.h"
 
 #include "res_loaders/Intermediate/IntermImage.h"
-#include "res_loaders/DDS/DDSSaver.h"
+#include "res_loaders/DDS/DDSImageSaver.h"
 
 #ifdef AE_COMPILER_MSVC
 #   pragma warning (push, 0)
@@ -66,6 +66,14 @@ namespace AE::PipelineCompiler
 // All tests must pass.
 static const bool   UpdateReferences = true;
 
+/*
+=================================================
+    constructor
+=================================================
+*/
+TestDevice::TestDevice () :
+    _vulkan{ True{"enableLodding"} }
+{}
 
 /*
 =================================================
@@ -274,7 +282,7 @@ bool  TestDevice::GetMemoryTypeIndex (uint memoryTypeBits, VkMemoryPropertyFlags
 {
     memoryTypeIndex = ~0u;
 
-    auto&   mem_props = _vulkan.GetProperties().memoryProperties;
+    auto&   mem_props = _vulkan.GetVProperties().memoryProperties;
 
     for (uint i = 0; i < mem_props.memoryTypeCount; ++i)
     {
@@ -1192,7 +1200,6 @@ bool  TestDevice::CreateRayTracingScene (VkPipeline rtPipeline, uint numGroups, 
 
         res.onBind.push_back( [this, &dev_memory, &index_buffer_addr, index_buffer, offset] () -> bool
         {
-            //std::memcpy( ptr + Bytes{offset}, indices, sizeof(indices) );     // TODO: wtf?
             VK_CHECK_ERR( vkBindBufferMemory( GetVkDevice(), index_buffer, dev_memory, offset ));
 
             VkBufferDeviceAddressInfoKHR    buf_info = {};
@@ -1913,7 +1920,7 @@ bool  TestDevice::SaveImage (VkImage image, VkImageLayout layout, uint width, ui
 
     CHECK_ERR( file.IsOpen() );
 
-    ResLoader::DDSSaver saver;
+    ResLoader::DDSImageSaver    saver;
     CHECK_ERR( saver.SaveImage( file, img, Default ));
 
     return true;

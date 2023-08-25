@@ -40,6 +40,7 @@ namespace AE::ResEditor
 
     using ScriptPostprocessPtr          = ScriptRC< class ScriptPostprocess >;
     using ScriptComputePassPtr          = ScriptRC< class ScriptComputePass >;
+    using ScriptRayTracingPassPtr       = ScriptRC< class ScriptRayTracingPass >;
     using ScriptBasePassPtr             = ScriptRC< class ScriptBasePass >;
     using ScriptDynamicDimPtr           = ScriptRC< class ScriptDynamicDim >;
     using ScriptDynamicUInt3Ptr         = ScriptRC< class ScriptDynamicUInt3 >;
@@ -82,7 +83,8 @@ namespace AE::ResEditor
         ASBuild         = 1 << 11,
         ShaderAddress   = 1 << 12,
 
-        WithHistroy     = 1 << 13,
+        WithHistory     = 1 << 13,
+        Transfer        = 1 << 14,
     };
     AE_BIT_OPERATORS( EResourceUsage );
 

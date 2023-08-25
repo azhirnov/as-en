@@ -6,6 +6,7 @@
 #include "platform/Android/SerializableInputActionsAndroid.h"
 #include "platform/GLFW/SerializableInputActionsGLFW.h"
 #include "platform/WinAPI/SerializableInputActionsWinAPI.h"
+#include "platform/OpenVR/SerializableInputActionsOpenVR.h"
 
 namespace
 {
@@ -18,9 +19,11 @@ namespace
     static void  InputActions_Test1 ()
     {
         const CharType*     files[]         = { TXT("glfw.as"), TXT("android.as"), TXT("winapi.as") };
-        const Path          output          = TXT("input_actions.bin");
-        const Path          output_script   = TXT( AE_SHARED_DATA "/scripts/input_actions" );
+        const Path          output_script   = TXT( AE_SHARED_DATA "/scripts/input_actions.as" );
         const Path          ref_dump_fname  = FileSystem::ToAbsolute( "input_actions_ref.txt" );
+        const Path          output_folder   = TXT("_output");
+        const Path          output          = FileSystem::ToAbsolute( output_folder / "input_actions.bin" );
+        const Path          output_cpp      = FileSystem::ToAbsolute( output_folder / "../names.h" );
 
         FileSystem::Remove( output );
 
@@ -29,6 +32,7 @@ namespace
         info.inFileCount        = CountOf( files );
         info.outputPackName     = Cast<CharType>(output.c_str());
         info.outputScriptFile   = Cast<CharType>(output_script.c_str());
+        info.outputCppFile      = Cast<CharType>(output_cpp.c_str());
 
         TEST( convert_input_actions( &info ));
 
@@ -45,8 +49,8 @@ namespace
             TEST_Eq( name, InputActions_Name );
         }
 
-        Array<uint> hashes;
-        Array<uint> offsets;
+        Array<uint>     hashes;
+        Array<uint>     offsets;
 
         {
             uint    count;
@@ -62,6 +66,8 @@ namespace
 
         String  ser_str;
 
+        SerializableInputActions::Reflection    refl;
+
         for (usize i = 0; i < hashes.size(); ++i)
         {
             TEST_Lt( offsets[i], offsets[i+1] );
@@ -75,9 +81,7 @@ namespace
                 SerializableInputActionsAndroid     temp;
                 TEST( temp.Deserialize( des ));
 
-                #if not AE_OPTIMIZE_IDS
-                    ser_str << temp.ToString();
-                #endif
+                ser_str << temp.ToString( refl );
             }
             else
             if ( name == InputActionsGLFW_Name )
@@ -85,9 +89,7 @@ namespace
                 SerializableInputActionsGLFW    temp;
                 TEST( temp.Deserialize( des ));
 
-                #if not AE_OPTIMIZE_IDS
-                    ser_str << temp.ToString();
-                #endif
+                ser_str << temp.ToString( refl );
             }
             else
             if ( name == InputActionsWinAPI_Name )
@@ -95,9 +97,15 @@ namespace
                 SerializableInputActionsWinAPI  temp;
                 TEST( temp.Deserialize( des ));
 
-                #if not AE_OPTIMIZE_IDS
-                    ser_str << temp.ToString();
-                #endif
+                ser_str << temp.ToString( refl );
+            }
+            else
+            if ( name == InputActionsOpenVR_Name )
+            {
+                SerializableInputActionsOpenVR  temp;
+                TEST( temp.Deserialize( des ));
+
+                ser_str << temp.ToString( refl );
             }
             else
                 TEST( false );

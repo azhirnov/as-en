@@ -28,26 +28,37 @@ namespace AE::ResEditor
 */
     void  FlightCamera::ProcessInput (ActionQueueReader reader, secondsf timeDelta) __NE___
     {
+        constexpr auto& IA      = InputActions::Controller_FlightCamera;
+        constexpr auto& BaseIA  = InputActions::SwitchInputMode;
+
         packed_float3   move;
         packed_float3   yaw_pitch_roll;
         float           thrust      = 0.f;
         float           zoom        = 0.f;
         bool            reset       = false;
+        bool            reset_roll  = false;
 
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            if_unlikely( hdr.name == InputActionName{"FlightCamera.Rotate"} )
-                yaw_pitch_roll += reader.Data<packed_float3>( hdr.offset );
+            STATIC_ASSERT( (IA.actionCount - BaseIA.actionCount) == 5 );
+            switch ( uint{hdr.name} )
+            {
+                case IA.FlightCamera_Rotate :
+                    yaw_pitch_roll += reader.Data<packed_float3>( hdr.offset );     break;
 
-            if_unlikely( hdr.name == InputActionName{"FlightCamera.Thrust"} )
-                thrust += reader.Data<float>( hdr.offset );
+                case IA.FlightCamera_Thrust :
+                    thrust += reader.Data<float>( hdr.offset );                     break;
 
-            if_unlikely( hdr.name == InputActionName{"FlightCamera.Zoom"} )
-                zoom += reader.Data<packed_float2>( hdr.offset ).y;
+                case IA.FlightCamera_Zoom :
+                    zoom += reader.Data<packed_float2>( hdr.offset ).y;             break;
 
-            if_unlikely( hdr.name == InputActionName{"FlightCamera.Reset"} )
-                reset = true;
+                case IA.FlightCamera_Reset :
+                    reset = true;                                                   break;
+
+                case IA.FlightCamera_ResetRoll :
+                    reset_roll = true;                                              break;
+            }
         }
 
 
@@ -111,6 +122,26 @@ namespace AE::ResEditor
     void  FlightCamera::CopyTo (OUT AE::ShaderTypes::CameraData &camera) C_NE___
     {
         _CopyToCameraData( OUT camera, _camera.Frustum() );
+    }
+
+/*
+=================================================
+    GetHelpText
+=================================================
+*/
+    StringView  FlightCamera::GetHelpText () C_NE___
+    {
+        return R"(
+FlightCamera controls:
+  'W' 'S'       - pitch
+  'A' 'D'       - roll
+  'Q' 'E'       - yaw
+  'Z' 'C'       - decrease/increase engine thrust
+  'Mouse'       - vertical: pitch, horizontal: roll
+  'Mouse wheel' - zoom
+  'T'           - reset roll
+  'R'           - reset position, rotation, zoom
+)";
     }
 
 

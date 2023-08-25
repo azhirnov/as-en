@@ -17,7 +17,7 @@ namespace
 
         const ulong file_size   = 128ull << 20; // Mb
         const uint  buf_size    = 4u << 10;     // Kb
-        STATIC_ASSERT( file_size % buf_size == 0 );
+        STATIC_ASSERT( IsAligned( file_size, buf_size ));
 
         const Path      fname {"ds11_data.bin"};
         {
@@ -101,7 +101,7 @@ namespace
 
         const ulong file_size   = 32ull << 20;  // Mb
         const uint  buf_size    = 4u << 10;     // Kb
-        STATIC_ASSERT( file_size % buf_size == 0 );
+        STATIC_ASSERT( IsAligned( file_size, buf_size ));
 
         const Path      fname {"ds12_data.bin"};
         {
@@ -191,7 +191,7 @@ namespace
     {
         const ulong file_size   = 32ull << 20;  // Mb
         const uint  buf_size    = 4u << 10;     // Kb
-        STATIC_ASSERT( file_size % buf_size == 0 );
+        STATIC_ASSERT( IsAligned( file_size, buf_size ));
 
         const Path      fname {"ds13_data.bin"};
         {
@@ -272,7 +272,7 @@ namespace
 
         const ulong file_size   = 128ull << 20; // Mb
         const uint  buf_size    = 4u << 10;     // Kb
-        STATIC_ASSERT( file_size % buf_size == 0 );
+        STATIC_ASSERT( IsAligned( file_size, buf_size ));
 
         const Path      fname {"ds21_data.bin"};
         {

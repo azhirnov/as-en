@@ -7,7 +7,7 @@ if (MSVC OR APPLE)
 endif()
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} ${OBJC_SOURCES} )
 
-add_library( "Platform" STATIC ${SOURCES} ${DUMMY_CPP_FILE} )
+add_library( "Platform" STATIC ${SOURCES} ${PREBUILD_CPP_FILE} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 
 set_property( TARGET "Platform" PROPERTY FOLDER "Engine" )

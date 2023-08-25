@@ -4,6 +4,9 @@
 
 namespace AE::Samples::Demo
 {
+    INTERNAL_LINKAGE( constexpr auto&   RTech   = RenderTechs::Canvas_RTech );
+    INTERNAL_LINKAGE( constexpr auto&   IA      = InputActions::Canvas2D );
+
 
     //
     // Upload Texture Task
@@ -196,11 +199,15 @@ namespace AE::Samples::Demo
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            if_unlikely( hdr.name == InputActionName{"Cursor"} )
-                t->cursorPos = reader.Data<packed_float2>( hdr.offset );
+            STATIC_ASSERT( IA.actionCount == 2 );
+            switch ( uint{hdr.name} )
+            {
+                case IA.Cursor :
+                    t->cursorPos = reader.Data<packed_float2>( hdr.offset );    break;
 
-            if_unlikely( hdr.name == InputActionName{"Push"} )
-                t->enter = true;
+                case IA.Enter :
+                    t->enter = true;                                            break;
+            }
         }
     }
 //-----------------------------------------------------------------------------
@@ -273,9 +280,12 @@ namespace AE::Samples::Demo
 
         // draw
         {
-            const auto  rp_desc = RenderPassDesc{ t->rtech, RenderTechPassName{"Main"}, rt.RegionSize() }
+            constexpr auto& rtech_pass = RTech.Main;
+            STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+
+            const auto  rp_desc = RenderPassDesc{ t->rtech, rtech_pass, rt.RegionSize() }
                                     .AddViewport( rt.RegionSize() )
-                                    .AddTarget( AttachmentName{"Color"}, rt.viewId, RGBA32f{HtmlColor::Black}, rt.initialState | EResourceState::Invalidate, rt.finalState );
+                                    .AddTarget( rtech_pass.att_Color, rt.viewId, RGBA32f{HtmlColor::Black}, rt.initialState | EResourceState::Invalidate, rt.finalState );
 
             auto    dctx = gctx.BeginRenderPass( rp_desc );
 
@@ -400,18 +410,18 @@ namespace AE::Samples::Demo
         auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
                 gfxAlloc    = MakeRC<GfxLinearMemAllocator>();
 
-        rtech = res_mngr.LoadRenderTech( pack, RenderTechName{"Canvas.RTech"}, Default );
+        rtech = res_mngr.LoadRenderTech( pack, RTech, Default );
         CHECK_ERR( rtech );
 
         font    = MakeRC<RasterFont>();
         sdfFont = MakeRC<RasterFont>();
 
-        ppln1       = rtech->GetGraphicsPipeline( PipelineName{"canvas2d.draw1"} );
-        ppln2       = rtech->GetGraphicsPipeline( PipelineName{"canvas2d.draw2"} );
-        ppln2_wire  = rtech->GetGraphicsPipeline( PipelineName{"canvas2d.draw2.wire"} );
-        ppln3       = rtech->GetGraphicsPipeline( PipelineName{"canvas2d.draw3"} );
-        ppln4       = rtech->GetGraphicsPipeline( PipelineName{"font.draw"} );
-        ppln5       = rtech->GetGraphicsPipeline( PipelineName{"sdf_font.draw"} );
+        ppln1       = rtech->GetGraphicsPipeline( RTech.Main.canvas2d_draw1 );
+        ppln2       = rtech->GetGraphicsPipeline( RTech.Main.canvas2d_draw2 );
+    //  ppln2_wire  = rtech->GetGraphicsPipeline( RTech.Main.canvas2d_draw2_wire );
+        ppln3       = rtech->GetGraphicsPipeline( RTech.Main.canvas2d_draw3 );
+        ppln4       = rtech->GetGraphicsPipeline( RTech.Main.font_draw );
+        ppln5       = rtech->GetGraphicsPipeline( RTech.Main.sdf_font_draw );
         CHECK_ERR( ppln1 and ppln2 and ppln3 and ppln4 and ppln5 );
 
         {
@@ -491,6 +501,16 @@ namespace AE::Samples::Demo
         CHECK_ERR( surf_acquire );
 
         return batch->Run< DrawTask >( Tuple{ this, rg.GetSurfaceArg() }, Tuple{surf_acquire}, True{"Last"}, Default );
+    }
+
+/*
+=================================================
+    GetInputMode
+=================================================
+*/
+    InputModeName  Canvas2DSample::GetInputMode () const
+    {
+        return IA;
     }
 
 /*

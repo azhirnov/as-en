@@ -108,7 +108,7 @@ namespace AE::Graphics
         ImageViewDesc&  SetType (EImage value)                  __NE___ { viewType  = value;                return *this; }
         ImageViewDesc&  SetFormat (EPixelFormat value)          __NE___ { format    = value;                return *this; }
         ImageViewDesc&  SetBaseMipmap (uint value)              __NE___ { baseMipmap= MipmapLevel{value};   return *this; }
-        ImageViewDesc&  SetLevels (uint base, uint count)       __NE___ { baseMipmap= MipmapLevel{base};    mipmapCount = CheckCast<ushort>(count);  return *this; }
+        ImageViewDesc&  SetMipLevels (uint base, uint count)    __NE___ { baseMipmap= MipmapLevel{base};    mipmapCount = CheckCast<ushort>(count);  return *this; }
         ImageViewDesc&  SetBaseLayer (uint value)               __NE___ { baseLayer = ImageLayer{value};    return *this; }
         ImageViewDesc&  SetArrayLayers (uint base, uint count)  __NE___ { baseLayer = ImageLayer{base};     layerCount = CheckCast<ushort>(count);  return *this; }
         ImageViewDesc&  SetSwizzle (ImageSwizzle value)         __NE___ { swizzle   = value;                return *this; }
@@ -126,5 +126,8 @@ namespace AE::Base
 
     template <> struct TMemCopyAvailable< AE::Graphics::ImageViewDesc >     { static constexpr bool  value = true; };
     template <> struct TTriviallySerializable< AE::Graphics::ImageViewDesc >{ static constexpr bool  value = true; };
+
+    STATIC_ASSERT( sizeof(AE::Graphics::ImageDesc) == 48 );
+    STATIC_ASSERT( sizeof(AE::Graphics::ImageViewDesc) == 20 );
 
 } // AE::Base

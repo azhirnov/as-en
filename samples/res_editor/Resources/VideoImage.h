@@ -2,19 +2,16 @@
 
 #pragma once
 
-#include "res_editor/Resources/IResource.h"
 #include "res_editor/Resources/ResourceQueue.h"
 
 namespace AE::ResEditor
 {
-    using ResLoader::EImageFormat;
-
 
     //
     // Video Image
     //
 
-    class VideoImage final : public IImageResource
+    class VideoImage final : public IResource
     {
     // types
     public:
@@ -36,10 +33,7 @@ namespace AE::ResEditor
         RC<DynamicDim>              _outDynSize;    // triggered when current image has been resized
         RC<Video::IVideoDecoder>    _decoder;
         uint2                       _dimension;
-
-        Synchronized< RWSpinLock,
-            ImageDesc,
-            ImageViewDesc >         _imageDesc;
+        ImageStream                 _stream;
 
         const String                _dbgName;
 
@@ -57,9 +51,10 @@ namespace AE::ResEditor
         ~VideoImage () override;
 
             bool  Resize (TransferCtx_t &)                  __Th_OV { return true; }
+            bool  RequireResize ()                          C_Th_OV { return false; }
 
-        ND_ ImageID         GetImageId ()                   C_NE_OV { return _ids[ _CurrentIdx() ]; }
-        ND_ ImageViewID     GetViewId ()                    C_NE_OV { return _views[ _CurrentIdx() ]; }
+        ND_ ImageID         GetImageId ()                   C_NE___ { return _ids[ _CurrentIdx() ]; }
+        ND_ ImageViewID     GetViewId ()                    C_NE___ { return _views[ _CurrentIdx() ]; }
         ND_ StringView      GetName ()                      C_NE___ { return _dbgName; }
 
 
@@ -69,7 +64,6 @@ namespace AE::ResEditor
 
     private:
         ND_ uint            _CurrentIdx ()                  C_NE___ { return _imageIdx.load() % _MaxImages; }
-        ND_ uint            _NextIdx ()                     C_NE___ { return (_imageIdx.load()+1) % _MaxImages; }
     };
 
 

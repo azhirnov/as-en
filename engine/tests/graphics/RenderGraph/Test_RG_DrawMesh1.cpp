@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Test_RenderGraph.h"
+#ifndef AE_ENABLE_METAL
+# include "Test_RenderGraph.h"
 
 namespace
 {
@@ -8,6 +9,7 @@ namespace
     {
         Mutex                       guard;
 
+        RenderTechPipelinesPtr      rtech;
         uint2                       viewSize;
 
         GAutorelease<ImageID>       img;
@@ -23,6 +25,8 @@ namespace
         ImageComparator *           imgCmp  = null;
         RC<GfxLinearMemAllocator>   gfxAlloc;
     };
+
+    static constexpr auto&  RTech = RenderTechs::DrawMeshesTestRT;
 
 
     template <typename CtxType>
@@ -50,9 +54,12 @@ namespace
 
             // draw
             {
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.viewSize }
+                constexpr auto&     rtech_pass = RTech.DrawMeshes_1;
+                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
-                                    .AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::Black} ));
+                                    .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
 
                 dctx.BindPipeline( t.ppln );
                 dctx.DrawMeshTasks( uint3{1} );
@@ -106,6 +113,7 @@ namespace
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         DM1_TestData    t;
 
+        t.rtech     = renderTech;
         t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
@@ -118,7 +126,7 @@ namespace
         t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
         CHECK_ERR( t.view );
 
-        t.ppln = renderTech->GetMeshPipeline( PipelineName{"draw_mesh1"} );
+        t.ppln = t.rtech->GetMeshPipeline( RTech.DrawMeshes_1.draw_mesh1 );
         CHECK_ERR( t.ppln );
 
         AsyncTask   begin   = rts.BeginFrame();
@@ -165,3 +173,5 @@ bool RGTest::Test_DrawMesh1 ()
     AE_LOGI( TEST_NAME << " - passed" );
     return result;
 }
+
+#endif // not AE_ENABLE_METAL

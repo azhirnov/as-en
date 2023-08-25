@@ -227,11 +227,14 @@ public:
     template <typename T> struct Image2DMSArray         : _ImageBase<T> { Image2DMSArray ();    using Coord = int3; };
 
 
+    // Use it if array index is vary withing a wave.
+    // PrimitiveID, InstanceID, DrawID, ...
+
     ND_ int   Nonuniform (int);         // GL_EXT_nonuniform_qualifier
     ND_ uint  Nonuniform (uint);        // GL_EXT_nonuniform_qualifier
 
     template <typename T>
-    ND_ T   Subgroupuniform (const T &);// GL_EXT_subgroupuniform_qualifier
+    ND_ T   SubgroupUniform (const T &);// GL_EXT_subgroupuniform_qualifier
 
 
   #ifdef AE_MEM_SCOPE
@@ -1050,10 +1053,10 @@ public:
     template <typename T>   using CallableDataIn    = T;
     template <typename T>   using ShaderRecord      = T;
 
-    enum class HitKind
+    enum class TriangleHitKind
     {
-        FrontFacingTriangle,
-        BackFacingTriangle,
+        FrontFacing,
+        BackFacing,
     };
 
     // in
@@ -1099,16 +1102,16 @@ public:
     void    ExecuteCallable (uint sbtRecordIndex, int callable);
   #endif
   #ifdef SH_RAY_INT
-    ND_ bool  ReportIntersection (float hitT, HitKind hitKind);
+    ND_ bool  ReportIntersection (float hitT, TriangleHitKind hitKind);
   #endif
 
   #if defined(SH_RAY_AHIT) or defined(SH_RAY_CHIT) or defined(SH_RAY_INT)
     //   Ray hit info
-    const   float       HitT;
-    const   uint        HitKind;
+    const   float               HitT;
+    const   TriangleHitKind     HitKind;
   #endif
 
-  #if defined(SH_RAY_AHIT) or defined(SH_RAY_CHIT) or defined(SH_RAY_INT) or defined(SH_RAY_INT)
+  #if defined(SH_RAY_AHIT) or defined(SH_RAY_CHIT) or defined(SH_RAY_INT)
     //   Geometry instance ids
     const   int         PrimitiveID;
     const   int         InstanceID;
@@ -1122,7 +1125,7 @@ public:
     //   Ray parameters
     const   float       RayTmin;
     const   float       RayTmax;
-    const   uint        IncomingRayFlags;
+    const   RayFlags    IncomingRayFlags;
     //   Transform matrices
     const   float4x3    ObjectToWorld;
     const   float3x4    ObjectToWorld3x4;
@@ -1137,7 +1140,7 @@ public:
     //   Ray parameters
     const   float       RayTmin;
     const   float       RayTmax;
-    const   uint        IncomingRayFlags;
+    const   RayFlags    IncomingRayFlags;
   #endif
 
   #ifdef SH_RAY_AHIT
@@ -1206,7 +1209,7 @@ public:
 
     // build ray tracing acceleration structure
   #ifdef AE_RTAS_BUILD
-    enum class GeometryInstanceFlags : uint32_t
+    enum class GeometryInstanceFlags : uint
     {
         TriangleCullDisable,
         TriangleFrontCCW,

@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/EditorUI.h"
+#include "res_editor/Core/EditorUI.h"
 #include "res_editor/Scripting/ScriptBasePass.cpp.h"
 
 namespace AE::ResEditor
@@ -33,15 +33,40 @@ namespace
 
 /*
 =================================================
+    operator Iteration
+=================================================
+*/
+    ScriptComputePass::Iteration::operator ComputePass::Iteration () C_Th___
+    {
+        ComputePass::Iteration  result;
+        result.count    = count;
+        result.isGroups = isGroups;
+
+        if ( indirect )
+        {
+            result.indirect         = indirect->ToResource();   // throw
+            result.indirectOffset   = indirectOffset;
+
+            if ( not indirectCmdField.empty() )
+            {
+                ASSERT( indirectOffset == 0 );
+                result.indirectOffset = indirect->GetFieldOffset( indirectCmdField );   // throw
+            }
+        }
+        return result;
+    }
+
+/*
+=================================================
     constructor
 =================================================
 */
     ScriptComputePass::ScriptComputePass (const String &name, const String &defines, EFlags baseFlags) __Th___ :
         ScriptBasePass{ baseFlags },
-        _pplnPath{ ScriptExe::ScriptPassApi::ToShaderPath( name )},
-        _defines{ defines }
+        _pplnPath{ ScriptExe::ScriptPassApi::ToShaderPath( name )}
     {
         _dbgName = ToString( _pplnPath.filename().replace_extension("") );
+        _defines = defines;
 
         if ( not _defines.empty() )
             _dbgName << "|" << _defines;
@@ -145,135 +170,47 @@ namespace
 
 /*
 =================================================
-    ArgSceneIn
+    DispatchGroupsIndirect*
 =================================================
 */
-    void  ScriptComputePass::ArgSceneIn (const String &name, const ScriptRTScenePtr &scene) __Th___
+    void  ScriptComputePass::DispatchGroupsIndirect1 (const ScriptBufferPtr &ibuf) __Th___
     {
-        CHECK_THROW_MSG( scene );
+        DispatchGroupsIndirect2( ibuf, 0 );
+    }
 
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
-        CHECK_THROW_MSG( _iterations.empty(), "Arg() must be used before Dispatch() call" );
+    void  ScriptComputePass::DispatchGroupsIndirect2 (const ScriptBufferPtr &ibuf, ulong offset) __Th___
+    {
+        CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
+        CHECK_THROW_MSG( ibuf );
 
-        Argument&   arg = _args.emplace_back();
-        arg.name    = name;
-        arg.res     = scene;
-        arg.state   = EResourceState::ComputeShader | EResourceState::ShaderRTAS_Read;
+        auto&   it          = _iterations.emplace_back();
+        it.indirect         = ibuf;
+        it.indirectOffset   = Bytes{offset};
+        it.isGroups         = true;
+    }
+
+    void  ScriptComputePass::DispatchGroupsIndirect3 (const ScriptBufferPtr &ibuf, const String &field) __Th___
+    {
+        CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
+        CHECK_THROW_MSG( ibuf );
+        CHECK_THROW_MSG( not field.empty() );
+
+        auto&   it          = _iterations.emplace_back();
+        it.indirect         = ibuf;
+        it.indirectCmdField = field;
+        it.isGroups         = true;
     }
 
 /*
 =================================================
-    ArgBufferIn***
+    _OnAddArg
 =================================================
 */
-    void  ScriptComputePass::ArgBufferIn (const String &name, const ScriptBufferPtr &buf)   __Th___ { _AddArg( name, buf, EResourceUsage::ComputeRead ); }
-    void  ScriptComputePass::ArgBufferOut (const String &name, const ScriptBufferPtr &buf)  __Th___ { _AddArg( name, buf, EResourceUsage::ComputeWrite ); }
-    void  ScriptComputePass::ArgBufferInOut (const String &name, const ScriptBufferPtr &buf)__Th___ { _AddArg( name, buf, EResourceUsage::ComputeRW ); }
-
-    void  ScriptComputePass::_AddArg (const String &name, const ScriptBufferPtr &buf, EResourceUsage usage) __Th___
+    void  ScriptComputePass::_OnAddArg (INOUT ScriptPassArgs::Argument &arg) C_Th___
     {
-        CHECK_THROW_MSG( buf );
-        buf->AddUsage( usage );
-
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
         CHECK_THROW_MSG( _iterations.empty(), "Arg() must be used before Dispatch() call" );
 
-        Argument&   arg = _args.emplace_back();
-        arg.name    = name;
-        arg.res     = buf;
-        arg.state   = EResourceState::ComputeShader;
-
-        switch ( usage ) {
-            case EResourceUsage::ComputeRead :  arg.state |= EResourceState::ShaderStorage_Read;    break;
-            case EResourceUsage::ComputeWrite : arg.state |= EResourceState::ShaderAddress_Write;   break;
-            case EResourceUsage::ComputeRW :    arg.state |= EResourceState::ShaderStorage_RW;      break;
-            default :                           CHECK_THROW_MSG( false, "unsupported usage" );
-        }
-    }
-
-/*
-=================================================
-    ArgImageIn***
-=================================================
-*/
-    void  ScriptComputePass::ArgImageIn (const String &name, const ScriptImagePtr &img)     __Th___ { _AddArg( name, img, EResourceUsage::ComputeRead ); }
-    void  ScriptComputePass::ArgImageOut (const String &name, const ScriptImagePtr &img)    __Th___ { _AddArg( name, img, EResourceUsage::ComputeWrite ); }
-    void  ScriptComputePass::ArgImageInOut (const String &name, const ScriptImagePtr &img)  __Th___ { _AddArg( name, img, EResourceUsage::ComputeRW ); }
-
-    void  ScriptComputePass::_AddArg (const String &name, const ScriptImagePtr &img, EResourceUsage usage) __Th___
-    {
-        CHECK_THROW_MSG( img );
-        img->AddUsage( usage );
-
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
-        CHECK_THROW_MSG( _iterations.empty(), "Arg() must be used before Dispatch() call" );
-
-        Argument&   arg = _args.emplace_back();
-        arg.name    = name;
-        arg.res     = img;
-        arg.state   = EResourceState::ComputeShader;
-
-        switch ( usage ) {
-            case EResourceUsage::ComputeRead :  arg.state |= EResourceState::ShaderStorage_Read;    break;
-            case EResourceUsage::ComputeWrite : arg.state |= EResourceState::ShaderAddress_Write;   break;
-            case EResourceUsage::ComputeRW :    arg.state |= EResourceState::ShaderStorage_RW;      break;
-            default :                           CHECK_THROW_MSG( false, "unsupported usage" );
-        }
-    }
-
-/*
-=================================================
-    ArgTextureIn
-=================================================
-*/
-    void  ScriptComputePass::ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName) __Th___
-    {
-        CHECK_THROW_MSG( tex );
-        CHECK_THROW_MSG( not samplerName.empty() );
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
-        CHECK_THROW_MSG( _iterations.empty(), "Arg() must be used before Dispatch() call" );
-
-        tex->AddUsage( EResourceUsage::Sampled );
-
-        Argument&   arg = _args.emplace_back();
-        arg.name        = name;
-        arg.res         = tex;
-        arg.state       = EResourceState::ComputeShader | EResourceState::ShaderSample;
-        arg.samplerName = samplerName;
-    }
-
-/*
-=================================================
-    ArgVideoIn
-=================================================
-*/
-    void  ScriptComputePass::ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName) __Th___
-    {
-        CHECK_THROW_MSG( tex );
-        CHECK_THROW_MSG( not samplerName.empty() );
-        CHECK_THROW_MSG( _uniqueNames.insert( name ).second, "uniform '"s << name << "' is already exists" );
-        CHECK_THROW_MSG( _iterations.empty(), "Arg() must be used before Dispatch() call" );
-
-        tex->AddUsage( EResourceUsage::Sampled );
-
-        Argument&   arg = _args.emplace_back();
-        arg.name        = name;
-        arg.res         = tex;
-        arg.state       = EResourceState::ComputeShader | EResourceState::ShaderSample;
-        arg.samplerName = samplerName;
-    }
-
-/*
-=================================================
-    ArgController
-=================================================
-*/
-    void  ScriptComputePass::ArgController (const ScriptBaseControllerPtr &controller) __Th___
-    {
-        CHECK_THROW_MSG( controller );
-        CHECK_THROW_MSG( not _controller, "controller is already exists" );
-
-        _controller = controller;
+        arg.state |= EResourceState::ComputeShader;
     }
 
 /*
@@ -284,7 +221,7 @@ namespace
     void  ScriptComputePass::Bind (const ScriptEnginePtr &se) __Th___
     {
         Scripting::ClassBinder<ScriptComputePass>   binder{ se };
-        binder.CreateRef( 0, False{"ctor"} );
+        binder.CreateRef( 0, False{"no ctor"} );
         ScriptBasePass::_BindBase( binder );
 
         binder.AddFactoryCtor( &ScriptComputePass_Ctor1 );
@@ -293,41 +230,37 @@ namespace
         binder.AddFactoryCtor( &ScriptComputePass_Ctor4 );
         binder.AddFactoryCtor( &ScriptComputePass_Ctor5 );
 
-        binder.AddMethod( &ScriptComputePass::LocalSize1,           "LocalSize"         );
-        binder.AddMethod( &ScriptComputePass::LocalSize2,           "LocalSize"         );
-        binder.AddMethod( &ScriptComputePass::LocalSize3,           "LocalSize"         );
-        binder.AddMethod( &ScriptComputePass::LocalSize2v,          "LocalSize"         );
-        binder.AddMethod( &ScriptComputePass::LocalSize3v,          "LocalSize"         );
+        binder.Comment( "Set workgroup size - number of threads which can access shared memory." );
+        binder.AddMethod( &ScriptComputePass::LocalSize1,               "LocalSize"             );
+        binder.AddMethod( &ScriptComputePass::LocalSize2,               "LocalSize"             );
+        binder.AddMethod( &ScriptComputePass::LocalSize3,               "LocalSize"             );
+        binder.AddMethod( &ScriptComputePass::LocalSize2v,              "LocalSize"             );
+        binder.AddMethod( &ScriptComputePass::LocalSize3v,              "LocalSize"             );
 
-        binder.AddMethod( &ScriptComputePass::DispatchGroups1,      "DispatchGroups"    );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups2,      "DispatchGroups"    );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups3,      "DispatchGroups"    );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups2v,     "DispatchGroups"    );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups3v,     "DispatchGroups"    );
-        binder.AddMethod( &ScriptComputePass::DispatchGroupsDS,     "DispatchGroups"    );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups1D,     "DispatchGroups"    );
+        binder.Comment( "Execute compute shader with number of the workgroups.\n"
+                        "Total number of threads is groupCount * localSize." );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups1,          "DispatchGroups"        );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups2,          "DispatchGroups"        );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups3,          "DispatchGroups"        );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups2v,         "DispatchGroups"        );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups3v,         "DispatchGroups"        );
+        binder.AddMethod( &ScriptComputePass::DispatchGroupsDS,         "DispatchGroups"        );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups1D,         "DispatchGroups"        );
 
-        binder.AddMethod( &ScriptComputePass::DispatchThreads1,     "DispatchThreads"   );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads2,     "DispatchThreads"   );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads3,     "DispatchThreads"   );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads2v,    "DispatchThreads"   );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads3v,    "DispatchThreads"   );
-        binder.AddMethod( &ScriptComputePass::DispatchThreadsDS,    "DispatchThreads"   );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads1D,    "DispatchThreads"   );
+        binder.Comment( "Execute compute shader with total number of the threads." );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads1,         "DispatchThreads"       );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads2,         "DispatchThreads"       );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads3,         "DispatchThreads"       );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads2v,        "DispatchThreads"       );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads3v,        "DispatchThreads"       );
+        binder.AddMethod( &ScriptComputePass::DispatchThreadsDS,        "DispatchThreads"       );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads1D,        "DispatchThreads"       );
 
-        binder.AddMethod( &ScriptComputePass::ArgSceneIn,           "ArgIn"             );
-
-        binder.AddMethod( &ScriptComputePass::ArgBufferIn,          "ArgIn"             );
-        binder.AddMethod( &ScriptComputePass::ArgBufferOut,         "ArgOut"            );
-        binder.AddMethod( &ScriptComputePass::ArgBufferInOut,       "ArgInOut"          );
-
-        binder.AddMethod( &ScriptComputePass::ArgImageIn,           "ArgIn"             );
-        binder.AddMethod( &ScriptComputePass::ArgImageOut,          "ArgOut"            );
-        binder.AddMethod( &ScriptComputePass::ArgImageInOut,        "ArgInOut"          );
-
-        binder.AddMethod( &ScriptComputePass::ArgTextureIn,         "ArgIn"             );
-        binder.AddMethod( &ScriptComputePass::ArgVideoIn,           "ArgIn"             );
-        binder.AddMethod( &ScriptComputePass::ArgController,        "ArgIn"             );
+        binder.Comment( "Execute compute shader with indirect command.\n"
+                        "Indirect buffer must contains 'DispatchIndirectCommand' data." );
+        binder.AddMethod( &ScriptComputePass::DispatchGroupsIndirect1,  "DispatchGroupsIndirect" );
+        binder.AddMethod( &ScriptComputePass::DispatchGroupsIndirect2,  "DispatchGroupsIndirect" );
+        binder.AddMethod( &ScriptComputePass::DispatchGroupsIndirect3,  "DispatchGroupsIndirect" );
     }
 
 /*
@@ -352,7 +285,7 @@ namespace
     {
         CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() is not used" );
         CHECK_THROW_MSG( not _iterations.empty(), "add at least one Dispatch() call" );
-        CHECK_THROW_MSG( not _args.empty(), "empty argument list" );
+        CHECK_THROW_MSG( not _args.Empty(), "empty argument list" );
 
         auto        result      = MakeRC<ComputePass>();
         auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
@@ -386,7 +319,7 @@ namespace
         result->_dbgName    = this->_dbgName;
         result->_dbgColor   = this->_dbgColor;
         result->_localSize  = this->_localSize;
-        result->_iterations = this->_iterations;
+        result->_iterations.assign( this->_iterations.begin(), this->_iterations.end() );
 
         if ( this->_controller )
         {
@@ -403,35 +336,7 @@ namespace
         {
             CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->_dsIndex, OUT result->_descSets.data(), max_frames,
                                                         ppln, DescriptorSetName{"ds0"} ));
-
-            for (auto& arg : _args)
-            {
-                Visit( arg.res,
-                    [&] (ScriptBufferPtr buf) {
-                        auto    res = buf->ToResource();
-                        CHECK_THROW( res );
-                        result->_resources.emplace_back( UniformName{arg.name}, res, arg.state );
-                    },
-                    [&] (ScriptImagePtr tex) {
-                        auto    res = tex->ToResource();
-                        CHECK_THROW( res );
-                        result->_resources.emplace_back( UniformName{arg.name}, res, arg.state );
-                    },
-                    [&] (ScriptVideoImagePtr video) {
-                        auto    res = video->ToResource();
-                        CHECK_THROW( res );
-                        result->_resources.emplace_back( UniformName{arg.name}, res, arg.state );
-                    },
-                    [&] (ScriptRTScenePtr scene) {
-                        auto    res = scene->ToResource();
-                        CHECK_THROW( res );
-                        result->_resources.emplace_back( UniformName{arg.name}, res, arg.state );
-                    },
-                    [] (NullUnion) {
-                        CHECK_THROW_MSG( false, "unsupported argument type" );
-                    }
-                );
-            }
+            _args.InitResources( OUT result->_resources );  // throw
         }
 
         // add debug modes
@@ -520,17 +425,7 @@ namespace AE::ResEditor
 */
     void  ScriptComputePass::_CompilePipeline2 (OUT Bytes &ubSize) C_Th___
     {
-        // validate
-        for (auto& arg : _args)
-        {
-            Visit( arg.res,
-                [] (ScriptBufferPtr buf)        { buf->AddLayoutReflection();  CHECK_THROW_MSG( buf->ToResource() ); },
-                [] (ScriptImagePtr tex)         { CHECK_THROW_MSG( tex->ToResource() ); },
-                [] (ScriptVideoImagePtr video)  { CHECK_THROW_MSG( video->ToResource() ); },
-                [] (ScriptRTScenePtr scene)     { CHECK_THROW_MSG( scene->ToResource() ); },
-                [] (NullUnion)                  { CHECK_THROW_MSG( false, "unsupported argument type" ); }
-            );
-        }
+        _args.ValidateArgs();
 
         RenderTechniquePtr  rtech{ new RenderTechnique{ "rtech" }};
         {
@@ -538,112 +433,24 @@ namespace AE::ResEditor
             Unused( pass );
         }
 
-        const uint              stage   = uint(EShaderStages::Compute);
+        const auto              stage   = EShaderStages::Compute;
         DescriptorSetLayoutPtr  ds_layout{ new DescriptorSetLayout{ "dsl.0" }};
         {
             ShaderStructTypePtr st = _CreateUBType();   // throw
             ubSize = st->StaticSize();
 
-            ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform );
+            ds_layout->AddUniformBuffer( uint(stage), "un_PerPass", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform );
         }
+        _args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
 
-        for (auto& arg : _args)
-        {
-            Visit( arg.res,
-                [&] (ScriptBufferPtr buf) {
-                    if ( buf->HasLayout() )
-                        ds_layout->AddStorageBuffer( stage, arg.name, ArraySize{1}, buf->GetTypeName(), EAccessType::Coherent, arg.state );
-                    else
-                        ds_layout->AddStorageTexelBuffer( stage, arg.name, ArraySize{1}, PipelineCompiler::EImageType(buf->TexelBufferType()), arg.state );
-                },
-                [&] (ScriptImagePtr tex) {
-                    const auto  type = PipelineCompiler::EImageType(tex->ImageType());
-                    if ( arg.samplerName.empty() )
-                        ds_layout->AddStorageImage( stage, arg.name, ArraySize{1}, type, tex->Description().format, EAccessType::Coherent, arg.state );
-                    else
-                        ds_layout->AddCombinedImage_ImmutableSampler( stage, arg.name, type, arg.state, arg.samplerName );
-                },
-                [&] (ScriptVideoImagePtr video) {
-                    ds_layout->AddCombinedImage_ImmutableSampler( stage, arg.name, PipelineCompiler::EImageType(video->ImageType()), arg.state, arg.samplerName );
-                },
-                [&] (ScriptRTScenePtr scene) {
-                    ds_layout->AddRayTracingScene( stage, arg.name, ArraySize{1} );
-                },
-                [] (NullUnion) {
-                    CHECK_THROW_MSG( false, "unsupported argument type" );
-                }
-            );
-        }
 
         uint    cs_line = 0;
         String  cs;
         {
             String  header;
 
-            // add defines
-            if ( not _defines.empty() )
-            {
-                Array<StringView>   def_tokens;
-                StringParser::Tokenize( _defines, ';', OUT def_tokens );
-
-                for (auto def : def_tokens) {
-                    header << "#define " << def << '\n';
-                }
-            }
-
-            // add sliders
-            {
-                const uint  max_sliders = UIInteraction::MaxSlidersPerType;
-                for (usize i = 0; i < _sliderCounter.size(); ++i) {
-                    CHECK_THROW_MSG( _sliderCounter[i] <= max_sliders );
-                }
-
-                for (auto& slider : _sliders)
-                {
-                    header << "#define " << slider.name << " un_PerPass.";
-                    BEGIN_ENUM_CHECKS();
-                    switch ( slider.type )
-                    {
-                        case ESlider::Int :     header << "intSliders[";    break;
-                        case ESlider::Float :   header << "floatSliders[";  break;
-                        case ESlider::Color :   header << "colors[";        break;
-                        case ESlider::_Count :
-                        default :               CHECK_THROW_MSG( false, "unknown slider type" );
-                    }
-                    END_ENUM_CHECKS();
-
-                    header << ToString( slider.index ) << "]";
-                    switch ( slider.count )
-                    {
-                        case 1 :    header << ".x";     break;
-                        case 2 :    header << ".xy";    break;
-                        case 3 :    header << ".xyz";   break;
-                        case 4 :    header << ".xyzw";  break;
-                        default :   CHECK_THROW_MSG( false, "unknown slider value size" );
-                    }
-                    header << "\n";
-                }
-            }
-
-            // add constants
-            {
-                for (auto& c : _constants)
-                {
-                    header << "#define " << c.name << " un_PerPass.";
-                    BEGIN_ENUM_CHECKS();
-                    switch ( c.type )
-                    {
-                        case ESlider::Int :     header << "intConst[";      break;
-                        case ESlider::Float :   header << "floatConst[";    break;
-                        case ESlider::Color :
-                        case ESlider::_Count :
-                        default :               CHECK_THROW_MSG( false, "unknown constant type" );
-                    }
-                    END_ENUM_CHECKS();
-
-                    header << ToString( c.index ) << "]\n";
-                }
-            }
+            _AddDefines( _defines, INOUT header );
+            _AddSliders( INOUT header );
 
             // load shader source from file
             {

@@ -1,4 +1,10 @@
 
+## 23.08.xxx
+
+ - Graphics: reflection for render technique, pipeline, SBT names
+ - Graphics: improved syncs in RG
+ - ResLoader: KTX support
+
 ## 23.07.178
 
  - cmake: Precompiled headers
@@ -15,7 +21,7 @@
  - Graphics: VK_KHR_fragment_shading_rate
  - Graphics: buffer reference (GLSL/MSL)
  - Platform: fixed VR emulator
- 
+
 
 ## 23.05.162
 

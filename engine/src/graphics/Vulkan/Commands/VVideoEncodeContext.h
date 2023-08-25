@@ -118,9 +118,9 @@ namespace AE::Graphics::_hidden_
     _VVideoEncodeContextImpl<C>::_VVideoEncodeContextImpl (VideoSessionID sessionId, const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
         RawCtx{ task, RVRef(cmdbuf), dbg }
     {
-        CHECK_THROW( AnyBits( EQueueMask::VideoEncode, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
 
-        auto&   session = _GetResourcesOrThrow( sessionId );
+        //auto& session = _GetResourcesOrThrow( sessionId );
     }
 
 

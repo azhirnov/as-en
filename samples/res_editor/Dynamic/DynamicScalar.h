@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "res_editor/Passes/FrameGraph.h"
+#include "res_editor/Core/RenderGraph.h"
 
 namespace AE::ResEditor
 {

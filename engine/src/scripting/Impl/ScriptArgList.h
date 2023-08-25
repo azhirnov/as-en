@@ -70,6 +70,8 @@ namespace AE::Scripting
         template <typename C, typename Ret, typename ...Args>
         ND_ bool            Is (Ret (C::*)(Args...))        C_NE___ { return Is< Ret (C::*)(Args...) >(); }
 
+        ND_ StringView      GetArgTypename (uint argIndex)  C_NE___;
+
 
     // self object (caller) //
         template <typename T>

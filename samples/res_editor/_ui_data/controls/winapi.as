@@ -1,19 +1,27 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include <input_actions>
+#include <input_actions.as>
 
 void ASmain (WinAPI_ActionBindings& bindings)
 {
+    // shared input binding
+    {
+        RC<WinAPI_BindingsMode> bind = bindings.CreateMode( "Shared" );
+
+        bind.Add( WinAPI_Input::Backspace,
+                  ActionInfo( "PauseRendering", EGestureType::Down ));
+        bind.Add( WinAPI_Input::F1,
+                  ActionInfo( "ShowHelp", EGestureType::Down ));
+        bind.Add( WinAPI_Input::Tab,
+                  ActionInfo( "UI.ShowHide", EGestureType::Down ));
+    }
+
     // switch input mode
     {
         RC<WinAPI_BindingsMode> bind = bindings.CreateMode( "SwitchInputMode" );
+        bind.Inherit( "Shared" );
 
         bind.Add( WinAPI_Input::Escape,
                   ActionInfo( "SwitchInputMode", EGestureType::Down ));
-        bind.Add( WinAPI_Input::Backspace,
-                  ActionInfo( "PauseRendering", EGestureType::Down ));
-
-        bind.Add( WinAPI_Input::Tab,
-                  ActionInfo( "UI.ShowHide", EGestureType::Down ));
 
         bind.Add( WinAPI_Input::1,
                   ActionInfo( "CustomKey1", EValueType::Float, EGestureType::Down, float4(1.f) ));
@@ -40,11 +48,10 @@ void ASmain (WinAPI_ActionBindings& bindings)
     // UI bindings
     {
         RC<WinAPI_BindingsMode> bind = bindings.CreateMode( "Main.UI" );
+        bind.Inherit( "Shared" );
 
         bind.Add( WinAPI_Input::Escape,
                   ActionInfo( "UI.SwitchInputMode", EGestureType::Down ));
-        bind.Add( WinAPI_Input::Backspace,
-                  ActionInfo( "PauseRendering", EGestureType::Down ));
 
         bind.Add( WinAPI_Input::CursorPos,
                   ActionInfo( "UI.MousePos", EValueType::Float2, EGestureType::Move ));
@@ -55,8 +62,6 @@ void ASmain (WinAPI_ActionBindings& bindings)
         bind.Add( WinAPI_Input::MouseWheel,
                   ActionInfo( "UI.MouseWheel", EValueType::Float2, EGestureType::Move ));
 
-        bind.Add( WinAPI_Input::Tab,
-                  ActionInfo( "UI.ShowHide", EGestureType::Down ));
         bind.Add( WinAPI_Input::U,
                   ActionInfo( "UI.StartStopRecording", EGestureType::Down ));
         bind.Add( WinAPI_Input::I,
@@ -233,9 +238,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
         bind.Add( WinAPI_Input::CursorDelta_norm,
                   ActionInfo( "FlightCamera.Rotate", EValueType::Float3, EGestureType::Move, VecSwizzle("0yx"), mouse_scale ));
 
-        bind.Add( WinAPI_Input::R,
-                  ActionInfo( "FlightCamera.ResetRoll", EGestureType::Down ));
         bind.Add( WinAPI_Input::T,
+                  ActionInfo( "FlightCamera.ResetRoll", EGestureType::Down ));
+        bind.Add( WinAPI_Input::R,
                   ActionInfo( "FlightCamera.Reset", EGestureType::Down ));
 
         bind.Add( WinAPI_Input::MouseWheel,

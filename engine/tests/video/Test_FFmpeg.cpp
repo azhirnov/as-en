@@ -188,33 +188,6 @@ namespace
             TEST( dec->End() );
         }
     }
-
-
-    static void  FFmpeg_Test3 ()
-    {
-        auto    dec = VideoFactory::CreateFFmpegDecoder();
-        TEST( dec );
-
-        Array< Path >   stack;
-        //stack.push_back( R"()" );
-
-        for (; not stack.empty();)
-        {
-            Path    dir = stack.back();
-            stack.pop_back();
-
-            for (auto& path : FileSystem::Enum( dir ))
-            {
-                if ( path.IsDirectory() )
-                {
-                    stack.push_back( path );
-                    continue;
-                }
-
-                AE_LOGI( dec->PrintFileProperties( path ));
-            }
-        }
-    }
 }
 
 
@@ -222,7 +195,6 @@ extern void  Test_FFmpeg ()
 {
     FFmpeg_Test1();
     FFmpeg_Test2();
-    FFmpeg_Test3();
 
     TEST_PASSED();
 }

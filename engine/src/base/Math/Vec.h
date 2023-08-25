@@ -1409,6 +1409,74 @@ namespace AE::Math
         return Pow( TVec<T,I,Q>{T{10}}, v );
     }
 
+/*
+=================================================
+    LeftVector / RightVector
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    ND_ EnableIf<IsScalar<T>, TVec<T,2,Q>>  LeftVector (const TVec<T,2,Q> &v) __NE___
+    {
+        return TVec<T,2,Q>{ -v.y, v.x };
+    }
+
+    template <typename T, glm::qualifier Q>
+    ND_ EnableIf<IsScalar<T>, TVec<T,2,Q>>  RightVector (const TVec<T,2,Q> &v) __NE___
+    {
+        return TVec<T,2,Q>{ v.y, -v.x };
+    }
+
+/*
+=================================================
+    LeftVectorXZ / RightVectorXZ
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    ND_ EnableIf<IsScalar<T>, TVec<T,3,Q>>  LeftVectorXZ (const TVec<T,3,Q> &v) __NE___
+    {
+        return TVec<T,3,Q>{ -v.z, v.y, v.x };
+    }
+
+    template <typename T, glm::qualifier Q>
+    ND_ EnableIf<IsScalar<T>, TVec<T,3,Q>>  RightVectorXZ (const TVec<T,3,Q> &v) __NE___
+    {
+        return TVec<T,3,Q>{ v.z, v.y, -v.x };
+    }
+
+/*
+=================================================
+    ToLinear
+=================================================
+*/
+    template <typename T, int I, glm::qualifier Q>
+    ND_ EnableIf<IsScalar<T>, T>  ToLinear (const TVec<T,I,Q> &pos, const TVec<T,I,Q> &dim) __NE___
+    {
+        if constexpr( I == 1 )
+            return pos.x;
+
+        if constexpr( I == 2 )
+            return pos.x + pos.y * dim.x;
+
+        if constexpr( I == 3 )
+            return pos.x + (pos.y * dim.x) + (pos.z * dim.x * dim.y);
+
+        if constexpr( I == 4 )
+            return pos.x + (pos.y * dim.x) + (pos.z * dim.x * dim.y) + (pos.w * dim.x * dim.y * dim.z);
+    }
+
+/*
+=================================================
+    IsAligned
+=================================================
+*/
+    template <typename T0, typename T1, int I, glm::qualifier Q>
+    ND_ EnableIf<IsScalar<T0>, TVec<bool,I,Q>>  IsAligned (const TVec<T0,I,Q> &value, const T1 &align) __NE___
+    {
+        STATIC_ASSERT( IsEnum<T0> or IsInteger<T0> );
+        return (value % align) == T0{0};
+    }
+
+
 } // AE::Math
 
 

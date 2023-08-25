@@ -66,8 +66,8 @@ namespace
         if ( res_mngr.IsSupported( EMemoryType::HostCached ))
             host_mem = EMemoryType::HostCached;
         else
-        if ( res_mngr.IsSupported( EMemoryType::HostCocherent ))
-            host_mem = EMemoryType::HostCocherent;
+        if ( res_mngr.IsSupported( EMemoryType::HostCoherent ))
+            host_mem = EMemoryType::HostCoherent;
         else
         if ( res_mngr.IsSupported( EMemoryType::Unified ))
             host_mem = EMemoryType::Unified;

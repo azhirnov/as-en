@@ -48,8 +48,8 @@ namespace AE::Graphics::_hidden_
         {
             MetalBuffer     indexBuffer;
             Bytes           indexBufferOffset;
-            ushort          primitiveType       = UMax;
-            ushort          indexType           = UMax;
+            ushort          primitiveType       = UMax;     // MTLPrimitiveType
+            ushort          indexType           = UMax;     // MTLIndexType
         };
 
         struct MeshPplnStates
@@ -73,7 +73,7 @@ namespace AE::Graphics::_hidden_
                 TilePplnStates      tile;
             };
 
-            PplnStates () {}
+            PplnStates () __NE___ {}
         };
 
     private:
@@ -569,7 +569,7 @@ namespace AE::Graphics::_hidden_
     template <typename C>
     void  _MDrawContextImpl<C>::PushConstant (const PushConstantIndex &idx, Bytes size, const void *values, const ShaderStructName &typeName)
     {
-        Validator_t::PushConstant( idx, size, typeName );
+        VALIDATE_GCTX( PushConstant( idx, size, typeName ));
 
         switch ( idx.stage )
         {
@@ -688,7 +688,7 @@ namespace AE::Graphics::_hidden_
                                               Bytes     stride)
     {
         auto&   buf = _GetResourcesOrThrow( indirectBuffer );
-        Validator_t::DrawIndirect( buf, indirectBufferOffset, drawCount, stride );
+        VALIDATE_GCTX( DrawIndirect( buf.Description(), indirectBufferOffset, drawCount, stride ));
 
         _boundDS.UseHeapsAndResources( *this );
         RawCtx::_DrawPrimitivesIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
@@ -706,7 +706,7 @@ namespace AE::Graphics::_hidden_
                                                      Bytes      stride)
     {
         auto&   buf = _GetResourcesOrThrow( indirectBuffer );
-        Validator_t::DrawIndexedIndirect( buf, indirectBufferOffset, drawCount, stride );
+        VALIDATE_GCTX( DrawIndexedIndirect( buf.Description(), indirectBufferOffset, drawCount, stride ));
 
         _boundDS.UseHeapsAndResources( *this );
         RawCtx::_DrawIndexedPrimitivesIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );
@@ -748,7 +748,7 @@ namespace AE::Graphics::_hidden_
                                                        Bytes    stride)
     {
         auto&   buf = _GetResourcesOrThrow( indirectBuffer );
-        Validator_t::DrawMeshTasksIndirect( buf, indirectBufferOffset, drawCount, stride );
+        VALIDATE_GCTX( DrawMeshTasksIndirect( buf.Description(), indirectBufferOffset, drawCount, stride ));
 
         _boundDS.UseHeapsAndResources( *this );
         RawCtx::_DrawMeshTasksIndirect( buf.Handle(), indirectBufferOffset, drawCount, stride );

@@ -3,18 +3,76 @@
 #pragma once
 
 #include "graphics/Public/CommandBuffer.h"
-#ifdef AE_DEBUG
-# include "graphics/Private/EnumUtils.h"
+#include "graphics/Public/FeatureSet.h"
+#include "graphics/Private/Defines.h"
+
+#if AE_VALIDATE_GCTX
+# define VALIDATE_GCTX( /*fn call*/... )    {Validator_t:: __VA_ARGS__;}
+#else
+# define VALIDATE_GCTX( ... )               {}
 #endif
 
-# ifdef AE_COMPILER_MSVC
-#   pragma warning (push)
-#   pragma warning (disable: 4100)
-#   pragma warning (disable: 4189)
-# endif
+#ifdef AE_COMPILER_MSVC
+# pragma warning (push)
+# pragma warning (disable: 4100)
+# pragma warning (disable: 4189)
+#endif
 
 namespace AE::Graphics::_hidden_
 {
+#if AE_VALIDATE_GCTX == 0
+
+    class TransferContextValidation final : Noninstanceable
+    {
+    public:
+        static void  CtxInit (EQueueMask rtaskQueue) __Th___;
+    };
+
+    class ComputeContextValidation final : Noninstanceable
+    {
+    public:
+        static void  CtxInit (EQueueMask rtaskQueue) __Th___;
+    };
+
+    class DrawContextValidation final : Noninstanceable
+    {
+    public:
+        //static void  CtxInit (EQueueMask rtaskQueue) __Th___;
+    };
+
+    class GraphicsContextValidation final : Noninstanceable
+    {
+    public:
+        static void  CtxInit (EQueueMask rtaskQueue) __Th___;
+    };
+
+    class ASBuildContextValidation final : Noninstanceable
+    {
+    public:
+        static void  CtxInit (EQueueMask rtaskQueue) __Th___;
+    };
+
+    class RayTracingContextValidation final : Noninstanceable
+    {
+    public:
+        static void  CtxInit (EQueueMask rtaskQueue) __Th___;
+    };
+
+    class VideoDecodeContextValidation final : Noninstanceable
+    {
+    public:
+        static void  CtxInit (EQueueMask rtaskQueue) __Th___;
+    };
+
+    class VideoEncodeContextValidation final : Noninstanceable
+    {
+    public:
+        static void  CtxInit (EQueueMask rtaskQueue) __Th___;
+    };
+
+//-----------------------------------------------------------------------------
+#else
+
 
     //
     // Transfer Context Validation
@@ -22,266 +80,53 @@ namespace AE::Graphics::_hidden_
     class TransferContextValidation final : Noninstanceable
     {
     public:
-        template <typename ImgType>
-        static void  ClearColorImage (ImgType &img, ArrayView<ImageSubresourceRange> ranges)
-        {
-            ASSERT( ranges.size() );
-            ASSERT( AllBits( img.Description().usage, EImageUsage::TransferDst ));
-            ASSERT( _IsDeviceMemory( img ));
-        }
+        static void  CtxInit (EQueueMask rtaskQueue)                                                                            __Th___;
 
-        template <typename ImgType>
-        static void  ClearDepthStencilImage (ImgType &img, ArrayView<ImageSubresourceRange> ranges)
-        {
-            ASSERT( ranges.size() );
-            ASSERT( AllBits( img.Description().usage, EImageUsage::TransferDst ));
-            ASSERT( _IsDeviceMemory( img ));
-        }
+        static void  ClearColorImage (const ImageDesc &img, ArrayView<ImageSubresourceRange> ranges)                            __Th___;
 
-        template <typename BufType>
-        static void  FillBuffer (BufType &buf, Bytes offset, Bytes size)
-        {
-            ASSERT( _IsDeviceMemory( buf ));
-            ASSERT( AllBits( buf.Description().usage, EBufferUsage::TransferDst ));
-            ASSERT( IsAligned( offset, 4 ));
-            ASSERT( offset < buf.Size() );
-            ASSERT( size == UMax or (offset + size <= buf.Size()) );
-            ASSERT( size == UMax or IsAligned( size, 4 ));
-        }
+        static void  ClearDepthStencilImage (const ImageDesc &img, ArrayView<ImageSubresourceRange> ranges)                     __Th___;
+        static void  FillBuffer (const BufferDesc &buf, Bytes offset, Bytes size)                                               __Th___;
 
-        template <typename BufType>
-        static void  UpdateBuffer (BufType &buf, Bytes offset, Bytes size, const void* data)
-        {
-            ASSERT( _IsDeviceMemory( buf ));
-            ASSERT( AllBits( buf.Description().usage, EBufferUsage::TransferDst ));
-            ASSERT( size > 0_b );
-            ASSERT( data != null );
-            ASSERT( IsAligned( offset, 4 ));
-            ASSERT( offset < buf.Size() );
-            ASSERT( size == UMax or (offset + size <= buf.Size()) );
-            ASSERT( size == UMax or IsAligned( size, 4 ));
-        }
+        static void  UpdateBuffer (const BufferDesc &buf, Bytes offset, Bytes size, const void* data)                           __Th___;
+        static void  UploadBuffer (const BufferDesc &buf, Bytes offset, Bytes size, BufferMemView &memView)                     __Th___;
+        static void  UploadImage (const ImageDesc &img)                                                                         __Th___;
 
-        template <typename BufType>
-        static void  UploadBuffer (BufType &buf, Bytes offset, Bytes size, OUT BufferMemView &memView)
-        {
-            ASSERT( _IsDeviceMemory( buf ));
-            ASSERT( AllBits( buf.Description().usage, EBufferUsage::TransferDst ));
+        static void  ReadbackBuffer (const BufferDesc &buf, Bytes offset, Bytes size)                                           __Th___;
+        static void  ReadbackImage (const ImageDesc &img)                                                                       __Th___;
 
-            ASSERT( offset < buf.Size() );
-            ASSERT( size == UMax or (offset + size <= buf.Size()) );
-            ASSERT( memView.Empty() );
-        }
+        static void  MapHostBuffer (const BufferDesc &buf, Bytes offset, Bytes size)                                            __Th___;
 
-        template <typename ImgType>
-        static void  UploadImage (ImgType &img)
-        {
-            ASSERT( _IsDeviceMemory( img ));
-            ASSERT( AllBits( img.Description().usage, EImageUsage::TransferDst ));
-        }
+        static void  CopyBuffer (const BufferDesc &src_buf, const BufferDesc &dst_buf, ArrayView<BufferCopy>)                   __Th___;
+        static void  CopyImage (const ImageDesc &src_img, const ImageDesc &dst_img, ArrayView<ImageCopy>)                       __Th___;
+        static void  CopyBufferToImage (const BufferDesc &src_buf, const ImageDesc &dst_img, ArrayView<BufferImageCopy>)        __Th___;
+        static void  CopyBufferToImage (const BufferDesc &src_buf, const ImageDesc &dst_img, ArrayView<BufferImageCopy2>)       __Th___;
+        static void  CopyImageToBuffer (const ImageDesc &src_img, const BufferDesc &dst_buf, ArrayView<BufferImageCopy>)        __Th___;
+        static void  CopyImageToBuffer (const ImageDesc &src_img, const BufferDesc &dst_buf, ArrayView<BufferImageCopy2>)       __Th___;
 
-        template <typename BufType>
-        static void  ReadbackBuffer (BufType &buf, Bytes offset, Bytes size)
-        {
-            ASSERT( _IsDeviceMemory( buf ));
-            ASSERT( AllBits( buf.Description().usage, EBufferUsage::TransferSrc ));
+        static void  BlitImage (const ImageDesc &src_img, const ImageDesc &dst_img, EBlitFilter, ArrayView<ImageBlit>)          __Th___;
+        static void  ResolveImage (const ImageDesc &src_img, const ImageDesc &dst_img, ArrayView<ImageResolve> ranges)          __Th___;
 
-            ASSERT( offset < buf.Size() );
-            ASSERT( size == UMax or (offset + size <= buf.Size()) );
-        }
-
-        template <typename ImgType>
-        static void  ReadbackImage (ImgType &img)
-        {
-            ASSERT( _IsDeviceMemory( img ));
-            ASSERT( AllBits( img.Description().usage, EImageUsage::TransferSrc ));
-        }
-
-        template <typename BufType>
-        static void  MapHostBuffer (BufType &buf, Bytes offset, Bytes size)
-        {
-            ASSERT( _IsHostMemory( buf ));
-            ASSERT( offset < buf.Size() );
-            ASSERT( size == UMax or (offset + size <= buf.Size()) );
-        }
-
-        template <typename BufType>
-        static void  CopyBuffer (BufType &src_buf, BufType &dst_buf, ArrayView<BufferCopy> ranges)
-        {
-        #ifdef AE_DEBUG
-            ASSERT( ranges.size() );
-            ASSERT( AllBits( src_buf.Description().usage, EBufferUsage::TransferSrc ));
-            ASSERT( AllBits( dst_buf.Description().usage, EBufferUsage::TransferDst ));
-
-            const Bytes     src_size = src_buf.Size();
-            const Bytes     dst_size = dst_buf.Size();
-
-            for (auto& range : ranges)
-            {
-                ASSERT( All( range.srcOffset < src_size ));
-                ASSERT( All( range.dstOffset < dst_size ));
-                ASSERT( All( (range.srcOffset + range.size) <= src_size ));
-                ASSERT( All( (range.dstOffset + range.size) <= dst_size ));
-            }
-        #endif
-        }
-
-        template <typename ImgType>
-        static void  CopyImage (ImgType &src_img, ImgType &dst_img, ArrayView<ImageCopy> ranges)
-        {
-        #ifdef AE_DEBUG
-            ASSERT( ranges.size() );
-
-            const ImageDesc &   src_desc    = src_img.Description();
-            const ImageDesc &   dst_desc    = dst_img.Description();
-
-            ASSERT( AllBits( src_desc.usage, EImageUsage::TransferSrc ));
-            ASSERT( AllBits( dst_desc.usage, EImageUsage::TransferDst ));
-
-            for (auto& range : ranges)
-            {
-                ASSERT( All( range.srcOffset < src_img.Dimension() ));
-                ASSERT( All( (range.srcOffset + range.extent) <= src_img.Dimension() ));
-                ASSERT( All( range.dstOffset < dst_img.Dimension() ));
-                ASSERT( All( (range.dstOffset + range.extent) <= dst_img.Dimension() ));
-            }
-        #endif
-        }
-
-        template <typename BufType, typename ImgType>
-        static void  CopyBufferToImage (BufType &src_buf, ImgType &dst_img, ArrayView<BufferImageCopy> ranges)
-        {
-            ASSERT( ranges.size() );
-            ASSERT( AllBits( src_buf.Description().usage, EBufferUsage::TransferSrc ));
-            ASSERT( AllBits( dst_img.Description().usage, EImageUsage::TransferDst ));
-        }
-
-        template <typename BufType, typename ImgType>
-        static void  CopyBufferToImage (BufType &src_buf, ImgType &dst_img, ArrayView<BufferImageCopy2> ranges)
-        {
-            ASSERT( ranges.size() );
-            ASSERT( AllBits( src_buf.Description().usage, EBufferUsage::TransferSrc ));
-            ASSERT( AllBits( dst_img.Description().usage, EImageUsage::TransferDst ));
-        }
-
-        template <typename BufType, typename ImgType>
-        static void  CopyImageToBuffer (BufType &src_img, ImgType &dst_buf, ArrayView<BufferImageCopy> ranges)
-        {
-            ASSERT( ranges.size() );
-            ASSERT( AllBits( src_img.Description().usage, EImageUsage::TransferSrc ));
-            ASSERT( AllBits( dst_buf.Description().usage, EBufferUsage::TransferDst ));
-        }
-
-        template <typename BufType, typename ImgType>
-        static void  CopyImageToBuffer (BufType &src_img, ImgType &dst_buf, ArrayView<BufferImageCopy2> ranges)
-        {
-            ASSERT( ranges.size() );
-            ASSERT( AllBits( src_img.Description().usage, EImageUsage::TransferSrc ));
-            ASSERT( AllBits( dst_buf.Description().usage, EBufferUsage::TransferDst ));
-        }
-
-        template <typename ImgType>
-        static void  BlitImage (ImgType &src_img, ImgType &dst_img, EBlitFilter blitFilter, ArrayView<ImageBlit> ranges)
-        {
-        #ifdef AE_DEBUG
-            ASSERT( ranges.size() );
-            ASSERT( _IsDeviceMemory( src_img ));
-            ASSERT( _IsDeviceMemory( dst_img ));
-
-            const ImageDesc &   src_desc    = src_img.Description();
-            const ImageDesc &   dst_desc    = dst_img.Description();
-            const auto &        src_fmt     = EPixelFormat_GetInfo( src_desc.format );
-            const auto &        dst_fmt     = EPixelFormat_GetInfo( dst_desc.format );
-
-            ASSERT( AllBits( src_desc.usage, EImageUsage::TransferSrc ));
-            ASSERT( AllBits( dst_desc.usage, EImageUsage::TransferDst ));
-            ASSERT( AllBits( src_desc.options, EImageOpt::BlitSrc ));
-            ASSERT( AllBits( dst_desc.options, EImageOpt::BlitDst ));
-            ASSERT( not src_desc.samples.IsEnabled() );
-            ASSERT( not dst_desc.samples.IsEnabled() );
-
-            using EType = PixelFormatInfo::EType;
-            const auto  float_flags = EType::SFloat | EType::UFloat | EType::UNorm | EType::SNorm;
-
-            ASSERT( AnyBits( src_fmt.valueType, float_flags )           == AnyBits( dst_fmt.valueType, float_flags ));
-            ASSERT( AllBits( src_fmt.valueType, EType::Int  )           == AllBits( dst_fmt.valueType, EType::Int  ));
-            ASSERT( AllBits( src_fmt.valueType, EType::UInt )           == AllBits( dst_fmt.valueType, EType::UInt ));
-            ASSERT( AnyBits( src_fmt.valueType, EType::DepthStencil )   == AnyBits( dst_fmt.valueType, EType::DepthStencil ));
-
-            if ( AnyBits( src_fmt.valueType, EType::DepthStencil ))
-            {
-                ASSERT( src_desc.format == dst_desc.format );
-                ASSERT( blitFilter == EBlitFilter::Nearest );
-            }
-
-            //if ( blitFilter == EBlitFilter::Linear )
-            //  ASSERT( AllBits( src_desc.options, EImageOpt::SampledLinear ));
-
-            for (auto& range : ranges)
-            {
-                ASSERT( All( range.srcOffset0 <= src_desc.dimension ));
-                ASSERT( All( range.srcOffset1 <= src_desc.dimension ));
-                ASSERT( All( range.dstOffset0 <= dst_desc.dimension ));
-                ASSERT( All( range.dstOffset1 <= dst_desc.dimension ));
-            }
-        #endif
-        }
-
-        template <typename ImgType>
-        static void  ResolveImage (ImgType &src_img, ImgType &dst_img, ArrayView<ImageResolve> ranges)
-        {
-        #ifdef AE_DEBUG
-            ASSERT( ranges.size() );
-            ASSERT( _IsDeviceMemory( src_img ));
-            ASSERT( _IsDeviceMemory( dst_img ));
-
-            const ImageDesc &   src_desc    = src_img.Description();
-            const ImageDesc &   dst_desc    = dst_img.Description();
-
-            ASSERT( AllBits( src_desc.usage, EImageUsage::TransferSrc ));
-            ASSERT( AllBits( dst_desc.usage, EImageUsage::TransferDst ));
-            ASSERT( not src_desc.samples.IsEnabled() );
-            ASSERT( dst_desc.samples.IsEnabled() );
-            ASSERT( src_desc.format == dst_desc.format );
-
-            for (auto& range : ranges)
-            {
-                ASSERT( All( range.srcOffset < src_desc.dimension ));
-                ASSERT( All( range.srcOffset + range.extent <= src_desc.dimension ));
-                ASSERT( All( range.dstOffset < dst_desc.dimension ));
-                ASSERT( All( range.dstOffset + range.extent <= dst_desc.dimension ));
-            }
-        #endif
-        }
-
-        template <typename ImgType>
-        static void  GenerateMipmaps (ImgType &img, ArrayView<ImageSubresourceRange> ranges)
-        {
-        #ifdef AE_DEBUG
-            ASSERT( _IsDeviceMemory( img ));
-            ASSERT( AllBits( img.Description().usage, EImageUsage::Transfer ));
-            ASSERT( not ranges.empty() );
-
-            const ImageDesc &   desc = img.Description();
-            for (auto& range : ranges)
-            {
-                ASSERT( AllBits( desc.options, EImageOpt::BlitSrc | EImageOpt::BlitDst ));
-                ASSERT( range.aspectMask == EPixelFormat_ToImageAspect( desc.format ));
-                ASSERT( range.baseLayer.Get() < desc.arrayLayers.Get() );
-                ASSERT( range.layerCount <= (desc.arrayLayers.Get() - range.baseLayer.Get()) );
-                ASSERT( range.baseMipLevel.Get() < desc.maxLevel.Get() );
-                ASSERT( range.mipmapCount <= (desc.maxLevel.Get() - range.baseMipLevel.Get()) );
-            }
-        #endif
-        }
+        static void  GenerateMipmaps (const ImageDesc &img, ArrayView<ImageSubresourceRange> ranges)                            __Th___;
 
 
-    private:
-        template <typename T>
-        ND_ static bool  _IsHostMemory (const T &res)   { return AnyBits( res.Description().memType, EMemoryType::HostCachedCocherent ); }
+    #ifdef AE_ENABLE_VULKAN
+        static void  ClearColorImage (VkImage image, ArrayView<VkImageSubresourceRange> ranges)                                 __Th___;
+        static void  ClearDepthStencilImage (VkImage image, ArrayView<VkImageSubresourceRange> ranges)                          __Th___;
+        static void  FillBuffer (VkBuffer buffer, Bytes offset, Bytes size)                                                     __Th___;
 
-        template <typename T>
-        ND_ static bool  _IsDeviceMemory (const T &res) { return AnyBits( res.Description().memType, EMemoryType::DeviceLocal ); }
+        static void  UpdateBuffer (VkBuffer buffer, Bytes offset, Bytes size, const void* data)                                 __Th___;
+
+        static void  CopyBuffer (VkBuffer srcBuffer, VkBuffer dstBuffer, ArrayView<VkBufferCopy> ranges)                        __Th___;
+        static void  CopyImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageCopy> ranges)                              __Th___;
+        static void  CopyBufferToImage (VkBuffer srcBuffer, VkImage dstImage, ArrayView<VkBufferImageCopy> ranges)              __Th___;
+        static void  CopyImageToBuffer (VkImage srcImage, VkBuffer dstBuffer, ArrayView<VkBufferImageCopy> ranges)              __Th___;
+        static void  BlitImage (VkImage srcImage, VkImage dstImage, VkFilter filter, ArrayView<VkImageBlit> regions)            __Th___;
+        static void  ResolveImage (VkImage srcImage, VkImage dstImage, ArrayView<VkImageResolve> regions)                       __Th___;
+        static void  GenerateMipmaps (VkImage image, const uint3 &dimension, ArrayView<ImageSubresourceRange> ranges)           __Th___;
+    #endif
+
+    #ifdef AE_ENABLE_METAL
+    #endif
     };
 
 
@@ -292,19 +137,23 @@ namespace AE::Graphics::_hidden_
     class ComputeContextValidation final : Noninstanceable
     {
     public:
-        static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)
-        {
-            ASSERT( IsAligned( size, sizeof(uint) ));
-            ASSERT( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
-            ASSERT( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
-            ASSERT( idx.stage == EShader::Compute );
-        }
+        static void  CtxInit (EQueueMask rtaskQueue)                                                                            __Th___;
 
-        template <typename BufType>
-        static void  DispatchIndirect (BufType &buf, Bytes offset)
-        {
-            ASSERT( buf.Size() >= offset + sizeof(DispatchIndirectCommand) );
-        }
+        static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)                  __Th___;
+
+        static void  DispatchIndirect (const BufferDesc &indirectBufferDesc, Bytes offset)                                      __Th___;
+
+    #ifdef AE_ENABLE_VULKAN
+        static void  Dispatch (VkPipelineLayout, const uint3 &groupCount)                                                       __Th___;
+        static void  DispatchBase (VkPipelineLayout, const uint3 &baseGroup, const uint3 &groupCount)                           __Th___;
+        static void  DispatchIndirect (VkPipelineLayout, VkBuffer buffer)                                                       __Th___;
+
+        static void  BindDescriptorSet (VkPipelineLayout, DescSetBinding index, VkDescriptorSet ds)                             __Th___;
+        static void  PushConstant (VkPipelineLayout, Bytes offset, Bytes size, const void *, EShaderStages)                     __Th___;
+    #endif
+
+    #ifdef AE_ENABLE_METAL
+    #endif
     };
 
 
@@ -318,193 +167,117 @@ namespace AE::Graphics::_hidden_
         using Viewport_t = RenderPassDesc::Viewport;
 
     public:
-        static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)
-        {
-            ASSERT( IsAligned( size, sizeof(uint) ));
-            ASSERT( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
-            ASSERT( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
-            ASSERT( (idx.stage >= EShader::Vertex and idx.stage <= EShader::Fragment) or
-                    (idx.stage >= EShader::MeshTask and idx.stage <= EShader::Mesh) );
-        }
+        //static void  CtxInit (EQueueMask rtaskQueue) __Th___;
 
-        static void  SetViewports (ArrayView<Viewport_t> viewports)
-        {
-            ASSERT( not viewports.empty() );
-        }
+        static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)                  __Th___;
 
-        static void  SetScissors (ArrayView<RectI> scissors)
-        {
-            ASSERT( not scissors.empty() );
-        }
+        static void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets)               __Th___;
 
-        static void  BindVertexBuffers (uint firstBinding, ArrayView<BufferID> buffers, ArrayView<Bytes> offsets, Bytes align)
-        {
-            ASSERT( buffers.size() == offsets.size() );
-            ASSERT( buffers.size() <= GraphicsConfig::MaxVertexBuffers );
-            Unused( firstBinding );
-            DEBUG_ONLY(
-                for (auto off : offsets) {
-                    ASSERT( off % align == 0 );
-                })
-        }
+        static void  ClearAttachment (const RectI &rect)                                                                        __Th___;
 
-        static void  ClearAttachment (const RectI &rect)
-        {
-            ASSERT( rect.IsValid() );
-        }
+        static void  DrawIndirect (const BufferDesc &   indirectBufferDesc,
+                                   Bytes                indirectBufferOffset,
+                                   uint                 drawCount,
+                                   Bytes                stride)                                                                 __Th___;
+        static void  DrawIndirect (uint drawCount, Bytes stride)                                                                __Th___;
 
-        template <typename BufType>
-        static void  DrawIndirect (BufType& indirectBuffer,
-                                   Bytes    indirectBufferOffset,
-                                   uint     drawCount,
-                                   Bytes    stride)
-        {
-            ASSERT( IsAligned( indirectBufferOffset, 4 ));
-            ASSERT( indirectBufferOffset < indirectBuffer.Size() );
-            ASSERT( (indirectBufferOffset + drawCount * stride) <= indirectBuffer.Size() );
-            DrawIndirect( stride );
-        }
-        static void  DrawIndirect (Bytes stride)
-        {
-            ASSERT( stride >= SizeOf<DrawIndirectCommand> );
-            ASSERT( IsAligned( stride, 4 ));
-        }
+        static void  DrawIndexedIndirect (const BufferDesc &    indirectBufferDesc,
+                                          Bytes                 indirectBufferOffset,
+                                          uint                  drawCount,
+                                          Bytes                 stride)                                                         __Th___;
+        static void  DrawIndexedIndirect (uint drawCount, Bytes stride)                                                         __Th___;
 
-        template <typename BufType>
-        static void  DrawIndexedIndirect (BufType&  indirectBuffer,
-                                          Bytes     indirectBufferOffset,
-                                          uint      drawCount,
-                                          Bytes     stride)
-        {
-            ASSERT( IsAligned( indirectBufferOffset, 4 ));
-            ASSERT( indirectBufferOffset < indirectBuffer.Size() );
-            ASSERT( (indirectBufferOffset + drawCount * stride) <= indirectBuffer.Size() );
-            DrawIndexedIndirect( stride );
-        }
-        static void  DrawIndexedIndirect (Bytes stride)
-        {
-            ASSERT( stride >= SizeOf<DrawIndexedIndirectCommand> );
-            ASSERT( IsAligned( stride, 4 ));
-        }
+        static void  DrawIndirectCount (const BufferDesc &  indirectBufferDesc,
+                                        Bytes               indirectBufferOffset,
+                                        const BufferDesc &  countBufferDesc,
+                                        Bytes               countBufferOffset,
+                                        uint                maxDrawCount,
+                                        Bytes               stride)                                                             __Th___;
+        static void  DrawIndirectCount (uint maxDrawCount, Bytes stride)                                                        __Th___;
 
-        template <typename BufType>
-        static void  DrawIndirectCount (BufType&    indirectBuffer,
-                                        Bytes       indirectBufferOffset,
-                                        BufType&    countBuffer,
-                                        Bytes       countBufferOffset,
-                                        uint        maxDrawCount,
-                                        Bytes       stride)
-        {
-            ASSERT( IsAligned( indirectBufferOffset, 4 ));
-            ASSERT( indirectBufferOffset < indirectBuffer.Size() );
-            ASSERT( (indirectBufferOffset + maxDrawCount * stride) <= indirectBuffer.Size() );
-            ASSERT( IsAligned( countBufferOffset, 4 ));
-            ASSERT( countBufferOffset < countBuffer.Size() );
-            ASSERT( (countBufferOffset + SizeOf<uint>) <= countBuffer.Size() );
-            DrawIndirectCount( stride );
-        }
-        static void  DrawIndirectCount (Bytes stride)
-        {
-            ASSERT( stride >= SizeOf<DrawIndirectCommand> );
-            ASSERT( IsAligned( stride, 4 ));
-        }
+        static void  DrawIndexedIndirectCount (const BufferDesc &   indirectBufferDesc,
+                                               Bytes                indirectBufferOffset,
+                                               const BufferDesc &   countBufferDesc,
+                                               Bytes                countBufferOffset,
+                                               uint                 maxDrawCount,
+                                               Bytes                stride)                                                     __Th___;
+        static void  DrawIndexedIndirectCount (uint maxDrawCount, Bytes stride)                                                 __Th___;
 
-        template <typename BufType>
-        static void  DrawIndexedIndirectCount (BufType& indirectBuffer,
-                                        Bytes       indirectBufferOffset,
-                                        BufType&    countBuffer,
-                                        Bytes       countBufferOffset,
-                                        uint        maxDrawCount,
-                                        Bytes       stride)
-        {
-            ASSERT( IsAligned( indirectBufferOffset, 4 ));
-            ASSERT( indirectBufferOffset < indirectBuffer.Size() );
-            ASSERT( (indirectBufferOffset + maxDrawCount * stride) <= indirectBuffer.Size() );
-            ASSERT( IsAligned( countBufferOffset, 4 ));
-            ASSERT( countBufferOffset < countBuffer.Size() );
-            ASSERT( (countBufferOffset + SizeOf<uint>) <= countBuffer.Size() );
-            DrawIndexedIndirectCount( stride );
-        }
-        static void  DrawIndexedIndirectCount (Bytes stride)
-        {
-            ASSERT( stride >= SizeOf<DrawIndexedIndirectCommand> );
-            ASSERT( IsAligned( stride, 4 ));
-        }
+        static void  DrawMeshTasks (const uint3 &taskCount)                                                                     __Th___;
 
-        template <typename BufType>
-        static void  DrawMeshTasksIndirect (BufType&    indirectBuffer,
-                                            Bytes       indirectBufferOffset,
-                                            uint        drawCount,
-                                            Bytes       stride)
-        {
-            ASSERT( IsAligned( indirectBufferOffset, 4 ));
-            ASSERT( indirectBufferOffset < indirectBuffer.Size() );
-            ASSERT( (indirectBufferOffset + drawCount * stride) <= indirectBuffer.Size() );
-            DrawMeshTasksIndirect( stride );
-        }
-        static void  DrawMeshTasksIndirect (Bytes stride)
-        {
-            ASSERT( stride >= SizeOf<DrawMeshTasksIndirectCommand> );
-            ASSERT( IsAligned( stride, 4 ));
-        }
+        static void  DrawMeshTasksIndirect (const BufferDesc &  indirectBufferDesc,
+                                            Bytes               indirectBufferOffset,
+                                            uint                drawCount,
+                                            Bytes               stride)                                                         __Th___;
+        static void  DrawMeshTasksIndirect (uint drawCount, Bytes stride)                                                       __Th___;
 
-        template <typename BufType>
-        static void  DrawMeshTasksIndirectCount (BufType&   indirectBuffer,
-                                                 Bytes      indirectBufferOffset,
-                                                 BufType&   countBuffer,
-                                                 Bytes      countBufferOffset,
+        static void  DrawMeshTasksIndirectCount (const BufferDesc & indirectBufferDesc,
+                                                 Bytes              indirectBufferOffset,
+                                                 const BufferDesc & countBufferDesc,
+                                                 Bytes              countBufferOffset,
+                                                 uint               maxDrawCount,
+                                                 Bytes              stride)                                                     __Th___;
+        static void  DrawMeshTasksIndirectCount (uint maxDrawCount, Bytes stride)                                               __Th___;
+
+        static void  SetDepthBias (EPipelineDynamicState dynState, float depthBiasClamp)                                        __Th___;
+        static void  SetDepthBounds (EPipelineDynamicState dynState)                                                            __Th___;
+        static void  SetStencilCompareMask (EPipelineDynamicState dynState)                                                     __Th___;
+        static void  SetStencilWriteMask (EPipelineDynamicState dynState)                                                       __Th___;
+        static void  SetStencilReference (EPipelineDynamicState dynState)                                                       __Th___;
+        static void  SetBlendConstants (EPipelineDynamicState dynState)                                                         __Th___;
+        static void  SetFragmentShadingRate (EPipelineDynamicState, EShadingRate, EShadingRateCombinerOp, EShadingRateCombinerOp) __Th___;
+
+
+    #ifdef AE_ENABLE_VULKAN
+        static void  SetViewport (uint first, ArrayView<VkViewport> viewports)                                                  __Th___;
+        static void  SetScissor (uint first, ArrayView<VkRect2D> scissors)                                                      __Th___;
+
+        static void  BindDescriptorSet (VkPipelineLayout, DescSetBinding index, VkDescriptorSet ds)                             __Th___;
+        static void  PushConstant (VkPipelineLayout, Bytes offset, Bytes size, const void *, EShaderStages)                     __Th___;
+
+        static void  BindIndexBuffer (VkBuffer buffer, EIndex indexType)                                                        __Th___;
+        static void  BindVertexBuffers (uint firstBinding, ArrayView<VkBuffer> buffers, ArrayView<Bytes> offsets)               __Th___;
+
+        static void  Draw (VkPipelineLayout layout)                                                                             __Th___;
+        static void  DrawIndexed (VkPipelineLayout  layout)                                                                     __Th___;
+
+        static void  DrawIndirect (VkPipelineLayout layout,
+                                   VkBuffer         indirectBuffer,
+                                   uint             drawCount,
+                                   Bytes            stride)                                                                     __Th___;
+
+        static void  DrawIndexedIndirect (VkPipelineLayout  layout,
+                                          VkBuffer          indirectBuffer,
+                                          uint              drawCount,
+                                          Bytes             stride)                                                             __Th___;
+
+        static void  DrawIndirectCount (VkPipelineLayout    layout,
+                                        VkBuffer            indirectBuffer,
+                                        VkBuffer            countBuffer,
+                                        uint                maxDrawCount,
+                                        Bytes               stride)                                                             __Th___;
+        static void  DrawIndexedIndirectCount (VkPipelineLayout layout,
+                                               VkBuffer         indirectBuffer,
+                                               VkBuffer         countBuffer,
+                                               uint             maxDrawCount,
+                                               Bytes            stride)                                                         __Th___;
+
+        static void  DrawMeshTasks (VkPipelineLayout layout, const uint3 &taskCount)                                            __Th___;
+        static void  DrawMeshTasksIndirect (VkPipelineLayout layout,
+                                            VkBuffer         indirectBuffer,
+                                            uint             drawCount,
+                                            Bytes            stride)                                                            __Th___;
+        static void  DrawMeshTasksIndirectCount (VkPipelineLayout layout,
+                                                 VkBuffer   indirectBuffer,
+                                                 VkBuffer   countBuffer,
                                                  uint       maxDrawCount,
-                                                 Bytes      stride)
-        {
-            ASSERT( IsAligned( indirectBufferOffset, 4 ));
-            ASSERT( indirectBufferOffset < indirectBuffer.Size() );
-            ASSERT( (indirectBufferOffset + maxDrawCount * stride) <= indirectBuffer.Size() );
-            ASSERT( IsAligned( countBufferOffset, 4 ));
-            ASSERT( countBufferOffset < countBuffer.Size() );
-            ASSERT( (countBufferOffset + SizeOf<uint>) <= countBuffer.Size() );
-            DrawMeshTasksIndirectCount( stride );
-        }
-        static void  DrawMeshTasksIndirectCount (Bytes stride)
-        {
-            ASSERT( stride >= SizeOf<DrawMeshTasksIndirectCommand> );
-            ASSERT( IsAligned( stride, 4 ));
-        }
+                                                 Bytes      stride)                                                             __Th___;
 
-        static void  SetDepthBias (EPipelineDynamicState dynState)
-        {
-            ASSERT( AllBits( dynState, EPipelineDynamicState::DepthBias ));
-        }
+        static void  DispatchTile (VkPipelineLayout layout)                                                                     __Th___;
+    #endif
 
-        static void  SetDepthBounds (EPipelineDynamicState dynState)
-        {
-            //ASSERT( AllBits( dynState, EPipelineDynamicState::DepthBounds ));
-        }
-
-        static void  SetStencilCompareMask (EPipelineDynamicState dynState)
-        {
-            ASSERT( AllBits( dynState, EPipelineDynamicState::StencilCompareMask ));
-        }
-
-        static void  SetStencilWriteMask (EPipelineDynamicState dynState)
-        {
-            ASSERT( AllBits( dynState, EPipelineDynamicState::StencilWriteMask ));
-        }
-
-        static void  SetStencilReference (EPipelineDynamicState dynState)
-        {
-            ASSERT( AllBits( dynState, EPipelineDynamicState::StencilReference ));
-        }
-
-        static void  SetBlendConstants (EPipelineDynamicState dynState)
-        {
-            ASSERT( AllBits( dynState, EPipelineDynamicState::BlendConstants ));
-        }
-
-        static void  SetFragmentShadingRate (EPipelineDynamicState dynState, EShadingRate rate, EShadingRateCombinerOp, EShadingRateCombinerOp)
-        {
-            ASSERT( AllBits( dynState, EPipelineDynamicState::FragmentShadingRate ));
-            ASSERT( not AnyBits( rate, EShadingRate::_SamplesMask ));
-        }
+    #ifdef AE_ENABLE_METAL
+    #endif
     };
 
 
@@ -515,6 +288,7 @@ namespace AE::Graphics::_hidden_
     class GraphicsContextValidation final : Noninstanceable
     {
     public:
+        static void  CtxInit (EQueueMask rtaskQueue) __Th___;
     };
 
 
@@ -525,36 +299,41 @@ namespace AE::Graphics::_hidden_
     class ASBuildContextValidation final : Noninstanceable
     {
     public:
-        template <typename BufType>
-        static void  SerializeToMemory (BufType &dst_buf, Bytes dstOffset)
-        {
-            ASSERT( dst_buf.Size() > dstOffset );
-        }
+        static void  CtxInit (EQueueMask rtaskQueue)                                                                            __Th___;
 
-        template <typename BufType>
-        static void  DeserializeFromMemory (BufType &src_buf, Bytes srcOffset)
-        {
-            ASSERT( src_buf.Size() > srcOffset );
-        }
+        static void  Copy (const RTGeometryDesc &srcGeometryDesc, const RTGeometryDesc &dstGeometryDesc, ERTASCopyMode mode)    __Th___;
+        static void  Copy (const RTSceneDesc &srcSceneDesc, const RTSceneDesc &dstSceneDesc, ERTASCopyMode mode)                __Th___;
 
-        template <typename BufType>
-        static void  BuildIndirect (const RTGeometryBuild &cmd, BufType &indirectBuffer, Bytes indirectBufferOffset, Bytes indirectStride)
-        {
-            ASSERT( IsAligned( indirectStride, 4 ));
-            ASSERT( indirectStride >= SizeOf<ASBuildIndirectCommand> );
+        static void  Build (const RTGeometryDesc &geometryDesc,
+                            const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset)                                        __Th___;
+        static void  Build (const RTSceneDesc &sceneDesc,
+                            const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset,
+                            const BufferDesc &instanceBufDesc, Bytes instanceBufferOffset)                                      __Th___;
 
-            ASSERT( IsAligned( indirectBufferOffset, 4 ));
-            ASSERT( indirectBuffer.Size() > indirectBufferOffset );
-            ASSERT( indirectBuffer.Size() >= indirectBufferOffset + indirectStride * cmd.GeometryCount() );
-        }
+        static void  Update (const RTGeometryDesc &srcGeometryDesc, const RTGeometryDesc &dstGeometryDesc,
+                             const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset)                                       __Th___;
+        static void  Update (const RTSceneDesc &srcSceneDesc, const RTSceneDesc &dstSceneDesc,
+                             const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset,
+                             const BufferDesc &instanceBufDesc, Bytes instanceBufferOffset)                                     __Th___;
 
-        template <typename BufType>
-        static void  BuildIndirect (const RTSceneBuild &cmd, BufType &indirectBuffer, Bytes indirectBufferOffset)
-        {
-            ASSERT( IsAligned( indirectBufferOffset, 4 ));
-            ASSERT( indirectBuffer.Size() > indirectBufferOffset );
-            ASSERT( indirectBuffer.Size() >= indirectBufferOffset + sizeof(ASBuildIndirectCommand) );
-        }
+        static void  ReadProperty (ERTASProperty property)                                                                      __Th___;
+        static void  WriteProperty (ERTASProperty property, const BufferDesc &dstBufferDesc, Bytes dstOffset, Bytes size)       __Th___;
+
+        static void  SerializeToMemory (const BufferDesc &dstBufferDesc, Bytes dstOffset)                                       __Th___;
+        static void  DeserializeFromMemory (const BufferDesc &srcBufferDesc, Bytes srcOffset)                                   __Th___;
+
+        static void  BuildIndirect (const RTGeometryBuild &cmd,
+                                    const BufferDesc &indirectBufferDesc, Bytes indirectBufferOffset,
+                                    Bytes indirectStride)                                                                       __Th___;
+        static void  BuildIndirect (const RTSceneBuild &cmd,
+                                    const BufferDesc &indirectBufferDesc, Bytes indirectBufferOffset)                           __Th___;
+
+        static void  BuildIndirect (const RTGeometryDesc &geometryDesc,
+                                    const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset,
+                                    Bytes indirectStride)                                                                       __Th___;
+        static void  BuildIndirect (const RTSceneDesc &sceneDesc,
+                                    const BufferDesc &scratchBufDesc, Bytes scratchBufferOffset,
+                                    const BufferDesc &instanceBufDesc, Bytes instanceBufferOffset)                              __Th___;
     };
 
 
@@ -565,32 +344,26 @@ namespace AE::Graphics::_hidden_
     class RayTracingContextValidation final : Noninstanceable
     {
     public:
-        static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)
-        {
-            ASSERT( IsAligned( size, 4 ));
-            ASSERT( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
-            ASSERT( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
-            ASSERT( idx.stage >= EShader::RayGen and idx.stage <= EShader::RayCallable );
-        }
+        static void  CtxInit (EQueueMask rtaskQueue)                                                                            __Th___;
 
-        static void  TraceRays (const uint3 dim)
-        {
-            ASSERT( All( dim > uint3{0} ));
-        }
+        static void  PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName)                  __Th___;
 
-        template <typename BufType>
-        static void  TraceRaysIndirect (BufType &buf, Bytes indirectBufferOffset)
-        {
-            ASSERT( IsAligned( indirectBufferOffset, 4 ));
-            ASSERT( buf.Size() >= indirectBufferOffset + sizeof(TraceRayIndirectCommand) );
-        }
+        static void  TraceRays (const uint3 &dim)                                                                               __Th___;
+        static void  TraceRaysIndirect (const BufferDesc &indirectBufferDesc, Bytes indirectBufferOffset)                       __Th___;
+        static void  TraceRaysIndirect2 (const BufferDesc &indirectBufferDesc, Bytes indirectBufferOffset)                      __Th___;
 
-        template <typename BufType>
-        static void  TraceRaysIndirect2 (BufType &buf, Bytes indirectBufferOffset)
-        {
-            ASSERT( IsAligned( indirectBufferOffset, 4 ));
-            ASSERT( buf.Size() >= indirectBufferOffset + sizeof(TraceRayIndirectCommand2) );
-        }
+
+    #ifdef AE_ENABLE_VULKAN
+        static void  BindDescriptorSet (VkPipelineLayout, DescSetBinding index, VkDescriptorSet ds)                             __Th___;
+        static void  PushConstant (VkPipelineLayout, Bytes offset, Bytes size, const void *, EShaderStages)                     __Th___;
+
+        static void  TraceRays (VkPipelineLayout layout, const uint3 &dim)                                                      __Th___;
+        static void  TraceRaysIndirect (VkPipelineLayout, VkDeviceAddress indirectDeviceAddress)                                __Th___;
+        static void  TraceRaysIndirect2 (VkPipelineLayout, VkDeviceAddress indirectDeviceAddress)                               __Th___;
+    #endif
+
+    #ifdef AE_ENABLE_METAL
+    #endif
     };
 
 
@@ -601,6 +374,7 @@ namespace AE::Graphics::_hidden_
     class VideoDecodeContextValidation final : Noninstanceable
     {
     public:
+        static void  CtxInit (EQueueMask rtaskQueue) __Th___;
     };
 
 
@@ -611,12 +385,14 @@ namespace AE::Graphics::_hidden_
     class VideoEncodeContextValidation final : Noninstanceable
     {
     public:
+        static void  CtxInit (EQueueMask rtaskQueue) __Th___;
     };
 
 
+#endif // AE_VALIDATE_GCTX
 
 } // AE::Graphics::_hidden_
 
-# ifdef AE_COMPILER_MSVC
-#   pragma warning (pop)
-# endif
+#ifdef AE_COMPILER_MSVC
+# pragma warning (pop)
+#endif

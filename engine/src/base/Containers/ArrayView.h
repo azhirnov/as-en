@@ -18,7 +18,7 @@ namespace AE::Base
     // types
     public:
         using value_type        = T;
-        using iterator          = T *;
+        using iterator          = T const *;
         using const_iterator    = T const *;
 
 
@@ -124,7 +124,7 @@ namespace AE::Base
         ND_ constexpr EnableIf< (IsTrivial<T> and IsTrivial<R>), ArrayView<R> >  Cast () C_NE___
         {
             STATIC_ASSERT( alignof(R) >= alignof(T) );
-            STATIC_ASSERT( sizeof(R) > sizeof(T) ? (sizeof(R) % sizeof(T) == 0) : (sizeof(T) % sizeof(R) == 0) );
+            STATIC_ASSERT( sizeof(R) > sizeof(T) ? IsAligned( sizeof(R), sizeof(T) ) : IsAligned( sizeof(T), sizeof(R) ));
 
             return ArrayView<R>{ static_cast<const R*>(static_cast<const void *>( _array )), (_count * sizeof(T)) / sizeof(R) };
         }

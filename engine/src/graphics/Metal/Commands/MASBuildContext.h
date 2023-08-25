@@ -22,26 +22,31 @@ namespace AE::Graphics::_hidden_
 
     class _MDirectASBuildCtx : public MBaseDirectContext
     {
+    // types
+    private:
+        using Validator_t   = ASBuildContextValidation;
+
+
     // methods
     public:
-        void  Copy (MetalAccelStruct src, MetalAccelStruct dst)                             __Th___;
-        void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst)                    __Th___;
+        void  Copy (MetalAccelStruct src, MetalAccelStruct dst)                                                             __Th___;
+        void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst)                                                    __Th___;
 
-        ND_ MetalCommandBufferRC    EndCommandBuffer ()                                     __Th___;
-        ND_ MCommandBuffer          ReleaseCommandBuffer ()                                 __Th___;
+        ND_ MetalCommandBufferRC    EndCommandBuffer ()                                                                     __Th___;
+        ND_ MCommandBuffer          ReleaseCommandBuffer ()                                                                 __Th___;
 
         MBARRIERMNGR_INHERIT_MBARRIERS
 
     protected:
-        _MDirectASBuildCtx (const RenderTask &task, MCommandBuffer cmdbuf, DebugLabel dbg)  __Th___;
+        _MDirectASBuildCtx (const RenderTask &task, MCommandBuffer cmdbuf, DebugLabel dbg)                                  __Th___;
 
-        ND_ auto  _Encoder ()                                                               __NE___;
+        ND_ auto  _Encoder ()                                                                                               __NE___;
 
-        void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
-        void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
+        void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst)                                                        __Th___;
+        void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)                                      __Th___;
 
-        void  _Build  (const RTSceneBuild &cmd, RTSceneID dst);
-        void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst);
+        void  _Build  (const RTSceneBuild &cmd, RTSceneID dst)                                                              __Th___;
+        void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)                                               __Th___;
 
         void  _WriteCompactedSize (MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
 
@@ -58,24 +63,29 @@ namespace AE::Graphics::_hidden_
 
     class _MIndirectASBuildCtx : public MBaseIndirectContext
     {
+    // types
+    private:
+        using Validator_t   = ASBuildContextValidation;
+
+
     // methods
     public:
-        void  Copy (MetalAccelStruct src, MetalAccelStruct dst)                                 __Th___;
-        void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst)                        __Th___;
+        void  Copy (MetalAccelStruct src, MetalAccelStruct dst)                                                             __Th___;
+        void  CopyCompacted (MetalAccelStruct src, MetalAccelStruct dst)                                                    __Th___;
 
-        ND_ MBakedCommands      EndCommandBuffer ()                                             __Th___;
-        ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()                                         __Th___;
+        ND_ MBakedCommands      EndCommandBuffer ()                                                                         __Th___;
+        ND_ MSoftwareCmdBufPtr  ReleaseCommandBuffer ()                                                                     __Th___;
 
         MBARRIERMNGR_INHERIT_MBARRIERS
 
     protected:
-        _MIndirectASBuildCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)__Th___;
+        _MIndirectASBuildCtx (const RenderTask &task, MSoftwareCmdBufPtr cmdbuf, DebugLabel dbg)                            __Th___;
 
-        void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst);
-        void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst);
+        void  _Build  (const RTGeometryBuild &cmd, RTGeometryID dst)                                                        __Th___;
+        void  _Update (const RTGeometryBuild &cmd, RTGeometryID src, RTGeometryID dst)                                      __Th___;
 
-        void  _Build  (const RTSceneBuild &cmd, RTSceneID dst);
-        void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst);
+        void  _Build  (const RTSceneBuild &cmd, RTSceneID dst)                                                              __Th___;
+        void  _Update (const RTSceneBuild &cmd, RTSceneID src, RTSceneID dst)                                               __Th___;
 
         void  _WriteCompactedSize (MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size);
     };
@@ -99,6 +109,7 @@ namespace AE::Graphics::_hidden_
         using RawCtx        = CtxImpl;
         using AccumBar      = MAccumBarriers< _MASBuildContextImpl< CtxImpl >>;
         using DeferredBar   = MAccumDeferredBarriersForCtx< _MASBuildContextImpl< CtxImpl >>;
+        using Validator_t   = ASBuildContextValidation;
 
 
     // methods
@@ -152,10 +163,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    _MASBuildContextImpl<C>::_MASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
+    _MASBuildContextImpl<C>::_MASBuildContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) __Th___ :
         RawCtx{ task, RVRef(cmdbuf), dbg }
     {
-        CHECK_THROW( AnyBits( EQueueMask::Graphics | EQueueMask::AsyncCompute, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
 /*
@@ -164,18 +175,21 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _MASBuildContextImpl<C>::Copy (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode)
+    void  _MASBuildContextImpl<C>::Copy (RTGeometryID src, RTGeometryID dst, ERTASCopyMode mode) __Th___
     {
         auto  [src_geom, dst_geom]  = _GetResourcesOrThrow( src, dst );
+
+        VALIDATE_GCTX( Copy( src_geom.Description(), dst_geom.Description(), mode ));
 
         BEGIN_ENUM_CHECKS();
         switch ( mode )
         {
             case ERTASCopyMode::Clone :     return Copy( src_geom.Handle(), dst_geom.Handle() );
             case ERTASCopyMode::Compaction: return CopyCompacted( src_geom.Handle(), dst_geom.Handle() );
+            case ERTASCopyMode::_Count :
+            default_unlikely :              RETURN_ERRV( "unknown RT AS copy mode" );
         }
         END_ENUM_CHECKS();
-        RETURN_ERR( "unknown RT AS copy mode", void() );
     }
 
 /*
@@ -184,18 +198,21 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _MASBuildContextImpl<C>::Copy (RTSceneID src, RTSceneID dst, ERTASCopyMode mode)
+    void  _MASBuildContextImpl<C>::Copy (RTSceneID src, RTSceneID dst, ERTASCopyMode mode) __Th___
     {
         auto  [src_scene, dst_scene]  = _GetResourcesOrThrow( src, dst );
+
+        VALIDATE_GCTX( Copy( src_scene.Description(), dst_scene.Description(), mode ));
 
         BEGIN_ENUM_CHECKS();
         switch ( mode )
         {
             case ERTASCopyMode::Clone :     return Copy( src_scene.Handle(), dst_scene.Handle() );
             case ERTASCopyMode::Compaction: return CopyCompacted( src_scene.Handle(), dst_scene.Handle() );
+            case ERTASCopyMode::_Count :
+            default_unlikely :              RETURN_ERRV( "unknown RT AS copy mode" );
         }
         END_ENUM_CHECKS();
-        RETURN_ERR( "unknown RT AS copy mode", void() );
     }
 
 /*
@@ -204,25 +221,29 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    void  _MASBuildContextImpl<C>::WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size)
+    void  _MASBuildContextImpl<C>::WriteProperty (ERTASProperty property, RTGeometryID as, BufferID dstBuffer, Bytes offset, Bytes size) __Th___
     {
         auto  [src_as, dst_buf] = _GetResourcesOrThrow( as, dstBuffer );
+
+        VALIDATE_GCTX( WriteProperty( property, dst_buf.Description(), offset, size ));
 
         return WriteProperty( property, src_as.Handle(), dst_buf.Handle(), offset, size );
     }
 
     template <typename C>
-    void  _MASBuildContextImpl<C>::WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size)
+    void  _MASBuildContextImpl<C>::WriteProperty (ERTASProperty property, RTSceneID as, BufferID dstBuffer, Bytes offset, Bytes size) __Th___
     {
         auto  [src_as, dst_buf] = _GetResourcesOrThrow( as, dstBuffer );
+
+        VALIDATE_GCTX( WriteProperty( property, dst_buf.Description(), offset, size ));
 
         return WriteProperty( property, src_as.Handle(), dst_buf.Handle(), offset, size );
     }
 
     template <typename C>
-    void  _MASBuildContextImpl<C>::WriteProperty (ERTASProperty property, MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size)
+    void  _MASBuildContextImpl<C>::WriteProperty (ERTASProperty property, MetalAccelStruct as, MetalBuffer dstBuffer, Bytes offset, Bytes size) __Th___
     {
-        CHECK_ERRV( property == ERTASProperty::CompactedSize );
+        GCTX_CHECK( property == ERTASProperty::CompactedSize );
 
         return RawCtx::_WriteCompactedSize( as, dstBuffer, offset, size );
     }
@@ -233,7 +254,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename C>
-    Promise<Bytes>  _MASBuildContextImpl<C>::ReadProperty (ERTASProperty property, RTGeometryID as)
+    Promise<Bytes>  _MASBuildContextImpl<C>::ReadProperty (ERTASProperty property, RTGeometryID as) __Th___
     {
         auto&   src_as = _GetResourcesOrThrow( as );
 
@@ -241,7 +262,7 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename C>
-    Promise<Bytes>  _MASBuildContextImpl<C>::ReadProperty (ERTASProperty property, RTSceneID as)
+    Promise<Bytes>  _MASBuildContextImpl<C>::ReadProperty (ERTASProperty property, RTSceneID as) __Th___
     {
         auto&   src_as = _GetResourcesOrThrow( as );
 
@@ -251,7 +272,7 @@ namespace AE::Graphics::_hidden_
     template <typename C>
     Promise<Bytes>  _MASBuildContextImpl<C>::ReadProperty (ERTASProperty property, MetalAccelStruct as)
     {
-        CHECK_ERR( property == ERTASProperty::CompactedSize );
+        VALIDATE_GCTX( ReadProperty( property ));
 
         //  RawCtx::_WriteCompactedSize( as, staging_buffer, staging_buffer_offset, 4_b );
 

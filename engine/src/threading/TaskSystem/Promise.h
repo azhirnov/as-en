@@ -137,11 +137,13 @@ namespace _hidden_
         Self& operator = (Self &&)                                                  __NE___ = default;
         Self& operator = (const Self &)                                             __NE___ = default;
 
+        // used to create task sequence
         template <typename Fn>
         auto  Then (Fn &&fn,
                     StringView dbgName      = Default,
                     ETaskQueue queueType    = ETaskQueue::PerFrame)                 __Th___;
 
+        // used to process errors
         template <typename Fn>
         auto  Except (Fn &&fn,
                       StringView dbgName    = Default,
@@ -149,6 +151,7 @@ namespace _hidden_
 
         bool  Cancel ()                                                             __NE___;
 
+        // execute 'fn' only if result is ready
         template <typename Fn>
         bool  WithResult (Fn && fn)                                                 __Th___;
 
@@ -848,7 +851,7 @@ namespace _hidden_
 
         STATIC_ASSERT( not IsVoid< Value_t >);
 
-        if constexpr( sizeof...(Deps) == 0 )
+        if constexpr( CountOf<Deps...>() == 0 )
         {
             Unused( dependsOn );
 

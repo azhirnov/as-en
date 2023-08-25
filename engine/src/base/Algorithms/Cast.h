@@ -39,20 +39,21 @@ namespace AE::Base
     template <typename R, typename T>
     forceinline void  CheckPointerCast (T const* ptr) __NE___
     {
-        Unused( ptr );
-        DEBUG_ONLY(
-            if constexpr( not IsVoid<R> )
+    #ifdef AE_CFG_DEBUG
+        if constexpr( not IsVoid<R> )
+        {
+            if ( not CheckPointerAlignment<R>( ptr ))
             {
-                if ( not CheckPointerAlignment<R>( ptr ))
-                {
-                    std::stringstream   str;
-                    str << "Failed to cast pointer from '" << typeid(T).name() << "' to '" << typeid(R).name()
-                        << "': memory address " << std::hex << usize(ptr) << " is not aligned to " << std::dec << alignof(R)
-                        << ", it may cause undefined behavior";
-                    AE_LOGE( str.str() );
-                }
+                std::stringstream   str;
+                str << "Failed to cast pointer from '" << typeid(T).name() << "' to '" << typeid(R).name()
+                    << "': memory address " << std::hex << usize(ptr) << " is not aligned to " << std::dec << alignof(R)
+                    << ", it may cause undefined behavior";
+                AE_LOGE( str.str() );
             }
-        )
+        }
+    #else
+        Unused( ptr );
+    #endif
     }
 
 /*
@@ -124,7 +125,7 @@ namespace AE::Base
 
 /*
 =================================================
-    Cast (reference)
+    RefCast (reference)
 =================================================
 */
     template <typename R, typename T>

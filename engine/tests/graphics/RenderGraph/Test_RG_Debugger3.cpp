@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Test_RenderGraph.h"
+#ifndef AE_ENABLE_METAL
+# include "Test_RenderGraph.h"
 
 namespace
 {
@@ -8,6 +9,7 @@ namespace
     {
         Mutex                       guard;
 
+        RenderTechPipelinesPtr      rtech;
         uint2                       viewSize;
 
         GAutorelease<ImageID>       img;
@@ -25,6 +27,8 @@ namespace
         ImageComparator *           imgCmp  = null;
         RC<GfxLinearMemAllocator>   gfxAlloc;
     };
+
+    static constexpr auto&  RTech = RenderTechs::DrawTestRT;
 
 
     template <typename CtxType>
@@ -57,9 +61,12 @@ namespace
 
             // draw
             {
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.viewSize }
+                constexpr auto&     rtech_pass = RTech.Draw_1;
+                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
-                                    .AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::Black} ));
+                                    .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::Black} ));
 
                 dctx.BindPipeline( t.ppln );
                 dctx.BindDescriptorSet( dbg.DSIndex(), dbg.DescSet() );
@@ -151,9 +158,12 @@ no source
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         Db3_TestData    t;
 
+        t.rtech     = renderTech;
         t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
+
+        CHECK_ERR( t.rtech->Name() == RenderTechName{RTech} );
 
         t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
                                         .SetUsage( EImageUsage::Sampled | EImageUsage::ColorAttachment | EImageUsage::TransferSrc ),
@@ -163,7 +173,7 @@ no source
         t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
         CHECK_ERR( t.view );
 
-        t.ppln = renderTech->GetMeshPipeline( PipelineName{"dbg3_draw"} );
+        t.ppln = t.rtech->GetMeshPipeline( RTech.Draw_1.dbg3_draw );
         CHECK_ERR( t.ppln );
 
         AsyncTask   begin   = rts.BeginFrame();
@@ -203,3 +213,5 @@ bool RGTest::Test_Debugger3 ()
     AE_LOGI( TEST_NAME << " - passed" );
     return result;
 }
+
+#endif // not AE_ENABLE_METAL

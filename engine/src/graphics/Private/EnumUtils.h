@@ -105,25 +105,86 @@ namespace AE::Graphics
 
 /*
 =================================================
-    EResourceState_Is***
+    EResourceState_Has***Access
 =================================================
 */
-    ND_ bool  EResourceState_IsReadOnly (EResourceState value)          __NE___;
-    ND_ bool  EResourceState_IsColorReadOnly (EResourceState value)     __NE___;
-    ND_ bool  EResourceState_IsDepthReadOnly (EResourceState value)     __NE___;
-    ND_ bool  EResourceState_IsStencilReadOnly (EResourceState value)   __NE___;
-    ND_ bool  EResourceState_HasReadAccess (EResourceState value)       __NE___;
-    ND_ bool  EResourceState_HasWriteAccess (EResourceState value)      __NE___;
+    ND_ constexpr bool  EResourceState_HasReadAccess (EResourceState value) __NE___
+    {
+        return !!(uint(value) & _EResState::AllReadBits);
+    }
+
+    ND_ constexpr bool  EResourceState_HasWriteAccess (EResourceState value) __NE___
+    {
+        return !!(uint(value) & _EResState::AllWriteBits);
+    }
+
+    ND_ constexpr bool  EResourceState_IsReadOnly (EResourceState value) __NE___
+    {
+        return  not EResourceState_HasWriteAccess( value )          and
+                not AllBits( value, EResourceState::Invalidate )    and
+                value != EResourceState::_InvalidState;
+    }
+
+/*
+=================================================
+    EResourceState_Has***Access (EImageAspect)
+=================================================
+*/
+    ND_ constexpr bool  EResourceState_HasReadAccess (EResourceState value, EImageAspect mask) __NE___
+    {
+        uint    result = 0;
+        if ( AnyBits( mask, EImageAspect::Color | EImageAspect::Depth ))    result |= (uint(value) & _EResState::Read);
+        if ( AnyBits( mask, EImageAspect::Stencil ))                        result |= (uint(value) & _EResState::StencilTest);
+        return result != 0;
+    }
+
+    ND_ constexpr bool  EResourceState_HasWriteAccess (EResourceState value, EImageAspect mask) __NE___
+    {
+        uint    result = 0;
+        if ( AnyBits( mask, EImageAspect::Color | EImageAspect::Depth ))    result |= (uint(value) & _EResState::Write);
+        if ( AnyBits( mask, EImageAspect::Stencil ))                        result |= (uint(value) & _EResState::StencilWrite);
+        return result != 0;
+    }
+
+    ND_ constexpr bool  EResourceState_IsReadOnly (EResourceState value, EImageAspect mask) __NE___
+    {
+        return  not EResourceState_HasWriteAccess( value, mask )    and
+                not AllBits( value, EResourceState::Invalidate )    and
+                value != EResourceState::_InvalidState;
+    }
+
+/*
+=================================================
+    EResourceState_IsSameStates
+=================================================
+*/
+    ND_ constexpr bool  EResourceState_IsSameStates (EResourceState srcState, EResourceState dstState) __NE___
+    {
+        constexpr uint  mask = _EResState::AccessMask | _EResState::Invalidate;
+        return (uint(srcState) & mask) == (uint(dstState) & mask);
+    }
 
 /*
 =================================================
     EResourceState_***
 =================================================
 */
-    ND_ EResourceState  EResourceState_FromShaders (EShaderStages values)           __NE___;
-    ND_ bool            EResourceState_RequireShaderStage (EResourceState state)    __NE___;
-    ND_ bool            EResourceState_Validate (EResourceState state)              __NE___;
+    ND_ EResourceState  EResourceState_FromShaders (EShaderStages values)                               __NE___;
+
+    ND_ bool  EResourceState_RequireShaderStage (EResourceState state)                                  __NE___;
+    ND_ bool  EResourceState_Validate (EResourceState state)                                            __NE___;
+
+    ND_ bool  EResourceState_RequireMemoryBarrier (EResourceState srcState, EResourceState dstState,
+                                                   Bool relaxedStateTransition)                         __NE___;
+
+    ND_ bool  EResourceState_RequireImageBarrier (EResourceState srcState, EResourceState dstState,
+                                                  Bool relaxedStateTransition)                          __NE___;
+    ND_ bool  EResourceState_RequireImageBarrier (EResourceState srcState, EImageAspect srcMask,
+                                                  EResourceState dstState, EImageAspect dstMask,
+                                                  Bool relaxedStateTransition)                          __NE___;
+
 //-----------------------------------------------------------------------------
+
 
 
 /*
@@ -400,6 +461,29 @@ namespace AE::Graphics
 */
     ND_ Pair<EPixelFormat, EColorSpace> ESurfaceFormat_Cast (ESurfaceFormat value)      __NE___;
     ND_ ESurfaceFormat                  ESurfaceFormat_Cast (EPixelFormat, EColorSpace) __NE___;
+//-----------------------------------------------------------------------------
+
+
+/*
+=================================================
+    EMemoryType_***
+=================================================
+*/
+    ND_ inline constexpr bool  EMemoryType_IsNonCoherent (EMemoryType memType) __NE___
+    {
+        return  AllBits( memType, EMemoryType::HostCached )     and
+                not AnyBits( memType, EMemoryType::HostCoherent );
+    }
+
+    ND_ inline constexpr bool  EMemoryType_IsHostVisible (EMemoryType memType) __NE___
+    {
+        return AnyBits( memType, EMemoryType::HostCachedCoherent );
+    }
+
+    ND_ inline constexpr bool  EMemoryType_IsDeviceLocal (EMemoryType memType) __NE___
+    {
+        return AllBits( memType, EMemoryType::DeviceLocal );
+    }
 
 
 } // AE::Graphics

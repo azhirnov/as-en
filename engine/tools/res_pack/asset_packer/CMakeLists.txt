@@ -17,7 +17,7 @@ if (NOT (DEFINED ENGINE_LIBS_PATH))
 endif()
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
 
-add_library( "AssetPacker" STATIC ${SOURCES} ${GRAPHICS_HPP_SRC} ${GRAPHICS_CPP_SRC} ${DUMMY_CPP_FILE} )
+add_library( "AssetPacker" STATIC ${SOURCES} ${GRAPHICS_HPP_SRC} ${GRAPHICS_CPP_SRC} ${PREBUILD_CPP_FILE} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( "external/graphics" FILES ${GRAPHICS_HPP_SRC} ${GRAPHICS_CPP_SRC} )
 
@@ -38,7 +38,7 @@ EnablePrebuild( "AssetPacker" )
 
 add_library( "AssetPacker-shared" SHARED
     "AssetPacker.h"
-    #"Lib/main.cpp"
+    ${DUMMY_CPP_FILE}
     "Lib/AssetPacker.def"
 )
 target_link_libraries( "AssetPacker-shared" PUBLIC "AssetPacker" )

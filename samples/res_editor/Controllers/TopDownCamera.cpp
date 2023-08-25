@@ -27,6 +27,9 @@ namespace AE::ResEditor
 */
     void  TopDownCamera::ProcessInput (ActionQueueReader reader, secondsf timeDelta) __NE___
     {
+        constexpr auto& IA      = InputActions::Controller_TopDown;
+        constexpr auto& BaseIA  = InputActions::SwitchInputMode;
+
         float2  move;
         float   angle   = 0.f;
         bool    reset   = false;
@@ -34,14 +37,21 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            if_unlikely( hdr.name == InputActionName{"Camera.Move"} )
-                move += float2{reader.Data<packed_float2>( hdr.offset )};
+            STATIC_ASSERT( (IA.actionCount - BaseIA.actionCount) == 5 );
+            switch ( uint{hdr.name} )
+            {
+                case IA.Camera_Move :
+                    move += float2{reader.Data<packed_float2>( hdr.offset )};   break;
 
-            if_unlikely( hdr.name == InputActionName{"Camera.Rotate"} )
-                angle += reader.Data<float>( hdr.offset );
+                case IA.Camera_Rotate :
+                    angle += reader.Data<float>( hdr.offset );                  break;
 
-            if_unlikely( hdr.name == InputActionName{"Camera.Reset"} )
-                reset = true;
+                case IA.Camera_Reset :
+                    reset = true;                                               break;
+
+                // UI_MousePos      - ignore
+                // UI_MouseRBDown   - ignore
+            }
         }
 
 
@@ -94,6 +104,23 @@ namespace AE::ResEditor
         frustum.Setup( GetViewProj() );
 
         _CopyToCameraData( OUT camera, frustum );
+    }
+
+/*
+=================================================
+    GetHelpText
+=================================================
+*/
+    StringView  TopDownCamera::GetHelpText () C_NE___
+    {
+        return R"(
+TopDownCamera controls:
+  'W' 'S'           - move forward/backward
+  'A' 'D'           - move left/right
+  'Q' 'E'           - rotation
+  'Right mouse btn' - pass mouse position to shader
+  'R'               - reset position, rotation, zoom
+)";
     }
 
 

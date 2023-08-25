@@ -1,9 +1,13 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Thread-safe:    yes (???)
+*/
 
 #pragma once
 
+#include "res_loaders/Public/ModelLoader.h"
+
 #ifdef AE_ENABLE_TINYGLTF
-# include "res_loaders/Public/ModelLoader.h"
 
 namespace AE::ResLoader
 {

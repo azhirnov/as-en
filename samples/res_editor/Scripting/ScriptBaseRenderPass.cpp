@@ -93,7 +93,7 @@ namespace AE::ResEditor
         auto&   dst = _output.emplace_back();
         uint    idx = 0;
 
-        FixedArray< EBlendFactor, 4 >   b_factors;  // src, dst | srcRGB, dstRGB, srcA, dstA
+        FixedArray< EBlendFactor, 4 >   b_factors;  // src, dst | srcRGB, srcA, dstRGB, dstA
         FixedArray< EBlendOp, 2 >       b_ops;      // op       | opRGB, opA
 
         if ( args.IsArg< String const& >(idx) ) {
@@ -136,21 +136,18 @@ namespace AE::ResEditor
                 CHECK_THROW_MSG( b_ops.try_push_back( args.Arg<EBlendOp>(idx++) ));
             }
             else
-                CHECK_THROW_MSG( false, "unsupported arg type" );
+                CHECK_THROW_MSG( false, "unsupported arg type '"s << args.GetArgTypename(idx) << "' in arg (" << ToString(idx) << ")" );
         }
-        ASSERT( idx == args.ArgCount() );
-
-        CHECK_THROW_MSG( (b_factors.size() == 2 and b_ops.size() == 1) or
-                         (b_factors.size() == 4 and b_ops.size() == 2),
-            "unsupported fn signature" );
+        CHECK_THROW_MSG( idx == args.ArgCount() );
 
         if ( b_factors.size() == 2 and b_ops.size() == 1 )
         {
             dst.srcFactorRGB    = dst.srcFactorA    = b_factors[0];
             dst.dstFactorRGB    = dst.dstFactorA    = b_factors[1];
             dst.blendOpRGB      = dst.blendOpA      = b_ops[0];
+            dst.enableBlend     = true;
         }
-
+        else
         if ( b_factors.size() == 4 and b_ops.size() == 2 )
         {
             dst.srcFactorRGB    = b_factors[0];
@@ -159,6 +156,12 @@ namespace AE::ResEditor
             dst.dstFactorA      = b_factors[3];
             dst.blendOpRGB      = b_ops[0];
             dst.blendOpA        = b_ops[1];
+            dst.enableBlend     = true;
+        }
+        else
+        {
+            CHECK_THROW_MSG( b_factors.empty() and b_ops.empty(),
+                "unsupported fn signature" );
         }
     }
 

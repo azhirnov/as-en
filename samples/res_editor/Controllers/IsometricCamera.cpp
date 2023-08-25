@@ -30,6 +30,9 @@ namespace AE::ResEditor
 */
     void  IsometricCamera::ProcessInput (ActionQueueReader reader, secondsf timeDelta) __NE___
     {
+        constexpr auto& IA      = InputActions::Controller_Isometric;
+        constexpr auto& BaseIA  = InputActions::SwitchInputMode;
+
         packed_float3   move;
         packed_float2   rotation;
         float           offset  = 0.f;
@@ -38,17 +41,21 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            if_unlikely( hdr.name == InputActionName{"Camera.Rotate"} )
-                rotation += reader.Data<packed_float2>( hdr.offset );
+            STATIC_ASSERT( (IA.actionCount - BaseIA.actionCount) == 4 );
+            switch ( uint{hdr.name} )
+            {
+                case IA.Camera_Rotate :
+                    rotation += reader.Data<packed_float2>( hdr.offset );   break;
 
-            if_unlikely( hdr.name == InputActionName{"Camera.Move"} )
-                move += reader.Data<packed_float3>( hdr.offset );
+                case IA.Camera_Move :
+                    move += reader.Data<packed_float3>( hdr.offset );       break;
 
-            if_unlikely( hdr.name == InputActionName{"Camera.Zoom"} )
-                offset += reader.Data<packed_float2>( hdr.offset ).y;
+                case IA.Camera_Zoom :
+                    offset += reader.Data<packed_float2>( hdr.offset ).y;   break;
 
-            if_unlikely( hdr.name == InputActionName{"Camera.Reset"} )
-                reset = true;
+                case IA.Camera_Reset :
+                    reset = true;                                           break;
+            }
         }
 
 
@@ -101,6 +108,24 @@ namespace AE::ResEditor
     void  IsometricCamera::CopyTo (OUT AE::ShaderTypes::CameraData &camera) C_NE___
     {
         _CopyToCameraData( OUT camera, _camera.Frustum() );
+    }
+
+/*
+=================================================
+    GetHelpText
+=================================================
+*/
+    StringView  IsometricCamera::GetHelpText () C_NE___
+    {
+        return R"(
+IsometricCamera controls:
+  'W' 'S'          - move forward/backward
+  'A' 'D'          - move left/right
+  'Left mouse btn' - press to rotate camera
+  'Arrows'         - rotation
+  'Mouse wheel'    - zoom
+  'R'              - reset position, rotation, zoom
+)";
     }
 
 

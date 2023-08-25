@@ -26,6 +26,19 @@
     STATIC_ASSERT( sizeof(VB_Position_f2) == 8 );
 #endif
 
+#ifndef bloom_map_vertex_attr0_DEFINED
+#   define bloom_map_vertex_attr0_DEFINED
+    // size: 16, align: 4
+    struct bloom_map_vertex_attr0
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_map_vertex_attr0"};
+
+        packed_float4  Texcoord;
+    };
+    STATIC_ASSERT( offsetof(bloom_map_vertex_attr0, Texcoord) == 0 );
+    STATIC_ASSERT( sizeof(bloom_map_vertex_attr0) == 16 );
+#endif
+
 #ifndef ui_global_ublock_DEFINED
 #   define ui_global_ublock_DEFINED
     // size: 16, align: 8 (16)
@@ -54,6 +67,31 @@
     STATIC_ASSERT( sizeof(ui_material_ublock) == 4 );
 #endif
 
+#ifndef bloom_ub_DEFINED
+#   define bloom_ub_DEFINED
+    // size: 40, align: 8 (16)
+    struct bloom_ub
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_ub"};
+
+        float2  resolution;
+        float2  invResolution;
+        float2  blurDir;
+        float  upscale;
+        float  invRefLuma;
+        float  emissionScale;
+        float  bloomScale;
+    };
+    STATIC_ASSERT( offsetof(bloom_ub, resolution) == 0 );
+    STATIC_ASSERT( offsetof(bloom_ub, invResolution) == 8 );
+    STATIC_ASSERT( offsetof(bloom_ub, blurDir) == 16 );
+    STATIC_ASSERT( offsetof(bloom_ub, upscale) == 24 );
+    STATIC_ASSERT( offsetof(bloom_ub, invRefLuma) == 28 );
+    STATIC_ASSERT( offsetof(bloom_ub, emissionScale) == 32 );
+    STATIC_ASSERT( offsetof(bloom_ub, bloomScale) == 36 );
+    STATIC_ASSERT( sizeof(bloom_ub) == 40 );
+#endif
+
 #ifndef VB_UVf2_Col8_DEFINED
 #   define VB_UVf2_Col8_DEFINED
     // size: 12, align: 4 (16)
@@ -67,6 +105,158 @@
     STATIC_ASSERT( offsetof(VB_UVf2_Col8, UV) == 0 );
     STATIC_ASSERT( offsetof(VB_UVf2_Col8, Color) == 8 );
     STATIC_ASSERT( sizeof(VB_UVf2_Col8) == 12 );
+#endif
+
+#ifndef bloom_map_ub_DEFINED
+#   define bloom_map_ub_DEFINED
+    // size: 128, align: 16
+    struct bloom_map_ub
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_map_ub"};
+
+        float4x4_storage  transform;
+        float4  lighting;
+        float  textureSize;
+        float  mapHeightPxRecip;
+        float4  playerPos;
+        float3  pixelSize_scale;
+    };
+    STATIC_ASSERT( offsetof(bloom_map_ub, transform) == 0 );
+    STATIC_ASSERT( offsetof(bloom_map_ub, lighting) == 64 );
+    STATIC_ASSERT( offsetof(bloom_map_ub, textureSize) == 80 );
+    STATIC_ASSERT( offsetof(bloom_map_ub, mapHeightPxRecip) == 84 );
+    STATIC_ASSERT( offsetof(bloom_map_ub, playerPos) == 96 );
+    STATIC_ASSERT( offsetof(bloom_map_ub, pixelSize_scale) == 112 );
+    STATIC_ASSERT( sizeof(bloom_map_ub) == 128 );
+#endif
+
+#ifndef bloom_entities_vertex_pos_DEFINED
+#   define bloom_entities_vertex_pos_DEFINED
+    // size: 12, align: 4
+    struct bloom_entities_vertex_pos
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_entities_vertex_pos"};
+
+        packed_float3  Position;
+    };
+    STATIC_ASSERT( offsetof(bloom_entities_vertex_pos, Position) == 0 );
+    STATIC_ASSERT( sizeof(bloom_entities_vertex_pos) == 12 );
+#endif
+
+#ifndef bloom_map_vertex_DEFINED
+#   define bloom_map_vertex_DEFINED
+    // size: 32, align: 4
+    struct bloom_map_vertex
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_map_vertex"};
+
+        packed_float2  Position;
+        packed_float4  Texcoord;
+        packed_ubyte4  Color;
+        packed_ubyte4  Type;
+    };
+    STATIC_ASSERT( offsetof(bloom_map_vertex, Position) == 0 );
+    STATIC_ASSERT( offsetof(bloom_map_vertex, Texcoord) == 8 );
+    STATIC_ASSERT( offsetof(bloom_map_vertex, Color) == 24 );
+    STATIC_ASSERT( offsetof(bloom_map_vertex, Type) == 28 );
+    STATIC_ASSERT( sizeof(bloom_map_vertex) == 32 );
+#endif
+
+#ifndef bloom_map_vertex_pos_DEFINED
+#   define bloom_map_vertex_pos_DEFINED
+    // size: 8, align: 4
+    struct bloom_map_vertex_pos
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_map_vertex_pos"};
+
+        packed_float2  Position;
+    };
+    STATIC_ASSERT( offsetof(bloom_map_vertex_pos, Position) == 0 );
+    STATIC_ASSERT( sizeof(bloom_map_vertex_pos) == 8 );
+#endif
+
+#ifndef bloom_map_vertex_attr1_DEFINED
+#   define bloom_map_vertex_attr1_DEFINED
+    // size: 4, align: 1
+    struct bloom_map_vertex_attr1
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_map_vertex_attr1"};
+
+        packed_ubyte4  Color;
+    };
+    STATIC_ASSERT( offsetof(bloom_map_vertex_attr1, Color) == 0 );
+    STATIC_ASSERT( sizeof(bloom_map_vertex_attr1) == 4 );
+#endif
+
+#ifndef bloom_map_vertex_attr2_DEFINED
+#   define bloom_map_vertex_attr2_DEFINED
+    // size: 4, align: 1
+    struct bloom_map_vertex_attr2
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_map_vertex_attr2"};
+
+        packed_ubyte4  Type;
+    };
+    STATIC_ASSERT( offsetof(bloom_map_vertex_attr2, Type) == 0 );
+    STATIC_ASSERT( sizeof(bloom_map_vertex_attr2) == 4 );
+#endif
+
+#ifndef bloom_entities_vertex_DEFINED
+#   define bloom_entities_vertex_DEFINED
+    // size: 36, align: 4
+    struct bloom_entities_vertex
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_entities_vertex"};
+
+        packed_float3  Position;
+        packed_float4  Texcoord;
+        packed_ubyte4  Color;
+        packed_ubyte4  Type;
+    };
+    STATIC_ASSERT( offsetof(bloom_entities_vertex, Position) == 0 );
+    STATIC_ASSERT( offsetof(bloom_entities_vertex, Texcoord) == 12 );
+    STATIC_ASSERT( offsetof(bloom_entities_vertex, Color) == 28 );
+    STATIC_ASSERT( offsetof(bloom_entities_vertex, Type) == 32 );
+    STATIC_ASSERT( sizeof(bloom_entities_vertex) == 36 );
+#endif
+
+#ifndef bloom_entities_vertex_attr0_DEFINED
+#   define bloom_entities_vertex_attr0_DEFINED
+    // size: 16, align: 4
+    struct bloom_entities_vertex_attr0
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_entities_vertex_attr0"};
+
+        packed_float4  Texcoord;
+    };
+    STATIC_ASSERT( offsetof(bloom_entities_vertex_attr0, Texcoord) == 0 );
+    STATIC_ASSERT( sizeof(bloom_entities_vertex_attr0) == 16 );
+#endif
+
+#ifndef bloom_entities_vertex_attr1_DEFINED
+#   define bloom_entities_vertex_attr1_DEFINED
+    // size: 4, align: 1
+    struct bloom_entities_vertex_attr1
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_entities_vertex_attr1"};
+
+        packed_ubyte4  Color;
+    };
+    STATIC_ASSERT( offsetof(bloom_entities_vertex_attr1, Color) == 0 );
+    STATIC_ASSERT( sizeof(bloom_entities_vertex_attr1) == 4 );
+#endif
+
+#ifndef bloom_entities_vertex_attr2_DEFINED
+#   define bloom_entities_vertex_attr2_DEFINED
+    // size: 4, align: 1
+    struct bloom_entities_vertex_attr2
+    {
+        static constexpr auto  TypeName = ShaderStructName{"bloom_entities_vertex_attr2"};
+
+        packed_ubyte4  Type;
+    };
+    STATIC_ASSERT( offsetof(bloom_entities_vertex_attr2, Type) == 0 );
+    STATIC_ASSERT( sizeof(bloom_entities_vertex_attr2) == 4 );
 #endif
 
 #ifndef imgui_ub_DEFINED
@@ -102,7 +292,7 @@
 #endif
 
 #ifndef CubeVertex_DEFINED
-#	define CubeVertex_DEFINED
+#   define CubeVertex_DEFINED
     // size: 40, align: 2 (16)
     struct CubeVertex
     {

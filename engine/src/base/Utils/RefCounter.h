@@ -401,6 +401,8 @@ namespace AE::Base
     template <typename T>
     forceinline int  RefCounterUtils::DecRefAndRelease (INOUT T* &ptr) __NE___
     {
+        STATIC_ASSERT( sizeof(T) > 0 );
+
         if_likely( ptr != null )
         {
             const auto  res = DecRef( *ptr );
@@ -719,6 +721,8 @@ namespace AE::Base
     template <typename R, typename T>
     ND_ forceinline constexpr RC<R>  Cast (const RC<T> &value) __NE___
     {
+        STATIC_ASSERT( sizeof(R) > 0 );
+
         return RC<R>{ static_cast<R*>( value.get() )};
     }
 

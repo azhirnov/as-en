@@ -17,7 +17,7 @@ namespace AE::ResEditor
     // types
     protected:
         using PerFrameDescSet_t = StaticArray< Strong<DescriptorSetID>, GraphicsConfig::MaxFrames >;
-        using Textures_t        = Array<Pair< UniformName, RC<IImageResource> >>;
+
 
     // methods
     public:
@@ -58,9 +58,6 @@ namespace AE::ResEditor
             DescriptorSetID         passDS;
             float3                  position;
         };
-
-        using Textures_t    = Array<Pair< UniformName, RC<IImageResource> >>;
-        using Buffers_t     = Array<Pair< UniformName, RC<Buffer> >>;
 
 
     // variables

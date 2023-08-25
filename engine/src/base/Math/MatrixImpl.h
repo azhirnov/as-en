@@ -98,7 +98,7 @@ namespace AE::Math
         ND_ friend Self             operator / (T lhs, const Self &rhs)                 __NE___ { return Self{ lhs / rhs._value }; }
 
         template <uint K>
-        ND_ Self &                  operator *= (const TMatrix<T,K,Columns,Q> &rhs)     __NE___ { _value *= rhs._value;  return *this; }
+            Self &                  operator *= (const TMatrix<T,K,Columns,Q> &rhs)     __NE___ { _value *= rhs._value;  return *this; }
 
         template <uint K>
         ND_ TMatrix<T,K,Rows,Q>     operator *  (const TMatrix<T,K,Columns,Q> &rhs)     C_NE___ { return TMatrix<T,K,Rows,Q>{ _value * rhs._value }; }
@@ -138,6 +138,8 @@ namespace AE::Math
     #if Columns == 3 and Rows == 3
         ND_ static Self  ToCubeFace (ubyte face)                                        __NE___;
         ND_ static Self  FromDirection (const Vec3_t &dir, const Vec3_t &up)            __NE___;
+        ND_ static Self  Scaled (const Vec3_t &scale)                                   __NE___;
+        ND_ static Self  Scaled (const T scale)                                         __NE___ { return Scaled( Vec3_t{ scale }); }
     #endif
 
     #if Columns == 4 and Rows == 4
@@ -149,7 +151,7 @@ namespace AE::Math
         ND_ static Self  InfiniteFrustum (const Rect_t &viewport, T zNear)              __NE___;
 
         ND_ static Self  Translated (const Vec3_t &translation)                         __NE___ { return Self{ glm::translate( Self::Identity()._value, translation )}; }
-        ND_ static Self  Scaled (const Vec3_t &scale)                                   __NE___ { return Self{ glm::scale( Self::Identity()._value, scale )}; }
+        ND_ static Self  Scaled (const Vec3_t &scale)                                   __NE___;
         ND_ static Self  Scaled (const T scale)                                         __NE___ { return Scaled( Vec3_t{ scale }); }
 
         ND_ Vec3_t       Project (const Vec3_t &pos, const Rect_t &viewport)            C_NE___;
@@ -162,6 +164,8 @@ namespace AE::Math
         ND_ Vec3_t       AxisZ ()                                                       C_NE___ { return Vec3_t{ _value[0][2], _value[1][2], _value[2][2] }; }
 
         ND_ static Self  Rotate  (Rad_t angle, const Vec3_t &axis)                      __NE___;
+
+        ND_ static Self  ReverseZTransform ()                                           __NE___;
     #endif
 
     #if Columns >= 3 and Rows >= 3
@@ -196,6 +200,7 @@ namespace AE::Math
         return Self{ Col_t{ c, s }, Col_t{ -s, c }};
     }
 #endif
+
 
 #if Columns == 3 and Rows == 3
 /*
@@ -232,7 +237,20 @@ namespace AE::Math
         Vec3_t  ver = Normalize( Cross( dir, hor ));
         return Self{ hor, ver, dir };
     }
+/*
+=================================================
+    Scaled
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Scaled (const Vec3_t &scale) __NE___
+    {
+        return  Self{   Col_t{ scale.x, T(0),     T(0) },
+                        Col_t{ T(0),    scale.y,  T(0) },
+                        Col_t{ T(0),    T(0),     scale.z }};
+    }
 #endif
+
 
 #if Columns >= 3 and Rows >= 3
 /*
@@ -288,6 +306,7 @@ namespace AE::Math
             };
     }
 #endif
+
 
 #if Columns == 4 and Rows == 4
 /*
@@ -362,7 +381,35 @@ namespace AE::Math
         return Vec3_t{ temp };
     }
 
+/*
+=================================================
+    ReverseZTransform
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::ReverseZTransform () __NE___
+    {
+        return  Self{   Col_t{ T(1), T(0),  T( 0), T(0) },
+                        Col_t{ T(0), T(1),  T( 0), T(0) },
+                        Col_t{ T(0), T(0),  T(-1), T(0) },
+                        Col_t{ T(0), T(0),  T( 1), T(1) }};
+    }
+
+/*
+=================================================
+    Scaled
+=================================================
+*/
+    template <typename T, glm::qualifier Q>
+    TMatrix<T, Columns, Rows, Q>  TMatrix<T, Columns, Rows, Q>::Scaled (const Vec3_t &scale) __NE___
+    {
+        return  Self{   Col_t{ scale.x, T(0),     T(0),    T(0) },
+                        Col_t{ T(0),    scale.y,  T(0),    T(0) },
+                        Col_t{ T(0),    T(0),     scale.z, T(0) },
+                        Col_t{ T(0),    T(0),     T(0),    T(1) }};
+    }
 #endif
+
 
 /*
 =================================================

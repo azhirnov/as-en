@@ -7,7 +7,6 @@ extern void Test_FeatureSetPack ();
 extern void Test_SamplerPack ();
 extern void Test_RenderPassPack ();
 extern void Test_PipelinePack ();
-extern void Test_MaterialPack ();
 
 extern void Test_InputActions ();
 
@@ -32,9 +31,6 @@ int main ()
 
         Test_PipelinePack();
         FileSystem::SetCurrentPath( curr );
-
-        //Test_MaterialPack();              // TODO
-        //FileSystem::SetCurrentPath( curr );
 
         Test_InputActions();
         FileSystem::SetCurrentPath( curr );

@@ -57,6 +57,8 @@ namespace AE::Base
         ND_ constexpr bool  operator >= (const Self &rhs)   C_NE___ { return not (*this <  rhs); }
         ND_ constexpr bool  operator <= (const Self &rhs)   C_NE___ { return not (*this >  rhs); }
 
+        ND_ constexpr explicit operator uint ()             C_NE___ { return uint{_hash}; }
+
         ND_ constexpr HashVal       GetHash ()              C_NE___ { return HashVal{uint{_hash}}; }
         ND_ constexpr HashVal32     GetHash32 ()            C_NE___ { return _hash; }
         ND_ constexpr bool          IsDefined ()            C_NE___ { return _hash != _emptyHash; }
@@ -124,6 +126,7 @@ namespace AE::Base
         ND_ constexpr bool  operator <= (const Self &rhs)       C_NE___ { return not (*this >  rhs); }
 
         ND_ constexpr operator Optimized_t ()                   C_NE___ { return Optimized_t{ GetHash32() }; }
+        ND_ constexpr explicit operator uint ()                 C_NE___ { return uint{_hash}; }
 
         ND_ constexpr StringView    GetName ()                  C_NE___ { return _name; }
         ND_ constexpr HashVal       GetHash ()                  C_NE___ { return HashVal{uint{_hash}}; }

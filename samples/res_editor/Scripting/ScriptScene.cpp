@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Scripting/ScriptExe.h"
-#include "res_editor/EditorUI.h"
+#include "res_editor/Core/EditorUI.h"
 
 #include "res_editor/Scripting/ScriptBasePass.cpp.h"
 #include "res_editor/_data/cpp/types.h"
@@ -162,6 +162,15 @@ namespace AE::ResEditor
 
 /*
 =================================================
+    _OnAddArg
+=================================================
+*/
+    void  ScriptSceneGraphicsPass::_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th___
+    {
+    }
+
+/*
+=================================================
     ToPass
 =================================================
 */
@@ -173,8 +182,7 @@ namespace AE::ResEditor
         auto&                   materials   = result->_materials;
         PipelineNames_t         ppln_names;
 
-        result->_scene  = _scene->ToScene();                    // throw
-        result->_rtech  = _CompilePipelines( OUT ppln_names );  // throw
+        result->_rtech  = _CompilePipelines( OUT ppln_names, OUT result->_scene );  // throw
 
         CHECK_THROW( ppln_names.size() == _scene->_geomInstances.size() );
         materials.reserve( ppln_names.size() );
@@ -254,7 +262,7 @@ namespace AE::ResEditor
 
         ClassBinder<ScriptSceneGraphicsPass>    binder{ se };
         binder.CreateRef();
-        _BindBaseRenderPass( binder, False{"withBlending"} );
+        _BindBaseRenderPass( binder, False{"without blending"} );
 
         binder.AddMethod( &ScriptSceneGraphicsPass::InputController,    "Input"         );
 
@@ -350,7 +358,7 @@ namespace AE::ResEditor
                 const bool          is_ds   = _output[i].rt->IsDepthStencil();
                 const auto          state   = is_ds ?
                                                 EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS :
-                                                EResourceState::ColorAttachment_RW;
+                                                EResourceState::ColorAttachment;
 
                 att->loadOp     = EAttachmentLoadOp::Load;
                 att->storeOp    = EAttachmentStoreOp::Store;
@@ -377,6 +385,65 @@ namespace AE::ResEditor
             DescriptorSetLayoutPtr  ds_layout{ new DescriptorSetLayout{ "pass.ds" }};
 
             ds_layout->AddUniformBuffer( uint(EShaderStages::AllGraphics), "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform );
+
+            // add sliders
+            {
+                const uint  max_sliders = UIInteraction::MaxSlidersPerType;
+                for (usize i = 0; i < _sliderCounter.size(); ++i) {
+                    CHECK_THROW_MSG( _sliderCounter[i] <= max_sliders );
+                }
+
+                for (auto& slider : _sliders)
+                {
+                    String  str;
+                    str << slider.name << " = un_PerPass.";
+
+                    BEGIN_ENUM_CHECKS();
+                    switch ( slider.type )
+                    {
+                        case ESlider::Int :     str << "intSliders[";   break;
+                        case ESlider::Float :   str << "floatSliders["; break;
+                        case ESlider::Color :   str << "colors[";       break;
+                        case ESlider::_Count :
+                        default :               CHECK_THROW_MSG( false, "unknown slider type" );
+                    }
+                    END_ENUM_CHECKS();
+
+                    str << ToString( slider.index ) << "]";
+                    switch ( slider.count )
+                    {
+                        case 1 :    str << ".x";    break;
+                        case 2 :    str << ".xy";   break;
+                        case 3 :    str << ".xyz";  break;
+                        case 4 :    str << ".xyzw"; break;
+                        default :   CHECK_THROW_MSG( false, "unknown slider value size" );
+                    }
+                    ds_layout->Define( str );
+                }
+            }
+
+            // add constants
+            {
+                for (auto& c : _constants)
+                {
+                    String  str;
+                    str << c.name << " = un_PerPass.";
+
+                    BEGIN_ENUM_CHECKS();
+                    switch ( c.type )
+                    {
+                        case ESlider::Int :     str << "intConst[";     break;
+                        case ESlider::Float :   str << "floatConst[";   break;
+                        case ESlider::Color :
+                        case ESlider::_Count :
+                        default :               CHECK_THROW_MSG( false, "unknown constant type" );
+                    }
+                    END_ENUM_CHECKS();
+
+                    str << ToString( c.index ) << "]";
+                    ds_layout->Define( str );
+                }
+            }
         }
 
         for (auto& inst : _scene->_geomInstances) {
@@ -406,10 +473,14 @@ namespace AE::ResEditor
     _CompilePipelines
 =================================================
 */
-    RTechInfo  ScriptSceneGraphicsPass::_CompilePipelines (OUT PipelineNames_t &pplnNames) C_Th___
+    RTechInfo  ScriptSceneGraphicsPass::_CompilePipelines (OUT PipelineNames_t &pplnNames, OUT RC<SceneData> &outScene) C_Th___
     {
         return ScriptExe::ScriptPassApi::ConvertAndLoad(
-                    [this, &pplnNames] (ScriptEnginePtr se){ _CompilePipelines2( se, OUT pplnNames ); });
+                    [this, &pplnNames, &outScene] (ScriptEnginePtr se)
+                    {
+                        outScene = _scene->ToScene();               // throw
+                        _CompilePipelines2( se, OUT pplnNames );    // throw
+                    });
     }
 //-----------------------------------------------------------------------------
 
@@ -430,8 +501,8 @@ namespace AE::ResEditor
     {
         _dbgName = passName;
 
-        auto&   ext = RenderTaskScheduler().GetDevice().GetExtensions();
-        CHECK_THROW_MSG( ext.rayTracingPipeline );
+        CHECK_THROW_MSG( RenderTaskScheduler().GetFeatureSet().rayTracingPipeline == EFeature::RequireTrue,
+            "ray tracing pipeline is not supported" );
 
         ScriptExe::ScriptPassApi::AddPass( ScriptBasePassPtr{this} );
     }
@@ -456,6 +527,15 @@ namespace AE::ResEditor
         CHECK_THROW_MSG( value );
 
         _controller = value;
+    }
+
+/*
+=================================================
+    _OnAddArg
+=================================================
+*/
+    void  ScriptSceneRayTracingPass::_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th___
+    {
     }
 
 /*

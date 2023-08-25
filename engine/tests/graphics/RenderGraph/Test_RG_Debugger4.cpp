@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Test_RenderGraph.h"
+#ifndef AE_ENABLE_METAL
+# include "Test_RenderGraph.h"
 
 namespace
 {
@@ -40,6 +41,8 @@ namespace
         RTGeometryBuild::TrianglesInfo  triangleInfo;
         RTGeometryBuild::TrianglesData  triangleData;
     };
+
+    static constexpr auto&  RTech = RenderTechs::RayTracingTestRT;
 
     static const float3 buffer_vertices []  = { { 0.25f, 0.25f, 0.0f }, { 0.75f, 0.25f, 0.0f }, { 0.50f, 0.75f, 0.0f } };
     static const uint   buffer_indices []   = { 0, 1, 2 };
@@ -128,7 +131,7 @@ namespace
             typename CtxTypes::RayTracing   rt_ctx{ *this, copy_ctx.ReleaseCommandBuffer() };
 
             rt_ctx.AccumBarriers()
-                .MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS_Read | EResourceState::RayTracingShaders )
+                .MemoryBarrier( EResourceState::BuildRTAS_Write, EResourceState::ShaderRTAS | EResourceState::RayTracingShaders )
                 //.MemoryBarrier( EResourceState::Host_Write, EResourceState::RTShaderBindingTable )    // optional
                 .ImageBarrier( t.img, EResourceState::Invalidate, img_state );
 
@@ -178,6 +181,28 @@ namespace
 
                     if ( trace_str.size() == 4 )
                     {
+                        const StringView    rm_ref_str =
+R"(//> gl_LaunchIDEXT: uint3 {612, 124, 0}
+no source
+
+//> payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
+42. payload = vec4( 0.412f, 0.796f, 1.0f, 1.0f );
+
+)";
+                        const StringView    rch_ref_str =
+R"(//> gl_LaunchIDEXT: uint3 {370, 326, 0}
+//> hitAttribs: float2 {0.220417, 0.411667}
+no source
+
+//> barycentrics: float3 {0.367917, 0.220417, 0.411667}
+//  hitAttribs: float2 {0.220417, 0.411667}
+56. barycentrics = vec3( 1.0f - hitAttribs.x - hitAttribs.y, hitAttribs.x, hitAttribs.y );
+
+//> payload: float4 {0.367917, 0.220417, 0.411667, 1.000000}
+//  barycentrics: float3 {0.367917, 0.220417, 0.411667}
+57. payload = vec4(barycentrics, 1.0);
+
+)";
                         const StringView    rg1_ref_str =
 R"(//> gl_LaunchIDEXT: uint3 {612, 124, 0}
 no source
@@ -198,10 +223,10 @@ no source
 24.     traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
 25.                  /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/HitGroupStride, /*missIndex*/1,
 26.                  /*origin*/origin, /*Tmin*/0.0f, /*direction*/direction, /*Tmax*/10.0f,
-27.                  /*payload*/0 );
+27.                  /*payload*/PAYLOAD_LOC );
 
 //> payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
-27. 0 );
+27. C );
 
 //> color: float4 {0.412000, 0.796000, 1.000000, 1.000000}
 //  payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
@@ -233,10 +258,10 @@ no source
 24.     traceRayEXT( /*topLevel*/un_RtScene, /*rayFlags*/gl_RayFlagsNoneEXT, /*cullMask*/0xFF,
 25.                  /*sbtRecordOffset*/ray_idx, /*sbtRecordStride*/HitGroupStride, /*missIndex*/1,
 26.                  /*origin*/origin, /*Tmin*/0.0f, /*direction*/direction, /*Tmax*/10.0f,
-27.                  /*payload*/0 );
+27.                  /*payload*/PAYLOAD_LOC );
 
 //> payload: float4 {0.367917, 0.220417, 0.411667, 1.000000}
-27. 0 );
+27. C );
 
 //> color: float4 {0.367917, 0.220417, 0.411667, 1.000000}
 //  payload: float4 {0.367917, 0.220417, 0.411667, 1.000000}
@@ -246,28 +271,6 @@ no source
 //  gl_LaunchIDEXT: uint3 {370, 326, 0}
 //  color: float4 {0.367917, 0.220417, 0.411667, 1.000000}
 30.     imageStore( un_OutImage, ivec2(gl_LaunchIDEXT), color );
-
-)";
-                        const StringView    rm_ref_str =
-R"(//> gl_LaunchIDEXT: uint3 {612, 124, 0}
-no source
-
-//> payload: float4 {0.412000, 0.796000, 1.000000, 1.000000}
-42. payload = vec4( 0.412f, 0.796f, 1.0f, 1.0f );
-
-)";
-                        const StringView    rch_ref_str =
-R"(//> gl_LaunchIDEXT: uint3 {370, 326, 0}
-//> hitAttribs: float2 {0.220417, 0.411667}
-no source
-
-//> barycentrics: float3 {0.367917, 0.220417, 0.411667}
-//  hitAttribs: float2 {0.220417, 0.411667}
-56. barycentrics = vec3( 1.0f - hitAttribs.x - hitAttribs.y, hitAttribs.x, hitAttribs.y );
-
-//> payload: float4 {0.367917, 0.220417, 0.411667, 1.000000}
-//  barycentrics: float3 {0.367917, 0.220417, 0.411667}
-57. payload = vec4(barycentrics, 1.0);
 
 )";
                         ok &= (trace_str[0] == rm_ref_str);
@@ -298,6 +301,8 @@ no source
         t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
+
+        CHECK_ERR( renderTech->Name() == RenderTechName{RTech} );
 
         t.img = res_mngr.CreateImage( ImageDesc{}.SetDimension( t.viewSize ).SetFormat( format )
                                         .SetUsage( EImageUsage::Sampled | EImageUsage::Storage | EImageUsage::TransferSrc ),
@@ -341,10 +346,10 @@ no source
                                             "RTAS scratch buffer", t.gfxAlloc );
         CHECK_ERR( t.scratch );
 
-        t.ppln = renderTech->GetRayTracingPipeline( PipelineName{"dbg4_rtrace1.def"} );
+        t.ppln = renderTech->GetRayTracingPipeline( RTech.RayTrace_1.dbg4_rtrace1_def );
         CHECK_ERR( t.ppln );
 
-        t.sbt = renderTech->GetRTShaderBinding( RTShaderBindingName{"dbg4_rtrace1.sbt0"} );
+        t.sbt = renderTech->GetRTShaderBinding( RTech.sbt.dbg4_rtrace1_sbt0 );
         CHECK_ERR( t.sbt );
 
         {
@@ -402,3 +407,5 @@ bool RGTest::Test_Debugger4 ()
     AE_LOGI( TEST_NAME << " - passed" );
     return result;
 }
+
+#endif // not AE_ENABLE_METAL

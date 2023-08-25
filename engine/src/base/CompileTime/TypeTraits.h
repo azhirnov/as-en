@@ -73,7 +73,7 @@ namespace _hidden_
     static constexpr bool   IsLValueRef             = std::is_lvalue_reference_v<T>;
 
     template <typename T>
-    static constexpr bool   IsRValueRef             = std::is_rvalue_reference_v<T>;
+    static constexpr bool   IsRValueRef             = std::is_rvalue_reference_v<T>;    // &&
 
     template <typename T>
     static constexpr bool   IsReference             = std::is_reference_v<T>;
@@ -330,6 +330,11 @@ namespace _hidden_
 
     template <typename T>
     static constexpr bool   IsDuration = IsSpecializationOf< T, std::chrono::duration >;
+
+
+    template <typename Fn, typename ...Args>
+    using ResultOf  = std::invoke_result_t< Fn, Args... >;
+
 
 /*
 =================================================

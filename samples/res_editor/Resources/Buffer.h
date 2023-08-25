@@ -19,7 +19,7 @@ namespace AE::ResEditor
         enum class EBufferFlags : uint
         {
             Unknown         = 0,
-            WithHistroy     = 1 << 0,   // unique buffer for frame cycle with content history
+            WithHistory     = 1 << 0,   // unique buffer for frame cycle with content history
         };
 
         struct LoadOp
@@ -66,6 +66,8 @@ namespace AE::ResEditor
         const EBufferFlags          _flags;
         const String                _dbgName;
 
+        Array<RC<Buffer>>           _refBuffers;
+
 
     // methods
     public:
@@ -77,30 +79,34 @@ namespace AE::ResEditor
                 Renderer &          renderer,
                 RC<DynamicUInt>     dynCount,
                 StringView          dbgName,
-                EBufferFlags        flags)                      __Th___;
+                EBufferFlags        flags,
+                Array<RC<Buffer>>   refBuffers)                     __Th___;
 
         ~Buffer () override;
 
-        ND_ BufferID            GetBufferId (uint fid)          const   { return _ids[ fid ].Get(); }
-        ND_ BufferID            GetBufferId (FrameUID fid)      const   { return _ids[ fid.Index() ].Get(); }
+        ND_ BufferID                GetBufferId (uint fid)          const   { return _ids[ fid ].Get(); }
+        ND_ BufferID                GetBufferId (FrameUID fid)      const   { return _ids[ fid.Index() ].Get(); }
 
-        ND_ BufferDesc          GetBufferDesc ()                const   { return _bufDesc.Read(); }
-        ND_ ShaderStructName    GetContentType ()               const   { return _typeName; }
+        ND_ BufferDesc              GetBufferDesc ()                const   { return _bufDesc.Read(); }
+        ND_ ShaderStructName        GetContentType ()               const   { return _typeName; }
 
-        ND_ ulong               GetDeviceAddress (uint fid)     const   { return _address[ fid ]; }
-        ND_ ulong               GetDeviceAddress (FrameUID fid) const   { return _address[ fid.Index() ]; }
+        ND_ ulong                   GetDeviceAddress (uint fid)     const   { return _address[ fid ]; }
+        ND_ ulong                   GetDeviceAddress (FrameUID fid) const   { return _address[ fid.Index() ]; }
 
-        ND_ Bytes               ElementSize ()                  const   { return _elemSize; }
-        ND_ ulong               ArraySize ()                    const   { return ulong(_bufDesc->size / _elemSize); }
+        ND_ Bytes                   ElementSize ()                  const   { return _elemSize; }
+        ND_ ulong                   ArraySize ()                    const   { return ulong(_bufDesc->size / _elemSize); }
 
-        ND_ StringView          Name ()                         const   { return _dbgName; }
-        ND_ bool                HasHistory ()                   const   { return AllBits( _flags, EBufferFlags::WithHistroy ); }
+        ND_ StringView              Name ()                         const   { return _dbgName; }
+        ND_ bool                    HasHistory ()                   const   { return AllBits( _flags, EBufferFlags::WithHistory ); }
+
+        ND_ ArrayView<RC<Buffer>>   GetRefBuffers ()                const   { return _refBuffers; }
 
 
     // IResource //
-        bool            Resize (TransferCtx_t &ctx)             __Th_OV;
-        EUploadStatus   Upload (TransferCtx_t &)                __Th_OV;
-        EUploadStatus   Readback (TransferCtx_t &)              __Th_OV;
+        bool            Resize (TransferCtx_t &ctx)                 __Th_OV;
+        bool            RequireResize ()                            C_Th_OV;
+        EUploadStatus   Upload (TransferCtx_t &)                    __Th_OV;
+        EUploadStatus   Readback (TransferCtx_t &)                  __Th_OV;
     };
 
     AE_BIT_OPERATORS( Buffer::EBufferFlags );

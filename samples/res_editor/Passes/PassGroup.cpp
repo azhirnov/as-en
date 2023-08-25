@@ -66,27 +66,27 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    Execute
+    _CanUpdate
 =================================================
 */
-    bool  PassGroup::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    bool  PassGroup::_CanUpdate () const
     {
         BEGIN_ENUM_CHECKS();
         switch ( _flags )
         {
             case EFlags::RunOnce :
             {
-                if ( _count.load() > 1 ) return true;
+                if ( _count.load() > 1 ) return false;
                 break;
             }
             case EFlags::OnRequest :
             {
-                if ( not _requestUpdate.load() ) return true;
+                if ( not _requestUpdate.load() ) return false;
                 break;
             }
             case EFlags::RunOnce_AfterLoading :
             {
-                if ( _count.load() > 1 ) return true;
+                if ( _count.load() > 1 ) return false;
                 break;
             }
 
@@ -97,7 +97,18 @@ namespace AE::ResEditor
                 break;
         }
         END_ENUM_CHECKS();
+        return true;
+    }
 
+/*
+=================================================
+    Update
+=================================================
+*/
+    bool  PassGroup::Update (TransferCtx_t &ctx, const UpdatePassData &pd) __NE___
+    {
+        if ( not _CanUpdate() )
+            return true;
 
         for (auto& pass : _passes)
         {
@@ -105,6 +116,23 @@ namespace AE::ResEditor
                 CHECK_ERR( pass->Update( ctx, pd ));
         }
         return true;
+    }
+
+/*
+=================================================
+    GetResourcesToResize
+=================================================
+*/
+    void  PassGroup::GetResourcesToResize (INOUT Array<RC<IResource>> &resources) __NE___
+    {
+        if ( not _CanUpdate() )
+            return;
+
+        for (auto& pass : _passes)
+        {
+            if ( AllBits( pass->GetType(), EPassType::Update ))
+                pass->GetResourcesToResize( INOUT resources );
+        }
     }
 
 

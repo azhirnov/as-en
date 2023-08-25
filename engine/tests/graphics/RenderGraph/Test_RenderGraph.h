@@ -14,23 +14,14 @@
 
 #include "graphics_test/GraphicsTest.h"
 
+#ifdef AE_ENABLE_VULKAN
+# include "VulkanSyncLog.h"
+#endif
+#include "cpp/types.h"
+
 using namespace AE;
 using namespace AE::Threading;
 using namespace AE::Graphics;
-
-#if defined(AE_ENABLE_VULKAN)
-# include "VulkanSyncLog.h"
-# include "cpp/vk_types.h"
-
-#elif defined(AE_ENABLE_METAL)
-# include "cpp/mac_types.h"
-
-#elif defined(AE_ENABLE_REMOTE_GRAPHICS)
-# include "cpp/vk_types.h"
-
-#else
-#   error not implemented
-#endif
 
 using EStatus = AE::Threading::IAsyncTask::EStatus;
 
@@ -117,13 +108,16 @@ private:
     bool  Test_UploadStream2 ();
 
     bool  Test_Compute1 ();
+    bool  Test_Compute2 ();         // with RG
     bool  Test_AsyncCompute1 ();
     bool  Test_AsyncCompute2 ();
     bool  Test_AsyncCompute3 ();
 
     bool  Test_Draw1 ();
-    bool  Test_Draw2 ();        // virtex buffer
-    bool  Test_Draw3 ();        // push constants
+    bool  Test_Draw2 ();            // vertex buffer
+    bool  Test_Draw3 ();            // push constants
+    bool  Test_Draw4 ();            // with RG & vstream
+    bool  Test_Draw5 ();            // with RG & vstream
     bool  Test_DrawMesh1 ();
     bool  Test_DrawMesh2 ();
     //bool  Test_DrawMultipass1 ();
@@ -132,16 +126,16 @@ private:
     bool  Test_RayQuery1 ();
 
     bool  Test_RayTracing1 ();
-    bool  Test_RayTracing2 ();  // indirect build
+    bool  Test_RayTracing2 ();      // indirect build
     bool  Test_RayTracing3 ();
 
     bool  Test_ShadingRate1 ();
 
-    bool  Test_Debugger1 ();    // compute
-    bool  Test_Debugger2 ();    // graphics
-    bool  Test_Debugger3 ();    // mesh
-    bool  Test_Debugger4 ();    // ray tracing
-    bool  Test_Debugger5 ();    // ray query
+    bool  Test_Debugger1 ();        // compute
+    bool  Test_Debugger2 ();        // graphics
+    bool  Test_Debugger3 ();        // mesh
+    bool  Test_Debugger4 ();        // ray tracing
+    bool  Test_Debugger5 ();        // ray query
 };
 
 

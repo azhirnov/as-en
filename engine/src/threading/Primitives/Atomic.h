@@ -424,8 +424,8 @@ namespace AE::Threading
         ND_ bool    CAS (INOUT value_type& expected, value_type desired)                                    __NE___ { return _value.compare_exchange_weak( INOUT expected, desired, OnSuccess, OnFailure ); }
         ND_ bool    CAS (INOUT value_type& expected, value_type desired, MO_t success, MO_t failure)        __NE___ { return _value.compare_exchange_weak( INOUT expected, desired, success, failure ); }
 
-        ND_ bool    CAS_loop (INOUT value_type& expected, value_type desired)                               __NE___ { return _value.compare_exchange_strong( INOUT expected, desired, OnSuccess, OnFailure ); }
-        ND_ bool    CAS_loop (INOUT value_type& expected, value_type desired, MO_t success, MO_t failure)   __NE___ { return _value.compare_exchange_strong( INOUT expected, desired, success, failure ); }
+        ND_ bool    CAS_Loop (INOUT value_type& expected, value_type desired)                               __NE___ { return _value.compare_exchange_strong( INOUT expected, desired, OnSuccess, OnFailure ); }
+        ND_ bool    CAS_Loop (INOUT value_type& expected, value_type desired, MO_t success, MO_t failure)   __NE___ { return _value.compare_exchange_strong( INOUT expected, desired, success, failure ); }
 
         value_type  fetch_add (ssize arg)                   __NE___ { return _value.fetch_add( arg, OnSuccess ); }
         value_type  fetch_sub (ssize arg)                   __NE___ { return _value.fetch_sub( arg, OnSuccess ); }

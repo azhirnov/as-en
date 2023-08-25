@@ -27,8 +27,21 @@ namespace AE::Graphics
         {
             ImageViewID     imageView;
             ClearValue_t    clearValue;             // default is black color
-            EResourceState  initial     = Default;  // allow to transit from known state to required by render pass
-            EResourceState  final       = Default;  // allow to transit from render pass state to expected state
+
+            // State transition helper //
+
+            // Allow to transit from known state to required by render pass.
+            // Keep 'Default' to disable auto-transition.
+            EResourceState  initial     = Default;
+
+            // Allow to transit from render pass state to expected state.
+            // Only available in 'IGraphicsContext::EndRenderPass(... RenderPassDesc)' or 'IGraphicsContext::EndMtRenderPass(... RenderPassDesc)' overload.
+            // Keep 'Default' to disable auto-transition.
+            EResourceState  final       = Default;
+
+            // If 'true' and known state is 'ColorAttachment_RW' and render pass require 'ColorAttachment_RW' state
+            // then no barriers are issued in spite of write -> write hazard.
+            bool            relaxedStateTransition  = true;
         };
 
         struct Viewport
@@ -82,14 +95,15 @@ namespace AE::Graphics
 
         // render target
         Self&  AddTarget (AttachmentName id, ImageViewID imageView)                                                 __NE___;
-        Self&  AddTarget (AttachmentName id, ImageViewID imageView, EResourceState initial, EResourceState final)   __NE___;
+        Self&  AddTarget (AttachmentName id, ImageViewID imageView,
+                          EResourceState initial, EResourceState final, Bool relaxedStateTransition = True{})       __NE___;
 
         template <typename ClearVal>
         Self&  AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue)                     __NE___;
 
         template <typename ClearVal>
         Self&  AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue,
-                          EResourceState initial, EResourceState final)                                             __NE___;
+                          EResourceState initial, EResourceState final, Bool relaxedStateTransition = True{})       __NE___;
 
 
         // viewport
@@ -202,11 +216,12 @@ namespace AE::Graphics
         return AddTarget( id, imageView, EResourceState::Unknown, EResourceState::Unknown );
     }
 
-    inline RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, EResourceState initial, EResourceState final) __NE___
+    inline RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView,
+                                                       EResourceState initial, EResourceState final, Bool relaxedStateTransition) __NE___
     {
         ASSERT( imageView );
 
-        bool inserted = attachments.insert_or_assign( id, Attachment{ imageView, NullUnion{}, initial, final }).second;
+        bool inserted = attachments.insert_or_assign( id, Attachment{ imageView, NullUnion{}, initial, final, relaxedStateTransition }).second;
         ASSERT( inserted ); Unused( inserted );
 
         return *this;
@@ -219,11 +234,12 @@ namespace AE::Graphics
     }
 
     template <typename ClearVal>
-    RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue, EResourceState initial, EResourceState final) __NE___
+    RenderPassDesc&  RenderPassDesc::AddTarget (AttachmentName id, ImageViewID imageView, const ClearVal &clearValue,
+                                                EResourceState initial, EResourceState final, Bool relaxedStateTransition) __NE___
     {
         ASSERT( imageView );
 
-        bool inserted = attachments.insert_or_assign( id, Attachment{ imageView, clearValue, initial, final }).second;
+        bool inserted = attachments.insert_or_assign( id, Attachment{ imageView, clearValue, initial, final, relaxedStateTransition }).second;
         ASSERT( inserted ); Unused( inserted );
 
         return *this;

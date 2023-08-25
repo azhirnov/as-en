@@ -1,6 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Build binary tree using buffer reference extension.
+*/
 #ifdef __INTELLISENSE__
-#   include <res_editor>
+#   include <res_editor.as>
 #   include <aestyle.glsl.h>
 #   define PASS1
 #   define PASS2
@@ -16,23 +19,23 @@
         RC<Buffer>  storage = Buffer( st_size );
         RC<Buffer>  cbuffer = Buffer();
 
-        cbuffer.ULong(  "root",     storage.DeviceAddress() );
+        cbuffer.ULong(  "root",     storage.DeviceAddress() );  cbuffer.AddReference( storage );
         cbuffer.ULong(  "maxSize",  st_size );
         cbuffer.Uint(   "count",    0 );
 
+
         // render loop
         {
-            RC<ComputePass>     pass1 = ComputePass( "", "PASS1", EPassFlags::Enable_ShaderTrace );
-            pass1.ArgInOut( "un_CBuffer",   cbuffer );
-            pass1.LocalSize( 1 );
-            pass1.DispatchGroups( 1 );
-
-
-            RC<ComputePass>     pass2 = ComputePass( "", "PASS2", EPassFlags::Enable_ShaderTrace );
-            pass2.ArgIn(    "un_CBuffer",   cbuffer );
-            pass2.ArgOut(   "un_OutImage",  rt );
-            pass2.LocalSize( 8, 8 );
-            pass2.DispatchThreads( rt.Dimension() );
+            RC<ComputePass>     pass = ComputePass( "", "PASS1", EPassFlags::Enable_ShaderTrace );
+            pass.ArgInOut(  "un_CBuffer",   cbuffer );
+            pass.LocalSize( 1 );
+            pass.DispatchGroups( 1 );
+        }{
+            RC<ComputePass>     pass = ComputePass( "", "PASS2", EPassFlags::Enable_ShaderTrace );
+            pass.ArgIn(     "un_CBuffer",   cbuffer );
+            pass.ArgOut(    "un_OutImage",  rt );
+            pass.LocalSize( 8, 8 );
+            pass.DispatchThreads( rt.Dimension() );
         }
         Present( rt );
     }

@@ -22,7 +22,7 @@ namespace AE::ResEditor
         class Material final : public IGSMaterials
         {
         // types
-        private:
+        public:
             using PplnID_t      = Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
             using PplnPerDraw_t = Array< PplnID_t >;
 
@@ -123,9 +123,8 @@ namespace AE::ResEditor
 
     // variables
     private:
-        Buffers_t           _meshes;
-        Textures_t          _textures;
         DrawCommands_t      _drawCommands;
+        ResourceArray       _resources;
 
 
     // methods

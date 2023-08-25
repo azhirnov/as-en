@@ -96,6 +96,7 @@ namespace AE::Graphics::_hidden_
         using RawCtx        = CtxImpl;
         using AccumBar      = MAccumBarriers< _MGraphicsContextImpl< CtxImpl >>;
         using DeferredBar   = MAccumDeferredBarriersForCtx< _MGraphicsContextImpl< CtxImpl >>;
+        using Validator_t   = GraphicsContextValidation;
 
 
     // variables
@@ -158,7 +159,7 @@ namespace AE::Graphics::_hidden_
     _MGraphicsContextImpl<C>::_MGraphicsContextImpl (const RenderTask &task, CmdBuf_t cmdbuf, DebugLabel dbg) :
         RawCtx{ task, RVRef(cmdbuf), dbg }  // throw
     {
-        CHECK_THROW( AnyBits( EQueueMask::Graphics, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
     template <typename C>
@@ -167,7 +168,7 @@ namespace AE::Graphics::_hidden_
         _primaryState{ batch.GetPrimaryCtxState() }
     {
         ASSERT( IsInsideRenderPass() );
-        CHECK_THROW( AnyBits( EQueueMask::Graphics, task.GetQueueMask() ));
+        Validator_t::CtxInit( task.GetQueueMask() );
     }
 
 /*

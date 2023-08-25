@@ -59,7 +59,11 @@ namespace AE::ResEditor
         ND_ virtual float4x4        GetView ()                                  C_NE___ = 0;
     //  ND_ virtual float4x4        GetInvView ()                               C_NE___ { return GetView().Inversed(); }
 
+        ND_ virtual float2          GetClipPlanes ()                            C_NE___ = 0;
+
     //  ND_ virtual RaysGrid_t      GetRaysGrid ()                              C_NE___ = 0;
+
+        ND_ virtual StringView      GetHelpText ()                              C_NE___ = 0;
 
             virtual void            CopyTo (OUT AE::ShaderTypes::CameraData &)  C_NE___ = 0;
 
@@ -115,6 +119,7 @@ namespace AE::ResEditor
         camera.invViewProj  = GetInvViewProj();
         camera.proj         = GetProj();
         camera.view         = GetView();
+        camera.clipPlanes   = GetClipPlanes();
         camera.pos          = GetPosition();
 
         for (uint i = 0; i < 6; ++i) {

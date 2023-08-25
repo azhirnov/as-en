@@ -11,6 +11,8 @@
 
     IResourceManager
         thread-safe:    yes
+
+    if AE_GRAPHICS_STRONG_VALIDATION enabled then 'IResourceManager::Create***()' may return error if resource description is not valid or not supported.
 */
 
 #pragma once
@@ -189,6 +191,8 @@ namespace AE::Graphics
 
     // interface
     public:
+        ND_ virtual RenderTechName::Optimized_t Name ()                                                                     C_NE___ = 0;
+
         ND_ virtual GraphicsPipelineID      GetGraphicsPipeline (const PipelineName &name)                                  C_NE___ = 0;
         ND_ virtual MeshPipelineID          GetMeshPipeline (const PipelineName &name)                                      C_NE___ = 0;
         ND_ virtual TilePipelineID          GetTilePipeline (const PipelineName &name)                                      C_NE___ = 0;
@@ -420,6 +424,9 @@ namespace AE::Graphics
 
 
         ND_ virtual FeatureSet const&           GetFeatureSet ()                                            C_NE___ = 0;
+
+
+        // TODO: mem alloc factory
     };
 
 

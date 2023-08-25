@@ -83,7 +83,8 @@ namespace AE::ResEditor
 
 
     // IResource //
-        bool                Resize (TransferCtx_t &)                                __Th_OV { return false; }
+        bool                Resize (TransferCtx_t &)                                __Th_OV { return true; }
+        bool                RequireResize ()                                        C_Th_OV { return false; }
         EUploadStatus       Upload (TransferCtx_t &)                                __Th_OV;
         EUploadStatus       Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Complete; }
 
@@ -158,7 +159,8 @@ namespace AE::ResEditor
 
 
     // IResource //
-        bool            Resize (TransferCtx_t &)                                __Th_OV { return false; }
+        bool            Resize (TransferCtx_t &)                                __Th_OV { return true; }
+        bool            RequireResize ()                                        C_Th_OV { return false; }
         EUploadStatus   Upload (TransferCtx_t &)                                __Th_OV;
         EUploadStatus   Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Complete; }
 

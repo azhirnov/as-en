@@ -1,5 +1,5 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include <pipeline_compiler>
+#include <pipeline_compiler.as>
 
 void ASmain ()
 {
@@ -37,13 +37,13 @@ void ASmain ()
 
     {
         RC<Shader>  vs = Shader();
-        vs.file     = "imgui.glsl";     // file:///<path>/samples/demo/_data/shaders/imgui.glsl
+        vs.file        = "imgui.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/imgui.glsl
         vs.options  = EShaderOpt::Optimize;
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs = Shader();
-        fs.file     = "imgui.glsl";     // file:///<path>/samples/demo/_data/shaders/imgui.glsl
+        fs.file        = "imgui.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/imgui.glsl
         fs.options  = EShaderOpt::Optimize;
         ppln.SetFragmentShader( fs );
     }
@@ -52,41 +52,15 @@ void ASmain ()
     {
         RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "imgui" );
         spec.AddToRenderTech( "ImGui.RTech", "Main" );
-        spec.AddToRenderTech( "HDR.RTech", "Main" );
-        spec.AddToRenderTech( "Mesh.RTech", "UI" );
-        spec.SetViewportCount( 1 );
 
         RenderState rs;
-
-        RenderState_ColorBuffer cb;
-        cb.srcBlendFactor   .set( EBlendFactor::SrcAlpha );
-        cb.dstBlendFactor   .set( EBlendFactor::OneMinusSrcAlpha );
-        cb.blendOp          .set( EBlendOp::Add );
-        cb.blend            = true;
-        rs.color.SetColorBuffer( 0, cb );
-
-        rs.depth.test = false;
-
-        rs.inputAssembly.topology = EPrimitive::TriangleList;
-
-        rs.rasterization.cullMode = ECullMode::None;
-
-        spec.SetRenderState( rs );
-    }
-    {
-        RC<GraphicsPipelineSpec>    spec = ppln.AddSpecialization( "imgui" );
-        spec.AddToRenderTech( "Bloom.RTech", "UI" );
-        spec.SetViewportCount( 1 );
-
-        RenderState rs;
-
-        RenderState_ColorBuffer cb;
-        cb.srcBlendFactor   .set( EBlendFactor::SrcAlpha );
-        cb.dstBlendFactor   .set( EBlendFactor::OneMinusSrcAlpha );
-        cb.blendOp          .set( EBlendOp::Add );
-        cb.blend            = true;
-        rs.color.SetColorBuffer( 0, cb );
-
+        {
+            RenderState_ColorBuffer     cb;
+            cb.SrcBlendFactor( EBlendFactor::SrcAlpha );
+            cb.DstBlendFactor( EBlendFactor::OneMinusSrcAlpha );
+            cb.BlendOp( EBlendOp::Add );
+            rs.color.SetColorBuffer( 0, cb );
+        }
         rs.depth.test = false;
 
         rs.inputAssembly.topology = EPrimitive::TriangleList;

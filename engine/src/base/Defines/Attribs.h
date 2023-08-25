@@ -162,6 +162,7 @@
 #   define else_unlikely        else [[unlikely]]
 #   define case_likely          [[likely]]      case
 #   define case_unlikely        [[unlikely]]    case
+#   define default_unlikely     [[unlikely]]    default
 #   define for_likely( ... )    [[likely]]      for ( __VA_ARGS__ )
 #   define for_unlikely( ... )  [[unlikely]]    for ( __VA_ARGS__ )
 #else
@@ -169,6 +170,7 @@
 #   define else_unlikely        else
 #   define case_likely          case
 #   define case_unlikely        case
+#   define default_unlikely     default
 #   define for_likely( ... )    for ( __VA_ARGS__ )
 #   define for_unlikely( ... )  for ( __VA_ARGS__ )
 #endif

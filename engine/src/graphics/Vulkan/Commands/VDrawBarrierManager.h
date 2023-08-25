@@ -34,8 +34,8 @@ namespace AE::Graphics::_hidden_
 
     // methods
     public:
-        explicit VDrawBarrierManager (Ptr<VDrawCommandBatch> batch)             __NE___;
-        explicit VDrawBarrierManager (const VPrimaryCmdBufState &primaryState)  __NE___;
+        explicit VDrawBarrierManager (Ptr<VDrawCommandBatch> batch)             __Th___;
+        explicit VDrawBarrierManager (const VPrimaryCmdBufState &primaryState)  __Th___;
 
         template <typename ...IDs>
         ND_ decltype(auto)          Get (IDs ...ids)                            __Th___ { return _resMngr.GetResourcesOrThrow( ids... ); }

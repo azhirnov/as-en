@@ -58,9 +58,9 @@ namespace AE::Graphics
 
 
         // variables
-            ColorPair< EBlendFactor >   srcBlendFactor  { EBlendFactor::One,  EBlendFactor::One };
-            ColorPair< EBlendFactor >   dstBlendFactor  { EBlendFactor::Zero, EBlendFactor::Zero };
-            ColorPair< EBlendOp >       blendOp         { EBlendOp::Add, EBlendOp::Add };
+            ColorPair< EBlendFactor >   srcBlendFactor  { EBlendFactor::One,    EBlendFactor::One };
+            ColorPair< EBlendFactor >   dstBlendFactor  { EBlendFactor::Zero,   EBlendFactor::Zero };
+            ColorPair< EBlendOp >       blendOp         { EBlendOp::Add,        EBlendOp::Add };
             bool                        blend           = false;
             ColorMask                   colorMask;
 
@@ -145,8 +145,8 @@ namespace AE::Graphics
         // variables
             float               minBounds       = 0.f;
             float               maxBounds       = 1.f;
-            bool                boundsEnabled   = false;                // enable 'minBounds' and 'maxBounds'
             ECompareOp          compareOp       = ECompareOp::LEqual;   // if 'test' enabled
+            bool                bounds          = false;                // enable 'minBounds' and 'maxBounds'
             bool                write           = false;                // depth write enabled
             bool                test            = false;                // depth test enabled
 

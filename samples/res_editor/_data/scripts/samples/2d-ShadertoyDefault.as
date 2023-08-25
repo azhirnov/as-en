@@ -1,6 +1,10 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    Simple fragment shader.
+    Demonstrates how to write shaders as in shadertoy.
+*/
 #ifdef __INTELLISENSE__
-#   include <res_editor>
+#   include <res_editor.as>
 #   include <aestyle.glsl.h>
 #endif
 //-----------------------------------------------------------------------------

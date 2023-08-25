@@ -194,28 +194,30 @@ namespace AE::App
 
     // methods
     public:
-        SerializableInputActionsGLFW () : SerializableInputActions{_Version} {}
+        SerializableInputActionsGLFW ()                 __NE___ : SerializableInputActions{_Version} {}
 
 
     // SerializableInputActions //
-        bool  IsKey (ushort type)           const override  { return _IsKey( EInputType(type) ); }
-        bool  IsKeyOrTouch (ushort type)    const override  { return _IsKeyOrTouch( EInputType(type) ); }
-        bool  IsCursor1D (ushort type)      const override  { return _IsCursor1D( EInputType(type) ); }
-        bool  IsCursor2D (ushort type)      const override  { return _IsCursor2D( EInputType(type) ); }
+        bool  IsKey (ushort type)                       C_NE_OV { return _IsKey( EInputType(type) ); }
+        bool  IsKeyOrTouch (ushort type)                C_NE_OV { return _IsKeyOrTouch( EInputType(type) ); }
+        bool  IsCursor1D (ushort type)                  C_NE_OV { return _IsCursor1D( EInputType(type) ); }
+        bool  IsCursor2D (ushort type)                  C_NE_OV { return _IsCursor2D( EInputType(type) ); }
 
-        String  ToString ()                 const override;
+        String      ToString (const Reflection &refl)   C_Th_OV;
+        StringView  GetApiName ()                       C_NE_OV { return "GLFW"; }
 
       #ifdef AE_ENABLE_SCRIPTING
-        bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script, const SourceLoc &loc) override;
+        bool  LoadFromScript (const Scripting::ScriptEnginePtr &se, String script,
+                              const SourceLoc &loc, Reflection &refl) override;
 
         static void  Bind (const Scripting::ScriptEnginePtr &se) __Th___;
       #endif
 
     private:
-        ND_ static constexpr bool  _IsKey (EInputType type);
-        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type);
-        ND_ static constexpr bool  _IsCursor1D (EInputType type);
-        ND_ static constexpr bool  _IsCursor2D (EInputType type);
+        ND_ static constexpr bool  _IsKey (EInputType type)         __NE___;
+        ND_ static constexpr bool  _IsKeyOrTouch (EInputType type)  __NE___;
+        ND_ static constexpr bool  _IsCursor1D (EInputType type)    __NE___;
+        ND_ static constexpr bool  _IsCursor2D (EInputType type)    __NE___;
     };
 
 
@@ -224,20 +226,20 @@ namespace AE::App
     _Is***
 =================================================
 */
-    forceinline constexpr bool  SerializableInputActionsGLFW::_IsKey (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsGLFW::_IsKey (EInputType type) __NE___ {
         return  ((type >= EInputType::MouseBegin) & (type <= EInputType::MouseEnd)) |
                 ((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
     }
 
-    forceinline constexpr bool  SerializableInputActionsGLFW::_IsKeyOrTouch (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsGLFW::_IsKeyOrTouch (EInputType type) __NE___ {
         return  _IsKey( type ) | (type == EInputType::TouchPos) | (type == EInputType::TouchPos_mm);
     }
 
-    forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor1D (EInputType) {
+    forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor1D (EInputType) __NE___ {
         return false;
     }
 
-    forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor2D (EInputType type) {
+    forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor2D (EInputType type) __NE___ {
         return  ((type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd))   |
                 (type == EInputType::MultiTouch);
     }

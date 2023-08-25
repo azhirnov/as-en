@@ -142,7 +142,7 @@ extern int Test_Graphics (IApplication &app, IWindow &wnd)
     Unique<IApplication::IAppListener>  AE_OnAppCreated ()
     {
         StaticLogger::InitDefault();
-        StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
+        //StaticLogger::AddLogger( ILogger::CreateHtmlOutput( "log.html" ));
 
         return MakeUnique<AppListener>();
     }

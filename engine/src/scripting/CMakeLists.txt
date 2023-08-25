@@ -11,7 +11,7 @@ if (${AE_ENABLE_SCRIPTING})
     endif()
     set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
 
-    add_library( "Scripting" STATIC ${SOURCES} ${DUMMY_CPP_FILE} )
+    add_library( "Scripting" STATIC ${SOURCES} ${PREBUILD_CPP_FILE} )
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
     set_property( TARGET "Scripting" PROPERTY FOLDER "Engine" )
     target_link_libraries( "Scripting" PUBLIC "Base" )

@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Resources/Buffer.h"
-#include "res_editor/Passes/FrameGraph.h"
+#include "res_editor/Core/RenderGraph.h"
 #include "res_editor/Passes/Renderer.h"
 
 namespace AE::ResEditor
@@ -37,7 +37,8 @@ namespace
                     Renderer &          renderer,
                     RC<DynamicUInt>     dynCount,
                     StringView          dbgName,
-                    EBufferFlags        flags) __Th___ :
+                    EBufferFlags        flags,
+                    Array<RC<Buffer>>   refBuffers) __Th___ :
         IResource{ renderer },
         _typeName{ typeName },
         _elemSize{ elemSize },
@@ -45,7 +46,8 @@ namespace
         _dynCount{ RVRef(dynCount) },
         _loadOp{ RVRef(loadOp) },
         _flags{ flags },
-        _dbgName{ dbgName }
+        _dbgName{ dbgName },
+        _refBuffers{ RVRef(refBuffers) }
     {
         ASSERT( (_elemSize > 0_b) == (_dynCount != null) );
 
@@ -62,7 +64,7 @@ namespace
         {
             _uploadStatus.store( EUploadStatus::Complete );
 
-            auto&   res_mngr = FrameGraph().GetStateTracker();
+            auto&   res_mngr = RenderGraph().GetStateTracker();
             for (auto& id : _ids) {
                 res_mngr.AddResourceIfNotTracked( id.Get() );
             }
@@ -103,13 +105,31 @@ namespace
         _loadOp = Default;
 
         {
-            auto&   res_mngr = FrameGraph().GetStateTracker();
+            auto&   res_mngr = RenderGraph().GetStateTracker();
             for (auto& a_id : _ids)
             {
                 auto    id = a_id.Release();
                 res_mngr.ReleaseResource( id );
             }
         }
+    }
+
+/*
+=================================================
+    RequireResize
+=================================================
+*/
+    bool  Buffer::RequireResize () C_Th___
+    {
+        if ( not _dynCount )
+            return true;
+
+        uint    count   = uint(ArraySize());
+
+        if_likely( not _dynCount->IsChanged( INOUT count ) or count == 0 )
+            return false;
+
+        return true;
     }
 
 /*
@@ -133,7 +153,7 @@ namespace
         desc.size = Max( count, 1u ) * _elemSize;
 
         auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
-        auto&   rs_track    = FrameGraph().GetStateTracker();
+        auto&   rs_track    = RenderGraph().GetStateTracker();
 
         auto    buf = res_mngr.CreateBuffer( desc, _dbgName, _GfxDynamicAllocator() );
         CHECK_ERR( buf );
@@ -175,7 +195,7 @@ namespace
         if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
             return stat;
 
-        const auto  CopyHistroy = [this, &ctx] (Bytes size)
+        const auto  CopyHistory = [this, &ctx] (Bytes size)
         {{
             if ( this->HasHistory() )
             {
@@ -211,7 +231,7 @@ namespace
         if ( not _loadOp.data.empty() )
         {
             CHECK_ERR( ctx.UploadBuffer( _ids[0].Get(), 0_b, _loadOp.data, EStagingHeapType::Dynamic ), EUploadStatus::InProgress );
-            CopyHistroy( ArraySizeOf(_loadOp.data) );
+            CopyHistory( ArraySizeOf(_loadOp.data) );
 
             _loadOp.data = {};
             _SetUploadStatus( EUploadStatus::Complete );
@@ -240,7 +260,12 @@ namespace
         {
             Unused( dst_mem.CopyFrom( _loadOp.request->GetResult().AsArray<ubyte>().section( usize(_loadOp.stream.pos), UMax )));
 
-            CopyHistroy( _loadOp.stream.End() );
+            CopyHistory( _loadOp.stream.End() );
+        }
+        else
+        {
+            if ( not _loadOp.stream.IsCompleted() )
+                return EUploadStatus::NoMemory;
         }
 
         if ( _loadOp.stream.IsCompleted() )

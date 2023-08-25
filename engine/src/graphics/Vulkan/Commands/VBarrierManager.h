@@ -155,6 +155,8 @@ namespace AE::Graphics::_hidden_
         ND_ const auto&  _GetBarrierMngr ()                                                                                                                 C_NE___ { return _mngr; } \
         \
     private: \
+        ND_ FrameUID     _GetFrameId ()                                                                                                                     C_NE___ { return this->_mngr.GetFrameId(); } \
+        \
         template <typename ...IDs>  ND_ decltype(auto)  _GetResourcesOrThrow (IDs ...ids)                                                                   __Th___ { return this->_mngr.GetResourceManager().GetResourcesOrThrow( ids... ); } \
 
 

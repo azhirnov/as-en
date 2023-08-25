@@ -1,5 +1,11 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
-#include <res_editor>
+/*
+    Generate planet PBR textures and draw with tessellation.
+    Used spherical cube with tangential projection to minimize distortion.
+*/
+#ifdef __INTELLISENSE__
+#   include <res_editor.as>
+#endif
 
 void ASmain ()
 {
@@ -38,10 +44,10 @@ void ASmain ()
 
     // setup planet
     {
-        planet.AddTexture( "un_HeightMap",   height_view );
-        planet.AddTexture( "un_NormalMap",   normal_view );
-        planet.AddTexture( "un_AlbedoMap",   albedo_view );
-        planet.AddTexture( "un_EmissionMap", emission_view );
+        planet.ArgIn( "un_HeightMap",   height_view,    Sampler_LinearMipmapRepeat );
+        planet.ArgIn( "un_NormalMap",   normal_view,    Sampler_LinearMipmapRepeat );
+        planet.ArgIn( "un_AlbedoMap",   albedo_view,    Sampler_LinearMipmapRepeat );
+        planet.ArgIn( "un_EmissionMap", emission_view,  Sampler_LinearMipmapRepeat );
         planet.DetailLevel( 0, 9 );
         planet.TessLevel( tess_level );
 
@@ -60,14 +66,14 @@ void ASmain ()
         args.Add( "albedo",     albedo_view );
         args.Add( "emission",   emission_view );
 
-        RunScript( "GenPlanet.as", ScriptFlags::RunOnce, args );    // file:///<path>/samples/res_editor/_data/callable_scr/GenPlanet.as
+        RunScript( "GenPlanet.as", ScriptFlags::RunOnce, args );    // file:///<path>/AE/samples/res_editor/_data/scripts/callable/GenPlanet.as
     }
 
     // render loop
     {
         RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "main pass" );
-        draw.AddPipeline( "VertexInput.as" );           // file:///<path>/samples/res_editor/_data/pipelines/VertexInput.as
-        draw.AddPipeline( "Planet/Planet_v2.as" );      // file:///<path>/samples/res_editor/_data/pipelines/Planet/Planet_v2.as
+        draw.AddPipeline( "VertexInput.as" );                // file:///<path>/AE/samples/res_editor/_data/pipelines/VertexInput.as
+        draw.AddPipeline( "Planet/samples-Planet-2.as" );    // file:///<path>/AE/samples/res_editor/_data/pipelines/Planet/samples-Planet-2.as
         draw.Output( "out_Color", rt, RGBA32f(0.0) );
         draw.Output( ds, DepthStencil(1.f, 0) );
     }

@@ -64,9 +64,9 @@ RenderStates {
   [0]
     renderState = {
       depth = {
-        compareOp     = LEqual
-        write         = true
-        test          = true
+        compareOp = LEqual
+        write     = true
+        test      = true
       }
       inputAssembly = {
         topology         = TriangleList
@@ -76,9 +76,9 @@ RenderStates {
   [1]
     renderState = {
       depth = {
-        compareOp     = LEqual
-        write         = false
-        test          = false
+        compareOp = LEqual
+        write     = false
+        test      = false
       }
       inputAssembly = {
         topology         = TriangleList
@@ -88,9 +88,9 @@ RenderStates {
   [2]
     renderState = {
       depth = {
-        compareOp     = LEqual
-        write         = false
-        test          = false
+        compareOp = LEqual
+        write     = false
+        test      = false
       }
     }
 }
@@ -99,17 +99,17 @@ DepthStencilStates {
   [0]
     depthStencilState = {
       depth = {
-        compareOp     = LEqual
-        write         = true
-        test          = true
+        compareOp = LEqual
+        write     = true
+        test      = true
       }
     }
   [1]
     depthStencilState = {
       depth = {
-        compareOp     = LEqual
-        write         = false
-        test          = false
+        compareOp = LEqual
+        write     = false
+        test      = false
       }
     }
 }

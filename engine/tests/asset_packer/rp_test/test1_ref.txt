@@ -269,8 +269,8 @@ ci.pAttachments    = {
   [0].storeOp        = STORE
   [0].stencilLoadOp  = DONT_CARE
   [0].stencilStoreOp = DONT_CARE
-  [0].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment_RW)
-  [0].finalLayout    = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment_RW)
+  [0].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
+  [0].finalLayout    = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
 }
 ci.subpassCount = 1
 ci.pSubpasses   = {
@@ -556,7 +556,7 @@ ci.pAttachments    = {
   [0].storeOp        = STORE
   [0].stencilLoadOp  = DONT_CARE
   [0].stencilStoreOp = DONT_CARE
-  [0].initialLayout  = UNDEFINED  (ColorAttachment_RW | Invalidate)
+  [0].initialLayout  = UNDEFINED  (ColorAttachment | Invalidate)
   [0].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (ShaderSample | FragmentShader)
   --------
   [1].flags          = 0
@@ -773,7 +773,7 @@ ci.pAttachments    = {
   [0].storeOp        = STORE
   [0].stencilLoadOp  = DONT_CARE
   [0].stencilStoreOp = DONT_CARE
-  [0].initialLayout  = UNDEFINED  (ColorAttachment_RW | Invalidate)
+  [0].initialLayout  = UNDEFINED  (ColorAttachment | Invalidate)
   [0].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (ShaderSample | FragmentShader)
   --------
   [1].flags          = 0
@@ -1052,8 +1052,8 @@ ci.pAttachments    = {
   [0].storeOp        = STORE
   [0].stencilLoadOp  = DONT_CARE
   [0].stencilStoreOp = DONT_CARE
-  [0].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment_RW)
-  [0].finalLayout    = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment_RW)
+  [0].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
+  [0].finalLayout    = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
   --------
   [1].flags          = 0
   [1].format         = R8_UINT

@@ -214,7 +214,8 @@ namespace
                 for (uint r = 0, j = 0; r < rows; ++r)
                 {
                     uint    sw = (expr.swizzle >> (r*3)) & 7;
-                    CopyValue( type, INOUT var.value, sw-1, data, INOUT j );
+                    if ( sw > 1 )
+                        CopyValue( type, INOUT var.value, sw-1, data, INOUT j );
                 }
             }
             else
@@ -250,10 +251,10 @@ namespace
     {
         auto&   fn = _profiling[ &expr ];
 
-        ulong   subgroup_begin;     std::memcpy( &subgroup_begin, data + 0, sizeof(subgroup_begin) );
-        ulong   subgroup_end;       std::memcpy( &subgroup_end,   data + 4, sizeof(subgroup_end) );
-        ulong   device_begin;       std::memcpy( &device_begin,   data + 2, sizeof(device_begin) );
-        ulong   device_end;         std::memcpy( &device_end,     data + 6, sizeof(device_end) );
+        ulong   subgroup_begin;     std::memcpy( OUT &subgroup_begin, data + 0, sizeof(subgroup_begin) );
+        ulong   subgroup_end;       std::memcpy( OUT &subgroup_end,   data + 4, sizeof(subgroup_end) );
+        ulong   device_begin;       std::memcpy( OUT &device_begin,   data + 2, sizeof(device_begin) );
+        ulong   device_end;         std::memcpy( OUT &device_end,     data + 6, sizeof(device_end) );
 
         if ( subgroup_end < subgroup_begin )
         {
@@ -567,10 +568,10 @@ namespace
 
 /*
 =================================================
-    GetTypeSizeOf
+    TypeSizeOf
 =================================================
 */
-    ND_ inline uint  GetTypeSizeOf (uint type)
+    ND_ inline uint  TypeSizeOf (uint type)
     {
         switch ( type )
         {
@@ -635,7 +636,7 @@ namespace
             CHECK_ERR( (t_basic == uint(TBasicType::EbtVoid) and row_size == 0) or (row_size > 0 and row_size <= 4) );
             CHECK_ERR( col_size > 0 and col_size <= 4 );
 
-            data_ptr += (row_size * col_size) * GetTypeSizeOf( t_basic );
+            data_ptr += (row_size * col_size) * TypeSizeOf( t_basic );
             ASSERT( data_ptr <= end_ptr );
 
             for (auto& sh : shaders) {

@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "res_editor/Resources/Image.h"
-#include "res_editor/Passes/FrameGraph.h"
+#include "res_editor/Core/RenderGraph.h"
 #include "res_editor/Passes/Renderer.h"
 
 namespace AE::ResEditor
@@ -15,7 +15,7 @@ namespace AE::ResEditor
 */
     Image::Image (Renderer&     renderer,
                   StringView    dbgName) :
-        IImageResource{ renderer },
+        IResource{ renderer },
         _dbgName{ dbgName }
     {
     }
@@ -26,10 +26,11 @@ namespace AE::ResEditor
                   Renderer &            renderer,
                   bool                  isDummy,
                   const ImageDesc &     desc,
+                  const ImageViewDesc&  viewDesc,
                   RC<DynamicDim>        inDynSize,
                   RC<DynamicDim>        outDynSize,
                   StringView            dbgName) :
-        IImageResource{ renderer },
+        IResource{ renderer },
         _id{ RVRef(id) },
         _view{ RVRef(view) },
         _isDummy{ isDummy },
@@ -39,6 +40,7 @@ namespace AE::ResEditor
         _dbgName{ dbgName }
     {
         _imageDesc.Write( desc );
+        _imageDesc.Write( viewDesc );
 
         if ( isDummy )
         {
@@ -50,7 +52,7 @@ namespace AE::ResEditor
         {
             _uploadStatus.store( EUploadStatus::Complete );
 
-            FrameGraph().GetStateTracker().AddResource( _id.Get() );
+            RenderGraph().GetStateTracker().AddResource( _id.Get() );
         }
 
         if ( not _loadOps.empty() )
@@ -88,11 +90,32 @@ namespace AE::ResEditor
         {
             auto    view    = _view.Release();
             auto    id      = _id.Release();
-            FrameGraph().GetStateTracker().ReleaseResources( view, id );
+            RenderGraph().GetStateTracker().ReleaseResources( view, id );
         }
 
         if ( _base )
             _base->_Remove( this );
+    }
+
+/*
+=================================================
+    RequireResize
+=================================================
+*/
+    bool  Image::RequireResize () C_Th___
+    {
+        if ( _base )
+            return _base->RequireResize();
+
+        if ( not _inDynSize )
+            return false;
+
+        ImageDesc   desc = GetImageDesc();
+
+        if ( not _inDynSize->IsChanged_NonZero( INOUT desc.dimension ))
+            return false;
+
+        return true;
     }
 
 /*
@@ -132,7 +155,7 @@ namespace AE::ResEditor
             auto    image = res_mngr.CreateImage( imageDesc, _dbgName, _GfxDynamicAllocator() );
             CHECK_ERR( image );
 
-            FrameGraph().GetStateTracker().AddResource( image.Get(),
+            RenderGraph().GetStateTracker().AddResource( image.Get(),
                                                         EResourceState::_InvalidState,  // current is not used
                                                         EResourceState::General,        // default
                                                         ctx.GetCommandBatchRC() );
@@ -175,7 +198,7 @@ namespace AE::ResEditor
 */
     IResource::EUploadStatus  Image::Upload (TransferCtx_t &ctx) __Th___
     {
-        if ( auto stat = _uploadStatus.load(); stat != EUploadStatus::InProgress )
+        if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
             return stat;
 
         ASSERT( not _loadOps.empty() );
@@ -185,7 +208,7 @@ namespace AE::ResEditor
 
         for (auto& op : _loadOps)
         {
-            if ( op.stream.IsCompleted() )
+            if ( op.IsCompleted() )
                 continue;
 
             op.loaded.WithResult(
@@ -199,40 +222,61 @@ namespace AE::ResEditor
 
                     if_unlikely( _isDummy.load() )
                     {
-                        CHECK_THROW( _CreateImage( *imageData ));
+                        CHECK_THROW( _CreateImage( *imageData, op.mipmap, op.layer ));
 
                         _isDummy.store( false );
-                        FrameGraph().GetStateTracker().AddResource( _id.Get(),
-                                                                    EResourceState::_InvalidState,                              // current is not used
-                                                                    EResourceState::ShaderSample | EResourceState::AllShaders,  // default
-                                                                    ctx.GetCommandBatchRC() );
+                        RenderGraph().GetStateTracker().AddResource( _id.Get(),
+                                                                     EResourceState::_InvalidState,                             // current is not used
+                                                                     EResourceState::ShaderSample | EResourceState::AllShaders, // default
+                                                                     ctx.GetCommandBatchRC() );
                         ctx.ResourceState( _id, EResourceState::Invalidate );
                     }
 
-                    if_unlikely( not op.stream.IsInitialized() )
+                    for (;;)
                     {
-                        UploadImageDesc     upload;
-                        upload.imageSize    = Max( 1u, imageData->Dimension() >> op.mipmap.Get() );
-                        upload.arrayLayer   = op.layer;
-                        upload.mipLevel     = op.mipmap;
-                        upload.heapType     = EStagingHeapType::Dynamic;
-                        upload.aspectMask   = EImageAspect::Color;
-                        op.stream           = ImageStream{ _id, upload };
-                    }
+                        if_unlikely( not op.stream.IsInitialized() )
+                        {
+                            UploadImageDesc     upload;
+                            upload.imageSize    = Max( imageData->Dimension() >> op.curMipmap.Get(), 1u );
+                            upload.arrayLayer   = op.layer + op.curLayer;
+                            upload.mipLevel     = op.mipmap + op.curMipmap;
+                            upload.heapType     = EStagingHeapType::Dynamic;
+                            upload.aspectMask   = EImageAspect::Color;
+                            op.stream           = ImageStream{ _id, upload };
+                        }
 
-                    ASSERT( op.stream.Image() == _id );
+                        ASSERT( op.stream.Image() == _id );
 
-                    ImageMemView    src_mem = imageData->ToView( 0_mipmap, 0_layer );
-                    ImageMemView    dst_mem;
-                    ctx.UploadImage( op.stream, OUT dst_mem );
+                        ImageMemView    src_mem = imageData->ToView( op.curMipmap, op.curLayer );
+                        ImageMemView    dst_mem;
+                        ctx.UploadImage( op.stream, OUT dst_mem );
 
-                    if ( not dst_mem.Empty() )
-                    {
+                        if ( dst_mem.Empty() )
+                            break;
+
                         CHECK( dst_mem.Copy( uint3{}, dst_mem.Offset(), src_mem, dst_mem.Dimension() ));
+
+                        if ( op.stream.IsCompleted() )
+                        {
+                            // invalidate
+                            op.stream = Default;
+
+                            if ( ++op.curMipmap < MipmapLevel{imageData->MipLevels()} )
+                                continue;
+
+                            if ( ++op.curLayer < ImageLayer{imageData->ArrayLayers()} )
+                            {
+                                op.curMipmap = MipmapLevel{};
+                                continue;
+                            }
+
+                            op.complete = true;
+                            break;
+                        }
                     }
                 });
 
-            all_complete &= op.stream.IsCompleted();
+            all_complete &= op.IsCompleted();
         }
 
         if ( failed )
@@ -263,7 +307,7 @@ namespace AE::ResEditor
 
         for (auto& op : _loadOps)
         {
-            ASSERT( op.stream.IsCompleted() );
+            ASSERT( op.IsCompleted() );
 
             if ( AllBits( op.flags, ELoadOpFlags::GenMipmaps ))
             {
@@ -357,20 +401,21 @@ namespace AE::ResEditor
     _CreateImage
 =================================================
 */
-    bool  Image::_CreateImage (const ResLoader::IntermImage &intermImg)
+    bool  Image::_CreateImage (const ResLoader::IntermImage &intermImg, MipmapLevel baseMipmap, ImageLayer baseLayer)
     {
         ASSERT( _isDummy.load() );
 
         auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
 
-        const auto  Create   = [this, &res_mngr] (auto& intermImg) -> bool
+        const auto  Create   = [this, &res_mngr, baseMipmap, baseLayer] (auto& intermImg) -> bool
         {{
-            ImageDesc   desc    = GetImageDesc();
+            ImageDesc       desc        = GetImageDesc();
+            ImageViewDesc   view_desc   = GetViewDesc();
             CHECK_ERR( CompareImageTypes( desc, intermImg ));
 
-            desc.dimension      = intermImg.Dimension();
-            desc.arrayLayers    = ImageLayer{ intermImg.ArrayLayers() };
-            desc.maxLevel       = MipmapLevel{ intermImg.MipLevels() };
+            desc.dimension      = intermImg.Dimension() << baseMipmap.Get();
+            desc.arrayLayers    = ImageLayer{ intermImg.ArrayLayers() + baseLayer.Get() };
+            desc.maxLevel       = MipmapLevel{ intermImg.MipLevels() + baseMipmap.Get() };
             desc.imageDim       = intermImg.GetImageDim();
             // keep: desc.options
             // keep: desc.usage
@@ -389,7 +434,7 @@ namespace AE::ResEditor
                 auto    old_img = _id.Attach( RVRef(image) );
                 res_mngr.ReleaseResource( old_img );    // release dummy resource
             }{
-                auto    view = res_mngr.CreateImageView( ImageViewDesc{desc}, _id.Get(), _dbgName );
+                auto    view = res_mngr.CreateImageView( view_desc, _id.Get(), _dbgName );
                 CHECK_ERR( view );
 
                 _imageDesc.Write( res_mngr.GetDescription( view ));

@@ -114,7 +114,7 @@ namespace AE::Threading
 
             _arr.try_push_back( EThread(arg0) );
 
-            if constexpr( sizeof...(args) > 0 )
+            if constexpr( CountOf<Args...>() > 0 )
                 return _Insert( args... );
         }
     };

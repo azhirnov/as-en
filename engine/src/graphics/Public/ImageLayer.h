@@ -27,8 +27,6 @@ namespace AE::Graphics
 
         ND_ constexpr uint  Get ()                                  C_NE___ { return _value; }
 
-        ND_ ImageLayer      operator + (const ImageLayer &rhs)      C_NE___ { return ImageLayer{ Get() + rhs.Get() }; }
-
         ND_ constexpr bool  operator == (const ImageLayer &rhs)     C_NE___ { return _value == rhs._value; }
         ND_ constexpr bool  operator != (const ImageLayer &rhs)     C_NE___ { return _value != rhs._value; }
         ND_ constexpr bool  operator >  (const ImageLayer &rhs)     C_NE___ { return _value >  rhs._value; }
@@ -36,7 +34,10 @@ namespace AE::Graphics
         ND_ constexpr bool  operator >= (const ImageLayer &rhs)     C_NE___ { return _value >= rhs._value; }
         ND_ constexpr bool  operator <= (const ImageLayer &rhs)     C_NE___ { return _value <= rhs._value; }
 
-        ImageLayer&         operator *= (uint rhs)                  __NE___ { _value = static_cast<ushort>(_value * rhs);  return *this; }
+        ND_ ImageLayer      operator + (const ImageLayer &rhs)      C_NE___ { return ImageLayer{ Get() + rhs.Get() }; }
+            ImageLayer&     operator ++ ()                          __NE___ { ++_value;  return *this; }
+
+            ImageLayer&     operator *= (uint rhs)                  __NE___ { _value = CheckCast<ushort>(_value * rhs);  return *this; }
     };
 
 

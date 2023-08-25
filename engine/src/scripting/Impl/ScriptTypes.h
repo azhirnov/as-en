@@ -366,7 +366,8 @@ namespace AE::Scripting
         template <typename T>
         static void  Constructor (AngelScript::asIScriptGeneric *gen)
         {
-            PlacementNew<T>( OUT gen->GetObject() );    // nothrow
+            // TODO: bug in AngelScript: address is not aligned
+            PlacementNew<T>( OUT gen->GetObject() );    // throw
         }
 
 
@@ -964,7 +965,20 @@ namespace AE::Scripting
             if constexpr( IsSameTypes< T, ulong >)  return typeId == asTYPEID_UINT64;   else
             if constexpr( IsSameTypes< T, float >)  return typeId == asTYPEID_FLOAT;    else
             if constexpr( IsSameTypes< T, double >) return typeId == asTYPEID_DOUBLE;   else
-            if constexpr( IsEnum< T >)              return false;                       else    // TODO
+            if constexpr( IsEnum< T >)
+            {
+                asITypeInfo*    info = se->GetTypeInfoById( typeId );
+
+                if ( info == null )
+                    return false;
+
+                StringView  name1   = info->GetName();
+                String      name2;
+
+                ScriptTypeInfo<T>::Name( OUT name2 );
+                return name1 == name2;
+            }
+            else
             {
                 using T2    = AngelScriptHelper::RemoveSharedPtr<T>;
                 using Info  = ScriptTypeInfo<T>;

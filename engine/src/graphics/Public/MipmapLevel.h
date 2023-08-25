@@ -35,6 +35,9 @@ namespace AE::Graphics
         ND_ constexpr bool  operator <  (const MipmapLevel &rhs)    C_NE___ { return _value <  rhs._value; }
         ND_ constexpr bool  operator >= (const MipmapLevel &rhs)    C_NE___ { return _value >= rhs._value; }
         ND_ constexpr bool  operator <= (const MipmapLevel &rhs)    C_NE___ { return _value <= rhs._value; }
+
+        ND_ MipmapLevel     operator + (MipmapLevel rhs)            C_NE___ { return MipmapLevel{ uint{_value} + rhs._value }; }
+            MipmapLevel&    operator ++ ()                          __NE___ { ++_value;  return *this; }
     };
 
 

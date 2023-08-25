@@ -21,7 +21,7 @@ if (NOT (DEFINED ENGINE_LIBS_PATH))
 endif()
 set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
 
-add_library( "InputActionsBinding" STATIC ${SOURCES} ${PLATFORM_HPP_SRC} ${PLATFORM_CPP_SRC} ${DUMMY_CPP_FILE} )
+add_library( "InputActionsBinding" STATIC ${SOURCES} ${PLATFORM_HPP_SRC} ${PLATFORM_CPP_SRC} ${PREBUILD_CPP_FILE} )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( "external/platform" FILES ${PLATFORM_HPP_SRC} ${PLATFORM_CPP_SRC} )
 
@@ -34,7 +34,7 @@ EnablePrebuild( "InputActionsBinding" )
 
 add_library( "InputActionsBinding-shared" SHARED
     "InputActionsBinding.h"
-    #"Lib/main.cpp"
+    ${DUMMY_CPP_FILE}
     "Lib/InputActionsBinding.def"
 )
 target_link_libraries( "InputActionsBinding-shared" PUBLIC "InputActionsBinding" )

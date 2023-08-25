@@ -41,7 +41,7 @@ namespace
         const String    src = ppln_layout->ToGLSL( EShaderStages::Fragment, INOUT unique_types );
         const String    ref = R"#(//---------------------
 // ds[0], name: 'PerDraw', type: 'PerDraw'
-  // state: ShaderStorage_RW | PreRasterizationShaders | FragmentShader
+  // state: ShaderStorage_RW | VertexProcessingShaders | FragmentShader
   // static size: 32 b, array stride: 0 b
   layout(set=0, binding=1, std430) coherent buffer AE_Type_ubuf {
     layout(offset=0, align=16) uvec4  u;
@@ -78,10 +78,13 @@ extern void  UnitTest_PipelineLayout_GLSL ()
     obj.defaultFeatureSet   = "DefaultFS";
     obj.target              = ECompilationTarget::Vulkan;
     obj.pplnStorage         = &ppln;
-    obj.metalCompiler       = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
     obj.spirvCompiler       = MakeUnique<SpirvCompiler>( Array<Path>{} );
     obj.spirvCompiler->SetDefaultResourceLimits();
     ObjectStorage::SetInstance( &obj );
+
+    #ifdef AE_METAL_TOOLS
+        obj.metalCompiler = MakeUnique<MetalCompiler>( ArrayView<Path>{} );
+    #endif
 
     ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
     fs->fs.SetAll( EFeature::RequireTrue );

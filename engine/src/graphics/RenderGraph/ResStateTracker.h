@@ -192,97 +192,98 @@ namespace AE::RG::_hidden_
 
     // methods
     public:
-        ResStateTracker ()                                                                                                                                  __NE___ {}
+        ResStateTracker ()                                                                                                                              __NE___ {}
 
-        // will replace previous state
-        template <typename ID>  bool  AddResource (ID id)                                                                                                   __NE___ { return _AddResource( id, Default, Default,      null,  Default ); }
-        template <typename ID>  bool  AddResource (ID id, EResourceState current)                                                                           __NE___ { return _AddResource( id, current, Default,      null,  Default ); }
-        template <typename ID>  bool  AddResource (ID id, EResourceState current, EResourceState defaultState)                                              __NE___ { return _AddResource( id, current, defaultState, null,  Default ); }
-        template <typename ID>  bool  AddResource (ID id, EResourceState current, EResourceState defaultState, EQueueType queue)                            __NE___ { return _AddResource( id, current, defaultState, null,  queue   ); }
-        template <typename ID>  bool  AddResource (ID id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch)                __NE___ { return _AddResource( id, current, defaultState, batch, Default ); }
+        // Will replace previous state.
+        // Returns 'true' if resource is added.
+        template <typename ID>  bool  AddResource (const ID &id)                                                                                        __NE___ { return _AddResource( id, Default, Default,      null,  Default ); }
+        template <typename ID>  bool  AddResource (const ID &id, EResourceState current)                                                                __NE___ { return _AddResource( id, current, Default,      null,  Default ); }
+        template <typename ID>  bool  AddResource (const ID &id, EResourceState current, EResourceState defaultState)                                   __NE___ { return _AddResource( id, current, defaultState, null,  Default ); }
+        template <typename ID>  bool  AddResource (const ID &id, EResourceState current, EResourceState defaultState, EQueueType queue)                 __NE___ { return _AddResource( id, current, defaultState, null,  queue   ); }
+        template <typename ID>  bool  AddResource (const ID &id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch)     __NE___ { return _AddResource( id, current, defaultState, batch, Default ); }
 
-        template <typename ID, typename ...Args> bool  AddResource (const Strong<ID> &id, const Args& ...args)                                              __NE___ { return AddResource( id.Get(), args... ); }
+        // Keep previous state if exists.
+        // Returns 'true' if resource is already tracked or added.
+        template <typename ID>  bool  AddResourceIfNotTracked (const ID &id)                                                                            __NE___ { return IsTracked( id ) or AddResource( id ); }
+        template <typename ID>  bool  AddResourceIfNotTracked (const ID &id, EResourceState current)                                                    __NE___ { return IsTracked( id ) or AddResource( id, current ); }
+        template <typename ID>  bool  AddResourceIfNotTracked (const ID &id, EResourceState current, EResourceState defaultState)                       __NE___ { return IsTracked( id ) or AddResource( id, current, defaultState ); }
+        template <typename ID>  bool  AddResourceIfNotTracked (const ID &id, EResourceState current, EResourceState defaultState, EQueueType queue)     __NE___ { return IsTracked( id ) or AddResource( id, current, defaultState, queue ); }
+        template <typename ID>  bool  AddResourceIfNotTracked (const ID &id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch) __NE___ { return IsTracked( id ) or AddResource( id, current, defaultState, batch ); }
 
-        // keep previous state if exists
-        template <typename ID>  bool  AddResourceIfNotTracked (ID id)                                                                                       __NE___ { return IsTracked( id ) or AddResource( id ); }
-        template <typename ID>  bool  AddResourceIfNotTracked (ID id, EResourceState current)                                                               __NE___ { return IsTracked( id ) or AddResource( id, current ); }
-        template <typename ID>  bool  AddResourceIfNotTracked (ID id, EResourceState current, EResourceState defaultState)                                  __NE___ { return IsTracked( id ) or AddResource( id, current, defaultState ); }
-        template <typename ID>  bool  AddResourceIfNotTracked (ID id, EResourceState current, EResourceState defaultState, EQueueType queue)                __NE___ { return IsTracked( id ) or AddResource( id, current, defaultState, queue ); }
-        template <typename ID>  bool  AddResourceIfNotTracked (ID id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch)    __NE___ { return IsTracked( id ) or AddResource( id, current, defaultState, batch ); }
+        template <typename ID>  ND_ auto  AcquireResource (const ID &id)                                                                                __NE___ { return _ResMngr().AcquireResource( id ); }
 
-        template <typename ID, typename ...Args> bool  AddResourceIfNotTracked (const Strong<ID> &id, const Args& ...args)                                  __NE___ { return AddResourceIfNotTracked( id.Get(), args... ); }
+        // Returns 'true' if resource is tracked.
+        template <typename ID>  ND_ bool  IsTracked (const ID    &id)                                                                                   C_NE___ { return IsTracked( ResourceKey{id} ); }
+                                ND_ bool  IsTracked (ResourceKey key)                                                                                   C_NE___;
 
-        template <usize IS, usize GS, uint UID> ND_ auto  AcquireResource (HandleTmpl<IS, GS, UID> id)                                                      __NE___ { return _ResMngr().AcquireResource( id ); }
+        template <typename ID>  void  RemoveResource (const ID    &id)                                                                                  __NE___ { return RemoveResource( ResourceKey{id} ); }
+                                void  RemoveResource (ResourceKey key)                                                                                  __NE___;
 
-        template <typename ID>  ND_ bool  IsTracked (ID id)                                                                                                 C_NE___ { return IsTracked( ResourceKey{id} ); }
-        template <typename ID>  ND_ bool  IsTracked (const Strong<ID> &id)                                                                                  C_NE___ { return IsTracked( ResourceKey{id.Get()} ); }
-                                ND_ bool  IsTracked (ResourceKey key)                                                                                       C_NE___;
+        // Returns default state and 'resource may be undefined' flag.
+        // Resource may be undefined if it is not tracked or image in first use.
+        template <typename ID>  Tuple<EResourceState, bool>  GetDefaultState (const ID    &id)                                                          C_NE___ { return GetDefaultState( ResourceKey{id} ); }
+                                Tuple<EResourceState, bool>  GetDefaultState (ResourceKey key)                                                          C_NE___;
 
-        template <typename ID>  void  RemoveResource (ID id)                                                                                                __NE___ { return RemoveResource( ResourceKey{id} ); }
-        template <typename ID>  void  RemoveResource (const Strong<ID> &id)                                                                                 __NE___ { return RemoveResource( ResourceKey{id.Get()} ); }
-                                void  RemoveResource (ResourceKey key)                                                                                      __NE___;
+        // Returns 'true' if resource is tracked.
+        template <typename ID>  bool  SetDefaultState (const ID    &id, EResourceState defaultState)                                                    __NE___ { return SetDefaultState( ResourceKey{id}, defaultState ); }
+                                bool  SetDefaultState (ResourceKey key, EResourceState defaultState)                                                    __NE___;
 
-        template <typename ID>  bool  GetDefaultState (ID                 id, OUT EResourceState &defaultState)                                             C_NE___ { return GetDefaultState( ResourceKey{id}, OUT defaultState ); }
-        template <typename ID>  bool  GetDefaultState (const Strong<ID> & id, OUT EResourceState &defaultState)                                             C_NE___ { return GetDefaultState( ResourceKey{id.Get()}, OUT defaultState ); }
-                                bool  GetDefaultState (ResourceKey       key, OUT EResourceState &defaultState)                                             C_NE___;
+        template <typename ID0, typename ...IDs> void  SetDefaultState (EResourceState defaultState, const ID0 &id0, const IDs& ...ids)                 __NE___;
 
-        template <typename ID>  bool  SetDefaultState (ID                 id, EResourceState defaultState)                                                  __NE___ { return SetDefaultState( ResourceKey{id}, defaultState ); }
-        template <typename ID>  bool  SetDefaultState (const Strong<ID> & id, EResourceState defaultState)                                                  __NE___ { return SetDefaultState( ResourceKey{id.Get()}, defaultState ); }
-                                bool  SetDefaultState (ResourceKey       key, EResourceState defaultState)                                                  __NE___;
-
-        ND_ bool  UpdateResource (ResourceKey key, EResourceState newState, const CommandBatch &newBatch, OUT ResGlobalState &oldState)                     __NE___;
+        // Returns 'true' if resource is tracked.
+        ND_ bool  UpdateResource (ResourceKey key, EResourceState newState, const CommandBatch &newBatch, OUT ResGlobalState &oldState)                 __NE___;
 
 
     // IResourceManager //
-        ND_ Strong<ImageID>         CreateImage (const ImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)                  __NE___;
-        ND_ Strong<BufferID>        CreateBuffer (const BufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)                __NE___;
+        ND_ Strong<ImageID>         CreateImage (const ImageDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)              __NE___;
+        ND_ Strong<BufferID>        CreateBuffer (const BufferDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)            __NE___;
 
-        ND_ Strong<ImageID>         CreateImage (const NativeImageDesc_t &desc, StringView dbgName)                                                         __NE___;
-        ND_ Strong<BufferID>        CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName)                                                       __NE___;
+        ND_ Strong<ImageID>         CreateImage (const NativeImageDesc_t &desc, StringView dbgName)                                                     __NE___;
+        ND_ Strong<BufferID>        CreateBuffer (const NativeBufferDesc_t &desc, StringView dbgName)                                                   __NE___;
 
-        ND_ Strong<ImageViewID>     CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName = Default)                                __NE___;
-        ND_ Strong<BufferViewID>    CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName = Default)                            __NE___;
+        ND_ Strong<ImageViewID>     CreateImageView (const ImageViewDesc &desc, ImageID image, StringView dbgName = Default)                            __NE___;
+        ND_ Strong<BufferViewID>    CreateBufferView (const BufferViewDesc &desc, BufferID buffer, StringView dbgName = Default)                        __NE___;
 
-        ND_ Strong<RTGeometryID>    CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)        __NE___;
-        ND_ Strong<RTSceneID>       CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)              __NE___;
+        ND_ Strong<RTGeometryID>    CreateRTGeometry (const RTGeometryDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)    __NE___;
+        ND_ Strong<RTSceneID>       CreateRTScene (const RTSceneDesc &desc, StringView dbgName = Default, GfxMemAllocatorPtr allocator = null)          __NE___;
 
-            bool                    ReleaseResource (INOUT Strong<ImageID>      &id)                                                                        __NE___;
-            bool                    ReleaseResource (INOUT Strong<BufferID>     &id)                                                                        __NE___;
-            bool                    ReleaseResource (INOUT Strong<ImageViewID>  &id)                                                                        __NE___;
-            bool                    ReleaseResource (INOUT Strong<BufferViewID> &id)                                                                        __NE___;
-            bool                    ReleaseResource (INOUT Strong<RTGeometryID> &id)                                                                        __NE___;
-            bool                    ReleaseResource (INOUT Strong<RTSceneID>    &id)                                                                        __NE___;
+            bool                    ReleaseResource (INOUT Strong<ImageID>      &id)                                                                    __NE___;
+            bool                    ReleaseResource (INOUT Strong<BufferID>     &id)                                                                    __NE___;
+            bool                    ReleaseResource (INOUT Strong<ImageViewID>  &id)                                                                    __NE___;
+            bool                    ReleaseResource (INOUT Strong<BufferViewID> &id)                                                                    __NE___;
+            bool                    ReleaseResource (INOUT Strong<RTGeometryID> &id)                                                                    __NE___;
+            bool                    ReleaseResource (INOUT Strong<RTSceneID>    &id)                                                                    __NE___;
 
             template <typename Arg0, typename ...Args>
-            bool                    ReleaseResources (Arg0 &arg0, Args& ...args)                                                                            __NE___;
+            bool                    ReleaseResources (Arg0 &arg0, Args& ...args)                                                                        __NE___;
 
             template <typename ArrayType>
-            void                    ReleaseResourceArray (INOUT ArrayType &arr)                                                                             __NE___;
+            void                    ReleaseResourceArray (INOUT ArrayType &arr)                                                                         __NE___;
 
-        ND_ RTASBuildSizes          GetRTGeometrySizes (const RTGeometryBuild &desc)                                                                        C_NE___ { return _ResMngr().GetRTGeometrySizes( desc ); }
-        ND_ RTASBuildSizes          GetRTSceneSizes (const RTSceneBuild &desc)                                                                              C_NE___ { return _ResMngr().GetRTSceneSizes( desc ); }
+        ND_ RTASBuildSizes          GetRTGeometrySizes (const RTGeometryBuild &desc)                                                                    C_NE___ { return _ResMngr().GetRTGeometrySizes( desc ); }
+        ND_ RTASBuildSizes          GetRTSceneSizes (const RTSceneBuild &desc)                                                                          C_NE___ { return _ResMngr().GetRTSceneSizes( desc ); }
 
-        template <typename ID> ND_ auto         GetDeviceAddress (ID id)                                                                                    C_NE___ { return _ResMngr().GetDeviceAddress( id ); }
+        template <typename ID> ND_ auto         GetDeviceAddress (ID id)                                                                                C_NE___ { return _ResMngr().GetDeviceAddress( id ); }
 
-        template <typename ID> ND_ auto const&  GetDescription (ID id)                                                                                      C_NE___ { return _ResMngr().GetDescription( id ); }
-        template <typename ID> ND_ bool         IsResourceAlive (ID id)                                                                                     C_NE___ { return _ResMngr().IsResourceAlive( id ); }
+        template <typename ID> ND_ auto const&  GetDescription (ID id)                                                                                  C_NE___ { return _ResMngr().GetDescription( id ); }
+        template <typename ID> ND_ bool         IsResourceAlive (ID id)                                                                                 C_NE___ { return _ResMngr().IsResourceAlive( id ); }
 
-            bool                    GetMemoryInfo (ImageID id, OUT NativeMemObjInfo_t &info)                                                                C_NE___ { return _ResMngr().GetMemoryInfo( id, OUT info ); }
-            bool                    GetMemoryInfo (BufferID id, OUT NativeMemObjInfo_t &info)                                                               C_NE___ { return _ResMngr().GetMemoryInfo( id, OUT info ); }
+            bool                    GetMemoryInfo (ImageID id, OUT NativeMemObjInfo_t &info)                                                            C_NE___ { return _ResMngr().GetMemoryInfo( id, OUT info ); }
+            bool                    GetMemoryInfo (BufferID id, OUT NativeMemObjInfo_t &info)                                                           C_NE___ { return _ResMngr().GetMemoryInfo( id, OUT info ); }
 
-        ND_ FeatureSet const&       GetFeatureSet ()                                                                                                        C_NE___ { return _ResMngr().GetFeatureSet(); }
-        ND_ IResourceManager&       GetResourceManager ()                                                                                                   C_NE___ { return _ResMngr(); }
+        ND_ FeatureSet const&       GetFeatureSet ()                                                                                                    C_NE___ { return _ResMngr().GetFeatureSet(); }
+        ND_ IResourceManager&       GetResourceManager ()                                                                                               C_NE___ { return _ResMngr(); }
 
     protected:
-        ND_ bool  _AddResource2 (ResourceKey key, const ResGlobalState &info)                                                                               __NE___;
-        ND_ bool  _AddResource (ImageID      id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)       __NE___;
-        ND_ bool  _AddResource (BufferID     id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)       __NE___;
-        ND_ bool  _AddResource (RTGeometryID id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)       __NE___;
-        ND_ bool  _AddResource (RTSceneID    id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)       __NE___;
+        ND_ bool  _AddResource2 (ResourceKey key, const ResGlobalState &info)                                                                           __NE___;
+        ND_ bool  _AddResource (ImageID      id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)   __NE___;
+        ND_ bool  _AddResource (BufferID     id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)   __NE___;
+        ND_ bool  _AddResource (RTGeometryID id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)   __NE___;
+        ND_ bool  _AddResource (RTSceneID    id, EResourceState current, EResourceState defaultState, const CommandBatchPtr &batch, EQueueType queue)   __NE___;
 
-        template <typename ID>  ND_ bool  _ReleaseResource (INOUT ID &id)                                                                                   __NE___;
+        template <typename ID>  ND_ bool  _ReleaseResource (INOUT ID &id)                                                                               __NE___;
 
-        ND_ IResourceManager&  _ResMngr ()                                                                                                                  C_NE___;
+        ND_ IResourceManager&  _ResMngr ()                                                                                                              C_NE___;
     };
 
 
@@ -312,6 +313,20 @@ namespace AE::RG::_hidden_
     void  ResStateTracker::ReleaseResourceArray (INOUT ArrayType &arr) __NE___
     {
         for (auto& id : arr) { ReleaseResource( INOUT id ); }
+    }
+
+/*
+=================================================
+    SetDefaultState
+=================================================
+*/
+    template <typename ID0, typename ...IDs>
+    void  ResStateTracker::SetDefaultState (EResourceState defaultState, const ID0 &id0, const IDs& ...ids) __NE___
+    {
+        SetDefaultState( ResourceKey{id0}, defaultState );
+
+        if constexpr( CountOf<IDs...>() > 0 )
+            SetDefaultState( defaultState, ids... );
     }
 
 

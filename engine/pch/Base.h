@@ -47,9 +47,6 @@
 #include "base/DataSource/DataSourceRange.h"
 #include "base/DataSource/FastStream.h"
 
-// Crypto
-#include "base/Crypto/SimpleCrypto.h"
-
 // Math
 #include "base/Math/Bytes.h"
 #include "base/Math/Radians.h"

@@ -8,6 +8,7 @@ namespace
     {
         Mutex                       guard;
 
+        RenderTechPipelinesPtr      rtech;
         uint2                       viewSize;
 
         GAutorelease<ImageID>       img;
@@ -26,7 +27,9 @@ namespace
         RC<GfxLinearMemAllocator>   gfxAlloc;
     };
 
-    static const Vertex_draw2   vertices[] = {
+    static constexpr auto&  RTech = RenderTechs::DrawTestRT;
+
+    static const ShaderTypes::Vertex_draw2  vertices[] = {
         { float2{ 0.0f, -0.5f}, HtmlColor::Red },
         { float2{ 0.5f,  0.5f}, HtmlColor::Green },
         { float2{-0.5f,  0.5f}, HtmlColor::Blue },
@@ -68,9 +71,12 @@ namespace
 
             // draw
             {
-                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ RenderPassName{"DrawTest.Draw_1"}, t.viewSize }
+                constexpr auto&     rtech_pass = RTech.Draw_1;
+                STATIC_ASSERT( rtech_pass.attachmentsCount == 1 );
+
+                auto    dctx = ctx.BeginRenderPass( RenderPassDesc{ t.rtech, rtech_pass, t.viewSize }
                                     .AddViewport( t.viewSize )
-                                    .AddTarget( AttachmentName{"Color"}, t.view, RGBA32f{HtmlColor::White} ));
+                                    .AddTarget( rtech_pass.att_Color, t.view, RGBA32f{HtmlColor::White} ));
 
                 CHECK_TE( dctx.BindVertexBuffer( t.ppln, VertexBufferName{"vb"}, t.vb, 0_b ));
 
@@ -126,9 +132,12 @@ namespace
         const auto      format      = EPixelFormat::RGBA8_UNorm;
         D2_TestData     t;
 
+        t.rtech     = renderTech;
         t.gfxAlloc  = MakeRC<GfxLinearMemAllocator>();
         t.imgCmp    = imageCmp;
         t.viewSize  = uint2{800, 600};
+
+        CHECK_ERR( t.rtech->Name() == RenderTechName{RTech} );
 
         t.vb = res_mngr.CreateBuffer( BufferDesc{ Sizeof(vertices), EBufferUsage::TransferDst | EBufferUsage::Vertex }.SetMemory( EMemoryType::DeviceLocal ),
                                       "vertex buffer", t.gfxAlloc );
@@ -142,7 +151,7 @@ namespace
         t.view = res_mngr.CreateImageView( ImageViewDesc{}, t.img, "ImageView" );
         CHECK_ERR( t.view );
 
-        t.ppln = renderTech->GetGraphicsPipeline( PipelineName{"draw2"} );
+        t.ppln = t.rtech->GetGraphicsPipeline( RTech.Draw_1.draw2 );
         CHECK_ERR( t.ppln );
 
         AsyncTask   begin   = rts.BeginFrame();
