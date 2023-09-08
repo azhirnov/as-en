@@ -1,0 +1,28 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "msdfgen-main" LANGUAGES CXX )
+
+set( MSDFGEN_BUILD_STANDALONE OFF CACHE INTERNAL "" FORCE )
+set( MSDFGEN_INSTALL OFF CACHE INTERNAL "" FORCE )
+
+include( "../../../config.cmake" )
+include( "origin_CMakeLists.txt" )
+
+get_filename_component( FT2_DIR "${CMAKE_INSTALL_PREFIX}/../FreeType" ABSOLUTE )
+set( FT2_INCLUDE_DIR "${FT2_DIR}/include/freetype2" )
+set( FT2_LIB_PATH "${FT2_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}freetype${CMAKE_STATIC_LIBRARY_SUFFIX}" )
+
+if ( (NOT EXISTS "${FT2_INCLUDE_DIR}/ft2build.h") OR (NOT EXISTS "${FT2_LIB_PATH}") )
+    message( FATAL_ERROR "FreeType is not exists in '${FT2_INCLUDE_DIR}' and '${FT2_LIB_PATH}'" )
+endif()
+
+target_include_directories( "msdfgen-core" PUBLIC ${FT2_INCLUDE_DIR} )
+target_link_libraries( "msdfgen-core" PUBLIC ${FT2_LIB_PATH} )
+
+install( FILES "LICENSE.txt" DESTINATION "." )
+install( TARGETS "msdfgen-core" "msdfgen-ext" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib" )
+
+install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/core" DESTINATION "include" FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" )
+install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext" DESTINATION "include" FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" )
+install( FILES "msdfgen.h" DESTINATION "include" )
+install( FILES "msdfgen-ext.h" DESTINATION "include" )

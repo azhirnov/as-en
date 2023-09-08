@@ -1,0 +1,21 @@
+/*
+struct VertexIn
+{
+    float3  position [[attribute(0)]];
+    float2  texCoord [[attribute(1)]];
+};
+
+struct graphics_4_io
+{
+    float4  position    [[position]];
+    float2  texCoord;
+};
+*/
+
+AE_ENTRY()
+{
+    AE_STAGE_OUT    Out;
+    Out.position    = descSet0.drawUB.mvp * float4( In.Position, 1.0 );
+    Out.texCoord    = In.Texcoord;
+    return Out;
+}

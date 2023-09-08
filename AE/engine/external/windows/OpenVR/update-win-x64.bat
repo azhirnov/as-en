@@ -1,0 +1,13 @@
+rmdir /Q /S "build"
+rmdir /Q /S "..\..\..\..\..\AE-Data\external\win-x64\OpenVR"
+rmdir /Q /S "temp"
+mkdir "build"
+git clone --branch "v1.16.8" "..\..\..\..\..\3party\openvr" "temp"
+mkdir "..\..\..\..\..\AE-Data\external\win-x64\OpenVR"
+mkdir "..\..\..\..\..\AE-Data\external\win-x64\OpenVR\bin"
+mkdir "..\..\..\..\..\AE-Data\external\win-x64\OpenVR\include"
+copy /Y "temp\bin\win64\openvr_api.dll" "..\..\..\..\..\AE-Data\external\win-x64\OpenVR\bin\openvr_api.dll"
+copy /Y "temp\headers\openvr_capi.h" "..\..\..\..\..\AE-Data\external\win-x64\OpenVR\include\openvr_capi.h"
+rmdir /Q /S "temp"
+rmdir /Q /S "build"
+pause

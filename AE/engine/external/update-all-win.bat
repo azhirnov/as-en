@@ -1,0 +1,1 @@
+cd "shared\VMA" && "update.bat"  && cd "..\.." && cd "shared\Vulkan" && "update.bat"  && cd "..\.." && cd "shared\GLM" && "update.bat"  && cd "..\.." && cd "shared\tinygltf" && "update.bat"  && cd "..\.." && cd "shared\stb" && "update.bat"  && cd "..\.." && cd "android-clang\FileSystem" && "update.bat"  && cd "..\.." && cd "android-clang\Vulkan" && "update.bat"  && cd "..\.."

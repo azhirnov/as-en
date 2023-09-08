@@ -1,0 +1,9 @@
+#include "common.msl"
+
+AE_ENTRY()
+{
+    float4 fragColor = float4(float(LocalID.x) / float(LocalSize.x),
+                              float(LocalID.y) / float(LocalSize.y),
+                              1.0, 0.0);
+    un_OutImage.write( fragColor, GlobalID.xy );
+}

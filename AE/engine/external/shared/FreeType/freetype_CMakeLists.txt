@@ -1,0 +1,9 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "FreeType-main" LANGUAGES CXX )
+
+include( "../../../config.cmake" )
+include( "origin_CMakeLists.txt" )
+
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.TXT"  DESTINATION "." )
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/docs/FTL.TXT" DESTINATION "." RENAME "docs-FTL.TXT" )

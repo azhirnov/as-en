@@ -1,0 +1,6 @@
+*.user
+*.glsl_dbg
+*.cxx
+*.trigger.cpp
+.DS_Store
+imgui.ini

@@ -1,0 +1,209 @@
+Name:  'Simple'
+Attachments {
+  [0] 'Color1'
+  [1] 'Depth'
+}
+Subpasses {
+  [0] 'Main'
+    colorAttachments = {
+      [0] AnyColor, 'out_Color'
+    }
+}
+FeatureSets = { 'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear' }
+name              = --
+colorAttachments  = {
+  [0].format         = SwapchainColor
+  [0].loadAction     = MTLLoadActionDontCare
+  [0].storeAction    = MTLStoreActionDontCare
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+}
+depthAttachment = {
+  format         = MTLPixelFormatDepth16Unorm
+  loadAction     = MTLLoadActionDontCare
+  storeAction    = MTLStoreActionDontCare
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleDepthResolveFilterSample0
+}
+=========================================================================
+
+
+name              = 'Simple.Present'
+colorAttachments  = {
+  [0].format         = SwapchainColor
+  [0].loadAction     = MTLLoadActionLoad
+  [0].storeAction    = MTLStoreActionStore
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+}
+depthAttachment = {
+  format         = MTLPixelFormatDepth16Unorm
+  loadAction     = MTLLoadActionClear
+  storeAction    = MTLStoreActionDontCare
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleDepthResolveFilterSample0
+}
+=========================================================================
+
+
+name              = 'Simple.RenderTarget'
+colorAttachments  = {
+  [0].format         = SwapchainColor
+  [0].loadAction     = MTLLoadActionLoad
+  [0].storeAction    = MTLStoreActionStore
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+}
+depthAttachment = {
+  format         = MTLPixelFormatDepth16Unorm
+  loadAction     = MTLLoadActionClear
+  storeAction    = MTLStoreActionStore
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleDepthResolveFilterSample0
+}
+=========================================================================
+
+Name:  'UIRenderPass'
+Attachments {
+  [0] 'Color'
+}
+Subpasses {
+  [0] 'Main'
+    colorAttachments = {
+      [0] AnyColor, 'out_Color'
+    }
+}
+FeatureSets = { 'MinimalFS' }
+name              = --
+colorAttachments  = {
+  [0].format         = SwapchainColor
+  [0].loadAction     = MTLLoadActionDontCare
+  [0].storeAction    = MTLStoreActionDontCare
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+}
+=========================================================================
+
+
+name              = 'UIRenderPass.def'
+colorAttachments  = {
+  [0].format         = SwapchainColor
+  [0].loadAction     = MTLLoadActionClear
+  [0].storeAction    = MTLStoreActionStore
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+}
+=========================================================================
+
+Name:  'Multipass'
+Attachments {
+  [0] 'Color'
+  [1] 'Normal'
+  [2] 'SwapchainImage'
+  [3] 'Depth'
+}
+Subpasses {
+  [0] 'DepthPrepass'
+  [1] 'GBuffer'
+    colorAttachments = {
+      [0] 
+      [1] Float, 'out_Normal'
+      [2] UNorm, 'out_Color'
+    }
+  [2] 'Translucent'
+    colorAttachments = {
+      [0] Float, 'out_Normal'
+      [1] UNorm, 'out_Color'
+    }
+  [3] 'Lighting'
+    colorAttachments = {
+      [0] UNorm, 'out_Color'
+    }
+    inputAttachments = {
+      [0] Float, 'in_GBuffer_Depth'
+      [1] Float, 'in_GBuffer_Normal'
+    }
+  [4] 'PostProcess'
+    colorAttachments = {
+      [0] sRGB, 'out_Color'
+    }
+    inputAttachments = {
+      [0] UNorm, 'in_GBuffer_Color'
+    }
+}
+FeatureSets = { 'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear' }
+name              = --
+colorAttachments  = {
+  [0].format         = MTLPixelFormatRGBA8Unorm
+  [0].loadAction     = MTLLoadActionDontCare
+  [0].storeAction    = MTLStoreActionDontCare
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+  --------
+  [1].format         = MTLPixelFormatRGBA16Float
+  [1].loadAction     = MTLLoadActionDontCare
+  [1].storeAction    = MTLStoreActionDontCare
+  [1].storeActionOpt = MTLStoreActionOptionsNone
+  --------
+  [2].format         = SwapchainColor
+  [2].loadAction     = MTLLoadActionDontCare
+  [2].storeAction    = MTLStoreActionDontCare
+  [2].storeActionOpt = MTLStoreActionOptionsNone
+}
+depthAttachment = {
+  format         = MTLPixelFormatDepth16Unorm
+  loadAction     = MTLLoadActionDontCare
+  storeAction    = MTLStoreActionDontCare
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleDepthResolveFilterSample0
+}
+=========================================================================
+
+
+name              = 'Multipass.Default'
+colorAttachments  = {
+  [0].format         = MTLPixelFormatRGBA8Unorm
+  [0].loadAction     = MTLLoadActionDontCare
+  [0].storeAction    = MTLStoreActionStore
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+  --------
+  [1].format         = MTLPixelFormatRGBA16Float
+  [1].loadAction     = MTLLoadActionLoad
+  [1].storeAction    = MTLStoreActionDontCare
+  [1].storeActionOpt = MTLStoreActionOptionsNone
+  --------
+  [2].format         = SwapchainColor
+  [2].loadAction     = MTLLoadActionDontCare
+  [2].storeAction    = MTLStoreActionStore
+  [2].storeActionOpt = MTLStoreActionOptionsNone
+}
+depthAttachment = {
+  format         = MTLPixelFormatDepth16Unorm
+  loadAction     = MTLLoadActionClear
+  storeAction    = MTLStoreActionDontCare
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleDepthResolveFilterSample0
+}
+=========================================================================
+
+
+name              = 'Multipass.V2'
+colorAttachments  = {
+  [0].format         = MTLPixelFormatRGBA8Unorm
+  [0].loadAction     = MTLLoadActionDontCare
+  [0].storeAction    = MTLStoreActionStore
+  [0].storeActionOpt = MTLStoreActionOptionsNone
+  --------
+  [1].format         = MTLPixelFormatRGBA16Float
+  [1].loadAction     = MTLLoadActionLoad
+  [1].storeAction    = MTLStoreActionDontCare
+  [1].storeActionOpt = MTLStoreActionOptionsNone
+  --------
+  [2].format         = SwapchainColor
+  [2].loadAction     = MTLLoadActionDontCare
+  [2].storeAction    = MTLStoreActionStore
+  [2].storeActionOpt = MTLStoreActionOptionsNone
+}
+depthAttachment = {
+  format         = MTLPixelFormatDepth16Unorm
+  loadAction     = MTLLoadActionClear
+  storeAction    = MTLStoreActionDontCare
+  storeActionOpt = MTLStoreActionOptionsNone
+  resolveFilter  = MTLMultisampleDepthResolveFilterSample0
+}
+=========================================================================
+

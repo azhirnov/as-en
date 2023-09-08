@@ -1,0 +1,11 @@
+rmdir /Q /S "..\..\..\..\..\AE-Data\external\android-clang\HWPerfCounter"
+rmdir /Q /S "temp"
+git clone "..\..\..\..\..\3party\hardware-perfcounter" "temp"
+git clone "..\..\..\..\..\3party\hardware-perfcounter-envytools" "temp/third_party/envytools"
+cd "temp/third_party/envytools"
+git checkout "d88cafa3ac3ea651ad2a756067d64a378b4355a5"
+cd "../../.."
+copy /Y "temp\CMakeLists.txt" "temp\origin_CMakeLists.txt"
+copy /Y "hwpc_CMakeLists.txt" "temp\CMakeLists.txt"
+cd "android"
+"gradlew.bat" buildRelease

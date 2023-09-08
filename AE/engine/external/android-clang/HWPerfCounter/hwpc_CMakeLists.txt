@@ -1,0 +1,17 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "hwpc-main" LANGUAGES C )
+
+include( "../../../config.cmake" )
+
+set( HPC_BUILD_EXAMPLES OFF )
+
+include( "origin_CMakeLists.txt" )
+
+add_library( "hwpc-main" INTERFACE )
+target_link_libraries( "hwpc-main" INTERFACE
+    "hpc-gpu-mali-valhall"
+    "hpc-gpu-mali-bifrost"
+    "hpc-gpu-adreno-a5xx"
+    "hpc-gpu-adreno-a6xx"
+)

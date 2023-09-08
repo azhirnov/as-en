@@ -1,0 +1,33 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
+file( GLOB_RECURSE HPP_SOURCES "*.h" )
+if (NOT (DEFINED ENGINE_LIBS_PATH))
+    file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
+endif()
+set( SOURCES ${HPP_SOURCES} ${CPP_SOURCES} )
+
+add_library( "ResourceLoaders" STATIC ${SOURCES} ${PREBUILD_CPP_FILE} )
+source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
+target_link_libraries( "ResourceLoaders" PUBLIC "Base" )
+target_include_directories( "ResourceLoaders" PUBLIC ".." )
+set_property( TARGET "ResourceLoaders" PROPERTY FOLDER "Engine/Tools" )
+
+if (TARGET "DevIL-lib")
+    target_link_libraries( "ResourceLoaders" PUBLIC "DevIL-lib" )
+endif()
+if (TARGET "STB-lib")
+    target_link_libraries( "ResourceLoaders" PUBLIC "STB-lib" )
+endif()
+if ( TARGET "KTX-lib" )
+    target_link_libraries( "ResourceLoaders" PUBLIC "KTX-lib" "Vulkan-lib" )
+endif()
+
+if ( TARGET "Assimp-lib" )
+    target_link_libraries( "ResourceLoaders" PUBLIC "Assimp-lib" )
+endif()
+if ( TARGET "TinyglTF-lib" )
+    target_link_libraries( "ResourceLoaders" PUBLIC "TinyglTF-lib" )
+endif()
+
+EnablePCH( "ResourceLoaders" )
+EnablePrebuild( "ResourceLoaders" )

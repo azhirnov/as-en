@@ -1,0 +1,8 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "SpirvCross-main" LANGUAGES CXX )
+
+include( "../../../config.cmake" )
+include( "origin_CMakeLists.txt" )
+
+install( FILES "LICENSE" DESTINATION "." )

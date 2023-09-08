@@ -1,0 +1,27 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "ImGUI-main" LANGUAGES CXX )
+
+include( "../../../config.cmake" )
+
+add_library( "imgui" STATIC
+    "imconfig.h"
+    "imgui.h"
+    "imgui_internal.h"
+
+    "imgui.cpp"
+    "imgui_demo.cpp"
+    "imgui_draw.cpp"
+    "imgui_tables.cpp"
+    "imgui_widgets.cpp"
+)
+
+set_target_properties( "imgui" PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
+target_compile_features( "imgui" PUBLIC cxx_std_17 )
+
+set_target_properties( "imgui" PROPERTIES PUBLIC_HEADER "imconfig.h;imgui.h;imgui_internal.h;imstb_textedit.h" )
+
+install( TARGETS "imgui"
+         ARCHIVE DESTINATION "lib"
+         PUBLIC_HEADER DESTINATION "include" )
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt" DESTINATION "." )

@@ -1,0 +1,25 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "Abseil-main" LANGUAGES CXX )
+
+include( "../../../config.cmake" )
+
+file( GLOB_RECURSE HEADERS "*.h" )
+set( SOURCES
+    "absl/container/internal/raw_hash_set.cc"
+    "absl/hash/internal/hash.cc"
+    "absl/hash/internal/low_level_hash.cc"
+    "absl/hash/internal/city.cc"
+    "absl/base/internal/raw_logging.cc"
+)
+
+add_library( "Abseil" STATIC ${HEADERS} ${SOURCES} )
+source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HEADERS} ${SOURCES} )
+target_include_directories( "Abseil" PRIVATE "." )
+
+set_target_properties( "Abseil" PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES )
+target_compile_features( "Abseil" PUBLIC cxx_std_17 )
+
+install( TARGETS "Abseil" LIBRARY DESTINATION "lib" ARCHIVE DESTINATION "lib" )
+install( DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/absl" DESTINATION "." FILES_MATCHING PATTERN "*.h" PATTERN "*.inc" )
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" DESTINATION "." )

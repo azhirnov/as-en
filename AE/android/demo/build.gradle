@@ -1,0 +1,61 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 33
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId 		'AE.Demo'
+        minSdkVersion 		24 // for vulkan
+        targetSdkVersion 	33
+		
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a" //, "x86", "x86_64"
+        }
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_static',
+						  '-DANDROID_ARM_NEON=ON',
+						  '-DAE_ENABLE_VULKAN=ON'
+            }
+        }
+    }
+	
+    buildTypes {
+        release {
+            //debuggable true // to enable logcat in release
+            minifyEnabled = false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    ndkVersion "24.0.8215888"
+
+    externalNativeBuild {
+        cmake {
+            version '3.26.4'
+            path '../../CMakeLists.txt'
+        }
+    }
+    sourceSets {
+        main {
+            assets.srcDirs = ['../../../AE-Temp/samples/demo']
+        }
+    }
+    packagingOptions {
+        jniLibs {
+            excludes += ['lib/**/*.so']
+            pickFirsts += ['lib/**/libSampleDemo.so']
+            pickFirsts += ['lib/**/libc++_shared.so', 'lib/**/libVkLayer_khronos_validation.so']
+        }
+    }
+    namespace 'AE.demo'
+}
+
+dependencies {
+    implementation project(path: ':engine')
+}

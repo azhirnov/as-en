@@ -1,0 +1,572 @@
+
+RenderTechniques {
+  [0]
+    name     = 'MinForward'
+    features = {
+      'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear', 'MinRecursiveRayTracing', 'MinDesktop'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Graphics1'
+        renderPass = 'Simple.RenderTarget'
+        subpass    = 'Main'
+      }
+      [1] Pass {
+        name       = 'Compute1'
+      }
+    }
+    pipelines = {
+      [0]  'compute_1.def', 30000002
+      [1]  'compute_2.def', 30000000
+      [2]  'compute_3.def', 30000001
+      [3]  'graphics_4 rp:Simple', 10000002
+      [4]  'graphics_1 rp:Simple', 10000000
+    }
+    shader binding tables = {}
+  ----------------------
+  [1]
+    name     = 'MeshForward'
+    features = {
+      'MinimalFS', 'part.Surface_RGBA8_sRGB_nonlinear', 'MinMeshShader'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Graphics1'
+        renderPass = 'Simple.Present'
+        subpass    = 'Main'
+      }
+    }
+    pipelines = {
+      [0]  'mesh_1 rp:Simple', 20000000
+    }
+    shader binding tables = {}
+  ----------------------
+  [2]
+    name     = 'UI.RTech'
+    features = {
+      'MinimalFS'
+    }
+    passes = {
+      [0] Pass {
+        name       = 'Graphics0'
+        renderPass = 'UIRenderPass.def'
+        subpass    = 'Main'
+      }
+    }
+    pipelines = {
+      [0]  'graphics_1 rp:UI', 10000001
+    }
+    shader binding tables = {}
+  ----------------------
+}
+
+RenderStates {
+  [0]
+    renderState = {
+      depth = {
+        compareOp = LEqual
+        write     = true
+        test      = true
+      }
+      inputAssembly = {
+        topology         = TriangleList
+        primitiveRestart = false
+      }
+    }
+  [1]
+    renderState = {
+      depth = {
+        compareOp = LEqual
+        write     = false
+        test      = false
+      }
+      inputAssembly = {
+        topology         = TriangleList
+        primitiveRestart = false
+      }
+    }
+  [2]
+    renderState = {
+      depth = {
+        compareOp = LEqual
+        write     = false
+        test      = false
+      }
+    }
+}
+
+DepthStencilStates {
+  [0]
+    depthStencilState = {
+      depth = {
+        compareOp = LEqual
+        write     = true
+        test      = true
+      }
+    }
+  [1]
+    depthStencilState = {
+      depth = {
+        compareOp = LEqual
+        write     = false
+        test      = false
+      }
+    }
+}
+
+DescrSetLayouts {
+  [0]
+    name   = 'DbgDS_Trace_Cs'
+    usage  = 0
+    stages = Compute
+    [0] StorageBuffer {
+      name         = 'dbg_ShaderTrace'
+      vkIndex      = 0
+      mtlIndex     = Compute: 0
+      state        = ShaderStorage_RW | ComputeShader
+      staticSize   = 16 b
+      arrayStride  = 4 b
+      typeName     = d8991b22
+    }
+  ----------------------
+  [1]
+    name   = 'DS_Material'
+    usage  = UpdateTemplate | ArgumentBuffer
+    stages = Fragment
+    [0] SampledImage {
+      name         = 'un_ColorTexture'
+      vkIndex      = 0
+      mtlIndex     = 0
+      state        = ShaderSample | FragmentShader
+      type         = FImage2D
+      format       = Unknown
+    }
+    [1] ImmutableSampler {
+      name         = 'un_ColorTexture_sampler'
+      vkIndex      = 1
+      sampler      = { 'LinearRepeat' }
+    }
+  ----------------------
+  [2]
+    name   = 'DS_PerDraw2D'
+    usage  = UpdateTemplate | ArgumentBuffer
+    stages = Vertex
+    [0] UniformBuffer {
+      name         = 'drawUB'
+      vkIndex      = 0
+      mtlIndex     = 0
+      state        = ShaderUniform | VertexProcessingShaders
+      staticSize   = 64 b
+      arrayStride  = 0 b
+      typeName     = UBlock
+    }
+  ----------------------
+  [3]
+    name   = 'DS_Compute'
+    usage  = 0
+    stages = Compute
+    [0] StorageImage {
+      name         = 'un_OutImage'
+      vkIndex      = 0
+      mtlIndex     = Compute: 0
+      state        = ShaderStorage_Write | ComputeShader
+      type         = UNImage2D
+      format       = RGBA8_UNorm
+    }
+  ----------------------
+  [4]
+    name   = 'DS_Compute_2'
+    usage  = 0
+    stages = Compute
+    [0] StorageImage {
+      name         = 'un_Image'
+      vkIndex      = 0
+      mtlIndex     = Compute: 0
+      state        = ShaderStorage_RW | ComputeShader
+      type         = UImage2D
+      format       = R32U
+    }
+  ----------------------
+  [5]
+    name   = 'DS_Compute_3'
+    usage  = 0
+    stages = Compute
+    [0] UniformBuffer {
+      name         = 'bufferRef'
+      vkIndex      = 0
+      mtlIndex     = Compute: 0
+      state        = ShaderUniform | ComputeShader
+      staticSize   = 32 b
+      arrayStride  = 0 b
+      typeName     = BufferRef
+    }
+  ----------------------
+}
+
+PipelineLayouts {
+  [0]
+    [0] DescrSet {
+      name     = 'DS_Compute'
+      uid      = 3
+      vkIndex  = 0
+      mtlIndex = v/t/c/m: 0 idx: 0
+    }
+  ----------------------
+  [1]
+    [0] DescrSet {
+      name     = 'DS_Material'
+      uid      = 1
+      vkIndex  = 1
+      mtlIndex = f: 0 idx: 1
+    }
+    [1] DescrSet {
+      name     = 'DS_PerDraw2D'
+      uid      = 2
+      vkIndex  = 2
+      mtlIndex = v/t/c/m: 0 idx: 2
+    }
+  ----------------------
+  [2]
+    [0] DescrSet {
+      name     = 'DS_Compute_2'
+      uid      = 4
+      vkIndex  = 0
+      mtlIndex = v/t/c/m: 0 idx: 0
+    }
+  ----------------------
+  [3]
+    [0] DescrSet {
+      name     = 'DS_Material'
+      uid      = 1
+      vkIndex  = 1
+      mtlIndex = f: 0 idx: 1
+    }
+  ----------------------
+  [4]
+    [0] DescrSet {
+      name     = 'DS_Material'
+      uid      = 1
+      vkIndex  = 1
+      mtlIndex = f: 0 idx: 1
+    }
+    [1] DescrSet {
+      name     = 'DS_PerDraw3D'
+      uid      = 2
+      vkIndex  = 2
+      mtlIndex = v/t/c/m: 0 idx: 2
+    }
+  ----------------------
+  [5]
+    [0] DescrSet {
+      name     = 'DS_Compute_3'
+      uid      = 5
+      vkIndex  = 0
+      mtlIndex = v/t/c/m: 0 idx: 0
+    }
+  ----------------------
+  [6]
+    [0] DescrSet {
+      name     = 'DS_Material'
+      uid      = 1
+      vkIndex  = 0
+      mtlIndex = f: 0 idx: 0
+    }
+    [0] PushConst {
+      name     = 'pc1'
+      typename = 'PushConst1'
+      stage    = Vertex
+      bufferId = 0
+      offset   = 0 b
+      size     = 16 b
+    }
+    [1] PushConst {
+      name     = 'pc2'
+      typename = 'PushConst2'
+      stage    = Fragment
+      bufferId = 1
+      offset   = 16 b
+      size     = 16 b
+    }
+  ----------------------
+  [7]
+    [0] DescrSet {
+      name     = 'DS_Compute'
+      uid      = 3
+      vkIndex  = 0
+      mtlIndex = v/t/c/m: 0 idx: 0
+    }
+    [1] DescrSet {
+      name     = 'ShaderTrace'
+      uid      = 0
+      vkIndex  = 1
+      mtlIndex = v/t/c/m: 1 idx: 1
+    }
+  ----------------------
+}
+
+GraphicsPipelineTempl {
+  [0]
+    layout  = 1
+    shaders = {
+      Vertex = 30000002
+      Fragment = 30000003
+    }
+    topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
+    vertexAttribs = {
+      type   = Float3
+      index  = 0
+      -------------
+      type   = Float2
+      index  = 1
+    }
+    patchControlPoints = 0
+    earlyFragmentTests = true
+    featureSets = { 'MinimalFS' }
+  ----------------------
+  [1]
+    layout  = 6
+    shaders = {
+      Vertex = 30000004
+      Fragment = 30000005
+    }
+    topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
+    vertexAttribs = {
+      type   = Float2
+      index  = 0
+      -------------
+      type   = Float2
+      index  = 1
+    }
+    patchControlPoints = 0
+    earlyFragmentTests = true
+    featureSets = { 'MinimalFS' }
+  ----------------------
+  [2]
+    layout  = 4
+    shaders = {
+      Vertex = 30000007
+      Fragment = 30000008
+    }
+    topology      = Point | LineList | LineStrip | TriangleList | TriangleStrip | TriangleFan
+    vertexAttribs = {
+      type   = Float3
+      index  = 0
+      -------------
+      type   = Float2
+      index  = 1
+    }
+    patchControlPoints = 0
+    earlyFragmentTests = true
+    featureSets = { 'MinimalFS' }
+  ----------------------
+}
+
+MeshPipelineTempl {
+  [0]
+    layout  = 3
+    shaders = {
+      Mesh = 30000009
+      Fragment = 3000000a
+    }
+    outputTopology       = TriangleList
+    maxVertices          = 0
+    maxIndices           = 0
+    earlyFragmentTests   = true
+    featureSets          = { 'MinimalFS', 'MinMeshShader' }
+  ----------------------
+}
+
+ComputePipelineTempl {
+  [0]
+    layout  = 2
+    shader  = 30000000
+    defaultLocalSize = { 8, 8, 1 }
+    localSizeSpec = { 0, 1, Undefined }
+    featureSets = { 'MinimalFS', 'MinDesktop' }
+  ----------------------
+  [1]
+    layout  = 5
+    shader  = 30000001
+    defaultLocalSize = { 8, 8, 1 }
+    localSizeSpec = { 0, 1, Undefined }
+    featureSets = { 'MinimalFS', 'MinRecursiveRayTracing' }
+  ----------------------
+  [2]
+    layout  = 0
+    shader  = 30000006
+    featureSets = { 'MinimalFS' }
+  ----------------------
+}
+
+GraphicsPipelineSpec {
+  [0]
+    templUID      = 10000000
+    rStateUID     = 0
+    dsStateUID    = 0
+    renderPass    = 'Simple'
+    subpass       = 'Main'
+    viewportCount = 1
+    dynamicState  = 0
+    options       = Optimize
+    vertexBuffers = {
+      [0] {
+        name     = 'vb'
+        typeName = 'vb_input1'
+        rate     = Instance
+        index    = 0
+        stride   = 16 b
+        divisor  = 1
+        attribs  = {
+          type   = Float3
+          offset = 0 b
+          index  = 0
+          -------------
+          type   = UShort2_Norm
+          offset = 12 b
+          index  = 1
+          -------------
+      }
+    }
+  [1]
+    templUID      = 10000000
+    rStateUID     = 1
+    dsStateUID    = 1
+    renderPass    = 'UIRenderPass'
+    subpass       = 'Main'
+    viewportCount = 1
+    dynamicState  = 0
+    options       = Optimize
+    vertexBuffers = {
+      [0] {
+        name     = 'vb'
+        typeName = 'vb_input1'
+        rate     = Instance
+        index    = 0
+        stride   = 16 b
+        divisor  = 1
+        attribs  = {
+          type   = Float3
+          offset = 0 b
+          index  = 0
+          -------------
+          type   = UShort2_Norm
+          offset = 12 b
+          index  = 1
+          -------------
+      }
+    }
+  [2]
+    templUID      = 10000002
+    rStateUID     = 1
+    dsStateUID    = 1
+    renderPass    = 'Simple'
+    subpass       = 'Main'
+    viewportCount = 1
+    dynamicState  = 0
+    options       = Optimize
+    vertexBuffers = {
+      [0] {
+        name     = 'Position'
+        typeName = 'VB_3_Pos'
+        rate     = Vertex
+        index    = 0
+        stride   = 12 b
+        divisor  = 0
+        attribs  = {
+          type   = Float3
+          offset = 0 b
+          index  = 0
+          -------------
+      }
+      [1] {
+        name     = 'Attribs'
+        typeName = 'VB_3_Attribs'
+        rate     = Vertex
+        index    = 1
+        stride   = 8 b
+        divisor  = 0
+        attribs  = {
+          type   = Float2
+          offset = 0 b
+          index  = 1
+          -------------
+      }
+    }
+}
+
+MeshPipelineSpec {
+  [0]
+    templUID      = 20000000
+    rStateUID     = 2
+    dsStateUID    = 1
+    renderPass    = 'Simple'
+    subpass       = 'Main'
+    viewportCount = 1
+    dynamicState  = 0
+    options       = Optimize
+}
+
+ComputePipelineSpec {
+  [0]
+    templUID     = 30000000
+    dynamicState = 0
+    options      = Optimize
+  [1]
+    templUID     = 30000001
+    dynamicState = 0
+    options      = Optimize
+  [2]
+    templUID     = 30000002
+    dynamicState = 0
+    options      = Optimize
+}
+
+PipelineTemplNames {
+  [0]  'graphics_2', 10000000
+  [1]  'compute_2', 30000000
+  [2]  'mesh_1', 20000000
+  [3]  'compute_3', 30000001
+  [4]  'graphics_3', 10000001
+  [5]  'compute_1', 30000002
+  [6]  'graphics_1', 10000000
+  [7]  'graphics_4', 10000002
+}
+
+MetalMacShaders {
+  [0]  offset = 0 b
+  [1]  offset = 4 Kb
+  [2]  offset = 6 Kb
+  [3]  offset = 10 Kb
+  [4]  offset = 13 Kb
+  [5]  offset = 17 Kb
+  [6]  offset = 20 Kb
+  [7]  offset = 24 Kb
+  [8]  offset = 27 Kb
+  [9]  offset = 30 Kb
+  [10]  offset = 35 Kb
+}
+
+MetalMacShaderData {
+  [0]
+    codeSize = 4 Kb
+  [1]
+    codeSize = 2672 b
+  [2]
+    codeSize = 3662 b
+  [3]
+    codeSize = 3680 b
+  [4]
+    codeSize = 3310 b
+  [5]
+    codeSize = 3680 b
+  [6]
+    codeSize = 3526 b
+  [7]
+    codeSize = 3278 b
+  [8]
+    codeSize = 3414 b
+  [9]
+    codeSize = 4 Kb
+  [10]
+    codeSize = 65 Kb
+}

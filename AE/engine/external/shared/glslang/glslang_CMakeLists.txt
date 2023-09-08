@@ -1,0 +1,83 @@
+cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+
+project( "glslang-main" LANGUAGES CXX )
+
+# glslang
+set( ENABLE_CTEST                 OFF  CACHE BOOL "" FORCE )
+set( ENABLE_HLSL                  OFF  CACHE BOOL "" FORCE )
+set( ENABLE_OPT                    ON  CACHE BOOL "" FORCE )
+set( ENABLE_SPVREMAPPER           OFF  CACHE BOOL "" FORCE )
+set( ENABLE_GLSLANG_BINARIES      OFF  CACHE BOOL "" FORCE )
+set( SKIP_GLSLANG_INSTALL         OFF  CACHE BOOL "" FORCE )
+set( SKIP_SPIRV_TOOLS_INSTALL     OFF  CACHE BOOL "" FORCE )
+set( SPIRV_SKIP_EXECUTABLES        ON  CACHE BOOL "" FORCE )
+set( SPIRV_SKIP_TESTS              ON  CACHE BOOL "" FORCE )
+set( BUILD_TESTING                OFF  CACHE BOOL "" FORCE )
+set( BUILD_SHARED_LIBS            OFF  CACHE BOOL "" FORCE )
+set( BUILD_EXTERNAL                ON  CACHE BOOL "" FORCE )
+set( GLSLANG_TARGETS
+    "GenericCodeGen"
+    "glslang"
+    "MachineIndependent"
+    "OGLCompiler"
+    "OSDependent"
+    "SPIRV"
+)
+
+# spirv
+set( SPIRV_HEADERS_SKIP_EXAMPLES  ON   CACHE BOOL "" FORCE )
+set( SPIRV_HEADERS_SKIP_INSTALL   OFF  CACHE BOOL "" FORCE )
+set( SPIRV_COLOR_TERMINAL         OFF  CACHE BOOL "" FORCE )
+set( SPIRV_TARGETS
+    "spirv-tools-build-version"
+    "spirv-tools-header-DebugInfo"
+    "spirv-tools-header-OpenCLDebugInfo100"
+    "spv-tools-cldi100"
+    "spv-tools-clspvreflection"
+    "spv-tools-debuginfo"
+    "spv-tools-spv-amd-gs"
+    "spv-tools-spv-amd-sb"
+    "spv-tools-spv-amd-sevp"
+    "spv-tools-spv-amd-stm"
+    "SPIRV-Tools-link"
+    "SPIRV-Tools-opt"
+    "SPIRV-Tools-reduce"
+    "SPIRV-Tools-shared"
+    "SPIRV-Tools-static"
+    "core_tables"
+    "enum_string_mapping"
+    "extinst_tables"
+    "spirv-tools-pkg-config"
+    "spirv-tools-shared-pkg-config"
+    "spirv-tools-vimsyntax"
+    "SPIRV-Tools-lint"
+    "spv-tools-shdi100"
+    "spirv-tools-header-NonSemanticShaderDebugInfo100"
+)
+
+include( "../../../config.cmake" )
+include( "origin_CMakeLists.txt" )
+
+if (${ENABLE_OPT})
+    find_package( PythonInterp 3.7 REQUIRED )
+endif ()
+
+foreach(LIB ${GLSLANG_TARGETS})
+    if (TARGET ${LIB})
+        set_target_properties( ${LIB} PROPERTIES DEBUG_POSTFIX "d" )
+    else()
+        message( STATUS "target is not found: '${LIB}'" )
+    endif()
+endforeach()
+
+foreach(LIB ${SPIRV_TARGETS})
+    if (TARGET ${LIB})
+        set_target_properties( ${LIB} PROPERTIES DEBUG_POSTFIX "d" )
+    else()
+        message( STATUS "target is not found: '${LIB}'" )
+    endif()
+endforeach()
+
+install( FILES "LICENSE.txt"                                         DESTINATION "."                    RENAME "glslang-LICENSE.txt" )
+install( FILES "External/spirv-tools/LICENSE"                        DESTINATION "."                    RENAME "SPIRV-Tools-LICENSE.txt" )
+install( FILES "External/spirv-tools/external/spirv-headers/LICENSE" DESTINATION "."                    RENAME "SPIRV-Headers-LICENSE.txt" )
