@@ -4,7 +4,7 @@ void ASmain ()
 {
     {
         RC<DescriptorSetLayout>     ds = DescriptorSetLayout( "compute2.ds1" );
-        ds.StorageImage( EShaderStages::Compute, "un_Image", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_RW );
+        ds.StorageImage( EShaderStages::Compute, "un_Image", EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_RW );
     }
     {
         RC<PipelineLayout>      pl = PipelineLayout( "compute2.pl" );
@@ -17,7 +17,7 @@ void ASmain ()
 
     {
         RC<Shader>  cs  = Shader();
-        cs.file        = "compute_2.glsl";        // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/compute_2.glsl
+        cs.file     = "compute_2.glsl";     // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/compute_2.glsl
         cs.version  = EShaderVersion::SPIRV_1_0;
         cs.options  = EShaderOpt::Optimize;
         cs.ComputeLocalSize( 4, 4 );

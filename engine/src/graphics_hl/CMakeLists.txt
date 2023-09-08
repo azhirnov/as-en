@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (TARGET "Graphics")
 
     file( GLOB_RECURSE HPP_SOURCES "*.h" )

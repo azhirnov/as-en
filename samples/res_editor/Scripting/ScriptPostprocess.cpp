@@ -95,8 +95,14 @@ namespace
         {
             EnumBinder<EPostprocess>    binder{ se };
             binder.Create();
+
+            binder.Comment( "Entry point: 'Main'");
             binder.AddValue( "None",            EPostprocess::Unknown );
+
+            binder.Comment( "Entry point: 'void mainImage (out float4 fragColor, in float2 fragCoord)'" );
             binder.AddValue( "Shadertoy",       EPostprocess::Shadertoy );
+
+            binder.Comment( "Entry point: 'void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir)'" );
             binder.AddValue( "ShadertoyVR",     EPostprocess::ShadertoyVR );
             binder.AddValue( "ShadertoyVR_180", EPostprocess::ShadertoyVR_180 );
             binder.AddValue( "ShadertoyVR_360", EPostprocess::ShadertoyVR_360 );
@@ -106,16 +112,19 @@ namespace
         {
             ClassBinder<ScriptPostprocess>  binder{ se };
             binder.CreateRef();
+
+            _BindBase( binder, True{"withArgs"} );
             _BindBaseRenderPass( binder, True{"withBlending"} );
 
-            binder.AddFactoryCtor( &ScriptPostprocess_Ctor1 );
-            binder.AddFactoryCtor( &ScriptPostprocess_Ctor2 );
-            binder.AddFactoryCtor( &ScriptPostprocess_Ctor3 );
-            binder.AddFactoryCtor( &ScriptPostprocess_Ctor4 );
-            binder.AddFactoryCtor( &ScriptPostprocess_Ctor5 );
-            binder.AddFactoryCtor( &ScriptPostprocess_Ctor6 );
-            binder.AddFactoryCtor( &ScriptPostprocess_Ctor7 );
-            binder.AddFactoryCtor( &ScriptPostprocess_Ctor8 );
+            binder.Comment( "Set path to fragment shader, empty - load current file." );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor1,    {"shaderPath"} );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor2,    {"shaderPath", "postprocessFlags"} );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor3,    {"postprocessFlags"} );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor4,    {"postprocessFlags", "defines"} );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor5,    {"postprocessFlags", "passFlags"} );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor6,    {"postprocessFlags", "defines", "passFlags"} );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor7,    {"shaderPath", "postprocessFlags", "passFlags"} );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor8,    {"shaderPath", "postprocessFlags", "defines", "passFlags"} );
         }
     }
 
@@ -242,7 +251,7 @@ namespace
 #include "res_editor/Scripting/PassCommon.inl.h"
 
 #include "base/DataSource/FileStream.h"
-#include "base/Algorithms/StringParser.h"
+#include "base/Algorithms/Parser.h"
 
 #include "res_editor/Scripting/ScriptImage.h"
 #include "res_editor/Scripting/ScriptVideoImage.h"
@@ -373,7 +382,7 @@ namespace AE::ResEditor
             ShaderStructTypePtr st = _CreateUBType();   // throw
             ubSize = st->StaticSize();
 
-            ds_layout->AddUniformBuffer( uint(stage), "un_PerPass", ArraySize{1}, "ShadertoyUB", EResourceState::ShaderUniform );
+            ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ShadertoyUB", EResourceState::ShaderUniform, False{} );
         }
         _args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
 
@@ -391,12 +400,18 @@ namespace AE::ResEditor
             _AddDefines( _defines, INOUT header );
 
             // add shader header
+            header << R"#(
+// for "GlobalIndex.glsl"
+ND_ int3  GetGlobalSize() {
+    return int3(un_PerPass.resolution);
+}
+)#";
             if ( AnyBits( _ppFlags, EPostprocess::_ShadertoyBits ))
             {
                 CHECK_THROW( _output.size() == 1 );
 
                 header
-                    << "#define ColorOutput0 " << _output.front().name << "\n"
+                    << "#define _ColorOutput0 " << _output.front().name << "\n"
                     << R"#(
 #define iResolution         un_PerPass.resolution
 #define iTime               un_PerPass.time
@@ -407,11 +422,6 @@ namespace AE::ResEditor
 #define iMouse              float4( un_PerPass.mouse.xy * un_PerPass.resolution.xy, un_PerPass.mouse.zw )
 #define iDate               un_PerPass.date
 #define iSampleRate         un_PerPass.sampleRate
-
-// for "GlobalIndex.glsl"
-ND_ int3  GetGlobalSize() {
-    return int3(un_PerPass.resolution);
-}
 
 #if defined(VIEW_MODE_VR)
     void mainVR (out float4 fragColor, in float2 fragCoord, in float3 fragRayOri, in float3 fragRayDir);
@@ -424,7 +434,7 @@ ND_ int3  GetGlobalSize() {
                             mix( un_PerPass.cameraFrustumLT, un_PerPass.cameraFrustumRT, uv.x ),
                             uv.y );
         coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
-        mainVR( ColorOutput0, coord, un_PerPass.cameraPos, dir );
+        mainVR( _ColorOutput0, coord, un_PerPass.cameraPos, dir );
     }
 
 #elif defined(VIEW_MODE_VR180) || defined(VIEW_MODE_VR360) || defined(VIEW_MODE_360)
@@ -454,7 +464,7 @@ ND_ int3  GetGlobalSize() {
         float3  dir     = float3(sin(theta) * cos(phi), sin(phi), -cos(theta) * cos(phi));
 
         coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
-        mainVR( ColorOutput0, coord, un_PerPass.cameraPos + origin, dir );
+        mainVR( _ColorOutput0, coord, un_PerPass.cameraPos + origin, dir );
     }
 
 #else
@@ -465,10 +475,10 @@ ND_ int3  GetGlobalSize() {
         float2 coord = gl.FragCoord.xy;     // + gl.SamplePosition;
         coord = float2(coord.x - 0.5, iResolution.y - coord.y + 0.5);
 
-        mainImage( ColorOutput0, coord );
+        mainImage( _ColorOutput0, coord );
     }
 #endif
-#undef ColorOutput0
+#undef _ColorOutput0
 )#";
             }
 
@@ -484,7 +494,7 @@ ND_ int3  GetGlobalSize() {
                     "Failed to read shader file '"s << ToString(_pplnPath) << "'" );
 
                 header >> fs;
-                fs_line = uint(StringParser::CalculateNumberOfLines( header )) - 1;
+                fs_line = uint(Parser::CalculateNumberOfLines( header )) - 1;
             }
         }
 

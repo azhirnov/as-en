@@ -20,9 +20,12 @@ namespace AE::ResEditor
 
 namespace
 {
-    static ScriptSceneGeometry*  ScriptSceneGeometry_Ctor1 (const String &filename) {
-        return ScriptRC<ScriptSceneGeometry>{ new ScriptSceneGeometry{ filename }}.Detach();
+    static ScriptModelGeometrySrc*  ScriptSceneGeometry_Ctor1 (const String &filename) {
+        return ScriptRC<ScriptModelGeometrySrc>{ new ScriptModelGeometrySrc{ filename }}.Detach();
     }
+
+    static const StringView     c_MtrDS     = "material";
+    static const StringView     c_PassDS    = "pass";
 
 } // namespace
 //-----------------------------------------------------------------------------
@@ -87,7 +90,8 @@ namespace
                     pipelines.push_back( spec );
             }
         }
-        CHECK_THROW( not pipelines.empty() );
+        CHECK_THROW_MSG( not pipelines.empty(),
+            "Can't find pipelines with vertex buffer type '"s << vbName << "'" );
     }
 
 /*
@@ -108,10 +112,16 @@ namespace
                     pipelines.push_back( spec );
             }
         }
-        CHECK_THROW( not pipelines.empty() );
+        CHECK_THROW_MSG( not pipelines.empty(),
+            "Can't find graphics pipelines without vertex buffer" );
     }
 
-    static void  _FindPipelinesWithoutVB (OUT Array<MeshPipelineSpecPtr> &pipelines) __Th___
+/*
+=================================================
+    _GetMeshPipelines
+=================================================
+*/
+    static void  _GetMeshPipelines (OUT Array<MeshPipelineSpecPtr> &pipelines) __Th___
     {
         auto&   storage = *ObjectStorage::Instance();
         pipelines.clear();
@@ -123,9 +133,8 @@ namespace
                 pipelines.push_back( spec );
             }
         }
-        CHECK_THROW( not pipelines.empty() );
+        CHECK_THROW_MSG( not pipelines.empty(), "Can't find mesh pipelines" );
     }
-
 /*
 =================================================
     _FindPipelinesByBuf
@@ -162,8 +171,13 @@ namespace
             }
         }
 
+        CHECK_THROW_MSG( not out_pplns.empty(),
+            "Can't find pipelines with DS '"s << dsName << "' and " <<
+            (descType == EDescriptorType::UniformBuffer ? "UniformBuffer" :
+             descType == EDescriptorType::StorageBuffer ? "StorageBuffer" : "<unknown>") << 
+            " with type '" << bufTypeName << "'" );
+
         inPipelines = RVRef(out_pplns);
-        CHECK_THROW( not inPipelines.empty() );
     }
 
     template <typename PplnSpec>
@@ -176,6 +190,95 @@ namespace
     static void  _FindPipelinesBySB (StringView dsName, StringView sbTypeName, INOUT Array<PplnSpec> &pipelines) __Th___
     {
         _FindPipelinesByBuf( dsName, sbTypeName, EDescriptorType::StorageBuffer, INOUT pipelines );
+    }
+
+/*
+=================================================
+    _FindPipelinesBySampledImage
+=================================================
+*/
+    template <typename PplnSpec>
+    static void  _FindPipelinesBySampledImage (StringView dsName, StringView imgName, EImageType imgType, uint arraySize, INOUT Array<PplnSpec> &inPipelines) __Th___
+    {
+        Array<PplnSpec>             out_pplns;
+        const DescriptorSetName     req_ds_name {dsName};
+        const UniformName           req_un_name {imgName};
+
+        for (auto& ppln : inPipelines)
+        {
+            auto    ppln_layout = ppln->GetBase()->GetLayout();
+            if ( not ppln_layout )
+                continue;
+
+            for (auto& [dsl, ds_name] : ppln_layout->Layouts())
+            {
+                if ( ds_name != req_ds_name )
+                    continue;
+
+                for (auto& [un_name, un] : dsl->GetUniforms())
+                {
+                    if ( un.type != EDescriptorType::SampledImage )
+                        continue;
+
+                    if ( un.image.type  == imgType      and
+                         un_name        == req_un_name  and
+                         un.arraySize   == arraySize )
+                    {
+                        out_pplns.push_back( ppln );
+                        break;
+                    }
+                }
+            }
+        }
+
+        CHECK_THROW_MSG( not out_pplns.empty(),
+            "Can't find pipelines with DS '"s << dsName << "' and SampledImage '" << imgName << "' with type '" <<
+            EImageType_ToString( imgType ) << "', array size " << ToString(arraySize) );
+
+        inPipelines = RVRef(out_pplns);
+    }
+
+/*
+=================================================
+    _FindPipelinesBySampler
+=================================================
+*/
+    template <typename PplnSpec>
+    static void  _FindPipelinesBySampler (StringView dsName, StringView uniformName, INOUT Array<PplnSpec> &inPipelines) __Th___
+    {
+        Array<PplnSpec>             out_pplns;
+        const DescriptorSetName     req_ds_name {dsName};
+        const UniformName           req_un_name {uniformName};
+
+        for (auto& ppln : inPipelines)
+        {
+            auto    ppln_layout = ppln->GetBase()->GetLayout();
+            if ( not ppln_layout )
+                continue;
+
+            for (auto& [dsl, ds_name] : ppln_layout->Layouts())
+            {
+                if ( ds_name != req_ds_name )
+                    continue;
+
+                for (auto& [un_name, un] : dsl->GetUniforms())
+                {
+                    if ( un.type != EDescriptorType::ImmutableSampler )
+                        continue;
+
+                    if ( un_name == req_un_name )
+                    {
+                        out_pplns.push_back( ppln );
+                        break;
+                    }
+                }
+            }
+        }
+
+        CHECK_THROW_MSG( not out_pplns.empty(),
+            "Can't find pipelines with DS '"s << dsName << "' and ImmutableSampler '" << uniformName << "'" );
+
+        inPipelines = RVRef(out_pplns);
     }
 
 /*
@@ -203,8 +306,10 @@ namespace
             }
         }
 
+        CHECK_THROW_MSG( not out_pplns.empty(),
+            "Can't find pipelines with PushConstant '"s << pcTypeName << "'" );
+
         inPipelines = RVRef(out_pplns);
-        CHECK_THROW( not inPipelines.empty() );
     }
 
 /*
@@ -335,8 +440,39 @@ namespace
             }
         }
 
+        if ( out_pplns.empty() )
+        {
+            String  str = "Can't find pipelines with DS '"s << dsName << "' and all resources:";
+            for (auto& arg : args)
+            {
+                Visit( arg.res,
+                    [&] (ScriptBufferPtr buf) {
+                        if ( buf->HasLayout() )
+                            str << "\n  StorageBuffer '" << arg.name << "'";
+                        else
+                            str << "\n  TexelStorageBuffer '" << arg.name << "'";
+                    },
+                    [&] (ScriptImagePtr) {
+                        if ( arg.samplerName.empty() )
+                            str << "\n  StorageImage '" << arg.name << "'";
+                        else
+                            str << "\n  CombinedImage '" << arg.name << "' with immutable sampler '" << arg.samplerName << "'";
+                    },
+                    [&] (ScriptVideoImagePtr video) {
+                        str << "\n  CombinedImage '" << arg.name << "' with immutable sampler '" << arg.samplerName << "'";
+                    },
+                    [&] (ScriptRTScenePtr) {
+                        str << "\n  RayTracingScene '" << arg.name << "'";
+                    },
+                    [] (NullUnion) {
+                        CHECK_THROW_MSG( false, "unsupported argument type" );
+                    }
+                );
+            }
+            CHECK_THROW_MSG( false, str );
+        }
+
         inPipelines = RVRef(out_pplns);
-        CHECK_THROW( not inPipelines.empty() );
     }
 
 /*
@@ -353,12 +489,9 @@ namespace
         const DescriptorSetName                 req_ds_name {dsName};
         FlatHashSet<UniformName::Optimized_t>   tex_names;
 
-        auto*   begin   = &mtr.GetSettings().albedo;
-        auto*   end     = &mtr.GetSettings().opticalDepth;
-
-        for (; begin < end; ++begin)
+        for (auto& param : mtr.GetSettings().GetParams())
         {
-            if ( auto* tex = UnionGet<MtrTexture>( *begin ))
+            if ( auto* tex = UnionGet<MtrTexture>( param ))
                 tex_names.emplace( UniformName::Optimized_t{tex->name} );
         }
 
@@ -392,8 +525,20 @@ namespace
             }
         }
 
+        if ( out_pplns.empty() )
+        {
+            String  str = "Can't find pipelines with DS '"s << dsName << "' and all resources:";
+
+            for (auto& param : mtr.GetSettings().GetParams())
+            {
+                if ( auto* tex = UnionGet<MtrTexture>( param ))
+                    str << "\n  SampledImage '" << tex->name << "'";
+            }
+
+            CHECK_THROW_MSG( false, str );
+        }
+
         inPipelines = RVRef(out_pplns);
-        CHECK_THROW( not inPipelines.empty() );
     }
 
 /*
@@ -411,6 +556,40 @@ namespace
             return ScriptGeomSource::PipelineNames_t{ pipelines.front()->Name() };
 
         return Default;
+    }
+
+/*
+=================================================
+    _GetSuitablePipelineAndDS
+=================================================
+*/
+    template <typename PplnSpec>
+    static void  _GetSuitablePipelineAndDS (Array<PplnSpec> &pipelines, StringView dsName,
+                                            OUT ScriptGeomSource::PipelineNames_t &name, OUT DSLayoutName &dslName)
+    {
+        if ( pipelines.size() > 1 )
+            AE_LOGI( "More than one pipeline are match the requirements" );
+
+        if ( not pipelines.empty() )
+        {
+            name = ScriptGeomSource::PipelineNames_t{ pipelines.front()->Name() };
+
+            auto    pl = pipelines.front()->GetBase()->GetLayout();
+            CHECK_THROW( pl );
+
+            const DescriptorSetName req_ds_name {dsName};
+            dslName = Default;
+
+            for (auto& [dsl, ds_name] : pl->Layouts())
+            {
+                if ( ds_name == req_ds_name )
+                {
+                    dslName = DSLayoutName{dsl->Name()};
+                    return;
+                }
+            }
+            CHECK_THROW_MSG( false, "Can't find DS with name '"s << dsName << "'" );
+        }
     }
 
 } // namespace
@@ -455,18 +634,18 @@ namespace
         binder.Comment( "Add resource to all shaders in the current pass.\n"
                         "In - resource is used for read access.\n"
                         "Out - resource is used for write access.\n" );
-        binder.AddMethod( &ScriptGeomSource::ArgSceneIn,        "ArgIn"     );
+        binder.AddMethod( &ScriptGeomSource::ArgSceneIn,        "ArgIn",    {"uniformName", "resource"} );
 
-        binder.AddMethod( &ScriptGeomSource::ArgBufferIn,       "ArgIn"     );
-        binder.AddMethod( &ScriptGeomSource::ArgBufferOut,      "ArgOut"    );
-        binder.AddMethod( &ScriptGeomSource::ArgBufferInOut,    "ArgInOut"  );
+        binder.AddMethod( &ScriptGeomSource::ArgBufferIn,       "ArgIn",    {"uniformName", "resource"} );
+        binder.AddMethod( &ScriptGeomSource::ArgBufferOut,      "ArgOut",   {"uniformName", "resource"} );
+        binder.AddMethod( &ScriptGeomSource::ArgBufferInOut,    "ArgInOut", {"uniformName", "resource"} );
 
-        binder.AddMethod( &ScriptGeomSource::ArgImageIn,        "ArgIn"     );
-        binder.AddMethod( &ScriptGeomSource::ArgImageOut,       "ArgOut"    );
-        binder.AddMethod( &ScriptGeomSource::ArgImageInOut,     "ArgInOut"  );
+        binder.AddMethod( &ScriptGeomSource::ArgImageIn,        "ArgIn",    {"uniformName", "resource"} );
+        binder.AddMethod( &ScriptGeomSource::ArgImageOut,       "ArgOut",   {"uniformName", "resource"} );
+        binder.AddMethod( &ScriptGeomSource::ArgImageInOut,     "ArgInOut", {"uniformName", "resource"} );
 
-        binder.AddMethod( &ScriptGeomSource::ArgTextureIn,      "ArgIn"     );
-        binder.AddMethod( &ScriptGeomSource::ArgVideoIn,        "ArgIn"     );
+        binder.AddMethod( &ScriptGeomSource::ArgTextureIn,      "ArgIn",    {"uniformName", "resource", "samplerName"} );
+        binder.AddMethod( &ScriptGeomSource::ArgVideoIn,        "ArgIn",    {"uniformName", "resource", "samplerName"} );
     }
 //-----------------------------------------------------------------------------
 
@@ -535,12 +714,12 @@ namespace
 
         binder.Comment( "Set detail level of the sphere.\n"
                         "Vertex count: (lod+2)^2, index count: 6*(lod+1)^2." );
-        binder.AddMethod( &ScriptSphericalCube::SetDetailLevel1,    "DetailLevel"   );
-        binder.AddMethod( &ScriptSphericalCube::SetDetailLevel2,    "DetailLevel"   );
+        binder.AddMethod( &ScriptSphericalCube::SetDetailLevel1,    "DetailLevel",  {"maxLOD"} );
+        binder.AddMethod( &ScriptSphericalCube::SetDetailLevel2,    "DetailLevel",  {"minLOD", "maxLOD"} );
 
         binder.Comment( "Set constant or dynamic tessellation level." );
-        binder.AddMethod( &ScriptSphericalCube::SetTessLevel1,      "TessLevel"     );
-        binder.AddMethod( &ScriptSphericalCube::SetTessLevel2,      "TessLevel"     );
+        binder.AddMethod( &ScriptSphericalCube::SetTessLevel1,      "TessLevel",    {"level"} );
+        binder.AddMethod( &ScriptSphericalCube::SetTessLevel2,      "TessLevel",    {"level"} );
     }
 
 /*
@@ -570,9 +749,9 @@ namespace
     ScriptGeomSource::PipelineNames_t  ScriptSphericalCube::FindMaterialPipeline () C_Th___
     {
         Array<GraphicsPipelineSpecPtr>  pipelines;
-        _FindPipelinesByVB( "VB{SphericalCubeVertex}", OUT pipelines );                 // throw
-        _FindPipelinesByUB( "material", "SphericalCubeMaterialUB", INOUT pipelines );   // throw
-        _FindPipelinesByResources( "material", _args.Args(), INOUT pipelines );         // throw
+        _FindPipelinesByVB( "VB{SphericalCubeVertex}", OUT pipelines );             // throw
+        _FindPipelinesByUB( c_MtrDS, "SphericalCubeMaterialUB", INOUT pipelines );  // throw
+        _FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );        // throw
         return _GetSuitablePipeline( pipelines );
     }
 
@@ -598,9 +777,9 @@ namespace
         result->ppln    = ppln;
 
         CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
-                                                    ppln, DescriptorSetName{"material"} ));
+                                                    ppln, DescriptorSetName{c_MtrDS} ));
 
-        result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{"pass"} );
+        result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );
 
         result->ubuffer = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::SphericalCubeMaterialUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
                                                  "SphericalCubeMaterialUB", renderer.GetAllocator() );
@@ -1015,6 +1194,8 @@ namespace
 */
     void  ScriptUniGeometry::Draw1 (const DrawCmd3 &cmd)
     {
+        CHECK_THROW_MSG( not _geomSrc );
+
         CHECK_THROW_MSG( cmd.vertexCount > 0 or cmd.dynVertexCount );
         CHECK_THROW_MSG( cmd.instanceCount > 0 or cmd.dynInstanceCount );
 
@@ -1023,6 +1204,8 @@ namespace
 
     void  ScriptUniGeometry::Draw2 (const DrawIndexedCmd3 &cmd)
     {
+        CHECK_THROW_MSG( not _geomSrc );
+
         CHECK_THROW_MSG( cmd._indexBuffer );
         CHECK_THROW_MSG( cmd.indexCount > 0 );
         CHECK_THROW_MSG( cmd.instanceCount > 0 );
@@ -1032,7 +1215,8 @@ namespace
 
     void  ScriptUniGeometry::Draw3 (const DrawIndirectCmd3 &cmd)
     {
-        // TODO: check feature
+        CHECK_THROW_MSG( not _geomSrc );
+
         CHECK_THROW_MSG( cmd._indirectBuffer );
         CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
         CHECK_THROW_MSG( cmd.stride >= sizeof(Graphics::DrawIndirectCommand), "Stride must be >= "s << ToString(sizeof(Graphics::DrawIndirectCommand)) );
@@ -1043,7 +1227,8 @@ namespace
 
     void  ScriptUniGeometry::Draw4 (const DrawIndexedIndirectCmd3 &cmd)
     {
-        // TODO: check feature
+        CHECK_THROW_MSG( not _geomSrc );
+
         CHECK_THROW_MSG( cmd._indexBuffer );
         CHECK_THROW_MSG( cmd._indirectBuffer );
         CHECK_THROW_MSG( cmd.drawCount > 0 or cmd.dynDrawCount );
@@ -1055,6 +1240,8 @@ namespace
 
     void  ScriptUniGeometry::Draw5 (const DrawMeshTasksCmd3 &cmd)
     {
+        CHECK_THROW_MSG( not _geomSrc );
+
         auto&   fs = RenderTaskScheduler().GetFeatureSet();
         CHECK_THROW_MSG( fs.meshShader == EFeature::RequireTrue );
 
@@ -1065,6 +1252,8 @@ namespace
 
     void  ScriptUniGeometry::Draw6 (const DrawMeshTasksIndirectCmd3 &cmd)
     {
+        CHECK_THROW_MSG( not _geomSrc );
+
         auto&   fs = RenderTaskScheduler().GetFeatureSet();
         CHECK_THROW_MSG( fs.meshShader == EFeature::RequireTrue );
 
@@ -1078,6 +1267,8 @@ namespace
 
     void  ScriptUniGeometry::Draw7 (const DrawIndirectCountCmd3 &cmd)
     {
+        CHECK_THROW_MSG( not _geomSrc );
+
         auto&   fs = RenderTaskScheduler().GetFeatureSet();
         CHECK_THROW_MSG( fs.drawIndirectCount == EFeature::RequireTrue );
 
@@ -1092,6 +1283,8 @@ namespace
 
     void  ScriptUniGeometry::Draw8 (const DrawIndexedIndirectCountCmd3 &cmd)
     {
+        CHECK_THROW_MSG( not _geomSrc );
+
         auto&   fs = RenderTaskScheduler().GetFeatureSet();
         CHECK_THROW_MSG( fs.drawIndirectCount == EFeature::RequireTrue );
 
@@ -1107,6 +1300,8 @@ namespace
 
     void  ScriptUniGeometry::Draw9 (const DrawMeshTasksIndirectCountCmd3 &cmd)
     {
+        CHECK_THROW_MSG( not _geomSrc );
+
         auto&   fs = RenderTaskScheduler().GetFeatureSet();
         CHECK_THROW_MSG( fs.drawIndirectCount == EFeature::RequireTrue and fs.meshShader == EFeature::RequireTrue );
 
@@ -1131,6 +1326,21 @@ namespace
 
 /*
 =================================================
+    Clone
+=================================================
+*/
+    ScriptUniGeometry*  ScriptUniGeometry::Clone () C_Th___
+    {
+        ScriptRC<ScriptUniGeometry> result{ new ScriptUniGeometry{} };
+
+        result->_args.CopyFrom( this->_args );
+        result->_drawCommands   = this->_drawCommands;
+
+        return result.Detach();
+    }
+
+/*
+=================================================
     Bind*
 =================================================
 */
@@ -1138,8 +1348,8 @@ namespace
     {
         Scripting::ClassBinder<DrawCmd3>    binder{ se };
         binder.CreateClassValue();
-        binder.AddMethod( &DrawCmd3::SetDynVertexCount,                             "VertexCount"       );
-        binder.AddMethod( &DrawCmd3::SetDynInstanceCount,                           "InstanceCount"     );
+        binder.AddMethod( &DrawCmd3::SetDynVertexCount,                             "VertexCount",      {} );
+        binder.AddMethod( &DrawCmd3::SetDynInstanceCount,                           "InstanceCount",    {} );
         binder.AddProperty( &DrawCmd3::vertexCount,                                 "vertexCount"       );
         binder.AddProperty( &DrawCmd3::instanceCount,                               "instanceCount"     );
         binder.AddProperty( &DrawCmd3::firstVertex,                                 "firstVertex"       );
@@ -1150,11 +1360,11 @@ namespace
     {
         Scripting::ClassBinder<DrawIndexedCmd3> binder{ se };
         binder.CreateClassValue();
-        binder.AddMethod( &DrawIndexedCmd3::SetDynIndexCount,                       "IndexCount"        );
-        binder.AddMethod( &DrawIndexedCmd3::SetDynInstanceCount,                    "InstanceCount"     );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer1<DrawIndexedCmd3>,      "IndexBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer2<DrawIndexedCmd3>,      "IndexBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer3<DrawIndexedCmd3>,      "IndexBuffer"       );
+        binder.AddMethod( &DrawIndexedCmd3::SetDynIndexCount,                       "IndexCount",       {} );
+        binder.AddMethod( &DrawIndexedCmd3::SetDynInstanceCount,                    "InstanceCount",    {} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer1<DrawIndexedCmd3>,      "IndexBuffer",      {"type", "buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer2<DrawIndexedCmd3>,      "IndexBuffer",      {"type", "buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer3<DrawIndexedCmd3>,      "IndexBuffer",      {"buffer", "field"} );
         binder.AddProperty( &DrawIndexedCmd3::indexCount,                           "indexCount"        );
         binder.AddProperty( &DrawIndexedCmd3::instanceCount,                        "instanceCount"     );
         binder.AddProperty( &DrawIndexedCmd3::firstIndex,                           "firstIndex"        );
@@ -1166,10 +1376,10 @@ namespace
     {
         Scripting::ClassBinder<DrawIndirectCmd3>    binder{ se };
         binder.CreateClassValue();
-        binder.AddMethod( &DrawIndirectCmd3::SetDynDrawCount,                       "DrawCount"         );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndirectCmd3>,  "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndirectCmd3>,  "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndirectCmd3>,  "IndirectBuffer"    );
+        binder.AddMethod( &DrawIndirectCmd3::SetDynDrawCount,                       "DrawCount",        {} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndirectCmd3>,  "IndirectBuffer",   {"buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndirectCmd3>,  "IndirectBuffer",   {"buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndirectCmd3>,  "IndirectBuffer",   {"buffer", "field"} );
         binder.AddProperty( &DrawIndirectCmd3::drawCount,                           "drawCount"         );
         binder.AddProperty( &DrawIndirectCmd3::stride,                              "stride"            );
     }
@@ -1178,13 +1388,13 @@ namespace
     {
         Scripting::ClassBinder<DrawIndexedIndirectCmd3> binder{ se };
         binder.CreateClassValue();
-        binder.AddMethod( &DrawIndexedIndirectCmd3::SetDynDrawCount,                        "DrawCount"         );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer1<DrawIndexedIndirectCmd3>,      "IndexBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer2<DrawIndexedIndirectCmd3>,      "IndexBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer3<DrawIndexedIndirectCmd3>,      "IndexBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndexedIndirectCmd3>,   "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndexedIndirectCmd3>,   "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndexedIndirectCmd3>,   "IndirectBuffer"    );
+        binder.AddMethod( &DrawIndexedIndirectCmd3::SetDynDrawCount,                        "DrawCount",        {} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer1<DrawIndexedIndirectCmd3>,      "IndexBuffer",      {"type", "buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer2<DrawIndexedIndirectCmd3>,      "IndexBuffer",      {"type", "buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer3<DrawIndexedIndirectCmd3>,      "IndexBuffer",      {"buffer", "field"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndexedIndirectCmd3>,   "IndirectBuffer",   {"buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndexedIndirectCmd3>,   "IndirectBuffer",   {"buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndexedIndirectCmd3>,   "IndirectBuffer",   {"buffer", "field"} );
         binder.AddProperty( &DrawIndexedIndirectCmd3::drawCount,                            "drawCount"         );
         binder.AddProperty( &DrawIndexedIndirectCmd3::stride,                               "stride"            );
     }
@@ -1193,7 +1403,7 @@ namespace
     {
         Scripting::ClassBinder<DrawMeshTasksCmd3>   binder{ se };
         binder.CreateClassValue();
-        binder.AddMethod( &DrawMeshTasksCmd3::SetDynTaskCount,                              "TaskCount"         );
+        binder.AddMethod( &DrawMeshTasksCmd3::SetDynTaskCount,                              "TaskCount",        {} );
         binder.AddProperty( &DrawMeshTasksCmd3::taskCount,                                  "taskCount"         );
     }
 
@@ -1201,10 +1411,10 @@ namespace
     {
         Scripting::ClassBinder<DrawMeshTasksIndirectCmd3>   binder{ se };
         binder.CreateClassValue();
-        binder.AddMethod( &DrawMeshTasksIndirectCmd3::SetDynDrawCount,                      "DrawCount"         );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawMeshTasksIndirectCmd3>, "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawMeshTasksIndirectCmd3>, "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawMeshTasksIndirectCmd3>, "IndirectBuffer"    );
+        binder.AddMethod( &DrawMeshTasksIndirectCmd3::SetDynDrawCount,                      "DrawCount",        {} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawMeshTasksIndirectCmd3>, "IndirectBuffer",   {"buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawMeshTasksIndirectCmd3>, "IndirectBuffer",   {"buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawMeshTasksIndirectCmd3>, "IndirectBuffer",   {"buffer", "field"} );
         binder.AddProperty( &DrawMeshTasksIndirectCmd3::drawCount,                          "drawCount"         );
         binder.AddProperty( &DrawMeshTasksIndirectCmd3::stride,                             "stride"            );
     }
@@ -1213,13 +1423,13 @@ namespace
     {
         Scripting::ClassBinder<DrawIndirectCountCmd3>   binder{ se };
         binder.CreateClassValue();
-        binder.AddMethod( &DrawIndirectCountCmd3::SetDynMaxDrawCount,                       "MaxDrawCount"      );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndirectCountCmd3>,     "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndirectCountCmd3>,     "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndirectCountCmd3>,     "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawIndirectCountCmd3>,        "CountBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawIndirectCountCmd3>,        "CountBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawIndirectCountCmd3>,        "CountBuffer"       );
+        binder.AddMethod( &DrawIndirectCountCmd3::SetDynMaxDrawCount,                       "MaxDrawCount",     {} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndirectCountCmd3>,     "IndirectBuffer",   {"buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndirectCountCmd3>,     "IndirectBuffer",   {"buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndirectCountCmd3>,     "IndirectBuffer",   {"buffer", "field"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawIndirectCountCmd3>,        "CountBuffer",      {"buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawIndirectCountCmd3>,        "CountBuffer",      {"buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawIndirectCountCmd3>,        "CountBuffer",      {"buffer", "field"} );
         binder.AddProperty( &DrawIndirectCountCmd3::maxDrawCount,                           "maxDrawCount"      );
         binder.AddProperty( &DrawIndirectCountCmd3::stride,                                 "stride"            );
     }
@@ -1228,16 +1438,16 @@ namespace
     {
         Scripting::ClassBinder<DrawIndexedIndirectCountCmd3>    binder{ se };
         binder.CreateClassValue();
-        binder.AddMethod( &DrawIndexedIndirectCountCmd3::SetDynMaxDrawCount,                    "MaxDrawCount"      );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer1<DrawIndexedIndirectCountCmd3>,     "IndexBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer2<DrawIndexedIndirectCountCmd3>,     "IndexBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer3<DrawIndexedIndirectCountCmd3>,     "IndexBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndexedIndirectCountCmd3>,  "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndexedIndirectCountCmd3>,  "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndexedIndirectCountCmd3>,  "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawIndexedIndirectCountCmd3>,     "CountBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawIndexedIndirectCountCmd3>,     "CountBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawIndexedIndirectCountCmd3>,     "CountBuffer"       );
+        binder.AddMethod( &DrawIndexedIndirectCountCmd3::SetDynMaxDrawCount,                    "MaxDrawCount",     {} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer1<DrawIndexedIndirectCountCmd3>,     "IndexBuffer",      {"type", "buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer2<DrawIndexedIndirectCountCmd3>,     "IndexBuffer",      {"type", "buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndexBuffer3<DrawIndexedIndirectCountCmd3>,     "IndexBuffer",      {"buffer", "field"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawIndexedIndirectCountCmd3>,  "IndirectBuffer",   {"buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawIndexedIndirectCountCmd3>,  "IndirectBuffer",   {"buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawIndexedIndirectCountCmd3>,  "IndirectBuffer",   {"buffer", "field"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawIndexedIndirectCountCmd3>,     "CountBuffer",      {"buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawIndexedIndirectCountCmd3>,     "CountBuffer",      {"buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawIndexedIndirectCountCmd3>,     "CountBuffer",      {"buffer", "field"} );
         binder.AddProperty( &DrawIndexedIndirectCountCmd3::maxDrawCount,                        "maxDrawCount"      );
         binder.AddProperty( &DrawIndexedIndirectCountCmd3::stride,                              "stride"            );
     }
@@ -1246,13 +1456,13 @@ namespace
     {
         Scripting::ClassBinder<DrawMeshTasksIndirectCountCmd3>  binder{ se };
         binder.CreateClassValue();
-        binder.AddMethod( &DrawMeshTasksIndirectCountCmd3::SetDynMaxDrawCount,                      "MaxDrawCount"      );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawMeshTasksIndirectCountCmd3>,    "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawMeshTasksIndirectCountCmd3>,    "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawMeshTasksIndirectCountCmd3>,    "IndirectBuffer"    );
-        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawMeshTasksIndirectCountCmd3>,       "CountBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawMeshTasksIndirectCountCmd3>,       "CountBuffer"       );
-        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawMeshTasksIndirectCountCmd3>,       "CountBuffer"       );
+        binder.AddMethod( &DrawMeshTasksIndirectCountCmd3::SetDynMaxDrawCount,                      "MaxDrawCount",     {} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer1<DrawMeshTasksIndirectCountCmd3>,    "IndirectBuffer",   {"buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer2<DrawMeshTasksIndirectCountCmd3>,    "IndirectBuffer",   {"buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetIndirectBuffer3<DrawMeshTasksIndirectCountCmd3>,    "IndirectBuffer",   {"buffer", "field"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer1<DrawMeshTasksIndirectCountCmd3>,       "CountBuffer",      {"buffer"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer2<DrawMeshTasksIndirectCountCmd3>,       "CountBuffer",      {"buffer", "offset"} );
+        binder.AddMethodFromGlobal( &DrawCmd_SetCountBuffer3<DrawMeshTasksIndirectCountCmd3>,       "CountBuffer",      {"buffer", "field"} );
         binder.AddProperty( &DrawMeshTasksIndirectCountCmd3::maxDrawCount,                          "maxDrawCount"      );
         binder.AddProperty( &DrawMeshTasksIndirectCountCmd3::stride,                                "stride"            );
     }
@@ -1278,15 +1488,17 @@ namespace
         binder.CreateRef();
         ScriptGeomSource::_BindBase( binder );
 
-        binder.AddMethod( &ScriptUniGeometry::Draw1,    "Draw"  );
-        binder.AddMethod( &ScriptUniGeometry::Draw2,    "Draw"  );
-        binder.AddMethod( &ScriptUniGeometry::Draw3,    "Draw"  );
-        binder.AddMethod( &ScriptUniGeometry::Draw4,    "Draw"  );
-        binder.AddMethod( &ScriptUniGeometry::Draw5,    "Draw"  );
-        binder.AddMethod( &ScriptUniGeometry::Draw6,    "Draw"  );
-        binder.AddMethod( &ScriptUniGeometry::Draw7,    "Draw"  );
-        binder.AddMethod( &ScriptUniGeometry::Draw8,    "Draw"  );
-        binder.AddMethod( &ScriptUniGeometry::Draw9,    "Draw"  );
+        binder.AddMethod( &ScriptUniGeometry::Draw1,    "Draw", {} );
+        binder.AddMethod( &ScriptUniGeometry::Draw2,    "Draw", {} );
+        binder.AddMethod( &ScriptUniGeometry::Draw3,    "Draw", {} );
+        binder.AddMethod( &ScriptUniGeometry::Draw4,    "Draw", {} );
+        binder.AddMethod( &ScriptUniGeometry::Draw5,    "Draw", {} );
+        binder.AddMethod( &ScriptUniGeometry::Draw6,    "Draw", {} );
+        binder.AddMethod( &ScriptUniGeometry::Draw7,    "Draw", {} );
+        binder.AddMethod( &ScriptUniGeometry::Draw8,    "Draw", {} );
+        binder.AddMethod( &ScriptUniGeometry::Draw9,    "Draw", {} );
+
+        binder.AddMethod( &ScriptUniGeometry::Clone,    "Clone", {} );
     }
 
 /*
@@ -1465,9 +1677,9 @@ namespace
         const auto  GetMeshPipeline = [this] () -> PipelineName
         {{
             Array<MeshPipelineSpecPtr>      pipelines;
-            _FindPipelinesWithoutVB( OUT pipelines );
-            _FindPipelinesByUB( "material", "UnifiedGeometryMaterialUB", INOUT pipelines ); // throw
-            _FindPipelinesByResources( "material", _args.Args(), INOUT pipelines );         // throw
+            _GetMeshPipelines( OUT pipelines );
+            _FindPipelinesByUB( c_MtrDS, "UnifiedGeometryMaterialUB", INOUT pipelines );    // throw
+            _FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );            // throw
             auto    tmp = _GetSuitablePipeline( pipelines );
             CHECK_THROW_MSG( not tmp.empty() );
             return tmp.front();
@@ -1477,8 +1689,8 @@ namespace
         {{
             Array<GraphicsPipelineSpecPtr>  pipelines;
             _FindPipelinesWithoutVB( OUT pipelines );
-            _FindPipelinesByUB( "material", "UnifiedGeometryMaterialUB", INOUT pipelines ); // throw
-            _FindPipelinesByResources( "material", _args.Args(), INOUT pipelines );         // throw
+            _FindPipelinesByUB( c_MtrDS, "UnifiedGeometryMaterialUB", INOUT pipelines );    // throw
+            _FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );            // throw
             auto    tmp = _GetSuitablePipeline( pipelines );
             CHECK_THROW_MSG( not tmp.empty() );
             return tmp.front();
@@ -1526,13 +1738,13 @@ namespace
             CHECK_THROW( ppln );
 
             if ( ds_inited ){
-                CHECK_THROW( result->mtrDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{"material"} ));
-                CHECK_THROW( result->passDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{"pass"} ));
+                CHECK_THROW( result->mtrDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_MtrDS} ));
+                CHECK_THROW( result->passDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} ));
             }else{
                 ds_inited = true;
                 CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
-                                                            ppln, DescriptorSetName{"material"} ));
-                result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{"pass"} );
+                                                            ppln, DescriptorSetName{c_MtrDS} ));
+                result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );
             }
             result->pplns.push_back( ppln );
         }};
@@ -1543,13 +1755,13 @@ namespace
             CHECK_THROW( ppln );
 
             if ( ds_inited ){
-                CHECK_THROW( result->mtrDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{"material"} ));
-                CHECK_THROW( result->passDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{"pass"} ));
+                CHECK_THROW( result->mtrDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_MtrDS} ));
+                CHECK_THROW( result->passDSIndex == GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} ));
             }else{
                 ds_inited = true;
                 CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
-                                                            ppln, DescriptorSetName{"material"} ));
-                result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{"pass"} );
+                                                            ppln, DescriptorSetName{c_MtrDS} ));
+                result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );
             }
             result->pplns.push_back( ppln );
         }};
@@ -1587,14 +1799,14 @@ namespace
     constructor
 =================================================
 */
-    ScriptSceneGeometry::ScriptSceneGeometry () __Th___
+    ScriptModelGeometrySrc::ScriptModelGeometrySrc () __Th___
     {}
 
-    ScriptSceneGeometry::ScriptSceneGeometry (const String &filename) __Th___
+    ScriptModelGeometrySrc::ScriptModelGeometrySrc (const String &filename) __Th___
     {
         _dbgName = Path{filename}.filename().replace_extension("").string().substr( 0, ResNameMaxLen );
 
-        _scenePath = FileSystem::ToAbsolute( filename );
+        _scenePath = FileSystem::ToAbsolute( filename );    // TODO: VFS
 
         CHECK_THROW_MSG( FileSystem::IsFile( _scenePath ),
             "File '"s << ToString(_scenePath) << "' is not exists" );
@@ -1605,7 +1817,7 @@ namespace
     destructor
 =================================================
 */
-    ScriptSceneGeometry::~ScriptSceneGeometry ()
+    ScriptModelGeometrySrc::~ScriptModelGeometrySrc ()
     {}
 
 /*
@@ -1613,7 +1825,7 @@ namespace
     Name
 =================================================
 */
-    void  ScriptSceneGeometry::Name (const String &name) __Th___
+    void  ScriptModelGeometrySrc::Name (const String &name) __Th___
     {
         CHECK_THROW_MSG( not _geomSrc,
             "resource is already created, can not change debug name" );
@@ -1629,16 +1841,18 @@ namespace
 
 /*
 =================================================
-    SetTexturePrefix
+    AddTextureSearchDir
 =================================================
 */
-    void  ScriptSceneGeometry::SetTexturePrefix (const String &value) __Th___
+    void  ScriptModelGeometrySrc::AddTextureSearchDir (const String &value) __Th___
     {
         CHECK_THROW_MSG( not _geomSrc,
             "resource is already created, can not change texture prefix" );
-        CHECK_THROW_MSG( _texPrefix.empty(), "already specified" );
 
-        _texPrefix = value;
+        _texSearchDirs.push_back( FileSystem::ToAbsolute( value )); // TODO: VFS
+
+        CHECK_THROW_MSG( FileSystem::IsDirectory( _texSearchDirs.back() ),
+            "Folder '"s << ToString(_texSearchDirs.back()) << "' is not exists" );
     }
 
 /*
@@ -1646,10 +1860,10 @@ namespace
     GetOpaqueRTGeometry
 =================================================
 */
-    ScriptRTGeometry*  ScriptSceneGeometry::GetOpaqueRTGeometry () __Th___
+    ScriptRTGeometry*  ScriptModelGeometrySrc::GetOpaqueRTGeometry () __Th___
     {
         CHECK_THROW_MSG( not _geomSrc,
-            "resource is already created, can not create RTScene" );
+            "resource is already created, can not create RTGeometry for Model" );
 
         if ( not _opaqueRTGeom )
         {
@@ -1669,10 +1883,10 @@ namespace
     GetTranslucentRTGeometry
 =================================================
 */
-    ScriptRTGeometry*  ScriptSceneGeometry::GetTranslucentRTGeometry () __Th___
+    ScriptRTGeometry*  ScriptModelGeometrySrc::GetTranslucentRTGeometry () __Th___
     {
         CHECK_THROW_MSG( not _geomSrc,
-            "resource is already created, can not create RTGeometry" );
+            "resource is already created, can not create RTGeometry for Model" );
 
         if ( not _translucentRTGeom )
         {
@@ -1689,10 +1903,10 @@ namespace
 
 /*
 =================================================
-    SetTransform
+    SetInitialTransform
 =================================================
 */
-    void  ScriptSceneGeometry::SetTransform (const packed_float4x4 &value) __Th___
+    void  ScriptModelGeometrySrc::SetInitialTransform (const packed_float4x4 &value) __Th___
     {
         CHECK_THROW_MSG( not _geomSrc,
             "resource is already created, can not set initial transform" );
@@ -1705,7 +1919,7 @@ namespace
     _OnAddArg
 =================================================
 */
-    void  ScriptSceneGeometry::_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th___
+    void  ScriptModelGeometrySrc::_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th___
     {
         CHECK_THROW_MSG( not _geomSrc );
     }
@@ -1715,18 +1929,25 @@ namespace
     Bind
 =================================================
 */
-    void  ScriptSceneGeometry::Bind (const ScriptEnginePtr &se) __Th___
+    void  ScriptModelGeometrySrc::Bind (const ScriptEnginePtr &se) __Th___
     {
-        Scripting::ClassBinder<ScriptSceneGeometry> binder{ se };
+        Scripting::ClassBinder<ScriptModelGeometrySrc>  binder{ se };
         binder.CreateRef( 0, False{"no ctor"} );
         ScriptGeomSource::_BindBase( binder );
-        binder.AddFactoryCtor( &ScriptSceneGeometry_Ctor1 );
+        binder.AddFactoryCtor( &ScriptSceneGeometry_Ctor1,  {"scenePathInVFS"} );
 
-        binder.AddMethod( &ScriptSceneGeometry::Name,                       "Name"                  );
-        binder.AddMethod( &ScriptSceneGeometry::SetTexturePrefix,           "TexturePrefix"         );
-        binder.AddMethod( &ScriptSceneGeometry::SetTransform,               "InitialTransform"      );
-        binder.AddMethod( &ScriptSceneGeometry::GetOpaqueRTGeometry,        "OpaqueRTGeometry"      );
-        binder.AddMethod( &ScriptSceneGeometry::GetTranslucentRTGeometry,   "TranslucentRTGeometry" );
+        binder.Comment( "Set resource name. It is used for debugging." );
+        binder.AddMethod( &ScriptModelGeometrySrc::Name,                        "Name",                 {} );
+
+        binder.Comment( "Add directory where to search required textures." );
+        binder.AddMethod( &ScriptModelGeometrySrc::AddTextureSearchDir,         "TextureSearchDir",     {"folder"} );
+
+        binder.Comment( "Set transformation for model root node." );
+        binder.AddMethod( &ScriptModelGeometrySrc::SetInitialTransform,         "InitialTransform",     {} );
+
+        binder.Comment( "Returns RTGeometry to use it in ray tracing." );
+        binder.AddMethod( &ScriptModelGeometrySrc::GetOpaqueRTGeometry,         "OpaqueRTGeometry",     {} );
+        binder.AddMethod( &ScriptModelGeometrySrc::GetTranslucentRTGeometry,    "TranslucentRTGeometry",{} );
     }
 
 /*
@@ -1734,7 +1955,7 @@ namespace
     GetShaderTypes
 =================================================
 */
-    void  ScriptSceneGeometry::GetShaderTypes (INOUT CppStructsFromShaders &) __Th___
+    void  ScriptModelGeometrySrc::GetShaderTypes (INOUT CppStructsFromShaders &) __Th___
     {
     }
 
@@ -1743,7 +1964,7 @@ namespace
     ToGeomSource
 =================================================
 */
-    RC<IGeomSource>  ScriptSceneGeometry::ToGeomSource () __Th___
+    RC<IGeomSource>  ScriptModelGeometrySrc::ToGeomSource () __Th___
     {
         using namespace ResLoader;
 
@@ -1762,7 +1983,10 @@ namespace
 
         Renderer&   renderer = ScriptExe::ScriptResourceApi::GetRenderer(); // throw
 
-        _geomSrc = MakeRC<ModelGeomSource>( renderer, _intermScene, _initialTransform );
+        // search in scene dir
+        _texSearchDirs.push_back( _scenePath.parent_path() );
+
+        _geomSrc = MakeRC<ModelGeomSource>( renderer, _intermScene, _initialTransform, _texSearchDirs, _maxTextures );
         return _geomSrc;
     }
 
@@ -1771,15 +1995,15 @@ namespace
     FindMaterialPipeline
 =================================================
 */
-    ScriptGeomSource::PipelineNames_t  ScriptSceneGeometry::FindMaterialPipeline () C_Th___
+    ScriptGeomSource::PipelineNames_t  ScriptModelGeometrySrc::FindMaterialPipeline () C_Th___
     {
         CHECK_THROW_MSG( _intermScene );
 
-    #if 0
         ScriptGeomSource::PipelineNames_t   ppln_per_mtr;
+        DSLayoutName                        shared_mtr_dsl;
 
         _intermScene->ForEachModel(
-            [&ppln_per_mtr] (const ResLoader::IntermScene::ModelData &model)
+            [&ppln_per_mtr, this, &shared_mtr_dsl] (const ResLoader::IntermScene::ModelData &model)
             {
                 auto    mesh    = model.levels[ uint(ResLoader::EDetailLevel::High) ].mesh;
                 auto    mtr     = model.levels[ uint(ResLoader::EDetailLevel::High) ].mtr;
@@ -1789,31 +2013,30 @@ namespace
                 CHECK_THROW_MSG( mesh->Topology() == EPrimitive::TriangleList );
 
                 Array<GraphicsPipelineSpecPtr>  pipelines;
-                _FindPipelinesByVB( _AttribsToVBName( *mesh->Attribs() ), OUT pipelines );  // throw
-                _FindPipelinesBySB( "material", "ModelNodeArray", INOUT pipelines );        // throw
-                _FindPipelinesBySB( "material", "ModelMeshArray", INOUT pipelines );        // throw
-                _FindPipelinesBySB( "material", "ModelMaterialArray", INOUT pipelines );    // throw
-                _FindPipelinesByPC( "draw_model.pc", INOUT pipelines );                     // throw
-                _FindPipelinesByMaterial( "material", *mtr, INOUT pipelines );              // throw
+                _FindPipelinesByVB( _AttribsToVBName( *mesh->Attribs() ), OUT pipelines );                              // throw
+                _FindPipelinesByPC( "model.pc", INOUT pipelines );                                                      // throw
+                _FindPipelinesBySB( c_MtrDS, "ModelNodeArray", INOUT pipelines );                                       // throw
+                _FindPipelinesBySampledImage( c_MtrDS, "un_AlbedoMaps",
+                                              EImageType::Img2D | EImageType::Float, _maxTextures, INOUT pipelines );   // throw
+                _FindPipelinesBySampler( c_MtrDS, "un_AlbedoSampler", INOUT pipelines );                                // throw
+                _FindPipelinesByResources( c_MtrDS, _args.Args(), INOUT pipelines );                                    // throw
 
-                auto    tmp = _GetSuitablePipeline( pipelines );
-                CHECK_THROW_MSG( tmp.size() == 1 );
-                ppln_per_mtr.push_back( tmp[0] );
+                ScriptGeomSource::PipelineNames_t   ppln_name;
+                DSLayoutName                        mtr_dsl;
+                _GetSuitablePipelineAndDS( pipelines, c_MtrDS, OUT ppln_name, OUT mtr_dsl );                            // throw
+
+                if ( shared_mtr_dsl == Default )
+                    shared_mtr_dsl = mtr_dsl;   // init
+                else
+                    CHECK_THROW_MSG( shared_mtr_dsl == mtr_dsl, "All pipelines must use same DescriptorSetLayout" );
+
+                ppln_per_mtr.push_back( ppln_name[0] );
             });
 
-        return ppln_per_mtr;
-    #else
+        CHECK_THROW_MSG( shared_mtr_dsl.IsDefined() );
+        CHECK_THROW_MSG( not ppln_per_mtr.empty() );
 
-        Array<GraphicsPipelineSpecPtr>  pipelines;
-        _FindPipelinesByVB( "VB{Posf3, Normf3, UVf2}", OUT pipelines );             // throw
-    //  _FindPipelinesWithoutVB( OUT pipelines );
-    //  _FindPipelinesBySB( "material", "ModelNodeArray", INOUT pipelines );        // throw
-    //  _FindPipelinesBySB( "material", "ModelMeshArray", INOUT pipelines );        // throw
-    //  _FindPipelinesBySB( "material", "ModelMaterialArray", INOUT pipelines );    // throw
-        _FindPipelinesByPC( "ModelNode", INOUT pipelines );                         // throw
-    //  _FindPipelinesByMaterial( "material", *mtr, INOUT pipelines );              // throw
-        return _GetSuitablePipeline( pipelines );
-    #endif
+        return ppln_per_mtr;
     }
 
 /*
@@ -1821,23 +2044,43 @@ namespace
     ToMaterial
 =================================================
 */
-    RC<IGSMaterials>  ScriptSceneGeometry::ToMaterial (RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
+    RC<IGSMaterials>  ScriptModelGeometrySrc::ToMaterial (RenderTechPipelinesPtr rtech, const PipelineNames_t &names) C_Th___
     {
         CHECK_THROW( _geomSrc );
         CHECK_THROW( rtech );
-        CHECK_THROW( names.size() == 1 );
+        CHECK_THROW( names.size() > 0 );
 
         auto    result      = MakeRC<ModelGeomSource::Material>();
         auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
 
         result->rtech   = rtech;
-        result->ppln    = rtech->GetGraphicsPipeline( names[0] );
-        CHECK_THROW( result->ppln );
+        result->pplns.reserve( names.size() );
 
-        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
-                                                    result->ppln, DescriptorSetName{"material"} ));
+        _intermScene->ForEachModel(
+            [&, i = 0u, init_ds = true] (const ResLoader::IntermScene::ModelData &) mutable
+            {
+                CHECK_THROW_MSG( i < names.size() );
 
-        result->passDSIndex = GetDescSetBinding( res_mngr, result->ppln, DescriptorSetName{"pass"} );
+                auto    ppln = rtech->GetGraphicsPipeline( names[i++] );
+                CHECK_THROW( ppln );
+
+                if ( init_ds )
+                {
+                    init_ds = false;
+                    CHECK_THROW( res_mngr.CreateDescriptorSets( OUT result->mtrDSIndex, OUT result->descSets.data(), result->descSets.size(),
+                                                                ppln, DescriptorSetName{c_MtrDS} ));
+
+                    result->passDSIndex = GetDescSetBinding( res_mngr, ppln, DescriptorSetName{c_PassDS} );  // throw
+                    result->pcIndex     = res_mngr.GetPushConstantIndex< ShaderTypes::model_pc >( ppln, PushConstantName{"pc"} );
+                    CHECK_THROW( result->pcIndex );
+                }
+
+                result->pplns.push_back( ppln );
+            });
+
+        CHECK_THROW( result->pplns.size() == names.size() );
+        CHECK_THROW( result->passDSIndex );
+        CHECK_THROW( result->descSets[0] );
 
         return result;
     }
@@ -1845,12 +2088,31 @@ namespace
 /*
 =================================================
     _AttribsToVBName
+----
+    vertex buffer types defined in script:
+    file:///<path>/AE/samples/res_editor/_data/pipelines/ModelShared.as
 =================================================
 */
-    String  ScriptSceneGeometry::_AttribsToVBName (const ResLoader::IntermVertexAttribs &) __Th___
+    String  ScriptModelGeometrySrc::_AttribsToVBName (const ResLoader::IntermVertexAttribs &attribs) __Th___
     {
-        // TODO
-        return "VB{Pos3_Norm3_UV2}";
+        using namespace AE::ResLoader;
+
+        const bool  has_position    = attribs.HasVertex( VertexAttributeName::Position,     EVertexType::Float3 );
+        const bool  has_normal      = attribs.HasVertex( VertexAttributeName::Normal,       EVertexType::Float3 );
+        const bool  has_tangent     = attribs.HasVertex( VertexAttributeName::Tangent,      EVertexType::Float3 );
+        const bool  has_bitangent   = attribs.HasVertex( VertexAttributeName::BiTangent,    EVertexType::Float3 );
+        const bool  has_uv0_2       = attribs.HasVertex( VertexAttributeName::TextureUVs[0],EVertexType::Float2 );
+
+        if ( has_position and has_normal and has_uv0_2 )
+            return "VB{Posf3, Normf3, UVf2}";
+
+        if ( has_position and has_normal )
+            return "VB{Posf3, Normf3}";
+
+        if ( has_position )
+            return "VB{Posf3}";
+
+        CHECK_THROW_MSG( false, "No compatible attribs found." );
     }
 
 

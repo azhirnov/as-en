@@ -3,7 +3,7 @@
 #include "res_editor/Scripting/ScriptExe.h"
 #include "res_editor/Controllers/ScaleBiasCamera.h"
 #include "res_editor/Controllers/TopDownCamera.h"
-#include "res_editor/Controllers/IsometricCamera.h"
+#include "res_editor/Controllers/OrbitalCamera.h"
 #include "res_editor/Controllers/FlightCamera.h"
 #include "res_editor/Controllers/FPSCamera.h"
 #include "res_editor/Controllers/FPVCamera.h"
@@ -49,8 +49,15 @@ namespace
 
         binder.Operators().ImplCast( &ScriptBaseController_ToBase<T> );
 
-        binder.AddMethod( &ScriptBaseController::_Dimension,    "Dimension" );
-        binder.AddMethod( &ScriptBaseController::_SetDimension, "Dimension" );
+        binder.Comment( "Returns dynamic dimension which is attached to the camera.\n"
+                        "If not specified then render target size will be used from first pass where camera attached." );
+        binder.AddMethod( &ScriptBaseController::_Dimension,    "Dimension",    {} );
+
+        binder.Comment( "Set dynamic dimension for camera.\n"
+                        "If camera is used in single pass use default value.\n"
+                        "If camera is used in multiple passes with different resolution then set explicit dimension.\n"
+                        "When dimension changed camera with perspective projection will be resized for new aspect ratio." );
+        binder.AddMethod( &ScriptBaseController::_SetDimension, "Dimension",    {} );
     }
 
 /*
@@ -119,11 +126,20 @@ namespace
     {
         ClassBinder<ScriptControllerTopDown>  binder{ se };
         binder.CreateRef();
-        binder.AddMethod( &ScriptControllerTopDown::ForwardBackwardScale1,      "ForwardBackwardScale" );
-        binder.AddMethod( &ScriptControllerTopDown::ForwardBackwardScale2,      "ForwardBackwardScale" );
-        binder.AddMethod( &ScriptControllerTopDown::SideMovementScale,          "SideMovementScale" );
-        binder.AddMethod( &ScriptControllerTopDown::SetRotationScale,           "RotationScale" );
-        binder.AddMethod( &ScriptControllerTopDown::SetPosition,                "Position" );
+
+        binder.Comment( "Set scale for forward and backward movement." );
+        binder.AddMethod( &ScriptControllerTopDown::ForwardBackwardScale1,      "ForwardBackwardScale", {} );
+        binder.AddMethod( &ScriptControllerTopDown::ForwardBackwardScale2,      "ForwardBackwardScale", {"forward", "backward"} );
+
+        binder.Comment( "Set scale for side (left/right) movement." );
+        binder.AddMethod( &ScriptControllerTopDown::SideMovementScale,          "SideMovementScale",    {} );
+
+        binder.Comment( "Set rotation scale for mouse/touches/arrows." );
+        binder.AddMethod( &ScriptControllerTopDown::SetRotationScale,           "RotationScale",        {} );
+
+        binder.Comment( "Set initial position" );
+        binder.AddMethod( &ScriptControllerTopDown::SetPosition,                "Position",             {} );
+
         _BindBase( binder );
     }
 
@@ -188,7 +204,7 @@ namespace
     SetFovY
 =================================================
 */
-    void  ScriptControllerIsometricCamera::SetFovY (float value) __Th___
+    void  ScriptControllerOrbitalCamera::SetFovY (float value) __Th___
     {
         CHECK_THROW_MSG( value >= 1.0f );
         CHECK_THROW_MSG( value <= 90.0f );
@@ -201,7 +217,7 @@ namespace
     SetClipPlanes
 =================================================
 */
-    void  ScriptControllerIsometricCamera::SetClipPlanes (float near, float far) __Th___
+    void  ScriptControllerOrbitalCamera::SetClipPlanes (float near, float far) __Th___
     {
         CHECK_THROW_MSG( near > 0.0f );
         CHECK_THROW_MSG( near < far );
@@ -215,18 +231,30 @@ namespace
     Bind
 =================================================
 */
-    void  ScriptControllerIsometricCamera::Bind (const ScriptEnginePtr &se) __Th___
+    void  ScriptControllerOrbitalCamera::Bind (const ScriptEnginePtr &se) __Th___
     {
-        ClassBinder<ScriptControllerIsometricCamera>  binder{ se };
+        ClassBinder<ScriptControllerOrbitalCamera>  binder{ se };
         binder.CreateRef();
         _BindBase( binder );
-        binder.AddMethod( &ScriptControllerIsometricCamera::SetFovY,                "FovY" );
-        binder.AddMethod( &ScriptControllerIsometricCamera::SetClipPlanes,          "ClipPlanes" );
-        binder.AddMethod( &ScriptControllerIsometricCamera::SetRotationScale1,      "RotationScale" );
-        binder.AddMethod( &ScriptControllerIsometricCamera::SetRotationScale2,      "RotationScale" );
-        binder.AddMethod( &ScriptControllerIsometricCamera::SetOffsetScale,         "OffsetScale" );
-        binder.AddMethod( &ScriptControllerIsometricCamera::SetPosition,            "Position" );
-        binder.AddMethod( &ScriptControllerIsometricCamera::SetOffset,              "Offset" );
+
+        binder.Comment( "Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio." );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetFovY,              "FovY",             {} );
+
+        binder.Comment( "Set near and far clip planes." );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetClipPlanes,            "ClipPlanes",       {"near", "far"} );
+
+        binder.Comment( "Set rotation scale for mouse/touches/arrows." );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetRotationScale1,        "RotationScale",    {"xy"} );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetRotationScale2,        "RotationScale",    {"x", "y"} );
+
+        //binder.Comment( "" );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetOffsetScale,           "OffsetScale",      {} );
+
+        binder.Comment( "Set initial position." );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetPosition,          "Position",         {} );
+
+        //binder.Comment( "" );
+        binder.AddMethod( &ScriptControllerOrbitalCamera::SetOffset,                "Offset",           {} );
     }
 
 /*
@@ -234,14 +262,14 @@ namespace
     ToController
 =================================================
 */
-    RC<IController>  ScriptControllerIsometricCamera::ToController () __Th___
+    RC<IController>  ScriptControllerOrbitalCamera::ToController () __Th___
     {
         CHECK_THROW_MSG( _dynamicDim, "Dimension is not set" );
 
         if ( _controller )
             return _controller;
 
-        _controller = MakeRC<IsometricCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
+        _controller = MakeRC<OrbitalCamera>( _dynamicDim->Get(), _clipPlanes, Rad::FromDeg( _fovY ),
                                                 _rotationScale, _offsetScale, _initialPos, _initialOffset );
         return _controller;
     }
@@ -347,12 +375,22 @@ namespace
     {
         ClassBinder<ScriptControllerFlightCamera>  binder{ se };
         binder.CreateRef();
-        binder.AddMethod( &ScriptControllerCamera3D::SetFovY,                   "FovY" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes,             "ClipPlanes" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,         "RotationScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale3,         "RotationScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetPosition,               "Position" );
-        binder.AddMethod( &ScriptControllerFlightCamera::SetEngineThrustRange,  "EngineThrust" );
+
+        binder.Comment( "Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetFovY,                   "FovY",             {} );
+
+        binder.Comment( "Set near and far clip planes." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes,             "ClipPlanes",       {"near", "far"} );
+
+        binder.Comment( "Set rotation scale for mouse/touches/arrows." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,         "RotationScale",    {} );
+        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale3,         "RotationScale",    {"yaw", "pitch", "roll"} );
+
+        binder.AddMethod( &ScriptControllerFlightCamera::SetEngineThrustRange,  "EngineThrust",     {"min", "max"} );
+
+        binder.Comment( "Set initial position." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetPosition,               "Position",         {} );
+
         _BindBase( binder );
     }
 
@@ -385,16 +423,31 @@ namespace
     {
         ClassBinder<ScriptControllerFPVCamera>  binder{ se };
         binder.CreateRef();
-        binder.AddMethod( &ScriptControllerCamera3D::SetFovY,               "FovY" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes,         "ClipPlanes" );
-        binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale1, "ForwardBackwardScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale2, "ForwardBackwardScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::UpDownScale1,          "UpDownScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::UpDownScale2,          "UpDownScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::SideMovementScale,     "SideMovementScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,     "RotationScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale2,     "RotationScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetPosition,           "Position" );
+
+        binder.Comment( "Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetFovY,               "FovY",                 {} );
+
+        binder.Comment( "Set near and far clip planes." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes,         "ClipPlanes",           {"near", "far"} );
+
+        binder.Comment( "Set scale for forward and backward movement." );
+        binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale1, "ForwardBackwardScale", {} );
+        binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale2, "ForwardBackwardScale", {"forward", "backward"} );
+
+        binder.Comment( "Set scale for up and down movement." );
+        binder.AddMethod( &ScriptControllerCamera3D::UpDownScale1,          "UpDownScale",          {} );
+        binder.AddMethod( &ScriptControllerCamera3D::UpDownScale2,          "UpDownScale",          {"up", "down"} );
+
+        binder.Comment( "Set scale for side (left/right) movement." );
+        binder.AddMethod( &ScriptControllerCamera3D::SideMovementScale,     "SideMovementScale",    {} );
+
+        binder.Comment( "Set rotation scale for mouse/touches/arrows." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,     "RotationScale",        {"xy"} );
+        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale2,     "RotationScale",        {"x", "y"} );
+
+        binder.Comment( "Set initial position." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetPosition,           "Position",             {} );
+
         _BindBase( binder );
     }
 
@@ -427,16 +480,31 @@ namespace
     {
         ClassBinder<ScriptControllerFreeCamera>  binder{ se };
         binder.CreateRef();
-        binder.AddMethod( &ScriptControllerCamera3D::SetFovY,               "FovY" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes,         "ClipPlanes" );
-        binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale1, "ForwardBackwardScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale2, "ForwardBackwardScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::UpDownScale1,          "UpDownScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::UpDownScale2,          "UpDownScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::SideMovementScale,     "SideMovementScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,     "RotationScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale2,     "RotationScale" );
-        binder.AddMethod( &ScriptControllerCamera3D::SetPosition,           "Position" );
+
+        binder.Comment( "Set field or view on Y axis in radians. On X axis it will be calculate automaticaly by aspect ratio." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetFovY,               "FovY",                 {} );
+
+        binder.Comment( "Set near and far clip planes." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetClipPlanes,         "ClipPlanes",           {"near", "far"} );
+
+        binder.Comment( "Set scale for forward and backward movement." );
+        binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale1, "ForwardBackwardScale", {} );
+        binder.AddMethod( &ScriptControllerCamera3D::ForwardBackwardScale2, "ForwardBackwardScale", {"forward", "backward"} );
+
+        binder.Comment( "Set scale for up and down movement." );
+        binder.AddMethod( &ScriptControllerCamera3D::UpDownScale1,          "UpDownScale",          {} );
+        binder.AddMethod( &ScriptControllerCamera3D::UpDownScale2,          "UpDownScale",          {"up", "down"} );
+
+        binder.Comment( "Set scale for side (left/right) movement." );
+        binder.AddMethod( &ScriptControllerCamera3D::SideMovementScale,     "SideMovementScale",    {} );
+
+        binder.Comment( "Set rotation scale for mouse/touches/arrows." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale1,     "RotationScale",        {"xy"} );
+        binder.AddMethod( &ScriptControllerCamera3D::SetRotationScale2,     "RotationScale",        {"x", "y"} );
+
+        binder.Comment( "Set initial position." );
+        binder.AddMethod( &ScriptControllerCamera3D::SetPosition,           "Position",             {} );
+
         _BindBase( binder );
     }
 

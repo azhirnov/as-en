@@ -14,9 +14,10 @@
         Resource state tracking:
             - only manual state transition.
             - required state in method description.
-            - supported states for DescriptorSetID:
+            - supported states for resources in DescriptorSet:
                 buffers:    ShaderUniform, ShaderStorage_RW
-                image:      ShaderSample,  ShaderStorage_RW, InputColorAttachment_RW, InputDepthStencilAttachment_RW, DepthStencilTest_ShaderSample
+                image:      ShaderSample,  ShaderStorage_RW, InputColorAttachment, InputColorAttachment_RW,
+                            InputDepthStencilAttachment, InputDepthStencilAttachment_RW, DepthStencilTest_ShaderSample
                 as:         ShaderRTAS
 
 */

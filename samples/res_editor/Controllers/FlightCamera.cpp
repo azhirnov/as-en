@@ -77,7 +77,7 @@ namespace AE::ResEditor
 
         if ( IsNotZero( zoom ) or _dynDim->IsChanged( INOUT _dimAspect ))
         {
-            _zoom = Clamp( _zoom - zoom * _zoomStep, _minZoom, _maxZoom );
+            _zoom = Clamp( _zoom - zoom * _zoomStep, _3d_minZoom, _3d_maxZoom );
             _camera.SetPerspective( _fovY * _zoom, _dimAspect, _clipPlanes.x, _clipPlanes.y );
         }
 

@@ -1,3 +1,4 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 set( PLATFORM_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/platform" )
 set( PLATFORM_HPP_SRC
@@ -35,7 +36,7 @@ EnablePrebuild( "InputActionsBinding" )
 add_library( "InputActionsBinding-shared" SHARED
     "InputActionsBinding.h"
     ${DUMMY_CPP_FILE}
-    "Lib/InputActionsBinding.def"
+    #"Lib/InputActionsBinding.def"
 )
 target_link_libraries( "InputActionsBinding-shared" PUBLIC "InputActionsBinding" )
 

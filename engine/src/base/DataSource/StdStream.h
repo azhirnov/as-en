@@ -34,12 +34,12 @@ namespace AE::Base
 
     // methods
     public:
-        explicit StreambufWrap (const RC<RStream> &src) : _src{src} {}
+        explicit StreambufWrap (RC<RStream> src) __NE___ : _src{RVRef(src)} {}
 
 
     protected:
         // obtains the number of characters available for input in the associated input sequence, if known
-        std::streamsize  showmanyc () _____OV
+        std::streamsize  showmanyc () __Th_OV
         {
             if ( _src and _src->IsOpen() )
                 return std::streamsize(_src->RemainingSize() / charSoze);
@@ -48,7 +48,7 @@ namespace AE::Base
         }
 
         // reads characters from the associated input sequence to the get area
-        int_type  underflow () _____OV
+        int_type  underflow () __Th_OV
         {
             if ( _src and _src->IsOpen() )
                 return int_type(_src->RemainingSize() / charSoze);
@@ -57,13 +57,13 @@ namespace AE::Base
         }
 
         // reads characters from the associated input sequence to the get area and advances the next pointer
-        int_type  uflow () _____OV
+        int_type  uflow () __Th_OV
         {
             return Base_t::uflow();
         }
 
         // reads multiple characters from the input sequence
-        std::streamsize  xsgetn (char_type* s, std::streamsize count) _____OV
+        std::streamsize  xsgetn (char_type* s, std::streamsize count) __Th_OV
         {
             if_likely( _src and _src->IsOpen() )
                 return std::streamsize(_src->ReadSeq( s, charSoze * ulong(count) ) / charSoze);
@@ -71,7 +71,7 @@ namespace AE::Base
                 return 0;
         }
 
-        pos_type  seekoff (off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) _____OV
+        pos_type  seekoff (off_type off, std::ios_base::seekdir dir, std::ios_base::openmode which) __Th_OV
         {
             Unused( which );
 
@@ -95,7 +95,7 @@ namespace AE::Base
             return err;
         }
 
-        pos_type  seekpos (pos_type pos, std::ios_base::openmode which) _____OV
+        pos_type  seekpos (pos_type pos, std::ios_base::openmode which) __Th_OV
         {
             return seekoff( pos - pos_type(off_type{0}), std::ios_base::beg, which );
         }

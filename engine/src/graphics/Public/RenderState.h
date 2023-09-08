@@ -183,10 +183,12 @@ namespace AE::Graphics
         struct RasterizationState
         {
         // variables
-            float           depthBiasConstFactor    = 0.f;
-            float           depthBiasClamp          = 0.f;
-            float           depthBiasSlopeFactor    = 0.f;
-            bool            depthBias               = 0.f;
+            float           depthBiasConstFactor    = 0.f;      // bias = dbclamp( m * depthBiasSlopeFactor + r * depthBiasConstFactor )
+            float           depthBiasClamp          = 0.f;      // m - max depth slope of a triangle
+            float           depthBiasSlopeFactor    = 0.f;      // r - implementation-dependent but must be at most 2*2^-n, n - number of mantissa bits
+            bool            depthBias               = 0.f;      //              { x                         if depthBiasClamp = 0;
+                                                                // dbclamp(x) = { min(x, depthBiasClamp)    if depthBiasClamp > 0;
+                                                                //              { max(x, depthBiasClamp)    if depthBiasClamp < 0
 
             EPolygonMode    polygonMode             = EPolygonMode::Fill;
 

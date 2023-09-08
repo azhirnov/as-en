@@ -9,7 +9,7 @@ namespace AE::Math
 {
 
     //
-    // Bytes template
+    // Byte type
     //
 
     template <typename T>

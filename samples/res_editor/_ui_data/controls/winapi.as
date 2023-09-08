@@ -117,9 +117,9 @@ void ASmain (WinAPI_ActionBindings& bindings)
                   ActionInfo( "UI.MouseRBDown", EGestureType::Hold ));
     }
 
-    // Isometric Camera
+    // Orbital Camera
     {
-        RC<WinAPI_BindingsMode> bind = bindings.CreateMode( "Controller.Isometric" );
+        RC<WinAPI_BindingsMode> bind = bindings.CreateMode( "Controller.Orbital" );
         bind.Inherit( "SwitchInputMode" );
 
         const float4    arrow_scale     (0.01f);

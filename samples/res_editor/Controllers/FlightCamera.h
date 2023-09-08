@@ -15,26 +15,26 @@ namespace AE::ResEditor
     {
     // variables
     private:
-        mutable RWSpinLock          _guard;
+        mutable RWSpinLock      _guard;
 
-        RC<DynamicDim>              _dynDim;
+        RC<DynamicDim>          _dynDim;
 
-        float4x4                    _view;          // cached
-        float4x4                    _viewProj;      // cached
-        float4x4                    _invViewProj;   // cached
+        float4x4                _view;          // cached
+        float4x4                _viewProj;      // cached
+        float4x4                _invViewProj;   // cached
 
-        FlightCameraTempl<float>    _camera;
-        const float2                _clipPlanes;
-        const float3                _rotationScale; // yaw, pitch, roll
-        const Rad                   _fovY;
-        const float                 _minThrust;
-        const float                 _maxThrust;
-        const float3                _initialPos;
-        const float                 _zoomStep       = 0.1f;
+        TFlightCamera<float>    _camera;
+        const float2            _clipPlanes;
+        const float3            _rotationScale; // yaw, pitch, roll
+        const Rad               _fovY;
+        const float             _minThrust;
+        const float             _maxThrust;
+        const float3            _initialPos;
+        const float             _zoomStep       = 0.1f;
 
-        float                       _zoom           = 1.0f;
-        float                       _engineThrust   = 0.f;
-        float                       _dimAspect      = 1.f;
+        float                   _zoom           = 1.0f;
+        float                   _engineThrust   = 0.f;
+        float                   _dimAspect      = 1.f;
 
 
     // methods

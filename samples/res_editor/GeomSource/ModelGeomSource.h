@@ -17,7 +17,7 @@ namespace AE::ResEditor
 
     class ModelGeomSource final : public IGeomSource
     {
-        friend class ScriptSceneGeometry;
+        friend class ScriptModelGeometrySrc;
 
     // types
     private:
@@ -29,19 +29,20 @@ namespace AE::ResEditor
         {
         // types
         private:
-            using PplnID_t      = Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
-            using PplnPerDraw_t = Array< PplnID_t >;
+            //using PplnID_t    = Union< NullUnion, GraphicsPipelineID, MeshPipelineID >;
+            using PplnPerObj_t  = Array< GraphicsPipelineID >;
 
 
         // variables
         public:
             RenderTechPipelinesPtr      rtech;
 
-            GraphicsPipelineID          ppln;
+            PplnPerObj_t                pplns;
             PerFrameDescSet_t           descSets;
 
             DescSetBinding              passDSIndex;
             DescSetBinding              mtrDSIndex;
+            PushConstantIndex           pcIndex;
 
             Strong<BufferID>            ubuffer;
 
@@ -60,7 +61,7 @@ namespace AE::ResEditor
         {
         // types
         private:
-            struct MeshData
+            struct MeshDataInRAM
             {
                 StructView< packed_float3 >     positions;
                 StructView< packed_float3 >     normals;
@@ -70,9 +71,9 @@ namespace AE::ResEditor
                 ND_ Bytes  DataSize ()  const;
             };
 
-            struct MeshInfo
+            struct MeshDataInGPU
             {
-                uint        indexCount;
+                uint        indexCount  = 0;
                 Bytes       positions;
                 Bytes       normals;
                 Bytes       texcoords;
@@ -81,10 +82,8 @@ namespace AE::ResEditor
 
             struct DrawCall
             {
-                float4x4    transform;
                 uint        nodeIdx;
                 uint        meshIdx;
-                uint        materialIdx;
             };
 
 
@@ -95,9 +94,7 @@ namespace AE::ResEditor
             Strong<BufferID>            _nodeBuffer;
 
             Array<DrawCall>             _drawCalls;
-            Array<MeshInfo>             _meshInfoArr;
-
-            PushConstantIndex           _pcIndex;
+            Array<MeshDataInGPU>        _meshInfoArr;
 
             Bytes                       _meshDataOffset;
             Bytes                       _meshDataSize;
@@ -115,19 +112,22 @@ namespace AE::ResEditor
                   const float4x4 &initialTransform)                                 __Th___;
             ~Mesh ();
 
-            void            StateTransition (GraphicsCtx_t &)                       C_NE___;
-            void            Draw (DirectCtx::Draw &, const float4x4 &)              __Th___;
+            ND_ bool  Bind (DescriptorUpdater &updater)                             C_NE___;
 
+                void  StateTransition (GraphicsCtx_t &)                             C_NE___;
+                void  Draw (DirectCtx::Draw                 &ctx,
+                            PushConstantIndex               pcIndex,
+                            ArrayView<GraphicsPipelineID>   pipelines)              __Th___;
+
+            // IResource //
             bool            Resize (TransferCtx_t &)                                __Th_OV { return true; }
             bool            RequireResize ()                                        C_Th_OV { return false; }
             EUploadStatus   Upload (TransferCtx_t &)                                __Th_OV;
             EUploadStatus   Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Canceled; }
 
-            ND_ BufferID    ModelNodeArray ()                                       C_NE___ { return _meshInfo; }
-            ND_ BufferID    ModelMeshArray ()                                       C_NE___ { return _nodeBuffer; }
 
         private:
-            ND_ static MeshData  _Convert (const ResLoader::IntermMesh &)           __Th___;
+            ND_ static MeshDataInRAM  _Convert (const ResLoader::IntermMesh &)      __Th___;
 
             template <typename T>
             ND_ bool  _UploadData (INOUT Bytes &, TransferCtx_t &, StructView<T>)   __Th___;
@@ -146,29 +146,40 @@ namespace AE::ResEditor
         {
         // variables
         private:
+            Array< RC<Image> >      _albedoMaps;
+            const uint              _maxTextures;
 
 
         // methods
         public:
-            Textures (Renderer &r, RC<ResLoader::IntermScene> scene)                __Th___;
+            Textures (Renderer                      &r,
+                      RC<ResLoader::IntermScene>    scene,
+                      ArrayView<Path>               texSearchDirs,
+                      uint                          maxTextures)                    __Th___;
 
+            ND_ bool  Bind (DescriptorUpdater &updater)                             C_NE___;
+
+            // IResource //
             bool            Resize (TransferCtx_t &)                                __Th_OV { return true; }
             bool            RequireResize ()                                        C_Th_OV { return false; }
-            EUploadStatus   Upload (TransferCtx_t &)                                __Th_OV;
+            EUploadStatus   Upload (TransferCtx_t &)                                __Th_OV { return EUploadStatus::Complete; }
             EUploadStatus   Readback (TransferCtx_t &)                              __Th_OV { return EUploadStatus::Canceled; }
         };
 
 
     // variables
     private:
-        RC<Mesh>                    _meshData;
-        RC<Textures>                _textures;
+        RC<Mesh>            _meshData;
+        RC<Textures>        _textures;
 
 
     // methods
     public:
-        ModelGeomSource (Renderer &r, RC<ResLoader::IntermScene> scene,
-                         const float4x4 &initialTransform)                  __Th___;
+        ModelGeomSource (Renderer                   &r,
+                         RC<ResLoader::IntermScene> scene,
+                         const float4x4             &initialTransform,
+                         ArrayView<Path>            texSearchDirs,
+                         uint                       maxTextures)            __Th___;
         ~ModelGeomSource ();
 
 

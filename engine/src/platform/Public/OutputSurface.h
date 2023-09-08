@@ -5,6 +5,8 @@
         - video stream
         - render target
         - VR device
+
+    Thread-safe: yes
 */
 
 #pragma once
@@ -49,6 +51,7 @@ namespace AE::App
             Screen,
             CurvedScreen,
             VR,
+            // multiple screens?
         };
 
         static constexpr uint   MaxOutputTargets    = 8;
@@ -59,6 +62,7 @@ namespace AE::App
         //
         struct RenderTarget
         {
+        // variables
             ImageID                 imageId;
             ImageViewID             viewId;         // 2D with single mipmap, shared 2D array with specified 'layer'
 
@@ -77,6 +81,8 @@ namespace AE::App
             // Access is thread-safe only between 'Begin()' / 'End()'.
             Ptr<const IProjection>  projection;
 
+
+        // methods
             ND_ uint2   RegionSize ()           C_NE___ { return RegionSizePxu(); }
             ND_ uint2   RegionSizePxu ()        C_NE___ { return uint2(region.Size()); }
             ND_ int2    RegionSizePxi ()        C_NE___ { return region.Size(); }
@@ -122,11 +128,15 @@ namespace AE::App
         //
         // Surface Info
         //
-        struct SurfaceInfo
+        struct SurfaceInfo : SurfaceFormat
         {
-            ESurfaceType        type            = Default;
-            SurfaceFormat       format;
-            EPresentMode        presentMode     = Default;
+        // variables
+            ESurfaceType    type            = Default;
+            EPresentMode    presentMode     = Default;
+
+        // methods
+            SurfaceInfo&  operator = (const SurfaceFormat &rhs) __NE___ { SurfaceFormat::operator = (rhs);  return *this; }
+            SurfaceInfo&  operator = (const SurfaceInfo &rhs)   __NE___ = default;
         };
 
 
@@ -136,13 +146,11 @@ namespace AE::App
 
 
         // Returns 'true' if surface is initialized.
-        //   Thread safe: yes
         //
         ND_ virtual bool  IsInitialized ()                                                                                      C_NE___ = 0;
 
 
         // Returns attachment parameters for render pass.
-        //   Thread safe: yes
         //
         ND_ virtual RenderPassInfo  GetRenderPassInfo ()                                                                        C_NE___ = 0;
 
@@ -151,14 +159,12 @@ namespace AE::App
         // 'beginCmdBatch'  - batch where render targets will be rendered.
         // 'endCmdBatch'    - batch where render targets was rendered.
         // 'deps'           - list of tasks which must be executed before.
-        //   Thread safe: yes
         //
         ND_ virtual AsyncTask  Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask> deps)    __NE___ = 0;
 
 
         // Get render targets.
         // Must be used between 'Begin()' / 'End()'.
-        //   Thread safe: yes
         //
             virtual bool  GetTargets (OUT RenderTargets_t &targets)                                                             C_NE___ = 0;
 
@@ -166,7 +172,6 @@ namespace AE::App
         // End rendering and present frame.
         // Returns present/blit task, returns 'null' on error.
         // 'deps'       - list of tasks which must be executed before, 'CmdBatchOnSubmit{endCmdBatch}' is implicitly added.
-        //   Thread safe: yes
         //
         ND_ virtual AsyncTask  End (ArrayView<AsyncTask> deps)                                                                  __NE___ = 0;
 
@@ -175,39 +180,33 @@ namespace AE::App
         // Can be used outside of 'Begin()/End()' scope.
         // Images can be deleted at any moment, so result may be deprecated.
         // If not changed then result is equal to 'RenderTarget::imageId' which returns by 'GetTargets()'.
-        //   Thread safe: yes
         //
-        ND_ virtual AllImages_t  GetAllImages ()                                                                                C_NE___ = 0;
+        //ND_ virtual AllImages_t  GetAllImages ()                                                                              C_NE___ = 0;
 
 
         // Returns current surface sizes.
         // Size can be changed at any moment, so result may be deprecated.
         // If not changed then result is equal to 'RenderTarget::RegionSize()' which returns by 'GetTargets()'.
-        //   Thread safe: yes
         //
         ND_ virtual TargetSizes_t  GetTargetSizes ()                                                                            C_NE___ = 0;
 
 
         // Returns all supported color formats and color spaces.
-        //   Thread safe: yes
         //
         ND_ virtual SurfaceFormats_t  GetSurfaceFormats ()                                                                      C_NE___ = 0;
 
 
         // Returns all supported present modes.
-        //   Thread safe: yes
         //
         ND_ virtual PresentModes_t  GetPresentModes ()                                                                          C_NE___ = 0;
 
 
         // Returns current mode.
-        //   Thread safe: yes
         //
         ND_ virtual SurfaceInfo  GetSurfaceInfo ()                                                                              C_NE___ = 0;
 
 
         // Set color format, color space and present mode.
-        //   Thread safe: yes
         //
         ND_ virtual bool  SetSurfaceMode (const SurfaceInfo &)                                                                  __NE___ = 0;
     };

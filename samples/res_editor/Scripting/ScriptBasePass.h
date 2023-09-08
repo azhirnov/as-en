@@ -171,7 +171,7 @@ namespace AE::ResEditor
 
     private:
         template <typename T>
-        void  _Slider (const String &name, const T &min, const T &max, const T &val, ESlider type)      __Th___;
+        void  _Slider (const String &name, const T &min, const T &max, T val, ESlider type)             __Th___;
 
 
     protected:
@@ -185,7 +185,7 @@ namespace AE::ResEditor
         void  _SetConstDimension (const uint3 &dim)                                                     __Th___;
 
         template <typename B>
-        static void  _BindBase (B &binder)                                                              __Th___;
+        static void  _BindBase (B &binder, Bool withArgs)                                               __Th___;
 
         virtual void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                                   C_Th___ = 0;
 

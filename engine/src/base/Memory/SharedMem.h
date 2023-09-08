@@ -74,7 +74,7 @@ namespace _hidden_
 
 
     private:
-        TSharedMem (Bytes size, POTBytes align, Allocator_t alloc)      __NE___ : _size{size}, _align{align}, _allocator{alloc} {}
+        TSharedMem (Bytes size, POTBytes align, Allocator_t alloc)      __NE___;
         ~TSharedMem ()                                                  __NE_OV {}
 
         void  _ReleaseObject ()                                         __NE_OV;
@@ -84,6 +84,19 @@ namespace _hidden_
 
     using SharedMem = TSharedMem<void>;
 
+
+
+/*
+=================================================
+    constructor
+=================================================
+*/
+    template <typename E>
+    TSharedMem<E>::TSharedMem (Bytes size, POTBytes align, Allocator_t alloc) __NE___ :
+        _size{size}, _align{align}, _allocator{RVRef(alloc)}
+    {
+        DEBUG_ONLY( DbgInitMem( OUT Data(), Size() ));
+    }
 
 /*
 =================================================
@@ -118,7 +131,7 @@ namespace _hidden_
     template <typename E>
     RC<TSharedMem<E>>  TSharedMem<E>::Create (Allocator_t alloc, const SizeAndAlign sizeAndAlign) __NE___
     {
-        return Create( alloc, sizeAndAlign.size, sizeAndAlign.align );
+        return Create( RVRef(alloc), sizeAndAlign.size, sizeAndAlign.align );
     }
 
 /*

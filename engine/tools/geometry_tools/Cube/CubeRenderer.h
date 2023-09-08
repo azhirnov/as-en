@@ -33,7 +33,7 @@ namespace AE::GeometryTools
     // methods
     public:
         CubeRenderer ()                                                                     __NE___ {}
-        ~CubeRenderer ()                                                                    __NE___;
+        ~CubeRenderer ()                                                                    __NE___ {}
 
         ND_ bool  Create (IResourceManager &, ITransferContext &ctx,
                           Bool cubeMap, GfxMemAllocatorPtr)                                 __NE___;

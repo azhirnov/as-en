@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (TARGET "AtlasTools")
     file( GLOB SOURCES "*.*" )
     if (DEFINED ANDROID)

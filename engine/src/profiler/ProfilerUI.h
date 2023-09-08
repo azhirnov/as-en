@@ -1,4 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    docs: file:///<path>/AE/engine/docs/Profiling.md
+*/
 
 #pragma once
 

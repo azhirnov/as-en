@@ -190,7 +190,7 @@ namespace AE::Math
     }
     template <typename       VecType,
               typename       Dimension,
-              typename       ValueScale = ValueScaleTempl::Integer< typename VecType::value_type, 1 >,
+              typename       ValueScale = PhysicalQuantity_Scale::Integer< typename VecType::value_type, 1 >,
               glm::qualifier Q          = GLMSimdQualifier
              >
     using PhysicalQuantity_FromVec = typename Math::_hidden_::_PhysicalQuantity_FromVec< VecType, Dimension, ValueScale, Q >::type;
@@ -221,7 +221,7 @@ namespace _hidden_
     ND_ auto  operator + (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
                           const TPhysicalQuantityVec< VecLength, ValueType, Dimension, RhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Add< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Add< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -238,7 +238,7 @@ namespace _hidden_
     ND_ auto  operator + (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
                           const PhysicalQuantity< ValueType, Dimension, RhsScale >                     rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Add< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Add< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -255,7 +255,7 @@ namespace _hidden_
     ND_ auto  operator + (const PhysicalQuantity< ValueType, Dimension, RhsScale >                     lhs,
                           const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Add< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Add< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -272,7 +272,7 @@ namespace _hidden_
     ND_ auto  operator - (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
                           const TPhysicalQuantityVec< VecLength, ValueType, Dimension, RhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Sub< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Sub< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -289,7 +289,7 @@ namespace _hidden_
     ND_ auto  operator - (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
                           const PhysicalQuantity< ValueType, Dimension, RhsScale >                     rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Sub< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Sub< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -306,7 +306,7 @@ namespace _hidden_
     ND_ auto  operator - (const PhysicalQuantity< ValueType, Dimension, RhsScale >                     lhs,
                           const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Sub< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Sub< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -323,7 +323,7 @@ namespace _hidden_
     ND_ auto  operator * (const TPhysicalQuantityVec< VecLength, ValueType, LhsDim, LhsScale, Q >&  lhs,
                           const TPhysicalQuantityVec< VecLength, ValueType, RhsDim, RhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Mul< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Mul< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, typename LhsDim::template Mul<RhsDim>, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -356,7 +356,7 @@ namespace _hidden_
     ND_ auto  operator * (const TPhysicalQuantityVec< VecLength, ValueType, LhsDim, LhsScale, Q >&  lhs,
                           const PhysicalQuantity< ValueType, RhsDim, RhsScale >                     rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Mul< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Mul< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, typename LhsDim::template Mul<RhsDim>, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -381,7 +381,7 @@ namespace _hidden_
     ND_ auto  operator * (const PhysicalQuantity< ValueType, LhsDim, RhsScale >                     lhs,
                           const TPhysicalQuantityVec< VecLength, ValueType, RhsDim, LhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Mul< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Mul< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, typename LhsDim::template Mul<RhsDim>, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -406,7 +406,7 @@ namespace _hidden_
     ND_ auto  operator / (const TPhysicalQuantityVec< VecLength, ValueType, LhsDim, LhsScale, Q >&  lhs,
                           const TPhysicalQuantityVec< VecLength, ValueType, RhsDim, RhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Div< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Div< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, typename LhsDim::template Div<RhsDim>, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -439,7 +439,7 @@ namespace _hidden_
     ND_ auto  operator / (const TPhysicalQuantityVec< VecLength, ValueType, LhsDim, LhsScale, Q >&  lhs,
                           const PhysicalQuantity< ValueType, RhsDim, RhsScale >                     rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Div< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Div< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, typename LhsDim::template Div<RhsDim>, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -464,7 +464,7 @@ namespace _hidden_
     ND_ auto  operator / (const PhysicalQuantity< ValueType, LhsDim, RhsScale >                     lhs,
                           const TPhysicalQuantityVec< VecLength, ValueType, RhsDim, LhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Div< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Div< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, typename LhsDim::template Div<RhsDim>, Scale >;
 
         return PhysicalQuantityVec< Type, VecLength, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -504,15 +504,15 @@ namespace _hidden_
 
 /*
 =================================================
-    LengthSqr
+    LengthSq
 =================================================
 */
     template <int VecLength, typename ValueType, typename Dimension, typename Scale, glm::qualifier Q
              >
-    ND_ auto  LengthSqr (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >  &value) __NE___
+    ND_ auto  LengthSq (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, Scale, Q >  &value) __NE___
     {
-        using DstScale = ValueScaleTempl::template Pow< Scale, 2 >;
-        return PhysicalQuantity< ValueType, Dimension, DstScale >{ LengthSqr( value.GetNonScaled() )};
+        using DstScale = PhysicalQuantity_Scale::template Pow< Scale, 2 >;
+        return PhysicalQuantity< ValueType, Dimension, DstScale >{ LengthSq( value.GetNonScaled() )};
     }
 
 /*
@@ -525,7 +525,7 @@ namespace _hidden_
     ND_ auto  Dot (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
                    const TPhysicalQuantityVec< VecLength, ValueType, Dimension, RhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Mul< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Mul< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
         return Type{ Dot( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -541,7 +541,7 @@ namespace _hidden_
     ND_ auto  Cross (const TPhysicalQuantityVec< 3, ValueType, Dimension, LhsScale, Q >&  lhs,
                      const TPhysicalQuantityVec< 3, ValueType, Dimension, RhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Mul< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Mul< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
         return PhysicalQuantityVec< Type, 3, Q >{ Cross( lhs.GetNonScaled(), rhs.GetNonScaled() )};
@@ -557,7 +557,7 @@ namespace _hidden_
     ND_ auto  Distance (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
                         const TPhysicalQuantityVec< VecLength, ValueType, Dimension, RhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Add< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Add< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
         return Type{ Distance(  Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
@@ -566,18 +566,18 @@ namespace _hidden_
 
 /*
 =================================================
-    DistanceSqr
+    DistanceSq
 =================================================
 */
     template <int VecLength, typename ValueType, typename Dimension, typename LhsScale, typename RhsScale, glm::qualifier Q
              >
-    ND_ auto  DistanceSqr (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
+    ND_ auto  DistanceSq (const TPhysicalQuantityVec< VecLength, ValueType, Dimension, LhsScale, Q >&  lhs,
                            const TPhysicalQuantityVec< VecLength, ValueType, Dimension, RhsScale, Q >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Add< LhsScale, RhsScale >;
-        using Type  = PhysicalQuantity< ValueType, Dimension, ValueScaleTempl::template Pow< Scale, 2 > >;
+        using Scale = PhysicalQuantity_Scale::template Add< LhsScale, RhsScale >;
+        using Type  = PhysicalQuantity< ValueType, Dimension, PhysicalQuantity_Scale::template Pow< Scale, 2 > >;
 
-        return Type{ DistanceSqr( Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
+        return Type{ DistanceSq( Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( lhs ),
                                   Math::_hidden_::PhysicalQuantityVec_ToScale< Scale >( rhs ) )};
     }
 

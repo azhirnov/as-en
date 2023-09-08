@@ -20,7 +20,7 @@ void ASmain ()
             ppln.AddPipeline( "config_" + suffix[i] + ".as" );
             ppln.AddPipeline( GetCanvasVerticesPath() );
             ppln.AddPipeline( "../_data/pipelines/VertexInput.as" );
-            ppln.AddPipeline( "../_data/pipelines/ModelShared.as" );
+            ppln.AddPipeline( "../_data/pipelines/ModelReflection.as" );
             ppln.AddPipelineFolder( "pipelines" );
             ppln.AddShaderFolder( "shaders" );
             ppln.IncludeDir( GetSharedShadersPath() );

@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if ((TARGET "ShaderTrace") AND ${AE_ENABLE_VULKAN})
 
     set( GRAPHICS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics" )

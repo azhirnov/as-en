@@ -27,7 +27,7 @@ namespace AE::Base
     // methods
     public:
         template <typename B>
-        explicit RDataSourceAsStream (B && dataSource) :
+        explicit RDataSourceAsStream (B && dataSource) __Th___ :
             _dataSource{ FwdArg<B>(dataSource) },
             _offset{ 0_b },
             _size{ _dataSource->Size() }
@@ -36,7 +36,7 @@ namespace AE::Base
         }
 
         template <typename B>
-        RDataSourceAsStream (B && dataSource, Bytes offset, Bytes size) :
+        RDataSourceAsStream (B && dataSource, Bytes offset, Bytes size) __Th___ :
             _dataSource{ FwdArg<B>(dataSource) },
             _offset{ Min( offset, _dataSource->Size() )},
             _size{ Min( size, _dataSource->Size() - _offset )}

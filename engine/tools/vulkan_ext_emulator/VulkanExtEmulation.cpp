@@ -10,7 +10,6 @@
 #include "base/Math/Color.h"
 #include "base/Math/Random.h"
 
-#include "threading/Primitives/Atomic.h"
 #include "threading/Primitives/DataRaceCheck.h"
 #include "threading/Primitives/SpinLock.h"
 

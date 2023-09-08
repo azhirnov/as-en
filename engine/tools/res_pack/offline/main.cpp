@@ -470,6 +470,7 @@ namespace
 */
     static void  Bind (const ScriptEnginePtr &se) __Th___
     {
+        CoreBindings::BindStdTypes( se );
         CoreBindings::BindScalarMath( se );
         CoreBindings::BindVectorMath( se );
         CoreBindings::BindArray( se );

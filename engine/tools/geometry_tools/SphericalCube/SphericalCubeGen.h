@@ -17,7 +17,7 @@ namespace AE::GeometryTools
     public:
         struct Vertex
         {
-            packed_short4   position;
+            packed_short4   position;   // position == normal
             packed_short4   texcoord;
             packed_short4   tangent;
             packed_short4   bitangent;
@@ -55,7 +55,7 @@ namespace AE::GeometryTools
 
     // methods
     public:
-        ND_ bool  Create (uint minLod, uint maxLod, Bool quads)                             __NE___;
+        ND_ bool  Create (uint minLod, uint maxLod, Bool quads, Bool cubeMap)               __NE___;
 
             bool  GetVertices (uint lod, OUT ArrayView<Vertex> &result)                     C_NE___;
             bool  GetIndices (uint lod, OUT ArrayView<Index> &result)                       C_NE___;

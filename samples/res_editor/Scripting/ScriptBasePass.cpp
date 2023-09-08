@@ -92,7 +92,7 @@ namespace AE::ResEditor
 =================================================
 */
     template <typename T>
-    void  ScriptBasePass::_Slider (const String &name, const T &min, const T &max, const T &val, ESlider type) __Th___
+    void  ScriptBasePass::_Slider (const String &name, const T &min, const T &max, T val, ESlider type) __Th___
     {
         CHECK_THROW_MSG( _uniqueSliderNames.insert( name ).second,
             "Slider '"s << name << "' is already exists" );
@@ -107,6 +107,8 @@ namespace AE::ResEditor
         dst.index   = idx;
         dst.count   = sizeof(T) / sizeof(int);
         dst.type    = type;
+
+        val = Clamp( val, min, max );
 
         std::memcpy( OUT &dst.intRange[0], &min, sizeof(min) );
         std::memcpy( OUT &dst.intRange[1], &max, sizeof(max) );
@@ -409,7 +411,7 @@ namespace AE::ResEditor
         if ( not defines.empty() )
         {
             Array<StringView>   def_tokens;
-            StringParser::Tokenize( defines, ';', OUT def_tokens );
+            Parser::Tokenize( defines, ';', OUT def_tokens );
 
             for (auto def : def_tokens) {
                 header << "#define " << def << '\n';

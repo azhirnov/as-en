@@ -235,6 +235,7 @@ namespace AE::Graphics
 
         ND_ ResourceManager_t&      GetResourceManager ()                               __NE___ { ASSERT( _resMngr );       return *_resMngr; }
         ND_ RenderGraph_t&          GetRenderGraph ()                                   __NE___ { ASSERT( _rg );            return *_rg; }
+        ND_ Ptr<RenderGraph_t>      GetRenderGraphPtr ()                                __NE___ { return _rg.get(); }
         ND_ QueryManager_t&         GetQueryManager ()                                  __NE___ { return GetResourceManager().GetQueryManager(); }
         ND_ Device_t const&         GetDevice ()                                        C_NE___ { return _device; }
         ND_ FeatureSet const&       GetFeatureSet ()                                    C_NE___ { ASSERT( _resMngr );       return _resMngr->GetFeatureSet(); }

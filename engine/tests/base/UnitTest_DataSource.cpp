@@ -187,7 +187,7 @@ namespace
         RC<WStream>     stream2 = MakeRC<BufferedWStream>( stream1, 128_b );
 
         for (uint i = 0; i < count; ++i)
-            stream2->Write( i );
+            TEST( stream2->Write( i ));
 
         stream2->Flush();
         ArrayView<uint> mem = stream1->GetData().Cast<uint>();
@@ -201,7 +201,7 @@ namespace
         for (uint i = 0; i < count; ++i)
         {
             uint    j = 0;
-            stream4->Read( OUT j );
+            TEST( stream4->Read( OUT j ));
             TEST( i == j );
         }
     }
@@ -213,7 +213,7 @@ namespace
         RC<MemWStream>  stream1 = MakeRC<MemWStream>();
 
         for (uint i = 0; i < count; ++i)
-            stream1->Write( i );
+            TEST( stream1->Write( i ));
 
         RC<MemRefRStream>   stream2 = stream1->ToRStream();
 
@@ -245,7 +245,7 @@ namespace
         RC<MemWStream>  stream1 = MakeRC<MemWStream>();
 
         for (uint i = 0; i < count; ++i)
-            stream1->Write( i );
+            TEST( stream1->Write( i ));
 
         RC<MemRefRStream>   stream2 = stream1->ToRStream();
         RC<BufferedRStream> stream3 = MakeRC<BufferedRStream>( stream2, 128_b );

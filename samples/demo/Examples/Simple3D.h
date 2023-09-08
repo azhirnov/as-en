@@ -17,7 +17,7 @@ namespace AE::Samples::Demo
         class ProcessInputTask;
         class UploadTextureTask;
 
-        using Camera                = FPVCameraTempl<float>;
+        using Camera                = TFPVCamera<float>;
         using CubeRenderer          = GeometryTools::CubeRenderer;
         using SphericalCubeRenderer = GeometryTools::SphericalCubeRenderer;
 

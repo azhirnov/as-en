@@ -10,7 +10,7 @@ namespace AE::Base
 {
 
     //
-    // Read-only Brotli Uncompression Stream
+    // Read-only Brotli Decompression Stream
     //
 
     class BrotliRStream final : public RStream
@@ -27,17 +27,17 @@ namespace AE::Base
 
     // methods
     public:
-        explicit BrotliRStream (RC<RStream> stream) __NE___;
-        ~BrotliRStream ()                           __NE_OV;
+        explicit BrotliRStream (RC<RStream> stream)         __NE___;
+        ~BrotliRStream ()                                   __NE_OV;
 
     // RStream //
-        bool        IsOpen ()                       C_NE_OV { return _instance != null and _stream and _stream->IsOpen(); }
-        PosAndSize  PositionAndSize ()              C_NE_OV { return { _position, UMax }; }
+        bool        IsOpen ()                               C_NE_OV { return _instance != null and _stream and _stream->IsOpen(); }
+        PosAndSize  PositionAndSize ()                      C_NE_OV { return { _position, UMax }; }
 
-        ESourceType GetSourceType ()                C_NE_OV { return ESourceType::SequentialAccess | ESourceType::ReadAccess; }
+        ESourceType GetSourceType ()                        C_NE_OV { return ESourceType::SequentialAccess | ESourceType::ReadAccess; }
 
-        bool        SeekFwd (Bytes offset)          __NE_OV;
-        Bytes       ReadSeq (OUT void *, Bytes)     __NE_OV;
+        bool        SeekFwd (Bytes offset)                  __NE_OV;
+        Bytes       ReadSeq (OUT void *buffer, Bytes size)  __NE_OV;
     };
 
 
@@ -71,26 +71,26 @@ namespace AE::Base
 
     // methods
     public:
-        explicit BrotliWStream (RC<WStream> stream, const Config &cfg = Default) __NE___;
-        ~BrotliWStream ()                           __NE_OV;
+        explicit BrotliWStream (RC<WStream> stream, const Config &cfg = Default)    __NE___;
+        ~BrotliWStream ()                                                           __NE_OV;
 
-        void    SetTotalSize (Bytes size)           __NE___;
+        void    SetTotalSize (Bytes size)                                           __NE___;
 
 
     // WStream //
-        bool        IsOpen ()                       C_NE_OV { return _instance != null and _stream and _stream->IsOpen(); }
-        Bytes       Position ()                     C_NE_OV { return _position; }
-        ESourceType GetSourceType ()                C_NE_OV { return ESourceType::SequentialAccess | ESourceType::WriteAccess; }
+        bool        IsOpen ()                                                       C_NE_OV { return _instance != null and _stream and _stream->IsOpen(); }
+        Bytes       Position ()                                                     C_NE_OV { return _position; }
+        ESourceType GetSourceType ()                                                C_NE_OV { return ESourceType::SequentialAccess | ESourceType::WriteAccess; }
 
-        Bytes       Reserve (Bytes additionalSize)  __NE_OV;
+        Bytes       Reserve (Bytes additionalSize)                                  __NE_OV;
 
-        bool        SeekFwd (Bytes)                 __NE_OV { return false; }
-        void        Flush ()                        __NE_OV { _Flush(); }
+        bool        SeekFwd (Bytes)                                                 __NE_OV { return false; }
+        void        Flush ()                                                        __NE_OV { _Flush(); }
 
-        Bytes       WriteSeq (const void *, Bytes)  __NE_OV;
+        Bytes       WriteSeq (const void *buffer, Bytes size)                       __NE_OV;
 
     private:
-        bool        _Flush ()                       __NE___;
+        bool        _Flush ()                                                       __NE___;
     };
 
 

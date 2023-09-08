@@ -117,9 +117,9 @@ void ASmain (GLFW_ActionBindings& bindings)
                   ActionInfo( "UI.MouseRBDown", EGestureType::Hold ));
     }
 
-    // Isometric Camera
+    // Orbital Camera
     {
-        RC<GLFW_BindingsMode>   bind = bindings.CreateMode( "Controller.Isometric" );
+        RC<GLFW_BindingsMode>   bind = bindings.CreateMode( "Controller.Orbital" );
         bind.Inherit( "SwitchInputMode" );
 
         const float4    arrow_scale     (0.01f);

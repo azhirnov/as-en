@@ -1,5 +1,13 @@
 
+## 09.2023
+
+
 ## 08.2023
+
+- Script: replace 'Input(Controller)' by 'Set()'
+- Documentation for script.
+- RTX samples.
+
 
 ## 07.2023
 

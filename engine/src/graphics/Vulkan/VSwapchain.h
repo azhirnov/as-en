@@ -81,40 +81,41 @@ namespace AE::Graphics
 
     // methods
     protected:
-        explicit VSwapchain ()                                              __NE___;
+        VSwapchain ()                                                           __NE___;
 
     public:
-        ~VSwapchain ()                                                      __NE___;
+        ~VSwapchain ()                                                          __NE___;
 
-        ND_ bool   IsSupported (VQueuePtr queue)                            C_NE___;
+        ND_ bool   IsSupported (VQueuePtr queue)                                C_NE___;
 
-            bool   GetSurfaceFormats (OUT FeatureSet::SurfaceFormatSet_t &) C_NE___;
-        ND_ usize  GetSurfaceFormats (OUT SurfaceFormat*, usize count)      C_NE___;
-        ND_ usize  GetPresentModes (OUT EPresentMode*, usize count)         C_NE___;
+            bool   GetSurfaceFormats (OUT FeatureSet::SurfaceFormatSet_t &)     C_NE___;
+        ND_ usize  GetSurfaceFormats (OUT SurfaceFormat*, usize count)          C_NE___;
+        ND_ usize  GetPresentModes (OUT EPresentMode*, usize count)             C_NE___;
 
-        ND_ VkResult  AcquireNextImage ()                                                           __NE___;
-        ND_ VkResult  Present (VQueuePtr queue, ArrayView<VkSemaphore> renderFinished = Default)    __NE___;
+        ND_ VkResult  AcquireNextImage ()                                       __NE___;
+        ND_ VkResult  Present (VQueuePtr queue,
+                               ArrayView<VkSemaphore> renderFinished = Default) __NE___;
 
-        ND_ bool                        IsInitialized ()                    C_NE___ { return GetVkSwapchain() != Default; }
+        ND_ bool                        IsInitialized ()                        C_NE___ { return GetVkSwapchain() != Default; }
 
-        ND_ VkSurfaceKHR                GetVkSurface ()                     C_NE___ { SHAREDLOCK( _guard );  return _vkSurface; }
-        ND_ VkSwapchainKHR              GetVkSwapchain ()                   C_NE___ { SHAREDLOCK( _guard );  return _vkSwapchain; }
+        ND_ VkSurfaceKHR                GetVkSurface ()                         C_NE___ { SHAREDLOCK( _guard );  return _vkSurface; }
+        ND_ VkSwapchainKHR              GetVkSwapchain ()                       C_NE___ { SHAREDLOCK( _guard );  return _vkSwapchain; }
 
-        ND_ VSwapchainDesc              GetVDescription ()                  C_NE___;
-        ND_ SwapchainDesc               GetDescription ()                   C_NE___ { SHAREDLOCK( _guard );  return _desc; }
+        ND_ VSwapchainDesc              GetVDescription ()                      C_NE___;
+        ND_ SwapchainDesc               GetDescription ()                       C_NE___ { SHAREDLOCK( _guard );  return _desc; }
 
         // same as output params in 'AcquireNextImage()'
-        ND_ VkSemaphore                 GetImageAvailableSemaphore ()       C_NE___ { return _imageAvailableSem[ _indices.load().semaphoreId ]; }
-        ND_ VkSemaphore                 GetRenderFinishedSemaphore ()       C_NE___ { return _renderFinishedSem[ _indices.load().semaphoreId ]; }
+        ND_ VkSemaphore                 GetImageAvailableSemaphore ()           C_NE___ { return _imageAvailableSem[ _indices.load().semaphoreId ]; }
+        ND_ VkSemaphore                 GetRenderFinishedSemaphore ()           C_NE___ { return _renderFinishedSem[ _indices.load().semaphoreId ]; }
 
-        ND_ uint2                       GetSurfaceSize ()                   C_NE___;
-        ND_ uint                        GetSwapchainLength ()               C_NE___ { SHAREDLOCK( _guard );  return _desc.minImageCount; }
+        ND_ uint2                       GetSurfaceSize ()                       C_NE___;
+        ND_ uint                        GetSwapchainLength ()                   C_NE___ { SHAREDLOCK( _guard );  return _desc.minImageCount; }
 
-        ND_ uint                        GetCurretImageIndex ()              C_NE___ { return _indices.load().imageIdx; }
-        ND_ bool                        IsImageAcquired ()                  C_NE___ { return GetCurretImageIndex() < _MaxImageIndex; }
+        ND_ uint                        GetCurrentImageIndex ()                 C_NE___ { return _indices.load().imageIdx; }
+        ND_ bool                        IsImageAcquired ()                      C_NE___ { return GetCurrentImageIndex() < _MaxImageIndex; }
 
-        ND_ ImageAndViewID              GetCurrentImageAndViewID ()         C_NE___ { return GetImageAndViewID( GetCurretImageIndex() ); }
-        ND_ ImageAndViewID              GetImageAndViewID (uint i)          C_NE___;
+        ND_ ImageAndViewID              GetCurrentImageAndViewID ()             C_NE___ { return GetImageAndViewID( GetCurrentImageIndex() ); }
+        ND_ ImageAndViewID              GetImageAndViewID (uint i)              C_NE___;
     };
 
 
@@ -127,7 +128,7 @@ namespace AE::Graphics
     {
     // methods
     public:
-        explicit VSwapchainInitializer ()                                                                                   __NE___;
+        VSwapchainInitializer ()                                                                                            __NE___;
 
         ND_ bool  CreateSurface (const NativeWindow &, StringView dbgName = Default)                                        __NE___;
             void  DestroySurface ()                                                                                         __NE___;

@@ -20,6 +20,7 @@ namespace AE::ResEditor
             [&dim] (const uint3 &src)           { dim = src; },
             [&dim] (const RC<DynamicDim> &src)  { dim = src->Dimension3(); },
             [&dim] (const RC<DynamicUInt> &src) { dim.x = src->Get(); },
+            [&dim] (const RC<DynamicUInt2> &src){ dim = uint3{src->Get(), 1u}; },
             [&dim] (const RC<DynamicUInt3> &src){ dim = src->Get(); });
 
         return Max( isGroups ? dim : DivCeil( dim, localSize ), 1u );
@@ -37,6 +38,7 @@ namespace AE::ResEditor
             [&dim] (const uint3 &src)           { dim = src; },
             [&dim] (const RC<DynamicDim> &src)  { dim = src->Dimension3(); },
             [&dim] (const RC<DynamicUInt> &src) { dim.x = src->Get(); },
+            [&dim] (const RC<DynamicUInt2> &src){ dim = uint3{src->Get(), 1u}; },
             [&dim] (const RC<DynamicUInt3> &src){ dim = src->Get(); });
 
         return Max( isGroups ? dim * localSize : dim, 1u );

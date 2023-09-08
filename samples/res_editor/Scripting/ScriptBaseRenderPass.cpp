@@ -24,7 +24,7 @@ namespace AE::ResEditor
         if ( args.IsArg< String const& >(idx) ) {
             dst.name = args.Arg< String const& >(idx++);
         }else{
-            dst.name = "Color"s << ToString(_output.size()-1);
+            dst.name = "out_Color"s << ToString(_output.size()-1);
         }
 
         if ( args.IsArg< ScriptImagePtr const& >(idx) )
@@ -99,7 +99,7 @@ namespace AE::ResEditor
         if ( args.IsArg< String const& >(idx) ) {
             dst.name = args.Arg< String const& >(idx++);
         }else{
-            dst.name = "Color"s << ToString(_output.size()-1);
+            dst.name = "out_Color"s << ToString(_output.size()-1);
         }
 
         if ( args.IsArg< ScriptImagePtr const& >(idx) )

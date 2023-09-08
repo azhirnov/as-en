@@ -57,9 +57,10 @@ namespace AE::ResEditor
         auto&       src     = self->_src[0];
         const auto  desc    = src->GetImageDesc();
         auto&       dst     = targets[0];
-        RenderTask& rtask = co_await RenderTask_GetRef;
+        RenderTask& rtask   = co_await RenderTask_GetRef;
+        const auto  filter  = self->_filterMode->Get() == 0 ? EBlitFilter::Nearest : EBlitFilter::Linear;
 
-        DirectCtx::Transfer ctx {rtask, Default, DebugLabel{self->_dbgName, HtmlColor::Blue}};
+        DirectCtx::Transfer     ctx {rtask, Default, DebugLabel{self->_dbgName, HtmlColor::Blue}};
 
         ctx.AddSurfaceTargets( targets );
 
@@ -71,7 +72,7 @@ namespace AE::ResEditor
         blit.dstOffset0 = { dst.region.left,  dst.region.top,    0 };
         blit.dstOffset1 = { dst.region.right, dst.region.bottom, 1 };
 
-        ctx.BlitImage( src->GetImageId(), dst.imageId, EBlitFilter::Linear, ArrayView<ImageBlit>{ &blit, 1 });
+        ctx.BlitImage( src->GetImageId(), dst.imageId, filter, ArrayView<ImageBlit>{ &blit, 1 });
 
 
         // read pixel color for debugging
@@ -225,20 +226,27 @@ namespace AE::ResEditor
     {
         {
             auto&   ui = UIInteraction::Instance();
-            ui.SetDbgView( _index, _copy );
+            ui.SetDbgView( _index, _view );
         }
 
         // TODO: optimize - skip if dbg view disabled
         BEGIN_ENUM_CHECKS();
         switch ( _flags )
         {
-            case EFlags::Unknown :
+            case EFlags::Copy :
                 return _CopyImage( pd );
 
             case EFlags::NoCopy :
                 return true;
 
             case EFlags::Histogram :
+            {
+                CHECK_ERR( _src != _copy );
+                CHECK_ERR( _pass );
+                return _pass->Execute( *_src, *_copy, pd );
+            }
+
+            case EFlags::LinearDepth :
             {
                 CHECK_ERR( _src != _copy );
                 CHECK_ERR( _pass );
@@ -290,39 +298,51 @@ namespace AE::ResEditor
         CHECK_THROW( src )
         CHECK_THROW( renderer != null );
 
-        ImageViewDesc   view;
-        view.baseLayer  = layer;
-        view.baseMipmap = mipmap;
+        ImageViewDesc   view_desc;
+        view_desc.baseLayer     = layer;
+        view_desc.baseMipmap    = mipmap;
 
-        const String    dbg_name = "DbgView: "s << src->GetName();
+        String  dbg_name = "DbgView: "s << src->GetName();
 
-        _src = src->CreateView( view, dbg_name );
+        _src = src->CreateView( view_desc, dbg_name );
         CHECK_THROW( _src );
 
         ImageDesc   img_desc    = _src->GetImageDesc();
-        const bool  make_copy   = flags != DebugView::EFlags::NoCopy;
+                    view_desc   = Default;
+        bool        make_copy   = true;
 
         BEGIN_ENUM_CHECKS();
         switch ( flags )
         {
-            case DebugView::EFlags::Unknown :
+            case EFlags::Copy :
                 img_desc.usage = EImageUsage::Transfer | EImageUsage::Sampled;
                 break;
 
-            case DebugView::EFlags::Histogram :
+            case EFlags::Histogram :
                 img_desc.dimension  = uint3{ 1024, 1024, 1 };
                 img_desc.usage      = EImageUsage::ColorAttachment | EImageUsage::Sampled;
                 img_desc.format     = EPixelFormat::RGBA8_UNorm;    // defined in 'histogram.as'
                 break;
 
-            case DebugView::EFlags::NoCopy :
-            case DebugView::EFlags::_Count :
+            case EFlags::LinearDepth :
+                img_desc.format     = EPixelFormat::R32F;
+                img_desc.usage      = EImageUsage::ColorAttachment | EImageUsage::Sampled;
+                view_desc.swizzle   = "RRR1"_swizzle;
+                break;
+
+            case EFlags::NoCopy :
+                make_copy = false;
+                break;
+
+            case EFlags::_Count :
                 break;
         }
         END_ENUM_CHECKS();
 
         if ( make_copy )
         {
+            dbg_name << "-Copy";
+
             auto&   res_mngr    = RenderTaskScheduler().GetResourceManager();
             auto    image_id    = res_mngr.CreateImage( img_desc, dbg_name, renderer->GetAllocator() );
             CHECK_THROW( image_id );
@@ -334,16 +354,23 @@ namespace AE::ResEditor
 
             _copy = MakeRC<Image>( RVRef(image_id), RVRef(view_id), Default, *renderer, false,
                                    img_desc, ImageViewDesc{img_desc}, null, null, dbg_name );
-        }
-        else
+        }else{
             _copy = _src;
+        }
 
-        CHECK_THROW( _copy );
+        if ( view_desc != Default ){
+            _view = _copy->CreateView( view_desc, dbg_name );
+            CHECK_THROW( _view );
+        }else{
+            _view = _copy;
+        }
+        CHECK_THROW( _copy and _view );
+
 
         BEGIN_ENUM_CHECKS();
         switch ( _flags )
         {
-            case EFlags::Unknown :
+            case EFlags::Copy :
                 CHECK_THROW( _src != _copy );
                 break;
 
@@ -353,6 +380,10 @@ namespace AE::ResEditor
 
             case EFlags::Histogram :
                 _pass.reset( new Histogram{ renderer, *_src, *_copy }); // throw
+                break;
+
+            case EFlags::LinearDepth :
+                _pass.reset( new LinearDepth{ *_src, *_copy });         // throw
                 break;
 
             case EFlags::_Count :
@@ -383,18 +414,20 @@ namespace AE::ResEditor
 */
     DebugView::Histogram::Histogram (Renderer* renderer, const Image &src, const Image &copy) __Th___
     {
+        constexpr auto& RTech = RenderTechs::Histogram_RTech;
+
         CHECK_THROW( &src != &copy );
         CHECK_THROW( copy.GetImageDesc().format == EPixelFormat::RGBA8_UNorm );
 
         auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
         const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
 
-        _rtech = res_mngr.LoadRenderTech( Default, RenderTechName{"Histogram.RTech"}, Default );
+        _rtech = res_mngr.LoadRenderTech( Default, RTech, Default );
         CHECK_THROW( _rtech );
 
-        _ppln1 = _rtech->GetComputePipeline( PipelineName{"Histogram.CSPass1.def"} );
-        _ppln2 = _rtech->GetComputePipeline( PipelineName{"Histogram.CSPass2.def"} );
-        _ppln3 = _rtech->GetGraphicsPipeline( PipelineName{"Histogram.draw"} );
+        _ppln1 = _rtech->GetComputePipeline( RTech.Compute.Histogram_CSPass1 );
+        _ppln2 = _rtech->GetComputePipeline( RTech.Compute.Histogram_CSPass2 );
+        _ppln3 = _rtech->GetGraphicsPipeline( RTech.Graphics.Histogram_draw );
         CHECK_THROW( _ppln1 and _ppln2 and _ppln3 );
 
         _ppln1LS = uint2{res_mngr.GetResource( _ppln1 )->LocalSize()};
@@ -424,11 +457,13 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    Execute
+    Histogram::Execute
 =================================================
 */
     bool  DebugView::Histogram::Execute (const Image &srcImage, const Image &dstImage, SyncPassData &pd) const
     {
+        constexpr auto&     RTech       = RenderTechs::Histogram_RTech;
+
         const uint2         src_dim     = uint2{srcImage.GetImageDesc().dimension};
         const uint2         dst_dim     = uint2{dstImage.GetImageDesc().dimension};
 
@@ -443,7 +478,7 @@ namespace AE::ResEditor
 
             CHECK_ERR( updater.Set( comp_ds, EDescUpdateMode::Partialy ));
             CHECK_ERR( updater.BindBuffer< ShaderTypes::Histogram_ssb >( UniformName{"un_Histogram"}, _ssb ));
-            CHECK_ERR( updater.BindImage(  UniformName{"un_Texture"},   srcImage.GetViewId() ));
+            CHECK_ERR( updater.BindImage( UniformName{"un_Texture"}, srcImage.GetViewId() ));
             CHECK_ERR( updater.Flush() );
 
             CHECK_ERR( updater.Set( gfx_ds, EDescUpdateMode::Partialy ));
@@ -485,8 +520,10 @@ namespace AE::ResEditor
 
         // pass 3
         {
-            RenderPassDesc  rp_desc{ _rtech, RenderTechPassName{"Graphics"}, dst_dim };
-            rp_desc.AddTarget( AttachmentName{"Color"}, dstImage.GetViewId(), RGBA32f{0.f} );
+            STATIC_ASSERT( RTech.Graphics.attachmentsCount == 1 );
+
+            RenderPassDesc  rp_desc{ _rtech, RTech.Graphics, dst_dim };
+            rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId(), RGBA32f{0.f} );
             rp_desc.DefaultViewport();
 
             auto    dctx = gfx_ctx.BeginRenderPass( rp_desc );
@@ -499,6 +536,93 @@ namespace AE::ResEditor
         }
 
         pd.cmdbuf = gfx_ctx.ReleaseCommandBuffer();
+        return true;
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    LinearDepth ctor
+=================================================
+*/
+    DebugView::LinearDepth::LinearDepth (const Image &src, const Image &copy) __Th___
+    {
+        constexpr auto& RTech = RenderTechs::LinearDepth_RTech;
+
+        CHECK_THROW( &src != &copy );
+        CHECK_THROW( copy.GetImageDesc().format == EPixelFormat::R32F );
+
+        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+
+        _rtech = res_mngr.LoadRenderTech( Default, RTech, Default );
+        CHECK_THROW( _rtech );
+
+        _ppln = _rtech->GetGraphicsPipeline( RTech.Graphics.LinearDepth_draw );
+        CHECK_THROW( _ppln );
+
+        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT _pplnDSIdx, OUT _pplnDS.data(), max_frames, _ppln, DescriptorSetName{"ds0"} ));
+
+        _pcIdx = res_mngr.GetPushConstantIndex< ShaderTypes::LinearDepth_draw_pc >( _ppln, PushConstantName{"pc"} );
+        CHECK_THROW( _pcIdx );
+    }
+
+/*
+=================================================
+    LinearDepth dtor
+=================================================
+*/
+    DebugView::LinearDepth::~LinearDepth ()
+    {
+        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+
+        res_mngr.ReleaseResourceArray( _pplnDS );
+    }
+
+/*
+=================================================
+    LinearDepth::Execute
+=================================================
+*/
+    bool  DebugView::LinearDepth::Execute (const Image &srcImage, const Image &dstImage, SyncPassData &pd) const
+    {
+        constexpr auto& RTech = RenderTechs::LinearDepth_RTech;
+
+        const uint2         dst_dim     = uint2{dstImage.GetImageDesc().dimension};
+        DirectCtx::Graphics ctx         { pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"ToLinearDepth", HtmlColor::Blue} };
+        DescriptorSetID     ds          = _pplnDS[ ctx.GetFrameId().Index() ];
+
+        // update
+        {
+            DescriptorUpdater   updater;
+            CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
+            CHECK_ERR( updater.BindImage( UniformName{"un_Depth"}, srcImage.GetViewId() ));
+            CHECK_ERR( updater.Flush() );
+        }
+
+        // convert depth to linear space
+        {
+            ctx.ResourceState( srcImage.GetViewId(), EResourceState::ShaderSample | EResourceState::FragmentShader );
+
+            STATIC_ASSERT( RTech.Graphics.attachmentsCount == 1 );
+
+            RenderPassDesc  rp_desc{ _rtech, RTech.Graphics, dst_dim };
+            rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() );
+            rp_desc.DefaultViewport();
+
+            auto    dctx = ctx.BeginRenderPass( rp_desc );
+
+            dctx.BindPipeline( _ppln );
+            dctx.BindDescriptorSet( _pplnDSIdx, ds );
+            dctx.PushConstant( _pcIdx, ShaderTypes::LinearDepth_draw_pc{float2{ 0.1f, 1.1f }} );
+            dctx.Draw( 3 );
+
+            ctx.EndRenderPass( dctx );
+        }
+
+        pd.cmdbuf = ctx.ReleaseCommandBuffer();
         return true;
     }
 //-----------------------------------------------------------------------------

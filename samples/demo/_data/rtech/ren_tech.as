@@ -13,9 +13,9 @@ void  DeclUIRenderTech ()
         st2.Set( "uint      id;" );
 
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "ui.ds0" );
-        ds.SampledImage( EShaderStages::Fragment, "un_Texture", ArraySize(1), EImageType::FImage2D );
-        ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "globalUB",   ArraySize(1), "ui.global.ublock"    );
-        ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "mtrUB",      ArraySize(1), "ui.material.ublock"  );
+        ds.SampledImage( EShaderStages::Fragment, "un_Texture", EImageType::FImage2D );
+        ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "globalUB", "ui.global.ublock"    );
+        ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "mtrUB",    "ui.material.ublock"  );
     }
     {
         RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Main" );

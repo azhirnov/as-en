@@ -189,7 +189,7 @@ namespace AE::ResEditor
         // update uniform buffer
         {
             ShaderTypes::UnifiedGeometryMaterialUB  ub_data;
-            ub_data.transform   = float4x4::Translated( in.position );
+            ub_data.transform   = in.transform;
 
             CHECK_ERR( ctx.UploadBuffer( mtr.ubuffer, 0_b, Sizeof(ub_data), &ub_data ));
         }

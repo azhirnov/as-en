@@ -101,13 +101,12 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_RAY_CHIT
     #include "Math.glsl"
-    #include "HWRayTracing.glsl"
 
     layout(location=RAY_INDEX) gl::RayPayloadIn float4  payload;
 
     gl::HitAttribute float2  in_HitAttribs;
 
-    ND_ float4  HitShader (const float3 barycentric, const uint primitiveId)
+    ND_ float4  HitShader (const float2 barycentric, const uint primitiveId)
     {
         float3  c0      = un_Triangles.colors[ un_Triangles.indices[ primitiveId * 3 + 0 ]];
         float3  c1      = un_Triangles.colors[ un_Triangles.indices[ primitiveId * 3 + 1 ]];
@@ -118,7 +117,7 @@
 
     void Main ()
     {
-        payload = HitShader( TriangleHitAttribsToBaricentrics( in_HitAttribs ), gl.PrimitiveID );
+        payload = HitShader( in_HitAttribs, gl.PrimitiveID );
     }
 
 #endif

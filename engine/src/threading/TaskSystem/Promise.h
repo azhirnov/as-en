@@ -866,7 +866,7 @@ namespace _hidden_
         {
             Result  result = MakeDelayedPromiseFromValue( FwdArg<T>(value), dbgName, queueType );
 
-            // on error promise will be marked as cancelled
+            // on error: promise will be marked as cancelled
             Unused( Scheduler().Run( AsyncTask{result}, dependsOn ));
 
             return result;
@@ -920,7 +920,7 @@ namespace _hidden_
     {
         auto    result = MakeDelayedPromise( FwdArg<Fn>(fn), dbgName, queueType );
 
-        // on error promise will be marked as cancelled
+        // on error: promise will be marked as cancelled
         Unused( Scheduler().Run( AsyncTask{result}, dependsOn ));
 
         return result;

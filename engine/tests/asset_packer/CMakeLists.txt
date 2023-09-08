@@ -1,13 +1,14 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARGET "InputActionsBinding-shared")
 
-    set( DATA_FOLDER            "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/shared_data" )
     set( PIPELINE_COMPILER_DIR  "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/pipeline_compiler" )
     set( SHADER_TRACE_DIR       "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/shader_trace" )
     set( GRAPHICS_DIR           "${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics" )
     set( PLATFORM_DIR           "${CMAKE_CURRENT_SOURCE_DIR}/../../src/platform" )
 
     file( GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.as" "*.txt" "*.glsl" "*.msl" )
-    file( GLOB_RECURSE SHARED_DATA "${DATA_FOLDER}/*.*" )
+    file( GLOB_RECURSE SHARED_DATA "${AE_ENGINE_SHARED_DATA}/*.*" )
 
     set( PIPELINE_COMPILER_SRC
         #"${PIPELINE_COMPILER_DIR}/Packer/PipelinePackDeserializer.cpp"
@@ -45,7 +46,7 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 
     add_executable( "Tests.AssetPacker" ${SOURCES} ${SHARED_DATA} ${PIPELINE_COMPILER_SRC} ${GRAPHICS_SRC} ${PLATFORM_SRC} ${SHADER_TRACE_SRC} )
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
-    source_group( TREE "${DATA_FOLDER}/.." FILES ${SHARED_DATA} )
+    source_group( TREE "${AE_ENGINE_SHARED_DATA}/.." FILES ${SHARED_DATA} )
     source_group( "external/graphics" FILES ${GRAPHICS_SRC} )
     source_group( "external/platform" FILES ${PLATFORM_SRC} )
     source_group( "external/pipeline_compiler" FILES ${PIPELINE_COMPILER_SRC} )
@@ -54,7 +55,7 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
     set_property( TARGET "Tests.AssetPacker" PROPERTY FOLDER "Engine/Tests" )
     target_link_libraries( "Tests.AssetPacker" PUBLIC "Base" "Vulkan-lib" )
 
-    target_include_directories( "Tests.AssetPacker" PUBLIC "${DATA_FOLDER}/scripts" "${DATA_FOLDER}/shaders" )
+    target_include_directories( "Tests.AssetPacker" PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
 
     if (TARGET "ShaderTrace")
         target_link_libraries( "Tests.AssetPacker" PUBLIC "ShaderTrace" )
@@ -69,7 +70,7 @@ if (TARGET "PipelineCompiler-shared" OR TARGET "PipelineCompiler-shared" OR TARG
 
     target_compile_definitions( "Tests.AssetPacker" PUBLIC
         AE_CURRENT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
-        AE_SHARED_DATA="${DATA_FOLDER}"
+        AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
         AE_TEST_PIPELINE_COMPILER
     )
 

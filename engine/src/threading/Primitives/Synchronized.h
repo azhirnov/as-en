@@ -250,14 +250,16 @@ namespace _hidden_
         Self&  operator = (Self &&rhs)      __NE___
         {
             EXLOCK( this->_sync, rhs._sync );   // TODO: sharedlock for 'rhs'
-            this->_values = RVRef(rhs._values);
+            this->_values.~Tuple_t();
+            PlacementNew<Tuple_t>( OUT &this->_values, RVRef(rhs._values) );
             return *this;
         }
 
         Self&  operator = (const Self &rhs) noexcept(Types_t::AllNothrowCopyAssignable)
         {
             EXLOCK( this->_sync, rhs._sync );   // TODO: sharedlock for 'rhs'
-            this->_values = rhs._values;    // throw
+            this->_values.~Tuple_t();
+            PlacementNew<Tuple_t>( OUT &this->_values, rhs._values );   // throw
             return *this;
         }
 
@@ -295,7 +297,9 @@ namespace _hidden_
         {
             STATIC_ASSERT( Types_t::template HasSingle<RawT> );
             EXLOCK( _sync );
-            _values.template Get<RawT>() = FwdArg<T>(value);
+            auto&   dst = _values.template Get<RawT>();
+            dst.~RawT();
+            PlacementNew<RawT>( OUT &dst, FwdArg<T>(value) );
         }
 
         template <typename ...Args>
@@ -313,7 +317,9 @@ namespace _hidden_
         void  Reset ()                      noexcept(IsNothrowCopyCtor<RawT>)
         {
             EXLOCK( _sync );
-            _values.template Get<Index>() = RawT{};
+            auto&   dst = _values.template Get<Index>();
+            dst.~RawT();
+            PlacementNew<RawT>( OUT &dst, RawT{} );
         }
 
         template <usize     Index,
@@ -322,7 +328,9 @@ namespace _hidden_
         void  Reset ()                      noexcept(IsNothrowCopyCtor<RawT>)
         {
             EXLOCK( _sync );
-            _values.template Get<Index>() = RawT{};
+            auto&   dst = _values.template Get<Index>();
+            dst.~RawT();
+            PlacementNew<RawT>( OUT &dst, RawT{} );
         }
 
 
@@ -478,14 +486,16 @@ namespace _hidden_
         Self&  operator = (Self && rhs)         __NE___
         {
             EXLOCK( this->_sync, rhs._sync );   // TODO: sharedlock for 'rhs'
-            this->_value = RVRef(rhs._value);
+            this->_value.~T();
+            PlacementNew<T>( OUT &this->_value, RVRef(rhs._value) );
             return *this;
         }
 
-        Self&  operator = (const Self &rhs)     noexcept(IsNothrowCopyAssignable<T>)
+        Self&  operator = (const Self &rhs)     noexcept(IsNothrowCopyCtor<T>)
         {
             EXLOCK( this->_sync, rhs._sync );   // TODO: sharedlock for 'rhs'
-            this->_value = rhs._value;  // throw
+            this->_value.~T();
+            PlacementNew<T>( OUT &this->_value, rhs._value );  // throw
             return *this;
         }
 
@@ -500,20 +510,23 @@ namespace _hidden_
         void  Write (const T &value)            noexcept(IsNothrowCopyCtor<T>)
         {
             EXLOCK( _sync );
-            _value = value;
+            this->_value.~T();
+            PlacementNew<T>( OUT &this->_value, value );  // throw
         }
 
         void  Write (T &&value)                 __NE___
         {
             EXLOCK( _sync );
-            _value = RVRef(value);
+            this->_value.~T();
+            PlacementNew<T>( OUT &this->_value, RVRef(value) );
         }
 
 
         void  Reset ()                          noexcept(IsNothrowCopyCtor<T>)
         {
             EXLOCK( _sync );
-            _value = T{};
+            this->_value.~T();
+            PlacementNew<T>( OUT &this->_value, T{} );
         }
 
         ND_ T  Extract ()                       rvNE___

@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CPP_VM/VirtualMachine.h"
-#include "base/Memory/MemUtils.h"
 
 namespace LFAS::CPP::_hidden_
 {
@@ -50,23 +49,23 @@ namespace LFAS::CPP::_hidden_
 
     // methods
     public:
-        ClassStorage ()                         __NE___ = default;
-        ClassStorage (const ClassStorage<T> &)          = default;
-        ClassStorage (ClassStorage<T> &&)       __NE___ = default;
-        ClassStorage (const T &val)                     : ValueStorage<T>{val} {}
+        ClassStorage ()                                         __NE___ = default;
+        ClassStorage (const ClassStorage<T> &)                          = default;
+        ClassStorage (ClassStorage<T> &&)                       __NE___ = default;
+        ClassStorage (const T &val)                                     : ValueStorage<T>{val} {}
 
-        ~ClassStorage ()                        __NE___ {}
+        ~ClassStorage ()                                        __NE___ {}
 
         ClassStorage<T>&  operator = (const ClassStorage<T> &)          = default;
         ClassStorage<T>&  operator = (ClassStorage<T> &&)       __NE___ = default;
 
-        ND_ const T  Read () const              { return ValueStorage<T>::Read(); }
+        ND_ const T  Read ()                                    const   { return ValueStorage<T>::Read(); }
 
         template <typename M>
-        ND_ const M  Read (M T::*member) const;
+        ND_ const M  Read (M T::*member)                        const;
 
         template <typename V>
-        void  Write (V&& value)                 { return ValueStorage<T>::Write( FwdArg<V>( value )); }
+        void  Write (V&& value)                                     { return ValueStorage<T>::Write( FwdArg<V>( value )); }
 
         template <typename M, typename V>
         void  Write (M T::*member, V&& value);
@@ -96,14 +95,14 @@ namespace LFAS::CPP::_hidden_
     // methods
     public:
         ArrayValueStorage ();
-        ArrayValueStorage (const Self &) = delete;
-        ArrayValueStorage (Self &&) = delete;
+        ArrayValueStorage (const Self &)    = delete;
+        ArrayValueStorage (Self &&)         = delete;
         ~ArrayValueStorage ();
 
-        Self&  operator = (const Self &) = delete;
-        Self&  operator = (Self &&) = delete;
+        Self&  operator = (const Self &)    = delete;
+        Self&  operator = (Self &&)         = delete;
 
-        ND_ const T  Read (usize idx) const;
+        ND_ const T  Read (usize idx)       const;
 
         template <typename V>
         void  Write (usize idx, V&& value);
@@ -159,25 +158,25 @@ namespace LFAS::CPP::_hidden_
 =================================================
 */
     template <typename T>
-    inline ValueStorage<T>::ValueStorage ()
+    ValueStorage<T>::ValueStorage ()
     {
         VirtualMachine::Instance().StorageCreate( AddressOf(_value), SizeOf<T> );
     }
 
     template <typename T>
-    inline ValueStorage<T>::ValueStorage (const T &val) : _value{ val }
+    ValueStorage<T>::ValueStorage (const T &val) : _value{ val }
     {
         VirtualMachine::Instance().StorageCreate( AddressOf(_value), SizeOf<T> );
     }
 
     template <typename T>
-    inline ValueStorage<T>::ValueStorage (const ValueStorage<T> &other) : _value{ other.Read() }
+    ValueStorage<T>::ValueStorage (const ValueStorage<T> &other) : _value{ other.Read() }
     {
         VirtualMachine::Instance().StorageCreate( AddressOf(_value), SizeOf<T> );
     }
 
     template <typename T>
-    inline ValueStorage<T>::ValueStorage (ValueStorage<T> &&other) : _value{ other.Read() }
+    ValueStorage<T>::ValueStorage (ValueStorage<T> &&other) : _value{ other.Read() }
     {
         VirtualMachine::Instance().StorageCreate( AddressOf(_value), SizeOf<T> );
     }
@@ -188,7 +187,7 @@ namespace LFAS::CPP::_hidden_
 =================================================
 */
     template <typename T>
-    inline ValueStorage<T>::~ValueStorage ()
+    ValueStorage<T>::~ValueStorage ()
     {
         VirtualMachine::Instance().StorageDestroy( AddressOf(_value) );
     }
@@ -199,14 +198,14 @@ namespace LFAS::CPP::_hidden_
 =================================================
 */
     template <typename T>
-    inline ValueStorage<T>&  ValueStorage<T>::operator = (const ValueStorage<T> &rhs)
+    ValueStorage<T>&  ValueStorage<T>::operator = (const ValueStorage<T> &rhs)
     {
         Write( rhs.Read() );
         return *this;
     }
 
     template <typename T>
-    inline ValueStorage<T>&  ValueStorage<T>::operator = (ValueStorage<T> &&rhs)
+    ValueStorage<T>&  ValueStorage<T>::operator = (ValueStorage<T> &&rhs)
     {
         Write( rhs.Read() );
         return *this;
@@ -218,7 +217,7 @@ namespace LFAS::CPP::_hidden_
 =================================================
 */
     template <typename T>
-    inline const T  ValueStorage<T>::Read () const
+    const T  ValueStorage<T>::Read () const
     {
         VirtualMachine::Instance().StorageReadAccess( AddressOf(_value), 0_b, SizeOf<T> );
         return _value;
@@ -231,7 +230,7 @@ namespace LFAS::CPP::_hidden_
 */
     template <typename T>
     template <typename V>
-    inline void  ValueStorage<T>::Write (V&& value)
+    void  ValueStorage<T>::Write (V&& value)
     {
         VirtualMachine::Instance().StorageWriteAccess( AddressOf(_value), 0_b, SizeOf<T> );
         _value = FwdArg<V>( value );
@@ -247,7 +246,7 @@ namespace LFAS::CPP::_hidden_
 */
     template <typename T>
     template <typename M>
-    inline const M  ClassStorage<T>::Read (M T::*member) const
+    const M  ClassStorage<T>::Read (M T::*member) const
     {
         VirtualMachine::Instance().StorageReadAccess( AddressOf(this->_value), OffsetOf(member), SizeOf<M> );
         return this->_value.*member;
@@ -260,7 +259,7 @@ namespace LFAS::CPP::_hidden_
 */
     template <typename T>
     template <typename M, typename V>
-    inline void  ClassStorage<T>::Write (M T::*member, V&& value)
+    void  ClassStorage<T>::Write (M T::*member, V&& value)
     {
         VirtualMachine::Instance().StorageWriteAccess( AddressOf(this->_value), OffsetOf(member), SizeOf<M> );
         this->_value.*member = FwdArg<V>( value );
@@ -275,7 +274,7 @@ namespace LFAS::CPP::_hidden_
 =================================================
 */
     template <typename T, typename C>
-    inline ArrayValueStorage<T,C>::ArrayValueStorage ()
+    ArrayValueStorage<T,C>::ArrayValueStorage ()
     {
         VirtualMachine::Instance().StorageCreate( AddressOf(_arr), SizeOf<decltype(_arr)> );
     }
@@ -286,7 +285,7 @@ namespace LFAS::CPP::_hidden_
 =================================================
 */
     template <typename T, typename C>
-    inline ArrayValueStorage<T,C>::~ArrayValueStorage ()
+    ArrayValueStorage<T,C>::~ArrayValueStorage ()
     {
         VirtualMachine::Instance().StorageDestroy( AddressOf(_arr) );
     }
@@ -297,7 +296,7 @@ namespace LFAS::CPP::_hidden_
 =================================================
 */
     template <typename T, typename C>
-    inline const T  ArrayValueStorage<T,C>::Read (usize idx) const
+    const T  ArrayValueStorage<T,C>::Read (usize idx) const
     {
         CHECK( idx < _arr.size() );
         VirtualMachine::Instance().StorageReadAccess( AddressOf(_arr), AddressDistance( _arr[idx], _arr ), SizeOf<T> );
@@ -311,7 +310,7 @@ namespace LFAS::CPP::_hidden_
 */
     template <typename T, typename C>
     template <typename V>
-    inline void  ArrayValueStorage<T,C>::Write (usize idx, V&& value)
+    void  ArrayValueStorage<T,C>::Write (usize idx, V&& value)
     {
         VirtualMachine::Instance().StorageWriteAccess( AddressOf(_arr), AddressDistance( _arr[idx], _arr ), SizeOf<T> );
         _arr[idx] = FwdArg<V>( value );
@@ -327,7 +326,7 @@ namespace LFAS::CPP::_hidden_
 */
     template <typename T, typename C>
     template <typename M>
-    inline const M  ArrayClassStorage<T,C>::Read (usize idx, M T::*member) const
+    const M  ArrayClassStorage<T,C>::Read (usize idx, M T::*member) const
     {
         CHECK( idx < this->_arr.size() );
         VirtualMachine::Instance().StorageReadAccess( AddressOf(this->_arr), AddressDistance( this->_arr[idx], this->_arr ) + OffsetOf(member), SizeOf<M> );
@@ -341,7 +340,7 @@ namespace LFAS::CPP::_hidden_
 */
     template <typename T, typename C>   
     template <typename M, typename V>
-    inline void  ArrayClassStorage<T,C>::Write (usize idx, M T::*member, V&& value)
+    void  ArrayClassStorage<T,C>::Write (usize idx, M T::*member, V&& value)
     {
         VirtualMachine::Instance().StorageWriteAccess( AddressOf(this->_arr), AddressDistance( this->_arr[idx], this->_arr ) + OffsetOf(member), SizeOf<M> );
         this->_arr[idx].*member = FwdArg<V>( value );

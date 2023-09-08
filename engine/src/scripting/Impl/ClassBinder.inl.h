@@ -65,7 +65,7 @@ namespace _hidden_ {
             for (usize pos = 0; pos < text.size();)
             {
                 StringView  line;
-                StringParser::ReadCurrLine( text, INOUT pos, OUT line );
+                Parser::ReadCurrLine( text, INOUT pos, OUT line );
                 _header << "\t// " << line << '\n';
             }
         }
@@ -96,8 +96,8 @@ namespace _hidden_ {
         static String  Desc (StringView name)
         {
             String signature;
-            ScriptTypeInfo< TOut >::Name( INOUT signature );    ((signature += " ") += name) += "(";
-            ScriptTypeInfo< TIn >::ArgName( INOUT signature );  signature += ") const";
+            ScriptTypeInfo< TOut >::Name( INOUT signature );    signature << " " << name << "(";
+            ScriptTypeInfo< TIn >::ArgName( INOUT signature );  signature << ") const";
             return signature;
         }
     };
@@ -308,7 +308,7 @@ namespace _hidden_ {
 =================================================
 */
     template <typename T> template <typename Fn>
-    void  ClassBinder<T>::AddConstructor (Fn ctorPtr) __Th___
+    void  ClassBinder<T>::AddConstructor (Fn ctorPtr, ArgNames_t argNames) __Th___
     {
         using namespace AngelScript;
 
@@ -324,7 +324,7 @@ namespace _hidden_ {
         if_unlikely( _genHeader )
         {
             _header << '\t' << _name << ' ';
-            GlobalFunction<Fn>::GetCppArgs( INOUT _header, 1 ); // skip (void *)
+            GlobalFunction<Fn>::GetCppArgs( INOUT _header, argNames, 1 );   // skip (void *)
             _header << ";\n";
         }
     }
@@ -335,7 +335,7 @@ namespace _hidden_ {
 =================================================
 */
     template <typename T> template <typename Fn>
-    void  ClassBinder<T>::AddFactoryCtor (Fn ctorPtr) __Th___
+    void  ClassBinder<T>::AddFactoryCtor (Fn ctorPtr, ArgNames_t argNames) __Th___
     {
         using namespace AngelScript;
 
@@ -351,7 +351,7 @@ namespace _hidden_ {
         if_unlikely( _genHeader )
         {
             _header << '\t' << _name << ' ';
-            GlobalFunction<Fn>::GetCppArgs( INOUT _header );
+            GlobalFunction<Fn>::GetCppArgs( INOUT _header, argNames );
             _header << ";\n";
         }
     }
@@ -366,45 +366,118 @@ namespace _hidden_ {
     {
         String  signature;
         ScriptTypeInfo<B>::Name( INOUT signature );
-        (signature += ' ') += name;
+
+        auto*   info = GetASEngine()->GetTypeInfoByDecl( signature.c_str() );
+        if ( info != null )
+        {
+            if constexpr( IsEnum<B> )
+            {
+                if ( info->GetSize() != sizeof(B) )
+                {
+                    AE_LOG_DBG( "Property '"s << signature << ' ' << _name << '.' << name << "' has size (" << ToString(sizeof(B)) <<
+                                "), but in AS it has size (" << ToString(info->GetSize()) << "), will be used uint" << ToString(sizeof(B)*8) << " type instead." );
+                    signature.clear();
+                    ScriptTypeInfo< ToUnsignedInteger<B> >::Name( INOUT signature );
+                }
+            }
+            else
+                CHECK_THROW_Eq( info->GetSize(), sizeof(B) );
+        }
+        signature << ' ' << name;
 
         AS_CHECK_THROW( GetASEngine()->RegisterObjectProperty( _name.c_str(), signature.c_str(), int(OffsetOf( value )) ));
 
         if_unlikely( _genHeader )
-            _header << '\t' << signature << ";\n";
+        {
+            signature.clear();
+            ScriptTypeInfo<B>::Name( INOUT signature );
+            _header << '\t' << signature << ' ' << name << ";\n";
+        }
     }
 
+/*
+=================================================
+    AddProperty
+=================================================
+*/
     template <typename T> template <typename A, typename B>
     void  ClassBinder<T>::AddProperty (A T::* base, B A::* value, StringView name) __Th___
     {
         String  signature;
         ScriptTypeInfo<B>::Name( INOUT signature );
-        (signature += ' ') += name;
+
+        auto*   info = GetASEngine()->GetTypeInfoByDecl( signature.c_str() );
+        if ( info != null )
+        {
+            if constexpr( IsEnum<B> )
+            {
+                if ( info->GetSize() != sizeof(B) )
+                {
+                    AE_LOG_DBG( "Property '"s << signature << ' ' << _name << '.' << name << "' has size (" << ToString(sizeof(B)) <<
+                                "), but in AS it has size (" << ToString(info->GetSize()) << "), will be used uint" << ToString(sizeof(B)*8) << " type instead." );
+                    signature.clear();
+                    ScriptTypeInfo< ToUnsignedInteger<B> >::Name( INOUT signature );
+                }
+            }
+            else
+                CHECK_THROW_Eq( info->GetSize(), sizeof(B) );
+        }
+        signature << ' ' << name;
 
         Bytes   base_off    = OffsetOf( base );
         Bytes   value_off   = OffsetOf( value );
-        CHECK( base_off + value_off < SizeOf<T> );
+        CHECK_THROW( base_off + value_off < SizeOf<T> );
 
         AS_CHECK_THROW( GetASEngine()->RegisterObjectProperty( _name.c_str(), signature.c_str(), int(base_off + value_off) ));
 
         if_unlikely( _genHeader )
-            _header << '\t' << signature << ";\n";
+        {
+            signature.clear();
+            ScriptTypeInfo<B>::Name( INOUT signature );
+            _header << '\t' << signature << ' ' << name << ";\n";
+        }
     }
 
+/*
+=================================================
+    AddProperty
+=================================================
+*/
     template <typename T> template <typename B>
     void  ClassBinder<T>::AddProperty (const T &self, B &value, StringView name) __Th___
     {
         String  signature;
         ScriptTypeInfo<B>::Name( INOUT signature );
-        (signature += ' ') += name;
+
+        auto*   info = GetASEngine()->GetTypeInfoByDecl( signature.c_str() );
+        if ( info != null )
+        {
+            if constexpr( IsEnum<B> )
+            {
+                if ( info->GetSize() != sizeof(B) )
+                {
+                    AE_LOG_DBG( "Property '"s << signature << ' ' << _name << '.' << name << "' has size (" << ToString(sizeof(B)) <<
+                                "), but in AS it has size (" << ToString(info->GetSize()) << "), will be used uint" << ToString(sizeof(B)*8) << " type instead." );
+                    signature.clear();
+                    ScriptTypeInfo< ToUnsignedInteger<B> >::Name( INOUT signature );
+                }
+            }
+            else
+                CHECK_THROW_Eq( info->GetSize(), sizeof(B) );
+        }
+        signature << ' ' << name;
 
         const ssize     offset = BitCast<ssize>(&value) - BitCast<ssize>(&self);
-        CHECK( offset >= 0 and offset <= ssize(sizeof(T) - sizeof(B)) );
+        CHECK_THROW( offset >= 0 and offset <= ssize(sizeof(T) - sizeof(B)) );
 
         AS_CHECK_THROW( GetASEngine()->RegisterObjectProperty( _name.c_str(), signature.c_str(), int(offset) ));
 
         if_unlikely( _genHeader )
-            _header << '\t' << signature << ";\n";
+        {
+            signature.clear();
+            ScriptTypeInfo<B>::Name( INOUT signature );
+            _header << '\t' << signature << ' ' << name << ";\n";
+        }
     }
 
 /*
@@ -413,7 +486,7 @@ namespace _hidden_ {
 =================================================
 */
     template <typename T> template <typename Fn>
-    void  ClassBinder<T>::AddMethod (Fn methodPtr, StringView name) __Th___
+    void  ClassBinder<T>::AddMethod (Fn methodPtr, StringView name, ArgNames_t argNames) __Th___
     {
         using namespace AngelScript;
 
@@ -431,7 +504,7 @@ namespace _hidden_ {
         if_unlikely( _genHeader )
         {
             _header << '\t';
-            MemberFunction<Fn>::GetCppDescriptor( INOUT _header, name );
+            MemberFunction<Fn>::GetCppDescriptor( INOUT _header, name, argNames );
             _header << ";\n";
         }
     }
@@ -442,7 +515,7 @@ namespace _hidden_ {
 =================================================
 */
     template <typename T> template <typename Fn>
-    void  ClassBinder<T>::AddGenericMethod (void (*fn)(ScriptArgList), StringView name) __Th___
+    void  ClassBinder<T>::AddGenericMethod (void (*fn)(ScriptArgList), StringView name, ArgNames_t argNames) __Th___
     {
         using namespace AngelScript;
 
@@ -456,7 +529,7 @@ namespace _hidden_ {
         if_unlikely( _genHeader )
         {
             _header << '\t';
-            GlobalFunction<Fn>::GetCppDescriptor( INOUT _header, name );
+            GlobalFunction<Fn>::GetCppDescriptor( INOUT _header, name, argNames );
             _header << ";\n";
         }
     }
@@ -467,7 +540,7 @@ namespace _hidden_ {
 =================================================
 */
     template <typename T> template <typename Fn>
-    void  ClassBinder<T>::AddMethodFromGlobal (Fn funcPtr, StringView name) __Th___
+    void  ClassBinder<T>::AddMethodFromGlobal (Fn funcPtr, StringView name, ArgNames_t argNames) __Th___
     {
         using Args = typename GlobalFunction<Fn>::TypeList_t;
         STATIC_ASSERT( Args::Count > 0 );
@@ -481,9 +554,9 @@ namespace _hidden_ {
             STATIC_ASSERT( obj_first or obj_last );
         }
         if constexpr( obj_first )
-            return AddMethodFromGlobalObjFirst( funcPtr, name );
+            return AddMethodFromGlobalObjFirst( funcPtr, name, argNames );
         else
-            return AddMethodFromGlobalObjLast( funcPtr, name );
+            return AddMethodFromGlobalObjLast( funcPtr, name, argNames );
     }
 
 /*
@@ -492,7 +565,7 @@ namespace _hidden_ {
 =================================================
 */
     template <typename T> template <typename Fn>
-    void  ClassBinder<T>::AddMethodFromGlobalObjFirst (Fn funcPtr, StringView name) __Th___
+    void  ClassBinder<T>::AddMethodFromGlobalObjFirst (Fn funcPtr, StringView name, ArgNames_t argNames) __Th___
     {
         using namespace AngelScript;
 
@@ -506,14 +579,14 @@ namespace _hidden_ {
         GlobalFunction<Fn>::GetDescriptor( INOUT signature, name, 1, 0 );
 
         if constexpr( IsAnyConst< FrontArg >)
-            signature += " const";
+            signature << " const";
 
         AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(), signature.c_str(), asFUNCTION( *funcPtr ), asCALL_CDECL_OBJFIRST ));
 
         if_unlikely( _genHeader )
         {
             _header << '\t';
-            GlobalFunction<Fn>::GetCppDescriptor( INOUT _header, name, 1, 0 );
+            GlobalFunction<Fn>::GetCppDescriptor( INOUT _header, name, argNames, 1, 0 );
             if constexpr( IsAnyConst< FrontArg >)  _header << " const";
             _header << ";\n";
         }
@@ -525,7 +598,7 @@ namespace _hidden_ {
 =================================================
 */
     template <typename T> template <typename Fn>
-    void  ClassBinder<T>::AddMethodFromGlobalObjLast (Fn funcPtr, StringView name) __Th___
+    void  ClassBinder<T>::AddMethodFromGlobalObjLast (Fn funcPtr, StringView name, ArgNames_t argNames) __Th___
     {
         using namespace AngelScript;
 
@@ -539,14 +612,14 @@ namespace _hidden_ {
         GlobalFunction<Fn>::GetDescriptor( INOUT signature, name, 0, 1 );
 
         if constexpr( IsAnyConst< BackArg >)
-            signature += " const";
+            signature << " const";
 
         AS_CHECK_THROW( GetASEngine()->RegisterObjectMethod( _name.c_str(), signature.c_str(), asFUNCTION( *funcPtr ), asCALL_CDECL_OBJLAST ));
 
         if_unlikely( _genHeader )
         {
             _header << '\t';
-            GlobalFunction<Fn>::GetCppDescriptor( INOUT signature, name, 0, 1 );
+            GlobalFunction<Fn>::GetCppDescriptor( INOUT signature, name, argNames, 0, 1 );
             if constexpr( IsAnyConst< BackArg >)  _header << " const";
             _header << ";\n";
         }
@@ -567,12 +640,12 @@ namespace _hidden_ {
         if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
         {
             STATIC_ASSERT( FuncInfo::args::Count == 1 );
-            _binder->AddMethodFromGlobalObjFirst( func, _UnaryToStr( op ));
+            _binder->AddMethodFromGlobalObjFirst( func, _UnaryToStr( op ), {} );
         }
         else
         {
             STATIC_ASSERT( FuncInfo::args::Count == 0 );
-            _binder->AddMethod( func, _UnaryToStr( op ));
+            _binder->AddMethod( func, _UnaryToStr( op ), {} );
         }
         return *this;
     }
@@ -592,12 +665,12 @@ namespace _hidden_ {
         if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
         {
             STATIC_ASSERT( FuncInfo::args::Count == 2 );
-            _binder->AddMethodFromGlobalObjFirst( func, _BinAssignToStr( op ));
+            _binder->AddMethodFromGlobalObjFirst( func, _BinAssignToStr( op ), {} );
         }
         else
         {
             STATIC_ASSERT( FuncInfo::args::Count == 1 );
-            _binder->AddMethod( func, _BinAssignToStr( op ));
+            _binder->AddMethod( func, _BinAssignToStr( op ), {} );
         }
         return *this;
     }
@@ -624,9 +697,9 @@ namespace _hidden_ {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
         if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
-            _binder->AddMethodFromGlobalObjFirst( func, "opIndex" );
+            _binder->AddMethodFromGlobalObjFirst( func, "opIndex", {} );
         else
-            _binder->AddMethod( func, "opIndex" );
+            _binder->AddMethod( func, "opIndex", {} );
 
         return *this;
     }
@@ -641,7 +714,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opCall" );
+        _binder->AddMethod( func, "opCall", {} );
         return *this;
     }
 
@@ -650,7 +723,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opCall" );
+        _binder->AddMethod( func, "opCall", {} );
         return *this;
     }
 
@@ -659,7 +732,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opCall" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opCall", {} );
         return *this;
     }
 
@@ -668,7 +741,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opCall" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opCall", {} );
         return *this;
     }
 
@@ -688,7 +761,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opConv" );
+        _binder->AddMethod( func, "opConv", {} );
         return *this;
     }
 
@@ -697,7 +770,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opConv" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opConv", {} );
         return *this;
     }
 
@@ -717,7 +790,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opCast" );
+        _binder->AddMethod( func, "opCast", {} );
         return *this;
     }
 
@@ -726,7 +799,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opCast" );
+        _binder->AddMethod( func, "opCast", {} );
         return *this;
     }
 
@@ -735,7 +808,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opCast" );
+        _binder->AddMethod( func, "opCast", {} );
         return *this;
     }
 
@@ -744,7 +817,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opCast" );
+        _binder->AddMethod( func, "opCast", {} );
         return *this;
     }
 
@@ -753,7 +826,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opCast" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opCast", {} );
         return *this;
     }
 
@@ -762,7 +835,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opCast" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opCast", {} );
         return *this;
     }
 
@@ -771,7 +844,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opCast" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opCast", {} );
         return *this;
     }
 
@@ -780,7 +853,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opCast" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opCast", {} );
         return *this;
     }
 
@@ -800,7 +873,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opImplCast" );
+        _binder->AddMethod( func, "opImplCast", {} );
         return *this;
     }
 
@@ -809,7 +882,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opImplCast" );
+        _binder->AddMethod( func, "opImplCast", {} );
         return *this;
     }
 
@@ -818,7 +891,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opImplCast" );
+        _binder->AddMethod( func, "opImplCast", {} );
         return *this;
     }
 
@@ -827,7 +900,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethod( func, "opImplCast" );
+        _binder->AddMethod( func, "opImplCast", {} );
         return *this;
     }
 
@@ -836,7 +909,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opImplCast" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opImplCast", {} );
         return *this;
     }
 
@@ -845,7 +918,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opImplCast" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opImplCast", {} );
         return *this;
     }
 
@@ -854,7 +927,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opImplCast" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opImplCast", {} );
         return *this;
     }
 
@@ -863,7 +936,7 @@ namespace _hidden_ {
     {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjFirst( func, "opImplCast" );
+        _binder->AddMethodFromGlobalObjFirst( func, "opImplCast", {} );
         return *this;
     }
 
@@ -882,12 +955,12 @@ namespace _hidden_ {
         if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
         {
             STATIC_ASSERT( FuncInfo::args::Count == 2 );
-            _binder->AddMethodFromGlobalObjFirst( func, _BinToStr( op ));
+            _binder->AddMethodFromGlobalObjFirst( func, _BinToStr( op ), {} );
         }
         else
         {
             STATIC_ASSERT( FuncInfo::args::Count == 1 );
-            _binder->AddMethod( func, _BinToStr( op ));
+            _binder->AddMethod( func, _BinToStr( op ), {} );
         }
         return *this;
     }
@@ -905,7 +978,7 @@ namespace _hidden_ {
 
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
-        _binder->AddMethodFromGlobalObjLast( func, _BinRightToStr( op ));
+        _binder->AddMethodFromGlobalObjLast( func, _BinRightToStr( op ), {} );
         return *this;
     }
 
@@ -929,12 +1002,12 @@ namespace _hidden_ {
             STATIC_ASSERT(( IsSameTypes< typename FuncInfo::args::template Get<0>, T > or IsSameTypes< typename FuncInfo::args::template Get<0>, const T& > ));
             STATIC_ASSERT(( IsSameTypes< typename FuncInfo::args::template Get<1>, T > or IsSameTypes< typename FuncInfo::args::template Get<1>, const T& > ));
 
-            _binder->AddMethodFromGlobalObjFirst( func, "opEquals" );
+            _binder->AddMethodFromGlobalObjFirst( func, "opEquals", {} );
         }
         else
         {
             STATIC_ASSERT( FuncInfo::args::Count == 1 );
-            _binder->AddMethod( func, "opEquals" );
+            _binder->AddMethod( func, "opEquals", {} );
         }
         return *this;
     }
@@ -957,9 +1030,9 @@ namespace _hidden_ {
         SCOPED_SET( _binder->_genHeader, false, _binder->_genHeader );
 
         if constexpr( Scripting::_hidden_::IsGlobal<Fn>() )
-            _binder->AddMethodFromGlobalObjFirst( func, "opCmp" );
+            _binder->AddMethodFromGlobalObjFirst( func, "opCmp", {} );
         else
-            _binder->AddMethod( func, "opCmp" );
+            _binder->AddMethod( func, "opCmp", {} );
 
         return *this;
     }

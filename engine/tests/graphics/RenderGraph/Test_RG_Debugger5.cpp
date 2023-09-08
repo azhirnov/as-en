@@ -194,7 +194,7 @@ no source
 
 //> rayQueryInitialize(): void
 //  origin: float3 {0.500625, 0.499167, -1.000000}
-9.  rayQueryInitializeEXT( ray_query, un_RtScene, gl_RayFlagsNoneEXT,
+9.     rayQueryInitializeEXT( ray_query, un_RtScene, gl_RayFlagsNoneEXT,
 10.                            /*cullMask*/0xFF, origin, /*Tmin*/0.0f, direction, /*Tmax*/10.0f );
 
 //> rayQueryProceed(): bool {true}

@@ -67,11 +67,11 @@ namespace AE::Math
 
 /*
 =================================================
-    CalcAverage
+    Average
 =================================================
 */
     template <typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, T>  CalcAverage (T begin, T end) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, T>  Average (T begin, T end) __NE___
     {
         if constexpr( IsFloatPoint<T> )
             return (begin * T{0.5}) + (end * T{0.5});
@@ -84,9 +84,9 @@ namespace AE::Math
     }
 
     template <typename T>
-    ND_ constexpr TBytes<T>  CalcAverage (TBytes<T> begin, TBytes<T> end) __NE___
+    ND_ constexpr TBytes<T>  Average (TBytes<T> begin, TBytes<T> end) __NE___
     {
-        return TBytes<T>{ CalcAverage( T{begin}, T{end} )};
+        return TBytes<T>{ Average( T{begin}, T{end} )};
     }
 
 /*
@@ -265,11 +265,11 @@ namespace AE::Math
     template <typename T>
     ND_ EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Trunc (const T& x) __NE___
     {
-#   if 1
+    #if 1
         return std::trunc( x );
-#   else
+    #else
         return x > T{0} ? Floor(x) : Ceil(x);
-#   endif
+    #endif
     }
 
 /*
@@ -543,11 +543,25 @@ namespace AE::Math
 =================================================
 */
     template <typename T1, typename T2>
-    ND_ constexpr T1  Exchange (INOUT T1 &lhs, const T2 &rhs)
+    ND_ constexpr T1  Exchange (INOUT T1 &lhs, const T2 &rhs) __NE___
     {
         T1  tmp = lhs;
         lhs = rhs;
         return tmp;
+    }
+
+/*
+=================================================
+    FusedMulAdd
+----
+    faster and more precise version of (a * b) + c
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr T  FusedMulAdd (const T a, const T b, const T c) __NE___
+    {
+        STATIC_ASSERT( IsFloatPoint<T> );
+        return std::fma( a, b, c );
     }
 
 

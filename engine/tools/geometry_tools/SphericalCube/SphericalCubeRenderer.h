@@ -39,10 +39,10 @@ namespace AE::GeometryTools
     // methods
     public:
         SphericalCubeRenderer ()                                                                                            __NE___ {}
-        ~SphericalCubeRenderer ()                                                                                           __NE___;
+        ~SphericalCubeRenderer ()                                                                                           __NE___ {}
 
-        ND_ bool  Create (IResourceManager &, ITransferContext &ctx, uint minLod, uint maxLod, Bool quads,
-                          EBufferUsage usage, GfxMemAllocatorPtr gfxAlloc)                                                  __NE___;
+        ND_ bool  Create (IResourceManager &, ITransferContext &ctx, uint minLod, uint maxLod,
+                          Bool quads, Bool cubeMap, EBufferUsage usage, GfxMemAllocatorPtr gfxAlloc)                        __NE___;
             void  Destroy (IResourceManager &)                                                                              __NE___;
 
         ND_ bool        IsCreated ()                                                                                        C_NE___ { return _vertexBuffer and _indexBuffer; }

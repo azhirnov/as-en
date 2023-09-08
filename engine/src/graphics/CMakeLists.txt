@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (${AE_ENABLE_VULKAN} OR ${AE_ENABLE_METAL} OR ${AE_ENABLE_REMOTE_GRAPHICS})
 
     file( GLOB_RECURSE PRIVATE_HPP_SOURCES "Private/*.h" )

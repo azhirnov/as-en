@@ -87,6 +87,7 @@
     #include "Hash.glsl"
     #include "Noise.glsl"
     #include "Normal.glsl"
+    #include "Geometry.glsl"
 
     int2    faceDim;
     int     face;

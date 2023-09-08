@@ -74,7 +74,7 @@ namespace AE::Graphics
     //
     // Metal Binding per stage
     //
-    class MetalBindingPerStage
+    class alignas(uint) MetalBindingPerStage
     {
     // variables
     private:
@@ -166,6 +166,8 @@ namespace AE::Graphics
         explicit constexpr DescSetBinding (MetalBindingPerStage metalBinding)   __NE___ : mtlIndex{metalBinding} {}
 
         ND_ constexpr bool  operator == (const DescSetBinding &rhs)             C_NE___ { return vkIndex == rhs.vkIndex; }
+
+        ND_ constexpr operator bool ()                                          C_NE___ { return vkIndex != UMax; }
     };
 
 

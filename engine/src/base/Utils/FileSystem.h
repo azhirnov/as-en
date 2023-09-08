@@ -45,74 +45,76 @@ namespace AE::Base
 
     // filesystem
     public:
-        // remove file or empty directory.
-        // returns 'true' if the file was deleted.
+        // Remove file or empty directory.
+        // Returns 'true' if the file was deleted.
         static bool  Remove (const Path &p)                             __NE___;
 
-        // remove directory and all subdirectories.
+        // Remove directory and all subdirectories.
         static bool  RemoveAll (const Path &p)                          __NE___;
 
-        // create directory, parent directory must be exists
+        // Create directory, parent directory must be exists.
         static bool  CreateDirectory (const Path &p)                    __NE___;
 
-        // create all directories that is not exists
+        // Create all directories that is not exists.
         static bool  CreateDirectories (const Path &p)                  __NE___;
 
-        // set working directory
+        // Set working directory.
         static bool  SetCurrentPath (const Path &p)                     __NE___;
 
-        // returns 'true' if file or directory is exists
+        // Returns 'true' if file or directory is exists.
         ND_ static bool  Exists (const Path &p)                         __NE___;
 
-        // returns 'true' if path refers to a file
+        // Returns 'true' if path refers to a file.
         ND_ static bool  IsFile (const Path &p)                         __NE___ { return Exists( p ) and not _IsDirectory( p ); }
 
-        // returns 'true' if path refers to a directory
+        // Returns 'true' if path refers to a directory.
         ND_ static bool  IsDirectory (const Path &p)                    __NE___ { return Exists( p ) and _IsDirectory( p ); }
 
-        // returns time of the last modification of file.
+        // Returns time of the last modification of file.
         ND_ static Time_t  LastWriteTime (const Path &p)                __NE___;
 
-        // set time of the last modification of file.
+        // Set time of the last modification of file.
             static bool  SetLastWriteTime (const Path &p, Time_t t)     __NE___;
 
-        // returns current path
+        // Returns current path
         ND_ static Path  CurrentPath ()                                 __Th___;
 
-        // returns absolute path
+        // Returns absolute path.
         ND_ static Path  ToAbsolute (const Path &p)                     __Th___;
 
-        // returns relative path
+        // Returns relative path.
         ND_ static Path  ToRelative (const Path &p, const Path &base);
 
-        // enumerate all files in directory
+        // Enumerate all files in directory.
         ND_ static auto  Enum (const Path &p)                           __Th___;
 
-        // enumerate all files in directory and its subdirectories
+        // Enumerate all files in directory and its subdirectories.
         ND_ static auto  EnumRecursive (const Path &p)                  __Th___;
 
-        // 
+        // Copy file. Returns 'false' if failed.
         static bool  CopyFile (const Path &from, const Path &to)        __NE___;
+
+        // Copy directory. Returns 'false' if failed.
         static bool  CopyDirectory (const Path &from, const Path &to)   __NE___;
 
-        // moves or renames filesystem object
+        // Move or rename filesystem object (file/directory).
         static bool  Rename (const Path &oldName, const Path &newName)  __NE___;
 
-        // writes file system capacity and available space
+        // Writes file system capacity and available space.
         static bool  GetSpace (const Path &path, OUT Bytes &total, OUT Bytes &available) __NE___;
 
-        // replace unsupported symbols.
-        // returns 'true' if name is not modified.
+        // Replace unsupported symbols.
+        // Returns 'true' if name is not modified.
         template <typename T>
         static bool  ValidateFileName (INOUT BasicString<T> &name)      __NE___;
 
-        // calculate hash of path
+        // Calculate hash of path.
         ND_ static HashVal  Hash (const Path &p)                        __NE___ { ASSERT( p.is_absolute() );  return HashVal{ _ae_fs_::hash_value( p )}; }
 
 
     // utils
     public:
-        // searches for a directory for which 'Exists( ref )' returns 'true'
+        // Searches for a directory for which 'Exists( ref )' returns 'true'.
         static bool  FindAndSetCurrent (const Path &ref, uint depth)                                                        __Th___;
         static bool  FindAndSetCurrent (const Path &base, const Path &ref, uint depth)                                      __Th___;
 

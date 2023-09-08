@@ -10,6 +10,7 @@
         uint4   RGBLuma [COUNT];
     } un_Histogram;
 #endif
+//-----------------------------------------------------------------------------
 
 #include "Math.glsl"
 #include "Color.glsl"
@@ -25,8 +26,14 @@ void Main ()
     float4  col = gl.texture.Sample( un_Texture, GetGlobalCoordUNorm().xy );
     col.a = RGBtoLuminance( col.rgb );
 
-    gl.AtomicAdd( un_Histogram.RGBLuma[ ColorToIndex( col.r )].r, 1u );
-    gl.AtomicAdd( un_Histogram.RGBLuma[ ColorToIndex( col.g )].g, 1u );
-    gl.AtomicAdd( un_Histogram.RGBLuma[ ColorToIndex( col.b )].b, 1u );
+    if ( col.r > 0.0 )
+        gl.AtomicAdd( un_Histogram.RGBLuma[ ColorToIndex( col.r )].r, 1u );
+
+    if ( col.g > 0.0 )
+        gl.AtomicAdd( un_Histogram.RGBLuma[ ColorToIndex( col.g )].g, 1u );
+
+    if ( col.b > 0.0 )
+        gl.AtomicAdd( un_Histogram.RGBLuma[ ColorToIndex( col.b )].b, 1u );
+
     gl.AtomicAdd( un_Histogram.RGBLuma[ ColorToIndex( col.a )].a, 1u );
 }

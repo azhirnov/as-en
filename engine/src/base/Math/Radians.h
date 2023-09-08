@@ -13,13 +13,13 @@ namespace AE::Math
     //
 
     template <typename T>
-    struct RadiansTempl
+    struct TRadians
     {
         STATIC_ASSERT( IsScalar<T> and IsFloatPoint<T> );
 
     // types
     public:
-        using Self      = RadiansTempl<T>;
+        using Self      = TRadians<T>;
         using Value_t   = T;
 
 
@@ -30,11 +30,11 @@ namespace AE::Math
 
     // methods
     public:
-        constexpr RadiansTempl ()                               __NE___ : _value{} {}
-        constexpr explicit RadiansTempl (T val)                 __NE___ : _value{val} {}
+        constexpr TRadians ()                                   __NE___ : _value{} {}
+        constexpr explicit TRadians (T val)                     __NE___ : _value{val} {}
 
-        constexpr RadiansTempl (const Self &)                   __NE___ = default;
-        constexpr RadiansTempl (Self &&)                        __NE___ = default;
+        constexpr TRadians (const Self &)                       __NE___ = default;
+        constexpr TRadians (Self &&)                            __NE___ = default;
 
         ND_ constexpr explicit operator T ()                    C_NE___ { return _value; }
 
@@ -87,15 +87,15 @@ namespace AE::Math
     };
 
 
-    using Rad           = RadiansTempl<float>;
-    using RadiansF      = RadiansTempl<float>;
-    using RadiansD      = RadiansTempl<double>;
+    using Rad           = TRadians<float>;
+    using RadiansF      = TRadians<float>;
+    using RadiansD      = TRadians<double>;
 
     template <typename T, int I, glm::qualifier Q>
-    using TRadianVec    = TVec< RadiansTempl<T>, I, Q >;
+    using TRadianVec    = TVec< TRadians<T>, I, Q >;
 
     template <typename T, int I>
-    using RadianVec     = Vec< RadiansTempl<T>, I >;
+    using RadianVec     = Vec< TRadians<T>, I >;
 
     inline static constexpr Rad  Pi = Rad::Pi();
 
@@ -112,9 +112,9 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ RadiansTempl<T>  Abs (const RadiansTempl<T>& x) __NE___
+    ND_ TRadians<T>  Abs (const TRadians<T>& x) __NE___
     {
-        return RadiansTempl<T>{ std::abs( T(x) )};
+        return TRadians<T>{ std::abs( T(x) )};
     }
 
 /*
@@ -123,7 +123,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ T  Sin (const RadiansTempl<T>& x) __NE___
+    ND_ T  Sin (const TRadians<T>& x) __NE___
     {
         return std::sin( T(x) );
     }
@@ -134,7 +134,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ T  Cos (const RadiansTempl<T>& x) __NE___
+    ND_ T  Cos (const TRadians<T>& x) __NE___
     {
         return std::cos( T(x) );
     }
@@ -145,7 +145,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ Vec<T,2>  SinCos (const RadiansTempl<T>& x) __NE___
+    ND_ Vec<T,2>  SinCos (const TRadians<T>& x) __NE___
     {
         return Vec<T,2>{ std::sin( T(x) ), std::cos( T(x) )};
     }
@@ -156,11 +156,11 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ RadiansTempl<T>  ASin (const T& x) __NE___
+    ND_ TRadians<T>  ASin (const T& x) __NE___
     {
         ASSERT( x >= T{-1} and x <= T{1} );
 
-        return RadiansTempl<T>{std::asin( x )};
+        return TRadians<T>{std::asin( x )};
     }
 
 /*
@@ -169,11 +169,11 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ RadiansTempl<T>  ACos (const T& x) __NE___
+    ND_ TRadians<T>  ACos (const T& x) __NE___
     {
         ASSERT( x >= T{-1} and x <= T{1} );
 
-        return RadiansTempl<T>{std::acos( x )};
+        return TRadians<T>{std::acos( x )};
     }
 
 /*
@@ -182,7 +182,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ T  SinH (const RadiansTempl<T>& x) __NE___
+    ND_ T  SinH (const TRadians<T>& x) __NE___
     {
         return std::sinh( T(x) );
     }
@@ -193,7 +193,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ T  CosH (const RadiansTempl<T>& x) __NE___
+    ND_ T  CosH (const TRadians<T>& x) __NE___
     {
         return std::cosh( T(x) );
     }
@@ -204,9 +204,9 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ RadiansTempl<T>  ASinH (const T& x) __NE___
+    ND_ TRadians<T>  ASinH (const T& x) __NE___
     {
-        return RadiansTempl<T>( SignOrZero( x ) * Ln( x + Sqrt( (x*x) + T{1} )));
+        return TRadians<T>( SignOrZero( x ) * Ln( x + Sqrt( (x*x) + T{1} )));
     }
 
 /*
@@ -215,10 +215,10 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ RadiansTempl<T>  ACosH (const T& x) __NE___
+    ND_ TRadians<T>  ACosH (const T& x) __NE___
     {
         ASSERT( x >= T{1} );
-        return RadiansTempl<T>{ Ln( x + Sqrt( (x*x) - T{1} ))};
+        return TRadians<T>{ Ln( x + Sqrt( (x*x) - T{1} ))};
     }
 
 /*
@@ -227,7 +227,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ T  Tan (const RadiansTempl<T>& x) __NE___
+    ND_ T  Tan (const TRadians<T>& x) __NE___
     {
         return std::tan( T(x) );
     }
@@ -238,7 +238,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ T  CoTan (const RadiansTempl<T>& x) __NE___
+    ND_ T  CoTan (const TRadians<T>& x) __NE___
     {
         return SafeDiv( T{1}, Tan( x ), T{0} );
     }
@@ -249,7 +249,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ T  TanH (const RadiansTempl<T>& x) __NE___
+    ND_ T  TanH (const TRadians<T>& x) __NE___
     {
         return std::tanh( T(x) );
     }
@@ -260,7 +260,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ T  CoTanH (const RadiansTempl<T>& x) __NE___
+    ND_ T  CoTanH (const TRadians<T>& x) __NE___
     {
         return SafeDiv( T{1}, TanH( x ), T{0} );
     }
@@ -271,9 +271,9 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ RadiansTempl<T>  ATan (const T& y_over_x) __NE___
+    ND_ TRadians<T>  ATan (const T& y_over_x) __NE___
     {
-        return RadiansTempl<T>{ std::atan( y_over_x )};
+        return TRadians<T>{ std::atan( y_over_x )};
     }
 
 /*
@@ -282,9 +282,9 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ RadiansTempl<T>  ATan (const T& y, const T& x) __NE___
+    ND_ TRadians<T>  ATan (const T& y, const T& x) __NE___
     {
-        return RadiansTempl<T>{ std::atan2( y, x )};
+        return TRadians<T>{ std::atan2( y, x )};
     }
 
 /*
@@ -293,9 +293,9 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ RadiansTempl<T>  ACoTan (const T& x) __NE___
+    ND_ TRadians<T>  ACoTan (const T& x) __NE___
     {
-        return RadiansTempl<T>{ SafeDiv( T{1}, ATan( x ), T{0} )};
+        return TRadians<T>{ SafeDiv( T{1}, ATan( x ), T{0} )};
     }
 
 /*
@@ -319,9 +319,9 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ RadiansTempl<T>  ACoTanH (const T& x) __NE___
+    ND_ TRadians<T>  ACoTanH (const T& x) __NE___
     {
-        return RadiansTempl<T>{ SafeDiv( T{1}, ATanH( x ), T{0} )};
+        return TRadians<T>{ SafeDiv( T{1}, ATanH( x ), T{0} )};
     }
 
 /*
@@ -330,7 +330,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ constexpr bool  Equals (const RadiansTempl<T> &lhs, const RadiansTempl<T> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ constexpr bool  Equals (const TRadians<T> &lhs, const TRadians<T> &rhs, const T &err = Epsilon<T>()) __NE___
     {
         return Equals( T{lhs}, T{rhs}, err );
     }
@@ -341,13 +341,13 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, bool>  IsZero (const RadiansTempl<T> &x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, bool>  IsZero (const TRadians<T> &x) __NE___
     {
         return IsZero( T{x} );
     }
 
     template <typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, bool>  IsNotZero (const RadiansTempl<T> &x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, bool>  IsNotZero (const TRadians<T> &x) __NE___
     {
         return IsNotZero( T{x} );
     }
@@ -358,8 +358,8 @@ namespace AE::Math
 
 namespace AE::Base
 {
-    template <typename T>   struct TMemCopyAvailable< RadiansTempl<T> >     { static constexpr bool  value = IsMemCopyAvailable<T>; };
-    template <typename T>   struct TZeroMemAvailable< RadiansTempl<T> >     { static constexpr bool  value = IsZeroMemAvailable<T>; };
-    template <typename T>   struct TTriviallySerializable< RadiansTempl<T> >{ static constexpr bool  value = IsTriviallySerializable<T>; };
+    template <typename T>   struct TMemCopyAvailable< TRadians<T> >     { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    template <typename T>   struct TZeroMemAvailable< TRadians<T> >     { static constexpr bool  value = IsZeroMemAvailable<T>; };
+    template <typename T>   struct TTriviallySerializable< TRadians<T> >{ static constexpr bool  value = IsTriviallySerializable<T>; };
 
 } // AE::Base

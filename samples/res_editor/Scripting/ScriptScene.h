@@ -18,7 +18,7 @@ namespace AE::ResEditor
         struct GeometryInstance
         {
             ScriptGeomSourcePtr     geom;
-            float3                  pos;
+            float4x4                transform;
         };
         using GeomInstances_t = Array< GeometryInstance >;
 
@@ -27,7 +27,7 @@ namespace AE::ResEditor
     public:
         ScriptBaseControllerPtr     _controller;
         GeomInstances_t             _geomInstances;
-        uint                        _passCount  = 0;
+        uint                        _passCount      = 0;
 
         RC<SceneData>               _scene;
 
@@ -38,14 +38,20 @@ namespace AE::ResEditor
 
         void  SetDebugName (const String &name)                                             __Th___;
 
-        // default controller, can be overrided by pass
+        // default controller, can be overridden by pass
         void  InputController (const ScriptBaseControllerPtr &)                             __Th___;
 
-        void  InputGeometry1 (const ScriptGeomSourcePtr &, const packed_float3 &pos)        __Th___;
-        void  InputGeometry2 (const ScriptGeomSourcePtr &)                                  __Th___;
+        void  InputGeometry1 (const ScriptGeomSourcePtr &,
+                              const packed_float3       &pos,
+                              const packed_float3       &rotation,
+                              float                     scale)                              __Th___;
+        void  InputGeometry2 (const ScriptGeomSourcePtr &,
+                              const packed_float3       &pos)                               __Th___;
+        void  InputGeometry3 (const ScriptGeomSourcePtr &)                                  __Th___;
+        void  InputGeometry4 (const ScriptGeomSourcePtr &,
+                              const packed_float4x4     &mat)                               __Th___;
 
         ScriptSceneGraphicsPass*    AddGraphicsPass (const String &name)                    __Th___;
-        ScriptSceneRayTracingPass*  AddRayTracingPass (const String &name)                  __Th___;
 
         ND_ RC<SceneData>            ToScene ()                                             __Th___;
         ND_ ScriptBaseControllerPtr  GetController ()                                       __Th___ { return _controller; }
@@ -111,48 +117,6 @@ namespace AE::ResEditor
         ND_ static auto  _CreateUBType ()                                                   __Th___;
 
         void  _WithPipelineCompiler ()                                                      C_Th___;
-
-    // ScriptBasePass //
-        void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                               C_Th_OV;
-    };
-
-
-
-    //
-    // Scene Ray Tracing Pass
-    //
-    class ScriptSceneRayTracingPass final : public ScriptBasePass
-    {
-        friend class ScriptScene;
-
-    // variables
-    public:
-        ScriptScenePtr              _scene;
-        ScriptBaseControllerPtr     _controller;
-        const String                _passName;
-        Path                        _pplnName;
-
-
-    // methods
-    private:
-        ScriptSceneRayTracingPass (ScriptScenePtr scene, const String &passName)            __Th___;
-
-    public:
-        ScriptSceneRayTracingPass ()                                                        __Th___;
-
-        void  SetPipeline (const String &pplnFile)                                          __Th___;
-
-        void  InputController (const ScriptBaseControllerPtr &)                             __Th___;
-
-        static void  Bind (const ScriptEnginePtr &se)                                       __Th___;
-        static void  GetShaderTypes (INOUT CppStructsFromShaders &)                         __Th___;
-
-    // ScriptBasePass //
-        RC<IPass>  ToPass ()                                                                C_Th_OV;
-
-
-    private:
-        ND_ static auto  _CreateUBType ()                                                   __Th___;
 
     // ScriptBasePass //
         void  _OnAddArg (INOUT ScriptPassArgs::Argument &arg)                               C_Th_OV;

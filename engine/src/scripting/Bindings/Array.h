@@ -269,9 +269,9 @@ namespace AE::Scripting::_hidden_
         static constexpr bool is_object         = true;
         static constexpr bool is_ref_counted    = true;
 
-        static void  Name (INOUT String &s)     { s+= "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s += ">"; }
-        static void  ArgName (INOUT String &s)  { s+= "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s += ">"; }
-        static void  CppArg (INOUT String &s)   { s+= "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s += ">"; }
+        static void  Name (INOUT String &s)     { s << "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s << ">"; }
+        static void  ArgName (INOUT String &s)  { s << "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s << ">"; }
+        static void  CppArg (INOUT String &s)   { s << "array<"; ScriptTypeInfo<T>::Name( INOUT s ); s << ">"; }
     };
 
 } // AE::Scripting::_hidden_

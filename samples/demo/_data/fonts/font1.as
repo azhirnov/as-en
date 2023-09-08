@@ -13,7 +13,7 @@ void ASmain ()
     font.Format( EPixelFormat::R8_UNorm );
 
     font.GlyphSize( 60 );   // pix
-    font.Padding( 2 );      // pix
+    font.GlyphPadding( 2 ); // pix
 
     font.Store( "canvas2d.font" );
 }

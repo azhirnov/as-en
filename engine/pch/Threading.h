@@ -30,7 +30,6 @@
 #include "threading/Memory/TsStackAllocator.h"
 
 // Primitives
-#include "threading/Primitives/Atomic.h"
 #include "threading/Primitives/Barrier.h"
 #include "threading/Primitives/SpinLock.h"
 #include "threading/Primitives/SyncEvent.h"

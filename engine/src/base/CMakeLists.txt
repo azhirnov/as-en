@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 file( GLOB_RECURSE HPP_SOURCES "*.h" )
 if (NOT (DEFINED ENGINE_LIBS_PATH))
     file( GLOB_RECURSE CPP_SOURCES "*.cpp" )
@@ -55,6 +57,8 @@ if (APPLE)
     find_library( COCOA_LIBRARY Cocoa REQUIRED )
     target_link_libraries( "Base" PRIVATE ${COCOA_LIBRARY} )
 endif()
+
+target_compile_definitions( "Base" PUBLIC FP_FAST_FMA FP_FAST_FMAF FP_FAST_FMAL )
 
 EnablePCH( "Base" )
 EnablePrebuild( "Base" )

@@ -27,16 +27,44 @@ namespace AE::ResEditor
     InputGeometry*
 =================================================
 */
-    void  ScriptScene::InputGeometry1 (const ScriptGeomSourcePtr &geom, const packed_float3 &pos) __Th___
+    void  ScriptScene::InputGeometry1 (const ScriptGeomSourcePtr &geom, const packed_float3 &pos, const packed_float3 &rotation, float scale) __Th___
     {
         CHECK_THROW_MSG( geom );
 
-        _geomInstances.push_back( GeometryInstance{ geom, pos });
+        auto&   dst     = _geomInstances.emplace_back();
+        dst.geom        = geom;
+        dst.transform   =   float4x4::RotateX( Rad{rotation.x} )    *
+                            float4x4::RotateY( Rad{rotation.y} )    *
+                            float4x4::RotateZ( Rad{rotation.z} )    *
+                            float4x4::Translated( pos )             *
+                            float4x4::Scaled( scale );
     }
 
-    void  ScriptScene::InputGeometry2 (const ScriptGeomSourcePtr &geom) __Th___
+    void  ScriptScene::InputGeometry2 (const ScriptGeomSourcePtr &geom, const packed_float3 &pos) __Th___
     {
-        return InputGeometry1( geom, packed_float3{} );
+        CHECK_THROW_MSG( geom );
+
+        auto&   dst     = _geomInstances.emplace_back();
+        dst.geom        = geom;
+        dst.transform   = float4x4::Translated( pos );
+    }
+
+    void  ScriptScene::InputGeometry3 (const ScriptGeomSourcePtr &geom) __Th___
+    {
+        CHECK_THROW_MSG( geom );
+
+        auto&   dst     = _geomInstances.emplace_back();
+        dst.geom        = geom;
+        dst.transform   = float4x4::Identity();
+    }
+
+    void  ScriptScene::InputGeometry4 (const ScriptGeomSourcePtr &geom, const packed_float4x4 &mat) __Th___
+    {
+        CHECK_THROW_MSG( geom );
+
+        auto&   dst     = _geomInstances.emplace_back();
+        dst.geom        = geom;
+        dst.transform   = float4x4{mat};
     }
 
 /*
@@ -64,10 +92,17 @@ namespace AE::ResEditor
         ClassBinder<ScriptScene>    binder{ se };
         binder.CreateRef();
 
-        binder.AddMethod( &ScriptScene::InputGeometry1,     "Input"             );
-        binder.AddMethod( &ScriptScene::InputGeometry2,     "Input"             );
-        binder.AddMethod( &ScriptScene::InputController,    "Input"             );
-        binder.AddMethod( &ScriptScene::AddGraphicsPass,    "AddGraphicsPass"   );
+        binder.Comment( "Attach geometry to scene." );
+        binder.AddMethod( &ScriptScene::InputGeometry1,     "Add",              {"geometry", "position", "rotationInRads", "scale"} );
+        binder.AddMethod( &ScriptScene::InputGeometry2,     "Add",              {"geometry", "position"} );
+        binder.AddMethod( &ScriptScene::InputGeometry3,     "Add",              {"geometry"} );
+        binder.AddMethod( &ScriptScene::InputGeometry4,     "Add",              {"geometry", "transform"} );
+
+        binder.Comment( "Set camera to scene." );
+        binder.AddMethod( &ScriptScene::InputController,    "Set",              {"controller"} );
+
+        binder.Comment( "Add graphics pass. It will link geometries with pipelines and draw it." );
+        binder.AddMethod( &ScriptScene::AddGraphicsPass,    "AddGraphicsPass",  {"name"} );
     }
 
 /*
@@ -80,7 +115,6 @@ namespace AE::ResEditor
         if ( _scene )
             return _scene;
 
-        CHECK_THROW_MSG( _controller );
         CHECK_THROW_MSG( not _geomInstances.empty() );
         CHECK_THROW_MSG( _passCount > 0 );
 
@@ -92,7 +126,7 @@ namespace AE::ResEditor
             CHECK_THROW( geom );
 
             auto&   dst     = _scene->_geomInstances.emplace_back();
-            dst.position    = src.pos;
+            dst.transform   = src.transform;
             dst.geometry    = geom;
         }
 
@@ -262,12 +296,17 @@ namespace AE::ResEditor
 
         ClassBinder<ScriptSceneGraphicsPass>    binder{ se };
         binder.CreateRef();
+
+        _BindBase( binder, False{"without args"} );
         _BindBaseRenderPass( binder, False{"without blending"} );
 
-        binder.AddMethod( &ScriptSceneGraphicsPass::InputController,    "Input"         );
+        binder.Comment( "Set input controller (camera), supported single controller per pass." );
+        binder.AddMethod( &ScriptSceneGraphicsPass::InputController,    "Set",          {} );
 
-        binder.AddMethod( &ScriptSceneGraphicsPass::AddPipeline,        "AddPipeline"   );
-        binder.AddMethod( &ScriptSceneGraphicsPass::AddPipelines,       "AddPipelines"  );
+        binder.Comment( "Add path to single pipeline or folder with pipelines.\n"
+                        "Scene geometry will be linked with compatible pipeline or error will be generated." );
+        binder.AddMethod( &ScriptSceneGraphicsPass::AddPipeline,        "AddPipeline",  {"pplnFile"} );
+        binder.AddMethod( &ScriptSceneGraphicsPass::AddPipelines,       "AddPipelines", {"pplnFolder"} );
     }
 
 /*
@@ -384,7 +423,7 @@ namespace AE::ResEditor
 
             DescriptorSetLayoutPtr  ds_layout{ new DescriptorSetLayout{ "pass.ds" }};
 
-            ds_layout->AddUniformBuffer( uint(EShaderStages::AllGraphics), "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform );
+            ds_layout->AddUniformBuffer( EShaderStages::AllGraphics, "un_PerPass", ArraySize{1}, "SceneGraphicsPassUB", EResourceState::ShaderUniform, False{} );
 
             // add sliders
             {
@@ -481,145 +520,6 @@ namespace AE::ResEditor
                         outScene = _scene->ToScene();               // throw
                         _CompilePipelines2( se, OUT pplnNames );    // throw
                     });
-    }
-//-----------------------------------------------------------------------------
-
-
-
-/*
-=================================================
-    constructor
-=================================================
-*/
-    ScriptSceneRayTracingPass::ScriptSceneRayTracingPass () :
-        ScriptBasePass{ EFlags::Unknown }
-    {}
-
-    ScriptSceneRayTracingPass::ScriptSceneRayTracingPass (ScriptScenePtr scene, const String &passName) __Th___ :
-        ScriptBasePass{ EFlags::Unknown },
-        _scene{scene}, _controller{_scene->GetController()}, _passName{passName}
-    {
-        _dbgName = passName;
-
-        CHECK_THROW_MSG( RenderTaskScheduler().GetFeatureSet().rayTracingPipeline == EFeature::RequireTrue,
-            "ray tracing pipeline is not supported" );
-
-        ScriptExe::ScriptPassApi::AddPass( ScriptBasePassPtr{this} );
-    }
-
-/*
-=================================================
-    SetPipeline
-=================================================
-*/
-    void  ScriptSceneRayTracingPass::SetPipeline (const String &pplnFile) __Th___
-    {
-        _pplnName = ScriptExe::ScriptPassApi::ToPipelinePath( Path{pplnFile} );  // throw
-    }
-
-/*
-=================================================
-    InputController
-=================================================
-*/
-    void  ScriptSceneRayTracingPass::InputController (const ScriptBaseControllerPtr &value) __Th___
-    {
-        CHECK_THROW_MSG( value );
-
-        _controller = value;
-    }
-
-/*
-=================================================
-    _OnAddArg
-=================================================
-*/
-    void  ScriptSceneRayTracingPass::_OnAddArg (INOUT ScriptPassArgs::Argument &) C_Th___
-    {
-    }
-
-/*
-=================================================
-    Bind
-=================================================
-*/
-    void  ScriptSceneRayTracingPass::Bind (const ScriptEnginePtr &se) __Th___
-    {
-        using namespace Scripting;
-
-        ClassBinder<ScriptSceneRayTracingPass>  binder{ se };
-        binder.CreateRef();
-        _BindBase( binder );
-
-        binder.AddMethod( &ScriptSceneRayTracingPass::InputController,  "Input"         );
-        binder.AddMethod( &ScriptSceneRayTracingPass::SetPipeline,      "SetPipeline"   );
-    }
-
-/*
-=================================================
-    ToPass
-=================================================
-*/
-    RC<IPass>  ScriptSceneRayTracingPass::ToPass () C_Th___
-    {
-        // TODO
-
-        AE_LOGI( "Compiled: "s << _dbgName );
-        return null;
-    }
-
-/*
-=================================================
-    _CreateUBType
-=================================================
-*/
-    auto  ScriptSceneRayTracingPass::_CreateUBType () __Th___
-    {
-        using namespace AE::PipelineCompiler;
-
-        auto&   obj_storage = *ObjectStorage::Instance();
-        auto    it          = obj_storage.structTypes.find( "SceneRayTracingPassUB" );
-
-        if ( it != obj_storage.structTypes.end() )
-            return it->second;
-
-        ShaderStructTypePtr st{ new ShaderStructType{"SceneRayTracingPassUB"}};
-        st->Set( EStructLayout::Std140, R"#(
-                // view //
-                float2      resolution;             // viewport resolution (in pixels)
-                float       time;                   // shader playback time (in seconds)
-                float       timeDelta;              // render time (in seconds)
-                uint        frame;                  // shader playback frame
-                uint        seed;                   // unique value, updated on each shader reloading
-
-                // controller //
-                CameraData  camera;
-
-                // sliders //
-                float4      floatSliders [4];
-                int4        intSliders [4];
-                float4      colors [4];
-
-                // constants //
-                float4      floatConst [4];
-                int4        intConst [4];
-            )#");
-
-        STATIC_ASSERT( UIInteraction::MaxSlidersPerType == 4 );
-        STATIC_ASSERT( IPass::Constants::MaxCount == 4 );
-        return st;
-    }
-
-/*
-=================================================
-    GetShaderTypes
-=================================================
-*/
-    void  ScriptSceneRayTracingPass::GetShaderTypes (INOUT CppStructsFromShaders &data) __Th___
-    {
-        auto    st = _CreateUBType();   // throw
-
-        CHECK_THROW( st->ToCPP( INOUT data.cpp, INOUT data.uniqueTypes ));
     }
 
 

@@ -97,7 +97,7 @@ namespace AE::ResEditor
             RC<Renderer>            renderer;
             AsyncTask               endFrame;
         };
-        using MainLoopDataSync = Synchronized< SharedMutex, MainLoopData >;
+        using MainLoopDataSync  = Synchronized< SharedMutex, MainLoopData >;
 
 
     // variables
@@ -110,9 +110,6 @@ namespace AE::ResEditor
         RC<MemRStream>              _inputActionsData;
 
         Unique<RenderGraphImpl>     _rg;
-
-        //App::RenderDocApi         _rdc;
-        //bool                      _enableCapture  = false;
 
 
     // methods

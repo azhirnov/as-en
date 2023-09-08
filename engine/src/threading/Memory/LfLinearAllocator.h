@@ -3,7 +3,6 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "threading/Primitives/Atomic.h"
 # include "threading/Primitives/SyncEvent.h"
 #endif
 

@@ -22,7 +22,7 @@ namespace LFAS::CPP
     // methods
     public:
 
-        bool  try_lock ()
+        ND_ bool  try_lock ()
         {
             bool    res = _guard.try_lock();
             VirtualMachine::Instance().ThreadFenceAcquireRelease();

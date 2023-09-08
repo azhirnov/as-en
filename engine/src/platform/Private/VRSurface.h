@@ -49,7 +49,7 @@ namespace AE::App
 
         bool            GetTargets (OUT RenderTargets_t &)      C_NE_OV;
 
-        AllImages_t     GetAllImages ()                         C_NE_OV;
+        //AllImages_t   GetAllImages ()                         C_NE_OV;
         TargetSizes_t   GetTargetSizes ()                       C_NE_OV;
     };
 

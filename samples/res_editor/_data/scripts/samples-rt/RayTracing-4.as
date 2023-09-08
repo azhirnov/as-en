@@ -81,7 +81,7 @@
 
         if ( idx == 0 )
         {
-            un_IndirectCmd.elements[0].primitiveCount =
+            un_IndirectCmd.primitiveCount =
                 Clamp( int(Fract(un_PerPass.time * 0.5) * inst_count + 0.5), 1, inst_count );
         }
     }

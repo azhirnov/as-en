@@ -131,6 +131,26 @@ namespace
         it.isGroups = true;
     }
 
+    void  ScriptComputePass::DispatchGroups2D (const ScriptDynamicUInt2Ptr &dyn) __Th___
+    {
+        CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
+        CHECK_THROW_MSG( dyn );
+
+        auto&   it = _iterations.emplace_back();
+        it.count    = dyn->Get();
+        it.isGroups = true;
+    }
+
+    void  ScriptComputePass::DispatchGroups3D (const ScriptDynamicUInt3Ptr &dyn) __Th___
+    {
+        CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
+        CHECK_THROW_MSG( dyn );
+
+        auto&   it = _iterations.emplace_back();
+        it.count    = dyn->Get();
+        it.isGroups = true;
+    }
+
 /*
 =================================================
     DispatchThreads*
@@ -159,6 +179,26 @@ namespace
     }
 
     void  ScriptComputePass::DispatchThreads1D (const ScriptDynamicUIntPtr &dyn) __Th___
+    {
+        CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
+        CHECK_THROW_MSG( dyn );
+
+        auto&   it = _iterations.emplace_back();
+        it.count    = dyn->Get();
+        it.isGroups = false;
+    }
+
+    void  ScriptComputePass::DispatchThreads2D (const ScriptDynamicUInt2Ptr &dyn) __Th___
+    {
+        CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
+        CHECK_THROW_MSG( dyn );
+
+        auto&   it = _iterations.emplace_back();
+        it.count    = dyn->Get();
+        it.isGroups = false;
+    }
+
+    void  ScriptComputePass::DispatchThreads3D (const ScriptDynamicUInt3Ptr &dyn) __Th___
     {
         CHECK_THROW_MSG( All( _localSize > 0u ), "LocalSize() must be > 0" );
         CHECK_THROW_MSG( dyn );
@@ -222,45 +262,49 @@ namespace
     {
         Scripting::ClassBinder<ScriptComputePass>   binder{ se };
         binder.CreateRef( 0, False{"no ctor"} );
-        ScriptBasePass::_BindBase( binder );
+        ScriptBasePass::_BindBase( binder, True{"withArgs"} );
 
-        binder.AddFactoryCtor( &ScriptComputePass_Ctor1 );
-        binder.AddFactoryCtor( &ScriptComputePass_Ctor2 );
-        binder.AddFactoryCtor( &ScriptComputePass_Ctor3 );
-        binder.AddFactoryCtor( &ScriptComputePass_Ctor4 );
-        binder.AddFactoryCtor( &ScriptComputePass_Ctor5 );
+        binder.AddFactoryCtor( &ScriptComputePass_Ctor1,    {} );
+        binder.AddFactoryCtor( &ScriptComputePass_Ctor2,    {"shaderPath"} );
+        binder.AddFactoryCtor( &ScriptComputePass_Ctor3,    {"shaderPath", "defines"} );
+        binder.AddFactoryCtor( &ScriptComputePass_Ctor4,    {"shaderPath", "passFlags"} );
+        binder.AddFactoryCtor( &ScriptComputePass_Ctor5,    {"shaderPath", "defines", "passFlags"} );
 
         binder.Comment( "Set workgroup size - number of threads which can access shared memory." );
-        binder.AddMethod( &ScriptComputePass::LocalSize1,               "LocalSize"             );
-        binder.AddMethod( &ScriptComputePass::LocalSize2,               "LocalSize"             );
-        binder.AddMethod( &ScriptComputePass::LocalSize3,               "LocalSize"             );
-        binder.AddMethod( &ScriptComputePass::LocalSize2v,              "LocalSize"             );
-        binder.AddMethod( &ScriptComputePass::LocalSize3v,              "LocalSize"             );
+        binder.AddMethod( &ScriptComputePass::LocalSize1,               "LocalSize",            {"x"} );
+        binder.AddMethod( &ScriptComputePass::LocalSize2,               "LocalSize",            {"x", "y"} );
+        binder.AddMethod( &ScriptComputePass::LocalSize3,               "LocalSize",            {"x", "y", "z"} );
+        binder.AddMethod( &ScriptComputePass::LocalSize2v,              "LocalSize",            {} );
+        binder.AddMethod( &ScriptComputePass::LocalSize3v,              "LocalSize",            {} );
 
         binder.Comment( "Execute compute shader with number of the workgroups.\n"
-                        "Total number of threads is groupCount * localSize." );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups1,          "DispatchGroups"        );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups2,          "DispatchGroups"        );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups3,          "DispatchGroups"        );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups2v,         "DispatchGroups"        );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups3v,         "DispatchGroups"        );
-        binder.AddMethod( &ScriptComputePass::DispatchGroupsDS,         "DispatchGroups"        );
-        binder.AddMethod( &ScriptComputePass::DispatchGroups1D,         "DispatchGroups"        );
+                        "Total number of threads is 'groupCount * localSize'." );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups1,          "DispatchGroups",       {"groupCountX"} );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups2,          "DispatchGroups",       {"groupCountX", "groupCountY"} );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups3,          "DispatchGroups",       {"groupCountX", "groupCountY", "groupCountZ"} );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups2v,         "DispatchGroups",       {"groupCount"} );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups3v,         "DispatchGroups",       {"groupCount"} );
+        binder.AddMethod( &ScriptComputePass::DispatchGroupsDS,         "DispatchGroups",       {"dynamicGroupCount"} );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups1D,         "DispatchGroups",       {"dynamicGroupCount"} );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups2D,         "DispatchGroups",       {"dynamicGroupCount"} );
+        binder.AddMethod( &ScriptComputePass::DispatchGroups3D,         "DispatchGroups",       {"dynamicGroupCount"} );
 
         binder.Comment( "Execute compute shader with total number of the threads." );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads1,         "DispatchThreads"       );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads2,         "DispatchThreads"       );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads3,         "DispatchThreads"       );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads2v,        "DispatchThreads"       );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads3v,        "DispatchThreads"       );
-        binder.AddMethod( &ScriptComputePass::DispatchThreadsDS,        "DispatchThreads"       );
-        binder.AddMethod( &ScriptComputePass::DispatchThreads1D,        "DispatchThreads"       );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads1,         "DispatchThreads",      {"threadsX"} );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads2,         "DispatchThreads",      {"threadsX", "threadsY"} );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads3,         "DispatchThreads",      {"threadsX", "threadsY", "threadsZ"} );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads2v,        "DispatchThreads",      {"threads"} );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads3v,        "DispatchThreads",      {"threads"} );
+        binder.AddMethod( &ScriptComputePass::DispatchThreadsDS,        "DispatchThreads",      {"dynamicThreadCount"} );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads1D,        "DispatchThreads",      {"dynamicThreadCount"} );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads2D,        "DispatchThreads",      {"dynamicThreadCount"} );
+        binder.AddMethod( &ScriptComputePass::DispatchThreads3D,        "DispatchThreads",      {"dynamicThreadCount"} );
 
         binder.Comment( "Execute compute shader with indirect command.\n"
                         "Indirect buffer must contains 'DispatchIndirectCommand' data." );
-        binder.AddMethod( &ScriptComputePass::DispatchGroupsIndirect1,  "DispatchGroupsIndirect" );
-        binder.AddMethod( &ScriptComputePass::DispatchGroupsIndirect2,  "DispatchGroupsIndirect" );
-        binder.AddMethod( &ScriptComputePass::DispatchGroupsIndirect3,  "DispatchGroupsIndirect" );
+        binder.AddMethod( &ScriptComputePass::DispatchGroupsIndirect1,  "DispatchGroupsIndirect",   {"indirectBuffer"} );
+        binder.AddMethod( &ScriptComputePass::DispatchGroupsIndirect2,  "DispatchGroupsIndirect",   {"indirectBuffer", "indirectBufferOffset"} );
+        binder.AddMethod( &ScriptComputePass::DispatchGroupsIndirect3,  "DispatchGroupsIndirect",   {"indirectBuffer", "indirectBufferField"} );
     }
 
 /*
@@ -356,7 +400,7 @@ namespace
 #include "res_editor/Scripting/PassCommon.inl.h"
 
 #include "base/DataSource/FileStream.h"
-#include "base/Algorithms/StringParser.h"
+#include "base/Algorithms/Parser.h"
 
 #include "res_editor/Scripting/ScriptImage.h"
 #include "res_editor/Scripting/ScriptVideoImage.h"
@@ -439,7 +483,7 @@ namespace AE::ResEditor
             ShaderStructTypePtr st = _CreateUBType();   // throw
             ubSize = st->StaticSize();
 
-            ds_layout->AddUniformBuffer( uint(stage), "un_PerPass", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform );
+            ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "ComputePassUB", EResourceState::ShaderUniform, False{} );
         }
         _args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
 
@@ -462,7 +506,7 @@ namespace AE::ResEditor
                     "Failed to read shader file '"s << ToString(_pplnPath) << "'" );
 
                 header >> cs;
-                cs_line = uint(StringParser::CalculateNumberOfLines( header )) - 1;
+                cs_line = uint(Parser::CalculateNumberOfLines( header )) - 1;
             }
         }
 

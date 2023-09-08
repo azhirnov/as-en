@@ -424,12 +424,6 @@
 #   pragma detect_mismatch( "AE_HAS_SIMD", "0" )
 #  endif
 
-#  if AE_OPTIMAL_MEMORY_ORDER
-#   pragma detect_mismatch( "AE_OPTIMAL_MEMORY_ORDER", "1" )
-#  else
-#   pragma detect_mismatch( "AE_OPTIMAL_MEMORY_ORDER", "0" )
-#  endif
-
 #  if AE_OPTIMIZE_IDS
 #   pragma detect_mismatch( "AE_OPTIMIZE_IDS", "1" )
 #  else
@@ -452,6 +446,22 @@
 #   pragma detect_mismatch( "AE_ENABLE_UTF8PROC", "1" )
 #  else
 #   pragma detect_mismatch( "AE_ENABLE_UTF8PROC", "0" )
+#  endif
+
+#  ifdef FP_FAST_FMA
+#   pragma detect_mismatch( "FP_FAST_FMA", "1" )
+#  else
+#   pragma detect_mismatch( "FP_FAST_FMA", "0" )
+#  endif
+#  ifdef FP_FAST_FMAF
+#   pragma detect_mismatch( "FP_FAST_FMAF", "1" )
+#  else
+#   pragma detect_mismatch( "FP_FAST_FMAF", "0" )
+#  endif
+#  ifdef FP_FAST_FMAL
+#   pragma detect_mismatch( "FP_FAST_FMAL", "1" )
+#  else
+#   pragma detect_mismatch( "FP_FAST_FMAL", "0" )
 #  endif
 
 #endif // AE_CPP_DETECT_MISMATCH

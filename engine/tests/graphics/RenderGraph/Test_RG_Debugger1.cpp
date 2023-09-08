@@ -135,8 +135,8 @@ no source
 //> color: float4 {0.000000, 0.000000, 1.000000, 0.000000}
 //  gl_LocalInvocationID: uint3 {0, 0, 0}
 6. color = vec4(float(gl_LocalInvocationID.x) / float(gl_WorkGroupSize.x),
-7.                    float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y),
-8.                    1.0, 0.0);
+7.                       float(gl_LocalInvocationID.y) / float(gl_WorkGroupSize.y),
+8.                       1.0, 0.0);
 
 //> imageStore(): void
 //  color: float4 {0.000000, 0.000000, 1.000000, 0.000000}

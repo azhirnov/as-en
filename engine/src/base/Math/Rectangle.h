@@ -80,8 +80,8 @@ namespace AE::Math
 
         ND_ constexpr const T   Width ()                            C_NE___ { return right - left; }
         ND_ constexpr const T   Height ()                           C_NE___ { return bottom - top; }
-        ND_ constexpr const T   CenterX ()                          C_NE___ { return CalcAverage( right, left ); }
-        ND_ constexpr const T   CenterY ()                          C_NE___ { return CalcAverage( top, bottom ); }
+        ND_ constexpr const T   CenterX ()                          C_NE___ { return Average( right, left ); }
+        ND_ constexpr const T   CenterY ()                          C_NE___ { return Average( top, bottom ); }
 
         ND_ T const*            data ()                             C_NE___ { return std::addressof( left ); }
         ND_ T *                 data ()                             __NE___ { return std::addressof( left ); }

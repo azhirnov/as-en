@@ -14,18 +14,18 @@ namespace AE::Math
     //
 
     template <typename T>
-    struct OrbitalCameraTempl final
+    struct TOrbitalCamera final
     {
     // types
     private:
-        using Camera_t      = CameraTempl<T>;
-        using Frustum_t     = FrustumTempl<T>;
-        using Self          = OrbitalCameraTempl<T>;
+        using Camera_t      = TCamera<T>;
+        using Frustum_t     = TFrustum<T>;
+        using Self          = TOrbitalCamera<T>;
         using Quat_t        = typename Camera_t::Quat_t;
         using Vec2_t        = typename Camera_t::Vec2_t;
         using Vec3_t        = typename Camera_t::Vec3_t;
         using Mat4_t        = typename Camera_t::Mat4_t;
-        using Rad_t         = RadiansTempl<T>;
+        using Rad_t         = TRadians<T>;
         using Rad2_t        = RadianVec<T,2>;
         using Transform_t   = typename Camera_t::Transform_t;
 
@@ -39,7 +39,7 @@ namespace AE::Math
 
     // methods
     public:
-        OrbitalCameraTempl ()                                               __NE___ {}
+        TOrbitalCamera ()                                                   __NE___ {}
 
         ND_ Frustum_t const&    Frustum ()                                  C_NE___ { return _frustum; }
         ND_ Vec3_t              Position ()                                 C_NE___ { return CameraPosition() + CameraOffset(); }
@@ -78,7 +78,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    void  OrbitalCameraTempl<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar) __NE___
+    void  TOrbitalCamera<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar) __NE___
     {
         _camera.SetPerspective( fovY, aspect, Vec2_t{zNear, zFar} );
         _frustum.Setup( _camera );
@@ -90,7 +90,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    OrbitalCameraTempl<T>&  OrbitalCameraTempl<T>::Rotate (Rad_t horizontal, Rad_t vertical) __NE___
+    TOrbitalCamera<T>&  TOrbitalCamera<T>::Rotate (Rad_t horizontal, Rad_t vertical) __NE___
     {
         if ( IsZero( vertical ) & IsZero( horizontal ))
             return *this;
@@ -115,15 +115,15 @@ namespace AE::Math
 =================================================
 *
     template <typename T>
-    OrbitalCameraTempl<T>&  OrbitalCameraTempl<T>::Move (const Vec3_t &delta) __NE___
+    TOrbitalCamera<T>&  TOrbitalCamera<T>::Move (const Vec3_t &delta) __NE___
     {
         _camera.transform.position += Transform( delta );
         return *this;
     }
 
     template <typename T>
-    typename OrbitalCameraTempl<T>::Vec3_t
-        OrbitalCameraTempl<T>::Transform (const Vec3_t &delta) C_NE___
+    typename TOrbitalCamera<T>::Vec3_t
+        TOrbitalCamera<T>::Transform (const Vec3_t &delta) C_NE___
     {
         const Quat_t    view_q  = _camera.Orientation();
         const Vec3_t    up_dir  = _camera.UpDir();
@@ -143,7 +143,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    OrbitalCameraTempl<T>&  OrbitalCameraTempl<T>::SetPosition (const Vec3_t &pos) __NE___
+    TOrbitalCamera<T>&  TOrbitalCamera<T>::SetPosition (const Vec3_t &pos) __NE___
     {
         _camera.transform.position = pos;
         return *this;
@@ -155,7 +155,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    OrbitalCameraTempl<T>&  OrbitalCameraTempl<T>::SetRotation (const Quat_t &q) __NE___
+    TOrbitalCamera<T>&  TOrbitalCamera<T>::SetRotation (const Quat_t &q) __NE___
     {
         _camera.transform.orientation = q;
         return *this;

@@ -38,17 +38,14 @@ namespace AE::AssetPacker
     // methods
     public:
 
-        #ifdef AE_BUILD_ASSET_PACKER
+        ND_ bool  IsValid ()                                            const;
+
             bool  SaveImage (WStream &stream, const ImageMemView &src);
-        #endif
-
-        ND_ bool  IsValid () const;
-
-            bool  ReadImage (RStream &stream, INOUT ImageData &) const;
+            bool  ReadImage (RStream &stream, INOUT ImageData &)        const;
 
         // ISerializable
-        bool  Serialize (Serializing::Serializer &)     C_NE_OV;
-        bool  Deserialize (Serializing::Deserializer &) __NE_OV;
+            bool  Serialize (Serializing::Serializer &)                 C_NE_OV;
+            bool  Deserialize (Serializing::Deserializer &)             __NE_OV;
     };
 
 

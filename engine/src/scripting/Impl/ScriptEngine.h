@@ -110,6 +110,7 @@ namespace AE::Scripting
     // types
     public:
         using ModuleSource      = ScriptModule::ModuleSource;
+        using ArgNames_t        = ArrayView<StringView>;
     private:
         using DbgLocationMap_t  = ScriptModule::DbgLocationMap_t;
         using CppHeaderMap_t    = FlatHashMap< String, Pair<usize, int> >;      // index in '_cppHeaders'
@@ -118,7 +119,7 @@ namespace AE::Scripting
     // variables
     private:
         Ptr< AngelScript::asIScriptEngine >     _engine;
-        std::atomic<usize>                      _moduleIndex    {0};
+        Atomic<usize>                           _moduleIndex    {0};
 
         // Generate C++ header to use autocomplete in IDE for scripts
         #if AE_SCRIPT_CPP_REFLECTION
@@ -168,10 +169,19 @@ namespace AE::Scripting
 
 
         template <typename T>
-        void  AddFunction (T func, StringView name, StringView comment = Default)                   __Th___;
+        void  AddFunction (T func, StringView name)                                                 __Th___;
+
+        template <typename T>
+        void  AddFunction (T func, StringView name, ArgNames_t argNames, StringView comment = {})   __Th___;
+
 
         template <typename Fn>
-        void  AddGenericFn (void (*fn)(ScriptArgList), StringView name, StringView comment = {})    __Th___;
+        void  AddGenericFn (void (*fn)(ScriptArgList), StringView name)                             __Th___;
+
+        template <typename Fn>
+        void  AddGenericFn (void (*fn)(ScriptArgList), StringView name,
+                            ArgNames_t argNames, StringView comment = {})                           __Th___;
+
 
         template <typename T>
         void  AddProperty (INOUT T &var, StringView name)                                           __Th___;

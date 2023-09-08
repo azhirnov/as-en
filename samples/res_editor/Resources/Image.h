@@ -51,6 +51,7 @@ namespace AE::ResEditor
             ImageStream             stream;
             bool                    complete    = false;
 
+            LoadOp2 () {}
             LoadOp2 (const LoadOp &other) : LoadOp{other} {}
 
             ND_ bool  IsCompleted ()    const   { return complete; }
@@ -117,10 +118,26 @@ namespace AE::ResEditor
         EUploadStatus   Readback (TransferCtx_t &)                                  __Th_OV;
 
 
+        ND_ static RC<Image>  CreateDummy2D (Renderer   &renderer,
+                                             StringView dbgName)                    __Th___;
+
+        ND_ static RC<Image>  CreateAndLoad (Renderer           &renderer,
+                                             const Path         &path,
+                                             StringView         dbgName,
+                                             ELoadOpFlags       flags,
+                                             ArrayView<Path>    texSearchDirs)      __Th___;
+
+        ND_ static RC<Image>  CreateAndLoad (Renderer           &renderer,
+                                             IntermImageRC      imageData,
+                                             StringView         dbgName,
+                                             ELoadOpFlags       flags,
+                                             ArrayView<Path>    texSearchDirs)      __Th___;
+
+
     private:
         ND_ bool  _OnResize (const ImageViewDesc &);
 
-        ND_ bool  _CreateImage (const ResLoader::IntermImage &, MipmapLevel, ImageLayer);
+        ND_ bool  _CreateImage (const ResLoader::IntermImage &, MipmapLevel, ImageLayer, bool allMipmaps);
         ND_ bool  _ResizeImage (TransferCtx_t &ctx, const ImageDesc &, const ImageViewDesc &);
             void  _GenMipmaps (TransferCtx_t &ctx)                                  const;
 

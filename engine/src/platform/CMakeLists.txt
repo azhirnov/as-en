@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 file( GLOB_RECURSE HPP_SOURCES "*.h" )
 if (NOT (DEFINED ENGINE_LIBS_PATH))
     file( GLOB_RECURSE CPP_SOURCES "*.cpp" )

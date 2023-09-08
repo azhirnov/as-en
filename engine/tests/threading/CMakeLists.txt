@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (TARGET "Threading")
     file( GLOB_RECURSE SOURCES "*.*" )
     if (DEFINED ANDROID)

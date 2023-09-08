@@ -58,6 +58,8 @@ namespace AE::ResEditor
         void  DispatchGroups3v (const packed_uint3 &groupCount)                                         __Th___;
         void  DispatchGroupsDS (const ScriptDynamicDimPtr &ds)                                          __Th___;
         void  DispatchGroups1D (const ScriptDynamicUIntPtr &dyn)                                        __Th___;
+        void  DispatchGroups2D (const ScriptDynamicUInt2Ptr &dyn)                                       __Th___;
+        void  DispatchGroups3D (const ScriptDynamicUInt3Ptr &dyn)                                       __Th___;
 
         void  DispatchThreads1  (uint threadsX)                                                         __Th___ { return DispatchThreads3v({ threadsX, 1u, 1u }); }
         void  DispatchThreads2  (uint threadsX, uint threadsY)                                          __Th___ { return DispatchThreads3v({ threadsX, threadsY, 1u }); }
@@ -66,6 +68,8 @@ namespace AE::ResEditor
         void  DispatchThreads3v (const packed_uint3 &threads)                                           __Th___;
         void  DispatchThreadsDS (const ScriptDynamicDimPtr &ds)                                         __Th___;
         void  DispatchThreads1D (const ScriptDynamicUIntPtr &dyn)                                       __Th___;
+        void  DispatchThreads2D (const ScriptDynamicUInt2Ptr &dyn)                                      __Th___;
+        void  DispatchThreads3D (const ScriptDynamicUInt3Ptr &dyn)                                      __Th___;
 
         void  DispatchGroupsIndirect1 (const ScriptBufferPtr &ibuf)                                     __Th___;
         void  DispatchGroupsIndirect2 (const ScriptBufferPtr &ibuf, ulong offset)                       __Th___;

@@ -1,11 +1,16 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    docs:
+        https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html
+
+    supported features: file:///<path>/AE/engine/docs/VulkanFeatures.md
+*/
 
 #pragma once
 
 #ifdef AE_ENABLE_VULKAN
 # include "graphics/Public/Common.h"
 # include "graphics/Public/IDs.h"
-# include "graphics/Public/FrameUID.h"
 # include "graphics/Public/GraphicsCreateInfo.h"
 # include "graphics/Public/GraphicsProfiler.h"
 

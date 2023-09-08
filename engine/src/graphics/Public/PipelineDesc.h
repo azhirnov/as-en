@@ -122,7 +122,7 @@ namespace AE::Graphics
         RC<RStream>         stream;
         PipelinePackID      parentPackId;
         EPipelinePackOpt    options         = EPipelinePackOpt::All;
-        EPixelFormat        surfaceFormat   = Default;
+        EPixelFormat        surfaceFormat   = Default;      // TODO: color space
         StringView          dbgName;
     };
 

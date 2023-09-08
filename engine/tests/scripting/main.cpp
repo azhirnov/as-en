@@ -27,8 +27,6 @@ int main ()
     UnitTest_Preprocessor();
     UnitTest_Fn();
 
-    // TODO: multithreading test
-
     AE_LOGI( "Tests.ScriptBinding finished" );
     return 0;
 }

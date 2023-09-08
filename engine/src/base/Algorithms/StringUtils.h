@@ -805,7 +805,7 @@ namespace AE::Base
 
 /*
 =================================================
-    ToString (PhysicalDimension)
+    ToString (TPhysicalDimension)
 =================================================
 */
     template <int SecondsNum,   int SecondsDenom,
@@ -818,15 +818,15 @@ namespace AE::Base
               int CurrencyNum,  int CurrencyDenom,
               int BitsNum,      int BitsDenom
             >
-    ND_ String  ToString (PhysicalDimension< SecondsNum,    SecondsDenom,
-                                             KilogramsNum,  KilogramsDenom,
-                                             MetersNum,     MetersDenom,
-                                             AmperasNum,    AmperasDenom,
-                                             KelvinsNum,    KelvinsDenom,
-                                             MolesNum,      MolesDenom,
-                                             CandelasNum,   CandelasDenom,
-                                             CurrencyNum,   CurrencyDenom,
-                                             BitsNum,       BitsDenom > value) __Th___
+    ND_ String  ToString (TPhysicalDimension< SecondsNum,   SecondsDenom,
+                                              KilogramsNum, KilogramsDenom,
+                                              MetersNum,    MetersDenom,
+                                              AmperasNum,   AmperasDenom,
+                                              KelvinsNum,   KelvinsDenom,
+                                              MolesNum,     MolesDenom,
+                                              CandelasNum,  CandelasDenom,
+                                              CurrencyNum,  CurrencyDenom,
+                                              BitsNum,      BitsDenom >  value) __Th___
     {
         using Dim = decltype(value);
 

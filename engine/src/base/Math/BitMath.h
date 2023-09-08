@@ -256,6 +256,30 @@ namespace AE::Math
 
 /*
 =================================================
+    IntLog10
+----
+    how many times X can be divided by 10
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsScalar<T>, uint >  IntLog10 (const T& x) __NE___
+    {
+        STATIC_ASSERT( IsInteger<T> or IsEnum<T> );
+
+        using U = ToUnsignedInteger<T>;
+        const U     uval    = U(x);
+        constexpr U cnt     = U(std::numeric_limits<U>::digits10);
+        U           res     = 0;
+
+        for (U i = 1, j = 10; i <= cnt; ++i, j *= 10)
+        {
+            res = (uval >= j) ? i : res;
+        }
+        return uint(res);
+    }
+
+/*
+=================================================
     BitCount
 =================================================
 */
@@ -553,6 +577,29 @@ namespace AE::Math
     {
         int i = IntLog2( x );
         return i >= 0 ? (T{1} << (i + int(not IsPowerOfTwo( x )))) : T{0};
+    }
+
+/*
+=================================================
+    IsOdd / IsEven
+=================================================
+*/
+    template <typename T>
+    ND_ forceinline constexpr bool  IsOdd (const T x) __NE___
+    {
+        STATIC_ASSERT( IsScalarOrEnum<T> );
+        STATIC_ASSERT( IsInteger<T> );
+
+        return ( x & T(1) ) == T(1);
+    }
+
+    template <typename T>
+    ND_ forceinline constexpr bool  IsEven (const T x) __NE___
+    {
+        STATIC_ASSERT( IsScalarOrEnum<T> );
+        STATIC_ASSERT( IsInteger<T> );
+
+        return ( x & T(1) ) == T(0);
     }
 
 

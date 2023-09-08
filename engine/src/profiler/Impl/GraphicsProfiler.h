@@ -7,7 +7,6 @@
 namespace AE::Profiler
 {
     using AE::Graphics::EQueueType;
-    using AE::Graphics::FrameUID;
 
 #ifdef AE_ENABLE_METAL
     using AE::Graphics::MetalSampleBufferAttachments;

@@ -22,7 +22,7 @@ namespace AE::Math
               int CurrencyNum,  int CurrencyDenom,
               int BitsNum,      int BitsDenom
             >
-    struct PhysicalDimension
+    struct TPhysicalDimension
     {
         STATIC_ASSERT( SecondsDenom     > 0 );
         STATIC_ASSERT( KilogramsDenom   > 0 );
@@ -65,7 +65,7 @@ namespace AE::Math
                 (seconds + Rhs::seconds),  (kilograms + Rhs::kilograms),  (meters + Rhs::meters),      (amperes + Rhs::amperes),
                 (kelvins + Rhs::kelvins),  (moles + Rhs::moles),          (candelas + Rhs::candelas),  (currency + Rhs::currency),  (bits + Rhs::bits)
             };
-            using type = PhysicalDimension< values[0].num, values[0].den,
+            using type = TPhysicalDimension<    values[0].num, values[0].den,
                                             values[1].num, values[1].den,
                                             values[2].num, values[2].den,
                                             values[3].num, values[3].den,
@@ -83,7 +83,7 @@ namespace AE::Math
                 (seconds - Rhs::seconds),  (kilograms - Rhs::kilograms),  (meters - Rhs::meters),      (amperes - Rhs::amperes),
                 (kelvins - Rhs::kelvins),  (moles - Rhs::moles),          (candelas - Rhs::candelas),  (currency - Rhs::currency),  (bits - Rhs::bits)
             };
-            using type = PhysicalDimension< values[0].num, values[0].den,
+            using type = TPhysicalDimension<    values[0].num, values[0].den,
                                             values[1].num, values[1].den,
                                             values[2].num, values[2].den,
                                             values[3].num, values[3].den,
@@ -97,7 +97,7 @@ namespace AE::Math
 
         template <uint value>
         struct _Pow {
-            using type = PhysicalDimension< seconds  .num * value,  seconds  .den,
+            using type = TPhysicalDimension<    seconds  .num * value,  seconds  .den,
                                             kilograms.num * value,  kilograms.den,
                                             meters   .num * value,  meters   .den,
                                             amperes  .num * value,  amperes  .den,
@@ -143,7 +143,7 @@ namespace AE::Math
                   int CurrencyNum,  int CurrencyDenom,
                   int BitsNum,      int BitsDenom
                 >
-        struct _IsPhysicalDimension< PhysicalDimension<     SecondsNum,     SecondsDenom,
+        struct _IsPhysicalDimension< TPhysicalDimension<        SecondsNum,     SecondsDenom,
                                                             KilogramsNum,   KilogramsDenom,
                                                             MetersNum,      MetersDenom,
                                                             AmperasNum,     AmperasDenom,
@@ -167,16 +167,16 @@ namespace AE::Math
 
     struct DefaultPhysicalDimensions
     {
-        using NonDimensional    = PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;
-        using Second            = PhysicalDimension< 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;    // s
-        using Kilogram          = PhysicalDimension< 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;    // kg
-        using Meter             = PhysicalDimension< 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;    // m
-        using Ampere            = PhysicalDimension< 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;    // A
-        using Kelvin            = PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;    // K
-        using Mole              = PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1 >;    // mol
-        using Candela           = PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1 >;    // cd
-        using Currency          = PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1 >;    // $
-        using Bit               = PhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1 >;    // bit
+        using NonDimensional    = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;
+        using Second            = TPhysicalDimension< 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // s
+        using Kilogram          = TPhysicalDimension< 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // kg
+        using Meter             = TPhysicalDimension< 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // m
+        using Ampere            = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // A
+        using Kelvin            = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1 >;   // K
+        using Mole              = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1 >;   // mol
+        using Candela           = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1 >;   // cd
+        using Currency          = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1 >;   // $
+        using Bit               = TPhysicalDimension< 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1 >;   // bit
 
         using SquareMeter               = Meter::Pow< 2 >;                                      // m^2
         using CubicMeter                = Meter::Pow< 3 >;                                      // m^3

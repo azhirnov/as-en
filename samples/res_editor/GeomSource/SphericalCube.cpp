@@ -107,7 +107,7 @@ namespace AE::ResEditor
 
         if_unlikely( not _cube.IsCreated() )
         {
-            CHECK_ERR( _cube.Create( ctx.GetResourceManager(), ctx, _minLod, _maxLod, False{}, Default, _GfxAllocator() ));
+            CHECK_ERR( _cube.Create( ctx.GetResourceManager(), ctx, _minLod, _maxLod, False{"tris"}, True{"cubeMap"}, Default, _GfxAllocator() ));
 
             auto&   rstate = RenderGraph().GetStateTracker();
             rstate.SetDefaultState( _cube.VertexBufferId(), EResourceState::VertexBuffer );
@@ -120,7 +120,7 @@ namespace AE::ResEditor
         // update uniform buffer
         {
             ShaderTypes::SphericalCubeMaterialUB    ub_data;
-            ub_data.transform   = float4x4::Translated( in.position );
+            ub_data.transform   = in.transform;
             ub_data.tessLevel   = _tessLevel ? _tessLevel->Get() : 1.f;
 
             CHECK_ERR( ctx.UploadBuffer( mtr.ubuffer, 0_b, Sizeof(ub_data), &ub_data ));

@@ -202,5 +202,23 @@ namespace AE::ResEditor
             _onAddArg( arg );
     }
 
+/*
+=================================================
+    CopyFrom
+=================================================
+*/
+    void  ScriptPassArgs::CopyFrom (const ScriptPassArgs &other) __Th___
+    {
+        _args           = other._args;
+        _uniqueNames    = other._uniqueNames;
+
+        if ( _onAddArg )
+        {
+            for (auto& arg : _args) {
+                _onAddArg( arg );
+            }
+        }
+    }
+
 
 } // AE::ResEditor

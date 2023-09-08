@@ -338,54 +338,56 @@ namespace
         {
             ClassBinder<RTMissIndex>    binder{ se };
             binder.CreateClassValue();
-            binder.AddConstructor( &RTMissIndex_Ctor );
+            binder.AddConstructor( &RTMissIndex_Ctor, {} );
         }{
             ClassBinder<RTInstanceIndex>    binder{ se };
             binder.CreateClassValue();
-            binder.AddConstructor( &RTInstanceIndex_Ctor );
+            binder.AddConstructor( &RTInstanceIndex_Ctor, {} );
         }{
             ClassBinder<RTRayIndex>         binder{ se };
             binder.CreateClassValue();
-            binder.AddConstructor( &RTRayIndex_Ctor );
+            binder.AddConstructor( &RTRayIndex_Ctor, {} );
         }{
             ClassBinder<RTCallableIndex>    binder{ se };
             binder.CreateClassValue();
-            binder.AddConstructor( &RTCallableIndex_Ctor );
+            binder.AddConstructor( &RTCallableIndex_Ctor, {} );
         }{
             ClassBinder<RTShader>   binder{ se };
             binder.CreateClassValue();
-            binder.AddConstructor( &RTShader_Ctor1 );
-            binder.AddConstructor( &RTShader_Ctor2 );
+            binder.AddConstructor( &RTShader_Ctor1, {"filename"} );
+            binder.AddConstructor( &RTShader_Ctor2, {"filename", "defines"} );
         }{
             ClassBinder<ScriptRayTracingPass>   binder{ se };
             binder.CreateRef( 0, False{"no ctor"} );
-            ScriptBasePass::_BindBase( binder );
+            ScriptBasePass::_BindBase( binder, True{"withArgs"} );
 
-            binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor1 );
-            binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor2 );
-            binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor3 );
-            binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor4 );
+            binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor1,     {} );
+            binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor2,     {"defines"} );
+            binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor3,     {"passFlags"} );
+            binder.AddFactoryCtor( &ScriptRayTracingPass_Ctor4,     {"defines", "passFlags"} );
 
-            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads1,          "Dispatch"          );
-            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads2,          "Dispatch"          );
-            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads3,          "Dispatch"          );
-            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads2v,         "Dispatch"          );
-            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads3v,         "Dispatch"          );
-            binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsDS,         "Dispatch"          );
-            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads1D,         "Dispatch"          );
+            binder.Comment( "Run RayGen shader with specified number of threads." );
+            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads1,          "Dispatch",         {"threadsX"} );
+            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads2,          "Dispatch",         {"threadsX", "threadsY"} );
+            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads3,          "Dispatch",         {"threadsX", "threadsY", "threadsZ"} );
+            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads2v,         "Dispatch",         {"threads"} );
+            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads3v,         "Dispatch",         {"threads"} );
+            binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsDS,         "Dispatch",         {"dynamicThreadCount"} );
+            binder.AddMethod( &ScriptRayTracingPass::DispatchThreads1D,         "Dispatch",         {"dynamicThreadCount"} );
 
-            binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsIndirect1,  "DispatchIndirect"  );
-            binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsIndirect2,  "DispatchIndirect"  );
-            binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsIndirect3,  "DispatchIndirect"  );
+            binder.Comment( "Run RayGen shader with number of threads from indirect command." );
+            binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsIndirect1,  "DispatchIndirect", {"indirectBuffer"} );
+            binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsIndirect2,  "DispatchIndirect", {"indirectBuffer", "indirectBufferOffset"} );
+            binder.AddMethod( &ScriptRayTracingPass::DispatchThreadsIndirect3,  "DispatchIndirect", {"indirectBuffer", "indirectBufferFieldName"} );
 
-            binder.AddMethod( &ScriptRayTracingPass::SetRayGen,                 "RayGen"            );
-            binder.AddMethod( &ScriptRayTracingPass::HitGroupStride,            "HitGroupStride"    );
-            binder.AddMethod( &ScriptRayTracingPass::SetRayMiss,                "RayMiss"           );
-            binder.AddMethod( &ScriptRayTracingPass::SetCallable,               "Callable"          );
-            binder.AddMethod( &ScriptRayTracingPass::SetTriangleHit1,           "TriangleHit"       );
-            binder.AddMethod( &ScriptRayTracingPass::SetTriangleHit2,           "TriangleHit"       );
-            binder.AddMethod( &ScriptRayTracingPass::SetProceduralHit1,         "ProceduralHit"     );
-            binder.AddMethod( &ScriptRayTracingPass::SetProceduralHit2,         "ProceduralHit"     );
+            binder.AddMethod( &ScriptRayTracingPass::SetRayGen,                 "RayGen",           {} );
+            binder.AddMethod( &ScriptRayTracingPass::HitGroupStride,            "HitGroupStride",   {} );
+            binder.AddMethod( &ScriptRayTracingPass::SetRayMiss,                "RayMiss",          {"missIndex", "missShader"} );
+            binder.AddMethod( &ScriptRayTracingPass::SetCallable,               "Callable",         {"callableIndex", "callableShader"} );
+            binder.AddMethod( &ScriptRayTracingPass::SetTriangleHit1,           "TriangleHit",      {"rayIndex", "instanceIndex", "closestHit"} );
+            binder.AddMethod( &ScriptRayTracingPass::SetTriangleHit2,           "TriangleHit",      {"rayIndex", "instanceIndex", "closestHit", "anyHit"} );
+            binder.AddMethod( &ScriptRayTracingPass::SetProceduralHit1,         "ProceduralHit",    {"rayIndex", "instanceIndex", "intersection", "closestHit"} );
+            binder.AddMethod( &ScriptRayTracingPass::SetProceduralHit2,         "ProceduralHit",    {"rayIndex", "instanceIndex", "intersection", "closestHit", "anyHit"} );
         }
     }
 
@@ -506,7 +508,7 @@ namespace
 #include "res_editor/Scripting/PassCommon.inl.h"
 
 #include "base/DataSource/FileStream.h"
-#include "base/Algorithms/StringParser.h"
+#include "base/Algorithms/Parser.h"
 
 #include "res_editor/Scripting/ScriptImage.h"
 #include "res_editor/Scripting/ScriptVideoImage.h"
@@ -589,7 +591,7 @@ namespace AE::ResEditor
             ShaderStructTypePtr st = _CreateUBType();   // throw
             ubSize = st->StaticSize();
 
-            ds_layout->AddUniformBuffer( uint(stage), "un_PerPass", ArraySize{1}, "RayTracingPassUB", EResourceState::ShaderUniform );
+            ds_layout->AddUniformBuffer( stage, "un_PerPass", ArraySize{1}, "RayTracingPassUB", EResourceState::ShaderUniform, False{} );
         }
         _args.ArgsToDescSet( stage, ds_layout, ArraySize{1}, EAccessType::Coherent );  // throw
 
@@ -638,7 +640,7 @@ namespace AE::ResEditor
             String  hdr = header;
             _AddDefines( sh.defines, INOUT hdr );
 
-            const uint  lines = uint(StringParser::CalculateNumberOfLines( hdr )) - 1;
+            const uint  lines = uint(Parser::CalculateNumberOfLines( hdr )) - 1;
 
             // load shader source from file
             {

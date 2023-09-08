@@ -103,6 +103,7 @@ namespace AE::ResLoader
         ND_ bool                IsValid ()                                                                          C_NE___;
         ND_ bool                IsImmutable ()                                                                      C_NE___ { return _immutable; }
         ND_ bool                IsMutable ()                                                                        C_NE___ { return not _immutable; }
+        ND_ bool                IsEmpty ()                                                                          C_NE___ { return _data.empty(); }
 
         ND_ Path const&         GetPath ()                                                                          C_NE___ { return _srcPath; }
         ND_ Mipmaps_t const&    GetData ()                                                                          C_NE___ { return _data; }

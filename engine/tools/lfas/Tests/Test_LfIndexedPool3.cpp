@@ -1,18 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "CPP_VM/VirtualMachine.h"
-#include "CPP_VM/Atomic.h"
-#include "CPP_VM/Mutex.h"
-#include "CPP_VM/Storage.h"
-
-#include "base/Math/BitMath.h"
-#include "base/Math/Math.h"
-#include "base/Memory/UntypedAllocator.h"
-
 #include "UnitTest_Common.h"
-
-using namespace LFAS;
-using namespace LFAS::CPP;
 
 #include "threading/Primitives/SpinLock.h"
 #include "threading/Containers/LfIndexedPool3.h"

@@ -1,3 +1,4 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 set( CMAKE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake" )
 set( DOCS_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../docs" )

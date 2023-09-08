@@ -19,7 +19,7 @@ namespace AE::ResLoader
         static constexpr Name_t     Position_1      {"Position_1"};
 
         static constexpr Name_t     Normal          {"Normal"};
-        static constexpr Name_t     BiNormal        {"BiNormal"};
+        static constexpr Name_t     BiTangent       {"BiTangent"};
         static constexpr Name_t     Tangent         {"Tangent"};
 
         static constexpr Name_t     ObjectID        {"ObjectID"};
@@ -90,9 +90,15 @@ namespace AE::ResLoader
         ND_ StructView<T>   GetData (const Name_t &id, const void* vertexData,
                                      usize vertexCount, Bytes stride)               C_NE___;
 
+        template <typename T>
+        ND_ StructView<T>   GetDataOpt (const Name_t &id, const void* vertexData,
+                                        usize vertexCount, Bytes stride)            C_NE___;
+
         ND_ HashVal         CalcHash ()                                             C_NE___;
 
         ND_ bool            operator == (const IntermVertexAttribs &rhs)            C_NE___;
+
+        ND_ bool            HasVertex (StringView name, EVertexType type)           C_NE___;
 
         ND_ Vertices_t              Vertices ()                                     C_NE___ { return _vertices; }
         ND_ Bindings_t const&       BufferBindings ()                               C_NE___ { return _bindings; }
@@ -102,7 +108,7 @@ namespace AE::ResLoader
 
     private:
         ND_ bool  _GetData (const Name_t &id, Bytes stride, EVertexType type,
-                            OUT Bytes &offset)                                      C_NE___;
+                            bool optional, OUT Bytes &offset)                       C_NE___;
     };
 
 
@@ -116,7 +122,17 @@ namespace AE::ResLoader
     StructView<T>  IntermVertexAttribs::GetData (const Name_t &id, const void* vertexData, usize vertexCount, Bytes stride) C_NE___
     {
         Bytes   offset;
-        if ( _GetData( id, stride, VertexDesc<T>::value, OUT offset ))
+        if ( _GetData( id, stride, VertexDesc<T>::value, false, OUT offset ))
+            return StructView<T>{ vertexData + offset, vertexCount, stride };
+        else
+            return Default;
+    }
+
+    template <typename T>
+    StructView<T>  IntermVertexAttribs::GetDataOpt (const Name_t &id, const void* vertexData, usize vertexCount, Bytes stride) C_NE___
+    {
+        Bytes   offset;
+        if ( _GetData( id, stride, VertexDesc<T>::value, true, OUT offset ))
             return StructView<T>{ vertexData + offset, vertexCount, stride };
         else
             return Default;

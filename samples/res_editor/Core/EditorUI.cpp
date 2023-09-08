@@ -165,7 +165,8 @@ namespace
 */
     UIInteraction::UIInteraction ()
     {
-        graphics->dynSize = MakeRC<DynamicDim>( uint2{1024} );
+        graphics->dynSize       = MakeRC<DynamicDim>( uint2{1024} );
+        graphics->filterMode    = MakeRC<DynamicUInt>( 1u );
     }
 
 /*
@@ -362,6 +363,7 @@ namespace
         ND_ bool  _Update ();
             void  _UpdateMain (OUT float2 &wnd_pos);
             void  _UpdateEditorTab ();
+            void  _UpdateGraphicsTab ();
             void  _UpdateEditor_Debugger ();
             void  _UpdateEditor_Capture ();
             void  _UpdateEditor_Sliders ();
@@ -403,10 +405,27 @@ namespace
         gctx.AddSurfaceTargets( targets );
         CHECK_TE( _UpdateDS( gctx ));
 
+        if_unlikely( auto [fmt, cs] = ESurfaceFormat_Cast( imgui->reqSurfFormat );
+                     fmt != Default or cs != Default )
+        {
+            imgui->reqSurfFormat = Default;
+
+            if ( fmt != targets[0].format or cs != targets[0].colorSpace )
+            {
+                IOutputSurface::SurfaceInfo new_mode;
+                new_mode.colorFormat    = fmt;
+                new_mode.colorSpace     = cs;
+
+                // will be changed at the next frame
+                Unused( surface.SetSurfaceMode( new_mode ));
+            }
+        }
+
         PipelineSet ps;
         {
             auto    it = t._res.pplns.find( targets[0].format );
-            CHECK_TE( it != t._res.pplns.end() );
+            CHECK_TE( it != t._res.pplns.end(),
+                      "Failed to find pipeline for surface format "s << ToString(targets[0].format) );
             ps = it->second;
         }
 
@@ -456,7 +475,8 @@ namespace
             io.MouseWheel   = Clamp( imgui->mouseWheel.y, -1.f, 1.f );
             io.MouseWheelH  = Clamp( imgui->mouseWheel.x, -1.f, 1.f );
 
-            s_UIInteraction.selectedPixel.MutablePtr()->pendingPos = uint2{imgui->mousePos + 0.5f};
+            auto    surf_dim = s_UIInteraction.graphics.ConstPtr()->dynSize;
+            s_UIInteraction.selectedPixel.MutablePtr()->pendingPos = surf_dim->Remap( uint2{ imgui->mousePos + 0.5f });
         }
 
         ImGui::NewFrame();
@@ -568,73 +588,12 @@ namespace
                 if ( ImGui::BeginTabItem( "Editor", null, tab_editor_flags ))
                 {
                     _UpdateEditorTab();
+                    ImGui::EndTabItem();
                 }
 
                 if ( ImGui::BeginTabItem( "Graphics", null, tab_graphics_flags ))
                 {
-                    auto    g       = s_UIInteraction.graphics.WriteNoLock();
-                    auto    g_data  = t._graphics.ReadNoLock();
-                    EXLOCK( g );
-                    SHAREDLOCK( g_data );
-
-                    if ( not s_UIInteraction.capture->video )
-                    {
-                        int     scale = SurfaceScaleToLog2( g->dynSize->Scale().x );
-                        ImGui::Text( "Surface scale" );
-                        if ( ImGui::SliderInt( "##SurfaceScaleSlider", INOUT &scale, -2, 1, SurfaceScaleName( scale )) )
-                            g->dynSize->SetScale( int3{SurfaceScaleFromLog2( scale )} );
-
-                        ImGui::Text( ("Surface size: "s << ToString( g->dynSize->Dimension2() )).c_str() );
-                        ImGui::Separator();
-                    }
-
-                    uint        color_mode      = g->colorModeIdx;
-                    uint        present_mode    = g->presentModeIdx;
-
-                    const auto  cur_color_mode  = color_mode < g_data->surfaceFormats.size() ?
-                                                    String{ToString( g_data->surfaceFormats[color_mode].format )} << " | " << ToString( g_data->surfaceFormats[color_mode].space ) :
-                                                    "";
-                    const auto  cur_present     = present_mode < g_data->presentModes.size() ?
-                                                    ToString( g_data->presentModes[present_mode] ) : "";
-
-                    if ( ImGui::BeginCombo( "Surface format", cur_color_mode.c_str() ))
-                    {
-                        for (usize i = 0; i < g_data->surfaceFormats.size(); ++i)
-                        {
-                            const auto& item = g_data->surfaceFormats[i];
-                            if ( ImGui::Selectable( (String{ToString( item.format )} << " | " << ToString( item.space )).c_str(), color_mode == i ))
-                                color_mode = uint(i);
-                        }
-                        ImGui::EndCombo();
-                    }
-
-                    if ( ImGui::BeginCombo( "Present mode", cur_present.data() ))
-                    {
-                        for (usize i = 0; i < g_data->presentModes.size(); ++i)
-                        {
-                            const auto& item = g_data->presentModes[i];
-                            if ( ImGui::Selectable( ToString( item ).data(), present_mode == i ))
-                                present_mode = uint(i);
-                        }
-                        ImGui::EndCombo();
-                    }
-
-                    // TODO: set stable clock
-
-                    if ( color_mode     != g->colorModeIdx  or
-                         present_mode   != g->presentModeIdx )
-                    {
-                        IOutputSurface::SurfaceInfo     mode;
-                        mode.format         = g_data->surfaceFormats [color_mode];
-                        mode.presentMode    = g_data->presentModes [present_mode];
-
-                        if ( g_data->output->SetSurfaceMode( mode ))
-                        {
-                            g->colorModeIdx     = color_mode;
-                            g->presentModeIdx   = present_mode;
-                        }
-                    }
-
+                    _UpdateGraphicsTab();
                     ImGui::EndTabItem();
                 }
             }
@@ -645,18 +604,96 @@ namespace
 
 /*
 =================================================
+    DrawTask::_UpdateGraphicsTab
+=================================================
+*/
+    void  EditorUI::DrawTask::_UpdateGraphicsTab ()
+    {
+        auto    g_mode  = s_UIInteraction.graphics.WriteNoLock();
+        auto    g_data  = t._graphics.ReadNoLock();
+        EXLOCK( g_mode );
+        SHAREDLOCK( g_data );
+
+        if ( s_UIInteraction.capture->video )
+        {
+            ImGui::Text( "Stop video capture to change surface parameters" );
+            return;
+        }
+
+        {
+            int     scale = SurfaceScaleToLog2( g_mode->dynSize->Scale().x );
+            ImGui::Text( "Surface scale" );
+            if ( ImGui::SliderInt( "##SurfaceScaleSlider", INOUT &scale, -2, 1, SurfaceScaleName( scale )) )
+                g_mode->dynSize->SetScale( int3{SurfaceScaleFromLog2( scale )} );
+
+            ImGui::Text( ("Surface size: "s << ToString( g_mode->dynSize->Dimension2() )).c_str() );
+
+            bool    linear = g_mode->filterMode->Get() > 0;
+            if ( ImGui::Checkbox( "Linear filter", INOUT &linear ))
+                g_mode->filterMode->Set( uint{linear} );
+
+            ImGui::Separator();
+        }
+
+        auto        mode            = g_data->output->GetSurfaceInfo();
+        uint        color_mode      = int(IndexOfArrayElement( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{mode} ));
+        uint        present_mode    = int(IndexOfArrayElement( ArrayView<EPresentMode>{g_data->presentModes}, mode.presentMode ));
+
+        g_mode->colorModeIdx        = color_mode;
+        g_mode->presentModeIdx      = present_mode;
+
+        const auto  cur_color_mode  = color_mode < g_data->surfaceFormats.size() ?
+                                        String{ToString( g_data->surfaceFormats[color_mode].colorFormat )} << " | " <<
+                                        ToString( g_data->surfaceFormats[color_mode].colorSpace ) :
+                                        "";
+        const auto  cur_present     = present_mode < g_data->presentModes.size() ?
+                                        ToString( g_data->presentModes[present_mode] ) : "";
+
+        if ( ImGui::BeginCombo( "Surface format", cur_color_mode.c_str() ))
+        {
+            for (usize i = 0; i < g_data->surfaceFormats.size(); ++i)
+            {
+                const auto& item = g_data->surfaceFormats[i];
+                if ( ImGui::Selectable( (String{ToString( item.colorFormat )} << " | " << ToString( item.colorSpace )).c_str(), color_mode == i ))
+                    color_mode = uint(i);
+            }
+            ImGui::EndCombo();
+        }
+
+        if ( ImGui::BeginCombo( "Present mode", cur_present.data() ))
+        {
+            for (usize i = 0; i < g_data->presentModes.size(); ++i)
+            {
+                const auto& item = g_data->presentModes[i];
+                if ( ImGui::Selectable( ToString( item ).data(), present_mode == i ))
+                    present_mode = uint(i);
+            }
+            ImGui::EndCombo();
+        }
+
+        if ( color_mode     != g_mode->colorModeIdx or
+             present_mode   != g_mode->presentModeIdx )
+        {
+            mode                = g_data->surfaceFormats [color_mode];
+            mode.presentMode    = g_data->presentModes [present_mode];
+
+            // function does not check errors, surface mode will try to change in next frames
+            if ( g_data->output->SetSurfaceMode( mode ))
+            {
+                g_mode->colorModeIdx     = color_mode;
+                g_mode->presentModeIdx   = present_mode;
+                imgui->defaultSurfFormat = ESurfaceFormat_Cast( mode.colorFormat, mode.colorSpace );
+            }
+        }
+    }
+
+/*
+=================================================
     DrawTask::_UpdateEditorTab
 =================================================
 */
     void  EditorUI::DrawTask::_UpdateEditorTab ()
     {
-        // TODO:
-        //  - VR ?
-        //  - reload
-        //  - reset frame counter
-        //  - reset position/orientation/camera
-        //  - stop rendering
-
         if ( ImGui::TreeNodeEx( "Debugger" ))
         {
             _UpdateEditor_Debugger();
@@ -674,14 +711,14 @@ namespace
 
         if ( ImGui::TreeNodeEx( "Statistic", ImGuiTreeNodeFlags_DefaultOpen ))
         {
-            auto    sp = s_UIInteraction.selectedPixel.ReadNoLock();
-            SHAREDLOCK( sp );
-            ImGui::Text( ("mouse pos:   "s << ToString( sp->pos )).c_str() );
-            ImGui::Text( ("pixel color: "s << ToString( sp->color, 3 )).c_str() );
+            const auto  sp = s_UIInteraction.selectedPixel.Read();
+
+            ImGui::Text( ("mouse pos:   "s << ToString( sp.pos )).c_str() );
+            ImGui::Text( ("pixel color: "s << ToString( sp.color, 3 )).c_str() );
             ImGui::SameLine();
 
             float   h   = ImGui::GetTextLineHeight();
-            RGBA32f col = sp->color;        col.a = 1.f;
+            RGBA32f col = sp.color;     col.a = 1.f;
             ImGui::PushStyleColor( ImGuiCol_Button,         col );
             ImGui::PushStyleColor( ImGuiCol_ButtonHovered,  col );
             ImGui::PushStyleColor( ImGuiCol_ButtonActive,   col );
@@ -691,7 +728,6 @@ namespace
             ImGui::TreePop();
             ImGui::Separator();
         }
-        ImGui::EndTabItem();
     }
 
 /*
@@ -1048,7 +1084,7 @@ namespace
                                 ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_AlwaysAutoResize;
 
         ImGuiIO &   io      = ImGui::GetIO();
-        const float y       = io.DisplaySize.y / 2 - ImGui::GetTextLineHeight() * StringParser::CalculateNumberOfLines( imgui->helpText );
+        const float y       = io.DisplaySize.y / 2 - ImGui::GetTextLineHeight() * Parser::CalculateNumberOfLines( imgui->helpText );
         const float x       = io.DisplaySize.x / 2;
 
         ImGui::SetNextWindowPos( ImVec2{x,y}, ImGuiCond_Always );
@@ -1408,20 +1444,22 @@ namespace
 */
     bool  EditorUI::_InitSurface (IOutputSurface &surface)
     {
-        auto    g = _graphics.WriteNoLock();
-        EXLOCK( g );
+        auto    g_data = _graphics.WriteNoLock();
+        EXLOCK( g_data );
 
-        g->output           = &surface;
-        g->surfaceFormats   = surface.GetSurfaceFormats();
-        g->presentModes     = surface.GetPresentModes();
+        g_data->output          = &surface;
+        g_data->surfaceFormats  = surface.GetSurfaceFormats();
+        g_data->presentModes    = surface.GetPresentModes();
 
         const auto  info        = surface.GetSurfaceInfo();
-        auto        graphics    = s_UIInteraction.graphics.WriteNoLock();
+        auto        g_mode      = s_UIInteraction.graphics.WriteNoLock();
+        {
+            EXLOCK( g_mode );
+            g_mode->colorModeIdx    = int(IndexOfArrayElement( ArrayView<SurfaceFormat>{g_data->surfaceFormats}, SurfaceFormat{info} ));
+            g_mode->presentModeIdx  = int(IndexOfArrayElement( ArrayView<EPresentMode>{g_data->presentModes}, info.presentMode ));
+        }
 
-        EXLOCK( graphics );
-        graphics->colorModeIdx   = int(IndexOfArrayElement( ArrayView<SurfaceFormat>{g->surfaceFormats}, info.format ));
-        graphics->presentModeIdx = int(IndexOfArrayElement( ArrayView<EPresentMode>{g->presentModes}, info.presentMode ));
-
+        _imgui->defaultSurfFormat = ESurfaceFormat_Cast( info.colorFormat, info.colorSpace );
         return true;
     }
 
@@ -1668,6 +1706,19 @@ R"(UI controls:
 
 /*
 =================================================
+    SetSurfaceFormat
+=================================================
+*/
+    void  EditorUI::SetSurfaceFormat (ESurfaceFormat fmt)
+    {
+        auto    imgui = _imgui.WriteNoLock();
+        EXLOCK( imgui );
+
+        imgui->reqSurfFormat = (fmt != Default ? fmt : imgui->defaultSurfFormat);
+    }
+
+/*
+=================================================
     _CheckScriptDir
 =================================================
 */
@@ -1728,8 +1779,8 @@ R"(UI controls:
                 ++nodeID;
                 rootDst.scripts.push_back( name.substr( 0, name.length()-3 ));
             }
-            else
-                AE_LOG_DBG( "Skip non-script file: '"s << ToString( dir.Get() ) << "'" );
+            //else
+            //  AE_LOG_DBG( "Skip non-script file: '"s << ToString( dir.Get() ) << "'" );
         }
     }
 

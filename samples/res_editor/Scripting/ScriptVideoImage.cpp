@@ -82,11 +82,14 @@ namespace
     {
         Scripting::ClassBinder<ScriptVideoImage>    binder{ se };
         binder.CreateRef();
-        binder.AddFactoryCtor( &ScriptVideoImage_Ctor1 );
-        binder.AddFactoryCtor( &ScriptVideoImage_Ctor2 );
+        binder.AddFactoryCtor( &ScriptVideoImage_Ctor1,     {"videoFilePath"} );
+        binder.AddFactoryCtor( &ScriptVideoImage_Ctor2,     {"format", "videoFilePath"} );
 
-        binder.AddMethod( &ScriptVideoImage::Name,      "Name"      );
-        binder.AddMethod( &ScriptVideoImage::Dimension, "Dimension" );
+        binder.Comment( "Set resource name. It is used for debugging." );
+        binder.AddMethod( &ScriptVideoImage::Name,      "Name",         {} );
+
+        binder.Comment( "Returns dynamic dimension of the image" );
+        binder.AddMethod( &ScriptVideoImage::Dimension, "Dimension",    {} );
     }
 
 /*

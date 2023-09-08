@@ -15,13 +15,9 @@
 //-----------------------------------------------------------------------------
 
 #ifdef SH_FRAG
+    #include "SDF.glsl"
 
     layout(location=0) out float4  out_Color;
-
-    float  Median (float r, float g, float b)
-    {
-        return max( min(r, g), min( max(r, g), b ));
-    }
 
     /*float  ScreenPxRange ()
     {
@@ -33,7 +29,7 @@
     void Main ()
     {
         float3  msd             = gl.texture.Sample( un_Texture, In.uv_scale.xy ).rgb * drawUB.sdfScale;
-        float   sd              = Median( msd.r, msd.g, msd.b );
+        float   sd              = MCSDF_Median( msd );
         float   screen_px_dist  = drawUB.screenPxRange * sd + In.uv_scale.z;
 
     #if 0

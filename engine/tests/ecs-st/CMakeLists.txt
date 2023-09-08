@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (TARGET "ECS-st")
     file( GLOB_RECURSE SOURCES "*.h" "*.cpp" )
     if (DEFINED ANDROID)

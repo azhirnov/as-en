@@ -3,14 +3,14 @@
 #pragma once
 
 #include "base/Math/PhysicalDimension.h"
-#include "base/Math/ValueScaleTempl.h"
+#include "base/Math/PhysicalQuantity_Scale.h"
 
 namespace AE::Math
 {
 
     template <typename ValueType,
               typename Dimension,
-              typename ValueScale = ValueScaleTempl::Integer<ValueType, 1>
+              typename ValueScale = PhysicalQuantity_Scale::Integer<ValueType, 1>
              >
     struct PhysicalQuantity;
 
@@ -36,7 +36,7 @@ namespace AE::Math
         using Self          = PhysicalQuantity< Value_t, Dimension, Scale_t >;
         using Inversed_t    = PhysicalQuantity< Value_t,
                                                 DefaultPhysicalDimensions::NonDimensional::template Div< Dimension_t >,
-                                                typename ValueScaleTempl::template Inverse< Scale_t > >;
+                                                typename PhysicalQuantity_Scale::template Inverse< Scale_t > >;
 
     // variables
     private:
@@ -86,28 +86,28 @@ namespace AE::Math
         template <typename S>
         ND_ constexpr auto  operator +  (const PhysicalQuantity<Value_t, Dimension_t, S> &rhs) C_NE___
         {
-            using Scale = ValueScaleTempl::template Add< Scale_t, S >;
+            using Scale = PhysicalQuantity_Scale::template Add< Scale_t, S >;
             return PhysicalQuantity< Value_t, Dimension_t, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
         }
 
         template <typename S>
         ND_ constexpr auto  operator -  (const PhysicalQuantity<Value_t, Dimension_t, S> &rhs) C_NE___
         {
-            using Scale = ValueScaleTempl::template Sub< Scale_t, S >;
+            using Scale = PhysicalQuantity_Scale::template Sub< Scale_t, S >;
             return PhysicalQuantity< Value_t, Dimension_t, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
         }
 
         template <typename D, typename S>
         ND_ constexpr auto  operator *  (const PhysicalQuantity<Value_t,D,S> &rhs) C_NE___
         {
-            using Scale = ValueScaleTempl::template Mul< Scale_t, S >;
+            using Scale = PhysicalQuantity_Scale::template Mul< Scale_t, S >;
             return PhysicalQuantity< Value_t, typename Dimension_t::template Mul<D>, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
         }
 
         template <typename D, typename S>
         ND_ constexpr auto  operator /  (const PhysicalQuantity<Value_t,D,S> &rhs) C_NE___
         {
-            using Scale = ValueScaleTempl::template Div< Scale_t, S >; 
+            using Scale = PhysicalQuantity_Scale::template Div< Scale_t, S >; 
             return PhysicalQuantity< Value_t, typename Dimension_t::template Div<D>, Scale >{ Scale::Get( _value, rhs.GetNonScaled() )};
         }
 
@@ -133,7 +133,7 @@ namespace AE::Math
         ND_ constexpr auto  Pow ()                          C_NE___
         {
             using Dim   = typename Dimension_t::template Pow< IntPower >;
-            using Scale = ValueScaleTempl::template Pow< Scale_t, IntPower >;
+            using Scale = PhysicalQuantity_Scale::template Pow< Scale_t, IntPower >;
             return PhysicalQuantity< Value_t, Dim, Scale >{ Math::Pow( _value, Value_t{IntPower} )};
         }
     };
@@ -159,7 +159,7 @@ namespace AE::Math
         using Self          = PhysicalQuantity< Value_t, Dimension_t, Scale_t >;
         using Inversed_t    = PhysicalQuantity< Value_t,
                                                 Dimension_t,
-                                                typename ValueScaleTempl::template Inverse< Scale_t > >;
+                                                typename PhysicalQuantity_Scale::template Inverse< Scale_t > >;
 
     // variables
     private:
@@ -213,7 +213,7 @@ namespace AE::Math
         template <int IntPower>
         ND_ constexpr auto  Pow ()                              C_NE___
         {
-            using Scale = ValueScaleTempl::template Pow< Scale_t, IntPower >;
+            using Scale = PhysicalQuantity_Scale::template Pow< Scale_t, IntPower >;
             return PhysicalQuantity< Value_t, Dimension_t, Scale >{ Math::Pow( _value, Value_t{IntPower} )};
         }
     };
@@ -326,10 +326,10 @@ namespace AE::Math
             struct SpeedOfLight             { static constexpr T  Value = T(299792458); };              // m/s  c
             struct SpeedOfGravity           { static constexpr T  Value = T(299792458); };              // m/s  ?
             struct Parsec                   { static constexpr T  Value = T(3.0856776e+16); };          // m    pc
-            using LightMinute               = ValueScaleTempl::template Mul< SpeedOfLight, Minute >;
-            using LightHour                 = ValueScaleTempl::template Mul< SpeedOfLight, Hour >;
-            using LightDay                  = ValueScaleTempl::template Mul< SpeedOfLight, Day >;
-            using LightYear                 = ValueScaleTempl::template Mul< SpeedOfLight, Year >;
+            using LightMinute               = PhysicalQuantity_Scale::template Mul< SpeedOfLight, Minute >;
+            using LightHour                 = PhysicalQuantity_Scale::template Mul< SpeedOfLight, Hour >;
+            using LightDay                  = PhysicalQuantity_Scale::template Mul< SpeedOfLight, Day >;
+            using LightYear                 = PhysicalQuantity_Scale::template Mul< SpeedOfLight, Year >;
 
             struct GravitationalConstant    { static constexpr T  Value = T(6.6740831e-11); };          // m^3 / (s^2 * kg)
             struct GravitationalAcceleration{ static constexpr T  Value = T(9.80665); };                // m / s^2
@@ -429,23 +429,23 @@ namespace AE::Math
         using Hour                      = PhysicalQuantity< T, Dim::Second, typename Scale::Hour >;             // h
         using Day                       = PhysicalQuantity< T, Dim::Second, typename Scale::Day >;              // d
         using Year                      = PhysicalQuantity< T, Dim::Second, typename Scale::Year >;             // y
-        using ThousandYears             = PhysicalQuantity< T, Dim::Second, ValueScaleTempl::Mul< typename Scale::Year, ValueScaleTempl::Integer<T, 1000>> >;
-        using MillionYears              = PhysicalQuantity< T, Dim::Second, ValueScaleTempl::Mul< typename Scale::Year, ValueScaleTempl::Integer<T, 1000'000>> >;
+        using ThousandYears             = PhysicalQuantity< T, Dim::Second, PhysicalQuantity_Scale::Mul< typename Scale::Year, PhysicalQuantity_Scale::Integer<T, 1000>> >;
+        using MillionYears              = PhysicalQuantity< T, Dim::Second, PhysicalQuantity_Scale::Mul< typename Scale::Year, PhysicalQuantity_Scale::Integer<T, 1000'000>> >;
 
         using ElectronVolt              = PhysicalQuantity< T, Dim::Joule, typename Scale::ElectronVolt >;      // eV
-        using Nanojoule                 = PhysicalQuantity< T, Dim::Joule, typename Scale::Nano >;              // nJ
-        using Microjoule                = PhysicalQuantity< T, Dim::Joule, typename Scale::Micro >;             // uJ
-        using Millijoule                = PhysicalQuantity< T, Dim::Joule, typename Scale::Milli >;             // mJ
-        using Kilojoule                 = PhysicalQuantity< T, Dim::Joule, typename Scale::Kilo >;              // KJ
-        using Megajoule                 = PhysicalQuantity< T, Dim::Joule, typename Scale::Mega >;              // MJ
-        using Gigajoule                 = PhysicalQuantity< T, Dim::Joule, typename Scale::Giga >;              // GJ
+        using NanoJoule                 = PhysicalQuantity< T, Dim::Joule, typename Scale::Nano >;              // nJ
+        using MicroJoule                = PhysicalQuantity< T, Dim::Joule, typename Scale::Micro >;             // uJ
+        using MilliJoule                = PhysicalQuantity< T, Dim::Joule, typename Scale::Milli >;             // mJ
+        using KiloJoule                 = PhysicalQuantity< T, Dim::Joule, typename Scale::Kilo >;              // KJ
+        using MegaJoule                 = PhysicalQuantity< T, Dim::Joule, typename Scale::Mega >;              // MJ
+        using GigaJoule                 = PhysicalQuantity< T, Dim::Joule, typename Scale::Giga >;              // GJ
 
-        using Nanowatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Nano >;               // nW
-        using Microwatt                 = PhysicalQuantity< T, Dim::Watt, typename Scale::Micro >;              // uW
-        using Milliwatt                 = PhysicalQuantity< T, Dim::Watt, typename Scale::Milli >;              // mW
-        using Kilowatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Kilo >;               // KW
-        using Megawatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Mega >;               // MW
-        using Gigawatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Giga >;               // GW
+        using NanoWatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Nano >;               // nW
+        using MicroWatt                 = PhysicalQuantity< T, Dim::Watt, typename Scale::Micro >;              // uW
+        using MilliWatt                 = PhysicalQuantity< T, Dim::Watt, typename Scale::Milli >;              // mW
+        using KiloWatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Kilo >;               // KW
+        using MegaWatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Mega >;               // MW
+        using GigaWatt                  = PhysicalQuantity< T, Dim::Watt, typename Scale::Giga >;               // GW
 
         using Bar                       = PhysicalQuantity< T, Dim::Pascal, typename Scale::Bar >;              // bar
         using Atmosphere                = PhysicalQuantity< T, Dim::Pascal, typename Scale::Atmosphere >;       // atm

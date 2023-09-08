@@ -13,6 +13,8 @@
         thread-safe:    yes
 
     if AE_GRAPHICS_STRONG_VALIDATION enabled then 'IResourceManager::Create***()' may return error if resource description is not valid or not supported.
+
+    docs: file:///<path>/AE/engine/docs/GraphicsResources.md
 */
 
 #pragma once
@@ -23,7 +25,6 @@
 #include "graphics/Public/PipelineDesc.h"
 #include "graphics/Public/DescriptorSet.h"
 #include "graphics/Public/RayTracingDesc.h"
-#include "graphics/Public/FrameUID.h"
 #include "graphics/Public/GraphicsCreateInfo.h"
 #include "graphics/Public/Video.h"
 #include "graphics/Public/FeatureSet.h"

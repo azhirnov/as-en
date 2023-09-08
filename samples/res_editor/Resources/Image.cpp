@@ -63,7 +63,7 @@ namespace AE::ResEditor
             {
                 CHECK_THROW( GetVFS().Open( OUT op.file, op.filename ));
 
-                auto    req = op.file->ReadRemaining( 0_b );    // TODO: optimize?
+                auto    req = op.file->ReadRemaining( 0_b );    // TODO: read by blocks
                 CHECK_THROW( req );
 
                 op.loaded = req->AsPromise().Then( [fmt = op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); });
@@ -95,6 +95,110 @@ namespace AE::ResEditor
 
         if ( _base )
             _base->_Remove( this );
+    }
+
+/*
+=================================================
+    CreateDummy2D
+=================================================
+*/
+    RC<Image>  Image::CreateDummy2D (Renderer &renderer, StringView dbgName) __Th___
+    {
+        ImageDesc   desc;
+        desc.imageDim   = EImageDim_2D;
+
+        auto        img_and_view = renderer.GetDummyImage( desc );
+        CHECK_THROW( img_and_view );
+
+        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        RC<Image>   result      {new Image{ renderer, dbgName }};
+
+        desc            = res_mngr.GetDescription( img_and_view.image );
+        desc.usage      = EImageUsage::Transfer | EImageUsage::Sampled;
+        desc.options    = EImageOpt::BlitSrc | EImageOpt::BlitDst;
+
+        result->_imageDesc.Write( desc );
+        result->_imageDesc.Write( res_mngr.GetDescription( img_and_view.view ));
+        result->_isDummy.store( true );
+
+        Unused( result->_id.Attach( RVRef(img_and_view.image) ));
+        Unused( result->_view.Attach( RVRef(img_and_view.view) ));
+
+        return result;
+    }
+
+/*
+=================================================
+    CreateAndLoad
+=================================================
+*/
+    RC<Image>  Image::CreateAndLoad (Renderer &renderer, const Path &inPath, StringView dbgName, ELoadOpFlags flags, ArrayView<Path> texSearchDirs) __Th___
+    {
+        Path    path = inPath;
+
+        if ( not FileSystem::IsFile( path ))
+        {
+            for (auto& dir : texSearchDirs)
+            {
+                path = dir / inPath;
+                if ( FileSystem::IsFile( path ))
+                    break;
+            }
+        }
+        CHECK_THROW_MSG( FileSystem::IsFile( path ),
+            "Image file '"s << ToString(path) << "' is not exists" );
+
+        RC<Image>   result = CreateDummy2D( renderer, (dbgName.empty() ? StringView{path.filename().replace_extension().string()} : dbgName) );
+
+        // load from filesystem instead of VFS
+        {
+            result->_uploadStatus.store( EUploadStatus::InProgress );
+
+            auto&   load_op     = result->_loadOps.emplace_back();
+
+            load_op.flags       = flags;
+            load_op.file        = MakeRC< Threading::WinAsyncRDataSource >( path );
+            load_op.imgFormat   = ResLoader::PathToImageFileFormat( path );
+            CHECK_THROW( load_op.file->IsOpen() );
+
+            auto    req         = load_op.file->ReadRemaining( 0_b );   // TODO: read by blocks
+            CHECK_THROW( req );
+
+            load_op.loaded  = req->AsPromise().Then( [fmt = load_op.imgFormat] (const AsyncDSRequestResult &in) { return _Load( in, fmt ); });
+
+            result->_ResQueue().EnqueueForUpload( result );
+        }
+
+        return result;
+    }
+
+/*
+=================================================
+    CreateAndLoad
+=================================================
+*/
+    RC<Image>  Image::CreateAndLoad (Renderer &renderer, IntermImageRC imageData, StringView dbgName, ELoadOpFlags flags, ArrayView<Path> texSearchDirs) __Th___
+    {
+        CHECK_THROW( imageData );
+
+        if ( imageData->IsEmpty() )
+            return CreateAndLoad( renderer, imageData->GetPath(), dbgName, flags, texSearchDirs );
+
+        RC<Image>   result = CreateDummy2D( renderer, dbgName );
+
+        // just upload from RAM
+        {
+            result->_uploadStatus.store( EUploadStatus::InProgress );
+
+            auto&   load_op = result->_loadOps.emplace_back();
+
+            load_op.flags   = flags;
+            load_op.loaded  = Threading::MakePromiseFromValue( RVRef(imageData) );
+
+            result->_ResQueue().EnqueueForUpload( result );
+        }
+
+        return result;
     }
 
 /*
@@ -222,7 +326,7 @@ namespace AE::ResEditor
 
                     if_unlikely( _isDummy.load() )
                     {
-                        CHECK_THROW( _CreateImage( *imageData, op.mipmap, op.layer ));
+                        CHECK_THROW( _CreateImage( *imageData, op.mipmap, op.layer, AllBits( op.flags, ELoadOpFlags::GenMipmaps )));
 
                         _isDummy.store( false );
                         RenderGraph().GetStateTracker().AddResource( _id.Get(),
@@ -401,13 +505,14 @@ namespace AE::ResEditor
     _CreateImage
 =================================================
 */
-    bool  Image::_CreateImage (const ResLoader::IntermImage &intermImg, MipmapLevel baseMipmap, ImageLayer baseLayer)
+    bool  Image::_CreateImage (const ResLoader::IntermImage &intermImg, MipmapLevel baseMipmap, ImageLayer baseLayer, bool allMipmaps)
     {
         ASSERT( _isDummy.load() );
+        ASSERT( not intermImg.IsEmpty() );
 
         auto&       res_mngr = RenderTaskScheduler().GetResourceManager();
 
-        const auto  Create   = [this, &res_mngr, baseMipmap, baseLayer] (auto& intermImg) -> bool
+        const auto  Create   = [this, &res_mngr, baseMipmap, baseLayer, allMipmaps] (auto& intermImg) -> bool
         {{
             ImageDesc       desc        = GetImageDesc();
             ImageViewDesc   view_desc   = GetViewDesc();
@@ -422,6 +527,16 @@ namespace AE::ResEditor
             desc.format         = intermImg.PixelFormat();
             // keep: desc.samples
 
+            if ( allMipmaps )
+            {
+                desc.maxLevel           = MipmapLevel::Max();
+                view_desc.mipmapCount   = UMax;
+            }
+
+            desc.Validate();
+            view_desc.Validate( desc );
+
+            // create image
             {
                 CHECK_ERR_MSG( res_mngr.IsSupported( desc ),
                     "Image '"s << _dbgName << "' description is not supported by GPU device" );
@@ -433,7 +548,13 @@ namespace AE::ResEditor
 
                 auto    old_img = _id.Attach( RVRef(image) );
                 res_mngr.ReleaseResource( old_img );    // release dummy resource
-            }{
+            }
+
+            // create image view
+            {
+                CHECK_ERR_MSG( res_mngr.IsSupported( _id.Get(), view_desc ),
+                    "Image view '"s << _dbgName << "' description is not supported by GPU device" );
+
                 auto    view = res_mngr.CreateImageView( view_desc, _id.Get(), _dbgName );
                 CHECK_ERR( view );
 

@@ -16,7 +16,7 @@ void ASmain ()
 
     {
         RC<Shader>  ms  = Shader();
-        ms.file        = "draw_mesh1.glsl";        // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw_mesh1.glsl
+        ms.file     = "draw_mesh1.glsl";        // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw_mesh1.glsl
         ms.options  = EShaderOpt::Optimize;
         ms.version  = EShaderVersion::SPIRV_1_4;
         ms.MeshSpec1();
@@ -25,7 +25,7 @@ void ASmain ()
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file        = "draw_mesh1.glsl";        // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw_mesh1.glsl
+        fs.file     = "draw_mesh1.glsl";        // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw_mesh1.glsl
         fs.options  = EShaderOpt::Optimize;
         fs.version  = EShaderVersion::SPIRV_1_4;
         ppln.SetFragmentShader( fs );

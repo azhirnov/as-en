@@ -57,7 +57,9 @@ namespace {
 
         src.push_back( img );
 
-        return MakeRC<ResEditor::Present>( RVRef(src), "Present", dynSize );
+        auto    fmode = UIInteraction::Instance().GetFilterMode();
+
+        return MakeRC<ResEditor::Present>( RVRef(src), "Present", dynSize, fmode );
     }
 //-----------------------------------------------------------------------------
 
@@ -727,20 +729,30 @@ namespace {
 */
     void  ScriptExe::_Present1 (const ScriptImagePtr &rt) __Th___
     {
-        return _Present4( rt, ImageLayer{}, MipmapLevel{} );
+        return _Present6( rt, ImageLayer{}, MipmapLevel{}, Default );
     }
 
     void  ScriptExe::_Present2 (const ScriptImagePtr &rt, const MipmapLevel &mipmap) __Th___
     {
-        return _Present4( rt, ImageLayer{}, mipmap );
+        return _Present6( rt, ImageLayer{}, mipmap, Default );
     }
 
     void  ScriptExe::_Present3 (const ScriptImagePtr &rt, const ImageLayer &layer) __Th___
     {
-        return _Present4( rt, layer, MipmapLevel{} );
+        return _Present6( rt, layer, MipmapLevel{}, Default );
     }
 
     void  ScriptExe::_Present4 (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap) __Th___
+    {
+        return _Present6( rt, layer, mipmap, Default );
+    }
+
+    void  ScriptExe::_Present5 (const ScriptImagePtr &rt, EColorSpace cs) __Th___
+    {
+        return _Present6( rt, ImageLayer{}, MipmapLevel{}, cs );
+    }
+
+    void  ScriptExe::_Present6 (const ScriptImagePtr &rt, const ImageLayer &layer, const MipmapLevel &mipmap, EColorSpace cs) __Th___
     {
         CHECK_THROW_MSG( rt );
 
@@ -748,6 +760,10 @@ namespace {
 
         auto&   data = _GetTempData();
         CHECK_THROW_MSG( data.passGroupDepth == 1, "'Present()' must be used in main script" );
+        CHECK_THROW_MSG( not data.hasPresent, "'Present()' must be used once" );
+
+        data.hasPresent = true;
+        data.renderer->SetSurfaceFormat( cs != Default ? ESurfaceFormat_Cast( rt->Description().format, cs ) : Default );
 
         data.passGroup->Add( ScriptBasePassPtr{ new ScriptPresent{ rt, layer, mipmap, data.cfg.dynSize }});
     }
@@ -932,11 +948,12 @@ namespace {
         BEGIN_ENUM_CHECKS();
         switch ( flags )
         {
-            case DebugView::EFlags::Unknown :   break;
-            case DebugView::EFlags::NoCopy :    rt->AddUsage( EResourceUsage::Present );    break;
-            case DebugView::EFlags::Histogram : rt->AddUsage( EResourceUsage::Sampled );    break;
+            case DebugView::EFlags::Copy :          rt->AddUsage( EResourceUsage::Transfer );   break;
+            case DebugView::EFlags::NoCopy :        rt->AddUsage( EResourceUsage::Present );    break;
+            case DebugView::EFlags::Histogram :     rt->AddUsage( EResourceUsage::Sampled );    break;
+            case DebugView::EFlags::LinearDepth :   rt->AddUsage( EResourceUsage::Sampled );    break;
             case DebugView::EFlags::_Count :
-            default :                           CHECK_THROW_MSG( false, "unsupported flags" );
+            default :                               CHECK_THROW_MSG( false, "unsupported flags" );
         }
         END_ENUM_CHECKS();
 
@@ -949,7 +966,7 @@ namespace {
 =================================================
 */
     template <typename D, typename T>
-    void  ScriptExe::_Slider (const D &dyn, const String &name, const T &min, const T &max, ESlider type) __Th___
+    void  ScriptExe::_Slider (const D &dyn, const String &name, const T &min, const T &max, const T &initial, ESlider type) __Th___
     {
         auto&   data = _GetTempData();
 
@@ -972,6 +989,7 @@ namespace {
 
         std::memcpy( OUT &dst.intRange[0], &min, sizeof(min) );
         std::memcpy( OUT &dst.intRange[1], &max, sizeof(max) );
+        std::memcpy( OUT &dst.intRange[2], &initial, sizeof(initial) );
     }
 
 /*
@@ -979,14 +997,30 @@ namespace {
     _SliderI*
 =================================================
 */
-//  void ScriptExe:: _SliderI0 (const ScriptDynamicIntPtr &dyn, const String &name) __Th___;
-//  void  ScriptExe::_SliderI1 (const ScriptDynamicIntPtr &dyn,const String &name, int min, int max) __Th___;
-//  void  ScriptExe::_SliderI2 (const ScriptDynamicInt2Ptr &dyn,const String &name, const packed_int2 &min, const packed_int2 &max) __Th___;
-//  void  ScriptExe::_SliderI3 (const ScriptDynamicInt3Ptr &dyn,const String &name, const packed_int3 &min, const packed_int3 &max) __Th___;
+    void ScriptExe:: _SliderI0 (const ScriptDynamicIntPtr &dyn, const String &name) __Th___
+    {
+        int min = 0, max = 1024;
+        return _Slider( dyn, name, min, max, min, ESlider::Int );
+    }
+
+    void  ScriptExe::_SliderI1 (const ScriptDynamicIntPtr &dyn,const String &name, int min, int max) __Th___
+    {
+        return _Slider( dyn, name, min, max, min, ESlider::Int );
+    }
+
+    void  ScriptExe::_SliderI2 (const ScriptDynamicInt2Ptr &dyn,const String &name, const packed_int2 &min, const packed_int2 &max) __Th___
+    {
+        return _Slider( dyn, name, min, max, min, ESlider::Int );
+    }
+
+    void  ScriptExe::_SliderI3 (const ScriptDynamicInt3Ptr &dyn,const String &name, const packed_int3 &min, const packed_int3 &max) __Th___
+    {
+        return _Slider( dyn, name, min, max, min, ESlider::Int );
+    }
 
     void  ScriptExe::_SliderI4 (const ScriptDynamicInt4Ptr &dyn,const String &name, const packed_int4 &min, const packed_int4 &max) __Th___
     {
-        return _Slider( dyn, name, min, max, ESlider::Int );
+        return _Slider( dyn, name, min, max, min, ESlider::Int );
     }
 
 /*
@@ -996,22 +1030,29 @@ namespace {
 */
     void  ScriptExe::_SliderU0 (const ScriptDynamicUIntPtr &dyn, const String &name) __Th___
     {
-        int min = 0, max = 1024;
-        return _Slider( dyn, name, min, max, ESlider::Int );
+        uint    min = 0, max = 1024;
+        return _Slider( dyn, name, min, max, min, ESlider::Int );
     }
 
     void  ScriptExe::_SliderU1 (const ScriptDynamicUIntPtr &dyn,const String &name, uint min, uint max) __Th___
     {
-        return _Slider( dyn, name, min, max, ESlider::Int );
+        return _Slider( dyn, name, min, max, min, ESlider::Int );
+    }
+
+    void  ScriptExe::_SliderU2 (const ScriptDynamicUInt2Ptr &dyn,const String &name, const packed_uint2 &min, const packed_uint2 &max) __Th___
+    {
+        return _Slider( dyn, name, min, max, min, ESlider::Int );
     }
 
     void  ScriptExe::_SliderU3 (const ScriptDynamicUInt3Ptr &dyn,const String &name, const packed_uint3 &min, const packed_uint3 &max) __Th___
     {
-        return _Slider( dyn, name, min, max, ESlider::Int );
+        return _Slider( dyn, name, min, max, min, ESlider::Int );
     }
 
-//  void  ScriptExe::_SliderU2 (const ScriptDynamicUInt2Ptr &dyn,const String &name, const packed_uint2 &min, const packed_uint2 &max) __Th___;
-//  void  ScriptExe::_SliderU4 (const ScriptDynamicUInt4Ptr &dyn,const String &name, const packed_uint4 &min, const packed_uint4 &max) __Th___;
+    void  ScriptExe::_SliderU4 (const ScriptDynamicUInt4Ptr &dyn,const String &name, const packed_uint4 &min, const packed_uint4 &max) __Th___
+    {
+        return _Slider( dyn, name, min, max, min, ESlider::Int );
+    }
 
 /*
 =================================================
@@ -1021,21 +1062,28 @@ namespace {
     void  ScriptExe::_SliderF0 (const ScriptDynamicFloatPtr &dyn, const String &name) __Th___
     {
         float min = 0.f, max = 1.f;
-        return _Slider( dyn, name, min, max, ESlider::Float );
+        return _Slider( dyn, name, min, max, min, ESlider::Float );
     }
 
     void  ScriptExe::_SliderF1 (const ScriptDynamicFloatPtr &dyn, const String &name, float min, float max) __Th___
     {
-        return _Slider( dyn, name, min, max, ESlider::Float );
+        return _Slider( dyn, name, min, max, min, ESlider::Float );
+    }
+
+    void  ScriptExe::_SliderF2 (const ScriptDynamicFloat2Ptr &dyn, const String &name, const packed_float2 &min, const packed_float2 &max) __Th___
+    {
+        return _Slider( dyn, name, min, max, min, ESlider::Float );
+    }
+
+    void  ScriptExe::_SliderF3 (const ScriptDynamicFloat3Ptr &dyn, const String &name, const packed_float3 &min, const packed_float3 &max) __Th___
+    {
+        return _Slider( dyn, name, min, max, min, ESlider::Float );
     }
 
     void  ScriptExe::_SliderF4 (const ScriptDynamicFloat4Ptr &dyn, const String &name, const packed_float4 &min, const packed_float4 &max) __Th___
     {
-        return _Slider( dyn, name, min, max, ESlider::Float );
+        return _Slider( dyn, name, min, max, min, ESlider::Float );
     }
-
-//  void  ScriptExe::_SliderF2 (const ScriptDynamicFloat2Ptr &dyn, const String &name, const packed_float2 &min, const packed_float2 &max) __Th___;
-//  void  ScriptExe::_SliderF3 (const ScriptDynamicFloat3Ptr &dyn, const String &name, const packed_float3 &min, const packed_float3 &max) __Th___;
 
 /*
 =================================================
@@ -1060,15 +1108,46 @@ namespace {
         GraphicsBindings::BindEnums( se );
         GraphicsBindings::BindTypes( se );
 
+        {
+            EnumBinder<EColorSpace> binder {se};
+            binder.Create();
+            binder.AddValue( "sRGB_nonlinear",          EColorSpace::sRGB_nonlinear );
+            binder.AddValue( "BT709_nonlinear",         EColorSpace::BT709_nonlinear );
+            binder.AddValue( "Extended_sRGB_linear",    EColorSpace::Extended_sRGB_linear );
+            binder.AddValue( "HDR10_ST2084",            EColorSpace::HDR10_ST2084 );
+            binder.AddValue( "BT2020_linear",           EColorSpace::BT2020_linear );
+            STATIC_ASSERT( uint(EColorSpace::_Count) == 15 );
+            STATIC_ASSERT( uint(ESurfaceFormat::_Count) == 10 );
+
+            // not compatible with ESurfaceFormat
+            //binder.AddValue( "Display_P3_nonlinear",      EColorSpace::Display_P3_nonlinear );
+            //binder.AddValue( "Display_P3_linear",         EColorSpace::Display_P3_linear );
+            //binder.AddValue( "DCI_P3_nonlinear",          EColorSpace::DCI_P3_nonlinear );
+            //binder.AddValue( "BT709_linear",              EColorSpace::BT709_linear );
+            //binder.AddValue( "DolbyVision",               EColorSpace::DolbyVision );
+            //binder.AddValue( "HDR10_HLG",                 EColorSpace::HDR10_HLG );
+            //binder.AddValue( "AdobeRGB_linear",           EColorSpace::AdobeRGB_linear );
+            //binder.AddValue( "AdobeRGB_nonlinear",        EColorSpace::AdobeRGB_nonlinear );
+            //binder.AddValue( "PassThrough",               EColorSpace::PassThrough );
+            //binder.AddValue( "Extended_sRGB_nonlinear",   EColorSpace::Extended_sRGB_nonlinear );
+        }
+
         _Bind_DbgViewFlags( se );
         _Bind_PassGroupFlags( se );
         ScriptDynamicDim::Bind( se );
-        ScriptDynamicUInt3::Bind( se );
-        ScriptDynamicInt4::Bind( se );
-        ScriptDynamicFloat4::Bind( se );
         ScriptDynamicUInt::Bind( se );
-        ScriptDynamicULong::Bind( se );
+        ScriptDynamicUInt2::Bind( se );
+        ScriptDynamicUInt3::Bind( se );
+        ScriptDynamicUInt4::Bind( se );
+        ScriptDynamicInt::Bind( se );
+        ScriptDynamicInt2::Bind( se );
+        ScriptDynamicInt3::Bind( se );
+        ScriptDynamicInt4::Bind( se );
         ScriptDynamicFloat::Bind( se );
+        ScriptDynamicFloat2::Bind( se );
+        ScriptDynamicFloat3::Bind( se );
+        ScriptDynamicFloat4::Bind( se );
+        ScriptDynamicULong::Bind( se );
         ScriptImage::Bind( se );
         ScriptVideoImage::Bind( se );
         ScriptBuffer::Bind( se );
@@ -1078,7 +1157,7 @@ namespace {
         ScriptBaseController::Bind( se );
         ScriptControllerScaleBias::Bind( se );
         ScriptControllerTopDown::Bind( se );
-        ScriptControllerIsometricCamera::Bind( se );
+        ScriptControllerOrbitalCamera::Bind( se );
         ScriptControllerFlightCamera::Bind( se );
         ScriptControllerFPVCamera::Bind( se );
         ScriptControllerFreeCamera::Bind( se );
@@ -1087,7 +1166,7 @@ namespace {
         ScriptGeomSource::Bind( se );
         ScriptSphericalCube::Bind( se );
         ScriptUniGeometry::Bind( se );
-        ScriptSceneGeometry::Bind( se );
+        ScriptModelGeometrySrc::Bind( se );
 
         ScriptCollection::Bind( se );
 
@@ -1096,68 +1175,72 @@ namespace {
         ScriptComputePass::Bind( se );
         ScriptRayTracingPass::Bind( se );
         ScriptSceneGraphicsPass::Bind( se );
-        ScriptSceneRayTracingPass::Bind( se );
         ScriptScene::Bind( se );
 
-        se->AddFunction( &ScriptExe::_SurfaceSize,          "SurfaceSize",      "Returns dynamic dimensions of the screen size."    );
+        se->AddFunction( &ScriptExe::_SurfaceSize,              "SurfaceSize",              {},     "Returns dynamic dimensions of the screen size."    );
 
-        se->AddFunction( &ScriptExe::_Present1,             "Present"       );
-        se->AddFunction( &ScriptExe::_Present2,             "Present"       );
-        se->AddFunction( &ScriptExe::_Present3,             "Present"       );
-        se->AddFunction( &ScriptExe::_Present4,             "Present"       );
+        se->AddFunction( &ScriptExe::_Present1,                 "Present",                  {},     "Present image to the screen." );
+        se->AddFunction( &ScriptExe::_Present2,                 "Present",                  {} );
+        se->AddFunction( &ScriptExe::_Present3,                 "Present",                  {} );
+        se->AddFunction( &ScriptExe::_Present4,                 "Present",                  {} );
+        se->AddFunction( &ScriptExe::_Present5,                 "Present",                  {} );
+        se->AddFunction( &ScriptExe::_Present6,                 "Present",                  {} );
 
-        se->AddFunction( &ScriptExe::_DbgView1,             "DbgView"       );
-        se->AddFunction( &ScriptExe::_DbgView2,             "DbgView"       );
-        se->AddFunction( &ScriptExe::_DbgView3,             "DbgView"       );
-        se->AddFunction( &ScriptExe::_DbgView4,             "DbgView"       );
+        se->AddFunction( &ScriptExe::_DbgView1,                 "DbgView",                  {},     "Draw image in child window for debugging." );
+        se->AddFunction( &ScriptExe::_DbgView2,                 "DbgView",                  {} );
+        se->AddFunction( &ScriptExe::_DbgView3,                 "DbgView",                  {} );
+        se->AddFunction( &ScriptExe::_DbgView4,                 "DbgView",                  {} );
 
-        se->AddFunction( &ScriptExe::_GenMipmaps,           "GenMipmaps",       "Pass which generates mipmaps for image." );
-        se->AddFunction( &ScriptExe::_CopyImage,            "CopyImage",        "Pass which copy image content to another image." );
+        se->AddFunction( &ScriptExe::_GenMipmaps,               "GenMipmaps",               {},     "Pass which generates mipmaps for image." );
+        se->AddFunction( &ScriptExe::_CopyImage,                "CopyImage",                {},     "Pass which copy image content to another image." );
 
-        se->AddFunction( &ScriptExe::_ClearImage1,          "ClearImage",       "Pass to clear float-color image." );
-        se->AddFunction( &ScriptExe::_ClearImage2,          "ClearImage",       "Pass to clear uint-color image." );
-        se->AddFunction( &ScriptExe::_ClearImage3,          "ClearImage",       "Pass to clear int-color image." );
-        se->AddFunction( &ScriptExe::_ClearBuffer,          "ClearBuffer",      "Pass to clear buffer." );
+        se->AddFunction( &ScriptExe::_ClearImage1,              "ClearImage",               {},     "Pass to clear float-color image." );
+        se->AddFunction( &ScriptExe::_ClearImage2,              "ClearImage",               {},     "Pass to clear uint-color image." );
+        se->AddFunction( &ScriptExe::_ClearImage3,              "ClearImage",               {},     "Pass to clear int-color image." );
+        se->AddFunction( &ScriptExe::_ClearBuffer,              "ClearBuffer",              {},     "Pass to clear buffer." );
 
-        se->AddFunction( &ScriptExe::_BuildRTGeometry,          "BuildRTGeometry",          "Pass to build RTGeometry, executed every frame."           );
-        se->AddFunction( &ScriptExe::_BuildRTGeometryIndirect,  "BuildRTGeometryIndirect",  "Pass to indirect build RTGeometry, executed every frame."  );
+        se->AddFunction( &ScriptExe::_BuildRTGeometry,          "BuildRTGeometry",          {},     "Pass to build RTGeometry, executed every frame."           );
+        se->AddFunction( &ScriptExe::_BuildRTGeometryIndirect,  "BuildRTGeometryIndirect",  {},     "Pass to indirect build RTGeometry, executed every frame."  );
 
-        se->AddFunction( &ScriptExe::_BuildRTScene,             "BuildRTScene",             "Pass to build RTScene, executed every frame."              );
-        se->AddFunction( &ScriptExe::_BuildRTSceneIndirect,     "BuildRTSceneIndirect",     "Pass to inirect build RTScene, executed every frame."      );
+        se->AddFunction( &ScriptExe::_BuildRTScene,             "BuildRTScene",             {},     "Pass to build RTScene, executed every frame."              );
+        se->AddFunction( &ScriptExe::_BuildRTSceneIndirect,     "BuildRTSceneIndirect",     {},     "Pass to indirect build RTScene, executed every frame."     );
 
-        se->AddFunction( &ScriptExe::_GetCube2,             "GetCube",          "Returns (positions, normals, indices)" );
-        se->AddFunction( &ScriptExe::_GetCube3,             "GetCube",          "Returns (positions, normals, tangents, bitangents, 2d texcoords, indices)" );
-        se->AddFunction( &ScriptExe::_GetCube4,             "GetCube",          "Returns (positions, normals, tangents, bitangents, cubemap texcoords, indices)" );
-        se->AddFunction( &ScriptExe::_GetGrid1,             "GetGrid",          "Returns size x size grid with (unorm2 positions, indices)" );
-        se->AddFunction( &ScriptExe::_GetGrid2,             "GetGrid",          "Returns size x size grid with (unorm3 positions, indices)" );
-        se->AddFunction( &ScriptExe::_GetSphere1,           "GetSphere",        "Returns spherical cube (positions, indices)" );
-        se->AddFunction( &ScriptExe::_GetSphere2,           "GetSphere",        "Returns spherical cube (positions, cubemap texcoords, indices)" );
-        se->AddFunction( &ScriptExe::_GetSphere3,           "GetSphere",        "Returns spherical cube (positions, normals, tangents, bitangents, cubemap texcoords, indices)" );
-        se->AddFunction( &ScriptExe::_GetCylinder1,         "GetCylinder",      "Returns cylinder (positions, texcoords, indices)" );
-        se->AddFunction( &ScriptExe::_GetCylinder2,         "GetCylinder",      "Returns cylinder (positions, normals, tangents, bitangents, texcoords, indices)" );
+        se->AddFunction( &ScriptExe::_GetCube2,                 "GetCube",                  {"positions", "normals", "indices"} );
+        se->AddFunction( &ScriptExe::_GetCube3,                 "GetCube",                  {"positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"} );
+        se->AddFunction( &ScriptExe::_GetCube4,                 "GetCube",                  {"positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"} );
+        se->AddFunction( &ScriptExe::_GetGrid1,                 "GetGrid",                  {"size", "unorm2Positions", "indices"},                 "Returns (size * size) grid" );
+        se->AddFunction( &ScriptExe::_GetGrid2,                 "GetGrid",                  {"size", "unorm3Positions", "indices"},                 "Returns (size * size) grid in XY space." );
+        se->AddFunction( &ScriptExe::_GetSphere1,               "GetSphere",                {"lod", "positions", "indices"},                        "Returns spherical cube" );
+        se->AddFunction( &ScriptExe::_GetSphere2,               "GetSphere",                {"lod", "positions", "cubemapTexcoords", "indices"},    "Returns spherical cube" );
+        se->AddFunction( &ScriptExe::_GetSphere3,               "GetSphere",                {"lod", "positions", "normals", "tangents", "bitangents", "cubemapTexcoords", "indices"},   "Returns spherical cube with tangential projection for cubemap." );
+        se->AddFunction( &ScriptExe::_GetSphere4,               "GetSphere",                {"lod", "positions", "normals", "tangents", "bitangents", "texcoords2d", "indices"},        "Returns spherical cube" );
+        se->AddFunction( &ScriptExe::_GetCylinder1,             "GetCylinder",              {"segmentCount", "isInner", "positions", "texcoords", "indices"},           "Returns cylinder" );
+        se->AddFunction( &ScriptExe::_GetCylinder2,             "GetCylinder",              {"segmentCount", "isInner", "positions", "normals", "tangents", "bitangents", "texcoords", "indices"},  "Returns cylinder" );
 
-        se->AddFunction( &ScriptExe::_IndicesToPrimitives,  "IndicesToPrimitives",  "Helper to convert array of indices to array of uint3 indices per triangle" );
+        se->AddFunction( &ScriptExe::_IndicesToPrimitives,      "IndicesToPrimitives",      {"indices", "primitives"},      "Helper function to convert array of indices to array of uint3 indices per triangle" );
+        se->AddFunction( &ScriptExe::_GetFrustumPlanes,         "GetFrustumPlanes",         {"viewProj", "outPlanes"},      "Helper function to convert matrix to 6 planes of the frustum." );
+        se->AddFunction( &ScriptExe::_MergeMesh,                "MergeMesh",                {"srcIndices", "srcVertexCount", "indicesToAdd"} );
 
-        se->AddFunction( &ScriptExe::_RunScript1,           "RunScript",        "Run script, path to script must be added to 'res_editor_cfg.as' as 'SecondaryScriptDir()'" );
-        se->AddFunction( &ScriptExe::_RunScript2,           "RunScript"     );
+        se->AddFunction( &ScriptExe::_RunScript1,               "RunScript",                {"filePath", "collection"},     "Run script, path to script must be added to 'res_editor_cfg.as' as 'SecondaryScriptDir()'" );
+        se->AddFunction( &ScriptExe::_RunScript2,               "RunScript",                {"filePath", "flags", "collection"} );
 
-        //se->AddFunction( &ScriptExe::_SliderI0,           "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderI1,           "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderI2,           "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderI3,           "Slider"        );
-        se->AddFunction( &ScriptExe::_SliderI4,             "Slider",           "Added slider to UI. " );
+        se->AddFunction( &ScriptExe::_SliderI0,                 "Slider",                   {"dyn", "name"} );
+        se->AddFunction( &ScriptExe::_SliderI1,                 "Slider",                   {"dyn", "name", "min", "max"} );
+        se->AddFunction( &ScriptExe::_SliderI2,                 "Slider",                   {"dyn", "name", "min", "max"} );
+        se->AddFunction( &ScriptExe::_SliderI3,                 "Slider",                   {"dyn", "name", "min", "max"} );
+        se->AddFunction( &ScriptExe::_SliderI4,                 "Slider",                   {"dyn", "name", "min", "max"},      "Add slider to UI." );
 
-        se->AddFunction( &ScriptExe::_SliderU0,             "Slider"        );
-        se->AddFunction( &ScriptExe::_SliderU1,             "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderU2,           "Slider"        );
-        se->AddFunction( &ScriptExe::_SliderU3,             "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderU4,           "Slider"        );
+        se->AddFunction( &ScriptExe::_SliderU0,                 "Slider",                   {"dyn", "name"} );
+        se->AddFunction( &ScriptExe::_SliderU1,                 "Slider",                   {"dyn", "name", "min", "max"} );
+        se->AddFunction( &ScriptExe::_SliderU2,                 "Slider",                   {"dyn", "name", "min", "max"} );
+        se->AddFunction( &ScriptExe::_SliderU3,                 "Slider",                   {"dyn", "name", "min", "max"} );
+        se->AddFunction( &ScriptExe::_SliderU4,                 "Slider",                   {"dyn", "name", "min", "max"} );
 
-        se->AddFunction( &ScriptExe::_SliderF0,             "Slider"        );
-        se->AddFunction( &ScriptExe::_SliderF1,             "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderF2,           "Slider"        );
-        //se->AddFunction( &ScriptExe::_SliderF3,           "Slider"        );
-        se->AddFunction( &ScriptExe::_SliderF4,             "Slider"        );
+        se->AddFunction( &ScriptExe::_SliderF0,                 "Slider",                   {"dyn", "name"} );
+        se->AddFunction( &ScriptExe::_SliderF1,                 "Slider",                   {"dyn", "name", "min", "max"} );
+        se->AddFunction( &ScriptExe::_SliderF2,                 "Slider",                   {"dyn", "name", "min", "max"} );
+        se->AddFunction( &ScriptExe::_SliderF3,                 "Slider",                   {"dyn", "name", "min", "max"} );
+        se->AddFunction( &ScriptExe::_SliderF4,                 "Slider",                   {"dyn", "name", "min", "max"} );
 
         // TODO:
         //  PresentVR( left, left_layer, left_mipmap,  right, right_layer, right_mipmap )
@@ -1180,9 +1263,10 @@ namespace {
         EnumBinder<DebugView::EFlags>   binder {se};
         binder.Create();
         binder.AddValue( "NoCopy",      DebugView::EFlags::NoCopy );
-        binder.AddValue( "None",        DebugView::EFlags::Unknown );
+        binder.AddValue( "Copy",        DebugView::EFlags::Copy );
         binder.AddValue( "Histogram",   DebugView::EFlags::Histogram );
-        STATIC_ASSERT( uint(DebugView::EFlags::_Count) == 3 );
+        binder.AddValue( "LinearDepth", DebugView::EFlags::LinearDepth );
+        STATIC_ASSERT( uint(DebugView::EFlags::_Count) == 4 );
     }
 
 /*
@@ -1242,11 +1326,10 @@ namespace {
         ScriptComputePass::GetShaderTypes( INOUT data );
         ScriptRayTracingPass::GetShaderTypes( INOUT data );
         ScriptSceneGraphicsPass::GetShaderTypes( INOUT data );
-        ScriptSceneRayTracingPass::GetShaderTypes( INOUT data );
 
         ScriptSphericalCube::GetShaderTypes( INOUT data );
         ScriptUniGeometry::GetShaderTypes( INOUT data );
-        ScriptSceneGeometry::GetShaderTypes( INOUT data );
+        ScriptModelGeometrySrc::GetShaderTypes( INOUT data );
 
         if ( data.cpp.empty() )
             return;
@@ -1286,7 +1369,7 @@ namespace {
                 ScriptBasePass::CppStructsFromShaders   data;
                 ScriptSphericalCube::GetShaderTypes( INOUT data );
                 ScriptUniGeometry::GetShaderTypes( INOUT data );
-                ScriptSceneGeometry::GetShaderTypes( INOUT data );
+                ScriptModelGeometrySrc::GetShaderTypes( INOUT data );
 
                 fn( s_scriptExe->_engine2 );
                 result = s_scriptExe->_ConvertAndLoad();

@@ -12,15 +12,15 @@ namespace AE::Math
     //
 
     template <typename T>
-    struct SphericalTempl
+    struct TSpherical
     {
         STATIC_ASSERT( IsFloatPoint<T> );
 
     // types
     public:
         using Value_t   = T;
-        using Angle_t   = RadiansTempl< T >;
-        using Self      = SphericalTempl< T >;
+        using Angle_t   = TRadians< T >;
+        using Self      = TSpherical< T >;
         using Vec3_t    = Vec< T, 3 >;
 
 
@@ -32,11 +32,11 @@ namespace AE::Math
 
     // methods
     public:
-        constexpr SphericalTempl ()                                             __NE___ {}
-        constexpr SphericalTempl (T theta, T phi)                               __NE___ : theta{theta}, phi{phi} {}
-        constexpr SphericalTempl (Angle_t theta, Angle_t phi)                   __NE___ : theta{theta}, phi{phi} {}
-        constexpr explicit SphericalTempl (const Vec<T,2> &angle)               __NE___ : theta{angle.x}, phi{angle.y} {}
-        constexpr explicit SphericalTempl (const Vec<Angle_t, 2> &angle)        __NE___ : theta{angle.x}, phi{angle.y} {}
+        constexpr TSpherical ()                                                 __NE___ {}
+        constexpr TSpherical (T theta, T phi)                                   __NE___ : theta{theta}, phi{phi} {}
+        constexpr TSpherical (Angle_t theta, Angle_t phi)                       __NE___ : theta{theta}, phi{phi} {}
+        constexpr explicit TSpherical (const Vec<T,2> &angle)                   __NE___ : theta{angle.x}, phi{angle.y} {}
+        constexpr explicit TSpherical (const Vec<Angle_t, 2> &angle)            __NE___ : theta{angle.x}, phi{angle.y} {}
 
         ND_ constexpr explicit operator Vec<T,2> ()                             C_NE___ { return Vec<T,2>{ T(theta), T(phi) }; }
         ND_ constexpr explicit operator Vec<Angle_t,2> ()                       C_NE___ { return Vec<Angle_t,2>{ theta, phi }; }
@@ -50,8 +50,8 @@ namespace AE::Math
     };
 
 
-    using SphericalF    = SphericalTempl< float >;
-    using SphericalD    = SphericalTempl< double >;
+    using SphericalF    = TSpherical< float >;
+    using SphericalD    = TSpherical< double >;
 
 
 
@@ -61,13 +61,13 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline constexpr SphericalTempl<T>  SphericalTempl<T>::operator + (const Self &rhs) C_NE___
+    inline constexpr TSpherical<T>  TSpherical<T>::operator + (const Self &rhs) C_NE___
     {
         return Self{ theta + rhs.theta, phi + rhs.phi };
     }
 
     template <typename T>
-    inline constexpr SphericalTempl<T>  SphericalTempl<T>::operator - (const Self &rhs) C_NE___
+    inline constexpr TSpherical<T>  TSpherical<T>::operator - (const Self &rhs) C_NE___
     {
         return Self{ theta - rhs.theta, phi - rhs.phi };
     }
@@ -78,12 +78,12 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline Pair<SphericalTempl<T>, T>  SphericalTempl<T>::FromCartesian (const Vec<T,3> &cartesian) __NE___
+    inline Pair<TSpherical<T>, T>  TSpherical<T>::FromCartesian (const Vec<T,3> &cartesian) __NE___
     {
         const T radius  = Length( cartesian );
         const T len     = Equals( radius, T{0} ) ? T{1} : radius;
 
-        SphericalTempl<T>   spherical{  ACos( cartesian.z / len ),
+        TSpherical<T>   spherical{  ACos( cartesian.z / len ),
                                         ATan( cartesian.y, len )};
         return { spherical, radius };
     }
@@ -94,7 +94,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    inline Vec<T,3>  SphericalTempl<T>::ToCartesian () C_NE___
+    inline Vec<T,3>  TSpherical<T>::ToCartesian () C_NE___
     {
         Vec<T,3>    cartesian;
 
@@ -107,7 +107,7 @@ namespace AE::Math
     }
 
     template <typename T>
-    inline Vec<T,3>  SphericalTempl<T>::ToCartesian (T radius) C_NE___
+    inline Vec<T,3>  TSpherical<T>::ToCartesian (T radius) C_NE___
     {
         return ToCartesian() * radius;
     }

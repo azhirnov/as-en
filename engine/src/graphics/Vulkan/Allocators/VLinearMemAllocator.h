@@ -49,7 +49,8 @@ namespace AE::Graphics
         using Key       = VGfxMemAllocatorUtils::Key;
         using PageMap_t = FixedMap< Key, FixedArray< Page, 8 >, 4 >;
 
-        static constexpr Bytes  _Align {4 << 10};
+        static constexpr Bytes  _Align              {4 << 10};
+        static constexpr Bytes  _DefaultPageSize    {64 << 20};
 
 
     // variables
@@ -61,7 +62,7 @@ namespace AE::Graphics
 
     // methods
     public:
-        explicit VLinearMemAllocator (Bytes pageSize = 0_b)                                     __NE___;
+        explicit VLinearMemAllocator (Bytes pageSize = _DefaultPageSize)                        __NE___;
         ~VLinearMemAllocator ()                                                                 __NE_OV;
 
         void  SetPageSize (Bytes size)                                                          __NE___;

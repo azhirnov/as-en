@@ -40,8 +40,7 @@ namespace AE::ResEditor
         {
             IGSMaterials &          mtr;
             DirectCtx::Transfer &   ctx;
-            float3                  position;
-            IController const&      controller;
+            float4x4 const&         transform;
             UpdatePassData const&   pd;
         };
 
@@ -56,7 +55,6 @@ namespace AE::ResEditor
             IGSMaterials &          mtr;
             DirectCtx::Draw &       ctx;
             DescriptorSetID         passDS;
-            float3                  position;
         };
 
 

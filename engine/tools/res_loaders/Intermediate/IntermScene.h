@@ -27,7 +27,7 @@ namespace AE::ResLoader
     {
     // types
     public:
-        using Transform_t   = Transformation<float>;
+        using Transform_t   = TTransformation<float>;
 
         struct Model
         {
@@ -90,10 +90,10 @@ namespace AE::ResLoader
                           const Transform_t &transform = Default)                   __NE___;
 
         template <typename FN>
-        void  ForEachNode (FN &&fn, const Transform_t &initialTransform = Default)  C_NE___;
+        void  ForEachNode (FN &&fn, const Transform_t &initialTransform = Default)  C_Th___;
 
         template <typename FN>
-        void  ForEachModel (FN &&fn, const Transform_t &initialTransform = Default) C_NE___;
+        void  ForEachModel (FN &&fn, const Transform_t &initialTransform = Default) C_Th___;
 
         ND_ usize  ModelNodeCount ()                                                C_NE___;
     };
@@ -106,7 +106,7 @@ namespace AE::ResLoader
 =================================================
 */
     template <typename FN>
-    void  IntermScene::ForEachNode (FN &&fn, const Transform_t &initialTransform) C_NE___
+    void  IntermScene::ForEachNode (FN &&fn, const Transform_t &initialTransform) C_Th___
     {
         Array<Pair< SceneNode const*, Transform_t >>    stack;
         stack.emplace_back( &Root(), initialTransform );
@@ -136,18 +136,18 @@ namespace AE::ResLoader
 =================================================
 */
     template <typename FN>
-    void  IntermScene::ForEachModel (FN &&fn, const Transform_t &initialTransform) C_NE___
+    void  IntermScene::ForEachModel (FN &&fn, const Transform_t &initialTransform) C_Th___
     {
         ForEachNode(
-            [fn] (StringView, const NodeData_t &data, const Transform_t &) -> bool
+            [&fn] (StringView, const NodeData_t &data, const Transform_t &) __Th___ -> bool
             {
                 Visit( data,
-                    [fn] (const ModelData &mdl) {
+                    [&fn] (const ModelData &mdl) __Th___ {
                         fn( mdl );
                     },
                     [] (const NullUnion &) {}
                 );
-                return true;
+                return true;  // continue iterating
             },
             initialTransform );
     }

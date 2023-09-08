@@ -10,6 +10,7 @@
         uint4   RGBLuma [COUNT];
     } un_Histogram;
 #endif
+//-----------------------------------------------------------------------------
 
 #include "GlobalIndex.glsl"
 

@@ -22,7 +22,7 @@ namespace AE::Math
         using Vec2_t        = TVec< T, 2, Q >;
         using Vec3_t        = TVec< T, 3, Q >;
         using Vec4_t        = TVec< T, 4, Q >;
-        using Rad_t         = RadiansTempl<T>;
+        using Rad_t         = TRadians<T>;
 
 
     // variables
@@ -143,12 +143,14 @@ namespace AE::Math
     #endif
 
     #if Columns == 4 and Rows == 4
-        ND_ static Self  Ortho (const Rect_t &viewport, const Vec2_t &range)            __NE___ { return Self{ glm::ortho( viewport.left, viewport.right, viewport.bottom, viewport.top, range[0], range[1] )}; }
+        ND_ static Self  Ortho (const Rect_t &viewport, const Vec2_t &range)            __NE___ { return Self{ glm::ortho( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
         ND_ static Self  InfinitePerspective (Rad_t fovY, T aspect, T zNear)            __NE___ { return Self{ glm::infinitePerspective( T(fovY), aspect, zNear )}; }
         ND_ static Self  Perspective (Rad_t fovY, T aspect, const Vec2_t &range)        __NE___ { return Self{ glm::perspective( T(fovY), aspect, range[0], range[1] )}; }
         ND_ static Self  Perspective (Rad_t fovY, const Vec2_t &viewport, const Vec2_t &range)  __NE___ { return Self{ glm::perspectiveFov( T(fovY), viewport.x, viewport.y, range[0], range[1] )}; }
-        ND_ static Self  Frustum (const Rect_t &viewport, const Vec2_t &range)          __NE___ { return Self{ glm::frustum( viewport.left, viewport.right, viewport.bottom, viewport.top, range[0], range[1] )}; }
+        ND_ static Self  Frustum (const Rect_t &viewport, const Vec2_t &range)          __NE___ { return Self{ glm::frustum( viewport.left, viewport.right, viewport.top, viewport.bottom, range[0], range[1] )}; }
         ND_ static Self  InfiniteFrustum (const Rect_t &viewport, T zNear)              __NE___;
+
+        ND_ static Self  LookAt (const Vec3_t &eye, const Vec3_t &center, const Vec3_t &up) __NE___ { return Self{ glm::lookAt( eye, center, up )}; }
 
         ND_ static Self  Translated (const Vec3_t &translation)                         __NE___ { return Self{ glm::translate( Self::Identity()._value, translation )}; }
         ND_ static Self  Scaled (const Vec3_t &scale)                                   __NE___;

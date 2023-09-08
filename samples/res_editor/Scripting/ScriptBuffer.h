@@ -177,7 +177,7 @@ namespace AE::ResEditor
 
 
     private:
-        ND_ bool  _IsArray ()                                                                   C_NE___ { return _dynCount or _staticCount > 0; }
+        ND_ bool  _IsArray ()                                                                   C_NE___ { return _dynCount or _staticCount > 1; }
 
         void  _SetType (EBufferType type)                                                       __Th___;
 

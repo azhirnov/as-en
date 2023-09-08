@@ -48,6 +48,8 @@ namespace AE::ResEditor
             }
 
             case EFlags::Unknown :
+                break;
+
             case EFlags::_Count :
             default :
                 DBG_WARNING( "unsupported flags" );
@@ -91,6 +93,8 @@ namespace AE::ResEditor
             }
 
             case EFlags::Unknown :
+                break;
+
             case EFlags::_Count :
             default :
                 DBG_WARNING( "unsupported flags" );

@@ -5,7 +5,8 @@ void ASmain ()
 {
     {
         RC<ShaderStructType>    st = ShaderStructType( "canvas2d.io" );
-        st.Set( "float4     color;" +
+        st.Set( EStructLayout::InternalIO,
+                "float4     color;" +
                 "float2     uv;" );
     }{
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "canvas2d.ds0" );
@@ -23,14 +24,14 @@ void ASmain ()
 
         {
             RC<Shader>  vs = Shader();
-            vs.file        = "canvas2d.glsl";    // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
+            vs.file     = "canvas2d.glsl";  // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
             vs.options  = EShaderOpt::Optimize;
             ppln.SetVertexShader( vs );
         }
         {
             RC<Shader>  fs = Shader();
             fs.Define( "MODE = 1" );
-            fs.file        = "canvas2d.glsl";    // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
+            fs.file     = "canvas2d.glsl";  // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
             fs.options  = EShaderOpt::Optimize;
             ppln.SetFragmentShader( fs );
         }
@@ -60,14 +61,14 @@ void ASmain ()
 
         {
             RC<Shader>  vs = Shader();
-            vs.file        = "canvas2d.glsl";    // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
+            vs.file     = "canvas2d.glsl";  // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
             vs.options  = EShaderOpt::Optimize;
             ppln.SetVertexShader( vs );
         }
         {
             RC<Shader>  fs = Shader();
             fs.Define( "MODE = 2" );
-            fs.file        = "canvas2d.glsl";    // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
+            fs.file     = "canvas2d.glsl";  // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
             fs.options  = EShaderOpt::Optimize;
             ppln.SetFragmentShader( fs );
         }
@@ -112,14 +113,14 @@ void ASmain ()
 
         {
             RC<Shader>  vs = Shader();
-            vs.file        = "canvas2d.glsl";    // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
+            vs.file     = "canvas2d.glsl";  // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
             vs.options  = EShaderOpt::Optimize;
             ppln.SetVertexShader( vs );
         }
         {
             RC<Shader>  fs = Shader();
             fs.Define( "MODE = 3" );
-            fs.file        = "canvas2d.glsl";    // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
+            fs.file     = "canvas2d.glsl";  // file:///<path>/AE/samples/demo/_data/shaders/canvas2d.glsl
             fs.options  = EShaderOpt::Optimize;
             ppln.SetFragmentShader( fs );
         }

@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "CPP_VM/VirtualMachine.h"
-#include "base/Algorithms/StringUtils.h"
 
 namespace AE::Base
 {
@@ -11,6 +10,8 @@ namespace AE::Base
 
 namespace LFAS::CPP
 {
+    using namespace AE::Base;
+
 
     //
     // Script
@@ -208,7 +209,7 @@ namespace LFAS::CPP
 =================================================
     CheckForUncommittedChanges
 ----
-    find uncommited changes in current thread
+    find uncommitted changes in current thread
 =================================================
 */
     void  VirtualMachine::CheckForUncommittedChanges () const

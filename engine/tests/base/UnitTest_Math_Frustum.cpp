@@ -4,8 +4,8 @@
 
 namespace
 {
-    using Frustum   = FrustumTempl<float>;
-    using Camera    = CameraTempl<float>;
+    using Frustum   = TFrustum<float>;
+    using Camera    = TCamera<float>;
 
 
     static void  Frustum_Test1 ()

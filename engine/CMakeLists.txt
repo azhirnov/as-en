@@ -10,6 +10,17 @@ set( AE_ENABLE_COMPILER_WARNINGS    ON  CACHE INTERNAL "" FORCE )
 
 set( AE_EXTERNAL_REP_PATH   "${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Data" CACHE INTERNAL "" FORCE )
 set( AE_TEMP_FOLDER         "${CMAKE_CURRENT_SOURCE_DIR}/../../AE-Temp" CACHE INTERNAL "" FORCE )
+set( AE_ENGINE_SHARED_DATA  "${CMAKE_CURRENT_SOURCE_DIR}/shared_data"   CACHE INTERNAL "" FORCE )
+
+if (NOT EXISTS ${AE_EXTERNAL_REP_PATH})
+#    message( FATAL_ERROR "Path '${AE_EXTERNAL_REP_PATH}' is not exists" )
+endif()
+if (NOT EXISTS ${AE_TEMP_FOLDER})
+#    message( FATAL_ERROR "Path '${AE_TEMP_FOLDER}' is not exists" )
+endif()
+if (NOT EXISTS ${AE_ENGINE_SHARED_DATA})
+    message( FATAL_ERROR "Path '${AE_ENGINE_SHARED_DATA}' is not exists" )
+endif()
 
 include( "cmake/config.cmake" )
 include( "cmake/utils.cmake" )

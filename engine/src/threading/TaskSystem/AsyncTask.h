@@ -27,7 +27,6 @@
 
 #pragma once
 
-#include "threading/Primitives/Atomic.h"
 #include "threading/Primitives/SpinLock.h"
 #include "threading/TaskSystem/TaskProfiler.h"
 #include "threading/TaskSystem/EThread.h"

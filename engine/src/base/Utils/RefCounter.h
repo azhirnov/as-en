@@ -7,7 +7,7 @@
 #include "base/Memory/MemUtils.h"
 #include "base/Platforms/ThreadUtils.h"
 #include "base/Utils/Helpers.h"
-#include "base/Utils/Threading.h"
+#include "base/Utils/Atomic.h"
 
 namespace AE::Base
 {
@@ -26,14 +26,12 @@ namespace AE::Base
 
     // variables
     private:
-        std::atomic<int>    _counter {0};
-
-        STATIC_ASSERT( decltype(_counter)::is_always_lock_free );
+        Atomic<int>     _counter {0};
 
 
     // methods
     public:
-        virtual ~EnableRCBase ()        __NE___ { ASSERT( _counter.load( EMemoryOrder::Relaxed ) == 0 ); }
+        virtual ~EnableRCBase ()        __NE___ { ASSERT( _counter.load() == 0 ); }
 
     protected:
         // this methods allows to catch object destruction and change behavior,
@@ -57,20 +55,20 @@ namespace AE::Base
     struct RefCounterUtils final : Noninstanceable
     {
         // returns previous value of ref counter
-            forceinline static int   IncRef (EnableRCBase &obj)         __NE___ { return obj._counter.fetch_add( 1, EMemoryOrder::Relaxed ); }
+            forceinline static int   IncRef (EnableRCBase &obj)         __NE___ { return obj._counter.fetch_add( 1 ); }
 
         // returns previous value of ref counter
-            forceinline static int   AddRef (EnableRCBase &obj, int cnt)__NE___ { return obj._counter.fetch_add( cnt, EMemoryOrder::Relaxed ); }
+            forceinline static int   AddRef (EnableRCBase &obj, int cnt)__NE___ { return obj._counter.fetch_add( cnt ); }
 
         // returns '1' if object must be destroyed
-            forceinline static int   DecRef (EnableRCBase &obj)         __NE___ { return obj._counter.fetch_sub( 1, EMemoryOrder::Relaxed ); }
+            forceinline static int   DecRef (EnableRCBase &obj)         __NE___ { return obj._counter.fetch_sub( 1 ); }
 
         // returns '1' if object have been destroyed.
         // 'ptr' can be null
         template <typename T>
             forceinline static int   DecRefAndRelease (INOUT T* &ptr)   __NE___;
 
-        ND_ forceinline static int   UseCount (EnableRCBase &obj)       __NE___ { return obj._counter.load( EMemoryOrder::Relaxed ); }
+        ND_ forceinline static int   UseCount (EnableRCBase &obj)       __NE___ { return obj._counter.load(); }
     };
 
 
@@ -281,7 +279,7 @@ namespace AE::Base
 
     // variables
     private:
-        std::atomic< T *>   _ptr {null};
+        Atomic< T *>    _ptr {null};
 
 
     // methods
@@ -291,12 +289,12 @@ namespace AE::Base
 
         AtomicRC (T* ptr)                                           __NE___ { _IncSet( ptr ); }
         AtomicRC (Ptr<T> ptr)                                       __NE___ { _IncSet( ptr.get() ); }
-        AtomicRC (RC_t && rc)                                       __NE___ { _ptr.store( rc.release().release(), EMemoryOrder::Relaxed ); }
+        AtomicRC (RC_t && rc)                                       __NE___ { _ptr.store( rc.release().release() ); }
         AtomicRC (const RC_t &rc)                                   __NE___ { _IncSet( rc.get() ); }
 
         ~AtomicRC ()                                                __NE___ { _ResetDec();  STATIC_ASSERT( alignof(T) > 1 ); /* because first bit is used for lock bit */}
 
-        ND_ T *     unsafe_get ()                                   C_NE___ { return _RemoveLockBit( _ptr.load( EMemoryOrder::Relaxed )); }
+        ND_ T *     unsafe_get ()                                   C_NE___ { return _RemoveLockBit( _ptr.load() ); }
         ND_ RC_t    release ()                                      __NE___;
 
         ND_ RC_t    load ()                                         __NE___;
@@ -629,9 +627,9 @@ namespace AE::Base
         bool    res;
 
         if constexpr( IsStrong )
-            res = _ptr.compare_exchange_strong( INOUT exp, des, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed );
+            res = _ptr.compare_exchange_strong( INOUT exp, des );
         else
-            res = _ptr.compare_exchange_weak( INOUT exp, des, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed );
+            res = _ptr.compare_exchange_weak( INOUT exp, des );
 
         if ( res ) {
             RefCounterUtils::DecRefAndRelease( exp );
@@ -650,10 +648,10 @@ namespace AE::Base
     template <typename T>
     T*  AtomicRC<T>::_Exchange (T* desired) __NE___
     {
-        T*  exp = _RemoveLockBit( _ptr.load( EMemoryOrder::Relaxed ));
+        T*  exp = _RemoveLockBit( _ptr.load() );
 
         for (uint i = 0;
-             not _ptr.compare_exchange_weak( INOUT exp, desired, EMemoryOrder::Relaxed, EMemoryOrder::Relaxed );
+             not _ptr.compare_exchange_weak( INOUT exp, desired );
              ++i)
         {
             if_unlikely( i > ThreadUtils::SpinBeforeLock() )
@@ -678,9 +676,9 @@ namespace AE::Base
     template <typename T>
     T*  AtomicRC<T>::_Lock () __NE___
     {
-        T*  exp = _RemoveLockBit( _ptr.load( EMemoryOrder::Relaxed ));
+        T*  exp = _RemoveLockBit( _ptr.load() );
         for (uint i = 0;
-             not _ptr.compare_exchange_weak( INOUT exp, _SetLockBit( exp ), EMemoryOrder::Relaxed, EMemoryOrder::Relaxed );
+             not _ptr.compare_exchange_weak( INOUT exp, _SetLockBit( exp ));
              ++i)
         {
             if_unlikely( i > ThreadUtils::SpinBeforeLock() )
@@ -705,8 +703,8 @@ namespace AE::Base
     template <typename T>
     void  AtomicRC<T>::_Unlock () __NE___
     {
-        T*  exp     = _RemoveLockBit( _ptr.load( EMemoryOrder::Relaxed ));
-        T*  prev    = _ptr.exchange( exp, EMemoryOrder::Relaxed );
+        T*  exp     = _RemoveLockBit( _ptr.load() );
+        T*  prev    = _ptr.exchange( exp );
         Unused( prev );
         ASSERT( prev == _SetLockBit( exp ));
     }

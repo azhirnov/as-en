@@ -44,7 +44,7 @@ namespace AE::Math
 
         ND_ constexpr T     Offset ()           C_NE___ { return begin; }
         ND_ constexpr T     Size ()             C_NE___ { return end - begin; }
-        ND_ constexpr T     Middle ()           C_NE___ { return CalcAverage( begin, end ); }
+        ND_ constexpr T     Middle ()           C_NE___ { return Average( begin, end ); }
 
         ND_ constexpr bool  IsEmpty ()          C_NE___ { return begin == end; }
         ND_ constexpr bool  IsInvalid ()        C_NE___ { return end < begin; }

@@ -24,23 +24,23 @@ namespace AE::Base
 
     // methods
     public:
-        FastRStream (FastRStream &&)                __NE___ = default;
+        FastRStream (FastRStream &&)                                    __NE___ = default;
 
-        explicit FastRStream (RC<RStream> stream)   __NE___;
+        explicit FastRStream (RC<RStream> stream)                       __NE___;
 
-        ~FastRStream ()                             __NE___;
+        ~FastRStream ()                                                 __NE___;
 
-        ND_ bool    Empty ()                        C_NE___ { return _ptr == _end; }
-        ND_ Bytes   RemainingSize ()                C_NE___ { return Bytes{_end} - Bytes{_ptr}; }
-        ND_ Bytes   Position ()                     C_NE___ { return _stream->GetFastStreamPosition( _ptr ); }
+        ND_ bool    Empty ()                                            C_NE___ { return _ptr == _end; }
+        ND_ Bytes   RemainingSize ()                                    C_NE___ { return Bytes{_end} - Bytes{_ptr}; }
+        ND_ Bytes   Position ()                                         C_NE___ { return _stream->GetFastStreamPosition( _ptr ); }
 
         template <typename T>
-        ND_ forceinline bool  Read (OUT T& value)   __NE___
+        ND_ forceinline bool  Read (OUT T& value)                       __NE___
         {
             return Read( OUT &value, SizeOf<T> );
         }
 
-        ND_ forceinline bool  Read (OUT void* buffer, Bytes size) __NE___;
+        ND_ forceinline bool  Read (OUT void* buffer, Bytes size)       __NE___;
     };
 
 
@@ -58,23 +58,23 @@ namespace AE::Base
 
     // methods
     public:
-        FastWStream (FastWStream &&)                __NE___ = default;
+        FastWStream (FastWStream &&)                                    __NE___ = default;
 
-        explicit FastWStream (RC<WStream> stream)   __NE___;
+        explicit FastWStream (RC<WStream> stream)                       __NE___;
 
-        ~FastWStream ()                             __NE___;
+        ~FastWStream ()                                                 __NE___;
 
-        ND_ bool    Empty ()                        C_NE___ { return _ptr == _end; }
-        ND_ Bytes   RemainingSize ()                C_NE___ { return Bytes{_end} - Bytes{_ptr}; }
-        ND_ Bytes   Position ()                     C_NE___ { return _stream->GetFastStreamPosition( _ptr ); }
+        ND_ bool    Empty ()                                            C_NE___ { return _ptr == _end; }
+        ND_ Bytes   RemainingSize ()                                    C_NE___ { return Bytes{_end} - Bytes{_ptr}; }
+        ND_ Bytes   Position ()                                         C_NE___ { return _stream->GetFastStreamPosition( _ptr ); }
 
         template <typename T>
-        ND_ forceinline bool  Write (const T& value)__NE___
+        ND_ forceinline bool  Write (const T& value)                    __NE___
         {
             return Write( &value, SizeOf<T> );
         }
 
-        ND_ forceinline bool  Write (const void* buffer, Bytes size) __NE___;
+        ND_ forceinline bool  Write (const void* buffer, Bytes size)    __NE___;
     };
 //-----------------------------------------------------------------------------
 
@@ -205,5 +205,6 @@ namespace AE::Base
         DBG_WARNING( "should never happen" );
         return true;
     }
+
 
 } // AE::Serializing

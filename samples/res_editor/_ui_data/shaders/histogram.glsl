@@ -35,14 +35,19 @@
         gl.Position = float4( ToSNorm(pos), 0.0f, 1.0f );
         v_Color     = float4( c_ChannelColor[channel], u );
     }
+
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
+    #include "Math.glsl"
+
     layout(location=0) in  float4  v_Color;
     layout(location=0) out float4  out_Color;
 
     void Main ()
     {
-        out_Color = float4( v_Color.rgb, smoothstep( 0.95f, 0.999f, v_Color.a ) * 0.75f + 0.25f );
+        out_Color = float4( v_Color.rgb, SmoothStep( 0.95f, 0.999f, v_Color.a ) * 0.75f + 0.25f );
     }
+
 #endif
+//-----------------------------------------------------------------------------

@@ -8,8 +8,6 @@
 
 namespace AE::Graphics
 {
-    class ITransferContext;
-
 
     //
     // Raster Font
@@ -44,24 +42,24 @@ namespace AE::Graphics
 
     // methods
     public:
-        RasterFont ()                                                                               __NE___ {}
-        ~RasterFont ()                                                                              __NE___;
+        RasterFont ()                                                                                   __NE___ {}
+        ~RasterFont ()                                                                                  __NE___;
 
-        RasterFont&  operator = (RasterFont &&)                                                     __NE___;
+            RasterFont&     operator = (RasterFont &&)                                                  __NE___;
 
-        ND_ uint  ValidateHeight (float heightInPx)                                                 C_NE___;
+        ND_ Glyph const*    GetGlyph (CharUtf32 symbol, uint height)                                    C_NE___;
 
-        ND_ Glyph const*  GetGlyph (CharUtf32 symbol, uint height)                                  C_NE___;
+        ND_ uint  ValidateHeight (float heightInPx)                                                     C_NE___;
 
-        void  CalculateDimensions (const float2 &areaSizeInPix, INOUT PrecalculatedFormattedText &) C_NE___;
+            void  CalculateDimensions (const float2 &areaSizeInPix, INOUT PrecalculatedFormattedText &) C_NE___;
 
-        ND_ float  ScreenPixRange (float heightInPx)                                                C_NE___;    // 2D SDF only
+        ND_ float  ScreenPixRange (float heightInPx)                                                    C_NE___;    // 2D SDF only
 
-        ND_ bool                IsSDF ()                                                            C_NE___ { return _sdfConfig.scale != 0.f; }
-        ND_ ImageID             GetImageID ()                                                       C_NE___ { return _imageAndView.image; }
-        ND_ ImageViewID         GetViewID ()                                                        C_NE___ { return _imageAndView.view; }
-        ND_ ImageAndViewID      GetImageAndView ()                                                  C_NE___ { return _imageAndView; }
-        ND_ SDFConfig const&    GetSDFConfig ()                                                     C_NE___ { return _sdfConfig; }
+        ND_ bool                IsSDF ()                                                                C_NE___ { return _sdfConfig.scale != 0.f; }
+        ND_ ImageID             GetImageID ()                                                           C_NE___ { return _imageAndView.image; }
+        ND_ ImageViewID         GetViewID ()                                                            C_NE___ { return _imageAndView.view; }
+        ND_ ImageAndViewID      GetImageAndView ()                                                      C_NE___ { return _imageAndView; }
+        ND_ SDFConfig const&    GetSDFConfig ()                                                         C_NE___ { return _sdfConfig; }
     };
 
 

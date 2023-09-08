@@ -147,7 +147,7 @@ namespace AE::ResEditor
 
             // upload
             {
-                const auto  status = res->Upload( ctx );
+                const auto  status = res->Upload( ctx );  // throw
 
                 BEGIN_ENUM_CHECKS();
                 switch ( status )
@@ -252,7 +252,7 @@ namespace AE::ResEditor
 
             // upload
             {
-                const auto  status = res->Upload( ctx );
+                const auto  status = res->Readback( ctx );  // throw
 
                 BEGIN_ENUM_CHECKS();
                 switch ( status )
@@ -289,7 +289,7 @@ namespace AE::ResEditor
     CancelAll
 =================================================
 */
-    void  ResourceQueue::CancelAll ()
+    void  ResourceQueue::CancelAll () __NE___
     {
         const auto  CancelQueue = [] (auto& q)
         {{

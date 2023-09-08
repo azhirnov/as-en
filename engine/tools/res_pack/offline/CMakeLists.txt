@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (TARGET "Scripting")
     add_executable( "OfflinePacker" "main.cpp" )
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
@@ -9,7 +11,7 @@ if (TARGET "Scripting")
     target_include_directories( "OfflinePacker" PUBLIC ".." )
 
     target_compile_definitions( "OfflinePacker" PRIVATE
-        AE_SHARED_DATA="${CMAKE_CURRENT_SOURCE_DIR}/../shared_data"
+        AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
         AE_CANVAS_VERTS="${CMAKE_CURRENT_SOURCE_DIR}/../../../src/graphics_hl/Canvas/VertexTypes.as"
         AE_BUILD_ASSET_PACKER
         AE_BUILD_INPUT_ACTIONS_BINDING

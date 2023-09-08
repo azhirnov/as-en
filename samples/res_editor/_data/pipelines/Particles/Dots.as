@@ -24,8 +24,8 @@
                     "float4     color;" );
         }{
             RC<DescriptorSetLayout> ds = DescriptorSetLayout( "mtr.ds" );
-            ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", ArraySize(1), "UnifiedGeometryMaterialUB" );
-            ds.StorageBuffer( EShaderStages::Vertex, "un_Particles", ArraySize(1), "ParticleArray", EAccessType::Coherent, EResourceState::ShaderStorage_Read );
+            ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", "UnifiedGeometryMaterialUB" );
+            ds.StorageBuffer( EShaderStages::Vertex, "un_Particles", "ParticleArray", EResourceState::ShaderStorage_Read );
         }{
             RC<PipelineLayout>      pl = PipelineLayout( "pl" );
             pl.DSLayout( "pass",     0, "pass.ds" );
@@ -81,11 +81,12 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_VERT
     #include "Math.glsl"
+    #include "Transform.glsl"
 
     void Main ()
     {
         Particle    p   = un_Particles.elements[gl.VertexIndex];
-        gl.Position     = un_PerPass.camera.view * (un_PerObject.transform * float4(p.position_size.xyz, 1.0));
+        gl.Position     = LocalPosToViewSpace( p.position_size.xyz );
         Out.color       = unpackUnorm4x8( floatBitsToUint( p.velocity_color.w ));
         Out.size        = p.position_size.w * 4.0 / Max( un_PerPass.resolution.x, un_PerPass.resolution.y );
     }

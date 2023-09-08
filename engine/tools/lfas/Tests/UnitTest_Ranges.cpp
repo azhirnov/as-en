@@ -1,9 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-#include "Utils/MemRanges.h"
 #include "UnitTest_Common.h"
-using namespace LFAS;
-
 
 namespace
 {
@@ -31,7 +28,7 @@ namespace
     }
 
 
-    void Ranges_Test1 ()
+    void  Ranges_Test1 ()
     {
         MemRanges   ranges;
 
@@ -76,7 +73,7 @@ namespace
 }
 
 
-extern void UnitTest_Ranges ()
+extern void  UnitTest_Ranges ()
 {
     Ranges_Test1();
 

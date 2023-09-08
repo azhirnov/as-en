@@ -104,6 +104,9 @@ namespace AE::Graphics
 
         ND_ static bool  LoadDevice (VkDevice device, OUT VulkanDeviceFnTable &table)                                   __NE___;
             static void  ResetDevice (OUT VulkanDeviceFnTable &table)                                                   __NE___;
+
+            static void  SetupInstanceBackwardCompatibility (Version2 instanceVersion)                                  __NE___;
+            static void  SetupDeviceBackwardCompatibility (Version2 deviceVersion, INOUT VulkanDeviceFnTable &table)    __NE___;
     };
 
 } // AE::Graphics

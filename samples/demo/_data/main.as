@@ -11,7 +11,7 @@ void ASmain ()
     //suffix.push_back( "mac" );
 
     Archive     archive;
-    archive.SetTempFile( output_temp + "archive1.tmp" );
+    archive.SetTempFile( output_temp + "archive-1.tmp" );
 
     // pipeline compiler
     for (uint i = 0; i < suffix.size(); ++i)
@@ -23,8 +23,10 @@ void ASmain ()
             ppln.AddPipeline( "config_" + suffix[i] + ".as" );
             ppln.AddPipeline( "rtech/render_passes.as" );
             ppln.AddPipelineFolder( "samplers" );
-            ppln.CompileWithNameMapping( output_temp + suffix[i] + "/render_passes.bin" );
-            archive.Add( suffix[i] + "/render_passes", output_temp + suffix[i] + "/render_passes.bin" );
+
+            const string  fname = output_temp + suffix[i] + "/render_passes.bin";
+            ppln.CompileWithNameMapping( fname );
+            archive.Add( suffix[i] + "/render_passes", fname );
         }
 
         // pipelines
@@ -41,8 +43,10 @@ void ASmain ()
             ppln.AddShaderFolder( "shaders" );
             ppln.IncludeDir( GetSharedShadersPath() );
             ppln.SetOutputCPPFile( "cpp/" + suffix[i] + "_types.h",  "cpp/" + suffix[i] + "_names.h",  EReflectionFlags::All );
-            ppln.CompileWithNameMapping( output_temp + suffix[i] + "/pipelines.bin" );
-            archive.Add( suffix[i] + "/pipelines", output_temp + suffix[i] + "/pipelines.bin" );
+
+            const string  fname = output_temp + suffix[i] + "/pipelines.bin";
+            ppln.CompileWithNameMapping( fname );
+            archive.Add( suffix[i] + "/pipelines", fname );
         }
     }
 
@@ -55,22 +59,25 @@ void ASmain ()
         //iact.Add( "controls/openvr.as" );
         //iact.Add( "controls/openxr.as" );
         iact.SetOutputCPPFile( "cpp/ia_names.h" );
-        iact.Convert( output_temp + "controls.bin" );
-        archive.Add( "controls", output_temp + "controls.bin" );
+
+        const string  fname = output_temp + "controls.bin";
+        iact.Convert( fname );
+        archive.Add( "controls", fname );
     }
 
     // asset packer
     {
         RC<AssetPacker>     apack = AssetPacker();
 
-        apack.SetTempFile( output_temp + "archive2.tmp" );
+        apack.SetTempFile( output_temp + "archive-2.tmp" );
 
         apack.AddFolder( "images" );
         apack.AddFolder( "fonts" );
         apack.AddFolder( "ui" );
 
-        apack.ToArchive( output_temp + "archive3.tmp" );
-        archive.AddArchive( output_temp + "archive3.tmp" );
+        const string  fname = output_temp + "archive-3.tmp";
+        apack.ToArchive( fname );
+        archive.AddArchive( fname );
     }
 
     archive.Store( output + "resources.bin" );

@@ -20,14 +20,15 @@ namespace AE::ResEditor
         Array<RC<Image>>            _src;
         String                      _dbgName;
         RC<DynamicDim>              _dynSize;       // mutable
+        RC<DynamicUInt>             _filterMode;    // mutable
 
         mutable RC<IVideoEncoder>   _videoEncoder;
 
 
     // methods
     public:
-        explicit Present (Array<RC<Image>> src, StringView dbgName, RC<DynamicDim> dynSize) :
-            _src{RVRef(src)}, _dbgName{dbgName}, _dynSize{dynSize} {}
+        explicit Present (Array<RC<Image>> src, StringView dbgName, RC<DynamicDim> dynSize, RC<DynamicUInt> filterMode) :
+            _src{RVRef(src)}, _dbgName{dbgName}, _dynSize{dynSize}, _filterMode{filterMode} {}
 
     // IPass //
         EPassType   GetType ()                                          C_NE_OV { return EPassType::Present; }
@@ -55,9 +56,10 @@ namespace AE::ResEditor
     public:
         enum class EFlags : uint
         {
-            Unknown     = 0,
+            Copy        = 0,
             NoCopy,
             Histogram,
+            LinearDepth,
             _Count
         };
 
@@ -69,6 +71,10 @@ namespace AE::ResEditor
             virtual bool  Execute (const Image &src, const Image &copy, SyncPassData &) const = 0;
         };
 
+
+        //
+        // Histogram
+        //
         class Histogram final : public IAdditionalPass
         {
         private:
@@ -89,21 +95,43 @@ namespace AE::ResEditor
             Strong<BufferID>        _ssb;
 
         public:
-            Histogram (Renderer* renderer, const Image &src, const Image &copy) __Th___;
+            Histogram (Renderer* renderer, const Image &src, const Image &copy)     __Th___;
             ~Histogram ();
 
-            bool  Execute (const Image &src, const Image &copy, SyncPassData &) C____OV;
+            bool  Execute (const Image &src, const Image &copy, SyncPassData &)     C____OV;
+        };
+
+
+        //
+        // Linear Depth
+        //
+        class LinearDepth final : public IAdditionalPass
+        {
+        private:
+            RenderTechPipelinesPtr  _rtech;
+
+            GraphicsPipelineID      _ppln;
+            PushConstantIndex       _pcIdx;
+            DescSetBinding          _pplnDSIdx;
+            PerFrameDescSet_t       _pplnDS;
+
+        public:
+            LinearDepth (const Image &src, const Image &copy)                       __Th___;
+            ~LinearDepth ();
+
+            bool  Execute (const Image &src, const Image &copy, SyncPassData &)     C____OV;
         };
 
 
     // variables
     private:
-        RC<Image>       _src;
-        RC<Image>       _copy;      // make a copy if '_src' will be changed
+        RC<Image>               _src;
+        RC<Image>               _copy;      // make a copy if '_src' will be changed
+        RC<Image>               _view;      // view of '_src' or '_copy' which will be displayed 
 
-        uint            _index      = UMax;
-        EFlags          _flags      = Default;
-        String          _dbgName;
+        const uint              _index;
+        const EFlags            _flags;
+        const String            _dbgName;
 
         Unique<IAdditionalPass> _pass;
 

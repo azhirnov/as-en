@@ -1,11 +1,11 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLoaders") AND (TARGET "ImGUI-lib") AND AE_HAS_CXX_COROUTINE)
 
     file( GLOB_RECURSE LIB_SOURCES "*.h" "*.cpp" )
     file( GLOB_RECURSE DATA_FILES  "*.as" "*.glsl" "*.msl" )
 
-    set( DATA_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../engine/tools/res_pack/shared_data" )
-    file( GLOB_RECURSE SHARED_SHADERS "${DATA_FOLDER}/shaders/*.glsl" )
+    file( GLOB_RECURSE SHARED_SHADERS "${AE_ENGINE_SHARED_DATA}/shaders/*.glsl" "${AE_ENGINE_SHARED_DATA}/3party_shaders/*.glsl" )
 
     add_executable( "ResourceEditor" ${LIB_SOURCES} ${DATA_FILES} ${SHARED_SHADERS} )
 
@@ -13,7 +13,7 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
     source_group( "_data/shaders/shared" FILES ${SHARED_SHADERS} )
     set_property( TARGET "ResourceEditor" PROPERTY FOLDER "Samples" )
     target_include_directories( "ResourceEditor" PUBLIC ".." )
-    target_include_directories( "ResourceEditor" PUBLIC "${DATA_FOLDER}/scripts" "${DATA_FOLDER}/shaders" )
+    target_include_directories( "ResourceEditor" PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
 
     EnablePCH( "ResourceEditor" )
 
@@ -26,11 +26,15 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
     target_link_libraries( "ResourceEditor" PUBLIC "ImGUI-lib" )
 
     target_compile_definitions( "ResourceEditor" PUBLIC
-        AE_SHARED_DATA="${DATA_FOLDER}"
+        AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
         AE_LOCAL_DATA_FOLDER="${CMAKE_CURRENT_SOURCE_DIR}/_data"
     )
 
-    target_compile_definitions( "ResourceEditor" PUBLIC "AE_PUBLIC_VERSION=true" )
+    if (DEFINED AE_RESPACK_RELEASE)
+        target_compile_definitions( "ResourceEditor" PUBLIC "AE_PUBLIC_VERSION=true" )
+    else()
+        target_compile_definitions( "ResourceEditor" PUBLIC "AE_PUBLIC_VERSION=false" )
+    endif()
     #----------------------------------------------------------
 
     set( AE_TEMP_FOLDER_RESEDITOR "${AE_TEMP_FOLDER}/samples/res_editor" )

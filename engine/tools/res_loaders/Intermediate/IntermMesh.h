@@ -66,6 +66,9 @@ namespace AE::ResLoader
         ND_ StructView<T>               GetData (const VertName_t &id)      C_NE___;
 
         template <typename T>
+        ND_ StructView<T>               GetDataOpt (const VertName_t &id)   C_NE___;
+
+        template <typename T>
         ND_ StructView<T>               GetIndexData ()                     C_NE___;
     };
 
@@ -101,6 +104,14 @@ namespace AE::ResLoader
         ASSERT( _attribs );
         ASSERT( _vertexStride != 0 );
         return _attribs->GetData<T>( id, _vertices.data(), VertexCount(), _vertexStride );
+    }
+
+    template <typename T>
+    StructView<T>  IntermMesh::GetDataOpt (const VertName_t &id) C_NE___
+    {
+        ASSERT( _attribs );
+        ASSERT( _vertexStride != 0 );
+        return _attribs->GetDataOpt<T>( id, _vertices.data(), VertexCount(), _vertexStride );
     }
 
 /*

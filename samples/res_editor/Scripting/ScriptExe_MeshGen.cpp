@@ -112,7 +112,7 @@ namespace AE::ResEditor
         indices.clear();
 
         GeometryTools::SphericalCubeGen sphere;
-        CHECK_THROW( sphere.Create( lod, lod, False{"tris"} ));
+        CHECK_THROW( sphere.Create( lod, lod, False{"tris"}, True{"cubeMap"} ));
 
         ArrayView<GeometryTools::SphericalCubeGen::Vertex>  verts;
         CHECK_THROW( sphere.GetVertices( lod, OUT verts ));
@@ -138,7 +138,7 @@ namespace AE::ResEditor
         indices.clear();
 
         GeometryTools::SphericalCubeGen sphere;
-        CHECK_THROW( sphere.Create( lod, lod, False{"tris"} ));
+        CHECK_THROW( sphere.Create( lod, lod, False{"tris"}, True{"cubeMap"} ));
 
         ArrayView<GeometryTools::SphericalCubeGen::Vertex>  verts;
         CHECK_THROW( sphere.GetVertices( lod, OUT verts ));
@@ -171,7 +171,7 @@ namespace AE::ResEditor
         indices.clear();
 
         GeometryTools::SphericalCubeGen sphere;
-        CHECK_THROW( sphere.Create( lod, lod, False{"tris"} ));
+        CHECK_THROW( sphere.Create( lod, lod, False{"tris"}, True{"cubeMap"} ));
 
         ArrayView<GeometryTools::SphericalCubeGen::Vertex>  verts;
         CHECK_THROW( sphere.GetVertices( lod, OUT verts ));
@@ -183,6 +183,42 @@ namespace AE::ResEditor
             positions .push_back( float3{SNormShortToFloat( vert.position )});
             normals   .push_back( float3{SNormShortToFloat( vert.position )});
             texcoords .push_back( float3{SNormShortToFloat( vert.texcoord )});
+            tangents  .push_back( float3{SNormShortToFloat( vert.tangent )});
+            bitangents.push_back( float3{SNormShortToFloat( vert.bitangent )});
+        }
+        for (auto idx : idxs) {
+            indices.push_back( idx );
+        }
+    }
+
+    void  ScriptExe::_GetSphere4 (const uint                        lod,
+                                  OUT ScriptArray<packed_float3>    &positions,
+                                  OUT ScriptArray<packed_float3>    &normals,
+                                  OUT ScriptArray<packed_float3>    &tangents,
+                                  OUT ScriptArray<packed_float3>    &bitangents,
+                                  OUT ScriptArray<packed_float2>    &texcoords,
+                                  OUT ScriptArray<uint>             &indices) __Th___
+    {
+        positions.clear();
+        normals.clear();
+        tangents.clear();
+        bitangents.clear();
+        texcoords.clear();
+        indices.clear();
+
+        GeometryTools::SphericalCubeGen sphere;
+        CHECK_THROW( sphere.Create( lod, lod, False{"tris"}, False{"2d"} ));
+
+        ArrayView<GeometryTools::SphericalCubeGen::Vertex>  verts;
+        CHECK_THROW( sphere.GetVertices( lod, OUT verts ));
+
+        ArrayView<GeometryTools::SphericalCubeGen::Index>   idxs;
+        CHECK_THROW( sphere.GetIndices( lod, OUT idxs ));
+
+        for (auto& vert : verts) {
+            positions .push_back( float3{SNormShortToFloat( vert.position )});
+            normals   .push_back( float3{SNormShortToFloat( vert.position )});
+            texcoords .push_back( float2{SNormShortToFloat( vert.texcoord )});
             tangents  .push_back( float3{SNormShortToFloat( vert.tangent )});
             bitangents.push_back( float3{SNormShortToFloat( vert.bitangent )});
         }
@@ -305,6 +341,44 @@ namespace AE::ResEditor
 
         for (usize i = 0; i < indices.size(); i += 3) {
             primitives.emplace_back( indices[i+0], indices[i+1], indices[i+2] );
+        }
+    }
+
+/*
+=================================================
+    _GetFrustumPlanes
+=================================================
+*/
+    void  ScriptExe::_GetFrustumPlanes (const packed_float4x4           &viewProj,
+                                        OUT ScriptArray<packed_float4>  &planes) __Th___
+    {
+        planes.clear();
+        planes.resize( 6 );
+
+        TFrustum<float>     frustum;
+        frustum.Setup( float4x4{viewProj} );
+
+        for (uint i = 0; i < 6; ++i) {
+            planes[i] = float4{frustum.GetPlane( i )};
+        }
+    }
+
+/*
+=================================================
+    _MergeMesh
+=================================================
+*/
+    void  ScriptExe::_MergeMesh (INOUT ScriptArray<uint>    &srcIndices,
+                                 const uint                 srcVertexCount,
+                                 const ScriptArray<uint>    &indicesToAdd) __Th___
+    {
+        const usize old_size = srcIndices.size();
+
+        srcIndices.resize( old_size + indicesToAdd.size() );  // throw
+
+        for (usize i = 0, cnt = indicesToAdd.size(); i < cnt; ++i)
+        {
+            srcIndices[old_size + i] = srcVertexCount + indicesToAdd[i];
         }
     }
 

@@ -1,4 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+/*
+    supported platforms and features:
+        file:///<path>/AE/engine/docs/Platforms.md
+*/
 
 #pragma once
 
@@ -25,8 +29,6 @@ namespace AE::App
     using Threading::RWDataRaceCheck;
     using Threading::SingleThreadCheck;
 #  endif
-
-    using Graphics::FrameUID;
 
     using VFS::IVirtualFileStorage;
 

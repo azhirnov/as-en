@@ -19,6 +19,7 @@ extern void UnitTest_LfFixedBlockAllocator ();
 extern void UnitTest_LfLinearAllocator ();
 
 extern void UnitTest_SpinLock ();
+extern void UnitTest_Synchronized ();
 
 extern void UnitTest_AsyncDataSource ();
 extern void UnitTest_TsSharedMem ();
@@ -50,6 +51,7 @@ int main ()
     UnitTest_LfLinearAllocator();
 
     UnitTest_SpinLock();
+    UnitTest_Synchronized();
 
     UnitTest_TaskDeps();
     UnitTest_TaskUsage();

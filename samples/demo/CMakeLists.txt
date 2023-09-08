@@ -1,5 +1,4 @@
-
-set( DATA_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../engine/tools/res_pack/shared_data" )
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 file( GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.as" "*.glsl" "*.msl" )
 
@@ -29,7 +28,7 @@ if (TARGET "GraphicsHL")
     set_property( TARGET ${APP_NAME} PROPERTY FOLDER "Samples" )
     target_link_libraries( ${APP_NAME} PUBLIC "Platform" "GraphicsHL" "Profiler" "Video" "GeometryTools" )
     target_include_directories( ${APP_NAME} PUBLIC ".." )
-    target_include_directories( ${APP_NAME} PUBLIC "${DATA_FOLDER}/scripts" "${DATA_FOLDER}/shaders" )
+    target_include_directories( ${APP_NAME} PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
 
     if (TARGET "ImGUI-lib")
         target_link_libraries( ${APP_NAME} PUBLIC "ImGUI-lib" )

@@ -29,34 +29,39 @@ namespace AE::AssetPacker
         //  |<--------------------->|
         //           advance       
         //
+
         struct Glyph
         {
+        // variables
             Rectangle<ushort>   texcoord;           // unorm
             RectF               offset;             // pixels
             float               advance     = 0.0f; // glyph with including empty space
 
+        // methods
             Glyph ()                __NE___ {}
 
             ND_ bool  HasImage ()   C_NE___ { return true; }    // TODO
         };
 
+
         struct SDFConfig
         {
-            float           scale       = 0.f;  // value in texture (snorm) to distance in pixels
+            float           scale       = 0.f;  // value in texture (snorm/unorm) to distance in pixels
+            float           bias        = 0.f;  // convert unorm value in texture to snorm
             float           pixRange2D  = 0.f;  // screenPxRange = heightInPx * pixRange2D
             packed_float2   pixRange3D;         // TODO
         };
+
 
         union GlyphKey
         {
         // variables
         private:
-            ulong   _value;
-
             struct Packed {
-                ulong   symbol;
-                ulong   height;
-            }       _packed;
+                ulong       symbol;
+                ulong       height;
+            }           _packed;
+            ulong       _value;
 
         // methods
         public:
@@ -70,12 +75,13 @@ namespace AE::AssetPacker
             ND_ HashVal     CalcHash ()                         C_NE___ { return HashOf(_value); }
         };
 
+
         using GlyphMap_t    = FlatHashMap< GlyphKey, Glyph, DefaultHasher_CalcHash<GlyphKey> >;
         using SizeArr_t     = FixedArray< ubyte, 16 >;      // size in pixels which is supported
 
         using ImageData     = ImagePacker::ImageData;
 
-        static constexpr ushort     Version     = 1;
+        static constexpr ushort     Version     = 2;
         static constexpr uint       Magic       = uint("gr.RFnt"_StringToID);
 
 
@@ -94,17 +100,14 @@ namespace AE::AssetPacker
     // methods
     public:
 
-        #ifdef AE_BUILD_ASSET_PACKER
+        ND_ bool  IsValid ()                                            const;
+
             bool  SaveImage (WStream &stream, const ImageMemView &src);
-        #endif
-
-        ND_ bool  IsValid () const;
-
-            bool  ReadImage (RStream &stream, INOUT ImageData &) const;
+            bool  ReadImage (RStream &stream, INOUT ImageData &)        const;
 
         // ISerializable
-        bool  Serialize (Serializing::Serializer &)     C_NE_OV;
-        bool  Deserialize (Serializing::Deserializer &) __NE_OV;
+            bool  Serialize (Serializing::Serializer &)                 C_NE_OV;
+            bool  Deserialize (Serializing::Deserializer &)             __NE_OV;
     };
 
 

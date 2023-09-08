@@ -33,9 +33,9 @@ namespace AE::App
         float2              _cursorDeltaSNorm;
         float2              _mouseWheel;
 
-        bool                _touchActive        : 1;
-        bool                _touchBegin         : 1;
-        bool                _touchEnd           : 1;
+        bool                _touchActive        : 1;    // \ 
+        bool                _touchBegin         : 1;    // |-- touch emulation by mouse & left button
+        bool                _touchEnd           : 1;    // / 
 
         float2              _surfaceSize;
 

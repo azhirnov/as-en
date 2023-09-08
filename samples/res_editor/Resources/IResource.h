@@ -46,30 +46,30 @@ namespace AE::ResEditor
     // interface
     public:
 
-        // returns 'false' if failed to resuze.
-        // returns 'true' if resized or if not needed to resize.
+        // Returns 'false' if failed to resize.
+        // Returns 'true' if resized or if not needed to resize.
             virtual bool            Resize (TransferCtx_t &ctx) __Th___ = 0;
 
-        // returns 'true' if need to resize.
+        // Returns 'true' if need to resize.
         ND_ virtual bool            RequireResize ()            C_Th___ = 0;
 
         // GPU <-> CPU
         ND_ virtual EUploadStatus   GetStatus ()                C_NE___ { return _uploadStatus.load(); }
         ND_ virtual EUploadStatus   Upload (TransferCtx_t &)    __Th___ = 0;    // called once per frame
         ND_ virtual EUploadStatus   Readback (TransferCtx_t &)  __Th___ = 0;    // called once per frame
-            virtual void            Cancel ()                   __Th___;
+            virtual void            Cancel ()                   __NE___;
 
 
     // methods
     protected:
-        explicit IResource (Renderer &r) : _renderer{r} {}
+        explicit IResource (Renderer &r)                        __NE___ : _renderer{r} {}
 
         ND_ Renderer&               _Renderer ()                const   { return _renderer; }
         ND_ ResourceQueue&          _ResQueue ()                const;
         ND_ GfxMemAllocatorPtr      _GfxAllocator ()            const;
         ND_ GfxMemAllocatorPtr      _GfxDynamicAllocator ()     const;
 
-            void  _SetUploadStatus (EUploadStatus);
+            void  _SetUploadStatus (EUploadStatus)              __NE___;
     };
 //-----------------------------------------------------------------------------
 
@@ -80,7 +80,7 @@ namespace AE::ResEditor
     Cancel
 =================================================
 */
-    inline void  IResource::Cancel () __Th___
+    inline void  IResource::Cancel () __NE___
     {
         for (auto status = _uploadStatus.load();;)
         {
@@ -99,7 +99,7 @@ namespace AE::ResEditor
     _SetUploadStatus
 =================================================
 */
-    inline void  IResource::_SetUploadStatus (EUploadStatus newStatus)
+    inline void  IResource::_SetUploadStatus (EUploadStatus newStatus) __NE___
     {
         for (auto status = _uploadStatus.load();;)
         {

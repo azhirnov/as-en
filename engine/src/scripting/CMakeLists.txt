@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (DEFINED ANDROID)
     set( AE_ENABLE_SCRIPTING OFF CACHE INTERNAL "" FORCE )
 elseif (${AE_ENABLE_ANGELSCRIPT})

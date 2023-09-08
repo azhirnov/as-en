@@ -16,7 +16,7 @@ namespace AE::ResEditor
     Renderer::Renderer (uint seed) :
         _resQueue{ MakeRC<ResourceQueue>() },
         _lastUpdateTime{ TimePoint_t::clock::now() },
-        _gfxLinearAlloc{ MakeRC<GfxLinearMemAllocator>() },
+        _gfxLinearAlloc{ MakeRC<GfxLinearMemAllocator>( 256_Mb )},
         _gfxDynamicAlloc{}, // TODO
         _seed{ seed }
     {
@@ -504,10 +504,19 @@ namespace AE::ResEditor
             for (auto& slider : _sliders)
             {
                 Visit( slider,
+                    [&] (RC<DynamicInt>  &dst)  { dst->Set( sliders->intSliders[i_idx].x );         ++i_idx; },
+                    [&] (RC<DynamicInt2> &dst)  { dst->Set( int2(sliders->intSliders[i_idx]) );     ++i_idx; },
+                    [&] (RC<DynamicInt3> &dst)  { dst->Set( int3(sliders->intSliders[i_idx]) );     ++i_idx; },
                     [&] (RC<DynamicInt4> &dst)  { dst->Set( sliders->intSliders[i_idx] );           ++i_idx; },
-                    [&] (RC<DynamicUInt> &dst)  { dst->Set( uint(sliders->intSliders[i_idx].x) );   ++i_idx; },
+
+                    [&] (RC<DynamicUInt>  &dst) { dst->Set( uint(sliders->intSliders[i_idx].x) );   ++i_idx; },
+                    [&] (RC<DynamicUInt2> &dst) { dst->Set( uint2(sliders->intSliders[i_idx]) );    ++i_idx; },
                     [&] (RC<DynamicUInt3> &dst) { dst->Set( uint3(sliders->intSliders[i_idx]) );    ++i_idx; },
-                    [&] (RC<DynamicFloat> &dst) { dst->Set( sliders->floatSliders[f_idx].x );       ++f_idx; },
+                    [&] (RC<DynamicUInt4> &dst) { dst->Set( uint4(sliders->intSliders[i_idx]) );    ++i_idx; },
+
+                    [&] (RC<DynamicFloat>  &dst){ dst->Set( sliders->floatSliders[f_idx].x );       ++f_idx; },
+                    [&] (RC<DynamicFloat2> &dst){ dst->Set( float2(sliders->floatSliders[f_idx]) ); ++f_idx; },
+                    [&] (RC<DynamicFloat3> &dst){ dst->Set( float3(sliders->floatSliders[f_idx]) ); ++f_idx; },
                     [&] (RC<DynamicFloat4> &dst){ dst->Set( sliders->floatSliders[f_idx] );         ++f_idx; }
                 );
             }

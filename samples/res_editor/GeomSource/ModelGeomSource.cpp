@@ -2,6 +2,7 @@
 
 #include "res_editor/GeomSource/ModelGeomSource.h"
 #include "res_editor/Passes/Renderer.h"
+#include "res_editor/Resources/Image.h"
 
 #include "res_loaders/Intermediate/IntermScene.h"
 
@@ -26,10 +27,10 @@ namespace AE::ResEditor
 
 /*
 =================================================
-    MeshData::DataSize
+    MeshDataInRAM::DataSize
 =================================================
 */
-    Bytes  ModelGeomSource::Mesh::MeshData::DataSize () const
+    Bytes  ModelGeomSource::Mesh::MeshDataInRAM::DataSize () const
     {
         return  positions.DataSize() +
                 normals.DataSize() +
@@ -44,9 +45,10 @@ namespace AE::ResEditor
 */
     ModelGeomSource::Mesh::Mesh (Renderer &r, RC<ResLoader::IntermScene> scene, const float4x4 &initialTransform) __Th___ :
         IResource{ r },
-        _pcIndex{ 0_b, EShader::Vertex },
         _intermScene{ scene }, _initialTransform{ initialTransform }
     {
+        _uploadStatus.store( EUploadStatus::InProgress );
+
         auto&           res_mngr        = RenderGraph().GetStateTracker();
         const usize     mesh_cnt        = _intermScene->Meshes().size();
         const usize     node_cnt        = _intermScene->ModelNodeCount();
@@ -61,23 +63,19 @@ namespace AE::ResEditor
         CHECK_THROW( mesh_cnt > 0 );
         CHECK_THROW( node_cnt > 0 );
 
-        _meshDataSize = mesh_data_size;
-        _meshData = res_mngr.CreateBuffer( BufferDesc{ mesh_data_size,
-                                                       EBufferUsage::Storage | EBufferUsage::TransferDst |
-                                                       EBufferUsage::Vertex | EBufferUsage::Index },
-                                            "Vertices & Indices", r.GetAllocator() );
+        _meshInfoArr.resize( mesh_cnt );
+
+        _meshDataSize   = mesh_data_size;
+        _meshData       = res_mngr.CreateBuffer( BufferDesc{ mesh_data_size,
+                                                             EBufferUsage::Storage | EBufferUsage::TransferDst |
+                                                             EBufferUsage::Vertex | EBufferUsage::Index },
+                                                 "Vertices & Indices", r.GetAllocator() );
         CHECK_THROW( _meshData );
 
-        /*_meshInfoSize = SizeOf<ShaderTypes::ModelMesh> * mesh_cnt;
-        _meshInfo = res_mngr.CreateBuffer( BufferDesc{ _meshInfoSize,
-                                                       EBufferUsage::Storage | EBufferUsage::TransferDst },
-                                            "ModelMeshes", r.GetAllocator() );
-        CHECK_THROW( _meshInfo );*/
-
-        _nodeDataSize = SizeOf<ShaderTypes::ModelNode> * node_cnt;
-        _nodeBuffer = res_mngr.CreateBuffer( BufferDesc{ _nodeDataSize,
-                                                         EBufferUsage::Storage | EBufferUsage::TransferDst },
-                                             "ModelNodes", r.GetAllocator() );
+        _nodeDataSize   = SizeOf<ShaderTypes::ModelNode> * node_cnt;
+        _nodeBuffer     = res_mngr.CreateBuffer( BufferDesc{ _nodeDataSize,
+                                                             EBufferUsage::Storage | EBufferUsage::TransferDst },
+                                                 "ModelNodes", r.GetAllocator() );
         CHECK_THROW( _nodeBuffer );
     }
 
@@ -103,52 +101,18 @@ namespace AE::ResEditor
             return stat;
 
         Bytes   mesh_data_off;
-        Bytes   mesh_info_off;
-        usize   mesh_info_idx   = 0;
-
-        //const DeviceAddress           addr            = ctx.GetResourceManager().GetDeviceAddress( _meshData );
-        //const usize                   mesh_info_cnt   = 10;
-        //Array<ShaderTypes::ModelMesh> mesh_infos;     mesh_infos.reserve( mesh_info_cnt );
 
         for (auto& [mesh, idx] : _intermScene->Meshes())
         {
-            const MeshData          md  = _Convert( *mesh );
-            /*ShaderTypes::ModelMesh    info;
-            info.vertexCount= uint(md.positions.size());
-            info.indexCount = uint(md.indices.size());
-            info.positions  = addr + mesh_data_off;
-            info.normals    = addr + mesh_data_off;
-            info.texcoords  = addr + mesh_data_off;
-            info.indices    = addr + mesh_data_off;*/
+            const MeshDataInRAM md      = _Convert( *mesh );
+            MeshDataInGPU&      info    = _meshInfoArr[idx];
 
-            MeshInfo    info;
             info.indexCount = uint(md.indices.size());
             info.positions  = mesh_data_off;    if ( not _UploadData( INOUT mesh_data_off, ctx, md.positions )) return EUploadStatus::NoMemory;
             info.normals    = mesh_data_off;    if ( not _UploadData( INOUT mesh_data_off, ctx, md.normals ))   return EUploadStatus::NoMemory;
             info.texcoords  = mesh_data_off;    if ( not _UploadData( INOUT mesh_data_off, ctx, md.texcoord0 )) return EUploadStatus::NoMemory;
             info.indices    = mesh_data_off;    if ( not _UploadData( INOUT mesh_data_off, ctx, md.indices ))   return EUploadStatus::NoMemory;
-
-            if ( mesh_info_idx == _meshInfoArr.size() )
-            {
-                _meshInfoArr.push_back( info );
-            }
-            ++mesh_info_idx;
-
-            /*if ( _meshInfoOffset < mesh_info_off )
-            {
-                mesh_infos.push_back( info );
-                if ( mesh_infos.size() >= mesh_info_cnt )
-                {
-                    if ( not _UploadInfo( INOUT mesh_info_off, ctx, INOUT mesh_infos ))
-                        return EUploadStatus::NoMemory;
-                }
-            }*/
         }
-
-        ASSERT( _meshInfoArr.size() == _intermScene->Meshes().size() );
-
-        //if ( not _UploadInfo( INOUT mesh_info_off, ctx, INOUT mesh_infos ))
-        //  return EUploadStatus::NoMemory;
 
         if ( not _UploadNodes( ctx ))
             return EUploadStatus::NoMemory;
@@ -167,6 +131,9 @@ namespace AE::ResEditor
     {
         const Bytes dst_off = dstOffset;
         dstOffset += view.DataSize();
+
+        if ( view.empty() )
+            return true;
 
         if ( not IsIntersects( _meshDataOffset, _meshDataSize, dst_off, dst_off + view.DataSize() ))
             return true;    // skip
@@ -238,7 +205,7 @@ namespace AE::ResEditor
         nodes.reserve( usize(_nodeDataSize / SizeOf<ShaderTypes::ModelNode>) );
 
         _intermScene->ForEachNode(
-            [this, &nodes] (StringView, const ResLoader::IntermScene::NodeData_t &data, const Transformation<float> &tr)
+            [this, &nodes] (StringView, const ResLoader::IntermScene::NodeData_t &data, const TTransformation<float> &tr)
             {
                 Visit( data,
                     [this, &tr, &nodes] (const ResLoader::IntermScene::ModelData &model)
@@ -250,23 +217,22 @@ namespace AE::ResEditor
                         CHECK_THROW( mesh and mtr );
 
                         node.transform      = _initialTransform * tr.ToMatrix();
+                        node.normalMat      = float3x3{node.transform};
                         node.meshIdx        = _intermScene->IndexOfMesh( mesh );
                         node.materialIdx    = _intermScene->IndexOfMaterial( mtr );
 
                         auto&       draw    = _drawCalls.emplace_back();
-                        draw.transform      = _initialTransform * tr.ToMatrix();
-                        draw.meshIdx        = _intermScene->IndexOfMesh( mesh );
-                        draw.materialIdx    = _intermScene->IndexOfMaterial( mtr );
                         draw.nodeIdx        = uint(nodes.size()-1);
+                        draw.meshIdx        = node.meshIdx;
                     },
                     [] (const NullUnion &) {}
                 );
                 return true;
             });
 
-        CHECK( _nodeDataSize == ArraySizeOf(nodes) );
+        CHECK_ERR( _nodeDataSize == ArraySizeOf(nodes) );
+        CHECK_ERR( mem_view.CopyFrom( nodes ) == _nodeDataSize );
 
-        Unused( mem_view.CopyFrom( nodes ));
         return true;
     }
 
@@ -275,20 +241,33 @@ namespace AE::ResEditor
     _Convert
 =================================================
 */
-    ModelGeomSource::Mesh::MeshData  ModelGeomSource::Mesh::_Convert (const ResLoader::IntermMesh &mesh) __Th___
+    ModelGeomSource::Mesh::MeshDataInRAM  ModelGeomSource::Mesh::_Convert (const ResLoader::IntermMesh &mesh) __Th___
     {
-        CHECK_THROW_MSG( mesh.Attribs() != null );
+        CHECK_THROW( mesh.Attribs() != null );
 
-        MeshData    result;
+        MeshDataInRAM   result;
         result.positions    = mesh.GetData< packed_float3 >( ResLoader::VertexAttributeName::Position );
-        result.normals      = mesh.GetData< packed_float3 >( ResLoader::VertexAttributeName::Normal );
-        result.texcoord0    = mesh.GetData< packed_float2 >( ResLoader::VertexAttributeName::TextureUVs[0] );
+        result.normals      = mesh.GetDataOpt< packed_float3 >( ResLoader::VertexAttributeName::Normal );
+        result.texcoord0    = mesh.GetDataOpt< packed_float2 >( ResLoader::VertexAttributeName::TextureUVs[0] );
         result.indices      = mesh.GetIndexData< uint >();
 
-        ASSERT( result.positions.size() == result.normals.size() );
-        ASSERT( result.positions.size() == result.texcoord0.size() );
+        CHECK_THROW( not result.positions.empty() and not result.indices.empty() );
+
+        ASSERT( result.normals.empty() or result.positions.size() == result.normals.size() );
+        ASSERT( result.texcoord0.empty() or result.positions.size() == result.texcoord0.size() );
 
         return result;
+    }
+
+/*
+=================================================
+    Bind
+=================================================
+*/
+    bool  ModelGeomSource::Mesh::Bind (DescriptorUpdater &updater) C_NE___
+    {
+        CHECK_ERR( updater.BindBuffer( UniformName{"un_Nodes"}, _nodeBuffer ));
+        return true;
     }
 
 /*
@@ -296,20 +275,23 @@ namespace AE::ResEditor
     Draw
 =================================================
 */
-    void  ModelGeomSource::Mesh::Draw (DirectCtx::Draw &ctx, const float4x4 &cameraPos) __Th___
+    void  ModelGeomSource::Mesh::Draw (DirectCtx::Draw &ctx, PushConstantIndex pcIndex, ArrayView<GraphicsPipelineID> pipelines) __Th___
     {
         // TODO: multidraw / draw indirect ?
 
-        for (auto& d : _drawCalls)
+        CHECK_ERRV( _drawCalls.size() <= pipelines.size() );
+
+        for (usize i = 0; i < _drawCalls.size(); ++i)
         {
-            const auto& mesh = _meshInfoArr[d.meshIdx];
+            const auto&     dc      = _drawCalls[i];
+            const auto&     mesh    = _meshInfoArr[ dc.meshIdx ];
+            auto            ppln    = pipelines[i];
 
-            ShaderTypes::ModelNode  pc;
-            pc.transform    = cameraPos * d.transform;
-            pc.meshIdx      = d.meshIdx;
-            pc.materialIdx  = d.materialIdx;
+            ShaderTypes::model_pc   pc;
+            pc.nodeIdx  = dc.nodeIdx;
 
-            ctx.PushConstant( _pcIndex, pc );
+            ctx.BindPipeline( ppln );
+            ctx.PushConstant( pcIndex, pc );
 
             ctx.BindVertexBuffer( 0, _meshData, mesh.positions );
             ctx.BindVertexBuffer( 1, _meshData, mesh.normals );
@@ -332,7 +314,7 @@ namespace AE::ResEditor
 
     //  ctx.ResourceState( _meshData,   EResourceState::ShaderAddress_Read | EResourceState::AllGraphicsShaders );
     //  ctx.ResourceState( _meshInfo,   EResourceState::ShaderStorage_Read | EResourceState::AllGraphicsShaders );
-    //  ctx.ResourceState( _nodeBuffer, EResourceState::ShaderStorage_Read | EResourceState::AllGraphicsShaders );
+        ctx.ResourceState( _nodeBuffer, EResourceState::ShaderStorage_Read | EResourceState::AllGraphicsShaders );
     }
 //-----------------------------------------------------------------------------
 
@@ -343,15 +325,58 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    ModelGeomSource::Textures::Textures (Renderer &r, RC<ResLoader::IntermScene> scene) __Th___ :
-        IResource{ r }
-    {}
+    ModelGeomSource::Textures::Textures (Renderer &r, RC<ResLoader::IntermScene> scene, ArrayView<Path> texSearchDirs, uint maxTextures) __Th___ :
+        IResource{ r },
+        _maxTextures{ maxTextures }
+    {
+        _uploadStatus.store( EUploadStatus::Complete );
+
+        auto    dummy2d = Image::CreateDummy2D( r, "" ); // throw
+
+        _albedoMaps.resize( _maxTextures, dummy2d );
+
+        for (auto& [mtr, idx] : scene->Materials())
+        {
+            if ( auto* albedo = UnionGet< ResLoader::IntermMaterial::MtrTexture >( mtr->GetSettings().albedo );
+                 albedo != null and albedo->image and idx < _albedoMaps.size() )
+            {
+                _albedoMaps[idx] = Image::CreateAndLoad( r, albedo->image, albedo->name, Image::ELoadOpFlags::GenMipmaps, texSearchDirs );  // throw
+            }
+        }
+    }
+
+/*
+=================================================
+    Bind
+----
+    Samplers defined in 'InitPipelineLayout()' in
+    file:///<path>/AE/samples/res_editor/_data/pipelines/ModelShared.as
+=================================================
+*/
+    bool  ModelGeomSource::Textures::Bind (DescriptorUpdater &updater) C_NE___
+    {
+        Array<ImageViewID>  views;
+        views.resize( _maxTextures );
+
+        const auto  BindImages = [this, &views, &updater] (const UniformName &un, ArrayView<RC<Image>> images) -> bool
+        {{
+            CHECK_ERR( views.size() == images.size() );
+
+            for (usize i = 0; i < views.size(); ++i) {
+                views[i] = images[i]->GetViewId();
+            }
+            return updater.BindImages( un, views );
+        }};
+
+        CHECK_ERR( BindImages( UniformName{"un_AlbedoMaps"}, _albedoMaps ));
+        return true;
+    }
 
 /*
 =================================================
     Upload
 =================================================
-*/
+*
     IResource::EUploadStatus  ModelGeomSource::Textures::Upload (TransferCtx_t &) __Th___
     {
         if ( auto stat = _uploadStatus.load();  stat != EUploadStatus::InProgress )
@@ -370,10 +395,14 @@ namespace AE::ResEditor
     constructor
 =================================================
 */
-    ModelGeomSource::ModelGeomSource (Renderer &r, RC<ResLoader::IntermScene> scene, const float4x4 &initialTransform) __Th___ :
+    ModelGeomSource::ModelGeomSource (Renderer                      &r,
+                                      RC<ResLoader::IntermScene>    scene,
+                                      const float4x4                &initialTransform,
+                                      ArrayView<Path>               texSearchDirs,
+                                      uint                          maxTextures) __Th___ :
         IGeomSource{ r },
         _meshData{ new Mesh{ r, scene, initialTransform }},
-        _textures{ new Textures{ r, scene }}
+        _textures{ new Textures{ r, scene, texSearchDirs, maxTextures }}
     {
         r.GetResourceQueue().EnqueueForUpload( _meshData );
         r.GetResourceQueue().EnqueueForUpload( _textures );
@@ -417,13 +446,12 @@ namespace AE::ResEditor
         auto&           ctx     = in.ctx;
         auto&           mtr     = RefCast<Material>(in.mtr);
         DescriptorSetID mtr_ds  = mtr.descSets[ ctx.GetFrameId().Index() ];
-        const float4x4  c_pos   = float4x4::Translated( in.position );
 
-        ctx.BindPipeline( mtr.ppln );
+        ctx.BindPipeline( mtr.pplns[0] );
         ctx.BindDescriptorSet( mtr.passDSIndex, in.passDS );
         ctx.BindDescriptorSet( mtr.mtrDSIndex,  mtr_ds );
 
-        _meshData->Draw( ctx, c_pos );
+        _meshData->Draw( ctx, mtr.pcIndex, mtr.pplns );
 
         return true;
     }
@@ -433,10 +461,10 @@ namespace AE::ResEditor
     Update
 =================================================
 */
-    bool  ModelGeomSource::Update (const UpdateData &) __NE___
+    bool  ModelGeomSource::Update (const UpdateData &in) __NE___
     {
-        /*auto& ctx = in.ctx;
-        auto&   mtr = Cast<Material>(in.mtr);
+        auto&   ctx = in.ctx;
+        auto&   mtr = RefCast<Material>(in.mtr);
 
         // update descriptors
         {
@@ -445,11 +473,11 @@ namespace AE::ResEditor
 
             CHECK_ERR( updater.Set( mtr_ds, EDescUpdateMode::Partialy ));
 
-            updater.BindBuffer( UniformName{"un_Nodes"}, _meshData->ModelNodeArray() );
-            updater.BindBuffer( UniformName{"un_Meshes"}, _meshData->ModelMeshArray() );
+            CHECK_ERR( _meshData->Bind( updater ));
+            CHECK_ERR( _textures->Bind( updater ));
 
             CHECK_ERR( updater.Flush() );
-        }*/
+        }
         return true;
     }
 

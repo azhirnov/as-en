@@ -456,66 +456,66 @@ namespace
 
             binder.Comment( "Create image from file.\n"
                             "File will be searched in VFS." );
-            binder.AddFactoryCtor( &ScriptImage_Ctor1 );
+            binder.AddFactoryCtor( &ScriptImage_Ctor1,  {"imageType", "filenameInVFS"} );
 
             binder.Comment( "Create image with constant dimension" );
-            binder.AddFactoryCtor( &ScriptImage_Ctor2 );
-            binder.AddFactoryCtor( &ScriptImage_Ctor3 );
-            binder.AddFactoryCtor( &ScriptImage_Ctor4 );
-            binder.AddFactoryCtor( &ScriptImage_Ctor5 );
-            binder.AddFactoryCtor( &ScriptImage_Ctor6 );
-            binder.AddFactoryCtor( &ScriptImage_Ctor7 );
+            binder.AddFactoryCtor( &ScriptImage_Ctor2,  {"format", "dimension"} );
+            binder.AddFactoryCtor( &ScriptImage_Ctor3,  {"format", "dimension"} );
+            binder.AddFactoryCtor( &ScriptImage_Ctor4,  {"format", "dimension", "layers"} );
+            binder.AddFactoryCtor( &ScriptImage_Ctor5,  {"format", "dimension", "mipmaps"} );
+            binder.AddFactoryCtor( &ScriptImage_Ctor6,  {"format", "dimension", "mipmaps"} );
+            binder.AddFactoryCtor( &ScriptImage_Ctor7,  {"format", "dimension", "layers", "mipmaps"} );
 
             binder.Comment( "Create image with dynamic dimension" );
-            binder.AddFactoryCtor( &ScriptImage_Ctor8 );
-            binder.AddFactoryCtor( &ScriptImage_Ctor9 );
-            binder.AddFactoryCtor( &ScriptImage_Ctor10 );
-            binder.AddFactoryCtor( &ScriptImage_Ctor11 );
+            binder.AddFactoryCtor( &ScriptImage_Ctor8,  {"format", "dynamicDimension"} );
+            binder.AddFactoryCtor( &ScriptImage_Ctor9,  {"format", "dynamicDimension", "layers"} );
+            binder.AddFactoryCtor( &ScriptImage_Ctor10, {"format", "dynamicDimension", "mipmaps"} );
+            binder.AddFactoryCtor( &ScriptImage_Ctor11, {"format", "dynamicDimension", "layers", "mipmaps"} );
 
             binder.Comment( "Set resource name. It is used for debugging." );
-            binder.AddMethod( &ScriptImage::Name,               "Name"              );
+            binder.AddMethod( &ScriptImage::Name,               "Name",                 {} );
 
             binder.Comment( "Load specified array layer from file, can be used for 2DArray/CubeMap/CubeMapArray.\n"
                             "File will be searched in VFS." );
-            binder.AddMethod( &ScriptImage::LoadLayer1,         "LoadLayer"         );
-            binder.AddMethod( &ScriptImage::LoadLayer2,         "LoadLayer"         );
-            binder.AddMethod( &ScriptImage::LoadLayer3,         "LoadLayer"         );
+            binder.AddMethod( &ScriptImage::LoadLayer1,         "LoadLayer",            {"filenameInVFS", "layer"} );
+            binder.AddMethod( &ScriptImage::LoadLayer2,         "LoadLayer",            {"filenameInVFS", "layer", "flags"} );
+            binder.AddMethod( &ScriptImage::LoadLayer3,         "LoadLayer",            {"filenameInVFS", "layer", "flags"} );
 
             binder.Comment( "Returns 'true' if used dynamic dimension, methods 'Dimension2()', 'Dimension2_Layers()', 'Dimension3()' can not be used for dynamic dimension, only 'Dimension()' is allowed" );
-            binder.AddMethod( &ScriptImage::IsMutableDimension, "IsMutableDimension");
+            binder.AddMethod( &ScriptImage::IsMutableDimension, "IsMutableDimension",   {} );
 
             binder.Comment( "Returns constant dimension of the image" );
-            binder.AddMethod( &ScriptImage::Dimension2,         "Dimension2"        );
-            binder.AddMethod( &ScriptImage::Dimension2_Layers,  "Dimension2_Layers" );
-            binder.AddMethod( &ScriptImage::Dimension3,         "Dimension3"        );
-            binder.AddMethod( &ScriptImage::ArrayLayers,        "ArrayLayers"       );
-            binder.AddMethod( &ScriptImage::MipmapCount,        "MipmapCount"       );
+            binder.AddMethod( &ScriptImage::Dimension2,         "Dimension2",           {} );
+            binder.AddMethod( &ScriptImage::Dimension2_Layers,  "Dimension2_Layers",    {} );
+            binder.AddMethod( &ScriptImage::Dimension3,         "Dimension3",           {} );
+            binder.AddMethod( &ScriptImage::ArrayLayers,        "ArrayLayers",          {} );
+            binder.AddMethod( &ScriptImage::MipmapCount,        "MipmapCount",          {} );
 
             binder.Comment( "Returns dynamic dimension of the image" );
-            binder.AddMethod( &ScriptImage::Dimension,          "Dimension"         );
+            binder.AddMethod( &ScriptImage::Dimension,          "Dimension",            {} );
 
             binder.Comment( "Set image swizzle like a 'RGBA', 'R000', ..." );
-            binder.AddMethod( &ScriptImage::SetSwizzle,         "SetSwizzle"        );
+            binder.AddMethod( &ScriptImage::SetSwizzle,         "SetSwizzle",           {} );
 
             binder.Comment( "Returns image description" );
-            binder.AddMethod( &ScriptImage::_GetImageType,      "ImageType"         );
-            binder.AddMethod( &ScriptImage::_IsFloatFormat,     "IsFloatFormat"     );
-            binder.AddMethod( &ScriptImage::_IsIntFormat,       "IsIntFormat"       );
-            binder.AddMethod( &ScriptImage::_IsUIntFormat,      "IsUIntFormat"      );
-            binder.AddMethod( &ScriptImage::_Is1D,              "Is1D"              );
-            binder.AddMethod( &ScriptImage::_Is2D,              "Is2D"              );
-            binder.AddMethod( &ScriptImage::_Is3D,              "Is3D"              );
-            binder.AddMethod( &ScriptImage::_IsCube,            "IsCube"            );
-            binder.AddMethod( &ScriptImage::_Is1DArray,         "Is1DArray"         );
-            binder.AddMethod( &ScriptImage::_Is2DArray,         "Is2DArray"         );
-            binder.AddMethod( &ScriptImage::_IsCubeArray,       "IsCubeArray"       );
+            binder.AddMethod( &ScriptImage::_GetImageType,      "ImageType",            {} );
+            binder.AddMethod( &ScriptImage::_IsFloatFormat,     "IsFloatFormat",        {} );
+            binder.AddMethod( &ScriptImage::_IsIntFormat,       "IsIntFormat",          {} );
+            binder.AddMethod( &ScriptImage::_IsUIntFormat,      "IsUIntFormat",         {} );
+            binder.AddMethod( &ScriptImage::_Is1D,              "Is1D",                 {} );
+            binder.AddMethod( &ScriptImage::_Is2D,              "Is2D",                 {} );
+            binder.AddMethod( &ScriptImage::_Is3D,              "Is3D",                 {} );
+            binder.AddMethod( &ScriptImage::_IsCube,            "IsCube",               {} );
+            binder.AddMethod( &ScriptImage::_Is1DArray,         "Is1DArray",            {} );
+            binder.AddMethod( &ScriptImage::_Is2DArray,         "Is2DArray",            {} );
+            binder.AddMethod( &ScriptImage::_IsCubeArray,       "IsCubeArray",          {} );
 
             binder.Comment( "Create image as view for current image."
                             "Can be used to create CubeMap from 2DArray or set different swizzle." );
-            binder.AddMethod( &ScriptImage::CreateView1,        "CreateView"        );
-            binder.AddMethod( &ScriptImage::CreateView2,        "CreateView"        );
-            binder.AddMethod( &ScriptImage::CreateView3,        "CreateView"        );
-            binder.AddMethod( &ScriptImage::CreateView4,        "CreateView"        );
+            binder.AddMethod( &ScriptImage::CreateView1,        "CreateView",           {"viewType", "baseMipmap", "mipmapCount", "baseLayer", "layerCount"} );
+            binder.AddMethod( &ScriptImage::CreateView2,        "CreateView",           {"viewType"} );
+            binder.AddMethod( &ScriptImage::CreateView3,        "CreateView",           {"viewType", "baseMipmap", "mipmapCount"} );
+            binder.AddMethod( &ScriptImage::CreateView4,        "CreateView",           {"viewType", "baseLayer", "layerCount"} );
         }
     }
 

@@ -47,8 +47,8 @@ namespace AE::Base
         constexpr NamedID (Self &&)                         __NE___ = default;
         constexpr NamedID (const Self &)                    __NE___ = default;
 
-        constexpr Self&  operator = (Self &&)               __NE___ = default;
-        constexpr Self&  operator = (const Self &)          __NE___ = default;
+        constexpr Self&     operator = (Self &&)            __NE___ = default;
+        constexpr Self&     operator = (const Self &)       __NE___ = default;
 
         ND_ constexpr bool  operator == (const Self &rhs)   C_NE___ { return _hash == rhs._hash; }
         ND_ constexpr bool  operator != (const Self &rhs)   C_NE___ { return not (*this == rhs); }
@@ -115,8 +115,8 @@ namespace AE::Base
         constexpr NamedID (Self &&)                             __NE___ = default;
         constexpr NamedID (const Self &)                        __NE___ = default;
 
-        constexpr Self&  operator = (Self &&)                   __NE___ = default;
-        constexpr Self&  operator = (const Self &)              __NE___ = default;
+        constexpr Self&     operator = (Self &&)                __NE___ = default;
+        constexpr Self&     operator = (const Self &)           __NE___ = default;
 
         ND_ constexpr bool  operator == (const Self &rhs)       C_NE___ { return _hash == rhs._hash; }
         ND_ constexpr bool  operator != (const Self &rhs)       C_NE___ { return not (*this == rhs); }

@@ -1,3 +1,4 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 if (TARGET "GLSLang-lib")
     set( GRAPHICS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/graphics" )
@@ -69,7 +70,7 @@ if (TARGET "GLSLang-lib")
     add_library( "PipelineCompiler-shared" SHARED
         "PipelineCompiler.h"
         ${DUMMY_CPP_FILE}
-        "Lib/PipelineCompiler.def"
+        #"Lib/PipelineCompiler.def"
     )
     target_link_libraries( "PipelineCompiler-shared" PUBLIC "PipelineCompiler" )
 

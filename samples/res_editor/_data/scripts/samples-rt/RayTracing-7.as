@@ -171,7 +171,6 @@ struct PrimaryRayPayload
     // out
     float3  color;
     float   distance;
-    uint    objectID;
 };
 
 struct ShadowRayPayload
@@ -213,7 +212,6 @@ layout(std430, buffer_reference, buffer_reference_align= 4) buffer readonly Indi
     {
         PrimaryRay.color    = float3(0.412f, 0.796f, 1.0f);
         PrimaryRay.distance = gl.RayTmax * 2.0f;
-        PrimaryRay.objectID = ~0u;
     }
 
 #endif
@@ -263,8 +261,6 @@ layout(std430, buffer_reference, buffer_reference_align= 4) buffer readonly Indi
 
     void Main ()
     {
-        const float3    barycentric     = TriangleHitAttribsToBaricentrics( in_HitAttribs );
-
         NormalsRef      norm_addr       = NormalsRef( un_Geometry.normals[ gl.InstanceID ]);
         IndicesRef      idx_addr        = IndicesRef( un_Geometry.indices[ gl.InstanceID ]);
 
@@ -272,7 +268,7 @@ layout(std430, buffer_reference, buffer_reference_align= 4) buffer readonly Indi
         const float3    normal          = Normalize( BaryLerp(  norm_addr.normals[ idx_addr.indices[ idx+0 ]],
                                                                 norm_addr.normals[ idx_addr.indices[ idx+1 ]],
                                                                 norm_addr.normals[ idx_addr.indices[ idx+2 ]],
-                                                                barycentric ) * float3x3(gl.ObjectToWorld3x4) );
+                                                                in_HitAttribs ) * float3x3(gl.ObjectToWorld3x4) );
 
         const float3    light_pos       = un_Geometry.lightPos + float3( 0.f, Sin(un_PerPass.time) * 4.f, 0.f );
 
@@ -286,7 +282,6 @@ layout(std430, buffer_reference, buffer_reference_align= 4) buffer readonly Indi
 
         PrimaryRay.color    = float3(n_dot_l * shading);
         PrimaryRay.distance = gl.HitT;
-        PrimaryRay.objectID = gl.InstanceID;
     }
 
 #endif

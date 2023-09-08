@@ -26,8 +26,8 @@
                     "float4     color;" );
         }{
             RC<DescriptorSetLayout> ds = DescriptorSetLayout( "mtr.ds" );
-            ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", ArraySize(1), "UnifiedGeometryMaterialUB" );
-            ds.StorageBuffer( EShaderStages::Vertex, "un_Particles", ArraySize(1), "ParticleArray", EAccessType::Coherent, EResourceState::ShaderStorage_Read );
+            ds.UniformBuffer( EShaderStages::Vertex, "un_PerObject", "UnifiedGeometryMaterialUB" );
+            ds.StorageBuffer( EShaderStages::Vertex, "un_Particles", "ParticleArray", EResourceState::ShaderStorage_Read );
         }{
             RC<PipelineLayout>      pl = PipelineLayout( "pl" );
             pl.DSLayout( "pass",     0, "pass.ds" );
@@ -83,18 +83,18 @@
 //-----------------------------------------------------------------------------
 #ifdef SH_VERT
     #include "Math.glsl"
+    #include "Transform.glsl"
 
     void Main ()
     {
         Particle    p   = un_Particles.elements[gl.VertexIndex];
-        float4x4    mv  = un_PerPass.camera.view * un_PerObject.transform;
 
-        Out.endPos      = mv * float4(p.position_size.xyz, 1.0);
+        Out.endPos      = LocalPosToViewSpace( p.position_size.xyz );
         Out.color       = unpackUnorm4x8( floatBitsToUint( p.velocity_color.w ));
         Out.size        = p.position_size.w * 2.0 / Max( un_PerPass.resolution.x, un_PerPass.resolution.y );
 
         float3  vel     = Normalize(p.velocity_color.xyz) * Min( Length(p.velocity_color.xyz), Out.size * 25.0 );
-        Out.startPos    = mv * float4(p.position_size.xyz - vel * 0.5, 1.0);
+        Out.startPos    = LocalPosToViewSpace( p.position_size.xyz - vel * 0.5 );
     }
 
 #endif
@@ -166,7 +166,7 @@
         // find external points (must be 4 points)
         for (int i = 0, j = 0; i < points.length() and j < 4; ++i)
         {
-            if ( not IsPointInside( rect_a, rect_b, rect_c, points[i].xy ))
+            if ( ! IsPointInside( rect_a, rect_b, rect_c, points[i].xy ))
             {
                 gl.Position  = un_PerPass.camera.proj * points[i];
                 Out.uv       = uv_coords[j];

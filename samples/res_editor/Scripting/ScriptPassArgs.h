@@ -16,7 +16,7 @@ namespace AE::ResEditor
     // Pass Arguments
     //
 
-    class ScriptPassArgs final
+    class ScriptPassArgs final : Noncopyable
     {
     // types
     public:
@@ -66,6 +66,7 @@ namespace AE::ResEditor
         void  ValidateArgs ()                                                                           C_Th___;
         void  AddLayoutReflection ()                                                                    C_Th___;
 
+        void  CopyFrom (const ScriptPassArgs &)                                                         __Th___;
 
     private:
         void  _AddArg (const String &name, const ScriptBufferPtr &buf, EResourceUsage usage)            __Th___;
@@ -87,25 +88,25 @@ namespace AE::ResEditor
             Visit( arg.res,
                 [&] (ScriptBufferPtr buf) {
                     if ( buf->HasLayout() ){
-                        dsLayout->AddStorageBuffer( uint(stages), arg.name, arraySize, buf->GetTypeName(), accessType, arg.state );
+                        dsLayout->AddStorageBuffer( stages, arg.name, arraySize, buf->GetTypeName(), accessType, arg.state, False{} );
                     }else{
                     // TODO
-                    //  dsLayout->AddStorageTexelBuffer( uint(stages), arg.name, arraySize, PipelineCompiler::EImageType(buf->TexelBufferType()),
+                    //  dsLayout->AddStorageTexelBuffer( stages, arg.name, arraySize, PipelineCompiler::EImageType(buf->TexelBufferType()),
                     //                                   buf->GetViewFormat(), accessType, arg.state );
                     }
                 },
                 [&] (ScriptImagePtr tex) {
                     const auto  type = PipelineCompiler::EImageType(tex->ImageType());
                     if ( arg.samplerName.empty() )
-                        dsLayout->AddStorageImage( uint(stages), arg.name, arraySize, type, tex->Description().format, accessType, arg.state );
+                        dsLayout->AddStorageImage( stages, arg.name, arraySize, type, tex->Description().format, accessType, arg.state );
                     else
-                        dsLayout->AddCombinedImage_ImmutableSampler( uint(stages), arg.name, type, arg.state, arg.samplerName );
+                        dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, type, arg.state, arg.samplerName );
                 },
                 [&] (ScriptVideoImagePtr video) {
-                    dsLayout->AddCombinedImage_ImmutableSampler( uint(stages), arg.name, PipelineCompiler::EImageType(video->ImageType()), arg.state, arg.samplerName );
+                    dsLayout->AddCombinedImage_ImmutableSampler( stages, arg.name, PipelineCompiler::EImageType(video->ImageType()), arg.state, arg.samplerName );
                 },
                 [&] (ScriptRTScenePtr) {
-                    dsLayout->AddRayTracingScene( uint(stages), arg.name, arraySize );
+                    dsLayout->AddRayTracingScene( stages, arg.name, arraySize );
                 },
                 [] (NullUnion) {
                     CHECK_THROW_MSG( false, "unsupported argument type" );

@@ -25,7 +25,6 @@ namespace AE::Base
     using RecursiveMutex        = std::recursive_mutex;
     using ConditionVariable     = std::condition_variable;
 
-#   if AE_OPTIMAL_MEMORY_ORDER
     struct EMemoryOrder
     {
         static constexpr std::memory_order  Acquire         = std::memory_order_acquire;
@@ -33,16 +32,6 @@ namespace AE::Base
         static constexpr std::memory_order  AcquireRelease  = std::memory_order_acq_rel;
         static constexpr std::memory_order  Relaxed         = std::memory_order_relaxed;
     };
-#   else
-    struct EMemoryOrder
-    {
-        static constexpr std::memory_order  Acquire         = std::memory_order_seq_cst;
-        static constexpr std::memory_order  Release         = std::memory_order_seq_cst;
-        static constexpr std::memory_order  AcquireRelease  = std::memory_order_seq_cst;
-        static constexpr std::memory_order  Relaxed         = std::memory_order_seq_cst;
-    };
-#   endif // AE_OPTIMAL_MEMORY_ORDER
-
 
 /*
 =================================================

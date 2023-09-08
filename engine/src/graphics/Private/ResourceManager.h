@@ -214,10 +214,10 @@ namespace AE::Graphics
         Strong<SamplerID>               _defaultSampler;
         Strong<DescriptorSetLayoutID>   _emptyDSLayout;
 
-        #ifdef AE_DEBUG
-         mutable SharedMutex            _hashToNameGuard;
-         PipelineCompiler::HashToName   _hashToName;        // for debugging
-        #endif
+      #ifdef AE_DEBUG
+        mutable SharedMutex             _hashToNameGuard;
+        PipelineCompiler::HashToName    _hashToName;        // for debugging
+      #endif
 
 
     // methods

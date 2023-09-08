@@ -1,9 +1,14 @@
 
-## 23.08.xxx
+## 23.09.xxx
+
+
+## 23.08.183
 
  - Graphics: reflection for render technique, pipeline, SBT names
  - Graphics: improved syncs in RG
  - ResLoader: KTX support
+ - Scripting: function arguments and comments for C++ reflection
+
 
 ## 23.07.178
 

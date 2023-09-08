@@ -124,7 +124,7 @@ namespace AE::Math
     }
     template <typename       MatType,
               typename       Dimension,
-              typename       ValueScale = ValueScaleTempl::Integer< typename MatType::Value_t, 1 >,
+              typename       ValueScale = PhysicalQuantity_Scale::Integer< typename MatType::Value_t, 1 >,
               glm::qualifier Q          = GLMSimdQualifier
              >
     using PhysicalQuantity_FromMat = typename Math::_hidden_::_PhysicalQuantity_FromMat< MatType, Dimension, ValueScale, Q >::type;
@@ -157,7 +157,7 @@ namespace _hidden_
     ND_ auto  operator * (const TPhysicalQuantityMatrix< Columns, Rows, ValueType, Dimension, LhsScale, Qf >&  lhs,
                           const TPhysicalQuantityMatrix< Columns, Rows, ValueType, Dimension, RhsScale, Qf >&  rhs) __NE___
     {
-        using Scale = ValueScaleTempl::template Mul< LhsScale, RhsScale >;
+        using Scale = PhysicalQuantity_Scale::template Mul< LhsScale, RhsScale >;
         using Type  = PhysicalQuantity< ValueType, Dimension, Scale >;
 
         return PhysicalQuantityMatrix< Type, Columns, Rows, Q >{ Scale::Get( lhs.GetNonScaled(), rhs.GetNonScaled() )};

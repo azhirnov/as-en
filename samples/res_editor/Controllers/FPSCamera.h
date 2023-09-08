@@ -23,7 +23,7 @@ namespace AE::ResEditor
         float4x4                    _viewProj;          // cached
         float4x4                    _invViewProj;       // cached
 
-        FPVCameraTempl<float>       _camera;
+        TFPVCamera<float>       _camera;
         const float2                _clipPlanes;
         const Rad                   _fovY;
         const float2                _rotationScale;     // x, y

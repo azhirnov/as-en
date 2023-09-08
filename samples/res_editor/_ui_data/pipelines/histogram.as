@@ -17,7 +17,7 @@ void  CreateRenderPass ()
 
     // specialization
     {
-        RC<RenderPass>      rp = compat.AddSpecialization( "Histogram.RPass.def" );
+        RC<RenderPass>      rp = compat.AddSpecialization( "Histogram.RPass" );
 
         RC<AttachmentSpec>  rt = rp.AddAttachment( "Color" );
         rt.loadOp   = EAttachmentLoadOp::Clear;
@@ -33,12 +33,12 @@ void  CreateRenderTech ()
     rtech.AddFeatureSet( "MinDesktop" );
 
     {
-        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Graphics" );
-
-        pass.SetRenderPass( "Histogram.RPass.def", /*subpass*/"Main" );
+        RC<ComputePass>     pass = rtech.AddComputePass( "Compute" );
     }
     {
-        RC<ComputePass>     pass = rtech.AddComputePass( "Compute" );
+        RC<GraphicsPass>    pass = rtech.AddGraphicsPass( "Graphics" );
+
+        pass.SetRenderPass( "Histogram.RPass", /*subpass*/"Main" );
     }
 }
 
@@ -65,7 +65,7 @@ void  CreateCPipeline ()
 
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "Histogram.CS.ds0" );
         ds.CombinedImage( EShaderStages::Compute, "un_Texture", EImageType::FImage2D, "Histogram.LinearClamp" );
-        ds.StorageBuffer( EShaderStages::Compute, "un_Histogram", ArraySize(1), "Histogram.ssb", EAccessType::Coherent, EResourceState::ShaderStorage_RW );
+        ds.StorageBuffer( EShaderStages::Compute, "un_Histogram", "Histogram.ssb", EResourceState::ShaderStorage_RW );
     }{
         RC<PipelineLayout>      pl = PipelineLayout( "Histogram.CS.pl" );
         pl.DSLayout( "ds0", 0, "Histogram.CS.ds0" );
@@ -79,12 +79,12 @@ void  CreateCPipeline ()
 
         RC<Shader>  cs = Shader();
         cs.ComputeLocalSize( 8, 8 );
-        cs.file = "histogram_cs1.glsl";        // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram_cs1.glsl
+        cs.file = "histogram_cs1.glsl";     // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram_cs1.glsl
         ppln.SetShader( cs );
 
         // specialization
         {
-            RC<ComputePipelineSpec>     spec = ppln.AddSpecialization( "Histogram.CSPass1.def" );
+            RC<ComputePipelineSpec>     spec = ppln.AddSpecialization( "Histogram.CSPass1" );
             spec.AddToRenderTech( "Histogram.RTech", "Compute" );
         }
     }
@@ -96,12 +96,12 @@ void  CreateCPipeline ()
 
         RC<Shader>  cs = Shader();
         cs.ComputeLocalSize( 64 );
-        cs.file = "histogram_cs2.glsl";        // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram_cs2.glsl
+        cs.file = "histogram_cs2.glsl";     // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram_cs2.glsl
         ppln.SetShader( cs );
 
         // specialization
         {
-            RC<ComputePipelineSpec>     spec = ppln.AddSpecialization( "Histogram.CSPass2.def" );
+            RC<ComputePipelineSpec>     spec = ppln.AddSpecialization( "Histogram.CSPass2" );
             spec.AddToRenderTech( "Histogram.RTech", "Compute" );
         }
     }
@@ -113,7 +113,7 @@ void  CreateGPipeline ()
     // pipeline layout
     {
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "Histogram.draw.ds0" );
-        ds.StorageBuffer( EShaderStages::Vertex, "un_Histogram", ArraySize(1), "Histogram.ssb", EAccessType::Coherent, EResourceState::ShaderStorage_Read );
+        ds.StorageBuffer( EShaderStages::Vertex, "un_Histogram", "Histogram.ssb", EResourceState::ShaderStorage_Read );
     }{
         RC<PipelineLayout>      pl = PipelineLayout( "Histogram.draw.pl" );
         pl.DSLayout( "ds0", 0, "Histogram.draw.ds0" );
@@ -126,12 +126,12 @@ void  CreateGPipeline ()
 
     {
         RC<Shader>  vs  = Shader();
-        vs.file = "histogram.glsl";        // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram.glsl
+        vs.file = "histogram.glsl";     // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram.glsl
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file = "histogram.glsl";        // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram.glsl
+        fs.file = "histogram.glsl";     // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram.glsl
         ppln.SetFragmentShader( fs );
     }
 

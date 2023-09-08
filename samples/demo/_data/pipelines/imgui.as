@@ -5,11 +5,13 @@ void ASmain ()
 {
     {
         RC<ShaderStructType>    st = ShaderStructType( "imgui.io" );
-        st.Set( "float4     color;" +
+        st.Set( EStructLayout::InternalIO,
+                "float4     color;" +
                 "float2     uv;" );
     }{
         RC<ShaderStructType>    st = ShaderStructType( "imgui.ub" );
-        st.Set( "float2     scale;" +
+        st.Set( EStructLayout::Compatible_Std140,
+                "float2     scale;" +
                 "float2     translate;" );
 
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "imgui.ds0" );
@@ -37,13 +39,13 @@ void ASmain ()
 
     {
         RC<Shader>  vs = Shader();
-        vs.file        = "imgui.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/imgui.glsl
+        vs.file     = "imgui.glsl";     // file:///<path>/AE/samples/demo/_data/shaders/imgui.glsl
         vs.options  = EShaderOpt::Optimize;
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs = Shader();
-        fs.file        = "imgui.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/imgui.glsl
+        fs.file     = "imgui.glsl";     // file:///<path>/AE/samples/demo/_data/shaders/imgui.glsl
         fs.options  = EShaderOpt::Optimize;
         ppln.SetFragmentShader( fs );
     }

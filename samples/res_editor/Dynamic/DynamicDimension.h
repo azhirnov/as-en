@@ -61,6 +61,10 @@ namespace AE::ResEditor
         ND_ int3        Scale ()                                C_NE___ { SHAREDLOCK( _guard );  return _scale; }
         ND_ EImageDim   NumDimensions ()                        C_NE___ { return _numDimensions; }
 
+        ND_ uint        Remap (uint src)                        C_NE___ { return Remap(uint3{ src, 0u, 0u }).x; }
+        ND_ uint2       Remap (uint2 src)                       C_NE___ { return uint2{Remap(uint3{ src, 0u })}; }
+        ND_ uint3       Remap (uint3 src)                       C_NE___;
+
     private:
         ND_ static uint _ApplyScale (uint dim, int scale, ERounding);
     };
@@ -122,6 +126,19 @@ namespace AE::ResEditor
                 case EImageDim::_3D :   break;
             }
         }
+    }
+
+/*
+=================================================
+    Remap
+=================================================
+*/
+    inline uint3  DynamicDim::Remap (uint3 src) C_NE___
+    {
+        src.x = _ApplyScale( src.x, _scale.x, _rounding );
+        src.y = _ApplyScale( src.y, _scale.y, _rounding );
+        src.z = _ApplyScale( src.z, _scale.z, _rounding );
+        return src;
     }
 
 /*

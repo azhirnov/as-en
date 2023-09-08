@@ -45,30 +45,38 @@ namespace AE::ResLoader
 
         using Parameter = Union< NullUnion, float, float3, RGBA32f, MtrTexture >;
 
+
         struct Settings
         {
+        // variables
             String              name;
 
-            Parameter           albedo;                         // texture or color             // UE4 'base color'
-            Parameter           specular;                       // texture or color             // UE4 'specular'
+            Parameter           albedo;                         // texture or color             // alias: 'base color'
+            Parameter           specular;                       // texture or color
             Parameter           ambient;                        // texture or color
             Parameter           emissive;                       // texture or color
             Parameter           heightMap;                      // texture
             Parameter           normalMap;                      // texture
             Parameter           shininess;                      // texture or float
-            Parameter           opacity;                        // textire or float
+            Parameter           opacity;                        // texture or float
             Parameter           displacementMap;                // texture
             Parameter           lightMap;                       // texture
             Parameter           reflectionMap;                  // texture
-            Parameter           roughtness;                     // texture or float             // UE4 'roughtness'
-            Parameter           metallic;                       // texture or float             // UE4 'metallic'
-            Parameter           subsurface;                     // texture or color             // UE4 'subsurface color'
-            Parameter           ambientOcclusion;               // texture                      // UE4 'ambient occlusion'
-            Parameter           refraction;                     // texture, float, float3       // UE4 'index of refraction'
+            Parameter           roughness;                      // texture or float
+            Parameter           metallic;                       // texture or float
+            Parameter           subsurface;                     // texture or color
+            Parameter           ambientOcclusion;               // texture
+            Parameter           refraction;                     // texture, float, float3       // alias: 'index of refraction'
             Parameter           opticalDepth;                   // 3d texture, float, float3    //... exp( -distance * opticalDepth )
+
             float               shininessStrength   = 0.0f;
             float               alphaTestReference  = 0.0f;
             ECullMode           cullMode            = Default;
+
+        // methods
+            Settings ()                                 __NE___ {}
+
+            ND_ ArrayView<Parameter>    GetParams ()    C_NE___ { return ArrayView<Parameter>{ &albedo, &opticalDepth }; }
         };
 
 

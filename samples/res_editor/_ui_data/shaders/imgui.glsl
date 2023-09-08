@@ -15,6 +15,7 @@
         v_UV        = in_UV;
         v_Color     = in_Color;
     }
+
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_FRAG
@@ -26,4 +27,6 @@
     {
         out_Color = v_Color * gl.texture.Sample( gl::CombinedTex2D<float>(un_Textures[pc.textureIdx], un_Sampler), v_UV );
     }
+
 #endif
+//-----------------------------------------------------------------------------

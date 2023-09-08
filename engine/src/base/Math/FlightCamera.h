@@ -14,18 +14,18 @@ namespace AE::Math
     //
 
     template <typename T>
-    struct FlightCameraTempl final
+    struct TFlightCamera final
     {
     // types
     private:
-        using Camera_t      = CameraTempl<T>;
-        using Frustum_t     = FrustumTempl<T>;
-        using Self          = FlightCameraTempl<T>;
+        using Camera_t      = TCamera<T>;
+        using Frustum_t     = TFrustum<T>;
+        using Self          = TFlightCamera<T>;
         using Quat_t        = typename Camera_t::Quat_t;
         using Vec2_t        = typename Camera_t::Vec2_t;
         using Vec3_t        = typename Camera_t::Vec3_t;
         using Mat4_t        = typename Camera_t::Mat4_t;
-        using Rad_t         = RadiansTempl<T>;
+        using Rad_t         = TRadians<T>;
         using Rad3_t        = RadianVec<T, 3>;
         using Transform_t   = typename Camera_t::Transform_t;
 
@@ -38,7 +38,7 @@ namespace AE::Math
 
     // methods
     public:
-        FlightCameraTempl ()                                                __NE___ {}
+        TFlightCamera ()                                                    __NE___ {}
 
         ND_ Frustum_t const&    Frustum ()                                  C_NE___ { return _frustum; }
         ND_ Transform_t const&  Transform ()                                C_NE___ { return _camera.transform; }
@@ -72,7 +72,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    void  FlightCameraTempl<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar) __NE___
+    void  TFlightCamera<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar) __NE___
     {
         _camera.SetPerspective( fovY, aspect, Vec2_t{zNear, zFar} );
         _frustum.Setup( _camera );
@@ -84,7 +84,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    FlightCameraTempl<T>&  FlightCameraTempl<T>::SetPosition (const Vec3_t &pos) __NE___
+    TFlightCamera<T>&  TFlightCamera<T>::SetPosition (const Vec3_t &pos) __NE___
     {
         _camera.transform.position = pos;
         return *this;
@@ -96,7 +96,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    FlightCameraTempl<T>&  FlightCameraTempl<T>::SetRotation (const Quat_t &q) __NE___
+    TFlightCamera<T>&  TFlightCamera<T>::SetRotation (const Quat_t &q) __NE___
     {
         _camera.transform.orientation = q;
         return *this;
@@ -108,7 +108,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    FlightCameraTempl<T>&  FlightCameraTempl<T>::Rotate (Rad_t yaw, Rad_t pitch, Rad_t roll) __NE___
+    TFlightCamera<T>&  TFlightCamera<T>::Rotate (Rad_t yaw, Rad_t pitch, Rad_t roll) __NE___
     {
         if ( IsZero( yaw ) & IsZero( pitch ) & IsZero( roll ))
             return *this;
@@ -134,15 +134,15 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    FlightCameraTempl<T>&  FlightCameraTempl<T>::Move (const Vec3_t &delta) __NE___
+    TFlightCamera<T>&  TFlightCamera<T>::Move (const Vec3_t &delta) __NE___
     {
         _camera.transform.position += Transform( delta );
         return *this;
     }
 
     template <typename T>
-    typename FlightCameraTempl<T>::Vec3_t
-        FlightCameraTempl<T>::Transform (const Vec3_t &delta) C_NE___
+    typename TFlightCamera<T>::Vec3_t
+        TFlightCamera<T>::Transform (const Vec3_t &delta) C_NE___
     {
         const Quat_t    view_q  = _camera.Orientation();
         const Vec3_t    up_dir  = _camera.UpDir();

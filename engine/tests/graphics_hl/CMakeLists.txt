@@ -1,7 +1,8 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (TARGET "GraphicsHL")
-    set( DATA_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/res_pack/shared_data" )
     file( GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.as" "*.glsl" )
-    file( GLOB_RECURSE SHARED_DATA "${DATA_FOLDER}/*.*" )
+    file( GLOB_RECURSE SHARED_DATA "${AE_ENGINE_SHARED_DATA}/*.*" )
 
     if (DEFINED ANDROID)
         add_library( "Tests.GraphicsHL" STATIC ${SOURCES} ${SHARED_DATA} )
@@ -11,17 +12,17 @@ if (TARGET "GraphicsHL")
         add_executable( "Tests.GraphicsHL" ${SOURCES} ${SHARED_DATA} )
     endif()
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
-    source_group( TREE "${DATA_FOLDER}/.." FILES ${SHARED_DATA} )
+    source_group( TREE "${AE_ENGINE_SHARED_DATA}/.." FILES ${SHARED_DATA} )
 
     set_property( TARGET "Tests.GraphicsHL" PROPERTY FOLDER "Engine/Tests" )
     target_link_libraries( "Tests.GraphicsHL" PUBLIC "Platform" "GraphicsHL" "GraphicsTestUtils" )
     target_compile_definitions( "Tests.GraphicsHL" PUBLIC AE_TEST_GRAPHICS_HL )
 
-    target_include_directories( "Tests.GraphicsHL" PUBLIC "${DATA_FOLDER}/scripts" )
+    target_include_directories( "Tests.GraphicsHL" PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" )
 
     target_compile_definitions( "Tests.GraphicsHL" PRIVATE
         AE_PIPELINE_COMPILER_LIBRARY="${MAIN_BINARY_DIR}"
-        AE_SHARED_DATA="${DATA_FOLDER}"
+        AE_SHARED_DATA="${AE_ENGINE_SHARED_DATA}"
         AE_CURRENT_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
         AE_CANVAS_VERTS="${CMAKE_CURRENT_SOURCE_DIR}/../../src/graphics_hl/Canvas/VertexTypes.as"
     )

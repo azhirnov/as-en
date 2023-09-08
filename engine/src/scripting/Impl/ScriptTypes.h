@@ -33,9 +33,9 @@ namespace AE::Scripting
         static constexpr bool is_object      = false;
         static constexpr bool is_ref_counted = false;
 
-        static void  Name (INOUT String &s)     { s += "void"; }
-        static void  ArgName (INOUT String &s)  { s += "void"; }
-        static void  CppArg (INOUT String &s)   { s += "void"; }
+        static void  Name (INOUT String &s)     { s << "void"; }
+        static void  ArgName (INOUT String &s)  { s << "void"; }
+        static void  CppArg (INOUT String &s)   { s << "void"; }
     };
 
 #   define AE_DECL_SCRIPT_TYPE( _type_, _name_ )                                            \
@@ -47,9 +47,9 @@ namespace AE::Scripting
             static constexpr bool is_object      = false;                                   \
             static constexpr bool is_ref_counted = false;                                   \
                                                                                             \
-            static void  Name (INOUT String &s)     { s += (_name_); }                      \
-            static void  ArgName (INOUT String &s)  { s += (_name_); }                      \
-            static void  CppArg (INOUT String &s)   { s += (_name_); }                      \
+            static void  Name (INOUT String &s)     { s << (_name_); }                      \
+            static void  ArgName (INOUT String &s)  { s << (_name_); }                      \
+            static void  CppArg (INOUT String &s)   { s << (_name_); }                      \
         }
 
 #   define AE_DECL_SCRIPT_OBJ( _type_, _name_ )                                             \
@@ -61,9 +61,9 @@ namespace AE::Scripting
             static constexpr bool is_object      = true;                                    \
             static constexpr bool is_ref_counted = false;                                   \
                                                                                             \
-            static void  Name (INOUT String &s)     { s += (_name_); }                      \
-            static void  ArgName (INOUT String &s)  { s += (_name_); }                      \
-            static void  CppArg (INOUT String &s)   { s += (_name_); }                      \
+            static void  Name (INOUT String &s)     { s << (_name_); }                      \
+            static void  ArgName (INOUT String &s)  { s << (_name_); }                      \
+            static void  CppArg (INOUT String &s)   { s << (_name_); }                      \
         }
 
 #   define AE_DECL_SCRIPT_OBJ_RC( _type_, _name_ )                                          \
@@ -75,9 +75,9 @@ namespace AE::Scripting
             static constexpr bool is_object      = true;                                    \
             static constexpr bool is_ref_counted = true;                                    \
                                                                                             \
-            static void  Name (INOUT String &s)     { s += (_name_); }                      \
-            static void  ArgName (INOUT String &s)  { s += (_name_); }                      \
-            static void  CppArg (INOUT String &s)   { s += (_name_); }                      \
+            static void  Name (INOUT String &s)     { s << (_name_); }                      \
+            static void  ArgName (INOUT String &s)  { s << (_name_); }                      \
+            static void  CppArg (INOUT String &s)   { s << (_name_); }                      \
         };                                                                                  \
                                                                                             \
         template <>                                                                         \
@@ -89,9 +89,9 @@ namespace AE::Scripting
             static constexpr bool is_object      = true;                                    \
             static constexpr bool is_ref_counted = true;                                    \
                                                                                             \
-            static void  Name (INOUT String &s)     { s += _name_; s += '@'; }              \
-            static void  ArgName (INOUT String &s)  { s += _name_; s += '@'; }              \
-            static void  CppArg (INOUT String &s)   { s += "RC<";  s += _name_; s += ">"; } \
+            static void  Name (INOUT String &s)     { s << _name_ << '@'; }                 \
+            static void  ArgName (INOUT String &s)  { s << _name_ << '@'; }                 \
+            static void  CppArg (INOUT String &s)   { s << "RC<" << _name_ << ">"; }        \
         };                                                                                  \
                                                                                             \
         template <>                                                                         \
@@ -104,9 +104,9 @@ namespace AE::Scripting
             static constexpr bool is_object      = true;                                    \
             static constexpr bool is_ref_counted = true;                                    \
                                                                                             \
-            static void  Name (INOUT String &s)     { s += _name_; s += '@'; }              \
-            static void  ArgName (INOUT String &s)  { s += _name_; s += '@'; }              \
-            static void  CppArg (INOUT String &s)   { s += "RC<";  s += _name_; s += ">"; } \
+            static void  Name (INOUT String &s)     { s << _name_ << '@'; }                 \
+            static void  ArgName (INOUT String &s)  { s << _name_ << '@'; }                 \
+            static void  CppArg (INOUT String &s)   { s << "RC<" << _name_ << ">"; }        \
         };                                                                                  \
                                                                                             \
         template <> struct AE::Scripting::ScriptTypeInfo < const _type_* > {};              \
@@ -161,78 +161,78 @@ namespace AE::Scripting
 #   define MULTILINE_ARG( ... )  __VA_ARGS__
     AE_DECL_SCRIPT_WRAP( const T,
                          MULTILINE_ARG(
-                            s += "const ";
+                            s << "const ";
                             Base_t::Name( s );
                          ),
                          MULTILINE_ARG(
-                            s += "const ";
+                            s << "const ";
                             Base_t::Name( s );
                          ),
                          MULTILINE_ARG(
-                            s += "const ";
+                            s << "const ";
                             Base_t::CppArg( s );
                          ));
 
     AE_DECL_SCRIPT_WRAP( const T &,
                          MULTILINE_ARG(
-                            s += "const ";
+                            s << "const ";
                             Base_t::Name( s );
-                            s += " &";
+                            s << " &";
                          ),
                          MULTILINE_ARG(
-                            s += "const ";
+                            s << "const ";
                             Base_t::Name( s );
-                            s += " &in";
+                            s << " &in";
                          ),
                          MULTILINE_ARG(
-                            s += "const ";
+                            s << "const ";
                             Base_t::CppArg( s );
-                            s += " &";
+                            s << " &";
                          ));
 
     AE_DECL_SCRIPT_WRAP( T &,
                          MULTILINE_ARG(
                             Base_t::Name( s );
-                            s += " &";
+                            s << " &";
                          ),
                          MULTILINE_ARG(
                             Base_t::Name( s );
-                            s += (_is_ref_counted ? " &inout" : " &out");
+                            s << (_is_ref_counted ? " &inout" : " &out");
                          ),
                          MULTILINE_ARG(
                             Base_t::CppArg( s );
-                            s += " &";
+                            s << " &";
                          ));
 
     AE_DECL_SCRIPT_WRAP( const T *,
                          MULTILINE_ARG(
-                            s += "const ";
+                            s << "const ";
                             Base_t::Name( s );
-                            s += " &";
+                            s << " &";
                          ),
                          MULTILINE_ARG(
-                            s += "const ";
+                            s << "const ";
                             Base_t::Name( s );
-                            s += " &in";
+                            s << " &in";
                          ),
                          MULTILINE_ARG(
-                            s += "const ";
+                            s << "const ";
                             Base_t::CppArg( s );
-                            s += " &";
+                            s << " &";
                          ));
 
     AE_DECL_SCRIPT_WRAP( T *,
                          MULTILINE_ARG(
                             Base_t::Name( s );
-                            s += " &";
+                            s << " &";
                          ),
                          MULTILINE_ARG(
                             Base_t::Name( s );
-                            s += (_is_ref_counted ? " &inout" : " &out");
+                            s << (_is_ref_counted ? " &inout" : " &out");
                          ),
                          MULTILINE_ARG(
                             Base_t::CppArg( s );
-                            s += " &";
+                            s << " &";
                          ));
 #   undef MULTILINE_ARG
 #   undef AE_DECL_SCRIPT_WRAP
@@ -253,7 +253,7 @@ namespace AE::Scripting
             int     _counter    = 0;
 
         public:
-            DEBUG_ONLY( static inline std::atomic<slong>  _dbgTotalCount {0}; )
+            DEBUG_ONLY( static inline Atomic<slong>  _dbgTotalCount {0}; )
 
 
         // methods
@@ -264,8 +264,8 @@ namespace AE::Scripting
             void operator = (const SimpleRefCounter &) = delete;
 
         public:
-            SimpleRefCounter ()         { DEBUG_ONLY( _dbgTotalCount.fetch_add( 1, EMemoryOrder::Relaxed ); )}
-            virtual ~SimpleRefCounter (){ ASSERT( _counter == 0 );  DEBUG_ONLY( _dbgTotalCount.fetch_sub( 1, EMemoryOrder::Relaxed ); )}
+            SimpleRefCounter ()         { DEBUG_ONLY( _dbgTotalCount.fetch_add( 1 ); )}
+            virtual ~SimpleRefCounter (){ ASSERT( _counter == 0 );  DEBUG_ONLY( _dbgTotalCount.fetch_sub( 1 ); )}
 
             void  __AddRef ()           { ASSERT( _counter >= 0 );  ++_counter; }
             void  __Release ()          { ASSERT( _counter >= 0 );  if_unlikely( (--_counter) == 0 ) { delete this; }}
@@ -431,7 +431,7 @@ namespace AE::Scripting
             void  operator () ()
             {
                 if ( Index < first or Index > last )    return;
-                if ( Index > first )                    result += ", ";
+                if ( Index > first )                    result << ", ";
                 ScriptTypeInfo<T>::ArgName( INOUT result );
             }
         };
@@ -450,31 +450,36 @@ namespace AE::Scripting
             {
                 ASSERT( offsetFromEnd < Typelist::Count );
 
-                str += '(';
+                str << '(';
                 Get( INOUT str, offsetFromStart, Typelist::Count - offsetFromEnd );
-                str += ')';
+                str << ')';
             }
         };
 
 
         struct CppArgsToString_Func
         {
-            String &    result;
-            const uint  first;
-            const uint  last;
+            String &                result;
+            const uint              first;
+            const uint              last;
+            ArrayView<StringView>   argNames;
 
-            CppArgsToString_Func (uint first, uint last, INOUT String &str) : 
-                result(str), first(first), last(last)
+            CppArgsToString_Func (uint first, uint last, ArrayView<StringView> argNames, INOUT String &str) : 
+                result{str}, first{first}, last{last}, argNames{argNames}
             {
                 ASSERT( first <= last );
+                ASSERT( argNames.empty() or argNames.size() == (last - first) );
             }
 
             template <typename T, usize Index>
             void  operator () ()
             {
                 if ( Index < first or Index > last )    return;
-                if ( Index > first )                    result += ", ";
+                if ( Index > first )                    result << ", ";
                 ScriptTypeInfo<T>::CppArg( INOUT result );
+
+                ASSERT( argNames.empty() or (Index-first < argNames.size()) );
+                if ( Index-first < argNames.size() )    result << ' ' << argNames[Index-first];
             }
         };
 
@@ -482,19 +487,19 @@ namespace AE::Scripting
         template <typename Typelist>
         struct CppArgsToString
         {
-            static void  Get (INOUT String &str, uint first, uint last)
+            static void  Get (INOUT String &str, ArrayView<StringView> argNames, uint first, uint last)
             {
-                CppArgsToString_Func    func( first, last, INOUT str );
+                CppArgsToString_Func    func( first, last, argNames, INOUT str );
                 Typelist::Visit( func );
             }
 
-            static void  GetCppArgs (INOUT String &str, uint offsetFromStart, uint offsetFromEnd)
+            static void  GetCppArgs (INOUT String &str, ArrayView<StringView> argNames, uint offsetFromStart, uint offsetFromEnd)
             {
                 ASSERT( offsetFromEnd < Typelist::Count );
 
-                str += '(';
-                Get( INOUT str, offsetFromStart, Typelist::Count - offsetFromEnd );
-                str += ')';
+                str << '(';
+                Get( INOUT str, argNames, offsetFromStart, Typelist::Count - offsetFromEnd );
+                str << ')';
             }
         };
 
@@ -511,7 +516,7 @@ namespace AE::Scripting
                 STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
 
                 ScriptTypeInfo< Result_t >::Name( INOUT str );
-                (str += ' ') += name;
+                str << ' ' << name;
                 GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
             }
 
@@ -520,19 +525,19 @@ namespace AE::Scripting
                 ArgsToString< TypeList_t >::GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
             }
 
-            static void  GetCppDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+            static void  GetCppDescriptor (INOUT String &str, StringView name, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
                 // can not convert between R* to SharedPtr<R>
                 STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
 
                 ScriptTypeInfo< Result_t >::CppArg( INOUT str );
-                ((str += "  ") += name) += ' ';
-                GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
+                str << "  " << name << ' ';
+                GetCppArgs( INOUT str, argNames, offsetFromStart, offsetFromEnd );
             }
 
-            static void  GetCppArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+            static void  GetCppArgs (INOUT String &str, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
-                CppArgsToString< TypeList_t >::GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
+                CppArgsToString< TypeList_t >::GetCppArgs( INOUT str, argNames, offsetFromStart, offsetFromEnd );
             }
         };
 
@@ -552,26 +557,26 @@ namespace AE::Scripting
                 STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
 
                 ScriptTypeInfo< Result_t >::Name( INOUT str );
-                ((str += ' ') += name) += "()";
+                str << ' ' << name << "()";
             }
 
             static void  GetArgs (INOUT String &str, uint = 0, uint = 0)
             {
-                str += "()";
+                str << "()";
             }
 
-            static void  GetCppDescriptor (INOUT String &str, StringView name, uint = 0, uint = 0)
+            static void  GetCppDescriptor (INOUT String &str, StringView name, ArrayView<StringView>, uint = 0, uint = 0)
             {
                 // can not convert between R* to SharedPtr<R>
                 STATIC_ASSERT( not AngelScriptHelper::IsSharedPtrNoQual< Result_t >);
 
                 ScriptTypeInfo< Result_t >::CppArg( INOUT str );
-                ((str += "  ") += name) += " ()";
+                str << "  " << name << " ()";
             }
 
-            static void  GetCppArgs (INOUT String &str, uint = 0, uint = 0)
+            static void  GetCppArgs (INOUT String &str, ArrayView<StringView>, uint = 0, uint = 0)
             {
-                str += " ()";
+                str << " ()";
             }
         };
 
@@ -602,14 +607,14 @@ namespace AE::Scripting
                 GlobalFunction< Result_t (*) (Types...) >::GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
             }
 
-            static void  GetCppDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+            static void  GetCppDescriptor (INOUT String &str, StringView name, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
-                GlobalFunction< Result_t (*) (Types...) >::GetCppDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
+                GlobalFunction< Result_t (*) (Types...) >::GetCppDescriptor( INOUT str, name, argNames, offsetFromStart, offsetFromEnd );
             }
 
-            static void  GetCppArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+            static void  GetCppArgs (INOUT String &str, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
-                GlobalFunction< Result_t (*) (Types...) >::GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
+                GlobalFunction< Result_t (*) (Types...) >::GetCppArgs( INOUT str, argNames, offsetFromStart, offsetFromEnd );
             }
         };
 
@@ -633,14 +638,14 @@ namespace AE::Scripting
                 GlobalFunction< Result_t (*) () >::GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
             }
 
-            static void  GetCppDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+            static void  GetCppDescriptor (INOUT String &str, StringView name, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
-                GlobalFunction< Result_t (*) () >::GetCppDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
+                GlobalFunction< Result_t (*) () >::GetCppDescriptor( INOUT str, name, argNames, offsetFromStart, offsetFromEnd );
             }
 
-            static void  GetCppArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+            static void  GetCppArgs (INOUT String &str, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
-                GlobalFunction< Result_t (*) () >::GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
+                GlobalFunction< Result_t (*) () >::GetCppArgs( INOUT str, argNames, offsetFromStart, offsetFromEnd );
             }
         };
 
@@ -657,7 +662,7 @@ namespace AE::Scripting
             static void  GetDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
                 GlobalFunction< Result_t (*) (Types...) >::GetDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
-                str += " const";
+                str << " const";
             }
 
             static void  GetArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
@@ -665,15 +670,15 @@ namespace AE::Scripting
                 GlobalFunction< Result_t (*) (Types...) >::GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
             }
 
-            static void  GetCppDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+            static void  GetCppDescriptor (INOUT String &str, StringView name, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
-                GlobalFunction< Result_t (*) (Types...) >::GetCppDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
-                str += " const";
+                GlobalFunction< Result_t (*) (Types...) >::GetCppDescriptor( INOUT str, name, argNames, offsetFromStart, offsetFromEnd );
+                str << " const";
             }
 
-            static void  GetCppArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+            static void  GetCppArgs (INOUT String &str, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
-                GlobalFunction< Result_t (*) (Types...) >::GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
+                GlobalFunction< Result_t (*) (Types...) >::GetCppArgs( INOUT str, argNames, offsetFromStart, offsetFromEnd );
             }
         };
 
@@ -690,7 +695,7 @@ namespace AE::Scripting
             static void  GetDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
                 GlobalFunction< Result_t (*) () >::GetDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
-                str += " const";
+                str << " const";
             }
 
             static void  GetArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
@@ -698,15 +703,15 @@ namespace AE::Scripting
                 GlobalFunction< Result_t (*) () >::GetArgs( INOUT str, offsetFromStart, offsetFromEnd );
             }
 
-            static void  GetCppDescriptor (INOUT String &str, StringView name, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+            static void  GetCppDescriptor (INOUT String &str, StringView name, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
-                GlobalFunction< Result_t (*) () >::GetCppDescriptor( INOUT str, name, offsetFromStart, offsetFromEnd );
-                str += " const";
+                GlobalFunction< Result_t (*) () >::GetCppDescriptor( INOUT str, name, argNames, offsetFromStart, offsetFromEnd );
+                str << " const";
             }
 
-            static void  GetCppArgs (INOUT String &str, uint offsetFromStart = 0, uint offsetFromEnd = 0)
+            static void  GetCppArgs (INOUT String &str, ArrayView<StringView> argNames, uint offsetFromStart = 0, uint offsetFromEnd = 0)
             {
-                GlobalFunction< Result_t (*) () >::GetCppArgs( INOUT str, offsetFromStart, offsetFromEnd );
+                GlobalFunction< Result_t (*) () >::GetCppArgs( INOUT str, argNames, offsetFromStart, offsetFromEnd );
             }
         };
 

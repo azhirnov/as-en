@@ -80,7 +80,7 @@ namespace AE::App
 
             bool                SetSurfaceMode (const SurfaceInfo &)                                                            __NE_OV { return false; }
 
-            AllImages_t         GetAllImages ()                                                                                 C_NE_OV;
+            //AllImages_t       GetAllImages ()                                                                                 C_NE_OV;
             SurfaceFormats_t    GetSurfaceFormats ()                                                                            C_NE_OV { return Default; }
             PresentModes_t      GetPresentModes ()                                                                              C_NE_OV { return Default; }
             SurfaceInfo         GetSurfaceInfo ()                                                                               C_NE_OV { return Default; }

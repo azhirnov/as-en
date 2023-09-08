@@ -9,7 +9,6 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "threading/Primitives/Atomic.h"
 # include "threading/Primitives/SpinLock.h"
 # include "threading/Primitives/DataRaceCheck.h"
 #endif

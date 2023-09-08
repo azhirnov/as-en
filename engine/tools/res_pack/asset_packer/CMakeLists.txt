@@ -1,3 +1,4 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 set( GRAPHICS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/graphics" )
 set( GRAPHICS_HPP_SRC
@@ -39,7 +40,7 @@ EnablePrebuild( "AssetPacker" )
 add_library( "AssetPacker-shared" SHARED
     "AssetPacker.h"
     ${DUMMY_CPP_FILE}
-    "Lib/AssetPacker.def"
+    #"Lib/AssetPacker.def"
 )
 target_link_libraries( "AssetPacker-shared" PUBLIC "AssetPacker" )
 

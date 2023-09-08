@@ -9,7 +9,7 @@
 AE_DECL_SCRIPT_OBJ( AE::ResEditor::ResEditorAppConfig,  "Config" );
 
 #if AE_PUBLIC_VERSION and AE_GRAPHICS_STRONG_VALIDATION == 0
-//# error AE_GRAPHICS_STRONG_VALIDATION must be enabled for public version
+# error AE_GRAPHICS_STRONG_VALIDATION must be enabled for public version
 #endif
 
 namespace AE::ResEditor
@@ -58,7 +58,7 @@ namespace
             cfg.graphics.device.validation      = EDeviceValidation::Enabled;
           #endif
 
-            cfg.graphics.swapchain.format       = EPixelFormat::RGBA8_UNorm;
+            cfg.graphics.swapchain.colorFormat  = EPixelFormat::RGBA8_UNorm;
 
             cfg.graphics.swapchain.usage        = EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;
             cfg.graphics.swapchain.options      = EImageOpt::BlitDst;
@@ -94,8 +94,11 @@ namespace
 */
     static void  ResEditorAppConfig_VFSPath (ResEditorAppConfig &self, const String &path, const String &prefix)
     {
-        CHECK_THROW_MSG( FileSystem::IsDirectory( path ),
-            "VFSPath '"s << ToString(path) << "' must be existed folder" );
+        if ( not FileSystem::IsDirectory( path ))
+        {
+            AE_LOG_SE( "VFSPath '"s << ToString(path) << "' must be existed folder" );
+            return;
+        }
 
         self.vfsPathes.push_back( FileSystem::ToAbsolute( Path{path} ));
         self.vfsPathPrefixes.push_back( prefix );
@@ -259,16 +262,16 @@ namespace
         {
             ClassBinder<ResEditorAppConfig>     binder{ se };
             binder.CreateClassValue();
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_VFSPath,            "VFSPath" );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_UIDataDir,          "UIDataDir" );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineSearchDir,  "PipelineSearchDir" );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderSearchDir,    "ShaderSearchDir" );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderIncludeDir,   "ShaderIncludeDir" );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_ScriptDir,          "ScriptDir" );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_SecondaryScriptDir, "SecondaryScriptDir" );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderTraceDir,     "ShaderTraceDir" );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_ScreenshotDir,      "ScreenshotDir" );
-            binder.AddMethodFromGlobal( &ResEditorAppConfig_VideoDir,           "VideoDir" );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_VFSPath,            "VFSPath",              {"path", "prefixInVFS"} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_UIDataDir,          "UIDataDir",            {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_PipelineSearchDir,  "PipelineSearchDir",    {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderSearchDir,    "ShaderSearchDir",      {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderIncludeDir,   "ShaderIncludeDir",     {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ScriptDir,          "ScriptDir",            {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_SecondaryScriptDir, "SecondaryScriptDir",   {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ShaderTraceDir,     "ShaderTraceDir",       {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_ScreenshotDir,      "ScreenshotDir",        {} );
+            binder.AddMethodFromGlobal( &ResEditorAppConfig_VideoDir,           "VideoDir",             {} );
             binder.AddProperty( &ResEditorAppConfig::setStableGPUClock,         "setStableGPUClock" );
         }
 
@@ -309,13 +312,41 @@ namespace
         String  str;
         if ( AE_PUBLIC_VERSION )
         {
-            str = R"(
+            str << R"(
 void main (Config &out cfg)
 {
     const string    vfs_path            = "";
     const string    local_path          = "data/";
     const string    shader_data_path    = "shared_data/";
+    const string    ui_path             = "ui";
+)";
+        }
+        else
+        {
+            Path    engine_path;
+            if ( FileSystem::SearchBackward( FileSystem::CurrentPath(), "AE/samples/res_editor", 3, OUT engine_path ))
+            {
+                ASSERT( engine_path.is_absolute() );
+                engine_path = engine_path.parent_path().parent_path().parent_path();
+            }
 
+            String  path = engine_path.string();
+            FindAndReplace( INOUT path, '\\', '/' );
+
+            if ( not path.empty() and path.back() != '/' )
+                path << '/';
+
+            str <<
+"void main (Config &out cfg)\n"
+"{\n"
+"   const string    base_path           = \"" << path  << "\";\n"
+"   const string    vfs_path            = base_path + \"AE-Data/\";\n"
+"   const string    local_path          = base_path + \"AE/samples/res_editor/_data/\";\n"
+"   const string    shader_data_path    = base_path + \"AE/engine/shared_data/\";\n"
+"   const string    ui_path             = base_path + \"AE-Temp/samples/res_editor\";\n";
+        }
+
+        str << R"(
     // VFS //
     //  attach path on disk to VFS
     cfg.VFSPath( vfs_path + "shadertoy_data",   "shadertoy/" );
@@ -339,57 +370,20 @@ void main (Config &out cfg)
 
     // output //
     //  path for imgui
-    cfg.UIDataDir( "ui" );
+    cfg.UIDataDir( ui_path );
     //  where put shader traces
-    cfg.ShaderTraceDir( "_shader_trace" );
+    cfg.ShaderTraceDir( local_path + "../_shader_trace" );
     //  where save screenshots
-    cfg.ScreenshotDir( "_screenshots" );
+    cfg.ScreenshotDir( local_path + "../_screenshots" );
     //  where save video
-    cfg.VideoDir( "_video" );
+    cfg.VideoDir( local_path + "../_video" );
 
     // graphics settings //
     //  set stable GPU clock for profiling, otherwise driver can move GPU to low power mode
     cfg.setStableGPUClock = false;
 }
 )";
-        }
-        else
-        {
-            str = R"(
-void main (Config &out cfg)
-{
-    const string    base_path           = "<path>/";
-    const string    vfs_path            = base_path + "AE-Data/";
-    const string    local_path          = base_path + "AE/samples/res_editor/_data/";
-    const string    shader_data_path    = base_path + "AE/engine/tools/res_pack/shared_data/";
 
-    // VFS
-    cfg.VFSPath( vfs_path + "shadertoy_data",   "shadertoy/" );
-    cfg.VFSPath( vfs_path + "res_editor_data",  "res/" );
-
-    // pipeline dirs
-    cfg.PipelineSearchDir( local_path + "pipelines" );
-
-    // shaders
-    cfg.ShaderSearchDir( local_path + "shaders" );
-    cfg.ShaderIncludeDir( shader_data_path + "shaders" );
-    cfg.ShaderIncludeDir( local_path + "shaders" );
-
-    // scripts
-    cfg.ScriptDir( local_path + "scripts" );
-    cfg.SecondaryScriptDir( local_path + "scripts/callable" );  // used in 'RunScript()'
-
-    // output
-    cfg.UIDataDir( base_path + "AE-Temp/samples/res_editor" );  // imgui
-    cfg.ShaderTraceDir( local_path + "../_shader_trace" );
-    cfg.ScreenshotDir( local_path + "../_screenshots" );
-    cfg.VideoDir( local_path + "../_video" );
-
-    // graphics settings
-    cfg.setStableGPUClock = false;
-}
-)";
-        }
         FileWStream     file {filename};
         return  file.IsOpen()               and
                 file.Write( StringView{str} );
@@ -676,8 +670,9 @@ void main (Config &out cfg)
         Scheduler().Run< AsyncTaskFn >(
             Tuple{  [this, renderer] ()
                     {
-                        _mainLoop->renderer = renderer;
                         _ui.SetHelpText( renderer->GetHelpText() );
+                        _ui.SetSurfaceFormat( renderer->GetSurfaceFormat() );
+                        _mainLoop->renderer = RVRef(renderer);
                     },
                     "StartRendering",
                     ETaskQueue::Main });
@@ -792,12 +787,6 @@ void main (Config &out cfg)
 */
     void  ResEditorCore::RenderFrame () __NE___
     {
-        /*if ( _ui.IsCaptureRequested() )
-        {
-            _enableCapture = true;
-            CHECK( _rdc.BeginFrame() );
-        }*/
-
         _mainLoop->endFrame = _DrawFrame();
     }
 
@@ -820,12 +809,6 @@ void main (Config &out cfg)
 
             Scheduler().DbgDetectDeadlock();
         }
-
-        /*if ( _enableCapture )
-        {
-            CHECK( _rdc.EndFrame() );
-            _enableCapture = false;
-        }*/
     }
 
 } // AE::ResEditor
@@ -837,8 +820,8 @@ using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::ResEditor;
 
-#define REQUIRE_APACHE_2
-//#include "base/Defines/DetectLicense.inl.h"
+#define REQUIRE_GPLv3
+#include "base/Defines/DetectLicense.inl.h"
 
 
 /*
@@ -861,8 +844,7 @@ Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 #endif
 
     AE_LOGI( String{AE_ENGINE_NAME} << ' ' << ToString(AE_VERSION.Get<0>()) << '.' << ToString(AE_VERSION.Get<1>()) << '.' << ToString(AE_VERSION.Get<2>()) );
-
-    //AE_LOG_DBG( "License: "s << AE_LICENSE );
+    AE_LOG_DBG( "License: "s << AE_LICENSE );
 
     InitResEditorAppConfig();
 

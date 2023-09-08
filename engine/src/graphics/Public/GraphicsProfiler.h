@@ -7,7 +7,6 @@
 
 #include "graphics/Public/IDs.h"
 #include "graphics/Public/Queue.h"
-#include "graphics/Public/FrameUID.h"
 
 #include "graphics/Public/MetalTypes.h"
 #include "graphics/Public/VulkanTypes.h"

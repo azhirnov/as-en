@@ -37,7 +37,7 @@ namespace AE::Math
         Self&  Scale (T scale)                                          __NE___ { radius *= Abs(scale);  return *this; }
 
 
-        Self&  Transform (const Transformation<T> &tr)                  __NE___
+        Self&  Transform (const TTransformation<T> &tr)                 __NE___
         {
             center  = tr.ToGlobalPosition( center );
             radius *= tr.scale;

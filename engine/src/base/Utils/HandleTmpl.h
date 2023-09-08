@@ -3,7 +3,7 @@
 #pragma once
 
 #include "base//Math/BitMath.h"
-#include "base/Utils/Threading.h"
+#include "base/Utils/Atomic.h"
 
 namespace AE::Base
 {
@@ -181,13 +181,13 @@ namespace AE::Base
 
     // variables
     private:
-        std::atomic<Value_t>    _id;
+        Atomic<Value_t>     _id;
 
 
     // methods
     public:
-        StrongAtom ()                                   __NE___ : _id{ ID_t{}.Data() }      {}
-        explicit StrongAtom (StrongID_t id)             __NE___ : _id{id.Release().Data()}  {}
+        StrongAtom ()                                   __NE___ : _id{ ID_t{}.Data() }          {}
+        explicit StrongAtom (StrongID_t id)             __NE___ : _id{ id.Release().Data() }    {}
         ~StrongAtom ()                                  __NE___ { ASSERT(not IsValid()); } // handle must be released
 
         StrongAtom (Self &&)                            = delete;
@@ -196,12 +196,12 @@ namespace AE::Base
         Self&  operator = (Self &&)                     = delete;
         Self&  operator = (const Self &)                = delete;
 
-        ND_ StrongID_t  Attach (ID_t id)                __NE___ { return StrongID_t{ ID_t::FromData( _id.exchange( id.Data(), EMemoryOrder::Relaxed ))}; }
+        ND_ StrongID_t  Attach (ID_t id)                __NE___ { return StrongID_t{ ID_t::FromData( _id.exchange( id.Data() ))}; }
         ND_ StrongID_t  Attach (StrongID_t id)          __NE___ { return Attach( id.Release() ); }
 
-        ND_ StrongID_t  Release ()                      __NE___ { return StrongID_t{ ID_t::FromData( _id.exchange( ID_t{}.Data(), EMemoryOrder::Relaxed ))}; }
+        ND_ StrongID_t  Release ()                      __NE___ { return StrongID_t{ ID_t::FromData( _id.exchange( ID_t{}.Data() ))}; }
 
-        ND_ ID_t        Get ()                          C_NE___ { return ID_t::FromData( _id.load( EMemoryOrder::Relaxed )); }
+        ND_ ID_t        Get ()                          C_NE___ { return ID_t::FromData( _id.load() ); }
         ND_ bool        IsValid ()                      C_NE___ { return bool(Get()); }
 
         ND_ explicit    operator bool ()                C_NE___ { return IsValid(); }

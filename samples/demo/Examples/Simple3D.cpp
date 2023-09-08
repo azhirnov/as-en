@@ -56,7 +56,7 @@ namespace AE::Samples::Demo
             auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
 
             CHECK_TE( t->cube1.Create( res_mngr, ctx, True{"cubeMap"}, t->gfxAlloc ));
-            CHECK_TE( t->cube2.Create( res_mngr, ctx, t->lod, t->lod, False{"tris"}, Default, t->gfxAlloc ));
+            CHECK_TE( t->cube2.Create( res_mngr, ctx, t->lod, t->lod, False{"tris"}, True{"cubeMap"}, Default, t->gfxAlloc ));
 
             ctx.AccumBarriers()
                 .MemoryBarrier( EResourceState::CopyDst, EResourceState::VertexBuffer )

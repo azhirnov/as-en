@@ -89,6 +89,7 @@ namespace AE::Threading
 
         ND_ static bool  _SetupThreads_v1 (TaskScheduler                &scheduler,
                                            const EnumBitSet<EThread>     mask,
+                                           const uint                    maxThreads,
                                            OUT EThreadArray             &allowProcessInMain)    __NE___;
 
         ND_ static bool  _SetupThreads_v2 (TaskScheduler                &scheduler,

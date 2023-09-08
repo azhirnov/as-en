@@ -89,6 +89,24 @@ namespace
         Unused( AnyBits( E1(1), 1u ));
         //Unused( AnyBits( E1(1), E2(1) ));         // error
     }
+
+
+    static void  IntLog10_Test1 ()
+    {
+        constexpr uint  a0 = IntLog10( 0 );     STATIC_ASSERT( a0 == 0 );
+        constexpr uint  a1 = IntLog10( 9 );     STATIC_ASSERT( a1 == 0 );
+        constexpr uint  a2 = IntLog10( 10 );    STATIC_ASSERT( a2 == 1 );
+        constexpr uint  a3 = IntLog10( 99 );    STATIC_ASSERT( a3 == 1 );
+        constexpr uint  a4 = IntLog10( 100 );   STATIC_ASSERT( a4 == 2 );
+        constexpr uint  a5 = IntLog10( ~0u );   STATIC_ASSERT( a5 == 9 );
+
+        uint    b0 = IntLog10( 0 );     TEST_Eq( b0, 0 );
+        uint    b1 = IntLog10( 9 );     TEST_Eq( b1, 0 );
+        uint    b2 = IntLog10( 10 );    TEST_Eq( b2, 1 );
+        uint    b3 = IntLog10( 99 );    TEST_Eq( b3, 1 );
+        uint    b4 = IntLog10( 100 );   TEST_Eq( b4, 2 );
+        uint    b5 = IntLog10( ~0u );   TEST_Eq( b5, 9 );
+    }
 }
 
 
@@ -101,6 +119,7 @@ extern void UnitTest_Math_BitMath ()
     ToBitMask_Test1();
     AllBits_Test1();
     AnyBits_Test1();
+    IntLog10_Test1();
 
     TEST_PASSED();
 }

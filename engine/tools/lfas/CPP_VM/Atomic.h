@@ -133,7 +133,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline StdAtomic<T>::StdAtomic (T initial) :
+    StdAtomic<T>::StdAtomic (T initial) :
         _value{ initial }
     {
         EXLOCK( _guard );
@@ -146,7 +146,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline StdAtomic<T>::~StdAtomic ()
+    StdAtomic<T>::~StdAtomic ()
     {
         EXLOCK( _guard );
         VirtualMachine::Instance().AtomicDestroy( &_value );
@@ -158,7 +158,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline void  StdAtomic<T>::store (T val, TMemoryOrder order)
+    void  StdAtomic<T>::store (T val, TMemoryOrder order)
     {
         auto&   vm = VirtualMachine::Instance();
         {
@@ -177,7 +177,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline T  StdAtomic<T>::load (TMemoryOrder order) const
+    T  StdAtomic<T>::load (TMemoryOrder order) const
     {
         T       result;
         auto&   vm      = VirtualMachine::Instance();
@@ -198,7 +198,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline T  StdAtomic<T>::exchange (T newValue, TMemoryOrder order)
+    T  StdAtomic<T>::exchange (T newValue, TMemoryOrder order)
     {
         T       result;
         auto&   vm      = VirtualMachine::Instance();
@@ -221,13 +221,13 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline bool  StdAtomic<T>::compare_exchange_weak (INOUT T &expected, T desired, TMemoryOrder order)
+    bool  StdAtomic<T>::compare_exchange_weak (INOUT T &expected, T desired, TMemoryOrder order)
     {
         return compare_exchange_weak( INOUT expected, desired, order, EMemoryOrder::Relaxed );
     }
 
     template <typename T>
-    inline bool  StdAtomic<T>::compare_exchange_weak (INOUT T &expected, const T desired, TMemoryOrder success, TMemoryOrder failure)
+    bool  StdAtomic<T>::compare_exchange_weak (INOUT T &expected, const T desired, TMemoryOrder success, TMemoryOrder failure)
     {
         auto&   vm      = VirtualMachine::Instance();
         bool    result  = true;
@@ -262,13 +262,13 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline bool  StdAtomic<T>::compare_exchange_strong (INOUT T &expected, T desired, TMemoryOrder order)
+    bool  StdAtomic<T>::compare_exchange_strong (INOUT T &expected, T desired, TMemoryOrder order)
     {
         return compare_exchange_strong( INOUT expected, desired, order, EMemoryOrder::Relaxed );
     }
 
     template <typename T>
-    inline bool  StdAtomic<T>::compare_exchange_strong (INOUT T &expected, const T desired, TMemoryOrder success, TMemoryOrder failure)
+    bool  StdAtomic<T>::compare_exchange_strong (INOUT T &expected, const T desired, TMemoryOrder success, TMemoryOrder failure)
     {
         auto&   vm      = VirtualMachine::Instance();
         bool    result  = true;
@@ -303,7 +303,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline T  StdAtomic<T>::fetch_add (const T val, TMemoryOrder order)
+    T  StdAtomic<T>::fetch_add (const T val, TMemoryOrder order)
     {
         STATIC_ASSERT( IsInteger<T> );
 
@@ -328,7 +328,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline T  StdAtomic<T>::fetch_sub (const T val, TMemoryOrder order)
+    T  StdAtomic<T>::fetch_sub (const T val, TMemoryOrder order)
     {
         STATIC_ASSERT( IsInteger<T> );
 
@@ -353,7 +353,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline T  StdAtomic<T>::fetch_and (const T val, TMemoryOrder order)
+    T  StdAtomic<T>::fetch_and (const T val, TMemoryOrder order)
     {
         STATIC_ASSERT( IsInteger<T> );
 
@@ -378,7 +378,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline T  StdAtomic<T>::fetch_or (const T val, TMemoryOrder order)
+    T  StdAtomic<T>::fetch_or (const T val, TMemoryOrder order)
     {
         STATIC_ASSERT( IsInteger<T> );
 
@@ -403,7 +403,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline T  StdAtomic<T>::fetch_xor (const T val, TMemoryOrder order)
+    T  StdAtomic<T>::fetch_xor (const T val, TMemoryOrder order)
     {
         STATIC_ASSERT( IsInteger<T> );
 
@@ -428,7 +428,7 @@ namespace LFAS::CPP
 =================================================
 */
     template <typename T>
-    inline void  StdAtomic<T>::_Fence (VirtualMachine &vm, TMemoryOrder order)
+    void  StdAtomic<T>::_Fence (VirtualMachine &vm, TMemoryOrder order)
     {
         BEGIN_ENUM_CHECKS();
         switch ( order )
@@ -446,5 +446,4 @@ namespace LFAS::CPP
 
 } // LFAS::CPP
 
-#include "base/Platforms/ThreadUtils.h"
-#include "threading/Primitives/Atomic.h"
+#include "base/Utils/Atomic.h"

@@ -5,16 +5,17 @@ void ASmain ()
 {
     {
         RC<ShaderStructType>    st = ShaderStructType( "simple3d.io" );
-        st.Set( "float3     normal;" +
+        st.Set( EStructLayout::InternalIO,
+                "float3     normal;" +
                 "float3     texcoord;" );
     }{
         RC<ShaderStructType>    st = ShaderStructType( "simple3d.ub" );
         st.Set( "float4x4  mvp;" );
 
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "simple3d.ds0" );
-        ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", ArraySize(1), EImageType::FImageCube );
+        ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", EImageType::FImageCube );
         ds.ImtblSampler( EShaderStages::Fragment, "un_ColorTexture_sampler", "LinearRepeat"  );
-        ds.UniformBufferDynamic( EShaderStages::Vertex, "drawUB", ArraySize(1), "simple3d.ub" );
+        ds.UniformBufferDynamic( EShaderStages::Vertex, "drawUB", "simple3d.ub" );
     }{
         RC<PipelineLayout>      pl = PipelineLayout( "simple3d.pl" );
         pl.DSLayout( 0, "simple3d.ds0" );
@@ -49,13 +50,13 @@ void ASmain ()
         {
             RC<Shader>  vs = Shader();
             vs.Define( "CUBE" );
-            vs.file        = "simple3d.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
+            vs.file     = "simple3d.glsl";      // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
             vs.options  = EShaderOpt::Optimize;
             ppln.SetVertexShader( vs );
         }
         {
             RC<Shader>  fs = Shader();
-            fs.file        = "simple3d.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
+            fs.file     = "simple3d.glsl";      // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
             fs.options  = EShaderOpt::Optimize;
             ppln.SetFragmentShader( fs );
         }
@@ -87,13 +88,13 @@ void ASmain ()
         {
             RC<Shader>  vs = Shader();
             vs.Define( "SPHERICAL_CUBE" );
-            vs.file        = "simple3d.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
+            vs.file     = "simple3d.glsl";      // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
             vs.options  = EShaderOpt::Optimize;
             ppln.SetVertexShader( vs );
         }
         {
             RC<Shader>  fs = Shader();
-            fs.file        = "simple3d.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
+            fs.file     = "simple3d.glsl";      // file:///<path>/AE/samples/demo/_data/shaders/simple3d.glsl
             fs.options  = EShaderOpt::Optimize;
             ppln.SetFragmentShader( fs );
         }

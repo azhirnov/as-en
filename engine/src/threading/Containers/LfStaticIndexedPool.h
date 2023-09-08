@@ -7,7 +7,7 @@
 #pragma once
 
 #ifndef AE_LFAS_ENABLED
-# include "threading/Primitives/Atomic.h"
+# include "threading/Common.h"
 #endif
 
 namespace AE::Threading

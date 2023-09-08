@@ -127,7 +127,7 @@
         {
             const int   prim_count = un_Triangles.indices.length() / 3;
 
-            un_IndirectCmd.elements[0].primitiveCount =
+            un_IndirectCmd.primitiveCount =
                 Clamp( int(Abs(Sin(un_PerPass.time * 0.5)) * prim_count + 0.5), 1, prim_count );
         }
     }
@@ -143,7 +143,7 @@
         return float4(0.0f, 0.0f, 0.0f, 1.0f);
     }
 
-    ND_ float4  HitShader (const float3 barycentric, const uint primitiveId)
+    ND_ float4  HitShader (const float2 barycentric, const uint primitiveId)
     {
         float3  n0      = un_Triangles.normals[ un_Triangles.indices[ primitiveId * 3 + 0 ]];
         float3  n1      = un_Triangles.normals[ un_Triangles.indices[ primitiveId * 3 + 1 ]];
@@ -173,9 +173,8 @@
         }
         else
         {
-            float2  attribs     = GetCommittedIntersectionBarycentrics( ray_query );
-            float3  barycentric = TriangleHitAttribsToBaricentrics( attribs );
-                    color       = HitShader( barycentric, GetCommittedIntersectionPrimitiveIndex( ray_query ));
+            color = HitShader( GetCommittedIntersectionBarycentrics( ray_query ),
+                               GetCommittedIntersectionPrimitiveIndex( ray_query ));
         }
 
         gl.image.Store( un_OutImage, GetGlobalCoord().xy, color );

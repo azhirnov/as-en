@@ -53,13 +53,13 @@ namespace AE::ResEditor
         void  EnqueueForReadback (RC<IResource> res);
         void  EnqueueImageTransition (ImageID id);
 
-        void  CancelAll ();
+        void  CancelAll ()                                                              __NE___;
 
         ND_ AsyncTask   Upload (RG::CommandBatchPtr batch, ArrayView<AsyncTask> deps);
         ND_ AsyncTask   Readback (RG::CommandBatchPtr batch, ArrayView<AsyncTask> deps);
 
-        ND_ ulong       UploadFramesWithoutWork ()              { return _upload.framesWithoutWork.load(); }
-        ND_ ulong       ReadbackFramesWithoutWork ()            { return _readback.framesWithoutWork.load(); }
+        ND_ ulong       UploadFramesWithoutWork ()                                      __NE___ { return _upload.framesWithoutWork.load(); }
+        ND_ ulong       ReadbackFramesWithoutWork ()                                    __NE___ { return _readback.framesWithoutWork.load(); }
 
     private:
         static  void  _Upload (TransferCtx_t &, Queue &);

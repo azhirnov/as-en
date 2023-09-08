@@ -15,13 +15,13 @@ void GraphicsLayout ()
         ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
         ds.Define( "DEF_VALUE_1" );
 
-        ds.UniformBuffer( EShaderStages::Vertex, "drawUB", ArraySize(1), "UBlock" );
+        ds.UniformBuffer( EShaderStages::Vertex, "drawUB", "UBlock" );
     }
     {
         RC<DescriptorSetLayout>     ds = DescriptorSetLayout( "DS_Material" );
         ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
 
-        ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", ArraySize(1), EImageType::FImage2D );
+        ds.SampledImage( EShaderStages::Fragment, "un_ColorTexture", EImageType::FImage2D );
         ds.ImtblSampler( EShaderStages::Fragment, "un_ColorTexture_sampler", "LinearRepeat"  );
     }
     {
@@ -37,7 +37,7 @@ void GraphicsLayout ()
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "DS_PerDraw3D" );
         ds.SetUsage( EDescSetUsage::UpdateTemplate | EDescSetUsage::ArgumentBuffer );
 
-        ds.UniformBuffer( EShaderStages::Vertex, "drawUB", ArraySize(1), "UBlock" );
+        ds.UniformBuffer( EShaderStages::Vertex, "drawUB", "UBlock" );
     }
     {
         RC<PipelineLayout>      pl = PipelineLayout( "Graphics_PL_4" );
@@ -64,7 +64,7 @@ void ComputeLayout ()
 {
     {
         RC<DescriptorSetLayout>     ds = DescriptorSetLayout( "DS_Compute" );
-        ds.StorageImage( EShaderStages::Compute, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+        ds.StorageImage( EShaderStages::Compute, "un_OutImage", EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
     }{
         RC<PipelineLayout>          pl = PipelineLayout( "Compute_PL_1" );
         pl.DSLayout( 0, "DS_Compute" );
@@ -78,7 +78,7 @@ void ComputeLayout ()
         RC<DescriptorSetLayout>     ds = DescriptorSetLayout( "DS_Compute_2" );
         ds.AddFeatureSet( "MinDesktop" );
 
-        ds.StorageImage( EShaderStages::Compute, "un_Image", ArraySize(1), EImageType::2D, EPixelFormat::R32U, EAccessType::Coherent, EResourceState::ShaderStorage_RW );
+        ds.StorageImage( EShaderStages::Compute, "un_Image", EImageType::2D, EPixelFormat::R32U, EAccessType::Coherent, EResourceState::ShaderStorage_RW );
     }{
         RC<PipelineLayout>          pl = PipelineLayout( "Compute_PL_2" );
         pl.DSLayout( 0, "DS_Compute_2" );
@@ -91,7 +91,7 @@ void ComputeLayout ()
         RC<ShaderStructType>        st = ShaderStructType( "BufferRef" );
         st.Set( "float3     Position;" +
                 "float2     Texcoord;" );
-        ds.UniformBuffer( EShaderStages::Compute, "bufferRef", ArraySize(1), "BufferRef" );
+        ds.UniformBuffer( EShaderStages::Compute, "bufferRef", "BufferRef" );
 
     }{
         RC<PipelineLayout>          pl = PipelineLayout( "Compute_PL_3" );
@@ -108,8 +108,8 @@ void RayTracingLayout ()
     RC<DescriptorSetLayout>     ds = DescriptorSetLayout( "DS_RayTracing" );
     ds.AddFeatureSet( "MinRecursiveRayTracing" );
 
-    ds.StorageImage( EShaderStages::RayGen, "un_OutImage", ArraySize(1), EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
-    ds.RayTracingScene( EShaderStages::RayGen, "un_TLAS", ArraySize(1) );
+    ds.StorageImage( EShaderStages::RayGen, "un_OutImage", EImageType::2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+    ds.RayTracingScene( EShaderStages::RayGen, "un_TLAS" );
 
 
     RC<PipelineLayout>      pl = PipelineLayout( "RayTracing_PL_1" );

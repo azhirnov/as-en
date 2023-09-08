@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Simple flight game.
+    Simple flight game.
 */
 #ifdef __INTELLISENSE__
 #   include <res_editor.as>

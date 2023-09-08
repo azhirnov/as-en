@@ -966,7 +966,7 @@ namespace AE::Math
     }
 
     template <typename T, int I, glm::qualifier Q>
-    ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  LengthSqr (const TVec<T,I,Q> &v) __NE___
+    ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  LengthSq (const TVec<T,I,Q> &v) __NE___
     {
         return glm::length2( v );
     }
@@ -983,7 +983,7 @@ namespace AE::Math
     }
 
     template <typename T, int I, glm::qualifier Q>
-    ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  DistanceSqr (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
+    ND_ forceinline EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  DistanceSq (const TVec<T,I,Q> &lhs, const TVec<T,I,Q> &rhs) __NE___
     {
         return glm::distance2( lhs, rhs );
     }
@@ -1098,16 +1098,37 @@ namespace AE::Math
 
 /*
 =================================================
+    FusedMulAdd
+----
+    faster and more precise version of (a * b) + c
+=================================================
+*/
+    template <typename T, int I, glm::qualifier Q>
+    ND_ TVec<T,I,Q>  FusedMulAdd (const TVec<T,I,Q> &a, const TVec<T,I,Q> &b, const TVec<T,I,Q> &c) __NE___
+    {
+        STATIC_ASSERT( IsFloatPoint<T> );
+        return glm::fma( a, b, c );
+    }
+
+/*
+=================================================
     BaryLerp
 ----
     barycentric interpolation
 =================================================
 */
     template <typename T, typename A, typename B, typename C, glm::qualifier Q>
-    ND_ forceinline auto  BaryLerp (const A& a, const B& b, const C& c, const TVec<T,3,Q> &barycentrics) __NE___
+    ND_ forceinline auto  BaryLerp (const A& v0, const B& v1, const C& v2, const TVec<T,3,Q> &barycentrics) __NE___
     {
-        STATIC_ASSERT( IsFloatPoint<T> );
-        return a * barycentrics.x + b * barycentrics.y + c * barycentrics.z;
+        STATIC_ASSERT( IsFloatPoint<A> and IsFloatPoint<B> and IsFloatPoint<C> and IsFloatPoint<T> );
+        return v0 * barycentrics.x + v1 * barycentrics.y + v2 * barycentrics.z;
+    }
+
+    template <typename T, typename A, typename B, typename C, glm::qualifier Q>
+    ND_ forceinline auto  BaryLerp (const A& v0, const B& v1, const C& v2, const TVec<T,2,Q> &barycentrics) __NE___
+    {
+        STATIC_ASSERT( IsFloatPoint<A> and IsFloatPoint<B> and IsFloatPoint<C> and IsFloatPoint<T> );
+        return v0 + FusedMulAdd( barycentrics.x, (v1 - v0), barycentrics.y * (v2 - v0));
     }
 
 /*
@@ -1317,15 +1338,15 @@ namespace AE::Math
 
 /*
 =================================================
-    CalcAverage
+    Average
 =================================================
 */
     template <typename T, int I, glm::qualifier Q>
-    ND_ TVec<T,I,Q>  CalcAverage (const TVec<T,I,Q> &begin, const TVec<T,I,Q> &end) __NE___
+    ND_ TVec<T,I,Q>  Average (const TVec<T,I,Q> &begin, const TVec<T,I,Q> &end) __NE___
     {
         TVec<T,I,Q>     result;
         for (int i = 0; i < I; ++i) {
-            result[i] = CalcAverage( begin[i], end[i] );
+            result[i] = Average( begin[i], end[i] );
         }
         return result;
     }
@@ -1474,6 +1495,31 @@ namespace AE::Math
     {
         STATIC_ASSERT( IsEnum<T0> or IsInteger<T0> );
         return (value % align) == T0{0};
+    }
+
+/*
+=================================================
+    IsOdd / IsEven
+=================================================
+*/
+    template <typename T, int I, glm::qualifier Q>
+    ND_ EnableIf<IsScalar<T>, TVec<bool,I,Q>>  IsOdd (const TVec<T,I,Q> &v) __NE___
+    {
+        TVec<bool,I,Q>      result;
+        for (int i = 0; i < I; ++i) {
+            result[i] = IsOdd( v[i] );
+        }
+        return result;
+    }
+
+    template <typename T, int I, glm::qualifier Q>
+    ND_ EnableIf<IsScalar<T>, TVec<bool,I,Q>>  IsEven (const TVec<T,I,Q> &v) __NE___
+    {
+        TVec<bool,I,Q>      result;
+        for (int i = 0; i < I; ++i) {
+            result[i] = IsEven( v[i] );
+        }
+        return result;
     }
 
 

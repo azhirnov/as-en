@@ -42,8 +42,6 @@ namespace AE::App
         bool        SeekFwd (Bytes offset)                  __NE_OV;
 
         Bytes       ReadSeq (OUT void *buffer, Bytes size)  __NE_OV;
-
-        RC<RDataSource> AsRDataSource ()                    __Th___;
     };
 
 
@@ -74,8 +72,6 @@ namespace AE::App
         ESourceType GetSourceType ()                    C_NE_OV;
 
         Bytes       ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
-
-        RC<RStream> AsRStream ()                        __Th___;
     };
 
 

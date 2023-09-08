@@ -70,7 +70,7 @@
         _visitor_( RGB32F,              VK_FORMAT_R32G32B32_SFLOAT )\
         _visitor_( RGBA32F,             VK_FORMAT_R32G32B32A32_SFLOAT )\
         _visitor_( RGB_11_11_10F,       VK_FORMAT_B10G11R11_UFLOAT_PACK32 )\
-        _visitor_( RGB_9F_E5,           VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 )\
+        _visitor_( RGB9F_E5,            VK_FORMAT_E5B9G9R9_UFLOAT_PACK32 )\
         _visitor_( Depth16,             VK_FORMAT_D16_UNORM )\
         _visitor_( Depth24,             VK_FORMAT_X8_D24_UNORM_PACK32 )\
         _visitor_( Depth32F,            VK_FORMAT_D32_SFLOAT )\
@@ -339,7 +339,7 @@
         /*_visitor_( RGB32F,            ,)*/\
         _visitor_( RGBA32F,             RGBA32Float,            macos 10.11, ios 8  )\
         _visitor_( RGB_11_11_10F,       RG11B10Float,           macos 10.11, ios 8  )\
-        _visitor_( RGB_9F_E5,           RGB9E5Float,            macos 10.11, ios 8  )\
+        _visitor_( RGB9F_E5,            RGB9E5Float,            macos 10.11, ios 8  )\
         _visitor_( Depth16,             Depth16Unorm,           macos 10.12, ios 13 )\
         /*_visitor_( Depth24,           ,)*/\
         _visitor_( Depth32F,            Depth32Float,           macos 10.11, ios 8  )\

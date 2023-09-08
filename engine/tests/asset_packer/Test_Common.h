@@ -46,7 +46,7 @@ ND_ inline bool  CompareWithDump (StringView serializedStr, const Path &refFilen
         if ( rfile.IsOpen() )
         {
             TEST( rfile.Read( rfile.RemainingSize(), OUT ref_str ));
-            is_ok = StringParser::CompareLineByLine( serializedStr, ref_str,
+            is_ok = Parser::CompareLineByLine( serializedStr, ref_str,
                         [refFilename] (uint lline, StringView lstr, uint rline, StringView rstr) {
                             AE_LOGE( "in: "s << refFilename.string() << "\n\n"
                                         << "line mismatch:" << "\n(" << ToString( lline ) << "): " << lstr

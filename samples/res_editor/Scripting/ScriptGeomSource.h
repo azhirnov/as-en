@@ -50,7 +50,6 @@ namespace AE::ResEditor
         void  ArgTextureIn (const String &name, const ScriptImagePtr &tex, const String &samplerName)   __Th___ { _args.ArgTextureIn( name, tex, samplerName ); }
         void  ArgVideoIn (const String &name, const ScriptVideoImagePtr &tex, const String &samplerName)__Th___ { _args.ArgVideoIn( name, tex, samplerName ); }
 
-
         static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
 
         ND_ virtual RC<IGeomSource>     ToGeomSource ()                                                 __Th___ = 0;
@@ -271,7 +270,6 @@ namespace AE::ResEditor
 
     // variables
     private:
-        ScriptBufferPtr     _indexBuffer;
         DrawCommands_t      _drawCommands;
 
         RC<IGeomSource>     _geomSrc;
@@ -295,6 +293,8 @@ namespace AE::ResEditor
         static void  Bind (const ScriptEnginePtr &se)                                                   __Th___;
         static void  GetShaderTypes (INOUT CppStructsFromShaders &)                                     __Th___;
 
+        ScriptUniGeometry*  Clone ()                                                                    C_Th___;
+
     // ScriptGeomSource //
         ND_ RC<IGeomSource>     ToGeomSource ()                                                         __Th_OV;
         ND_ PipelineNames_t     FindMaterialPipeline ()                                                 C_Th_OV;
@@ -309,9 +309,9 @@ namespace AE::ResEditor
 
 
     //
-    // Scene/Model Geometry Source
+    // Model Geometry Source
     //
-    class ScriptSceneGeometry final : public ScriptGeomSource
+    class ScriptModelGeometrySrc final : public ScriptGeomSource
     {
     // types
     private:
@@ -321,7 +321,7 @@ namespace AE::ResEditor
     private:
         Path                            _scenePath;
         String                          _dbgName;
-        String                          _texPrefix;
+        Array<Path>                     _texSearchDirs;
 
         ScriptRTGeometryPtr             _opaqueRTGeom;
         ScriptRTGeometryPtr             _translucentRTGeom;
@@ -329,18 +329,20 @@ namespace AE::ResEditor
         RC< ResLoader::IntermScene >    _intermScene;
         float4x4                        _initialTransform;
 
+        const uint                      _maxTextures    = 128;
+
         RC<IGeomSource>                 _geomSrc;
 
 
     // methods
     public:
-        ScriptSceneGeometry ()                                                                          __Th___;
-        ScriptSceneGeometry (const String &filename)                                                    __Th___;
-        ~ScriptSceneGeometry ();
+        ScriptModelGeometrySrc ()                                                                       __Th___;
+        ScriptModelGeometrySrc (const String &filename)                                                 __Th___;
+        ~ScriptModelGeometrySrc ();
 
             void  Name (const String &name)                                                             __Th___;
-            void  SetTexturePrefix (const String &value)                                                __Th___;
-            void  SetTransform (const packed_float4x4 &value)                                           __Th___;
+            void  AddTextureSearchDir (const String &value)                                             __Th___;
+            void  SetInitialTransform (const packed_float4x4 &value)                                    __Th___;
 
         ND_ ScriptRTGeometry*  GetOpaqueRTGeometry ()                                                   __Th___;
         ND_ ScriptRTGeometry*  GetTranslucentRTGeometry ()                                              __Th___;

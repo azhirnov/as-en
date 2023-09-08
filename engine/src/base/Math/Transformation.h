@@ -14,7 +14,7 @@ namespace AE::Math
     //
 
     template <typename T>
-    struct Transformation
+    struct TTransformation
     {
     // types
     public:
@@ -22,7 +22,7 @@ namespace AE::Math
         using Vec3_t    = Vec< T, 3 >;
         using Quat_t    = Quat< T >;
         using Mat4_t    = Matrix< T, 4, 4 >;
-        using Self      = Transformation< T >;
+        using Self      = TTransformation< T >;
 
 
     // variables
@@ -34,13 +34,13 @@ namespace AE::Math
 
     // methods
     public:
-        Transformation ()                                                               __NE___ = default;
-        Transformation (const Self &)                                                   __NE___ = default;
-        Transformation (Self &&)                                                        __NE___ = default;
+        TTransformation ()                                                              __NE___ = default;
+        TTransformation (const Self &)                                                  __NE___ = default;
+        TTransformation (Self &&)                                                       __NE___ = default;
 
-        Transformation (const Vec3_t &pos, const Quat_t &orient, const T &scale = T{1}) __NE___ : orientation{orient}, position{pos}, scale{scale} {}
+        TTransformation (const Vec3_t &pos, const Quat_t &orient, const T &scale = T{1})__NE___ : orientation{orient}, position{pos}, scale{scale} {}
 
-        explicit Transformation (const Mat4_t &mat)                                     __NE___;
+        explicit TTransformation (const Mat4_t &mat)                                    __NE___;
 
             constexpr Self&  operator =  (const Self &)                                 __NE___ = default;
             constexpr Self&  operator =  (Self &&)                                      __NE___ = default;
@@ -84,7 +84,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    Transformation<T>::Transformation (const Mat4_t &mat) __NE___
+    TTransformation<T>::TTransformation (const Mat4_t &mat) __NE___
     {
         Vec3_t      scale3;
         Vec3_t      skew;
@@ -101,7 +101,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    Transformation<T>&  Transformation<T>::operator += (const Self &rhs) __NE___
+    TTransformation<T>&  TTransformation<T>::operator += (const Self &rhs) __NE___
     {
         position    += orientation * (rhs.position * scale);
         orientation *= rhs.orientation;
@@ -115,7 +115,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    bool Transformation<T>::operator == (const Self &rhs) C_NE___
+    bool TTransformation<T>::operator == (const Self &rhs) C_NE___
     {
         return  All( orientation == rhs.orientation )   &
                 All( position    == rhs.position )      &
@@ -128,7 +128,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ bool  Equals (const Transformation<T> &lhs, const Transformation<T> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ bool  Equals (const TTransformation<T> &lhs, const TTransformation<T> &rhs, const T &err = Epsilon<T>()) __NE___
     {
         return  All( Math::Equals( lhs.orientation, rhs.orientation, err )) &
                 All( Math::Equals( lhs.position, rhs.position, err ))       &
@@ -141,7 +141,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    Transformation<T>&  Transformation<T>::Move (const Vec3_t &delta) __NE___
+    TTransformation<T>&  TTransformation<T>::Move (const Vec3_t &delta) __NE___
     {
         position += orientation * (delta * scale);
         return *this;
@@ -153,7 +153,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    Transformation<T>&  Transformation<T>::Rotate (const Quat_t &delta) __NE___
+    TTransformation<T>&  TTransformation<T>::Rotate (const Quat_t &delta) __NE___
     {
         orientation *= delta;
         return *this;
@@ -165,7 +165,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    Transformation<T>&  Transformation<T>::Scale (float value) __NE___
+    TTransformation<T>&  TTransformation<T>::Scale (float value) __NE___
     {
         this->scale *= value;
         return *this;
@@ -177,7 +177,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    Transformation<T>&  Transformation<T>::Inverse () __NE___
+    TTransformation<T>&  TTransformation<T>::Inverse () __NE___
     {
         ASSERT( Math::IsNotZero( scale ));
 
@@ -193,7 +193,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    typename Transformation<T>::Mat4_t  Transformation<T>::ToMatrix () C_NE___
+    typename TTransformation<T>::Mat4_t  TTransformation<T>::ToMatrix () C_NE___
     {
         Mat4_t  result{ orientation };
 
@@ -208,8 +208,8 @@ namespace AE::Math
 
 namespace AE::Base
 {
-    template <typename T>   struct TMemCopyAvailable< Transformation<T> >       { static constexpr bool  value = IsMemCopyAvailable<T>; };
-    template <typename T>   struct TZeroMemAvailable< Transformation<T> >       { static constexpr bool  value = IsZeroMemAvailable<T>; };
-    template <typename T>   struct TTriviallySerializable< Transformation<T> >  { static constexpr bool  value = IsTriviallySerializable<T>; };
+    template <typename T>   struct TMemCopyAvailable< TTransformation<T> >      { static constexpr bool  value = IsMemCopyAvailable<T>; };
+    template <typename T>   struct TZeroMemAvailable< TTransformation<T> >      { static constexpr bool  value = IsZeroMemAvailable<T>; };
+    template <typename T>   struct TTriviallySerializable< TTransformation<T> > { static constexpr bool  value = IsTriviallySerializable<T>; };
 
 } // AE::Base

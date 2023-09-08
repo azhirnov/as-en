@@ -32,14 +32,17 @@ namespace AE::ResEditor
             ND_ float3  Apply (const float3 &) C_NE___;
         };
 
-        using Frustum_t     = FrustumTempl<float>;
+        using Frustum_t     = TFrustum<float>;
         using RaysGrid_t    = App::RaysGrid;
 
 
     // config
     protected:
-        static constexpr float      _minZoom    = 0.1f;
-        static constexpr float      _maxZoom    = 10.f;
+        static constexpr float      _3d_minZoom     = 0.1f;
+        static constexpr float      _3d_maxZoom     = 1.5f;
+
+        static constexpr float      _2d_minZoom     = 0.1f;
+        static constexpr float      _2d_maxZoom     = 10.f;
 
 
     // interface

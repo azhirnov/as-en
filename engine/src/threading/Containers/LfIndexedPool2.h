@@ -14,7 +14,6 @@
 
 #ifndef AE_LFAS_ENABLED
 # include "threading/Primitives/SpinLock.h"
-# include "threading/Primitives/Atomic.h"
 #endif
 
 namespace AE::Threading

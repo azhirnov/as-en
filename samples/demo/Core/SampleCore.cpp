@@ -34,8 +34,6 @@ namespace AE::Samples::Demo
 
 namespace
 {
-    static constexpr auto&  RTech = RenderTechs::UI_RTech;
-
 /*
 =================================================
     GetAppConfig
@@ -72,7 +70,7 @@ namespace
             cfg.graphics.swapchain.format       = EPixelFormat::RGBA16F;
             cfg.graphics.swapchain.colorSpace   = EColorSpace::Extended_sRGB_linear;
           #else
-            cfg.graphics.swapchain.format       = EPixelFormat::RGBA8_UNorm;
+            cfg.graphics.swapchain.colorFormat  = EPixelFormat::RGBA8_UNorm;
           #endif
             cfg.graphics.swapchain.usage        = EImageUsage::ColorAttachment | EImageUsage::Sampled | EImageUsage::TransferDst;
             cfg.graphics.swapchain.options      = EImageOpt::BlitDst;
@@ -415,15 +413,16 @@ using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::Samples::Demo;
 
-#define REQUIRE_APACHE_2
-//#include "base/Defines/DetectLicense.inl.h"
+#define REQUIRE_GPLv3
+#include "base/Defines/DetectLicense.inl.h"
+#include "base/Algorithms/StringUtils.h"
 
 
 Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 {
     StaticLogger::InitDefault();
 
-    //AE_LOG_DBG( "License: "s << AE_LICENSE );
+    AE_LOG_DBG( "License: "s << AE_LICENSE );
 
     return MakeUnique<SampleApplication>();
 }

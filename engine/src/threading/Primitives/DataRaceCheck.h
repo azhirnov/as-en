@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "threading/Primitives/Atomic.h"
 #include "threading/Primitives/Synchronized.h"
 
 #if AE_ENABLE_DATA_RACE_CHECK

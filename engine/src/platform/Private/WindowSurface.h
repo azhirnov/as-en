@@ -40,21 +40,27 @@ namespace AE::App
       # error not implemented
       #endif
 
+        struct SurfaceData
+        {
+            float2                      pixToMm;
+
+            CommandBatchPtr             endCmdBatch;
+            AsyncTask                   prevTask;
+
+            Graphics::SwapchainDesc     desc;       // pending
+            Ptr< const IWindow >        window;
+        };
+        using SurfaceDataSync_t = Threading::Synchronized< SharedMutex, SurfaceData >;
+
 
     // variables
     private:
-        mutable SharedMutex     _guard;
+        Atomic<bool>        _initialized    {false};
+        Atomic<bool>        _recreate       {false};
 
-        Atomic<bool>            _initialized    {false};
-        Atomic<bool>            _recreate       {false};
-        float2                  _pixToMm;                   // pretected by '_guard'
+        Swapchain_t         _swapchain;     // thread safe
 
-        CommandBatchPtr         _endCmdBatch;               // pretected by '_guard'
-        AsyncTask               _prevTask;                  // pretected by '_guard'
-
-        Graphics::SwapchainDesc _desc;                      // pretected by '_guard'
-        Ptr<const IWindow >     _window;                    // pretected by '_guard'
-        Swapchain_t             _swapchain;                 // pretected by '_guard'
+        SurfaceDataSync_t   _surfData;
 
 
     // methods
@@ -66,15 +72,15 @@ namespace AE::App
 
 
     // IOutputSurface //
-        bool            IsInitialized ()                                                                            C_NE_OV { return _initialized.load(); }
-        RenderPassInfo  GetRenderPassInfo ()                                                                        C_NE_OV;
-        bool            SetSurfaceMode (const SurfaceInfo &)                                                        __NE_OV;
+        bool                IsInitialized ()                                                                        C_NE_OV { return _initialized.load(); }
+        RenderPassInfo      GetRenderPassInfo ()                                                                    C_NE_OV;
+        bool                SetSurfaceMode (const SurfaceInfo &)                                                    __NE_OV;
 
-        AsyncTask       Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask>)    __NE_OV;
-        bool            GetTargets (OUT RenderTargets_t &targets)                                                   C_NE_OV;
-        AsyncTask       End (ArrayView<AsyncTask> deps)                                                             __NE_OV;
+        AsyncTask           Begin (CommandBatchPtr beginCmdBatch, CommandBatchPtr endCmdBatch, ArrayView<AsyncTask>)__NE_OV;
+        bool                GetTargets (OUT RenderTargets_t &targets)                                               C_NE_OV;
+        AsyncTask           End (ArrayView<AsyncTask> deps)                                                         __NE_OV;
 
-        AllImages_t         GetAllImages ()                                                                         C_NE_OV;
+        //AllImages_t       GetAllImages ()                                                                         C_NE_OV;
         TargetSizes_t       GetTargetSizes ()                                                                       C_NE_OV;
         SurfaceFormats_t    GetSurfaceFormats ()                                                                    C_NE_OV;
         PresentModes_t      GetPresentModes ()                                                                      C_NE_OV;
@@ -89,10 +95,9 @@ namespace AE::App
 
 
     private:
-        // must be pretected by '_guard'
-        void  _UpdateMonitor ()                                                                                     __NE___;
+        void  _UpdateDesc (SurfaceDataSync_t::WriteNoLock_t &)                                                      __NE___;
 
-        bool  _CreateSwapchain ()                                                                                   __NE___;
+        bool  _CreateSwapchain (SurfaceDataSync_t::WriteNoLock_t &)                                                 __NE___;
     };
 
 

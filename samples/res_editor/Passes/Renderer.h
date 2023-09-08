@@ -18,9 +18,9 @@ namespace AE::ResEditor
     {
     // types
     public:
-        using DynSlider_t   = Union< /*RC<DynamicInt>, RC<DynamicInt2>, RC<DynamicInt3>,*/ RC<DynamicInt4>,
-                                     RC<DynamicUInt>, /*RC<DynamicUInt2>,*/ RC<DynamicUInt3>, /*RC<DynamicUInt4>,*/
-                                     RC<DynamicFloat>, /*RC<DynamicFloat2>, RC<DynamicFloat3>,*/ RC<DynamicFloat4> >;
+        using DynSlider_t   = Union< RC<DynamicInt>, RC<DynamicInt2>, RC<DynamicInt3>, RC<DynamicInt4>,
+                                     RC<DynamicUInt>, RC<DynamicUInt2>, RC<DynamicUInt3>, RC<DynamicUInt4>,
+                                     RC<DynamicFloat>, RC<DynamicFloat2>, RC<DynamicFloat3>, RC<DynamicFloat4> >;
         using Sliders_t     = Array< DynSlider_t >;
 
 
@@ -58,9 +58,9 @@ namespace AE::ResEditor
 
         RC<ResourceQueue>       _resQueue;
 
-        microseconds            _totalTime      {};
+        microseconds            _totalTime          {};
         TimePoint_t             _lastUpdateTime;
-        uint                    _frameCounter   = 0;
+        uint                    _frameCounter       = 0;
 
         GfxMemAllocatorPtr      _gfxLinearAlloc;
         GfxMemAllocatorPtr      _gfxDynamicAlloc;
@@ -68,6 +68,7 @@ namespace AE::ResEditor
         InputDataSync           _input;
         Sliders_t               _sliders;
         const uint              _seed;
+        ESurfaceFormat          _reqSurfFormat      = Default;
 
         /*struct {
             RWSpinLock              guard;
@@ -106,10 +107,12 @@ namespace AE::ResEditor
             void                    SetController (RC<IController> cont)        __Th___;
         //  void                    SetDependencies (Array<Path> deps)          __Th___;
             void                    SetSliders (Sliders_t value)                __Th___ { _sliders = RVRef(value); }
+            void                    SetSurfaceFormat (ESurfaceFormat value)     __Th___ { _reqSurfFormat = value; }
 
-        ND_ ResourceQueue&          GetResourceQueue ()                         __NE___ { return *_resQueue; }
-        ND_ GfxMemAllocatorPtr      GetAllocator ()                             __NE___ { return _gfxLinearAlloc; }
-        ND_ GfxMemAllocatorPtr      GetDynamicAllocator ()                      __NE___ { return _gfxDynamicAlloc; }
+        ND_ ResourceQueue&          GetResourceQueue ()                         C_NE___ { return *_resQueue; }
+        ND_ GfxMemAllocatorPtr      GetAllocator ()                             C_NE___ { return _gfxLinearAlloc; }
+        ND_ GfxMemAllocatorPtr      GetDynamicAllocator ()                      C_NE___ { return _gfxDynamicAlloc; }
+        ND_ ESurfaceFormat          GetSurfaceFormat ()                         C_NE___ { return _reqSurfFormat; }
 
         ND_ StrongImageAndViewID    GetDummyImage (const ImageDesc &)           C_NE___;
         ND_ Strong<RTGeometryID>    GetDummyRTGeometry ()                       C_NE___;

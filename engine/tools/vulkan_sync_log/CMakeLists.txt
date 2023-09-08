@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (${AE_ENABLE_VULKAN})
     file( GLOB_RECURSE SOURCES "*.*" )
     add_library( "VulkanSyncLog" STATIC ${SOURCES} )

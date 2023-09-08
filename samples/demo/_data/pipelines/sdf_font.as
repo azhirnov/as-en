@@ -5,11 +5,13 @@ void ASmain ()
 {
     {
         RC<ShaderStructType>    st = ShaderStructType( "sdf_font.io" );
-        st.Set( "float4     color;"     +
+        st.Set( EStructLayout::InternalIO,
+                "float4     color;"     +
                 "float3     uv_scale;" );
     }{
         RC<ShaderStructType>    st = ShaderStructType( "sdf_font_ublock" );
-        st.Set( "float2     rotation0;"     +
+        st.Set( EStructLayout::Compatible_Std140,
+                "float2     rotation0;"     +
                 "float2     rotation1;"     +
                 "float      sdfScale;"      +
                 "float      screenPxRange;" +
@@ -17,7 +19,7 @@ void ASmain ()
     }{
         RC<DescriptorSetLayout> ds = DescriptorSetLayout( "sdf_font.ds0" );
         ds.CombinedImage( EShaderStages::Fragment, "un_Texture", EImageType::FImage2D, "LinearRepeat" );
-        ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "drawUB", ArraySize(1), "sdf_font_ublock" );
+        ds.UniformBufferDynamic( EShaderStages::Vertex | EShaderStages::Fragment, "drawUB", "sdf_font_ublock" );
     }{
         RC<PipelineLayout>      pl = PipelineLayout( "sdf_font.pl" );
         pl.DSLayout( 0, "sdf_font.ds0" );
@@ -30,13 +32,13 @@ void ASmain ()
 
     {
         RC<Shader>  vs = Shader();
-        vs.file        = "sdf_font.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/sdf_font.glsl
+        vs.file     = "sdf_font.glsl";      // file:///<path>/AE/samples/demo/_data/shaders/sdf_font.glsl
         vs.options  = EShaderOpt::Optimize;
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs = Shader();
-        fs.file        = "sdf_font.glsl";        // file:///<path>/AE/samples/demo/_data/shaders/sdf_font.glsl
+        fs.file     = "sdf_font.glsl";      // file:///<path>/AE/samples/demo/_data/shaders/sdf_font.glsl
         fs.options  = EShaderOpt::Optimize;
         ppln.SetFragmentShader( fs );
     }

@@ -59,8 +59,9 @@ namespace AE::Scripting
     {
     // types
     public:
-        using Self      = ClassBinder<T>;
-        using Class_t   = T;
+        using Self          = ClassBinder<T>;
+        using Class_t       = T;
+        using ArgNames_t    = ArrayView<StringView>;
 
 
         //
@@ -167,10 +168,10 @@ namespace AE::Scripting
         ND_ bool  IsRegistred ()                                                                        C_NE___;
 
         template <typename Fn>
-        void  AddConstructor (Fn ctorPtr)                                                               __Th___;
+        void  AddConstructor (Fn ctorPtr, ArgNames_t = {})                                              __Th___;
 
         template <typename Fn>
-        void  AddFactoryCtor (Fn ctorPtr)                                                               __Th___;
+        void  AddFactoryCtor (Fn ctorPtr, ArgNames_t = {})                                              __Th___;
 
         template <typename B>
         void  AddProperty (B T::* value, StringView name)                                               __Th___;
@@ -182,19 +183,19 @@ namespace AE::Scripting
         void  AddProperty (const T &self, B &value, StringView name)                                    __Th___;
 
         template <typename Fn>
-        void  AddMethod (Fn methodPtr, StringView name)                                                 __Th___;
+        void  AddMethod (Fn methodPtr, StringView name, ArgNames_t = {})                                __Th___;
 
         template <typename Fn>
-        void  AddGenericMethod (void (*fn)(ScriptArgList), StringView name)                             __Th___;
+        void  AddGenericMethod (void (*fn)(ScriptArgList), StringView name, ArgNames_t = {})            __Th___;
 
         template <typename Fn>
-        void  AddMethodFromGlobal (Fn funcPtr, StringView name)                                         __Th___;
+        void  AddMethodFromGlobal (Fn funcPtr, StringView name, ArgNames_t = {})                        __Th___;
 
         template <typename Fn>
-        void  AddMethodFromGlobalObjFirst (Fn funcPtr, StringView name)                                 __Th___;
+        void  AddMethodFromGlobalObjFirst (Fn funcPtr, StringView name, ArgNames_t = {})                __Th___;
 
         template <typename Fn>
-        void  AddMethodFromGlobalObjLast (Fn funcPtr, StringView name)                                  __Th___;
+        void  AddMethodFromGlobalObjLast (Fn funcPtr, StringView name, ArgNames_t = {})                 __Th___;
 
         ND_ OperatorBinder                      Operators ()                                            __NE___ { return OperatorBinder( this ); }
 

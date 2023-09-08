@@ -14,18 +14,18 @@ namespace AE::Math
     //
 
     template <typename T>
-    struct FPVCameraTempl final
+    struct TFPVCamera final
     {
     // types
     private:
-        using Camera_t      = CameraTempl<T>;
-        using Frustum_t     = FrustumTempl<T>;
-        using Self          = FPVCameraTempl<T>;
+        using Camera_t      = TCamera<T>;
+        using Frustum_t     = TFrustum<T>;
+        using Self          = TFPVCamera<T>;
         using Quat_t        = typename Camera_t::Quat_t;
         using Vec2_t        = typename Camera_t::Vec2_t;
         using Vec3_t        = typename Camera_t::Vec3_t;
         using Mat4_t        = typename Camera_t::Mat4_t;
-        using Rad_t         = RadiansTempl<T>;
+        using Rad_t         = TRadians<T>;
         using Rad2_t        = RadianVec<T,2>;
         using Transform_t   = typename Camera_t::Transform_t;
 
@@ -40,7 +40,7 @@ namespace AE::Math
 
     // methods
     public:
-        FPVCameraTempl ()                                                   __NE___ {}
+        TFPVCamera ()                                                       __NE___ {}
 
         ND_ Frustum_t const&    Frustum ()                                  C_NE___ { return _frustum; }
         ND_ Transform_t const&  Transform ()                                C_NE___ { return _camera.transform; }
@@ -79,7 +79,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    void  FPVCameraTempl<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar) __NE___
+    void  TFPVCamera<T>::SetPerspective (Rad fovY, T aspect, T zNear, T zFar) __NE___
     {
         _camera.SetPerspective( fovY, aspect, Vec2_t{zNear, zFar} );
         _frustum.Setup( _camera );
@@ -91,7 +91,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    FPVCameraTempl<T>&  FPVCameraTempl<T>::Rotate (Rad_t horizontal, Rad_t vertical) __NE___
+    TFPVCamera<T>&  TFPVCamera<T>::Rotate (Rad_t horizontal, Rad_t vertical) __NE___
     {
         _LimitRotation( INOUT horizontal, INOUT vertical );
 
@@ -113,7 +113,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    void  FPVCameraTempl<T>::_LimitRotation (INOUT Rad_t &, INOUT Rad_t &vertical)
+    void  TFPVCamera<T>::_LimitRotation (INOUT Rad_t &, INOUT Rad_t &vertical)
     {
         static constexpr Rad_t  angle = 80_deg;
 
@@ -132,15 +132,15 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    FPVCameraTempl<T>&  FPVCameraTempl<T>::Move (const Vec3_t &delta) __NE___
+    TFPVCamera<T>&  TFPVCamera<T>::Move (const Vec3_t &delta) __NE___
     {
         _camera.transform.position += Transform( delta );
         return *this;
     }
 
     template <typename T>
-    typename FPVCameraTempl<T>::Vec3_t
-        FPVCameraTempl<T>::Transform (const Vec3_t &delta) C_NE___
+    typename TFPVCamera<T>::Vec3_t
+        TFPVCamera<T>::Transform (const Vec3_t &delta) C_NE___
     {
         const Quat_t    view_q  = _camera.Orientation();
         const Vec3_t    up_dir  = _camera.UpDir();
@@ -164,15 +164,15 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    FPVCameraTempl<T>&  FPVCameraTempl<T>::Move3D (const Vec3_t &delta) __NE___
+    TFPVCamera<T>&  TFPVCamera<T>::Move3D (const Vec3_t &delta) __NE___
     {
         _camera.transform.position += Transform3D( delta );
         return *this;
     }
 
     template <typename T>
-    typename FPVCameraTempl<T>::Vec3_t
-        FPVCameraTempl<T>::Transform3D (const Vec3_t &delta) C_NE___
+    typename TFPVCamera<T>::Vec3_t
+        TFPVCamera<T>::Transform3D (const Vec3_t &delta) C_NE___
     {
         const Quat_t    view_q  = _camera.Orientation();
         const Vec3_t    up_dir  = _camera.UpDir();
@@ -192,7 +192,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    FPVCameraTempl<T>&  FPVCameraTempl<T>::SetPosition (const Vec3_t &pos) __NE___
+    TFPVCamera<T>&  TFPVCamera<T>::SetPosition (const Vec3_t &pos) __NE___
     {
         _camera.transform.position = pos;
         return *this;
@@ -204,7 +204,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    FPVCameraTempl<T>&  FPVCameraTempl<T>::SetRotation (const Quat_t &q) __NE___
+    TFPVCamera<T>&  TFPVCamera<T>::SetRotation (const Quat_t &q) __NE___
     {
         _camera.transform.orientation = q;
         return *this;

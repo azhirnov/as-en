@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (TARGET "GLSLang-lib")
     file( GLOB_RECURSE SOURCES "*.*" )
     add_library( "ShaderTrace" STATIC ${SOURCES} )

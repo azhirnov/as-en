@@ -37,7 +37,7 @@ extern void UnitTest_RingBuffer ();
 extern void UnitTest_RC ();
 extern void UnitTest_StackAllocator ();
 extern void UnitTest_DataSource ();
-extern void UnitTest_StringParser ();
+extern void UnitTest_Parser ();
 extern void UnitTest_StringToID ();
 extern void UnitTest_StructView ();
 extern void UnitTest_ToString ();
@@ -95,7 +95,7 @@ int main ()
     UnitTest_RingBuffer();
     UnitTest_RC();
     UnitTest_StackAllocator();
-    UnitTest_StringParser();
+    UnitTest_Parser();
     UnitTest_StructView();
     UnitTest_StringToID();
     UnitTest_ToString();

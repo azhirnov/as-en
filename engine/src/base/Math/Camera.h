@@ -14,17 +14,17 @@ namespace AE::Math
     //
 
     template <typename T>
-    struct CameraTempl
+    struct TCamera
     {
     // types
-        using Transform_t   = Transformation<T>;
+        using Transform_t   = TTransformation<T>;
         using Mat4_t        = typename Transform_t::Mat4_t;
         using Vec3_t        = typename Transform_t::Vec3_t;
         using Quat_t        = typename Transform_t::Quat_t;
         using Rect_t        = Rectangle<T>;
         using Vec2_t        = Vec< T, 2 >;
-        using Radians_t     = RadiansTempl<T>;
-        using Self          = CameraTempl<T>;
+        using Radians_t     = TRadians<T>;
+        using Self          = TCamera<T>;
         using Value_t       = T;
 
 
@@ -34,7 +34,7 @@ namespace AE::Math
 
 
     // methods
-        CameraTempl ()                                                                      __NE___ {}
+        TCamera ()                                                                          __NE___ {}
 
         ND_ Quat_t const&   Orientation ()                                                  C_NE___ { return transform.orientation; }
 

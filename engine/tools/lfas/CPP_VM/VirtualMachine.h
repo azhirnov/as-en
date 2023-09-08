@@ -8,30 +8,7 @@
 
 #pragma once
 
-#include "base/Defines/StdInclude.h"
-#include <mutex>
-#include <shared_mutex>
-#include <thread>
-#include <atomic>
-
-#include "base/Utils/Helpers.h"
-#include "base/Containers/ArrayView.h"
-#include "base/Math/Random.h"
-
-#include "Utils/MemRanges.h"
-
-// exclusive lock
-#ifndef EXLOCK
-#   define EXLOCK( ... ) \
-        std::scoped_lock    AE_PRIVATE_UNITE_RAW( __scopeLock, __COUNTER__ ) { __VA_ARGS__ }
-#endif
-
-// shared lock
-#ifndef SHAREDLOCK
-#   define SHAREDLOCK( _syncObj_ ) \
-        std::shared_lock    AE_PRIVATE_UNITE_RAW( __sharedLock, __COUNTER__ ) { _syncObj_ }
-#endif
-
+#include "CPP_VM/MemRanges.h"
 
 namespace LFAS::CPP
 {
@@ -109,6 +86,7 @@ namespace LFAS::CPP
     public:
         template <typename FN>
         ND_ ScriptPtr  CreateScript (FN &&fn);
+
         template <typename FN>
         ND_ ScriptPtr  CreateScript (StringView name, FN &&fn);
         ND_ ScriptPtr  CreateScript (StringView name, ScriptFn &&fn);
@@ -152,13 +130,13 @@ namespace LFAS::CPP
 
 
     template <typename FN>
-    inline VirtualMachine::ScriptPtr  VirtualMachine::CreateScript (StringView name, FN &&fn)
+    VirtualMachine::ScriptPtr  VirtualMachine::CreateScript (StringView name, FN &&fn)
     {
         return CreateScript( name, ScriptFn{FwdArg<FN>(fn)} );
     }
 
     template <typename FN>
-    inline VirtualMachine::ScriptPtr  VirtualMachine::CreateScript (FN &&fn)
+    VirtualMachine::ScriptPtr  VirtualMachine::CreateScript (FN &&fn)
     {
         return CreateScript( Default, ScriptFn{FwdArg<FN>(fn)} );
     }

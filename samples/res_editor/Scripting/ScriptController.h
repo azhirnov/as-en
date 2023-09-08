@@ -84,9 +84,9 @@ namespace AE::ResEditor
 
 
     //
-    // Controller Isometric Camera
+    // Controller Orbital Camera
     //
-    class ScriptControllerIsometricCamera final : public ScriptBaseController
+    class ScriptControllerOrbitalCamera final : public ScriptBaseController
     {
     // variables
     protected:

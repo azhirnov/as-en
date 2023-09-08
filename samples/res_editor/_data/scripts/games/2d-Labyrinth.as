@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-	Escape from labirinth game.
+    Escape from labirinth game.
 */
 #ifdef __INTELLISENSE__
 #   include <res_editor.as>

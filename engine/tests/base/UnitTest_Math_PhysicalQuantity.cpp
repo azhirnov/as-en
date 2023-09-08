@@ -79,8 +79,8 @@ namespace
         LightYear           a2 = Distance( LightYear3{2.0f, 3.0f, 8.0f}, LightYear3{-4.0f, 1.0f, 5.0f} );
         TEST(Equals( a2.GetNonScaled(), b2 ));
 
-        float               b3 = DistanceSqr( float3{2.0f, 3.0f, 8.0f}, float3{-4.0f, 1.0f, 5.0f} );
-        auto                a3 = DistanceSqr( LightYear3{2.0f, 3.0f, 8.0f}, LightYear3{-4.0f, 1.0f, 5.0f} );
+        float               b3 = DistanceSq( float3{2.0f, 3.0f, 8.0f}, float3{-4.0f, 1.0f, 5.0f} );
+        auto                a3 = DistanceSq( LightYear3{2.0f, 3.0f, 8.0f}, LightYear3{-4.0f, 1.0f, 5.0f} );
         TEST(Equals( a3.GetNonScaled(), b3 ));
 
         LightYear           a4 = Min( a2, LightYear{1.0f} + LightYear{2.0f} );

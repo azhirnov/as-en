@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "TestDevice.h"
-#include "base/Algorithms/StringParser.h"
+#include "base/Algorithms/Parser.h"
 #include "base/DataSource/MemStream.h"
 #include "base/DataSource/FileStream.h"
 #include "serializing/ObjectFactory.h"
@@ -1685,7 +1685,7 @@ bool  TestDevice::TestDebugTraceOutput (Array<VkShaderModule> modules, String re
         CHECK_ERR( file.Read( file.RemainingSize(), OUT file_data ));
     }
 
-    CHECK_ERR( StringParser::CompareLineByLine( file_data, merged,
+    CHECK_ERR( Parser::CompareLineByLine( file_data, merged,
                     [referenceFile] (uint lline, StringView lstr, uint rline, StringView rstr) {
                         AE_LOGE( "in: "s << referenceFile << "\n\n"
                                     << "line mismatch:" << "\n(" << ToString( lline ) << "): " << lstr

@@ -14,7 +14,7 @@
 #include "base/Algorithms/ArrayUtils.h"
 #include "base/Algorithms/Cast.h"
 #include "base/Algorithms/StringUtils.h"
-#include "base/Algorithms/StringParser.h"
+#include "base/Algorithms/Parser.h"
 
 // Containers
 #include "base/Containers/AnyTypeRef.h"
@@ -97,6 +97,7 @@
 #include "base/Platforms/Platform.h"
 
 // Utils
+#include "base/Utils/Atomic.h"
 #include "base/Utils/Date.h"
 #include "base/Utils/EnumBitSet.h"
 #include "base/Utils/FileSystem.h"
@@ -112,5 +113,6 @@
 #include "base/Utils/TimeProfiler.h"
 #include "base/Utils/TypeId.h"
 #include "base/Utils/Version.h"
+#include "base/Utils/FrameUID.h"
 
 

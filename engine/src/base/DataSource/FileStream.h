@@ -106,21 +106,19 @@ namespace AE::Base
         explicit FileWStream (const WString &filename, EMode mode = EMode::Rewrite) __NE___;
     #endif
 
-        ~FileWStream ()                             __NE_OV;
+        ~FileWStream ()                                                             __NE_OV;
 
 
         // WStream //
-        bool        IsOpen ()                       C_NE_OV { return _file != null; }
-        Bytes       Position ()                     C_NE_OV;
-        ESourceType GetSourceType ()                C_NE_OV;
+        bool        IsOpen ()                                                       C_NE_OV { return _file != null; }
+        Bytes       Position ()                                                     C_NE_OV;
+        ESourceType GetSourceType ()                                                C_NE_OV;
 
-        bool        SeekFwd (Bytes offset)          __NE_OV;
-        Bytes       Reserve (Bytes)                 __NE_OV { return 0_b; }
+        bool        SeekFwd (Bytes offset)                                          __NE_OV;
+        Bytes       Reserve (Bytes)                                                 __NE_OV { return 0_b; }
 
-        Bytes       WriteSeq (const void *, Bytes)  __NE_OV;
-        void        Flush ()                        __NE_OV;
-
-        RC<WDataSource>  AsWDataSource ();
+        Bytes       WriteSeq (const void *buffer, Bytes size)                       __NE_OV;
+        void        Flush ()                                                        __NE_OV;
     };
 //-----------------------------------------------------------------------------
 
@@ -145,32 +143,30 @@ namespace AE::Base
 
     // methods
     private:
-        explicit FileRDataSource (FILE* file DEBUG_ONLY(, Path filename))   __NE___;
+        explicit FileRDataSource (FILE* file DEBUG_ONLY(, Path filename))           __NE___;
 
     public:
-        explicit FileRDataSource (const char* filename)                     __NE___;
-        explicit FileRDataSource (NtStringView filename)                    __NE___;
-        explicit FileRDataSource (const String &filename)                   __NE___;
+        explicit FileRDataSource (const char* filename)                             __NE___;
+        explicit FileRDataSource (NtStringView filename)                            __NE___;
+        explicit FileRDataSource (const String &filename)                           __NE___;
 
-        explicit FileRDataSource (const Path &path)                         __NE___;
+        explicit FileRDataSource (const Path &path)                                 __NE___;
 
     #ifdef AE_PLATFORM_WINDOWS
-        explicit FileRDataSource (NtWStringView filename)                   __NE___;
-        explicit FileRDataSource (const wchar_t* filename)                  __NE___;
-        explicit FileRDataSource (const WString &filename)                  __NE___;
+        explicit FileRDataSource (NtWStringView filename)                           __NE___;
+        explicit FileRDataSource (const wchar_t* filename)                          __NE___;
+        explicit FileRDataSource (const WString &filename)                          __NE___;
     #endif
 
-        ~FileRDataSource ()                             __NE_OV;
+        ~FileRDataSource ()                                                         __NE_OV;
 
 
         // RDataSource //
-        bool        IsOpen ()                           C_NE_OV { return _file != null; }
-        ESourceType GetSourceType ()                    C_NE_OV;
-        Bytes       Size ()                             C_NE_OV { return _fileSize; }
+        bool        IsOpen ()                                                       C_NE_OV { return _file != null; }
+        ESourceType GetSourceType ()                                                C_NE_OV;
+        Bytes       Size ()                                                         C_NE_OV { return _fileSize; }
 
-        Bytes       ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
-
-        RC<RStream> AsRStream ();
+        Bytes       ReadBlock (Bytes offset, OUT void *buffer, Bytes size)          __NE_OV;
     };
 
 
@@ -213,20 +209,18 @@ namespace AE::Base
         explicit FileWDataSource (const WString &filename, EMode mode = EMode::Rewrite) __NE___;
     #endif
 
-        ~FileWDataSource ()                                 __NE_OV;
+        ~FileWDataSource ()                                                             __NE_OV;
 
 
         // WStream //
-        bool        IsOpen ()                               C_NE_OV { return _file != null; }
-        ESourceType GetSourceType ()                        C_NE_OV;
-        Bytes       Capacity ()                             C_NE_OV;
+        bool        IsOpen ()                                                           C_NE_OV { return _file != null; }
+        ESourceType GetSourceType ()                                                    C_NE_OV;
+        Bytes       Capacity ()                                                         C_NE_OV;
 
-        Bytes       Reserve (Bytes)                         __NE_OV { return UMax; }
+        Bytes       Reserve (Bytes)                                                     __NE_OV { return UMax; }
 
-        Bytes       WriteBlock (Bytes, const void *, Bytes) __NE_OV;
-        void        Flush ()                                __NE_OV;
-
-        RC<WStream> AsWStream ();
+        Bytes       WriteBlock (Bytes offset, const void *buffer, Bytes size)           __NE_OV;
+        void        Flush ()                                                            __NE_OV;
     };
 
 

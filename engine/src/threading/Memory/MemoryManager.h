@@ -6,8 +6,6 @@
 #include "threading/Memory/TsStackAllocator.h"
 #include "threading/Memory/MemoryProfiler.h"
 
-#include "graphics/Public/FrameUID.h"
-
 namespace AE::Threading { class MemoryManagerImpl; }
 namespace AE { Threading::MemoryManagerImpl&  MemoryManager () __NE___; }
 
@@ -36,7 +34,6 @@ namespace AE::Threading
 
     private:
         using DefaultAlloc_t    = AllocatorImpl< UntypedAllocator >;
-        using FrameUID          = Graphics::FrameUID;
 
         static constexpr uint   _MaxFrames = FrameUID::MaxFramesLimit();
 
@@ -52,7 +49,7 @@ namespace AE::Threading
             FrameAllocator_t    _alloc  [_MaxFrames];
 
             DEBUG_ONLY(
-                Graphics::AtomicFrameUID    _dbgFrameId;
+                AtomicFrameUID  _dbgFrameId;
             )   
 
         // methods

@@ -43,20 +43,25 @@ namespace AE::ResEditor
     using ScriptRayTracingPassPtr       = ScriptRC< class ScriptRayTracingPass >;
     using ScriptBasePassPtr             = ScriptRC< class ScriptBasePass >;
     using ScriptDynamicDimPtr           = ScriptRC< class ScriptDynamicDim >;
-    using ScriptDynamicUInt3Ptr         = ScriptRC< class ScriptDynamicUInt3 >;
-    using ScriptDynamicInt4Ptr          = ScriptRC< class ScriptDynamicInt4 >;
-    using ScriptDynamicFloat4Ptr        = ScriptRC< class ScriptDynamicFloat4 >;
     using ScriptDynamicUIntPtr          = ScriptRC< class ScriptDynamicUInt >;
-    using ScriptDynamicULongPtr         = ScriptRC< class ScriptDynamicULong >;
+    using ScriptDynamicUInt2Ptr         = ScriptRC< class ScriptDynamicUInt2 >;
+    using ScriptDynamicUInt3Ptr         = ScriptRC< class ScriptDynamicUInt3 >;
+    using ScriptDynamicUInt4Ptr         = ScriptRC< class ScriptDynamicUInt4 >;
+    using ScriptDynamicIntPtr           = ScriptRC< class ScriptDynamicInt >;
+    using ScriptDynamicInt2Ptr          = ScriptRC< class ScriptDynamicInt2 >;
+    using ScriptDynamicInt3Ptr          = ScriptRC< class ScriptDynamicInt3 >;
+    using ScriptDynamicInt4Ptr          = ScriptRC< class ScriptDynamicInt4 >;
     using ScriptDynamicFloatPtr         = ScriptRC< class ScriptDynamicFloat >;
+    using ScriptDynamicFloat2Ptr        = ScriptRC< class ScriptDynamicFloat2 >;
+    using ScriptDynamicFloat3Ptr        = ScriptRC< class ScriptDynamicFloat3 >;
+    using ScriptDynamicFloat4Ptr        = ScriptRC< class ScriptDynamicFloat4 >;
+    using ScriptDynamicULongPtr         = ScriptRC< class ScriptDynamicULong >;
     using ScriptCollectionPtr           = ScriptRC< class ScriptCollection >;
 
     using ScriptBaseControllerPtr       = ScriptRC< class ScriptBaseController >;
     using ScriptGeomSourcePtr           = ScriptRC< class ScriptGeomSource >;
 
     using ScriptSceneGraphicsPassPtr    = ScriptRC< class ScriptSceneGraphicsPass >;
-    using ScriptSceneRayTracingPassPtr  = ScriptRC< class ScriptSceneRayTracingPass >;
-
     using ScriptScenePtr                = ScriptRC< class ScriptScene >;
 
 

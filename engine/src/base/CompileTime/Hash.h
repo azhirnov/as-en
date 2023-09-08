@@ -55,9 +55,11 @@ namespace AE::Base::_hidden_
 
     ND_ forceinline constexpr uint  crc32_hash (char const *str, usize len, uint prev_crc) __NE___
     {
-        return  (*str != '\0' and len != 0) ?
-                    crc32_hash( str+1, len-1, (prev_crc >> 8) ^ crc_table[(prev_crc ^ *str) & 0xFF] ) :
-                    (prev_crc ^ 0xFFFFFFFF);
+        for (; (*str != '\0') & (len != 0); ++str, --len)
+        {
+            prev_crc = (prev_crc >> 8) ^ crc_table[(prev_crc ^ *str) & 0xFF];
+        }
+        return prev_crc ^ 0xFFFFFFFF;
     }
 
 } // AE::Base::_hidden_

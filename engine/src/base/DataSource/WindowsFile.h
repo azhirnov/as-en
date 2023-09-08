@@ -58,21 +58,21 @@ namespace AE::Base
 
         explicit WinRFileStream (const Path &path, EFlags flags = DefaultFlags)         __NE___;
 
-        ~WinRFileStream ()                      __NE_OV;
+        ~WinRFileStream ()                                                              __NE_OV;
 
 
         // RStream //
-        bool        IsOpen ()                   C_NE_OV;
-        ESourceType GetSourceType ()            C_NE_OV;
-        PosAndSize  PositionAndSize ()          C_NE_OV { return { _Position(), _fileSize }; }
+        bool        IsOpen ()                                                           C_NE_OV;
+        ESourceType GetSourceType ()                                                    C_NE_OV;
+        PosAndSize  PositionAndSize ()                                                  C_NE_OV { return { _Position(), _fileSize }; }
 
-        bool        SeekFwd (Bytes offset)      __NE_OV;
-        bool        SeekSet (Bytes newPos)      __NE_OV;
+        bool        SeekFwd (Bytes offset)                                              __NE_OV;
+        bool        SeekSet (Bytes newPos)                                              __NE_OV;
 
-        Bytes       ReadSeq (OUT void*, Bytes)  __NE_OV;
+        Bytes       ReadSeq (OUT void*, Bytes)                                          __NE_OV;
 
     private:
-        ND_ Bytes  _Position ()                 C_NE___;
+        ND_ Bytes  _Position ()                                                         C_NE___;
     };
 
     AE_BIT_OPERATORS( WinRFileStream::EFlags );
@@ -125,19 +125,19 @@ namespace AE::Base
 
         explicit WinWFileStream (const Path &path, EFlags flags = DefaultFlags)         __NE___;
 
-        ~WinWFileStream ()                          __NE_OV;
+        ~WinWFileStream ()                                                              __NE_OV;
 
 
         // WStream //
-        bool        IsOpen ()                       C_NE_OV;
-        Bytes       Position ()                     C_NE_OV;
-        ESourceType GetSourceType ()                C_NE_OV;
+        bool        IsOpen ()                                                           C_NE_OV;
+        Bytes       Position ()                                                         C_NE_OV;
+        ESourceType GetSourceType ()                                                    C_NE_OV;
 
-        bool        SeekFwd (Bytes offset)          __NE_OV;
-        Bytes       Reserve (Bytes additionalSize)  __NE_OV;
+        bool        SeekFwd (Bytes offset)                                              __NE_OV;
+        Bytes       Reserve (Bytes additionalSize)                                      __NE_OV;
 
-        Bytes       WriteSeq (const void *, Bytes)  __NE_OV;
-        void        Flush ()                        __NE_OV;
+        Bytes       WriteSeq (const void *, Bytes)                                      __NE_OV;
+        void        Flush ()                                                            __NE_OV;
     };
 
     AE_BIT_OPERATORS( WinWFileStream::EFlags );
@@ -185,15 +185,15 @@ namespace AE::Base
 
         explicit WinRFileDataSource (const Path &path, EFlags flags = DefaultFlags)         __NE___;
 
-        ~WinRFileDataSource ()                          __NE_OV;
+        ~WinRFileDataSource ()                                                              __NE_OV;
 
 
         // RDataSource //
-        bool        IsOpen ()                           C_NE_OV;
-        ESourceType GetSourceType ()                    C_NE_OV;
-        Bytes       Size ()                             C_NE_OV { return _fileSize; }
+        bool        IsOpen ()                                                               C_NE_OV;
+        ESourceType GetSourceType ()                                                        C_NE_OV;
+        Bytes       Size ()                                                                 C_NE_OV { return _fileSize; }
 
-        Bytes       ReadBlock (Bytes, OUT void *, Bytes)__NE_OV;
+        Bytes       ReadBlock (Bytes, OUT void *, Bytes)                                    __NE_OV;
     };
 
 
@@ -237,18 +237,18 @@ namespace AE::Base
 
         explicit WinWFileDataSource (const Path &path, EFlags flags = DefaultFlags)         __NE___;
 
-        ~WinWFileDataSource ()                              __NE_OV;
+        ~WinWFileDataSource ()                                                              __NE_OV;
 
 
         // WStream //
-        bool        IsOpen ()                               C_NE_OV;
-        ESourceType GetSourceType ()                        C_NE_OV;
-        Bytes       Capacity ()                             C_NE_OV;
+        bool        IsOpen ()                                                               C_NE_OV;
+        ESourceType GetSourceType ()                                                        C_NE_OV;
+        Bytes       Capacity ()                                                             C_NE_OV;
 
-        Bytes       Reserve (Bytes)                         __NE_OV;
+        Bytes       Reserve (Bytes)                                                         __NE_OV;
 
-        Bytes       WriteBlock (Bytes, const void *, Bytes) __NE_OV;
-        void        Flush ()                                __NE_OV;
+        Bytes       WriteBlock (Bytes, const void *, Bytes)                                 __NE_OV;
+        void        Flush ()                                                                __NE_OV;
     };
 
 

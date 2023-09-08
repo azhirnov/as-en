@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 file( GLOB_RECURSE SOURCES "*.*" )
 add_executable( "Tests.Video" ${SOURCES} )
 

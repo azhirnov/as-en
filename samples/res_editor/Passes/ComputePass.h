@@ -26,7 +26,7 @@ namespace AE::ResEditor
         };
 
     public:
-        using IterationCount_t  = Union< uint3, RC<DynamicDim>, RC<DynamicUInt>, RC<DynamicUInt3> >;
+        using IterationCount_t  = Union< uint3, RC<DynamicDim>, RC<DynamicUInt>, RC<DynamicUInt2>, RC<DynamicUInt3> >;
 
         struct Iteration
         {

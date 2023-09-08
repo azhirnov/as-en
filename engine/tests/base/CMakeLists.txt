@@ -1,3 +1,5 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
+
 if (TARGET "Base")
     file( GLOB SOURCES "*.*" )
     if (DEFINED ANDROID)

@@ -162,6 +162,20 @@ namespace AE::Base
         return Pair<A,B>{ FwdArg<A>(first), FwdArg<B>(second) };
     }
 
+/*
+=================================================
+    IsConstEvaluated
+=================================================
+*/
+    ND_ forceinline constexpr bool  IsConstEvaluated () __NE___
+    {
+    #ifdef __cpp_if_consteval
+        if consteval { return true; } else { return false; }
+    #else
+        return false;
+    #endif
+    }
+
 } // AE::Base
 
 

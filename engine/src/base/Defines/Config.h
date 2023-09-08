@@ -66,13 +66,6 @@
 #endif
 
 
-#if not defined(AE_OPTIMAL_MEMORY_ORDER) and (not defined(AE_CFG_DEBUG))
-#  define AE_OPTIMAL_MEMORY_ORDER   1
-#else
-#  define AE_OPTIMAL_MEMORY_ORDER   0
-#endif
-
-
 #ifdef AE_COMPILER_MSVC
 #   define AE_COMPILER_NAME         "MS Visual Studio"
 #   define AE_COMPILER_VERSION      AE::Base::Version3{ _MSC_FULL_VER / 10000000, (_MSC_FULL_VER % 10000000) / 100000, _MSC_FULL_VER % 100000 } // (4) _MSC_BUILD 

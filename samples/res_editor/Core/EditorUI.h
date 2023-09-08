@@ -87,6 +87,7 @@ namespace AE::ResEditor
             EColorSpace         colorSpace      = Default;
             EPresentMode        presentMode     = Default;
             RC<DynamicDim>      dynSize;
+            RC<DynamicUInt>     filterMode;
             uint                colorModeIdx    = UMax;
             uint                presentModeIdx  = UMax;
         };
@@ -134,6 +135,7 @@ namespace AE::ResEditor
         ND_ RC<Image>   GetDbgView (usize idx);
 
         ND_ RC<DynamicDim>  GetDynamicSize ()       { return graphics->dynSize; }
+        ND_ RC<DynamicUInt> GetFilterMode ()        { return graphics->filterMode; }
 
         ND_ static UIInteraction&  Instance ();
     };
@@ -182,6 +184,8 @@ namespace AE::ResEditor
             uint                dbgModeIdx          = UMax;
             uint                dbgStageIdx         = UMax;
             String              helpText;
+            ESurfaceFormat      defaultSurfFormat   = Default;
+            ESurfaceFormat      reqSurfFormat       = Default;
         };
         using ImGuiDataSync = Synchronized< RWSpinLock, ImGuiData >;
 
@@ -252,6 +256,7 @@ namespace AE::ResEditor
         ND_ AsyncTask   Draw (ArrayView<AsyncTask> deps);
             void        ProcessInput (ActionQueueReader reader, OUT bool &switchMode);
             void        SetHelpText (String txt);
+            void        SetSurfaceFormat (ESurfaceFormat fmt);
 
         ND_ bool        IsInitialized ()        const   { return _initialized.load(); }
         ND_ bool        IsCaptureRequested ()           { return _requestCapture.exchange( false ); }

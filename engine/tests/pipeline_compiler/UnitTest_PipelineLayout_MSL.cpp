@@ -18,17 +18,17 @@ namespace
 
         DescriptorSetLayoutPtr  dsl0{ new DescriptorSetLayout{ "PerDraw" }};
         //dsl0->AllowPartiallyUpdate();
-        dsl0->AddUniformBuffer( uint(EShaderStages::Vertex), "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform );
-        dsl0->AddStorageBuffer( uint(EShaderStages::Vertex | EShaderStages::Fragment), "storageBuf", ArraySize{2}, "ubuf", EAccessType::Coherent, EResourceState::ShaderStorage_RW );
-        dsl0->AddUniformTexelBuffer( uint(EShaderStages::Fragment), "texBuffer", ArraySize{1}, EImageType::UInt | EImageType::Buffer, EResourceState::ShaderSample );
-        dsl0->AddStorageImage( uint(EShaderStages::Fragment), "storageImage", ArraySize{1}, EImageType::Float | EImageType::Img2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
-        dsl0->AddSampledImage( uint(EShaderStages::Fragment), "colorTex", ArraySize{1}, EImageType::Float | EImageType::Img2D, EResourceState::ShaderSample );
-        dsl0->AddImmutableSampler( uint(EShaderStages::Fragment), "imtblSampler", "DefSampler" );
+        dsl0->AddUniformBuffer( EShaderStages::Vertex, "constBuf", ArraySize{1}, "ubuf", EResourceState::ShaderUniform, False{} );
+        dsl0->AddStorageBuffer( EShaderStages::Vertex | EShaderStages::Fragment, "storageBuf", ArraySize{2}, "ubuf", EAccessType::Coherent, EResourceState::ShaderStorage_RW, False{} );
+        dsl0->AddUniformTexelBuffer( EShaderStages::Fragment, "texBuffer", ArraySize{1}, EImageType::UInt | EImageType::Buffer, EResourceState::ShaderSample );
+        dsl0->AddStorageImage( EShaderStages::Fragment, "storageImage", ArraySize{1}, EImageType::Float | EImageType::Img2D, EPixelFormat::RGBA8_UNorm, EAccessType::Coherent, EResourceState::ShaderStorage_Write );
+        dsl0->AddSampledImage( EShaderStages::Fragment, "colorTex", ArraySize{1}, EImageType::Float | EImageType::Img2D, EResourceState::ShaderSample );
+        dsl0->AddImmutableSampler( EShaderStages::Fragment, "imtblSampler", "DefSampler" );
         //TEST( dsl0->_Build() );
 
         DescriptorSetLayoutPtr  dsl1{ new DescriptorSetLayout{ "Material" }};
-        dsl1->AddSampledImage( uint(EShaderStages::Fragment), "diffuseTex", ArraySize{1}, EImageType::Float | EImageType::Img2DArray, EResourceState::ShaderSample );
-        dsl1->AddSampledImage( uint(EShaderStages::Fragment), "noiseTex", ArraySize{1}, EImageType::Float | EImageType::Img3D, EResourceState::ShaderSample );
+        dsl1->AddSampledImage( EShaderStages::Fragment, "diffuseTex", ArraySize{1}, EImageType::Float | EImageType::Img2DArray, EResourceState::ShaderSample );
+        dsl1->AddSampledImage( EShaderStages::Fragment, "noiseTex", ArraySize{1}, EImageType::Float | EImageType::Img3D, EResourceState::ShaderSample );
         //TEST( dsl0->_Build() );
 
         PipelineLayoutPtr   ppln_layout{ new PipelineLayout{ "Layout1" }};
@@ -44,8 +44,8 @@ namespace
         const String    ref = R"#(
 struct ubuf
 {
-    uint4  u;  // offset: 0
-    int4  i;  // offset: 16
+	uint4  u;  // offset: 0
+	int4  i;  // offset: 16
 };
 static_assert( sizeof(ubuf) == 32, "size mismatch" );
 
@@ -61,7 +61,7 @@ constexpr sampler imtblSampler (
   lod_clamp(-1000.000000, 1000.000000),
   max_anisotropy(8)
 );
-  /* state: ShaderStorage_RW | PreRasterizationShaders | FragmentShader */
+  /* state: ShaderStorage_RW | VertexProcessingShaders | FragmentShader */
   /* static size: 32 b, array stride: 0 b */
   device ubuf storageBuf [[buffer(3)]] [2],
   /* state: ShaderSample | FragmentShader */

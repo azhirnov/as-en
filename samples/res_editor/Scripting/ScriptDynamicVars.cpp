@@ -88,34 +88,34 @@ namespace AE::ResEditor
         ClassBinder<ScriptDynamicDim>   binder{ se };
         binder.CreateRef();
 
-        binder.AddMethod( &ScriptDynamicDim::Mul1,      "opMul" );
-        binder.AddMethod( &ScriptDynamicDim::Div1,      "opDiv" );
-        binder.AddMethod( &ScriptDynamicDim::Mul1,      "Mul" );
-        binder.AddMethod( &ScriptDynamicDim::Div1,      "Div" );
-        binder.AddMethod( &ScriptDynamicDim::DivRound1, "DivRound" );
-        binder.AddMethod( &ScriptDynamicDim::DivCeil1,  "DivCeil" );
+        binder.AddMethod( &ScriptDynamicDim::Mul1,      "opMul",        {} );
+        binder.AddMethod( &ScriptDynamicDim::Div1,      "opDiv",        {} );
+        binder.AddMethod( &ScriptDynamicDim::Mul1,      "Mul",          {} );
+        binder.AddMethod( &ScriptDynamicDim::Div1,      "Div",          {} );
+        binder.AddMethod( &ScriptDynamicDim::DivRound1, "DivRound",     {} );
+        binder.AddMethod( &ScriptDynamicDim::DivCeil1,  "DivCeil",      {} );
 
-        binder.AddMethod( &ScriptDynamicDim::Mul2,      "opMul" );
-        binder.AddMethod( &ScriptDynamicDim::Div2,      "opDiv" );
-        binder.AddMethod( &ScriptDynamicDim::Mul2,      "Mul" );
-        binder.AddMethod( &ScriptDynamicDim::Div2,      "Div" );
-        binder.AddMethod( &ScriptDynamicDim::DivRound2, "DivRound" );
-        binder.AddMethod( &ScriptDynamicDim::DivCeil2,  "DivCeil" );
+        binder.AddMethod( &ScriptDynamicDim::Mul2,      "opMul",        {} );
+        binder.AddMethod( &ScriptDynamicDim::Div2,      "opDiv",        {} );
+        binder.AddMethod( &ScriptDynamicDim::Mul2,      "Mul",          {} );
+        binder.AddMethod( &ScriptDynamicDim::Div2,      "Div",          {} );
+        binder.AddMethod( &ScriptDynamicDim::DivRound2, "DivRound",     {} );
+        binder.AddMethod( &ScriptDynamicDim::DivCeil2,  "DivCeil",      {} );
 
-        binder.AddMethod( &ScriptDynamicDim::Mul3,      "opMul" );
-        binder.AddMethod( &ScriptDynamicDim::Div3,      "opDiv" );
-        binder.AddMethod( &ScriptDynamicDim::Mul3,      "Mul" );
-        binder.AddMethod( &ScriptDynamicDim::Div3,      "Div" );
-        binder.AddMethod( &ScriptDynamicDim::DivRound3, "DivRound" );
-        binder.AddMethod( &ScriptDynamicDim::DivCeil3,  "DivCeil" );
+        binder.AddMethod( &ScriptDynamicDim::Mul3,      "opMul",        {} );
+        binder.AddMethod( &ScriptDynamicDim::Div3,      "opDiv",        {} );
+        binder.AddMethod( &ScriptDynamicDim::Mul3,      "Mul",          {} );
+        binder.AddMethod( &ScriptDynamicDim::Div3,      "Div",          {} );
+        binder.AddMethod( &ScriptDynamicDim::DivRound3, "DivRound",     {} );
+        binder.AddMethod( &ScriptDynamicDim::DivCeil3,  "DivCeil",      {} );
     }
 //-----------------------------------------------------------------------------
-// ScriptDynamicMatrix4x4
+
 
 
 /*
 =================================================
-    Bind
+    ScriptDynamicMatrix4x4::Bind
 =================================================
 *
     void  ScriptDynamicMatrix4x4::Bind (const ScriptEnginePtr &se) __Th___
@@ -125,12 +125,34 @@ namespace AE::ResEditor
     }
 */
 //-----------------------------------------------------------------------------
-// ScriptDynamicUInt3
+
 
 
 /*
 =================================================
-    Bind
+    ScriptDynamicUInt::Bind
+=================================================
+*/
+    void  ScriptDynamicUInt::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptDynamicUInt>  binder{ se };
+        binder.CreateRef();
+    }
+
+/*
+=================================================
+    ScriptDynamicUInt2::Bind
+=================================================
+*/
+    void  ScriptDynamicUInt2::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptDynamicUInt2> binder{ se };
+        binder.CreateRef();
+    }
+
+/*
+=================================================
+    ScriptDynamicUInt3::Bind
 =================================================
 */
     void  ScriptDynamicUInt3::Bind (const ScriptEnginePtr &se) __Th___
@@ -138,13 +160,57 @@ namespace AE::ResEditor
         ClassBinder<ScriptDynamicUInt3> binder{ se };
         binder.CreateRef();
     }
+
+/*
+=================================================
+    ScriptDynamicUInt4::Bind
+=================================================
+*/
+    void  ScriptDynamicUInt4::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptDynamicUInt4> binder{ se };
+        binder.CreateRef();
+    }
 //-----------------------------------------------------------------------------
-// ScriptDynamicInt4    
+
 
 
 /*
 =================================================
-    Bind
+    ScriptDynamicInt::Bind
+=================================================
+*/
+    void  ScriptDynamicInt::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptDynamicInt>   binder{ se };
+        binder.CreateRef();
+    }
+
+/*
+=================================================
+    ScriptDynamicInt2::Bind
+=================================================
+*/
+    void  ScriptDynamicInt2::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptDynamicInt2>  binder{ se };
+        binder.CreateRef();
+    }
+
+/*
+=================================================
+    ScriptDynamicInt3::Bind
+=================================================
+*/
+    void  ScriptDynamicInt3::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptDynamicInt3>  binder{ se };
+        binder.CreateRef();
+    }
+
+/*
+=================================================
+    ScriptDynamicInt4::Bind
 =================================================
 */
     void  ScriptDynamicInt4::Bind (const ScriptEnginePtr &se) __Th___
@@ -153,12 +219,45 @@ namespace AE::ResEditor
         binder.CreateRef();
     }
 //-----------------------------------------------------------------------------
-// ScriptDynamicFloat4
+
 
 
 /*
 =================================================
-    Bind
+    ScriptDynamicFloat::Bind
+=================================================
+*/
+    void  ScriptDynamicFloat::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptDynamicFloat> binder{ se };
+        binder.CreateRef();
+    }
+
+/*
+=================================================
+    ScriptDynamicFloat2::Bind
+=================================================
+*/
+    void  ScriptDynamicFloat2::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptDynamicFloat2>    binder{ se };
+        binder.CreateRef();
+    }
+
+/*
+=================================================
+    ScriptDynamicFloat3::Bind
+=================================================
+*/
+    void  ScriptDynamicFloat3::Bind (const ScriptEnginePtr &se) __Th___
+    {
+        ClassBinder<ScriptDynamicFloat3>    binder{ se };
+        binder.CreateRef();
+    }
+
+/*
+=================================================
+    ScriptDynamicFloat4::Bind
 =================================================
 */
     void  ScriptDynamicFloat4::Bind (const ScriptEnginePtr &se) __Th___
@@ -167,40 +266,12 @@ namespace AE::ResEditor
         binder.CreateRef();
     }
 //-----------------------------------------------------------------------------
-// ScriptDynamicFloat
 
-
-/*
-=================================================
-    Bind
-=================================================
-*/
-    void  ScriptDynamicFloat::Bind (const ScriptEnginePtr &se) __Th___
-    {
-        ClassBinder<ScriptDynamicFloat> binder{ se };
-        binder.CreateRef();
-    }
-//-----------------------------------------------------------------------------
-// ScriptDynamicUInt
 
 
 /*
 =================================================
-    Bind
-=================================================
-*/
-    void  ScriptDynamicUInt::Bind (const ScriptEnginePtr &se) __Th___
-    {
-        ClassBinder<ScriptDynamicUInt>  binder{ se };
-        binder.CreateRef();
-    }
-//-----------------------------------------------------------------------------
-// ScriptDynamicULong
-
-
-/*
-=================================================
-    Bind
+    ScriptDynamicULong::Bind
 =================================================
 */
     void  ScriptDynamicULong::Bind (const ScriptEnginePtr &se) __Th___

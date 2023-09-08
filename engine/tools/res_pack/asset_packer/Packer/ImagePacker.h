@@ -76,18 +76,16 @@ namespace AE::AssetPacker
     // methods
     public:
 
-        #ifdef AE_BUILD_ASSET_PACKER
-            bool  SaveHeader (WStream &stream) const;
+            bool  SaveHeader (WStream &stream)                                                              const;
             bool  SaveImage (WStream &stream, const ImageMemView &src);
-        #endif
 
-            bool  ReadImage (RStream &stream, INOUT ImageData &, SharedMem::Allocator_t allocator = null) const;
+            bool  ReadImage (RStream &stream, INOUT ImageData &, SharedMem::Allocator_t allocator = null)   const;
 
             bool  ReadHeader (RStream &stream);
-        ND_ bool  IsValid () const;
+        ND_ bool  IsValid ()                                                                                const;
 
-        ND_ Bytes  SliceSize () const;
-        ND_ Bytes  DataSize () const;
+        ND_ Bytes  SliceSize ()                                                                             const;
+        ND_ Bytes  DataSize ()                                                                              const;
     };
 
 

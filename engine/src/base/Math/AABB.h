@@ -52,7 +52,7 @@ namespace AE::Math
         Self&  Add (const Self &aabb)                           __NE___;
         Self&  SetExtent (const Vec3_t &extent)                 __NE___;
         Self&  SetCenter (const Vec3_t &center)                 __NE___;
-        Self&  Transform (const Transformation<T> &tr)          __NE___;
+        Self&  Transform (const TTransformation<T> &tr)         __NE___;
 
         ND_ static Self  FromPoints (ArrayView<Vec3_t> points)  __NE___;
     };
@@ -156,7 +156,7 @@ namespace AE::Math
     }
 
     template <typename T>
-    AxisAlignedBoundingBox<T>&  AxisAlignedBoundingBox<T>::Transform (const Transformation<T> &tr) __NE___
+    AxisAlignedBoundingBox<T>&  AxisAlignedBoundingBox<T>::Transform (const TTransformation<T> &tr) __NE___
     {
         Vec3_t  point = min;    min = max = tr.ToGlobalPosition( point );
         point.z = max.z;        Add( tr.ToGlobalPosition( point ));

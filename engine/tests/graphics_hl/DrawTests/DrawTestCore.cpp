@@ -1,7 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 #include "base/Algorithms/StringUtils.h"
-#include "base/Algorithms/StringParser.h"
+#include "base/Algorithms/Parser.h"
 #include "base/Platforms/Platform.h"
 #include "base/DataSource/FileStream.h"
 
@@ -124,7 +124,7 @@ bool  DrawTestCore::_CompilePipelines ()
 
         PipelinePackDesc    desc;
         desc.stream         = file;
-        desc.surfaceFormat  = _swapchain.GetDescription().format;
+        desc.surfaceFormat  = _swapchain.GetDescription().colorFormat;
 
         CHECK_ERR( desc.surfaceFormat != Default );
         CHECK_ERR( res_mngr.InitializeResources( desc ));
@@ -306,7 +306,7 @@ bool  DrawTestCore::_CompareDumps (StringView filename) const
         CHECK_ERR( rfile.Read( usize(rfile.Size()), OUT left ));
     }
 
-    return StringParser::CompareLineByLine( left, right,
+    return Parser::CompareLineByLine( left, right,
                 [filename] (uint lline, StringView lstr, uint rline, StringView rstr)
                 {
                     AE_LOGE( "in: "s << filename << "\n\n"

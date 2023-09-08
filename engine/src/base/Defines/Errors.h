@@ -300,6 +300,17 @@
 #   define CHECK_THROW( /*expr, exception*/... ) \
         AE_PRIVATE_CHECK_THROW( AE_PRIVATE_GETARG_0( __VA_ARGS__ ), \
                                 AE_PRIVATE_GETARG_1( __VA_ARGS__, AE::Base::Default ))
+
+#   define AE_PRIVATE_CHECK_THROW_OP( _lhs_, _op_, _rhs_ ) \
+        AE_PRIVATE_CHECK_THROW_MSG( AE::Math::All( (_lhs_) _op_ (_rhs_) ), \
+            AE::Base::String{AE_TOSTRING(_lhs_)} << " (" << AE::Base::ToString(_lhs_) << ") " << AE_TOSTRING(_op_) << " (" << AE::Base::ToString(_rhs_) << ") " << AE_TOSTRING(_rhs_))
+
+#   define CHECK_THROW_Eq( _lhs_, _rhs_ )           AE_PRIVATE_CHECK_THROW_OP( (_lhs_), ==, (_rhs_) )
+#   define CHECK_THROW_NE( _lhs_, _rhs_ )           AE_PRIVATE_CHECK_THROW_OP( (_lhs_), !=, (_rhs_) )
+#   define CHECK_THROW_Gt( _lhs_, _rhs_ )           AE_PRIVATE_CHECK_THROW_OP( (_lhs_), >,  (_rhs_) )
+#   define CHECK_THROW_GE( _lhs_, _rhs_ )           AE_PRIVATE_CHECK_THROW_OP( (_lhs_), >=, (_rhs_) )
+#   define CHECK_THROW_Lt( _lhs_, _rhs_ )           AE_PRIVATE_CHECK_THROW_OP( (_lhs_), <,  (_rhs_) )
+#   define CHECK_THROW_LE( _lhs_, _rhs_ )           AE_PRIVATE_CHECK_THROW_OP( (_lhs_), <=, (_rhs_) )
 #endif
 
 

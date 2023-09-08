@@ -27,7 +27,7 @@ namespace AE::Math
         using Vec2_t        = TVec< T, 2, Q >;
         using Vec3_t        = TVec< T, 3, Q >;
         using Vec4_t        = TVec< T, 4, Q >;
-        using Rad_t         = RadiansTempl< T >;
+        using Rad_t         = TRadians< T >;
         using Rad3_t        = RadianVec< T, 3 >;
         using Mat3_t        = TMatrix< T, 3, 3, Q >;
         using Mat4_t        = TMatrix< T, 4, 4, Q >;

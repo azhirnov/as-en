@@ -249,15 +249,15 @@ namespace AE::Threading
         WinAsyncRDataSource (const File_t &file, EFlags flags DEBUG_ONLY(, Path filename))  __NE___;
 
     public:
-        WinAsyncRDataSource (const char* filename, EFlags flags = DefaultFlags)             __NE___;
-        WinAsyncRDataSource (NtStringView filename, EFlags flags = DefaultFlags)            __NE___;
-        WinAsyncRDataSource (const String &filename, EFlags flags = DefaultFlags)           __NE___;
+        explicit WinAsyncRDataSource (const char* filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinAsyncRDataSource (NtStringView filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinAsyncRDataSource (const String &filename, EFlags flags = DefaultFlags)  __NE___;
 
-        WinAsyncRDataSource (NtWStringView filename, EFlags flags = DefaultFlags)           __NE___;
-        WinAsyncRDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)          __NE___;
-        WinAsyncRDataSource (const WString &filename, EFlags flags = DefaultFlags)          __NE___;
+        explicit WinAsyncRDataSource (NtWStringView filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinAsyncRDataSource (const wchar_t* filename, EFlags flags = DefaultFlags) __NE___;
+        explicit WinAsyncRDataSource (const WString &filename, EFlags flags = DefaultFlags) __NE___;
 
-        WinAsyncRDataSource (const Path &path, EFlags flags = DefaultFlags)                 __NE___;
+        explicit WinAsyncRDataSource (const Path &path, EFlags flags = DefaultFlags)        __NE___;
 
         ~WinAsyncRDataSource ()                                                             __NE_OV;
 
@@ -308,15 +308,15 @@ namespace AE::Threading
         WinAsyncWDataSource (const File_t &file, EFlags flags DEBUG_ONLY(, Path filename))  __NE___;
 
     public:
-        WinAsyncWDataSource (const char* filename, EFlags flags = DefaultFlags)             __NE___;
-        WinAsyncWDataSource (NtStringView filename, EFlags flags = DefaultFlags)            __NE___;
-        WinAsyncWDataSource (const String &filename, EFlags flags = DefaultFlags)           __NE___;
+        explicit WinAsyncWDataSource (const char* filename, EFlags flags = DefaultFlags)    __NE___;
+        explicit WinAsyncWDataSource (NtStringView filename, EFlags flags = DefaultFlags)   __NE___;
+        explicit WinAsyncWDataSource (const String &filename, EFlags flags = DefaultFlags)  __NE___;
 
-        WinAsyncWDataSource (NtWStringView filename, EFlags flags = DefaultFlags)           __NE___;
-        WinAsyncWDataSource (const wchar_t* filename, EFlags flags = DefaultFlags)          __NE___;
-        WinAsyncWDataSource (const WString &filename, EFlags flags = DefaultFlags)          __NE___;
+        explicit WinAsyncWDataSource (NtWStringView filename, EFlags flags = DefaultFlags)  __NE___;
+        explicit WinAsyncWDataSource (const wchar_t* filename, EFlags flags = DefaultFlags) __NE___;
+        explicit WinAsyncWDataSource (const WString &filename, EFlags flags = DefaultFlags) __NE___;
 
-        WinAsyncWDataSource (const Path &path, EFlags flags = DefaultFlags)                 __NE___;
+        explicit WinAsyncWDataSource (const Path &path, EFlags flags = DefaultFlags)        __NE___;
 
         ~WinAsyncWDataSource ()                                                             __NE_OV;
 

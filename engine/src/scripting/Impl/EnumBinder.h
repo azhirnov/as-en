@@ -89,25 +89,11 @@ namespace AE::Scripting
 
         if_unlikely( _genHeader )
         {
-            _header += "struct ";
-            _header += _name;
-            _header += "\n{\n";
-
-            _header += "\t";
-            _header += _name;
-            _header += " () {}\n";
-
-            _header += "\t";
-            _header += _name;
-            _header += " (";
-            if constexpr( sizeof(T) == sizeof(ulong) )  _header += "uint64";
-            else                                        _header += "uint";
-            _header += ") {}\n";
-
-            _header += "\toperator ";
-            if constexpr( sizeof(T) == sizeof(ulong) )  _header += "uint64";
-            else                                        _header += "uint";
-            _header += " () const;\n";
+            const String    int_type = "uint"s << ToString(sizeof(T)*8);
+            _header << "struct " << _name << "\n{\n";
+            _header << "\t" << _name << " () {}\n";
+            _header << "\t" << _name << " (" << int_type << ") {}\n";
+            _header << "\toperator " << int_type << " () const;\n";
         }
     }
 
@@ -136,13 +122,9 @@ namespace AE::Scripting
 
         if_unlikely( _genHeader )
         {
-            _header += "\tstatic constexpr ";
-            if constexpr( sizeof(T) == sizeof(ulong) )  _header += "uint64 ";
-            else                                        _header += "uint ";
-            _header += valueName;
-            _header += " = ";
-            _header += ToString( ulong(value) );
-            _header += ";\n";
+            _header << "\tstatic constexpr ";
+            _header << "uint"s << ToString(sizeof(T)*8) << ' ';
+            _header << valueName << " = " << ToString( ulong(value) ) << ";\n";
         }
     }
 
@@ -160,7 +142,7 @@ namespace AE::Scripting
             for (usize pos = 0; pos < text.size();)
             {
                 StringView  line;
-                StringParser::ReadCurrLine( text, INOUT pos, OUT line );
+                Parser::ReadCurrLine( text, INOUT pos, OUT line );
                 _header << "\t// " << line << '\n';
             }
         }

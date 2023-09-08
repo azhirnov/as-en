@@ -130,30 +130,31 @@ namespace AE::ResEditor
         ClassBinder<ScriptCollection>   binder{ se };
         binder.CreateRef();
 
-        binder.AddMethod( &ScriptCollection::Add1,          "Add" );
-        binder.AddMethod( &ScriptCollection::Add2,          "Add" );
-        binder.AddMethod( &ScriptCollection::Add3,          "Add" );
-        binder.AddMethod( &ScriptCollection::Add4,          "Add" );
-        binder.AddMethod( &ScriptCollection::Add5,          "Add" );
-        binder.AddMethod( &ScriptCollection::Add6,          "Add" );
-        binder.AddMethod( &ScriptCollection::Add7,          "Add" );
-        binder.AddMethod( &ScriptCollection::Add8,          "Add" );
-        binder.AddMethod( &ScriptCollection::Add9,          "Add" );
-        binder.AddMethod( &ScriptCollection::Add10,         "Add" );
+        binder.Comment( "Add item to collection." );
+        binder.AddMethod( &ScriptCollection::Add1,          "Add",          {"key", "value"} );
+        binder.AddMethod( &ScriptCollection::Add2,          "Add",          {"key", "value"} );
+        binder.AddMethod( &ScriptCollection::Add3,          "Add",          {"key", "value"} );
+        binder.AddMethod( &ScriptCollection::Add4,          "Add",          {"key", "value"} );
+        binder.AddMethod( &ScriptCollection::Add5,          "Add",          {"key", "value"} );
+        binder.AddMethod( &ScriptCollection::Add6,          "Add",          {"key", "value"} );
+        binder.AddMethod( &ScriptCollection::Add7,          "Add",          {"key", "value"} );
+        binder.AddMethod( &ScriptCollection::Add8,          "Add",          {"key", "value"} );
+        binder.AddMethod( &ScriptCollection::Add9,          "Add",          {"key", "value"} );
+        binder.AddMethod( &ScriptCollection::Add10,         "Add",          {"key", "value"} );
 
         binder.Comment( "Returns dynamic values." );
-        binder.AddMethod( &ScriptCollection::GetDynDim,     "DynDim"    );
-        binder.AddMethod( &ScriptCollection::GetDynI4,      "DynInt4"   );
-        binder.AddMethod( &ScriptCollection::GetDynF4,      "DynFloat4" );
+        binder.AddMethod( &ScriptCollection::GetDynDim,     "DynDim",       {"key"} );
+        binder.AddMethod( &ScriptCollection::GetDynI4,      "DynInt4",      {"key"} );
+        binder.AddMethod( &ScriptCollection::GetDynF4,      "DynFloat4",    {"key"} );
 
         binder.Comment( "Returns resources." );
-        binder.AddMethod( &ScriptCollection::GetImage,      "Image"     );
-        binder.AddMethod( &ScriptCollection::GetVideoImage, "VideoImage");
-        binder.AddMethod( &ScriptCollection::GetBuffer,     "Buffer"    );
-        binder.AddMethod( &ScriptCollection::GetGeomSource, "Geometry"  );
-        binder.AddMethod( &ScriptCollection::GetController, "Controller");
-        binder.AddMethod( &ScriptCollection::GetRTGeometry, "RTGeometry");
-        binder.AddMethod( &ScriptCollection::GetRTScene,    "RTScene"   );
+        binder.AddMethod( &ScriptCollection::GetImage,      "Image",        {"key"} );
+        binder.AddMethod( &ScriptCollection::GetVideoImage, "VideoImage",   {"key"} );
+        binder.AddMethod( &ScriptCollection::GetBuffer,     "Buffer",       {"key"} );
+        binder.AddMethod( &ScriptCollection::GetGeomSource, "Geometry",     {"key"} );
+        binder.AddMethod( &ScriptCollection::GetController, "Controller",   {"key"} );
+        binder.AddMethod( &ScriptCollection::GetRTGeometry, "RTGeometry",   {"key"} );
+        binder.AddMethod( &ScriptCollection::GetRTScene,    "RTScene",      {"key"} );
     }
 
 

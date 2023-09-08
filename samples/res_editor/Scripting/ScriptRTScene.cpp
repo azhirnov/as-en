@@ -9,14 +9,17 @@ namespace AE::ResEditor
 namespace
 {
     static void  RTInstanceCustomIndex_Ctor (OUT void* mem, uint value) {
+        CHECK_THROW_MSG( value <= (1<<24), "Only first 24 bits are used" );
         PlacementNew<RTInstanceCustomIndex>( OUT mem, value );
     }
 
     static void  RTInstanceMask_Ctor (OUT void* mem, uint value) {
+        CHECK_THROW_MSG( value < (1<<8), "Only first 8 bits are used" );
         PlacementNew<RTInstanceMask>( OUT mem, value );
     }
 
     static void  RTInstanceSBTOffset_Ctor (OUT void* mem, uint value) {
+        CHECK_THROW_MSG( value <= (1<<24), "Only first 24 bits are used" );
         PlacementNew<RTInstanceSBTOffset>( OUT mem, value );
     }
 
@@ -42,7 +45,9 @@ namespace
     {
         Scripting::ClassBinder<RTInstanceCustomIndex>   binder{ se };
         binder.CreateClassValue();
-        binder.AddConstructor( &RTInstanceCustomIndex_Ctor );
+        binder.Comment( "Pass custom index to the shader, used first 24 bits.\n"
+                        "Use 'gl.rayQuery.GetIntersectionInstanceCustomIndex()' or 'gl.InstanceCustomIndex' to get it in shader." );
+        binder.AddConstructor( &RTInstanceCustomIndex_Ctor, {} );
     }
 //-----------------------------------------------------------------------------
 
@@ -56,7 +61,9 @@ namespace
     {
         Scripting::ClassBinder<RTInstanceMask>      binder{ se };
         binder.CreateClassValue();
-        binder.AddConstructor( &RTInstanceMask_Ctor );
+        binder.Comment( "Set instance cull mask, used only first 8 bits.\n"
+                        "In trace ray call if (cullMask_argument & instance_cullMask) != 0 then instance is visible." );
+        binder.AddConstructor( &RTInstanceMask_Ctor, {} );
     }
 //-----------------------------------------------------------------------------
 
@@ -70,7 +77,9 @@ namespace
     {
         Scripting::ClassBinder<RTInstanceSBTOffset> binder{ se };
         binder.CreateClassValue();
-        binder.AddConstructor( &RTInstanceSBTOffset_Ctor );
+        binder.Comment( "Set shader binding table offset, used first 24 bits.\n"
+                        "By default SBTOffset is calculated as 'instanceIndex * HitGroupStride()'." );
+        binder.AddConstructor( &RTInstanceSBTOffset_Ctor, {} );
     }
 //-----------------------------------------------------------------------------
 
@@ -84,8 +93,8 @@ namespace
     {
         Scripting::ClassBinder<RTInstanceTransform> binder{ se };
         binder.CreateClassValue();
-        binder.AddConstructor( &RTInstanceTransform_Ctor1 );
-        binder.AddConstructor( &RTInstanceTransform_Ctor2 );
+        binder.AddConstructor( &RTInstanceTransform_Ctor1, {"position", "angleInRadians"} );
+        binder.AddConstructor( &RTInstanceTransform_Ctor2, {"position", "angleInRadians", "scale"} );
     }
 //-----------------------------------------------------------------------------
 
@@ -389,13 +398,30 @@ namespace
     {
         Scripting::ClassBinder<ScriptRTGeometry>    binder{ se };
         binder.CreateRef();
-        binder.AddMethod( &ScriptRTGeometry::Name,                  "Name"                  );
-        binder.AddMethod( &ScriptRTGeometry::AddTriangles1,         "AddTriangles"          );
-        binder.AddMethod( &ScriptRTGeometry::AddTriangles2,         "AddTriangles"          );
-        binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles1,  "AddIndexedTriangles"   );
-        binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles2,  "AddIndexedTriangles"   );
-        binder.AddMethod( &ScriptRTGeometry::_GetIndirectBuffer,    "IndirectBuffer"        );
-        binder.AddMethod( &ScriptRTGeometry::_GetGeometryCount,     "GeometryCount"         );
+
+        binder.Comment( "Set resource name. It is used for debugging." );
+        binder.AddMethod( &ScriptRTGeometry::Name,                  "Name",                 {} );
+
+        binder.Comment( "Add triangle mesh.\n"
+                        "Supported formats:\n"
+                        "   float2/float3  position []/[x];\n"
+                        "   Vertex{ float2/float3  pos; ... }  verts []/[x];\n"
+                        "   with static or dynamic array." );
+        binder.AddMethod( &ScriptRTGeometry::AddTriangles1,         "AddTriangles",         {"vertexBuffer"} );
+        binder.AddMethod( &ScriptRTGeometry::AddTriangles2,         "AddTriangles",         {"vertexBuffer", "maxVertex", "maxPrimitives"} );
+
+        binder.Comment( "Add indexed triangle mesh.\n"
+                        "Supported formats:\n"
+                        "   ushort/uint  indices []/[x];\n"
+                        "   with static or dynamic array." );
+        binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles1,  "AddIndexedTriangles",  {"vertexBuffer", "indexBuffer"} );
+        binder.AddMethod( &ScriptRTGeometry::AddIndexedTriangles2,  "AddIndexedTriangles",  {"vertexBuffer", "maxVertex", "maxPrimitives", "indexBuffer", "indexType"} );
+
+        binder.Comment( "Returns indirect buffer, only this buffer must be used for indirect build." );
+        binder.AddMethod( &ScriptRTGeometry::_GetIndirectBuffer,    "IndirectBuffer",       {} );
+
+        binder.Comment( "Returns number of meshes." );
+        binder.AddMethod( &ScriptRTGeometry::_GetGeometryCount,     "GeometryCount",        {} );
     }
 
 /*
@@ -877,52 +903,62 @@ namespace
 
         Scripting::ClassBinder<ScriptRTScene>   binder{ se };
         binder.CreateRef();
-        binder.AddMethod( &ScriptRTScene::Name,     "Name"  );
 
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.Comment( "Set resource name. It is used for debugging." );
+        binder.AddMethod( &ScriptRTScene::Name,     "Name",     {} );
 
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.Comment( "Add instance to the scene." );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
 
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const packed_float3 &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
 
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceMask &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceMask &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
 
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceMask &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
-        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance" );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceMask &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceMask &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
 
-        binder.AddMethod( &ScriptRTScene::_GetInstanceBuffer,   "InstanceBuffer"    );
-        binder.AddMethod( &ScriptRTScene::GetInstanceCount,     "InstanceCount"     );
-        binder.AddMethod( &ScriptRTScene::_GetIndirectBuffer,   "IndirectBuffer"    );
-        binder.AddMethod( &ScriptRTScene::HitGroupStride,       "HitGroupStride"    );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceMask &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+        binder.AddGenericMethod< void (const ScriptRTGeometryPtr &, const RTInstanceTransform &, const RTInstanceCustomIndex &, const RTInstanceMask &, const RTInstanceSBTOffset &, ERTInstanceOpt) >( &ScriptRTScene::_AddInstance, "AddInstance", {} );
+
+        binder.Comment( "Returns instance buffer, can be used to update instances in compute shader." );
+        binder.AddMethod( &ScriptRTScene::_GetInstanceBuffer,   "InstanceBuffer",   {} );
+
+        binder.Comment( "Returns number of instances." );
+        binder.AddMethod( &ScriptRTScene::GetInstanceCount,     "InstanceCount",    {} );
+
+        binder.Comment( "Returns indirect buffer, only this buffer must be used for indirect build." );
+        binder.AddMethod( &ScriptRTScene::_GetIndirectBuffer,   "IndirectBuffer",   {} );
+
+        binder.Comment( "Set number of ray types. It is used to calculate SBTOffset for instances." );
+        binder.AddMethod( &ScriptRTScene::HitGroupStride,       "HitGroupStride",   {} );
     }
 
 /*

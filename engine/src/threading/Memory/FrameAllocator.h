@@ -18,7 +18,7 @@ namespace AE::Threading
             AllocatorRef2{ MemoryManager().GetGraphicsFrameAllocator().Get() }
         {}
 
-        explicit GraphicsFrameAllocatorRef (Graphics::FrameUID frameId) __NE___ :
+        explicit GraphicsFrameAllocatorRef (FrameUID frameId) __NE___ :
             AllocatorRef2{ MemoryManager().GetGraphicsFrameAllocator().Get( frameId )}
         {}
     };

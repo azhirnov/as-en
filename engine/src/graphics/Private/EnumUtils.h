@@ -51,32 +51,11 @@ namespace AE::Graphics
 
 /*
 =================================================
-    EVertexType_SizeOf
+    EVertexType_*
 =================================================
 */
-    ND_ inline Bytes  EVertexType_SizeOf (EVertexType type) __NE___
-    {
-        const EVertexType   scalar_type = (type & EVertexType::_TypeMask);
-        const uint          vec_size    = (uint(type & EVertexType::_VecMask) >> uint(EVertexType::_VecOffset)) + 1;
-        ASSERT( vec_size >= 1 and vec_size <= 4 );
-
-        switch ( scalar_type )
-        {
-            case EVertexType::_Byte :
-            case EVertexType::_UByte :  return SizeOf<ubyte>    * vec_size;
-            case EVertexType::_Short :
-            case EVertexType::_UShort : return SizeOf<ushort>   * vec_size;
-            case EVertexType::_Int :
-            case EVertexType::_UInt :   return SizeOf<uint>     * vec_size;
-            case EVertexType::_Long :
-            case EVertexType::_ULong :  return SizeOf<ulong>    * vec_size;
-
-            case EVertexType::_Half :   return SizeOf<half>     * vec_size;
-            case EVertexType::_Float :  return SizeOf<float>    * vec_size;
-            case EVertexType::_Double : return SizeOf<double>   * vec_size;
-        }
-        RETURN_ERR( "not supported" );
-    }
+    ND_ Bytes       EVertexType_SizeOf (EVertexType type)       __NE___;
+    ND_ EVertexType EVertexType_ToAttribType (EVertexType type) __NE___;
 //-----------------------------------------------------------------------------
 
 

@@ -14,13 +14,13 @@ void ASmain ()
 
     {
         RC<Shader>  vs  = Shader();
-        vs.file        = "draw2_vs.glsl";            // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw2_vs.glsl
+        vs.file     = "draw2_vs.glsl";          // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw2_vs.glsl
         vs.options  = EShaderOpt::Optimize;
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file        = "draw1_fs.glsl";            // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw1_fs.glsl
+        fs.file     = "draw1_fs.glsl";          // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/draw1_fs.glsl
         fs.options  = EShaderOpt::Optimize;
         ppln.SetFragmentShader( fs );
     }

@@ -4,7 +4,7 @@
 
 namespace
 {
-    using Transform_t = Transformation<float>;
+    using Transform_t = TTransformation<float>;
 
     constexpr float eps = 1.0e-4f;
 

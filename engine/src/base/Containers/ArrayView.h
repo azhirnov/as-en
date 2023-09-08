@@ -40,6 +40,11 @@ namespace AE::Base
             ASSERT( (_count == 0) or (_array != null) ); 
         }
 
+        constexpr ArrayView (T const* begin, T const* end)      __NE___ : _array{begin}, _count{usize(std::distance( begin, end ))}
+        {
+            ASSERT( begin <= end ); 
+        }
+
         template <typename = DisableIf< IsStaticArray<T> or IsArray<T> >
                  >
         ArrayView (std::initializer_list<T> list)               __NE___ : _array{list.begin()}, _count{list.size()} {}
@@ -57,6 +62,7 @@ namespace AE::Base
         constexpr ArrayView (const T (&arr)[S])                 __NE___ : _array{arr}, _count{S} {}
 
         ND_ explicit constexpr operator Array<T> ()             C_NE___ { return Array<T>{ begin(), end() }; }
+
 
         ND_ constexpr usize             size ()                 C_NE___ { return _count; }
         ND_ constexpr bool              empty ()                C_NE___ { return _count == 0; }

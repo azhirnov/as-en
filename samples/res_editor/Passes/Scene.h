@@ -22,7 +22,7 @@ namespace AE::ResEditor
         struct GeometryInstance
         {
             RC<IGeomSource>     geometry;
-            float3              position;
+            float4x4            transform;
         };
         using GeomInstances_t = Array< GeometryInstance >;
 
@@ -76,58 +76,6 @@ namespace AE::ResEditor
     public:
         SceneGraphicsPass () {}
         ~SceneGraphicsPass ();
-
-    // IPass //
-        EPassType       GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
-        RC<IController> GetController ()                                    C_NE_OV { return _controller; }
-        StringView      GetName ()                                          C_NE_OV { return _dbgName; }
-        bool            Execute (SyncPassData &)                            __NE_OV;
-        bool            Update (TransferCtx_t &, const UpdatePassData &)    __NE_OV;
-        void            GetResourcesToResize (INOUT Array<RC<IResource>> &) __NE_OV;
-    };
-
-
-
-    //
-    // Scene Ray Tracing Pass
-    //
-    class SceneRayTracingPass final : public IPass
-    {
-        friend class ScriptSceneRayTracingPass;
-
-    // types
-    private:
-        using Materials_t       = Array< RC<IGSMaterials> >;
-        using PipelineMap_t     = FixedMap< EDebugMode, RayTracingPipelineID, uint(EDebugMode::_Count) >;
-
-
-    // variables
-    private:
-        RTechInfo               _rtech;
-
-        RC<SceneData>           _scene;
-        Materials_t             _materials;
-
-        ResourceArray           _resources;         // per pass
-
-        PipelineMap_t           _pipelines;
-        RTShaderBindingID       _sbt;
-
-        Strong<BufferID>        _ubuffer;
-        PerFrameDescSet_t       _descSets;
-        DescSetBinding          _dsIndex;
-
-        RC<IController>         _controller;
-        Constants               _shConst;
-
-        String                  _dbgName;
-        RGBA8u                  _dbgColor;
-
-
-    // methods
-    public:
-        SceneRayTracingPass () {}
-        ~SceneRayTracingPass ();
 
     // IPass //
         EPassType       GetType ()                                          C_NE_OV { return EPassType::Sync | EPassType::Update; }
