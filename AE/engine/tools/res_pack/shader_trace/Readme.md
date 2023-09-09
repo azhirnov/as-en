@@ -1,4 +1,6 @@
-GLSL Trace
+**GLSL Trace**
+
+Standalone library for shader trace recording.
 
 ## Features
  * Shader trace recording for debugging.
@@ -347,6 +349,12 @@ for (uint32_t x = 0; x < image_width; ++x)
 
 
 ## How to use
+
+Library is already integrated into AsEn Graphics module. See graphics tests as an example:
+[compute](../../../tests/graphics/RenderGraph/Test_RG_Debugger1.cpp), [graphics](../../../tests/graphics/RenderGraph/Test_RG_Debugger2.cpp), [mesh](../../../tests/graphics/RenderGraph/Test_RG_Debugger3.cpp), [ray tracing](../../../tests/graphics/RenderGraph/Test_RG_Debugger4.cpp), [ray query](../../../tests/graphics/RenderGraph/Test_RG_Debugger5.cpp).
+
+To integrate glsl-trace into another program, follow these steps:
+
 **Setup:**</br> 
  * Use [glslang](https://github.com/KhronosGroup/glslang) to parse GLSL or HLSL source code and build AST
  * Convert glslang AST to SPIRV and create pipeline for reqular rendering.

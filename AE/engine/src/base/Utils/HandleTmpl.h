@@ -43,7 +43,7 @@ namespace AE::Base
         explicit constexpr HandleTmpl (Value_t val) : _value{val} {}
 
     public:
-        constexpr HandleTmpl ()                                             __NE___ {}
+        constexpr HandleTmpl ()                                             __NE___ = default;
         constexpr HandleTmpl (const Self &other)                            __NE___ : _value{other._value} {}
 
         constexpr HandleTmpl (Value_t index, Value_t gen)                   __NE___ :
@@ -88,10 +88,10 @@ namespace AE::Base
         using Value_t       = typename Base_t::Value_t;
 
     public:
-        constexpr HandleTmplDbg ()                              __NE___ {}
-        constexpr HandleTmplDbg (const Self &other)             __NE___ : HandleTmplDbg{ other } {}
+        constexpr HandleTmplDbg ()                              __NE___ = default;
+        constexpr HandleTmplDbg (const Self &other)             __NE___ : Base_t{ other } {}
 
-        constexpr HandleTmplDbg (Value_t index, Value_t gen)    __NE___ : HandleTmplDbg{ index, gen } {}
+        constexpr HandleTmplDbg (Value_t index, Value_t gen)    __NE___ : Base_t{ index, gen } {}
 
     // debugging
     public:
@@ -130,7 +130,7 @@ namespace AE::Base
 
     // methods
     public:
-        constexpr Strong ()                                         __NE___ {}
+        constexpr Strong ()                                         __NE___ = default;
         constexpr Strong (Self &&other)                             __NE___ : _id{other._id}    { other._id = Default; }
         constexpr explicit Strong (const ID_t &id)                  __NE___ : _id{id}           {}
         constexpr Strong (Value_t index, Value_t gen)               __NE___ : _id{index, gen}   {}

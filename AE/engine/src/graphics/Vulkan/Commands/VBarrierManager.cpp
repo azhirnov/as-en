@@ -42,7 +42,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename T>
-    forceinline void  VBarrierManager::_AddMemoryBarrier (const T &barrier) __NE___
+    void  VBarrierManager::_AddMemoryBarrier (const T &barrier) __NE___
     {
         ASSERT( barrier.pNext == null );
         _barrier.memoryBarrierCount     = 1;
@@ -52,13 +52,13 @@ namespace AE::Graphics::_hidden_
         _memoryBarrier.dstAccessMask    |= barrier.dstAccessMask;
     }
 
-    forceinline void  VBarrierManager::_AddBufferBarrier (const VkBufferMemoryBarrier2 &barrier) __NE___
+    void  VBarrierManager::_AddBufferBarrier (const VkBufferMemoryBarrier2 &barrier) __NE___
     {
         ASSERT( barrier.pNext == null );
         CATCH( _bufferBarriers.push_back( barrier ));
     }
 
-    forceinline void  VBarrierManager::_AddImageBarrier (const VkImageMemoryBarrier2 &barrier) __NE___
+    void  VBarrierManager::_AddImageBarrier (const VkImageMemoryBarrier2 &barrier) __NE___
     {
         ASSERT( barrier.pNext == null );
         CATCH( _imageBarriers.push_back( barrier ));    // TODO: use fixed array and commit barriers on overflow
@@ -70,10 +70,10 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename B>
-    forceinline void  VBarrierManager::_FillMemoryBarrier2 (EResourceState srcState, EResourceState dstState,
-                                                            VkPipelineStageFlagBits2 srcSupportedStages, VkAccessFlagBits2 srcSupportedAccess,
-                                                            VkPipelineStageFlagBits2 dstSupportedStages, VkAccessFlagBits2 dstSupportedAccess,
-                                                            INOUT B& barrier) __NE___
+    void  VBarrierManager::_FillMemoryBarrier2 (EResourceState srcState, EResourceState dstState,
+                                                VkPipelineStageFlagBits2 srcSupportedStages, VkAccessFlagBits2 srcSupportedAccess,
+                                                VkPipelineStageFlagBits2 dstSupportedStages, VkAccessFlagBits2 dstSupportedAccess,
+                                                INOUT B& barrier) __NE___
     {
         EResourceState_ToStageAccess( srcState, OUT barrier.srcStageMask, OUT barrier.srcAccessMask );
         EResourceState_ToStageAccess( dstState, OUT barrier.dstStageMask, OUT barrier.dstAccessMask );
@@ -88,10 +88,10 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename B>
-    forceinline void  VBarrierManager::_FillBufferBarrier2 (EResourceState srcState, EResourceState dstState,
-                                                            VkPipelineStageFlagBits2 srcSupportedStages, VkAccessFlagBits2 srcSupportedAccess,
-                                                            VkPipelineStageFlagBits2 dstSupportedStages, VkAccessFlagBits2 dstSupportedAccess,
-                                                            INOUT B& barrier) __NE___
+    void  VBarrierManager::_FillBufferBarrier2 (EResourceState srcState, EResourceState dstState,
+                                                VkPipelineStageFlagBits2 srcSupportedStages, VkAccessFlagBits2 srcSupportedAccess,
+                                                VkPipelineStageFlagBits2 dstSupportedStages, VkAccessFlagBits2 dstSupportedAccess,
+                                                INOUT B& barrier) __NE___
     {
         _FillMemoryBarrier2( srcState, dstState, srcSupportedStages, srcSupportedAccess, dstSupportedStages, dstSupportedAccess, INOUT barrier );
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -99,10 +99,10 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename B>
-    forceinline void  VBarrierManager::_FillImageBarrier2 (EResourceState srcState, EResourceState dstState,
-                                                           VkPipelineStageFlagBits2 srcSupportedStages, VkAccessFlagBits2 srcSupportedAccess,
-                                                           VkPipelineStageFlagBits2 dstSupportedStages, VkAccessFlagBits2 dstSupportedAccess,
-                                                           INOUT B& barrier) __NE___
+    void  VBarrierManager::_FillImageBarrier2 (EResourceState srcState, EResourceState dstState,
+                                               VkPipelineStageFlagBits2 srcSupportedStages, VkAccessFlagBits2 srcSupportedAccess,
+                                               VkPipelineStageFlagBits2 dstSupportedStages, VkAccessFlagBits2 dstSupportedAccess,
+                                               INOUT B& barrier) __NE___
     {
         EResourceState_ToSrcStageAccessLayout( srcState, OUT barrier.srcStageMask, OUT barrier.srcAccessMask, OUT barrier.oldLayout );
         EResourceState_ToDstStageAccessLayout( dstState, OUT barrier.dstStageMask, OUT barrier.dstAccessMask, OUT barrier.newLayout );
@@ -134,13 +134,13 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename B>
-    forceinline void  VBarrierManager::_FillMemoryBarrier (EResourceState srcState, EResourceState dstState, INOUT B& barrier) C_NE___
+    void  VBarrierManager::_FillMemoryBarrier (EResourceState srcState, EResourceState dstState, INOUT B& barrier) C_NE___
     {
         return _FillMemoryBarrier2( srcState, dstState, _supportedStages, _supportedAccess, _supportedStages, _supportedAccess, INOUT barrier );
     }
 
     template <typename B>
-    forceinline void  VBarrierManager::_FillBufferBarrier (EResourceState srcState, EResourceState dstState, INOUT B& barrier) C_NE___
+    void  VBarrierManager::_FillBufferBarrier (EResourceState srcState, EResourceState dstState, INOUT B& barrier) C_NE___
     {
         _FillMemoryBarrier( srcState, dstState, INOUT barrier );
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -148,7 +148,7 @@ namespace AE::Graphics::_hidden_
     }
 
     template <typename B>
-    forceinline void  VBarrierManager::_FillImageBarrier (EResourceState srcState, EResourceState dstState, INOUT B& barrier) C_NE___
+    void  VBarrierManager::_FillImageBarrier (EResourceState srcState, EResourceState dstState, INOUT B& barrier) C_NE___
     {
         return _FillImageBarrier2( srcState, dstState, _supportedStages, _supportedAccess, _supportedStages, _supportedAccess, INOUT barrier );
     }
@@ -159,7 +159,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <typename B>
-    forceinline void  VBarrierManager::_FillOwnershipTransfer (VQueuePtr src, VQueuePtr dst, INOUT B& barrier) __NE___
+    void  VBarrierManager::_FillOwnershipTransfer (VQueuePtr src, VQueuePtr dst, INOUT B& barrier) __NE___
     {
         ASSERT( src != dst );
         ASSERT( src->familyIndex != dst->familyIndex );

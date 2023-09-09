@@ -1,9 +1,14 @@
 source: [DeviceProperties.h](../src/graphics/Public/DeviceProperties.h)
  
+Use `DeviceProperties const&  RenderTaskScheduler().GetDeviceProperties()` to get runtime limits for the current GPU.
+
+Use `static constexpr DeviceProperties  DeviceLimits;` to get compile time limits which is compatible with most GPUs.
+
+
 ## ResourceAlignment
 
-This constants is used to calculate data alignment for uniform, storage and vertex buffers.
-Constants used in C++ code to store data for GPU usage.
+These constants are used to calculate data alignment for uniform, storage and vertex buffers.
+Constants are used in C++ code to store data for accessing them in the GPU.
 
 * `minUniformBufferOffsetAlign`</br>
 `minStorageBufferOffsetAlign`</br>

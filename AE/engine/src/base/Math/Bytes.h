@@ -246,7 +246,7 @@ namespace AE::Math
 =================================================
 */
     template <typename A, typename B>
-    ND_ constexpr forceinline Bytes  OffsetOf (A B::*member) __NE___
+    ND_ constexpr Bytes  OffsetOf (A B::*member) __NE___
     {
         const union U {
             B       b;
@@ -263,13 +263,13 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline TBytes<T>  FloorPOT (const TBytes<T> x) __NE___
+    ND_ TBytes<T>  FloorPOT (const TBytes<T> x) __NE___
     {
         return TBytes<T>{ FloorPOT( T{x} )};
     }
 
     template <typename T>
-    ND_ forceinline TBytes<T>  CeilPOT (const TBytes<T> x) __NE___
+    ND_ TBytes<T>  CeilPOT (const TBytes<T> x) __NE___
     {
         return TBytes<T>{ CeilPOT( T{x} )};
     }
@@ -280,7 +280,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr bool  IsPowerOfTwo (const TBytes<T> x) __NE___
+    ND_ constexpr bool  IsPowerOfTwo (const TBytes<T> x) __NE___
     {
         return IsPowerOfTwo( T{x} );
     }

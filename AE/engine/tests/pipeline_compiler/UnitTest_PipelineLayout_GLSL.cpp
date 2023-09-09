@@ -38,14 +38,18 @@ namespace
 
         PipelineLayout::UniqueTypes_t   unique_types;
 
-        const String    src = ppln_layout->ToGLSL( EShaderStages::Fragment, INOUT unique_types );
+        String  src = ppln_layout->ToGLSL( EShaderStages::Fragment, INOUT unique_types );
+      #if not AE_PRIVATE_USE_TABS
+        src = Parser::TabsToSpaces( src );
+      #endif
+
         const String    ref = R"#(//---------------------
 // ds[0], name: 'PerDraw', type: 'PerDraw'
   // state: ShaderStorage_RW | VertexProcessingShaders | FragmentShader
   // static size: 32 b, array stride: 0 b
   layout(set=0, binding=1, std430) coherent buffer AE_Type_ubuf {
-	layout(offset=0, align=16) uvec4  u;
-	layout(offset=16, align=16) ivec4  i;
+    layout(offset=0, align=16) uvec4  u;
+    layout(offset=16, align=16) ivec4  i;
   } storageBuf [2];
   // state: ShaderSample | FragmentShader
   layout(set=0, binding=2) uniform usamplerBuffer texBuffer;

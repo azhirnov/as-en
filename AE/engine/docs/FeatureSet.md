@@ -2,6 +2,10 @@ source: [FeatureSet.h](../src/graphics/Public/FeatureSet.h)
 
 Some kind of [Vulkan Profiles](https://github.com/KhronosGroup/Vulkan-Profiles) and [Metal Feature Set Tables](https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf).
 
+Use `FeatureSet` to get GPU limits and features in resource compilation stage.
+
+Use `FeatureSet const&  RenderTaskScheduler().GetFeatureSet()` to get cross-platform limits and features of the current GPU in runtime.
+
 ## Render States
 
 * __alphaToOne__<br/>

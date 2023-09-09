@@ -223,7 +223,7 @@ namespace AE::Graphics::_hidden_
     NoPendingBarriers
 =================================================
 */
-    forceinline bool  VBarrierManager::NoPendingBarriers () C_NE___
+    inline bool  VBarrierManager::NoPendingBarriers () C_NE___
     {
         return (_barrier.memoryBarrierCount | _imageBarriers.size() | _bufferBarriers.size()) == 0;
     }
@@ -233,7 +233,7 @@ namespace AE::Graphics::_hidden_
     GetBarriers
 =================================================
 */
-    forceinline const VkDependencyInfo*  VBarrierManager::GetBarriers () __NE___
+    inline const VkDependencyInfo*  VBarrierManager::GetBarriers () __NE___
     {
         if_unlikely( HasPendingBarriers() )
         {
@@ -256,7 +256,7 @@ namespace AE::Graphics::_hidden_
     ClearBarriers
 =================================================
 */
-    forceinline void  VBarrierManager::ClearBarriers () __NE___
+    inline void  VBarrierManager::ClearBarriers () __NE___
     {
         _memoryBarrier  = {};
         _barrier        = {};

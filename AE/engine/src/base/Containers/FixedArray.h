@@ -123,7 +123,7 @@ namespace AE::Base
         constexpr void  fast_erase (usize index)                __NE___;
 
     private:
-        ND_ forceinline bool  _IsMemoryAliased (const_iterator beginIter, const_iterator endIter) C_NE___
+        ND_ bool  _IsMemoryAliased (const_iterator beginIter, const_iterator endIter) C_NE___
         {
             return IsIntersects( begin(), end(), beginIter, endIter );
         }

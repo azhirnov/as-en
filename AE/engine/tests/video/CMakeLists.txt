@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-file( GLOB_RECURSE SOURCES "*.*" )
+file( GLOB_RECURSE SOURCES "*.h" "*.cpp" )
 add_executable( "Tests.Video" ${SOURCES} )
 
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )

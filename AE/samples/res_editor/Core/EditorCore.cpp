@@ -820,7 +820,7 @@ using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::ResEditor;
 
-#define REQUIRE_GPLv3
+#define REQUIRE_APACHE_2
 #include "base/Defines/DetectLicense.inl.h"
 
 
@@ -858,5 +858,7 @@ Unique<IApplication::IAppListener>  AE_OnAppCreated ()
 */
 void  AE_OnAppDestroyed ()
 {
+    // Don't check for memleaks because of
+    // false positive in glslang when used dynamic allocation in static variable.
     StaticLogger::Deinitialize( false );
 }

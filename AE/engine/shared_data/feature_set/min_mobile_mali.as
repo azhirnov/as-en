@@ -20,7 +20,7 @@ void ASmain ()
     //  Mali-G76 driver 32.1.0 on Android 12.0
     //  Mali-G57 driver 21.0.0 on Android 10.0
 
-    const EFeature  True  = EFeature::RequireTrue;
+    const EFeature  True = EFeature::RequireTrue;
 
     RC<FeatureSet>  fset = FeatureSet( "MinMobileMali" );
 

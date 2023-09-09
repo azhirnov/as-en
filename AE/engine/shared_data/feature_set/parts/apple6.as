@@ -3,7 +3,7 @@
 
 void ASmain ()
 {
-    const EFeature  True  = EFeature::RequireTrue;
+    const EFeature  True = EFeature::RequireTrue;
 
     RC<FeatureSet>  fset = FeatureSet( "part.Apple6" );
 

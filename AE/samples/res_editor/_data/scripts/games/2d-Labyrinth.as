@@ -185,31 +185,20 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef DRAW_GAME
-    #include "Math.glsl"
     #include "GlobalIndex.glsl"
+    #include "Waves.glsl"
 
     const float3    c_BackgroundColor       = float3(0.2, 0.2, 0.2);
-    const float3    c_WallColor             = float3(0.0, 0.0, 1.0);
+    const float3    c_WallColor             = float3(0.2, 0.0, 1.0);
     const float3    c_PlayerColor           = float3(0.0, 2.0, 0.0);
     const float3    c_AmbientLightColor     = float3(0.3, 0.4, 0.5) * 2.2;
-    const float3    c_FlashLightColor       = float3(1.0, 1.0, 1.0) * 0.8;
-    const float3    c_AmbientLight          = float3(0.001);
-    const float3    c_TeleportColor         = float3(0.4, 0.0, 0.0);
-    const float3    c_TeleportWaveColor     = float3(0.5, 0.2, 0.0);
+    const float3    c_FlashLightColor       = float3(1.0, 1.2, 1.0) * 0.8;
+    const float3    c_AmbientLight          = float3(1.0, 1.0, 1.0) * 0.001;
+    const float3    c_TeleportColor         = float3(0.4, 0.0, 0.5);
+    const float3    c_TeleportWaveColor     = float3(0.5, 0.0, 0.7);
     const float     c_AmbientLightRadius    = 0.125;
     const float     c_FlashLightMaxDist     = 0.5;
 
-
-    ND_ float3  Blend (const float3 src, const float3 dst, const float factor)
-    {
-        return Lerp( src, dst, factor );
-    }
-
-    ND_ float  BumpStep (float x, const float edge0, const float edge1)
-    {
-        x = Saturate( (x - edge0) / (edge1 - edge0) );
-        return 1.0 - Abs(x - 0.5) * 2.0;
-    }
 
     ND_ float  ReadSDF (const float2 pos)
     {
@@ -281,12 +270,12 @@
         const bool      inside_wall             = ReadSDF( pos_on_map ) < 0.0;
 
         fragColor       = float4(c_BackgroundColor, 1.0);
-        fragColor.rgb   = Blend( fragColor.rgb, c_WallColor, (inside_wall ? 1.0 : 0.0) );
+        fragColor.rgb   = Lerp( fragColor.rgb, c_WallColor, (inside_wall ? 1.0 : 0.0) );
 
         // teleport
         {
             float   factor  = Saturate( 1.0 - dist_to_teleport / un_CBuf.teleportRadius );
-            fragColor.rgb   = Blend( fragColor.rgb, c_TeleportColor, factor );
+            fragColor.rgb   = Lerp( fragColor.rgb, c_TeleportColor, factor );
         }
 
         // flash light color
@@ -304,7 +293,7 @@
             float   atten       = dist_to_player / (c_FlashLightMaxDist * Max( un_CBuf.uvToMap.x, un_CBuf.uvToMap.y ));
                     atten       = Saturate( 1.0 - atten * atten );
             float   factor      = Saturate( 1.0 - dist_to_ray / cone_radius ) * un_CBuf.flashLightPower * atten;
-                    light_color = Blend( light_color, c_FlashLightColor, factor );
+                    light_color = Lerp( light_color, c_FlashLightColor, factor );
                     trace_light = trace_light or factor > 0.0;
         }
 
@@ -312,7 +301,7 @@
         {
             float   factor      = dist_to_player / (c_AmbientLightRadius * Max( un_CBuf.uvToMap.x, un_CBuf.uvToMap.y ));
                     factor      = Saturate( 1.0 - Sqrt(factor) );
-                    light_color = Blend( light_color, c_AmbientLightColor, factor );
+                    light_color = Lerp( light_color, c_AmbientLightColor, factor );
                     trace_light = trace_light or factor > 0.0;
         }
 
@@ -336,13 +325,13 @@
             const float wave_r          = un_CBuf.teleportRadius * Fract( iTime );
             float       is_invisible    = 1.0 - SmoothStep( 0.0, Dot( c_AmbientLight, c_AmbientLight ), Dot( fragColor.rgb, fragColor.rgb ));   // use current color to detect if teleport is visible or shaded
             float       wave            = BumpStep( dist_to_teleport, wave_r, wave_r + wave_width );
-                        fragColor.rgb   = Blend( fragColor.rgb, c_TeleportWaveColor, wave * is_invisible );
+                        fragColor.rgb   = Lerp( fragColor.rgb, c_TeleportWaveColor, wave * is_invisible );
         }
 
         // player
         {
             float   factor          = Saturate( 1.0 - dist_to_player / un_CBuf.playerRadius );
-                    fragColor.rgb   = Blend( fragColor.rgb, c_PlayerColor, factor );
+                    fragColor.rgb   = Lerp( fragColor.rgb, c_PlayerColor, factor );
         }
 
         fragColor.rgb = ToneMap( fragColor.rgb * 3.0 );

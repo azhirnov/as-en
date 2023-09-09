@@ -82,15 +82,9 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef GEN_MESH
-    #include "Math.glsl"
     #include "GlobalIndex.glsl"
     #include "Normal.glsl"
-
-    ND_ float  BumpStep (float x, const float edge0, const float edge1)
-    {
-        x = Saturate( (x - edge0) / (edge1 - edge0) );
-        return 1.0 - Abs(x - 0.5) * 2.0;
-    }
+    #include "Waves.glsl"
 
     ND_ float  WaveAnim (const float2 snorm, const float timeBias)
     {

@@ -176,14 +176,6 @@ namespace AE::App
         ND_ virtual AsyncTask  End (ArrayView<AsyncTask> deps)                                                                  __NE___ = 0;
 
 
-        // Returns all images which is created by surface.
-        // Can be used outside of 'Begin()/End()' scope.
-        // Images can be deleted at any moment, so result may be deprecated.
-        // If not changed then result is equal to 'RenderTarget::imageId' which returns by 'GetTargets()'.
-        //
-        //ND_ virtual AllImages_t  GetAllImages ()                                                                              C_NE___ = 0;
-
-
         // Returns current surface sizes.
         // Size can be changed at any moment, so result may be deprecated.
         // If not changed then result is equal to 'RenderTarget::RegionSize()' which returns by 'GetTargets()'.

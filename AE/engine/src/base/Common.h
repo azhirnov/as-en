@@ -135,7 +135,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Types>
-    ND_ forceinline SharedPtr<T>  MakeShared (Types&&... args)  __Th___
+    ND_ SharedPtr<T>  MakeShared (Types&&... args)  __Th___
     {
         return std::make_shared<T>( FwdArg<Types>( args )... );
     }
@@ -146,7 +146,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Types>
-    ND_ forceinline Unique<T>  MakeUnique (Types&&... args)  __Th___
+    ND_ Unique<T>  MakeUnique (Types&&... args)  __Th___
     {
         return std::make_unique<T>( FwdArg<Types>( args )... );
     }
@@ -157,7 +157,7 @@ namespace AE::Base
 =================================================
 */
     template <typename A, typename B>
-    ND_ forceinline Pair<A,B>  MakePair (A&& first, B&& second) __NE___
+    ND_ Pair<A,B>  MakePair (A&& first, B&& second) __NE___
     {
         return Pair<A,B>{ FwdArg<A>(first), FwdArg<B>(second) };
     }
@@ -167,13 +167,13 @@ namespace AE::Base
     IsConstEvaluated
 =================================================
 */
-    ND_ forceinline constexpr bool  IsConstEvaluated () __NE___
+    ND_ inline constexpr bool  IsConstEvaluated () __NE___
     {
-    #ifdef __cpp_if_consteval
+      #ifdef __cpp_if_consteval
         if consteval { return true; } else { return false; }
-    #else
+      #else
         return false;
-    #endif
+      #endif
     }
 
 } // AE::Base

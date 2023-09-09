@@ -9,7 +9,7 @@ void ASmain ()
     //  Intel(R) HD Graphics 620 driver 0.404.1960 on Windows 10
     //  Intel(R) Xe Graphics (TGL GT2) driver 21.99.99 on Linuxmint 20.2
 
-    const EFeature  True  = EFeature::RequireTrue;
+    const EFeature  True = EFeature::RequireTrue;
 
     RC<FeatureSet>  fset = FeatureSet( "MinDesktopIntel" );
 

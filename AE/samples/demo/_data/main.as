@@ -73,7 +73,6 @@ void ASmain ()
 
         apack.AddFolder( "images" );
         apack.AddFolder( "fonts" );
-        apack.AddFolder( "ui" );
 
         const string  fname = output_temp + "archive-3.tmp";
         apack.ToArchive( fname );

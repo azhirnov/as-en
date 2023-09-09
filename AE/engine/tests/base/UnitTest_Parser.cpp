@@ -248,6 +248,23 @@ lsdkfmsdlklas akdslmalksd)";
         TEST( output[0] == expected0 );
         TEST( output[1] == expected1 );
     }
+
+
+    static void  Parser_TabsToSpaces ()
+    {
+        {
+            const StringView    src = R"(
+    1       22  333 4   
+    1111    22  333 4
+)";         const StringView    ref = R"(
+    1       22  333 4   
+    1111    22  333 4
+)";
+            String  dst;
+            Parser::TabsToSpaces( OUT dst, src, 4 );
+            TEST( ref == dst );
+        }
+    }
 }
 
 
@@ -265,6 +282,7 @@ extern void UnitTest_Parser ()
     Parser_CalculateNumberOfLines();
     Parser_MoveToLine();
     Parser_Preprocessor_CPP();
+    Parser_TabsToSpaces();
 
     TEST_PASSED();
 }

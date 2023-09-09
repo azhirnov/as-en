@@ -34,7 +34,7 @@ namespace AE::App
     _GetApp
 =================================================
 */
-    forceinline ApplicationWinAPI&  WindowWinAPI::_GetApp () C_NE___
+    inline ApplicationWinAPI&  WindowWinAPI::_GetApp () C_NE___
     {
         return static_cast< ApplicationWinAPI &>( _app );
     }

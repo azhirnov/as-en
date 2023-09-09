@@ -10,7 +10,7 @@ void ASmain ()
     //  Adreno (TM) 610 driver 512.502.0 on Android 11.0
     //  Adreno (TM) 612 driver 512.502.0 on Android 12.0
 
-    const EFeature  True  = EFeature::RequireTrue;
+    const EFeature  True = EFeature::RequireTrue;
 
     RC<FeatureSet>  fset = FeatureSet( "MinMobileAdreno" );
 

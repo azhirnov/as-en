@@ -39,7 +39,7 @@ namespace AE::Graphics
 #   undef  VKLOADER_STAGE_INLINEFN
 
     extern PFN_vkGetInstanceProcAddr  _var_vkGetInstanceProcAddr;
-    ND_ VKAPI_ATTR forceinline PFN_vkVoidFunction vkGetInstanceProcAddr (VkInstance instance, const char * pName) { return _var_vkGetInstanceProcAddr( instance, pName ); }
+    ND_ VKAPI_ATTR inline PFN_vkVoidFunction vkGetInstanceProcAddr (VkInstance instance, const char * pName) { return _var_vkGetInstanceProcAddr( instance, pName ); }
 
 
 

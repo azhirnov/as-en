@@ -602,9 +602,7 @@ namespace AE::PipelineCompiler
 
         const auto  ValidateName = [] (StringView name) -> String
         {{
-            String  str;
-            Unused( Parser::ValidateVarName_CPP( name, OUT str ));
-            return str;
+            return Parser::ValidateVarName_CPP( name );
         }};
 
         String  str;
@@ -706,6 +704,10 @@ namespace AE::PipelineCompiler
                     << "}\n";
             }
         }
+
+      #if not AE_PRIVATE_USE_TABS
+        str = Parser::TabsToSpaces( str );
+      #endif
 
         auto    file = MakeRC<FileWStream>( filename );
         CHECK_ERR( file->IsOpen() );
@@ -1139,12 +1141,12 @@ namespace {
 
     void  ObjectStorage::Bind_EShaderProprocessor (const ScriptEnginePtr &se)
     {
-        EnumBinder<EShaderProprocessor> binder{ se };
+        EnumBinder<EShaderPreprocessor> binder{ se };
         binder.Create();
-        binder.AddValue( "None",    EShaderProprocessor::None );
+        binder.AddValue( "None",    EShaderPreprocessor::None );
         binder.Comment( "Use <aestyle.glsl.h> for auto-complete in IDE." );
-        binder.AddValue( "AEStyle", EShaderProprocessor::AEStyle );
-        STATIC_ASSERT( uint(EShaderProprocessor::_Count) == 2 );
+        binder.AddValue( "AEStyle", EShaderPreprocessor::AEStyle );
+        STATIC_ASSERT( uint(EShaderPreprocessor::_Count) == 2 );
     }
 
 

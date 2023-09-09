@@ -229,7 +229,7 @@ namespace AE::Base
         template <typename IterType, typename MapType, typename KeyType>
         ND_ static IterType  _Find (MapType &map, const KeyType &key)   __NE___;
 
-        ND_ forceinline bool _IsMemoryAliased (const Self* other)       C_NE___
+        ND_ bool _IsMemoryAliased (const Self* other)                   C_NE___
         {
             return IsIntersects( this, this+1, other, other+1 );
         }
@@ -387,7 +387,7 @@ namespace _hidden_
     template <typename K1, typename K, typename I>
     struct RecursiveBinarySearch
     {
-        forceinline static usize  Find (usize size, const K1 &key, const I* indices, const K* data) __NE___
+        ND_ static usize  Find (usize size, const K1 &key, const I* indices, const K* data) __NE___
         {
             usize2  range { 0, size };
 
@@ -401,7 +401,7 @@ namespace _hidden_
             return range.x;
         }
 
-        forceinline static usize  LowerBound (usize size, const K1 &key, const I* indices, const K* data) __NE___
+        ND_ static usize  LowerBound (usize size, const K1 &key, const I* indices, const K* data) __NE___
         {
             usize2  range { 0, size };
 

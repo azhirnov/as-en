@@ -1,3 +1,4 @@
+# Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 add_subdirectory( "shader_trace" )
 add_subdirectory( "pipeline_compiler" )

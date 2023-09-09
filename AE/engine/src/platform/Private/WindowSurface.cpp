@@ -195,14 +195,15 @@ namespace {
 
         auto    image_and_view  = _swapchain.GetCurrentImageAndViewID();
         auto&   dst             = targets.emplace_back();
+        auto    sw_desc         = _swapchain.GetDescription();
 
         dst.imageId         = image_and_view.image;
         dst.viewId          = image_and_view.view;
         dst.region          = RectI{ int2{0}, int2{_swapchain.GetSurfaceSize()} };
 
-    //  dst.pixToMm         = _pixToMm;
-        dst.format          = _swapchain.GetDescription().colorFormat;
-        dst.colorSpace      = _swapchain.GetDescription().colorSpace;
+        dst.pixToMm         = _surfData->pixToMm;
+        dst.format          = sw_desc.colorFormat;
+        dst.colorSpace      = sw_desc.colorSpace;
 
         dst.initialState    = EResourceState::PresentImage;
         dst.finalState      = EResourceState::PresentImage;
@@ -237,26 +238,6 @@ namespace {
         result.resize( result.capacity() );
 
         result.resize( _swapchain.GetPresentModes( OUT result.data(), result.capacity() ));
-        return result;
-    }
-
-/*
-=================================================
-    GetAllImages
-=================================================
-*
-    IOutputSurface::AllImages_t  WindowSurface::GetAllImages () C_NE___
-    {
-        SHAREDLOCK( _guard );
-
-        AllImages_t     result;
-        result.initialState = EResourceState::PresentImage;
-        result.finalState   = EResourceState::PresentImage;
-
-        for (uint i = 0, cnt = _swapchain.GetSwapchainLength(); i < cnt; ++i)
-        {
-            result.images.push_back( _swapchain.GetImageAndViewID( i ).image );
-        }
         return result;
     }
 

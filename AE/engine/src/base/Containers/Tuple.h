@@ -288,7 +288,7 @@ namespace _hidden_
     }
 
     template <typename Tuple1, typename Tuple2>
-    ND_ forceinline constexpr auto  TupleConcat (Tuple1&& tuple1, Tuple2&& tuple2) __Th___
+    ND_ constexpr auto  TupleConcat (Tuple1&& tuple1, Tuple2&& tuple2) __Th___
     {
         STATIC_ASSERT( IsTuple<Tuple1> );
         STATIC_ASSERT( IsTuple<Tuple2> );
@@ -298,7 +298,7 @@ namespace _hidden_
     }
 
     template <typename Tuple1, typename Tuple2, typename ...Tuples>
-    ND_ forceinline constexpr auto  TupleConcat (Tuple1&& tuple1, Tuple2&& tuple2, Tuples&& ...tuples) __Th___
+    ND_ constexpr auto  TupleConcat (Tuple1&& tuple1, Tuple2&& tuple2, Tuples&& ...tuples) __Th___
     {
         return TupleConcat( FwdArg<Tuple1>(tuple1),
                             TupleConcat( FwdArg<Tuple2>(tuple2), FwdArg<Tuples>(tuples)... ));

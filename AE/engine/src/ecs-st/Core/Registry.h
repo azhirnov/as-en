@@ -144,10 +144,10 @@ namespace AE::ECS
         ND_ Ptr<ComponentInfo const>  GetComponentInfo (ComponentID compId)             C_NE___;
 
             template <typename T>
-            EnableIf< not IsEmpty<T>, T& >  AssignComponent (EntityID entId)            __NE___;
+            EnableIf<not IsEmpty<T>, T&>  AssignComponent (EntityID entId)              __NE___;
 
             template <typename T>
-            EnableIf< IsEmpty<T>, void >  AssignComponent (EntityID entId)              __NE___;
+            EnableIf<IsEmpty<T>, void>  AssignComponent (EntityID entId)                __NE___;
 
             template <typename T>
             bool  RemoveComponent (EntityID entId)                                      __NE___;

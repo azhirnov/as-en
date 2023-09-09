@@ -48,7 +48,7 @@ namespace AE::AssetPacker
         {
             float           scale       = 0.f;  // value in texture (snorm/unorm) to distance in pixels
             float           bias        = 0.f;  // convert unorm value in texture to snorm
-            float           pixRange2D  = 0.f;  // screenPxRange = heightInPx * pixRange2D
+            float           pixRange2D  = 0.f;  // == SDFPixelRange(), screenPxRange = heightInPx * pixRange2D
             packed_float2   pixRange3D;         // TODO
         };
 

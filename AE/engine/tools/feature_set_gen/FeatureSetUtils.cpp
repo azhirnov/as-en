@@ -1752,6 +1752,10 @@ namespace
 
         str << "}\n";
 
+      #if not AE_PRIVATE_USE_TABS
+        str = Parser::TabsToSpaces( str );
+      #endif
+
         FileWStream     file{ outFile };
         CHECK_ERR( file.IsOpen() );
         CHECK_ERR( file.Write( StringView{str} ));

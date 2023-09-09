@@ -1,5 +1,7 @@
 
-## 23.09.xxx
+## 23.09.186
+
+ - WinAPI: fixed incorrect render area when switching to/from HDR mode.
 
 
 ## 23.08.183

@@ -788,7 +788,7 @@ namespace AE::Graphics
     'cmdbuf' must be in the recording state
 =================================================
 */
-    forceinline bool  VBakedCommands::Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) C_NE___
+    inline bool  VBakedCommands::Execute (VulkanDeviceFn fn, VkCommandBuffer cmdbuf) C_NE___
     {
         return Graphics::_hidden_::VSoftwareCmdBuf::Execute( fn, cmdbuf, _root );
     }

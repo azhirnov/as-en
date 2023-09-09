@@ -6,24 +6,8 @@
 
 namespace AE::Math
 {
-
     template <typename T>
     static constexpr T EulerNumber = T( 2.71828182845904523536 );
-
-/*
-=================================================
-    helpers
-=================================================
-*/
-    namespace _hidden_
-    {
-        template <typename T1, typename T2, typename Result>
-        using EnableForInt      = EnableIf< IsSignedInteger<T1> and IsSignedInteger<T2>, Result >;
-
-        template <typename T1, typename T2, typename Result>
-        using EnableForUInt     = EnableIf< IsUnsignedInteger<T1> and IsUnsignedInteger<T2>, Result >;
-
-    } // _hidden_
 
 /*
 =================================================
@@ -31,7 +15,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T1, typename T2>
-    ND_ constexpr Math::_hidden_::EnableForInt<T1, T2, bool>  AdditionIsSafe (const T1 a, const T2 b) __NE___
+    ND_ constexpr EnableIf<IsSignedInteger<T1> and IsSignedInteger<T2>, bool>  AdditionIsSafe (const T1 a, const T2 b) __NE___
     {
         STATIC_ASSERT( IsScalar<T1> and IsScalar<T2> );
 
@@ -53,7 +37,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T1, typename T2>
-    ND_ constexpr Math::_hidden_::EnableForUInt<T1, T2, bool>  AdditionIsSafe (const T1 a, const T2 b) __NE___
+    ND_ constexpr EnableIf<IsUnsignedInteger<T1> and IsUnsignedInteger<T2>, bool>  AdditionIsSafe (const T1 a, const T2 b) __NE___
     {
         STATIC_ASSERT( IsScalar<T1> and IsScalar<T2> );
 
@@ -225,7 +209,7 @@ namespace AE::Math
     ND_ bool  Equals (const Optional<T> &lhs, const Optional<T> &rhs) __NE___
     {
         return  lhs.has_value() == rhs.has_value()  and
-                (lhs.has_value() ? *lhs == *rhs : false);
+                (lhs.has_value() ? All( *lhs == *rhs ) : false);
     }
 
 /*
@@ -251,19 +235,19 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Floor (const T& x) __NE___
+    ND_ EnableIf<IsFloatPoint<T>, T>  Floor (const T& x) __NE___
     {
         return std::floor( x );
     }
 
     template <typename T>
-    ND_ EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Ceil (const T& x) __NE___
+    ND_ EnableIf<IsFloatPoint<T>, T>  Ceil (const T& x) __NE___
     {
         return std::ceil( x );
     }
 
     template <typename T>
-    ND_ EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Trunc (const T& x) __NE___
+    ND_ EnableIf<IsFloatPoint<T>, T>  Trunc (const T& x) __NE___
     {
     #if 1
         return std::trunc( x );
@@ -278,7 +262,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ EnableIf<IsScalar<T> and IsFloatPoint<T>, T>  Round (const T& x) __NE___
+    ND_ EnableIf<IsFloatPoint<T>, T>  Round (const T& x) __NE___
     {
         return std::round( x );
     }
@@ -315,7 +299,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ T  Fract (const T& x) __NE___
+    ND_ constexpr EnableIf<IsFloatPoint<T>, T>  Fract (const T& x) __NE___
     {
         return x - Floor( x );
     }
@@ -331,6 +315,7 @@ namespace AE::Math
     ND_ constexpr bool  IsIntersects (const T& begin1, const T& end1,
                                       const T& begin2, const T& end2) __NE___
     {
+        STATIC_ASSERT( IsScalar<T> or IsPointer<T> or IsBytes<T> );
         return (end1 > begin2) & (begin1 < end2);
     }
 
@@ -343,6 +328,7 @@ namespace AE::Math
     ND_ constexpr bool  IsCompletelyInside (const T& largeBlockBegin, const T& largeBlockEnd,
                                             const T& smallBlockBegin, const T& smallBlockEnd) __NE___
     {
+        STATIC_ASSERT( IsScalar<T> or IsPointer<T> or IsBytes<T> );
         return (smallBlockBegin >= largeBlockBegin) & (smallBlockEnd <= largeBlockEnd);
     }
 
@@ -356,6 +342,7 @@ namespace AE::Math
                                          const T& begin2, const T& end2,
                                          OUT T& outBegin, OUT T& outEnd) __NE___
     {
+        STATIC_ASSERT( IsScalar<T> or IsPointer<T> or IsBytes<T> );
         outBegin = Max( begin1, begin2 );
         outEnd   = Min( end1, end2 );
         return outBegin < outEnd;
@@ -520,19 +507,19 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ bool  IsInfinity (const T &x) __NE___
+    ND_ EnableIf<IsFloatPoint<T>, bool>  IsInfinity (const T &x) __NE___
     {
         return std::isinf( x );
     }
 
     template <typename T>
-    ND_ bool  IsNaN (const T &x) __NE___
+    ND_ EnableIf<IsFloatPoint<T>, bool>  IsNaN (const T &x) __NE___
     {
         return std::isnan( x );
     }
 
     template <typename T>
-    ND_ bool  IsFinite (const T &x) __NE___
+    ND_ EnableIf<IsFloatPoint<T>, bool>  IsFinite (const T &x) __NE___
     {
         return std::isfinite( x );
     }
@@ -558,10 +545,61 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ constexpr T  FusedMulAdd (const T a, const T b, const T c) __NE___
+    ND_ constexpr EnableIf<IsFloatPoint<T>, T>  FusedMulAdd (const T a, const T b, const T c) __NE___
     {
-        STATIC_ASSERT( IsFloatPoint<T> );
         return std::fma( a, b, c );
+    }
+
+/*
+=================================================
+    LinearStep / SmoothStep / BumpStep / SmoothBumpStep
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, T>  LinearStep (const T& x, const T& edge0, const T& edge1) __NE___
+    {
+        ASSERT( edge0 < edge1 );
+        return Saturate( (x - edge0) / (edge1 - edge0) );
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, T>  SmoothStep (const T& x, const T& edge0, const T& edge1) __NE___
+    {
+        ASSERT( edge0 < edge1 );
+        T t = Saturate( (x - edge0) / (edge1 - edge0) );
+        return t * t * (T(3) - T(2) * t);
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, T>  BumpStep (const T& x, const T& edge0, const T& edge1) __NE___
+    {
+        ASSERT( edge0 < edge1 );
+        return T(1) - Abs( Saturate( (x - edge0) / (edge1 - edge0) ) - T(0.5) ) * T(2);
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, T>  SmoothBumpStep (const T& x, const T& edge0, const T& edge1) __NE___
+    {
+        ASSERT( edge0 < edge1 );
+        T   t = BumpStep( x, edge0, edge1 );
+        return t * t * (T(3) - T(2) * t);
+    }
+
+/*
+=================================================
+    ToUNorm / ToSNorm
+=================================================
+*/
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, T>  ToUNorm (const T snorm) __NE___
+    {
+        return snorm * T(0.5) + T(0.5);
+    }
+
+    template <typename T>
+    ND_ constexpr EnableIf<IsFloatPoint<T>, T>  ToSNorm (const T unorm) __NE___
+    {
+        return unorm * T(2.0) - T(1.0);
     }
 
 

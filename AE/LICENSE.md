@@ -18,7 +18,7 @@ Compilation will fail if the required license is not compatible with third-party
 **Warning**: In cmake use only PUBLIC visibility for `target_link_libraries()`, otherwise it breaks license detection.
 
 **Warning**: You must manually check the shader source code for the presence of third-party dependencies with different licenses.
-Detecting license for shader code is not implemented yet. Most third-party shaders are located in `engine/shared_data/3party_shaders` folder.<br/>
+Detecting license for shader code is not implemented yet. Most third-party shaders are located in `AE/engine/shared_data/3party_shaders` folder.<br/>
 Some shader code distributed under 'free for non-commercial use' license or doesn't have any license information.
 
 

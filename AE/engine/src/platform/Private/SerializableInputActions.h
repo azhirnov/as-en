@@ -196,7 +196,7 @@ namespace AE::App
 =================================================
 */
     template <typename T>
-    forceinline constexpr SerializableInputActions::InputKey
+    constexpr SerializableInputActions::InputKey
         SerializableInputActions::_Pack (T key, EGestureType gesture, EGestureState state) __NE___
     {
         ASSERT( uint(key) <= 0xFF'FFFF );
@@ -211,7 +211,7 @@ namespace AE::App
     _Unpack
 =================================================
 */
-    forceinline constexpr auto  SerializableInputActions::_Unpack (InputKey key) __NE___ -> Tuple< uint, EGestureType, EGestureState >
+    inline constexpr auto  SerializableInputActions::_Unpack (InputKey key) __NE___ -> Tuple< uint, EGestureType, EGestureState >
     {
         return Tuple{   (uint(key) & 0xFF'FFFF),
                         EGestureType( (uint(key) >> 24) & 0xF ),
@@ -223,12 +223,12 @@ namespace AE::App
     ActionInfo::Transform / GetScale
 =================================================
 */
-    forceinline packed_float4  SerializableInputActions::ActionInfo::Transform (const float4 &value) C_NE___
+    inline packed_float4  SerializableInputActions::ActionInfo::Transform (const float4 &value) C_NE___
     {
         return  value * swizzle * GetScale();
     }
 
-    forceinline float4  SerializableInputActions::ActionInfo::GetScale () C_NE___
+    inline float4  SerializableInputActions::ActionInfo::GetScale () C_NE___
     {
         return float4{ scale.x.GetFast(), scale.y.GetFast(), scale.z.GetFast(), scale.w.GetFast() };
     }

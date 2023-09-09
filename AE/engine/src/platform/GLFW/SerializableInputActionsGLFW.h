@@ -226,20 +226,20 @@ namespace AE::App
     _Is***
 =================================================
 */
-    forceinline constexpr bool  SerializableInputActionsGLFW::_IsKey (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsGLFW::_IsKey (EInputType type) __NE___ {
         return  ((type >= EInputType::MouseBegin) & (type <= EInputType::MouseEnd)) |
                 ((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
     }
 
-    forceinline constexpr bool  SerializableInputActionsGLFW::_IsKeyOrTouch (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsGLFW::_IsKeyOrTouch (EInputType type) __NE___ {
         return  _IsKey( type ) | (type == EInputType::TouchPos) | (type == EInputType::TouchPos_mm);
     }
 
-    forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor1D (EInputType) __NE___ {
+    inline constexpr bool  SerializableInputActionsGLFW::_IsCursor1D (EInputType) __NE___ {
         return false;
     }
 
-    forceinline constexpr bool  SerializableInputActionsGLFW::_IsCursor2D (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsGLFW::_IsCursor2D (EInputType type) __NE___ {
         return  ((type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd))   |
                 (type == EInputType::MultiTouch);
     }

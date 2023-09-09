@@ -155,7 +155,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T, uint C, uint R, glm::qualifier Q>
-    ND_ forceinline bool  Equals (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const T &err = Epsilon<T>()) __NE___
+    ND_ bool  Equals (const TMatrix<T,C,R,Q> &lhs, const TMatrix<T,C,R,Q> &rhs, const T &err = Epsilon<T>()) __NE___
     {
         uint    eq = 0;
         for (uint i = 0; i < C; ++i) {

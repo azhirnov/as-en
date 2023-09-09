@@ -11,7 +11,7 @@ void ASmain ()
     //  NVIDIA GeForce RTX 3090 driver 473.11.0.0 on Windows 10
     //  NVIDIA GeForce RTX 4090 driver 526.98.0.0 on Windows 10
 
-    const EFeature  True  = EFeature::RequireTrue;
+    const EFeature  True = EFeature::RequireTrue;
 
     RC<FeatureSet>  fset = FeatureSet( "MinRecursiveRayTracing" );
 

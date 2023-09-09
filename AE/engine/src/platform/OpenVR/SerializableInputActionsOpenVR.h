@@ -74,20 +74,20 @@ namespace AE::App
     _Is***
 =================================================
 */
-    forceinline constexpr bool  SerializableInputActionsOpenVR::_IsKey (EInputType) __NE___ {
+    inline constexpr bool  SerializableInputActionsOpenVR::_IsKey (EInputType) __NE___ {
         return false;   //((type >= EInputType::MouseBegin) & (type <= EInputType::MouseEnd)) |
                 //((type >= EInputType::KeyBegin)   & (type <= EInputType::KeyEnd));
     }
 
-    forceinline constexpr bool  SerializableInputActionsOpenVR::_IsKeyOrTouch (EInputType) __NE___ {
+    inline constexpr bool  SerializableInputActionsOpenVR::_IsKeyOrTouch (EInputType) __NE___ {
         return false;
     }
 
-    forceinline constexpr bool  SerializableInputActionsOpenVR::_IsCursor1D (EInputType) __NE___ {
+    inline constexpr bool  SerializableInputActionsOpenVR::_IsCursor1D (EInputType) __NE___ {
         return false; //(type >= EInputType::Cursor1DBegin) & (type <= EInputType::Cursor1DEnd);
     }
 
-    forceinline constexpr bool  SerializableInputActionsOpenVR::_IsCursor2D (EInputType) __NE___ {
+    inline constexpr bool  SerializableInputActionsOpenVR::_IsCursor2D (EInputType) __NE___ {
         return false; //(type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd);
     }
 

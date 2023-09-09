@@ -16,7 +16,7 @@
 #include "graphics/Private/FeatureSet.cpp"
 #include "graphics/Private/RenderState.cpp"
 #include "graphics/Private/EnumUtils.cpp"
-#include "graphics/Metal/MFeatureSet.cpp"
+//#include "graphics/Metal/MFeatureSet.cpp"
 
 using namespace AE;
 using namespace AE::Base;
@@ -73,7 +73,7 @@ static bool  SaveToFile (ArrayView<FeatureSetInfo> fsInfo)
 =================================================
 */
 template <typename T>
-ND_ forceinline T  FS_Validate (T feat)
+ND_ static T  FS_Validate (T feat)
 {
     if constexpr( IsSameTypes< T, EFeature >)
         return feat == EFeature::RequireFalse ? EFeature::Ignore : feat;
@@ -963,7 +963,7 @@ static bool  GenMinApple (ArrayView<FeatureSetInfo> fsInfo)
 =================================================
     GenAppleFamily
 =================================================
-*/
+*
 static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
 {
     // Apple8
@@ -1167,7 +1167,7 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
     }
 
     // Apple5 (A12)
-    /*{
+    / *{
         MGPUFamilies    f;
         f.apple = 5;
         f.metal = 2;
@@ -1218,7 +1218,7 @@ static bool  GenAppleFamily (INOUT Array<FeatureSetInfo> &fsInfo)
         Path    dst_path = FEATURE_SET_FOLDER;
         dst_path.append( "parts/apple4.as" );
         CHECK_ERR( FeatureSetToScript( dst_path, "part.Apple4", fs.fs, "" ));
-    }*/
+    }* /
 
     // Mac2
     {
@@ -1359,6 +1359,8 @@ int main ()
 
     Array<FeatureSetInfo>   fs_infos;
     {
+        CHECK_ERR( FileSystem::IsDirectory( DEVICE_INFO_FOLDER ));
+
         Deque<Path> stack;
         stack.push_back( DEVICE_INFO_FOLDER );
 
@@ -1439,7 +1441,7 @@ int main ()
         CHECK( info.fs.IsValid() );
     }
 
-    CHECK_ERR( GenAppleFamily( INOUT fs_infos ), -9 );
+    //CHECK_ERR( GenAppleFamily( INOUT fs_infos ), -9 );
 
     CHECK_ERR( GenMinimalFS                 ( fs_infos ),   -10 );
     CHECK_ERR( GenMinDescriptorIndexing     ( fs_infos ),   -10 );

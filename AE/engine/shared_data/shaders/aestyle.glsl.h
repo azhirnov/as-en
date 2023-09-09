@@ -793,7 +793,7 @@ public:
 
         // in
         const   uint    Size;
-        const   uint    Index;
+        const   uint    Index;          // QuadIndex = Index & 3
         const   uint4   EqMask;
         const   uint4   GeMask;
         const   uint4   GtMask;

@@ -17,6 +17,27 @@ ND_ float  TriangleWave (float samp, float freq, float sampleRate);     // --/\/
 // Gain
 ND_ float  LinearGain (float samp, float value, float startTime, float endTime, float sampleRate);
 ND_ float  ExpGain (float samp, float value, float startTime, float endTime, float sampleRate);
+
+// LinearStep
+ND_ float   LinearStep (const float  x, const float  edge0, const float  edge1);
+ND_ float2  LinearStep (const float2 x, const float2 edge0, const float2 edge1);
+ND_ float2  LinearStep (const float2 x, const float  edge0, const float  edge1);
+ND_ float3  LinearStep (const float3 x, const float3 edge0, const float3 edge1);
+ND_ float3  LinearStep (const float3 x, const float  edge0, const float  edge1);
+
+// BumpStep
+ND_ float   BumpStep (const float  x, const float  edge0, const float  edge1);
+ND_ float2  BumpStep (const float2 x, const float2 edge0, const float2 edge1);
+ND_ float2  BumpStep (const float2 x, const float  edge0, const float  edge1);
+ND_ float3  BumpStep (const float3 x, const float3 edge0, const float3 edge1);
+ND_ float3  BumpStep (const float3 x, const float  edge0, const float  edge1);
+
+// SmoothBumpStep
+ND_ float   SmoothBumpStep (const float  x, const float  edge0, const float  edge1);
+ND_ float2  SmoothBumpStep (const float2 x, const float2 edge0, const float2 edge1);
+ND_ float2  SmoothBumpStep (const float2 x, const float  edge0, const float  edge1);
+ND_ float3  SmoothBumpStep (const float3 x, const float3 edge0, const float3 edge1);
+ND_ float3  SmoothBumpStep (const float3 x, const float  edge0, const float  edge1);
 //-----------------------------------------------------------------------------
 
 
@@ -28,7 +49,7 @@ float  SineWave (float samp, float freq, float sampleRate)  // --U`U--
 
 float  SawWave (float samp, float freq, float sampleRate)   //  --/|/|--
 {
-    return ToSNOrm( Fract( samp * freq / sampleRate ));
+    return ToSNorm( Fract( samp * freq / sampleRate ));
 }
 
 float  TriangleWave (float samp, float freq, float sampleRate)  // --/\/\--
@@ -55,3 +76,24 @@ float  ExpGain (float samp, float value, float startTime, float endTime, float s
             value * (1.0 - Pow( power, (samp - start) / (end - start) ) / power) :
             0.0;
 }
+//-----------------------------------------------------------------------------
+
+
+float   LinearStep (const float  x, const float  edge0, const float  edge1)     { return Saturate( (x - edge0) / (edge1 - edge0) ); }
+float2  LinearStep (const float2 x, const float2 edge0, const float2 edge1)     { return Saturate( (x - edge0) / (edge1 - edge0) ); }
+float2  LinearStep (const float2 x, const float  edge0, const float  edge1)     { return Saturate( (x - edge0) / (edge1 - edge0) ); }
+float3  LinearStep (const float3 x, const float3 edge0, const float3 edge1)     { return Saturate( (x - edge0) / (edge1 - edge0) ); }
+float3  LinearStep (const float3 x, const float  edge0, const float  edge1)     { return Saturate( (x - edge0) / (edge1 - edge0) ); }
+
+float   BumpStep (const float  x, const float  edge0, const float  edge1)       { return 1.f - Abs(Saturate( (x - edge0) / (edge1 - edge0) ) - 0.5f) * 2.f; }
+float2  BumpStep (const float2 x, const float2 edge0, const float2 edge1)       { return 1.f - Abs(Saturate( (x - edge0) / (edge1 - edge0) ) - 0.5f) * 2.f; }
+float2  BumpStep (const float2 x, const float  edge0, const float  edge1)       { return 1.f - Abs(Saturate( (x - edge0) / (edge1 - edge0) ) - 0.5f) * 2.f; }
+float3  BumpStep (const float3 x, const float3 edge0, const float3 edge1)       { return 1.f - Abs(Saturate( (x - edge0) / (edge1 - edge0) ) - 0.5f) * 2.f; }
+float3  BumpStep (const float3 x, const float  edge0, const float  edge1)       { return 1.f - Abs(Saturate( (x - edge0) / (edge1 - edge0) ) - 0.5f) * 2.f; }
+
+float   SmoothBumpStep (const float  x, const float  edge0, const float  edge1) { float  t = BumpStep( x, edge0, edge1 );  return t * t * (3.f - 2.f * t); }
+float2  SmoothBumpStep (const float2 x, const float2 edge0, const float2 edge1) { float2 t = BumpStep( x, edge0, edge1 );  return t * t * (3.f - 2.f * t); }
+float2  SmoothBumpStep (const float2 x, const float  edge0, const float  edge1) { float2 t = BumpStep( x, edge0, edge1 );  return t * t * (3.f - 2.f * t); }
+float3  SmoothBumpStep (const float3 x, const float3 edge0, const float3 edge1) { float3 t = BumpStep( x, edge0, edge1 );  return t * t * (3.f - 2.f * t); }
+float3  SmoothBumpStep (const float3 x, const float  edge0, const float  edge1) { float3 t = BumpStep( x, edge0, edge1 );  return t * t * (3.f - 2.f * t); }
+//-----------------------------------------------------------------------------

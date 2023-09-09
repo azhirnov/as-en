@@ -43,7 +43,7 @@ namespace
 
 /*
 =================================================
-    VertexTypeBits
+    GetVertexTypeBits
 =================================================
 */
     ND_ static constexpr FeatureSet::VertexFormatSet_t  GetVertexTypeBits () __NE___
@@ -63,26 +63,26 @@ namespace
 =================================================
 */
     template <typename T>
-    ND_ forceinline bool  FS_Equal (const T &lhs, const T &rhs, const char*) __NE___ {
+    ND_ static bool  FS_Equal (const T &lhs, const T &rhs, const char*) __NE___ {
         return lhs == rhs;
     }
 
-    ND_ forceinline bool  FS_Equal (EFeature lhs, EFeature rhs, const char*) __NE___ {
+    ND_ static bool  FS_Equal (EFeature lhs, EFeature rhs, const char*) __NE___ {
         return  (lhs == rhs) | (lhs == EFeature::Ignore) | (rhs == EFeature::Ignore);
     }
 
     template <typename E>
-    ND_ forceinline bool  FS_Equal (const FeatureSet::IncludeExcludeBits<E> &lhs, const FeatureSet::IncludeExcludeBits<E> &rhs, const char*) __NE___ {
+    ND_ static bool  FS_Equal (const FeatureSet::IncludeExcludeBits<E> &lhs, const FeatureSet::IncludeExcludeBits<E> &rhs, const char*) __NE___ {
         return  lhs.include == rhs.include  and
                 lhs.exclude == rhs.exclude;
     }
 
-    ND_ forceinline bool  FS_Equal (const FeatureSet::ShaderVersion &lhs, const FeatureSet::ShaderVersion &rhs, const char*) __NE___ {
+    ND_ static bool  FS_Equal (const FeatureSet::ShaderVersion &lhs, const FeatureSet::ShaderVersion &rhs, const char*) __NE___ {
         return  lhs.spirv == rhs.spirv      and
                 lhs.metal == rhs.metal;
     }
 
-    ND_ forceinline bool  FS_Equal (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___ {
+    ND_ static bool  FS_Equal (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___ {
         return  lhs.minX    == rhs.minX     and
                 lhs.minY    == rhs.minY     and
                 lhs.maxX    == rhs.maxX     and
@@ -95,65 +95,65 @@ namespace
     FS_GreaterEqual
 =================================================
 */
-    ND_ forceinline bool  FS_GreaterEqual (EFeature lhs, EFeature rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (EFeature lhs, EFeature rhs, const char*) __NE___ {
         return  (lhs >= rhs) | (lhs == EFeature::Ignore) | (rhs == EFeature::Ignore);
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (ESubgroupTypes lhs, ESubgroupTypes rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (ESubgroupTypes lhs, ESubgroupTypes rhs, const char*) __NE___ {
         return rhs == Default or AllBits( lhs, rhs );
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (EShaderStages lhs, EShaderStages rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (EShaderStages lhs, EShaderStages rhs, const char*) __NE___ {
         return rhs == Default or AllBits( lhs, rhs );
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (const FeatureSet::Queues &lhs, const FeatureSet::Queues &rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (const FeatureSet::Queues &lhs, const FeatureSet::Queues &rhs, const char*) __NE___ {
         return  rhs.required == Default or
                 (AllBits( lhs.supported | rhs.supported, lhs.required | rhs.required ) and
                  AllBits( lhs.required, rhs.required ));
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (ubyte lhs, ubyte rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (ubyte lhs, ubyte rhs, const char*) __NE___ {
         return lhs >= rhs;
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (ushort lhs, ushort rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (ushort lhs, ushort rhs, const char*) __NE___ {
         return lhs >= rhs;
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (uint lhs, uint rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (uint lhs, uint rhs, const char*) __NE___ {
         return lhs >= rhs;
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (float lhs, float rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (float lhs, float rhs, const char*) __NE___ {
         return lhs >= rhs;
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (const FeatureSet::SampleCountBits &lhs, const FeatureSet::SampleCountBits &rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (const FeatureSet::SampleCountBits &lhs, const FeatureSet::SampleCountBits &rhs, const char*) __NE___ {
         return (uint(lhs) & uint(rhs)) == uint(rhs);
     }
 
     template <typename E>
-    ND_ forceinline bool  FS_GreaterEqual (const EnumBitSet<E> &lhs, const EnumBitSet<E> &rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (const EnumBitSet<E> &lhs, const EnumBitSet<E> &rhs, const char*) __NE___ {
         return (lhs & rhs) == rhs;
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___ {
         return lhs >= rhs;
     }
 
     template <typename E>
-    ND_ forceinline bool  FS_GreaterEqual (const FeatureSet::IncludeExcludeBits<E> &lhs, const FeatureSet::IncludeExcludeBits<E> &rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (const FeatureSet::IncludeExcludeBits<E> &lhs, const FeatureSet::IncludeExcludeBits<E> &rhs, const char*) __NE___ {
         return  (lhs.include & rhs.include) == rhs.include  and
                 (lhs.exclude & rhs.exclude) == rhs.exclude;
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (const FeatureSet::ShaderVersion &lhs, const FeatureSet::ShaderVersion &rhs, const char*) __NE___ {
+    ND_ static bool  FS_GreaterEqual (const FeatureSet::ShaderVersion &lhs, const FeatureSet::ShaderVersion &rhs, const char*) __NE___ {
         return  lhs.spirv >= rhs.spirv  and
                 lhs.metal >= rhs.metal;
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (const FeatureSet::ShadingRateSet_t &lhs, const FeatureSet::ShadingRateSet_t &rhs, const char*) __NE___
+    ND_ static bool  FS_GreaterEqual (const FeatureSet::ShadingRateSet_t &lhs, const FeatureSet::ShadingRateSet_t &rhs, const char*) __NE___
     {
         if ( lhs.empty() and rhs.empty() )
             return true;
@@ -184,7 +184,7 @@ namespace
         return true;
     }
 
-    ND_ forceinline bool  FS_GreaterEqual (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___
+    ND_ static bool  FS_GreaterEqual (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___
     {
         return  lhs.minX    >= rhs.minX     and
                 lhs.minY    >= rhs.minY     and
@@ -198,16 +198,16 @@ namespace
     FS_IsCompatible
 =================================================
 */
-    ND_ forceinline bool  FS_IsCompatible (EFeature lhs, EFeature rhs, const char*) __NE___ {
+    ND_ static bool  FS_IsCompatible (EFeature lhs, EFeature rhs, const char*) __NE___ {
         return  (lhs == rhs) | (lhs == EFeature::Ignore) | (rhs == EFeature::Ignore);   // 'True' is not compatible with 'False'
     }
 
     template <typename T>
-    ND_ forceinline bool  FS_IsCompatible (const T& lhs, const T& rhs, const char* name) __NE___ {
+    ND_ static bool  FS_IsCompatible (const T& lhs, const T& rhs, const char* name) __NE___ {
         return FS_GreaterEqual( lhs, rhs, name );
     }
 
-    ND_ forceinline bool  FS_IsCompatible (const FeatureSet::ShaderVersion &lhs, const FeatureSet::ShaderVersion &rhs, const char*) __NE___
+    ND_ static bool  FS_IsCompatible (const FeatureSet::ShaderVersion &lhs, const FeatureSet::ShaderVersion &rhs, const char*) __NE___
     {
         bool    result = true;
         if ( lhs.spirv != 0 and rhs.spirv != 0 )    result &= (lhs.spirv >= rhs.spirv);
@@ -216,7 +216,7 @@ namespace
     }
 
     template <typename E>
-    ND_ forceinline bool  FS_IsCompatible (const FeatureSet::IncludeExcludeBits<E> &lhs, const FeatureSet::IncludeExcludeBits<E> &rhs, const char*) __NE___
+    ND_ static bool  FS_IsCompatible (const FeatureSet::IncludeExcludeBits<E> &lhs, const FeatureSet::IncludeExcludeBits<E> &rhs, const char*) __NE___
     {
         if ( lhs.None() or rhs.None() )
             return true;
@@ -232,7 +232,7 @@ namespace
 =================================================
 */
     template <typename T>
-    ND_ forceinline T  FS_Set (EFeature feat) __NE___
+    ND_ static T  FS_Set (EFeature feat) __NE___
     {
         if constexpr( IsSameTypes< T, EFeature >)
             return feat;
@@ -245,7 +245,7 @@ namespace
     FS_MergeMin
 =================================================
 */
-    ND_ forceinline EFeature  FS_MergeMin (EFeature lhs, EFeature rhs, const char*) __NE___
+    ND_ static EFeature  FS_MergeMin (EFeature lhs, EFeature rhs, const char*) __NE___
     {
         if ( lhs == rhs )
             return lhs;
@@ -257,19 +257,19 @@ namespace
     }
 
     template <typename E>
-    ND_ forceinline EnumBitSet<E>  FS_MergeMin (const EnumBitSet<E> &lhs, const EnumBitSet<E> &rhs, const char*) __NE___ {
+    ND_ static EnumBitSet<E>  FS_MergeMin (const EnumBitSet<E> &lhs, const EnumBitSet<E> &rhs, const char*) __NE___ {
         return lhs & rhs;
     }
 
-    ND_ forceinline ESubgroupTypes  FS_MergeMin (ESubgroupTypes lhs, ESubgroupTypes rhs, const char*) __NE___ {
+    ND_ static ESubgroupTypes  FS_MergeMin (ESubgroupTypes lhs, ESubgroupTypes rhs, const char*) __NE___ {
         return lhs & rhs;
     }
 
-    ND_ forceinline EShaderStages  FS_MergeMin (EShaderStages lhs, EShaderStages rhs, const char*) __NE___ {
+    ND_ static EShaderStages  FS_MergeMin (EShaderStages lhs, EShaderStages rhs, const char*) __NE___ {
         return lhs & rhs;
     }
 
-    ND_ forceinline FeatureSet::Queues  FS_MergeMin (const FeatureSet::Queues &lhs, const FeatureSet::Queues &rhs, const char*) __NE___
+    ND_ static FeatureSet::Queues  FS_MergeMin (const FeatureSet::Queues &lhs, const FeatureSet::Queues &rhs, const char*) __NE___
     {
         FeatureSet::Queues  res;
         res.supported   = lhs.supported & rhs.supported;
@@ -277,23 +277,23 @@ namespace
         return res;
     }
 
-    ND_ forceinline ubyte  FS_MergeMin (ubyte lhs, ubyte rhs, const char*) __NE___ {
+    ND_ static ubyte  FS_MergeMin (ubyte lhs, ubyte rhs, const char*) __NE___ {
         return Min( lhs, rhs );
     }
 
-    ND_ forceinline ushort  FS_MergeMin (ushort lhs, ushort rhs, const char*) __NE___ {
+    ND_ static ushort  FS_MergeMin (ushort lhs, ushort rhs, const char*) __NE___ {
         return Min( lhs, rhs );
     }
 
-    ND_ forceinline uint  FS_MergeMin (uint lhs, uint rhs, const char*) __NE___ {
+    ND_ static uint  FS_MergeMin (uint lhs, uint rhs, const char*) __NE___ {
         return Min( lhs, rhs );
     }
 
-    ND_ forceinline float  FS_MergeMin (float lhs, float rhs, const char*) __NE___ {
+    ND_ static float  FS_MergeMin (float lhs, float rhs, const char*) __NE___ {
         return Min( lhs, rhs );
     }
 
-    ND_ forceinline FeatureSet::ShadingRateSet_t  FS_MergeMin (const FeatureSet::ShadingRateSet_t &lhs, const FeatureSet::ShadingRateSet_t &rhs, const char*) __NE___
+    ND_ static FeatureSet::ShadingRateSet_t  FS_MergeMin (const FeatureSet::ShadingRateSet_t &lhs, const FeatureSet::ShadingRateSet_t &rhs, const char*) __NE___
     {
         if ( lhs.empty() and rhs.empty() )
             return {};
@@ -325,7 +325,7 @@ namespace
         return result;
     }
 
-    ND_ forceinline FeatureSet::ShaderVersion  FS_MergeMin (const FeatureSet::ShaderVersion &lhs, const FeatureSet::ShaderVersion &rhs, const char*) __NE___
+    ND_ static FeatureSet::ShaderVersion  FS_MergeMin (const FeatureSet::ShaderVersion &lhs, const FeatureSet::ShaderVersion &rhs, const char*) __NE___
     {
         FeatureSet::ShaderVersion   res;
         if ( lhs.spirv != 0 and rhs.spirv != 0 )    res.spirv = Min( lhs.spirv, rhs.spirv );
@@ -333,7 +333,7 @@ namespace
         return res;
     }
 
-    ND_ forceinline FeatureSet::VRSTexelSize  FS_MergeMin (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___
+    ND_ static FeatureSet::VRSTexelSize  FS_MergeMin (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___
     {
         if ( not IsIntersects( lhs.minX, lhs.maxX, rhs.minX, rhs.maxX ) or
              not IsIntersects( lhs.minY, lhs.maxY, rhs.minY, rhs.maxY ))
@@ -348,11 +348,11 @@ namespace
         return res;
     }
 
-    ND_ forceinline FeatureSet::SampleCountBits  FS_MergeMin (const FeatureSet::SampleCountBits &lhs, const FeatureSet::SampleCountBits &rhs, const char*) __NE___ {
+    ND_ static FeatureSet::SampleCountBits  FS_MergeMin (const FeatureSet::SampleCountBits &lhs, const FeatureSet::SampleCountBits &rhs, const char*) __NE___ {
         return FeatureSet::SampleCountBits{ uint(lhs) & uint(rhs) };
     }
 
-    ND_ forceinline FeatureSet::PerDescriptorSet  FS_MergeMin (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___
+    ND_ static FeatureSet::PerDescriptorSet  FS_MergeMin (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___
     {
         FeatureSet::PerDescriptorSet    res;
         res.minInputAttachments = FS_MergeMin( lhs.minInputAttachments, rhs.minInputAttachments,"minInputAttachments"   );
@@ -368,7 +368,7 @@ namespace
     }
 
     template <typename E>
-    ND_ forceinline FeatureSet::IncludeExcludeBits<E>  FS_MergeMin (const FeatureSet::IncludeExcludeBits<E> &lhs, const FeatureSet::IncludeExcludeBits<E> &rhs, const char*) __NE___
+    ND_ static FeatureSet::IncludeExcludeBits<E>  FS_MergeMin (const FeatureSet::IncludeExcludeBits<E> &lhs, const FeatureSet::IncludeExcludeBits<E> &rhs, const char*) __NE___
     {
         FeatureSet::IncludeExcludeBits<E>   res;
         res.include  = lhs.include & rhs.include;
@@ -383,7 +383,7 @@ namespace
     FS_MergeMax
 =================================================
 */
-    ND_ forceinline EFeature  FS_MergeMax (EFeature lhs, EFeature rhs, const char*) __NE___
+    ND_ static EFeature  FS_MergeMax (EFeature lhs, EFeature rhs, const char*) __NE___
     {
         if ( lhs == EFeature::RequireTrue or rhs == EFeature::RequireTrue )
             return EFeature::RequireTrue;
@@ -395,19 +395,19 @@ namespace
     }
 
     template <typename E>
-    ND_ forceinline EnumBitSet<E>  FS_MergeMax (const EnumBitSet<E> &lhs, const EnumBitSet<E> &rhs, const char*) __NE___ {
+    ND_ static EnumBitSet<E>  FS_MergeMax (const EnumBitSet<E> &lhs, const EnumBitSet<E> &rhs, const char*) __NE___ {
         return lhs | rhs;
     }
 
-    ND_ forceinline ESubgroupTypes  FS_MergeMax (ESubgroupTypes lhs, ESubgroupTypes rhs, const char*) __NE___ {
+    ND_ static ESubgroupTypes  FS_MergeMax (ESubgroupTypes lhs, ESubgroupTypes rhs, const char*) __NE___ {
         return lhs | rhs;
     }
 
-    ND_ forceinline EShaderStages  FS_MergeMax (EShaderStages lhs, EShaderStages rhs, const char*) __NE___ {
+    ND_ static EShaderStages  FS_MergeMax (EShaderStages lhs, EShaderStages rhs, const char*) __NE___ {
         return lhs | rhs;
     }
 
-    ND_ forceinline FeatureSet::Queues  FS_MergeMax (const FeatureSet::Queues &lhs, const FeatureSet::Queues &rhs, const char*) __NE___
+    ND_ static FeatureSet::Queues  FS_MergeMax (const FeatureSet::Queues &lhs, const FeatureSet::Queues &rhs, const char*) __NE___
     {
         FeatureSet::Queues  res;
         res.supported   = lhs.supported | rhs.supported;
@@ -415,23 +415,23 @@ namespace
         return res;
     }
 
-    ND_ forceinline ubyte  FS_MergeMax (ubyte lhs, ubyte rhs, const char*) __NE___ {
+    ND_ static ubyte  FS_MergeMax (ubyte lhs, ubyte rhs, const char*) __NE___ {
         return Max( lhs, rhs );
     }
 
-    ND_ forceinline ushort  FS_MergeMax (ushort lhs, ushort rhs, const char*) __NE___ {
+    ND_ static ushort  FS_MergeMax (ushort lhs, ushort rhs, const char*) __NE___ {
         return Max( lhs, rhs );
     }
 
-    ND_ forceinline uint  FS_MergeMax (uint lhs, uint rhs, const char*) __NE___ {
+    ND_ static uint  FS_MergeMax (uint lhs, uint rhs, const char*) __NE___ {
         return Max( lhs, rhs );
     }
 
-    ND_ forceinline float  FS_MergeMax (float lhs, float rhs, const char*) __NE___ {
+    ND_ static float  FS_MergeMax (float lhs, float rhs, const char*) __NE___ {
         return Max( lhs, rhs );
     }
 
-    ND_ forceinline FeatureSet::ShaderVersion  FS_MergeMax (const FeatureSet::ShaderVersion &lhs, const FeatureSet::ShaderVersion &rhs, const char*) __NE___
+    ND_ static FeatureSet::ShaderVersion  FS_MergeMax (const FeatureSet::ShaderVersion &lhs, const FeatureSet::ShaderVersion &rhs, const char*) __NE___
     {
         FeatureSet::ShaderVersion   res;
         res.spirv = Max( lhs.spirv, rhs.spirv );
@@ -439,7 +439,7 @@ namespace
         return res;
     }
 
-    ND_ forceinline FeatureSet::VRSTexelSize  FS_MergeMax (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___
+    ND_ static FeatureSet::VRSTexelSize  FS_MergeMax (const FeatureSet::VRSTexelSize &lhs, const FeatureSet::VRSTexelSize &rhs, const char*) __NE___
     {
         FeatureSet::VRSTexelSize    res;
         res.minX    = Min( lhs.minX,    rhs.minX );
@@ -450,7 +450,7 @@ namespace
         return res;
     }
 
-    ND_ forceinline FeatureSet::ShadingRateSet_t  FS_MergeMax (const FeatureSet::ShadingRateSet_t &lhs, const FeatureSet::ShadingRateSet_t &rhs, const char*) __NE___
+    ND_ static FeatureSet::ShadingRateSet_t  FS_MergeMax (const FeatureSet::ShadingRateSet_t &lhs, const FeatureSet::ShadingRateSet_t &rhs, const char*) __NE___
     {
         if ( lhs.empty() and rhs.empty() )
             return {};
@@ -482,11 +482,11 @@ namespace
         return result;
     }
 
-    ND_ forceinline FeatureSet::SampleCountBits  FS_MergeMax (const FeatureSet::SampleCountBits &lhs, const FeatureSet::SampleCountBits &rhs, const char*) __NE___ {
+    ND_ static FeatureSet::SampleCountBits  FS_MergeMax (const FeatureSet::SampleCountBits &lhs, const FeatureSet::SampleCountBits &rhs, const char*) __NE___ {
         return FeatureSet::SampleCountBits{ uint(lhs) | uint(rhs) };
     }
 
-    ND_ forceinline FeatureSet::PerDescriptorSet  FS_MergeMax (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___
+    ND_ static FeatureSet::PerDescriptorSet  FS_MergeMax (const FeatureSet::PerDescriptorSet &lhs, const FeatureSet::PerDescriptorSet &rhs, const char*) __NE___
     {
         FeatureSet::PerDescriptorSet    res;
         res.minInputAttachments = FS_MergeMax( lhs.minInputAttachments, rhs.minInputAttachments,    "minInputAttachments"   );
@@ -501,7 +501,7 @@ namespace
     }
 
     template <typename E>
-    ND_ forceinline FeatureSet::IncludeExcludeBits<E>  FS_MergeMax (const FeatureSet::IncludeExcludeBits<E> &lhs, const FeatureSet::IncludeExcludeBits<E> &rhs, const char*) __NE___
+    ND_ static FeatureSet::IncludeExcludeBits<E>  FS_MergeMax (const FeatureSet::IncludeExcludeBits<E> &lhs, const FeatureSet::IncludeExcludeBits<E> &rhs, const char*) __NE___
     {
         FeatureSet::IncludeExcludeBits<E>   res;
         res.include = lhs.include | rhs.include;
@@ -516,13 +516,13 @@ namespace
 =================================================
 */
     template <typename T1, typename T2>
-    ND_ inline T1  FS_ValidateEq (const T1 lhs, const T2 rhs) __NE___
+    ND_ static T1  FS_ValidateEq (const T1 lhs, const T2 rhs) __NE___
     {
         return rhs;
     }
 
     template <bool Mutable, typename T1, typename T2, typename T3>
-    inline void  FS_ValidateNotEq (T1 &lhs, const T2 &rhs, const T3 &) __NE___
+    static void  FS_ValidateNotEq (T1 &lhs, const T2 &rhs, const T3 &) __NE___
     {
         if constexpr( Mutable )
         {

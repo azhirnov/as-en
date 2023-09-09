@@ -69,7 +69,7 @@ namespace AE::Graphics::_hidden_
     GetBarriers
 =================================================
 */
-    forceinline const VkDependencyInfo*  VDrawBarrierManager::GetBarriers () __NE___
+    inline const VkDependencyInfo*  VDrawBarrierManager::GetBarriers () __NE___
     {
         if_unlikely( HasPendingBarriers() )
         {
@@ -87,7 +87,7 @@ namespace AE::Graphics::_hidden_
     ClearBarriers
 =================================================
 */
-    forceinline void  VDrawBarrierManager::ClearBarriers () __NE___
+    inline void  VDrawBarrierManager::ClearBarriers () __NE___
     {
         _imageBarriers.clear();
     }

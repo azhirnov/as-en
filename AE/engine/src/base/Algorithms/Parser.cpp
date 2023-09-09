@@ -850,13 +850,76 @@ namespace
     ValidateVarName_CPP
 =================================================
 */
-    bool  Parser::ValidateVarName_CPP (StringView name, OUT String &result) __NE___
+    void  Parser::ValidateVarName_CPP (StringView name, OUT String &result) __NE___
     {
-        CATCH_ERR( result.resize( name.size() ));
+        CATCH_ERRV( result.resize( name.size() ));
 
         for (usize i = 0; i < name.size(); ++i)
         {
             result[i] = CStyleParser::_IsWord( name[i] ) ? name[i] : '_';
+        }
+    }
+
+    String  Parser::ValidateVarName_CPP (StringView name) __NE___
+    {
+        String  dst;
+        ValidateVarName_CPP( name, OUT dst );
+        return dst;
+    }
+
+/*
+=================================================
+    TabsToSpaces
+=================================================
+*/
+    void  Parser::TabsToSpaces (OUT String &dst, StringView src, const uint tabSize) __Th___
+    {
+        dst.reserve( src.length() );  // throw
+
+        for (usize i = 0, col = 0; i < src.size(); ++i)
+        {
+            const char  c = src[i];
+
+            if_unlikely( c == '\n' )
+            {
+                col = 0;
+                dst << c;  // throw
+            }
+            else
+            if_unlikely( c == '\t' )
+            {
+                usize   j = col;
+                col = ((col + tabSize) / tabSize) * tabSize;
+
+                for (; j < col; ++j)
+                    dst << ' ';  // throw
+            }
+            else
+            {
+                ++col;
+                dst << c;  // throw
+            }
+        }
+    }
+
+    String  Parser::TabsToSpaces (StringView src, uint tabSize) __Th___
+    {
+        String  dst;
+        TabsToSpaces( OUT dst, src, tabSize );
+        return dst;
+    }
+
+/*
+=================================================
+    IsWhiteSpacesOnly
+=================================================
+*/
+    bool  Parser::IsWhiteSpacesOnly (StringView str) __NE___
+    {
+        for (char c : str)
+        {
+            if_unlikely( (c != ' ') & (c != '\t') )
+                return false;
         }
         return true;
     }

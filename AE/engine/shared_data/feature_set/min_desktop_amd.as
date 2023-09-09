@@ -10,7 +10,7 @@ void ASmain ()
     //  AMD Radeon RX 6900 XT (RADV NAVI21) driver 22.2.99 on Debian unknown
     //  AMD Radeon RX Vega driver 2.0.213 on Ubuntu 22.01
 
-    const EFeature  True  = EFeature::RequireTrue;
+    const EFeature  True = EFeature::RequireTrue;
 
     RC<FeatureSet>  fset = FeatureSet( "MinDesktopAMD" );
 

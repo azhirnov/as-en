@@ -125,13 +125,13 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    ND_ forceinline static TypeId  TypeIdOf () __NE___
+    ND_ TypeId  TypeIdOf () __NE___
     {
         return Base::_hidden_::StaticTypeIdOf<T,0>::Get();
     }
 
     template <typename T>
-    ND_ forceinline static TypeId  TypeIdOf (const T&) __NE___
+    ND_ TypeId  TypeIdOf (const T&) __NE___
     {
         return TypeIdOf<T>();
     }
@@ -148,13 +148,13 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    ND_ forceinline static TypeId  TypeIdOf () __NE___
+    ND_ TypeId  TypeIdOf () __NE___
     {
         return Base::_hidden_::StdTypeIdOf<T>::Get();
     }
 
     template <typename T>
-    ND_ forceinline static TypeId  TypeIdOf (const T&) __NE___
+    ND_ TypeId  TypeIdOf (const T&) __NE___
     {
         return TypeIdOf<T>();
     }

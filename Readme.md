@@ -14,8 +14,10 @@ Technical documentation:
  * Graphics: [DeviceProperties](AE/engine/docs/DeviceProperties.md)
  * Graphics: [FeatureSet](AE/engine/docs/FeatureSet.md)
  * Graphics features: [Vulkan](AE/engine/docs/VulkanFeatures.md), [Metal](AE/engine/docs/MetalFeatures.md)
- * [Profiling](AE/engine/docs/Profiling.md)
+ * [GraphicsResources](AE/engine/docs/GraphicsResources.md)
  * [Supported platforms](AE/engine/docs/Platforms.md)
+ * [Profiling](AE/engine/docs/Profiling.md)
+ * [Resource Compilation](AE/engine/docs/ResourceCompilation.md)
 
 Other docs:
  * [Engine changelog](AE/engine/Changelog.md)
@@ -27,9 +29,10 @@ Samples and tools:
  * [Demo](AE/samples/demo/Readme.md) (Cross platform)
  * [Lock-Free Algorithms Sandbox](AE/engine/tools/lfas/Readme.md)
  * [GLSL-Trace](AE/engine/tools/res_pack/shader_trace/Readme.md)
- * [Vulkan: Get Image Z-Curve](AE/engine/tools/vulkan_image_zcurve/Readme.md)
+ * [Detect Image Z-Curve](AE/engine/tools/vulkan_image_zcurve/Readme.md)
  * [Vulkan Header Generator](AE/engine/tools/vulkan_header_gen/Readme.md)
- * [FeatureSet Generator](AE/engine/tools/res_pack/utils/feature_set_gen/Readme.md)
+ * [Vulkan Synchronizations Logger](AE/engine/tools/vulkan_sync_log/Readme.md)
+ * [FeatureSet Generator](AE/engine/tools/feature_set_gen/Readme.md)
 
 
 ## rus

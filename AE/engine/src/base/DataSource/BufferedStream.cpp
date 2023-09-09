@@ -290,7 +290,7 @@ namespace AE::Base
         _stream->Flush();
     }
 
-    forceinline void  BufferedWStream::_Flush () __NE___
+    inline void  BufferedWStream::_Flush () __NE___
     {
         if ( _pos > 0 )
         {

@@ -91,8 +91,6 @@ namespace AE::AssetPacker
 
         ND_ static Ptr<ObjectStorage>  Instance ();
             static void  SetInstance (ObjectStorage* inst);
-
-        ND_ static String  ValidateFileName (const String &name);
     };
 
 

@@ -51,7 +51,7 @@ void ASmain ()
     //  Mac2
     //  Mac_Metal3
 
-    const EFeature  True  = EFeature::RequireTrue;
+    const EFeature  True = EFeature::RequireTrue;
 
     RC<FeatureSet>  fset = FeatureSet( "part.MinDescriptorIndexing" );
 

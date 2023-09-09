@@ -5,6 +5,7 @@
 #include "base/Containers/ArrayView.h"
 #include "base/Containers/FixedArray.h"
 #include "base/Algorithms/StringUtils.h"
+#include "base/Algorithms/Parser.h"
 #include "base/DataSource/Stream.h"
 #include "base/DataSource/FileStream.h"
 #include "base/Utils/FileSystem.h"

@@ -134,7 +134,7 @@ namespace AE::PipelineCompiler
     SetPreprocessor
 =================================================
 */
-    void  ScriptConfig::SetPreprocessor (EShaderProprocessor value) __Th___
+    void  ScriptConfig::SetPreprocessor (EShaderPreprocessor value) __Th___
     {
         auto&   spv = ObjectStorage::Instance()->spirvCompiler;
         auto&   msl = ObjectStorage::Instance()->metalCompiler;
@@ -143,17 +143,17 @@ namespace AE::PipelineCompiler
         BEGIN_ENUM_CHECKS();
         switch ( value )
         {
-            case EShaderProprocessor::None :
+            case EShaderPreprocessor::None :
                 if ( spv ) spv->SetPreprocessor( null );
                 if ( msl ) msl->SetPreprocessor( null );
                 break;
 
-            case EShaderProprocessor::AEStyle :
+            case EShaderPreprocessor::AEStyle :
                 if ( spv ) spv->SetPreprocessor( new AEStyleGLSLPreprocessor{} );
                 if ( msl ) msl->SetPreprocessor( new AEStyleMSLPreprocessor{} );
                 break;
 
-            case EShaderProprocessor::_Count :
+            case EShaderPreprocessor::_Count :
             default :
                 CHECK_THROW_MSG( false, "unknown shader preprocessor type" );
         }

@@ -13,7 +13,11 @@ namespace
         VertexBufferInputPtr vb{ new ScriptVertexBufferInput{} };
         vb->Add4( "All", st );
 
-        const String    src = vb->ToMSL();
+        String  src = vb->ToMSL();
+      #if not AE_PRIVATE_USE_TABS
+        src = Parser::TabsToSpaces( src );
+      #endif
+
         const String    ref = R"#(struct VertexInput
 {
   // All

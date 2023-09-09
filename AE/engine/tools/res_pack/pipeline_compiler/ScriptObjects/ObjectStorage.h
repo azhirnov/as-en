@@ -291,7 +291,7 @@ AE_DECL_SCRIPT_TYPE(    AE::PipelineCompiler::ECompilationTarget,               
 AE_DECL_SCRIPT_TYPE(    AE::PipelineCompiler::EStructLayout,                        "EStructLayout"         );
 AE_DECL_SCRIPT_TYPE(    AE::PipelineCompiler::EMutableRenderState,                  "EMutableRenderState"   );
 AE_DECL_SCRIPT_TYPE(    AE::PipelineCompiler::EValueType,                           "EValueType"            );
-AE_DECL_SCRIPT_TYPE(    AE::PipelineCompiler::EShaderProprocessor,                  "EShaderProprocessor"   );
+AE_DECL_SCRIPT_TYPE(    AE::PipelineCompiler::EShaderPreprocessor,                  "EShaderPreprocessor"   );
 AE_DECL_SCRIPT_TYPE(    AE::PipelineCompiler::ShaderStructType::EUsage,             "ShaderStructTypeUsage" );
 AE_DECL_SCRIPT_TYPE(    AE::PipelineCompiler::ETessPatch,                           "ETessPatch"            );
 AE_DECL_SCRIPT_TYPE(    AE::PipelineCompiler::ETessSpacing,                         "ETessSpacing"          );

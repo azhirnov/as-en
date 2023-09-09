@@ -32,21 +32,25 @@ namespace
         dsl->ToGLSL( EShaderStages::Vertex | EShaderStages::Fragment, 1, INOUT hdr, INOUT src, INOUT unique_types );
         src = hdr + src;
 
+      #if not AE_PRIVATE_USE_TABS
+        src = Parser::TabsToSpaces( src );
+      #endif
+
         const String    ref = R"(
 #if SH_VERT
   // state: ShaderUniform | VertexProcessingShaders
   // size: 32 b
   layout(set=1, binding=0, std140) uniform AE_Type_ubuf {
-	layout(offset=0, align=16) uvec4  u;
-	layout(offset=16, align=16) ivec4  i;
+    layout(offset=0, align=16) uvec4  u;
+    layout(offset=16, align=16) ivec4  i;
   } constBuf;
 #endif
 #if SH_VERT | SH_FRAG
   // state: ShaderStorage_RW | VertexProcessingShaders | FragmentShader
   // static size: 32 b, array stride: 0 b
   layout(set=1, binding=1, std430) coherent buffer AE_Type_ubuf {
-	layout(offset=0, align=16) uvec4  u;
-	layout(offset=16, align=16) ivec4  i;
+    layout(offset=0, align=16) uvec4  u;
+    layout(offset=16, align=16) ivec4  i;
   } storageBuf [2];
 #endif
 #if SH_FRAG
@@ -62,7 +66,6 @@ namespace
 )";
         TEST( src == ref );
     }
-
 }
 
 

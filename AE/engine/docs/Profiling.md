@@ -1,22 +1,22 @@
-Builtin and external profiling & debugging tools.
+Built-in and external profiling & debugging tools.
 
 ## Task profiling
 
-Measure task begin/end time and draw graph.
+The profiler measures the start and end time of the task and builds a diagram for two frames.
 
 ![](img/TaskProfiler.jpg)
 
 
 ## Graphics profiling
 
-Measure pass begin/end time and draw graph.
+The profiler measures the start and end time of a render pass or a group of commands (compute, ray tracing, transfer), then builds a graph.
 
 ![](img/GraphicsProfiler.jpg)
 
 
 ## HW Counters
 
-Used hardware performance counters for ARM platform (Mali and Adreno).
+Used hardware performance counters for the ARM platform (Mali and Adreno).
 
 ![](img/ARM-HWCounters.jpg)
 
@@ -24,7 +24,7 @@ Used hardware performance counters for ARM platform (Mali and Adreno).
 ## Shader trace
 
 <details>
-<summary>Example of shader trace</summary>
+<summary>Example of shader trace (shader debugger)</summary>
 
 ```cpp
 //> gl_GlobalInvocationID: uint3 {8, 8, 0}
@@ -106,6 +106,7 @@ no source
 #### RenderDoc
 
  * Graphics debugging
+ * Shader debugging (requires `EShaderOpt::DebugInfo`)
  * Don't use for profiling!
  * [RenderDocApi](../src/platform/Utils/RenderDocApi.h) class for interaction
  * `IBaseContext::DebugMarker()`, `IBaseContext::PushDebugGroup()`, `IBaseContext::PopDebugGroup()` methods for interaction
@@ -123,6 +124,6 @@ no source
 #### Vulkan validation layers
 
  * Vulkan debugging
- * Synchronizations debugging
- * [EDeviceValidation](../src/graphics/Public/GraphicsCreateInfo.h) flags for interaction
+ * [Synchronizations debugging](https://www.lunarg.com/wp-content/uploads/2020/09/Final_LunarG_Guide_to_Vulkan-Synchronization_Validation_08_20.pdf)
+ * [EDeviceValidation](../src/graphics/Public/GraphicsCreateInfo.h#L17) flags for interaction
 

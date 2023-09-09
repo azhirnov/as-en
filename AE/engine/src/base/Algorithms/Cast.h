@@ -14,7 +14,7 @@ namespace AE::Base
     CheckPointerAlignment
 =================================================
 */
-    ND_ forceinline bool  CheckPointerAlignment (void const* ptr, usize align) __NE___
+    ND_ inline bool  CheckPointerAlignment (void const* ptr, usize align) __NE___
     {
         DBG_CHECK_MSG( ((align & (align - 1)) == 0), "Align must be power of 2" );
 
@@ -22,7 +22,7 @@ namespace AE::Base
     }
 
     template <typename R, typename T>
-    ND_ forceinline bool  CheckPointerAlignment (T const* ptr) __NE___
+    ND_ bool  CheckPointerAlignment (T const* ptr) __NE___
     {
         constexpr usize align = alignof(R);
 
@@ -37,7 +37,7 @@ namespace AE::Base
 =================================================
 */
     template <typename R, typename T>
-    forceinline void  CheckPointerCast (T const* ptr) __NE___
+    void  CheckPointerCast (T const* ptr) __NE___
     {
     #ifdef AE_CFG_DEBUG
         if constexpr( not IsVoid<R> )
@@ -62,7 +62,7 @@ namespace AE::Base
 =================================================
 */
     template <typename R, typename T>
-    ND_ forceinline constexpr R const volatile*  Cast (T const volatile* value) __NE___
+    ND_ constexpr R const volatile*  Cast (T const volatile* value) __NE___
     {
         STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
         CheckPointerCast<R>( value );
@@ -70,7 +70,7 @@ namespace AE::Base
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R volatile*  Cast (T volatile* value) __NE___
+    ND_ constexpr R volatile*  Cast (T volatile* value) __NE___
     {
         STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
         CheckPointerCast<R>( value );
@@ -78,7 +78,7 @@ namespace AE::Base
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R const*  Cast (T const* value) __NE___
+    ND_ constexpr R const*  Cast (T const* value) __NE___
     {
         STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
         CheckPointerCast<R>( value );
@@ -86,7 +86,7 @@ namespace AE::Base
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R*  Cast (T* value) __NE___
+    ND_ constexpr R*  Cast (T* value) __NE___
     {
         STATIC_ASSERT( sizeof(R*) == sizeof(T*) and sizeof(T*) == sizeof(void*) );
         CheckPointerCast<R>( value );
@@ -94,31 +94,31 @@ namespace AE::Base
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr Ptr<R const>  Cast (Ptr<T const> value) __NE___
+    ND_ constexpr Ptr<R const>  Cast (Ptr<T const> value) __NE___
     {
         return Cast<R>( value.get() );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr Ptr<R>  Cast (Ptr<T> value) __NE___
+    ND_ constexpr Ptr<R>  Cast (Ptr<T> value) __NE___
     {
         return Cast<R>( value.get() );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R*  Cast (const Unique<T> &value) __NE___
+    ND_ constexpr R*  Cast (const Unique<T> &value) __NE___
     {
         return Cast<R>( value.get() );
     }
 
     template <typename R, typename T>
-    ND_ forceinline SharedPtr<R>  Cast (const SharedPtr<T> &other) __NE___
+    ND_ SharedPtr<R>  Cast (const SharedPtr<T> &other) __NE___
     {
         return std::static_pointer_cast<R>( other );
     }
 
     template <typename T>
-    ND_ forceinline T*  Cast (std::nullptr_t) __NE___
+    ND_ T*  Cast (std::nullptr_t) __NE___
     {
         return static_cast<T*>(null);
     }
@@ -129,25 +129,25 @@ namespace AE::Base
 =================================================
 */
     template <typename R, typename T>
-    ND_ forceinline constexpr R const volatile&  RefCast (T const volatile &value) __NE___
+    ND_ constexpr R const volatile&  RefCast (T const volatile &value) __NE___
     {
         return *Cast<R>( &value );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R const&  RefCast (T const &value) __NE___
+    ND_ constexpr R const&  RefCast (T const &value) __NE___
     {
         return *Cast<R>( &value );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R volatile&  RefCast (T volatile &value) __NE___
+    ND_ constexpr R volatile&  RefCast (T volatile &value) __NE___
     {
         return *Cast<R>( &value );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R&  RefCast (T &value) __NE___
+    ND_ constexpr R&  RefCast (T &value) __NE___
     {
         return *Cast<R>( &value );
     }
@@ -176,31 +176,31 @@ namespace AE::Base
 */
 #ifdef AE_ENABLE_RTTI
     template <typename R, typename T>
-    ND_ forceinline constexpr R const*  DynCast (T const* value) __NE___
+    ND_ constexpr R const*  DynCast (T const* value) __NE___
     {
         return dynamic_cast< R const *>( value );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr R*  DynCast (T* value) __NE___
+    ND_ constexpr R*  DynCast (T* value) __NE___
     {
         return dynamic_cast< R *>( value );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr Ptr<R const>  DynCast (Ptr<T const> value) __NE___
+    ND_ constexpr Ptr<R const>  DynCast (Ptr<T const> value) __NE___
     {
         return DynCast<R>( value.operator->() );
     }
 
     template <typename R, typename T>
-    ND_ forceinline constexpr Ptr<R>  DynCast (Ptr<T> value) __NE___
+    ND_ constexpr Ptr<R>  DynCast (Ptr<T> value) __NE___
     {
         return DynCast<R>( value.operator->() );
     }
 
     template <typename R, typename T>
-    ND_ forceinline SharedPtr<R>  DynCast (const SharedPtr<T> &other) __NE___
+    ND_ SharedPtr<R>  DynCast (const SharedPtr<T> &other) __NE___
     {
         return std::dynamic_pointer_cast<R>( other );
     }
@@ -212,13 +212,13 @@ namespace AE::Base
 =================================================
 */
     template <typename To, typename From>
-    ND_ forceinline constexpr To  BitCast (const From& src) __NE___
+    ND_ constexpr To  BitCast (const From& src) __NE___
     {
         STATIC_ASSERT( sizeof(To) == sizeof(From), "must be same size!" );
         STATIC_ASSERT( IsMemCopyAvailable<From> and IsMemCopyAvailable<To>, "must be trivial types!" );
         //STATIC_ASSERT( not IsSameTypes< To, From >);  // to find unnecessary cast
 
-    #ifdef __cpp_lib_bit_cast
+      #ifdef __cpp_lib_bit_cast
         if constexpr( std::is_trivially_copyable_v<From> and std::is_trivially_copyable_v<To> ){
             return std::bit_cast<To>( src );
         }else{
@@ -226,11 +226,11 @@ namespace AE::Base
             std::memcpy( OUT &dst, &src, sizeof(To) );
             return dst;
         }
-    #else
+      #else
         To  dst;
         std::memcpy( OUT &dst, &src, sizeof(To) );
         return dst;
-    #endif
+      #endif
     }
 
 /*

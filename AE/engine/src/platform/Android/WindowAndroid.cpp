@@ -18,7 +18,7 @@ namespace AE::App
 =================================================
 */
 namespace {
-    ND_ forceinline EGestureState  _MapKeyAction (jint action) __NE___
+    ND_ static EGestureState  _MapKeyAction (jint action) __NE___
     {
         const EGestureState     states[4] = {
             EGestureState::Begin,   // ACTION_DOWN      = 0

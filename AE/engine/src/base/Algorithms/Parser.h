@@ -47,7 +47,13 @@ namespace AE::Base
             static void  Preprocessor_CPP (StringView str, ArrayView<StringView> defines,
                                            OUT Array<StringView> &result)                                           __Th___;
 
-        ND_ static bool  ValidateVarName_CPP (StringView name, OUT String &result)                                  __NE___;
+            static void   ValidateVarName_CPP (StringView name, OUT String &result)                                 __NE___;
+        ND_ static String ValidateVarName_CPP (StringView name)                                                     __NE___;
+
+        ND_ static String TabsToSpaces (StringView src, uint tabSize = 4)                                           __Th___;
+            static void   TabsToSpaces (OUT String &dst, StringView src, uint tabSize = 4)                          __Th___;
+
+        ND_ static bool  IsWhiteSpacesOnly (StringView str)                                                         __NE___;
     };
 
 

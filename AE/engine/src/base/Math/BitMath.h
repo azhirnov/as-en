@@ -17,7 +17,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, ToUnsignedInteger<T> >  ToNearUInt (const T &value) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, ToUnsignedInteger<T>>  ToNearUInt (const T &value) __NE___
     {
         STATIC_ASSERT( IsScalarOrEnum<T> );
         STATIC_ASSERT( sizeof(value) <= sizeof(ToUnsignedInteger<T>) );
@@ -31,7 +31,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, ToSignedInteger<T> >  ToNearInt (const T &value) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, ToSignedInteger<T>>  ToNearInt (const T &value) __NE___
     {
         STATIC_ASSERT( IsScalarOrEnum<T> );
         STATIC_ASSERT( sizeof(value) <= sizeof(ToSignedInteger<T>) );
@@ -47,7 +47,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T1, typename T2>
-    ND_ forceinline constexpr bool  AllBits (const T1& lhs, const T2& rhs) __NE___
+    ND_ constexpr bool  AllBits (const T1& lhs, const T2& rhs) __NE___
     {
         STATIC_ASSERT( IsScalarOrEnum< T1 > );
         STATIC_ASSERT( IsScalarOrEnum< T2 > );
@@ -63,7 +63,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T1, typename T2, typename T3>
-    ND_ forceinline constexpr bool  AllBits (const T1& lhs, const T2& rhs, const T3& mask) __NE___
+    ND_ constexpr bool  AllBits (const T1& lhs, const T2& rhs, const T3& mask) __NE___
     {
         STATIC_ASSERT( IsScalarOrEnum< T1 > );
         STATIC_ASSERT( IsScalarOrEnum< T2 > );
@@ -83,7 +83,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T1, typename T2>
-    ND_ forceinline constexpr bool  AnyBits (const T1& lhs, const T2& rhs) __NE___
+    ND_ constexpr bool  AnyBits (const T1& lhs, const T2& rhs) __NE___
     {
         STATIC_ASSERT( IsScalarOrEnum< T1 > );
         STATIC_ASSERT( IsScalarOrEnum< T2 > );
@@ -99,7 +99,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  ExtractBit (INOUT T& value) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, T>  ExtractBit (INOUT T& value) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 
@@ -113,7 +113,7 @@ namespace AE::Math
     }
 
     template <typename Dst, typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, Dst >  ExtractBit (INOUT T& value)
+    ND_ constexpr EnableIf<IsScalar<T>, Dst>  ExtractBit (INOUT T& value)
     {
         return static_cast<Dst>( ExtractBit( INOUT value ));
     }
@@ -124,22 +124,22 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, bool >  IsPowerOfTwo (const T &x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, bool>  IsPowerOfTwo (const T &x) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 
         using U = ToUnsignedInteger<T>;
 
-    #ifdef AE_cpp_lib_int_pow2
+      #ifdef AE_cpp_lib_int_pow2
         return std::has_single_bit( U(x) );
-    #else
+      #else
         U   val = U( x );
         return (val != U{0}) & ((val & (val - U{1})) == U{0});
-    #endif
+      #endif
     }
 
     template <typename T>
-    ND_ forceinline constexpr bool  IsSingleBitSet (const T &x) __NE___
+    ND_ constexpr bool  IsSingleBitSet (const T &x) __NE___
     {
         return IsPowerOfTwo( x );
     }
@@ -152,17 +152,17 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, int >  IntLog2 (const T& x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, int>  IntLog2 (const T& x) __NE___
     {
         STATIC_ASSERT( IsInteger<T> or IsEnum<T> );
 
         constexpr int   INVALID_INDEX = MinValue<int>();
 
-    #ifdef AE_cpp_lib_int_pow2
+      #ifdef AE_cpp_lib_int_pow2
         auto    c = std::bit_width( ToNearUInt( x ));
         return c > 0 ? int(c) - 1 : INVALID_INDEX;
 
-    #elif defined(AE_COMPILER_MSVC)
+      #elif defined(AE_COMPILER_MSVC)
         unsigned long   index;
 
         if constexpr( sizeof(x) == 8 )
@@ -171,20 +171,20 @@ namespace AE::Math
         if constexpr( sizeof(x) <= 4 )
             return _BitScanReverse( OUT &index, uint(x) ) ? index : INVALID_INDEX;
 
-    #elif defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG)
+      #elif defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG)
         if constexpr( sizeof(x) == 8 )
             return ulong(x) > 0 ? 63 - __builtin_clzll( ulong(x) ) : INVALID_INDEX;
         else
         if constexpr( sizeof(x) <= 4 )
             return uint(x) > 0 ? 31 - __builtin_clz( uint(x) ) : INVALID_INDEX;
 
-    #else
+      #else
         #error add BitScanReverse implementation
-    #endif
+      #endif
     }
 
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, int >  BitScanReverse (const T& x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, int>  BitScanReverse (const T& x) __NE___
     {
         return IntLog2( x );
     }
@@ -197,7 +197,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, int >  CeilIntLog2 (const T& x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, int>  CeilIntLog2 (const T& x) __NE___
     {
         int i = IntLog2( x );
         return i >= 0 ? i + int(not IsPowerOfTwo( x )) : MinValue<int>();
@@ -209,13 +209,13 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, int >  ExtractBitLog2 (INOUT T& value) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, int>  ExtractBitLog2 (INOUT T& value) __NE___
     {
         return IntLog2( ExtractBit( INOUT value ));
     }
 
     template <typename Dst, typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, Dst >  ExtractBitLog2 (INOUT T& value) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, Dst>  ExtractBitLog2 (INOUT T& value) __NE___
     {
         return static_cast<Dst>( ExtractBitLog2( INOUT value ));
     }
@@ -228,7 +228,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline EnableIf<IsScalar<T>, int >  BitScanForward (const T& x) __NE___
+    ND_ EnableIf<IsScalar<T>, int>  BitScanForward (const T& x) __NE___
     {
         STATIC_ASSERT( IsInteger<T> or IsEnum<T> );
 
@@ -262,7 +262,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ constexpr EnableIf<IsScalar<T>, uint >  IntLog10 (const T& x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, uint>  IntLog10 (const T& x) __NE___
     {
         STATIC_ASSERT( IsInteger<T> or IsEnum<T> );
 
@@ -284,33 +284,33 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, usize >  BitCount (const T& x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, usize>  BitCount (const T& x) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 
-    #ifdef __cpp_lib_bitops
+      #ifdef __cpp_lib_bitops
         return usize( std::popcount( ToUnsignedInteger<T>(x) ));
 
-    #elif defined(AE_COMPILER_MSVC)
+      #elif defined(AE_COMPILER_MSVC)
         // requires CPUInfo::POPCNT
-      #if AE_PLATFORM_BITS == 64
+      # if AE_PLATFORM_BITS == 64
         if constexpr( sizeof(x) == 8 )
             return usize( __popcnt64( ulong(x) ));
         else
-      #endif
+      # endif
         if constexpr( sizeof(x) == 4 )
             return usize( __popcnt( uint(x) ));
         else
         if constexpr( sizeof(x) <= 2 )
             return usize( __popcnt16( ushort(x) ));
 
-    #else // clang & gcc
+      #else // clang & gcc
         if constexpr( sizeof(x) == 8 )
             return usize( std::bitset<64>{ ulong(x) }.count() );
         else
         if constexpr( sizeof(x) <= 4 )
             return usize( std::bitset<32>{ uint(x) }.count() );
-    #endif
+      #endif
     }
 
 /*
@@ -321,15 +321,15 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, usize >  CountLZero (const T& x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, usize>  CountLZero (const T& x) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 
-    #ifdef __cpp_lib_bitops
+      #ifdef __cpp_lib_bitops
         return usize( std::countl_zero( ToUnsignedInteger<T>(x) ));
-    #else
+      #else
         // TODO
-    #endif
+      #endif
     }
 
 /*
@@ -340,15 +340,15 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, usize >  CountLOne (const T& x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, usize>  CountLOne (const T& x) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 
-    #ifdef __cpp_lib_bitops
+      #ifdef __cpp_lib_bitops
         return usize( std::countl_one( ToUnsignedInteger<T>(x) ));
-    #else
+      #else
         // TODO
-    #endif
+      #endif
     }
 
 /*
@@ -362,7 +362,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  SafeLeftBitShift (const T& x, usize shift) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, T>  SafeLeftBitShift (const T& x, usize shift) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
         ASSERT( x >= T(0) );
@@ -371,7 +371,7 @@ namespace AE::Math
     }
 
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  SafeRightBitShift (const T& x, usize shift) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, T>  SafeRightBitShift (const T& x, usize shift) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
         ASSERT( x >= T(0) );
@@ -389,7 +389,7 @@ namespace AE::Math
     namespace _hidden_
     {
         template <typename T>
-        forceinline constexpr T _BitRotateLeft (T value, usize shift) __NE___
+        constexpr T _BitRotateLeft (T value, usize shift) __NE___
         {
             constexpr usize mask = (CT_SizeofInBits(value) - 1);
 
@@ -399,22 +399,22 @@ namespace AE::Math
     } // _hidden_
 
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  BitRotateLeft (const T& x, usize shift) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, T>  BitRotateLeft (const T& x, usize shift) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 
-    #ifdef __cpp_lib_bitops
+      #ifdef __cpp_lib_bitops
         return T( std::rotl( ToNearUInt(x), int(shift) ));
 
-    #elif defined(AE_COMPILER_MSVC)
+      #elif defined(AE_COMPILER_MSVC)
         if constexpr( sizeof(x) > sizeof(uint) )
             return T( _rotl64( ulong(x), int(shift) ));
         else
             return T( _rotl( uint(x), int(shift) ));
 
-    #else // clang & gcc
+      #else // clang & gcc
         return T( Math::_hidden_::_BitRotateLeft( ToNearUInt(x), shift ));
-    #endif
+      #endif
     }
 
 /*
@@ -427,7 +427,7 @@ namespace AE::Math
     namespace _hidden_
     {
         template <typename T>
-        forceinline constexpr T _BitRotateRight (T value, usize shift) __NE___
+        constexpr T _BitRotateRight (T value, usize shift) __NE___
         {
             constexpr usize mask = (CT_SizeofInBits(value) - 1);
 
@@ -437,22 +437,22 @@ namespace AE::Math
     } // _hidden_
 
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  BitRotateRight (const T& x, usize shift) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, T>  BitRotateRight (const T& x, usize shift) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 
-    #ifdef __cpp_lib_bitops
+      #ifdef __cpp_lib_bitops
         return T( std::rotr( ToNearUInt(x), int(shift) ));
 
-    #elif defined(AE_COMPILER_MSVC)
+      #elif defined(AE_COMPILER_MSVC)
         if constexpr( sizeof(x) > sizeof(uint) )
             return T( _rotr64( ulong(x), int(shift) ));
         else
             return T( _rotr( uint(x), int(shift) ));
 
-    #else // clang & gcc
+      #else // clang & gcc
         return T( Math::_hidden_::_BitRotateRight( ToNearUInt(x), shift ));
-    #endif
+      #endif
     }
 
 /*
@@ -461,7 +461,7 @@ namespace AE::Math
 =================================================
 */
     template <typename R, typename T>
-    ND_ forceinline constexpr EnableIf<IsUnsignedInteger<R>, R >  ToBitMask (T count) __NE___
+    ND_ constexpr EnableIf<IsUnsignedInteger<R>, R>  ToBitMask (T count) __NE___
     {
         if constexpr( IsUnsignedInteger<T> )
         {
@@ -477,7 +477,7 @@ namespace AE::Math
     }
 
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsUnsignedInteger<T>, T >  ToBitMask (usize firstBit, usize count) __NE___
+    ND_ constexpr EnableIf<IsUnsignedInteger<T>, T>  ToBitMask (usize firstBit, usize count) __NE___
     {
         ASSERT( firstBit < CT_SizeOfInBits<T> );
         return SafeLeftBitShift( ToBitMask<T>( count ), firstBit );
@@ -489,7 +489,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsUnsignedInteger<T>, bool >  HasBit (const T &x, usize index) __NE___
+    ND_ constexpr EnableIf<IsUnsignedInteger<T>, bool>  HasBit (const T &x, usize index) __NE___
     {
         return (x & (T{1} << index)) != 0;
     }
@@ -500,7 +500,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsUnsignedInteger<T>, T >  ToBit (usize index) __NE___
+    ND_ constexpr EnableIf<IsUnsignedInteger<T>, T>  ToBit (usize index) __NE___
     {
         return T{1} << index;
     }
@@ -511,7 +511,7 @@ namespace AE::Math
 =================================================
 *
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsUnsignedInteger<T>, T >  ReadBits (const T bits, usize offset, usize bitCount) __NE___
+    ND_ constexpr EnableIf<IsUnsignedInteger<T>, T>  ReadBits (const T bits, usize offset, usize bitCount) __NE___
     {
         return (bits >> offset) & ((T{1} << bitCount) - 1);
     }
@@ -524,7 +524,7 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline EnableIf<IsScalar<T>, T >  ByteSwap (const T &x) __NE___
+    ND_ EnableIf<IsScalar<T>, T>  ByteSwap (const T &x) __NE___
     {
         STATIC_ASSERT( IsEnum<T> or IsInteger<T> );
 
@@ -532,10 +532,10 @@ namespace AE::Math
             return x;
         else
 
-    #ifdef __cpp_lib_byteswap
+      #ifdef __cpp_lib_byteswap
             return T( std::byteswap( ToNearUInt(x) ));
 
-    #elif defined(AE_COMPILER_MSVC)
+      #elif defined(AE_COMPILER_MSVC)
         if constexpr( sizeof(x) == 2 )
             return T( _byteswap_ushort( ToNearUInt(x) ));
         else
@@ -545,7 +545,7 @@ namespace AE::Math
         if constexpr( sizeof(x) == 8 )
             return T( _byteswap_uint64( ToNearUInt(x) ));
 
-    #elif defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG)
+      #elif defined(AE_COMPILER_GCC) or defined(AE_COMPILER_CLANG)
         if constexpr( sizeof(x) == 2 )
             return T(((ushort(x) & 0x00FF) << 8) | ((ushort(x) & 0xFF00) >> 8));
         else
@@ -554,10 +554,10 @@ namespace AE::Math
         else
         if constexpr( sizeof(x) == 8 )
             return T( __builtin_bswap64( ToNearUInt(x) ));
-    #else
+      #else
         // will fail to compile
         return;
-    #endif
+      #endif
     }
 
 /*
@@ -566,14 +566,14 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  FloorPOT (const T x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, T>  FloorPOT (const T x) __NE___
     {
         int i = IntLog2( x );
         return i >= 0 ? (T{1} << i) : T{0};
     }
 
     template <typename T>
-    ND_ forceinline constexpr EnableIf<IsScalar<T>, T >  CeilPOT (const T x) __NE___
+    ND_ constexpr EnableIf<IsScalar<T>, T>  CeilPOT (const T x) __NE___
     {
         int i = IntLog2( x );
         return i >= 0 ? (T{1} << (i + int(not IsPowerOfTwo( x )))) : T{0};
@@ -585,20 +585,14 @@ namespace AE::Math
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr bool  IsOdd (const T x) __NE___
+    ND_ constexpr EnableIf<IsInteger<T> or IsEnum<T>, bool>  IsOdd (const T x) __NE___
     {
-        STATIC_ASSERT( IsScalarOrEnum<T> );
-        STATIC_ASSERT( IsInteger<T> );
-
         return ( x & T(1) ) == T(1);
     }
 
     template <typename T>
-    ND_ forceinline constexpr bool  IsEven (const T x) __NE___
+    ND_ constexpr EnableIf<IsInteger<T> or IsEnum<T>, bool>  IsEven (const T x) __NE___
     {
-        STATIC_ASSERT( IsScalarOrEnum<T> );
-        STATIC_ASSERT( IsInteger<T> );
-
         return ( x & T(1) ) == T(0);
     }
 

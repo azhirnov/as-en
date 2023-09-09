@@ -246,7 +246,7 @@ namespace AE::App
 =================================================
 */
     template <typename T>
-    forceinline void  InputActionsBase::_Update4F (T type, EGestureType gesture, ControllerID id, float4 value, EGestureState state) __NE___
+    void  InputActionsBase::_Update4F (T type, EGestureType gesture, ControllerID id, float4 value, EGestureState state) __NE___
     {
         auto    it = _curMode->actions.find( _Pack( type, gesture, state ));
         if_unlikely( it != _curMode->actions.end() )
@@ -266,7 +266,7 @@ namespace AE::App
     RequiresLockAndHideCursor
 =================================================
 */
-    forceinline bool  InputActionsBase::RequiresLockAndHideCursor () C_NE___
+    inline bool  InputActionsBase::RequiresLockAndHideCursor () C_NE___
     {
         if_likely( _curMode )
         {

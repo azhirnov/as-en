@@ -183,7 +183,7 @@ namespace {
 
         msg = msg + buf + ", in " + ffcall + ", function: " + func;
 
-        AE_LOGE( msg, loc.file, loc.line );
+        AE_LOG_SE( msg, loc.file, loc.line );
         return false;
     }
 

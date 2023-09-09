@@ -31,7 +31,7 @@ void ASmain ()
     //  Apple6_Metal3
     //  Apple6
 
-    const EFeature  True  = EFeature::RequireTrue;
+    const EFeature  True = EFeature::RequireTrue;
 
     RC<FeatureSet>  fset = FeatureSet( "MinMobile" );
 

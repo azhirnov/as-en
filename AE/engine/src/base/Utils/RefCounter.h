@@ -372,7 +372,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Args>
-    ND_ forceinline RC<T>  MakeRC (Args&& ...args) __Th___
+    ND_ RC<T>  MakeRC (Args&& ...args) __Th___
     {
         STATIC_ASSERT( not IsBaseOf< NonAllocatable, T >);
 
@@ -380,7 +380,7 @@ namespace AE::Base
     }
 
     template <typename T, typename ...Args>
-    ND_ forceinline RC<T>  MakeRC_NE (Args&& ...args) __NE___
+    ND_ RC<T>  MakeRC_NE (Args&& ...args) __NE___
     {
         STATIC_ASSERT( not IsBaseOf< NonAllocatable, T >);
         try {
@@ -397,7 +397,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    forceinline int  RefCounterUtils::DecRefAndRelease (INOUT T* &ptr) __NE___
+    int  RefCounterUtils::DecRefAndRelease (INOUT T* &ptr) __NE___
     {
         STATIC_ASSERT( sizeof(T) > 0 );
 
@@ -422,14 +422,14 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    forceinline void  RC<T>::_Inc (T* ptr) __NE___
+    void  RC<T>::_Inc (T* ptr) __NE___
     {
         if_likely( ptr != null )
             RefCounterUtils::IncRef( *ptr );
     }
 
     template <typename T>
-    forceinline void  RC<T>::_Inc () __NE___
+    void  RC<T>::_Inc () __NE___
     {
         if_likely( _ptr != null )
             RefCounterUtils::IncRef( *_ptr );
@@ -441,7 +441,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    forceinline void  RC<T>::_Dec () __NE___
+    void  RC<T>::_Dec () __NE___
     {
         RefCounterUtils::DecRefAndRelease( INOUT _ptr );
     }
@@ -452,7 +452,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    forceinline void  RC<T>::Swap (INOUT RC<T> &rhs) __NE___
+    void  RC<T>::Swap (INOUT RC<T> &rhs) __NE___
     {
         std::swap( _ptr, rhs._ptr );
     }
@@ -717,10 +717,9 @@ namespace AE::Base
 =================================================
 */
     template <typename R, typename T>
-    ND_ forceinline constexpr RC<R>  Cast (const RC<T> &value) __NE___
+    ND_ constexpr RC<R>  Cast (const RC<T> &value) __NE___
     {
         STATIC_ASSERT( sizeof(R) > 0 );
-
         return RC<R>{ static_cast<R*>( value.get() )};
     }
 
@@ -731,7 +730,7 @@ namespace AE::Base
 */
 #ifdef AE_ENABLE_RTTI
     template <typename R, typename T>
-    ND_ forceinline constexpr RC<R>  DynCast (const RC<T> &value) __NE___
+    ND_ constexpr RC<R>  DynCast (const RC<T> &value) __NE___
     {
         return RC<R>{ dynamic_cast<R*>( value.get() )};
     }

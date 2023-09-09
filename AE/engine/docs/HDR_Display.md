@@ -2,18 +2,18 @@
 
 __Non-HDR (RGBA8 / RGB10A2 formats)__
 
-* Color values above 1.0 is clamped to 1.0.
+* Color values above 1.0 are clamped to 1.0.
 
 __HDR (RGBA16F format)__
 
-* Display uses internal tonemapping to convert color values above 1.0 to another color, more often, the color tends to white.
-* Transition to white color depends on luminance, green is the brightest and turns white earlier.
-* There is no way to programmatically find out the characteristics of the built-in tone mapping, so it's better to use your own, and adjust the brightness of the screen with values greater than 1.0.
+* Display uses internal tonemapping to convert color values above 1.0 to another color, more often the color tends to white.
+* The transition to white depends on luminance, green is the brightest and turns white earlier.
+* There is no way to programmatically find out the characteristics of the built-in tone mapping, so it's better to use your own and adjust the brightness of the screen with values exceeding 1.0.
 
 
 ## Monitor
 
-Samsung monitor with VA matrix with 1000 nit brightness. Surface with `RGBA16F_Extended_sRGB_linear` mode.
+Samsung monitor with VA matrix with a brightness of 1000 nit. Surface with `RGBA16F_Extended_sRGB_linear` mode.
 
 * An analog of ACES tonemapping is used, so blue turns into pink, and only then into white.
 
@@ -22,7 +22,7 @@ Samsung monitor with VA matrix with 1000 nit brightness. Surface with `RGBA16F_E
 
 ## Smartphone
 
-ASUS smartphone with AMOLED screen with 800 nit brightness. Surface with `RGBA16F_Extended_sRGB_linear` mode.
+ASUS smartphone with AMOLED screen with a brightness of 800 nit. Surface with `RGBA16F_Extended_sRGB_linear` mode.
 
 * Color value range 0..100 on monitor is approximately the same as range 0..24 on the smartphone.
 * Smartphone uses much simpler tonemapping which doesn't change the blue color.

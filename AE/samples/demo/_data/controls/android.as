@@ -46,14 +46,4 @@ void ASmain (Android_ActionBindings& bindings)
         bind.Add( Android_Input::TouchDelta_norm,
                   ActionInfo( "Camera.Rotate", EValueType::Float2, EGestureType::Move, float4(2.0f) ));
     }
-
-    // Bloom bindings
-    {
-        RC<Android_BindingsMode>    bind = bindings.CreateMode( "Bloom" );
-
-        bind.Add( Android_Input::TouchPos,
-                  ActionInfo( "Touch", EValueType::Float2, EGestureType::Move ));
-        bind.Add( Android_Input::TouchPos,
-                  ActionInfo( "Touch.Click", EValueType::Float2, EGestureType::Click ));
-    }
 }

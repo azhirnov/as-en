@@ -107,7 +107,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    ND_ forceinline EnableIf<not IsFloatPoint<T>, HashVal>  HashOf (const T &value) __NE___
+    ND_ EnableIf<not IsFloatPoint<T>, HashVal>  HashOf (const T &value) __NE___
     {
         return HashVal( std::hash<T>()( value ));
     }
@@ -117,7 +117,7 @@ namespace AE::Base
     HashOf (float)
 =================================================
 */
-    ND_ forceinline HashVal  HashOf (const float &value, uint ignoreMantissaBits = (23-10)) __NE___
+    ND_ inline HashVal  HashOf (const float &value, uint ignoreMantissaBits = (23-10)) __NE___
     {
         ASSERT( ignoreMantissaBits < 23 );
         uint    dst;
@@ -131,7 +131,7 @@ namespace AE::Base
     HashOf (double)
 =================================================
 */
-    ND_ forceinline HashVal  HashOf (const double &value, uint ignoreMantissaBits = (52-10)) __NE___
+    ND_ inline HashVal  HashOf (const double &value, uint ignoreMantissaBits = (52-10)) __NE___
     {
         ASSERT( ignoreMantissaBits < 52 );
         ulong   dst;
@@ -147,7 +147,7 @@ namespace AE::Base
     use private api to calculate hash of buffer
 =================================================
 */
-    ND_ forceinline HashVal  HashOf (const void *ptr, usize sizeInBytes) __NE___
+    ND_ inline HashVal  HashOf (const void *ptr, usize sizeInBytes) __NE___
     {
         ASSERT( ptr != null and sizeInBytes );
 

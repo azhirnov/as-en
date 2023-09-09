@@ -131,7 +131,7 @@ namespace {
 =================================================
 */
     template <typename ID, typename ...Args>
-    forceinline Strong<ID>  RESMNGR::_CreateResource (const char* msg, Args&& ...args) __NE___
+    Strong<ID>  RESMNGR::_CreateResource (const char* msg, Args&& ...args) __NE___
     {
         ID  id;
         CHECK_ERR( _Assign( OUT id ));

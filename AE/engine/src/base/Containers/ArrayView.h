@@ -127,7 +127,7 @@ namespace AE::Base
         }
 
         template <typename R>
-        ND_ constexpr EnableIf< (IsTrivial<T> and IsTrivial<R>), ArrayView<R> >  Cast () C_NE___
+        ND_ constexpr EnableIf<IsTrivial<T> and IsTrivial<R>, ArrayView<R>>  Cast () C_NE___
         {
             STATIC_ASSERT( alignof(R) >= alignof(T) );
             STATIC_ASSERT( sizeof(R) > sizeof(T) ? IsAligned( sizeof(R), sizeof(T) ) : IsAligned( sizeof(T), sizeof(R) ));

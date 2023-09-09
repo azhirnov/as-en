@@ -200,7 +200,7 @@ namespace
 =================================================
 */
     template <EDescriptorType DescType>
-    forceinline Tuple< const VDescriptorUpdater::Uniform_t*, const Bytes16u* >
+    Tuple< const VDescriptorUpdater::Uniform_t*, const Bytes16u* >
         VDescriptorUpdater::_FindUniform (const UniformName &name) const
     {
         const auto  uniforms    = _dsLayout->GetUniformRange<DescType>();
@@ -236,7 +236,7 @@ namespace
 =================================================
 */
     template <EDescriptorType DescType>
-    forceinline uint  VDescriptorUpdater::_GetArraySize (const UniformName &name) const
+    uint  VDescriptorUpdater::_GetArraySize (const UniformName &name) const
     {
         auto [un, off] = _FindUniform< DescType >( name );
         return un->arraySize;

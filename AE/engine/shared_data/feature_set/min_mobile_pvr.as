@@ -7,7 +7,7 @@ void ASmain ()
     //  PowerVR Rogue GE8320 driver 1.386.1368 on Android 11.0
     //  PowerVR Rogue GE8300 driver 1.322.3448 on Android 10.0
 
-    const EFeature  True  = EFeature::RequireTrue;
+    const EFeature  True = EFeature::RequireTrue;
 
     RC<FeatureSet>  fset = FeatureSet( "MinMobilePowerVR" );
 

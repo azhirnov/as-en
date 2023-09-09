@@ -371,13 +371,13 @@ namespace _hidden_
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr auto  MaxValue ()
+    ND_ constexpr auto  MaxValue ()
     {
         return std::numeric_limits< RemoveAllQualifiers<T> >::max();
     }
 
     template <typename T>
-    ND_ forceinline constexpr auto  MinValue ()
+    ND_ constexpr auto  MinValue ()
     {
         return std::numeric_limits< RemoveAllQualifiers<T> >::min();
     }
@@ -388,7 +388,7 @@ namespace _hidden_
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr auto  Infinity ()
+    ND_ constexpr auto  Infinity ()
     {
         STATIC_ASSERT( IsAnyFloatPoint<T> );
         return std::numeric_limits< RemoveAllQualifiers<T> >::infinity();
@@ -400,7 +400,7 @@ namespace _hidden_
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr auto  NaN ()
+    ND_ constexpr auto  NaN ()
     {
         STATIC_ASSERT( IsAnyFloatPoint<T> );
         return std::numeric_limits< RemoveAllQualifiers<T> >::quiet_NaN();

@@ -28,14 +28,14 @@ namespace AE::Base
 =================================================
 */
     template <typename ...Types, typename ...Funcs>
-    forceinline constexpr decltype(auto)  Visit (Union<Types...> &un, Funcs&&... fn) noexcept(AllNothrowInvocable< Funcs... >)
+    ND_ constexpr decltype(auto)  Visit (Union<Types...> &un, Funcs&&... fn) noexcept(AllNothrowInvocable< Funcs... >)
     {
         using namespace Base::_hidden_;
         return std::visit( overloaded{ FwdArg<Funcs &&>(fn)... }, un );
     }
 
     template <typename ...Types, typename ...Funcs>
-    forceinline constexpr decltype(auto)  Visit (const Union<Types...> &un, Funcs&&... fn) noexcept(AllNothrowInvocable< Funcs... >)
+    ND_ constexpr decltype(auto)  Visit (const Union<Types...> &un, Funcs&&... fn) noexcept(AllNothrowInvocable< Funcs... >)
     {
         using namespace Base::_hidden_;
         return std::visit( overloaded{ FwdArg<Funcs &&>(fn)... }, un );
@@ -47,13 +47,13 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Types>
-    ND_ forceinline constexpr bool  HoldsAlternative (const Union<Types...> &un) __NE___
+    ND_ constexpr bool  HoldsAlternative (const Union<Types...> &un) __NE___
     {
         return std::holds_alternative<T>( un );
     }
 
     template <typename ...Types>
-    ND_ forceinline constexpr bool  IsNullUnion (const Union<Types...> &un) __NE___
+    ND_ constexpr bool  IsNullUnion (const Union<Types...> &un) __NE___
     {
         return std::holds_alternative< NullUnion >( un );
     }
@@ -64,13 +64,13 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Types>
-    ND_ forceinline constexpr T*  UnionGet (Union<Types...> &un) __NE___
+    ND_ constexpr T*  UnionGet (Union<Types...> &un) __NE___
     {
         return std::get_if<T>( &un );
     }
 
     template <typename T, typename ...Types>
-    ND_ forceinline constexpr T const*  UnionGet (const Union<Types...> &un) __NE___
+    ND_ constexpr T const*  UnionGet (const Union<Types...> &un) __NE___
     {
         return std::get_if<T>( &un );
     }

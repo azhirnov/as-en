@@ -18,13 +18,13 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    ND_ forceinline constexpr decltype(auto)  AddressOf (T &value) __NE___
+    ND_ constexpr decltype(auto)  AddressOf (T &value) __NE___
     {
         return std::addressof( value );
     }
 
     template <typename T>
-    ND_ forceinline constexpr decltype(auto)  VAddressOf (T &value) __NE___
+    ND_ constexpr decltype(auto)  VAddressOf (T &value) __NE___
     {
         return Cast<void>( std::addressof( value ));
     }
@@ -35,7 +35,7 @@ namespace AE::Base
 =================================================
 */
     template <typename LT, typename RT>
-    ND_ forceinline Bytes  AddressDistance (LT &lhs, RT &rhs) __NE___
+    ND_ Bytes  AddressDistance (LT &lhs, RT &rhs) __NE___
     {
         return Bytes{ usize(AddressOf(lhs)) - usize(AddressOf(rhs)) };
     }
@@ -46,14 +46,14 @@ namespace AE::Base
 =================================================
 */
 # ifdef AE_DEBUG
-    forceinline void  DbgInitMem (OUT void* ptr, Bytes size) __NE___
+    inline void  DbgInitMem (OUT void* ptr, Bytes size) __NE___
     {
         ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );
         std::memset( OUT ptr, 0xCD, usize{size} );
     }
 
     template <typename T>
-    forceinline void  DbgInitMem (OUT T& value) __NE___
+    void  DbgInitMem (OUT T& value) __NE___
     {
         DbgInitMem( OUT &value, SizeOf<T> );
     }
@@ -65,14 +65,14 @@ namespace AE::Base
 =================================================
 */
 # ifdef AE_DEBUG
-    forceinline void  DbgFreeMem (OUT void* ptr, Bytes size) __NE___
+    inline void  DbgFreeMem (OUT void* ptr, Bytes size) __NE___
     {
         ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );
         std::memset( OUT ptr, 0xFE, usize{size} );
     }
 
     template <typename T>
-    forceinline void  DbgFreeMem (OUT T& value) __NE___
+    void  DbgFreeMem (OUT T& value) __NE___
     {
         DbgFreeMem( OUT &value, SizeOf<T> );
     }
@@ -87,7 +87,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Args>
-    forceinline T *  PlacementNew (OUT void *ptr, Args&&... args) __Th___
+    T*  PlacementNew (OUT void *ptr, Args&&... args) __Th___
     {
         ASSERT( ptr != null );
         CheckPointerCast<T>( ptr );
@@ -100,7 +100,7 @@ namespace AE::Base
 =================================================
 *
     template <typename T, typename ...Args>
-    forceinline T *  PlacementNewNE (OUT void *ptr, Args&&... args) __NE___
+    T*  PlacementNewNE (OUT void *ptr, Args&&... args) __NE___
     {
         if constexpr( sizeof...(Args) == 0 ) {
             STATIC_ASSERT( IsNothrowDefaultCtor< T >);
@@ -120,7 +120,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    forceinline void  PlacementDelete (INOUT T &val) __NE___
+    void  PlacementDelete (INOUT T &val) __NE___
     {
         val.~T();
 
@@ -133,7 +133,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename ...Args>
-    forceinline void  Reconstruct (INOUT T &value, Args&& ...args) __Th___
+    void  Reconstruct (INOUT T &value, Args&& ...args) __Th___
     {
         CheckPointerCast<T>( &value );
 
@@ -151,7 +151,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T1, typename T2>
-    forceinline void  MemCopy (OUT T1 &dst, const T2 &src) __NE___
+    void  MemCopy (OUT T1 &dst, const T2 &src) __NE___
     {
         STATIC_ASSERT( sizeof(dst) >= sizeof(src) );
         STATIC_ASSERT( IsMemCopyAvailable<T1> );
@@ -162,7 +162,7 @@ namespace AE::Base
         std::memcpy( OUT &dst, &src, sizeof(src) );
     }
 
-    forceinline void  MemCopy (OUT void *dst, const void *src, Bytes size) __NE___
+    inline void  MemCopy (OUT void *dst, const void *src, Bytes size) __NE___
     {
         if_likely( size > 0 )
         {
@@ -173,7 +173,7 @@ namespace AE::Base
         }
     }
 
-    forceinline void  MemCopy (OUT void *dst, Bytes dstSize, const void *src, Bytes srcSize) __NE___
+    inline void  MemCopy (OUT void *dst, Bytes dstSize, const void *src, Bytes srcSize) __NE___
     {
         if_likely( srcSize > 0 )
         {
@@ -192,7 +192,7 @@ namespace AE::Base
     memory may intersects
 =================================================
 */
-    forceinline void  MemMove (OUT void *dst, const void *src, Bytes size) __NE___
+    inline void  MemMove (OUT void *dst, const void *src, Bytes size) __NE___
     {
         if_likely( size > 0 )
         {
@@ -202,7 +202,7 @@ namespace AE::Base
         }
     }
 
-    forceinline void  MemMove (OUT void *dst, Bytes dstSize, const void *src, Bytes srcSize) __NE___
+    inline void  MemMove (OUT void *dst, Bytes dstSize, const void *src, Bytes srcSize) __NE___
     {
         if_likely( srcSize > 0 )
         {
@@ -219,7 +219,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    forceinline void  ZeroMem (OUT T& value) __NE___
+    void  ZeroMem (OUT T& value) __NE___
     {
         STATIC_ASSERT( IsZeroMemAvailable<T> );
         STATIC_ASSERT( not IsPointer<T> );
@@ -227,14 +227,14 @@ namespace AE::Base
         std::memset( OUT &value, 0, sizeof(value) );
     }
 
-    forceinline void  ZeroMem (OUT void* ptr, Bytes size) __NE___
+    inline void  ZeroMem (OUT void* ptr, Bytes size) __NE___
     {
         ASSERT( (size == 0) or ((ptr != null) == (size != 0)) );
         std::memset( OUT ptr, 0, usize{size} );
     }
 
     template <typename T>
-    forceinline void  ZeroMem (OUT T* ptr, usize count) __NE___
+    void  ZeroMem (OUT T* ptr, usize count) __NE___
     {
         STATIC_ASSERT( IsZeroMemAvailable<T> );
         ASSERT( (count == 0) or ((ptr != null) == (count != 0)) );
@@ -248,7 +248,7 @@ namespace AE::Base
 =================================================
 */
     template <typename T>
-    forceinline void  SecureZeroMem (OUT T& value) __NE___
+    void  SecureZeroMem (OUT T& value) __NE___
     {
         STATIC_ASSERT( IsZeroMemAvailable<T> );
         STATIC_ASSERT( not IsPointer<T> );
@@ -268,7 +268,7 @@ namespace AE::Base
 =================================================
 */
     template <usize S1, usize S2>
-    forceinline void  CopyCString (OUT char (&dst)[S1], const char (&src)[S2])
+    void  CopyCString (OUT char (&dst)[S1], const char (&src)[S2])
     {
         STATIC_ASSERT( S1 >= S2 );
         #ifdef AE_COMPILER_MSVC
@@ -283,13 +283,13 @@ namespace AE::Base
     MemEqual
 =================================================
 */
-    ND_ forceinline bool  MemEqual (const void* lhs, const void* rhs, Bytes size) __NE___
+    ND_ inline bool  MemEqual (const void* lhs, const void* rhs, Bytes size) __NE___
     {
         return std::memcmp( lhs, rhs, usize(size) ) == 0;
     }
 
     template <typename T>
-    ND_ forceinline bool  MemEqual (const T &lhs, const T &rhs) __NE___
+    ND_ bool  MemEqual (const T &lhs, const T &rhs) __NE___
     {
         return MemEqual( &lhs, &rhs, SizeOf<T> );
     }

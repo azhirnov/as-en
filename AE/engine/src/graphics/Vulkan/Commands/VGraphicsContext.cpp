@@ -16,7 +16,7 @@ namespace
     ConvertClearValue
 =================================================
 */
-    forceinline void  ConvertClearValue (const RenderPassDesc::ClearValue_t &cv, OUT VkClearValue &result) __NE___
+    static void  ConvertClearValue (const RenderPassDesc::ClearValue_t &cv, OUT VkClearValue &result) __NE___
     {
         Visit( cv,
             [&result] (const RGBA32f &src)      { MemCopy( OUT result.color.float32, src ); },

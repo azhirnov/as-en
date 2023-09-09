@@ -187,9 +187,7 @@ namespace
     {
         const auto  ValidateName = [] (StringView name) -> String
         {{
-            String  str;
-            Unused( Parser::ValidateVarName_CPP( name, OUT str ));
-            return str;
+            return Parser::ValidateVarName_CPP( name );
         }};
 
         FileSystem::CreateDirectories( filename.parent_path() );
@@ -383,6 +381,10 @@ namespace
         }*/
 
         str << "}\n";
+
+      #if not AE_PRIVATE_USE_TABS
+        str = Parser::TabsToSpaces( str );
+      #endif
 
         auto    file = MakeRC<FileWStream>( filename );
         CHECK_ERR( file->IsOpen() );

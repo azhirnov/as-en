@@ -253,11 +253,12 @@ namespace AE::Samples::Demo
             const auto  iden    = float2x2::Identity();
 
             ShaderTypes::sdf_font_ublock    ublock_data;
-            ublock_data.sdfScale        = t->sdfFont->GetSDFConfig().scale;
-            ublock_data.screenPxRange   = t->sdfFont->ScreenPixRange( t->fontHeight );
-            ublock_data.bgColor         = float4{0.f};
-            ublock_data.rotation0       = iden[0];
-            ublock_data.rotation1       = iden[1];
+            ublock_data.sdfScale    = t->sdfFont->GetSDFConfig().scale;
+            ublock_data.sdfBias     = t->sdfFont->GetSDFConfig().bias;
+            ublock_data.pxRange     = t->sdfFont->GetSDFConfig().pixRange2D;
+            ublock_data.bgColor     = float4{0.f};
+            ublock_data.rotation0   = iden[0];
+            ublock_data.rotation1   = iden[1];
 
             copy_ctx.UpdateBuffer( t->ublock, 0_b, Sizeof(ublock_data), &ublock_data );
 

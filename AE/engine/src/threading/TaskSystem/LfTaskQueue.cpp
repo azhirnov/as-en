@@ -117,7 +117,7 @@ namespace AE::Threading
     returns 'true' to continue search
 =================================================
 */
-    forceinline bool  LfTaskQueue::_RemoveTask (TaskArr_t& arr, INOUT usize& pos, INOUT usize& count, OUT AsyncTask& task) __NE___
+    inline bool  LfTaskQueue::_RemoveTask (TaskArr_t& arr, INOUT usize& pos, INOUT usize& count, OUT AsyncTask& task) __NE___
     {
         ASSERT( pos < count );
         ASSERT( task == null );

@@ -86,3 +86,7 @@
 #ifdef __INTELLISENSE__
 #  define AE_PLATFORM_ANDROID
 #endif
+
+
+// tabs or spaces
+#define AE_PRIVATE_USE_TABS         0

@@ -109,7 +109,6 @@ namespace AE::Graphics
         ND_ VkSemaphore                 GetRenderFinishedSemaphore ()           C_NE___ { return _renderFinishedSem[ _indices.load().semaphoreId ]; }
 
         ND_ uint2                       GetSurfaceSize ()                       C_NE___;
-        ND_ uint                        GetSwapchainLength ()                   C_NE___ { SHAREDLOCK( _guard );  return _desc.minImageCount; }
 
         ND_ uint                        GetCurrentImageIndex ()                 C_NE___ { return _indices.load().imageIdx; }
         ND_ bool                        IsImageAcquired ()                      C_NE___ { return GetCurrentImageIndex() < _MaxImageIndex; }

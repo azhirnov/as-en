@@ -32,61 +32,61 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename A1, typename A2>
-    forceinline BasicString<T,A1>&&  operator << (BasicString<T,A1> &&lhs, const BasicString<T,A2> &rhs) __Th___
+    BasicString<T,A1>&&  operator << (BasicString<T,A1> &&lhs, const BasicString<T,A2> &rhs) __Th___
     {
         return RVRef( RVRef(lhs).append( rhs.data(), rhs.size() ));
     }
 
     template <typename T, typename A1, typename A2>
-    forceinline BasicString<T,A1>&  operator << (BasicString<T,A1> &lhs, const BasicString<T,A2> &rhs) __Th___
+    BasicString<T,A1>&  operator << (BasicString<T,A1> &lhs, const BasicString<T,A2> &rhs) __Th___
     {
         return lhs.append( rhs.data(), rhs.size() );
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const BasicStringView<T> &rhs) __Th___
+    BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const BasicStringView<T> &rhs) __Th___
     {
         return RVRef( RVRef(lhs).append( rhs.data(), rhs.size() ));
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const BasicStringView<T> &rhs) __Th___
+    BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const BasicStringView<T> &rhs) __Th___
     {
         return lhs.append( rhs.data(), rhs.size() );
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const NtBasicStringView<T> &rhs) __Th___
+    BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const NtBasicStringView<T> &rhs) __Th___
     {
         return RVRef( RVRef(lhs).append( rhs.c_str(), rhs.size() ));
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const NtBasicStringView<T> &rhs) __Th___
+    BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const NtBasicStringView<T> &rhs) __Th___
     {
         return lhs.append( rhs.c_str(), rhs.size() );
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, T const * const rhs) __Th___
+    BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, T const * const rhs) __Th___
     {
         return RVRef( RVRef(lhs).append( rhs ));
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, T const * const rhs) __Th___
+    BasicString<T,A>&  operator << (BasicString<T,A> &lhs, T const * const rhs) __Th___
     {
         return lhs.append( rhs );
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const T rhs) __Th___
+    BasicString<T,A>&&  operator << (BasicString<T,A> &&lhs, const T rhs) __Th___
     {
         return RVRef( RVRef(lhs) += rhs );
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const T rhs) __Th___
+    BasicString<T,A>&  operator << (BasicString<T,A> &lhs, const T rhs) __Th___
     {
         return (lhs += rhs);
     }
@@ -100,70 +100,70 @@ namespace AE::Base
 =================================================
 */
     template <typename T, typename A1, typename A2>
-    forceinline BasicString<T,A1>&&  operator >> (const BasicString<T,A2> &lhs, BasicString<T,A1> &&rhs) __Th___
+    BasicString<T,A1>&&  operator >> (const BasicString<T,A2> &lhs, BasicString<T,A1> &&rhs) __Th___
     {
         rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
         return RVRef(rhs);
     }
 
     template <typename T, typename A1, typename A2>
-    forceinline BasicString<T,A1>&  operator >> (const BasicString<T,A2> &lhs, BasicString<T,A1> &rhs) __Th___
+    BasicString<T,A1>&  operator >> (const BasicString<T,A2> &lhs, BasicString<T,A1> &rhs) __Th___
     {
         rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
         return rhs;
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&&  operator >> (const BasicStringView<T> &lhs, BasicString<T,A> &&rhs) __Th___
+    BasicString<T,A>&&  operator >> (const BasicStringView<T> &lhs, BasicString<T,A> &&rhs) __Th___
     {
         rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
         return RVRef(rhs);
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&  operator >> (const BasicStringView<T> &lhs, BasicString<T,A> &rhs) __Th___
+    BasicString<T,A>&  operator >> (const BasicStringView<T> &lhs, BasicString<T,A> &rhs) __Th___
     {
         rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
         return rhs;
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&&  operator >> (const NtBasicStringView<T> &lhs, BasicString<T,A> &&rhs) __Th___
+    BasicString<T,A>&&  operator >> (const NtBasicStringView<T> &lhs, BasicString<T,A> &&rhs) __Th___
     {
         rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
         return RVRef(rhs);
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&  operator >> (const NtBasicStringView<T> &lhs, BasicString<T,A> &rhs) __Th___
+    BasicString<T,A>&  operator >> (const NtBasicStringView<T> &lhs, BasicString<T,A> &rhs) __Th___
     {
         rhs.insert( rhs.begin(), lhs.begin(), lhs.end() );
         return rhs;
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&&  operator >> (T const * const lhs, BasicString<T,A> &&rhs) __Th___
+    BasicString<T,A>&&  operator >> (T const * const lhs, BasicString<T,A> &&rhs) __Th___
     {
         rhs.insert( rhs.begin(), lhs );
         return RVRef(rhs);
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&  operator >> (T const * const lhs, BasicString<T,A> &rhs) __Th___
+    BasicString<T,A>&  operator >> (T const * const lhs, BasicString<T,A> &rhs) __Th___
     {
         rhs.insert( 0u, lhs );
         return rhs;
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&&  operator >> (const T lhs, BasicString<T,A> &&rhs) __Th___
+    BasicString<T,A>&&  operator >> (const T lhs, BasicString<T,A> &&rhs) __Th___
     {
         rhs.insert( 0u, lhs );
         return RVRef(rhs);
     }
 
     template <typename T, typename A>
-    forceinline BasicString<T,A>&  operator >> (const T lhs, BasicString<T,A> &rhs) __Th___
+    BasicString<T,A>&  operator >> (const T lhs, BasicString<T,A> &rhs) __Th___
     {
         rhs.insert( 0u, lhs );
         return rhs;
@@ -178,7 +178,7 @@ namespace AE::Base
 =================================================
 */
     template <typename StringType>
-    ND_ forceinline bool  IsNullTerminated (const StringType &str) __NE___
+    ND_ bool  IsNullTerminated (const StringType &str) __NE___
     {
         return str.empty() or str.data()[ str.size() ] == 0;
     }
@@ -372,9 +372,11 @@ namespace AE::Base
 /*
 =================================================
     FindAndReplace
+----
+    returns number of replaced symbols/substrings
 =================================================
 */
-    inline uint  FindAndReplace (INOUT String& str, char oldSymb, char newSymb) __Th___
+    inline uint  FindAndReplace (INOUT String& str, char oldSymb, char newSymb) __NE___
     {
         String::size_type   pos     = 0;
         uint                count   = 0;
@@ -405,6 +407,9 @@ namespace AE::Base
 /*
 =================================================
     WCharToAnsi
+----
+    Converts wide string to ansi string (7bit), unsupported symbols replaced by 'defaultChar'.
+    Returns 'true' if 'src' is already ansi string and 'false' otherwise.
 =================================================
 */
     template <typename T>
@@ -426,6 +431,8 @@ namespace AE::Base
 /*
 =================================================
     Utf8ToAnsi
+    Converts utf8 string to ansi string (7bit), unsupported symbols replaced by 'defaultChar'.
+    Returns 'true' if 'src' is already ansi string and 'false' otherwise.
 =================================================
 */
 #ifdef AE_ENABLE_UTF8PROC
@@ -452,6 +459,8 @@ namespace AE::Base
 /*
 =================================================
     ToAnsiString
+----
+    See 'WCharToAnsi' and 'Utf8ToAnsi'.
 =================================================
 */
     template <typename R, typename T>
@@ -531,12 +540,12 @@ namespace AE::Base
     ToString
 =================================================
 */
-    ND_ forceinline String  ToString (String value) __Th___
+    ND_ inline String  ToString (String value) __Th___
     {
         return value;
     }
 
-    ND_ forceinline String  ToString (const char value[]) __Th___
+    ND_ inline String  ToString (const char value[]) __Th___
     {
         return String{value};
     }
@@ -555,7 +564,7 @@ namespace AE::Base
         return std::to_string( T(value) );
     }*/
 
-    ND_ forceinline String  ToString (bool value) __Th___
+    ND_ inline String  ToString (bool value) __Th___
     {
         return value ? "true" : "false";
     }

@@ -413,7 +413,7 @@ using namespace AE::Base;
 using namespace AE::App;
 using namespace AE::Samples::Demo;
 
-#define REQUIRE_GPLv3
+#define REQUIRE_APACHE_2
 #include "base/Defines/DetectLicense.inl.h"
 #include "base/Algorithms/StringUtils.h"
 

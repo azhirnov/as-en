@@ -20,7 +20,7 @@ namespace
     OpenVRMatToMat4
 =================================================
 */
-    ND_ forceinline float4x4  OpenVRMatToMat4 (const HmdMatrix44_t &mat) __NE___
+    ND_ static float4x4  OpenVRMatToMat4 (const HmdMatrix44_t &mat) __NE___
     {
         return float4x4{
                 float4{ mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0] },
@@ -29,7 +29,7 @@ namespace
                 float4{ mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3] }};
     }
 
-    ND_ forceinline float4x4  OpenVRMatToMat4 (const HmdMatrix34_t &mat) __NE___
+    ND_ static float4x4  OpenVRMatToMat4 (const HmdMatrix34_t &mat) __NE___
     {
         return float4x4{
                 float4{ mat.m[0][0], mat.m[1][0], mat.m[2][0], 0.0f },
@@ -38,7 +38,7 @@ namespace
                 float4{ mat.m[0][3], mat.m[1][3], mat.m[2][3], 1.0f }};
     }
 
-    ND_ forceinline float3x3  OpenVRMatToMat3 (const HmdMatrix34_t &mat) __NE___
+    ND_ static float3x3  OpenVRMatToMat3 (const HmdMatrix34_t &mat) __NE___
     {
         return float3x3{
                 float3{ mat.m[0][0], mat.m[1][0], mat.m[2][0] },
@@ -70,20 +70,6 @@ namespace
             return true;
         }
         return false;
-    }
-
-/*
-=================================================
-    GetAllImages
-=================================================
-*
-    IOutputSurface::AllImages_t  OpenVRDevice::VRRenderSurface::GetAllImages () C_NE___
-    {
-        AllImages_t result  = VRSurface::GetAllImages();
-
-        result.finalState   = EResourceState::BlitSrc;
-
-        return result;
     }
 
 /*

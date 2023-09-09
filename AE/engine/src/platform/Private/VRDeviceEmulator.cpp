@@ -169,21 +169,6 @@ namespace AE::App
 
 /*
 =================================================
-    GetAllImages
-=================================================
-*
-    IOutputSurface::AllImages_t  VRDeviceEmulator::VRRenderSurface::GetAllImages () C_NE___
-    {
-        AllImages_t result  = VRSurface::GetAllImages();
-
-        result.initialState = EResourceState::BlitSrc;
-        result.finalState   = EResourceState::BlitSrc;
-
-        return result;
-    }
-
-/*
-=================================================
     GetSurfaceFormats
 =================================================
 */

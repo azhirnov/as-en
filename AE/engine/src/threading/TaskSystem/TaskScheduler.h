@@ -655,7 +655,7 @@ namespace AE
     Scheduler
 =================================================
 */
-    ND_ forceinline Threading::TaskScheduler&  Scheduler () __NE___
+    ND_ inline Threading::TaskScheduler&  Scheduler () __NE___
     {
         return Threading::TaskScheduler::_Instance();
     }

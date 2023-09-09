@@ -49,21 +49,6 @@ namespace AE::AssetPacker
 
 /*
 =================================================
-    ValidateFileName
-=================================================
-*/
-    String  ObjectStorage::ValidateFileName (const String &name)
-    {
-        String  str = name;
-        FindAndReplace( INOUT str, ".", "_" );
-        FindAndReplace( INOUT str, ":", "_" );
-        FindAndReplace( INOUT str, "-", "_" );
-        FindAndReplace( INOUT str, "/", "_" );
-        return str;
-    }
-
-/*
-=================================================
     ShaderStorage_Instance
 =================================================
 */

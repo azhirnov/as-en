@@ -14,10 +14,9 @@ namespace AE::Math
 {
 
     template <typename T, glm::qualifier Q>
-    struct Quat
+    struct Quat final
     {
-        STATIC_ASSERT( IsScalar<T> );
-        STATIC_ASSERT( IsFloatPoint<T> );
+        STATIC_ASSERT( IsScalar<T> and IsFloatPoint<T> );
 
     // types
     public:

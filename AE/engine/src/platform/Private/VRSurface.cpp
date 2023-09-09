@@ -147,27 +147,6 @@ namespace AE::App
 
 /*
 =================================================
-    GetAllImages
-=================================================
-*
-    IOutputSurface::AllImages_t  VRSurface::GetAllImages () C_NE___
-    {
-        AllImages_t     result;
-
-        EXLOCK( _guard );
-
-        result.initialState = EResourceState::ColorAttachment;
-        result.finalState   = EResourceState::ColorAttachment;
-
-        for (usize i = 0; i < _images.size(); ++i)
-        {
-            result.images.push_back( _images[i] );
-        }
-        return result;
-    }
-
-/*
-=================================================
     GetTargetSizes
 =================================================
 */

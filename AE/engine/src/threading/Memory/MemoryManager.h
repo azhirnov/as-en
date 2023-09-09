@@ -108,7 +108,7 @@ namespace AE
     MemoryManager
 =================================================
 */
-    ND_ forceinline Threading::MemoryManagerImpl&  MemoryManager () __NE___
+    ND_ inline Threading::MemoryManagerImpl&  MemoryManager () __NE___
     {
         return Threading::MemoryManagerImpl::_Instance();
     }

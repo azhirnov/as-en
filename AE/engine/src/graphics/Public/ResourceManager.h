@@ -123,7 +123,7 @@ namespace AE::Graphics
         struct Storage
         {
             VkDescriptorSet     handle  = Default;
-            StorageData_t       data;   // allocator specific data
+            StorageData_t       data;           // allocator specific data
         };
 
         #elif defined(AE_ENABLE_METAL)

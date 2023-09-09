@@ -54,25 +54,6 @@ namespace AE::Samples::Demo
                     case IA.Touch_Click :
                         t->imgui.mousePos    = reader.Data<packed_float2>( hdr.offset );
                         t->imgui.mouseLBDown = true;                                    break;
-
-                //  case IA.Test_Move :         AE_LOGI( "Test.Move: "s << ToString(uint(hdr.state)) );         break;
-                    case IA.Desktop.Test_Hold : AE_LOGI( "Test.Hold: "s << ToString(uint(hdr.state)) );         break;
-                    case IA.Test_Down :         AE_LOGI( "Test.Down: "s << ToString(uint(hdr.state)) );         break;
-                    case IA.Desktop.Test_Click: AE_LOGI( "Test.Click: "s << ToString(uint(hdr.state)) );        break;
-                    case IA.Test_DoubleClick :  AE_LOGI( "Test.DoubleClick: "s << ToString(uint(hdr.state)) );  break;
-                    case IA.Test_LongPress :    AE_LOGI( "Test.LongPress: "s << ToString(uint(hdr.state)) );    break;
-
-                    case IA.Test_ScaleRotate2D :
-                    {
-                        float4  scale_rotate = reader.Data<packed_float4>( hdr.offset );
-
-                        AE_LOGI( "Test.ScaleRotate2D: "s << ToString(uint(hdr.state)) <<
-                                 ", scale delta: " << ToString( scale_rotate.x ) <<
-                                 ", rotate delta: " << ToString( scale_rotate.y * Rad::RadToDeg() ) <<
-                                 ", scale: " << ToString( scale_rotate.z ) <<
-                                 ", rotate: " << ToString( scale_rotate.w * Rad::RadToDeg() ));
-                        break;
-                    }
                 }
             }
         }

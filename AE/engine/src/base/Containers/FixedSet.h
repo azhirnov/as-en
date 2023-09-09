@@ -114,7 +114,7 @@ namespace AE::Base
 
 
     private:
-        ND_ forceinline bool _IsMemoryAliased (const Self* other)   C_NE___
+        ND_ bool _IsMemoryAliased (const Self* other)               C_NE___
         {
             return IsIntersects( this, this+1, other, other+1 );
         }

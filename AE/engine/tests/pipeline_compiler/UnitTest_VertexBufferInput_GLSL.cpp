@@ -13,7 +13,11 @@ namespace
         VertexBufferInputPtr vb{ new ScriptVertexBufferInput{} };
         vb->Add4( "All", st );
 
-        const String    src = vb->ToGLSL();
+        String  src = vb->ToGLSL();
+      #if not AE_PRIVATE_USE_TABS
+        src = Parser::TabsToSpaces( src );
+      #endif
+
         const String    ref = R"#(  // All
 layout(location=0) in lowp vec4  in_a;
 

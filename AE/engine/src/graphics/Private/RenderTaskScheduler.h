@@ -574,7 +574,7 @@ namespace AE
     RenderTaskScheduler
 =================================================
 */
-    ND_ forceinline Graphics::RTSCHEDULER&  RenderTaskScheduler () __NE___
+    ND_ inline Graphics::RTSCHEDULER&  RenderTaskScheduler () __NE___
     {
         return Graphics::RTSCHEDULER::_Instance();
     }

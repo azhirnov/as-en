@@ -278,7 +278,7 @@ namespace AE::Vulkan
                 else
                     src << "\t";
 
-                src << "VKAPI_ATTR forceinline ";
+                src << "VKAPI_ATTR inline ";
 
                 // add result type
                 for (auto& type : fn.data.result.type) {
@@ -387,13 +387,16 @@ namespace AE::Vulkan
             }
             src << "#endif // VKLOADER_STAGE_GETADDRESS\n\n";
 
+          #if not AE_PRIVATE_USE_TABS
+            src = Parser::TabsToSpaces( src );
+          #endif
+
             FileSystem::CreateDirectory( outputFolder );
             CHECK_ERR( FileSystem::IsDirectory( outputFolder ));
 
             FileWStream file{ Path{outputFolder}.append( gr.filename ) };
             CHECK_ERR( file.IsOpen() );
-
-            file.Write( StringView(src) );
+            CHECK_ERR( file.Write( src ));
         }
 
         return true;
@@ -1174,11 +1177,14 @@ namespace AE::Vulkan
             << _GetLogFeaturesFunc( feats )
             << "#endif // VKFEATS_FN_IMPL\n\n";
 
+      #if not AE_PRIVATE_USE_TABS
+        str = Parser::TabsToSpaces( str );
+      #endif
+
         const Path      file_name = outputFolder / "vk_features.h";
         FileWStream     file{ file_name };
         CHECK_ERR( file.IsOpen() );
-
-        file.Write( str );
+        CHECK_ERR( file.Write( str ));
         return true;
     }
 

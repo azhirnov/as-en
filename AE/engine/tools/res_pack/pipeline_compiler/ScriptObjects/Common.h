@@ -233,9 +233,9 @@ namespace AE::PipelineCompiler
 
 
     //
-    // Shader Proprocessor
+    // Shader Preprocessor
     //
-    enum class EShaderProprocessor : uint
+    enum class EShaderPreprocessor : uint
     {
         None    = 0,
         AEStyle,

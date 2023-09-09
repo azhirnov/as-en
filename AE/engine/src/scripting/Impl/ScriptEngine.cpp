@@ -679,6 +679,10 @@ namespace
                 str << "};\n\n";
             }
         }
+
+      #if not AE_PRIVATE_USE_TABS
+        str = Parser::TabsToSpaces( str );
+      #endif
     #endif
     }
 

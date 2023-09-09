@@ -19,26 +19,22 @@
 
     layout(location=0) out float4  out_Color;
 
-    /*float  ScreenPxRange ()
+    // Result must be >= 1, AA will work if >= 2
+    float  ScreenPxRange (gl::CombinedTex2D<float> msdfTex, float2 uv, float pxRange)
     {
-        float2  unit_range      = drawUB.normPixRange;
-        float2  screen_tex_size = float2(1.0) / gl.fwidth(In.uv_scale.xy);
-        return max( 0.5 * dot(unit_range, screen_tex_size), 1.0 );
-    }*/
+        float2  unit_range      = float2(pxRange) / float2(gl.texture.GetSize( msdfTex, 0 ));
+        float2  src_tex_size    = float2(1.0) / gl.fwidth( uv );
+        return Max( 0.5 * Dot( unit_range, src_tex_size ), 1.0 );
+    }
 
     void Main ()
     {
-        float3  msd             = gl.texture.Sample( un_Texture, In.uv_scale.xy ).rgb * drawUB.sdfScale;
-        float   sd              = MCSDF_Median( msd );
-        float   screen_px_dist  = drawUB.screenPxRange * sd + In.uv_scale.z;
+        float3  msd     = gl.texture.Sample( un_Texture, In.uv_scale.xy ).rgb;
+        float   sd      = MCSDF_Median( msd );
+                sd      = FusedMulAdd( sd, drawUB.sdfScale, drawUB.sdfBias );
+        float   px_dist = ScreenPxRange( un_Texture, In.uv_scale.xy, drawUB.pxRange );
+                sd      = px_dist * (sd - 0.5);
 
-    #if 0
-        float   opacity         = clamp( screen_px_dist, 0.0, 1.0 );
-    #else
-        float   w               = gl.fwidth( screen_px_dist );
-        float   opacity         = smoothstep( 0.0-w, 1.0+w, screen_px_dist );
-    #endif
-
-        out_Color = mix( drawUB.bgColor, In.color, opacity );
+        out_Color = Lerp( drawUB.bgColor, In.color, sd );
     }
 #endif

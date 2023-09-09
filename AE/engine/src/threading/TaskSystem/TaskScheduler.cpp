@@ -751,7 +751,7 @@ DEBUG_ONLY(
 =================================================
 */
 namespace {
-    ND_ forceinline usize  SeedFromThreadID () __NE___
+    ND_ static usize  SeedFromThreadID () __NE___
     {
         usize   seed = ThreadUtils::GetIntID();
     #if AE_PLATFORM_BITS >= 64

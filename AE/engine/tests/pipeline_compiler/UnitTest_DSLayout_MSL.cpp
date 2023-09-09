@@ -37,6 +37,11 @@ namespace
         PipelineLayout::UniqueTypes_t       unique_types;
         DescriptorSetLayout::MSLBindings    bindings;
         dsl->ToMSL( EShaderStages::Fragment, INOUT bindings, INOUT types, INOUT decl, INOUT unique_types );
+
+      #if not AE_PRIVATE_USE_TABS
+        types = Parser::TabsToSpaces( types );
+        decl  = Parser::TabsToSpaces( decl );
+      #endif
     }
 
 
@@ -48,8 +53,8 @@ namespace
         const String    ref_types = R"#(
 struct ubuf
 {
-	uint4  u;  // offset: 0
-	int4  i;  // offset: 16
+    uint4  u;  // offset: 0
+    int4  i;  // offset: 16
 };
 static_assert( sizeof(ubuf) == 32, "size mismatch" );
 
@@ -90,8 +95,8 @@ constexpr sampler imtblSampler (
         const String    ref_types = R"#(
 struct ubuf
 {
-	uint4  u;  // offset: 0
-	int4  i;  // offset: 16
+    uint4  u;  // offset: 0
+    int4  i;  // offset: 16
 };
 static_assert( sizeof(ubuf) == 32, "size mismatch" );
 

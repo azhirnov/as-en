@@ -168,6 +168,7 @@ namespace
 
             TEST_THROW( q.reserve( 1u << 31 ); );
         }
+        TEST( Elem_t::CheckStatistic() );
     }
 }
 

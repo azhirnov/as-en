@@ -16,7 +16,12 @@ ND_ String  ToGLSL (T &ptr)
     String  fields  = "Buffer {\n";
 
     CHECK_ERR( ptr->ToGLSL( true, INOUT hdr, INOUT fields ));
-    return hdr << fields << "}\n";
+    hdr << fields << "}\n";
+
+  #if not AE_PRIVATE_USE_TABS
+    hdr = Parser::TabsToSpaces( hdr );
+  #endif
+    return hdr;
 }
 
 template <typename T>
@@ -24,6 +29,10 @@ ND_ String  ToMSL (T &ptr)
 {
     String  hdr = "\n";
     CHECK_ERR( ptr->ToMSL( INOUT hdr ));
+
+  #if not AE_PRIVATE_USE_TABS
+    hdr = Parser::TabsToSpaces( hdr );
+  #endif
     return hdr;
 }
 
@@ -32,5 +41,9 @@ ND_ String  ToCPP (T &ptr)
 {
     String  src = "\n";
     CHECK_ERR( ptr->ToCPP( INOUT src ));
+
+  #if not AE_PRIVATE_USE_TABS
+    src = Parser::TabsToSpaces( src );
+  #endif
     return src;
 }

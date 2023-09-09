@@ -11,22 +11,22 @@ else()
 endif()
 
 if (TARGET "OfflinePacker")
-    add_custom_target( "Sample.Demo.PackRes"
+    add_custom_target( "${APP_NAME}.PackRes"
         DEPENDS  "OfflinePacker"
         COMMAND  "${MAIN_BINARY_DIR}/$<CONFIG>/OfflinePacker${CMAKE_EXECUTABLE_SUFFIX}"  "${CMAKE_CURRENT_SOURCE_DIR}/_data/main.as" "${AE_TEMP_FOLDER}/samples/demo"
-        COMMENT  "pack resources for 'Sample.Demo' ..."
+        COMMENT  "pack resources for '${APP_NAME}' ..."
         VERBATIM
     )
-    set_property( TARGET "Sample.Demo.PackRes" PROPERTY FOLDER "Samples" )
-    #add_dependencies( "Sample.Demo" "Sample.Demo.PackRes" )
-    add_dependencies( "PACK_RES" "Sample.Demo.PackRes" )
+    set_property( TARGET "${APP_NAME}.PackRes" PROPERTY FOLDER "Samples" )
+    #add_dependencies( ${APP_NAME} "${APP_NAME}.PackRes" )
+    add_dependencies( "PACK_RES" "${APP_NAME}.PackRes" )
 endif()
 target_compile_definitions( ${APP_NAME} PUBLIC AE_RES_FOLDER="${AE_TEMP_FOLDER}/samples/demo" )
 
 if (TARGET "GraphicsHL")
     source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
     set_property( TARGET ${APP_NAME} PROPERTY FOLDER "Samples" )
-    target_link_libraries( ${APP_NAME} PUBLIC "Platform" "GraphicsHL" "Profiler" "Video" "GeometryTools" )
+    target_link_libraries( ${APP_NAME} PUBLIC "Platform" "GraphicsHL" "Profiler" "GeometryTools" )
     target_include_directories( ${APP_NAME} PUBLIC ".." )
     target_include_directories( ${APP_NAME} PUBLIC "${AE_ENGINE_SHARED_DATA}/scripts" "${AE_ENGINE_SHARED_DATA}/shaders" )
 

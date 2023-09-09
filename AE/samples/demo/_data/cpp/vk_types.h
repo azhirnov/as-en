@@ -136,13 +136,15 @@
 		float2  rotation0;
 		float2  rotation1;
 		float  sdfScale;
-		float  screenPxRange;
+		float  sdfBias;
+		float  pxRange;
 		float4  bgColor;
 	};
 	STATIC_ASSERT( offsetof(sdf_font_ublock, rotation0) == 0 );
 	STATIC_ASSERT( offsetof(sdf_font_ublock, rotation1) == 8 );
 	STATIC_ASSERT( offsetof(sdf_font_ublock, sdfScale) == 16 );
-	STATIC_ASSERT( offsetof(sdf_font_ublock, screenPxRange) == 20 );
+	STATIC_ASSERT( offsetof(sdf_font_ublock, sdfBias) == 20 );
+	STATIC_ASSERT( offsetof(sdf_font_ublock, pxRange) == 24 );
 	STATIC_ASSERT( offsetof(sdf_font_ublock, bgColor) == 32 );
 	STATIC_ASSERT( sizeof(sdf_font_ublock) == 48 );
 #endif

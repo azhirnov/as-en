@@ -1574,7 +1574,7 @@ namespace AE::ResEditor
                 cfg.SetShaderOptions( EShaderOpt::Optimize );
                 cfg.SetDefaultLayout( EStructLayout::Std140 );
                 cfg.SetPipelineOptions( EPipelineOpt::Unknown );
-                cfg.SetPreprocessor( EShaderProprocessor::AEStyle );
+                cfg.SetPreprocessor( EShaderPreprocessor::AEStyle );
 
                 ScriptFeatureSetPtr fs {new ScriptFeatureSet{ "DefaultFS" }};
                 fs->fs = RenderTaskScheduler().GetFeatureSet();

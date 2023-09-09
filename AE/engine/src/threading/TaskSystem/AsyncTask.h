@@ -396,10 +396,10 @@ namespace AE::Threading
     {
     // methods
     private:
-        ND_ forceinline static IAsyncTask::EStatus  _GetStatus (const AsyncTask &task)  __NE___ { return task ? task->Status() : IAsyncTask::EStatus::Canceled; }
+        ND_ static IAsyncTask::EStatus  _GetStatus (const AsyncTask &task)  __NE___ { return task ? task->Status() : IAsyncTask::EStatus::Canceled; }
 
         template <typename T>
-        ND_ forceinline static IAsyncTask::EStatus  _GetStatus (const T &other)         __NE___ { return _GetStatus( AsyncTask{ other }); }
+        ND_ static IAsyncTask::EStatus  _GetStatus (const T &other)         __NE___ { return _GetStatus( AsyncTask{ other }); }
 
 
     public:

@@ -16,7 +16,7 @@ void ASmain ()
     //  Apple6_Metal3
     //  Mac_Metal3
 
-    const EFeature  True  = EFeature::RequireTrue;
+    const EFeature  True = EFeature::RequireTrue;
 
     RC<FeatureSet>  fset = FeatureSet( "MinMeshShader" );
 

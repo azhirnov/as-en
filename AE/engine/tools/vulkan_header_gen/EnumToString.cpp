@@ -234,12 +234,15 @@ namespace
 
         // save to file
         {
+          #if not AE_PRIVATE_USE_TABS
+            str = Parser::TabsToSpaces( str );
+          #endif
+
             CHECK_ERR( FileSystem::IsDirectory( outputFolder ));
 
             FileWStream file{ Path{outputFolder}.append( "vkenum_to_str.h" ) };
             CHECK_ERR( file.IsOpen() );
-
-            file.Write( StringView(str) );
+            CHECK_ERR( file.Write( str ));
         }
         return true;
     }

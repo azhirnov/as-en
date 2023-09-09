@@ -14,7 +14,7 @@ target_include_directories( "FFmpeg-lib" INTERFACE "${FFMPEG_PATH}/include" )
 target_compile_definitions( "FFmpeg-lib" INTERFACE "AE_ENABLE_FFMPEG" )
 add_dependencies( "FFmpeg-lib" "FFmpeg-copy-dll" )
 
-#target_compile_definitions( "FFmpeg-lib" INTERFACE "AE_LICENSE_LGPLv3_SHAREDLIB" )
-target_compile_definitions( "FFmpeg-lib" INTERFACE "AE_LICENSE_GPLv3" )
+target_compile_definitions( "FFmpeg-lib" INTERFACE "AE_LICENSE_LGPLv3_SHAREDLIB" )  # use '<os>-lgpl' folder
+#target_compile_definitions( "FFmpeg-lib" INTERFACE "AE_LICENSE_GPLv3" )            # use '<os>-gpl' folder
 
 #install( FILES "${FFMPEG_PATH}/LICENSE" DESTINATION "3party_license" RENAME "FFmpeg-LICENSE" )

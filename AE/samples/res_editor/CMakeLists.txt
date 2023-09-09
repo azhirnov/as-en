@@ -5,7 +5,10 @@ if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLo
     file( GLOB_RECURSE LIB_SOURCES "*.h" "*.cpp" )
     file( GLOB_RECURSE DATA_FILES  "*.as" "*.glsl" "*.msl" )
 
-    file( GLOB_RECURSE SHARED_SHADERS "${AE_ENGINE_SHARED_DATA}/shaders/*.glsl" "${AE_ENGINE_SHARED_DATA}/3party_shaders/*.glsl" )
+    file( GLOB_RECURSE SHARED_SHADERS
+        "${AE_ENGINE_SHARED_DATA}/shaders/*.glsl"
+        "${AE_ENGINE_SHARED_DATA}/3party_shaders/*.glsl"
+        "${AE_ENGINE_SHARED_DATA}/experimental/*.glsl" )
 
     add_executable( "ResourceEditor" ${LIB_SOURCES} ${DATA_FILES} ${SHARED_SHADERS} )
 

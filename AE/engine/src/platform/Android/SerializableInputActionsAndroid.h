@@ -404,37 +404,37 @@ namespace AE::App
     _Is***
 =================================================
 */
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsKey (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsAndroid::_IsKey (EInputType type) __NE___ {
         return (type >= EInputType::KeyBegin) & (type <= EInputType::KeyEnd);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsKeyOrTouch (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsAndroid::_IsKeyOrTouch (EInputType type) __NE___ {
         return _IsKey( type ) | (type == EInputType::TouchPos) | (type == EInputType::TouchPos_mm);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor1D (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsAndroid::_IsCursor1D (EInputType type) __NE___ {
         return _IsSensor1f( type );
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsCursor2D (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsAndroid::_IsCursor2D (EInputType type) __NE___ {
         return  ((type >= EInputType::Cursor2DBegin) & (type <= EInputType::Cursor2DEnd))   |
                 _IsSensor2d( type )                                                         |
                 (type == EInputType::MultiTouch);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor1f (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsAndroid::_IsSensor1f (EInputType type) __NE___ {
         return (type >= EInputType::Sensors1fBegin) & (type <= EInputType::Sensors1fEnd);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor2d (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsAndroid::_IsSensor2d (EInputType type) __NE___ {
         return (type >= EInputType::Sensors2dBegin) & (type <= EInputType::Sensors2dEnd);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor3f (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsAndroid::_IsSensor3f (EInputType type) __NE___ {
         return (type >= EInputType::Sensors3fBegin) & (type <= EInputType::Sensors3fEnd);
     }
 
-    forceinline constexpr bool  SerializableInputActionsAndroid::_IsSensor4x4f (EInputType type) __NE___ {
+    inline constexpr bool  SerializableInputActionsAndroid::_IsSensor4x4f (EInputType type) __NE___ {
         return (type >= EInputType::Sensors4x4fBegin) & (type <= EInputType::Sensors4x4fEnd);
     }
 
