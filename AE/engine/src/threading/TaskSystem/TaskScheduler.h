@@ -48,7 +48,7 @@
         - If null task used as dependency                           -> ignore
         - If null coroutine used as dependency (co_await noop_coro) -> cancel coroutine
 
-    docs: file:///<path>/AE/engine/docs/ru/TaskScheduler.md
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/TaskScheduler.md)
 */
 
 #pragma once
@@ -57,12 +57,6 @@
 #include "threading/TaskSystem/Coroutine.h"
 #include "threading/Containers/LfIndexedPool2.h"
 #include "threading/Memory/GlobalLinearAllocator.h"
-
-#ifdef AE_DEBUG
-#   define AE_SCHEDULER_PROFILING( /* code */... )  __VA_ARGS__
-#else
-#   define AE_SCHEDULER_PROFILING( /* code */... )
-#endif
 
 namespace AE::Threading { class TaskScheduler; }
 namespace AE { Threading::TaskScheduler&  Scheduler () __NE___; }
@@ -120,7 +114,7 @@ namespace AE::Threading
         ND_ virtual bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)   __NE___ = 0;
 
         // only for debugging
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             virtual void  DbgDetectDeadlock (const CheckDepFn_t &)                          __NE___ {};)
 
         // helper functions
@@ -182,7 +176,7 @@ namespace AE::Threading
         {
             Unique<class LfTaskQueue>   ptr;
 
-            AE_SCHEDULER_PROFILING(
+            DEBUG_ONLY(
                 ulong                   totalProcessed  = 0;
             )
         };
@@ -237,7 +231,7 @@ namespace AE::Threading
         PROFILE_ONLY(
             AtomicRC<ITaskProfiler> _profiler;
         )
-        AE_SCHEDULER_PROFILING( struct{
+        DEBUG_ONLY( struct{
             BitAtomic<TimePoint_t>      lastUpdate;
             Atomic<ulong>               numChecks   {0};
             Atomic<ulong>               numLocks    {0};

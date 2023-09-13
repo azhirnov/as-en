@@ -54,7 +54,7 @@ namespace AE::ResEditor
             }
 
             rp_desc.area = RectI{ int2{dim} };
-            rp_desc.DefaultViewport();
+            rp_desc.DefaultViewport( _depthRange.x, _depthRange.y );
 
             auto    dctx = ctx.BeginRenderPass( rp_desc, DebugLabel{_dbgName, _dbgColor} );
 

@@ -33,8 +33,8 @@
             camera.FovY( 50.f );
 
             const float s = 0.8f;
-            camera.ForwardBackwardScale( s, s );
-            camera.UpDownScale( s, s );
+            camera.ForwardBackwardScale( s );
+            camera.UpDownScale( s );
             camera.SideMovementScale( s );
         }
 

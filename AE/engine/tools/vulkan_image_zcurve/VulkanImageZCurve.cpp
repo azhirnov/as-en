@@ -45,11 +45,12 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
     VkDeviceMemory  staging_memory  = VK_NULL_HANDLE;
     T *             mapped          = null;
     const uint2     img_dim         { 64, 64 };
+    const uint      pixel_count     = Area( img_dim );
     {
         VkBufferCreateInfo  info = {};
         info.sType          = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         info.flags          = 0;
-        info.size           = img_dim.x * img_dim.y * sizeof(*mapped);
+        info.size           = pixel_count * sizeof(*mapped);
         info.usage          = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         info.sharingMode    = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -72,15 +73,17 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
 
         VK_CHECK( dev.vkMapMemory( dev.GetVkDevice(), staging_memory, 0, info.size, 0, OUT BitCast<void**>(&mapped) ));
 
-        for (uint y = 0; y < img_dim.y; ++y)
-        for (uint x = 0; x < img_dim.x; ++x)
+        for (uint y = 0, i = 0; y < img_dim.y; ++y)
+        for (uint x = 0; x < img_dim.x; ++x, ++i)
         {
             T   val = CheckCast<T>( x | (y << 8) ); // 16bit
 
             if constexpr( sizeof(T) >= 4 )
-                val = CheckCast<T>( (((x << 8) | y) << 16) | val ); // 32bit
+                val = CheckCast<T>( (~((x << 8) | y) << 16) | val );    // 32bit
 
-            mapped[y * img_dim.x + x] = val;
+            CHECK( VecToLinear( uint2{x,y}, img_dim ) == i );
+
+            mapped[i] = val;
         }
     }
 
@@ -121,7 +124,7 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
         VkBufferCreateInfo  info = {};
         info.sType          = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         info.flags          = 0;
-        info.size           = img_dim.x * img_dim.y * sizeof(*mapped);
+        info.size           = pixel_count * sizeof(*mapped);
         info.usage          = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
         info.sharingMode    = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -190,7 +193,7 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
         VkBufferCopy    buf_copy = {};
         buf_copy.srcOffset  = 0;
         buf_copy.dstOffset  = 0;
-        buf_copy.size       = img_dim.x * img_dim.y * sizeof(*mapped);
+        buf_copy.size       = pixel_count * sizeof(*mapped);
         dev.vkCmdCopyBuffer( cmd_buffer, buffer, staging_buffer, 1, &buf_copy );
 
         VK_CHECK( dev.vkEndCommandBuffer( cmd_buffer ));
@@ -205,14 +208,13 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
 
 
     // find block size
-    uint2       tile_size {0};
-    const uint  data_size = img_dim.x * img_dim.y;
+    uint2   tile_size {0};
     {
         enum class E : uint { _Count    = 64 * 64 };
         EnumBitSet<E>   bits;
-        CHECK_ERRV( bits.size() == data_size );
+        CHECK_ERRV( bits.size() == pixel_count );
 
-        for (uint i = 0; i < data_size; ++i)
+        for (uint i = 0; i < pixel_count; ++i)
         {
             uint2   coord = (uint2(mapped[i], mapped[i] >> 8) & 0xFFu);
 
@@ -220,7 +222,7 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
 
             if constexpr( sizeof(T) >= 4 )
             {
-                uint2   coord2 = (uint2(mapped[i] >> 24, mapped[i] >> 16) & 0xFFu);
+                uint2   coord2 = (~uint2(mapped[i] >> 24, mapped[i] >> 16)) & 0xFFu;
                 CHECK( All( coord == coord2 ));
             }
 
@@ -244,7 +246,7 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
     const uint2 max_coord   = Max( tile_size.x, tile_size.y ) < 8 ? tile_size * 2 : tile_size;
     const uint  block_size  = max_coord.x * max_coord.y;
 
-    if ( block_size != data_size )
+    //if ( block_size != pixel_count )
     {
         String  str;
         str << "\nDevice: '" << dev.GetDeviceName() << "'";
@@ -252,7 +254,7 @@ static void  PrintImageZCurve (const VDevice &dev, EPixelFormat fmt, bool printS
 
         const uint2 align = uint2{IntLog10(max_coord.x), IntLog10(max_coord.y)} + 1u;
 
-        for (uint i = 0; i < block_size and i < data_size; ++i)
+        for (uint i = 0; i < block_size and i < pixel_count; ++i)
         {
             uint2   coord = (uint2(mapped[i], mapped[i] >> 8) & 0xFFu);
 

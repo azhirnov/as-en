@@ -1,6 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
-file( GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.as" "*.glsl" "*.msl" )
+file( GLOB_RECURSE SOURCES "*.h" "*.cpp" "*.as" "*.glsl" "*.msl" "*.md" )
 
 if (DEFINED ANDROID)
     set( APP_NAME "SampleDemo" )

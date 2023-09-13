@@ -948,10 +948,11 @@ namespace {
         BEGIN_ENUM_CHECKS();
         switch ( flags )
         {
-            case DebugView::EFlags::Copy :          rt->AddUsage( EResourceUsage::Transfer );   break;
-            case DebugView::EFlags::NoCopy :        rt->AddUsage( EResourceUsage::Present );    break;
-            case DebugView::EFlags::Histogram :     rt->AddUsage( EResourceUsage::Sampled );    break;
-            case DebugView::EFlags::LinearDepth :   rt->AddUsage( EResourceUsage::Sampled );    break;
+            case DebugView::EFlags::Copy :          rt->AddUsage( EResourceUsage::Transfer );       break;
+            case DebugView::EFlags::NoCopy :        rt->AddUsage( EResourceUsage::Present );        break;
+            case DebugView::EFlags::Histogram :     rt->AddUsage( EResourceUsage::Sampled );        break;
+            case DebugView::EFlags::LinearDepth :   rt->AddUsage( EResourceUsage::Sampled );        break;
+            case DebugView::EFlags::Stencil :       rt->AddUsage( EResourceUsage::DepthStencil );   break;
             case DebugView::EFlags::_Count :
             default :                               CHECK_THROW_MSG( false, "unsupported flags" );
         }
@@ -1266,7 +1267,8 @@ namespace {
         binder.AddValue( "Copy",        DebugView::EFlags::Copy );
         binder.AddValue( "Histogram",   DebugView::EFlags::Histogram );
         binder.AddValue( "LinearDepth", DebugView::EFlags::LinearDepth );
-        STATIC_ASSERT( uint(DebugView::EFlags::_Count) == 4 );
+        binder.AddValue( "Stencil",     DebugView::EFlags::Stencil );
+        STATIC_ASSERT( uint(DebugView::EFlags::_Count) == 5 );
     }
 
 /*
@@ -1536,6 +1538,32 @@ namespace {
     bool  ScriptExe::ScriptResourceApi::IsPassGroup (const ScriptBasePassPtr &pass) __NE___
     {
         return DynCast<ScriptPassGroup>( pass.Get() ) != null;
+    }
+
+/*
+=================================================
+    ToAbsolute
+=================================================
+*/
+    Path  ScriptExe::ScriptResourceApi::ToAbsolute (const String &inPath) __Th___
+    {
+        CHECK_THROW( s_scriptExe != null );
+
+        auto&       cfg = s_scriptExe->_config;
+        const usize cnt = Min( cfg.vfsPaths.size(), cfg.vfsPathPrefixes.size() );
+
+        for (usize i = 0; i < cnt; ++i)
+        {
+            if ( StartsWith( inPath, cfg.vfsPathPrefixes[i] ))
+            {
+                Path    path = cfg.vfsPaths[i] / inPath.substr( cfg.vfsPathPrefixes[i].size() );
+                if ( FileSystem::IsFile( path ))
+                    return FileSystem::ToAbsolute( path );
+            }
+        }
+
+        CHECK_THROW_MSG( false,
+            "File '"s << inPath << "' is not exists" );
     }
 
 } // AE::ResEditor

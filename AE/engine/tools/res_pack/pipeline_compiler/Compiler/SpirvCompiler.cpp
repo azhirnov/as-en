@@ -1161,7 +1161,7 @@ namespace AE::PipelineCompiler
 
             CHECK( (result & EImageType::_ValMask) == EImageType::Float );
             result &= ~EImageType::Float;
-            result |= EImageType::Depth;    // TODO: depth stenicl
+            result |= EImageType::Depth;    // TODO: depth stencil
         }
 
         BEGIN_ENUM_CHECKS();
@@ -1196,21 +1196,23 @@ namespace AE::PipelineCompiler
                 break;
             }
 
+            case TSamplerDim::EsdSubpass :
+            {
+                COMP_CHECK_ERR( type.isSubpass() );
+                COMP_CHECK_ERR( not samp.isArrayed() );
+                if ( samp.isMultiSample() ) result |= EImageType::Img2DMS;  else
+                                            result |= EImageType::Img2D;
+                break;
+            }
+
             case TSamplerDim::EsdBuffer :
             case TSamplerDim::EsdNone :
             case TSamplerDim::EsdRect :
-            case TSamplerDim::EsdSubpass :
             case TSamplerDim::EsdNumDims :
             default :
                 COMP_RETURN_ERR( "unknown sampler dimension type!" );
         }
         END_ENUM_CHECKS();
-
-        if ( type.isSubpass() )
-        {
-            COMP_CHECK_ERR( samp.dim == TSamplerDim::Esd2D );
-            COMP_CHECK_ERR( not samp.isArrayed() );
-        }
 
         return result;
     }
@@ -1459,6 +1461,20 @@ namespace AE::PipelineCompiler
     EShaderIO  SpirvCompiler::_ExtractShaderIOType (const glslang::TType &type) const
     {
         using namespace glslang;
+
+        if ( type.isSubpass() )
+        {
+            STATIC_ASSERT( uint(EShaderIO::_Count) == 13 );
+            switch( type.getSampler().type )
+            {
+                case TBasicType::EbtFloat :     return EShaderIO::Float;
+                case TBasicType::EbtFloat16 :   return EShaderIO::Half;
+                case TBasicType::EbtInt :       return EShaderIO::Int;
+                case TBasicType::EbtUint :      return EShaderIO::UInt;
+                // TODO: other types ?
+            }
+            COMP_RETURN_ERR( "unsupported subpass input" );
+        }
 
         COMP_CHECK_ERR( type.getVectorSize() == 4 );
 

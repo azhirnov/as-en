@@ -18,8 +18,6 @@
 #ifdef SH_FRAG
     #include "Geometry.glsl"
 
-    layout(location=0) out float4  out_Color;
-
     void Main ()
     {
         float   depth   = gl.texture.Fetch( un_Depth, int2(gl.FragCoord.xy), 0 ).r;

@@ -79,7 +79,7 @@ void  CreateCPipeline ()
 
         RC<Shader>  cs = Shader();
         cs.ComputeLocalSize( 8, 8 );
-        cs.file = "histogram_cs1.glsl";     // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram_cs1.glsl
+        cs.file = "histogram_cs1.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_ui_data/shaders/histogram_cs1.glsl)
         ppln.SetShader( cs );
 
         // specialization
@@ -96,7 +96,7 @@ void  CreateCPipeline ()
 
         RC<Shader>  cs = Shader();
         cs.ComputeLocalSize( 64 );
-        cs.file = "histogram_cs2.glsl";     // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram_cs2.glsl
+        cs.file = "histogram_cs2.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_ui_data/shaders/histogram_cs2.glsl)
         ppln.SetShader( cs );
 
         // specialization
@@ -126,12 +126,12 @@ void  CreateGPipeline ()
 
     {
         RC<Shader>  vs  = Shader();
-        vs.file = "histogram.glsl";     // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram.glsl
+        vs.file = "histogram.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_ui_data/shaders/histogram.glsl)
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file = "histogram.glsl";     // file:///<path>/AE/samples/res_editor/_ui_data/shaders/histogram.glsl
+        fs.file = "histogram.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_ui_data/shaders/histogram.glsl)
         ppln.SetFragmentShader( fs );
     }
 

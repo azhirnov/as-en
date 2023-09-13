@@ -17,7 +17,7 @@
         Thread-safe:    yes
 ----
 
-    docs: file:///<path>/AE/engine/docs/ru/VirtualFileSystem.md
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/ru/VirtualFileSystem.md)
 */
 
 #pragma once

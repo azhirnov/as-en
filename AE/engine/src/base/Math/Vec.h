@@ -1460,11 +1460,11 @@ namespace AE::Math
 
 /*
 =================================================
-    ToLinear
+    VecToLinear
 =================================================
 */
     template <typename T, int I, glm::qualifier Q>
-    ND_ EnableIf<IsScalar<T>, T>  ToLinear (const TVec<T,I,Q> &pos, const TVec<T,I,Q> &dim) __NE___
+    ND_ EnableIf<IsScalar<T>, T>  VecToLinear (const TVec<T,I,Q> &pos, const TVec<T,I,Q> &dim) __NE___
     {
         if constexpr( I == 1 )
             return pos.x;

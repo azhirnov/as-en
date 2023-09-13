@@ -411,6 +411,13 @@ namespace
                     if ( not include_scope.empty() )
                         include &= include_scope.back();
                     include_scope.push_back( include );
+
+                    if ( include )
+                    {
+                        ASSERT( begin_block == UMax );
+                        begin_block = pos;
+                        Parser::ToEndOfLine( str, INOUT begin_block );
+                    }
                 }
                 else
                 if ( str.substr( pos, 5 ) == "endif" )

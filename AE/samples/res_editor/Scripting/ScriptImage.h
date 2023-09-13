@@ -54,13 +54,16 @@ namespace AE::ResEditor
         ScriptImage (uint imageType, const String &filename)                        __Th___;
         ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds)            __Th___;
         ScriptImage (EPixelFormat format, const packed_uint3 &dim)                  __Th___;
-        ScriptImage (EPixelFormat format, const packed_uint3 &dim, const ImageLayer &layers, const MipmapLevel &mipmaps)        __Th___;
-        ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds, const ImageLayer &layers, const MipmapLevel &mipmaps)  __Th___;
+        ScriptImage (EPixelFormat format, const packed_uint3 &dim,
+                     const ImageLayer &layers, const MipmapLevel &mipmaps)          __Th___;
+        ScriptImage (EPixelFormat format, const ScriptDynamicDimPtr &ds,
+                     const ImageLayer &layers, const MipmapLevel &mipmaps)          __Th___;
 
         void  Name (const String &name)                                             __Th___;
 
         void  AddUsage (EResourceUsage usage)                                       __Th___;
         void  SetSwizzle (const String &value)                                      __Th___;
+        void  SetAspectMask (EImageAspect value)                                    __Th___;
 
         void  LoadLayer1 (const String &filename, uint layer)                       __Th___;
         void  LoadLayer2 (const String &filename, uint layer, ELoadOpFlags flags)   __Th___;
@@ -79,10 +82,14 @@ namespace AE::ResEditor
         ND_ uint                MipmapCount ()                                      C_Th___;
 
         ND_ ImageDesc           Description ()                                      C_NE___;
+        ND_ ImageViewDesc       ViewDescription ()                                  C_NE___ { return _viewDesc; }
         ND_ uint                ImageType ()                                        C_NE___ { return _imageType; }
 
-        ND_ bool                IsColor ()                                          C_NE___;
-        ND_ bool                IsDepthStencil ()                                   C_NE___;
+        ND_ bool                IsColor ()                                          C_NE___ { return not IsDepthOrStencil(); }
+        ND_ bool                HasDepth ()                                         C_NE___;
+        ND_ bool                HasStencil ()                                       C_NE___;
+        ND_ bool                IsDepthOrStencil ()                                 C_NE___;
+        ND_ bool                IsDepthAndStencil ()                                C_NE___ { return HasDepth() and HasStencil(); }
 
             ScriptImage*        CreateView1 (EImage             viewType,
                                              const MipmapLevel& baseMipmap,
@@ -100,6 +107,8 @@ namespace AE::ResEditor
                                              const ImageLayer&  baseLayer,
                                              uint               layerCount)         __Th___;
 
+            ScriptImage*        CreateView5 ()                                      __Th___ { return CreateView2( Default ); }
+
 
         static void  Bind (const ScriptEnginePtr &se)                               __Th___;
 
@@ -115,7 +124,7 @@ namespace AE::ResEditor
 
         ND_ auto  _GetImageType ()                                                  C_Th___;
 
-        ND_ bool  _IsFloatFormat ()                                                 C_Th___;    // float / hald / unorm / snorm
+        ND_ bool  _IsFloatFormat ()                                                 C_Th___;    // float / half / unorm / snorm
         ND_ bool  _IsIntFormat ()                                                   C_Th___;
         ND_ bool  _IsUIntFormat ()                                                  C_Th___;
 

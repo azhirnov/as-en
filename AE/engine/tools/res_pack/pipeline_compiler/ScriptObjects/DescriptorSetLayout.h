@@ -71,7 +71,7 @@ namespace AE::PipelineCompiler
         void  AddSampledImage (EShaderStages, const String &name, const ArraySize &, EImageType, EResourceState)                                            __Th___;
         void  AddCombinedImage (EShaderStages, const String &name, const ArraySize &, EImageType, EResourceState)                                           __Th___;
         void  AddCombinedImage_ImmutableSampler (EShaderStages, const String &name, EImageType, EResourceState, const String &samplerName)                  __Th___;
-        void  AddSubpassInput (EShaderStages, const String &name, EImageType, EResourceState)                                                               __Th___;
+        void  AddSubpassInput (EShaderStages, const String &name, uint index, EImageType, EResourceState)                                                   __Th___;
         void  AddSubpassInputFromRenderTech (const String &renTechName, const String &passName)                                                             __Th___;
         void  AddSubpassInputFromRenderPass (const String &compatRPassName, const String &subpassName)                                                      __Th___;
         void  AddSampler (EShaderStages, const String &name, const ArraySize &)                                                                             __Th___;

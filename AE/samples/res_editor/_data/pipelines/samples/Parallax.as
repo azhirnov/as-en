@@ -70,7 +70,6 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_VERT
-    #include "Math.glsl"
     #include "Transform.glsl"
 
     void Main ()

@@ -36,8 +36,8 @@
             camera.FovY( 50.f );
 
             const float s = 0.8f;
-            camera.ForwardBackwardScale( s, s );
-            camera.UpDownScale( s, s );
+            camera.ForwardBackwardScale( s );
+            camera.UpDownScale( s );
             camera.SideMovementScale( s );
 
             camera.Position( float3(0.f, 0.f, -3.f));
@@ -53,7 +53,7 @@
             for (ipos.y = 0; ipos.y < grid_dim.y; ++ipos.y)
             for (ipos.x = 0; ipos.x < grid_dim.x; ++ipos.x)
             {
-                int     idx     = ToLinear( ipos, grid_dim );
+                int     idx     = VecToLinear( ipos, grid_dim );
                 float   scale1  = 0.2f;
                 float   scale2  = 2.5f;
                 float3  pos     = (float3(ipos - grid_dim / 2) * scale2 + ToSNorm(Rnd3())) * scale1;
@@ -111,7 +111,7 @@
             ClearBuffer( count_buf, 0 );
 
             RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "main pass" );
-            draw.AddPipeline( "samples/OIT-LinkedList1.as" );   // file:///C:/Projects/AllinOne/AE/samples/res_editor/_data/pipelines/samples/OIT-LinkedList1.as
+            draw.AddPipeline( "samples/OIT-LinkedList1.as" );   // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/OIT-LinkedList1.as)
             draw.Output( ds, DepthStencil( 1.f, 0 ));
         }
         {
@@ -212,6 +212,7 @@
         }
 
         out_Color = color;
+        out_Color.a = 1.0;
     }
 
 #endif

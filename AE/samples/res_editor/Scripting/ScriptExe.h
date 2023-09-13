@@ -51,8 +51,12 @@ namespace AE::ResEditor
 
         struct Config
         {
-            Path            cppTypesFolder;
-            Path            scriptHeaderOutFolder;
+            Path                cppTypesFolder;
+            Path                scriptHeaderOutFolder;
+
+            // emulate VFS
+            ArrayView<Path>     vfsPaths;
+            ArrayView<String>   vfsPathPrefixes;
         };
 
         struct ScriptConfig
@@ -326,6 +330,8 @@ namespace AE::ResEditor
 
         ND_ static Renderer&    GetRenderer ()                                          __Th___;
         ND_ static bool         IsPassGroup (const ScriptBasePassPtr &pass)             __NE___;
+
+        ND_ static Path         ToAbsolute (const String &)                             __Th___;
     };
 
 

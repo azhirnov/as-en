@@ -41,6 +41,14 @@ namespace
         return ScriptPostprocessPtr{ new ScriptPostprocess{ name, ppFlags, defines, baseFlags }}.Detach();
     }
 
+    static ScriptPostprocess*  ScriptPostprocess_Ctor9 (const String &name, const String &defines) {
+        return ScriptPostprocessPtr{ new ScriptPostprocess{ name, Default, defines, Default }}.Detach();
+    }
+
+    static ScriptPostprocess*  ScriptPostprocess_Ctor10 (const String &name, const String &defines, ScriptBasePass::EFlags baseFlags) {
+        return ScriptPostprocessPtr{ new ScriptPostprocess{ name, Default, defines, baseFlags }}.Detach();
+    }
+
     static constexpr float  DefaultIPD  = 64.0e-3f;
 
 } // namespace
@@ -125,6 +133,8 @@ namespace
             binder.AddFactoryCtor( &ScriptPostprocess_Ctor6,    {"postprocessFlags", "defines", "passFlags"} );
             binder.AddFactoryCtor( &ScriptPostprocess_Ctor7,    {"shaderPath", "postprocessFlags", "passFlags"} );
             binder.AddFactoryCtor( &ScriptPostprocess_Ctor8,    {"shaderPath", "postprocessFlags", "defines", "passFlags"} );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor9,    {"shaderPath", "defines"} );
+            binder.AddFactoryCtor( &ScriptPostprocess_Ctor10,   {"shaderPath", "defines", "passFlags"} );
         }
     }
 
@@ -160,6 +170,7 @@ namespace
         result->_rpDesc.subpassName     = SubpassName{"main"};
         result->_rpDesc.packId          = result->_rtech.packId;
         result->_rpDesc.layerCount      = 1_layer;
+        result->_depthRange             = this->_depthRange;
 
         EnumBitSet<IPass::EDebugMode>   dbg_modes;
 

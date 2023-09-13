@@ -1,4 +1,12 @@
-**Editor for shaders and procedural content.**
+## Editor for shaders and procedural content
+
+Content:
+* [Features](#features)
+* [Controls](#controls)
+* [Editor UI](docs/EditorUI.md)
+* [Samples](docs/Samples.md)
+* [Scripts](docs/Scripts.md)
+
 
 ## Features
 
@@ -33,26 +41,7 @@
 `F1` - show/hide help with key bindings<br/>
 
 
-## Editor UI
+## Release
 
-### Scripts folder
-
-### Editor folder
-
-#### Debugger
-
-#### Capture
-
-#### Sliders
-
-#### Statistics
-
-
-### Graphics folder
-
-
-## Profiler windows
-
-
-## Scripts
-
+Precompiled editor with resources:<br/>
+[Win64 - v23.09.187](https://drive.google.com/file/d/1e_TyVnyi61r8Fk0iXVc_vIxzYEuoPxZS/view?usp=drive_link)

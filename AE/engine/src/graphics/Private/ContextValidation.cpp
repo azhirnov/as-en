@@ -629,8 +629,10 @@ namespace
 */
     void  ComputeContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName) __Th___
     {
-        GCTX_CHECK( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
-        GCTX_CHECK( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
+        DEBUG_ONLY(
+            GCTX_CHECK( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
+            GCTX_CHECK( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
+        )
     }
 
 # ifdef AE_ENABLE_VULKAN
@@ -723,8 +725,10 @@ namespace
 */
     void  DrawContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName) __Th___
     {
-        GCTX_CHECK( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
-        GCTX_CHECK( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
+        DEBUG_ONLY(
+            GCTX_CHECK( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
+            GCTX_CHECK( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
+        )
     }
 
 # ifdef AE_ENABLE_VULKAN
@@ -1508,8 +1512,10 @@ namespace
 */
     void  RayTracingContextValidation::PushConstant (const PushConstantIndex &idx, Bytes size, const ShaderStructName &typeName) __Th___
     {
-        GCTX_CHECK( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
-        GCTX_CHECK( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
+        DEBUG_ONLY(
+            GCTX_CHECK( typeName == Default or idx.typeName == Default or idx.typeName == typeName );
+            GCTX_CHECK( Bytes{idx.dataSize} == size or idx.dataSize == 0 );
+        )
     }
 
 # ifdef AE_ENABLE_VULKAN

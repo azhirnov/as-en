@@ -144,7 +144,6 @@
 //-----------------------------------------------------------------------------
 
 #ifdef SH_MESH
-    #include "Math.glsl"
     #include "Transform.glsl"
 
     void Main ()

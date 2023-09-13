@@ -34,7 +34,7 @@ __HDR (RGBA16F формат)__
 
 ## Режимы (ESurfaceFormat)
 
-Исходники: [FeatureSetEnums.h - ESurfaceFormat](../../src/graphics/Public/FeatureSetEnums.h#L26)
+Исходники: [FeatureSetEnums.h - ESurfaceFormat](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/FeatureSetEnums.h#L26)
 
 ### `RGBA16F_Extended_sRGB_linear`
 

@@ -310,7 +310,7 @@ namespace AE::Threading
             ND_ AsyncTaskCoro       get_return_object ()    __NE___ { return AsyncTaskCoro{ *this }; }
 
             ND_ std::suspend_always initial_suspend ()      C_NE___ { return {}; }          // delayed start
-            ND_ std::suspend_always final_suspend ()        C_NE___ { return {}; }          // must not be 'suspend_never'  // TODO: don't suspend
+            ND_ std::suspend_always final_suspend ()        C_NE___ { return {}; }          // must not be 'suspend_never'  // TODO: imediately destroy coroutine
 
                 void                return_void ()          C_NE___ {}
 

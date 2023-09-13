@@ -70,7 +70,7 @@ namespace AE::ResEditor
 
     // types
     private:
-        using PipelinePathes_t      = Array< Path >;
+        using PipelinePaths_t       = Array< Path >;
         using UniquePipelines_t     = FlatHashSet< Path, PathHasher >;
         using EDebugMode            = IPass::EDebugMode;
 
@@ -87,7 +87,7 @@ namespace AE::ResEditor
         ScriptBaseControllerPtr     _controller;
         const String                _passName;
 
-        PipelinePathes_t            _pipelines;
+        PipelinePaths_t             _pipelines;
         UniquePipelines_t           _uniquePplns;
 
 

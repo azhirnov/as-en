@@ -1,6 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     Simple flight game.
+    Map is ray marched (skyline shader from shadertoy).
+    SDF used to calculate collision with camera (player).
+    Camera rotation used to calculate lift force.
 */
 #ifdef __INTELLISENSE__
 #   include <res_editor.as>
@@ -85,6 +88,7 @@
         return t;
     }
 
+    // Lift force - gravity force
     ND_ float  LiftMinusGravity ()
     {
         float3  v0  = (un_PerPass.camera.view * float4(-1.f, 0.f, 0.f, 0.f)).xyz;   v0.y = 0.f;

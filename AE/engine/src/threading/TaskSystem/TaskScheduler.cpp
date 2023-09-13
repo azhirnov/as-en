@@ -368,7 +368,7 @@ DEBUG_ONLY(
     TaskScheduler::TaskScheduler () __NE___ :
         _canceledTask{ MakeRC<CanceledTask>() } // throw
     {
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             _deadlockCheck.lastUpdate.store( TimePoint_t::clock::now() );
         )
     }

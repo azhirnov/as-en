@@ -240,6 +240,29 @@ namespace AE::PipelineCompiler
         }
         return str;
     }
+
+/*
+=================================================
+    EImageType_ToShaderIO
+=================================================
+*/
+    EShaderIO  EImageType_ToShaderIO (EImageType type) __NE___
+    {
+        switch ( type & EImageType::_ValMask )
+        {
+            case EImageType::sRGB :         return EShaderIO::sRGB;
+            case EImageType::Float :        return EShaderIO::Float;
+            case EImageType::SNorm :        return EShaderIO::SNorm;
+            case EImageType::UNorm :        return EShaderIO::UNorm;
+            case EImageType::Half :         return EShaderIO::Half;
+            case EImageType::Int :          return EShaderIO::Int;
+            case EImageType::UInt :         return EShaderIO::UInt;
+            case EImageType::Depth :        return EShaderIO::Depth;
+            case EImageType::Stencil :      return EShaderIO::Stencil;
+            case EImageType::DepthStencil : return EShaderIO::DepthStencil;
+        }
+        RETURN_ERR( "unknown image type" );
+    }
 //-----------------------------------------------------------------------------
 
 

@@ -1046,7 +1046,8 @@ namespace
             }
         }
 
-        CHECK_THROW_MSG( _desc.size > 0 );
+        CHECK_THROW_MSG( _desc.size > 0,
+            "Buffer '"s << _dbgName << "' size is 0" );
         CHECK_THROW_MSG( res_mngr.IsSupported( _desc ),
             "Buffer '"s << _dbgName << "' description is not supported by GPU device" );
 

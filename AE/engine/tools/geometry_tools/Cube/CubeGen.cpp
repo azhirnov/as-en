@@ -131,10 +131,10 @@ namespace AE::GeometryTools
             const float3    bitan2  = float3{SNormShortToFloat( _vertices[i2].bitangent )};
 
             float3  normal, tangent, bitangent;
-            CalcTBN1( pos0, uv0,
-                      pos1, uv1,
-                      pos2, uv2,
-                      OUT normal, OUT tangent, OUT bitangent );
+            CalcTBN( pos0, uv0,
+                     pos1, uv1,
+                     pos2, uv2,
+                     OUT normal, OUT tangent, OUT bitangent );
 
             ASSERT( All(Equals( normal, norm0 )));
             ASSERT( All(Equals( tangent, tan0 )));

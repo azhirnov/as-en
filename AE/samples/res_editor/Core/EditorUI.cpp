@@ -835,6 +835,22 @@ namespace
         auto    capture = s_UIInteraction.capture.WriteNoLock();
         EXLOCK( capture );
 
+        // image capture
+        if ( ImGui::Button( "Screenshot (I)" ))
+            capture->screenshot = true;
+
+        if ( ImGui::BeginCombo( "Image format", ToString(capture->imageFormat).data() ))
+        {
+            for (uint i = 1; i < uint(EImageFormat::_Count); ++i)
+            {
+                if ( ImGui::Selectable( ToString( EImageFormat(i) ).data(), uint(capture->imageFormat) == i ))
+                    capture->imageFormat = EImageFormat(i);
+            }
+            ImGui::EndCombo();
+        }
+
+
+        // video capture
         if ( not capture->video )
         {
             ImGui::PushStyleColor( ImGuiCol_Button,         start_btn_idle );
@@ -852,21 +868,6 @@ namespace
             if ( ImGui::Button( "Stop recording (U)" ))
                 capture->video = false;
             ImGui::PopStyleColor(3);
-        }
-
-        ImGui::SameLine();
-
-        if ( ImGui::Button( "Screenshot (I)" ))
-            capture->screenshot = true;
-
-        if ( ImGui::BeginCombo( "Image format", ToString(capture->imageFormat).data() ))
-        {
-            for (uint i = 1; i < uint(EImageFormat::_Count); ++i)
-            {
-                if ( ImGui::Selectable( ToString( EImageFormat(i) ).data(), uint(capture->imageFormat) == i ))
-                    capture->imageFormat = EImageFormat(i);
-            }
-            ImGui::EndCombo();
         }
 
         ImGui::InputFloat( "Bitrate (Mbit/s)", INOUT &capture->bitrate, 1.f, 102.4f );

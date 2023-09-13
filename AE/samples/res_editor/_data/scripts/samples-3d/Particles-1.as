@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Simulate particles in gravimagnetical field and draw them using geometry shader.
+    Simulate particles in gravimagnetic field and draw them using geometry shader.
 */
 #ifdef __INTELLISENSE__
 #   include <res_editor.as>
@@ -67,8 +67,8 @@
             sim_pass.Slider( "iTimeScale", 1.f, 4.f );
         }{
             RC<SceneGraphicsPass>   draw_pass = scene.AddGraphicsPass( "draw" );
-            draw_pass.AddPipeline( use_rays ? "Particles/Rays.as" :     // file:///<path>/AE/samples/res_editor/_data/pipelines/Particles/Rays.as
-                                              "Particles/Dots.as" );    // file:///<path>/AE/samples/res_editor/_data/pipelines/Particles/Dots.as
+            draw_pass.AddPipeline( use_rays ? "Particles/Rays.as" :     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/Particles/Rays.as)
+                                              "Particles/Dots.as" );    // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/Particles/Dots.as)
             draw_pass.Output( "out_Color", rt, RGBA32f(0.0) );
             draw_pass.Output( ds, DepthStencil(1.f, 0) );
         }

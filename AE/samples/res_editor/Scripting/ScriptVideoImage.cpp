@@ -27,13 +27,10 @@ namespace
     ScriptVideoImage::ScriptVideoImage (EPixelFormat format, const String &filename) __Th___ :
         _format{ format },
         _imageType{uint( PipelineCompiler::EImageType::Img2D | PipelineCompiler::EImageType::Float )},
-        _videoFile{ FileSystem::ToAbsolute( filename )}     // TODO: use VFS
+        _videoFile{ ScriptExe::ScriptResourceApi::ToAbsolute( filename )}  // throw
     {
         if ( _dbgName.empty() )
             _dbgName = Path{filename}.filename().replace_extension("").string().substr( 0, ResNameMaxLen );
-
-        CHECK_THROW_MSG( FileSystem::IsFile( _videoFile ),
-            "File '"s << filename << "' is not exists" );
 
         _resUsage |= EResourceUsage::UploadedData;
 

@@ -22,7 +22,7 @@ void ASmain ()
 
     {
         RC<Shader>  cs  = Shader();
-        cs.file     = "rquery1.glsl";           // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/rquery1.glsl
+        cs.file     = "rquery1.glsl";           // [src](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/shaders/rquery1.glsl)
         cs.version  = EShaderVersion::SPIRV_1_4;
         cs.options  = EShaderOpt::Optimize;
         cs.ComputeSpecAndDefault( 8, 8 );

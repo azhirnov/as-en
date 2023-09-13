@@ -22,7 +22,7 @@ namespace AE::Threading
         //_seedMask = seedMask;
 
         Unused( seedMask, name );
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             _name   = name;
         )
     }
@@ -69,7 +69,7 @@ namespace AE::Threading
     {
         if_likely( AsyncTask task = Pull( seed ))
         {
-            AE_SCHEDULER_PROFILING(
+            DEBUG_ONLY(
                 const auto  start_time = TimePoint_t::clock::now();
             )
 
@@ -96,7 +96,7 @@ namespace AE::Threading
             bool    rerun = false;
             task->_OnFinish( OUT rerun );   // TODO
 
-            AE_SCHEDULER_PROFILING(
+            DEBUG_ONLY(
                 _workTime += (TimePoint_t::clock::now() - start_time).count();
             )
             //AE_LOG_DBG( "--end: "s << task->DbgName() );
@@ -173,7 +173,7 @@ namespace AE::Threading
 */
     AsyncTask  LfTaskQueue::Pull (usize seed) __NE___
     {
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             const auto  start_time = TimePoint_t::clock::now();
         )
 
@@ -238,14 +238,14 @@ namespace AE::Threading
                 const PackedBits    prev_packed = chunk_ptr->packed.exchange( packed, order );
                 CHECK( old_packed == prev_packed );
 
-                AE_SCHEDULER_PROFILING(
+                DEBUG_ONLY(
                     _taskCount.Sub( old_packed.pack.count - packed.pack.count );
                     _totalProcessed.fetch_add( old_packed.pack.count - packed.pack.count );
                 )
 
                 if ( task != null )
                 {
-                    AE_SCHEDULER_PROFILING(
+                    DEBUG_ONLY(
                         _searchTime += (TimePoint_t::clock::now() - start_time).count();
                     )
                     return task;
@@ -253,7 +253,7 @@ namespace AE::Threading
             }
         }
 
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             _searchTime += (TimePoint_t::clock::now() - start_time).count();
         )
         return null;
@@ -271,7 +271,7 @@ namespace AE::Threading
     {
         ASSERT( task != null );
 
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             const auto  start_time = TimePoint_t::clock::now();
         )
 
@@ -327,7 +327,7 @@ namespace AE::Threading
                         // if inserted
                         if_likely( old_packed.pack.count != packed.pack.count )
                         {
-                            AE_SCHEDULER_PROFILING(
+                            DEBUG_ONLY(
                                 _insertionTime += (TimePoint_t::clock::now() - start_time).count();
 
                                 _maxTasks.Max( _taskCount.Add( 1 ));
@@ -381,7 +381,7 @@ namespace AE::Threading
 */
     void  LfTaskQueue::WriteProfilerStat () __NE___
     {
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             auto    work_time   = _workTime.exchange( 0 );
             auto    search_time = _searchTime.exchange( 0 );
             auto    insert_time = _insertionTime.exchange( 0 );

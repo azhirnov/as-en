@@ -350,7 +350,7 @@ namespace AE::ResEditor
     Bind
 ----
     Samplers defined in 'InitPipelineLayout()' in
-    file:///<path>/AE/samples/res_editor/_data/pipelines/ModelShared.as
+    [file](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/ModelReflection.as)
 =================================================
 */
     bool  ModelGeomSource::Textures::Bind (DescriptorUpdater &updater) C_NE___

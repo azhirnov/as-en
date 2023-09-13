@@ -1,5 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
+    Draw scene with shadows.
 */
 #ifdef __INTELLISENSE__
 #   include <pipeline_compiler.as>
@@ -66,7 +67,6 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_VERT
-    #include "Math.glsl"
     #include "Transform.glsl"
 
     void Main ()

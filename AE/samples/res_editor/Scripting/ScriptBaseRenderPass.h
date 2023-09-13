@@ -39,6 +39,7 @@ namespace AE::ResEditor
     // variables
     protected:
         Array<Output>       _output;
+        float2              _depthRange     {0.f, 1.f};
 
 
     // methods
@@ -54,6 +55,8 @@ namespace AE::ResEditor
     private:
         void  _Output2 (Scripting::ScriptArgList args)                                                  __Th___;
         void  _OutputBlend2 (Scripting::ScriptArgList args)                                             __Th___;
+
+        void  _SetDepthRange (float min, float max)                                                     __Th___;
     };
 
 

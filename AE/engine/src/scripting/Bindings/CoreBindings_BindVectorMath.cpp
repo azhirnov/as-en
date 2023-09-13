@@ -391,7 +391,7 @@ namespace
         template <typename V> static typename V::value_type  LengthSq (const V& x)                              { return Math::LengthSq( x ); }
         template <typename V> static typename V::value_type  Distance (const V& x, const V& y)                  { return Math::Distance( x, y ); }
         template <typename V> static typename V::value_type  DistanceSq (const V& x, const V& y)                { return Math::DistanceSq( x, y ); }
-        template <typename V> static typename V::value_type  ToLinear (const V& x, const V& y)                  { return Math::ToLinear( x, y ); }
+        template <typename V> static typename V::value_type  VecToLinear (const V& x, const V& y)               { return Math::VecToLinear( x, y ); }
 
         template <typename V> static V  Cross (const V &x, const V &y)                                          { return Math::Cross( x, y ); }
         template <typename V> static V  Min (const V &x, const V &y)                                            { return Math::Min( x, y ); }
@@ -474,7 +474,7 @@ namespace
             se->AddFunction( &VecFunc::template Clamp_2< Vec_t >,           "Clamp",        {"val", "min", "max"} );
             se->AddFunction( &VecFunc::template Wrap_1< Vec_t >,            "Wrap",         {"val", "min", "max"} );
             se->AddFunction( &VecFunc::template Wrap_2< Vec_t >,            "Wrap",         {"val", "min", "max"} );
-            se->AddFunction( &VecFunc::template ToLinear< Vec_t >,          "ToLinear",     {"pos", "dim"} );
+            se->AddFunction( &VecFunc::template VecToLinear< Vec_t >,       "VecToLinear",  {"pos", "dim"} );
         }
     }
 

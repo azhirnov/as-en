@@ -78,6 +78,6 @@ Compiled resources will be stored in `AE/../AE-Temp` folder. They can be used on
 
 ## Update file paths (optional)
 
-Visual Studio and some other IDEs allows to open file in URL format like a `file:///absolute/path/to/file.txt`, but it requires absolute paths. Source code may contain links to other source files or docs which is written as URLs.<br/>
-Use IDE or other tools to replace placeholder `file:///<path>/...` to a valid absolute path like a `file:///C:/Projects/AE/...`.
+Visual Studio and some other IDEs and programs (Notepad++) allows to open file in URL format like a `file://absolute/path/to/a/file.txt`, but it requires absolute paths. Source code may contain links to other source files or docs which is written as URLs.<br/>
+Use IDE or another tool to replace placeholder `file://<path>/...` to a valid absolute path like a `file://C:/Projects/AE/...`.
 

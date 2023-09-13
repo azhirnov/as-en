@@ -213,6 +213,120 @@ ci.pDependencies   = {
 }
 =========================================================================
 
+Name:  'StencilView.RPass'
+Attachments {
+  [0] 'Color'
+  [1] 'Stencil'
+}
+Subpasses {
+  [0] 'Main'
+    colorAttachments = {
+      [0] UNorm, 'out_Color'
+    }
+    inputAttachments = {
+      [0] Float, 'in_Stencil'
+    }
+}
+FeatureSets = { 'MinimalFS', 'MinDesktop' }
+name               = --
+ci.flags           = 0
+ci.attachmentCount = 2
+ci.pAttachments    = {
+  [0].flags          = 0
+  [0].format         = R8G8B8A8_UNORM
+  [0].samples        = 1
+  [0].loadOp         = DONT_CARE
+  [0].storeOp        = DONT_CARE
+  [0].stencilLoadOp  = DONT_CARE
+  [0].stencilStoreOp = DONT_CARE
+  [0].initialLayout  = GENERAL  (Unknown)
+  [0].finalLayout    = GENERAL  (Unknown)
+  --------
+  [1].flags          = 0
+  [1].format         = D32_SFLOAT_S8_UINT
+  [1].samples        = 1
+  [1].loadOp         = DONT_CARE
+  [1].storeOp        = DONT_CARE
+  [1].stencilLoadOp  = DONT_CARE
+  [1].stencilStoreOp = DONT_CARE
+  [1].initialLayout  = GENERAL  (Unknown)
+  [1].finalLayout    = GENERAL  (Unknown)
+}
+ci.subpassCount = 1
+ci.pSubpasses   = {
+  [0].flags                = 0
+  [0].pipelineBindPoint    = GRAPHICS
+  [0].viewMask             = 0
+  [0].inputAttachmentCount = 1
+  [0].pInputAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 1
+    [0].layout     = GENERAL
+    [0].aspectMask = DEPTH
+  }
+  [0].colorAttachmentCount = 1
+  [0].pColorAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 0
+    [0].layout     = GENERAL
+    [0].aspectMask = 0
+  }
+  [0].pDepthStencilAttachment = {}
+  [0].preserveAttachmentCount = 0
+}
+ci.dependencyCount = 0
+=========================================================================
+
+
+name               = 'StencilView.RPass'
+ci.flags           = 0
+ci.attachmentCount = 2
+ci.pAttachments    = {
+  [0].flags          = 0
+  [0].format         = R8G8B8A8_UNORM
+  [0].samples        = 1
+  [0].loadOp         = DONT_CARE
+  [0].storeOp        = STORE
+  [0].stencilLoadOp  = DONT_CARE
+  [0].stencilStoreOp = DONT_CARE
+  [0].initialLayout  = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
+  [0].finalLayout    = COLOR_ATTACHMENT_OPTIMAL  (ColorAttachment)
+  --------
+  [1].flags          = 0
+  [1].format         = D32_SFLOAT_S8_UINT
+  [1].samples        = 1
+  [1].loadOp         = LOAD
+  [1].storeOp        = NONE
+  [1].stencilLoadOp  = LOAD
+  [1].stencilStoreOp = NONE
+  [1].initialLayout  = SHADER_READ_ONLY_OPTIMAL  (InputDepthStencilAttachment | FragmentShader)
+  [1].finalLayout    = SHADER_READ_ONLY_OPTIMAL  (InputDepthStencilAttachment | FragmentShader)
+}
+ci.subpassCount = 1
+ci.pSubpasses   = {
+  [0].flags                = 0
+  [0].pipelineBindPoint    = GRAPHICS
+  [0].viewMask             = 0
+  [0].inputAttachmentCount = 1
+  [0].pInputAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 1
+    [0].layout     = SHADER_READ_ONLY_OPTIMAL
+    [0].aspectMask = DEPTH
+  }
+  [0].colorAttachmentCount = 1
+  [0].pColorAttachments    = {
+    [0].pNext      = null
+    [0].attachment = 0
+    [0].layout     = COLOR_ATTACHMENT_OPTIMAL
+    [0].aspectMask = 0
+  }
+  [0].pDepthStencilAttachment = {}
+  [0].preserveAttachmentCount = 0
+}
+ci.dependencyCount = 0
+=========================================================================
+
 Name:  'UIRenderPass'
 Attachments {
   [0] 'Color'

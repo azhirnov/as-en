@@ -748,7 +748,7 @@ namespace
 
                         outFragIO.inputAttachments.set( un.image.subpassInputIdx,
                                                         ShaderIOName::Optimized_t{ storage.GetName( un_name )},
-                                                        EPixelFormat_ToShaderIO( un.image.format ));
+                                                        EImageType_ToShaderIO( un.image.type ));
                     }
                 }
             }

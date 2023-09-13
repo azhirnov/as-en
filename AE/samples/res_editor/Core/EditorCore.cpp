@@ -100,7 +100,7 @@ namespace
             return;
         }
 
-        self.vfsPathes.push_back( FileSystem::ToAbsolute( Path{path} ));
+        self.vfsPaths.push_back( FileSystem::ToAbsolute( Path{path} ));
         self.vfsPathPrefixes.push_back( prefix );
     }
 
@@ -473,14 +473,14 @@ void main (Config &out cfg)
 */
     bool  ResEditorApplication::_InitVFS ()
     {
-        for (usize i = 0; i < s_REConfig.vfsPathes.size(); ++i)
+        for (usize i = 0; i < s_REConfig.vfsPaths.size(); ++i)
         {
             const StringView    prefix {s_REConfig.vfsPathPrefixes[i]};
             ASSERT( not prefix.empty() );
             ASSERT( prefix.back() == '/' );
 
             auto    storage = MakeRC<VFS::DiskStaticStorage>();
-            CHECK_ERR( storage->Create( Path{s_REConfig.vfsPathes[i]}, prefix ));
+            CHECK_ERR( storage->Create( Path{s_REConfig.vfsPaths[i]}, prefix ));
             CHECK_ERR( GetVFS().AddStorage( storage ));
         }
 
@@ -550,6 +550,9 @@ void main (Config &out cfg)
             ScriptExe::Config   cfg;
             cfg.cppTypesFolder          = s_REConfig.cppTypesFolder;
             cfg.scriptHeaderOutFolder   = s_REConfig.scriptHeaderOutFolder;
+            cfg.vfsPaths                = s_REConfig.vfsPaths;
+            cfg.vfsPathPrefixes         = s_REConfig.vfsPathPrefixes;
+
             _script.reset( new ScriptExe{ RVRef(cfg) });    // throw
         )
         return  _LoadInputActions();

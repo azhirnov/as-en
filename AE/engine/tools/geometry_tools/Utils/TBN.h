@@ -25,13 +25,13 @@ namespace AE::GeometryTools
 
 /*
 =================================================
-    CalcTBN1
+    CalcTBN
 =================================================
 */
-    inline void  CalcTBN1  (/*vert0*/  const float3 position0, const float2 texcoord0,
-                            /*vert1*/  const float3 position1, const float2 texcoord1,
-                            /*vert2*/  const float3 position2, const float2 texcoord2,
-                            /*output*/ OUT float3 &normal, OUT float3 &tangent, OUT float3 &bitangent)
+    inline void  CalcTBN (/*vert0*/  const float3 position0, const float2 texcoord0,
+                          /*vert1*/  const float3 position1, const float2 texcoord1,
+                          /*vert2*/  const float3 position2, const float2 texcoord2,
+                          /*output*/ OUT float3 &normal, OUT float3 &tangent, OUT float3 &bitangent)
     {
         float3  e0 = float3( position1.x - position0.x,
                              texcoord1.x - texcoord0.x,
@@ -80,34 +80,6 @@ namespace AE::GeometryTools
 
         //if ( Dot( Cross( tangent, bitangent ), normal ) < 0.0 )
         //  tangent = -tangent;
-    }
-
-/*
-=================================================
-    CalcTBN2
-=================================================
-*/
-    inline void  CalcTBN2  (/*vert0*/  const float3 position0, const float2 texcoord0,
-                            /*vert1*/  const float3 position1, const float2 texcoord1,
-                            /*vert2*/  const float3 position2, const float2 texcoord2,
-                            /*bump*/   const float fBumpFactor /*= 0.1*/,
-                            /*output*/ OUT float3 &normal, OUT float3 &tangent, OUT float3 &bitangent)
-    {
-        float3  sw;
-        float3  u  = float3( texcoord0.x, texcoord1.x, texcoord2.x );
-        float3  v  = float3( texcoord0.y, texcoord1.y, texcoord2.y );
-        float3  id = float3( 1.0, 1.0, 1.0 );
-
-        sw = Cross( u, id );
-        sw = sw * (fBumpFactor / Dot(v, sw));
-
-        tangent = Normalize( position0 * sw.x + position1 * sw.y + position2 * sw.z );
-
-        sw = Cross( v, id );
-        sw = sw * (fBumpFactor / Dot(u, sw));
-
-        bitangent = Normalize( position0 * sw.x + position1 * sw.y + position2 * sw.z );
-        normal    = Normalize( Cross( tangent, bitangent ));
     }
 
 

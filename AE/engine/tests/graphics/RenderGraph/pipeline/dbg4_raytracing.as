@@ -21,7 +21,7 @@ void ASmain ()
     // general
     {
         RC<Shader>  rg  = Shader();
-        rg.file     = "rtrace1.glsl";       // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/rtrace1.glsl
+        rg.file     = "rtrace1.glsl";       // [src](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/shaders/rtrace1.glsl)
         rg.type     = EShader::RayGen;
         rg.options  = EShaderOpt::Trace;
         rg.version  = EShaderVersion::SPIRV_1_4;
@@ -32,7 +32,7 @@ void ASmain ()
     }
     {
         RC<Shader>  rm  = Shader();
-        rm.file     = "rtrace1.glsl";       // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/rtrace1.glsl
+        rm.file     = "rtrace1.glsl";       // [src](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/shaders/rtrace1.glsl)
         rm.type     = EShader::RayMiss;
         rm.options  = EShaderOpt::Trace;
         rm.version  = EShaderVersion::SPIRV_1_4;
@@ -43,7 +43,7 @@ void ASmain ()
     // triangle hit groups
     {
         RC<Shader>  rch = Shader();
-        rch.file    = "rtrace1.glsl";       // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/rtrace1.glsl
+        rch.file    = "rtrace1.glsl";       // [src](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/shaders/rtrace1.glsl)
         rch.type    = EShader::RayClosestHit;
         rch.options = EShaderOpt::Trace;
         rch.version = EShaderVersion::SPIRV_1_4;

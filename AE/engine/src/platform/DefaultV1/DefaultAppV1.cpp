@@ -7,6 +7,8 @@
 #include "platform/WinAPI/WinAPICommon.h"
 #include "platform/OpenVR/OpenVRCommon.h"
 
+// Enable it if you have very rare bug with synchs.
+// When Vulkan validation reports error put breakpoint in 'log.clear();' and check 'log' content.
 #define ENABLE_SYNC_LOG     0
 #if ENABLE_SYNC_LOG
 #   include "VulkanSyncLog.h"

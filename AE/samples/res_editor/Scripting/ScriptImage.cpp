@@ -149,21 +149,42 @@ namespace
 
 /*
 =================================================
-    IsColor / IsDepthStencil
+    IsDepthOrStencil / HasDepth / HasStencil
 =================================================
 */
-    bool  ScriptImage::IsColor () C_NE___
-    {
-        return not IsDepthStencil();
-    }
-
-    bool  ScriptImage::IsDepthStencil () C_NE___
+    bool  ScriptImage::IsDepthOrStencil () C_NE___
     {
         using PipelineCompiler::EImageType;
 
         switch ( EImageType(_imageType) & EImageType::_ValMask )
         {
             case EImageType::Depth :
+            case EImageType::Stencil :
+            case EImageType::DepthStencil :
+                return true;
+        }
+        return false;
+    }
+
+    bool  ScriptImage::HasDepth () C_NE___
+    {
+        using PipelineCompiler::EImageType;
+
+        switch ( EImageType(_imageType) & EImageType::_ValMask )
+        {
+            case EImageType::Depth :
+            case EImageType::DepthStencil :
+                return true;
+        }
+        return false;
+    }
+
+    bool  ScriptImage::HasStencil () C_NE___
+    {
+        using PipelineCompiler::EImageType;
+
+        switch ( EImageType(_imageType) & EImageType::_ValMask )
+        {
             case EImageType::Stencil :
             case EImageType::DepthStencil :
                 return true;
@@ -358,6 +379,19 @@ namespace
 
 /*
 =================================================
+    SetAspectMask
+=================================================
+*/
+    void  ScriptImage::SetAspectMask (EImageAspect value) __Th___
+    {
+        CHECK_THROW_MSG( not _resource,
+            "resource is already created, can not change aspect" );
+
+        _viewDesc.aspectMask = value;
+    }
+
+/*
+=================================================
     CreateView*
 =================================================
 */
@@ -379,7 +413,9 @@ namespace
 
         result->_base       = ScriptImagePtr{this};
         result->_viewDesc   = ImageViewDesc{ viewType, Default, baseMipmap, mipmapCount, baseLayer, layerCount };
-        result->_imageType  = uint(PipelineCompiler::EImageType_FromImage( viewType, _desc.samples.IsEnabled() )) |
+        result->_viewDesc.Validate( _desc );
+
+        result->_imageType  = uint(PipelineCompiler::EImageType_FromImage( result->_viewDesc.viewType, _desc.samples.IsEnabled() )) |
                               (_imageType & uint(PipelineCompiler::EImageType::_ValMask));
 
         return result.Detach();
@@ -497,6 +533,10 @@ namespace
             binder.Comment( "Set image swizzle like a 'RGBA', 'R000', ..." );
             binder.AddMethod( &ScriptImage::SetSwizzle,         "SetSwizzle",           {} );
 
+            binder.Comment( "Set image aspect, otherwise it will be auto-detected.\n"
+                            "DepthStencil images can not be sampled, you must choose depth or stencil aspect." );
+            binder.AddMethod( &ScriptImage::SetAspectMask,      "SetAspectMask",        {} );
+
             binder.Comment( "Returns image description" );
             binder.AddMethod( &ScriptImage::_GetImageType,      "ImageType",            {} );
             binder.AddMethod( &ScriptImage::_IsFloatFormat,     "IsFloatFormat",        {} );
@@ -516,6 +556,7 @@ namespace
             binder.AddMethod( &ScriptImage::CreateView2,        "CreateView",           {"viewType"} );
             binder.AddMethod( &ScriptImage::CreateView3,        "CreateView",           {"viewType", "baseMipmap", "mipmapCount"} );
             binder.AddMethod( &ScriptImage::CreateView4,        "CreateView",           {"viewType", "baseLayer", "layerCount"} );
+            binder.AddMethod( &ScriptImage::CreateView5,        "CreateView",           {} );
         }
     }
 

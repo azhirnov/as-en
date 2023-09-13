@@ -2,7 +2,7 @@
 
 if ((TARGET "Scripting") AND (TARGET "PipelineCompiler") AND (TARGET "ResourceLoaders") AND (TARGET "ImGUI-lib") AND AE_HAS_CXX_COROUTINE)
 
-    file( GLOB_RECURSE LIB_SOURCES "*.h" "*.cpp" )
+    file( GLOB_RECURSE LIB_SOURCES "*.h" "*.cpp" "*.md" )
     file( GLOB_RECURSE DATA_FILES  "*.as" "*.glsl" "*.msl" )
 
     file( GLOB_RECURSE SHARED_SHADERS

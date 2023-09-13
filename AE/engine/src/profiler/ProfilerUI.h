@@ -1,6 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    docs: file:///<path>/AE/engine/docs/Profiling.md
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/Profiling.md)
 */
 
 #pragma once
@@ -38,7 +38,7 @@ namespace AE::Profiler
     #endif
 
 
-    // methpds
+    // methods
     public:
         ProfilerUI () {}
         ~ProfilerUI ();

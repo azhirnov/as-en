@@ -47,6 +47,7 @@ if (DEFINED ENGINE_LIBS_PATH)
     set( PREBUILD_CPP_FILE "${DUMMY_CPP_FILE}" )
 endif()
 
+add_subdirectory( "docs" )
 add_subdirectory( "src" )
 add_subdirectory( "tools" )
 

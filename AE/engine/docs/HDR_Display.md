@@ -32,7 +32,7 @@ ASUS smartphone with AMOLED screen with a brightness of 800 nit. Surface with `R
 
 ## Surface format in Engine
 
-Sources: [FeatureSetEnums.h - ESurfaceFormat](../src/graphics/Public/FeatureSetEnums.h#L26)
+Sources: [FeatureSetEnums.h - ESurfaceFormat](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/FeatureSetEnums.h#L26)
 
 ### `RGBA16F_Extended_sRGB_linear`
 

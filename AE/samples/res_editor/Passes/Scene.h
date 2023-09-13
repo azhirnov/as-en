@@ -58,6 +58,8 @@ namespace AE::ResEditor
         Materials_t             _materials;
 
         RenderPassDesc          _rpDesc;
+        float2                  _depthRange         {0.f, 1.f};
+
         ResourceArray           _resources;         // per pass
         RenderTargets_t         _renderTargets;
 

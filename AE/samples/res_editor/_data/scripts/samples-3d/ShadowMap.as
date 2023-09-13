@@ -39,8 +39,8 @@
             camera.FovY( 50.f );
 
             const float s = 0.8f;
-            camera.ForwardBackwardScale( s, s );
-            camera.UpDownScale( s, s );
+            camera.ForwardBackwardScale( s );
+            camera.UpDownScale( s );
             camera.SideMovementScale( s );
         }
 
@@ -52,7 +52,7 @@
 
             array<float3>   normals = positions;
 
-            // move cube
+            // move sphere
             for (uint i = 0; i < positions.size(); ++i) {
                 positions[i] += float3(0.f, -1.0f, 4.f);
             }
@@ -106,12 +106,12 @@
         // render loop
         {
             RC<SceneGraphicsPass>   draw = shadow_scene.AddGraphicsPass( "shadow map pass" );
-            draw.AddPipeline( "samples/ShadowMap-pass1.as" );   // file:///<path>/AE/samples/res_editor/_data/pipelines/samples/ShadowMap-pass1.as
+            draw.AddPipeline( "samples/ShadowMap-pass1.as" );   // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/ShadowMap-pass1.as)
             draw.Output( sm, DepthStencil( 1.f, 0 ));
         }
         {
             RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "main pass" );
-            draw.AddPipeline( "samples/ShadowMap-pass2.as" );   // file:///<path>/AE/samples/res_editor/_data/pipelines/samples/ShadowMap-pass2.as
+            draw.AddPipeline( "samples/ShadowMap-pass2.as" );   // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/ShadowMap-pass2.as)
             draw.Set( camera );
             draw.Output( "out_Color", rt, RGBA32f( 0.3, 0.5, 1.0, 1.0 ));
             draw.Output( ds, DepthStencil( 1.f, 0 ));

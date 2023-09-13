@@ -4,7 +4,7 @@
     Use 'DeviceProperties'  for runtime limits like a alignment.
     Use 'DeviceLimits'      for compile time limits like a alignment.
 
-    docs: file:///<path>/AE/engine/docs/DeviceProperties.md
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/DeviceProperties.md)
 */
 
 #pragma once

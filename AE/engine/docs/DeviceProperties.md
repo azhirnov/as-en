@@ -1,8 +1,8 @@
-source: [DeviceProperties.h](../src/graphics/Public/DeviceProperties.h)
+source: [DeviceProperties.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/DeviceProperties.h)
  
-Use `DeviceProperties const&  RenderTaskScheduler().GetDeviceProperties()` to get runtime limits for the current GPU.
+Use **DeviceProperties** from `DeviceProperties const&  RenderTaskScheduler().GetDeviceProperties();` to get runtime limits for the current GPU.
 
-Use `static constexpr DeviceProperties  DeviceLimits;` to get compile time limits which is compatible with most GPUs.
+Use **DeviceLimits** from `static constexpr DeviceProperties  DeviceLimits;` to get compile time limits which is compatible with most GPUs.
 
 
 ## ResourceAlignment
@@ -115,15 +115,15 @@ __Metal__:  *not defined*.<br/>
 
 * `maxGeometries`<br/>
 __Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::maxGeometryCount.<br/>
-__Metal__:  2^24 (can be extended to 2^30) from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureusage/mtlaccelerationstructureusageextendedlimits)<br/>
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureusage/mtlaccelerationstructureusageextendedlimits): 2^24^ (can be extended to 2^30^)<br/>
 
 * `maxInstances`<br/>
 __Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::maxInstanceCount.<br/>
-__Metal__:  2^24 (can be extended to 2^30) from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureusage/mtlaccelerationstructureusageextendedlimits)<br/>
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureusage/mtlaccelerationstructureusageextendedlimits): 2^24^ (can be extended to 2^30^)<br/>
 
 * `maxPrimitives`<br/>
 __Vulkan__: defined in VkPhysicalDeviceAccelerationStructurePropertiesKHR::maxPrimitiveCount.<br/>
-__Metal__:  2^28 (can be extended to 2^30) from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureusage/mtlaccelerationstructureusageextendedlimits)<br/>
+__Metal__:  from [specs](https://developer.apple.com/documentation/metal/mtlaccelerationstructureusage/mtlaccelerationstructureusageextendedlimits): 2^28^ (can be extended to 2^30^)<br/>
 
 * `maxRecursion`<br/>
 __Vulkan__: defined in VkPhysicalDeviceRayTracingPipelinePropertiesKHR::maxRayRecursionDepth.<br/>

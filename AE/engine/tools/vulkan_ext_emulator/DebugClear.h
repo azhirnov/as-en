@@ -445,8 +445,25 @@
 
         for (uint i = 0; i < rp_ci.attachmentCount; ++i)
         {
-            auto&   dst = attachments[i];
+            const auto& sp  = pCreateInfo->pSubpasses[0];
+            auto&       dst = attachments[i];
             dst = pCreateInfo->pAttachments[i];
+
+            rp_info.finalLayouts[i] = dst.finalLayout;
+
+            bool    skip = false;
+
+            for (uint j = 0; j < sp.inputAttachmentCount; ++j)
+            {
+                uint    att = sp.pInputAttachments[j].attachment;
+                if ( att == i ) {
+                    skip = true;
+                    break;
+                }
+            }
+
+            if ( skip )
+                continue;   // don't change load/store ops
 
             const bool  is_depth    = IsDepthFormat( dst.format );
             const bool  is_stencil  = IsStencilFormat( dst.format );
@@ -477,8 +494,6 @@
                 dst.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
                 (is_depth ? rp_info.storeOps.depth : rp_info.storeOps.color).set( i );
             }
-
-            rp_info.finalLayouts[i] = dst.finalLayout;
         }
 
         // The contents of an attachment within the render area become undefined at the start of a subpass S if all of the following conditions are true:

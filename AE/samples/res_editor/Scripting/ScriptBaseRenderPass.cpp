@@ -31,9 +31,9 @@ namespace AE::ResEditor
         {
             dst.rt = args.Arg< ScriptImagePtr const& >(idx++);
             CHECK_THROW_MSG( dst.rt );
-            dst.rt->AddUsage( dst.rt->IsDepthStencil() ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment );
+            dst.rt->AddUsage( dst.rt->IsDepthOrStencil() ? EResourceUsage::DepthStencil : EResourceUsage::ColorAttachment );
 
-            if ( dst.rt->IsDepthStencil() )
+            if ( dst.rt->IsDepthOrStencil() )
                 dst.name = "DepthStencil";
 
             if ( dst.rt->IsMutableDimension() )
@@ -71,7 +71,7 @@ namespace AE::ResEditor
         else
         if ( args.IsArg< DepthStencil const& >(idx) )
         {
-            CHECK_THROW_MSG( dst.rt->IsDepthStencil() );
+            CHECK_THROW_MSG( dst.rt->IsDepthOrStencil() );
             dst.clear = args.Arg< DepthStencil const& >(idx++);
         }
 
@@ -163,6 +163,18 @@ namespace AE::ResEditor
             CHECK_THROW_MSG( b_factors.empty() and b_ops.empty(),
                 "unsupported fn signature" );
         }
+    }
+
+/*
+=================================================
+    _SetDepthRange
+=================================================
+*/
+    void  ScriptBaseRenderPass::_SetDepthRange (float min, float max) __Th___
+    {
+        CHECK_THROW_MSG( min < max );
+
+        _depthRange = float2{min, max};
     }
 
 

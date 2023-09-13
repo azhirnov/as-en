@@ -1,3 +1,5 @@
 .DS_Store
-external
-tests
+/external
+/tests
+/res_editor_data
+/shadertoy_data

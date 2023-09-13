@@ -39,13 +39,13 @@ void ASmain ()
 
     {
         RC<Shader>  vs = Shader();
-        vs.file     = "imgui.glsl";     // file:///C:/Projects/AllinOne/AE/samples/demo/_data/shaders/imgui.glsl
+        vs.file     = "imgui.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/imgui.glsl)
         vs.options  = EShaderOpt::Optimize;
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs = Shader();
-        fs.file     = "imgui.glsl";     // file:///C:/Projects/AllinOne/AE/samples/demo/_data/shaders/imgui.glsl
+        fs.file     = "imgui.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/imgui.glsl)
         fs.options  = EShaderOpt::Optimize;
         ppln.SetFragmentShader( fs );
     }

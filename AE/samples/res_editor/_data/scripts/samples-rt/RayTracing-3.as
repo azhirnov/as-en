@@ -9,7 +9,6 @@
 #   define AE_RAY_QUERY
 #   include <aestyle.glsl.h>
 #   define GEN_MESH
-#   define GEN_INSTANCES
 #   define RAYTRACE
 #endif
 //-----------------------------------------------------------------------------
@@ -31,8 +30,8 @@
             camera.FovY( 50.f );
 
             const float s = 0.8f;
-            camera.ForwardBackwardScale( s, s );
-            camera.UpDownScale( s, s );
+            camera.ForwardBackwardScale( s );
+            camera.UpDownScale( s );
             camera.SideMovementScale( s );
         }
 
@@ -64,11 +63,6 @@
             upd_verts.ArgInOut( "un_Triangles", triangles );
             upd_verts.LocalSize( 8, 8 );
             upd_verts.DispatchThreads( grid_size, grid_size );
-        }{
-        //  RC<ComputePass>     upd_inst = ComputePass( "", "GEN_INSTANCES" );
-        //  upd_inst.ArgInOut( "un_Instances", scene.InstanceBuffer() );
-        //  upd_inst.LocalSize( 1 );
-        //  upd_inst.DispatchThreads( scene.InstanceCount() );
         }{
             BuildRTGeometry( geom );
             BuildRTScene( scene );
@@ -121,21 +115,6 @@
 
         un_Triangles.positions[idx] = GetPosition( snorm );
         un_Triangles.normals[idx]   = GetNormal( snorm );
-    }
-
-#endif
-//-----------------------------------------------------------------------------
-#ifdef GEN_INSTANCES
-    #include "GlobalIndex.glsl"
-    #include "HWRayTracing.glsl"
-    #include "Matrix.glsl"
-
-    void  Main ()
-    {
-        const int   idx         = GetGlobalIndex();
-        float3x4    transform   = f3x4_Rotate( Pi() * un_PerPass.time * 0.2f, float3(0.f, 1.f, 0.f) );
-
-        un_Instances.elements[idx].transform = transform;
     }
 
 #endif

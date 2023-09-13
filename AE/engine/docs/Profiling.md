@@ -101,14 +101,14 @@ no source
  * Graphics debug/profile
  * Async compute debug/profile
  * Synchronizations debug/profile
- * [VNvPerf](../src/graphics/Vulkan/Utils/VNvPerf.h) class  for interaction
+ * [VNvPerf](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Vulkan/Utils/VNvPerf.h) class  for interaction
 
 #### RenderDoc
 
  * Graphics debugging
  * Shader debugging (requires `EShaderOpt::DebugInfo`)
  * Don't use for profiling!
- * [RenderDocApi](../src/platform/Utils/RenderDocApi.h) class for interaction
+ * [RenderDocApi](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/platform/Utils/RenderDocApi.h) class for interaction
  * `IBaseContext::DebugMarker()`, `IBaseContext::PushDebugGroup()`, `IBaseContext::PopDebugGroup()` methods for interaction
  
 #### Intel VTune / AMD uProf
@@ -125,5 +125,5 @@ no source
 
  * Vulkan debugging
  * [Synchronizations debugging](https://www.lunarg.com/wp-content/uploads/2020/09/Final_LunarG_Guide_to_Vulkan-Synchronization_Validation_08_20.pdf)
- * [EDeviceValidation](../src/graphics/Public/GraphicsCreateInfo.h#L17) flags for interaction
+ * [EDeviceValidation](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/GraphicsCreateInfo.h#L17) flags for interaction
 

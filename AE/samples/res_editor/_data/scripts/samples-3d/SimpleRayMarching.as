@@ -23,8 +23,8 @@
             camera.FovY( 50.f );
 
             const float s = 0.8f;
-            camera.ForwardBackwardScale( s*2.f, s );
-            camera.UpDownScale( s, s );
+            camera.ForwardBackwardScale( s );
+            camera.UpDownScale( s );
             camera.SideMovementScale( s );
         }
 
@@ -110,35 +110,36 @@
         {
             case MTR_Ground :
             {
-                float4  col1 = float4( 0.2, 0.2, 0.2, 1.0 );
-                fragColor = col1 * light;
+                float3  col1 = float3( 0.2, 0.2, 0.2 );
+                fragColor.rgb = col1 * light;
                 break;
             }
             case MTR_Object1 :
             {
-                float4  col1 = float4( 1.0, 0.0, 0.0, 1.0 );
-                fragColor = col1 * light;
+                float3  col1 = float3( 1.0, 0.0, 0.0 );
+                fragColor.rgb = col1 * light;
                 break;
             }
             case MTR_Object2 :
             {
-                float4  col1 = float4( 0.0, 1.0, 0.0, 1.0 );
-                float4  col2 = TriplanarMapping( ray.pos, uv_dir, un_Object2Tex );
-                fragColor = Lerp( col1, col2, float(iTexturing) ) * light;
+                float3  col1 = float3( 0.0, 1.0, 0.0 );
+                float3  col2 = TriplanarMapping( ray.pos, uv_dir, un_Object2Tex ).rgb;
+                fragColor.rgb = Lerp( col1, col2, float(iTexturing) ) * light;
                 break;
             }
             case MTR_Object3 :
             {
-                float4  col1 = float4( 0.0, 0.0, 1.0, 1.0 );
-                float4  col2 = TriplanarMapping( ray.pos, uv_dir, un_Object3Tex );
-                fragColor = Lerp( col1, col2, float(iTexturing) ) * light;
+                float3  col1 = float3( 0.0, 0.0, 1.0 );
+                float3  col2 = TriplanarMapping( ray.pos, uv_dir, un_Object3Tex ).rgb;
+                fragColor.rgb = Lerp( col1, col2, float(iTexturing) ) * light;
                 break;
             }
             case MTR_Sky :
             default :
-                fragColor = float4( 0.0, 1.0, 1.0, 1.0 );
+                fragColor.rgb = float3( 0.0, 1.0, 1.0 );
                 break;
         }
+        fragColor.a = 1.0;
     }
 
 #endif

@@ -217,6 +217,9 @@ namespace
             classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
             classBinder.template AddGenericMethod< void (const String &, const ScriptImagePtr &, const ImageLayer &, const MipmapLevel &, EBlendFactor, EBlendFactor, EBlendOp, EBlendFactor, EBlendFactor, EBlendOp) >( &ScriptBaseRenderPass::_OutputBlend, "OutputBlend", {} );
         }
+
+        // depth
+        classBinder.AddMethod( &ScriptBaseRenderPass::_SetDepthRange, "DepthRange", {"min", "max"} );
     }
 
 

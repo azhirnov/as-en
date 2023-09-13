@@ -67,7 +67,7 @@ namespace AE::Graphics::_hidden_
             _curBlock->size -= _remainSize;
         }
 
-        GCTX_CHECK( _Validate( _root ));
+        ASSERT( _Validate( _root ));
 
         void*   root = _root;
 

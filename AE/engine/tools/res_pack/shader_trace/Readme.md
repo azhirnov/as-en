@@ -351,7 +351,7 @@ for (uint32_t x = 0; x < image_width; ++x)
 ## How to use
 
 Library is already integrated into AsEn Graphics module. See graphics tests as an example:
-[compute](../../../tests/graphics/RenderGraph/Test_RG_Debugger1.cpp), [graphics](../../../tests/graphics/RenderGraph/Test_RG_Debugger2.cpp), [mesh](../../../tests/graphics/RenderGraph/Test_RG_Debugger3.cpp), [ray tracing](../../../tests/graphics/RenderGraph/Test_RG_Debugger4.cpp), [ray query](../../../tests/graphics/RenderGraph/Test_RG_Debugger5.cpp).
+[compute](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/Test_RG_Debugger1.cpp), [graphics](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/Test_RG_Debugger2.cpp), [mesh](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/Test_RG_Debugger3.cpp), [ray tracing](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/Test_RG_Debugger4.cpp), [ray query](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/Test_RG_Debugger5.cpp).
 
 To integrate glsl-trace into another program, follow these steps:
 

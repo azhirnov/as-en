@@ -2,7 +2,7 @@
 ## Graphics IDs
 
 ID is a [trivial type](https://learn.microsoft.com/en-us/cpp/cpp/trivial-standard-layout-and-pod-types?view=msvc-170) which contains index in pool and generation counter.<br/>
-Source code: [HandleTmpl](../src/base/Utils/HandleTmpl.h), [Graphics IDs](../src/graphics/Public/IDs.h).
+Source code: [HandleTmpl](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/base/Utils/HandleTmpl.h), [Graphics IDs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/IDs.h).
 
 Supports strong and weak references:<br/>
 `BufferID` - weak reference.<br/>

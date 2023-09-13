@@ -106,6 +106,7 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef CALC_COLLISION
+    #include "Geometry.glsl"
 
     void  Main ()
     {
@@ -179,18 +180,18 @@
         const float3    normal      = SDFNormal( ray.pos );
         const float     light       = Saturate( Dot( normal, light_dir )) + 0.25f;
         const float     fog         = FogFactorExp( ray.t / max_dist, 16.0f );
-        const float4    fog_color   = float4( 0.4f, 0.4f, 0.5f, 1.f );
+        const float3    fog_color   = float3( 0.4f, 0.4f, 0.5f );
 
-        float4  color;
+        float3  color;
         switch ( mtr_index )
         {
-            case MTR_Ground :   color = float4( 0.2f, 0.2f, 0.2f, 1.f ) * light;    color = Lerp( color, fog_color, fog );  break;
-            case MTR_Column :   color = float4( 1.0f, 0.0f, 0.0f, 1.f ) * light;    color = Lerp( color, fog_color, fog );  break;
+            case MTR_Ground :   color = Lerp( float3( 0.2f, 0.2f, 0.2f ) * light, fog_color, fog ); break;
+            case MTR_Column :   color = Lerp( float3( 1.0f, 0.0f, 0.0f ) * light, fog_color, fog ); break;
             case MTR_Sky :
-            default :           color = float4( 0.0f, 1.0f, 1.0f, 1.f );            break;
+            default :           color = float3( 0.0f, 1.0f, 1.0f );         break;
         }
 
-        gl.image.Store( un_OutImage, GetGlobalCoord().xy, color );
+        gl.image.Store( un_OutImage, GetGlobalCoord().xy, float4(color, 1.f) );
     }
 
 #endif

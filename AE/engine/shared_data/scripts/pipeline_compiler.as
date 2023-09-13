@@ -1,4 +1,4 @@
-//15C169B4
+//18E8568E
 #include <vector>
 #include <string>
 
@@ -20,39 +20,109 @@ struct RC;
 template <typename T>
 using array = std::vector<T>;
 
-struct EShaderPreprocessor;
+struct ESamplerYcbcrModelConversion;
+struct RenderState_ColorBuffer;
+struct short2;
+struct short3;
+struct GraphicsPass;
+struct EAttachment;
+struct ushort4;
+struct sbyte4;
+struct ESubgroupTypes;
+struct sbyte3;
+struct Align;
+struct EAccessType;
+struct EIndex;
+struct ComputePipeline;
+struct float4;
+struct EImageAspect;
+struct EShaderIO;
+struct float2;
+struct float3;
+struct EPipelineOpt;
+struct InstanceIndex;
+struct EVertexInputRate;
+struct ESamplerChromaLocation;
+struct DescriptorSetLayout;
+struct EDescSetUsage;
+struct EPipelineDynamicState;
+struct EFilter;
+struct RayTracingPipeline;
+struct RenderTechnique;
+struct RayTracingShaderBinding;
+struct RenderState_StencilBufferState;
+struct MultiSamples;
+struct ComputePipelineSpec;
+struct RenderState_InputAssemblyState;
+struct EPrimitive;
+struct ESubgroupOperation;
+struct EGraphicsDeviceID;
+struct ubyte3;
+struct ubyte2;
+struct RenderState_RasterizationState;
+struct ESamplerYcbcrRange;
+struct EFormatFeature;
+struct ESamplerUsage;
+struct ubyte4;
+struct CompatibleRenderPass;
+struct GlobalConfig;
+struct ERTInstanceOpt;
+struct ShaderStructType;
+struct Shader;
+struct EBlendFactor;
+struct EStencilOp;
+struct ECompilationTarget;
+struct EAddressMode;
+struct RenderState_MultisampleState;
+struct RayIndex;
+struct bool2;
+struct bool3;
+struct bool4;
+struct MissIndex;
+struct EImage;
+struct EVertexType;
+struct ECullMode;
+struct ELogicOp;
+struct RGBA32i;
+struct ETessPatch;
+struct EBlendOp;
+struct EQueueMask;
 struct ShaderStructTypeUsage;
+struct HSVColor;
+struct EShaderPreprocessor;
+struct RGBA32f;
+struct RenderState_ColorBuffer_ColorMask;
 struct EMipmapFilter;
 struct RGBA8u;
 struct VertexBufferInput;
-struct RGBA32u;
 struct EStructLayout;
 struct Attachment;
+struct RGBA32u;
 struct uint2;
-struct uint3;
-struct ShaderIO;
-struct RenderState_DepthBufferState;
 struct EMutableRenderState;
+struct uint3;
 struct EShader;
+struct ShaderIO;
 struct EShaderStages;
+struct ECompareOp;
+struct RenderState_DepthBufferState;
 struct RenderState_StencilFaceState;
 struct uint4;
-struct ECompareOp;
 struct MeshPipeline;
 struct EVendorID;
-struct FeatureSet;
-struct EResourceState;
-struct ComputePass;
 struct NamedRenderState;
-struct EBorderColor;
+struct FeatureSet;
+struct ComputePass;
+struct EResourceState;
 struct EAttachmentStoreOp;
+struct EBorderColor;
 struct EImageType;
 struct VertexDivisor;
 struct Sampler;
-struct MeshPipelineSpec;
 struct GraphicsPipeline;
 struct CallableIndex;
 struct EShaderOpt;
+struct MeshPipelineSpec;
 struct EFeature;
 struct AttachmentSpec;
 struct RenderState;
@@ -64,94 +134,24 @@ struct ESurfaceFormat;
 struct EShaderVersion;
 struct MipmapLevel;
 struct EValueType;
-struct TilePipeline;
 struct ETessSpacing;
-struct EAttachmentLoadOp;
 struct TilePipelineSpec;
+struct TilePipeline;
+struct EAttachmentLoadOp;
 struct EPolygonMode;
-struct int3;
-struct ImageLayer;
-struct PipelineLayout;
-struct int4;
 struct ArraySize;
 struct int2;
-struct short4;
-struct ushort3;
-struct ushort2;
+struct int3;
 struct GraphicsPipelineSpec;
-struct RenderState_ColorBuffer;
-struct EPixelFormat;
+struct ImageLayer;
+struct int4;
+struct ushort3;
 struct sbyte2;
+struct PipelineLayout;
+struct short4;
+struct EPixelFormat;
+struct ushort2;
 struct RenderPass;
-struct EAttachment;
-struct ESamplerYcbcrModelConversion;
-struct short2;
-struct GraphicsPass;
-struct sbyte4;
-struct sbyte3;
-struct ESubgroupTypes;
-struct Align;
-struct ushort4;
-struct short3;
-struct ComputePipeline;
-struct EIndex;
-struct EAccessType;
-struct float4;
-struct EShaderIO;
-struct EPipelineOpt;
-struct EImageAspect;
-struct InstanceIndex;
-struct float3;
-struct float2;
-struct EVertexInputRate;
-struct EDescSetUsage;
-struct ESamplerChromaLocation;
-struct DescriptorSetLayout;
-struct EPipelineDynamicState;
-struct EFilter;
-struct MultiSamples;
-struct RenderState_StencilBufferState;
-struct RayTracingPipeline;
-struct RayTracingShaderBinding;
-struct ComputePipelineSpec;
-struct RenderTechnique;
-struct EPrimitive;
-struct ESubgroupOperation;
-struct EGraphicsDeviceID;
-struct ubyte3;
-struct ubyte2;
-struct RenderState_InputAssemblyState;
-struct RenderState_RasterizationState;
-struct ESamplerYcbcrRange;
-struct EFormatFeature;
-struct ubyte4;
-struct ESamplerUsage;
-struct CompatibleRenderPass;
-struct EBlendFactor;
-struct GlobalConfig;
-struct ERTInstanceOpt;
-struct ShaderStructType;
-struct Shader;
-struct EAddressMode;
-struct EStencilOp;
-struct RayIndex;
-struct ECompilationTarget;
-struct RenderState_MultisampleState;
-struct bool3;
-struct MissIndex;
-struct RGBA32i;
-struct EImage;
-struct bool2;
-struct ELogicOp;
-struct EVertexType;
-struct ETessPatch;
-struct EBlendOp;
-struct bool4;
-struct RGBA32f;
-struct HSVColor;
-struct ECullMode;
-struct RenderState_ColorBuffer_ColorMask;
-struct EQueueMask;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -948,7 +948,7 @@ int2  Clamp (const int2 & val, const int2 & min, const int2 & max);
 int2  Clamp (const int2 & val, int min, int max);
 int2  Wrap (const int2 & val, const int2 & min, const int2 & max);
 int2  Wrap (const int2 & val, int min, int max);
-int  ToLinear (const int2 & pos, const int2 & dim);
+int  VecToLinear (const int2 & pos, const int2 & dim);
 int3  Abs (const int3 & x);
 int3  MirroredWrap (const int3 & x, const int3 & min, const int3 & max);
 int3  MirroredWrap (const int3 & x, int min, int max);
@@ -960,7 +960,7 @@ int3  Clamp (const int3 & val, const int3 & min, const int3 & max);
 int3  Clamp (const int3 & val, int min, int max);
 int3  Wrap (const int3 & val, const int3 & min, const int3 & max);
 int3  Wrap (const int3 & val, int min, int max);
-int  ToLinear (const int3 & pos, const int3 & dim);
+int  VecToLinear (const int3 & pos, const int3 & dim);
 int4  Abs (const int4 & x);
 int4  MirroredWrap (const int4 & x, const int4 & min, const int4 & max);
 int4  MirroredWrap (const int4 & x, int min, int max);
@@ -972,7 +972,7 @@ int4  Clamp (const int4 & val, const int4 & min, const int4 & max);
 int4  Clamp (const int4 & val, int min, int max);
 int4  Wrap (const int4 & val, const int4 & min, const int4 & max);
 int4  Wrap (const int4 & val, int min, int max);
-int  ToLinear (const int4 & pos, const int4 & dim);
+int  VecToLinear (const int4 & pos, const int4 & dim);
 uint  Sum (const uint2 & x);
 uint  Area (const uint2 & x);
 uint2  Min (const uint2 & x, const uint2 & y);
@@ -981,7 +981,7 @@ uint2  Clamp (const uint2 & val, const uint2 & min, const uint2 & max);
 uint2  Clamp (const uint2 & val, uint min, uint max);
 uint2  Wrap (const uint2 & val, const uint2 & min, const uint2 & max);
 uint2  Wrap (const uint2 & val, uint min, uint max);
-uint  ToLinear (const uint2 & pos, const uint2 & dim);
+uint  VecToLinear (const uint2 & pos, const uint2 & dim);
 uint  Sum (const uint3 & x);
 uint  Area (const uint3 & x);
 uint3  Min (const uint3 & x, const uint3 & y);
@@ -990,7 +990,7 @@ uint3  Clamp (const uint3 & val, const uint3 & min, const uint3 & max);
 uint3  Clamp (const uint3 & val, uint min, uint max);
 uint3  Wrap (const uint3 & val, const uint3 & min, const uint3 & max);
 uint3  Wrap (const uint3 & val, uint min, uint max);
-uint  ToLinear (const uint3 & pos, const uint3 & dim);
+uint  VecToLinear (const uint3 & pos, const uint3 & dim);
 uint  Sum (const uint4 & x);
 uint  Area (const uint4 & x);
 uint4  Min (const uint4 & x, const uint4 & y);
@@ -999,7 +999,7 @@ uint4  Clamp (const uint4 & val, const uint4 & min, const uint4 & max);
 uint4  Clamp (const uint4 & val, uint min, uint max);
 uint4  Wrap (const uint4 & val, const uint4 & min, const uint4 & max);
 uint4  Wrap (const uint4 & val, uint min, uint max);
-uint  ToLinear (const uint4 & pos, const uint4 & dim);
+uint  VecToLinear (const uint4 & pos, const uint4 & dim);
 float2  Abs (const float2 & x);
 float2  MirroredWrap (const float2 & x, const float2 & min, const float2 & max);
 float2  MirroredWrap (const float2 & x, float min, float max);
@@ -1011,7 +1011,7 @@ float2  Clamp (const float2 & val, const float2 & min, const float2 & max);
 float2  Clamp (const float2 & val, float min, float max);
 float2  Wrap (const float2 & val, const float2 & min, const float2 & max);
 float2  Wrap (const float2 & val, float min, float max);
-float  ToLinear (const float2 & pos, const float2 & dim);
+float  VecToLinear (const float2 & pos, const float2 & dim);
 float2  ToSNorm (const float2 & x);
 float2  ToUNorm (const float2 & x);
 float  Dot (const float2 & x, const float2 & y);
@@ -1046,7 +1046,7 @@ float3  Clamp (const float3 & val, const float3 & min, const float3 & max);
 float3  Clamp (const float3 & val, float min, float max);
 float3  Wrap (const float3 & val, const float3 & min, const float3 & max);
 float3  Wrap (const float3 & val, float min, float max);
-float  ToLinear (const float3 & pos, const float3 & dim);
+float  VecToLinear (const float3 & pos, const float3 & dim);
 float3  Cross (const float3 & x, const float3 & y);
 float3  ToSNorm (const float3 & x);
 float3  ToUNorm (const float3 & x);
@@ -1082,7 +1082,7 @@ float4  Clamp (const float4 & val, const float4 & min, const float4 & max);
 float4  Clamp (const float4 & val, float min, float max);
 float4  Wrap (const float4 & val, const float4 & min, const float4 & max);
 float4  Wrap (const float4 & val, float min, float max);
-float  ToLinear (const float4 & pos, const float4 & dim);
+float  VecToLinear (const float4 & pos, const float4 & dim);
 float4  ToSNorm (const float4 & x);
 float4  ToUNorm (const float4 & x);
 float  Dot (const float4 & x, const float4 & y);
@@ -2282,6 +2282,13 @@ struct RenderState_StencilBufferState
     RenderState_StencilFaceState front;
     RenderState_StencilFaceState back;
     bool enabled;
+    void  FailOp (EStencilOp);
+    void  DepthFailOp (EStencilOp);
+    void  PassOp (EStencilOp);
+    void  CompareOp (ECompareOp);
+    void  Reference (uint8);
+    void  WriteMask (uint8);
+    void  CompareMask (uint8);
 };
 
 struct RenderState_DepthBufferState
@@ -3302,6 +3309,14 @@ struct DescriptorSetLayout
     void  SubpassInput (uint shaderStages, const string & uniform, EResourceState state);
     void  SubpassInput (EShaderStages shaderStages, const string & uniform, EImageType imageType, EResourceState state);
     void  SubpassInput (uint shaderStages, const string & uniform, EImageType imageType, EResourceState state);
+    void  SubpassInput (EShaderStages shaderStages, const string & uniform, uint inputAttachmentIndex);
+    void  SubpassInput (uint shaderStages, const string & uniform, uint inputAttachmentIndex);
+    void  SubpassInput (EShaderStages shaderStages, const string & uniform, uint inputAttachmentIndex, EImageType imageType);
+    void  SubpassInput (uint shaderStages, const string & uniform, uint inputAttachmentIndex, EImageType imageType);
+    void  SubpassInput (EShaderStages shaderStages, const string & uniform, uint inputAttachmentIndex, EResourceState state);
+    void  SubpassInput (uint shaderStages, const string & uniform, uint inputAttachmentIndex, EResourceState state);
+    void  SubpassInput (EShaderStages shaderStages, const string & uniform, uint inputAttachmentIndex, EImageType imageType, EResourceState state);
+    void  SubpassInput (uint shaderStages, const string & uniform, uint inputAttachmentIndex, EImageType imageType, EResourceState state);
 
     // Add separate sampler.
     void  Sampler (EShaderStages shaderStages, const string & uniform);
@@ -4091,102 +4106,6 @@ const string Sampler_Anisotropy16Repeat;
 const string Sampler_Anisotropy16MirrorRepeat;
 const string Sampler_Anisotropy16Clamp;
 template <>
-struct RC<VertexBufferInput> : VertexBufferInput
-{
-    RC (const VertexBufferInput &);
-};
-
-template <>
-struct RC<Attachment> : Attachment
-{
-    RC (const Attachment &);
-};
-
-template <>
-struct RC<MeshPipeline> : MeshPipeline
-{
-    RC (const MeshPipeline &);
-};
-
-template <>
-struct RC<FeatureSet> : FeatureSet
-{
-    RC (const FeatureSet &);
-};
-
-template <>
-struct RC<ComputePass> : ComputePass
-{
-    RC (const ComputePass &);
-};
-
-template <>
-struct RC<NamedRenderState> : NamedRenderState
-{
-    RC (const NamedRenderState &);
-};
-
-template <>
-struct RC<Sampler> : Sampler
-{
-    RC (const Sampler &);
-};
-
-template <>
-struct RC<MeshPipelineSpec> : MeshPipelineSpec
-{
-    RC (const MeshPipelineSpec &);
-};
-
-template <>
-struct RC<GraphicsPipeline> : GraphicsPipeline
-{
-    RC (const GraphicsPipeline &);
-};
-
-template <>
-struct RC<AttachmentSpec> : AttachmentSpec
-{
-    RC (const AttachmentSpec &);
-};
-
-template <>
-struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
-{
-    RC (const RayTracingPipelineSpec &);
-};
-
-template <>
-struct RC<TilePipeline> : TilePipeline
-{
-    RC (const TilePipeline &);
-};
-
-template <>
-struct RC<TilePipelineSpec> : TilePipelineSpec
-{
-    RC (const TilePipelineSpec &);
-};
-
-template <>
-struct RC<PipelineLayout> : PipelineLayout
-{
-    RC (const PipelineLayout &);
-};
-
-template <>
-struct RC<GraphicsPipelineSpec> : GraphicsPipelineSpec
-{
-    RC (const GraphicsPipelineSpec &);
-};
-
-template <>
-struct RC<RenderPass> : RenderPass
-{
-    RC (const RenderPass &);
-};
-
-template <>
 struct RC<GraphicsPass> : GraphicsPass
 {
     RC (const GraphicsPass &);
@@ -4211,6 +4130,12 @@ struct RC<RayTracingPipeline> : RayTracingPipeline
 };
 
 template <>
+struct RC<RenderTechnique> : RenderTechnique
+{
+    RC (const RenderTechnique &);
+};
+
+template <>
 struct RC<RayTracingShaderBinding> : RayTracingShaderBinding
 {
     RC (const RayTracingShaderBinding &);
@@ -4220,12 +4145,6 @@ template <>
 struct RC<ComputePipelineSpec> : ComputePipelineSpec
 {
     RC (const ComputePipelineSpec &);
-};
-
-template <>
-struct RC<RenderTechnique> : RenderTechnique
-{
-    RC (const RenderTechnique &);
 };
 
 template <>
@@ -4244,5 +4163,101 @@ template <>
 struct RC<Shader> : Shader
 {
     RC (const Shader &);
+};
+
+template <>
+struct RC<VertexBufferInput> : VertexBufferInput
+{
+    RC (const VertexBufferInput &);
+};
+
+template <>
+struct RC<Attachment> : Attachment
+{
+    RC (const Attachment &);
+};
+
+template <>
+struct RC<MeshPipeline> : MeshPipeline
+{
+    RC (const MeshPipeline &);
+};
+
+template <>
+struct RC<NamedRenderState> : NamedRenderState
+{
+    RC (const NamedRenderState &);
+};
+
+template <>
+struct RC<FeatureSet> : FeatureSet
+{
+    RC (const FeatureSet &);
+};
+
+template <>
+struct RC<ComputePass> : ComputePass
+{
+    RC (const ComputePass &);
+};
+
+template <>
+struct RC<Sampler> : Sampler
+{
+    RC (const Sampler &);
+};
+
+template <>
+struct RC<GraphicsPipeline> : GraphicsPipeline
+{
+    RC (const GraphicsPipeline &);
+};
+
+template <>
+struct RC<MeshPipelineSpec> : MeshPipelineSpec
+{
+    RC (const MeshPipelineSpec &);
+};
+
+template <>
+struct RC<AttachmentSpec> : AttachmentSpec
+{
+    RC (const AttachmentSpec &);
+};
+
+template <>
+struct RC<RayTracingPipelineSpec> : RayTracingPipelineSpec
+{
+    RC (const RayTracingPipelineSpec &);
+};
+
+template <>
+struct RC<TilePipelineSpec> : TilePipelineSpec
+{
+    RC (const TilePipelineSpec &);
+};
+
+template <>
+struct RC<TilePipeline> : TilePipeline
+{
+    RC (const TilePipeline &);
+};
+
+template <>
+struct RC<GraphicsPipelineSpec> : GraphicsPipelineSpec
+{
+    RC (const GraphicsPipelineSpec &);
+};
+
+template <>
+struct RC<PipelineLayout> : PipelineLayout
+{
+    RC (const PipelineLayout &);
+};
+
+template <>
+struct RC<RenderPass> : RenderPass
+{
+    RC (const RenderPass &);
 };
 

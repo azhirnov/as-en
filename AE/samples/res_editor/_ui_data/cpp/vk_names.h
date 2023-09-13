@@ -55,6 +55,26 @@ namespace RenderTechs
         } Graphics;
     } LinearDepth_RTech;
 
+    static constexpr struct _StencilView_RTech
+    {
+        constexpr operator RenderTechName_t () const { return RenderTechName_t{"StencilView.RTech"};}
+
+        // graphics (0)
+        static constexpr struct _Graphics
+        {
+            constexpr operator RenderTechPassName_t () const { return RenderTechPassName_t{"Graphics"};}
+
+            // RenderPass 'StencilView.RPass' subpass 'Main'
+
+            static constexpr uint  attachmentsCount = 2;
+            static constexpr AttachmentName_t  att_Color {"Color"};
+            static constexpr AttachmentName_t  att_Stencil {"Stencil"};
+
+            // pipelines
+            static constexpr PipelineName_t  StencilView_draw {"StencilView.draw"};
+        } Graphics;
+    } StencilView_RTech;
+
     static constexpr struct _UI_RTech
     {
         constexpr operator RenderTechName_t () const { return RenderTechName_t{"UI.RTech"};}

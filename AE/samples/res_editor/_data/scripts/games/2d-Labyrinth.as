@@ -1,6 +1,8 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Escape from labirinth game.
+    Escape from labyrinth.
+    Map is procedurally generated.
+    Use right mouse button to turn on flashlight.
 */
 #ifdef __INTELLISENSE__
 #   include <res_editor.as>
@@ -321,9 +323,11 @@
 
         // teleport wave
         {
+            // use current color to detect if teleport is visible or shaded
+            const float is_invisible = 1.0 - SmoothStep( 0.0, Dot( c_AmbientLight, c_AmbientLight ), Dot( fragColor.rgb, fragColor.rgb ));
+
             const float wave_width      = 0.2;
             const float wave_r          = un_CBuf.teleportRadius * Fract( iTime );
-            float       is_invisible    = 1.0 - SmoothStep( 0.0, Dot( c_AmbientLight, c_AmbientLight ), Dot( fragColor.rgb, fragColor.rgb ));   // use current color to detect if teleport is visible or shaded
             float       wave            = BumpStep( dist_to_teleport, wave_r, wave_r + wave_width );
                         fragColor.rgb   = Lerp( fragColor.rgb, c_TeleportWaveColor, wave * is_invisible );
         }

@@ -253,6 +253,13 @@ namespace AE::ResEditor
                 return _pass->Execute( *_src, *_copy, pd );
             }
 
+            case EFlags::Stencil :
+            {
+                CHECK_ERR( _src != _copy );
+                CHECK_ERR( _pass );
+                return _pass->Execute( *_src, *_copy, pd );
+            }
+
             case EFlags::_Count :
             default :
                 RETURN_ERR( "unsupported dbg view mode" );
@@ -322,16 +329,24 @@ namespace AE::ResEditor
                 img_desc.dimension  = uint3{ 1024, 1024, 1 };
                 img_desc.usage      = EImageUsage::ColorAttachment | EImageUsage::Sampled;
                 img_desc.format     = EPixelFormat::RGBA8_UNorm;    // defined in 'histogram.as'
+                img_desc.options    = Default;
                 break;
 
             case EFlags::LinearDepth :
                 img_desc.format     = EPixelFormat::R32F;
                 img_desc.usage      = EImageUsage::ColorAttachment | EImageUsage::Sampled;
+                img_desc.options    = Default;
                 view_desc.swizzle   = "RRR1"_swizzle;
                 break;
 
             case EFlags::NoCopy :
                 make_copy = false;
+                break;
+
+            case EFlags::Stencil :
+                img_desc.format     = EPixelFormat::RGBA8_UNorm;
+                img_desc.usage      = EImageUsage::ColorAttachment | EImageUsage::Sampled;
+                img_desc.options    = Default;
                 break;
 
             case EFlags::_Count :
@@ -384,6 +399,10 @@ namespace AE::ResEditor
 
             case EFlags::LinearDepth :
                 _pass.reset( new LinearDepth{ *_src, *_copy });         // throw
+                break;
+
+            case EFlags::Stencil :
+                _pass.reset( new StencilView{ *_src, *_copy });         // throw
                 break;
 
             case EFlags::_Count :
@@ -617,6 +636,90 @@ namespace AE::ResEditor
             dctx.BindPipeline( _ppln );
             dctx.BindDescriptorSet( _pplnDSIdx, ds );
             dctx.PushConstant( _pcIdx, ShaderTypes::LinearDepth_draw_pc{float2{ 0.1f, 1.1f }} );
+            dctx.Draw( 3 );
+
+            ctx.EndRenderPass( dctx );
+        }
+
+        pd.cmdbuf = ctx.ReleaseCommandBuffer();
+        return true;
+    }
+//-----------------------------------------------------------------------------
+
+
+
+/*
+=================================================
+    StencilView ctor
+=================================================
+*/
+    DebugView::StencilView::StencilView (const Image &src, const Image &copy) __Th___
+    {
+        constexpr auto& RTech = RenderTechs::StencilView_RTech;
+
+        CHECK_THROW( &src != &copy );
+        CHECK_THROW( copy.GetImageDesc().format == EPixelFormat::RGBA8_UNorm );
+
+        auto&       res_mngr    = RenderTaskScheduler().GetResourceManager();
+        const auto  max_frames  = RenderTaskScheduler().GetMaxFrames();
+
+        _rtech = res_mngr.LoadRenderTech( Default, RTech, Default );
+        CHECK_THROW( _rtech );
+
+        _ppln = _rtech->GetGraphicsPipeline( RTech.Graphics.StencilView_draw );
+        CHECK_THROW( _ppln );
+
+        CHECK_THROW( res_mngr.CreateDescriptorSets( OUT _pplnDSIdx, OUT _pplnDS.data(), max_frames, _ppln, DescriptorSetName{"ds0"} ));
+    }
+
+/*
+=================================================
+    StencilView dtor
+=================================================
+*/
+    DebugView::StencilView::~StencilView ()
+    {
+        auto&   res_mngr = RenderTaskScheduler().GetResourceManager();
+
+        res_mngr.ReleaseResourceArray( _pplnDS );
+    }
+
+/*
+=================================================
+    StencilView::Execute
+=================================================
+*/
+    bool  DebugView::StencilView::Execute (const Image &srcImage, const Image &dstImage, SyncPassData &pd) const
+    {
+        constexpr auto& RTech = RenderTechs::StencilView_RTech;
+
+        const uint2         dst_dim     = uint2{dstImage.GetImageDesc().dimension};
+        DirectCtx::Graphics ctx         { pd.rtask, RVRef(pd.cmdbuf), DebugLabel{"StencilView", HtmlColor::Blue} };
+        DescriptorSetID     ds          = _pplnDS[ ctx.GetFrameId().Index() ];
+
+        // update
+        {
+            DescriptorUpdater   updater;
+            CHECK_ERR( updater.Set( ds, EDescUpdateMode::Partialy ));
+            CHECK_ERR( updater.BindImage( UniformName{"un_Stencil"}, srcImage.GetViewId() ));
+            CHECK_ERR( updater.Flush() );
+        }
+
+        // convert depth to linear space
+        {
+            ctx.ResourceState( srcImage.GetViewId(), EResourceState::ShaderSample | EResourceState::FragmentShader );
+
+            STATIC_ASSERT( RTech.Graphics.attachmentsCount == 2 );
+
+            RenderPassDesc  rp_desc{ _rtech, RTech.Graphics, dst_dim };
+            rp_desc.AddTarget( RTech.Graphics.att_Color, dstImage.GetViewId() );
+            rp_desc.AddTarget( RTech.Graphics.att_Stencil, srcImage.GetViewId() );
+            rp_desc.DefaultViewport();
+
+            auto    dctx = ctx.BeginRenderPass( rp_desc );
+
+            dctx.BindPipeline( _ppln );
+            dctx.BindDescriptorSet( _pplnDSIdx, ds );
             dctx.Draw( 3 );
 
             ctx.EndRenderPass( dctx );

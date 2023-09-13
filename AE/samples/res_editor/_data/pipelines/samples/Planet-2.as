@@ -145,7 +145,6 @@
 #endif
 //-----------------------------------------------------------------------------
 #ifdef SH_TESS_EVAL
-    #include "Math.glsl"
     #include "Transform.glsl"
 
     #if USE_QUADS

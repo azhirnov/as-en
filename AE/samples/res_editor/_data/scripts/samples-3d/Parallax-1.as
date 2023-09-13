@@ -30,8 +30,8 @@
             camera.FovY( 50.f );
 
             const float s = 0.8f;
-            camera.ForwardBackwardScale( s, s );
-            camera.UpDownScale( s, s );
+            camera.ForwardBackwardScale( s );
+            camera.UpDownScale( s );
             camera.SideMovementScale( s );
         }
 
@@ -70,7 +70,7 @@
         // render loop
         {
             RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "main pass" );
-            draw.AddPipeline( "samples/Parallax.as" );  // file:///<path>/AE/samples/res_editor/_data/pipelines/samples/Parallax.as
+            draw.AddPipeline( "samples/Parallax.as" );      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/Parallax.as)
             draw.Output( "out_Color", rt, RGBA32f( 0.3, 0.5, 1.0, 1.0 ));
             draw.Output( ds, DepthStencil( 1.f, 0 ));
             draw.Slider( "iHeightScale",    0.f,    0.1f );
@@ -81,7 +81,7 @@
         }
         {
             RC<SceneGraphicsPass>   dbg_draw = scene.AddGraphicsPass( "debug normals" );
-            dbg_draw.AddPipeline( "samples/DebugTBN.as" );  // file:///<path>/AE/samples/res_editor/_data/pipelines/samples/DebugTBN.as
+            dbg_draw.AddPipeline( "samples/DebugTBN.as" );  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/DebugTBN.as)
             dbg_draw.Output( "out_Color", rt );
             dbg_draw.Output( ds );
             dbg_draw.Slider( "DbgTBN", 0, 3 );

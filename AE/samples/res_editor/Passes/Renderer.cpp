@@ -96,7 +96,7 @@ namespace AE::ResEditor
         ActionQueueReader::Header   hdr;
         for (; reader.ReadHeader( OUT hdr );)
         {
-            STATIC_ASSERT( IA.actionCount == 5 );
+            STATIC_ASSERT( IA.actionCount == 6 );
             switch ( uint{hdr.name} )
             {
                 // compatible with UI

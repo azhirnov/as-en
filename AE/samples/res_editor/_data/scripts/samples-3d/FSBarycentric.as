@@ -24,8 +24,8 @@
             camera.FovY( 50.f );
 
             const float s = 0.8f;
-            camera.ForwardBackwardScale( s, s );
-            camera.UpDownScale( s, s );
+            camera.ForwardBackwardScale( s );
+            camera.UpDownScale( s );
             camera.SideMovementScale( s );
         }
 
@@ -53,7 +53,7 @@
         // render loop
         {
             RC<SceneGraphicsPass>   draw = scene.AddGraphicsPass( "main pass" );
-            draw.AddPipeline( "samples/FSBarycentric.as" ); // file:///<path>/AE/samples/res_editor/_data/pipelines/samples/FSBarycentric.as
+            draw.AddPipeline( "samples/FSBarycentric.as" ); // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/samples/FSBarycentric.as)
             draw.Output( "out_Color", rt, RGBA32f( 0.3, 0.5, 1.0, 1.0 ));
             draw.Output( ds, DepthStencil(1.f, 0) );
         }

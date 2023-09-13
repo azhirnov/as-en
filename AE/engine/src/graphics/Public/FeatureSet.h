@@ -19,7 +19,7 @@
             max buffers per desc set limit      = Min( minStorageBuffers, minUniformBuffers, minAccelStructures )
             max buffers per desc set            = minStorageBuffers + minUniformBuffers + minAccelStructures
 
-    docs: file:///<path>/AE/engine/docs/FeatureSet.md
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/FeatureSet.md)
 */
 
 #pragma once

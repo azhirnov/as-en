@@ -13,7 +13,7 @@
 
         RC<Scene>       scene   = Scene();
         RC<FPVCamera>   camera  = FPVCamera();
-        RC<Model>       model   = Model( "Sponza.gltf" );
+        RC<Model>       model   = Model( "res/models/Sponza/Sponza.gltf" );
 
         // setup model
         {
@@ -41,8 +41,8 @@
         // render loop
         {
             RC<SceneGraphicsPass>   draw_pass = scene.AddGraphicsPass( "draw" );
-            draw_pass.AddPipeline( "ModelShared.as" );          // file:///<path>/AE/samples/res_editor/_data/pipelines/ModelShared.as
-            draw_pass.AddPipelines( "Model" );
+            draw_pass.AddPipeline( "ModelShared.as" );  // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/ModelShared.as)
+            draw_pass.AddPipelines( "Model" );          // [folder](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/Model/)
             draw_pass.Output( "out_Color", rt, RGBA32f(0.0f, 1.f, 1.f, 1.f) );
             draw_pass.Output( ds, DepthStencil(1.f, 0) );
         }

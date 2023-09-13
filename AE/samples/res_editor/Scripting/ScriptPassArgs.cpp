@@ -175,6 +175,15 @@ namespace AE::ResEditor
         arg.state       = EResourceState::ShaderSample;
         arg.samplerName = samplerName;
 
+        if ( tex->IsDepthAndStencil() )
+        {
+            ScriptImagePtr  tmp;    tmp.Attach( tex->CreateView5() );
+            CHECK_THROW_MSG( tmp, "Failed to create depth view for depth stencil image" );
+
+            tmp->SetAspectMask( EImageAspect::Depth );
+            arg.res = tmp;
+        }
+
         if ( _onAddArg )
             _onAddArg( arg );
     }

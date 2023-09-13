@@ -1,4 +1,4 @@
-//B445C909
+//FCF287DF
 #include <vector>
 #include <string>
 
@@ -21,36 +21,36 @@ template <typename T>
 using array = std::vector<T>;
 
 struct ubyte4;
-struct ubyte3;
+struct PipelineCompiler;
+struct float2;
+struct float3;
+struct EReflectionFlags;
+struct AssetPacker;
+struct sbyte3;
+struct sbyte4;
+struct ushort4;
+struct short2;
+struct short3;
+struct uint4;
+struct float4;
+struct uint2;
+struct uint3;
+struct Archive;
+struct ushort3;
+struct sbyte2;
+struct short4;
+struct ushort2;
+struct int4;
+struct EPathParamsFlags;
+struct bool4;
+struct int2;
+struct bool3;
+struct bool2;
+struct int3;
 struct ubyte2;
+struct ubyte3;
 struct EFileType;
 struct InputActions;
-struct int3;
-struct int2;
-struct EPathParamsFlags;
-struct bool2;
-struct bool3;
-struct bool4;
-struct int4;
-struct sbyte2;
-struct ushort2;
-struct ushort3;
-struct short4;
-struct Archive;
-struct uint3;
-struct uint2;
-struct float4;
-struct uint4;
-struct short3;
-struct sbyte4;
-struct short2;
-struct ushort4;
-struct sbyte3;
-struct AssetPacker;
-struct EReflectionFlags;
-struct float3;
-struct float2;
-struct PipelineCompiler;
 
 using sbyte = int8;
 using ubyte = uint8;
@@ -846,7 +846,7 @@ int2  Clamp (const int2 & val, const int2 & min, const int2 & max);
 int2  Clamp (const int2 & val, int min, int max);
 int2  Wrap (const int2 & val, const int2 & min, const int2 & max);
 int2  Wrap (const int2 & val, int min, int max);
-int  ToLinear (const int2 & pos, const int2 & dim);
+int  VecToLinear (const int2 & pos, const int2 & dim);
 int3  Abs (const int3 & x);
 int3  MirroredWrap (const int3 & x, const int3 & min, const int3 & max);
 int3  MirroredWrap (const int3 & x, int min, int max);
@@ -858,7 +858,7 @@ int3  Clamp (const int3 & val, const int3 & min, const int3 & max);
 int3  Clamp (const int3 & val, int min, int max);
 int3  Wrap (const int3 & val, const int3 & min, const int3 & max);
 int3  Wrap (const int3 & val, int min, int max);
-int  ToLinear (const int3 & pos, const int3 & dim);
+int  VecToLinear (const int3 & pos, const int3 & dim);
 int4  Abs (const int4 & x);
 int4  MirroredWrap (const int4 & x, const int4 & min, const int4 & max);
 int4  MirroredWrap (const int4 & x, int min, int max);
@@ -870,7 +870,7 @@ int4  Clamp (const int4 & val, const int4 & min, const int4 & max);
 int4  Clamp (const int4 & val, int min, int max);
 int4  Wrap (const int4 & val, const int4 & min, const int4 & max);
 int4  Wrap (const int4 & val, int min, int max);
-int  ToLinear (const int4 & pos, const int4 & dim);
+int  VecToLinear (const int4 & pos, const int4 & dim);
 uint  Sum (const uint2 & x);
 uint  Area (const uint2 & x);
 uint2  Min (const uint2 & x, const uint2 & y);
@@ -879,7 +879,7 @@ uint2  Clamp (const uint2 & val, const uint2 & min, const uint2 & max);
 uint2  Clamp (const uint2 & val, uint min, uint max);
 uint2  Wrap (const uint2 & val, const uint2 & min, const uint2 & max);
 uint2  Wrap (const uint2 & val, uint min, uint max);
-uint  ToLinear (const uint2 & pos, const uint2 & dim);
+uint  VecToLinear (const uint2 & pos, const uint2 & dim);
 uint  Sum (const uint3 & x);
 uint  Area (const uint3 & x);
 uint3  Min (const uint3 & x, const uint3 & y);
@@ -888,7 +888,7 @@ uint3  Clamp (const uint3 & val, const uint3 & min, const uint3 & max);
 uint3  Clamp (const uint3 & val, uint min, uint max);
 uint3  Wrap (const uint3 & val, const uint3 & min, const uint3 & max);
 uint3  Wrap (const uint3 & val, uint min, uint max);
-uint  ToLinear (const uint3 & pos, const uint3 & dim);
+uint  VecToLinear (const uint3 & pos, const uint3 & dim);
 uint  Sum (const uint4 & x);
 uint  Area (const uint4 & x);
 uint4  Min (const uint4 & x, const uint4 & y);
@@ -897,7 +897,7 @@ uint4  Clamp (const uint4 & val, const uint4 & min, const uint4 & max);
 uint4  Clamp (const uint4 & val, uint min, uint max);
 uint4  Wrap (const uint4 & val, const uint4 & min, const uint4 & max);
 uint4  Wrap (const uint4 & val, uint min, uint max);
-uint  ToLinear (const uint4 & pos, const uint4 & dim);
+uint  VecToLinear (const uint4 & pos, const uint4 & dim);
 float2  Abs (const float2 & x);
 float2  MirroredWrap (const float2 & x, const float2 & min, const float2 & max);
 float2  MirroredWrap (const float2 & x, float min, float max);
@@ -909,7 +909,7 @@ float2  Clamp (const float2 & val, const float2 & min, const float2 & max);
 float2  Clamp (const float2 & val, float min, float max);
 float2  Wrap (const float2 & val, const float2 & min, const float2 & max);
 float2  Wrap (const float2 & val, float min, float max);
-float  ToLinear (const float2 & pos, const float2 & dim);
+float  VecToLinear (const float2 & pos, const float2 & dim);
 float2  ToSNorm (const float2 & x);
 float2  ToUNorm (const float2 & x);
 float  Dot (const float2 & x, const float2 & y);
@@ -944,7 +944,7 @@ float3  Clamp (const float3 & val, const float3 & min, const float3 & max);
 float3  Clamp (const float3 & val, float min, float max);
 float3  Wrap (const float3 & val, const float3 & min, const float3 & max);
 float3  Wrap (const float3 & val, float min, float max);
-float  ToLinear (const float3 & pos, const float3 & dim);
+float  VecToLinear (const float3 & pos, const float3 & dim);
 float3  Cross (const float3 & x, const float3 & y);
 float3  ToSNorm (const float3 & x);
 float3  ToUNorm (const float3 & x);
@@ -980,7 +980,7 @@ float4  Clamp (const float4 & val, const float4 & min, const float4 & max);
 float4  Clamp (const float4 & val, float min, float max);
 float4  Wrap (const float4 & val, const float4 & min, const float4 & max);
 float4  Wrap (const float4 & val, float min, float max);
-float  ToLinear (const float4 & pos, const float4 & dim);
+float  VecToLinear (const float4 & pos, const float4 & dim);
 float4  ToSNorm (const float4 & x);
 float4  ToUNorm (const float4 & x);
 float  Dot (const float4 & x, const float4 & y);
@@ -1088,15 +1088,9 @@ struct Archive
 };
 
 template <>
-struct RC<InputActions> : InputActions
+struct RC<PipelineCompiler> : PipelineCompiler
 {
-    RC (const InputActions &);
-};
-
-template <>
-struct RC<Archive> : Archive
-{
-    RC (const Archive &);
+    RC (const PipelineCompiler &);
 };
 
 template <>
@@ -1106,8 +1100,14 @@ struct RC<AssetPacker> : AssetPacker
 };
 
 template <>
-struct RC<PipelineCompiler> : PipelineCompiler
+struct RC<Archive> : Archive
 {
-    RC (const PipelineCompiler &);
+    RC (const Archive &);
+};
+
+template <>
+struct RC<InputActions> : InputActions
+{
+    RC (const InputActions &);
 };
 

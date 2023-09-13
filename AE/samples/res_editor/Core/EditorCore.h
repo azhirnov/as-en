@@ -11,7 +11,7 @@ namespace AE::ResEditor
     struct ResEditorAppConfig
     {
         // VFS
-        Array<Path>     vfsPathes;
+        Array<Path>     vfsPaths;
         Array<String>   vfsPathPrefixes;
 
         // UI

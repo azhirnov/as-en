@@ -1802,14 +1802,10 @@ namespace
     ScriptModelGeometrySrc::ScriptModelGeometrySrc () __Th___
     {}
 
-    ScriptModelGeometrySrc::ScriptModelGeometrySrc (const String &filename) __Th___
+    ScriptModelGeometrySrc::ScriptModelGeometrySrc (const String &filename) __Th___ :
+        _scenePath{ ScriptExe::ScriptResourceApi::ToAbsolute( filename )}  // throw
     {
         _dbgName = Path{filename}.filename().replace_extension("").string().substr( 0, ResNameMaxLen );
-
-        _scenePath = FileSystem::ToAbsolute( filename );    // TODO: VFS
-
-        CHECK_THROW_MSG( FileSystem::IsFile( _scenePath ),
-            "File '"s << ToString(_scenePath) << "' is not exists" );
     }
 
 /*
@@ -2089,8 +2085,8 @@ namespace
 =================================================
     _AttribsToVBName
 ----
-    vertex buffer types defined in script:
-    file:///<path>/AE/samples/res_editor/_data/pipelines/ModelShared.as
+    vertex buffer types defined in
+    [file](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_data/pipelines/ModelReflection.as)
 =================================================
 */
     String  ScriptModelGeometrySrc::_AttribsToVBName (const ResLoader::IntermVertexAttribs &attribs) __Th___

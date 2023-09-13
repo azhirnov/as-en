@@ -15,9 +15,9 @@ __Далее идут проходы рисования и вычислений.
 __Синхронизации между очередями.__<br/>
 Есть 2 подхода:
 1. Сделать ресурсы общими для всех очередей (`VK_SHARING_MODE_CONCURRENT`), тогда достаточно сделать синхронизации семафорами, чтобы избежать одновременной записи или чтения и записи (data race), в движке это делается через `CommandBatch::AddInputDependency (CommandBatch &)`. Минус этого подхода - на AMD на общих ресурсах не включается компрессия рендер таргетов (DCC), что снижает производительность.<br/>
-Пример: [Test_RG_AsyncCompute1.cpp](../../tests/graphics/RenderGraph/Test_RG_AsyncCompute1.cpp)
+Пример: [Test_RG_AsyncCompute1.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/Test_RG_AsyncCompute1.cpp)
 2. Явно передавать ресурсы между очередями (queue ownership transfer). Внутри рендер таска это сложнее отслеживать, поэтому такие барьеры удобнее вынести в интерфейс `CommandBatch`, так появился метод `CommandBatch::DeferredBarriers()` и `initial, final` параметры при создании рендер таска. Теперь управление перемещением ресурсов происходит на этапе планирования батчей команд.<br/>
-Пример: [Test_RG_AsyncCompute2.cpp](../../tests/graphics/RenderGraph/Test_RG_AsyncCompute2.cpp)
+Пример: [Test_RG_AsyncCompute2.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/Test_RG_AsyncCompute2.cpp)
 
 
 ## Синхронизации с помощью рендер графа
@@ -58,7 +58,7 @@ AsyncTask end = rg.EndFrame( Tuple{ gfx_task, comp_task });
 
 В рендер графе порядок создания батчей имеет значение, поэтому желательно создать все батчи в одном потоке.
 
-Пример: [Test_RG_AsyncCompute3.cpp](../../tests/graphics/RenderGraph/Test_RG_AsyncCompute3.cpp)
+Пример: [Test_RG_AsyncCompute3.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/Test_RG_AsyncCompute3.cpp)
 
 
 #### Производительность
@@ -68,14 +68,14 @@ AsyncTask end = rg.EndFrame( Tuple{ gfx_task, comp_task });
 
 Потери производительности на стороне ЦП минимальны, но добавляет редкие кэш-промахи при доступе к состояниям ресурсов.
 
-Исходники: [RGCommandBatch.h](../../src/graphics/RenderGraph/RGCommandBatch.h), [RenderGraph.h](../../src/graphics/RenderGraph/RenderGraph.h)
+Исходники: [RGCommandBatch.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/RenderGraph/RGCommandBatch.h), [RenderGraph.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/RenderGraph/RenderGraph.h)
 
 
 ## Проверка на корректность синхронизаций
 
 Для этого в движке есть логирование команд (проект `VulkanSyncLog`), который выдает читаемый лог вызовов Vulkan комманд и его результат не меняется в зависимости от запусков, что позволяет следить за изменениями.
 Но все синхронизации придется один раз вручную проверить на корректность.<br/>
-[Пример лога](../../tests/graphics/Vulkan/ref/NVIDIA%20GeForce%20RTX%202080/Test_AsyncCompute2.txt)
+[Пример лога](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/Vulkan/ref/NVIDIA%20GeForce%20RTX%202080/Test_AsyncCompute2.txt)
 
 Другой вариант - запустить vkconfig и включить полную валидацию синхронизаций - Synchronization preset.<br/>
 [Guide to Vulkan Synchronization Validation](https://www.lunarg.com/wp-content/uploads/2020/09/Final_LunarG_Guide_to_Vulkan-Synchronization_Validation_08_20.pdf)

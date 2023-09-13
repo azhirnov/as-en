@@ -17,6 +17,9 @@
 #define highp
 #define mediump
 #define lowp
+#define precise     // avoid optimizations
+
+#define discard {}
 
 #define out
 #define inout

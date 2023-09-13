@@ -364,6 +364,10 @@ namespace {
         _typeMap.emplace( "gl.texture.GetSamples",          "textureSamples" );
         _typeMap.emplace( "gl.texture.GetSize",             "textureSize" );
 
+        // subpass input
+        _typeMap.emplace( "gl.subpass.Load",                "subpassLoad" );
+
+
         // subgroup
         // https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_shader_subgroup.txt
         _typeMap.emplace( "gl.subgroup.GroupCount",         "gl_NumSubgroups" );

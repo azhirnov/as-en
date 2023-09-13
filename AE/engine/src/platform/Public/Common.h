@@ -1,7 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    supported platforms and features:
-        file:///<path>/AE/engine/docs/Platforms.md
+    [supported platforms and features](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/Platforms.md)
 */
 
 #pragma once

@@ -6,7 +6,7 @@
 
 `CommandBatch` - хранит массив командных буферов и семафоров для синхронизации с другими батчами и с ЦП. Аналогичен одному вызову vkQueueSubmit.
 
-Исходник: [RenderTask.h](../../src/graphics/Private/RenderTask.h), [CommandBatch.h](../../src/graphics/Private/CommandBatch.h)
+Исходник: [RenderTask.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Private/RenderTask.h), [CommandBatch.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Private/CommandBatch.h)
 
 
 ## Вторичный командный буфер
@@ -15,7 +15,7 @@
 
 `DrawCommandBatch` - хранит массив вторичных командных буферов, которые затем выполняются в `IGraphicsContext::ExecuteSecondary()`.
 
-Исходник: [DrawTask.h](../../src/graphics/Private/DrawTask.h), [DrawCommandBatch.h](../../src/graphics/Private/DrawCommandBatch.h)
+Исходник: [DrawTask.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Private/DrawTask.h), [DrawCommandBatch.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Private/DrawCommandBatch.h)
 
 
 ## Планировщик графических задач (RenderTaskScheduler)
@@ -47,7 +47,7 @@
 
 ![](img/RenderTaskScheduler-2.png)
 
-Исходник: [RenderTaskScheduler.h](../../src/graphics/Private/RenderTaskScheduler.h)
+Исходник: [RenderTaskScheduler.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Private/RenderTaskScheduler.h)
 
 
 ## Контекст для записи команд
@@ -79,7 +79,7 @@
 Асинхронный рендер пасс `BeginMtRenderPass()` создает `DrawCommandBatch`, который создает задачи `DrawTask`.
 Текущая задача должна дождаться заполнения вторичных командных буферов, затем записать их в первичный командный буфер через `ExecuteSecondary( drawBatch )` и завершить рендер пасс `EndMtRenderPass()`.
 
-Пример [Test_RG_DrawAsync1.cpp](../../tests/graphics/RenderGraph/Test_RG_DrawAsync1.cpp)
+Пример [Test_RG_DrawAsync1.cpp](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/Test_RG_DrawAsync1.cpp)
 
 #### IDrawContext
 
@@ -97,7 +97,7 @@
 На Vulkan выполняется на этапах `VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT` и `VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT`.
 На Metal это отдельный энкодер.
 
-Исходник: [CommandBuffer.h](../../src/graphics/Public/CommandBuffer.h)
+Исходник: [CommandBuffer.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/graphics/Public/CommandBuffer.h)
 
 ## Программная эмуляция командного буфера
 

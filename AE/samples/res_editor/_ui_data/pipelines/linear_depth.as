@@ -58,15 +58,15 @@ void  CreatePipeline ()
     // pipeline
     RC<GraphicsPipeline>    ppln = GraphicsPipeline( "LinearDepth.draw" );
     ppln.SetLayout( "LinearDepth.draw.pl" );
+    ppln.SetFragmentOutputFromRenderTech( "LinearDepth.RTech", "Graphics" );
 
     {
         RC<Shader>  vs  = Shader();
-        vs.file = "linear_depth.glsl";      // file:///<path>/AE/samples/res_editor/_ui_data/shaders/linear_depth.glsl
+        vs.file = "linear_depth.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_ui_data/shaders/linear_depth.glsl)
         ppln.SetVertexShader( vs );
-    }
-    {
+    }{
         RC<Shader>  fs  = Shader();
-        fs.file = "linear_depth.glsl";      // file:///<path>/AE/samples/res_editor/_ui_data/shaders/linear_depth.glsl
+        fs.file = "linear_depth.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_ui_data/shaders/linear_depth.glsl)
         ppln.SetFragmentShader( fs );
     }
 

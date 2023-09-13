@@ -13,6 +13,8 @@ void ASmain (WinAPI_ActionBindings& bindings)
                   ActionInfo( "ShowHelp", EGestureType::Down ));
         bind.Add( WinAPI_Input::Tab,
                   ActionInfo( "UI.ShowHide", EGestureType::Down ));
+        bind.Add( WinAPI_Input::I,
+                  ActionInfo( "UI.Screenshot", EGestureType::Down ));
     }
 
     // switch input mode
@@ -64,8 +66,6 @@ void ASmain (WinAPI_ActionBindings& bindings)
 
         bind.Add( WinAPI_Input::U,
                   ActionInfo( "UI.StartStopRecording", EGestureType::Down ));
-        bind.Add( WinAPI_Input::I,
-                  ActionInfo( "UI.Screenshot", EGestureType::Down ));
         bind.Add( WinAPI_Input::G,
                   ActionInfo( "UI.ShaderDebugger", EGestureType::Down ));
         bind.Add( WinAPI_Input::F5,

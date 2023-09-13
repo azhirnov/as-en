@@ -92,12 +92,12 @@ void  CreatePipeline (const array<string> &passNames)
 
     {
         RC<Shader>  vs  = Shader();
-        vs.file = "imgui.glsl";     // file:///<path>/AE/samples/res_editor/_ui_data/shaders/imgui.glsl
+        vs.file = "imgui.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_ui_data/shaders/imgui.glsl)
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file = "imgui.glsl";     // file:///<path>/AE/samples/res_editor/_ui_data/shaders/imgui.glsl
+        fs.file = "imgui.glsl";     // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/res_editor/_ui_data/shaders/imgui.glsl)
         ppln.SetFragmentShader( fs );
     }
 

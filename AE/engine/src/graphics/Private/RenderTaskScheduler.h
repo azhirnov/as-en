@@ -252,7 +252,7 @@ namespace AE::Graphics
             void                    DbgCheckFrameId (FrameUID, StringView name)         C_NE___;
       #endif
 
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             void  DbgForEachBatch (const Threading::ITaskDependencyManager::CheckDepFn_t &fn, Bool pendingOnly) __NE___;)
 
 
@@ -407,7 +407,7 @@ namespace AE::Graphics
     public:
         bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)   __NE_OV;
 
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             void  DbgDetectDeadlock (const CheckDepFn_t &fn)                    __NE_OV;)
 
         AE_GLOBALLY_ALLOC
@@ -425,7 +425,7 @@ namespace AE::Graphics
     public:
         bool  Resolve (AnyTypeCRef dep, AsyncTask task, INOUT uint &bitIndex)   __NE_OV;
 
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             void  DbgDetectDeadlock (const CheckDepFn_t &fn)                    __NE_OV;)
 
         AE_GLOBALLY_ALLOC

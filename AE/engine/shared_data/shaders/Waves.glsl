@@ -1,6 +1,7 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Wave functions
+    Wave functions.
+    Can be used for sound generation or as easing functions.
 */
 
 #ifdef __cplusplus
@@ -9,14 +10,20 @@
 
 #include "Math.glsl"
 
-// Wave
-ND_ float  SineWave (float samp, float freq, float sampleRate);         // --U`U--
-ND_ float  SawWave (float samp, float freq, float sampleRate);          //  --/|/|--
-ND_ float  TriangleWave (float samp, float freq, float sampleRate);     // --/\/\--
+// Wave //
+ND_ float   SineWave (const float samp, const float freq, const float sampleRate);          // --U`U--
 
-// Gain
-ND_ float  LinearGain (float samp, float value, float startTime, float endTime, float sampleRate);
-ND_ float  ExpGain (float samp, float value, float startTime, float endTime, float sampleRate);
+// SawWave
+ND_ float   SawWave (const float samp, const float freq, const float sampleRate);           //  --/|/|--
+ND_ float   SawWave (float  x);
+ND_ float2  SawWave (float2 x);
+ND_ float3  SawWave (float3 x);
+
+// TriangleWave
+ND_ float   TriangleWave (const float samp, const float freq, const float sampleRate);      // --/\/\--
+ND_ float   TriangleWave (float  x);
+ND_ float2  TriangleWave (float2 x);
+ND_ float3  TriangleWave (float3 x);
 
 // LinearStep
 ND_ float   LinearStep (const float  x, const float  edge0, const float  edge1);
@@ -38,25 +45,40 @@ ND_ float2  SmoothBumpStep (const float2 x, const float2 edge0, const float2 edg
 ND_ float2  SmoothBumpStep (const float2 x, const float  edge0, const float  edge1);
 ND_ float3  SmoothBumpStep (const float3 x, const float3 edge0, const float3 edge1);
 ND_ float3  SmoothBumpStep (const float3 x, const float  edge0, const float  edge1);
+
+
+// Gain //
+ND_ float   LinearGain (float samp, float value, float startTime, float endTime, float sampleRate);
+ND_ float   ExpGain (float samp, float value, float startTime, float endTime, float sampleRate);
 //-----------------------------------------------------------------------------
 
 
 
-float  SineWave (float samp, float freq, float sampleRate)  // --U`U--
+float  SineWave (const float samp, const float freq, const float sampleRate)        // --U`U--
 {
     return Sin( Pi() * samp * freq / sampleRate );
 }
 
-float  SawWave (float samp, float freq, float sampleRate)   //  --/|/|--
+
+float  SawWave (const float samp, const float freq, const float sampleRate)         //  --/|/|--
 {
-    return ToSNorm( Fract( samp * freq / sampleRate ));
+    return SawWave( samp * freq / sampleRate );
 }
 
-float  TriangleWave (float samp, float freq, float sampleRate)  // --/\/\--
+float  SawWave (float  x)   { return ToSNorm( Fract( x )); }
+float2 SawWave (float2 x)   { return ToSNorm( Fract( x )); }
+float3 SawWave (float3 x)   { return ToSNorm( Fract( x )); }
+
+
+float  TriangleWave (const float samp, const float freq, const float sampleRate)    // --/\/\--
 {
-    float value = Fract( samp * freq / sampleRate );
-    return Min( value, 1.0 - value ) * 4.0 - 1.0;
+    return TriangleWave( samp * freq / sampleRate );
 }
+
+float  TriangleWave (float  x)  { x = Fract( x );  return Min( x, 1.f - x ) * 4.f - 1.f; }
+float2 TriangleWave (float2 x)  { x = Fract( x );  return Min( x, 1.f - x ) * 4.f - 1.f; }
+float3 TriangleWave (float3 x)  { x = Fract( x );  return Min( x, 1.f - x ) * 4.f - 1.f; }
+
 
 float  LinearGain (float samp, float value, float startTime, float endTime, float sampleRate)
 {

@@ -67,9 +67,9 @@ namespace AE::Graphics::_hidden_
         ND_ CmdType&  _CreateCmd (usize dynamicArraySize = 0)   __Th___;
 
         template <usize I, typename TL>
-        ND_ static constexpr Bytes  _CalcCmdSize (Bytes size, usize dynamicArraySize);
+        ND_ static constexpr Bytes  _CalcCmdSize (Bytes size, usize dynamicArraySize)   __NE___;
 
-        ND_ bool  _Validate (const void* root, usize cmdCount)  C_NE___;
+        ND_ bool  _Validate (const void* root, usize cmdCount)                          C_NE___;
     };
 
 
@@ -102,7 +102,7 @@ namespace AE::Graphics::_hidden_
 =================================================
 */
     template <usize I, typename TL>
-    constexpr Bytes  SoftwareCmdBufBase::_CalcCmdSize (Bytes size, usize dynamicArraySize)
+    constexpr Bytes  SoftwareCmdBufBase::_CalcCmdSize (Bytes size, usize dynamicArraySize) __NE___
     {
         if constexpr( I < TL::Count )
         {

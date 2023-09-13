@@ -329,7 +329,7 @@ namespace {
             VK_COMPAT( vkCmdDispatchBaseKHR,                    vkCmdDispatchBase                   );
             */
         }
-        /*
+        
         if ( version >= Version2{1,2} )
         {
           // VK_KHR_draw_indirect_count
@@ -350,7 +350,7 @@ namespace {
           // VK_EXT_host_query_reset
             VK_COMPAT( vkResetQueryPoolEXT,                     vkResetQueryPool                    );
         }
-
+        /*
         if ( version >= Version2{1,3} )
         {
           // VK_KHR_buffer_device_address

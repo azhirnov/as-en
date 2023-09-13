@@ -138,6 +138,7 @@ namespace AE::PipelineCompiler
     ND_ EImageType  EImageType_FromPixelFormatRelaxed (EPixelFormat fmt)        __NE___;
     ND_ EImageType  EImageType_FromImage (EImage type, bool ms)                 __NE___;
     ND_ String      EImageType_ToString (EImageType type)                       __Th___;
+    ND_ EShaderIO   EImageType_ToShaderIO (EImageType type)                     __NE___;
 
 
 

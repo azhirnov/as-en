@@ -23,7 +23,7 @@ namespace AE::Threading
     // types
     public:
         using GlobalLinearAllocator_t   = LfLinearAllocator< 16u<<20, AE_CACHE_LINE, 32 >;
-        using FrameAllocator_t          = StackAllocator< UntypedAllocator, 16, true >;     // TODO: LfLinearAllocator ?
+        using FrameAllocator_t          = LfLinearAllocator< 4u<<20, AE_CACHE_LINE, 8 >;
 
         class TaskSchedulerApi {
             friend class TaskScheduler;

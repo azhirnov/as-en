@@ -31,6 +31,7 @@ namespace AE::ResEditor
     protected:
         RTechInfo               _rtech;
         RenderPassDesc          _rpDesc;
+        float2                  _depthRange     {0.f, 1.f};
 
         PipelineMap_t           _pipelines;
         PerFrameDescSet_t       _descSets;

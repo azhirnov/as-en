@@ -1,8 +1,6 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
-    Simple ray tracing with recursion.
-    Draw spheres, cubes, plane and animated omni light.
-    Vertex attributes passed to shader as a buffer reference.
+    Draw cube with multiple reflections and refractions.
 */
 #ifdef __INTELLISENSE__
 #   include <res_editor.as>
@@ -27,7 +25,7 @@
         RC<FPVCamera>   camera      = FPVCamera();
         RC<Buffer>      geom_data   = Buffer();
 
-        const string    cm_addr = "res/humus/Teide/";   const string  cm_ext = ".jpg";  const uint2 cm_dim (2048);
+        const string    cm_addr         = "res/humus/Teide/";   const string  cm_ext = ".jpg";  const uint2 cm_dim (2048);
 
         RC<Image>       cubemap         = Image( EPixelFormat::RGBA8_UNorm, cm_dim, ImageLayer(6), MipmapLevel(~0) );   cubemap.Name( "Cubemap tex" );
         RC<Image>       cubemap_view    = cubemap.CreateView( EImage::Cube );
@@ -52,8 +50,8 @@
             camera.FovY( 50.f );
 
             const float s = 0.8f;
-            camera.ForwardBackwardScale( s, s );
-            camera.UpDownScale( s, s );
+            camera.ForwardBackwardScale( s );
+            camera.UpDownScale( s );
             camera.SideMovementScale( s );
         }
 
@@ -72,7 +70,6 @@
             array<float2>   texcoords;
             array<uint>     indices;
             GetCube( OUT positions, OUT normals, OUT tangents, OUT bitangents, OUT texcoords, OUT indices );
-            // TODO: sphere
 
             uint    pos_off     = cube.FloatArray(  "positions",    positions );
             uint    norm_off    = cube.FloatArray(  "normals",      normals );
@@ -90,9 +87,18 @@
             geom_data.AddReference( cube );
         }
 
+        // create geometry data
+        {
+            Assert( normals_addr.size() == indices_addr.size() );
+
+            geom_data.ULongArray(   "normals",      normals_addr );
+            geom_data.ULongArray(   "texcoords",    texcoords_addr );
+            geom_data.ULongArray(   "indices",      indices_addr );
+        }
+
         // render loop
         {
-            RC<RayTracingPass>      pass = RayTracingPass( EPassFlags::Enable_ShaderTrace );
+            RC<RayTracingPass>      pass = RayTracingPass( EPassFlags::None );
             pass.ArgIn(  camera );
             pass.ArgOut( "un_OutImage",     rt );
             pass.ArgIn(  "un_RtScene",      scene );
@@ -103,6 +109,7 @@
             pass.ColorSelector( "iMaterialColor",       RGBA32f(0.33f, 0.93f, 0.29f, 1.f) );
             pass.ColorSelector( "iReflectionColorMask", RGBA32f(0.22f, 0.83f, 0.93f, 1.f) );
             pass.Slider( "iAbsorptionScale",    1.f,    10.f,   2.5f );
+            pass.Slider( "iAmbientLight",       0.f,    1.f,    0.2f );
             pass.Slider( "iIndexOfRefraction",  1.f,    3.f,    1.1f );
             pass.Slider( "iMaxRecursion",       1,      16,     5 );
 
@@ -222,8 +229,9 @@ layout(std430, buffer_reference, buffer_reference_align= 4) buffer readonly Indi
 
     ND_ float3  LightAbsorption (const float3 color, const float depth, const float absorption)
     {
-        float   factor  = Saturate( Exp( -depth * (1.0f - absorption) * iAbsorptionScale ));
-        return color1 * factor * iMaterialColor.rgb;
+        float   factor  = Saturate( Exp( -depth * absorption * iAbsorptionScale ));
+        return  color * factor * iMaterialColor.rgb +
+                iAmbientLight * iMaterialColor.rgb * (1.0 - factor);
     }
 
     ND_ float3  BlendWithReflection (const float3 srcColor, const float3 reflectionColor, const float factor)
@@ -234,7 +242,7 @@ layout(std430, buffer_reference, buffer_reference_align= 4) buffer readonly Indi
 
     void  RayTrace (float3 normal, const uint recursion, const int wavelengthIdx)
     {
-        float   absorption      = 0.5;
+        float   absorption      = 0.1;
         float   relative_ior    = 1.0;
         float3  reflection_dir  = gl.WorldRayDirection;
         HWRay   hwray           = HWRay_Create();

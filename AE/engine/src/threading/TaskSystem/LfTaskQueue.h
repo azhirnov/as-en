@@ -60,7 +60,7 @@ namespace AE::Threading
 
         //POTValue      _seedMask;
 
-        AE_SCHEDULER_PROFILING(
+        DEBUG_ONLY(
             String          _name;
             Atomic<ulong>   _searchTime     {0};    // Nanoseconds  // task search time
             Atomic<ulong>   _workTime       {0};    // Nanoseconds
@@ -73,19 +73,19 @@ namespace AE::Threading
 
     // methods
     public:
-        LfTaskQueue (POTValue seedMask, StringView name)                __Th___;
-        ~LfTaskQueue ()                                                 __NE___ { Release(); }
+        LfTaskQueue (POTValue seedMask, StringView name)                    __Th___;
+        ~LfTaskQueue ()                                                     __NE___ { Release(); }
 
-        ND_ AsyncTask   Pull (usize seed)                               __NE___;
-            bool        Process (usize seed)                            __NE___;
-            void        Add (AsyncTask task, usize seed)                __NE___;
+        ND_ AsyncTask   Pull (usize seed)                                   __NE___;
+            bool        Process (usize seed)                                __NE___;
+            void        Add (AsyncTask task, usize seed)                    __NE___;
 
-            void        WriteProfilerStat ()                            __NE___;
+            void        WriteProfilerStat ()                                __NE___;
 
-        ND_ Bytes       MaxAllocationSize ()                            C_NE___;
-        ND_ Bytes       AllocatedSize ()                                C_NE___;
+        ND_ Bytes       MaxAllocationSize ()                                C_NE___;
+        ND_ Bytes       AllocatedSize ()                                    C_NE___;
 
-            void        Release ()                                      __NE___;
+            void        Release ()                                          __NE___;
 
 
       // debugging //

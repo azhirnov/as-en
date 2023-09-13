@@ -13,7 +13,7 @@
  * метод `OnFailure()` - ошибка при выполнении задачи, меняет статус и вызывает метод `OnCancel()` после завершения `Run()`.
  * метод `Continue()` - возвращает задачу в очередь, чтобы повторно вызвать метод `Run()`. Может принимать список зависимых задач.
 
-Исходник: [AsyncTask.h](../../src/threading/TaskSystem/AsyncTask.h#L88)
+Исходник: [AsyncTask.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/AsyncTask.h#L88)
 
 
 ### Корутины (CoroTask)
@@ -26,14 +26,14 @@ EStatus     co_await Coro_Status
 ETaskQueue  co_await Coro_TaskQueue
 ```
 
-Исходник: [AsyncTask.h](../../src/threading/TaskSystem/AsyncTask.h#L287)
+Исходник: [AsyncTask.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/AsyncTask.h#L287)
 
 
 ### Корутины (Coroutine<>)
 
 Корутины из C++20 сделанные поверх AsyncTask, могут хранить значение внутри и возвращать его через `co_await` после выполнения задачи.
 
-Исходник: [Coroutine.h](../../src/threading/TaskSystem/Coroutine.h), [Тесты](../../tests/threading/UnitTest_Coroutine.cpp)
+Исходник: [Coroutine.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/Coroutine.h), [Тесты](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/threading/UnitTest_Coroutine.cpp)
 
 
 ### Промис (Promise<>)
@@ -43,7 +43,7 @@ ETaskQueue  co_await Coro_TaskQueue
 `MakePromiseFromValue()` - если аргумент dependsOn пустой, то задача не добавляется в очередь.<br/>
 `MakePromiseFrom() и MakePromiseFromArray()` - объединяют результаты промисов в один.
 
-Исходник: [Promise.h](../../src/threading/TaskSystem/Promise.h), [Тесты](../../tests/threading/UnitTest_Promise.cpp)
+Исходник: [Promise.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/Promise.h), [Тесты](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/threading/UnitTest_Promise.cpp)
 
 
 ### Типы очередей (ETaskQueue / EThread)
@@ -57,7 +57,7 @@ ETaskQueue  co_await Coro_TaskQueue
 	- Работа с сетью.
  * __FileIO__ - не является очередью, нужен для передачи управления в ОС, чтобы обработать завершенные асинхронные команды чтения/записи в файл.
  
-Исходник: [EThread.h](../../src/threading/TaskSystem/EThread.h)
+Исходник: [EThread.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/EThread.h)
 
 
 ### Зависимости между задачами
@@ -77,7 +77,7 @@ ETaskQueue  co_await Coro_TaskQueue
 
 Метод `ProcessTask()` вызывается потоком, чтобы найти задачу в указанных очередях и выполнить ее - вызывается `AsyncTask::Run()`, либо если задача отменена, то вызывается `AsyncTask::OnCancel()` и продолжается поиск задачи.
 
-Исходник: [TaskScheduler.h](../../src/threading/TaskSystem/TaskScheduler.h#L260)
+Исходник: [TaskScheduler.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/TaskScheduler.h#L260)
 
 
 ## Кастомизация зависимостей для асинхронных задач (ITaskDependencyManager)
@@ -87,7 +87,7 @@ ETaskQueue  co_await Coro_TaskQueue
 
 Менеджер зависимостей хранит указатель на задачу и номер бита, к которому привязана зависимость.
 
-Исходник: [TaskScheduler.h](../../src/threading/TaskSystem/TaskScheduler.h#L114)
+Исходник: [TaskScheduler.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/TaskScheduler.h#L114)
 
 
 ## Управление потоками (ThreadManager)
@@ -96,5 +96,5 @@ ETaskQueue  co_await Coro_TaskQueue
 
 Если ЦП содержит энергоэффективные ядра, то потоки с `Background, FileIO` будут привязаны к этим ядрам, а потоки с `Main, PerFrame, Renderer` будут привязаны к производительным ядрам ЦП.
 
-Исходник: [ThreadManager.h](../../src/threading/TaskSystem/ThreadManager.h)
+Исходник: [ThreadManager.h](https://github.com/azhirnov/as-en/blob/dev/AE/engine/src/threading/TaskSystem/ThreadManager.h)
 

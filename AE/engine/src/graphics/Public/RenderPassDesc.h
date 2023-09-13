@@ -113,7 +113,8 @@ namespace AE::Graphics
         template <typename T>
         Self&  AddViewport (const Vec<T,2> &size, float minDepth = 0.0f, float maxDepth = 1.0f)                     __NE___;
 
-        Self&  DefaultViewport ()                                                                                   __NE___;
+        Self&  DefaultViewport ()                                                                                   __NE___ { return DefaultViewport( 0.f, 1.f ); }
+        Self&  DefaultViewport (float minDepth, float maxDepth)                                                     __NE___;
     };
 //-----------------------------------------------------------------------------
 
@@ -272,14 +273,15 @@ namespace AE::Graphics
     DefaultViewport
 =================================================
 */
-    inline RenderPassDesc&  RenderPassDesc::DefaultViewport () __NE___
+    inline RenderPassDesc&  RenderPassDesc::DefaultViewport (float minDepth, float maxDepth) __NE___
     {
         ASSERT( viewports.empty() );
+        ASSERT( minDepth < maxDepth );
 
         Viewport&   dst = viewports.emplace_back();
         dst.rect        = RectF{area};
-        dst.minDepth    = 0.0f;
-        dst.maxDepth    = 1.0f;
+        dst.minDepth    = minDepth;
+        dst.maxDepth    = maxDepth;
         return *this;
     }
 

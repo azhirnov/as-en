@@ -108,7 +108,7 @@ namespace
                 break;
         }
         END_ENUM_CHECKS();
-        return false;
+        return true;
     }
 
 

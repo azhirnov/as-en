@@ -234,6 +234,7 @@ namespace AE::ResEditor
         result->_rpDesc.subpassName     = SubpassName{"main"};
         result->_rpDesc.packId          = result->_rtech.packId;
         result->_rpDesc.layerCount      = 1_layer;
+        result->_depthRange             = this->_depthRange;
 
         result->_ubuffer = res_mngr.CreateBuffer( BufferDesc{ SizeOf<ShaderTypes::SceneGraphicsPassUB>, EBufferUsage::Uniform | EBufferUsage::TransferDst },
                                                   "SceneGraphicsPassUB", renderer.GetAllocator() );
@@ -382,7 +383,7 @@ namespace AE::ResEditor
             {
                 RPAttachmentPtr     att     = compat_rp->AddAttachment2( _output[i].name );
                 const auto          desc    = _output[i].rt->ToResource()->GetImageDesc();
-                const bool          is_ds   = _output[i].rt->IsDepthStencil();
+                const bool          is_ds   = _output[i].rt->IsDepthOrStencil();
 
                 att->format     = desc.format;
                 att->samples    = desc.samples;
@@ -394,7 +395,7 @@ namespace AE::ResEditor
             for (usize i = 0; i < _output.size(); ++i)
             {
                 RPAttachmentSpecPtr att     = rp_spec->AddAttachment2( _output[i].name );
-                const bool          is_ds   = _output[i].rt->IsDepthStencil();
+                const bool          is_ds   = _output[i].rt->IsDepthOrStencil();
                 const auto          state   = is_ds ?
                                                 EResourceState::DepthStencilAttachment_RW | EResourceState::DSTestBeforeFS | EResourceState::DSTestAfterFS :
                                                 EResourceState::ColorAttachment;

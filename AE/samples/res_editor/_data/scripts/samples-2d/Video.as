@@ -13,7 +13,7 @@
     {
         // initialize
         RC<Image>       rt      = Image( EPixelFormat::RGBA8_UNorm, SurfaceSize() );
-        RC<VideoImage>  vtex    = VideoImage( "video.mp4" );
+        RC<VideoImage>  vtex    = VideoImage( "res/video/Giannis Troumpadakis.mp4" );
 
         // render loop
         {

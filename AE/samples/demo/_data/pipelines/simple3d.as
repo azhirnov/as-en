@@ -50,13 +50,13 @@ void ASmain ()
         {
             RC<Shader>  vs = Shader();
             vs.Define( "CUBE" );
-            vs.file     = "simple3d.glsl";      // file:///C:/Projects/AllinOne/AE/samples/demo/_data/shaders/simple3d.glsl
+            vs.file     = "simple3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/simple3d.glsl)
             vs.options  = EShaderOpt::Optimize;
             ppln.SetVertexShader( vs );
         }
         {
             RC<Shader>  fs = Shader();
-            fs.file     = "simple3d.glsl";      // file:///C:/Projects/AllinOne/AE/samples/demo/_data/shaders/simple3d.glsl
+            fs.file     = "simple3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/simple3d.glsl)
             fs.options  = EShaderOpt::Optimize;
             ppln.SetFragmentShader( fs );
         }
@@ -88,13 +88,13 @@ void ASmain ()
         {
             RC<Shader>  vs = Shader();
             vs.Define( "SPHERICAL_CUBE" );
-            vs.file     = "simple3d.glsl";      // file:///C:/Projects/AllinOne/AE/samples/demo/_data/shaders/simple3d.glsl
+            vs.file     = "simple3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/simple3d.glsl)
             vs.options  = EShaderOpt::Optimize;
             ppln.SetVertexShader( vs );
         }
         {
             RC<Shader>  fs = Shader();
-            fs.file     = "simple3d.glsl";      // file:///C:/Projects/AllinOne/AE/samples/demo/_data/shaders/simple3d.glsl
+            fs.file     = "simple3d.glsl";      // [src](https://github.com/azhirnov/as-en/blob/dev/AE/samples/demo/_data/shaders/simple3d.glsl)
             fs.options  = EShaderOpt::Optimize;
             ppln.SetFragmentShader( fs );
         }

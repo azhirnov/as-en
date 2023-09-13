@@ -14,7 +14,7 @@
 
     if AE_GRAPHICS_STRONG_VALIDATION enabled then 'IResourceManager::Create***()' may return error if resource description is not valid or not supported.
 
-    docs: file:///<path>/AE/engine/docs/GraphicsResources.md
+    [docs](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/GraphicsResources.md)
 */
 
 #pragma once

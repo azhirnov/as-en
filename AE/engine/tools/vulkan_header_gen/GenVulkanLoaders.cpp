@@ -92,7 +92,7 @@ namespace AE::Vulkan
         #endif
 
         // Vulkan 1.2 core
-        #if 0
+        #if 1
           // VK_KHR_draw_indirect_count
             exclude_fn.erase( "vkCmdDrawIndirectCount" );
             exclude_fn.erase( "vkCmdDrawIndexedIndirectCount" );

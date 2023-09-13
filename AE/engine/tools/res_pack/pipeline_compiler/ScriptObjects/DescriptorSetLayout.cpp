@@ -440,9 +440,13 @@ namespace
                 }
                 case EDescriptorType::SubpassInput :
                 {
+                    CHECK_THROW_MSG( un.image.subpassInputIdx != UMax, "'subpassInputIdx' is not valid" );
+                    String  tmp = ImageToStr( un.image.type, "_" );
+                    FindAndReplace( INOUT tmp, "_2D", "subpassInput" );
+
                     str << "  // state: " << ToString( un.image.state )
-                        << "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ", input_attachment_index=TODO) uniform "
-                        << ImageToStr( un.image.type, "subpassInput" ) << ' ' << name_str
+                        << "\n  layout(set=" << ds_idx << ", binding=" << idx_str << ", input_attachment_index="
+                        << ToString( un.image.subpassInputIdx ) << ") uniform " << tmp << ' ' << name_str
                         << ArraySizeToStr( un.arraySize ) << ";\n";
                     break;
                 }
@@ -1259,14 +1263,22 @@ namespace
         binder.AddGenericMethod< void (uint, const String &, const ArraySize &, EImageType, EResourceState, const String &)             >( &DescriptorSetLayout::_AddCombinedImage_ImmutableSampler, "CombinedImage", {"shaderStages", "uniform", "arraySize", "imageType", "state", "samplerName"} );
 
         binder.Comment( "Add input attachment." );
-        binder.AddGenericMethod< void (EShaderStages, const String &)                               >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform"} );
-        binder.AddGenericMethod< void (uint, const String &)                                        >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform"} );
-        binder.AddGenericMethod< void (EShaderStages, const String &, EImageType)                   >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "imageType"} );
-        binder.AddGenericMethod< void (uint, const String &, EImageType)                            >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "imageType"} );
-        binder.AddGenericMethod< void (EShaderStages, const String &, EResourceState)               >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "state"} );
-        binder.AddGenericMethod< void (uint, const String &, EResourceState)                        >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "state"} );
-        binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EResourceState)   >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "imageType", "state"} );
-        binder.AddGenericMethod< void (uint, const String &, EImageType, EResourceState)            >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "imageType", "state"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &)                                   >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform"} );
+        binder.AddGenericMethod< void (uint, const String &)                                            >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, EImageType)                       >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "imageType"} );
+        binder.AddGenericMethod< void (uint, const String &, EImageType)                                >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "imageType"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, EResourceState)                   >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "state"} );
+        binder.AddGenericMethod< void (uint, const String &, EResourceState)                            >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "state"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, EImageType, EResourceState)       >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "imageType", "state"} );
+        binder.AddGenericMethod< void (uint, const String &, EImageType, EResourceState)                >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "imageType", "state"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, uint)                             >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "inputAttachmentIndex"} );
+        binder.AddGenericMethod< void (uint, const String &, uint)                                      >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "inputAttachmentIndex"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, uint, EImageType)                 >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "inputAttachmentIndex", "imageType"} );
+        binder.AddGenericMethod< void (uint, const String &, uint, EImageType)                          >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "inputAttachmentIndex", "imageType"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, uint, EResourceState)             >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "inputAttachmentIndex", "state"} );
+        binder.AddGenericMethod< void (uint, const String &, uint, EResourceState)                      >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "inputAttachmentIndex", "state"} );
+        binder.AddGenericMethod< void (EShaderStages, const String &, uint, EImageType, EResourceState) >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "inputAttachmentIndex", "imageType", "state"} );
+        binder.AddGenericMethod< void (uint, const String &, uint, EImageType, EResourceState)          >( &DescriptorSetLayout::_AddSubpassInput, "SubpassInput", {"shaderStages", "uniform", "inputAttachmentIndex", "imageType", "state"} );
 
         binder.Comment( "Add separate sampler." );
         binder.AddGenericMethod< void (EShaderStages, const String &)                       >( &DescriptorSetLayout::_AddSampler, "Sampler", {"shaderStages", "uniform"} );
@@ -1851,6 +1863,7 @@ namespace
         EShaderStages   stages          = Default;
         EResourceState  res_state       = EResourceState::InputColorAttachment;
         EImageType      image_type      = EImageType::Img2D | EImageType::Float;
+        uint            sp_index        = UMax;
         String          uniform_name;
 
         if ( args.IsArg< EShaderStages >(idx) ) stages = args.Arg< EShaderStages >(idx++);          else
@@ -1862,6 +1875,9 @@ namespace
         else
             CHECK_THROW_MSG( false, "Required uniform name as 'String'" );
 
+        if ( args.IsArg< uint >(idx) )
+            sp_index = args.Arg< uint >(idx++);
+
         if ( args.IsArg< EImageType >(idx) )
             image_type = args.Arg< EImageType >(idx++);
 
@@ -1869,7 +1885,7 @@ namespace
             res_state = args.Arg< EResourceState >(idx++);
 
         CHECK_THROW_MSG( idx == args.ArgCount() );
-        args.GetObject< DescriptorSetLayout >()->AddSubpassInput( stages, uniform_name, image_type, res_state );
+        args.GetObject< DescriptorSetLayout >()->AddSubpassInput( stages, uniform_name, sp_index, image_type, res_state );
     }
 
 /*
@@ -2238,7 +2254,6 @@ namespace
         CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
         _CheckUniformName( name );
-        //_CheckArraySize( arraySize );
         _CheckSamplerName( samplerName );
 
         Uniform         un;
@@ -2262,7 +2277,7 @@ namespace
     AddSubpassInput
 =================================================
 */
-    void  DescriptorSetLayout::AddSubpassInput (EShaderStages stages, const String &name, EImageType type, EResourceState state) __Th___
+    void  DescriptorSetLayout::AddSubpassInput (EShaderStages stages, const String &name, uint index, EImageType type, EResourceState state) __Th___
     {
         switch ( ToEResState( state )) {
             case _EResState::InputColorAttachment :
@@ -2278,7 +2293,6 @@ namespace
         CHECK_THROW_MSG( (type & EImageType::_ValMask) != Default );
 
         _CheckUniformName( name );
-        //_CheckArraySize( arraySize );
 
         Uniform         un;
         un.type         = EDescriptorType::SubpassInput;
@@ -2289,7 +2303,8 @@ namespace
         un.image.state  = state;
         un.image.type   = type;
         un.image.format = Default;
-        //un.image.subpassInputIdx  // TODO
+
+        un.image.subpassInputIdx = (index == UMax ? 0xFF : ubyte(index));
 
         _dsLayout.uniforms.emplace_back( UniformName{name}, un );
     }
@@ -2383,7 +2398,7 @@ namespace
             if ( (img_type & EImageType::_ValMask) >= EImageType::Depth )
                 state = (usage.type == EAttachment::ReadWrite ? EResourceState::InputDepthStencilAttachment_RW : EResourceState::InputDepthStencilAttachment);
 
-            AddSubpassInput( EShaderStages::Fragment, storage.GetName( usage.input.name ), img_type, state );
+            AddSubpassInput( EShaderStages::Fragment, storage.GetName( usage.input.name ), usage.input.index, img_type, state );
         }
     }
 

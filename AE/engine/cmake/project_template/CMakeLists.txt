@@ -1,7 +1,6 @@
 # Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 
 set( CMAKE_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake" )
-set( DOCS_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../docs" )
 set( EXTERNAL_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../external" )
 
 include( "${CMAKE_FOLDER}/compilers.cmake" )
@@ -11,17 +10,13 @@ include( "${CMAKE_FOLDER}/compiler_tests.cmake" )
 
 file( GLOB_RECURSE SOURCES "*.*" )
 file( GLOB_RECURSE CMAKE_SOURCES "${CMAKE_FOLDER}/*.*" )
-file( GLOB_RECURSE DOC_FILES "${DOCS_FOLDER}/*.*" )
 file( GLOB_RECURSE EXERNAL_CMAKE "${EXTERNAL_FOLDER}/*/CMakeLists.txt" )
-set( README "${CMAKE_CURRENT_SOURCE_DIR}/../../../../Readme.md" )
 
-add_library( "ProjectTemplate" STATIC EXCLUDE_FROM_ALL ${SOURCES} ${CMAKE_SOURCES} ${DOC_FILES} ${EXERNAL_CMAKE} ${README} )
+add_library( "ProjectTemplate" STATIC EXCLUDE_FROM_ALL ${SOURCES} ${CMAKE_SOURCES} ${EXERNAL_CMAKE} )
 set_property( TARGET "ProjectTemplate" PROPERTY FOLDER "Engine/Tools" )
 source_group( TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCES} )
 source_group( TREE "${CMAKE_FOLDER}/.." FILES ${CMAKE_SOURCES} )
-source_group( TREE "${DOCS_FOLDER}/.." FILES ${DOC_FILES} )
 source_group( TREE "${EXTERNAL_FOLDER}/.." FILES ${EXERNAL_CMAKE} )
-source_group( "" ${README} )
 
 target_compile_definitions( "ProjectTemplate" PUBLIC ${AE_COMPILER_DEFINITIONS} )
 

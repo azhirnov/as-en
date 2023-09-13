@@ -1121,13 +1121,71 @@ namespace
     Bind_RenderState_StencilBufferState
 =================================================
 */
+    static void  RenderState_StencilBufferState_FailOp (RenderState::StencilBufferState &self, EStencilOp op)
+    {
+        self.enabled        = true;
+        self.front.failOp   = op;
+        self.back.failOp    = op;
+    }
+
+    static void  RenderState_StencilBufferState_DepthFailOp (RenderState::StencilBufferState &self, EStencilOp op)
+    {
+        self.enabled            = true;
+        self.front.depthFailOp  = op;
+        self.back.depthFailOp   = op;
+    }
+
+    static void  RenderState_StencilBufferState_PassOp (RenderState::StencilBufferState &self, EStencilOp op)
+    {
+        self.enabled        = true;
+        self.front.passOp   = op;
+        self.back.passOp    = op;
+    }
+
+    static void  RenderState_StencilBufferState_CompareOp (RenderState::StencilBufferState &self, ECompareOp op)
+    {
+        self.enabled            = true;
+        self.front.compareOp    = op;
+        self.back.compareOp     = op;
+    }
+
+    static void  RenderState_StencilBufferState_Reference (RenderState::StencilBufferState &self, ubyte value)
+    {
+        self.enabled            = true;
+        self.front.reference    = value;
+        self.back.reference     = value;
+    }
+
+    static void  RenderState_StencilBufferState_WriteMask (RenderState::StencilBufferState &self, ubyte value)
+    {
+        self.enabled            = true;
+        self.front.writeMask    = value;
+        self.back.writeMask     = value;
+    }
+
+    static void  RenderState_StencilBufferState_CompareMask (RenderState::StencilBufferState &self, ubyte value)
+    {
+        self.enabled            = true;
+        self.front.compareMask  = value;
+        self.back.compareMask   = value;
+    }
+
     static void  Bind_RenderState_StencilBufferState (const ScriptEnginePtr &se) __Th___
     {
         ClassBinder<RenderState::StencilBufferState>    binder{ se };
         binder.CreateClassValue();
+
         binder.AddProperty( &RenderState::StencilBufferState::front,    "front" );
         binder.AddProperty( &RenderState::StencilBufferState::back,     "back" );
         binder.AddProperty( &RenderState::StencilBufferState::enabled,  "enabled" );
+
+        binder.AddMethodFromGlobal( &RenderState_StencilBufferState_FailOp,         "FailOp",       {} );
+        binder.AddMethodFromGlobal( &RenderState_StencilBufferState_DepthFailOp,    "DepthFailOp",  {} );
+        binder.AddMethodFromGlobal( &RenderState_StencilBufferState_PassOp,         "PassOp",       {} );
+        binder.AddMethodFromGlobal( &RenderState_StencilBufferState_CompareOp,      "CompareOp",    {} );
+        binder.AddMethodFromGlobal( &RenderState_StencilBufferState_Reference,      "Reference",    {} );
+        binder.AddMethodFromGlobal( &RenderState_StencilBufferState_WriteMask,      "WriteMask",    {} );
+        binder.AddMethodFromGlobal( &RenderState_StencilBufferState_CompareMask,    "CompareMask",  {} );
     }
 
 /*

@@ -232,10 +232,47 @@ void VRSRenderPass ()
 }
 
 
+void  RenderPassWithInput ()
+{
+    RC<CompatibleRenderPass>    compat = CompatibleRenderPass( "StencilView.RPass" );
+    compat.AddFeatureSet( "MinDesktop" );
+
+    const string    pass = "Main";
+    compat.AddSubpass( pass );
+
+    {
+        RC<Attachment>  rt  = compat.AddAttachment( "Color" );
+        rt.format       = EPixelFormat::RGBA8_UNorm;
+        rt.Usage( pass, EAttachment::Color, ShaderIO("out_Color") );
+    }{
+        RC<Attachment>  rt  = compat.AddAttachment( "Stencil" );
+        rt.format       = EPixelFormat::Depth32F_Stencil8;
+        rt.Usage( pass, EAttachment::Input, ShaderIO("in_Stencil") );
+    }
+
+    // specialization
+    {
+        RC<RenderPass>      rp = compat.AddSpecialization( "StencilView.RPass" );
+        {
+            RC<AttachmentSpec>  rt = rp.AddAttachment( "Color" );
+            rt.loadOp   = EAttachmentLoadOp::Invalidate;
+            rt.storeOp  = EAttachmentStoreOp::Store;
+            rt.Layout( pass, EResourceState::ColorAttachment );
+        }{
+            RC<AttachmentSpec>  rt = rp.AddAttachment( "Stencil" );
+            rt.loadOp   = EAttachmentLoadOp::Load;
+            rt.storeOp  = EAttachmentStoreOp::None;
+            rt.Layout( pass, EResourceState::InputDepthStencilAttachment | EResourceState::FragmentShader );
+        }
+    }
+}
+
+
 void ASmain ()
 {
     SimpleRenderPass();
     RenderPass2();
     UIRenderPass();
     VRSRenderPass();
+    RenderPassWithInput();
 }

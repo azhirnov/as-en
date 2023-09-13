@@ -60,6 +60,7 @@ namespace AE::ResEditor
             NoCopy,
             Histogram,
             LinearDepth,
+            Stencil,
             _Count
         };
 
@@ -118,6 +119,26 @@ namespace AE::ResEditor
         public:
             LinearDepth (const Image &src, const Image &copy)                       __Th___;
             ~LinearDepth ();
+
+            bool  Execute (const Image &src, const Image &copy, SyncPassData &)     C____OV;
+        };
+
+
+        //
+        // Stencil View
+        //
+        class StencilView final : public IAdditionalPass
+        {
+        private:
+            RenderTechPipelinesPtr  _rtech;
+
+            GraphicsPipelineID      _ppln;
+            DescSetBinding          _pplnDSIdx;
+            PerFrameDescSet_t       _pplnDS;
+
+        public:
+            StencilView (const Image &src, const Image &copy)                       __Th___;
+            ~StencilView ();
 
             bool  Execute (const Image &src, const Image &copy, SyncPassData &)     C____OV;
         };

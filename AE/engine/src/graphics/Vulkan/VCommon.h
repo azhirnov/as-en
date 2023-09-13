@@ -1,9 +1,9 @@
 // Copyright (c) Zhirnov Andrey. For more information see 'LICENSE'
 /*
     docs:
-        https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html
+        [Vulkan spec](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/vkspec.html)
 
-    supported features: file:///<path>/AE/engine/docs/VulkanFeatures.md
+    [supported features](https://github.com/azhirnov/as-en/blob/dev/AE/engine/docs/VulkanFeatures.md)
 */
 
 #pragma once

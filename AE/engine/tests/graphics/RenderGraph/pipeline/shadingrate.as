@@ -7,14 +7,14 @@ void PerDrawSRPipeline ()
 
     {
         RC<Shader>  vs  = Shader();
-        vs.file     = "shadingrate.glsl";           // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl
+        vs.file     = "shadingrate.glsl";           // [src](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl)
         vs.options  = EShaderOpt::Optimize;
         vs.Define( "PER_DRAW_SHADING_RATE" );
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file     = "shadingrate.glsl";           // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl
+        fs.file     = "shadingrate.glsl";           // [src](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl)
         fs.options  = EShaderOpt::Optimize;
         fs.Define( "PER_DRAW_SHADING_RATE" );
         ppln.SetFragmentShader( fs );
@@ -49,14 +49,14 @@ void PerPrimitiveSRPipeline ()
 
     {
         RC<Shader>  vs  = Shader();
-        vs.file     = "shadingrate.glsl";           // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl
+        vs.file     = "shadingrate.glsl";           // [src](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl)
         vs.options  = EShaderOpt::Optimize;
         vs.Define( "PER_PRIMITIVE_SHADING_RATE" );
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file     = "shadingrate.glsl";           // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl
+        fs.file     = "shadingrate.glsl";           // [src](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl)
         fs.options  = EShaderOpt::Optimize;
         fs.Define( "PER_PRIMITIVE_SHADING_RATE" );
         ppln.SetFragmentShader( fs );
@@ -83,14 +83,14 @@ void AttachmentSRPipeline ()
 
     {
         RC<Shader>  vs  = Shader();
-        vs.file     = "shadingrate.glsl";           // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl
+        vs.file     = "shadingrate.glsl";           // [src](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl)
         vs.options  = EShaderOpt::Optimize;
         vs.Define( "ATTACHMENT_SHADING_RATE" );
         ppln.SetVertexShader( vs );
     }
     {
         RC<Shader>  fs  = Shader();
-        fs.file     = "shadingrate.glsl";           // file:///<path>/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl
+        fs.file     = "shadingrate.glsl";           // [src](https://github.com/azhirnov/as-en/blob/dev/AE/engine/tests/graphics/RenderGraph/shaders/shadingrate.glsl)
         fs.options  = EShaderOpt::Optimize;
         fs.Define( "ATTACHMENT_SHADING_RATE" );
         ppln.SetFragmentShader( fs );
